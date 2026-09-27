@@ -73,6 +73,28 @@ function refreshBadges() {
   }
 }
 
+// iPad Safari ignores user-scalable=no: block double-tap and pinch page zoom, which would
+// otherwise zoom the whole page with no way back (the game swallows the gestures).
+for (const t of ['gesturestart', 'gesturechange', 'gestureend', 'dblclick']) document.addEventListener(t, (e) => e.preventDefault(), { passive: false });
+let lastTouchEnd = 0;
+document.addEventListener(
+  'touchend',
+  (e) => {
+    const now = performance.now();
+    // a quick second tap is a zoom gesture; menus keep their taps (they cannot zoom: touch-action)
+    if (now - lastTouchEnd < 350 && !e.target.closest?.('.overlay')) e.preventDefault();
+    lastTouchEnd = now;
+  },
+  { passive: false }
+);
+document.addEventListener(
+  'touchmove',
+  (e) => {
+    if (e.touches.length > 1 || !e.target.closest?.('.pbody')) e.preventDefault();
+  },
+  { passive: false }
+);
+
 addEventListener('resize', () => view.resize());
 addEventListener('orientationchange', () => setTimeout(() => view.resize(), 200));
 document.addEventListener('visibilitychange', () => {

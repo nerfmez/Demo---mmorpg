@@ -49,6 +49,32 @@ async function run(name, contextOpts) {
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${OUT}${name}-1-town.png` });
 
+  if (contextOpts.hasTouch) {
+    // the visible joystick must be touchable: a touch on it reaches the joystick zone and walks
+    const joy = await page.evaluate(async () => {
+      const f = window.__frontier;
+      const el = document.querySelector('.joy');
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const hit = document.elementFromPoint(cx, cy);
+      const x0 = f.game.player.x;
+      const opts = (x, y) => ({ pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y, bubbles: true });
+      hit.dispatchEvent(new PointerEvent('pointerdown', opts(cx, cy)));
+      hit.dispatchEvent(new PointerEvent('pointermove', opts(cx + 60, cy)));
+      await new Promise((res) => setTimeout(res, 50));
+      f.input.update();
+      const moveX = f.game.input.moveX;
+      hit.dispatchEvent(new PointerEvent('pointerup', opts(cx + 60, cy)));
+      f.input.update();
+      return { hit: hit.className, moveX, x0, released: f.game.input.moveX };
+    });
+    check(joy.hit === 'joyzone', `${name}: touching the drawn joystick hits the joystick zone (${joy.hit})`);
+    check(joy.moveX > 0.5 && joy.released === 0, `${name}: joystick drag walks right, release stops (${joy.moveX.toFixed(2)})`);
+    const ta = await page.evaluate(() => getComputedStyle(document.querySelector('.sbtn.attack')).touchAction);
+    check(ta === 'none', `${name}: buttons block double-tap zoom (touch-action ${ta})`);
+  }
+
   // walk to the meadow and fight through the game API
   const res = await page.evaluate(async () => {
     const { game, input } = window.__frontier;

@@ -6,6 +6,15 @@
 //     (area skills place a circle; others pick a direction). Release to cast.
 import { icon } from './icons.js';
 
+/** Pointer capture keeps a drag on its control; it can fail (synthetic or already-ended pointers). */
+const capture = (el, id) => {
+  try {
+    el.setPointerCapture(id);
+  } catch {
+    /* the control still works without capture */
+  }
+};
+
 const h = (html) => {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
@@ -88,7 +97,10 @@ export class Input {
     // pinch zoom (two fingers on the canvas)
     this.pinch = new Map();
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch') this.pinch.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (e.pointerType !== 'touch') return;
+      if (this.pinch.size >= 2) this.pinch.clear(); // drop stale fingers
+      this.pinch.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      capture(canvas, e.pointerId);
     });
     canvas.addEventListener('pointermove', (e) => {
       if (!this.pinch.has(e.pointerId)) return;
@@ -100,6 +112,7 @@ export class Input {
     const endPinch = (e) => this.pinch.delete(e.pointerId);
     canvas.addEventListener('pointerup', endPinch);
     canvas.addEventListener('pointercancel', endPinch);
+    canvas.addEventListener('lostpointercapture', endPinch);
 
     if (matchMedia('(pointer: coarse)').matches) this.setTouch(true);
   }
@@ -184,7 +197,7 @@ export class Input {
       e.preventDefault();
       e.stopPropagation();
       if (e.pointerType !== 'mouse') this.setTouch(true);
-      b.setPointerCapture(e.pointerId);
+      capture(b, e.pointerId);
       start = { x: e.clientX, y: e.clientY, id: e.pointerId, t: performance.now(), dragging: false };
       if (i === 0) this.held.add(0);
     });
@@ -261,7 +274,7 @@ export class Input {
       e.preventDefault();
       e.stopPropagation();
       if (e.pointerType !== 'mouse') this.setTouch(true);
-      b.setPointerCapture(e.pointerId);
+      capture(b, e.pointerId);
       start = { x: e.clientX, y: e.clientY, id: e.pointerId };
     });
     const end = (e) => {
@@ -308,7 +321,7 @@ export class Input {
       if (this.ui.panelOpen()) return;
       e.preventDefault();
       this.setTouch(true);
-      z.setPointerCapture(e.pointerId);
+      capture(z, e.pointerId);
       this.joy = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dz: 0 };
       place(e.clientX, e.clientY);
       this.joyEl.classList.add('on');

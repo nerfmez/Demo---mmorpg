@@ -23,6 +23,8 @@
 
 * {
   box-sizing: border-box;
+  /* touch-action is not inherited: set it everywhere so iPad Safari never double-tap zooms */
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -56,6 +58,10 @@ body {
 }
 #hud > * {
   pointer-events: auto;
+}
+/* the joystick picture must never swallow the touch meant for the joystick zone under it */
+#hud > .joy {
+  pointer-events: none;
 }
 #hud .passive,
 #hud .passive * {
@@ -654,6 +660,13 @@ body.touch .hint {
   padding: 14px;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+}
+.pbody * {
+  touch-action: pan-y;
+}
+.tabs,
+.tabs * {
+  touch-action: pan-x;
 }
 .pbody h3 {
   margin: 4px 0 8px;

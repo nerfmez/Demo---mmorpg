@@ -1,0 +1,51 @@
+{
+  "_doc": "Character Level gives Stat Points. Job Level (separate EXP) gives Job Points for the Job Tree. Skill/Mod levels are raised with materials + gold. Respec costs in-game gold only.",
+  "character": {
+    "maxLevel": 30,
+    "expCurve": { "base": 20, "exponent": 1.55 },
+    "statPointsPerLevel": 3,
+    "startingStatPoints": 4,
+    "startingStats": { "STR": 3, "AGI": 3, "VIT": 3, "INT": 3, "DEX": 3 },
+    "base": { "hp": 90, "hpPerLevel": 10, "hpPerVit": 9, "mp": 40, "mpPerLevel": 3, "mpPerInt": 4, "mpRegen": 2.5, "hpRegen": 0.6, "moveSpeed": 6.0 },
+    "perStat": {
+      "STR": { "attack": 1.2 },
+      "INT": { "magic": 1.2 },
+      "VIT": { "defense": 0.4, "barrierPct": 2 },
+      "AGI": { "moveSpeedPct": 1, "cooldownPct": 0.6 },
+      "DEX": { "critChancePct": 0.6, "projectileDamagePct": 1.5 }
+    },
+    "critMult": 1.5,
+    "baseCritChancePct": 5
+  },
+  "job": {
+    "maxLevel": 15,
+    "expCurve": { "base": 15, "exponent": 1.45 },
+    "pointsPerLevel": 1,
+    "jobChoiceLevel": 5
+  },
+  "respec": {
+    "_doc": "Town only. Gold only: no rare items, no real money.",
+    "statsGoldPerLevel": 15,
+    "jobGoldPerLevel": 12
+  },
+  "skillUpgrade": {
+    "_doc": "Level N -> N+1 costs its upgradeMaterial x (N+1) and gold. Each level: +12% damage/heal/barrier.",
+    "maxLevel": 5,
+    "perLevel": 0.12,
+    "goldPerLevel": 25
+  },
+  "modUpgrade": {
+    "maxLevel": 3,
+    "cost": [ { "ruin_shard": 1, "glow_dust": 2, "gold": 40 }, { "ruin_shard": 2, "glow_dust": 3, "gold": 80 } ]
+  },
+  "monsterScaling": { "hpPerLevel": 0.22, "damagePerLevel": 0.14, "defensePerLevel": 0.1, "expPerLevel": 0.2 },
+  "start": {
+    "skills": { "slash": 1, "firebolt": 1, "ward": 1 },
+    "movementSkills": ["dash", "roll"],
+    "slots": ["slash", "firebolt", "ward", null],
+    "movement": "dash",
+    "gear": ["rusty_sword", "travel_tunic"],
+    "gold": 30
+  },
+  "slotCount": 4
+}

@@ -1,0 +1,61 @@
+{
+  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) is separate from Grade and uses ruin_shard.",
+  "materials": {
+    "boar_hide": { "name": "Boar Hide", "nameTh": "หนังหมูป่า", "color": "#8a5a3a", "value": 3 },
+    "boar_tusk": { "name": "Boar Tusk", "nameTh": "เขี้ยวหมูป่า", "color": "#efe3c4", "value": 5 },
+    "beetle_shell": { "name": "Beetle Shell", "nameTh": "กระดองด้วง", "color": "#5f8a3c", "value": 5 },
+    "venom_gland": { "name": "Venom Gland", "nameTh": "ต่อมพิษ", "color": "#9bd04a", "value": 8 },
+    "wisp_core": { "name": "Wisp Core", "nameTh": "แกนภูตไฟ", "color": "#6fd7ff", "value": 10 },
+    "glow_dust": { "name": "Glow Dust", "nameTh": "ผงเรืองแสง", "color": "#c6f0ff", "value": 4 },
+    "ruin_shard": { "name": "Ruin Shard", "nameTh": "เศษซากโบราณ", "color": "#b9a6d8", "value": 12 },
+    "warden_horn": { "name": "Warden Horn", "nameTh": "เขาผู้พิทักษ์", "color": "#d9cfb8", "value": 60 },
+    "ancient_core": { "name": "Ancient Core", "nameTh": "แกนโบราณ", "color": "#ffcf5a", "value": 90 }
+  },
+  "gearBases": {
+    "rusty_sword": { "name": "Rusty Sword", "nameTh": "ดาบสนิม", "slot": "weapon", "weaponType": "sword", "stats": { "attack": 6, "magic": 2 }, "requires": {} },
+    "tusk_blade": { "name": "Tusk Blade", "nameTh": "ดาบเขี้ยวหมูป่า", "slot": "weapon", "weaponType": "sword", "stats": { "attack": 16, "magic": 2 }, "requires": { "STR": 6 } },
+    "wisp_staff": { "name": "Wisp Staff", "nameTh": "คทาภูตไฟ", "slot": "weapon", "weaponType": "staff", "stats": { "attack": 5, "magic": 17 }, "requires": { "INT": 6 } },
+    "ancient_staff": { "name": "Ancient Core Staff", "nameTh": "คทาแกนโบราณ", "slot": "weapon", "weaponType": "staff", "stats": { "attack": 8, "magic": 30 }, "requires": { "INT": 10 } },
+    "horn_greatblade": { "name": "Horn Greatblade", "nameTh": "ดาบใหญ่เขาผู้พิทักษ์", "slot": "weapon", "weaponType": "sword", "stats": { "attack": 30, "magic": 8 }, "requires": { "STR": 10 } },
+    "travel_tunic": { "name": "Travel Tunic", "nameTh": "เสื้อเดินทาง", "slot": "armor", "stats": { "defense": 3, "maxHp": 10 }, "requires": {} },
+    "hide_vest": { "name": "Hide Vest", "nameTh": "เสื้อหนังหมูป่า", "slot": "armor", "stats": { "defense": 8, "maxHp": 30 }, "requires": {} },
+    "shell_guard": { "name": "Shell Guard", "nameTh": "เกราะกระดองด้วง", "slot": "armor", "stats": { "defense": 16, "maxHp": 20 }, "requires": { "VIT": 6 } }
+  },
+  "gearOptions": {
+    "_doc": "Options a crafted item can roll. Materials in the recipe decide the pool (see recipes.json optionPool).",
+    "attack_flat": { "label": "+{v} Attack", "labelTh": "พลังโจมตี +{v}", "stat": "attack", "min": 2, "max": 6 },
+    "magic_flat": { "label": "+{v} Magic", "labelTh": "พลังเวท +{v}", "stat": "magic", "min": 2, "max": 6 },
+    "melee_pct": { "label": "+{v}% melee damage", "labelTh": "ดาเมจระยะประชิด +{v}%", "stat": "meleeDamagePct", "min": 5, "max": 14 },
+    "projectile_pct": { "label": "+{v}% projectile damage", "labelTh": "ดาเมจกระสุน +{v}%", "stat": "projectileDamagePct", "min": 5, "max": 14 },
+    "area_pct": { "label": "+{v}% area damage", "labelTh": "ดาเมจวงกว้าง +{v}%", "stat": "areaDamagePct", "min": 5, "max": 14 },
+    "poison_on_hit": { "label": "{v}% chance to poison", "labelTh": "โอกาสติดพิษ {v}%", "stat": "poisonChancePct", "min": 8, "max": 20 },
+    "crit_pct": { "label": "+{v}% crit chance", "labelTh": "โอกาสคริติคอล +{v}%", "stat": "critChancePct", "min": 2, "max": 6 },
+    "hp_flat": { "label": "+{v} Max HP", "labelTh": "HP สูงสุด +{v}", "stat": "maxHp", "min": 10, "max": 30 },
+    "mp_flat": { "label": "+{v} Max MP", "labelTh": "MP สูงสุด +{v}", "stat": "maxMp", "min": 8, "max": 20 },
+    "defense_flat": { "label": "+{v} Defense", "labelTh": "ป้องกัน +{v}", "stat": "defense", "min": 2, "max": 7 },
+    "barrier_pct": { "label": "+{v}% barrier", "labelTh": "เกราะเวท +{v}%", "stat": "barrierPct", "min": 8, "max": 20 },
+    "heal_pct": { "label": "+{v}% healing", "labelTh": "การฟื้นฟู +{v}%", "stat": "healPct", "min": 8, "max": 20 },
+    "move_pct": { "label": "+{v}% move speed", "labelTh": "ความเร็วเดิน +{v}%", "stat": "moveSpeedPct", "min": 3, "max": 8 },
+    "cdr_pct": { "label": "{v}% faster cooldowns", "labelTh": "คูลดาวน์เร็วขึ้น {v}%", "stat": "cooldownPct", "min": 3, "max": 8 }
+  },
+  "grades": {
+    "_doc": "Crafted Grade is random and separate from Upgrade (+N).",
+    "order": ["C", "B", "A", "S"],
+    "weights": { "C": 45, "B": 35, "A": 16, "S": 4 },
+    "statMult": { "C": 0.85, "B": 1.0, "A": 1.15, "S": 1.3 },
+    "optionCount": { "C": 0, "B": 1, "A": 2, "S": 3 },
+    "colors": { "C": "#b8b8b8", "B": "#6fcf6f", "A": "#5aa9ff", "S": "#ffb347" }
+  },
+  "upgrade": {
+    "_doc": "Upgrade (+N) is separate from Grade. Always succeeds in the demo; fail/success is not locked yet.",
+    "max": 5,
+    "statPerLevel": 0.08,
+    "cost": [
+      { "ruin_shard": 1, "gold": 30 },
+      { "ruin_shard": 1, "gold": 60 },
+      { "ruin_shard": 2, "gold": 100 },
+      { "ruin_shard": 2, "gold": 150 },
+      { "ruin_shard": 3, "gold": 220 }
+    ]
+  }
+}

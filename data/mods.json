@@ -1,0 +1,91 @@
+{
+  "_doc": "Skill Mods change how a skill behaves. A mod fits a skill only when the skill has ALL tags in requiresAll and at least one tag in requiresAny (when listed), and none of excludes. Each mod has levels 1-3; values are per level.",
+  "mods": {
+    "split": {
+      "name": "Split",
+      "nameTh": "แตกกระสุน",
+      "desc": "ยิงกระสุนเพิ่มเป็นรูปพัด แต่ละลูกแรงลดลง",
+      "tags": ["Projectile"],
+      "requiresAll": ["Projectile"],
+      "effect": { "extraProjectiles": [2, 2, 3], "spread": 28, "damageMult": [0.7, 0.78, 0.78] },
+      "requires": { "DEX": 5 }
+    },
+    "pierce": {
+      "name": "Pierce",
+      "nameTh": "ทะลุ",
+      "desc": "กระสุนทะลุผ่านศัตรูได้หลายตัว",
+      "tags": ["Projectile"],
+      "requiresAll": ["Projectile"],
+      "effect": { "pierce": [2, 3, 4] },
+      "requires": {}
+    },
+    "bounce": {
+      "name": "Ricochet",
+      "nameTh": "เด้ง",
+      "desc": "กระสุนเด้งไปหาศัตรูตัวใกล้เคียง",
+      "tags": ["Projectile"],
+      "requiresAll": ["Projectile"],
+      "effect": { "chain": [1, 2, 2], "chainRange": 6, "damageMult": [0.9, 0.9, 1.0] },
+      "requires": { "DEX": 6 }
+    },
+    "burning_ground": {
+      "name": "Burning Ground",
+      "nameTh": "ทิ้งไฟบนพื้น",
+      "desc": "จุดที่โดนจะติดไฟชั่วคราว ศัตรูที่ยืนอยู่จะโดนดาเมจต่อเนื่อง",
+      "tags": ["Area", "Fire", "Persistent"],
+      "requiresAll": ["Damage"],
+      "requiresAny": ["Projectile", "Area", "Melee"],
+      "effect": { "groundDps": [0.35, 0.45, 0.55], "groundDuration": 3, "groundRadius": 1.6 },
+      "requires": {}
+    },
+    "echo": {
+      "name": "Echo",
+      "nameTh": "สะท้อนซ้ำ",
+      "desc": "สกิลพื้นที่จะเกิดซ้ำอีกครั้งหลังจากนั้นครู่หนึ่ง",
+      "tags": ["Area"],
+      "requiresAll": ["Area"],
+      "excludes": ["Guard"],
+      "effect": { "echoDelay": 0.6, "echoMult": [0.6, 0.7, 0.8] },
+      "requires": { "INT": 8 }
+    },
+    "wide_arc": {
+      "name": "Wide Arc",
+      "nameTh": "กวาดกว้าง",
+      "desc": "ฟันกว้างและไกลขึ้น",
+      "tags": ["Melee"],
+      "requiresAll": ["Melee"],
+      "effect": { "arcAdd": [60, 80, 100], "rangeAdd": [0.5, 0.7, 0.9] },
+      "requires": { "STR": 6 }
+    },
+    "frost_shift": {
+      "name": "Frost Shift",
+      "nameTh": "เปลี่ยนเป็นน้ำแข็ง",
+      "desc": "เปลี่ยนธาตุของสกิลเป็นน้ำแข็ง ศัตรูที่โดนจะช้าลง",
+      "tags": ["Cold"],
+      "requiresAll": ["Damage"],
+      "effect": { "element": "cold", "chillSlow": [0.3, 0.35, 0.4], "chillDuration": 2 },
+      "requires": {}
+    },
+    "spiked_ward": {
+      "name": "Spiked Ward",
+      "nameTh": "โล่หนาม",
+      "desc": "ศัตรูที่ตีโดนเกราะจะโดนสะท้อนดาเมจ แนวแท็งก์",
+      "tags": ["Guard"],
+      "requiresAll": ["Guard"],
+      "effect": { "reflect": [0.5, 0.7, 0.9], "tauntRadius": 6 },
+      "requires": { "VIT": 6 }
+    },
+    "cast_on_dodge": {
+      "name": "Cast on Dodge",
+      "nameTh": "ร่ายเมื่อหลบ",
+      "desc": "เมื่อใช้สกิลเคลื่อนที่ สกิลนี้จะร่ายเองโดยไม่ใช้ MP (คูลดาวน์ภายใน 1 วินาที)",
+      "tags": ["Trigger"],
+      "requiresAll": ["Spell"],
+      "requiresAny": ["Area", "Projectile"],
+      "excludes": ["Guard"],
+      "effect": { "trigger": "on_movement", "internalCooldown": [1.2, 1.0, 0.8], "damageMult": [0.7, 0.8, 0.9] },
+      "requires": { "AGI": 8 }
+    }
+  },
+  "maxModsPerSkill": 2
+}

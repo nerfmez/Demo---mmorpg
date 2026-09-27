@@ -1,0 +1,33 @@
+{
+  "name": "frontier-demo",
+  "version": "1.0.0",
+  "description": "Anime-style top-down MMORPG + buildcraft demo (1 map), Three.js, Godot-port ready",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "test": "node --test \"tests/core/*.test.js\"",
+    "test:browser": "node tests/browser/smoke.mjs",
+    "export:layout": "node scripts/export-layout.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nerfmez/demo---mmorpg.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/nerfmez/demo---mmorpg/issues"
+  },
+  "homepage": "https://github.com/nerfmez/demo---mmorpg#readme",
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1",
+    "vite": "^8.3.1"
+  },
+  "private": true,
+  "type": "module"
+}

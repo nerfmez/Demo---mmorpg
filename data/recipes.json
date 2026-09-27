@@ -1,0 +1,25 @@
+{
+  "_doc": "Workbench recipes (town). type gear -> rolls Grade + options from optionPool. type skill -> teaches a combat skill. type mod -> creates a mod item. Skill and mod levels are raised with materials (see progression.json).",
+  "recipes": {
+    "tusk_blade": { "type": "gear", "result": "tusk_blade", "cost": { "boar_tusk": 4, "boar_hide": 2, "gold": 20 }, "optionPool": ["attack_flat", "melee_pct", "crit_pct", "poison_on_hit"] },
+    "wisp_staff": { "type": "gear", "result": "wisp_staff", "cost": { "wisp_core": 2, "glow_dust": 3, "gold": 30 }, "optionPool": ["magic_flat", "area_pct", "projectile_pct", "mp_flat", "cdr_pct", "heal_pct"] },
+    "horn_greatblade": { "type": "gear", "result": "horn_greatblade", "cost": { "warden_horn": 2, "boar_tusk": 4, "ruin_shard": 2, "gold": 120 }, "optionPool": ["attack_flat", "melee_pct", "crit_pct", "hp_flat", "defense_flat"] },
+    "ancient_staff": { "type": "gear", "result": "ancient_staff", "cost": { "ancient_core": 1, "wisp_core": 3, "ruin_shard": 2, "gold": 120 }, "optionPool": ["magic_flat", "area_pct", "projectile_pct", "heal_pct", "cdr_pct", "mp_flat"] },
+    "hide_vest": { "type": "gear", "result": "hide_vest", "cost": { "boar_hide": 5, "gold": 15 }, "optionPool": ["hp_flat", "defense_flat", "move_pct"] },
+    "shell_guard": { "type": "gear", "result": "shell_guard", "cost": { "beetle_shell": 4, "venom_gland": 1, "gold": 30 }, "optionPool": ["defense_flat", "hp_flat", "barrier_pct", "poison_on_hit"] },
+
+    "learn_stone_burst": { "type": "skill", "result": "stone_burst", "cost": { "beetle_shell": 3, "glow_dust": 1, "gold": 25 } },
+    "learn_healing_spring": { "type": "skill", "result": "healing_spring", "cost": { "glow_dust": 3, "boar_hide": 2, "gold": 25 } },
+    "learn_blink": { "type": "movement", "result": "blink", "cost": { "wisp_core": 2, "glow_dust": 2, "gold": 40 } },
+
+    "mod_split": { "type": "mod", "result": "split", "cost": { "boar_tusk": 2, "glow_dust": 2, "gold": 20 } },
+    "mod_pierce": { "type": "mod", "result": "pierce", "cost": { "boar_tusk": 3, "gold": 15 } },
+    "mod_bounce": { "type": "mod", "result": "bounce", "cost": { "wisp_core": 1, "boar_tusk": 1, "gold": 20 } },
+    "mod_burning_ground": { "type": "mod", "result": "burning_ground", "cost": { "venom_gland": 2, "boar_hide": 1, "gold": 20 } },
+    "mod_echo": { "type": "mod", "result": "echo", "cost": { "wisp_core": 2, "gold": 30 } },
+    "mod_wide_arc": { "type": "mod", "result": "wide_arc", "cost": { "boar_hide": 3, "boar_tusk": 1, "gold": 15 } },
+    "mod_frost_shift": { "type": "mod", "result": "frost_shift", "cost": { "glow_dust": 3, "beetle_shell": 1, "gold": 20 } },
+    "mod_spiked_ward": { "type": "mod", "result": "spiked_ward", "cost": { "beetle_shell": 3, "venom_gland": 1, "gold": 20 } },
+    "mod_cast_on_dodge": { "type": "mod", "result": "cast_on_dodge", "cost": { "wisp_core": 2, "venom_gland": 1, "gold": 40 } }
+  }
+}

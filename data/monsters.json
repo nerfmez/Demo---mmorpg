@@ -1,0 +1,103 @@
+{
+  "_doc": "Monsters. Each shape shows what it drops (tusks, shell, core, horns). Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js.",
+  "monsters": {
+    "tusk_boar": {
+      "name": "Tusk Boar",
+      "nameTh": "หมูป่างาแหลม",
+      "behavior": "charger",
+      "hp": 55,
+      "damage": 9,
+      "defense": 4,
+      "speed": 3.6,
+      "radius": 0.7,
+      "aggroRange": 7,
+      "leashRange": 18,
+      "exp": 12,
+      "jobExp": 8,
+      "attacks": {
+        "bite": { "range": 1.7, "windup": 0.4, "recover": 0.6, "cooldown": 1.4, "damageMult": 1.0 },
+        "charge": { "minRange": 3, "maxRange": 8, "windup": 0.75, "speed": 13, "duration": 0.65, "recover": 0.9, "cooldown": 5, "damageMult": 1.6 }
+      },
+      "drops": [
+        { "item": "boar_hide", "chance": 0.7, "min": 1, "max": 2 },
+        { "item": "boar_tusk", "chance": 0.45, "min": 1, "max": 1 },
+        { "item": "gold", "chance": 1, "min": 3, "max": 7 }
+      ]
+    },
+    "moss_beetle": {
+      "name": "Moss Shell Beetle",
+      "nameTh": "ด้วงกระดองตะไคร่",
+      "behavior": "shell_spitter",
+      "hp": 80,
+      "damage": 8,
+      "defense": 10,
+      "speed": 2.1,
+      "radius": 0.8,
+      "aggroRange": 8,
+      "leashRange": 16,
+      "exp": 18,
+      "jobExp": 12,
+      "attacks": {
+        "spit": { "range": 8, "windup": 0.55, "recover": 0.5, "cooldown": 2.6, "speed": 9, "damageMult": 1.0, "poisonDps": 3, "poisonDuration": 3 },
+        "shell": { "hitsToTrigger": 3, "window": 2.0, "duration": 2.2, "damageTaken": 0.25, "cooldown": 6 }
+      },
+      "drops": [
+        { "item": "beetle_shell", "chance": 0.65, "min": 1, "max": 2 },
+        { "item": "venom_gland", "chance": 0.35, "min": 1, "max": 1 },
+        { "item": "gold", "chance": 1, "min": 4, "max": 9 }
+      ]
+    },
+    "marsh_wisp": {
+      "name": "Marsh Wisp",
+      "nameTh": "ภูตไฟหนองน้ำ",
+      "behavior": "kiter",
+      "hp": 45,
+      "damage": 11,
+      "defense": 2,
+      "speed": 3.2,
+      "radius": 0.55,
+      "hover": 1.1,
+      "aggroRange": 10,
+      "leashRange": 18,
+      "exp": 20,
+      "jobExp": 14,
+      "attacks": {
+        "orb": { "range": 10, "windup": 0.45, "recover": 0.4, "cooldown": 2.2, "speed": 8, "damageMult": 1.0 },
+        "blink": { "triggerRange": 3.2, "distance": 5.5, "cooldown": 5 }
+      },
+      "keepDistance": [6, 9],
+      "drops": [
+        { "item": "wisp_core", "chance": 0.4, "min": 1, "max": 1 },
+        { "item": "glow_dust", "chance": 0.7, "min": 1, "max": 2 },
+        { "item": "gold", "chance": 1, "min": 4, "max": 10 }
+      ]
+    },
+    "horned_warden": {
+      "name": "Horned Warden",
+      "nameTh": "ผู้พิทักษ์เขาเหล็ก",
+      "behavior": "warden_boss",
+      "boss": true,
+      "hp": 900,
+      "damage": 16,
+      "defense": 14,
+      "speed": 3.4,
+      "radius": 1.5,
+      "aggroRange": 12,
+      "leashRange": 26,
+      "exp": 260,
+      "jobExp": 160,
+      "attacks": {
+        "sweep": { "range": 3.4, "arc": 150, "windup": 0.65, "recover": 0.7, "cooldown": 2.2, "damageMult": 1.0 },
+        "gore": { "minRange": 4, "maxRange": 13, "windup": 0.95, "speed": 15, "duration": 0.8, "recover": 1.2, "cooldown": 7, "damageMult": 1.8 },
+        "slam": { "radius": 4.8, "windup": 1.1, "recover": 1.0, "cooldown": 9, "damageMult": 2.0, "shockwaveSpeed": 7, "shockwaveMax": 11 }
+      },
+      "enrageAt": 0.5,
+      "drops": [
+        { "item": "warden_horn", "chance": 1, "min": 1, "max": 2 },
+        { "item": "ancient_core", "chance": 1, "min": 1, "max": 1 },
+        { "item": "ruin_shard", "chance": 1, "min": 3, "max": 5 },
+        { "item": "gold", "chance": 1, "min": 80, "max": 120 }
+      ]
+    }
+  }
+}

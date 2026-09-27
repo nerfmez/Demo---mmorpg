@@ -1,0 +1,31 @@
+{
+  "_doc": "Job Tree / Passive Network. Job Points walk the tree from 'origin' along links. A 'job' node picks the character's Job: it needs Job Level >= progression.job.jobChoiceLevel and only ONE job node may be taken. Nodes after a job node extend that Job. pos is the layout in a 100x100 panel grid.",
+  "origin": "origin",
+  "nodes": {
+    "origin": { "name": "Wanderer", "nameTh": "นักเดินทาง", "type": "origin", "pos": [50, 50], "links": ["v1", "a1", "r1", "w1"], "effects": {} },
+
+    "v1": { "name": "Blade Practice", "nameTh": "ฝึกดาบ", "type": "minor", "pos": [35, 36], "links": ["origin", "v2"], "effects": { "meleeDamagePct": 8 } },
+    "v2": { "name": "Tough Body", "nameTh": "ร่างกายแกร่ง", "type": "minor", "pos": [24, 26], "links": ["v1", "vj"], "effects": { "maxHpPct": 10 } },
+    "vj": { "name": "Vanguard", "nameTh": "แวนการ์ด", "type": "job", "branch": "vanguard", "pos": [14, 16], "links": ["v2", "v3", "v4"], "effects": { "barrierPct": 20, "meleeHitBarrier": 3 }, "descTh": "สายประชิด/แท็งก์: เกราะเวทแรงขึ้น ตีประชิดโดนแล้วได้เกราะ" },
+    "v3": { "name": "Iron Hide", "nameTh": "หนังเหล็ก", "type": "notable", "pos": [4, 26], "links": ["vj"], "effects": { "defense": 12, "damageTakenPct": -5 } },
+    "v4": { "name": "Cleave", "nameTh": "ผ่าซ้ำ", "type": "notable", "pos": [14, 4], "links": ["vj"], "effects": { "meleeDamagePct": 15, "meleeArcAdd": 30 } },
+
+    "a1": { "name": "Arcane Study", "nameTh": "ศึกษาเวท", "type": "minor", "pos": [65, 36], "links": ["origin", "a2"], "effects": { "spellDamagePct": 8 } },
+    "a2": { "name": "Deep Well", "nameTh": "บ่อมานา", "type": "minor", "pos": [76, 26], "links": ["a1", "aj"], "effects": { "maxMpPct": 12 } },
+    "aj": { "name": "Arcanist", "nameTh": "อาร์คานิสต์", "type": "job", "branch": "arcanist", "pos": [86, 16], "links": ["a2", "a3", "a4"], "effects": { "areaRadiusPct": 20, "areaDamagePct": 10 }, "descTh": "สายเวทวงกว้าง: รัศมีและดาเมจวงกว้างเพิ่ม" },
+    "a3": { "name": "Echoing Mind", "nameTh": "จิตสะท้อน", "type": "notable", "pos": [96, 26], "links": ["aj"], "effects": { "echoDamagePct": 30 } },
+    "a4": { "name": "Mana Flow", "nameTh": "ธารมานา", "type": "notable", "pos": [86, 4], "links": ["aj"], "effects": { "mpRegenPct": 50, "cooldownPct": 6 } },
+
+    "r1": { "name": "Steady Aim", "nameTh": "เล็งนิ่ง", "type": "minor", "pos": [35, 64], "links": ["origin", "r2"], "effects": { "projectileDamagePct": 8 } },
+    "r2": { "name": "Light Feet", "nameTh": "เท้าเบา", "type": "minor", "pos": [24, 74], "links": ["r1", "rj"], "effects": { "moveSpeedPct": 5 } },
+    "rj": { "name": "Ranger", "nameTh": "เรนเจอร์", "type": "job", "branch": "ranger", "pos": [14, 84], "links": ["r2", "r3", "r4"], "effects": { "extraMovementCharges": 1, "projectileSpeedPct": 20 }, "descTh": "สายกระสุน/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1" },
+    "r3": { "name": "Keen Eye", "nameTh": "ตาคม", "type": "notable", "pos": [4, 74], "links": ["rj"], "effects": { "critChancePct": 10 } },
+    "r4": { "name": "Swift Draw", "nameTh": "ชักไว", "type": "notable", "pos": [14, 96], "links": ["rj"], "effects": { "projectileDamagePct": 12, "cooldownPct": 8 } },
+
+    "w1": { "name": "Mending", "nameTh": "เยียวยา", "type": "minor", "pos": [65, 64], "links": ["origin", "w2"], "effects": { "healPct": 10 } },
+    "w2": { "name": "Shelter", "nameTh": "ที่พักพิง", "type": "minor", "pos": [76, 74], "links": ["w1", "wj"], "effects": { "barrierPct": 10 } },
+    "wj": { "name": "Warden", "nameTh": "วอร์เดน", "type": "job", "branch": "warden", "pos": [86, 84], "links": ["w2", "w3", "w4"], "effects": { "healGrantsBarrierPct": 40, "healPct": 10 }, "descTh": "สายซัพพอร์ต: ฮีลแล้วให้เกราะเวทด้วย เหมาะกับปาร์ตี้" },
+    "w3": { "name": "Aegis Aura", "nameTh": "ออร่าปกป้อง", "type": "notable", "pos": [96, 74], "links": ["wj"], "effects": { "damageTakenPct": -10 } },
+    "w4": { "name": "Renewal", "nameTh": "ฟื้นคืน", "type": "notable", "pos": [86, 96], "links": ["wj"], "effects": { "hpRegen": 2.5 } }
+  }
+}

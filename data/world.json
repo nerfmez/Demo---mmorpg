@@ -1,0 +1,51 @@
+{
+  "_doc": "Demo map 'Greenhollow Frontier'. World is the XZ plane in metres, Y up (same axes as Godot). The journey runs west to east: Settlement -> Meadow -> Forest -> River crossing -> Wetland -> Ancient Ruins (boss). src/core/world.js turns this into a deterministic layout that both the simulation and the renderer use.",
+  "name": "Greenhollow Frontier",
+  "nameTh": "ชายแดนกรีนฮอลโลว์",
+  "seed": 7331,
+  "bounds": { "minX": -100, "maxX": 100, "minZ": -46, "maxZ": 46 },
+  "playerSpawn": [-84, 2],
+  "path": {
+    "_doc": "Dirt road centre line (x,z). Width in metres.",
+    "width": 5,
+    "points": [[-100, 2], [-84, 2], [-70, -2], [-55, 5], [-40, 8], [-25, 1], [-10, -6], [5, -3], [17, 0], [30, 4], [45, -3], [60, 0], [75, 0], [90, 0]]
+  },
+  "river": {
+    "_doc": "River centre line; water blocks walking except on the bridge.",
+    "width": 7,
+    "points": [[10, -50], [14, -30], [12, -12], [17, 0], [22, 14], [19, 30], [23, 50]],
+    "bridge": { "x": 17, "z": 0, "halfLength": 6.5, "halfWidth": 2.4, "angle": -0.27 }
+  },
+  "ponds": [[34, 24, 5], [38, -26, 6], [48, 18, 3.5]],
+  "zones": [
+    { "id": "settlement", "name": "Settlement", "nameTh": "นิคมชายแดน", "minX": -100, "maxX": -68, "safe": true, "level": 1, "ground": "town" },
+    { "id": "meadow", "name": "Sunny Meadow", "nameTh": "ทุ่งหญ้าแดดอุ่น", "minX": -68, "maxX": -18, "level": 1, "ground": "grass", "treeDensity": 0.25 },
+    { "id": "forest", "name": "Mossroot Forest", "nameTh": "ป่ารากตะไคร่", "minX": -18, "maxX": 11, "level": 3, "ground": "forest", "treeDensity": 1.0 },
+    { "id": "wetland", "name": "Glimmer Wetland", "nameTh": "ที่ชุ่มน้ำประกายแสง", "minX": 11, "maxX": 52, "level": 5, "ground": "wet", "treeDensity": 0.45 },
+    { "id": "ruins", "name": "Ancient Ruins", "nameTh": "ซากโบราณ", "minX": 52, "maxX": 100, "level": 7, "ground": "ruins", "treeDensity": 0.2 }
+  ],
+  "spawns": [
+    { "monster": "tusk_boar", "zone": "meadow", "count": 9, "level": [1, 2] },
+    { "monster": "tusk_boar", "zone": "forest", "count": 4, "level": [3, 4] },
+    { "monster": "moss_beetle", "zone": "forest", "count": 7, "level": [3, 4] },
+    { "monster": "moss_beetle", "zone": "wetland", "count": 4, "level": [5, 6] },
+    { "monster": "marsh_wisp", "zone": "wetland", "count": 7, "level": [5, 6] },
+    { "monster": "marsh_wisp", "zone": "ruins", "count": 4, "level": [7, 8] },
+    { "monster": "moss_beetle", "zone": "ruins", "count": 3, "level": [7, 8] }
+  ],
+  "respawnSeconds": 22,
+  "zoneDrops": {
+    "_doc": "Extra drops for any monster killed in a zone.",
+    "wetland": [{ "item": "ruin_shard", "chance": 0.08, "min": 1, "max": 1 }],
+    "ruins": [{ "item": "ruin_shard", "chance": 0.35, "min": 1, "max": 1 }]
+  },
+  "boss": { "monster": "horned_warden", "pos": [84, 0], "level": 9, "respawnSeconds": 90, "arena": { "x": 84, "z": 0, "r": 15 } },
+  "town": {
+    "workbench": [-80, -7],
+    "trainer": [-80, 10],
+    "respawn": [-86, 2],
+    "buildings": [[-92, -14, 0.2], [-94, 14, -0.3], [-78, -20, 0.1], [-77, 20, 0], [-90, 26, 1.57]],
+    "wallX": -68
+  },
+  "ruins": { "pillars": 16, "centre": [80, 0] }
+}

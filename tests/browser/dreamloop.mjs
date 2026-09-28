@@ -25,13 +25,14 @@ try {
   try{await page.screenshot({path:OUT+name+'.png',timeout:45000});}
   catch(e){console.log('Full-page capture failed; rendering canvas fallback',name);await page.locator('canvas').first().screenshot({path:OUT+name+'-canvas.png',timeout:60000});}
  };
- for(const [name,x,z] of ((process.env.DREAMLOOP_NETWORK_ONLY||process.env.DREAMLOOP_SURF_ONLY)?[]:[['gate',-183,4],['meadow',-124,11],['forest',-70,-56],['bridge',19.2,2.4],['stream',27,48],['wetland',70,39],['highlands',83,-93],['ruins',156,14],['coast',-40,176],['coast-east',131,175]])) {
+ for(const [name,x,z] of ((process.env.DREAMLOOP_NETWORK_ONLY||process.env.DREAMLOOP_SURF_ONLY)?[]:[['town',-208,17],['gate',-183,4],['meadow',-124,11],['grove',-143,27],['forest',-70,-56],['bridge',19.2,2.4],['stream',27,48],['wetland',70,39],['highlands',83,-93],['ruins',156,14],['coast',-40,176],['coast-east',131,175]])) {
+  if(process.env.DREAMLOOP_STUDY_ONLY&&!['town','gate','meadow','grove'].includes(name))continue;
   await page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.snapCamera();f.view.zoom=1;},[x,z]);
-  await page.waitForTimeout(800);await capture(name);
+  await page.waitForTimeout(800);assert.deepEqual(errors,[],'scene '+name+' has no shader/browser errors');await capture(name);
   report.scenes.push({name,...await page.evaluate(()=>{const f=window.__frontier;return {triangles:f.view.renderer.info.render.triangles,calls:f.view.renderer.info.render.calls,position:{x:f.game.player.x,z:f.game.player.z}};})});
   console.log('captured',name);
  }
- if(pass!=='before'&&!process.env.DREAMLOOP_NETWORK_ONLY) {
+ if(pass!=='before'&&!process.env.DREAMLOOP_NETWORK_ONLY&&!process.env.DREAMLOOP_STUDY_ONLY) {
   // A still image cannot demonstrate swash. Hold all game state/camera still and
   // capture the same shore at low water, maximum run-up and the next low water.
   await page.evaluate(()=>{

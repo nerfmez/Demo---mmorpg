@@ -1,0 +1,17 @@
+{
+  "study": {
+    "bounds": {
+      "minX": -235,
+      "maxX": -95,
+      "minZ": -55,
+      "maxZ": 65
+    },
+    "canopySegments": 28,
+    "canopyRings": 18,
+    "canopyNormalBlend": 0.66
+  },
+  "grass": {
+    "tipLightening": 0.14,
+    "rootBlendHeight": 0.28
+  }
+}

@@ -44,7 +44,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | Web | Godot |
 |---|---|
 | `render/toon.js` (3-step ramp and inverted-hull outline) | `ShaderMaterial` with a toon ramp, plus a second pass with `cull_front` and a vertex push for the outline |
-| `render/ground.js` (splat map and shader) | Terrain shader, or `MeshInstance3D` with a splat texture. The procedural noise GLSL ports to Godot shading language almost directly. |
+| `render/ground.js`, `ground-color.js`, `grass.js` (shared surface paint) | Terrain shader, or `MeshInstance3D` with a splat texture. Port the shared `groundColor` and noise functions once for both terrain and grass. Grass roots sample the same blurred palette, splats and triangle-interpolated normal at their planting position; brighten only the tips. MultiMesh custom data or a baked surface texture can carry the attributes. |
 | `render/hero.js`, `render/rig.js`, `render/monsters.js` (procedural models and animation) | Replace with real rigged models (`.glb`) and `AnimationTree`. The procedural poses show what each animation should read as (wind-up, charge, shell, slam). |
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css` and `ui/art.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |

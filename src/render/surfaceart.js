@@ -42,7 +42,42 @@ export function paintSurface(material,kind) {
     float moss=smoothstep(.65,.81,vnoise(p.xz*3.1+p.y))*smoothstep(-.2,.7,up);
     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.26,.34,.15),moss*.55);
   `;
-  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>\n{${kind==='bark'?bark:kind==='rock'?rock:kind==='masonry'?masonry:leaf}}`);
+  const crown=`
+    vec3 p=vPaintPos;
+    // Volumetric paint avoids stretched marks on the sides or a repeating square atlas.
+    float clusters=(vnoise(p.xy*5.5)+vnoise(p.yz*5.5+11.0)+vnoise(p.zx*5.5+27.0))/3.0;
+    float leaves=(vnoise(p.xy*23.0+7.0)+vnoise(p.yz*23.0+31.0)+vnoise(p.zx*23.0+17.0))/3.0;
+    float flecks=smoothstep(.55,.65,leaves)*smoothstep(.43,.60,clusters);
+    diffuseColor.rgb*=.88+smoothstep(.32,.65,clusters)*.18+flecks*.13;
+  `;
+  const plaster=`
+    float brush=vnoise(vPaintPos.xy*1.7+vPaintPos.z*.7);
+    diffuseColor.rgb*=.975+.04*smoothstep(.25,.75,brush);
+  `;
+  const timber=`
+    vec3 p=vPaintPos;
+    float grain=vnoise(vec2((p.x+p.z)*22.0,p.y*.8));
+    diffuseColor.rgb*=.96+.06*smoothstep(.2,.7,grain);
+    diffuseColor.rgb*=1.0-smoothstep(.77,.84,grain)*.09;
+  `;
+  const roof=`
+    vec3 p=vPaintPos;
+    float row=p.y*4.2;
+    vec2 tile=vec2(p.x*2.1+mod(floor(row),2.0)*.5,row);
+    vec2 f=fract(tile);
+    float seam=(1.0-smoothstep(.015,.065,f.y))*.13+(1.0-smoothstep(.01,.045,f.x))*.055;
+    diffuseColor.rgb*=.97+hash12(floor(tile))*.06-seam;
+  `;
+  const studyRock=`
+    vec3 p=vPaintPos;
+    float broad=vnoise(p.xz*2.2+p.y*.8);
+    diffuseColor.rgb*=.92+smoothstep(.25,.72,broad)*.12;
+    // Readable planes and broad moss patches rather than fine mottling everywhere.
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.91,.95,1.03),(1.0-smoothstep(-.7,.1,vPaintNormal.y))*.35);
+    float moss=smoothstep(.3,.8,vPaintNormal.y)*smoothstep(.58,.75,broad);
+    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.27,.35,.16),moss*.45);
+  `;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>\n{${({bark,rock,masonry,crown,plaster,timber,roof,studyRock})[kind]||leaf}}`);
  };
- material.customProgramCacheKey=()=>cache()+'|paint-'+kind+'-1';return material;
+ material.customProgramCacheKey=()=>cache()+'|paint-'+kind+'-2';return material;
 }

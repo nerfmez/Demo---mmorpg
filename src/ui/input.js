@@ -35,21 +35,24 @@ export class Input {
     this.aim = null; // drag-aim preview for the view
     this.joy = { id: null, x: 0, y: 0, dx: 0, dz: 0 };
     this.held = new Set(); // slots held on touch (repeat attack)
+    this.resetHandlers = [];
 
     // ---- combat buttons ----
     this.combat = h(`<div class="combat"></div>`);
     const slotClass = ['attack', 's1', 's2', 's3'];
-    const keyLabel = ['LMB', 'RMB', '3', '4'];
+    const keyLabel = ['1 · LMB', '2 · RMB', '3 · Q', '4 · R'];
     this.buttons = slotClass.map((c, i) => {
-      const b = h(`<button class="sbtn ${c}" aria-label="skill ${i + 1}"><span class="ic"></span><i class="cd"></i><span class="cdt"></span><span class="key">${keyLabel[i]}</span></button>`);
+      const b = h(`<button class="sbtn ${c}" aria-label="skill ${i + 1}"><span class="ic"></span><i class="cd"></i><span class="cdt"></span><span class="skill-cost"></span><span class="slabel"></span><span class="key">${keyLabel[i]}</span></button>`);
       this.combat.appendChild(b);
       this.bindSkillButton(b, i);
       return b;
     });
-    this.moveBtn = h(`<button class="sbtn move" aria-label="dodge"><span class="ic"></span><i class="cd"></i><span class="charges"></span><span class="key">Space</span></button>`);
+    this.moveBtn = h(`<button class="sbtn move" aria-label="สกิลเคลื่อนที่"><span class="ic"></span><i class="cd"></i><span class="cdt"></span><span class="charges"></span><span class="slabel"></span><span class="key">Space</span></button>`);
     this.combat.appendChild(this.moveBtn);
     this.bindMoveButton(this.moveBtn);
     root.appendChild(this.combat);
+    this.cancelEl = h(`<div class="aim-cancel passive" hidden><b>✕</b><span>ลากมาที่นี่เพื่อยกเลิก</span></div>`);
+    root.appendChild(this.cancelEl);
 
     // ---- joystick ----
     this.joyZone = h(`<div class="joyzone"></div>`);
@@ -61,10 +64,9 @@ export class Input {
     // ---- keyboard ----
     window.addEventListener('keydown', (e) => this.onKey(e, true));
     window.addEventListener('keyup', (e) => this.onKey(e, false));
-    window.addEventListener('blur', () => {
-      this.keys.clear();
-      this.mouseDown = [false, false, false];
-    });
+    window.addEventListener('blur', () => this.reset());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.reset(); });
+    window.addEventListener('orientationchange', () => this.reset());
 
     // ---- mouse on the canvas ----
     canvas.addEventListener('pointermove', (e) => {
@@ -74,6 +76,7 @@ export class Input {
       }
     });
     canvas.addEventListener('pointerdown', (e) => {
+      if (this.ui.panelOpen()) return;
       if (e.pointerType !== 'mouse') {
         this.setTouch(true);
         // tapping the world on touch devices steers the joystick if on the left half
@@ -120,6 +123,25 @@ export class Input {
     if (matchMedia('(pointer: coarse)').matches) this.setTouch(true);
   }
 
+  reset() {
+    this.keys.clear();
+    this.mouseDown = [false, false, false];
+    this.held.clear();
+    this.repeatStart = null;
+    this.aim = null;
+    this.cancelEl.hidden = true;
+    this.cancelEl.classList.remove('cancelled');
+    this.pinch?.clear();
+    this.resetHandlers.forEach((reset) => reset());
+    this.resetJoystick?.();
+    this.game.setMove(0, 0);
+  }
+
+  isCancelled(x, y) {
+    const r = this.cancelEl.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  }
+
   pinchDist() {
     if (this.pinch.size !== 2) return 0;
     const [a, b] = [...this.pinch.values()];
@@ -134,8 +156,13 @@ export class Input {
   }
 
   onKey(e, down) {
+    // Key releases still count when focus moved into a menu input.
+    if (!down) this.keys.delete(e.key.toLowerCase());
     if (e.target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
     const k = e.key.toLowerCase();
+    if ((k === ' ' || k === 'enter') && e.target.closest?.('button')) return;
+    if (down && k === 'escape' && this.ui.closeMenu?.()) return;
+    if (down && e.repeat && this.ui.panelOpen()) return;
     if (down && !e.repeat) {
       if (this.ui.panelOpen()) {
         if (k === 'escape') this.ui.closePanel();
@@ -164,6 +191,7 @@ export class Input {
       if (k === 'escape') this.ui.togglePanel('settings');
     }
     if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
+      if (down) this.setTouch(false);
       if (down) this.keys.add(k);
       else this.keys.delete(k);
       e.preventDefault();
@@ -200,13 +228,25 @@ export class Input {
 
   bindSkillButton(b, i) {
     let start = null;
+    const clear = () => {
+      const id = start?.id;
+      start = null;
+      this.held.delete(0);
+      this.repeatStart = null;
+      this.aim = null;
+      this.cancelEl.hidden = true;
+      this.cancelEl.classList.remove('cancelled');
+      if (id !== undefined && b.hasPointerCapture(id)) b.releasePointerCapture(id);
+    };
+    this.resetHandlers.push(clear);
     b.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      if (this.ui.panelOpen() || start) return;
       if (e.pointerType !== 'mouse') this.setTouch(true);
       capture(b, e.pointerId);
       start = { x: e.clientX, y: e.clientY, id: e.pointerId, t: performance.now(), dragging: false };
-      if (i === 0) this.held.add(0);
+      if (i === 0) this.repeatStart = performance.now();
     });
     b.addEventListener('pointermove', (e) => {
       if (!start || e.pointerId !== start.id) return;
@@ -215,12 +255,19 @@ export class Input {
       if (!start.dragging && Math.hypot(dx, dy) > 14) {
         start.dragging = true;
         this.held.delete(0);
+        this.repeatStart = null;
       }
-      if (start.dragging) this.aim = this.dragAim(i, dx, dy);
+      if (start.dragging) {
+        this.cancelEl.hidden = false;
+        const cancel = this.isCancelled(e.clientX, e.clientY);
+        this.cancelEl.classList.toggle('cancelled', cancel);
+        this.aim = cancel ? null : this.dragAim(i, dx, dy);
+      }
     });
     const end = (e) => {
       if (!start || e.pointerId !== start.id) return;
       this.held.delete(0);
+      if (e.type !== 'pointerup' || this.ui.panelOpen() || (start.dragging && this.isCancelled(e.clientX, e.clientY))) return clear();
       if (start.dragging && this.aim) {
         const a = this.aim;
         if (a.radius) this.game.castSlot(i, { x: a.x, z: a.z });
@@ -231,14 +278,20 @@ export class Input {
           this.game.castSlot(i);
         }
         this.pressFx(b);
-      } else if (e.type === 'pointerup') {
-        this.castSlot(i, true);
+      } else {
+        if (!this.game.skills[i]) this.ui.configureSkill?.(i);
+        else this.castSlot(i, true);
       }
-      this.aim = null;
-      start = null;
+      clear();
     };
     b.addEventListener('pointerup', end);
     b.addEventListener('pointercancel', end);
+    b.addEventListener('lostpointercapture', end);
+    b.addEventListener('click', (e) => {
+      if (e.detail !== 0) return;
+      if (!this.game.skills[i]) this.ui.configureSkill?.(i);
+      else this.castSlot(i, true);
+    });
   }
 
   /** Map a drag on a skill button to an aim preview (world). */
@@ -277,15 +330,23 @@ export class Input {
 
   bindMoveButton(b) {
     let start = null;
+    const clear = () => {
+      const id = start?.id;
+      start = null;
+      if (id !== undefined && b.hasPointerCapture(id)) b.releasePointerCapture(id);
+    };
+    this.resetHandlers.push(clear);
     b.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      if (this.ui.panelOpen() || start) return;
       if (e.pointerType !== 'mouse') this.setTouch(true);
       capture(b, e.pointerId);
       start = { x: e.clientX, y: e.clientY, id: e.pointerId };
     });
     const end = (e) => {
       if (!start || e.pointerId !== start.id) return;
+      if (e.type !== 'pointerup' || this.ui.panelOpen()) return clear();
       const dx = e.clientX - start.x;
       const dy = e.clientY - start.y;
       if (Math.hypot(dx, dy) > 18) {
@@ -299,10 +360,12 @@ export class Input {
         this.game.setMove(saved.mx, saved.mz);
         this.pressFx(b);
       } else if (e.type === 'pointerup') this.useMovement();
-      start = null;
+      clear();
     };
     b.addEventListener('pointerup', end);
     b.addEventListener('pointercancel', end);
+    b.addEventListener('lostpointercapture', end);
+    b.addEventListener('click', (e) => { if (e.detail === 0) this.useMovement(); });
   }
 
   bindJoystick() {
@@ -310,7 +373,7 @@ export class Input {
     const R = 60;
     const home = () => {
       const r = this.joyZone.getBoundingClientRect();
-      return { x: r.left + 120, y: r.bottom - 130 };
+      return { x: r.left + Math.min(112, r.width * 0.48), y: r.bottom - Math.min(114, r.height * 0.44) };
     };
     const place = (x, y) => {
       this.joyEl.style.left = `${x}px`;
@@ -325,7 +388,7 @@ export class Input {
       }
     });
     z.addEventListener('pointerdown', (e) => {
-      if (this.ui.panelOpen()) return;
+      if (this.ui.panelOpen() || this.joy.id !== null || e.pointerType === 'mouse') return;
       e.preventDefault();
       this.setTouch(true);
       capture(z, e.pointerId);
@@ -355,23 +418,27 @@ export class Input {
         this.joy.dz = (dy / n) * k;
       }
     });
-    const end = (e) => {
-      if (e.pointerId !== this.joy.id) return;
+    this.resetJoystick = () => {
+      const id = this.joy.id;
       this.joy = { id: null, x: 0, y: 0, dx: 0, dz: 0 };
       this.joyEl.firstElementChild.style.transform = '';
       this.joyEl.classList.remove('on');
       this.joyEl.classList.add('idle');
       const p = home();
       place(p.x, p.y);
+      if (id !== null && z.hasPointerCapture(id)) z.releasePointerCapture(id);
     };
+    const end = (e) => { if (e.pointerId === this.joy.id) this.resetJoystick(); };
     z.addEventListener('pointerup', end);
     z.addEventListener('pointercancel', end);
+    z.addEventListener('lostpointercapture', end);
   }
 
   /** Per-frame: push movement / aim into the game and refresh button states. */
   update() {
     const g = this.game;
     if (this.disabled) return this.refreshButtons(); // tests drive the game API directly
+    if (this.repeatStart !== null && this.repeatStart !== undefined && performance.now() - this.repeatStart > 220) this.held.add(0);
     let mx = 0;
     let mz = 0;
     if (this.keys.has('w') || this.keys.has('arrowup')) mz -= 1;
@@ -406,16 +473,26 @@ export class Input {
     const p = g.player;
     g.skills.forEach((s, i) => {
       const b = this.buttons[i];
-      const key = s ? `${s.id}` : 'empty';
+      const key = s ? `${s.id}:${s.cost}:${s.requirementsMet}` : 'empty';
       if (b.dataset.skill !== key) {
         b.dataset.skill = key;
         b.querySelector('.ic').innerHTML = s ? icon(s.def.icon) : icon('plus');
         b.classList.toggle('empty', !s);
+        b.querySelector('.slabel').textContent = s ? s.def.nameTh : 'ใส่สกิล';
+        b.querySelector('.skill-cost').textContent = s?.cost ? `${s.cost} MP` : '';
+        const label = s ? `${s.def.nameTh} · ${s.cost} MP · ช่อง ${i + 1}` : `ใส่สกิลช่อง ${i + 1}`;
+        b.setAttribute('aria-label', label);
+        b.title = label;
       }
-      if (!s) return;
+      if (!s) {
+        b.style.setProperty('--cd', '0%');
+        b.querySelector('.cdt').textContent = '';
+        b.classList.remove('nomp', 'locked');
+        return;
+      }
       const cd = p.cooldowns[i];
       b.style.setProperty('--cd', `${(cd / s.cooldown) * 100}%`);
-      b.querySelector('.cdt').textContent = cd > 0.5 ? Math.ceil(cd) : '';
+      b.querySelector('.cdt').textContent = cd > 0.1 ? cd < 1 ? cd.toFixed(1) : Math.ceil(cd) : '';
       b.classList.toggle('nomp', p.mp < s.cost);
       b.classList.toggle('locked', !s.requirementsMet);
     });
@@ -423,6 +500,8 @@ export class Input {
     if (this.moveBtn.dataset.skill !== mv.id) {
       this.moveBtn.dataset.skill = mv.id;
       this.moveBtn.querySelector('.ic').innerHTML = icon(mv.id);
+      this.moveBtn.querySelector('.slabel').textContent = mv.def.nameTh;
+      this.moveBtn.setAttribute('aria-label', `${mv.def.nameTh} · สกิลเคลื่อนที่`);
     }
     const ch = this.moveBtn.querySelector('.charges');
     const want = `${p.movement.charges}/${mv.charges}`;
@@ -432,5 +511,6 @@ export class Input {
     }
     const cdk = p.movement.charges < mv.charges ? 1 - p.movement.rechargeT / mv.recharge : 0;
     this.moveBtn.style.setProperty('--cd', `${p.movement.charges === 0 ? cdk * 100 : 0}%`);
+    this.moveBtn.querySelector('.cdt').textContent = p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '';
   }
 }

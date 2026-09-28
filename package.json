@@ -8,6 +8,7 @@
     "preview": "vite preview --host",
     "test": "node --test \"tests/core/*.test.js\"",
     "test:browser": "node tests/browser/smoke.mjs",
+    "test:ux": "node tests/browser/ux.mjs",
     "export:layout": "node scripts/export-layout.mjs"
   },
   "repository": {
@@ -22,6 +23,7 @@
   },
   "homepage": "https://github.com/nerfmez/demo---mmorpg#readme",
   "dependencies": {
+    "@fontsource/mitr": "^5.3.0",
     "three": "^0.186.1"
   },
   "devDependencies": {

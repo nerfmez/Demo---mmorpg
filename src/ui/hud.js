@@ -3,6 +3,7 @@ import { icon } from './icons.js';
 import { expToNext, jobExpToNext } from '../core/character.js';
 import { trackedQuest, questState } from '../core/quests.js';
 import { mapImage } from './mapimage.js';
+import { loadPref, savePref } from '../save.js';
 
 const h = (html) => {
   const t = document.createElement('template');
@@ -72,26 +73,28 @@ export class Hud {
     this.mbars = new Map();
 
     this.el = {
-      frame: h(`<div class="pframe passive">
+      frame: h(`<button class="pframe" aria-label="เปิดตัวละครและค่าสถานะ" title="ตัวละคร · C">
         <div class="portrait"></div><div class="lvl-badge">1</div>
         <div class="bars">
           <div class="pname"></div>
           <div class="bar hp"><i class="lag"></i><i class="fill"></i><i class="barrier"></i><span></span></div>
           <div class="bar mp"><i class="fill"></i><span></span></div>
-          <div class="bar small exp"><i class="fill"></i></div>
-          <div class="bar small job"><i class="fill"></i></div>
+          <div class="progress-pair"><span>EXP</span><div class="bar small exp"><i class="fill"></i></div><span>JOB</span><div class="bar small job"><i class="fill"></i></div></div>
           <div class="statusline"></div>
-        </div></div>`),
+        </div></button>`),
       topright: h(`<div class="topright">
-        <div class="minimap"><canvas width="300" height="300"></canvas></div>
-        <div class="menu"></div>
-        <button class="questtrack"></button></div>`),
+        <div class="map-cluster"><div class="quick-actions"><button class="iconbtn menu-toggle" aria-label="เมนูเพิ่มเติม" aria-expanded="false" aria-controls="game-menu">${icon('menu')}<span class="menu-label">เมนู</span></button></div>
+        <button class="minimap" aria-label="เปิดแผนที่โลก" title="แผนที่ · M"><canvas width="300" height="300"></canvas><span class="map-open">${icon('map')}</span></button></div>
+        <div class="location-chip passive"></div>
+        <nav class="menu" id="game-menu" aria-label="เมนูเกม" hidden></nav>
+        <div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
+        <button class="questtrack" id="quest-detail" aria-label="เปิดสมุดภารกิจ"></button></div></div>`),
       zone: h(`<div class="zonebanner passive"><div class="zd"></div><div class="zn"></div><div class="zs"></div></div>`),
       boss: h(`<div class="bossbar passive"><div class="bn"></div><div class="bar"><i class="fill"></i><span></span></div></div>`),
       floats: h(`<div class="floats passive"></div>`),
       toasts: h(`<div class="toasts passive"></div>`),
       prompt: h(`<div class="prompt"></div>`),
-      hint: h(`<div class="hint passive">WASD เดิน · เมาส์เล็ง · คลิกซ้าย/ขวา สกิล 1/2 · 3,4 สกิลที่เหลือ · Space หลบ<br>I กระเป๋า · K สกิล · J Job · C ตัวละคร · L ภารกิจ · M แผนที่ · E ใช้/คุย</div>`),
+      hint: h(`<div class="hint passive"><kbd>WASD</kbd> เดิน <span>·</span> เมาส์เล็ง <span>·</span> <kbd>Esc</kbd> เมนู / วิธีเล่น</div>`),
       death: h(`<div class="deathveil passive">หมดสติ… กำลังกลับจุดวาร์ปที่ใกล้ที่สุด</div>`),
       fade: h(`<div class="fadeveil passive"></div>`),
     };
@@ -111,6 +114,18 @@ export class Hud {
     q('.pname').textContent = game.ch.name || '';
     this.mini = this.el.topright.querySelector('canvas');
     this.menu = this.el.topright.querySelector('.menu');
+    this.quickActions = this.el.topright.querySelector('.quick-actions');
+    this.menuToggle = this.el.topright.querySelector('.menu-toggle');
+    this.menuToggle.addEventListener('click', () => this.setMenuOpen(!this.menuOpen));
+    this.el.frame.addEventListener('click', () => this.onPanel?.('char'));
+    this.el.topright.querySelector('.minimap').addEventListener('click', () => this.onPanel?.('map'));
+    this.questWidget = this.el.topright.querySelector('.quest-widget');
+    this.questToggle = this.el.topright.querySelector('.quest-collapse');
+    this.questToggle.addEventListener('click', () => this.setQuestCollapsed(!this.questCollapsed));
+    this.setQuestCollapsed(loadPref('questCollapsed', 'false') === 'true');
+    document.addEventListener('pointerdown', (e) => {
+      if (this.menuOpen && !this.el.topright.contains(e.target)) this.setMenuOpen(false);
+    });
     this.tracker = this.el.topright.querySelector('.questtrack');
     this.map = mapImage(game.world);
   }
@@ -120,10 +135,26 @@ export class Hud {
   }
 
   addMenuButton(name, key, onClick, label = '') {
-    const b = h(`<button class="iconbtn" aria-label="${label || name}">${icon(name)}<span class="key">${key}</span></button>`);
-    b.addEventListener('click', onClick);
-    this.menu.appendChild(b);
+    const b = h(`<button class="iconbtn" aria-label="${label || name}" title="${label} · ${key}">${icon(name)}<span class="menu-label">${label}</span><span class="key">${key}</span></button>`);
+    b.addEventListener('click', () => { this.setMenuOpen(false); onClick(); });
+    if (name === 'bag' || name === 'book') this.quickActions.insertBefore(b, this.menuToggle);
+    else this.menu.appendChild(b);
     return b;
+  }
+
+  setMenuOpen(on) {
+    this.menuOpen = on;
+    this.menu.hidden = !on;
+    this.menuToggle.setAttribute('aria-expanded', String(on));
+  }
+
+  setQuestCollapsed(on) {
+    this.questCollapsed = on;
+    this.questWidget.classList.toggle('collapsed', on);
+    this.questToggle.textContent = on ? '+' : '−';
+    this.questToggle.setAttribute('aria-label', on ? 'ขยายภารกิจ' : 'ย่อภารกิจ');
+    this.questToggle.setAttribute('aria-expanded', String(!on));
+    savePref('questCollapsed', on);
   }
 
   onTracker(fn) {
@@ -431,13 +462,18 @@ export class Hud {
     this.hpFill.style.width = pct(p.hp, p.maxHp);
     this.hpLag.style.width = pct(p.hp, p.maxHp);
     this.hpBarrier.style.width = pct(Math.min(p.barrier, p.maxHp), p.maxHp);
-    this.hpText.textContent = `${Math.ceil(p.hp)} / ${p.maxHp}${p.barrier > 0.5 ? ` +${Math.round(p.barrier)}` : ''}`;
+    this.hpText.textContent = `HP  ${Math.ceil(p.hp)} / ${p.maxHp}${p.barrier > 0.5 ? ` +${Math.round(p.barrier)}` : ''}`;
     this.mpFill.style.width = pct(p.mp, p.maxMp);
-    this.mpText.textContent = `${Math.floor(p.mp)} / ${p.maxMp}`;
+    this.mpText.textContent = `MP  ${Math.floor(p.mp)} / ${p.maxMp}`;
     this.expFill.style.width = pct(ch.exp, expToNext(g.data, ch.level));
     this.jobFill.style.width = pct(ch.jobExp, jobExpToNext(g.data, ch.jobLevel));
     this.lvl.textContent = ch.level;
-    const st = [`<b>Job ${ch.jobLevel}</b>`, `💰 <b>${ch.gold}</b>`];
+    const area = g.world.zoneAt(p.x, p.z);
+    if (area?.id !== this.locationId) {
+      this.locationId = area?.id;
+      this.el.topright.querySelector('.location-chip').textContent = area ? `${area.nameTh} · ${area.safe ? 'เขตปลอดภัย' : `Lv.${area.level}+`}` : '';
+    }
+    const st = [`<b>Job ${ch.jobLevel}</b>`, `<b class="gold">${ch.gold} G</b>`];
     if (p.statuses.poison) st.push('<b class="st poison">ติดพิษ</b>');
     if (p.statuses.chill) st.push('<b class="st cold">หนาวช้า</b>');
     if (p.buffs.war_cry) st.push('<b class="st buff">คำรามศึก</b>');
@@ -474,8 +510,9 @@ export class Hud {
       this.el.prompt.innerHTML = '';
       this.el.prompt.classList.toggle('on', !!prompt);
       if (prompt) {
-        const label = { workbench: '🔨 ใช้โต๊ะคราฟต์ (E)', trainer: '📜 คุยกับครูฝึก · รีแต้ม (E)', waypoint: '🌀 หินวาร์ป · เปิดแผนที่ (E)' }[prompt];
-        const b = h(`<button class="pbtn">${label}</button>`);
+        const label = { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
+        const ic = { workbench: 'hammer', trainer: 'tree', waypoint: 'portal' }[prompt];
+        const b = h(`<button class="pbtn">${icon(ic)}<span>${label}</span><kbd>E</kbd></button>`);
         b.addEventListener('click', () => ui.interact());
         this.el.prompt.appendChild(b);
       }

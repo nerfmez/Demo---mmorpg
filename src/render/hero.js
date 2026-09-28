@@ -181,7 +181,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     fitParts(rig.bones.head, T.headFit);
     neckParts = fitParts(rig.bones.chest, T.neckFit, { skip: ['chestWear'] });
     fitParts(rig.bones.armL, T.armFit);
-    attachSkinnedBody(rig, T, { skin: L.skin, tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
+    // sleeves keep the chosen tunic colour; armour colours the body through `vest`
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic: L.tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
@@ -190,6 +191,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
     neckParts.add(rig.scarfAnchor);
     const m = new THREE.MeshToonMaterial({ color: new THREE.Color(L.scarf), gradientMap: rig.material.gradientMap, side: THREE.DoubleSide });
+    m.userData.rig = true; // freed with the rig
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
   rig.weaponKind = gear.weapon || 'sword';

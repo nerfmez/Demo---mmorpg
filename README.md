@@ -49,7 +49,7 @@ npm run dev          # เปิด http://localhost:5173 (ใช้ --host จ�
 npm test             # unit tests ของ core (Node, ไม่ต้องใช้เบราว์เซอร์)
 npm run build        # สร้าง dist/ สำหรับ deploy
 npm run test:browser # smoke test ใน Chromium (ต้อง build ก่อน)
-npm run test:dreamloop # ตรวจเครือข่าย + ถ่ายภาพฉากจุดเดิม 7 จุด (ต้องเปิดภาพตรวจด้วย)
+npm run test:dreamloop # ตรวจเครือข่าย + ถ่ายภาพฉากจุดเดิม 7 จุด (ต้องเปิดภาพตรวจด้วย; ไม่รันใน CI แล้ว)
 npm run test:ux      # กดคราฟต์/สวมของ/ใส่ Mod + ทดสอบยกเลิกการลาก บน PC, iPad, โทรศัพท์
 node tests/browser/capture.mjs   # ถ่ายภาพฉากต่าง ๆ ไว้ตรวจงานศิลป์
 ```

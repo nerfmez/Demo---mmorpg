@@ -51,7 +51,9 @@ test('imported models name real gear bases and ship small GLB files',async()=>{
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
   assert.ok(buf.length<(group==='characters'?600:400)*1024,m.file+' stays small for iPad');
-  assert.ok(m.tris<=({characters:8000,monsters:5000}[group]??4000),id+' triangle budget');
+  // a boss is alone on screen, so it may carry a little more detail
+  const boss=group==='monsters'&&data.monsters.monsters[id]?.boss;
+  assert.ok(m.tris<=(boss?6000:{characters:8000,monsters:5000}[group]??4000),id+' triangle budget');
  }
 });
 

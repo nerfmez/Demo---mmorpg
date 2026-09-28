@@ -16,3 +16,5 @@ registered in `data/models.json` → `monsters` and skinned onto the procedural 
 | sporecap | 01a0e840-e2cb-740b-be9c-5f6ac69eaeb6 | 01a0e84a-7321-71a7-bdba-ab6f64053d86 | 2,570 |
 | crag_golem | 01a0e840-ea98-7098-93e0-cd60b1781b43 | 01a0e84a-7dc7-757d-9de3-64b5d0d041c4 | 4,658 |
 | gale_hawk | 01a0e840-f20c-722f-9a39-b96efffbffd0 | 01a0e84a-8996-72f7-a8a3-0cd22b7628f7 | 3,631 |
+| greyfang (boss) | 01a0e875-1ed7-7166-be3e-dd55e10b8555 | 01a0e877-9a24-76d6-abcb-a9aa8179dd1d | 5,019 |
+| horned_warden (boss) | 01a0e875-3599-7153-93c9-3052342d9f13 | 01a0e877-a4b3-74ff-94f8-46ce01f997b9 | 5,215 |

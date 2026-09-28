@@ -5,7 +5,8 @@ import { createRng } from '../core/rng.js';
 import { patchMaterial } from './patch.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const animeStudy = typeof location !== 'undefined' && new URLSearchParams(location.search).get('art') === 'anime';
+// On by default; ?art=baseline restores the previous look for comparison.
+export const animeStudy = typeof location === 'undefined' || new URLSearchParams(location.search).get('art') !== 'baseline';
 export const artReviewLayout = typeof location !== 'undefined' && ['anime','baseline'].includes(new URLSearchParams(location.search).get('art'));
 export const animeConfig = art.anime;
 

@@ -7,6 +7,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Chromium and WebKit (the iPad Safari engine) run side by side instead of one after the other.
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,21 +23,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium webkit
-      - name: Browser smoke test (Chromium)
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Browser smoke test
         run: npm run test:browser
-      - name: Browser smoke test (WebKit, like iPad Safari)
-        run: BROWSER=webkit npm run test:browser
-      - name: Game UI workflows (Chromium, desktop/tablet/phone)
+      - name: Game UI workflows (desktop/tablet/phone)
         run: npm run test:ux
-      - name: Game UI workflows (WebKit, desktop/tablet/phone)
-        run: BROWSER=webkit npm run test:ux
-      - name: Dreamloop terrain and passive network (Chromium)
-        run: npm run test:dreamloop
-      - name: Dreamloop terrain and passive network (WebKit)
-        run: BROWSER=webkit DREAMLOOP_PASS=webkit npm run test:dreamloop
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: screenshots
+          name: screenshots-${{ matrix.browser }}
           path: tests/browser/out/

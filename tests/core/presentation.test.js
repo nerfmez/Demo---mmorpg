@@ -51,7 +51,14 @@ test('imported models name real gear bases and ship small GLB files',async()=>{
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
   assert.ok(buf.length<(group==='characters'?600:400)*1024,m.file+' stays small for iPad');
-  assert.ok(m.tris<=({characters:8000,monsters:5000}[group]??4000),id+' triangle budget');
+  // a boss may carry a little more detail; one that summons (Greyfang's howl brings thornback
+  // wolves, ai.js) must keep the whole encounter within the regular budget per monster
+  const boss=group==='monsters'&&data.monsters.monsters[id]?.boss;
+  assert.ok(m.tris<=(boss?6000:{characters:8000,monsters:5000}[group]??4000),id+' triangle budget');
+  if(boss){
+   const summon=Object.values(data.monsters.monsters[id].attacks||{}).reduce((n,a)=>n+(a.summon||0),0);
+   if(summon)assert.ok(m.tris+summon*data.models.monsters.thornback_wolf.tris<=5000*(1+summon),id+' encounter triangle budget');
+  }
  }
 });
 

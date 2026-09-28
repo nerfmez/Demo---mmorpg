@@ -45,5 +45,6 @@ without recapturing unchanged terrain.
   and inspect its uploaded PNGs. Do not substitute source-code checks for an art review.
 - Triangle/draw-call counts are a relative rendering budget. Software-GL frame times are
   not iPad FPS measurements. Verify hardware performance on the actual device separately.
-- PR CI runs Chromium and WebKit. The deployment workflow audits the live URL in WebKit
-  and uploads `live-dreamloop`, so the tested source and the published game can be compared.
+- PR CI no longer runs the dreamloop (it ran the smoke and UI suites in Chromium and WebKit
+  side by side); run it locally with the commands above when terrain or the network changes.
+  The deployment workflow still audits the live URL in WebKit and uploads `live-dreamloop`.

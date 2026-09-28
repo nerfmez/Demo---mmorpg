@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { buildWeapon, equipmentDetails } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
+import { modelInstance } from './models.js';
 
 export const DEFAULT_LOOK = {
   hairStyle: 'messy',
@@ -151,10 +152,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
-  buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
+  const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
+  if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
   if (!o.npc || o.scarf) {

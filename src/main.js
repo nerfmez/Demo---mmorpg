@@ -5,6 +5,7 @@ import { createWorld } from './core/world.js';
 import { createCharacter } from './core/character.js';
 import { Game } from './core/game.js';
 import { View } from './render/view.js';
+import { loadModels } from './render/models.js';
 import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
@@ -29,6 +30,13 @@ const world = createWorld(data.world);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality });
+// Imported models load in the background; the procedural shapes stand in until they arrive,
+// then the hero, the creation preview and the portrait are rebuilt once.
+loadModels(data.models).then(() => {
+  view.heroLookKey = null;
+  if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();
+  F.modelsReady = true;
+});
 const setQuality = (q) => {
   quality = q;
   savePref('quality', q);
@@ -103,7 +111,7 @@ function startGame(character, slot) {
   const refreshPortrait = () => {
     const look = game.ch.appearance;
     const gear = game.gearLook();
-    const key = JSON.stringify([look, gear.helm, gear.weapon]);
+    const key = JSON.stringify([look, gear.helm, gear.weapon, !!F.modelsReady]);
     if (key === portraitKey) return;
     portraitKey = key;
     try {

@@ -1,0 +1,11 @@
+{
+  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m.",
+  "weapons": {
+    "rusty_sword": {
+      "file": "models/rusty_sword.glb",
+      "tris": 1555,
+      "outline": "#4a3a30",
+      "source": "Meshy image-to-3d meshy-t2 (task 01a0e72e-97ea-7309-ac95-517482e3289f), texture 512 px"
+    }
+  }
+}

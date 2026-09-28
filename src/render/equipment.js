@@ -1,5 +1,6 @@
 // Presentation-only geometry keyed by gear base ID. Grade never changes the model.
 import * as THREE from 'three';
+import { hasModel } from './models.js';
 const rod=(r,len)=>new THREE.CylinderGeometry(r,r,len,6).rotateX(Math.PI/2);
 const plate=(points,depth=.018)=>{
  const s=new THREE.Shape(); points.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));s.closePath();
@@ -12,6 +13,7 @@ export function buildWeapon(rb,kind,id) {
  if(!kind)return;
  id ||= {sword:'rusty_sword',dagger:'fang_dagger',greatblade:'horn_greatblade',axe:'crag_axe',bow:'old_bow',staff:'apprentice_staff',wand:'spore_wand'}[kind];
  rb.bone('weapon','handR',[0,-.04,0]);
+ if(hasModel('weapons',id))return id; // an imported model is attached after rb.build()
  if(['sword','dagger','greatblade'].includes(kind)){
   const blades={
    rusty_sword:[[-.025,.08],[-.03,.64],[0,.87],[.034,.69],[.016,.57],[.034,.52],[.027,.08]],

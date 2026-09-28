@@ -60,6 +60,10 @@ character; existing node IDs/effects and version-2 saves are preserved.
 
 `gearLook()` includes a `bases` map of equipped item IDs (derived presentation metadata,
 not saved state). `render/equipment.js` uses it for distinct weapon/boot/charm silhouettes.
+Imported models are listed in `data/models.json` (GLB files in `public/models/`, currently
+Meshy weapons). Each GLB is already in the weapon-bone convention (grip at the origin, blade
+along +Z, metres), so in Godot attach it to a `BoneAttachment3D` on the right hand. The
+procedural shape in `equipment.js` is only a fallback.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 
 Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,

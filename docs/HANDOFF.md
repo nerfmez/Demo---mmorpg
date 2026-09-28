@@ -23,6 +23,12 @@ this repo with other tools, so `main` may have moved.
   (API credential for api.meshy.ai + `MESHY_API_KEY` env var placeholder). Never ask the
   owner to paste a key. First check: `meshy_check_balance` (free). Tell the owner the
   credit cost before any generation.
+- Meshy pipeline (first asset: `rusty_sword`): concept image with `meshy_image_to_image`
+  (nano-banana, 3 cr) from the item's icon, then `meshy_image_to_3d` smart-topology meshy-t2
+  textured (15 cr). Shrink the texture to 512 px, bake the grip to the origin with the blade
+  along +Z, save to `public/models/`, and register it in `data/models.json`. Good fits: rigid
+  pieces (weapons, helms, hair pieces, props, drops) and monsters. The player body stays
+  procedural so skin, eye and hair colours stay customisable.
 
 ## Possible next steps the owner mentioned
 

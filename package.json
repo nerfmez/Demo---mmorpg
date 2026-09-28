@@ -9,7 +9,8 @@
     "test": "node --test \"tests/core/*.test.js\"",
     "test:browser": "node tests/browser/smoke.mjs",
     "test:ux": "node tests/browser/ux.mjs",
-    "export:layout": "node scripts/export-layout.mjs"
+    "export:layout": "node scripts/export-layout.mjs",
+    "test:dreamloop": "node tests/browser/dreamloop.mjs"
   },
   "repository": {
     "type": "git",

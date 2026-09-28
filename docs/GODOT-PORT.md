@@ -49,11 +49,14 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css` and `ui/art.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
 
-`ui/art.js` contains 121 individually authored SVG illustrations keyed by base content ID.
+`ui/art.js` and `ui/jobart.js` contain 161 individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` presents the same
-passive network as labelled branch cards.
+passive network as a pannable/zoomable graph with 61 nodes and 108 links. `requiresJob`
+gates specialist nodes even when another route reaches them. `jobPath()` previews a
+permitted route without spending points. The UI camera is view state, never saved in the
+character; existing node IDs/effects and version-2 saves are preserved.
 
 `gearLook()` includes a `bases` map of equipped item IDs (derived presentation metadata,
 not saved state). `render/equipment.js` uses it for distinct weapon/boot/charm silhouettes.
@@ -73,3 +76,18 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 4. Place the world from `layout.json`.
 5. Rebuild the HUD and panels.
 6. Replace the procedural models with authored art in the same style: anime cel-shaded, about 6.5 heads tall, 3/4 top-down camera ("change the camera, not the style").
+
+## Anime terrain and Dreamloop
+
+- `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,
+  cliff strata and shore foam. Water streaks use world coordinates, including round ponds.
+- `render/nature.js` / `leafpaint.js`: branched trunks, curved grass, petals, faceted rocks,
+  shared alpha-cutout leaf and needle atlases; chunked instancing is preserved. In Godot use
+  alpha scissor `StandardMaterial3D`/toon materials and MultiMesh chunks. These crown cards
+  are authored for the fixed ARPG camera; keep that orientation when porting.
+- `render/surfaceart.js` composes bark/stone paint with existing wind and hero occlusion.
+- Run `npm run test:dreamloop`, inspect the same seven locations, plus iPad/phone graph
+  interactions. If full-page capture stalls, the test attempts the game canvas. A screenshot
+  file alone is not visual approval: inspect it, correct issues and recapture.
+- CI exercises Chromium and WebKit. Pages deployment also runs the WebKit Dreamloop against
+  its published URL and uploads `live-dreamloop` screenshots/report.

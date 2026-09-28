@@ -1,0 +1,57 @@
+// Each passive has an authored silhouette/composition; its badge never encodes grade.
+const path=(d,c='#b7cebd')=>`<path d="${d}" fill="${c}" stroke="#354a46" stroke-width="3" stroke-linejoin="round"/>`;
+const line=(d,c='#d7b574',w=5)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const circle=(x,y,r,c)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="#354a46" stroke-width="3"/>`;
+const group=(s,t)=>`<g transform="${t}">${s}</g>`;
+const blade=path('M58 90V39l10-27 10 27v51z','#e4ddba')+path('M44 85h48v9H72v24h-9V94H44z','#b98757');
+const leaf=path('M29 101C9 37 68 16 102 24c3 50-26 81-73 77z','#88ad79')+line('M28 104 85 39','#3b7160',4);
+const drop=path('M64 12C49 39 25 61 30 84c8 37 66 34 69 0 2-22-22-51-35-72z','#89babe');
+const shield=path('M26 30l38-15 39 15-6 47-33 35-33-35z','#92b4a9')+line('M64 34v52M45 60h38','#e7d7a8',7);
+const paw=circle(64,85,24,'#a8c2af')+circle(30,48,11,'#a8c2af')+circle(55,30,12,'#a8c2af')+circle(81,33,11,'#a8c2af')+circle(103,53,10,'#a8c2af');
+const arrow=line('M25 105 100 28','#cbb485',7)+path('M76 25l30-5-6 31z','#d4dfcc')+line('M25 86v21h21','#cbb485',6);
+const cross=line('M64 32v62M33 63h62','#92c7ae',14);
+const ring=line('M30 95C2 50 36 12 80 25c30 8 39 38 19 62','#a6b9da',8)+path('M87 80l-2 24 26-5z','#a6b9da');
+const star=path('M64 14l12 32 34 15-34 12-12 35-13-35-35-12 35-15z','#ead199');
+const eye=path('M12 63c33-41 72-41 104 0-32 36-71 37-104 0z','#d9d4b9')+circle(64,62,18,'#779eaa')+circle(64,62,7,'#334f58');
+export const JOB_ART={
+ v5:group(blade,'translate(-5 -3) rotate(22 64 64)')+line('M15 33h26M12 48h20'),
+ v6:group(cross,'translate(5 -8) scale(.76)')+path('M20 82l23-6 20 15 33-24 13 13-45 37-37-14z','#d4b398'),
+ v7:group(shield,'translate(4 0) scale(.82)')+path('M12 69h16V51h18v19h32V51h18v19h17v45H12z','#b4bdaf'),
+ v8:group(blade,'rotate(40 64 64)')+group(drop,'translate(4 52) scale(.46)'),
+ v9:group(shield,'translate(20 3) scale(.8)')+group(blade,'translate(-5 4) scale(.6)'),
+ v10:group(blade,'translate(7 4) scale(.75)')+line('M16 46C7 104 72 120 112 82M15 66c7 34 48 48 80 30','#d7b574',7),
+ a5:circle(64,64,40,'#829db04a')+star+line('M5 40V17h23m73 0h22v23M5 88v23h23m73 0h22V88','#a6b9da',4),
+ a6:group(drop,'translate(-4 4) scale(.8)')+line('M85 97c37-23 19-52-8-42M93 65 77 55l13-15','#dcc797',6),
+ a7:group(paw,'translate(4 24) scale(.65)')+group(star,'translate(62 -2) scale(.5)'),
+ a8:group(star,'translate(-6 22) scale(.75)')+group(star,'translate(61 -4) scale(.48)')+line('M20 111 5 121m92-31 12-9'),
+ a9:circle(63,68,47,'#819aae33')+line('M19 90 65 19l44 71z','#a5bed0',4)+group(star,'translate(23 29) scale(.62)'),
+ a10:path('M25 35h78l-7 65-31 17-32-17z','#8b9dab')+path('M35 64h59l-7 29-22 12-23-12z','#90c7c2')+group(drop,'translate(42 -5) scale(.4)'),
+ r5:group(arrow,'translate(14 -1) scale(.9)')+line('M7 47c29-22 48 9 68-10M7 65c19-10 23 7 39 0','#9bbdab',5),
+ r6:group(arrow,'translate(0 7) scale(.86)')+group(drop,'translate(70 45) scale(.45)'),
+ r7:group(paw,'translate(-3 0) scale(.76)')+group(arrow,'translate(64 43) scale(.5)'),
+ r8:group(ring,'translate(0 2) scale(.95)')+path('M59 38l-9 28h20l-5 30 23-44H66l5-14z','#ded098'),
+ r9:path('M55 18h26l-2 58 27 14-2 22H49l-7-14 13-39z','#a18367')+line('M10 54h26M8 74h27M15 94h18','#a6c4c3',6)+group(star,'translate(72 -4) scale(.35)'),
+ r10:group(arrow,'translate(-6 0) scale(.79)')+group(arrow,'translate(34 23) scale(.79)')+path('M18 23l13 4 8 17-19-7z','#a4bd81'),
+ w5:group(paw,'translate(19 18) scale(.7)')+line('M18 99c-16-56 4-70 28-78M100 24c25 35 10 62-9 80','#9cb8d3',5),
+ w6:group(shield,'translate(2 -4) scale(.8)')+group(shield,'translate(50 50) scale(.58)'),
+ w7:path('M20 80q44-28 89 0l-12 24H31z','#adc4b2')+group(drop,'translate(40 -7) scale(.55)')+line('M27 85q32 17 71 0','#e9dfba',5),
+ w8:group(paw,'translate(36 -2) scale(.75)')+path('M12 82l29-8 22 16 22-12 13 14-36 22-43-12z','#d5b895'),
+ w9:group(shield,'translate(0 4) scale(.86)')+group(leaf,'translate(63 34) scale(.48)')+line('M10 115h106','#c3c596',4),
+ w10:group(leaf,'translate(-3 1) scale(.85)')+group(leaf,'translate(58 71) rotate(-75) scale(.56)')+line('M61 78v43','#738f63',7),
+ va1:group(eye,'translate(0 -4) scale(.75)')+group(blade,'translate(69 40) scale(.55)'),
+ va2:group(blade,'rotate(35 64 64)')+path('M79 33l9-14 11 14-10 18z','#a4b7d9')+line('M20 48l13 8-8 15m65 16 13 7-8 15','#a4b7d9',4),
+ va3:group(blade,'translate(-2 3) rotate(-26 64 64)')+group(star,'translate(56 44) scale(.59)'),
+ va4:line('M12 69h22l10-32 21 65 17-48 12 15h23','#abb9d8',7)+group(blade,'translate(71 -9) scale(.4)'),
+ aw1:group(paw,'translate(11 14) scale(.58)')+line('M28 110c87 0 6-99 71-95','#a0bfdb',5)+group(star,'translate(76 84) scale(.3)'),
+ aw2:group(cross,'translate(10 27) scale(.78)')+path('M48 48C21 29 58 15 63 5c25 19 35 37 16 50-6-24-13-26-18-29-1 10-3 16-13 22z','#e3c18c'),
+ aw3:circle(64,70,45,'#92bfa833')+line('M64 24 25 92h79z','#adbde1',4)+circle(64,70,16,'#d9cea4')+line('M64 103v17M17 65H4m107 0h12'),
+ aw4:group(drop,'translate(-2 -4) scale(.62)')+group(cross,'translate(56 54) scale(.62)')+line('M72 17q43 4 30 33m-69 55q-35-6-19-32','#cebb89',5),
+ wr1:group(paw,'translate(6 4) scale(.8)')+group(leaf,'translate(64 68) scale(.45)'),
+ wr2:group(leaf,'translate(1 4) scale(.68)')+group(cross,'translate(55 53) scale(.59)'),
+ wr3:group(paw,'translate(-3 7) scale(.64)')+group(leaf,'translate(57 5) scale(.68)')+line('M28 107q41 23 77-16','#d5c397',6),
+ wr4:group(leaf,'translate(-2 0) scale(.9)')+group(drop,'translate(67 63) scale(.49)'),
+ rv1:group(blade,'translate(0 0) rotate(35 64 64) scale(.84)')+line('M14 29h32M7 46h25M12 63h16','#abbab2',6),
+ rv2:path('M27 20h30v62l14 12-2 18H15V91l12-17z','#b79871')+group(shield,'translate(60 38) scale(.55)'),
+ rv3:group(blade,'rotate(-35 64 64) scale(.9)')+group(arrow,'translate(14 1) scale(.91)'),
+ rv4:group(ring,'translate(0 0) scale(.94)')+group(leaf,'translate(40 43) scale(.54)')+line('M8 88h28M4 101h32','#d8c493',4),
+};

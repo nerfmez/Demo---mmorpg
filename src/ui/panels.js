@@ -5,7 +5,7 @@ import { icon } from './icons.js';
 import { art } from './art.js';
 import { skillsView } from './skillview.js';
 import { atlasView } from './atlas.js';
-import { jobView } from './jobview.js';
+import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
@@ -122,6 +122,8 @@ export class Panels {
   }
 
   close() {
+    this.cleanJobNetwork?.();
+    this.cleanJobNetwork = null;
     this.tab = null;
     this.overlay.classList.remove('on');
     document.body.classList.remove('panel-open');
@@ -172,7 +174,9 @@ export class Panels {
     this.body.dataset.panel = this.tab;
     this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
     const scroll = top ? 0 : this.body.scrollTop;
+    this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
+    this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this) : null;
     this.body.scrollTop = scroll;
     if (activeData && Object.keys(activeData).length) {
       const focus = [...this.overlay.querySelectorAll('button, select')].find((el) => Object.entries(activeData).every(([key, val]) => el.dataset[key] === val));
@@ -474,7 +478,7 @@ export class Panels {
       case 'node':
         this.sel.node = t.dataset.id;
         this.render();
-        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.job-detail')?.scrollIntoView({block:'start'});
+
         return;
       case 'take-node':
         allocateJobNode(ch, data, t.dataset.id);

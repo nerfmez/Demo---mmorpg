@@ -1,3 +1,4 @@
+import { JOB_ART } from './jobart.js';
 // Authored cel-style artwork. Identity is keyed by content ID, never grade or rarity.
 // Every named object has its own silhouette/details; UI glyphs live separately in icons.js.
 const ink = '#493c35';
@@ -170,6 +171,7 @@ const job = {
   w4: L('M24 86c-17-46 40-81 78-35','#bac38c',7)+P('M91 42l20 16-24 4z','#bac38c')+P('M63 106V65C21 71 22 36 30 29c27 3 30 19 33 36 4-25 14-36 38-37 8 34-12 46-38 37z','#7fa68a')+L('M65 106V65','#4e7c69',4)
 };
 
+Object.assign(job, JOB_ART);
 export const ART = { gear, material, skill, mod, monster, zone, job };
 export function hasArt(kind, id) { return !!ART[kind]?.[id]; }
 export function art(kind, id, className = '') {

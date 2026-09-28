@@ -5,6 +5,9 @@ import * as THREE from 'three';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
+import {leafTexture,needleTexture} from './leafpaint.js';
+import { paintSurface } from './surfaceart.js';
+import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone} from './nature.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const tmpM = new THREE.Matrix4();
@@ -114,7 +117,7 @@ export function createEnvironment(world) {
   const pineTiers = [];
   const pineTrunks = [];
   const willowLeaves = [];
-  const greens = ['#5daa3c', '#4f9d37', '#6ab646', '#58a841'];
+  const greens = ['#f8f1d4', '#e8eddd', '#f8f5dc', '#ecf1de'];
   const trees = [...world.circles.filter((c) => ['tree', 'birch', 'pine', 'willow'].includes(c.type)), ...world.decor.edgeTrees];
   for (const c of trees) {
     const s = c.scale * 0.85;
@@ -124,7 +127,7 @@ export function createEnvironment(world) {
     if (c.type === 'pine') {
       pineTrunks.push({ x: c.x, z: c.z, y, s, ry: c.rot });
       for (let t = 0; t < 3; t++) {
-        const col = new THREE.Color(t === 2 ? '#3f7a3a' : t === 1 ? '#35703a' : '#2e6634');
+        const col = new THREE.Color(t === 2 ? '#f2f1d9' : t === 1 ? '#e8eed6' : '#e0e5d4');
         col.offsetHSL(hueShift * 0.2, 0, hueShift * 0.5);
         pineTiers.push({ x: c.x, z: c.z, y: y + (1.3 + t * 1.25) * s, s: (1.5 - t * 0.38) * s, sy: 1.25 * s, ry: c.rot + t, color: `#${col.getHexString()}` });
       }
@@ -135,7 +138,7 @@ export function createEnvironment(world) {
       for (let i = 0; i < 3; i++) {
         const a = (i / 3) * Math.PI * 2 + c.rot;
         const r = i === 0 ? 0 : 0.7 * s;
-        const col = new THREE.Color(rng.pick(['#8cc84b', '#9bd257', '#7fbd45']));
+        const col = new THREE.Color(rng.pick(['#fff4c7', '#f6f5cf', '#eff4cc']));
         birchLeaves.push({ x: c.x + Math.sin(a) * r, z: c.z + Math.cos(a) * r, y: y + (i === 0 ? 4.2 : 3.5) * s, s: (i === 0 ? 1.15 : 0.95) * s, sy: 1.0 * s, ry: rng.range(0, 6), color: `#${col.getHexString()}` });
       }
       continue;
@@ -145,7 +148,7 @@ export function createEnvironment(world) {
     for (let i = 0; i < blobs; i++) {
       const a = (i / blobs) * Math.PI * 2 + c.rot;
       const r = i === 0 ? 0 : 0.95 * s;
-      const col = new THREE.Color(c.type === 'willow' ? rng.pick(['#6fb56a', '#62a95e']) : rng.pick(greens));
+      const col = new THREE.Color(c.type === 'willow' ? rng.pick(['#cde4ce', '#d4e7cf']) : rng.pick(greens));
       col.offsetHSL(hueShift * 0.3, 0, hueShift);
       canopy.push({
         x: c.x + Math.sin(a) * r * 0.9,
@@ -157,26 +160,27 @@ export function createEnvironment(world) {
         color: `#${col.getHexString()}`,
       });
     }
-    if (c.type === 'willow') willowLeaves.push({ x: c.x, z: c.z, y: y + 2.2 * s, s: 1.7 * s, sy: 1.35 * s, ry: c.rot, color: '#6fb56a' });
+    if (c.type === 'willow') willowLeaves.push({ x: c.x, z: c.z, y: y + 2.2 * s, s: 1.7 * s, sy: 1.35 * s, ry: c.rot, color: '#ceddc4' });
   }
-  const trunkGeo = new THREE.CylinderGeometry(0.22, 0.34, 3.4, 7);
-  trunkGeo.translate(0, 1.7, 0);
-  root.add(instanced(trunkGeo, mat('#7a5236'), trunks, { outline: '#3b2618', outlineWidth: 0.05 }));
-  const birchGeo = new THREE.CylinderGeometry(0.13, 0.2, 4.2, 7);
-  birchGeo.translate(0, 2.1, 0);
+  const trunkGeo = branchTrunk();
+  root.add(instanced(trunkGeo, paintSurface(mat('#85613f', {vertexColors:true}), 'bark'), trunks, { outline: '#564132', outlineWidth: 0.027 }));
+  const birchGeo = new THREE.CylinderGeometry(0.13, 0.2, 3.6, 7);
+  birchGeo.translate(0, 1.8, 0);
   root.add(instanced(birchGeo, mat('#ece8dc'), birchTrunks, { outline: '#4a4640', outlineWidth: 0.04 }));
   const pineTrunkGeo = new THREE.CylinderGeometry(0.16, 0.26, 1.6, 6);
   pineTrunkGeo.translate(0, 0.8, 0);
   root.add(instanced(pineTrunkGeo, mat('#6b4630'), pineTrunks, { outline: '#2e1f14', outlineWidth: 0.04 }));
-  const canopyGeo = blobGeometry(1, 3, 0.06);
-  const canopyMat = mat('#ffffff', { wind: 0.025, windBase: 1.2, see: true });
-  root.add(instanced(canopyGeo, canopyMat, canopy, { outline: '#2f5a24', outlineWidth: 0.05, wind: 0.025, windBase: 1.2, see: true }));
-  root.add(instanced(blobGeometry(1, 5, 0.07), canopyMat, birchLeaves, { outline: '#3d6a28', outlineWidth: 0.05, wind: 0.025, windBase: 1.2, see: true }));
-  const tierGeo = new THREE.ConeGeometry(1, 1.9, 8);
-  tierGeo.translate(0, 0.95, 0);
-  root.add(instanced(tierGeo, mat('#ffffff', { wind: 0.02, see: true }), pineTiers, { outline: '#1f4424', outlineWidth: 0.05, wind: 0.02, see: true }));
-  const willowGeo = new THREE.ConeGeometry(1, 2.4, 10, 1, true);
-  root.add(instanced(willowGeo, mat('#ffffff', { double: true, wind: 0.04, windBase: 1.2 }), willowLeaves, { shadow: true }));
+  const canopyGeo = leafCrown(3);
+  const canopyMat = mat('#ffffff', { double:true, wind: 0.025, windBase: 1.2, see: true });
+  canopyMat.map=leafTexture();canopyMat.alphaTest=.45;canopyMat.forceSinglePass=true;
+  root.add(instanced(canopyGeo, canopyMat, canopy.map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
+  root.add(instanced(leafCrown(5), canopyMat, birchLeaves.map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
+  const tierGeo = pineBough();
+  const pineMat=mat('#ffffff',{double:true,wind:.02,see:true});pineMat.map=needleTexture();pineMat.alphaTest=.45;pineMat.forceSinglePass=true;
+  root.add(instanced(tierGeo,pineMat,pineTiers.map(it=>({...it,ry:0})),{wind:.02,see:true}));
+  const willowGeo = leafCrown(23);
+  const willowMat=mat('#ffffff',{double:true,wind:.045,windBase:1.2,see:true});willowMat.map=leafTexture();willowMat.alphaTest=.45;willowMat.forceSinglePass=true;
+  root.add(instanced(willowGeo,willowMat,willowLeaves.map(it=>({...it,ry:0})),{shadow:true}));
 
   // ----- rocks, boulders, crystals, stumps, logs -----
   const rocks = [];
@@ -197,7 +201,7 @@ export function createEnvironment(world) {
   }
   for (const bx of world.boxes) if (bx.type === 'log') logs.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) + 0.35, sx: 1, sy: 1, sz: bx.hz * 2, ry: bx.angle });
   for (const l of world.decor.logsDecor) logs.push({ x: l.x, z: l.z, y: gy(l.x, l.z) + 0.3, sx: 0.8, sy: 0.8, sz: 1.6, ry: l.angle });
-  root.add(instanced(blobGeometry(1, 7, 0.16), mat('#ffffff'), rocks, { outline: '#4d4f58', outlineWidth: 0.04 }));
+  root.add(instanced(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks, { outline: '#676568', outlineWidth: 0.019 }));
   const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
   crystalGeo.scale(0.55, 1.9, 0.55);
   crystalGeo.translate(0, 0.75, 0);
@@ -225,13 +229,13 @@ export function createEnvironment(world) {
     if (c.type === 'arch_pillar') archPillars.push({ x: c.x, z: c.z, y: y - 0.1, s: 1, ry: c.rot });
   }
   for (const bx of world.boxes) if (bx.type === 'ruin_wall') walls.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) - 0.2, sx: 0.9, sy: bx.height + 0.2, sz: bx.hz * 2, ry: bx.angle });
-  const ruinMat = mat('#c9c3d4');
+  const ruinMat = paintSurface(mat('#c4c0c6'),'masonry');
   root.add(instanced(pillarGeometry(4.6), ruinMat, pillars, { outline: '#4e4760', outlineWidth: 0.04 }));
   root.add(instanced(pillarGeometry(2.1, true), ruinMat, broken, { outline: '#4e4760', outlineWidth: 0.04 }));
-  root.add(instanced(new THREE.BoxGeometry(1.6, 1.1, 1.3), mat('#b9b2c6'), blocks, { outline: '#4e4760', outlineWidth: 0.04 }));
+  root.add(instanced(new THREE.BoxGeometry(1.6, 1.1, 1.3), paintSurface(mat('#b9b2c6'),'masonry'), blocks, { outline: '#4e4760', outlineWidth: 0.04 }));
   const wallGeo = new THREE.BoxGeometry(1, 1, 1);
   wallGeo.translate(0, 0.5, 0);
-  root.add(instanced(wallGeo, mat('#bdb5ca'), walls, { outline: '#4e4760', outlineWidth: 0.03 }));
+  root.add(instanced(wallGeo, paintSurface(mat('#bdb5ca'),'masonry'), walls, { outline: '#4e4760', outlineWidth: 0.03 }));
   root.add(instanced(statueGeometry(), mat('#b7b0c6'), statues, { outline: '#4e4760', outlineWidth: 0.035 }));
   root.add(instanced(pillarGeometry(4.2), ruinMat, archPillars, { outline: '#4e4760', outlineWidth: 0.04 }));
   for (const a of world.decor.arches) {
@@ -255,26 +259,38 @@ export function createEnvironment(world) {
 
   // ----- small decoration -----
   const d = world.decor;
-  root.add(
-    instanced(
-      grassTuftGeometry(),
-      mat('#ffffff', { double: true, wind: 0.22 }),
-      d.grass.map((g) => ({ x: g.x, z: g.z, y: gy(g.x, g.z) - 0.02, ry: g.rot, s: g.s, color: grassTint(world, g.x, g.z, g.s) })),
-      { shadow: false }
-    )
-  );
-  const flowerCols = ['#fff6d8', '#ffe066', '#f6b0d8', '#c9b8ff', '#9fd8ff'];
-  root.add(instanced(flowerGeometry(), mat('#ffffff', { wind: 0.25 }), d.flowers.map((f) => ({ x: f.x, z: f.z, y: gy(f.x, f.z), s: f.s, ry: f.x * 3.1, color: flowerCols[f.color] })), { shadow: false }));
-  const bushGeo = blobGeometry(1, 11, 0.07);
+  // Grouped plant patches: short curved leaves and readable flowers, leaving paths clear.
+  const grass=[],flowers=[],detailRng=createRng(842);
+  const clear=(x,z)=>!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
+  for(const g of d.grass){
+    for(let k=0;k<10;k++){
+      const a=detailRng.range(0,6.28),r=k===0?0:detailRng.range(.15,1.3),x=g.x+Math.sin(a)*r,z=g.z+Math.cos(a)*r;
+      if(!clear(x,z))continue;
+      const scale=g.s*detailRng.range(.43,.78);
+      grass.push({x,z,y:gy(x,z)-.025,ry:a,s:scale,color:grassTint(world,x,z,scale)});
+    }
+  }
+  root.add(instanced(meadowGrass(),mat('#ffffff',{vertexColors:true,double:true,wind:.15}),grass,{shadow:false}));
+  const flowerCols=['#fff9e6','#f5dc77','#ecd0da','#c4b7db','#bcdae0'];
+  for(const f of d.flowers){
+    const cluster=f.color===0||f.color===1?6:4;
+    for(let k=0;k<cluster;k++){
+      const a=detailRng.range(0,6.28),r=k===0?0:detailRng.range(.12,.55),x=f.x+Math.sin(a)*r,z=f.z+Math.cos(a)*r;
+      if(clear(x,z))flowers.push({x,z,y:gy(x,z),s:f.s*detailRng.range(.7,1.1),ry:a,color:flowerCols[f.color]});
+    }
+  }
+  root.add(instanced(wildflowers(),mat('#ffffff',{vertexColors:true,double:true,wind:.12}),flowers,{shadow:false}));
+  const bushGeo=leafCrown(11);
   const bushes = [];
   const berries = [];
   for (const bsh of d.bushes) {
     const y = gy(bsh.x, bsh.z);
-    bushes.push({ x: bsh.x, z: bsh.z, y: y + 0.35 * bsh.s, s: 0.75 * bsh.s, sy: 0.55 * bsh.s, color: '#4f9a36' });
-    bushes.push({ x: bsh.x + 0.5 * bsh.s, z: bsh.z + 0.2, y: y + 0.28 * bsh.s, s: 0.55 * bsh.s, sy: 0.45 * bsh.s, color: '#5caa3e' });
+    bushes.push({ x: bsh.x, z: bsh.z, y: y + 0.35 * bsh.s, s: 0.75 * bsh.s, sy: 0.55 * bsh.s, color: '#dfe8c9' });
+    bushes.push({ x: bsh.x + 0.5 * bsh.s, z: bsh.z + 0.2, y: y + 0.28 * bsh.s, s: 0.55 * bsh.s, sy: 0.45 * bsh.s, color: '#ecedce' });
     if (bsh.berries) for (let k = 0; k < 5; k++) berries.push({ x: bsh.x + Math.sin(k * 1.3) * 0.5 * bsh.s, z: bsh.z + Math.cos(k * 1.3) * 0.45 * bsh.s, y: y + 0.45 * bsh.s + (k % 2) * 0.12, s: 0.09 });
   }
-  root.add(instanced(bushGeo, mat('#ffffff', { wind: 0.03, windBase: 0.5 }), bushes, { outline: '#2f5a24', outlineWidth: 0.05, wind: 0.03, windBase: 0.5 }));
+  const bushMat=mat('#ffffff',{double:true,wind:.03,windBase:.5});bushMat.map=leafTexture();bushMat.alphaTest=.45;bushMat.forceSinglePass=true;
+  root.add(instanced(bushGeo,bushMat,bushes.map(it=>({...it,ry:0})),{shadow:true}));
   root.add(instanced(new THREE.SphereGeometry(1, 6, 4), mat('#d8334a'), berries, { shadow: false }));
   const reedGeo = new THREE.ConeGeometry(0.05, 1.2, 4);
   reedGeo.translate(0, 0.6, 0);
@@ -357,28 +373,6 @@ function grassTint(world, x, z, s) {
   return `#${c.getHexString()}`;
 }
 
-function grassTuftGeometry() {
-  const pos = [];
-  const n = 5;
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2;
-    const r = 0.12;
-    const bx = Math.sin(a) * r;
-    const bz = Math.cos(a) * r;
-    const h = 0.35 + (i % 2) * 0.15;
-    const lean = 0.18;
-    const px = -Math.cos(a) * 0.05;
-    const pz = Math.sin(a) * 0.05;
-    pos.push(bx - px, 0, bz - pz, bx + px, 0, bz + pz, bx + Math.sin(a) * lean, h, bz + Math.cos(a) * lean);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  const nrm = [];
-  for (let i = 0; i < pos.length / 3; i++) nrm.push(0, 1, 0); // shade like the ground
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  return g;
-}
-
 function fernGeometry() {
   const pos = [];
   const n = 6;
@@ -398,13 +392,6 @@ function fernGeometry() {
   for (let i = 0; i < pos.length / 3; i++) nrm.push(0, 1, 0);
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
   return g;
-}
-
-function flowerGeometry() {
-  const head = new THREE.IcosahedronGeometry(0.11, 0);
-  head.scale(1, 0.6, 1);
-  head.translate(0, 0.24, 0);
-  return head;
 }
 
 function pillarGeometry(h, broken = false) {

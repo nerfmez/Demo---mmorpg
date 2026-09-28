@@ -139,6 +139,7 @@ export function jobNodeState(ch, data, nodeId) {
   if (ch.jobNodes.includes(nodeId)) return { can: false, taken: true, reason: 'taken' };
   const linked = node.links.some((l) => ch.jobNodes.includes(l));
   if (!linked) return { can: false, reason: 'not_linked' };
+  if (node.requiresJob && currentJob(ch, data)?.branch !== node.requiresJob) return { can: false, reason: 'requires_job', need: node.requiresJob };
   if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
   if (node.type === 'job') {
     if (ch.jobLevel < data.progression.job.jobChoiceLevel) return { can: false, reason: 'job_level', need: data.progression.job.jobChoiceLevel };
@@ -154,6 +155,29 @@ export function allocateJobNode(ch, data, nodeId) {
   ch.jobNodes.push(nodeId);
   ch.jobPoints -= 1;
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
+}
+
+/** Shortest permitted preview route from the learned network; never spends points. */
+export function jobPath(ch, data, target) {
+  const { nodes } = data.jobtree;
+  if (!nodes[target]) return [];
+  const job = currentJob(ch, data)?.branch;
+  const queue = ch.jobNodes.filter(id => nodes[id]).map(id => [id]);
+  const seen = new Set(ch.jobNodes);
+  while (queue.length) {
+    const path = queue.shift(), last = path.at(-1);
+    if (last === target) return path;
+    for (const id of nodes[last].links) {
+      if (seen.has(id)) continue;
+      const n = nodes[id];
+      const routeJob = job || path.map(k => nodes[k]).find(n => n.type === 'job')?.branch;
+      if (n.type === 'job' && ((routeJob && routeJob !== n.branch) || ch.jobLevel < data.progression.job.jobChoiceLevel)) continue;
+      if (n.requiresJob && n.requiresJob !== routeJob) continue;
+      seen.add(id);
+      queue.push([...path, id]);
+    }
+  }
+  return [];
 }
 
 export function currentJob(ch, data) {

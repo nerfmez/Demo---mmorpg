@@ -206,62 +206,78 @@ ${NOISE_GLSL}`
 {
   vec2 w = vWorldPos.xz;
   float y = vWorldPos.y;
-  float big = fbm3(w * 0.07);
-  float mid = vnoise(w * 0.45);
-  float fine = vnoise(w * 3.1);
-  float blade = vnoise(vec2(w.x * 7.0, w.y * 2.2));
-  // grass: two tones in soft patches + blade speckles; hilltops a touch warmer
-  float patchT = smoothstep(0.46, 0.54, big + (mid - 0.5) * 0.28);
+  float big = fbm3(w * 0.11);
+  float mid = vnoise(w * 1.15);
+  float fine = vnoise(w * 5.2);
+  // Broad colour groups are quiet; the silhouette of tiny grass strokes supplies detail.
+  float patchT = smoothstep(0.25, 0.77, big + (mid - 0.5) * 0.12);
   vec3 grass = mix(vTintD, vTintL, patchT);
-  grass *= 1.0 + clamp(y * 0.018, -0.05, 0.08);
-  grass = mix(grass, grass * 1.13 + vec3(0.03, 0.03, 0.0), step(0.78, blade) * 0.5);
-  grass = mix(grass, grass * 0.86, step(0.8, fine) * 0.35);
-  // bare dirt patches (highlands, den)
-  vec3 dry = mix(vec3(0.66, 0.56, 0.38), vec3(0.74, 0.64, 0.45), mid);
-  // dirt road with pebbles
-  vec3 dirtA = vec3(0.80, 0.62, 0.40);
-  vec3 dirtB = vec3(0.70, 0.52, 0.33);
-  vec3 road = mix(dirtB, dirtA, smoothstep(0.4, 0.6, mid));
-  road = mix(road, vec3(0.60, 0.44, 0.29), step(0.86, fine) * 0.7);
-  road = mix(road, vec3(0.88, 0.78, 0.60), step(0.93, vnoise(w * 5.3)) * 0.6);
-  // mud / wet sand on banks
-  vec3 mud = mix(vec3(0.46, 0.47, 0.30), vec3(0.62, 0.58, 0.40), smoothstep(uWater - 0.2, uWater + 0.6, y));
-  // stone paving
-  vec2 tw = w * vec2(1.25, 1.6);
-  vec2 tile = tw + vec2(step(0.5, fract(tw.y * 0.5)) * 0.5, 0.0);
-  vec2 f = abs(fract(tile) - 0.5);
-  float grout = step(0.45, max(f.x, f.y));
-  vec3 stone = mix(vec3(0.80, 0.76, 0.70), vec3(0.70, 0.67, 0.63), step(0.5, hash12(floor(tile))));
-  stone = mix(stone, vec3(0.52, 0.49, 0.47), grout);
-  float mossAmt = w.x > 60.0 ? 0.75 : 0.2;
-  stone = mix(stone, grass * 0.95, smoothstep(0.72, 0.95, fine * 0.6 + big * 0.7) * mossAmt);
-  // cliff rock: layered strata on steep faces
-  float strata = vnoise(vec2(w.x * 0.15 + w.y * 0.15, y * 2.2));
-  vec3 rock = mix(vec3(0.52, 0.49, 0.47), vec3(0.66, 0.62, 0.57), smoothstep(0.35, 0.65, strata));
-  rock = mix(rock, vec3(0.42, 0.40, 0.40), step(0.8, fract(y * 1.3 + mid * 0.4)) * 0.5);
-  vec3 col = grass;
-  col = mix(col, dry, vSplat.a * 0.85);
-  col = mix(col, mud, smoothstep(0.2, 0.8, vSplat.b));
-  float roadEdge = vSplat.r + (mid - 0.5) * 0.35 + (fine - 0.5) * 0.12;
-  col = mix(col, road, smoothstep(0.42, 0.52, roadEdge));
-  col = mix(col, stone, smoothstep(0.45, 0.55, vSplat.g + (mid - 0.5) * 0.3));
-  float cliff = smoothstep(0.82, 0.68, vUp + (fine - 0.5) * 0.05);
-  col = mix(col, rock, cliff);
-  // grassy lip on top of cliffs
+  grass *= 0.97 + step(.48, mid)*.035 + clamp(y * .006, -.02, .035);
+  vec2 grassCell=floor(w*2.5), gf=fract(w*2.5)-.5;
+  gf-=(vec2(hash12(grassCell+13.2),hash12(grassCell+37.7))-.5)*.48;
+  float seed=hash12(grassCell);
+  float ga=(seed-.5)*1.4;gf=mat2(cos(ga),-sin(ga),sin(ga),cos(ga))*gf;
+  float tuft=0.0;
+  for(int b=0;b<3;b++) {
+    float fi=float(b), side=fi-1.0;
+    vec2 q=gf-vec2(side*.12,abs(side)*.07);
+    float bend=q.y*q.y*side*.8;
+    float width=.032*max(.0,1.0-(q.y+.24)/.48);
+    float stem=(1.0-smoothstep(width,width+.015,abs(q.x-bend-side*q.y*.23)))*step(-.24,q.y)*(1.0-step(.26,q.y));
+    tuft=max(tuft,stem);
+  }
+  float tuftPatch=smoothstep(.31,.53,big+mid*.18)*step(.38,seed);
+  grass=mix(grass,seed>.62?grass*1.18+vec3(.015,.014,0.0):grass*.77,tuft*tuftPatch*.40);
+  grass*=1.0+(fine-.5)*.10;
+  vec2 blot=floor(w*3.8),bp=fract(w*3.8)-.5;
+  float bd=length(bp*vec2(1.2,.7));
+  float daub=(1.0-smoothstep(.12,.28,bd))*step(.53,hash12(blot));
+  grass=mix(grass,hash12(blot+19.0)>.55?grass*1.16:grass*.88,daub*.55);
+  vec3 dry = mix(vec3(.38,.32,.15),vec3(.46,.38,.19),smoothstep(.3,.7,mid));
+  // Warm packed earth, irregular worn patches and sparse little stone faces.
+  vec3 road=mix(vec3(.55,.38,.19),vec3(.67,.48,.27),smoothstep(.2,.8,big*.5+mid*.5));
+  vec2 pebbles=w*3.2;vec2 pc=floor(pebbles),pf=fract(pebbles)-.5;
+  float pr=length(pf*vec2(1.0,1.6));float ps=hash12(pc);
+  float pebble=(1.0-smoothstep(.09,.14,pr))*step(.92,ps);
+  road=mix(road,vec3(.75,.64,.42),pebble*.7);
+  road*=1.0+(fine-.5)*.035;
+  vec3 mud=mix(vec3(.23,.27,.16),vec3(.39,.34,.20),smoothstep(uWater-.2,uWater+.6,y));
+  mud=mix(mud,vec3(.40,.45,.31),step(.72,fine)*.15);
+  // Worn, bevelled paving with staggered courses and plants between stones.
+  vec2 tw=w*vec2(1.10,1.35);tw+=vec2(vnoise(w*2.0),vnoise(w*2.0+7.0))*.10;
+  vec2 tile=tw+vec2(step(.5,fract(tw.y*.5))*.5,0.0);
+  vec2 f=abs(fract(tile)-.5);float edge=max(f.x,f.y);
+  float grout=smoothstep(.448,.475,edge);
+  vec3 stone=mix(vec3(.40,.37,.32),vec3(.53,.49,.41),hash12(floor(tile)));
+  stone+=vec3(.035)*step(.38,edge)*(1.0-grout);
+  stone=mix(stone,vec3(.24,.25,.19),grout);
+  float mossAmt=w.x>60.0?.8:.24;
+  stone=mix(stone,grass*.85,grout*smoothstep(.36,.60,big)*mossAmt);
+  // Angular cliff strata; noise breaks the band edges rather than colouring every pixel.
+  float strata=vnoise(vec2(w.x*.21+w.y*.19,y*2.7));
+  vec3 rock=mix(vec3(.29,.28,.27),vec3(.43,.41,.36),step(.42,strata));
+  rock=mix(rock,vec3(.49,.47,.41),step(.72,strata)*.4);
+  vec3 col=mix(grass,dry,vSplat.a*.55);
+  col=mix(col,mud,smoothstep(.2,.8,vSplat.b));
+  float roadEdge=vSplat.r+(mid-.5)*.25+(fine-.5)*.10;
+  col=mix(col,road,smoothstep(.41,.55,roadEdge));
+  col=mix(col,stone,smoothstep(.45,.55,vSplat.g+(mid-.5)*.14));
+  float cliff=1.0-smoothstep(.68,.82,vUp+(fine-.5)*.035);
+  col=mix(col,rock,cliff);
   // boss arena rune circle
   float ad = distance(w, uArena.xy);
-  float ring = smoothstep(0.35, 0.0, abs(ad - (uArena.z - 3.0))) + smoothstep(0.25, 0.0, abs(ad - (uArena.z - 4.2)));
+  float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));
   col = mix(col, vec3(0.55, 0.50, 0.66), clamp(ring, 0.0, 1.0) * 0.75);
   // under the water line: darker, bluish
-  col = mix(col, col * vec3(0.55, 0.68, 0.72), smoothstep(uWater + 0.05, uWater - 0.4, y));
+  col = mix(col, col * vec3(0.55, 0.68, 0.72), (1.0-smoothstep(uWater - 0.4, uWater + 0.05, y)));
   // drifting cloud shadows
   float cloud = fbm3(w * 0.012 + vec2(uTime * 0.012, uTime * 0.006));
-  col *= 1.0 - 0.16 * smoothstep(0.55, 0.72, cloud);
+  col *= 1.0 - 0.09 * smoothstep(0.55, 0.72, cloud);
   diffuseColor.rgb = col;
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-v2';
+  mat.customProgramCacheKey = () => 'terrain-anime-v3';
   return mat;
 }
 
@@ -283,19 +299,21 @@ function waterMaterial() {
       void main(){
         float d = vDepth + (vnoise(vW * 1.3 + uTime * 0.4) - 0.5) * 0.06;
         if (d <= 0.0) discard;
-        vec3 deep = vec3(0.16, 0.47, 0.72);
-        vec3 mid = vec3(0.27, 0.66, 0.84);
-        vec3 shallow = vec3(0.55, 0.86, 0.90);
+        vec3 deep = vec3(0.055, 0.24, 0.34);
+        vec3 mid = vec3(0.12, 0.43, 0.49);
+        vec3 shallow = vec3(0.36, 0.64, 0.60);
         vec3 col = mix(shallow, mid, smoothstep(0.05, 0.45, d));
         col = mix(col, deep, smoothstep(0.5, 1.2, d));
         // flowing streaks (rivers) and ripples (ponds)
-        float s = vnoise(vec2(vAlong * 0.9 - uTime * 1.2, vW.x * 0.35 + vW.y * 0.35));
-        col = mix(col, vec3(0.80, 0.95, 1.0), step(0.8, s) * 0.45 * smoothstep(0.2, 0.6, d));
+        float s = vnoise(vec2(vW.x * 2.4 + vW.y*.2 - uTime * .7, vW.y * 0.55));
+        col = mix(col, vec3(0.80, 0.95, 1.0), step(0.83, s) * 0.30 * smoothstep(0.2, 0.6, d));
         // sun glints
         float g = vnoise(vW * 2.6 + vec2(uTime * 0.7, -uTime * 0.5));
         col = mix(col, vec3(1.0), step(0.92, g) * 0.6);
         // foam along the shore
-        float foam = 1.0 - smoothstep(0.03, 0.12 + 0.05 * sin(uTime * 2.0 + vW.x), d);
+        float foam = 1.0 - smoothstep(0.045, 0.16 + 0.04 * sin(uTime * 1.4 + vW.x), d);
+        float ribbon=(1.0-smoothstep(.016,.032,abs(d-(.27+.035*sin(vW.x*1.2+vW.y*.7-uTime*.8)))))*step(.40,vnoise(vW*.6));
+        col=mix(col,vec3(.7,.88,.82),ribbon*.38);
         col = mix(col, vec3(0.97, 0.99, 1.0), foam * 0.9);
         float a = mix(0.62, 0.93, smoothstep(0.0, 0.6, d));
         gl_FragColor = vec4(col, a);

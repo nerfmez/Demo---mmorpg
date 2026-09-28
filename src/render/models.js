@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { toonRamp, outlineMaterial } from './toon.js';
 import { prepareHeroBase } from './skinned.js';
+import { prepareMonsterModel } from './monsterSkin.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {geometry, map, outline}
 
@@ -20,8 +21,8 @@ export function loadModels(registry = {}) {
         loader
           .loadAsync(m.file)
           .then((gltf) => {
-            if (group === 'characters') {
-              loaded.set(`${group}/${id}`, prepareHeroBase(gltf, m));
+            if (group === 'characters' || group === 'monsters') {
+              loaded.set(`${group}/${id}`, (group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
               return;
             }
             gltf.scene.updateMatrixWorld(true);
@@ -45,6 +46,11 @@ export function loadModels(registry = {}) {
     }
   }
   return Promise.all(jobs);
+}
+
+/** A prepared monster model template (see monsterSkin.js), or null until it has loaded. */
+export function monsterModel(type) {
+  return loaded.get(`monsters/${type}`) || null;
 }
 
 /** A prepared skinned character template (see skinned.js), or null until it has loaded. */

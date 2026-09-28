@@ -41,10 +41,17 @@ test('imported models name real gear bases and ship small GLB files',async()=>{
  const all=Object.entries(data.models).filter(([g])=>!g.startsWith('_')).flatMap(([g,e])=>Object.entries(e).map(([id,m])=>[g,id,m]));
  for(const [group,id,m] of all){
   if(group==='weapons')assert.equal(data.items.gearBases[id]?.slot,'weapon',id+' is a weapon base');
+  if(group==='monsters'){
+   assert.ok(data.monsters.monsters[id],id+' is a monster');
+   // one segment [a,b] or a list of them per bone
+   const isSeg=(s)=>s.length===2&&s.every((p)=>p.length===3&&p.every(Number.isFinite));
+   for(const [b,seg] of Object.entries(m.segments))assert.ok(isSeg(seg)||(seg.length>0&&seg.every(isSeg)),id+'/'+b+' segment');
+   if(m.keep)for(const b of m.keep)assert.ok(!(b in m.segments),id+'/'+b+' is kept procedural, not skinned');
+  }
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
   assert.ok(buf.length<(group==='characters'?600:400)*1024,m.file+' stays small for iPad');
-  assert.ok(m.tris<=(group==='characters'?8000:4000),id+' triangle budget');
+  assert.ok(m.tris<=({characters:8000,monsters:5000}[group]??4000),id+' triangle budget');
  }
 });
 

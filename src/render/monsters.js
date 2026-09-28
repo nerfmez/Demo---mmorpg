@@ -5,6 +5,8 @@
 // squash/stretch, head tracking, springy tails/ears and hit reactions.
 import * as THREE from 'three';
 import { RigBuilder, damp, clamp01, Spring } from './rig.js';
+import { monsterModel } from './models.js';
+import { attachMonsterModel } from './monsterSkin.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
@@ -646,6 +648,9 @@ export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();
+  // an imported model, once loaded, replaces the procedural parts on the same bones
+  const model = monsterModel(type);
+  if (model) attachMonsterModel(rig, model);
   rig.animate = anim;
   rig.seed = Math.random() * 10;
   const s = monsterScale(type, level, boss);
@@ -658,7 +663,8 @@ export function buildMonster(type, level = 1, boss = false) {
 
 /** Model scale for a monster (higher levels are a little bigger; bosses fixed). */
 export function monsterScale(type, level = 1, boss = false) {
-  const base = MONSTER_SCALE[type] || 1;
+  // an imported model may be drawn at its own size (rootScale in data/models.json)
+  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type)?.cfg.rootScale ?? 1);
   return boss ? base : base * (1 + Math.min(0.25, (level - 1) * 0.03));
 }
 

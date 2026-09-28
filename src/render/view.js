@@ -8,6 +8,7 @@ import { createTerrain, createWater } from './ground.js';
 import { createEnvironment } from './environment.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
+import { monsterModel } from './models.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
@@ -140,6 +141,40 @@ export class View {
     const p = game.player;
     this.heroY = this.world.groundY(p.x, p.z);
     this.camTarget.set(p.x, this.heroY, p.z);
+  }
+
+  /**
+   * Once imported models have loaded: drop the pooled procedural rigs of the types that now have
+   * a model, build and compile one model rig for each so the first encounter does not hitch, and
+   * rebuild the ones already on screen. Other types keep their warmed pool.
+   */
+  refreshModelRigs() {
+    const tmp = new THREE.Group();
+    const [x, z] = this.world.data.playerSpawn;
+    const fresh = [];
+    for (const [key, pool] of this.rigPool || []) {
+      const type = key.split('#')[0];
+      if (!monsterModel(type) || pool.every((r) => r.model)) continue;
+      for (const rig of pool) disposeObject(rig.root);
+      this.rigPool.delete(key);
+      const rig = buildMonster(type, 1, key.endsWith('#boss'));
+      rig.root.position.set(x, this.world.groundY(x, z), z);
+      tmp.add(rig.root);
+      fresh.push(rig);
+    }
+    if (fresh.length) {
+      this.scene.add(tmp);
+      this.renderer.compile(this.scene, this.camera);
+      tmp.removeFromParent();
+      for (const rig of fresh) this.releaseRig(rig);
+    }
+    // monsters already on screen with the procedural body are rebuilt on the next frame
+    for (const [id, mv] of this.monsterViews) {
+      if (mv.rig.model || !monsterModel(mv.rig.type)) continue;
+      disposeObject(mv.rig.root);
+      disposeObject(mv.halo);
+      this.monsterViews.delete(id);
+    }
   }
 
   /** Monster models are pooled per type: building one costs time and GPU memory. */

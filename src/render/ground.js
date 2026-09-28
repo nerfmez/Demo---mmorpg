@@ -98,8 +98,9 @@ export function surfaceData(world) {
       const k = j * w + i;
       const ab=animeConfig.bounds;
       const blend=animeStudy?smooth(ab.minX-4,ab.minX+4,x)*(1-smooth(ab.maxX-4,ab.maxX+4,x))*smooth(ab.minZ-4,ab.minZ+4,z)*(1-smooth(ab.maxZ-4,ab.maxZ+4,z)):0;
-      const cl = blend?col(L).clone().lerp(col(animeConfig.palette.groundLight),blend):col(L);
-      const cd = blend?col(D).clone().lerp(col(animeConfig.palette.groundDark),blend):col(D);
+      const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
+      const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
+      const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
       lr[k] = cl.r;
       lg[k] = cl.g;
       lb[k] = cl.b;

@@ -6,7 +6,8 @@ import { createRng } from '../core/rng.js';
 import { animeStudy, animeConfig, animeFoliage, branchletTexture } from './anime-study.js';
 
 export function inArtStudy(x,z) {
-  const b=animeStudy?animeConfig.bounds:art.study.bounds;
+  if(animeStudy)return true; // art=anime covers the whole map
+  const b=art.study.bounds;
   return x>=b.minX&&x<=b.maxX&&z>=b.minZ&&z<=b.maxZ;
 }
 

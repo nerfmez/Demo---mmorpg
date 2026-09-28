@@ -1,5 +1,5 @@
 // Shared world-space paint for terrain and planted grass. Linear RGB throughout.
-import { animeStudy, animeConfig } from './anime-study.js';
+import { animeStudy } from './anime-study.js';
 export const NOISE_GLSL = /* glsl */ `
 float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); vec2 u = f*f*(3.0-2.0*f);
@@ -9,7 +9,7 @@ float fbm3(vec2 p){ float v = 0.0; float a = 0.5; for(int i=0;i<3;i++){ v += a*v
 
 export const GROUND_COLOR_GLSL = NOISE_GLSL + /* glsl */ `
 vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,float up,float water) {
-  float study=${animeStudy?'1.0':'0.0'}*smoothstep(${animeConfig.bounds.minX.toFixed(1)},${(animeConfig.bounds.minX+5).toFixed(1)},w.x)*(1.0-smoothstep(${(animeConfig.bounds.maxX-5).toFixed(1)},${animeConfig.bounds.maxX.toFixed(1)},w.x))*smoothstep(${animeConfig.bounds.minZ.toFixed(1)},${(animeConfig.bounds.minZ+5).toFixed(1)},w.y)*(1.0-smoothstep(${(animeConfig.bounds.maxZ-5).toFixed(1)},${animeConfig.bounds.maxZ.toFixed(1)},w.y));
+  float study=${animeStudy?'1.0':'0.0'};
   float big = fbm3(w * 0.11);
   float mid = vnoise(w * 1.15);
   float fine = vnoise(w * 5.2);

@@ -285,6 +285,7 @@ export class HumanoidAnimator {
     this.deadT = 0;
     this.moveW = 0;
     this.gaitU = 0;
+    this.buf = poseBuffers();
     this.blinkT = 1.5 + Math.random() * 3;
     this.blink = 0;
   }
@@ -339,26 +340,28 @@ export class HumanoidAnimator {
     // faster than the clip: longer strides a little, quicker steps mostly
     const cycle = (GAIT.walk.cycle + (GAIT.run.cycle - GAIT.walk.cycle) * kRun) * Math.pow(sp / natural, 0.35);
     this.gaitU = (this.gaitU + (sp * dt) / cycle) % 1;
-    const gait = sampleGait(this.gaitU, kRun);
+    // base pose buffers are reused every frame (no per-frame allocation on the hot path)
+    const gait = sampleGait(this.gaitU, kRun, this.buf.gait);
     const sway = Math.sin(it * 0.55);
-    const idle = {
-      legL: [0, 0, -sway * 0.03], legR: [0, 0, -sway * 0.03],
-      kneeL: [0.04, 0, 0], kneeR: [0.04, 0, 0], footL: [0, 0, 0], footR: [0, 0, 0],
-      armL: [-0.05, 0, 0.17 + breath * 0.012], armR: [-0.05, 0, -0.17 - breath * 0.012],
-      elbowL: [-0.22, 0, 0], elbowR: [-0.22, 0, 0], handL: [0, 0, 0], handR: [0, 0, 0],
-      torso: [0.05, 0, 0], chest: [breath * 0.015, 0, 0],
-      head: [0, Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35, 0], hips: [0, 0, sway * 0.035],
-    };
-    const pose = {};
+    const idle = this.buf.idle;
+    idle.legL[2] = idle.legR[2] = -sway * 0.03;
+    idle.armL[2] = 0.17 + breath * 0.012;
+    idle.armR[2] = -0.17 - breath * 0.012;
+    idle.chest[0] = breath * 0.015;
+    idle.head[1] = Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35;
+    idle.hips[2] = sway * 0.035;
+    const pose = this.buf.pose;
+    for (const n in pose) if (!(n in idle) && n !== 'weapon') delete pose[n]; // channels an action or dash added
     for (const n in idle) {
-      const i = idle[n], g = gait.pose[n];
-      pose[n] = [i[0] + (g[0] - i[0]) * m, i[1] + (g[1] - i[1]) * m, i[2] + (g[2] - i[2]) * m];
+      const i = idle[n], g = gait.pose[n], o = (pose[n] = this.buf.base[n]);
+      for (let j = 0; j < 3; j++) o[j] = i[j] + (g[j] - i[j]) * m;
     }
     // the sword hand swings less and stays a little bent
     pose.armR[0] *= 1 - 0.3 * m;
     pose.elbowR[0] = Math.min(pose.elbowR[0], -0.22 - 0.25 * m);
     pose.head[1] += this.lookYaw;
-    pose.weapon = [1.2 - 0.3 * m, 0, 0];
+    pose.weapon = this.buf.weapon;
+    pose.weapon[0] = 1.2 - 0.3 * m;
     let bodyY = gait.by * m - (1 - m) * 0.004 * (1 - breath);
     let bodyX = gait.bx * m;
     let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
@@ -521,9 +524,23 @@ const AIM_Q = new THREE.Quaternion();
 const AIM_R = new THREE.Quaternion();
 const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
-/** Gait pose at cycle position u (0..1), blended walk -> run by k. */
-function sampleGait(u, k) {
-  const pose = {};
+const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
+
+/** Per-animator scratch arrays for the locomotion pose. */
+function poseBuffers() {
+  const set = (f) => Object.fromEntries(IDLE_BONES.map((n) => [n, f(n)]));
+  const idle = set(() => [0, 0, 0]);
+  idle.kneeL[0] = idle.kneeR[0] = 0.04;
+  idle.armL[0] = idle.armR[0] = -0.05;
+  idle.elbowL[0] = idle.elbowR[0] = -0.22;
+  idle.torso[0] = 0.05;
+  return { idle, base: set(() => [0, 0, 0]), pose: {}, weapon: [1.2, 0, 0], gait: { pose: set(() => [0, 0, 0]), bx: 0, by: 0 } };
+}
+
+/** Gait pose at cycle position u (0..1), blended walk -> run by k, written into out. */
+function sampleGait(u, k, out) {
+  const pose = out.pose;
+  for (const n in pose) pose[n][0] = pose[n][1] = pose[n][2] = 0;
   let bx = 0, by = 0;
   for (const [table, wt] of [[GAIT.walk, 1 - k], [GAIT.run, k]]) {
     if (wt <= 0) continue;
@@ -531,13 +548,16 @@ function sampleGait(u, k) {
     const f = u * n, i0 = Math.floor(f) % n, i1 = (i0 + 1) % n, t = f - Math.floor(f);
     for (const name in table.bones) {
       const a = table.bones[name][i0], b = table.bones[name][i1];
-      const p = (pose[name] ||= [0, 0, 0]);
+      const p = pose[name];
+      if (!p) continue;
       for (let j = 0; j < 3; j++) p[j] += (a[j] + (b[j] - a[j]) * t) * wt;
     }
     bx += (table.body[i0][0] + (table.body[i1][0] - table.body[i0][0]) * t) * wt;
     by += (table.body[i0][1] + (table.body[i1][1] - table.body[i0][1]) * t) * wt;
   }
-  return { pose, bx, by };
+  out.bx = bx;
+  out.by = by;
+  return out;
 }
 
 function clampAbs(v, m) {

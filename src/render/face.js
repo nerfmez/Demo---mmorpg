@@ -1,11 +1,14 @@
 // Anime face painted on a canvas and laid over the skinned head (skinned.js). The texture is a
 // 2x2 atlas of expressions (open, blink, attack, hurt); a per-rig uniform picks the cell, so
-// blinking and expressions cost nothing. One texture per eye/hair colour pair, shared.
+// blinking and expressions cost nothing. One texture per eye/hair colour pair, shared; only the
+// last few pairs are kept (character creation cycles through many).
 import * as THREE from 'three';
 
 export const FACE_CELLS = { open: [0, 0.5], blink: [0.5, 0.5], attack: [0, 0], hurt: [0.5, 0] };
-const CELL = 512; // px per expression; covers FACE_SIZE metres of the face
+const CELL = 256; // px per expression in the texture; covers FACE_SIZE metres of the face
+const DRAW = 512; // drawing units per cell (strokes are authored at this size)
 export const FACE_SIZE = 0.2;
+const KEEP = 4; // cached atlases (1 MB each)
 
 const cache = new Map();
 
@@ -19,8 +22,13 @@ const shade = (hex, k) => {
  * patch centre-bottom; landmarks come from the model config (metres, head-local bind pose).
  */
 export function faceTexture(look, F) {
-  const key = `${look.eyes}|${look.hair}|${look.skin}`;
-  if (cache.has(key)) return cache.get(key);
+  const key = `${look.eyes}|${look.hair}`; // the only colours drawn
+  if (cache.has(key)) {
+    const tex = cache.get(key);
+    cache.delete(key); // most recently used goes last
+    cache.set(key, tex);
+    return tex;
+  }
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = CELL * 2;
   const g = canvas.getContext('2d');
@@ -28,6 +36,7 @@ export function faceTexture(look, F) {
   for (const [expr, ox, oy] of cells) {
     g.save();
     g.translate(ox, oy);
+    g.scale(CELL / DRAW, CELL / DRAW);
     drawFace(g, expr, look, F);
     g.restore();
   }
@@ -36,13 +45,19 @@ export function faceTexture(look, F) {
   tex.anisotropy = 4;
   tex.userData.shared = true;
   cache.set(key, tex);
+  if (cache.size > KEEP) {
+    // free the oldest atlas's GPU copy; a rig still showing it re-uploads it on its next draw
+    const [oldKey, old] = cache.entries().next().value;
+    cache.delete(oldKey);
+    old.dispose();
+  }
   return tex;
 }
 
 function drawFace(g, expr, look, F) {
-  const s = CELL / FACE_SIZE;
-  const X = (x) => CELL / 2 + x * s;
-  const Y = (y) => CELL - (y - F.bottom) * s;
+  const s = DRAW / FACE_SIZE;
+  const X = (x) => DRAW / 2 + x * s;
+  const Y = (y) => DRAW - (y - F.bottom) * s;
   const ink = '#2a2230';
   const brow = shade(look.hair, 0.7);
   const eyeY = Y(F.eyeY), browY = Y(F.browY), mouthY = Y(F.mouthY), noseY = Y(F.noseY);
@@ -53,19 +68,19 @@ function drawFace(g, expr, look, F) {
   g.fillStyle = 'rgba(232,120,110,0.16)';
   for (const side of [-1, 1]) {
     g.beginPath();
-    g.ellipse(CELL / 2 + side * (ex + w * 0.15), eyeY + h * 1.05, w * 0.55, h * 0.22, 0, 0, Math.PI * 2);
+    g.ellipse(DRAW / 2 + side * (ex + w * 0.15), eyeY + h * 1.05, w * 0.55, h * 0.22, 0, 0, Math.PI * 2);
     g.fill();
   }
   g.strokeStyle = 'rgba(150,80,70,0.55)';
   g.lineWidth = 3;
   g.lineCap = 'round';
   g.beginPath();
-  g.moveTo(CELL / 2 - 4, noseY + 2);
-  g.lineTo(CELL / 2 + 3, noseY);
+  g.moveTo(DRAW / 2 - 4, noseY + 2);
+  g.lineTo(DRAW / 2 + 3, noseY);
   g.stroke();
 
   for (const side of [-1, 1]) {
-    const cx = CELL / 2 + side * ex;
+    const cx = DRAW / 2 + side * ex;
     g.save();
     g.translate(cx, eyeY);
     g.scale(side, 1); // draw the character's right eye, mirror for the left; +x is outward
@@ -98,18 +113,18 @@ function drawFace(g, expr, look, F) {
   g.lineWidth = 4.5;
   g.beginPath();
   if (expr === 'attack') {
-    g.moveTo(CELL / 2 - mw * 0.45, mouthY - 2);
-    g.quadraticCurveTo(CELL / 2, mouthY + mw * 0.45, CELL / 2 + mw * 0.45, mouthY - 2);
+    g.moveTo(DRAW / 2 - mw * 0.45, mouthY - 2);
+    g.quadraticCurveTo(DRAW / 2, mouthY + mw * 0.45, DRAW / 2 + mw * 0.45, mouthY - 2);
     g.closePath();
     g.fill();
     g.stroke();
   } else if (expr === 'hurt') {
-    g.ellipse(CELL / 2, mouthY + 2, mw * 0.28, mw * 0.2, 0, 0, Math.PI * 2);
+    g.ellipse(DRAW / 2, mouthY + 2, mw * 0.28, mw * 0.2, 0, 0, Math.PI * 2);
     g.fill();
     g.stroke();
   } else {
-    g.moveTo(CELL / 2 - mw * 0.5, mouthY - 3);
-    g.quadraticCurveTo(CELL / 2, mouthY + mw * 0.22, CELL / 2 + mw * 0.5, mouthY - 3);
+    g.moveTo(DRAW / 2 - mw * 0.5, mouthY - 3);
+    g.quadraticCurveTo(DRAW / 2, mouthY + mw * 0.22, DRAW / 2 + mw * 0.5, mouthY - 3);
     g.stroke();
   }
 }

@@ -25,6 +25,10 @@ jobs:
         run: npm run test:ux
       - name: Game UI workflows (WebKit, desktop/tablet/phone)
         run: BROWSER=webkit npm run test:ux
+      - name: Dreamloop terrain and passive network (Chromium)
+        run: npm run test:dreamloop
+      - name: Dreamloop terrain and passive network (WebKit)
+        run: BROWSER=webkit DREAMLOOP_PASS=webkit npm run test:dreamloop
       - uses: actions/upload-artifact@v4
         if: always()
         with:

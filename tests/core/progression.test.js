@@ -62,3 +62,34 @@ test('respec costs gold only and refunds every point', () => {
   poor.level = 5;
   assert.equal(respecStats(poor, data), false);
 });
+
+test('hybrid routes work without a second Job and specialist nodes cannot bypass their Job', async () => {
+  const {jobPath}=await import('../../src/core/character.js');
+  const ch=createCharacter(data);ch.jobLevel=20;ch.jobPoints=19;
+  for(const id of ['v1','v2','vj','va1','va2','a1','a2','a6']) assert.ok(allocateJobNode(ch,data,id).done,id);
+  assert.equal(currentJob(ch,data).branch,'vanguard');
+  assert.equal(jobNodeState(ch,data,'aj').reason,'one_job');
+  assert.deepEqual(jobPath(ch,data,'a9'),[],'specialist route from another Job is blocked');
+  const path=jobPath(ch,data,'va4');const before=ch.jobPoints;
+  assert.ok(path.length>0);
+  assert.equal(ch.jobPoints,before,'preview never spends points');
+  for(const id of path.filter(id=>!ch.jobNodes.includes(id)))assert.ok(allocateJobNode(ch,data,id).done);
+  assert.equal(ch.jobPoints,before-2);
+});
+
+test('every specialist is reachable only through its own Job; the expanded network refunds all points', async () => {
+  const {jobPath}=await import('../../src/core/character.js');
+  for(const group of data.jobtree.groups){
+    const ch=createCharacter(data);ch.jobLevel=20;ch.jobPoints=100;ch.gold=10000;
+    for(const id of jobPath(ch,data,group.job).slice(1))assert.ok(allocateJobNode(ch,data,id).done);
+    for(const [id,n] of Object.entries(data.jobtree.nodes)){
+      const route=jobPath(ch,data,id);
+      if(n.requiresJob&&n.requiresJob!==group.id)assert.deepEqual(route,[],id);
+      else if(n.type!=='job')assert.ok(route.length,id+' reachable');
+    }
+    const target=Object.keys(data.jobtree.nodes).find(id=>data.jobtree.nodes[id].requiresJob===group.id&&id.endsWith('10'));
+    for(const id of jobPath(ch,data,target).filter(id=>!ch.jobNodes.includes(id)))assert.ok(allocateJobNode(ch,data,id).done,id);
+    const granted=ch.jobPoints+ch.jobNodes.length-1;
+    assert.ok(respecJob(ch,data));assert.equal(ch.jobPoints,granted);assert.equal(ch.version,2);
+  }
+});

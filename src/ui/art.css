@@ -460,3 +460,121 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
 .menu-layer .sw { border-color:#e3ddc6; box-shadow:0 0 0 1px #98a788; }
 .menu-layer .sw.on { box-shadow:0 0 0 3px #5a8263; }
 
+
+/* The passive network is a navigable board, with an explicit point-spend action. */
+.job-network-layout {display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start}
+.network-shell {min-width:0;border:1px solid #536a68;border-radius:14px;overflow:hidden;background:#233d3c;color:#e5e5ce}
+.network-sectors {display:flex;gap:5px;padding:8px;flex-wrap:wrap;background:#1c3232;border-bottom:1px solid #4c6260}
+.network-sectors .btn {padding:7px 10px;min-height:42px;font-size:11px;background:#304b48;color:#e8e7d3;border-color:var(--branch,#728b80);box-shadow:none}
+.network-viewport {height:clamp(390px,56vh,590px);position:relative;overflow:hidden;touch-action:none;cursor:grab;background:radial-gradient(ellipse at center,#345652 0%,#1e3435 78%);isolation:isolate}
+.network-viewport:active {cursor:grabbing}
+.network-plane {position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.network-lines {position:absolute;inset:0;pointer-events:none;overflow:visible}
+.network-orbit {fill:none;stroke:#638174;stroke-opacity:.16;stroke-width:1;stroke-dasharray:3 13}
+.network-link {stroke:#526863;stroke-width:2.5;opacity:.55}
+.network-link.taken {stroke:#ead19b;stroke-width:4;opacity:1}
+.network-link.available {stroke:#86bea8;stroke-width:3;opacity:.95;stroke-dasharray:7 5}
+.network-link.preview {stroke:#a8cddd;stroke-width:3;opacity:1;stroke-dasharray:4 5}
+.network-node {position:absolute;width:60px;height:60px;min-height:0;padding:5px;transform:translate(-50%,-50%);border-radius:50%;background:#263d3f;border:2px solid #6c807a;box-shadow:0 3px 8px #091c2255;color:#e7e8d0;cursor:pointer;touch-action:none;font:inherit}
+.network-node .art {width:100%;height:100%;filter:saturate(.38);opacity:.6;pointer-events:none}
+.network-node.job {width:76px;height:76px;border-radius:18px;border-color:var(--branch);border-width:3px}
+.network-node.notable {width:66px;height:66px;border-style:double;border-width:4px}
+.network-node.origin {width:74px;height:74px;border-width:3px}
+.network-node.can {border-color:#9cd8bc;background:#355d53;box-shadow:0 0 0 4px #83b69d20,0 4px 9px #112526}
+.network-node.taken {border-color:#ebce91;background:#6c6848;box-shadow:0 0 0 3px #ebce911f}
+.network-node.can .art,.network-node.taken .art,.network-node.on .art {opacity:1;filter:none}
+.network-node.on,.network-node:focus-visible {outline:3px solid #f7f4db;outline-offset:5px;z-index:3}
+.network-node.on-route:not(.taken) {border-color:#a8cddd}
+.node-mark {position:absolute;right:-5px;bottom:-5px;min-width:22px;height:22px;padding:0 4px;border-radius:9px;background:#203f3b;color:#e8d398;font:600 13px/22px Mitr,sans-serif;box-shadow:0 1px 3px #10212170}
+.node-mark:empty {display:none}
+.node-label {position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);width:94px;font-size:11px;line-height:1.4;text-shadow:0 1px 3px #061919;background:#233f39d9;padding:2px 4px;border-radius:4px;pointer-events:none}
+.overview .node-label {display:none}
+.network-tools {position:absolute;z-index:4;right:10px;bottom:10px;display:flex;gap:4px;align-items:center;background:#172e2ff0;border:1px solid #526b65;border-radius:9px;padding:4px;cursor:default}
+.network-tools button {height:42px;min-width:42px;padding:0 8px;border:1px solid #698076;background:#38594f;border-radius:5px;color:#f0eed9;font:500 15px Mitr,sans-serif;cursor:pointer}
+.network-scale {font-size:11px;min-width:38px;text-align:center}
+.network-legend {display:flex;flex-wrap:wrap;gap:8px 16px;padding:9px 12px;font-size:11px;border-top:1px solid #536b61}
+.network-legend .learned {color:#ebce91}.network-legend .ready {color:#9cd8bc}.network-legend .route {color:#a8cddd}.network-legend small {color:#b5c7bb;margin-left:auto}
+.job-network-layout .network-detail {position:sticky;top:0;min-width:0;padding:16px}
+.node-detail-title {display:flex;align-items:center;gap:10px}
+.node-detail-title>.art {width:64px;height:64px;flex-shrink:0;margin:0}
+.node-detail-title h3 {margin:2px 0!important;font-size:17px}
+.node-detail-title .section-kicker {font-size:10px}
+.network-detail .job-effects {margin:14px 0;display:grid;gap:8px;font-size:13px}
+.network-detail .node-description,.network-detail .node-status {font-size:12px;line-height:1.65}
+.network-detail>.btn {width:100%;min-height:46px}
+.route-summary {margin-top:12px;padding:10px;border:1px solid #a9b9b3;background:#e9eee1;border-radius:8px;display:grid;gap:8px;font-size:11px}
+@media(max-width:1050px) {.job-network-layout {grid-template-columns:minmax(0,1fr) 215px;gap:10px}.network-sectors .btn{font-size:10px;padding:6px 8px}}
+@media(max-width:760px) {
+ .job-network-layout {grid-template-columns:1fr}
+ .network-viewport {height:360px}
+ .job-network-layout .network-detail {position:static;display:block;order:initial;grid-row:auto}
+ .network-detail .node-detail-title>.art {width:52px;height:52px}
+ .network-detail .job-effects {display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+ .network-detail .job-effects>div {background:#e6ead9;padding:5px 8px;border-radius:6px}
+ .network-detail .respec-area {display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+ .network-detail .respec-area .btn {margin:0}.network-detail .respec-area small {font-size:10px}
+ .network-sectors {gap:4px}.network-sectors .btn {flex:1;padding:6px 4px;min-width:50px;font-size:9px}
+ .job-summary {align-items:start}.job-summary .level-pill {white-space:normal;font-size:11px;text-align:right;min-width:100px}
+ .network-legend {font-size:10px;gap:6px 10px}.network-legend small {width:100%;margin:0}
+}
+@media(max-height:520px) and (min-width:701px) {.network-viewport {height:320px}.job-network-layout {grid-template-columns:minmax(0,1fr) 200px}.job-summary small{display:none}}
+
+.network-detail .respec-area summary {cursor:pointer;font-size:11px;color:#66765f}
+.network-detail .respec-area[open]>.btn {margin:10px 0 5px}
+@media(max-width:700px) {
+ .network-viewport {height:260px}
+ .network-legend small {display:none}
+ .job-network-layout .network-detail {padding:10px 12px}
+ .network-detail .node-description {display:none}
+ .network-detail .node-status {margin:5px 0;font-size:11px}
+ .network-detail .job-effects {margin:5px 0;gap:5px;font-size:11px}
+ .network-detail .respec-area {display:block;margin-top:8px;padding-top:8px}
+ .network-detail .respec-area:not([open])>*:not(summary) {display:none}
+ .network-detail>.btn {min-height:42px}
+ .node-detail-title h3 {font-size:15px}
+ .node-detail-title .section-kicker {font-size:9px}
+ .job-summary h3 {font-size:15px}.job-summary small{font-size:10px}
+}
+
+/* View controls occupy their own row: they must never cover a selectable node. */
+.network-shell>.network-tools {position:static;justify-content:flex-end;margin:0;border-radius:0;border-width:1px 0 0;padding:5px 8px}
+.network-shell>.network-tools button {height:40px}
+@media(max-width:700px) {.network-viewport {height:250px}.network-legend{padding:6px 9px}.network-sectors .btn{min-height:40px}}
+/* Keep the graph and its selected-node action together inside the available game window. */
+.pbody[data-panel="job"] {display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.pbody[data-panel="job"] .job-summary {flex:none;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:10px;margin:0 0 12px}
+.pbody[data-panel="job"] .job-network-layout {flex:1;min-height:0;align-items:stretch}
+.pbody[data-panel="job"] .network-shell {display:flex;flex-direction:column;min-height:0}
+.pbody[data-panel="job"] .network-viewport {height:auto;flex:1;min-height:100px}
+.pbody[data-panel="job"] .network-sectors,.pbody[data-panel="job"] .network-tools,.pbody[data-panel="job"] .network-legend {flex:none}
+.pbody[data-panel="job"] .network-detail {min-height:0;max-height:100%;overflow-y:auto;align-self:stretch;position:static}
+@media(max-width:700px) {
+ .pbody[data-panel="job"] {padding:8px 12px}
+ .pbody[data-panel="job"] .job-summary {margin-bottom:7px}
+ .pbody[data-panel="job"] .job-summary h3 {display:none}
+ .pbody[data-panel="job"] .job-summary small {font-size:9px;line-height:1.3}
+ .pbody[data-panel="job"] .job-summary .level-pill {white-space:nowrap;min-width:0;font-size:10px}
+ .pbody[data-panel="job"] .job-network-layout {grid-template-rows:minmax(160px,1fr) auto;gap:8px}
+ .pbody[data-panel="job"] .network-detail {max-height:205px;padding:7px 10px}
+ .pbody[data-panel="job"] .node-detail-title>.art {height:34px;width:34px}
+ .pbody[data-panel="job"] .network-detail .job-effects {font-size:11px;line-height:1.35}
+ .pbody[data-panel="job"] .network-detail .job-effects>div {padding:2px 5px}
+ .pbody[data-panel="job"] .network-detail .node-status {line-height:1.3}
+ .pbody[data-panel="job"] .network-detail .respec-area {padding-top:5px;margin-top:6px}
+ .pbody[data-panel="job"] .route-summary {padding:4px 6px;margin:5px 0;display:flex;align-items:center;justify-content:space-between;gap:6px}
+ .pbody[data-panel="job"] .route-summary .btn {min-height:32px;font-size:10px;padding:4px 8px}
+}
+@media(max-height:520px) and (min-width:701px) {
+ .pbody[data-panel="job"] {padding:8px 12px}
+ .pbody[data-panel="job"] .job-summary {margin-bottom:6px}
+ .pbody[data-panel="job"] .network-sectors {padding:4px}.pbody[data-panel="job"] .network-sectors .btn{min-height:32px;font-size:9px}
+ .pbody[data-panel="job"] .network-legend {display:none}
+ .pbody[data-panel="job"] .network-tools {padding:3px}.pbody[data-panel="job"] .network-tools button{height:34px}
+ .pbody[data-panel="job"] .network-detail {padding:8px 10px}
+ .pbody[data-panel="job"] .node-detail-title>.art {width:36px;height:36px}
+ .pbody[data-panel="job"] .node-detail-title h3 {font-size:14px}
+ .pbody[data-panel="job"] .network-detail .node-description {display:none}
+ .pbody[data-panel="job"] .network-detail .job-effects {margin:6px 0;gap:3px;font-size:11px}
+ .pbody[data-panel="job"] .network-detail .node-status {margin:5px 0;font-size:10px}
+ .pbody[data-panel="job"] .network-detail>.btn {min-height:38px;font-size:12px}
+}

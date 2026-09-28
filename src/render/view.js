@@ -13,6 +13,7 @@ import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
 import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
+import { dropSprite } from './dropart.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -489,7 +490,7 @@ export class View {
       const age = time - v.userData.born;
       const hop = age < 0.45 ? Math.sin((age / 0.45) * Math.PI) * 1.2 : 0;
       v.position.set(d.x, this.groundAt(d.x, d.z) + 0.35 + hop + Math.sin(time * 3 + d.id) * 0.06, d.z);
-      v.children[0].rotation.y = time * 2 + d.id;
+      if (!v.children[0].isSprite) v.children[0].rotation.y = time * 2 + d.id;
     }
     for (const [id, v] of this.dropViews) {
       if (!seen.has(id)) {
@@ -504,15 +505,9 @@ export class View {
     const data = this.world && this.game.data.items.materials[item];
     const color = item === 'gold' ? '#ffd24a' : data?.color || '#ffffff';
     g.userData.color = new THREE.Color(color).getHex();
-    const shape = data?.shape || 'box';
-    let mesh;
-    if (item === 'gold') mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 14).rotateX(Math.PI / 2), toon('#ffd24a', { emissive: '#8a6a00', emissiveIntensity: 0.4 }));
-    else if (shape === 'horn') mesh = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 6).rotateZ(0.9), toon(color));
-    else if (shape === 'gem') mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.2), toon(color, { emissive: color, emissiveIntensity: 0.5 }));
-    else if (shape === 'feather') mesh = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.5, 4).scale(1, 1, 0.25).rotateZ(0.6), toon(color));
-    else if (shape === 'ball') mesh = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), toon(color));
-    else if (shape === 'rock') mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.2, 0), toon(color));
-    else mesh = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.14, 0.26), toon(color));
+    const mesh = item === 'gold'
+      ? new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.06,14).rotateX(Math.PI/2),toon('#ffd24a',{emissive:'#8a6a00',emissiveIntensity:.4}))
+      : dropSprite(item);
     mesh.castShadow = true;
     g.add(mesh);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));

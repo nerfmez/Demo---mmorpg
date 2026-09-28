@@ -1,5 +1,6 @@
 // Title screen, save slots and character creation (HTML over the live 3D world).
 import { icon } from './icons.js';
+import { art } from './art.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../render/hero.js';
 import { listSlots, deleteSlot, exportCode, importCode, firstEmptySlot, lastSlot, loadSlot, writeSlot } from '../save.js';
 import { createCharacter } from '../core/character.js';
@@ -115,7 +116,7 @@ export class Menu {
       <label class="field">ชื่อ<input id="heroName" maxlength="14" placeholder="นักเดินทาง" value="${esc(this.name)}" autocomplete="off"></label>
       <div class="field">แนวเริ่มต้น <span class="muted">(เปลี่ยนสกิลและอาวุธทีหลังได้ทั้งหมด · ยังไม่ต้องเลือก Job)</span>
         <div class="kits">${Object.entries(kits)
-          .map(([id, k]) => `<button class="kit ${this.kit === id ? 'on' : ''}" data-act="kit" data-kit="${id}">${icon(k.icon)}<b>${k.nameTh}</b><small>${esc(k.descTh)}</small></button>`)
+          .map(([id, k]) => `<button class="kit ${this.kit === id ? 'on' : ''}" data-act="kit" data-kit="${id}">${art('gear',k.weapon)}<b>${k.nameTh}</b><small>${esc(k.descTh)}</small></button>`)
           .join('')}</div></div>
       <div class="field">ทรงผม<div class="switch">${LOOK_OPTIONS.hairStyle.map((h) => `<button class="btn ${this.look.hairStyle === h ? 'on' : ''}" data-act="look" data-key="hairStyle" data-val="${h}">${HAIR_NAMES[h]}</button>`).join('')}</div></div>
       <div class="field">สีผม${sw('hair')}</div>
@@ -133,7 +134,7 @@ export class Menu {
   refreshPreview() {
     const kit = this.data.progression.start.kits[this.kit];
     const weapon = this.data.items.gearBases[kit.weapon]?.weaponType || 'sword';
-    this.view.showPreview(this.look, { weapon });
+    this.view.showPreview(this.look, { weapon, bases: { weapon: kit.weapon } });
   }
 
   rerenderCreate() {

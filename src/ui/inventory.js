@@ -1,12 +1,12 @@
 // Presentation only: selection and comparison never mutate the character.
 import { icon } from './icons.js';
+import { art } from './art.js';
 import { gearItem, gearStats, weaponImplicit, meetsRequires } from '../core/character.js';
 import { gearUpgradeCost, modUpgradeCost, canAfford } from '../core/crafting.js';
 import { modSlotOf } from '../core/skills.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const FILTERS = [['all', 'ทั้งหมด'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['helm', 'หมวก'], ['boots', 'รองเท้า'], ['charm', 'เครื่องราง']];
-const gearIcon = (base) => ({ bow: 'arrow', dagger: 'sword', axe: 'sword', greatblade: 'sword', wand: 'staff' })[base.weaponType] || base.weaponType || base.slot;
 const comparisonStats = (it, data) => {
   const stats = gearStats(it, data);
   for (const [key, value] of Object.entries(weaponImplicit(it, data))) stats[key] = (stats[key] || 0) + value;
@@ -24,21 +24,21 @@ export function inventoryView(ui, { costHtml, effectText }) {
     const it = gearItem(ch, ch.equipped[slot]);
     const base = it && data.items.gearBases[it.base];
     return `<button class="equipment-slot ${it ? '' : 'empty'}" data-act="inspect-equipped" data-uid="${it?.uid || ''}" ${it ? '' : 'disabled'} aria-label="${data.items.slotNames[slot]}: ${base?.nameTh || 'ว่าง'}">
-      <span>${data.items.slotNames[slot]}</span>${icon(base ? gearIcon(base) : slot === 'weapon' ? 'sword' : slot)}<small>${base?.nameTh || 'ว่าง'}</small></button>`;
+      <span>${data.items.slotNames[slot]}</span>${base ? art('gear',it.base) : icon(slot === 'weapon' ? 'sword' : slot)}<small>${base?.nameTh || 'ว่าง'}</small></button>`;
   }).join('');
 
   let list = [];
   if (category === 'gear') list = ch.gear.filter((it) => sel.gear === 'all' || data.items.gearBases[it.base].slot === sel.gear).map((it) => {
     const base = data.items.gearBases[it.base];
-    return { id: String(it.uid), name: base.nameTh, graphic: icon(gearIcon(base)), badge: it.upgrade ? `+${it.upgrade}` : it.grade, color: data.items.grades.colors[it.grade], equipped: ch.equipped[base.slot] === it.uid, item: it };
+    return { id: String(it.uid), name: base.nameTh, graphic: art('gear',it.base), badge: it.grade + (it.upgrade ? ' · +'+it.upgrade : ''), color: data.items.grades.colors[it.grade], equipped: ch.equipped[base.slot] === it.uid, item: it };
   });
   if (category === 'materials') list = mats.map(([id, count]) => {
     const m = data.items.materials[id];
-    return { id, name: m.nameTh, graphic: `<span class="material-gem" style="background:${m.color}"></span>`, badge: `×${count}`, color: m.rare ? '#d0abff' : m.color, item: m };
+    return { id, name: m.nameTh, graphic: art('material',id), badge: `×${count}`, color: m.rare ? '#d0abff' : m.color, item: m };
   });
   if (category === 'mods') list = ch.mods.map((it) => {
     const m = data.mods.mods[it.id];
-    return { id: String(it.uid), name: m.nameTh, graphic: icon('hex'), badge: `Lv.${it.level}`, color: '#c59bff', equipped: modSlotOf(ch, it.uid) >= 0, item: it };
+    return { id: String(it.uid), name: m.nameTh, graphic: art('mod',it.id), badge: `Lv.${it.level}`, color: '#c59bff', equipped: modSlotOf(ch, it.uid) >= 0, item: it };
   });
   const selected = list.find((it) => it.id === sel.item) || list[0];
   let detail = `<div class="inventory-empty">${icon(category === 'mods' ? 'hex' : 'bag')}<h3>ยังไม่มี${categories.find(([id]) => id === category)[1]}</h3><p>เก็บวัตถุดิบจากมอนสเตอร์ แล้วนำไปคราฟต์ที่นิคม</p></div>`;
@@ -74,8 +74,8 @@ export function inventoryView(ui, { costHtml, effectText }) {
       }
     } else if (category === 'materials') {
       const uses = Object.values(data.recipes.recipes).filter((r) => r.cost[selected.id]).map((r) => (data.items.gearBases[r.result] || data.skills.combat[r.result] || data.skills.movement[r.result] || data.mods.mods[r.result])?.nameTh).filter(Boolean);
-      const sources = Object.values(data.monsters.monsters).filter((m) => m.drops.some((d) => d.item === selected.id)).map((m) => m.nameTh);
-      content = `<h3>${esc(it.nameTh)}</h3><div class="muted">${esc(it.name)} ${it.rare ? '· วัตถุดิบหายาก' : ''}</div><p>มี ${ch.materials[selected.id]} ชิ้น</p><div class="detail-block"><small>หาได้จาก</small><p>${sources.join(' · ') || 'การสำรวจและภารกิจ'}</p></div><div class="detail-block"><small>ใช้คราฟต์</small><p>${uses.length ? uses.join(' · ') : 'ใช้ในการอัปเกรด'}</p></div>`;
+      const sources = Object.entries(data.monsters.monsters).filter(([,m]) => m.drops.some((d) => d.item === selected.id)).map(([id,m]) => `<span class="source-creature">${art('monster',id)}<span>${m.nameTh}</span></span>`);
+      content = `<h3>${esc(it.nameTh)}</h3><div class="muted">${esc(it.name)} ${it.rare ? '· วัตถุดิบหายาก' : ''}</div><p>มี ${ch.materials[selected.id]} ชิ้น</p><div class="detail-block"><small>หาได้จาก</small><p class="source-list">${sources.join('') || 'การสำรวจและภารกิจ'}</p></div><div class="detail-block"><small>ใช้คราฟต์</small><p>${uses.length ? uses.join(' · ') : 'ใช้ในการอัปเกรด'}</p></div>`;
       actions = `<button class="btn" data-act="sell" data-id="${selected.id}" ${near.inTown ? '' : 'disabled'}>ขาย 1 ชิ้น · ${it.value} G</button>`;
       if (!near.inTown) content += '<p class="muted">กลับนิคมเพื่อขายวัตถุดิบ</p>';
     } else {
@@ -90,14 +90,14 @@ export function inventoryView(ui, { costHtml, effectText }) {
         if (!near.workbench) content += '<p class="muted">อัป Mod ได้ที่โต๊ะคราฟต์ในนิคม</p>';
       }
     }
-    detail = `<div class="item-detail-icon" style="--item-color:${selected.color}">${selected.graphic}</div><div class="item-description">${content}</div><div class="item-actions">${actions}</div>`;
+    detail = `<div class="item-detail-top"><div class="item-detail-icon">${selected.graphic}</div><div><span class="section-kicker">${categories.find(([id])=>id===category)[1]}</span><h3>${esc(selected.name)}</h3><span class="level-pill">${selected.badge}</span></div></div><div class="item-actions">${actions}</div><div class="item-description">${content}</div>`;
   }
 
-  return `<div class="equipment-strip" aria-label="อุปกรณ์ที่สวมใส่">${equipped}</div>
+  return `<div class="inventory-screen ${sel.detail?'detail-open':''}"><div class="inventory-overview"><div class="section-heading"><h3>อุปกรณ์ที่สวมใส่</h3><span>แตะเพื่อดู</span></div><div class="equipment-strip" aria-label="อุปกรณ์ที่สวมใส่">${equipped}</div>
     <div class="inventory-tabs">${categories.map(([id, label, count]) => `<button class="btn ${id === category ? 'on' : ''}" data-act="inventory-category" data-id="${id}" aria-pressed="${id === category}">${label}<span>${count}</span></button>`).join('')}</div>
-    <div class="inventory-layout"><div class="inventory-list">
+    </div><div class="inventory-layout"><div class="inventory-list">
     ${category === 'gear' ? `<div class="switch inventory-filter">${FILTERS.map(([id, label]) => `<button class="btn small ${sel.gear === id ? 'on' : ''}" data-act="gear-filter" data-id="${id}">${label}</button>`).join('')}</div>` : ''}
     <div class="item-grid">${list.map((it) => `<button class="item-tile ${it.id === selected?.id ? 'on' : ''}" style="--item-color:${it.color}" data-act="inspect-item" data-id="${it.id}" aria-pressed="${it.id === selected?.id}" aria-label="${esc(it.name)}${it.equipped ? ' · สวมอยู่' : ''}"><span class="item-badge">${it.badge}</span>${it.graphic}<b>${esc(it.name)}</b>${it.equipped ? '<span class="item-equipped">✓</span>' : ''}</button>`).join('')}</div>
     <p class="muted inventory-caption">${list.length ? 'แตะไอเทมเพื่อดูรายละเอียด' : 'ไม่มีไอเทมในหมวดนี้'}</p></div>
-    <aside class="item-detail" aria-label="รายละเอียดไอเทม">${detail}</aside></div>`;
+    <aside class="item-detail" aria-label="รายละเอียดไอเทม"><button class="btn detail-back" data-act="inventory-back">← กลับไปเลือกของ</button>${detail}</aside></div></div>`;
 }

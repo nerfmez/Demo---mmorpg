@@ -233,7 +233,11 @@ export function unequip(ch, data, slot) {
 
 /** What the renderer needs to dress the hero. */
 export function gearLook(ch, data) {
-  const out = { weapon: null, armor: 'tunic', helm: null };
+  const out = { weapon: null, armor: 'tunic', helm: null, bases: {} };
+  for (const slot of data.items.slots) {
+    const item = gearItem(ch, ch.equipped[slot]);
+    if (item) out.bases[slot] = item.base;
+  }
   const w = gearItem(ch, ch.equipped.weapon);
   if (w) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
   const a = gearItem(ch, ch.equipped.armor);

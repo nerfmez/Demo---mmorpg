@@ -21,6 +21,10 @@ jobs:
         run: npm run test:browser
       - name: Browser smoke test (WebKit, like iPad Safari)
         run: BROWSER=webkit npm run test:browser
+      - name: Game UI workflows (Chromium, desktop/tablet/phone)
+        run: npm run test:ux
+      - name: Game UI workflows (WebKit, desktop/tablet/phone)
+        run: BROWSER=webkit npm run test:ux
       - uses: actions/upload-artifact@v4
         if: always()
         with:

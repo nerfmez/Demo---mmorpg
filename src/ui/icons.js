@@ -2,6 +2,11 @@
 const S = (body, vb = '0 0 24 24') => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
 
 export const ICONS = {
+  menu: S('<path d="M4 6h16M4 12h16M4 18h16" stroke="#e8dcc0" stroke-width="2" stroke-linecap="round"/>'),
+  armor: S('<path d="M8 3L3 6l2 6 3-1v10h8V11l3 1 2-6-5-3-4 3z" fill="#b8c7d4" stroke="#f5edda" stroke-width="1"/>'),
+  helm: S('<path d="M4 18v-6a8 8 0 0 1 16 0v6l-5 3v-7H9v7z" fill="#b8c7d4" stroke="#f5edda" stroke-width="1"/>'),
+  boots: S('<path d="M8 3h9v12l4 3v3H4v-5l4-2z" fill="#b68a58" stroke="#edd4ae" stroke-width="1.2"/>'),
+  charm: S('<path d="M7 3c0 8 10 8 10 0M12 10v3" fill="none" stroke="#ead49c" stroke-width="1.5"/><path d="M12 12l5 5-5 5-5-5z" fill="#9bb9ea" stroke="#f5edda"/>'),
   slash: S('<path d="M4 19c6-1 12-6 15-15-2 7-7 12-15 15z" fill="#ffe7a0" stroke="#fff8e0" stroke-width="1"/><path d="M5 20l3-3" stroke="#c9a060" stroke-width="2.5" stroke-linecap="round"/>'),
   whirl: S('<path d="M12 3a9 9 0 1 1-8.5 6" stroke="#ffe7a0" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M12 8a4 4 0 1 1-3.8 2.7" stroke="#fff8e0" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M2 7l2 3 3-2" stroke="#ffe7a0" stroke-width="2" fill="none" stroke-linecap="round"/>'),
   arrow: S('<path d="M4 20L18 6" stroke="#e8d0a8" stroke-width="2.4" stroke-linecap="round"/><path d="M14 4h6v6z" fill="#dfe4ee"/><path d="M4 20l1-5M4 20l5-1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>'),

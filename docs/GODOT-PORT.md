@@ -47,7 +47,13 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `render/ground.js` (splat map and shader) | Terrain shader, or `MeshInstance3D` with a splat texture. The procedural noise GLSL ports to Godot shading language almost directly. |
 | `render/hero.js`, `render/rig.js`, `render/monsters.js` (procedural models and animation) | Replace with real rigged models (`.glb`) and `AnimationTree`. The procedural poses show what each animation should read as (wind-up, charge, shell, slam). |
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
-| `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. The HUD layout follows `docs/reference/target-gameplay-mock.png`. |
+| `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css` defines desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
+
+Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,
+release over the cancel zone to cancel. Pointer cancellation, lost capture, focus loss
+and opening a menu clear held actions and movement; they must never cast a skill.
+Keep this behaviour in the Godot touch controls. `tests/browser/ux.mjs` exercises the
+menu workflows and these interrupted gestures at desktop, tablet and phone sizes.
 
 ## Checklist for the port
 

@@ -4,10 +4,11 @@
 import { icon } from './icons.js';
 import { mapImage } from './mapimage.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, jobNodeState, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, weaponImplicit, equip, unequip, gearItem, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
+import { STATS, allocateStat, jobNodeState, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, modFits, setMovement, modSlotOf } from '../core/skills.js';
-import { canAfford, craft, recipeBlocker, upgradeGear, gearUpgradeCost, upgradeSkill, skillUpgradeCost, upgradeMod, modUpgradeCost, sellMaterial } from '../core/crafting.js';
+import { canAfford, craft, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
+import { inventoryView } from './inventory.js';
 
 const STAT_TH = { STR: 'พลังกาย · ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/เกราะ', INT: 'สติปัญญา · พลังเวท/MP', DEX: 'ความแม่น · คริ/กระสุน' };
 const TAG_TH = {
@@ -17,14 +18,6 @@ const TAG_TH = {
 };
 const REASON_TH = { materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
-const GEAR_FILTERS = [
-  ['all', 'ทั้งหมด'],
-  ['weapon', 'อาวุธ'],
-  ['armor', 'เกราะ'],
-  ['helm', 'หมวก'],
-  ['boots', 'รองเท้า'],
-  ['charm', 'เครื่องราง'],
-];
 const CRAFT_FILTERS = [
   ['weapon', 'อาวุธ'],
   ['armor', 'ชุด/หมวก/รองเท้า'],
@@ -43,9 +36,9 @@ const fmtTime = (sec) => {
 
 export class Panels {
   /**
-   * @param {{onChange?:Function, onQuality:Function, getQuality:Function, onTitle?:Function, exportSave?:Function, slot?:number|null}} opts
+   * @param {{onChange?:Function, onQuality:Function, getQuality:Function, onTitle?:Function, exportSave?:Function, slot?:number|null, onVisibility?:Function}} opts
    */
-  constructor(root, game, { onChange, onQuality, getQuality, onTitle, exportSave, slot = null }) {
+  constructor(root, game, { onChange, onQuality, getQuality, onTitle, exportSave, slot = null, onVisibility }) {
     this.game = game;
     this.onChange = onChange;
     this.onQuality = onQuality;
@@ -53,14 +46,21 @@ export class Panels {
     this.onTitle = onTitle;
     this.exportSave = exportSave;
     this.slot = slot;
+    this.onVisibility = onVisibility;
     this.tab = null;
-    this.sel = { gear: 'all', craft: 'weapon' };
+    this.sel = { gear: 'all', craft: 'weapon', bag: 'gear', skill: 0 };
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
-    this.overlay.innerHTML = `<div class="panel"><div class="tabs"></div><div class="pbody"></div></div>`;
+    this.overlay.innerHTML = `<section class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
+      <header class="panel-header"><div><small class="panel-eyebrow">GREENHOLLOW FRONTIER</small><h2 id="panel-title"></h2></div>
+      <div class="panel-meta"><span class="panel-gold"></span><span class="pause-label">พักการเล่น</span></div>
+      <button class="panel-close" data-close aria-label="ปิดเมนู">✕</button></header>
+      <nav class="tabs" role="tablist" aria-label="หน้าต่างเกม"></nav><div class="pbody" id="panel-content" role="tabpanel"></div>
+      <footer class="panel-footer"><span>เลือกดูรายละเอียด แล้วแตะปุ่มเพื่อใช้งาน</span><button class="btn" data-close>กลับเข้าเกม <kbd>Esc</kbd></button></footer></section>`;
     root.appendChild(this.overlay);
     this.tabsEl = this.overlay.querySelector('.tabs');
     this.body = this.overlay.querySelector('.pbody');
+    this.overlay.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.close()));
     this.overlay.addEventListener('pointerdown', (e) => {
       if (e.target === this.overlay) this.close();
     });
@@ -69,11 +69,33 @@ export class Panels {
     this.tabsEl.addEventListener('click', (e) => {
       const t = e.target.closest('[data-tab]');
       if (t) {
-        this.tab = t.dataset.tab;
         this.lastResult = null;
-        this.render(true);
+        this.open(t.dataset.tab);
+        this.tabsEl.querySelector(`[data-tab="${this.tab}"]`)?.focus({ preventScroll: true });
       }
-      if (e.target.closest('[data-close]')) this.close();
+    });
+    this.overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.close();
+      } else if (e.key === 'Tab') {
+        const controls = [...this.overlay.querySelectorAll('button:not(:disabled), select, input, textarea, summary')].filter((el) => el.getClientRects().length);
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === this.overlay.querySelector('.panel'))) {
+          e.preventDefault(); last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first?.focus();
+        }
+      } else if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) && e.target.matches('[data-tab]')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const tabs = [...this.tabsEl.querySelectorAll('[data-tab]')];
+        const idx = tabs.indexOf(e.target);
+        const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (idx + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+        tabs[next].click();
+      }
     });
   }
 
@@ -84,16 +106,29 @@ export class Panels {
   open(tab) {
     const near = this.game.nearby();
     if (tab === 'craft' && !near.workbench) tab = 'bag';
+    if (!this.isOpen) {
+      const active = document.activeElement;
+      this.returnFocus = active?.matches(':focus-visible')
+        ? active.closest('#game-menu') ? document.querySelector('.menu-toggle') : active
+        : null;
+    }
     this.tab = tab;
     this.overlay.classList.add('on');
+    document.body.classList.add('panel-open');
+    this.onVisibility?.(true);
     this.render(true);
+    this.overlay.querySelector('.panel').focus({ preventScroll: true });
   }
 
   close() {
     this.tab = null;
     this.overlay.classList.remove('on');
+    document.body.classList.remove('panel-open');
     this.lastResult = null;
     this.sel.socket = undefined;
+    this.onVisibility?.(false);
+    if (this.returnFocus?.isConnected) this.returnFocus.focus({ preventScroll: true });
+    else if (this.overlay.contains(document.activeElement)) document.activeElement.blur();
   }
 
   toggle(tab) {
@@ -122,17 +157,26 @@ export class Panels {
       ['skills', 'สกิล & Mod'],
       ['job', 'Job Tree', b.job],
       ['bag', 'กระเป๋า'],
-      ...(near.workbench ? [['craft', '🔨 โต๊ะคราฟต์']] : []),
+      ...(near.workbench ? [['craft', 'โต๊ะคราฟต์']] : []),
       ['journal', 'ภารกิจ'],
       ['map', 'แผนที่'],
       ['settings', 'ตั้งค่า'],
     ];
-    this.tabsEl.innerHTML =
-      tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" data-tab="${id}">${label}${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('') +
-      `<button class="tab close" data-close="1" aria-label="close">✕</button>`;
+    const active = document.activeElement;
+    const activeData = active?.closest('.panel') ? { ...active.dataset } : null;
+    this.tabsEl.innerHTML = tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${label}${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
+    this.tabsEl.querySelector('.tab.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    this.overlay.querySelector('#panel-title').textContent = tabs.find(([id]) => id === this.tab)?.[1] || '';
+    this.overlay.querySelector('.panel-gold').textContent = `${g.ch.gold.toLocaleString()} G`;
+    this.body.dataset.panel = this.tab;
+    this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
     const scroll = top ? 0 : this.body.scrollTop;
     this.body.innerHTML = this[`render_${this.tab}`]();
     this.body.scrollTop = scroll;
+    if (activeData && Object.keys(activeData).length) {
+      const focus = [...this.overlay.querySelectorAll('button, select')].find((el) => Object.entries(activeData).every(([key, val]) => el.dataset[key] === val));
+      (focus || this.overlay.querySelector('.panel')).focus({ preventScroll: true });
+    }
   }
 
   // ---------- Character ----------
@@ -185,9 +229,15 @@ export class Panels {
     const data = g.data;
     const near = g.nearby();
     const learned = Object.keys(ch.skills).filter((id) => data.skills.combat[id]);
-    const slotLabels = ['ปุ่มโจมตีหลัก (LMB)', 'สกิล 2 (RMB)', 'สกิล 3', 'สกิล 4'];
+    const slotLabels = ['ช่องต่อสู้ 1', 'ช่องต่อสู้ 2', 'ช่องต่อสู้ 3', 'ช่องต่อสู้ 4'];
+    const selected = this.sel.skill ?? 0;
+    const loadout = ch.slots.map((slot, i) => {
+      const def = data.skills.combat[slot.skill];
+      return `<button class="loadout-slot ${i === selected ? 'on' : ''}" data-act="skill-slot" data-slot="${i}" aria-pressed="${i === selected}"><span class="slot-number">${i + 1}</span>${icon(def?.icon || 'plus')}<b>${def?.nameTh || 'ช่องว่าง'}</b><small>${slot.mods.length ? `${slot.mods.length} Mod` : 'แตะเพื่อจัดสกิล'}</small></button>`;
+    }).join('');
     const slots = ch.slots
       .map((slot, i) => {
+        if (i !== selected) return '';
         const s = g.skills[i];
         const def = slot.skill ? data.skills.combat[slot.skill] : null;
         const opts = [`<option value="">— ว่าง —</option>`]
@@ -213,7 +263,7 @@ export class Panels {
               sockets.push(`<button class="socket filled ${active ? '' : 'inactive'}" data-act="unsocket" data-uid="${uid}">◆ ${md.name} Lv.${inst.level}<br><span class="muted">${active ? 'แตะเพื่อถอด' : 'Stat ไม่ถึง · ยังไม่ทำงาน'}</span></button>`);
             } else sockets.push(`<button class="socket" data-act="pick-socket" data-slot="${i}">◇ ช่อง Mod ว่าง<br><span class="muted">แตะเพื่อใส่</span></button>`);
           }
-          body = `<div><b>${def.name}</b> · ${def.nameTh} <span class="muted">Lv.${lvl}</span></div>
+          body = `<div class="skill-name"><b>${def.nameTh}</b> <span class="muted">${def.name} · Lv.${lvl}</span></div>
             <div class="muted">${esc(def.desc)}</div>
             <div>${[...s.tags].map((t) => `<span class="tag">${TAG_TH[t] || t}</span>`).join('')}</div>
             <div class="muted">${describeSkill(s)}</div>
@@ -223,7 +273,7 @@ export class Panels {
             ${upCost ? `<button class="btn small" data-act="skill-up" data-skill="${slot.skill}" ${!near.workbench || !canAfford(ch, upCost) ? 'disabled' : ''}>อัปสกิล${near.workbench ? '' : ' (ที่โต๊ะคราฟต์)'}</button>` : ''}</div>`;
         }
         return `<div class="card slotcard"><div class="skicon">${def ? icon(def.icon) : icon('plus')}</div>
-          <div><div class="row" style="padding-top:0"><div class="grow"><b>${slotLabels[i]}</b></div><select data-act="equip" data-slot="${i}">${opts}</select></div>${body}</div></div>`;
+          <div><label class="skill-selector"><b>${slotLabels[i]}</b><select aria-label="เลือกสกิลช่อง ${i + 1}" data-act="equip" data-slot="${i}">${opts}</select></label>${body}</div></div>`;
       })
       .join('');
     const mvOpts = ch.movementSkills
@@ -235,11 +285,11 @@ export class Panels {
       .join('');
     const mv = g.move;
     const notLearned = Object.keys(data.skills.combat).filter((id) => !ch.skills[id]).length;
-    return `<div class="grid2">${slots}</div>
-      <div class="card" style="margin-top:14px"><h3>สกิลเคลื่อนที่ (ช่องแยก ไม่แย่งช่องต่อสู้)</h3>
+    return `<p class="panel-intro">เลือกช่อง → เลือกสกิล → ใส่ Mod เพื่อเปลี่ยนวิธีเล่น</p><div class="loadout-bar">${loadout}</div><div class="skill-editor">${slots}</div>
+      <div class="card movement-card"><h3>${icon(mv.id)} สกิลเคลื่อนที่ <span class="tag">ช่องแยก</span></h3>
         <div class="switch">${mvOpts}</div>
         <div class="muted" style="margin-top:6px">${esc(mv.def.desc)} · ${mv.charges} ชาร์จ · ชาร์จคืน ${mv.recharge.toFixed(1)} วิ${mv.invulnerable ? ' · อมตะระหว่างใช้' : ''}${mv.landing ? ` · ลงพื้นกระแทก ${Math.round(mv.landing.damage)}` : ''}</div></div>
-      <div class="muted" style="margin-top:10px">Mod เปลี่ยนพฤติกรรมของสกิล และใส่ได้เฉพาะสกิลที่มี Tag ตรงกัน · ยังมีอีก ${notLearned} สกิลที่คราฟต์เรียนได้ที่โต๊ะคราฟต์ในนิคม</div>`;
+      <div class="panel-tip">เรียนสกิลเพิ่มและอัปเกรดได้ที่โต๊ะคราฟต์ในนิคม · ยังมี ${notLearned} สกิลให้ค้นหา</div>`;
   }
 
   modPicker(slotIndex) {
@@ -252,8 +302,9 @@ export class Panels {
       .map((inst) => {
         const md = data.mods.mods[inst.id];
         const fit = modFits(def, md);
+        const req = meetsRequires(ch, md.requires);
         const where = modSlotOf(ch, inst.uid);
-        return `<div class="row"><div class="grow"><b>${md.name}</b> · ${md.nameTh} Lv.${inst.level}<div class="muted">${esc(md.desc)}${where >= 0 ? ` · ใส่อยู่ที่ช่อง ${where + 1}` : ''}</div></div>
+        return `<div class="row"><div class="grow"><b>${md.name}</b> · ${md.nameTh} Lv.${inst.level}<div class="muted">${esc(md.desc)}${where >= 0 ? ` · ใส่อยู่ที่ช่อง ${where + 1}` : ''}</div>${!req.ok ? `<div class="no">ต้อง ${req.missing.join(', ')} · ใส่ได้แต่ยังไม่ทำงาน</div>` : ''}</div>
           <button class="btn small" data-act="socket" data-slot="${slotIndex}" data-uid="${inst.uid}" ${fit.ok ? '' : 'disabled'}>${fit.ok ? 'ใส่' : 'Tag ไม่ตรง'}</button></div>`;
       })
       .join('');
@@ -319,62 +370,7 @@ export class Panels {
   }
 
   render_bag() {
-    const g = this.game;
-    const ch = g.ch;
-    const data = g.data;
-    const near = g.nearby();
-    const slots = data.items.slots;
-    const eqRows = slots
-      .map((slot) => {
-        const it = gearItem(ch, ch.equipped[slot]);
-        return `<div class="row eqrow"><div class="eqslot">${data.items.slotNames?.[slot] || slot}</div><div class="grow">${it ? this.gearLine(it) : '<span class="muted">— ว่าง —</span>'}</div>
-          ${it && slot !== 'weapon' ? `<button class="btn small" data-act="unequip" data-slot="${slot}">ถอด</button>` : ''}</div>`;
-      })
-      .join('');
-    const filter = this.sel.gear;
-    const list = ch.gear.filter((it) => filter === 'all' || data.items.gearBases[it.base].slot === filter);
-    const gearRows = list.length
-      ? list
-          .map((it) => {
-            const base = data.items.gearBases[it.base];
-            const eq = ch.equipped[base.slot] === it.uid;
-            const req = meetsRequires(ch, base.requires);
-            const up = gearUpgradeCost(data, it);
-            return `<div class="row"><div class="grow"><span class="tag">${data.items.slotNames?.[base.slot] || base.slot}</span> ${this.gearLine(it)}
-              ${!req.ok ? `<div class="muted" style="color:#ff6b5a">ต้อง ${req.missing.join(', ')}</div>` : ''}
-              ${near.workbench && up ? `<div class="cost">ตีบวก +${it.upgrade + 1}: ${costHtml(ch, data, up)} <button class="btn small" data-act="gear-up" data-uid="${it.uid}" ${canAfford(ch, up) ? '' : 'disabled'}>ตีบวก</button></div>` : ''}</div>
-              ${eq ? '<span class="tag" style="color:#ffd166">สวมอยู่</span>' : `<button class="btn small" data-act="equip-gear" data-uid="${it.uid}" ${req.ok ? '' : 'disabled'}>สวม</button>`}</div>`;
-          })
-          .join('')
-      : '<div class="muted">ยังไม่มีของในหมวดนี้ — คราฟต์ได้ที่โต๊ะคราฟต์ในนิคม</div>';
-    const mats = Object.entries(ch.materials).filter(([, n]) => n > 0);
-    const matRows = mats.length
-      ? mats
-          .map(([id, n]) => {
-            const m = data.items.materials[id];
-            return `<div class="row"><span class="matdot ${m.rare ? 'rare' : ''}" style="background:${m.color}"></span><div class="grow">${m.nameTh} <span class="muted">${m.name}</span></div><b>×${n}</b>
-            ${near.inTown ? `<button class="btn small" data-act="sell" data-id="${id}">ขาย 1 (${m.value}G)</button>` : ''}</div>`;
-          })
-          .join('')
-      : '<div class="muted">ยังไม่มีวัตถุดิบ — ล่ามอนเพื่อเก็บหนัง เขี้ยว และของหายาก</div>';
-    const modRows = ch.mods.length
-      ? ch.mods
-          .map((inst) => {
-            const md = data.mods.mods[inst.id];
-            const up = modUpgradeCost(data, inst);
-            const where = modSlotOf(ch, inst.uid);
-            return `<div class="row"><div class="grow"><b>◆ ${md.name}</b> · ${md.nameTh} Lv.${inst.level}<div class="muted">${esc(md.desc)} · ${where >= 0 ? `อยู่ที่สกิลช่อง ${where + 1}` : 'ยังไม่ได้ใส่'}</div>
-              ${near.workbench && up ? `<div class="cost">อัป Lv.${inst.level + 1}: ${costHtml(ch, data, up)} <button class="btn small" data-act="mod-up" data-uid="${inst.uid}" ${canAfford(ch, up) ? '' : 'disabled'}>อัป Mod</button></div>` : ''}</div></div>`;
-          })
-          .join('')
-      : '<div class="muted">ยังไม่มี Mod</div>';
-    return `<div class="card"><h3>สวมใส่อยู่ · 5 ช่อง</h3>${eqRows}</div>
-      <div class="card" style="margin-top:12px"><h3>อุปกรณ์ในกระเป๋า</h3>
-        <div class="switch" style="margin-bottom:6px">${GEAR_FILTERS.map(([id, label]) => `<button class="btn small ${filter === id ? 'on' : ''}" data-act="gear-filter" data-id="${id}">${label}</button>`).join('')}</div>
-        ${gearRows}<div class="muted" style="margin-top:6px">Grade (C/B/A/S) สุ่มตอนคราฟต์ แยกจากการตีบวก (+N) · อาวุธแต่ละประเภทมีโบนัสในตัว แต่ไม่ล็อกสกิล</div></div>
-      <div class="grid2" style="margin-top:12px">
-        <div class="card"><h3>วัตถุดิบ · 💰 ${ch.gold} G</h3>${matRows}<div class="muted" style="margin-top:6px">ใช้คราฟต์ อัปสกิล อัป Mod ${near.inTown ? 'และขายได้' : '(ขายได้ในนิคม)'}</div></div>
-        <div class="card"><h3>Mod</h3>${modRows}</div></div>`;
+    return `${this.lastResult ? `<div class="result-pop" role="status">${this.lastResult}</div>` : ''}${inventoryView(this, { costHtml, effectText })}`;
   }
 
   // ---------- Workbench ----------
@@ -390,8 +386,11 @@ export class Panels {
       if (cat === 'charm') return slot === 'charm';
       return cat === 'armor' && (slot === 'armor' || slot === 'helm' || slot === 'boots');
     };
-    const rows = Object.entries(data.recipes.recipes)
-      .filter(([, r]) => inCat(r))
+    const recipes = Object.entries(data.recipes.recipes).filter(([, r]) => inCat(r));
+    const readyCount = recipes.filter(([id]) => !recipeBlocker(ch, data, id)).length;
+    const rows = recipes
+      .filter(([id]) => !this.sel.craftReady || !recipeBlocker(ch, data, id))
+      .sort(([a], [b]) => Number(!!recipeBlocker(ch, data, a)) - Number(!!recipeBlocker(ch, data, b)))
       .map(([id, r]) => {
         const block = recipeBlocker(ch, data, id);
         let name;
@@ -424,13 +423,14 @@ export class Panels {
         const reqTxt = req && Object.keys(req).length ? `<span class="${meetsRequires(ch, req).ok ? 'ok' : 'no'}">ต้อง ${Object.entries(req)
           .map(([k, v]) => `${k} ${v}`)
           .join(', ')}</span> · ` : '';
-        return `<div class="row ${block ? '' : 'ready'}"><div class="grow"><b>${name}</b><div class="muted">${esc(desc)}</div><div class="cost">${reqTxt}${costHtml(ch, data, r.cost)}</div></div>
-          <button class="btn primary" data-act="craft" data-id="${id}" ${block ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์'}</button></div>`;
+        return `<div class="recipe-card card ${block ? '' : 'ready'}"><div class="recipe-info"><b>${name}</b><p class="muted">${esc(desc)}</p><div class="cost">${reqTxt}${costHtml(ch, data, r.cost)}</div></div>
+          <div class="recipe-action"><small class="${block ? 'muted' : 'ok'}">${block ? REASON_TH[block] || block : 'พร้อมคราฟต์'}</small><button class="btn primary" data-act="craft" data-id="${id}" ${block ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์'}</button></div></div>`;
       })
       .join('');
-    return `${this.lastResult ? `<div class="result-pop">${this.lastResult}</div>` : ''}
+    return `${this.lastResult ? `<div class="result-pop" role="status">${this.lastResult}</div>` : ''}
+      <div class="workbench-summary"><div><b>โต๊ะคราฟต์กรีนฮอลโลว์</b><small>เลือกสูตรและตรวจวัตถุดิบก่อนคราฟต์</small></div><button class="btn ${this.sel.craftReady ? 'on' : ''}" data-act="craft-ready" aria-pressed="${!!this.sel.craftReady}">คราฟต์ได้ ${readyCount}/${recipes.length}${this.sel.craftReady ? ' · ดูทั้งหมด' : ' · กรอง'}</button></div>
       <div class="switch" style="margin:8px 0">${CRAFT_FILTERS.map(([id, label]) => `<button class="btn ${cat === id ? 'on' : ''}" data-act="craft-filter" data-id="${id}">${label}</button>`).join('')}</div>
-      <div class="card">${rows || '<div class="muted">ไม่มีสูตรในหมวดนี้</div>'}</div>
+      <div class="recipe-grid">${rows || '<div class="inventory-empty"><h3>ยังไม่มีสูตรที่คราฟต์ได้</h3><p>แตะ “ดูทั้งหมด” เพื่อเช็กวัตถุดิบที่ขาด</p></div>'}</div>
       <div class="muted" style="margin-top:10px">สูตรที่คราฟต์ได้ตอนนี้มีขอบสีทอง · อัปเลเวลสกิล (เมนูสกิล) ตีบวก และอัป Mod (เมนูกระเป๋า) ได้ขณะอยู่ที่โต๊ะนี้</div>`;
   }
 
@@ -539,7 +539,7 @@ export class Panels {
         ${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}
       </div><div class="muted" style="margin-top:6px">ถ้า iPad กระตุก ให้ลด "ต่ำ" (ปิดเงา ลดความละเอียด)</div></div>
       <div class="card" style="margin-top:12px"><h3>วิธีเล่น</h3><div class="muted" style="line-height:1.7">
-        มือถือ/iPad: จอยซ้ายเดิน · แตะปุ่มสกิลเพื่อใช้กับเป้าอัตโนมัติ · ลากปุ่มสกิลเพื่อเล็ง (สกิลวงกว้างวางวงได้) · ปุ่มเล็กข้าง ๆ คือหลบ (ปัดเพื่อเลือกทิศ) · สองนิ้วซูม<br>
+        มือถือ/iPad: จอยซ้ายเดิน · แตะปุ่มสกิลเพื่อใช้กับเป้าอัตโนมัติ · ลากปุ่มสกิลเพื่อเล็ง แล้วปล่อยเพื่อใช้ หรือปล่อยในช่อง ✕ เพื่อยกเลิก · ปุ่มเคลื่อนที่แยกจากสกิลต่อสู้ (ปัดเพื่อเลือกทิศ) · สองนิ้วซูม<br>
         PC: WASD เดิน · เมาส์เล็ง · คลิกซ้าย/ขวาใช้สกิล 1/2 · 3,4 (หรือ Q,R) สกิลที่เหลือ · Space หลบ · I/K/J/C/L/M เมนู · E ใช้โต๊ะคราฟต์/หินวาร์ป<br>
         ระบบเป้า: เมื่อมอนเข้าระยะ จะล็อกเป้าให้อัตโนมัติ หันไปหามอนตัวอื่นเพื่อเปลี่ยนเป้า ออกนอกระยะจะปล่อยเป้า ตัวละครไม่วิ่งตามเป้าเอง<br>
         การเดินทาง: เดินแตะหินวาร์ปเพื่อปลดล็อก แล้ววาร์ปจากแผนที่ (M) · ภูมิประเทศมีเนินและหน้าผา ขึ้นหน้าผาชันไม่ได้ ให้หาทางลาดหรือถนน<br>
@@ -567,6 +567,26 @@ export class Panels {
     const act = t.dataset.act;
     let r;
     switch (act) {
+      case 'skill-slot':
+        this.sel.skill = Number(t.dataset.slot);
+        this.sel.socket = undefined;
+        return this.render();
+      case 'open-skills':
+        return this.open('skills');
+      case 'inventory-category':
+        this.sel.bag = t.dataset.id;
+        this.sel.item = undefined;
+        return this.render(true);
+      case 'inspect-item':
+        this.sel.item = t.dataset.id;
+        this.render();
+        if (matchMedia('(max-width: 640px)').matches) this.body.querySelector('.item-detail')?.scrollIntoView({ block: 'nearest' });
+        return;
+      case 'inspect-equipped':
+        this.sel.bag = 'gear';
+        this.sel.gear = 'all';
+        this.sel.item = t.dataset.uid;
+        return this.render();
       case 'stat':
         allocateStat(ch, t.dataset.stat);
         return this.changed();
@@ -618,6 +638,9 @@ export class Panels {
       case 'craft-filter':
         this.sel.craft = t.dataset.id;
         this.lastResult = null;
+        return this.render(true);
+      case 'craft-ready':
+        this.sel.craftReady = !this.sel.craftReady;
         return this.render(true);
       case 'gear-up':
         r = upgradeGear(ch, data, Number(t.dataset.uid));

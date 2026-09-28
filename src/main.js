@@ -10,11 +10,18 @@ import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
 import { Menu } from './ui/menu.js';
 import { migrateLegacy, writeSlot, exportCode, loadPref, savePref } from './save.js';
+import '@fontsource/mitr/thai-400.css';
+import '@fontsource/mitr/thai-500.css';
+import '@fontsource/mitr/thai-600.css';
+import '@fontsource/mitr/latin-400.css';
+import '@fontsource/mitr/latin-500.css';
+import '@fontsource/mitr/latin-600.css';
 
 const params = new URLSearchParams(location.search);
 // ?fresh=1 skips the menu with a new character that is never saved (tests); ?kit=bow|staff picks its kit
 const fresh = params.has('fresh');
 const coarse = matchMedia('(pointer: coarse)').matches;
+document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
 migrateLegacy();
@@ -54,11 +61,25 @@ function startGame(character, slot) {
       return slot ? exportCode(slot) : '';
     },
     slot,
+    onVisibility: () => {
+      hud.setMenuOpen(false);
+      input.reset();
+    },
   });
+  hud.onPanel = (tab) => panels.open(tab);
   const ui = {
     panelOpen: () => panels.isOpen,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
+    closeMenu: () => {
+      if (!hud.menuOpen) return false;
+      hud.setMenuOpen(false);
+      return true;
+    },
+    configureSkill: (i) => {
+      panels.sel.skill = i;
+      panels.open('skills');
+    },
     interact: () => {
       const n = game.nearby();
       if (n.workbench) panels.open('craft');
@@ -107,6 +128,7 @@ function startGame(character, slot) {
         dot.textContent = n;
       } else dot?.remove();
     }
+    hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 
   session = { game, hud, panels, input, ui, save, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
@@ -114,7 +136,7 @@ function startGame(character, slot) {
   save();
 
   const ch = game.ch;
-  if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ภารกิจแรกอยู่มุมขวาบน (ดาวทองบนมินิแมพ) · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์ที่นิคม', 'long');
+  if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
   else hud.toast(`โหลดเซฟแล้ว · ${ch.name} Lv.${ch.level}`, '#8fd0ff');
 }
 
@@ -135,7 +157,7 @@ document.addEventListener(
   (e) => {
     const now = performance.now();
     // a quick second tap is a zoom gesture; menus keep their taps (they cannot zoom: touch-action)
-    if (now - lastTouchEnd < 350 && !e.target.closest?.('.overlay, .menu-layer')) e.preventDefault();
+    if (now - lastTouchEnd < 350 && !e.target.closest?.('.overlay, .menu-layer, button')) e.preventDefault();
     lastTouchEnd = now;
   },
   { passive: false }
@@ -143,7 +165,7 @@ document.addEventListener(
 document.addEventListener(
   'touchmove',
   (e) => {
-    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly')) e.preventDefault();
+    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs')) e.preventDefault();
   },
   { passive: false }
 );

@@ -38,6 +38,8 @@ Add `DREAMLOOP_SURF_ONLY=1` for just the three surf phases and river traversal.
   fixed steps so software rendering speed does not change the traversal result.
 - Core tests cross the stream at five non-bridge locations in both directions; deep sea
   and pond boundaries still block. Check that beach decoration contains no meadow plants.
+- Land-monster spawn selection retains the water mask even though movement can wade;
+  seeds 1 and 9 are covered by a regression test for dry spawn points.
 
 ## This revision's visual corrections
 

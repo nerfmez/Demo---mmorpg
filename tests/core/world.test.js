@@ -120,3 +120,12 @@ test('the sandy beach has shells instead of meadow plants and the map has no pin
   }
   assert.ok([...world.circles,...world.decor.edgeTrees].every(t=>t.type!=='pine'));
 });
+
+test('land monsters still spawn on dry ground when the stream is walkable', () => {
+  for (const seed of [1,9]) {
+    const game=new Game(data,{seed,world});
+    for(const spawn of game.spawnPoints.filter(s=>!s.boss)) {
+      assert.ok(!world.isWater(spawn.x,spawn.z,.45),`${spawn.monster} spawned in water, seed ${seed}`);
+    }
+  }
+});

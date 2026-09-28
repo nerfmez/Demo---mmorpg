@@ -435,7 +435,8 @@ export function createWorld(worldData) {
       const x = rand.range(Math.max(rect[0], b.minX) + 3, Math.min(rect[1], b.maxX) - 3);
       const z = rand.range(Math.max(rect[2], b.minZ) + 3, Math.min(rect[3], b.maxZ) - 3);
       if (zoneAt(x, z).id !== zoneId) continue;
-      if (!isFree(x, z, r + 0.5)) continue;
+      // A walkable stream is still water: land spawns stay on dry ground.
+      if (isWater(x, z, (r + 0.5) * 0.3) || !isFree(x, z, r + 0.5)) continue;
       if (hf.slopeAt(x, z) > 0.6) continue;
       if (avoid.some((a) => dist(x, z, a.x, a.z) < a.r)) continue;
       return { x, z };

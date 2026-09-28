@@ -29,6 +29,12 @@ this repo with other tools, so `main` may have moved.
   along +Z, save to `public/models/`, and register it in `data/models.json`. Good fits: rigid
   pieces (weapons, helms, hair pieces, props, drops) and monsters. The player body stays
   procedural so skin, eye and hair colours stay customisable.
+- Hero body plan (owner approved): Meshy bare body + rig (done, `src/render/skinned.js`),
+  everything else in code. Steps: 1) skinned body in game, 2) old animations drive it
+  (both done); next 3) anime face drawn as a texture (eye colour, blinking), 4) hair styles
+  with a highlight band, 5) clothes/armour pieces (straps, pouch, boot cuffs, armour kinds
+  are not drawn on the skinned body yet), then NPCs. `buildHumanoid(..., {procedural: true})`
+  still builds the old body for comparison.
 
 ## Possible next steps the owner mentioned
 

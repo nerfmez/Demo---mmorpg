@@ -38,11 +38,12 @@ test('gear presentation preserves base identity independently of grade and enhan
 
 test('imported models name real gear bases and ship small GLB files',async()=>{
  const {readFileSync}=await import('node:fs');
- for(const [id,m] of Object.entries(data.models.weapons)){
-  assert.equal(data.items.gearBases[id]?.slot,'weapon',id+' is a weapon base');
+ const all=Object.entries(data.models).filter(([g])=>!g.startsWith('_')).flatMap(([g,e])=>Object.entries(e).map(([id,m])=>[g,id,m]));
+ for(const [group,id,m] of all){
+  if(group==='weapons')assert.equal(data.items.gearBases[id]?.slot,'weapon',id+' is a weapon base');
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
-  assert.ok(buf.length<400*1024,m.file+' stays under 400 KB for iPad');
-  assert.ok(m.tris<=4000,id+' triangle budget');
+  assert.ok(buf.length<(group==='characters'?600:400)*1024,m.file+' stays small for iPad');
+  assert.ok(m.tris<=(group==='characters'?8000:4000),id+' triangle budget');
  }
 });

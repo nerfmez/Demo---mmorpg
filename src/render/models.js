@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { toonRamp, outlineMaterial } from './toon.js';
+import { prepareHeroBase } from './skinned.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {geometry, map, outline}
 
@@ -16,8 +17,13 @@ export function loadModels(registry = {}) {
     if (group.startsWith('_')) continue;
     for (const [id, m] of Object.entries(entries)) {
       jobs.push(
-        loader.loadAsync(m.file).then(
-          (gltf) => {
+        loader
+          .loadAsync(m.file)
+          .then((gltf) => {
+            if (group === 'characters') {
+              loaded.set(`${group}/${id}`, prepareHeroBase(gltf, m));
+              return;
+            }
             gltf.scene.updateMatrixWorld(true);
             let mesh = null;
             gltf.scene.traverse((o) => {
@@ -33,13 +39,17 @@ export function loadModels(registry = {}) {
             const outline = outlineMaterial(m.outline || '#40332c', 0.008);
             outline.userData.shared = true;
             loaded.set(`${group}/${id}`, { geometry, map, outline });
-          },
-          (err) => console.warn('model not loaded:', m.file, err)
-        )
+          })
+          .catch((err) => console.warn('model not loaded:', m.file, err))
       );
     }
   }
   return Promise.all(jobs);
+}
+
+/** A prepared skinned character template (see skinned.js), or null until it has loaded. */
+export function characterBase(id) {
+  return loaded.get(`characters/${id}`) || null;
 }
 
 export function hasModel(group, id) {

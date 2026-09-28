@@ -64,6 +64,13 @@ Imported models are listed in `data/models.json` (GLB files in `public/models/`,
 Meshy weapons). Each GLB is already in the weapon-bone convention (grip at the origin, blade
 along +Z, metres), so in Godot attach it to a `BoneAttachment3D` on the right hand. The
 procedural shape in `equipment.js` is only a fallback.
+The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),
+registered as `characters.hero_base`. `render/skinned.js` keeps the procedural bones of
+`hero.js` as the animation source and copies their root-space rotations onto the skin bones
+each frame (bone map `MAP` there); in Godot, import the GLB with its `Skeleton3D` and
+retarget the same poses (or author them as clips). Clothes are colour zones cut from the
+bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
+helms and weapons are still attached to the head, chest and hand bones.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 
 Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,

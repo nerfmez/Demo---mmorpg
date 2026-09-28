@@ -7,7 +7,8 @@ import * as THREE from 'three';
 import { buildWeapon, equipmentDetails } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
-import { modelInstance } from './models.js';
+import { modelInstance, characterBase } from './models.js';
+import { attachSkinnedBody, fitParts } from './skinned.js';
 
 export const DEFAULT_LOOK = {
   hairStyle: 'messy',
@@ -40,12 +41,16 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
  * Build a humanoid.
  * @param {object} look appearance (see DEFAULT_LOOK)
  * @param {object} gear {weapon, armor, helm, bases} visual kinds and base content IDs
- * @param {object} o {npc, apron, beard, longHair}
+ * @param {object} o {npc, apron, beard, longHair, procedural}
+ * The hero uses the skinned body (skinned.js) once it has loaded; NPCs, and `procedural`,
+ * keep the all-procedural body.
  */
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
-  const B = (name, parent, pos) => rb.bone(name, parent, pos);
+  const T = o.npc || o.procedural ? null : characterBase('hero_base');
+  // driver bones sit on the skinned body's joints when there is one
+  const B = (name, parent, pos) => rb.bone(name, parent, T?.joints[name] || pos);
   B('body', 'root');
   B('hips', 'body', [0, 0.93, 0]);
   B('torso', 'hips', [0, 0.02, 0]);
@@ -59,75 +64,80 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     B(`elbow${n}`, `arm${n}`, [0, -0.27, 0]);
     B(`hand${n}`, `elbow${n}`, [0, -0.25, 0]);
   }
+  const boots = gear.bases?.boots || 'travel_boots';
+  const bootColor = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
   const armor = gear.armor || 'tunic';
   const tunic = armor === 'pelt' ? '#6f6a64' : armor === 'mantle' ? '#3a5a8a' : armor === 'plate' ? '#8f96a3' : L.tunic;
 
-  // legs
-  for (const n of ['L', 'R']) {
-    rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
-    rb.add(`knee${n}`, sph(0.068, 10, 8), PANTS);
-    rb.add(`knee${n}`, cyl(0.068, 0.058, 0.26), PANTS);
-    const boots = gear.bases?.boots || 'travel_boots';
-    const color = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
-    if(boots!=='wisp_slippers'){
-      rb.add(`knee${n}`, cyl(.079,.07,.24), color, {pos:[0,-.14,0]});
-      rb.add(`knee${n}`, cyl(.1,.092,.1), boots==='wolf_boots'?'#cfccba':color, {pos:[0,-.06,0]});
-    }
-    rb.add(`foot${n}`, new THREE.BoxGeometry(.12,.08,.25).translate(0,-.02,.05), color);
-    if(boots==='wolf_boots'){
-      for(const x of [-.04,.04])rb.add(`foot${n}`,new THREE.ConeGeometry(.016,.07,4).rotateX(Math.PI/2),'#e8dfc3',{pos:[x,-.015,.20]});
-    }else if(boots==='wisp_slippers'){
-      rb.add(`foot${n}`,new THREE.ConeGeometry(.044,.17,5).rotateX(.95),'#99c9c5',{pos:[0,.03,.20]});
-    }else if(boots==='crag_greaves'){
-      rb.add(`knee${n}`,new THREE.BoxGeometry(.13,.22,.055),'#b9c4b3',{pos:[0,-.15,.065]});
-      rb.add(`knee${n}`,new THREE.OctahedronGeometry(.042),'#d0d7b3',{pos:[0,-.05,.093],plain:true});
-    }
+  if (!T) {
+    // legs
+    for (const n of ['L', 'R']) {
+      rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
+      rb.add(`knee${n}`, sph(0.068, 10, 8), PANTS);
+      rb.add(`knee${n}`, cyl(0.068, 0.058, 0.26), PANTS);
+      const color = bootColor;
+      if(boots!=='wisp_slippers'){
+        rb.add(`knee${n}`, cyl(.079,.07,.24), color, {pos:[0,-.14,0]});
+        rb.add(`knee${n}`, cyl(.1,.092,.1), boots==='wolf_boots'?'#cfccba':color, {pos:[0,-.06,0]});
+      }
+      rb.add(`foot${n}`, new THREE.BoxGeometry(.12,.08,.25).translate(0,-.02,.05), color);
+      if(boots==='wolf_boots'){
+        for(const x of [-.04,.04])rb.add(`foot${n}`,new THREE.ConeGeometry(.016,.07,4).rotateX(Math.PI/2),'#e8dfc3',{pos:[x,-.015,.20]});
+      }else if(boots==='wisp_slippers'){
+        rb.add(`foot${n}`,new THREE.ConeGeometry(.044,.17,5).rotateX(.95),'#99c9c5',{pos:[0,.03,.20]});
+      }else if(boots==='crag_greaves'){
+        rb.add(`knee${n}`,new THREE.BoxGeometry(.13,.22,.055),'#b9c4b3',{pos:[0,-.15,.065]});
+        rb.add(`knee${n}`,new THREE.OctahedronGeometry(.042),'#d0d7b3',{pos:[0,-.05,.093],plain:true});
+      }
 
-  }
-  // hips: tunic hem, belt, pouch
-  rb.add('hips', new THREE.CylinderGeometry(0.16, 0.205, 0.28, 12, 1, true).translate(0, -0.08, 0).scale(1, 1, 0.8), tunic);
-  rb.add('hips', new THREE.CylinderGeometry(0.168, 0.168, 0.07, 12).scale(1, 1, 0.8), LEATHER, { pos: [0, 0.05, 0] });
-  rb.add('hips', new THREE.BoxGeometry(0.06, 0.05, 0.02), METAL, { pos: [0, 0.05, 0.138], plain: true });
-  rb.add('hips', new THREE.BoxGeometry(0.08, 0.1, 0.05), LEATHER, { pos: [-0.14, -0.01, 0.07], rot: [0, 0.5, 0] });
-  // torso and chest
-  rb.add('torso', new THREE.CylinderGeometry(0.165, 0.158, 0.26, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
-  rb.add('chest', new THREE.CylinderGeometry(0.19, 0.166, 0.3, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
-  rb.add('chest', new THREE.SphereGeometry(0.19, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, 0.45, 0.74).translate(0, 0.27, 0), tunic);
-  if (!o.npc || o.straps) {
-    rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, 0.128], rot: [0, 0, 0.62], plain: true });
-    rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, -0.128], rot: [0, 0, -0.62], plain: true });
-  }
-  if (armor === 'hide' || armor === 'pelt') {
-    rb.add('chest', new THREE.CylinderGeometry(0.198, 0.18, 0.28, 12, 1, true).translate(0, 0.1, 0).scale(1, 1, 0.78), armor === 'hide' ? '#8a5a3a' : '#7f776c');
-    if (armor === 'pelt') rb.add('chest', new THREE.TorusGeometry(0.15, 0.06, 6, 14).rotateX(Math.PI / 2), '#b8b0a4', { pos: [0, 0.3, 0] });
-  } else if (armor === 'shell') {
-    rb.add('chest', new THREE.SphereGeometry(0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(1, 0.9, 0.8), '#5d8a3a', { pos: [0, 0.02, 0.01] });
-  } else if (armor === 'plate') {
-    rb.add('chest', new THREE.BoxGeometry(0.34, 0.26, 0.26).translate(0, 0.12, 0), '#9aa0ad');
-    rb.add('chest', new THREE.OctahedronGeometry(0.05), '#8fe0ff', { pos: [0, 0.14, 0.14], glow: true });
-  }
-  if (o.apron) rb.add('torso', new THREE.BoxGeometry(0.3, 0.55, 0.02), o.apron, { pos: [0, 0.02, 0.13] });
-  // arms
-  for (const [s, n] of [[1, 'L'], [-1, 'R']]) {
-    rb.add(`arm${n}`, sph(0.072, 10, 8), tunic, { pos: [0, -0.02, 0] });
-    rb.add(`arm${n}`, cyl(0.064, 0.056, 0.27), tunic);
-    rb.add(`elbow${n}`, sph(0.056, 8, 6), L.skin);
-    rb.add(`elbow${n}`, cyl(0.064, 0.06, 0.05), tunic, { pos: [0, 0.03, 0] });
-    rb.add(`elbow${n}`, cyl(0.048, 0.042, 0.24), L.skin);
-    rb.add(`elbow${n}`, cyl(0.058, 0.052, 0.13), LEATHER, { pos: [0, -0.09, 0] });
-    rb.add(`hand${n}`, sph(0.048, 8, 6), LEATHER_DARK, { pos: [0, -0.02, 0] });
-    void s;
-  }
+    }
+    // hips: tunic hem, belt, pouch
+    rb.add('hips', new THREE.CylinderGeometry(0.16, 0.205, 0.28, 12, 1, true).translate(0, -0.08, 0).scale(1, 1, 0.8), tunic);
+    rb.add('hips', new THREE.CylinderGeometry(0.168, 0.168, 0.07, 12).scale(1, 1, 0.8), LEATHER, { pos: [0, 0.05, 0] });
+    rb.add('hips', new THREE.BoxGeometry(0.06, 0.05, 0.02), METAL, { pos: [0, 0.05, 0.138], plain: true });
+    rb.add('hips', new THREE.BoxGeometry(0.08, 0.1, 0.05), LEATHER, { pos: [-0.14, -0.01, 0.07], rot: [0, 0.5, 0] });
+    // torso and chest
+    rb.add('torso', new THREE.CylinderGeometry(0.165, 0.158, 0.26, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
+    rb.add('chest', new THREE.CylinderGeometry(0.19, 0.166, 0.3, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
+    rb.add('chest', new THREE.SphereGeometry(0.19, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, 0.45, 0.74).translate(0, 0.27, 0), tunic);
+    if (!o.npc || o.straps) {
+      rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, 0.128], rot: [0, 0, 0.62], plain: true });
+      rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, -0.128], rot: [0, 0, -0.62], plain: true });
+    }
+    if (armor === 'hide' || armor === 'pelt') {
+      rb.add('chest', new THREE.CylinderGeometry(0.198, 0.18, 0.28, 12, 1, true).translate(0, 0.1, 0).scale(1, 1, 0.78), armor === 'hide' ? '#8a5a3a' : '#7f776c');
+      if (armor === 'pelt') rb.add('chest', new THREE.TorusGeometry(0.15, 0.06, 6, 14).rotateX(Math.PI / 2), '#b8b0a4', { pos: [0, 0.3, 0] });
+    } else if (armor === 'shell') {
+      rb.add('chest', new THREE.SphereGeometry(0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(1, 0.9, 0.8), '#5d8a3a', { pos: [0, 0.02, 0.01] });
+    } else if (armor === 'plate') {
+      rb.add('chest', new THREE.BoxGeometry(0.34, 0.26, 0.26).translate(0, 0.12, 0), '#9aa0ad');
+      rb.add('chest', new THREE.OctahedronGeometry(0.05), '#8fe0ff', { pos: [0, 0.14, 0.14], glow: true });
+    }
+    if (o.apron) rb.add('torso', new THREE.BoxGeometry(0.3, 0.55, 0.02), o.apron, { pos: [0, 0.02, 0.13] });
+    // arms
+    for (const [s, n] of [[1, 'L'], [-1, 'R']]) {
+      rb.add(`arm${n}`, sph(0.072, 10, 8), tunic, { pos: [0, -0.02, 0] });
+      rb.add(`arm${n}`, cyl(0.064, 0.056, 0.27), tunic);
+      rb.add(`elbow${n}`, sph(0.056, 8, 6), L.skin);
+      rb.add(`elbow${n}`, cyl(0.064, 0.06, 0.05), tunic, { pos: [0, 0.03, 0] });
+      rb.add(`elbow${n}`, cyl(0.048, 0.042, 0.24), L.skin);
+      rb.add(`elbow${n}`, cyl(0.058, 0.052, 0.13), LEATHER, { pos: [0, -0.09, 0] });
+      rb.add(`hand${n}`, sph(0.048, 8, 6), LEATHER_DARK, { pos: [0, -0.02, 0] });
+      void s;
+    }
+  } // end of the procedural body
   // shoulder guard (left)
   if (!o.npc) {
     rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), armor === 'plate' ? '#9aa0ad' : LEATHER, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
     rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
   }
   // neck, head, face
-  rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
-  const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
-  rb.add('head', headGeo, L.skin);
-  rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
+  if (!T) {
+    rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
+    const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
+    rb.add('head', headGeo, L.skin);
+    rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
+  }
   for (const s of [1, -1]) {
     const eye = new THREE.Shape();
     eye.moveTo(-.026,.005);
@@ -141,7 +151,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('head',new THREE.CircleGeometry(.006,10).scale(.8,1.12,1),'#30383c',{pos:[s*.046,.127,.135],rot:[0,s*.22,0],plain:true});
     rb.add('head',new THREE.CircleGeometry(.004,6),'#fffbee',{pos:[s*.046+.004,.133,.137],rot:[0,s*.22,0],plain:true});
     rb.add('head',new THREE.BoxGeometry(.044,.005,.004),L.hair,{pos:[s*.046,.162,.119],rot:[0,s*.2,s*-.12],plain:true});
-    rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
+    if (!T) rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
   }
   rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
   hair(rb, L, o);
@@ -157,12 +167,19 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
 
   const rig = rb.build();
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
+  let neckParts = rig.bones.chest;
+  if (T) {
+    fitParts(rig.bones.head, T.headFit);
+    neckParts = fitParts(rig.bones.chest, T.neckFit);
+    fitParts(rig.bones.armL, T.armFit);
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic, pants: PANTS, boots: bootColor, leather: LEATHER });
+  }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
   if (!o.npc || o.scarf) {
     rig.scarfAnchor = new THREE.Group();
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
-    rig.bones.chest.add(rig.scarfAnchor);
+    neckParts.add(rig.scarfAnchor);
     const m = new THREE.MeshToonMaterial({ color: new THREE.Color(L.scarf), gradientMap: rig.material.gradientMap, side: THREE.DoubleSide });
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
@@ -495,6 +512,7 @@ export class HumanoidAnimator {
       b.tail.rotation.x = tx;
       b.tail.rotation.z = tz;
     }
+    this.rig.syncSkin?.();
   }
 }
 

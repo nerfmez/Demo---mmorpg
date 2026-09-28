@@ -40,6 +40,12 @@ this repo with other tools, so `main` may have moved.
   `node scripts/bake-gait.mjs` (re-run it if the body or its rig changes); step rate follows
   ground speed so feet do not slide. The sword combo is slashA/slashB/slashC, picked by
   `castStart.step`. Shoulders shrug when an arm goes overhead (skinned.js).
+- Skill animations live in `src/render/actions.js`: one action per skill line (`BY_SKILL`,
+  fallback `BY_KIND`), melee combos per weapon (sword, greatblade/axe two-handed, dagger),
+  bow vs thrown Hunter's Shot. Channels beyond bone angles: drop, spin, ikL/ikR+ikw (hand
+  targets, `src/render/ik.js`), grip (second hand on the handle), aim (drawn bow faces the
+  target). Each action's `hit` key is stretched onto the skill's cast time. Review poses with
+  the lab pages (sheet.html pattern: play an action, step to key times, render a grid).
 - Art review pages: run `npx vite --port 5199` and open pages you put in the git-ignored
   `tests/browser/out/` (import from `/src/...`), then screenshot them with Playwright.
 

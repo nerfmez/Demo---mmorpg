@@ -8,6 +8,8 @@ import { buildWeapon, equipmentDetails } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
+import { ACTIONS, pickAction, LEAP } from './actions.js';
+import { reachArm } from './ik.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 
@@ -260,98 +262,7 @@ function helm(rb, kind, L) {
   void L;
 }
 
-// ---------- animation ----------
-
-const READY = { armR: [-0.28, 0, -0.18], elbowR: [-0.55, 0, 0], armL: [-0.12, 0, 0.16], elbowL: [-0.35, 0, 0] };
-
-/** Keyframed actions: [t, pose]. Arms, chest, torso, head and weapon; legs optional. */
-const ACTIONS = {
-  // 1-2-3 sword combo (castStart.step). Whole-body swings: the twist of hips, torso and chest
-  // carries the blade, the front foot steps in, and `drop` lowers the body (metres).
-  // 1: forehand, raised over the right shoulder and cut down across to the left
-  slashA: [
-    [0, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0], hips: [0, 0, 0], drop: [0, 0, 0] }],
-    [0.3, { armR: [-2.3, 0.2, -0.5], elbowR: [-1.3, 0, 0], armL: [-0.9, 0.2, 0.35], elbowL: [-0.8, 0, 0], weapon: [0.6, 0, 0.4], torso: [-0.05, -0.55, 0], chest: [0, -0.3, 0], hips: [0, -0.25, 0], legL: [-0.3, 0, 0], kneeL: [0.45, 0, 0], legR: [0.25, 0, 0], kneeR: [0.4, 0, 0], drop: [-0.05, 0, 0] }],
-    [0.46, { armR: [-1.2, -0.9, 0.3], elbowR: [-0.1, 0, 0], armL: [-0.2, 0, 0.6], elbowL: [-0.5, 0, 0], weapon: [1.4, 0, -0.9], torso: [0.25, 0.55, 0], chest: [0.1, 0.3, 0], hips: [0, 0.3, 0], legL: [-0.55, 0, 0], kneeL: [0.75, 0, 0], legR: [0.45, 0, 0], kneeR: [0.25, 0, 0], drop: [-0.1, 0, 0] }],
-    [0.64, { armR: [-0.6, -1.1, 0.5], elbowR: [-0.3, 0, 0], armL: [-0.15, 0, 0.5], elbowL: [-0.5, 0, 0], weapon: [1.5, 0, -0.6], torso: [0.3, 0.75, 0], chest: [0.1, 0.35, 0], hips: [0, 0.35, 0], legL: [-0.55, 0, 0], kneeL: [0.75, 0, 0], legR: [0.45, 0, 0], kneeR: [0.25, 0, 0], drop: [-0.1, 0, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0], hips: [0, 0, 0], drop: [0, 0, 0] }],
-  ],
-  // 2: backhand, from over the left shoulder out to the right, stepping in with the right foot
-  slashB: [
-    [0, { armR: [-0.6, -1.1, 0.5], elbowR: [-0.3, 0, 0], weapon: [1.5, 0, -0.6], torso: [0.2, 0.6, 0], chest: [0.05, 0.3, 0], hips: [0, 0.3, 0], drop: [-0.05, 0, 0] }],
-    [0.28, { armR: [-1.7, 0.3, 0.7], elbowR: [-1.4, 0, 0], weapon: [0.5, 0, -0.4], torso: [0, 0.6, 0], chest: [0, 0.3, 0], hips: [0, 0.3, 0], armL: [-0.3, 0, 0.4], elbowL: [-0.5, 0, 0], legL: [-0.4, 0, 0], kneeL: [0.55, 0, 0], legR: [0.3, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.08, 0, 0] }],
-    [0.46, { armR: [-1.0, 0.6, -1.2], elbowR: [-0.1, 0, 0], weapon: [1.4, 0, 0.9], torso: [0.2, -0.55, 0], chest: [0.05, -0.3, 0], hips: [0, -0.3, 0], armL: [-0.4, 0, 0.9], elbowL: [-0.4, 0, 0], legR: [-0.55, 0, 0], kneeR: [0.75, 0, 0], legL: [0.4, 0, 0], kneeL: [0.25, 0, 0], drop: [-0.1, 0, 0] }],
-    [0.64, { armR: [-0.6, 0.7, -1.3], elbowR: [-0.25, 0, 0], weapon: [1.45, 0, 0.6], torso: [0.2, -0.7, 0], chest: [0.05, -0.35, 0], hips: [0, -0.35, 0], armL: [-0.3, 0, 0.7], elbowL: [-0.4, 0, 0], legR: [-0.55, 0, 0], kneeR: [0.75, 0, 0], legL: [0.4, 0, 0], kneeL: [0.25, 0, 0], drop: [-0.1, 0, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0], hips: [0, 0, 0], drop: [0, 0, 0] }],
-  ],
-  // 3: finisher, a crouch with the sword behind the head, then a lunging overhead chop
-  slashC: [
-    [0, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0], hips: [0, 0, 0], drop: [0, 0, 0] }],
-    [0.34, { armR: [-2.9, 0, -0.2], elbowR: [-1.4, 0, 0], weapon: [0.2, 0, 0], armL: [-2.6, 0, 0.3], elbowL: [-1.0, 0, 0], torso: [-0.25, 0, 0], chest: [-0.15, 0, 0], head: [-0.2, 0, 0], hips: [0, 0, 0], legL: [-0.5, 0, 0], kneeL: [1.0, 0, 0], legR: [-0.3, 0, 0], kneeR: [0.9, 0, 0], drop: [-0.12, 0, 0] }],
-    [0.48, { armR: [-1.3, 0, -0.1], elbowR: [-0.05, 0, 0], weapon: [1.57, 0, 0], armL: [-0.6, 0, 0.6], elbowL: [-0.5, 0, 0], torso: [0.45, 0, 0], chest: [0.2, 0, 0], head: [0.2, 0, 0], legL: [-0.7, 0, 0], kneeL: [1.0, 0, 0], legR: [0.5, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.15, 0, 0] }],
-    [0.7, { armR: [-1.15, 0, -0.1], elbowR: [-0.1, 0, 0], weapon: [1.57, 0, 0], armL: [-0.5, 0, 0.6], elbowL: [-0.5, 0, 0], torso: [0.4, 0, 0], chest: [0.15, 0, 0], head: [0.1, 0, 0], legL: [-0.7, 0, 0], kneeL: [1.0, 0, 0], legR: [0.5, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.14, 0, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0], head: [0, 0, 0], hips: [0, 0, 0], drop: [0, 0, 0] }],
-  ],
-  // spin attack
-  whirl: [
-    [0, { ...READY, weapon: [1.3, 0, 0], torso: [0.05, 0, 0] }],
-    [0.2, { armR: [-1.4, 0, -1.3], elbowR: [-0.3, 0, 0], armL: [-0.2, 0, 1.1], weapon: [1.57, 0, 0], torso: [0.25, -0.7, 0], chest: [0, -0.3, 0], legL: [-0.4, 0, 0], legR: [0.3, 0, 0], kneeL: [0.6, 0, 0], kneeR: [0.5, 0, 0] }],
-    [0.75, { armR: [-1.4, 0, -1.3], elbowR: [-0.2, 0, 0], armL: [-0.2, 0, 1.1], weapon: [1.57, 0, 0], torso: [0.25, 0.7, 0], chest: [0, 0.3, 0], legL: [-0.4, 0, 0], legR: [0.3, 0, 0], kneeL: [0.6, 0, 0], kneeR: [0.5, 0, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0] }],
-  ],
-  cast: [
-    [0, { armL: [-0.3, 0, 0.2], elbowL: [-0.6, 0, 0], chest: [0, 0, 0], torso: [0, 0, 0] }],
-    [0.35, { armL: [-0.9, 0.3, 0.5], elbowL: [-1.4, 0, 0], chest: [0, -0.35, 0], torso: [0, -0.15, 0], armR: [-0.1, 0, -0.3] }],
-    [0.6, { armL: [-1.55, 0, 0.1], elbowL: [-0.05, 0, 0], chest: [0, 0.35, 0], torso: [0.08, 0.1, 0], armR: [0.2, 0, -0.35], legL: [-0.25, 0, 0], kneeL: [0.25, 0, 0] }],
-    [1, { armL: [-0.3, 0, 0.2], elbowL: [-0.5, 0, 0], chest: [0, 0, 0], torso: [0.03, 0, 0] }],
-  ],
-  castArea: [
-    [0, { armL: [-0.3, 0, 0.2], armR: [-0.3, 0, -0.2], elbowL: [-0.5, 0, 0], elbowR: [-0.5, 0, 0] }],
-    [0.4, { armL: [-2.7, 0, 0.35], armR: [-2.7, 0, -0.35], elbowL: [-0.3, 0, 0], elbowR: [-0.3, 0, 0], torso: [-0.12, 0, 0], head: [-0.25, 0, 0] }],
-    [0.62, { armL: [-1.1, 0, 0.25], armR: [-1.1, 0, -0.25], elbowL: [-0.2, 0, 0], elbowR: [-0.2, 0, 0], torso: [0.3, 0, 0], head: [0.1, 0, 0], legL: [-0.3, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.3, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], armR: [-0.28, 0, -0.18], elbowL: [-0.4, 0, 0], elbowR: [-0.5, 0, 0], torso: [0.05, 0, 0], head: [0, 0, 0] }],
-  ],
-  ward: [
-    [0, { armL: [-0.3, 0, 0.2], armR: [-0.3, 0, -0.2] }],
-    [0.4, { armL: [-1.1, 0, 0.6], armR: [-1.1, 0, -0.6], elbowL: [-1.4, 0, 0], elbowR: [-1.4, 0, 0], chest: [-0.1, 0, 0] }],
-    [0.7, { armL: [-0.9, 0, 1.1], armR: [-0.9, 0, -1.1], elbowL: [-0.4, 0, 0], elbowR: [-0.4, 0, 0], chest: [-0.15, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], armR: [-0.28, 0, -0.18], elbowL: [-0.4, 0, 0], elbowR: [-0.5, 0, 0], chest: [0, 0, 0] }],
-  ],
-  warcry: [
-    [0, { armL: [-0.3, 0, 0.2], armR: [-0.3, 0, -0.2] }],
-    [0.3, { armL: [-0.4, 0, 0.3], armR: [-0.4, 0, -0.3], elbowL: [-1.6, 0, 0], elbowR: [-1.6, 0, 0], chest: [0.3, 0, 0], torso: [0.2, 0, 0], head: [0.2, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.4, 0, 0] }],
-    [0.55, { armL: [-0.5, 0, 1.35], armR: [-0.5, 0, -1.35], elbowL: [-0.5, 0, 0], elbowR: [-0.5, 0, 0], chest: [-0.35, 0, 0], torso: [-0.1, 0, 0], head: [-0.45, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], armR: [-0.28, 0, -0.18], elbowL: [-0.4, 0, 0], elbowR: [-0.5, 0, 0], chest: [0, 0, 0], torso: [0.05, 0, 0], head: [0, 0, 0] }],
-  ],
-  summon: [
-    [0, { armL: [-0.3, 0, 0.2] }],
-    [0.45, { armL: [-2.8, 0.2, 0.2], elbowL: [-0.2, 0, 0], head: [-0.3, 0, 0], chest: [-0.1, 0.2, 0] }],
-    [0.7, { armL: [-2.2, 0.2, 0.5], elbowL: [-0.1, 0, 0], head: [-0.15, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], elbowL: [-0.4, 0, 0], head: [0, 0, 0], chest: [0, 0, 0] }],
-  ],
-  bow: [
-    [0, { ...READY, weapon: [1.2, 0, 0] }],
-    [0.4, { armR: [-1.55, 0, 0.1], elbowR: [-0.05, 0, 0], weapon: [0, 0, 0], armL: [-1.45, 0.5, -0.2], elbowL: [-2.1, 0, 0], chest: [0, -0.5, 0], torso: [0, -0.3, 0], head: [0, 0.5, 0] }],
-    [0.55, { armR: [-1.55, 0, 0.1], elbowR: [-0.05, 0, 0], weapon: [0, 0, 0], armL: [-1.2, 0.2, 0.4], elbowL: [-0.6, 0, 0], chest: [0, -0.45, 0], torso: [0, -0.3, 0], head: [0, 0.5, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], chest: [0, 0, 0], torso: [0.05, 0, 0], head: [0, 0, 0] }],
-  ],
-  hurt: [
-    [0, { torso: [-0.35, 0.15, 0], head: [-0.3, 0, 0], armL: [0.2, 0, 0.5], armR: [0.2, 0, -0.5] }],
-    [1, {}],
-  ],
-};
-
-/** Weapon-dependent attack pose picks. */
-function attackPose(kind, weaponKind, step) {
-  if (kind === 'melee_arc') return ['slashA', 'slashB', 'slashC'][step % 3];
-  if (kind === 'melee_nova') return 'whirl';
-  if (kind === 'projectile' && weaponKind === 'bow') return 'bow';
-  if (kind === 'ground_area' || kind === 'nova' || kind === 'dot_zone' || kind === 'curse_zone') return 'castArea';
-  if (kind === 'self_barrier') return 'ward';
-  if (kind === 'buff') return 'warcry';
-  if (kind === 'summon' || kind === 'heal_zone') return 'summon';
-  return 'cast';
-}
+// ---------- animation (actions: actions.js) ----------
 
 export class HumanoidAnimator {
   constructor(rig) {
@@ -378,11 +289,21 @@ export class HumanoidAnimator {
     this.blink = 0;
   }
 
-  /** @param {number} step combo step of a melee swing (castStart.step) */
-  play(kind, dur, weaponKind, step = this.combo) {
-    const name = ACTIONS[kind] ? kind : attackPose(kind, weaponKind || this.rig.weaponKind, step);
-    if (kind === 'melee_arc') this.combo = step + 1;
-    this.action = { name, t: 0, dur: Math.max(0.25, dur) };
+  /**
+   * Play the action for a cast (see actions.js).
+   * @param {string} skill skill id or action name
+   * @param {number} dur seconds
+   * @param {string} weaponKind
+   * @param {number} step combo step of a melee swing (castStart.step)
+   * @param {number} hitTime seconds until the skill lands (its cast time); the action's hit key is moved there
+   * @param {string} kind skill kind, for skills without their own action
+   */
+  play(skill, dur, weaponKind, step = this.combo, hitTime = null, kind = null) {
+    const name = pickAction(skill, kind, weaponKind || this.rig.weaponKind, step);
+    this.combo = step + 1;
+    dur = Math.max(0.25, dur);
+    const hit = ACTIONS[name].hit;
+    this.action = { name, t: 0, dur, hitAt: hitTime && hit > 0 ? clamp01(hitTime / dur) : hit };
   }
 
   hit() {
@@ -442,6 +363,8 @@ export class HumanoidAnimator {
     let bodyX = gait.bx * m;
     let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
     let hipsSpinX = 0;
+    let spin = 0;
+    let ikL = null, ikR = null; // raw hand targets of the current action
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
@@ -466,8 +389,22 @@ export class HumanoidAnimator {
           torso: [0.35 * crouch - 0.15 * air, 0, 0],
         });
         bodyY = -0.3 * crouch;
+        // leap slam: sword raised overhead in the air, chopped down on landing
+        const land = t > 0.82 ? crouch : 0;
+        for (const n of ['armR', 'elbowR', 'armL', 'elbowL', 'weapon', 'chest', 'head']) {
+          if (LEAP.air[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.air[n], Math.min(1, air * 1.6));
+          if (LEAP.land[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.land[n], land);
+        }
+        pose.torso[0] += 0.4 * land;
       } else if (dash.kind === 'blink') {
-        pose.torso[0] += 0.3;
+        // a quick crouch and tuck as the body vanishes
+        const k = Math.sin(t * Math.PI);
+        pose.torso[0] += 0.35 * k;
+        pose.kneeL[0] += 0.6 * k;
+        pose.kneeR[0] += 0.6 * k;
+        pose.elbowL[0] -= 1.0 * k;
+        pose.elbowR[0] -= 1.0 * k;
+        bodyY -= 0.1 * k;
       } else {
         Object.assign(pose, { legL: [-0.7, 0, 0], legR: [0.75, 0, 0], kneeL: [0.8, 0, 0], kneeR: [0.4, 0, 0], armL: [0.9, 0, 0.35], armR: [0.9, 0, -0.35], elbowL: [-0.3, 0, 0], elbowR: [-0.3, 0, 0], torso: [0.6, 0, 0], head: [-0.35, 0, 0] });
         bodyY = -0.08;
@@ -478,13 +415,19 @@ export class HumanoidAnimator {
     if (this.action) {
       const a = this.action;
       a.t += dt;
-      const t = clamp01(a.t / a.dur);
-      const keys = ACTIONS[a.name];
-      const ap = samplePose(keys, t);
+      const act = ACTIONS[a.name];
+      // stretch the keys so the hit key lands at hitAt
+      const u = clamp01(a.t / a.dur), h = act.hit, ha = a.hitAt;
+      const t = h <= 0 || ha <= 0 || ha >= 1 ? u : u < ha ? (u / ha) * h : h + ((u - ha) / (1 - ha)) * (1 - h);
+      const ap = samplePose(act.keys, t);
       const fadeIn = clamp01(a.t / 0.06);
       const fadeOut = clamp01((a.dur - a.t) / 0.1);
       const wA = Math.min(fadeIn, fadeOut);
+      spin = ap.spin ? ap.spin[0] : 0;
+      ikL = ap.ikL;
+      ikR = ap.ikR;
       for (const n in ap) {
+        if (n === 'spin') continue;
         const lower = n.startsWith('leg') || n.startsWith('knee');
         const k = lower ? wA * (1 - w * 0.7) : wA;
         const cur = pose[n] || [0, 0, 0];
@@ -510,6 +453,7 @@ export class HumanoidAnimator {
     // ---- apply ----
     applyPose(b, pose);
     b.hips.rotation.x = hipsSpinX;
+    b.body.rotation.y = spin;
     b.body.position.y = bodyY;
     b.body.position.x = bodyX;
     b.body.rotation.z = damp(b.body.rotation.z, bodyRotZ, 8, dt);
@@ -533,6 +477,26 @@ export class HumanoidAnimator {
       b.tail.rotation.z = tz;
     }
     if (this.rig.setFace) this.rig.setFace(this.expression(dt, s));
+    // hands reaching for targets: bow string, spell gestures, the second hand on a big weapon
+    const ikw = pose.ikw, grip = pose.grip ? pose.grip[0] : 0;
+    if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || grip > 0.01) {
+      const root = this.rig.root;
+      root.updateMatrixWorld(true);
+      if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(IK_T.fromArray(ikR)), ikw[1]);
+      if (grip > 0.01 && b.weapon) reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, -0.11)), grip);
+      else if (ikL && ikw?.[0] > 0.01) reachArm(b, 'L', root.localToWorld(IK_T.fromArray(ikL)), ikw[0]);
+    }
+    // a drawn bow stands upright and faces the target whatever the hand's angle
+    if (b.weapon) {
+      b.weapon.position.copy(b.weapon.userData.rest.pos);
+      const aim = pose.aim ? pose.aim[0] : 0;
+      if (aim > 0.01) {
+        this.rig.root.updateMatrixWorld(true);
+        b.handR.getWorldQuaternion(AIM_Q).invert().multiply(this.rig.root.getWorldQuaternion(AIM_R));
+        b.weapon.quaternion.slerp(AIM_Q, aim);
+        b.weapon.position.addScaledVector(IK_T.set(0, 0, -0.13).applyQuaternion(b.weapon.quaternion), aim);
+      }
+    }
     this.rig.syncSkin?.();
   }
 
@@ -551,7 +515,11 @@ export class HumanoidAnimator {
   }
 }
 
-const FIERCE = new Set(['slashA', 'slashB', 'slashC', 'whirl', 'warcry', 'bow', 'castArea']);
+const FIERCE = new Set(['slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
+const IK_T = new THREE.Vector3();
+const AIM_Q = new THREE.Quaternion();
+const AIM_R = new THREE.Quaternion();
+const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 /** Gait pose at cycle position u (0..1), blended walk -> run by k. */
 function sampleGait(u, k) {

@@ -48,10 +48,11 @@ export function buildWeapon(rb,kind,id) {
    add(rb,tube([[0,-.47,-.15],[0,-.36,.04],[0,-.23,.21],[0,0,.12],[0,.23,.21],[0,.36,.04],[0,.47,-.15]],.025),'#77915f');
    for(const side of [-1,1])add(rb,new THREE.ConeGeometry(.04,.15,5),'#e1d3a9',[0,side*.40,-.05],{rot:[0,0,side<0?Math.PI:0]});
   } else {
-   add(rb,new THREE.TorusGeometry(.42,.022,5,18,Math.PI*.9).rotateZ(Math.PI/2-Math.PI*.45),'#9b7953',[0,0,.1],{rot:[0,Math.PI/2,0]});
+   // limbs along Y, belly toward +Z with the grip at z .13, like the other bows
+   add(rb,new THREE.TorusGeometry(.42,.022,5,18,Math.PI*.9).rotateZ(-Math.PI*.45).rotateY(-Math.PI/2),'#9b7953',[0,0,-.29]);
   }
   const len=id==='storm_bow'?1:id==='hunter_bow'?.94:.80;
-  add(rb,new THREE.CylinderGeometry(.004,.004,len,3),'#eee4c6',[0,0,id==='old_bow'?-.18:-.15],{plain:true});
+  add(rb,new THREE.CylinderGeometry(.004,.004,len,3),'#eee4c6',[0,0,id==='old_bow'?-.224:-.15],{plain:true});
   add(rb,new THREE.CylinderGeometry(.038,.038,.13,6),'#77503c',[0,0,.13]);
  } else {
   const len=kind==='wand'?.50:1.35,tip=len*.85;

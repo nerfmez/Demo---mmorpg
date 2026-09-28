@@ -249,7 +249,7 @@ export class View {
     const v = this.vfx;
     switch (e.type) {
       case 'castStart':
-        this.heroAnim.play(e.kind, e.total + 0.28, e.weapon, e.step);
+        this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
         break;
       case 'slash':
         v.slash(e);

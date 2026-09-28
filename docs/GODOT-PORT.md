@@ -75,6 +75,9 @@ The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut
 head mesh; in Godot use a face texture with UV offsets per expression. `data/gait.json`
 holds the walk and run cycles as driver-bone Euler angles (XYZ) per frame; the cadence is
 `speed / cycle` cycles per second.
+Skill actions (`render/actions.js`) are keyframed poses with a `hit` time; port each as an
+`Animation` with a method track (or signal) at the hit, and use `SkeletonIK3D` (or a
+two-bone IK modifier) for the ikL/ikR/grip channels.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 
 Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,

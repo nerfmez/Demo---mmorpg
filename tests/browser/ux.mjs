@@ -104,7 +104,8 @@ try {
     await activate(`[data-act="inspect-item"][data-id="${made}"]`);
     assert.ok(await page.locator('.gear-compare .ok').count() > 0, 'new armour shows stat improvements');
     await shot('inventory');
-    await activate(`[data-act="equip-gear"][data-uid="${made}"]`);
+    // The loot toast may offer the same item; test the inspected-item action.
+    await activate(`.item-detail [data-act="equip-gear"][data-uid="${made}"]`);
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.equipped.armor), made);
     await activate('[data-tab="craft"]');
     await activate('[data-act="craft-filter"][data-id="mod"]');

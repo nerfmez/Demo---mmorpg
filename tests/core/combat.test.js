@@ -38,6 +38,29 @@ test('the third swing in a row is a finisher that hits harder and knocks back', 
   assert.equal(g.player.comboStep, 0);
 });
 
+test('castStart announces the combo step the swing will land as', () => {
+  const { g, m } = setup(23);
+  const steps = [];
+  for (let i = 0; i < 4; i++) {
+    g.player.cooldowns[0] = 0;
+    g.player.mp = g.player.maxMp;
+    assert.ok(g.castSlot(0, { x: m.x, z: m.z }));
+    steps.push(g.drainEvents().find((e) => e.type === 'castStart').step);
+    for (let k = 0; k < 12; k++) g.update(0.05);
+    assert.equal(g.player.comboStep, steps[i], 'predicted step ' + i);
+  }
+  assert.deepEqual(steps, [0, 1, 2, 0]);
+  // a swing announced just inside the combo window keeps its step even if it lands a frame late
+  const window = data.progression.combat?.comboWindow ?? 1.1;
+  g.player.cooldowns[0] = 0;
+  g.player.lastSwingT = g.time - window + g.skills[0].castTime + 0.01;
+  assert.ok(g.castSlot(0, { x: m.x, z: m.z }));
+  const late = g.drainEvents().find((e) => e.type === 'castStart').step;
+  assert.equal(late, 1);
+  for (let k = 0; k < 12; k++) g.update(0.05);
+  assert.equal(g.player.comboStep, late);
+});
+
 test('hits make regular monsters flinch, but never cancel a started wind-up; bosses do not flinch', () => {
   const { g, m } = setup(22);
   m.aggro = true;

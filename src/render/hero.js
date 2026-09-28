@@ -7,6 +7,11 @@ import * as THREE from 'three';
 import { buildWeapon, equipmentDetails } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
+import GAIT from '../../data/gait.json';
+import { ACTIONS, pickAction, LEAP } from './actions.js';
+import { reachArm } from './ik.js';
+import { modelInstance, characterBase } from './models.js';
+import { attachSkinnedBody, fitParts } from './skinned.js';
 
 export const DEFAULT_LOOK = {
   hairStyle: 'messy',
@@ -39,12 +44,16 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
  * Build a humanoid.
  * @param {object} look appearance (see DEFAULT_LOOK)
  * @param {object} gear {weapon, armor, helm, bases} visual kinds and base content IDs
- * @param {object} o {npc, apron, beard, longHair}
+ * @param {object} o {npc, apron, beard, longHair, procedural}
+ * The hero uses the skinned body (skinned.js) once it has loaded; NPCs, and `procedural`,
+ * keep the all-procedural body.
  */
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
-  const B = (name, parent, pos) => rb.bone(name, parent, pos);
+  const T = o.npc || o.procedural ? null : characterBase('hero_base');
+  // driver bones sit on the skinned body's joints when there is one
+  const B = (name, parent, pos) => rb.bone(name, parent, T?.joints[name] || pos);
   B('body', 'root');
   B('hips', 'body', [0, 0.93, 0]);
   B('torso', 'hips', [0, 0.02, 0]);
@@ -58,76 +67,82 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     B(`elbow${n}`, `arm${n}`, [0, -0.27, 0]);
     B(`hand${n}`, `elbow${n}`, [0, -0.25, 0]);
   }
+  const boots = gear.bases?.boots || 'travel_boots';
+  const bootColor = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
   const armor = gear.armor || 'tunic';
   const tunic = armor === 'pelt' ? '#6f6a64' : armor === 'mantle' ? '#3a5a8a' : armor === 'plate' ? '#8f96a3' : L.tunic;
 
-  // legs
-  for (const n of ['L', 'R']) {
-    rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
-    rb.add(`knee${n}`, sph(0.068, 10, 8), PANTS);
-    rb.add(`knee${n}`, cyl(0.068, 0.058, 0.26), PANTS);
-    const boots = gear.bases?.boots || 'travel_boots';
-    const color = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
-    if(boots!=='wisp_slippers'){
-      rb.add(`knee${n}`, cyl(.079,.07,.24), color, {pos:[0,-.14,0]});
-      rb.add(`knee${n}`, cyl(.1,.092,.1), boots==='wolf_boots'?'#cfccba':color, {pos:[0,-.06,0]});
-    }
-    rb.add(`foot${n}`, new THREE.BoxGeometry(.12,.08,.25).translate(0,-.02,.05), color);
-    if(boots==='wolf_boots'){
-      for(const x of [-.04,.04])rb.add(`foot${n}`,new THREE.ConeGeometry(.016,.07,4).rotateX(Math.PI/2),'#e8dfc3',{pos:[x,-.015,.20]});
-    }else if(boots==='wisp_slippers'){
-      rb.add(`foot${n}`,new THREE.ConeGeometry(.044,.17,5).rotateX(.95),'#99c9c5',{pos:[0,.03,.20]});
-    }else if(boots==='crag_greaves'){
-      rb.add(`knee${n}`,new THREE.BoxGeometry(.13,.22,.055),'#b9c4b3',{pos:[0,-.15,.065]});
-      rb.add(`knee${n}`,new THREE.OctahedronGeometry(.042),'#d0d7b3',{pos:[0,-.05,.093],plain:true});
-    }
+  if (!T) {
+    // legs
+    for (const n of ['L', 'R']) {
+      rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
+      rb.add(`knee${n}`, sph(0.068, 10, 8), PANTS);
+      rb.add(`knee${n}`, cyl(0.068, 0.058, 0.26), PANTS);
+      const color = bootColor;
+      if(boots!=='wisp_slippers'){
+        rb.add(`knee${n}`, cyl(.079,.07,.24), color, {pos:[0,-.14,0]});
+        rb.add(`knee${n}`, cyl(.1,.092,.1), boots==='wolf_boots'?'#cfccba':color, {pos:[0,-.06,0]});
+      }
+      rb.add(`foot${n}`, new THREE.BoxGeometry(.12,.08,.25).translate(0,-.02,.05), color);
+      if(boots==='wolf_boots'){
+        for(const x of [-.04,.04])rb.add(`foot${n}`,new THREE.ConeGeometry(.016,.07,4).rotateX(Math.PI/2),'#e8dfc3',{pos:[x,-.015,.20]});
+      }else if(boots==='wisp_slippers'){
+        rb.add(`foot${n}`,new THREE.ConeGeometry(.044,.17,5).rotateX(.95),'#99c9c5',{pos:[0,.03,.20]});
+      }else if(boots==='crag_greaves'){
+        rb.add(`knee${n}`,new THREE.BoxGeometry(.13,.22,.055),'#b9c4b3',{pos:[0,-.15,.065]});
+        rb.add(`knee${n}`,new THREE.OctahedronGeometry(.042),'#d0d7b3',{pos:[0,-.05,.093],plain:true});
+      }
 
-  }
-  // hips: tunic hem, belt, pouch
-  rb.add('hips', new THREE.CylinderGeometry(0.16, 0.205, 0.28, 12, 1, true).translate(0, -0.08, 0).scale(1, 1, 0.8), tunic);
-  rb.add('hips', new THREE.CylinderGeometry(0.168, 0.168, 0.07, 12).scale(1, 1, 0.8), LEATHER, { pos: [0, 0.05, 0] });
-  rb.add('hips', new THREE.BoxGeometry(0.06, 0.05, 0.02), METAL, { pos: [0, 0.05, 0.138], plain: true });
-  rb.add('hips', new THREE.BoxGeometry(0.08, 0.1, 0.05), LEATHER, { pos: [-0.14, -0.01, 0.07], rot: [0, 0.5, 0] });
-  // torso and chest
-  rb.add('torso', new THREE.CylinderGeometry(0.165, 0.158, 0.26, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
-  rb.add('chest', new THREE.CylinderGeometry(0.19, 0.166, 0.3, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
-  rb.add('chest', new THREE.SphereGeometry(0.19, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, 0.45, 0.74).translate(0, 0.27, 0), tunic);
-  if (!o.npc || o.straps) {
-    rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, 0.128], rot: [0, 0, 0.62], plain: true });
-    rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, -0.128], rot: [0, 0, -0.62], plain: true });
-  }
-  if (armor === 'hide' || armor === 'pelt') {
-    rb.add('chest', new THREE.CylinderGeometry(0.198, 0.18, 0.28, 12, 1, true).translate(0, 0.1, 0).scale(1, 1, 0.78), armor === 'hide' ? '#8a5a3a' : '#7f776c');
-    if (armor === 'pelt') rb.add('chest', new THREE.TorusGeometry(0.15, 0.06, 6, 14).rotateX(Math.PI / 2), '#b8b0a4', { pos: [0, 0.3, 0] });
-  } else if (armor === 'shell') {
-    rb.add('chest', new THREE.SphereGeometry(0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(1, 0.9, 0.8), '#5d8a3a', { pos: [0, 0.02, 0.01] });
-  } else if (armor === 'plate') {
-    rb.add('chest', new THREE.BoxGeometry(0.34, 0.26, 0.26).translate(0, 0.12, 0), '#9aa0ad');
-    rb.add('chest', new THREE.OctahedronGeometry(0.05), '#8fe0ff', { pos: [0, 0.14, 0.14], glow: true });
-  }
-  if (o.apron) rb.add('torso', new THREE.BoxGeometry(0.3, 0.55, 0.02), o.apron, { pos: [0, 0.02, 0.13] });
-  // arms
-  for (const [s, n] of [[1, 'L'], [-1, 'R']]) {
-    rb.add(`arm${n}`, sph(0.072, 10, 8), tunic, { pos: [0, -0.02, 0] });
-    rb.add(`arm${n}`, cyl(0.064, 0.056, 0.27), tunic);
-    rb.add(`elbow${n}`, sph(0.056, 8, 6), L.skin);
-    rb.add(`elbow${n}`, cyl(0.064, 0.06, 0.05), tunic, { pos: [0, 0.03, 0] });
-    rb.add(`elbow${n}`, cyl(0.048, 0.042, 0.24), L.skin);
-    rb.add(`elbow${n}`, cyl(0.058, 0.052, 0.13), LEATHER, { pos: [0, -0.09, 0] });
-    rb.add(`hand${n}`, sph(0.048, 8, 6), LEATHER_DARK, { pos: [0, -0.02, 0] });
-    void s;
-  }
+    }
+    // hips: tunic hem, belt, pouch
+    rb.add('hips', new THREE.CylinderGeometry(0.16, 0.205, 0.28, 12, 1, true).translate(0, -0.08, 0).scale(1, 1, 0.8), tunic);
+    rb.add('hips', new THREE.CylinderGeometry(0.168, 0.168, 0.07, 12).scale(1, 1, 0.8), LEATHER, { pos: [0, 0.05, 0] });
+    rb.add('hips', new THREE.BoxGeometry(0.06, 0.05, 0.02), METAL, { pos: [0, 0.05, 0.138], plain: true });
+    rb.add('hips', new THREE.BoxGeometry(0.08, 0.1, 0.05), LEATHER, { pos: [-0.14, -0.01, 0.07], rot: [0, 0.5, 0] });
+    // torso and chest
+    rb.add('torso', new THREE.CylinderGeometry(0.165, 0.158, 0.26, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
+    rb.add('chest', new THREE.CylinderGeometry(0.19, 0.166, 0.3, 12).translate(0, 0.12, 0).scale(1, 1, 0.74), tunic);
+    rb.add('chest', new THREE.SphereGeometry(0.19, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, 0.45, 0.74).translate(0, 0.27, 0), tunic);
+    if (!o.npc || o.straps) {
+      rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, 0.128], rot: [0, 0, 0.62], plain: true });
+      rb.add('chest', new THREE.BoxGeometry(0.035, 0.5, 0.014), LEATHER_DARK, { pos: [0, 0.06, -0.128], rot: [0, 0, -0.62], plain: true });
+    }
+    if (armor === 'hide' || armor === 'pelt') {
+      rb.add('chest', new THREE.CylinderGeometry(0.198, 0.18, 0.28, 12, 1, true).translate(0, 0.1, 0).scale(1, 1, 0.78), armor === 'hide' ? '#8a5a3a' : '#7f776c');
+      if (armor === 'pelt') rb.add('chest', new THREE.TorusGeometry(0.15, 0.06, 6, 14).rotateX(Math.PI / 2), '#b8b0a4', { pos: [0, 0.3, 0] });
+    } else if (armor === 'shell') {
+      rb.add('chest', new THREE.SphereGeometry(0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(1, 0.9, 0.8), '#5d8a3a', { pos: [0, 0.02, 0.01] });
+    } else if (armor === 'plate') {
+      rb.add('chest', new THREE.BoxGeometry(0.34, 0.26, 0.26).translate(0, 0.12, 0), '#9aa0ad');
+      rb.add('chest', new THREE.OctahedronGeometry(0.05), '#8fe0ff', { pos: [0, 0.14, 0.14], glow: true });
+    }
+    if (o.apron) rb.add('torso', new THREE.BoxGeometry(0.3, 0.55, 0.02), o.apron, { pos: [0, 0.02, 0.13] });
+    // arms
+    for (const [s, n] of [[1, 'L'], [-1, 'R']]) {
+      rb.add(`arm${n}`, sph(0.072, 10, 8), tunic, { pos: [0, -0.02, 0] });
+      rb.add(`arm${n}`, cyl(0.064, 0.056, 0.27), tunic);
+      rb.add(`elbow${n}`, sph(0.056, 8, 6), L.skin);
+      rb.add(`elbow${n}`, cyl(0.064, 0.06, 0.05), tunic, { pos: [0, 0.03, 0] });
+      rb.add(`elbow${n}`, cyl(0.048, 0.042, 0.24), L.skin);
+      rb.add(`elbow${n}`, cyl(0.058, 0.052, 0.13), LEATHER, { pos: [0, -0.09, 0] });
+      rb.add(`hand${n}`, sph(0.048, 8, 6), LEATHER_DARK, { pos: [0, -0.02, 0] });
+      void s;
+    }
+  } // end of the procedural body
   // shoulder guard (left)
   if (!o.npc) {
     rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), armor === 'plate' ? '#9aa0ad' : LEATHER, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
     rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
   }
   // neck, head, face
-  rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
-  const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
-  rb.add('head', headGeo, L.skin);
-  rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
-  for (const s of [1, -1]) {
+  if (!T) {
+    rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
+    const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
+    rb.add('head', headGeo, L.skin);
+    rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
+  }
+  const paintedFace = !!T?.faceGeo;
+  for (const s of paintedFace ? [] : [1, -1]) {
     const eye = new THREE.Shape();
     eye.moveTo(-.026,.005);
     eye.quadraticCurveTo(-.003,.022,.027,.009);
@@ -140,9 +155,9 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('head',new THREE.CircleGeometry(.006,10).scale(.8,1.12,1),'#30383c',{pos:[s*.046,.127,.135],rot:[0,s*.22,0],plain:true});
     rb.add('head',new THREE.CircleGeometry(.004,6),'#fffbee',{pos:[s*.046+.004,.133,.137],rot:[0,s*.22,0],plain:true});
     rb.add('head',new THREE.BoxGeometry(.044,.005,.004),L.hair,{pos:[s*.046,.162,.119],rot:[0,s*.2,s*-.12],plain:true});
-    rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
+    if (!T) rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
   }
-  rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
+  if (!paintedFace) rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
   hair(rb, L, o);
   // scarf wrap (hero only)
   if (!o.npc || o.scarf) {
@@ -151,16 +166,24 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
-  buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
+  const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
+  if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
+  let neckParts = rig.bones.chest;
+  if (T) {
+    fitParts(rig.bones.head, T.headFit);
+    neckParts = fitParts(rig.bones.chest, T.neckFit);
+    fitParts(rig.bones.armL, T.armFit);
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic, pants: PANTS, boots: bootColor, leather: LEATHER }, L);
+  }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
   if (!o.npc || o.scarf) {
     rig.scarfAnchor = new THREE.Group();
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
-    rig.bones.chest.add(rig.scarfAnchor);
+    neckParts.add(rig.scarfAnchor);
     const m = new THREE.MeshToonMaterial({ color: new THREE.Color(L.scarf), gradientMap: rig.material.gradientMap, side: THREE.DoubleSide });
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
@@ -239,94 +262,12 @@ function helm(rb, kind, L) {
   void L;
 }
 
-// ---------- animation ----------
-
-const READY = { armR: [-0.28, 0, -0.18], elbowR: [-0.55, 0, 0], armL: [-0.12, 0, 0.16], elbowL: [-0.35, 0, 0] };
-
-/** Keyframed actions: [t, pose]. Arms, chest, torso, head and weapon; legs optional. */
-const ACTIONS = {
-  // forehand: sword swings from the right side across to the left
-  slashA: [
-    [0, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0] }],
-    [0.3, { armR: [-1.35, 0.35, -1.25], elbowR: [-0.95, 0, 0], armL: [-0.45, 0, 0.35], elbowL: [-0.6, 0, 0], weapon: [1.1, 0, 0.9], torso: [0.02, -0.5, 0], chest: [0, -0.25, 0], legL: [-0.3, 0, 0], legR: [0.2, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.2, 0, 0] }],
-    [0.5, { armR: [-1.25, -0.3, 0.35], elbowR: [-0.18, 0, 0], armL: [-0.1, 0, 0.55], elbowL: [-0.4, 0, 0], weapon: [1.55, 0, -0.5], torso: [0.14, 0.5, 0], chest: [0, 0.3, 0], legL: [-0.45, 0, 0], legR: [0.35, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.15, 0, 0] }],
-    [0.72, { armR: [-0.75, -0.55, 0.5], elbowR: [-0.35, 0, 0], armL: [-0.05, 0, 0.45], weapon: [1.45, 0, -0.3], torso: [0.1, 0.62, 0], chest: [0, 0.32, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0] }],
-  ],
-  // backhand: comes back from the left to the right
-  slashB: [
-    [0, { armR: [-0.75, -0.55, 0.5], elbowR: [-0.35, 0, 0], weapon: [1.45, 0, -0.3], torso: [0.1, 0.45, 0], chest: [0, 0.25, 0] }],
-    [0.28, { armR: [-1.2, -0.7, 0.75], elbowR: [-1.0, 0, 0], armL: [-0.3, 0, 0.3], weapon: [1.3, 0, -0.9], torso: [0.02, 0.62, 0], chest: [0, 0.3, 0] }],
-    [0.5, { armR: [-1.3, 0.45, -1.05], elbowR: [-0.2, 0, 0], armL: [-0.2, 0, 0.5], weapon: [1.5, 0, 0.6], torso: [0.14, -0.55, 0], chest: [0, -0.3, 0], legL: [0.3, 0, 0], legR: [-0.4, 0, 0], kneeR: [0.4, 0, 0] }],
-    [0.72, { armR: [-0.8, 0.5, -0.8], elbowR: [-0.4, 0, 0], weapon: [1.4, 0, 0.3], torso: [0.1, -0.5, 0], chest: [0, -0.25, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0] }],
-  ],
-  // spin attack
-  whirl: [
-    [0, { ...READY, weapon: [1.3, 0, 0], torso: [0.05, 0, 0] }],
-    [0.2, { armR: [-1.4, 0, -1.3], elbowR: [-0.3, 0, 0], armL: [-0.2, 0, 1.1], weapon: [1.57, 0, 0], torso: [0.25, -0.7, 0], chest: [0, -0.3, 0], legL: [-0.4, 0, 0], legR: [0.3, 0, 0], kneeL: [0.6, 0, 0], kneeR: [0.5, 0, 0] }],
-    [0.75, { armR: [-1.4, 0, -1.3], elbowR: [-0.2, 0, 0], armL: [-0.2, 0, 1.1], weapon: [1.57, 0, 0], torso: [0.25, 0.7, 0], chest: [0, 0.3, 0], legL: [-0.4, 0, 0], legR: [0.3, 0, 0], kneeL: [0.6, 0, 0], kneeR: [0.5, 0, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0] }],
-  ],
-  cast: [
-    [0, { armL: [-0.3, 0, 0.2], elbowL: [-0.6, 0, 0], chest: [0, 0, 0], torso: [0, 0, 0] }],
-    [0.35, { armL: [-0.9, 0.3, 0.5], elbowL: [-1.4, 0, 0], chest: [0, -0.35, 0], torso: [0, -0.15, 0], armR: [-0.1, 0, -0.3] }],
-    [0.6, { armL: [-1.55, 0, 0.1], elbowL: [-0.05, 0, 0], chest: [0, 0.35, 0], torso: [0.08, 0.1, 0], armR: [0.2, 0, -0.35], legL: [-0.25, 0, 0], kneeL: [0.25, 0, 0] }],
-    [1, { armL: [-0.3, 0, 0.2], elbowL: [-0.5, 0, 0], chest: [0, 0, 0], torso: [0.03, 0, 0] }],
-  ],
-  castArea: [
-    [0, { armL: [-0.3, 0, 0.2], armR: [-0.3, 0, -0.2], elbowL: [-0.5, 0, 0], elbowR: [-0.5, 0, 0] }],
-    [0.4, { armL: [-2.7, 0, 0.35], armR: [-2.7, 0, -0.35], elbowL: [-0.3, 0, 0], elbowR: [-0.3, 0, 0], torso: [-0.12, 0, 0], head: [-0.25, 0, 0] }],
-    [0.62, { armL: [-1.1, 0, 0.25], armR: [-1.1, 0, -0.25], elbowL: [-0.2, 0, 0], elbowR: [-0.2, 0, 0], torso: [0.3, 0, 0], head: [0.1, 0, 0], legL: [-0.3, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.3, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], armR: [-0.28, 0, -0.18], elbowL: [-0.4, 0, 0], elbowR: [-0.5, 0, 0], torso: [0.05, 0, 0], head: [0, 0, 0] }],
-  ],
-  ward: [
-    [0, { armL: [-0.3, 0, 0.2], armR: [-0.3, 0, -0.2] }],
-    [0.4, { armL: [-1.1, 0, 0.6], armR: [-1.1, 0, -0.6], elbowL: [-1.4, 0, 0], elbowR: [-1.4, 0, 0], chest: [-0.1, 0, 0] }],
-    [0.7, { armL: [-0.9, 0, 1.1], armR: [-0.9, 0, -1.1], elbowL: [-0.4, 0, 0], elbowR: [-0.4, 0, 0], chest: [-0.15, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], armR: [-0.28, 0, -0.18], elbowL: [-0.4, 0, 0], elbowR: [-0.5, 0, 0], chest: [0, 0, 0] }],
-  ],
-  warcry: [
-    [0, { armL: [-0.3, 0, 0.2], armR: [-0.3, 0, -0.2] }],
-    [0.3, { armL: [-0.4, 0, 0.3], armR: [-0.4, 0, -0.3], elbowL: [-1.6, 0, 0], elbowR: [-1.6, 0, 0], chest: [0.3, 0, 0], torso: [0.2, 0, 0], head: [0.2, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.4, 0, 0] }],
-    [0.55, { armL: [-0.5, 0, 1.35], armR: [-0.5, 0, -1.35], elbowL: [-0.5, 0, 0], elbowR: [-0.5, 0, 0], chest: [-0.35, 0, 0], torso: [-0.1, 0, 0], head: [-0.45, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], armR: [-0.28, 0, -0.18], elbowL: [-0.4, 0, 0], elbowR: [-0.5, 0, 0], chest: [0, 0, 0], torso: [0.05, 0, 0], head: [0, 0, 0] }],
-  ],
-  summon: [
-    [0, { armL: [-0.3, 0, 0.2] }],
-    [0.45, { armL: [-2.8, 0.2, 0.2], elbowL: [-0.2, 0, 0], head: [-0.3, 0, 0], chest: [-0.1, 0.2, 0] }],
-    [0.7, { armL: [-2.2, 0.2, 0.5], elbowL: [-0.1, 0, 0], head: [-0.15, 0, 0] }],
-    [1, { armL: [-0.2, 0, 0.18], elbowL: [-0.4, 0, 0], head: [0, 0, 0], chest: [0, 0, 0] }],
-  ],
-  bow: [
-    [0, { ...READY, weapon: [1.2, 0, 0] }],
-    [0.4, { armR: [-1.55, 0, 0.1], elbowR: [-0.05, 0, 0], weapon: [0, 0, 0], armL: [-1.45, 0.5, -0.2], elbowL: [-2.1, 0, 0], chest: [0, -0.5, 0], torso: [0, -0.3, 0], head: [0, 0.5, 0] }],
-    [0.55, { armR: [-1.55, 0, 0.1], elbowR: [-0.05, 0, 0], weapon: [0, 0, 0], armL: [-1.2, 0.2, 0.4], elbowL: [-0.6, 0, 0], chest: [0, -0.45, 0], torso: [0, -0.3, 0], head: [0, 0.5, 0] }],
-    [1, { ...READY, weapon: [1.2, 0, 0], chest: [0, 0, 0], torso: [0.05, 0, 0], head: [0, 0, 0] }],
-  ],
-  hurt: [
-    [0, { torso: [-0.35, 0.15, 0], head: [-0.3, 0, 0], armL: [0.2, 0, 0.5], armR: [0.2, 0, -0.5] }],
-    [1, {}],
-  ],
-};
-
-/** Weapon-dependent attack pose picks. */
-function attackPose(kind, weaponKind, combo) {
-  if (kind === 'melee_arc') return combo % 2 === 0 ? 'slashA' : 'slashB';
-  if (kind === 'melee_nova') return 'whirl';
-  if (kind === 'projectile' && weaponKind === 'bow') return 'bow';
-  if (kind === 'ground_area' || kind === 'nova' || kind === 'dot_zone' || kind === 'curse_zone') return 'castArea';
-  if (kind === 'self_barrier') return 'ward';
-  if (kind === 'buff') return 'warcry';
-  if (kind === 'summon' || kind === 'heal_zone') return 'summon';
-  return 'cast';
-}
+// ---------- animation (actions: actions.js) ----------
 
 export class HumanoidAnimator {
   constructor(rig) {
     this.rig = rig;
     this.b = rig.bones;
-    this.phase = 0;
     this.speed = 0;
     this.runW = 0;
     this.lean = 0;
@@ -342,12 +283,28 @@ export class HumanoidAnimator {
     this.tailSpringZ = new Spring(80, 9);
     this.fall = 0;
     this.deadT = 0;
+    this.moveW = 0;
+    this.gaitU = 0;
+    this.buf = poseBuffers();
+    this.blinkT = 1.5 + Math.random() * 3;
+    this.blink = 0;
   }
 
-  play(kind, dur, weaponKind) {
-    const name = ACTIONS[kind] ? kind : attackPose(kind, weaponKind || this.rig.weaponKind, this.combo);
-    if (name === 'slashA' || name === 'slashB') this.combo++;
-    this.action = { name, t: 0, dur: Math.max(0.25, dur) };
+  /**
+   * Play the action for a cast (see actions.js).
+   * @param {string} skill skill id or action name
+   * @param {number} dur seconds
+   * @param {string} weaponKind
+   * @param {number} step combo step of a melee swing (castStart.step)
+   * @param {number} hitTime seconds until the skill lands (its cast time); the action's hit key is moved there
+   * @param {string} kind skill kind, for skills without their own action
+   */
+  play(skill, dur, weaponKind, step = this.combo, hitTime = null, kind = null) {
+    const name = pickAction(skill, kind, weaponKind || this.rig.weaponKind, step);
+    this.combo = step + 1;
+    dur = Math.max(0.25, dur);
+    const hit = ACTIONS[name].hit;
+    this.action = { name, t: 0, dur, hitAt: hitTime && hit > 0 ? clamp01(hitTime / dur) : hit };
   }
 
   hit() {
@@ -370,45 +327,47 @@ export class HumanoidAnimator {
     }
     this.prevFacing = s.facing;
     const w = this.runW;
-    this.phase += dt * (this.speed * 1.55 + (s.moving ? 1.2 : 0));
-    const ph = this.phase;
     this.idleT += dt;
     const it = this.idleT;
     const breath = Math.sin(it * 2.1);
 
-    // ---- locomotion base pose ----
-    const A = 0.3 + 0.5 * w;
-    const pose = {
-      legL: [Math.sin(ph) * A, 0, 0],
-      legR: [-Math.sin(ph) * A, 0, 0],
-      kneeL: [(Math.max(0, -Math.cos(ph)) * 1.15 + 0.08) * w + 0.04, 0, 0],
-      kneeR: [(Math.max(0, Math.cos(ph)) * 1.15 + 0.08) * w + 0.04, 0, 0],
-      footL: [0, 0, 0],
-      footR: [0, 0, 0],
-      armL: [-Math.sin(ph) * 0.75 * w - 0.05, 0, 0.13 + 0.04 * (1 - w) + breath * 0.012],
-      armR: [Math.sin(ph) * 0.75 * w - 0.05, 0, -0.13 - 0.04 * (1 - w) - breath * 0.012],
-      elbowL: [-0.22 - 0.65 * w + Math.sin(ph) * 0.12 * w, 0, 0],
-      elbowR: [-0.22 - 0.65 * w - Math.sin(ph) * 0.12 * w, 0, 0],
-      torso: [0.05 + 0.13 * w + this.lean, -Math.sin(ph) * 0.14 * w, 0],
-      chest: [breath * 0.015 * (1 - w), -Math.sin(ph) * 0.06 * w, 0],
-      head: [-0.06 * w, Math.sin(ph) * 0.12 * w + this.lookYaw, 0],
-      hips: [0, Math.sin(ph) * 0.12 * w, Math.sin(ph) * 0.04 * w],
-      weapon: [1.2 - 0.3 * w, 0, 0],
-    };
-    pose.footL[0] = -pose.legL[0] * 0.55 - pose.kneeL[0] * 0.25;
-    pose.footR[0] = -pose.legR[0] * 0.55 - pose.kneeR[0] * 0.25;
-    // idle life: weight shift and a slow look around
-    if (w < 0.3) {
-      const k = 1 - w / 0.3;
-      pose.hips[2] += Math.sin(it * 0.55) * 0.035 * k;
-      pose.legL[2] = -Math.sin(it * 0.55) * 0.03 * k;
-      pose.legR[2] = -Math.sin(it * 0.55) * 0.03 * k;
-      pose.head[1] += Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35 * k;
+    // ---- locomotion: the baked mocap gait (data/gait.json), cadence locked to ground speed ----
+    this.moveW = damp(this.moveW, s.moving ? 1 : 0, 9, dt);
+    const m = this.moveW;
+    const sp = Math.max(this.speed, 0.6);
+    const kRun = clamp01((sp - GAIT.walk.speed) / (GAIT.run.speed - GAIT.walk.speed));
+    const natural = GAIT.walk.speed + (GAIT.run.speed - GAIT.walk.speed) * kRun;
+    // faster than the clip: longer strides a little, quicker steps mostly
+    const cycle = (GAIT.walk.cycle + (GAIT.run.cycle - GAIT.walk.cycle) * kRun) * Math.pow(sp / natural, 0.35);
+    this.gaitU = (this.gaitU + (sp * dt) / cycle) % 1;
+    // base pose buffers are reused every frame (no per-frame allocation on the hot path)
+    const gait = sampleGait(this.gaitU, kRun, this.buf.gait);
+    const sway = Math.sin(it * 0.55);
+    const idle = this.buf.idle;
+    idle.legL[2] = idle.legR[2] = -sway * 0.03;
+    idle.armL[2] = 0.17 + breath * 0.012;
+    idle.armR[2] = -0.17 - breath * 0.012;
+    idle.chest[0] = breath * 0.015;
+    idle.head[1] = Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35;
+    idle.hips[2] = sway * 0.035;
+    const pose = this.buf.pose;
+    for (const n in pose) if (!(n in idle) && n !== 'weapon') delete pose[n]; // channels an action or dash added
+    for (const n in idle) {
+      const i = idle[n], g = gait.pose[n], o = (pose[n] = this.buf.base[n]);
+      for (let j = 0; j < 3; j++) o[j] = i[j] + (g[j] - i[j]) * m;
     }
-    let bodyY = -Math.cos(ph * 2) * 0.028 * w - (1 - w) * 0.004 * (1 - breath);
-    let bodyX = Math.sin(ph) * 0.025 * w;
-    let bodyRotZ = clampAbs(-this.turn * 0.045 * w, 0.18);
+    // the sword hand swings less and stays a little bent
+    pose.armR[0] *= 1 - 0.3 * m;
+    pose.elbowR[0] = Math.min(pose.elbowR[0], -0.22 - 0.25 * m);
+    pose.head[1] += this.lookYaw;
+    pose.weapon = this.buf.weapon;
+    pose.weapon[0] = 1.2 - 0.3 * m;
+    let bodyY = gait.by * m - (1 - m) * 0.004 * (1 - breath);
+    let bodyX = gait.bx * m;
+    let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
     let hipsSpinX = 0;
+    let spin = 0;
+    let ikL = null, ikR = null; // raw hand targets of the current action
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
@@ -433,8 +392,22 @@ export class HumanoidAnimator {
           torso: [0.35 * crouch - 0.15 * air, 0, 0],
         });
         bodyY = -0.3 * crouch;
+        // leap slam: sword raised overhead in the air, chopped down on landing
+        const land = t > 0.82 ? crouch : 0;
+        for (const n of ['armR', 'elbowR', 'armL', 'elbowL', 'weapon', 'chest', 'head']) {
+          if (LEAP.air[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.air[n], Math.min(1, air * 1.6));
+          if (LEAP.land[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.land[n], land);
+        }
+        pose.torso[0] += 0.4 * land;
       } else if (dash.kind === 'blink') {
-        pose.torso[0] += 0.3;
+        // a quick crouch and tuck as the body vanishes
+        const k = Math.sin(t * Math.PI);
+        pose.torso[0] += 0.35 * k;
+        pose.kneeL[0] += 0.6 * k;
+        pose.kneeR[0] += 0.6 * k;
+        pose.elbowL[0] -= 1.0 * k;
+        pose.elbowR[0] -= 1.0 * k;
+        bodyY -= 0.1 * k;
       } else {
         Object.assign(pose, { legL: [-0.7, 0, 0], legR: [0.75, 0, 0], kneeL: [0.8, 0, 0], kneeR: [0.4, 0, 0], armL: [0.9, 0, 0.35], armR: [0.9, 0, -0.35], elbowL: [-0.3, 0, 0], elbowR: [-0.3, 0, 0], torso: [0.6, 0, 0], head: [-0.35, 0, 0] });
         bodyY = -0.08;
@@ -445,18 +418,30 @@ export class HumanoidAnimator {
     if (this.action) {
       const a = this.action;
       a.t += dt;
-      const t = clamp01(a.t / a.dur);
-      const keys = ACTIONS[a.name];
-      const ap = samplePose(keys, t);
+      const act = ACTIONS[a.name];
+      // stretch the keys so the hit key lands at hitAt
+      const u = clamp01(a.t / a.dur), h = act.hit, ha = a.hitAt;
+      const t = h <= 0 || ha <= 0 || ha >= 1 ? u : u < ha ? (u / ha) * h : h + ((u - ha) / (1 - ha)) * (1 - h);
+      const ap = samplePose(act.keys, t);
       const fadeIn = clamp01(a.t / 0.06);
       const fadeOut = clamp01((a.dur - a.t) / 0.1);
       const wA = Math.min(fadeIn, fadeOut);
+      spin = ap.spin ? ap.spin[0] : 0;
+      ikL = ap.ikL;
+      ikR = ap.ikR;
       for (const n in ap) {
+        if (n === 'spin') continue;
         const lower = n.startsWith('leg') || n.startsWith('knee');
         const k = lower ? wA * (1 - w * 0.7) : wA;
         const cur = pose[n] || [0, 0, 0];
         pose[n] = [cur[0] + (ap[n][0] - cur[0]) * k, cur[1] + (ap[n][1] - cur[1]) * k, cur[2] + (ap[n][2] - cur[2]) * k];
       }
+      // keep the planted feet flat while the action bends the legs
+      for (const sd of ['L', 'R']) {
+        const leg = pose['leg' + sd], knee = pose['knee' + sd];
+        if (leg && knee && (ap['leg' + sd] || ap['knee' + sd])) pose['foot' + sd][0] += (-(leg[0] + knee[0]) - pose['foot' + sd][0]) * wA;
+      }
+      if (pose.drop) bodyY += pose.drop[0];
       if (a.t >= a.dur) this.action = null;
     }
     // hit flinch (additive, decays)
@@ -471,6 +456,7 @@ export class HumanoidAnimator {
     // ---- apply ----
     applyPose(b, pose);
     b.hips.rotation.x = hipsSpinX;
+    b.body.rotation.y = spin;
     b.body.position.y = bodyY;
     b.body.position.x = bodyX;
     b.body.rotation.z = damp(b.body.rotation.z, bodyRotZ, 8, dt);
@@ -493,7 +479,85 @@ export class HumanoidAnimator {
       b.tail.rotation.x = tx;
       b.tail.rotation.z = tz;
     }
+    if (this.rig.setFace) this.rig.setFace(this.expression(dt, s));
+    // hands reaching for targets: bow string, spell gestures, the second hand on a big weapon
+    const ikw = pose.ikw, grip = pose.grip ? pose.grip[0] : 0;
+    if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || grip > 0.01) {
+      const root = this.rig.root;
+      root.updateMatrixWorld(true);
+      if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(IK_T.fromArray(ikR)), ikw[1]);
+      if (grip > 0.01 && b.weapon) reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, -0.11)), grip);
+      else if (ikL && ikw?.[0] > 0.01) reachArm(b, 'L', root.localToWorld(IK_T.fromArray(ikL)), ikw[0]);
+    }
+    // a drawn bow stands upright and faces the target whatever the hand's angle
+    if (b.weapon) {
+      b.weapon.position.copy(b.weapon.userData.rest.pos);
+      const aim = pose.aim ? pose.aim[0] : 0;
+      if (aim > 0.01) {
+        this.rig.root.updateMatrixWorld(true);
+        b.handR.getWorldQuaternion(AIM_Q).invert().multiply(this.rig.root.getWorldQuaternion(AIM_R));
+        b.weapon.quaternion.slerp(AIM_Q, aim);
+        b.weapon.position.addScaledVector(IK_T.set(0, 0, -0.13).applyQuaternion(b.weapon.quaternion), aim);
+      }
+    }
+    this.rig.syncSkin?.();
   }
+
+  /** Painted-face expression: blinks, a fierce look while attacking, a wince when hit. */
+  expression(dt, s) {
+    this.blinkT -= dt;
+    this.blink -= dt;
+    if (this.blinkT < 0) {
+      this.blink = 0.13;
+      this.blinkT = 2 + Math.random() * 3.5;
+    }
+    if (s.dead) return 'blink';
+    if (this.hurt > 0.35 || this.action?.name === 'hurt') return 'hurt';
+    if (this.action && FIERCE.has(this.action.name)) return 'attack';
+    return this.blink > 0 ? 'blink' : 'open';
+  }
+}
+
+const FIERCE = new Set(['slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
+const IK_T = new THREE.Vector3();
+const AIM_Q = new THREE.Quaternion();
+const AIM_R = new THREE.Quaternion();
+const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+
+const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
+
+/** Per-animator scratch arrays for the locomotion pose. */
+function poseBuffers() {
+  const set = (f) => Object.fromEntries(IDLE_BONES.map((n) => [n, f(n)]));
+  const idle = set(() => [0, 0, 0]);
+  idle.kneeL[0] = idle.kneeR[0] = 0.04;
+  idle.armL[0] = idle.armR[0] = -0.05;
+  idle.elbowL[0] = idle.elbowR[0] = -0.22;
+  idle.torso[0] = 0.05;
+  return { idle, base: set(() => [0, 0, 0]), pose: {}, weapon: [1.2, 0, 0], gait: { pose: set(() => [0, 0, 0]), bx: 0, by: 0 } };
+}
+
+/** Gait pose at cycle position u (0..1), blended walk -> run by k, written into out. */
+function sampleGait(u, k, out) {
+  const pose = out.pose;
+  for (const n in pose) pose[n][0] = pose[n][1] = pose[n][2] = 0;
+  let bx = 0, by = 0;
+  for (const [table, wt] of [[GAIT.walk, 1 - k], [GAIT.run, k]]) {
+    if (wt <= 0) continue;
+    const n = table.body.length;
+    const f = u * n, i0 = Math.floor(f) % n, i1 = (i0 + 1) % n, t = f - Math.floor(f);
+    for (const name in table.bones) {
+      const a = table.bones[name][i0], b = table.bones[name][i1];
+      const p = pose[name];
+      if (!p) continue;
+      for (let j = 0; j < 3; j++) p[j] += (a[j] + (b[j] - a[j]) * t) * wt;
+    }
+    bx += (table.body[i0][0] + (table.body[i1][0] - table.body[i0][0]) * t) * wt;
+    by += (table.body[i0][1] + (table.body[i1][1] - table.body[i0][1]) * t) * wt;
+  }
+  out.bx = bx;
+  out.by = by;
+  return out;
 }
 
 function clampAbs(v, m) {

@@ -35,3 +35,29 @@ test('gear presentation preserves base identity independently of grade and enhan
  assert.equal(ch.version,2);
 });
 
+
+test('imported models name real gear bases and ship small GLB files',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const all=Object.entries(data.models).filter(([g])=>!g.startsWith('_')).flatMap(([g,e])=>Object.entries(e).map(([id,m])=>[g,id,m]));
+ for(const [group,id,m] of all){
+  if(group==='weapons')assert.equal(data.items.gearBases[id]?.slot,'weapon',id+' is a weapon base');
+  const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
+  assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
+  assert.ok(buf.length<(group==='characters'?600:400)*1024,m.file+' stays small for iPad');
+  assert.ok(m.tris<=(group==='characters'?8000:4000),id+' triangle budget');
+ }
+});
+
+test('baked gait tables are complete cycles for every driver bone',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const gait=JSON.parse(readFileSync(new URL('../../data/gait.json',import.meta.url),'utf8'));
+ for(const k of ['walk','run']){
+  const g=gait[k],n=g.body.length;
+  assert.ok(n>=12&&g.cycle>0.5&&g.speed>0.5,k+' cycle');
+  for(const b of ['hips','torso','chest','head','legL','kneeL','footL','legR','kneeR','footR','armL','elbowL','handL','armR','elbowR','handR']){
+   assert.equal(g.bones[b]?.length,n,k+'/'+b);
+   for(const f of g.bones[b])assert.ok(f.length===3&&f.every((v)=>Math.abs(v)<Math.PI),k+'/'+b+' angles');
+  }
+ }
+ assert.ok(gait.run.speed>gait.walk.speed);
+});

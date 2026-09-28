@@ -60,6 +60,24 @@ character; existing node IDs/effects and version-2 saves are preserved.
 
 `gearLook()` includes a `bases` map of equipped item IDs (derived presentation metadata,
 not saved state). `render/equipment.js` uses it for distinct weapon/boot/charm silhouettes.
+Imported models are listed in `data/models.json` (GLB files in `public/models/`, currently
+Meshy weapons). Each GLB is already in the weapon-bone convention (grip at the origin, blade
+along +Z, metres), so in Godot attach it to a `BoneAttachment3D` on the right hand. The
+procedural shape in `equipment.js` is only a fallback.
+The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),
+registered as `characters.hero_base`. `render/skinned.js` keeps the procedural bones of
+`hero.js` as the animation source and copies their root-space rotations onto the skin bones
+each frame (bone map `MAP` there); in Godot, import the GLB with its `Skeleton3D` and
+retarget the same poses (or author them as clips). Clothes are colour zones cut from the
+bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
+helms and weapons are still attached to the head, chest and hand bones.
+The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
+head mesh; in Godot use a face texture with UV offsets per expression. `data/gait.json`
+holds the walk and run cycles as driver-bone Euler angles (XYZ) per frame; the cadence is
+`speed / cycle` cycles per second.
+Skill actions (`render/actions.js`) are keyframed poses with a `hit` time; port each as an
+`Animation` with a method track (or signal) at the hit, and use `SkeletonIK3D` (or a
+two-bone IK modifier) for the ikL/ikR/grip channels.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 
 Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,

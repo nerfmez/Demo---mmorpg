@@ -6,6 +6,7 @@ export function disposeObject(obj, keep = null) {
   if (!obj) return;
   obj.removeFromParent();
   obj.traverse((o) => {
+    if (o.isSkinnedMesh) o.skeleton.dispose(); // its bone texture
     if (o.geometry && !o.isSprite && !o.geometry.userData?.shared && !keep?.has(o.geometry)) o.geometry.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const m of mats) if (!m.isMeshToonMaterial || m.userData?.rig) if (!m.userData?.shared) m.dispose();

@@ -1,0 +1,47 @@
+{
+  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose, headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head.",
+  "weapons": {
+    "rusty_sword": {
+      "file": "models/rusty_sword.glb",
+      "tris": 1555,
+      "outline": "#4a3a30",
+      "source": "Meshy image-to-3d meshy-t2 (task 01a0e72e-97ea-7309-ac95-517482e3289f), texture 512 px"
+    }
+  },
+  "characters": {
+    "hero_base": {
+      "file": "models/hero_base.glb",
+      "tris": 6289,
+      "armDrop": 1.35,
+      "headCentre": [
+        0,
+        1.64,
+        0.0
+      ],
+      "headScale": 0.8,
+      "neckScale": 0.85,
+      "neckDrop": 0.07,
+      "shoulderPad": {
+        "pos": [
+          -0.02,
+          -0.065,
+          0
+        ],
+        "scale": 0.8
+      },
+      "source": "Meshy 7 image-to-3d (task 01a0e745-4bf5-7769-a5e4-583f6480a5e3), auto-rig (task 01a0e746-d8ad-721b-b174-cc1992231854); see assets/meshy/hero_base",
+      "face": {
+        "bottom": 1.53,
+        "frontZ": 0.03,
+        "eyeY": 1.613,
+        "eyeX": 0.038,
+        "eyeW": 0.041,
+        "eyeH": 0.035,
+        "browY": 1.649,
+        "noseY": 1.584,
+        "mouthY": 1.556,
+        "mouthW": 0.024
+      }
+    }
+  }
+}

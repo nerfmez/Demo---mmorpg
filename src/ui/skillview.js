@@ -1,70 +1,60 @@
-// Skills are chosen visually. Core functions in Panels still own all mutations.
+// Focused workspaces: equip skills, manage mods, movement, and material upgrades.
 import { art } from './art.js';
 import { icon } from './icons.js';
 import { meetsRequires } from '../core/character.js';
-import { skillUpgradeCost, canAfford } from '../core/crafting.js';
-import { modFits, modSlotOf } from '../core/skills.js';
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+import { modFits } from '../core/skills.js';
+import { skillUpgradeCost, modUpgradeCost, canAfford } from '../core/crafting.js';
+import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus } from './buildmeta.js';
 
-export function skillsView(ui, {costHtml, describeSkill, tagNames}) {
-  const {game:g,sel} = ui, {ch,data} = g, near = g.nearby();
-  const selected = sel.skill ?? 0, slot = ch.slots[selected], def = data.skills.combat[slot.skill], s = g.skills[selected];
-  const learned = Object.keys(ch.skills).filter(id => data.skills.combat[id]);
-  const loadout = ch.slots.map((entry,i) => {
-    const sd = data.skills.combat[entry.skill];
-    return `<button class="loadout-slot ${i===selected?'on':''}" data-act="skill-slot" data-slot="${i}" aria-pressed="${i===selected}">
-      <span class="slot-number">${i+1}</span>${sd?art('skill',entry.skill):icon('plus')}
-      <b>${sd?.nameTh || 'ช่องว่าง'}</b><small>${entry.mods.length} / ${data.mods.maxModsPerSkill} ม็อด</small></button>`;
+function loadout(ui, modMode=false) {
+  const {ch,data}=ui.game, selected=ui.sel.skill??0;
+  return `<div class="loadout-bar seeker-loadout">${ch.slots.map((entry,i)=>{
+    const s=data.skills.combat[entry.skill];
+    return `<button class="loadout-slot ${i===selected?'on':''}" data-act="skill-slot" data-slot="${i}" aria-pressed="${i===selected}"><span class="slot-number">${i+1}</span>${s?art('skill',entry.skill):icon('plus')}<b>${s?.nameTh||'ช่องว่าง'}</b><small>${modMode?entry.mods.length+' / '+data.mods.maxModsPerSkill+' ม็อด':'ช่องต่อสู้'}</small></button>`;
+  }).join('')}</div>`;
+}
+const heading=(title,copy)=>`<div class="seeker-heading"><div><span class="section-kicker">SEEKER / BUILD</span><h3>${title}</h3><p>${copy}</p></div></div>`;
+const action=(page,label)=>`<button class="btn" data-act="workspace" data-page="${page}">${label} →</button>`;
+
+export function skillsView(ui, {describeSkill}) {
+  const {game:g,sel}=ui,{ch,data}=g, index=sel.skill??0,slot=ch.slots[index],def=data.skills.combat[slot.skill],s=g.skills[index];
+  const filter=sel.skillFilter||'all';
+  const choices=Object.entries(data.skills.combat).filter(([,d])=>filter==='all'||d.tags.includes(filter)).map(([id,d])=>{
+    const learned=!!ch.skills[id],req=meetsRequires(ch,d.requires);
+    return `<article class="seeker-library-item ${slot.skill===id?'selected':''}">${art('skill',id)}<div><b>${d.nameTh}</b>${tagsHtml(d.tags)}<small>${learned?'Lv.'+ch.skills[id]:'ยังไม่เรียน'}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></div><button class="btn small" data-act="choose-skill" data-slot="${index}" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${slot.skill===id?'ใส่อยู่':'ใส่ช่อง '+(index+1)}</button></article>`;
   }).join('');
-  let editor = `<div class="empty-skill">${icon('plus')}<h3>ช่องต่อสู้ ${selected+1} ยังว่าง</h3><p>เลือกสกิลจากรายการด้านล่าง</p></div>`;
-  if (def && s) {
-    const lvl=ch.skills[slot.skill], up=skillUpgradeCost(data,slot.skill,lvl);
-    const sockets=Array.from({length:data.mods.maxModsPerSkill},(_,k)=>{
-      const uid=slot.mods[k], inst=ch.mods.find(m=>m.uid===uid);
-      if(!inst) return `<button class="socket" data-act="pick-socket" data-slot="${selected}">${icon('plus')}<span><b>ใส่ม็อด</b><small>เปลี่ยนวิธีใช้สกิล</small></span></button>`;
-      const md=data.mods.mods[inst.id], active=meetsRequires(ch,md.requires).ok;
-      return `<button class="socket filled ${active?'':'inactive'}" data-act="unsocket" data-uid="${uid}">${art('mod',inst.id)}<span><b>${md.nameTh}</b><small>Lv.${inst.level} · ${active?'แตะเพื่อถอด':'Stat ไม่ถึง'}</small></span></button>`;
-    }).join('');
-    editor=`<div class="skill-focus">
-      <div class="skill-hero-art">${art('skill',slot.skill)}</div>
-      <div><div class="section-kicker">สกิลที่ใส่ · ช่อง ${selected+1}</div><h3>${def.nameTh} <span class="level-pill">Lv.${lvl}</span></h3><small class="muted">${def.name}</small><p>${esc(def.desc)}</p>
-        <div class="skill-metrics"><span>MP <b>${s.cost||0}</b></span><span>คูลดาวน์ <b>${s.cooldown.toFixed(1)} วิ</b></span>${s.range?`<span>ระยะ <b>${s.range.toFixed(1)} ม.</b></span>`:''}</div>
-      </div></div>
-      <div class="section-heading"><h3>ม็อดของสกิลนี้</h3><span>${slot.mods.length} / ${data.mods.maxModsPerSkill} ช่อง</span></div>
-      <div class="sockets">${sockets}</div>
-      ${sel.socket===selected ? modsView(ui,selected) : ''}
-      <details class="skill-more"><summary>ค่าสกิลและการอัปเกรด</summary>
-        <div>${[...s.tags].map(t=>`<span class="tag">${tagNames[t]||t}</span>`).join('')}</div>
-        <p>${describeSkill(s)}</p>
-        ${up?`<div class="cost">${costHtml(ch,data,up)}</div><button class="btn" data-act="skill-up" data-skill="${slot.skill}" ${near.workbench&&canAfford(ch,up)?'':'disabled'}>อัปเป็น Lv.${lvl+1}</button><small class="muted">${near.workbench?'':'อัปเกรดได้ที่โต๊ะคราฟต์'}</small>`:'เลเวลสูงสุด'}
-      </details>`;
-  }
-  const choices=learned.map(id=>{
-    const sd=data.skills.combat[id], req=meetsRequires(ch,sd.requires);
-    return `<button class="skill-choice ${slot.skill===id?'on':''}" data-act="choose-skill" data-slot="${selected}" data-id="${id}" aria-pressed="${slot.skill===id}" ${req.ok?'':'disabled'}>
-      ${art('skill',id)}<span><b>${sd.nameTh}</b><small>Lv.${ch.skills[id]}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></span>${slot.skill===id?'<i>✓</i>':''}</button>`;
-  }).join('');
-  const movement=ch.movementSkills.map(id=>{
-    const md=data.skills.movement[id], req=meetsRequires(ch,md.requires);
-    return `<button class="skill-choice ${ch.movement===id?'on':''}" data-act="movement" data-id="${id}" aria-pressed="${ch.movement===id}" ${req.ok?'':'disabled'}>${art('skill',id)}<span><b>${md.nameTh}</b><small>${req.ok?md.name:'ต้อง '+req.missing.join(', ')}</small></span></button>`;
-  }).join('');
-  return `${ui.lastResult ? `<div class="result-pop" role="status">${ui.lastResult}</div>` : ''}<div class="section-heading"><div><h3>ชุดสกิลต่อสู้</h3><p class="muted">แตะช่องที่ต้องการเปลี่ยน แล้วเลือกสกิลหรือม็อด</p></div><span class="level-pill">4 ช่อง</span></div>
-    <div class="loadout-bar">${loadout}</div>
-    <div class="build-layout"><section class="skill-editor card">${editor}</section>
-    <section class="skill-library"><div class="section-heading"><h3>เลือกสกิลใส่ช่อง ${selected+1}</h3><button class="btn small" data-act="choose-skill" data-slot="${selected}" data-id="" ${def?'':'disabled'}>ถอดสกิล</button></div>
-      <div class="skill-choices">${choices}</div><p class="muted">เรียนสกิลเพิ่มได้ที่โต๊ะคราฟต์ในนิคม</p></section></div>
-    <section class="card movement-card"><div class="section-heading"><h3>สกิลเคลื่อนที่</h3><span class="tag">ช่องแยก</span></div><div class="movement-choices">${movement}</div>
-      <p class="muted">${esc(g.move.def.desc)} · ${g.move.charges} ชาร์จ · ชาร์จคืน ${g.move.recharge.toFixed(1)} วิ</p></section>`;
+  return heading('จัดชุดสกิล','เลือกช่องก่อน แล้วเลือกสกิล · การดูรายละเอียดไม่ใช้วัตถุดิบ')+loadout(ui)+`<div class="seeker-build-grid"><section class="card seeker-focus">
+    ${def?`<div class="seeker-hero">${art('skill',slot.skill)}<div><small>ช่อง ${index+1}</small><h3>${def.nameTh}</h3><span>${def.name} · Lv.${ch.skills[slot.skill]}</span></div></div><p>${esc(def.desc)}</p>${skillMeta(def,s)}<div class="seeker-result"><small>ผลสกิลปัจจุบัน รวมม็อดและพาสซีฟ</small><p>${describeSkill(s)}</p></div><div class="seeker-action-row"><button class="btn" data-act="choose-skill" data-slot="${index}" data-id="">ถอดสกิล</button><button class="btn primary" data-act="pick-socket" data-slot="${index}">จัดม็อด · ${slot.mods.length}/${data.mods.maxModsPerSkill}</button></div>`:`<h3>ช่อง ${index+1} ยังว่าง</h3><p>เลือกสกิลจากคลังด้านข้าง</p>`}
+    <div class="seeker-links">${action('movement','สกิลเคลื่อนที่')}${action('growth','อัปเลเวลสกิล / ม็อด')}</div></section>
+    <section class="seeker-library"><label class="seeker-filter">ประเภทสกิล <select data-workspace-select="skillFilter">${FILTERS.map(([id,n])=>`<option value="${id}" ${id===filter?'selected':''}>${n}</option>`).join('')}</select></label><div class="seeker-library-list">${choices||'<p>ยังไม่มีสกิลในประเภทนี้</p>'}</div><p class="muted">สกิลที่ยังไม่เรียนแสดงไว้เพื่อวางแผน · เรียนด้วยวัตถุดิบที่โต๊ะคราฟต์</p>${action('craft','ไปดูสูตร')}</section></div>`;
 }
 
-function modsView(ui,index){
- const {game:g}=ui,{ch,data}=g,def=data.skills.combat[ch.slots[index].skill];
- const rows=ch.mods.map(inst=>{
-   const md=data.mods.mods[inst.id], fit=modFits(def,md), req=meetsRequires(ch,md.requires), where=modSlotOf(ch,inst.uid);
-   return `<div class="mod-choice ${fit.ok?'':'unavailable'}">${art('mod',inst.id)}<div><b>${md.nameTh} <small>Lv.${inst.level}</small></b><p>${esc(md.desc)}</p>
-     <small class="muted">${where>=0?'ใส่อยู่ที่ช่อง '+(where+1):'ยังไม่ได้ใส่'}${!req.ok?' · ต้อง '+req.missing.join(', '):''}</small></div>
-     <button class="btn" data-act="socket" data-slot="${index}" data-uid="${inst.uid}" ${fit.ok?'':'disabled'}>${fit.ok?'ใส่':'ใช้ไม่ได้'}</button></div>`;
- }).join('');
- return `<div class="mod-picker"><div class="section-heading"><h3>เลือกม็อด</h3><button class="btn small" data-act="pick-socket" data-slot="-1">ปิดรายการ</button></div>${rows||'<p>ยังไม่มีม็อด · คราฟต์ได้ที่โต๊ะคราฟต์</p>'}</div>`;
+export function modsWorkspace(ui,{describeSkill}) {
+ const {game:g,sel}=ui,{ch,data}=g,index=sel.skill??0,slot=ch.slots[index],def=data.skills.combat[slot.skill],compiled=g.skills[index];
+ const shown=ch.mods.map(inst=>({inst,status:modStatus(ch,data,index,inst)})).filter(({status})=>!sel.compatibleOnly||status.fit.ok);
+ const chosen=shown.find(({inst})=>inst.uid===sel.modUid)||shown[0];
+ const list=shown.map(({inst,status:st})=>`<button class="seeker-mod-tile ${inst.uid===chosen?.inst.uid?'selected':''} ${st.fit.ok?'':'incompatible'}" data-act="inspect-mod" data-uid="${inst.uid}" aria-pressed="${inst.uid===chosen?.inst.uid}">${art('mod',inst.id)}<span><b>${data.mods.mods[inst.id].nameTh}</b><small>Lv.${inst.level} · ${st.own?'ใส่อยู่':st.fit.ok?'ประเภทตรง':'ประเภทไม่ตรง'}</small></span></button>`).join('');
+ let detail='<h3>ยังไม่มีม็อด</h3><p>คราฟต์ม็อด หรือปิดตัวกรองเพื่อดูทั้งหมด</p>'+action('craft','ไปดูสูตร');
+ if(chosen){
+  const {inst,status:st}=chosen,md=data.mods.mods[inst.id];
+  const matches=Object.values(data.skills.combat).filter(d=>modFits(d,md).ok).map(d=>d.nameTh);
+  detail=`<div class="seeker-hero">${art('mod',inst.id)}<div><h3>${md.nameTh}</h3><span>${md.name} · Lv.${inst.level}</span></div></div><p>${esc(md.desc)}</p>${rulesHtml(md)}<div class="seeker-mod-status ${st.fit.ok?'':'no'}"><b>${esc(st.reason)}</b>${!st.req.ok?`<p>ใส่เก็บได้แต่ไม่ทำงาน · ต้อง ${st.req.missing.join(', ')}</p>`:st.own&&!st.active?'<p>ม็อดไม่ทำงาน: ขาดม็อดพื้นที่คงอยู่ที่ใช้งานได้</p>':''}${st.where>=0&&!st.own?`<p>ใส่อยู่ที่ช่อง ${st.where+1} · การกดใส่จะย้ายมายังช่องนี้</p>`:''}</div>
+  <div class="seeker-action-row">${st.own?`<button class="btn" data-act="unsocket" data-uid="${inst.uid}">ถอดม็อด</button>`:`<button class="btn primary" data-act="socket" data-slot="${index}" data-uid="${inst.uid}" ${st.can?'':'disabled'}>${st.req.ok?'ใส่ม็อด':'ใส่ไว้ก่อน · ยังไม่ทำงาน'}</button>`}${action('growth','อัปเลเวล')}</div><details class="seeker-examples"><summary>สกิลพื้นฐานที่รองรับ (${matches.length})</summary><p>${matches.join(' · ')||'ต้องมีม็อดร่วม'}</p></details>`;
+ }
+ return heading('จัดม็อด','แยกเงื่อนไขประเภทสกิล ค่าสถานะ และจำนวนช่องให้เห็นก่อนใส่')+loadout(ui,true)+`<section class="seeker-target"><b>เป้าหมาย: ${def?.nameTh||'ช่องว่าง'}</b>${def?tagsHtml(def.tags):''}<div class="seeker-socket-row">${slot.mods.map(uid=>{const inst=ch.mods.find(m=>m.uid===uid),st=modStatus(ch,data,index,inst);return `<button class="btn ${st.active?'':'no'}" data-act="inspect-mod" data-uid="${uid}">${data.mods.mods[inst.id].nameTh}${st.active?'':' · ไม่ทำงาน'}</button>`;}).join('')||'<small>ยังไม่มีม็อด</small>'}</div></section>
+ <div class="seeker-build-grid seeker-mod-grid"><section><button class="btn" data-act="mod-filter" aria-pressed="${!!sel.compatibleOnly}">${sel.compatibleOnly?'✓ เฉพาะประเภทที่เข้ากัน':'แสดงทั้งหมด · รวมที่ใช้ไม่ได้'}</button><div class="seeker-mod-list">${list}</div></section><section class="card seeker-focus">${detail}</section></div>${compiled?`<div class="seeker-result"><small>ผลสกิลที่ใช้อยู่จริง</small><p>${describeSkill(compiled)}</p></div>`:''}`;
 }
 
+export function movementWorkspace(ui) {
+ const {ch,data}=ui.game;
+ return heading('สกิลเคลื่อนที่','หนึ่งช่องแยก · ไม่แย่งช่องต่อสู้ · ม็อดต่อสู้ใช้กับช่องนี้ไม่ได้')+`<div class="seeker-movement-grid">${Object.entries(data.skills.movement).map(([id,d])=>{
+  const learned=ch.movementSkills.includes(id), req=meetsRequires(ch,d.requires);
+  return `<section class="card"><div class="seeker-hero">${art('skill',id)}<div><h3>${d.nameTh}</h3><small>${d.name}</small></div></div><p>${d.desc}</p>${skillMeta(d)}<p>ระยะ ${d.distance} ม. · ${d.charges} ชาร์จพื้นฐาน · คืนชาร์จ ${d.recharge} วิ</p><p>หลบดาเมจระหว่างใช้: ${d.invulnerable?'ได้':'ไม่ได้'}</p><button class="btn ${ch.movement===id?'on':'primary'}" data-act="movement" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${ch.movement===id?'ใช้อยู่':learned?'เลือกใช้':'ยังไม่เรียน'}</button></section>`;
+ }).join('')}</div><div class="seeker-result">สกิลที่ใช้อยู่: ${ui.game.move.def.nameTh} · ชาร์จสูงสุด ${ui.game.move.def.charges+ui.game.derived.extraMovementCharges} · คืนชาร์จจริง ${ui.game.move.recharge.toFixed(1)} วิ</div>`;
+}
+
+export function growthWorkspace(ui,{costHtml}) {
+ const {game:g,sel}=ui,{ch,data}=g,kind=sel.growthKind||'skill',isSkill=kind==='skill';
+ const entries=isSkill?Object.entries(ch.skills).filter(([id])=>data.skills.combat[id]).map(([id,level])=>({id,level,def:data.skills.combat[id],cost:skillUpgradeCost(data,id,level)})):ch.mods.map(inst=>({...inst,def:data.mods.mods[inst.id],cost:modUpgradeCost(data,inst)}));
+ return heading('อัปเลเวลสกิล / ม็อด','ใช้วัตถุดิบและ Gold ที่โต๊ะคราฟต์ · ไม่ใช้ Stat Point หรือ Job Point')+`<div class="seeker-action-row"><button class="btn ${isSkill?'on':''}" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn ${!isSkill?'on':''}" data-act="growth-filter" data-id="mod">ม็อด</button><span>${g.nearby().workbench?'อยู่ใกล้โต๊ะคราฟต์':'ดูได้ทุกที่ · กลับโต๊ะคราฟต์เพื่ออัปเกรด'}</span></div><div class="seeker-growth-grid">${entries.map(e=>`<section class="card"><div class="seeker-hero">${art(isSkill?'skill':'mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${isSkill?tagsHtml(e.def.tags):rulesHtml(e.def)}${e.cost?`<div class="cost">${costHtml(ch,data,e.cost)}</div><button class="btn primary" data-act="${isSkill?'skill-up':'mod-up'}" ${isSkill?`data-skill="${e.id}"`:`data-uid="${e.uid}"`} ${g.nearby().workbench&&canAfford(ch,e.cost)?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button>`:''}</section>`).join('')||'<p>ยังไม่มีรายการในหมวดนี้</p>'}</div>`;
+}

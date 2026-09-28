@@ -17,7 +17,7 @@ try {
     if (i > 60) throw new Error('Preview server did not start');
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
-  browser = await engine.launch({ args: engine === chromium ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
+  browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
   for (const [name, width, height, touch] of [
     ['desktop', 1600, 900, false], ['ipad', 1180, 820, true],
     ['phone-landscape', 844, 390, true], ['phone-portrait', 390, 844, true],
@@ -35,7 +35,11 @@ try {
       f.hud.el.zone.style.opacity = 0;
       document.querySelector('.banner')?.remove();
     });
-    const activate = async (selector) => touch ? page.locator(selector).tap() : page.locator(selector).click();
+    const activate = async (selector) => {
+      const tab=selector.match(/^\[data-tab="([^"\]]+)"\]$/)?.[1];
+      if(tab&&width<=700)return page.locator('[data-page-select]').selectOption(tab);
+      return touch ? page.locator(selector).tap() : page.locator(selector).click();
+    };
     const shot = (label) => page.screenshot({ path: `${OUT}ux-${name}-${label}.png` });
     const onscreen = async (selector) => page.locator(selector).evaluate((el) => {
       const r = el.getBoundingClientRect();
@@ -55,8 +59,8 @@ try {
     assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'true');
     await activate('.menu [aria-label="ภารกิจ"]');
     assert.equal(await page.locator('#panel-title').textContent(), 'ภารกิจ');
-    assert.equal(await page.locator('[data-tab]').count(),8);
-    for(const tab of ['bag','craft','skills','job','map']) assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible');
+    assert.equal(await page.locator('[data-tab]').count(),11);
+    if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['bag','craft','skills','job','map']) { await page.locator(`[data-tab="${tab}"]`).scrollIntoViewIfNeeded(); assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
     assert.ok(await page.locator('.qrow [data-art="monster/tusk_boar"]').count());
     await shot('journal');
     await page.locator('.pbody').evaluate((el) => el.scrollTop = el.scrollHeight);
@@ -108,7 +112,8 @@ try {
     const mod = await page.evaluate(() => window.__frontier.game.ch.mods.at(-1).uid);
     await activate('[data-tab="skills"]');
     await activate('[data-act="skill-slot"][data-slot="0"]');
-    await activate('[data-act="pick-socket"][data-slot="0"]:first-of-type');
+    await activate('[data-act="pick-socket"][data-slot="0"]');
+    await activate(`[data-act="inspect-mod"][data-uid="${mod}"]`);
     await activate(`[data-act="socket"][data-uid="${mod}"]`);
     assert.ok(await page.evaluate((uid) => window.__frontier.game.ch.slots[0].mods.includes(uid), mod));
     assert.ok(await page.evaluate(() => {
@@ -118,7 +123,7 @@ try {
     await shot('skills');
     await activate('.panel-close');
     await activate('.sbtn.s3');
-    assert.equal(await page.locator('#panel-title').textContent(), 'สกิล & Mod');
+    assert.equal(await page.locator('#panel-title').textContent(), 'ชุดสกิล');
     assert.equal(await page.locator('.loadout-slot.on').getAttribute('data-slot'), '3');
     const spell = await page.evaluate(() => window.__frontier.game.ch.slots[2].skill);
     await activate(`[data-act="choose-skill"][data-id="${spell}"]`);

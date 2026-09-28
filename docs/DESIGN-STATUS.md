@@ -14,7 +14,7 @@
 | 7 | Skill Core + Mod ตาม Tag | ✅ | `data/mods.json`, `core/skills.js` · มี 15 Mod รวม Trigger (Cast on Dodge), Multistrike, Knockback, Pack Leader |
 | 8 | อัป Skill/Mod ด้วยของจากโลก | ✅ | อัปสกิลใช้ Material ตามสาย อัป Mod ใช้ Ruin Shard + Glow Dust (ที่โต๊ะคราฟต์) · ยังไม่มี Mastery (ตั้งใจเลื่อนไว้) |
 | 9 | Character Level → Stat Points, Stat เป็นเงื่อนไข | ✅ | STR/AGI/VIT/INT/DEX · สกิล Mod และอาวุธบางชิ้นต้องมี Stat ถึง · ตัวเลขยังเป็นค่าชั่วคราว |
-| 10 | Job Level → Job Points → Job Tree | ✅ | `data/jobtree.json` 61 โหนด / 108 เส้นเชื่อม · 4 สาย (Vanguard, Arcanist, Ranger, Warden) |
+| 10 | Job Level → Job Points → Job Tree | ✅ | `data/jobtree.json` 87 โหนด / 134 เส้นเชื่อม · หน้ารวม 10 หมวดความสามารถ · อาชีพหลัก 4 สาย (Vanguard, Arcanist, Ranger, Warden) |
 | 11 | เลือก Job ทีหลัง | ✅ | โหนด Job เปิดที่ Job Lv.5 เลือกได้สายเดียว |
 | 12 | Respec ด้วยเงินในเกม | ✅ | รีแต้ม Stat และ Job ในนิคม ใช้ Gold อย่างเดียว |
 | 13 | มอนดรอป Material ของตัวเอง | ✅ | รูปร่างมอนบอกของที่ดรอป (งา, กระดอง, แกนเรืองแสง, เขา) · มี test ยืนยันว่า Material ทุกชิ้นมีที่ใช้ |
@@ -35,7 +35,7 @@
 
 ## อาร์ตและการใช้งาน · 28 กันยายน 2026
 
-- ภาพเฉพาะ 161 แบบ: อุปกรณ์ 34, วัตถุดิบ 17, สกิลรวมเคลื่อนที่ 17, ม็อด 15, มอน 9, พื้นที่ 8 และโหนดอาชีพ 61 (`ui/art.js`)
+- ภาพเฉพาะ 187 แบบ: อุปกรณ์ 34, วัตถุดิบ 17, สกิลรวมเคลื่อนที่ 17, ม็อด 15, มอน 9, พื้นที่ 8 และโหนดพาสซีฟ 87 (`ui/art.js`, `ui/jobart.js`)
 - รูปทรงแยกตามชื่อ/ชนิด; ของฐานเดียวกันต่างเกรดใช้ภาพเดียวกัน แสดงเกรดและตีบวกแยกจากภาพ
 - กระเป๋าใช้ตารางรูปใหญ่และรายละเอียดพร้อมปุ่มใช้งาน; มือถือเปิดรายละเอียดเป็นหน้าเดียวพร้อมปุ่มกลับ
 - สกิลเลือกจากภาพ, ม็อดมีภาพพฤติกรรมเฉพาะ, ช่องเคลื่อนที่แยก; อาชีพแสดงเป็นเครือข่าย ลาก/ซูมได้ และมีเส้นทางร่วม
@@ -51,3 +51,11 @@
 - สายร่วมเพิ่มพิษ อัญเชิญ และการผสมบทบาท; เลือก Job หลักได้หนึ่งสาย โหนดเฉพาะต้องมี Job นั้น
 - พุ่มใบไม้และสนใช้ภาพใบโปร่งใสที่วาดใน Canvas ครั้งเดียวร่วมกับโมเดลกิ่ง; หญ้า/กลีบดอก/มอส/ผิวดิน/ปูหิน/น้ำปรับใหม่
 - ตรวจภาพจุดเดิม 7 จุด ร่วมกับการลงแต้ม/ซูม/ยกเลิกสัมผัส และตรวจ WebKit บน URL จริงหลังเผยแพร่
+
+## Seeker UI workspaces · September 2026
+
+- Combat loadout, modifier management, movement and material upgrades are separate pages.
+- Passive presentation: ten categories and four specialization subviews; 87 total nodes (61 preserved + 26 optional additions).
+- Native skill tags are always visible; mod all/any/excluded rules, missing stats, slot capacity and current assignment are shown.
+- New lasting-field damage/duration and control-duration passives are implemented; unsupported DoT/on-hit combinations are explicitly excluded.
+- See `UI-WORKSPACES.md` for source references, exact effect scope, save compatibility and the test commands.

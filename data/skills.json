@@ -53,7 +53,7 @@
     "venom_mire": {
       "name": "Venom Mire", "nameTh": "บึงพิษ",
       "desc": "สร้างบึงพิษบนพื้นที่เล็ง ศัตรูในบึงโดนพิษต่อเนื่องและเดินช้าลง",
-      "tags": ["Spell", "Area", "Poison", "Persistent", "Damage", "Debuff"], "kind": "dot_zone", "power": "spell",
+      "tags": ["Spell", "Area", "Poison", "Persistent", "Damage", "Debuff", "DoT", "Control"], "kind": "dot_zone", "power": "spell",
       "damage": { "base": 5, "scale": 0.5 }, "range": 10, "radius": 3, "duration": 5, "tick": 0.5, "slow": 0.2, "cooldown": 7, "castTime": 0.3, "cost": 15,
       "element": "poison", "requires": { "INT": 6 }, "upgradeMaterial": "spore_sac", "icon": "mire"
     },

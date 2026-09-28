@@ -5,9 +5,13 @@ import * as THREE from 'three';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
+import { distToPolyline } from '../core/math.js';
 import {leafTexture,needleTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell} from './nature.js';
+import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
+import { attachGrassSurface, grassMaterial } from './grass.js';
+import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const tmpM = new THREE.Matrix4();
@@ -33,7 +37,7 @@ function mat(color, o = {}) {
   return m;
 }
 
-function instanced(geo, material, list, { shadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false } = {}) {
+function instanced(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false, setup = null } = {}) {
   const group = new THREE.Group();
   if (!list.length) return group;
   const chunks = new Map();
@@ -56,8 +60,9 @@ function instanced(geo, material, list, { shadow = true, outline = null, outline
       mesh.setMatrixAt(i, tmpM);
       if (colors) mesh.setColorAt(i, tmpC.set(it.color ?? '#ffffff'));
     });
+    if(setup)setup(mesh,items);
     mesh.castShadow = shadow;
-    mesh.receiveShadow = true;
+    mesh.receiveShadow = receiveShadow;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
@@ -110,7 +115,7 @@ export function createEnvironment(world) {
   const zid = (x, z) => world.zoneAt(x, z).id;
 
   // ----- trees -----
-  const trunks = [];
+  const trunks = [],animeTrunks=[];
   const birchTrunks = [];
   const canopy = [];
   const birchLeaves = [];
@@ -133,12 +138,22 @@ export function createEnvironment(world) {
       palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.9, 1.1), ry: c.rot + (i / 7) * Math.PI * 2 + rng.range(-0.2, 0.2), color: `#${col.getHexString()}` });
     }
   }
+  const cloudTrees=[],cloudBirches=[];
   const trees = [...world.circles.filter((c) => ['tree', 'birch', 'pine', 'willow'].includes(c.type)), ...world.decor.edgeTrees];
+  // Render-only preview specimens beside an existing cottage. These additions never
+  // enter world collision/save data; they are for owner art review, not release layout.
+  if(artReviewLayout){const [x,z,scale]=animeConfig.sample.tree;trees.push({x,z,scale,rot:.35,type:'tree'});}
   for (const c of trees) {
     const s = c.scale * 0.85;
     const y = gy(c.x, c.z) - 0.2;
     const zone = zid(Math.max(world.bounds.minX, Math.min(world.bounds.maxX - 0.1, c.x)), Math.max(world.bounds.minZ, Math.min(world.bounds.maxZ - 0.1, c.z)));
     const hueShift = zone === 'forest' || zone === 'wolf_den' ? -0.05 : zone === 'highlands' ? 0.03 : zone === 'ruins' ? 0.04 : 0;
+    const newTrunk=animeStudy&&inArtStudy(c.x,c.z)&&c.type!=='pine';
+    if(newTrunk)animeTrunks.push({x:c.x,z:c.z,y,sx:s*(c.type==='birch'?.6:1),sy:s*(c.type==='birch'?1.086:1),sz:s*(c.type==='birch'?.622:1),ry:c.rot});
+    if(inArtStudy(c.x,c.z)&&c.type!=='pine') {
+      const birch=c.type==='birch';
+      (birch?cloudBirches:cloudTrees).push({x:c.x,z:c.z,y:y+(birch?3.8:3.5)*s,sx:s*(birch?1.5:2.5),sy:s*(birch?1.85:1.7),sz:s*(birch?1.4:2.25),ry:c.rot,color:birch?'#f2f3d8':'#edf1e2'});
+    }
     if (c.type === 'pine') {
       pineTrunks.push({ x: c.x, z: c.z, y, s, ry: c.rot });
       for (let t = 0; t < 3; t++) {
@@ -149,16 +164,16 @@ export function createEnvironment(world) {
       continue;
     }
     if (c.type === 'birch') {
-      birchTrunks.push({ x: c.x, z: c.z, y, s: 1, sx: s * 0.8, sy: s * 1.15, sz: s * 0.8, ry: c.rot });
+      if(!newTrunk)birchTrunks.push({ x: c.x, z: c.z, y, s: 1, sx: s * 0.8, sy: s * 1.15, sz: s * 0.8, ry: c.rot });
       for (let i = 0; i < 3; i++) {
         const a = (i / 3) * Math.PI * 2 + c.rot;
         const r = i === 0 ? 0 : 0.7 * s;
         const col = new THREE.Color(rng.pick(['#fff4c7', '#f6f5cf', '#eff4cc']));
-        birchLeaves.push({ x: c.x + Math.sin(a) * r, z: c.z + Math.cos(a) * r, y: y + (i === 0 ? 4.2 : 3.5) * s, s: (i === 0 ? 1.15 : 0.95) * s, sy: 1.0 * s, ry: rng.range(0, 6), color: `#${col.getHexString()}` });
+        birchLeaves.push({ study:inArtStudy(c.x,c.z), x: c.x + Math.sin(a) * r, z: c.z + Math.cos(a) * r, y: y + (i === 0 ? 4.2 : 3.5) * s, s: (i === 0 ? 1.15 : 0.95) * s, sy: 1.0 * s, ry: rng.range(0, 6), color: `#${col.getHexString()}` });
       }
       continue;
     }
-    trunks.push({ x: c.x, z: c.z, y, s: 1, sx: s, sy: s * (c.type === 'willow' ? 1.1 : 1), sz: s, ry: c.rot });
+    if(!newTrunk)trunks.push({ x: c.x, z: c.z, y, s: 1, sx: s, sy: s * (c.type === 'willow' ? 1.1 : 1), sz: s, ry: c.rot });
     const blobs = c.type === 'willow' ? 3 : 4 + (rng.next() < 0.5 ? 1 : 0);
     for (let i = 0; i < blobs; i++) {
       const a = (i / blobs) * Math.PI * 2 + c.rot;
@@ -166,6 +181,7 @@ export function createEnvironment(world) {
       const col = new THREE.Color(c.type === 'willow' ? rng.pick(['#cde4ce', '#d4e7cf']) : rng.pick(greens));
       col.offsetHSL(hueShift * 0.3, 0, hueShift);
       canopy.push({
+        study:inArtStudy(c.x,c.z),
         x: c.x + Math.sin(a) * r * 0.9,
         z: c.z + Math.cos(a) * r * 0.9,
         y: y + (i === 0 ? 3.9 : 3.1 + rng.range(-0.2, 0.4)) * s,
@@ -185,11 +201,19 @@ export function createEnvironment(world) {
   const pineTrunkGeo = new THREE.CylinderGeometry(0.16, 0.26, 1.6, 6);
   pineTrunkGeo.translate(0, 0.8, 0);
   root.add(instanced(pineTrunkGeo, mat('#6b4630'), pineTrunks, { outline: '#2e1f14', outlineWidth: 0.04 }));
+  // Only the town/meadow study changes canopy geometry; other biomes remain a comparison.
+  const cloudMat=animeStudy?animeFoliageMaterial():mat('#ffffff',{vertexColors:true,double:true,wind:.025,windBase:1.2,see:true});
+  cloudMat.map=studyLeafTexture();cloudMat.alphaTest=.4;cloudMat.forceSinglePass=true;
+  const cloudGroup=instanced(cloudCrown(3),cloudMat,cloudTrees,{receiveShadow:!animeStudy});
+  cloudGroup.name='art-study-crowns';root.add(cloudGroup);
+  root.add(instanced(cloudCrown(7),cloudMat,cloudBirches,{receiveShadow:!animeStudy}));
+  // Jagged patches supply the entire crown; no spherical filler underneath.
+  if(animeStudy)root.add(instanced(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
   const canopyGeo = leafCrown(3);
   const canopyMat = mat('#ffffff', { double:true, wind: 0.025, windBase: 1.2, see: true });
   canopyMat.map=leafTexture();canopyMat.alphaTest=.45;canopyMat.forceSinglePass=true;
-  root.add(instanced(canopyGeo, canopyMat, canopy.map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
-  root.add(instanced(leafCrown(5), canopyMat, birchLeaves.map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
+  root.add(instanced(canopyGeo, canopyMat, canopy.filter(it=>!it.study).map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
+  root.add(instanced(leafCrown(5), canopyMat, birchLeaves.filter(it=>!it.study).map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
   const tierGeo = pineBough();
   const pineMat=mat('#ffffff',{double:true,wind:.02,see:true});pineMat.map=needleTexture();pineMat.alphaTest=.45;pineMat.forceSinglePass=true;
   root.add(instanced(tierGeo,pineMat,pineTiers.map(it=>({...it,ry:0})),{wind:.02,see:true}));
@@ -229,8 +253,10 @@ export function createEnvironment(world) {
     } else if (c.type === 'stump') stumps.push({ x: c.x, z: c.z, y, s: c.scale, ry: c.rot });
   }
   for (const bx of world.boxes) if (bx.type === 'log') logs.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) + 0.35, sx: 1, sy: 1, sz: bx.hz * 2, ry: bx.angle });
+  if(artReviewLayout)for(const [x,z,s] of animeConfig.sample.rocks)rocks.push({x,z,y:gy(x,z)+s*.36,s,sy:s*.75,ry:s*2,color:animeConfig.palette.rock});
   for (const l of world.decor.logsDecor) logs.push({ x: l.x, z: l.z, y: gy(l.x, l.z) + 0.3, sx: 0.8, sy: 0.8, sz: 1.6, ry: l.angle });
-  root.add(instanced(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks, { outline: '#676568', outlineWidth: 0.019 }));
+  root.add(instanced(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 }));
+  root.add(instanced(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
   const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
   crystalGeo.scale(0.55, 1.9, 0.55);
   crystalGeo.translate(0, 0.75, 0);
@@ -290,7 +316,7 @@ export function createEnvironment(world) {
   const d = world.decor;
   // Grouped plant patches: short curved leaves and readable flowers, leaving paths clear.
   const grass=[],flowers=[],detailRng=createRng(842);
-  const clear=(x,z)=>!world.isBeach(x,z,2.5)&&!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
+  const clear=(x,z)=>!world.isBeach(x,z,2.5)&&!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&(!artReviewLayout||distToPolyline(x,z,animeConfig.sample.path)>1.45)&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
   // Low relief shells have distinct fan/spiral silhouettes and raised ribs. Chunked like plants.
   for (const kind of ['fan', 'spiral']) {
     const shells = (d.shells || []).filter(s => s.kind === kind).map(s => ({ x:s.x, z:s.z, y:gy(s.x,s.z)+.025, s:s.s, ry:s.rot, color:kind==='fan'?'#f2decd':'#dfc5a9' }));
@@ -298,15 +324,25 @@ export function createEnvironment(world) {
     shoreProps.name = `beach-shell-${kind}`;
     root.add(shoreProps);
   }
-  for(const g of d.grass){
+  const grassPatches=[...d.grass];
+  if(artReviewLayout) {
+    // Quiet centre, denser planting around specimens and at the cottage edge.
+    const patches=[...animeConfig.sample.bushes,...animeConfig.sample.rocks,[-190.5,19,1.2],[-196.8,24.1,.8]];
+    for(const [px,pz,s] of patches)for(let i=0;i<14;i++) {
+      const a=i*2.39996,r=detailRng.range(.6,1.9)*s;
+      grassPatches.push({x:px+Math.cos(a)*r,z:pz+Math.sin(a)*r,s:detailRng.range(.55,.95)});
+    }
+  }
+  for(const g of grassPatches){
     for(let k=0;k<10;k++){
       const a=detailRng.range(0,6.28),r=k===0?0:detailRng.range(.15,1.3),x=g.x+Math.sin(a)*r,z=g.z+Math.cos(a)*r;
       if(!clear(x,z))continue;
       const scale=g.s*detailRng.range(.43,.78);
-      grass.push({x,z,y:gy(x,z)-.025,ry:a,s:scale,color:grassTint(world,x,z,scale)});
+      grass.push({x,z,y:gy(x,z)-.025,ry:a,s:scale,color:inArtStudy(x,z)?undefined:grassTint(world,x,z,scale)});
     }
   }
-  root.add(instanced(meadowGrass(),mat('#ffffff',{vertexColors:true,double:true,wind:.15}),grass,{shadow:false}));
+  root.add(instanced(meadowGrass(),grassMaterial(world),grass.filter(it=>inArtStudy(it.x,it.z)),{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
+  root.add(instanced(meadowGrass(),mat('#ffffff',{vertexColors:true,double:true,wind:.15}),grass.filter(it=>!inArtStudy(it.x,it.z)),{shadow:false}));
   const flowerCols=['#fff9e6','#f5dc77','#ecd0da','#c4b7db','#bcdae0'];
   for(const f of d.flowers){
     const cluster=f.color===0||f.color===1?6:4;
@@ -317,16 +353,25 @@ export function createEnvironment(world) {
   }
   root.add(instanced(wildflowers(),mat('#ffffff',{vertexColors:true,double:true,wind:.12}),flowers,{shadow:false}));
   const bushGeo=leafCrown(11);
-  const bushes = [];
+  const bushes = [],studyBushes=[];
   const berries = [];
-  for (const bsh of d.bushes) {
+  const allBushes=artReviewLayout?[...d.bushes,...animeConfig.sample.bushes.map(([x,z,s])=>({x,z,s}))]:d.bushes;
+  for (const bsh of allBushes) {
     const y = gy(bsh.x, bsh.z);
+    if(inArtStudy(bsh.x,bsh.z))studyBushes.push({x:bsh.x,z:bsh.z,y:y-.015,sx:1.25*bsh.s,sy:1.05*bsh.s,sz:1.1*bsh.s,ry:bsh.x*.27+bsh.z*.13});
     bushes.push({ x: bsh.x, z: bsh.z, y: y + 0.35 * bsh.s, s: 0.75 * bsh.s, sy: 0.55 * bsh.s, color: '#dfe8c9' });
     bushes.push({ x: bsh.x + 0.5 * bsh.s, z: bsh.z + 0.2, y: y + 0.28 * bsh.s, s: 0.55 * bsh.s, sy: 0.45 * bsh.s, color: '#ecedce' });
     if (bsh.berries) for (let k = 0; k < 5; k++) berries.push({ x: bsh.x + Math.sin(k * 1.3) * 0.5 * bsh.s, z: bsh.z + Math.cos(k * 1.3) * 0.45 * bsh.s, y: y + 0.45 * bsh.s + (k % 2) * 0.12, s: 0.09 });
   }
   const bushMat=mat('#ffffff',{double:true,wind:.03,windBase:.5});bushMat.map=leafTexture();bushMat.alphaTest=.45;bushMat.forceSinglePass=true;
-  root.add(instanced(bushGeo,bushMat,bushes.map(it=>({...it,ry:0})),{shadow:true}));
+  root.add(instanced(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
+  const studyBushMat=animeStudy?animeFoliageMaterial(true):mat('#ffffff',{vertexColors:true,double:true,wind:.025});
+  studyBushMat.map=studyShrubTexture();studyBushMat.alphaTest=.4;studyBushMat.forceSinglePass=true;
+  root.add(instanced(lowShrub(),studyBushMat,studyBushes,{receiveShadow:!animeStudy}));
+  if(animeStudy){
+
+    root.add(instanced(shrubStems(),new THREE.MeshLambertMaterial({color:'#78654c'}),studyBushes,{shadow:false}));
+  }
   root.add(instanced(new THREE.SphereGeometry(1, 6, 4), mat('#d8334a'), berries, { shadow: false }));
   const reedGeo = new THREE.ConeGeometry(0.05, 1.2, 4);
   reedGeo.translate(0, 0.6, 0);
@@ -402,11 +447,10 @@ export function createEnvironment(world) {
   return { root, waypoints };
 }
 
-function grassTint(world, x, z, s) {
-  const zn = world.zoneAt(x, z);
-  const c = new THREE.Color(zn.palette ? zn.palette[0] : '#86c24e');
-  c.offsetHSL(0, -0.05, (s - 1) * 0.08 - 0.06);
-  return `#${c.getHexString()}`;
+
+function grassTint(world,x,z,s) {
+  const zone=world.zoneAt(x,z),c=new THREE.Color(zone.palette?zone.palette[0]:'#86c24e');
+  c.offsetHSL(0,-.05,(s-1)*.08-.06);return '#'+c.getHexString();
 }
 
 function fernGeometry() {
@@ -693,13 +737,17 @@ function house(bx, roofCol, y) {
   g.rotation.y = bx.angle;
   const w = bx.hx * 2 - 0.4;
   const d = bx.hz * 2 - 0.4;
-  const walls = outlined(new THREE.BoxGeometry(w, 3.2, d), toon('#efe2c6'), { outline: '#6b5a44', width: 0.03 });
+  const study=inArtStudy(bx.x,bx.z);
+  const anime=animeStudy&&study;
+  if(anime)roofCol=bx.z>0?'#b67551':'#668e87';
+  const finish=(color,kind)=>study?paintSurface(animeStudy?new THREE.MeshLambertMaterial({color:kind==='plaster'?animeConfig.palette.plaster:kind==='timber'?animeConfig.palette.wood:color}):mat(color),kind):toon(color);
+  const walls = outlined(new THREE.BoxGeometry(w, 3.2, d), finish('#efe2c6','plaster'), { outline: '#6b5a44', width: 0.03 });
   walls.position.y = 1.2;
   g.add(walls);
-  const stoneBase = outlined(new THREE.BoxGeometry(w + 0.2, 0.6, d + 0.2), toon('#a7a09a'), { outline: '#4b4640', width: 0.02 });
+  const stoneBase = outlined(new THREE.BoxGeometry(w + 0.2, 0.6, d + 0.2), finish('#a7a09a','masonry'), { outline: '#4b4640', width: 0.02 });
   stoneBase.position.y = -0.1;
   g.add(stoneBase);
-  const beam = toon('#7a5236');
+  const beam = finish('#7a5236','timber');
   for (const sx of [-1, 1])
     for (const sz of [-1, 1]) {
       const b = outlined(new THREE.BoxGeometry(0.25, 2.9, 0.25), beam, { outline: '#3b2618', width: 0.02 });
@@ -717,10 +765,10 @@ function house(bx, roofCol, y) {
   const prism = new THREE.ExtrudeGeometry(shape, { depth: w + 0.7, bevelEnabled: false });
   prism.translate(0, 0, -(w + 0.7) / 2);
   prism.rotateY(Math.PI / 2);
-  const roof = outlined(prism, toon(roofCol), { outline: darker(roofCol, 0.4), width: 0.03 });
+  const roof = outlined(prism, finish(roofCol,'roof'), { outline: darker(roofCol, 0.4), width: 0.03 });
   roof.position.y = 2.85;
   g.add(roof);
-  const door = outlined(new THREE.BoxGeometry(0.9, 1.6, 0.1), toon('#6b4a30'), { outline: '#2e1f14', width: 0.02 });
+  const door = outlined(new THREE.BoxGeometry(0.9, 1.6, 0.1), finish('#6b4a30','timber'), { outline: '#2e1f14', width: 0.02 });
   door.position.set(0, 0.8, d / 2 + 0.03);
   g.add(door);
   for (const sx of [-1, 1]) {
@@ -731,6 +779,47 @@ function house(bx, roofCol, y) {
   const chimney = outlined(new THREE.BoxGeometry(0.5, 1.2, 0.5), toon('#9a8f86'), { outline: '#3f3a36', width: 0.02 });
   chimney.position.set(w * 0.25, 4.1, -d * 0.15);
   g.add(chimney);
+  if(anime) {
+    // Authored cottage trim and readable joinery, all inside the existing footprint.
+    const timber=finish('#8b6851','timber'),cream=finish('#f1e3c5','plaster'),details=[];
+    const box=(w,h,d,x,y,z,m)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);details.push(o);return o;};
+    box(w+.35,.16,.24,0,.40,d/2+.05,timber);
+    for(const sign of [-1,1]) {
+      box(.14,2.6,.16,sign*w*.30,1.48,d/2+.09,timber);
+      box(.95,.12,.25,sign*w*.30,1.40,d/2+.12,timber);
+      // Window crosspieces and open shutters.
+      box(.055,.61,.10,sign*w*.30,1.8,d/2+.12,timber);
+      box(.71,.055,.10,sign*w*.30,1.8,d/2+.12,timber);
+      for(const side of [-1,1]) {
+        const shutter=box(.23,.69,.075,sign*w*.30+side*.49,1.8,d/2+.09,timber);shutter.rotation.y=side*.35;
+        for(let slat=0;slat<4;slat++)box(.21,.022,.02,sign*w*.30+side*.49,1.56+slat*.15,d/2+.145,cream);
+      }
+    }
+    // Steps, door frame, small warm lintel canopy, and iron door handle.
+    const stone=finish('#b5b7b0','masonry');
+    box(1.5,.15,.7,0,.05,d/2+.35,stone);box(1.25,.15,.4,0,.20,d/2+.20,stone);
+    for(const sign of [-1,1])box(.12,1.8,.15,sign*.53,.94,d/2+.12,timber);
+    box(1.25,.15,.2,0,1.85,d/2+.12,timber);
+    for(let i=-2;i<=2;i++)box(.014,1.49,.01,i*.16,.82,d/2+.087,timber);
+    box(.07,.07,.05,.28,.89,d/2+.12,new THREE.MeshLambertMaterial({color:'#c6b17a'}));
+    const awning=box(1.65,.13,.70,0,2.12,d/2+.26,finish('#768f79','roof'));awning.rotation.x=.18;
+    for(const sign of [-1,1]) {
+      const brace=box(.09,.52,.09,sign*.64,1.83,d/2+.26,timber);brace.rotation.x=-.65;
+    }
+    // Raised roof ridge and gable trim replace the featureless wedge silhouette.
+    box(w+.82,.17,.25,0,4.79,0,timber);
+    for(const sign of [-1,1]) {
+      box(w+.84,.15,.19,0,2.88,sign*(d/2+.57),timber);
+      for(const end of [-1,1]) {
+        const length=Math.hypot(d/2+.57,1.9);
+        const beam=box(.15,.14,length,end*(w/2+.37),3.82,sign*(d/4+.28),timber);
+        beam.rotation.x=sign*Math.atan2(1.9,d/2+.57);
+      }
+    }
+    const batches=new Map();
+    for(const o of details){o.updateMatrix();o.geometry.applyMatrix4(o.matrix);if(!batches.has(o.material))batches.set(o.material,[]);batches.get(o.material).push(o.geometry);}
+    for(const [material,geos] of batches){const mesh=new THREE.Mesh(mergeGeometries(geos),material);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);geos.forEach(geo=>geo.dispose());}
+  }
   g.userData.chimney = new THREE.Vector3(bx.x, y + 4.8, bx.z);
   return g;
 }

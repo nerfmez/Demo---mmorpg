@@ -2,50 +2,57 @@ name: Apply and verify Seeker UI
 on:
   push:
     branches: [codex/seeker-ui-workspaces]
-    paths: [.github/ui-import.b64]
+    paths: [.github/workflows/ui-import-once.yml]
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: seeker-ui-import
   cancel-in-progress: false
 jobs:
-  apply-and-review:
+  apply:
     if: github.ref == 'refs/heads/codex/seeker-ui-workspaces'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Apply checksummed patch to the exact original files
-        shell: bash
+      - name: Apply both strictly checksummed source patches
         run: |
           python3 - <<'PY'
           import base64, hashlib, json, lzma, pathlib, subprocess
-          packed = base64.b64decode(pathlib.Path('.github/ui-import.b64').read_text(), validate=True)
-          assert hashlib.sha256(packed).hexdigest() == 'c781405d619db56d2f5cacc55ea967d9a9a1aa3f42d150f52191391c9fb0c535'
-          bundle = json.loads(lzma.decompress(packed))
-          assert bundle['base'] == '60032e38c6eddfd2cd74dcb703918e807016b513'
-          subprocess.run(['git', 'merge-base', '--is-ancestor', bundle['base'], 'HEAD'], check=True)
-          allowed = {'data/jobtree.json','data/mods.json','data/skills.json','docs/DESIGN-STATUS.md','docs/UI-WORKSPACES.md','index.html','src/core/character.js','src/core/skills.js','src/ui/buildmeta.js','src/ui/inventory.js','src/ui/jobart.js','src/ui/jobview.js','src/ui/panels.js','src/ui/skillview.js','src/ui/workspaces.css','tests/browser/ux.mjs','tests/browser/workspace-harness.js','tests/browser/workspaces.mjs','tests/core/workspaces.test.js'}
-          assert set(bundle['files']) == allowed
+          initial = {'data/jobtree.json','data/mods.json','data/skills.json','docs/DESIGN-STATUS.md','docs/UI-WORKSPACES.md','index.html','src/core/character.js','src/core/skills.js','src/ui/buildmeta.js','src/ui/inventory.js','src/ui/jobart.js','src/ui/jobview.js','src/ui/panels.js','src/ui/skillview.js','src/ui/workspaces.css','tests/browser/ux.mjs','tests/browser/workspace-harness.js','tests/browser/workspaces.mjs','tests/core/workspaces.test.js'}
+          extra = {'tests/browser/ux.mjs','tests/browser/passive-checks.mjs','tests/browser/workspaces.mjs','tests/browser/dreamloop.mjs','docs/GODOT-PORT.md','docs/DESIGN-STATUS.md','docs/UI-WORKSPACES.md'}
           digest = lambda text: hashlib.sha256(text.encode()).hexdigest()
-          for name, change in bundle['files'].items():
-              path = pathlib.Path(name)
-              if change['before'] is None:
-                  assert not path.exists(), name + ' already exists'
-                  text = change['content']
-              else:
-                  before = path.read_text()
-                  assert digest(before) == change['before'], name + ' changed concurrently'
-                  lines = before.splitlines(True)
-                  for start, end, replacement in reversed(change['edits']):
-                      lines[start:end] = replacement.splitlines(True)
-                  text = ''.join(lines)
-              assert digest(text) == change['after'], name + ' result checksum mismatch'
-              path.parent.mkdir(parents=True, exist_ok=True)
-              path.write_text(text)
-              print('Verified:', name)
+          for source, checksum, allowed in [('.github/ui-import.b64','c781405d619db56d2f5cacc55ea967d9a9a1aa3f42d150f52191391c9fb0c535',initial),('.github/ui-supplement.b64','d69259a39a86d390522cb354e55937e23fbdf169227a255312dfe67cefcba85b',extra)]:
+              packed = base64.b64decode(pathlib.Path(source).read_text(), validate=True)
+              assert hashlib.sha256(packed).hexdigest() == checksum, source
+              bundle = json.loads(lzma.decompress(packed))
+              if 'base' in bundle:
+                  assert bundle['base'] == '60032e38c6eddfd2cd74dcb703918e807016b513'
+                  subprocess.run(['git','merge-base','--is-ancestor',bundle['base'],'HEAD'],check=True)
+              assert set(bundle['files']) == allowed
+              for name, change in bundle['files'].items():
+                  path = pathlib.Path(name)
+                  if change['before'] is None:
+                      assert not path.exists(), name + ' already exists'
+                      text = change['content']
+                  else:
+                      before = path.read_text()
+                      assert digest(before) == change['before'], name + ' changed concurrently'
+                      lines = before.splitlines(True)
+                      for start, end, replacement in reversed(change['edits']):
+                          lines[start:end] = replacement.splitlines(True)
+                      text = ''.join(lines)
+                  assert digest(text) == change['after'], name + ' result checksum mismatch'
+                  path.parent.mkdir(parents=True,exist_ok=True)
+                  path.write_text(text)
+                  print('Verified:', name)
+          subprocess.run(['git','add','--',*sorted(initial | extra)],check=True)
           PY
       - uses: actions/setup-node@v4
         with:
@@ -54,27 +61,49 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium webkit
-      - name: Full-game workspace checks, Chromium
-        run: node tests/browser/workspaces.mjs
-      - name: Full-game workspace checks, Safari engine
-        run: BROWSER=webkit node tests/browser/workspaces.mjs
-      - name: Existing gameplay and UI regression checks
+      - name: Commit only source to isolated review branch (never merge main)
+        id: commit
         run: |
-          npm run test:browser
-          npm run test:ux
-          BROWSER=webkit npm run test:ux
-      - name: Commit verified source, remove temporary transport, do not merge main
-        run: |
-          git rm .github/ui-import.b64 .github/workflows/ui-import-once.yml
-          git add data/jobtree.json data/mods.json data/skills.json docs/DESIGN-STATUS.md docs/UI-WORKSPACES.md index.html src/core/character.js src/core/skills.js src/ui/buildmeta.js src/ui/inventory.js src/ui/jobart.js src/ui/jobview.js src/ui/panels.js src/ui/skillview.js src/ui/workspaces.css tests/browser/ux.mjs tests/browser/workspace-harness.js tests/browser/workspaces.mjs tests/core/workspaces.test.js
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat: separate build workspaces and categorize passive paths'
           git push origin HEAD:refs/heads/codex/seeker-ui-workspaces
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  browser-review:
+    needs: apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+        suite: [workspaces, legacy]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.apply.outputs.commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Category views and real touch gesture checks
+        if: matrix.suite == 'workspaces'
+        run: node tests/browser/workspaces.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - name: Gameplay and legacy UI regression checks
+        if: matrix.suite == 'legacy'
+        run: |
+          npm run test:browser
+          npm run test:ux
+        env:
+          BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: seeker-ui-full-review
+          name: seeker-ui-${{ matrix.browser }}-${{ matrix.suite }}
           path: tests/browser/out/
           retention-days: 7

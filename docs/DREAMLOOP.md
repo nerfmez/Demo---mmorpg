@@ -67,3 +67,17 @@ Add `DREAMLOOP_SURF_ONLY=1` for just the three surf phases and river traversal.
 - PR CI no longer runs the dreamloop (it ran the smoke and UI suites in Chromium and WebKit
   side by side); run it locally with the commands above when terrain or the network changes.
   The deployment workflow still audits the live URL in WebKit and uploads `live-dreamloop`.
+
+
+## Town/meadow art study (2026-09-29)
+
+- `DREAMLOOP_STUDY_ONLY=1 DREAMLOOP_TERRAIN_ONLY=1` captures town, gate, meadow and grove
+  for fast iteration; the normal full run still checks all biomes, waves and traversal.
+- Every scene now fails immediately on accumulated shader/browser errors, before saving
+  a misleading screenshot with missing geometry.
+- Inspect grass roots on light/dark patches, road edges, slopes and tree shadows. Blades
+  inherit the terrain normal on both faces; dark reversed normals must not reappear.
+- Check continuous crown silhouettes and that foliage still dissolves in front of the hero.
+  Camera, exposure, hero dimensions and collision layout stay fixed for comparisons.
+- A first canopy pass used too many overlapping volumes; the study uses one welded crown
+  per tree instead, with separate small shrub geometry and the existing 32 m instance culling.

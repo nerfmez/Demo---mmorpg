@@ -5,8 +5,14 @@ iPad, writes in Thai, and deploys from `main` to GitHub Pages
 (https://nerfmez.github.io/Demo---mmorpg/). Always `git fetch` first: the owner also works on
 this repo with other tools, so `main` may have moved.
 
-## State (2026-09-28)
+## State (2026-09-29)
 
+- First art study: `data/art.json` bounds cover town and the western meadow.
+  `art-study.js` uses continuous, welded canopy volumes with softened normals; houses
+  and rocks have distinct painted surfaces. Keep the rest of the map as comparison
+  until the owner reviews the study. `ground-color.js` is shared by ground and grass
+  across the map: do not reintroduce an independent grass tint or per-zone colour guess.
+  See `docs/ART-STUDY.md` for the sampling contract and the source of inspiration.
 - Owner's latest environment direction: softer daylight/colours like the seaside video.
   No pine trees anywhere. Beach sand has shells, with no grass/flowers/ferns/reeds/bushes.
   `sea.surf` controls waves washing up and retreating. The centre river is shallow and

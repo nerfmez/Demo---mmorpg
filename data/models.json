@@ -1575,7 +1575,8 @@
             1.08
           ]
         ]
-      }
+      },
+      "rootScale": 1.35
     },
     "horned_warden": {
       "file": "models/monsters/horned_warden.glb",

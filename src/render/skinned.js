@@ -78,6 +78,21 @@ int clothZone(vec3 p) {
     bone.quaternion.premultiply(p.clone().invert().multiply(r).multiply(p));
     bone.updateMatrixWorld(true);
   };
+  // squarer shoulders: the auto-rig's shoulder joints sit deep in the torso, so lowering the
+  // arms pinched and sloped them. Move the joints out, lift the collarbones a little, and let
+  // the arm drop take less.
+  const widen = cfg.shoulderWiden ?? 0;
+  for (const [n, sx] of [['LeftArm', 1], ['RightArm', -1]]) {
+    const b = bones[n];
+    const w = b.getWorldPosition(new THREE.Vector3());
+    w.x += sx * widen;
+    w.y += widen * 0.25;
+    b.position.copy(b.parent.worldToLocal(w));
+    b.updateMatrixWorld(true);
+  }
+  const lift = cfg.clavicleLift ?? 0;
+  turnWorld(bones.LeftShoulder, new THREE.Vector3(0, 0, 1), lift);
+  turnWorld(bones.RightShoulder, new THREE.Vector3(0, 0, 1), -lift);
   turnWorld(bones.LeftArm, new THREE.Vector3(0, 0, 1), -drop);
   turnWorld(bones.RightArm, new THREE.Vector3(0, 0, 1), drop);
   scene.updateMatrixWorld(true);

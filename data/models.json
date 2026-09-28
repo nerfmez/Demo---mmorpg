@@ -1,5 +1,5 @@
 {
-  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose, headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head.",
+  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose (shoulderWiden moves the shoulder joints out and clavicleLift raises the collarbones, for square shoulders), headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head.",
   "weapons": {
     "rusty_sword": {
       "file": "models/rusty_sword.glb",
@@ -12,7 +12,9 @@
     "hero_base": {
       "file": "models/hero_base.glb",
       "tris": 6289,
-      "armDrop": 1.35,
+      "armDrop": 1.25,
+      "shoulderWiden": 0.02,
+      "clavicleLift": 0.1,
       "headCentre": [
         0,
         1.64,

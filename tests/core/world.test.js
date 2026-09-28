@@ -88,3 +88,44 @@ test('the map is open: trees and rocks leave most of the ground free', () => {
     }
   assert.ok(free / total > 0.85, `free ground ${((free / total) * 100).toFixed(0)}%`);
 });
+
+test('the shallow stream can be crossed both ways away from either bridge', () => {
+  for (const z of [-110, -51, 45, 96, 128]) {
+    const ps=data.world.river.points;
+    const i=ps.findIndex((p,j)=>j>0 && z>=ps[j-1][1] && z<=p[1]);
+    const a=ps[i-1],b=ps[i],cx=a[0]+(b[0]-a[0])*(z-a[1])/(b[1]-a[1]);
+    assert.ok(!world.onBridge(cx,z));
+    assert.ok(world.isWater(cx,z),'still reads as a stream');
+    assert.ok(world.isFree(cx,z,.45),'shallow water allows walking');
+    assert.ok(world.waterLevel-world.terrainY(cx,z)<=.23,'ankle-deep bed');
+    for(const direction of [-1,1]){
+      let p={x:cx-direction*7,z};
+      for(let step=0;step<56;step++)p=world.move(p.x,p.z,.45,direction*.25,0);
+      assert.ok(direction*(p.x-cx)>6.8,`crossing at z=${z}, direction=${direction}`);
+    }
+  }
+  assert.ok(!world.isFree(-40,world.shoreZ(-40)+5,.45),'deep sea remains blocked');
+  assert.ok(!world.isFree(76.8,48,.45),'pond remains blocked');
+});
+
+test('the sandy beach has shells instead of meadow plants and the map has no pines', () => {
+  for(const kind of ['grass','flowers','bushes','ferns','mushrooms','reeds']){
+    assert.ok(world.decor[kind].every(p=>!world.isBeach(p.x,p.z,2.5)),`${kind} stays inland`);
+  }
+  assert.ok(world.decor.shells.length>30);
+  assert.deepEqual(new Set(world.decor.shells.map(s=>s.kind)),new Set(['fan','spiral']));
+  for(const shell of world.decor.shells){
+    assert.ok(world.isBeach(shell.x,shell.z,2.5));
+    assert.ok(!world.isWater(shell.x,shell.z));
+  }
+  assert.ok([...world.circles,...world.decor.edgeTrees].every(t=>t.type!=='pine'));
+});
+
+test('land monsters still spawn on dry ground when the stream is walkable', () => {
+  for (const seed of [1,9]) {
+    const game=new Game(data,{seed,world});
+    for(const spawn of game.spawnPoints.filter(s=>!s.boss)) {
+      assert.ok(!world.isWater(spawn.x,spawn.z,.45),`${spawn.monster} spawned in water, seed ${seed}`);
+    }
+  }
+});

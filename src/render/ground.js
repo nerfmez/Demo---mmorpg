@@ -30,6 +30,7 @@ function surfaceData(world) {
   const mud = new Float32Array(n);
   const stone = new Float32Array(n);
   const dirt = new Float32Array(n);
+  const coast = new Float32Array(n * 2);
   const grid = { ox, oz, res, w, h };
   for (const r of world.roads) {
     const half = r.width / 2;
@@ -59,7 +60,8 @@ function surfaceData(world) {
         // sandy beach along the sea
         const d = world.shoreZ(x) - z;
         const beach = wd.sea.beach || 14;
-        if (d < beach + 6) mud[k] = Math.max(mud[k], 1 - smooth(beach - 5 + (valueNoise(x * 0.08, z * 0.08, 21) - 0.5) * 6, beach + 3, d));
+        coast[k * 2] = 1 - smooth(beach - 1, beach + 2.5, d);
+        coast[k * 2 + 1] = -d;
       }
       const td = Math.hypot(x - town.centre[0], z - town.centre[1]);
       if (td < town.plazaRadius + 2) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.5, town.plazaRadius, td));
@@ -106,7 +108,7 @@ function surfaceData(world) {
   }
   const blur = (a) => boxBlur(boxBlur(a, w, h, 6), w, h, 4);
   [lr, lg, lb, dr, dg, db] = [lr, lg, lb, dr, dg, db].map(blur);
-  return { road, mud, stone, dirt, lr, lg, lb, dr, dg, db };
+  return { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db };
 }
 
 export function createTerrain(world) {
@@ -128,6 +130,7 @@ export function createTerrain(world) {
       const splat = new Float32Array(vw * vh * 4);
       const tintL = new Float32Array(vw * vh * 3);
       const tintD = new Float32Array(vw * vh * 3);
+      const coast = new Float32Array(vw * vh * 2);
       for (let j = 0; j < vh; j++)
         for (let i = 0; i < vw; i++) {
           const gi = ti + i;
@@ -147,6 +150,8 @@ export function createTerrain(world) {
           splat[v * 4 + 1] = surf.stone[k];
           splat[v * 4 + 2] = surf.mud[k];
           splat[v * 4 + 3] = surf.dirt[k];
+          coast[v * 2] = surf.coast[k * 2];
+          coast[v * 2 + 1] = surf.coast[k * 2 + 1];
           tintL[v * 3] = surf.lr[k];
           tintL[v * 3 + 1] = surf.lg[k];
           tintL[v * 3 + 2] = surf.lb[k];
@@ -165,6 +170,7 @@ export function createTerrain(world) {
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
       geo.setAttribute('aSplat', new THREE.BufferAttribute(splat, 4));
+      geo.setAttribute('aCoast', new THREE.BufferAttribute(coast, 2));
       geo.setAttribute('aTintL', new THREE.BufferAttribute(tintL, 3));
       geo.setAttribute('aTintD', new THREE.BufferAttribute(tintD, 3));
       geo.setIndex(idx);
@@ -190,19 +196,19 @@ function terrainMaterial(world) {
       .replace(
         '#include <common>',
         `#include <common>
-attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD;
+attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; varying vec2 vCoast;
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vSplat = aSplat; vTintL = aTintL; vTintD = aTintD; vUp = normal.y;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp;
+varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast;
 uniform float uTime; uniform vec3 uArena; uniform float uWater;
 ${NOISE_GLSL}`
       )
@@ -233,15 +239,15 @@ ${NOISE_GLSL}`
     tuft=max(tuft,stem);
   }
   float tuftPatch=smoothstep(.31,.53,big+mid*.18)*step(.38,seed);
-  grass=mix(grass,seed>.62?grass*1.18+vec3(.015,.014,0.0):grass*.77,tuft*tuftPatch*.40);
-  grass*=1.0+(fine-.5)*.10;
+  grass=mix(grass,seed>.62?grass*1.10+vec3(.008,.008,0.0):grass*.86,tuft*tuftPatch*.28);
+  grass*=1.0+(fine-.5)*.045;
   vec2 blot=floor(w*3.8),bp=fract(w*3.8)-.5;
   float bd=length(bp*vec2(1.2,.7));
   float daub=(1.0-smoothstep(.12,.28,bd))*step(.53,hash12(blot));
-  grass=mix(grass,hash12(blot+19.0)>.55?grass*1.16:grass*.88,daub*.55);
+  grass=mix(grass,hash12(blot+19.0)>.55?grass*1.08:grass*.93,daub*.25);
   vec3 dry = mix(vec3(.38,.32,.15),vec3(.46,.38,.19),smoothstep(.3,.7,mid));
   // Warm packed earth, irregular worn patches and sparse little stone faces.
-  vec3 road=mix(vec3(.55,.38,.19),vec3(.67,.48,.27),smoothstep(.2,.8,big*.5+mid*.5));
+  vec3 road=mix(vec3(.53,.43,.28),vec3(.64,.53,.36),smoothstep(.2,.8,big*.7+mid*.3));
   vec2 pebbles=w*3.2;vec2 pc=floor(pebbles),pf=fract(pebbles)-.5;
   float pr=length(pf*vec2(1.0,1.6));float ps=hash12(pc);
   float pebble=(1.0-smoothstep(.09,.14,pr))*step(.92,ps);
@@ -272,24 +278,83 @@ ${NOISE_GLSL}`
   col=mix(col,stone,smoothstep(.45,.55,vSplat.g+(mid-.5)*.14));
   float cliff=1.0-smoothstep(.68,.82,vUp+(fine-.5)*.035);
   col=mix(col,rock,cliff);
+  // A dedicated sand layer covers both ground grass strokes and the path texture.
+  // Warm, broad paint variation; darker damp sand next to the wash, no yellow glare.
+  vec3 sand=mix(vec3(.64,.56,.37),vec3(.76,.69,.49),big);
+  sand*=1.0+(mid-.5)*.07+(fine-.5)*.035;
+  float grain=step(.94,hash12(floor(w*17.0)));
+  sand=mix(sand,sand*.87,grain*.3);
+  float damp= smoothstep(-6.0,-.3,vCoast.y);
+  sand=mix(sand,vec3(.45,.44,.32),damp*.46);
+  col=mix(col,sand,vCoast.x);
   // boss arena rune circle
   float ad = distance(w, uArena.xy);
   float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));
   col = mix(col, vec3(0.55, 0.50, 0.66), clamp(ring, 0.0, 1.0) * 0.75);
   // under the water line: darker, bluish
-  col = mix(col, col * vec3(0.55, 0.68, 0.72), (1.0-smoothstep(uWater - 0.4, uWater + 0.05, y)));
+  col = mix(col, col * vec3(0.70, 0.81, 0.80), (1.0-smoothstep(uWater - 0.4, uWater + 0.05, y)));
   // drifting cloud shadows
   float cloud = fbm3(w * 0.012 + vec2(uTime * 0.012, uTime * 0.006));
-  col *= 1.0 - 0.09 * smoothstep(0.55, 0.72, cloud);
+  col *= 1.0 - 0.045 * smoothstep(0.55, 0.72, cloud);
   diffuseColor.rgb = col;
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-anime-v3';
+  mat.customProgramCacheKey = () => 'terrain-soft-coast-v4';
   return mat;
 }
 
 // ---------- water ----------
+
+/** Broad swash advances over the sand and drains back; one shared GPU clock, no CPU mesh churn. */
+function seaMaterial(world) {
+  const surf = world.data.sea.surf || {};
+  return new THREE.ShaderMaterial({
+    uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)} },
+    transparent:true, depthWrite:false, side:THREE.DoubleSide,
+    vertexShader: /* glsl */ `
+      attribute float depth; attribute float shore;
+      varying float vDepth; varying float vShore; varying vec2 vW;
+      void main(){vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
+    fragmentShader: /* glsl */ `
+      uniform float uTime; uniform vec4 uSurf;
+      varying float vDepth; varying float vShore; varying vec2 vW;
+      ${NOISE_GLSL}
+      void main(){
+        float cycle=uTime*6.2831853/uSurf.z+vW.x*.009;
+        float surge=.5-.5*cos(cycle);
+        float edge=mix(uSurf.y,-uSurf.x,surge)+sin(vW.x*.34+uTime*.25)*.16;
+        float behind=vShore-edge;
+        if(behind < -.14) discard;
+        float cover=smoothstep(-.14,.12,behind);
+        float d=max(0.0,vDepth);
+        vec3 col=mix(vec3(.30,.51,.43),vec3(.15,.40,.39),smoothstep(0.0,2.5,d));
+        col=mix(col,vec3(.09,.29,.34),smoothstep(2.0,7.0,d));
+        float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
+        col+=(drift-.5)*.035;
+        // Wide, faint light ripples under the surface, strongest in clear shallows.
+        vec2 p=vW*.8+vec2(sin(vW.y*.37+uTime*.35),cos(vW.x*.27-uTime*.31))*.4;
+        float caustic=pow(1.0-abs(sin(p.x+p.y*.4)*sin(p.y-p.x*.3)),16.0);
+        col+=vec3(.035,.045,.03)*caustic*(1.0-smoothstep(.0,3.0,d));
+        float jag=(vnoise(vW*4.5-uTime*.15)-.5)*.23;
+        float rim=1.0-smoothstep(uSurf.w,uSurf.w+.045,abs(behind+jag));
+        vec2 lp=vW*3.2+vec2(vnoise(vW*5.0+uTime*.2),vnoise(vW*4.0-uTime*.2))*1.2;
+        float lace=1.0-smoothstep(.025,.10,abs(sin(lp.x*3.6+sin(lp.y*2.1))*sin(lp.y*4.3+sin(lp.x))));
+        float trail=smoothstep(.1,.3,behind)*(1.0-smoothstep(.45,1.8,behind));
+        float broken=.62+.38*vnoise(vW*5.0-uTime*.12);
+        float foam=max(rim*broken,lace*trail*(.48+.35*surge))*cover;
+        // The next broad crest approaches the shore; broken arcs avoid parallel ruler lines.
+        float swell=.5+.5*sin(vShore*.72+uTime*.88+sin(vW.x*.22)*.24);
+        float crest=smoothstep(.989,.999,swell)*smoothstep(2.0,4.0,vShore)*(1.0-smoothstep(7.0,16.0,vShore));
+        foam=max(foam,crest*smoothstep(.38,.65,vnoise(vW*.55))*.36);
+        col=mix(col,vec3(.93,.94,.87),foam);
+        float alpha=mix(.22,.86,smoothstep(-1.0,5.0,vShore))*cover;
+        alpha=max(alpha,foam*.94);
+        gl_FragColor=vec4(col,alpha);
+        #include <colorspace_fragment>
+      }`,
+  });
+}
 
 function waterMaterial() {
   return new THREE.ShaderMaterial({
@@ -307,9 +372,9 @@ function waterMaterial() {
       void main(){
         float d = vDepth + (vnoise(vW * 1.3 + uTime * 0.4) - 0.5) * 0.06;
         if (d <= 0.0) discard;
-        vec3 deep = vec3(0.055, 0.24, 0.34);
-        vec3 mid = vec3(0.12, 0.43, 0.49);
-        vec3 shallow = vec3(0.36, 0.64, 0.60);
+        vec3 deep = vec3(0.09, 0.27, 0.31);
+        vec3 mid = vec3(0.19, 0.43, 0.41);
+        vec3 shallow = vec3(0.37, 0.54, 0.43);
         vec3 col = mix(shallow, mid, smoothstep(0.05, 0.45, d));
         col = mix(col, deep, smoothstep(0.5, 1.2, d));
         // flowing streaks (rivers) and ripples (ponds)
@@ -319,11 +384,11 @@ function waterMaterial() {
         float g = vnoise(vW * 2.6 + vec2(uTime * 0.7, -uTime * 0.5));
         col = mix(col, vec3(1.0), step(0.92, g) * 0.6);
         // foam along the shore
-        float foam = 1.0 - smoothstep(0.045, 0.16 + 0.04 * sin(uTime * 1.4 + vW.x), d);
+        float foam = 1.0 - smoothstep(0.015, 0.065 + 0.012 * sin(uTime * 1.4 + vW.x), d);
         float ribbon=(1.0-smoothstep(.016,.032,abs(d-(.27+.035*sin(vW.x*1.2+vW.y*.7-uTime*.8)))))*step(.40,vnoise(vW*.6));
         col=mix(col,vec3(.7,.88,.82),ribbon*.38);
         col = mix(col, vec3(0.97, 0.99, 1.0), foam * 0.9);
-        float a = mix(0.62, 0.93, smoothstep(0.0, 0.6, d));
+        float a = mix(0.38, 0.87, smoothstep(0.0, 0.8, d));
         gl_FragColor = vec4(col, a);
         #include <colorspace_fragment>
       }`,
@@ -408,50 +473,57 @@ export function createWater(world) {
   }
   const sea = world.data.sea;
   if (sea) {
-    // shallow water near the beach is a fine grid (depth colours + foam); the open sea is one big plane
+    const seaMat = seaMaterial(world);
+    // Match the terrain grid so the thin film cannot cut through sand at coarse triangle edges.
+    // Cull in tiles; only the few swash tiles in the camera view reach the GPU.
     const hf = world.heightfield;
     const x0 = hf.ox;
     const x1 = hf.ox + (hf.w - 1) * hf.res;
-    const zMin = Math.min(...sea.shore.map((p) => p[1])) - 6;
+    const zMin = hf.oz + Math.floor((Math.min(...sea.shore.map((p) => p[1])) - 6 - hf.oz) / hf.res) * hf.res;
     const z1 = Math.max(...sea.shore.map((p) => p[1])) + 40;
-    const step = 2;
+    const step = hf.res;
     const nx = Math.ceil((x1 - x0) / step);
     const nz = Math.ceil((z1 - zMin) / step);
-    const pos = [];
-    const depth = [];
-    const along = [];
-    const idx = [];
-    for (let j = 0; j <= nz; j++)
-      for (let i = 0; i <= nx; i++) {
-        const x = x0 + i * step;
-        const z = zMin + j * step;
-        pos.push(x, wl, z);
+    for(let tj=0;tj<nz;tj+=TILE) for(let ti=0;ti<nx;ti+=TILE) {
+    const cw=Math.min(TILE,nx-ti),ch=Math.min(TILE,nz-tj);
+    const pos = [], depth = [], along = [], shore = [], idx = [];
+    for (let j = 0; j <= ch; j++)
+      for (let i = 0; i <= cw; i++) {
+        const x = x0 + (ti+i) * step;
+        const z = zMin + (tj+j) * step;
+        const shoreD = z - world.shoreZ(x);
+        pos.push(x, Math.max(wl + .015, hY(x,z) + .025), z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
+        shore.push(shoreD);
       }
-    for (let j = 0; j < nz; j++)
-      for (let i = 0; i < nx; i++) {
-        const a = j * (nx + 1) + i;
-        const b2 = a + nx + 1;
+    for (let j = 0; j < ch; j++)
+      for (let i = 0; i < cw; i++) {
+        const a = j * (cw + 1) + i;
+        const b2 = a + cw + 1;
         idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
       }
-    group.add(waterMesh(pos, depth, along, idx, mat));
+    const wash = waterMesh(pos, depth, along, idx, seaMat, shore);
+    wash.name = 'sea-swash';
+    group.add(wash);
+    }
     const far = [x0 - 400, wl, z1, x1 + 400, wl, z1, x0 - 400, wl, z1 + 500, x1 + 400, wl, z1 + 500];
-    group.add(waterMesh(far, [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], mat));
+    group.add(waterMesh(far, [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], seaMat, [40,40,500,500]));
     for (const side of [-1, 1]) {
       const xa = side < 0 ? x0 - 400 : x1;
       const xb = side < 0 ? x0 : x1 + 400;
-      group.add(waterMesh([xa, wl, zMin + 10, xb, wl, zMin + 10, xa, wl, z1, xb, wl, z1], [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], mat));
+      group.add(waterMesh([xa, wl, zMin + 10, xb, wl, zMin + 10, xa, wl, z1, xb, wl, z1], [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], seaMat, [0,0,40,40]));
     }
   }
   return group;
 }
 
-function waterMesh(pos, depth, along, idx, mat) {
+function waterMesh(pos, depth, along, idx, mat, shore = null) {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('depth', new THREE.Float32BufferAttribute(depth, 1));
   g.setAttribute('along', new THREE.Float32BufferAttribute(along, 1));
+  if(shore) g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1));
   g.setIndex(idx);
   g.computeBoundingSphere();
   const m = new THREE.Mesh(g, mat);

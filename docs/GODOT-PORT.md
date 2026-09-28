@@ -28,7 +28,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `targeting.js` | `SoftTarget.gd` | Pure function. Call it every physics frame. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, stunned, shell, return`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `world.js` | Not needed at runtime | Use `layout.json` + `heightmap.json` plus Godot collision shapes. The river is a polyline, so either bake a `StaticBody3D` strip or reuse `isWater()`. |
+| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges are optional river crossings. |
 
 ### `game.js` → scenes
 
@@ -106,6 +106,17 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 
 ## Anime terrain and Dreamloop
 
+- Soft-coast revision (2026-09-28): `world.json.presentation` controls warm daylight and
+  softer shadows. Pine entries have been replaced by broadleaf trees, including the map border.
+- The beach uses a dedicated sand splat, separate from mud/grass. `world.isBeach()` clears
+  meadow decoration on sand. `decor.shells` contains small ribbed fan and spiral shells,
+  rendered as chunked instances (`nature.js`); use MultiMesh in Godot.
+- `sea.surf` defines period, run-up, retreat and foam width. The sea shader moves the foam
+  edge across a thin surface following the beach heightfield, then draws it back. Sea tiles
+  match the terrain grid and are culled independently. Port the time uniform and shoreline
+  distance attribute; there is no per-frame mesh rebuild.
+- `river.depth` and `river.bankWidth` produce an ankle-deep bed with gentle banks. Keep the
+  rendered water and movement masks separate when porting. Do not add a blocking river strip.
 - `render/ground.js`: small grouped grass strokes, warm earth, bevelled paving, mossy cracks,
   cliff strata and shore foam. Water streaks use world coordinates, including round ponds.
 - `render/nature.js` / `leafpaint.js`: branched trunks, curved grass, petals, faceted rocks,
@@ -113,7 +124,7 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   alpha scissor `StandardMaterial3D`/toon materials and MultiMesh chunks. These crown cards
   are authored for the fixed ARPG camera; keep that orientation when porting.
 - `render/surfaceart.js` composes bark/stone paint with existing wind and hero occlusion.
-- Run `npm run test:dreamloop`, inspect the same seven locations, plus iPad/phone graph
+- Run `npm run test:dreamloop`, inspect the same ten locations and three surf phases, plus iPad/phone graph
   interactions. If full-page capture stalls, the test attempts the game canvas. A screenshot
   file alone is not visual approval: inspect it, correct issues and recapture.
 - CI exercises Chromium and WebKit. Pages deployment also runs the WebKit Dreamloop against

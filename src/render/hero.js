@@ -126,11 +126,20 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
   const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
   rb.add('head', headGeo, L.skin);
-  rb.add('head', new THREE.SphereGeometry(0.04, 8, 6).scale(1, 0.8, 1), L.skin, { pos: [0, 0.07, 0.115], plain: true }); // chin/nose hint
+  rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
   for (const s of [1, -1]) {
-    rb.add('head', new THREE.CircleGeometry(0.026, 12).scale(0.8, 1.25, 1), L.eyes, { pos: [s * 0.045, 0.12, 0.123], rot: [0, s * 0.2, 0], plain: true });
-    rb.add('head', new THREE.CircleGeometry(0.009, 6), '#ffffff', { pos: [s * 0.045 + 0.007, 0.133, 0.125], rot: [0, s * 0.2, 0], glow: true });
-    rb.add('head', new THREE.BoxGeometry(0.045, 0.008, 0.005), L.hair, { pos: [s * 0.046, 0.158, 0.121], rot: [0, s * 0.2, s * -0.12], plain: true }); // brows
+    const eye = new THREE.Shape();
+    eye.moveTo(-.026,.005);
+    eye.quadraticCurveTo(-.003,.022,.027,.009);
+    eye.quadraticCurveTo(.012,-.019,-.010,-.014);
+    eye.quadraticCurveTo(-.024,-.008,-.026,.005);
+    const eyeGeo = new THREE.ShapeGeometry(eye,8).scale(s,1,1);
+    rb.add('head',eyeGeo.clone().scale(1.09,1.12,1),'#514638',{pos:[s*.046,.125,.126],rot:[0,s*.22,0],plain:true});
+    rb.add('head',eyeGeo,'#fff7df',{pos:[s*.046,.125,.128],rot:[0,s*.22,0],plain:true});
+    rb.add('head',new THREE.CircleGeometry(.013,14).scale(.82,1.05,1),L.eyes,{pos:[s*.046,.126,.133],rot:[0,s*.22,0],plain:true});
+    rb.add('head',new THREE.CircleGeometry(.006,10).scale(.8,1.12,1),'#30383c',{pos:[s*.046,.127,.135],rot:[0,s*.22,0],plain:true});
+    rb.add('head',new THREE.CircleGeometry(.004,6),'#fffbee',{pos:[s*.046+.004,.133,.137],rot:[0,s*.22,0],plain:true});
+    rb.add('head',new THREE.BoxGeometry(.044,.005,.004),L.hair,{pos:[s*.046,.162,.119],rot:[0,s*.2,s*-.12],plain:true});
     rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
   }
   rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
@@ -162,9 +171,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
 function hair(rb, L, o) {
   const H = L.hair;
   const style = o.longHair ? 'ponytail' : L.hairStyle;
-  const cap = new THREE.SphereGeometry(0.138, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62).scale(1.0, 1.05, 1.05).translate(0, 0.14, -0.012);
+  const cap = new THREE.SphereGeometry(0.138, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.46).scale(1.0, 1.05, 1.05).translate(0, 0.14, -0.012);
   rb.add('head', cap, H);
-  const lock = (x, y, z, rx, rz, len = 0.13, r = 0.045) => rb.add('head', new THREE.ConeGeometry(r, len, 5).translate(0, -len / 2, 0), H, { pos: [x, y, z], rot: [rx, 0, rz] });
+  // Lower hair volume only behind the head; a full dome hides the eyes from the front.
+  rb.add('head',new THREE.SphereGeometry(.139,12,6,Math.PI,Math.PI,Math.PI*.44,Math.PI*.31).scale(1,1.05,1.05).translate(0,.14,-.012),H);
+  const lock = (x, y, z, rx, rz, len = 0.13, r = 0.045) => rb.add('head', new THREE.ConeGeometry(r, len, 5).rotateZ(Math.PI).translate(0, -len / 2, 0), H, { pos: [x, y, z], rot: [rx, 0, rz] });
   if (style === 'messy') {
     lock(0.0, 0.25, 0.1, 0.45, 0.1, 0.12);
     lock(0.055, 0.25, 0.095, 0.4, -0.35, 0.13);

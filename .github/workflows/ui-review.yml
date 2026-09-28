@@ -1,0 +1,42 @@
+name: Seeker UI Review
+on:
+  push:
+    branches: [codex/seeker-ui-workspaces]
+permissions:
+  contents: read
+concurrency:
+  group: seeker-ui-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Archive reproducible source (no credentials or git metadata)
+        run: tar -czf /tmp/seeker-ui-source.tgz src data tests scripts docs public index.html package.json package-lock.json vite.config.js node_modules AGENTS.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seeker-ui-source
+          path: /tmp/seeker-ui-source.tgz
+          retention-days: 2
+      - run: npm test
+      - run: npm run build
+      - name: Targeted UI review
+        if: ${{ hashFiles('tests/browser/workspaces.mjs') != '' }}
+        run: |
+          npx playwright install --with-deps chromium webkit
+          node tests/browser/workspaces.mjs
+          BROWSER=webkit node tests/browser/workspaces.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: seeker-ui-review
+          path: tests/browser/out/workspaces*
+          if-no-files-found: ignore
+          retention-days: 7

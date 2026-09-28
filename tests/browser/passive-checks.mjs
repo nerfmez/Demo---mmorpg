@@ -15,9 +15,11 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   });
   const tap = async selector => {
     const target = page.locator(selector).first();
-    await target.scrollIntoViewIfNeeded();
     if (await page.evaluate(() => navigator.maxTouchPoints > 0)) await target.tap();
     else await target.click();
+    // Learning a Job can queue a questDone event. Let the live game drain it
+    // before typing into the next search; the offline harness has no frame loop.
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   };
   const jump = async id => {
     const name = await page.evaluate(id => window.__frontier.game.data.jobtree.nodes[id].nameTh, id);

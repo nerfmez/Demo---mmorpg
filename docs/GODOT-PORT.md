@@ -71,6 +71,13 @@ each frame (bone map `MAP` there); in Godot, import the GLB with its `Skeleton3D
 retarget the same poses (or author them as clips). Clothes are colour zones cut from the
 bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
 helms and weapons are still attached to the head, chest and hand bones.
+Regular monsters have Meshy models too (`data/models.json` → `monsters`, GLBs in
+`public/models/monsters/`). Meshy only rigs humanoids, so `render/monsterSkin.js` skins each
+model onto the procedural monster rig at load: `bones` moves rig joints onto the model,
+`segments` (one line, or several, per bone in rest space) give each vertex weights by
+distance (`sharpness`, `minWeight`), `pitch`/`yaw`/`scale`/`offset` align the model, and
+`keep` leaves procedural parts on some bones (the wisp's motes). In Godot, rig the GLBs with
+the same bone names and weights (or paint them) and keep the animation from `monsters.js`.
 The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
 head mesh; in Godot use a face texture with UV offsets per expression. Hair (`render/hair.js`)
 is one merged mesh per style built from lock curves; export it once per style as a mesh and

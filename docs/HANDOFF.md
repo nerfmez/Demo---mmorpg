@@ -37,6 +37,11 @@ this repo with other tools, so `main` may have moved.
   pouches, boot cuffs, bracers; per-armour body colour (`vest` zone) and pieces; hair tucks
   under helmets), next: NPCs on the skinned body, then NPCs. `buildHumanoid(..., {procedural: true})`
   still builds the old body for comparison.
+- Monster models (done for the 8 regular monsters; bosses still procedural): concept with
+  `meshy_image_to_image` (nano-banana, 3 cr) from `docs/reference/target-gameplay-mock.png`,
+  then `meshy_image_to_3d` meshy-6 textured, remeshed (30 cr); shrink the texture to 512 px.
+  Register in `data/models.json` → `monsters` and tune `bones`/`segments` with a lab page
+  that renders the monster's states (idle, walk, wind-up, act) until nothing tears.
 - Animation: walk/run come from Meshy's mocap clips baked into `data/gait.json` by
   `node scripts/bake-gait.mjs` (re-run it if the body or its rig changes); step rate follows
   ground speed so feet do not slide. The sword combo is slashA/slashB/slashC, picked by

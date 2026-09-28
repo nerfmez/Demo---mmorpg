@@ -3,7 +3,8 @@
 // hit reactions); the model replaces the procedural parts. Meshy only rigs humanoids, so the
 // skin weights are computed here: each vertex follows the bones whose "segments" (a line
 // through the body part, in the model's aligned rest space) are nearest, falling off with
-// distance (sharper falloff = more rigid parts, e.g. a beetle's shell and legs).
+// distance (sharper falloff = more rigid parts, e.g. a beetle's shell and legs). A bone can list
+// several segments (a flat part such as a mushroom cap is a cross of two).
 import * as THREE from 'three';
 import { toonRamp } from './toon.js';
 import { hullMaterial } from './patch.js';
@@ -30,6 +31,7 @@ export function prepareMonsterModel(gltf, cfg) {
   if (!mesh) throw new Error('monster model: no mesh');
   const g = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
   for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+  g.rotateX(cfg.pitch || 0); // e.g. a bird modelled upright, laid flat to fly
   g.rotateY(cfg.yaw || 0);
   g.scale(cfg.scale || 1, cfg.scale || 1, cfg.scale || 1);
   g.computeBoundingBox();
@@ -38,8 +40,12 @@ export function prepareMonsterModel(gltf, cfg) {
   if (cfg.offset) g.translate(...cfg.offset);
 
   const names = Object.keys(cfg.segments);
-  const segs = names.map((n) => cfg.segments[n].map((p) => new THREE.Vector3(...p)));
+  const segs = names.map((n) => {
+    const list = Array.isArray(cfg.segments[n][0][0]) ? cfg.segments[n] : [cfg.segments[n]];
+    return list.map((sg) => sg.map((p) => new THREE.Vector3(...p)));
+  });
   const sharp = cfg.sharpness ?? 4;
+  const minW = cfg.minWeight ?? 0;
   const pos = g.attributes.position;
   const si = new Uint16Array(pos.count * 4);
   const sw = new Float32Array(pos.count * 4);
@@ -47,9 +53,16 @@ export function prepareMonsterModel(gltf, cfg) {
   const w = new Float32Array(names.length);
   for (let i = 0; i < pos.count; i++) {
     p.fromBufferAttribute(pos, i);
-    for (let j = 0; j < names.length; j++) w[j] = 1 / Math.pow(segDist(p, segs[j][0], segs[j][1]) + 0.02, sharp);
-    // keep the four strongest
+    for (let j = 0; j < names.length; j++) {
+      let d = Infinity;
+      for (const [a, b] of segs[j]) d = Math.min(d, segDist(p, a, b));
+      w[j] = 1 / Math.pow(d + 0.02, sharp);
+    }
+    // keep the four strongest; minWeight drops faint pulls from far parts, which would leave
+    // spikes behind when a limb swings a long way (a golem's arms over its head)
     const order = [...w.keys()].sort((a, b) => w[b] - w[a]).slice(0, 4);
+    const total = order.reduce((s, j) => s + w[j], 0);
+    while (order.length > 1 && w[order[order.length - 1]] / total < minW) order.pop();
     const sum = order.reduce((s, j) => s + w[j], 0);
     order.forEach((j, k) => {
       si[i * 4 + k] = j;
@@ -64,17 +77,20 @@ export function prepareMonsterModel(gltf, cfg) {
   return { geometry: g, map, bones: names, cfg };
 }
 
-function modelMaterial(map, flash, rim) {
+// glow: how far the colour ignores the lighting (1 = unlit, for spirits that give off light)
+function modelMaterial(map, flash, rim, glow) {
   const m = new THREE.MeshToonMaterial({ map, gradientMap: toonRamp() });
   m.userData.rig = true;
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uFlash = flash;
     shader.uniforms.uRim = { value: rim };
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uFlash; uniform float uRim;').replace(
+    shader.uniforms.uGlow = { value: glow };
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uFlash; uniform float uRim; uniform float uGlow;').replace(
       '#include <opaque_fragment>',
       `{
   vec3 vdir = normalize(vViewPosition);
   float rimK = pow(1.0 - clamp(dot(normal, vdir), 0.0, 1.0), 3.0) * uRim;
+  outgoingLight = mix(outgoingLight, diffuseColor.rgb * 1.15, uGlow);
   outgoingLight += vec3(1.0, 0.97, 0.9) * rimK * 0.5;
   outgoingLight = mix(outgoingLight, vec3(1.0), clamp(uFlash.x, 0.0, 1.0));
   outgoingLight += vec3(1.0, 0.45, 0.15) * uFlash.y + vec3(0.5, 0.8, 1.0) * uFlash.z;
@@ -99,8 +115,11 @@ export function attachMonsterModel(rig, T) {
     b.position.fromArray(p);
     b.userData.rest?.pos.copy(b.position);
   }
+  // procedural parts on the "keep" bones stay (e.g. a wisp's orbiting motes)
+  const kept = new Set((cfg.keep || []).map((n) => rig.bones[n]));
   const old = [];
-  rig.root.traverse((o) => o.isMesh && old.push(o));
+  const isKept = (o) => o && (kept.has(o) || isKept(o.parent));
+  rig.root.traverse((o) => o.isMesh && !isKept(o.parent) && old.push(o));
   for (const o of old) {
     o.removeFromParent();
     o.geometry.dispose();
@@ -108,10 +127,14 @@ export function attachMonsterModel(rig, T) {
   rig.root.updateMatrixWorld(true);
   const bones = T.bones.map((n) => rig.bones[n]);
   const skeleton = new THREE.Skeleton(bones, bones.map((b) => b.matrixWorld.clone().invert()));
-  const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3);
-  const hull = hullMaterial(cfg.outline || '#2a2230', cfg.outlineWidth ?? 0.02);
-  hull.userData.rig = true;
-  for (const m of [mat, hull]) {
+  const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0);
+  const mats = [mat];
+  if (cfg.outline !== false) {
+    const hull = hullMaterial(cfg.outline || '#2a2230', cfg.outlineWidth ?? 0.02);
+    hull.userData.rig = true;
+    mats.push(hull);
+  }
+  for (const m of mats) {
     const mesh = new THREE.SkinnedMesh(T.geometry, m);
     mesh.bind(skeleton, new THREE.Matrix4());
     mesh.frustumCulled = false;

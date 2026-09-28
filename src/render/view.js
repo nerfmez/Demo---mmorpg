@@ -53,9 +53,10 @@ export class View {
     this.shake = 0;
     this.time = 0;
 
-    const hemi = new THREE.HemisphereLight('#fff6e0', '#6f8f5a', 1.25);
+    const light = world.data.presentation || {};
+    const hemi = new THREE.HemisphereLight(light.ambientSky || '#fff6e0', light.ambientGround || '#6f8f5a', light.ambientIntensity ?? 1.25);
     this.scene.add(hemi);
-    this.sun = new THREE.DirectionalLight('#fff1d6', 2.1);
+    this.sun = new THREE.DirectionalLight(light.sunColor || '#fff1d6', light.sunIntensity ?? 2.1);
     this.sun.castShadow = true;
     const s = quality === 'high' ? 2048 : 1024;
     this.sun.shadow.mapSize.set(s, s);
@@ -68,6 +69,7 @@ export class View {
     sc.far = 90;
     this.sun.shadow.bias = -0.0008;
     this.sun.shadow.normalBias = 0.03;
+    this.sun.shadow.intensity = light.shadowIntensity ?? 1;
     this.scene.add(this.sun, this.sun.target);
 
     this.terrain = createTerrain(world);

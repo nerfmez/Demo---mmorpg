@@ -46,6 +46,10 @@ export function createWorld(worldData) {
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
   const inSea = (x, z, pad = 0) => !!shore && z > shoreZ(x) - pad;
   const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2);
+  // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
+  const isBeach = (x, z, pad = 0) => !!shore && z > shoreZ(x) - (worldData.sea.beach || 14) - pad;
+  const blocksWater = (x, z, pad = 0) => !onBridge(x, z, 0.2) &&
+    (inSea(x, z, pad) || inPond(x, z, pad) || (!river?.walkable && inRiver(x, z, pad)));
 
   // ---------- terrain ----------
   const hf = buildHeightfield(worldData, zoneAt);
@@ -76,7 +80,7 @@ export function createWorld(worldData) {
   const boxes = []; // colliders {x,z,hx,hz,angle,type}
   const decor = {
     flowers: [], grass: [], bushes: [], ferns: [], mushrooms: [], reeds: [], lilies: [], lanterns: [], fences: [],
-    crates: [], bones: [], pebbles: [], arches: [], banners: [], edgeTrees: [], logsDecor: [],
+    crates: [], bones: [], pebbles: [], shells: [], arches: [], banners: [], edgeTrees: [], logsDecor: [],
   };
   const PCELL = 4;
   const placed = new Map();
@@ -263,12 +267,12 @@ export function createWorld(worldData) {
       const jz = z + rng.range(-1.4, 1.4);
       if (!inBounds(jx, jz, -0.5)) {
         // forest band on the mountains around the map: looks enclosed, never reachable
-        const zn = zoneAt(clamp(jx, b.minX + 1, b.maxX - 1), clamp(jz, b.minZ + 1, b.maxZ - 1));
-        if (inSea(jx, jz, 2)) continue; // open sea to the horizon
-        if (rng.next() < 0.55) decor.edgeTrees.push({ x: jx, z: jz, type: zn.id === 'highlands' ? 'pine' : rng.chance(0.25) ? 'pine' : 'tree', scale: rng.range(0.9, 1.5), rot: rng.range(0, 6.28) });
+        if (isBeach(jx, jz, 2)) continue; // open sandy coast to the horizon
+        if (rng.next() < 0.55) decor.edgeTrees.push({ x: jx, z: jz, type: rng.chance(0.25) ? 'birch' : 'tree', scale: rng.range(0.9, 1.5), rot: rng.range(0, 6.28) });
         continue;
       }
       const zn = zoneAt(jx, jz);
+      if (isBeach(jx, jz, 1.5)) continue;
       const edge = Math.min(jx - b.minX, b.maxX - jx, jz - b.minZ) < 10 ? 0.45 : 0;
       // trees gather in groves with open clearings between them
       const grove = smooth01((valueNoise(jx * 0.035, jz * 0.035, 17) - 0.42) / 0.3) * 1.8;
@@ -311,6 +315,14 @@ export function createWorld(worldData) {
       if (inPond(x, z, -0.8) && rng.chance(0.3)) decor.lilies.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.1) });
       continue;
     }
+    if (isBeach(x, z, 2.5)) {
+      // Sparse, recognisable shore objects; never replace sand with meadow vegetation.
+      if (nearCollider(x, z, 0.5) || onBridge(x, z, 1)) continue;
+      const scatter = rng.next();
+      if (scatter < (worldData.sea.shellDensity ?? 0.17)) decor.shells.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.36, 0.7), kind: rng.chance(0.65) ? 'fan' : 'spiral' });
+      else if (scatter < 0.24) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.1) });
+      continue;
+    }
     if (roadDist(x, z) < -0.3) {
       if (rng.chance(0.08)) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.2) });
       continue;
@@ -350,7 +362,7 @@ export function createWorld(worldData) {
   /** True when a circle of radius r at (x,z) may stand there. */
   function isFree(x, z, r, { ignoreWater = false } = {}) {
     if (x < b.minX + r || x > b.maxX - r || z < b.minZ + r || z > b.maxZ - r) return false;
-    if (!ignoreWater && isWater(x, z, r * 0.3)) return false;
+    if (!ignoreWater && blocksWater(x, z, r * 0.3)) return false;
     for (const o of nearby(x, z)) {
       if (o.hx !== undefined) {
         if (pointInBox(o, x, z, r)) return false;
@@ -396,7 +408,7 @@ export function createWorld(worldData) {
       }
     }
     let blocked = false;
-    const bad = (px, pz) => (!opts.ignoreWater && isWater(px, pz, r * 0.3)) || (!opts.ignoreSlope && tooSteep(x, z, px, pz));
+    const bad = (px, pz) => (!opts.ignoreWater && blocksWater(px, pz, r * 0.3)) || (!opts.ignoreSlope && tooSteep(x, z, px, pz));
     if (bad(nx, nz)) {
       // slide: try each axis alone
       if (!bad(x + dx, z)) {
@@ -446,6 +458,8 @@ export function createWorld(worldData) {
     deckY,
     slopeAt: hf.slopeAt,
     isWater,
+    isBeach,
+    blocksWater,
     inSea,
     shoreZ,
     onBridge,

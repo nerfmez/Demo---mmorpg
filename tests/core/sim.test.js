@@ -40,7 +40,7 @@ test('the player never walks toward the target by itself', () => {
   assert.ok(Math.abs(p.x - x0) < 0.01);
 });
 
-test('every road is walkable, bridges included, and the river blocks elsewhere', () => {
+test('every road is walkable, bridges included, and the river retains its water mask', () => {
   const g = new Game(data, { seed: 1 });
   for (const road of g.world.roads) {
     const pts = road.points;

@@ -7,7 +7,7 @@ import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
 import {leafTexture,needleTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
-import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone} from './nature.js';
+import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell} from './nature.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const tmpM = new THREE.Matrix4();
@@ -290,7 +290,14 @@ export function createEnvironment(world) {
   const d = world.decor;
   // Grouped plant patches: short curved leaves and readable flowers, leaving paths clear.
   const grass=[],flowers=[],detailRng=createRng(842);
-  const clear=(x,z)=>!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
+  const clear=(x,z)=>!world.isBeach(x,z,2.5)&&!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
+  // Low relief shells have distinct fan/spiral silhouettes and raised ribs. Chunked like plants.
+  for (const kind of ['fan', 'spiral']) {
+    const shells = (d.shells || []).filter(s => s.kind === kind).map(s => ({ x:s.x, z:s.z, y:gy(s.x,s.z)+.025, s:s.s, ry:s.rot, color:kind==='fan'?'#f2decd':'#dfc5a9' }));
+    const shoreProps = instanced(beachShell(kind), mat('#ffffff',{vertexColors:true,double:true}), shells, {shadow:false});
+    shoreProps.name = `beach-shell-${kind}`;
+    root.add(shoreProps);
+  }
   for(const g of d.grass){
     for(let k=0;k<10;k++){
       const a=detailRng.range(0,6.28),r=k===0?0:detailRng.range(.15,1.3),x=g.x+Math.sin(a)*r,z=g.z+Math.cos(a)*r;

@@ -25,13 +25,61 @@ try {
   try{await page.screenshot({path:OUT+name+'.png',timeout:45000});}
   catch(e){console.log('Full-page capture failed; rendering canvas fallback',name);await page.locator('canvas').first().screenshot({path:OUT+name+'-canvas.png',timeout:60000});}
  };
- for(const [name,x,z] of (process.env.DREAMLOOP_NETWORK_ONLY?[]:[['gate',-102,4],['meadow',-78,7],['forest',-44,-35],['bridge',2,3],['wetland',38,34],['highlands',52,-58],['ruins',98,9]])) {
+ for(const [name,x,z] of ((process.env.DREAMLOOP_NETWORK_ONLY||process.env.DREAMLOOP_SURF_ONLY)?[]:[['gate',-183,4],['meadow',-124,11],['forest',-70,-56],['bridge',19.2,2.4],['stream',27,48],['wetland',70,39],['highlands',83,-93],['ruins',156,14],['coast',-40,176],['coast-east',131,175]])) {
   await page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.snapCamera();f.view.zoom=1;},[x,z]);
   await page.waitForTimeout(800);await capture(name);
   report.scenes.push({name,...await page.evaluate(()=>{const f=window.__frontier;return {triangles:f.view.renderer.info.render.triangles,calls:f.view.renderer.info.render.calls,position:{x:f.game.player.x,z:f.game.player.z}};})});
   console.log('captured',name);
  }
- if(pass!=='before') {
+ if(pass!=='before'&&!process.env.DREAMLOOP_NETWORK_ONLY) {
+  // A still image cannot demonstrate swash. Hold all game state/camera still and
+  // capture the same shore at low water, maximum run-up and the next low water.
+  await page.evaluate(()=>{
+   const f=window.__frontier,x=-40,z=f.world.shoreZ(x);
+   Object.assign(f.game.player,{x,z:z-.7,hp:f.game.player.maxHp,facing:Math.PI});
+   f.view.snapCamera();f.view.camTarget.z=z+2;f.view.zoom=1.15;
+   f.originalRender=f.view.render.bind(f.view);
+   f.view.render=(dt,time,ui)=>f.originalRender(dt,f.surfCaptureTime??time,ui);
+  });
+  for(const [name,phase] of [['surf-low',0],['surf-runup',.5],['surf-return',1]]) {
+   await page.evaluate(phase=>{const f=window.__frontier,period=f.world.data.sea.surf.period;f.surfCaptureTime=phase*period-f.game.player.x*.009*period/(Math.PI*2);},phase);
+   await page.waitForTimeout(250);await capture(name);
+  }
+  await page.evaluate(()=>{const f=window.__frontier;f.view.render=f.originalRender;delete f.originalRender;delete f.surfCaptureTime;});
+
+  // Exercise the actual touch joystick, then advance simulation with fixed steps.
+  // Keeping the game paused prevents software-GL speed from changing travel distance.
+  const crossing=await page.evaluate(()=>{
+   const f=window.__frontier,z=45,pts=f.world.data.river.points;
+   const i=pts.findIndex((p,i)=>i<pts.length-1&&z>=p[1]&&z<=pts[i+1][1]);
+   const a=pts[i],b=pts[i+1],cx=a[0]+(b[0]-a[0])*(z-a[1])/(b[1]-a[1]);
+   Object.assign(f.game.player,{x:cx-7,z,hp:9999});f.view.snapCamera();f.view.zoom=1;f.input.disabled=false;
+   return {cx,z};
+  });
+  const cdp=engine===chromium?await ctx.newCDPSession(page):null;
+  const joystick=async(type,x=100,y=650)=>{
+   if(cdp) await cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y,id:71}]});
+   else await page.evaluate(({type,x,y})=>window.__frontier.input.joyZone.dispatchEvent(new PointerEvent({touchStart:'pointerdown',touchMove:'pointermove',touchEnd:'pointerup'}[type],{bubbles:true,pointerId:71,pointerType:'touch',clientX:x,clientY:y})),{type,x,y});
+  };
+  report.streamCrossings=[];
+  for(const direction of [1,-1]) {
+   await joystick('touchStart');await joystick('touchMove',100+direction*65);
+   const result=await page.evaluate(direction=>{
+    const f=window.__frontier,start=f.game.player.x;
+    f.input.update();const moveX=f.game.input.moveX;
+    for(let i=0;i<72;i++){f.game.player.hp=9999;f.game.update(.04);}
+    f.view.snapCamera();return {start,end:f.game.player.x,moveX};
+   },direction);
+   await joystick('touchEnd');
+   assert.ok(direction*result.moveX>.9,'touch joystick drives movement');
+   assert.ok(direction*(result.end-crossing.cx)>6,'touch walks out on the opposite riverbank');
+   report.streamCrossings.push(result);await capture(direction>0?'stream-crossed-east':'stream-crossed-west');
+  }
+  await cdp?.detach();
+  await page.evaluate(()=>{const f=window.__frontier;f.input.disabled=true;f.game.setMove(0,0);});
+  console.log('surf phases captured; touch stream crossing passed');
+ }
+ if(pass!=='before'&&!process.env.DREAMLOOP_TERRAIN_ONLY) {
   for(const [device,w,h] of [['desktop',1600,900],['ipad',1180,820],['phone',390,844],['phone-landscape',844,390]]){
    await page.setViewportSize({width:w,height:h});
    await page.evaluate(()=>{const f=window.__frontier;f.panels.close();Object.assign(f.game.player,{x:-120,z:3});f.game.ch.jobNodes=['origin'];f.game.ch.jobLevel=20;f.game.ch.jobPoints=19;f.game.ch.gold=1000;f.panels.jobCamera=null;f.panels.sel.node=null;f.panels.open('job');});

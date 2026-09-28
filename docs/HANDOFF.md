@@ -7,6 +7,12 @@ this repo with other tools, so `main` may have moved.
 
 ## State (2026-09-28)
 
+- Owner's latest environment direction: softer daylight/colours like the seaside video.
+  No pine trees anywhere. Beach sand has shells, with no grass/flowers/ferns/reeds/bushes.
+  `sea.surf` controls waves washing up and retreating. The centre river is shallow and
+  freely wadeable (`river.walkable/depth/bankWidth`); bridges are optional. Preserve this
+  direction when adding props; use the shared `isBeach()` mask. Dreamloop now includes
+  surf phases and touch traversal in both directions.
 - Map 448×352 m with terrain height, 9 zones incl. Sunfall Coast by the sea, 8 waypoints,
   ~280 monsters, 2 bosses. Title screen, character creation, 3 save slots, quests.
 - Art/UX redesign by the owner (art.js, atlas.js, inventory.js, ux.css, art.css) is the

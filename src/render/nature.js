@@ -71,3 +71,33 @@ export function facetedStone() {
  for(let i=0;i<p.count;i++) {const x=p.getX(i),y=p.getY(i),z=p.getZ(i);p.setXYZ(i,x*(1+.09*Math.sin(z*8)),Math.min(.78,y*(1+.12*Math.sin(x*6+z))),z*(1+.10*Math.cos(x*7)));}
  g.computeVertexNormals();return g;
 }
+
+/** A scalloped fan and a coiled gastropod; surface relief stays readable at field scale. */
+export function beachShell(kind = 'fan') {
+ const pos=[], colors=[], indices=[];
+ const vertex=(x,y,z,t)=>{pos.push(x,y,z);colors.push(t,t*.98,t*.93);};
+ if(kind==='fan') {
+  const rings=6,segments=28;
+  for(let r=0;r<=rings;r++)for(let i=0;i<=segments;i++){
+   const u=r/rings,a=-1.2+i/segments*2.4,rib=Math.cos(i/segments*Math.PI*18);
+   const radius=(.46+.02*rib)*u;
+   vertex(Math.sin(a)*radius,.025+Math.sin(u*Math.PI)*.105+rib*.018*u,Math.cos(a)*radius-.18,.79+.14*(rib*.5+.5)+.06*u);
+  }
+  for(let r=0;r<rings;r++)for(let i=0;i<segments;i++){
+   const a=r*(segments+1)+i,b=a+segments+1;indices.push(a,b,a+1,a+1,b,b+1);
+  }
+ } else {
+  const segments=48,sides=7;
+  for(let i=0;i<=segments;i++){
+   const t=i/segments,a=t*Math.PI*5.3,rad=.27*(1-t)+.025,tube=.1*(1-t)+.008;
+   for(let j=0;j<=sides;j++){
+    const b=j/sides*Math.PI*2,rr=rad+Math.cos(b)*tube;
+    vertex(Math.cos(a)*rr,.11+t*.11+Math.sin(b)*tube,Math.sin(a)*rr,.78+.17*Math.max(0,Math.sin(b))+.04*Math.sin(a*7));
+   }
+  }
+  for(let i=0;i<segments;i++)for(let j=0;j<sides;j++){
+   const a=i*(sides+1)+j,b=a+sides+1;indices.push(a,a+1,b,a+1,b+1,b);
+  }
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g;
+}

@@ -279,7 +279,8 @@ export function buildHeightfield(worldData, zoneAt) {
   const river = worldData.river;
   if (river) {
     const half = river.width / 2;
-    const reach = half + 6;
+    const bankWidth = river.bankWidth ?? 6;
+    const reach = half + bankWidth;
     const bestR = new Float32Array(n).fill(Infinity);
     rasterPolyline(grid, river.points, reach, (k, d) => {
       if (d < bestR[k]) bestR[k] = d;
@@ -287,7 +288,14 @@ export function buildHeightfield(worldData, zoneAt) {
     for (let k = 0; k < n; k++) {
       const d = bestR[k];
       if (d === Infinity) continue;
-      hf[k] = carve(hf[k], d, half, water);
+      if (river.walkable) {
+        // A shallow gravel stream with a continuous gentle bank, not a sunken trench.
+        const bed = water - (river.depth ?? 0.18);
+        const edge = water + 0.08;
+        const channel = bed + (edge - bed) * smoothstep(0, half, d);
+        const bank = smoothstep(half, half + bankWidth, d);
+        hf[k] = d <= half ? channel : edge * (1 - bank) + Math.max(edge, hf[k]) * bank;
+      } else hf[k] = carve(hf[k], d, half, water);
     }
   }
   for (const [px, pz, pr] of worldData.ponds || []) {

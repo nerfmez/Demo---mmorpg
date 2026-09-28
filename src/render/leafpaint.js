@@ -7,7 +7,7 @@ export function leafTexture() {
  if(texture)return texture;
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;
  const c=canvas.getContext('2d'),rng=createRng(771);
- const palette=['#466c39','#547f3b','#658b3f','#76994b','#91ae57','#acc367'];
+ const palette=['#58734d','#648255','#75905e','#849e6a','#99b27c','#afc68f'];
  const leaf=(x,y,r,a,col)=>{
   c.save();c.translate(x,y);c.rotate(a);c.fillStyle=col;
   c.beginPath();c.moveTo(-r,0);c.bezierCurveTo(-r*.55,-r*.66,r*.44,-r*.48,r,0);c.bezierCurveTo(r*.35,r*.40,-r*.3,r*.70,-r,0);c.fill();c.restore();

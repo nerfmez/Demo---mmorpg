@@ -475,7 +475,7 @@
     }
   ],
   "river": {
-    "_doc": "River centre line; water blocks walking except on bridges.",
+    "_doc": "Shallow walkable stream. Cross anywhere with a gentle bank; bridges remain optional.",
     "width": 8,
     "points": [
       [
@@ -548,7 +548,10 @@
         "halfWidth": 2.2,
         "angle": 0.11
       }
-    ]
+    ],
+    "walkable": true,
+    "depth": 0.18,
+    "bankWidth": 10
   },
   "ponds": [
     [
@@ -620,7 +623,7 @@
       "hillAmp": 1.4,
       "treeDensity": 0.39,
       "trees": [
-        "pine",
+        "birch",
         "tree"
       ],
       "palette": [
@@ -667,8 +670,8 @@
       "hillAmp": 2.2,
       "treeDensity": 0.18,
       "trees": [
-        "pine",
-        "pine",
+        "birch",
+        "birch",
         "tree"
       ],
       "palette": [
@@ -695,7 +698,7 @@
         "tree",
         "tree",
         "birch",
-        "pine"
+        "birch"
       ],
       "palette": [
         "#71a556",
@@ -783,8 +786,8 @@
         "tree"
       ],
       "palette": [
-        "#b7bb82",
-        "#93a363"
+        "#a8b77c",
+        "#92a66a"
       ]
     },
     {
@@ -1292,7 +1295,7 @@
   },
   "sea": {
     "_doc": "Sea along the south edge: everything south of the shore line is water; a sandy beach is shaped just north of it.",
-    "beach": 16,
+    "beach": 20,
     "shore": [
       [
         -320.0,
@@ -1342,6 +1345,22 @@
         320.0,
         174.4
       ]
-    ]
+    ],
+    "shellDensity": 0.2,
+    "surf": {
+      "period": 7.5,
+      "runup": 2.6,
+      "retreat": 1.6,
+      "foamWidth": 0.075
+    }
+  },
+  "presentation": {
+    "_doc": "Soft daylight and coastal colours matched to the owner's September 28 video. Linear renderer exposure is unchanged.",
+    "ambientSky": "#fff8e9",
+    "ambientGround": "#8a947c",
+    "ambientIntensity": 1.55,
+    "sunColor": "#fff7e9",
+    "sunIntensity": 1.65,
+    "shadowIntensity": 0.72
   }
 }

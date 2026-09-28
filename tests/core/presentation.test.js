@@ -47,3 +47,17 @@ test('imported models name real gear bases and ship small GLB files',async()=>{
   assert.ok(m.tris<=(group==='characters'?8000:4000),id+' triangle budget');
  }
 });
+
+test('baked gait tables are complete cycles for every driver bone',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const gait=JSON.parse(readFileSync(new URL('../../data/gait.json',import.meta.url),'utf8'));
+ for(const k of ['walk','run']){
+  const g=gait[k],n=g.body.length;
+  assert.ok(n>=12&&g.cycle>0.5&&g.speed>0.5,k+' cycle');
+  for(const b of ['hips','torso','chest','head','legL','kneeL','footL','legR','kneeR','footR','armL','elbowL','handL','armR','elbowR','handR']){
+   assert.equal(g.bones[b]?.length,n,k+'/'+b);
+   for(const f of g.bones[b])assert.ok(f.length===3&&f.every((v)=>Math.abs(v)<Math.PI),k+'/'+b+' angles');
+  }
+ }
+ assert.ok(gait.run.speed>gait.walk.speed);
+});

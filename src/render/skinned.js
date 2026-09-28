@@ -8,9 +8,10 @@
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { toonRamp } from './toon.js';
+import { facePatch, faceTexture, faceMaterial, FACE_CELLS } from './face.js';
 
 // skin bone -> driver bone. Meshy's spine runs Hips > Spine02 > Spine01 > Spine (top).
-const MAP = {
+export const MAP = {
   Hips: 'hips', Spine02: 'torso', Spine: 'chest', Head: 'head',
   LeftUpLeg: 'legL', LeftLeg: 'kneeL', LeftFoot: 'footL',
   RightUpLeg: 'legR', RightLeg: 'kneeR', RightFoot: 'footR',
@@ -18,7 +19,7 @@ const MAP = {
   RightArm: 'armR', RightForeArm: 'elbowR', RightHand: 'handR',
 };
 // driver hierarchy in parent-first order: [bone, parent]
-const DRIVER = [
+export const DRIVER = [
   ['body', null], ['hips', 'body'], ['torso', 'hips'], ['chest', 'torso'], ['head', 'chest'],
   ['legL', 'hips'], ['kneeL', 'legL'], ['footL', 'kneeL'], ['legR', 'hips'], ['kneeR', 'legR'], ['footR', 'kneeR'],
   ['armL', 'chest'], ['elbowL', 'armL'], ['handL', 'elbowL'], ['armR', 'chest'], ['elbowR', 'armR'], ['handR', 'elbowR'],
@@ -26,6 +27,8 @@ const DRIVER = [
 
 const v = new THREE.Vector3();
 const qa = new THREE.Quaternion();
+const qz = new THREE.Quaternion();
+const Z = new THREE.Vector3(0, 0, 1);
 
 /** Pose the loaded model once (arms down), paint its zones and measure the joints. */
 export function prepareHeroBase(gltf, cfg) {
@@ -64,6 +67,7 @@ int clothZone(vec3 p) {
 }
 `;
   mesh.geometry.userData.shared = true;
+  const faceGeo = cfg.face ? facePatch(mesh.geometry, cfg.face) : null;
 
   // rest pose: arms hanging like the driver rig's (its rest is arms down, all rotations zero)
   const drop = cfg.armDrop ?? 1.35;
@@ -99,7 +103,7 @@ int clothZone(vec3 p) {
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36 * ns + (cfg.neckDrop ?? 0), 0)).toArray(), scale: ns };
   // the left shoulder guard, authored for the old thicker arm
   const armFit = { pos: cfg.shoulderPad?.pos || [0, 0, 0], scale: cfg.shoulderPad?.scale ?? 1 };
-  return { scene, joints, headFit, neckFit, armFit, zoneGLSL, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
+  return { scene, joints, headFit, neckFit, armFit, zoneGLSL, faceGeo, face: cfg.face, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
 function zoneUniform(colors) {
@@ -152,7 +156,7 @@ function skinHull(zones, width, darkness, zoneGLSL) {
 }
 
 /** Add a skinned body to a built driver rig and give the rig syncSkin(). */
-export function attachSkinnedBody(rig, T, colors, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
+export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
   const body = SkeletonUtils.clone(T.scene);
   const zones = zoneUniform(colors);
   let mesh = null;
@@ -166,6 +170,20 @@ export function attachSkinnedBody(rig, T, colors, { outline = 0.012, darkness = 
   hull.bind(mesh.skeleton, mesh.bindMatrix);
   hull.frustumCulled = false;
   mesh.parent.add(hull);
+  if (T.faceGeo) {
+    const cell = { value: new THREE.Vector2(...FACE_CELLS.open) };
+    const face = new THREE.SkinnedMesh(T.faceGeo, faceMaterial(faceTexture(look, T.face), cell));
+    face.bind(mesh.skeleton, mesh.bindMatrix);
+    face.frustumCulled = false;
+    face.renderOrder = 1;
+    mesh.parent.add(face);
+    let current = 'open';
+    rig.setFace = (expr) => {
+      if (expr === current || !FACE_CELLS[expr]) return;
+      current = expr;
+      cell.value.set(...FACE_CELLS[expr]);
+    };
+  }
   rig.root.add(body);
   body.updateMatrixWorld(true);
 
@@ -180,6 +198,11 @@ export function attachSkinnedBody(rig, T, colors, { outline = 0.012, darkness = 
     // driver rest rotations are identity, so the offset is the skin bone's rest root-space rotation
     e.offset = o.getWorldQuaternion(new THREE.Quaternion());
     e.parentQ = e.parent < 0 ? o.parent.getWorldQuaternion(new THREE.Quaternion()) : null;
+    // shoulders are not driven: they shrug when their arm rises above the horizontal
+    if (o.name === 'LeftShoulder' || o.name === 'RightShoulder') {
+      e.shrug = o.name === 'LeftShoulder' ? 'armL' : 'armR';
+      e.side = o.name === 'LeftShoulder' ? 1 : -1;
+    }
     index.set(o, list.length);
     list.push(e);
   });
@@ -197,7 +220,14 @@ export function attachSkinnedBody(rig, T, colors, { outline = 0.012, darkness = 
     for (const e of list) {
       const pw = e.parent < 0 ? e.parentQ : list[e.parent].world;
       if (e.driver) e.world.copy(dq[e.driver]).multiply(e.offset);
-      else e.world.copy(pw).multiply(e.restLocal);
+      else {
+        e.world.copy(pw).multiply(e.restLocal);
+        if (e.shrug) {
+          v.set(0, -1, 0).applyQuaternion(dq[e.shrug]);
+          const lift = Math.min(0.35, Math.max(0, (Math.acos(Math.max(-1, Math.min(1, -v.y))) - 1.2) * 0.35));
+          if (lift > 0) e.world.premultiply(qz.setFromAxisAngle(Z, e.side * lift));
+        }
+      }
       e.bone.quaternion.copy(qa.copy(pw).invert().multiply(e.world));
     }
     v.copy(b.hips.position).applyQuaternion(b.body.quaternion).add(b.body.position).applyMatrix4(T.hipsParentInv);

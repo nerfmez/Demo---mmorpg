@@ -31,10 +31,17 @@ this repo with other tools, so `main` may have moved.
   procedural so skin, eye and hair colours stay customisable.
 - Hero body plan (owner approved): Meshy bare body + rig (done, `src/render/skinned.js`),
   everything else in code. Steps: 1) skinned body in game, 2) old animations drive it
-  (both done); next 3) anime face drawn as a texture (eye colour, blinking), 4) hair styles
+  (both done), 3) anime face drawn as a texture (done, `src/render/face.js`: open, blink,
+  attack and hurt expressions), next 4) hair styles
   with a highlight band, 5) clothes/armour pieces (straps, pouch, boot cuffs, armour kinds
   are not drawn on the skinned body yet), then NPCs. `buildHumanoid(..., {procedural: true})`
   still builds the old body for comparison.
+- Animation: walk/run come from Meshy's mocap clips baked into `data/gait.json` by
+  `node scripts/bake-gait.mjs` (re-run it if the body or its rig changes); step rate follows
+  ground speed so feet do not slide. The sword combo is slashA/slashB/slashC, picked by
+  `castStart.step`. Shoulders shrug when an arm goes overhead (skinned.js).
+- Art review pages: run `npx vite --port 5199` and open pages you put in the git-ignored
+  `tests/browser/out/` (import from `/src/...`), then screenshot them with Playwright.
 
 ## Possible next steps the owner mentioned
 

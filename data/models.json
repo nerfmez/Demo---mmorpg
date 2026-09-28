@@ -29,7 +29,19 @@
         ],
         "scale": 0.8
       },
-      "source": "Meshy 7 image-to-3d (task 01a0e745-4bf5-7769-a5e4-583f6480a5e3), auto-rig (task 01a0e746-d8ad-721b-b174-cc1992231854); see assets/meshy/hero_base"
+      "source": "Meshy 7 image-to-3d (task 01a0e745-4bf5-7769-a5e4-583f6480a5e3), auto-rig (task 01a0e746-d8ad-721b-b174-cc1992231854); see assets/meshy/hero_base",
+      "face": {
+        "bottom": 1.53,
+        "frontZ": 0.03,
+        "eyeY": 1.613,
+        "eyeX": 0.038,
+        "eyeW": 0.041,
+        "eyeH": 0.035,
+        "browY": 1.649,
+        "noseY": 1.584,
+        "mouthY": 1.556,
+        "mouthW": 0.024
+      }
     }
   }
 }

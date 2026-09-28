@@ -71,6 +71,10 @@ each frame (bone map `MAP` there); in Godot, import the GLB with its `Skeleton3D
 retarget the same poses (or author them as clips). Clothes are colour zones cut from the
 bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
 helms and weapons are still attached to the head, chest and hand bones.
+The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
+head mesh; in Godot use a face texture with UV offsets per expression. `data/gait.json`
+holds the walk and run cycles as driver-bone Euler angles (XYZ) per frame; the cadence is
+`speed / cycle` cycles per second.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 
 Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,

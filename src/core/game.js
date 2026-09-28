@@ -382,7 +382,9 @@ export class Game {
     p.cooldowns[i] = s.cooldown;
     p.cast = { slot: i, t: 0, total: s.castTime, aim, skill: s };
     p.facing = aim.angle;
-    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime, weapon: this.derived.weaponType });
+    // step: which swing of the 1-2-3 combo this will be when it lands (for the animation)
+    const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + s.castTime) : 0;
+    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime, weapon: this.derived.weaponType, step });
     return true;
   }
 
@@ -698,6 +700,13 @@ export class Game {
     return { element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
   }
 
+  /** The combo step (0, 1, 2 = finisher) a melee swing landing at time t would be. */
+  comboStepAt(t) {
+    const p = this.player;
+    const window = this.data.progression.combat?.comboWindow ?? 1.1;
+    return t - (p.lastSwingT ?? -9) < window ? ((p.comboStep || 0) + 1) % 3 : 0;
+  }
+
   /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
   executeSkill(s, aim, { mult = 1, triggered = false, repeat = 0 } = {}) {
     const p = this.player;
@@ -711,7 +720,7 @@ export class Game {
         const cb = this.data.progression.combat || {};
         let finisher = false;
         if (!triggered && repeat === 0) {
-          p.comboStep = this.time - (p.lastSwingT ?? -9) < (cb.comboWindow ?? 1.1) ? ((p.comboStep || 0) + 1) % 3 : 0;
+          p.comboStep = this.comboStepAt(this.time);
           p.lastSwingT = this.time;
           finisher = p.comboStep === 2;
           if (finisher) mult *= cb.finisherMult ?? 1.5;

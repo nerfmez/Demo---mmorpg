@@ -2,10 +2,13 @@
 // Journal (quests + progress), World Map (fast travel) and Settings (graphics + save).
 // The game is paused while a panel is open (single-player demo).
 import { icon } from './icons.js';
-import { mapImage } from './mapimage.js';
+import { art } from './art.js';
+import { skillsView } from './skillview.js';
+import { atlasView } from './atlas.js';
+import { jobView } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, jobNodeState, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
-import { equipSkill, socketMod, unsocketMod, modFits, setMovement, modSlotOf } from '../core/skills.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
+import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
 import { inventoryView } from './inventory.js';
@@ -65,7 +68,6 @@ export class Panels {
       if (e.target === this.overlay) this.close();
     });
     this.body.addEventListener('click', (e) => this.onClick(e));
-    this.body.addEventListener('change', (e) => this.onSelect(e));
     this.tabsEl.addEventListener('click', (e) => {
       const t = e.target.closest('[data-tab]');
       if (t) {
@@ -88,12 +90,12 @@ export class Panels {
         } else if (!e.shiftKey && document.activeElement === last) {
           e.preventDefault(); first?.focus();
         }
-      } else if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) && e.target.matches('[data-tab]')) {
+      } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key) && e.target.matches('[data-tab]')) {
         e.preventDefault();
         e.stopPropagation();
         const tabs = [...this.tabsEl.querySelectorAll('[data-tab]')];
         const idx = tabs.indexOf(e.target);
-        const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (idx + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+        const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (idx + (['ArrowRight','ArrowDown'].includes(e.key) ? 1 : -1) + tabs.length) % tabs.length;
         tabs[next].click();
       }
     });
@@ -104,14 +106,13 @@ export class Panels {
   }
 
   open(tab) {
-    const near = this.game.nearby();
-    if (tab === 'craft' && !near.workbench) tab = 'bag';
     if (!this.isOpen) {
       const active = document.activeElement;
       this.returnFocus = active?.matches(':focus-visible')
         ? active.closest('#game-menu') ? document.querySelector('.menu-toggle') : active
         : null;
     }
+    if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
@@ -150,21 +151,21 @@ export class Panels {
   render(top = false) {
     if (!this.isOpen) return;
     const g = this.game;
-    const near = g.nearby();
     const b = this.badges();
     const tabs = [
       ['char', 'ตัวละคร', b.char],
       ['skills', 'สกิล & Mod'],
       ['job', 'Job Tree', b.job],
       ['bag', 'กระเป๋า'],
-      ...(near.workbench ? [['craft', 'โต๊ะคราฟต์']] : []),
+      ['craft', 'โต๊ะคราฟต์'],
       ['journal', 'ภารกิจ'],
       ['map', 'แผนที่'],
       ['settings', 'ตั้งค่า'],
     ];
     const active = document.activeElement;
     const activeData = active?.closest('.panel') ? { ...active.dataset } : null;
-    this.tabsEl.innerHTML = tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${label}${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
+    const tabIcon = {char:'person',skills:'book',job:'tree',bag:'bag',craft:'hammer',journal:'scroll',map:'map',settings:'gear'};
+    this.tabsEl.innerHTML = tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${icon(tabIcon[id])}<span>${label}</span>${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
     this.tabsEl.querySelector('.tab.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     this.overlay.querySelector('#panel-title').textContent = tabs.find(([id]) => id === this.tab)?.[1] || '';
     this.overlay.querySelector('.panel-gold').textContent = `${g.ch.gold.toLocaleString()} G`;
@@ -224,132 +225,12 @@ export class Panels {
 
   // ---------- Skills ----------
   render_skills() {
-    const g = this.game;
-    const ch = g.ch;
-    const data = g.data;
-    const near = g.nearby();
-    const learned = Object.keys(ch.skills).filter((id) => data.skills.combat[id]);
-    const slotLabels = ['ช่องต่อสู้ 1', 'ช่องต่อสู้ 2', 'ช่องต่อสู้ 3', 'ช่องต่อสู้ 4'];
-    const selected = this.sel.skill ?? 0;
-    const loadout = ch.slots.map((slot, i) => {
-      const def = data.skills.combat[slot.skill];
-      return `<button class="loadout-slot ${i === selected ? 'on' : ''}" data-act="skill-slot" data-slot="${i}" aria-pressed="${i === selected}"><span class="slot-number">${i + 1}</span>${icon(def?.icon || 'plus')}<b>${def?.nameTh || 'ช่องว่าง'}</b><small>${slot.mods.length ? `${slot.mods.length} Mod` : 'แตะเพื่อจัดสกิล'}</small></button>`;
-    }).join('');
-    const slots = ch.slots
-      .map((slot, i) => {
-        if (i !== selected) return '';
-        const s = g.skills[i];
-        const def = slot.skill ? data.skills.combat[slot.skill] : null;
-        const opts = [`<option value="">— ว่าง —</option>`]
-          .concat(
-            learned.map((id) => {
-              const sd = data.skills.combat[id];
-              const req = meetsRequires(ch, sd.requires);
-              return `<option value="${id}" ${slot.skill === id ? 'selected' : ''} ${req.ok ? '' : 'disabled'}>${sd.name} · ${sd.nameTh}${req.ok ? '' : ` (ต้อง ${req.missing.join(', ')})`}</option>`;
-            })
-          )
-          .join('');
-        let body = `<div class="muted">ช่องนี้ว่าง — ผู้เล่นเลือกได้ว่าจะไม่ใช้การโจมตีธรรมดาเลยก็ได้</div>`;
-        if (def && s) {
-          const lvl = ch.skills[slot.skill];
-          const upCost = skillUpgradeCost(data, slot.skill, lvl);
-          const sockets = [];
-          for (let k = 0; k < data.mods.maxModsPerSkill; k++) {
-            const uid = slot.mods[k];
-            if (uid) {
-              const inst = ch.mods.find((m) => m.uid === uid);
-              const md = data.mods.mods[inst.id];
-              const active = meetsRequires(ch, md.requires).ok;
-              sockets.push(`<button class="socket filled ${active ? '' : 'inactive'}" data-act="unsocket" data-uid="${uid}">◆ ${md.name} Lv.${inst.level}<br><span class="muted">${active ? 'แตะเพื่อถอด' : 'Stat ไม่ถึง · ยังไม่ทำงาน'}</span></button>`);
-            } else sockets.push(`<button class="socket" data-act="pick-socket" data-slot="${i}">◇ ช่อง Mod ว่าง<br><span class="muted">แตะเพื่อใส่</span></button>`);
-          }
-          body = `<div class="skill-name"><b>${def.nameTh}</b> <span class="muted">${def.name} · Lv.${lvl}</span></div>
-            <div class="muted">${esc(def.desc)}</div>
-            <div>${[...s.tags].map((t) => `<span class="tag">${TAG_TH[t] || t}</span>`).join('')}</div>
-            <div class="muted">${describeSkill(s)}</div>
-            <div class="sockets">${sockets.join('')}</div>
-            ${this.sel.socket === i ? this.modPicker(i) : ''}
-            <div class="row"><div class="grow cost">${upCost ? `อัปเป็น Lv.${lvl + 1}: ${costHtml(ch, data, upCost)}` : '<span class="muted">เลเวลสูงสุด</span>'}</div>
-            ${upCost ? `<button class="btn small" data-act="skill-up" data-skill="${slot.skill}" ${!near.workbench || !canAfford(ch, upCost) ? 'disabled' : ''}>อัปสกิล${near.workbench ? '' : ' (ที่โต๊ะคราฟต์)'}</button>` : ''}</div>`;
-        }
-        return `<div class="card slotcard"><div class="skicon">${def ? icon(def.icon) : icon('plus')}</div>
-          <div><label class="skill-selector"><b>${slotLabels[i]}</b><select aria-label="เลือกสกิลช่อง ${i + 1}" data-act="equip" data-slot="${i}">${opts}</select></label>${body}</div></div>`;
-      })
-      .join('');
-    const mvOpts = ch.movementSkills
-      .map((id) => {
-        const md = data.skills.movement[id];
-        const req = meetsRequires(ch, md.requires);
-        return `<button class="btn ${ch.movement === id ? 'on' : ''}" data-act="movement" data-id="${id}" ${req.ok ? '' : 'disabled'}>${md.name} · ${md.nameTh}${req.ok ? '' : ` (ต้อง ${req.missing.join(', ')})`}</button>`;
-      })
-      .join('');
-    const mv = g.move;
-    const notLearned = Object.keys(data.skills.combat).filter((id) => !ch.skills[id]).length;
-    return `<p class="panel-intro">เลือกช่อง → เลือกสกิล → ใส่ Mod เพื่อเปลี่ยนวิธีเล่น</p><div class="loadout-bar">${loadout}</div><div class="skill-editor">${slots}</div>
-      <div class="card movement-card"><h3>${icon(mv.id)} สกิลเคลื่อนที่ <span class="tag">ช่องแยก</span></h3>
-        <div class="switch">${mvOpts}</div>
-        <div class="muted" style="margin-top:6px">${esc(mv.def.desc)} · ${mv.charges} ชาร์จ · ชาร์จคืน ${mv.recharge.toFixed(1)} วิ${mv.invulnerable ? ' · อมตะระหว่างใช้' : ''}${mv.landing ? ` · ลงพื้นกระแทก ${Math.round(mv.landing.damage)}` : ''}</div></div>
-      <div class="panel-tip">เรียนสกิลเพิ่มและอัปเกรดได้ที่โต๊ะคราฟต์ในนิคม · ยังมี ${notLearned} สกิลให้ค้นหา</div>`;
-  }
-
-  modPicker(slotIndex) {
-    const g = this.game;
-    const ch = g.ch;
-    const data = g.data;
-    const def = data.skills.combat[ch.slots[slotIndex].skill];
-    if (!ch.mods.length) return `<div class="card" style="margin-top:6px"><span class="muted">ยังไม่มี Mod — คราฟต์ได้ที่โต๊ะคราฟต์</span></div>`;
-    const rows = ch.mods
-      .map((inst) => {
-        const md = data.mods.mods[inst.id];
-        const fit = modFits(def, md);
-        const req = meetsRequires(ch, md.requires);
-        const where = modSlotOf(ch, inst.uid);
-        return `<div class="row"><div class="grow"><b>${md.name}</b> · ${md.nameTh} Lv.${inst.level}<div class="muted">${esc(md.desc)}${where >= 0 ? ` · ใส่อยู่ที่ช่อง ${where + 1}` : ''}</div>${!req.ok ? `<div class="no">ต้อง ${req.missing.join(', ')} · ใส่ได้แต่ยังไม่ทำงาน</div>` : ''}</div>
-          <button class="btn small" data-act="socket" data-slot="${slotIndex}" data-uid="${inst.uid}" ${fit.ok ? '' : 'disabled'}>${fit.ok ? 'ใส่' : 'Tag ไม่ตรง'}</button></div>`;
-      })
-      .join('');
-    return `<div class="card" style="margin-top:6px"><div class="row" style="padding-top:0"><b class="grow">เลือก Mod</b><button class="btn small" data-act="pick-socket" data-slot="-1">ปิด</button></div>${rows}</div>`;
+    return skillsView(this, { costHtml, describeSkill, tagNames: TAG_TH });
   }
 
   // ---------- Job tree ----------
   render_job() {
-    const g = this.game;
-    const ch = g.ch;
-    const data = g.data;
-    const tree = data.jobtree;
-    const near = g.nearby();
-    const cost = respecCost(ch, data);
-    const lines = [];
-    for (const [id, n] of Object.entries(tree.nodes))
-      for (const l of n.links)
-        if (id < l) {
-          const m = tree.nodes[l];
-          const on = ch.jobNodes.includes(id) && ch.jobNodes.includes(l);
-          lines.push(`<line x1="${n.pos[0]}" y1="${n.pos[1]}" x2="${m.pos[0]}" y2="${m.pos[1]}" stroke="${on ? '#ffd166' : '#ffffff40'}" stroke-width="${on ? 1.2 : 0.7}"/>`);
-        }
-    const nodes = Object.entries(tree.nodes)
-      .map(([id, n]) => {
-        const taken = ch.jobNodes.includes(id);
-        const st = jobNodeState(ch, data, id);
-        return `<button class="jnode ${n.type} ${taken ? 'taken' : ''} ${st.can ? 'can' : ''} ${this.sel.node === id ? 'sel' : ''}" style="left:${n.pos[0]}%;top:${n.pos[1]}%" data-act="node" data-id="${id}">${n.type === 'minor' ? '' : n.nameTh}</button>`;
-      })
-      .join('');
-    const sel = this.sel.node ? tree.nodes[this.sel.node] : null;
-    let info = `<span class="muted">แตะโหนดเพื่อดูรายละเอียด · เดินต่อจากโหนดที่ได้แล้ว · โหนด Job (สี่เหลี่ยม) คือการเลือก Job ต้องมี Job Lv.${data.progression.job.jobChoiceLevel} และเลือกได้ 1 สาย</span>`;
-    if (sel) {
-      const st = jobNodeState(ch, data, this.sel.node);
-      const eff = Object.entries(sel.effects)
-        .map(([k, v]) => effectText(k, v))
-        .join(' · ');
-      const reason = st.taken ? 'ได้แล้ว' : st.reason === 'not_linked' ? 'ยังไม่เชื่อมกับโหนดที่ได้' : st.reason === 'no_points' ? 'Job Point ไม่พอ' : st.reason === 'job_level' ? `ต้อง Job Lv.${st.need}` : st.reason === 'one_job' ? 'เลือก Job ได้สายเดียว (รีแต้มเพื่อเปลี่ยน)' : '';
-      info = `<div><b>${sel.name}</b> · ${sel.nameTh} <span class="tag">${sel.type === 'job' ? 'JOB' : sel.type}</span></div>
-        ${sel.descTh ? `<div class="muted">${sel.descTh}</div>` : ''}<div>${eff || '<span class="muted">จุดเริ่มต้น</span>'}</div>
-        <div class="row"><div class="grow muted">${reason}</div><button class="btn primary" data-act="take-node" data-id="${this.sel.node}" ${st.can ? '' : 'disabled'}>ลงแต้ม</button></div>`;
-    }
-    return `<div class="row" style="padding-top:0"><div class="grow"><b>Job Points: ${ch.jobPoints}</b> <span class="muted">· Job Lv.${ch.jobLevel} · ${currentJob(ch, data) ? currentJob(ch, data).name : 'ยังไม่มี Job'}</span></div>
-      <button class="btn" data-act="respec-job" ${!near.inTown || ch.gold < cost.job || ch.jobNodes.length <= 1 ? 'disabled' : ''}>รีแต้ม Job · ${cost.job} G</button></div>
-      <div class="jobtree"><svg viewBox="0 0 100 100" preserveAspectRatio="none">${lines.join('')}</svg>${nodes}</div>
-      <div class="card" style="margin-top:8px">${info}</div>`;
+    return jobView(this, { effectText });
   }
 
   // ---------- Bag + equipment ----------
@@ -363,10 +244,10 @@ export class Panels {
       <div class="muted">${Object.entries(st)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>
-      ${wt ? `<div class="muted" style="color:#9fd8ff">${wt.nameTh} · ${Object.entries(imp)
+      ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${it.options.length ? `<div class="muted" style="color:#c59bff">${it.options.map((o) => optionText(data, o)).join(' · ')}</div>` : ''}`;
+      ${it.options.length ? `<div class="gear-options">${it.options.map((o) => optionText(data, o)).join(' · ')}</div>` : ''}`;
   }
 
   render_bag() {
@@ -423,15 +304,15 @@ export class Panels {
         const reqTxt = req && Object.keys(req).length ? `<span class="${meetsRequires(ch, req).ok ? 'ok' : 'no'}">ต้อง ${Object.entries(req)
           .map(([k, v]) => `${k} ${v}`)
           .join(', ')}</span> · ` : '';
-        return `<div class="recipe-card card ${block ? '' : 'ready'}"><div class="recipe-info"><b>${name}</b><p class="muted">${esc(desc)}</p><div class="cost">${reqTxt}${costHtml(ch, data, r.cost)}</div></div>
-          <div class="recipe-action"><small class="${block ? 'muted' : 'ok'}">${block ? REASON_TH[block] || block : 'พร้อมคราฟต์'}</small><button class="btn primary" data-act="craft" data-id="${id}" ${block ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์'}</button></div></div>`;
+        return `<div class="recipe-card card ${block ? '' : 'ready'}"><div class="recipe-hero">${art(r.type==='gear'?'gear':r.type==='mod'?'mod':'skill',r.result)}<div class="recipe-info"><b>${name}</b><p class="muted">${esc(desc)}</p><div class="recipe-requirements">${reqTxt}</div></div></div><div class="cost">${costHtml(ch, data, r.cost)}</div>
+          <div class="recipe-action"><small class="${block ? 'muted' : 'ok'}">${block ? REASON_TH[block] || block : 'พร้อมคราฟต์'}</small><button class="btn primary" data-act="craft" data-id="${id}" ${block || !g.nearby().workbench ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์'}</button></div></div>`;
       })
       .join('');
     return `${this.lastResult ? `<div class="result-pop" role="status">${this.lastResult}</div>` : ''}
-      <div class="workbench-summary"><div><b>โต๊ะคราฟต์กรีนฮอลโลว์</b><small>เลือกสูตรและตรวจวัตถุดิบก่อนคราฟต์</small></div><button class="btn ${this.sel.craftReady ? 'on' : ''}" data-act="craft-ready" aria-pressed="${!!this.sel.craftReady}">คราฟต์ได้ ${readyCount}/${recipes.length}${this.sel.craftReady ? ' · ดูทั้งหมด' : ' · กรอง'}</button></div>
+      <div class="workbench-summary"><div><b>โต๊ะคราฟต์กรีนฮอลโลว์</b><small>${g.nearby().workbench ? 'เลือกสูตรและตรวจวัตถุดิบก่อนคราฟต์' : 'ดูสูตรได้ทุกที่ · กลับโต๊ะคราฟต์ในนิคมเพื่อสร้างของ'}</small></div><button class="btn ${this.sel.craftReady ? 'on' : ''}" data-act="craft-ready" aria-pressed="${!!this.sel.craftReady}">คราฟต์ได้ ${readyCount}/${recipes.length}${this.sel.craftReady ? ' · ดูทั้งหมด' : ' · กรอง'}</button></div>
       <div class="switch" style="margin:8px 0">${CRAFT_FILTERS.map(([id, label]) => `<button class="btn ${cat === id ? 'on' : ''}" data-act="craft-filter" data-id="${id}">${label}</button>`).join('')}</div>
       <div class="recipe-grid">${rows || '<div class="inventory-empty"><h3>ยังไม่มีสูตรที่คราฟต์ได้</h3><p>แตะ “ดูทั้งหมด” เพื่อเช็กวัตถุดิบที่ขาด</p></div>'}</div>
-      <div class="muted" style="margin-top:10px">สูตรที่คราฟต์ได้ตอนนี้มีขอบสีทอง · อัปเลเวลสกิล (เมนูสกิล) ตีบวก และอัป Mod (เมนูกระเป๋า) ได้ขณะอยู่ที่โต๊ะนี้</div>`;
+      <div class="muted" style="margin-top:10px">สูตรที่คราฟต์ได้ตอนนี้มีขอบสีเขียว · อัปเลเวลสกิล (เมนูสกิล) ตีบวก และอัป Mod (เมนูกระเป๋า) ได้ขณะอยู่ที่โต๊ะนี้</div>`;
   }
 
   // ---------- Journal ----------
@@ -441,19 +322,18 @@ export class Panels {
     const data = g.data;
     const Q = data.quests;
     const tracked = trackedQuest(ch, data);
-    const row = (id, main) => {
-      const q = Q.quests[id];
-      const st = questState(ch, id);
-      if (st.status === 'locked') return `<div class="qrow locked"><b>🔒 ???</b><div class="muted">ทำภารกิจก่อนหน้าให้เสร็จก่อน</div></div>`;
-      const done = st.status === 'done';
-      const prog = Math.min(st.progress, q.count);
-      const tq = !done ? questTarget(g, id) : null;
-      const far = tq ? Math.round(Math.hypot(tq.x - g.player.x, tq.z - g.player.z)) : 0;
-      return `<div class="qrow ${done ? 'done' : ''} ${id === tracked ? 'tracked' : ''}">
-        <b>${done ? '✔' : id === tracked ? '★' : '•'} ${esc(q.nameTh)}</b> <span class="muted">${esc(q.name)}</span>
-        <div class="muted">${esc(q.descTh)}</div>
-        ${!done && q.count > 1 ? `<div class="qbar"><i style="width:${(prog / q.count) * 100}%"></i><span>${prog}/${q.count}</span></div>` : ''}
-        <div class="muted">รางวัล: ${rewardText(data, q.reward)}${far > 12 ? ` · ห่าง ${far} ม. (ดาวทองบนมินิแมพ)` : ''}</div></div>`;
+    const row = (id) => {
+      const q = Q.quests[id], st = questState(ch,id), done = st.status === 'done';
+      if (st.status === 'locked') return '';
+      const prog = Math.min(st.progress,q.count), target = !done ? questTarget(g,id) : null;
+      const far = target ? Math.round(Math.hypot(target.x-g.player.x,target.z-g.player.z)) : 0;
+      const picture = q.type==='kill' ? art('monster',q.target) : q.type==='collect' ? art('material',q.target) : q.type==='waypoint'||q.type==='zone' ? art('zone',q.target==='town'?'settlement':q.target) : q.type==='socket' ? art('mod','wide_arc') : q.type==='job' ? art('job','origin') : art('gear','tusk_blade');
+      const rewards = Object.entries(q.reward.items||{}).map(([item,n])=>`<span>${art('material',item)} ×${n}</span>`).join('');
+      return `<div class="qrow ${done?'done':''} ${id===tracked?'tracked':''}">${picture}<div class="qcontent">
+        <b>${done?'✓ ':id===tracked?'★ ':''}${esc(q.nameTh)}</b><div class="muted">${esc(q.descTh)}</div>
+        ${!done?`<div class="qbar"><i style="width:${prog/q.count*100}%"></i><span>${prog} / ${q.count}</span></div>`:''}
+        <div class="quest-rewards"><span>${rewardText(data,{...q.reward,items:{}})}</span>${rewards}</div>
+        ${far>12?`<small class="muted">ห่าง ${far} ม. · ตามดาวบนมินิแมพ</small>`:''}</div></div>`;
     };
     const sideOrder = [...Q.side].sort((a, b) => (questState(ch, a).status === 'done') - (questState(ch, b).status === 'done'));
     const p = ch.progress;
@@ -461,8 +341,9 @@ export class Panels {
     const bosses = (data.world.bosses || []).map((b) => `<span>${data.monsters.monsters[b.monster].name}</span><b>${p.bossKills[b.id] ? `ปราบแล้ว ×${p.bossKills[b.id]}` : '—'}</b>`).join('');
     const doneCount = [...Q.main, ...Q.side].filter((id) => questState(ch, id).status === 'done').length;
     return `<div class="grid2">
-      <div class="card"><h3>เนื้อเรื่องหลัก</h3>${Q.main.map((id) => row(id, true)).join('')}</div>
-      <div><div class="card"><h3>ภารกิจรอง</h3>${sideOrder.map((id) => row(id, false)).join('')}</div>
+      <div class="card"><h3>เนื้อเรื่องหลัก</h3>${Q.main.filter(id=>questState(ch,id).status!=='done').map(row).join('') || '<p class="muted">ทำเนื้อเรื่องหลักครบแล้ว</p>'}<p class="muted">${Q.main.filter(id=>questState(ch,id).status==='locked').length} ภารกิจจะเปิดเมื่อทำเรื่องก่อนหน้าสำเร็จ</p></div>
+      <div><div class="card"><h3>ภารกิจรอง</h3>${sideOrder.filter(id=>questState(ch,id).status!=='done').map(row).join('')}</div>
+        <details class="journal-completed"><summary>ภารกิจที่สำเร็จแล้ว · ${doneCount}</summary>${[...Q.main,...Q.side].filter(id=>questState(ch,id).status==='done').map(row).join('') || '<p class="muted">ยังไม่มีภารกิจที่สำเร็จ</p>'}</details>
         <div class="card" style="margin-top:12px"><h3>ความคืบหน้า</h3><div class="kv">
           <span>ภารกิจสำเร็จ</span><b>${doneCount}/${Q.main.length + Q.side.length}</b>
           <span>สำรวจพื้นที่</span><b>${p.zones.length}/${g.world.zones.length}</b>
@@ -477,49 +358,7 @@ export class Panels {
 
   // ---------- World map ----------
   render_map() {
-    const g = this.game;
-    const w = g.world;
-    const data = g.data;
-    const img = mapImage(w);
-    const b = w.bounds;
-    const W = b.maxX - b.minX;
-    const H = b.maxZ - b.minZ;
-    const L = (x) => `${((x - b.minX) / W) * 100}%`;
-    const T = (z) => `${((z - b.minZ) / H) * 100}%`;
-    const prog = g.ch.progress;
-    const fog = w.zones
-      .filter((z) => !prog.zones.includes(z.id))
-      .flatMap((z) => z.rects.map((r) => `<div class="fog" style="left:${L(r[0])};top:${T(r[2])};width:${((r[1] - r[0]) / W) * 100}%;height:${((r[3] - r[2]) / H) * 100}%"></div>`))
-      .join('');
-    const labels = w.zones
-      .filter((z) => prog.zones.includes(z.id))
-      .map((z) => {
-        const r = z.rects.reduce((a, c) => ((c[1] - c[0]) * (c[3] - c[2]) > (a[1] - a[0]) * (a[3] - a[2]) ? c : a));
-        return `<div class="zlabel" style="left:${L((r[0] + r[1]) / 2)};top:${T((r[2] + r[3]) / 2)}">${esc(z.nameTh)}<small>Lv.${z.level}${z.safe ? ' · ปลอดภัย' : '+'}</small></div>`;
-      })
-      .join('');
-    const wps = w.waypoints
-      .map((wp) => {
-        const on = g.isWaypointUnlocked(wp.id);
-        return `<button class="wpt ${on ? 'on' : ''}" style="left:${L(wp.x)};top:${T(wp.z)}" data-act="teleport" data-id="${wp.id}">${icon('portal')}<span>${esc(wp.nameTh)}</span></button>`;
-      })
-      .join('');
-    const bosses = (data.world.bosses || [])
-      .filter((bs) => prog.zones.includes(w.zoneAt(bs.pos[0], bs.pos[1]).id))
-      .map((bs) => `<div class="bossmark" style="left:${L(bs.pos[0])};top:${T(bs.pos[1])}" title="${data.monsters.monsters[bs.monster].name}">☠</div>`)
-      .join('');
-    const tq = questTarget(g, trackedQuest(g.ch, data));
-    const p = g.player;
-    const t = data.world.town;
-    return `${this.lastResult ? `<div class="result-pop" style="margin:0 0 8px">${this.lastResult}</div>` : ''}
-      <div class="worldmap" style="aspect-ratio:${W}/${H}">
-        <img src="${img.url()}" alt="" draggable="false">${fog}${labels}
-        <div class="townmark" style="left:${L(t.workbench[0])};top:${T(t.workbench[1])}">🔨</div>
-        ${bosses}${wps}
-        ${tq ? `<div class="questmark" style="left:${L(tq.x)};top:${T(tq.z)}">★</div>` : ''}
-        <div class="youmark" style="left:${L(p.x)};top:${T(p.z)};transform:translate(-50%,-50%) rotate(${Math.PI - p.facing}rad)"></div>
-      </div>
-      <div class="muted" style="margin-top:8px">แตะหินวาร์ปสีฟ้าเพื่อวาร์ป (ระหว่างต่อสู้วาร์ปไม่ได้) · หินสีเทายังไม่ปลดล็อก — เดินไปแตะเพื่อเปิดใช้ · ★ คือเป้าหมายภารกิจ · ☠ บอส · พื้นที่มืดคือที่ยังไม่ได้สำรวจ</div>`;
+    return atlasView(this);
   }
 
   // ---------- Settings ----------
@@ -548,16 +387,6 @@ export class Panels {
   }
 
   // ---------- actions ----------
-  onSelect(e) {
-    const t = e.target;
-    if (t.dataset.act === 'equip') {
-      const r = equipSkill(this.game.ch, this.game.data, Number(t.dataset.slot), t.value || null);
-      this.sel.socket = undefined;
-      if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
-      this.changed();
-    }
-  }
-
   onClick(e) {
     const t = e.target.closest('[data-act]');
     if (!t || t.tagName === 'SELECT') return;
@@ -567,6 +396,28 @@ export class Panels {
     const act = t.dataset.act;
     let r;
     switch (act) {
+      case 'choose-skill':
+        r = equipSkill(ch, data, Number(t.dataset.slot), t.dataset.id || null);
+        this.sel.socket = undefined;
+        if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+        return this.changed();
+      case 'inventory-back':
+        this.sel.detail = false;
+        this.render(true);
+        this.body.querySelector('.item-tile.on')?.focus({preventScroll:true});
+        return;
+      case 'select-zone':
+        this.sel.zone = t.dataset.id;
+        this.sel.waypoint = undefined;
+        this.render();
+        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
+        return;
+      case 'select-waypoint':
+        this.sel.waypoint = t.dataset.id;
+        this.sel.zone = t.dataset.id === 'town' ? 'settlement' : t.dataset.id;
+        this.render();
+        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
+        return;
       case 'skill-slot':
         this.sel.skill = Number(t.dataset.slot);
         this.sel.socket = undefined;
@@ -575,18 +426,19 @@ export class Panels {
         return this.open('skills');
       case 'inventory-category':
         this.sel.bag = t.dataset.id;
+        this.sel.detail = false;
         this.sel.item = undefined;
         return this.render(true);
       case 'inspect-item':
         this.sel.item = t.dataset.id;
-        this.render();
-        if (matchMedia('(max-width: 640px)').matches) this.body.querySelector('.item-detail')?.scrollIntoView({ block: 'nearest' });
-        return;
+        this.sel.detail = true;
+        return this.render(matchMedia('(max-width: 700px)').matches);
       case 'inspect-equipped':
         this.sel.bag = 'gear';
         this.sel.gear = 'all';
         this.sel.item = t.dataset.uid;
-        return this.render();
+        this.sel.detail = true;
+        return this.render(matchMedia('(max-width: 700px)').matches);
       case 'stat':
         allocateStat(ch, t.dataset.stat);
         return this.changed();
@@ -621,7 +473,9 @@ export class Panels {
         return this.changed();
       case 'node':
         this.sel.node = t.dataset.id;
-        return this.render();
+        this.render();
+        if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.job-detail')?.scrollIntoView({block:'start'});
+        return;
       case 'take-node':
         allocateJobNode(ch, data, t.dataset.id);
         g.notify({ type: 'job' });
@@ -654,6 +508,7 @@ export class Panels {
         sellMaterial(ch, data, t.dataset.id, 1);
         return this.changed();
       case 'craft': {
+        if (!g.nearby().workbench) return this.flash('กลับไปที่โต๊ะคราฟต์ในนิคมก่อน');
         r = craft(ch, data, t.dataset.id, g.rng);
         if (!r.ok) {
           this.flash(REASON_TH[r.reason] || r.reason);
@@ -663,11 +518,11 @@ export class Panels {
         if (r.kind === 'gear') {
           const it = r.item;
           const base = data.items.gearBases[it.base];
-          this.lastResult = `คราฟต์สำเร็จ! ${this.gearLine(it)}
+          this.lastResult = `${art('gear',it.base)} คราฟต์สำเร็จ! ${this.gearLine(it)}
             <button class="btn small" data-act="equip-gear" data-uid="${it.uid}" ${meetsRequires(ch, base.requires).ok ? '' : 'disabled'}>สวมเลย</button>`;
-        } else if (r.kind === 'mod') this.lastResult = `ได้ Mod <b>${data.mods.mods[r.item.id].name}</b> — ไปใส่ที่เมนูสกิล`;
-        else if (r.kind === 'skill') this.lastResult = `เรียนสกิล <b>${data.skills.combat[r.id].name}</b> แล้ว — เลือกใส่ช่องในเมนูสกิล`;
-        else this.lastResult = `เรียน <b>${data.skills.movement[r.id].name}</b> แล้ว — เลือกใช้ในเมนูสกิล`;
+        } else if (r.kind === 'mod') this.lastResult = `${art('mod',r.item.id)} ได้ Mod <b>${data.mods.mods[r.item.id].name}</b> — ไปใส่ที่เมนูสกิล`;
+        else if (r.kind === 'skill') this.lastResult = `${art('skill',r.id)} เรียนสกิล <b>${data.skills.combat[r.id].name}</b> แล้ว — เลือกใส่ช่องในเมนูสกิล`;
+        else this.lastResult = `${art('skill',r.id)} เรียน <b>${data.skills.movement[r.id].name}</b> แล้ว — เลือกใช้ในเมนูสกิล`;
         this.changed();
         this.body.scrollTop = 0;
         return;
@@ -715,9 +570,9 @@ function costHtml(ch, data, cost) {
     .map(([k, v]) => {
       const have = k === 'gold' ? ch.gold : ch.materials[k] || 0;
       const name = k === 'gold' ? 'G' : data.items.materials[k].nameTh;
-      return `<span class="${have >= v ? 'ok' : 'no'}">${name} ${have}/${v}</span>`;
+      return `<span class="ingredient ${have >= v ? 'ok' : 'no'}">${k==='gold'?'<span class="gold-coin">G</span>':art('material',k)}<span>${name}<b>${have.toLocaleString()} / ${v}</b></span></span>`;
     })
-    .join(' · ');
+    .join('');
 }
 
 const EFFECT_TH = {

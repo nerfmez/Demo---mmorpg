@@ -4,6 +4,7 @@
 // lean into turns), idle breathing and weight shift, keyframed actions with anticipation and
 // follow-through, hit reactions, and secondary motion (scarf, ponytail).
 import * as THREE from 'three';
+import { buildWeapon, equipmentDetails } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 
@@ -37,7 +38,7 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 /**
  * Build a humanoid.
  * @param {object} look appearance (see DEFAULT_LOOK)
- * @param {object} gear {weapon, armor, helm} visual kinds
+ * @param {object} gear {weapon, armor, helm, bases} visual kinds and base content IDs
  * @param {object} o {npc, apron, beard, longHair}
  */
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
@@ -65,9 +66,22 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
     rb.add(`knee${n}`, sph(0.068, 10, 8), PANTS);
     rb.add(`knee${n}`, cyl(0.068, 0.058, 0.26), PANTS);
-    rb.add(`knee${n}`, cyl(0.079, 0.07, 0.24), BOOTS, { pos: [0, -0.14, 0] });
-    rb.add(`knee${n}`, cyl(0.1, 0.092, 0.1), BOOTS, { pos: [0, -0.06, 0] });
-    rb.add(`foot${n}`, new THREE.BoxGeometry(0.12, 0.08, 0.25).translate(0, -0.02, 0.05), BOOTS);
+    const boots = gear.bases?.boots || 'travel_boots';
+    const color = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
+    if(boots!=='wisp_slippers'){
+      rb.add(`knee${n}`, cyl(.079,.07,.24), color, {pos:[0,-.14,0]});
+      rb.add(`knee${n}`, cyl(.1,.092,.1), boots==='wolf_boots'?'#cfccba':color, {pos:[0,-.06,0]});
+    }
+    rb.add(`foot${n}`, new THREE.BoxGeometry(.12,.08,.25).translate(0,-.02,.05), color);
+    if(boots==='wolf_boots'){
+      for(const x of [-.04,.04])rb.add(`foot${n}`,new THREE.ConeGeometry(.016,.07,4).rotateX(Math.PI/2),'#e8dfc3',{pos:[x,-.015,.20]});
+    }else if(boots==='wisp_slippers'){
+      rb.add(`foot${n}`,new THREE.ConeGeometry(.044,.17,5).rotateX(.95),'#99c9c5',{pos:[0,.03,.20]});
+    }else if(boots==='crag_greaves'){
+      rb.add(`knee${n}`,new THREE.BoxGeometry(.13,.22,.055),'#b9c4b3',{pos:[0,-.15,.065]});
+      rb.add(`knee${n}`,new THREE.OctahedronGeometry(.042),'#d0d7b3',{pos:[0,-.05,.093],plain:true});
+    }
+
   }
   // hips: tunic hem, belt, pouch
   rb.add('hips', new THREE.CylinderGeometry(0.16, 0.205, 0.28, 12, 1, true).translate(0, -0.08, 0).scale(1, 1, 0.8), tunic);
@@ -128,7 +142,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
-  weapon(rb, gear.weapon || (o.npc ? null : 'sword'));
+  buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
+  equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
   rig.look = L;
@@ -207,37 +222,10 @@ function helm(rb, kind, L) {
       rb.add('head', new THREE.ConeGeometry(0.035, 0.22, 6).translate(0, 0.11, 0), '#e7dcc0', { pos: [s * 0.12, 0.24, 0], rot: [0.2, 0, -s * 0.9] });
     }
   } else if (kind === 'hood') {
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.7).translate(0, 0.14, -0.02), '#6a7a4a');
+    rb.add('head', new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.7).translate(0, 0.14, -0.02), '#a58384');
+    for(const [x,y] of [[-.07,.24],[.075,.18]]) rb.add('head',new THREE.SphereGeometry(.02,6,4),'#e2caa1',{pos:[x,y,.10],plain:true});
   }
   void L;
-}
-
-function weapon(rb, kind) {
-  if (!kind) return;
-  rb.bone('weapon', 'handR', [0, -0.04, 0]);
-  if (kind === 'sword' || kind === 'dagger' || kind === 'greatblade') {
-    const len = kind === 'dagger' ? 0.4 : kind === 'greatblade' ? 1.05 : 0.78;
-    const w = kind === 'greatblade' ? 0.07 : kind === 'dagger' ? 0.03 : 0.035;
-    rb.add('weapon', new THREE.BoxGeometry(w, 0.012, len).translate(0, 0, len / 2 + 0.08), '#d6d9e0');
-    rb.add('weapon', new THREE.ConeGeometry(w * 0.6, 0.08, 4).rotateX(Math.PI / 2).translate(0, 0, len + 0.12), '#d6d9e0');
-    rb.add('weapon', new THREE.BoxGeometry(kind === 'dagger' ? 0.1 : 0.17, 0.03, 0.035), '#5b371f', { pos: [0, 0, 0.07] });
-    rb.add('weapon', new THREE.CylinderGeometry(0.018, 0.018, 0.14, 6).rotateX(Math.PI / 2), '#7a4b2c');
-    if (kind === 'greatblade') rb.add('weapon', new THREE.ConeGeometry(0.04, 0.18, 5).rotateX(Math.PI / 2), '#e7dcc0', { pos: [0.05, 0, 0.12], rot: [0, 0.5, 0] });
-  } else if (kind === 'axe') {
-    rb.add('weapon', new THREE.CylinderGeometry(0.022, 0.022, 0.8, 6).rotateX(Math.PI / 2).translate(0, 0, 0.3), '#7a4b2c');
-    rb.add('weapon', new THREE.BoxGeometry(0.05, 0.03, 0.12).translate(0, 0, 0.62), '#8a8c93');
-    rb.add('weapon', new THREE.CylinderGeometry(0.16, 0.16, 0.03, 12, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(Math.PI / 2).translate(0.02, 0, 0.62), '#b9bcc4');
-  } else if (kind === 'staff' || kind === 'wand') {
-    const len = kind === 'wand' ? 0.42 : 1.35;
-    rb.add('weapon', new THREE.CylinderGeometry(0.022, 0.028, len, 6).rotateX(Math.PI / 2).translate(0, 0, len * 0.35), '#6b4630');
-    rb.add('weapon', new THREE.OctahedronGeometry(kind === 'wand' ? 0.05 : 0.08), '#8fe0ff', { pos: [0, 0, len * 0.85 + 0.04], glow: true });
-    rb.add('weapon', new THREE.TorusGeometry(kind === 'wand' ? 0.05 : 0.08, 0.012, 5, 12), '#e0c060', { pos: [0, 0, len * 0.85 + 0.04], plain: true });
-  } else if (kind === 'bow') {
-    // held in the right hand for the demo rig; arc of the bow faces forward
-    const arc = new THREE.TorusGeometry(0.42, 0.018, 5, 18, Math.PI * 0.9).rotateZ(Math.PI / 2 - Math.PI * 0.45);
-    rb.add('weapon', arc, '#7a4b2c', { rot: [0, Math.PI / 2, 0], pos: [0, 0, 0.1] });
-    rb.add('weapon', new THREE.CylinderGeometry(0.004, 0.004, 0.8, 3), '#f4f0e8', { pos: [0, 0, -0.18], plain: true });
-  }
 }
 
 // ---------- animation ----------

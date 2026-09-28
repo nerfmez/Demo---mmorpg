@@ -55,6 +55,10 @@ try {
     assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'true');
     await activate('.menu [aria-label="ภารกิจ"]');
     assert.equal(await page.locator('#panel-title').textContent(), 'ภารกิจ');
+    assert.equal(await page.locator('[data-tab]').count(),8);
+    for(const tab of ['bag','craft','skills','job','map']) assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible');
+    assert.ok(await page.locator('.qrow [data-art="monster/tusk_boar"]').count());
+    await shot('journal');
     await page.locator('.pbody').evaluate((el) => el.scrollTop = el.scrollHeight);
     assert.ok(await onscreen('.panel-close'), 'close must remain reachable after scrolling');
     assert.ok(await onscreen('.panel-footer [data-close]'), 'return must remain reachable after scrolling');
@@ -78,6 +82,12 @@ try {
     assert.match(await page.locator('.item-detail').innerText(), /ใช้คราฟต์/);
     await activate('[data-act="sell"][data-id="boar_hide"]');
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.materials.boar_hide), 15);
+    if(width<=700){
+      assert.equal(await page.locator('.inventory-list').isVisible(),false);
+      await activate('[data-act="inventory-back"]');
+      assert.equal(await page.locator('.inventory-list').isVisible(),true);
+    }
+    await shot('materials');
     await activate('[data-tab="craft"]');
     await activate('[data-act="craft-filter"][data-id="armor"]');
     await activate('[data-act="craft-ready"]');
@@ -111,7 +121,7 @@ try {
     assert.equal(await page.locator('#panel-title').textContent(), 'สกิล & Mod');
     assert.equal(await page.locator('.loadout-slot.on').getAttribute('data-slot'), '3');
     const spell = await page.evaluate(() => window.__frontier.game.ch.slots[2].skill);
-    await page.locator('select[data-act="equip"]').selectOption(spell);
+    await activate(`[data-act="choose-skill"][data-id="${spell}"]`);
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.slots[3].skill), spell);
     await activate('.panel-close');
 
@@ -121,6 +131,24 @@ try {
       assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false, 'Space after a mouse-closed menu must not reopen the focused HUD button');
       assert.equal(await page.evaluate(() => window.__frontier.game.player.movement.charges), charges - 1);
     }
+
+    await activate('.minimap');
+    const beforeTravel=await page.evaluate(()=>({x:window.__frontier.game.player.x,z:window.__frontier.game.player.z}));
+    await activate('[data-act="select-zone"][data-id="meadow"]');
+    assert.equal(await page.locator('.region-detail [data-art="monster/tusk_boar"]').count(),1);
+    assert.ok(await page.locator('.region-detail [data-art="material/boar_hide"]').count());
+    assert.equal(await page.locator('[data-act="teleport"][data-id="meadow"]').isDisabled(),true);
+    assert.deepEqual(await page.evaluate(()=>({x:window.__frontier.game.player.x,z:window.__frontier.game.player.z})),beforeTravel,'selecting region must not travel');
+    await page.evaluate(()=>{window.__frontier.game.ch.progress.waypoints.push('meadow');});
+    await activate('[data-act="select-zone"][data-id="meadow"]');
+    await shot('map');
+    await activate('[data-act="teleport"][data-id="meadow"]');
+    assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
+    assert.ok(await page.evaluate(()=>{const g=window.__frontier.game,w=g.world.waypoints.find(p=>p.id==='meadow');return Math.hypot(g.player.x-w.x,g.player.z-w.z)<5;}));
+    // Recipes may be browsed away from town, but actions remain unavailable.
+    await page.evaluate(()=>window.__frontier.panels.open('craft'));
+    assert.equal(await page.locator('[data-act="craft"]:not(:disabled)').count(),0);
+    await activate('.panel-close');
 
     if (touch) {
       const gestures = await page.evaluate(() => {
@@ -167,6 +195,21 @@ try {
       await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
       assert.equal(await page.evaluate(() => window.__frontier.game.input.moveZ), 0);
+    }
+    if(width<=700){
+      await page.evaluate(()=>{
+        const f=window.__frontier,g=f.game,[x,z]=g.world.data.town.workbench;
+        Object.assign(g.player,g.freeSpotNear(x+1.5,z));
+        g.ch.materials={boar_hide:1};
+        f.panels.open('bag');
+      });
+      await activate('[data-act="inventory-category"][data-id="materials"]');
+      await activate('[data-act="inspect-item"][data-id="boar_hide"]');
+      await activate('[data-act="sell"][data-id="boar_hide"]');
+      assert.equal(await page.locator('.item-detail .inventory-empty').count(),1);
+      await activate('[data-act="inventory-back"]');
+      assert.ok(await page.locator('.inventory-list').isVisible(),'empty detail can return to the bag');
+      await activate('.panel-close');
     }
     assert.deepEqual(errors, [], `${name}: page errors`);
     console.log(`ok ${name}: HUD, persistent close, crafting, gear comparison/equip, sockets, empty skill slot, interrupted input`);

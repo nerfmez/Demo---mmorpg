@@ -1,5 +1,5 @@
 {
-  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) is separate from Grade and uses ruin_shard. shape = how the loot looks on the ground; rare = light beam.",
+  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) is separate from Grade and uses ruin_shard. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam.",
   "materials": {
     "boar_hide": { "name": "Boar Hide", "nameTh": "หนังหมูป่า", "color": "#8a5a3a", "value": 3, "shape": "box" },
     "boar_tusk": { "name": "Boar Tusk", "nameTh": "เขี้ยวหมูป่า", "color": "#efe3c4", "value": 5, "shape": "horn" },

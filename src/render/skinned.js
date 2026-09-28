@@ -95,9 +95,10 @@ int clothZone(vec3 p) {
   };
   // procedural head parts (hair, eyes, helms) were authored for a head centred 0.12 above
   // the head bone; fit them to this head
-  const hs = cfg.headScale ?? 1;
+  // (per-axis: this head is narrower and deeper than the procedural one)
+  const hs = Array.isArray(cfg.headScale) ? cfg.headScale : [cfg.headScale ?? 1, cfg.headScale ?? 1, cfg.headScale ?? 1];
   const hc = new THREE.Vector3(...(cfg.headCentre || [0, J.Head.y + 0.12, 0]));
-  const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0.005 * hs)).toArray(), scale: hs };
+  const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs[1], 0.005 * hs[2])).toArray(), scale: hs };
   // neck parts (scarf) were authored with the head bone 0.36 above the chest bone
   const ns = cfg.neckScale ?? 1;
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36 * ns + (cfg.neckDrop ?? 0), 0)).toArray(), scale: ns };
@@ -246,7 +247,8 @@ const DRIVER_NAMES = new Set(DRIVER.map(([n]) => n));
 export function fitParts(bone, fit) {
   const g = new THREE.Group();
   g.position.fromArray(fit.pos);
-  g.scale.setScalar(fit.scale);
+  if (Array.isArray(fit.scale)) g.scale.fromArray(fit.scale);
+  else g.scale.setScalar(fit.scale);
   for (const c of [...bone.children]) if (!DRIVER_NAMES.has(c.name)) g.add(c);
   bone.add(g);
   return g;

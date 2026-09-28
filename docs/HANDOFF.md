@@ -32,8 +32,8 @@ this repo with other tools, so `main` may have moved.
 - Hero body plan (owner approved): Meshy bare body + rig (done, `src/render/skinned.js`),
   everything else in code. Steps: 1) skinned body in game, 2) old animations drive it
   (both done), 3) anime face drawn as a texture (done, `src/render/face.js`: open, blink,
-  attack and hurt expressions), next 4) hair styles
-  with a highlight band, 5) clothes/armour pieces (straps, pouch, boot cuffs, armour kinds
+  attack and hurt expressions), 4) hair (done, `src/render/hair.js`: locks + hairline-cut cap per style, angel-ring
+  highlight, hair colour from the look), next 5) clothes/armour pieces (straps, pouch, boot cuffs, armour kinds
   are not drawn on the skinned body yet), then NPCs. `buildHumanoid(..., {procedural: true})`
   still builds the old body for comparison.
 - Animation: walk/run come from Meshy's mocap clips baked into `data/gait.json` by

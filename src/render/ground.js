@@ -5,15 +5,12 @@
 import * as THREE from 'three';
 import { rasterPolyline, boxBlur, valueNoise } from '../core/terrain.js';
 import { timeUniform } from './patch.js';
+import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 
 const TILE = 32;
 
-export const NOISE_GLSL = /* glsl */ `
-float hash12(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
-float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); vec2 u = f*f*(3.0-2.0*f);
-  return mix(mix(hash12(i), hash12(i+vec2(1,0)), u.x), mix(hash12(i+vec2(0,1)), hash12(i+vec2(1,1)), u.x), u.y); }
-float fbm3(vec2 p){ float v = 0.0; float a = 0.5; for(int i=0;i<3;i++){ v += a*vnoise(p); p = p*2.03 + 17.1; a *= 0.5; } return v / 0.875; }
-`;
+import { NOISE_GLSL, GROUND_COLOR_GLSL } from './ground-color.js';
+export { NOISE_GLSL } from './ground-color.js';
 
 const smooth = (e0, e1, x) => {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
@@ -21,7 +18,9 @@ const smooth = (e0, e1, x) => {
 };
 
 /** Per-grid-vertex surface data: splat (road, paving, mud, dirt) and blurred zone tints. */
-function surfaceData(world) {
+const surfaceCache = new WeakMap();
+export function surfaceData(world) {
+  if(surfaceCache.has(world)) return surfaceCache.get(world);
   const hf = world.heightfield;
   const { w, h, ox, oz, res } = hf;
   const n = w * h;
@@ -38,6 +37,7 @@ function surfaceData(world) {
       road[k] = Math.max(road[k], 1 - smooth(half - 0.7, half + 0.7, d));
     });
   }
+  if(artReviewLayout)rasterPolyline(grid,animeConfig.sample.path,1.6,(k,d)=>{road[k]=Math.max(road[k],1-smooth(.65,1.5,d));});
   if (wd.river) {
     const half = wd.river.width / 2;
     rasterPolyline(grid, wd.river.points, half + 3, (k, d) => {
@@ -96,8 +96,10 @@ function surfaceData(world) {
       const zn = world.zoneAt(Math.min(b.maxX - 0.1, Math.max(b.minX, x)), Math.min(b.maxZ - 0.1, Math.max(b.minZ, z)));
       const [L, D] = zn.palette || ['#9ccf5a', '#78b046'];
       const k = j * w + i;
-      const cl = col(L);
-      const cd = col(D);
+      const ab=animeConfig.bounds;
+      const blend=animeStudy?smooth(ab.minX-4,ab.minX+4,x)*(1-smooth(ab.maxX-4,ab.maxX+4,x))*smooth(ab.minZ-4,ab.minZ+4,z)*(1-smooth(ab.maxZ-4,ab.maxZ+4,z)):0;
+      const cl = blend?col(L).clone().lerp(col(animeConfig.palette.groundLight),blend):col(L);
+      const cd = blend?col(D).clone().lerp(col(animeConfig.palette.groundDark),blend):col(D);
       lr[k] = cl.r;
       lg[k] = cl.g;
       lb[k] = cl.b;
@@ -108,7 +110,9 @@ function surfaceData(world) {
   }
   const blur = (a) => boxBlur(boxBlur(a, w, h, 6), w, h, 4);
   [lr, lg, lb, dr, dg, db] = [lr, lg, lb, dr, dg, db].map(blur);
-  return { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db };
+  const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db };
+  surfaceCache.set(world,result);
+  return result;
 }
 
 export function createTerrain(world) {
@@ -210,7 +214,7 @@ vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vSplat = aSplat; vCoast 
         `#include <common>
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast;
 uniform float uTime; uniform vec3 uArena; uniform float uWater;
-${NOISE_GLSL}`
+${GROUND_COLOR_GLSL}`
       )
       .replace(
         'vec4 diffuseColor = vec4( diffuse, opacity );',
@@ -218,75 +222,7 @@ ${NOISE_GLSL}`
 {
   vec2 w = vWorldPos.xz;
   float y = vWorldPos.y;
-  float big = fbm3(w * 0.11);
-  float mid = vnoise(w * 1.15);
-  float fine = vnoise(w * 5.2);
-  // Broad colour groups are quiet; the silhouette of tiny grass strokes supplies detail.
-  float patchT = smoothstep(0.25, 0.77, big + (mid - 0.5) * 0.12);
-  vec3 grass = mix(vTintD, vTintL, patchT);
-  grass *= 0.97 + step(.48, mid)*.035 + clamp(y * .006, -.02, .035);
-  vec2 grassCell=floor(w*2.5), gf=fract(w*2.5)-.5;
-  gf-=(vec2(hash12(grassCell+13.2),hash12(grassCell+37.7))-.5)*.48;
-  float seed=hash12(grassCell);
-  float ga=(seed-.5)*1.4;gf=mat2(cos(ga),-sin(ga),sin(ga),cos(ga))*gf;
-  float tuft=0.0;
-  for(int b=0;b<3;b++) {
-    float fi=float(b), side=fi-1.0;
-    vec2 q=gf-vec2(side*.12,abs(side)*.07);
-    float bend=q.y*q.y*side*.8;
-    float width=.032*max(.0,1.0-(q.y+.24)/.48);
-    float stem=(1.0-smoothstep(width,width+.015,abs(q.x-bend-side*q.y*.23)))*step(-.24,q.y)*(1.0-step(.26,q.y));
-    tuft=max(tuft,stem);
-  }
-  float tuftPatch=smoothstep(.31,.53,big+mid*.18)*step(.38,seed);
-  grass=mix(grass,seed>.62?grass*1.10+vec3(.008,.008,0.0):grass*.86,tuft*tuftPatch*.28);
-  grass*=1.0+(fine-.5)*.045;
-  vec2 blot=floor(w*3.8),bp=fract(w*3.8)-.5;
-  float bd=length(bp*vec2(1.2,.7));
-  float daub=(1.0-smoothstep(.12,.28,bd))*step(.53,hash12(blot));
-  grass=mix(grass,hash12(blot+19.0)>.55?grass*1.08:grass*.93,daub*.25);
-  vec3 dry = mix(vec3(.38,.32,.15),vec3(.46,.38,.19),smoothstep(.3,.7,mid));
-  // Warm packed earth, irregular worn patches and sparse little stone faces.
-  vec3 road=mix(vec3(.53,.43,.28),vec3(.64,.53,.36),smoothstep(.2,.8,big*.7+mid*.3));
-  vec2 pebbles=w*3.2;vec2 pc=floor(pebbles),pf=fract(pebbles)-.5;
-  float pr=length(pf*vec2(1.0,1.6));float ps=hash12(pc);
-  float pebble=(1.0-smoothstep(.09,.14,pr))*step(.92,ps);
-  road=mix(road,vec3(.75,.64,.42),pebble*.7);
-  road*=1.0+(fine-.5)*.035;
-  vec3 mud=mix(vec3(.23,.27,.16),vec3(.39,.34,.20),smoothstep(uWater-.2,uWater+.6,y));
-  mud=mix(mud,vec3(.40,.45,.31),step(.72,fine)*.15);
-  // dry beach sand above the waterline (sea coast and sandy banks)
-  mud=mix(mud,vec3(.74,.64,.44)+(mid-.5)*.05,smoothstep(uWater+.35,uWater+.95,y));
-  // Worn, bevelled paving with staggered courses and plants between stones.
-  vec2 tw=w*vec2(1.10,1.35);tw+=vec2(vnoise(w*2.0),vnoise(w*2.0+7.0))*.10;
-  vec2 tile=tw+vec2(step(.5,fract(tw.y*.5))*.5,0.0);
-  vec2 f=abs(fract(tile)-.5);float edge=max(f.x,f.y);
-  float grout=smoothstep(.448,.475,edge);
-  vec3 stone=mix(vec3(.40,.37,.32),vec3(.53,.49,.41),hash12(floor(tile)));
-  stone+=vec3(.035)*step(.38,edge)*(1.0-grout);
-  stone=mix(stone,vec3(.24,.25,.19),grout);
-  float mossAmt=w.x>110.0?.8:.24;
-  stone=mix(stone,grass*.85,grout*smoothstep(.36,.60,big)*mossAmt);
-  // Angular cliff strata; noise breaks the band edges rather than colouring every pixel.
-  float strata=vnoise(vec2(w.x*.21+w.y*.19,y*2.7));
-  vec3 rock=mix(vec3(.29,.28,.27),vec3(.43,.41,.36),step(.42,strata));
-  rock=mix(rock,vec3(.49,.47,.41),step(.72,strata)*.4);
-  vec3 col=mix(grass,dry,vSplat.a*.55);
-  col=mix(col,mud,smoothstep(.2,.8,vSplat.b));
-  float roadEdge=vSplat.r+(mid-.5)*.25+(fine-.5)*.10;
-  col=mix(col,road,smoothstep(.41,.55,roadEdge));
-  col=mix(col,stone,smoothstep(.45,.55,vSplat.g+(mid-.5)*.14));
-  float cliff=1.0-smoothstep(.68,.82,vUp+(fine-.5)*.035);
-  col=mix(col,rock,cliff);
-  // A dedicated sand layer covers both ground grass strokes and the path texture.
-  // Warm, broad paint variation; darker damp sand next to the wash, no yellow glare.
-  vec3 sand=mix(vec3(.64,.56,.37),vec3(.76,.69,.49),big);
-  sand*=1.0+(mid-.5)*.07+(fine-.5)*.035;
-  float grain=step(.94,hash12(floor(w*17.0)));
-  sand=mix(sand,sand*.87,grain*.3);
-  float damp= smoothstep(-6.0,-.3,vCoast.y);
-  sand=mix(sand,vec3(.45,.44,.32),damp*.46);
-  col=mix(col,sand,vCoast.x);
+  vec3 col=groundColor(w,y,vTintL,vTintD,vSplat,vCoast,vUp,uWater);
   // boss arena rune circle
   float ad = distance(w, uArena.xy);
   float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));
@@ -294,13 +230,12 @@ ${NOISE_GLSL}`
   // under the water line: darker, bluish
   col = mix(col, col * vec3(0.70, 0.81, 0.80), (1.0-smoothstep(uWater - 0.4, uWater + 0.05, y)));
   // drifting cloud shadows
-  float cloud = fbm3(w * 0.012 + vec2(uTime * 0.012, uTime * 0.006));
-  col *= 1.0 - 0.045 * smoothstep(0.55, 0.72, cloud);
+  col *= groundCloud(w,uTime);
   diffuseColor.rgb = col;
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-soft-coast-v4';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v5';
   return mat;
 }
 

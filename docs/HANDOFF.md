@@ -5,8 +5,27 @@ iPad, writes in Thai, and deploys from `main` to GitHub Pages
 (https://nerfmez.github.io/Demo---mmorpg/). Always `git fetch` first: the owner also works on
 this repo with other tools, so `main` may have moved.
 
-## State (2026-09-28)
+## State (2026-09-29)
 
+- Newest local revision: trunk geometry and colours redesigned at owner request.
+  Read ART-STUDY.md; trunk parameters/palette are in data/art.json. Use
+  DREAMLOOP_TRUNK_REVIEW=1 for its diagnostic close-up. Still preview only.
+- Current follow-up: known flatness has been revised using arched patch geometry
+  and multidirectional volume placement. Dreamloop now supports ART_ORBIT for a
+  diagnostic side view. Owner visual approval is still required before publishing.
+- Latest owner correction: foliage should read as connected jagged paint masses,
+  not equal-sized complete leaves. IMG_0639.webp is the contour reference; keep the
+  soft existing palette. The new local patch revision removes round filler cores,
+  adds irregular silhouettes and unequal bowed patches; image review remains pending.
+- Previous local work: owner approved proceeding with the Ni no Kuni direction plan.
+  An opt-in sample is implemented with `art=anime`; `art=baseline` provides matching
+  specimen positions using the previous rejected art. Read `docs/ART-STUDY.md` for
+  capture commands, coordinates, caveats and the image-review gate. New foliage is
+  `src/render/anime-study.js`; palettes/shape arrays are in `data/art.json → anime`.
+  The extra sample props are renderer-only and are not release collision/layout data.
+- Owner image review is still pending. Do not merge/deploy or expand all biomes from
+  technical tests. Earlier solid crowns, directed leaf sprays and oval-leaf shrubs
+  were rejected. The new screenshots must be reviewed separately.
 - Owner's latest environment direction: softer daylight/colours like the seaside video.
   No pine trees anywhere. Beach sand has shells, with no grass/flowers/ferns/reeds/bushes.
   `sea.surf` controls waves washing up and retreating. The centre river is shallow and

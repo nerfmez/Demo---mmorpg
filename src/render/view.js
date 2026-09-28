@@ -16,6 +16,7 @@ import { timeUniform } from './patch.js';
 import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
+import { animeStudy, animeConfig } from './anime-study.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -53,7 +54,7 @@ export class View {
     this.shake = 0;
     this.time = 0;
 
-    const light = world.data.presentation || {};
+    const light = animeStudy ? animeConfig.light : world.data.presentation || {};
     const hemi = new THREE.HemisphereLight(light.ambientSky || '#fff6e0', light.ambientGround || '#6f8f5a', light.ambientIntensity ?? 1.25);
     this.scene.add(hemi);
     this.sun = new THREE.DirectionalLight(light.sunColor || '#fff1d6', light.sunIntensity ?? 2.1);

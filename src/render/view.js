@@ -8,6 +8,7 @@ import { createTerrain, createWater } from './ground.js';
 import { createEnvironment } from './environment.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
+import { monsterModel } from './models.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
@@ -140,6 +141,19 @@ export class View {
     const p = game.player;
     this.heroY = this.world.groundY(p.x, p.z);
     this.camTarget.set(p.x, this.heroY, p.z);
+  }
+
+  /** Drop pooled monster rigs (e.g. once imported models have loaded, so new ones use them). */
+  clearRigPool() {
+    for (const pool of this.rigPool?.values() || []) for (const rig of pool) disposeObject(rig.root);
+    this.rigPool = null;
+    // monsters already on screen with the procedural body are rebuilt on the next frame
+    for (const [id, mv] of this.monsterViews) {
+      if (mv.rig.model || !monsterModel(mv.rig.type)) continue;
+      disposeObject(mv.rig.root);
+      disposeObject(mv.halo);
+      this.monsterViews.delete(id);
+    }
   }
 
   /** Monster models are pooled per type: building one costs time and GPU memory. */

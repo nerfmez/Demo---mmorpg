@@ -34,6 +34,7 @@ const view = new View(canvas, world, { quality });
 // then the hero, the creation preview and the portrait are rebuilt once.
 loadModels(data.models).then(() => {
   view.heroLookKey = null;
+  view.clearRigPool(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();
   F.modelsReady = true;
 });

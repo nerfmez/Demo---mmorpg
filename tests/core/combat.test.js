@@ -1,0 +1,59 @@
+// Combat feel rules: 1-2-3 melee combo with a finisher, and short flinches that never cancel a wind-up.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { data } from './helpers.js';
+import { Game } from '../../src/core/game.js';
+
+const setup = (seed) => {
+  const g = new Game(data, { seed });
+  const m = g.monsters.find((q) => q.type === 'crag_golem'); // tanky: survives three swings
+  const s = g.freeSpotNear(m.x - 1.8, m.z);
+  g.player.x = s.x;
+  g.player.z = s.z;
+  m.x = s.x + 1.8;
+  m.z = s.z;
+  g.derived.critChance = 0;
+  return { g, m };
+};
+const swing = (g, m) => {
+  const hp = m.hp;
+  g.executeSkill(g.skills[0], { angle: Math.atan2(m.x - g.player.x, m.z - g.player.z), x: g.player.x, z: g.player.z });
+  g.time += 0.4;
+  return hp - m.hp;
+};
+
+test('the third swing in a row is a finisher that hits harder and knocks back', () => {
+  const { g, m } = setup(21);
+  m.def = { ...m.def, defense: 0 };
+  const a = swing(g, m);
+  const b = swing(g, m);
+  const x0 = m.x;
+  const c = swing(g, m);
+  assert.ok(c > a * 1.3 && c > b * 1.3, `finisher ${c} vs ${a}, ${b}`);
+  assert.ok(m.x > x0, 'knocked away from the player');
+  const ev = g.drainEvents().filter((e) => e.type === 'slash');
+  assert.deepEqual(ev.map((e) => e.finisher), [false, false, true]);
+  g.time += 2; // combo resets after a pause
+  swing(g, m);
+  assert.equal(g.player.comboStep, 0);
+});
+
+test('hits make regular monsters flinch, but never cancel a started wind-up; bosses do not flinch', () => {
+  const { g, m } = setup(22);
+  m.aggro = true;
+  m.state = 'chase';
+  g.hitMonster(m, 5);
+  assert.ok(m.staggerT > 0);
+  const x0 = m.x;
+  g.update(1 / 60);
+  assert.equal(m.x, x0, 'stands still while flinching');
+  m.state = 'windup';
+  m.stateT = 0;
+  m.windup = { name: 'pound', total: 1, angle: 0 };
+  g.hitMonster(m, 5);
+  g.update(0.05);
+  assert.equal(m.state, 'windup', 'wind-up keeps going');
+  const boss = g.monsters.find((q) => q.boss);
+  g.hitMonster(boss, 5);
+  assert.ok(!(boss.staggerT > 0));
+});

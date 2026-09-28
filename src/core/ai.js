@@ -31,6 +31,11 @@ export function updateMonster(game, m, dt) {
     setState(m, 'return');
   }
 
+  if (m.staggerT > 0) {
+    m.staggerT -= dt;
+    if (m.state !== 'windup' && m.state !== 'act' && m.state !== 'return') return; // flinching
+  }
+
   switch (m.state) {
     case 'idle':
       return idle(game, m, dt, slowMult);

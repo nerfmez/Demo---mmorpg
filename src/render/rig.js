@@ -14,6 +14,7 @@ const tmpEuler = new THREE.Euler();
 /** Toon material with vertex colours, a soft rim light and flash/tint uniforms. */
 export function rigMaterial({ rim = 0.35, double = true } = {}) {
   const m = new THREE.MeshToonMaterial({ color: 0xffffff, vertexColors: true, gradientMap: toonRamp(), side: double ? THREE.DoubleSide : THREE.FrontSide });
+  m.userData.rig = true; // one per rig: freed with the rig
   m.userData.flash = { value: new THREE.Vector3(0, 0, 0) };
   m.userData.rim = { value: rim };
   m.userData.opacity = { value: 1 };

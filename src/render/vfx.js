@@ -2,6 +2,7 @@
 // Shapes follow the gameplay hit areas (arc, radius, path), so what you see is what hits.
 // Everything is placed on the terrain; flat shapes are ground-hugging decals.
 import * as THREE from 'three';
+import { disposeObject } from './dispose.js';
 import { Particles } from './particles.js';
 import { toon } from './toon.js';
 import { makeDecal, conform } from './decal.js';
@@ -166,6 +167,20 @@ function discGeometry(segs = 40, rings = 6) {
   return g;
 }
 
+let arrowGeo = null;
+/** One shared set of arrow meshes for every arrow in flight. */
+function arrowGeometry() {
+  if (!arrowGeo) {
+    arrowGeo = {
+      shaft: new THREE.CylinderGeometry(0.025, 0.025, 0.9, 5).rotateX(Math.PI / 2),
+      tip: new THREE.ConeGeometry(0.06, 0.18, 5).rotateX(Math.PI / 2).translate(0, 0, 0.52),
+      fletch: new THREE.BoxGeometry(0.14, 0.02, 0.18).translate(0, 0, -0.4),
+    };
+    for (const g of Object.values(arrowGeo)) g.userData.shared = true;
+  }
+  return arrowGeo;
+}
+
 function ringGeometry(inner = 0.86, outer = 1, segs = 56) {
   return new THREE.RingGeometry(inner, outer, segs, 1).rotateX(-Math.PI / 2);
 }
@@ -183,6 +198,7 @@ export class Vfx {
     this.telegraphs = new Map();
     this.discGeo = discGeometry();
     this.ringGeo = ringGeometry();
+    this.sharedGeo = new Set([this.discGeo, this.ringGeo]);
     this.glow = glowTexture();
     this.shake = 0;
   }
@@ -506,7 +522,7 @@ export class Vfx {
       })
     );
     m.scale.set(0.9, 1.15, 0.9);
-    this.wardMesh?.removeFromParent();
+    disposeObject(this.wardMesh);
     this.wardMesh = m;
     parent.add(m);
     m.position.y = 1.0;
@@ -606,9 +622,10 @@ export class Vfx {
       if (!v) {
         v = new THREE.Group();
         if (arrow) {
-          const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.9, 5).rotateX(Math.PI / 2), toon('#8a5c3a'));
-          const tip = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.18, 5).rotateX(Math.PI / 2).translate(0, 0, 0.52), toon('#d8dbe2'));
-          const fl = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.02, 0.18).translate(0, 0, -0.4), toon('#f4f0e8'));
+          const ag = arrowGeometry();
+          const shaft = new THREE.Mesh(ag.shaft, toon('#8a5c3a'));
+          const tip = new THREE.Mesh(ag.tip, toon('#d8dbe2'));
+          const fl = new THREE.Mesh(ag.fletch, toon('#f4f0e8'));
           v.add(shaft, tip, fl);
           v.add(this.sprite(c.glow, 0.7, 0.4));
         } else {
@@ -631,7 +648,7 @@ export class Vfx {
     }
     for (const [id, v] of this.projectiles) {
       if (!seen.has(id)) {
-        v.removeFromParent();
+        disposeObject(v, this.sharedGeo);
         this.projectiles.delete(id);
       }
     }
@@ -652,7 +669,7 @@ export class Vfx {
     }
     for (const [id, v] of this.areas) {
       if (!seen.has(id)) {
-        v.obj.removeFromParent();
+        disposeObject(v.obj, this.sharedGeo);
         this.areas.delete(id);
       }
     }
@@ -808,7 +825,7 @@ export class Vfx {
     }
     for (const [key, v] of this.telegraphs) {
       if (!seen.has(key)) {
-        v.mesh.removeFromParent();
+        disposeObject(v.mesh, this.sharedGeo);
         this.telegraphs.delete(key);
       }
     }
@@ -823,11 +840,7 @@ export class Vfx {
       const k = Math.min(1, a.t / a.dur);
       a.update?.(k, a);
       if (a.t >= a.dur) {
-        a.obj.removeFromParent();
-        a.obj.traverse?.((o) => {
-          if (o.geometry && o.geometry !== this.discGeo && o.geometry !== this.ringGeo) o.geometry.dispose();
-          if (o.material && o.material.dispose && !o.material.isMeshToonMaterial) o.material.dispose();
-        });
+        disposeObject(a.obj, this.sharedGeo);
       } else keep.push(a);
     }
     this.active = keep;

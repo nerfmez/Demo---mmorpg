@@ -161,5 +161,12 @@
       }
     }
   },
-  "slotCount": 4
+  "slotCount": 4,
+  "combat": {
+    "_doc": "Combat feel. Consecutive melee swings within comboWindow seconds count 1-2-3; the third is a finisher (more damage, knocks back). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "comboWindow": 1.1,
+    "finisherMult": 1.5,
+    "finisherKnock": 2.2,
+    "stagger": 0.14
+  }
 }

@@ -12,6 +12,7 @@ export function dropSprite(id) {
     texture.colorSpace=THREE.SRGBColorSpace;
     texture.generateMipmaps=true;
     material=new THREE.SpriteMaterial({map:texture,transparent:true,alphaTest:.06,depthWrite:false});
+    material.userData.shared=true;
     cache.set(id,material);
   }
   const sprite=new THREE.Sprite(material);

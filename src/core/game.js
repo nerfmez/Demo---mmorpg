@@ -565,8 +565,10 @@ export class Game {
     dmg = Math.max(1, Math.round(dmg));
     m.hp -= dmg;
     m.hurtT = 0.18;
+    // flinch: regular monsters stop for a moment (a started wind-up still goes off)
+    if (!opts.dot && !m.boss) m.staggerT = Math.max(m.staggerT || 0, opts.stagger ?? this.data.progression.combat?.stagger ?? 0.14);
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
       if (opts.chill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
@@ -705,20 +707,29 @@ export class Game {
       case 'melee_arc': {
         const arc = s.arc * DEG;
         let hits = 0;
+        // 1-2-3 combo: the third swing in a row is a finisher
+        const cb = this.data.progression.combat || {};
+        let finisher = false;
+        if (!triggered && repeat === 0) {
+          p.comboStep = this.time - (p.lastSwingT ?? -9) < (cb.comboWindow ?? 1.1) ? ((p.comboStep || 0) + 1) % 3 : 0;
+          p.lastSwingT = this.time;
+          finisher = p.comboStep === 2;
+          if (finisher) mult *= cb.finisherMult ?? 1.5;
+        }
         for (const m of this.monsters) {
           if (m.dead) continue;
           const d = dist(p.x, p.z, m.x, m.z) - m.r;
           if (d > s.range) continue;
           const off = Math.abs(angleDiff(aim.angle, angleTo(p.x, p.z, m.x, m.z)));
           if (off > arc / 2 && d > 0.3) continue;
-          this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit() }));
+          this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit(), ...(finisher ? { knock: Math.max(s.knock || 0, cb.finisherKnock ?? 2.2), stagger: 0.35 } : {}) }));
           hits++;
         }
         if (hits && this.derived.meleeHitBarrier) {
           p.barrier = Math.min(p.maxHp * 0.5, p.barrier + this.derived.meleeHitBarrier * hits);
           p.barrierT = Math.max(p.barrierT, 3);
         }
-        this.emit({ type: 'slash', x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++ });
+        this.emit({ type: 'slash', x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++, step: p.comboStep || 0, finisher, hits });
         if (s.ground) {
           const d = dirFromAngle(aim.angle);
           this.spawnGround(s, p.x + d.x * s.range * 0.6, p.z + d.z * s.range * 0.6, mult);

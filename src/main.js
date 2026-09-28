@@ -197,14 +197,17 @@ function frame(now) {
   if (s) {
     s.input.update();
     const paused = s.panels.isOpen || F.paused;
-    if (!paused) s.game.update(dt);
+    // hit-stop: heavy hits freeze the action for a few frames so they land with weight
+    const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
+    view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
+    if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {
       view.handleEvent(e);
       s.hud.handleEvent(e);
       if (SAVE_ON.has(e.type)) s.save();
       if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
     }
-    view.render(paused ? 0 : dt, time, { aim: s.input.aim });
+    view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
     s.saveT += dt;
     if (s.saveT > 10) {

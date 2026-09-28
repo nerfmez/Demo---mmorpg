@@ -79,7 +79,6 @@ export class Hud {
           <div class="pname"></div>
           <div class="bar hp"><i class="lag"></i><i class="fill"></i><i class="barrier"></i><span></span></div>
           <div class="bar mp"><i class="fill"></i><span></span></div>
-          <div class="progress-pair"><span>EXP</span><div class="bar small exp"><i class="fill"></i></div><span>JOB</span><div class="bar small job"><i class="fill"></i></div></div>
           <div class="statusline"></div>
         </div></button>`),
       topright: h(`<div class="topright">
@@ -97,8 +96,15 @@ export class Hud {
       hint: h(`<div class="hint passive"><kbd>WASD</kbd> เดิน <span>·</span> เมาส์เล็ง <span>·</span> <kbd>Esc</kbd> เมนู / วิธีเล่น</div>`),
       death: h(`<div class="deathveil passive">หมดสติ… กำลังกลับจุดวาร์ปที่ใกล้ที่สุด</div>`),
       fade: h(`<div class="fadeveil passive"></div>`),
+      hurt: h(`<div class="hurtveil passive"></div>`),
     };
     for (const k in this.el) root.appendChild(this.el[k]);
+    // EXP and Job EXP run along the very bottom edge of the screen (outside the HUD box)
+    this.xp = h(`<div class="xpstrip" aria-label="ค่าประสบการณ์">
+      <div class="xpseg exp"><i class="fill"></i><span></span></div>
+      <div class="xpseg job"><i class="fill"></i><span></span></div></div>`);
+    document.body.appendChild(this.xp);
+    document.body.classList.add('ingame');
     const q = (s) => this.el.frame.querySelector(s);
     this.hpFill = q('.hp .fill');
     this.hpLag = q('.hp .lag');
@@ -106,8 +112,10 @@ export class Hud {
     this.hpText = q('.hp span');
     this.mpFill = q('.mp .fill');
     this.mpText = q('.mp span');
-    this.expFill = q('.exp .fill');
-    this.jobFill = q('.job .fill');
+    this.expFill = this.xp.querySelector('.exp .fill');
+    this.jobFill = this.xp.querySelector('.job .fill');
+    this.expText = this.xp.querySelector('.exp span');
+    this.jobText = this.xp.querySelector('.job span');
     this.lvl = q('.lvl-badge');
     this.statusLine = q('.statusline');
     this.portrait = q('.portrait');
@@ -349,6 +357,15 @@ export class Hud {
     this.zoneTimer = setTimeout(() => (this.el.zone.style.opacity = 0), discovered ? 4200 : 3000);
   }
 
+  /** Red screen edges when the hero is hit; they stay faintly lit while HP is low. */
+  hurtFlash(k) {
+    const v = this.el.hurt;
+    v.style.setProperty('--hit', k.toFixed(2));
+    v.classList.remove('hit');
+    void v.offsetWidth;
+    v.classList.add('hit');
+  }
+
   fade() {
     const f = this.el.fade;
     f.classList.remove('on');
@@ -360,11 +377,15 @@ export class Hud {
     const g = this.game;
     const d = g.data;
     switch (e.type) {
+      case 'slash':
+        if (e.finisher && e.hits) this.float(e.x + Math.sin(e.angle) * 1.6, 2.6, e.z + Math.cos(e.angle) * 1.6, 'ปิดท้าย!', 'finisher');
+        break;
       case 'hit':
-        this.float(e.x, 1.8, e.z, e.amount, e.crit ? 'crit' : e.dot ? 'dot' : e.shell ? 'shell' : e.byAlly ? 'ally' : ['cold', 'fire', 'lightning', 'poison'].includes(e.element) ? e.element : '');
+        this.float(e.x, 1.8, e.z, e.crit ? `${e.amount}!` : e.amount, e.crit ? 'crit' : e.dot ? 'dot' : e.shell ? 'shell' : e.byAlly ? 'ally' : ['cold', 'fire', 'lightning', 'poison'].includes(e.element) ? e.element : '');
         break;
       case 'playerHit':
         if (e.amount > 0) this.float(e.x, 2.1, e.z, `-${e.amount}`, 'hurt');
+        if (e.amount > 0 && !e.dot) this.hurtFlash(Math.min(1, 0.35 + e.amount / Math.max(1, g.player.maxHp) * 3));
         if (e.absorbed > 0) this.float(e.x + 0.4, 2.4, e.z, `(${Math.round(e.absorbed)})`, 'dodge');
         break;
       case 'dodge':
@@ -464,9 +485,17 @@ export class Hud {
     this.hpBarrier.style.width = pct(Math.min(p.barrier, p.maxHp), p.maxHp);
     this.hpText.textContent = `HP  ${Math.ceil(p.hp)} / ${p.maxHp}${p.barrier > 0.5 ? ` +${Math.round(p.barrier)}` : ''}`;
     this.mpFill.style.width = pct(p.mp, p.maxMp);
+    const low = !p.dead && p.hp < p.maxHp * 0.3;
+    if (low !== this.lowHp) this.el.hurt.classList.toggle('low', (this.lowHp = low));
     this.mpText.textContent = `MP  ${Math.floor(p.mp)} / ${p.maxMp}`;
-    this.expFill.style.width = pct(ch.exp, expToNext(g.data, ch.level));
-    this.jobFill.style.width = pct(ch.jobExp, jobExpToNext(g.data, ch.jobLevel));
+    const en = expToNext(g.data, ch.level);
+    const jn = jobExpToNext(g.data, ch.jobLevel);
+    this.expFill.style.width = pct(ch.exp, en);
+    this.jobFill.style.width = pct(ch.jobExp, jn);
+    const et = `Lv.${ch.level} · EXP ${en ? ((ch.exp / en) * 100).toFixed(1) : 100}%`;
+    const jt = `Job ${ch.jobLevel} · ${jn ? ((ch.jobExp / jn) * 100).toFixed(1) : 100}%`;
+    if (et !== this.lastExpText) this.expText.textContent = this.lastExpText = et;
+    if (jt !== this.lastJobText) this.jobText.textContent = this.lastJobText = jt;
     this.lvl.textContent = ch.level;
     const area = g.world.zoneAt(p.x, p.z);
     if (area?.id !== this.locationId) {

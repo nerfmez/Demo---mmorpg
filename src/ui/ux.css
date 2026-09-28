@@ -383,3 +383,31 @@ select { font-size: 16px; min-height: 44px; padding: 8px; }
   button, .bar > i { transition: none; }
   .wpt.on svg { animation: none; }
 }
+
+/* ---------- EXP / Job strip along the very bottom of the screen ---------- */
+:root { --xp-h: calc(14px + var(--safe-b)); }
+body.ingame #hud { bottom: var(--xp-h); }
+.xpstrip {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  height: var(--xp-h); padding: 2px calc(4px + var(--safe-r)) calc(2px + var(--safe-b)) calc(4px + var(--safe-l));
+  display: grid; grid-template-columns: 3fr 2fr; gap: 4px;
+  background: #0d1a22; border-top: 1px solid #ffffff1c; pointer-events: none;
+}
+.xpseg { position: relative; overflow: hidden; border-radius: 3px; background: #1d313d; }
+.xpseg > i { position: absolute; inset: 0 auto 0 0; transition: width .25s ease-out; }
+.xpseg.exp > i { background: linear-gradient(#ffe39a, #e5a93f); }
+.xpseg.job > i { background: linear-gradient(#d9c2ff, #9b73e0); }
+.xpseg span { position: absolute; inset: 0; font-size: 9px; line-height: 10px; text-align: center; color: #fff; text-shadow: 0 1px 1px #000, 0 0 2px #000; letter-spacing: .3px; }
+.xpseg.flash > i { animation: xpflash .6s ease-out; }
+@keyframes xpflash { 0% { filter: brightness(2.2); } 100% { filter: none; } }
+
+/* ---------- combat feedback ---------- */
+.hurtveil { position: absolute; inset: 0; z-index: 3; opacity: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 42%, #c81e28b8 100%); }
+.hurtveil.hit { animation: hurtveil .45s ease-out; }
+.hurtveil.low { opacity: .55; animation: lowhp 1.1s ease-in-out infinite; }
+.hurtveil.low.hit { animation: hurtveil .45s ease-out, lowhp 1.1s ease-in-out .45s infinite; }
+@keyframes hurtveil { 0% { opacity: var(--hit, .8); } 100% { opacity: 0; } }
+@keyframes lowhp { 50% { opacity: .25; } }
+.fnum.finisher { font-size: 20px; color: #ffd98a; letter-spacing: 1px; }
+@media (prefers-reduced-motion: reduce) { .hurtveil.low { animation: none; } }

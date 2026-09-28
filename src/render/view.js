@@ -7,7 +7,8 @@ import * as THREE from 'three';
 import { createTerrain, createWater } from './ground.js';
 import { createEnvironment } from './environment.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
-import { buildMonster } from './monsters.js';
+import { buildMonster, monsterScale } from './monsters.js';
+import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
@@ -129,11 +130,11 @@ export class View {
   /** Attach (or replace) the running game. */
   attachGame(game) {
     this.game = game;
-    for (const v of this.monsterViews.values()) v.rig.root.removeFromParent();
+    for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
     this.monsterViews.clear();
-    for (const v of this.allyViews.values()) v.rig.root.removeFromParent();
+    for (const v of this.allyViews.values()) this.releaseRig(v.rig);
     this.allyViews.clear();
-    for (const v of this.dropViews.values()) v.removeFromParent();
+    for (const v of this.dropViews.values()) disposeObject(v);
     this.dropViews.clear();
     this.setHeroLook(game.ch.appearance || DEFAULT_LOOK, game.gearLook());
     const p = game.player;
@@ -141,10 +142,35 @@ export class View {
     this.camTarget.set(p.x, this.heroY, p.z);
   }
 
+  /** Monster models are pooled per type: building one costs time and GPU memory. */
+  takeRig(type, level, boss) {
+    const pool = this.rigPool?.get(type + (boss ? '#boss' : ''));
+    const rig = pool?.pop();
+    if (!rig) return buildMonster(type, level, boss);
+    rig.baseScale = monsterScale(type, level, boss);
+    rig.root.scale.setScalar(rig.baseScale);
+    rig.root.rotation.set(0, 0, 0);
+    rig.root.visible = true;
+    setFlash(rig.material, 0, 0, 0);
+    return rig;
+  }
+
+  releaseRig(rig) {
+    rig.root.removeFromParent();
+    this.rigPool = this.rigPool || new Map();
+    const key = rig.type + (rig.boss ? '#boss' : '');
+    const pool = this.rigPool.get(key) || [];
+    if (pool.length < 6) {
+      pool.push(rig);
+      this.rigPool.set(key, pool);
+    } else disposeObject(rig.root);
+  }
+
   setHeroLook(look, gear = {}) {
     if (this.hero) {
-      this.hero.root.removeFromParent();
-      this.hero.scarf?.mesh.removeFromParent();
+      if (this.vfx.wardMesh) this.vfx.wardMesh.removeFromParent();
+      disposeObject(this.hero.root);
+      disposeObject(this.hero.scarf?.mesh);
     }
     this.hero = buildHumanoid(look, gear);
     this.heroAnim = new HumanoidAnimator(this.hero);
@@ -208,8 +234,9 @@ export class View {
 
   /** World point -> CSS pixel position. */
   project(x, y, z) {
-    const v = new THREE.Vector3(x, y, z).project(this.camera);
-    const r = this.renderer.domElement.getBoundingClientRect();
+    const v = (this._pv || (this._pv = new THREE.Vector3())).set(x, y, z).project(this.camera);
+    // the canvas rect is read once per frame (render); reading it here per HP bar forced a layout each call
+    const r = this.canvasRect || this.renderer.domElement.getBoundingClientRect();
     return { x: (v.x * 0.5 + 0.5) * r.width + r.left, y: (-v.y * 0.5 + 0.5) * r.height + r.top, behind: v.z > 1 };
   }
 
@@ -226,7 +253,12 @@ export class View {
         break;
       case 'slash':
         v.slash(e);
-        if (e.triggered) this.addShake(0.05);
+        if (e.finisher) {
+          v.slash({ ...e, range: e.range * 1.25, combo: e.combo + 1 });
+          v.ring(e.x + Math.sin(e.angle) * e.range * 0.6, e.z + Math.cos(e.angle) * e.range * 0.6, e.range * 0.8, 0xfff0c0);
+          this.addShake(e.hits ? 0.22 : 0.08);
+          if (e.hits) this.hitStop = Math.max(this.hitStop || 0, 0.09);
+        } else if (e.triggered) this.addShake(0.05);
         break;
       case 'whirl':
         v.whirl(e);
@@ -262,7 +294,15 @@ export class View {
         if (mv && !e.dot) {
           mv.flash = 0.12;
           mv.hurt = 1;
+          // jolt away from the hit, springs back in sync()
+          const dx = e.x - (e.fromX ?? e.x);
+          const dz = e.z - (e.fromZ ?? e.z);
+          const d = Math.hypot(dx, dz) || 1;
+          const k = (e.crit || e.heavy ? 0.42 : 0.2) * (mv.rig.boss ? 0.3 : 1);
+          mv.kx = (mv.kx || 0) + (dx / d) * k;
+          mv.kz = (mv.kz || 0) + (dz / d) * k;
         }
+        if (!e.dot && !e.byAlly && (e.crit || e.heavy)) this.hitStop = Math.max(this.hitStop || 0, 0.06);
         if (e.crit) this.addShake(0.08);
         break;
       }
@@ -362,7 +402,7 @@ export class View {
       seen.add(m.id);
       let mv = this.monsterViews.get(m.id);
       if (!mv) {
-        const rig = buildMonster(m.type, m.level, m.boss);
+        const rig = this.takeRig(m.type, m.level, m.boss);
         rig.root.position.set(m.x, this.groundAt(m.x, m.z), m.z);
         rig.root.rotation.y = m.facing;
         this.scene.add(rig.root);
@@ -383,7 +423,9 @@ export class View {
       mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
       const gy = r.flyer || m.def.hover ? this.world.surfaceY(m.x, m.z) : this.world.groundY(m.x, m.z);
       mv.y = gy > mv.y ? damp(mv.y, gy, 20, dt) : damp(mv.y, gy, 12, dt);
-      r.root.position.set(m.x, mv.y, m.z);
+      mv.kx = damp(mv.kx || 0, 0, 14, dt);
+      mv.kz = damp(mv.kz || 0, 0, 14, dt);
+      r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
       mv.hurt = Math.max(0, mv.hurt - dt * 5);
       const tgt = m.targetUnit || p;
       r.animate(
@@ -432,8 +474,8 @@ export class View {
     }
     for (const [id, mv] of this.monsterViews) {
       if (!seen.has(id)) {
-        mv.rig.root.removeFromParent();
-        mv.halo?.removeFromParent();
+        this.releaseRig(mv.rig);
+        disposeObject(mv.halo);
         this.monsterViews.delete(id);
       }
     }
@@ -446,7 +488,7 @@ export class View {
       seen.add(a.id);
       let av = this.allyViews.get(a.id);
       if (!av) {
-        const rig = buildMonster(a.type, 1);
+        const rig = this.takeRig(a.type, 1, false);
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
@@ -470,7 +512,7 @@ export class View {
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {
         this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z });
-        av.rig.root.removeFromParent();
+        this.releaseRig(av.rig);
         this.allyViews.delete(id);
       }
     }
@@ -495,7 +537,7 @@ export class View {
     }
     for (const [id, v] of this.dropViews) {
       if (!seen.has(id)) {
-        v.removeFromParent();
+        disposeObject(v);
         this.dropViews.delete(id);
       }
     }
@@ -507,7 +549,7 @@ export class View {
     const color = item === 'gold' ? '#ffd24a' : data?.color || '#ffffff';
     g.userData.color = new THREE.Color(color).getHex();
     const mesh = item === 'gold'
-      ? new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.06,14).rotateX(Math.PI/2),toon('#ffd24a',{emissive:'#8a6a00',emissiveIntensity:.4}))
+      ? new THREE.Mesh(this.coinGeo || (this.coinGeo = Object.assign(new THREE.CylinderGeometry(0.22,0.22,0.06,14).rotateX(Math.PI/2), { userData: { shared: true } })),toon('#ffd24a',{emissive:'#8a6a00',emissiveIntensity:.4}))
       : dropSprite(item);
     mesh.castShadow = true;
     g.add(mesh);
@@ -597,6 +639,7 @@ export class View {
 
   render(dt, time, ui = {}) {
     this.time = time;
+    this.canvasRect = this.renderer.domElement.getBoundingClientRect();
     timeUniform.value = time;
     const world = this.world;
     const g = this.game;
@@ -734,8 +777,10 @@ export class View {
     const tmp = new THREE.Group();
     const [x, z] = this.world.data.playerSpawn;
     const y = this.world.groundY(x, z);
+    const rigs = [];
     for (const type of ['tusk_boar', 'thornback_wolf', 'moss_beetle', 'reef_crab', 'marsh_wisp', 'sporecap', 'crag_golem', 'gale_hawk', 'horned_warden']) {
       const rig = buildMonster(type, 1);
+      rigs.push(rig);
       rig.root.position.set(x, y, z);
       tmp.add(rig.root);
     }
@@ -763,7 +808,9 @@ export class View {
     this.renderer.compile(this.scene, this.camera);
     this.renderer.render(this.scene, this.camera);
     tmp.removeFromParent();
-    for (const a of v.active) a.obj.removeFromParent();
+    for (const rig of rigs) this.releaseRig(rig); // compiled models start the pool
+    disposeObject(hero.root);
+    for (const a of v.active) disposeObject(a.obj, v.sharedGeo);
     v.active = [];
   }
 
@@ -795,6 +842,8 @@ export class View {
     for (let yy = 0; yy < size; yy++) img.data.set(px.subarray((size - 1 - yy) * size * 4, (size - yy) * size * 4), yy * size * 4);
     ctx.putImageData(img, 0, 0);
     rt.dispose();
+    disposeObject(hero.root);
+    disposeObject(hero.scarf?.mesh);
     return c.toDataURL();
   }
 }

@@ -1,6 +1,8 @@
 // One pooled particle system: soft round dots, no outline, additive or normal blend.
 import * as THREE from 'three';
 
+const SCRATCH = new THREE.Color();
+
 export class Particles {
   constructor(capacity = 2500, { additive = true } = {}) {
     this.cap = capacity;
@@ -56,7 +58,8 @@ export class Particles {
     this.vel[i * 3] = vx;
     this.vel[i * 3 + 1] = vy;
     this.vel[i * 3 + 2] = vz;
-    const c = typeof color === 'number' || typeof color === 'string' ? new THREE.Color(color) : color;
+    // no allocation per particle: garbage from thousands of Colors caused GC stutter
+    const c = typeof color === 'number' || typeof color === 'string' ? SCRATCH.set(color) : color;
     this.col[i * 3] = c.r;
     this.col[i * 3 + 1] = c.g;
     this.col[i * 3 + 2] = c.b;

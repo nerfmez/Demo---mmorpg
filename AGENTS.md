@@ -27,6 +27,12 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 - The map has real height: keep roads and ramps walkable and bridges joined to both banks (tested in `tests/core/world.test.js`).
 - Art: "change the camera, not the style". Keep the anime cel look (3-step toon ramp, soft same-hue outlines), normal proportions (about 6.5 heads, never chibi), vivid but not pastel, and monsters that are not plush toys. The reference images in `docs/reference/` are style targets, not in-game sprites.
 
+## Performance rules
+
+- Anything removed from the scene must free its GPU buffers: use `disposeObject()` (`src/render/dispose.js`). Mark shared geometry/materials with `userData.shared`. Monster models are pooled (`View.takeRig/releaseRig`).
+- No allocations per particle or per frame in hot paths (reuse scratch vectors/colours); read layout (`getBoundingClientRect`) once per frame.
+- `node tests/browser/leak.mjs` must show GPU geometry levelling off over a long session.
+
 ## Verification before pushing
 
 1. `npm test` passes.

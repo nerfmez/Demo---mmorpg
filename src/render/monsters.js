@@ -648,11 +648,18 @@ export function buildMonster(type, level = 1, boss = false) {
   const rig = build();
   rig.animate = anim;
   rig.seed = Math.random() * 10;
-  const base = MONSTER_SCALE[type] || 1;
-  const s = boss ? base : base * (1 + Math.min(0.25, (level - 1) * 0.03));
+  const s = monsterScale(type, level, boss);
   rig.root.scale.setScalar(s);
   rig.baseScale = s;
+  rig.type = type;
+  rig.boss = boss;
   return rig;
+}
+
+/** Model scale for a monster (higher levels are a little bigger; bosses fixed). */
+export function monsterScale(type, level = 1, boss = false) {
+  const base = MONSTER_SCALE[type] || 1;
+  return boss ? base : base * (1 + Math.min(0.25, (level - 1) * 0.03));
 }
 
 function clampAbs(v, m) {

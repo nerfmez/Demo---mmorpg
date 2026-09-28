@@ -10,6 +10,8 @@ import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
+import { attachHair } from './hair.js';
+import { buildOutfit } from './outfit.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 
@@ -158,7 +160,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     if (!T) rb.add('head', new THREE.SphereGeometry(0.022, 6, 5).scale(0.6, 1, 0.6), L.skin, { pos: [s * 0.125, 0.12, 0], plain: true }); // ears
   }
   if (!paintedFace) rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
-  hair(rb, L, o);
+  const hairStyle = o.longHair ? 'ponytail' : L.hairStyle;
+  if (hairStyle === 'ponytail') rb.bone('tail', 'head', [0, 0.2, -0.12]);
   // scarf wrap (hero only)
   if (!o.npc || o.scarf) {
     rb.add('chest', new THREE.TorusGeometry(0.1, 0.05, 8, 16).rotateX(Math.PI / 2).scale(1.05, 1.2, 0.95), L.scarf, { pos: [0, 0.35, -0.005] });
@@ -166,17 +169,20 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
+  const outfit = T ? buildOutfit(rb, T, gear, { leather: LEATHER, boots: bootColor }) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
+  attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
   let neckParts = rig.bones.chest;
   if (T) {
     fitParts(rig.bones.head, T.headFit);
-    neckParts = fitParts(rig.bones.chest, T.neckFit);
+    neckParts = fitParts(rig.bones.chest, T.neckFit, { skip: ['chestWear'] });
     fitParts(rig.bones.armL, T.armFit);
-    attachSkinnedBody(rig, T, { skin: L.skin, tunic, pants: PANTS, boots: bootColor, leather: LEATHER }, L);
+    // sleeves keep the chosen tunic colour; armour colours the body through `vest`
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic: L.tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
@@ -185,58 +191,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
     neckParts.add(rig.scarfAnchor);
     const m = new THREE.MeshToonMaterial({ color: new THREE.Color(L.scarf), gradientMap: rig.material.gradientMap, side: THREE.DoubleSide });
+    m.userData.rig = true; // freed with the rig
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
   rig.weaponKind = gear.weapon || 'sword';
   return rig;
-}
-
-function hair(rb, L, o) {
-  const H = L.hair;
-  const style = o.longHair ? 'ponytail' : L.hairStyle;
-  const cap = new THREE.SphereGeometry(0.138, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.46).scale(1.0, 1.05, 1.05).translate(0, 0.14, -0.012);
-  rb.add('head', cap, H);
-  // Lower hair volume only behind the head; a full dome hides the eyes from the front.
-  rb.add('head',new THREE.SphereGeometry(.139,12,6,Math.PI,Math.PI,Math.PI*.44,Math.PI*.31).scale(1,1.05,1.05).translate(0,.14,-.012),H);
-  const lock = (x, y, z, rx, rz, len = 0.13, r = 0.045) => rb.add('head', new THREE.ConeGeometry(r, len, 5).rotateZ(Math.PI).translate(0, -len / 2, 0), H, { pos: [x, y, z], rot: [rx, 0, rz] });
-  if (style === 'messy') {
-    lock(0.0, 0.25, 0.1, 0.45, 0.1, 0.12);
-    lock(0.055, 0.25, 0.095, 0.4, -0.35, 0.13);
-    lock(-0.055, 0.25, 0.095, 0.45, 0.45, 0.13);
-    lock(0.1, 0.22, 0.06, 0.2, -0.75, 0.15);
-    lock(-0.1, 0.22, 0.06, 0.2, 0.75, 0.15);
-    lock(0.13, 0.16, -0.02, 0.1, -0.35, 0.17);
-    lock(-0.13, 0.16, -0.02, 0.1, 0.35, 0.17);
-    lock(0.08, 0.17, -0.11, -0.5, -0.3, 0.17);
-    lock(-0.08, 0.17, -0.11, -0.5, 0.3, 0.17);
-    lock(0.0, 0.2, -0.13, -0.7, 0, 0.18);
-    for (const [x, z, rx, rz] of [[0.02, -0.02, -0.4, -0.3], [-0.05, -0.05, -0.7, 0.4], [0.07, -0.06, -0.8, -0.6]])
-      rb.add('head', new THREE.ConeGeometry(0.04, 0.12, 5).translate(0, 0.06, 0), H, { pos: [x, 0.26, z], rot: [rx, 0, rz] });
-  } else if (style === 'swept') {
-    // neat side-swept fringe
-    lock(0.03, 0.26, 0.1, 0.5, -0.9, 0.16, 0.05);
-    lock(0.08, 0.24, 0.08, 0.35, -1.1, 0.16, 0.045);
-    lock(-0.06, 0.25, 0.1, 0.5, -0.5, 0.12);
-    lock(0.13, 0.15, -0.02, 0.05, -0.25, 0.14);
-    lock(-0.13, 0.15, -0.02, 0.05, 0.25, 0.14);
-    lock(0.0, 0.18, -0.13, -0.5, 0, 0.14);
-  } else if (style === 'short') {
-    lock(0.0, 0.26, 0.09, 0.6, 0, 0.08, 0.05);
-    lock(0.07, 0.25, 0.07, 0.5, -0.4, 0.08, 0.045);
-    lock(-0.07, 0.25, 0.07, 0.5, 0.4, 0.08, 0.045);
-    lock(0.12, 0.17, -0.03, 0.1, -0.2, 0.1);
-    lock(-0.12, 0.17, -0.03, 0.1, 0.2, 0.1);
-  } else {
-    // ponytail: fringe + a tail on its own bone (spring motion)
-    lock(0.0, 0.25, 0.1, 0.45, 0.1, 0.12);
-    lock(0.06, 0.25, 0.09, 0.4, -0.45, 0.13);
-    lock(-0.06, 0.25, 0.09, 0.45, 0.45, 0.13);
-    lock(0.12, 0.17, 0.0, 0.05, -0.25, 0.2);
-    lock(-0.12, 0.17, 0.0, 0.05, 0.25, 0.2);
-    rb.bone('tail', 'head', [0, 0.2, -0.12]);
-    rb.add('tail', new THREE.SphereGeometry(0.035, 8, 6), H);
-    rb.add('tail', new THREE.CylinderGeometry(0.05, 0.02, 0.36, 8).translate(0, -0.18, 0), H, { rot: [0.25, 0, 0] });
-  }
 }
 
 function helm(rb, kind, L) {
@@ -256,7 +215,9 @@ function helm(rb, kind, L) {
       rb.add('head', new THREE.ConeGeometry(0.035, 0.22, 6).translate(0, 0.11, 0), '#e7dcc0', { pos: [s * 0.12, 0.24, 0], rot: [0.2, 0, -s * 0.9] });
     }
   } else if (kind === 'hood') {
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.7).translate(0, 0.14, -0.02), '#a58384');
+    // a closed crown, then sides and back with the face left open
+    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, 0, Math.PI * 2, 0, Math.PI * 0.34).translate(0, 0.14, -0.02), '#a58384');
+    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5, Math.PI * 0.34, Math.PI * 0.36).translate(0, 0.14, -0.02), '#a58384');
     for(const [x,y] of [[-.07,.24],[.075,.18]]) rb.add('head',new THREE.SphereGeometry(.02,6,4),'#e2caa1',{pos:[x,y,.10],plain:true});
   }
   void L;

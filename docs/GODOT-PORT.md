@@ -72,7 +72,9 @@ retarget the same poses (or author them as clips). Clothes are colour zones cut 
 bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
 helms and weapons are still attached to the head, chest and hand bones.
 The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
-head mesh; in Godot use a face texture with UV offsets per expression. `data/gait.json`
+head mesh; in Godot use a face texture with UV offsets per expression. Hair (`render/hair.js`)
+is one merged mesh per style built from lock curves; export it once per style as a mesh and
+port the angel-ring band as a shader on the hair material. `data/gait.json`
 holds the walk and run cycles as driver-bone Euler angles (XYZ) per frame; the cadence is
 `speed / cycle` cycles per second.
 Skill actions (`render/actions.js`) are keyframed poses with a `hit` time; port each as an

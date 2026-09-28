@@ -750,10 +750,7 @@ export class View {
 
   /** Character-creation preview: a hero standing on the plaza. */
   showPreview(look, gear) {
-    if (this.previewHero) {
-      this.previewHero.root.removeFromParent();
-      this.previewHero.scarf?.mesh.removeFromParent();
-    }
+    this.hidePreview(); // frees the old preview's per-rig materials, skeleton and scarf
     const h = buildHumanoid(look, gear);
     h.anim = new HumanoidAnimator(h);
     const [cx, cz] = this.world.data.town.centre;
@@ -767,8 +764,8 @@ export class View {
 
   hidePreview() {
     if (!this.previewHero) return;
-    this.previewHero.root.removeFromParent();
-    this.previewHero.scarf?.mesh.removeFromParent();
+    disposeObject(this.previewHero.root);
+    disposeObject(this.previewHero.scarf?.mesh);
     this.previewHero = null;
   }
 

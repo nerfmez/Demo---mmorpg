@@ -62,7 +62,7 @@ int clothZone(vec3 p) {
   if (y < ${f(hips.y - 0.2)} + 0.012 * sin(p.x * 55.0 + p.z * 31.0)) return 2; // tunic hem
   if (y > ${f(hips.y - 0.01)} && y < ${f(hips.y + 0.05)}) return 4; // belt
   float neckY = ${f(neck.y - 0.02)};
-  if (y < neckY && !(p.z > 0.03 && x < (y - neckY + 0.09) * 0.45)) return 1; // V neck
+  if (y < neckY && !(p.z > 0.03 && x < (y - neckY + 0.09) * 0.45)) return 5; // body (vest), V neck
   return 0;
 }
 `;
@@ -78,6 +78,21 @@ int clothZone(vec3 p) {
     bone.quaternion.premultiply(p.clone().invert().multiply(r).multiply(p));
     bone.updateMatrixWorld(true);
   };
+  // squarer shoulders: the auto-rig's shoulder joints sit deep in the torso, so lowering the
+  // arms pinched and sloped them. Move the joints out, lift the collarbones a little, and let
+  // the arm drop take less.
+  const widen = cfg.shoulderWiden ?? 0;
+  for (const [n, sx] of [['LeftArm', 1], ['RightArm', -1]]) {
+    const b = bones[n];
+    const w = b.getWorldPosition(new THREE.Vector3());
+    w.x += sx * widen;
+    w.y += widen * 0.25;
+    b.position.copy(b.parent.worldToLocal(w));
+    b.updateMatrixWorld(true);
+  }
+  const lift = cfg.clavicleLift ?? 0;
+  turnWorld(bones.LeftShoulder, new THREE.Vector3(0, 0, 1), lift);
+  turnWorld(bones.RightShoulder, new THREE.Vector3(0, 0, 1), -lift);
   turnWorld(bones.LeftArm, new THREE.Vector3(0, 0, 1), -drop);
   turnWorld(bones.RightArm, new THREE.Vector3(0, 0, 1), drop);
   scene.updateMatrixWorld(true);
@@ -85,6 +100,9 @@ int clothZone(vec3 p) {
   const J = {};
   for (const n of Object.keys(MAP)) J[n] = at(n);
   J.neck = at('neck');
+  // rest world position of every driver bone (outfit parts are placed from these)
+  const world = { neck: J.neck.toArray() };
+  for (const [skin, drv] of Object.entries(MAP)) world[drv] = J[skin].toArray();
   const d = (a, b) => J[a].clone().sub(J[b]).toArray();
   const joints = {
     hips: J.Hips.toArray(), torso: d('Spine02', 'Hips'), chest: d('Spine', 'Spine02'), head: d('Head', 'Spine'),
@@ -95,19 +113,21 @@ int clothZone(vec3 p) {
   };
   // procedural head parts (hair, eyes, helms) were authored for a head centred 0.12 above
   // the head bone; fit them to this head
-  const hs = cfg.headScale ?? 1;
+  // (per-axis: this head is narrower and deeper than the procedural one)
+  const hs = Array.isArray(cfg.headScale) ? cfg.headScale : [cfg.headScale ?? 1, cfg.headScale ?? 1, cfg.headScale ?? 1];
   const hc = new THREE.Vector3(...(cfg.headCentre || [0, J.Head.y + 0.12, 0]));
-  const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0.005 * hs)).toArray(), scale: hs };
+  const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs[1], 0.005 * hs[2])).toArray(), scale: hs };
   // neck parts (scarf) were authored with the head bone 0.36 above the chest bone
   const ns = cfg.neckScale ?? 1;
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36 * ns + (cfg.neckDrop ?? 0), 0)).toArray(), scale: ns };
   // the left shoulder guard, authored for the old thicker arm
   const armFit = { pos: cfg.shoulderPad?.pos || [0, 0, 0], scale: cfg.shoulderPad?.scale ?? 1 };
-  return { scene, joints, headFit, neckFit, armFit, zoneGLSL, faceGeo, face: cfg.face, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
+  return { scene, joints, world, headFit, neckFit, armFit, zoneGLSL, faceGeo, face: cfg.face, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
 function zoneUniform(colors) {
-  return { value: [colors.skin, colors.tunic, colors.pants, colors.boots, colors.leather].map((c) => new THREE.Color(c)) };
+  // 0 skin, 1 sleeves, 2 pants, 3 boots, 4 leather, 5 body (the tunic, or an armour's vest)
+  return { value: [colors.skin, colors.tunic, colors.pants, colors.boots, colors.leather, colors.vest || colors.tunic].map((c) => new THREE.Color(c)) };
 }
 
 function skinMaterial(zones, flash, rim, zoneGLSL) {
@@ -121,7 +141,7 @@ function skinMaterial(zones, flash, rim, zoneGLSL) {
       .replace('#include <common>', '#include <common>\nvarying vec3 vBind;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBind = position;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uZone[5]; uniform vec3 uFlash; uniform float uRim;' + zoneGLSL)
+      .replace('#include <common>', '#include <common>\nuniform vec3 uZone[6]; uniform vec3 uFlash; uniform float uRim;' + zoneGLSL)
       .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= uZone[clothZone(vBind)];')
       .replace(
         '#include <opaque_fragment>',
@@ -148,7 +168,7 @@ function skinHull(zones, width, darkness, zoneGLSL) {
       .replace('#include <common>', '#include <common>\nvarying vec3 vBind;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>\nvBind = position;\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uZone[5];' + zoneGLSL)
+      .replace('#include <common>', '#include <common>\nuniform vec3 uZone[6];' + zoneGLSL)
       .replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = uZone[clothZone(vBind)] * ${darkness.toFixed(3)};`);
   };
   m.customProgramCacheKey = () => 'skin-hull';
@@ -243,11 +263,12 @@ const DRIVER_NAMES = new Set(DRIVER.map(([n]) => n));
  * Move a driver bone's procedural parts (not its child driver bones) into a fitted group
  * (position + uniform scale).
  */
-export function fitParts(bone, fit) {
+export function fitParts(bone, fit, { skip = [] } = {}) {
   const g = new THREE.Group();
   g.position.fromArray(fit.pos);
-  g.scale.setScalar(fit.scale);
-  for (const c of [...bone.children]) if (!DRIVER_NAMES.has(c.name)) g.add(c);
+  if (Array.isArray(fit.scale)) g.scale.fromArray(fit.scale);
+  else g.scale.setScalar(fit.scale);
+  for (const c of [...bone.children]) if (!DRIVER_NAMES.has(c.name) && !skip.includes(c.name)) g.add(c);
   bone.add(g);
   return g;
 }

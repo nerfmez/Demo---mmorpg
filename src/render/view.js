@@ -143,10 +143,31 @@ export class View {
     this.camTarget.set(p.x, this.heroY, p.z);
   }
 
-  /** Drop pooled monster rigs (e.g. once imported models have loaded, so new ones use them). */
-  clearRigPool() {
-    for (const pool of this.rigPool?.values() || []) for (const rig of pool) disposeObject(rig.root);
-    this.rigPool = null;
+  /**
+   * Once imported models have loaded: drop the pooled procedural rigs of the types that now have
+   * a model, build and compile one model rig for each so the first encounter does not hitch, and
+   * rebuild the ones already on screen. Other types keep their warmed pool.
+   */
+  refreshModelRigs() {
+    const tmp = new THREE.Group();
+    const [x, z] = this.world.data.playerSpawn;
+    const fresh = [];
+    for (const [key, pool] of this.rigPool || []) {
+      const type = key.split('#')[0];
+      if (!monsterModel(type) || pool.every((r) => r.model)) continue;
+      for (const rig of pool) disposeObject(rig.root);
+      this.rigPool.delete(key);
+      const rig = buildMonster(type, 1, key.endsWith('#boss'));
+      rig.root.position.set(x, this.world.groundY(x, z), z);
+      tmp.add(rig.root);
+      fresh.push(rig);
+    }
+    if (fresh.length) {
+      this.scene.add(tmp);
+      this.renderer.compile(this.scene, this.camera);
+      tmp.removeFromParent();
+      for (const rig of fresh) this.releaseRig(rig);
+    }
     // monsters already on screen with the procedural body are rebuilt on the next frame
     for (const [id, mv] of this.monsterViews) {
       if (mv.rig.model || !monsterModel(mv.rig.type)) continue;

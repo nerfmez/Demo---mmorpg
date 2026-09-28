@@ -4,8 +4,8 @@
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
 import { createRng } from './rng.js';
-import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal } from './math.js';
-import { buildHeightfield } from './terrain.js';
+import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX } from './math.js';
+import { buildHeightfield, valueNoise } from './terrain.js';
 
 const CELL = 8;
 
@@ -41,7 +41,11 @@ export function createWorld(worldData) {
   const onBridge = (x, z, pad = 0) => !!bridgeAt(x, z, pad);
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
   const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
-  const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad)) && !onBridge(x, z, 0.2);
+  // the sea: south of the shore line
+  const shore = worldData.sea?.shore || null;
+  const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
+  const inSea = (x, z, pad = 0) => !!shore && z > shoreZ(x) - pad;
+  const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2);
 
   // ---------- terrain ----------
   const hf = buildHeightfield(worldData, zoneAt);
@@ -260,20 +264,24 @@ export function createWorld(worldData) {
       if (!inBounds(jx, jz, -0.5)) {
         // forest band on the mountains around the map: looks enclosed, never reachable
         const zn = zoneAt(clamp(jx, b.minX + 1, b.maxX - 1), clamp(jz, b.minZ + 1, b.maxZ - 1));
+        if (inSea(jx, jz, 2)) continue; // open sea to the horizon
         if (rng.next() < 0.55) decor.edgeTrees.push({ x: jx, z: jz, type: zn.id === 'highlands' ? 'pine' : rng.chance(0.25) ? 'pine' : 'tree', scale: rng.range(0.9, 1.5), rot: rng.range(0, 6.28) });
         continue;
       }
       const zn = zoneAt(jx, jz);
-      const edge = Math.min(jx - b.minX, b.maxX - jx, jz - b.minZ, b.maxZ - jz) < 10 ? 0.45 : 0;
-      const density = (zn.treeDensity || 0) * 0.3 + edge + (zn.safe ? -0.3 : 0);
+      const edge = Math.min(jx - b.minX, b.maxX - jx, jz - b.minZ) < 10 ? 0.45 : 0;
+      // trees gather in groves with open clearings between them
+      const grove = smooth01((valueNoise(jx * 0.035, jz * 0.035, 17) - 0.42) / 0.3) * 1.8;
+      const density = (zn.treeDensity || 0) * 0.3 * grove + edge + (zn.safe ? -0.3 : 0);
       const roll = rng.next();
       if (roll < density) {
         const scale = rng.range(0.85, 1.35);
         const type = rng.pick(zn.trees || ['tree']);
-        if (!blockedForProp(jx, jz, 0.8)) addCircle({ x: jx, z: jz, r: (type === 'pine' ? 0.6 : 0.75) * scale, type, scale, rot: rng.range(0, 6.28) });
+        const trunk = type === 'pine' ? 0.6 : type === 'palm' ? 0.4 : 0.75;
+        if (!blockedForProp(jx, jz, 0.8)) addCircle({ x: jx, z: jz, r: trunk * scale, type, scale, rot: rng.range(0, 6.28) });
       } else if (!zn.safe) {
         const r2 = rng.next();
-        const rockChance = zn.id === 'highlands' ? 0.07 : zn.id === 'wolf_den' ? 0.05 : 0.03;
+        const rockChance = zn.id === 'highlands' ? 0.03 : zn.id === 'wolf_den' ? 0.03 : 0.012;
         if (r2 < rockChance) {
           const r = rng.range(0.7, 1.6);
           if (!blockedForProp(jx, jz, r, { slope: 1.5 })) addCircle({ x: jx, z: jz, r, type: r > 1.3 ? 'boulder' : 'rock', scale: r, rot: rng.range(0, 6.28) });
@@ -307,7 +315,7 @@ export function createWorld(worldData) {
       if (rng.chance(0.08)) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.2) });
       continue;
     }
-    if (isWater(x, z, 2.2)) {
+    if (isWater(x, z, 2.2) && !inSea(x, z, 12)) {
       decor.reeds.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.7, 1.3) });
       continue;
     }
@@ -438,6 +446,8 @@ export function createWorld(worldData) {
     deckY,
     slopeAt: hf.slopeAt,
     isWater,
+    inSea,
+    shoreZ,
     onBridge,
     bridgeAt,
     bridges,
@@ -466,6 +476,11 @@ function roadZAt(pts, x) {
     if ((x >= ax && x <= bx) || (x <= ax && x >= bx)) return az + ((bz - az) * (x - ax)) / (bx - ax || 1);
   }
   return 0;
+}
+
+function smooth01(t) {
+  const c = t < 0 ? 0 : t > 1 ? 1 : t;
+  return c * c * (3 - 2 * c);
 }
 
 export { distToSegment };

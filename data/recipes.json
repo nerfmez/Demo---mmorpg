@@ -1,66 +1,717 @@
 {
   "_doc": "Workbench recipes (town). type gear -> rolls Grade + options from optionPool. type skill -> teaches a combat skill. type movement -> teaches a movement skill. type mod -> creates a mod item. Skill and mod levels are raised with materials (see progression.json).",
   "recipes": {
-    "tusk_blade": { "type": "gear", "result": "tusk_blade", "cost": { "boar_tusk": 4, "boar_hide": 2, "gold": 20 }, "optionPool": ["attack_flat", "melee_pct", "crit_pct", "poison_on_hit"] },
-    "hunter_bow": { "type": "gear", "result": "hunter_bow", "cost": { "boar_tusk": 2, "boar_hide": 3, "gold": 20 }, "optionPool": ["attack_flat", "projectile_pct", "crit_pct", "move_pct"] },
-    "fang_dagger": { "type": "gear", "result": "fang_dagger", "cost": { "wolf_fang": 3, "wolf_pelt": 1, "gold": 25 }, "optionPool": ["attack_flat", "crit_pct", "leech_pct", "poison_on_hit"] },
-    "wisp_staff": { "type": "gear", "result": "wisp_staff", "cost": { "wisp_core": 2, "glow_dust": 3, "gold": 30 }, "optionPool": ["magic_flat", "area_pct", "spell_pct", "mp_flat", "cdr_pct", "heal_pct"] },
-    "spore_wand": { "type": "gear", "result": "spore_wand", "cost": { "spore_sac": 3, "glow_dust": 1, "gold": 25 }, "optionPool": ["magic_flat", "spell_pct", "summon_pct", "poison_on_hit", "cdr_pct"] },
-    "crag_axe": { "type": "gear", "result": "crag_axe", "cost": { "crag_stone": 5, "golem_heart": 1, "gold": 80 }, "optionPool": ["attack_flat", "melee_pct", "hp_flat", "defense_flat", "leech_pct"] },
-    "storm_bow": { "type": "gear", "result": "storm_bow", "cost": { "storm_quill": 2, "hawk_feather": 4, "ruin_shard": 1, "gold": 90 }, "optionPool": ["attack_flat", "projectile_pct", "crit_pct", "move_pct", "cdr_pct"] },
-    "greyfang_sabre": { "type": "gear", "result": "greyfang_sabre", "cost": { "greyfang_mane": 1, "wolf_fang": 4, "gold": 90 }, "optionPool": ["attack_flat", "melee_pct", "crit_pct", "move_pct", "leech_pct"] },
-    "horn_greatblade": { "type": "gear", "result": "horn_greatblade", "cost": { "warden_horn": 2, "boar_tusk": 4, "ruin_shard": 2, "gold": 120 }, "optionPool": ["attack_flat", "melee_pct", "crit_pct", "hp_flat", "defense_flat"] },
-    "ancient_staff": { "type": "gear", "result": "ancient_staff", "cost": { "ancient_core": 1, "wisp_core": 3, "ruin_shard": 2, "gold": 120 }, "optionPool": ["magic_flat", "area_pct", "spell_pct", "heal_pct", "cdr_pct", "mp_flat"] },
-
-    "hide_vest": { "type": "gear", "result": "hide_vest", "cost": { "boar_hide": 5, "gold": 15 }, "optionPool": ["hp_flat", "defense_flat", "move_pct"] },
-    "shell_guard": { "type": "gear", "result": "shell_guard", "cost": { "beetle_shell": 4, "venom_gland": 1, "gold": 30 }, "optionPool": ["defense_flat", "hp_flat", "barrier_pct", "poison_on_hit"] },
-    "wolfpelt_coat": { "type": "gear", "result": "wolfpelt_coat", "cost": { "wolf_pelt": 5, "gold": 30 }, "optionPool": ["hp_flat", "defense_flat", "move_pct", "regen_flat"] },
-    "storm_mantle": { "type": "gear", "result": "storm_mantle", "cost": { "hawk_feather": 4, "storm_quill": 1, "glow_dust": 2, "gold": 70 }, "optionPool": ["mp_flat", "spell_pct", "cdr_pct", "move_pct"] },
-    "crag_plate": { "type": "gear", "result": "crag_plate", "cost": { "crag_stone": 6, "golem_heart": 1, "gold": 90 }, "optionPool": ["hp_flat", "defense_flat", "barrier_pct", "regen_flat"] },
-
-    "leather_cap": { "type": "gear", "result": "leather_cap", "cost": { "boar_hide": 3, "gold": 10 }, "optionPool": ["hp_flat", "defense_flat", "crit_pct"] },
-    "beetle_helm": { "type": "gear", "result": "beetle_helm", "cost": { "beetle_shell": 3, "gold": 20 }, "optionPool": ["hp_flat", "defense_flat", "barrier_pct"] },
-    "spore_hood": { "type": "gear", "result": "spore_hood", "cost": { "spore_sac": 3, "boar_hide": 1, "gold": 25 }, "optionPool": ["heal_pct", "mp_flat", "summon_pct", "regen_flat"] },
-    "feather_circlet": { "type": "gear", "result": "feather_circlet", "cost": { "hawk_feather": 3, "glow_dust": 1, "gold": 40 }, "optionPool": ["cdr_pct", "mp_flat", "spell_pct", "crit_pct"] },
-    "horned_helm": { "type": "gear", "result": "horned_helm", "cost": { "warden_horn": 1, "crag_stone": 2, "gold": 100 }, "optionPool": ["hp_flat", "defense_flat", "attack_flat", "melee_pct"] },
-
-    "wolf_boots": { "type": "gear", "result": "wolf_boots", "cost": { "wolf_pelt": 3, "gold": 25 }, "optionPool": ["move_pct", "defense_flat", "crit_pct"] },
-    "wisp_slippers": { "type": "gear", "result": "wisp_slippers", "cost": { "glow_dust": 3, "boar_hide": 2, "gold": 30 }, "optionPool": ["mp_flat", "move_pct", "cdr_pct"] },
-    "crag_greaves": { "type": "gear", "result": "crag_greaves", "cost": { "crag_stone": 4, "gold": 45 }, "optionPool": ["hp_flat", "defense_flat", "regen_flat"] },
-
-    "tusk_charm": { "type": "gear", "result": "tusk_charm", "cost": { "boar_tusk": 3, "gold": 20 }, "optionPool": ["crit_pct", "attack_flat", "melee_pct", "projectile_pct"] },
-    "wisp_pendant": { "type": "gear", "result": "wisp_pendant", "cost": { "wisp_core": 1, "glow_dust": 2, "gold": 35 }, "optionPool": ["magic_flat", "mp_flat", "spell_pct", "area_pct"] },
-    "spore_amulet": { "type": "gear", "result": "spore_amulet", "cost": { "spore_sac": 4, "venom_gland": 1, "gold": 35 }, "optionPool": ["heal_pct", "regen_flat", "summon_pct", "poison_on_hit"] },
-    "feather_charm": { "type": "gear", "result": "feather_charm", "cost": { "hawk_feather": 2, "storm_quill": 1, "gold": 50 }, "optionPool": ["move_pct", "cdr_pct", "projectile_pct", "crit_pct"] },
-    "golem_amulet": { "type": "gear", "result": "golem_amulet", "cost": { "golem_heart": 1, "crag_stone": 2, "gold": 60 }, "optionPool": ["hp_flat", "defense_flat", "barrier_pct", "regen_flat"] },
-    "ancient_ring": { "type": "gear", "result": "ancient_ring", "cost": { "ancient_core": 1, "ruin_shard": 2, "gold": 150 }, "optionPool": ["attack_flat", "magic_flat", "crit_pct", "cdr_pct", "leech_pct"] },
-
-    "learn_whirl_blade": { "type": "skill", "result": "whirl_blade", "cost": { "boar_tusk": 3, "boar_hide": 2, "gold": 25 } },
-    "learn_stone_burst": { "type": "skill", "result": "stone_burst", "cost": { "beetle_shell": 3, "glow_dust": 1, "gold": 25 } },
-    "learn_frost_nova": { "type": "skill", "result": "frost_nova", "cost": { "glow_dust": 2, "beetle_shell": 2, "gold": 30 } },
-    "learn_healing_spring": { "type": "skill", "result": "healing_spring", "cost": { "glow_dust": 3, "boar_hide": 2, "gold": 25 } },
-    "learn_war_cry": { "type": "skill", "result": "war_cry", "cost": { "wolf_pelt": 2, "boar_tusk": 2, "gold": 30 } },
-    "learn_venom_mire": { "type": "skill", "result": "venom_mire", "cost": { "venom_gland": 2, "spore_sac": 2, "gold": 35 } },
-    "learn_hex": { "type": "skill", "result": "hex", "cost": { "spore_sac": 2, "glow_dust": 2, "gold": 35 } },
-    "learn_spirit_wolf": { "type": "skill", "result": "spirit_wolf", "cost": { "wolf_fang": 3, "wolf_pelt": 2, "gold": 40 } },
-    "learn_chain_spark": { "type": "skill", "result": "chain_spark", "cost": { "wisp_core": 2, "hawk_feather": 1, "gold": 45 } },
-    "learn_blink": { "type": "movement", "result": "blink", "cost": { "wisp_core": 2, "glow_dust": 2, "gold": 40 } },
-    "learn_leap": { "type": "movement", "result": "leap", "cost": { "wolf_fang": 2, "boar_hide": 2, "gold": 30 } },
-
-    "mod_split": { "type": "mod", "result": "split", "cost": { "boar_tusk": 2, "glow_dust": 2, "gold": 20 } },
-    "mod_pierce": { "type": "mod", "result": "pierce", "cost": { "boar_tusk": 3, "gold": 15 } },
-    "mod_bounce": { "type": "mod", "result": "bounce", "cost": { "wisp_core": 1, "boar_tusk": 1, "gold": 20 } },
-    "mod_burning_ground": { "type": "mod", "result": "burning_ground", "cost": { "venom_gland": 2, "boar_hide": 1, "gold": 20 } },
-    "mod_echo": { "type": "mod", "result": "echo", "cost": { "wisp_core": 2, "gold": 30 } },
-    "mod_wide_arc": { "type": "mod", "result": "wide_arc", "cost": { "boar_hide": 3, "boar_tusk": 1, "gold": 15 } },
-    "mod_multistrike": { "type": "mod", "result": "multistrike", "cost": { "wolf_fang": 2, "boar_tusk": 2, "gold": 30 } },
-    "mod_frost_shift": { "type": "mod", "result": "frost_shift", "cost": { "glow_dust": 3, "beetle_shell": 1, "gold": 20 } },
-    "mod_knockback": { "type": "mod", "result": "knockback", "cost": { "boar_hide": 2, "beetle_shell": 2, "gold": 20 } },
-    "mod_concentrated": { "type": "mod", "result": "concentrated", "cost": { "crag_stone": 2, "glow_dust": 1, "gold": 30 } },
-    "mod_lingering": { "type": "mod", "result": "lingering", "cost": { "spore_sac": 2, "glow_dust": 1, "gold": 25 } },
-    "mod_life_leech": { "type": "mod", "result": "life_leech", "cost": { "venom_gland": 1, "wolf_fang": 1, "gold": 30 } },
-    "mod_spiked_ward": { "type": "mod", "result": "spiked_ward", "cost": { "beetle_shell": 3, "venom_gland": 1, "gold": 20 } },
-    "mod_pack_leader": { "type": "mod", "result": "pack_leader", "cost": { "wolf_fang": 3, "wolf_pelt": 2, "gold": 40 } },
-    "mod_cast_on_dodge": { "type": "mod", "result": "cast_on_dodge", "cost": { "wisp_core": 2, "venom_gland": 1, "gold": 40 } }
+    "tusk_blade": {
+      "type": "gear",
+      "result": "tusk_blade",
+      "cost": {
+        "boar_tusk": 4,
+        "boar_hide": 2,
+        "gold": 20
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "poison_on_hit"
+      ]
+    },
+    "hunter_bow": {
+      "type": "gear",
+      "result": "hunter_bow",
+      "cost": {
+        "boar_tusk": 2,
+        "boar_hide": 3,
+        "gold": 20
+      },
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "move_pct"
+      ]
+    },
+    "fang_dagger": {
+      "type": "gear",
+      "result": "fang_dagger",
+      "cost": {
+        "wolf_fang": 3,
+        "wolf_pelt": 1,
+        "gold": 25
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "leech_pct",
+        "poison_on_hit"
+      ]
+    },
+    "wisp_staff": {
+      "type": "gear",
+      "result": "wisp_staff",
+      "cost": {
+        "wisp_core": 2,
+        "glow_dust": 3,
+        "gold": 30
+      },
+      "optionPool": [
+        "magic_flat",
+        "area_pct",
+        "spell_pct",
+        "mp_flat",
+        "cdr_pct",
+        "heal_pct"
+      ]
+    },
+    "spore_wand": {
+      "type": "gear",
+      "result": "spore_wand",
+      "cost": {
+        "spore_sac": 3,
+        "glow_dust": 1,
+        "gold": 25
+      },
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "summon_pct",
+        "poison_on_hit",
+        "cdr_pct"
+      ]
+    },
+    "crag_axe": {
+      "type": "gear",
+      "result": "crag_axe",
+      "cost": {
+        "crag_stone": 5,
+        "golem_heart": 1,
+        "gold": 80
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "hp_flat",
+        "defense_flat",
+        "leech_pct"
+      ]
+    },
+    "storm_bow": {
+      "type": "gear",
+      "result": "storm_bow",
+      "cost": {
+        "storm_quill": 2,
+        "hawk_feather": 4,
+        "ruin_shard": 1,
+        "gold": 90
+      },
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "move_pct",
+        "cdr_pct"
+      ]
+    },
+    "greyfang_sabre": {
+      "type": "gear",
+      "result": "greyfang_sabre",
+      "cost": {
+        "greyfang_mane": 1,
+        "wolf_fang": 4,
+        "gold": 90
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "move_pct",
+        "leech_pct"
+      ]
+    },
+    "horn_greatblade": {
+      "type": "gear",
+      "result": "horn_greatblade",
+      "cost": {
+        "warden_horn": 2,
+        "boar_tusk": 4,
+        "ruin_shard": 2,
+        "gold": 120
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "hp_flat",
+        "defense_flat"
+      ]
+    },
+    "ancient_staff": {
+      "type": "gear",
+      "result": "ancient_staff",
+      "cost": {
+        "ancient_core": 1,
+        "wisp_core": 3,
+        "ruin_shard": 2,
+        "gold": 120
+      },
+      "optionPool": [
+        "magic_flat",
+        "area_pct",
+        "spell_pct",
+        "heal_pct",
+        "cdr_pct",
+        "mp_flat"
+      ]
+    },
+    "hide_vest": {
+      "type": "gear",
+      "result": "hide_vest",
+      "cost": {
+        "boar_hide": 5,
+        "gold": 15
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "move_pct"
+      ]
+    },
+    "shell_guard": {
+      "type": "gear",
+      "result": "shell_guard",
+      "cost": {
+        "beetle_shell": 4,
+        "venom_gland": 1,
+        "gold": 30
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "barrier_pct",
+        "poison_on_hit"
+      ]
+    },
+    "wolfpelt_coat": {
+      "type": "gear",
+      "result": "wolfpelt_coat",
+      "cost": {
+        "wolf_pelt": 5,
+        "gold": 30
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "move_pct",
+        "regen_flat"
+      ]
+    },
+    "storm_mantle": {
+      "type": "gear",
+      "result": "storm_mantle",
+      "cost": {
+        "hawk_feather": 4,
+        "storm_quill": 1,
+        "glow_dust": 2,
+        "gold": 70
+      },
+      "optionPool": [
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "move_pct"
+      ]
+    },
+    "crag_plate": {
+      "type": "gear",
+      "result": "crag_plate",
+      "cost": {
+        "crag_stone": 6,
+        "golem_heart": 1,
+        "gold": 90
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat"
+      ]
+    },
+    "leather_cap": {
+      "type": "gear",
+      "result": "leather_cap",
+      "cost": {
+        "boar_hide": 3,
+        "gold": 10
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "crit_pct"
+      ]
+    },
+    "beetle_helm": {
+      "type": "gear",
+      "result": "beetle_helm",
+      "cost": {
+        "beetle_shell": 3,
+        "gold": 20
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct"
+      ]
+    },
+    "spore_hood": {
+      "type": "gear",
+      "result": "spore_hood",
+      "cost": {
+        "spore_sac": 3,
+        "boar_hide": 1,
+        "gold": 25
+      },
+      "optionPool": [
+        "heal_pct",
+        "mp_flat",
+        "summon_pct",
+        "regen_flat"
+      ]
+    },
+    "feather_circlet": {
+      "type": "gear",
+      "result": "feather_circlet",
+      "cost": {
+        "hawk_feather": 3,
+        "glow_dust": 1,
+        "gold": 40
+      },
+      "optionPool": [
+        "cdr_pct",
+        "mp_flat",
+        "spell_pct",
+        "crit_pct"
+      ]
+    },
+    "horned_helm": {
+      "type": "gear",
+      "result": "horned_helm",
+      "cost": {
+        "warden_horn": 1,
+        "crag_stone": 2,
+        "gold": 100
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "attack_flat",
+        "melee_pct"
+      ]
+    },
+    "wolf_boots": {
+      "type": "gear",
+      "result": "wolf_boots",
+      "cost": {
+        "wolf_pelt": 3,
+        "gold": 25
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct"
+      ]
+    },
+    "wisp_slippers": {
+      "type": "gear",
+      "result": "wisp_slippers",
+      "cost": {
+        "glow_dust": 3,
+        "boar_hide": 2,
+        "gold": 30
+      },
+      "optionPool": [
+        "mp_flat",
+        "move_pct",
+        "cdr_pct"
+      ]
+    },
+    "crag_greaves": {
+      "type": "gear",
+      "result": "crag_greaves",
+      "cost": {
+        "crag_stone": 4,
+        "gold": 45
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "regen_flat"
+      ]
+    },
+    "tusk_charm": {
+      "type": "gear",
+      "result": "tusk_charm",
+      "cost": {
+        "boar_tusk": 3,
+        "gold": 20
+      },
+      "optionPool": [
+        "crit_pct",
+        "attack_flat",
+        "melee_pct",
+        "projectile_pct"
+      ]
+    },
+    "wisp_pendant": {
+      "type": "gear",
+      "result": "wisp_pendant",
+      "cost": {
+        "wisp_core": 1,
+        "glow_dust": 2,
+        "gold": 35
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "area_pct"
+      ]
+    },
+    "spore_amulet": {
+      "type": "gear",
+      "result": "spore_amulet",
+      "cost": {
+        "spore_sac": 4,
+        "venom_gland": 1,
+        "gold": 35
+      },
+      "optionPool": [
+        "heal_pct",
+        "regen_flat",
+        "summon_pct",
+        "poison_on_hit"
+      ]
+    },
+    "feather_charm": {
+      "type": "gear",
+      "result": "feather_charm",
+      "cost": {
+        "hawk_feather": 2,
+        "storm_quill": 1,
+        "gold": 50
+      },
+      "optionPool": [
+        "move_pct",
+        "cdr_pct",
+        "projectile_pct",
+        "crit_pct"
+      ]
+    },
+    "golem_amulet": {
+      "type": "gear",
+      "result": "golem_amulet",
+      "cost": {
+        "golem_heart": 1,
+        "crag_stone": 2,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat"
+      ]
+    },
+    "ancient_ring": {
+      "type": "gear",
+      "result": "ancient_ring",
+      "cost": {
+        "ancient_core": 1,
+        "ruin_shard": 2,
+        "gold": 150
+      },
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "crit_pct",
+        "cdr_pct",
+        "leech_pct"
+      ]
+    },
+    "learn_whirl_blade": {
+      "type": "skill",
+      "result": "whirl_blade",
+      "cost": {
+        "boar_tusk": 3,
+        "boar_hide": 2,
+        "gold": 25
+      }
+    },
+    "learn_stone_burst": {
+      "type": "skill",
+      "result": "stone_burst",
+      "cost": {
+        "beetle_shell": 3,
+        "glow_dust": 1,
+        "gold": 25
+      }
+    },
+    "learn_frost_nova": {
+      "type": "skill",
+      "result": "frost_nova",
+      "cost": {
+        "glow_dust": 2,
+        "beetle_shell": 2,
+        "gold": 30
+      }
+    },
+    "learn_healing_spring": {
+      "type": "skill",
+      "result": "healing_spring",
+      "cost": {
+        "glow_dust": 3,
+        "boar_hide": 2,
+        "gold": 25
+      }
+    },
+    "learn_war_cry": {
+      "type": "skill",
+      "result": "war_cry",
+      "cost": {
+        "wolf_pelt": 2,
+        "boar_tusk": 2,
+        "gold": 30
+      }
+    },
+    "learn_venom_mire": {
+      "type": "skill",
+      "result": "venom_mire",
+      "cost": {
+        "venom_gland": 2,
+        "spore_sac": 2,
+        "gold": 35
+      }
+    },
+    "learn_hex": {
+      "type": "skill",
+      "result": "hex",
+      "cost": {
+        "spore_sac": 2,
+        "glow_dust": 2,
+        "gold": 35
+      }
+    },
+    "learn_spirit_wolf": {
+      "type": "skill",
+      "result": "spirit_wolf",
+      "cost": {
+        "wolf_fang": 3,
+        "wolf_pelt": 2,
+        "gold": 40
+      }
+    },
+    "learn_chain_spark": {
+      "type": "skill",
+      "result": "chain_spark",
+      "cost": {
+        "wisp_core": 2,
+        "hawk_feather": 1,
+        "gold": 45
+      }
+    },
+    "learn_blink": {
+      "type": "movement",
+      "result": "blink",
+      "cost": {
+        "wisp_core": 2,
+        "glow_dust": 2,
+        "gold": 40
+      }
+    },
+    "learn_leap": {
+      "type": "movement",
+      "result": "leap",
+      "cost": {
+        "wolf_fang": 2,
+        "boar_hide": 2,
+        "gold": 30
+      }
+    },
+    "mod_split": {
+      "type": "mod",
+      "result": "split",
+      "cost": {
+        "boar_tusk": 2,
+        "glow_dust": 2,
+        "gold": 20
+      }
+    },
+    "mod_pierce": {
+      "type": "mod",
+      "result": "pierce",
+      "cost": {
+        "boar_tusk": 3,
+        "gold": 15
+      }
+    },
+    "mod_bounce": {
+      "type": "mod",
+      "result": "bounce",
+      "cost": {
+        "wisp_core": 1,
+        "boar_tusk": 1,
+        "gold": 20
+      }
+    },
+    "mod_burning_ground": {
+      "type": "mod",
+      "result": "burning_ground",
+      "cost": {
+        "venom_gland": 2,
+        "boar_hide": 1,
+        "gold": 20
+      }
+    },
+    "mod_echo": {
+      "type": "mod",
+      "result": "echo",
+      "cost": {
+        "wisp_core": 2,
+        "gold": 30
+      }
+    },
+    "mod_wide_arc": {
+      "type": "mod",
+      "result": "wide_arc",
+      "cost": {
+        "boar_hide": 3,
+        "boar_tusk": 1,
+        "gold": 15
+      }
+    },
+    "mod_multistrike": {
+      "type": "mod",
+      "result": "multistrike",
+      "cost": {
+        "wolf_fang": 2,
+        "boar_tusk": 2,
+        "gold": 30
+      }
+    },
+    "mod_frost_shift": {
+      "type": "mod",
+      "result": "frost_shift",
+      "cost": {
+        "glow_dust": 3,
+        "beetle_shell": 1,
+        "gold": 20
+      }
+    },
+    "mod_knockback": {
+      "type": "mod",
+      "result": "knockback",
+      "cost": {
+        "boar_hide": 2,
+        "beetle_shell": 2,
+        "gold": 20
+      }
+    },
+    "mod_concentrated": {
+      "type": "mod",
+      "result": "concentrated",
+      "cost": {
+        "crag_stone": 2,
+        "glow_dust": 1,
+        "gold": 30
+      }
+    },
+    "mod_lingering": {
+      "type": "mod",
+      "result": "lingering",
+      "cost": {
+        "spore_sac": 2,
+        "glow_dust": 1,
+        "gold": 25
+      }
+    },
+    "mod_life_leech": {
+      "type": "mod",
+      "result": "life_leech",
+      "cost": {
+        "venom_gland": 1,
+        "wolf_fang": 1,
+        "gold": 30
+      }
+    },
+    "mod_spiked_ward": {
+      "type": "mod",
+      "result": "spiked_ward",
+      "cost": {
+        "beetle_shell": 3,
+        "venom_gland": 1,
+        "gold": 20
+      }
+    },
+    "mod_pack_leader": {
+      "type": "mod",
+      "result": "pack_leader",
+      "cost": {
+        "wolf_fang": 3,
+        "wolf_pelt": 2,
+        "gold": 40
+      }
+    },
+    "mod_cast_on_dodge": {
+      "type": "mod",
+      "result": "cast_on_dodge",
+      "cost": {
+        "wisp_core": 2,
+        "venom_gland": 1,
+        "gold": 40
+      }
+    },
+    "crabshell_helm": {
+      "type": "gear",
+      "result": "crabshell_helm",
+      "cost": {
+        "crab_shell": 4,
+        "gold": 30
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat"
+      ]
+    },
+    "tide_boots": {
+      "type": "gear",
+      "result": "tide_boots",
+      "cost": {
+        "crab_shell": 3,
+        "hawk_feather": 1,
+        "gold": 30
+      },
+      "optionPool": [
+        "move_pct",
+        "cdr_pct",
+        "defense_flat"
+      ]
+    },
+    "pearl_pendant": {
+      "type": "gear",
+      "result": "pearl_pendant",
+      "cost": {
+        "sea_pearl": 1,
+        "crab_shell": 2,
+        "gold": 45
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "heal_pct",
+        "summon_pct"
+      ]
+    }
   }
 }

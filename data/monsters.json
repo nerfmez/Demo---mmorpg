@@ -107,6 +107,59 @@
         }
       ]
     },
+    "reef_crab": {
+      "name": "Reef Crab",
+      "nameTh": "ปูแนวปะการัง",
+      "behavior": "shell_spitter",
+      "hp": 70,
+      "damage": 8,
+      "defense": 12,
+      "speed": 2.6,
+      "radius": 0.8,
+      "aggroRange": 7,
+      "leashRange": 15,
+      "exp": 16,
+      "jobExp": 11,
+      "attacks": {
+        "spit": {
+          "range": 7,
+          "windup": 0.55,
+          "recover": 0.5,
+          "cooldown": 2.6,
+          "speed": 10,
+          "damageMult": 1.0,
+          "poisonDps": 0,
+          "poisonDuration": 0
+        },
+        "shell": {
+          "hitsToTrigger": 4,
+          "window": 2.0,
+          "duration": 2.2,
+          "damageTaken": 0.25,
+          "cooldown": 6
+        }
+      },
+      "drops": [
+        {
+          "item": "crab_shell",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "sea_pearl",
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 8
+        }
+      ]
+    },
     "marsh_wisp": {
       "name": "Marsh Wisp",
       "nameTh": "ภูตไฟหนองน้ำ",

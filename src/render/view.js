@@ -27,6 +27,7 @@ const ZONE_FOG = {
   wetland: '#b6dde0',
   highlands: '#d3e3ec',
   ruins: '#d6d0e8',
+  coast: '#c6e8f2',
 };
 
 export class View {
@@ -669,7 +670,7 @@ export class View {
     } else {
       // title flyover above the settlement and meadow
       const a = time * 0.035;
-      const cx = -95 + Math.sin(a) * 22;
+      const cx = world.data.town.centre[0] + 30 + Math.sin(a) * 26;
       const cz = Math.cos(a * 0.7) * 14;
       const cy = world.groundY(cx, cz);
       this.camera.position.set(cx - 14, cy + 17, cz + 16);
@@ -733,7 +734,7 @@ export class View {
     const tmp = new THREE.Group();
     const [x, z] = this.world.data.playerSpawn;
     const y = this.world.groundY(x, z);
-    for (const type of ['tusk_boar', 'thornback_wolf', 'moss_beetle', 'marsh_wisp', 'sporecap', 'crag_golem', 'gale_hawk', 'horned_warden']) {
+    for (const type of ['tusk_boar', 'thornback_wolf', 'moss_beetle', 'reef_crab', 'marsh_wisp', 'sporecap', 'crag_golem', 'gale_hawk', 'horned_warden']) {
       const rig = buildMonster(type, 1);
       rig.root.position.set(x, y, z);
       tmp.add(rig.root);

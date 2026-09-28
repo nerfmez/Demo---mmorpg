@@ -101,6 +101,8 @@ export function equipmentDetails(rb,bases={}) {
  }else if(charm==='golem_amulet'){
   rb.add('chest',new THREE.DodecahedronGeometry(.044),'#84968c',opts);
   rb.add('chest',new THREE.OctahedronGeometry(.02),'#e8b867',{pos:[0,-.055,.19],glow:true});
+ }else if(charm==='pearl_pendant'){
+  rb.add('chest',new THREE.SphereGeometry(.03,8,6),'#f2eefc',{...opts,glow:true});
  }
 }
 

@@ -169,5 +169,18 @@ await run((s) => {
 }, skSpot);
 await shot('6-skills-a', 1150);
 await shot('6-skills-b', 300);
+
+// 7. the coast: beach, palms, crabs and the sea
+const coastSpot = await run(() => window.__frontier.game.freeSpotNear(-30, window.__frontier.world.shoreZ(-30) - 7));
+await run((s) => {
+  const f = window.__frontier;
+  f.paused = false;
+  f.stage(s.x, s.z, 1.15);
+  for (let i = 0; i < 3; i++) f.place('reef_crab', s.x - 4 + i * 4, s.z - 3, 0.4);
+}, coastSpot);
+await shot('7-coast', 1500);
+// 8. the whole world map
+await run(() => window.__frontier.panels.open('map'));
+await shot('8-worldmap', 500);
 await browser.close();
 process.kill(-server.pid);

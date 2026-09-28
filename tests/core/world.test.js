@@ -25,7 +25,7 @@ test('the terrain has real high and low ground, and is the same every time', () 
 test('the ruins stand on a plateau reached by a ramp; the river bed is below water', () => {
   const [rx, rz] = data.world.ruins.centre;
   const top = world.terrainY(rx, rz + 8);
-  const below = world.terrainY(70, 30);
+  const below = world.terrainY(90, 40);
   assert.ok(top - below > 2, `plateau ${top.toFixed(2)} vs ${below.toFixed(2)}`);
   const rv = data.world.river.points[3];
   assert.ok(world.terrainY(rv[0], rv[1]) < world.waterLevel);
@@ -35,9 +35,10 @@ test('steep cliffs block walking uphill but a road ramp does not', () => {
   // find a steep spot around the ruins plateau
   let blocked = 0;
   for (let a = 0; a < Math.PI * 2; a += 0.2) {
-    const [rx, rz] = data.world.ruins.centre;
-    const x = rx + Math.sin(a) * 30;
-    const z = rz + Math.cos(a) * 40;
+    const pl = data.world.terrain.plateaus.find((q) => q.id === 'ruins');
+    const [rx, rz] = [pl.x, pl.z];
+    const x = rx + Math.sin(a) * pl.rx;
+    const z = rz + Math.cos(a) * pl.rz;
     if (world.tooSteep(x, z, x + (rx - x) * 0.05, z + (rz - z) * 0.05)) blocked++;
   }
   assert.ok(blocked > 0, 'some edges of the plateau are cliffs');
@@ -62,4 +63,28 @@ test('bridge decks join both banks and are walkable', () => {
     assert.ok(!world.isWater(br.x, br.z));
     assert.ok(world.groundY(br.x, br.z) > world.waterLevel);
   }
+});
+
+test('the sea lies south of a sandy beach; the coast is walkable up to the water', () => {
+  for (const x of [-150, -40, 60, 150]) {
+    const sz = world.shoreZ(x);
+    assert.ok(world.isWater(x, sz + 4), 'sea past the shore');
+    assert.ok(!world.isWater(x, sz - 6), 'beach before it');
+    assert.ok(world.terrainY(x, sz - 6) > world.waterLevel);
+    assert.ok(world.terrainY(x, sz + 20) < world.waterLevel - 1, 'the sea gets deep');
+  }
+  const wp = world.waypoints.find((w) => w.id === 'coast');
+  assert.equal(world.zoneAt(wp.x, wp.z).id, 'coast');
+});
+
+test('the map is open: trees and rocks leave most of the ground free', () => {
+  let free = 0;
+  let total = 0;
+  for (let x = world.bounds.minX + 10; x < world.bounds.maxX - 10; x += 5)
+    for (let z = world.bounds.minZ + 10; z < world.bounds.maxZ - 10; z += 5) {
+      if (world.isWater(x, z)) continue;
+      total++;
+      if (world.isFree(x, z, 1)) free++;
+    }
+  assert.ok(free / total > 0.85, `free ground ${((free / total) * 100).toFixed(0)}%`);
 });

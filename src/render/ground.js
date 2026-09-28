@@ -55,6 +55,12 @@ function surfaceData(world) {
         const d = Math.hypot(x - px, z - pz);
         if (d < pr + 3) mud[k] = Math.max(mud[k], 1 - smooth(pr - 0.3, pr + 2.2, d));
       }
+      if (wd.sea) {
+        // sandy beach along the sea
+        const d = world.shoreZ(x) - z;
+        const beach = wd.sea.beach || 14;
+        if (d < beach + 6) mud[k] = Math.max(mud[k], 1 - smooth(beach - 5 + (valueNoise(x * 0.08, z * 0.08, 21) - 0.5) * 6, beach + 3, d));
+      }
       const td = Math.hypot(x - town.centre[0], z - town.centre[1]);
       if (td < town.plazaRadius + 2) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.5, town.plazaRadius, td));
       if (ruins) {
@@ -243,6 +249,8 @@ ${NOISE_GLSL}`
   road*=1.0+(fine-.5)*.035;
   vec3 mud=mix(vec3(.23,.27,.16),vec3(.39,.34,.20),smoothstep(uWater-.2,uWater+.6,y));
   mud=mix(mud,vec3(.40,.45,.31),step(.72,fine)*.15);
+  // dry beach sand above the waterline (sea coast and sandy banks)
+  mud=mix(mud,vec3(.74,.64,.44)+(mid-.5)*.05,smoothstep(uWater+.35,uWater+.95,y));
   // Worn, bevelled paving with staggered courses and plants between stones.
   vec2 tw=w*vec2(1.10,1.35);tw+=vec2(vnoise(w*2.0),vnoise(w*2.0+7.0))*.10;
   vec2 tile=tw+vec2(step(.5,fract(tw.y*.5))*.5,0.0);
@@ -251,7 +259,7 @@ ${NOISE_GLSL}`
   vec3 stone=mix(vec3(.40,.37,.32),vec3(.53,.49,.41),hash12(floor(tile)));
   stone+=vec3(.035)*step(.38,edge)*(1.0-grout);
   stone=mix(stone,vec3(.24,.25,.19),grout);
-  float mossAmt=w.x>60.0?.8:.24;
+  float mossAmt=w.x>110.0?.8:.24;
   stone=mix(stone,grass*.85,grout*smoothstep(.36,.60,big)*mossAmt);
   // Angular cliff strata; noise breaks the band edges rather than colouring every pixel.
   float strata=vnoise(vec2(w.x*.21+w.y*.19,y*2.7));
@@ -397,6 +405,44 @@ export function createWater(world) {
         idx.push(a, a + 1, b2, a + 1, b2 + 1, b2);
       }
     group.add(waterMesh(pos, depth, along, idx, mat));
+  }
+  const sea = world.data.sea;
+  if (sea) {
+    // shallow water near the beach is a fine grid (depth colours + foam); the open sea is one big plane
+    const hf = world.heightfield;
+    const x0 = hf.ox;
+    const x1 = hf.ox + (hf.w - 1) * hf.res;
+    const zMin = Math.min(...sea.shore.map((p) => p[1])) - 6;
+    const z1 = Math.max(...sea.shore.map((p) => p[1])) + 40;
+    const step = 2;
+    const nx = Math.ceil((x1 - x0) / step);
+    const nz = Math.ceil((z1 - zMin) / step);
+    const pos = [];
+    const depth = [];
+    const along = [];
+    const idx = [];
+    for (let j = 0; j <= nz; j++)
+      for (let i = 0; i <= nx; i++) {
+        const x = x0 + i * step;
+        const z = zMin + j * step;
+        pos.push(x, wl, z);
+        depth.push(wl - hY(x, z));
+        along.push(x * 0.2);
+      }
+    for (let j = 0; j < nz; j++)
+      for (let i = 0; i < nx; i++) {
+        const a = j * (nx + 1) + i;
+        const b2 = a + nx + 1;
+        idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
+      }
+    group.add(waterMesh(pos, depth, along, idx, mat));
+    const far = [x0 - 400, wl, z1, x1 + 400, wl, z1, x0 - 400, wl, z1 + 500, x1 + 400, wl, z1 + 500];
+    group.add(waterMesh(far, [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], mat));
+    for (const side of [-1, 1]) {
+      const xa = side < 0 ? x0 - 400 : x1;
+      const xb = side < 0 ? x0 : x1 + 400;
+      group.add(waterMesh([xa, wl, zMin + 10, xb, wl, zMin + 10, xa, wl, z1, xb, wl, z1], [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], mat));
+    }
   }
   return group;
 }

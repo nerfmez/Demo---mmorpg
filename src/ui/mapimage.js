@@ -3,7 +3,7 @@
 // map panel both draw from it.
 import { fromBoxLocal } from '../core/math.js';
 
-const PX = 4; // canvas pixels per metre
+const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
 const hex = (c) => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
 const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -12,6 +12,7 @@ const ROCK = hex('#aea58a');
 const ROAD = hex('#eee0b2');
 const SHALLOW = hex('#a4d7c7');
 const DEEP = hex('#5eacb1');
+const SAND = hex('#e9dbad');
 const PLAZA = hex('#d9cfb8');
 
 let cached = null;
@@ -45,6 +46,11 @@ export function mapImage(world) {
       const slope = Math.hypot(dx, dz) / 2;
       if (slope > 0.75) c = mix(c, ROCK, Math.min(1, (slope - 0.75) * 2.5));
       if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
+      if (world.data.sea) {
+        const d = world.shoreZ(x) - z;
+        const beach = world.data.sea.beach || 14;
+        if (d < beach) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
+      }
       const rd = world.roadDist(x, z);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
       // hill shade: light from the north-west (slopes facing -x/-z are lit), high ground a bit lighter
@@ -109,7 +115,7 @@ export function mapImage(world) {
   }
   for (const c of [...world.circles].sort((a,b)=>a.z-b.z)) {
     g.save();g.translate(tx(c.x),tz(c.z));g.scale(PX,PX);
-    const treeType=['tree','willow','birch','pine'].includes(c.type);
+    const treeType=['tree','willow','birch','pine','palm'].includes(c.type);
     if(treeType){
       const scale=(c.scale||1)*1.05;g.scale(scale,scale);
       g.fillStyle='#294f3d33';g.beginPath();g.ellipse(.4,.5,2.1,1.3,0,0,Math.PI*2);g.fill();

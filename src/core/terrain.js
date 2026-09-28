@@ -178,12 +178,14 @@ export function buildHeightfield(worldData, zoneAt) {
       }
     }
   }
+  const sea = worldData.sea?.shore ? worldData.sea : null;
   const inset = 3;
   for (let j = 0; j < h; j++)
     for (let i = 0; i < w; i++) {
       const x = X(i);
       const z = Z(j);
-      const out = Math.max(b.minX + inset - x, x - (b.maxX - inset), b.minZ + inset - z, z - (b.maxZ - inset), 0);
+      // no mountains on the sea side: the sea runs to the horizon
+      const out = Math.max(b.minX + inset - x, x - (b.maxX - inset), b.minZ + inset - z, sea ? 0 : z - (b.maxZ - inset), 0);
       if (out > 0) hf[j * w + i] += smoothstep(0, 24, out) * 13 + out * 0.12 + (valueNoise(x * 0.09, z * 0.09, seed + 7) - 0.5) * 5 * smoothstep(0, 12, out);
     }
 
@@ -297,6 +299,27 @@ export function buildHeightfield(worldData, zoneAt) {
       }
   }
 
+  // 7. the sea: a sandy beach sloping into water that deepens away from the shore
+  if (sea) {
+    const beach = sea.beach || 14;
+    for (let i = 0; i < w; i++) {
+      const x = X(i);
+      const sz = polylineZAtX(sea.shore, x);
+      for (let j = 0; j < h; j++) {
+        const d = sz - Z(j); // metres inland from the shore line
+        if (d > beach + 8) continue;
+        const k = j * w + i;
+        const ripple = (valueNoise(x * 0.2, Z(j) * 0.2, seed + 31) - 0.5) * 0.15;
+        let prof;
+        if (d >= 0) prof = water + 0.12 + d * 0.07 + ripple;
+        else prof = Math.max(water - 4.5, water - 0.25 + d * 0.16);
+        const m = d < 0 ? 1 : 1 - smoothstep(beach, beach + 8, d);
+        const target = d >= 0 ? Math.min(hf[k], prof) * 0.3 + prof * 0.7 : prof;
+        hf[k] = hf[k] * (1 - m) + target * m;
+      }
+    }
+  }
+
   return {
     ...grid,
     data: hf,
@@ -313,6 +336,16 @@ export function buildHeightfield(worldData, zoneAt) {
 }
 
 /** River/pond cross-section: bed below the water level, banks rising gently. */
+function polylineZAtX(pts, x) {
+  if (x <= pts[0][0]) return pts[0][1];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, az] = pts[i];
+    const [bx, bz] = pts[i + 1];
+    if (x >= ax && x <= bx) return az + ((bz - az) * (x - ax)) / (bx - ax || 1);
+  }
+  return pts[pts.length - 1][1];
+}
+
 function carve(hNow, d, half, water) {
   let prof;
   if (d < half) {

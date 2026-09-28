@@ -118,6 +118,21 @@ export function createEnvironment(world) {
   const pineTrunks = [];
   const willowLeaves = [];
   const greens = ['#f8f1d4', '#e8eddd', '#f8f5dc', '#ecf1de'];
+  const palmTrunks = [];
+  const palmFronds = [];
+  const PALM_LEAN = 0.2;
+  for (const c of world.circles.filter((q) => q.type === 'palm')) {
+    const s = c.scale * 0.9;
+    const y = gy(c.x, c.z) - 0.1;
+    palmTrunks.push({ x: c.x, z: c.z, y, s, ry: c.rot });
+    const tx = c.x + Math.sin(c.rot) * 5 * Math.sin(PALM_LEAN) * s;
+    const tz = c.z + Math.cos(c.rot) * 5 * Math.sin(PALM_LEAN) * s;
+    const ty = y + 5 * Math.cos(PALM_LEAN) * s;
+    for (let i = 0; i < 7; i++) {
+      const col = new THREE.Color(rng.pick(['#6f9650', '#7aa257', '#668c4a']));
+      palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.9, 1.1), ry: c.rot + (i / 7) * Math.PI * 2 + rng.range(-0.2, 0.2), color: `#${col.getHexString()}` });
+    }
+  }
   const trees = [...world.circles.filter((c) => ['tree', 'birch', 'pine', 'willow'].includes(c.type)), ...world.decor.edgeTrees];
   for (const c of trees) {
     const s = c.scale * 0.85;
@@ -181,6 +196,20 @@ export function createEnvironment(world) {
   const willowGeo = leafCrown(23);
   const willowMat=mat('#ffffff',{double:true,wind:.045,windBase:1.2,see:true});willowMat.map=leafTexture();willowMat.alphaTest=.45;willowMat.forceSinglePass=true;
   root.add(instanced(willowGeo,willowMat,willowLeaves.map(it=>({...it,ry:0})),{shadow:true}));
+  // palms: a leaning ringed trunk and drooping fronds
+  const palmGeo = new THREE.CylinderGeometry(0.16, 0.26, 5, 7, 5);
+  palmGeo.translate(0, 2.5, 0);
+  palmGeo.rotateX(PALM_LEAN);
+  root.add(instanced(palmGeo, mat('#8f7453'), palmTrunks, { outline: '#564132', outlineWidth: 0.027 }));
+  const frondGeo = new THREE.ConeGeometry(0.42, 3.2, 4, 3);
+  frondGeo.rotateX(Math.PI / 2);
+  frondGeo.scale(1, 0.18, 1);
+  frondGeo.translate(0, 0, 1.6);
+  // droop: bend the far end down
+  const fp = frondGeo.attributes.position;
+  for (let i = 0; i < fp.count; i++) fp.setY(i, fp.getY(i) + 0.35 * fp.getZ(i) - 0.22 * fp.getZ(i) * fp.getZ(i));
+  frondGeo.computeVertexNormals();
+  root.add(instanced(frondGeo, mat('#ffffff', { double: true, wind: 0.05, windBase: 0 }), palmFronds, { outline: '#3f5a36', outlineWidth: 0.02, wind: 0.05 }));
 
   // ----- rocks, boulders, crystals, stumps, logs -----
   const rocks = [];

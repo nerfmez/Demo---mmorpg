@@ -185,6 +185,7 @@ async function run(name, contextOpts) {
     ['ruins', 104, 10],
     ['highlands', 50, -52],
     ['forest', -40, -44],
+    ['coast', -20, 162],
   ]) {
     await page.evaluate(
       ([x, z]) => {

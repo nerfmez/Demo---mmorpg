@@ -202,6 +202,47 @@ function buildBeetle() {
   return rig;
 }
 
+// Reef crab: same rig and moves as the beetle (shell guard, spit), with a wide carapace and big claws.
+function buildCrab() {
+  const C = { shell: '#d8643a', light: '#f09a5a', belly: '#f3d2a8', leg: '#b8482a', claw: '#e2703e', tip: '#3a2a22', eye: '#1c1410', barn: '#e8e0cc' };
+  const rb = new RigBuilder({ outline: 0.03, darkness: 0.3 });
+  rb.bone('body', 'root', [0, 0.32, 0]);
+  rb.bone('shell', 'body', [0, 0.02, 0]);
+  rb.bone('head', 'body', [0, 0.0, 0.42]);
+  rb.add('body', sph(0.5, 12, 8).scale(1.25, 0.4, 0.95), C.belly);
+  rb.add('shell', new THREE.SphereGeometry(0.62, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.3, 0.62, 1.0), C.shell);
+  for (let i = 0; i < 6; i++) {
+    const a = i * 1.05 + 0.3;
+    rb.add('shell', sph(0.07 + (i % 2) * 0.03, 7, 5).scale(1, 0.55, 1), i % 3 ? C.light : C.shell, { pos: [Math.sin(a) * 0.45, 0.3, Math.cos(a) * 0.3], plain: true });
+  }
+  for (const s2 of [1, -1]) {
+    rb.add('head', new THREE.CylinderGeometry(0.025, 0.03, 0.22, 5).translate(0, 0.11, 0), C.leg, { pos: [s2 * 0.12, 0.2, 0.02] });
+    rb.add('head', sph(0.055, 7, 5), C.eye, { pos: [s2 * 0.12, 0.34, 0.03] });
+    rb.add('head', sph(0.018, 4, 3), '#ffffff', { pos: [s2 * 0.125, 0.355, 0.075], glow: true });
+    // claws on the "mandible" bones so the spit wind-up raises them
+    const n = `mand${s2 > 0 ? 'L' : 'R'}`;
+    rb.bone(n, 'head', [s2 * 0.45, -0.02, 0.05]);
+    rb.add(n, new THREE.CylinderGeometry(0.06, 0.07, 0.35, 6).rotateX(Math.PI / 2).translate(0, 0, 0.16), C.leg, { rot: [0, -s2 * 0.5, 0] });
+    rb.add(n, sph(0.24, 10, 8).scale(0.85, 0.65, 1.2), C.claw, { pos: [-s2 * 0.15, 0.04, 0.42] });
+    rb.add(n, cone(0.07, 0.3, 5).rotateX(Math.PI / 2), C.tip, { pos: [-s2 * 0.17, 0.08, 0.62] });
+    rb.add(n, cone(0.05, 0.22, 5).rotateX(Math.PI / 2), C.tip, { pos: [-s2 * 0.12, -0.04, 0.58] });
+  }
+  const legs = [];
+  for (let i = 0; i < 3; i++)
+    for (const s2 of [1, -1]) {
+      const n = `leg${legs.length}`;
+      rb.bone(n, 'body', [s2 * 0.55, -0.02, 0.22 - i * 0.24]);
+      rb.add(n, new THREE.CylinderGeometry(0.045, 0.03, 0.6, 5).translate(0, -0.3, 0), C.leg, { rot: [0, 0, s2 * 1.35] });
+      rb.add(n, new THREE.CylinderGeometry(0.03, 0.015, 0.3, 5).translate(0, -0.15, 0), C.leg, { pos: [s2 * 0.58, -0.13, 0], rot: [0, 0, s2 * 0.3] });
+      legs.push(n);
+    }
+  const rig = rb.build();
+  rig.legs = legs;
+  rig.height = 1.0;
+  rig.bodyY = 0.32;
+  return rig;
+}
+
 function animBeetle(r, s, dt, time) {
   const b = r.bones;
   r.phase = (r.phase || 0) + dt * (s.moving ? 14 : 0);
@@ -220,7 +261,7 @@ function animBeetle(r, s, dt, time) {
     headX = -0.45 * k;
     mand = 0.4 * k;
   } else if (s.state === 'recover' && s.lastAttack === 'spit') headX = 0.25;
-  b.body.position.y = damp(b.body.position.y, 0.45 - shellK * 0.3 + (s.moving ? Math.abs(Math.sin(ph)) * 0.02 : 0), 16, dt);
+  b.body.position.y = damp(b.body.position.y, (r.bodyY ?? 0.45) - shellK * 0.3 + (s.moving ? Math.abs(Math.sin(ph)) * 0.02 : 0), 16, dt);
   b.shell.scale.set(1 + shellK * 0.12, 1 + shellK * 0.1 + (s.hurt || 0) * -0.08, 1 + shellK * 0.12);
   b.shell.rotation.x = s.moving ? Math.sin(ph * 0.5) * 0.03 : 0;
   b.head.scale.setScalar(1 - shellK * 0.6);
@@ -592,6 +633,7 @@ const BUILDERS = {
   greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   moss_beetle: [buildBeetle, animBeetle],
+  reef_crab: [buildCrab, animBeetle],
   marsh_wisp: [buildWisp, animWisp],
   sporecap: [buildSporecap, animSporecap],
   crag_golem: [buildGolem, animGolem],

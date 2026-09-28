@@ -185,12 +185,16 @@ function capGeometry() {
 }
 
 const cache = new Map();
-function styleGeometry(style) {
-  if (cache.has(style)) return cache.get(style);
+// under a helmet the hair is pulled in a little (so it does not poke through) and loses its
+// upright spikes
+function styleGeometry(style, helm) {
+  const key = style + (helm ? '|helm' : '');
+  if (cache.has(key)) return cache.get(key);
   const parts = capGeometry();
-  for (const l of STYLES[style] || STYLES.messy) parts.push(lockGeometry(lockPath(l), l.w ?? 0.04, l.th ?? 0.013));
+  for (const l of STYLES[style] || STYLES.messy) if (!(helm && l.up)) parts.push(lockGeometry(lockPath(l), l.w ?? 0.04, l.th ?? 0.013));
   const g = merge(parts);
-  cache.set(style, g);
+  if (helm) g.translate(-C.x, -C.y, -C.z).scale(0.92, 0.94, 0.92).translate(C.x, C.y, C.z);
+  cache.set(key, g);
   return g;
 }
 let tailGeo = null;
@@ -234,7 +238,7 @@ function hairMaterial(color, flash) {
  * Hair for a rig: adds the style's mesh (and outline) to the head bone, and the ponytail's
  * tail to rig.bones.tail when the style has one. Call after rb.build().
  */
-export function attachHair(rig, style, color, { outline = 0.012 } = {}) {
+export function attachHair(rig, style, color, { outline = 0.012, helm = false } = {}) {
   const mat = hairMaterial(color, rig.material?.userData.flash);
   const hull = hullMaterial(new THREE.Color(color).multiplyScalar(0.35), outline);
   hull.userData.rig = true;
@@ -243,6 +247,6 @@ export function attachHair(rig, style, color, { outline = 0.012 } = {}) {
     mesh.castShadow = true;
     bone.add(mesh, new THREE.Mesh(geo, hull));
   };
-  add(rig.bones.head, styleGeometry(style));
+  add(rig.bones.head, styleGeometry(style, helm));
   if (style === 'ponytail' && rig.bones.tail) add(rig.bones.tail, (tailGeo ||= tailGeometry()));
 }

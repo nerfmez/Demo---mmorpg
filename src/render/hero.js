@@ -11,6 +11,7 @@ import GAIT from '../../data/gait.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
+import { buildOutfit } from './outfit.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 
@@ -168,18 +169,19 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
+  const outfit = T ? buildOutfit(rb, T, gear, { leather: LEATHER, boots: bootColor }) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
-  attachHair(rig, hairStyle, L.hair);
+  attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
   let neckParts = rig.bones.chest;
   if (T) {
     fitParts(rig.bones.head, T.headFit);
-    neckParts = fitParts(rig.bones.chest, T.neckFit);
+    neckParts = fitParts(rig.bones.chest, T.neckFit, { skip: ['chestWear'] });
     fitParts(rig.bones.armL, T.armFit);
-    attachSkinnedBody(rig, T, { skin: L.skin, tunic, pants: PANTS, boots: bootColor, leather: LEATHER }, L);
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
@@ -211,7 +213,9 @@ function helm(rb, kind, L) {
       rb.add('head', new THREE.ConeGeometry(0.035, 0.22, 6).translate(0, 0.11, 0), '#e7dcc0', { pos: [s * 0.12, 0.24, 0], rot: [0.2, 0, -s * 0.9] });
     }
   } else if (kind === 'hood') {
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.7).translate(0, 0.14, -0.02), '#a58384');
+    // a closed crown, then sides and back with the face left open
+    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, 0, Math.PI * 2, 0, Math.PI * 0.34).translate(0, 0.14, -0.02), '#a58384');
+    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5, Math.PI * 0.34, Math.PI * 0.36).translate(0, 0.14, -0.02), '#a58384');
     for(const [x,y] of [[-.07,.24],[.075,.18]]) rb.add('head',new THREE.SphereGeometry(.02,6,4),'#e2caa1',{pos:[x,y,.10],plain:true});
   }
   void L;

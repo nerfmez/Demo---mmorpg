@@ -4,3 +4,5 @@ dist/
 .DS_Store
 tests/browser/out/
 data/generated/
+meshy_output/
+.env

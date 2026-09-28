@@ -43,8 +43,43 @@ async function run(name, contextOpts) {
   page.on('console', (m) => {
     if (m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) errors.push(m.text());
   });
+
+  // ---- title screen -> new character -> game, then continue from the save ----
+  await page.goto(`http://localhost:${PORT}/?quality=medium`);
+  await page.waitForSelector('.menu-layer.on .title-card', { timeout: 30000 });
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${OUT}${name}-0-title.png` });
+  await page.click('[data-act="new"]');
+  await page.waitForSelector('.create-panel');
+  await page.fill('#heroName', 'Aki');
+  await page.click('[data-act="kit"][data-kit="bow"]');
+  await page.click('[data-act="look"][data-key="hairStyle"][data-val="ponytail"]');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${OUT}${name}-0-create.png` });
+  await page.click('[data-act="start"]');
+  await page.waitForFunction(() => window.__frontier.game && window.__frontier.game.time > 0.3, null, { timeout: 30000 });
+  const started = await page.evaluate(() => {
+    const g = window.__frontier.game;
+    return { name: g.ch.name, weapon: g.derived.weaponType, hair: g.ch.appearance?.hairStyle, saved: !!localStorage.getItem('frontier.slot.1') };
+  });
+  check(started.name === 'Aki' && started.weapon === 'bow' && started.hair === 'ponytail', `${name}: character creation applies name, kit and look (${JSON.stringify(started)})`);
+  check(started.saved, `${name}: new character is saved to slot 1`);
+  await page.evaluate(() => {
+    const g = window.__frontier.game;
+    g.ch.gold = 777;
+    window.__frontier.save();
+  });
+  await page.reload();
+  await page.waitForSelector('[data-act="continue"]', { timeout: 30000 });
+  await page.click('[data-act="continue"]');
+  await page.waitForFunction(() => window.__frontier.game && window.__frontier.game.time > 0.2, null, { timeout: 30000 });
+  const cont = await page.evaluate(() => ({ name: window.__frontier.game.ch.name, gold: window.__frontier.game.ch.gold }));
+  check(cont.name === 'Aki' && cont.gold === 777, `${name}: continue loads the saved character (${JSON.stringify(cont)})`);
+  check(errors.length === 0, `${name}: menu flow has no page errors ${errors.slice(0, 3).join(' | ')}`);
+
+  // ---- a fresh, unsaved game for the rest ----
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium`);
-  await page.waitForFunction(() => window.__frontier && window.__frontier.game.time > 0.5, null, { timeout: 30000 });
+  await page.waitForFunction(() => window.__frontier && window.__frontier.game && window.__frontier.game.time > 0.5, null, { timeout: 30000 });
   check(errors.length === 0, `${name}: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${OUT}${name}-1-town.png` });
@@ -58,7 +93,6 @@ async function run(name, contextOpts) {
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
       const hit = document.elementFromPoint(cx, cy);
-      const x0 = f.game.player.x;
       const opts = (x, y) => ({ pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y, bubbles: true });
       hit.dispatchEvent(new PointerEvent('pointerdown', opts(cx, cy)));
       hit.dispatchEvent(new PointerEvent('pointermove', opts(cx + 60, cy)));
@@ -67,7 +101,7 @@ async function run(name, contextOpts) {
       const moveX = f.game.input.moveX;
       hit.dispatchEvent(new PointerEvent('pointerup', opts(cx + 60, cy)));
       f.input.update();
-      return { hit: hit.className, moveX, x0, released: f.game.input.moveX };
+      return { hit: hit.className, moveX, released: f.game.input.moveX };
     });
     check(joy.hit === 'joyzone', `${name}: touching the drawn joystick hits the joystick zone (${joy.hit})`);
     check(joy.moveX > 0.5 && joy.released === 0, `${name}: joystick drag walks right, release stops (${joy.moveX.toFixed(2)})`);
@@ -75,24 +109,24 @@ async function run(name, contextOpts) {
     check(ta === 'none', `${name}: buttons block double-tap zoom (touch-action ${ta})`);
   }
 
-  // walk to the meadow and fight through the game API
+  // ---- fight in the meadow through the game API ----
   const res = await page.evaluate(async () => {
     const { game, input } = window.__frontier;
     input.disabled = true;
     const p = game.player;
-    p.x = -52;
-    p.z = 5;
+    p.x = -70;
+    p.z = 10;
     const t0 = game.time;
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     let casts = 0;
     for (let i = 0; i < 100; i++) {
-      const near = game.monsters.filter((m) => !m.dead && !m.boss && m.x > -60 && m.x < -20).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+      const near = game.monsters.filter((m) => !m.dead && !m.boss && m.zone === 'meadow').sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
       if (near) {
-        const d = Math.hypot(near.x - p.x, near.z - p.z);
-        if (d > 9) {
+        if (Math.hypot(near.x - p.x, near.z - p.z) > 9) {
           // test harness: hop next to the next monster instead of walking
-          p.x = near.x - 4;
-          p.z = near.z;
+          const s = game.freeSpotNear(near.x - 4, near.z);
+          p.x = s.x;
+          p.z = s.z;
         }
         game.setMove(0, 0);
         game.setAimPoint(near.x, near.z);
@@ -104,31 +138,73 @@ async function run(name, contextOpts) {
       for (let k = 0; k < 6; k++) game.update(1 / 60);
       await wait(30);
     }
-    return { gameTime: game.time - t0, kills: game.stats.kills, dealt: game.stats.damageDealt, casts, drops: game.drops.length, mats: { ...game.ch.materials }, level: game.ch.level };
+    return { gameTime: game.time - t0, kills: game.stats.kills, dealt: game.stats.damageDealt, casts, level: game.ch.level, quest: game.ch.progress.quests.m_boars };
   });
-  console.log(`     gameTime=${res.gameTime.toFixed(1)}s casts=${res.casts} dealt=${res.dealt} kills=${res.kills} lv=${res.level} drops=${res.drops} mats=${JSON.stringify(res.mats)}`);
+  console.log(`     gameTime=${res.gameTime.toFixed(1)}s casts=${res.casts} dealt=${res.dealt} kills=${res.kills} lv=${res.level} quest=${JSON.stringify(res.quest)}`);
   check(res.dealt > 0, `${name}: skills hit monsters`);
   check(res.kills > 0, `${name}: monsters die and drop loot`);
+  check(res.quest && res.quest.progress > 0, `${name}: kills advance the first quest`);
   await page.screenshot({ path: `${OUT}${name}-2-meadow.png` });
 
-  // panels open without errors
-  for (const t of ['skills', 'job', 'bag', 'char']) {
+  // ---- every panel opens without errors (craft needs the workbench) ----
+  await page.evaluate(() => {
+    const { game, world } = window.__frontier;
+    const [x, z] = world.data.town.workbench;
+    const s = game.freeSpotNear(x + 2, z);
+    game.player.x = s.x;
+    game.player.z = s.z;
+  });
+  for (const t of ['char', 'skills', 'job', 'bag', 'craft', 'journal', 'map', 'settings']) {
     await page.evaluate((tab) => window.__frontier.panels.open(tab), t);
     await page.waitForTimeout(150);
-    if (t === 'skills') await page.screenshot({ path: `${OUT}${name}-3-skills.png` });
-    if (t === 'job') await page.screenshot({ path: `${OUT}${name}-4-job.png` });
+    const shown = await page.evaluate(() => window.__frontier.panels.tab);
+    check(shown === t, `${name}: panel ${t} opens`);
+    if (['skills', 'bag', 'craft', 'journal', 'map'].includes(t)) await page.screenshot({ path: `${OUT}${name}-3-${t}.png` });
   }
   await page.evaluate(() => window.__frontier.panels.close());
 
-  // boss arena view
-  await page.evaluate(() => {
-    const { game } = window.__frontier;
-    game.player.x = 70;
-    game.player.z = 2;
-    game.player.hp = game.player.maxHp;
+  // ---- waypoints: touching one unlocks it, the map teleports there ----
+  const tp = await page.evaluate(() => {
+    const { game, world } = window.__frontier;
+    const wp = world.waypoints.find((w) => w.id === 'wetland');
+    const s = game.freeSpotNear(wp.x + 1.5, wp.z);
+    game.player.x = s.x;
+    game.player.z = s.z;
+    for (let k = 0; k < 20; k++) game.update(1 / 60);
+    const unlocked = game.isWaypointUnlocked('wetland');
+    game.player.x = -120;
+    game.player.z = 3;
+    for (const m of game.monsters) m.aggro = false;
+    const r = game.teleportTo('wetland');
+    return { unlocked, ok: r.ok, d: Math.hypot(game.player.x - wp.x, game.player.z - wp.z) };
   });
-  await page.waitForTimeout(1800);
-  await page.screenshot({ path: `${OUT}${name}-5-ruins.png` });
+  check(tp.unlocked && tp.ok && tp.d < 6, `${name}: waypoint unlocks and fast travel works (${JSON.stringify(tp)})`);
+
+  // ---- terrain: the hero stands on the ground on high and low places ----
+  for (const [label, x, z] of [
+    ['ruins', 104, 10],
+    ['highlands', 50, -52],
+    ['forest', -40, -44],
+  ]) {
+    await page.evaluate(
+      ([x, z]) => {
+        const { game, view } = window.__frontier;
+        const s = game.freeSpotNear(x, z);
+        game.player.x = s.x;
+        game.player.z = s.z;
+        game.player.hp = game.player.maxHp;
+        view.snapCamera();
+      },
+      [x, z]
+    );
+    await page.waitForTimeout(1500);
+    const hy = await page.evaluate(() => {
+      const { game, view, world } = window.__frontier;
+      return { hero: view.hero.root.position.y, ground: world.groundY(game.player.x, game.player.z) };
+    });
+    check(Math.abs(hy.hero - hy.ground) < 0.3, `${name}: hero stands on the terrain at ${label} (${hy.hero.toFixed(2)} vs ${hy.ground.toFixed(2)})`);
+    await page.screenshot({ path: `${OUT}${name}-5-${label}.png` });
+  }
   const fps = await page.evaluate(() => window.__frontier.fps);
   console.log(`     fps(software GL, not a device measure)=${fps}`);
   check(errors.length === 0, `${name}: still no page errors ${errors.slice(0, 3).join(' | ')}`);

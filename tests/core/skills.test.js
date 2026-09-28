@@ -4,6 +4,8 @@ import { data } from './helpers.js';
 import { createCharacter, derive } from '../../src/core/character.js';
 import { computeSkill, modFits, socketMod, equipSkill } from '../../src/core/skills.js';
 
+const slotOf = (ch, id) => ch.slots.findIndex((s) => s.skill === id);
+
 const give = (ch, id) => {
   const inst = { uid: ch.nextUid++, id, level: 1 };
   ch.mods.push(inst);
@@ -34,38 +36,64 @@ test('mods change behaviour, not just damage', () => {
   const ch = createCharacter(data);
   ch.stats.DEX = 10;
   const d = derive(ch, data);
-  const plain = computeSkill(ch, data, d, 1);
+  const fb = slotOf(ch, 'firebolt');
+  const plain = computeSkill(ch, data, d, fb);
   assert.equal(plain.projectiles, 1);
-  assert.ok(socketMod(ch, data, 1, give(ch, 'split')).ok);
-  assert.ok(socketMod(ch, data, 1, give(ch, 'pierce')).ok);
-  const modded = computeSkill(ch, data, d, 1);
+  assert.ok(socketMod(ch, data, fb, give(ch, 'split')).ok);
+  assert.ok(socketMod(ch, data, fb, give(ch, 'pierce')).ok);
+  const modded = computeSkill(ch, data, d, fb);
   assert.equal(modded.projectiles, 3);
   assert.equal(modded.pierce, 2);
   assert.ok(modded.damage < plain.damage, 'split trades per-hit damage for more projectiles');
-  assert.equal(socketMod(ch, data, 1, give(ch, 'bounce')).reason, 'full');
+  assert.equal(socketMod(ch, data, fb, give(ch, 'bounce')).reason, 'full');
 });
 
 test('mod whose stat requirement is not met is socketed but inactive', () => {
   const ch = createCharacter(data);
   ch.stats.DEX = 1;
-  socketMod(ch, data, 1, give(ch, 'split'));
-  const s = computeSkill(ch, data, derive(ch, data), 1);
+  const fb = slotOf(ch, 'firebolt');
+  socketMod(ch, data, fb, give(ch, 'split'));
+  const s = computeSkill(ch, data, derive(ch, data), fb);
   assert.equal(s.projectiles, 1);
   assert.equal(s.mods[0].active, false);
 });
 
 test('frost shift converts the element and adds a chill', () => {
   const ch = createCharacter(data);
-  socketMod(ch, data, 1, give(ch, 'frost_shift'));
-  const s = computeSkill(ch, data, derive(ch, data), 1);
+  const fb = slotOf(ch, 'firebolt');
+  socketMod(ch, data, fb, give(ch, 'frost_shift'));
+  const s = computeSkill(ch, data, derive(ch, data), fb);
   assert.equal(s.element, 'cold');
   assert.ok(s.chill.slow > 0);
 });
 
 test('equipping a skill that is in another slot swaps them', () => {
   const ch = createCharacter(data);
+  const fb = slotOf(ch, 'firebolt');
   const r = equipSkill(ch, data, 0, 'firebolt');
   assert.ok(r.ok);
   assert.equal(ch.slots[0].skill, 'firebolt');
-  assert.equal(ch.slots[1].skill, 'slash');
+  assert.equal(ch.slots[fb].skill, 'slash');
+});
+
+test('new skill kinds compute their extra parameters', () => {
+  const ch = createCharacter(data);
+  ch.stats.INT = 10;
+  ch.stats.STR = 10;
+  for (const id of Object.keys(data.skills.combat)) ch.skills[id] = 1;
+  const d = derive(ch, data);
+  const at = (id) => {
+    equipSkill(ch, data, 3, id);
+    return computeSkill(ch, data, d, 3);
+  };
+  assert.equal(at('chain_spark').chain, 3);
+  assert.ok(at('frost_nova').chill.slow > 0.5);
+  assert.ok(at('venom_mire').slow > 0);
+  const hex = at('hex');
+  assert.ok(hex.takenMult > 1 && hex.dealtMult < 1);
+  assert.ok(at('war_cry').damageBuff > 0);
+  const wolf = at('spirit_wolf');
+  assert.equal(wolf.summon.count, 1);
+  assert.ok(socketMod(ch, data, 3, give(ch, 'pack_leader')).ok);
+  assert.equal(computeSkill(ch, data, d, 3).summon.count, 2);
 });

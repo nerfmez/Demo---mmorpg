@@ -1,12 +1,67 @@
-// Heads-up display: player frame, minimap, combat buttons, floating numbers, toasts.
+// Heads-up display: player frame, minimap, quest tracker, combat feedback, prompts, toasts.
 import { icon } from './icons.js';
 import { expToNext, jobExpToNext } from '../core/character.js';
+import { trackedQuest, questState } from '../core/quests.js';
+import { mapImage } from './mapimage.js';
 
 const h = (html) => {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
   return t.content.firstElementChild;
 };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+// head height (m, before the rig's scale) for the name + HP bar over each monster
+const HEAD = { tusk_boar: 1.35, thornback_wolf: 1.45, greyfang: 1.45, moss_beetle: 1.35, marsh_wisp: 1.0, sporecap: 1.45, crag_golem: 2.75, gale_hawk: 1.3, horned_warden: 2.2 };
+
+/** Reward line for a finished quest. */
+export function rewardText(data, r = {}) {
+  const parts = [];
+  if (r.exp) parts.push(`${r.exp} EXP`);
+  if (r.jobExp) parts.push(`${r.jobExp} Job EXP`);
+  if (r.gold) parts.push(`${r.gold} G`);
+  for (const [id, n] of Object.entries(r.items || {})) parts.push(`${data.items.materials[id]?.nameTh || id} ×${n}`);
+  return parts.join(' · ');
+}
+
+/** Where the tracked quest wants the player to go (for the minimap marker), or null. */
+export function questTarget(game, id) {
+  if (!id) return null;
+  const data = game.data;
+  const q = data.quests.quests[id];
+  const p = game.player;
+  const nearestMonster = (types) => {
+    let best = null;
+    let bd = Infinity;
+    for (const m of game.monsters) {
+      if (m.dead || !types.includes(m.type)) continue;
+      const d = (m.x - p.x) ** 2 + (m.z - p.z) ** 2;
+      if (d < bd) {
+        bd = d;
+        best = m;
+      }
+    }
+    if (best) return { x: best.x, z: best.z };
+    const sp = game.spawnPoints.find((s) => types.includes(s.monster));
+    return sp ? { x: sp.x, z: sp.z } : null;
+  };
+  if (q.type === 'waypoint') {
+    const wp = game.world.waypoints.find((w) => w.id === q.target);
+    return wp ? { x: wp.x, z: wp.z } : null;
+  }
+  if (q.type === 'kill') return nearestMonster([q.target]);
+  if (q.type === 'collect') {
+    const types = Object.entries(data.monsters.monsters)
+      .filter(([, m]) => m.drops.some((d) => d.item === q.target))
+      .map(([t]) => t);
+    return nearestMonster(types);
+  }
+  if (q.type === 'craft') {
+    const [x, z] = data.world.town.workbench;
+    return { x, z };
+  }
+  return null;
+}
 
 export class Hud {
   constructor(root, game, view) {
@@ -15,12 +70,12 @@ export class Hud {
     this.view = view;
     this.floats = [];
     this.mbars = new Map();
-    this.zone = null;
 
     this.el = {
       frame: h(`<div class="pframe passive">
         <div class="portrait"></div><div class="lvl-badge">1</div>
         <div class="bars">
+          <div class="pname"></div>
           <div class="bar hp"><i class="lag"></i><i class="fill"></i><i class="barrier"></i><span></span></div>
           <div class="bar mp"><i class="fill"></i><span></span></div>
           <div class="bar small exp"><i class="fill"></i></div>
@@ -28,127 +83,115 @@ export class Hud {
           <div class="statusline"></div>
         </div></div>`),
       topright: h(`<div class="topright">
-        <div class="minimap passive"><canvas width="300" height="300"></canvas></div>
-        <div class="menu"></div></div>`),
-      zone: h(`<div class="zonebanner passive"><div class="zn"></div><div class="zs"></div></div>`),
+        <div class="minimap"><canvas width="300" height="300"></canvas></div>
+        <div class="menu"></div>
+        <button class="questtrack"></button></div>`),
+      zone: h(`<div class="zonebanner passive"><div class="zd"></div><div class="zn"></div><div class="zs"></div></div>`),
       boss: h(`<div class="bossbar passive"><div class="bn"></div><div class="bar"><i class="fill"></i><span></span></div></div>`),
       floats: h(`<div class="floats passive"></div>`),
       toasts: h(`<div class="toasts passive"></div>`),
       prompt: h(`<div class="prompt"></div>`),
-      hint: h(`<div class="hint passive">WASD เดิน · เมาส์เล็ง · คลิกซ้ายตี · คลิกขวา/1-4 สกิล · Space หลบ<br>I กระเป๋า · K สกิล · J Job · C ตัวละคร · E ใช้โต๊ะ/คุย</div>`),
-      death: h(`<div class="deathveil passive">หมดสติ… กำลังกลับนิคม</div>`),
+      hint: h(`<div class="hint passive">WASD เดิน · เมาส์เล็ง · คลิกซ้าย/ขวา สกิล 1/2 · 3,4 สกิลที่เหลือ · Space หลบ<br>I กระเป๋า · K สกิล · J Job · C ตัวละคร · L ภารกิจ · M แผนที่ · E ใช้/คุย</div>`),
+      death: h(`<div class="deathveil passive">หมดสติ… กำลังกลับจุดวาร์ปที่ใกล้ที่สุด</div>`),
+      fade: h(`<div class="fadeveil passive"></div>`),
     };
     for (const k in this.el) root.appendChild(this.el[k]);
-    this.hpFill = this.el.frame.querySelector('.hp .fill');
-    this.hpLag = this.el.frame.querySelector('.hp .lag');
-    this.hpBarrier = this.el.frame.querySelector('.hp .barrier');
-    this.hpText = this.el.frame.querySelector('.hp span');
-    this.mpFill = this.el.frame.querySelector('.mp .fill');
-    this.mpText = this.el.frame.querySelector('.mp span');
-    this.expFill = this.el.frame.querySelector('.exp .fill');
-    this.jobFill = this.el.frame.querySelector('.job .fill');
-    this.lvl = this.el.frame.querySelector('.lvl-badge');
-    this.statusLine = this.el.frame.querySelector('.statusline');
-    this.portrait = this.el.frame.querySelector('.portrait');
+    const q = (s) => this.el.frame.querySelector(s);
+    this.hpFill = q('.hp .fill');
+    this.hpLag = q('.hp .lag');
+    this.hpBarrier = q('.hp .barrier');
+    this.hpText = q('.hp span');
+    this.mpFill = q('.mp .fill');
+    this.mpText = q('.mp span');
+    this.expFill = q('.exp .fill');
+    this.jobFill = q('.job .fill');
+    this.lvl = q('.lvl-badge');
+    this.statusLine = q('.statusline');
+    this.portrait = q('.portrait');
+    q('.pname').textContent = game.ch.name || '';
     this.mini = this.el.topright.querySelector('canvas');
     this.menu = this.el.topright.querySelector('.menu');
-    this.buildMinimapBase();
+    this.tracker = this.el.topright.querySelector('.questtrack');
+    this.map = mapImage(game.world);
   }
 
   setPortrait(url) {
     this.portrait.style.backgroundImage = `url(${url})`;
   }
 
-  addMenuButton(name, key, onClick) {
-    const b = h(`<button class="iconbtn" aria-label="${name}">${icon(name)}<span class="key">${key}</span></button>`);
+  addMenuButton(name, key, onClick, label = '') {
+    const b = h(`<button class="iconbtn" aria-label="${label || name}">${icon(name)}<span class="key">${key}</span></button>`);
     b.addEventListener('click', onClick);
     this.menu.appendChild(b);
     return b;
   }
 
-  // ---------- minimap ----------
-
-  buildMinimapBase() {
-    const w = this.game.world;
-    const b = w.bounds;
-    const W = 400;
-    const H = Math.round((W * (b.maxZ - b.minZ)) / (b.maxX - b.minX));
-    const c = document.createElement('canvas');
-    c.width = W;
-    c.height = H;
-    const g = c.getContext('2d');
-    const sx = W / (b.maxX - b.minX);
-    const tx = (x) => (x - b.minX) * sx;
-    const tz = (z) => (z - b.minZ) * sx;
-    const zoneCol = { settlement: '#8ac25a', meadow: '#94c95a', forest: '#5f9d44', wetland: '#5aa06a', ruins: '#8fa870' };
-    for (const zn of w.zones) {
-      g.fillStyle = zoneCol[zn.id] || '#7a7';
-      g.fillRect(tx(zn.minX), 0, (zn.maxX - zn.minX) * sx, H);
-    }
-    const line = (pts, width, color) => {
-      g.strokeStyle = color;
-      g.lineWidth = width * sx;
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      g.beginPath();
-      pts.forEach(([x, z], i) => (i ? g.lineTo(tx(x), tz(z)) : g.moveTo(tx(x), tz(z))));
-      g.stroke();
-    };
-    line(w.data.river.points, w.data.river.width, '#4aa3d8');
-    for (const [px, pz, pr] of w.data.ponds) {
-      g.fillStyle = '#4aa3d8';
-      g.beginPath();
-      g.arc(tx(px), tz(pz), pr * sx, 0, Math.PI * 2);
-      g.fill();
-    }
-    line(w.data.path.points, w.data.path.width, '#caa06a');
-    g.fillStyle = '#3f7a33';
-    for (const c2 of w.circles) {
-      if (c2.type === 'tree' || c2.type === 'willow') {
-        g.beginPath();
-        g.arc(tx(c2.x), tz(c2.z), 1.2 * sx, 0, Math.PI * 2);
-        g.fill();
-      }
-    }
-    g.fillStyle = '#9a96a8';
-    for (const c2 of w.circles) if (c2.type.startsWith('pillar') || c2.type === 'ruin_block' || c2.type === 'rock') g.fillRect(tx(c2.x) - 1.5, tz(c2.z) - 1.5, 3, 3);
-    g.fillStyle = '#e8d8b8';
-    for (const bx of w.boxes) if (bx.type === 'house') g.fillRect(tx(bx.x) - 3.2 * sx, tz(bx.z) - 2.6 * sx, 6.4 * sx, 5.2 * sx);
-    this.miniBase = { canvas: c, sx, minX: b.minX, minZ: b.minZ };
+  onTracker(fn) {
+    this.tracker.addEventListener('click', fn);
   }
+
+  // ---------- minimap ----------
 
   drawMinimap() {
     const g = this.mini.getContext('2d');
     const S = this.mini.width;
-    const p = this.game.player;
-    const mb = this.miniBase;
-    const range = 34; // metres shown from centre to edge
-    const k = S / 2 / range; // px per metre
+    const game = this.game;
+    const p = game.player;
+    const mb = this.map;
+    const range = 36; // metres from the centre to the edge
+    const k = S / 2 / range; // canvas px per metre
     g.save();
-    g.fillStyle = '#2f4a2f';
+    g.fillStyle = '#243a28';
     g.fillRect(0, 0, S, S);
     g.translate(S / 2, S / 2);
-    g.scale(k / mb.sx, k / mb.sx);
-    g.translate(-(p.x - mb.minX) * mb.sx, -(p.z - mb.minZ) * mb.sx);
+    g.scale(k / mb.px, k / mb.px);
+    g.translate(-(p.x - mb.minX) * mb.px, -(p.z - mb.minZ) * mb.px);
     g.drawImage(mb.canvas, 0, 0);
     g.restore();
     const toS = (x, z) => [S / 2 + (x - p.x) * k, S / 2 + (z - p.z) * k];
+    const inView = (x, y, pad = 10) => x > -pad && y > -pad && x < S + pad && y < S + pad;
+    const edge = (x, y, color, r) => {
+      const a = Math.atan2(y - S / 2, x - S / 2);
+      g.fillStyle = color;
+      g.beginPath();
+      g.arc(S / 2 + Math.cos(a) * (S / 2 - 16), S / 2 + Math.sin(a) * (S / 2 - 16), r, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = '#fff';
+      g.lineWidth = 2;
+      g.stroke();
+    };
+    // waypoints
+    for (const wp of game.world.waypoints) {
+      const [x, y] = toS(wp.x, wp.z);
+      if (!inView(x, y)) continue;
+      const on = game.isWaypointUnlocked(wp.id);
+      g.save();
+      g.translate(x, y);
+      g.rotate(Math.PI / 4);
+      g.fillStyle = on ? '#6fe4ff' : '#8a96a0';
+      g.strokeStyle = '#fff';
+      g.lineWidth = 2;
+      g.fillRect(-6, -6, 12, 12);
+      g.strokeRect(-6, -6, 12, 12);
+      g.restore();
+    }
     // town points
-    const t = this.game.data.world.town;
+    const t = game.data.world.town;
     for (const [pos, col] of [[t.workbench, '#ffd166'], [t.trainer, '#8fd0ff']]) {
       const [x, y] = toS(pos[0], pos[1]);
+      if (!inView(x, y)) continue;
       g.fillStyle = col;
       g.beginPath();
       g.arc(x, y, 6, 0, Math.PI * 2);
       g.fill();
     }
-    for (const m of this.game.monsters) {
+    for (const m of game.monsters) {
       if (m.dead) continue;
       const [x, y] = toS(m.x, m.z);
-      if (x < -10 || y < -10 || x > S + 10 || y > S + 10) continue;
-      g.fillStyle = m.boss ? '#ff3a2a' : m.aggro ? '#ff5a4a' : '#e84a3a';
+      if (!inView(x, y)) continue;
+      g.fillStyle = m.boss ? '#ff3a2a' : m.aggro ? '#ff6a4a' : '#d8483a';
       g.beginPath();
-      g.arc(x, y, m.boss ? 9 : 5, 0, Math.PI * 2);
+      g.arc(x, y, m.boss ? 9 : 4.5, 0, Math.PI * 2);
       g.fill();
       if (m.boss) {
         g.strokeStyle = '#fff';
@@ -156,16 +199,31 @@ export class Hud {
         g.stroke();
       }
     }
-    // boss direction marker when off-map
-    const boss = this.game.monsters.find((m) => m.boss && !m.dead);
-    if (boss) {
-      const [x, y] = toS(boss.x, boss.z);
-      if (x < 0 || y < 0 || x > S || y > S) {
-        const a = Math.atan2(y - S / 2, x - S / 2);
-        g.fillStyle = '#ff5a4a';
+    g.fillStyle = '#9fe0ff';
+    for (const a of game.allies) {
+      const [x, y] = toS(a.x, a.z);
+      g.beginPath();
+      g.arc(x, y, 4.5, 0, Math.PI * 2);
+      g.fill();
+    }
+    // the tracked quest's destination (a gold star, or a gold dot on the rim when far)
+    const tq = this.questPos;
+    if (tq) {
+      const [x, y] = toS(tq.x, tq.z);
+      if (x < 12 || y < 12 || x > S - 12 || y > S - 12) edge(x, y, '#ffd166', 7);
+      else {
+        g.fillStyle = '#ffd166';
+        g.strokeStyle = '#6a4a10';
+        g.lineWidth = 2;
         g.beginPath();
-        g.arc(S / 2 + Math.cos(a) * (S / 2 - 14), S / 2 + Math.sin(a) * (S / 2 - 14), 7, 0, Math.PI * 2);
+        for (let i = 0; i < 10; i++) {
+          const r = i % 2 ? 4.5 : 10;
+          const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+          g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+        }
+        g.closePath();
         g.fill();
+        g.stroke();
       }
     }
     // player arrow (cyan like the reference)
@@ -186,6 +244,32 @@ export class Hud {
     g.restore();
   }
 
+  // ---------- quest tracker ----------
+
+  updateTracker() {
+    const g = this.game;
+    const d = g.data;
+    const id = trackedQuest(g.ch, d);
+    this.trackedId = id;
+    this.questPos = questTarget(g, id);
+    let html;
+    if (!id) html = `<b>${icon('scroll')} ภารกิจครบแล้ว</b><small>ลองคราฟต์ของใหม่หรือล่าบอสอีกครั้ง</small>`;
+    else {
+      const q = d.quests.quests[id];
+      const st = questState(g.ch, id);
+      const main = d.quests.main.includes(id);
+      const tq = this.questPos;
+      const far = tq ? Math.round(Math.hypot(tq.x - g.player.x, tq.z - g.player.z)) : 0;
+      html = `<b>${icon('scroll')} ${main ? '' : '<em>รอง</em> '}${esc(q.nameTh)}</b>
+        <small>${q.count > 1 ? `<u>${Math.min(st.progress, q.count)}/${q.count}</u> ` : ''}${esc(q.descTh)}</small>
+        ${far > 12 ? `<i>★ ${far} ม.</i>` : ''}`;
+    }
+    if (html !== this.lastTracker) {
+      this.tracker.innerHTML = html;
+      this.lastTracker = html;
+    }
+  }
+
   // ---------- events ----------
 
   toast(text, color) {
@@ -197,8 +281,10 @@ export class Hud {
     setTimeout(() => t.remove(), 3300);
   }
 
-  banner(text, sub = '') {
-    const b = h(`<div class="banner passive"></div>`);
+  banner(text, sub = '', cls = '') {
+    // one banner at a time: a newer one replaces the old
+    this.bannerEl?.remove();
+    const b = h(`<div class="banner passive ${cls}"></div>`);
     b.textContent = text;
     if (sub) {
       const s = document.createElement('small');
@@ -206,18 +292,37 @@ export class Hud {
       b.appendChild(s);
     }
     this.root.appendChild(b);
-    setTimeout(() => b.remove(), 2700);
+    this.bannerEl = b;
+    setTimeout(() => b.remove(), cls === 'long' ? 4200 : 2800);
   }
 
   float(x, y, z, text, cls) {
     const el = h(`<div class="fnum ${cls || ''}"></div>`);
     el.textContent = text;
     this.el.floats.appendChild(el);
-    this.floats.push({ el, x, y, z, t: 0, vx: (Math.random() - 0.5) * 30 });
+    this.floats.push({ el, x, y: this.game.world.groundY(x, z) + y, z, t: 0, vx: (Math.random() - 0.5) * 30 });
     if (this.floats.length > 60) {
       const f = this.floats.shift();
       f.el.remove();
     }
+  }
+
+  showZone(id, discovered = false) {
+    const zn = this.game.world.zoneById(id);
+    if (!zn) return;
+    this.el.zone.querySelector('.zd').textContent = discovered ? '✦ ค้นพบพื้นที่ใหม่ ✦' : '';
+    this.el.zone.querySelector('.zn').textContent = zn.nameTh;
+    this.el.zone.querySelector('.zs').textContent = zn.safe ? `${zn.name} · เขตปลอดภัย` : `${zn.name} · มอนเลเวล ${zn.level}+`;
+    this.el.zone.style.opacity = 1;
+    clearTimeout(this.zoneTimer);
+    this.zoneTimer = setTimeout(() => (this.el.zone.style.opacity = 0), discovered ? 4200 : 3000);
+  }
+
+  fade() {
+    const f = this.el.fade;
+    f.classList.remove('on');
+    void f.offsetWidth; // restart the animation
+    f.classList.add('on');
   }
 
   handleEvent(e) {
@@ -225,7 +330,7 @@ export class Hud {
     const d = g.data;
     switch (e.type) {
       case 'hit':
-        this.float(e.x, 1.8, e.z, e.amount, e.crit ? 'crit' : e.dot ? 'dot' : e.shell ? 'shell' : e.element === 'cold' ? 'cold' : e.element === 'fire' ? 'fire' : '');
+        this.float(e.x, 1.8, e.z, e.amount, e.crit ? 'crit' : e.dot ? 'dot' : e.shell ? 'shell' : e.byAlly ? 'ally' : ['cold', 'fire', 'lightning', 'poison'].includes(e.element) ? e.element : '');
         break;
       case 'playerHit':
         if (e.amount > 0) this.float(e.x, 2.1, e.z, `-${e.amount}`, 'hurt');
@@ -246,11 +351,36 @@ export class Hud {
         this.float(e.x, 2.6, e.z, `+${e.exp} EXP`, 'info');
         break;
       case 'levelup':
-        this.banner(`เลเวล ${e.level}!`, `ได้ Stat Point +${d.progression.character.statPointsPerLevel}`);
+        this.banner(`เลเวล ${e.level}!`, `ได้ Stat Point +${d.progression.character.statPointsPerLevel} · กด C (ตัวละคร) เพื่อลงแต้ม`);
         break;
       case 'joblevelup':
         this.toast(`Job Level ${e.level} · ได้ Job Point +1`, '#c59bff');
         if (e.level === d.progression.job.jobChoiceLevel) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');
+        break;
+      case 'questDone': {
+        const q = d.quests.quests[e.id];
+        this.banner(`ภารกิจสำเร็จ: ${q.nameTh}`, `รางวัล ${rewardText(d, e.reward)}`, 'quest');
+        this.toast(`✔ ${q.nameTh}`, '#ffd166');
+        this.lastTracker = null;
+        break;
+      }
+      case 'waypoint':
+        this.banner(`ปลดล็อกหินวาร์ป: ${e.name}`, 'เปิดแผนที่ (M) เพื่อวาร์ปมาที่นี่ได้ทุกเมื่อ · ถ้าหมดสติจะฟื้นที่หินใกล้สุด', 'quest');
+        break;
+      case 'zone':
+        if (this.discovered === e.id) break; // the discovery banner already shows it
+        this.showZone(e.id);
+        break;
+      case 'zoneDiscovered':
+        this.discovered = e.id;
+        this.showZone(e.id, true);
+        break;
+      case 'teleport':
+        this.fade();
+        break;
+      case 'respawn':
+        this.fade();
+        this.el.death.classList.remove('on');
         break;
       case 'fail':
         if (e.reason === 'mp') this.toast('MP ไม่พอ', '#3f8cff');
@@ -259,15 +389,24 @@ export class Hud {
       case 'playerDeath':
         this.el.death.classList.add('on');
         break;
-      case 'respawn':
-        this.el.death.classList.remove('on');
+      case 'bossDefeated': {
+        const boss = (d.world.bosses || []).find((b) => b.id === e.boss);
+        let sub = `บอสจะกลับมาใน ${boss?.respawnSeconds || 90} วินาที`;
+        if (e.first && e.final) sub = 'จบเนื้อเรื่อง Demo แล้ว! ลองคราฟต์ Horn Greatblade หรือทดลอง Build ใหม่ได้';
+        else if (e.first) sub = 'ได้วัตถุดิบบอสแล้ว — กลับไปคราฟต์อาวุธใหม่ที่นิคม';
+        this.banner(`ปราบ ${e.name} สำเร็จ!`, sub, 'long');
         break;
-      case 'bossDefeated':
-        this.banner('ปราบ Horned Warden สำเร็จ!', e.first ? 'จบ Demo แล้ว — ลองคราฟต์ Horn Greatblade หรือทดลอง Build ใหม่ได้' : 'บอสจะกลับมาใน 90 วินาที');
+      }
+      case 'enrage': {
+        const m = g.monsterById(e.id);
+        this.toast(`${m ? m.def.name : 'บอส'} คลั่ง! โจมตีเร็วและแรงขึ้น — กลิ้งหลบผ่านได้`, '#ff6b5a');
         break;
-      case 'enrage':
-        this.toast('Horned Warden คลั่ง! ระวังคลื่นกระแทก — กลิ้งผ่านได้', '#ff6b5a');
+      }
+      case 'howl': {
+        const m = g.monsterById(e.id);
+        if (m?.boss) this.toast(`${m.def.name} หอนเรียกฝูง!`, '#ff9a6a');
         break;
+      }
       case 'stunned':
         this.float(e.x, 2.4, e.z, 'มึน!', 'info');
         break;
@@ -276,7 +415,8 @@ export class Hud {
         if (m) this.float(m.x, 2, m.z, 'หดกระดอง!', 'shell');
         break;
       }
-      case 'trigger':
+      case 'summon':
+        this.float(e.x, 1.8, e.z, 'อัญเชิญ!', 'ally');
         break;
     }
   }
@@ -297,45 +437,45 @@ export class Hud {
     this.expFill.style.width = pct(ch.exp, expToNext(g.data, ch.level));
     this.jobFill.style.width = pct(ch.jobExp, jobExpToNext(g.data, ch.jobLevel));
     this.lvl.textContent = ch.level;
-    const st = [];
-    st.push(`<b>Job ${ch.jobLevel}</b>`);
-    st.push(`💰 <b>${ch.gold}</b>`);
-    if (p.statuses.poison) st.push('<b style="color:#b6ec5a">ติดพิษ</b>');
+    const st = [`<b>Job ${ch.jobLevel}</b>`, `💰 <b>${ch.gold}</b>`];
+    if (p.statuses.poison) st.push('<b class="st poison">ติดพิษ</b>');
+    if (p.statuses.chill) st.push('<b class="st cold">หนาวช้า</b>');
+    if (p.buffs.war_cry) st.push('<b class="st buff">คำรามศึก</b>');
+    if (g.allies.length) st.push(`<b class="st ally">หมาป่า ×${g.allies.length}</b>`);
     const html = st.join('');
     if (html !== this.lastStatus) {
       this.statusLine.innerHTML = html;
       this.lastStatus = html;
     }
 
-    // zone banner
-    const zn = g.zoneAt(p.x);
-    if (zn.id !== this.zone) {
-      this.zone = zn.id;
-      this.el.zone.querySelector('.zn').textContent = zn.nameTh;
-      this.el.zone.querySelector('.zs').textContent = zn.safe ? `${zn.name} · เขตปลอดภัย` : `${zn.name} · มอนเลเวล ${zn.level}+`;
-      this.el.zone.style.opacity = 1;
-      clearTimeout(this.zoneTimer);
-      this.zoneTimer = setTimeout(() => (this.el.zone.style.opacity = 0), 3500);
+    // boss bar: the nearest boss that is fighting
+    let boss = null;
+    let bd = 40;
+    for (const m of g.monsters) {
+      if (!m.boss || m.dead || !m.aggro) continue;
+      const dd = Math.hypot(m.x - p.x, m.z - p.z);
+      if (dd < bd) {
+        bd = dd;
+        boss = m;
+      }
     }
-
-    // boss bar
-    const boss = g.monsters.find((m) => m.boss && !m.dead && m.aggro);
     this.el.boss.classList.toggle('on', !!boss);
     if (boss) {
-      this.el.boss.querySelector('.bn').textContent = `${boss.def.name} · Lv.${boss.level}${boss.enraged ? ' · คลั่ง' : ''}`;
+      this.el.boss.querySelector('.bn').textContent = `${boss.def.name} · ${boss.def.nameTh} · Lv.${boss.level}${boss.enraged ? ' · คลั่ง' : ''}`;
       this.el.boss.querySelector('.fill').style.width = pct(boss.hp, boss.maxHp);
       this.el.boss.querySelector('span').textContent = `${Math.ceil(boss.hp)} / ${boss.maxHp}`;
     }
 
     // interaction prompt
     const near = g.nearby();
-    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : null;
+    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.waypoint ? 'waypoint' : null;
     if (prompt !== this.lastPrompt) {
       this.lastPrompt = prompt;
       this.el.prompt.innerHTML = '';
       this.el.prompt.classList.toggle('on', !!prompt);
       if (prompt) {
-        const b = h(`<button class="pbtn">${prompt === 'workbench' ? '🔨 ใช้โต๊ะคราฟต์ (E)' : '📜 คุยกับครูฝึก · รีสเตต (E)'}</button>`);
+        const label = { workbench: '🔨 ใช้โต๊ะคราฟต์ (E)', trainer: '📜 คุยกับครูฝึก · รีแต้ม (E)', waypoint: '🌀 หินวาร์ป · เปิดแผนที่ (E)' }[prompt];
+        const b = h(`<button class="pbtn">${label}</button>`);
         b.addEventListener('click', () => ui.interact());
         this.el.prompt.appendChild(b);
       }
@@ -347,33 +487,32 @@ export class Hud {
       f.t += dt;
       const s = this.view.project(f.x, f.y + f.t * 1.2, f.z);
       f.el.style.transform = `translate(calc(-50% + ${s.x + f.vx * f.t}px), calc(-50% + ${s.y}px)) scale(${f.t < 0.1 ? 1.3 - f.t * 3 : 1})`;
-      f.el.style.left = '0px';
-      f.el.style.top = '0px';
       f.el.style.opacity = f.t > 0.7 ? 1 - (f.t - 0.7) / 0.5 : 1;
       if (f.t > 1.2) f.el.remove();
       else keep.push(f);
     }
     this.floats = keep;
 
-    // monster name + hp bars (damaged, aggro or targeted; never the boss)
+    // monster name + hp bars (damaged, fighting or targeted; bosses use the big bar)
     const seen = new Set();
     for (const m of g.monsters) {
       if (m.dead || m.boss) continue;
       const show = m.id === p.targetId || m.hp < m.maxHp || m.aggro;
       if (!show) continue;
-      const d2 = (m.x - p.x) ** 2 + (m.z - p.z) ** 2;
-      if (d2 > 30 * 30) continue;
+      if ((m.x - p.x) ** 2 + (m.z - p.z) ** 2 > 32 * 32) continue;
+      const mv = this.view.monsterViews.get(m.id);
+      if (!mv) continue;
       seen.add(m.id);
       let b = this.mbars.get(m.id);
       if (!b) {
-        b = h(`<div class="mbar passive"><div class="mn"></div><div class="bar"><i class="fill"></i></div></div>`);
-        b.querySelector('.mn').innerHTML = `<em>Lv.${m.level}</em> ${m.def.nameTh}`;
+        b = h(`<div class="mbar"><div class="mn"></div><div class="bar"><i class="fill"></i></div></div>`);
+        b.querySelector('.mn').innerHTML = `<em>Lv.${m.level}</em> ${esc(m.def.nameTh)}`;
         this.el.floats.appendChild(b);
         this.mbars.set(m.id, b);
       }
-      const s = this.view.project(m.x, (m.def.hover || 0) + (m.type === 'marsh_wisp' ? 1.2 : m.type === 'moss_beetle' ? 1.35 : 1.55), m.z);
-      b.style.left = `${s.x}px`;
-      b.style.top = `${s.y}px`;
+      const sc = mv.rig.baseScale || 1;
+      const s = this.view.project(m.x, mv.y + ((m.alt || 0) + (HEAD[m.type] || 1.5)) * sc, m.z);
+      b.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -100%)`;
       b.querySelector('.fill').style.width = pct(m.hp, m.maxHp);
       b.classList.toggle('target', m.id === p.targetId);
     }
@@ -384,9 +523,10 @@ export class Hud {
       }
     }
 
-    this.miniT = (this.miniT || 0) + dt;
+    this.miniT = (this.miniT ?? 1) + dt;
     if (this.miniT > 0.1) {
       this.miniT = 0;
+      this.updateTracker();
       this.drawMinimap();
     }
   }

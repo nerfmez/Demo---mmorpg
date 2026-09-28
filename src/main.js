@@ -1,77 +1,130 @@
-// Boot: data -> simulation -> view -> UI, then the frame loop.
+// Boot: data -> world -> view (the live map behind the title screen) -> menu -> a game session
+// (simulation + HUD + input + panels), then one frame loop for everything.
 import { data } from './data.js';
+import { createWorld } from './core/world.js';
+import { createCharacter } from './core/character.js';
 import { Game } from './core/game.js';
 import { View } from './render/view.js';
 import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
-import { loadSave, writeSave, clearSave, loadPref, savePref } from './save.js';
+import { Menu } from './ui/menu.js';
+import { migrateLegacy, writeSlot, exportCode, loadPref, savePref } from './save.js';
 
 const params = new URLSearchParams(location.search);
+// ?fresh=1 skips the menu with a new character that is never saved (tests); ?kit=bow|staff picks its kit
 const fresh = params.has('fresh');
-const saved = fresh ? null : loadSave();
 const coarse = matchMedia('(pointer: coarse)').matches;
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
-const game = new Game(data, { seed: Number(params.get('seed')) || (Date.now() % 100000), character: saved ? saved.character : null });
+migrateLegacy();
+const world = createWorld(data.world);
 const canvas = document.getElementById('game');
-const view = new View(canvas, game, { quality });
 const hudRoot = document.getElementById('hud');
-const hud = new Hud(hudRoot, game, view);
-
-let saveTimer = 0;
-const save = () => {
-  if (!fresh) writeSave(game);
+const view = new View(canvas, world, { quality });
+const setQuality = (q) => {
+  quality = q;
+  savePref('quality', q);
+  view.setQuality(q);
 };
 
-const panels = new Panels(hudRoot, game, {
-  onChange: save,
-  onReset: () => {
-    clearSave();
-    location.reload();
-  },
-  onQuality: (q) => {
-    quality = q;
-    savePref('quality', q);
-    view.setQuality(q);
-  },
+const F = (window.__frontier = { view, world, fps: 0, paused: false, game: null });
+let session = null;
+const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
+
+function startGame(character, slot) {
+  const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
+  view.attachGame(game);
+  view.mode = 'game';
+  view.snapCamera();
+  const hud = new Hud(hudRoot, game, view);
+  const save = () => {
+    if (slot) writeSlot(slot, game.snapshot());
+  };
+  const panels = new Panels(hudRoot, game, {
+    onChange: save,
+    onQuality: setQuality,
+    getQuality: () => quality,
+    onTitle: () => {
+      save();
+      location.href = location.pathname;
+    },
+    exportSave: () => {
+      save();
+      return slot ? exportCode(slot) : '';
+    },
+    slot,
+  });
+  const ui = {
+    panelOpen: () => panels.isOpen,
+    closePanel: () => panels.close(),
+    togglePanel: (t) => panels.toggle(t),
+    interact: () => {
+      const n = game.nearby();
+      if (n.workbench) panels.open('craft');
+      else if (n.trainer) panels.open('job');
+      else if (n.waypoint) panels.open('map');
+    },
+  };
+  const input = new Input(hudRoot, canvas, game, view, ui);
+  const buttons = {
+    bag: hud.addMenuButton('bag', 'I', () => panels.toggle('bag'), 'กระเป๋า'),
+    book: hud.addMenuButton('book', 'K', () => panels.toggle('skills'), 'สกิล'),
+    tree: hud.addMenuButton('tree', 'J', () => panels.toggle('job'), 'Job Tree'),
+    person: hud.addMenuButton('person', 'C', () => panels.toggle('char'), 'ตัวละคร'),
+    scroll: hud.addMenuButton('scroll', 'L', () => panels.toggle('journal'), 'ภารกิจ'),
+    map: hud.addMenuButton('map', 'M', () => panels.toggle('map'), 'แผนที่'),
+    gear: hud.addMenuButton('gear', 'Esc', () => panels.toggle('settings'), 'ตั้งค่า'),
+  };
+  hud.onTracker(() => panels.open('journal'));
+
+  let portraitKey = '';
+  const refreshPortrait = () => {
+    const look = game.ch.appearance;
+    const gear = game.gearLook();
+    const key = JSON.stringify([look, gear.helm, gear.weapon]);
+    if (key === portraitKey) return;
+    portraitKey = key;
+    try {
+      hud.setPortrait(view.portrait(look || undefined, gear, 128));
+    } catch {
+      /* the portrait is cosmetic */
+    }
+  };
+  refreshPortrait();
+
+  const refreshBadges = () => {
+    const b = panels.badges();
+    for (const [key, n] of [['person', b.char], ['tree', b.job]]) {
+      const btn = buttons[key];
+      let dot = btn.querySelector('.dot');
+      if (n > 0) {
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'dot';
+          btn.appendChild(dot);
+        }
+        dot.textContent = n;
+      } else dot?.remove();
+    }
+  };
+
+  session = { game, hud, panels, input, ui, save, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
+  Object.assign(F, { game, hud, panels, input, save });
+  save();
+
+  const ch = game.ch;
+  if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ภารกิจแรกอยู่มุมขวาบน (ดาวทองบนมินิแมพ) · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์ที่นิคม', 'long');
+  else hud.toast(`โหลดเซฟแล้ว · ${ch.name} Lv.${ch.level}`, '#8fd0ff');
+}
+
+// ---------- menu (title, save slots, character creation) ----------
+const menu = new Menu(hudRoot, view, data, {
+  onStart: (ch, slot) => startGame(ch, slot),
+  onQuality: setQuality,
   getQuality: () => quality,
 });
-
-const ui = {
-  panelOpen: () => panels.isOpen,
-  closePanel: () => panels.close(),
-  togglePanel: (t) => panels.toggle(t),
-  interact: () => {
-    const n = game.nearby();
-    if (n.workbench) panels.open('craft');
-    else if (n.trainer) panels.open('job');
-  },
-};
-const input = new Input(hudRoot, canvas, game, view, ui);
-
-const menuButtons = {
-  bag: hud.addMenuButton('bag', 'I', () => panels.toggle('bag')),
-  book: hud.addMenuButton('book', 'K', () => panels.toggle('skills')),
-  tree: hud.addMenuButton('tree', 'J', () => panels.toggle('job')),
-  person: hud.addMenuButton('person', 'C', () => panels.toggle('char')),
-  gear: hud.addMenuButton('gear', 'Esc', () => panels.toggle('settings')),
-};
-function refreshBadges() {
-  const b = panels.badges();
-  for (const [key, n] of [['person', b.char], ['tree', b.job]]) {
-    const btn = menuButtons[key];
-    let dot = btn.querySelector('.dot');
-    if (n > 0) {
-      if (!dot) {
-        dot = document.createElement('span');
-        dot.className = 'dot';
-        btn.appendChild(dot);
-      }
-      dot.textContent = n;
-    } else dot?.remove();
-  }
-}
+F.menu = menu;
 
 // iPad Safari ignores user-scalable=no: block double-tap and pinch page zoom, which would
 // otherwise zoom the whole page with no way back (the game swallows the gestures).
@@ -82,7 +135,7 @@ document.addEventListener(
   (e) => {
     const now = performance.now();
     // a quick second tap is a zoom gesture; menus keep their taps (they cannot zoom: touch-action)
-    if (now - lastTouchEnd < 350 && !e.target.closest?.('.overlay')) e.preventDefault();
+    if (now - lastTouchEnd < 350 && !e.target.closest?.('.overlay, .menu-layer')) e.preventDefault();
     lastTouchEnd = now;
   },
   { passive: false }
@@ -90,7 +143,7 @@ document.addEventListener(
 document.addEventListener(
   'touchmove',
   (e) => {
-    if (e.touches.length > 1 || !e.target.closest?.('.pbody')) e.preventDefault();
+    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly')) e.preventDefault();
   },
   { passive: false }
 );
@@ -98,60 +151,65 @@ document.addEventListener(
 addEventListener('resize', () => view.resize());
 addEventListener('orientationchange', () => setTimeout(() => view.resize(), 200));
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) save();
+  if (document.hidden) session?.save();
 });
-addEventListener('pagehide', save);
+addEventListener('pagehide', () => session?.save());
 
 try {
   view.warmup();
 } catch (err) {
   console.warn('warmup skipped', err);
 }
-try {
-  hud.setPortrait(view.portrait(128));
-} catch {
-  /* portrait is cosmetic */
-}
 
+// ---------- frame loop ----------
 let last = performance.now();
 let time = 0;
 let fpsAcc = 0;
 let fpsN = 0;
-window.__frontier = { game, view, hud, panels, input, fps: 0 };
 
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   time += dt;
-  input.update();
-  if (!panels.isOpen && !window.__frontier.paused) game.update(dt);
-  for (const e of game.drainEvents()) {
-    view.handleEvent(e);
-    hud.handleEvent(e);
-    if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'bossDefeated') save();
-    if (e.type === 'levelup' || e.type === 'joblevelup') panels.render();
-  }
-  view.render(panels.isOpen ? 0 : dt, time, { aim: input.aim });
-  hud.update(panels.isOpen ? 0 : dt, ui);
-  saveTimer += dt;
-  if (saveTimer > 10) {
-    saveTimer = 0;
-    save();
-    refreshBadges();
-  }
-  if (Math.floor(time * 2) !== Math.floor((time - dt) * 2)) refreshBadges();
+  const s = session;
+  if (s) {
+    s.input.update();
+    const paused = s.panels.isOpen || F.paused;
+    if (!paused) s.game.update(dt);
+    for (const e of s.game.drainEvents()) {
+      view.handleEvent(e);
+      s.hud.handleEvent(e);
+      if (SAVE_ON.has(e.type)) s.save();
+      if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
+    }
+    view.render(paused ? 0 : dt, time, { aim: s.input.aim });
+    s.hud.update(paused ? 0 : dt, s.ui);
+    s.saveT += dt;
+    if (s.saveT > 10) {
+      s.saveT = 0;
+      s.save();
+    }
+    s.badgeT += dt;
+    if (s.badgeT > 0.5) {
+      s.badgeT = 0;
+      s.refreshBadges();
+      s.refreshPortrait();
+    }
+  } else view.render(dt, time);
   fpsAcc += dt;
   fpsN++;
   if (fpsAcc > 1) {
-    window.__frontier.fps = Math.round(fpsN / fpsAcc);
+    F.fps = Math.round(fpsN / fpsAcc);
     fpsAcc = 0;
     fpsN = 0;
   }
   requestAnimationFrame(frame);
 }
+
+if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
+else menu.showTitle();
 requestAnimationFrame((t) => {
   last = t;
   document.getElementById('loading').classList.add('done');
-  if (!saved) hud.banner('Greenhollow Frontier', 'เดินตามถนนไปทางตะวันออก · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์ที่นิคม');
   frame(t);
 });

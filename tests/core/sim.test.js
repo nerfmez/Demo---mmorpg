@@ -40,18 +40,20 @@ test('the player never walks toward the target by itself', () => {
   assert.ok(Math.abs(p.x - x0) < 0.01);
 });
 
-test('the road from the settlement to the ruins is walkable, including the bridge', () => {
+test('every road is walkable, bridges included, and the river blocks elsewhere', () => {
   const g = new Game(data, { seed: 1 });
-  const pts = data.world.path.points;
-  for (let i = 0; i < pts.length - 1; i++)
-    for (let t = 0; t <= 1; t += 0.05) {
-      const x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t;
-      const z = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t;
-      if (x < data.world.bounds.minX + 1 || x > data.world.bounds.maxX - 1) continue;
-      assert.ok(!g.world.isWater(x, z, 0.13), `water on road at ${x.toFixed(1)},${z.toFixed(1)}`);
-      assert.ok(g.world.isFree(x, z, 0.45), `blocked road at ${x.toFixed(1)},${z.toFixed(1)}`);
-    }
-  // and the river really blocks away from the bridge
+  for (const road of g.world.roads) {
+    const pts = road.points;
+    for (let i = 0; i < pts.length - 1; i++)
+      for (let t = 0; t <= 1; t += 0.05) {
+        const x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t;
+        const z = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t;
+        const b = data.world.bounds;
+        if (x < b.minX + 1 || x > b.maxX - 1 || z < b.minZ + 1 || z > b.maxZ - 1) continue;
+        assert.ok(!g.world.isWater(x, z, 0.13), `water on ${road.id} at ${x.toFixed(1)},${z.toFixed(1)}`);
+        assert.ok(g.world.isFree(x, z, 0.45), `blocked ${road.id} at ${x.toFixed(1)},${z.toFixed(1)}`);
+      }
+  }
   const rv = data.world.river.points;
   assert.ok(g.world.isWater(rv[1][0], rv[1][1]));
   assert.ok(distToPolyline(rv[1][0], rv[1][1], rv) < 0.01);
@@ -82,14 +84,15 @@ test('roll gives invulnerability; a charging boar that hits a rock is stunned', 
   g.useMovement();
   assert.equal(g.damagePlayer(50, null), 0);
   const boar = g.monsters.find((q) => q.type === 'tusk_boar');
-  const rock = g.world.circles.find((c) => c.type === 'rock' && !g.isSafe(c.x, c.z) && Math.abs(c.z) < 30 && g.world.isFree(c.x - c.r - 3, c.z, 1));
+  const rock = g.world.circles.find((c) => c.type === 'rock' && !g.isSafe(c.x, c.z) && g.world.zoneAt(c.x, c.z).id === 'meadow' && g.world.isFree(c.x - c.r - 3, c.z, 1) && g.world.isFree(c.x - c.r - 1.5, c.z, 1));
+  assert.ok(rock, 'a free-standing rock in the meadow');
   boar.x = rock.x - rock.r - boar.r - 2;
   boar.z = rock.z;
   boar.aggro = true;
   boar.state = 'act';
   boar.stateT = 0;
   boar.windup = { name: 'charge', total: 0.7, angle: Math.PI / 2 };
-  boar.charge = { t: 0, dur: 1, speed: 13, angle: Math.PI / 2, hit: true, dmg: 1 };
+  boar.charge = { t: 0, dur: 1, speed: 13, angle: Math.PI / 2, hit: new Set(), dmg: 1 };
   g.player.x = boar.x - 20; // far away
   let stunned = false;
   for (let i = 0; i < 60 && !stunned; i++) {
@@ -103,10 +106,11 @@ test('cast on dodge fires the linked spell when a movement skill ends', () => {
   const g = new Game(data, { seed: 4 });
   g.ch.stats.AGI = 10;
   g.ch.mods.push({ uid: 999, id: 'cast_on_dodge', level: 1 });
-  g.ch.slots[1].mods.push(999);
+  g.ch.slots[g.ch.slots.findIndex((s) => s.skill === 'firebolt')].mods.push(999);
   g.refresh();
-  g.player.x = -50;
-  g.player.z = 5;
+  const spot = g.freeSpotNear(-70, 10);
+  g.player.x = spot.x;
+  g.player.z = spot.z;
   g.useMovement();
   step(g, 0.5);
   const ev = g.drainEvents();
@@ -115,10 +119,12 @@ test('cast on dodge fires the linked spell when a movement skill ends', () => {
 
 test('the boss must be defeated for the demo climax and gives rare materials', () => {
   const g = new Game(data, { seed: 5 });
-  const boss = g.monsters.find((m) => m.boss);
+  const boss = g.monsters.find((m) => m.boss && m.spawn.final);
+  assert.equal(boss.type, 'horned_warden');
   g.hitMonster(boss, 1e6);
   const ev = g.drainEvents();
-  assert.ok(ev.some((e) => e.type === 'bossDefeated'));
+  assert.ok(ev.some((e) => e.type === 'bossDefeated' && e.final && e.first));
+  assert.equal(g.ch.bossKills, 1);
   const items = g.drops.map((d) => d.item);
   assert.ok(items.includes('warden_horn') && items.includes('ancient_core'));
 });
@@ -126,17 +132,19 @@ test('the boss must be defeated for the demo climax and gives rare materials', (
 test('a long headless session stays stable and progresses', () => {
   const g = new Game(data, { seed: 6 });
   const p = g.player;
+  p.x = -98;
+  p.z = 3; // at the settlement gate
   for (let i = 0; i < 60 * 120; i++) {
     const t = g.target;
     if (t) {
-      g.setMove(0, 0);
+      // close in to melee range, then use every skill (the player never auto-walks)
+      if (Math.hypot(t.x - p.x, t.z - p.z) > 2.5) g.setMove(t.x - p.x, t.z - p.z);
+      else g.setMove(0, 0);
       g.setAimPoint(t.x, t.z);
-      g.castSlot(1);
-      g.castSlot(0);
-      if (p.hp < p.maxHp * 0.5) g.castSlot(2);
+      for (let k = 0; k < 3; k++) g.castSlot(k);
     } else {
       const near = g.monsters.filter((m) => !m.dead && !m.boss && Math.abs(m.x - p.x) < 25).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
-      if (near && p.x > -66) g.setMove(near.x - p.x, near.z - p.z);
+      if (near && p.x > -95) g.setMove(near.x - p.x, near.z - p.z);
       else g.setMove(1, 0);
     }
     g.update(1 / 60);

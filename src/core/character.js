@@ -1,13 +1,27 @@
 // Character progression: Character Level -> Stat Points, Job Level -> Job Points (Job Tree),
-// gear, and derived combat stats. The character object is plain JSON so it can be saved
-// and ported as-is (Godot: a Dictionary or a Resource with the same fields).
+// equipment (5 slots), appearance, and derived combat stats. The character object is plain
+// JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
+export const CHARACTER_VERSION = 2;
 
-export function createCharacter(data) {
+export function emptyProgress() {
+  return { waypoints: ['town'], zones: ['settlement'], kills: {}, collected: {}, quests: {}, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {} };
+}
+
+/**
+ * @param {object} data game data
+ * @param {{kit?:string, name?:string, appearance?:object}} opts
+ */
+export function createCharacter(data, opts = {}) {
   const p = data.progression;
+  const st = p.start;
+  const kit = st.kits?.[opts.kit || st.defaultKit] || null;
   const ch = {
-    version: 1,
+    version: CHARACTER_VERSION,
+    name: opts.name || 'Wanderer',
+    appearance: opts.appearance ? { ...opts.appearance } : null,
+    kit: opts.kit || st.defaultKit || 'sword',
     level: 1,
     exp: 0,
     statPoints: p.character.startingStatPoints,
@@ -16,23 +30,52 @@ export function createCharacter(data) {
     jobExp: 0,
     jobPoints: 0,
     jobNodes: [data.jobtree.origin],
-    gold: p.start.gold,
+    gold: st.gold,
     materials: {},
     gear: [],
-    equipped: { weapon: null, armor: null },
-    skills: { ...p.start.skills },
-    movementSkills: [...p.start.movementSkills],
-    movement: p.start.movement,
+    equipped: Object.fromEntries((data.items.slots || ['weapon', 'armor']).map((s) => [s, null])),
+    skills: { ...st.skills },
+    movementSkills: [...st.movementSkills],
+    movement: kit ? kit.movement : st.movement,
     mods: [],
-    slots: p.start.slots.map((s) => ({ skill: s, mods: [] })),
+    slots: (kit ? kit.slots : st.slots).map((s) => ({ skill: s, mods: [] })),
     nextUid: 1,
     bossKills: 0,
+    progress: emptyProgress(),
+    pos: null,
   };
-  for (const baseId of p.start.gear) {
+  const startGear = kit ? [kit.weapon, ...st.gear.filter((g) => data.items.gearBases[g]?.slot !== 'weapon')] : st.gear;
+  for (const baseId of startGear) {
+    const base = data.items.gearBases[baseId];
+    if (!base) continue;
     const item = { uid: ch.nextUid++, base: baseId, grade: 'B', upgrade: 0, options: [] };
     ch.gear.push(item);
-    ch.equipped[data.items.gearBases[baseId].slot] = item.uid;
+    ch.equipped[base.slot] = item.uid;
   }
+  return ch;
+}
+
+/** Bring an older save up to date (v1 -> v2). Never throws on missing fields. */
+export function migrateCharacter(ch, data) {
+  if (!ch || typeof ch !== 'object') return null;
+  const slots = data.items.slots || ['weapon', 'armor'];
+  ch.equipped = ch.equipped || {};
+  for (const s of slots) if (!(s in ch.equipped)) ch.equipped[s] = null;
+  ch.progress = { ...emptyProgress(), ...(ch.progress || {}) };
+  for (const k of ['kills', 'collected', 'quests', 'bossKills']) ch.progress[k] = ch.progress[k] || {};
+  if (!ch.name) ch.name = 'Wanderer';
+  if (!('appearance' in ch)) ch.appearance = null;
+  if (!ch.kit) ch.kit = 'sword';
+  if (!ch.skills.hunter_shot) ch.skills.hunter_shot = 1;
+  // drop references to things that no longer exist
+  ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
+  while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });
+  ch.mods = (ch.mods || []).filter((m) => data.mods.mods[m.id]);
+  ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
+  for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
+  ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
+  if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
+  ch.version = CHARACTER_VERSION;
   return ch;
 }
 
@@ -110,7 +153,7 @@ export function allocateJobNode(ch, data, nodeId) {
   if (!st.can) return st;
   ch.jobNodes.push(nodeId);
   ch.jobPoints -= 1;
-  return { can: true, done: true };
+  return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
 }
 
 export function currentJob(ch, data) {
@@ -150,17 +193,26 @@ export function gearItem(ch, uid) {
   return ch.gear.find((g) => g.uid === uid) || null;
 }
 
+/** Stats of one item: base stats x grade x upgrade, plus rolled options. */
 export function gearStats(item, data) {
   const base = data.items.gearBases[item.base];
   const g = data.items.grades;
   const mult = g.statMult[item.grade] * (1 + item.upgrade * data.items.upgrade.statPerLevel);
   const out = {};
-  for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult);
+  for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult * 10) / 10;
+  for (const k in out) if (Math.abs(out[k]) >= 3) out[k] = Math.round(out[k]);
   for (const o of item.options) {
     const stat = data.items.gearOptions[o.id].stat;
     out[stat] = (out[stat] || 0) + o.value;
   }
   return out;
+}
+
+/** The weapon type's built-in bonus (not scaled by grade). */
+export function weaponImplicit(item, data) {
+  const base = data.items.gearBases[item.base];
+  if (base.slot !== 'weapon' || !base.weaponType) return {};
+  return data.items.weaponTypes?.[base.weaponType]?.implicit || {};
 }
 
 export function equip(ch, data, uid) {
@@ -171,6 +223,24 @@ export function equip(ch, data, uid) {
   if (!req.ok) return { ok: false, missing: req.missing };
   ch.equipped[base.slot] = uid;
   return { ok: true };
+}
+
+export function unequip(ch, data, slot) {
+  if (slot === 'weapon') return { ok: false, reason: 'weapon' }; // always hold something
+  ch.equipped[slot] = null;
+  return { ok: true };
+}
+
+/** What the renderer needs to dress the hero. */
+export function gearLook(ch, data) {
+  const out = { weapon: null, armor: 'tunic', helm: null };
+  const w = gearItem(ch, ch.equipped.weapon);
+  if (w) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
+  const a = gearItem(ch, ch.equipped.armor);
+  if (a) out.armor = data.items.gearBases[a.base].look || 'tunic';
+  const h = gearItem(ch, ch.equipped.helm);
+  if (h) out.helm = data.items.gearBases[h.base].look || null;
+  return out;
 }
 
 // ---------- Derived stats ----------
@@ -188,6 +258,7 @@ export function derive(ch, data) {
     projectileDamagePct: 0,
     areaDamagePct: 0,
     spellDamagePct: 0,
+    summonDamagePct: 0,
     maxHpPct: 0,
     maxMpPct: 0,
     barrierPct: 0,
@@ -206,6 +277,7 @@ export function derive(ch, data) {
     healGrantsBarrierPct: 0,
     meleeArcAdd: 0,
     poisonChancePct: 0,
+    leechPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -214,11 +286,13 @@ export function derive(ch, data) {
     const per = pc.perStat[s] || {};
     for (const k in per) add(k, per[k] * ch.stats[s]);
   }
-  for (const slot of ['weapon', 'armor']) {
+  for (const slot of data.items.slots || ['weapon', 'armor']) {
     const item = gearItem(ch, ch.equipped[slot]);
     if (!item) continue;
     const gs = gearStats(item, data);
     for (const k in gs) add(k, gs[k]);
+    const imp = weaponImplicit(item, data);
+    for (const k in imp) add(k, imp[k]);
   }
   for (const n of ch.jobNodes) {
     const eff = data.jobtree.nodes[n].effects;

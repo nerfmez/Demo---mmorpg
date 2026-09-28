@@ -34,6 +34,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   const slot = ch.slots[slotIndex];
   if (!slot || !slot.skill) return null;
   const def = skillDef(data, slot.skill);
+  if (!def) return null;
   const level = ch.skills[slot.skill] || 1;
   const levelMult = 1 + data.progression.skillUpgrade.perLevel * (level - 1);
   const tags = new Set(def.tags);
@@ -60,15 +61,22 @@ export function computeSkill(ch, data, derived, slotIndex) {
     projectiles: 1,
     spread: 0,
     pierce: 0,
-    chain: 0,
-    chainRange: 0,
+    chain: def.chain || 0,
+    chainRange: def.chainRange || 0,
+    chainFalloff: def.chainFalloff || 1,
     echo: null,
     ground: null,
-    chill: null,
+    chill: def.chill ? { ...def.chill } : null,
+    slow: def.slow || 0,
     reflect: 0,
     tauntRadius: 0,
     trigger: null,
     damageMult: 1,
+    repeats: 0,
+    repeatMult: 0,
+    repeatDelay: 0,
+    knock: 0,
+    leech: derived.leechPct || 0,
     requirementsMet: meetsRequires(ch, def.requires).ok,
     mods: [],
   };
@@ -84,6 +92,27 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (def.damage) s.damage = (def.damage.base + def.damage.scale * power) * levelMult * (1 + inc / 100);
   if (def.heal) s.heal = (def.heal.base + def.heal.scale * power) * levelMult * (1 + derived.healPct / 100);
   if (def.barrier) s.barrier = (def.barrier.base + def.barrier.scale * power) * levelMult * (1 + derived.barrierPct / 100);
+  if (def.kind === 'curse_zone') {
+    s.takenMult = 1 + (def.takenMult - 1) * levelMult;
+    s.dealtMult = Math.max(0.5, 1 - (1 - def.dealtMult) * levelMult);
+  }
+  if (def.kind === 'buff') {
+    s.damageBuff = def.damageBuff * levelMult;
+    s.speedBuff = def.speedBuff;
+  }
+  if (def.summon) {
+    const sm = def.summon;
+    s.summon = {
+      type: sm.type,
+      count: sm.count,
+      life: sm.life,
+      hp: Math.round(sm.hp.base + sm.hp.vit * ch.stats.VIT + sm.hp.level * ch.level),
+      damage: (sm.damage.base + sm.damage.scale * derived.magic) * levelMult * (1 + derived.summonDamagePct / 100),
+      speed: sm.speed,
+      range: sm.range,
+      attackCooldown: sm.attackCooldown,
+    };
+  }
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;
 
@@ -91,11 +120,12 @@ export function computeSkill(ch, data, derived, slotIndex) {
     const inst = ch.mods.find((m) => m.uid === uid);
     if (!inst) continue;
     const m = modDef(data, inst.id);
-    if (!modFits(def, m).ok) continue;
+    if (!m || !modFits(def, m).ok) continue;
     const e = m.effect;
     const L = inst.level || 1;
-    s.mods.push({ id: inst.id, level: L, active: meetsRequires(ch, m.requires).ok });
-    if (!meetsRequires(ch, m.requires).ok) continue; // socketed but inactive until stats are met
+    const active = meetsRequires(ch, m.requires).ok;
+    s.mods.push({ id: inst.id, level: L, active });
+    if (!active) continue; // socketed but inactive until stats are met
     for (const t of m.tags) tags.add(t);
     if (e.extraProjectiles) {
       s.projectiles += lv(e.extraProjectiles, L);
@@ -104,7 +134,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (e.pierce) s.pierce += lv(e.pierce, L);
     if (e.chain) {
       s.chain += lv(e.chain, L);
-      s.chainRange = e.chainRange;
+      s.chainRange = Math.max(s.chainRange, e.chainRange);
     }
     if (e.damageMult && !e.trigger) s.damageMult *= lv(e.damageMult, L);
     if (e.groundDps) s.ground = { dpsMult: lv(e.groundDps, L), duration: e.groundDuration, radius: e.groundRadius };
@@ -112,17 +142,38 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (e.arcAdd) {
       s.arc += lv(e.arcAdd, L);
       s.range += lv(e.rangeAdd, L);
+      if (s.kind === 'melee_nova') s.radius += lv(e.rangeAdd, L);
     }
     if (e.element) {
       s.element = e.element;
-      s.chill = { slow: lv(e.chillSlow, L), duration: e.chillDuration };
+      s.chill = { slow: Math.max(s.chill?.slow || 0, lv(e.chillSlow, L)), duration: Math.max(s.chill?.duration || 0, e.chillDuration) };
       s.burnChance = 0;
     }
     if (e.reflect) {
       s.reflect = lv(e.reflect, L);
       s.tauntRadius = e.tauntRadius;
     }
+    if (e.repeats) {
+      s.repeats = lv(e.repeats, L);
+      s.repeatMult = lv(e.repeatMult, L);
+      s.repeatDelay = e.repeatDelay;
+    }
+    if (e.knock) s.knock = lv(e.knock, L);
+    if (e.radiusMult) {
+      s.radius *= e.radiusMult;
+      if (s.ground) s.ground.radius *= e.radiusMult;
+    }
+    if (e.durationMult) s.durationMult = lv(e.durationMult, L);
+    if (e.leechPct) s.leech += lv(e.leechPct, L);
+    if (e.extraSummons && s.summon) {
+      s.summon.count += lv(e.extraSummons, L);
+      s.summon.damage *= 1 + lv(e.summonDamage, L);
+    }
     if (e.trigger) s.trigger = { on: e.trigger, icd: lv(e.internalCooldown, L), damageMult: lv(e.damageMult, L) };
+  }
+  if (s.durationMult) {
+    if (s.kind === 'dot_zone' || s.kind === 'heal_zone') s.duration *= s.durationMult;
+    if (s.ground) s.ground.duration *= s.durationMult;
   }
   s.arc = Math.min(s.arc, 360);
   if (s.damage !== undefined) s.damage *= s.damageMult;
@@ -130,8 +181,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
 }
 
 export function movementSkill(ch, data, derived) {
-  const def = movementDef(data, ch.movement);
-  return {
+  const def = movementDef(data, ch.movement) || movementDef(data, 'dash');
+  const out = {
     id: ch.movement,
     def,
     kind: def.kind,
@@ -141,6 +192,8 @@ export function movementSkill(ch, data, derived) {
     recharge: def.recharge * (1 - derived.cooldownPct / 100),
     invulnerable: def.invulnerable,
   };
+  if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };
+  return out;
 }
 
 // ---------- Loadout editing ----------
@@ -181,6 +234,7 @@ export function socketMod(ch, data, slotIndex, uid) {
   const from = modSlotOf(ch, uid);
   if (from >= 0) ch.slots[from].mods = ch.slots[from].mods.filter((u) => u !== uid);
   slot.mods.push(uid);
+  if (ch.progress) ch.progress.socketed = (ch.progress.socketed || 0) + 1;
   return { ok: true };
 }
 

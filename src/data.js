@@ -7,5 +7,6 @@ import recipes from '../data/recipes.json';
 import progression from '../data/progression.json';
 import jobtree from '../data/jobtree.json';
 import world from '../data/world.json';
+import quests from '../data/quests.json';
 
-export const data = { skills, mods, monsters, items, recipes, progression, jobtree, world };
+export const data = { skills, mods, monsters, items, recipes, progression, jobtree, world, quests };

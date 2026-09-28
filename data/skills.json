@@ -1,139 +1,116 @@
 {
-  "_doc": "Combat skills. Every attack, the basic one included, is a skill the player can equip or remove. Units: metres and seconds. damage = base + scale * power, where power is attackPower (Attack tag) or spellPower (Spell tag).",
+  "_doc": "Combat skills. Every attack, the basic one included, is a skill the player can equip or remove. Units: metres and seconds. damage = base + scale * power, where power is attackPower (Attack tag) or spellPower (Spell tag). kind picks how src/core/game.js executes it.",
   "combat": {
     "slash": {
-      "name": "Slash",
-      "nameTh": "ฟันกวาด",
-      "desc": "ฟันเป็นวงโค้งด้านหน้า การโจมตีธรรมดาที่ถอดออกได้เหมือนสกิลอื่น",
-      "tags": ["Attack", "Melee", "Damage"],
-      "kind": "melee_arc",
-      "power": "attack",
-      "damage": { "base": 8, "scale": 1.0 },
-      "range": 2.4,
-      "arc": 120,
-      "cooldown": 0.5,
-      "castTime": 0.18,
-      "cost": 0,
-      "element": "physical",
-      "requires": {},
-      "upgradeMaterial": "boar_tusk",
-      "icon": "slash"
+      "name": "Slash", "nameTh": "ฟันกวาด",
+      "desc": "ฟันเป็นวงโค้งด้านหน้า สลับซ้าย-ขวาเป็นคอมโบ การโจมตีธรรมดาที่ถอดออกได้เหมือนสกิลอื่น",
+      "tags": ["Attack", "Melee", "Damage"], "kind": "melee_arc", "power": "attack",
+      "damage": { "base": 8, "scale": 1.0 }, "range": 2.4, "arc": 120, "cooldown": 0.5, "castTime": 0.18, "cost": 0,
+      "element": "physical", "requires": {}, "upgradeMaterial": "boar_tusk", "icon": "slash"
+    },
+    "whirl_blade": {
+      "name": "Whirl Blade", "nameTh": "ใบมีดหมุน",
+      "desc": "หมุนตัวฟันรอบทิศ โดนทุกตัวรอบตัว เหมาะกับสายประชิดที่โดนล้อม",
+      "tags": ["Attack", "Melee", "Area", "Damage"], "kind": "melee_nova", "power": "attack",
+      "damage": { "base": 7, "scale": 0.85 }, "range": 2.8, "radius": 2.8, "cooldown": 1.2, "castTime": 0.24, "cost": 6,
+      "element": "physical", "requires": { "STR": 5 }, "upgradeMaterial": "wolf_fang", "icon": "whirl"
+    },
+    "hunter_shot": {
+      "name": "Hunter's Shot", "nameTh": "ลูกธนูพราน",
+      "desc": "ยิงลูกธนูเร็วตรงไปข้างหน้า การโจมตีระยะไกลสายกายภาพ",
+      "tags": ["Attack", "Projectile", "Damage"], "kind": "projectile", "power": "attack",
+      "damage": { "base": 9, "scale": 0.95 }, "range": 15, "speed": 24, "projectileRadius": 0.3, "cooldown": 0.55, "castTime": 0.2, "cost": 0,
+      "element": "physical", "requires": {}, "upgradeMaterial": "boar_tusk", "icon": "arrow"
     },
     "firebolt": {
-      "name": "Firebolt",
-      "nameTh": "ลูกไฟ",
+      "name": "Firebolt", "nameTh": "ลูกไฟ",
       "desc": "ยิงลูกไฟตรงไปข้างหน้า มีโอกาสทำให้ติดไฟ",
-      "tags": ["Spell", "Projectile", "Fire", "Damage"],
-      "kind": "projectile",
-      "power": "spell",
-      "damage": { "base": 10, "scale": 1.1 },
-      "range": 13,
-      "speed": 17,
-      "projectileRadius": 0.35,
-      "cooldown": 0.7,
-      "castTime": 0.22,
-      "cost": 6,
-      "element": "fire",
-      "burnChance": 0.25,
-      "requires": {},
-      "upgradeMaterial": "glow_dust",
-      "icon": "fire"
+      "tags": ["Spell", "Projectile", "Fire", "Damage"], "kind": "projectile", "power": "spell",
+      "damage": { "base": 10, "scale": 1.1 }, "range": 13, "speed": 17, "projectileRadius": 0.35, "cooldown": 0.7, "castTime": 0.22, "cost": 6,
+      "element": "fire", "burnChance": 0.25, "requires": {}, "upgradeMaterial": "glow_dust", "icon": "fire"
+    },
+    "chain_spark": {
+      "name": "Chain Spark", "nameTh": "สายฟ้าโซ่",
+      "desc": "สายฟ้าฟาดศัตรูในแนวเล็ง แล้วกระโดดต่อไปหาศัตรูใกล้ ๆ อีก 3 ตัว",
+      "tags": ["Spell", "Chain", "Lightning", "Damage"], "kind": "chain", "power": "spell",
+      "damage": { "base": 11, "scale": 1.0 }, "range": 11, "chain": 3, "chainRange": 6, "chainFalloff": 0.85, "cooldown": 1.3, "castTime": 0.24, "cost": 10,
+      "element": "lightning", "requires": { "INT": 6 }, "upgradeMaterial": "wisp_core", "icon": "spark"
     },
     "stone_burst": {
-      "name": "Stone Burst",
-      "nameTh": "หินปะทุ",
+      "name": "Stone Burst", "nameTh": "หินปะทุ",
       "desc": "เล็งจุดบนพื้น หินจะปะทุขึ้นมาหลังดีเลย์สั้น ๆ ไม่ต้องล็อกเป้า",
-      "tags": ["Spell", "Area", "Earth", "Damage"],
-      "kind": "ground_area",
-      "power": "spell",
-      "damage": { "base": 18, "scale": 1.5 },
-      "range": 10,
-      "radius": 2.3,
-      "delay": 0.55,
-      "cooldown": 2.4,
-      "castTime": 0.3,
-      "cost": 14,
-      "element": "physical",
-      "requires": { "INT": 6 },
-      "upgradeMaterial": "beetle_shell",
-      "icon": "stone"
+      "tags": ["Spell", "Area", "Earth", "Damage"], "kind": "ground_area", "power": "spell",
+      "damage": { "base": 18, "scale": 1.5 }, "range": 10, "radius": 2.3, "delay": 0.55, "cooldown": 2.4, "castTime": 0.3, "cost": 14,
+      "element": "physical", "requires": { "INT": 6 }, "upgradeMaterial": "beetle_shell", "icon": "stone"
+    },
+    "frost_nova": {
+      "name": "Frost Nova", "nameTh": "ระเบิดน้ำแข็ง",
+      "desc": "ระเบิดความเย็นรอบตัว ศัตรูรอบข้างช้าลงมาก ใช้คุมฝูงหรือหนีออกจากวงล้อม",
+      "tags": ["Spell", "Area", "Cold", "Damage", "Control"], "kind": "nova", "power": "spell",
+      "damage": { "base": 12, "scale": 1.0 }, "radius": 4.2, "cooldown": 6, "castTime": 0.25, "cost": 16,
+      "element": "cold", "chill": { "slow": 0.55, "duration": 3 }, "requires": { "INT": 5 }, "upgradeMaterial": "glow_dust", "icon": "frost"
+    },
+    "venom_mire": {
+      "name": "Venom Mire", "nameTh": "บึงพิษ",
+      "desc": "สร้างบึงพิษบนพื้นที่เล็ง ศัตรูในบึงโดนพิษต่อเนื่องและเดินช้าลง",
+      "tags": ["Spell", "Area", "Poison", "Persistent", "Damage", "Debuff"], "kind": "dot_zone", "power": "spell",
+      "damage": { "base": 5, "scale": 0.5 }, "range": 10, "radius": 3, "duration": 5, "tick": 0.5, "slow": 0.2, "cooldown": 7, "castTime": 0.3, "cost": 15,
+      "element": "poison", "requires": { "INT": 6 }, "upgradeMaterial": "spore_sac", "icon": "mire"
+    },
+    "hex": {
+      "name": "Weakening Hex", "nameTh": "คำสาปอ่อนแรง",
+      "desc": "สาปศัตรูในวง ให้รับดาเมจเพิ่ม 25% และตีเบาลง 20% เป็นเวลา 8 วินาที เหมาะกับปาร์ตี้",
+      "tags": ["Spell", "Area", "Curse", "Debuff"], "kind": "curse_zone", "power": "spell",
+      "range": 11, "radius": 3.5, "duration": 8, "takenMult": 1.25, "dealtMult": 0.8, "cooldown": 9, "castTime": 0.3, "cost": 12,
+      "element": "arcane", "requires": { "INT": 7 }, "upgradeMaterial": "spore_sac", "icon": "hex"
     },
     "ward": {
-      "name": "Ward",
-      "nameTh": "โล่เวท",
+      "name": "Ward", "nameTh": "โล่เวท",
       "desc": "สร้างเกราะดูดซับดาเมจให้ตัวเองและเพื่อนรอบตัว",
-      "tags": ["Spell", "Guard", "Buff", "Area"],
-      "kind": "self_barrier",
-      "power": "vit",
-      "barrier": { "base": 30, "scale": 3.0 },
-      "duration": 6,
-      "radius": 4,
-      "cooldown": 9,
-      "castTime": 0.25,
-      "cost": 12,
-      "element": "none",
-      "requires": {},
-      "upgradeMaterial": "beetle_shell",
-      "icon": "ward"
+      "tags": ["Spell", "Guard", "Buff", "Area"], "kind": "self_barrier", "power": "vit",
+      "barrier": { "base": 30, "scale": 3.0 }, "duration": 6, "radius": 4, "cooldown": 9, "castTime": 0.25, "cost": 12,
+      "element": "none", "requires": {}, "upgradeMaterial": "beetle_shell", "icon": "ward"
+    },
+    "war_cry": {
+      "name": "War Cry", "nameTh": "เสียงคำรามศึก",
+      "desc": "คำรามปลุกใจ ตัวเองและพวกพ้องรอบตัว (รวมสัตว์อัญเชิญ) ดาเมจ +25% และเร็วขึ้น 10% นาน 8 วินาที",
+      "tags": ["Buff", "Area", "Warcry"], "kind": "buff", "power": "attack",
+      "radius": 8, "duration": 8, "damageBuff": 0.25, "speedBuff": 0.1, "cooldown": 14, "castTime": 0.3, "cost": 12,
+      "element": "none", "requires": { "STR": 5 }, "upgradeMaterial": "wolf_pelt", "icon": "warcry"
     },
     "healing_spring": {
-      "name": "Healing Spring",
-      "nameTh": "น้ำพุฟื้นฟู",
-      "desc": "สร้างน้ำพุบนพื้นที่เล็ง ฟื้นพลังชีวิตทุกคนในวงต่อเนื่อง",
-      "tags": ["Spell", "Area", "Heal", "Persistent"],
-      "kind": "heal_zone",
-      "power": "spell",
-      "heal": { "base": 6, "scale": 0.45 },
-      "tick": 0.5,
-      "duration": 4,
-      "range": 9,
-      "radius": 2.8,
-      "cooldown": 10,
-      "castTime": 0.3,
-      "cost": 18,
-      "element": "none",
-      "requires": { "INT": 5 },
-      "upgradeMaterial": "glow_dust",
-      "icon": "heal"
+      "name": "Healing Spring", "nameTh": "น้ำพุฟื้นฟู",
+      "desc": "สร้างน้ำพุบนพื้นที่เล็ง ฟื้นพลังชีวิตทุกคนในวงต่อเนื่อง (รวมสัตว์อัญเชิญ)",
+      "tags": ["Spell", "Area", "Heal", "Persistent"], "kind": "heal_zone", "power": "spell",
+      "heal": { "base": 6, "scale": 0.45 }, "tick": 0.5, "duration": 4, "range": 9, "radius": 2.8, "cooldown": 10, "castTime": 0.3, "cost": 18,
+      "element": "none", "requires": { "INT": 5 }, "upgradeMaterial": "glow_dust", "icon": "heal"
+    },
+    "spirit_wolf": {
+      "name": "Spirit Wolf", "nameTh": "หมาป่าวิญญาณ",
+      "desc": "อัญเชิญหมาป่าวิญญาณมาช่วยสู้ 25 วินาที มันจะไล่กัดศัตรูและล่อให้ศัตรูหันไปตีมัน",
+      "tags": ["Spell", "Summon", "Minion"], "kind": "summon", "power": "spell",
+      "summon": { "type": "spirit_wolf", "count": 1, "life": 25, "hp": { "base": 60, "vit": 6, "level": 6 }, "damage": { "base": 6, "scale": 0.55 }, "speed": 7, "range": 1.8, "attackCooldown": 1.0 },
+      "cooldown": 12, "castTime": 0.4, "cost": 20,
+      "element": "physical", "requires": { "INT": 5 }, "upgradeMaterial": "wolf_pelt", "icon": "wolf"
     }
   },
   "movement": {
     "dash": {
-      "name": "Dash",
-      "nameTh": "พุ่ง",
-      "desc": "พุ่งไปข้างหน้าเร็ว ๆ มี 2 ชาร์จ",
-      "tags": ["Movement"],
-      "kind": "dash",
-      "distance": 6,
-      "duration": 0.18,
-      "charges": 2,
-      "recharge": 3.2,
-      "invulnerable": false
+      "name": "Dash", "nameTh": "พุ่ง", "desc": "พุ่งไปข้างหน้าเร็ว ๆ มี 2 ชาร์จ",
+      "tags": ["Movement"], "kind": "dash", "distance": 6, "duration": 0.18, "charges": 2, "recharge": 3.2, "invulnerable": false, "icon": "dash"
     },
     "roll": {
-      "name": "Roll",
-      "nameTh": "กลิ้งหลบ",
-      "desc": "กลิ้งระยะสั้น ไม่โดนดาเมจระหว่างกลิ้ง",
-      "tags": ["Movement"],
-      "kind": "dash",
-      "distance": 4.2,
-      "duration": 0.36,
-      "charges": 1,
-      "recharge": 1.3,
-      "invulnerable": true
+      "name": "Roll", "nameTh": "กลิ้งหลบ", "desc": "กลิ้งระยะสั้น ไม่โดนดาเมจระหว่างกลิ้ง",
+      "tags": ["Movement"], "kind": "dash", "distance": 4.2, "duration": 0.36, "charges": 1, "recharge": 1.3, "invulnerable": true, "icon": "roll"
     },
     "blink": {
-      "name": "Blink",
-      "nameTh": "วาร์ป",
-      "desc": "วาร์ปไปยังจุดที่เล็ง ข้ามสิ่งกีดขวางได้",
-      "tags": ["Movement", "Spell"],
-      "kind": "blink",
-      "distance": 8,
-      "duration": 0.08,
-      "charges": 1,
-      "recharge": 4.5,
-      "invulnerable": true,
-      "requires": { "INT": 7 }
+      "name": "Blink", "nameTh": "วาร์ป", "desc": "วาร์ปไปยังจุดที่เล็ง ข้ามสิ่งกีดขวางและหน้าผาได้",
+      "tags": ["Movement", "Spell"], "kind": "blink", "distance": 8, "duration": 0.08, "charges": 1, "recharge": 4.5, "invulnerable": true, "requires": { "INT": 7 }, "icon": "blink"
+    },
+    "leap": {
+      "name": "Leap Slam", "nameTh": "กระโดดทุ่ม", "desc": "กระโดดไปยังจุดที่เล็ง ลอยตัวหลบการโจมตี ลงพื้นแล้วกระแทกศัตรูรอบตัว",
+      "tags": ["Movement", "Attack", "Area"], "kind": "leap", "distance": 7, "duration": 0.45, "charges": 1, "recharge": 3.5, "invulnerable": true,
+      "landing": { "radius": 2.2, "damage": { "base": 6, "scale": 0.6 } }, "requires": { "STR": 6 }, "icon": "leap"
     }
   }
 }

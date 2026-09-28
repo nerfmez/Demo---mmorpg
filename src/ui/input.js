@@ -6,6 +6,9 @@
 //     (area skills place a circle; others pick a direction). Release to cast.
 import { icon } from './icons.js';
 
+// skills aimed at a point on the ground (drag places a circle)
+const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'];
+
 /** Pointer capture keeps a drag on its control; it can fail (synthetic or already-ended pointers). */
 const capture = (el, id) => {
   try {
@@ -140,6 +143,8 @@ export class Input {
         else if (k === 'k') this.ui.togglePanel('skills');
         else if (k === 'j') this.ui.togglePanel('job');
         else if (k === 'c') this.ui.togglePanel('char');
+        else if (k === 'l') this.ui.togglePanel('journal');
+        else if (k === 'm') this.ui.togglePanel('map');
         return;
       }
       if (k === '1') this.castSlot(0, true);
@@ -154,6 +159,8 @@ export class Input {
       if (k === 'k') this.ui.togglePanel('skills');
       if (k === 'j') this.ui.togglePanel('job');
       if (k === 'c') this.ui.togglePanel('char');
+      if (k === 'l') this.ui.togglePanel('journal');
+      if (k === 'm') this.ui.togglePanel('map');
       if (k === 'escape') this.ui.togglePanel('settings');
     }
     if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
@@ -243,7 +250,7 @@ export class Input {
     // screen up = world -Z, screen right = world +X
     const angle = Math.atan2(dx, dy);
     const maxDrag = 110;
-    if (s.kind === 'ground_area' || s.kind === 'heal_zone') {
+    if (AREA_KINDS.includes(s.kind)) {
       const r = Math.min(1, len / maxDrag) * s.range;
       return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.radius };
     }

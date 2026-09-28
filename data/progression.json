@@ -1,25 +1,60 @@
 {
   "_doc": "Character Level gives Stat Points. Job Level (separate EXP) gives Job Points for the Job Tree. Skill/Mod levels are raised with materials + gold. Respec costs in-game gold only.",
   "character": {
-    "maxLevel": 30,
-    "expCurve": { "base": 20, "exponent": 1.55 },
+    "maxLevel": 40,
+    "expCurve": {
+      "base": 20,
+      "exponent": 1.55
+    },
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
-    "startingStats": { "STR": 3, "AGI": 3, "VIT": 3, "INT": 3, "DEX": 3 },
-    "base": { "hp": 90, "hpPerLevel": 10, "hpPerVit": 9, "mp": 40, "mpPerLevel": 3, "mpPerInt": 4, "mpRegen": 2.5, "hpRegen": 0.6, "moveSpeed": 6.0 },
+    "startingStats": {
+      "STR": 3,
+      "AGI": 3,
+      "VIT": 3,
+      "INT": 3,
+      "DEX": 3
+    },
+    "base": {
+      "hp": 90,
+      "hpPerLevel": 10,
+      "hpPerVit": 9,
+      "mp": 40,
+      "mpPerLevel": 3,
+      "mpPerInt": 4,
+      "mpRegen": 2.5,
+      "hpRegen": 0.6,
+      "moveSpeed": 6.0
+    },
     "perStat": {
-      "STR": { "attack": 1.2 },
-      "INT": { "magic": 1.2 },
-      "VIT": { "defense": 0.4, "barrierPct": 2 },
-      "AGI": { "moveSpeedPct": 1, "cooldownPct": 0.6 },
-      "DEX": { "critChancePct": 0.6, "projectileDamagePct": 1.5 }
+      "STR": {
+        "attack": 1.2
+      },
+      "INT": {
+        "magic": 1.2
+      },
+      "VIT": {
+        "defense": 0.4,
+        "barrierPct": 2
+      },
+      "AGI": {
+        "moveSpeedPct": 1,
+        "cooldownPct": 0.6
+      },
+      "DEX": {
+        "critChancePct": 0.6,
+        "projectileDamagePct": 1.5
+      }
     },
     "critMult": 1.5,
     "baseCritChancePct": 5
   },
   "job": {
-    "maxLevel": 15,
-    "expCurve": { "base": 15, "exponent": 1.45 },
+    "maxLevel": 20,
+    "expCurve": {
+      "base": 15,
+      "exponent": 1.45
+    },
     "pointsPerLevel": 1,
     "jobChoiceLevel": 5
   },
@@ -36,16 +71,95 @@
   },
   "modUpgrade": {
     "maxLevel": 3,
-    "cost": [ { "ruin_shard": 1, "glow_dust": 2, "gold": 40 }, { "ruin_shard": 2, "glow_dust": 3, "gold": 80 } ]
+    "cost": [
+      {
+        "ruin_shard": 1,
+        "glow_dust": 2,
+        "gold": 40
+      },
+      {
+        "ruin_shard": 2,
+        "glow_dust": 3,
+        "gold": 80
+      }
+    ]
   },
-  "monsterScaling": { "hpPerLevel": 0.22, "damagePerLevel": 0.14, "defensePerLevel": 0.1, "expPerLevel": 0.2 },
+  "monsterScaling": {
+    "hpPerLevel": 0.22,
+    "damagePerLevel": 0.14,
+    "defensePerLevel": 0.1,
+    "expPerLevel": 0.2
+  },
   "start": {
-    "skills": { "slash": 1, "firebolt": 1, "ward": 1 },
-    "movementSkills": ["dash", "roll"],
-    "slots": ["slash", "firebolt", "ward", null],
+    "_doc": "Every new character learns these skills. The starting kit only picks the first weapon, how the skill slots are filled and the movement skill; all of it can be changed later (no Job at creation).",
+    "skills": {
+      "slash": 1,
+      "firebolt": 1,
+      "ward": 1,
+      "hunter_shot": 1
+    },
+    "movementSkills": [
+      "dash",
+      "roll"
+    ],
+    "slots": [
+      "slash",
+      "firebolt",
+      "ward",
+      null
+    ],
     "movement": "dash",
-    "gear": ["rusty_sword", "travel_tunic"],
-    "gold": 30
+    "gear": [
+      "rusty_sword",
+      "travel_tunic",
+      "travel_boots"
+    ],
+    "gold": 30,
+    "defaultKit": "sword",
+    "kits": {
+      "sword": {
+        "name": "Blade",
+        "nameTh": "สายดาบ",
+        "descTh": "ดาบในมือ ฟันกวาดเป็นคอมโบ มีลูกไฟกับโล่เวทไว้ช่วย",
+        "weapon": "rusty_sword",
+        "slots": [
+          "slash",
+          "ward",
+          "firebolt",
+          null
+        ],
+        "movement": "dash",
+        "icon": "slash"
+      },
+      "bow": {
+        "name": "Hunter",
+        "nameTh": "สายธนู",
+        "descTh": "ธนูเก่ายิงไกล กลิ้งหลบได้ อยู่ห่างศัตรูไว้",
+        "weapon": "old_bow",
+        "slots": [
+          "hunter_shot",
+          "slash",
+          "ward",
+          null
+        ],
+        "movement": "roll",
+        "icon": "arrow"
+      },
+      "staff": {
+        "name": "Arcane",
+        "nameTh": "สายเวท",
+        "descTh": "คทาฝึกหัด ลูกไฟเป็นหลัก โล่เวทกันตัว",
+        "weapon": "apprentice_staff",
+        "slots": [
+          "firebolt",
+          "ward",
+          "slash",
+          null
+        ],
+        "movement": "dash",
+        "icon": "fire"
+      }
+    }
   },
   "slotCount": 4
 }

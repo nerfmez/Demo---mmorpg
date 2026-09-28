@@ -1,39 +1,51 @@
 // The game simulation. Pure logic: no Three.js, no DOM. The renderer and UI read
 // game state and drain game.events each frame. Godot port: this becomes the scene
-// scripts (player, monster, projectile, area) plus an autoload for the character.
+// scripts (player, monster, ally, projectile, area) plus an autoload for the character.
 
 import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
-import { createCharacter, derive, addExp } from './character.js';
+import { createCharacter, migrateCharacter, derive, addExp, gearLook } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem } from './crafting.js';
 import { softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
+import { refreshQuests, questEvent } from './quests.js';
 
 const PLAYER_RADIUS = 0.45;
 const PICKUP_RADIUS = 1.4;
 const MAGNET_RADIUS = 3.2;
 const INTERACT_RADIUS = 3.6;
+const WAYPOINT_RADIUS = 3.8;
+const AI_RADIUS = 85; // monsters farther than this from the player sleep unless in a fight
 
 export class Game {
-  constructor(data, { seed = 12345, character = null } = {}) {
+  /**
+   * @param {object} data game data
+   * @param {{seed?:number, character?:object, world?:object}} opts
+   */
+  constructor(data, { seed = 12345, character = null, world = null } = {}) {
     this.data = data;
-    this.world = createWorld(data.world);
+    this.world = world || createWorld(data.world);
     this.rng = createRng(seed);
     this.time = 0;
     this.events = [];
     this.nextId = 1;
-    this.ch = character || createCharacter(data);
+    this.ch = character ? migrateCharacter(character, data) : createCharacter(data);
     this.monsters = [];
+    this.allies = [];
     this.projectiles = [];
     this.areas = [];
     this.drops = [];
     this.spawnPoints = [];
+    this.pending = [];
     this.input = { moveX: 0, moveZ: 0, aimAngle: 0, aimPoint: null, aimFromPointer: false };
     this.stats = { kills: 0, damageDealt: 0 };
+    this.combo = 0;
+    this.checkT = 0;
 
-    const [sx, sz] = data.world.playerSpawn;
+    let [sx, sz] = data.world.playerSpawn;
+    if (this.ch.pos && this.world.isFree(this.ch.pos[0], this.ch.pos[1], PLAYER_RADIUS)) [sx, sz] = this.ch.pos;
     this.player = {
       id: this.nextId++,
       kind: 'player',
@@ -48,6 +60,7 @@ export class Game {
       barrierT: 0,
       reflect: 0,
       statuses: {},
+      buffs: {},
       cooldowns: [0, 0, 0, 0],
       triggerCd: [0, 0, 0, 0],
       movement: { charges: 0, rechargeT: 0 },
@@ -62,7 +75,9 @@ export class Game {
     };
     this.refresh(true);
     this.player.movement.charges = this.move.charges;
+    this.zoneId = this.world.zoneAt(sx, sz).id;
     this.spawnMonsters();
+    this.completeQuests(refreshQuests(this.ch, data));
   }
 
   // ---------- helpers ----------
@@ -82,12 +97,16 @@ export class Game {
     return this.nextId++;
   }
 
-  zoneAt(x) {
-    return this.world.zoneAt(x);
+  later(delay, fn) {
+    this.pending.push({ t: delay, fn });
+  }
+
+  zoneAt(x, z) {
+    return this.world.zoneAt(x, z);
   }
 
   isSafe(x, z) {
-    return !!this.world.zoneAt(x).safe;
+    return !!this.world.zoneAt(x, z).safe;
   }
 
   monsterById(id) {
@@ -96,6 +115,21 @@ export class Game {
 
   get target() {
     return this.player.targetId ? this.monsterById(this.player.targetId) : null;
+  }
+
+  gearLook() {
+    return gearLook(this.ch, this.data);
+  }
+
+  isWaypointUnlocked(id) {
+    return this.ch.progress.waypoints.includes(id);
+  }
+
+  /** Save-ready character with the current position. */
+  snapshot() {
+    const p = this.player;
+    this.ch.pos = p.dead ? null : [Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10];
+    return this.ch;
   }
 
   /** Re-derive stats after any character change (level, gear, skills, job tree). */
@@ -115,14 +149,25 @@ export class Game {
       p.mp = Math.min(p.maxMp, (p.mp / oldMax.mp) * p.maxMp);
     }
     p.movement.charges = Math.min(p.movement.charges, this.move.charges);
-    const ranges = this.skills.filter((s) => s && (s.kind === 'melee_arc' || s.kind === 'projectile')).map((s) => s.range);
-    const ground = this.skills.filter((s) => s && s.kind === 'ground_area').map((s) => s.range);
-    this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 0;
+    const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.range);
+    const ground = this.skills.filter((s) => s && ['ground_area', 'dot_zone', 'curse_zone'].includes(s.kind)).map((s) => s.range);
+    this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 6;
+    if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
   }
 
   /** Move an entity with collision. Monsters stay out of the safe settlement. */
   moveEntity(e, dx, dz, opts = {}) {
-    const res = this.world.move(e.x, e.z, e.r, dx, dz, { ignoreWater: e.def?.hover });
+    if (e.def?.flyer) {
+      const b = this.world.bounds;
+      e.x = clamp(e.x + dx, b.minX + 1, b.maxX - 1);
+      e.z = clamp(e.z + dz, b.minZ + 1, b.maxZ - 1);
+      if (this.isSafe(e.x, e.z)) {
+        e.x -= dx;
+        e.z -= dz;
+      }
+      return { blocked: false, blockedHard: false };
+    }
+    const res = this.world.move(e.x, e.z, e.r, dx, dz, { ignoreWater: e.def?.hover, ignoreSlope: e.def?.hover });
     let nx = res.x;
     let nz = res.z;
     if (e.kind === 'monster' && this.isSafe(nx, nz)) {
@@ -140,7 +185,9 @@ export class Game {
 
   spawnMonsters() {
     const w = this.data.world;
-    const avoid = [{ x: w.boss.pos[0], z: w.boss.pos[1], r: 18 }];
+    const bosses = w.bosses || [];
+    const avoid = bosses.map((bs) => ({ x: bs.pos[0], z: bs.pos[1], r: bs.arena.r + 3 }));
+    for (const wp of this.world.waypoints) avoid.push({ x: wp.x, z: wp.z, r: 9 });
     for (const s of w.spawns) {
       for (let i = 0; i < s.count; i++) {
         const pt = this.world.randomPointInZone(s.zone, 1, this.rng, avoid);
@@ -149,16 +196,20 @@ export class Game {
         this.spawnAt(sp);
       }
     }
-    const bossSp = { monster: w.boss.monster, zone: 'ruins', level: [w.boss.level, w.boss.level], x: w.boss.pos[0], z: w.boss.pos[1], respawnAt: 0, entity: null, respawn: w.boss.respawnSeconds, boss: true };
-    this.spawnPoints.push(bossSp);
-    this.spawnAt(bossSp);
+    for (const bs of bosses) {
+      const sp = { monster: bs.monster, bossId: bs.id, zone: this.world.zoneAt(bs.pos[0], bs.pos[1]).id, level: [bs.level, bs.level], x: bs.pos[0], z: bs.pos[1], respawnAt: 0, entity: null, respawn: bs.respawnSeconds, boss: true, final: !!bs.final };
+      this.spawnPoints.push(sp);
+      this.spawnAt(sp);
+    }
   }
 
-  spawnAt(sp) {
+  spawnAt(sp, at = null) {
     const def = this.data.monsters.monsters[sp.monster];
     const sc = this.data.progression.monsterScaling;
     const level = this.rng.int(sp.level[0], sp.level[1]);
     const L = level - 1;
+    const x = at ? at.x : sp.x;
+    const z = at ? at.z : sp.z;
     const m = {
       id: this.newId(),
       kind: 'monster',
@@ -166,10 +217,10 @@ export class Game {
       type: sp.monster,
       def,
       level,
-      x: sp.x,
-      z: sp.z,
-      homeX: sp.x,
-      homeZ: sp.z,
+      x,
+      z,
+      homeX: x,
+      homeZ: z,
       r: def.radius,
       facing: this.rng.range(0, Math.PI * 2),
       maxHp: Math.round(def.hp * (1 + sc.hpPerLevel * L)),
@@ -183,6 +234,7 @@ export class Game {
       cd: Object.fromEntries(Object.keys(def.attacks).map((k) => [k, this.rng.range(0, 1.5)])),
       aggro: false,
       statuses: {},
+      buffs: {},
       recentHits: [],
       shell: false,
       windup: null,
@@ -194,11 +246,21 @@ export class Game {
       spawn: sp,
       boss: !!def.boss,
       zone: sp.zone,
+      alt: def.hover || 0,
+      targetUnit: null,
     };
     m.hp = m.maxHp;
-    sp.entity = m;
+    if (!at) sp.entity = m;
     this.monsters.push(m);
     this.emit({ type: 'spawn', id: m.id });
+    return m;
+  }
+
+  /** A monster called in by another (Greyfang's howl). Never respawns. */
+  spawnMinion(type, level, x, z) {
+    const sp = { monster: type, zone: this.world.zoneAt(x, z).id, level: [level, level], x, z, respawn: 0, minion: true };
+    const m = this.spawnAt(sp, { x, z });
+    m.minion = true;
     return m;
   }
 
@@ -216,6 +278,7 @@ export class Game {
       vx: dir.x * o.speed,
       vz: dir.z * o.speed,
     };
+    pr.ground = this.world.surfaceY(pr.x, pr.z);
     this.projectiles.push(pr);
     this.emit({ type: 'projectile', id: pr.id, kind: pr.kind, owner: pr.owner });
     return pr;
@@ -226,6 +289,52 @@ export class Game {
     this.areas.push(a);
     this.emit({ type: 'area', id: a.id, kind: a.kind, owner: a.owner, x: a.x, z: a.z, radius: a.radius, delay: a.delay, duration: a.duration });
     return a;
+  }
+
+  spawnAllies(s, x, z) {
+    const sm = s.summon;
+    const mine = this.allies.filter((a) => a.type === sm.type && !a.dead);
+    while (mine.length >= sm.count) {
+      const old = mine.shift();
+      old.life = 0;
+    }
+    for (let i = 0; i < sm.count - mine.length; i++) {
+      const a = (i / sm.count) * Math.PI * 2;
+      let ax = x + Math.sin(a) * 1.2;
+      let az = z + Math.cos(a) * 1.2;
+      if (!this.world.isFree(ax, az, 0.6)) {
+        ax = x;
+        az = z;
+      }
+      const ally = {
+        id: this.newId(),
+        kind: 'ally',
+        team: 'player',
+        type: sm.type,
+        x: ax,
+        z: az,
+        r: 0.6,
+        facing: this.player.facing,
+        hp: sm.hp,
+        maxHp: sm.hp,
+        damage: sm.damage,
+        speed: sm.speed,
+        range: sm.range,
+        attackCooldown: sm.attackCooldown,
+        cd: 0,
+        life: sm.life,
+        state: 'follow',
+        stateT: 0,
+        targetId: null,
+        moving: false,
+        dead: false,
+        buffs: {},
+        statuses: {},
+        slot: i,
+      };
+      this.allies.push(ally);
+      this.emit({ type: 'summon', id: ally.id, x: ax, z: az });
+    }
   }
 
   // ---------- input API (called by UI) ----------
@@ -273,7 +382,7 @@ export class Game {
     p.cooldowns[i] = s.cooldown;
     p.cast = { slot: i, t: 0, total: s.castTime, aim, skill: s };
     p.facing = aim.angle;
-    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime });
+    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime, weapon: this.derived.weaponType });
     return true;
   }
 
@@ -281,11 +390,11 @@ export class Game {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (s.kind === 'melee_arc' || s.kind === 'projectile') {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
-    if (s.kind === 'ground_area' || s.kind === 'heal_zone') {
+    if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'].includes(s.kind)) {
       let pt = point || (this.input.aimFromPointer ? this.input.aimPoint : null);
       if (!pt) {
         if (s.kind === 'heal_zone') pt = { x: p.x, z: p.z };
@@ -303,7 +412,7 @@ export class Game {
       if (d > 0.3) angle = angleTo(p.x, p.z, pt.x, pt.z);
       return { angle, x: pt.x, z: pt.z };
     }
-    return { angle: p.facing, x: p.x, z: p.z };
+    return { angle: t ? angleTo(p.x, p.z, t.x, t.z) : p.facing, x: p.x, z: p.z };
   }
 
   useMovement(point = null) {
@@ -317,11 +426,11 @@ export class Game {
     const moving = Math.hypot(this.input.moveX, this.input.moveZ) > 0.2;
     if (moving) angle = Math.atan2(this.input.moveX, this.input.moveZ);
     else angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (mv.kind === 'blink') {
-      let dest = point || (this.input.aimFromPointer && !moving ? this.input.aimPoint : null);
+    if (mv.kind === 'blink' || mv.kind === 'leap') {
+      const dest = point || (this.input.aimFromPointer && !moving ? this.input.aimPoint : null);
       let d = mv.distance;
       if (dest) {
-        d = Math.min(mv.distance, dist(p.x, p.z, dest.x, dest.z));
+        d = Math.min(mv.distance, Math.max(1.5, dist(p.x, p.z, dest.x, dest.z)));
         angle = angleTo(p.x, p.z, dest.x, dest.z);
       }
       const dir = dirFromAngle(angle);
@@ -336,11 +445,15 @@ export class Game {
           break;
         }
       }
-      this.emit({ type: 'blinkPlayer', fromX: p.x, fromZ: p.z, x: nx, z: nz });
-      p.x = nx;
-      p.z = nz;
       p.facing = angle;
-      p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'blink' };
+      if (mv.kind === 'blink') {
+        this.emit({ type: 'blinkPlayer', fromX: p.x, fromZ: p.z, x: nx, z: nz });
+        p.x = nx;
+        p.z = nz;
+        p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'blink' };
+      } else {
+        p.dash = { t: 0, dur: mv.duration, vx: 0, vz: 0, inv: mv.invulnerable, kind: 'leap', fromX: p.x, fromZ: p.z, toX: nx, toZ: nz };
+      }
     } else {
       const dir = dirFromAngle(angle);
       const speed = mv.distance / mv.duration;
@@ -355,11 +468,78 @@ export class Game {
   nearby() {
     const p = this.player;
     const t = this.data.world.town;
+    const wp = this.world.waypoints.find((w) => dist(p.x, p.z, w.x, w.z) < WAYPOINT_RADIUS && this.isWaypointUnlocked(w.id));
     return {
       workbench: dist(p.x, p.z, t.workbench[0], t.workbench[1]) < INTERACT_RADIUS,
       trainer: dist(p.x, p.z, t.trainer[0], t.trainer[1]) < INTERACT_RADIUS,
+      waypoint: wp ? wp.id : null,
       inTown: this.isSafe(p.x, p.z),
     };
+  }
+
+  inCombat() {
+    const p = this.player;
+    return this.monsters.some((m) => !m.dead && m.aggro && dist(m.x, m.z, p.x, p.z) < 16);
+  }
+
+  /** Fast travel to a discovered waypoint. */
+  teleportTo(id) {
+    const p = this.player;
+    const wp = this.world.waypoints.find((w) => w.id === id);
+    if (!wp) return { ok: false, reason: 'unknown' };
+    if (!this.isWaypointUnlocked(id)) return { ok: false, reason: 'locked' };
+    if (p.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    const spot = this.freeSpotNear(wp.x, wp.z + 2.2);
+    p.x = spot.x;
+    p.z = spot.z;
+    p.dash = null;
+    p.cast = null;
+    p.targetId = null;
+    for (const a of this.allies) {
+      a.x = p.x + Math.sin(a.slot) * 1.5;
+      a.z = p.z + Math.cos(a.slot) * 1.5;
+    }
+    this.emit({ type: 'teleport', id, x: p.x, z: p.z });
+    return { ok: true };
+  }
+
+  freeSpotNear(x, z) {
+    for (let r = 0; r < 6; r += 0.5)
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+        const tx = x + Math.sin(a) * r;
+        const tz = z + Math.cos(a) * r;
+        if (this.world.isFree(tx, tz, PLAYER_RADIUS + 0.1)) return { x: tx, z: tz };
+      }
+    return { x, z };
+  }
+
+  // ---------- quests / progress ----------
+
+  notify(ev) {
+    if (ev.type === 'craft') this.ch.progress.crafted = (this.ch.progress.crafted || 0) + 1;
+    this.completeQuests(questEvent(this.ch, this.data, ev));
+  }
+
+  completeQuests(ids) {
+    for (const id of ids) {
+      const q = this.data.quests.quests[id];
+      const r = q.reward || {};
+      if (r.gold) this.ch.gold += r.gold;
+      for (const [item, n] of Object.entries(r.items || {})) addItem(this.ch, item, n);
+      const gained = addExp(this.ch, this.data, r.exp || 0, r.jobExp || 0);
+      this.emit({ type: 'questDone', id, reward: r });
+      if (gained.levels) this.onLevelUp();
+      if (gained.jobLevels) this.emit({ type: 'joblevelup', level: this.ch.jobLevel });
+    }
+  }
+
+  onLevelUp() {
+    const p = this.player;
+    this.refresh();
+    p.hp = p.maxHp;
+    p.mp = p.maxMp;
+    this.emit({ type: 'levelup', level: this.ch.level });
   }
 
   // ---------- combat ----------
@@ -368,7 +548,12 @@ export class Game {
     return this.rng.chance(this.derived.critChance);
   }
 
-  /** Player-side damage to a monster. */
+  playerDamageMult() {
+    const b = this.player.buffs.war_cry;
+    return b ? 1 + b.damage : 1;
+  }
+
+  /** Damage to a monster from the player, an ally or a damage-over-time effect. */
   hitMonster(m, amount, opts = {}) {
     if (m.dead) return 0;
     let dmg = amount;
@@ -376,18 +561,27 @@ export class Game {
     if (crit) dmg *= this.derived.critMult;
     if (!opts.dot) dmg *= 1 - m.defense / (m.defense + 60);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
+    if (m.statuses.hex) dmg *= m.statuses.hex.taken;
     dmg = Math.max(1, Math.round(dmg));
     m.hp -= dmg;
     m.hurtT = 0.18;
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
-      onMonsterHit(this, m);
+      onMonsterHit(this, m, opts.by);
       if (opts.chill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
       if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0 };
       const pc = this.derived.poisonChancePct / 100;
-      if (pc > 0 && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
-    } else setAggro(this, m);
+      if (pc > 0 && !opts.byAlly && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
+      if (opts.knock && m.hp > 0) {
+        const a = angleTo(opts.fromX ?? this.player.x, opts.fromZ ?? this.player.z, m.x, m.z);
+        const d = dirFromAngle(a);
+        const k = opts.knock * (m.boss ? 0.2 : m.def.flyer ? 0.6 : 1);
+        this.moveEntity(m, d.x * k, d.z * k);
+        if (!m.boss && m.state === 'windup') m.stateT = Math.max(0, m.stateT - 0.25); // knocks the rhythm back a little
+      }
+      if (opts.leech && !opts.byAlly) this.healPlayer((dmg * opts.leech) / 100, true);
+    } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;
   }
@@ -400,9 +594,10 @@ export class Game {
     m.charge = null;
     this.stats.kills++;
     const p = this.player;
+    const prog = this.ch.progress;
     if (p.targetId === m.id) p.targetId = null;
-    this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss });
-    const drops = rollDrops(this.data, m.type, m.zone, this.rng);
+    this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
+    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng);
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
@@ -412,19 +607,37 @@ export class Game {
     });
     const gained = addExp(this.ch, this.data, m.exp, m.jobExp);
     this.emit({ type: 'exp', exp: m.exp, jobExp: m.jobExp, x: m.x, z: m.z });
-    if (gained.levels) {
-      this.refresh();
-      p.hp = p.maxHp;
-      p.mp = p.maxMp;
-      this.emit({ type: 'levelup', level: this.ch.level });
-    }
+    if (gained.levels) this.onLevelUp();
     if (gained.jobLevels) this.emit({ type: 'joblevelup', level: this.ch.jobLevel });
+    prog.kills[m.type] = (prog.kills[m.type] || 0) + 1;
     if (m.boss) {
-      this.ch.bossKills++;
-      this.emit({ type: 'bossDefeated', first: this.ch.bossKills === 1 });
+      const id = m.spawn.bossId || m.type;
+      prog.bossKills[id] = (prog.bossKills[id] || 0) + 1;
+      if (m.spawn.final) this.ch.bossKills++;
+      this.emit({ type: 'bossDefeated', boss: id, name: m.def.name, final: !!m.spawn.final, first: prog.bossKills[id] === 1 });
     }
-    m.spawn.respawnAt = this.time + m.spawn.respawn;
-    m.spawn.entity = null;
+    this.notify({ type: 'kill', target: m.type });
+    if (!m.minion) {
+      m.spawn.respawnAt = this.time + m.spawn.respawn;
+      m.spawn.entity = null;
+    }
+  }
+
+  /** Damage from a monster to the player or an ally. */
+  damageUnit(unit, amount, source, opts = {}) {
+    if (source?.statuses?.hex) amount *= source.statuses.hex.dealt;
+    if (unit.kind === 'ally') return this.damageAlly(unit, amount, source);
+    return this.damagePlayer(amount, source, opts);
+  }
+
+  damageAlly(a, amount, source) {
+    if (a.dead) return 0;
+    const dmg = Math.max(1, Math.round(amount * 0.85));
+    a.hp -= dmg;
+    this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
+    if (source && !source.dead && source.kind === 'monster') a.targetId = source.id;
+    if (a.hp <= 0) a.life = 0;
+    return dmg;
   }
 
   /** Monster-side damage to the player. */
@@ -442,9 +655,7 @@ export class Game {
       absorbed = Math.min(p.barrier, dmg);
       p.barrier -= absorbed;
       dmg -= absorbed;
-      if (p.reflect > 0 && source && source.kind === 'monster' && !source.dead) {
-        this.hitMonster(source, absorbed * p.reflect + 4, { element: 'physical' });
-      }
+      if (p.reflect > 0 && source && source.kind === 'monster' && !source.dead) this.hitMonster(source, absorbed * p.reflect + 4, { element: 'physical' });
     }
     p.hp -= dmg;
     p.hurtT = 0.25;
@@ -461,30 +672,35 @@ export class Game {
       p.cast = null;
       p.dash = null;
       p.targetId = null;
+      this.ch.progress.deaths = (this.ch.progress.deaths || 0) + 1;
       this.emit({ type: 'playerDeath' });
     }
     return dmg;
   }
 
-  healPlayer(amount) {
+  healPlayer(amount, quiet = false) {
     const p = this.player;
     if (p.dead) return;
     const before = p.hp;
     p.hp = Math.min(p.maxHp, p.hp + amount);
     const got = p.hp - before;
-    if (this.derived.healGrantsBarrierPct > 0) {
+    if (!quiet && this.derived.healGrantsBarrierPct > 0) {
       const add = (amount * this.derived.healGrantsBarrierPct) / 100;
       p.barrier = Math.min(p.maxHp * 0.5, p.barrier + add);
       p.barrierT = Math.max(p.barrierT, 3);
     }
-    if (got > 0.5) this.emit({ type: 'heal', amount: Math.round(got), x: p.x, z: p.z });
+    if (got > 0.5 && !quiet) this.emit({ type: 'heal', amount: Math.round(got), x: p.x, z: p.z });
   }
 
-  /** Execute a computed skill. mult scales damage (triggers, echoes). */
-  executeSkill(s, aim, { mult = 1, triggered = false } = {}) {
+  hitOpts(s, extra = {}) {
+    return { element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
+  }
+
+  /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
+  executeSkill(s, aim, { mult = 1, triggered = false, repeat = 0 } = {}) {
     const p = this.player;
-    const critRoll = () => this.rollCrit();
-    const hitOpts = { element: s.element, chill: s.chill, burnChance: s.burnChance };
+    mult *= this.playerDamageMult();
+    const crit = () => this.rollCrit();
     switch (s.kind) {
       case 'melee_arc': {
         const arc = s.arc * DEG;
@@ -495,18 +711,30 @@ export class Game {
           if (d > s.range) continue;
           const off = Math.abs(angleDiff(aim.angle, angleTo(p.x, p.z, m.x, m.z)));
           if (off > arc / 2 && d > 0.3) continue;
-          this.hitMonster(m, s.damage * mult, { ...hitOpts, crit: critRoll() });
+          this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit() }));
           hits++;
         }
         if (hits && this.derived.meleeHitBarrier) {
           p.barrier = Math.min(p.maxHp * 0.5, p.barrier + this.derived.meleeHitBarrier * hits);
           p.barrierT = Math.max(p.barrierT, 3);
         }
-        this.emit({ type: 'slash', x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered });
+        this.emit({ type: 'slash', x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++ });
         if (s.ground) {
           const d = dirFromAngle(aim.angle);
           this.spawnGround(s, p.x + d.x * s.range * 0.6, p.z + d.z * s.range * 0.6, mult);
         }
+        if (repeat < s.repeats) this.later(s.repeatDelay, () => !p.dead && this.executeSkill(s, { ...aim, angle: p.facing }, { mult: s.repeatMult, repeat: repeat + 1 }));
+        return;
+      }
+      case 'melee_nova': {
+        for (const m of this.monsters) {
+          if (m.dead || dist(p.x, p.z, m.x, m.z) - m.r > s.radius) continue;
+          this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit() }));
+        }
+        this.emit({ type: 'whirl', x: p.x, z: p.z, radius: s.radius, angle: p.facing, element: s.element });
+        if (s.ground) this.spawnGround(s, p.x, p.z, mult);
+        if (repeat < s.repeats) this.later(s.repeatDelay + 0.1, () => !p.dead && this.executeSkill(s, aim, { mult: s.repeatMult, repeat: repeat + 1 }));
+        if (s.echo && !repeat && !triggered) this.later(s.echo.delay, () => !p.dead && this.executeSkill(s, aim, { mult: s.echo.mult, repeat: 99 }));
         return;
       }
       case 'projectile': {
@@ -536,24 +764,117 @@ export class Game {
         }
         return;
       }
+      case 'chain': {
+        const hit = new Set();
+        let cur = null;
+        const t = this.target;
+        if (t && !t.dead && dist(p.x, p.z, t.x, t.z) - t.r <= s.range) cur = t;
+        else {
+          let best = Infinity;
+          for (const m of this.monsters) {
+            if (m.dead) continue;
+            const d = dist(p.x, p.z, m.x, m.z) - m.r;
+            if (d > s.range) continue;
+            const off = Math.abs(angleDiff(aim.angle, angleTo(p.x, p.z, m.x, m.z)));
+            if (off > 0.6) continue;
+            const score = off * 6 + d;
+            if (score < best) {
+              best = score;
+              cur = m;
+            }
+          }
+        }
+        const points = [[p.x + Math.sin(aim.angle) * 0.5, p.z + Math.cos(aim.angle) * 0.5]];
+        if (!cur) {
+          const d = dirFromAngle(aim.angle);
+          points.push([p.x + d.x * s.range * 0.8, p.z + d.z * s.range * 0.8]);
+          this.emit({ type: 'chain', points, element: s.element });
+          return;
+        }
+        let dmg = s.damage * mult;
+        for (let i = 0; i <= s.chain && cur; i++) {
+          points.push([cur.x, cur.z]);
+          hit.add(cur.id);
+          const target = cur;
+          this.hitMonster(target, dmg, this.hitOpts(s, { crit: crit() }));
+          if (s.ground) this.spawnGround(s, target.x, target.z, mult);
+          dmg *= s.chainFalloff;
+          let next = null;
+          let nd = s.chainRange || 6;
+          for (const m of this.monsters) {
+            if (m.dead || hit.has(m.id)) continue;
+            const d = dist(target.x, target.z, m.x, m.z);
+            if (d < nd) {
+              nd = d;
+              next = m;
+            }
+          }
+          cur = next;
+        }
+        this.emit({ type: 'chain', points, element: s.element });
+        return;
+      }
       case 'ground_area': {
         this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay: s.delay, duration: 0.35, damage: s.damage * mult, element: s.element });
         if (s.echo) this.spawnArea({ owner: 'player', kind: s.id, skill: s, echo: true, x: aim.x, z: aim.z, radius: s.radius, delay: s.delay + s.echo.delay, duration: 0.35, damage: s.damage * mult * s.echo.mult, element: s.element });
         return;
       }
+      case 'nova': {
+        const blast = (k) => {
+          for (const m of this.monsters) {
+            if (m.dead || dist(p.x, p.z, m.x, m.z) - m.r > s.radius) continue;
+            this.hitMonster(m, s.damage * mult * k, this.hitOpts(s, { crit: crit(), fromX: p.x, fromZ: p.z }));
+          }
+          this.emit({ type: 'nova', x: p.x, z: p.z, radius: s.radius, element: s.element });
+          if (s.ground) this.spawnGround(s, p.x, p.z, mult * k);
+        };
+        blast(1);
+        if (s.echo) this.later(s.echo.delay, () => !p.dead && blast(s.echo.mult));
+        return;
+      }
+      case 'dot_zone': {
+        const make = (delay, k) =>
+          this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay, duration: s.duration, tick: s.tick, damage: s.damage * mult * s.tick * k, element: s.element, slow: s.slow, dot: true });
+        make(0, 1);
+        if (s.echo) make(s.echo.delay, s.echo.mult);
+        return;
+      }
+      case 'curse_zone': {
+        const curse = () => {
+          for (const m of this.monsters) {
+            if (m.dead || dist(aim.x, aim.z, m.x, m.z) - m.r > s.radius) continue;
+            m.statuses.hex = { t: s.duration, taken: s.takenMult, dealt: s.dealtMult };
+            setAggro(this, m, p);
+          }
+          this.emit({ type: 'curse', x: aim.x, z: aim.z, radius: s.radius });
+        };
+        curse();
+        if (s.echo) this.later(s.echo.delay, curse);
+        return;
+      }
       case 'heal_zone': {
-        this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay: 0, duration: s.duration, tick: s.tick, heal: (s.heal * mult * s.tick) / 1, element: 'none' });
+        this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay: 0, duration: s.duration, tick: s.tick, heal: s.heal * mult * s.tick, element: 'none' });
         if (s.echo) this.spawnArea({ owner: 'player', kind: s.id, skill: s, echo: true, x: aim.x, z: aim.z, radius: s.radius, delay: s.echo.delay + s.duration * 0.5, duration: s.duration, tick: s.tick, heal: s.heal * mult * s.tick * s.echo.mult, element: 'none' });
         return;
       }
       case 'self_barrier': {
-        p.barrier = Math.max(p.barrier, s.barrier * mult);
+        p.barrier = Math.max(p.barrier, s.barrier);
         p.barrierT = s.duration;
         p.reflect = s.reflect;
-        if (s.tauntRadius) {
-          for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) < s.tauntRadius) setAggro(this, m);
-        }
+        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.hp = Math.min(a.maxHp, a.hp + s.barrier * 0.5);
+        if (s.tauntRadius) for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) < s.tauntRadius) setAggro(this, m, p, true);
         this.emit({ type: 'ward', x: p.x, z: p.z, amount: Math.round(p.barrier), reflect: s.reflect > 0, radius: s.radius });
+        return;
+      }
+      case 'buff': {
+        const buff = { t: s.duration, damage: s.damageBuff, speed: s.speedBuff };
+        p.buffs.war_cry = { ...buff };
+        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.buffs.war_cry = { ...buff };
+        this.emit({ type: 'buff', kind: 'war_cry', x: p.x, z: p.z, radius: s.radius });
+        return;
+      }
+      case 'summon': {
+        this.spawnAllies(s, p.x - Math.sin(p.facing) * 1.2, p.z - Math.cos(p.facing) * 1.2);
         return;
       }
     }
@@ -569,12 +890,25 @@ export class Game {
   update(dt) {
     dt = Math.min(dt, 0.05);
     this.time += dt;
+    this.ch.progress.playTime = (this.ch.progress.playTime || 0) + dt;
+    const due = [];
+    this.pending = this.pending.filter((q) => {
+      q.t -= dt;
+      if (q.t <= 0) {
+        due.push(q.fn);
+        return false;
+      }
+      return true;
+    });
+    for (const fn of due) fn();
     this.updatePlayer(dt);
+    const p = this.player;
     for (const m of this.monsters) {
       if (m.dead) {
         m.deathT += dt;
         continue;
       }
+      if (!m.aggro && (Math.abs(m.x - p.x) > AI_RADIUS || Math.abs(m.z - p.z) > AI_RADIUS)) continue; // asleep far away
       this.tickStatuses(m, dt);
       if (m.dead) continue;
       m.hurtT = Math.max(0, m.hurtT - dt);
@@ -582,10 +916,58 @@ export class Game {
     }
     this.separateMonsters();
     this.monsters = this.monsters.filter((m) => !(m.dead && m.deathT > 2.5));
+    this.updateAllies(dt);
     this.updateProjectiles(dt);
     this.updateAreas(dt);
     this.updateDrops(dt);
     this.updateRespawns();
+    this.checkT -= dt;
+    if (this.checkT <= 0) {
+      this.checkT = 0.25;
+      this.checkWorld();
+    }
+  }
+
+  /** Waypoint activation and zone discovery. */
+  checkWorld() {
+    const p = this.player;
+    if (p.dead) return;
+    const prog = this.ch.progress;
+    for (const wp of this.world.waypoints) {
+      if (prog.waypoints.includes(wp.id)) continue;
+      if (dist(p.x, p.z, wp.x, wp.z) < WAYPOINT_RADIUS) {
+        prog.waypoints.push(wp.id);
+        this.emit({ type: 'waypoint', id: wp.id, name: wp.nameTh, x: wp.x, z: wp.z });
+        this.completeQuests(refreshQuests(this.ch, this.data));
+      }
+    }
+    const zn = this.world.zoneAt(p.x, p.z);
+    if (zn.id !== this.zoneId) {
+      this.zoneId = zn.id;
+      this.emit({ type: 'zone', id: zn.id });
+    }
+    if (!prog.zones.includes(zn.id)) {
+      prog.zones.push(zn.id);
+      this.emit({ type: 'zoneDiscovered', id: zn.id, name: zn.nameTh });
+      this.completeQuests(refreshQuests(this.ch, this.data));
+    }
+  }
+
+  respawnPoint() {
+    const p = this.player;
+    let best = null;
+    let bd = Infinity;
+    for (const wp of this.world.waypoints) {
+      if (!this.isWaypointUnlocked(wp.id)) continue;
+      const d = dist(p.x, p.z, wp.x, wp.z);
+      if (d < bd) {
+        bd = d;
+        best = wp;
+      }
+    }
+    if (best && best.id !== 'town') return this.freeSpotNear(best.x, best.z + 2.2);
+    const r = this.data.world.town.respawn;
+    return { x: r[0], z: r[1] };
   }
 
   updatePlayer(dt) {
@@ -593,20 +975,20 @@ export class Game {
     if (p.dead) {
       p.respawnT -= dt;
       if (p.respawnT <= 0) {
-        const r = this.data.world.town.respawn;
-        p.x = r[0];
-        p.z = r[1];
+        const r = this.respawnPoint();
+        p.x = r.x;
+        p.z = r.z;
         p.dead = false;
         p.hp = p.maxHp;
         p.mp = p.maxMp;
         p.statuses = {};
+        p.buffs = {};
         p.barrier = 0;
-        this.emit({ type: 'respawn' });
+        this.emit({ type: 'respawn', x: p.x, z: p.z });
       }
       return;
     }
     p.hurtT = Math.max(0, p.hurtT - dt);
-    // regen
     const inTown = this.isSafe(p.x, p.z);
     p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
     p.mp = Math.min(p.maxMp, p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
@@ -621,7 +1003,10 @@ export class Game {
         p.reflect = 0;
       }
     }
-    // movement charges
+    for (const k in p.buffs) {
+      p.buffs[k].t -= dt;
+      if (p.buffs[k].t <= 0) delete p.buffs[k];
+    }
     const mv = this.move;
     if (p.movement.charges < mv.charges) {
       p.movement.rechargeT += dt;
@@ -630,27 +1015,35 @@ export class Game {
         p.movement.charges++;
       }
     } else p.movement.rechargeT = 0;
-    // statuses
     this.tickPlayerStatuses(dt);
     if (p.dead) return;
 
-    // dash
     if (p.dash) {
       p.dash.t += dt;
-      if (p.dash.vx || p.dash.vz) this.moveEntity(p, p.dash.vx * dt, p.dash.vz * dt);
+      if (p.dash.kind === 'leap') {
+        const k = Math.min(1, p.dash.t / p.dash.dur);
+        p.x = p.dash.fromX + (p.dash.toX - p.dash.fromX) * k;
+        p.z = p.dash.fromZ + (p.dash.toZ - p.dash.fromZ) * k;
+      } else if (p.dash.vx || p.dash.vz) this.moveEntity(p, p.dash.vx * dt, p.dash.vz * dt);
       if (p.dash.t >= p.dash.dur) {
+        const d = p.dash;
         p.dash = null;
+        if (d.kind === 'leap' && this.move.landing) {
+          const L = this.move.landing;
+          for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) - m.r <= L.radius) this.hitMonster(m, L.damage * this.playerDamageMult(), { element: 'physical', crit: this.rollCrit(), knock: 1.2, fromX: p.x, fromZ: p.z });
+          this.emit({ type: 'burst', kind: 'leap', element: 'physical', x: p.x, z: p.z, radius: L.radius });
+        }
         this.fireTriggers('on_movement');
       }
       return;
     }
 
-    // walking
     const mx = this.input.moveX;
     const mz = this.input.moveZ;
     const mlen = Math.hypot(mx, mz);
     const chill = p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
-    const speed = this.derived.moveSpeed * (p.cast ? 0.4 : 1) * chill;
+    const haste = p.buffs.war_cry ? 1 + p.buffs.war_cry.speed : 1;
+    const speed = this.derived.moveSpeed * (p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
     if (p.moving) {
       this.moveEntity(p, mx * speed * dt, mz * speed * dt);
@@ -660,14 +1053,12 @@ export class Game {
       }
     }
 
-    // soft target
     const aimAngle = this.input.aimFromPointer ? this.input.aimAngle : p.moving ? Math.atan2(mx, mz) : p.facing;
     if (!this.input.aimFromPointer && !p.moving) this.input.aimAngle = p.facing;
     const prev = p.targetId;
     p.targetId = softTarget(p, this.monsters, aimAngle, this.acquireRange);
     if (prev !== p.targetId) this.emit({ type: 'target', id: p.targetId });
 
-    // casting
     if (p.cast) {
       p.cast.t += dt;
       p.facing = p.cast.aim.angle;
@@ -690,7 +1081,7 @@ export class Game {
       if (!s || !s.trigger || s.trigger.on !== on || p.triggerCd[i] > 0) return;
       p.triggerCd[i] = s.trigger.icd;
       let aim;
-      if (s.kind === 'ground_area' || s.kind === 'heal_zone') aim = { angle: p.facing, x: p.x, z: p.z };
+      if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'].includes(s.kind)) aim = { angle: p.facing, x: p.x, z: p.z };
       else aim = this.resolveAim(s, null);
       this.emit({ type: 'trigger', slot: i, skill: s.id });
       this.executeSkill(s, aim, { mult: s.trigger.damageMult, triggered: true });
@@ -710,9 +1101,14 @@ export class Game {
       }
       if (st.t <= 0) delete m.statuses[k];
     }
-    if (m.statuses.chill) {
-      m.statuses.chill.t -= dt;
-      if (m.statuses.chill.t <= 0) delete m.statuses.chill;
+    for (const k of ['chill', 'hex', 'mire']) {
+      if (!m.statuses[k]) continue;
+      m.statuses[k].t -= dt;
+      if (m.statuses[k].t <= 0) delete m.statuses[k];
+    }
+    for (const k in m.buffs) {
+      m.buffs[k].t -= dt;
+      if (m.buffs[k].t <= 0) delete m.buffs[k];
     }
   }
 
@@ -727,22 +1123,116 @@ export class Game {
         st.acc -= n;
         p.hp -= n;
         this.emit({ type: 'playerHit', amount: n, absorbed: 0, dot: true, x: p.x, z: p.z });
-        if (p.hp <= 0) {
-          p.hp = 1; // poison alone never kills
-        }
+        if (p.hp <= 0) p.hp = 1; // poison alone never kills
       }
       if (st.t <= 0) delete p.statuses.poison;
     }
+    if (p.statuses.chill) {
+      p.statuses.chill.t -= dt;
+      if (p.statuses.chill.t <= 0) delete p.statuses.chill;
+    }
+  }
+
+  updateAllies(dt) {
+    const p = this.player;
+    const keep = [];
+    for (const a of this.allies) {
+      a.life -= dt;
+      a.stateT += dt;
+      a.cd = Math.max(0, a.cd - dt);
+      for (const k in a.buffs) {
+        a.buffs[k].t -= dt;
+        if (a.buffs[k].t <= 0) delete a.buffs[k];
+      }
+      if (a.life <= 0 || p.dead) {
+        this.emit({ type: 'allyGone', id: a.id, x: a.x, z: a.z });
+        continue;
+      }
+      keep.push(a);
+      // pick a target: what we are fighting, else the player's target, else something threatening the player
+      let t = a.targetId ? this.monsterById(a.targetId) : null;
+      if (!t || t.dead || dist(t.x, t.z, p.x, p.z) > 16) {
+        t = null;
+        const pt = this.target;
+        if (pt && dist(pt.x, pt.z, a.x, a.z) < 12) t = pt;
+        else {
+          let bd = 9;
+          for (const m of this.monsters) {
+            if (m.dead || !m.aggro) continue;
+            const d = dist(m.x, m.z, a.x, a.z);
+            if (d < bd && dist(m.x, m.z, p.x, p.z) < 14) {
+              bd = d;
+              t = m;
+            }
+          }
+        }
+        a.targetId = t ? t.id : null;
+      }
+      const haste = a.buffs.war_cry ? 1 + a.buffs.war_cry.speed : 1;
+      if (a.state === 'windup') {
+        if (a.stateT >= 0.25) {
+          const tt = this.monsterById(a.targetId);
+          if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
+            const k = a.buffs.war_cry ? 1 + a.buffs.war_cry.damage : 1;
+            this.hitMonster(tt, a.damage * k, { element: 'physical', by: a, byAlly: true });
+          }
+          a.cd = a.attackCooldown;
+          a.state = 'recover';
+          a.stateT = 0;
+        }
+        a.moving = false;
+        continue;
+      }
+      if (a.state === 'recover' && a.stateT < 0.3) {
+        a.moving = false;
+        continue;
+      }
+      a.state = t ? 'chase' : 'follow';
+      if (t) {
+        const d = dist(a.x, a.z, t.x, t.z) - t.r - a.r;
+        const ang = angleTo(a.x, a.z, t.x, t.z);
+        a.facing = ang;
+        if (d <= a.range && a.cd <= 0) {
+          a.state = 'windup';
+          a.stateT = 0;
+          a.moving = false;
+        } else if (d > a.range * 0.8) {
+          const step = Math.min(d, a.speed * haste * dt);
+          this.moveEntity(a, Math.sin(ang) * step, Math.cos(ang) * step);
+          a.moving = true;
+        } else a.moving = false;
+      } else {
+        // heel: a spot behind the player
+        const side = a.slot % 2 ? 1 : -1;
+        const hx = p.x - Math.sin(p.facing) * 2.2 + Math.cos(p.facing) * side * 1.2;
+        const hz = p.z - Math.cos(p.facing) * 2.2 - Math.sin(p.facing) * side * 1.2;
+        const d = dist(a.x, a.z, hx, hz);
+        if (d > 25) {
+          a.x = hx;
+          a.z = hz;
+        } else if (d > 0.8) {
+          const ang = angleTo(a.x, a.z, hx, hz);
+          const step = Math.min(d, a.speed * haste * (d > 5 ? 1.3 : 0.9) * dt);
+          this.moveEntity(a, Math.sin(ang) * step, Math.cos(ang) * step);
+          a.facing += clamp(angleDiff(a.facing, ang), -10 * dt, 10 * dt);
+          a.moving = true;
+        } else {
+          a.moving = false;
+          a.facing += clamp(angleDiff(a.facing, p.facing), -4 * dt, 4 * dt);
+        }
+      }
+    }
+    this.allies = keep;
   }
 
   separateMonsters() {
-    const ms = this.monsters;
+    const p = this.player;
+    const ms = this.monsters.filter((m) => !m.dead && Math.abs(m.x - p.x) < 40 && Math.abs(m.z - p.z) < 40);
     for (let i = 0; i < ms.length; i++) {
       const a = ms[i];
-      if (a.dead) continue;
       for (let j = i + 1; j < ms.length; j++) {
         const b = ms[j];
-        if (b.dead) continue;
+        if (a.def.flyer || b.def.flyer) continue;
         const d = dist(a.x, a.z, b.x, b.z);
         const min = a.r + b.r;
         if (d < min && d > 1e-3) {
@@ -755,9 +1245,7 @@ export class Game {
           this.moveEntity(b, ux * push * wb, uz * push * wb);
         }
       }
-      // keep monsters from standing inside the player
-      const p = this.player;
-      if (!p.dead) {
+      if (!p.dead && !a.def.flyer) {
         const d = dist(a.x, a.z, p.x, p.z);
         const min = a.r + p.r;
         if (d < min && d > 1e-3 && !a.charge) this.moveEntity(a, ((a.x - p.x) / d) * (min - d), ((a.z - p.z) / d) * (min - d));
@@ -765,27 +1253,36 @@ export class Game {
     }
   }
 
+  /** Units (player + allies) a monster attack can hit. */
+  units() {
+    const out = [];
+    if (!this.player.dead) out.push(this.player);
+    for (const a of this.allies) if (!a.dead && a.life > 0) out.push(a);
+    return out;
+  }
+
   updateProjectiles(dt) {
     const keep = [];
-    const p = this.player;
     for (const pr of this.projectiles) {
       const step = pr.speed * dt;
       pr.x += pr.vx * dt;
       pr.z += pr.vz * dt;
       pr.travelled += step;
       let dead = pr.travelled >= pr.range;
-      // solid obstacles stop projectiles (not water)
-      if (!dead && !this.world.isFree(pr.x, pr.z, 0.05, { ignoreWater: true })) {
+      // solid obstacles and cliff faces stop projectiles (not water)
+      const g = this.world.surfaceY(pr.x, pr.z);
+      if (!dead && (!this.world.isFree(pr.x, pr.z, 0.05, { ignoreWater: true }) || g - pr.ground > 1.3)) {
         dead = true;
         this.projectileImpact(pr);
       }
+      pr.ground = g;
       if (!dead && pr.owner === 'player') {
         for (const m of this.monsters) {
           if (m.dead || pr.hit.has(m.id)) continue;
           if (dist(pr.x, pr.z, m.x, m.z) > m.r + pr.radius) continue;
           pr.hit.add(m.id);
           const s = pr.skill;
-          this.hitMonster(m, pr.damage, { element: pr.element, chill: s.chill, burnChance: s.burnChance, crit: this.rollCrit() });
+          this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
           this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z });
           if (s.ground) this.spawnGround(s, m.x, m.z, pr.triggered ? s.trigger?.damageMult || 1 : 1);
           if (pr.chain > 0) {
@@ -811,12 +1308,15 @@ export class Game {
           dead = true;
           break;
         }
-      } else if (!dead && pr.owner === 'monster' && !p.dead) {
-        if (dist(pr.x, pr.z, p.x, p.z) < p.r + pr.radius) {
-          const src = this.monsterById(pr.sourceId);
-          this.damagePlayer(pr.damage, src, { poison: pr.poison });
-          this.emit({ type: 'impact', kind: pr.kind, element: pr.kind === 'spit' ? 'poison' : 'arcane', x: pr.x, z: pr.z });
-          dead = true;
+      } else if (!dead && pr.owner === 'monster') {
+        for (const u of this.units()) {
+          if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
+            const src = this.monsterById(pr.sourceId);
+            this.damageUnit(u, pr.damage, src, { poison: pr.poison });
+            this.emit({ type: 'impact', kind: pr.kind, element: pr.kind === 'spit' ? 'poison' : 'arcane', x: pr.x, z: pr.z });
+            dead = true;
+            break;
+          }
         }
       }
       if (dead) this.emit({ type: 'projectileEnd', id: pr.id });
@@ -832,7 +1332,6 @@ export class Game {
 
   updateAreas(dt) {
     const keep = [];
-    const p = this.player;
     for (const a of this.areas) {
       a.t += dt;
       if (a.t < a.delay) {
@@ -842,19 +1341,28 @@ export class Game {
       const live = a.t - a.delay;
       if (a.kind === 'shockwave') {
         a.radius = Math.min(a.maxRadius, a.radius + a.growth * dt);
-        const d = dist(a.x, a.z, p.x, p.z);
-        if (!a.hit.has(p.id) && Math.abs(d - a.radius) < 0.7 && !p.dead) {
-          a.hit.add(p.id);
-          this.damagePlayer(a.damage, this.monsterById(a.sourceId));
+        for (const u of this.units()) {
+          const d = dist(a.x, a.z, u.x, u.z);
+          if (!a.hit.has(u.id) && Math.abs(d - a.radius) < 0.7) {
+            a.hit.add(u.id);
+            this.damageUnit(u, a.damage, this.monsterById(a.sourceId));
+          }
         }
       } else if (a.tick) {
-        // persistent: damage or heal every tick
         if (live >= a.nextTick) {
           a.nextTick += a.tick;
-          if (a.heal) {
-            if (dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) this.healPlayer(a.heal);
+          if (a.owner === 'monster') {
+            for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { dot: true });
+          } else if (a.heal) {
+            const p = this.player;
+            if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) this.healPlayer(a.heal);
+            for (const al of this.allies) if (dist(a.x, a.z, al.x, al.z) <= a.radius + al.r) al.hp = Math.min(al.maxHp, al.hp + a.heal);
           } else if (a.damage) {
-            for (const m of this.monsters) if (!m.dead && dist(a.x, a.z, m.x, m.z) <= a.radius + m.r) this.hitMonster(m, a.damage, { dot: true, element: a.element });
+            for (const m of this.monsters) {
+              if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
+              if (a.slow) m.statuses.chill = { slow: Math.max(a.slow, m.statuses.chill?.slow || 0), t: Math.max(0.6, m.statuses.chill?.t || 0) };
+              this.hitMonster(m, a.damage, { dot: true, element: a.element });
+            }
           }
         }
       } else if (!a.fired) {
@@ -863,12 +1371,13 @@ export class Game {
           const s = a.skill;
           for (const m of this.monsters) {
             if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
-            this.hitMonster(m, a.damage, { element: a.element, chill: s?.chill, crit: this.rollCrit() });
+            this.hitMonster(m, a.damage, s ? this.hitOpts(s, { crit: this.rollCrit(), fromX: a.x, fromZ: a.z }) : { element: a.element });
           }
           this.emit({ type: 'burst', kind: a.kind, element: a.element, echo: !!a.echo, x: a.x, z: a.z, radius: a.radius });
           if (s?.ground) this.spawnGround(s, a.x, a.z, a.echo ? s.echo.mult : 1);
-        } else if (a.owner === 'monster') {
-          if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) this.damagePlayer(a.damage, this.monsterById(a.sourceId));
+        } else if (a.owner === 'monster' && a.damage) {
+          const src = this.monsterById(a.sourceId);
+          for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, src);
           this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius });
         }
       }
@@ -892,6 +1401,11 @@ export class Game {
         }
         if (dd < PICKUP_RADIUS * 0.5) {
           addItem(this.ch, d.item, d.qty);
+          if (d.item !== 'gold') {
+            const c = this.ch.progress.collected;
+            c[d.item] = (c[d.item] || 0) + d.qty;
+            this.notify({ type: 'collect', item: d.item, qty: d.qty });
+          }
           this.emit({ type: 'pickup', id: d.id, item: d.item, qty: d.qty });
           continue;
         }
@@ -909,7 +1423,7 @@ export class Game {
     const p = this.player;
     for (const sp of this.spawnPoints) {
       if (sp.entity || this.time < sp.respawnAt) continue;
-      if (dist(p.x, p.z, sp.x, sp.z) < 14) continue; // never pop in right next to the player
+      if (dist(p.x, p.z, sp.x, sp.z) < 16) continue; // never pop in right next to the player
       this.spawnAt(sp);
     }
   }

@@ -28,7 +28,7 @@ await page.evaluate(() => {
     const g = f.game;
     g.player.x = x;
     g.player.z = z;
-    f.view.camTarget.set(x, 0, z);
+    f.view.snapCamera();
     f.view.zoom = zoom;
   };
   f.place = (type, x, z, facing, windup, t = 0.6) => {
@@ -54,89 +54,120 @@ const shot = async (name, ms = 900) => {
   console.log('saved', name);
 };
 
-// 1. hero + boar wind-up (charge) + slash effect
-await page.evaluate(() => {
+const run = (fn, arg) => page.evaluate(fn, arg);
+const freeAt = (x, z) => run(([x, z]) => window.__frontier.game.freeSpotNear(x, z), [x, z]);
+
+// 1. monster line-up on open meadow ground (every regular type, idle animation)
+await run(() => {
   const f = window.__frontier;
   f.paused = true;
-  f.stage(-45, 8, 0.62);
-  f.place('tusk_boar', -42, 6.5, -1.9, 'charge', 0.5);
-  f.place('tusk_boar', -47.5, 5.5, 0.9);
-  f.game.player.facing = 2.0;
-  f.view.vfx.slash({ x: -45, z: 8, angle: 2.0, arc: 120, range: 2.4, element: 'physical' });
+  f.stage(-82, 4, 0.95);
+  const types = ['tusk_boar', 'thornback_wolf', 'moss_beetle', 'sporecap', 'marsh_wisp', 'crag_golem', 'gale_hawk'];
+  types.forEach((t, i) => {
+    const id = f.place(t, -91 + i * 3, -1, 0);
+    const m = f.game.monsterById(id);
+    if (m) m.aggro = false;
+  });
+  f.paused = false; // let the new models grow in, then freeze
+  setTimeout(() => (f.paused = true), 700);
 });
-await shot('1-hero-boar', 120);
-// 2. beetle spitting + one curled in its shell, firebolt in flight
-await page.evaluate(() => {
+await shot('1-lineup', 1400);
+
+// 2. hero animation strip: run, then a three-hit slash combo (frames every 90 ms)
+const heroSpot = await freeAt(-80, 0);
+await run((s) => {
   const f = window.__frontier;
   f.paused = false;
-  f.stage(-2, 10, 0.62);
-  const a = f.place('moss_beetle', 1, 8, -1.2, 'spit', 0.4);
-  const b = f.place('moss_beetle', -4.5, 7.5, 1.2);
-  const m = f.game.monsterById(b);
-  m.shell = true;
-  m.state = 'shell';
-  m.stateDur = 99;
-  f.game.player.facing = 1.9;
-  f.game.setAimPoint(1, 8);
-  f.game.player.cooldowns[1] = 0;
-  f.game.player.mp = 99;
-  f.game.castSlot(1);
+  f.stage(s.x, s.z, 0.55);
+  f.input.disabled = true;
+  f.game.setMove(1, 0);
+}, heroSpot);
+for (let i = 0; i < 3; i++) await shot(`2-run-${i}`, 110);
+await run(() => {
+  const f = window.__frontier;
+  f.game.setMove(0, 0);
+  f.game.player.facing = 1.2;
+  f.game.setAimAngle(1.2);
+  f.game.castSlot(0);
 });
-await shot('2-beetles', 600);
-// 3. wisps over the wetland
-await page.evaluate(() => {
+for (let i = 0; i < 4; i++) await shot(`2-slash-${i}`, 90);
+
+// 3. greyfang in its den with its pack
+await run(() => {
   const f = window.__frontier;
   f.paused = true;
-  f.stage(31, 10, 0.7);
-  f.place('marsh_wisp', 33, 7, -1.5, 'orb', 0.3);
-  f.place('marsh_wisp', 28, 6, 0.8);
+  const [x, z] = f.world.data.den.centre;
+  f.stage(x, z + 7, 0.9);
+  const g = f.game.monsters.find((m) => m.type === 'greyfang');
+  g.x = x;
+  g.z = z;
+  g.facing = 0;
+  g.state = 'windup';
+  g.aggro = true;
+  g.windup = { name: 'howl', total: 1, angle: 0 };
+  g.stateT = 0.6;
 });
-await shot('3-wisps');
-// 4. boss slam wind-up telegraph
-await page.evaluate(() => {
+await shot('3-greyfang', 1200);
+
+// 4. golem throw + hawk dive telegraphs on the highlands
+await run(() => {
+  const f = window.__frontier;
+  f.paused = false;
+  f.stage(52, -58, 0.95);
+  const gid = f.place('crag_golem', 56, -62, -2.4);
+  const hid = f.place('gale_hawk', 48, -61, 1);
+  f.game.player.hp = 1e6;
+});
+await shot('4-highlands', 2600);
+
+// 5. warden boss slam on the ruins plateau
+await run(() => {
   const f = window.__frontier;
   f.paused = true;
-  f.stage(80, 5, 0.85);
-  const boss = f.game.monsters.find((m) => m.boss);
-  boss.x = 84;
-  boss.z = 1;
+  const boss = f.game.monsters.find((m) => m.type === 'horned_warden');
+  f.stage(boss.spawn.x - 4, boss.spawn.z + 6, 0.95);
+  boss.x = boss.spawn.x;
+  boss.z = boss.spawn.z;
   boss.facing = -2.2;
   boss.aggro = true;
   boss.state = 'windup';
   boss.windup = { name: 'slam', total: 1.1, angle: -2.2, radius: 4.8 };
   boss.stateT = 0.8;
 });
-await shot('4-boss-slam', 1500);
-await page.evaluate(() => {
-  const f = window.__frontier;
-  const boss = f.game.monsters.find((m) => m.boss);
-  boss.windup = { name: 'gore', total: 1, angle: -2.3 };
-  boss.stateT = 0.7;
-  f.stage(78, 7, 1.0);
-});
-await shot('5-boss-gore', 900);
-// 6. town overview
-await page.evaluate(() => {
-  const f = window.__frontier;
-  f.paused = true;
-  f.stage(-82, 2, 1.25);
-});
-await shot('6-town', 1500);
-// 7. stone burst + healing spring + ward
-await page.evaluate(() => {
+await shot('5-warden', 1500);
+
+// 6. new skills: chain spark, frost nova, venom mire, spirit wolves
+const skSpot = await freeAt(-86, 0);
+await run((s) => {
   const f = window.__frontier;
   const g = f.game;
   f.paused = false;
-  f.stage(-40, 8, 0.75);
-  g.ch.skills.stone_burst = 1;
-  g.ch.skills.healing_spring = 1;
-  g.ch.stats.INT = 8;
-  g.ch.slots[3] = { skill: 'stone_burst', mods: [] };
+  f.stage(s.x, s.z, 0.8);
+  for (const id of Object.keys(g.data.skills.combat)) g.ch.skills[id] = 1;
+  g.ch.stats.INT = 12;
+  g.ch.slots[0] = { skill: 'chain_spark', mods: [] };
+  g.ch.slots[1] = { skill: 'frost_nova', mods: [] };
+  g.ch.slots[2] = { skill: 'venom_mire', mods: [] };
+  g.ch.slots[3] = { skill: 'spirit_wolf', mods: [] };
   g.refresh();
+  for (let i = 0; i < 4; i++) f.place('tusk_boar', s.x + 3 + (i % 2) * 2, s.z - 2 + i * 1.5, 0);
   g.player.mp = 999;
-  g.castSlot(3, { x: -36, z: 6 });
-  g.executeSkill({ ...g.skills[2], mult: 1 }, { angle: 0, x: g.player.x, z: g.player.z });
-});
-await shot('7-skills', 700);
+  g.castSlot(3);
+  setTimeout(() => {
+    g.player.mp = 999;
+    g.castSlot(2, { x: s.x + 4, z: s.z });
+  }, 500);
+  setTimeout(() => {
+    g.player.mp = 999;
+    g.setAimPoint(s.x + 4, s.z);
+    g.castSlot(0);
+  }, 1000);
+  setTimeout(() => {
+    g.player.mp = 999;
+    g.castSlot(1);
+  }, 1300);
+}, skSpot);
+await shot('6-skills-a', 1150);
+await shot('6-skills-b', 300);
 await browser.close();
 process.kill(-server.pid);

@@ -5,7 +5,8 @@
 //     Tap a skill = quick cast at the soft target / facing. Drag a skill = aim it
 //     (area skills place a circle; others pick a direction). Release to cast.
 import { icon } from './icons.js';
-import { skillSymbol } from './fieldhud.js';
+import { art } from './art.js';
+import { joystickMarks } from './fieldhud.js';
 
 // skills aimed at a point on the ground (drag places a circle)
 const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'];
@@ -57,7 +58,7 @@ export class Input {
 
     // ---- joystick ----
     this.joyZone = h(`<div class="joyzone"></div>`);
-    this.joyEl = h(`<div class="joy idle"><i></i><span class="joy-marks" aria-hidden="true">${skillSymbol('compass')}</span></div>`);
+    this.joyEl = h(`<div class="joy idle"><i></i><span class="joy-marks" aria-hidden="true">${joystickMarks()}</span></div>`);
     root.appendChild(this.joyZone);
     root.appendChild(this.joyEl);
     this.bindJoystick();
@@ -490,7 +491,7 @@ export class Input {
       const key = s ? `${s.id}:${s.cost}:${s.requirementsMet}` : 'empty';
       if (b.dataset.skill !== key) {
         b.dataset.skill = key;
-        b.querySelector('.ic').innerHTML = s ? skillSymbol(s.id) : icon('plus');
+        b.querySelector('.ic').innerHTML = s ? art('skill',s.id) : icon('plus');
         b.dataset.tone = s?.element || 'physical';
         b.classList.toggle('empty', !s);
         b.querySelector('.slabel').textContent = s ? s.def.nameTh : 'ใส่สกิล';
@@ -514,7 +515,7 @@ export class Input {
     const mv = g.move;
     if (this.moveBtn.dataset.skill !== mv.id) {
       this.moveBtn.dataset.skill = mv.id;
-      this.moveBtn.querySelector('.ic').innerHTML = skillSymbol(mv.id);
+      this.moveBtn.querySelector('.ic').innerHTML = art('skill',mv.id);
       this.moveBtn.querySelector('.slabel').textContent = mv.def.nameTh;
       this.moveBtn.setAttribute('aria-label', `${mv.def.nameTh} · สกิลเคลื่อนที่`);
     }

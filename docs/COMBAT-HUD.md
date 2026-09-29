@@ -1,8 +1,8 @@
 # SEEKER — clean field HUD (29 September 2026)
 
 Implements the owner's approved gameplay-HUD reference, not the older paper/ornamented
-combat mock-ups. Navy translucent panels, restrained silver outlines, white/cyan skill
-symbols and gold reserved for quest/Job accents. The scene, camera, live hero portrait,
+combat mock-ups. Navy translucent panels, restrained silver outlines, original full-colour skill
+illustrations and gold reserved for quest/Job accents. The scene, camera, live hero portrait,
 monsters, saved character and gameplay rules are unchanged.
 
 ## Layout
@@ -51,3 +51,12 @@ compatibility click and select the wrong loadout slot on a short landscape scree
 Combat casts still execute on release; drag/cancel never opens the menu. Keyboard
 activation remains supported. Both the focused HUD check and the legacy UX suite
 assert the exact selected fourth slot after a real tap.
+
+### Original skill artwork restored before merge
+Combat and movement buttons call the existing art('skill', id) renderer, the same
+illustrations used in skill menus. The alternate field-skill glyphs are removed.
+The new HUD layout, control sizes, button frames and functionality remain unchanged.
+Only modifier item art uses the approved engraved-gem treatment. No skill art, gem
+art, core rule, gameplay VFX, model or save file is rewritten by this restoration.
+The HUD browser suite checks every combat/movement illustration against art.js at
+all four viewports and checks that no icon recolouring filter or clipping is added.

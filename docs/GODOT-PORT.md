@@ -185,7 +185,9 @@ core eligibility checks and save IDs.
 
 `ui/fieldhud.css` now skins the live field HUD with navy translucent surfaces, thin silver
 edges and a right-hand action cluster on mouse and touch. `ui/fieldhud.js` provides small
-SVG skill/menu symbols plus XP/quest presentation; do not import an entire concept image.
+menu/joystick symbols plus XP/quest presentation. Combat and movement buttons reuse
+the unchanged full-colour illustrations from ui/art.js; do not replace them with glyphs
+or import an entire concept image. Modifier items keep the engraved gems separately.
 Keep the actual portrait, HP/barrier/MP, all four combat slots, separate movement charges,
 interrupted drag behavior and per-skill targeting untouched when porting. The footer
 shows independent blue EXP and gold Job tracks; max-level tracks explicitly say MAX.

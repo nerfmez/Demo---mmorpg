@@ -1,6 +1,8 @@
 // Real-game HUD visual review and hit testing. No concept image compositing.
 // BROWSER=webkit for Safari engine; QUICK=1 for only the iPad viewport.
 import assert from 'node:assert/strict';
+import {art} from '../../src/ui/art.js';
+import {data} from '../core/helpers.js';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdirSync,writeFileSync} from 'node:fs';
@@ -50,7 +52,37 @@ try {
   }
   const xp=await page.locator('.xpstrip').boundingBox();assert.equal(Math.round(xp.y+xp.height),height);
   assert.equal(await page.locator('.combat .sbtn').count(),5);
-  assert.equal(await page.locator('.combat [data-field-skill]').count(),5);
+  assert.equal(await page.locator('.combat .art-skill').count(),5);
+  assert.equal(await page.locator('.combat [data-field-skill]').count(),0);
+  const expectedArt=Object.fromEntries([...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)].map(id=>[id,art('skill',id)]));
+  const verifiedArt=await page.evaluate(expected=>{
+    const f=window.__frontier,g=f.game;
+    const saved={slots:g.ch.slots.map(s=>({...s,mods:[...s.mods]})),skills:{...g.ch.skills},movement:g.ch.movement};
+    let checked=0;
+    const check=(button,id)=>{
+      const template=document.createElement('template');template.innerHTML=expected[id];
+      if(button.querySelector('.ic').innerHTML!==template.innerHTML)throw Error('Original artwork mismatch: '+id);
+      const svg=button.querySelector('.art-skill>svg');
+      if(!svg||getComputedStyle(svg).filter!=='none')throw Error('Artwork recoloured: '+id);
+      const r=svg.getBoundingClientRect(),b=button.getBoundingClientRect();
+      if(r.width<16||r.height<16||r.left<b.left||r.top<b.top||r.right>b.right||r.bottom>b.bottom)throw Error('Artwork clipped: '+id);
+      checked++;
+    };
+    try {
+      for(const id of Object.keys(g.data.skills.combat)){
+        g.ch.slots[0]={skill:id,mods:[]};g.ch.skills[id]=1;g.refresh();f.input.refreshButtons();
+        check(f.input.buttons[0],id);
+      }
+      for(const id of Object.keys(g.data.skills.movement)){
+        g.ch.movement=id;g.refresh();f.input.refreshButtons();check(f.input.moveBtn,id);
+      }
+    } finally {
+      g.ch.slots=saved.slots;g.ch.skills=saved.skills;g.ch.movement=saved.movement;g.refresh();f.input.refreshButtons();
+    }
+    return checked;
+  },expectedArt);
+  assert.equal(verifiedArt,Object.keys(expectedArt).length,'all original skill images verified');
+  await settle();
   await page.screenshot({path:out+size+'-hud.png',timeout:60000});
   await activate('.quest-collapse');assert.equal(await page.locator('.quest-collapse').getAttribute('aria-expanded'),'false');
   await activate('.quest-collapse');
@@ -69,7 +101,7 @@ try {
   await activate('.sbtn.s3');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');
   assert.equal(await page.locator('.loadout-slot.on').getAttribute('data-slot'),'3','empty-slot tap must not click through to a different loadout slot');
   await activate('.panel-close');
-  assert.deepEqual(errors,[],size+' page errors');reports.push({size,width,height,touch,ok:true,modelsReady:true,source:'full game renderer, real HUD',controls:5});
+  assert.deepEqual(errors,[],size+' page errors');reports.push({size,width,height,touch,ok:true,modelsReady:true,source:'full game renderer, real HUD',controls:5,originalSkillImages:verifiedArt});
   writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS field HUD '+name+' '+size);await ctx.close();
  }
 }finally{await browser?.close();try{process.kill(-server.pid);}catch{}}

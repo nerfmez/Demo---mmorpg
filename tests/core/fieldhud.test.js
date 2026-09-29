@@ -2,12 +2,20 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
 import {createCharacter, expToNext, jobExpToNext} from '../../src/core/character.js';
-import {FIELD_SKILL_IDS, skillSymbol, xpPresentation, trackerMarkup} from '../../src/ui/fieldhud.js';
-test('field symbols cover every actual skill and movement without raster assets',()=>{
- for (const id of [...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)]) {
-  assert.ok(FIELD_SKILL_IDS.includes(id),id);
-  const svg=skillSymbol(id); assert.ok(svg.includes('<svg'));assert.ok(!/<image|<img|https:|filter=/.test(svg));
+import {xpPresentation, trackerMarkup} from '../../src/ui/fieldhud.js';
+import {art, hasArt} from '../../src/ui/art.js';
+import {readFileSync} from 'node:fs';
+test('all combat and movement skills retain the original authored illustrations',()=>{
+ for(const id of [...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)]){
+  assert.ok(hasArt('skill',id),id);
+  assert.ok(art('skill',id).includes('data-art="skill/'+id+'"'),id);
  }
+});
+test('HUD uses original skill art rather than replacement glyphs',()=>{
+ const input=readFileSync(new URL('../../src/ui/input.js',import.meta.url),'utf8');
+ assert.ok(input.includes("s ? art('skill',s.id) : icon('plus')"));
+ assert.ok(input.includes("innerHTML = art('skill',mv.id);"));
+ assert.ok(!input.includes('skillSymbol('));
 });
 test('field progress follows real EXP and independent Job EXP; caps show MAX',()=>{
  const ch=createCharacter(data);ch.level=19;ch.jobLevel=12;

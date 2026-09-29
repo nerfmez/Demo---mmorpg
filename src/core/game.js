@@ -8,7 +8,7 @@ import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, addExp, gearLook } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem } from './crafting.js';
-import { softTarget } from './targeting.js';
+import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
 
@@ -39,7 +39,7 @@ export class Game {
     this.drops = [];
     this.spawnPoints = [];
     this.pending = [];
-    this.input = { moveX: 0, moveZ: 0, aimAngle: 0, aimPoint: null, aimFromPointer: false };
+    this.input = { moveX: 0, moveZ: 0, aimAngle: 0, aimPoint: null, aimFromPointer: false, manualAim: false };
     this.stats = { kills: 0, damageDealt: 0 };
     this.combo = 0;
     this.checkT = 0;
@@ -349,13 +349,15 @@ export class Game {
   setAimPoint(x, z) {
     this.input.aimPoint = { x, z };
     this.input.aimFromPointer = true;
+    this.input.manualAim = true;
     this.input.aimAngle = angleTo(this.player.x, this.player.z, x, z);
   }
 
-  setAimAngle(a) {
+  setAimAngle(a, manual = false) {
     this.input.aimAngle = a;
     this.input.aimPoint = null;
     this.input.aimFromPointer = false;
+    this.input.manualAim = manual;
   }
 
   /** Cast the skill in a slot. point: optional explicit ground point for area skills. */
@@ -363,7 +365,7 @@ export class Game {
     const p = this.player;
     if (p.dead) return false;
     if (p.cast || p.dash) {
-      p.queued = { slot: i, point, t: 0.35 };
+      p.queued = { slot: i, point, t: 0.35, manualAngle: this.input.manualAim && !this.input.aimFromPointer ? this.input.aimAngle : null };
       return false;
     }
     const s = this.skills[i];
@@ -377,7 +379,18 @@ export class Game {
       this.emit({ type: 'fail', reason: 'mp', slot: i });
       return false;
     }
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova'].includes(s.kind);
+    // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
+    // Pointer aim and touch drag are explicit overrides.
+    if (!point && directional && !this.input.manualAim) {
+      const nearest = nearestTarget(p, this.monsters, s.range);
+      const prevTarget = p.targetId;
+      p.targetId = nearest ? nearest.id : null;
+      if (prevTarget !== p.targetId) this.emit({ type: 'target', id: p.targetId });
+    }
     const aim = this.resolveAim(s, point);
+    const clearOneShotManualAim = this.input.manualAim && !this.input.aimFromPointer;
+    if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= s.cost;
     p.cooldowns[i] = s.cooldown;
     // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
@@ -1077,7 +1090,7 @@ export class Game {
     const aimAngle = this.input.aimFromPointer ? this.input.aimAngle : p.moving ? Math.atan2(mx, mz) : p.facing;
     if (!this.input.aimFromPointer && !p.moving) this.input.aimAngle = p.facing;
     const prev = p.targetId;
-    p.targetId = softTarget(p, this.monsters, aimAngle, this.acquireRange);
+    p.targetId = softTarget(p, this.monsters, aimAngle, this.acquireRange, { preferNearest: !this.input.manualAim });
     if (prev !== p.targetId) this.emit({ type: 'target', id: p.targetId });
 
     if (p.cast) {
@@ -1091,7 +1104,10 @@ export class Game {
     } else if (p.queued) {
       const q = p.queued;
       p.queued = null;
-      if (q.t > 0) this.castSlot(q.slot, q.point);
+      if (q.t > 0) {
+        if (q.manualAngle !== null) this.setAimAngle(q.manualAngle, true);
+        this.castSlot(q.slot, q.point);
+      }
     }
     if (p.queued) p.queued.t -= dt;
   }

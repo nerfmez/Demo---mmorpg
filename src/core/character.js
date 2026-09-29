@@ -217,7 +217,9 @@ export function jobPath(ch, data, target) {
 
   let guard = 0;
   while (jobNodeState(sim, data, target).reason === 'tier_points' && guard++ < nodes.length) {
-    const next = candidates.find(([id]) => jobNodeState(sim, data, id).can);
+    const available = candidates.filter(([id]) => jobNodeState(sim, data, id).can)
+      .sort(([a, x], [b, y]) => (y.tier || 0) - (x.tier || 0) || a.localeCompare(b));
+    const next = available[0];
     if (!next) return [];
     const [id] = next;
     allocateJobNode(sim, data, id);

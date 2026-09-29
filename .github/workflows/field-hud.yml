@@ -1,0 +1,36 @@
+name: Seeker Combat HUD
+on:
+  pull_request:
+    paths: ['src/ui/**', 'index.html', 'tests/browser/fieldhud.mjs', 'tests/core/fieldhud.test.js', '.github/workflows/field-hud.yml']
+permissions:
+  contents: read
+concurrency:
+  group: field-hud-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  field-hud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node tests/browser/fieldhud.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: field-hud-${{ matrix.browser }}
+          path: tests/browser/out/fieldhud-${{ matrix.browser }}/
+          retention-days: 7

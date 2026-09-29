@@ -1353,14 +1353,5 @@
       "retreat": 1.6,
       "foamWidth": 0.075
     }
-  },
-  "presentation": {
-    "_doc": "Soft daylight and coastal colours matched to the owner's September 28 video. Linear renderer exposure is unchanged.",
-    "ambientSky": "#fff8e9",
-    "ambientGround": "#8a947c",
-    "ambientIntensity": 1.55,
-    "sunColor": "#fff7e9",
-    "sunIntensity": 1.65,
-    "shadowIntensity": 0.72
   }
 }

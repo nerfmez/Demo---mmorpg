@@ -1,0 +1,60 @@
+name: Renderer light and shadow review
+on:
+  workflow_call:
+    inputs:
+      review_ref:
+        type: string
+        required: false
+        default: ''
+  pull_request:
+    paths: ['src/render/**', 'data/rendering.json', 'data/art.json', 'data/world.json', 'tests/core/rendering.test.js', 'tests/browser/render-light.mjs', '.github/workflows/render-light.yml']
+permissions:
+  contents: read
+concurrency:
+  group: render-light-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+        suite: [visual, regression]
+    env:
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.review_ref || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm test && npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Pinned unmodified baseline screenshots
+        if: matrix.suite == 'visual'
+        run: |
+          mkdir -p "$RUNNER_TEMP/render-baseline"
+          git archive 58bc3db4f929eb699b2e5d40fac43638b0151ccb | tar -x -C "$RUNNER_TEMP/render-baseline"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/render-baseline/node_modules"
+          (cd "$RUNNER_TEMP/render-baseline" && npm run build)
+          python3 -m http.server 4194 --bind 127.0.0.1 --directory "$RUNNER_TEMP/render-baseline/dist" > /tmp/render-http.log 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER' EXIT
+          BASELINE=1 RENDER_URL=http://127.0.0.1:4194/ node tests/browser/render-light.mjs
+      - name: Current real render and quality round trip
+        if: matrix.suite == 'visual'
+        run: node tests/browser/render-light.mjs
+      - name: Gameplay and touch controls
+        if: matrix.suite == 'regression'
+        run: npm run test:browser && npm run test:ux
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: render-light-${{ matrix.browser }}-${{ matrix.suite }}
+          path: tests/browser/out/
+          retention-days: 7

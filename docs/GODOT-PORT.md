@@ -193,3 +193,17 @@ interrupted drag behavior and per-skill targeting untouched when porting. The fo
 shows independent blue EXP and gold Job tracks; max-level tracks explicitly say MAX.
 Short landscape/portrait relocate and compact the quest tracker rather than covering
 combat controls. Details and acceptance checks are in `docs/COMBAT-HUD.md`.
+
+### Render light/shadow pass (29 September 2026)
+`data/rendering.json` is now the single lighting/preset source. `world.presentation`
+and `art.anime.light` were removed; `daylight` is live and `legacy` is an explicit
+comparison profile in the same file. Use shadow-receiving materials on imported
+actor bodies, not hulls. Preserve painted foliage colours and apply a restrained
+scene-shadow mask rather than re-lighting individual cards.
+The same wind deformation must be active in both colour and shadow rendering.
+WebGL uses a shared customDepthMaterial per fill material (`render/patch.js`),
+with the fill's alpha texture/test and wind uniforms, but no camera-space dither.
+When changing quality, update and release shadow buffers as well as DPR. WebGL
+native AA is a fixed context policy (including Low), not a switch changed by
+setQuality. Godot can use its own viewport AA controls with equivalent documented
+behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.

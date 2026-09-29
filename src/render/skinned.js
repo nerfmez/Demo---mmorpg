@@ -185,6 +185,7 @@ export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkn
   });
   mesh.material = skinMaterial(zones, rig.material.userData.flash, rim, T.zoneGLSL);
   mesh.castShadow = true;
+  mesh.receiveShadow = true; // body receives the same tree/prop shadows as the ground
   mesh.frustumCulled = false;
   const hull = new THREE.SkinnedMesh(mesh.geometry, skinHull(zones, outline, darkness, T.zoneGLSL));
   hull.bind(mesh.skeleton, mesh.bindMatrix);
@@ -195,6 +196,7 @@ export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkn
     const face = new THREE.SkinnedMesh(T.faceGeo, faceMaterial(faceTexture(look, T.face), cell));
     face.bind(mesh.skeleton, mesh.bindMatrix);
     face.frustumCulled = false;
+    face.receiveShadow = true; // the separate face patch must follow body lighting too
     face.renderOrder = 1;
     mesh.parent.add(face);
     let current = 'open';

@@ -196,6 +196,7 @@ export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkn
     const face = new THREE.SkinnedMesh(T.faceGeo, faceMaterial(faceTexture(look, T.face), cell));
     face.bind(mesh.skeleton, mesh.bindMatrix);
     face.frustumCulled = false;
+    face.receiveShadow = true; // the separate face patch must follow body lighting too
     face.renderOrder = 1;
     mesh.parent.add(face);
     let current = 'open';

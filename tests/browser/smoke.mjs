@@ -1,6 +1,7 @@
 // Browser smoke test: builds nothing, serves dist/ with `vite preview`, loads the game in
 // Chromium (desktop + iPad-sized touch), checks for errors, plays a little through the
 // game's own API and saves screenshots to tests/browser/out/.
+// Screenshot waits allow slow software-GL shader compilation on CI; all gameplay assertions stay unchanged.
 // Usage: npm run build && npm run test:browser  (BROWSER=webkit to use WebKit if installed)
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -48,14 +49,14 @@ async function run(name, contextOpts) {
   await page.goto(`http://localhost:${PORT}/?quality=medium`);
   await page.waitForSelector('.menu-layer.on .title-card', { timeout: 30000 });
   await page.waitForTimeout(600);
-  await page.screenshot({ path: `${OUT}${name}-0-title.png` });
+  await page.screenshot({ timeout: 90000, path: `${OUT}${name}-0-title.png` });
   await page.click('[data-act="new"]');
   await page.waitForSelector('.create-panel');
   await page.fill('#heroName', 'Aki');
   await page.click('[data-act="kit"][data-kit="bow"]');
   await page.click('[data-act="look"][data-key="hairStyle"][data-val="ponytail"]');
   await page.waitForTimeout(500);
-  await page.screenshot({ path: `${OUT}${name}-0-create.png` });
+  await page.screenshot({ timeout: 90000, path: `${OUT}${name}-0-create.png` });
   await page.click('[data-act="start"]');
   await page.waitForFunction(() => window.__frontier.game && window.__frontier.game.time > 0.3, null, { timeout: 30000 });
   const started = await page.evaluate(() => {
@@ -82,7 +83,7 @@ async function run(name, contextOpts) {
   await page.waitForFunction(() => window.__frontier && window.__frontier.game && window.__frontier.game.time > 0.5, null, { timeout: 30000 });
   check(errors.length === 0, `${name}: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.waitForTimeout(800);
-  await page.screenshot({ path: `${OUT}${name}-1-town.png` });
+  await page.screenshot({ timeout: 90000, path: `${OUT}${name}-1-town.png` });
 
   if (contextOpts.hasTouch) {
     // the visible joystick must be touchable: a touch on it reaches the joystick zone and walks
@@ -144,7 +145,7 @@ async function run(name, contextOpts) {
   check(res.dealt > 0, `${name}: skills hit monsters`);
   check(res.kills > 0, `${name}: monsters die and drop loot`);
   check(res.quest && res.quest.progress > 0, `${name}: kills advance the first quest`);
-  await page.screenshot({ path: `${OUT}${name}-2-meadow.png` });
+  await page.screenshot({ timeout: 90000, path: `${OUT}${name}-2-meadow.png` });
 
   // ---- every panel opens without errors (craft needs the workbench) ----
   await page.evaluate(() => {
@@ -159,7 +160,7 @@ async function run(name, contextOpts) {
     await page.waitForTimeout(150);
     const shown = await page.evaluate(() => window.__frontier.panels.tab);
     check(shown === t, `${name}: panel ${t} opens`);
-    if (['skills', 'bag', 'craft', 'journal', 'map'].includes(t)) await page.screenshot({ path: `${OUT}${name}-3-${t}.png` });
+    if (['skills', 'bag', 'craft', 'journal', 'map'].includes(t)) await page.screenshot({ timeout: 90000, path: `${OUT}${name}-3-${t}.png` });
   }
   await page.evaluate(() => window.__frontier.panels.close());
 
@@ -204,7 +205,7 @@ async function run(name, contextOpts) {
       return { hero: view.hero.root.position.y, ground: world.groundY(game.player.x, game.player.z) };
     });
     check(Math.abs(hy.hero - hy.ground) < 0.3, `${name}: hero stands on the terrain at ${label} (${hy.hero.toFixed(2)} vs ${hy.ground.toFixed(2)})`);
-    await page.screenshot({ path: `${OUT}${name}-5-${label}.png` });
+    await page.screenshot({ timeout: 90000, path: `${OUT}${name}-5-${label}.png` });
   }
   const fps = await page.evaluate(() => window.__frontier.fps);
   console.log(`     fps(software GL, not a device measure)=${fps}`);

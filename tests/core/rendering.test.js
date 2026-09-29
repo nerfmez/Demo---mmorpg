@@ -51,6 +51,7 @@ test('painted material composes wind with restrained real shadows without replac
 });
 test('only actual actor bodies receive shadows; skill artwork and HUD are not changed by renderer code',()=>{
  assert.match(read('src/render/skinned.js'),/mesh\.receiveShadow = true/);
+ assert.match(read('src/render/skinned.js'),/face\.receiveShadow = true/);
  assert.match(read('src/render/monsterSkin.js'),/mesh\.receiveShadow = m === mat/);
  assert.match(read('src/ui/input.js'),/art\('skill',s\.id\)/);
  assert.match(read('src/ui/input.js'),/art\('skill',mv\.id\)/);

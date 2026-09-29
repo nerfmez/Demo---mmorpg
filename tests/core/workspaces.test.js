@@ -28,6 +28,13 @@ test('constellations cover every node and specialist subviews preserve the four 
   assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
  }
  assert.equal(Object.keys(t.nodes).length,87);
+ for(const chapter of t.constellations.filter(c=>c.id!=='specialist')){
+  const ns=Object.values(t.nodes).filter(n=>n.category===chapter.id);
+  for(const tier of [...new Set(ns.map(n=>n.tier).filter(t=>t>1))]){
+   const sample=ns.find(n=>n.tier===tier),lower=ns.filter(n=>n.tier<tier).length;
+   assert.ok(sample.requiresSpent<lower,chapter.id+' tier '+tier+' must leave at least one earlier option skippable');
+  }
+ }
  for(const group of t.groups){const ns=clusterNodes(t,'specialist',group.id);assert.equal(ns.length,7);assert.ok(ns.some(([id])=>id===group.job));}
 });
 test('new small stat nodes spend Job Points only and retain old saved nodes',()=>{

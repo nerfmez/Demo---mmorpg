@@ -15,7 +15,9 @@ try {
  for(const [size,width,height,touch]of sizes){
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(`http://localhost:${port}/?fresh=1&seed=7&quality=low`);
-  await page.waitForFunction(()=>window.__frontier?.game?.time>.3,null,{timeout:60000});await page.evaluate(()=>document.fonts.ready);
+  await page.waitForFunction(()=>window.__frontier?.game?.time>.3,null,{timeout:60000});
+  await page.waitForFunction(()=>window.__frontier?.modelsReady===true,null,{timeout:90000});
+  await page.evaluate(()=>document.fonts.ready);
   await page.evaluate(async()=>{
    const f=window.__frontier,g=f.game;
    f.paused=true;f.input.reset();
@@ -34,7 +36,8 @@ try {
    f.hud.setQuestCollapsed(false);f.hud.el.zone.style.opacity=0;document.querySelector('.banner')?.remove();
    f.input.refreshButtons();
   });
-  await page.waitForTimeout(350);
+  const settle=()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await settle();
   const activate=async selector=>touch?page.locator(selector).tap():page.locator(selector).click();
   const targets=['.pframe','.minimap','.quick-actions [aria-label="กระเป๋า"]','.quick-actions [aria-label="สกิล"]','.menu-toggle','.quest-collapse','.questtrack','.sbtn.attack','.sbtn.s1','.sbtn.s2','.sbtn.s3','.sbtn.move'];
   for(const selector of targets){
@@ -58,11 +61,13 @@ try {
   await activate('[data-act="close-journal"]');
   await activate('.minimap');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),true);await activate('.panel-close');
   await page.evaluate(()=>{const f=window.__frontier;f.game.player.cooldowns[1]=2;f.game.player.cooldowns[2]=4;f.game.player.mp=0;f.input.refreshButtons();});
+  await settle();
   assert.ok(await page.locator('.sbtn.s1').getAttribute('class').then(s=>s.includes('nomp')));
+  assert.match(await page.locator('.pframe .mp span').innerText(),/MP\s+0\s*\//);
   await page.screenshot({path:out+size+'-cooldowns.png',timeout:60000});
   await page.evaluate(()=>{const f=window.__frontier;f.game.ch.slots[3]={skill:null,mods:[]};f.game.refresh();f.input.refreshButtons();});
   await activate('.sbtn.s3');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');await activate('.panel-close');
-  assert.deepEqual(errors,[],size+' page errors');reports.push({size,width,height,touch,ok:true,source:'full game renderer, real HUD',controls:5});
+  assert.deepEqual(errors,[],size+' page errors');reports.push({size,width,height,touch,ok:true,modelsReady:true,source:'full game renderer, real HUD',controls:5});
   writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS field HUD '+name+' '+size);await ctx.close();
  }
 }finally{await browser?.close();try{process.kill(-server.pid);}catch{}}

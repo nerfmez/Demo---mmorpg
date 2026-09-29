@@ -46,11 +46,16 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   await jump('aj');
   assert.ok(await page.locator('[data-act="take-node"]').isDisabled(), 'second Job stays blocked across categories');
   await jump('v9');
-  assert.ok(await page.locator('.seeker-route').count(), 'preview remaining prerequisites');
+  assert.ok(await page.locator('[data-act="take-node"]').isDisabled(), 'stage IV stays locked before enough earlier-tier investment');
+  assert.match(await page.locator('.journal-tier-status').innerText(), /1\/3/, 'tier panel shows invested/required earlier-stage points');
   const points = await page.evaluate(() => window.__frontier.game.ch.jobPoints);
-  await tap('.seeker-route [data-act="jump-node"]');
-  assert.ok(await page.locator('[data-act="take-node"]').isEnabled(), 'next real prerequisite is available');
-  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), points, 'route navigation does not allocate');
+  await jump('v3');
+  await tap('[data-act="take-node"]');
+  await jump('v7');
+  await tap('[data-act="take-node"]');
+  await jump('v9');
+  assert.ok(await page.locator('[data-act="take-node"]').isEnabled(), 'stage IV unlocks after enough points in earlier stages');
+  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), points - 2, 'only actual node allocation spends points');
 
   const before = await page.evaluate(() => JSON.stringify(window.__frontier.game.ch.jobNodes));
   const selected = await page.evaluate(() => window.__frontier.panels.sel.node);

@@ -1,0 +1,26 @@
+name: Render review runtime
+on:
+  push:
+    branches: [codex/render-light-shadow-pass]
+    paths: [.github/workflows/render-runtime-once.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test && npm run build
+      - name: Export dependencies only (no credentials or git metadata)
+        run: tar -czf render-dependencies.tgz node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: render-dependencies
+          path: render-dependencies.tgz
+          retention-days: 2

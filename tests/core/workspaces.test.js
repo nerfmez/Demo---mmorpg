@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
-import {createCharacter,derive,allocateJobNode,jobPath,migrateCharacter} from '../../src/core/character.js';
+import {createCharacter,derive,allocateJobNode,jobNodeState,migrateCharacter} from '../../src/core/character.js';
 import {modFits,socketMod,computeSkill,unsocketMod} from '../../src/core/skills.js';
 import {TAGS,modRules,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
 import {clusterNodes} from '../../src/ui/jobview.js';
@@ -36,7 +36,7 @@ test('new small stat nodes spend Job Points only and retain old saved nodes',()=
  const base=createCharacter(data);assert.equal(derive(ch,data).maxHp-derive(base,data).maxHp,12);
  const old={...ch,jobNodes:['origin','a1','a2','aj'],jobLevel:8};migrateCharacter(old,data);
  assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,2);
- assert.ok(jobPath(ch,data,'aoe_master').includes('aoe_radius'));
+ assert.equal(data.jobtree.nodes.aoe_master.tier,4);assert.equal(data.jobtree.nodes.aoe_master.requiresSpent,6);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
 });
 test('mod compatibility uses all/any/excludes and explanations expose each rule',()=>{
  const S=data.skills.combat,M=data.mods.mods;

@@ -139,6 +139,7 @@ export function attachMonsterModel(rig, T) {
     mesh.bind(skeleton, new THREE.Matrix4());
     mesh.frustumCulled = false;
     mesh.castShadow = m === mat;
+    mesh.receiveShadow = m === mat; // never light the outline hull
     rig.root.add(mesh);
   }
   rig.model = true;

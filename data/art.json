@@ -20,14 +20,6 @@
       "minZ": -22,
       "maxZ": 38
     },
-    "light": {
-      "ambientSky": "#e8f4ff",
-      "ambientGround": "#657858",
-      "ambientIntensity": 1.65,
-      "sunColor": "#fff1d7",
-      "sunIntensity": 1.45,
-      "shadowIntensity": 0.56
-    },
     "palette": {
       "leafShadow": "#315e45",
       "leafMid": "#649347",

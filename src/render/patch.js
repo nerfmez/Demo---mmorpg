@@ -17,6 +17,8 @@ export function patchMaterial(material, o = {}) {
   const wind = o.wind || 0;
   const outline = o.outline || 0;
   const see = !!o.see;
+  // Plain metadata also drives the shadow-only material; never copy camera-space dither.
+  material.userData.windPatch = {wind, windBase:o.windBase || 0};
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = timeUniform;
     if (wind) {
@@ -76,4 +78,25 @@ ${outline ? 'uniform float outlineWidth;' : ''}`
 export function hullMaterial(color, width, o = {}) {
   const m = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), side: THREE.BackSide });
   return patchMaterial(m, { ...o, outline: width });
+}
+
+// One depth material per shared fill material, not one per tree instance/chunk.
+const windDepthCache = new WeakMap();
+export function attachWindShadow(mesh) {
+  const material = mesh.material;
+  if (!mesh.isMesh || !mesh.castShadow || Array.isArray(material)) return false;
+  const wind = material?.userData.windPatch;
+  if (!wind?.wind) return false;
+  let depth = windDepthCache.get(material);
+  if (!depth) {
+    depth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,
+      map:material.map, alphaMap:material.alphaMap, alphaTest:material.alphaTest,
+      side:material.side, depthTest:true, depthWrite:true});
+    patchMaterial(depth, wind); // identical displacement/time; NO screen-space see-through
+    depth.userData.shared = true; // owned by the fill material, not individual instances
+    material.addEventListener('dispose', () => {depth.dispose();windDepthCache.delete(material);});
+    windDepthCache.set(material, depth);
+  }
+  mesh.customDepthMaterial = depth;
+  return true;
 }

@@ -204,9 +204,9 @@ export function createEnvironment(world) {
   // Only the town/meadow study changes canopy geometry; other biomes remain a comparison.
   const cloudMat=animeStudy?animeFoliageMaterial():mat('#ffffff',{vertexColors:true,double:true,wind:.025,windBase:1.2,see:true});
   cloudMat.map=studyLeafTexture();cloudMat.alphaTest=.4;cloudMat.forceSinglePass=true;
-  const cloudGroup=instanced(cloudCrown(3),cloudMat,cloudTrees,{receiveShadow:!animeStudy});
+  const cloudGroup=instanced(cloudCrown(3),cloudMat,cloudTrees,{receiveShadow:true});
   cloudGroup.name='art-study-crowns';root.add(cloudGroup);
-  root.add(instanced(cloudCrown(7),cloudMat,cloudBirches,{receiveShadow:!animeStudy}));
+  root.add(instanced(cloudCrown(7),cloudMat,cloudBirches,{receiveShadow:true}));
   // Jagged patches supply the entire crown; no spherical filler underneath.
   if(animeStudy)root.add(instanced(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
   const canopyGeo = leafCrown(3);
@@ -367,7 +367,7 @@ export function createEnvironment(world) {
   root.add(instanced(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
   const studyBushMat=animeStudy?animeFoliageMaterial(true):mat('#ffffff',{vertexColors:true,double:true,wind:.025});
   studyBushMat.map=studyShrubTexture();studyBushMat.alphaTest=.4;studyBushMat.forceSinglePass=true;
-  root.add(instanced(lowShrub(),studyBushMat,studyBushes,{receiveShadow:!animeStudy}));
+  root.add(instanced(lowShrub(),studyBushMat,studyBushes,{receiveShadow:true}));
   if(animeStudy){
 
     root.add(instanced(shrubStems(),new THREE.MeshLambertMaterial({color:'#78654c'}),studyBushes,{shadow:false}));

@@ -185,6 +185,7 @@ export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkn
   });
   mesh.material = skinMaterial(zones, rig.material.userData.flash, rim, T.zoneGLSL);
   mesh.castShadow = true;
+  mesh.receiveShadow = true; // body receives the same tree/prop shadows as the ground
   mesh.frustumCulled = false;
   const hull = new THREE.SkinnedMesh(mesh.geometry, skinHull(zones, outline, darkness, T.zoneGLSL));
   hull.bind(mesh.skeleton, mesh.bindMatrix);

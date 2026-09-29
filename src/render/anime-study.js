@@ -1,8 +1,10 @@
-// Opt-in art preview. No game state or shared world data is modified.
+// Default anime art; ?art=baseline retains the legacy style comparison.
+// Lighting is configured separately in data/rendering.json.
 import * as THREE from 'three';
 import art from '../../data/art.json';
 import { createRng } from '../core/rng.js';
 import { patchMaterial } from './patch.js';
+import { receivePaintedShadow } from './painted.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // On by default; ?art=baseline restores the previous look for comparison.
@@ -108,10 +110,10 @@ export function animeFoliage(seed=3,shrub=false) {
 export function animeFoliageMaterial(shrub=false) {
   // Painted lighting belongs to the foliage mass, not the individual alpha cards.
   // The mesh still casts a real shadow onto the ground and neighbouring props.
-  const m=new THREE.MeshBasicMaterial({color:0xffffff,vertexColors:true,map:branchletTexture(shrub),alphaTest:.45,side:THREE.DoubleSide,forceSinglePass:true});
+  const m=new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,map:branchletTexture(shrub),alphaTest:.45,side:THREE.DoubleSide,forceSinglePass:true});
   patchMaterial(m,{wind:shrub ? .018 : .014,windBase:shrub?0:1.2,see:!shrub});
   m.customProgramCacheKey=()=>`anime-branchlet-${shrub}-1`;
-  return m;
+  return receivePaintedShadow(m);
 }
 
 export function shrubStems() {
@@ -174,5 +176,5 @@ export function animeTrunk() {
 }
 
 export function animeTrunkMaterial() {
-  return patchMaterial(new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide}),{see:true});
+  return receivePaintedShadow(patchMaterial(new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}),{see:true}));
 }

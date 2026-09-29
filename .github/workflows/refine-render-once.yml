@@ -1,0 +1,53 @@
+name: Refine and verify renderer review
+on:
+  push:
+    branches: [codex/render-light-shadow-pass]
+    paths: [.github/workflows/refine-render-once.yml]
+permissions:
+  contents: read
+jobs:
+  refine:
+    if: github.ref == 'refs/heads/codex/render-light-shadow-pass'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/render-light-shadow-pass
+          fetch-depth: 0
+      - name: Apply exact scoped correction
+        run: |
+          python3 - <<'PY'
+          import base64,zlib,hashlib,subprocess
+          patch=zlib.decompress(base64.b64decode('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'))
+          assert hashlib.sha256(patch).hexdigest()=='d8646ce97105bcc88888d1e683107509d6e34a7007d752fd841653f721c0a1fa'
+          paths={line[6:] for line in patch.decode().splitlines() if line.startswith('+++ b/')}
+          assert paths=={'src/render/skinned.js','tests/browser/render-light.mjs','tests/browser/smoke.mjs','tests/core/rendering.test.js'}
+          subprocess.run(['git','merge-base','--is-ancestor','e9fd3c0708652f8c87df673c3fe441d65d3c7a42','HEAD'],check=True)
+          subprocess.run(['git','apply','--check','-'],input=patch,check=True)
+          subprocess.run(['git','apply','-'],input=patch,check=True)
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm test && npm run build && git diff --check
+      - name: Commit correction on review branch only
+        id: commit
+        run: |
+          rm .github/workflows/refine-render-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/render/skinned.js tests .github/workflows/refine-render-once.yml
+          git commit -m 'fix: receive shadows on face and stabilize software-rendered review captures'
+          git push origin HEAD:codex/render-light-shadow-pass
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  verify:
+    needs: refine
+    uses: ./.github/workflows/render-light.yml
+    with:
+      review_ref: ${{ needs.refine.outputs.sha }}

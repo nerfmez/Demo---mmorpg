@@ -1,0 +1,4 @@
+/* Hud and the fixed EXP strip are sibling stacking contexts. Raise the HUD
+   only while a menu is open, so an edge-to-edge journal cannot sit behind EXP.
+   Closing the menu restores the original gameplay HUD layering. */
+body.panel-open #hud { z-index: 40; }

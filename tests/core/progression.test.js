@@ -67,33 +67,36 @@ test('respec costs gold only and refunds every point', () => {
   assert.equal(respecStats(poor, data), false);
 });
 
-test('hybrid routes work without a second Job and specialist nodes cannot bypass their Job', async () => {
-  const {jobPath}=await import('../../src/core/character.js');
+test('hybrid chapters use point stages without forcing one exact route or a second Job', () => {
   const ch=createCharacter(data);ch.jobLevel=20;ch.jobPoints=19;
   for(const id of ['v1','v2','vj','va1','va2','a1','a2','a6']) assert.ok(allocateJobNode(ch,data,id).done,id);
   assert.equal(currentJob(ch,data).branch,'vanguard');
   assert.equal(jobNodeState(ch,data,'aj').reason,'one_job');
-  assert.deepEqual(jobPath(ch,data,'a9'),[],'specialist route from another Job is blocked');
-  const path=jobPath(ch,data,'va4');const before=ch.jobPoints;
-  assert.ok(path.length>0);
-  assert.equal(ch.jobPoints,before,'preview never spends points');
-  for(const id of path.filter(id=>!ch.jobNodes.includes(id)))assert.ok(allocateJobNode(ch,data,id).done);
+  assert.equal(jobNodeState(ch,data,'a9').reason,'requires_job','specialist node from another Job stays blocked');
+  const before=ch.jobPoints;
+  const gate=jobNodeState(ch,data,'va4');
+  assert.equal(gate.reason,'tier_points');
+  assert.deepEqual({have:gate.have,need:gate.need,tier:gate.tier},{have:2,need:3,tier:3});
+  assert.ok(allocateJobNode(ch,data,'cc_time').done,'a different stage-II branch can satisfy the stage requirement');
+  assert.ok(allocateJobNode(ch,data,'va4').done,'stage III unlocks without forcing va3 specifically');
   assert.equal(ch.jobPoints,before-2);
 });
 
-test('every specialist tier is reachable only after its own Job; the expanded network refunds all points', async () => {
-  const {jobPath}=await import('../../src/core/character.js');
+test('every profession oath advances by invested stages and still refunds all points', () => {
   for(const group of data.jobtree.groups){
     const ch=createCharacter(data);ch.jobLevel=20;ch.jobPoints=100;ch.gold=10000;
     assert.ok(allocateJobNode(ch,data,group.job).done,group.job);
+    const own=Object.entries(data.jobtree.nodes).filter(([,n])=>n.category==='specialist'&&n.group===group.id);
+    const tier2=own.find(([,n])=>n.tier===2)?.[0];
+    const tier3=own.find(([,n])=>n.tier===3)?.[0];
+    const tier4=own.find(([,n])=>n.tier===4)?.[0];
+    assert.ok(tier2&&tier3&&tier4,group.id+' has four stages');
+    assert.ok(allocateJobNode(ch,data,tier2).done,tier2);
+    assert.ok(allocateJobNode(ch,data,tier3).done,tier3);
+    assert.ok(allocateJobNode(ch,data,tier4).done,tier4);
     for(const [id,n] of Object.entries(data.jobtree.nodes)){
-      const route=jobPath(ch,data,id);
-      if(n.requiresJob&&n.requiresJob!==group.id)assert.deepEqual(route,[],id);
-      else if(n.type!=='job')assert.ok(route.length||ch.jobNodes.includes(id),id+' reachable');
+      if(n.requiresJob&&n.requiresJob!==group.id)assert.equal(jobNodeState(ch,data,id).reason,'requires_job',id);
     }
-    const target=Object.keys(data.jobtree.nodes).find(id=>data.jobtree.nodes[id].requiresJob===group.id&&id.endsWith('10'));
-    for(const id of jobPath(ch,data,target).filter(id=>!ch.jobNodes.includes(id)))assert.ok(allocateJobNode(ch,data,id).done,id);
-    assert.ok(ch.jobNodes.includes(target));
     const granted=ch.jobPoints+ch.jobNodes.length-1;
     assert.ok(respecJob(ch,data));assert.equal(ch.jobPoints,granted);assert.equal(ch.version,2);
   }

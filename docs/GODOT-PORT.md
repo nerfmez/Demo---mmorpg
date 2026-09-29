@@ -21,7 +21,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 |---|---|---|
 | `math.js`, `rng.js` | `util/math.gd`, `util/rng.gd` | Keep mulberry32 so a seed gives the same rolls. Godot's `RandomNumberGenerator` would give different results. |
 | `character.js` | Autoload `Character.gd` | Stats, levels, Job Tree, respec, gear stats and `derive()`. |
-| `skills.js` | `SkillCompiler.gd` | `computeSkill()` returns a flat Dictionary. Keep tag-based `modFits()`. |
+| `skills.js` | `SkillCompiler.gd` | `computeSkill()` returns a flat Dictionary. Keep tag-based `modFits(skill, mod, companions)` and inactive-mod reasons; see compatibility notes below. |
 | `crafting.js` | `Crafting.gd` | Recipes, grade roll, upgrades, drops. |
 | `quests.js` | `Quests.gd` | Journal state lives in `character.progress.quests`. Feed it the same events (kill, collect, craft). |
 | `terrain.js` | Import step only | Builds the heightfield; Godot can load `heightmap.json` instead. |
@@ -47,16 +47,54 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `render/ground.js` (splat map and shader) | Terrain shader, or `MeshInstance3D` with a splat texture. The procedural noise GLSL ports to Godot shading language almost directly. |
 | `render/hero.js`, `render/rig.js`, `render/monsters.js` (procedural models and animation) | Replace with real rigged models (`.glb`) and `AnimationTree`. The procedural poses show what each animation should read as (wind-up, charge, shell, slam). |
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
-| `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css` and `ui/art.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
+| `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css`, `ui/art.css` and `ui/workspaces.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
 
-`ui/art.js` and `ui/jobart.js` contain 161 individually authored SVG illustrations keyed by base content ID.
+`ui/art.js` and `ui/jobart.js` contain 187 individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
-`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` presents the same
-passive network as a pannable/zoomable graph with 61 nodes and 108 links. `requiresJob`
-gates specialist nodes even when another route reaches them. `jobPath()` previews a
-permitted route without spending points. The UI camera is view state, never saved in the
-character; existing node IDs/effects and version-2 saves are preserved.
+`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
+ability categories before showing the relevant part of the 87-node, 134-link passive
+network. Specialization has four separate subviews. Keep the actual links in
+`data/jobtree.json`, including cross-category prerequisites; category membership is a
+view, not a new allocation rule. The original 61 node IDs, effects and links are retained.
+The 26 optional additions are 23 small stat nodes and three notables. `requiresJob` gates
+specialist nodes even when another route reaches them. `jobPath()` previews a permitted
+route without spending points. Per-category pan/zoom cameras are view state, never saved
+in the character; version-2 saves are preserved. Use different disc sizes for small and
+major nodes, but keep touch targets at least 44 logical pixels at every supported zoom.
+
+Rebuild separate Control scenes for combat loadout, modifiers, movement, material
+upgrades and passive paths. A desktop/tablet navigation rail becomes a compact page
+selector on narrow phones. Keep inspection separate from allocating points, socketing,
+and spending materials. `ui/buildmeta.js` is presentation vocabulary shared by skill,
+modifier, crafting and inventory details: native tags, damage element, stat requirements,
+all/any/excluded tags and exact incompatibility reasons. Modifier-added tags are labeled
+separately and do not silently grant native-tag eligibility. Calls to core `modFits()`
+remain the authority for compatibility; do not duplicate the rules in Godot UI code.
+
+### Ability-family scaling and modifier compatibility
+
+Port the new derived fields along with their Node tests:
+
+- `dotDamagePct` increases Venom Mire and Burning Ground field damage, not burn/poison
+  status damage. `DoT` is not the same as `Persistent`: Healing Spring has the latter only.
+- `persistentDurationPct` extends poison, healing and burning fields; not buffs, curses,
+  summons or cast time. Apply ground radius/duration scaling after collecting modifiers,
+  so socket order does not change the result.
+- `controlDurationPct` extends chilling hits and Hex; not slow strength, knockback or
+  War Cry. Do not treat every duration as control duration.
+- Lingering needs a native lasting field, or an eligible Burning Ground modifier. Its
+  provider must also meet stat requirements to activate the bonus. Keep a dependent
+  modifier stored but inactive when the provider is removed or inactive; never delete it.
+- Burning Ground, Knockback, Life Leech and Frost Shift are on-hit modifiers. They exclude
+  DoT skills because the current field executor does not apply those on-hit effects.
+  Preserve older invalid loadouts as inactive entries and show the reason.
+
+The additions do not alter Character Stat Point requirements: flat HP/MP/attack/magic/
+defense nodes use Job Points and do not add STR/INT. Active skill counts remain 13 combat
+and four movement. No channeling executor is added. Run `tests/core/workspaces.test.js`
+assertions in the port and reproduce the separate-page flows in
+`tests/browser/workspaces.mjs`. See `UI-WORKSPACES.md` for reference and verification scope.
 
 `gearLook()` includes a `bases` map of equipped item IDs (derived presentation metadata,
 not saved state). `render/equipment.js` uses it for distinct weapon/boot/charm silhouettes.
@@ -129,3 +167,14 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   file alone is not visual approval: inspect it, correct issues and recapture.
 - CI exercises Chromium and WebKit. Pages deployment also runs the WebKit Dreamloop against
   its published URL and uploads `live-dreamloop` screenshots/report.
+
+
+### Travel journal presentation (review branch)
+The passive graph and allocation rules are unchanged by the travel-journal revision.
+Use each node's `category` and `clusterPos` for themed chapter views, and overview
+`mapPos`/icon metadata for the large chapter marks. These marks are navigation only;
+no completion prerequisite or category-wide purchase exists. Map the view to a
+full-rect Control, not a Window; show node details on selection only. Modifier item
+art uses the shared SVG faceted-gem/engraved-symbol templates in `gemart.js` and
+`sigils.js`; their colours never determine compatibility. Preserve the existing
+core eligibility checks and save IDs.

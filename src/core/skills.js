@@ -16,8 +16,11 @@ export function modDef(data, id) {
 }
 
 /** Does this mod fit this skill? Returns {ok, reason}. */
-export function modFits(skill, mod) {
-  const tags = skill.tags;
+export function modFits(skill, mod, companions = []) {
+  if (!skill || !mod) return { ok: false, reason: 'unknown' };
+  const tags = skill.tags || [];
+  if (mod.requiresPersistent && !['dot_zone', 'heal_zone'].includes(skill.kind) && !companions.some(m => m?.effect?.groundDps && modFits(skill, m).ok))
+    return { ok: false, reason: 'needs_persistent' };
   if (mod.requiresAll && !mod.requiresAll.every((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAll.join('+')}` };
   if (mod.requiresAny && !mod.requiresAny.some((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAny.join('/')}` };
   if (mod.excludes && mod.excludes.some((t) => tags.includes(t))) return { ok: false, reason: `not for ${mod.excludes.join('/')}` };
@@ -116,15 +119,18 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;
 
+  const companionMods = slot.mods.map(uid => modDef(data, ch.mods.find(m => m.uid === uid)?.id)).filter(Boolean);
+  let radiusMult = 1;
   for (const uid of slot.mods) {
     const inst = ch.mods.find((m) => m.uid === uid);
     if (!inst) continue;
     const m = modDef(data, inst.id);
-    if (!m || !modFits(def, m).ok) continue;
+    if (!m) continue;
+    const fit = modFits(def, m, companionMods.filter(m => meetsRequires(ch, m.requires).ok));
     const e = m.effect;
     const L = inst.level || 1;
-    const active = meetsRequires(ch, m.requires).ok;
-    s.mods.push({ id: inst.id, level: L, active });
+    const active = fit.ok && meetsRequires(ch, m.requires).ok;
+    s.mods.push({ id: inst.id, level: L, active, reason: fit.ok ? (active ? null : 'requires') : fit.reason });
     if (!active) continue; // socketed but inactive until stats are met
     for (const t of m.tags) tags.add(t);
     if (e.extraProjectiles) {
@@ -159,10 +165,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.repeatDelay = e.repeatDelay;
     }
     if (e.knock) s.knock = lv(e.knock, L);
-    if (e.radiusMult) {
-      s.radius *= e.radiusMult;
-      if (s.ground) s.ground.radius *= e.radiusMult;
-    }
+    if (e.radiusMult) radiusMult *= e.radiusMult;
     if (e.durationMult) s.durationMult = lv(e.durationMult, L);
     if (e.leechPct) s.leech += lv(e.leechPct, L);
     if (e.extraSummons && s.summon) {
@@ -175,6 +178,20 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (s.kind === 'dot_zone' || s.kind === 'heal_zone') s.duration *= s.durationMult;
     if (s.ground) s.ground.duration *= s.durationMult;
   }
+  // Apply tag-specific passives after mods; socket order cannot change the result.
+  s.radius *= radiusMult;
+  const lasting = 1 + (derived.persistentDurationPct || 0) / 100;
+  const dot = 1 + (derived.dotDamagePct || 0) / 100;
+  if (s.kind === 'dot_zone') s.damage *= dot;
+  if (['dot_zone', 'heal_zone'].includes(s.kind)) s.duration *= lasting;
+  if (s.ground) {
+    s.ground.duration *= lasting;
+    if(s.kind !== 'dot_zone') s.ground.dpsMult *= dot;
+    s.ground.radius *= radiusMult * (1 + derived.areaRadiusPct / 100);
+  }
+  const control = 1 + (derived.controlDurationPct || 0) / 100;
+  if (s.chill) s.chill.duration *= control;
+  if (s.kind === 'curse_zone') s.duration *= control;
   s.arc = Math.min(s.arc, 360);
   if (s.damage !== undefined) s.damage *= s.damageMult;
   return s;
@@ -227,7 +244,7 @@ export function socketMod(ch, data, slotIndex, uid) {
   if (!slot || !slot.skill) return { ok: false, reason: 'empty_slot' };
   const inst = ch.mods.find((m) => m.uid === uid);
   if (!inst) return { ok: false, reason: 'no_mod' };
-  const fit = modFits(skillDef(data, slot.skill), modDef(data, inst.id));
+  const fit = modFits(skillDef(data, slot.skill), modDef(data, inst.id), slot.mods.map(u => modDef(data, ch.mods.find(m => m.uid === u)?.id)).filter(Boolean));
   if (!fit.ok) return { ok: false, reason: fit.reason };
   if (slot.mods.some((u) => ch.mods.find((m) => m.uid === u)?.id === inst.id)) return { ok: false, reason: 'duplicate' };
   if (slot.mods.length >= data.mods.maxModsPerSkill) return { ok: false, reason: 'full' };

@@ -1,0 +1,98 @@
+/* Minimal Panel direction: one quiet navigation rail, thin glass surfaces.
+   The journal has its own edge-to-edge layout; no combat rules live here. */
+.overlay:not(.is-journal) {background:#17243450;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.overlay:not(.is-journal) .panel {
+ --ink:#e8edf1;--ink-dim:#a7b6c4;--line:#9cafbf33;--gold:#d5bd8e;--good:#93d4b5;--bad:#ef9e92;
+ color-scheme:dark;color:var(--ink);background:#182633e8;border:1px solid #99b0c24d;border-radius:8px;border-top-width:1px;box-shadow:0 16px 60px #0b141b50;
+ width:min(1330px,calc(100vw - 64px));height:calc(100dvh - 64px);grid-template-columns:136px minmax(0,1fr);
+}
+.overlay:not(.is-journal) .panel-header {background:#18263380;border-color:var(--line);padding:10px 18px}
+.overlay:not(.is-journal) .panel-header h2 {color:#edf2f4;font-size:21px}
+.overlay:not(.is-journal) .panel-eyebrow {color:#9aaebb;font-size:8px}
+.overlay:not(.is-journal) .panel-gold {color:#dfc89d}
+.overlay:not(.is-journal) .pause-label {color:#9db0be}
+.overlay:not(.is-journal) .panel-close {background:#c6d8e40b;border:1px solid #a3b3bf45;border-radius:5px;color:#dbe6ed}
+.overlay:not(.is-journal) .tabs {background:#101d2980;border-color:var(--line);padding:12px 6px}
+.overlay:not(.is-journal) .tab {color:#b5c4ce;border-radius:4px;font-weight:400;margin-top:0;gap:9px}
+.overlay:not(.is-journal) .tab svg {filter:grayscale(1);width:21px;height:21px}
+.overlay:not(.is-journal) .tab.on {background:#4e85b847;border-color:#93c2e54f;color:#fff;box-shadow:inset 2px 0 #8dbfdf}
+.overlay:not(.is-journal) .tab:hover {background:#7d9bb724}
+.overlay:not(.is-journal) .pbody {color:#e0e7ed;padding:20px 24px}
+.overlay:not(.is-journal) .pbody h3 {color:#e9f0f4}
+.overlay:not(.is-journal) .pbody .muted,.overlay:not(.is-journal) .pbody small {color:#a7b9c6}
+.overlay:not(.is-journal) .card {background:#21334066;border:1px solid #9eafbd36;border-radius:6px;box-shadow:none}
+.overlay:not(.is-journal) .btn {background:#d1e0eb0b;color:#dbe7ed;border:1px solid #b6c6d248;box-shadow:none;border-radius:4px}
+.overlay:not(.is-journal) .btn.primary {background:#386a94;color:white;border-color:#85b9d784;box-shadow:none}
+.overlay:not(.is-journal) .btn.on {background:#497b9b50;color:#e9f5ff;border-color:#85bad2}
+.overlay:not(.is-journal) .btn:not(:disabled):hover {background:#547b9847;color:#fff;border-color:#b4c7d5}
+.overlay:not(.is-journal) .btn.primary:not(:disabled):hover {background:#417ca8}
+.overlay:not(.is-journal) :is(select,input,textarea) {color:#dce6ed;background:#142430;border-color:#8fa4b550;border-radius:4px}
+.overlay:not(.is-journal) .panel-footer {background:#121f2b66;border-color:var(--line)}
+.overlay:not(.is-journal) .panel-footer>span {color:#97acbb}
+.overlay:not(.is-journal) :is(.seeker-heading p,.seeker-heading .section-kicker,.section-heading>span) {color:#9aaebb}
+.overlay:not(.is-journal) :is(.seeker-library-item,.seeker-mod-tile,.loadout-slot,.equipment-slot,.inventory-item,.recipe-card,.qrow) {background:#17263291;border:1px solid #9eafbd36;color:#dbe6ef;border-radius:5px;box-shadow:none}
+.overlay:not(.is-journal) :is(.seeker-library-item.selected,.seeker-mod-tile.selected,.loadout-slot.on,.inventory-item.selected,.equipment-slot.selected) {border-color:#8ebbd0;background:#2c4a5b88;box-shadow:inset 0 0 0 1px #8ebbd036}
+.overlay:not(.is-journal) :is(.seeker-result,.seeker-mod-status,.seeker-mod-status.no,.panel-tip,.result-pop,.seeker-skill-meta) {color:#cedce5;background:#c2d7e208;border-color:#a7bece35}
+.overlay:not(.is-journal) :is(.seeker-tags .seeker-tag,.tag,.level-pill) {color:#d5e5ed;background:#708fa321;border-color:#a7bdca40}
+.overlay:not(.is-journal) .seeker-hero .art {background:none;border-radius:0}
+.overlay:not(.is-journal) .seeker-mod-list {grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.overlay:not(.is-journal) .seeker-mod-tile {display:flex;flex-direction:column;text-align:center;align-items:center;padding:12px 5px;gap:6px;min-height:134px}
+.overlay:not(.is-journal) .seeker-mod-tile .art {width:66px;height:66px}
+.overlay:not(.is-journal) .seeker-mod-tile.incompatible {opacity:.8}
+.overlay:not(.is-journal) .seeker-mod-tile b {font-size:12px;font-weight:400}
+.overlay:not(.is-journal) .seeker-mod-tile small {display:block;font-size:10px}
+.overlay:not(.is-journal) .seeker-focus {top:0}
+.overlay:not(.is-journal) .seeker-hero .art-mod {width:102px;height:102px}
+.overlay:not(.is-journal) :is(.ok,.gear-compare .ok) {color:#9ddbbd}
+.overlay:not(.is-journal) .no {color:#f3a49b}
+.overlay:not(.is-journal) :is(.seeker-skill-meta,.seeker-links,.inventory-tabs,.row,.gear-compare,.inventory-filter) {border-color:#a4b9c82c}
+.overlay:not(.is-journal) .stat-plus {background:#40678177;color:#ddefff;border-color:#b0c9d55e}
+.overlay:not(.is-journal) .seeker-mobile-nav {background:#152532;border-color:var(--line)}
+.overlay:not(.is-journal) .pbody :is(.inventory-filter,.item-detail,.inventory-list,.inventory-empty,.gear-compare,.gear-implicit,.gear-options,.craft-cost,.cost,.region-detail,.atlas-legend) {color:#c9d9e3}
+.overlay:not(.is-journal) button:focus-visible,.overlay:not(.is-journal) input:focus-visible {outline-color:#a3cbeb}
+@media(max-width:700px) {
+ .overlay:not(.is-journal) .panel {width:100%;height:100%;grid-template-columns:minmax(0,1fr);border-radius:0}
+ .overlay:not(.is-journal) .pbody {padding:12px}
+ .overlay:not(.is-journal) .seeker-mod-list {grid-template-columns:repeat(3,minmax(0,1fr))}
+ .overlay:not(.is-journal) .seeker-mod-tile {min-height:123px;padding:8px 2px}
+}
+@media(max-height:520px) and (min-width:701px){
+ .overlay:not(.is-journal) {padding:5px}
+ .overlay:not(.is-journal) .panel {height:100%;width:100%;grid-template-columns:116px minmax(0,1fr)}
+ .overlay:not(.is-journal) .pbody {padding:12px}
+ .overlay:not(.is-journal) .panel-header {padding:5px 12px}
+ .overlay:not(.is-journal) .seeker-mod-list {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* Shared inventory and rules surfaces must not inherit parchment card fills. */
+.overlay:not(.is-journal) .pbody :is(.seeker-target,.seeker-mod-rules,.item-detail,.item-tile,.item-detail-icon,.cost .ingredient,.source-creature,.gear-implicit,.gear-options,.region-detail,.region-mini,.atlas-legend,.inventory-empty){background:#10212b55;color:#d9e5ec;border-color:#9eb4c333;box-shadow:none}
+.overlay:not(.is-journal) .pbody :is(.item-tile.on,.seeker-mod-tile.selected){outline:1px solid #80a9c1;outline-offset:-1px;background:#375a7050}
+.overlay:not(.is-journal) .pbody .item-tile b{color:#eff5f8}
+.overlay:not(.is-journal) .pbody .seeker-target{padding:10px 14px;margin-bottom:18px;display:flex;gap:15px;align-items:center;flex-wrap:wrap}
+.overlay:not(.is-journal) .pbody .seeker-target .seeker-tags{margin:0}
+.overlay:not(.is-journal) .pbody .seeker-target .seeker-socket-row{margin:0 0 0 auto}
+.overlay:not(.is-journal) .pbody .seeker-mod-rules{font-size:12px;padding:10px;margin:10px 0}
+.overlay:not(.is-journal) .pbody .seeker-mod-status{font-size:12px;padding:8px 10px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-heading{margin-bottom:10px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-heading .section-kicker{display:none}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-heading h3{font-size:22px;margin:0}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-heading p{font-size:11px;margin:3px 0}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-loadout{margin-bottom:12px;gap:8px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .loadout-slot{min-height:74px;padding:8px 10px 8px 18px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-focus{padding:16px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-focus>p{font-size:12px;line-height:1.65;margin:8px 0}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-hero .art-mod{width:78px;height:78px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-tile{min-height:100px;padding:8px 5px;gap:0}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-tile .art{width:58px;height:58px}
+.overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-list{margin-top:10px}
+@media(min-width:1000px) and (min-height:700px){
+ .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-list{max-height:calc(100dvh - 390px);overflow-y:auto;overscroll-behavior:contain;padding:2px 5px 2px 2px;scrollbar-width:thin}
+ .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-build-grid{grid-template-columns:minmax(360px,1.12fr) minmax(0,1fr)}
+}
+.overlay:not(.is-journal) .equipped-label{color:#9ddbbd}
+.overlay:not(.is-journal) .equipment-slot>span{color:#a9bbc6}
+@media(min-width:1350px){
+ .overlay:not(.is-journal) .pbody[data-panel="bag"] .item-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+ .overlay:not(.is-journal) .pbody[data-panel="bag"] .item-tile{min-height:124px;padding:16px 6px 8px}
+ .overlay:not(.is-journal) .pbody[data-panel="bag"] .item-tile .art{width:64px;height:64px}
+ .overlay:not(.is-journal) .pbody[data-panel="bag"] .item-tile b{font-size:11px}
+}

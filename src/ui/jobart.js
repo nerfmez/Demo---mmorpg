@@ -55,3 +55,33 @@ export const JOB_ART={
  rv3:group(blade,'rotate(-35 64 64) scale(.9)')+group(arrow,'translate(14 1) scale(.91)'),
  rv4:group(ring,'translate(0 0) scale(.94)')+group(leaf,'translate(40 43) scale(.54)')+line('M8 88h28M4 101h32','#d8c493',4),
 };
+
+// Small steps retain category silhouettes; major nodes use distinct combinations.
+Object.assign(JOB_ART, {
+ f_hp:cross+line('M15 110h98','#82b58c',7),
+ f_mp:drop+circle(101,20,9,'#cbd5af'),
+ f_def:group(shield,'translate(16 16) scale(.75)'),
+ f_atk:group(blade,'rotate(25 64 64)')+circle(26,99,10,'#dcb783'),
+ f_mag:star+circle(100,102,9,'#a6c0df'),
+ m_atk:blade+line('M13 108h30M20 96h22'),
+ m_leech:group(blade,'rotate(-20 64 64)')+group(drop,'translate(62 55) scale(.5)'),
+ p_speed:arrow+line('M10 45h35M10 64h18','#9fc2bd',6),
+ p_dmg:arrow+circle(88,25,24,'#ead49444')+circle(88,25,13,'#ead49444'),
+ aoe_radius:circle(64,64,32,'#91bdba33')+line('M10 64h20m68 0h20M64 10v20m0 68v20','#a4c9bb',6),
+ aoe_radius2:circle(64,64,45,'#91bdba33')+circle(64,64,25,'#91bdba33')+line('M5 64h16m86 0h16','#a4c9bb',6),
+ aoe_damage:circle(64,64,44,'#aabfce33')+group(star,'translate(24 24) scale(.62)'),
+ aoe_master:circle(64,64,52,'#aabfce33')+star+line('M12 9h22m61 110h22','#dac089',5),
+ dot_power:group(drop,'translate(10 0) scale(.8)')+line('M22 107h21m12 0h21m12 0h21','#a7ba80',7),
+ dot_power2:group(drop,'translate(-3 -3) scale(.7)')+group(drop,'translate(58 39) scale(.6)'),
+ lasting_time:ring+line('M64 38v28l19 14','#dfce99',6),
+ dot_master:circle(64,64,48,'#ac98bf44')+group(drop,'translate(13 3) scale(.72)')+line('M13 109h102','#b9cd8f',6),
+ cc_time:group(ring,'translate(11 11) scale(.82)')+line('M64 41v25l-17 15','#abcce3',6),
+ cc_time2:group(ring,'translate(3 3) scale(.95)')+line('M64 33v34l24 18','#abcce3',6),
+ cc_master:group(shield,'translate(8 8) scale(.84)')+line('M40 30v67m48-67v67M27 53h74M28 76h72','#c3c7e2',5),
+ sup_hp:group(cross,'translate(12 12) scale(.8)')+group(leaf,'translate(65 72) scale(.4)'),
+ sup_heal:group(cross,'translate(28 -3) scale(.7)')+group(drop,'translate(12 53) scale(.55)'),
+ sum_mp:group(paw,'translate(-1 5) scale(.74)')+group(drop,'translate(64 56) scale(.5)'),
+ sum_damage:group(paw,'translate(17 17) scale(.8)')+line('M9 7l18 19m74 75 18 18','#e0c894',6),
+ mov_speed:group(arrow,'translate(-1 4) scale(.88)')+line('M10 18h33M8 34h17','#b4d2c0',5),
+ mov_cd:group(ring,'translate(7 7) scale(.88)')+group(arrow,'translate(51 59) scale(.43)'),
+});

@@ -3,6 +3,7 @@ import { icon } from './icons.js';
 import { art } from './art.js';
 import { gearItem, gearStats, weaponImplicit, meetsRequires } from '../core/character.js';
 import { gearUpgradeCost, modUpgradeCost, canAfford } from '../core/crafting.js';
+import { rulesHtml } from './buildmeta.js';
 import { modSlotOf } from '../core/skills.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -82,13 +83,9 @@ export function inventoryView(ui, { costHtml, effectText }) {
       const md = data.mods.mods[it.id];
       const up = modUpgradeCost(data, it);
       const where = modSlotOf(ch, it.uid);
-      content = `<h3>${esc(md.nameTh)} · Lv.${it.level}</h3><div class="muted">${esc(md.name)}</div><p>${esc(md.desc)}</p><p class="equipped-label">${where >= 0 ? `ใส่ในสกิลช่อง ${where + 1}` : 'ยังไม่ได้ใส่'}</p>`;
-      actions = '<button class="btn primary" data-act="open-skills">จัดสกิลและ Mod</button>';
-      if (up) {
-        content += `<div class="upgrade-cost"><small>อัปเป็น Lv.${it.level + 1}</small><div class="cost">${costHtml(ch, data, up)}</div></div>`;
-        actions += `<button class="btn" data-act="mod-up" data-uid="${it.uid}" ${near.workbench && canAfford(ch, up) ? '' : 'disabled'}>อัป Mod</button>`;
-        if (!near.workbench) content += '<p class="muted">อัป Mod ได้ที่โต๊ะคราฟต์ในนิคม</p>';
-      }
+      content = `<h3>${esc(md.nameTh)} · Lv.${it.level}</h3><div class="muted">${esc(md.name)}</div><p>${esc(md.desc)}</p>${rulesHtml(md)}<p class="equipped-label">${where >= 0 ? `ใส่ในสกิลช่อง ${where + 1}` : 'ยังไม่ได้ใส่'}</p>`;
+      actions = '<button class="btn primary" data-act="workspace" data-page="mods">จัดม็อด</button>';
+      if(up) actions += '<button class="btn" data-act="workspace" data-page="growth">ไปหน้าอัปเลเวล</button>';
     }
     detail = `<div class="item-detail-top"><div class="item-detail-icon">${selected.graphic}</div><div><span class="section-kicker">${categories.find(([id])=>id===category)[1]}</span><h3>${esc(selected.name)}</h3><span class="level-pill">${selected.badge}</span></div></div><div class="item-actions">${actions}</div><div class="item-description">${content}</div>`;
   }

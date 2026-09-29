@@ -3,7 +3,8 @@
 // The game is paused while a panel is open (single-player demo).
 import { icon } from './icons.js';
 import { art } from './art.js';
-import { skillsView } from './skillview.js';
+import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
+import { tagsHtml, rulesHtml } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
@@ -55,10 +56,10 @@ export class Panels {
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
     this.overlay.innerHTML = `<section class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
-      <header class="panel-header"><div><small class="panel-eyebrow">GREENHOLLOW FRONTIER</small><h2 id="panel-title"></h2></div>
+      <header class="panel-header"><div><small class="panel-eyebrow">SEEKER · FIELD JOURNAL</small><h2 id="panel-title"></h2></div>
       <div class="panel-meta"><span class="panel-gold"></span><span class="pause-label">พักการเล่น</span></div>
       <button class="panel-close" data-close aria-label="ปิดเมนู">✕</button></header>
-      <nav class="tabs" role="tablist" aria-label="หน้าต่างเกม"></nav><div class="pbody" id="panel-content" role="tabpanel"></div>
+      <label class="seeker-mobile-nav">หน้าต่าง <select aria-label="เลือกหน้าต่างเกม" data-page-select></select></label><nav class="tabs" role="tablist" aria-label="หน้าต่างเกม"></nav><div class="pbody" id="panel-content" role="tabpanel"></div>
       <footer class="panel-footer"><span>เลือกดูรายละเอียด แล้วแตะปุ่มเพื่อใช้งาน</span><button class="btn" data-close>กลับเข้าเกม <kbd>Esc</kbd></button></footer></section>`;
     root.appendChild(this.overlay);
     this.tabsEl = this.overlay.querySelector('.tabs');
@@ -68,6 +69,19 @@ export class Panels {
       if (e.target === this.overlay) this.close();
     });
     this.body.addEventListener('click', (e) => this.onClick(e));
+    this.overlay.addEventListener('change', e => {
+      if(e.target.matches('[data-page-select]')) return this.open(e.target.value);
+      if(e.target.matches('[data-workspace-select]')) {
+        this.sel[e.target.dataset.workspaceSelect] = e.target.value;
+        this.render();
+      }
+    });
+    this.body.addEventListener('submit', e => {
+      if(!e.target.matches('.seeker-node-search')) return;
+      e.preventDefault();
+      this.sel.nodeSearch = new FormData(e.target).get('node-search').toString().trim();
+      this.render(true);
+    });
     this.tabsEl.addEventListener('click', (e) => {
       const t = e.target.closest('[data-tab]');
       if (t) {
@@ -114,6 +128,7 @@ export class Panels {
     }
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
+    this.overlay.classList.toggle('is-journal', tab === 'job');
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
     this.onVisibility?.(true);
@@ -125,7 +140,7 @@ export class Panels {
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on');
+    this.overlay.classList.remove('on', 'is-journal');
     document.body.classList.remove('panel-open');
     this.lastResult = null;
     this.sel.socket = undefined;
@@ -156,8 +171,11 @@ export class Panels {
     const b = this.badges();
     const tabs = [
       ['char', 'ตัวละคร', b.char],
-      ['skills', 'สกิล & Mod'],
-      ['job', 'Job Tree', b.job],
+      ['skills', 'ชุดสกิล'],
+      ['mods', 'ม็อด'],
+      ['movement', 'เคลื่อนที่'],
+      ['growth', 'อัปเลเวล'],
+      ['job', 'เส้นทางพาสซีฟ', b.job],
       ['bag', 'กระเป๋า'],
       ['craft', 'โต๊ะคราฟต์'],
       ['journal', 'ภารกิจ'],
@@ -166,9 +184,10 @@ export class Panels {
     ];
     const active = document.activeElement;
     const activeData = active?.closest('.panel') ? { ...active.dataset } : null;
-    const tabIcon = {char:'person',skills:'book',job:'tree',bag:'bag',craft:'hammer',journal:'scroll',map:'map',settings:'gear'};
+    const tabIcon = {char:'person',skills:'book',mods:'hex',movement:'dash',growth:'spark',job:'tree',bag:'bag',craft:'hammer',journal:'scroll',map:'map',settings:'gear'};
     this.tabsEl.innerHTML = tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${icon(tabIcon[id])}<span>${label}</span>${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
     this.tabsEl.querySelector('.tab.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    this.overlay.querySelector('[data-page-select]').innerHTML = tabs.map(([id,label]) => `<option value="${id}" ${this.tab===id?'selected':''}>${label}</option>`).join('');
     this.overlay.querySelector('#panel-title').textContent = tabs.find(([id]) => id === this.tab)?.[1] || '';
     this.overlay.querySelector('.panel-gold').textContent = `${g.ch.gold.toLocaleString()} G`;
     this.body.dataset.panel = this.tab;
@@ -176,6 +195,7 @@ export class Panels {
     const scroll = top ? 0 : this.body.scrollTop;
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
+    if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);
     this.cleanJobNetwork = this.tab === 'job' ? mountJobNetwork(this) : null;
     this.body.scrollTop = scroll;
     if (activeData && Object.keys(activeData).length) {
@@ -232,6 +252,10 @@ export class Panels {
     return skillsView(this, { costHtml, describeSkill, tagNames: TAG_TH });
   }
 
+  render_mods() { return modsWorkspace(this, {describeSkill}); }
+  render_movement() { return movementWorkspace(this); }
+  render_growth() { return growthWorkspace(this, {costHtml}); }
+
   // ---------- Job tree ----------
   render_job() {
     return jobView(this, { effectText });
@@ -281,6 +305,7 @@ export class Panels {
         let name;
         let desc = '';
         let req = null;
+        let metadata = '';
         if (r.type === 'gear') {
           const b = data.items.gearBases[r.result];
           const wt = b.weaponType ? data.items.weaponTypes?.[b.weaponType] : null;
@@ -293,22 +318,25 @@ export class Panels {
           const s = data.skills.combat[r.result];
           name = `${s.name} · ${s.nameTh}`;
           desc = s.desc;
+          metadata = tagsHtml(s.tags);
           req = s.requires;
         } else if (r.type === 'movement') {
           const s = data.skills.movement[r.result];
           name = `${s.name} · ${s.nameTh}`;
           desc = s.desc;
+          metadata = tagsHtml(s.tags);
           req = s.requires;
         } else {
           const m = data.mods.mods[r.result];
           name = `◆ ${m.name} · ${m.nameTh}`;
           desc = `${m.desc} · ใส่ได้กับ: ${[...(m.requiresAll || []), ...(m.requiresAny ? [m.requiresAny.join('/')] : [])].map((t) => TAG_TH[t] || t).join(' + ')}`;
           req = m.requires;
+          metadata = rulesHtml(m);
         }
         const reqTxt = req && Object.keys(req).length ? `<span class="${meetsRequires(ch, req).ok ? 'ok' : 'no'}">ต้อง ${Object.entries(req)
           .map(([k, v]) => `${k} ${v}`)
           .join(', ')}</span> · ` : '';
-        return `<div class="recipe-card card ${block ? '' : 'ready'}"><div class="recipe-hero">${art(r.type==='gear'?'gear':r.type==='mod'?'mod':'skill',r.result)}<div class="recipe-info"><b>${name}</b><p class="muted">${esc(desc)}</p><div class="recipe-requirements">${reqTxt}</div></div></div><div class="cost">${costHtml(ch, data, r.cost)}</div>
+        return `<div class="recipe-card card ${block ? '' : 'ready'}"><div class="recipe-hero">${art(r.type==='gear'?'gear':r.type==='mod'?'mod':'skill',r.result)}<div class="recipe-info"><b>${name}</b><p class="muted">${esc(desc)}</p><div class="recipe-requirements">${reqTxt}</div>${metadata}</div></div><div class="cost">${costHtml(ch, data, r.cost)}</div>
           <div class="recipe-action"><small class="${block ? 'muted' : 'ok'}">${block ? REASON_TH[block] || block : 'พร้อมคราฟต์'}</small><button class="btn primary" data-act="craft" data-id="${id}" ${block || !g.nearby().workbench ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์'}</button></div></div>`;
       })
       .join('');
@@ -316,7 +344,7 @@ export class Panels {
       <div class="workbench-summary"><div><b>โต๊ะคราฟต์กรีนฮอลโลว์</b><small>${g.nearby().workbench ? 'เลือกสูตรและตรวจวัตถุดิบก่อนคราฟต์' : 'ดูสูตรได้ทุกที่ · กลับโต๊ะคราฟต์ในนิคมเพื่อสร้างของ'}</small></div><button class="btn ${this.sel.craftReady ? 'on' : ''}" data-act="craft-ready" aria-pressed="${!!this.sel.craftReady}">คราฟต์ได้ ${readyCount}/${recipes.length}${this.sel.craftReady ? ' · ดูทั้งหมด' : ' · กรอง'}</button></div>
       <div class="switch" style="margin:8px 0">${CRAFT_FILTERS.map(([id, label]) => `<button class="btn ${cat === id ? 'on' : ''}" data-act="craft-filter" data-id="${id}">${label}</button>`).join('')}</div>
       <div class="recipe-grid">${rows || '<div class="inventory-empty"><h3>ยังไม่มีสูตรที่คราฟต์ได้</h3><p>แตะ “ดูทั้งหมด” เพื่อเช็กวัตถุดิบที่ขาด</p></div>'}</div>
-      <div class="muted" style="margin-top:10px">สูตรที่คราฟต์ได้ตอนนี้มีขอบสีเขียว · อัปเลเวลสกิล (เมนูสกิล) ตีบวก และอัป Mod (เมนูกระเป๋า) ได้ขณะอยู่ที่โต๊ะนี้</div>`;
+      <div class="muted" style="margin-top:10px">สูตรที่คราฟต์ได้ตอนนี้มีขอบสีเขียว · อัปสกิล/ม็อด (หน้าอัปเลเวล) และตีบวกอุปกรณ์ (กระเป๋า) ได้ขณะอยู่ที่โต๊ะนี้</div>`;
   }
 
   // ---------- Journal ----------
@@ -422,6 +450,43 @@ export class Panels {
         this.render();
         if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
+      case 'workspace':
+        return this.open(t.dataset.page);
+      case 'mod-filter':
+        this.sel.compatibleOnly = !this.sel.compatibleOnly;
+        return this.render();
+      case 'inspect-mod':
+        this.sel.modUid = Number(t.dataset.uid);
+        return this.render();
+      case 'growth-filter':
+        this.sel.growthKind = t.dataset.id;
+        return this.render(true);
+      case 'close-journal': return this.close();
+      case 'dismiss-node': this.sel.node = null; return this.render();
+      case 'journal-reset': this.sel.journalReset = !this.sel.journalReset; return this.render();
+      case 'constellation':
+        this.sel.constellation = t.dataset.id || null;
+        this.sel.journalReset = false;
+        this.sel.node = null;
+        this.sel.nodeSearch = '';
+        return this.render(true);
+      case 'job-branch':
+        this.sel.jobBranch = t.dataset.id;
+        this.sel.node = null;
+        return this.render();
+      case 'clear-node-search':
+        this.sel.nodeSearch = '';
+        return this.render(true);
+      case 'jump-node': {
+        const n = data.jobtree.nodes[t.dataset.id];
+        if(!n) return;
+        this.sel.constellation = n.category;
+        this.sel.jobBranch = n.branch || n.requiresJob || this.sel.jobBranch;
+        this.sel.node = t.dataset.id;
+        this.sel.nodeSearch = '';
+        this.focusNextNode = true;
+        return this.render(true);
+      }
       case 'skill-slot':
         this.sel.skill = Number(t.dataset.slot);
         this.sel.socket = undefined;
@@ -451,14 +516,15 @@ export class Panels {
         return this.changed();
       case 'respec-job':
         respecJob(ch, data);
+        this.sel.journalReset = false;
         this.sel.node = null;
         return this.changed();
       case 'pick-socket':
-        this.sel.socket = Number(t.dataset.slot) >= 0 ? Number(t.dataset.slot) : undefined;
-        return this.render();
+        this.sel.skill = Math.max(0, Number(t.dataset.slot));
+        return this.open('mods');
       case 'socket':
         r = socketMod(ch, data, Number(t.dataset.slot), Number(t.dataset.uid));
-        if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+        if (!r.ok) return this.flash(REASON_TH[r.reason] || r.reason);
         this.sel.socket = undefined;
         g.notify({ type: 'socket' });
         return this.changed();
@@ -472,6 +538,7 @@ export class Panels {
         g.player.movement.rechargeT = 0;
         return this.changed();
       case 'skill-up':
+        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่ออัปเลเวล');
         r = upgradeSkill(ch, data, t.dataset.skill);
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
         return this.changed();
@@ -481,7 +548,8 @@ export class Panels {
 
         return;
       case 'take-node':
-        allocateJobNode(ch, data, t.dataset.id);
+        r = allocateJobNode(ch, data, t.dataset.id);
+        if(!r.done) return this.render();
         g.notify({ type: 'job' });
         return this.changed();
       case 'equip-gear':
@@ -505,6 +573,7 @@ export class Panels {
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
         return this.changed();
       case 'mod-up':
+        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่ออัปเลเวล');
         r = upgradeMod(ch, data, Number(t.dataset.uid));
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
         return this.changed();
@@ -524,9 +593,9 @@ export class Panels {
           const base = data.items.gearBases[it.base];
           this.lastResult = `${art('gear',it.base)} คราฟต์สำเร็จ! ${this.gearLine(it)}
             <button class="btn small" data-act="equip-gear" data-uid="${it.uid}" ${meetsRequires(ch, base.requires).ok ? '' : 'disabled'}>สวมเลย</button>`;
-        } else if (r.kind === 'mod') this.lastResult = `${art('mod',r.item.id)} ได้ Mod <b>${data.mods.mods[r.item.id].name}</b> — ไปใส่ที่เมนูสกิล`;
+        } else if (r.kind === 'mod') this.lastResult = `${art('mod',r.item.id)} ได้ Mod <b>${data.mods.mods[r.item.id].name}</b> — ไปใส่ที่หน้าม็อด`;
         else if (r.kind === 'skill') this.lastResult = `${art('skill',r.id)} เรียนสกิล <b>${data.skills.combat[r.id].name}</b> แล้ว — เลือกใส่ช่องในเมนูสกิล`;
-        else this.lastResult = `${art('skill',r.id)} เรียน <b>${data.skills.movement[r.id].name}</b> แล้ว — เลือกใช้ในเมนูสกิล`;
+        else this.lastResult = `${art('skill',r.id)} เรียน <b>${data.skills.movement[r.id].name}</b> แล้ว — เลือกใช้ในหน้าเคลื่อนที่`;
         this.changed();
         this.body.scrollTop = 0;
         return;
@@ -588,6 +657,9 @@ const EFFECT_TH = {
   meleeDamagePct: 'ดาเมจประชิด %',
   projectileDamagePct: 'ดาเมจกระสุน %',
   areaDamagePct: 'ดาเมจวงกว้าง %',
+  dotDamagePct: 'ดาเมจพื้นที่ต่อเนื่อง %',
+  persistentDurationPct: 'ระยะเวลาพื้นที่คงอยู่ %',
+  controlDurationPct: 'ระยะเวลาควบคุม/คำสาป %',
   spellDamagePct: 'ดาเมจเวท %',
   summonDamagePct: 'ดาเมจอัญเชิญ %',
   maxHpPct: 'HP %',

@@ -64,3 +64,11 @@
 ## Fullscreen travel journal, passive stages and engraved modifier gems (2026-09-29)
 
 The passive UI is an edge-to-edge paper/ink travel journal. Chapter names are travel-themed and each chapter mixes several useful effects. The 87 passive nodes now also have stage metadata: later stages unlock by the number of Job Points already invested in earlier stages of that same chapter, rather than forcing one exact branch. Profession stages count inside their own oath only. All fifteen modifier items use shared faceted gems with monochrome engravings. See `docs/UI-WORKSPACES.md` and the browser/core tests.
+
+## Clean field HUD — 29 September 2026
+
+The approved navy/silver gameplay reference is implemented by `ui/fieldhud.css` and
+`ui/fieldhud.js`: compact status/minimap/quests, white/cyan symbols, right-hand combat
+controls on both input modes, and separate bottom EXP/Job tracks. No scene/camera/model
+or combat/passive-rule changes. The four combat slots and separate movement slot remain
+functional; no fake potion or persistent-lock controls. See `COMBAT-HUD.md`.

@@ -1,9 +1,9 @@
 // Heads-up display: player frame, minimap, quest tracker, combat feedback, prompts, toasts.
 import { icon } from './icons.js';
-import { expToNext, jobExpToNext } from '../core/character.js';
-import { trackedQuest, questState } from '../core/quests.js';
+import { trackedQuest } from '../core/quests.js';
 import { mapImage } from './mapimage.js';
 import { loadPref, savePref } from '../save.js';
+import { fieldIcon, seekerBrand, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
 
 const h = (html) => {
   const t = document.createElement('template');
@@ -73,6 +73,7 @@ export class Hud {
     this.mbars = new Map();
 
     this.el = {
+      brand: h(`<div class="field-brand passive" aria-hidden="true">${seekerBrand()}</div>`),
       frame: h(`<button class="pframe" aria-label="เปิดตัวละครและค่าสถานะ" title="ตัวละคร · C">
         <div class="portrait"></div><div class="lvl-badge">1</div>
         <div class="bars">
@@ -82,11 +83,11 @@ export class Hud {
           <div class="statusline"></div>
         </div></button>`),
       topright: h(`<div class="topright">
-        <div class="map-cluster"><div class="quick-actions"><button class="iconbtn menu-toggle" aria-label="เมนูเพิ่มเติม" aria-expanded="false" aria-controls="game-menu">${icon('menu')}<span class="menu-label">เมนู</span></button></div>
-        <button class="minimap" aria-label="เปิดแผนที่โลก" title="แผนที่ · M"><canvas width="300" height="300"></canvas><span class="map-open">${icon('map')}</span></button></div>
+        <div class="map-cluster"><div class="quick-actions"><button class="iconbtn menu-toggle" aria-label="เมนูเพิ่มเติม" aria-expanded="false" aria-controls="game-menu">${fieldIcon('menu')}<span class="menu-label">เมนู</span></button></div>
+        <button class="minimap" aria-label="เปิดแผนที่โลก" title="แผนที่ · M"><canvas width="300" height="300"></canvas><span class="map-north" aria-hidden="true">N</span><span class="map-open">${fieldIcon('map')}</span></button></div>
         <div class="location-chip passive"></div>
         <nav class="menu" id="game-menu" aria-label="เมนูเกม" hidden></nav>
-        <div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
+        <div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><span class="quest-count"></span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
         <button class="questtrack" id="quest-detail" aria-label="เปิดสมุดภารกิจ"></button></div></div>`),
       zone: h(`<div class="zonebanner passive"><div class="zd"></div><div class="zn"></div><div class="zs"></div></div>`),
       boss: h(`<div class="bossbar passive"><div class="bn"></div><div class="bar"><i class="fill"></i><span></span></div></div>`),
@@ -100,9 +101,7 @@ export class Hud {
     };
     for (const k in this.el) root.appendChild(this.el[k]);
     // EXP and Job EXP run along the very bottom edge of the screen (outside the HUD box)
-    this.xp = h(`<div class="xpstrip" aria-label="ค่าประสบการณ์">
-      <div class="xpseg exp"><i class="fill"></i><span></span></div>
-      <div class="xpseg job"><i class="fill"></i><span></span></div></div>`);
+    this.xp = h(xpMarkup());
     document.body.appendChild(this.xp);
     document.body.classList.add('ingame');
     const q = (s) => this.el.frame.querySelector(s);
@@ -116,6 +115,8 @@ export class Hud {
     this.jobFill = this.xp.querySelector('.job .fill');
     this.expText = this.xp.querySelector('.exp span');
     this.jobText = this.xp.querySelector('.job span');
+    this.expLevel = this.xp.querySelector('.exp .xp-label');
+    this.jobLevel = this.xp.querySelector('.job .xp-label');
     this.lvl = q('.lvl-badge');
     this.statusLine = q('.statusline');
     this.portrait = q('.portrait');
@@ -143,7 +144,7 @@ export class Hud {
   }
 
   addMenuButton(name, key, onClick, label = '') {
-    const b = h(`<button class="iconbtn" aria-label="${label || name}" title="${label} · ${key}">${icon(name)}<span class="menu-label">${label}</span><span class="key">${key}</span></button>`);
+    const b = h(`<button class="iconbtn" aria-label="${label || name}" title="${label} · ${key}">${fieldIcon(name)}<span class="menu-label">${label}</span><span class="key">${key}</span></button>`);
     b.addEventListener('click', () => { this.setMenuOpen(false); onClick(); });
     if (name === 'bag' || name === 'book') this.quickActions.insertBefore(b, this.menuToggle);
     else this.menu.appendChild(b);
@@ -291,18 +292,11 @@ export class Hud {
     const id = trackedQuest(g.ch, d);
     this.trackedId = id;
     this.questPos = questTarget(g, id);
-    let html;
-    if (!id) html = `<b>${icon('scroll')} ภารกิจครบแล้ว</b><small>ลองคราฟต์ของใหม่หรือล่าบอสอีกครั้ง</small>`;
-    else {
-      const q = d.quests.quests[id];
-      const st = questState(g.ch, id);
-      const main = d.quests.main.includes(id);
-      const tq = this.questPos;
-      const far = tq ? Math.round(Math.hypot(tq.x - g.player.x, tq.z - g.player.z)) : 0;
-      html = `<b>${icon('scroll')} ${main ? '' : '<em>รอง</em> '}${esc(q.nameTh)}</b>
-        <small>${q.count > 1 ? `<u>${Math.min(st.progress, q.count)}/${q.count}</u> ` : ''}${esc(q.descTh)}</small>
-        ${far > 12 ? `<i>★ ${far} ม.</i>` : ''}`;
-    }
+    const html = trackerMarkup(g, id, this.questPos);
+    const active = [...d.quests.main, ...d.quests.side].filter(key => g.ch.progress.quests[key]?.status === 'active').length;
+    const counter = this.el.topright.querySelector('.quest-count');
+    const countText = active ? `1 / ${active}` : '✓';
+    if (counter.textContent !== countText) counter.textContent = countText;
     if (html !== this.lastTracker) {
       this.tracker.innerHTML = html;
       this.lastTracker = html;
@@ -488,21 +482,25 @@ export class Hud {
     const low = !p.dead && p.hp < p.maxHp * 0.3;
     if (low !== this.lowHp) this.el.hurt.classList.toggle('low', (this.lowHp = low));
     this.mpText.textContent = `MP  ${Math.floor(p.mp)} / ${p.maxMp}`;
-    const en = expToNext(g.data, ch.level);
-    const jn = jobExpToNext(g.data, ch.jobLevel);
-    this.expFill.style.width = pct(ch.exp, en);
-    this.jobFill.style.width = pct(ch.jobExp, jn);
-    const et = `Lv.${ch.level} · EXP ${en ? ((ch.exp / en) * 100).toFixed(1) : 100}%`;
-    const jt = `Job ${ch.jobLevel} · ${jn ? ((ch.jobExp / jn) * 100).toFixed(1) : 100}%`;
-    if (et !== this.lastExpText) this.expText.textContent = this.lastExpText = et;
-    if (jt !== this.lastJobText) this.jobText.textContent = this.lastJobText = jt;
+    const xpKey = `${ch.level}:${ch.exp}:${ch.jobLevel}:${ch.jobExp}`;
+    if (xpKey !== this.lastXpKey) {
+      this.lastXpKey = xpKey;
+      const xp = xpPresentation(ch, g.data);
+      this.expFill.style.width = `${xp.exp.percent}%`;
+      this.jobFill.style.width = `${xp.job.percent}%`;
+      this.expText.textContent = xp.exp.text;
+      this.jobText.textContent = xp.job.text;
+      this.expLevel.textContent = `Lv. ${ch.level}`;
+      this.jobLevel.textContent = `Job ${ch.jobLevel}`;
+      this.xp.setAttribute('aria-label', `Lv.${ch.level} ${xp.exp.text} · Job ${ch.jobLevel} ${xp.job.text}`);
+    }
     this.lvl.textContent = ch.level;
     const area = g.world.zoneAt(p.x, p.z);
     if (area?.id !== this.locationId) {
       this.locationId = area?.id;
-      this.el.topright.querySelector('.location-chip').textContent = area ? `${area.nameTh} · ${area.safe ? 'เขตปลอดภัย' : `Lv.${area.level}+`}` : '';
+      this.el.topright.querySelector('.location-chip').innerHTML = area ? `${fieldIcon('pin')}<span>${esc(area.nameTh)}<small>${area.safe ? 'เขตปลอดภัย' : `Lv. ${area.level}+`}</small></span>` : '';
     }
-    const st = [`<b>Job ${ch.jobLevel}</b>`, `<b class="gold">${ch.gold} G</b>`];
+    const st = [`<b>Job ${ch.jobLevel}</b>`, `<b class="gold">${fieldIcon('coin')}${ch.gold.toLocaleString('en-US')} G</b>`];
     if (p.statuses.poison) st.push('<b class="st poison">ติดพิษ</b>');
     if (p.statuses.chill) st.push('<b class="st cold">หนาวช้า</b>');
     if (p.buffs.war_cry) st.push('<b class="st buff">คำรามศึก</b>');

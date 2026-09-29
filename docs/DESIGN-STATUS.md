@@ -6,7 +6,7 @@
 | # | หัวข้อ | สถานะ | อยู่ที่ไหน / หมายเหตุ |
 |---|---|---|---|
 | 2 | มุมกล้อง 3/4, รองรับ PC + มือถือ | ✅ | `render/view.js` (กล้องสูงแบบ ARPG), `ui/input.js` (เมาส์/คีย์บอร์ด + จอย/ปุ่มสัมผัส) |
-| 3 | Soft Targeting | ✅ | `core/targeting.js` + test ใน `tests/core/sim.test.js` ตัวละครไม่วิ่งตามเป้า สกิลวงกว้างเล็งพื้นได้ |
+| 3 | Soft Targeting | ✅ | `core/targeting.js` + `game.js`: การโจมตีแบบกด/แตะอัตโนมัติเลือกศัตรูที่ใกล้ที่สุดซึ่งอยู่ในระยะจริงของสกิล โดยไม่สนทิศที่ตัวละครหันหรือกำลังเดิน; การเล็งด้วยเมาส์/ลากสกิลเป็น manual override และตัวละครไม่วิ่งตามเป้า |
 | 4 | Basic Attack เป็นสกิลที่ถอดได้ | ✅ | Slash อยู่ในช่องสกิลปกติ ปล่อยช่องว่างได้ |
 | 5 | Movement Skill แยกช่อง ใช้ชาร์จ | ✅ | Dash (2 ชาร์จ), Roll (อมตะ), Blink และ Leap Slam (เรียนที่โต๊ะคราฟต์) |
 | 6 | รองรับหลายสาย | ✅ | ประชิด (รวม Whirl Blade) / กระสุน (ธนู, ลูกไฟ) / สายฟ้าโซ่ / เวทวงกว้าง / DoT (ไฟ, บึงพิษ) / คำสาป (Hex) / แท็งก์-การ์ด / ฮีล / คุม (Frost Nova, taunt) / Buff (War Cry) / Summon (Spirit Wolf) · ยังไม่มี Aura ถาวร |
@@ -14,7 +14,7 @@
 | 7 | Skill Core + Mod ตาม Tag | ✅ | `data/mods.json`, `core/skills.js` · มี 15 Mod รวม Trigger (Cast on Dodge), Multistrike, Knockback, Pack Leader |
 | 8 | อัป Skill/Mod ด้วยของจากโลก | ✅ | อัปสกิลใช้ Material ตามสาย อัป Mod ใช้ Ruin Shard + Glow Dust (ที่โต๊ะคราฟต์) · ยังไม่มี Mastery (ตั้งใจเลื่อนไว้) |
 | 9 | Character Level → Stat Points, Stat เป็นเงื่อนไข | ✅ | STR/AGI/VIT/INT/DEX · สกิล Mod และอาวุธบางชิ้นต้องมี Stat ถึง · ตัวเลขยังเป็นค่าชั่วคราว |
-| 10 | Job Level → Job Points → Job Tree | ✅ | `data/jobtree.json` 87 โหนด / 134 เส้นเชื่อม · หน้ารวม 10 หมวดความสามารถ · อาชีพหลัก 4 สาย (Vanguard, Arcanist, Ranger, Warden) |
+| 10 | Job Level → Job Points → Job Tree | ✅ | `data/jobtree.json` 87 โหนด · หน้ารวม 10 บทธีมการเดินทาง · ภายในแต่ละบทแบ่งเป็นขั้น I–IV โดยขั้นลึกขึ้นต้องลงทุน Job Points ในขั้นก่อนหน้าของบทนั้นให้ถึงจำนวนที่กำหนด ไม่บังคับเส้นเดียว · อาชีพหลัก 4 สาย (Vanguard, Arcanist, Ranger, Warden) |
 | 11 | เลือก Job ทีหลัง | ✅ | โหนด Job เปิดที่ Job Lv.5 เลือกได้สายเดียว |
 | 12 | Respec ด้วยเงินในเกม | ✅ | รีแต้ม Stat และ Job ในนิคม ใช้ Gold อย่างเดียว |
 | 13 | มอนดรอป Material ของตัวเอง | ✅ | รูปร่างมอนบอกของที่ดรอป (งา, กระดอง, แกนเรืองแสง, เขา) · มี test ยืนยันว่า Material ทุกชิ้นมีที่ใช้ |
@@ -61,12 +61,6 @@
 - See `UI-WORKSPACES.md` for source references, exact effect scope, save compatibility and the test commands.
 
 
-## Staged review: fullscreen travel journal and engraved modifier gems (2026-09-29)
+## Fullscreen travel journal, passive stages and engraved modifier gems (2026-09-29)
 
-PR #11 adds edge-to-edge paper/ink chapter overview and full-screen branching subtrees.
-Chapter names are travel-themed, membership mixes multiple play styles, and overview
-marks cost no points. The original 87-node gameplay graph is preserved. Details are
-opened on demand, not a fixed sidebar. Other workspaces have Minimal Panel styling.
-All fifteen modifier item pictures now use shared faceted gems with monochrome
-engravings. See `docs/UI-WORKSPACES.md` and `tests/browser/journal.mjs`.
-This is a review-branch change only: no production deployment or main merge.
+The passive UI is an edge-to-edge paper/ink travel journal. Chapter names are travel-themed and each chapter mixes several useful effects. The 87 passive nodes now also have stage metadata: later stages unlock by the number of Job Points already invested in earlier stages of that same chapter, rather than forcing one exact branch. Profession stages count inside their own oath only. All fifteen modifier items use shared faceted gems with monochrome engravings. See `docs/UI-WORKSPACES.md` and the browser/core tests.

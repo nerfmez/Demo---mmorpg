@@ -10,7 +10,7 @@ let server,browser,code='',css='';const reports=[];
 if(offline){
  const {build}=await import('vite');const b=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'JournalReview',formats:['iife']}}});
  code=b[0].output.find(o=>o.type==='chunk').code;
- css=['style','ux','art','workspaces','minimal','journal'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+ css=['style','ux','art','workspaces','minimal','journal','overlays'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
  for(const subset of ['thai','latin'])for(const weight of [400,500]){const f=readFileSync(new URL(`../../node_modules/@fontsource/mitr/files/mitr-${subset}-${weight}-normal.woff2`,import.meta.url)).toString('base64');css+=`@font-face{font-family:Mitr;src:url(data:font/woff2;base64,${f});font-weight:${weight}}`;}
 }else server=spawn('npx',['vite','preview','--port','4187','--strictPort'],{stdio:'ignore',detached:true});
 try{
@@ -29,6 +29,11 @@ try{
   assert.equal(await page.locator('.seeker-node').count(),0);
   assert.equal(await page.locator('.journal-inspector').count(),0);
   const full=await page.locator('.panel').boundingBox();assert.equal(full.x,0);assert.equal(full.y,0);assert.equal(full.width,width);assert.equal(full.height,height);
+  assert.ok(await page.evaluate(() => {
+    const hud = document.getElementById('hud'), xp = document.querySelector('.xpstrip');
+    return document.body.classList.contains('panel-open') && (!xp ||
+      Number(getComputedStyle(hud).zIndex) > Number(getComputedStyle(xp).zIndex));
+  }), 'fullscreen journal must paint above the body-level EXP strip');
   assert.ok(!await page.locator('.tabs').isVisible());
   const gr=await page.locator('.seeker-graph').boundingBox();await shot('00-layout');assert.ok(gr.height>height*.72, JSON.stringify({gr,height}));
   await shot('01-overview');

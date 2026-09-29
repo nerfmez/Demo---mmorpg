@@ -357,7 +357,7 @@
         315
       ],
       "tier": 2,
-      "requiresSpent": 2
+      "requiresSpent": 1
     },
     "rj": {
       "name": "Ranger",
@@ -1085,7 +1085,7 @@
         160
       ],
       "tier": 2,
-      "requiresSpent": 2
+      "requiresSpent": 1
     },
     "r6": {
       "name": "Venom Tip",
@@ -1112,7 +1112,7 @@
         360
       ],
       "tier": 3,
-      "requiresSpent": 4
+      "requiresSpent": 3
     },
     "r7": {
       "name": "Predator Bond",
@@ -1862,7 +1862,7 @@
         560
       ],
       "tier": 2,
-      "requiresSpent": 2
+      "requiresSpent": 1
     },
     "aoe_radius": {
       "name": "Aoe Radius",
@@ -2250,7 +2250,7 @@
         535
       ],
       "tier": 3,
-      "requiresSpent": 4
+      "requiresSpent": 3
     },
     "mov_cd": {
       "name": "Mov Cd",
@@ -2273,7 +2273,7 @@
         455
       ],
       "tier": 4,
-      "requiresSpent": 5
+      "requiresSpent": 4
     }
   },
   "groups": [

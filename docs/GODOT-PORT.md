@@ -180,3 +180,16 @@ full-rect Control, not a Window; show node details on selection only. Modifier i
 art uses the shared SVG faceted-gem/engraved-symbol templates in `gemart.js` and
 `sigils.js`; their colours never determine compatibility. Preserve the existing
 core eligibility checks and save IDs.
+
+### Clean SEEKER combat HUD (29 September 2026)
+
+`ui/fieldhud.css` now skins the live field HUD with navy translucent surfaces, thin silver
+edges and a right-hand action cluster on mouse and touch. `ui/fieldhud.js` provides small
+menu/joystick symbols plus XP/quest presentation. Combat and movement buttons reuse
+the unchanged full-colour illustrations from ui/art.js; do not replace them with glyphs
+or import an entire concept image. Modifier items keep the engraved gems separately.
+Keep the actual portrait, HP/barrier/MP, all four combat slots, separate movement charges,
+interrupted drag behavior and per-skill targeting untouched when porting. The footer
+shows independent blue EXP and gold Job tracks; max-level tracks explicitly say MAX.
+Short landscape/portrait relocate and compact the quest tracker rather than covering
+combat controls. Details and acceptance checks are in `docs/COMBAT-HUD.md`.

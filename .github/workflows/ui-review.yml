@@ -4,7 +4,7 @@ on:
     branches: [codex/seeker-ui-workspaces]
     paths: ['src/**', 'data/**', 'tests/browser/**', 'index.html']
   pull_request:
-    paths: ['src/ui/**', 'src/core/skills.js', 'src/core/character.js', 'data/jobtree.json', 'data/skills.json', 'data/mods.json', 'tests/browser/workspaces.mjs', 'tests/browser/passive-checks.mjs', 'tests/browser/dreamloop.mjs', 'tests/browser/workspace-harness.js', '.github/workflows/ui-review.yml']
+    paths: ['src/ui/**', 'src/core/skills.js', 'src/core/character.js', 'data/jobtree.json', 'data/skills.json', 'data/mods.json', 'tests/browser/**', 'index.html', '.github/workflows/ui-review.yml']
 permissions:
   contents: read
 concurrency:
@@ -13,7 +13,7 @@ concurrency:
 jobs:
   review:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     strategy:
       fail-fast: false
       matrix:
@@ -28,13 +28,20 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: node tests/browser/workspaces.mjs
+      - name: Fullscreen travel journal and engraved modifier gems
+        run: node tests/browser/journal.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - name: Workspaces and passive touch gestures
+        run: node tests/browser/workspaces.mjs
         env:
           BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: seeker-ui-review-${{ matrix.browser }}
-          path: tests/browser/out/workspaces*
+          path: |
+            tests/browser/out/workspaces*
+            tests/browser/out/journal*
           if-no-files-found: ignore
           retention-days: 7

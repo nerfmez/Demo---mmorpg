@@ -1,4 +1,4 @@
-import {jobNodeState, jobPath, currentJob, respecCost} from '../core/character.js';
+import {jobNodeState, jobTierProgress, currentJob, respecCost} from '../core/character.js';
 import {esc} from './buildmeta.js';
 import {sigil, effectSigil} from './sigils.js';
 
@@ -29,14 +29,16 @@ function resetSheet(ui) {
   const {game:g}=ui, cost=respecCost(g.ch,g.data).job;
   return `<aside class="journal-inspector journal-reset-sheet" role="region" aria-label="รีแต้มพาสซีฟ"><button class="journal-dismiss" data-act="journal-reset" aria-label="ปิดตัวเลือกรีแต้ม">×</button><small>เริ่มเขียนเส้นทางอีกครั้ง</small><h3>รีแต้มพาสซีฟ</h3><p>คืน Job Point ที่ลงทุนทั้งหมด ไม่ลบเลเวลสกิล ม็อด หรือ Stat Point</p><p>ค่าใช้จ่าย ${cost} G · ต้องอยู่ในเมือง</p><button class="btn primary" data-act="respec-job" ${g.nearby().inTown && g.ch.gold>=cost && g.ch.jobNodes.length>1?'':'disabled'}>ยืนยันรีแต้ม · ${cost} G</button></aside>`;
 }
+const tierName = (tier) => ['','I','II','III','IV','V'][tier] || String(tier);
 function detail(ui, id, format) {
   const {ch,data}=ui.game,tree=data.jobtree,n=tree.nodes[id];
   if(!n)return '';
-  const st=jobNodeState(ch,data,id), route=jobPath(ch,data,id).filter(k=>!ch.jobNodes.includes(k));
+  const st=jobNodeState(ch,data,id), tier=jobTierProgress(ch,data,id);
   const chapter=tree.constellations.find(c=>c.id===n.category);
-  const text=st.taken?'ลงทุนแล้ว':st.reason==='not_linked'?'ต้องต่อจากโหนดที่ลงทุนไว้':st.reason==='no_points'?'แต้มพาสซีฟไม่พอ':st.reason==='job_level'?'ต้องมี Job Lv.'+st.need:st.reason==='one_job'?'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน':st.reason==='requires_job'?'ต้องเลือกอาชีพ '+tree.groups.find(x=>x.id===st.need)?.nameTh:'พร้อมลงทุน 1 แต้ม';
+  const text=st.taken?'ลงทุนแล้ว':st.reason==='tier_points'? `ขั้นนี้ต้องลงทุนในขั้นก่อนหน้าอีก ${Math.max(0,st.need-st.have)} แต้ม`:st.reason==='not_linked'?'ต้องต่อจากโหนดที่ลงทุนไว้':st.reason==='no_points'?'แต้มพาสซีฟไม่พอ':st.reason==='job_level'?'ต้องมี Job Lv.'+st.need:st.reason==='one_job'?'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน':st.reason==='requires_job'?'ต้องเลือกอาชีพ '+tree.groups.find(x=>x.id===st.need)?.nameTh:'พร้อมลงทุน 1 แต้ม';
   const cross=n.links.filter(k=>tree.nodes[k].category!==n.category);
-  return `<aside class="journal-inspector seeker-node-detail" role="region" aria-label="รายละเอียดโหนด" aria-live="polite"><button class="journal-dismiss" data-act="dismiss-node" aria-label="ปิดรายละเอียดโหนด">×</button><small>${chapter.nameTh} / ${n.type==='minor'?'บันทึกย่อย':n.type==='job'?'คำสาบาน':'บันทึกสำคัญ'}</small><h3>${n.nameTh}</h3><div class="seeker-effects">${effects(n,format).map(e=>`<p>${e}</p>`).join('')||'<p>จุดเริ่มต้นของทุกเส้นทาง</p>'}</div><p>${text}</p><button class="btn primary" data-act="take-node" data-id="${id}" ${st.can?'':'disabled'}>${st.taken?'บันทึกแล้ว ✓':'ลงทุน · 1 แต้ม'}</button>${route.length>1?`<div class="seeker-route"><small>อีก ${route.length} แต้มตามเส้นทางสั้นที่สุด</small>${button('jump-node',route[0],'ไปดูขั้นก่อนหน้า →')}</div>`:''}${cross.length?`<details class="seeker-crosslinks"><summary>เชื่อมไปยังบันทึกอื่น (${cross.length})</summary>${cross.map(k=>button('jump-node',k,tree.nodes[k].nameTh+' ↗')).join('')}</details>`:''}</aside>`;
+  const tierStatus=tier.tier? `<div class="journal-tier-status"><b>ขั้น ${tierName(tier.tier)}</b><span>${tier.requires?`แต้มในขั้นก่อนหน้า ${Math.min(tier.spent,tier.requires)}/${tier.requires}`:'ขั้นเริ่มต้น · เลือกอัปได้ทันที'}</span></div>`:'';
+  return `<aside class="journal-inspector seeker-node-detail" role="region" aria-label="รายละเอียดโหนด" aria-live="polite"><button class="journal-dismiss" data-act="dismiss-node" aria-label="ปิดรายละเอียดโหนด">×</button><small>${chapter.nameTh} / ${n.type==='minor'?'บันทึกย่อย':n.type==='job'?'คำสาบาน':'บันทึกสำคัญ'}</small><h3>${n.nameTh}</h3>${tierStatus}<div class="seeker-effects">${effects(n,format).map(e=>`<p>${e}</p>`).join('')||'<p>จุดเริ่มต้นของทุกเส้นทาง</p>'}</div><p>${text}</p><button class="btn primary" data-act="take-node" data-id="${id}" ${st.can?'':'disabled'}>${st.taken?'บันทึกแล้ว ✓':'ลงทุน · 1 แต้ม'}</button>${cross.length?`<details class="seeker-crosslinks"><summary>เชื่อมไปยังบันทึกอื่น (${cross.length})</summary>${cross.map(k=>button('jump-node',k,tree.nodes[k].nameTh+' ↗')).join('')}</details>`:''}</aside>`;
 }
 
 export function jobView(ui,{effectText}) {
@@ -75,20 +77,22 @@ export function jobView(ui,{effectText}) {
   const outside=[...new Set(entries.flatMap(([,n])=>n.links.filter(id=>!ids.has(id))))];
   const coords=Object.fromEntries(entries.map(([id,n])=>[id,n.clusterPos]));
   outside.forEach((id,i)=>{coords[id]=[100+(i%7)*(1280/Math.min(6,Math.max(1,outside.length-1))),i<7?54:655];});
+  const tierGroups=[...new Set(entries.map(([,n])=>n.tier).filter(t=>t>0))].sort((a,b)=>a-b).map(t=>({tier:t,x:entries.filter(([,n])=>n.tier===t).reduce((sum,[,n])=>sum+n.clusterPos[0],0)/entries.filter(([,n])=>n.tier===t).length}));
+  const tierGuide=`<svg class="journal-tier-guide" width="${w}" height="${h}" aria-hidden="true">${tierGroups.map((g,i)=>{const next=tierGroups[i+1],sep=next?(g.x+next.x)/2:null;return `<text x="${g.x}" y="105" class="journal-tier-label">ขั้น ${tierName(g.tier)}</text>${sep?`<line x1="${sep}" y1="125" x2="${sep}" y2="${h-55}" class="journal-tier-separator"/>`:''}`;}).join('')}</svg>`;
   const edges=entries.flatMap(([id,n])=>n.links.filter(l=>!ids.has(l)||id<l).map(l=>{
     const [x,y]=coords[id],[xx,yy]=coords[l],taken=ch.jobNodes.includes(id)&&ch.jobNodes.includes(l);
     return `<line x1="${x}" y1="${y}" x2="${xx}" y2="${yy}" class="seeker-edge ${taken?'taken':''} ${ids.has(l)?'':'external'}"/>`;
   })).join('');
   const nodes=entries.map(([id,n])=>{
     const state=jobNodeState(ch,data,id),xy=coords[id],selected=sel.node===id;
-    return `<button class="seeker-node ${n.type} ${state.taken?'taken':state.can?'available':'locked'} ${selected?'selected':''}" data-act="node" data-id="${id}" aria-pressed="${selected}" aria-label="${esc(n.nameTh+' · '+(state.taken?'ลงทุนแล้ว':state.can?'ลงทุนได้':'ยังลงทุนไม่ได้'))}" style="left:${xy[0]}px;top:${xy[1]}px"><span class="seeker-node-disc">${sigil(effectSigil(n))}</span>${state.taken?'<i>✓</i>':''}<span class="seeker-node-caption"><b>${n.nameTh}</b><small>${effects(n,effectText).join(' · ')||'จุดเริ่มต้น'}</small></span></button>`;
+    return `<button class="seeker-node ${n.type} ${state.taken?'taken':state.can?'available':'locked'} ${selected?'selected':''}" data-act="node" data-id="${id}" aria-pressed="${selected}" aria-label="${esc(n.nameTh+' · '+(state.taken?'ลงทุนแล้ว':state.can?'ลงทุนได้':'ยังลงทุนไม่ได้'))}" style="left:${xy[0]}px;top:${xy[1]}px"><span class="seeker-node-disc">${sigil(effectSigil(n))}</span>${state.taken?'<i>✓</i>':''}<span class="seeker-node-caption"><b>${n.nameTh}</b><small class="node-tier">${n.tier===0?'จุดเริ่ม':'ขั้น '+tierName(n.tier||1)}</small><small>${effects(n,effectText).join(' · ')||'จุดเริ่มต้น'}</small></span></button>`;
   }).join('');
   const gates=outside.map(id=>{
     const n=tree.nodes[id],xy=coords[id],c=chapters.find(c=>c.id===n.category);
     return `<button class="journal-gateway ${ch.jobNodes.includes(id)?'taken':''}" data-act="jump-node" data-id="${id}" style="left:${xy[0]}px;top:${xy[1]}px" aria-label="ไปดู ${n.nameTh} ในบท ${c.nameTh}">${sigil(c.icon)}<span>${n.nameTh}<small>${c.nameTh} ↗</small></span></button>`;
   }).join('');
   const branches=category.id==='specialist'?`<div class="journal-oaths">${tree.groups.map(c=>button('job-branch',c.id,c.nameTh,c.id===branch?'on':'')).join('')}<small>Job Lv.${data.progression.job.jobChoiceLevel} · เลือกหนึ่งอาชีพ</small></div>`:'';
-  return `<div class="journal-screen" style="--chapter-ink:${category.color}">${head}${branches}${graph(`<svg class="journal-lines" width="${w}" height="${h}" aria-hidden="true">${edges}</svg>${gates}${nodes}`,w,h,sel.node||entries[0][0])}${footer()}${sel.journalReset?resetSheet(ui):sel.node?detail(ui,sel.node,effectText):''}</div>`;
+  return `<div class="journal-screen" style="--chapter-ink:${category.color}">${head}${branches}${graph(`${tierGuide}<svg class="journal-lines" width="${w}" height="${h}" aria-hidden="true">${edges}</svg>${gates}${nodes}`,w,h,sel.node||entries[0][0])}${footer()}${sel.journalReset?resetSheet(ui):sel.node?detail(ui,sel.node,effectText):''}</div>`;
 }
 
 /** Camera affects the view only. No pointer gesture allocates points. */

@@ -10,20 +10,39 @@ const step = (g, seconds) => {
   for (let i = 0; i < seconds * 60; i++) g.update(1 / 60);
 };
 
-test('soft target: none out of range, auto-lock in range, switch by aim, release when out', () => {
+test('soft target: automatic mode prioritizes distance while explicit aim remains directional', () => {
   const p = { x: 0, z: 0, targetId: null };
-  const a = { id: 1, x: 0, z: 5, r: 0.5 }; // straight ahead (+Z, angle 0)
-  const b = { id: 2, x: 5, z: 0, r: 0.5 }; // to the right (+X, angle PI/2)
-  assert.equal(softTarget(p, [a, b], 0, 3), null, 'out of range: no lock');
-  p.targetId = softTarget(p, [a, b], 0, 6);
-  assert.equal(p.targetId, 1, 'locks the enemy you aim at');
-  p.targetId = softTarget(p, [a, b], 0.3, 6);
-  assert.equal(p.targetId, 1, 'small aim change keeps the lock');
-  p.targetId = softTarget(p, [a, b], Math.PI / 2, 6);
-  assert.equal(p.targetId, 2, 'aiming at another enemy switches');
-  b.x = 20;
-  p.targetId = softTarget(p, [a, b], Math.PI / 2, 6);
-  assert.equal(p.targetId, 1, 'target left range: released (re-acquires the one in range)');
+  const near = { id: 1, x: -2, z: 0, r: 0.5 };
+  const aimed = { id: 2, x: 0, z: 5, r: 0.5 };
+  assert.equal(softTarget(p, [near, aimed], 0, 1), null, 'out of range: no lock');
+  assert.equal(softTarget(p, [near, aimed], 0, 6, { preferNearest: true }), 1, 'automatic targeting ignores facing and chooses the nearest enemy');
+  p.targetId = 1;
+  assert.equal(softTarget(p, [near, aimed], 0, 6), 2, 'explicit aim can override the nearer enemy');
+  aimed.z = 20;
+  p.targetId = 2;
+  assert.equal(softTarget(p, [near, aimed], 0, 6), 1, 'manual target leaving range re-acquires an in-range enemy');
+});
+
+test('quick attack snaps to the nearest enemy in that skill range even while moving the other way', () => {
+  const g = new Game(data, { seed: 41 });
+  const [near, far] = g.monsters.filter((m) => !m.boss).slice(0, 2);
+  const p = g.player;
+  p.x = 0; p.z = 0; p.facing = Math.PI;
+  near.x = 1.25; near.z = 0; near.r = 0.35;
+  far.x = 1.85; far.z = 0; far.r = 0.35;
+  g.setMove(-1, 0);
+  g.setAimAngle(Math.PI, false);
+  p.targetId = far.id;
+  assert.ok(g.castSlot(0));
+  assert.equal(p.targetId, near.id, 'tap/quick cast reselects nearest valid target');
+  const auto = g.drainEvents().find((e) => e.type === 'castStart');
+  assert.ok(Math.abs(auto.angle - Math.PI / 2) < 0.01, 'cast turns toward the nearest target, not movement/facing');
+
+  p.cast = null; p.cooldowns[0] = 0; p.mp = p.maxMp;
+  p.targetId = far.id;
+  g.setAimAngle(Math.PI / 2, true);
+  assert.ok(g.castSlot(0));
+  assert.equal(p.targetId, far.id, 'explicit manual aim keeps the manually selected target');
 });
 
 test('the player never walks toward the target by itself', () => {

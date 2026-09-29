@@ -273,7 +273,7 @@ export class Input {
         const a = this.aim;
         if (a.radius) this.game.castSlot(i, { x: a.x, z: a.z });
         else {
-          this.game.setAimAngle(a.angle);
+          this.game.setAimAngle(a.angle, true);
           this.game.player.facing = a.angle;
           this.game.player.targetId = this.targetInDirection(a.angle, a.length);
           this.game.castSlot(i);

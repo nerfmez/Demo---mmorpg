@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
-import {createCharacter,derive,allocateJobNode,jobPath,migrateCharacter} from '../../src/core/character.js';
+import {createCharacter,derive,allocateJobNode,jobNodeState,migrateCharacter} from '../../src/core/character.js';
 import {modFits,socketMod,computeSkill,unsocketMod} from '../../src/core/skills.js';
 import {TAGS,modRules,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
 import {clusterNodes} from '../../src/ui/jobview.js';
@@ -28,6 +28,13 @@ test('constellations cover every node and specialist subviews preserve the four 
   assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
  }
  assert.equal(Object.keys(t.nodes).length,87);
+ for(const chapter of t.constellations.filter(c=>c.id!=='specialist')){
+  const ns=Object.values(t.nodes).filter(n=>n.category===chapter.id);
+  for(const tier of [...new Set(ns.map(n=>n.tier).filter(t=>t>1))]){
+   const sample=ns.find(n=>n.tier===tier),lower=ns.filter(n=>n.tier<tier).length;
+   assert.ok(sample.requiresSpent<lower,chapter.id+' tier '+tier+' must leave at least one earlier option skippable');
+  }
+ }
  for(const group of t.groups){const ns=clusterNodes(t,'specialist',group.id);assert.equal(ns.length,7);assert.ok(ns.some(([id])=>id===group.job));}
 });
 test('new small stat nodes spend Job Points only and retain old saved nodes',()=>{
@@ -36,7 +43,7 @@ test('new small stat nodes spend Job Points only and retain old saved nodes',()=
  const base=createCharacter(data);assert.equal(derive(ch,data).maxHp-derive(base,data).maxHp,12);
  const old={...ch,jobNodes:['origin','a1','a2','aj'],jobLevel:8};migrateCharacter(old,data);
  assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,2);
- assert.ok(jobPath(ch,data,'aoe_master').includes('aoe_radius'));
+ assert.equal(data.jobtree.nodes.aoe_master.tier,4);assert.equal(data.jobtree.nodes.aoe_master.requiresSpent,6);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
 });
 test('mod compatibility uses all/any/excludes and explanations expose each rule',()=>{
  const S=data.skills.combat,M=data.mods.mods;

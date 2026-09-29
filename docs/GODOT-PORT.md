@@ -25,7 +25,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `crafting.js` | `Crafting.gd` | Recipes, grade roll, upgrades, drops. |
 | `quests.js` | `Quests.gd` | Journal state lives in `character.progress.quests`. Feed it the same events (kill, collect, craft). |
 | `terrain.js` | Import step only | Builds the heightfield; Godot can load `heightmap.json` instead. |
-| `targeting.js` | `SoftTarget.gd` | Pure function. Call it every physics frame. |
+| `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, stunned, shell, return`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
 | `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges are optional river crossings. |
@@ -53,15 +53,17 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
-ability categories before showing the relevant part of the 87-node, 134-link passive
-network. Specialization has four separate subviews. Keep the actual links in
-`data/jobtree.json`, including cross-category prerequisites; category membership is a
-view, not a new allocation rule. The original 61 node IDs, effects and links are retained.
-The 26 optional additions are 23 small stat nodes and three notables. `requiresJob` gates
-specialist nodes even when another route reaches them. `jobPath()` previews a permitted
-route without spending points. Per-category pan/zoom cameras are view state, never saved
-in the character; version-2 saves are preserved. Use different disc sizes for small and
-major nodes, but keep touch targets at least 44 logical pixels at every supported zoom.
+travel-journal chapters before showing the relevant part of the 87-node passive network.
+Each node in `data/jobtree.json` has `tier` and `requiresSpent`: a later tier unlocks
+when enough Job Points have already been invested in lower tiers of that same chapter.
+This is a stage gate, not an exact path requirement, so players can combine branches
+inside a chapter. Specialization counts the four profession oaths separately and
+`requiresJob` remains authoritative. Links are retained for visual relationships,
+cross-chapter navigation and layout, but they no longer force the exact allocation path
+when tier metadata exists. `jobPath()` is only a non-mutating suggested tier preview.
+Per-category pan/zoom cameras are view state, never saved in the character; version-2
+saves are preserved. Use different disc sizes for small and major nodes, but keep touch
+targets at least 44 logical pixels at every supported zoom.
 
 Rebuild separate Control scenes for combat loadout, modifiers, movement, material
 upgrades and passive paths. A desktop/tablet navigation rail becomes a compact page

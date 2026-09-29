@@ -1,9 +1,10 @@
 # Seeker build workspaces — Travel Journal revision
 
-## Visual review, not production release
+## Current travel-journal build UI
 
-This revision is staged on `codex/seeker-ui-workspaces` (PR #11). Do not merge or
-publish before the owner approves screenshots from the actual game.
+The fullscreen travel-journal passive UI and engraved modifier gems are part of the
+current game UI. Subsequent gameplay changes should preserve the same full-viewport
+paper/ink presentation and touch-first interaction rules.
 
 The passive screen is a full-viewport paper/ink **travel journal**, not a book
 object or floating menu. Its normal sidebar, header/footer frame and persistent
@@ -42,9 +43,19 @@ require completing the source chapter. The overview shows invested points only,
 not a percent-complete meter. Search finds all nodes and opens the correct chapter.
 Portrait overview rearranges the same chapters into two columns, preserving links.
 
-No Zodiac tier-unlock rule was added. Character Stat Points, Job Points, the
-single-profession constraint and town/Gold respec rules remain the game's existing
-rules. Save format stays version 2; previously allocated nodes are never removed.
+### Passive stages
+
+Nodes now have explicit `tier` and `requiresSpent` metadata. Tier I choices can be
+taken immediately; deeper tiers require a configured number of Job Points already
+invested in lower tiers of that same chapter. The requirement counts points, not an
+exact line through the graph, so the player can mix earlier branches and leave most
+nodes untouched. Profession chapters count only the selected profession's oath.
+
+The UI shows the node stage and current/required earlier-stage investment. Existing
+graph links remain visible relationships and cross-chapter navigation; they are not a
+completion checklist. Character Stat Points, Job Points, the single-profession
+constraint and town/Gold respec rules are unchanged. Save format stays version 2 and
+previously allocated nodes remain valid.
 
 ## Mod item art
 
@@ -97,6 +108,6 @@ npm run test:ux
 
 `tests/browser/journal.mjs` captures the new fullscreen overview, a chapter before and after investment, the mod workspace and mod inventory. It checks viewport bounds, no default inspector, partial investment, shared gem art and actual socketing. `tests/core/journal.test.js` protects the graph/effect projection and all fifteen unique engravings.
 
-`tests/browser/workspaces.mjs` uses real controls at 1440x960, 1180x820 touch, 844x390 touch and 390x844 touch. It covers category/branch browsing, inspection versus allocation, search/jump, native skill tags, modifier incompatibility, socketing, movement selection, upgrade-page rendering, clipping and page errors. Screenshots and reports are written under `tests/browser/out/workspaces-<browser>/`. The shared `passive-checks.mjs` also verifies cross-category prerequisites, one-Job restrictions, route navigation without spending, drag/cancel and native Chromium two-finger pinch. Both this suite and the deployment Dreamloop use the shared checks so the live audit stays aligned with the new UI.
+`tests/browser/workspaces.mjs` uses real controls at 1440x960, 1180x820 touch, 844x390 touch and 390x844 touch. It covers chapter browsing, inspection versus allocation, staged point gates, search/jump, native skill tags, modifier incompatibility, socketing, movement selection, upgrade-page rendering, clipping and page errors. Screenshots and reports are written under `tests/browser/out/workspaces-<browser>/`. The shared `passive-checks.mjs` verifies stage locks/unlocks, one-Job restrictions, drag/cancel and native Chromium two-finger pinch. Both this suite and the deployment Dreamloop use the shared checks so the live audit stays aligned with the new UI.
 
 For a runtime without local HTTP browser access, `OFFLINE_UI=1 CHROMIUM_EXECUTABLE=/usr/bin/chromium node tests/browser/workspaces.mjs` bundles the real Game and Panels into an offline harness. This checks the actual UI/core, not the full 3D renderer or hardware FPS. Full-game Chromium/WebKit checks must still run in CI. Fonts stay local/bundled by the existing app; no dependency archive is a user deliverable.

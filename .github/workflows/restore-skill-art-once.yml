@@ -1,0 +1,194 @@
+name: Restore original skill art
+on:
+  push:
+    branches: [codex/seeker-clean-combat-hud]
+    paths: [.github/workflows/restore-skill-art-once.yml]
+permissions:
+  contents: read
+concurrency:
+  group: restore-original-skill-art
+  cancel-in-progress: false
+jobs:
+  restore:
+    if: github.ref == 'refs/heads/codex/seeker-clean-combat-hud'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore original illustrations without changing HUD layout or gameplay
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          base = '4229f7f5c302d6306b96fb33cefc90cfa83d04b1'
+          assert subprocess.check_output(['git','rev-parse','HEAD^'], text=True).strip() == base, 'Concurrent source change; review before applying'
+          def edit(name, old, new):
+              p = Path(name)
+              text = p.read_text()
+              assert text.count(old) == 1, f'{name}: replacement must match exactly once: {old[:60]}'
+              p.write_text(text.replace(old, new))
+          edit('src/ui/input.js', "import { skillSymbol } from './fieldhud.js';", "import { art } from './art.js';\nimport { joystickMarks } from './fieldhud.js';")
+          edit('src/ui/input.js', "skillSymbol('compass')", 'joystickMarks()')
+          edit('src/ui/input.js', "s ? skillSymbol(s.id) : icon('plus')", "s ? art('skill',s.id) : icon('plus')")
+          edit('src/ui/input.js', 'innerHTML = skillSymbol(mv.id);', "innerHTML = art('skill',mv.id);")
+          # Delete the unrequested alternative skill drawings; retain joystick decoration only.
+          p = Path('src/ui/fieldhud.js')
+          text = p.read_text()
+          a, b = text.index('const paths = {'), text.index('export function fieldIcon(name)')
+          text = text[:a] + '''// Navigation decoration only. Skill illustrations come from art.js unchanged.
+          export function joystickMarks() {
+            return svg('<path d="m24 4 3 4h-6zM44 24l-4 3v-6zM24 44l-3-4h6zM4 24l4-3v6z" fill="currentColor" stroke="none"/>');
+          }
+          ''' + text[b:]
+          p.write_text(text.replace("// The field HUD's lightweight symbol language. No generated/raster art or game rules.", '// HUD navigation and stateless presentation. Original skill artwork stays in art.js.'))
+          edit('src/ui/fieldhud.css', 'body.ingame #hud .sbtn .field-symbol {display:contents}', 'body.ingame #hud .sbtn .ic .art {width:100%;height:100%;min-width:0;min-height:0}')
+          # Preserve original painted colours; new sizing is confined to the icon slot.
+          p = Path('src/ui/fieldhud.css')
+          p.write_text(p.read_text() + '\n/* Keep authored skill colours intact; cooldown/disabled state remains on the button. */\nbody.ingame #hud .sbtn .ic .art > svg {filter:none}\n')
+          edit('tests/core/fieldhud.test.js', "import {FIELD_SKILL_IDS, skillSymbol, xpPresentation, trackerMarkup} from '../../src/ui/fieldhud.js';", "import {xpPresentation, trackerMarkup} from '../../src/ui/fieldhud.js';\nimport {art, hasArt} from '../../src/ui/art.js';\nimport {readFileSync} from 'node:fs';")
+          p = Path('tests/core/fieldhud.test.js')
+          text = p.read_text()
+          a, b = text.index("test('field symbols"), text.index("test('field progress")
+          text = text[:a] + '''test('all combat and movement skills retain the original authored illustrations',()=>{
+           for(const id of [...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)]){
+            assert.ok(hasArt('skill',id),id);
+            assert.ok(art('skill',id).includes('data-art="skill/'+id+'"'),id);
+           }
+          });
+          test('HUD uses original skill art rather than replacement glyphs',()=>{
+           const input=readFileSync(new URL('../../src/ui/input.js',import.meta.url),'utf8');
+           assert.ok(input.includes("s ? art('skill',s.id) : icon('plus')"));
+           assert.ok(input.includes("innerHTML = art('skill',mv.id);"));
+           assert.ok(!input.includes('skillSymbol('));
+          });
+          ''' + text[b:]
+          p.write_text(text)
+          edit('tests/browser/fieldhud.mjs', "import assert from 'node:assert/strict';", "import assert from 'node:assert/strict';\nimport {art} from '../../src/ui/art.js';\nimport {data} from '../core/helpers.js';")
+          old = "  assert.equal(await page.locator('.combat [data-field-skill]').count(),5);"
+          new = '''  assert.equal(await page.locator('.combat .art-skill').count(),5);
+            assert.equal(await page.locator('.combat [data-field-skill]').count(),0);
+            const expectedArt=Object.fromEntries([...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)].map(id=>[id,art('skill',id)]));
+            const verifiedArt=await page.evaluate(expected=>{
+              const f=window.__frontier,g=f.game;
+              const saved={slots:g.ch.slots.map(s=>({...s,mods:[...s.mods]})),skills:{...g.ch.skills},movement:g.ch.movement};
+              let checked=0;
+              const check=(button,id)=>{
+                const template=document.createElement('template');template.innerHTML=expected[id];
+                if(button.querySelector('.ic').innerHTML!==template.innerHTML)throw Error('Original artwork mismatch: '+id);
+                const svg=button.querySelector('.art-skill>svg');
+                if(!svg||getComputedStyle(svg).filter!=='none')throw Error('Artwork recoloured: '+id);
+                const r=svg.getBoundingClientRect(),b=button.getBoundingClientRect();
+                if(r.width<16||r.height<16||r.left<b.left||r.top<b.top||r.right>b.right||r.bottom>b.bottom)throw Error('Artwork clipped: '+id);
+                checked++;
+              };
+              try {
+                for(const id of Object.keys(g.data.skills.combat)){
+                  g.ch.slots[0]={skill:id,mods:[]};g.ch.skills[id]=1;g.refresh();f.input.refreshButtons();
+                  check(f.input.buttons[0],id);
+                }
+                for(const id of Object.keys(g.data.skills.movement)){
+                  g.ch.movement=id;g.refresh();f.input.refreshButtons();check(f.input.moveBtn,id);
+                }
+              } finally {
+                g.ch.slots=saved.slots;g.ch.skills=saved.skills;g.ch.movement=saved.movement;g.refresh();f.input.refreshButtons();
+              }
+              return checked;
+            },expectedArt);
+            assert.equal(verifiedArt,Object.keys(expectedArt).length,'all original skill images verified');
+            await settle();'''
+          edit('tests/browser/fieldhud.mjs', old, new)
+          edit('tests/browser/fieldhud.mjs', "source:'full game renderer, real HUD',controls:5", "source:'full game renderer, real HUD',controls:5,originalSkillImages:verifiedArt")
+          edit('docs/COMBAT-HUD.md', 'white/cyan skill\nsymbols', 'original full-colour skill\nillustrations')
+          p = Path('docs/COMBAT-HUD.md')
+          p.write_text(p.read_text() + '''\n### Original skill artwork restored before merge
+          Combat and movement buttons call the existing art('skill', id) renderer, the same
+          illustrations used in skill menus. The alternate field-skill glyphs are removed.
+          The new HUD layout, control sizes, button frames and functionality remain unchanged.
+          Only modifier item art uses the approved engraved-gem treatment. No skill art, gem
+          art, core rule, gameplay VFX, model or save file is rewritten by this restoration.
+          The HUD browser suite checks every combat/movement illustration against art.js at
+          all four viewports and checks that no icon recolouring filter or clipping is added.
+          ''')
+          edit('docs/GODOT-PORT.md', 'SVG skill/menu symbols plus XP/quest presentation; do not import an entire concept image.', "menu/joystick symbols plus XP/quest presentation. Combat and movement buttons reuse\nthe unchanged full-colour illustrations from ui/art.js; do not replace them with glyphs\nor import an entire concept image. Modifier items keep the engraved gems separately.")
+          expected={'src/ui/input.js','src/ui/fieldhud.js','src/ui/fieldhud.css','tests/core/fieldhud.test.js','tests/browser/fieldhud.mjs','docs/COMBAT-HUD.md','docs/GODOT-PORT.md'}
+          changed=set(subprocess.check_output(['git','diff','--name-only'], text=True).splitlines())
+          assert changed==expected, changed
+          subprocess.run(['git','diff','--exit-code',base,'--','src/core','src/render','data','src/ui/art.js','src/ui/gemart.js'], check=True)
+          print('Restored original skill images; gameplay, VFX and engraved mod gems unchanged.')
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Commit restored source to PR branch only
+        id: commit
+        run: |
+          git rm .github/workflows/restore-skill-art-once.yml
+          git add src/ui/input.js src/ui/fieldhud.js src/ui/fieldhud.css tests/core/fieldhud.test.js tests/browser/fieldhud.mjs docs/COMBAT-HUD.md docs/GODOT-PORT.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: restore original combat and movement skill artwork in new HUD'
+          git push origin HEAD:refs/heads/codex/seeker-clean-combat-hud
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git archive --format=tar.gz -o /tmp/restored-hud-source.tgz HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: restored-hud-source
+          path: /tmp/restored-hud-source.tgz
+          retention-days: 2
+  verify:
+    needs: restore
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+        suite: [hud, legacy, workspaces]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.restore.outputs.commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Restored artwork and real HUD
+        if: matrix.suite == 'hud'
+        run: node tests/browser/fieldhud.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - name: Gameplay and touch regression
+        if: matrix.suite == 'legacy'
+        run: |
+          npm run test:browser
+          npm run test:ux
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - name: Passive journal and build workspaces
+        if: matrix.suite == 'workspaces'
+        run: |
+          node tests/browser/journal.mjs
+          node tests/browser/workspaces.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: restored-skill-art-${{ matrix.browser }}-${{ matrix.suite }}
+          path: tests/browser/out/
+          if-no-files-found: ignore
+          retention-days: 7

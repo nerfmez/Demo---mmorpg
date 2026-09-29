@@ -43,3 +43,11 @@ non-overlap, opens skills/map/fullscreen passive journal, and exercises empty sl
 cooldown and insufficient-MP visuals. Review fixtures use never-saved `?fresh=1` sessions.
 Screenshots under `tests/browser/out/fieldhud-*` are real rendered game captures.
 Browser touch emulation is not a physical iPad or a device-FPS measurement.
+
+### Empty-slot navigation and touch click-through
+Opening an empty combat slot is committed on the native click after a valid tap,
+not on pointerup. Otherwise the newly opened menu can receive the same touch's
+compatibility click and select the wrong loadout slot on a short landscape screen.
+Combat casts still execute on release; drag/cancel never opens the menu. Keyboard
+activation remains supported. Both the focused HUD check and the legacy UX suite
+assert the exact selected fourth slot after a real tap.

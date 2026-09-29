@@ -229,7 +229,9 @@ export class Input {
 
   bindSkillButton(b, i) {
     let start = null;
+    let configureOnClick = false;
     const clear = () => {
+      configureOnClick = false;
       const id = start?.id;
       start = null;
       this.held.delete(0);
@@ -279,9 +281,16 @@ export class Input {
           this.game.castSlot(i);
         }
         this.pressFx(b);
-      } else {
-        if (!this.game.skills[i]) this.ui.configureSkill?.(i);
-        else this.castSlot(i, true);
+      } else if (!start.dragging) {
+        if (!this.game.skills[i]) {
+          // Opening on pointerup hides this button before the browser dispatches
+          // its compatibility click, which can hit a different loadout slot.
+          // Navigation opens on that click; combat still fires on release.
+          clear();
+          configureOnClick = true;
+          return;
+        }
+        this.castSlot(i, true);
       }
       clear();
     };
@@ -289,9 +298,13 @@ export class Input {
     b.addEventListener('pointercancel', end);
     b.addEventListener('lostpointercapture', end);
     b.addEventListener('click', (e) => {
-      if (e.detail !== 0) return;
+      const configure = configureOnClick;
+      configureOnClick = false;
+      if (e.detail !== 0 && !configure) return;
+      e.preventDefault();
+      e.stopPropagation();
       if (!this.game.skills[i]) this.ui.configureSkill?.(i);
-      else this.castSlot(i, true);
+      else if (e.detail === 0) this.castSlot(i, true);
     });
   }
 

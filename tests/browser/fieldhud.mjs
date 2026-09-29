@@ -66,7 +66,9 @@ try {
   assert.match(await page.locator('.pframe .mp span').innerText(),/MP\s+0\s*\//);
   await page.screenshot({path:out+size+'-cooldowns.png',timeout:60000});
   await page.evaluate(()=>{const f=window.__frontier;f.game.ch.slots[3]={skill:null,mods:[]};f.game.refresh();f.input.refreshButtons();});
-  await activate('.sbtn.s3');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');await activate('.panel-close');
+  await activate('.sbtn.s3');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');
+  assert.equal(await page.locator('.loadout-slot.on').getAttribute('data-slot'),'3','empty-slot tap must not click through to a different loadout slot');
+  await activate('.panel-close');
   assert.deepEqual(errors,[],size+' page errors');reports.push({size,width,height,touch,ok:true,modelsReady:true,source:'full game renderer, real HUD',controls:5});
   writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS field HUD '+name+' '+size);await ctx.close();
  }

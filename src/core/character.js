@@ -132,21 +132,50 @@ export function meetsRequires(ch, requires = {}) {
 
 // ---------- Job Tree ----------
 
+export function jobTierProgress(ch, data, nodeId) {
+  const tree = data.jobtree;
+  const node = tree.nodes[nodeId];
+  if (!node) return { tier: 0, requires: 0, spent: 0, scope: [] };
+  const tier = node.tier || 0;
+  const requires = node.requiresSpent || 0;
+  if (!tier) return { tier, requires, spent: 0, scope: [] };
+  // Profession pages contain four independent choices; count only the selected branch.
+  const sameScope = ([, n]) =>
+    n.category === node.category &&
+    (node.category !== 'specialist' || n.group === node.group);
+  const scope = Object.entries(tree.nodes).filter(sameScope);
+  const spent = scope.filter(([id, n]) => n.tier < tier && ch.jobNodes.includes(id)).length;
+  return { tier, requires, spent, scope: scope.map(([id]) => id) };
+}
+
 export function jobNodeState(ch, data, nodeId) {
   const tree = data.jobtree;
   const node = tree.nodes[nodeId];
   if (!node) return { can: false, reason: 'unknown' };
   if (ch.jobNodes.includes(nodeId)) return { can: false, taken: true, reason: 'taken' };
-  const linked = node.links.some((l) => ch.jobNodes.includes(l));
-  if (!linked) return { can: false, reason: 'not_linked' };
-  if (node.requiresJob && currentJob(ch, data)?.branch !== node.requiresJob) return { can: false, reason: 'requires_job', need: node.requiresJob };
-  if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
+
+  if (node.requiresJob && currentJob(ch, data)?.branch !== node.requiresJob)
+    return { can: false, reason: 'requires_job', need: node.requiresJob };
+
   if (node.type === 'job') {
-    if (ch.jobLevel < data.progression.job.jobChoiceLevel) return { can: false, reason: 'job_level', need: data.progression.job.jobChoiceLevel };
+    if (ch.jobLevel < data.progression.job.jobChoiceLevel)
+      return { can: false, reason: 'job_level', need: data.progression.job.jobChoiceLevel };
     const other = ch.jobNodes.find((n) => tree.nodes[n].type === 'job');
     if (other) return { can: false, reason: 'one_job', other };
   }
-  return { can: true };
+
+  const tier = jobTierProgress(ch, data, nodeId);
+  if (tier.tier && tier.spent < tier.requires)
+    return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
+
+  // Old data without tier metadata still follows the original connected-graph rule.
+  if (!tier.tier) {
+    const linked = node.links.some((l) => ch.jobNodes.includes(l));
+    if (!linked) return { can: false, reason: 'not_linked' };
+  }
+
+  if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
+  return { can: true, tier: tier.tier, have: tier.spent, need: tier.requires };
 }
 
 export function allocateJobNode(ch, data, nodeId) {
@@ -157,27 +186,47 @@ export function allocateJobNode(ch, data, nodeId) {
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
 }
 
-/** Shortest permitted preview route from the learned network; never spends points. */
+/**
+ * Suggested tier route for UI preview. It never mutates the real character.
+ * Tiers are gates, not exclusive branches: the helper picks any currently
+ * available lower-tier notes until the target's requirement is satisfied.
+ */
 export function jobPath(ch, data, target) {
   const { nodes } = data.jobtree;
-  if (!nodes[target]) return [];
-  const job = currentJob(ch, data)?.branch;
-  const queue = ch.jobNodes.filter(id => nodes[id]).map(id => [id]);
-  const seen = new Set(ch.jobNodes);
-  while (queue.length) {
-    const path = queue.shift(), last = path.at(-1);
-    if (last === target) return path;
-    for (const id of nodes[last].links) {
-      if (seen.has(id)) continue;
-      const n = nodes[id];
-      const routeJob = job || path.map(k => nodes[k]).find(n => n.type === 'job')?.branch;
-      if (n.type === 'job' && ((routeJob && routeJob !== n.branch) || ch.jobLevel < data.progression.job.jobChoiceLevel)) continue;
-      if (n.requiresJob && n.requiresJob !== routeJob) continue;
-      seen.add(id);
-      queue.push([...path, id]);
-    }
+  const wanted = nodes[target];
+  if (!wanted) return [];
+  if (ch.jobNodes.includes(target)) return [target];
+
+  const chosenJob = currentJob(ch, data)?.branch;
+  if (wanted.requiresJob && wanted.requiresJob !== chosenJob) return [];
+  if (wanted.type === 'job') {
+    if (ch.jobLevel < data.progression.job.jobChoiceLevel) return [];
+    const other = ch.jobNodes.find((id) => nodes[id].type === 'job');
+    if (other && other !== target) return [];
   }
-  return [];
+
+  const sim = { ...ch, jobNodes: [...ch.jobNodes], jobPoints: 9999 };
+  const path = [];
+  const sameScope = (n) =>
+    n.category === wanted.category &&
+    (wanted.category !== 'specialist' || n.group === wanted.group);
+
+  const candidates = Object.entries(nodes)
+    .filter(([id, n]) => id !== target && !sim.jobNodes.includes(id) && sameScope(n) && (n.tier || 0) < (wanted.tier || 0))
+    .sort(([a, x], [b, y]) => (x.tier || 0) - (y.tier || 0) || a.localeCompare(b));
+
+  let guard = 0;
+  while (jobNodeState(sim, data, target).reason === 'tier_points' && guard++ < nodes.length) {
+    const next = candidates.find(([id]) => jobNodeState(sim, data, id).can);
+    if (!next) return [];
+    const [id] = next;
+    allocateJobNode(sim, data, id);
+    path.push(id);
+    const at = candidates.findIndex(([candidate]) => candidate === id);
+    if (at >= 0) candidates.splice(at, 1);
+  }
+
+  return jobNodeState(sim, data, target).can ? [...path, target] : [];
 }
 
 export function currentJob(ch, data) {

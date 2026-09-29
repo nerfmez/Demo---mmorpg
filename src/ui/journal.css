@@ -75,6 +75,13 @@
 .panel .journal-dismiss {position:absolute;right:8px;top:5px;width:40px;height:40px;font:24px/1 sans-serif;border:0;background:transparent;color:#6f826c;box-shadow:none;cursor:pointer}
 .journal-inspector .seeker-route {margin-top:12px;gap:8px}
 .journal-inspector .seeker-crosslinks {font-size:11px;line-height:1.7;margin-top:14px}
+.journal-tier-guide {overflow:visible}
+.journal-tier-guide .journal-tier-label {fill:#7a8476;font:600 15px 'Mitr',sans-serif;letter-spacing:1.8px;text-anchor:middle}
+.journal-tier-guide .journal-tier-separator {stroke:#83908155;stroke-width:1.5;stroke-dasharray:5 9}
+.journal-screen .seeker-node-caption .node-tier {font-size:9px;color:var(--chapter-ink);font-weight:600;letter-spacing:.7px;margin-top:1px}
+.journal-tier-status {display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 4px;padding:8px 10px;border:1px solid #9ba78c55;background:#eee8d977;border-radius:4px}
+.journal-tier-status b {font-size:13px;color:var(--chapter-ink)}
+.journal-tier-status span {font-size:11px;color:#718074;text-align:right}
 .journal-oaths {padding:7px 20px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #8e96793a}
 .journal-oaths .btn {background:#f5f0e3;border-color:#9ca78c;color:#65765f}
 .journal-oaths small {font-size:11px;color:#89917e}

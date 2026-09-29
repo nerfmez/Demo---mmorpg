@@ -2,94 +2,2440 @@
   "_doc": "Travel-journal chapters: thematic, mixed-effect partial-investment networks. Legacy category IDs are internal only. Node IDs, effects, costs and every original link remain unchanged for v2 saves. A chapter is a view, never a purchasable bonus or a completion gate.",
   "origin": "origin",
   "nodes": {
-    "origin": {"name": "Wanderer", "nameTh": "นักเดินทาง", "type": "origin", "pos": [50, 50], "links": ["v1", "a1", "r1", "w1", "f_hp"], "effects": {}, "group": "origin", "category": "foundation", "clusterPos": [210, 300]},
-    "v1": {"name": "Blade Practice", "nameTh": "ฝึกดาบ", "type": "minor", "pos": [41.51, 41.51], "links": ["origin", "v2", "va1", "rv2", "m_atk"], "effects": {"meleeDamagePct": 8}, "group": "vanguard", "category": "melee", "clusterPos": [215, 290]},
-    "v2": {"name": "Tough Body", "nameTh": "ร่างกายแกร่ง", "type": "minor", "pos": [33.74, 33.74], "links": ["v1", "vj", "v5", "v6"], "effects": {"maxHpPct": 10}, "group": "vanguard", "category": "melee", "clusterPos": [495, 290]},
-    "vj": {"name": "Vanguard", "nameTh": "แวนการ์ด", "type": "job", "branch": "vanguard", "pos": [25.96, 25.96], "links": ["v2", "v3", "v4", "v5", "v6", "v7", "v8"], "effects": {"barrierPct": 20, "meleeHitBarrier": 3}, "descTh": "สายประชิด/แท็งก์: เกราะเวทแรงขึ้น ตีประชิดโดนแล้วได้เกราะ", "group": "vanguard", "category": "specialist", "clusterPos": [220, 310]},
-    "v3": {"name": "Iron Hide", "nameTh": "หนังเหล็ก", "type": "notable", "pos": [14.86, 28.88], "links": ["vj", "v7", "v9"], "effects": {"defense": 12, "damageTakenPct": -5}, "group": "vanguard", "requiresJob": "vanguard", "category": "specialist", "clusterPos": [485, 160]},
-    "v4": {"name": "Cleave", "nameTh": "ผ่าซ้ำ", "type": "notable", "pos": [28.88, 14.86], "links": ["vj", "v8", "v10"], "effects": {"meleeDamagePct": 15, "meleeArcAdd": 30}, "group": "vanguard", "requiresJob": "vanguard", "category": "specialist", "clusterPos": [485, 465]},
-    "a1": {"name": "Arcane Study", "nameTh": "ศึกษาเวท", "type": "minor", "pos": [58.49, 41.51], "links": ["origin", "a2", "va2", "aw1", "aoe_radius", "cc_time"], "effects": {"spellDamagePct": 8}, "group": "arcanist", "category": "area", "clusterPos": [200, 310]},
-    "a2": {"name": "Deep Well", "nameTh": "บ่อมานา", "type": "minor", "pos": [66.26, 33.74], "links": ["a1", "aj", "a5", "a6"], "effects": {"maxMpPct": 12}, "group": "arcanist", "category": "area", "clusterPos": [440, 170]},
-    "aj": {"name": "Arcanist", "nameTh": "อาร์คานิสต์", "type": "job", "branch": "arcanist", "pos": [74.04, 25.96], "links": ["a2", "a3", "a4", "a5", "a6", "a7", "a8"], "effects": {"areaRadiusPct": 20, "areaDamagePct": 10}, "descTh": "สายเวทวงกว้าง: รัศมีและดาเมจวงกว้างเพิ่ม", "group": "arcanist", "category": "specialist", "clusterPos": [220, 310]},
-    "a3": {"name": "Echoing Mind", "nameTh": "จิตสะท้อน", "type": "notable", "pos": [71.12, 14.86], "links": ["aj", "a7", "a9"], "effects": {"echoDamagePct": 30}, "group": "arcanist", "requiresJob": "arcanist", "category": "specialist", "clusterPos": [485, 160]},
-    "a4": {"name": "Mana Flow", "nameTh": "ธารมานา", "type": "notable", "pos": [85.14, 28.88], "links": ["aj", "a8", "a10"], "effects": {"mpRegenPct": 50, "cooldownPct": 6}, "group": "arcanist", "requiresJob": "arcanist", "category": "specialist", "clusterPos": [485, 465]},
-    "r1": {"name": "Steady Aim", "nameTh": "เล็งนิ่ง", "type": "minor", "pos": [41.51, 58.49], "links": ["origin", "r2", "wr2", "rv1", "p_speed"], "effects": {"projectileDamagePct": 8}, "group": "ranger", "category": "projectile", "clusterPos": [195, 315]},
-    "r2": {"name": "Light Feet", "nameTh": "เท้าเบา", "type": "minor", "pos": [33.74, 66.26], "links": ["r1", "rj", "r5", "r6", "mov_speed"], "effects": {"moveSpeedPct": 5}, "group": "ranger", "category": "projectile", "clusterPos": [440, 315]},
-    "rj": {"name": "Ranger", "nameTh": "เรนเจอร์", "type": "job", "branch": "ranger", "pos": [25.96, 74.04], "links": ["r2", "r3", "r4", "r5", "r6", "r7", "r8"], "effects": {"extraMovementCharges": 1, "projectileSpeedPct": 20}, "descTh": "สายกระสุน/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1", "group": "ranger", "category": "specialist", "clusterPos": [220, 310]},
-    "r3": {"name": "Keen Eye", "nameTh": "ตาคม", "type": "notable", "pos": [28.88, 85.14], "links": ["rj", "r7", "r9"], "effects": {"critChancePct": 10}, "group": "ranger", "requiresJob": "ranger", "category": "specialist", "clusterPos": [485, 160]},
-    "r4": {"name": "Swift Draw", "nameTh": "ชักไว", "type": "notable", "pos": [14.86, 71.12], "links": ["rj", "r8", "r10"], "effects": {"projectileDamagePct": 12, "cooldownPct": 8}, "group": "ranger", "requiresJob": "ranger", "category": "specialist", "clusterPos": [485, 465]},
-    "w1": {"name": "Mending", "nameTh": "เยียวยา", "type": "minor", "pos": [58.49, 58.49], "links": ["origin", "w2", "aw2", "wr1", "sup_hp"], "effects": {"healPct": 10}, "group": "warden", "category": "support", "clusterPos": [185, 300]},
-    "w2": {"name": "Shelter", "nameTh": "ที่พักพิง", "type": "minor", "pos": [66.26, 66.26], "links": ["w1", "wj", "w5", "w6"], "effects": {"barrierPct": 10}, "group": "warden", "category": "support", "clusterPos": [430, 300]},
-    "wj": {"name": "Warden", "nameTh": "วอร์เดน", "type": "job", "branch": "warden", "pos": [74.04, 74.04], "links": ["w2", "w3", "w4", "w5", "w6", "w7", "w8"], "effects": {"healGrantsBarrierPct": 40, "healPct": 10}, "descTh": "สายซัพพอร์ต: ฮีลแล้วให้เกราะเวทด้วย เหมาะกับปาร์ตี้", "group": "warden", "category": "specialist", "clusterPos": [220, 310]},
-    "w3": {"name": "Aegis Aura", "nameTh": "ออร่าปกป้อง", "type": "notable", "pos": [85.14, 71.12], "links": ["wj", "w7", "w9"], "effects": {"damageTakenPct": -10}, "group": "warden", "requiresJob": "warden", "category": "specialist", "clusterPos": [485, 160]},
-    "w4": {"name": "Renewal", "nameTh": "ฟื้นคืน", "type": "notable", "pos": [71.12, 85.14], "links": ["wj", "w8", "w10"], "effects": {"hpRegen": 2.5}, "group": "warden", "requiresJob": "warden", "category": "specialist", "clusterPos": [485, 465]},
-    "v5": {"name": "Measured Strike", "nameTh": "จังหวะฟัน", "type": "minor", "links": ["v2", "v6", "vj", "rv4"], "effects": {"meleeArcAdd": 12}, "pos": [24.23, 39.06], "group": "vanguard", "category": "melee", "clusterPos": [760, 170]},
-    "v6": {"name": "Field Medicine", "nameTh": "ปฐมพยาบาล", "type": "minor", "links": ["v2", "v5", "vj", "va4"], "effects": {"hpRegen": 0.5, "healPct": 5}, "pos": [39.06, 24.23], "group": "vanguard", "category": "melee", "clusterPos": [760, 415]},
-    "v7": {"name": "Bulwark", "nameTh": "ป้อมปราการ", "type": "minor", "links": ["vj", "v3", "v9"], "effects": {"barrierPct": 15, "defense": 6}, "pos": [8.88, 37.43], "group": "vanguard", "requiresJob": "vanguard", "category": "specialist", "clusterPos": [735, 160]},
-    "v8": {"name": "Siphoning Edge", "nameTh": "คมดาบดูดชีวิต", "type": "minor", "links": ["vj", "v4", "v10"], "effects": {"leechPct": 2}, "pos": [37.43, 8.88], "group": "vanguard", "requiresJob": "vanguard", "category": "specialist", "clusterPos": [735, 465]},
-    "v9": {"name": "Unbroken Line", "nameTh": "แนวรบมั่นคง", "type": "notable", "links": ["v7", "v10", "v3"], "effects": {"meleeHitBarrier": 2, "maxHpPct": 8}, "pos": [7.72, 21.48], "group": "vanguard", "requiresJob": "vanguard", "category": "specialist", "clusterPos": [1045, 175]},
-    "v10": {"name": "Wide Reprisal", "nameTh": "สวนกลับกวาดกว้าง", "type": "notable", "links": ["v8", "v9", "v4"], "effects": {"meleeArcAdd": 20, "areaDamagePct": 8}, "pos": [21.48, 7.72], "group": "vanguard", "requiresJob": "vanguard", "category": "specialist", "clusterPos": [1045, 455]},
-    "a5": {"name": "Spell Reach", "nameTh": "ขอบเขตเวท", "type": "minor", "links": ["a2", "a6", "aj", "va4"], "effects": {"areaRadiusPct": 8}, "pos": [60.94, 24.23], "group": "arcanist", "category": "area", "clusterPos": [700, 145]},
-    "a6": {"name": "Channel Memory", "nameTh": "ความทรงจำมานา", "type": "minor", "links": ["a2", "a5", "aj", "aw4"], "effects": {"mpRegenPct": 15}, "pos": [75.77, 39.06], "group": "arcanist", "category": "area", "clusterPos": [685, 325]},
-    "a7": {"name": "Living Conduit", "nameTh": "สื่อพลังชีวิต", "type": "minor", "links": ["aj", "a3", "a9"], "effects": {"summonDamagePct": 12, "maxMpPct": 6}, "pos": [62.57, 8.88], "group": "arcanist", "requiresJob": "arcanist", "category": "specialist", "clusterPos": [735, 160]},
-    "a8": {"name": "Afterimage", "nameTh": "เวทตกค้าง", "type": "minor", "links": ["aj", "a4", "a10"], "effects": {"echoDamagePct": 15}, "pos": [91.12, 37.43], "group": "arcanist", "requiresJob": "arcanist", "category": "specialist", "clusterPos": [735, 465]},
-    "a9": {"name": "Resonant Field", "nameTh": "สนามสะท้อน", "type": "notable", "links": ["a7", "a10", "a3"], "effects": {"areaRadiusPct": 12, "echoDamagePct": 10}, "pos": [78.52, 7.72], "group": "arcanist", "requiresJob": "arcanist", "category": "specialist", "clusterPos": [1045, 175]},
-    "a10": {"name": "Arcane Reservoir", "nameTh": "คลังพลังเวท", "type": "notable", "links": ["a8", "a9", "a4"], "effects": {"maxMpPct": 15, "cooldownPct": 4}, "pos": [92.28, 21.48], "group": "arcanist", "requiresJob": "arcanist", "category": "specialist", "clusterPos": [1045, 455]},
-    "w5": {"name": "Spirit Pact", "nameTh": "สัญญาวิญญาณ", "type": "minor", "links": ["w2", "w6", "wj", "aw4", "sum_mp"], "effects": {"summonDamagePct": 10}, "pos": [75.77, 60.94], "group": "warden", "category": "support", "clusterPos": [695, 170]},
-    "w6": {"name": "Shared Shelter", "nameTh": "ร่มเงาร่วม", "type": "minor", "links": ["w2", "w5", "wj", "wr4"], "effects": {"barrierPct": 8, "areaRadiusPct": 6}, "pos": [60.94, 75.77], "group": "warden", "category": "support", "clusterPos": [690, 435]},
-    "w7": {"name": "Lifewell", "nameTh": "ธารหล่อเลี้ยง", "type": "minor", "links": ["wj", "w3", "w9"], "effects": {"healPct": 12, "hpRegen": 0.6}, "pos": [91.12, 62.57], "group": "warden", "requiresJob": "warden", "category": "specialist", "clusterPos": [735, 160]},
-    "w8": {"name": "Companion Keeper", "nameTh": "ผู้ดูแลสหาย", "type": "minor", "links": ["wj", "w4", "w10"], "effects": {"summonDamagePct": 18}, "pos": [62.57, 91.12], "group": "warden", "requiresJob": "warden", "category": "specialist", "clusterPos": [735, 465]},
-    "w9": {"name": "Sanctuary", "nameTh": "เขตคุ้มครอง", "type": "notable", "links": ["w7", "w10", "w3"], "effects": {"healGrantsBarrierPct": 20, "areaRadiusPct": 10}, "pos": [92.28, 78.52], "group": "warden", "requiresJob": "warden", "category": "specialist", "clusterPos": [1045, 175]},
-    "w10": {"name": "Evergreen", "nameTh": "ชีพพฤกษา", "type": "notable", "links": ["w8", "w9", "w4"], "effects": {"hpRegen": 1.2, "maxHpPct": 10}, "pos": [78.52, 92.28], "group": "warden", "requiresJob": "warden", "category": "specialist", "clusterPos": [1045, 455]},
-    "r5": {"name": "Windborne", "nameTh": "ลู่ลม", "type": "minor", "links": ["r2", "r6", "rj", "wr4"], "effects": {"projectileSpeedPct": 12}, "pos": [39.06, 75.77], "group": "ranger", "category": "projectile", "clusterPos": [710, 160]},
-    "r6": {"name": "Venom Tip", "nameTh": "ปลายพิษ", "type": "minor", "links": ["r2", "r5", "rj", "rv4", "dot_power"], "effects": {"poisonChancePct": 10}, "pos": [24.23, 60.94], "group": "ranger", "category": "projectile", "clusterPos": [710, 360]},
-    "r7": {"name": "Predator Bond", "nameTh": "พันธะนักล่า", "type": "minor", "links": ["rj", "r3", "r9"], "effects": {"summonDamagePct": 12, "moveSpeedPct": 3}, "pos": [37.43, 91.12], "group": "ranger", "requiresJob": "ranger", "category": "specialist", "clusterPos": [735, 160]},
-    "r8": {"name": "Quick Recovery", "nameTh": "คืนจังหวะ", "type": "minor", "links": ["rj", "r4", "r10"], "effects": {"cooldownPct": 4}, "pos": [8.88, 62.57], "group": "ranger", "requiresJob": "ranger", "category": "specialist", "clusterPos": [735, 465]},
-    "r9": {"name": "Gale Step", "nameTh": "ก้าววายุ", "type": "notable", "links": ["r7", "r10", "r3"], "effects": {"extraMovementCharges": 1, "moveSpeedPct": 3}, "pos": [21.48, 92.28], "group": "ranger", "requiresJob": "ranger", "category": "specialist", "clusterPos": [1045, 175]},
-    "r10": {"name": "Serrated Volley", "nameTh": "ศรบาดลึก", "type": "notable", "links": ["r8", "r9", "r4"], "effects": {"poisonChancePct": 15, "projectileDamagePct": 8}, "pos": [7.72, 78.52], "group": "ranger", "requiresJob": "ranger", "category": "specialist", "clusterPos": [1045, 455]},
-    "va1": {"name": "Martial Focus", "nameTh": "สมาธินักรบ", "type": "minor", "group": "hybrid", "pos": [45.06, 34.78], "links": ["v1", "va2", "va3"], "effects": {"meleeDamagePct": 4, "maxMpPct": 5}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "control", "clusterPos": [235, 165]},
-    "va2": {"name": "Runic Edge", "nameTh": "คมอักขระ", "type": "minor", "group": "hybrid", "pos": [54.94, 34.78], "links": ["a1", "va1", "va3"], "effects": {"spellDamagePct": 4, "defense": 3}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "control", "clusterPos": [235, 425]},
-    "va3": {"name": "Spellblade", "nameTh": "ดาบผสานเวท", "type": "notable", "group": "hybrid", "pos": [50.0, 23.0], "links": ["va1", "va2", "va4"], "effects": {"meleeDamagePct": 6, "spellDamagePct": 6}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "control", "clusterPos": [540, 285]},
-    "va4": {"name": "Battle Rhythm", "nameTh": "จังหวะประสาน", "type": "notable", "group": "hybrid", "pos": [50.0, 12.0], "links": ["va3", "v6", "a5"], "effects": {"cooldownPct": 3, "mpRegenPct": 12}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "control", "clusterPos": [845, 190]},
-    "aw1": {"name": "Spirit Thread", "nameTh": "สายใยวิญญาณ", "type": "minor", "group": "hybrid", "pos": [65.22, 45.06], "links": ["a1", "aw2", "aw3"], "effects": {"summonDamagePct": 6}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "summon", "clusterPos": [300, 180]},
-    "aw2": {"name": "Kindled Life", "nameTh": "จุดประกายชีวิต", "type": "minor", "group": "hybrid", "pos": [65.22, 54.94], "links": ["w1", "aw1", "aw3"], "effects": {"healPct": 6}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "summon", "clusterPos": [300, 450]},
-    "aw3": {"name": "Ritual Circle", "nameTh": "วงพิธี", "type": "notable", "group": "hybrid", "pos": [77.0, 50.0], "links": ["aw1", "aw2", "aw4"], "effects": {"areaRadiusPct": 8, "summonDamagePct": 6}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "summon", "clusterPos": [635, 315]},
-    "aw4": {"name": "Life Exchange", "nameTh": "แลกเปลี่ยนชีวิต", "type": "notable", "group": "hybrid", "pos": [88.0, 50.0], "links": ["aw3", "a6", "w5"], "effects": {"healPct": 8, "maxMpPct": 6}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "summon", "clusterPos": [960, 315]},
-    "wr1": {"name": "Wild Companion", "nameTh": "เพื่อนแห่งพงไพร", "type": "minor", "group": "hybrid", "pos": [54.94, 65.22], "links": ["w1", "wr2", "wr3"], "effects": {"summonDamagePct": 6, "maxHpPct": 4}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "lasting", "clusterPos": [220, 170]},
-    "wr2": {"name": "Herbalist", "nameTh": "วิชาสมุนไพร", "type": "minor", "group": "hybrid", "pos": [45.06, 65.22], "links": ["r1", "wr1", "wr3"], "effects": {"healPct": 6, "poisonChancePct": 5}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "lasting", "clusterPos": [220, 440]},
-    "wr3": {"name": "Wild Bond", "nameTh": "พันธะพงไพร", "type": "notable", "group": "hybrid", "pos": [50.0, 77.0], "links": ["wr1", "wr2", "wr4"], "effects": {"summonDamagePct": 8, "moveSpeedPct": 3}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "lasting", "clusterPos": [470, 315]},
-    "wr4": {"name": "Green Venom", "nameTh": "พิษพฤกษา", "type": "notable", "group": "hybrid", "pos": [50.0, 88.0], "links": ["wr3", "w6", "r5"], "effects": {"poisonChancePct": 10, "areaDamagePct": 5}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "lasting", "clusterPos": [710, 315]},
-    "rv1": {"name": "Skirmisher", "nameTh": "นักรบคล่องตัว", "type": "minor", "group": "hybrid", "pos": [34.78, 54.94], "links": ["r1", "rv2", "rv3"], "effects": {"moveSpeedPct": 3, "meleeDamagePct": 4}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "mobility", "clusterPos": [260, 180]},
-    "rv2": {"name": "Sure Footing", "nameTh": "ยืนหยัด", "type": "minor", "group": "hybrid", "pos": [34.78, 45.06], "links": ["v1", "rv1", "rv3"], "effects": {"maxHpPct": 5, "projectileDamagePct": 4}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "mobility", "clusterPos": [260, 445]},
-    "rv3": {"name": "Crossfire", "nameTh": "ประสานอาวุธ", "type": "notable", "group": "hybrid", "pos": [23.0, 50.0], "links": ["rv1", "rv2", "rv4"], "effects": {"projectileDamagePct": 6, "meleeDamagePct": 6}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "mobility", "clusterPos": [620, 310]},
-    "rv4": {"name": "Second Wind", "nameTh": "ลมหายใจที่สอง", "type": "notable", "group": "hybrid", "pos": [12.0, 50.0], "links": ["rv3", "r6", "v5"], "effects": {"hpRegen": 0.6, "cooldownPct": 3}, "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ", "category": "mobility", "clusterPos": [970, 310]},
-    "f_hp": {"name": "F Hp", "nameTh": "พื้นฐานชีวิต", "type": "minor", "group": "hybrid", "category": "foundation", "effects": {"maxHp": 12}, "links": ["origin", "f_mp", "f_def"], "pos": [62, 26], "clusterPos": [435, 300]},
-    "f_mp": {"name": "F Mp", "nameTh": "สำรองมานา", "type": "minor", "group": "hybrid", "category": "foundation", "effects": {"maxMp": 8}, "links": ["f_hp", "f_mag"], "pos": [80, 26], "clusterPos": [695, 180]},
-    "f_def": {"name": "F Def", "nameTh": "เกราะเบื้องต้น", "type": "minor", "group": "hybrid", "category": "foundation", "effects": {"defense": 2}, "links": ["f_hp", "f_atk"], "pos": [8, 43], "clusterPos": [695, 420]},
-    "f_atk": {"name": "F Atk", "nameTh": "ฝึกอาวุธ", "type": "minor", "group": "hybrid", "category": "foundation", "effects": {"attack": 2}, "links": ["f_def"], "pos": [26, 43], "clusterPos": [995, 420]},
-    "f_mag": {"name": "F Mag", "nameTh": "ฝึกเวท", "type": "minor", "group": "hybrid", "category": "foundation", "effects": {"magic": 2}, "links": ["f_mp"], "pos": [44, 43], "clusterPos": [995, 180]},
-    "m_atk": {"name": "M Atk", "nameTh": "แรงฟัน", "type": "minor", "group": "hybrid", "category": "melee", "effects": {"attack": 2}, "links": ["v1", "m_leech"], "pos": [26, 26], "clusterPos": [460, 525]},
-    "m_leech": {"name": "M Leech", "nameTh": "ซึมซับชีวิต", "type": "minor", "group": "hybrid", "category": "melee", "effects": {"leechPct": 1}, "links": ["m_atk"], "pos": [44, 26], "clusterPos": [735, 545]},
-    "p_speed": {"name": "P Speed", "nameTh": "ลูกศรเบา", "type": "minor", "group": "hybrid", "category": "projectile", "effects": {"projectileSpeedPct": 5}, "links": ["r1", "p_dmg"], "pos": [62, 9], "clusterPos": [420, 540]},
-    "p_dmg": {"name": "P Dmg", "nameTh": "วิถีกระสุน", "type": "minor", "group": "hybrid", "category": "projectile", "effects": {"projectileDamagePct": 4}, "links": ["p_speed"], "pos": [80, 9], "clusterPos": [700, 560]},
-    "aoe_radius": {"name": "Aoe Radius", "nameTh": "ขยายขอบเขต I", "type": "minor", "group": "hybrid", "category": "area", "effects": {"areaRadiusPct": 4}, "links": ["a1", "aoe_radius2"], "pos": [62, 9], "clusterPos": [420, 485]},
-    "aoe_radius2": {"name": "Aoe Radius2", "nameTh": "ขยายขอบเขต II", "type": "minor", "group": "hybrid", "category": "area", "effects": {"areaRadiusPct": 4}, "links": ["aoe_radius", "aoe_damage"], "pos": [80, 9], "clusterPos": [650, 515]},
-    "aoe_damage": {"name": "Aoe Damage", "nameTh": "พลังพื้นที่", "type": "minor", "group": "hybrid", "category": "area", "effects": {"areaDamagePct": 5}, "links": ["aoe_radius2", "aoe_master"], "pos": [8, 26], "clusterPos": [865, 450]},
-    "aoe_master": {"name": "Aoe Master", "nameTh": "เขตอำนาจ", "type": "notable", "group": "hybrid", "category": "area", "effects": {"areaRadiusPct": 10, "areaDamagePct": 8}, "links": ["aoe_damage"], "pos": [26, 26], "clusterPos": [1090, 465]},
-    "dot_power": {"name": "Dot Power", "nameTh": "การกัดกร่อน I", "type": "minor", "group": "hybrid", "category": "lasting", "effects": {"dotDamagePct": 5}, "links": ["r6", "dot_power2", "lasting_time"], "pos": [62, 9], "clusterPos": [865, 455], "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ"},
-    "dot_power2": {"name": "Dot Power2", "nameTh": "การกัดกร่อน II", "type": "minor", "group": "hybrid", "category": "lasting", "effects": {"dotDamagePct": 5}, "links": ["dot_power", "dot_master"], "pos": [80, 9], "clusterPos": [1115, 455], "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ"},
-    "lasting_time": {"name": "Lasting Time", "nameTh": "พื้นที่ยั่งยืน", "type": "minor", "group": "hybrid", "category": "lasting", "effects": {"persistentDurationPct": 6}, "links": ["dot_power"], "pos": [8, 26], "clusterPos": [900, 210], "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ"},
-    "dot_master": {"name": "Dot Master", "nameTh": "เขตต่อเนื่อง", "type": "notable", "group": "hybrid", "category": "lasting", "effects": {"dotDamagePct": 12, "persistentDurationPct": 10}, "links": ["dot_power2"], "pos": [26, 26], "clusterPos": [1300, 315], "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ"},
-    "cc_time": {"name": "Cc Time", "nameTh": "ตรึงจังหวะ I", "type": "minor", "group": "hybrid", "category": "control", "effects": {"controlDurationPct": 5}, "links": ["a1", "cc_time2"], "pos": [8, 9], "clusterPos": [575, 535], "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ"},
-    "cc_time2": {"name": "Cc Time2", "nameTh": "ตรึงจังหวะ II", "type": "minor", "group": "hybrid", "category": "control", "effects": {"controlDurationPct": 5}, "links": ["cc_time", "cc_master"], "pos": [26, 9], "clusterPos": [850, 505], "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ"},
-    "cc_master": {"name": "Cc Master", "nameTh": "พันธนาการ", "type": "notable", "group": "hybrid", "category": "control", "effects": {"controlDurationPct": 12}, "links": ["cc_time2"], "pos": [44, 9], "clusterPos": [1120, 470], "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ"},
-    "sup_hp": {"name": "Sup Hp", "nameTh": "ยืนหยัด", "type": "minor", "group": "hybrid", "category": "support", "effects": {"maxHp": 12}, "links": ["w1", "sup_heal"], "pos": [8, 26], "clusterPos": [415, 530]},
-    "sup_heal": {"name": "Sup Heal", "nameTh": "มือฟื้นฟู", "type": "minor", "group": "hybrid", "category": "support", "effects": {"healPct": 4}, "links": ["sup_hp"], "pos": [26, 26], "clusterPos": [670, 560]},
-    "sum_mp": {"name": "Sum Mp", "nameTh": "มานาสายสัมพันธ์", "type": "minor", "group": "hybrid", "category": "support", "effects": {"maxMp": 8}, "links": ["w5", "sum_damage"], "pos": [80, 9], "clusterPos": [925, 165]},
-    "sum_damage": {"name": "Sum Damage", "nameTh": "ฝึกผู้ช่วย", "type": "minor", "group": "hybrid", "category": "support", "effects": {"summonDamagePct": 5}, "links": ["sum_mp"], "pos": [8, 26], "clusterPos": [1150, 230]},
-    "mov_speed": {"name": "Mov Speed", "nameTh": "ก้าวเบา", "type": "minor", "group": "hybrid", "category": "projectile", "effects": {"moveSpeedPct": 2}, "links": ["r2", "mov_cd"], "pos": [26, 9], "clusterPos": [965, 535]},
-    "mov_cd": {"name": "Mov Cd", "nameTh": "พร้อมรอบใหม่", "type": "minor", "group": "hybrid", "category": "projectile", "effects": {"cooldownPct": 2}, "links": ["mov_speed"], "pos": [44, 9], "clusterPos": [1195, 455]}
+    "origin": {
+      "name": "Wanderer",
+      "nameTh": "นักเดินทาง",
+      "type": "origin",
+      "pos": [
+        50,
+        50
+      ],
+      "links": [
+        "v1",
+        "a1",
+        "r1",
+        "w1",
+        "f_hp"
+      ],
+      "effects": {},
+      "group": "origin",
+      "category": "foundation",
+      "clusterPos": [
+        210,
+        300
+      ],
+      "tier": 0,
+      "requiresSpent": 0
+    },
+    "v1": {
+      "name": "Blade Practice",
+      "nameTh": "ฝึกดาบ",
+      "type": "minor",
+      "pos": [
+        41.51,
+        41.51
+      ],
+      "links": [
+        "origin",
+        "v2",
+        "va1",
+        "rv2",
+        "m_atk"
+      ],
+      "effects": {
+        "meleeDamagePct": 8
+      },
+      "group": "vanguard",
+      "category": "melee",
+      "clusterPos": [
+        215,
+        290
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "v2": {
+      "name": "Tough Body",
+      "nameTh": "ร่างกายแกร่ง",
+      "type": "minor",
+      "pos": [
+        33.74,
+        33.74
+      ],
+      "links": [
+        "v1",
+        "vj",
+        "v5",
+        "v6"
+      ],
+      "effects": {
+        "maxHpPct": 10
+      },
+      "group": "vanguard",
+      "category": "melee",
+      "clusterPos": [
+        495,
+        290
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "vj": {
+      "name": "Vanguard",
+      "nameTh": "แวนการ์ด",
+      "type": "job",
+      "branch": "vanguard",
+      "pos": [
+        25.96,
+        25.96
+      ],
+      "links": [
+        "v2",
+        "v3",
+        "v4",
+        "v5",
+        "v6",
+        "v7",
+        "v8"
+      ],
+      "effects": {
+        "barrierPct": 20,
+        "meleeHitBarrier": 3
+      },
+      "descTh": "สายประชิด/แท็งก์: เกราะเวทแรงขึ้น ตีประชิดโดนแล้วได้เกราะ",
+      "group": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        220,
+        310
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "v3": {
+      "name": "Iron Hide",
+      "nameTh": "หนังเหล็ก",
+      "type": "notable",
+      "pos": [
+        14.86,
+        28.88
+      ],
+      "links": [
+        "vj",
+        "v7",
+        "v9"
+      ],
+      "effects": {
+        "defense": 12,
+        "damageTakenPct": -5
+      },
+      "group": "vanguard",
+      "requiresJob": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        160
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "v4": {
+      "name": "Cleave",
+      "nameTh": "ผ่าซ้ำ",
+      "type": "notable",
+      "pos": [
+        28.88,
+        14.86
+      ],
+      "links": [
+        "vj",
+        "v8",
+        "v10"
+      ],
+      "effects": {
+        "meleeDamagePct": 15,
+        "meleeArcAdd": 30
+      },
+      "group": "vanguard",
+      "requiresJob": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        465
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "a1": {
+      "name": "Arcane Study",
+      "nameTh": "ศึกษาเวท",
+      "type": "minor",
+      "pos": [
+        58.49,
+        41.51
+      ],
+      "links": [
+        "origin",
+        "a2",
+        "va2",
+        "aw1",
+        "aoe_radius",
+        "cc_time"
+      ],
+      "effects": {
+        "spellDamagePct": 8
+      },
+      "group": "arcanist",
+      "category": "area",
+      "clusterPos": [
+        200,
+        310
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "a2": {
+      "name": "Deep Well",
+      "nameTh": "บ่อมานา",
+      "type": "minor",
+      "pos": [
+        66.26,
+        33.74
+      ],
+      "links": [
+        "a1",
+        "aj",
+        "a5",
+        "a6"
+      ],
+      "effects": {
+        "maxMpPct": 12
+      },
+      "group": "arcanist",
+      "category": "area",
+      "clusterPos": [
+        440,
+        170
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "aj": {
+      "name": "Arcanist",
+      "nameTh": "อาร์คานิสต์",
+      "type": "job",
+      "branch": "arcanist",
+      "pos": [
+        74.04,
+        25.96
+      ],
+      "links": [
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8"
+      ],
+      "effects": {
+        "areaRadiusPct": 20,
+        "areaDamagePct": 10
+      },
+      "descTh": "สายเวทวงกว้าง: รัศมีและดาเมจวงกว้างเพิ่ม",
+      "group": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        220,
+        310
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "a3": {
+      "name": "Echoing Mind",
+      "nameTh": "จิตสะท้อน",
+      "type": "notable",
+      "pos": [
+        71.12,
+        14.86
+      ],
+      "links": [
+        "aj",
+        "a7",
+        "a9"
+      ],
+      "effects": {
+        "echoDamagePct": 30
+      },
+      "group": "arcanist",
+      "requiresJob": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        160
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "a4": {
+      "name": "Mana Flow",
+      "nameTh": "ธารมานา",
+      "type": "notable",
+      "pos": [
+        85.14,
+        28.88
+      ],
+      "links": [
+        "aj",
+        "a8",
+        "a10"
+      ],
+      "effects": {
+        "mpRegenPct": 50,
+        "cooldownPct": 6
+      },
+      "group": "arcanist",
+      "requiresJob": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        465
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "r1": {
+      "name": "Steady Aim",
+      "nameTh": "เล็งนิ่ง",
+      "type": "minor",
+      "pos": [
+        41.51,
+        58.49
+      ],
+      "links": [
+        "origin",
+        "r2",
+        "wr2",
+        "rv1",
+        "p_speed"
+      ],
+      "effects": {
+        "projectileDamagePct": 8
+      },
+      "group": "ranger",
+      "category": "projectile",
+      "clusterPos": [
+        195,
+        315
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "r2": {
+      "name": "Light Feet",
+      "nameTh": "เท้าเบา",
+      "type": "minor",
+      "pos": [
+        33.74,
+        66.26
+      ],
+      "links": [
+        "r1",
+        "rj",
+        "r5",
+        "r6",
+        "mov_speed"
+      ],
+      "effects": {
+        "moveSpeedPct": 5
+      },
+      "group": "ranger",
+      "category": "projectile",
+      "clusterPos": [
+        440,
+        315
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "rj": {
+      "name": "Ranger",
+      "nameTh": "เรนเจอร์",
+      "type": "job",
+      "branch": "ranger",
+      "pos": [
+        25.96,
+        74.04
+      ],
+      "links": [
+        "r2",
+        "r3",
+        "r4",
+        "r5",
+        "r6",
+        "r7",
+        "r8"
+      ],
+      "effects": {
+        "extraMovementCharges": 1,
+        "projectileSpeedPct": 20
+      },
+      "descTh": "สายกระสุน/คล่องตัว: ชาร์จสกิลเคลื่อนที่ +1",
+      "group": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        220,
+        310
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "r3": {
+      "name": "Keen Eye",
+      "nameTh": "ตาคม",
+      "type": "notable",
+      "pos": [
+        28.88,
+        85.14
+      ],
+      "links": [
+        "rj",
+        "r7",
+        "r9"
+      ],
+      "effects": {
+        "critChancePct": 10
+      },
+      "group": "ranger",
+      "requiresJob": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        160
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "r4": {
+      "name": "Swift Draw",
+      "nameTh": "ชักไว",
+      "type": "notable",
+      "pos": [
+        14.86,
+        71.12
+      ],
+      "links": [
+        "rj",
+        "r8",
+        "r10"
+      ],
+      "effects": {
+        "projectileDamagePct": 12,
+        "cooldownPct": 8
+      },
+      "group": "ranger",
+      "requiresJob": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        465
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "w1": {
+      "name": "Mending",
+      "nameTh": "เยียวยา",
+      "type": "minor",
+      "pos": [
+        58.49,
+        58.49
+      ],
+      "links": [
+        "origin",
+        "w2",
+        "aw2",
+        "wr1",
+        "sup_hp"
+      ],
+      "effects": {
+        "healPct": 10
+      },
+      "group": "warden",
+      "category": "support",
+      "clusterPos": [
+        185,
+        300
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "w2": {
+      "name": "Shelter",
+      "nameTh": "ที่พักพิง",
+      "type": "minor",
+      "pos": [
+        66.26,
+        66.26
+      ],
+      "links": [
+        "w1",
+        "wj",
+        "w5",
+        "w6"
+      ],
+      "effects": {
+        "barrierPct": 10
+      },
+      "group": "warden",
+      "category": "support",
+      "clusterPos": [
+        430,
+        300
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "wj": {
+      "name": "Warden",
+      "nameTh": "วอร์เดน",
+      "type": "job",
+      "branch": "warden",
+      "pos": [
+        74.04,
+        74.04
+      ],
+      "links": [
+        "w2",
+        "w3",
+        "w4",
+        "w5",
+        "w6",
+        "w7",
+        "w8"
+      ],
+      "effects": {
+        "healGrantsBarrierPct": 40,
+        "healPct": 10
+      },
+      "descTh": "สายซัพพอร์ต: ฮีลแล้วให้เกราะเวทด้วย เหมาะกับปาร์ตี้",
+      "group": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        220,
+        310
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "w3": {
+      "name": "Aegis Aura",
+      "nameTh": "ออร่าปกป้อง",
+      "type": "notable",
+      "pos": [
+        85.14,
+        71.12
+      ],
+      "links": [
+        "wj",
+        "w7",
+        "w9"
+      ],
+      "effects": {
+        "damageTakenPct": -10
+      },
+      "group": "warden",
+      "requiresJob": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        160
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "w4": {
+      "name": "Renewal",
+      "nameTh": "ฟื้นคืน",
+      "type": "notable",
+      "pos": [
+        71.12,
+        85.14
+      ],
+      "links": [
+        "wj",
+        "w8",
+        "w10"
+      ],
+      "effects": {
+        "hpRegen": 2.5
+      },
+      "group": "warden",
+      "requiresJob": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        485,
+        465
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "v5": {
+      "name": "Measured Strike",
+      "nameTh": "จังหวะฟัน",
+      "type": "minor",
+      "links": [
+        "v2",
+        "v6",
+        "vj",
+        "rv4"
+      ],
+      "effects": {
+        "meleeArcAdd": 12
+      },
+      "pos": [
+        24.23,
+        39.06
+      ],
+      "group": "vanguard",
+      "category": "melee",
+      "clusterPos": [
+        760,
+        170
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "v6": {
+      "name": "Field Medicine",
+      "nameTh": "ปฐมพยาบาล",
+      "type": "minor",
+      "links": [
+        "v2",
+        "v5",
+        "vj",
+        "va4"
+      ],
+      "effects": {
+        "hpRegen": 0.5,
+        "healPct": 5
+      },
+      "pos": [
+        39.06,
+        24.23
+      ],
+      "group": "vanguard",
+      "category": "melee",
+      "clusterPos": [
+        760,
+        415
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "v7": {
+      "name": "Bulwark",
+      "nameTh": "ป้อมปราการ",
+      "type": "minor",
+      "links": [
+        "vj",
+        "v3",
+        "v9"
+      ],
+      "effects": {
+        "barrierPct": 15,
+        "defense": 6
+      },
+      "pos": [
+        8.88,
+        37.43
+      ],
+      "group": "vanguard",
+      "requiresJob": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        160
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "v8": {
+      "name": "Siphoning Edge",
+      "nameTh": "คมดาบดูดชีวิต",
+      "type": "minor",
+      "links": [
+        "vj",
+        "v4",
+        "v10"
+      ],
+      "effects": {
+        "leechPct": 2
+      },
+      "pos": [
+        37.43,
+        8.88
+      ],
+      "group": "vanguard",
+      "requiresJob": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        465
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "v9": {
+      "name": "Unbroken Line",
+      "nameTh": "แนวรบมั่นคง",
+      "type": "notable",
+      "links": [
+        "v7",
+        "v10",
+        "v3"
+      ],
+      "effects": {
+        "meleeHitBarrier": 2,
+        "maxHpPct": 8
+      },
+      "pos": [
+        7.72,
+        21.48
+      ],
+      "group": "vanguard",
+      "requiresJob": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        175
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "v10": {
+      "name": "Wide Reprisal",
+      "nameTh": "สวนกลับกวาดกว้าง",
+      "type": "notable",
+      "links": [
+        "v8",
+        "v9",
+        "v4"
+      ],
+      "effects": {
+        "meleeArcAdd": 20,
+        "areaDamagePct": 8
+      },
+      "pos": [
+        21.48,
+        7.72
+      ],
+      "group": "vanguard",
+      "requiresJob": "vanguard",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        455
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "a5": {
+      "name": "Spell Reach",
+      "nameTh": "ขอบเขตเวท",
+      "type": "minor",
+      "links": [
+        "a2",
+        "a6",
+        "aj",
+        "va4"
+      ],
+      "effects": {
+        "areaRadiusPct": 8
+      },
+      "pos": [
+        60.94,
+        24.23
+      ],
+      "group": "arcanist",
+      "category": "area",
+      "clusterPos": [
+        700,
+        145
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "a6": {
+      "name": "Channel Memory",
+      "nameTh": "ความทรงจำมานา",
+      "type": "minor",
+      "links": [
+        "a2",
+        "a5",
+        "aj",
+        "aw4"
+      ],
+      "effects": {
+        "mpRegenPct": 15
+      },
+      "pos": [
+        75.77,
+        39.06
+      ],
+      "group": "arcanist",
+      "category": "area",
+      "clusterPos": [
+        685,
+        325
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "a7": {
+      "name": "Living Conduit",
+      "nameTh": "สื่อพลังชีวิต",
+      "type": "minor",
+      "links": [
+        "aj",
+        "a3",
+        "a9"
+      ],
+      "effects": {
+        "summonDamagePct": 12,
+        "maxMpPct": 6
+      },
+      "pos": [
+        62.57,
+        8.88
+      ],
+      "group": "arcanist",
+      "requiresJob": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        160
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "a8": {
+      "name": "Afterimage",
+      "nameTh": "เวทตกค้าง",
+      "type": "minor",
+      "links": [
+        "aj",
+        "a4",
+        "a10"
+      ],
+      "effects": {
+        "echoDamagePct": 15
+      },
+      "pos": [
+        91.12,
+        37.43
+      ],
+      "group": "arcanist",
+      "requiresJob": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        465
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "a9": {
+      "name": "Resonant Field",
+      "nameTh": "สนามสะท้อน",
+      "type": "notable",
+      "links": [
+        "a7",
+        "a10",
+        "a3"
+      ],
+      "effects": {
+        "areaRadiusPct": 12,
+        "echoDamagePct": 10
+      },
+      "pos": [
+        78.52,
+        7.72
+      ],
+      "group": "arcanist",
+      "requiresJob": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        175
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "a10": {
+      "name": "Arcane Reservoir",
+      "nameTh": "คลังพลังเวท",
+      "type": "notable",
+      "links": [
+        "a8",
+        "a9",
+        "a4"
+      ],
+      "effects": {
+        "maxMpPct": 15,
+        "cooldownPct": 4
+      },
+      "pos": [
+        92.28,
+        21.48
+      ],
+      "group": "arcanist",
+      "requiresJob": "arcanist",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        455
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "w5": {
+      "name": "Spirit Pact",
+      "nameTh": "สัญญาวิญญาณ",
+      "type": "minor",
+      "links": [
+        "w2",
+        "w6",
+        "wj",
+        "aw4",
+        "sum_mp"
+      ],
+      "effects": {
+        "summonDamagePct": 10
+      },
+      "pos": [
+        75.77,
+        60.94
+      ],
+      "group": "warden",
+      "category": "support",
+      "clusterPos": [
+        695,
+        170
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "w6": {
+      "name": "Shared Shelter",
+      "nameTh": "ร่มเงาร่วม",
+      "type": "minor",
+      "links": [
+        "w2",
+        "w5",
+        "wj",
+        "wr4"
+      ],
+      "effects": {
+        "barrierPct": 8,
+        "areaRadiusPct": 6
+      },
+      "pos": [
+        60.94,
+        75.77
+      ],
+      "group": "warden",
+      "category": "support",
+      "clusterPos": [
+        690,
+        435
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "w7": {
+      "name": "Lifewell",
+      "nameTh": "ธารหล่อเลี้ยง",
+      "type": "minor",
+      "links": [
+        "wj",
+        "w3",
+        "w9"
+      ],
+      "effects": {
+        "healPct": 12,
+        "hpRegen": 0.6
+      },
+      "pos": [
+        91.12,
+        62.57
+      ],
+      "group": "warden",
+      "requiresJob": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        160
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "w8": {
+      "name": "Companion Keeper",
+      "nameTh": "ผู้ดูแลสหาย",
+      "type": "minor",
+      "links": [
+        "wj",
+        "w4",
+        "w10"
+      ],
+      "effects": {
+        "summonDamagePct": 18
+      },
+      "pos": [
+        62.57,
+        91.12
+      ],
+      "group": "warden",
+      "requiresJob": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        465
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "w9": {
+      "name": "Sanctuary",
+      "nameTh": "เขตคุ้มครอง",
+      "type": "notable",
+      "links": [
+        "w7",
+        "w10",
+        "w3"
+      ],
+      "effects": {
+        "healGrantsBarrierPct": 20,
+        "areaRadiusPct": 10
+      },
+      "pos": [
+        92.28,
+        78.52
+      ],
+      "group": "warden",
+      "requiresJob": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        175
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "w10": {
+      "name": "Evergreen",
+      "nameTh": "ชีพพฤกษา",
+      "type": "notable",
+      "links": [
+        "w8",
+        "w9",
+        "w4"
+      ],
+      "effects": {
+        "hpRegen": 1.2,
+        "maxHpPct": 10
+      },
+      "pos": [
+        78.52,
+        92.28
+      ],
+      "group": "warden",
+      "requiresJob": "warden",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        455
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "r5": {
+      "name": "Windborne",
+      "nameTh": "ลู่ลม",
+      "type": "minor",
+      "links": [
+        "r2",
+        "r6",
+        "rj",
+        "wr4"
+      ],
+      "effects": {
+        "projectileSpeedPct": 12
+      },
+      "pos": [
+        39.06,
+        75.77
+      ],
+      "group": "ranger",
+      "category": "projectile",
+      "clusterPos": [
+        710,
+        160
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "r6": {
+      "name": "Venom Tip",
+      "nameTh": "ปลายพิษ",
+      "type": "minor",
+      "links": [
+        "r2",
+        "r5",
+        "rj",
+        "rv4",
+        "dot_power"
+      ],
+      "effects": {
+        "poisonChancePct": 10
+      },
+      "pos": [
+        24.23,
+        60.94
+      ],
+      "group": "ranger",
+      "category": "projectile",
+      "clusterPos": [
+        710,
+        360
+      ],
+      "tier": 3,
+      "requiresSpent": 4
+    },
+    "r7": {
+      "name": "Predator Bond",
+      "nameTh": "พันธะนักล่า",
+      "type": "minor",
+      "links": [
+        "rj",
+        "r3",
+        "r9"
+      ],
+      "effects": {
+        "summonDamagePct": 12,
+        "moveSpeedPct": 3
+      },
+      "pos": [
+        37.43,
+        91.12
+      ],
+      "group": "ranger",
+      "requiresJob": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        160
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "r8": {
+      "name": "Quick Recovery",
+      "nameTh": "คืนจังหวะ",
+      "type": "minor",
+      "links": [
+        "rj",
+        "r4",
+        "r10"
+      ],
+      "effects": {
+        "cooldownPct": 4
+      },
+      "pos": [
+        8.88,
+        62.57
+      ],
+      "group": "ranger",
+      "requiresJob": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        735,
+        465
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "r9": {
+      "name": "Gale Step",
+      "nameTh": "ก้าววายุ",
+      "type": "notable",
+      "links": [
+        "r7",
+        "r10",
+        "r3"
+      ],
+      "effects": {
+        "extraMovementCharges": 1,
+        "moveSpeedPct": 3
+      },
+      "pos": [
+        21.48,
+        92.28
+      ],
+      "group": "ranger",
+      "requiresJob": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        175
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "r10": {
+      "name": "Serrated Volley",
+      "nameTh": "ศรบาดลึก",
+      "type": "notable",
+      "links": [
+        "r8",
+        "r9",
+        "r4"
+      ],
+      "effects": {
+        "poisonChancePct": 15,
+        "projectileDamagePct": 8
+      },
+      "pos": [
+        7.72,
+        78.52
+      ],
+      "group": "ranger",
+      "requiresJob": "ranger",
+      "category": "specialist",
+      "clusterPos": [
+        1045,
+        455
+      ],
+      "tier": 4,
+      "requiresSpent": 3
+    },
+    "va1": {
+      "name": "Martial Focus",
+      "nameTh": "สมาธินักรบ",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        45.06,
+        34.78
+      ],
+      "links": [
+        "v1",
+        "va2",
+        "va3"
+      ],
+      "effects": {
+        "meleeDamagePct": 4,
+        "maxMpPct": 5
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "control",
+      "clusterPos": [
+        235,
+        165
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "va2": {
+      "name": "Runic Edge",
+      "nameTh": "คมอักขระ",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        54.94,
+        34.78
+      ],
+      "links": [
+        "a1",
+        "va1",
+        "va3"
+      ],
+      "effects": {
+        "spellDamagePct": 4,
+        "defense": 3
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "control",
+      "clusterPos": [
+        235,
+        425
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "va3": {
+      "name": "Spellblade",
+      "nameTh": "ดาบผสานเวท",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        50,
+        23
+      ],
+      "links": [
+        "va1",
+        "va2",
+        "va4"
+      ],
+      "effects": {
+        "meleeDamagePct": 6,
+        "spellDamagePct": 6
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "control",
+      "clusterPos": [
+        540,
+        285
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "va4": {
+      "name": "Battle Rhythm",
+      "nameTh": "จังหวะประสาน",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        50,
+        12
+      ],
+      "links": [
+        "va3",
+        "v6",
+        "a5"
+      ],
+      "effects": {
+        "cooldownPct": 3,
+        "mpRegenPct": 12
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "control",
+      "clusterPos": [
+        845,
+        190
+      ],
+      "tier": 3,
+      "requiresSpent": 3
+    },
+    "aw1": {
+      "name": "Spirit Thread",
+      "nameTh": "สายใยวิญญาณ",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        65.22,
+        45.06
+      ],
+      "links": [
+        "a1",
+        "aw2",
+        "aw3"
+      ],
+      "effects": {
+        "summonDamagePct": 6
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "summon",
+      "clusterPos": [
+        300,
+        180
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "aw2": {
+      "name": "Kindled Life",
+      "nameTh": "จุดประกายชีวิต",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        65.22,
+        54.94
+      ],
+      "links": [
+        "w1",
+        "aw1",
+        "aw3"
+      ],
+      "effects": {
+        "healPct": 6
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "summon",
+      "clusterPos": [
+        300,
+        450
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "aw3": {
+      "name": "Ritual Circle",
+      "nameTh": "วงพิธี",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        77,
+        50
+      ],
+      "links": [
+        "aw1",
+        "aw2",
+        "aw4"
+      ],
+      "effects": {
+        "areaRadiusPct": 8,
+        "summonDamagePct": 6
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "summon",
+      "clusterPos": [
+        635,
+        315
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "aw4": {
+      "name": "Life Exchange",
+      "nameTh": "แลกเปลี่ยนชีวิต",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        88,
+        50
+      ],
+      "links": [
+        "aw3",
+        "a6",
+        "w5"
+      ],
+      "effects": {
+        "healPct": 8,
+        "maxMpPct": 6
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "summon",
+      "clusterPos": [
+        960,
+        315
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "wr1": {
+      "name": "Wild Companion",
+      "nameTh": "เพื่อนแห่งพงไพร",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        54.94,
+        65.22
+      ],
+      "links": [
+        "w1",
+        "wr2",
+        "wr3"
+      ],
+      "effects": {
+        "summonDamagePct": 6,
+        "maxHpPct": 4
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "lasting",
+      "clusterPos": [
+        220,
+        170
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "wr2": {
+      "name": "Herbalist",
+      "nameTh": "วิชาสมุนไพร",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        45.06,
+        65.22
+      ],
+      "links": [
+        "r1",
+        "wr1",
+        "wr3"
+      ],
+      "effects": {
+        "healPct": 6,
+        "poisonChancePct": 5
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "lasting",
+      "clusterPos": [
+        220,
+        440
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "wr3": {
+      "name": "Wild Bond",
+      "nameTh": "พันธะพงไพร",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        50,
+        77
+      ],
+      "links": [
+        "wr1",
+        "wr2",
+        "wr4"
+      ],
+      "effects": {
+        "summonDamagePct": 8,
+        "moveSpeedPct": 3
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "lasting",
+      "clusterPos": [
+        470,
+        315
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "wr4": {
+      "name": "Green Venom",
+      "nameTh": "พิษพฤกษา",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        50,
+        88
+      ],
+      "links": [
+        "wr3",
+        "w6",
+        "r5"
+      ],
+      "effects": {
+        "poisonChancePct": 10,
+        "areaDamagePct": 5
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "lasting",
+      "clusterPos": [
+        710,
+        315
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "rv1": {
+      "name": "Skirmisher",
+      "nameTh": "นักรบคล่องตัว",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        34.78,
+        54.94
+      ],
+      "links": [
+        "r1",
+        "rv2",
+        "rv3"
+      ],
+      "effects": {
+        "moveSpeedPct": 3,
+        "meleeDamagePct": 4
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "mobility",
+      "clusterPos": [
+        260,
+        180
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "rv2": {
+      "name": "Sure Footing",
+      "nameTh": "ยืนหยัด",
+      "type": "minor",
+      "group": "hybrid",
+      "pos": [
+        34.78,
+        45.06
+      ],
+      "links": [
+        "v1",
+        "rv1",
+        "rv3"
+      ],
+      "effects": {
+        "maxHpPct": 5,
+        "projectileDamagePct": 4
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "mobility",
+      "clusterPos": [
+        260,
+        445
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "rv3": {
+      "name": "Crossfire",
+      "nameTh": "ประสานอาวุธ",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        23,
+        50
+      ],
+      "links": [
+        "rv1",
+        "rv2",
+        "rv4"
+      ],
+      "effects": {
+        "projectileDamagePct": 6,
+        "meleeDamagePct": 6
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "mobility",
+      "clusterPos": [
+        620,
+        310
+      ],
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "rv4": {
+      "name": "Second Wind",
+      "nameTh": "ลมหายใจที่สอง",
+      "type": "notable",
+      "group": "hybrid",
+      "pos": [
+        12,
+        50
+      ],
+      "links": [
+        "rv3",
+        "r6",
+        "v5"
+      ],
+      "effects": {
+        "hpRegen": 0.6,
+        "cooldownPct": 3
+      },
+      "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
+      "category": "mobility",
+      "clusterPos": [
+        970,
+        310
+      ],
+      "tier": 3,
+      "requiresSpent": 2
+    },
+    "f_hp": {
+      "name": "F Hp",
+      "nameTh": "พื้นฐานชีวิต",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "effects": {
+        "maxHp": 12
+      },
+      "links": [
+        "origin",
+        "f_mp",
+        "f_def"
+      ],
+      "pos": [
+        62,
+        26
+      ],
+      "clusterPos": [
+        435,
+        300
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "f_mp": {
+      "name": "F Mp",
+      "nameTh": "สำรองมานา",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "effects": {
+        "maxMp": 8
+      },
+      "links": [
+        "f_hp",
+        "f_mag"
+      ],
+      "pos": [
+        80,
+        26
+      ],
+      "clusterPos": [
+        695,
+        180
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "f_def": {
+      "name": "F Def",
+      "nameTh": "เกราะเบื้องต้น",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "effects": {
+        "defense": 2
+      },
+      "links": [
+        "f_hp",
+        "f_atk"
+      ],
+      "pos": [
+        8,
+        43
+      ],
+      "clusterPos": [
+        695,
+        420
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "f_atk": {
+      "name": "F Atk",
+      "nameTh": "ฝึกอาวุธ",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "effects": {
+        "attack": 2
+      },
+      "links": [
+        "f_def"
+      ],
+      "pos": [
+        26,
+        43
+      ],
+      "clusterPos": [
+        995,
+        420
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "f_mag": {
+      "name": "F Mag",
+      "nameTh": "ฝึกเวท",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "effects": {
+        "magic": 2
+      },
+      "links": [
+        "f_mp"
+      ],
+      "pos": [
+        44,
+        43
+      ],
+      "clusterPos": [
+        995,
+        180
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "m_atk": {
+      "name": "M Atk",
+      "nameTh": "แรงฟัน",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "melee",
+      "effects": {
+        "attack": 2
+      },
+      "links": [
+        "v1",
+        "m_leech"
+      ],
+      "pos": [
+        26,
+        26
+      ],
+      "clusterPos": [
+        460,
+        525
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "m_leech": {
+      "name": "M Leech",
+      "nameTh": "ซึมซับชีวิต",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "melee",
+      "effects": {
+        "leechPct": 1
+      },
+      "links": [
+        "m_atk"
+      ],
+      "pos": [
+        44,
+        26
+      ],
+      "clusterPos": [
+        735,
+        545
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "p_speed": {
+      "name": "P Speed",
+      "nameTh": "ลูกศรเบา",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "projectile",
+      "effects": {
+        "projectileSpeedPct": 5
+      },
+      "links": [
+        "r1",
+        "p_dmg"
+      ],
+      "pos": [
+        62,
+        9
+      ],
+      "clusterPos": [
+        420,
+        540
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "p_dmg": {
+      "name": "P Dmg",
+      "nameTh": "วิถีกระสุน",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "projectile",
+      "effects": {
+        "projectileDamagePct": 4
+      },
+      "links": [
+        "p_speed"
+      ],
+      "pos": [
+        80,
+        9
+      ],
+      "clusterPos": [
+        700,
+        560
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "aoe_radius": {
+      "name": "Aoe Radius",
+      "nameTh": "ขยายขอบเขต I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "area",
+      "effects": {
+        "areaRadiusPct": 4
+      },
+      "links": [
+        "a1",
+        "aoe_radius2"
+      ],
+      "pos": [
+        62,
+        9
+      ],
+      "clusterPos": [
+        420,
+        485
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "aoe_radius2": {
+      "name": "Aoe Radius2",
+      "nameTh": "ขยายขอบเขต II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "area",
+      "effects": {
+        "areaRadiusPct": 4
+      },
+      "links": [
+        "aoe_radius",
+        "aoe_damage"
+      ],
+      "pos": [
+        80,
+        9
+      ],
+      "clusterPos": [
+        650,
+        515
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "aoe_damage": {
+      "name": "Aoe Damage",
+      "nameTh": "พลังพื้นที่",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "area",
+      "effects": {
+        "areaDamagePct": 5
+      },
+      "links": [
+        "aoe_radius2",
+        "aoe_master"
+      ],
+      "pos": [
+        8,
+        26
+      ],
+      "clusterPos": [
+        865,
+        450
+      ],
+      "tier": 3,
+      "requiresSpent": 4
+    },
+    "aoe_master": {
+      "name": "Aoe Master",
+      "nameTh": "เขตอำนาจ",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "area",
+      "effects": {
+        "areaRadiusPct": 10,
+        "areaDamagePct": 8
+      },
+      "links": [
+        "aoe_damage"
+      ],
+      "pos": [
+        26,
+        26
+      ],
+      "clusterPos": [
+        1090,
+        465
+      ],
+      "tier": 4,
+      "requiresSpent": 6
+    },
+    "dot_power": {
+      "name": "Dot Power",
+      "nameTh": "การกัดกร่อน I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "lasting",
+      "effects": {
+        "dotDamagePct": 5
+      },
+      "links": [
+        "r6",
+        "dot_power2",
+        "lasting_time"
+      ],
+      "pos": [
+        62,
+        9
+      ],
+      "clusterPos": [
+        865,
+        455
+      ],
+      "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
+      "tier": 3,
+      "requiresSpent": 3
+    },
+    "dot_power2": {
+      "name": "Dot Power2",
+      "nameTh": "การกัดกร่อน II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "lasting",
+      "effects": {
+        "dotDamagePct": 5
+      },
+      "links": [
+        "dot_power",
+        "dot_master"
+      ],
+      "pos": [
+        80,
+        9
+      ],
+      "clusterPos": [
+        1115,
+        455
+      ],
+      "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
+      "tier": 4,
+      "requiresSpent": 5
+    },
+    "lasting_time": {
+      "name": "Lasting Time",
+      "nameTh": "พื้นที่ยั่งยืน",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "lasting",
+      "effects": {
+        "persistentDurationPct": 6
+      },
+      "links": [
+        "dot_power"
+      ],
+      "pos": [
+        8,
+        26
+      ],
+      "clusterPos": [
+        900,
+        210
+      ],
+      "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
+      "tier": 3,
+      "requiresSpent": 3
+    },
+    "dot_master": {
+      "name": "Dot Master",
+      "nameTh": "เขตต่อเนื่อง",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "lasting",
+      "effects": {
+        "dotDamagePct": 12,
+        "persistentDurationPct": 10
+      },
+      "links": [
+        "dot_power2"
+      ],
+      "pos": [
+        26,
+        26
+      ],
+      "clusterPos": [
+        1300,
+        315
+      ],
+      "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
+      "tier": 4,
+      "requiresSpent": 5
+    },
+    "cc_time": {
+      "name": "Cc Time",
+      "nameTh": "ตรึงจังหวะ I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "control",
+      "effects": {
+        "controlDurationPct": 5
+      },
+      "links": [
+        "a1",
+        "cc_time2"
+      ],
+      "pos": [
+        8,
+        9
+      ],
+      "clusterPos": [
+        575,
+        535
+      ],
+      "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
+      "tier": 2,
+      "requiresSpent": 1
+    },
+    "cc_time2": {
+      "name": "Cc Time2",
+      "nameTh": "ตรึงจังหวะ II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "control",
+      "effects": {
+        "controlDurationPct": 5
+      },
+      "links": [
+        "cc_time",
+        "cc_master"
+      ],
+      "pos": [
+        26,
+        9
+      ],
+      "clusterPos": [
+        850,
+        505
+      ],
+      "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
+      "tier": 3,
+      "requiresSpent": 3
+    },
+    "cc_master": {
+      "name": "Cc Master",
+      "nameTh": "พันธนาการ",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "control",
+      "effects": {
+        "controlDurationPct": 12
+      },
+      "links": [
+        "cc_time2"
+      ],
+      "pos": [
+        44,
+        9
+      ],
+      "clusterPos": [
+        1120,
+        470
+      ],
+      "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
+      "tier": 4,
+      "requiresSpent": 5
+    },
+    "sup_hp": {
+      "name": "Sup Hp",
+      "nameTh": "ยืนหยัด",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "support",
+      "effects": {
+        "maxHp": 12
+      },
+      "links": [
+        "w1",
+        "sup_heal"
+      ],
+      "pos": [
+        8,
+        26
+      ],
+      "clusterPos": [
+        415,
+        530
+      ],
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "sup_heal": {
+      "name": "Sup Heal",
+      "nameTh": "มือฟื้นฟู",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "support",
+      "effects": {
+        "healPct": 4
+      },
+      "links": [
+        "sup_hp"
+      ],
+      "pos": [
+        26,
+        26
+      ],
+      "clusterPos": [
+        670,
+        560
+      ],
+      "tier": 2,
+      "requiresSpent": 2
+    },
+    "sum_mp": {
+      "name": "Sum Mp",
+      "nameTh": "มานาสายสัมพันธ์",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "support",
+      "effects": {
+        "maxMp": 8
+      },
+      "links": [
+        "w5",
+        "sum_damage"
+      ],
+      "pos": [
+        80,
+        9
+      ],
+      "clusterPos": [
+        925,
+        165
+      ],
+      "tier": 3,
+      "requiresSpent": 4
+    },
+    "sum_damage": {
+      "name": "Sum Damage",
+      "nameTh": "ฝึกผู้ช่วย",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "support",
+      "effects": {
+        "summonDamagePct": 5
+      },
+      "links": [
+        "sum_mp"
+      ],
+      "pos": [
+        8,
+        26
+      ],
+      "clusterPos": [
+        1150,
+        230
+      ],
+      "tier": 4,
+      "requiresSpent": 5
+    },
+    "mov_speed": {
+      "name": "Mov Speed",
+      "nameTh": "ก้าวเบา",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "projectile",
+      "effects": {
+        "moveSpeedPct": 2
+      },
+      "links": [
+        "r2",
+        "mov_cd"
+      ],
+      "pos": [
+        26,
+        9
+      ],
+      "clusterPos": [
+        965,
+        535
+      ],
+      "tier": 3,
+      "requiresSpent": 4
+    },
+    "mov_cd": {
+      "name": "Mov Cd",
+      "nameTh": "พร้อมรอบใหม่",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "projectile",
+      "effects": {
+        "cooldownPct": 2
+      },
+      "links": [
+        "mov_speed"
+      ],
+      "pos": [
+        44,
+        9
+      ],
+      "clusterPos": [
+        1195,
+        455
+      ],
+      "tier": 4,
+      "requiresSpent": 5
+    }
   },
-  "groups": [{"id": "vanguard", "root": "v1", "job": "vj", "nameTh": "แวนการ์ด", "color": "#dbad72"}, {"id": "arcanist", "root": "a1", "job": "aj", "nameTh": "อาร์คานิสต์", "color": "#aab9ef"}, {"id": "warden", "root": "w1", "job": "wj", "nameTh": "วอร์เดน", "color": "#8fd0b6"}, {"id": "ranger", "root": "r1", "job": "rj", "nameTh": "เรนเจอร์", "color": "#dfca86"}],
-  "constellations": [{"id": "foundation", "nameTh": "หน้าแรกของการเดินทาง", "name": "First Footsteps", "icon": "compass", "color": "#467268", "mapPos": [145, 335], "descTh": "เตรียมตัว · พลังชีวิต · มานา"}, {"id": "melee", "nameTh": "กองไฟพักแรม", "name": "At the Campfire", "icon": "camp", "color": "#a56444", "mapPos": [420, 160], "descTh": "ยืนระยะ · วงฟัน · ฟื้นฟู"}, {"id": "area", "nameTh": "หอจดหมายเหตุ", "name": "The Old Archive", "icon": "book", "color": "#526e8b", "mapPos": [735, 125], "descTh": "มานา · ขอบเขต · พลังพื้นที่"}, {"id": "summon", "nameTh": "สัญญาร่วมทาง", "name": "A Shared Promise", "icon": "lantern", "color": "#86714a", "mapPos": [1090, 170], "descTh": "เยียวยา · พันธะ · พื้นที่"}, {"id": "specialist", "nameTh": "คำสาบานของผู้เดินทาง", "name": "The Oaths We Keep", "icon": "flag", "color": "#806879", "mapPos": [1410, 335], "descTh": "เลือกอาชีพเมื่อพร้อม · 4 คำสาบาน"}, {"id": "support", "nameTh": "ร่มไม้ระหว่างทาง", "name": "Beneath the Boughs", "icon": "tree", "color": "#557955", "mapPos": [1120, 515], "descTh": "ปกป้อง · ผู้ร่วมทาง · ฮีล"}, {"id": "lasting", "nameTh": "สายน้ำไม่หวน", "name": "The River Remembers", "icon": "river", "color": "#667a80", "mapPos": [790, 555], "descTh": "สมุนไพร · พันธะ · การกัดกร่อน"}, {"id": "projectile", "nameTh": "ขอบฟ้าไกล", "name": "A Farther Horizon", "icon": "horizon", "color": "#55898d", "mapPos": [440, 535], "descTh": "วิถีอาวุธ · ก้าวเดิน · ปลายพิษ"}, {"id": "control", "nameTh": "หมึกและคมเหล็ก", "name": "Ink and Iron", "icon": "quill", "color": "#896864", "mapPos": [795, 330], "descTh": "อาวุธผสานเวท · จังหวะ · ตรึงเวลา"}, {"id": "mobility", "nameTh": "ทางแยกไร้ชื่อ", "name": "The Unnamed Crossing", "icon": "signpost", "color": "#7b7460", "mapPos": [465, 345], "descTh": "ประสานอาวุธ · ความคล่อง · ฟื้นตัว"}]
+  "groups": [
+    {
+      "id": "vanguard",
+      "root": "v1",
+      "job": "vj",
+      "nameTh": "แวนการ์ด",
+      "color": "#dbad72"
+    },
+    {
+      "id": "arcanist",
+      "root": "a1",
+      "job": "aj",
+      "nameTh": "อาร์คานิสต์",
+      "color": "#aab9ef"
+    },
+    {
+      "id": "warden",
+      "root": "w1",
+      "job": "wj",
+      "nameTh": "วอร์เดน",
+      "color": "#8fd0b6"
+    },
+    {
+      "id": "ranger",
+      "root": "r1",
+      "job": "rj",
+      "nameTh": "เรนเจอร์",
+      "color": "#dfca86"
+    }
+  ],
+  "constellations": [
+    {
+      "id": "foundation",
+      "nameTh": "หน้าแรกของการเดินทาง",
+      "name": "First Footsteps",
+      "icon": "compass",
+      "color": "#467268",
+      "mapPos": [
+        145,
+        335
+      ],
+      "descTh": "เตรียมตัว · พลังชีวิต · มานา",
+      "maxTier": 2
+    },
+    {
+      "id": "melee",
+      "nameTh": "กองไฟพักแรม",
+      "name": "At the Campfire",
+      "icon": "camp",
+      "color": "#a56444",
+      "mapPos": [
+        420,
+        160
+      ],
+      "descTh": "ยืนระยะ · วงฟัน · ฟื้นฟู",
+      "maxTier": 2
+    },
+    {
+      "id": "area",
+      "nameTh": "หอจดหมายเหตุ",
+      "name": "The Old Archive",
+      "icon": "book",
+      "color": "#526e8b",
+      "mapPos": [
+        735,
+        125
+      ],
+      "descTh": "มานา · ขอบเขต · พลังพื้นที่",
+      "maxTier": 4
+    },
+    {
+      "id": "summon",
+      "nameTh": "สัญญาร่วมทาง",
+      "name": "A Shared Promise",
+      "icon": "lantern",
+      "color": "#86714a",
+      "mapPos": [
+        1090,
+        170
+      ],
+      "descTh": "เยียวยา · พันธะ · พื้นที่",
+      "maxTier": 3
+    },
+    {
+      "id": "specialist",
+      "nameTh": "คำสาบานของผู้เดินทาง",
+      "name": "The Oaths We Keep",
+      "icon": "flag",
+      "color": "#806879",
+      "mapPos": [
+        1410,
+        335
+      ],
+      "descTh": "เลือกอาชีพเมื่อพร้อม · 4 คำสาบาน",
+      "maxTier": 4
+    },
+    {
+      "id": "support",
+      "nameTh": "ร่มไม้ระหว่างทาง",
+      "name": "Beneath the Boughs",
+      "icon": "tree",
+      "color": "#557955",
+      "mapPos": [
+        1120,
+        515
+      ],
+      "descTh": "ปกป้อง · ผู้ร่วมทาง · ฮีล",
+      "maxTier": 4
+    },
+    {
+      "id": "lasting",
+      "nameTh": "สายน้ำไม่หวน",
+      "name": "The River Remembers",
+      "icon": "river",
+      "color": "#667a80",
+      "mapPos": [
+        790,
+        555
+      ],
+      "descTh": "สมุนไพร · พันธะ · การกัดกร่อน",
+      "maxTier": 4
+    },
+    {
+      "id": "projectile",
+      "nameTh": "ขอบฟ้าไกล",
+      "name": "A Farther Horizon",
+      "icon": "horizon",
+      "color": "#55898d",
+      "mapPos": [
+        440,
+        535
+      ],
+      "descTh": "วิถีอาวุธ · ก้าวเดิน · ปลายพิษ",
+      "maxTier": 4
+    },
+    {
+      "id": "control",
+      "nameTh": "หมึกและคมเหล็ก",
+      "name": "Ink and Iron",
+      "icon": "quill",
+      "color": "#896864",
+      "mapPos": [
+        795,
+        330
+      ],
+      "descTh": "อาวุธผสานเวท · จังหวะ · ตรึงเวลา",
+      "maxTier": 4
+    },
+    {
+      "id": "mobility",
+      "nameTh": "ทางแยกไร้ชื่อ",
+      "name": "The Unnamed Crossing",
+      "icon": "signpost",
+      "color": "#7b7460",
+      "mapPos": [
+        465,
+        345
+      ],
+      "descTh": "ประสานอาวุธ · ความคล่อง · ฟื้นตัว",
+      "maxTier": 3
+    }
+  ]
 }

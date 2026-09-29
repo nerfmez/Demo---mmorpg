@@ -167,3 +167,14 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   file alone is not visual approval: inspect it, correct issues and recapture.
 - CI exercises Chromium and WebKit. Pages deployment also runs the WebKit Dreamloop against
   its published URL and uploads `live-dreamloop` screenshots/report.
+
+
+### Travel journal presentation (review branch)
+The passive graph and allocation rules are unchanged by the travel-journal revision.
+Use each node's `category` and `clusterPos` for themed chapter views, and overview
+`mapPos`/icon metadata for the large chapter marks. These marks are navigation only;
+no completion prerequisite or category-wide purchase exists. Map the view to a
+full-rect Control, not a Window; show node details on selection only. Modifier item
+art uses the shared SVG faceted-gem/engraved-symbol templates in `gemart.js` and
+`sigils.js`; their colours never determine compatibility. Preserve the existing
+core eligibility checks and save IDs.

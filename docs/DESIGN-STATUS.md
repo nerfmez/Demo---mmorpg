@@ -59,3 +59,14 @@
 - Native skill tags are always visible; mod all/any/excluded rules, missing stats, slot capacity and current assignment are shown.
 - New lasting-field damage/duration and control-duration passives are implemented; unsupported DoT/on-hit combinations are explicitly excluded.
 - See `UI-WORKSPACES.md` for source references, exact effect scope, save compatibility and the test commands.
+
+
+## Staged review: fullscreen travel journal and engraved modifier gems (2026-09-29)
+
+PR #11 adds edge-to-edge paper/ink chapter overview and full-screen branching subtrees.
+Chapter names are travel-themed, membership mixes multiple play styles, and overview
+marks cost no points. The original 87-node gameplay graph is preserved. Details are
+opened on demand, not a fixed sidebar. Other workspaces have Minimal Panel styling.
+All fifteen modifier item pictures now use shared faceted gems with monochrome
+engravings. See `docs/UI-WORKSPACES.md` and `tests/browser/journal.mjs`.
+This is a review-branch change only: no production deployment or main merge.

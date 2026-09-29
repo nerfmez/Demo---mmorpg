@@ -1,3 +1,4 @@
+import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
 // Authored cel-style artwork. Identity is keyed by content ID, never grade or rarity.
 // Every named object has its own silhouette/details; UI glyphs live separately in icons.js.
@@ -109,24 +110,7 @@ const skill = {
   leap: L('M16 79C22 5 92 8 104 82','#ac965a',5)+P('M92 73l12 16 11-18z','#dfbb74')+G(boot,'translate(19 -6) scale(.65)')+P('M28 111l8-19 15 12 12-24 14 20 17-11 11 23z','#9aab9e')+L('M10 110h13m88 0h10','#be975d',4)
 };
 
-const rune = (symbol) => P('M41 13h46l27 29-9 55-40 20-40-20-9-55z','#c4b79e')+P('M42 20h43l22 26-9 45-33 19-33-19-9-45z','#596d77')+L('M30 43l13-17m44 0 13 16M37 96l18 8','#ead7af',3)+symbol;
-const mod = {
-  split: rune(L('M64 91V62L40 40m24 22 24-22','#e4ce90',6)+P('M29 35l20 1-15 15zm67 0-20 1 15 15z','#d9e6cf')),
-  pierce: rune(P('M75 31h13v57H75z','#849d9d')+L('M30 77l55-37','#edcf8b',6)+P('M81 32l16-2-5 18z','#f2e3b6')+L('M43 38v24m11 5v24','#c5d3bc',4)),
-  bounce: rune(L('M32 87l32-38 26 35','#e0bf83',5)+C(32,86,8,'#bcd6ca')+P('M81 76l17 12-19 5z','#f1dfac')+L('M45 36h42','#9fb4b0',5)),
-  burning_ground: rune(E(65,88,33,10,'#9a7967')+P('M66 31c-8 23-25 29-20 44 7 20 41 15 38-4-2-10-12-18-9-27l-10 16z','#df9a62')+P('M62 61c-6 9-6 18 4 19 11-3 2-15-4-19z','#f7d99a','none')),
-  echo: rune(C(47,64,22,'none','#e2c393',4)+C(68,64,22,'none','#afbdb3',4)+L('M88 40c20 17 20 33 1 47','#839d9f',4)),
-  wide_arc: rune(P('M30 85c38 4 57-12 70-48 11 49-21 68-70 48z','#ebce97')+L('M32 50l30 37M45 35l17 52','#b5cabc',4)),
-  multistrike: rune(P('M28 78l25-46-6 41-23 20zm27 4 24-47-5 42-23 20zm26 5 21-37-5 37-20 12z','#e1c38d')),
-  frost_shift: rune(P('M37 32l28 29-28 33z','#dc9b72')+L('M81 35v53M63 46l36 31M63 77l36-31','#c9e4dc',4)+L('M29 65h67','#eee2b9',3)),
-  knockback: rune(P('M29 48l19-7 19 21-5 24-27-3-6-20z','#d9bd8e')+L('M72 40l18 23-18 23M89 39l18 24-18 24','#b4cec3',5)),
-  concentrated: rune(P('M39 34l17 13-10 8zM92 34L75 47l10 8zM39 94l17-13-10-8zM92 94L75 81l10-8z','#cbd8bd')+diamond(65,64,14,'#e4bd77')),
-  lingering: rune(P('M45 33h40L74 61l11 30H45l12-30z','#e0c898')+P('M53 82l12-13 12 13z','#799c9c')+L('M41 31h48M41 94h48','#c5d9c6',5)),
-  life_leech: rune(P('M46 40c-22-13-30 16-10 32l27 23 29-23c20-18 3-41-12-31L65 54z','#bc807e')+P('M71 30l-8 30 18-4-19 38 5-27-17 3z','#e4c997')),
-  spiked_ward: rune(P('M42 40l-10-12 3 29-14 10 18 7 8 19 18 11 19-13 7-21 16-8-17-8 7-28-14 14-20-10z','#afbdb1')+P('M47 45l18-7 19 7-7 38-12 10-13-10z','#779ca0')+L('M65 42v45','#e9cf9a',4)),
-  pack_leader: rune(P('M34 60l4-22 18 12 16-2 17-12 4 23-12 12-17 7-20-7z','#a4c3b7')+P('M47 80l18-5 19 5-8 17H55z','#cfb57c')+C(64,28,6,'#edd49a')+L('M47 59l8 3m19 0 8-3','#fff0ca',3)),
-  cast_on_dodge: rune(L('M32 83c-6-30 17-48 44-38','#b2cdc5',6)+P('M76 32l17 18-23 4z','#b2cdc5')+P('M79 56l-22 26h15l-3 18 24-28H78z','#e4bf7c'))
-};
+const mod = MOD_ART;
 
 const monster = {
   tusk_boar: P('M26 51L18 26l31 11c11-8 24-8 36 0l25-14-5 35-7 40-33 17-38-20z','#9b745a')+P('M35 63l26-9 31 7 7 24-16 17-35-3-20-16z','#c3986e')+E(65,82,24,17,'#ba8b6b')+E(56,82,4,6,'#69534a')+E(75,82,4,6,'#69534a')+P('M36 88c-17-3-13-25-10-33 4 16 6 18 17 19m49 13c20-4 15-27 12-32-2 15-5 19-16 20z','#e8d9ad')+L('M40 59l12 2m26 0 12-3','#3d3c36',5),

@@ -66,7 +66,7 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
     const r = el.getBoundingClientRect(), p = el.closest('.pbody').getBoundingClientRect();
     const left = Math.max(r.left, p.left, 0), right = Math.min(r.right, p.right, innerWidth);
     const top = Math.max(r.top, p.top, 0), bottom = Math.min(r.bottom, p.bottom, innerHeight);
-    return {x: (left + right) / 2, y: (top + bottom) / 2};
+    return {x: (left + right) / 2, y: top + (bottom - top) * .2};
   });
   const prev = await camera();
   await page.mouse.move(box.x, box.y);
@@ -88,6 +88,7 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   await capture('job-detail');
   await tap('[data-fit]');
   await capture('job-overview');
-  await tap('.panel-close');
+  await tap('.journal-back');
+  await tap('[data-act="close-journal"]');
   assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
 }

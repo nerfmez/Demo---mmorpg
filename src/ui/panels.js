@@ -128,6 +128,7 @@ export class Panels {
     }
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
+    this.overlay.classList.toggle('is-journal', tab === 'job');
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
     this.onVisibility?.(true);
@@ -139,7 +140,7 @@ export class Panels {
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on');
+    this.overlay.classList.remove('on', 'is-journal');
     document.body.classList.remove('panel-open');
     this.lastResult = null;
     this.sel.socket = undefined;
@@ -460,8 +461,12 @@ export class Panels {
       case 'growth-filter':
         this.sel.growthKind = t.dataset.id;
         return this.render(true);
+      case 'close-journal': return this.close();
+      case 'dismiss-node': this.sel.node = null; return this.render();
+      case 'journal-reset': this.sel.journalReset = !this.sel.journalReset; return this.render();
       case 'constellation':
         this.sel.constellation = t.dataset.id || null;
+        this.sel.journalReset = false;
         this.sel.node = null;
         this.sel.nodeSearch = '';
         return this.render(true);
@@ -511,6 +516,7 @@ export class Panels {
         return this.changed();
       case 'respec-job':
         respecJob(ch, data);
+        this.sel.journalReset = false;
         this.sel.node = null;
         return this.changed();
       case 'pick-socket':

@@ -1,12 +1,59 @@
-# Seeker build workspaces
+# Seeker build workspaces — Travel Journal revision
 
-## Player-facing changes
+## Visual review, not production release
 
-The build UI is now separated into **combat loadout**, **modifier management**, **movement**, **material upgrades**, and **passive paths**. The inventory, crafting, quests, map, settings, and Character Stat page retain their separate responsibilities. Desktop/tablet use a persistent rail; narrow portrait phones use a native page selector, leaving room for the task itself. Inspection does not allocate, socket, or spend materials.
+This revision is staged on `codex/seeker-ui-workspaces` (PR #11). Do not merge or
+publish before the owner approves screenshots from the actual game.
 
-The passive tree opens on ten categories: foundation, melee, projectile, area, lasting damage/fields, control, protection/healing, summons, movement/cadence, and specialization. Specialization has four separate subviews. The graph still uses the actual `links` from `data/jobtree.json`. Cross-category connections are marked ↗ and listed in the selected-node panel; the shortest route can take the player to the next prerequisite without spending points. Small nodes have smaller discs, but separate >=44px hit targets at every supported zoom. Node labels retain readable text size while zooming out.
+The passive screen is a full-viewport paper/ink **travel journal**, not a book
+object or floating menu. Its normal sidebar, header/footer frame and persistent
+inspector are hidden. The chart owns the screen between a small search/points
+bar and pan/zoom controls. Details appear only after selecting a node and have
+an explicit close button. The initial overview never opens a details panel.
 
-There are 87 nodes: the original 61 IDs, effects and links are retained; 23 optional small stat nodes and 3 notables were added. Existing original nodes can acquire extra links to new optional branches. New flat HP/MP/attack/magic/defense nodes spend **Job Points**, not Character **Stat Points**. There are no new STR/INT requirement bonuses. Save version remains 2. Job level gates, only-one-job restrictions, and respec gold rules remain in core logic.
+Other build workspaces use quiet dark translucent panels and blue selection
+accents (the owner's Minimal Panel direction). Equipping skills, managing mods,
+movement, upgrades, inventory and crafting still have separate responsibilities.
+
+## Chapters and selective investment
+
+The ten large overview marks are **chapters containing choices**, not purchasable
+keystones, completion tasks or exclusive paths. Only individual linked nodes spend
+Job Points. Every chapter can be left partly invested while choosing branches in
+other chapters. Names and memberships now express journeys, with mixed effects:
+
+- หน้าแรกของการเดินทาง / First Footsteps: basic preparations, health, mana and power.
+- กองไฟพักแรม / At the Campfire: melee, vitality, recovery, sweep and leech.
+- หอจดหมายเหตุ / The Old Archive: spell foundations, mana, area and radius branches.
+- สัญญาร่วมทาง / A Shared Promise: healing, companions, areas and resource exchange.
+- คำสาบานของผู้เดินทาง / The Oaths We Keep: the existing four profession subviews.
+- ร่มไม้ระหว่างทาง / Beneath the Boughs: defense, recovery and companion support.
+- สายน้ำไม่หวน / The River Remembers: herbs, companions, lingering fields and erosion.
+- ขอบฟ้าไกล / A Farther Horizon: projectiles, movement, precision and poison.
+- หมึกและคมเหล็ก / Ink and Iron: hybrid martial/magic paths and control duration.
+- ทางแยกไร้ชื่อ / The Unnamed Crossing: hybrid weapons, movement and recovery.
+
+Old internal category IDs remain for compatibility; they are not the visible
+chapter names or a filter limiting what effects may be added to a chapter.
+The 87 node IDs, effects, costs, link graph and Job gates are unchanged. A checksum
+regression test protects that gameplay projection. Dashed external markers are
+actual adjacent nodes in other chapters; opening them only navigates. They do not
+require completing the source chapter. The overview shows invested points only,
+not a percent-complete meter. Search finds all nodes and opens the correct chapter.
+Portrait overview rearranges the same chapters into two columns, preserving links.
+
+No Zodiac tier-unlock rule was added. Character Stat Points, Job Points, the
+single-profession constraint and town/Gold respec rules remain the game's existing
+rules. Save format stays version 2; previously allocated nodes are never removed.
+
+## Mod item art
+
+`src/ui/gemart.js` defines a shared small faceted jewel with a single-colour etched
+mark. `src/ui/sigils.js` supplies fifteen distinct vector symbols. `ART.mod` uses
+these drawings centrally, so the inventory, modifier list, socket presentation,
+crafting and upgrades use the same item identity. There are no raster illustrations,
+external requests, or per-item generated images. Muted gem tint is visual identity,
+not a skill-compatibility rule. The real tag/stat rules remain visible and authoritative.
 
 ## Shared type vocabulary and compatibility
 
@@ -40,11 +87,15 @@ No names, trait content, graphics or assets from Undecember are copied. Our Job 
 ```
 npm test
 npm run build
+node tests/browser/journal.mjs
+BROWSER=webkit node tests/browser/journal.mjs
 node tests/browser/workspaces.mjs
 BROWSER=webkit node tests/browser/workspaces.mjs
 npm run test:browser
 npm run test:ux
 ```
+
+`tests/browser/journal.mjs` captures the new fullscreen overview, a chapter before and after investment, the mod workspace and mod inventory. It checks viewport bounds, no default inspector, partial investment, shared gem art and actual socketing. `tests/core/journal.test.js` protects the graph/effect projection and all fifteen unique engravings.
 
 `tests/browser/workspaces.mjs` uses real controls at 1440x960, 1180x820 touch, 844x390 touch and 390x844 touch. It covers category/branch browsing, inspection versus allocation, search/jump, native skill tags, modifier incompatibility, socketing, movement selection, upgrade-page rendering, clipping and page errors. Screenshots and reports are written under `tests/browser/out/workspaces-<browser>/`. The shared `passive-checks.mjs` also verifies cross-category prerequisites, one-Job restrictions, route navigation without spending, drag/cancel and native Chromium two-finger pinch. Both this suite and the deployment Dreamloop use the shared checks so the live audit stays aligned with the new UI.
 

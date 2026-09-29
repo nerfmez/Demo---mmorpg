@@ -1,0 +1,110 @@
+name: Apply Travel Journal Review
+on:
+  push:
+    branches: [codex/seeker-ui-workspaces]
+    paths: [.github/journal-patch-3.b64]
+permissions:
+  contents: read
+concurrency:
+  group: journal-source-apply
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.ref == 'refs/heads/codex/seeker-ui-workspaces'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify and apply exact source changes without touching main
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, lzma, pathlib, subprocess
+          transport = ''.join(pathlib.Path(f'.github/journal-patch-{i}.b64').read_text() for i in range(1,4))
+          packed = base64.b64decode(transport, validate=True)
+          assert hashlib.sha256(packed).hexdigest() == 'c2664b076c49ee34a49e6008e210e78b3d052874f47c4b21fcb1bd85b14184ba'
+          bundle = json.loads(lzma.decompress(packed))
+          assert bundle['base'] == '11725d9aa354ba362061544181ce88a10089bb30'
+          subprocess.run(['git','merge-base','--is-ancestor',bundle['base'],'HEAD'],check=True)
+          allowed = {'data/jobtree.json','docs/DESIGN-STATUS.md','docs/GODOT-PORT.md','docs/UI-WORKSPACES.md','index.html','src/ui/art.js','src/ui/gemart.js','src/ui/jobview.js','src/ui/journal.css','src/ui/minimal.css','src/ui/panels.js','src/ui/sigils.js','tests/browser/journal.mjs','tests/browser/passive-checks.mjs','tests/browser/workspaces.mjs','tests/core/journal.test.js'}
+          assert set(bundle['files']) == allowed
+          digest = lambda s: hashlib.sha256(s.encode()).hexdigest()
+          for name, change in bundle['files'].items():
+              path = pathlib.Path(name)
+              if change['before'] is None:
+                  assert not path.exists(), name + ' already exists'
+                  text = change['content']
+              else:
+                  before = path.read_text()
+                  assert digest(before) == change['before'], name + ' changed concurrently'
+                  lines = before.splitlines(True)
+                  for start, end, replacement in reversed(change['edits']):
+                      lines[start:end] = replacement.splitlines(True)
+                  text = ''.join(lines)
+              assert digest(text) == change['after'], name + ' checksum failed'
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(text)
+              print('Verified:', name)
+          subprocess.run(['git','add','--',*sorted(allowed)],check=True)
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - id: commit
+        name: Save tested source to review branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/journal-patch-1.b64 .github/journal-patch-2.b64 .github/journal-patch-3.b64
+          git commit -m 'feat: fullscreen travel journal branches and engraved modifier gems'
+          git push origin HEAD:refs/heads/codex/seeker-ui-workspaces
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  browser:
+    needs: apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+        suite: [journal, legacy]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.apply.outputs.commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Full-game screenshots and chapter interactions
+        if: matrix.suite == 'journal'
+        run: |
+          node tests/browser/journal.mjs
+          node tests/browser/workspaces.mjs
+        env:
+          BROWSER: ${{ matrix.engine }}
+      - name: Gameplay and existing inventory/build regressions
+        if: matrix.suite == 'legacy'
+        run: |
+          npm run test:browser
+          npm run test:ux
+        env:
+          BROWSER: ${{ matrix.engine }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: travel-journal-${{ matrix.engine }}-${{ matrix.suite }}
+          path: tests/browser/out/
+          retention-days: 7

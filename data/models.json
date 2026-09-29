@@ -48,6 +48,13 @@
         "mouthY": 1.556,
         "mouthW": 0.024
       }
+    },
+    "hero_vrm": {
+      "file": "models/hero_vrm.vrm",
+      "vrm": true,
+      "tris": 19181,
+      "armDrop": 1.3,
+      "source": "VRoid Studio (VRM 1.0), made by the owner (author Ball); opt-in with ?hero=vrm, see docs/ART-NEXT-STEPS-TH.md"
     }
   },
   "monsters": {

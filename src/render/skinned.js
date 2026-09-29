@@ -205,6 +205,20 @@ export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkn
     };
   }
   rig.root.add(body);
+  rig.skin = { body, mesh, zones };
+  return bindSkinSync(rig, body, T);
+}
+
+const SHOULDERS = { LeftShoulder: ['armL', 1], RightShoulder: ['armR', -1] };
+
+/**
+ * Give a rig syncSkin(): every skin bone copies its driver bone's root-space rotation (a
+ * world-space retarget). `T.map` (skin bone name -> driver bone), `T.shoulders` and `T.hipsName`
+ * override the Meshy body's names, so another skeleton (a VRM) can reuse this.
+ */
+export function bindSkinSync(rig, body, T) {
+  const map = T.map || MAP;
+  const shoulders = T.shoulders || SHOULDERS;
   body.updateMatrixWorld(true);
 
   // skin bones in parent-first order with their rest data (the clone carries the arms-down pose)
@@ -212,26 +226,22 @@ export function attachSkinnedBody(rig, T, colors, look, { outline = 0.012, darkn
   const index = new Map();
   body.traverse((o) => {
     if (!o.isBone) return;
-    const e = { bone: o, driver: MAP[o.name] || null, parent: index.has(o.parent) ? index.get(o.parent) : -1 };
+    const e = { bone: o, driver: map[o.name] || null, parent: index.has(o.parent) ? index.get(o.parent) : -1 };
     e.restLocal = o.quaternion.clone();
     e.world = new THREE.Quaternion();
     // driver rest rotations are identity, so the offset is the skin bone's rest root-space rotation
     e.offset = o.getWorldQuaternion(new THREE.Quaternion());
     e.parentQ = e.parent < 0 ? o.parent.getWorldQuaternion(new THREE.Quaternion()) : null;
     // shoulders are not driven: they shrug when their arm rises above the horizontal
-    if (o.name === 'LeftShoulder' || o.name === 'RightShoulder') {
-      e.shrug = o.name === 'LeftShoulder' ? 'armL' : 'armR';
-      e.side = o.name === 'LeftShoulder' ? 1 : -1;
-    }
+    if (shoulders[o.name]) [e.shrug, e.side] = shoulders[o.name];
     index.set(o, list.length);
     list.push(e);
   });
-  const hipsBone = list.find((e) => e.bone.name === 'Hips').bone;
+  const hipsBone = list.find((e) => e.bone.name === (T.hipsName || 'Hips')).bone;
   const dq = {};
   for (const [n] of DRIVER) dq[n] = new THREE.Quaternion();
   const b = rig.bones;
 
-  rig.skin = { body, mesh, zones };
   rig.syncSkin = () => {
     for (const [n, p] of DRIVER) {
       if (p) dq[n].copy(dq[p]).multiply(b[n].quaternion);

@@ -111,6 +111,14 @@ each frame (bone map `MAP` there); in Godot, import the GLB with its `Skeleton3D
 retarget the same poses (or author them as clips). Clothes are colour zones cut from the
 bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
 helms and weapons are still attached to the head, chest and hand bones.
+An opt-in second hero body is a VRM 1.0 file made in VRoid Studio (`?hero=vrm`,
+`public/models/hero_vrm.vrm`, registered as `characters.hero_vrm`; `render/vrm-body.js`). It is
+slimmed from `assets/vrm/hero_vrm.source.vrm` by `scripts/prep-vrm.mjs` (only the expression morph
+targets the game uses are kept). It reuses the same driver-bone retarget (`bindSkinSync` in
+`skinned.js`, VRM humanoid bones mapped to the driver bones), keeps its own face, hair and textures,
+and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
+through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
+the scarf and armour pieces are not used with this body yet.
 Regular monsters have Meshy models too (`data/models.json` → `monsters`, GLBs in
 `public/models/monsters/`). Meshy only rigs humanoids, so `render/monsterSkin.js` skins each
 model onto the procedural monster rig at load: `bones` moves rig joints onto the model,

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { toonRamp, outlineMaterial } from './toon.js';
 import { prepareHeroBase } from './skinned.js';
+import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareMonsterModel } from './monsterSkin.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {geometry, map, outline}
@@ -17,12 +18,13 @@ export function loadModels(registry = {}) {
   for (const [group, entries] of Object.entries(registry)) {
     if (group.startsWith('_')) continue;
     for (const [id, m] of Object.entries(entries)) {
+      if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
       jobs.push(
         loader
           .loadAsync(m.file)
           .then((gltf) => {
             if (group === 'characters' || group === 'monsters') {
-              loaded.set(`${group}/${id}`, (group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
+              loaded.set(`${group}/${id}`, (m.vrm ? prepareVrmBody : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
               return;
             }
             gltf.scene.updateMatrixWorld(true);

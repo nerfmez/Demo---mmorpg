@@ -77,7 +77,7 @@ export function jobView(ui,{effectText}) {
   const outside=[...new Set(entries.flatMap(([,n])=>n.links.filter(id=>!ids.has(id))))];
   const coords=Object.fromEntries(entries.map(([id,n])=>[id,n.clusterPos]));
   outside.forEach((id,i)=>{coords[id]=[100+(i%7)*(1280/Math.min(6,Math.max(1,outside.length-1))),i<7?54:655];});
-  const tierGroups=[...new Set(entries.map(([,n])=>n.tier||1))].sort((a,b)=>a-b).map(t=>({tier:t,x:entries.filter(([,n])=>(n.tier||1)===t).reduce((sum,[,n])=>sum+n.clusterPos[0],0)/entries.filter(([,n])=>(n.tier||1)===t).length}));
+  const tierGroups=[...new Set(entries.map(([,n])=>n.tier).filter(t=>t>0))].sort((a,b)=>a-b).map(t=>({tier:t,x:entries.filter(([,n])=>n.tier===t).reduce((sum,[,n])=>sum+n.clusterPos[0],0)/entries.filter(([,n])=>n.tier===t).length}));
   const tierGuide=`<svg class="journal-tier-guide" width="${w}" height="${h}" aria-hidden="true">${tierGroups.map((g,i)=>{const next=tierGroups[i+1],sep=next?(g.x+next.x)/2:null;return `<text x="${g.x}" y="105" class="journal-tier-label">ขั้น ${tierName(g.tier)}</text>${sep?`<line x1="${sep}" y1="125" x2="${sep}" y2="${h-55}" class="journal-tier-separator"/>`:''}`;}).join('')}</svg>`;
   const edges=entries.flatMap(([id,n])=>n.links.filter(l=>!ids.has(l)||id<l).map(l=>{
     const [x,y]=coords[id],[xx,yy]=coords[l],taken=ch.jobNodes.includes(id)&&ch.jobNodes.includes(l);
@@ -85,7 +85,7 @@ export function jobView(ui,{effectText}) {
   })).join('');
   const nodes=entries.map(([id,n])=>{
     const state=jobNodeState(ch,data,id),xy=coords[id],selected=sel.node===id;
-    return `<button class="seeker-node ${n.type} ${state.taken?'taken':state.can?'available':'locked'} ${selected?'selected':''}" data-act="node" data-id="${id}" aria-pressed="${selected}" aria-label="${esc(n.nameTh+' · '+(state.taken?'ลงทุนแล้ว':state.can?'ลงทุนได้':'ยังลงทุนไม่ได้'))}" style="left:${xy[0]}px;top:${xy[1]}px"><span class="seeker-node-disc">${sigil(effectSigil(n))}</span>${state.taken?'<i>✓</i>':''}<span class="seeker-node-caption"><b>${n.nameTh}</b><small class="node-tier">ขั้น ${tierName(n.tier||1)}</small><small>${effects(n,effectText).join(' · ')||'จุดเริ่มต้น'}</small></span></button>`;
+    return `<button class="seeker-node ${n.type} ${state.taken?'taken':state.can?'available':'locked'} ${selected?'selected':''}" data-act="node" data-id="${id}" aria-pressed="${selected}" aria-label="${esc(n.nameTh+' · '+(state.taken?'ลงทุนแล้ว':state.can?'ลงทุนได้':'ยังลงทุนไม่ได้'))}" style="left:${xy[0]}px;top:${xy[1]}px"><span class="seeker-node-disc">${sigil(effectSigil(n))}</span>${state.taken?'<i>✓</i>':''}<span class="seeker-node-caption"><b>${n.nameTh}</b><small class="node-tier">${n.tier===0?'จุดเริ่ม':'ขั้น '+tierName(n.tier||1)}</small><small>${effects(n,effectText).join(' · ')||'จุดเริ่มต้น'}</small></span></button>`;
   }).join('');
   const gates=outside.map(id=>{
     const n=tree.nodes[id],xy=coords[id],c=chapters.find(c=>c.id===n.category);

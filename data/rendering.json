@@ -1,0 +1,32 @@
+{
+  "_doc": "Presentation-only. All live lighting and quality settings are authored here. No skill, UI, model or camera changes.",
+  "lighting": {
+    "active": "daylight",
+    "profiles": {
+      "daylight": {
+        "ambientSky": "#e8f4ff",
+        "ambientGround": "#657858",
+        "ambientIntensity": 1.5,
+        "sunColor": "#fff1d7",
+        "sunIntensity": 1.65,
+        "shadowIntensity": 0.62
+      },
+      "legacy": {
+        "ambientSky": "#fff8e9",
+        "ambientGround": "#8a947c",
+        "ambientIntensity": 1.55,
+        "sunColor": "#fff7e9",
+        "sunIntensity": 1.65,
+        "shadowIntensity": 0.72
+      }
+    }
+  },
+  "nativeAntialias": true,
+  "quality": {
+    "low": {"pixelRatio": 1, "shadowMapSize": 0},
+    "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024},
+    "high": {"pixelRatio": 2, "shadowMapSize": 2048}
+  },
+  "shadow": {"sunOffset": [-14, 26, 10], "normalBias": 0.03, "bias": -0.0008},
+  "painted": {"shadowStrength": 0.28, "lightInfluence": 0.12, "referenceEnergy": 3.1}
+}

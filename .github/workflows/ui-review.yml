@@ -1,10 +1,6 @@
 name: Seeker UI Review
 on:
-  push:
-    branches: [codex/seeker-ui-workspaces]
-    paths: ['src/**', 'data/**', 'tests/browser/**', 'index.html']
   pull_request:
-    paths: ['src/ui/**', 'src/core/skills.js', 'src/core/character.js', 'data/jobtree.json', 'data/skills.json', 'data/mods.json', 'tests/browser/**', 'index.html', '.github/workflows/ui-review.yml']
 permissions:
   contents: read
 concurrency:
@@ -20,24 +16,35 @@ jobs:
         browser: [chromium, webkit]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        uses: ./.github/actions/change-scope
+      - name: Validation scope
+        run: echo 'Run focused review=${{ steps.scope.outputs.ui }}'
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.ui == 'true'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
+        if: steps.scope.outputs.ui == 'true'
       - run: npm run build
+        if: steps.scope.outputs.ui == 'true'
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+        if: steps.scope.outputs.ui == 'true'
       - name: Fullscreen travel journal and engraved modifier gems
+        if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/journal.mjs
         env:
           BROWSER: ${{ matrix.browser }}
       - name: Workspaces and passive touch gestures
+        if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/workspaces.mjs
         env:
           BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.scope.outputs.ui == 'true'
         with:
           name: seeker-ui-review-${{ matrix.browser }}
           path: |

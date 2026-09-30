@@ -1,0 +1,27 @@
+name: Classify changed files
+description: Select checks from the PR or push diff without skipping required check names.
+inputs:
+  force-render:
+    description: Run renderer checks for an explicitly requested review ref.
+    default: 'false'
+outputs:
+  game:
+    value: ${{ steps.classify.outputs.game }}
+  tools:
+    value: ${{ steps.classify.outputs.tools }}
+  ui:
+    value: ${{ steps.classify.outputs.ui }}
+  hud:
+    value: ${{ steps.classify.outputs.hud }}
+  render:
+    value: ${{ steps.classify.outputs.render }}
+  map:
+    value: ${{ steps.classify.outputs.map }}
+runs:
+  using: composite
+  steps:
+    - id: classify
+      shell: bash
+      env:
+        FORCE_RENDER: ${{ inputs.force-render }}
+      run: node scripts/ci-scope.mjs

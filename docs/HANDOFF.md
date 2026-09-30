@@ -9,8 +9,11 @@ this repo with other tools, so `main` may have moved.
 
 `AGENTS.md` is the shared instruction source; `CLAUDE.md` imports it. Read
 [JEV-CONTEXT-TH.md](JEV-CONTEXT-TH.md) for request examples and retrieval limits.
-Besides initial exploration, use Jev for focused bug-source retrieval, unresolved
-change impacts before delivery, and planning across systems/Godot boundaries.
+Search known paths/contracts directly first. Use Jev only for unresolved source
+discovery where ranked context helps, including debugging, impacts and port planning.
+Multi-file work alone is not a trigger. Follow the risk-based validation tiers in
+AGENTS.md: planning/docs do not run gameplay tests; deliver focused review evidence
+early, report pending CI, and complete applicable checks before merge.
 Follow the exact-commit, budget, full-source inspection and handoff rules there;
 Jev does not replace reproduction, reference searches, tests or image review.
 

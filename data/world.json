@@ -3540,10 +3540,13 @@
       "runup": 2.6,
       "retreat": 1.6,
       "foamWidth": 0.14,
-      "foamScale": 2.0,
+      "foamScale": 3.8,
       "foamIntensity": 0.95,
       "portFoam": 0.68,
-      "foamColor": "#edf7f2"
+      "foamColor": "#edf7f2",
+      "foamDrift": 0.45,
+      "foamLifetime": 2.4,
+      "causticSpeed": 0.35
     },
     "edgeKinds": [
       "beach",

@@ -281,7 +281,7 @@ ${GROUND_COLOR_GLSL}`
 function seaMaterial(world) {
   const surf = world.data.sea.surf || {};
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')} },
+    uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector3(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       attribute float depth; attribute float shore; attribute float beachWash;
@@ -289,21 +289,39 @@ function seaMaterial(world) {
       varying float vBeachWash;
       void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor;
+      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec3 uMotion;
       varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
       ${NOISE_GLSL}
-      // Cellular membranes leave open water holes. Coarse warped cells survive
-      // the gameplay camera; fwidth keeps their white rims from shimmering.
-      vec2 foamCell(vec2 p){
+      // Seeds themselves move: the membranes stretch, pinch off and reconnect,
+      // rather than a fixed cellular texture sliding beneath a brightness mask.
+      vec2 foamCell(vec2 p,float motion,float generation){
         vec2 cell=floor(p),local=fract(p);float nearest=9.0,second=9.0;
         for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){
-          vec2 offset=vec2(float(x),float(y)),id=cell+offset;
+          vec2 offset=vec2(float(x),float(y)),id=cell+offset+generation*17.3;
           vec2 seed=vec2(hash12(id),hash12(id+37.2));
-          vec2 centre=offset+.20+.60*seed-local;
+          vec2 centre=offset+.5+.34*sin(seed*6.2831853+vec2(motion,-motion*.83))-local;
           float distance=dot(centre,centre);
           if(distance<nearest){second=nearest;nearest=distance;}else second=min(second,distance);
         }
         return vec2(sqrt(nearest),sqrt(second)-sqrt(nearest));
+      }
+      // One finite-lived patch: thick young foam opens holes, tears into remnants,
+      // then disappears. Each incoming wave receives a different seed generation.
+      vec2 foamSheet(vec2 p,float age,float generation,float lifetime){
+        float life=clamp(age/lifetime,0.0,1.0);
+        p+=vec2(sin(p.y*.9+age*1.1),cos(p.x*.8-age*.9))*(.48+.35*life);
+        vec2 cell=foamCell(p,age*uMotion.x*3.0,generation);
+        float aa=max(fwidth(cell.x),.012);
+        // Water pores grow through a connected young foam sheet. Using radial
+        // distance (not Voronoi borders) avoids rigid polygon/cracked-ice lines.
+        float pore=mix(.27,.56,life);
+        float membrane=smoothstep(pore,pore+aa+.045,cell.x);
+        float erosion=vnoise(p*1.7+vec2(age*.7,-age*.5)+generation*11.7);
+        float fragments=smoothstep(life*.84,life*.84+.18,erosion);
+        float decay=1.0-smoothstep(.28,1.0,life);
+        float white=membrane*fragments*decay;
+        float mist=smoothstep(pore-.08,pore+.06,cell.x)*fragments*decay;
+        return vec2(white,mist);
       }
       void main(){
         float cycle=uTime*6.2831853/uSurf.z+vW.x*.009;
@@ -318,38 +336,61 @@ function seaMaterial(world) {
         col=mix(col,vec3(.06,.24,.34),smoothstep(2.0,7.0,d));
         float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
         col+=(drift-.5)*.035;
-        // Wide, faint light ripples under the surface, strongest in clear shallows.
-        vec2 p=vW*.8+vec2(sin(vW.y*.37+uTime*.35),cos(vW.x*.27-uTime*.31))*.4;
-        float caustic=pow(1.0-abs(sin(p.x+p.y*.4)*sin(p.y-p.x*.3)),16.0);
-        col+=vec3(.035,.045,.03)*caustic*(1.0-smoothstep(.0,3.0,d));
-        float jag=(vnoise(vW*2.1-uTime*.10)-.5)*.20;
-        float rim=1.0-smoothstep(uSurf.w,uSurf.w+.075,abs(behind+jag));
+        // Recover the waterward normal from the existing signed coast distance.
+        // This advects foam perpendicular to both side coasts of the U-shaped bay.
+        vec2 dx=dFdx(vW),dy=dFdy(vW);
+        float determinant=dx.x*dy.y-dx.y*dy.x;
+        vec2 normal=vec2(0.0,1.0);
+        if(abs(determinant)>.000001){
+          normal=vec2(dFdx(vShore)*dy.y-dFdy(vShore)*dx.y,
+                      dFdy(vShore)*dx.x-dFdx(vShore)*dy.x)/determinant;
+          normal/=max(length(normal),.001);
+        }
+        vec2 coast=vW-normal*vShore;
+        // Submerged light ripples deform independently and softly ebb in brightness.
+        // They never remain a crisp, world-fixed grid on top of the water.
+        if(d<3.0){
+          vec2 lightP=vW*.28+vec2(uTime*.035,-uTime*.06);
+          lightP+=vec2(sin(vW.y*.31+uTime*.47),cos(vW.x*.28-uTime*.39))*.65;
+          vec2 lightCell=foamCell(lightP,uTime*uMotion.z,0.0);
+          float caustic=1.0-smoothstep(.015,.13,abs(lightCell.x-.39));
+          float lightPulse=.5+.5*sin(uTime*.8+vW.x*.16+vW.y*.11);
+          col+=vec3(.022,.035,.028)*caustic*lightPulse*(1.0-smoothstep(.0,3.0,d));
+        }
+        float jag=(vnoise(coast*1.6+vec2(uTime*.28,-uTime*.19))-.5)*.16;
+        float rim=1.0-smoothstep(uSurf.w,uSurf.w+.07,abs(behind+jag));
         float foam=0.0,softFoam=0.0;
         if(vShore<15.0){
-          vec2 driftP=vW*uFoam.x+vec2(uTime*.045,-uTime*.06);
-          driftP+=vec2(sin(vW.y*.73+uTime*.18),cos(vW.x*.63-uTime*.21))*.28;
-          driftP+=vec2(vnoise(vW*3.1+vec2(uTime*.02,0.0)),vnoise(vW*3.1+7.3))*.85;
-          vec2 cell=foamCell(driftP);
-          float radius=.34+.09*vnoise(vW*.85+uTime*.025);
-          float aa=max(fwidth(cell.y),.012);
-          // Round irregular foam rims leave open water between the torn clusters.
-          float junction=1.0-smoothstep(.026,.065+aa,cell.y);
-          float rounded=1.0-smoothstep(.028,.055+aa,abs(cell.x-radius));
-          float lace=max(junction,rounded*.28);
-          float softLace=1.0-smoothstep(.065,.14+aa,cell.y);
-          float bubbles=(1.0-smoothstep(.024,.055+aa,abs(cell.x-.16)))*.16;
-          float foamPatch=smoothstep(.28,.58,vnoise(vW*.63+vec2(-uTime*.04,uTime*.03)));
-          float trail=smoothstep(.08,.28,behind)*(1.0-smoothstep(1.0,2.5,behind));
-          float phase=vShore*.84+uTime*.78+(vnoise(vW*.18)-.5)*1.2;
-          float swell=.5+.5*sin(phase);
-          float zone=smoothstep(.5,2.0,vShore)*(1.0-smoothstep(10.0,15.0,vShore));
-          float crest=smoothstep(.992,.999,swell)*zone;
-          float feather=smoothstep(.68,.94,swell)*zone;
-          float broken=.14+.86*foamPatch;
-          float wash=rim*(.50+.50*foamPatch)+(lace+bubbles)*trail*foamPatch*(.45+.4*surge);
-          float breaking=crest*broken*.78+lace*feather*foamPatch*.78;
+          float turns=cycle/6.2831853,swashAge=fract(turns),generation=floor(turns);
+          float build=smoothstep(.04,.22,swashAge);
+          float drain=1.0-smoothstep(.48,.84,swashAge);
+          float sheetWidth=mix(.35,2.5,smoothstep(.06,.38,swashAge));
+          // Swash material follows the moving edge, then stretches and dissolves
+          // during drainage. The next patch is reseeded only while it is invisible.
+          vec2 swashP=(vW-normal*edge)*uFoam.x;
+          swashP+=normal*swashAge*uMotion.x;
+          vec2 sheet=foamSheet(swashP,swashAge*uSurf.z,generation,uSurf.z*.88);
+          float trail=smoothstep(.04,.22,behind)*(1.0-smoothstep(sheetWidth*.5,sheetWidth,behind));
+          float broken=smoothstep(.17,.55,vnoise(swashP*.7+generation*8.3));
+          float wash=rim*(.50+.45*build*drain)*mix(.40,1.0,broken)
+                     +sheet.x*trail*build*drain;
+          float washMist=sheet.y*trail*build*drain;
+          // Incoming breakers travel toward the nearest coast, carrying their
+          // foam with them. Age measures seconds since that crest passed here.
+          float spacing=9.0,speed=spacing/uSurf.z;
+          float bend=(vnoise(coast*.23)-.5)*.65;
+          float waveCoord=(vShore+uTime*speed+bend)/spacing;
+          float waveGeneration=floor(waveCoord);
+          float wake=fract(waveCoord)*spacing;
+          float age=wake/speed;
+          vec2 waveP=(vW+normal*(uTime*speed-waveGeneration*spacing))*uFoam.x;
+          vec2 breaker=foamSheet(waveP,age,waveGeneration,uMotion.y);
+          float zone=smoothstep(.6,2.3,vShore)*(1.0-smoothstep(9.0,14.0,vShore));
+          float crest=(1.0-smoothstep(.06,.20,wake))*zone;
+          float wakeMask=smoothstep(.06,.25,wake)*(1.0-smoothstep(uMotion.y*.55,uMotion.y,age))*zone;
+          float breaking=crest*.72+breaker.x*wakeMask*.82;
           foam=max(wash,breaking)*mix(uFoam.z,1.0,vBeachWash)*uFoam.y*cover;
-          softFoam=max(rim,softLace*max(trail,feather)*foamPatch)*mix(.26,.48,vBeachWash)*cover;
+          softFoam=max(washMist,breaker.y*wakeMask)*mix(.24,.42,vBeachWash)*cover;
         }
         // A pale teal bed separates foam holes from the darker water, with
         // cream-white membranes and broken leading crests rather than stripes.

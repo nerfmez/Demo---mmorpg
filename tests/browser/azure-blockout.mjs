@@ -74,14 +74,14 @@ try {
     report.foamPhases=[waveTime,waveTime+1.9,waveTime+3.8];
     if(process.env.AZURE_WAVE_SEQUENCE==='1'){
       mkdirSync(out+'wave-frames',{recursive:true});
-      const period=JSON.parse(readFileSync('data/world.json','utf8')).sea.surf.period,frames=Math.round(period*8);
+      const period=JSON.parse(readFileSync('data/world.json','utf8')).sea.surf.period,sampledFPS=12,frames=Math.round(period*sampledFPS);
       for(let i=0;i<frames;i++){
-        await page.evaluate(t=>{window.__frontier.game.time=t;},waveTime+i/8);
+        await page.evaluate(t=>{window.__frontier.game.time=t;},waveTime+i/sampledFPS);
         await stage(-151,99.3);
         await page.screenshot({path:out+`wave-frames/${String(i).padStart(3,'0')}.png`,timeout:60000});
         if(i%16===0)console.log('wave frame',i,frames);
       }
-      report.waveSequence={frames,sampledFPS:8,duration:period,hardwareFPS:'not measured'};
+      report.waveSequence={frames,sampledFPS,duration:period,hardwareFPS:'not measured'};
     }
     report.staticResources=await page.evaluate(()=>{
       const f=window.__frontier,v=f.view;

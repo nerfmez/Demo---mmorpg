@@ -4,9 +4,27 @@ import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { allowedFile, collectChunks, shortlist, boundedRequest, generateContext, markdownReport,
-  MODEL, MAX_BODY_BYTES, reservedUsage, checkGitHubBudget, rankWithJev } from '../../scripts/jev-context.mjs';
+  MODEL, MAX_BODY_BYTES, reservedUsage, checkGitHubBudget, rankWithJev, validateAgentRequest } from '../../scripts/jev-context.mjs';
 
 const commit = 'a'.repeat(40);
+const request = { version: 1, id: 'chatgpt-shrubs-20260930', agent: 'chatgpt', task: 'ปรับพุ่มไม้\nรักษาสีเดิม', keywords: 'bush leafpaint', source_commit: commit };
+
+test('agent requests preserve multiline tasks and pin the source commit', () => {
+  const input = validateAgentRequest(request, `jev/request/${request.id}`);
+  assert.equal(input.task, request.task);
+  assert.equal(input.source_ref, commit);
+});
+
+test('agent request rejects credentials, arbitrary refs, oversized inputs and branch mismatches', () => {
+  const branch = `jev/request/${request.id}`;
+  for (const bad of [
+    { ...request, api_key: 'do-not-allow' }, { ...request, source_commit: 'main' },
+    { ...request, task: 'x'.repeat(2401) }, { ...request, task: '' },
+    { ...request, keywords: [] }, { ...request, agent: 'unknown' },
+    { ...request, id: [request.id] }, { ...request, source_commit: [commit] },
+  ]) assert.throws(() => validateAgentRequest(bad, branch));
+  assert.throws(() => validateAgentRequest(request, 'main'));
+});
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'jev-context-'));
   t.after(() => rm(root, { recursive: true, force: true }));

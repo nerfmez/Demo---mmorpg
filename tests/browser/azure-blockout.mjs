@@ -14,6 +14,16 @@ const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.na
 const port=4191,base=`http://localhost:${port}/`;
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port',String(port),'--strictPort'],{stdio:'ignore',detached:true});
 const report={engine:engine.name(),errors:[],hardwareIPadFPS:'not measured',captures:[]};
+// Solve the current curved incoming phase, so contact review labels do not
+// drift from the surface crest after tuning along-crest curvature.
+function nextCrestTime(x,z,now,surf){
+  const omega=Math.PI*2/surf.period,k=Math.PI*2/surf.waveSpacing,bend=surf.swellBend??1.1;
+  const phase=t=>z*k+t*omega+bend*(Math.sin(x*.15+t*.12)+.35*Math.sin(x*.39-t*.19));
+  const target=Math.ceil(phase(now)/(Math.PI*2))*Math.PI*2;
+  let t=now+(target-phase(now))/omega;
+  for(let i=0;i<6;i++)t-=(phase(t)-target)/(omega+bend*(.12*Math.cos(x*.15+t*.12)-.0665*Math.cos(x*.39-t*.19)));
+  return t;
+}
 let browser;
 try {
   for(let i=0;;i++){try{if((await fetch(base)).ok)break;}catch{}if(i>60)throw Error('preview server');await new Promise(r=>setTimeout(r,250));}
@@ -69,10 +79,10 @@ try {
         const f=window.__frontier,sea=f.view.scene.children.flatMap(o=>o.children||[]).find(m=>m.name==='sea-swash');
         return sea.material.userData.waterContact;
       });assert.ok(report.waterContacts.sections>20,'actual waterline sections baked');
-      const surf=JSON.parse(readFileSync('data/world.json','utf8')).sea.surf,period=surf.period,spacing=surf.waveSpacing;
+      const surf=JSON.parse(readFileSync('data/world.json','utf8')).sea.surf;
       const currentTime=await page.evaluate(()=>window.__frontier.game.time);
       for(const [name,x,z,hitZ] of [['boat-piles',-23.2,-5.2,-3.45],['stone-armour',-119,86,89.6],['quay-wall',0,-24.5,-22.775]]){
-        const impactTime=Math.ceil((currentTime+hitZ/(spacing/period))/period)*period-hitZ/(spacing/period);
+        const impactTime=nextCrestTime(x,hitZ,currentTime,surf);
         for(const [phase,delta] of [['incoming',0],['impact',.55],['spread',1.45],...(name==='boat-piles'?[['pile-hit',4.6]]:[])]){
           await page.evaluate(t=>{window.__frontier.game.time=t;},impactTime+delta);
           await stage(x,z);await shot('contact-'+name+'-'+phase);

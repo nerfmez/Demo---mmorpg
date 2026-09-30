@@ -1,6 +1,7 @@
 // Coastal landmarks use the same cel materials and world deck/collider data.
 import * as THREE from 'three';
 import { toon, outlined } from './toon.js';
+import { marketFishingBoat } from './market.js';
 
 export function createHarbor(world) {
   const root = new THREE.Group();
@@ -18,12 +19,12 @@ export function createHarbor(world) {
     const positions=deckGeometry.attributes.position;
     for(let i=0;i<positions.count;i++)positions.setY(i,positions.getY(i)+slope*positions.getZ(i));
     deckGeometry.computeVertexNormals();
-    part(deckGeometry,d.kind === 'breakwater' ? '#a4a99f' : d.kind === 'slipway' ? '#aaa79a' : '#a98252',0,-.15,0,pier);
+    part(deckGeometry,d.kind === 'breakwater' ? '#a4a99f' : d.kind === 'slipway' ? '#aaa79a' : '#a88a61',0,-.15,0,pier);
     // Raised narrow seams read as planks without a mesh for every board.
     const seams=[];
-    for(let z=-d.hz+.4;(!d.kind || d.kind === 'pier') && z<d.hz;z+=1) seams.push(z);
-    const geometry=new THREE.BoxGeometry(d.hx*2,.012,.035);
-    const mesh=new THREE.InstancedMesh(geometry,toon('#765b3e'),seams.length);
+    for(let z=-d.hz+.4;(!d.kind || d.kind === 'pier') && z<d.hz;z+=.32) seams.push(z);
+    const geometry=new THREE.BoxGeometry(d.hx*2,.012,.015);
+    const mesh=new THREE.InstancedMesh(geometry,toon('#897052'),seams.length);
     const matrix=new THREE.Matrix4(); seams.forEach((z,i)=>mesh.setMatrixAt(i,matrix.makeTranslation(0,.008+slope*z,z)));
     pier.add(mesh);
     for(const x of d.kind === 'slipway' ? [] : [-d.hx+.2,d.hx-.2]) for(const z of [-d.hz+.3,d.hz-.3]) {
@@ -42,7 +43,8 @@ export function createHarbor(world) {
   part(new THREE.ConeGeometry(1.6,1.4,8),'#466c84',0,11.3,0,tower);
   part(new THREE.BoxGeometry(.85,1.9,.13),'#765a3e',0,.95,1.82,tower);
   root.add(tower);
-  for(const [x,z,a] of h.boats) {
+  for(const [index,[x,z,a]] of h.boats.entries()) {
+    if(world.data.town.styleSlice?.boatIndices?.includes(index)){root.add(marketFishingBoat(x,z,a,world.waterLevel));continue;}
     const boat=new THREE.Group();boat.position.set(x,world.waterLevel+.15,z);boat.rotation.y=a;
     part(new THREE.SphereGeometry(1,12,8).scale(1.25,.65,3.8),'#654c37',0,0,0,boat);
     part(new THREE.BoxGeometry(2.15,.15,5.8),'#c1a274',0,.3,0,boat);

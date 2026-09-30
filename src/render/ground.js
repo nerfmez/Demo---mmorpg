@@ -81,9 +81,14 @@ export function surfaceData(world) {
       const td = Math.hypot(x - town.centre[0], z - town.centre[1]);
       const plazaWear=(valueNoise(x*.17,z*.17,75)-.5)*2;
       if (td < town.plazaRadius + 3) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.2 + plazaWear, town.plazaRadius + 1.4 + plazaWear, td));
-      if(town.styleSlice && z > -44 && z < -24 && Math.abs(x) < 43) {
-        const apron=Math.max(Math.abs(x)/40,Math.abs(z+33)/8);
-        stone[k]=Math.max(stone[k],1-smooth(.72,1.12,apron+(valueNoise(x*.2,z*.2,76)-.5)*.14));
+      if(town.styleSlice && z > -47 && z < -18 && Math.abs(x) < 46) {
+        // A continuous market apron reaches the curved quay. Overlapping masks
+        // avoid the straight grass seam between a rectangle and the shore strip.
+        const c=world.coastAt(x,z), wear=(valueNoise(x*.18,z*.18,76)-.5)*1.6;
+        const side=1-smooth(33+wear,44+wear,Math.abs(x));
+        const back=smooth(-45+wear,-40+wear,z);
+        const edge=smooth(-.3,.5,c.distance);
+        stone[k]=Math.max(stone[k],side*back*edge);
       }
       if (ruins) {
         const rd = Math.hypot(x - ruins.centre[0], z - ruins.centre[1]);
@@ -94,7 +99,7 @@ export function surfaceData(world) {
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
       const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
       dirt[k] = smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2);
-      if (stone[k] > 0.5) road[k] *= 0.3;
+      road[k] *= 1 - stone[k] * .7;
     }
   }
   // zone colours, blurred so borders blend
@@ -256,7 +261,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v6';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v7';
   return mat;
 }
 
@@ -305,8 +310,11 @@ function seaMaterial(world) {
         float swell=.5+.5*sin(vShore*.72+uTime*.88+sin(vW.x*.22)*.24);
         float crest=smoothstep(.989,.999,swell)*smoothstep(2.0,4.0,vShore)*(1.0-smoothstep(7.0,16.0,vShore));
         foam=max(foam,crest*smoothstep(.38,.65,vnoise(vW*.55))*.36);
+        // Sheltered quays receive a restrained waterline ripple, not beach swash.
+        foam*=mix(.24,1.0,vBeachWash);
         col=mix(col,vec3(.93,.94,.87),foam);
         float alpha=mix(.22,.86,smoothstep(-1.0,5.0,vShore))*cover;
+        alpha=max(alpha,mix(.65,0.0,vBeachWash)*cover);
         alpha=max(alpha,foam*.94);
         gl_FragColor=vec4(col,alpha);
         #include <colorspace_fragment>
@@ -451,7 +459,8 @@ export function createWater(world) {
         const z = zMin + (tj+j) * step;
         const c = world.coastAt(x, z);
         const shoreD = -c.distance;
-        pos.push(x, Math.max(wl + .015, hY(x,z) + .025), z);
+        // Only beaches carry the thin film over terrain. Port water stays flat.
+        pos.push(x, c.kind==='beach' ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
         shore.push(shoreD); washMask.push(c.kind === 'beach' ? 1 : 0);

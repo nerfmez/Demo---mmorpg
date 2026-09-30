@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toon, outlined, darker } from './toon.js';
-import { pointInBox } from '../core/math.js';
+import { toBoxLocal } from '../core/math.js';
 
 const C = { plaster:'#e4dcc5', stone:'#a9aa98', wood:'#80644c', dark:'#554f43', glass:'#6f9699', rope:'#c0ae7f', leaf:'#74875c', fish:'#adc1ba' };
 function builder() {
@@ -34,13 +34,17 @@ export function marketBuilding(bx,y) {
   const b=builder(),{box,part}=b,w=bx.hx*2,d=bx.hz*2;
   const two=bx.variant==='inn',hip=bx.variant==='fish_hall';
   const rise=two?1.5:1.15,wall=bx.height-rise,roof=bx.roofColor;
-  box(w,.36,d,C.stone,0,.18,0);
-  box(w-.6,wall-.24,d-.6,C.plaster,0,(wall+.24)/2,0);
+  // A recessed doorstep removes the continuous high curb across the door.
+  box(w,.26,d-.55,C.stone,0,.13,-.275);
+  for(const side of [-1,1])box(w/2-.78,.26,.55,C.stone,side*(w/4+.39),.13,d/2-.275);
+  box(1.56,.08,.52,C.stone,0,.04,d/2-.26);
+  box(1.48,.16,.27,'#b7b4a3',0,.08,d/2-.395);
+  box(w-.6,wall-.24,d-.6,bx.wallColor || C.plaster,0,(wall+.24)/2,0);
   // Low timber frame and uneven stone footing, contained by the collider.
   for(const x of [-w/2+.26,w/2-.26])for(const z of [-d/2+.26,d/2-.26])box(.16,wall,.16,C.wood,x,wall/2,z);
   box(w-.04,.16,d-.04,C.wood,0,wall-.08,0);
   if(two)box(w-.06,.15,d-.06,C.wood,0,2.4,0);
-  for(let x=-w/2+.45;x<w/2-.45;x+=1.2)box(.9,.18,.04,x%2>.5?'#b2b19e':C.stone,x,.18,d/2-.025);
+  for(let x=-w/2+.45;x<w/2-.45;x+=1.2)box(.9,.14,.04,x%2>.5?'#b2b19e':C.stone,x,.13,d/2-.025);
   part(roofGeometry(w,d,rise,hip),roof,0,wall,0);
   // Broad tile courses; small staggered joints read as terracotta/slate at play zoom.
   const courses=hip?4:5;
@@ -52,16 +56,39 @@ export function marketBuilding(bx,y) {
   box(hip?w-d*.64:w,.11,.18,darker(roof,.85),0,wall+rise+.045,0);
   const z=d/2-.08;
   // Doors, shutters and lintels all remain inside the base footprint.
-  box(1.05,1.85,.06,C.dark,0,1.14,z);
+  box(1.05,1.9,.06,C.dark,0,1.12,z);
   for(const x of [-.62,.62])box(.12,2,.10,C.wood,x,1.2,z);
   box(1.35,.13,.1,C.wood,0,2.2,z);
   box(.065,.065,.07,C.rope,.32,1.13,z+.035);
-  const windows=hip?[-w*.33,-w*.17,w*.17,w*.33]:[-w*.29,w*.29];
+  const windows=hip?[-w*.33,-w*.17,w*.17,w*.33]:bx.variant==='provisioner'?[-w*.31,w*.31]:[-w*.29,w*.29];
   for(const height of two?[1.65,3.5]:[1.65])for(const x of windows){
     box(.83,.88,.045,C.dark,x,height,z);box(.68,.72,.06,C.glass,x,height,z+.008);
     box(.065,.77,.08,C.wood,x,height,z+.04);box(.73,.06,.08,C.wood,x,height,z+.04);
     for(const s of [-1,1])box(.22,.88,.055,two?'#71847a':C.wood,x+s*.53,height,z-.01,0,s*.15);
     box(1.27,.1,.16,C.wood,x,height-.49,z-.02);
+  }
+  if(hip) {
+    // The hall's fish trays make its working frontage distinct from cottages.
+    for(const x of [-w*.25,w*.25]) {
+      box(2.0,.12,.38,C.wood,x,.74,z-.14);
+      box(1.62,.07,.28,C.dark,x,.83,z-.14);
+      for(let i=0;i<4;i++)part(new THREE.SphereGeometry(.13,8,5).scale(1.5,.38,.55),C.fish,x-.57+i*.38,.89,z-.14);
+    }
+  }
+  if(bx.variant==='workshop') {
+    for(const x of [-w*.29,w*.29])for(let i=0;i<3;i++)box(w*.29,.13,.06,i%2?C.wood:'#8b7157',x,.53+i*.16,z-.05);
+  }
+  if(bx.variant==='provisioner') {
+    // A low shopfront display occupies its foundation, not the walking lane.
+    for(const x of [-w*.31,w*.31]) {
+      box(1.7,.10,.40,C.wood,x,.87,z-.14);
+      for(let i=0;i<3;i++)box(.30,.27,.28,i%2?'#b6a783':'#929e80',x-.48+i*.48,1.055,z-.14);
+    }
+  }
+  if(two) {
+    // Low shuttered inn windows and a modest timber sill, no grand balcony.
+    box(w*.72,.12,.23,C.wood,0,2.86,z-.04);
+    for(const x of [-w*.29,w*.29])box(1.27,.16,.18,'#74816b',x,3.01,z-.03);
   }
   // Side windows give the long fish hall a different rhythm from narrow shops.
   for(const x of [-w/2+.07,w/2-.07])for(const zz of [-d*.23,d*.23]){
@@ -76,7 +103,11 @@ export function marketBuilding(bx,y) {
   box(1.2,.65,.08,C.wood,w*.33,2.52,z-.01);
   if(hip){part(new THREE.SphereGeometry(.23,8,5).scale(1.5,.57,.14),C.fish,w*.33,2.52,z+.045);part(new THREE.ConeGeometry(.15,.24,3).scale(1,1,.1),C.fish,w*.33+.32,2.52,z+.045,0,0,Math.PI/2);}
   else if(bx.variant==='workshop'){box(.4,.15,.04,C.stone,w*.33,2.68,z+.045);box(.07,.3,.04,C.rope,w*.33,2.48,z+.05);}
-  else {box(.38,.25,.04,C.rope,w*.33,2.48,z+.045);part(new THREE.ConeGeometry(.25,.29,3).scale(1,1,.1),C.rope,w*.33,2.68,z+.045);}
+  else if(two) {
+    box(.68,.10,.035,C.rope,w*.33,2.49,z+.045);
+    for(const x of [-.29,.29])box(.055,.27,.035,C.rope,w*.33+x,2.48,z+.045);
+    box(.18,.12,.035,C.rope,w*.33-.17,2.60,z+.045);
+  } else {box(.38,.25,.04,C.rope,w*.33,2.48,z+.045);part(new THREE.ConeGeometry(.25,.29,3).scale(1,1,.1),C.rope,w*.33,2.68,z+.045);}
   // Quiet greenery at building corners, inside the solid footprint.
   for(const x of [-w/2+.6,w/2-.6]){
     part(new THREE.CylinderGeometry(.3,.23,.45,8),'#a87559',x,.46,z-.42);
@@ -116,12 +147,31 @@ export function marketQuay(world) {
   const shore=world.data.sea.shore;
   // The low coping follows the same curve as water/collision; no separate coast.
   for(let i=1;i<shore.length;i++){
-    const [ax,az]=shore[i-1],[cx,cz]=shore[i];if(ax<range[0]||cx>range[1])continue;
-    if(world.docks.some(d=>d.kind==='pier'&&pointInBox(d,(ax+cx)/2,(az+cz)/2,.65)))continue;
-    const len=Math.hypot(cx-ax,cz-az),angle=Math.atan2(cz-az,cx-ax),x=(ax+cx)/2,z=(az+cz)/2;
-    box(len+.02,1,.45,C.stone,x,world.waterLevel+.25,z,0,-angle);
-    box(len+.015,.12,.62,'#bbb7a2',x,.67,z,0,-angle);
-    box(len*.8,.045,.04,'#939788',x,world.waterLevel+.15,z+.235,0,-angle);
+    const a=shore[i-1],c=shore[i];if(a[0]<range[0]||c[0]>range[1])continue;
+    let spans=[[0,1]];
+    // Clip only the portion occupied by a pier, rather than dropping a full
+    // shoreline segment and leaving an oversized notch at each approach.
+    for(const d of world.docks.filter(d=>d.kind==='pier')){
+      const start=toBoxLocal(d,...a),end=toBoxLocal(d,...c);
+      let lo=0,hi=1;
+      for(const [p,q,half] of [[start.lx,end.lx,d.hx+.06],[start.lz,end.lz,d.hz+.06]]){
+        const delta=q-p;
+        if(Math.abs(delta)<1e-8){if(Math.abs(p)>half){hi=-1;break;}continue;}
+        const u=(-half-p)/delta,v=(half-p)/delta;
+        lo=Math.max(lo,Math.min(u,v));hi=Math.min(hi,Math.max(u,v));
+      }
+      if(lo>=hi)continue;
+      spans=spans.flatMap(([u,v])=>hi<=u||lo>=v?[[u,v]]:[[u,Math.min(v,lo)],[Math.max(u,hi),v]].filter(([p,q])=>q-p>1e-5));
+    }
+    for(const [u,v] of spans){
+      const ax=a[0]+(c[0]-a[0])*u,az=a[1]+(c[1]-a[1])*u;
+      const cx=a[0]+(c[0]-a[0])*v,cz=a[1]+(c[1]-a[1])*v;
+      const len=Math.hypot(cx-ax,cz-az),angle=Math.atan2(cz-az,cx-ax),x=(ax+cx)/2,z=(az+cz)/2;
+      const bottom=world.waterLevel-.45,top=.65;
+      box(len+.02,top-bottom,.45,C.stone,x,(top+bottom)/2,z,0,-angle);
+      box(len+.015,.12,.62,'#bbb7a2',x,.67,z,0,-angle);
+      box(len*.8,.045,.04,'#939788',x,world.waterLevel+.15,z+.235,0,-angle);
+    }
   }
   // Rope coils and hanging nets sit on the outer edges of the two market piers.
   for(const d of world.docks.filter(d=>d.id==='market_west'||d.id==='market_east')){
@@ -131,5 +181,57 @@ export function marketQuay(world) {
     for(let i=0;i<4;i++)box(.023,.025,1.7,'#8f9b82',d.x-d.hx+.2,y-.56+i*.23,d.z-.15);
     for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.12,8,5),'#b9905f',d.x-d.hx+.2,y+.10,d.z-.8+i*.6);
   }
+  for(const index of world.data.town.styleSlice.boatIndices || []) {
+    const [x,z,angle]=world.data.harbor.boats[index];
+    const berth=world.docks.filter(d=>d.kind==='pier'&&!d.rampFromTerrain).sort((a,c)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(c.x-x,c.z-z))[0];
+    if(!berth)continue;
+    const side=berth.x<x?-1:1;
+    for(const zz of [-1.8,1.8]) {
+      const sx=x+Math.cos(angle)*side*1.05+Math.sin(angle)*zz;
+      const sz=z-Math.sin(angle)*side*1.05+Math.cos(angle)*zz;
+      const ex=berth.x-side*(berth.hx-.12),ez=sz;
+      const start=new THREE.Vector3(sx,world.waterLevel+.69,sz),end=new THREE.Vector3(ex,berth.height+.12,ez);
+      const middle=start.clone().lerp(end,.5);middle.y-=.15;
+      part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([start,middle,end]),8,.025,5,false),C.rope);
+      part(new THREE.CylinderGeometry(.055,.08,.22,6),C.wood,ex,berth.height+.11,ez);
+    }
+  }
   return b.finish();
+}
+
+/** Open working boat for the two reviewed market berths; no sailing logic. */
+export function marketFishingBoat(x,z,angle,water) {
+  const b=builder(),{box,part}=b;
+  // Port/starboard sides taper into a pointed bow and a flat, low stern.
+  const rim=[[-.78,-3.2],[-1.08,-2],[-1.16,0],[-.94,2.3],[-.44,3.35],[0,3.8],[.44,3.35],[.94,2.3],[1.16,0],[1.08,-2],[.78,-3.2]];
+  for(let i=0;i<rim.length;i++){
+    const a=rim[i],c=rim[(i+1)%rim.length];
+    const bottom=p=>[p[0]*.62,-.36,p[1]*.88];
+    const vertices=[[a[0],.50,a[1]],[c[0],.50,c[1]],bottom(a),bottom(c)];
+    const face=new THREE.BufferGeometry();face.setAttribute('position',new THREE.Float32BufferAttribute([0,2,1,1,2,3,0,1,2,1,3,2].flatMap(k=>vertices[k]),3));face.computeVertexNormals();
+    part(face,i%3?'#8f6948':'#987550');
+    const dx=c[0]-a[0],dz=c[1]-a[1],len=Math.hypot(dx,dz);
+    box(.12,.12,len+.045,C.wood,(a[0]+c[0])/2,.52,(a[1]+c[1])/2,0,Math.atan2(dx,dz));
+  }
+  const floor=new THREE.BufferGeometry();
+  const floorVertices=[];
+  for(let i=0;i<rim.length;i++){
+    const a=rim[i],c=rim[(i+1)%rim.length];
+    floorVertices.push(0,.10,0,a[0]*.84,.10,a[1]*.945,c[0]*.84,.10,c[1]*.945);
+  }
+  floor.setAttribute('position',new THREE.Float32BufferAttribute(floorVertices,3));floor.computeVertexNormals();
+  part(floor,'#aa8961');
+  for(const zz of [-1.65,.65])box(1.82,.16,.48,C.wood,0,.30,zz);
+  // Short mast and a furled sail keep the open work deck legible.
+  part(new THREE.CylinderGeometry(.055,.085,3.65,7),C.wood,0,1.62,.15);
+  part(new THREE.CylinderGeometry(.13,.13,1.9,7),'#d7cbb0',.10,2.22,.15,0,0,.025);
+  box(1.75,.075,.075,C.wood,.15,2.50,.15,0,0,-.15);
+  box(.09,.12,2.7,C.wood,-.25,.65,-.72,.03,-.10);
+  box(.27,.10,.82,C.wood,-.39,.64,-2.11,.03,-.10);
+  // A fish box and net bundle are grouped in the stern working area.
+  box(.72,.28,.72,C.dark,.20,.24,-2.35);
+  for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.12,8,5).scale(.58,.4,1.7),C.fish,-.03+i*.23,.43,-2.35);
+  part(new THREE.DodecahedronGeometry(.41,0).scale(1,.45,1.2),'#89947a',-.43,.26,1.8);
+  for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.24-i*.06,.028,5,14),C.rope,.48,.14,1.75,Math.PI/2);
+  const root=b.finish();root.position.set(x,water+.15,z);root.rotation.y=angle;return root;
 }

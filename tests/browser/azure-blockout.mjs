@@ -53,6 +53,7 @@ try {
   await stage(styleReview?-42:-37,styleReview?-47.8:-43);await shot('02-market-gameplay');
   if(styleReview){await stage(-25,-51.5);await shot('05-craft-gameplay');await stage(45,-47.8);await shot('06-inn-gameplay');}
   await stage(-25,-20);await shot('04-market-pier-gameplay');
+  if(styleReview){await stage(-25,-6);await shot('07-fishing-berth-gameplay');await stage(25,-51.5);await shot('08-provisioner-gameplay');}
   await stage(114,76);await shot('03-rotated-slipway-gameplay');
   await page.setViewportSize({width:1440,height:1000});
   await page.evaluate(()=>{

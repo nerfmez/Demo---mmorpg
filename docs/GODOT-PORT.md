@@ -210,7 +210,7 @@ behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
 
 ### Azure Coast local starter (30 September 2026)
 
-The active `world.json` is a 320 × 240 m harbor prototype (about 80% dry land),
+The active `world.json` is a 320 × 240 m harbor prototype (with a large U-shaped bay),
 not the complete Asterfall continent. New characters start at the safe landing beach
 and unlock the town checkpoint by walking there. The town, nearby grove, fields
 and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
@@ -254,3 +254,11 @@ The owner approved this layout on 30 September 2026 and authorized one market-to
 Road corners and the coast are now densely sampled curves baked in `world.json`; terrain, collision, safe routes, minimap and export all use those same polylines. Shore X remains strictly increasing, and `edgeKinds` remains one tag per segment. The breakwater approach keeps its original joining points to avoid a deck/terrain height step. Cosmetic road and paving wear only changes paint weights. The low market coping follows the same shore and leaves gaps at pier approaches. Market geometry is merged per color during scene construction, with no extra frame updates. Nearest-coast lookup compares squared distances and takes one square root after finding the nearest segment.
 
 Style approval is still required before expanding finished art to all districts. Merge and deploy remain unapproved. Browser screenshots cannot establish hardware iPad FPS.
+
+### Market visual audit
+
+`wallColor` is authored per reviewed building; the base remains inside its original X/Z collider. Door foundations are recessed into low thresholds, and fish/workshop/provisioner/inn frontages have distinct working details. No entrance or interior collision rule changes.
+
+The market apron uses overlapping coast/plaza paint masks instead of a rectangle ending before the quay strip. Road attenuation is continuous across paving blends. Beach water still follows terrain as a thin swash film; quay, breakwater and repair-front water stays at the water level. Their foam is restrained and opacity masks the coarse submerged terrain. Market coping segments are clipped precisely against dock-local rectangles; the stone face meets the coping vertically.
+
+`town.styleSlice.boatIndices` selects two existing decorative boats for the open fishing-boat exterior. Floors close the visible hull, static ropes connect to the nearest pier side, and the east boat clears its pier. Boats remain non-interactive decoration. Pier planks use 0.32 m courses with instanced seams; collider dimensions and ramp interpolation are unchanged.

@@ -2209,7 +2209,8 @@
         "height": 3.8,
         "kind": "shop",
         "roofColor": "#a56b4f",
-        "variant": "fish_hall"
+        "variant": "fish_hall",
+        "wallColor": "#ded9c2"
       },
       {
         "id": "craft_house",
@@ -2221,7 +2222,8 @@
         "height": 3.8,
         "kind": "shop",
         "roofColor": "#82634c",
-        "variant": "workshop"
+        "variant": "workshop",
+        "wallColor": "#d3cdbb"
       },
       {
         "id": "merchant",
@@ -2233,7 +2235,8 @@
         "height": 3.8,
         "kind": "shop",
         "roofColor": "#727778",
-        "variant": "provisioner"
+        "variant": "provisioner",
+        "wallColor": "#dfd0b4"
       },
       {
         "id": "inn",
@@ -2245,7 +2248,8 @@
         "height": 6,
         "kind": "shop",
         "roofColor": "#668491",
-        "variant": "inn"
+        "variant": "inn",
+        "wallColor": "#e5ddc8"
       },
       {
         "id": "warehouse_0",
@@ -2339,6 +2343,10 @@
         "provisions",
         "fish",
         "provisions"
+      ],
+      "boatIndices": [
+        0,
+        1
       ]
     }
   },
@@ -3627,7 +3635,7 @@
         0
       ],
       [
-        22,
+        20,
         -4,
         0.15
       ],

@@ -50,7 +50,7 @@ try {
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
   await stage(-37,-43);await shot('02-market-gameplay');
   await stage(-25,-20);await shot('04-market-pier-gameplay');
-  await stage(120,76);await shot('03-rotated-slipway-gameplay');
+  await stage(114,76);await shot('03-rotated-slipway-gameplay');
   await page.setViewportSize({width:1440,height:1000});
   await page.evaluate(()=>{
     const f=window.__frontier,v=f.view;
@@ -58,6 +58,10 @@ try {
     v.scene.fog.near=600;v.scene.fog.far=900;
     v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(0,285,8);v.camera.lookAt(0,0,8);v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
     v.renderer.render(v.scene,v.camera);
+    // Capture the WebGL pixels synchronously before browser compositing can
+    // clear a non-preserved drawing buffer; labels remain a review-only overlay.
+    const pixels=document.createElement('img');pixels.src=v.renderer.domElement.toDataURL('image/png');
+    pixels.style.cssText='position:fixed;inset:0;width:100%;height:100%;visibility:visible';document.body.append(pixels);
     v.canvasRect=v.renderer.domElement.getBoundingClientRect();
     const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;pointer-events:none;visibility:visible';document.body.append(overlay);
     for(const [text,x,z] of [['บ้าน / ซอยวน',-110,-20],['ตลาด · คราฟต์ · วาร์ป',0,-49],['ทางออกสู่พื้นที่ล่า',0,-105],['โกดัง / ลานสินค้า',115,-26],['อู่เรือ / ทางลาด',128,76],['ประภาคาร / กันคลื่น',-125,82],['ปากอ่าวเปิดทางใต้',0,106]]){

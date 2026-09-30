@@ -6,7 +6,7 @@
 // + mountains past the map edge -> flatten town / pads -> roads smoothed into ramps ->
 // river channel and ponds carved below the water level.
 
-import { clamp, distToSegment, coastSample } from './math.js';
+import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
 // ---------- noise (hash-based, deterministic, no RNG state) ----------
 
@@ -330,6 +330,19 @@ export function buildHeightfield(worldData, zoneAt) {
         const target = d >= 0 ? Math.min(hf[k], prof) * 0.3 + prof * 0.7 : prof;
         hf[k] = hf[k] * (1 - m) + target * m;
       }
+    }
+  }
+
+  // Lower the land beneath a repair slipway so its sloping deck stays visible
+  // and does not pass through a flat quay. Preserve its land-end sample.
+  for (const dock of worldData.docks || []) if (dock.kind === 'slipway' && dock.rampFromTerrain) {
+    const start=fromBoxLocal(dock,0,-dock.hz), startY=sample(start.x,start.z);
+    for(let j=0;j<h;j++) for(let i=0;i<w;i++) {
+      const local=toBoxLocal(dock,X(i),Z(j));
+      if(Math.abs(local.lx)>dock.hx+.3 || local.lz<=-dock.hz || local.lz>dock.hz)continue;
+      const t=(local.lz+dock.hz)/(2*dock.hz);
+      const deck=startY+(dock.height-startY)*t;
+      hf[j*w+i]=Math.min(hf[j*w+i],deck-.08*Math.min(1,t*10));
     }
   }
 

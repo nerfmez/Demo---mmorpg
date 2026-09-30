@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "chatgpt-shrubs-20260930-0644",
+  "agent": "chatgpt",
+  "task": "ค้นหาไฟล์ที่เกี่ยวข้องกับการปรับรูปทรงพุ่มไม้ให้เป็นกลุ่มหยักไม่ใช่ใบไม้เท่า ๆ กันเรียงซ้อน พร้อมลำต้นและสีการ์ตูน รักษาการตรวจภาพก่อนแก้หรือ merge งานภาพ ยังไม่แก้โค้ดเกมในรอบทดสอบนี้",
+  "keywords": "foliage bush nature leafpaint trunk toon",
+  "source_commit": "a2789575003fc9a88cbc8bbd7c3e18afdfe73885"
+}

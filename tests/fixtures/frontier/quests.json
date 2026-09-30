@@ -1,21 +1,24 @@
 {
   "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items.",
   "main": [
-    "h_arrival",
-    "h_slimes",
-    "h_crabs",
-    "h_craft",
-    "h_fields",
-    "h_grove",
-    "h_lighthouse"
+    "m_boars",
+    "m_craft",
+    "m_forest",
+    "m_greyfang",
+    "m_wetland",
+    "m_highlands",
+    "m_warden"
   ],
   "side": [
-    "h_birds",
-    "h_hermits",
-    "m_boars",
+    "s_coast",
+    "s_crabs",
+    "s_spores",
+    "s_feathers",
     "s_mods",
     "s_job",
-    "s_spores"
+    "s_golems",
+    "s_wolves",
+    "s_collector"
   ],
   "quests": {
     "m_boars": {
@@ -235,130 +238,6 @@
         "exp": 110,
         "items": {
           "crab_shell": 2
-        }
-      }
-    },
-    "h_arrival": {
-      "name": "แสงนำทางสู่เมืองท่า",
-      "nameTh": "แสงนำทางสู่เมืองท่า",
-      "descTh": "จากหาดผู้มาเยือน ตามถนนเลียบฝั่งไปเปิดใช้หินวาร์ปที่ลานเมืองท่า",
-      "type": "waypoint",
-      "target": "town",
-      "count": 1,
-      "reward": {
-        "gold": 20,
-        "exp": 15,
-        "jobExp": 10
-      }
-    },
-    "h_slimes": {
-      "name": "เจลเกลือริมฝั่ง",
-      "nameTh": "เจลเกลือริมฝั่ง",
-      "descTh": "ออกจากทางปลอดภัยไปกำจัดสไลม์น้ำเค็ม 3 ตัว สังเกตจังหวะย่อตัวก่อนกระโดด",
-      "type": "kill",
-      "target": "salt_slime",
-      "count": 3,
-      "reward": {
-        "gold": 20,
-        "exp": 25,
-        "jobExp": 15
-      }
-    },
-    "h_crabs": {
-      "name": "ก้ามปูและจังหวะหลบ",
-      "nameTh": "ก้ามปูและจังหวะหลบ",
-      "descTh": "กำจัดปูชายหาด 3 ตัว รอจังหวะยกก้าม แล้วหลบออกด้านข้าง เก็บกระดองไว้คราฟต์",
-      "type": "kill",
-      "target": "reef_crab",
-      "count": 3,
-      "reward": {
-        "gold": 20,
-        "exp": 25,
-        "jobExp": 15,
-        "items": {
-          "crab_shell": 2,
-          "salt_gel": 3
-        }
-      }
-    },
-    "h_craft": {
-      "name": "รองเท้าสำหรับการเดินทาง",
-      "nameTh": "รองเท้าสำหรับการเดินทาง",
-      "descTh": "กลับโต๊ะคราฟต์ในเมือง คราฟต์อุปกรณ์ 1 ชิ้น รองเท้าจากเจลเกลือเป็นตัวเลือกที่ใช้ของริมฝั่ง",
-      "type": "craft",
-      "count": 1,
-      "reward": {
-        "gold": 25,
-        "exp": 35,
-        "jobExp": 20
-      }
-    },
-    "h_fields": {
-      "name": "เส้นทางหลังเมือง",
-      "nameTh": "เส้นทางหลังเมือง",
-      "descTh": "ตามถนนเหนือไปเปิดใช้หินวาร์ปทุ่งรอบเมือง",
-      "type": "waypoint",
-      "target": "meadow",
-      "count": 1,
-      "reward": {
-        "gold": 25,
-        "exp": 45,
-        "jobExp": 25
-      }
-    },
-    "h_grove": {
-      "name": "สำรวจป่าโปร่ง",
-      "nameTh": "สำรวจป่าโปร่ง",
-      "descTh": "ตามทางวงรอบไปเปิดใช้หินวาร์ปป่าโปร่งริมฝั่ง",
-      "type": "waypoint",
-      "target": "forest",
-      "count": 1,
-      "reward": {
-        "gold": 35,
-        "exp": 70,
-        "jobExp": 40
-      }
-    },
-    "h_lighthouse": {
-      "name": "แสงแห่งชายฝั่ง",
-      "nameTh": "แสงแห่งชายฝั่ง",
-      "descTh": "เดินขึ้นทางลาดสู่แหลมประภาคาร ระวังเสฉวน แล้วเปิดใช้หินวาร์ปบนแหลม",
-      "type": "waypoint",
-      "target": "headland",
-      "count": 1,
-      "reward": {
-        "gold": 50,
-        "exp": 100,
-        "jobExp": 60
-      }
-    },
-    "h_birds": {
-      "name": "นกจอมขโมย",
-      "nameTh": "นกจอมขโมย",
-      "descTh": "กำจัดนกชายฝั่ง 5 ตัว มันลงพื้นเพื่อจิกและพุ่งระยะสั้น จึงโจมตีประชิดได้",
-      "type": "kill",
-      "target": "shore_gull",
-      "count": 5,
-      "reward": {
-        "gold": 30,
-        "exp": 45,
-        "items": {
-          "shore_feather": 2
-        }
-      }
-    },
-    "h_hermits": {
-      "name": "เสฉวนบนแหลม",
-      "nameTh": "เสฉวนบนแหลม",
-      "descTh": "กำจัดเสฉวน 4 ตัวบนแหลมประภาคาร ใช้ช่วงพักหลังฟาดก้าม",
-      "type": "kill",
-      "target": "hermit_crab",
-      "count": 4,
-      "reward": {
-        "gold": 45,
-        "exp": 75,
-        "items": {
-          "hermit_fragment": 2
         }
       }
     }

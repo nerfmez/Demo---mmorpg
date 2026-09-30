@@ -5,8 +5,9 @@
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
 export const CHARACTER_VERSION = 2;
 
-export function emptyProgress() {
-  return { waypoints: ['town'], zones: ['settlement'], kills: {}, collected: {}, quests: {}, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {} };
+export function emptyProgress(data) {
+  const starter = data?.world.id ? data.world : null;
+  return { waypoints: starter ? starter.waypoints.filter(w => w.unlocked).map(w => w.id) : ['town'], zones: starter ? ['landing'] : ['settlement'], kills: {}, collected: {}, quests: {}, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {} };
 }
 
 /**
@@ -41,7 +42,8 @@ export function createCharacter(data, opts = {}) {
     slots: (kit ? kit.slots : st.slots).map((s) => ({ skill: s, mods: [] })),
     nextUid: 1,
     bossKills: 0,
-    progress: emptyProgress(),
+    progress: emptyProgress(data),
+    worldId: data.world.id || 'frontier',
     pos: null,
   };
   const startGear = kit ? [kit.weapon, ...st.gear.filter((g) => data.items.gearBases[g]?.slot !== 'weapon')] : st.gear;
@@ -61,7 +63,15 @@ export function migrateCharacter(ch, data) {
   const slots = data.items.slots || ['weapon', 'armor'];
   ch.equipped = ch.equipped || {};
   for (const s of slots) if (!(s in ch.equipped)) ch.equipped[s] = null;
-  ch.progress = { ...emptyProgress(), ...(ch.progress || {}) };
+  ch.progress = { ...emptyProgress(data), ...(ch.progress || {}) };
+  if (data.world.id && ch.worldId !== data.world.id) {
+    // Old coordinates can be free here but still refer to another map. Move once;
+    // retain inventory, levels, job choices and the historical quest records.
+    ch.pos = null;
+    ch.progress.waypoints = [...new Set([...ch.progress.waypoints.filter(id => data.world.waypoints.some(w => w.id === id)), ...data.world.waypoints.filter(w => w.unlocked).map(w => w.id)])];
+    ch.progress.zones = ['landing'];
+  }
+  ch.worldId = data.world.id || 'frontier';
   for (const k of ['kills', 'collected', 'quests', 'bossKills']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;

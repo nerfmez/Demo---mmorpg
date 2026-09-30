@@ -46,8 +46,8 @@ export class Menu {
     const last = lastSlot();
     const lastInfo = last ? listSlots()[last - 1] : null;
     this.show(`<div class="title-card">
-      <div class="logo">Greenhollow<br><span>Frontier</span></div>
-      <div class="logo-th">ชายแดนกรีนฮอลโลว์</div>
+      <div class="logo">Azure<br><span>Coast</span></div>
+      <div class="logo-th">เมืองท่าสีคราม</div>
       <div class="logo-sub">Demo · Anime MMORPG + Buildcraft</div>
       <div class="menu-buttons">
         ${lastInfo ? `<button class="mbtn primary" data-act="continue">▶ เล่นต่อ<small>${esc(lastInfo.name)} · Lv.${lastInfo.level}</small></button>` : ''}

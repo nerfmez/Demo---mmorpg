@@ -13,7 +13,7 @@ const h = (html) => {
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 // head height (m, before the rig's scale) for the name + HP bar over each monster
-const HEAD = { tusk_boar: 1.35, thornback_wolf: 1.45, greyfang: 1.45, moss_beetle: 1.35, reef_crab: 1.1, marsh_wisp: 1.0, sporecap: 1.45, crag_golem: 2.75, gale_hawk: 1.3, horned_warden: 2.2 };
+const HEAD = { salt_slime: 1.15, shore_gull: 1.4, hermit_crab: 1.8, tusk_boar: 1.35, thornback_wolf: 1.45, greyfang: 1.45, moss_beetle: 1.35, reef_crab: 1.1, marsh_wisp: 1.0, sporecap: 1.45, crag_golem: 2.75, gale_hawk: 1.3, horned_warden: 2.2 };
 
 /** Reward line for a finished quest. */
 export function rewardText(data, r = {}) {

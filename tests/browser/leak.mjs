@@ -21,7 +21,7 @@ for (let r = 0; r < rounds; r++) {
     const kits = [['slash', 'firebolt', 'chain_spark', 'stone_burst'], ['whirl_blade', 'frost_nova', 'venom_mire', 'spirit_wolf'], ['hunter_shot', 'hex', 'war_cry', 'healing_spring']];
     kits[r % 3].forEach((id, i) => (game.ch.slots[i] = { skill: id, mods: [] }));
     game.refresh();
-    const zones = ['meadow', 'forest', 'glade', 'wetland', 'highlands', 'coast'];
+    const zones = [...new Set(game.data.world.spawns.map(s => s.zone))];
     const zone = zones[r % zones.length];
     const t0 = performance.now();
     for (let i = 0; i < 150; i++) {

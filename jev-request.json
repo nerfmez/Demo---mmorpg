@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "chatgpt-jev-guide-1790758393252",
+  "agent": "chatgpt",
+  "task": "Update shared agent guidance to expand Jev usage: focused bug investigation from sanitized errors, change-impact retrieval using changed paths and symbols before delivery, and planning cross-system features or Godot port. Locate existing request schema, tool capabilities, limitations, budget/cache rules, shared AGENTS/CLAUDE docs and relevant verification tests. Keep actual Jev behavior accurate; do not change runtime or game.",
+  "keywords": "AGENTS CLAUDE JEV-CONTEXT-TH task keywords source_commit validateAgentRequest candidate impact debugging planning cache budget tests tools",
+  "source_commit": "a2789575003fc9a88cbc8bbd7c3e18afdfe73885"
+}

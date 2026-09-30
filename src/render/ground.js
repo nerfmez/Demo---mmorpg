@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { toBoxLocal } from '../core/math.js';
 import { rasterPolyline, boxBlur, valueNoise } from '../core/terrain.js';
 import { timeUniform } from './patch.js';
+import { bakeWaterContact, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 
 const TILE = 32;
@@ -278,10 +279,10 @@ ${GROUND_COLOR_GLSL}`
 // ---------- water ----------
 
 /** Broad swash advances over the sand and drains back; one shared GPU clock, no CPU mesh churn. */
-function seaMaterial(world) {
+function seaMaterial(world, contacts) {
   const surf = world.data.sea.surf || {};
-  return new THREE.ShaderMaterial({
-    uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector3(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35)} },
+  const material=new THREE.ShaderMaterial({
+    uniforms: { uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       attribute float depth; attribute float shore; attribute float beachWash;
@@ -289,7 +290,7 @@ function seaMaterial(world) {
       varying float vBeachWash;
       void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec3 uMotion;
+      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec4 uMotion; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact;
       varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
       ${NOISE_GLSL}
       // Seeds themselves move: the membranes stretch, pinch off and reconnect,
@@ -310,32 +311,22 @@ function seaMaterial(world) {
       vec2 foamSheet(vec2 p,float age,float generation,float lifetime){
         float life=clamp(age/lifetime,0.0,1.0);
         p+=vec2(sin(p.y*.9+age*1.1),cos(p.x*.8-age*.9))*(.48+.35*life);
-        vec2 cell=foamCell(p,age*uMotion.x*3.0,generation);
-        float aa=max(fwidth(cell.x),.012);
-        // Water pores grow through a connected young foam sheet. Using radial
-        // distance (not Voronoi borders) avoids rigid polygon/cracked-ice lines.
-        float pore=mix(.27,.56,life);
-        float membrane=smoothstep(pore,pore+aa+.045,cell.x);
-        float erosion=vnoise(p*1.7+vec2(age*.7,-age*.5)+generation*11.7);
-        float fragments=smoothstep(life*.84,life*.84+.18,erosion);
+        // Unequal branching water channels, with fine tears at their edges.
+        // Multi-scale continuous fields avoid repeated circular/leopard pores.
+        vec2 q=p+vec2(generation*13.1,-generation*7.3);
+        float pores=fbm3(q*1.3+vec2(age*uMotion.x,-age*uMotion.x*.8));
+        pores+=vnoise(q*3.8+vec2(age*.65,-age*.43))*.22;
+        float aa=max(fwidth(pores),.025);
+        float threshold=mix(.40,.80,life);
+        float membrane=smoothstep(threshold,threshold+aa,pores);
+        float erosion=vnoise(q*2.1+vec2(age*.7,-age*.5));
+        float fragments=smoothstep(life*.74,life*.74+.18,erosion);
         float decay=1.0-smoothstep(.28,1.0,life);
         float white=membrane*fragments*decay;
-        float mist=smoothstep(pore-.08,pore+.06,cell.x)*fragments*decay;
+        float mist=smoothstep(threshold-.075,threshold+.05,pores)*fragments*decay;
         return vec2(white,mist);
       }
       void main(){
-        float cycle=uTime*6.2831853/uSurf.z+vW.x*.009;
-        float surge=.5-.5*cos(cycle);
-        float edge=mix(uSurf.y,-uSurf.x,surge)+sin(vW.x*.34+uTime*.25)*.16;
-        edge=mix(0.0,edge,vBeachWash);
-        float behind=vShore-edge;
-        if(behind < -.14) discard;
-        float cover=smoothstep(-.14,.12,behind);
-        float d=max(0.0,vDepth);
-        vec3 col=mix(vec3(.22,.48,.46),vec3(.10,.34,.41),smoothstep(0.0,2.5,d));
-        col=mix(col,vec3(.06,.24,.34),smoothstep(2.0,7.0,d));
-        float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
-        col+=(drift-.5)*.035;
         // Recover the waterward normal from the existing signed coast distance.
         // This advects foam perpendicular to both side coasts of the U-shaped bay.
         vec2 dx=dFdx(vW),dy=dFdy(vW);
@@ -347,6 +338,27 @@ function seaMaterial(world) {
           normal/=max(length(normal),.001);
         }
         vec2 coast=vW-normal*vShore;
+        float spacing=uMotion.w,speed=spacing/uSurf.z;
+        vec2 contactUV=(vW-uContactBounds.xy)/uContactBounds.zw;
+        float contactValid=step(0.0,contactUV.x)*step(0.0,contactUV.y)*step(contactUV.x,1.0)*step(contactUV.y,1.0);
+        vec4 contactData=texture2D(uContacts,contactUV);
+        float contactD=mix(uContact.x,(contactData.r-.5)*uContact.x*2.0,contactValid);
+        if(contactD < -uContact.w*.15)discard;
+        vec2 contactNormal=contactData.gb*2.0-1.0;
+        contactNormal/=max(length(contactNormal),.001);
+        float exposure=mix(1.0,contactData.a,contactValid);
+        float cycle=(coast.y+normal.y*uSurf.y+uTime*speed+sin(coast.x*.19+uTime*.15)*.22)*6.2831853/spacing;
+        float surge=.5-.5*cos(cycle);
+        float edge=mix(uSurf.y,-uSurf.x,surge)+sin(vW.x*.34+uTime*.25)*.16;
+        edge=mix(0.0,edge,vBeachWash);
+        float behind=vShore-edge;
+        if(behind < -.14) discard;
+        float cover=smoothstep(-.14,.12,behind);
+        float d=max(0.0,vDepth);
+        vec3 col=mix(vec3(.22,.48,.46),vec3(.10,.34,.41),smoothstep(0.0,2.5,d));
+        col=mix(col,vec3(.06,.24,.34),smoothstep(2.0,7.0,d));
+        float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
+        col+=(drift-.5)*.035;
         // Submerged light ripples deform independently and softly ebb in brightness.
         // They never remain a crisp, world-fixed grid on top of the water.
         if(d<3.0){
@@ -360,7 +372,7 @@ function seaMaterial(world) {
         float jag=(vnoise(coast*1.6+vec2(uTime*.28,-uTime*.19))-.5)*.16;
         float rim=1.0-smoothstep(uSurf.w,uSurf.w+.07,abs(behind+jag));
         float foam=0.0,softFoam=0.0;
-        if(vShore<15.0){
+        if(vShore<65.0){
           float turns=cycle/6.2831853,swashAge=fract(turns),generation=floor(turns);
           float build=smoothstep(.04,.22,swashAge);
           float drain=1.0-smoothstep(.48,.84,swashAge);
@@ -375,22 +387,42 @@ function seaMaterial(world) {
           float wash=rim*(.50+.45*build*drain)*mix(.40,1.0,broken)
                      +sheet.x*trail*build*drain;
           float washMist=sheet.y*trail*build*drain;
-          // Incoming breakers travel toward the nearest coast, carrying their
-          // foam with them. Age measures seconds since that crest passed here.
-          float spacing=9.0,speed=spacing/uSurf.z;
-          float bend=(vnoise(coast*.23)-.5)*.65;
-          float waveCoord=(vShore+uTime*speed+bend)/spacing;
-          float waveGeneration=floor(waveCoord);
+          // Coherent incoming wave crests, travelling north from the open bay.
+          // A distant crest is thin and intermittent; it is not a second foam sheet.
+          float bend=sin(vW.x*.19+uTime*.15)*.22;
+          float waveCoord=(vW.y+uTime*speed+bend)/spacing;
           float wake=fract(waveCoord)*spacing;
-          float age=wake/speed;
-          vec2 waveP=(vW+normal*(uTime*speed-waveGeneration*spacing))*uFoam.x;
-          vec2 breaker=foamSheet(waveP,age,waveGeneration,uMotion.y);
-          float zone=smoothstep(.6,2.3,vShore)*(1.0-smoothstep(9.0,14.0,vShore));
-          float crest=(1.0-smoothstep(.06,.20,wake))*zone;
-          float wakeMask=smoothstep(.06,.25,wake)*(1.0-smoothstep(uMotion.y*.55,uMotion.y,age))*zone;
-          float breaking=crest*.72+breaker.x*wakeMask*.82;
-          foam=max(wash,breaking)*mix(uFoam.z,1.0,vBeachWash)*uFoam.y*cover;
-          softFoam=max(washMist,breaker.y*wakeMask)*mix(.24,.42,vBeachWash)*cover;
+          float waveGeneration=floor(waveCoord);
+          float zone=smoothstep(1.0,2.3,vShore)*(1.0-smoothstep(38.0,65.0,vShore));
+          float crest=(1.0-smoothstep(.025,.13,wake))*zone;
+          float crestBreak=smoothstep(.33,.61,vnoise(vec2(vW.x*.82,waveGeneration*7.9)));
+          float breaking=crest*crestBreak*.22*exposure;
+          foam=wash*mix(uFoam.z*.15,1.0,vBeachWash)*uFoam.y*cover;
+          foam=max(foam,breaking*cover);
+          softFoam=washMist*mix(.24,.42,vBeachWash)*cover;
+        }
+        {
+          // A wave reaches the actual waterline of a hull/pile/rock/wall first.
+          // Foam blooms there, spreads along its contour, and decays after impact.
+          if(contactD<uContact.x-.03){
+            vec2 hit=vW-contactNormal*max(0.0,contactD);
+            float hitCoord=(hit.y+uTime*speed+sin(hit.x*.19+uTime*.15)*.22)/spacing;
+            float impactAge=fract(hitCoord)*uSurf.z;
+            float impact=smoothstep(.0,.16,impactAge)*(1.0-smoothstep(.45,uMotion.y,impactAge));
+            float spread=uContact.y*(.28+1.8*smoothstep(.0,.9,impactAge));
+            float band=1.0-smoothstep(spread*.20,spread,max(0.0,contactD));
+            float incidence=.20+.80*max(0.0,contactNormal.y);
+            vec2 collisionFoam=foamSheet((hit+contactNormal*contactD*.5)*uFoam.x,impactAge,floor(hitCoord),uMotion.y);
+            float contactRim=(1.0-smoothstep(.025,.11,max(0.0,contactD)))*.42;
+            // A short return ripple travels outward from the struck contour;
+            // the exposed face reflects more strongly than the sheltered side.
+            float returnFront=impactAge*.65;
+            float reflected=(1.0-smoothstep(.025,.11,abs(contactD-returnFront)))*impact*incidence*sqrt(exposure);
+            col=mix(col,vec3(.28,.52,.51),reflected*.55);
+            float collision=(contactRim+collisionFoam.x*band)*impact*incidence*sqrt(exposure)*uContact.z;
+            foam=max(foam,collision*cover);
+            softFoam=max(softFoam,collisionFoam.y*band*impact*.20*cover);
+          }
         }
         // A pale teal bed separates foam holes from the darker water, with
         // cream-white membranes and broken leading crests rather than stripes.
@@ -403,6 +435,9 @@ function seaMaterial(world) {
         #include <colorspace_fragment>
       }`,
   });
+  material.userData.waterContact={sections:contacts.sections,segments:contacts.segments,texel:contacts.texel};
+  ownContactTexture(material,contacts.texture);
+  return material;
 }
 
 function waterMaterial() {
@@ -445,7 +480,7 @@ function waterMaterial() {
 }
 
 /** River strip + ponds at the water level; depth comes from the heightfield. */
-export function createWater(world) {
+export function createWater(world, scenery = null) {
   const group = new THREE.Group();
   const mat = waterMaterial();
   const wl = world.waterLevel;
@@ -522,7 +557,7 @@ export function createWater(world) {
   }
   const sea = world.data.sea;
   if (sea) {
-    const seaMat = seaMaterial(world);
+    const seaMat = seaMaterial(world,bakeWaterContact(world,scenery));
     // Match the terrain grid so the thin film cannot cut through sand at coarse triangle edges.
     // Cull in tiles; only the few swash tiles in the camera view reach the GPU.
     const hf = world.heightfield;

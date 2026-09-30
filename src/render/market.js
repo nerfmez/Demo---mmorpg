@@ -369,7 +369,7 @@ export function marketQuay(world) {
       part(new THREE.CylinderGeometry(.055,.08,.22,6),C.wood,ex,berth.height+.11,ez);
     }
   }
-  const root=b.finish();root.add(...cargoGroups);return root;
+  const root=b.finish();root.userData.waterContact=true;root.add(...cargoGroups);return root;
 }
 
 /** Open working boat for authored harbour berths; no sailing logic. */
@@ -406,5 +406,5 @@ export function marketFishingBoat(x,z,angle,water) {
   for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.12,8,5).scale(.58,.4,1.7),C.fish,-.03+i*.23,.43,-2.35);
   part(new THREE.DodecahedronGeometry(.41,0).scale(1,.45,1.2),'#89947a',-.43,.26,1.8);
   for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.24-i*.06,.028,5,14),C.rope,.48,.14,1.75,Math.PI/2);
-  const root=b.finish();root.position.set(x,water+.15,z);root.rotation.y=angle;return root;
+  const root=b.finish();root.userData.waterContact=true;root.position.set(x,water+.15,z);root.rotation.y=angle;return root;
 }

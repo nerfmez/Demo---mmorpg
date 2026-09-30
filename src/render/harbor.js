@@ -13,6 +13,7 @@ export function createHarbor(world) {
   };
   for (const d of world.docks) {
     const pier = new THREE.Group();
+    pier.userData.waterContact=true;
     pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height+(d.kind==='breakwater'?.025:0),d.z); pier.rotation.y=d.angle;
     // Shear in local Z: keep the exact XZ footprint and both endpoint heights.
     // Rotating a whole box would shorten its projected deck and open a join gap.
@@ -33,6 +34,9 @@ export function createHarbor(world) {
       for(let z=-d.hz+.55;z<d.hz-.3;z+=1.35)details.box(d.hx*2-.5,.045,.14,'#8b816c',0,.022+slope*z,z);
     }
     if(d.kind==='breakwater'){
+      // Solid masonry reaches below the sea, unlike the raised timber piers.
+      const bottom=world.waterLevel-.8,top=d.height-.28;
+      part(new THREE.BoxGeometry(d.hx*2,top-bottom,d.hz*2),'#88968c',0,(top+bottom)/2-pier.position.y,0,pier);
       // Low segmented coping and a slightly lifted visual surface avoid a
       // coplanar cut through the landward deck; walking height stays unchanged.
       for(const x of [-d.hx+.15,d.hx-.15])for(let z=-d.hz+.65;z<d.hz-.4;z+=1.18)details.box(.24,.22,1.03,'#afb4a5',x,.11,z);
@@ -68,7 +72,7 @@ export function createHarbor(world) {
   if(world.data.town.districtStyle)root.add(districtScenery(world));
   for(const [index,[x,z,a]] of h.boats.entries()) {
     if(world.data.town.styleSlice?.boatIndices?.includes(index)){root.add(marketFishingBoat(x,z,a,world.waterLevel));continue;}
-    const boat=new THREE.Group();boat.position.set(x,world.waterLevel+.15,z);boat.rotation.y=a;
+    const boat=new THREE.Group();boat.userData.waterContact=true;boat.position.set(x,world.waterLevel+.15,z);boat.rotation.y=a;
     part(new THREE.SphereGeometry(1,12,8).scale(1.25,.65,3.8),'#654c37',0,0,0,boat);
     part(new THREE.BoxGeometry(2.15,.15,5.8),'#c1a274',0,.3,0,boat);
     part(new THREE.CylinderGeometry(.08,.12,6,6),'#8a6945',0,3.2,0,boat);

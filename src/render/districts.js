@@ -195,5 +195,5 @@ export function districtScenery(world){
       b.part(new THREE.DodecahedronGeometry(size,0).scale(1,.78,1.15),'#a0a795',p.x,world.waterLevel+.17,p.z,0,z*.2);
     }
   }
-  root.add(b.finish());return root;
+  const armour=b.finish();armour.userData.waterContact=true;root.add(armour);return root;
 }

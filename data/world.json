@@ -3540,13 +3540,19 @@
       "runup": 2.6,
       "retreat": 1.6,
       "foamWidth": 0.14,
-      "foamScale": 3.8,
+      "foamScale": 5.2,
       "foamIntensity": 0.95,
       "portFoam": 0.68,
       "foamColor": "#edf7f2",
       "foamDrift": 0.45,
       "foamLifetime": 2.4,
-      "causticSpeed": 0.35
+      "causticSpeed": 0.35,
+      "waveSpacing": 9,
+      "contactTexel": 0.16,
+      "contactRange": 2.4,
+      "contactShelter": 8,
+      "contactWidth": 0.42,
+      "contactIntensity": 0.85
     },
     "edgeKinds": [
       "beach",

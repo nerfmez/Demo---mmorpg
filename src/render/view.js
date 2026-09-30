@@ -80,8 +80,8 @@ export class View {
 
     this.terrain = createTerrain(world);
     this.scene.add(this.terrain.group);
-    this.scene.add(createWater(world));
     const env = createEnvironment(world);
+    this.scene.add(createWater(world, env.root));
     env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
@@ -898,3 +898,4 @@ export class View {
     return c.toDataURL();
   }
 }
+

@@ -64,8 +64,35 @@ try {
     await stage(-42,-48.2);await shot('20-outlined-fish-hall-gameplay');
     await stage(90.70,-38.35);await shot('21-outlined-warehouse-gameplay');
     }
+    if(process.env.AZURE_CONTACT_REVIEW==='1'){
+      report.waterContacts=await page.evaluate(()=>{
+        const f=window.__frontier,sea=f.view.scene.children.flatMap(o=>o.children||[]).find(m=>m.name==='sea-swash');
+        return sea.material.userData.waterContact;
+      });assert.ok(report.waterContacts.sections>20,'actual waterline sections baked');
+      const surf=JSON.parse(readFileSync('data/world.json','utf8')).sea.surf,period=surf.period,spacing=surf.waveSpacing;
+      const currentTime=await page.evaluate(()=>window.__frontier.game.time);
+      for(const [name,x,z,hitZ] of [['boat-piles',-23.2,-5.2,-3.45],['stone-armour',-119,86,89.6],['quay-wall',0,-24.5,-22.775]]){
+        const impactTime=Math.ceil((currentTime+hitZ/(spacing/period))/period)*period-hitZ/(spacing/period);
+        for(const [phase,delta] of [['incoming',0],['impact',.55],['spread',1.45],...(name==='boat-piles'?[['pile-hit',4.6]]:[])]){
+          await page.evaluate(t=>{window.__frontier.game.time=t;},impactTime+delta);
+          await stage(x,z);await shot('contact-'+name+'-'+phase);
+        }
+        if(name==='boat-piles'&&process.env.AZURE_WAVE_SEQUENCE==='1'){
+          mkdirSync(out+'contact-frames',{recursive:true});
+          const sampledFPS=12,frames=72;
+          for(let i=0;i<frames;i++){
+            await page.evaluate(t=>{window.__frontier.game.time=t;},impactTime+i/sampledFPS);
+            await stage(x,z);await page.screenshot({path:out+`contact-frames/${String(i).padStart(3,'0')}.png`,timeout:60000});
+            if(i%15===0)console.log('contact frame',i,frames);
+          }
+          report.contactSequence={frames,sampledFPS,duration:frames/sampledFPS,hardwareFPS:'not measured'};
+        }
+      }
+    } if(process.env.AZURE_CONTACT_STATIC_ONLY!=='1'){
+    if(process.env.AZURE_CONTACT_REVIEW!=='1'){
     await stage(-119,86);await shot('22-outlined-breakwater-foam-gameplay');
     await stage(0,-24.5);await shot('23-quay-foam-gameplay');
+    }
     const waveTime=await page.evaluate(()=>window.__frontier.game.time);
     for(const [name,delta] of [['24-beach-foam-advance',0],['25-beach-foam-break',1.9],['26-beach-foam-retreat',3.8]]){
       await page.evaluate(t=>{window.__frontier.game.time=t;},waveTime+delta);
@@ -82,6 +109,7 @@ try {
         if(i%16===0)console.log('wave frame',i,frames);
       }
       report.waveSequence={frames,sampledFPS,duration:period,hardwareFPS:'not measured'};
+    }
     }
     report.staticResources=await page.evaluate(()=>{
       const f=window.__frontier,v=f.view;

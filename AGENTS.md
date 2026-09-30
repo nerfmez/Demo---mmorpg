@@ -43,7 +43,9 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 
 ## Shared Jev context (ChatGPT and Claude)
 
-- For multi-file work, reuse a Jev Context report for the exact task and source commit when available. Read `docs/JEV-CONTEXT-TH.md` for the Actions workflow, budget and fallback. `CLAUDE.md` imports these same rules.
+- For multi-file work, invoke Jev yourself through GitHub before broad exploration, or reuse a report matching the exact task, keywords and source commit. Do not ask the owner to press Run workflow or copy reports. `CLAUDE.md` imports these same rules.
+- Resolve the working source to an exact 40-character commit SHA. Create a unique `jev/request/<id>` branch from current main, then commit only `jev-request.json` with version 1, matching id, agent (`chatgpt` or `claude`), task, optional keywords and source_commit. See `docs/JEV-CONTEXT-TH.md` for the schema. Push triggers Jev automatically; never merge request branches.
+- Use your GitHub connector or normal Git credentials. Poll `GET /repos/nerfmez/Demo---mmorpg/actions/runs?head_sha=<request-commit>` for Jev Context, then read its context job log/artifact yourself. Do not use a PR-only run-list wrapper for push requests. An Actions GITHUB_TOKEN push does not trigger this bridge. If your client has no GitHub write/read-run tools, report that precise limitation and continue labelled offline retrieval; do not claim to have invoked Jev.
 - Inspect the Actions Summary/artifact `context.md` or the `Rank relevant source with Jev` job log. Compare `sourceCommit` with your checkout; never reuse a report from another commit or task.
 - This is a search shortlist, not a complete dependency map. Open full files, imports and affected tests before editing; expand search if evidence is weak or missing. Preserve all verification and visual-inspection requirements above.
 - Never request, print, commit, or put `TYPESAFE_API_KEY` in the game frontend. Use the repository Secret for Actions; use offline retrieval if no key is available locally.

@@ -21,6 +21,17 @@ function containsTerm(text, term) {
   if (/[ก-๙]/.test(term)) return text.includes(term);
   return new RegExp(`(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i').test(text);
 }
+
+export function validateAgentRequest(data, branch) {
+  const keys = ['version', 'id', 'agent', 'task', 'keywords', 'source_commit'];
+  if (!data || Array.isArray(data) || typeof data !== 'object' || Object.keys(data).some(key => !keys.includes(key))) throw new ContextError('Invalid Jev agent request fields');
+  if (data.version !== 1 || typeof data.id !== 'string' || !/^[a-z0-9-]{1,80}$/.test(data.id) || branch !== `jev/request/${data.id}`) throw new ContextError('Jev request ID must match its branch');
+  if (!['chatgpt', 'claude'].includes(data.agent)) throw new ContextError('Invalid Jev request agent');
+  if (typeof data.task !== 'string' || !data.task.trim() || bytes(data.task) > 2400) throw new ContextError('Invalid Jev request task');
+  if (data.keywords !== undefined && (typeof data.keywords !== 'string' || bytes(data.keywords) > 1200)) throw new ContextError('Invalid Jev request keywords');
+  if (typeof data.source_commit !== 'string' || !/^[a-f0-9]{40}$/.test(data.source_commit)) throw new ContextError('Jev request needs an exact source commit');
+  return { task: data.task, keywords: data.keywords || '', source_ref: data.source_commit, id: data.id };
+}
 const aliases = [
   ['พุ่ม', 'ใบไม้', 'ต้นไม้', 'หญ้า', 'foliage', 'bush', 'tree', 'grass', 'nature', 'leafpaint', 'painted'],
   ['แสง', 'เงา', 'สี', 'light', 'shadow', 'color', 'toon', 'rendering'],

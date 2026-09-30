@@ -2,15 +2,40 @@
 
 Jev เป็นตัวคัดบริบทก่อนเริ่มงาน ไม่ใช่โมเดลเขียนโค้ดหรือผู้อนุมัติอาร์ต ระบบนี้อยู่ในเครื่องมือพัฒนาเท่านั้น ไม่รวมอยู่ในเกมหรือหน้า GitHub Pages
 
-## เริ่มจาก iPad
+## ใช้จากแชทตามปกติ
 
-1. เก็บคีย์ใน Settings → Secrets and variables → Actions → New repository secret ชื่อ `TYPESAFE_API_KEY` ไม่ใส่คีย์ในแชท โค้ดเกม Issue หรือ PR
-2. หลัง workflow เข้า `main` แล้ว เปิด Actions → **Jev Context** → **Run workflow**
-3. ช่อง **task** ใส่โจทย์จริง ภาษาไทยหรืออังกฤษ เช่น `ปรับพุ่มไม้ให้ทรงไม่เหมือนใบไม้เรียงกัน รักษาสีเดิม`
-4. ช่อง **keywords** ช่วยค้นหาได้ เช่น `foliage bush nature leafpaint` ใส่คำค้นตรงกับงานหรือเว้นว่างได้
-5. ช่อง **target_ref** ใส่ branch หรือ SHA ที่ทั้งสอง agent จะทำงาน เช่น `main` หรือ branch ของงานนั้น ช่องเลือก Branch ด้านบนเลือก `main` เพื่อใช้เครื่องมือเวอร์ชันที่ตรวจแล้ว
-6. เปิดรอบที่รันเสร็จ อ่านรายงานบนหน้า Summary หรือดาวน์โหลด artifact `jev-context-<run id>-<attempt>` ซึ่งมี `context.md` และ `context.json`
-7. ให้ ChatGPT หรือ Claude อ่านรายงานรอบนี้ก่อนสำรวจเพิ่ม ระบุลิงก์รอบ Actions และโจทย์เดียวกัน หาก connector ดาวน์โหลด artifact ไม่ได้ ให้อ่าน log ของขั้น **Rank relevant source with Jev** ซึ่งมี Markdown เดียวกัน
+หลังเก็บ `TYPESAFE_API_KEY` เป็น repository Secret แล้ว ผู้ใช้สั่งงานกับ ChatGPT หรือ Claude ตามปกติ Agent เป็นผู้ส่งคำขอ เรียก Jev และอ่านผลกลับเอง ไม่ต้องให้ผู้ใช้เปิด Actions กด Run workflow หรือคัดลอกรายงาน คีย์อยู่ใน GitHub ตลอด
+
+`AGENTS.md` กำหนดขั้นตอนร่วมกัน และ `CLAUDE.md` นำเข้าไฟล์นี้ ฝั่ง client ต้องมีเครื่องมือ GitHub ที่เขียน branch/file และอ่าน Actions ได้ หรือใช้ Git credentials ปกติ การมีเอกสารอย่างเดียวไม่ได้เพิ่มสิทธิ์ให้ client ที่ไม่มีเครื่องมือดังกล่าว
+
+## ช่องทางเรียกสำหรับ agent
+
+1. อ่าน SHA ของ source ที่จะทำงานให้เป็น commit 40 ตัวอักษร และ SHA ของ `main` ล่าสุดสำหรับสร้าง branch คำขอ
+2. สร้าง branch ใหม่ `jev/request/<id>` จาก main โดย id เป็นตัวอักษรเล็ก ตัวเลข หรือขีด ความยาวไม่เกิน 80 ตัว และไม่ซ้ำ
+3. commit ไฟล์ `jev-request.json` ที่ root ของ branch นี้เท่านั้น ตัวอย่าง:
+
+```json
+{
+  "version": 1,
+  "id": "chatgpt-shrubs-20260930",
+  "agent": "chatgpt",
+  "task": "ปรับพุ่มไม้ให้ทรงไม่เหมือนใบไม้เรียงกัน รักษาสีเดิม",
+  "keywords": "foliage bush nature leafpaint",
+  "source_commit": "ใส่ SHA จริง 40 ตัวอักษรของ source"
+}
+```
+
+`agent` ใช้ `chatgpt` หรือ `claude`; task ไม่เกิน 2,400 UTF-8 bytes และ keywords ไม่เกิน 1,200 bytes ไม่รับ field อื่น ไม่ใส่คีย์หรือข้อมูลลับ เพราะ repo นี้เป็น public ไม่ merge branch คำขอเข้า main
+
+4. push/commit ผ่าน GitHub connector หรือ GitHub App/PAT ที่ใช้อยู่ การเปลี่ยนไฟล์นี้เรียก **Jev Context** อัตโนมัติ CI เกมจะไม่รันบน branch คำขอ ห้ามใช้ `GITHUB_TOKEN` ของ Actions เพื่อ push แล้วคาดหวัง workflow รอบใหม่
+5. อ่านรอบจาก `GET /repos/nerfmez/Demo---mmorpg/actions/runs?head_sha=<SHA ของ commit คำขอ>&per_page=20` และเลือกชื่อ Jev Context ต้องเป็นรายการ push runs ไม่ใช่ wrapper ที่กรองเฉพาะ PR
+6. เมื่อรอบจบ อ่าน log ของ context job ขั้น **Rank relevant source with Jev** ซึ่งมี `context.md` เต็ม หรืออ่าน artifact `jev-context-<run id>-<attempt>` ที่มี `context.md`/`context.json` Agent อ่านเองและตรวจ sourceCommit, task และสถานะก่อนใช้งาน
+
+Workflow อ่านคำขอเป็นข้อมูลและเรียกสคริปต์จาก main ที่ตรวจแล้ว ตรวจ schema ก่อน checkout source SHA ไม่รันโค้ดเกมที่แนบมาใน branch คำขอ หากไม่มีเครื่องมือเขียน GitHub ให้ agent แจ้งข้อจำกัดตรงนั้นและค้นแบบ offline โดยไม่อ้างว่าใช้ Jev
+
+GitHub concurrency เก็บได้หนึ่งรอบกำลังรันและหนึ่งรอบรอ รอบรอเก่าอาจถูกยกเลิกเมื่อมีคำขอเพิ่ม Agent ต้องตรวจสถานะและส่งใหม่ด้วย id ใหม่เมื่อจำเป็น ไม่มีการ retry API อัตโนมัติ
+
+Manual **Actions → Jev Context → Run workflow** ยังใช้ตรวจปัญหาได้ โดยเลือกเครื่องมือจาก main และกรอก task, keywords, target_ref แต่ไม่ใช่ขั้นตอนที่ผู้ใช้ต้องทำในการทำงานจากแชท
 
 API reference: https://docs.typesafe.ai/api
 Pricing/model/input limits: https://docs.typesafe.ai/models

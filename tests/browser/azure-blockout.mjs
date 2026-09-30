@@ -14,14 +14,21 @@ const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.na
 const port=4191,base=`http://localhost:${port}/`;
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port',String(port),'--strictPort'],{stdio:'ignore',detached:true});
 const report={engine:engine.name(),errors:[],hardwareIPadFPS:'not measured',captures:[]};
-// Solve the current curved incoming phase, so contact review labels do not
-// drift from the surface crest after tuning along-crest curvature.
+// Solve the graphic port-crest phase for contact review labels. Beach timing
+// remains the previously reviewed swash phase in the renderer.
 function nextCrestTime(x,z,now,surf){
-  const omega=Math.PI*2/surf.period,k=Math.PI*2/surf.waveSpacing,bend=surf.swellBend??1.1;
-  const phase=t=>z*k+t*omega+bend*(Math.sin(x*.15+t*.12)+.35*Math.sin(x*.39-t*.19));
-  const target=Math.ceil(phase(now)/(Math.PI*2))*Math.PI*2;
-  let t=now+(target-phase(now))/omega;
-  for(let i=0;i<6;i++)t-=(phase(t)-target)/(omega+bend*(.12*Math.cos(x*.15+t*.12)-.0665*Math.cos(x*.39-t*.19)));
+  const speed=surf.waveSpacing/surf.period,bend=surf.crestBend??1.0,length=surf.crestLength??12;
+  const row=Math.ceil((z+now*speed)/surf.waveSpacing);
+  // Shader's cosmetic hash and group coordinates, for capture timing only.
+  const hash=(a,b)=>{let px=((a*.1031)%1+1)%1,py=((b*.1031)%1+1)%1,pz=px;
+    const dot=px*(py+33.33)+py*(pz+33.33)+pz*(px+33.33);px+=dot;py+=dot;pz+=dot;return ((px+py)*pz)%1;};
+  const offset=hash(row,93.7)*length,cell=Math.floor((x-offset)/length),seed=hash(cell,row);
+  const centre=(cell+.5)*length+offset+(seed-.5)*length*.12;
+  const halfLength=length*(.28+.13*hash(cell+8.3,row)),tip=Math.min(1,Math.max(-1,(x-centre)/halfLength));
+  const phase=t=>z+t*speed+bend*(.45*Math.sin(x*.19+t*.15+row*.37)+.12*Math.sin(x*.43-t*.10+row*2.1)+(.65+.20*seed)*(tip*tip-.35));
+  let t=row*surf.period-z/speed;
+  for(let i=0;i<6;i++)t-=(phase(t)-row*surf.waveSpacing)/(speed+bend*(.0675*Math.cos(x*.19+t*.15+row*.37)-.012*Math.cos(x*.43-t*.10+row*2.1)));
+  if(t<now)return nextCrestTime(x,z,now+surf.period*.5,surf);
   return t;
 }
 let browser;

@@ -1,4 +1,4 @@
-// Focused water review with the production camera/HUD. Optional BEFORE_ROOT
+// Focused anime crest review with the production camera/HUD. Optional BEFORE_ROOT
 // captures an isolated built revision at the identical camera, seed and clock.
 // Sampled animation time is evidence of motion, not measured hardware FPS.
 import assert from 'node:assert/strict';
@@ -6,8 +6,8 @@ import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-const out=resolve('tests/browser/out/azure-swell');mkdirSync(out,{recursive:true});
-const servers=[],pages=[],report={errors:[],captures:[],hardwareIPadFPS:'not measured'};
+const out=resolve('tests/browser/out/azure-wave-lines');mkdirSync(out,{recursive:true});
+const servers=[],pages=[],report={errors:[],captures:[],hardwareIPadFPS:'not measured',baselineSource:process.env.BASELINE_SHA||null,reviewParent:process.env.REVIEW_PARENT||null,cachedBaseline:process.env.CACHED_BASELINE||null};
 let browser;
 try {
   browser=await chromium.launch({...(process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}:{}),args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -26,6 +26,7 @@ try {
     await page.goto(url+'?fresh=1&seed=9&quality=medium',{waitUntil:'domcontentloaded',timeout:60000});
     await page.waitForFunction(()=>window.__frontier?.modelsReady&&window.__frontier.game.time>.2,null,{timeout:60000});
     await page.evaluate(()=>{window.__azureFreeze=true;const f=window.__frontier;f.paused=true;f.input.reset();f.input.disabled=true;document.querySelector('.banner')?.remove();});
+    if(revision==='after')report.portCrest=await page.evaluate(()=>{const f=window.__frontier,m=f.view.scene.children.flatMap(o=>o.children||[]).find(o=>o.name==='sea-swash').material;return {style:m.userData.waterStyle,settings:m.uniforms.uCrest.value.toArray()};});
     pages.push({page,revision});
   }
   const stage=async(page,x,z,time)=>page.evaluate(([x,z,time])=>{
@@ -41,9 +42,9 @@ try {
       await page.screenshot({path:`${out}/${name}-${revision}.png`,timeout:60000});
       report.captures.push(`${name}-${revision}.png`);
     }
-    console.log('matched static',name);
-    if(process.env.SWELL_SEQUENCE==='1'){
-      // One full swell period. Six clock samples/sec keep the review short.
+    console.log(pages.length>1?'matched static':'captured static',name);
+    if(process.env.WAVE_SEQUENCE==='1'&&name==='pier'){
+      // One full port-crest period. Six clock samples/sec keep the review short.
       const frames=45,sampledFPS=6;
       for(const {page,revision} of pages){
         const dir=`${out}/${name}-${revision}`;mkdirSync(dir,{recursive:true});

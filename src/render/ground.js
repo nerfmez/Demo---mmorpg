@@ -278,57 +278,49 @@ ${GROUND_COLOR_GLSL}`
 
 // ---------- water ----------
 
-// Height and analytic slope of two crossing swells. The same curved primary
-// phase drives shore arrival and object impacts, rather than painted crest lines.
-const SEA_SWELL_GLSL = /* glsl */ `
-  uniform float uTime; uniform vec4 uSurf; uniform vec4 uMotion; uniform vec4 uSwell;
-  float seaPhase(vec2 p){
-    return (p.y+uTime*uMotion.w/uSurf.z)*6.2831853/uMotion.w
-      +uSwell.z*(sin(p.x*.15+uTime*.12)+.35*sin(p.x*.39-uTime*.19));
-  }
-  vec3 seaSwell(vec2 p){
-    float k=6.2831853/uMotion.w, a=seaPhase(p);
-    float bendSlope=uSwell.z*(.15*cos(p.x*.15+uTime*.12)+.1365*cos(p.x*.39-uTime*.19));
-    float b=k*.61*dot(p,vec2(.48,.88))+uTime*6.2831853/uSurf.z*.73
-      +.45*sin(p.y*.13-uTime*.17);
-    float height=uSwell.x*(cos(a)+.18*cos(2.0*a))+uSwell.y*cos(b);
-    vec2 slope=-uSwell.x*(sin(a)+.36*sin(2.0*a))*vec2(bendSlope,k)
-      -uSwell.y*sin(b)*vec2(k*.61*.48,k*.61*.88+.0585*cos(p.y*.13-uTime*.17));
-    return vec3(height,slope);
-  }
-`;
-
 /** Broad swash advances over the sand and drains back; one shared GPU clock, no CPU mesh churn. */
 function seaMaterial(world, contacts) {
   const surf = world.data.sea.surf || {};
   const material=new THREE.ShaderMaterial({
-    uniforms: { uSwell:{value:new THREE.Vector4(surf.swellHeight ?? .32,surf.crossSwellHeight ?? .11,surf.swellBend ?? 1.1,surf.swellShading ?? 3.0)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)} },
+    uniforms: { uCrest:{value:new THREE.Vector4(surf.crestBend ?? 1.0,surf.crestWidth ?? .13,surf.crestLength ?? 12,surf.crestOpacity ?? .24)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      attribute float depth; attribute float shore; attribute float beachWash; attribute float swellGrid;
+      attribute float depth; attribute float shore; attribute float beachWash;
       varying float vDepth; varying float vShore; varying vec2 vW;
       varying float vBeachWash;
-      uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact;
-      ${SEA_SWELL_GLSL}
-      void main(){
-        vBeachWash=beachWash;vDepth=depth;vShore=shore;
-        vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;
-        vec2 uv=(vW-uContactBounds.xy)/uContactBounds.zw;
-        float valid=step(0.0,uv.x)*step(0.0,uv.y)*step(uv.x,1.0)*step(uv.y,1.0);
-        vec4 contact=texture2D(uContacts,uv);
-        float distance=mix(uContact.x,(contact.r-.5)*uContact.x*2.0,valid);
-        float mask=smoothstep(.25,1.2,depth)*smoothstep(.6,2.8,shore)
-          *smoothstep(.15,.85,distance)*mix(1.0,.35+.65*contact.a,valid);
-        // The terrain film and solid waterlines stay joined. Far four-corner
-        // filler planes get slope shading only, avoiding giant tilted quads.
-        wp.y+=seaSwell(vW).x*mask*swellGrid;
-        gl_Position=projectionMatrix*viewMatrix*wp;
-      }`,
+      void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
-      uniform vec3 uFoam; uniform vec3 uFoamColor; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact;
+      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec4 uMotion; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact; uniform vec4 uCrest;
       varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
-      ${SEA_SWELL_GLSL}
       ${NOISE_GLSL}
+      // Graphic anime water: a curved crest with finite rounded strokes.
+      // The row changes halfway between invisible crests, so reseeding cannot pop.
+      vec3 portWave(vec2 p){
+        float base=(p.y+uTime*uMotion.w/uSurf.z)/uMotion.w;
+        float row=floor(base+.5);
+        float offset=hash12(vec2(row,93.7))*uCrest.z;
+        float cell=floor((p.x-offset)/uCrest.z);
+        float seed=hash12(vec2(cell,row));
+        float centre=(cell+.5)*uCrest.z+offset+(seed-.5)*uCrest.z*.12;
+        // The longest stroke plus its jitter stays inside its own cell; the
+        // gap hides the phase change between independently curved arc groups.
+        float halfLength=uCrest.z*(.28+.13*hash12(vec2(cell+8.3,row)));
+        float along=(p.x-centre)/halfLength,tip=clamp(along,-1.0,1.0);
+        float bend=uCrest.x*(.45*sin(p.x*.19+uTime*.15+row*.37)
+          +.12*sin(p.x*.43-uTime*.10+row*2.1)
+          +(.65+.20*seed)*(tip*tip-.35));
+        float width=uCrest.y*sqrt(max(0.0,1.0-along*along))*(.8+.4*seed);
+        return vec3(base+bend/uMotion.w,along,width);
+      }
+      float portWaveCoord(vec2 p){return portWave(p).x;}
+      vec2 portCrest(vec2 p){
+        vec3 arc=portWave(p);
+        float base=(p.y+uTime*uMotion.w/uSurf.z)/uMotion.w;
+        float across=(arc.x-floor(base+.5))*uMotion.w;
+        float aa=max(fwidth(across),.035),ends=smoothstep(0.0,.12,1.0-abs(arc.y));
+        return vec2(1.0-smoothstep(arc.z*.45,arc.z+aa,abs(across)),
+                    1.0-smoothstep(arc.z*.6,arc.z+aa,abs(across-.18)))*ends;
+      }
       // Seeds themselves move: the membranes stretch, pinch off and reconnect,
       // rather than a fixed cellular texture sliding beneath a brightness mask.
       vec2 foamCell(vec2 p,float motion,float generation){
@@ -374,6 +366,7 @@ function seaMaterial(world, contacts) {
           normal/=max(length(normal),.001);
         }
         vec2 coast=vW-normal*vShore;
+        float spacing=uMotion.w,speed=spacing/uSurf.z;
         vec2 contactUV=(vW-uContactBounds.xy)/uContactBounds.zw;
         float contactValid=step(0.0,contactUV.x)*step(0.0,contactUV.y)*step(contactUV.x,1.0)*step(contactUV.y,1.0);
         vec4 contactData=texture2D(uContacts,contactUV);
@@ -382,7 +375,7 @@ function seaMaterial(world, contacts) {
         vec2 contactNormal=contactData.gb*2.0-1.0;
         contactNormal/=max(length(contactNormal),.001);
         float exposure=mix(1.0,contactData.a,contactValid);
-        float cycle=seaPhase(coast+normal*uSurf.y);
+        float cycle=(coast.y+normal.y*uSurf.y+uTime*speed+sin(coast.x*.19+uTime*.15)*.22)*6.2831853/spacing;
         float surge=.5-.5*cos(cycle);
         float edge=mix(uSurf.y,-uSurf.x,surge)+sin(vW.x*.34+uTime*.25)*.16;
         edge=mix(0.0,edge,vBeachWash);
@@ -394,18 +387,6 @@ function seaMaterial(world, contacts) {
         col=mix(col,vec3(.06,.24,.34),smoothstep(2.0,7.0,d));
         float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
         col+=(drift-.5)*.035;
-        // Broad lit and shaded water faces show the swell volume. Neither the
-        // second swell nor its specular reflection is classified as white foam.
-        vec3 swell=seaSwell(vW);
-        float swellMask=smoothstep(.25,1.2,d)*smoothstep(.6,2.8,vShore)
-          *smoothstep(.15,.85,contactD)*(.35+.65*exposure);
-        vec3 waterNormal=normalize(vec3(-swell.y*swellMask,1.0,-swell.z*swellMask));
-        float face=dot(waterNormal,normalize(vec3(-.4,.55,.7)))-.55;
-        col+=vec3(.13,.19,.18)*face*uSwell.w;
-        col=max(col,vec3(.015,.035,.045));
-        float reflection=smoothstep(.04,.18,swell.z*swellMask)
-          *(.55+.45*sin(vW.x*.43+vW.y*.18-uTime*.32));
-        col=mix(col,vec3(.22,.48,.51),reflection*.30);
         // Submerged light ripples deform independently and softly ebb in brightness.
         // They never remain a crisp, world-fixed grid on top of the water.
         if(d<3.0){
@@ -431,21 +412,35 @@ function seaMaterial(world, contacts) {
           vec2 sheet=foamSheet(swashP,swashAge*uSurf.z,generation,uSurf.z*.88);
           float trail=smoothstep(.04,.22,behind)*(1.0-smoothstep(sheetWidth*.5,sheetWidth,behind));
           float broken=smoothstep(.17,.55,vnoise(swashP*.7+generation*8.3));
-          float wash=rim*(.35+.60*build)*drain*mix(.40,1.0,broken)
+          float wash=rim*(.50+.45*build*drain)*mix(.40,1.0,broken)
                      +sheet.x*trail*build*drain;
           float washMist=sheet.y*trail*build*drain;
-          // Beach foam belongs to the shallow swash, never to a following
-          // offshore swell. Drainage removes the rim before the next arrival.
-          float shoreWash=(1.0-smoothstep(.2,1.25,vShore))*vBeachWash;
-          foam=wash*shoreWash*uFoam.y*cover;
-          softFoam=washMist*.42*shoreWash*cover;
+          // Coherent incoming wave crests, travelling north from the open bay.
+          // A distant crest is thin and intermittent; it is not a second foam sheet.
+          float bend=sin(vW.x*.19+uTime*.15)*.22;
+          float waveCoord=(vW.y+uTime*speed+bend)/spacing;
+          float wake=fract(waveCoord)*spacing;
+          float waveGeneration=floor(waveCoord);
+          float zone=smoothstep(1.0,2.3,vShore)*(1.0-smoothstep(38.0,65.0,vShore));
+          float crest=(1.0-smoothstep(.025,.13,wake))*zone;
+          float crestBreak=smoothstep(.33,.61,vnoise(vec2(vW.x*.82,waveGeneration*7.9)));
+          float breaking=crest*crestBreak*.22*exposure;
+          // Retain the reviewed beach swash/crest exactly. Only port water
+          // replaces ruler-like marks with tapered, gently animated arcs.
+          vec2 port=portCrest(vW)*zone*exposure*smoothstep(.15,.65,contactD);
+          col=mix(col,vec3(.10,.32,.38),port.y*.17*(1.0-vBeachWash));
+          breaking=mix(port.x*uCrest.w,breaking,vBeachWash);
+          foam=wash*mix(uFoam.z*.15,1.0,vBeachWash)*uFoam.y*cover;
+          foam=max(foam,breaking*cover);
+          softFoam=washMist*mix(.24,.42,vBeachWash)*cover;
         }
         {
           // A wave reaches the actual waterline of a hull/pile/rock/wall first.
           // Foam blooms there, spreads along its contour, and decays after impact.
           if(contactD<uContact.x-.03){
             vec2 hit=vW-contactNormal*max(0.0,contactD);
-            float hitCoord=seaPhase(hit)/6.2831853;
+            float hitCoord=(hit.y+uTime*speed+sin(hit.x*.19+uTime*.15)*.22)/spacing;
+            hitCoord=mix(portWaveCoord(hit),hitCoord,vBeachWash);
             float impactAge=fract(hitCoord)*uSurf.z;
             float impact=smoothstep(.0,.16,impactAge)*(1.0-smoothstep(.45,uMotion.y,impactAge));
             float spread=uContact.y*(.28+1.8*smoothstep(.0,.9,impactAge));
@@ -474,6 +469,7 @@ function seaMaterial(world, contacts) {
         #include <colorspace_fragment>
       }`,
   });
+  material.userData.waterStyle='anime-curved-port-crest';
   material.userData.waterContact={sections:contacts.sections,segments:contacts.segments,texel:contacts.texel};
   ownContactTexture(material,contacts.texture);
   return material;
@@ -616,8 +612,7 @@ export function createWater(world, scenery = null) {
         const z = zMin + (tj+j) * step;
         const c = world.coastAt(x, z);
         const shoreD = -c.distance;
-        // Only beaches carry the thin film over terrain. Port water uses the
-        // level base plane; the shader lifts open water and pins solid joins.
+        // Only beaches carry the thin film over terrain. Port water stays flat.
         pos.push(x, c.kind==='beach' ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
@@ -649,10 +644,9 @@ function waterMesh(pos, depth, along, idx, mat, shore = null, washMask = null) {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('depth', new THREE.Float32BufferAttribute(depth, 1));
   g.setAttribute('along', new THREE.Float32BufferAttribute(along, 1));
-  if(shore) { g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1)); g.setAttribute('beachWash',new THREE.Float32BufferAttribute(washMask || shore.map(() => 1),1)); g.setAttribute('swellGrid',new THREE.Float32BufferAttribute(shore.map(() => pos.length>12 ? 1 : 0),1)); }
+  if(shore) { g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1)); g.setAttribute('beachWash',new THREE.Float32BufferAttribute(washMask || shore.map(() => 1),1)); }
   g.setIndex(idx);
   g.computeBoundingSphere();
-  if(mat.uniforms.uSwell)g.boundingSphere.radius+=Math.abs(mat.uniforms.uSwell.value.x)*1.18+Math.abs(mat.uniforms.uSwell.value.y);
   const m = new THREE.Mesh(g, mat);
   m.renderOrder = 1;
   return m;

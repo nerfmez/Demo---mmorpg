@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "chatgpt-port-plan-1790751934136",
+  "agent": "chatgpt",
+  "task": "วางแผนปรับแมพเดิมเฉพาะพื้นที่เริ่มต้นชายหาดและเมืองท่าติดทะเลตามแนวคิด Azure Coast พื้นที่บกมากกว่าทะเล ผู้เล่นใหม่เกิดที่ชายหาดแล้วเดินเข้าเมือง สำรวจ terrain world map spawn quests NPC town coast saves และ tests เพื่อวางแผนโดยยังไม่แก้โค้ดเกมหรือสร้างทั้งทวีป",
+  "keywords": "world terrain map coast beach town settlement spawn character quest waypoint save migration",
+  "source_commit": "a2789575003fc9a88cbc8bbd7c3e18afdfe73885"
+}

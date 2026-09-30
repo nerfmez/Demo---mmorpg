@@ -44,6 +44,7 @@ export function createCharacter(data, opts = {}) {
     bossKills: 0,
     progress: emptyProgress(data),
     worldId: data.world.id || 'frontier',
+    worldLayoutRevision: data.world.layoutRevision || null,
     pos: null,
   };
   const startGear = kit ? [kit.weapon, ...st.gear.filter((g) => data.items.gearBases[g]?.slot !== 'weapon')] : st.gear;
@@ -72,6 +73,12 @@ export function migrateCharacter(ch, data) {
     ch.progress.zones = ['landing'];
   }
   ch.worldId = data.world.id || 'frontier';
+  if (data.world.layoutRevision && ch.worldLayoutRevision !== data.world.layoutRevision) {
+    // Coordinates alone become stale when the same town is rebuilt. Keep all
+    // levels, equipment, unlocked stones and quest records; relocate only once.
+    ch.pos = null;
+  }
+  ch.worldLayoutRevision = data.world.layoutRevision || null;
   for (const k of ['kills', 'collected', 'quests', 'bossKills']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;

@@ -47,9 +47,9 @@ export function mapImage(world) {
       if (slope > 0.75) c = mix(c, ROCK, Math.min(1, (slope - 0.75) * 2.5));
       if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
       if (world.data.sea) {
-        const d = world.shoreZ(x) - z;
+        const d = world.coastAt(x, z).distance;
         const beach = world.data.sea.beach || 14;
-        if (d < beach) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
+        if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
       }
       const rd = world.roadDist(x, z);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));

@@ -648,5 +648,12 @@
         ]
       ]
     }
+  },
+  "architecture": {
+    "hullWidth": 0.042,
+    "hullDarkness": 0.36,
+    "edgeAngle": 55,
+    "edgeColor": "#594c45",
+    "edgeOpacity": 0.78
   }
 }

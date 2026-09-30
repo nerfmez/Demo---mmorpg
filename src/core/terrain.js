@@ -6,7 +6,7 @@
 // + mountains past the map edge -> flatten town / pads -> roads smoothed into ramps ->
 // river channel and ponds carved below the water level.
 
-import { clamp, distToSegment } from './math.js';
+import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
 // ---------- noise (hash-based, deterministic, no RNG state) ----------
 
@@ -195,8 +195,7 @@ export function buildHeightfield(worldData, zoneAt) {
   const town = worldData.town;
   if (town) {
     const zn = worldData.zones.find((q) => q.id === 'settlement');
-    const r = zn ? zn.rects[0] : null;
-    if (r) {
+    for (const r of zn?.rects || []) {
       for (let j = 0; j < h; j++)
         for (let i = 0; i < w; i++) {
           const x = X(i);
@@ -314,7 +313,13 @@ export function buildHeightfield(worldData, zoneAt) {
       const x = X(i);
       const sz = polylineZAtX(sea.shore, x);
       for (let j = 0; j < h; j++) {
-        const d = sz - Z(j); // metres inland from the shore line
+        const c = sea.edgeKinds ? coastSample(sea, x, Z(j)) : { distance: sz - Z(j), kind: 'beach' };
+        const d = c.distance; // true distance also follows the steep bay sides
+        if (c.kind !== 'beach') {
+          if (d >= 0 && d < 4) hf[j * w + i] = worldData.town.height ?? .7;
+          else if (d < 0) hf[j * w + i] = Math.max(water - 4.5, water - .3 + d * .5);
+          continue;
+        }
         if (d > beach + 8) continue;
         const k = j * w + i;
         const ripple = (valueNoise(x * 0.2, Z(j) * 0.2, seed + 31) - 0.5) * 0.15;
@@ -325,6 +330,19 @@ export function buildHeightfield(worldData, zoneAt) {
         const target = d >= 0 ? Math.min(hf[k], prof) * 0.3 + prof * 0.7 : prof;
         hf[k] = hf[k] * (1 - m) + target * m;
       }
+    }
+  }
+
+  // Recess the terrain under authored ramp slabs, preserving the land endpoint.
+  // Flat pier approaches also need this: coplanar paving otherwise hides wood.
+  for (const dock of worldData.docks || []) if (dock.rampFromTerrain && dock.terrainRecess) {
+    const start=fromBoxLocal(dock,0,-dock.hz), startY=sample(start.x,start.z);
+    for(let j=0;j<h;j++) for(let i=0;i<w;i++) {
+      const local=toBoxLocal(dock,X(i),Z(j));
+      if(Math.abs(local.lx)>dock.hx+.3 || local.lz<=-dock.hz || local.lz>dock.hz)continue;
+      const t=(local.lz+dock.hz)/(2*dock.hz);
+      const deck=startY+(dock.height-startY)*t;
+      hf[j*w+i]=Math.min(hf[j*w+i],deck-dock.terrainRecess*Math.min(1,t*10));
     }
   }
 

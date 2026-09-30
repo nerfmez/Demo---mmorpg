@@ -28,6 +28,8 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Browser smoke test
         run: npm run test:browser
+      - name: Distinct coastal attack patterns and contact poses
+        run: node tests/browser/coastal-attacks.mjs
       - name: Game UI workflows (desktop/tablet/phone)
         run: npm run test:ux
       - name: Harbor walkthrough and art review captures

@@ -13,11 +13,13 @@ const ELEMENT = {
   cold: { core: 0xeaffff, glow: 0x58c8ff, dots: 0xa8e8ff },
   earth: { core: 0xf4e3c0, glow: 0xb08a5a, dots: 0xd8c09a },
   poison: { core: 0xeaffb0, glow: 0x86d13a, dots: 0xb6ec5a },
+  salt: { core: 0xf2f5df, glow: 0x75c6c8, dots: 0xcde9de },
   arcane: { core: 0xf0e8ff, glow: 0x9a7cff, dots: 0xc6b4ff },
   lightning: { core: 0xffffff, glow: 0x9fd8ff, dots: 0xe8f6ff },
   none: { core: 0xeafff4, glow: 0x6fe0b0, dots: 0xb4ffe0 },
 };
 export const el = (e) => ELEMENT[e] || ELEMENT.physical;
+const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch']);
 
 let glowTex = null;
 export function glowTexture() {
@@ -616,7 +618,7 @@ export class Vfx {
     for (const pr of game.projectiles) {
       seen.add(pr.id);
       let v = this.projectiles.get(pr.id);
-      const element = pr.owner === 'player' ? pr.element : pr.kind === 'spit' ? 'poison' : 'arcane';
+      const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
       const arrow = pr.kind === 'hunter_shot';
       if (!v) {
@@ -789,6 +791,7 @@ export class Vfx {
       if (m.dead || !w || m.state !== 'windup') continue;
       let kind = null;
       if (w.name === 'slam') kind = 'slam';
+      else if (COASTAL_CONTACTS.has(w.name)) kind = 'melee';
       else if (w.name === 'gore' || w.name === 'charge' || w.name === 'lunge' || w.name === 'triple') kind = 'lane';
       if (!kind) continue;
       const key = `${m.id}:${w.name}`;
@@ -799,6 +802,11 @@ export class Vfx {
           const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, w.radius || m.def.attacks.slam.radius, 0, 0.07);
           mesh.material.uniforms.uColor.value.set(0xff6a3a);
           mesh.material.uniforms.uColor2.value.set(0xff9a5a);
+          v = { mesh, kind };
+        } else if (kind === 'melee') {
+          const atk = m.def.attacks[w.name];
+          const geo = sectorGeometry(0, m.r + atk.range, atk.arc * Math.PI / 180);
+          const mesh = makeDecal(geo, new THREE.MeshBasicMaterial({ color: 0xffbc72, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }), this.world, 0.07);
           v = { mesh, kind };
         } else {
           const atk = m.def.attacks[w.name];

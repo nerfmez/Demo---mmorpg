@@ -26,7 +26,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `quests.js` | `Quests.gd` | Journal state lives in `character.progress.quests`. Feed it the same events (kill, collect, craft). |
 | `terrain.js` | Import step only | Builds the heightfield; Godot can load `heightmap.json` instead. |
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
-| `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, stunned, shell, return`. Keep the wind-up tell before every attack. |
+| `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
 | `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Docks shrink by the actor radius for water clearance. `groundY()` interpolates the dock ramp from `startY` to `height`. Safe starting roads use distance to the `safeRoutes` polylines. |
 
@@ -216,9 +216,23 @@ and unlock the town checkpoint by walking there. The town, nearby grove, fields
 and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
 previous map for historical regression tests.
 
-Translate `coastal_melee` / `coastal_hopper` in `ai.js`: crab and hermit use shell
-defense; salt slime and shore gull use a short, telegraphed lunge. The gull is a
-grounded enemy, not unrestricted flight. Part drops feed the new low-cost recipes.
+Translate `coastal_melee`, `coastal_slime` and `coastal_skirmisher` in `ai.js`.
+`primaryAttack` selects a stationary frontal slap, peck or pinch; each attack has
+`arc`, `windup`, `hitTime` (after windup), `duration`, `recover` and `cooldown` in
+`monsters.json`. Lock aim after 55% of windup and test range/arc once at contact,
+including summons. Contact never uses the charge collision path. Drive animation
+from these same times, with the body planted and the head/claw/body following through.
+
+Salt slime uses a slow `salt_spit` projectile when outside slap range. Its aim stays
+locked, it carries no poison, and terrain/collision use the existing projectile rules.
+The grounded shore gull walks in, pecks, recovers and walks toward a fixed retreat
+point at normal movement speed; retreat cannot damage units and times out if blocked.
+Reef crab uses only a slow frontal pinch. Hermit crab also enters shell after its
+configured attack count (or sustained hits), then clears `shell` and enters `emerge`.
+`emergeDamageTaken` applies only during that stationary opening, before normal pursuit
+resumes. Leashing clears transient combat/guard state. See `COASTAL-COMBAT.md` and
+`tests/core/coastal-attacks.test.js` for the port acceptance cases.
+Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.
 

@@ -1,7 +1,7 @@
 // Monster behaviours. Each monster has a readable pattern with a visible wind-up, so the
 // player can learn it and use positioning (a charge that hits a rock stuns, a dive or a
 // boulder marks the ground first). Monsters fight the player or the player's summons.
-// States: idle, chase, windup, act, recover, stunned, shell, return, circle.
+// States: idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle.
 
 import { DEG, angleDiff, angleTo, clamp, dist, dirFromAngle } from './math.js';
 
@@ -50,13 +50,32 @@ export function updateMonster(game, m, dt) {
     case 'act':
       return act(game, m, dt, t);
     case 'recover':
+      if (m.stateT >= m.stateDur) {
+        if (m.retreatPending && m.aggro && t) {
+          m.retreatPending = false;
+          const retreat = def.retreat;
+          const away = dirFromAngle(angleTo(t.x, t.z, m.x, m.z));
+          m.retreatTo = { x: m.x + away.x * retreat.distance, z: m.z + away.z * retreat.distance };
+          setState(m, 'retreat', retreat.duration);
+        } else setState(m, m.aggro ? 'chase' : 'idle');
+      }
+      return;
+    case 'retreat':
+      if (m.stateT >= m.stateDur || walkTo(game, m, m.retreatTo.x, m.retreatTo.z, def.speed * slowMult, dt)) {
+        m.retreatTo = null;
+        m.moving = false;
+        setState(m, 'recover', def.retreat.pause);
+      }
+      return;
+    case 'emerge':
     case 'stunned':
       if (m.stateT >= m.stateDur) setState(m, m.aggro ? 'chase' : 'idle');
       return;
     case 'shell':
       if (m.stateT >= m.stateDur) {
         m.shell = false;
-        setState(m, 'chase');
+        const emerge = def.attacks.shell.emerge;
+        setState(m, emerge ? 'emerge' : 'chase', emerge || 0);
       }
       return;
     default:
@@ -108,12 +127,19 @@ export function onMonsterHit(game, m, by = null) {
   m.recentHits = m.recentHits.filter((t) => game.time - t <= sh.window);
   if (m.recentHits.length >= sh.hitsToTrigger && m.cd.shell <= 0) {
     m.recentHits = [];
-    m.cd.shell = sh.cooldown;
-    m.shell = true;
-    m.windup = null;
-    setState(m, 'shell', sh.duration);
-    game.emit({ type: 'shell', id: m.id });
+    enterShell(game, m);
   }
+}
+
+function enterShell(game, m) {
+  const sh = m.def.attacks.shell;
+  m.cd.shell = sh.cooldown;
+  m.shell = true;
+  m.moving = false;
+  m.melee = null;
+  m.guardAttacks = 0;
+  setState(m, 'shell', sh.duration);
+  game.emit({ type: 'shell', id: m.id });
 }
 
 function setState(m, state, dur = 0) {
@@ -121,6 +147,13 @@ function setState(m, state, dur = 0) {
   m.stateT = 0;
   m.stateDur = dur;
   if (state !== 'windup' && state !== 'act') m.windup = null;
+  if (state === 'return' || state === 'idle') {
+    m.melee = null;
+    m.retreatPending = false;
+    m.retreatTo = null;
+    m.shell = false;
+    m.guardAttacks = 0;
+  }
 }
 
 function approach(v, target, step) {
@@ -190,6 +223,14 @@ function windup(game, m, dt, t, gap) {
   if (m.stateT < w.total) return;
   const dmg = m.damage * (atk.damageMult || 1);
   switch (w.name) {
+    case 'slap':
+    case 'peck':
+    case 'pinch':
+      // A stationary strike has its own contact time and follow-through. It never
+      // uses the charge collision path, and only tests the locked frontal arc once.
+      m.melee = { name: w.name, angle: w.angle, damage: dmg, hit: false };
+      setState(m, 'act', atk.duration);
+      return;
     case 'bite':
     case 'sweep': {
       const arc = (atk.arc || 120) * DEG;
@@ -214,8 +255,9 @@ function windup(game, m, dt, t, gap) {
       return;
     }
     case 'spit':
+    case 'salt_spit':
     case 'orb': {
-      const a = t ? angleTo(m.x, m.z, t.x, t.z) : w.angle;
+      const a = w.name === 'salt_spit' ? w.angle : t ? angleTo(m.x, m.z, t.x, t.z) : w.angle;
       const dir = dirFromAngle(a);
       game.spawnProjectile({
         owner: 'monster',
@@ -226,8 +268,9 @@ function windup(game, m, dt, t, gap) {
         y: m.def.hover ? m.def.hover + 0.1 : 0.7,
         angle: a,
         speed: atk.speed,
-        radius: 0.35,
-        range: atk.range + 3,
+        radius: atk.projectileRadius ?? 0.35,
+        range: w.name === 'salt_spit' ? atk.range : atk.range + 3,
+        element: w.name === 'salt_spit' ? 'salt' : w.name === 'spit' ? 'poison' : 'arcane',
         damage: dmg,
         poison: atk.poisonDps ? { dps: atk.poisonDps * (1 + (m.level - 1) * 0.15), duration: atk.poisonDuration } : null,
       });
@@ -297,6 +340,28 @@ function windup(game, m, dt, t, gap) {
 }
 
 function act(game, m, dt, t) {
+  if (m.melee) {
+    const strike = m.melee;
+    const atk = m.def.attacks[strike.name];
+    m.moving = false;
+    if (!strike.hit && m.stateT >= atk.hitTime) {
+      strike.hit = true;
+      game.emit({ type: 'monsterSwing', id: m.id, name: strike.name, angle: strike.angle, range: atk.range + m.r, arc: atk.arc, x: m.x, z: m.z });
+      for (const u of game.units()) {
+        const gap = dist(m.x, m.z, u.x, u.z) - m.r - u.r;
+        const inArc = Math.abs(angleDiff(strike.angle, angleTo(m.x, m.z, u.x, u.z))) <= atk.arc * DEG / 2;
+        if (gap <= atk.range && inArc) game.damageUnit(u, strike.damage, m);
+      }
+    }
+    if (m.stateT >= atk.duration) {
+      m.cd[strike.name] = atk.cooldown;
+      m.retreatPending = !!m.def.retreat;
+      if (strike.name === 'pinch') m.guardAttacks = (m.guardAttacks || 0) + 1;
+      m.melee = null;
+      setState(m, 'recover', atk.recover);
+    }
+    return;
+  }
   const c = m.charge;
   if (!c) return setState(m, 'chase');
   c.t += dt;
@@ -358,15 +423,18 @@ function charger(game, m, dt, { t, gap, slowMult }) {
 }
 
 function coastalMelee(game, m, dt, { t, gap, slowMult }) {
-  const bite = m.def.attacks.bite;
-  if (gap <= bite.range && m.cd.bite <= 0) return startWindup(game, m, 'bite', t);
-  if (gap > bite.range * .75) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+  const name = m.def.primaryAttack;
+  const attack = m.def.attacks[name];
+  const shell = m.def.attacks.shell;
+  if (shell?.afterAttacks && m.guardAttacks >= shell.afterAttacks && m.cd.shell <= 0) return enterShell(game, m);
+  if (gap <= attack.range && m.cd[name] <= 0) return startWindup(game, m, name, t);
+  if (gap > attack.range * .75) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
   else { m.moving = false; turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 4); }
 }
 
-function coastalHopper(game, m, dt, args) {
-  const leap = m.def.attacks.lunge;
-  if (args.gap >= leap.minRange && args.gap <= leap.maxRange && m.cd.lunge <= 0) return startWindup(game, m, 'lunge', args.t);
+function coastalSlime(game, m, dt, args) {
+  const spit = m.def.attacks.salt_spit;
+  if (args.gap >= spit.minRange && args.gap <= spit.range && m.cd.salt_spit <= 0) return startWindup(game, m, 'salt_spit', args.t);
   return coastalMelee(game, m, dt, args);
 }
 
@@ -500,4 +568,4 @@ function wardenBoss(game, m, dt, { t, gap, slowMult }) {
   }
 }
 
-const BEHAVIORS = { charger, coastal_melee: coastalMelee, coastal_hopper: coastalHopper, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

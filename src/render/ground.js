@@ -58,9 +58,10 @@ export function surfaceData(world) {
       }
       if (wd.sea) {
         // sandy beach along the sea
-        const d = world.shoreZ(x) - z;
+        const c = world.coastAt(x, z), d = c.distance;
         const beach = wd.sea.beach || 14;
-        coast[k * 2] = 1 - smooth(beach - 1, beach + 2.5, d);
+        coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + 2.5, d) : 0;
+        if(c.kind !== 'beach' && d >= 0 && d < 4) stone[k] = 1;
         coast[k * 2 + 1] = -d;
       }
       const td = Math.hypot(x - town.centre[0], z - town.centre[1]);
@@ -249,17 +250,19 @@ function seaMaterial(world) {
     uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      attribute float depth; attribute float shore;
+      attribute float depth; attribute float shore; attribute float beachWash;
       varying float vDepth; varying float vShore; varying vec2 vW;
-      void main(){vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
+      varying float vBeachWash;
+      void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
       uniform float uTime; uniform vec4 uSurf;
-      varying float vDepth; varying float vShore; varying vec2 vW;
+      varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
       ${NOISE_GLSL}
       void main(){
         float cycle=uTime*6.2831853/uSurf.z+vW.x*.009;
         float surge=.5-.5*cos(cycle);
         float edge=mix(uSurf.y,-uSurf.x,surge)+sin(vW.x*.34+uTime*.25)*.16;
+        edge=mix(0.0,edge,vBeachWash);
         float behind=vShore-edge;
         if(behind < -.14) discard;
         float cover=smoothstep(-.14,.12,behind);
@@ -422,16 +425,17 @@ export function createWater(world) {
     const nz = Math.ceil((z1 - zMin) / step);
     for(let tj=0;tj<nz;tj+=TILE) for(let ti=0;ti<nx;ti+=TILE) {
     const cw=Math.min(TILE,nx-ti),ch=Math.min(TILE,nz-tj);
-    const pos = [], depth = [], along = [], shore = [], idx = [];
+    const pos = [], depth = [], along = [], shore = [], washMask = [], idx = [];
     for (let j = 0; j <= ch; j++)
       for (let i = 0; i <= cw; i++) {
         const x = x0 + (ti+i) * step;
         const z = zMin + (tj+j) * step;
-        const shoreD = z - world.shoreZ(x);
+        const c = world.coastAt(x, z);
+        const shoreD = -c.distance;
         pos.push(x, Math.max(wl + .015, hY(x,z) + .025), z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
-        shore.push(shoreD);
+        shore.push(shoreD); washMask.push(c.kind === 'beach' ? 1 : 0);
       }
     for (let j = 0; j < ch; j++)
       for (let i = 0; i < cw; i++) {
@@ -439,7 +443,7 @@ export function createWater(world) {
         const b2 = a + cw + 1;
         idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
       }
-    const wash = waterMesh(pos, depth, along, idx, seaMat, shore);
+    const wash = waterMesh(pos, depth, along, idx, seaMat, shore, washMask);
     wash.name = 'sea-swash';
     group.add(wash);
     }
@@ -454,12 +458,12 @@ export function createWater(world) {
   return group;
 }
 
-function waterMesh(pos, depth, along, idx, mat, shore = null) {
+function waterMesh(pos, depth, along, idx, mat, shore = null, washMask = null) {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('depth', new THREE.Float32BufferAttribute(depth, 1));
   g.setAttribute('along', new THREE.Float32BufferAttribute(along, 1));
-  if(shore) g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1));
+  if(shore) { g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1)); g.setAttribute('beachWash',new THREE.Float32BufferAttribute(washMask || shore.map(() => 1),1)); }
   g.setIndex(idx);
   g.computeBoundingSphere();
   const m = new THREE.Mesh(g, mat);

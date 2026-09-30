@@ -11,18 +11,24 @@ export function createHarbor(world) {
   for (const d of world.docks) {
     const pier = new THREE.Group();
     pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height,d.z); pier.rotation.y=d.angle;
-    if (d.rampFromTerrain) pier.rotation.x = -Math.atan2(d.height-d.startY,2*d.hz);
-    part(new THREE.BoxGeometry(d.hx*2,.3,d.hz*2),'#a98252',0,-.15,0,pier);
+    // Shear in local Z: keep the exact XZ footprint and both endpoint heights.
+    // Rotating a whole box would shorten its projected deck and open a join gap.
+    const slope=d.rampFromTerrain ? (d.height-d.startY)/(2*d.hz) : 0;
+    const deckGeometry=new THREE.BoxGeometry(d.hx*2,.3,d.hz*2);
+    const positions=deckGeometry.attributes.position;
+    for(let i=0;i<positions.count;i++)positions.setY(i,positions.getY(i)+slope*positions.getZ(i));
+    deckGeometry.computeVertexNormals();
+    part(deckGeometry,d.kind === 'breakwater' ? '#a4a99f' : d.kind === 'slipway' ? '#aaa79a' : '#a98252',0,-.15,0,pier);
     // Raised narrow seams read as planks without a mesh for every board.
     const seams=[];
-    for(let z=-d.hz+.4;z<d.hz;z+=1) seams.push(z);
+    for(let z=-d.hz+.4;(!d.kind || d.kind === 'pier') && z<d.hz;z+=1) seams.push(z);
     const geometry=new THREE.BoxGeometry(d.hx*2,.012,.035);
     const mesh=new THREE.InstancedMesh(geometry,toon('#765b3e'),seams.length);
-    const matrix=new THREE.Matrix4(); seams.forEach((z,i)=>mesh.setMatrixAt(i,matrix.makeTranslation(0,.008,z)));
+    const matrix=new THREE.Matrix4(); seams.forEach((z,i)=>mesh.setMatrixAt(i,matrix.makeTranslation(0,.008+slope*z,z)));
     pier.add(mesh);
-    for(const x of [-d.hx+.2,d.hx-.2]) for(const z of [-d.hz+.3,d.hz-.3]) {
-      part(new THREE.CylinderGeometry(.14,.18,4,6),'#6e5439',x,-1.4,z,pier);
-      part(new THREE.TorusGeometry(.2,.045,5,10),'#d1ba82',x,.48,z,pier).rotation.x=Math.PI/2;
+    for(const x of d.kind === 'slipway' ? [] : [-d.hx+.2,d.hx-.2]) for(const z of [-d.hz+.3,d.hz-.3]) {
+      part(new THREE.CylinderGeometry(.14,.18,4,6),'#6e5439',x,-1.4+slope*z,z,pier);
+      part(new THREE.TorusGeometry(.2,.045,5,10),'#d1ba82',x,.48+slope*z,z,pier).rotation.x=Math.PI/2;
     }
     root.add(pier);
   }

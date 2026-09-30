@@ -70,6 +70,20 @@ export function polylineZAtX(pts, x) {
   return pts[pts.length - 1][1];
 }
 
+/** Signed nearest shoreline distance (positive inland) and authored edge use.
+ * The sea still uses the original single-valued shoreZ/inSea contract. */
+export function coastSample(sea, x, z) {
+  let nearest = Infinity, index = 0;
+  for (let i = 0; i < sea.shore.length - 1; i++) {
+    const a = sea.shore[i], b = sea.shore[i + 1];
+    const vx=b[0]-a[0], vz=b[1]-a[1], len2=vx*vx+vz*vz;
+    const t=len2>0?clamp(((x-a[0])*vx+(z-a[1])*vz)/len2,0,1):0;
+    const d=Math.hypot(x-a[0]-vx*t,z-a[1]-vz*t);
+    if (d < nearest) { nearest = d; index = i; }
+  }
+  return { distance: nearest * (z > polylineZAtX(sea.shore, x) ? -1 : 1), kind: sea.edgeKinds?.[index] || 'beach' };
+}
+
 /** Transform a world point into an oriented box's local frame. Box: {x,z,hx,hz,angle}. */
 export function toBoxLocal(box, px, pz) {
   const c = Math.cos(box.angle);

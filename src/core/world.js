@@ -4,7 +4,7 @@
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
 import { createRng } from './rng.js';
-import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX } from './math.js';
+import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
 
 const CELL = 8;
@@ -41,25 +41,40 @@ export function createWorld(worldData) {
   const bridgeAt = (x, z, pad = 0) => bridges.find((br) => pointInBox(br, x, z, pad)) || null;
   const onBridge = (x, z, pad = 0) => !!bridgeAt(x, z, pad);
   const docks = (worldData.docks || []).map(d => ({ ...d }));
-  // Shrink the deck by the actor radius when checking water clearance: do not walk
-  // beside a pier over the sea. The renderer and export use these exact rectangles.
-  const dockAt = (x, z, pad = 0) => docks.find(d => pointInBox(d, x, z, -pad)) || null;
+  // Adjacent decks support the whole actor across their shared seam. Outer edges
+  // still reject any footprint extending over water; dry shore can support a ramp join.
+  const dockAt = (x, z, pad = 0) => {
+    const deck = docks.find(d => pointInBox(d, x, z));
+    if (!deck || pad <= 0) return deck || null;
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8, px = x + Math.sin(a) * pad, pz = z + Math.cos(a) * pad;
+      if ((inSea(px, pz) || inPond(px, pz) || inRiver(px, pz)) && !docks.some(d => pointInBox(d, px, pz))) return null;
+    }
+    return deck;
+  };
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
   const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
   // the sea: south of the shore line
   const shore = worldData.sea?.shore || null;
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
-  const inSea = (x, z, pad = 0) => !!shore && z > shoreZ(x) - pad;
+  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? z > shoreZ(x) : coastSample(worldData.sea, x, z).distance < pad);
   const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2) && !dockAt(x, z, pad);
   // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
-  const isBeach = (x, z, pad = 0) => !!shore && z > shoreZ(x) - (worldData.sea.beach || 14) - pad;
+  const coastAt = (x, z) => shore ? coastSample(worldData.sea, x, z) : { distance: Infinity, kind: 'beach' };
+  const isBeach = (x, z, pad = 0) => {
+    const c = coastAt(x, z);
+    return !!shore && c.kind === 'beach' && c.distance < (worldData.sea.beach || 14) + pad;
+  };
   const blocksWater = (x, z, pad = 0) => !onBridge(x, z, 0.2) && !dockAt(x, z, pad) &&
     (inSea(x, z, pad) || inPond(x, z, pad) || (!river?.walkable && inRiver(x, z, pad)));
 
   // ---------- terrain ----------
   const hf = buildHeightfield(worldData, zoneAt);
   const terrainY = hf.heightAt;
-  for (const dock of docks) if (dock.rampFromTerrain) dock.startY = terrainY(dock.x, dock.z - dock.hz);
+  for (const dock of docks) if (dock.rampFromTerrain) {
+    const start = fromBoxLocal(dock, 0, -dock.hz);
+    dock.startY = terrainY(start.x, start.z);
+  }
   for (const br of bridges) {
     const c = Math.cos(br.angle);
     const s = Math.sin(br.angle);
@@ -75,7 +90,7 @@ export function createWorld(worldData) {
   /** Height you stand on: the bridge deck when on a bridge, else the terrain. */
   const groundY = (x, z) => {
     const dock = dockAt(x, z);
-    if (dock) return dock.rampFromTerrain ? dock.startY + (dock.height - dock.startY) * clamp((z - dock.z + dock.hz) / (2 * dock.hz), 0, 1) : dock.height;
+    if (dock) return dock.rampFromTerrain ? dock.startY + (dock.height - dock.startY) * clamp((toBoxLocal(dock, x, z).lz + dock.hz) / (2 * dock.hz), 0, 1) : dock.height;
     const br = bridgeAt(x, z);
     if (br) return Math.max(deckY(br, toBoxLocal(br, x, z).lx), terrainY(x, z));
     return terrainY(x, z);
@@ -155,7 +170,10 @@ export function createWorld(worldData) {
     overlaps(x, z, r);
 
   // ---------- town ----------
-  for (const [x, z, a] of town.buildings) addBox({ x, z, hx: 3.4, hz: 2.8, angle: a, type: 'house' });
+  for (const entry of town.buildings) {
+    const building = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 3.4, hz: 2.8 } : entry;
+    addBox({ ...building, type: 'house' });
+  }
   addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
   addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
   for (const [x, z, a] of town.stalls || []) addBox({ x, z, hx: 1.6, hz: 1.1, angle: a, type: 'stall' });
@@ -287,7 +305,7 @@ export function createWorld(worldData) {
       const jz = z + rng.range(-1.4, 1.4);
       if (!inBounds(jx, jz, -0.5)) {
         // forest band on the mountains around the map: looks enclosed, never reachable
-        if (isBeach(jx, jz, 2)) continue; // open sandy coast to the horizon
+        if (inSea(jx, jz, 2) || isBeach(jx, jz, 2)) continue; // open coast to the horizon
         if (rng.next() < 0.55) decor.edgeTrees.push({ x: jx, z: jz, type: rng.chance(0.25) ? 'birch' : 'tree', scale: rng.range(0.9, 1.5), rot: rng.range(0, 6.28) });
         continue;
       }
@@ -343,6 +361,7 @@ export function createWorld(worldData) {
       else if (scatter < 0.24) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.1) });
       continue;
     }
+    if (worldData.town.blockout && (zn.safe || dockAt(x, z))) continue;
     if (roadDist(x, z) < -0.3) {
       if (rng.chance(0.08)) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.2) });
       continue;
@@ -484,6 +503,7 @@ export function createWorld(worldData) {
     slopeAt: hf.slopeAt,
     isWater,
     isBeach,
+    coastAt,
     blocksWater,
     inSea,
     shoreZ,

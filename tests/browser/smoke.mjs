@@ -184,13 +184,19 @@ async function run(name, contextOpts) {
   check(tp.unlocked && tp.ok && tp.d < 6, `${name}: waypoint unlocks and fast travel works (${JSON.stringify(tp)})`);
 
   // ---- terrain: the hero stands on the ground on high and low places ----
-  for (const [label, x, z] of [
-    ['headland', 126, 34],
-    ['highlands', 120, -55],
-    ['forest', -100, -43],
-    ['coast', -40, 62],
-    ['pier', 62, 76],
-  ]) {
+  const terrainSpots=await page.evaluate(()=>{
+    const w=window.__frontier.world;
+    const wp=w.waypoints.find(p=>p.id==='forest');
+    const deck=w.docks.find(d=>!d.rampFromTerrain && (!d.kind || d.kind==='pier'));
+    return [
+      ['headland',...w.data.harbor.lighthouse],
+      ['highlands',...w.zoneById('highlands').label],
+      ['forest',wp.x,wp.z],
+      ['coast',...w.zoneById('coast').label],
+      ['pier',deck.x,deck.z],
+    ];
+  });
+  for (const [label, x, z] of terrainSpots) {
     await page.evaluate(
       ([x, z]) => {
         const { game, view } = window.__frontier;
@@ -229,3 +235,4 @@ try {
 }
 console.log(failures ? `${failures} FAILED` : 'ALL OK');
 process.exit(failures ? 1 : 0);
+

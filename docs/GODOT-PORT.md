@@ -11,7 +11,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## What gets translated (logic, `src/core/`)
 
@@ -28,7 +28,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Docks shrink by the actor radius for water clearance. `groundY()` interpolates the dock ramp from `startY` to `height`. Safe starting roads use distance to the `safeRoutes` polylines. |
+| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Dock clearance checks the actor footprint across the union of adjoining decks and dry shore; outer sea edges still block. `groundY()` interpolates from `startY` to `height` using dock-local Z after rotation. The render mesh shears in local Z so its XZ footprint matches collision exactly. Safe starting roads use distance to the `safeRoutes` polylines. |
 
 ### `game.js` → scenes
 
@@ -240,3 +240,13 @@ Save version remains 2. The optional `worldId` prevents restoring old coordinate
 on a different map. On migration preserve the character build and quest history,
 filter unavailable waypoints, add the landing checkpoint, and clear `pos` once.
 A later save with this map ID keeps its current position and unlocked checkpoints.
+
+
+
+## Azure Coast U-bay blockout
+
+The map remains 320 × 240 m with `shoreZ(x)` defining the water side of the existing X/Z shoreline. `sea.edgeKinds` tags each shoreline segment as beach, quay, breakwater or shipyard. `coastSample()` gives the signed nearest distance for side-coast painting, collision radius clearance and surf; quay/slipway edges do not receive sand or beach runup. Exported terrain includes the carved bay and every settlement rectangle.
+
+`town.buildings` accepts the legacy `[x,z,angle]` format and authored objects `{id,x,z,angle,hx,hz,height,kind,roofColor}`. For the active `town.blockout` pass, visible boxes exactly match these oriented collider dimensions; roof colors are stored per building. No interiors are present. `docks` and their local ramp endpoints export directly. Save JSON remains version 2; the optional `worldLayoutRevision` relocates old coordinates once while preserving equipment, levels and the seven-step quest records.
+
+Owner approval of the layout is required before dressing the market-to-pier slice, expanding detailed art, merging or deploying. Browser screenshots cannot establish hardware iPad FPS.

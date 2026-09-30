@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "chatgpt-coastal-attacks-20260930-1",
+  "agent": "chatgpt",
+  "task": "Implement distinct readable attacks for regular coastal monsters on Azure Coast. Salt slime uses a stationary close body slap with occasional salt spit; coast gull approaches to peck then retreats before attacking again; crab walks into range for a slow frontal claw pinch; hermit crab alternates close pinch with shell defense and a vulnerable emergence. Remove shared dash/body-charge behavior from these regular monsters, preserve other species and bosses, seeded core/data rules, existing touch targeting, combat events and save compatibility. Locate AI attack contracts, telegraph and damage hit geometry, model animation channels and rendering consumers, tests and Godot port documentation before implementation; identify impact checks across core/data/render/UI/saves.",
+  "keywords": "monster coastal salt_slime coast_gull hermit_crab crab ai attack windup act retreat projectile guard game.events models animation tests combat sim GODOT-PORT",
+  "source_commit": "7825cdb7c23e3ef8d4b505f94ef4f8e04738c372"
+}

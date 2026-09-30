@@ -40,3 +40,11 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 3. `npm run test:browser` passes. It serves `dist/` and runs Chromium at desktop and iPad-touch sizes. CI also runs WebKit.
 4. For visual changes, run `node tests/browser/capture.mjs` and look at the PNGs in `tests/browser/out/`. A passing test does not prove the art is right.
 5. The container has no GPU (SwiftShader), so frame times from `tests/browser/perf.mjs` are only relative. Keep visible triangles and draw calls low for iPad. Big prop sets use chunked `InstancedMesh`.
+
+## Shared Jev context (ChatGPT and Claude)
+
+- For multi-file work, reuse a Jev Context report for the exact task and source commit when available. Read `docs/JEV-CONTEXT-TH.md` for the Actions workflow, budget and fallback. `CLAUDE.md` imports these same rules.
+- Inspect the Actions Summary/artifact `context.md` or the `Rank relevant source with Jev` job log. Compare `sourceCommit` with your checkout; never reuse a report from another commit or task.
+- This is a search shortlist, not a complete dependency map. Open full files, imports and affected tests before editing; expand search if evidence is weak or missing. Preserve all verification and visual-inspection requirements above.
+- Never request, print, commit, or put `TYPESAFE_API_KEY` in the game frontend. Use the repository Secret for Actions; use offline retrieval if no key is available locally.
+- When changing the context tool, run `npm run test:tools`. Do not claim measured token/time savings until the trial has been evaluated.

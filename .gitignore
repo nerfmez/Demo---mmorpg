@@ -6,3 +6,5 @@ tests/browser/out/
 data/generated/
 meshy_output/
 .env
+.jev-cache/
+jev-out/

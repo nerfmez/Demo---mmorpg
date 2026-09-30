@@ -5,6 +5,7 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
 const styleReview=!!JSON.parse(readFileSync('data/world.json','utf8')).town.styleSlice;
 const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
 const port=4191,base=`http://localhost:${port}/`;
@@ -50,29 +51,38 @@ try {
   const shot=async(name)=>{await page.screenshot({path:out+name+'.png',timeout:60000});report.captures.push(name);console.log('captured',name);};
   const stage=async(x,z)=>page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=1;f.view.camera.up.set(0,1,0);f.view.snapCamera();f.view.render(.016,f.game.time,{});f.hud.update(.6,f.panels);},[x,z]);
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
-  await stage(styleReview?-42:-37,styleReview?-47.8:-43);await shot('02-market-gameplay');
-  if(styleReview){await stage(-25,-51.5);await shot('05-craft-gameplay');await stage(45,-47.8);await shot('06-inn-gameplay');}
-  await stage(-25,-20);await shot('04-market-pier-gameplay');
-  if(styleReview){await stage(-25,-6);await shot('07-fishing-berth-gameplay');await stage(25,-51.5);await shot('08-provisioner-gameplay');}
-  await stage(114,76);await shot('03-rotated-slipway-gameplay');
-  await page.setViewportSize({width:1440,height:1000});
-  await page.evaluate(()=>{
-    const f=window.__frontier,v=f.view;
-    for(const element of document.body.children) if(element.tagName!=='CANVAS')element.style.visibility='hidden';
-    v.scene.fog.near=600;v.scene.fog.far=900;
-    v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(0,285,8);v.camera.lookAt(0,0,8);v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
-    v.renderer.render(v.scene,v.camera);
-    // Capture the WebGL pixels synchronously before browser compositing can
-    // clear a non-preserved drawing buffer; labels remain a review-only overlay.
-    const pixels=document.createElement('img');pixels.src=v.renderer.domElement.toDataURL('image/png');
-    pixels.style.cssText='position:fixed;inset:0;width:100%;height:100%;visibility:visible';document.body.append(pixels);
-    v.canvasRect=v.renderer.domElement.getBoundingClientRect();
-    const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;pointer-events:none;visibility:visible';document.body.append(overlay);
-    for(const [text,x,z] of [['บ้าน / ซอยวน',-110,-20],['ตลาด · คราฟต์ · วาร์ป',0,-49],['ทางออกสู่พื้นที่ล่า',0,-105],['โกดัง / ลานสินค้า',115,-26],['อู่เรือ / ทางลาด',128,76],['ประภาคาร / กันคลื่น',-125,82],['ปากอ่าวเปิดทางใต้',0,106]]){
-      const p=v.project(x,2,z);const label=document.createElement('div');label.textContent=text;label.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);font:18px Mitr,sans-serif;padding:5px 10px;background:#163b41de;color:white;border-radius:4px`;overlay.append(label);
-    }
-  });
-  await shot('01-u-bay-overview');
+  if(styleReview){
+    await stage(-29,-30.5);await shot('09-market-stalls-gameplay');
+    await stage(31,-30.5);await shot('10-market-stalls-east-gameplay');
+  }
+  if(marketOnly){
+    await stage(-25,-20);await shot('04-market-pier-gameplay');
+    await stage(-25,-6);await shot('07-fishing-berth-gameplay');
+  } else {
+    await stage(styleReview?-42:-37,styleReview?-47.8:-43);await shot('02-market-gameplay');
+    if(styleReview){await stage(-25,-51.5);await shot('05-craft-gameplay');await stage(45,-47.8);await shot('06-inn-gameplay');}
+    await stage(-25,-20);await shot('04-market-pier-gameplay');
+    if(styleReview){await stage(-25,-6);await shot('07-fishing-berth-gameplay');await stage(25,-51.5);await shot('08-provisioner-gameplay');}
+    await stage(114,76);await shot('03-rotated-slipway-gameplay');
+    await page.setViewportSize({width:1440,height:1000});
+    await page.evaluate(()=>{
+      const f=window.__frontier,v=f.view;
+      for(const element of document.body.children) if(element.tagName!=='CANVAS')element.style.visibility='hidden';
+      v.scene.fog.near=600;v.scene.fog.far=900;
+      v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(0,285,8);v.camera.lookAt(0,0,8);v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
+      v.renderer.render(v.scene,v.camera);
+      // Capture the WebGL pixels synchronously before browser compositing can
+      // clear a non-preserved drawing buffer; labels remain a review-only overlay.
+      const pixels=document.createElement('img');pixels.src=v.renderer.domElement.toDataURL('image/png');
+      pixels.style.cssText='position:fixed;inset:0;width:100%;height:100%;visibility:visible';document.body.append(pixels);
+      v.canvasRect=v.renderer.domElement.getBoundingClientRect();
+      const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;pointer-events:none;visibility:visible';document.body.append(overlay);
+      for(const [text,x,z] of [['บ้าน / ซอยวน',-110,-20],['ตลาด · คราฟต์ · วาร์ป',0,-49],['ทางออกสู่พื้นที่ล่า',0,-105],['โกดัง / ลานสินค้า',115,-26],['อู่เรือ / ทางลาด',128,76],['ประภาคาร / กันคลื่น',-125,82],['ปากอ่าวเปิดทางใต้',0,106]]){
+        const p=v.project(x,2,z);const label=document.createElement('div');label.textContent=text;label.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);font:18px Mitr,sans-serif;padding:5px 10px;background:#163b41de;color:white;border-radius:4px`;overlay.append(label);
+      }
+    });
+    await shot('01-u-bay-overview');
+  }
   assert.deepEqual(report.errors,[],'no runtime/asset/shader errors');
   report.passed=true;writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 } finally {if(!report.passed){writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));}await browser?.close();try{process.kill(-server.pid)}catch{}}

@@ -2064,6 +2064,26 @@
         18,
         -27,
         0
+      ],
+      [
+        -29,
+        -34,
+        0
+      ],
+      [
+        -35,
+        -28,
+        0
+      ],
+      [
+        29,
+        -34,
+        0
+      ],
+      [
+        35,
+        -28,
+        0
       ]
     ],
     "buildings": [
@@ -2336,12 +2356,20 @@
         "#927b55",
         "#71877e",
         "#b4805c",
+        "#758b9b",
+        "#71877e",
+        "#927b55",
+        "#b4805c",
         "#758b9b"
       ],
       "stallGoods": [
         "fish",
         "provisions",
         "fish",
+        "provisions",
+        "fish",
+        "fish",
+        "provisions",
         "provisions"
       ],
       "boatIndices": [
@@ -3526,7 +3554,8 @@
       "angle": 0,
       "height": 0.7,
       "kind": "pier",
-      "rampFromTerrain": true
+      "rampFromTerrain": true,
+      "terrainRecess": 0.32
     },
     {
       "id": "market_west",
@@ -3547,7 +3576,8 @@
       "angle": 0,
       "height": 0.7,
       "kind": "pier",
-      "rampFromTerrain": true
+      "rampFromTerrain": true,
+      "terrainRecess": 0.32
     },
     {
       "id": "market_east",
@@ -3568,7 +3598,8 @@
       "angle": 0.9,
       "height": 0.7,
       "kind": "pier",
-      "rampFromTerrain": true
+      "rampFromTerrain": true,
+      "terrainRecess": 0.32
     },
     {
       "id": "west_pier",
@@ -3589,7 +3620,8 @@
       "angle": -0.9,
       "height": 0.7,
       "kind": "pier",
-      "rampFromTerrain": true
+      "rampFromTerrain": true,
+      "terrainRecess": 0.32
     },
     {
       "id": "east_pier",
@@ -3610,7 +3642,8 @@
       "angle": -1.5707963267948966,
       "height": -0.15,
       "kind": "slipway",
-      "rampFromTerrain": true
+      "rampFromTerrain": true,
+      "terrainRecess": 0.08
     },
     {
       "id": "breakwater",
@@ -3685,6 +3718,88 @@
     "overlook": [
       -139,
       70
+    ],
+    "dockCargo": [
+      {
+        "id": "west_fish_crates_-17",
+        "x": -26.94,
+        "z": -17,
+        "hx": 0.38,
+        "hz": 0.65,
+        "angle": 0,
+        "height": 0.8,
+        "kind": "fish_crates"
+      },
+      {
+        "id": "west_barrels_-14",
+        "x": -23.06,
+        "z": -14,
+        "hx": 0.38,
+        "hz": 0.78,
+        "angle": 0,
+        "height": 0.95,
+        "kind": "barrels"
+      },
+      {
+        "id": "west_net_rack_-7",
+        "x": -26.94,
+        "z": -7,
+        "hx": 0.38,
+        "hz": 1.0,
+        "angle": 0,
+        "height": 1.55,
+        "kind": "net_rack"
+      },
+      {
+        "id": "west_fish_crates_-2",
+        "x": -23.06,
+        "z": -2,
+        "hx": 0.38,
+        "hz": 0.65,
+        "angle": 0,
+        "height": 0.8,
+        "kind": "fish_crates"
+      },
+      {
+        "id": "east_fish_crates_-17",
+        "x": 23.06,
+        "z": -17,
+        "hx": 0.38,
+        "hz": 0.65,
+        "angle": 0,
+        "height": 0.8,
+        "kind": "fish_crates"
+      },
+      {
+        "id": "east_barrels_-14",
+        "x": 26.94,
+        "z": -14,
+        "hx": 0.38,
+        "hz": 0.78,
+        "angle": 0,
+        "height": 0.95,
+        "kind": "barrels"
+      },
+      {
+        "id": "east_net_rack_-7",
+        "x": 23.06,
+        "z": -7,
+        "hx": 0.38,
+        "hz": 1.0,
+        "angle": 0,
+        "height": 1.55,
+        "kind": "net_rack"
+      },
+      {
+        "id": "east_fish_crates_-2",
+        "x": 26.94,
+        "z": -2,
+        "hx": 0.38,
+        "hz": 0.65,
+        "angle": 0,
+        "height": 0.8,
+        "kind": "fish_crates"
+      }
     ]
   },
   "layoutRevision": "azure-u-bay-blockout-1"

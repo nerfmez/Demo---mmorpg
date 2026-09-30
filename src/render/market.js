@@ -139,11 +139,52 @@ export function marketStall(bx,color,y,fish) {
       else {box(.18,.14,.42,i%2?'#b6a783':'#8b9d86',x-.38+i*.25,1.18,0);}
     }
   }
+  // Back-rail goods and under-table storage make each stall a working counter.
+  box(w-.25,.08,.08,C.wood,0,1.95,-bx.hz+.14);
+  for(const x of [-.95,0,.95]){
+    if(fish){
+      part(new THREE.CylinderGeometry(.012,.012,.22,5),C.rope,x,1.82,-bx.hz+.15);
+      part(new THREE.SphereGeometry(.16,8,5).scale(.58,1.5,.45),C.fish,x,1.58,-bx.hz+.15);
+    } else {
+      part(new THREE.CylinderGeometry(.22,.19,.35,8),'#b5a27b',x,.25,.05);
+      for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.09,7,5),'#ba8052',x+(i-1)*.10,.46,.05);
+    }
+  }
   const root=b.finish();root.position.set(bx.x,y,bx.z);root.rotation.y=bx.angle;return root;
 }
 
+export function marketDockCargo(cargo,y) {
+  const b=builder(),{box,part}=b,w=cargo.hx*2,d=cargo.hz*2;
+  if(cargo.kind==='fish_crates'){
+    for(const z of [-d*.25,d*.25])for(const level of [0,1]){
+      const cy=.17+level*.34;
+      box(w-.04,.055,d*.44,C.wood,0,cy-.13,z);
+      for(const x of [-w/2+.06,w/2-.06])box(.07,.29,d*.44,'#aa8055',x,cy,z);
+      for(const zz of [-d*.22,d*.22]){
+        box(w-.05,.09,.045,'#b18b5e',0,cy-.08,z+zz);
+        box(w-.05,.09,.045,'#b18b5e',0,cy+.08,z+zz);
+      }
+      if(level)for(const x of [-.18,.08])part(new THREE.SphereGeometry(.11,8,5).scale(.6,.4,1.7),C.fish,x,.69,z);
+    }
+  } else if(cargo.kind==='barrels'){
+    for(const z of [-d*.25,d*.25]){
+      part(new THREE.CylinderGeometry(.29,.28,cargo.height-.04,10),'#9b7953',0,cargo.height/2,z);
+      for(const yy of [.18,cargo.height-.18])part(new THREE.TorusGeometry(.293,.025,5,12),'#697671',0,yy,z,Math.PI/2);
+      part(new THREE.CylinderGeometry(.26,.26,.045,10),C.wood,0,cargo.height-.03,z);
+    }
+  } else if(cargo.kind==='net_rack'){
+    for(const z of [-d/2+.08,d/2-.08])box(.09,cargo.height,.09,C.wood,0,cargo.height/2,z);
+    box(.09,.10,d,C.wood,0,cargo.height-.05,0);
+    for(let z=-d/2+.15;z<d/2-.10;z+=.18)box(.025,1.1,.025,'#7d8b78',.06,.84,z);
+    for(let yy=.3;yy<1.4;yy+=.18)box(.025,.025,d-.22,'#7d8b78',.06,yy,0);
+    for(const z of [-.65,0,.65])part(new THREE.SphereGeometry(.12,8,5),'#bb9463',.07,1.34,z);
+    part(new THREE.DodecahedronGeometry(.3,0).scale(1,.5,1.4),'#84927c',-.04,.15,0);
+  }
+  const root=b.finish();root.position.set(cargo.x,y,cargo.z);root.rotation.y=cargo.angle;return root;
+}
+
 export function marketQuay(world) {
-  const b=builder(),{box,part}=b,range=world.data.town.styleSlice.quayRange;
+  const b=builder(),{box,part}=b,range=world.data.town.styleSlice.quayRange,cargoGroups=[];
   const shore=world.data.sea.shore;
   // The low coping follows the same curve as water/collision; no separate coast.
   for(let i=1;i<shore.length;i++){
@@ -181,6 +222,9 @@ export function marketQuay(world) {
     for(let i=0;i<4;i++)box(.023,.025,1.7,'#8f9b82',d.x-d.hx+.2,y-.56+i*.23,d.z-.15);
     for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.12,8,5),'#b9905f',d.x-d.hx+.2,y+.10,d.z-.8+i*.6);
   }
+  for(const cargo of world.data.harbor.dockCargo || []) {
+    cargoGroups.push(marketDockCargo(cargo,world.groundY(cargo.x,cargo.z)));
+  }
   for(const index of world.data.town.styleSlice.boatIndices || []) {
     const [x,z,angle]=world.data.harbor.boats[index];
     const berth=world.docks.filter(d=>d.kind==='pier'&&!d.rampFromTerrain).sort((a,c)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(c.x-x,c.z-z))[0];
@@ -196,7 +240,7 @@ export function marketQuay(world) {
       part(new THREE.CylinderGeometry(.055,.08,.22,6),C.wood,ex,berth.height+.11,ez);
     }
   }
-  return b.finish();
+  const root=b.finish();root.add(...cargoGroups);return root;
 }
 
 /** Open working boat for the two reviewed market berths; no sailing logic. */

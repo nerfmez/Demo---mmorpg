@@ -212,6 +212,7 @@ export function createWorld(worldData) {
     decor.crates.push({ x, z, s: .8, rot: .2, kind: 'crate' });
     addBox({ x, z, hx: .4, hz: .4, angle: .2, type: 'harbor_crate' });
   }
+  for (const cargo of worldData.harbor?.dockCargo || []) addBox({ ...cargo, type: 'dock_cargo' });
 
   // ---------- waypoints ----------
   const waypoints = (worldData.waypoints || []).map((wp) => ({ ...wp, x: wp.pos[0], z: wp.pos[1] }));

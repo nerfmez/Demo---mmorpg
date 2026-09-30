@@ -65,6 +65,25 @@ test('pier decks support walking over deep water; their sides still block the se
   assert.ok(data.world.docks.every(d=>d.startY===undefined));
 });
 
+test('market ramps reveal solid wooden approaches and cargo leaves a three-metre aisle', () => {
+  for(const id of ['market_west','market_east']){
+    const ramp=world.docks.find(d=>d.id===id+'_ramp'),deck=world.docks.find(d=>d.id===id);
+    for(const lx of [-1.5,0,1.5])for(const lz of [-2.5,-2,-1]){
+      const p=fromBoxLocal(ramp,lx,lz);
+      assert.ok(world.groundY(p.x,p.z)-world.terrainY(p.x,p.z)>.05,'wood must not share the paved surface');
+    }
+    for(let lz=-deck.hz;lz<deck.hz-.5;lz+=.25)for(const lx of [-1.05,0,1.05]){
+      const p=fromBoxLocal(deck,lx,lz);
+      assert.ok(world.isFree(p.x,p.z,.45),'cargo leaves a three-metre clear aisle');
+    }
+  }
+  for(const prop of data.world.harbor.dockCargo){
+    const collider=world.boxes.find(b=>b.id===prop.id);
+    assert.equal(collider.hx,prop.hx);assert.equal(collider.hz,prop.hz);
+    assert.ok(!world.isFree(prop.x,prop.z,.1),'working cargo has collision');
+  }
+});
+
 test('monster spawns remain dry, separated and outside safe routes for multiple seeds', () => {
   for(const seed of [1,9,31]) {
     const g=new Game(data,{world,seed});

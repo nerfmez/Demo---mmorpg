@@ -333,16 +333,16 @@ export function buildHeightfield(worldData, zoneAt) {
     }
   }
 
-  // Lower the land beneath a repair slipway so its sloping deck stays visible
-  // and does not pass through a flat quay. Preserve its land-end sample.
-  for (const dock of worldData.docks || []) if (dock.kind === 'slipway' && dock.rampFromTerrain) {
+  // Recess the terrain under authored ramp slabs, preserving the land endpoint.
+  // Flat pier approaches also need this: coplanar paving otherwise hides wood.
+  for (const dock of worldData.docks || []) if (dock.rampFromTerrain && dock.terrainRecess) {
     const start=fromBoxLocal(dock,0,-dock.hz), startY=sample(start.x,start.z);
     for(let j=0;j<h;j++) for(let i=0;i<w;i++) {
       const local=toBoxLocal(dock,X(i),Z(j));
       if(Math.abs(local.lx)>dock.hx+.3 || local.lz<=-dock.hz || local.lz>dock.hz)continue;
       const t=(local.lz+dock.hz)/(2*dock.hz);
       const deck=startY+(dock.height-startY)*t;
-      hf[j*w+i]=Math.min(hf[j*w+i],deck-.08*Math.min(1,t*10));
+      hf[j*w+i]=Math.min(hf[j*w+i],deck-dock.terrainRecess*Math.min(1,t*10));
     }
   }
 

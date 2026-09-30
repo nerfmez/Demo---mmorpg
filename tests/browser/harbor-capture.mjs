@@ -16,7 +16,8 @@ try {
   browser=await engine.launch({args:engine===chromium?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
   const ctx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true,deviceScaleFactor:1});
   const page=await ctx.newPage();page.on('pageerror',e=>report.errors.push(String(e)));
-  page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});
+  page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/favicon.ico'))report.errors.push(`HTTP ${r.status()} ${r.url()}`);});
+  page.on('console',m=>{if(m.type()==='error'&&!m.location().url?.endsWith('/favicon.ico'))report.errors.push(m.text());});
   await page.goto(base+'?fresh=1&seed=9&quality=medium');
   await page.waitForFunction(()=>window.__frontier?.game?.time>.3&&window.__frontier.modelsReady,null,{timeout:60000});
   await page.evaluate(()=>{const f=window.__frontier;f.paused=true;f.input.disabled=true;f.hud.el.zone.style.opacity=0;document.querySelector('.banner')?.remove();});
@@ -68,7 +69,7 @@ try {
     ['reef_crab','salt_slime','shore_gull','hermit_crab'].forEach((type,i)=>{
       const m=f.game.monsters.find(m=>m.type===type);
       Object.assign(m,{x:-66+i*4,z:51,facing:0,state:'windup',stateT:.6,aggro:true});
-      m.windup={name:type==='salt_slime'?'lunge':'bite',total:1,angle:0};
+      m.windup={name:m.def.primaryAttack,total:m.def.attacks[m.def.primaryAttack].windup,angle:0};
     });
     f.view.render(.016,f.game.time,{});
   });

@@ -579,6 +579,7 @@ export class Game {
     if (crit) dmg *= this.derived.critMult;
     if (!opts.dot) dmg *= 1 - m.defense / (m.defense + 60);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
+    if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;
     dmg = Math.max(1, Math.round(dmg));
     m.hp -= dmg;
@@ -612,6 +613,7 @@ export class Game {
     m.deathT = 0;
     m.windup = null;
     m.charge = null;
+    m.melee = null;
     this.stats.kills++;
     const p = this.player;
     const prog = this.ch.progress;
@@ -1353,7 +1355,7 @@ export class Game {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
             const src = this.monsterById(pr.sourceId);
             this.damageUnit(u, pr.damage, src, { poison: pr.poison });
-            this.emit({ type: 'impact', kind: pr.kind, element: pr.kind === 'spit' ? 'poison' : 'arcane', x: pr.x, z: pr.z });
+            this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z });
             dead = true;
             break;
           }

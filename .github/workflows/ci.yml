@@ -45,6 +45,8 @@ jobs:
       - name: Browser smoke test
         if: steps.scope.outputs.game == 'true'
         run: npm run test:browser
+      - name: Distinct coastal attack patterns and contact poses
+        run: node tests/browser/coastal-attacks.mjs
       - name: Game UI workflows (desktop/tablet/phone)
         if: steps.scope.outputs.ui == 'true'
         run: npm run test:ux

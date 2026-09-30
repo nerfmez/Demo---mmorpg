@@ -79,11 +79,14 @@ test('new coastline monsters visibly wind up and cannot damage before the windup
     const hp=g.player.hp;
     updateMonster(g,m,1/60);
     assert.equal(m.state,'windup',type);
-    assert.equal(m.windup.name,'bite',type);
+    assert.equal(m.windup.name,m.def.primaryAttack,type);
     const duration=m.windup.total;
     for(let t=0;t<duration-.1;t+=1/60) updateMonster(g,m,1/60);
     assert.equal(g.player.hp,hp,type+' hit before telegraph');
     updateMonster(g,m,.2);
+    assert.equal(m.state,'act',type+' has a stationary contact phase');
+    assert.equal(g.player.hp,hp,type+' cannot hit before its contact pose');
+    updateMonster(g,m,m.def.attacks[m.def.primaryAttack].duration);
     assert.ok(g.player.hp<hp,type+' finishes attack');
     assert.equal(m.state,'recover');
   }

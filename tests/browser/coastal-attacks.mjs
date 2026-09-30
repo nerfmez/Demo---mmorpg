@@ -148,6 +148,28 @@ try {
       assert.equal(row.emerge.shell, false);
       await capture(type + '-05-emerge');
     }
+    // Render repeated real attack cycles after warming the rig. Warnings and
+    // contact effects must release their GPU buffers rather than accumulate.
+    row.resources = await page.evaluate(() => {
+      const f=__frontier,m=f.coastalMonster,p=f.game.player,samples=[];
+      if(m.type==='salt_slime') {
+        const d=m.r+p.r+.5;
+        p.x=m.x+Math.sin(m.facing)*d;p.z=m.z+Math.cos(m.facing)*d;
+      }
+      for(let i=0;i<12;i++) {
+        p.hp=p.maxHp;
+        f.coastalUntil('windup');
+        f.coastalStep(m.windup.total*.7);
+        f.coastalUntil('recover');
+        f.coastalStep(.6);
+        f.view.renderer.getContext().finish();
+        samples.push(f.view.renderer.info.memory.geometries);
+      }
+      return samples;
+    });
+    const stable = row.resources.slice(4);
+    assert.ok(Math.max(...stable)-Math.min(...stable)<=2,type+': attack GPU geometry stays bounded after warmup');
+    console.log('COASTAL RESOURCES',type,JSON.stringify(row.resources));
     report.cases.push(row);
   }
   assert.deepEqual(report.errors, []);

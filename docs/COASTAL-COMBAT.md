@@ -33,4 +33,6 @@ Verification: `npm test`, `npm run build`, `npm run test:browser`,
 `node tests/browser/coastal-attacks.mjs`, `node tests/browser/capture.mjs` and
 `node tests/browser/leak.mjs`. CI runs the coastal attack sequence in Chromium and
 WebKit; PNGs and the simulation report are under `tests/browser/out/coastal-*`.
+Each species also repeats 12 rendered attack cycles and checks that GPU geometry
+stays bounded after warmup, including warning and contact-effect disposal.
 Owner review of the actual poses remains separate from passing tests.

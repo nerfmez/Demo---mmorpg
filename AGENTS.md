@@ -31,28 +31,51 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 
 - Anything removed from the scene must free its GPU buffers: use `disposeObject()` (`src/render/dispose.js`). Mark shared geometry/materials with `userData.shared`. Monster models are pooled (`View.takeRig/releaseRig`).
 - No allocations per particle or per frame in hot paths (reuse scratch vectors/colours); read layout (`getBoundingClientRect`) once per frame.
-- `node tests/browser/leak.mjs` must show GPU geometry levelling off over a long session.
+- Run `node tests/browser/leak.mjs` only when changing resource ownership, pooling/disposal or a concrete growth symptom. Start with the relevant resource probe; extend the long session only if its samples remain unresolved. Record geometry stabilisation when this check applies.
 
-## Verification before pushing
+## Validation and early review
 
-1. `npm test` passes.
-2. `npm run build` passes.
-3. `npm run test:browser` passes. It serves `dist/` and runs Chromium at desktop and iPad-touch sizes. CI also runs WebKit.
-4. For visual changes, run `node tests/browser/capture.mjs` and look at the PNGs in `tests/browser/out/`. A passing test does not prove the art is right.
-5. The container has no GPU (SwiftShader), so frame times from `tests/browser/perf.mjs` are only relative. Keep visible triangles and draw calls low for iPad. Big prop sets use chunked `InstancedMesh`.
+Choose checks from the changed behaviour, not the number of files. Planning/read-only
+work runs no tests. Do not make a reviewable draft wait for unrelated full suites.
+
+| Change | Before draft review | Before merge |
+|---|---|---|
+| Docs/instructions/planning | Inspect diff, links and executable examples if any; no game/browser tests | Relevant documentation checks only |
+| CI/tooling | Static YAML, trigger and changed-file routing checks; affected tool tests | Relevant configuration/tool checks; no gameplay solely to edit this policy |
+| Small visual/animation | Build and focused gameplay screenshot/sequence; targeted core checks if combat rules change | Core/build and desktop/iPad smoke in Chromium/WebKit; relevant visual sequence |
+| Core/data/save | Targeted affected safety tests and build; focused browser case for changed presentation/input | Core/build and desktop/iPad smoke in Chromium/WebKit; affected UI/save flow |
+| Terrain/map | World route/collision tests and focused location screenshots | Above game checks plus map walkthrough/capture |
+
+- Contact attacks must not damage before the authored hit time or hit twice; test
+  range/arc misses and state cleanup. Save changes need migration/preservation tests.
+  These safety checks are automated; owner review covers poses, readability and feel.
+- Use the existing focused capture that exercises changed content. Full-map capture,
+  Dreamloop and long stress/leak runs apply to map-wide/resource changes or concrete
+  evidence, not every local art edit. Inspect actual screenshots before sharing.
+- After relevant checks pass, send the draft/screenshots for owner review. Report CI
+  as pending/failed/passed; do not wait for unrelated jobs to deliver the draft.
+  Required premerge checks still apply; never merge around branch protection.
+- CI owns full smoke and affected UX; renderer review does not repeat them. Reuse a
+  passing check for the same source/configuration; repeat only after changes, a new
+  failure or unresolved evidence. Do not extrapolate hardware iPad FPS from SwiftShader.
+- If an unrelated baseline/browser setup failure appears, report it separately.
+  Do not expand the task into fixing it or repeatedly retrying it. After a blank
+  capture, use one supported fallback; report a blocker if neither works.
+- Stop validation once the relevant evidence is sufficient. Do not add arbitrary
+  stress rounds, extra browser installs or broad exploration to fill a checklist.
 
 ## Shared Jev context (ChatGPT and Claude)
 
-- For multi-file work, invoke Jev yourself through GitHub before broad exploration, or reuse a report matching the exact task, keywords and source commit. Do not ask the owner to press Run workflow or copy reports. `CLAUDE.md` imports these same rules.
-- Use Jev for three additional retrieval jobs: debugging, change-impact checks, and cross-system planning. For debugging, put reproduction steps, expected/actual behaviour, device/engine and a short sanitized error in task; put relevant paths, symbols and test names in keywords. Reproduce the failure and inspect the full implementation before deciding its cause.
-- Before delivering multi-file changes, review the diff and trace changed symbols/content IDs through callers, data consumers, UI/rendering, saves/migrations, tests and port documentation. If the initial report leaves affected areas unresolved, make a focused Jev request with changed paths/symbols and the suspected consumers; confirm references with `rg`, full-file reads and appropriate tests. Jev does not compute a dependency graph or certify that nothing is missing.
-- For features spanning core/data/render/UI/saves or a Godot port, ask Jev to locate existing contracts, extension points, architecture constraints and verification examples before writing the implementation plan. Check the complete source and `docs/GODOT-PORT.md`; the agent owns the plan and implementation.
+- Use direct search/read first when paths and contracts are known. Use Jev only when unresolved source discovery across systems would benefit from ranked context; multiple files alone are not a trigger. Docs/planning need no Jev unless that discovery is actually needed. If used, invoke it yourself or reuse an exact source/task report; do not ask the owner to run workflows. `CLAUDE.md` imports these same rules.
+- Jev can help with unresolved debugging, change-impact discovery and cross-system planning. For debugging, put reproduction steps, expected/actual behaviour, device/engine and a short sanitized error in task; put relevant paths, symbols and test names in keywords. Reproduce the failure and inspect the full implementation before deciding its cause.
+- Before delivering multi-file changes, review the diff and trace changed symbols/content IDs through callers, data consumers, UI/rendering, saves/migrations, tests and port documentation. If direct searches or an existing report leave affected areas unresolved and ranked retrieval would help, make a focused Jev request with changed paths/symbols and the suspected consumers; confirm references with `rg`, full-file reads and appropriate tests. Jev does not compute a dependency graph or certify that nothing is missing.
+- For features spanning core/data/render/UI/saves or a Godot port, locate contracts and extension points with direct reads first; ask Jev only for unresolved discovery. Read the affected implementation and relevant port contracts; the agent owns the plan. Do not reread unrelated systems or request new context merely because a known-source edit changed its SHA.
 - Keep one focused request for related questions; do not call Jev per file or routine edit. Request more context only when a new failure, changed scope/source or missing evidence requires it. Respect the existing budget and exact-match cache rules. Public requests must not contain credentials, private data or entire raw logs.
 - Resolve the working source to an exact 40-character commit SHA. Create a unique `jev/request/<id>` branch from current main, then commit only `jev-request.json` with version 1, matching id, agent (`chatgpt` or `claude`), task, optional keywords and source_commit. See `docs/JEV-CONTEXT-TH.md` for the schema. Push triggers Jev automatically; never merge request branches.
 - Use your GitHub connector or normal Git credentials. Poll `GET /repos/nerfmez/Demo---mmorpg/actions/runs?head_sha=<request-commit>` for Jev Context, then read its context job log/artifact yourself. Do not use a PR-only run-list wrapper for push requests. An Actions GITHUB_TOKEN push does not trigger this bridge. If your client has no GitHub write/read-run tools, report that precise limitation and continue labelled offline retrieval; do not claim to have invoked Jev.
 - Inspect the Actions Summary/artifact `context.md` or the `Rank relevant source with Jev` job log. Compare `sourceCommit` with your checkout; never reuse a report from another commit or task.
 - Jev reads committed tracked source only. To inspect new edits, commit a source snapshot available on GitHub and request that exact SHA; use direct diff/search for uncommitted work. Tooling files (`scripts/`, `tests/tools/`, workflows) and the Jev guide itself are outside its current search index: read them directly when relevant.
-- This is a search shortlist, not a complete dependency map. Open full files, imports and affected tests before editing; expand search if evidence is weak or missing. Preserve all verification and visual-inspection requirements above.
+- This is a search shortlist, not a complete dependency map. Open full files, imports and affected tests before editing; expand search if evidence is weak or missing. Apply the validation tiers and visual-inspection requirements above.
 - Never request, print, commit, or put `TYPESAFE_API_KEY` in the game frontend. Use the repository Secret for Actions; use offline retrieval if no key is available locally.
 - When changing the context tool, run `npm run test:tools`. Do not claim measured token/time savings until the trial has been evaluated.
 - In a PR or task handoff, record the source SHA, task/keywords, request/run link, report status/cache use, files actually inspected, unresolved impacts and test results. The next agent must fetch current source and recheck report identity before reuse. See [the shared guide](docs/JEV-CONTEXT-TH.md) and [handoff notes](docs/HANDOFF.md).

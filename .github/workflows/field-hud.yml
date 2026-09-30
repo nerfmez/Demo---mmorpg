@@ -1,7 +1,6 @@
 name: Seeker Combat HUD
 on:
   pull_request:
-    paths: ['src/ui/**', 'index.html', 'tests/browser/fieldhud.mjs', 'tests/core/fieldhud.test.js', '.github/workflows/field-hud.yml']
 permissions:
   contents: read
 concurrency:
@@ -17,19 +16,29 @@ jobs:
         browser: [chromium, webkit]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        uses: ./.github/actions/change-scope
+      - name: Validation scope
+        run: echo 'Run focused review=${{ steps.scope.outputs.hud }}'
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.hud == 'true'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
+        if: steps.scope.outputs.hud == 'true'
       - run: npm run build
+        if: steps.scope.outputs.hud == 'true'
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+        if: steps.scope.outputs.hud == 'true'
       - run: node tests/browser/fieldhud.mjs
+        if: steps.scope.outputs.hud == 'true'
         env:
           BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.scope.outputs.hud == 'true'
         with:
           name: field-hud-${{ matrix.browser }}
           path: tests/browser/out/fieldhud-${{ matrix.browser }}/

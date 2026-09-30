@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toon, outlined, darker } from './toon.js';
+import { outlineStructure } from './architecture.js';
 import { toBoxLocal, fromBoxLocal, clamp } from '../core/math.js';
 
 const C = { plaster:'#e4dcc5', stone:'#a9aa98', wood:'#80644c', dark:'#554f43', glass:'#6f9699', rope:'#c0ae7f', leaf:'#74875c', fish:'#adc1ba' };
@@ -17,7 +18,7 @@ export function builder() {
   const box=(w,h,d,color,x,y,z,rx=0,ry=0,rz=0)=>part(new THREE.BoxGeometry(w,h,d),color,x,y,z,rx,ry,rz);
   const finish=()=>{
     for(const [color,geos] of batches){const geo=mergeGeometries(geos);geos.forEach(g=>g.dispose());root.add(outlined(geo,toon(color),{outline:darker(color,.56),width:.018}));}
-    return root;
+    return outlineStructure(root);
   };
   return {part,box,finish};
 }

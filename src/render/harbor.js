@@ -1,5 +1,6 @@
 // Coastal landmarks use the same cel materials and world deck/collider data.
 import * as THREE from 'three';
+import { outlineStructure } from './architecture.js';
 import { toon, outlined } from './toon.js';
 import { builder, marketFishingBoat } from './market.js';
 import { coastalLighthouse, districtScenery } from './districts.js';
@@ -88,5 +89,6 @@ export function createHarbor(world) {
     part(new THREE.BoxGeometry(6,.12,10),'#8b7250',x,world.groundY(x,z)+.06,z);
     for(const offset of [-2,0,2]) part(new THREE.BoxGeometry(.35,.25,9),'#7c9551',x+offset,world.groundY(x,z)+.2,z);
   }
+  for(const structure of root.children)outlineStructure(structure);
   return root;
 }

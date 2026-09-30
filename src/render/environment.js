@@ -2,6 +2,7 @@
 // and standing on the terrain. Repeated props use chunked InstancedMesh (frustum culling per
 // chunk) so the demo stays light on iPad. Grass, flowers, reeds, ferns and canopies sway.
 import * as THREE from 'three';
+import { outlineStructure } from './architecture.js';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
@@ -555,7 +556,7 @@ function createBridge(world, br) {
       g.add(rail);
     }
   }
-  return g;
+  return outlineStructure(g);
 }
 
 function lantern(x, y, z) {
@@ -604,7 +605,7 @@ function waypointStone() {
   crystal.castShadow = true;
   g.add(crystal);
   g.userData.crystal = crystal;
-  return g;
+  return outlineStructure(g);
 }
 
 function createTown(world, rng) {
@@ -677,6 +678,7 @@ function createTown(world, rng) {
   roof.position.set(wx, wy + 2.2, wz);
   roof.rotation.y = Math.PI / 4;
   g.add(roof);
+  for(const structure of g.children)outlineStructure(structure);
   return g;
 }
 

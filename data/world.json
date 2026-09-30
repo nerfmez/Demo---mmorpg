@@ -3539,7 +3539,11 @@
       "period": 7.5,
       "runup": 2.6,
       "retreat": 1.6,
-      "foamWidth": 0.075
+      "foamWidth": 0.14,
+      "foamScale": 2.0,
+      "foamIntensity": 0.95,
+      "portFoam": 0.68,
+      "foamColor": "#edf7f2"
     },
     "edgeKinds": [
       "beach",

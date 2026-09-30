@@ -5,6 +5,7 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+const finishOnly=process.env.AZURE_FINISH_REVIEW==='1';
 const shopOnly=process.env.AZURE_SHOP_REVIEW==='1';
 const districtOnly=process.env.AZURE_DISTRICT_REVIEW==='1';
 const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
@@ -53,11 +54,41 @@ try {
   const shot=async(name)=>{await page.screenshot({path:out+name+'.png',timeout:60000});report.captures.push(name);console.log('captured',name);};
   const stage=async(x,z)=>page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=1;f.view.camera.up.set(0,1,0);f.view.snapCamera();f.view.render(.016,f.game.time,{});f.hud.update(.6,f.panels);},[x,z]);
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
-  if(styleReview&&!shopOnly&&!districtOnly){
+  if(styleReview&&!shopOnly&&!districtOnly&&!finishOnly){
     await stage(-29,-30.5);await shot('09-market-stalls-gameplay');
     await stage(31,-30.5);await shot('10-market-stalls-east-gameplay');
   }
-  if(districtOnly){
+  if(finishOnly){
+    if(process.env.AZURE_WAVE_ONLY!=='1'){
+    await stage(-129.62,-18.16);await shot('19-outlined-cottage-gameplay');
+    await stage(-42,-48.2);await shot('20-outlined-fish-hall-gameplay');
+    await stage(90.70,-38.35);await shot('21-outlined-warehouse-gameplay');
+    }
+    await stage(-119,86);await shot('22-outlined-breakwater-foam-gameplay');
+    await stage(0,-24.5);await shot('23-quay-foam-gameplay');
+    const waveTime=await page.evaluate(()=>window.__frontier.game.time);
+    for(const [name,delta] of [['24-beach-foam-advance',0],['25-beach-foam-break',1.9],['26-beach-foam-retreat',3.8]]){
+      await page.evaluate(t=>{window.__frontier.game.time=t;},waveTime+delta);
+      await stage(-151,99.3);await shot(name);
+    }
+    report.foamPhases=[waveTime,waveTime+1.9,waveTime+3.8];
+    if(process.env.AZURE_WAVE_SEQUENCE==='1'){
+      mkdirSync(out+'wave-frames',{recursive:true});
+      const period=JSON.parse(readFileSync('data/world.json','utf8')).sea.surf.period,frames=Math.round(period*8);
+      for(let i=0;i<frames;i++){
+        await page.evaluate(t=>{window.__frontier.game.time=t;},waveTime+i/8);
+        await stage(-151,99.3);
+        await page.screenshot({path:out+`wave-frames/${String(i).padStart(3,'0')}.png`,timeout:60000});
+        if(i%16===0)console.log('wave frame',i,frames);
+      }
+      report.waveSequence={frames,sampledFPS:8,duration:period,hardwareFPS:'not measured'};
+    }
+    report.staticResources=await page.evaluate(()=>{
+      const f=window.__frontier,v=f.view;
+      const sample=()=>({geometries:v.renderer.info.memory.geometries,textures:v.renderer.info.memory.textures,programs:v.renderer.info.programs.length});
+      const first=sample();for(let i=1;i<=90;i++)v.render(1/30,f.game.time+i/30,{});return {first,last:sample()};
+    });assert.deepEqual(report.staticResources.first,report.staticResources.last,'wave phases do not allocate GPU resources');
+  } else if(districtOnly){
     report.districtWalk=await page.evaluate(()=>{
       const g=window.__frontier.game,ids=g.data.world.town.districtStyle.buildingIds;
       let reached=0;
@@ -94,7 +125,7 @@ try {
     if(styleReview){await stage(-25,-6);await shot('07-fishing-berth-gameplay');await stage(25,-51.5);await shot('08-provisioner-gameplay');}
     await stage(114,76);await shot('03-rotated-slipway-gameplay');
   }
-  if(!shopOnly&&!marketOnly){
+  if(!shopOnly&&!marketOnly&&!finishOnly){
     await page.setViewportSize({width:1440,height:1000});
     await page.evaluate(()=>{
       const f=window.__frontier,v=f.view;

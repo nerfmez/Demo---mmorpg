@@ -281,7 +281,7 @@ ${GROUND_COLOR_GLSL}`
 function seaMaterial(world) {
   const surf = world.data.sea.surf || {};
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)} },
+    uniforms: { uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       attribute float depth; attribute float shore; attribute float beachWash;
@@ -289,9 +289,22 @@ function seaMaterial(world) {
       varying float vBeachWash;
       void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform vec4 uSurf;
+      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor;
       varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
       ${NOISE_GLSL}
+      // Cellular membranes leave open water holes. Coarse warped cells survive
+      // the gameplay camera; fwidth keeps their white rims from shimmering.
+      vec2 foamCell(vec2 p){
+        vec2 cell=floor(p),local=fract(p);float nearest=9.0,second=9.0;
+        for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){
+          vec2 offset=vec2(float(x),float(y)),id=cell+offset;
+          vec2 seed=vec2(hash12(id),hash12(id+37.2));
+          vec2 centre=offset+.20+.60*seed-local;
+          float distance=dot(centre,centre);
+          if(distance<nearest){second=nearest;nearest=distance;}else second=min(second,distance);
+        }
+        return vec2(sqrt(nearest),sqrt(second)-sqrt(nearest));
+      }
       void main(){
         float cycle=uTime*6.2831853/uSurf.z+vW.x*.009;
         float surge=.5-.5*cos(cycle);
@@ -301,30 +314,49 @@ function seaMaterial(world) {
         if(behind < -.14) discard;
         float cover=smoothstep(-.14,.12,behind);
         float d=max(0.0,vDepth);
-        vec3 col=mix(vec3(.30,.51,.43),vec3(.15,.40,.39),smoothstep(0.0,2.5,d));
-        col=mix(col,vec3(.09,.29,.34),smoothstep(2.0,7.0,d));
+        vec3 col=mix(vec3(.22,.48,.46),vec3(.10,.34,.41),smoothstep(0.0,2.5,d));
+        col=mix(col,vec3(.06,.24,.34),smoothstep(2.0,7.0,d));
         float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
         col+=(drift-.5)*.035;
         // Wide, faint light ripples under the surface, strongest in clear shallows.
         vec2 p=vW*.8+vec2(sin(vW.y*.37+uTime*.35),cos(vW.x*.27-uTime*.31))*.4;
         float caustic=pow(1.0-abs(sin(p.x+p.y*.4)*sin(p.y-p.x*.3)),16.0);
         col+=vec3(.035,.045,.03)*caustic*(1.0-smoothstep(.0,3.0,d));
-        float jag=(vnoise(vW*4.5-uTime*.15)-.5)*.23;
-        float rim=1.0-smoothstep(uSurf.w,uSurf.w+.045,abs(behind+jag));
-        vec2 lp=vW*3.2+vec2(vnoise(vW*5.0+uTime*.2),vnoise(vW*4.0-uTime*.2))*1.2;
-        float lace=1.0-smoothstep(.025,.10,abs(sin(lp.x*3.6+sin(lp.y*2.1))*sin(lp.y*4.3+sin(lp.x))));
-        float trail=smoothstep(.1,.3,behind)*(1.0-smoothstep(.45,1.8,behind));
-        float broken=.62+.38*vnoise(vW*5.0-uTime*.12);
-        float foam=max(rim*broken,lace*trail*(.48+.35*surge))*cover;
-        // The next broad crest approaches the shore; broken arcs avoid parallel ruler lines.
-        float swell=.5+.5*sin(vShore*.72+uTime*.88+sin(vW.x*.22)*.24);
-        float crest=smoothstep(.989,.999,swell)*smoothstep(2.0,4.0,vShore)*(1.0-smoothstep(7.0,16.0,vShore));
-        foam=max(foam,crest*smoothstep(.38,.65,vnoise(vW*.55))*.36);
-        // Sheltered quays receive a restrained waterline ripple, not beach swash.
-        foam*=mix(.24,1.0,vBeachWash);
-        col=mix(col,vec3(.93,.94,.87),foam);
+        float jag=(vnoise(vW*2.1-uTime*.10)-.5)*.20;
+        float rim=1.0-smoothstep(uSurf.w,uSurf.w+.075,abs(behind+jag));
+        float foam=0.0,softFoam=0.0;
+        if(vShore<15.0){
+          vec2 driftP=vW*uFoam.x+vec2(uTime*.045,-uTime*.06);
+          driftP+=vec2(sin(vW.y*.73+uTime*.18),cos(vW.x*.63-uTime*.21))*.28;
+          driftP+=vec2(vnoise(vW*3.1+vec2(uTime*.02,0.0)),vnoise(vW*3.1+7.3))*.85;
+          vec2 cell=foamCell(driftP);
+          float radius=.34+.09*vnoise(vW*.85+uTime*.025);
+          float aa=max(fwidth(cell.y),.012);
+          // Round irregular foam rims leave open water between the torn clusters.
+          float junction=1.0-smoothstep(.026,.065+aa,cell.y);
+          float rounded=1.0-smoothstep(.028,.055+aa,abs(cell.x-radius));
+          float lace=max(junction,rounded*.28);
+          float softLace=1.0-smoothstep(.065,.14+aa,cell.y);
+          float bubbles=(1.0-smoothstep(.024,.055+aa,abs(cell.x-.16)))*.16;
+          float foamPatch=smoothstep(.28,.58,vnoise(vW*.63+vec2(-uTime*.04,uTime*.03)));
+          float trail=smoothstep(.08,.28,behind)*(1.0-smoothstep(1.0,2.5,behind));
+          float phase=vShore*.84+uTime*.78+(vnoise(vW*.18)-.5)*1.2;
+          float swell=.5+.5*sin(phase);
+          float zone=smoothstep(.5,2.0,vShore)*(1.0-smoothstep(10.0,15.0,vShore));
+          float crest=smoothstep(.992,.999,swell)*zone;
+          float feather=smoothstep(.68,.94,swell)*zone;
+          float broken=.14+.86*foamPatch;
+          float wash=rim*(.50+.50*foamPatch)+(lace+bubbles)*trail*foamPatch*(.45+.4*surge);
+          float breaking=crest*broken*.78+lace*feather*foamPatch*.78;
+          foam=max(wash,breaking)*mix(uFoam.z,1.0,vBeachWash)*uFoam.y*cover;
+          softFoam=max(rim,softLace*max(trail,feather)*foamPatch)*mix(.26,.48,vBeachWash)*cover;
+        }
+        // A pale teal bed separates foam holes from the darker water, with
+        // cream-white membranes and broken leading crests rather than stripes.
+        col=mix(col,vec3(.41,.67,.61),softFoam*.40);
+        col=mix(col,uFoamColor,clamp(foam,0.0,1.0));
         float alpha=mix(.22,.86,smoothstep(-1.0,5.0,vShore))*cover;
-        alpha=max(alpha,mix(.65,0.0,vBeachWash)*cover);
+        alpha=max(alpha,mix(.72,0.0,vBeachWash)*cover);
         alpha=max(alpha,foam*.94);
         gl_FragColor=vec4(col,alpha);
         #include <colorspace_fragment>

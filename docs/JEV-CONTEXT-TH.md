@@ -1,6 +1,6 @@
 # ใช้ Jev ร่วมกับ ChatGPT และ Claude
 
-Jev เป็นตัวคัดบริบทก่อนเริ่มงาน ไม่ใช่โมเดลเขียนโค้ดหรือผู้อนุมัติอาร์ต ระบบนี้อยู่ในเครื่องมือพัฒนาเท่านั้น ไม่รวมอยู่ในเกมหรือหน้า GitHub Pages
+Jev เป็นตัวคัดบริบทสำหรับเริ่มงาน ไล่บั๊ก ตรวจผลกระทบ และวางแผนระบบที่เกี่ยวข้องกัน ไม่ใช่โมเดลเขียนโค้ดหรือผู้อนุมัติอาร์ต ระบบนี้อยู่ในเครื่องมือพัฒนาเท่านั้น ไม่รวมอยู่ในเกมหรือหน้า GitHub Pages
 
 ## ใช้จากแชทตามปกติ
 
@@ -40,9 +40,66 @@ Manual **Actions → Jev Context → Run workflow** ยังใช้ตรว�
 API reference: https://docs.typesafe.ai/api
 Pricing/model/input limits: https://docs.typesafe.ai/models
 
+## งานเพิ่มเติมที่ agent ต้องใช้ช่วย
+
+ใช้ช่องทางคำขอเดิมและ schema version 1 ไม่เพิ่ม field ใหม่ให้ workflow:
+
+| งาน | ข้อมูลที่ใส่ใน task / keywords | สิ่งที่ agent ต้องตรวจต่อ |
+|---|---|---|
+| ไล่บั๊ก | วิธีทำซ้ำ ผลที่ควรได้/ผลจริง อุปกรณ์และ browser/engine ข้อความ error สั้น ๆ ที่ลบข้อมูลลับแล้ว; ชื่อไฟล์ ฟังก์ชัน และ test | ทำให้เกิดปัญหาจริง อ่าน implementation/callers เต็ม และยืนยันสาเหตุด้วยการทดสอบที่เกี่ยวข้อง |
+| ตรวจผลกระทบก่อนส่งงาน | สรุป diff, path/symbol/content ID ที่เปลี่ยน และ consumers ที่สงสัย | ใช้ `rg` ตาม references ตรวจ data/core/render/UI/save migration/tests และเอกสารพอร์ตที่ได้รับผลกระทบ แก้จุดตกหล่นก่อนส่ง |
+| วางแผนฟีเจอร์หลายระบบหรือพอร์ต Godot | เป้าหมาย ขอบเขต ข้อจำกัด และระบบที่ต้องเชื่อมกัน; ชื่อ contract/event/schema ที่รู้แล้ว | อ่านสัญญาและ extension points จริง วางลำดับ data/core/render/UI/save/tests พร้อมอัปเดต `docs/GODOT-PORT.md` เมื่อกติกาเปลี่ยน |
+
+ตัวอย่างด้านล่างเป็นคู่ `task` / `keywords` สำหรับใส่ในคำขอเต็มตาม schema ข้างต้น เลือกเฉพาะอาการและชื่อที่เกี่ยวกับงานจริง แล้วกำหนด id ใหม่และ source_commit จริงของงานนั้น:
+
+ไล่บั๊กจากอาการสัมผัส:
+
+```json
+{
+  "task": "Investigate touch click-through: on iPad/WebKit, tapping an empty combat slot opens the skills menu and selects an item with the same tap. Expected: only open the menu. Locate input handlers and relevant tests; verify the cause before fixing.",
+  "keywords": "src/ui/fieldhud.js pointerup click empty slot touch tests/browser/fieldhud.mjs"
+}
+```
+
+ตรวจ references หลังเพิ่มมอนและวัตถุดิบ:
+
+```json
+{
+  "task": "Locate consumers and verification for monster, material and recipe changes before delivery: check spawns, part drops, crafting uses, render/UI artwork, quests and saved content IDs. Return candidate source to inspect; do not assume the list is complete.",
+  "keywords": "data/monsters.json data/items.json data/recipes.json src/ui/art.js monsters material recipe tests/core/data.test.js tests/core/presentation.test.js"
+}
+```
+
+วางแผนระบบร่วมและพอร์ต:
+
+```json
+{
+  "task": "Plan a Godot-portable quest feature spanning data, core events, UI and character saves. Locate current quest contracts, seeded rules, save migration and test examples. Preserve core independence from DOM/Three and document the verified port boundaries.",
+  "keywords": "quest game.events src/core migrateCharacter version character save tests/core docs/GODOT-PORT.md"
+}
+```
+
+เริ่มด้วยคำขอเดียวที่รวมคำถามเกี่ยวข้องกัน ก่อนส่งงานให้ตรวจ diff และผลกระทบเสมอ หากบริบทแรกครอบคลุมแล้วไม่ต้องเรียกซ้ำทุกไฟล์/ทุกการแก้ เพิ่มคำขอเฉพาะเมื่อเจอ failure ใหม่ ขอบเขตหรือ source เปลี่ยน หรือหลักฐานยังขาด โดยยังใช้เพดานงบเดิม
+
+การตรวจหลังแก้ต้องอ้าง commit snapshot ที่ push ขึ้น GitHub แล้วด้วย SHA จริง Jev ไม่เห็น diff ที่ยังไม่ commit หรือไฟล์ untracked ระหว่างแก้ให้ใช้ `git diff`, `rg` และอ่าน source โดยตรง ห้ามอ้างว่ารายงานจาก commit ก่อนหน้าได้ตรวจโค้ดใหม่แล้ว
+
+ข้อความ error ใน task เป็นข้อมูลย่อที่ agent เลือกเอง ไม่ใช่ระบบส่ง/คัด raw logs อัตโนมัติ คำขออยู่ใน public repo จึงต้องลบคีย์ token ข้อมูลส่วนตัว และไม่แนบ log ทั้งก้อน Jev เพียงจัดอันดับ source ที่เกี่ยวข้อง ไม่วิเคราะห์สาเหตุ ไม่สร้าง dependency graph และไม่รับรองความครบถ้วนหรือความถูกต้องของแผน
+
+## ส่งต่อให้ agent ถัดไป
+
+บันทึกใน PR description หรือ handoff ของงานนั้น:
+
+- source SHA ที่รายงานอ่าน พร้อม task และ keywords ที่ส่งจริง
+- ลิงก์ request branch และ Actions run; status, cache hit และ API usage/cost estimate ตามรายงาน ถ้ามี
+- ไฟล์เต็มที่เปิดตรวจจริง และ references ที่ยืนยันแล้ว แยกจาก shortlist ที่ยังไม่ได้ตรวจ
+- ผลกระทบหรือข้อสงสัยที่ยังเหลือ ขั้นตอนทำซ้ำ และข้อจำกัดของสภาพแวดล้อม
+- คำสั่งทดสอบและผลจริง รวมภาพที่ตรวจ/สถานะ owner review เมื่องานมีการเปลี่ยนภาพ
+
+agent ถัดไปเริ่มจาก [AGENTS.md](../AGENTS.md) และ [HANDOFF.md](HANDOFF.md), fetch source ล่าสุด และเทียบ SHA/task/keywords ก่อนใช้รายงาน หาก source หรืองานต่างกันให้เรียกใหม่ตามกติกาเดิม อย่าใช้เพียงชื่อ branch ตัดสินว่า cache ใช้ได้
+
 ## ลำดับทำงาน
 
-- ค้นจากไฟล์ที่ Git ติดตามใน `src/`, `data/`, `docs/`, ชุดทดสอบ และเอกสารหลักที่อนุญาต ไม่มีไฟล์ `.env`, รูปภาพ, binary, output หรือ untracked files
+- ค้นจากไฟล์ที่ Git ติดตามใน `src/`, `data/`, `docs/`, `tests/core/`, `tests/browser/` และเอกสารหลักที่อนุญาต ไม่มีไฟล์ `.env`, รูปภาพ, binary, output หรือ untracked files; `scripts/`, `tests/tools/`, workflows และ `docs/JEV-CONTEXT-TH.md` ไม่อยู่ใน index ปัจจุบัน งานเครื่องมือ/คำขอ Jev จึงต้องอ่านไฟล์เหล่านี้โดยตรง
 - ใช้คำค้นและคำเทียบไทย/อังกฤษสร้าง shortlist ไม่เกิน 12 ช่วงข้อความ และไม่เกิน 2 ช่วงต่อไฟล์
 - ส่งข้อความที่คัดแล้วให้ `jev-1.13.0` ประเมินความเกี่ยวข้องของแต่ละช่วงด้วย Noul หลายคำถามใน request เดียว ไม่ให้สร้างสรุปหรือโค้ด
 - คำตอบเลือกข้อความต้นฉบับสูงสุด 6 ช่วง โดยยังแสดงผู้สมัครที่เหลือ ข้อกำหนด `AGENTS.md` รวมครบเสมอ
@@ -79,7 +136,7 @@ PR ที่แก้เครื่องมือนี้รันทดส�
 
 ทดลอง 30 งาน เทียบ keyword search อย่างเดียวกับ keyword search + Jev วัดเวลารวม จำนวนรอบค้นเพิ่ม ปริมาณบริบทที่โมเดลใหญ่ต้องอ่าน และข้อกำหนดตกหล่น รายงาน excerpt bytes เป็นเพียงปริมาณข้อความ ไม่ใช่เปอร์เซ็นต์ประหยัด token ทั้ง session หรือโควตาสมาชิก
 
-เป้าหมายทดลอง: ลดบริบท 30% ลดเวลารวม 20% โดยไม่เพิ่มงานแก้ซ้ำ ยังไม่ได้ยืนยันผลนี้ ตัวคัด log และการตรวจความหมายคอนเทนต์เป็นงานถัดไป ไม่รวมอยู่ในเวอร์ชันนี้
+เป้าหมายทดลอง: ลดบริบท 30% ลดเวลารวม 20% โดยไม่เพิ่มงานแก้ซ้ำ ยังไม่ได้ยืนยันผลนี้ ตัวคัด raw logs อัตโนมัติและการตรวจความหมายคอนเทนต์เป็นงานถัดไป ไม่รวมอยู่ในเวอร์ชันนี้ การเพิ่มแนวทางสามงานข้างต้นใช้ตัวค้น source เดิม ไม่ได้เพิ่มความสามารถเหล่านั้น
 
 ## รันบนเครื่องของ agent
 

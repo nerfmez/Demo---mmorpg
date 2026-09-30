@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "chatgpt-harbor-build-1790752520105",
+  "agent": "chatgpt",
+  "task": "Implement a focused beach-start harbor town map using existing anime Three.js assets, land 75-80 percent, safe beach-to-town route, beginner coast crab and new salt slime shore bird hermit monsters with readable attacks drops recipes. Update world terrain collision dock decks spawn quests waypoint/save migration minimap and core/browser captures. Preserve old map as legacy data, no continent build.",
+  "keywords": "world terrain coast town spawn character migration quests monsters ai environment capture recipes",
+  "source_commit": "a2789575003fc9a88cbc8bbd7c3e18afdfe73885"
+}

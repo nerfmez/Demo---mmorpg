@@ -249,11 +249,11 @@ The map remains 320 × 240 m with `shoreZ(x)` defining the water side of the exi
 
 `town.buildings` accepts the legacy `[x,z,angle]` format and authored objects `{id,x,z,angle,hx,hz,height,kind,roofColor}`. For the active `town.blockout` pass, visible boxes exactly match these oriented collider dimensions; roof colors are stored per building. No interiors are present. `docks` and their local ramp endpoints export directly. Save JSON remains version 2; the optional `worldLayoutRevision` relocates old coordinates once while preserving equipment, levels and the seven-step quest records.
 
-The owner approved this layout on 30 September 2026 and authorized one market-to-pier style slice. `town.styleSlice` selects four building IDs, authored exterior variants, awning colors, stall goods and a quay range. The renderer keeps other districts as review boxes. Finished bases stay within the same per-building X/Z collider dimensions; roof colors remain per-building. There are no interior or new fishing rules.
+The owner approved this layout on 30 September 2026 and authorized one market-to-pier style slice. `town.styleSlice` selects four building IDs, authored exterior variants, awning colors, stall goods and a quay range. The owner subsequently approved continuing other districts; `town.districtStyle` selects the other 18 primary buildings for authored exteriors. Finished bases stay within the same per-building X/Z collider dimensions; roof colors remain per-building. There are no interior or new fishing rules.
 
 Road corners and the coast are now densely sampled curves baked in `world.json`; terrain, collision, safe routes, minimap and export all use those same polylines. Shore X remains strictly increasing, and `edgeKinds` remains one tag per segment. The breakwater approach keeps its original joining points to avoid a deck/terrain height step. Cosmetic road and paving wear only changes paint weights. The low market coping follows the same shore and leaves gaps at pier approaches. Market geometry is merged per color during scene construction, with no extra frame updates. Nearest-coast lookup compares squared distances and takes one square root after finding the nearest segment.
 
-Style approval is still required before expanding finished art to all districts. Merge and deploy remain unapproved. Browser screenshots cannot establish hardware iPad FPS.
+The market style is approved for district expansion; the new district exteriors await owner image review. Merge and deploy remain unapproved. Browser screenshots cannot establish hardware iPad FPS.
 
 ### Market visual audit
 
@@ -261,7 +261,7 @@ Style approval is still required before expanding finished art to all districts.
 
 The market apron uses overlapping coast/plaza paint masks instead of a rectangle ending before the quay strip. Road attenuation is continuous across paving blends. Beach water still follows terrain as a thin swash film; quay, breakwater and repair-front water stays at the water level. Their foam is restrained and opacity masks the coarse submerged terrain. Market coping segments are clipped precisely against dock-local rectangles; the stone face meets the coping vertically.
 
-`town.styleSlice.boatIndices` selects two existing decorative boats for the open fishing-boat exterior. Floors close the visible hull, static ropes connect to the nearest pier side, and the east boat clears its pier. Boats remain non-interactive decoration. Pier planks use 0.32 m courses with instanced seams; collider dimensions and ramp interpolation are unchanged.
+`town.styleSlice.boatIndices` selects all four existing decorative boats for the open fishing-boat exterior. Floors close the visible hull, static ropes connect to the nearest pier side, and the east boat clears its pier. Boats remain non-interactive decoration. Pier planks use 0.32 m courses with instanced seams; collider dimensions and ramp interpolation are unchanged.
 
 ### Solid pier approaches and authored dock cargo
 
@@ -272,3 +272,13 @@ The market apron uses overlapping coast/plaza paint masks instead of a rectangle
 ### Distinct shop exterior assemblies
 
 `marketBuilding()` dispatches the four authored `variant` values to separate exterior assemblies: open fish counters under a low hipped roof; front-gabled timber workshop with anvil, tools and forge; single-slope provision shop with striped awning and supply shelves; two-storey inn with small dormer, shallow porch and seating. Preserve their gameplay-camera readability, authored wall/roof colors and low silhouettes when porting. Recess the main wall/eaves within the original `hx/hz` plot and keep the exterior displays inside that plot. The existing oriented collider covers the complete solid exterior plot; no interior access or new service interaction is added. Static parts remain merged by color at construction time, without frame callbacks. `AZURE_SHOP_REVIEW=1` captures the four original-camera frontages without a full-map capture.
+
+### Authored district exteriors and working yards
+
+`town.districtStyle.buildingIds` selects cottage, front-gable, netter and timber-home variants, three warehouse variants and a repair workshop. Keep per-building `variant`, `wallColor`, `roofColor`, `hx/hz` and height; these are solid exterior plots. `town.blockout` remains a fallback/procedural-decoration suppression switch, not the selector for these finished building meshes.
+
+`harbor.workProps` uses the same authored `{id,x,z,hx,hz,angle,height,kind}` oriented-box contract as dock cargo, with world collider type `harbor_work`. Render cargo stacks, handcarts, timber, dry hull on trestles and bench within those bounds. These props do not add interactions or save state. `town.buildings[].entryPath` is a world-X/Z polyline from the clear front threshold to an existing road; it only paints a soft worn path. `harbor.workSurfaces` holds `{x,z,rx,rz,angle}` ellipses that blend worn-earth paint around loading/repair work, with no terrain-height or collision changes.
+
+`harbor.lighthouseStyle` controls stripe and roof colors on the existing radius-2 landmark. Low breakwater coping leaves its centre open; water-side armour stones sit outside the deck. A 0.025 m visual lift prevents land/deck coplanarity while preserving world walking support. Launch rails use the slipway's own local slope. Mooring anchor endpoints are transformed through the selected pier's local X/Z rectangle before returning to world coordinates, including rotated side piers.
+
+`AZURE_DISTRICT_REVIEW=1` captures eight original-camera locations plus one labeled layout view and walks all 18 authored frontage connections. The current collider/path safety test is in `tests/core/harbor.test.js`. No new interior, boat-driving or fishing rule; save/quest/combat/input contracts remain unchanged. Hardware iPad performance is still unmeasured.

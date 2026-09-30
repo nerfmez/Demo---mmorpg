@@ -1,7 +1,8 @@
 // Coastal landmarks use the same cel materials and world deck/collider data.
 import * as THREE from 'three';
 import { toon, outlined } from './toon.js';
-import { marketFishingBoat } from './market.js';
+import { builder, marketFishingBoat } from './market.js';
+import { coastalLighthouse, districtScenery } from './districts.js';
 
 export function createHarbor(world) {
   const root = new THREE.Group();
@@ -11,7 +12,7 @@ export function createHarbor(world) {
   };
   for (const d of world.docks) {
     const pier = new THREE.Group();
-    pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height,d.z); pier.rotation.y=d.angle;
+    pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height+(d.kind==='breakwater'?.025:0),d.z); pier.rotation.y=d.angle;
     // Shear in local Z: keep the exact XZ footprint and both endpoint heights.
     // Rotating a whole box would shorten its projected deck and open a join gap.
     const slope=d.rampFromTerrain ? (d.height-d.startY)/(2*d.hz) : 0;
@@ -20,6 +21,23 @@ export function createHarbor(world) {
     for(let i=0;i<positions.count;i++)positions.setY(i,positions.getY(i)+slope*positions.getZ(i));
     deckGeometry.computeVertexNormals();
     part(deckGeometry,d.kind === 'breakwater' ? '#a4a99f' : d.kind === 'slipway' ? '#aaa79a' : '#a88a61',0,-.15,0,pier);
+    const details=builder();
+    if(d.kind==='slipway'){
+      // Low launch rails follow the same local slope and leave the centre open.
+      for(const x of [-d.hx+.42,d.hx-.42]){
+        const rail=new THREE.BoxGeometry(.12,.075,d.hz*2-.4),a=rail.attributes.position;
+        for(let i=0;i<a.count;i++)a.setY(i,a.getY(i)+slope*a.getZ(i));rail.computeVertexNormals();
+        details.part(rail,'#737f7a',x,.042,0);
+      }
+      for(let z=-d.hz+.55;z<d.hz-.3;z+=1.35)details.box(d.hx*2-.5,.045,.14,'#8b816c',0,.022+slope*z,z);
+    }
+    if(d.kind==='breakwater'){
+      // Low segmented coping and a slightly lifted visual surface avoid a
+      // coplanar cut through the landward deck; walking height stays unchanged.
+      for(const x of [-d.hx+.15,d.hx-.15])for(let z=-d.hz+.65;z<d.hz-.4;z+=1.18)details.box(.24,.22,1.03,'#afb4a5',x,.11,z);
+      for(let z=-d.hz+.7;z<d.hz;z+=1.14)details.box(d.hx*2-.6,.012,.025,'#8d9589',0,.010,z);
+    }
+    pier.add(details.finish());
     // Raised narrow seams read as planks without a mesh for every board.
     const seams=[];
     for(let z=-d.hz+.4;(!d.kind || d.kind === 'pier') && z<d.hz;z+=.32) seams.push(z);
@@ -35,6 +53,8 @@ export function createHarbor(world) {
   }
   const h=world.data.harbor;
   const [lx,lz]=h.lighthouse, y=world.groundY(lx,lz);
+  if(h.lighthouseStyle)root.add(coastalLighthouse(world));
+  else {
   const tower=new THREE.Group(); tower.position.set(lx,y,lz);
   part(new THREE.CylinderGeometry(1.3,2,9,12),'#ede1c1',0,4.5,0,tower);
   part(new THREE.CylinderGeometry(1.42,1.58,1.1,12),'#638899',0,5.5,0,tower);
@@ -43,6 +63,8 @@ export function createHarbor(world) {
   part(new THREE.ConeGeometry(1.6,1.4,8),'#466c84',0,11.3,0,tower);
   part(new THREE.BoxGeometry(.85,1.9,.13),'#765a3e',0,.95,1.82,tower);
   root.add(tower);
+  }
+  if(world.data.town.districtStyle)root.add(districtScenery(world));
   for(const [index,[x,z,a]] of h.boats.entries()) {
     if(world.data.town.styleSlice?.boatIndices?.includes(index)){root.add(marketFishingBoat(x,z,a,world.waterLevel));continue;}
     const boat=new THREE.Group();boat.position.set(x,world.waterLevel+.15,z);boat.rotation.y=a;

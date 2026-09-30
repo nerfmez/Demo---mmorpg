@@ -15,6 +15,7 @@ import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTr
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createHarbor } from './harbor.js';
 import { marketBuilding, marketStall, marketQuay } from './market.js';
+import { districtBuilding } from './districts.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -616,6 +617,7 @@ function createTown(world, rng) {
     if (bx.type === 'house') {
       const y=gy(bx.x,bx.z);
       const model=slice?.buildingIds.includes(bx.id) ? marketBuilding(bx,y)
+        : t.districtStyle?.buildingIds.includes(bx.id) ? districtBuilding(bx,y)
         : t.blockout ? blockoutBuilding(bx,y) : house(bx,bx.roofColor || rng.pick(roofCols),y);
       g.add(model);
     }
@@ -849,4 +851,3 @@ function house(bx, roofCol, y) {
   g.userData.chimney = new THREE.Vector3(bx.x, y + 4.8, bx.z);
   return g;
 }
-

@@ -3,6 +3,7 @@
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
 import * as THREE from 'three';
+import { toBoxLocal } from '../core/math.js';
 import { rasterPolyline, boxBlur, valueNoise } from '../core/terrain.js';
 import { timeUniform } from './patch.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
@@ -39,10 +40,11 @@ export function surfaceData(world) {
       road[k] = Math.max(road[k], 1 - smooth(half - .6 + worn, half + 1.05 + worn, d));
     });
   }
-  // Short worn entries connect the approved market frontage to its main road.
-  for(const building of wd.town.buildings) if(wd.town.styleSlice?.buildingIds.includes(building.id)) {
-    const half=1.2;
-    rasterPolyline(grid,[[building.x,building.z+building.hz],[building.x,wd.town.centre[1]]],half+1,(k,d)=>{
+  // Authored free paths join district thresholds to the existing road corridors.
+  for(const building of wd.town.buildings) if(building.entryPath||wd.town.styleSlice?.buildingIds.includes(building.id)) {
+    const half=building.entryPath?.length? .85:1.2;
+    const points=building.entryPath||[[building.x,building.z+building.hz],[building.x,wd.town.centre[1]]];
+    rasterPolyline(grid,points,half+1,(k,d)=>{
       const x=ox+(k%w)*res,z=oz+Math.floor(k/w)*res;
       const wear=(valueNoise(x*.4,z*.4,77)-.5)*.3;
       road[k]=Math.max(road[k],1-smooth(half-.35+wear,half+.7+wear,d));
@@ -99,6 +101,14 @@ export function surfaceData(world) {
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
       const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
       dirt[k] = smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2);
+      for(const surface of wd.harbor?.workSurfaces||[]){
+        const p=toBoxLocal(surface,x,z),radius=Math.hypot(p.lx/surface.rx,p.lz/surface.rz);
+        if(radius>1.3)continue;
+        const wear=(valueNoise(x*.30,z*.30,78)-.5)*.15;
+        const patch=1-smooth(.62+wear,1.18+wear,radius);
+        dirt[k]=Math.max(dirt[k],patch*.92);
+        road[k]=Math.max(road[k],patch*.55);
+      }
       road[k] *= 1 - stone[k] * .7;
     }
   }

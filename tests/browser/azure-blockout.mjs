@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const shopOnly=process.env.AZURE_SHOP_REVIEW==='1';
+const districtOnly=process.env.AZURE_DISTRICT_REVIEW==='1';
 const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
 const styleReview=!!JSON.parse(readFileSync('data/world.json','utf8')).town.styleSlice;
 const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
@@ -52,11 +53,33 @@ try {
   const shot=async(name)=>{await page.screenshot({path:out+name+'.png',timeout:60000});report.captures.push(name);console.log('captured',name);};
   const stage=async(x,z)=>page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=1;f.view.camera.up.set(0,1,0);f.view.snapCamera();f.view.render(.016,f.game.time,{});f.hud.update(.6,f.panels);},[x,z]);
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
-  if(styleReview&&!shopOnly){
+  if(styleReview&&!shopOnly&&!districtOnly){
     await stage(-29,-30.5);await shot('09-market-stalls-gameplay');
     await stage(31,-30.5);await shot('10-market-stalls-east-gameplay');
   }
-  if(shopOnly){
+  if(districtOnly){
+    report.districtWalk=await page.evaluate(()=>{
+      const g=window.__frontier.game,ids=g.data.world.town.districtStyle.buildingIds;
+      let reached=0;
+      for(const b of g.data.world.town.buildings.filter(b=>ids.includes(b.id))){
+        const path=[...b.entryPath].reverse();Object.assign(g.player,{x:path[0][0],z:path[0][1]});
+        for(const [x,z] of path.slice(1)){
+          let i=0;for(;i<1500&&Math.hypot(x-g.player.x,z-g.player.z)>.18;i++){g.setMove(x-g.player.x,z-g.player.z);g.update(1/60);}
+          if(i===1500||g.player.dead)throw Error('blocked district entry '+b.id);
+        }
+        reached++;
+      }
+      g.setMove(0,0);return {frontagesReached:reached};
+    });assert.equal(report.districtWalk.frontagesReached,18);
+    await stage(-129.62,-18.16);await shot('11-residential-cottage-gameplay');
+    await stage(-101.14,-18.32);await shot('12-residential-timber-gameplay');
+    await stage(90.70,-38.35);await shot('13-warehouse-gameplay');
+    await stage(126,12);await shot('14-loading-yard-gameplay');
+    await stage(130,75);await shot('15-shipwright-gameplay');
+    await stage(129,84);await shot('16-repair-hull-gameplay');
+    await stage(-127.5,77.5);await shot('17-lighthouse-gameplay');
+    await stage(-119,86);await shot('18-breakwater-gameplay');
+  } else if(shopOnly){
     await stage(-42,-48.2);await shot('02-market-gameplay');
     await stage(-25,-53.3);await shot('05-craft-gameplay');
     await stage(25,-53.3);await shot('08-provisioner-gameplay');
@@ -70,6 +93,8 @@ try {
     await stage(-25,-20);await shot('04-market-pier-gameplay');
     if(styleReview){await stage(-25,-6);await shot('07-fishing-berth-gameplay');await stage(25,-51.5);await shot('08-provisioner-gameplay');}
     await stage(114,76);await shot('03-rotated-slipway-gameplay');
+  }
+  if(!shopOnly&&!marketOnly){
     await page.setViewportSize({width:1440,height:1000});
     await page.evaluate(()=>{
       const f=window.__frontier,v=f.view;

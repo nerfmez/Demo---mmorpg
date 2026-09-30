@@ -2096,7 +2096,19 @@
         "angle": 0.2,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#a56b4f"
+        "roofColor": "#a56b4f",
+        "variant": "cottage",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -135.2351,
+            -46.2267
+          ],
+          [
+            -126.4752,
+            -41.4088
+          ]
+        ]
       },
       {
         "id": "home_1",
@@ -2107,7 +2119,19 @@
         "angle": -0.15,
         "height": 6,
         "kind": "house",
-        "roofColor": "#82634c"
+        "roofColor": "#82634c",
+        "variant": "timber_home",
+        "wallColor": "#ddd2b8",
+        "entryPath": [
+          [
+            -106.5753,
+            -43.1932
+          ],
+          [
+            -109.1368,
+            -41.3433
+          ]
+        ]
       },
       {
         "id": "home_2",
@@ -2118,7 +2142,19 @@
         "angle": 0.3,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#727778"
+        "roofColor": "#727778",
+        "variant": "netters_home",
+        "wallColor": "#d0d7c6",
+        "entryPath": [
+          [
+            -76.8622,
+            -54.322
+          ],
+          [
+            -79.0837,
+            -51.417
+          ]
+        ]
       },
       {
         "id": "home_3",
@@ -2129,7 +2165,23 @@
         "angle": 0.1,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#668491"
+        "roofColor": "#668491",
+        "variant": "cottage",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -129.6156,
+            -18.1692
+          ],
+          [
+            -124.1877,
+            -18.1611
+          ],
+          [
+            -119.3365,
+            -22.2038
+          ]
+        ]
       },
       {
         "id": "home_4",
@@ -2140,7 +2192,19 @@
         "angle": -0.3,
         "height": 6,
         "kind": "house",
-        "roofColor": "#a56b4f"
+        "roofColor": "#a56b4f",
+        "variant": "timber_home",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -101.1378,
+            -18.322
+          ],
+          [
+            -101.6001,
+            -15.0857
+          ]
+        ]
       },
       {
         "id": "home_5",
@@ -2151,7 +2215,19 @@
         "angle": 0.25,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#82634c"
+        "roofColor": "#82634c",
+        "variant": "netters_home",
+        "wallColor": "#ddd2b8",
+        "entryPath": [
+          [
+            -81.0475,
+            -24.2697
+          ],
+          [
+            -77.7977,
+            -19.9937
+          ]
+        ]
       },
       {
         "id": "home_6",
@@ -2162,7 +2238,19 @@
         "angle": 0.15,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#727778"
+        "roofColor": "#727778",
+        "variant": "cottage",
+        "wallColor": "#d0d7c6",
+        "entryPath": [
+          [
+            -127.4247,
+            3.8068
+          ],
+          [
+            -105.5091,
+            17.7617
+          ]
+        ]
       },
       {
         "id": "home_7",
@@ -2173,7 +2261,19 @@
         "angle": 0.25,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#668491"
+        "roofColor": "#668491",
+        "variant": "front_gable",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -109.0475,
+            -1.2697
+          ],
+          [
+            -98.0112,
+            5.3521
+          ]
+        ]
       },
       {
         "id": "home_8",
@@ -2184,7 +2284,19 @@
         "angle": 0.2,
         "height": 6,
         "kind": "house",
-        "roofColor": "#a56b4f"
+        "roofColor": "#a56b4f",
+        "variant": "timber_home",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -125.2351,
+            25.7733
+          ],
+          [
+            -115.0785,
+            32.4141
+          ]
+        ]
       },
       {
         "id": "home_9",
@@ -2195,7 +2307,19 @@
         "angle": 0.25,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#82634c"
+        "roofColor": "#82634c",
+        "variant": "cottage",
+        "wallColor": "#ddd2b8",
+        "entryPath": [
+          [
+            -134.0475,
+            32.7303
+          ],
+          [
+            -120.8409,
+            41.231
+          ]
+        ]
       },
       {
         "id": "home_10",
@@ -2206,7 +2330,19 @@
         "angle": 0.15,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#727778"
+        "roofColor": "#727778",
+        "variant": "front_gable",
+        "wallColor": "#d0d7c6",
+        "entryPath": [
+          [
+            -134.4247,
+            42.8068
+          ],
+          [
+            -126.9263,
+            48.9819
+          ]
+        ]
       },
       {
         "id": "home_11",
@@ -2217,7 +2353,23 @@
         "angle": 0.3,
         "height": 3.6,
         "kind": "house",
-        "roofColor": "#668491"
+        "roofColor": "#668491",
+        "variant": "netters_home",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -76.8622,
+            2.678
+          ],
+          [
+            -81.8585,
+            4.7993
+          ],
+          [
+            -88.2106,
+            0.6891
+          ]
+        ]
       },
       {
         "id": "fish_market",
@@ -2280,7 +2432,19 @@
         "angle": 0.35,
         "height": 5,
         "kind": "warehouse",
-        "roofColor": "#a56b4f"
+        "roofColor": "#a56b4f",
+        "variant": "freight_shed",
+        "wallColor": "#c7bd9f",
+        "entryPath": [
+          [
+            90.6631,
+            -38.444
+          ],
+          [
+            87.4425,
+            -30.1836
+          ]
+        ]
       },
       {
         "id": "warehouse_1",
@@ -2291,7 +2455,19 @@
         "angle": 0.35,
         "height": 5,
         "kind": "warehouse",
-        "roofColor": "#82634c"
+        "roofColor": "#82634c",
+        "variant": "sail_store",
+        "wallColor": "#bda98b",
+        "entryPath": [
+          [
+            120.6631,
+            -53.444
+          ],
+          [
+            114.1201,
+            -45.4471
+          ]
+        ]
       },
       {
         "id": "warehouse_2",
@@ -2302,7 +2478,23 @@
         "angle": 0.5,
         "height": 5,
         "kind": "warehouse",
-        "roofColor": "#727778"
+        "roofColor": "#727778",
+        "variant": "freight_shed",
+        "wallColor": "#d1c9b0",
+        "entryPath": [
+          [
+            106.3252,
+            -5.7437
+          ],
+          [
+            113.083,
+            -8.8088
+          ],
+          [
+            116.8761,
+            -17.7496
+          ]
+        ]
       },
       {
         "id": "warehouse_3",
@@ -2313,7 +2505,19 @@
         "angle": 0.35,
         "height": 5,
         "kind": "warehouse",
-        "roofColor": "#668491"
+        "roofColor": "#668491",
+        "variant": "fish_store",
+        "wallColor": "#c2ccb9",
+        "entryPath": [
+          [
+            122.6631,
+            5.556
+          ],
+          [
+            135.6793,
+            7.2355
+          ]
+        ]
       },
       {
         "id": "warehouse_4",
@@ -2324,7 +2528,19 @@
         "angle": 0.2,
         "height": 5,
         "kind": "warehouse",
-        "roofColor": "#a56b4f"
+        "roofColor": "#a56b4f",
+        "variant": "sail_store",
+        "wallColor": "#cfb99c",
+        "entryPath": [
+          [
+            141.9635,
+            46.7533
+          ],
+          [
+            134.7374,
+            60.036
+          ]
+        ]
       },
       {
         "id": "repair_shed",
@@ -2335,7 +2551,23 @@
         "angle": 0,
         "height": 3.8,
         "kind": "shipyard",
-        "roofColor": "#82634c"
+        "roofColor": "#82634c",
+        "variant": "repair_workshop",
+        "wallColor": "#cfcaad",
+        "entryPath": [
+          [
+            130,
+            74.85
+          ],
+          [
+            136.4,
+            75.4
+          ],
+          [
+            137.3918,
+            75.3098
+          ]
+        ]
       }
     ],
     "walls": null,
@@ -2374,7 +2606,32 @@
       ],
       "boatIndices": [
         0,
-        1
+        1,
+        2,
+        3
+      ]
+    },
+    "districtStyle": {
+      "id": "azure-exteriors-1",
+      "buildingIds": [
+        "home_0",
+        "home_1",
+        "home_2",
+        "home_3",
+        "home_4",
+        "home_5",
+        "home_6",
+        "home_7",
+        "home_8",
+        "home_9",
+        "home_10",
+        "home_11",
+        "warehouse_0",
+        "warehouse_1",
+        "warehouse_2",
+        "warehouse_3",
+        "warehouse_4",
+        "repair_shed"
       ]
     }
   },
@@ -3700,20 +3957,7 @@
         "harbor"
       ]
     ],
-    "crates": [
-      [
-        116,
-        -34
-      ],
-      [
-        128,
-        13
-      ],
-      [
-        129,
-        51
-      ]
-    ],
+    "crates": [],
     "farmBeds": [],
     "overlook": [
       -139,
@@ -3799,6 +4043,122 @@
         "angle": 0,
         "height": 0.8,
         "kind": "fish_crates"
+      }
+    ],
+    "workProps": [
+      {
+        "id": "cargo_yard_0",
+        "x": 116,
+        "z": -34,
+        "hx": 1.4,
+        "hz": 1,
+        "angle": 0.2,
+        "height": 1.45,
+        "kind": "cargo_stack"
+      },
+      {
+        "id": "cargo_yard_1",
+        "x": 128,
+        "z": 13,
+        "hx": 1.4,
+        "hz": 1,
+        "angle": 0.2,
+        "height": 1.45,
+        "kind": "cargo_stack"
+      },
+      {
+        "id": "cargo_yard_2",
+        "x": 129,
+        "z": 51,
+        "hx": 1.4,
+        "hz": 1,
+        "angle": 0.2,
+        "height": 1.45,
+        "kind": "cargo_stack"
+      },
+      {
+        "id": "loading_cart_0",
+        "x": 111,
+        "z": -31,
+        "hx": 0.8,
+        "hz": 1.25,
+        "angle": 0.2,
+        "height": 1.25,
+        "kind": "handcart"
+      },
+      {
+        "id": "loading_cart_1",
+        "x": 122,
+        "z": 14,
+        "hx": 0.8,
+        "hz": 1.25,
+        "angle": 0.2,
+        "height": 1.25,
+        "kind": "handcart"
+      },
+      {
+        "id": "dry_repair_boat",
+        "x": 129,
+        "z": 79.5,
+        "hx": 1.7,
+        "hz": 3.4,
+        "angle": 0,
+        "height": 2,
+        "kind": "repair_hull"
+      },
+      {
+        "id": "repair_timber",
+        "x": 145,
+        "z": 77,
+        "hx": 1,
+        "hz": 2.3,
+        "angle": 0,
+        "height": 0.72,
+        "kind": "timber_stack"
+      },
+      {
+        "id": "shipwright_bench",
+        "x": 132.6,
+        "z": 78,
+        "hx": 1,
+        "hz": 0.6,
+        "angle": 0,
+        "height": 1.15,
+        "kind": "repair_bench"
+      }
+    ],
+    "lighthouseStyle": {
+      "stripeColor": "#b77e64",
+      "roofColor": "#668491"
+    },
+    "workSurfaces": [
+      {
+        "x": 116,
+        "z": -33,
+        "rx": 8,
+        "rz": 6,
+        "angle": 0.2
+      },
+      {
+        "x": 125,
+        "z": 12,
+        "rx": 8,
+        "rz": 8,
+        "angle": 0.2
+      },
+      {
+        "x": 130,
+        "z": 50,
+        "rx": 9,
+        "rz": 6,
+        "angle": 0.2
+      },
+      {
+        "x": 130,
+        "z": 78,
+        "rx": 12,
+        "rz": 8,
+        "angle": 0
       }
     ]
   },

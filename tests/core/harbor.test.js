@@ -212,3 +212,29 @@ test('rotated repair slipway joins dry ground and descends along its own axis', 
     previous=p;
   }
 });
+
+test('district work areas use individual dry colliders and every frontage has a clear road connection', () => {
+  for(const p of data.world.harbor.workProps){
+    const box=world.boxes.find(b=>b.id===p.id);
+    assert.equal(box.type,'harbor_work');
+    for(const key of ['x','z','hx','hz','angle','height'])assert.equal(box[key],p[key],p.id+' '+key);
+    assert.ok(!world.isFree(p.x,p.z,.45),p.id+' blocks walking through working equipment');
+    for(const x of [-p.hx,p.hx])for(const z of [-p.hz,p.hz]){
+      const pt=fromBoxLocal(p,x,z);assert.ok(!world.inSea(pt.x,pt.z),p.id+' stays on land');
+    }
+  }
+  for(const b of data.world.town.buildings.filter(b=>data.world.town.districtStyle.buildingIds.includes(b.id))){
+    assert.ok(b.entryPath?.length>=2,b.id+' has an entry');
+    const first=b.entryPath[0],front=fromBoxLocal(b,0,b.hz+.85);
+    assert.ok(Math.hypot(first[0]-front.x,first[1]-front.z)<.001,b.id+' reaches its front threshold');
+    const end=b.entryPath.at(-1);assert.ok(world.roadDist(...end)<0,b.id+' connects to a road');
+    for(let j=1;j<b.entryPath.length;j++){
+      const a=b.entryPath[j-1],end=b.entryPath[j],n=Math.max(1,Math.ceil(Math.hypot(end[0]-a[0],end[1]-a[1])/.2));let prev=a;
+      for(let k=0;k<=n;k++){
+        const p=[a[0]+(end[0]-a[0])*k/n,a[1]+(end[1]-a[1])*k/n];
+        assert.ok(world.isFree(...p,.45),b.id+' entry remains clear');
+        assert.ok(!world.tooSteep(...prev,...p),b.id+' entry stays walkable');prev=p;
+      }
+    }
+  }
+});

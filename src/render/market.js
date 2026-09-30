@@ -3,10 +3,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toon, outlined, darker } from './toon.js';
-import { toBoxLocal } from '../core/math.js';
+import { toBoxLocal, fromBoxLocal, clamp } from '../core/math.js';
 
 const C = { plaster:'#e4dcc5', stone:'#a9aa98', wood:'#80644c', dark:'#554f43', glass:'#6f9699', rope:'#c0ae7f', leaf:'#74875c', fish:'#adc1ba' };
-function builder() {
+export function builder() {
   const batches=new Map(), root=new THREE.Group();
   const part=(geo,color,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{
     const matrix=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,ry,rz)),new THREE.Vector3(1,1,1));
@@ -32,7 +32,7 @@ function roofGeometry(w,d,rise,hip) {
 
 // Exterior shop assemblies occupy the original solid building plot, including
 // the recessed work frontage. Services and interiors remain unchanged.
-function shopDoor(b,x,z,height=1.95) {
+export function shopDoor(b,x,z,height=1.95) {
   const {box,part}=b;
   box(1.16,height,.10,C.dark,x,height/2+.13,z);
   for(const side of [-1,1])box(.12,height+.18,.16,C.wood,x+side*.65,height/2+.16,z);
@@ -40,7 +40,7 @@ function shopDoor(b,x,z,height=1.95) {
   for(const dx of [-.36,0,.36])box(.035,height-.16,.025,'#7e6b50',x+dx,height/2+.13,z+.061);
   part(new THREE.SphereGeometry(.055,7,5),C.rope,x+.37,1.05,z+.07);
 }
-function shopWindow(b,x,y,z,width=1.25,height=1.0,color=C.wood) {
+export function shopWindow(b,x,y,z,width=1.25,height=1.0,color=C.wood) {
   const {box}=b;
   box(width+.18,height+.16,.08,C.dark,x,y,z);
   box(width,height,.10,C.glass,x,y,z+.015);
@@ -49,7 +49,7 @@ function shopWindow(b,x,y,z,width=1.25,height=1.0,color=C.wood) {
   for(const side of [-1,1])box(.24,height+.16,.10,color,x+side*(width/2+.22),y,z);
   box(width+.7,.10,.28,C.wood,x,y-height/2-.12,z+.02);
 }
-function shopRoof(b,w,d,base,rise,z,color,{hip=false,frontGable=false}={}) {
+export function shopRoof(b,w,d,base,rise,z,color,{hip=false,frontGable=false}={}) {
   const {part,box}=b;
   part(roofGeometry(frontGable?d:w,frontGable?w:d,rise,hip),color,0,base,z,0,frontGable?Math.PI/2:0);
   for(const side of [-1,1])for(let i=1;i<5;i++){
@@ -66,7 +66,7 @@ function fishProp(b,x,y,z,vertical=false) {
   // Dark eye and warm gill break the silhouette of an unmarked silver oval.
   box(.035,.035,.035,C.dark,x+(vertical?0:.13),y+(vertical?.13:.06),z+.11);
 }
-function shopLantern(b,x,y,z) {
+export function shopLantern(b,x,y,z) {
   const {box}=b;
   box(.13,.38,.14,C.wood,x,y+.3,z-.08);
   box(.30,.38,.30,'#e5c77f',x,y,z);
@@ -355,11 +355,13 @@ export function marketQuay(world) {
     const [x,z,angle]=world.data.harbor.boats[index];
     const berth=world.docks.filter(d=>d.kind==='pier'&&!d.rampFromTerrain).sort((a,c)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(c.x-x,c.z-z))[0];
     if(!berth)continue;
-    const side=berth.x<x?-1:1;
+    const side=Math.sign(toBoxLocal({x,z,angle},berth.x,berth.z).lx)||1;
     for(const zz of [-1.8,1.8]) {
       const sx=x+Math.cos(angle)*side*1.05+Math.sin(angle)*zz;
       const sz=z-Math.sin(angle)*side*1.05+Math.cos(angle)*zz;
-      const ex=berth.x-side*(berth.hx-.12),ez=sz;
+      const local=toBoxLocal(berth,sx,sz);
+      const anchor=fromBoxLocal(berth,Math.sign(local.lx)*(berth.hx-.12),clamp(local.lz,-berth.hz+.4,berth.hz-.4));
+      const ex=anchor.x,ez=anchor.z;
       const start=new THREE.Vector3(sx,world.waterLevel+.69,sz),end=new THREE.Vector3(ex,berth.height+.12,ez);
       const middle=start.clone().lerp(end,.5);middle.y-=.15;
       part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([start,middle,end]),8,.025,5,false),C.rope);
@@ -369,7 +371,7 @@ export function marketQuay(world) {
   const root=b.finish();root.add(...cargoGroups);return root;
 }
 
-/** Open working boat for the two reviewed market berths; no sailing logic. */
+/** Open working boat for authored harbour berths; no sailing logic. */
 export function marketFishingBoat(x,z,angle,water) {
   const b=builder(),{box,part}=b;
   // Port/starboard sides taper into a pointed bow and a flat, low stern.

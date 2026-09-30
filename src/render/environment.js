@@ -14,6 +14,7 @@ import { attachGrassSurface, grassMaterial } from './grass.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createHarbor } from './harbor.js';
+import { marketBuilding, marketStall, marketQuay } from './market.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -609,11 +610,22 @@ function createTown(world, rng) {
   const g = new THREE.Group();
   const gy = (x, z) => world.groundY(x, z);
   const roofCols = ['#b8543f', '#4f6fa8', '#8f5a3c', '#5e8a4a'];
+  const t = world.data.town, slice=t.styleSlice;
+  let stallIndex=0;
   for (const bx of world.boxes) {
-    if (bx.type === 'house') g.add(world.data.town.blockout ? blockoutBuilding(bx, gy(bx.x, bx.z)) : house(bx, bx.roofColor || rng.pick(roofCols), gy(bx.x, bx.z)));
-    if (bx.type === 'stall') g.add(stall(bx, rng.pick(['#d8483a', '#3b6ad0', '#e0a030']), gy(bx.x, bx.z)));
+    if (bx.type === 'house') {
+      const y=gy(bx.x,bx.z);
+      const model=slice?.buildingIds.includes(bx.id) ? marketBuilding(bx,y)
+        : t.blockout ? blockoutBuilding(bx,y) : house(bx,bx.roofColor || rng.pick(roofCols),y);
+      g.add(model);
+    }
+    if (bx.type === 'stall') {
+      const i=stallIndex++;
+      g.add(slice ? marketStall(bx,slice.awningColors[i % slice.awningColors.length],gy(bx.x,bx.z),slice.stallGoods[i]==='fish')
+        : stall(bx,rng.pick(['#d8483a','#3b6ad0','#e0a030']),gy(bx.x,bx.z)));
+    }
   }
-  const t = world.data.town;
+  if(slice)g.add(marketQuay(world));
   // workbench: table + anvil + tools
   const wb = new THREE.Group();
   wb.position.set(t.workbench[0], gy(t.workbench[0], t.workbench[1]), t.workbench[1] - 1.6);

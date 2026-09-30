@@ -34,7 +34,18 @@ export function surfaceData(world) {
   for (const r of world.roads) {
     const half = r.width / 2;
     rasterPolyline(grid, r.points, half + 1.5, (k, d) => {
-      road[k] = Math.max(road[k], 1 - smooth(half - 0.7, half + 0.7, d));
+      const x=ox+(k%w)*res, z=oz+Math.floor(k/w)*res;
+      const worn=(valueNoise(x*.22,z*.22,71)-.5)*.7+(valueNoise(x*.85,z*.85,72)-.5)*.22;
+      road[k] = Math.max(road[k], 1 - smooth(half - .6 + worn, half + 1.05 + worn, d));
+    });
+  }
+  // Short worn entries connect the approved market frontage to its main road.
+  for(const building of wd.town.buildings) if(wd.town.styleSlice?.buildingIds.includes(building.id)) {
+    const half=1.2;
+    rasterPolyline(grid,[[building.x,building.z+building.hz],[building.x,wd.town.centre[1]]],half+1,(k,d)=>{
+      const x=ox+(k%w)*res,z=oz+Math.floor(k/w)*res;
+      const wear=(valueNoise(x*.4,z*.4,77)-.5)*.3;
+      road[k]=Math.max(road[k],1-smooth(half-.35+wear,half+.7+wear,d));
     });
   }
   if(artReviewLayout)rasterPolyline(grid,animeConfig.sample.path,1.6,(k,d)=>{road[k]=Math.max(road[k],1-smooth(.65,1.5,d));});
@@ -61,11 +72,19 @@ export function surfaceData(world) {
         const c = world.coastAt(x, z), d = c.distance;
         const beach = wd.sea.beach || 14;
         coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + 2.5, d) : 0;
-        if(c.kind !== 'beach' && d >= 0 && d < 4) stone[k] = 1;
+        if(c.kind !== 'beach' && d >= 0 && d < 5.5) {
+          const wear=(valueNoise(x*.28,z*.28,74)-.5)*1.1;
+          stone[k]=Math.max(stone[k],1-smooth(2.3+wear,4.8+wear,d));
+        }
         coast[k * 2 + 1] = -d;
       }
       const td = Math.hypot(x - town.centre[0], z - town.centre[1]);
-      if (td < town.plazaRadius + 2) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.5, town.plazaRadius, td));
+      const plazaWear=(valueNoise(x*.17,z*.17,75)-.5)*2;
+      if (td < town.plazaRadius + 3) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.2 + plazaWear, town.plazaRadius + 1.4 + plazaWear, td));
+      if(town.styleSlice && z > -44 && z < -24 && Math.abs(x) < 43) {
+        const apron=Math.max(Math.abs(x)/40,Math.abs(z+33)/8);
+        stone[k]=Math.max(stone[k],1-smooth(.72,1.12,apron+(valueNoise(x*.2,z*.2,76)-.5)*.14));
+      }
       if (ruins) {
         const rd = Math.hypot(x - ruins.centre[0], z - ruins.centre[1]);
         stone[k] = Math.max(stone[k], 1 - smooth(ruins.ringRadius + 0.5, ruins.ringRadius + 2.5, rd));
@@ -237,7 +256,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v5';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v6';
   return mat;
 }
 

@@ -78,10 +78,11 @@ export function coastSample(sea, x, z) {
     const a = sea.shore[i], b = sea.shore[i + 1];
     const vx=b[0]-a[0], vz=b[1]-a[1], len2=vx*vx+vz*vz;
     const t=len2>0?clamp(((x-a[0])*vx+(z-a[1])*vz)/len2,0,1):0;
-    const d=Math.hypot(x-a[0]-vx*t,z-a[1]-vz*t);
+    const dx=x-a[0]-vx*t, dz=z-a[1]-vz*t;
+    const d=dx*dx+dz*dz;
     if (d < nearest) { nearest = d; index = i; }
   }
-  return { distance: nearest * (z > polylineZAtX(sea.shore, x) ? -1 : 1), kind: sea.edgeKinds?.[index] || 'beach' };
+  return { distance: Math.sqrt(nearest) * (z > polylineZAtX(sea.shore, x) ? -1 : 1), kind: sea.edgeKinds?.[index] || 'beach' };
 }
 
 /** Transform a world point into an oriented box's local frame. Box: {x,z,hx,hz,angle}. */

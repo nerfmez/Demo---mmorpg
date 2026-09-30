@@ -3,9 +3,10 @@
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
-const out=`tests/browser/out/azure-blockout-${engine.name()}/`;mkdirSync(out,{recursive:true});
+const styleReview=!!JSON.parse(readFileSync('data/world.json','utf8')).town.styleSlice;
+const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
 const port=4191,base=`http://localhost:${port}/`;
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port',String(port),'--strictPort'],{stdio:'ignore',detached:true});
 const report={engine:engine.name(),errors:[],hardwareIPadFPS:'not measured',captures:[]};
@@ -45,10 +46,12 @@ try {
     return {townUnlocked:g.isWaypointUnlocked('town'),quest:g.ch.progress.quests.h_arrival?.status};
   });
   assert.ok(report.walk.townUnlocked&&report.walk.quest==='done');
+  if(styleReview){report.marketPierWalk=await page.evaluate(()=>{const f=window.__frontier,g=f.game;Object.assign(g.player,g.freeSpotNear(0,-42));for(const [x,z] of [[0,-31],[-25,-31],[-25,-22],[-25,-9]]){let i=0;for(;i<1500&&Math.hypot(x-g.player.x,z-g.player.z)>.2;i++){g.setMove(x-g.player.x,z-g.player.z);g.update(1/60);}if(i===1500)throw Error('market-to-pier route blocked');}g.setMove(0,0);return {onPier:!!g.world.dockAt(g.player.x,g.player.z),alive:!g.player.dead};});assert.ok(report.marketPierWalk.onPier&&report.marketPierWalk.alive);}
   const shot=async(name)=>{await page.screenshot({path:out+name+'.png',timeout:60000});report.captures.push(name);console.log('captured',name);};
   const stage=async(x,z)=>page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=1;f.view.camera.up.set(0,1,0);f.view.snapCamera();f.view.render(.016,f.game.time,{});f.hud.update(.6,f.panels);},[x,z]);
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
-  await stage(-37,-43);await shot('02-market-gameplay');
+  await stage(styleReview?-42:-37,styleReview?-47.8:-43);await shot('02-market-gameplay');
+  if(styleReview){await stage(-25,-51.5);await shot('05-craft-gameplay');await stage(45,-47.8);await shot('06-inn-gameplay');}
   await stage(-25,-20);await shot('04-market-pier-gameplay');
   await stage(114,76);await shot('03-rotated-slipway-gameplay');
   await page.setViewportSize({width:1440,height:1000});
@@ -71,4 +74,4 @@ try {
   await shot('01-u-bay-overview');
   assert.deepEqual(report.errors,[],'no runtime/asset/shader errors');
   report.passed=true;writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
-} finally {await browser?.close();try{process.kill(-server.pid)}catch{}}
+} finally {if(!report.passed){writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));}await browser?.close();try{process.kill(-server.pid)}catch{}}

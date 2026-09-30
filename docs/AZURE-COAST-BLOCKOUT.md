@@ -1,8 +1,8 @@
 # Azure Coast — U-bay blockout review
 
-Base: `88e2a2bc0a8d288909b05b86d6e9d1d394362f00` (main, including coastal attack PR #20). This draft stops at the exterior layout. No merge or deployment is authorized.
+Base: `88e2a2bc0a8d288909b05b86d6e9d1d394362f00` (main, including coastal attack PR #20). The owner approved the exterior layout on 30 September 2026 and authorized continuing with the market-to-pier style slice. No merge or deployment is authorized.
 
-The 320 × 240 m map keeps the reference's U-shaped bay opening south. Residential loop lanes occupy the west; market, craft table, trainer and town stone sit north of the bay; a six-metre road leads north to existing hunting content; warehouses and their loading lane occupy the east; the repair shed and rotated slipway sit southeast; lighthouse and short breakwater sit southwest. Four short piers point inward without obstructing the bay mouth. Primary roads are 5.5–6 m and lanes 3.5–4 m. Building boxes use authored dimensions, 3.6–6 m heights and per-building roof colors. These are review volumes, not finished buildings.
+The 320 × 240 m map keeps the reference's U-shaped bay opening south. Residential loop lanes occupy the west; market, craft table, trainer and town stone sit north of the bay; a six-metre road leads north to existing hunting content; warehouses and their loading lane occupy the east; the repair shed and rotated slipway sit southeast; lighthouse and short breakwater sit southwest. Four short piers point inward without obstructing the bay mouth. Primary roads are 5.5–6 m and lanes 3.5–4 m. Building boxes use authored dimensions, 3.6–6 m heights and per-building roof colors. Most districts remain review volumes. Four market buildings now have finished exteriors for style review.
 
 `shoreZ(x)` and the existing water system remain. Nearest shoreline distance follows side coasts, and segment edge types separate sand, quay, breakwater and repair frontage. Rotated dock ramps sample and interpolate in dock-local Z; rendered deck vertices use the same slope without changing their XZ footprint. Clearance supports adjoining deck seams and blocks the exposed outer sides.
 
@@ -16,6 +16,16 @@ Validation for this draft:
 - Four screenshots: U-bay overview with review labels, original gameplay camera at the market, market-to-pier connection, and rotated repair slipway. Overview changes the camera only inside the capture harness. Production camera and lighting remain unchanged.
 - Hardware iPad FPS has not been measured. Browser viewport/touch checks do not establish 60 FPS on iPad. WebKit and full smoke are left to PR CI/premerge review; no local stress/leak session was needed.
 
-Known review points: overall walking distances, spacing between market and docks, residential density, shipyard working space and the low quay silhouette. No interiors, ship driving or new fishing system. After owner approval, dress one market-to-pier slice and request style review before expanding.
+Known review points: overall walking distances, spacing between market and docks, residential density, shipyard working space and the low quay silhouette. No interiors, ship driving or new fishing system. The layout is approved; the market-to-pier style slice now awaits owner review before expansion.
 
 Direct source reads covered world/terrain/math, character migration/game spawning and checkpoints, harbor/environment/ground renderers, map UI, quests, layout export, port contracts and affected captures/tests. No unresolved source discovery required Jev; no Jev request was made. CI status must be checked on the draft PR and is not inferred from local checks.
+
+## Market-to-pier style review (30 September 2026)
+
+The owner requested natural road and other edges before proceeding. Existing road corners now curve inside their approved corridors, and monotone coast samples soften the U-bay without replacing the water system. Worn road shoulders, irregular paving margins and soft dirt/grass transitions replace ruler-straight painted boundaries. The breakwater approach retains its original deck joining points.
+
+The fish hall has a low hipped terracotta roof; the workshop has a brown gable and small chimney; the provision shop has a gray roof; the inn has two low storeys and a muted blue roof. Windows, timber trim, signs and potted plants stay within the authored base footprints. Roof courses and small joints use the original cel materials, lighting and gameplay camera. Four awning stalls group fish on the west and provisions on the east. Coiled rope, a hanging net and floats sit at the two market pier edges; low curved quay coping leaves open pier approaches. Other neighborhoods remain blockout. No interiors, boat control or fishing system were added.
+
+Static market pieces are batched per color within each building/prop group. No extra animation callbacks or texture assets were introduced. This does not establish an iPad FPS result.
+
+Validation: 25 targeted world/harbor/save checks passed after the curved layout and coast lookup changes. Build passed. Focused Chromium checks passed with native touch input, safe arrival/first quest and real movement from the market square through the aisle onto the west market pier. Actual gameplay images cover the fish hall, workshop, inn and pier, plus an overview and repair-slipway regression view; runtime/asset/shader errors were empty. Hardware iPad performance remains unmeasured; CI status is reported separately on the draft. No merge or deployment.

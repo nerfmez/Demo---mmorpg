@@ -51,6 +51,27 @@ try {
    const A=controls[a],B=controls[b];assert.ok(A.x+A.w<=B.x||B.x+B.w<=A.x||A.y+A.h<=B.y||B.y+B.h<=A.y,`${size}: combat controls overlap ${a}/${b}`);
   }
   const xp=await page.locator('.xpstrip').boundingBox();assert.equal(Math.round(xp.y+xp.height),height);
+  assert.equal(xp.height,24,`${size}: EXP dock stays compact`);
+  const edgeTracks=async()=>page.locator('.xp-track').evaluateAll(es=>es.map(el=>{
+   const r=el.getBoundingClientRect();return {bottom:r.bottom,height:r.height};
+  }));
+  for(const track of await edgeTracks()){
+   assert.equal(track.height,4,`${size}: thin EXP track`);
+   assert.equal(height-track.bottom,2,`${size}: actual EXP track touches the bottom margin`);
+  }
+  // Safari home-indicator space: move the tracks and controls by the inset exactly once.
+  const combatBefore=await page.locator('.combat').boundingBox();
+  await page.evaluate(()=>document.body.style.setProperty('--safe-b','34px'));
+  await settle();
+  for(const track of await edgeTracks())assert.equal(height-track.bottom,36,`${size}: track clears home indicator`);
+  const combatSafe=await page.locator('.combat').boundingBox();
+  assert.equal(combatBefore.y-combatSafe.y,34,`${size}: safe area reserved once for combat`);
+  const safeXp=await page.locator('.xpstrip').boundingBox();assert.equal(safeXp.y+safeXp.height,height);
+  if(size==='ipad')await page.screenshot({path:out+size+'-safe-area.png',timeout:60000});
+  await page.evaluate(()=>document.body.style.removeProperty('--safe-b'));
+  await page.setViewportSize({width,height:height-40});await settle();
+  for(const track of await edgeTracks())assert.equal(height-40-track.bottom,2,`${size}: tracks follow viewport resize`);
+  await page.setViewportSize({width,height});await settle();
   assert.equal(await page.locator('.combat .sbtn').count(),5);
   assert.equal(await page.locator('.combat .art-skill').count(),5);
   assert.equal(await page.locator('.combat [data-field-skill]').count(),0);
@@ -87,7 +108,11 @@ try {
   await activate('.quest-collapse');assert.equal(await page.locator('.quest-collapse').getAttribute('aria-expanded'),'false');
   await activate('.quest-collapse');
   await activate('.quick-actions [aria-label="สกิล"]');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');
+  assert.equal(await page.locator('.pframe').evaluate(el=>getComputedStyle(el).visibility),'hidden','field HUD does not bleed through menu');
+  assert.equal(await page.locator('.field-xp').evaluate(el=>getComputedStyle(el).visibility),'hidden','EXP dock is quiet while reading menus');
+  if(size==='ipad')await page.screenshot({path:out+size+'-skills.png',timeout:60000});
   await activate('.panel-close');
+  assert.equal(await page.locator('.field-xp').evaluate(el=>getComputedStyle(el).visibility),'visible','EXP dock returns after closing');
   await activate('.menu-toggle');await activate('.menu [aria-label="Job Tree"]');
   const full=await page.locator('.panel').boundingBox();assert.equal(full.width,width);assert.equal(full.height,height);
   await activate('[data-act="close-journal"]');

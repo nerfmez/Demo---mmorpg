@@ -26,7 +26,7 @@ export function seekerBrand() {
 }
 export function xpMarkup() {
   const seg = name => `<div class="xpseg ${name}"><b class="xp-label"></b><div class="xp-track"><i class="fill"></i></div><span></span></div>`;
-  return `<div class="xpstrip field-xp" aria-label="ค่าประสบการณ์"><small class="field-motto">FOCUS ON THE ADVENTURE.</small>${seg('exp')}${seg('job')}<small class="field-motto end">SAME SKY. DIFFERENT JOURNEYS.</small></div>`;
+  return `<div class="xpstrip field-xp" aria-label="ค่าประสบการณ์">${seg('exp')}${seg('job')}</div>`;
 }
 export function xpPresentation(ch, data) {
   const value = (v, total, maxed, prefix) => {

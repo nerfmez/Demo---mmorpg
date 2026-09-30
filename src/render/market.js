@@ -30,89 +30,215 @@ function roofGeometry(w,d,rise,hip) {
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(faces.flatMap(i=>vertices[i]),3));g.computeVertexNormals();return g;
 }
 
+// Exterior shop assemblies occupy the original solid building plot, including
+// the recessed work frontage. Services and interiors remain unchanged.
+function shopDoor(b,x,z,height=1.95) {
+  const {box,part}=b;
+  box(1.16,height,.10,C.dark,x,height/2+.13,z);
+  for(const side of [-1,1])box(.12,height+.18,.16,C.wood,x+side*.65,height/2+.16,z);
+  box(1.42,.14,.16,C.wood,x,height+.2,z);
+  for(const dx of [-.36,0,.36])box(.035,height-.16,.025,'#7e6b50',x+dx,height/2+.13,z+.061);
+  part(new THREE.SphereGeometry(.055,7,5),C.rope,x+.37,1.05,z+.07);
+}
+function shopWindow(b,x,y,z,width=1.25,height=1.0,color=C.wood) {
+  const {box}=b;
+  box(width+.18,height+.16,.08,C.dark,x,y,z);
+  box(width,height,.10,C.glass,x,y,z+.015);
+  box(.08,height+.04,.13,C.wood,x,y,z+.04);
+  box(width+.04,.07,.13,C.wood,x,y,z+.04);
+  for(const side of [-1,1])box(.24,height+.16,.10,color,x+side*(width/2+.22),y,z);
+  box(width+.7,.10,.28,C.wood,x,y-height/2-.12,z+.02);
+}
+function shopRoof(b,w,d,base,rise,z,color,{hip=false,frontGable=false}={}) {
+  const {part,box}=b;
+  part(roofGeometry(frontGable?d:w,frontGable?w:d,rise,hip),color,0,base,z,0,frontGable?Math.PI/2:0);
+  for(const side of [-1,1])for(let i=1;i<5;i++){
+    const t=i/5,half=frontGable?w/2:d/2,offset=side*half*(1-t);
+    const length=hip?w-d*.64*t:frontGable?d:w;
+    box(frontGable?.055:length,.035,frontGable?length:.055,darker(color,.90),frontGable?offset:0,base+rise*t+.025,z+(frontGable?0:offset),frontGable?0:side*Math.atan2(rise,half),0,frontGable?-side*Math.atan2(rise,half):0);
+  }
+  box(frontGable?.15:hip?w-d*.64:w,.13,frontGable?d:.15,darker(color,.85),0,base+rise+.045,z);
+}
+function fishProp(b,x,y,z,vertical=false) {
+  const {part,box}=b;
+  part(new THREE.SphereGeometry(.16,9,5).scale(1.5,.48,.72),C.fish,x,y,z,0,vertical?0:.10,vertical?Math.PI/2:0);
+  part(new THREE.ConeGeometry(.11,.18,3).scale(1,1,.4),C.fish,x+(vertical?0:-.29),y+(vertical?-.29:0),z,0,0,vertical?0:-Math.PI/2);
+  // Dark eye and warm gill break the silhouette of an unmarked silver oval.
+  box(.035,.035,.035,C.dark,x+(vertical?0:.13),y+(vertical?.13:.06),z+.11);
+}
+function shopLantern(b,x,y,z) {
+  const {box}=b;
+  box(.13,.38,.14,C.wood,x,y+.3,z-.08);
+  box(.30,.38,.30,'#e5c77f',x,y,z);
+  box(.36,.07,.36,C.dark,x,y+.23,z);
+  box(.32,.07,.32,C.dark,x,y-.23,z);
+}
+function shopShell(b,bx,front,wall,{timber=false,openBays=[]}={}) {
+  const {box}=b,w=bx.hx*2,back=-bx.hz+.22;
+  box(w-.40,wall-.14,front-back,bx.wallColor||C.plaster,0,(wall+.14)/2,(front+back)/2);
+  for(const x of [-bx.hx+.27,bx.hx-.27])box(.16,wall,.16,C.wood,x,wall/2,front);
+  box(w-.44,.16,.16,C.wood,0,wall-.08,front);
+  if(timber)for(let y=.42;y<wall-.2;y+=.42)box(w-.5,.12,.05,'#987859',0,y,front+.04);
+  // Shallow dark recesses are closed exterior displays, not new interior scenes.
+  for(const [x,width] of openBays){
+    box(width,1.68,.08,C.dark,x,1.05,front+.10);
+    for(const dx of [-width/2,width/2])box(.13,1.9,.15,C.wood,x+dx,1.12,front+.15);
+    box(width+.18,.14,.18,C.wood,x,1.99,front+.15);
+  }
+}
+function fishHall(b,bx) {
+  const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-2.15,roofZ=-1.0;
+  shopShell(b,bx,front,2.30,{openBays:[[-3.2,4.7],[3.2,4.7]]});
+  shopRoof(b,w,d-2.0,2.3,1.25,roofZ,bx.roofColor,{hip:true});
+  // A low open fish-market frontage, with two large work counters and a
+  // short shade strip behind them so the fish remain visible from above.
+  box(w-1.0,.08,.85,'#728e8c',0,2.14,front+.48,.13);
+  for(const x of [-bx.hx+.7,0,bx.hx-.7])box(.12,2.18,.12,C.wood,x,1.09,front+.85);
+  for(const x of [-3.2,3.2]){
+    box(4.6,.13,1.15,'#a48358',x,.85,bx.hz-.72);
+    for(const dx of [-1.9,1.9])box(.15,.79,.90,C.wood,x+dx,.40,bx.hz-.72);
+    for(const dx of [-1.13,1.13]){
+      box(2.08,.07,.93,'#668381',x+dx,.95,bx.hz-.72);
+      for(const zz of [-.48,.48])box(2.15,.13,.05,'#b9ac8a',x+dx,1.03,bx.hz-.72+zz);
+      for(const xx of [-.65,0,.65])fishProp(b,x+dx+xx,1.04,bx.hz-.68);
+    }
+    // Hanging catch is a secondary cue under the open market beam.
+    for(const dx of [-.7,.7]){
+      box(.018,.25,.018,C.rope,x+dx,1.83,front+.23);
+      fishProp(b,x+dx,1.46,front+.23,true);
+    }
+  }
+  shopDoor(b,0,front+.16,1.72);
+  // Broad painted fish silhouette centred above the entrance.
+  box(2.35,.70,.12,'#6e8984',0,2.40,front+.15);
+  part(new THREE.SphereGeometry(.36,10,5).scale(1.8,.55,.13),'#e7dfbc',.13,2.41,front+.235);
+  part(new THREE.ConeGeometry(.28,.38,3).scale(1,1,.16),'#e7dfbc',-.63,2.41,front+.235,0,0,-Math.PI/2);
+  for(const x of [-bx.hx+.38,bx.hx-.38]){
+    part(new THREE.CylinderGeometry(.27,.22,.60,8),'#b6a37c',x,.32,bx.hz-.48);
+    for(let zz=-.3;zz<=.3;zz+=.15)box(.02,.9,.02,'#8c9d88',x,.72,front+.15+zz);
+  }
+}
+function craftHouse(b,bx) {
+  const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-2.2,roofZ=-1.0;
+  shopShell(b,bx,front,2.52,{timber:true,openBays:[[1.70,4.30]]});
+  shopRoof(b,w-.08,d-2.0,2.52,1.20,roofZ,bx.roofColor,{frontGable:true});
+  shopDoor(b,-2.60,front+.15);
+  // The recessed front gable is timbered; the forge chimney breaks its roof.
+  box(.14,1.05,.12,C.wood,0,3.04,front+.10);
+  box(4.4,.12,.12,C.wood,0,2.75,front+.10);
+  box(.72,2.80,.74,'#929187',3.42,2.05,-1.10);
+  box(.94,.16,.92,C.stone,3.42,3.48,-1.10);
+  // Open workbench and a recognisable horned anvil occupy the forecourt.
+  box(3.10,.17,1.1,'#9e784d',.25,.93,bx.hz-.73);
+  for(const x of [-1.03,1.53])box(.16,.87,.75,C.wood,x,.45,bx.hz-.73);
+  box(.52,.32,.42,'#65716f',-.25,1.18,bx.hz-.73);
+  box(.96,.12,.48,'#939b95',-.25,1.38,bx.hz-.73);
+  part(new THREE.ConeGeometry(.22,.48,6),'#939b95',.40,1.38,bx.hz-.73,0,0,-Math.PI/2);
+  box(.52,.13,.22,'#939b95',.95,1.07,bx.hz-.55,0,.3);
+  box(.07,.07,.64,C.wood,.95,1.07,bx.hz-.84,0,.3);
+  // A low stone forge with a warm coal opening; no animation or new rule.
+  box(1.28,1.25,1.15,C.stone,3.48,.65,bx.hz-.80);
+  box(.85,.59,.04,C.dark,3.48,.79,bx.hz-.20);
+  box(.65,.13,.06,'#c68446',3.48,.58,bx.hz-.18);
+  for(const xx of [-.22,0,.22])part(new THREE.DodecahedronGeometry(.10,0),'#dfad64',3.48+xx,.69,bx.hz-.14);
+  box(1.30,.12,1.18,'#737d75',3.48,1.35,bx.hz-.80);
+  // Full-size hanging tools are legible from the gameplay camera.
+  box(2.6,.95,.10,'#785e48',1.60,1.44,front+.22);
+  for(const x of [.65,1.45,2.25]){
+    box(.07,.61,.08,'#b9a474',x,1.45,front+.30);
+    box(.45,.16,.11,'#a3aeaa',x,1.78,front+.32,0,0,(x-1.4)*.2);
+  }
+  shopLantern(b,-3.60,1.62,front+.34);
+}
+function provisions(b,bx) {
+  const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-2.05;
+  shopShell(b,bx,front,2.55,{openBays:[[-1.35,5.0]]});
+  shopDoor(b,3.15,front+.15);
+  // Single-slope slate roof and a striped shop awning make this frontage
+  // distinct from the fish hall, front-gabled workshop and two-storey inn.
+  const roof=new THREE.BoxGeometry(w,.18,d-1.8),p=roof.attributes.position;
+  for(let i=0;i<p.count;i++)p.setY(i,p.getY(i)-p.getZ(i)*.18);
+  roof.computeVertexNormals();part(roof,bx.roofColor,0,3.03,-.9);
+  for(let z=-bx.hz+.15;z<front+.05;z+=.64)box(w-.05,.045,.065,darker(bx.roofColor,.86),0,3.03-(z+.9)*.18+.12,z,.18);
+  for(let i=0;i<8;i++){
+    const x=-3.97+i*.82;
+    box(.82,.065,1.02,i%2?'#d8c9a2':'#778e6d',x,2.18,front+.59,.15);
+    part(new THREE.SphereGeometry(.22,7,4).scale(1.8,.42,.36),i%2?'#d8c9a2':'#778e6d',x,2.06,front+1.08);
+  }
+  for(const x of [-4.30,1.90])box(.10,2.16,.10,C.wood,x,1.08,front+1.00);
+  // Shelves have jars, rolled cloth and supply boxes instead of cottage windows.
+  for(const yy of [.58,1.13,1.68]){
+    box(4.6,.10,.50,C.wood,-1.25,yy,front+.40);
+    for(let i=0;i<6;i++){
+      const x=-3.20+i*.78;
+      if(yy>1.4){box(.42,.30,.35,i%2?'#b1a283':'#839d96',x,yy+.20,front+.40);}
+      else {part(new THREE.CylinderGeometry(.16,.18,.30,8),i%2?'#bf915a':'#9fa577',x,yy+.20,front+.40);}
+    }
+  }
+  box(4.75,.13,1.02,'#a47c53',-1.3,.79,bx.hz-.63);
+  for(const x of [-3.16,-1.30,.56]){
+    box(1.5,.18,.84,C.wood,x,.94,bx.hz-.63);
+    for(let i=0;i<4;i++)part(new THREE.SphereGeometry(.16,8,5),x< -2?'#bc7950':x<0?'#91a373':'#d3bb7e',x-.45+i*.3,1.10,bx.hz-.63+(i%2)*.12);
+  }
+  for(const x of [2.1,4.1]){
+    part(new THREE.SphereGeometry(.40,9,6).scale(.8,1.2,.9),'#c4b28a',x,.51,bx.hz-.59);
+    part(new THREE.TorusGeometry(.17,.045,5,12),C.wood,x,.90,bx.hz-.59,Math.PI/2);
+  }
+  // A large crate-and-loaf sign sits beside the offset entrance.
+  box(1.15,.70,.10,C.wood,3.15,2.38,front+.21);
+  part(new THREE.SphereGeometry(.24,8,5).scale(1.65,.65,.16),'#dec58f',3.15,2.42,front+.29);
+}
+function harborInn(b,bx) {
+  const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.95,roofZ=-.90;
+  shopShell(b,bx,front,4.46);
+  shopRoof(b,w,d-1.8,4.46,1.35,roofZ,bx.roofColor,{hip:true});
+  box(w-.42,.18,.18,C.wood,0,2.46,front+.10);
+  for(const x of [-5.25,-2.70,2.70,5.25]){
+    shopWindow(b,x,3.38,front+.11,1.18,1.1,'#708c80');
+    box(.12,1.70,.12,C.wood,x,3.45,front+.05);
+  }
+  for(const side of [-1,1])box(.10,1.4,.10,C.wood,side*1.6,3.40,front+.13,0,0,side*.55);
+  shopDoor(b,0,front+.18,2.10);
+  for(const x of [-3.5,3.5])shopWindow(b,x,1.43,front+.12,1.7,1.00,'#708c80');
+  // Small dormer is part of the low roof, without a tower or grand balcony.
+  box(2.15,.72,.86,bx.wallColor,0,4.62,front-.56);
+  part(roofGeometry(1.05,2.45,.52,false),bx.roofColor,0,4.93,front-.55,0,Math.PI/2);
+  shopWindow(b,0,4.65,front-.09,.83,.48,'#708c80');
+  // Shallow timber porch, two round tables and benches read as hospitality.
+  box(10.85,.12,.87,'#9b8464',0,2.43,front+.58,.08);
+  for(const x of [-5.35,5.35])box(.14,2.44,.14,C.wood,x,1.22,front+.98);
+  box(10.8,.13,.13,C.wood,0,2.24,front+1.00);
+  for(const x of [-3.50,3.50]){
+    part(new THREE.CylinderGeometry(.56,.56,.11,12),'#a4865d',x,.79,bx.hz-.65);
+    part(new THREE.CylinderGeometry(.10,.16,.74,7),C.wood,x,.37,bx.hz-.65);
+    for(const side of [-1,1]){
+      box(.45,.12,.53,C.wood,x+side*.97,.47,bx.hz-.65);
+      box(.08,.42,.50,C.wood,x+side*1.14,.71,bx.hz-.65);
+      for(const zz of [-.18,.18])box(.08,.42,.08,C.wood,x+side*.97,.21,bx.hz-.65+zz);
+    }
+    part(new THREE.CylinderGeometry(.085,.085,.16,8),'#e1d6b8',x-.20,.925,bx.hz-.65);
+    part(new THREE.TorusGeometry(.06,.015,5,9),'#e1d6b8',x-.09,.925,bx.hz-.65,0,Math.PI/2);
+  }
+  for(const side of [-1,1]){
+    shopLantern(b,side*.95,1.70,front+.32);
+    part(new THREE.CylinderGeometry(.37,.27,.55,8),'#b58061',side*6.10,.30,bx.hz-.62);
+    part(new THREE.DodecahedronGeometry(.43,0),C.leaf,side*6.10,.77,bx.hz-.62);
+  }
+  box(1.24,.75,.12,'#708c80',-1.50,2.05,front+1.06);
+  box(.80,.11,.045,'#e6d5ad',-1.50,2.02,front+1.15);
+  for(const dx of [-.34,.34])box(.065,.32,.045,'#e6d5ad',-1.50+dx,2.04,front+1.15);
+  box(.23,.15,.045,'#e6d5ad',-1.70,2.16,front+1.15);
+}
+
 export function marketBuilding(bx,y) {
-  const b=builder(),{box,part}=b,w=bx.hx*2,d=bx.hz*2;
-  const two=bx.variant==='inn',hip=bx.variant==='fish_hall';
-  const rise=two?1.5:1.15,wall=bx.height-rise,roof=bx.roofColor;
-  // A recessed doorstep removes the continuous high curb across the door.
-  box(w,.26,d-.55,C.stone,0,.13,-.275);
-  for(const side of [-1,1])box(w/2-.78,.26,.55,C.stone,side*(w/4+.39),.13,d/2-.275);
-  box(1.56,.08,.52,C.stone,0,.04,d/2-.26);
-  box(1.48,.16,.27,'#b7b4a3',0,.08,d/2-.395);
-  box(w-.6,wall-.24,d-.6,bx.wallColor || C.plaster,0,(wall+.24)/2,0);
-  // Low timber frame and uneven stone footing, contained by the collider.
-  for(const x of [-w/2+.26,w/2-.26])for(const z of [-d/2+.26,d/2-.26])box(.16,wall,.16,C.wood,x,wall/2,z);
-  box(w-.04,.16,d-.04,C.wood,0,wall-.08,0);
-  if(two)box(w-.06,.15,d-.06,C.wood,0,2.4,0);
-  for(let x=-w/2+.45;x<w/2-.45;x+=1.2)box(.9,.14,.04,x%2>.5?'#b2b19e':C.stone,x,.13,d/2-.025);
-  part(roofGeometry(w,d,rise,hip),roof,0,wall,0);
-  // Broad tile courses; small staggered joints read as terracotta/slate at play zoom.
-  const courses=hip?4:5;
-  for(const side of [-1,1])for(let i=1;i<courses;i++){
-    const t=i/courses,z=side*d/2*(1-t),length=hip?w-d*.64*t:w;
-    box(length,.035,.055,i%2?darker(roof,.91):roof,0,wall+rise*t+.02,z,side*Math.atan2(rise,d/2));
-    for(let x=-length/2+.5;x<length/2-.3;x+=1.45)box(.028,.035,d/(courses*2)*.75,darker(roof,.84),x+(i%2)*.3,wall+rise*(t-.07)+.025,z+side*d*.035,side*Math.atan2(rise,d/2));
-  }
-  box(hip?w-d*.64:w,.11,.18,darker(roof,.85),0,wall+rise+.045,0);
-  const z=d/2-.08;
-  // Doors, shutters and lintels all remain inside the base footprint.
-  box(1.05,1.9,.06,C.dark,0,1.12,z);
-  for(const x of [-.62,.62])box(.12,2,.10,C.wood,x,1.2,z);
-  box(1.35,.13,.1,C.wood,0,2.2,z);
-  box(.065,.065,.07,C.rope,.32,1.13,z+.035);
-  const windows=hip?[-w*.33,-w*.17,w*.17,w*.33]:bx.variant==='provisioner'?[-w*.31,w*.31]:[-w*.29,w*.29];
-  for(const height of two?[1.65,3.5]:[1.65])for(const x of windows){
-    box(.83,.88,.045,C.dark,x,height,z);box(.68,.72,.06,C.glass,x,height,z+.008);
-    box(.065,.77,.08,C.wood,x,height,z+.04);box(.73,.06,.08,C.wood,x,height,z+.04);
-    for(const s of [-1,1])box(.22,.88,.055,two?'#71847a':C.wood,x+s*.53,height,z-.01,0,s*.15);
-    box(1.27,.1,.16,C.wood,x,height-.49,z-.02);
-  }
-  if(hip) {
-    // The hall's fish trays make its working frontage distinct from cottages.
-    for(const x of [-w*.25,w*.25]) {
-      box(2.0,.12,.38,C.wood,x,.74,z-.14);
-      box(1.62,.07,.28,C.dark,x,.83,z-.14);
-      for(let i=0;i<4;i++)part(new THREE.SphereGeometry(.13,8,5).scale(1.5,.38,.55),C.fish,x-.57+i*.38,.89,z-.14);
-    }
-  }
-  if(bx.variant==='workshop') {
-    for(const x of [-w*.29,w*.29])for(let i=0;i<3;i++)box(w*.29,.13,.06,i%2?C.wood:'#8b7157',x,.53+i*.16,z-.05);
-  }
-  if(bx.variant==='provisioner') {
-    // A low shopfront display occupies its foundation, not the walking lane.
-    for(const x of [-w*.31,w*.31]) {
-      box(1.7,.10,.40,C.wood,x,.87,z-.14);
-      for(let i=0;i<3;i++)box(.30,.27,.28,i%2?'#b6a783':'#929e80',x-.48+i*.48,1.055,z-.14);
-    }
-  }
-  if(two) {
-    // Low shuttered inn windows and a modest timber sill, no grand balcony.
-    box(w*.72,.12,.23,C.wood,0,2.86,z-.04);
-    for(const x of [-w*.29,w*.29])box(1.27,.16,.18,'#74816b',x,3.01,z-.03);
-  }
-  // Side windows give the long fish hall a different rhythm from narrow shops.
-  for(const x of [-w/2+.07,w/2-.07])for(const zz of [-d*.23,d*.23]){
-    box(.055,.8,.9,C.wood,x,1.6,zz);box(.065,.62,.7,C.glass,x,1.6,zz);
-  }
-  if(bx.variant==='workshop'){
-    box(1,.7,.8,'#a29887',w*.3,wall+rise-.05,-d*.18);
-    box(1.15,.14,.93,C.stone,w*.3,wall+rise+.33,-d*.18);
-  }
-  // A shallow fabric door canopy and painted trade sign.
-  box(2.25,.08,.68,two?'#71847a':'#bca67c',0,2.45,z-.33,.12);
-  box(1.2,.65,.08,C.wood,w*.33,2.52,z-.01);
-  if(hip){part(new THREE.SphereGeometry(.23,8,5).scale(1.5,.57,.14),C.fish,w*.33,2.52,z+.045);part(new THREE.ConeGeometry(.15,.24,3).scale(1,1,.1),C.fish,w*.33+.32,2.52,z+.045,0,0,Math.PI/2);}
-  else if(bx.variant==='workshop'){box(.4,.15,.04,C.stone,w*.33,2.68,z+.045);box(.07,.3,.04,C.rope,w*.33,2.48,z+.05);}
-  else if(two) {
-    box(.68,.10,.035,C.rope,w*.33,2.49,z+.045);
-    for(const x of [-.29,.29])box(.055,.27,.035,C.rope,w*.33+x,2.48,z+.045);
-    box(.18,.12,.035,C.rope,w*.33-.17,2.60,z+.045);
-  } else {box(.38,.25,.04,C.rope,w*.33,2.48,z+.045);part(new THREE.ConeGeometry(.25,.29,3).scale(1,1,.1),C.rope,w*.33,2.68,z+.045);}
-  // Quiet greenery at building corners, inside the solid footprint.
-  for(const x of [-w/2+.6,w/2-.6]){
-    part(new THREE.CylinderGeometry(.3,.23,.45,8),'#a87559',x,.46,z-.42);
-    part(new THREE.DodecahedronGeometry(.38,0),C.leaf,x,.85,z-.42);
-  }
+  const b=builder(),{box}=b,w=bx.hx*2,d=bx.hz*2;
+  // The complete exterior plot, including counters/porch, fits its collider.
+  box(w,.12,d,C.stone,0,.06,0);
+  box(1.45,.055,.60,'#b8b49d',0,.028,bx.hz-.30);
+  if(bx.variant==='fish_hall')fishHall(b,bx);
+  else if(bx.variant==='workshop')craftHouse(b,bx);
+  else if(bx.variant==='provisioner')provisions(b,bx);
+  else harborInn(b,bx);
   const root=b.finish();root.position.set(bx.x,y,bx.z);root.rotation.y=bx.angle;return root;
 }
 

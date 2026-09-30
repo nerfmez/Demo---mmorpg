@@ -5,6 +5,7 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+const shopOnly=process.env.AZURE_SHOP_REVIEW==='1';
 const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
 const styleReview=!!JSON.parse(readFileSync('data/world.json','utf8')).town.styleSlice;
 const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
@@ -51,11 +52,16 @@ try {
   const shot=async(name)=>{await page.screenshot({path:out+name+'.png',timeout:60000});report.captures.push(name);console.log('captured',name);};
   const stage=async(x,z)=>page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=1;f.view.camera.up.set(0,1,0);f.view.snapCamera();f.view.render(.016,f.game.time,{});f.hud.update(.6,f.panels);},[x,z]);
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
-  if(styleReview){
+  if(styleReview&&!shopOnly){
     await stage(-29,-30.5);await shot('09-market-stalls-gameplay');
     await stage(31,-30.5);await shot('10-market-stalls-east-gameplay');
   }
-  if(marketOnly){
+  if(shopOnly){
+    await stage(-42,-48.2);await shot('02-market-gameplay');
+    await stage(-25,-53.3);await shot('05-craft-gameplay');
+    await stage(25,-53.3);await shot('08-provisioner-gameplay');
+    await stage(45,-48.1);await shot('06-inn-gameplay');
+  } else if(marketOnly){
     await stage(-25,-20);await shot('04-market-pier-gameplay');
     await stage(-25,-6);await shot('07-fishing-berth-gameplay');
   } else {

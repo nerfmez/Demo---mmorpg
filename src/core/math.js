@@ -70,19 +70,35 @@ export function polylineZAtX(pts, x) {
   return pts[pts.length - 1][1];
 }
 
-/** Signed nearest shoreline distance (positive inland) and authored edge use.
- * The sea still uses the original single-valued shoreZ/inSea contract. */
+/** Even/odd containment, including concave capes. No temporary arrays. */
+export function pointInPolygon(points, x, z) {
+  let inside = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const a = points[i], b = points[j];
+    if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside;
+}
+
+/** The original X shoreline remains the default; an authored coastal contour
+ * is optional for capes with multiple land/water intervals along the same X. */
+export function seaContains(sea, x, z) {
+  return sea.coastline ? !pointInPolygon(sea.coastline, x, z) : z > polylineZAtX(sea.shore, x);
+}
+
+/** Signed nearest shoreline distance (positive inland) and authored edge use. */
 export function coastSample(sea, x, z) {
+  const points = sea.coastline || sea.shore, kinds = sea.coastline ? sea.coastKinds : sea.edgeKinds;
   let nearest = Infinity, index = 0;
-  for (let i = 0; i < sea.shore.length - 1; i++) {
-    const a = sea.shore[i], b = sea.shore[i + 1];
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
     const vx=b[0]-a[0], vz=b[1]-a[1], len2=vx*vx+vz*vz;
     const t=len2>0?clamp(((x-a[0])*vx+(z-a[1])*vz)/len2,0,1):0;
     const dx=x-a[0]-vx*t, dz=z-a[1]-vz*t;
     const d=dx*dx+dz*dz;
     if (d < nearest) { nearest = d; index = i; }
   }
-  return { distance: Math.sqrt(nearest) * (z > polylineZAtX(sea.shore, x) ? -1 : 1), kind: sea.edgeKinds?.[index] || 'beach' };
+  return { distance: Math.sqrt(nearest) * (seaContains(sea, x, z) ? -1 : 1), kind: kinds?.[index] || 'beach' };
 }
 
 /** Transform a world point into an oriented box's local frame. Box: {x,z,hx,hz,angle}. */

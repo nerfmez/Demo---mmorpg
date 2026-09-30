@@ -29,10 +29,11 @@ function cottage(b,bx){
   shopRoof(b,w,d-.9,wall,rise,-.45,bx.roofColor,{hip:bx.variant==='netters_home',frontGable:bx.variant==='front_gable'||two});
   const doorX=bx.entryX||0;
   shopDoor(b,doorX,front+.10,1.82);
-  for(const x of [-2.55,2.55])shopWindow(b,x,1.40,front+.08,.80,.83,two?'#708c80':C.wood);
+  const windowX=Math.min(2.55,bx.hx-.95);
+  for(const x of [-windowX,windowX])shopWindow(b,x,1.40,front+.08,.80,.83,two?'#708c80':C.wood);
   if(two){
     box(w-.42,.15,.15,C.wood,0,2.42,front+.05);
-    for(const x of [-2.55,0,2.55])shopWindow(b,x,3.45,front+.10,.86,.98,'#708c80');
+    for(const x of [-windowX,0,windowX])shopWindow(b,x,3.45,front+.10,.86,.98,'#708c80');
     for(const side of [-1,1])box(.10,1.22,.10,C.wood,side*1.45,3.48,front+.06,0,0,side*.50);
     box(.72,.54,.72,C.stone,2.25,bx.height-.75,-1.55);
   } else if(bx.variant==='netters_home'){
@@ -40,11 +41,12 @@ function cottage(b,bx){
     for(let x=-2.6;x<-.7;x+=.22)box(.018,1.0,.018,'#84947f',x,1.37,front+.25);
     for(let y=.91;y<1.85;y+=.2)box(1.9,.018,.018,'#84947f',-1.65,y,front+.25);
     for(const x of [-2.4,-1.6,-.8])b.part(new THREE.SphereGeometry(.10,7,5),C.rope,x,1.85,front+.25);
-    barrel(b,-2.85,bx.hz-.43);
+    barrel(b,-Math.min(2.85,bx.hx-.40),bx.hz-.43);
   } else {
     box(2.30,.075,.68,two?C.wood:'#9caa8d',doorX,2.06,front+.48,.10);
-    box(1.5,.25,.35,C.wood,2.45,.46,bx.hz-.36);
-    for(const x of [2.0,2.45,2.9])b.part(new THREE.DodecahedronGeometry(.19,0),C.leaf,x,.72,bx.hz-.35);
+    const planterX=Math.min(2.45,bx.hx-.85);
+    box(1.5,.25,.35,C.wood,planterX,.46,bx.hz-.36);
+    for(const dx of [-.45,0,.45])b.part(new THREE.DodecahedronGeometry(.19,0),C.leaf,planterX+dx,.72,bx.hz-.35);
   }
   if(two){box(2.3,.08,.73,C.wood,0,2.20,front+.46,.08);shopLantern(b,-.95,1.55,front+.24);}
   pot(b,bx.hx-.47,bx.hz-.46);

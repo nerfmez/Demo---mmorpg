@@ -1,7 +1,7 @@
 // One painted picture of the whole map (zone colours, hill shading, cliffs, water, roads and
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
-import { fromBoxLocal } from '../core/math.js';
+import { fromBoxLocal, pointInPolygon } from '../core/math.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -45,7 +45,9 @@ export function mapImage(world) {
       let c = mix(light, dark, 0.3 + n * 0.13);
       const slope = Math.hypot(dx, dz) / 2;
       if (slope > 0.75) c = mix(c, ROCK, Math.min(1, (slope - 0.75) * 2.5));
-      if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
+      if (town.surfaces?.length
+        ? town.surfaces.some(s => s.kind === 'paving' && pointInPolygon(s.points, x, z))
+        : Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
       if (world.data.sea) {
         const d = world.coastAt(x, z).distance;
         const beach = world.data.sea.beach || 14;

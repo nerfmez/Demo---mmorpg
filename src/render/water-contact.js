@@ -58,7 +58,7 @@ function connectedLoops(segments) {
 }
 
 export function bakeWaterContact(world, scenery) {
-  const settings=world.data.sea.surf||{},shore=world.data.sea.shore;
+  const settings=world.data.sea.surf||{},shore=world.data.sea.coastline || world.data.sea.shore;
   const minX=Math.min(...shore.map(p=>p[0]))-6,maxX=Math.max(...shore.map(p=>p[0]))+6;
   const minZ=Math.min(...shore.map(p=>p[1]))-6,maxZ=Math.max(...shore.map(p=>p[1]))+18;
   const texel=Math.max(settings.contactTexel??.16,(maxX-minX)/2048,(maxZ-minZ)/2048);

@@ -4,7 +4,7 @@
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
 import { createRng } from './rng.js';
-import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample } from './math.js';
+import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
 
 const CELL = 8;
@@ -54,10 +54,11 @@ export function createWorld(worldData) {
   };
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
   const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
-  // the sea: south of the shore line
+  // Single-valued shores keep their original contract. Concave port capes may
+  // opt into an authored contour shared with terrain, painting and water.
   const shore = worldData.sea?.shore || null;
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
-  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? z > shoreZ(x) : coastSample(worldData.sea, x, z).distance < pad);
+  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? seaContains(worldData.sea, x, z) : coastSample(worldData.sea, x, z).distance < pad);
   const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2) && !dockAt(x, z, pad);
   // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
   const coastAt = (x, z) => shore ? coastSample(worldData.sea, x, z) : { distance: Infinity, kind: 'beach' };

@@ -313,7 +313,7 @@ export function buildHeightfield(worldData, zoneAt) {
       const x = X(i);
       const sz = polylineZAtX(sea.shore, x);
       for (let j = 0; j < h; j++) {
-        const c = sea.edgeKinds ? coastSample(sea, x, Z(j)) : { distance: sz - Z(j), kind: 'beach' };
+        const c = sea.coastline || sea.edgeKinds ? coastSample(sea, x, Z(j)) : { distance: sz - Z(j), kind: 'beach' };
         const d = c.distance; // true distance also follows the steep bay sides
         if (c.kind !== 'beach') {
           if (d >= 0 && d < 4) hf[j * w + i] = worldData.town.height ?? .7;

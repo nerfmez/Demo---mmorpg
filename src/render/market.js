@@ -312,14 +312,16 @@ export function marketDockCargo(cargo,y) {
 
 export function marketQuay(world) {
   const b=builder(),{box,part}=b,range=world.data.town.styleSlice.quayRange,cargoGroups=[];
-  const shore=world.data.sea.shore;
+  const sea=world.data.sea, shore=sea.coastline || sea.shore;
   // The low coping follows the same curve as water/collision; no separate coast.
   for(let i=1;i<shore.length;i++){
-    const a=shore[i-1],c=shore[i];if(a[0]<range[0]||c[0]>range[1])continue;
+    const a=shore[i-1],c=shore[i];
+    if(sea.coastline){if(!['quay','shipyard','breakwater'].includes(sea.coastKinds?.[i-1]))continue;}
+    else if(a[0]<range[0]||c[0]>range[1])continue;
     let spans=[[0,1]];
-    // Clip only the portion occupied by a pier, rather than dropping a full
+    // Clip only the portion occupied by a joining deck, rather than dropping a full
     // shoreline segment and leaving an oversized notch at each approach.
-    for(const d of world.docks.filter(d=>d.kind==='pier')){
+    for(const d of world.docks){
       const start=toBoxLocal(d,...a),end=toBoxLocal(d,...c);
       let lo=0,hi=1;
       for(const [p,q,half] of [[start.lx,end.lx,d.hx+.06],[start.lz,end.lz,d.hz+.06]]){

@@ -5,12 +5,14 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+const layoutOnly=process.env.AZURE_LAYOUT_REVIEW==='1';
 const finishOnly=process.env.AZURE_FINISH_REVIEW==='1';
 const shopOnly=process.env.AZURE_SHOP_REVIEW==='1';
 const districtOnly=process.env.AZURE_DISTRICT_REVIEW==='1';
 const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
-const styleReview=!!JSON.parse(readFileSync('data/world.json','utf8')).town.styleSlice;
-const out=`tests/browser/out/azure-${styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
+const worldData=JSON.parse(readFileSync('data/world.json','utf8'));
+const styleReview=!!worldData.town.styleSlice;
+const out=`tests/browser/out/azure-${layoutOnly?'layout':styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
 const port=4191,base=`http://localhost:${port}/`;
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port',String(port),'--strictPort'],{stdio:'ignore',detached:true});
 const report={engine:engine.name(),errors:[],hardwareIPadFPS:'not measured',captures:[]};
@@ -67,15 +69,51 @@ try {
     return {townUnlocked:g.isWaypointUnlocked('town'),quest:g.ch.progress.quests.h_arrival?.status};
   });
   assert.ok(report.walk.townUnlocked&&report.walk.quest==='done');
-  if(styleReview){report.marketPierWalk=await page.evaluate(()=>{const f=window.__frontier,g=f.game;Object.assign(g.player,g.freeSpotNear(0,-42));for(const [x,z] of [[0,-31],[-25,-31],[-25,-22],[-25,-9]]){let i=0;for(;i<1500&&Math.hypot(x-g.player.x,z-g.player.z)>.2;i++){g.setMove(x-g.player.x,z-g.player.z);g.update(1/60);}if(i===1500)throw Error('market-to-pier route blocked');}g.setMove(0,0);return {onPier:!!g.world.dockAt(g.player.x,g.player.z),alive:!g.player.dead};});assert.ok(report.marketPierWalk.onPier&&report.marketPierWalk.alive);}
+  if(styleReview){report.marketPierWalk=await page.evaluate(()=>{
+    const f=window.__frontier,g=f.game,wd=g.data.world;
+    Object.assign(g.player,g.freeSpotNear(...wd.town.centre));
+    const ramp=g.world.docks.find(d=>d.id==='market_west_ramp'),deck=g.world.docks.find(d=>d.id==='market_west');
+    const land=[ramp.x-Math.sin(ramp.angle)*ramp.hz,ramp.z-Math.cos(ramp.angle)*ramp.hz];
+    const quay=wd.roads.find(r=>r.id==='harbor_street').points;
+    const front=wd.roads.find(r=>r.id==='market_front');
+    let path;
+    if(front){
+      const nearest=p=>quay.reduce((best,q,i)=>Math.hypot(q[0]-p[0],q[1]-p[1])<Math.hypot(quay[best][0]-p[0],quay[best][1]-p[1])?i:best,0);
+      const a=nearest(front.points.at(-1)),b=nearest(land);
+      path=[...front.points,...quay.slice(b,a+1).reverse(),land,[ramp.x,ramp.z],[deck.x,deck.z]];
+    }else path=[[wd.town.centre[0],-31],[ramp.x,-31],land,[ramp.x,ramp.z],[deck.x,deck.z]];
+    for(const [x,z] of path){let i=0;for(;i<1500&&Math.hypot(x-g.player.x,z-g.player.z)>.2;i++){g.setMove(x-g.player.x,z-g.player.z);g.update(1/60);}if(i===1500)throw Error('market-to-pier route blocked at '+x+','+z);}
+    g.setMove(0,0);return {onPier:!!g.world.dockAt(g.player.x,g.player.z),alive:!g.player.dead};
+  });assert.ok(report.marketPierWalk.onPier&&report.marketPierWalk.alive);}
   const shot=async(name)=>{await page.screenshot({path:out+name+'.png',timeout:60000});report.captures.push(name);console.log('captured',name);};
   const stage=async(x,z)=>page.evaluate(([x,z])=>{const f=window.__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=1;f.view.camera.up.set(0,1,0);f.view.snapCamera();f.view.render(.016,f.game.time,{});f.hud.update(.6,f.panels);},[x,z]);
+  const frontage=id=>worldData.town.buildings.find(b=>b.id===id).entryPath[0];
+  const deckPoint=(id,z=0)=>{const d=worldData.docks.find(d=>d.id===id);return [d.x+Math.sin(d.angle)*z,d.z+Math.cos(d.angle)*z];};
   await page.evaluate(()=>{const f=window.__frontier;f.game.time+=8;f.game.drainEvents();document.querySelector('.banner')?.remove();});
-  if(styleReview&&!shopOnly&&!districtOnly&&!finishOnly){
+  if(styleReview&&!shopOnly&&!districtOnly&&!finishOnly&&!layoutOnly){
     await stage(-29,-30.5);await shot('09-market-stalls-gameplay');
     await stage(31,-30.5);await shot('10-market-stalls-east-gameplay');
   }
-  if(finishOnly){
+  if(layoutOnly){
+    report.frontages=await page.evaluate(()=>{
+      const g=window.__frontier.game;let reached=0;
+      for(const b of g.data.world.town.buildings){
+        const path=[...b.entryPath].reverse();Object.assign(g.player,{x:path[0][0],z:path[0][1]});
+        for(const [x,z] of path.slice(1)){let i=0;for(;i<1500&&Math.hypot(x-g.player.x,z-g.player.z)>.18;i++){g.setMove(x-g.player.x,z-g.player.z);g.update(1/60);}if(i===1500||g.player.dead)throw Error('blocked frontage '+b.id);}
+        reached++;
+      }
+      g.setMove(0,0);return {reached};
+    });assert.equal(report.frontages.reached,worldData.town.buildings.length);
+    await stage(...worldData.town.centre);await shot('02-market-square-gameplay');
+    const [rx,rz]=frontage('home_2');await stage(rx,rz+2);await shot('03-residential-lanes-gameplay');
+    await stage(...frontage('warehouse_3'));await shot('04-warehouse-row-gameplay');
+    await stage(...deckPoint('market_west_ramp',-1));await shot('05-quay-pier-join-gameplay');
+    await stage(...deckPoint('repair_ramp',-7));await shot('06-shipyard-slipway-gameplay');
+    const [sx,sz]=frontage('repair_store');await stage(sx-2,sz+2);await shot('08-shipyard-working-yard-gameplay');
+    const [lx,lz]=worldData.harbor.lighthouse;await stage(lx+3,lz+6);await shot('07-lighthouse-cape-gameplay');
+    await page.evaluate(()=>{const f=window.__frontier;f.game.ch.progress.zones=f.world.zones.map(z=>z.id);f.panels.open('map');});
+    await shot('09-revised-local-map');await page.evaluate(()=>window.__frontier.panels.close());
+  }else if(finishOnly){
     if(process.env.AZURE_WAVE_ONLY!=='1'){
     await stage(-129.62,-18.16);await shot('19-outlined-cottage-gameplay');
     await stage(-42,-48.2);await shot('20-outlined-fish-hall-gameplay');
@@ -171,12 +209,13 @@ try {
     await stage(114,76);await shot('03-rotated-slipway-gameplay');
   }
   if(!shopOnly&&!marketOnly&&!finishOnly){
-    await page.setViewportSize({width:1440,height:1000});
-    await page.evaluate(()=>{
+    await page.setViewportSize(layoutOnly?{width:1000,height:1100}:{width:1440,height:1000});
+    await page.evaluate(layoutOnly=>{
       const f=window.__frontier,v=f.view;
+      v.resize(); // Set the new aspect before rendering; do not race the resize event.
       for(const element of document.body.children) if(element.tagName!=='CANVAS')element.style.visibility='hidden';
       v.scene.fog.near=600;v.scene.fog.far=900;
-      v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(0,285,8);v.camera.lookAt(0,0,8);v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
+      v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(layoutOnly?14:0,layoutOnly?255:285,8);v.camera.lookAt(layoutOnly?14:0,0,8);v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
       v.renderer.render(v.scene,v.camera);
       // Capture the WebGL pixels synchronously before browser compositing can
       // clear a non-preserved drawing buffer; labels remain a review-only overlay.
@@ -184,10 +223,11 @@ try {
       pixels.style.cssText='position:fixed;inset:0;width:100%;height:100%;visibility:visible';document.body.append(pixels);
       v.canvasRect=v.renderer.domElement.getBoundingClientRect();
       const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;pointer-events:none;visibility:visible';document.body.append(overlay);
+      if(layoutOnly)return;
       for(const [text,x,z] of [['บ้าน / ซอยวน',-110,-20],['ตลาด · คราฟต์ · วาร์ป',0,-49],['ทางออกสู่พื้นที่ล่า',0,-105],['โกดัง / ลานสินค้า',115,-26],['อู่เรือ / ทางลาด',128,76],['ประภาคาร / กันคลื่น',-125,82],['ปากอ่าวเปิดทางใต้',0,106]]){
         const p=v.project(x,2,z);const label=document.createElement('div');label.textContent=text;label.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);font:18px Mitr,sans-serif;padding:5px 10px;background:#163b41de;color:white;border-radius:4px`;overlay.append(label);
       }
-    });
+    },layoutOnly);
     await shot('01-u-bay-overview');
   }
   assert.deepEqual(report.errors,[],'no runtime/asset/shader errors');

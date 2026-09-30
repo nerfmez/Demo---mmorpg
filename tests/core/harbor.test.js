@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data, legacyData } from './helpers.js';
-import { fromBoxLocal } from '../../src/core/math.js';
+import { fromBoxLocal, coastSample, seaContains } from '../../src/core/math.js';
 import { createWorld } from '../../src/core/world.js';
 import { Game } from '../../src/core/game.js';
 import { createCharacter, migrateCharacter } from '../../src/core/character.js';
@@ -13,13 +13,11 @@ import { updateMonster } from '../../src/core/ai.js';
 const world = createWorld(data.world);
 const step = (g, seconds) => { for (let i=0;i<seconds*60;i++) g.update(1/60); };
 
-test('harbor is a local land-first map; new characters start on a safe dry beach', () => {
-  const b=world.bounds; let land=0,total=0;
-  for(let x=b.minX+1;x<b.maxX;x+=2) for(let z=b.minZ+1;z<b.maxZ;z+=2) { total++; if(!world.isWater(x,z)) land++; }
-  assert.ok(land/total>=.60 && land/total<=.75, `land ${land/total}`);
+test('new characters start on a safe dry beach beside the connected coastal town', () => {
   const g=new Game(data,{world,seed:1});
   assert.equal(world.zoneAt(g.player.x,g.player.z).id,'landing');
   assert.ok(!world.isWater(g.player.x,g.player.z));
+  assert.equal(world.coastAt(g.player.x,g.player.z).kind,'beach');
   assert.ok(world.isFree(g.player.x,g.player.z,.45));
   assert.ok(g.isSafe(g.player.x,g.player.z));
   assert.ok(!g.isWaypointUnlocked('town'));
@@ -173,8 +171,8 @@ test('active quests only send players to reachable content; all new parts have r
 
 
 test('U bay opens south, all districts connect, and authored building footprints stay on land', () => {
-  assert.ok(world.inSea(0,0) && world.inSea(0,118));
-  assert.ok(!world.inSea(-130,25) && !world.inSea(130,25));
+  for(const p of [[0,30],[0,118],[-110,50],[110,100]])assert.ok(world.inSea(...p),'bay and outer coasts stay open');
+  assert.ok(!world.inSea(-50,-50) && !world.inSea(70,-15));
   assert.ok(data.world.harbor.lighthouse[0]<0 && data.world.harbor.lighthouse[1]>0);
   assert.ok(data.world.roads.find(r=>r.id==='residential_loop').points.length>5);
   for (const b of world.boxes.filter(b=>b.type==='house')) {
@@ -184,12 +182,24 @@ test('U bay opens south, all districts connect, and authored building footprints
       const p=fromBoxLocal(b,x,z);assert.ok(!world.inSea(p.x,p.z),b.id+' footprint dry');
     }
   }
-  for (const p of [[-152,99],[152,99]]) assert.ok(world.isBeach(...p));
-  for (const p of [[0,-24],[-78,0],[112,75]]) assert.ok(!world.isBeach(...p),'quays and slipway are not sand');
+  for (const p of [data.world.playerSpawn,[-110,-110]]) assert.ok(world.isBeach(...p));
+  for (const p of [[-25,6.5],[-35,74],[36,70]]) assert.ok(!world.isBeach(...p),'quays, cape and slipway are not sand');
+});
+
+test('the lighthouse cape permits water, land, then water along one X without changing legacy shores', () => {
+  for(const [z,water] of [[40,true],[80,false],[108,true]]){
+    assert.equal(world.inSea(-40,z),water);
+    assert.equal(world.coastAt(-40,z).distance<0,water,'paint and surf use the same signed coast');
+    assert.equal(world.terrainY(-40,z)<world.waterLevel,water,'heightfield follows the contour');
+  }
+  const oldSea={shore:[[-20,10],[20,10]],edgeKinds:['beach']};
+  assert.equal(seaContains(oldSea,0,8),false);assert.equal(seaContains(oldSea,0,12),true);
+  assert.deepEqual(coastSample(oldSea,0,8),{distance:2,kind:'beach'});
+  assert.deepEqual(coastSample(oldSea,0,12),{distance:-2,kind:'beach'});
 });
 
 test('existing Azure saves retain all progress through the layout change and relocate only once', () => {
-  const ch=createCharacter(data);delete ch.worldLayoutRevision;
+  const ch=createCharacter(data);ch.worldLayoutRevision='azure-u-bay-blockout-1';
   ch.level=9;ch.jobLevel=6;ch.gold=456;ch.pos=[62,22];
   ch.progress.quests.h_arrival={status:'done',progress:1};ch.progress.waypoints.push('town','forest');
   const before=structuredClone(ch);
@@ -223,7 +233,7 @@ test('district work areas use individual dry colliders and every frontage has a 
       const pt=fromBoxLocal(p,x,z);assert.ok(!world.inSea(pt.x,pt.z),p.id+' stays on land');
     }
   }
-  for(const b of data.world.town.buildings.filter(b=>data.world.town.districtStyle.buildingIds.includes(b.id))){
+  for(const b of data.world.town.buildings){
     assert.ok(b.entryPath?.length>=2,b.id+' has an entry');
     const first=b.entryPath[0],front=fromBoxLocal(b,0,b.hz+.85);
     assert.ok(Math.hypot(first[0]-front.x,first[1]-front.z)<.001,b.id+' reaches its front threshold');

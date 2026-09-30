@@ -1,4 +1,36 @@
-# Azure Coast — exterior district review
+# Azure Coast — reference layout correction (draft)
+
+Source: main `7102e4310ca79fa56a2fab8a44c8ea7bf7e91ca7`, after PR #22 merged. The owner subsequently rejected the overall city layout as unlike the supplied right-hand plan. Previous layout approval is superseded. This correction is a separate draft awaiting image review; it is not approved for merge or deployment.
+
+`azure-reference-layout-2` replaces the wide, nearly symmetric horseshoe and scattered buildings with the reference's compact asymmetric peninsula: western residential blocks and looping lanes, a market directly north of the bay, diagonal warehouse/loading rows in the east, a southeast shipyard, and a narrow southwest lighthouse cape. Seven differently oriented timber piers point into the bay. A 32 m breakwater extends from the cape into the water while leaving the south mouth open. Corners use baked rounded polylines and worn ground blends.
+
+The map is 320 × 290 m, including retained northern hunting space. The town has 46 exterior plots: 31 homes, six shops, six warehouses and three repair/storage buildings. Main streets are 5.5–6 m and lanes 3.5 m. Existing exterior assemblies, per-building roof colors, structure outlines, lighting and production camera are reused. This is a layout review, not a finished-city art approval; shop/yard dressing and environmental detail still need review after the geometry passes.
+
+The southwest cape creates water–land–water intervals at the same X. Optional `sea.coastline` and segment `coastKinds` therefore extend the existing shore queries for this layout. Terrain, collision, sand, surf, quay coping, water-contact bake, minimap and export read the same contour. Worlds without it retain `shoreZ(x)` behaviour. `town.surfaces` supplies the irregular paved apron to ground and map painting. Dock-local ramp height interpolation and the existing water shader/contact system remain.
+
+Combat, skill/mod rules, crafting recipes, touch input and all seven main quest IDs/rewards are unchanged. Checkpoints, services and existing monster spawn regions move with the layout; the lighthouse cape is safe town and the headland hunting area is northeast of town. Headland checkpoint labels and quest directions now name that northern destination; existing objective/save IDs stay the same. Save envelopes remain version 2. The existing `worldLayoutRevision` migration relocates old coordinates once without losing levels, equipment, skills, money, materials, quest history or unlocked checkpoints.
+
+Validation for this draft:
+
+- 32 targeted core/world/save/water-contact tests passed, including all roads, rotated piers/slipway, exterior footprints, working props, clear frontage paths, old-save preservation and legacy shoreline fallback.
+- Build passed with the existing bundle warning. All 46 rendered building bounds fit their individual oriented collider dimensions.
+- Layout export includes the optional coast, paving, building plots and layout revision; generated layout and heightmap are produced by `npm run export:layout`, not hand-edited.
+- Focused Chromium review exercised native touch, safe arrival/first quest, town unlock, market-to-pier walking and all 46 frontage connections with production movement. No runtime/asset/shader errors. Seven gameplay-camera location views, the revised local map and one capture-only overhead view were inspected. The overhead camera is never applied in production.
+- Hardware iPad FPS is unmeasured. Chromium viewport/touch checks cannot establish the 60 FPS target. CI and the required premerge Chromium/WebKit smoke are reported separately; no unrelated full-game or long memory run was performed.
+
+Reproduce the focused review after building:
+
+```sh
+AZURE_LAYOUT_REVIEW=1 node tests/browser/azure-blockout.mjs
+```
+
+Use `CHROMIUM_EXECUTABLE` only when the runtime provides a browser outside Playwright's default installation. Captures and the movement/error report are written to `tests/browser/out/azure-layout-chromium/`. `harbor-capture.mjs` now derives staging positions from authored town/dock/checkpoint data. Older wave-comparison captures below document the previous layout and are not evidence for this draft's geometry.
+
+Direct reads traced the changed coast/layout through math, world collision, terrain, character migration, game spawning/checkpoints, ground/market/district/contact renderers, map painting, quests, export, affected tests and port documentation. No unresolved source discovery required Jev; no Jev request was made. CI status is not inferred from local results.
+
+## Historical exterior and water reviews (superseded layout)
+
+The following notes describe earlier work before the owner rejected the merged layout. Their counts, captures, approval and PR status refer to those earlier revisions.
 
 Base: `88e2a2bc0a8d288909b05b86d6e9d1d394362f00` (main, including coastal attack PR #20). The owner approved the exterior layout, reviewed the distinct market shops, and on 30 September 2026 authorized continuing the other city districts. No merge or deployment is authorized.
 

@@ -3,7 +3,7 @@
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
 import * as THREE from 'three';
-import { toBoxLocal } from '../core/math.js';
+import { toBoxLocal, pointInPolygon, distToPolyline } from '../core/math.js';
 import { rasterPolyline, boxBlur, valueNoise } from '../core/terrain.js';
 import { timeUniform } from './patch.js';
 import { bakeWaterContact, ownContactTexture } from './water-contact.js';
@@ -75,7 +75,7 @@ export function surfaceData(world) {
         const c = world.coastAt(x, z), d = c.distance;
         const beach = wd.sea.beach || 14;
         coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + 2.5, d) : 0;
-        if(c.kind !== 'beach' && d >= 0 && d < 5.5) {
+        if(['quay','shipyard','breakwater'].includes(c.kind) && d >= 0 && d < 5.5) {
           const wear=(valueNoise(x*.28,z*.28,74)-.5)*1.1;
           stone[k]=Math.max(stone[k],1-smooth(2.3+wear,4.8+wear,d));
         }
@@ -83,15 +83,21 @@ export function surfaceData(world) {
       }
       const td = Math.hypot(x - town.centre[0], z - town.centre[1]);
       const plazaWear=(valueNoise(x*.17,z*.17,75)-.5)*2;
-      if (td < town.plazaRadius + 3) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.2 + plazaWear, town.plazaRadius + 1.4 + plazaWear, td));
-      if(town.styleSlice && z > -47 && z < -18 && Math.abs(x) < 46) {
-        // A continuous market apron reaches the curved quay. Overlapping masks
-        // avoid the straight grass seam between a rectangle and the shore strip.
+      if (!town.surfaces?.length && td < town.plazaRadius + 3) stone[k] = Math.max(stone[k], 1 - smooth(town.plazaRadius - 1.2 + plazaWear, town.plazaRadius + 1.4 + plazaWear, td));
+      if(!town.surfaces?.length && town.styleSlice && z > -47 && z < -18 && Math.abs(x) < 46) {
         const c=world.coastAt(x,z), wear=(valueNoise(x*.18,z*.18,76)-.5)*1.6;
         const side=1-smooth(33+wear,44+wear,Math.abs(x));
         const back=smooth(-45+wear,-40+wear,z);
         const edge=smooth(-.3,.5,c.distance);
         stone[k]=Math.max(stone[k],side*back*edge);
+      }
+      for (const surface of town.surfaces || []) {
+        const points=surface.points, edge=distToPolyline(x,z,points);
+        const distance=pointInPolygon(points,x,z)?edge:-edge;
+        const wear=(valueNoise(x*.24,z*.24,76)-.5)*.85;
+        const patch=smooth(-1.1+wear,.65+wear,distance)*smooth(-.1,.5,wd.sea?-coast[k*2+1]:1);
+        if(surface.kind==='paving')stone[k]=Math.max(stone[k],patch);
+        else {dirt[k]=Math.max(dirt[k],patch*.72);road[k]=Math.max(road[k],patch*.38);}
       }
       if (ruins) {
         const rd = Math.hypot(x - ruins.centre[0], z - ruins.centre[1]);
@@ -598,8 +604,9 @@ export function createWater(world, scenery = null) {
     const hf = world.heightfield;
     const x0 = hf.ox;
     const x1 = hf.ox + (hf.w - 1) * hf.res;
-    const zMin = hf.oz + Math.floor((Math.min(...sea.shore.map((p) => p[1])) - 6 - hf.oz) / hf.res) * hf.res;
-    const z1 = Math.max(...sea.shore.map((p) => p[1])) + 40;
+    const coast = sea.coastline || sea.shore;
+    const zMin = Math.max(hf.oz, hf.oz + Math.floor((Math.min(...coast.map((p) => p[1])) - 6 - hf.oz) / hf.res) * hf.res);
+    const z1 = Math.max(...coast.map((p) => p[1])) + 40;
     const step = hf.res;
     const nx = Math.ceil((x1 - x0) / step);
     const nz = Math.ceil((z1 - zMin) / step);

@@ -827,7 +827,7 @@ export class View {
     const [x, z] = this.world.data.playerSpawn;
     const y = this.world.groundY(x, z);
     const rigs = [];
-    for (const type of ['tusk_boar', 'thornback_wolf', 'moss_beetle', 'reef_crab', 'marsh_wisp', 'sporecap', 'crag_golem', 'gale_hawk', 'horned_warden']) {
+    for (const type of new Set([...this.world.data.spawns.map(s => s.monster), ...(this.world.data.bosses || []).map(b => b.monster)])) {
       const rig = buildMonster(type, 1);
       rigs.push(rig);
       rig.root.position.set(x, y, z);

@@ -8,10 +8,10 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | Web demo | Godot | How |
 |---|---|---|
 | `data/*.json` | `res://data/*.json` | Copy the files. Load with `JSON.parse_string(FileAccess.get_file_as_string(path))`. Field names stay the same. |
-| `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints and bridges. |
+| `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## What gets translated (logic, `src/core/`)
 
@@ -28,7 +28,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, stunned, shell, return`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges are optional river crossings. |
+| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Docks shrink by the actor radius for water clearance. `groundY()` interpolates the dock ramp from `startY` to `height`. Safe starting roads use distance to the `safeRoutes` polylines. |
 
 ### `game.js` → scenes
 
@@ -49,7 +49,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css`, `ui/art.css` and `ui/workspaces.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
 
-`ui/art.js` and `ui/jobart.js` contain 187 individually authored SVG illustrations keyed by base content ID.
+`ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
@@ -207,3 +207,22 @@ When changing quality, update and release shadow buffers as well as DPR. WebGL
 native AA is a fixed context policy (including Low), not a switch changed by
 setQuality. Godot can use its own viewport AA controls with equivalent documented
 behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
+
+### Azure Coast local starter (30 September 2026)
+
+The active `world.json` is a 320 × 240 m harbor prototype (about 80% dry land),
+not the complete Asterfall continent. New characters start at the safe landing beach
+and unlock the town checkpoint by walking there. The town, nearby grove, fields
+and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
+previous map for historical regression tests.
+
+Translate `coastal_melee` / `coastal_hopper` in `ai.js`: crab and hermit use shell
+defense; salt slime and shore gull use a short, telegraphed lunge. The gull is a
+grounded enemy, not unrestricted flight. Part drops feed the new low-cost recipes.
+Procedural harbor and monster meshes are review assets; owner visual approval
+remains separate from passing gameplay tests.
+
+Save version remains 2. The optional `worldId` prevents restoring old coordinates
+on a different map. On migration preserve the character build and quest history,
+filter unavailable waypoints, add the landing checkpoint, and clear `pos` once.
+A later save with this map ID keeps its current position and unlocked checkpoints.

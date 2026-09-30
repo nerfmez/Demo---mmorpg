@@ -1,7 +1,7 @@
 // Quests, waypoints, fast travel, allies, equipment slots and save migration.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { data } from './helpers.js';
+import { legacyData as data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
 import { createCharacter, migrateCharacter, derive, equip, unequip, gearLook } from '../../src/core/character.js';
 import { craft } from '../../src/core/crafting.js';

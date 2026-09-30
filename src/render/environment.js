@@ -13,6 +13,7 @@ import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture }
 import { attachGrassSurface, grassMaterial } from './grass.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { createHarbor } from './harbor.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -310,6 +311,7 @@ export function createEnvironment(world) {
   // ----- bridges, town, camp -----
   for (const br of world.bridges) root.add(createBridge(world, br));
   root.add(createTown(world, rng));
+  if (world.data.harbor) root.add(createHarbor(world));
   if (world.data.camp) root.add(createCamp(world));
 
   // ----- small decoration -----

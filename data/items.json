@@ -137,6 +137,21 @@
       "value": 30,
       "shape": "ball",
       "rare": true
+    },
+    "salt_gel": {
+      "name": "เจลเกลือทะเล",
+      "nameTh": "เจลเกลือทะเล",
+      "color": "#58b9c4"
+    },
+    "shore_feather": {
+      "name": "ขนนกชายฝั่ง",
+      "nameTh": "ขนนกชายฝั่ง",
+      "color": "#e6ddd0"
+    },
+    "hermit_fragment": {
+      "name": "เศษเปลือกเสฉวน",
+      "nameTh": "เศษเปลือกเสฉวน",
+      "color": "#c18b62"
     }
   },
   "slots": [

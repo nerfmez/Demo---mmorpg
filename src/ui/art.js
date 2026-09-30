@@ -163,6 +163,20 @@ const job = {
 };
 
 Object.assign(job, JOB_ART);
+Object.assign(material, {
+  salt_gel: P('M22 96Q10 70 39 46L51 22 82 28 105 68Q122 104 64 112Z','#67b6b9')+P('M39 72L54 37 75 42 89 80 61 98Z','#a2d8ce')+diamond(54,38,10,'#e7ecd2'),
+  shore_feather: P('M26 111Q9 69 60 20L104 10Q111 62 53 91Z','#ede2ce')+P('M55 87Q91 58 103 12L84 19 33 98Z','#7b919b')+L('M22 116L96 20','#ad956f',4),
+  hermit_fragment: P('M20 91L29 47 58 17 101 35 114 85 82 112 43 104Z','#ba9570')+L('M45 80Q26 44 65 35Q101 33 95 69Q91 92 69 83Q53 69 76 61','#e5d3b2',8)+P('M82 111L73 91 97 90Z','#786859')
+});
+Object.assign(monster, {
+  salt_slime: E(64,83,47,28,'#57aeb6')+P('M28 83Q24 48 48 36L69 31Q107 45 108 84Z','#83c9c3')+diamond(60,29,13,'#e0ead3')+E(48,70,4,7,'#29434b')+E(78,70,4,7,'#29434b')+L('M57 87h15','#416b71',3),
+  shore_gull: E(66,80,28,32,'#e8e1cb')+P('M40 63L19 96 47 91 58 62M90 61L114 95 87 93 75 64Z','#748a94')+C(68,37,22,'#f0e9d3')+P('M72 42L111 52 73 56Z','#d8aa54')+C(60,35,4,'#29414c')+L('M55 104v14m24-14v14m-31 0h16m9 0h17','#ba8c49',4),
+  hermit_crab: E(64,80,34,25,'#bd9a6a')+C(65,49,33,'#d0b384')+L('M44 56Q36 30 66 29Q93 33 85 55Q77 68 62 56Q55 47 71 43','#efe1c0',7)+P('M31 85L10 65 4 77 27 99M96 84l23-24 7 15-27 28Z','#b55d42')+C(47,78,5,'#263c46')+C(78,78,5,'#263c46')+L('M33 96l-15 13m29-9-3 15m39-15 6 14m10-20 13 10','#ac7251',5)
+});
+Object.assign(zone, {
+  landing: zoneBase(P('M6 87Q49 60 122 90V117H6Z','#e5d4a7','none')+P('M6 105Q55 88 122 106V117H6Z','#75b9c0','none')+L('M21 106Q59 92 110 105','#f2efdb',4)+P('M72 48l-5 47h15l-5-47Z','#ad8e62')+P('M69 32l5-19 7 19Z','#e1be78'),'#e2d1a4','#d4e7e5'),
+  headland: zoneBase(P('M6 100L34 80 64 85 93 103V117H6Z','#99ad77','none')+P('M6 107Q70 99 122 89V117H6Z','#72aeb6','none')+P('M49 36h24l7 67H42Z','#eee1c0')+P('M48 62h26v13H46Z','#648c9b')+P('M44 35l17-20 17 20Z','#4c7388')+C(61,41,5,'#e7c077'),'#aabc86','#d9e8dc')
+});
 export const ART = { gear, material, skill, mod, monster, zone, job };
 export function hasArt(kind, id) { return !!ART[kind]?.[id]; }
 export function art(kind, id, className = '') {
@@ -170,4 +184,3 @@ export function art(kind, id, className = '') {
   if (!body) throw new Error('Missing authored artwork: ' + kind + '/' + id);
   return '<span class="art art-' + kind + ' ' + className + '" data-art="' + kind + '/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + (kind === 'zone' || kind === 'mod' ? '' : shadow) + body + '</svg></span>';
 }
-

@@ -23,6 +23,7 @@ export function createWorld(worldData) {
     return fallback;
   };
   const zoneById = (id) => zones.find((q) => q.id === id);
+  const isSafe = (x, z) => !!zoneAt(x, z).safe || (worldData.safeRoutes || []).some(route => distToPolyline(x, z, route.points) < route.width / 2);
 
   // ---------- roads / water ----------
   const roads = worldData.roads || [];
@@ -39,21 +40,26 @@ export function createWorld(worldData) {
   const bridges = (river?.bridges || []).map((br) => ({ ...br, hx: br.halfLength, hz: br.halfWidth }));
   const bridgeAt = (x, z, pad = 0) => bridges.find((br) => pointInBox(br, x, z, pad)) || null;
   const onBridge = (x, z, pad = 0) => !!bridgeAt(x, z, pad);
+  const docks = (worldData.docks || []).map(d => ({ ...d }));
+  // Shrink the deck by the actor radius when checking water clearance: do not walk
+  // beside a pier over the sea. The renderer and export use these exact rectangles.
+  const dockAt = (x, z, pad = 0) => docks.find(d => pointInBox(d, x, z, -pad)) || null;
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
   const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
   // the sea: south of the shore line
   const shore = worldData.sea?.shore || null;
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
   const inSea = (x, z, pad = 0) => !!shore && z > shoreZ(x) - pad;
-  const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2);
+  const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2) && !dockAt(x, z, pad);
   // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
   const isBeach = (x, z, pad = 0) => !!shore && z > shoreZ(x) - (worldData.sea.beach || 14) - pad;
-  const blocksWater = (x, z, pad = 0) => !onBridge(x, z, 0.2) &&
+  const blocksWater = (x, z, pad = 0) => !onBridge(x, z, 0.2) && !dockAt(x, z, pad) &&
     (inSea(x, z, pad) || inPond(x, z, pad) || (!river?.walkable && inRiver(x, z, pad)));
 
   // ---------- terrain ----------
   const hf = buildHeightfield(worldData, zoneAt);
   const terrainY = hf.heightAt;
+  for (const dock of docks) if (dock.rampFromTerrain) dock.startY = terrainY(dock.x, dock.z - dock.hz);
   for (const br of bridges) {
     const c = Math.cos(br.angle);
     const s = Math.sin(br.angle);
@@ -68,6 +74,8 @@ export function createWorld(worldData) {
   };
   /** Height you stand on: the bridge deck when on a bridge, else the terrain. */
   const groundY = (x, z) => {
+    const dock = dockAt(x, z);
+    if (dock) return dock.rampFromTerrain ? dock.startY + (dock.height - dock.startY) * clamp((z - dock.z + dock.hz) / (2 * dock.hz), 0, 1) : dock.height;
     const br = bridgeAt(x, z);
     if (br) return Math.max(deckY(br, toBoxLocal(br, x, z).lx), terrainY(x, z));
     return terrainY(x, z);
@@ -120,6 +128,7 @@ export function createWorld(worldData) {
   const town = worldData.town;
   const bossList = worldData.bosses || [];
   const clearAreas = [
+    { x: worldData.playerSpawn[0], z: worldData.playerSpawn[1], r: 8 },
     { x: town.workbench[0], z: town.workbench[1], r: 4 },
     { x: town.trainer[0], z: town.trainer[1], r: 4 },
     { x: town.respawn[0], z: town.respawn[1], r: 5 },
@@ -129,6 +138,11 @@ export function createWorld(worldData) {
   ];
   if (worldData.den) clearAreas.push({ x: worldData.den.centre[0], z: worldData.den.centre[1], r: worldData.den.radius - 1 });
   if (worldData.camp) clearAreas.push({ x: worldData.camp.fire[0], z: worldData.camp.fire[1], r: 5 });
+  if (worldData.harbor) {
+    const [x, z] = worldData.harbor.lighthouse;
+    clearAreas.push({ x, z, r: 6 });
+    addCircle({ x, z, r: 2, type: 'lighthouse', scale: 1, rot: 0 });
+  }
 
   const inBounds = (x, z, m = 1) => x > b.minX + m && x < b.maxX - m && z > b.minZ + m && z < b.maxZ - m;
   const blockedForProp = (x, z, r, { roadPad = 1.2, slope = 0.9 } = {}) =>
@@ -147,7 +161,7 @@ export function createWorld(worldData) {
   for (const [x, z, a] of town.stalls || []) addBox({ x, z, hx: 1.6, hz: 1.1, angle: a, type: 'stall' });
   const tr = zoneById('settlement').rects[0];
   const walls = town.walls;
-  const gateZ = roadZAt(roads[0].points, walls.east);
+  const gateZ = walls ? roadZAt(roads[0].points, walls.east) : town.centre[1];
   const fenceRun = (x0, z0, x1, z1, gates = []) => {
     const len = Math.hypot(x1 - x0, z1 - z0);
     const n = Math.round(len / 4);
@@ -161,10 +175,12 @@ export function createWorld(worldData) {
       addBox({ x, z, hx: 0.25, hz: len / n / 2, angle: angle, type: 'fence' });
     }
   };
+  if (walls) {
   fenceRun(walls.east, tr[2], walls.east, tr[3], [{ x: walls.east, z: gateZ }]);
   fenceRun(tr[0] + 1, walls.north, walls.east, walls.north);
   fenceRun(tr[0] + 1, walls.south, walls.east, walls.south);
   decor.lanterns.push({ x: walls.east + 1.5, z: gateZ - 5 }, { x: walls.east + 1.5, z: gateZ + 5 });
+  }
   decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
   for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
   for (const [x, z, a] of town.stalls || []) {
@@ -173,7 +189,11 @@ export function createWorld(worldData) {
   }
   decor.crates.push({ x: town.workbench[0] + 2.2, z: town.workbench[1] - 1.2, s: 0.8, rot: 0.3, kind: 'crate' });
   decor.crates.push({ x: town.workbench[0] - 2.4, z: town.workbench[1] - 1.4, s: 0.75, rot: 0, kind: 'barrel' });
-  decor.banners.push({ x: walls.east - 0.6, z: gateZ - walls.gateHalf - 0.5, color: '#c9302c' }, { x: walls.east - 0.6, z: gateZ + walls.gateHalf + 0.5, color: '#c9302c' });
+  if (walls) decor.banners.push({ x: walls.east - 0.6, z: gateZ - walls.gateHalf - 0.5, color: '#c9302c' }, { x: walls.east - 0.6, z: gateZ + walls.gateHalf + 0.5, color: '#c9302c' });
+  for (const [x, z] of worldData.harbor?.crates || []) {
+    decor.crates.push({ x, z, s: .8, rot: .2, kind: 'crate' });
+    addBox({ x, z, hx: .4, hz: .4, angle: .2, type: 'harbor_crate' });
+  }
 
   // ---------- waypoints ----------
   const waypoints = (worldData.waypoints || []).map((wp) => ({ ...wp, x: wp.pos[0], z: wp.pos[1] }));
@@ -317,7 +337,7 @@ export function createWorld(worldData) {
     }
     if (isBeach(x, z, 2.5)) {
       // Sparse, recognisable shore objects; never replace sand with meadow vegetation.
-      if (nearCollider(x, z, 0.5) || onBridge(x, z, 1)) continue;
+      if (nearCollider(x, z, 0.5) || onBridge(x, z, 1) || dockAt(x, z)) continue;
       const scatter = rng.next();
       if (scatter < (worldData.sea.shellDensity ?? 0.17)) decor.shells.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.36, 0.7), kind: rng.chance(0.65) ? 'fan' : 'spiral' });
       else if (scatter < 0.24) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.1) });
@@ -435,14 +455,15 @@ export function createWorld(worldData) {
       const x = rand.range(Math.max(rect[0], b.minX) + 3, Math.min(rect[1], b.maxX) - 3);
       const z = rand.range(Math.max(rect[2], b.minZ) + 3, Math.min(rect[3], b.maxZ) - 3);
       if (zoneAt(x, z).id !== zoneId) continue;
+      if (isSafe(x, z) || roadDist(x, z) < r + 2 || docks.some(d => pointInBox(d, x, z, r))) continue;
       // A walkable stream is still water: land spawns stay on dry ground.
       if (isWater(x, z, (r + 0.5) * 0.3) || !isFree(x, z, r + 0.5)) continue;
       if (hf.slopeAt(x, z) > 0.6) continue;
       if (avoid.some((a) => dist(x, z, a.x, a.z) < a.r)) continue;
       return { x, z };
     }
-    const rect = zn.rects[0];
-    return { x: (rect[0] + rect[1]) / 2, z: (rect[2] + rect[3]) / 2 };
+    // Exhaustion is explicit: never place a monster in water or in a safe area.
+    return null;
   }
 
   return {
@@ -451,6 +472,9 @@ export function createWorld(worldData) {
     zones,
     zoneAt,
     zoneById,
+    isSafe,
+    docks,
+    dockAt,
     waterLevel: water,
     heightfield: hf,
     terrainY,

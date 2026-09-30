@@ -106,7 +106,7 @@ export class Game {
   }
 
   isSafe(x, z) {
-    return !!this.world.zoneAt(x, z).safe;
+    return this.world.isSafe(x, z);
   }
 
   monsterById(id) {
@@ -191,6 +191,8 @@ export class Game {
     for (const s of w.spawns) {
       for (let i = 0; i < s.count; i++) {
         const pt = this.world.randomPointInZone(s.zone, 1, this.rng, avoid);
+        if (!pt) continue;
+        if (w.id) avoid.push({ x: pt.x, z: pt.z, r: 6 });
         const sp = { monster: s.monster, zone: s.zone, level: s.level, x: pt.x, z: pt.z, respawnAt: 0, entity: null, respawn: w.respawnSeconds };
         this.spawnPoints.push(sp);
         this.spawnAt(sp);
@@ -1000,6 +1002,7 @@ export class Game {
       }
     }
     if (best && best.id !== 'town') return this.freeSpotNear(best.x, best.z + 2.2);
+    if (!best) return this.freeSpotNear(...this.data.world.playerSpawn);
     const r = this.data.world.town.respawn;
     return { x: r[0], z: r[1] };
   }

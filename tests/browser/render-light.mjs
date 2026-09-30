@@ -32,11 +32,14 @@ try {
   f.game.player.facing=2.8;
   document.querySelector('.banner')?.remove();f.hud.el.zone.style.opacity=0;
  });
- for(const [scene,x,z] of [['grove',-172,14],['forest',-116,-106],['town',-208,17]]){
-  await page.evaluate(([x,z])=>{
+ const scenes=await page.evaluate(()=>window.__frontier.world.data.harbor
+  ? [['grove',-110,8],['forest',-100,-70],['town',62,27]]
+  : [['grove',-172,14],['forest',-116,-106],['town',-208,17]]);
+ for(const [scene,x,z] of scenes){
+  await page.evaluate(([x,z,scene])=>{
    const f=window.__frontier;
    // Use a real walkable spot on the shaded side of an existing forest tree.
-   if(z===-106){
+   if(scene==='forest'){
     const trees=f.world.circles.filter(t=>['tree','birch'].includes(t.type)&&f.world.zoneAt(t.x,t.z).id==='forest')
       .sort((a,b)=>(a.x-x)**2+(a.z-z)**2-((b.x-x)**2+(b.z-z)**2));
     if(trees[0]){x=trees[0].x+1.8;z=trees[0].z-1.2;}
@@ -44,7 +47,7 @@ try {
    Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.snapCamera();
    f.hud.updateTracker();f.hud.update(0,{interact(){}});f.hud.drawMinimap();
    f.__reviewFrames=0;
-  },[x,z]);
+  },[x,z,scene]);
   await page.waitForFunction(()=>window.__frontier.__reviewFrames>=3,null,{timeout:90000});
   const state=await page.evaluate(()=>{const f=window.__frontier,v=f.view;return {position:{x:f.game.player.x,z:f.game.player.z},...f.__reviewStats};});
   await page.screenshot({path:out+scene+'.png',timeout:60000});

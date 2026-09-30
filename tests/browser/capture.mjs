@@ -4,6 +4,12 @@
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+
+if (JSON.parse(readFileSync(new URL('../../data/world.json', import.meta.url), 'utf8')).harbor) {
+  await import('./harbor-capture.mjs');
+  process.exit(0);
+}
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });

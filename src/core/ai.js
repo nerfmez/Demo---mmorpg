@@ -357,6 +357,19 @@ function charger(game, m, dt, { t, gap, slowMult }) {
   }
 }
 
+function coastalMelee(game, m, dt, { t, gap, slowMult }) {
+  const bite = m.def.attacks.bite;
+  if (gap <= bite.range && m.cd.bite <= 0) return startWindup(game, m, 'bite', t);
+  if (gap > bite.range * .75) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+  else { m.moving = false; turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 4); }
+}
+
+function coastalHopper(game, m, dt, args) {
+  const leap = m.def.attacks.lunge;
+  if (args.gap >= leap.minRange && args.gap <= leap.maxRange && m.cd.lunge <= 0) return startWindup(game, m, 'lunge', args.t);
+  return coastalMelee(game, m, dt, args);
+}
+
 function shellSpitter(game, m, dt, { t, gap, slowMult }) {
   const a = m.def.attacks;
   if (gap <= a.spit.range && m.cd.spit <= 0) return startWindup(game, m, 'spit', t);
@@ -487,4 +500,4 @@ function wardenBoss(game, m, dt, { t, gap, slowMult }) {
   }
 }
 
-const BEHAVIORS = { charger, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+const BEHAVIORS = { charger, coastal_melee: coastalMelee, coastal_hopper: coastalHopper, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

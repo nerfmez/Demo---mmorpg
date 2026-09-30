@@ -1,7 +1,7 @@
 // The bigger map: terrain heights, cliffs, ramps, bridges, zones and waypoints.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { data } from './helpers.js';
+import { legacyData as data } from './helpers.js';
 import { createWorld } from '../../src/core/world.js';
 import { Game } from '../../src/core/game.js';
 

@@ -35,18 +35,18 @@ export class BladeTrail {
     this.geo.setAttribute('aU', new THREE.BufferAttribute(u, 1));
     this.geo.setIndex(idx);
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(0xffc24a) }, uCore: { value: new THREE.Color(0xfff3c4) } },
+      uniforms: { uColor: { value: new THREE.Color(0xffc24a) }, uCore: { value: new THREE.Color(0xfff3c4) }, uOpacity: { value: .85 }, uCoreWidth: { value: .22 } },
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       side: THREE.DoubleSide,
       vertexShader: /* glsl */ `attribute float aA; attribute float aU; varying float vA; varying float vU;
         void main(){ vA = aA; vU = aU; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: /* glsl */ `uniform vec3 uColor; uniform vec3 uCore; varying float vA; varying float vU;
+      fragmentShader: /* glsl */ `uniform vec3 uColor; uniform vec3 uCore; uniform float uOpacity,uCoreWidth; varying float vA; varying float vU;
         void main(){
-          float a = vA * (0.2 + 0.8 * smoothstep(0.0, 1.0, vU));
-          vec3 col = mix(uColor, uCore, smoothstep(0.55, 1.0, vU));
-          gl_FragColor = vec4(col * a, a);
+          float a = vA * uOpacity * smoothstep(0.0, .22, vU);
+          vec3 col = mix(uColor, uCore, smoothstep(1.-uCoreWidth, .98, vU));
+          gl_FragColor = vec4(col, a);
           #include <colorspace_fragment>
         }`,
     });
@@ -59,12 +59,19 @@ export class BladeTrail {
 
   /** Set up for a swing: cfg is a data/combat-fx.json weapon entry. Recording starts with start(). */
   begin(cfg, glow, core) {
-    this.on = false;
-    this.life = cfg.life;
+    this.clear();
+    this.life = cfg.life * (cfg.trailLife ?? 1);
     this.min = cfg.minSpeed;
     this.full = cfg.fullSpeed;
     this.mat.uniforms.uColor.value.set(glow);
     this.mat.uniforms.uCore.value.set(core);
+    this.mat.uniforms.uOpacity.value = cfg.trailOpacity ?? .85;
+    this.mat.uniforms.uCoreWidth.value = cfg.trailCoreWidth ?? .22;
+  }
+
+  clear() {
+    this.on = false; this.hasLast = false; this.count = 0; this.head = 0;
+    this.age.fill(9); this.alpha.fill(0); this.mesh.visible = false;
   }
 
   start() {

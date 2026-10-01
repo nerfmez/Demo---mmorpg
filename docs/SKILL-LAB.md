@@ -5,7 +5,7 @@ Open `lab.html` locally or `/lab/lab.html` on the published site. The Lab uses t
 ## Owner workflow
 
 1. Tap **ปรับเอฟเฟกต์** and choose a skill in the shared inspector.
-2. Choose **ทั้งหมด**, **ชาร์จ**, **พุ่ง** or **ปะทะ**. Only authored phases are offered.
+2. Choose **ทั้งหมด**, **เตรียม / ชาร์จ**, **ฟัน / พุ่ง** or **ปะทะ**. Only authored phases are offered.
 3. Change sliders, numeric values or colours. **ปรับแล้วลองอัตโนมัติ** restarts the selected preview after the input settles; turn it off to edit a few values before tapping **ลองช่วงนี้**. Existing pause, frame-step, slow-motion and automatic-loop controls also work.
 4. Expand a phase to edit its parameters. **คืนค่าช่วงนี้** resets only that section; **คืนค่าทั้งสกิล** resets all values of the selected skill.
 5. Values are remembered per skill in this browser. **ส่งออกค่าปรับ** downloads a JSON patch; **คัดลอกค่าปรับ** copies it, and **นำเข้าค่า** restores a patch. These changes affect the Lab only. Applying an approved patch to the game's data is a separate code change.
@@ -14,7 +14,7 @@ The inspector docks on the right on wide screens and below the scene on portrait
 
 ## Add a skill without building another menu
 
-- Skill timing comes from `data/skills.json`. Add/wire a replay adapter by `kind` when needed. Currently `projectile` is wired (Firebolt and Hunter's Shot); other kinds remain disabled rather than pretending to replay them.
+- Skill timing comes from `data/skills.json`. Add/wire a replay adapter by `kind` when needed. Currently `projectile` (Firebolt and Hunter's Shot), `melee_arc` (Slash) and `melee_nova` (Whirl Blade) are wired. Other kinds remain disabled.
 - Authored effects go in `data/combat-fx.json.skills.<id>`. Its nested numeric, hex-colour and boolean leaves automatically become controls, grouped by phase/object. Numeric arrays become individual controls. Shared field labels/ranges are in `lab/editor.js` and `lab/tuning.js`; unknown field names still appear automatically.
 - Projectiles without their own authored profile use `projectileDefaults`, which exposes scale/glow/trail and impact parameters used by the existing generic renderer. The Lab copies that profile per skill so edits do not affect another skill. No per-skill HTML/form is needed.
 - Vfx accepts an optional `{ config }` third argument. The Lab injects an isolated copy; the game uses the original imported configuration. Firebolt meshes read that copy on creation; its bounded particle pool refreshes palette/width without rebuilding GPU resources. Generic projectiles and impacts read the same data controls in the real renderer.
@@ -26,3 +26,11 @@ The inspector docks on the right on wide screens and below the scene on portrait
 `node --test tests/core/lab-tuning.test.js` checks isolation, generated controls, import safety, reset/export and persistence/baseline handling. `npm run build && node tests/browser/lab-editor.mjs` checks actual shader uniforms and arrow scale through the UI, isolated impact, per-skill switching/reload, export/import, section/all resets and portrait layout. Repeat with `BROWSER=webkit` for the owner's Safari engine. Review screenshots in `tests/browser/out/lab-editor/`.
 
 `tests/browser/firebolt-lab.mjs` remains the focused visual sequence and cleanup probe. `lab-preview.yml` runs both suites in Chromium/WebKit and publishes its `lab-dist` artifact. Pages publishes the main game at the root and this effects branch under `/lab/`. `lab-source.json` identifies the exact branch/SHA served; verify it before sharing a live review link.
+
+## Physical attack replay
+
+Melee skills copy `meleeDefaults` per skill, including `_labPhases` display labels. The same generated inspector exposes prepare, swing and impact controls without a skill-specific menu. Slash supports automatic 1–2–3 combo or a chosen step; Whirl Blade uses the nova adapter. Contact occurs at `castTime`, checks the dummy against range plus its radius and the authored arc, and appears once per replay. Misses retain the swing but have no contact. Browser tuning remains Lab-only until an approved exported patch is authored in game data.
+
+`render/melee.js` creates original tapered traveling cut ribbons and a fixed-capacity contact-shard pool. `BladeTrail` follows the real posed weapon endpoints. Clearing/changing previews cancels pending contacts and clears trail history. Mesh geometry is shared; per-cut materials are disposed. Physical hit events carry optional cosmetic `skill`/`attackKind` metadata, and melee contact shake/hit-stop reads the profile in both Lab and game.
+
+`node tests/browser/melee-lab.mjs` captures the real rig in Chromium; repeat with `BROWSER=webkit`. It checks authored timing, combo direction/weight, range/arc misses, isolated phases, shader controls, portrait layout, trail visibility, particle lifetime and geometry stabilization. Physical effects branches run this focused capture and the shared editor checks; other effects branches retain the Firebolt capture.

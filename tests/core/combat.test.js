@@ -46,6 +46,13 @@ const swing = (g, m) => {
   return hp - m.hp;
 };
 
+test('melee hit and motion events carry presentation source without changing damage', () => {
+  const {g,m}=setup(30);g.drainEvents();
+  assert(swing(g,m)>0);
+  const events=g.drainEvents(), hit=events.find(e=>e.type==='hit'&&e.id===m.id), cut=events.find(e=>e.type==='slash');
+  assert.equal(hit.skill,'slash');assert.equal(hit.attackKind,'melee_arc');assert.equal(cut.skill,'slash');
+});
+
 test('the third swing in a row is a finisher that hits harder and knocks back', () => {
   const { g, m } = setup(21);
   m.def = { ...m.def, defense: 0 };

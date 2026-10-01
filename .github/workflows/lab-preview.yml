@@ -25,10 +25,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node --test tests/core/combat.test.js tests/core/combat-fx.test.js tests/core/lab-tuning.test.js
+        if: startsWith(github.ref_name, 'claude/vfx-physical')
       - run: npm test
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
       - run: npm run build
       - run: npx playwright install --with-deps chromium webkit
       - name: Firebolt Lab review (Chromium)
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
         run: node tests/browser/firebolt-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -37,12 +41,31 @@ jobs:
           path: tests/browser/out/firebolt-lab/
           retention-days: 7
       - name: Firebolt Lab review (WebKit)
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
         run: BROWSER=webkit node tests/browser/firebolt-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: firebolt-lab-webkit
           path: tests/browser/out/firebolt-lab/
+          retention-days: 7
+      - name: Physical attack Lab (Chromium)
+        if: startsWith(github.ref_name, 'claude/vfx-physical')
+        run: node tests/browser/melee-lab.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && startsWith(github.ref_name, 'claude/vfx-physical')
+        with:
+          name: melee-lab-chromium
+          path: tests/browser/out/melee-lab/
+          retention-days: 7
+      - name: Physical attack Lab (WebKit)
+        if: startsWith(github.ref_name, 'claude/vfx-physical')
+        run: BROWSER=webkit node tests/browser/melee-lab.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && startsWith(github.ref_name, 'claude/vfx-physical')
+        with:
+          name: melee-lab-webkit
+          path: tests/browser/out/melee-lab/
           retention-days: 7
       - name: Shared Lab editor (Chromium)
         run: node tests/browser/lab-editor.mjs

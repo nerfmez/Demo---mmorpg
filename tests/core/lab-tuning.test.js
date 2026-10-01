@@ -5,6 +5,15 @@ import { LabTuning, fieldsFor, STORAGE_KEY } from '../../src/lab/tuning.js';
 const skills = JSON.parse(readFileSync(new URL('../../data/skills.json', import.meta.url)));
 const fx = JSON.parse(readFileSync(new URL('../../data/combat-fx.json', import.meta.url)));
 const memory = () => { const values = new Map(); return { getItem: (k) => values.get(k), setItem: (k, v) => values.set(k, v) }; };
+test('melee kinds receive shared phase controls and independent overrides', () => {
+  const store=new LabTuning(skills,fx);
+  assert.equal(store.get('slash').fx.renderer,'melee');
+  assert(store.get('slash').fields.some(f=>f.path.join('.')==='fx.swing.width'));
+  store.set('slash',['fx','swing','width'],.36);
+  assert.equal(store.get('whirl_blade').fx.swing.width,fx.meleeDefaults.swing.width);
+  store.set('slash',['replay','arc'],1000);assert.equal(store.get('slash').def.arc,360);
+  assert.equal(fx.meleeDefaults.swing.width,.22);
+});
 test('Lab edits and resets stay isolated by skill and never mutate authored data', () => {
   const store = new LabTuning(skills, fx);
   store.set('firebolt', ['fx', 'projectile', 'flowSpeed'], 27);

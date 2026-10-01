@@ -9,6 +9,7 @@ import { makeDecal, conform } from './decal.js';
 import { BladeTrail } from './trail.js';
 import FX from '../../data/combat-fx.json';
 import { flameMesh, FlameParticles } from './firebolt.js';
+import { cutRibbon, ContactShards } from './melee.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -216,6 +217,7 @@ export class Vfx {
     this.swingCfg = null;
     this.swingDelay = 0;
     this.swingLeft = 0;
+    this.contacts = new ContactShards(scene);
     this.flames = new FlameParticles(scene, this.config.skills.firebolt);
     this.castFlame = null;
     this.seenProjectiles = new Set();
@@ -225,6 +227,18 @@ export class Vfx {
   genericLook(kind) {
     const cfg = this.config.skills?.[kind];
     return cfg?.renderer === 'sprite' ? cfg : this.config.projectileDefaults;
+  }
+
+  meleeLook(skill) {
+    const profile = this.config.skills?.[skill];
+    return profile?.renderer === 'melee' ? profile : this.config.meleeDefaults;
+  }
+
+  meleePalette(skill, element) {
+    const cfg = this.meleeLook(skill);
+    if (!element || element === 'physical') return cfg;
+    const c = el(element);
+    return { ...cfg, colors: { rim: c.glow, body: c.glow, core: c.core, sparks: c.dots } };
   }
 
   refreshFlames() {
@@ -353,16 +367,22 @@ export class Vfx {
    */
   beginSwing(e, element) {
     const cfg = this.config.weapons[e.weapon] || this.config.weapons.none;
-    const c = el(element);
+    const look = this.meleePalette(e.skill, element);
     const spin = e.kind === 'melee_nova';
     this.swingCfg = cfg;
-    this.swingDelay = (spin ? 0.3 : 0.5) * e.total;
-    this.swingLeft = spin ? e.total * 0.7 + 0.5 : e.total * 0.5 + 0.12;
-    this.trail.begin(cfg, c.glow, c.core);
+    this.swingDelay = (spin ? look.cast.trailStart * .65 : look.cast.trailStart) * e.total;
+    this.swingLeft = spin ? e.total * .7 + .5 : e.total - this.swingDelay + look.cast.trailEnd;
+    this.trail.begin({ ...cfg, trailLife: look.swing.trailLife, trailOpacity: look.swing.trailOpacity, trailCoreWidth: look.swing.trailCoreWidth }, look.colors.body, look.colors.core);
+  }
+
+  endSwing(clear = false) {
+    this.swingDelay = this.swingLeft = 0; this.swingCfg = null;
+    if (clear) this.trail.clear(); else this.trail.end();
   }
 
   /** Per frame, after the hero's pose is set: record the weapon's base and tip in world space. */
-  updateTrail(dt, rig) {
+  updateTrail(dt, rig, cancelled = false) {
+    if (cancelled) this.endSwing();
     if (this.swingDelay > 0) {
       this.swingDelay -= dt;
       if (this.swingDelay <= 0) this.trail.start();
@@ -388,32 +408,26 @@ export class Vfx {
    * where a hit can land. The light that follows the weapon itself is the blade trail.
    */
   slash(e, weapon) {
-    const cfg = this.config.weapons[weapon] || this.config.weapons.none;
-    const c = el(e.element);
+    const cfg = this.meleePalette(e.skill || 'slash', e.element), f = cfg.swing;
     const arc = (e.arc * Math.PI) / 180;
-    // the third swing of a combo hits no further, so it is drawn stronger on the same area
-    const k = e.finisher ? 1.8 : 1;
-    const fill = this.decal(sectorGeometry(0, e.range, arc, 24), additive(c.glow, cfg.zone * k), e.x, e.z, 1, e.angle, 0.09);
-    const edge = this.decal(sectorGeometry(Math.max(0, e.range - 0.12 * k), e.range, arc, 24), additive(c.core, 0.55), e.x, e.z, 1, e.angle, 0.1);
-    this.spawn(fill, 0.24 * k, (t) => (fill.material.opacity = cfg.zone * k * (1 - t) * (1 - t)));
-    this.spawn(edge, 0.24 * k, (t) => (edge.material.opacity = 0.55 * (1 - t) * (1 - t)));
-    const dx = Math.sin(e.angle);
-    const dz = Math.cos(e.angle);
-    const y = this.gy(e.x, e.z);
-    for (let i = 0; i < 6; i++) {
-      const a = e.angle + ((i / 5 - 0.5) * e.arc * Math.PI) / 180;
-      const r = e.range * (0.85 + Math.random() * 0.15);
-      this.fx.add(e.x + Math.sin(a) * r, y + 0.2, e.z + Math.cos(a) * r, Math.sin(a) * 1.5, 0.5, Math.cos(a) * 1.5, { color: c.dots, size: 0.18, life: 0.28 });
-    }
-    if ((cfg.dust || e.finisher) && (e.hits || e.finisher)) {
-      this.dust.burst(e.x + dx * e.range * 0.75, y + 0.15, e.z + dz * e.range * 0.75, Math.round((cfg.dust || 4) * k), { color: 0xd8c7a0, size: 0.55, sizeEnd: 1.0, speed: 2.6, life: 0.4, up: 0.2, drag: 3 });
+    const cut = cutRibbon(cfg, e.range, arc, e.step === 1, e.finisher);
+    cut.position.set(e.x, this.gy(e.x, e.z) + f.height, e.z); cut.rotation.y = e.angle;
+    this.spawn(cut, f.life, (t) => (cut.material.uniforms.uT.value = t));
+    if (f.zoneOpacity > 0) {
+      const fill = this.decal(sectorGeometry(0, e.range, arc, 24), additive(cfg.colors.body, f.zoneOpacity), e.x, e.z, 1, e.angle, .06);
+      this.spawn(fill, f.life, (t) => (fill.material.opacity = f.zoneOpacity * (1-t)*(1-t)));
     }
   }
 
   whirl(e) {
-    const c = el(e.element);
-    this.ring(e.x, e.z, e.radius, c.glow, 0.32);
-    this.dust.burst(e.x, this.gy(e.x, e.z) + 0.2, e.z, 10, { color: 0xd8c7a0, size: 0.6, sizeEnd: 1.1, speed: e.radius * 2, life: 0.45, up: 0.2, drag: 3 });
+    const cfg = this.meleePalette(e.skill || 'whirl_blade', e.element);
+    // Two travelling half cuts rather than an expanding explosion/ring.
+    for (let i=0;i<2;i++) {
+      const m=cutRibbon(cfg,e.radius,Math.PI*1.08,i===1);
+      m.position.set(e.x,this.gy(e.x,e.z)+cfg.swing.height,e.z);
+      m.rotation.y=e.angle+i*Math.PI;
+      this.spawn(m,cfg.swing.life*1.35,(t)=>{m.material.uniforms.uT.value=t;m.rotation.y=e.angle+i*Math.PI+t*.6;});
+    }
   }
 
   nova(e) {
@@ -570,6 +584,11 @@ export class Vfx {
     const y = this.gy(e.x, e.z);
     if (e.dot) {
       this.fx.add(e.x + (Math.random() - 0.5) * 0.6, y + 0.6, e.z + (Math.random() - 0.5) * 0.6, 0, 1.4, 0, { color: c.dots, size: 0.22, life: 0.5 });
+      return;
+    }
+    if (e.element === 'physical' || e.attackKind === 'melee_arc' || e.attackKind === 'melee_nova') {
+      this.contacts.burst(e, this.meleePalette(e.skill, e.element), y + height);
+      if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
       return;
     }
     this.fx.burst(e.x, y + height, e.z, e.crit ? 14 : 6, { color: e.crit ? 0xffffff : c.dots, size: e.crit ? 0.35 : 0.24, speed: e.crit ? 6 : 4, life: 0.3, up: 0.6 });
@@ -1108,6 +1127,7 @@ export class Vfx {
     this.flames.update(dt);
     this.fx.update(dt);
     this.dust.update(dt);
+    this.contacts.update(dt);
     const keep = [];
     for (const a of this.active) {
       a.t += dt;

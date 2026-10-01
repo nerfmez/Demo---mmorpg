@@ -24,7 +24,7 @@ const GROUNDS = {
 };
 const ELEMENTS = ['fire', 'cold', 'lightning', 'poison', 'arcane', 'physical'];
 // skills the lab can replay; the rest appear disabled until their beats are wired here
-const PLAYABLE = new Set(['projectile']);
+const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova']);
 
 const flat = { surfaceY: () => 0, groundY: () => 0 };
 const params = new URLSearchParams(location.search);
@@ -45,9 +45,13 @@ const state = {
   tuningAuto: true,
   tuningSections: {},
   tuningStatus: '',
+  comboMode: null,
+  comboStep: 0,
 };
 
 if (!PLAYABLE.has(SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt';
+const isMelee = (s) => s?.kind === 'melee_arc' || s?.kind === 'melee_nova';
+if (isMelee(SKILLS.combat[state.skill])) { state.weapon = 'sword'; state.distance = 2; }
 let storage = null;
 try { storage = window.localStorage; } catch {}
 const tuning = new LabTuning(SKILLS, FX, storage);
@@ -135,6 +139,7 @@ function cast() {
   const s = skillDef();
   if (!s || !PLAYABLE.has(s.kind)) return;
   const element = elementOf();
+  if (isMelee(s)) return castMelee(s, element);
   if (state.reviewPhase === 'impact') {
     impact({ kind: state.skill, element, x: dummy.position.x + 0.75, z: 0, vx: -s.speed, vz: 0 });
     return;
@@ -145,9 +150,36 @@ function cast() {
   vfx.beginCast?.(e, element);
   if (state.reviewPhase !== 'cast') later(s.castTime, () => emitProjectiles(s));
 }
+function meleeContact(s, step) {
+  const dx=dummy.position.x,dz=dummy.position.z,d=Math.hypot(dx,dz);
+  const off=Math.abs(Math.atan2(Math.sin(Math.atan2(dx,dz)+Math.PI/2),Math.cos(Math.atan2(dx,dz)+Math.PI/2)));
+  return s.kind === 'melee_nova' ? d-.35 <= s.radius : d-.35 <= s.range && (off <= s.arc*Math.PI/360 || d <= .65);
+}
+function meleeHit(s, element, step) {
+  vfx.hitSpark({ skill: state.skill, attackKind: s.kind, element, x: dummy.position.x, z: dummy.position.z, fromX:0, fromZ:0, heavy:step===2, crit:false });
+  const f=fxLook(state.skill).impact; shake=Math.max(shake,f.shake);hitStop=Math.max(hitStop,f.hitStop);dummyHit=1;
+}
+function castMelee(s, element) {
+  const step=state.comboMode ?? state.comboStep;
+  if (state.reviewPhase === 'impact') { meleeHit(s,element,step); return; }
+  const e={skill:state.skill,kind:s.kind,total:s.castTime,weapon:state.weapon,step};
+  heroAnim.play(e.skill,s.castTime+.28,e.weapon,step,s.castTime,s.kind);
+  if (state.reviewPhase !== 'cast') {
+    vfx.beginSwing(e,element);
+    later(s.castTime,()=>{
+      const hits=meleeContact(s,step)?1:0;
+      const hit={skill:e.skill,x:0,z:0,angle:-Math.PI/2,element,range:s.range,arc:s.arc,radius:s.radius,step,finisher:step===2,hits};
+      if(s.kind==='melee_nova')vfx.whirl(hit);else vfx.slash(hit,e.weapon);
+      if(hits && state.reviewPhase==='full')meleeHit(s,element,step);
+    });
+  }
+  if(state.comboMode===null && state.reviewPhase==='full')state.comboStep=(step+1)%3;
+}
 function clearReplay() {
   timers.length = 0; fakeGame.projectiles.length = 0;
   vfx.endCast();
+  vfx.endSwing(true); vfx.contacts.clear();
+  if(heroAnim)heroAnim.action=null;
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
   for (const a of vfx.active) disposeObject(a.obj, vfx.sharedGeo);
@@ -177,7 +209,9 @@ function replayPhase(phase = state.reviewPhase, refreshPanel = true) {
 function selectSkill(id) {
   if (!PLAYABLE.has(SKILLS.combat[id]?.kind)) return;
   clearTimeout(editTimer); editTimer = null; clearReplay();
-  state.skill = id; state.element = null; state.reviewPhase = 'full';
+  const wasMelee=isMelee(SKILLS.combat[state.skill]), nowMelee=isMelee(SKILLS.combat[id]);
+  state.skill = id; state.element = null; state.reviewPhase = 'full';state.comboStep=0;
+  if(wasMelee!==nowMelee){state.weapon=nowMelee?'sword':'staff';state.distance=nowMelee?2:6;buildHero();placeDummy();}
   tuning.get(id); vfx.refreshFlames();
   state.tuningStatus = 'พร้อมทดลอง';
   render();
@@ -356,8 +390,9 @@ function render() {
       selectSkill(v);
     });
     row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
-    row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
-    row('อาวุธ', [['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['sword', 'ดาบ'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
+    if (!isMelee(skillDef())) row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
+    row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
+      clearReplay();
       state.weapon = v;
       buildHero();
     });
@@ -366,10 +401,11 @@ function render() {
       floorMat.color.set(GROUNDS[v].floor);
       scene.background = new THREE.Color(GROUNDS[v].sky);
     });
-    row('ระยะ', [[4, '4 ม.'], [6, '6 ม.'], [9, '9 ม.']], (v) => v === state.distance, (v) => {
+    row('ระยะ', isMelee(skillDef()) ? [[1.6,'1.6 ม.'],[2.2,'2.2 ม.'],[3.4,'3.4 ม.']] : [[4, '4 ม.'], [6, '6 ม.'], [9, '9 ม.']], (v) => v === state.distance, (v) => {
       state.distance = v;
       placeDummy();
     });
+    if(isMelee(skillDef()))row('คอมโบ',[[null,'ต่อเนื่อง'],[0,'1'],[1,'2'],[2,'3 หนัก']],v=>v===state.comboMode,v=>{state.comboMode=v;state.comboStep=0;clearReplay();});
     row('กล้อง', [[0.4, 'ใกล้'], [0.55, 'กลาง'], [0.8, 'เกม']], (v) => v === state.zoom, (v) => (state.zoom = v));
   }
   if (state.editorOpen) mountTuningPanel(panel, {
@@ -385,7 +421,7 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, hero: hero.root, dummy }, stats: () => ({ ...renderer.info.memory }) };
+window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
 
 

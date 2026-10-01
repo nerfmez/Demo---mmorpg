@@ -374,6 +374,11 @@ export class View {
           mv.kx = (mv.kx || 0) + (dx / d) * k;
           mv.kz = (mv.kz || 0) + (dz / d) * k;
         }
+        if (!e.dot && !e.byAlly && (e.attackKind === 'melee_arc' || e.attackKind === 'melee_nova')) {
+          const feel = v.meleeLook(e.skill).impact;
+          this.hitStop = Math.max(this.hitStop || 0, feel.hitStop);
+          this.addShake(feel.shake);
+        }
         if (!e.dot && !e.byAlly && (e.crit || e.heavy)) this.hitStop = Math.max(this.hitStop || 0, 0.06);
         if (e.crit) this.addShake(0.08);
         break;
@@ -700,7 +705,7 @@ export class View {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
     this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
-    this.vfx.updateTrail(dt, r);
+    this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
@@ -950,4 +955,3 @@ export class View {
     return c.toDataURL();
   }
 }
-

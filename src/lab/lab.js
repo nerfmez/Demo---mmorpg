@@ -13,6 +13,8 @@ import { disposeObject } from '../render/dispose.js';
 import SKILLS from '../../data/skills.json';
 import FX from '../../data/combat-fx.json';
 import MODELS from '../../data/models.json';
+import { LabTuning } from './tuning.js';
+import { mountTuningPanel } from './editor.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5); // the game's 3/4 camera (src/render/view.js)
 const GROUNDS = {
@@ -38,7 +40,18 @@ const state = {
   distance: 6,
   zoom: 0.55,
   open: false, // settings rows shown
+  editorOpen: false,
+  reviewPhase: 'full',
+  tuningAuto: true,
+  tuningSections: {},
+  tuningStatus: '',
 };
+
+if (!PLAYABLE.has(SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt';
+let storage = null;
+try { storage = window.localStorage; } catch {}
+const tuning = new LabTuning(SKILLS, FX, storage);
+tuning.get(state.skill);
 
 // ---------- scene ----------
 const canvas = document.getElementById('lab');
@@ -62,7 +75,7 @@ grid.material.opacity = 0.08;
 grid.position.y = 0.01;
 scene.add(grid);
 
-const vfx = new Vfx(scene, flat, camera);
+const vfx = new Vfx(scene, flat, { config: tuning.fx });
 const fakeGame = { projectiles: [], areas: [] };
 
 // training dummy: a post with a straw body; it bounces when hit
@@ -104,32 +117,86 @@ let shake = 0;
 // the lab's own delayed calls (cast release), so it works with any version of vfx.js
 const timers = [];
 const later = (t, fn) => timers.push({ t, fn });
-const fxLook = (id) => FX.skills?.[id];
+const fxLook = (id) => tuning.get(id).fx;
 
-const skillDef = () => SKILLS.combat[state.skill];
+const skillDef = () => tuning.get(state.skill).def;
 const elementOf = () => state.element || skillDef().element || 'physical';
 
+function emitProjectiles(s) {
+  const n = state.count, element = elementOf();
+  const spread = ((s.spread || 24) * Math.PI) / 180;
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (n > 1 ? (i - (n - 1) / 2) * (spread / (n - 1)) : 0);
+    const dx = Math.sin(a), dz = Math.cos(a);
+    fakeGame.projectiles.push({ id: nextId++, owner: 'player', kind: state.skill, element, x: dx * 0.6, z: dz * 0.6, y: 1.05, vx: dx * s.speed, vz: dz * s.speed, speed: s.speed, radius: s.projectileRadius || 0.35, range: (s.range || 12) + 2, travelled: 0 });
+  }
+}
 function cast() {
   const s = skillDef();
   if (!s || !PLAYABLE.has(s.kind)) return;
   const element = elementOf();
+  if (state.reviewPhase === 'impact') {
+    impact({ kind: state.skill, element, x: dummy.position.x + 0.75, z: 0, vx: -s.speed, vz: 0 });
+    return;
+  }
+  if (state.reviewPhase === 'projectile') { emitProjectiles(s); return; }
   const e = { type: 'castStart', skill: state.skill, kind: s.kind, angle: -Math.PI / 2, x: dummy.position.x, z: 0, total: s.castTime, weapon: state.weapon };
   heroAnim.play(e.skill, e.total + 0.28, e.weapon, 0, e.total, e.kind);
   vfx.beginCast?.(e, element);
-  later(s.castTime, () => {
-    const n = state.count;
-    const spread = ((s.spread || 24) * Math.PI) / 180;
-    for (let i = 0; i < n; i++) {
-      const a = -Math.PI / 2 + (n > 1 ? (i - (n - 1) / 2) * (spread / (n - 1)) : 0);
-      const dx = Math.sin(a);
-      const dz = Math.cos(a);
-      fakeGame.projectiles.push({ id: nextId++, owner: 'player', kind: state.skill, element, x: dx * 0.6, z: dz * 0.6, y: 1.05, vx: dx * s.speed, vz: dz * s.speed, speed: s.speed, radius: s.projectileRadius || 0.35, range: (s.range || 12) + 2, travelled: 0 });
-    }
-  });
+  if (state.reviewPhase !== 'cast') later(s.castTime, () => emitProjectiles(s));
+}
+function clearReplay() {
+  timers.length = 0; fakeGame.projectiles.length = 0;
+  vfx.endCast();
+  for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
+  vfx.projectiles.clear();
+  for (const a of vfx.active) disposeObject(a.obj, vfx.sharedGeo);
+  vfx.active.length = 0;
+  vfx.flames.count = 0; vfx.flames.mesh.geometry.instanceCount = 0;
+  for (const p of [vfx.fx, vfx.dust]) { p.count = 0; p.points.geometry.setDrawRange(0, 0); }
+  hitStop = shake = dummyHit = 0;
+  dummy.scale.setScalar(1); dummy.rotation.z = 0;
+}
+let editTimer = null;
+function tuningStatus(text) {
+  state.tuningStatus = text;
+  const node = document.getElementById('tuning-status');
+  if (node) node.textContent = text;
+}
+function replayPhase(phase = state.reviewPhase, refreshPanel = true) {
+  clearTimeout(editTimer); editTimer = null;
+  clearReplay(); vfx.refreshFlames();
+  state.reviewPhase = phase; state.paused = false;
+  autoT = 2.2;
+  cast();
+  const pause = document.getElementById('lab-pause'), stepButton = document.getElementById('lab-step');
+  if (pause) { pause.textContent = '⏸'; pause.classList.remove('on'); }
+  if (stepButton) stepButton.disabled = true;
+  if (refreshPanel) render();
+}
+function selectSkill(id) {
+  if (!PLAYABLE.has(SKILLS.combat[id]?.kind)) return;
+  clearTimeout(editTimer); editTimer = null; clearReplay();
+  state.skill = id; state.element = null; state.reviewPhase = 'full';
+  tuning.get(id); vfx.refreshFlames();
+  state.tuningStatus = 'พร้อมทดลอง';
+  render();
+}
+function tuningChanged() {
+  // Restart once the touch slider settles; avoid rebuilding meshes on every input tick.
+  vfx.refreshFlames();
+  const saved = tuning.save(state.skill);
+  tuningStatus(saved ? 'จำค่าปรับไว้แล้ว' : 'ทดลองได้ แต่เครื่องนี้บันทึกค่าไม่ได้ — ส่งออกเก็บไว้ได้');
+  clearTimeout(editTimer);
+  if (state.tuningAuto) editTimer = setTimeout(() => replayPhase(state.reviewPhase, false), 180);
+}
+function resetTuning(section) {
+  tuning.reset(state.skill, section); tuningChanged();
+  clearReplay(); vfx.refreshFlames(); render();
 }
 
 function impact(pr) {
-  const e = { type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z };
+  const e = { type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz };
   vfx.impact(e);
   const hit = fxLook(pr.kind)?.impact;
   if (hit) {
@@ -183,21 +250,28 @@ let last = performance.now();
 let fps = 60;
 const camTarget = new THREE.Vector3();
 let panelH = 0;
+let panelW = 0;
+let viewFit = 1;
 function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
+  // Preserve horizontal room for caster and target when a portrait inspector
+  // reduces the available view. The owner's selected zoom remains the base.
+  viewFit = Math.max(1, h / Math.max(1, w - panelW));
   // keep the action centred in the part of the screen above the touch panel
-  camera.setViewOffset(w, h, 0, panelH / 2, w, h);
+  camera.setViewOffset(w, h, panelW / 2, panelH / 2, w, h);
   camera.updateProjectionMatrix();
   vfx.setPointScale(h * renderer.getPixelRatio());
 }
-window.addEventListener('resize', resize);
+window.addEventListener('resize', measurePanel);
 resize();
 
 function frame(now) {
-  const real = Math.min(0.05, (now - last) / 1000);
+  // The first RAF timestamp may predate initialization's performance.now().
+  // Never advance the rig backwards (a negative gait phase indexes before its clip).
+  const real = Math.max(0, Math.min(0.05, (now - last) / 1000));
   last = now;
   fps += (1 / Math.max(real, 0.001) - fps) * 0.05;
   if (!state.paused) {
@@ -209,7 +283,7 @@ function frame(now) {
     step(dt);
   }
   const target = camTarget.set(-state.distance / 2, 0, 0);
-  camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom);
+  camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom * viewFit);
   if (shake > 0) {
     camera.position.x += (Math.random() - 0.5) * shake * 0.35;
     camera.position.y += (Math.random() - 0.5) * shake * 0.35;
@@ -259,6 +333,7 @@ function button(parent, text, cls, onTap, disabled = false) {
 }
 function render() {
   panel.textContent = '';
+  panel.classList.toggle('editing', state.editorOpen);
   const top = document.createElement('div');
   top.className = 'row';
   panel.append(top);
@@ -267,16 +342,20 @@ function render() {
     state.auto = !state.auto;
     autoT = 0;
   });
-  button(top, state.paused ? '▶' : '⏸', state.paused ? 'on' : '', () => (state.paused = !state.paused));
-  button(top, '+1 เฟรม', '', () => step(1 / 60), !state.paused);
+  button(top, state.paused ? '▶' : '⏸', state.paused ? 'on' : '', () => (state.paused = !state.paused)).id = 'lab-pause';
+  button(top, '+1 เฟรม', '', () => step(1 / 60), !state.paused).id = 'lab-step';
   for (const [v, t] of [[1, '1×'], [0.5, '½×'], [0.25, '¼×'], [0.1, '⅒×']]) button(top, t, v === state.speed ? 'on' : '', () => (state.speed = v));
   button(top, state.open ? '▾ ซ่อน' : '⚙ ตั้งค่า', '', () => (state.open = !state.open));
+  button(top, state.editorOpen ? 'ปิดตัวปรับ' : 'ปรับเอฟเฟกต์', state.editorOpen ? 'on' : '', () => {
+    state.editorOpen = !state.editorOpen;
+    state.reviewPhase = 'full'; clearReplay();
+    if (state.editorOpen) state.element = null;
+  });
   if (state.open) {
-    row('สกิล', Object.entries(SKILLS.combat).map(([id, s]) => [id, `${fxLook(id) ? '★ ' : ''}${s.nameTh || s.name}`, !PLAYABLE.has(s.kind)]), (v) => v === state.skill, (v) => {
-      state.skill = v;
-      state.element = null;
+    row('สกิล', Object.entries(SKILLS.combat).map(([id, s]) => [id, `${FX.skills?.[id] ? '★ ' : ''}${s.nameTh || s.name}`, !PLAYABLE.has(s.kind)]), (v) => v === state.skill, (v) => {
+      selectSkill(v);
     });
-    row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => (state.element = v));
+    row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
     row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
     row('อาวุธ', [['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['sword', 'ดาบ'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
       state.weapon = v;
@@ -293,8 +372,11 @@ function render() {
     });
     row('กล้อง', [[0.4, 'ใกล้'], [0.55, 'กลาง'], [0.8, 'เกม']], (v) => v === state.zoom, (v) => (state.zoom = v));
   }
-  panelH = panel.getBoundingClientRect().height;
-  resize();
+  if (state.editorOpen) mountTuningPanel(panel, {
+    tuning, state, skills: SKILLS.combat, playable: (skill) => PLAYABLE.has(skill?.kind),
+    onSkill: selectSkill, onChange: tuningChanged, onPreview: replayPhase, onReset: resetTuning, onStatus: tuningStatus,
+  });
+  measurePanel();
 }
 let source = '';
 fetch('./lab-source.json')
@@ -303,5 +385,16 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx };
+window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, hero: hero.root, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
+
+
+// Accordion height changes also keep the action above the touch panel.
+function measurePanel() {
+  const rect = panel.getBoundingClientRect();
+  const side = state.editorOpen && window.innerWidth >= 980;
+  panelH = side ? 0 : rect.height;
+  panelW = side ? rect.width : 0;
+  resize();
+}
+new ResizeObserver(measurePanel).observe(panel);

@@ -3,6 +3,30 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { legacyData as data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
+import { computeSkill } from '../../src/core/skills.js';
+
+test('starter Firebolt travels at the lower base speed and speed bonuses preserve reach', () => {
+  const g = new Game(data, { seed: 31 });
+  // Isolate free flight from terrain and targets.
+  g.world = { surfaceY: () => 0, isFree: () => true };
+  g.monsters = [];
+  const slot = g.ch.slots.findIndex(s => s.skill === 'firebolt');
+  const base = computeSkill(g.ch, data, { ...g.derived, projectileSpeedPct: 0 }, slot);
+  const faster = computeSkill(g.ch, data, { ...g.derived, projectileSpeedPct: 100 }, slot);
+  assert.equal(base.speed, 9);
+  assert.equal(faster.speed, 18);
+  for (const s of [base, faster]) {
+    g.executeSkill(s, { angle: Math.PI / 2, x: g.player.x, z: g.player.z });
+  }
+  const [plain, boosted] = g.projectiles;
+  const startX = plain.x;
+  g.updateProjectiles(0.25);
+  assert.equal(g.projectiles.length, 2);
+  assert.ok(Math.abs(plain.x - startX - 2.25) < 1e-8);
+  assert.ok(Math.abs(boosted.x - startX - 4.5) < 1e-8);
+  assert.equal(boosted.range, plain.range);
+  assert.equal(boosted.radius, plain.radius);
+});
 
 const setup = (seed) => {
   const g = new Game(data, { seed });

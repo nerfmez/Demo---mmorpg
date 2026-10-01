@@ -8,6 +8,7 @@ import { toon } from './toon.js';
 import { makeDecal, conform } from './decal.js';
 import { BladeTrail } from './trail.js';
 import FX from '../../data/combat-fx.json';
+import { flameMesh, FlameParticles } from './firebolt.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -195,7 +196,8 @@ function ringGeometry(inner = 0.86, outer = 1, segs = 56) {
 }
 
 export class Vfx {
-  constructor(scene, world) {
+  constructor(scene, world, { config = FX } = {}) {
+    this.config = config;
     this.scene = scene;
     this.world = world;
     this.fx = new Particles(3200, { additive: true });
@@ -214,6 +216,19 @@ export class Vfx {
     this.swingCfg = null;
     this.swingDelay = 0;
     this.swingLeft = 0;
+    this.flames = new FlameParticles(scene, this.config.skills.firebolt);
+    this.castFlame = null;
+    this.seenProjectiles = new Set();
+  }
+
+  // Lab injects an isolated data copy; the game keeps its authored defaults.
+  genericLook(kind) {
+    const cfg = this.config.skills?.[kind];
+    return cfg?.renderer === 'sprite' ? cfg : this.config.projectileDefaults;
+  }
+
+  refreshFlames() {
+    this.flames.setConfig(this.config.skills.firebolt);
   }
 
   gy(x, z) {
@@ -247,13 +262,97 @@ export class Vfx {
 
   // ---------- one-shot effects ----------
 
+  beginCast(e, element) {
+    this.endCast();
+    if (e.skill !== 'firebolt' || element !== 'fire') return;
+    const mesh = flameMesh(this.config.skills.firebolt, 1);
+    mesh.material.uniforms.uWidth.value = this.config.skills.firebolt.cast.size;
+    mesh.material.uniforms.uGlowRadius.value = this.config.skills.firebolt.cast.glowRadius;
+    // Hidden until updateCast supplies an actual source rig (event x/z is the target).
+    mesh.visible = false;
+    this.scene.add(mesh);
+    this.castFlame = { mesh, t: 0, dur: e.total, weapon: e.weapon };
+  }
+
+  endCast() {
+    if (!this.castFlame) return;
+    disposeObject(this.castFlame.mesh);
+    this.castFlame = null;
+  }
+
+  updateCast(dt, rig, cancelled = false) {
+    const c = this.castFlame;
+    if (!c) return;
+    c.t += dt;
+    if (cancelled || !rig || c.t >= c.dur) { this.endCast(); return; }
+    const w = rig.bones?.weapon;
+    if (w && c.weapon !== 'none') {
+      w.updateWorldMatrix(true, false);
+      w.getWorldPosition(_p0); w.getWorldDirection(_dir);
+      _p0.addScaledVector(_dir, this.config.weapons[c.weapon]?.tip ?? 0.25);
+    } else {
+      rig.root.getWorldPosition(_p0);
+      _p0.y += 1.2;
+      _p0.x += Math.sin(rig.root.rotation.y) * 0.45;
+      _p0.z += Math.cos(rig.root.rotation.y) * 0.45;
+    }
+    c.mesh.position.copy(_p0); c.mesh.visible = true;
+    const u = c.mesh.material.uniforms, k = c.t / c.dur;
+    u.uTime.value = c.t; u.uScale.value = 0.25 + 0.75 * k * k;
+  }
+
+  fireImpact(e) {
+    const cfg = this.config.skills.firebolt, f = cfg.impact;
+    const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
+    const flash = flameMesh(cfg, 2);
+    flash.position.set(e.x, y, e.z);
+    flash.material.uniforms.uWidth.value = f.size;
+    flash.material.uniforms.uGlowRadius.value = f.glowRadius;
+    flash.material.uniforms.uSeed.value = Math.random() * 17;
+    if (Number.isFinite(e.vx) && Number.isFinite(e.vz)) flash.material.uniforms.uVelocity.value.set(e.vx, 0, e.vz);
+    // Reuse the nearest last-rendered Firebolt direction; core events stay unchanged.
+    let nearest = Infinity;
+    for (const v of this.projectiles.values()) {
+      const u = v.children[0]?.material?.uniforms;
+      if (!u?.uVelocity) continue;
+      const dx = v.position.x - e.x, dz = v.position.z - e.z;
+      const distance = dx * dx + dz * dz;
+      if (distance < nearest) {
+        nearest = distance;
+        flash.material.uniforms.uVelocity.value.copy(u.uVelocity.value);
+      }
+    }
+    const direction = flash.material.uniforms.uVelocity.value;
+    const speed = Math.hypot(direction.x, direction.z) || 1;
+    const forwardX = direction.x / speed, forwardZ = direction.z / speed;
+    this.spawn(flash, f.flashLife, (k) => {
+      const u = flash.material.uniforms;
+      u.uTime.value = k * f.flashLife;
+      u.uProgress.value = k;
+      u.uScale.value = 1;
+      u.uAlpha.value = 1 - k;
+    });
+    for (let i = 0; i < f.wisps + f.embers; i++) {
+      const wisp = i < f.wisps, a = i * 2.39996;
+      const r = wisp ? f.wispSpeed : f.emberSpeed;
+      const lateral = Math.sin(a) * r * 0.7;
+      const forward = (0.2 + Math.cos(a) * 0.55) * r;
+      this.flames.emit(e.x, y, e.z,
+        forwardX * forward - forwardZ * lateral, 0.3 + (1 + Math.sin(a * 1.7)) * r * 0.25,
+        forwardZ * forward + forwardX * lateral,
+        wisp ? f.wispSize : f.emberSize, wisp ? f.wispLife : f.emberLife,
+        wisp ? 0 : 1, i * 0.618 % 1);
+    }
+    this.shake = Math.max(this.shake, f.shake);
+  }
+
   /**
    * A melee skill starts swinging. The blade trail only records the strike itself (the wind-up is
    * as fast as the cut, so timing, not speed alone, tells them apart): from half way to the hit
    * until just after it, or for a spin from its start to its end.
    */
   beginSwing(e, element) {
-    const cfg = FX.weapons[e.weapon] || FX.weapons.none;
+    const cfg = this.config.weapons[e.weapon] || this.config.weapons.none;
     const c = el(element);
     const spin = e.kind === 'melee_nova';
     this.swingCfg = cfg;
@@ -289,7 +388,7 @@ export class Vfx {
    * where a hit can land. The light that follows the weapon itself is the blade trail.
    */
   slash(e, weapon) {
-    const cfg = FX.weapons[weapon] || FX.weapons.none;
+    const cfg = this.config.weapons[weapon] || this.config.weapons.none;
     const c = el(e.element);
     const arc = (e.arc * Math.PI) / 180;
     // the third swing of a combo hits no further, so it is drawn stronger on the same area
@@ -353,9 +452,9 @@ export class Vfx {
 
   /** A monster's melee strike lands. Each attack has its own look (data/combat-fx.json 'monsters'). */
   monsterSwing(e) {
-    const base = FX.monsters[e.name];
+    const base = this.config.monsters[e.name];
     if (!base) return this.genericSwing(e);
-    const f = { ...base, ...(FX.overrides[`${e.type}.${e.name}`] || {}) };
+    const f = { ...base, ...(this.config.overrides[`${e.type}.${e.name}`] || {}) };
     const S = f.scale ?? 1;
     const dx = Math.sin(e.angle);
     const dz = Math.cos(e.angle);
@@ -453,14 +552,16 @@ export class Vfx {
   }
 
   impact(e) {
+    if (e.kind === 'firebolt' && e.element === 'fire') return this.fireImpact(e);
     const c = el(e.element);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
-    this.fx.burst(e.x, y, e.z, 10, { color: c.dots, size: 0.28, speed: 4, life: 0.35, up: 0.8 });
-    const s = this.sprite(c.glow, 1.6, 0.9);
+    const f = this.genericLook(e.kind).impact;
+    this.fx.burst(e.x, y, e.z, f.particles, { color: c.dots, size: f.particleSize, speed: f.particleSpeed, life: f.particleLife, up: f.up });
+    const s = this.sprite(c.glow, f.size, f.opacity);
     s.position.set(e.x, y, e.z);
-    this.spawn(s, 0.2, (t) => {
-      s.material.opacity = 0.9 * (1 - t);
-      s.scale.setScalar(1.2 + t * 1.2);
+    this.spawn(s, f.life, (t) => {
+      s.material.opacity = f.opacity * (1 - t);
+      s.scale.setScalar(f.size * (f.growth + t * f.growth));
     });
   }
 
@@ -753,25 +854,33 @@ export class Vfx {
   // ---------- persistent visuals synced to the game ----------
 
   syncProjectiles(game, dt, time) {
-    const seen = new Set();
+    const seen = this.seenProjectiles;
+    seen.clear();
     for (const pr of game.projectiles) {
       seen.add(pr.id);
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
       const arrow = pr.kind === 'hunter_shot';
+      const fire = pr.kind === 'firebolt' && element === 'fire';
+      const look = this.genericLook(pr.kind).projectile;
       if (!v) {
         v = new THREE.Group();
-        if (arrow) {
+        if (fire) {
+          const m = flameMesh(this.config.skills.firebolt);
+          m.material.uniforms.uSeed.value = pr.id * 0.73;
+          v.add(m);
+          v.userData.trail = 0;
+        } else if (arrow) {
           const ag = arrowGeometry();
           const shaft = new THREE.Mesh(ag.shaft, toon('#8a5c3a'));
           const tip = new THREE.Mesh(ag.tip, toon('#d8dbe2'));
           const fl = new THREE.Mesh(ag.fletch, toon('#f4f0e8'));
           v.add(shaft, tip, fl);
-          v.add(this.sprite(c.glow, 0.7, 0.4));
+          v.add(this.sprite(c.glow, 0.7 * look.glowScale, 0.4 * look.glowOpacity));
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
-          v.add(this.sprite(c.glow, size * 1.8, 0.85));
+          v.add(this.sprite(c.glow, size * 1.8 * look.glowScale, 0.85 * look.glowOpacity));
           v.add(this.sprite(c.core, size * 0.8, 1));
         }
         this.scene.add(v);
@@ -779,12 +888,29 @@ export class Vfx {
       }
       const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       v.position.set(pr.x, y, pr.z);
+      if (fire) {
+        const u = v.children[0].material.uniforms, cfg = this.config.skills.firebolt.projectile;
+        u.uTime.value = time;
+        u.uVelocity.value.set(pr.vx, 0, pr.vz);
+        v.userData.trail += dt * cfg.trailRate;
+        const speed = Math.hypot(pr.vx, pr.vz) || 1;
+        const bx = -pr.vx / speed, bz = -pr.vz / speed;
+        while (v.userData.trail >= 1) {
+          v.userData.trail--;
+          const off = cfg.trailOffset[0] + Math.random() * (cfg.trailOffset[1] - cfg.trailOffset[0]);
+          this.flames.emit(pr.x + bx * off, y + (Math.random() - 0.5) * cfg.trailSpread,
+            pr.z + bz * off, bx * cfg.trailDrift, 0.15, bz * cfg.trailDrift,
+            cfg.trailSize, cfg.trailLife, 0, Math.random());
+        }
+        continue;
+      }
+      v.scale.setScalar(look.scale);
       if (arrow) v.rotation.y = Math.atan2(pr.vx, pr.vz);
       else v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
       const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
       for (let k = 0; k < (arrow ? 1 : 2); k++) {
         const o = Math.random() * 0.35;
-        this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * 1.2, 0.3, back.z * 1.2, { color: c.dots, size: arrow ? 0.18 : 0.32, sizeEnd: 0.05, life: 0.28, drag: 4 });
+        this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * look.trailSpeed, 0.3, back.z * look.trailSpeed, { color: c.dots, size: (arrow ? 0.18 : 0.32) * look.trailScale, sizeEnd: 0.05 * look.trailScale, life: look.trailLife, drag: 4 });
       }
     }
     for (const [id, v] of this.projectiles) {
@@ -979,6 +1105,7 @@ export class Vfx {
   }
 
   update(dt) {
+    this.flames.update(dt);
     this.fx.update(dt);
     this.dust.update(dt);
     const keep = [];

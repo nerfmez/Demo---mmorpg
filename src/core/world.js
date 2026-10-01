@@ -156,8 +156,9 @@ export function createWorld(worldData) {
   if (worldData.camp) clearAreas.push({ x: worldData.camp.fire[0], z: worldData.camp.fire[1], r: 5 });
   if (worldData.harbor) {
     const [x, z] = worldData.harbor.lighthouse;
-    clearAreas.push({ x, z, r: 6 });
-    addCircle({ x, z, r: 2, type: 'lighthouse', scale: 1, rot: 0 });
+    const r = worldData.harbor.lighthouseRadius ?? 2;
+    clearAreas.push({ x, z, r: r + 4 });
+    addCircle({ x, z, r, type: 'lighthouse', scale: 1, rot: 0 });
   }
 
   const inBounds = (x, z, m = 1) => x > b.minX + m && x < b.maxX - m && z > b.minZ + m && z < b.maxZ - m;
@@ -315,6 +316,7 @@ export function createWorld(worldData) {
   }
 
   // ---------- trees, rocks, crystals, logs by zone ----------
+  const palmBelt = worldData.sea?.palmBelt ?? Infinity;
   for (let x = b.minX - 30; x < b.maxX + 30; x += 3.2) {
     for (let z = b.minZ - 30; z < b.maxZ + 30; z += 3.2) {
       const jx = x + rng.range(-1.4, 1.4);
@@ -334,7 +336,9 @@ export function createWorld(worldData) {
       const roll = rng.next();
       if (roll < density) {
         const scale = rng.range(0.85, 1.35);
-        const type = rng.pick(zn.trees || ['tree']);
+        let type = rng.pick(zn.trees || ['tree']);
+        // coconut palms grow on the shore belt only; further inland the zone's broadleaf stands in
+        if (type === 'palm' && coastAt(jx, jz).distance > palmBelt) type = (zn.trees || []).find((t) => t !== 'palm') || 'tree';
         const trunk = type === 'pine' ? 0.6 : type === 'palm' ? 0.4 : 0.75;
         if (!blockedForProp(jx, jz, 0.8)) addCircle({ x: jx, z: jz, r: trunk * scale, type, scale, rot: rng.range(0, 6.28) });
       } else if (!zn.safe) {

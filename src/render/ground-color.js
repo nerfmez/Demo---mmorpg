@@ -176,6 +176,11 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   // Very shallow wind-brushed marks: curved, discontinuous, warm instead of glittery.
   float ripple=sin(w.y*11.0+vnoise(w*.8)*4.8+w.x*.33);
   sand*=1.0-.045*smoothstep(.74,.98,ripple)*smoothstep(.45,.69,vnoise(w*1.8));
+  // sunny grains: sparse bright specks and a few darker ones, so the beach glitters softly
+  float speck=gravel(w*1.0+41.0,7.5,.93,.10),dull=gravel(w*1.0+7.0,6.0,.95,.09);
+  sand*=1.0+.22*speck-.08*dull;
+  // a warm pale band up the dry beach and a cool, glossy wet band at the water's edge
+  sand=mix(sand,sand*1.05+vec3(.02,.015,0.0),smoothstep(3.0,8.0,-coast.y)*.5);
   sand=mix(sand,${rgb(p.sandWet)},smoothstep(-5.5,-.2,coast.y)*.46);
   col=mix(col,sand,coast.x);
   }

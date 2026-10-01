@@ -140,7 +140,7 @@ export function createEnvironment(world) {
     const tx = c.x + Math.sin(c.rot) * palmShape.crown.z * s, tz = c.z + Math.cos(c.rot) * palmShape.crown.z * s;
     const ty = y + palmShape.crown.y * s;
     for (let i = 0, n = art.architecture.palm.fronds; i < n; i++) {
-      const col = new THREE.Color(rng.pick(['#ffffff', '#f1f6e8', '#e4eedb']));
+      const col = new THREE.Color(rng.pick(['#ffffff', '#f6faec', '#eef6df']));
       palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.88, 1.12), ry: c.rot + (i / art.architecture.palm.fronds) * Math.PI * 2 + rng.range(-0.18, 0.18), color: `#${col.getHexString()}`, young: false });
     }
     for (let i = 0; i < 3; i++) palmFronds.push({ x: tx, z: tz, y: ty + .05, s: s * rng.range(.62, .75), ry: c.rot + i * 2.1 + .5, color: '#f4fbe8', young: true });
@@ -234,8 +234,8 @@ export function createEnvironment(world) {
   // palms: a curved, ringed trunk, arching leaflet fronds with young ones standing up, coconuts
   root.add(instanced(palmShape.geometry, mat('#ffffff', { vertexColors: true }), palmTrunks, { outline: '#4f3d2e', outlineWidth: 0.024 }));
   const frondMat = mat('#ffffff', { double: true, vertexColors: true, wind: 0.05, windBase: 0 });
-  root.add(instanced(palmFrond(art.architecture.palm.frondLength, art.architecture.palm.frondLift, art.architecture.palm.frondDroop), frondMat, palmFronds.filter((f) => !f.young), { outline: '#2f5230', outlineWidth: 0.016, wind: 0.05 }));
-  root.add(instanced(palmFrond(2.2, 1.5, .5), frondMat, palmFronds.filter((f) => f.young), { outline: '#2f5230', outlineWidth: 0.014, wind: 0.05 }));
+  root.add(instanced(palmFrond(art.architecture.palm.frondLength, art.architecture.palm.frondLift, art.architecture.palm.frondDroop), frondMat, palmFronds.filter((f) => !f.young), { outline: '#4f7d3f', outlineWidth: 0.01, wind: 0.05 }));
+  root.add(instanced(palmFrond(2.2, 1.5, .5), frondMat, palmFronds.filter((f) => f.young), { outline: '#4f7d3f', outlineWidth: 0.009, wind: 0.05 }));
   root.add(instanced(new THREE.SphereGeometry(.17, 8, 6), mat('#ffffff'), palmCoconuts, { outline: '#3d3524', outlineWidth: 0.012 }));
 
   // ----- rocks, boulders, crystals, stumps, logs -----

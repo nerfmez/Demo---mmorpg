@@ -339,3 +339,16 @@ test('town residents stand on dry ground clear of streets and existing work equi
     assert.ok(!world.isWater(resident.x,resident.z,resident.r),resident.id+' has wet feet');
   }
 });
+
+test('generated coconut palms stand on the shore belt, not inland among broadleaf trees', () => {
+  const world=createWorld(data.world),belt=data.world.sea.palmBelt;
+  const generated=world.circles.filter(c=>c.type==='palm'&&!c.id);
+  assert.ok(generated.length>0,'some shore palms remain');
+  for(const p of generated)assert.ok(world.coastAt(p.x,p.z).distance<=belt,`palm at ${p.x.toFixed(1)},${p.z.toFixed(1)} is inland`);
+});
+
+test('the lighthouse collider uses its authored radius', () => {
+  const world=createWorld(data.world),tower=world.circles.find(c=>c.type==='lighthouse');
+  assert.equal(tower.r,data.world.harbor.lighthouseRadius);
+  assert.ok(!world.isFree(tower.x+tower.r-.3,tower.z,.1),'walls block');
+});

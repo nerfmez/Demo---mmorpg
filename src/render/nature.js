@@ -133,23 +133,28 @@ export function palmTrunk(height=5.2,lean=1.25,rings=11) {
   const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
   return {geometry,crown:at(1)};
 }
-// One arching frond along +Z: a midrib and paired, swept-back leaflets that taper to the tip.
-// Colour runs from a deep base to a sunlit tip; young fronds stand up, old ones droop.
+// One arching frond along +Z: a slender midrib and many paired leaflets that hang lower toward
+// the tip, so the frond falls softly instead of standing as a stiff fan. Colour runs from a fresh
+// mid-green base to a sunlit yellow-green tip; young fronds stand up, old ones droop.
 export function palmFrond(length=3.4,lift=1.0,droop=1.7) {
   const positions=[],colors=[],normals=[];
-  const base=new THREE.Color('#4d8f45'),tip=new THREE.Color('#a8d873');
-  const spine=t=>[0,Math.sin(t*Math.PI*.55)*lift-t*t*droop,t*length];
-  const vertex=(p,t)=>{positions.push(...p);normals.push(0,1,0);const c=base.clone().lerp(tip,t);colors.push(c.r,c.g,c.b);};
-  const steps=16;
+  const base=new THREE.Color('#6aa84f'),tip=new THREE.Color('#cbe68c');
+  const spine=t=>[Math.sin(t*2.2)*.08*t,Math.sin(t*Math.PI*.5)*lift-t*t*t*droop,t*length];
+  const vertex=(p,t)=>{positions.push(...p);normals.push(0,1,0);const c=base.clone().lerp(tip,Math.min(1,t));colors.push(c.r,c.g,c.b);};
+  const steps=24;
   for(let i=1;i<steps;i++){
-    const t=i/steps,dt=1/steps,w=(.78*Math.pow(Math.sin(Math.PI*Math.min(1,t*1.08)),.7)+.08)*(1-t*.25);
-    const a=spine(t),b=spine(Math.min(1,t+dt*.8));
+    const t=i/steps,dt=1/steps,w=(.62*Math.pow(Math.sin(Math.PI*Math.min(1,t*1.05)),.6)+.05)*(1-t*.3);
+    const a=spine(t),b=spine(Math.min(1,t+dt*.55));
     for(const side of [-1,1]){
-      const end=[side*w,a[1]-w*.38,a[2]-w*.32];
-      vertex(a,t*.8);vertex(b,t*.8+.05);vertex(end,Math.min(1,t+.25));
+      // leaflets sweep back and hang: more at the tip, a little alternate flutter
+      const hang=w*(.45+.75*t)+(i%2)*.04;
+      const end=[a[0]+side*w*.9,a[1]-hang,a[2]-w*.42];
+      const mid=[a[0]+side*w*.45,a[1]-hang*.35+.02,a[2]-w*.12];
+      vertex(a,t*.7);vertex(b,t*.7+.04);vertex(mid,t*.85+.1);
+      vertex(a,t*.7);vertex(mid,t*.85+.1);vertex(end,t+.3);
     }
     const m=spine(t-dt);
-    for(const p of [[-.03,m[1]+.02,m[2]],[.03,m[1]+.02,m[2]],[.03,a[1]+.02,a[2]],[-.03,m[1]+.02,m[2]],[.03,a[1]+.02,a[2]],[-.03,a[1]+.02,a[2]]])vertex(p,t*.6);
+    for(const p of [[m[0]-.02,m[1]+.015,m[2]],[m[0]+.02,m[1]+.015,m[2]],[a[0]+.02,a[1]+.015,a[2]],[m[0]-.02,m[1]+.015,m[2]],[a[0]+.02,a[1]+.015,a[2]],[a[0]-.02,a[1]+.015,a[2]]])vertex(p,t*.5);
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;

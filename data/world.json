@@ -9529,6 +9529,7 @@
   "camp": null,
   "den": null,
   "sea": {
+    "palmBelt": 16,
     "beach": 8,
     "shore": [
       [
@@ -12522,6 +12523,7 @@
     }
   ],
   "harbor": {
+    "lighthouseRadius": 3.1,
     "lighthouse": [
       18.76,
       138.66

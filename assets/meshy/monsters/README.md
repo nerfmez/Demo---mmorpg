@@ -18,3 +18,8 @@ registered in `data/models.json` → `monsters` and skinned onto the procedural 
 | gale_hawk | 01a0e840-f20c-722f-9a39-b96efffbffd0 | 01a0e84a-8996-72f7-a8a3-0cd22b7628f7 | 3,631 |
 | greyfang (boss) | 01a0e875-1ed7-7166-be3e-dd55e10b8555 | 01a0e877-9a24-76d6-abcb-a9aa8179dd1d | 5,019 |
 | horned_warden (boss) | 01a0e875-3599-7153-93c9-3052342d9f13 | 01a0e877-a4b3-74ff-94f8-46ce01f997b9 | 5,215 |
+| salt_slime (level 1 redesign A) | 01a0f578-4d4a-777f-9e8a-9fb905e719f1 | 01a0f57a-c37d-7182-97bf-8f6083cee753 | 3,112 |
+
+The salt slime concept was redrawn for a level-1 monster (the first design looked too fierce); the 3D model
+is Meshy 6 image-to-3d with `should_remesh` and `target_polycount` 3000, then
+`python3 scripts/shrink-glb-texture.py raw.glb public/models/monsters/salt_slime.glb 512` shrinks the texture.

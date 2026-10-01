@@ -126,6 +126,8 @@ model onto the procedural monster rig at load: `bones` moves rig joints onto the
 distance (`sharpness`, `minWeight`), `pitch`/`yaw`/`scale`/`offset` align the model, and
 `keep` leaves procedural parts on some bones (the wisp's motes). In Godot, rig the GLBs with
 the same bone names and weights (or paint them) and keep the animation from `monsters.js`.
+The salt slime model (a level-1 redesign: dome jelly with a shell, salt crust and seaweed) has one
+rig bone, `body`, so every vertex follows it and the squash/stretch comes from scaling that bone.
 The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
 head mesh; in Godot use a face texture with UV offsets per expression. Hair (`render/hair.js`)
 is one merged mesh per style built from lock curves; export it once per style as a mesh and

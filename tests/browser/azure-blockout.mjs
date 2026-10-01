@@ -135,7 +135,7 @@ try {
     if(launch){
       await page.setViewportSize({width:820,height:1180});
       await page.evaluate(()=>window.__frontier.view.resize());
-      await stage(launch.x+5,launch.z+1.5);await shot('15-large-ship-portrait-gameplay');
+      await stage(launch.x+4.15,launch.z+4);await shot('15-large-ship-portrait-gameplay');
       report.shipPortraitCamera=await page.evaluate(()=>({fov:window.__frontier.view.camera.fov,zoom:window.__frontier.view.zoom}));
       assert.equal(report.shipPortraitCamera.fov,52);assert.equal(report.shipPortraitCamera.zoom,1);
       await page.setViewportSize({width:1180,height:820});

@@ -28,6 +28,17 @@ const ELEMENT = {
 export const el = (e) => ELEMENT[e] || ELEMENT.physical;
 // the two flat tones of a cel-drawn shape (flame, flash, cut-out): outer rim and inner heat
 const rimOf = (c) => c.rim ?? c.glow;
+// one reused options record for particles emitted every frame (no garbage per particle)
+const EMIT_DEFAULT = { color: 0xffffff, core: null, colorEnd: null, coreEnd: null, colorDelay: 0, colorSpan: 1, hold: 0.15, size: 0.3, sizeEnd: null, life: 0.6, gravity: 0, drag: 1.5, alpha: 1, shape: 0, rot: null, spin: 0 };
+const EMIT = { ...EMIT_DEFAULT };
+const emitOpts = () => Object.assign(EMIT, EMIT_DEFAULT);
+// data colours ('#rrggbb') parsed once
+const COLORS = new Map();
+function colorOf(hex) {
+  let c = COLORS.get(hex);
+  if (!c) COLORS.set(hex, (c = new THREE.Color(hex)));
+  return c;
+}
 const heatOf = (c) => c.heat ?? c.core;
 const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch']);
 
@@ -346,7 +357,17 @@ export class Vfx {
     cf.acc += L.blobRate * dt;
     for (; cf.acc >= 1; cf.acc--) {
       const sz = L.blobSize * (0.5 + 0.7 * k) * (0.8 + Math.random() * 0.4);
-      this.fx.add(_p0.x, _p0.y, _p0.z, (Math.random() - 0.5) * 0.6, 0.4 + Math.random() * 0.5, (Math.random() - 0.5) * 0.6, { color: cf.c.glow, core: heatOf(cf.c), colorEnd: rimOf(cf.c), size: sz, sizeEnd: sz * 0.3, life: 0.16, drag: 2, shape: 'blob', spin: (Math.random() - 0.5) * 6 });
+      const o = emitOpts();
+      o.color = cf.c.glow;
+      o.core = heatOf(cf.c);
+      o.colorEnd = rimOf(cf.c);
+      o.size = sz;
+      o.sizeEnd = sz * 0.3;
+      o.life = 0.16;
+      o.drag = 2;
+      o.shape = 'blob';
+      o.spin = (Math.random() - 0.5) * 6;
+      this.fx.add(_p0.x, _p0.y, _p0.z, (Math.random() - 0.5) * 0.6, 0.4 + Math.random() * 0.5, (Math.random() - 0.5) * 0.6, o);
     }
   }
 
@@ -579,8 +600,8 @@ export class Vfx {
       const hot = i % 2 === 0;
       this.cel.add(e.x + vx * 0.03, y + vy * 0.03, e.z + vz * 0.03, vx, vy, vz, { color: hot ? heatOf(c) : rimOf(c), core: hot ? 0xffffff : heatOf(c), colorEnd: rimOf(c), size: L.lineSize * (0.6 + Math.random() * 0.7), sizeEnd: L.lineSize * 0.4, life: L.lineLife * (0.6 + Math.random() * 0.6), drag: 4, shape: 'streak', rot: this.screenRot(vx, vy, vz), hold: 0.5 });
     }
-    const smoke = L.smokeColor;
-    const lit = L.smokeLightColor;
+    const smoke = colorOf(L.smokeColor);
+    const lit = colorOf(L.smokeLightColor);
     for (let i = 0; i < L.clouds; i++) {
       const a = Math.random() * Math.PI * 2;
       const r = Math.random() * L.cloudSpread;
@@ -963,20 +984,53 @@ export class Vfx {
     for (; u.fire >= 1; u.fire--) {
       const o = Math.random() * 0.15;
       const sz = L.fireSize * (0.8 + Math.random() * 0.4);
-      this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.1, pr.z + back.z * o, back.x * 0.4 + (Math.random() - 0.5) * 0.4, 0.2 + Math.random() * 0.3, back.z * 0.4 + (Math.random() - 0.5) * 0.4, { color: c.glow, core: c.core, colorEnd: rimOf(c), coreEnd: heatOf(c), size: sz, sizeEnd: sz * 0.15, life: L.fireLife * (0.8 + Math.random() * 0.4), drag: 2, shape: 'blob', spin: (Math.random() - 0.5) * 8 });
+      const p = emitOpts();
+      p.color = c.glow;
+      p.core = c.core;
+      p.colorEnd = rimOf(c);
+      p.coreEnd = heatOf(c);
+      p.size = sz;
+      p.sizeEnd = sz * 0.15;
+      p.life = L.fireLife * (0.8 + Math.random() * 0.4);
+      p.drag = 2;
+      p.shape = 'blob';
+      p.spin = (Math.random() - 0.5) * 8;
+      this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.1, pr.z + back.z * o, back.x * 0.4 + (Math.random() - 0.5) * 0.4, 0.2 + Math.random() * 0.3, back.z * 0.4 + (Math.random() - 0.5) * 0.4, p);
     }
     u.smoke += L.smokeRate * dt;
     for (; u.smoke >= 1; u.smoke--) {
       const o = 0.4 + Math.random() * 0.4;
       const sz = L.smokeSize * (0.7 + Math.random() * 0.6);
-      this.cel.add(pr.x + back.x * o + (Math.random() - 0.5) * 0.45, y - 0.1 + (Math.random() - 0.5) * 0.35, pr.z + back.z * o + (Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.5, 0.25 + Math.random() * 0.3, (Math.random() - 0.5) * 0.5, { color: L.smokeColor, core: L.smokeLightColor, size: sz, sizeEnd: sz * (L.smokeSizeEnd / L.smokeSize), life: L.smokeLife * (0.7 + Math.random() * 0.6), drag: 2, shape: 'cloud', rot: (Math.random() - 0.5) * 0.8, alpha: L.smokeAlpha, hold: L.smokeHold });
+      const p = emitOpts();
+      p.color = colorOf(L.smokeColor);
+      p.core = colorOf(L.smokeLightColor);
+      p.size = sz;
+      p.sizeEnd = sz * (L.smokeSizeEnd / L.smokeSize);
+      p.life = L.smokeLife * (0.7 + Math.random() * 0.6);
+      p.drag = 2;
+      p.shape = 'cloud';
+      p.rot = (Math.random() - 0.5) * 0.8;
+      p.alpha = L.smokeAlpha;
+      p.hold = L.smokeHold;
+      this.cel.add(pr.x + back.x * o + (Math.random() - 0.5) * 0.45, y - 0.1 + (Math.random() - 0.5) * 0.35, pr.z + back.z * o + (Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.5, 0.25 + Math.random() * 0.3, (Math.random() - 0.5) * 0.5, p);
     }
     u.embers += L.emberRate * dt;
     for (; u.embers >= 1; u.embers--) {
       const vx = back.x * 2 + (Math.random() - 0.5) * 3;
       const vy = 0.5 + Math.random() * 1.5;
       const vz = back.z * 2 + (Math.random() - 0.5) * 3;
-      this.fx.add(pr.x, y, pr.z, vx, vy, vz, { color: c.dots, core: heatOf(c), colorEnd: rimOf(c), size: L.emberSize * (0.6 + Math.random() * 0.6), sizeEnd: L.emberSize * 0.4, life: L.emberLife * (0.6 + Math.random() * 0.6), drag: 2, gravity: 2, shape: 'streak', rot: this.screenRot(vx, vy, vz) });
+      const p = emitOpts();
+      p.color = c.dots;
+      p.core = heatOf(c);
+      p.colorEnd = rimOf(c);
+      p.size = L.emberSize * (0.6 + Math.random() * 0.6);
+      p.sizeEnd = L.emberSize * 0.4;
+      p.life = L.emberLife * (0.6 + Math.random() * 0.6);
+      p.drag = 2;
+      p.gravity = 2;
+      p.shape = 'streak';
+      p.rot = this.screenRot(vx, vy, vz);
+      this.fx.add(pr.x, y, pr.z, vx, vy, vz, p);
     }
   }
 

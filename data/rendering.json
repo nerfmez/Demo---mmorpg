@@ -22,7 +22,7 @@
     }
   },
   "nativeAntialias": true,
-  "dynamicResolution": {"enabled": true, "minScale": 0.67, "slowMs": 19.5, "fastMs": 15.5, "stepDown": 0.125, "stepUp": 0.0625, "settle": 1.5, "recover": 4},
+  "dynamicResolution": {"enabled": true, "minScale": 0.67, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.125, "stepUp": 0.0625, "settle": 1.5, "recover": 4},
   "quality": {
     "low": {"pixelRatio": 1, "shadowMapSize": 0},
     "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024},

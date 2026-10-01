@@ -26,3 +26,25 @@ test('fast frames recover full sharpness, and hitches are ignored', () => {
   for (let i = 0; i < 50; i++) h.update(500);
   assert.equal(h.scale, 1);
 });
+
+test('recovers on a 60 Hz display, whose frames never beat 16.7 ms', () => {
+  const g = new ResolutionGovernor();
+  run(g, 33.4, 6);
+  assert.ok(g.scale < 1);
+  run(g, 16.7, 40);
+  assert.equal(g.scale, 1);
+});
+test('a 120 Hz display at 60 fps is not "fast", and a failed step up waits longer next time', () => {
+  const g = new ResolutionGovernor();
+  for (let i = 0; i < 20; i++) g.update(8.3); // learns the 120 Hz interval
+  run(g, 33, 6);
+  const low = g.scale;
+  run(g, 16.7, 10); // half the display rate: still not recovering
+  assert.equal(g.scale, low);
+  const h = new ResolutionGovernor();
+  run(h, 33, 4);
+  const wait = h.wait;
+  run(h, 16.7, h.wait + 2); // steps up...
+  run(h, 33, 3); // ...and the slowdown returns
+  assert.ok(h.wait > wait);
+});

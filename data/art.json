@@ -41,7 +41,7 @@
     "wildMinDensity": 0.08,
     "roadEdgeWobble": 0.46,
     "roadEdgeTufts": 0.3,
-    "roadWidthWobble": 0.36, "pavingEdgeWobble": 0.5,
+    "roadWidthWobble": 0.36, "pavingEdgeWobble": 0.5, "pavingSunken": 0.08, "pavingMissing": 0.035,
     "grassPerPatch": 20,
     "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
   },
@@ -687,6 +687,9 @@
     "edgeAngle": 55,
     "edgeColor": "#594c45",
     "edgeOpacity": 0.78,
+    "handmade": { "smallSize": 1.6, "smallTurn": 0.022, "mediumSize": 4, "mediumTurn": 0.008 },
+    "roof": { "courseDepth": 0.42, "courseOverlap": 1.12, "tileThickness": 0.045, "tileLift": 0.03, "plateLength": [0.55, 1.5],
+      "plateTilt": 0.025, "ridgeLength": [0.9, 2.2] },
     "pier": { "plankDepth": 0.32, "plankThickness": 0.1, "plankGap": 0.03, "plankEndJitter": [-0.12, 0.09], "plankYaw": 0.014,
       "plankLift": 0.012, "plankTilt": 0.012, "pileLean": 0.045, "pileSpacing": 3.4 }
   }

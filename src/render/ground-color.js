@@ -80,7 +80,12 @@ vec3 paintedPaving(vec2 w,vec3 moss,float weather){
   stone*=.87+.13*edge;
   vec3 mortar=${rgb(p.mortar)};
   mortar=mix(mortar,moss*.79,smoothstep(.53,.73,vnoise(w*.53+72.0))*weather*.65);
-  return mix(mortar,stone,stoneMask);
+  // a few slabs are sunken and darker, a few are gone and leave packed earth with moss
+  float lost=hash12(cell+71.0);
+  stone*=1.0-.13*step(lost,${f(art.ground.pavingSunken)});
+  vec3 hole=mix(mix(${rgb(p.earthShadow)},mortar,.45)*.9,moss*.85,smoothstep(.4,.7,vnoise(w*3.1+4.0))*weather*.6);
+  stoneMask*=step(${f(art.ground.pavingMissing)},abs(lost-.5)*2.0);
+  return mix(mix(mortar,hole,step(abs(lost-.5)*2.0,${f(art.ground.pavingMissing)})*smoothstep(.0,-.06,distance)),stone,stoneMask);
 }
 vec3 paintedTimber(vec2 w){
   float board=floor(w.y/.32),offset=hash12(vec2(board,8.3));

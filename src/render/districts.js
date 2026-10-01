@@ -1,9 +1,31 @@
 // Authored port exteriors. All local geometry stays inside its data footprint.
 // Static colour batches reuse the market's cel materials and normal lifecycle.
 import * as THREE from 'three';
-import { builder, shopDoor, shopWindow, shopRoof, shopLantern } from './market.js';
+import { builder, shopDoor, shopWindow, shopRoof, shopLantern, seeded } from './market.js';
 import { fromBoxLocal } from '../core/math.js';
 const C={wood:'#80644c',plank:'#a48660',dark:'#554f43',stone:'#a9aa98',rope:'#c0ae7f',leaf:'#74875c',metal:'#78857f'};
+// A laid stone footing, not a cut slab: its outline wanders inward a little, step by step, and
+// loose edge stones sit along it. Everything stays inside the w×d plot.
+function plinth(b,w,d,h){
+  const rng=seeded(w,d,h,7),shape=new THREE.Shape(),points=[];
+  const corners=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]];
+  for(let c=0;c<4;c++){
+    const [ax,az]=corners[c],[cx,cz]=corners[(c+1)%4],len=Math.hypot(cx-ax,cz-az),steps=Math.max(2,Math.round(len/.5));
+    const nx=-(cz-az)/len,nz=(cx-ax)/len; // inward normal for this winding
+    for(let i=0;i<steps;i++){
+      const t=i/steps,inset=i===0?.04:rng.range(.02,.17);
+      points.push([ax+(cx-ax)*t+nx*inset,az+(cz-az)*t+nz*inset]);
+    }
+  }
+  points.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:false}).rotateX(-Math.PI/2);
+  b.part(geometry,C.stone);
+  for(const [i,[x,z]] of points.entries()){
+    if(rng.next()<.55)continue;
+    const r=rng.range(.11,.19),k=Math.max(Math.abs(x)/(w/2-r-.02),Math.abs(z)/(d/2-r-.02),1);
+    b.part(new THREE.DodecahedronGeometry(r,0).scale(1.2,.55,1),'#8f9282',x/k,h*.55,z/k,0,rng.range(0,3));
+  }
+}
 function pot(b,x,z){
   b.part(new THREE.CylinderGeometry(.28,.21,.40,8),'#b58061',x,.30,z);
   b.part(new THREE.DodecahedronGeometry(.34,0),C.leaf,x,.65,z);
@@ -22,7 +44,7 @@ function barrel(b,x,z,y=0){
 function cottage(b,bx){
   const {box}=b,w=bx.hx*2,d=bx.hz*2,two=bx.variant==='timber_home';
   const rise=two?1.27:1.05,wall=bx.height-rise-.13,front=bx.hz-1.15,back=-bx.hz+.22;
-  box(w,.12,d,C.stone,0,.06,0);
+  plinth(b,w,d,.12);
   box(w-.5,wall-.12,front-back,bx.wallColor,0,(wall+.12)/2,(front+back)/2);
   for(const x of [-bx.hx+.28,bx.hx-.28])box(.14,wall,.14,C.wood,x,wall/2,front);
   box(w-.42,.13,.13,C.wood,0,wall-.06,front+.025);
@@ -54,7 +76,7 @@ function cottage(b,bx){
 }
 function warehouse(b,bx){
   const {box}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.8,back=-bx.hz+.22,wall=3.68;
-  box(w,.18,d,C.stone,0,.09,0);
+  plinth(b,w,d,.18);
   box(w-.5,wall-.18,front-back,bx.wallColor,0,(wall+.18)/2,(front+back)/2);
   const timber=bx.variant==='sail_store';
   for(const x of [-bx.hx+.28,bx.hx-.28])box(.18,wall,.18,C.wood,x,wall/2,front);
@@ -89,7 +111,7 @@ function warehouse(b,bx){
 }
 function repairShed(b,bx){
   const {box}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.8,wall=2.46;
-  box(w,.12,d,C.stone,0,.06,0);
+  plinth(b,w,d,.12);
   box(w-.45,wall-.12,d-1.95,bx.wallColor,0,(wall+.12)/2,-.97);
   shopRoof(b,w,d-1.6,wall,1.18,-.80,bx.roofColor,{frontGable:true});
   box(5.35,1.95,.10,C.dark,.3,1.15,front+.12);
@@ -182,7 +204,12 @@ export function harborWorkProp(p,y){
     for(const x of [-.66,.66]){part(new THREE.CylinderGeometry(.28,.28,.09,10),C.wood,x,.30,-.20,0,0,Math.PI/2);part(new THREE.TorusGeometry(.25,.024,5,12),C.metal,x,.30,-.20,0,Math.PI/2);}
     crate(b,0,.63,-.18,.74,.69,.48);
   } else if(p.kind==='timber_stack'){
-    for(let yy=0;yy<3;yy++)for(const xx of [-.65,0,.65])box(.42,.18,p.hz*2-.10,yy%2?C.plank:'#b09873',xx,.16+yy*.19,0);
+    // stacked by hand: each board a little off line, turned and shorter or longer than its neighbour
+    const rng=seeded(p.x,p.z,3);
+    for(let yy=0;yy<3;yy++)for(const xx of [-.65,0,.65]){
+      const cut=rng.range(0,.35);
+      box(.42,.18,p.hz*2-.10-cut,yy%2?C.plank:'#b09873',xx+rng.range(-.05,.05),.16+yy*.19,rng.range(-cut,cut)/2,0,rng.range(-.035,.035));
+    }
     for(const z of [-1.5,1.5])box(1.82,.09,.14,C.wood,0,.07,z);
   } else if(p.kind==='repair_bench'){
     box(1.95,.15,1.05,C.plank,0,.87,0);

@@ -105,7 +105,9 @@ try {
       g.setMove(0,0);return {reached};
     });assert.equal(report.frontages.reached,worldData.town.buildings.length);
     await stage(...worldData.town.centre);await shot('02-market-square-gameplay');
-    const [rx,rz]=frontage('home_2');await stage(rx,rz+2);await shot('03-residential-lanes-gameplay');
+    const residential=worldData.roads.find(r=>r.id==='residential_cross');
+    const junction=residential.points.reduce((best,p)=>Math.hypot(p[0]+39.9,p[1]+64.26)<Math.hypot(best[0]+39.9,best[1]+64.26)?p:best,residential.points[0]);
+    await stage(...junction);await shot('03-residential-lanes-gameplay');
     await stage(...frontage('warehouse_4'));await shot('04-warehouse-row-gameplay');
     await stage(...deckPoint('market_west_ramp',-1));await shot('05-quay-pier-join-gameplay');
     await stage(...deckPoint('repair_ramp',-7));await shot('06-shipyard-slipway-gameplay');

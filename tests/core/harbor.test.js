@@ -275,3 +275,14 @@ test('authored courtyard shade uses existing tree models and dry, off-road trunk
     assert.ok(!world.isFree(tree.x,tree.z,.45));
   }
 });
+
+test('authored cape rocks use existing boulder collision and leave streets and entrances clear',()=>{
+  for(const rock of data.world.town.rocks||[]){
+    const collider=world.circles.find(c=>c.id===rock.id);
+    assert.equal(collider.type,'boulder');
+    assert.equal(collider.r,rock.r);assert.equal(collider.scale,rock.scale);
+    assert.ok(!world.inSea(rock.x,rock.z),'rock centre is anchored to shore');
+    assert.ok(world.roadDist(rock.x,rock.z)>rock.r+.45);
+    assert.ok(!world.isFree(rock.x,rock.z,.45));
+  }
+});

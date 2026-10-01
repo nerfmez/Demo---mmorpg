@@ -178,6 +178,9 @@ export function createWorld(worldData) {
   for (const tree of town.trees || []) {
     addCircle({ ...tree, type: tree.species });
   }
+  for (const rock of town.rocks || []) {
+    addCircle({ ...rock, type: 'boulder' });
+  }
   addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
   addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
   for (const [x, z, a] of town.stalls || []) addBox({ x, z, hx: 1.6, hz: 1.1, angle: a, type: 'stall' });

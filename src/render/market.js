@@ -242,7 +242,9 @@ function harborInn(b,bx) {
   shopShell(b,bx,front,4.46);
   shopRoof(b,w,d-1.8,4.46,1.35,roofZ,bx.roofColor,{hip:true});
   box(w-.42,.18,.18,C.wood,0,2.46,front+.10);
-  for(const x of [-5.25,-2.70,2.70,5.25]){
+  const outerWindow=Math.min(5.25,bx.hx-1.0);
+  const innerWindow=Math.min(2.70,outerWindow-2.1);
+  for(const x of [-outerWindow,-innerWindow,innerWindow,outerWindow]){
     shopWindow(b,x,3.38,front+.11,1.18,1.1,'#708c80');
     box(.12,1.70,.12,C.wood,x,3.45,front+.05);
   }
@@ -254,9 +256,10 @@ function harborInn(b,bx) {
   part(roofGeometry(1.05,2.45,.52,false),bx.roofColor,0,4.93,front-.55,0,Math.PI/2);
   shopWindow(b,0,4.65,front-.09,.83,.48,'#708c80');
   // Shallow timber porch, two round tables and benches read as hospitality.
-  box(10.85,.12,.87,'#9b8464',0,2.43,front+.58,.08);
-  for(const x of [-5.35,5.35])box(.14,2.44,.14,C.wood,x,1.22,front+.98);
-  box(10.8,.13,.13,C.wood,0,2.24,front+1.00);
+  box(Math.min(10.85,w-1.2),.12,.87,'#9b8464',0,2.43,front+.58,.08);
+  const porchPost=Math.min(5.35,bx.hx-.6);
+  for(const x of [-porchPost,porchPost])box(.14,2.44,.14,C.wood,x,1.22,front+.98);
+  box(Math.min(10.8,w-1.2),.13,.13,C.wood,0,2.24,front+1.00);
   for(const x of [-3.50,3.50]){
     part(new THREE.CylinderGeometry(.56,.56,.11,12),'#a4865d',x,.79,bx.hz-.65);
     part(new THREE.CylinderGeometry(.10,.16,.74,7),C.wood,x,.37,bx.hz-.65);
@@ -270,8 +273,9 @@ function harborInn(b,bx) {
   }
   for(const side of [-1,1]){
     shopLantern(b,side*.95,1.70,front+.32);
-    part(new THREE.CylinderGeometry(.37,.27,.55,8),'#b58061',side*6.10,.30,bx.hz-.62);
-    part(new THREE.DodecahedronGeometry(.43,0),C.leaf,side*6.10,.77,bx.hz-.62);
+    const potX=side*Math.min(6.10,bx.hx-.6);
+    part(new THREE.CylinderGeometry(.37,.27,.55,8),'#b58061',potX,.30,bx.hz-.62);
+    part(new THREE.DodecahedronGeometry(.43,0),C.leaf,potX,.77,bx.hz-.62);
   }
   box(1.24,.75,.12,'#708c80',-1.50,2.05,front+1.06);
   box(.80,.11,.045,'#e6d5ad',-1.50,2.02,front+1.15);

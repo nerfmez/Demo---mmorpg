@@ -20,6 +20,7 @@ try {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto('http://localhost:4187/lab.html?skill=firebolt');
   await page.waitForFunction(() => window.__lab); await page.waitForLoadState('networkidle');
+  await page.waitForFunction(() => document.getElementById('info').textContent.includes('ลูกไฟ'));
   const shot = async (name) => {
     await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     await page.screenshot({ path: OUT + name });
@@ -63,6 +64,7 @@ try {
   await page.getByLabel('สกิลที่ปรับ', { exact: true }).selectOption('firebolt');
   assert.equal(await page.locator('input[type=number][data-field="fx.projectile.flowSpeed"]').inputValue(), '26');
   await page.reload(); await page.waitForFunction(() => window.__lab); await page.waitForLoadState('networkidle');
+  await page.waitForFunction(() => document.getElementById('info').textContent.includes('ลูกไฟ'));
   assert.equal(await page.evaluate(() => window.__lab.tuning.get('firebolt').fx.projectile.flowSpeed), 26, 'reload restores this skill’s overrides');
   await page.getByRole('button', { name: 'ปรับเอฟเฟกต์', exact: true }).click();
   const download = page.waitForEvent('download');

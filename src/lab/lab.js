@@ -265,7 +265,9 @@ window.addEventListener('resize', measurePanel);
 resize();
 
 function frame(now) {
-  const real = Math.min(0.05, (now - last) / 1000);
+  // The first RAF timestamp may predate initialization's performance.now().
+  // Never advance the rig backwards (a negative gait phase indexes before its clip).
+  const real = Math.max(0, Math.min(0.05, (now - last) / 1000));
   last = now;
   fps += (1 / Math.max(real, 0.001) - fps) * 0.05;
   if (!state.paused) {

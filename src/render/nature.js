@@ -1,5 +1,6 @@
 // Authored low-poly silhouettes for the frontier's foliage. All variants stay instanced.
 import * as THREE from 'three';
+import art from '../../data/art.json';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createRng} from '../core/rng.js';
 
@@ -46,8 +47,10 @@ export function meadowGrass() {
  const rng=createRng(620),positions=[];
  // Six narrow three-segment blades: delicate curved tips, no broad triangular fern cards.
  for(let i=0;i<6;i++){
-  // taller, a little wider and less bent than before, so a clump stands up under the 3/4 camera
-  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(.50,.84),width=rng.range(.026,.046),bend=rng.range(.06,.17);
+  // blade height/width/bend ranges (metres) from art.grass.blade: tall and upright enough to read
+  // as standing under the 3/4 camera
+  const B=art.grass.blade;
+  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(...B.height),width=rng.range(...B.width),bend=rng.range(...B.bend);
   const points=[];
   for(let j=0;j<=3;j++){
    const t=j/3,w=width*(j===0?.33:j===3?0:1-t*.72);

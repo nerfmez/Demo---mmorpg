@@ -24,5 +24,5 @@ test('port equipment and pier cargo fit their authored collision footprints',()=
   for(const p of world.harbor.dockCargo)check(p,marketDockCargo);
 });
 test('market canopies, stock and under-counter storage fit each stall collider',()=>{
-  for(const stall of world.town.stalls)check(stall,(plot,y)=>marketStall(plot,y,plot.awningColor));
+  for(const stall of world.town.stalls)check(stall,(plot,y)=>marketStall(plot,plot.awningColor,y));
 });

@@ -51,6 +51,62 @@ export function glowTexture() {
   return glowTex;
 }
 
+// One cartoon fireball image per element palette and flicker variant: a round head with a tapering
+// flame tail, three flat tones (rim, body, heat) and a pale core. Drawn once, shared by every
+// projectile; the head sits at 25% from the top (sprite centre), the tail runs down the image.
+const FIREBALL_TEX = new Map();
+const _fbColor = new THREE.Color();
+function fireballTexture(c, variant) {
+  const key = `${rimOf(c)}:${c.glow}:${heatOf(c)}:${variant}`;
+  let tex = FIREBALL_TEX.get(key);
+  if (tex) return tex;
+  const W = 128;
+  const H = 256;
+  const cv = document.createElement('canvas');
+  cv.width = W;
+  cv.height = H;
+  const g = cv.getContext('2d');
+  let seed = 11 + variant * 7;
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  const hx = W / 2;
+  const hy = 64;
+  // silhouette: a round head that tapers into a flame tail, edges rippling like licking fire
+  // (k shrinks it for the inner tones, which sit a little forward in the head)
+  const phase = rnd() * Math.PI * 2;
+  const shape = (k, dy) => {
+    const r = 44 * k;
+    const tail = (H - hy - 10) * (0.45 + 0.55 * k);
+    const pts = 18;
+    g.beginPath();
+    g.arc(hx, hy + dy, r, Math.PI, 0, false); // the round front of the head (pointing up)
+    for (let side = 1; side >= -1; side -= 2) {
+      for (let n = 0; n <= pts; n++) {
+        const t = side > 0 ? n / pts : 1 - n / pts;
+        const w = r * Math.pow(1 - t, 0.75);
+        const ripple = Math.sin(t * Math.PI * 3.2 + phase + (side > 0 ? 0 : 1.7)) * r * 0.32 * t * (1 - t);
+        g.lineTo(hx + side * (w + ripple), hy + dy + tail * t);
+      }
+    }
+    g.closePath();
+    g.fill();
+  };
+  g.fillStyle = `#${_fbColor.set(rimOf(c)).getHexString()}`;
+  shape(1, 0);
+  g.fillStyle = `#${_fbColor.set(c.glow).getHexString()}`;
+  shape(0.78, -4);
+  g.fillStyle = `#${_fbColor.set(heatOf(c)).getHexString()}`;
+  shape(0.52, -8);
+  g.beginPath();
+  g.fillStyle = `#${_fbColor.set(c.core).getHexString()}`;
+  g.ellipse(hx - 4, hy - 10, 13, 11, 0, 0, Math.PI * 2);
+  g.fill();
+  tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.userData.shared = true;
+  FIREBALL_TEX.set(key, tex);
+  return tex;
+}
+
 function additive(color, opacity = 1) {
   return new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
 }
@@ -928,7 +984,13 @@ export class Vfx {
           pool.rotation.x = -Math.PI / 2;
           pool.scale.setScalar(look.travel.light * 2);
           v.add(pool);
-          v.userData = { fire: 0, tongues: 0, embers: 0, pool };
+          // the fireball itself: one sprite, head at the projectile, tail pointing back along the path
+          const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: fireballTexture(c, 0), transparent: true, depthWrite: false }));
+          head.center.set(0.5, 0.75);
+          head.scale.set(look.travel.width, look.travel.length, 1);
+          head.renderOrder = 5;
+          v.add(head);
+          v.userData = { embers: 0, pool, head };
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
           v.add(this.sprite(c.glow, size * 1.8, 0.85));
@@ -960,50 +1022,21 @@ export class Vfx {
   }
 
   /**
-   * A projectile with a travel look: a solid cartoon fireball. Each frame a lumpy fire body is
-   * redrawn at the head (red-orange rim, yellow core) and flame tongues peel off it pointing back
-   * along the path, so it reads as burning fire rather than glowing light; embers fly off it.
+   * A projectile with a travel look: one cartoon fireball (round head, tapering flame tail) that
+   * points back along its path on screen and flickers between three outlines, plus a few embers.
    */
   travel(v, pr, y, back, L, c, dt, time) {
     v.children[0].scale.setScalar(L.glow * (1 + Math.sin(time * 30 + pr.id) * L.pulse));
     const u = v.userData;
-    const tail = this.screenRot(back.x, 0, back.z);
-    // the body: short-lived overlapping fire lumps at the head, spinning so the outline boils
-    u.fire += L.bodyRate * dt;
-    for (; u.fire >= 1; u.fire--) {
-      const p = emitOpts();
-      p.color = rimOf(c);
-      p.core = heatOf(c);
-      p.size = L.bodySize * (0.85 + Math.random() * 0.3);
-      p.sizeEnd = L.bodySize * 0.7;
-      p.life = L.bodyLife;
-      p.drag = 0;
-      p.hold = 0.8;
-      p.shape = Math.random() < 0.5 ? 'burst' : 'flame';
-      p.rot = Math.random() * Math.PI * 2;
-      p.spin = (Math.random() - 0.5) * 10;
-      this.cel.add(pr.x + (Math.random() - 0.5) * 0.12, y + (Math.random() - 0.5) * 0.12, pr.z + (Math.random() - 0.5) * 0.12, 0, 0, 0, p);
+    const m = u.head.material;
+    m.rotation = this.screenRot(-back.x, 0, -back.z);
+    const frame = Math.floor(time * L.flicker + pr.id) % 3;
+    if (u.frame !== frame) {
+      u.frame = frame;
+      m.map = fireballTexture(c, frame);
     }
-    // flame tongues licking back from the body
-    u.tongues += L.tongueRate * dt;
-    for (; u.tongues >= 1; u.tongues--) {
-      const o = Math.random() * 0.25;
-      const sz = L.tongueSize * (0.7 + Math.random() * 0.5);
-      const p = emitOpts();
-      p.color = c.glow;
-      p.core = heatOf(c);
-      p.colorEnd = rimOf(c);
-      p.coreEnd = c.glow;
-      p.colorDelay = 0.4;
-      p.size = sz;
-      p.sizeEnd = sz * 0.15;
-      p.life = L.tongueLife * (0.7 + Math.random() * 0.6);
-      p.drag = 3;
-      p.hold = 0.5;
-      p.shape = 'flame';
-      p.rot = tail + (Math.random() - 0.5) * 0.7;
-      this.cel.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.15, pr.z + back.z * o, back.x * 0.8 + (Math.random() - 0.5) * 0.6, 0.3 + Math.random() * 0.4, back.z * 0.8 + (Math.random() - 0.5) * 0.6, p);
-    }
+    const wob = 1 + Math.sin(time * 37 + pr.id) * 0.05;
+    u.head.scale.set(L.width * wob, L.length * (2 - wob), 1);
     u.embers += L.emberRate * dt;
     for (; u.embers >= 1; u.embers--) {
       const vx = back.x * 2 + (Math.random() - 0.5) * 3;
@@ -1020,7 +1053,7 @@ export class Vfx {
       p.gravity = 2;
       p.shape = 'streak';
       p.rot = this.screenRot(vx, vy, vz);
-      this.fx.add(pr.x, y, pr.z, vx, vy, vz, p);
+      this.fx.add(pr.x + back.x * 0.6, y, pr.z + back.z * 0.6, vx, vy, vz, p);
     }
   }
 

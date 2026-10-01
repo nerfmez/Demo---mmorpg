@@ -303,5 +303,6 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx };
+window.__lab = { state, cast, step, vfx, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
+

@@ -27,6 +27,23 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Firebolt Lab review (Chromium)
+        run: node tests/browser/firebolt-lab.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: firebolt-lab-chromium
+          path: tests/browser/out/firebolt-lab/
+          retention-days: 7
+      - name: Firebolt Lab review (WebKit)
+        run: BROWSER=webkit node tests/browser/firebolt-lab.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: firebolt-lab-webkit
+          path: tests/browser/out/firebolt-lab/
+          retention-days: 7
       - name: Record which source the lab shows
         run: printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > dist/lab-source.json
       - uses: actions/upload-artifact@v4
@@ -34,3 +51,4 @@ jobs:
           name: lab-dist
           path: dist/
           retention-days: 7
+

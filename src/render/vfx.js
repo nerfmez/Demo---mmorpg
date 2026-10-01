@@ -8,6 +8,7 @@ import { toon } from './toon.js';
 import { makeDecal, conform } from './decal.js';
 import { BladeTrail } from './trail.js';
 import FX from '../../data/combat-fx.json';
+import { flameMesh, FlameParticles } from './firebolt.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -214,6 +215,9 @@ export class Vfx {
     this.swingCfg = null;
     this.swingDelay = 0;
     this.swingLeft = 0;
+    this.flames = new FlameParticles(scene, FX.skills.firebolt);
+    this.castFlame = null;
+    this.seenProjectiles = new Set();
   }
 
   gy(x, z) {
@@ -246,6 +250,70 @@ export class Vfx {
   }
 
   // ---------- one-shot effects ----------
+
+  beginCast(e, element) {
+    this.endCast();
+    if (e.skill !== 'firebolt' || element !== 'fire') return;
+    const mesh = flameMesh(FX.skills.firebolt, 1);
+    mesh.material.uniforms.uWidth.value = FX.skills.firebolt.cast.size;
+    // Hidden until updateCast supplies an actual source rig (event x/z is the target).
+    mesh.visible = false;
+    this.scene.add(mesh);
+    this.castFlame = { mesh, t: 0, dur: e.total, weapon: e.weapon };
+  }
+
+  endCast() {
+    if (!this.castFlame) return;
+    disposeObject(this.castFlame.mesh);
+    this.castFlame = null;
+  }
+
+  updateCast(dt, rig, cancelled = false) {
+    const c = this.castFlame;
+    if (!c) return;
+    c.t += dt;
+    if (cancelled || !rig || c.t >= c.dur) { this.endCast(); return; }
+    const w = rig.bones?.weapon;
+    if (w && c.weapon !== 'none') {
+      w.updateWorldMatrix(true, false);
+      w.getWorldPosition(_p0); w.getWorldDirection(_dir);
+      _p0.addScaledVector(_dir, FX.weapons[c.weapon]?.tip ?? 0.25);
+    } else {
+      rig.root.getWorldPosition(_p0);
+      _p0.y += 1.2;
+      _p0.x += Math.sin(rig.root.rotation.y) * 0.45;
+      _p0.z += Math.cos(rig.root.rotation.y) * 0.45;
+    }
+    c.mesh.position.copy(_p0); c.mesh.visible = true;
+    const u = c.mesh.material.uniforms, k = c.t / c.dur;
+    u.uTime.value = c.t; u.uScale.value = 0.25 + 0.75 * k * k;
+  }
+
+  fireImpact(e) {
+    const cfg = FX.skills.firebolt, f = cfg.impact;
+    const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
+    const flash = flameMesh(cfg, 1);
+    flash.position.set(e.x, y, e.z);
+    flash.material.uniforms.uWidth.value = f.size;
+    this.spawn(flash, f.flashLife, (k) => {
+      const u = flash.material.uniforms;
+      u.uTime.value = k * f.flashLife;
+      u.uScale.value = 0.5 + Math.sin(k * Math.PI * 0.8) * 0.5;
+      u.uAlpha.value = 1 - k * k;
+    });
+    for (let i = 0; i < f.wisps + f.embers; i++) {
+      const a = i * 2.39996, r = i < f.wisps ? 1.8 : 3.8;
+      this.flames.emit(e.x, y, e.z, Math.cos(a) * r, 0.6 + Math.sin(a * 3) * 0.7,
+        Math.sin(a) * r, i < f.wisps ? 0.6 : 0.24, i < f.wisps ? 0.3 : 0.4,
+        i < f.wisps ? 0 : 1, i * 0.618 % 1);
+    }
+    for (let i = 0; i < f.smoke; i++) {
+      const a = i * 2.39996;
+      this.flames.emit(e.x + Math.cos(a) * 0.18, y, e.z + Math.sin(a) * 0.18,
+        Math.cos(a) * 0.5, 0.45, Math.sin(a) * 0.5, 0.48, f.smokeLife, 2, i * 0.17);
+    }
+    this.shake = Math.max(this.shake, f.shake);
+  }
 
   /**
    * A melee skill starts swinging. The blade trail only records the strike itself (the wind-up is
@@ -453,6 +521,7 @@ export class Vfx {
   }
 
   impact(e) {
+    if (e.kind === 'firebolt' && e.element === 'fire') return this.fireImpact(e);
     const c = el(e.element);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
     this.fx.burst(e.x, y, e.z, 10, { color: c.dots, size: 0.28, speed: 4, life: 0.35, up: 0.8 });
@@ -753,16 +822,23 @@ export class Vfx {
   // ---------- persistent visuals synced to the game ----------
 
   syncProjectiles(game, dt, time) {
-    const seen = new Set();
+    const seen = this.seenProjectiles;
+    seen.clear();
     for (const pr of game.projectiles) {
       seen.add(pr.id);
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
       const arrow = pr.kind === 'hunter_shot';
+      const fire = pr.kind === 'firebolt' && element === 'fire';
       if (!v) {
         v = new THREE.Group();
-        if (arrow) {
+        if (fire) {
+          const m = flameMesh(FX.skills.firebolt);
+          m.material.uniforms.uSeed.value = pr.id * 0.73;
+          v.add(m);
+          v.userData.trail = 0;
+        } else if (arrow) {
           const ag = arrowGeometry();
           const shaft = new THREE.Mesh(ag.shaft, toon('#8a5c3a'));
           const tip = new THREE.Mesh(ag.tip, toon('#d8dbe2'));
@@ -779,6 +855,22 @@ export class Vfx {
       }
       const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       v.position.set(pr.x, y, pr.z);
+      if (fire) {
+        const u = v.children[0].material.uniforms, cfg = FX.skills.firebolt.projectile;
+        u.uTime.value = time;
+        u.uVelocity.value.set(pr.vx, 0, pr.vz);
+        v.userData.trail += dt * cfg.trailRate;
+        const speed = Math.hypot(pr.vx, pr.vz) || 1;
+        const bx = -pr.vx / speed, bz = -pr.vz / speed;
+        while (v.userData.trail >= 1) {
+          v.userData.trail--;
+          const off = 0.3 + Math.random() * 0.65;
+          this.flames.emit(pr.x + bx * off, y + (Math.random() - 0.5) * 0.25,
+            pr.z + bz * off, bx * 1.6, 0.3, bz * 1.6,
+            cfg.trailSize, cfg.trailLife, 0, Math.random());
+        }
+        continue;
+      }
       if (arrow) v.rotation.y = Math.atan2(pr.vx, pr.vz);
       else v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
       const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
@@ -979,6 +1071,7 @@ export class Vfx {
   }
 
   update(dt) {
+    this.flames.update(dt);
     this.fx.update(dt);
     this.dust.update(dt);
     const keep = [];
@@ -993,3 +1086,4 @@ export class Vfx {
     this.active = keep;
   }
 }
+

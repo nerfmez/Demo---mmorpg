@@ -22,5 +22,36 @@
     "greyfang.bite": {"scale": 1.3, "color": "#d8d4e6"},
     "thornback_wolf.bite": {"color": "#e4dfcf"},
     "tusk_boar.bite": {"scale": 1.1, "color": "#f1e4c0", "height": 0.35}
+  },
+  "skills": {
+    "firebolt": {
+      "element": "fire",
+      "colors": {
+        "rim": "#dd431c",
+        "body": "#ff8826",
+        "hot": "#ffda4a",
+        "core": "#fff4ae"
+      },
+      "cast": {
+        "size": 0.55
+      },
+      "projectile": {
+        "length": 2.35,
+        "width": 0.96,
+        "trailRate": 70,
+        "trailLife": 0.25,
+        "trailSize": 0.32
+      },
+      "impact": {
+        "size": 1.3,
+        "flashLife": 0.14,
+        "wisps": 12,
+        "embers": 16,
+        "smoke": 5,
+        "smokeLife": 0.62,
+        "shake": 0.04,
+        "hitStop": 0.02
+      }
+    }
   }
 }

@@ -190,6 +190,20 @@ function arrowGeometry() {
   return arrowGeo;
 }
 
+let fireballGeo = null;
+/** Shared low-poly shapes for the painted Firebolt body, trailing flame and impact petals. */
+function fireballGeometry() {
+  if (!fireballGeo) {
+    fireballGeo = {
+      orb: new THREE.IcosahedronGeometry(0.5, 1),
+      tail: new THREE.ConeGeometry(0.33, 1.0, 5).rotateX(-Math.PI / 2),
+      burst: new THREE.ConeGeometry(0.22, 0.9, 4).rotateX(Math.PI / 2),
+    };
+    for (const g of Object.values(fireballGeo)) g.userData.shared = true;
+  }
+  return fireballGeo;
+}
+
 function ringGeometry(inner = 0.86, outer = 1, segs = 56) {
   return new THREE.RingGeometry(inner, outer, segs, 1).rotateX(-Math.PI / 2);
 }
@@ -246,6 +260,134 @@ export class Vfx {
   }
 
   // ---------- one-shot effects ----------
+
+  /** Gather Firebolt into the exact point where its projectile will appear. */
+  skillCast(e, element) {
+    if (e.skill !== 'firebolt') return;
+    const cfg = FX.skills?.firebolt?.cast;
+    if (!cfg) return;
+    const c = el(element || 'fire');
+    const dx = Math.sin(e.angle);
+    const dz = Math.cos(e.angle);
+    const x = e.x + dx * (cfg.forward ?? 0.6);
+    const z = e.z + dz * (cfg.forward ?? 0.6);
+    const y = this.gy(x, z) + (cfg.height ?? 1.05);
+    const geo = fireballGeometry();
+    const group = new THREE.Group();
+    const body = new THREE.Mesh(geo.orb, additive(c.glow, 0.84));
+    const core = new THREE.Mesh(geo.orb, additive(c.core, 1));
+    const halo = this.sprite(c.glow, cfg.halo ?? 1.25, 0.55);
+    group.add(body, core, halo);
+    group.position.set(x, y, z);
+    const bodySize = cfg.body ?? 0.78;
+    const coreSize = cfg.core ?? 0.42;
+    const haloSize = cfg.halo ?? 1.25;
+    this.spawn(group, Math.max(0.12, e.total || 0.2), (t) => {
+      const grow = 0.12 + (1 - Math.pow(1 - t, 2)) * 0.88;
+      body.scale.setScalar(bodySize * grow);
+      core.scale.setScalar(coreSize * grow);
+      halo.scale.setScalar(haloSize * (0.45 + grow * 0.55));
+      body.rotation.y += 0.18;
+      core.rotation.x -= 0.2;
+      body.material.opacity = 0.84 * (0.45 + grow * 0.55);
+      halo.material.opacity = 0.55 * (1 - t * 0.25);
+    });
+    const sparks = cfg.sparks ?? 9;
+    const radius = cfg.radius ?? 0.75;
+    for (let i = 0; i < sparks; i++) {
+      const a = (i / sparks) * Math.PI * 2 + Math.random() * 0.35;
+      const r = radius * (0.72 + Math.random() * 0.35);
+      this.fx.add(
+        x + Math.sin(a) * r,
+        y + (Math.random() - 0.5) * 0.35,
+        z + Math.cos(a) * r,
+        -Math.sin(a) * r * 3.4,
+        (Math.random() - 0.25) * 0.5,
+        -Math.cos(a) * r * 3.4,
+        { color: i % 3 === 0 ? c.core : c.dots, size: 0.17 + Math.random() * 0.08, sizeEnd: 0.04, life: Math.max(0.16, (e.total || 0.2) * 0.9), drag: 2.2 }
+      );
+    }
+  }
+
+  /** Build the layered projectile once; per-frame motion only changes transforms and pooled particles. */
+  decorateFirebolt(v, c, cfg = {}) {
+    const geo = fireballGeometry();
+    const body = new THREE.Mesh(geo.orb, additive(c.glow, 0.92));
+    const core = new THREE.Mesh(geo.orb, additive(c.core, 1));
+    const halo = this.sprite(c.glow, cfg.halo ?? 1.25, 0.5);
+    const tails = [];
+    const bodySize = cfg.body ?? 0.78;
+    const coreSize = cfg.core ?? 0.42;
+    body.scale.setScalar(bodySize);
+    core.scale.setScalar(coreSize);
+    for (let i = 0; i < 3; i++) {
+      const tail = new THREE.Mesh(geo.tail, additive(i === 1 ? c.core : c.glow, i === 1 ? 0.72 : 0.58));
+      const width = i === 1 ? 0.5 : 0.64;
+      const length = (cfg.tail ?? 0.95) * (i === 1 ? 0.75 : 0.95);
+      tail.position.set((i - 1) * 0.13, (i === 1 ? -0.02 : 0.07), -0.42 - Math.abs(i - 1) * 0.1);
+      tail.scale.set(width, width, length);
+      tail.userData.baseWidth = width;
+      tail.userData.baseLength = length;
+      tail.userData.phase = i * 1.9;
+      tails.push(tail);
+      v.add(tail);
+    }
+    v.add(body, core, halo);
+    v.userData.firebolt = { body, core, halo, tails, bodySize, coreSize, haloSize: cfg.halo ?? 1.25, cfg };
+  }
+
+  fireboltImpact(e, c) {
+    const cfg = FX.skills?.firebolt?.impact || {};
+    const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
+    const dur = cfg.dur ?? 0.34;
+
+    const flash = this.sprite(c.core, cfg.flash ?? 2.4, 1);
+    flash.position.set(e.x, y, e.z);
+    this.spawn(flash, Math.min(0.18, dur), (t) => {
+      flash.material.opacity = 1 - t;
+      const s = (cfg.flash ?? 2.4) * (0.35 + t * 0.65);
+      flash.scale.setScalar(s);
+    });
+
+    const bloom = this.sprite(c.glow, cfg.bloom ?? 3.1, 0.72);
+    bloom.position.set(e.x, y, e.z);
+    this.spawn(bloom, dur, (t) => {
+      bloom.material.opacity = 0.72 * (1 - t) * (1 - t);
+      const s = (cfg.bloom ?? 3.1) * (0.42 + t * 0.58);
+      bloom.scale.setScalar(s);
+    });
+
+    const petals = new THREE.Group();
+    const geo = fireballGeometry();
+    const count = cfg.flames ?? 8;
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + (i % 2 ? 0.08 : -0.05);
+      const petal = new THREE.Mesh(geo.burst, additive(i % 3 === 0 ? c.core : c.glow, i % 3 === 0 ? 0.9 : 0.72));
+      const w = 0.7 + (i % 3) * 0.08;
+      const len = 0.85 + (i % 2) * 0.22;
+      petal.rotation.y = a;
+      petal.userData.a = a;
+      petal.userData.w = w;
+      petal.userData.len = len;
+      petals.add(petal);
+    }
+    petals.position.set(e.x, y, e.z);
+    this.spawn(petals, dur, (t) => {
+      const expand = 1 - Math.pow(1 - t, 2);
+      for (const petal of petals.children) {
+        const a = petal.userData.a;
+        const r = 0.08 + expand * 0.85;
+        petal.position.set(Math.sin(a) * r, (0.1 + Math.sin(t * Math.PI) * 0.18), Math.cos(a) * r);
+        petal.scale.set(petal.userData.w * (1 - t * 0.45), petal.userData.w * (1 - t * 0.45), petal.userData.len * (0.8 + expand * 0.5));
+        petal.material.opacity = (petal.userData.w < 0.75 ? 0.9 : 0.72) * (1 - t);
+      }
+    });
+
+    this.ring(e.x, e.z, cfg.ring ?? 1.35, c.glow, Math.min(0.3, dur));
+    this.fx.burst(e.x, y, e.z, cfg.embers ?? 15, { color: c.dots, size: 0.24, sizeEnd: 0.05, speed: 5.2, life: 0.5, up: 1.15, gravity: 7, drag: 1.5 });
+    this.dust.burst(e.x, y - 0.25, e.z, cfg.smoke ?? 5, { color: 0x8d8175, size: 0.65, sizeEnd: 1.35, speed: 2.1, life: 0.58, up: 0.8, drag: 2.8, alpha: 0.42 });
+    this.shake = Math.max(this.shake, 0.08);
+  }
 
   /**
    * A melee skill starts swinging. The blade trail only records the strike itself (the wind-up is
@@ -454,6 +596,7 @@ export class Vfx {
 
   impact(e) {
     const c = el(e.element);
+    if (e.kind === 'firebolt') return this.fireboltImpact(e, c);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
     this.fx.burst(e.x, y, e.z, 10, { color: c.dots, size: 0.28, speed: 4, life: 0.35, up: 0.8 });
     const s = this.sprite(c.glow, 1.6, 0.9);
@@ -760,6 +903,7 @@ export class Vfx {
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
       const arrow = pr.kind === 'hunter_shot';
+      const firebolt = pr.owner === 'player' && pr.kind === 'firebolt';
       if (!v) {
         v = new THREE.Group();
         if (arrow) {
@@ -769,6 +913,8 @@ export class Vfx {
           const fl = new THREE.Mesh(ag.fletch, toon('#f4f0e8'));
           v.add(shaft, tip, fl);
           v.add(this.sprite(c.glow, 0.7, 0.4));
+        } else if (firebolt) {
+          this.decorateFirebolt(v, c, FX.skills?.firebolt?.travel || {});
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
           v.add(this.sprite(c.glow, size * 1.8, 0.85));
@@ -779,12 +925,65 @@ export class Vfx {
       }
       const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       v.position.set(pr.x, y, pr.z);
-      if (arrow) v.rotation.y = Math.atan2(pr.vx, pr.vz);
-      else v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
-      const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
-      for (let k = 0; k < (arrow ? 1 : 2); k++) {
-        const o = Math.random() * 0.35;
-        this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * 1.2, 0.3, back.z * 1.2, { color: c.dots, size: arrow ? 0.18 : 0.32, sizeEnd: 0.05, life: 0.28, drag: 4 });
+      const dx = pr.vx / Math.max(0.001, pr.speed);
+      const dz = pr.vz / Math.max(0.001, pr.speed);
+      const bx = -dx;
+      const bz = -dz;
+      if (arrow) {
+        v.rotation.y = Math.atan2(pr.vx, pr.vz);
+      } else if (firebolt) {
+        v.rotation.y = Math.atan2(pr.vx, pr.vz);
+        const fb = v.userData.firebolt;
+        const pulse = 1 + Math.sin(time * 24 + pr.id * 0.7) * 0.07;
+        fb.body.scale.setScalar(fb.bodySize * pulse);
+        fb.core.scale.setScalar(fb.coreSize * (1.02 - (pulse - 1) * 0.55));
+        fb.halo.scale.setScalar(fb.haloSize * (0.94 + (pulse - 1) * 1.8));
+        fb.body.rotation.y += dt * 5.5;
+        fb.core.rotation.x -= dt * 6.5;
+        for (const tail of fb.tails) {
+          const flicker = 1 + Math.sin(time * 30 + tail.userData.phase + pr.id) * 0.16;
+          tail.scale.set(tail.userData.baseWidth / Math.sqrt(flicker), tail.userData.baseWidth / Math.sqrt(flicker), tail.userData.baseLength * flicker);
+        }
+
+        const cfg = fb.cfg;
+        const flameRate = cfg.trailRate ?? 58;
+        const flameF = dt * flameRate;
+        const flameN = Math.floor(flameF) + (Math.random() < flameF - Math.floor(flameF) ? 1 : 0);
+        const lx = dz;
+        const lz = -dx;
+        for (let k = 0; k < flameN; k++) {
+          const o = 0.15 + Math.random() * 0.5;
+          const side = (Math.random() - 0.5) * 0.22;
+          this.fx.add(pr.x + bx * o + lx * side, y + (Math.random() - 0.5) * 0.15, pr.z + bz * o + lz * side, bx * (1.1 + Math.random() * 0.9), 0.45 + Math.random() * 0.35, bz * (1.1 + Math.random() * 0.9), {
+            color: Math.random() < 0.28 ? c.core : c.glow,
+            size: 0.34 + Math.random() * 0.18,
+            sizeEnd: 0.05,
+            life: cfg.trailLife ?? 0.22,
+            drag: 4.2,
+          });
+        }
+        const emberRate = cfg.emberRate ?? 13;
+        const emberF = dt * emberRate;
+        const emberN = Math.floor(emberF) + (Math.random() < emberF - Math.floor(emberF) ? 1 : 0);
+        for (let k = 0; k < emberN; k++) {
+          const o = 0.25 + Math.random() * 0.65;
+          this.fx.add(pr.x + bx * o, y + (Math.random() - 0.5) * 0.2, pr.z + bz * o, bx * 0.7 + (Math.random() - 0.5) * 0.8, 0.8 + Math.random() * 0.7, bz * 0.7 + (Math.random() - 0.5) * 0.8, {
+            color: c.dots,
+            size: 0.12 + Math.random() * 0.09,
+            sizeEnd: 0.025,
+            life: cfg.emberLife ?? 0.38,
+            gravity: 2.2,
+            drag: 1.6,
+          });
+        }
+      } else {
+        v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
+      }
+      if (!firebolt) {
+        for (let k = 0; k < (arrow ? 1 : 2); k++) {
+          const o = Math.random() * 0.35;
+          this.fx.add(pr.x + bx * o, y + (Math.random() - 0.5) * 0.12, pr.z + bz * o, bx * 1.2, 0.3, bz * 1.2, { color: c.dots, size: arrow ? 0.18 : 0.32, sizeEnd: 0.05, life: 0.28, drag: 4 });
+        }
       }
     }
     for (const [id, v] of this.projectiles) {

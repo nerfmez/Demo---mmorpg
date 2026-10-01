@@ -87,9 +87,27 @@ export function fireballImpact(v,e) {
   const c=FX.fireball, y=v.gy(e.x,e.z)+(e.y??1);
   const g=new THREE.Group();g.position.set(e.x,y,e.z);
   const flash=new THREE.Mesh(sphere,new THREE.MeshBasicMaterial({color:c.core,toneMapped:false,transparent:true,depthWrite:false}));g.add(flash);
+  // Rounded, overlapping flame lobes carry the burst; short tapered tongues support it.
+  const cloudMaterial=new THREE.ShaderMaterial({
+    uniforms:{uT:{value:0},uA:{value:1},uOuter:{value:new THREE.Color(c.outer)},uMiddle:{value:new THREE.Color(c.middle)},uCore:{value:new THREE.Color(c.core)}},
+    transparent:true,depthWrite:false,toneMapped:false,
+    vertexShader:`varying vec3 vN; uniform float uT;
+      void main(){vN=normalize(normalMatrix*normal);
+        float wobble=0.07*sin(position.y*13.0+position.z*9.0-uT*12.0);
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position*(1.0+wobble),1.0);
+      }`,
+    fragmentShader:`varying vec3 vN; uniform float uA; uniform vec3 uOuter,uMiddle,uCore;
+      void main(){float band=abs(vN.z);
+        vec3 col=band<0.35?uOuter:(band<0.78?uMiddle:uCore);
+        gl_FragColor=vec4(col,uA);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const lobes=[];
+  for(let i=0;i<5;i++) {const l=new THREE.Mesh(sphere,cloudMaterial);g.add(l);lobes.push(l);}
   const petals=[];
-  for(let i=0;i<7;i++) {
-    const a=i*Math.PI*2/7;
+  for(let i=0;i<5;i++) {
+    const a=i*Math.PI*2/5;
     const p=new THREE.Mesh(plane,flameMaterial(i*0.7));
     p.rotation.set(-Math.PI/2,0,-a);
     p.position.set(Math.cos(a)*0.15,0,Math.sin(a)*0.15);
@@ -99,10 +117,19 @@ export function fireballImpact(v,e) {
     const expand=1-Math.pow(1-Math.min(1,t/0.55),3);
     flash.scale.setScalar(0.18+expand*0.6);
     flash.material.opacity=Math.max(0,1-t/0.27);
+    cloudMaterial.uniforms.uT.value=t*2;
+    cloudMaterial.uniforms.uA.value=1-smoothFade(t);
+    for(let i=0;i<lobes.length;i++) {
+      const a=i*Math.PI*2/5;
+      const r=expand*c.impactRadius*0.38;
+      lobes[i].position.set(Math.cos(a)*r,0.1+Math.sin(a*2)*0.12+t*0.32,Math.sin(a)*r);
+      const s=(0.15+expand*0.36)*(1-t*0.25);
+      lobes[i].scale.set(s,s*(1.1+i*0.06),s);
+    }
     for(const {p,a} of petals) {
-      const r=0.12+expand*c.impactRadius*0.52;
+      const r=0.12+expand*c.impactRadius*0.50;
       p.position.set(Math.cos(a)*r,Math.sin(t*Math.PI)*0.2,Math.sin(a)*r);
-      p.scale.set((0.35+expand*1.15)*(1-t*0.5),0.55*(1-t*0.6),1);
+      p.scale.set((0.3+expand*0.62)*(1-t*0.5),0.9*(1-t*0.6),1);
       p.material.uniforms.uT.value=t*1.4+a;
       p.material.uniforms.uA.value=1-Math.pow(t,1.4);
     }
@@ -113,4 +140,9 @@ export function fireballImpact(v,e) {
     const a=i*Math.PI*2/5;
     v.dust.add(e.x+Math.cos(a)*0.2,y-0.2,e.z+Math.sin(a)*0.2,Math.cos(a)*0.8,0.8,Math.sin(a)*0.8,{color:0xd9d7d1,size:0.2,sizeEnd:0.75,life:0.62,alpha:0.55,drag:2});
   }
+}
+
+function smoothFade(t) {
+  const k=Math.max(0,Math.min(1,(t-0.35)/0.65));
+  return k*k*(3-2*k);
 }

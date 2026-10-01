@@ -32,13 +32,6 @@ const rimOf = (c) => c.rim ?? c.glow;
 const EMIT_DEFAULT = { color: 0xffffff, core: null, colorEnd: null, coreEnd: null, colorDelay: 0, colorSpan: 1, hold: 0.15, size: 0.3, sizeEnd: null, life: 0.6, gravity: 0, drag: 1.5, alpha: 1, shape: 0, rot: null, spin: 0 };
 const EMIT = { ...EMIT_DEFAULT };
 const emitOpts = () => Object.assign(EMIT, EMIT_DEFAULT);
-// data colours ('#rrggbb') parsed once
-const COLORS = new Map();
-function colorOf(hex) {
-  let c = COLORS.get(hex);
-  if (!c) COLORS.set(hex, (c = new THREE.Color(hex)));
-  return c;
-}
 const heatOf = (c) => c.heat ?? c.core;
 const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch']);
 

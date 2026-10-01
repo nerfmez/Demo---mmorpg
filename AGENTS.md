@@ -25,7 +25,7 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 - Crafted gear has a random Grade and options. Upgrade (+N) is a separate system.
 - The game starts on a title screen (`ui/menu.js`): new character, 3 save slots, continue. Tests skip it with `?fresh=1` (a never-saved character). Saves are character JSON (`version: 2`); change the shape only with a migration in `migrateCharacter()` and a test.
 - The map has real height: keep roads and ramps walkable and bridges joined to both banks (tested in `tests/core/world.test.js`).
-- Art: "change the camera, not the style". Keep the anime cel look (3-step toon ramp, soft same-hue outlines), normal proportions (about 6.5 heads, never chibi), vivid but not pastel, and monsters that are not plush toys. The reference images in `docs/reference/` are style targets, not in-game sprites.
+- Art: "change the camera, not the style". Keep the anime cel look (3-step toon ramp, soft same-hue outlines), normal proportions (about 6.5 heads, never chibi), vivid but not pastel, and monsters that are not plush toys. The reference images in `docs/reference/` are style targets, not in-game sprites. For skill and combat effects, `docs/VFX-REFERENCE.md` is the VFX style target (adapt it, never copy assets).
 
 ## Performance rules
 

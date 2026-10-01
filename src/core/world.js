@@ -315,8 +315,31 @@ export function createWorld(worldData) {
     }
   }
 
+  const palmBelt = worldData.sea?.palmBelt ?? Infinity, beachWidth = worldData.sea?.beach || 14;
+  // ---------- coconut palm groves along the back of the beach ----------
+  // Loose clusters on the sandy band behind the swash, each trunk leaning out toward the sea;
+  // their own generator keeps every other placement unchanged.
+  if (shore && Number.isFinite(palmBelt)) {
+    const prng = createRng(4421), placed = [], step = 2.1;
+    for (let x = b.minX + 1; x < b.maxX - 1; x += step) for (let z = b.minZ + 1; z < b.maxZ - 1; z += step) {
+      const px = x + prng.range(-0.9, 0.9), pz = z + prng.range(-0.9, 0.9);
+      const c = coastAt(px, pz), zn = zoneAt(px, pz);
+      if (!['beach', 'rock'].includes(c.kind) || !(zn.trees || []).includes('palm')) { prng.next(); continue; }
+      const back = c.distance - beachWidth; // metres behind the dry-sand line
+      if (back < -3 || back > palmBelt) { prng.next(); continue; }
+      const band = 1 - Math.abs(back - 2) / (palmBelt * 0.75);
+      const cluster = smooth01((valueNoise(px * 0.055, pz * 0.055, 91) - 0.44) / 0.18);
+      if (prng.next() > Math.max(0, band) * cluster * 0.55) continue;
+      const scale = prng.range(0.8, 1.25), r = 0.4 * scale;
+      if (placed.some((q) => dist(px, pz, q.x, q.z) < 2.3) || blockedForProp(px, pz, r, { roadPad: 1.6 })) continue;
+      const gx = coastAt(px + 1, pz).distance - coastAt(px - 1, pz).distance, gz = coastAt(px, pz + 1).distance - coastAt(px, pz - 1).distance;
+      const rot = Math.atan2(-gx, -gz) + prng.range(-0.7, 0.7);
+      placed.push({ x: px, z: pz });
+      addCircle({ x: px, z: pz, r, type: 'palm', scale, rot });
+    }
+  }
+
   // ---------- trees, rocks, crystals, logs by zone ----------
-  const palmBelt = worldData.sea?.palmBelt ?? Infinity;
   for (let x = b.minX - 30; x < b.maxX + 30; x += 3.2) {
     for (let z = b.minZ - 30; z < b.maxZ + 30; z += 3.2) {
       const jx = x + rng.range(-1.4, 1.4);
@@ -337,8 +360,11 @@ export function createWorld(worldData) {
       if (roll < density) {
         const scale = rng.range(0.85, 1.35);
         let type = rng.pick(zn.trees || ['tree']);
-        // coconut palms grow on the shore belt only; further inland the zone's broadleaf stands in
-        if (type === 'palm' && coastAt(jx, jz).distance > palmBelt) type = (zn.trees || []).find((t) => t !== 'palm') || 'tree';
+        // coconut palms come from the shore grove pass below; inland the zone's broadleaf stands in
+        if (type === 'palm') {
+          if (coastAt(jx, jz).distance <= beachWidth + palmBelt) continue;
+          type = (zn.trees || []).find((t) => t !== 'palm') || 'tree';
+        }
         const trunk = type === 'pine' ? 0.6 : type === 'palm' ? 0.4 : 0.75;
         if (!blockedForProp(jx, jz, 0.8)) addCircle({ x: jx, z: jz, r: trunk * scale, type, scale, rot: rng.range(0, 6.28) });
       } else if (!zn.safe) {

@@ -9529,8 +9529,8 @@
   "camp": null,
   "den": null,
   "sea": {
-    "palmBelt": 16,
-    "beach": 8,
+    "palmBelt": 12,
+    "beach": 11,
     "shore": [
       [
         -220,

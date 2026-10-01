@@ -182,7 +182,16 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   // a warm pale band up the dry beach and a cool, glossy wet band at the water's edge
   sand=mix(sand,sand*1.05+vec3(.02,.015,0.0),smoothstep(3.0,8.0,-coast.y)*.5);
   sand=mix(sand,${rgb(p.sandWet)},smoothstep(-5.5,-.2,coast.y)*.46);
-  col=mix(col,sand,coast.x);
+  // back-beach: sandy soil with thin, sun-dried grass patches, then open sand; a wandering
+  // edge so the meadow gives way gradually instead of stopping at a line
+  float shoreNoise=(vnoise(w*.21+19.0)-.5)*.30+(fine-.5)*.10;
+  float sandW=smoothstep(.60,.80,coast.x+shoreNoise);
+  float soilW=smoothstep(.04,.42,coast.x+shoreNoise*1.4);
+  vec3 dry=mix(grass*.95,${rgb(p.grassOchre)},.45);
+  vec3 sandySoil=mix(sand*.97,dry,smoothstep(.45,.75,vnoise(w*.62+3.0))*(1.0-smoothstep(.2,.6,coast.x))*.85);
+  sandySoil*=.96+brush.r*.08;
+  col=mix(col,sandySoil,soilW);
+  col=mix(col,sand,sandW);
   }
   return col;
 }

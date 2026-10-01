@@ -52,7 +52,7 @@ export function needleTexture() {
 }
 
 // A coconut-palm frond, rachis running down the middle (u=.5) from base (bottom, v=1) to tip (top).
-// Many long, narrow, tapered leaflets in mixed greens sweep from the rachis toward the tip and
+// Long, fairly broad, tapered leaflets in mixed greens sweep from the rachis toward the tip and
 // overlap a little, longest at mid-frond, with a few split or missing; small gaps stay clear.
 let frond;
 export function palmFrondTexture() {
@@ -74,7 +74,7 @@ export function palmFrondTexture() {
   c.fillStyle=col;c.beginPath();c.moveTo(...left[0]);for(const p of left)c.lineTo(...p);for(const p of right.reverse())c.lineTo(...p);c.closePath();c.fill();
   c.strokeStyle=light;c.lineWidth=Math.max(1,width*.18);c.beginPath();c.moveTo(...pts[1]);for(const p of pts.slice(2,n))c.lineTo(...p);c.stroke();
  };
- const count=96;
+ const count=44;
  for(let i=0;i<count;i++){
   const t=i/count,y=H*.03+t*H*.95; // t=0 at the tip, 1 at the base
   const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.98+.05)),.5)*.46+.03)*W;
@@ -84,7 +84,7 @@ export function palmFrondTexture() {
    const tipish=rng.next()<.2+.45*(1-t);
    const col=tipish?tipGreens[Math.floor(rng.next()*tipGreens.length)]:greens[Math.floor(rng.next()*greens.length)];
    const x0=cx+side*4,x1=cx+side*len,y1=y-rise,bx=cx+side*len*.6,by=y-rise*.2+rng.range(-4,8);
-   leaflet(x0,y,x1,y1,bx,by,rng.range(11,16)*(.65+.35*t),col,'rgba(225,240,170,.35)');
+   leaflet(x0,y,x1,y1,bx,by,rng.range(21,28)*(.7+.3*t),col,'rgba(225,240,170,.38)');
    if(rng.next()<.08){c.strokeStyle='#000';c.globalCompositeOperation='destination-out';c.lineWidth=2.5;
     c.beginPath();c.moveTo(cx+side*len*.55,y-rise*.45);c.lineTo(x1,y1+6);c.stroke();c.globalCompositeOperation='source-over';}
   }

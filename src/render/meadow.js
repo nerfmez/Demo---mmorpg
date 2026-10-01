@@ -16,7 +16,7 @@ export function meadowPlants(world, extraPatches=[]) {
     const b=world.bounds;
     if(x<=b.minX+.3||x>=b.maxX-.3||z<=b.minZ+.3||z>=b.maxZ-.3)return false;
     if(world.isWater(x,z,.6)||world.dockAt(x,z)||world.roadDist(x,z)<.1||world.slopeAt(x,z)>.65)return false;
-    if(sample(field.coast,x,z,2)>.16||sample(field.road,x,z)>.40||sample(field.stone,x,z)>.16||sample(field.mud,x,z)>.35||sample(field.dirt,x,z)>.84)return false;
+    if(sample(field.coast,x,z,2)>art.ground.duneGrassLimit||sample(field.road,x,z)>.40||sample(field.stone,x,z)>.16||sample(field.mud,x,z)>.35||sample(field.dirt,x,z)>.84)return false;
     return world.isFree(x,z,.12);
   };
   const patches=[...world.decor.grass,...extraPatches],flowerPatches=[...world.decor.flowers];
@@ -38,6 +38,9 @@ export function meadowPlants(world, extraPatches=[]) {
       const lx=Math.sin(a)*r,lz=Math.cos(a)*r*.65;
       const x=patch.x+Math.cos(axis)*lx+Math.sin(axis)*lz,z=patch.z-Math.sin(axis)*lx+Math.cos(axis)*lz;
       if(!clear(x,z)||meadowDensity(x,z)<.12)continue;
+      // the back-beach band keeps only scattered dune tufts, thinning toward the sand
+      const shore=sample(field.coast,x,z,2)/art.ground.duneGrassLimit;
+      if(shore>0&&((Math.sin(x*12.9898+z*78.233)*43758.5453)%1+1)%1<.15+shore*.8)continue;
       const s=patch.s*r0.range(.80,1.30)*(1-r*.12);
       grass.push({x,z,y:world.groundY(x,z)-.018,ry:axis+r0.range(-1.0,1.0),s});
     }

@@ -82,7 +82,8 @@ export function surfaceData(world) {
         // sandy beach along the sea
         const c = world.coastAt(x, z), d = c.distance;
         const beach = wd.sea.beach || 14;
-        coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + 2.5, d) : 0;
+        // 1 on open sand, easing through a sandy-soil back-beach band to 0 at the meadow
+        coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + (art.ground.backBeach ?? 3.5), d) : 0;
         if(['quay','shipyard','breakwater'].includes(c.kind) && d >= 0 && d < 5.5) {
           const wear=(valueNoise(x*.28,z*.28,74)-.5)*1.1;
           stone[k]=Math.max(stone[k],1-smooth(2.3+wear,4.8+wear,d));
@@ -294,7 +295,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v10';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v11';
   return mat;
 }
 

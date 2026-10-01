@@ -72,7 +72,7 @@ function warehouse(b,bx){
   box(6.0,.09,.90,timber?'#b5a681':'#819b92',0,3.03,front+.61,.12);
   for(const x of [-2.85,2.85])box(.12,3.02,.12,C.wood,x,1.51,front+1.05);
   for(const side of [-1,1]){
-    shopWindow(b,side*4.55,2.64,front+.10,.54,.64,'#788a7e');
+    shopWindow(b,side*Math.min(4.55,bx.hx-.70),2.64,front+.10,.54,.64,'#788a7e');
     box(.08,.55,.08,C.wood,side*2.75,2.73,front+.83,0,0,side*.48);
   }
   if(timber){

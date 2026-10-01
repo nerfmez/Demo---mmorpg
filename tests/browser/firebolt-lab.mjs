@@ -72,6 +72,15 @@ try {
   await screenshot('dark-travel.png');
   await page.evaluate(()=>{for(let i=0;i<12;i++)window.__lab.step(1/60);});
   await screenshot('dark-impact.png');
+  await page.evaluate(()=>{for(let i=0;i<12;i++)window.__lab.step(1/60);});
+  await screenshot('dark-sparks.png');
+  const sparks=await page.evaluate(()=>{
+    const f=window.__lab.vfx.flames;let count=0;
+    for(let i=0;i<f.count;i++)if(f.info[i*4+2]===1)count++;
+    return {embers:count,active:window.__lab.vfx.active.length};
+  });
+  assert(sparks.embers>0,'embers should remain visible after the contact flash');
+  assert.equal(sparks.active,0,'post-impact spark frame should have no contact flash');
   await page.evaluate(()=>{for(let i=0;i<120;i++)window.__lab.step(1/60);});
   await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
   await page.getByRole('button',{name:'ทราย',exact:true}).click();

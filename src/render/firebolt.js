@@ -194,9 +194,9 @@ export class FlameParticles {
     g.setAttribute('aInfo',new THREE.InstancedBufferAttribute(this.info,4).setUsage(THREE.DynamicDrawUsage));
     g.instanceCount=0;
     const mat=new THREE.ShaderMaterial({
-      uniforms:{...palette(cfg),uTime:{value:0}},transparent:true,depthWrite:false,
+      uniforms:{...palette(cfg),uTime:{value:0},uEmberWidth:{value:cfg.impact.emberWidth}},transparent:true,depthWrite:false,
       vertexShader: /* glsl */ `
-        attribute vec3 aPos,aVel; attribute vec4 aInfo;
+        attribute vec3 aPos,aVel; attribute vec4 aInfo; uniform float uEmberWidth;
         varying vec2 vUv; varying vec4 vInfo;
         void main(){
           vUv=uv; vInfo=aInfo;
@@ -204,12 +204,13 @@ export class FlameParticles {
           // Follow drift rather than a fixed random rotation: the tail wisps
           // and impact streaks continue the motion of their parent flame.
           if(aInfo.z<0.5) p.x*=0.38;
-          if(aInfo.z>0.5 && aInfo.z<1.5) { p.x*=0.16; p.y*=0.7; }
+          if(aInfo.z>0.5 && aInfo.z<1.5) { p.x*=uEmberWidth; p.y*=0.7; }
           vec2 d=(viewMatrix*vec4(aVel,0.0)).xy;
           d=length(d)<0.001?vec2(0,1):normalize(d);
           if(aInfo.z>1.5) d=vec2(0,1);
           vec4 mv=viewMatrix*vec4(aPos,1);
-          mv.xy+=d*p.y+vec2(-d.y,d.x)*p.x;
+          // Keep the billboard basis right-handed so FrontSide particles are drawn.
+          mv.xy+=d*p.y+vec2(d.y,-d.x)*p.x;
           gl_Position=projectionMatrix*mv;
         }`,
       fragmentShader: /* glsl */ `
@@ -226,7 +227,7 @@ export class FlameParticles {
             col=mix(vec3(0.22,0.19,0.19),vec3(0.43,0.37,0.32),smoothstep(0.35,0.55,light));
           } else if(kind>0.5){
             d=0.75-abs(p.x)*0.65-abs(p.y);
-            col=mix(uBody,uHot,1.0-age);
+            col=mix(uBody,uCore,(1.0-age)*(1.0-smoothstep(0.15,0.65,abs(p.x))));
           } else {
             float head=(1.0-length((p-vec2(0,-0.28))/vec2(0.66,0.56)))*0.45;
             float width=0.48*pow(clamp((1.0-p.y)*0.5,0.0,1.0),1.1);
@@ -270,7 +271,8 @@ export class FlameParticles {
       this.vel[p]*=drag;this.vel[p+2]*=drag;
       this.vel[p+1]=this.vel[p+1]*drag+dt*(smoke?0.6:0.8);
       this.pos[p]+=this.vel[p]*dt;this.pos[p+1]+=this.vel[p+1]*dt;this.pos[p+2]+=this.vel[p+2]*dt;
-      this.info[a]=this.size[i]*(smoke?0.6+age*1.1:1.0-age*0.65);
+      const shrink=this.info[a+2]>0.5 && !smoke ? this.cfg.impact.emberShrink : 0.65;
+      this.info[a]=this.size[i]*(smoke?0.6+age*1.1:1.0-age*shrink);
       this.info[a+1]=age;
     }
     this.count=n;

@@ -179,11 +179,13 @@
         "hitStop": 0.02,
         "glowRadius": 0.5,
         "wispSize": 0.3,
-        "emberSize": 0.13,
+        "emberSize": 0.22,
         "wispLife": 0.2,
-        "emberLife": 0.28,
+        "emberLife": 0.42,
         "wispSpeed": 1.7,
-        "emberSpeed": 3.2
+        "emberSpeed": 4.8,
+        "emberWidth": 0.22,
+        "emberShrink": 0.3
       }
     }
   }

@@ -6,6 +6,13 @@ import { disposeObject } from './dispose.js';
 import { Particles } from './particles.js';
 import { toon } from './toon.js';
 import { makeDecal, conform } from './decal.js';
+import { BladeTrail } from './trail.js';
+import FX from '../../data/combat-fx.json';
+
+const _p0 = new THREE.Vector3();
+const _dir = new THREE.Vector3();
+const _base = new THREE.Vector3();
+const _tip = new THREE.Vector3();
 
 const ELEMENT = {
   physical: { core: 0xfff3c4, glow: 0xffc24a, dots: 0xffe08a },
@@ -203,6 +210,10 @@ export class Vfx {
     this.sharedGeo = new Set([this.discGeo, this.ringGeo]);
     this.glow = glowTexture();
     this.shake = 0;
+    this.trail = new BladeTrail(scene);
+    this.swingCfg = null;
+    this.swingDelay = 0;
+    this.swingLeft = 0;
   }
 
   gy(x, z) {
@@ -236,38 +247,73 @@ export class Vfx {
 
   // ---------- one-shot effects ----------
 
-  slash(e) {
+  /**
+   * A melee skill starts swinging. The blade trail only records the strike itself (the wind-up is
+   * as fast as the cut, so timing, not speed alone, tells them apart): from half way to the hit
+   * until just after it, or for a spin from its start to its end.
+   */
+  beginSwing(e, element) {
+    const cfg = FX.weapons[e.weapon] || FX.weapons.none;
+    const c = el(element);
+    const spin = e.kind === 'melee_nova';
+    this.swingCfg = cfg;
+    this.swingDelay = (spin ? 0.3 : 0.5) * e.total;
+    this.swingLeft = spin ? e.total * 0.7 + 0.5 : e.total * 0.5 + 0.12;
+    this.trail.begin(cfg, c.glow, c.core);
+  }
+
+  /** Per frame, after the hero's pose is set: record the weapon's base and tip in world space. */
+  updateTrail(dt, rig) {
+    if (this.swingDelay > 0) {
+      this.swingDelay -= dt;
+      if (this.swingDelay <= 0) this.trail.start();
+    } else if (this.swingLeft > 0) {
+      this.swingLeft -= dt;
+      if (this.swingLeft <= 0) this.trail.end();
+    }
+    const w = rig?.bones?.weapon;
+    if (!w || !this.swingCfg) {
+      this.trail.update(dt, _base, _tip);
+      return;
+    }
+    w.updateWorldMatrix(true, false);
+    w.getWorldPosition(_p0);
+    w.getWorldDirection(_dir);
+    _base.copy(_p0).addScaledVector(_dir, this.swingCfg.base);
+    _tip.copy(_p0).addScaledVector(_dir, this.swingCfg.tip);
+    this.trail.update(dt, _base, _tip);
+  }
+
+  /**
+   * The strike lands: the ground wedge is exactly the skill's hit area (range and arc), so it shows
+   * where a hit can land. The light that follows the weapon itself is the blade trail.
+   */
+  slash(e, weapon) {
+    const cfg = FX.weapons[weapon] || FX.weapons.none;
     const c = el(e.element);
-    const g = sectorGeometry(e.range * 0.35, e.range + 0.2, (e.arc * Math.PI) / 180);
-    const m = new THREE.Mesh(g, slashMaterial(c.glow, e.combo % 2 === 1));
-    m.position.set(e.x, this.gy(e.x, e.z) + 0.95, e.z);
-    m.rotation.y = e.angle;
-    m.rotation.z = e.combo % 2 === 1 ? -0.14 : 0.12;
-    m.renderOrder = 6;
-    this.spawn(m, 0.28, (t) => {
-      m.material.uniforms.uT.value = t;
-    });
-    const y = this.gy(e.x, e.z) + 0.95;
-    for (let i = 0; i < 8; i++) {
-      const a = e.angle + ((i / 7 - 0.5) * e.arc * Math.PI) / 180;
-      const r = e.range * (0.8 + Math.random() * 0.3);
-      this.fx.add(e.x + Math.sin(a) * r, y, e.z + Math.cos(a) * r, Math.sin(a) * 2, 0.6, Math.cos(a) * 2, { color: c.dots, size: 0.22, life: 0.3 });
+    const arc = (e.arc * Math.PI) / 180;
+    // the third swing of a combo hits no further, so it is drawn stronger on the same area
+    const k = e.finisher ? 1.8 : 1;
+    const fill = this.decal(sectorGeometry(0, e.range, arc, 24), additive(c.glow, cfg.zone * k), e.x, e.z, 1, e.angle, 0.09);
+    const edge = this.decal(sectorGeometry(Math.max(0, e.range - 0.12 * k), e.range, arc, 24), additive(c.core, 0.55), e.x, e.z, 1, e.angle, 0.1);
+    this.spawn(fill, 0.24 * k, (t) => (fill.material.opacity = cfg.zone * k * (1 - t) * (1 - t)));
+    this.spawn(edge, 0.24 * k, (t) => (edge.material.opacity = 0.55 * (1 - t) * (1 - t)));
+    const dx = Math.sin(e.angle);
+    const dz = Math.cos(e.angle);
+    const y = this.gy(e.x, e.z);
+    for (let i = 0; i < 6; i++) {
+      const a = e.angle + ((i / 5 - 0.5) * e.arc * Math.PI) / 180;
+      const r = e.range * (0.85 + Math.random() * 0.15);
+      this.fx.add(e.x + Math.sin(a) * r, y + 0.2, e.z + Math.cos(a) * r, Math.sin(a) * 1.5, 0.5, Math.cos(a) * 1.5, { color: c.dots, size: 0.18, life: 0.28 });
+    }
+    if ((cfg.dust || e.finisher) && (e.hits || e.finisher)) {
+      this.dust.burst(e.x + dx * e.range * 0.75, y + 0.15, e.z + dz * e.range * 0.75, Math.round((cfg.dust || 4) * k), { color: 0xd8c7a0, size: 0.55, sizeEnd: 1.0, speed: 2.6, life: 0.4, up: 0.2, drag: 3 });
     }
   }
 
   whirl(e) {
     const c = el(e.element);
-    for (let k = 0; k < 2; k++) {
-      const g = sectorGeometry(e.radius * 0.45, e.radius + 0.2, Math.PI * 2 * 0.98, 48);
-      const m = new THREE.Mesh(g, slashMaterial(c.glow, k === 1));
-      m.position.set(e.x, this.gy(e.x, e.z) + 0.7 + k * 0.35, e.z);
-      m.rotation.y = (e.angle || 0) + k * Math.PI;
-      m.renderOrder = 6;
-      this.spawn(m, 0.34, (t) => {
-        m.material.uniforms.uT.value = t;
-        m.rotation.y += 0.25;
-      });
-    }
+    this.ring(e.x, e.z, e.radius, c.glow, 0.32);
     this.dust.burst(e.x, this.gy(e.x, e.z) + 0.2, e.z, 10, { color: 0xd8c7a0, size: 0.6, sizeEnd: 1.1, speed: e.radius * 2, life: 0.45, up: 0.2, drag: 3 });
   }
 
@@ -305,7 +351,100 @@ export class Vfx {
     }
   }
 
+  /** A monster's melee strike lands. Each attack has its own look (data/combat-fx.json 'monsters'). */
   monsterSwing(e) {
+    const base = FX.monsters[e.name];
+    if (!base) return this.genericSwing(e);
+    const f = { ...base, ...(FX.overrides[`${e.type}.${e.name}`] || {}) };
+    const S = f.scale ?? 1;
+    const dx = Math.sin(e.angle);
+    const dz = Math.cos(e.angle);
+    const arc = (e.arc * Math.PI) / 180;
+    const px = e.x + dx * e.range * 0.75;
+    const pz = e.z + dz * e.range * 0.75;
+    const gy = this.gy(px, pz);
+    const y = gy + f.height;
+    if (f.kind === 'splash') {
+      // a slap of water: the area that was hit flashes low on the ground, a ring runs out, droplets fly
+      const wedge = this.decal(sectorGeometry(e.range * 0.25, e.range, arc, 20), additive(f.color, 0.4), e.x, e.z, 1, e.angle, 0.09);
+      this.spawn(wedge, f.dur, (t) => (wedge.material.opacity = 0.4 * (1 - t) * (1 - t)));
+      this.ring(px, pz, e.range * 0.7 * S, f.color, f.dur);
+      for (let i = 0; i < f.droplets; i++) {
+        const a = e.angle + (Math.random() - 0.5) * arc;
+        const sp = 2.2 + Math.random() * 3.2;
+        this.fx.add(e.x + dx * e.range * 0.35, y, e.z + dz * e.range * 0.35, Math.sin(a) * sp, 1.6 + Math.random() * 2.4, Math.cos(a) * sp, { color: i % 3 ? f.color : f.core, size: 0.22 + Math.random() * 0.14, life: 0.5, gravity: 9, drag: 0.6 });
+      }
+    } else if (f.kind === 'thrust') {
+      // a beak stab: a narrow needle from the beak to the end of its reach, feathers drift away
+      const L = e.range;
+      const w = f.width * S;
+      for (const [k, col, width] of [[1, f.color, w], [0.45, f.core, w * 0.45]]) {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute([-width / 2, 0, L * 0.3, width / 2, 0, L * 0.3, 0, 0, L], 3));
+        g.setIndex([0, 1, 2]);
+        const m = new THREE.Mesh(g, additive(col, k));
+        m.position.set(e.x, this.gy(e.x, e.z) + f.height, e.z);
+        m.rotation.y = e.angle;
+        m.renderOrder = 6;
+        this.spawn(m, f.dur, (t) => (m.material.opacity = k * (1 - t)));
+      }
+      const tip = this.sprite(f.core, 0.5, 0.9);
+      tip.position.set(e.x + dx * L, y, e.z + dz * L);
+      this.spawn(tip, f.dur, (t) => {
+        tip.material.opacity = 0.9 * (1 - t);
+        tip.scale.setScalar(0.4 + t * 0.5);
+      });
+      for (let i = 0; i < f.feathers; i++) {
+        const a = e.angle + Math.PI + (Math.random() - 0.5) * 2.2;
+        this.dust.add(e.x + dx * L * 0.5, y, e.z + dz * L * 0.5, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: 0xf4efe0, size: 0.2, life: 0.8, gravity: 1.6, drag: 1.4 });
+      }
+    } else if (f.kind === 'snap' || f.kind === 'fangs') {
+      // two jaws close on the spot that was hit (claws, or fangs above and below)
+      const fangs = f.kind === 'fangs';
+      const rj = (fangs ? 0.52 : 0.58) * S;
+      const th = (fangs ? 0.1 : 0.15) * S;
+      const jawArc = ((fangs ? 150 : 115) * Math.PI) / 180;
+      const rx = Math.cos(e.angle);
+      const rz = -Math.sin(e.angle);
+      const jaws = [1, -1].map((side) => {
+        const m = new THREE.Mesh(sectorGeometry(rj - th, rj, jawArc, 16), slashMaterial(f.color, side < 0));
+        m.rotation.y = e.angle - (side * Math.PI) / 2;
+        m.renderOrder = 6;
+        return { m, side };
+      });
+      const group = new THREE.Group();
+      for (const j of jaws) group.add(j.m);
+      group.position.set(px, y, pz);
+      this.spawn(group, f.dur, (t) => {
+        const d = (0.7 - 0.58 * Math.min(1, t / 0.45)) * S;
+        for (const j of jaws) {
+          j.m.position.set(rx * d * j.side, fangs ? j.side * 0.14 * S : 0, rz * d * j.side);
+          j.m.material.uniforms.uT.value = t;
+        }
+      });
+      this.fx.burst(px, y, pz, f.sparks, { color: f.color, size: 0.22, speed: 3.2, life: 0.3, up: 0.4 });
+      const flash = this.sprite(f.core, 0.45, 0.7);
+      flash.position.set(px, y, pz);
+      this.spawn(flash, 0.14, (t) => {
+        flash.material.opacity = 0.7 * (1 - t);
+        flash.scale.setScalar(0.4 + t * 0.4);
+      });
+      if (!fangs) this.ring(px, pz, 0.55 * S, f.color, 0.2);
+    } else {
+      // a heavy sweep: one wide dark-red band with dust kicked along the edge of the area
+      const m = new THREE.Mesh(sectorGeometry(e.range * 0.74, e.range, arc, 32), slashMaterial(f.color));
+      m.position.set(e.x, this.gy(e.x, e.z) + f.height, e.z);
+      m.rotation.y = e.angle;
+      m.renderOrder = 6;
+      this.spawn(m, f.dur, (t) => (m.material.uniforms.uT.value = t));
+      for (let i = 0; i < f.dust; i++) {
+        const a = e.angle + (i / Math.max(1, f.dust - 1) - 0.5) * arc;
+        this.dust.add(e.x + Math.sin(a) * e.range * 0.9, this.gy(e.x, e.z) + 0.15, e.z + Math.cos(a) * e.range * 0.9, Math.sin(a) * 1.5, 0.5, Math.cos(a) * 1.5, { color: 0xb8a58a, size: 0.55, sizeEnd: 1.2, life: 0.5, drag: 3 });
+      }
+    }
+  }
+
+  genericSwing(e) {
     const g = sectorGeometry(e.range * 0.4, e.range, (e.arc * Math.PI) / 180);
     const m = new THREE.Mesh(g, slashMaterial(0xff8a5a));
     m.position.set(e.x, this.gy(e.x, e.z) + 0.7, e.z);

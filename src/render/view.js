@@ -301,12 +301,11 @@ export class View {
     switch (e.type) {
       case 'castStart':
         this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
+        if (e.kind === 'melee_arc' || e.kind === 'melee_nova') v.beginSwing(e, g.skills.find((s) => s && s.id === e.skill)?.element);
         break;
       case 'slash':
-        v.slash(e);
+        v.slash(e, g.derived.weaponType);
         if (e.finisher) {
-          v.slash({ ...e, range: e.range * 1.25, combo: e.combo + 1 });
-          v.ring(e.x + Math.sin(e.angle) * e.range * 0.6, e.z + Math.cos(e.angle) * e.range * 0.6, e.range * 0.8, 0xfff0c0);
           this.addShake(e.hits ? 0.22 : 0.08);
           if (e.hits) this.hitStop = Math.max(this.hitStop || 0, 0.09);
         } else if (e.triggered) this.addShake(0.05);
@@ -368,7 +367,7 @@ export class View {
         else if (e.kind === 'stone_burst') this.addShake(0.12);
         break;
       case 'monsterSwing':
-        v.monsterSwing(e);
+        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type });
         break;
       case 'ward':
         v.ward(e, this.hero.root);
@@ -667,6 +666,7 @@ export class View {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
     this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
+    this.vfx.updateTrail(dt, r);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
     setFlash(r.material, this.heroFlash > 0 ? 0.5 : 0, 0, p.statuses?.chill ? 0.25 : 0);
@@ -841,7 +841,7 @@ export class View {
     this.scene.add(tmp);
     const v = this.vfx;
     const e = { x, z, angle: 0, arc: 120, range: 2, element: 'fire', radius: 2, kind: 'x', points: [[x, z], [x + 2, z]] };
-    v.slash(e);
+    v.slash(e, 'sword');
     v.impact(e);
     v.stoneBurst(e);
     v.whirl(e);

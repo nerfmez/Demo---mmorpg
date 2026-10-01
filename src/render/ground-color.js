@@ -37,6 +37,28 @@ vec3 paintedEarth(vec2 w,float wet){
   earth=mix(earth,pebbleCol,pebble*.8);
   return mix(earth,${rgb(p.mud)}*(.9+brush*.18),wet);
 }
+// Scattered stones in jittered cells: 1 on a stone, with a lit upper half (cel-shaded pebble).
+float gravel(vec2 w,float scale,float keep,float size){
+  vec2 cell=floor(w*scale),q=fract(w*scale)-.5;
+  q-=(vec2(hash12(cell+3.1),hash12(cell+8.7))-.5)*.6;
+  float seed=hash12(cell+21.0),d=length(q*vec2(1.0,1.35+seed));
+  float aa=max(fwidth(d),.01);
+  return (1.0-smoothstep(size-aa,size+aa,d))*step(keep,seed);
+}
+// A trodden dirt road: dusty worn centre, darker trodden sides, gravel at two sizes, damp and dry
+// patches and fine grit, so it reads as real ground rather than one flat paint stroke.
+vec3 roadEarth(vec2 w,vec3 earth,float centre){
+  vec3 e=mix(earth*.92,earth*1.07+${rgb(p.dust)}*.05,smoothstep(.55,.98,centre));
+  float patches=vnoise(w*.75+23.0);
+  e=mix(e*.90,e,smoothstep(.25,.55,patches));
+  e=mix(e,e*1.06+${rgb(p.dust)}*.04,smoothstep(.62,.85,patches));
+  float big=gravel(w,2.6,.74,.11),small=gravel(w*1.0+17.0,6.0,.62,.13);
+  e=mix(e,mix(${rgb(p.stoneShadow)},${rgb(p.stoneLight)},.55),big*.75);
+  e=mix(e,e*.78,small*.55);
+  float grit=hash12(floor(w*13.0));
+  e*=1.0-.08*step(.88,grit)+.06*step(grit,.07);
+  return e;
+}
 vec3 paintedPaving(vec2 w,vec3 moss,float weather){
   // Unequal staggered courses, rounded worn corners, quieter mortar and chipped edges.
   vec2 warp=vec2(vnoise(w*1.9+11.0),vnoise(w*1.9+47.0))-.5;
@@ -95,8 +117,20 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   // Irregular open soil islands are part of the painted terrain, not separate overlay quads.
   float soil=meadow.y*.30+smoothstep(.48,.90,splat.a)*.40;
   vec3 col=mix(grass,earth,clamp(soil,0.0,.68));
-  float roadEdge=splat.r+(mid-.5)*.17+(fine-.5)*.04;
-  col=mix(col,earth,smoothstep(.18,.83,roadEdge));
+  // bare-soil patches get the same ragged, stubble-broken edge and dirt texture as the roads
+  float bare=splat.a+(vnoise(w*.5+91.0)-.5)*.42+(fine-.5)*.12-max(brush.g,brush.b)*.22;
+  col=mix(col,roadEarth(w,earth,splat.a)*.97,smoothstep(.55,.68,bare));
+  // a ragged, natural road edge: noise at three scales wobbles the border and the width, and
+  // grass stubble from the brush atlas pokes over it; the transition itself is short, like a
+  // trodden path cut into a lawn rather than one soft brush stroke
+  float wob=(vnoise(w*.42+71.0)-.5)*${f(art.ground.roadEdgeWobble)}+(mid-.5)*.24+(vnoise(w*2.7+5.0)-.5)*.14
+    +(vnoise(w*.11+33.0)-.5)*${f(art.ground.roadWidthWobble)};
+  float tufts=max(brush.g,brush.b)*smoothstep(.12,.55,splat.r)*(1.0-smoothstep(.75,1.0,splat.r));
+  float roadEdge=splat.r+wob-tufts*${f(art.ground.roadEdgeTufts)};
+  float onRoad=smoothstep(.40,.54,roadEdge);
+  col=mix(col,roadEarth(w,earth,splat.r),onRoad);
+  // darker soil just inside the border, under the grass overhang
+  col*=1.0-.12*onRoad*(1.0-smoothstep(.54,.78,roadEdge));
   if(splat.b>.05){
     float damp=1.0-smoothstep(water+.12,water+1.15,y);
     vec3 bank=paintedEarth(w,damp*.78);

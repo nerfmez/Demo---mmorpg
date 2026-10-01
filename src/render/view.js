@@ -320,10 +320,13 @@ export class View {
     const g = this.game;
     const v = this.vfx;
     switch (e.type) {
-      case 'castStart':
+      case 'castStart': {
+        const skill = g.skills.find((s) => s && s.id === e.skill);
         this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc' || e.kind === 'melee_nova') v.beginSwing(e, g.skills.find((s) => s && s.id === e.skill)?.element);
+        v.skillCast(e, skill?.element);
+        if (e.kind === 'melee_arc' || e.kind === 'melee_nova') v.beginSwing(e, skill?.element);
         break;
+      }
       case 'slash':
         v.slash(e, g.derived.weaponType);
         if (e.finisher) {

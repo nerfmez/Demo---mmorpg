@@ -48,6 +48,9 @@ jobs:
       - name: Distinct coastal attack patterns and contact poses
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/coastal-attacks.mjs
+      - name: Skill Lab smoke (lab.html casts and hits)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/lab.mjs
       - name: Game UI workflows (desktop/tablet/phone)
         if: steps.scope.outputs.ui == 'true'
         run: npm run test:ux

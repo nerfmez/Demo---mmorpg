@@ -1,0 +1,84 @@
+/* Skill Lab: a bare page for trying skill effects on iPad. Big touch targets, nothing else loads. */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1d2a44;
+  font: 15px/1.3 -apple-system, 'Segoe UI', sans-serif;
+  color: #f2f4f8;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#lab {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#info {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(16, 22, 36, 0.72);
+  font-size: 13px;
+  pointer-events: none;
+}
+#panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 10px max(10px, env(safe-area-inset-bottom));
+  background: rgba(16, 22, 36, 0.82);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.row > span {
+  min-width: 64px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid #3a4a6e;
+  border-radius: 10px;
+  background: #26345a;
+  color: inherit;
+  font: inherit;
+}
+button.on {
+  background: #f0b440;
+  border-color: #f0b440;
+  color: #1d2a44;
+  font-weight: 600;
+}
+button.go {
+  min-width: 140px;
+  background: #e2582a;
+  border-color: #e2582a;
+  font-weight: 700;
+  font-size: 17px;
+}
+button:disabled {
+  opacity: 0.35;
+}

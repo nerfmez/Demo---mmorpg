@@ -4,9 +4,20 @@ Jev เป็นตัวคัดบริบทสำหรับเริ่�
 
 ## ใช้จากแชทตามปกติ
 
-หลังเก็บ `TYPESAFE_API_KEY` เป็น repository Secret แล้ว ผู้ใช้สั่งงานกับ ChatGPT หรือ Claude ตามปกติ เมื่อมีปัญหาค้นหา source ที่ Jev ช่วยได้ Agent เป็นผู้ส่งคำขอและอ่านผลกลับเอง ไม่ต้องให้ผู้ใช้เปิด Actions กด Run workflow หรือคัดลอกรายงาน คีย์อยู่ใน GitHub ตลอด
+ผู้ใช้สั่งงานกับ ChatGPT หรือ Claude ตามปกติ เมื่อมีปัญหาค้นหา source ที่ Jev ช่วยได้ Agent เป็นผู้เรียก Jev และอ่านผลกลับเอง ไม่ต้องให้ผู้ใช้เปิด Actions กด Run workflow หรือคัดลอกรายงาน ช่องทางตรงของ ChatGPT ใช้ Jev Connect ที่ติดตั้งใน ChatGPT, ช่องทางตรงของ Claude ใช้ session proxy และ GitHub Actions เป็น fallback ที่ใช้ repository Secret
 
-`AGENTS.md` กำหนดขั้นตอนร่วมกัน และ `CLAUDE.md` นำเข้าไฟล์นี้ ฝั่ง client ต้องมีเครื่องมือ GitHub ที่เขียน branch/file และอ่าน Actions ได้ หรือใช้ Git credentials ปกติ การมีเอกสารอย่างเดียวไม่ได้เพิ่มสิทธิ์ให้ client ที่ไม่มีเครื่องมือดังกล่าว
+`AGENTS.md` กำหนดขั้นตอนร่วมกัน และ `CLAUDE.md` นำเข้าไฟล์นี้ การมีเอกสารอย่างเดียวไม่ได้เพิ่มสิทธิ์ให้ client: agent ต้องมี Jev Connect, Claude session proxy หรือเครื่องมือ GitHub/Git credentials ที่รองรับช่องทาง fallback จริง
+
+## ช่องทางตรงสำหรับ ChatGPT (@Jev Connect)
+
+เมื่อกฎใน `AGENTS.md` ระบุว่า ranked context มีประโยชน์ ChatGPT ที่ติดตั้ง Jev Connect ให้ใช้ช่องทางตรงก่อน ไม่ต้องสร้าง `jev/request/*` branch และไม่ต้องรอ Actions
+
+- `jev_rank_repository_context(task)` อ่าน `main` ล่าสุดของ `nerfmez/Demo---mmorpg` ที่ commit จริง คัด candidate จากไฟล์ text ที่อนุญาตสูงสุด 12 ช่วง แล้วให้ Jev จัดอันดับและคืน top 6 พร้อม `AGENTS.md`, source SHA และข้อจำกัด การเรียกหนึ่งครั้งกันงบ $0.01 จากโควตาตัวเชื่อม $2/เดือน
+- `jev_evaluate(state, questions)` ใช้ประเมินข้อความ/JSON ที่ ChatGPT ส่งให้ด้วย noul/choice/score เท่านั้น ไม่ได้อ่าน repository เอง และกันงบ $0.01 ต่อครั้ง
+- `jev_status()` ใช้ดู readiness, รุ่นโมเดล และวงเงินสำรองของตัวเชื่อม ไม่มีการเรียก TypeSafe และไม่เสียค่า API
+- ตรวจ source SHA ที่คืนมาก่อนใช้ผลเสมอ ช่องทาง rank ตรงนี้อ่าน latest `main` เท่านั้น หากต้องตรวจ commit/branch อื่นที่ commit แล้วให้ใช้ GitHub fallback ด้านล่าง หรือค้น/อ่าน diff ตรงตามงาน
+- ผลยังเป็น shortlist ไม่ใช่ dependency graph ต้องเปิดไฟล์เต็ม ไล่ callers/consumers/tests และตรวจภาพจริงตามกฎเดิม
+- ห้ามส่ง credentials, private data หรือ raw logs ทั้งก้อนผ่าน Jev Connect
 
 ## ช่องทางตรงสำหรับ Claude (Claude Code on the web)
 
@@ -33,7 +44,7 @@ exit $status
 - การรันตรงไม่ผ่านตัวนับงบ GitHub และไม่มี artifact ให้บันทึก status, tokens/cost, ไฟล์ที่เลือก และ source SHA ใน PR/handoff ยอดจริงดูจากหน้าบิล TypeSafe
 - ทดสอบแล้ววันที่ 1 ตุลาคม 2026 บน `b6f3478`: ผลตรงกับรอบ Actions [36839356423](https://github.com/nerfmez/Demo---mmorpg/actions/runs/36839356423) (7,086 input tokens, ไฟล์และช่วงบรรทัดเดียวกัน)
 
-## ช่องทางเรียกผ่าน GitHub (ChatGPT หรือเมื่อไม่มีช่องทางตรง)
+## GitHub Actions fallback (เมื่อช่องทางตรงใช้ไม่ได้หรือ source ไม่ใช่ latest main)
 
 1. อ่าน SHA ของ source ที่จะทำงานให้เป็น commit 40 ตัวอักษร และ SHA ของ `main` ล่าสุดสำหรับสร้าง branch คำขอ
 2. สร้าง branch ใหม่ `jev/request/<id>` จาก main โดย id เป็นตัวอักษรเล็ก ตัวเลข หรือขีด ความยาวไม่เกิน 80 ตัว และไม่ซ้ำ
@@ -133,13 +144,14 @@ agent ถัดไปเริ่มจาก [AGENTS.md](../AGENTS.md) แล�
 
 ## งบทดลอง $10/เดือน
 
-- workflow กันงบไว้ $0.01 ต่อ run attempt รวมรอบที่ล้มเหลว รอบที่ใช้ cache และการ rerun อย่างระมัดระวัง และหยุดก่อนยอดกันงบถึง $8 ต่อเดือน UTC เหลือ $2 สำรอง
+- แบ่งวงเงินสำรองเป็น **Jev Connect direct $2/เดือน** และ **GitHub Actions workflow $8/เดือน** เพื่อไม่ให้ช่องทางหนึ่งใช้วงเงินทดลองทั้งหมด
+- Jev Connect กัน $0.01 ต่อ `jev_rank_repository_context` หรือ `jev_evaluate` attempt รวม cache/failure ตาม ledger ของตัวเชื่อม; `jev_status` ไม่เสียค่าเรียก ตรวจยอด direct จาก status และยอดจริงจากหน้าบิล TypeSafe
+- GitHub workflow กันงบไว้ $0.01 ต่อ run attempt รวมรอบที่ล้มเหลว รอบที่ใช้ cache และการ rerunอย่างระมัดระวัง และหยุดก่อนยอดกันงบถึง $8 ต่อเดือน UTC
 - ใช้ metadata ของ Actions ชื่อ `Jev Context` ทุกรอบ รวม PR, branch และรอบเก่าที่ rerun เดือนนี้ ถ้าอ่านประวัติไม่ครบหรือจำนวนประวัติรวมเกิน 2,000 รอบ จะหยุดก่อนเรียก API
-- concurrency ให้รันทีละรอบ ไม่มีการ retry API อัตโนมัติ อนุญาต request เดียวไม่เกิน 24,000 UTF-8 bytes ต่อรอบ
+- concurrency ของ workflow ให้รันทีละรอบ ไม่มีการ retry API อัตโนมัติ อนุญาต request เดียวไม่เกิน 24,000 UTF-8 bytes ต่อรอบ; direct connector ก็ไม่มี automatic retry
 - ค่า API ประเมินจาก `usage.input_tokens × $0.042 / 1,000,000` ตามราคาที่ตรวจวันที่ 30 กันยายน 2026 output ฟรี ตรวจราคาใหม่ก่อนเปลี่ยนโมเดล
-- ยอดกันงบไม่ใช่ยอดเรียกเก็บจริงของผู้ให้บริการ ราคา/การ tokenize/ค่าธรรมเนียมขึ้นกับผู้ให้บริการ หน้าบิล TypeSafe เป็นแหล่งอ้างอิงสุดท้าย
-- การเรียกนอก workflow นี้และการเปลี่ยนชื่อ workflow ไม่อยู่ในตัวนับนี้ อย่าเรียกคีย์เดียวกันจากระบบอื่นโดยไม่ติดตามงบรวม
-- ไม่มีค่า API ของ ChatGPT/Claude เพิ่มจาก workflow นี้ ทั้งสอง agent ใช้ช่องทางเดิมของผู้ใช้ GitHub runner/cache/artifact billing เป็นคนละส่วน
+- ยอดกันงบของทั้งสองช่องทางไม่ใช่ยอดเรียกเก็บจริงของผู้ให้บริการ ราคา/การ tokenize/ค่าธรรมเนียมขึ้นกับผู้ให้บริการ หน้าบิล TypeSafe เป็นแหล่งอ้างอิงสุดท้าย
+- ไม่มีค่า API ของ ChatGPT/Claude เพิ่มจาก workflow/connector นี้นอกเหนือจาก TypeSafe ที่ติดตามข้างต้น; GitHub runner/cache/artifact billing เป็นคนละส่วน
 
 ## สถานะและข้อจำกัด
 

@@ -3,12 +3,17 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main, claude/shared-conversation-s1yquy]
+  # an effects branch built the Skill Lab: publish the game from main and that lab under /lab/
+  workflow_run:
+    workflows: ['Skill Lab preview']
+    types: [completed]
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: pages
@@ -16,6 +21,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +32,21 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      # <site>/lab/lab.html: this build's Skill Lab, or the one an effects branch just built
+      - name: Skill Lab from this build
+        if: github.event_name != 'workflow_run'
+        run: |
+          mkdir lab-out && cp -r dist/. lab-out/
+          printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > lab-out/lab-source.json
+      - name: Skill Lab from the effects branch
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: lab-dist
+          path: lab-out
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - run: mv lab-out dist/lab
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -44,15 +65,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        if: github.event_name != 'workflow_run'
       - run: npx playwright install --with-deps webkit
+        if: github.event_name != 'workflow_run'
       - name: Dreamloop against the published game (Safari engine)
+        if: github.event_name != 'workflow_run'
         env:
           DREAMLOOP_URL: ${{ steps.deployment.outputs.page_url }}
           DREAMLOOP_PASS: live-webkit
           BROWSER: webkit
         run: npm run test:dreamloop
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && github.event_name != 'workflow_run'
         with:
           name: live-dreamloop
           path: tests/browser/out/dreamloop-live-webkit/

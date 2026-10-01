@@ -51,29 +51,5 @@ export function meadowPlants(world, extraPatches=[]) {
       if(clear(x,z))flowers.push({x,z,y:world.groundY(x,z)-.01,s:patch.s*rng.range(.83,1.2),ry:a,color:art.ground.flowerColors[patch.color]});
     }
   }
-  // Small, intermittent verge clumps follow the authored curves, outside the clear lane.
-  // An independent stream preserves all existing meadow and flower placement.
-  const vergeRng=createRng(11741),vergeSpacing=art.ground.vergePatchSpacing;
-  for(const road of world.roads){
-    let carry=vergeRng.range(0,vergeSpacing);
-    for(let i=1;i<road.points.length;i++){
-      const [ax,az]=road.points[i-1],[bx,bz]=road.points[i],dx=bx-ax,dz=bz-az,length=Math.hypot(dx,dz);
-      if(length<.001)continue;
-      const tx=dx/length,tz=dz/length;let distance=carry;
-      for(;distance<length;distance+=vergeSpacing){
-        for(const side of [-1,1]){
-          if(vergeRng.next()<.28)continue;
-          const margin=road.width/2+vergeRng.range(.25,.95),along=distance+vergeRng.range(-.25,.25);
-          for(let k=0;k<art.ground.vergeGrassPerPatch;k++){
-            const a=along+vergeRng.range(-.42,.42),r=margin+vergeRng.range(-.18,.18);
-            const x=ax+tx*a-tz*r*side,z=az+tz*a+tx*r*side;
-            if(!clear(x,z))continue;
-            grass.push({x,z,y:world.groundY(x,z)-.018,ry:vergeRng.range(0,Math.PI*2),s:vergeRng.range(.52,.74)});
-          }
-        }
-      }
-      carry=distance-length;
-    }
-  }
   return {grass,flowers};
 }

@@ -75,6 +75,6 @@ export function grassMaterial(world) {
     // negates the normal and makes half the clumps look almost black.
     s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');
   };
-  m.customProgramCacheKey=()=> 'grass-shared-ground-v5';
+  m.customProgramCacheKey=()=> 'grass-shared-ground-v3';
   return m;
 }

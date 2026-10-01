@@ -1,11 +1,11 @@
 // Generic Lab-only overrides. Walk authored data rather than maintaining skill-specific forms.
 export const STORAGE_KEY = 'frontier.skill-lab.tuning.v1';
 const clone = (v) => JSON.parse(JSON.stringify(v));
-const REPLAY_KEYS = ['castTime', 'speed', 'range', 'projectileRadius', 'spread'];
+const REPLAY_KEYS = ['castTime', 'speed', 'range', 'projectileRadius', 'spread', 'arc', 'radius', 'delay'];
 const HEX = /^#[0-9a-f]{6}$/i;
-const COUNTS = /^(embers|wisps|particles|count|trailRate)$/;
-const FRACTIONS = /^(emberShrink|headHeat|headTurbulence|opacity|glowOpacity)$/;
-const POSITIVE = /size|radius|radii|width|length|life|duration|speed|castTime|range/i;
+const COUNTS = /^(embers|wisps|particles|count|trailRate|sparks|rocks|chipCount|dust)$/;
+const FRACTIONS = /^(emberShrink|headHeat|headTurbulence|opacity|glowOpacity|trailOpacity|trailCoreWidth|trailStart|zoneOpacity)$/;
+const POSITIVE = /size|radius|radii|width|length|life|duration|speed|castTime|range|rise|delay/i;
 export const pathValue = (obj, path) => path.reduce((v, k) => v?.[k], obj);
 function assign(obj, path, value) {
   const parent = pathValue(obj, path.slice(0, -1));
@@ -17,9 +17,9 @@ export function fieldsFor(obj, prefix = []) {
     if (typeof value === 'number' && Number.isFinite(value)) {
       const key = String(path.findLast((k) => typeof k === 'string') || '');
       const integer = COUNTS.test(key);
-      const step = integer ? 1 : /speed|range/i.test(key) ? 0.1 : 0.01;
+      const step = integer || key === 'arc' ? 1 : /speed|range/i.test(key) ? 0.1 : 0.01;
       const min = integer || !POSITIVE.test(key) ? 0 : step;
-      const max = integer ? 384 : FRACTIONS.test(key) ? 1 : Math.max(value * 4, /speed/i.test(key) ? 60 : value < 1 ? 2 : 10);
+      const max = integer ? 384 : key === 'arc' ? 360 : FRACTIONS.test(key) ? 1 : Math.max(value * 4, /speed/i.test(key) ? 60 : value < 1 ? 2 : 10);
       fields.push({ path, type: 'number', min, max, step });
     } else if (typeof value === 'string' && HEX.test(value)) {
       fields.push({ path, type: 'color' });
@@ -78,7 +78,7 @@ export class LabTuning {
     const replay = {};
     for (const key of REPLAY_KEYS) if (typeof def[key] === 'number') replay[key] = def[key];
     const authored = this.fx.skills?.[id];
-    const look = clone(authored || this.fx.projectileDefaults);
+    const look = clone(authored || (['melee_arc', 'melee_nova'].includes(def.kind) ? this.fx.meleeDefaults : this.fx.projectileDefaults));
     const base = { fx: clone(look), replay: clone(replay) };
     const entry = { fx: look, replay, def: clone(def), base, signature: JSON.stringify(base) };
     entry.fields = fieldsFor({ fx: base.fx, replay: base.replay });

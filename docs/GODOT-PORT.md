@@ -343,6 +343,17 @@ The volumetric swell pass was rejected by the owner: preserve anime graphic cres
 
 `node tests/browser/azure-wave-lines.mjs` captures the pier and beach in the original gameplay camera/HUD. Optional `BEFORE_ROOT=/path/to/built/revision` checks identical player/camera transforms. `BASELINE_SHA`/`REVIEW_PARENT` record comparison source identities; the report also records the live port material style/settings to guard against stale captures. `WAVE_SEQUENCE=1` captures one 7.5 s pier cycle at six samples per simulated second, plus matched beach stills to review the restored treatment. These samples do not measure PC/iPad rendering FPS.
 
+### Physical cut and contact presentation
+
+Core `hit` events optionally carry `skill` and `attackKind`, and `slash`/`whirl` carry `skill`; these are cosmetic profile selectors, with no damage/range/timing/save change. Use `combat-fx.meleeDefaults` or an authored `renderer: melee` profile. Prepare timing controls weapon-trail sampling, never gameplay contact time. At authored contact, render a thin tapered moving blade ribbon inside the real range/arc and a sparse directional contact fan. The second combo reverses the cut; the third increases visual width/tilt without altering gameplay reach. Whirl uses two opposite half-cuts, without an expanding blast ring. Sample actual posed weapon base/tip for the short trail, clear on cancellation, and bound/reuse contact particles. Keep brief contact shake/hit-stop in the view layer. Shared Lab controls generate from this profile and replay melee kinds without additional skill menus.
+
+### Other physical skill presentation
+
+`combat-fx.skills.hunter_shot` (`renderer: arrow`) defines bow draw, the wood/metal projectile, a thin tapered speed streak and one directional contact. Player projectile impact events now carry optional `vx/vz`; no speed/range/collision change. Suppress the duplicate `hit` contact for this skill. Converted arrow streak/contact colours follow the existing element; multishot, pierce and chain continue through existing projectile rules.
+
+Stone Burst (`renderer: stone`) retains `castTime + delay` and the exact area radius. Reveal terrain-conformed radial cracks during the delay, pop faceted stones quickly at the burst, then return them below ground while bounded instanced chips follow gravity and shrink. Shared rock templates remain alive; conformed crack geometry belongs to its marker and must be freed. These meshes and debris never extend damage duration.
+
+Spirit Wolf (`renderer: spirit`) has a small inward summoning mark and two short converging bite cuts. Core emits optional `allyStrike` only for a successful bite after the existing .25 s wind-up; `hit` carries `skill: spirit_wolf`, `attackKind: summon` and the actual ally source position. Keep these selectors cosmetic. The view snaps its existing jaw/body pose briefly during recovery. Lab reuses the same rig and a presentation adapter, without persistent combat AI. No new skills, save schema, summon lifetime, movement, damage or contact rules.
 
 ## Rendering performance (static batching and dynamic resolution)
 

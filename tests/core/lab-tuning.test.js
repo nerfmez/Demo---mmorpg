@@ -5,6 +5,15 @@ import { LabTuning, fieldsFor, STORAGE_KEY } from '../../src/lab/tuning.js';
 const skills = JSON.parse(readFileSync(new URL('../../data/skills.json', import.meta.url)));
 const fx = JSON.parse(readFileSync(new URL('../../data/combat-fx.json', import.meta.url)));
 const memory = () => { const values = new Map(); return { getItem: (k) => values.get(k), setItem: (k, v) => values.set(k, v) }; };
+test('melee kinds receive shared phase controls and independent overrides', () => {
+  const store=new LabTuning(skills,fx);
+  assert.equal(store.get('slash').fx.renderer,'melee');
+  assert(store.get('slash').fields.some(f=>f.path.join('.')==='fx.swing.width'));
+  store.set('slash',['fx','swing','width'],.36);
+  assert.equal(store.get('whirl_blade').fx.swing.width,fx.skills.whirl_blade.swing.width);
+  store.set('slash',['replay','arc'],1000);assert.equal(store.get('slash').def.arc,360);
+  assert.equal(fx.meleeDefaults.swing.width,.22);
+});
 test('Lab edits and resets stay isolated by skill and never mutate authored data', () => {
   const store = new LabTuning(skills, fx);
   store.set('firebolt', ['fx', 'projectile', 'flowSpeed'], 27);
@@ -46,4 +55,19 @@ test('reload, export/import and changed authored baselines preserve safe per-ski
   const newer = structuredClone(fx); newer.skills.firebolt.impact.embers = 12;
   assert.equal(new LabTuning(skills, newer, storage).get('firebolt').fx.impact.embers, 12);
   storage.setItem(STORAGE_KEY, '{broken'); assert.equal(new LabTuning(skills, fx, storage).get('firebolt').fx.impact.embers, 10);
+});
+
+test('physical skill profiles generate their own shared phases and counts safely', () => {
+  const store = new LabTuning(skills, fx);
+  for (const [id, phase, field] of [['hunter_shot','projectile','trailWidth'],['stone_burst','burst','rocks'],['spirit_wolf','attack','width']]) {
+    const e = store.get(id);
+    assert(e.fx._labPhases[phase]); assert(e.fields.some(f => f.path.join('.') === 'fx.' + phase + '.' + field));
+  }
+  store.set('stone_burst', ['fx','burst','rocks'], 3.6);
+  assert.equal(store.get('stone_burst').fx.burst.rocks, 4);
+  store.reset('stone_burst'); assert.equal(store.get('stone_burst').fx.burst.rocks, 7);
+  assert.equal(store.get('slash').fx.swing.width, .11);
+  const future = structuredClone(fx); delete future.skills.slash; delete future.skills.whirl_blade;
+  const fallback = new LabTuning(skills, future); fallback.set('slash', ['fx','swing','width'], .4);
+  assert.equal(fallback.get('whirl_blade').fx.swing.width, future.meleeDefaults.swing.width);
 });

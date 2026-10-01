@@ -4,72 +4,72 @@
     "sword": {
       "tip": 0.95,
       "base": 0.8,
-      "life": 0.16,
-      "minSpeed": 15,
-      "fullSpeed": 60,
+      "life": 0.1,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.1,
       "dust": 0
     },
     "dagger": {
       "tip": 0.5,
       "base": 0.38,
-      "life": 0.12,
-      "minSpeed": 8,
-      "fullSpeed": 30,
+      "life": 0.075,
+      "minSpeed": 9,
+      "fullSpeed": 40,
       "zone": 0.1,
       "dust": 0
     },
     "axe": {
       "tip": 0.85,
       "base": 0.55,
-      "life": 0.2,
-      "minSpeed": 20,
-      "fullSpeed": 70,
+      "life": 0.12,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.13,
       "dust": 5
     },
     "greatblade": {
       "tip": 1.2,
       "base": 0.85,
-      "life": 0.24,
-      "minSpeed": 20,
-      "fullSpeed": 80,
+      "life": 0.14,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.13,
       "dust": 8
     },
     "staff": {
       "tip": 1.0,
       "base": 0.8,
-      "life": 0.14,
-      "minSpeed": 15,
-      "fullSpeed": 60,
+      "life": 0.09,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.1,
       "dust": 0
     },
     "wand": {
       "tip": 0.35,
       "base": 0.22,
-      "life": 0.12,
-      "minSpeed": 10,
-      "fullSpeed": 40,
+      "life": 0.09,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.1,
       "dust": 0
     },
     "bow": {
       "tip": 0.6,
       "base": 0.45,
-      "life": 0.12,
-      "minSpeed": 10,
-      "fullSpeed": 40,
+      "life": 0.09,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.1,
       "dust": 0
     },
     "none": {
       "tip": 0.25,
       "base": 0.1,
-      "life": 0.1,
-      "minSpeed": 10,
-      "fullSpeed": 40,
+      "life": 0.09,
+      "minSpeed": 7,
+      "fullSpeed": 32,
       "zone": 0.1,
       "dust": 0
     }
@@ -189,6 +189,245 @@
         "emberWidth": 0.22,
         "emberShrink": 0.3
       }
+    },
+    "slash": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1f\u0e31\u0e19",
+        "swing": "\u0e1f\u0e31\u0e19",
+        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0,
+        "trailEnd": 1.38
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.11,
+        "height": 0.95,
+        "tilt": 0.91,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 1.09,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.01,
+        "sparkWidth": 0.01,
+        "sparkLife": 0.27,
+        "speed": 5.5,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 6.68,
+        "heavyScale": 1.22,
+        "shake": 0.26,
+        "hitStop": 0.025
+      }
+    },
+    "whirl_blade": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1f\u0e31\u0e19",
+        "swing": "\u0e1f\u0e31\u0e19",
+        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+      },
+      "colors": {
+        "rim": "#ff4015",
+        "body": "#fecb3e",
+        "core": "#fee4a8",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0,
+        "trailEnd": 0
+      },
+      "swing": {
+        "life": 0.28,
+        "width": 0.3,
+        "height": 0.95,
+        "tilt": 0.14,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0,
+        "arc": 189,
+        "turn": 2.17
+      },
+      "impact": {
+        "flashSize": 1.87,
+        "flashWidth": 0.13,
+        "flashLife": 0.09,
+        "sparks": 0,
+        "sparkLength": 0.13,
+        "sparkWidth": 0.025,
+        "sparkLife": 0.27,
+        "speed": 10.8,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.045,
+        "hitStop": 0.025
+      }
+    },
+    "hunter_shot": {
+      "renderer": "arrow",
+      "projectile": {
+        "scale": 1,
+        "trailLength": 1.35,
+        "trailWidth": 0.075,
+        "trailOpacity": 0.7,
+        "flowSpeed": 32
+      },
+      "impact": {
+        "flashSize": 0.36,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 5,
+        "sparkLength": 0.13,
+        "sparkWidth": 0.028,
+        "sparkLife": 0.22,
+        "speed": 4.7,
+        "spread": 2.1,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.025,
+        "hitStop": 0.018
+      },
+      "_labPhases": {
+        "cast": "\u0e07\u0e49\u0e32\u0e07\u0e18\u0e19\u0e39",
+        "projectile": "\u0e25\u0e39\u0e01\u0e18\u0e19\u0e39",
+        "impact": "\u0e1b\u0e31\u0e01\u0e01\u0e23\u0e30\u0e17\u0e1a"
+      },
+      "colors": {
+        "shaft": "#8a5c3a",
+        "tip": "#dde6ec",
+        "fletch": "#f3eedc",
+        "trail": "#86adc1",
+        "core": "#fff7df",
+        "sparks": "#e9c89a"
+      },
+      "cast": {
+        "length": 0.5,
+        "width": 0.025,
+        "opacity": 0.55
+      }
+    },
+    "stone_burst": {
+      "renderer": "stone",
+      "_labPhases": {
+        "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1b\u0e30\u0e17\u0e38",
+        "burst": "\u0e2b\u0e34\u0e19\u0e1b\u0e30\u0e17\u0e38",
+        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+      },
+      "colors": {
+        "rock": "#aa9070",
+        "shadow": "#514b42",
+        "debris": "#c9b99e",
+        "core": "#fff4d5",
+        "sparks": "#d3c4aa"
+      },
+      "cast": {
+        "opacity": 0.68,
+        "crackWidth": 0.024,
+        "boundaryOpacity": 0.3
+      },
+      "burst": {
+        "life": 1.05,
+        "rocks": 7,
+        "height": 1.45,
+        "rockWidth": 0.28,
+        "spread": 0.74,
+        "rise": 0.12,
+        "hold": 0.52,
+        "chipCount": 12,
+        "chipSize": 0.09,
+        "chipSpeed": 3.4,
+        "chipLife": 0.55,
+        "dust": 5,
+        "dustSize": 0.32,
+        "dustLife": 0.28
+      },
+      "impact": {
+        "flashSize": 0.42,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 6,
+        "sparkLength": 0.09,
+        "sparkWidth": 0.025,
+        "sparkLife": 0.22,
+        "speed": 3.5,
+        "spread": 5.8,
+        "up": 1.4,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.07,
+        "hitStop": 0.018
+      }
+    },
+    "spirit_wolf": {
+      "renderer": "spirit",
+      "_labPhases": {
+        "cast": "\u0e2d\u0e31\u0e0d\u0e40\u0e0a\u0e34\u0e0d",
+        "attack": "\u0e01\u0e31\u0e14",
+        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+      },
+      "colors": {
+        "rim": "#5795c5",
+        "body": "#bcdcf0",
+        "core": "#f3f9ff",
+        "sparks": "#8fc4e8"
+      },
+      "cast": {
+        "radius": 0.75,
+        "width": 0.035,
+        "life": 0.4,
+        "opacity": 0.65,
+        "particles": 8,
+        "particleSize": 0.09,
+        "particleLife": 0.38
+      },
+      "attack": {
+        "radius": 0.45,
+        "arc": 70,
+        "life": 0.15,
+        "width": 0.065,
+        "height": 0.85,
+        "tilt": 0.1,
+        "opacity": 0.95,
+        "finisherWidth": 1
+      },
+      "impact": {
+        "flashSize": 0.32,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 5,
+        "sparkLength": 0.12,
+        "sparkWidth": 0.025,
+        "sparkLife": 0.22,
+        "speed": 4.7,
+        "spread": 2.1,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.018
+      }
     }
   },
   "projectileDefaults": {
@@ -211,6 +450,52 @@
       "particleSpeed": 4,
       "particleLife": 0.35,
       "up": 0.8
+    }
+  },
+  "meleeDefaults": {
+    "renderer": "melee",
+    "_labPhases": {
+      "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1f\u0e31\u0e19",
+      "swing": "\u0e1f\u0e31\u0e19",
+      "impact": "\u0e1b\u0e30\u0e17\u0e30"
+    },
+    "colors": {
+      "rim": "#547b96",
+      "body": "#dcecf5",
+      "core": "#fff8df",
+      "sparks": "#ffc879"
+    },
+    "cast": {
+      "trailStart": 0.42,
+      "trailEnd": 0.11
+    },
+    "swing": {
+      "life": 0.21,
+      "width": 0.22,
+      "height": 0.95,
+      "tilt": 0.22,
+      "opacity": 0.92,
+      "finisherWidth": 1.35,
+      "trailLife": 1,
+      "trailOpacity": 0.85,
+      "trailCoreWidth": 0.22,
+      "zoneOpacity": 0
+    },
+    "impact": {
+      "flashSize": 0.72,
+      "flashWidth": 0.1,
+      "flashLife": 0.09,
+      "sparks": 9,
+      "sparkLength": 0.2,
+      "sparkWidth": 0.045,
+      "sparkLife": 0.27,
+      "speed": 3.9,
+      "spread": 3.5,
+      "up": 0.75,
+      "critScale": 1.4,
+      "heavyScale": 1.22,
+      "shake": 0.018,
+      "hitStop": 0.025
     }
   }
 }

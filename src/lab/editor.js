@@ -1,8 +1,8 @@
 import { pathValue } from './tuning.js';
 const LABELS = {
-  cast: 'ชาร์จ', projectile: 'พุ่งและหาง', impact: 'ปะทะ', colors: 'สี', replay: 'จังหวะทดสอบ',
-  castTime: 'เวลาชาร์จ', speed: 'ความเร็วพุ่ง', range: 'ระยะทาง', projectileRadius: 'ขนาดสำหรับทดสอบการชน', spread: 'มุมกระจาย',
-  rim: 'ขอบไฟ', body: 'เนื้อไฟ', hot: 'ชั้นร้อน', core: 'แกนร้อน', size: 'ขนาด', length: 'ความยาว', width: 'ความกว้าง',
+  cast: 'เตรียม / ชาร์จ', swing: 'ฟันและรอยอาวุธ', projectile: 'พุ่งและหาง', impact: 'ปะทะ', colors: 'สี', replay: 'จังหวะทดสอบ',
+  castTime: 'เวลาเตรียมโจมตี', speed: 'ความเร็วพุ่ง', range: 'ระยะทาง', projectileRadius: 'ขนาดสำหรับทดสอบการชน', spread: 'มุมกระจาย',
+  rim: 'สีขอบ', body: 'สีเนื้อเอฟเฟกต์', hot: 'ชั้นร้อน', core: 'สีแกนสว่าง', size: 'ขนาด', length: 'ความยาว', width: 'ความกว้าง',
   glowRadius: 'รัศมีแสง', glowStrength: 'ความสว่างแสง', trailRate: 'จำนวนริ้วต่อวินาที', trailLife: 'เวลาริ้วค้าง', trailSize: 'ขนาดริ้ว',
   headRadii: 'ขนาดหัว', tailHalfWidth: 'ความหนาหาง', tailSway: 'การแกว่งหาง', flowSpeed: 'ความเร็วการไหล', trailOffset: 'ตำแหน่งริ้ว',
   trailDrift: 'ความเร็วริ้วแยก', trailSpread: 'การกระจายริ้ว', headHeat: 'ความร้อนแกน', headTurbulence: 'การเคลื่อนไหวแกน',
@@ -12,10 +12,25 @@ const LABELS = {
   scale: 'ขนาดรวม', glowScale: 'ขนาดแสง', glowOpacity: 'ความเข้มแสง', trailScale: 'ขนาดหาง', trailSpeed: 'ความเร็วหาง',
   life: 'เวลาค้าง', opacity: 'ความเข้ม', growth: 'การขยาย', particles: 'จำนวนสะเก็ด', particleSize: 'ขนาดสะเก็ด',
   particleSpeed: 'ความเร็วสะเก็ด', particleLife: 'เวลาสะเก็ดค้าง', up: 'การกระเด็นขึ้น',
+  trailStart: 'เริ่มรอยอาวุธช่วงเตรียม', trailEnd: 'รอยอาวุธต่อหลังฟัน', tilt: 'ความเอียงรอยฟัน', height: 'ความสูงรอยฟัน',
+  finisherWidth: 'ความหนาคอมโบสาม', trailOpacity: 'ความเข้มรอยอาวุธ', trailCoreWidth: 'ความหนาขอบคม', zoneOpacity: 'ความเข้มพื้นที่ฟัน',
+  flashSize: 'ความยาวแสงปะทะ', flashWidth: 'ความหนาแสงปะทะ', sparks: 'จำนวนสะเก็ด', sparkLength: 'ความยาวสะเก็ด', sparkWidth: 'ความหนาสะเก็ด', sparkLife: 'เวลาสะเก็ดค้าง',
+  critScale: 'ขนาดเมื่อคริติคอล', heavyScale: 'ขนาดเมื่อฟันหนัก', arc: 'มุมพื้นที่ฟัน', radius: 'รัศมี',
+  burst: 'หินปะทุและเศษหิน', attack: 'รอยกัด', delay: 'เวลารอก่อนปะทุ', turn: 'ระยะหมุนรอยฟัน',
+  trailLength: 'ความยาวรอยพุ่ง', trailWidth: 'ความหนารอยพุ่ง',
+  shaft: 'ก้านธนู', tip: 'หัวธนู', fletch: 'ขนธนู', trail: 'รอยพุ่ง', shadow: 'รอยแตก', rock: 'หิน', debris: 'เศษหิน',
+  rocks: 'จำนวนหิน', rockWidth: 'ความกว้างหิน', rise: 'เวลาหินพุ่งขึ้น', hold: 'เวลาหินเริ่มยุบ',
+  chipCount: 'จำนวนเศษหิน', chipSize: 'ขนาดเศษหิน', chipSpeed: 'ความเร็วเศษหิน', chipLife: 'เวลาเศษหินค้าง',
+  dust: 'จำนวนฝุ่น', dustSize: 'ขนาดฝุ่น', dustLife: 'เวลาฝุ่นค้าง', crackWidth: 'ความหนารอยแตก', boundaryOpacity: 'ความเข้มขอบพื้นที่',
 };
 const label = (key) => LABELS[key] || String(key).replace(/([a-z])([A-Z])/g, '$1 $2');
 function fieldLabel(path) {
   const key = path.at(-1);
+  const group = path.at(-2);
+  if (group === 'burst' && key === 'height') return 'ความสูงหิน';
+  if (group === 'attack' && key === 'height') return 'ความสูงรอยกัด';
+  if (group === 'swing' && key === 'arc') return 'มุมรอยฟัน';
+  if (group === 'attack' && key === 'arc') return 'มุมรอยกัด';
   if (typeof key !== 'number') return label(key);
   const parent = path.at(-2);
   const suffix = parent === 'headRadii' ? ['ตามแนวพุ่ง', 'แนวขวาง'][key] : parent === 'trailOffset' ? ['ต้นช่วง', 'ปลายช่วง'][key] : String(key + 1);
@@ -43,7 +58,8 @@ export function mountTuningPanel(parent, ctx) {
   select.value = state.skill; select.addEventListener('change', () => ctx.onSkill(select.value)); header.append(select); card.append(header);
   card.append(el('p', 'tuning-note', 'ค่าปรับใช้ทดลองใน Lab จำแยกตามสกิล และส่งออกไปใช้ต่อได้'));
   const stages = el('div', 'row phase-buttons');
-  for (const [id, name] of [['full', 'ทั้งหมด'], ['cast', 'ชาร์จ'], ['projectile', 'พุ่ง'], ['impact', 'ปะทะ']]) {
+  const phases = entry.fx._labPhases || { cast: 'ชาร์จ', projectile: 'พุ่ง', impact: 'ปะทะ' };
+  for (const [id, name] of [['full', 'ทั้งหมด'], ...Object.entries(phases)]) {
     const b = action(stages, name, () => ctx.onPreview(id), state.reviewPhase === id ? 'on' : '');
     b.dataset.phase = id; b.disabled = id !== 'full' && !entry.fx[id];
   }
@@ -56,11 +72,11 @@ export function mountTuningPanel(parent, ctx) {
     if (!groups.has(group)) groups.set(group, []);
     groups.get(group).push(field);
   }
-  const ordered = ['projectile', 'impact', 'cast', 'colors', 'replay', ...groups.keys()];
+  const ordered = ['swing', 'projectile', 'burst', 'attack', 'impact', 'cast', 'colors', 'replay', ...groups.keys()];
   for (const group of [...new Set(ordered)]) {
     const fields = groups.get(group);
     if (!fields) continue;
-    const details = el('details', 'tuning-section'); details.open = state.tuningSections[group] ?? group === 'projectile';
+    const details = el('details', 'tuning-section'); details.open = state.tuningSections[group] ?? ['projectile', 'swing', 'burst', 'attack'].includes(group);
     details.addEventListener('toggle', () => (state.tuningSections[group] = details.open));
     details.append(el('summary', '', label(group)));
     const grid = el('div', 'tuning-fields'); details.append(grid);

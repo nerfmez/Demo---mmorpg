@@ -356,6 +356,9 @@ export class View {
       case 'chain':
         v.chain(e);
         break;
+      case 'allyStrike':
+        v.bite(e);
+        break;
       case 'summon':
         v.summon(e);
         break;
@@ -387,6 +390,11 @@ export class View {
           const k = (e.crit || e.heavy ? 0.42 : 0.2) * (mv.rig.boss ? 0.3 : 1);
           mv.kx = (mv.kx || 0) + (dx / d) * k;
           mv.kz = (mv.kz || 0) + (dz / d) * k;
+        }
+        if (!e.dot && v.config.skills[e.skill]?.impact?.flashSize !== undefined) {
+          const feel = v.contactLook(e.skill, e.element).impact;
+          this.hitStop = Math.max(this.hitStop || 0, feel.hitStop);
+          this.addShake(feel.shake);
         }
         if (!e.dot && !e.byAlly && (e.crit || e.heavy)) this.hitStop = Math.max(this.hitStop || 0, 0.06);
         if (e.crit) this.addShake(0.08);
@@ -604,7 +612,7 @@ export class View {
       av.y = damp(av.y, gy, 16, dt);
       r.root.position.set(a.x, av.y, a.z);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' ? 'act' : a.state, windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
+      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (0.4 + 0.6 * fade));
       if (Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
@@ -714,7 +722,7 @@ export class View {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
     this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
-    this.vfx.updateTrail(dt, r);
+    this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
@@ -964,4 +972,3 @@ export class View {
     return c.toDataURL();
   }
 }
-

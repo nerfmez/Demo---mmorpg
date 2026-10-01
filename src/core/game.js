@@ -335,7 +335,7 @@ export class Game {
         slot: i,
       };
       this.allies.push(ally);
-      this.emit({ type: 'summon', id: ally.id, x: ax, z: az });
+      this.emit({ type: 'summon', skill: s.id, id: ally.id, x: ax, z: az });
     }
   }
 
@@ -587,7 +587,7 @@ export class Game {
     // flinch: regular monsters stop for a moment (a started wind-up still goes off)
     if (!opts.dot && !m.boss) m.staggerT = Math.max(m.staggerT || 0, opts.stagger ?? this.data.progression.combat?.stagger ?? 0.14);
     this.stats.damageDealt += dmg;
-    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
+    this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
       if (opts.chill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
@@ -715,7 +715,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
   }
 
   /** The combo step (0, 1, 2 = finisher) a melee swing landing at time t would be. */
@@ -756,7 +756,7 @@ export class Game {
           p.barrier = Math.min(p.maxHp * 0.5, p.barrier + this.derived.meleeHitBarrier * hits);
           p.barrierT = Math.max(p.barrierT, 3);
         }
-        this.emit({ type: 'slash', x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++, step: p.comboStep || 0, finisher, hits });
+        this.emit({ type: 'slash', skill: s.id, x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++, step: p.comboStep || 0, finisher, hits });
         if (s.ground) {
           const d = dirFromAngle(aim.angle);
           this.spawnGround(s, p.x + d.x * s.range * 0.6, p.z + d.z * s.range * 0.6, mult);
@@ -769,7 +769,7 @@ export class Game {
           if (m.dead || dist(p.x, p.z, m.x, m.z) - m.r > s.radius) continue;
           this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit() }));
         }
-        this.emit({ type: 'whirl', x: p.x, z: p.z, radius: s.radius, angle: p.facing, element: s.element });
+        this.emit({ type: 'whirl', skill: s.id, x: p.x, z: p.z, radius: s.radius, angle: p.facing, element: s.element });
         if (s.ground) this.spawnGround(s, p.x, p.z, mult);
         if (repeat < s.repeats) this.later(s.repeatDelay + 0.1, () => !p.dead && this.executeSkill(s, aim, { mult: s.repeatMult, repeat: repeat + 1 }));
         if (s.echo && !repeat && !triggered) this.later(s.echo.delay, () => !p.dead && this.executeSkill(s, aim, { mult: s.echo.mult, repeat: 99 }));
@@ -1216,7 +1216,8 @@ export class Game {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
             const k = a.buffs.war_cry ? 1 + a.buffs.war_cry.damage : 1;
-            this.hitMonster(tt, a.damage * k, { element: 'physical', by: a, byAlly: true });
+            this.hitMonster(tt, a.damage * k, { element: 'physical', by: a, byAlly: true, skill: 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
+            this.emit({ type: 'allyStrike', skill: 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;
           a.state = 'recover';
@@ -1325,7 +1326,7 @@ export class Game {
           pr.hit.add(m.id);
           const s = pr.skill;
           this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
-          this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z });
+          this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
           if (s.ground) this.spawnGround(s, m.x, m.z, pr.triggered ? s.trigger?.damageMult || 1 : 1);
           if (pr.chain > 0) {
             const next = this.monsters
@@ -1368,7 +1369,7 @@ export class Game {
   }
 
   projectileImpact(pr) {
-    this.emit({ type: 'impact', kind: pr.kind, element: pr.element || 'arcane', x: pr.x, z: pr.z });
+    this.emit({ type: 'impact', kind: pr.kind, element: pr.element || 'arcane', x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
     if (pr.owner === 'player' && pr.skill?.ground) this.spawnGround(pr.skill, pr.x, pr.z);
   }
 

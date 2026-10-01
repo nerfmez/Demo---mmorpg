@@ -335,7 +335,7 @@ export class Game {
         slot: i,
       };
       this.allies.push(ally);
-      this.emit({ type: 'summon', id: ally.id, x: ax, z: az });
+      this.emit({ type: 'summon', skill: s.id, id: ally.id, x: ax, z: az });
     }
   }
 
@@ -1216,7 +1216,8 @@ export class Game {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
             const k = a.buffs.war_cry ? 1 + a.buffs.war_cry.damage : 1;
-            this.hitMonster(tt, a.damage * k, { element: 'physical', by: a, byAlly: true });
+            this.hitMonster(tt, a.damage * k, { element: 'physical', by: a, byAlly: true, skill: 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
+            this.emit({ type: 'allyStrike', skill: 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;
           a.state = 'recover';
@@ -1325,7 +1326,7 @@ export class Game {
           pr.hit.add(m.id);
           const s = pr.skill;
           this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
-          this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z });
+          this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
           if (s.ground) this.spawnGround(s, m.x, m.z, pr.triggered ? s.trigger?.damageMult || 1 : 1);
           if (pr.chain > 0) {
             const next = this.monsters
@@ -1368,7 +1369,7 @@ export class Game {
   }
 
   projectileImpact(pr) {
-    this.emit({ type: 'impact', kind: pr.kind, element: pr.element || 'arcane', x: pr.x, z: pr.z });
+    this.emit({ type: 'impact', kind: pr.kind, element: pr.element || 'arcane', x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
     if (pr.owner === 'player' && pr.skill?.ground) this.spawnGround(pr.skill, pr.x, pr.z);
   }
 

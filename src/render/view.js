@@ -342,6 +342,9 @@ export class View {
       case 'chain':
         v.chain(e);
         break;
+      case 'allyStrike':
+        v.bite(e);
+        break;
       case 'summon':
         v.summon(e);
         break;
@@ -374,8 +377,8 @@ export class View {
           mv.kx = (mv.kx || 0) + (dx / d) * k;
           mv.kz = (mv.kz || 0) + (dz / d) * k;
         }
-        if (!e.dot && !e.byAlly && (e.attackKind === 'melee_arc' || e.attackKind === 'melee_nova')) {
-          const feel = v.meleeLook(e.skill).impact;
+        if (!e.dot && v.config.skills[e.skill]?.impact?.flashSize !== undefined) {
+          const feel = v.contactLook(e.skill, e.element).impact;
           this.hitStop = Math.max(this.hitStop || 0, feel.hitStop);
           this.addShake(feel.shake);
         }
@@ -595,7 +598,7 @@ export class View {
       av.y = damp(av.y, gy, 16, dt);
       r.root.position.set(a.x, av.y, a.z);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' ? 'act' : a.state, windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
+      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (0.4 + 0.6 * fade));
       if (Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });

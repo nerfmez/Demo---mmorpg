@@ -235,6 +235,199 @@
         "shake": 0.26,
         "hitStop": 0.025
       }
+    },
+    "whirl_blade": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.12,
+        "trailEnd": 0.25
+      },
+      "swing": {
+        "life": 0.28,
+        "width": 0.16,
+        "height": 0.95,
+        "tilt": 0.14,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0,
+        "arc": 205,
+        "turn": 1.65
+      },
+      "impact": {
+        "flashSize": 0.48,
+        "flashWidth": 0.065,
+        "flashLife": 0.09,
+        "sparks": 8,
+        "sparkLength": 0.13,
+        "sparkWidth": 0.025,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.045,
+        "hitStop": 0.025
+      }
+    },
+    "hunter_shot": {
+      "renderer": "arrow",
+      "projectile": {
+        "scale": 1,
+        "trailLength": 1.35,
+        "trailWidth": 0.075,
+        "trailOpacity": 0.7,
+        "flowSpeed": 32
+      },
+      "impact": {
+        "flashSize": 0.36,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 5,
+        "sparkLength": 0.13,
+        "sparkWidth": 0.028,
+        "sparkLife": 0.22,
+        "speed": 4.7,
+        "spread": 2.1,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.025,
+        "hitStop": 0.018
+      },
+      "_labPhases": {
+        "cast": "ง้างธนู",
+        "projectile": "ลูกธนู",
+        "impact": "ปักกระทบ"
+      },
+      "colors": {
+        "shaft": "#8a5c3a",
+        "tip": "#dde6ec",
+        "fletch": "#f3eedc",
+        "trail": "#86adc1",
+        "core": "#fff7df",
+        "sparks": "#e9c89a"
+      },
+      "cast": {
+        "length": 0.5,
+        "width": 0.025,
+        "opacity": 0.55
+      }
+    },
+    "stone_burst": {
+      "renderer": "stone",
+      "_labPhases": {
+        "cast": "เตรียมปะทุ",
+        "burst": "หินปะทุ",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rock": "#aa9070",
+        "shadow": "#514b42",
+        "debris": "#c9b99e",
+        "core": "#fff4d5",
+        "sparks": "#d3c4aa"
+      },
+      "cast": {
+        "opacity": 0.68,
+        "crackWidth": 0.024,
+        "boundaryOpacity": 0.3
+      },
+      "burst": {
+        "life": 1.05,
+        "rocks": 7,
+        "height": 1.45,
+        "rockWidth": 0.28,
+        "spread": 0.74,
+        "rise": 0.12,
+        "hold": 0.52,
+        "chipCount": 12,
+        "chipSize": 0.09,
+        "chipSpeed": 3.4,
+        "chipLife": 0.55,
+        "dust": 5,
+        "dustSize": 0.32,
+        "dustLife": 0.28
+      },
+      "impact": {
+        "flashSize": 0.42,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 6,
+        "sparkLength": 0.09,
+        "sparkWidth": 0.025,
+        "sparkLife": 0.22,
+        "speed": 3.5,
+        "spread": 5.8,
+        "up": 1.4,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.07,
+        "hitStop": 0.018
+      }
+    },
+    "spirit_wolf": {
+      "renderer": "spirit",
+      "_labPhases": {
+        "cast": "อัญเชิญ",
+        "attack": "กัด",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#5795c5",
+        "body": "#bcdcf0",
+        "core": "#f3f9ff",
+        "sparks": "#8fc4e8"
+      },
+      "cast": {
+        "radius": 0.75,
+        "width": 0.035,
+        "life": 0.4,
+        "opacity": 0.65,
+        "particles": 8,
+        "particleSize": 0.09,
+        "particleLife": 0.38
+      },
+      "attack": {
+        "radius": 0.45,
+        "arc": 70,
+        "life": 0.15,
+        "width": 0.065,
+        "height": 0.85,
+        "tilt": 0.1,
+        "opacity": 0.95,
+        "finisherWidth": 1
+      },
+      "impact": {
+        "flashSize": 0.32,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 5,
+        "sparkLength": 0.12,
+        "sparkWidth": 0.025,
+        "sparkLife": 0.22,
+        "speed": 4.7,
+        "spread": 2.1,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.018
+      }
     }
   },
   "projectileDefaults": {

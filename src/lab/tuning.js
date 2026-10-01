@@ -1,11 +1,11 @@
 // Generic Lab-only overrides. Walk authored data rather than maintaining skill-specific forms.
 export const STORAGE_KEY = 'frontier.skill-lab.tuning.v1';
 const clone = (v) => JSON.parse(JSON.stringify(v));
-const REPLAY_KEYS = ['castTime', 'speed', 'range', 'projectileRadius', 'spread', 'arc', 'radius'];
+const REPLAY_KEYS = ['castTime', 'speed', 'range', 'projectileRadius', 'spread', 'arc', 'radius', 'delay'];
 const HEX = /^#[0-9a-f]{6}$/i;
-const COUNTS = /^(embers|wisps|particles|count|trailRate|sparks)$/;
+const COUNTS = /^(embers|wisps|particles|count|trailRate|sparks|rocks|chipCount|dust)$/;
 const FRACTIONS = /^(emberShrink|headHeat|headTurbulence|opacity|glowOpacity|trailOpacity|trailCoreWidth|trailStart|zoneOpacity)$/;
-const POSITIVE = /size|radius|radii|width|length|life|duration|speed|castTime|range/i;
+const POSITIVE = /size|radius|radii|width|length|life|duration|speed|castTime|range|rise|delay/i;
 export const pathValue = (obj, path) => path.reduce((v, k) => v?.[k], obj);
 function assign(obj, path, value) {
   const parent = pathValue(obj, path.slice(0, -1));

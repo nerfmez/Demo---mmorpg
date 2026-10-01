@@ -10,6 +10,7 @@ import { BladeTrail } from './trail.js';
 import FX from '../../data/combat-fx.json';
 import { flameMesh, FlameParticles } from './firebolt.js';
 import { cutRibbon, ContactShards } from './melee.js';
+import { arrowStreak, groundCracks, rockGeometry, RockChips } from './physical.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -218,6 +219,7 @@ export class Vfx {
     this.swingDelay = 0;
     this.swingLeft = 0;
     this.contacts = new ContactShards(scene);
+    this.chips = new RockChips(scene);
     this.flames = new FlameParticles(scene, this.config.skills.firebolt);
     this.castFlame = null;
     this.seenProjectiles = new Set();
@@ -226,7 +228,7 @@ export class Vfx {
   // Lab injects an isolated data copy; the game keeps its authored defaults.
   genericLook(kind) {
     const cfg = this.config.skills?.[kind];
-    return cfg?.renderer === 'sprite' ? cfg : this.config.projectileDefaults;
+    return cfg?.renderer === 'sprite' || cfg?.renderer === 'arrow' ? cfg : this.config.projectileDefaults;
   }
 
   meleeLook(skill) {
@@ -239,6 +241,14 @@ export class Vfx {
     if (!element || element === 'physical') return cfg;
     const c = el(element);
     return { ...cfg, colors: { rim: c.glow, body: c.glow, core: c.core, sparks: c.dots } };
+  }
+
+  contactLook(skill, element) {
+    const profile = this.config.skills?.[skill];
+    const cfg = profile?.impact?.flashSize !== undefined ? profile : this.config.meleeDefaults;
+    if (!element || element === 'physical') return cfg;
+    const c = el(element);
+    return { ...cfg, colors: { ...cfg.colors, core: c.core, sparks: c.dots } };
   }
 
   refreshFlames() {
@@ -278,6 +288,12 @@ export class Vfx {
 
   beginCast(e, element) {
     this.endCast();
+    if (e.skill === 'hunter_shot') {
+      const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
+      mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
+      mesh.material.uniforms.uOpacity.value = f.opacity; mesh.visible = false; this.scene.add(mesh);
+      this.castArrow = { mesh, t: 0, dur: e.total, weapon: e.weapon }; return;
+    }
     if (e.skill !== 'firebolt' || element !== 'fire') return;
     const mesh = flameMesh(this.config.skills.firebolt, 1);
     mesh.material.uniforms.uWidth.value = this.config.skills.firebolt.cast.size;
@@ -289,12 +305,26 @@ export class Vfx {
   }
 
   endCast() {
+    if (this.castArrow) { disposeObject(this.castArrow.mesh); this.castArrow = null; }
     if (!this.castFlame) return;
     disposeObject(this.castFlame.mesh);
     this.castFlame = null;
   }
 
   updateCast(dt, rig, cancelled = false) {
+    const a = this.castArrow;
+    if (a) {
+      a.t += dt;
+      if (cancelled || !rig || a.t >= a.dur) this.endCast();
+      else {
+        const w = rig.bones?.weapon;
+        if (w && a.weapon !== 'none') { w.updateWorldMatrix(true, false); w.getWorldPosition(_p0); w.getWorldDirection(_dir); }
+        else { rig.root.getWorldPosition(_p0); _p0.y += 1.2; _dir.set(Math.sin(rig.root.rotation.y), 0, Math.cos(rig.root.rotation.y)); }
+        a.mesh.position.copy(_p0); a.mesh.rotation.y = Math.atan2(_dir.x, _dir.z); a.mesh.visible = true;
+        const f = this.config.skills.hunter_shot.cast, u = a.mesh.material.uniforms, k = a.t / a.dur;
+        u.uLength.value = f.length * (.2 + .8 * k); u.uOpacity.value = f.opacity * k; u.uT.value = a.t;
+      }
+    }
     const c = this.castFlame;
     if (!c) return;
     c.t += dt;
@@ -424,10 +454,10 @@ export class Vfx {
     const cfg = this.meleePalette(e.skill || 'whirl_blade', e.element);
     // Two travelling half cuts rather than an expanding explosion/ring.
     for (let i=0;i<2;i++) {
-      const m=cutRibbon(cfg,e.radius,Math.PI*1.08,i===1);
+      const m=cutRibbon(cfg,e.radius,(cfg.swing.arc ?? 205)*Math.PI/180,i===1);
       m.position.set(e.x,this.gy(e.x,e.z)+cfg.swing.height,e.z);
       m.rotation.y=e.angle+i*Math.PI;
-      this.spawn(m,cfg.swing.life*1.35,(t)=>{m.material.uniforms.uT.value=t;m.rotation.y=e.angle+i*Math.PI+t*.6;});
+      this.spawn(m,cfg.swing.life,(t)=>{m.material.uniforms.uT.value=t;m.rotation.y=e.angle+i*Math.PI+t*(cfg.swing.turn ?? 1.65);});
     }
   }
 
@@ -568,6 +598,12 @@ export class Vfx {
 
   impact(e) {
     if (e.kind === 'firebolt' && e.element === 'fire') return this.fireImpact(e);
+    if (e.kind === 'hunter_shot') {
+      const cfg = this.contactLook(e.kind, e.element);
+      this.contacts.burst({ ...e, fromX: e.x - (e.vx ?? 1), fromZ: e.z - (e.vz ?? 0) }, cfg, this.gy(e.x, e.z) + (e.y ?? 1));
+      this.shake = Math.max(this.shake, cfg.impact.shake);
+      return;
+    }
     const c = el(e.element);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
     const f = this.genericLook(e.kind).impact;
@@ -587,8 +623,10 @@ export class Vfx {
       this.fx.add(e.x + (Math.random() - 0.5) * 0.6, y + 0.6, e.z + (Math.random() - 0.5) * 0.6, 0, 1.4, 0, { color: c.dots, size: 0.22, life: 0.5 });
       return;
     }
+    // The arrow's impact event draws its contact once, including obstacle hits.
+    if (e.skill === 'hunter_shot') return;
     if (e.element === 'physical' || e.attackKind === 'melee_arc' || e.attackKind === 'melee_nova') {
-      this.contacts.burst(e, this.meleePalette(e.skill, e.element), y + height);
+      this.contacts.burst(e, this.contactLook(e.skill, e.element), y + height);
       if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
       return;
     }
@@ -607,33 +645,30 @@ export class Vfx {
   }
 
   stoneBurst(e) {
-    const c = el(e.element);
-    const cold = e.element === 'cold';
-    const n = 7;
-    const group = new THREE.Group();
-    const mat = toon(cold ? '#bfe9ff' : '#b89a78');
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + Math.random();
-      const r = i === 0 ? 0 : e.radius * (0.35 + Math.random() * 0.45);
-      const h = (i === 0 ? 1.8 : 1.0 + Math.random() * 0.6) * (e.echo ? 0.8 : 1);
-      const x = e.x + Math.sin(a) * r;
-      const z = e.z + Math.cos(a) * r;
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.28 + Math.random() * 0.15, h, 5), mat);
-      cone.position.set(x, 0, z);
-      cone.rotation.set((Math.random() - 0.5) * 0.5, Math.random() * 3, (Math.random() - 0.5) * 0.5);
-      cone.userData.h = h;
-      cone.userData.base = this.gy(x, z);
-      cone.castShadow = true;
-      group.add(cone);
+    const cfg = this.config.skills.stone_burst, f = cfg.burst;
+    const cold = e.element === 'cold', group = new THREE.Group();
+    const mat = toon(cold ? '#bfe9ff' : cfg.colors.rock);
+    for (let i = 0; i < f.rocks; i++) {
+      const a = i * 2.39996, r = i === 0 ? 0 : e.radius * f.spread * (.55 + .4 * Math.random());
+      const h = f.height * (i === 0 ? 1.1 : .55 + Math.random() * .4) * (e.echo ? .8 : 1);
+      const x = e.x + Math.sin(a) * r, z = e.z + Math.cos(a) * r;
+      const stone = new THREE.Mesh(rockGeometry(), mat);
+      stone.scale.set(f.rockWidth * (1 + Math.random() * .4), h * .5, f.rockWidth * .85);
+      stone.rotation.set(Math.cos(a) * .18, a, -Math.sin(a) * .18);
+      stone.position.set(x, 0, z); stone.userData.height = h; stone.userData.base = this.gy(x, z);
+      stone.castShadow = true; group.add(stone);
     }
-    this.spawn(group, 0.9, (t) => {
-      const up = t < 0.15 ? t / 0.15 : t > 0.65 ? 1 - (t - 0.65) / 0.35 : 1;
-      group.children.forEach((cn) => (cn.position.y = cn.userData.base + (up - 0.5) * cn.userData.h));
+    this.spawn(group, f.life, t => {
+      const elapsed = t * f.life;
+      let up = 1 - Math.pow(1 - Math.min(1, elapsed / f.rise), 3);
+      if (elapsed > f.hold) { const k = Math.max(0, (f.life - elapsed) / Math.max(.01, f.life - f.hold)); up *= k * k * (3 - 2 * k); }
+      for (const stone of group.children) stone.position.y = stone.userData.base + (up - .5) * stone.userData.height;
     });
-    const y = this.gy(e.x, e.z);
-    this.dust.burst(e.x, y + 0.2, e.z, 16, { color: cold ? 0xdff4ff : 0xcbb08a, size: 0.8, sizeEnd: 1.4, speed: e.radius * 1.8, life: 0.7, up: 0.3, drag: 3 });
-    this.fx.burst(e.x, y + 0.5, e.z, 10, { color: c.dots, size: 0.25, speed: 5, life: 0.4, up: 1.2 });
-    this.ring(e.x, e.z, e.radius, cold ? 0xa8e8ff : 0xffe0a0, 0.35);
+    const crack = groundCracks(cfg, e.radius, this.world, e.x, e.z);
+    this.spawn(crack, .45, t => { crack.material.uniforms.uProgress.value = 1; crack.material.uniforms.uOpacity.value = cfg.cast.opacity * (1 - t); });
+    this.chips.burst(e, cold ? { ...cfg, colors: { ...cfg.colors, debris: '#dff4ff' } } : cfg, this.gy(e.x, e.z));
+    this.dust.burst(e.x, this.gy(e.x, e.z) + .15, f.dust, { color: cold ? '#e6f6ff' : cfg.colors.debris, size: f.dustSize, sizeEnd: f.dustSize * 1.4, speed: 1.6, life: f.dustLife, up: .3, drag: 5 });
+    this.shake = Math.max(this.shake, cfg.impact.shake);
   }
 
   slam(e) {
@@ -702,11 +737,28 @@ export class Vfx {
   }
 
   summon(e) {
-    const y = this.gy(e.x, e.z);
-    this.ring(e.x, e.z, 1.6, 0x8fd0ff, 0.5);
-    for (let i = 0; i < 24; i++) {
-      const a = (i / 24) * Math.PI * 2;
-      this.fx.add(e.x + Math.sin(a) * 1.2, y + 0.1, e.z + Math.cos(a) * 1.2, -Math.sin(a) * 1.5, 2 + Math.random() * 2, -Math.cos(a) * 1.5, { color: 0xa8dcff, size: 0.28, life: 0.7, drag: 2 });
+    const cfg = this.config.skills.spirit_wolf, f = cfg.cast;
+    const look = { colors: cfg.colors, swing: { ...f, tilt: 0, finisherWidth: 1 } };
+    for (let i = 0; i < 2; i++) {
+      const arc = cutRibbon(look, f.radius, Math.PI * 1.15, i === 1);
+      arc.position.set(e.x, this.gy(e.x, e.z) + .06, e.z); arc.rotation.y = i * Math.PI;
+      this.spawn(arc, f.life, t => { arc.material.uniforms.uT.value = t; arc.scale.setScalar(1 - t * .5); });
+    }
+    const options = { color: cfg.colors.body, size: f.particleSize, sizeEnd: .015, life: f.particleLife, drag: 2 };
+    for (let i = 0; i < f.particles; i++) {
+      const a = i / Math.max(1, f.particles) * Math.PI * 2, dx = Math.sin(a), dz = Math.cos(a);
+      this.fx.add(e.x + dx * f.radius, this.gy(e.x, e.z) + .08, e.z + dz * f.radius, -dx, 1.8, -dz, options);
+    }
+  }
+
+  bite(e) {
+    const cfg = this.config.skills.spirit_wolf, f = cfg.attack;
+    const look = { colors: cfg.colors, swing: f };
+    const angle = Math.atan2(e.x - e.fromX, e.z - e.fromZ);
+    for (let i = 0; i < 2; i++) {
+      const cut = cutRibbon(look, f.radius, f.arc * Math.PI / 180, i === 1);
+      cut.position.set(e.x, this.gy(e.x, e.z) + f.height, e.z); cut.rotation.y = angle + i * Math.PI;
+      this.spawn(cut, f.life, t => { cut.material.uniforms.uT.value = t; cut.scale.setScalar(1 - t * .55); });
     }
   }
 
@@ -893,11 +945,12 @@ export class Vfx {
           v.userData.trail = 0;
         } else if (arrow) {
           const ag = arrowGeometry();
-          const shaft = new THREE.Mesh(ag.shaft, toon('#8a5c3a'));
-          const tip = new THREE.Mesh(ag.tip, toon('#d8dbe2'));
-          const fl = new THREE.Mesh(ag.fletch, toon('#f4f0e8'));
+          const cfg = this.config.skills.hunter_shot;
+          const shaft = new THREE.Mesh(ag.shaft, toon(cfg.colors.shaft));
+          const tip = new THREE.Mesh(ag.tip, toon(cfg.colors.tip));
+          const fl = new THREE.Mesh(ag.fletch, toon(cfg.colors.fletch));
           v.add(shaft, tip, fl);
-          v.add(this.sprite(c.glow, 0.7 * look.glowScale, 0.4 * look.glowOpacity));
+          v.add(arrowStreak(element === 'physical' ? cfg : { ...cfg, colors: { ...cfg.colors, trail: c.glow, core: c.core } }));
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
           v.add(this.sprite(c.glow, size * 1.8 * look.glowScale, 0.85 * look.glowOpacity));
@@ -925,7 +978,11 @@ export class Vfx {
         continue;
       }
       v.scale.setScalar(look.scale);
-      if (arrow) v.rotation.y = Math.atan2(pr.vx, pr.vz);
+      if (arrow) {
+        v.rotation.y = Math.atan2(pr.vx, pr.vz);
+        v.children[3].material.uniforms.uT.value = time;
+        continue;
+      }
       else v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
       const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
       for (let k = 0; k < (arrow ? 1 : 2); k++) {
@@ -1032,6 +1089,18 @@ export class Vfx {
         },
       };
     }
+    if (a.kind === 'stone_burst') {
+      const cfg = this.config.skills.stone_burst, group = new THREE.Group();
+      const crack = groundCracks(cfg, a.radius, this.world, a.x, a.z);
+      const boundary = this.decal(this.ringGeo, new THREE.MeshBasicMaterial({ color: cfg.colors.debris, transparent: true, depthWrite: false, opacity: cfg.cast.boundaryOpacity, side: THREE.DoubleSide }), a.x, a.z, a.radius, 0, .025);
+      group.add(crack, boundary);
+      return { obj: group, update: ar => {
+        group.visible = ar.t < ar.delay;
+        const k = Math.min(1, ar.t / Math.max(.01, ar.delay));
+        crack.material.uniforms.uProgress.value = k;
+        boundary.material.opacity = cfg.cast.boundaryOpacity * (.7 + .3 * k);
+      } };
+    }
     if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
@@ -1129,6 +1198,7 @@ export class Vfx {
     this.fx.update(dt);
     this.dust.update(dt);
     this.contacts.update(dt);
+    this.chips.update(dt);
     const keep = [];
     for (const a of this.active) {
       a.t += dt;

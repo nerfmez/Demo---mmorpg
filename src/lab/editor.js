@@ -16,6 +16,12 @@ const LABELS = {
   finisherWidth: 'ความหนาคอมโบสาม', trailOpacity: 'ความเข้มรอยอาวุธ', trailCoreWidth: 'ความหนาขอบคม', zoneOpacity: 'ความเข้มพื้นที่ฟัน',
   flashSize: 'ความยาวแสงปะทะ', flashWidth: 'ความหนาแสงปะทะ', sparks: 'จำนวนสะเก็ด', sparkLength: 'ความยาวสะเก็ด', sparkWidth: 'ความหนาสะเก็ด', sparkLife: 'เวลาสะเก็ดค้าง',
   critScale: 'ขนาดเมื่อคริติคอล', heavyScale: 'ขนาดเมื่อฟันหนัก', arc: 'มุมพื้นที่ฟัน', radius: 'รัศมี',
+  burst: 'หินปะทุและเศษหิน', attack: 'รอยกัด', delay: 'เวลารอก่อนปะทุ', turn: 'ระยะหมุนรอยฟัน',
+  trailLength: 'ความยาวรอยพุ่ง', trailWidth: 'ความหนารอยพุ่ง',
+  shaft: 'ก้านธนู', tip: 'หัวธนู', fletch: 'ขนธนู', trail: 'รอยพุ่ง', shadow: 'รอยแตก', rock: 'หิน', debris: 'เศษหิน',
+  rocks: 'จำนวนหิน', rockWidth: 'ความกว้างหิน', rise: 'เวลาหินพุ่งขึ้น', hold: 'เวลาหินเริ่มยุบ',
+  chipCount: 'จำนวนเศษหิน', chipSize: 'ขนาดเศษหิน', chipSpeed: 'ความเร็วเศษหิน', chipLife: 'เวลาเศษหินค้าง',
+  dust: 'จำนวนฝุ่น', dustSize: 'ขนาดฝุ่น', dustLife: 'เวลาฝุ่นค้าง', crackWidth: 'ความหนารอยแตก', boundaryOpacity: 'ความเข้มขอบพื้นที่',
 };
 const label = (key) => LABELS[key] || String(key).replace(/([a-z])([A-Z])/g, '$1 $2');
 function fieldLabel(path) {
@@ -61,11 +67,11 @@ export function mountTuningPanel(parent, ctx) {
     if (!groups.has(group)) groups.set(group, []);
     groups.get(group).push(field);
   }
-  const ordered = ['swing', 'projectile', 'impact', 'cast', 'colors', 'replay', ...groups.keys()];
+  const ordered = ['swing', 'projectile', 'burst', 'attack', 'impact', 'cast', 'colors', 'replay', ...groups.keys()];
   for (const group of [...new Set(ordered)]) {
     const fields = groups.get(group);
     if (!fields) continue;
-    const details = el('details', 'tuning-section'); details.open = state.tuningSections[group] ?? (group === 'projectile' || group === 'swing');
+    const details = el('details', 'tuning-section'); details.open = state.tuningSections[group] ?? ['projectile', 'swing', 'burst', 'attack'].includes(group);
     details.addEventListener('toggle', () => (state.tuningSections[group] = details.open));
     details.append(el('summary', '', label(group)));
     const grid = el('div', 'tuning-fields'); details.append(grid);

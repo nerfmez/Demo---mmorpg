@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { Vfx } from '../render/vfx.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
+import { buildMonster } from '../render/monsters.js';
 import { loadModels } from '../render/models.js';
 import { toon } from '../render/toon.js';
 import { disposeObject } from '../render/dispose.js';
@@ -24,7 +25,7 @@ const GROUNDS = {
 };
 const ELEMENTS = ['fire', 'cold', 'lightning', 'poison', 'arcane', 'physical'];
 // skills the lab can replay; the rest appear disabled until their beats are wired here
-const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova']);
+const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon']);
 
 const flat = { surfaceY: () => 0, groundY: () => 0 };
 const params = new URLSearchParams(location.search);
@@ -52,6 +53,7 @@ const state = {
 if (!PLAYABLE.has(SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt';
 const isMelee = (s) => s?.kind === 'melee_arc' || s?.kind === 'melee_nova';
 if (isMelee(SKILLS.combat[state.skill])) { state.weapon = 'sword'; state.distance = 2; }
+else if (state.skill === 'hunter_shot') state.weapon = 'bow';
 let storage = null;
 try { storage = window.localStorage; } catch {}
 const tuning = new LabTuning(SKILLS, FX, storage);
@@ -81,6 +83,10 @@ scene.add(grid);
 
 const vfx = new Vfx(scene, flat, { config: tuning.fx });
 const fakeGame = { projectiles: [], areas: [] };
+// Keep one real summon rig across replays; changing sliders does not rebuild it.
+const wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible = false;
+let wolfReplay = null;
+const wolfPose = { moving: false, speedFactor: 1.2, state: 'idle', lastAttack: 'bite', windup: null, windupT: 0, windupTotal: .25, hurt: 0, lookYaw: 0, turn: 0 };
 
 // training dummy: a post with a straw body; it bounces when hit
 const dummy = new THREE.Group();
@@ -140,6 +146,8 @@ function cast() {
   if (!s || !PLAYABLE.has(s.kind)) return;
   const element = elementOf();
   if (isMelee(s)) return castMelee(s, element);
+  if (s.kind === 'ground_area') return castGround(s, element);
+  if (s.kind === 'summon') return castSummon(s, element);
   if (state.reviewPhase === 'impact') {
     impact({ kind: state.skill, element, x: dummy.position.x + 0.75, z: 0, vx: -s.speed, vz: 0 });
     return;
@@ -155,8 +163,13 @@ function meleeContact(s, step) {
   const off=Math.abs(Math.atan2(Math.sin(Math.atan2(dx,dz)+Math.PI/2),Math.cos(Math.atan2(dx,dz)+Math.PI/2)));
   return s.kind === 'melee_nova' ? d-.35 <= s.radius : d-.35 <= s.range && (off <= s.arc*Math.PI/360 || d <= .65);
 }
+function contact(e) {
+  vfx.hitSpark(e);
+  const f = vfx.contactLook(e.skill, e.element).impact;
+  shake = Math.max(shake, f.shake); hitStop = Math.max(hitStop, f.hitStop); dummyHit = 1;
+}
 function meleeHit(s, element, step) {
-  vfx.hitSpark({ skill: state.skill, attackKind: s.kind, element, x: dummy.position.x, z: dummy.position.z, fromX:0, fromZ:0, heavy:step===2, crit:false });
+  contact({ skill: state.skill, attackKind: s.kind, element, x: dummy.position.x, z: dummy.position.z, fromX:0, fromZ:0, heavy:step===2, crit:false });
   const f=fxLook(state.skill).impact; shake=Math.max(shake,f.shake);hitStop=Math.max(hitStop,f.hitStop);dummyHit=1;
 }
 function castMelee(s, element) {
@@ -175,10 +188,73 @@ function castMelee(s, element) {
   }
   if(state.comboMode===null && state.reviewPhase==='full')state.comboStep=(step+1)%3;
 }
+
+function castGround(s, element) {
+  const x = dummy.position.x, z = dummy.position.z;
+  const burst = () => {
+    vfx.burst({ kind: state.skill, element, x, z, radius: s.radius });
+    if (state.reviewPhase === 'full' && Math.hypot(dummy.position.x - x, dummy.position.z - z) <= s.radius + .35) {
+      contact({ skill: state.skill, attackKind: s.kind, element, x: dummy.position.x, z: dummy.position.z, fromX: x, fromZ: z });
+      dummyHit = 1;
+    }
+  };
+  if (state.reviewPhase === 'impact') {
+    contact({ skill: state.skill, element, x, z, fromX: 0, fromZ: 0 }); dummyHit = 1; return;
+  }
+  if (state.reviewPhase === 'burst') { burst(); return; }
+  heroAnim.play(state.skill, s.castTime + .28, state.weapon, 0, s.castTime, s.kind);
+  later(s.castTime, () => {
+    fakeGame.areas.push({ id: nextId++, owner: 'player', kind: state.skill, element, x, z, radius: s.radius, t: 0, delay: s.delay, duration: .35 });
+    if (state.reviewPhase === 'full') later(s.delay, burst);
+  });
+}
+
+function castSummon(s, element) {
+  const beginWolf = attackOnly => {
+    const x = attackOnly ? dummy.position.x + 1.1 : -1.2, z = attackOnly ? dummy.position.z : .7;
+    wolf.root.position.set(x, 0, z); wolf.root.visible = true; wolf.root.scale.setScalar(wolf.baseScale);
+    wolfReplay = { phase: attackOnly ? 'windup' : state.reviewPhase === 'cast' ? 'idle' : 'chase', t: 0, age: 0, element };
+    if (!attackOnly) vfx.summon({ skill: state.skill, x, z });
+  };
+  if (state.reviewPhase === 'impact') {
+    contact({ skill: state.skill, element, x: dummy.position.x, z: dummy.position.z, fromX: dummy.position.x + 1.1, fromZ: dummy.position.z }); dummyHit = 1; return;
+  }
+  if (state.reviewPhase === 'attack') { beginWolf(true); return; }
+  heroAnim.play(state.skill, s.castTime + .28, state.weapon, 0, s.castTime, s.kind);
+  later(s.castTime, () => beginWolf(false));
+}
+
+function stepWolf(dt) {
+  const r = wolfReplay;
+  if (!r) return;
+  r.t += dt; r.age += dt;
+  const dx = dummy.position.x - wolf.root.position.x, dz = dummy.position.z - wolf.root.position.z, distance = Math.hypot(dx, dz);
+  wolf.root.rotation.y = Math.atan2(dx, dz);
+  const reach = skillDef().summon.range + .6 + .35;
+  if (r.phase === 'chase') {
+    if (distance <= reach) { r.phase = 'windup'; r.t = 0; }
+    else { const move = Math.min(Math.max(0, distance - reach), skillDef().summon.speed * dt); wolf.root.position.x += dx / distance * move; wolf.root.position.z += dz / distance * move; }
+  } else if (r.phase === 'windup' && r.t >= .25) {
+    const e = { skill: state.skill, element: r.element, x: dummy.position.x, z: dummy.position.z, fromX: wolf.root.position.x, fromZ: wolf.root.position.z };
+    if (distance <= reach + .5) { vfx.bite(e); if (state.reviewPhase === 'full') { contact(e); } }
+    r.phase = 'recover'; r.t = 0;
+  }
+  wolfPose.moving = r.phase === 'chase'; wolfPose.state = r.phase === 'recover' && r.t < .12 ? 'act' : r.phase;
+  wolfPose.windup = r.phase === 'windup' ? 'bite' : null; wolfPose.windupT = r.t;
+  wolf.animate(wolf, wolfPose, dt, time);
+  // Presentation replay only: this does not run combat AI or deal damage.
+  const fade = r.age > 1.6 ? Math.max(0, (2 - r.age) / .4) : Math.min(1, r.age * 5);
+  wolf.root.scale.setScalar(wolf.baseScale * Math.max(.01, fade));
+  if (r.age >= 2) { wolf.root.visible = false; wolfReplay = null; }
+}
 function clearReplay() {
   timers.length = 0; fakeGame.projectiles.length = 0;
   vfx.endCast();
-  vfx.endSwing(true); vfx.contacts.clear();
+  vfx.endSwing(true); vfx.contacts.clear(); vfx.shake = 0;
+  wolfReplay = null; wolf.root.visible = false; vfx.chips.clear();
+  fakeGame.areas.length = 0;
+  for (const area of vfx.areas.values()) disposeObject(area.obj, vfx.sharedGeo);
+  vfx.areas.clear();
   if(heroAnim)heroAnim.action=null;
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -211,7 +287,9 @@ function selectSkill(id) {
   clearTimeout(editTimer); editTimer = null; clearReplay();
   const wasMelee=isMelee(SKILLS.combat[state.skill]), nowMelee=isMelee(SKILLS.combat[id]);
   state.skill = id; state.element = null; state.reviewPhase = 'full';state.comboStep=0;
-  if(wasMelee!==nowMelee){state.weapon=nowMelee?'sword':'staff';state.distance=nowMelee?2:6;buildHero();placeDummy();}
+  const weapon=nowMelee?'sword':id==='hunter_shot'?'bow':'staff';
+  if(state.weapon!==weapon){state.weapon=weapon;buildHero();}
+  if(wasMelee!==nowMelee){state.distance=nowMelee?2:6;placeDummy();}
   tuning.get(id); vfx.refreshFlames();
   state.tuningStatus = 'พร้อมทดลอง';
   render();
@@ -268,11 +346,18 @@ function step(dt) {
     }
   }
   stepProjectiles(dt);
+  for (let i = fakeGame.areas.length - 1; i >= 0; i--) {
+    const area = fakeGame.areas[i]; area.t += dt;
+    if (area.t >= area.delay + area.duration) fakeGame.areas.splice(i, 1);
+  }
+  stepWolf(dt);
   heroAnim.update(dt, { speed: 0, facing: hero.root.rotation.y, moving: false, dash: null, dead: false, time });
   vfx.updateTrail(dt, hero);
   vfx.updateCast?.(dt, hero);
   vfx.syncProjectiles(fakeGame, dt, time);
+  vfx.syncAreas(fakeGame, dt, time);
   vfx.update(dt);
+  if (vfx.shake) { shake = Math.max(shake, vfx.shake); vfx.shake = 0; }
   dummyHit = Math.max(0, dummyHit - dt * 4);
   const k = Math.sin(dummyHit * Math.PI) * 0.25;
   dummy.scale.set(1 + k, 1 - k * 0.6, 1 + k);
@@ -390,7 +475,7 @@ function render() {
       selectSkill(v);
     });
     row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
-    if (!isMelee(skillDef())) row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
+    if (skillDef().kind === 'projectile') row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
     row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
       clearReplay();
       state.weapon = v;
@@ -421,7 +506,7 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, dummy }, stats: () => ({ ...renderer.info.memory }) };
+window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, wolf: wolf.root, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
 
 

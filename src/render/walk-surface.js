@@ -30,6 +30,6 @@ export function walkSurfaceMaterial(kind='wood',variant=1,offset=[0,0],crossGrai
         else pigment=paintedEarth(paint,0.0);
         diffuseColor.rgb=pigment*uWalkVariant*(.84+.16*abs(vWalkNormal.y));`);
   };
-  material.customProgramCacheKey=()=> 'walk-surface-paint-v2';
+  material.customProgramCacheKey=()=> 'walk-surface-paint-v3';
   return material;
 }

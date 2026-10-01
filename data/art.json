@@ -16,9 +16,9 @@
   "ground": {
     "palette": {
       "grassOchre": "#a3af56",
-      "earthShadow": "#ad9667",
-      "earthLight": "#c4ae80",
-      "dust": "#c9b68a",
+      "earthShadow": "#9b8b66",
+      "earthLight": "#b4a67c",
+      "dust": "#b8ac80",
       "mud": "#6d7053",
       "stoneShadow": "#9b9f8c",
       "stoneLight": "#b8b8a0",

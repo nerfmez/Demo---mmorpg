@@ -81,18 +81,26 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   float patchTone=smoothstep(.14,.86,meadow.x*.70+broad*.30);
   vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
   grass=mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17);
+  // Soil carries some of this zone's unmarked underpaint, before individual grass strokes.
+  vec3 underpaint=grass;
   vec3 brush=groundBrush(w);
   grass*=.88+brush.r*.26;
   float planted=.32+smoothstep(.12,.65,meadow.x)*.68;
   grass=mix(grass,grass*.76,brush.g*planted*.82);
   grass=mix(grass,grass*1.27+${rgb(p.grassOchre)}*.05,brush.b*planted*.88);
   grass*=.99+(fine-.5)*.025;
-  vec3 earth=paintedEarth(w,0.0);
-  // Irregular open soil islands are part of the painted terrain, not separate overlay quads.
+  vec3 earth=mix(paintedEarth(w,0.0),underpaint,.18);
+  // Short broken earth marks retain the grass between them, rather than broad blurred halos.
   float soil=meadow.y*.30+smoothstep(.48,.90,splat.a)*.40;
-  vec3 col=mix(grass,earth,clamp(soil,0.0,.68));
-  float roadEdge=splat.r+(mid-.5)*.17+(fine-.5)*.04;
-  col=mix(col,earth,smoothstep(.18,.83,roadEdge));
+  float soilMarks=smoothstep(.32,.70,mid*.52+brush.r*.36+fine*.12);
+  vec3 col=mix(grass,earth,clamp(soil,0.0,.68)*(.22+soilMarks*.78));
+  // Uneven creeping grass only breaks up the road's verge; the worn centre stays readable.
+  float roadEdge=splat.r+(mid-.5)*.32+(brush.r-.5)*.30+(fine-.5)*.08;
+  float roadCover=smoothstep(.30,.72,roadEdge);
+  float verge=4.0*roadCover*(1.0-roadCover);
+  float blades=max(brush.g,brush.b),creep=smoothstep(.55,.75,mid);
+  roadCover*=1.0-verge*(blades*.38+creep*.24);
+  col=mix(col,earth,roadCover);
   if(splat.b>.05){
     float damp=1.0-smoothstep(water+.12,water+1.15,y);
     vec3 bank=paintedEarth(w,damp*.78);

@@ -187,15 +187,28 @@ test('U bay opens south, all districts connect, and authored building footprints
 });
 
 test('the lighthouse cape permits water, land, then water along one X without changing legacy shores', () => {
-  for(const [z,water] of [[40,true],[80,false],[108,true]]){
-    assert.equal(world.inSea(-40,z),water);
-    assert.equal(world.coastAt(-40,z).distance<0,water,'paint and surf use the same signed coast');
-    assert.equal(world.terrainY(-40,z)<world.waterLevel,water,'heightfield follows the contour');
+  for(const [z,water] of [[40,true],[94,false],[115,true]]){
+    assert.equal(world.inSea(-34.44,z),water);
+    assert.equal(world.coastAt(-34.44,z).distance<0,water,'paint and surf use the same signed coast');
+    assert.equal(world.terrainY(-34.44,z)<world.waterLevel,water,'heightfield follows the contour');
   }
   const oldSea={shore:[[-20,10],[20,10]],edgeKinds:['beach']};
   assert.equal(seaContains(oldSea,0,8),false);assert.equal(seaContains(oldSea,0,12),true);
   assert.deepEqual(coastSample(oldSea,0,8),{distance:2,kind:'beach'});
   assert.deepEqual(coastSample(oldSea,0,12),{distance:-2,kind:'beach'});
+});
+
+test('the reference inlet remains water behind two connected lighthouse breakwaters', () => {
+  assert.ok(world.inSea(-40,80),'the reference inlet cannot be filled with land');
+  assert.ok(world.terrainY(-40,80)<world.waterLevel);
+  for(const id of ['breakwater','lighthouse_walk']){
+    const deck=world.docks.find(d=>d.id===id);
+    assert.ok(deck,id+' exists');
+    for(let z=-deck.hz+.45;z<deck.hz-.45;z+=.25){
+      const p=fromBoxLocal(deck,0,z);
+      assert.ok(world.isFree(p.x,p.z,.45),id+' has an unbroken walking surface');
+    }
+  }
 });
 
 test('existing Azure saves retain all progress through the layout change and relocate only once', () => {

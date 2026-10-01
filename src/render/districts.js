@@ -60,7 +60,7 @@ function warehouse(b,bx){
   for(const x of [-bx.hx+.28,bx.hx-.28])box(.18,wall,.18,C.wood,x,wall/2,front);
   box(w-.4,.17,.17,C.wood,0,wall-.08,front+.05);
   if(timber)for(let y=.4;y<3.4;y+=.43)box(w-.45,.10,.05,'#9d8362',0,y,front+.02);
-  shopRoof(b,w,d-1.6,wall,1.17,-.8,bx.roofColor,{frontGable:bx.variant!=='fish_store',hip:bx.variant==='fish_store'});
+  shopRoof(b,w,d-1.6,wall,1.17,-.8,bx.roofColor,{frontGable:bx.hz>=bx.hx&&bx.variant!=='fish_store',hip:bx.variant==='fish_store'});
   // High sliding loading doors and diagonal bracing, rather than cottage doors.
   box(4.10,2.9,.08,C.dark,0,1.62,front+.12);
   for(const side of [-1,1]){

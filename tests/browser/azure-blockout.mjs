@@ -215,13 +215,26 @@ try {
     await stage(114,76);await shot('03-rotated-slipway-gameplay');
   }
   if(!shopOnly&&!marketOnly&&!finishOnly){
-    await page.setViewportSize(layoutOnly?{width:1000,height:1100}:{width:1440,height:1000});
+    await page.setViewportSize(layoutOnly?{width:1012,height:1224}:{width:1440,height:1000});
     await page.evaluate(layoutOnly=>{
       const f=window.__frontier,v=f.view;
       v.resize(); // Set the new aspect before rendering; do not race the resize event.
       for(const element of document.body.children) if(element.tagName!=='CANVAS')element.style.visibility='hidden';
-      v.scene.fog.near=600;v.scene.fog.far=900;
-      v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(layoutOnly?14:0,layoutOnly?255:285,8);v.camera.lookAt(layoutOnly?14:0,0,8);v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
+      if(layoutOnly){
+        // Register the actual game capture to the supplied plan's rectangle:
+        // source pixels [1009,115,1515,727], X=(px-1230)*.42,
+        // Z=(py-400)*.42. A distant narrow frustum keeps parallax <1 pixel
+        // while retaining the real renderer. This camera is review-only.
+        const height=257.04,landY=.7,distance=6000;
+        v.scene.fog.near=10000;v.scene.fog.far=12000;
+        v.camera.near=5800;v.camera.far=6200;
+        v.camera.fov=2*Math.atan(height/(2*(distance-landY)))*180/Math.PI;
+        v.camera.up.set(0,0,-1);v.camera.position.set(13.44,distance,8.82);v.camera.lookAt(13.44,landY,8.82);
+      }else{
+        v.scene.fog.near=600;v.scene.fog.far=900;
+        v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(0,285,8);v.camera.lookAt(0,0,8);
+      }
+      v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();
       v.renderer.render(v.scene,v.camera);
       // Capture the WebGL pixels synchronously before browser compositing can
       // clear a non-preserved drawing buffer; labels remain a review-only overlay.
@@ -235,6 +248,7 @@ try {
       }
     },layoutOnly);
     await shot('01-u-bay-overview');
+    if(layoutOnly)report.planRegistration={sourcePixelRect:[1009,115,1515,727],metresPerSourcePixel:.42,originPixel:[1230,400],camera:'review only; original gameplay camera retained'};
   }
   assert.deepEqual(report.errors,[],'no runtime/asset/shader errors');
   report.passed=true;writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));

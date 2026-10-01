@@ -8,6 +8,8 @@ on:
       - 'src/render/**'
       - 'src/ui/mapimage.js'
       - 'tests/browser/azure-blockout.mjs'
+      - 'tests/core/harbor.test.js'
+      - 'tests/render/azure-footprints.test.mjs'
       - '.github/workflows/azure-layout-review.yml'
 
 permissions:
@@ -24,6 +26,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify roads, water, old saves and model collision footprints
+        run: node --test tests/core/harbor.test.js tests/core/world.test.js tests/core/save.test.js tests/render/water-contact.test.mjs tests/render/azure-footprints.test.mjs
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - name: Walk arrival, frontage paths and pier; capture layout and gameplay

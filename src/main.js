@@ -5,6 +5,8 @@ import { createWorld } from './core/world.js';
 import { createCharacter } from './core/character.js';
 import { Game } from './core/game.js';
 import { View } from './render/view.js';
+import { renderConfig } from './render/settings.js';
+import { ResolutionGovernor } from './render/resolution.js';
 import { loadModels } from './render/models.js';
 import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
@@ -193,12 +195,18 @@ try {
 }
 
 // ---------- frame loop ----------
+// Dynamic resolution (data/rendering.json); off under browser automation so captures stay fixed.
+const dynres = renderConfig.dynamicResolution;
+const governor = dynres?.enabled && params.get('dynres') !== '0' && !navigator.webdriver ? new ResolutionGovernor(dynres) : null;
+F.renderScale = () => view.renderScale ?? 1;
 let last = performance.now();
 let time = 0;
 let fpsAcc = 0;
 let fpsN = 0;
 
 function frame(now) {
+  const scale = governor?.update(now - last);
+  if (scale) view.setRenderScale(scale);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   time += dt;

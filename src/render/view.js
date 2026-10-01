@@ -6,6 +6,8 @@
 import * as THREE from 'three';
 import { createTerrain, createWater } from './ground.js';
 import { createEnvironment } from './environment.js';
+import { batchStatic } from './static-batch.js';
+import { bakeGrassColours } from './grass.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
@@ -91,6 +93,9 @@ export class View {
     const env = createEnvironment(world);
     this.scene.add(createWater(world, env.root));
     env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
+    bakeGrassColours(this.renderer, env.root, world); // one GPU pass; blades then just read colours
+    // after the water-contact bake: merge fixed scenery that shares a material, per map cell
+    this.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
 
@@ -257,11 +262,20 @@ export class View {
     return gem;
   }
 
+  /** Dynamic-resolution hook: 1 is the preset's full pixel ratio. */
+  setRenderScale(scale) {
+    if (scale === this.renderScale) return;
+    this.renderScale = scale;
+    this.resize();
+  }
+
   resize() {
     const c = this.renderer.domElement;
     const w = c.clientWidth || window.innerWidth;
     const h = c.clientHeight || window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, qualitySettings(this.quality).pixelRatio);
+    // dynamic resolution scales the preset's pixel ratio, never below 1 device pixel per CSS pixel
+    const base = Math.min(window.devicePixelRatio || 1, qualitySettings(this.quality).pixelRatio);
+    const dpr = Math.max(Math.min(1, base), base * (this.renderScale ?? 1));
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;

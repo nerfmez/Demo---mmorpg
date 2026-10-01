@@ -5,6 +5,16 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toon, outlined, darker } from './toon.js';
 import { outlineStructure } from './architecture.js';
 import { toBoxLocal, fromBoxLocal, clamp } from '../core/math.js';
+import { createRng } from '../core/rng.js';
+import art from '../../data/art.json' with {type:'json'};
+
+const handmade=art.architecture.handmade,roofArt=art.architecture.roof;
+// A repeatable generator from a part's own numbers, so every rebuild of a model is identical.
+export function seeded(...values) {
+  let h=2166136261;
+  for(const v of values)h=Math.imul(h^Math.round(v*997),16777619);
+  return createRng(h>>>0);
+}
 
 const C = { plaster:'#e4dcc5', stone:'#a9aa98', wood:'#80644c', dark:'#554f43', glass:'#6f9699', rope:'#c0ae7f', leaf:'#74875c', fish:'#adc1ba' };
 export function builder() {
@@ -15,7 +25,16 @@ export function builder() {
     if(flat!==geo)geo.dispose();
     if(!batches.has(color))batches.set(color,[]);batches.get(color).push(flat);
   };
-  const box=(w,h,d,color,x,y,z,rx=0,ry=0,rz=0)=>part(new THREE.BoxGeometry(w,h,d),color,x,y,z,rx,ry,rz);
+  // Hand-built, not machined: small and medium timbers turn a little within their own plane
+  // (about the thinnest axis, so nothing pushes into the wall behind it).
+  const box=(w,h,d,color,x,y,z,rx=0,ry=0,rz=0)=>{
+    const big=Math.max(w,h,d),amount=big<handmade.smallSize?handmade.smallTurn:big<handmade.mediumSize?handmade.mediumTurn:0;
+    if(amount){
+      const turn=(seeded(w,h,d,x,y,z).next()*2-1)*amount;
+      if(d<=w&&d<=h)rz+=turn;else if(w<=h)rx+=turn;else ry+=turn;
+    }
+    part(new THREE.BoxGeometry(w,h,d),color,x,y,z,rx,ry,rz);
+  };
   const finish=()=>{
     for(const [color,geos] of batches){const geo=mergeGeometries(geos);geos.forEach(g=>g.dispose());root.add(outlined(geo,toon(color),{outline:darker(color,.56),width:.018}));}
     return outlineStructure(root);
@@ -50,15 +69,52 @@ export function shopWindow(b,x,y,z,width=1.25,height=1.0,color=C.wood) {
   for(const side of [-1,1])box(.24,height+.16,.10,color,x+side*(width/2+.22),y,z);
   box(width+.7,.10,.28,C.wood,x,y-height/2-.12,z+.02);
 }
+// Roofs are laid in courses of tiles: each course is a row of plates of uneven length, staggered
+// against the course below and alternating two shades, with a ragged lower edge; the ridge cap
+// is laid in pieces. Plates stay inside the roof's own footprint and under the ridge.
 export function shopRoof(b,w,d,base,rise,z,color,{hip=false,frontGable=false}={}) {
-  const {part,box}=b;
+  const {part}=b,rng=seeded(w,d,base,rise,z);
   part(roofGeometry(frontGable?d:w,frontGable?w:d,rise,hip),color,0,base,z,0,frontGable?Math.PI/2:0);
-  for(const side of [-1,1])for(let i=1;i<5;i++){
-    const t=i/5,half=frontGable?w/2:d/2,offset=side*half*(1-t);
-    const length=hip?w-d*.64*t:frontGable?d:w;
-    box(frontGable?.055:length,.035,frontGable?length:.055,darker(color,.90),frontGable?offset:0,base+rise*t+.025,z+(frontGable?0:offset),frontGable?0:side*Math.atan2(rise,half),0,frontGable?-side*Math.atan2(rise,half):0);
+  const half=frontGable?w/2:d/2,slope=Math.hypot(half,rise),angle=Math.atan2(rise,half);
+  const courses=Math.max(3,Math.round(slope/roofArt.courseDepth)),tones=[darker(color,.90),darker(color,.96)];
+  // along: run of the course; across: down the slope
+  const plate=(along,across,tone,slopeAt,y,alongAt,tilt)=>frontGable
+    ?part(new THREE.BoxGeometry(across,roofArt.tileThickness,along),tone,slopeAt,y,z+alongAt,0,0,-tilt)
+    :part(new THREE.BoxGeometry(along,roofArt.tileThickness,across),tone,alongAt,y,z+slopeAt,tilt,0,0);
+  for(const side of [-1,1])for(let i=0;i<courses;i++){
+    const t=(i+.5)/courses,y=base+rise*t+roofArt.tileLift;
+    // on a hip roof each course runs out to its lower edge and tucks under the hip caps
+    const length=(hip?w-d*.64*i/courses:frontGable?d:w)-.04,depth=slope/courses*roofArt.courseOverlap;
+    for(let at=-length/2+rng.range(0,.04),k=0;at<length/2-.08;k++){
+      const run=Math.min(length/2-at,rng.range(...roofArt.plateLength));
+      plate(run-.03,depth*rng.range(.84,1),tones[(i+k)%2],side*half*(1-t),y,at+run/2,side*angle+rng.range(-1,1)*roofArt.plateTilt);
+      at+=run;
+    }
   }
-  box(frontGable?.15:hip?w-d*.64:w,.13,frontGable?d:.15,darker(color,.85),0,base+rise+.045,z);
+  if(hip){
+    // the two hip ends get their own courses, then caps run down the four hip lines
+    const run=d*.32,endSlope=Math.hypot(run,rise),endAngle=Math.atan2(rise,run),endCourses=Math.max(2,Math.round(endSlope/roofArt.courseDepth));
+    for(const side of [-1,1])for(let i=0;i<endCourses;i++){
+      const t=(i+.5)/endCourses,y=base+rise*t+roofArt.tileLift,length=d*(1-t)-.1,depth=endSlope/endCourses*roofArt.courseOverlap;
+      for(let at=-length/2+rng.range(0,.04),k=0;at<length/2-.08;k++){
+        const piece=Math.min(length/2-at,rng.range(...roofArt.plateLength));
+        part(new THREE.BoxGeometry(depth*rng.range(.84,1),roofArt.tileThickness,piece-.03),tones[(i+k)%2],side*(w/2-run*t),y,z+at+piece/2,0,0,-side*(endAngle+rng.range(-1,1)*roofArt.plateTilt));
+        at+=piece;
+      }
+    }
+    for(const sx of [-1,1])for(const sz of [-1,1]){
+      const from=new THREE.Vector3(sx*(w/2-.1),base+.02,z+sz*(d/2-.1)),to=new THREE.Vector3(sx*(w/2-run),base+rise,z),dir=to.clone().sub(from);
+      const cap=new THREE.BoxGeometry(.13,.11,dir.length()).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),dir.normalize()));
+      part(cap,darker(color,.85),(from.x+to.x)/2,(from.y+to.y)/2+.06,(from.z+to.z)/2);
+    }
+  }
+  const ridge=frontGable?d:hip?w-d*.64:w;
+  for(let at=-ridge/2;at<ridge/2-.05;){
+    const run=Math.min(ridge/2-at,rng.range(...roofArt.ridgeLength)),y=base+rise+.045-rng.range(0,.015);
+    if(frontGable)part(new THREE.BoxGeometry(.15,.13,run-.02),darker(color,.85),0,y,z+at+run/2);
+    else part(new THREE.BoxGeometry(run-.02,.13,.15),darker(color,.85),at+run/2,y,z);
+    at+=run;
+  }
 }
 function fishProp(b,x,y,z,vertical=false) {
   const {part,box}=b;
@@ -474,6 +530,19 @@ export function marketFishingBoat(x,z,angle,water) {
     part(face,i%3?'#8f6948':'#987550');
     const dx=c[0]-a[0],dz=c[1]-a[1],len=Math.hypot(dx,dz);
     box(.12,.12,len+.045,C.wood,(a[0]+c[0])/2,.52,(a[1]+c[1])/2,0,Math.atan2(dx,dz));
+    // two rubbing strakes follow the planking down the side, standing just proud of it
+    for(const v of [.32,.62]){
+      const at=q=>[q[0]*(1-v*.38)*1.025,.50-.86*v,q[1]*(1-v*.12)];
+      const p0=at(a),p1=at(c);
+      box(.05,.07,Math.hypot(p1[0]-p0[0],p1[2]-p0[2])+.03,'#6f5238',(p0[0]+p1[0])/2,p0[1],(p0[2]+p1[2])/2,0,Math.atan2(p1[0]-p0[0],p1[2]-p0[2]));
+    }
+  }
+  // Ribs cross the open floor and rise up the inside of the hull.
+  const halfWidth=z=>{for(let i=5;i<rim.length-1;i++){const a=rim[i],c=rim[i+1];if(z<=a[1]&&z>=c[1])return a[0]+(c[0]-a[0])*(z-a[1])/(c[1]-a[1]);}return .4;};
+  for(let z=-2.75;z<3.1;z+=.62){
+    const half=halfWidth(z)*.80;
+    box(half*2,.05,.08,'#8d6c4a',0,.14,z*.94);
+    for(const side of [-1,1])box(.07,.36,.08,'#8d6c4a',side*half*1.03,.32,z*.94,0,0,-side*.28);
   }
   const floor=new THREE.BufferGeometry();
   const floorVertices=[];

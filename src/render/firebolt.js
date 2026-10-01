@@ -14,9 +14,9 @@ const NOISE = /* glsl */ `
 const PALETTE = /* glsl */ `
   uniform vec3 uRim, uBody, uHot, uCore;
   vec3 flameColor(float heat){
-    vec3 c=mix(uRim,uBody,smoothstep(0.04,0.08,heat));
-    c=mix(c,uHot,smoothstep(0.18,0.23,heat));
-    return mix(c,uCore,smoothstep(0.36,0.42,heat));
+    vec3 c=mix(uRim,uBody,smoothstep(0.01,0.09,heat));
+    c=mix(c,uHot,smoothstep(0.15,0.25,heat));
+    return mix(c,uCore,smoothstep(0.37,0.53,heat));
   }
 `;
 const palette = (cfg) => ({
@@ -65,24 +65,30 @@ export function flameMesh(cfg, mode = 0) {
           // A rounded leading flame and a tapered, advecting wake. The field bends,
           // opens into tongues and sheds gaps; it is not a rigid ball with ribbons.
           float head=(1.0-length((p-vec2(0.76,0.5))/vec2(0.155,0.39)))*0.35;
-          head+=(flow(p*9.0+vec2(t*0.6,-t))-0.5)*0.055;
+          head+=(flow(p*9.0+vec2(t*0.6,-t))-0.5)*0.16;
           float x=clamp(p.x/0.76,0.0,1.0);
-          float bend=(flow(vec2(p.x*5.0+t*0.6,3.0+uSeed))-0.5)*0.27*(1.0-x);
+          float bend=(flow(vec2(p.x*5.0+t*0.6,3.0+uSeed))-0.5)*0.36*(1.0-x);
           float w=0.28*pow(x,0.75)*(1.0-smoothstep(0.72,0.92,p.x));
           float wake=w-abs(p.y-0.5-bend)+(n-0.58)*0.19*(1.0-x);
-          d=max(head,wake);
+          float branchA=0.14*pow(x,0.8)-abs(p.y-0.64-bend*0.55)+(n-0.5)*0.11;
+          float branchB=0.11*pow(clamp((p.x-0.22)/0.54,0.0,1.0),0.8)
+            -abs(p.y-0.34-bend*0.8)+(n-0.5)*0.09;
+          float branches=max(branchA,branchB)*(1.0-smoothstep(0.69,0.84,p.x));
+          // Limit branches to their own tail intervals without an artificial end cap.
+          branches=min(branches,min(p.x-0.04,0.81-p.x));
+          d=max(head,max(wake,branches));
           float gap=flow(vec2(p.x*13.0+t*1.4,p.y*9.0));
           d-=smoothstep(0.66,0.86,gap)*0.11*(1.0-smoothstep(0.45,0.7,p.x));
         } else {
           vec2 q=(p-0.5)*2.0;
-          float a=atan(q.y,q.x);
-          float lobes=flow(vec2(a*3.0+uSeed,t*0.4));
-          d=(0.72+(lobes-0.5)*0.30-length(q))*0.58;
+          vec2 radial=q/max(length(q),0.001);
+          float lobes=flow(radial*2.8+vec2(uSeed,t*0.4));
+          d=(0.70+(lobes-0.5)*0.42-length(q))*0.58;
         }
-        float aa=max(fwidth(d),0.003);
+        float aa=max(fwidth(d),0.007);
         float alpha=smoothstep(-aa,aa,d)*uAlpha;
         if(alpha<0.01) discard;
-        float heat=max(0.0,d)*1.65+(n-0.5)*0.08;
+        float heat=max(0.0,d)*1.4+(n-0.5)*0.19;
         gl_FragColor=vec4(flameColor(heat),alpha);
         #include <colorspace_fragment>
       }`,
@@ -143,13 +149,15 @@ export class FlameParticles {
             d=0.75-abs(p.x)*0.65-abs(p.y);
             col=mix(uBody,uHot,1.0-age);
           } else {
-            float width=0.65*pow(clamp((1.0-p.y)*0.5,0.0,1.0),0.65);
-            d=min(width-abs(p.x+(n-0.5)*0.28),0.9-abs(p.y))+(n-0.5)*0.12;
+            float head=(1.0-length((p-vec2(0,-0.28))/vec2(0.66,0.56)))*0.45;
+            float width=0.48*pow(clamp((1.0-p.y)*0.5,0.0,1.0),1.1);
+            float tongue=width-abs(p.x+(n-0.5)*0.40);
+            d=min(max(head,tongue),0.9-abs(p.y))+(n-0.5)*0.10;
             col=flameColor(max(0.0,d)*0.8*(1.0-age));
           }
           float aa=max(fwidth(d),0.008);
           float fade=(1.0-smoothstep(kind>1.5?0.25:0.55,1.0,age));
-          float alpha=smoothstep(-aa,aa,d)*fade*(kind>1.5?0.6:1.0);
+          float alpha=smoothstep(-aa,aa,d)*fade*(kind>1.5?0.6*smoothstep(0.03,0.18,age):1.0);
           if(alpha<0.01) discard;
           gl_FragColor=vec4(col,alpha);
           #include <colorspace_fragment>

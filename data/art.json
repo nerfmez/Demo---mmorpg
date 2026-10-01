@@ -35,6 +35,8 @@
     },
     "townPatchSpacing": 4.8,
     "grassPerPatch": 15,
+    "vergePatchSpacing": 1.8,
+    "vergeGrassPerPatch": 4,
     "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
   },
   "anime": {

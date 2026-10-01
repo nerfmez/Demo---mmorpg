@@ -284,7 +284,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v10';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v11';
   return mat;
 }
 

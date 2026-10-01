@@ -96,10 +96,11 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   vec3 col=mix(grass,earth,clamp(soil,0.0,.68)*(.22+soilMarks*.78));
   // Uneven creeping grass only breaks up the road's verge; the worn centre stays readable.
   float roadEdge=splat.r+(mid-.5)*.32+(brush.r-.5)*.30+(fine-.5)*.08;
-  float roadCover=smoothstep(.30,.72,roadEdge);
-  float verge=4.0*roadCover*(1.0-roadCover);
+  float edgeAA=max(fwidth(roadEdge)*.75,.015);
+  float roadCover=smoothstep(.46-edgeAA,.56+edgeAA,roadEdge);
+  float verge=smoothstep(.20,.40,splat.r)*(1.0-smoothstep(.70,.92,splat.r));
   float blades=max(brush.g,brush.b),creep=smoothstep(.55,.75,mid);
-  roadCover*=1.0-verge*(blades*.38+creep*.24);
+  roadCover=max(0.0,roadCover-verge*(blades*.85+creep*.25));
   col=mix(col,earth,roadCover);
   if(splat.b>.05){
     float damp=1.0-smoothstep(water+.12,water+1.15,y);

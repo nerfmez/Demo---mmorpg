@@ -26,7 +26,7 @@
       "name": "Firebolt", "nameTh": "ลูกไฟ",
       "desc": "ยิงลูกไฟตรงไปข้างหน้า มีโอกาสทำให้ติดไฟ",
       "tags": ["Spell", "Projectile", "Fire", "Damage"], "kind": "projectile", "power": "spell",
-      "damage": { "base": 10, "scale": 1.1 }, "range": 13, "speed": 17, "projectileRadius": 0.35, "cooldown": 0.7, "castTime": 0.22, "cost": 6,
+      "damage": { "base": 10, "scale": 1.1 }, "range": 13, "speed": 9, "projectileRadius": 0.35, "cooldown": 0.7, "castTime": 0.22, "cost": 6,
       "element": "fire", "burnChance": 0.25, "requires": {}, "upgradeMaterial": "glow_dust", "icon": "fire"
     },
     "chain_spark": {

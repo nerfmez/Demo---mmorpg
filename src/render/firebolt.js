@@ -1,4 +1,4 @@
-// Original flowing fire: hot circular core, domain-warped tongues and soft corona.
+// Original flowing fire: small oval core, domain-warped tongues and soft corona.
 // Shared billboards and a bounded wisp/ember/smoke pool; no copied textures/assets.
 import * as THREE from 'three';
 
@@ -37,13 +37,13 @@ function sharedQuad() {
 export function flameMesh(cfg, mode = 0) {
   const mat = new THREE.ShaderMaterial({
     uniforms: { ...palette(cfg), uTime:{value:0}, uSeed:{value:0}, uScale:{value:1},
-      uAlpha:{value:1}, uMode:{value:mode}, uVelocity:{value:new THREE.Vector3(0,1,0)},
+      uAlpha:{value:1}, uMode:{value:mode}, uProgress:{value:0}, uVelocity:{value:new THREE.Vector3(0,1,0)},
       uLength:{value:cfg.projectile.length}, uWidth:{value:cfg.projectile.width},
-      uHeadRadius:{value:cfg.projectile.headRadius}, uHaloScale:{value:1},
+      uHeadRadii:{value:new THREE.Vector2(...cfg.projectile.headRadii)}, uHaloScale:{value:1},
       uGlowRadius:{value:cfg.projectile.glowRadius}, uGlowStrength:{value:cfg.projectile.glowStrength} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      uniform vec3 uVelocity; uniform float uScale,uLength,uWidth,uMode,uHaloScale;
+      uniform vec3 uVelocity; uniform float uScale,uLength,uWidth,uMode,uHaloScale,uGlowRadius;
       varying vec2 vUv; varying vec2 vLocal;
       void main(){
         vUv=uv;
@@ -51,13 +51,17 @@ export function flameMesh(cfg, mode = 0) {
         d=length(d)<0.001?vec2(0,1):normalize(d);
         vec2 p=vec2((uv.x-0.76)*uLength,(uv.y-0.5)*uWidth);
         if(uMode>0.5) p=(uv-0.5)*uWidth;
-        p*=uHaloScale; vLocal=p;
+        // Charge/impact body size must not clip its wider Gaussian corona.
+        float padding=uHaloScale;
+        if(uHaloScale>1.5 && uMode>0.5) padding=max(padding,uGlowRadius*4.0/uWidth);
+        p*=padding; vLocal=p;
         vec4 mv=modelViewMatrix*vec4(0,0,0,1);
         mv.xy+=(d*p.x+vec2(-d.y,d.x)*p.y)*uScale;
         gl_Position=projectionMatrix*mv;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime,uSeed,uAlpha,uMode,uLength,uWidth,uHeadRadius; varying vec2 vUv;
+      uniform float uTime,uSeed,uAlpha,uMode,uProgress,uLength,uWidth;
+      uniform vec2 uHeadRadii; varying vec2 vUv;
       ${NOISE} ${PALETTE}
       void main(){
         vec2 p=vUv;
@@ -69,21 +73,30 @@ export function flameMesh(cfg, mode = 0) {
         vec2 adv=vec2(q.x*3.6+t*1.4,q.y*5.5-t*0.35);
         vec2 warp=vec2(noise21(adv+17.0),noise21(adv-11.0))-0.5;
         float n=flow(adv+warp*1.5);
-        float head=uHeadRadius-length(q);
+        vec2 headQ=q/uHeadRadii;
+        float head=(1.0-length(headQ))*min(uHeadRadii.x,uHeadRadii.y);
         float d;
         if(uMode<0.5){
-          float wake=0.20*(1.0-age*0.5)-abs(q.y+warp.y*0.45*age)
-                     +(n-0.45)*(0.25+0.5*age);
+          float wake=0.13*(1.0-age*0.5)-abs(q.y+warp.y*0.30*age)
+                     +(n-0.45)*(0.14+0.30*age);
           float holes=noise21(adv*1.7+warp+31.0);
-          wake-=smoothstep(0.55,0.78,holes)*(0.10+0.22*age);
+          wake-=smoothstep(0.55,0.78,holes)*(0.07+0.15*age);
           wake=min(wake,min(-q.x,q.x+uLength*0.72));
           wake=min(wake,uWidth*0.48-abs(q.y));
           d=max(head,wake);
         } else {
           vec2 r=(p-0.5)*2.0;
           vec2 radial=r/max(length(r),0.001);
-          float lobes=flow(radial*2.8+vec2(uSeed,t*0.4));
-          d=(0.70+(lobes-0.5)*0.42-length(r))*0.58;
+          if(uMode>1.5){
+            float a=atan(r.y,r.x);
+            float rays=pow(abs(sin(a*5.0+uSeed)),8.0);
+            float burst=0.54+0.28*rays-length(r);
+            float ring=0.045-abs(length(r)-(0.25+uProgress*0.62));
+            d=max(burst,ring)*0.58;
+          } else {
+            float lobes=flow(radial*2.8+vec2(uSeed,t*0.4));
+            d=(0.70+(lobes-0.5)*0.42-length(r))*0.58;
+          }
         }
         float aa=max(fwidth(d),0.007);
         float alpha=smoothstep(-aa,aa,d)*uAlpha;
@@ -91,8 +104,8 @@ export function flameMesh(cfg, mode = 0) {
         float heat=(max(0.0,d)*2.0+n*0.36)*(1.0-age*0.40);
         vec3 col=flameColor(heat);
         if(uMode<0.5){
-          // White-hot filled head; only a thin golden transition at its perimeter.
-          float hot=1.0-smoothstep(0.93,1.0,length(q)/uHeadRadius);
+          // White-hot oval with a thin golden transition at its perimeter.
+          float hot=1.0-smoothstep(0.93,1.0,length(headQ));
           col=mix(col,mix(uHot,uCore,hot),smoothstep(-aa,aa,head));
         }
         gl_FragColor=vec4(col,alpha);
@@ -112,7 +125,7 @@ export function flameMesh(cfg, mode = 0) {
     blending:THREE.AdditiveBlending,
     fragmentShader: /* glsl */ `
       uniform vec3 uBody; uniform float uGlowRadius,uGlowStrength,uAlpha,uMode,uLength;
-      varying vec2 vLocal;
+      varying vec2 vLocal; varying vec2 vUv;
       void main(){
         float r=length(vLocal)/uGlowRadius;
         float glow=(exp(-r*r*2.5)*0.62+exp(-r*r*9.0)*0.38)*uGlowStrength;
@@ -122,7 +135,9 @@ export function flameMesh(cfg, mode = 0) {
           trail*=1.0-smoothstep(0.25,1.0,-vLocal.x/(uLength*0.72));
           glow+=trail;
         }
-        float a=glow*uAlpha;
+        // Fully fade before a quad edge even if a future preset widens the glow.
+        vec2 edge=abs(vUv-0.5);
+        float a=glow*uAlpha*(1.0-smoothstep(0.42,0.5,max(edge.x,edge.y)));
         if(a<0.002)discard;
         gl_FragColor=vec4(uBody,a);
         #include <colorspace_fragment>

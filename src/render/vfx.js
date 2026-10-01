@@ -256,6 +256,7 @@ export class Vfx {
     if (e.skill !== 'firebolt' || element !== 'fire') return;
     const mesh = flameMesh(FX.skills.firebolt, 1);
     mesh.material.uniforms.uWidth.value = FX.skills.firebolt.cast.size;
+    mesh.material.uniforms.uGlowRadius.value = FX.skills.firebolt.cast.glowRadius;
     // Hidden until updateCast supplies an actual source rig (event x/z is the target).
     mesh.visible = false;
     this.scene.add(mesh);
@@ -292,12 +293,13 @@ export class Vfx {
   fireImpact(e) {
     const cfg = FX.skills.firebolt, f = cfg.impact;
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
-    const flash = flameMesh(cfg, 1);
+    const flash = flameMesh(cfg, 2);
     flash.position.set(e.x, y, e.z);
     flash.material.uniforms.uWidth.value = f.size;
     this.spawn(flash, f.flashLife, (k) => {
       const u = flash.material.uniforms;
       u.uTime.value = k * f.flashLife;
+      u.uProgress.value = k;
       u.uScale.value = 0.5 + Math.sin(k * Math.PI * 0.8) * 0.5;
       u.uAlpha.value = 1 - k * k;
     });
@@ -306,11 +308,6 @@ export class Vfx {
       this.flames.emit(e.x, y, e.z, Math.cos(a) * r, 0.6 + Math.sin(a * 3) * 0.7,
         Math.sin(a) * r, i < f.wisps ? 0.6 : 0.24, i < f.wisps ? 0.3 : 0.4,
         i < f.wisps ? 0 : 1, i * 0.618 % 1);
-    }
-    for (let i = 0; i < f.smoke; i++) {
-      const a = i * 2.39996;
-      this.flames.emit(e.x + Math.cos(a) * 0.18, y, e.z + Math.sin(a) * 0.18,
-        Math.cos(a) * 0.5, 0.45, Math.sin(a) * 0.5, 0.48, f.smokeLife, 2, i * 0.17);
     }
     this.shake = Math.max(this.shake, f.shake);
   }
@@ -1086,4 +1083,3 @@ export class Vfx {
     this.active = keep;
   }
 }
-

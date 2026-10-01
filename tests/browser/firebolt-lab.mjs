@@ -23,7 +23,7 @@ try {
   await page.waitForFunction(()=>window.__lab);
   await page.waitForLoadState('networkidle');
   await page.evaluate(()=>{
-    const L=window.__lab;L.state.paused=true;L.state.zoom=0.4;L.state.speed=0.5;
+    const L=window.__lab;L.state.paused=true;L.state.zoom=0.4;L.state.speed=1;
     window.__impacts=0;const impact=L.vfx.impact.bind(L.vfx);
     L.vfx.impact=e=>{window.__impacts++;impact(e);};
     L.cast();
@@ -32,12 +32,17 @@ try {
   for(let i=0;i<42;i++){
     await page.evaluate(()=>{window.__lab.step(1/60);window.__lab.step(1/60);});
     await page.screenshot({path:`${OUT}frame-${String(i).padStart(3,'0')}.png`});
-    sample.push(await page.evaluate(()=>({cast:!!window.__lab.vfx.castFlame,projectiles:window.__lab.vfx.projectiles.size,particles:window.__lab.vfx.flames.count,hits:window.__impacts})));
+    sample.push(await page.evaluate(()=>{
+      const L=window.__lab;let smoke=0;
+      for(let k=0;k<L.vfx.flames.count;k++)if(L.vfx.flames.info[k*4+2]>1.5)smoke++;
+      return {cast:!!L.vfx.castFlame,projectiles:L.vfx.projectiles.size,particles:L.vfx.flames.count,smoke,hits:window.__impacts};
+    }));
   }
   assert(sample.some(s=>s.cast),'charge phase never appeared');
   assert(sample.some(s=>s.projectiles>0),'projectile never appeared');
   assert.equal(sample.at(-1).hits,1,'single shot must impact once');
-  assert.equal(sample.at(-1).particles,0,'fire and smoke should finish');
+  assert.equal(sample.at(-1).particles,0,'fire and sparks should finish');
+  assert(sample.every(s=>s.smoke===0),'Firebolt impact must not emit smoke');
   // Warm up once, then compare two batches after expiry and an actual GPU render.
   const drain=async(count,options={})=>{
     await page.evaluate(({count,options})=>{
@@ -56,8 +61,12 @@ try {
   await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
   await page.getByRole('button',{name:'มืด',exact:true}).click();
   await page.getByRole('button',{name:'▾ ซ่อน',exact:true}).click();
-  await page.evaluate(()=>{window.__lab.cast();for(let i=0;i<22;i++)window.__lab.step(1/60);});
+  await page.evaluate(()=>{window.__lab.cast();for(let i=0;i<10;i++)window.__lab.step(1/60);});
+  await page.screenshot({path:`${OUT}dark-charge.png`});
+  await page.evaluate(()=>{for(let i=0;i<24;i++)window.__lab.step(1/60);});
   await page.screenshot({path:`${OUT}dark-travel.png`});
+  await page.evaluate(()=>{for(let i=0;i<12;i++)window.__lab.step(1/60);});
+  await page.screenshot({path:`${OUT}dark-impact.png`});
   await page.evaluate(()=>{for(let i=0;i<120;i++)window.__lab.step(1/60);});
   await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
   await page.getByRole('button',{name:'ทราย',exact:true}).click();

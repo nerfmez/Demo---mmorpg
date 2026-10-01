@@ -19,8 +19,12 @@ NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt \
 TYPESAFE_API_KEY=injected-by-proxy \
 JEV_OUTPUT_DIR=<scratch>/jev-out JEV_CACHE_DIR=<scratch>/jev-cache \
 JEV_TASK='...' JEV_KEYWORDS='...' node scripts/jev-context.mjs
-git worktree remove --force <scratch>/jev-src
+status=$?
+cd - && git worktree remove --force <scratch>/jev-src
+exit $status
 ```
+
+เก็บ exit status ของสคริปต์ไว้ก่อนลบ worktree ถ้าไม่เป็น 0 (401/403, network, `fallback`) ให้ใช้ช่องทาง GitHub
 
 - `TYPESAFE_API_KEY=injected-by-proxy` เป็นค่าหลอกให้สคริปต์ผ่านการตรวจว่ามีคีย์ proxy แทนที่ด้วยคีย์จริง ห้ามอ่าน แสดง หรือ commit คีย์จริง
 - `NODE_USE_ENV_PROXY=1` จำเป็นเพราะ `fetch` ของ Node ไม่อ่าน `HTTPS_PROXY` เอง (Node ≥ 22.21)

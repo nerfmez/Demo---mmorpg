@@ -233,9 +233,9 @@ function stepWolf(dt) {
   wolf.root.rotation.y = Math.atan2(dx, dz);
   const reach = skillDef().summon.range + .6 + .35;
   if (r.phase === 'chase') {
-    if (distance <= reach) { r.phase = 'windup'; r.t = 0; }
+    if (distance <= reach + 1e-8) { r.phase = 'windup'; r.t = 0; }
     else { const move = Math.min(Math.max(0, distance - reach), skillDef().summon.speed * dt); wolf.root.position.x += dx / distance * move; wolf.root.position.z += dz / distance * move; }
-  } else if (r.phase === 'windup' && r.t >= .25) {
+  } else if (r.phase === 'windup' && r.t + 1e-8 >= .25) {
     const e = { skill: state.skill, element: r.element, x: dummy.position.x, z: dummy.position.z, fromX: wolf.root.position.x, fromZ: wolf.root.position.z };
     if (distance <= reach + .5) { vfx.bite(e); if (state.reviewPhase === 'full') { contact(e); } }
     r.phase = 'recover'; r.t = 0;
@@ -379,7 +379,7 @@ function resize() {
   camera.aspect = w / h;
   // Preserve horizontal room for caster and target when a portrait inspector
   // reduces the available view. The owner's selected zoom remains the base.
-  viewFit = Math.max(1, h / Math.max(1, w - panelW));
+  viewFit = Math.max(w, h) / Math.max(1, w - panelW);
   // keep the action centred in the part of the screen above the touch panel
   camera.setViewOffset(w, h, panelW / 2, panelH / 2, w, h);
   camera.updateProjectionMatrix();
@@ -402,8 +402,9 @@ function frame(now) {
     }
     step(dt);
   }
-  const target = camTarget.set(-state.distance / 2, 0, 0);
-  camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom * viewFit);
+  const areaPad = skillDef()?.kind === 'ground_area' ? skillDef().radius : 0;
+  const target = camTarget.set(-(state.distance + areaPad) / 2, 0, 0);
+  camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom * viewFit * (1 + areaPad / Math.max(2, state.distance)));
   if (shake > 0) {
     camera.position.x += (Math.random() - 0.5) * shake * 0.35;
     camera.position.y += (Math.random() - 0.5) * shake * 0.35;

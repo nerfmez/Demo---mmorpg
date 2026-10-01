@@ -49,6 +49,14 @@ try {
   assert.equal(await page.evaluate(() => window.__physical.hits.length), 1);
   const earth = await page.evaluate(() => ({ chips: window.__lab.vfx.chips.count, dust: window.__lab.vfx.dust.count, contacts: window.__lab.vfx.contacts.count, rocks: window.__lab.vfx.active.find(a => a.obj.children?.[0]?.userData.height)?.obj.children.length }));
   assert(earth.chips > 0); assert(earth.dust > 0); assert(earth.contacts > 0); assert.equal(earth.rocks, 7); await shot('earth-impact.png');
+  const earthBounds = await page.evaluate(() => {
+    const L = window.__lab, radius = L.tuning.get('stone_burst').def.radius;
+    const left = L.view.dummy.position.clone(); left.x -= radius;
+    const points = [left, L.view.hero.position.clone()];
+    const right = document.getElementById('panel').getBoundingClientRect().left;
+    return points.map(p => (p.project(L.view.camera).x + 1) * innerWidth / 2).every(x => x > 0 && x < right);
+  });
+  assert(earthBounds, 'the open inspector must leave the caster and full earth footprint in view');
   const height = page.locator('input[type=number][data-field="fx.burst.height"]'); await height.fill('1.7'); await height.press('Tab'); await page.waitForTimeout(250);
   await preview('burst'); await tick(8);
   const tuned = await page.evaluate(() => {

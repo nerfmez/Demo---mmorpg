@@ -162,7 +162,7 @@
         ],
         "tailHalfWidth": 0.115,
         "tailSway": 0.15,
-        "flowSpeed": 9,
+        "flowSpeed": 18,
         "trailOffset": [
           0.85,
           1.4

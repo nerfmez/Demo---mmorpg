@@ -9,6 +9,7 @@ import { timeUniform } from './patch.js';
 import { bakeWaterContact, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform } from './ground-brush.js';
+import art from '../../data/art.json' with {type:'json'};
 
 const TILE = 32;
 
@@ -33,12 +34,18 @@ export function surfaceData(world) {
   const stone = new Float32Array(n);
   const dirt = new Float32Array(n);
   const coast = new Float32Array(n * 2);
+  // Planned town ground (streets, courts, lawns) instead of wild-meadow noise; blurred for the shader.
+  const planned = new Float32Array(n), townZones = new Set(art.ground.townZones || []);
+  for (let k = 0; k < n; k++) {
+    const x = ox + (k % w) * res, z = oz + Math.floor(k / w) * res, b = world.bounds;
+    if (x > b.minX && x < b.maxX && z > b.minZ && z < b.maxZ && townZones.has(world.zoneAt(x, z).id)) planned[k] = 1;
+  }
   const grid = { ox, oz, res, w, h };
   for (const r of world.roads) {
     const half = r.width / 2;
     rasterPolyline(grid, r.points, half + 1.5, (k, d) => {
       const x=ox+(k%w)*res, z=oz+Math.floor(k/w)*res;
-      const worn=(valueNoise(x*.22,z*.22,71)-.5)*.7+(valueNoise(x*.85,z*.85,72)-.5)*.22;
+      const worn=((valueNoise(x*.22,z*.22,71)-.5)*.7+(valueNoise(x*.85,z*.85,72)-.5)*.22)*(1-planned[k]*.65);
       road[k] = Math.max(road[k], 1 - smooth(half - .6 + worn, half + 1.05 + worn, d));
     });
   }
@@ -95,7 +102,7 @@ export function surfaceData(world) {
       for (const surface of town.surfaces || []) {
         const points=surface.points, edge=distToPolyline(x,z,points);
         const distance=pointInPolygon(points,x,z)?edge:-edge;
-        const wear=(valueNoise(x*.24,z*.24,76)-.5)*.85;
+        const wear=(valueNoise(x*.24,z*.24,76)-.5)*(.85-planned[k]*.55);
         const patch=smooth(-1.1+wear,.65+wear,distance)*smooth(-.1,.5,wd.sea?-coast[k*2+1]:1);
         if(surface.kind==='paving') {
           const street=surface.preserveRoad ? 1-smooth(.25,.85,road[k]) : 1;
@@ -111,7 +118,7 @@ export function surfaceData(world) {
       const zn = inside ? world.zoneAt(x, z) : null;
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
       const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
-      dirt[k] = Math.max(dirt[k], smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
+      dirt[k] = Math.max(dirt[k], (1 - planned[k]) * smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
       for(const surface of wd.harbor?.workSurfaces||[]){
         const p=toBoxLocal(surface,x,z),radius=Math.hypot(p.lx/surface.rx,p.lz/surface.rz);
         if(radius>1.3)continue;
@@ -157,7 +164,7 @@ export function surfaceData(world) {
   }
   const blur = (a) => boxBlur(boxBlur(a, w, h, 6), w, h, 4);
   [lr, lg, lb, dr, dg, db] = [lr, lg, lb, dr, dg, db].map(blur);
-  const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db };
+  const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: blur(planned) };
   surfaceCache.set(world,result);
   return result;
 }
@@ -182,6 +189,7 @@ export function createTerrain(world) {
       const tintL = new Float32Array(vw * vh * 3);
       const tintD = new Float32Array(vw * vh * 3);
       const coast = new Float32Array(vw * vh * 2);
+      const townMask = new Float32Array(vw * vh);
       for (let j = 0; j < vh; j++)
         for (let i = 0; i < vw; i++) {
           const gi = ti + i;
@@ -201,6 +209,7 @@ export function createTerrain(world) {
           splat[v * 4 + 1] = surf.stone[k];
           splat[v * 4 + 2] = surf.mud[k];
           splat[v * 4 + 3] = surf.dirt[k];
+          townMask[v] = surf.town[k];
           coast[v * 2] = surf.coast[k * 2];
           coast[v * 2 + 1] = surf.coast[k * 2 + 1];
           tintL[v * 3] = surf.lr[k];
@@ -222,6 +231,7 @@ export function createTerrain(world) {
       geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
       geo.setAttribute('aSplat', new THREE.BufferAttribute(splat, 4));
       geo.setAttribute('aCoast', new THREE.BufferAttribute(coast, 2));
+      geo.setAttribute('aTown', new THREE.BufferAttribute(townMask, 1));
       geo.setAttribute('aTintL', new THREE.BufferAttribute(tintL, 3));
       geo.setAttribute('aTintD', new THREE.BufferAttribute(tintD, 3));
       geo.setIndex(idx);
@@ -249,19 +259,19 @@ function terrainMaterial(world) {
       .replace(
         '#include <common>',
         `#include <common>
-attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; varying vec2 vCoast;
+attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; varying vec2 vCoast; varying float vTown;
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast;
+varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown;
 uniform float uTime; uniform vec3 uArena; uniform float uWater;
 ${GROUND_COLOR_GLSL}`
       )
@@ -271,7 +281,7 @@ ${GROUND_COLOR_GLSL}`
 {
   vec2 w = vWorldPos.xz;
   float y = vWorldPos.y;
-  vec3 col=groundColor(w,y,vTintL,vTintD,vSplat,vCoast,vUp,uWater);
+  vec3 col=groundColor(w,y,vTintL,vTintD,vSplat,vCoast,vUp,uWater,vTown);
   // boss arena rune circle
   float ad = distance(w, uArena.xy);
   float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));
@@ -284,7 +294,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v9';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v10';
   return mat;
 }
 
@@ -320,7 +330,8 @@ function seaMaterial(world, contacts) {
         float along=(p.x-centre)/halfLength,tip=clamp(along,-1.0,1.0);
         float bend=uCrest.x*(.45*sin(p.x*.19+uTime*.15+row*.37)
           +.12*sin(p.x*.43-uTime*.10+row*2.1)
-          +(.65+.20*seed)*(tip*tip-.35));
+          // the crest bows forward toward the quay it travels to (-z), its ends trailing behind
+          -(.65+.20*seed)*(tip*tip-.35));
         float width=uCrest.y*sqrt(max(0.0,1.0-along*along))*(.8+.4*seed);
         return vec3(base+bend/uMotion.w,along,width);
       }

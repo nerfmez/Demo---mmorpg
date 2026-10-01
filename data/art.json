@@ -41,7 +41,7 @@
     "wildMinDensity": 0.08,
     "roadEdgeWobble": 0.46,
     "roadEdgeTufts": 0.3,
-    "roadWidthWobble": 0.36, "pavingEdgeWobble": 0.5, "pavingSunken": 0.08, "pavingMissing": 0.035,
+    "roadWidthWobble": 0.36, "pavingEdgeWobble": 0.5, "pavingSunken": 0.08, "pavingMissing": 0.035, "townZones": ["settlement"], "townKerb": 0.7,
     "grassPerPatch": 20,
     "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
   },

@@ -28,7 +28,7 @@ function nextCrestTime(x,z,now,surf){
   const offset=hash(row,93.7)*length,cell=Math.floor((x-offset)/length),seed=hash(cell,row);
   const centre=(cell+.5)*length+offset+(seed-.5)*length*.12;
   const halfLength=length*(.28+.13*hash(cell+8.3,row)),tip=Math.min(1,Math.max(-1,(x-centre)/halfLength));
-  const phase=t=>z+t*speed+bend*(.45*Math.sin(x*.19+t*.15+row*.37)+.12*Math.sin(x*.43-t*.10+row*2.1)+(.65+.20*seed)*(tip*tip-.35));
+  const phase=t=>z+t*speed+bend*(.45*Math.sin(x*.19+t*.15+row*.37)+.12*Math.sin(x*.43-t*.10+row*2.1)-(.65+.20*seed)*(tip*tip-.35));
   let t=row*surf.period-z/speed;
   for(let i=0;i<6;i++)t-=(phase(t)-row*surf.waveSpacing)/(speed+bend*(.0675*Math.cos(x*.19+t*.15+row*.37)-.012*Math.cos(x*.43-t*.10+row*2.1)));
   if(t<now)return nextCrestTime(x,z,now+surf.period*.5,surf);

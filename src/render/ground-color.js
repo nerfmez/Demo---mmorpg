@@ -108,24 +108,26 @@ vec3 paintedTimber(vec2 w){
 export const GROUND_COLOR_GLSL=SURFACE_PAINT_GLSL+MEADOW_FIELD_GLSL+/* glsl */ `
 // The meadow's own green at a point, before soil, roads or brush strokes: grass blades take this
 // colour above their root, so a clump standing on a dirt edge is still green, not dirt-brown.
-vec3 lawnTone(vec2 w,vec3 tintL,vec3 tintD){
+// In town (town=1) the lawn is kept: an even, mown green with only a soft wash of variation.
+vec3 lawnTone(vec2 w,vec3 tintL,vec3 tintD,float town){
   float patchTone=smoothstep(.14,.86,meadowField(w).x*.70+vnoise(w*.085+13.0)*.30);
+  patchTone=mix(patchTone,.58+(vnoise(w*.21+5.0)-.5)*.22,town*.8);
   vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
-  return mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17);
+  return mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17*(1.0-town*.7));
 }
-vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,float up,float water){
+vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,float up,float water,float town){
   vec2 meadow=meadowField(w);
   float mid=vnoise(w*1.30+3.0),fine=vnoise(w*5.2),broad=vnoise(w*.085+13.0);
-  vec3 grass=lawnTone(w,tintL,tintD);
+  vec3 grass=lawnTone(w,tintL,tintD,town);
   vec3 brush=groundBrush(w);
   grass*=.88+brush.r*.26;
-  float planted=.32+smoothstep(.12,.65,meadow.x)*.68;
+  float planted=(.32+smoothstep(.12,.65,meadow.x)*.68)*(1.0-town*.45);
   grass=mix(grass,grass*.76,brush.g*planted*${f(blade.groundStrokeShade)});
   grass=mix(grass,grass*1.27+${rgb(p.grassOchre)}*.05,brush.b*planted*${f(blade.groundStrokeLight)});
   grass*=.99+(fine-.5)*.025;
   vec3 earth=paintedEarth(w,0.0);
   // Irregular open soil islands are part of the painted terrain, not separate overlay quads.
-  float soil=meadow.y*.30+smoothstep(.48,.90,splat.a)*.40;
+  float soil=meadow.y*.30*(1.0-town)+smoothstep(.48,.90,splat.a)*.40;
   vec3 col=mix(grass,earth,clamp(soil,0.0,.68));
   // bare-soil patches get the same ragged, stubble-broken edge and dirt texture as the roads
   float bare=splat.a+(vnoise(w*.5+91.0)-.5)*.42+(fine-.5)*.12-max(brush.g,brush.b)*.22;
@@ -135,7 +137,9 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   // trodden path cut into a lawn rather than one soft brush stroke
   float wob=(vnoise(w*.42+71.0)-.5)*${f(art.ground.roadEdgeWobble)}+(mid-.5)*.24+(vnoise(w*2.7+5.0)-.5)*.14
     +(vnoise(w*.11+33.0)-.5)*${f(art.ground.roadWidthWobble)};
-  float tufts=max(brush.g,brush.b)*smoothstep(.12,.55,splat.r)*(1.0-smoothstep(.75,1.0,splat.r));
+  // town lanes are laid out, so their edges only wander gently and stay clear of tufts
+  wob*=1.0-town*.7;
+  float tufts=max(brush.g,brush.b)*smoothstep(.12,.55,splat.r)*(1.0-smoothstep(.75,1.0,splat.r))*(1.0-town);
   float roadEdge=splat.r+wob-tufts*${f(art.ground.roadEdgeTufts)};
   float onRoad=smoothstep(.40,.54,roadEdge);
   col=mix(col,roadEarth(w,earth,splat.r),onRoad);
@@ -149,8 +153,14 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   }
   // paving frays into the soil at a wandering border, not along a ruled line
   if(splat.g>.05){
-    float pave=splat.g+(vnoise(w*.38+57.0)-.5)*${f(art.ground.pavingEdgeWobble)}+(mid-.5)*.22+(fine-.5)*.08;
+    float pave=splat.g+((vnoise(w*.38+57.0)-.5)*${f(art.ground.pavingEdgeWobble)}+(mid-.5)*.22)*(1.0-town*.75)+(fine-.5)*.08*(1.0-town);
     col=mix(col,paintedPaving(w,grass,1.0),smoothstep(.30,.52,pave));
+    // town courts end in a kerb of long setts, not a frayed edge
+    vec2 kc=floor(w*vec2(1.7,1.9));
+    vec3 kerb=mix(${rgb(p.stoneShadow)}*.86,${rgb(p.stoneLight)},.25+hash12(kc)*.25)*(.92+groundBrush(w).r*.1);
+    float band=smoothstep(.25,.28,pave)*(1.0-smoothstep(.40,.43,pave));
+    col=mix(col,col*.82,smoothstep(.20,.25,pave)*(1.0-smoothstep(.25,.28,pave))*town); // soft shadow line outside the kerb
+    col=mix(col,kerb,band*town*${f(art.ground.townKerb)});
   }
   // Broad cut faces and restrained chips preserve the terrain's real slope silhouette.
   if(up<.85){

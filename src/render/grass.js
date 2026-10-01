@@ -25,17 +25,17 @@ export function sampleGround(world,x,z) {
   });
   return {light:[read(s.lr),read(s.lg),read(s.lb)],dark:[read(s.dr),read(s.dg),read(s.db)],
     splat:[read(s.road),read(s.stone),read(s.mud),read(s.dirt)],
-    coast:[read(s.coast,2,0),read(s.coast,2,1)],normal:normal.toArray(),height:read(h.data)};
+    coast:[read(s.coast,2,0),read(s.coast,2,1)],town:read(s.town),normal:normal.toArray(),height:read(h.data)};
 }
 
 export function attachGrassSurface(mesh,items,world) {
   // Per-chunk attributes must belong to that chunk, not the shared blade geometry.
   mesh.geometry=mesh.geometry.clone();
-  const fields={aGrassLight:3,aGrassDark:3,aGrassSplat:4,aGrassCoast:2,aGrassNormal:3,aGrassY:1};
+  const fields={aGrassLight:3,aGrassDark:3,aGrassSplat:4,aGrassCoast:2,aGrassNormal:3,aGrassY:1,aGrassTown:1};
   const arrays=Object.fromEntries(Object.entries(fields).map(([k,n])=>[k,new Float32Array(items.length*n)]));
   items.forEach((it,i)=>{
     const p=sampleGround(world,it.x,it.z);
-    for(const [k,v] of Object.entries({aGrassLight:p.light,aGrassDark:p.dark,aGrassSplat:p.splat,aGrassCoast:p.coast,aGrassNormal:p.normal,aGrassY:[p.height]})) arrays[k].set(v,i*fields[k]);
+    for(const [k,v] of Object.entries({aGrassLight:p.light,aGrassDark:p.dark,aGrassSplat:p.splat,aGrassCoast:p.coast,aGrassNormal:p.normal,aGrassY:[p.height],aGrassTown:[p.town]})) arrays[k].set(v,i*fields[k]);
   });
   for(const [k,n] of Object.entries(fields))mesh.geometry.setAttribute(k,new THREE.InstancedBufferAttribute(arrays[k],n));
   mesh.name='ground-blended-grass';
@@ -53,22 +53,22 @@ export function grassMaterial(world) {
     s.uniforms.uGroundBrush=brush;
     s.uniforms.uGrassTip={value:art.grass.tipLightening};
     s.uniforms.uGrassRootHeight={value:art.grass.rootBlendHeight};
-    const vary=`varying vec3 vGrassRoot,vGrassLight,vGrassDark; varying vec4 vGrassSplat; varying vec2 vGrassCoast; varying float vGrassHeight,vGrassUp;`;
+    const vary=`varying vec3 vGrassRoot,vGrassLight,vGrassDark; varying vec4 vGrassSplat; varying vec2 vGrassCoast; varying float vGrassHeight,vGrassUp,vGrassTown;`;
     s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>
       ${vary}
-      attribute vec3 aGrassLight,aGrassDark,aGrassNormal; attribute vec4 aGrassSplat; attribute vec2 aGrassCoast; attribute float aGrassY;`)
+      attribute vec3 aGrassLight,aGrassDark,aGrassNormal; attribute vec4 aGrassSplat; attribute vec2 aGrassCoast; attribute float aGrassY,aGrassTown;`)
       .replace('#include <defaultnormal_vertex>',`#include <defaultnormal_vertex>
         transformedNormal=normalMatrix*normalize(aGrassNormal);`)
       .replace('#include <begin_vertex>',`#include <begin_vertex>
         vGrassRoot=(modelMatrix*instanceMatrix*vec4(0.0,0.0,0.0,1.0)).xyz;
         vGrassRoot.y=aGrassY;vGrassHeight=position.y;
-        vGrassLight=aGrassLight;vGrassDark=aGrassDark;vGrassSplat=aGrassSplat;vGrassCoast=aGrassCoast;vGrassUp=aGrassNormal.y;`);
+        vGrassLight=aGrassLight;vGrassDark=aGrassDark;vGrassSplat=aGrassSplat;vGrassCoast=aGrassCoast;vGrassUp=aGrassNormal.y;vGrassTown=aGrassTown;`);
     s.fragmentShader=s.fragmentShader.replace('#include <common>',`#include <common>
       ${vary} uniform float uTime,uGrassWater,uGrassTip,uGrassRootHeight;
       ${GROUND_COLOR_GLSL}`)
       .replace('#include <color_fragment>',`#include <color_fragment>
-        vec3 base=groundColor(vGrassRoot.xz,vGrassRoot.y,vGrassLight,vGrassDark,vGrassSplat,vGrassCoast,vGrassUp,uGrassWater);
-        vec3 lawn=lawnTone(vGrassRoot.xz,vGrassLight,vGrassDark);
+        vec3 base=groundColor(vGrassRoot.xz,vGrassRoot.y,vGrassLight,vGrassDark,vGrassSplat,vGrassCoast,vGrassUp,uGrassWater,vGrassTown);
+        vec3 lawn=lawnTone(vGrassRoot.xz,vGrassLight,vGrassDark,vGrassTown);
         // the root is exactly the ground colour under the clump (grass on lawn, earth on a dirt edge);
         // above it the blade turns to the meadow's own green and lightens smoothly up to its tip
         float rise=smoothstep(.0,uGrassRootHeight,vGrassHeight);
@@ -79,6 +79,6 @@ export function grassMaterial(world) {
     // negates the normal and makes half the clumps look almost black.
     s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');
   };
-  m.customProgramCacheKey=()=> 'grass-shared-ground-v6';
+  m.customProgramCacheKey=()=> 'grass-shared-ground-v7';
   return m;
 }

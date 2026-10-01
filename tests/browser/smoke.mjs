@@ -149,6 +149,19 @@ async function run(name, contextOpts) {
   check(res.kills > 0, `${name}: monsters die and drop loot`);
   check(res.quest && res.quest.progress > 0, `${name}: kills advance the boar side quest`);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-2-meadow.png` });
+  // monsters outside the camera are not drawn (view.js culls them); every one on screen must be
+  const cull = await page.evaluate(() => {
+    const v = window.__frontier.view;
+    const P = v.camera.position.clone();
+    let hidden = 0, missed = 0;
+    for (const mv of v.monsterViews.values()) {
+      P.copy(mv.rig.root.position).project(v.camera);
+      if (!mv.rig.root.visible) hidden++;
+      if (Math.abs(P.x) < 1 && Math.abs(P.y) < 1 && P.z < 1 && !mv.rig.root.visible) missed++;
+    }
+    return { total: v.monsterViews.size, hidden, missed };
+  });
+  check(cull.missed === 0, `${name}: every monster on screen is drawn (${JSON.stringify(cull)})`);
 
   // ---- every panel opens without errors (craft needs the workbench) ----
   await page.evaluate(() => {

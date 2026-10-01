@@ -4,11 +4,12 @@ import { outlineStructure } from './architecture.js';
 import { toon, outlined } from './toon.js';
 import { builder, marketFishingBoat } from './market.js';
 import { coastalLighthouse, districtScenery } from './districts.js';
+import { walkSurfaceMaterial } from './walk-surface.js';
 
 export function createHarbor(world) {
   const root = new THREE.Group();
-  const part = (geo, color, x, y, z, parent = root) => {
-    const mesh = outlined(geo, toon(color), { outline: '#51483b', width: .025 });
+  const part = (geo, color, x, y, z, parent = root, material = null) => {
+    const mesh = outlined(geo, material || toon(color), { outline: '#51483b', width: .025 });
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
   };
   for (const d of world.docks) {
@@ -22,7 +23,8 @@ export function createHarbor(world) {
     const positions=deckGeometry.attributes.position;
     for(let i=0;i<positions.count;i++)positions.setY(i,positions.getY(i)+slope*positions.getZ(i));
     deckGeometry.computeVertexNormals();
-    part(deckGeometry,d.kind === 'breakwater' ? '#a4a99f' : d.kind === 'slipway' ? '#aaa79a' : '#a88a61',0,-.15,0,pier);
+    const surfaceKind=['breakwater','slipway'].includes(d.kind)?'paving':'wood';
+    part(deckGeometry,'#ffffff',0,-.15,0,pier,walkSurfaceMaterial(surfaceKind,1,[d.x,d.z]));
     const details=builder();
     if(d.kind==='slipway'){
       // Low launch rails follow the same local slope and leave the centre open.
@@ -40,16 +42,9 @@ export function createHarbor(world) {
       // Low segmented coping and a slightly lifted visual surface avoid a
       // coplanar cut through the landward deck; walking height stays unchanged.
       for(const x of [-d.hx+.15,d.hx-.15])for(let z=-d.hz+.65;z<d.hz-.4;z+=1.18)details.box(.24,.22,1.03,'#afb4a5',x,.11,z);
-      for(let z=-d.hz+.7;z<d.hz;z+=1.14)details.box(d.hx*2-.6,.012,.025,'#8d9589',0,.010,z);
     }
     pier.add(details.finish());
-    // Raised narrow seams read as planks without a mesh for every board.
-    const seams=[];
-    for(let z=-d.hz+.4;(!d.kind || d.kind === 'pier') && z<d.hz;z+=.32) seams.push(z);
-    const geometry=new THREE.BoxGeometry(d.hx*2,.012,.015);
-    const mesh=new THREE.InstancedMesh(geometry,toon('#897052'),seams.length);
-    const matrix=new THREE.Matrix4(); seams.forEach((z,i)=>mesh.setMatrixAt(i,matrix.makeTranslation(0,.008+slope*z,z)));
-    pier.add(mesh);
+    // Plank joins and grain are painted into the deck, including the sloping join.
     for(const x of d.kind === 'slipway' ? [] : [-d.hx+.2,d.hx-.2]) for(const z of [-d.hz+.3,d.hz-.3]) {
       part(new THREE.CylinderGeometry(.14,.18,4,6),'#6e5439',x,-1.4+slope*z,z,pier);
       part(new THREE.TorusGeometry(.2,.045,5,10),'#d1ba82',x,.48+slope*z,z,pier).rotation.x=Math.PI/2;
@@ -90,7 +85,7 @@ export function createHarbor(world) {
     root.add(symbol);
   }
   for(const [x,z] of h.farmBeds) {
-    part(new THREE.BoxGeometry(6,.12,10),'#8b7250',x,world.groundY(x,z)+.06,z);
+    part(new THREE.BoxGeometry(6,.12,10),'#8b7250',x,world.groundY(x,z)+.06,z,root,walkSurfaceMaterial('earth',.95,[x,z]));
     for(const offset of [-2,0,2]) part(new THREE.BoxGeometry(.35,.25,9),'#7c9551',x+offset,world.groundY(x,z)+.2,z);
   }
   for(const structure of root.children)outlineStructure(structure);

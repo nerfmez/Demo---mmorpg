@@ -16,14 +16,15 @@ function bakeBrushes(){
       bytes[k]=Math.round(bytes[k]*(1-a)+tone*a);
     }
   }
-  // A different loose silhouette for every tuft, with curved/tapered leaves and gaps.
-  for(let tuft=0;tuft<650;tuft++){
-    const cx=rng.range(0,size),cy=rng.range(0,size),radius=rng.range(10,38),direction=rng.range(-.7,.7);
-    const leaves=rng.int(10,22);
+  // Short stubble tufts: many small clusters of short tapered marks with gaps, so the lawn has a
+  // painted texture without long leaves that read as grass lying flat on the ground.
+  for(let tuft=0;tuft<1500;tuft++){
+    const cx=rng.range(0,size),cy=rng.range(0,size),radius=rng.range(5,16),direction=rng.range(-.7,.7);
+    const leaves=rng.int(7,15);
     for(let leaf=0;leaf<leaves;leaf++){
       const a=rng.range(0,Math.PI*2),r=Math.sqrt(rng.next())*radius;
       const bx=cx+Math.cos(a)*r,by=cy+Math.sin(a)*r,angle=direction+rng.range(-1.0,1.0);
-      const length=rng.range(12,36),width=rng.range(1.0,2.6),bend=rng.range(-8,8),c=Math.cos(angle),s=Math.sin(angle);
+      const length=rng.range(4,11),width=rng.range(1.1,2.3),bend=rng.range(-2,2),c=Math.cos(angle),s=Math.sin(angle);
       const channel=rng.next()<.35?1:2,pigment=rng.range(112,232);
       const corners=[[0,-1],[-width-Math.abs(bend),length+1],[width+Math.abs(bend),length+1]].map(([x,y])=>[bx+c*x-s*y,by+s*x+c*y]);
       const minX=Math.floor(Math.min(...corners.map(p=>p[0]))-2),maxX=Math.ceil(Math.max(...corners.map(p=>p[0]))+2);

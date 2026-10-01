@@ -297,6 +297,7 @@ export class Vfx {
     flash.position.set(e.x, y, e.z);
     flash.material.uniforms.uWidth.value = f.size;
     flash.material.uniforms.uGlowRadius.value = f.glowRadius;
+    flash.material.uniforms.uSeed.value = Math.random() * 17;
     // Reuse the nearest last-rendered Firebolt direction; core events stay unchanged.
     let nearest = Infinity;
     for (const v of this.projectiles.values()) {

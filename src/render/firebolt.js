@@ -42,7 +42,7 @@ export function flameMesh(cfg, mode = 0) {
       uHeadRadii:{value:new THREE.Vector2(...cfg.projectile.headRadii)}, uHaloScale:{value:1},
       uTail:{value:new THREE.Vector3(cfg.projectile.tailHalfWidth,cfg.projectile.tailSway,cfg.projectile.flowSpeed)},
       uGlowRadius:{value:cfg.projectile.glowRadius}, uGlowStrength:{value:cfg.projectile.glowStrength} },
-    transparent:true, depthWrite:false, side:THREE.DoubleSide,
+    transparent:true, depthWrite:false, depthTest:mode!==2, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       uniform vec3 uVelocity; uniform float uScale,uLength,uWidth,uMode,uHaloScale,uGlowRadius;
       varying vec2 vUv; varying vec2 vLocal;
@@ -72,25 +72,34 @@ export function flameMesh(cfg, mode = 0) {
         // Phase moves toward the tail. Taper bounds the silhouette even when
         // noise peaks; separate curling ribbons shed at different distances.
         float phase=q.x*5.0+uTime*uTail.z+uSeed;
-        vec2 adv=vec2(q.x*4.0+uTime*uTail.z,q.y*8.0);
-        float n=flow(adv);
+        vec2 adv=vec2(q.x*7.0+uTime*uTail.z,q.y*16.0);
+        vec2 warp=vec2(noise21(adv*0.45+17.0),noise21(adv*0.45-11.0))-0.5;
+        float n=flow(adv+warp*2.0);
         vec2 headQ=q/uHeadRadii;
         float head=(1.0-length(headQ))*min(uHeadRadii.x,uHeadRadii.y);
         float d;
         if(uMode<0.5){
           float taper=pow(1.0-age,0.85);
           float bend=uTail.y*age*(sin(phase)*0.65+sin(phase*0.57+1.7)*0.35);
-          float scallop=0.7+0.3*noise21(adv+19.0);
-          float wake=uTail.x*taper*scallop-abs(q.y-bend);
-          // A thin hot stream and two offset tongues, with soft pointed ends.
+          float center=bend+warp.y*0.12*age;
+          float wake=uTail.x*taper-abs(q.y-center)+(n-0.5)*uTail.x*taper*1.3;
+          float holes=noise21(adv*0.7+warp+31.0);
+          wake-=smoothstep(0.52,0.78,holes)*0.10*taper;
+          // Thin hot spine connects the head, while advected gaps tear the
+          // offset tongues into curls rather than three parallel ribbons.
+          float spine=0.023*taper-abs(q.y-center);
           float topAge=clamp(age/0.88,0.0,1.0);
-          float topBend=bend+sin(age*3.14159)*0.12*(0.7+0.3*sin(phase+1.4));
-          float top=0.045*pow(1.0-topAge,0.8)-abs(q.y-topBend);
+          float topBend=center+sin(age*3.14159)*0.13*(0.7+0.3*sin(phase+1.4));
+          float top=0.048*(1.0-topAge)-abs(q.y-topBend)+(n-0.5)*0.04*taper;
+          top=min(top,(noise21(adv*0.65+vec2(7.0,2.0))-0.44)*0.12);
+          top=min(top,(0.88-age)*0.15);
           float bottomAge=clamp(age/0.70,0.0,1.0);
-          float bottomBend=bend-sin(bottomAge*3.14159)*0.14;
-          float bottom=0.04*(1.0-bottomAge)-abs(q.y-bottomBend);
-          wake=max(wake,max(top,bottom));
-          wake=min(wake,min(-q.x,(1.0-age)*0.18));
+          float bottomBend=center-sin(bottomAge*3.14159)*0.14;
+          float bottom=0.045*(1.0-bottomAge)-abs(q.y-bottomBend)+(n-0.5)*0.04*taper;
+          bottom=min(bottom,(noise21(adv*0.8-vec2(13.0,5.0))-0.42)*0.12);
+          bottom=min(bottom,(0.70-age)*0.15);
+          wake=max(max(wake,spine),max(top,bottom));
+          wake=min(wake,min(-q.x,q.x+uLength*0.72));
           d=max(head,wake);
         } else {
           vec2 r=(p-0.5)*2.0;
@@ -101,18 +110,14 @@ export function flameMesh(cfg, mode = 0) {
             float flash=exp(-uProgress*11.0);
             vec2 h=r-vec2(uProgress*0.12,0.0);
             float core=(1.0-length(h/(vec2(0.42,0.35)*(0.25+0.75*flash))))*0.16;
-            float peel=sin(uProgress*3.14159);
-            float flame=-1.0;
-            for(int i=0;i<3;i++){
-              float fi=float(i)-1.0;
-              vec2 c=vec2(uProgress*0.24,fi*peel*0.22);
-              vec2 radius=vec2(0.35*(1.0-uProgress)+0.06,0.11*(1.0-uProgress)+0.025);
-              vec2 tongue=(r-c)/radius;
-              float curl=sin(tongue.x*2.8-uProgress*8.0+fi*2.3)*0.24;
-              tongue.y+=curl;
-              float lobe=(1.0-length(tongue))*min(radius.x,radius.y);
-              flame=max(flame,lobe);
-            }
+            vec2 contact=r-vec2(uProgress*0.12,0.0);
+            vec2 outward=contact/max(length(contact),0.001);
+            float lobes=flow(outward*3.7+vec2(uSeed,uTime*3.0));
+            float radius=0.46*(1.0-uProgress)+0.035;
+            float flame=radius+(lobes-0.5)*0.28-length(contact*vec2(0.9,1.0));
+            // The contact flame opens into unequal shards as the hot center dies.
+            float gaps=noise21(contact*13.0+vec2(uSeed,-uTime*7.0));
+            flame-=smoothstep(0.12,0.7,uProgress)*smoothstep(0.38,0.65,gaps)*0.28;
             d=max(core,flame);
           } else {
             float lobes=flow(radial*2.8+vec2(uSeed,t*0.4));
@@ -143,7 +148,7 @@ export function flameMesh(cfg, mode = 0) {
   const haloMat = new THREE.ShaderMaterial({
     uniforms: { ...mat.uniforms, uHaloScale:{value:2.4} },
     vertexShader: mat.vertexShader,
-    transparent:true, depthWrite:false, side:THREE.DoubleSide,
+    transparent:true, depthWrite:false, depthTest:mode!==2, side:THREE.DoubleSide,
     blending:THREE.AdditiveBlending,
     fragmentShader: /* glsl */ `
       uniform vec3 uBody; uniform float uGlowRadius,uGlowStrength,uAlpha,uMode,uLength;

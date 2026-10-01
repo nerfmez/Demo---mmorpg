@@ -1,0 +1,36 @@
+name: Skill Lab preview
+
+# Builds the Skill Lab (lab.html) from an effects branch. When this succeeds, the Pages deploy
+# (deploy.yml, which runs from main) publishes it at <site>/lab/lab.html, so the owner can try
+# work-in-progress skill effects on the iPad without waiting for a merge or for screenshots.
+on:
+  push:
+    branches: ['claude/vfx-**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lab-preview
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Record which source the lab shows
+        run: printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > dist/lab-source.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lab-dist
+          path: dist/
+          retention-days: 7

@@ -1,5 +1,5 @@
 // Skill Lab smoke + quick look: opens lab.html, casts the skill and saves a few frames.
-// Usage: npm run build && node tests/browser/lab.mjs [skill]   (BROWSER=webkit for WebKit)
+// Usage: npm run build && node tests/browser/lab.mjs [skill]   (BROWSER=webkit for WebKit, GROUND=dark|grass)
 // Frames: tests/browser/out/lab-<skill>-<n>.png. Fails on page errors or if nothing hits.
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -24,7 +24,7 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   const t0 = Date.now();
-  await page.goto(`http://localhost:${PORT}/lab.html?skill=${SKILL}`);
+  await page.goto(`http://localhost:${PORT}/lab.html?skill=${SKILL}&ground=${process.env.GROUND || 'sand'}`);
   await page.waitForFunction(() => window.__lab, null, { timeout: 30000 });
   console.log(`lab ready in ${Date.now() - t0} ms`);
   // freeze the live loop and step it by hand so the frames are repeatable

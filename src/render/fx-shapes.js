@@ -4,9 +4,9 @@
 // unused: shape 0 stays the original soft round dot, drawn by the shader.
 import * as THREE from 'three';
 
-export const SHAPES = { dot: 0, spark: 1, star: 2, flame: 3, puff: 4, shard: 5, ring: 6, flare: 7, burst: 8, streak: 9, blob: 10, cloud: 11, needle: 12, ball: 13, orb: 14 };
+export const SHAPES = { dot: 0, spark: 1, star: 2, flame: 3, puff: 4, shard: 5, ring: 6, flare: 7, burst: 8, streak: 9, blob: 10, cloud: 11, needle: 12, ball: 13, orb: 14, wisp1: 15, wisp2: 16, wisp3: 17, wisp4: 18 };
 export const ATLAS_COLS = 4;
-export const ATLAS_ROWS = 4;
+export const ATLAS_ROWS = 5;
 const CELL = 64;
 
 /** A shape name from data/combat-fx.json, or a number, to its atlas index. Unknown names are dots. */
@@ -182,6 +182,48 @@ const PAINT = {
     g.globalCompositeOperation = 'source-over';
   },
 };
+
+// A ragged hand-drawn flame wisp (tip up): a wavy body with forked licks jutting out of its sides.
+// The core tone is a thinner white-hot streak inside it. Four seeded variants keep a trail lively.
+function wisp(seed) {
+  return (g) => {
+    const r = seeded(seed);
+    const outline = (k) => {
+      const pts = [];
+      const n = 7;
+      for (const side of [1, -1]) {
+        for (let i = 0; i <= n; i++) {
+          const t = side > 0 ? i / n : 1 - i / n; // 0 = base, 1 = tip
+          const w = 13 * k * Math.sin(Math.PI * Math.min(1, 0.15 + t * 0.95)) * (1 - t * 0.55);
+          const bend = Math.sin(t * 5 + seed) * 5 * k;
+          pts.push([bend + side * w, 27 - t * 57]);
+          // a forked lick sticking out of this side now and then
+          if (k > 0.6 && i > 1 && i < n - 1 && r() < 0.45) {
+            const lx = bend + side * (w + 6 + r() * 9);
+            pts.push([lx, 27 - t * 57 - 7 - r() * 6]);
+            pts.push([bend + side * w * 0.8, 27 - t * 57 - 4]);
+          }
+        }
+      }
+      g.beginPath();
+      pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+      g.closePath();
+    };
+    outline(1);
+    g.fillStyle = 'rgba(0,0,0,0.95)';
+    g.fill();
+    g.save();
+    g.clip();
+    outline(0.45);
+    g.fillStyle = '#ffffff';
+    g.fill();
+    g.restore();
+  };
+}
+PAINT.wisp1 = wisp(21);
+PAINT.wisp2 = wisp(43);
+PAINT.wisp3 = wisp(67);
+PAINT.wisp4 = wisp(89);
 
 let atlas = null;
 export function shapeAtlas() {

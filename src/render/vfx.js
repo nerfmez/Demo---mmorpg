@@ -31,6 +31,14 @@ const rimOf = (c) => c.rim ?? c.glow;
 // one reused options record for particles emitted every frame (no garbage per particle)
 const EMIT_DEFAULT = { color: 0xffffff, core: null, colorEnd: null, coreEnd: null, colorDelay: 0, colorSpan: 1, hold: 0.15, size: 0.3, sizeEnd: null, life: 0.6, gravity: 0, drag: 1.5, alpha: 1, shape: 0, rot: null, spin: 0 };
 const EMIT = { ...EMIT_DEFAULT };
+const WISPS = ['wisp1', 'wisp2', 'wisp3', 'wisp4'];
+// data colours ('#rrggbb') parsed once
+const COLORS = new Map();
+function colorOf(hex) {
+  let c = COLORS.get(hex);
+  if (!c) COLORS.set(hex, (c = new THREE.Color(hex)));
+  return c;
+}
 const emitOpts = () => Object.assign(EMIT, EMIT_DEFAULT);
 const heatOf = (c) => c.heat ?? c.core;
 const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch']);
@@ -49,62 +57,6 @@ export function glowTexture() {
   g.fillRect(0, 0, 64, 64);
   glowTex = new THREE.CanvasTexture(c);
   return glowTex;
-}
-
-// One cartoon fireball image per element palette and flicker variant: a round head with a tapering
-// flame tail, three flat tones (rim, body, heat) and a pale core. Drawn once, shared by every
-// projectile; the head sits at 25% from the top (sprite centre), the tail runs down the image.
-const FIREBALL_TEX = new Map();
-const _fbColor = new THREE.Color();
-function fireballTexture(c, variant) {
-  const key = `${rimOf(c)}:${c.glow}:${heatOf(c)}:${variant}`;
-  let tex = FIREBALL_TEX.get(key);
-  if (tex) return tex;
-  const W = 128;
-  const H = 256;
-  const cv = document.createElement('canvas');
-  cv.width = W;
-  cv.height = H;
-  const g = cv.getContext('2d');
-  let seed = 11 + variant * 7;
-  const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-  const hx = W / 2;
-  const hy = 64;
-  // silhouette: a round head that tapers into a flame tail, edges rippling like licking fire
-  // (k shrinks it for the inner tones, which sit a little forward in the head)
-  const phase = rnd() * Math.PI * 2;
-  const shape = (k, dy) => {
-    const r = 44 * k;
-    const tail = (H - hy - 10) * (0.45 + 0.55 * k);
-    const pts = 18;
-    g.beginPath();
-    g.arc(hx, hy + dy, r, Math.PI, 0, false); // the round front of the head (pointing up)
-    for (let side = 1; side >= -1; side -= 2) {
-      for (let n = 0; n <= pts; n++) {
-        const t = side > 0 ? n / pts : 1 - n / pts;
-        const w = r * Math.pow(1 - t, 0.75);
-        const ripple = Math.sin(t * Math.PI * 3.2 + phase + (side > 0 ? 0 : 1.7)) * r * 0.32 * t * (1 - t);
-        g.lineTo(hx + side * (w + ripple), hy + dy + tail * t);
-      }
-    }
-    g.closePath();
-    g.fill();
-  };
-  g.fillStyle = `#${_fbColor.set(rimOf(c)).getHexString()}`;
-  shape(1, 0);
-  g.fillStyle = `#${_fbColor.set(c.glow).getHexString()}`;
-  shape(0.78, -4);
-  g.fillStyle = `#${_fbColor.set(heatOf(c)).getHexString()}`;
-  shape(0.52, -8);
-  g.beginPath();
-  g.fillStyle = `#${_fbColor.set(c.core).getHexString()}`;
-  g.ellipse(hx - 4, hy - 10, 13, 11, 0, 0, Math.PI * 2);
-  g.fill();
-  tex = new THREE.CanvasTexture(cv);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.userData.shared = true;
-  FIREBALL_TEX.set(key, tex);
-  return tex;
 }
 
 function additive(color, opacity = 1) {
@@ -977,20 +929,18 @@ export class Vfx {
           v.add(shaft, tip, fl);
           v.add(this.sprite(c.glow, 0.7, 0.4));
         } else if (look?.travel) {
-          // only a dim warm halo: the body itself is solid cel fire (travel()), not a ball of light
+          // the head: a soft orange glow around a white-hot core (the owner's reference fireball)
           v.add(this.sprite(c.glow, look.travel.glow, look.travel.glowOpacity));
+          v.add(this.sprite(c.core, look.travel.core, look.travel.coreOpacity));
+          // launch: a ragged fire ring bursts out where the fireball leaves the hand
+          const R = look.travel.ring;
+          if (R) this.fx.add(pr.x, y, pr.z, 0, 0, 0, { color: c.glow, core: heatOf(c), colorEnd: rimOf(c), size: R * 0.2, sizeEnd: R, life: look.travel.ringLife, drag: 0, shape: 'ring', rot: 0 });
           // warm light the fire throws on the ground under it
           const pool = new THREE.Mesh(this.planeGeo, new THREE.MeshBasicMaterial({ map: this.glow, color: c.glow, transparent: true, opacity: look.travel.lightOpacity, depthWrite: false, blending: THREE.AdditiveBlending }));
           pool.rotation.x = -Math.PI / 2;
           pool.scale.setScalar(look.travel.light * 2);
           v.add(pool);
-          // the fireball itself: one sprite, head at the projectile, tail pointing back along the path
-          const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: fireballTexture(c, 0), transparent: true, depthWrite: false }));
-          head.center.set(0.5, 0.75);
-          head.scale.set(look.travel.width, look.travel.length, 1);
-          head.renderOrder = 5;
-          v.add(head);
-          v.userData = { embers: 0, pool, head };
+          v.userData = { wisps: 0, flecks: 0, embers: 0, pool };
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
           v.add(this.sprite(c.glow, size * 1.8, 0.85));
@@ -1022,21 +972,71 @@ export class Vfx {
   }
 
   /**
-   * A projectile with a travel look: one cartoon fireball (round head, tapering flame tail) that
-   * points back along its path on screen and flickers between three outlines, plus a few embers.
+   * A projectile with a travel look (the owner's reference): a glowing white-hot head and a long
+   * churning trail of ragged flame wisps, white-yellow inside and orange outside, that point back
+   * along the path and char dark at their ends, with small flecks of flame breaking off.
    */
   travel(v, pr, y, back, L, c, dt, time) {
-    v.children[0].scale.setScalar(L.glow * (1 + Math.sin(time * 30 + pr.id) * L.pulse));
+    const pulse = 1 + Math.sin(time * 30 + pr.id) * L.pulse;
+    v.children[0].scale.setScalar(L.glow * pulse);
+    v.children[1].scale.setScalar(L.core * (2 - pulse));
     const u = v.userData;
-    const m = u.head.material;
-    m.rotation = this.screenRot(-back.x, 0, -back.z);
-    const frame = Math.floor(time * L.flicker + pr.id) % 3;
-    if (u.frame !== frame) {
-      u.frame = frame;
-      m.map = fireballTexture(c, frame);
+    const tail = this.screenRot(back.x, 0, back.z);
+    u.wisps += L.wispRate * dt;
+    for (; u.wisps >= 1; u.wisps--) {
+      const o = 0.15 + Math.random() * 0.35;
+      const sz = L.wispSize * (0.7 + Math.random() * 0.6);
+      const p = emitOpts();
+      p.color = heatOf(c);
+      p.core = 0xffffff;
+      p.colorEnd = L.charColor ? colorOf(L.charColor) : rimOf(c);
+      p.coreEnd = c.glow;
+      p.colorDelay = 0.45;
+      p.colorSpan = 0.5;
+      p.size = sz * 0.6;
+      p.sizeEnd = sz;
+      p.swell = 0.3;
+      p.hold = 0.6;
+      p.life = L.wispLife * (0.7 + Math.random() * 0.6);
+      p.drag = 2.5;
+      p.shape = WISPS[(Math.random() * 4) | 0];
+      p.rot = tail + (Math.random() - 0.5) * 0.9;
+      p.spin = (Math.random() - 0.5) * 3;
+      this.cel.add(pr.x + back.x * o + (Math.random() - 0.5) * 0.2, y + (Math.random() - 0.5) * 0.25, pr.z + back.z * o + (Math.random() - 0.5) * 0.2, back.x * 0.6 + (Math.random() - 0.5) * 0.8, (Math.random() - 0.3) * 0.8, back.z * 0.6 + (Math.random() - 0.5) * 0.8, p);
     }
-    const wob = 1 + Math.sin(time * 37 + pr.id) * 0.05;
-    u.head.scale.set(L.width * wob, L.length * (2 - wob), 1);
+    // the glow the trail throws around itself (additive soft light behind the wisps)
+    u.glows = (u.glows || 0) + L.trailGlowRate * dt;
+    for (; u.glows >= 1; u.glows--) {
+      const o = 0.2 + Math.random() * 0.6;
+      const p = emitOpts();
+      p.color = c.glow;
+      p.size = L.trailGlow * (0.7 + Math.random() * 0.5);
+      p.sizeEnd = L.trailGlow * 0.4;
+      p.life = L.wispLife;
+      p.drag = 2;
+      p.alpha = 0.35;
+      this.fx.add(pr.x + back.x * o, y, pr.z + back.z * o, back.x * 0.5, 0, back.z * 0.5, p);
+    }
+    // little flecks of flame torn off the trail
+    u.flecks += L.fleckRate * dt;
+    for (; u.flecks >= 1; u.flecks--) {
+      const a = Math.random() * Math.PI * 2;
+      const vx = back.x * 1.5 + Math.sin(a) * 2;
+      const vy = 0.5 + Math.random() * 1.5;
+      const vz = back.z * 1.5 + Math.cos(a) * 2;
+      const p = emitOpts();
+      p.color = c.glow;
+      p.core = heatOf(c);
+      p.colorEnd = L.charColor ? colorOf(L.charColor) : rimOf(c);
+      p.colorDelay = 0.4;
+      p.size = L.fleckSize * (0.6 + Math.random() * 0.6);
+      p.sizeEnd = L.fleckSize * 0.3;
+      p.life = L.fleckLife * (0.6 + Math.random() * 0.6);
+      p.drag = 2;
+      p.shape = WISPS[(Math.random() * 4) | 0];
+      p.rot = this.screenRot(vx, vy, vz);
+      this.cel.add(pr.x + back.x * (0.4 + Math.random()), y + (Math.random() - 0.5) * 0.3, pr.z + back.z * (0.4 + Math.random()), vx, vy, vz, p);
+    }
     u.embers += L.emberRate * dt;
     for (; u.embers >= 1; u.embers--) {
       const vx = back.x * 2 + (Math.random() - 0.5) * 3;

@@ -1,8 +1,8 @@
 import { pathValue } from './tuning.js';
 const LABELS = {
   cast: 'เตรียม / ชาร์จ', swing: 'ฟันและรอยอาวุธ', projectile: 'พุ่งและหาง', impact: 'ปะทะ', colors: 'สี', replay: 'จังหวะทดสอบ',
-  castTime: 'เวลาชาร์จ', speed: 'ความเร็วพุ่ง', range: 'ระยะทาง', projectileRadius: 'ขนาดสำหรับทดสอบการชน', spread: 'มุมกระจาย',
-  rim: 'ขอบไฟ', body: 'เนื้อไฟ', hot: 'ชั้นร้อน', core: 'แกนร้อน', size: 'ขนาด', length: 'ความยาว', width: 'ความกว้าง',
+  castTime: 'เวลาเตรียมโจมตี', speed: 'ความเร็วพุ่ง', range: 'ระยะทาง', projectileRadius: 'ขนาดสำหรับทดสอบการชน', spread: 'มุมกระจาย',
+  rim: 'สีขอบ', body: 'สีเนื้อเอฟเฟกต์', hot: 'ชั้นร้อน', core: 'สีแกนสว่าง', size: 'ขนาด', length: 'ความยาว', width: 'ความกว้าง',
   glowRadius: 'รัศมีแสง', glowStrength: 'ความสว่างแสง', trailRate: 'จำนวนริ้วต่อวินาที', trailLife: 'เวลาริ้วค้าง', trailSize: 'ขนาดริ้ว',
   headRadii: 'ขนาดหัว', tailHalfWidth: 'ความหนาหาง', tailSway: 'การแกว่งหาง', flowSpeed: 'ความเร็วการไหล', trailOffset: 'ตำแหน่งริ้ว',
   trailDrift: 'ความเร็วริ้วแยก', trailSpread: 'การกระจายริ้ว', headHeat: 'ความร้อนแกน', headTurbulence: 'การเคลื่อนไหวแกน',

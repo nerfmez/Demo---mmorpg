@@ -111,3 +111,21 @@ test('hits make regular monsters flinch, but never cancel a started wind-up; bos
   g.hitMonster(boss, 5);
   assert.ok(!(boss.staggerT > 0));
 });
+
+test('player melee contact waits for castTime, lands once and respects range and arc', () => {
+  for (const mode of ['hit', 'range', 'arc', 'cancel']) {
+    const {g,m}=setup(32);g.monsters=[m];g.drainEvents();
+    g.input.manualAim=true;g.input.aimFromPointer=true;g.input.aimAngle=Math.PI/2;
+    assert(g.castSlot(0));const hp=m.hp,total=g.player.cast.total;
+    const advance=dt=>{g.time+=dt;g.updatePlayer(dt);};
+    advance(total-.01);assert.equal(m.hp,hp,'no damage before contact');
+    if(mode==='range')m.x=g.player.x+g.skills[0].range+m.r+.1;
+    if(mode==='arc')m.x=g.player.x-1.8;
+    if(mode==='cancel')g.player.cast=null;
+    advance(.02);const first=m.hp;advance(.4);
+    assert.equal(m.hp,first,'no second hit after contact');
+    const hits=g.drainEvents().filter(e=>e.type==='hit'&&e.id===m.id);
+    assert.equal(hits.length,mode==='hit'?1:0,mode);
+    if(mode!=='hit')assert.equal(m.hp,hp,mode+' misses');
+  }
+});

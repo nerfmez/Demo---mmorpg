@@ -240,7 +240,7 @@
       "trailLife": 1,
       "trailOpacity": 0.85,
       "trailCoreWidth": 0.22,
-      "zoneOpacity": 0.025
+      "zoneOpacity": 0
     },
     "impact": {
       "flashSize": 0.72,

@@ -45,7 +45,7 @@ export class BladeTrail {
       fragmentShader: /* glsl */ `uniform vec3 uColor; uniform vec3 uCore; uniform float uOpacity,uCoreWidth; varying float vA; varying float vU;
         void main(){
           float a = vA * uOpacity * smoothstep(0.0, .22, vU);
-          vec3 col = mix(uColor, uCore, smoothstep(1.-uCoreWidth, .98, vU));
+          vec3 col = mix(uColor, uCore, smoothstep(1.-max(uCoreWidth,.03), .999, vU));
           gl_FragColor = vec4(col, a);
           #include <colorspace_fragment>
         }`,

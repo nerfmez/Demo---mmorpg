@@ -292,6 +292,7 @@ try {
         const f=window.__frontier,v=f.view,wd=f.world.data,b=wd.bounds;
         for(const e of document.querySelectorAll('[data-azure-review]'))e.remove();
         v.resize();
+        v.canvasRect=v.renderer.domElement.getBoundingClientRect();
         const x=(b.minX+b.maxX)/2,z=(b.minZ+b.maxZ)/2,height=b.maxZ-b.minZ+40,landY=.7,distance=6000;
         v.camera.fov=2*Math.atan(height/(2*(distance-landY)))*180/Math.PI;
         v.camera.position.set(x,distance,z);v.camera.lookAt(x,landY,z);
@@ -307,10 +308,11 @@ try {
           const marker=document.createElement('div');marker.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);width:8px;height:8px;border:2px solid white;border-radius:50%;background:#dcab5e`;
           overlay.append(marker);
         }
-        return {sourceCommit:wd.town.placement?.sourceCommit,townCentre:wd.town.centre,playerSpawn:wd.playerSpawn,bounds:wd.bounds,camera:'review only; actual game renderer'};
+        return {sourceCommit:wd.town.placement?.sourceCommit,townCentre:wd.town.centre,playerSpawn:wd.playerSpawn,bounds:wd.bounds,reviewViewport:[v.canvasRect.width,v.canvasRect.height],camera:'review only; actual game renderer'};
       });
       assert.deepEqual(report.worldPlacement.townCentre,[62,22]);
       assert.deepEqual(report.worldPlacement.playerSpawn,[-132,80]);
+      assert.deepEqual(report.worldPlacement.reviewViewport,[1480,1200]);
       await shot('16-original-beach-map-placement');
     }
   }

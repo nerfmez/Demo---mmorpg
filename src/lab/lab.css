@@ -82,3 +82,35 @@ button.go {
 button:disabled {
   opacity: 0.35;
 }
+
+
+/* One adaptive inspector for every authored skill profile. */
+.tuning-card { padding: 12px; border: 1px solid #465679; border-radius: 14px; background: #172238; }
+.tuning-header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between; }
+.tuning-header strong { font-size: 17px; }
+select { min-height: 44px; max-width: 100%; padding: 0 12px; border: 1px solid #647393; border-radius: 9px; background: #25324d; color: inherit; font: inherit; }
+.tuning-note, .tuning-status { margin: 10px 0; color: #c4cedf; font-size: 13px; }
+.tuning-status { min-height: 18px; margin-bottom: 0; }
+.tuning-auto { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; }
+.tuning-auto input { width: 24px; height: 24px; accent-color: #f0b440; }
+.tuning-section { border-top: 1px solid #35435d; }
+.tuning-section summary { min-height: 48px; padding: 14px 4px; font-weight: 600; cursor: pointer; }
+.tuning-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; }
+.tuning-field { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(70px, 1fr) 76px; gap: 8px; align-items: center; min-height: 52px; }
+.field-label { font-size: 13px; color: #e1e7f0; }
+.tuning-field input[type='range'] { min-width: 0; width: 100%; height: 44px; accent-color: #f0b440; }
+.field-number { width: 76px; min-height: 44px; border: 1px solid #667694; border-radius: 8px; background: #25324d; color: #fff; padding: 6px; font: inherit; user-select: text; -webkit-user-select: text; }
+.tuning-field input[type='color'] { width: 68px; height: 44px; border: 1px solid #667694; border-radius: 8px; padding: 3px; background: #25324d; }
+.tuning-field input[type='checkbox'] { width: 24px; height: 24px; accent-color: #f0b440; }
+.tuning-section-footer { padding: 4px 0 10px; }
+.tuning-section-footer button { font-size: 13px; }
+.tuning-actions { margin-top: 12px; }
+@media (max-width: 850px) { .tuning-fields { grid-template-columns: 1fr; } }
+@media (max-width: 430px) { .tuning-card { padding: 8px; } .tuning-field { grid-template-columns: minmax(90px, 1fr) minmax(55px, 1fr) 64px; gap: 6px; } .field-number { width: 64px; } }
+@media (min-width: 980px) {
+  #panel.editing { left: auto; width: 440px; top: 0; max-height: 100vh; padding-top: max(10px, env(safe-area-inset-top)); border-left: 1px solid #465679; background: #101a2b; }
+  #panel.editing > .row { position: sticky; top: 0; z-index: 2; padding-bottom: 6px; background: #101a2b; }
+  #panel.editing .tuning-fields { grid-template-columns: 1fr; }
+  #panel.editing button { padding-left: 10px; padding-right: 10px; font-size: 14px; }
+  body:has(#panel.editing) #info { max-width: calc(100% - 464px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+}

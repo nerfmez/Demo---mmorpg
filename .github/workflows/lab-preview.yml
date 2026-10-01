@@ -44,6 +44,22 @@ jobs:
           name: firebolt-lab-webkit
           path: tests/browser/out/firebolt-lab/
           retention-days: 7
+      - name: Shared Lab editor (Chromium)
+        run: node tests/browser/lab-editor.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-editor-chromium
+          path: tests/browser/out/lab-editor/
+          retention-days: 7
+      - name: Shared Lab editor (WebKit)
+        run: BROWSER=webkit node tests/browser/lab-editor.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-editor-webkit
+          path: tests/browser/out/lab-editor/
+          retention-days: 7
       - name: Record which source the lab shows
         run: printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > dist/lab-source.json
       - uses: actions/upload-artifact@v4

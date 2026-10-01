@@ -190,5 +190,27 @@
         "emberShrink": 0.3
       }
     }
+  },
+  "projectileDefaults": {
+    "renderer": "sprite",
+    "projectile": {
+      "scale": 1,
+      "glowScale": 1,
+      "glowOpacity": 1,
+      "trailScale": 1,
+      "trailLife": 0.28,
+      "trailSpeed": 1.2
+    },
+    "impact": {
+      "size": 1.6,
+      "life": 0.2,
+      "opacity": 0.9,
+      "growth": 0.75,
+      "particles": 10,
+      "particleSize": 0.28,
+      "particleSpeed": 4,
+      "particleLife": 0.35,
+      "up": 0.8
+    }
   }
 }

@@ -251,6 +251,12 @@ export class FlameParticles {
     this.mesh=new THREE.Mesh(g,mat); this.mesh.frustumCulled=false; this.mesh.renderOrder=5;
     scene.add(this.mesh);
   }
+  setConfig(cfg) {
+    this.cfg=cfg;
+    const u=this.mesh.material.uniforms;
+    for(const [name,key] of [['uRim','rim'],['uBody','body'],['uHot','hot'],['uCore','core']]) u[name].value.set(cfg.colors[key]);
+    u.uEmberWidth.value=cfg.impact.emberWidth;
+  }
   emit(x,y,z,vx,vy,vz,size,life,kind,seed) {
     if(this.count===this.cap) return;
     const i=this.count++, p=i*3, a=i*4;

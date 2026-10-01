@@ -26,3 +26,11 @@ test('upgrade previews describe real stats without spending, rolling or modifyin
  const ch=createCharacter(data),item=ch.gear[0],before=JSON.stringify(ch),preview=gearUpgradePreview(data,item);
  assert.equal(JSON.stringify(ch),before);assert.ok(preview.after.attack>preview.before.attack,'the first enhancement has a visible benefit');
 });
+
+test('leech includes mod bonuses in its cap and never pays for overkill damage',async()=>{
+ const {Game}=await import('../../src/core/game.js');const g=new Game(data,{seed:7});
+ g.ch.stats.VIT=10;g.ch.mods=[{uid:999,id:'life_leech',level:3}];g.ch.slots[0].mods=[999];g.ch.jobNodes.push('v8');
+ g.ch.gear[0].options=[{id:'leech_pct',value:20}];g.refresh();assert.equal(g.skills[0].leech,data.progression.character.caps.leechPct);
+ const target=g.monsters[0];target.hp=1;g.player.hp=20;g.killMonster=m=>{m.dead=true;};
+ g.hitMonster(target,10000,{leech:100});assert.equal(g.player.hp,21,'recovery uses one remaining monster HP, not 10000 overkill');
+});

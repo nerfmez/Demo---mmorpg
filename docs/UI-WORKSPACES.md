@@ -36,8 +36,10 @@ other chapters. Names and memberships now express journeys, with mixed effects:
 
 Old internal category IDs remain for compatibility; they are not the visible
 chapter names or a filter limiting what effects may be added to a chapter.
-The 87 node IDs, effects, costs, link graph and Job gates are unchanged. A checksum
-regression test protects that gameplay projection. Dashed external markers are
+The 87 legacy node IDs remain inside the expanded 207-node network. Numerical effects
+are rebalanced and new profession exercises extend single-focus investment to Job Lv40.
+Character v3 refunds the old network once rather than retaining disconnected selections.
+Dashed external markers are
 actual adjacent nodes in other chapters; opening them only navigates. They do not
 require completing the source chapter. The overview shows invested points only,
 not a percent-complete meter. Search finds all nodes and opens the correct chapter.
@@ -45,17 +47,17 @@ Portrait overview rearranges the same chapters into two columns, preserving link
 
 ### Passive stages
 
-Nodes now have explicit `tier` and `requiresSpent` metadata. Tier I choices can be
-taken immediately; deeper tiers require a configured number of Job Points already
-invested in lower tiers of that same chapter. The requirement counts points, not an
-exact line through the graph, so the player can mix earlier branches and leave most
-nodes untouched. Profession chapters count only the selected profession's oath.
+Major `sections` now own `tier` and `requiresSpent` metadata. They unlock from TOTAL
+Job Points invested, excluding the origin. Every small node ALSO requires an owned linked
+neighbour. An unlocked group does not grant a bonus or bypass its network. The four
+profession oaths retain their level and one-profession rules. Groups offer optional
+branches; the player does not need to complete a previous chapter. See `BALANCE-40.md`.
 
-The UI shows the node stage and current/required earlier-stage investment. Existing
-graph links remain visible relationships and cross-chapter navigation; they are not a
-completion checklist. Character Stat Points, Job Points, the single-profession
-constraint and town/Gold respec rules are unchanged. Save format stays version 2 and
-previously allocated nodes remain valid.
+
+The UI shows a large section's unlock investment, and separate small-node connection
+requirements. Job points and character Stat Points remain separate; profession changes
+use town/Gold respec. Character v3 has an explicit one-time balance migration with a
+free network refund, preserving other progression and existing item roll quality.
 
 ## Mod item art
 
@@ -111,3 +113,12 @@ npm run test:ux
 `tests/browser/workspaces.mjs` uses real controls at 1440x960, 1180x820 touch, 844x390 touch and 390x844 touch. It covers chapter browsing, inspection versus allocation, staged point gates, search/jump, native skill tags, modifier incompatibility, socketing, movement selection, upgrade-page rendering, clipping and page errors. Screenshots and reports are written under `tests/browser/out/workspaces-<browser>/`. The shared `passive-checks.mjs` verifies stage locks/unlocks, one-Job restrictions, drag/cancel and native Chromium two-finger pinch. Both this suite and the deployment Dreamloop use the shared checks so the live audit stays aligned with the new UI.
 
 For a runtime without local HTTP browser access, `OFFLINE_UI=1 CHROMIUM_EXECUTABLE=/usr/bin/chromium node tests/browser/workspaces.mjs` bundles the real Game and Panels into an offline harness. This checks the actual UI/core, not the full 3D renderer or hardware FPS. Full-game Chromium/WebKit checks must still run in CI. The full-game runs call `freezeScene` (`tests/browser/freeze-scene.mjs`) after load: it leaves one finished 3D frame behind the panels and stops redrawing the scene, because under software GL the scene redraws at 1-3 fps and every tap or screenshot waits on frames (Chromium took about 17 minutes for the journal and workspaces steps together, now about 4). Fonts stay local/bundled by the existing app; no dependency archive is a user deliverable.
+
+## Material progression and anime icons, October 2026
+
+The bag, workbench and growth workspace share grade letters, affix pips and quality ranges,
+level milestones and actual upgrade previews. Repeat crafting is bounded by attempts and
+resources and displays actual spend and every retained result. All 91 skill/gear/material/
+mod icons receive original cel artwork while keeping the dark panel design. The passive
+journal keeps paper/ink sections and connected nodes. `tests/browser/balance.mjs` checks
+real controls in desktop/iPad/phone Chromium and WebKit and captures all icon sheets.

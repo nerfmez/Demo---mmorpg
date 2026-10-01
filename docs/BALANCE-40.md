@@ -14,6 +14,8 @@ growth and behaviour-changing mods retain separate purposes.
 - Stat growth is slower. Starting HP is preserved. STR/INT give 0.45 power per point;
   DEX gives 0.2 attack plus lower projectile/crit growth. Excess stacking has data caps
   and diminishing returns, including movement, cooldown, mitigation, healing and leech.
+  Leech includes mod bonuses in its cap and only recovers from actual remaining target HP,
+  never overkill damage.
 - Crafted base gear is moderated. Grade variance is -5%..+5%, rather than -15%..+30%.
   C/B/A/S add 0/1/2/3 unique affixes. Tiny pools are expanded so S actually has three.
 - +1..+5 adds 4% per step to base stats, not rolled affixes. It uses the recipe's monster

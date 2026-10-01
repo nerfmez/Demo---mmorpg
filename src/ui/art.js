@@ -190,7 +190,18 @@ const CEL = {
  '#7b9479':'#558953','#9fc3a2':'#72ba72','#c2ded6':'#90eadb','#c7a471':'#dda04a',
  '#d8c698':'#f5d17a','#e3d4b5':'#ffe3a1','#aa8061':'#bb713e','#b6926b':'#d99544',
  '#d4c39d':'#ecc76d','#d4cbae':'#e4dfab','#9aacb0':'#6c99c0','#b1c6c8':'#79bcca',
- '#b9bf9b':'#80ac6b','#adad82':'#8ca456','#c5a877':'#e6b455','#b6a786':'#c09b57'
+ '#b9bf9b':'#80ac6b','#adad82':'#8ca456','#c5a877':'#e6b455','#b6a786':'#c09b57',
+ '#a9aaa0':'#85a2ba','#d8d9c9':'#d8f2ff','#858e91':'#507da7','#b2bab5':'#8dc6e1',
+ '#d7d9c6':'#e9f7ff','#bac6ce':'#80b7df','#eaf1e2':'#effcff','#98aaad':'#558caf',
+ '#d4dfd5':'#c0e9f3','#8b9496':'#527da1','#c5c5b2':'#a1c5da','#919e9b':'#6394b4',
+ '#8c9290':'#56789b','#c6c7b6':'#b1d2e5','#7c8d90':'#44769b','#a4b0a7':'#77b4bf',
+ '#667f55':'#3d8551','#63816a':'#2e8667','#75945c':'#70b24c','#416857':'#255f61',
+ '#6e905f':'#58a04a','#3e6957':'#245a60','#6a8e5b':'#66aa46','#3f7152':'#22695b',
+ '#aa794e':'#bf763a','#d3a36c':'#ecb258','#956f4c':'#9e602f','#bf9762':'#da983d',
+ '#9f784e':'#b77a35','#c29d68':'#e0ab52','#ba7871':'#ce676e','#9c7677':'#aa5d8c',
+ '#9da99d':'#74a9b6','#c2c6ac':'#b0d1d5','#7b928d':'#4d879b','#8f9791':'#688eaa',
+ '#c9c6af':'#b7c9dc','#657f79':'#406d87','#d4704c':'#ed6636','#c9674a':'#df6239',
+ '#9d4a3a':'#ab3436','#63aeb6':'#26bfd3','#a5e1d2':'#9affea','#74bcc1':'#33bfce'
 };
 function celObject(body,kind,id) {
  const coloured=body.replace(/#[0-9a-f]{6}/gi,c=>CEL[c.toLowerCase()]||c);
@@ -208,4 +219,3 @@ export function art(kind, id, className = '') {
   if (!body) throw new Error('Missing authored artwork: ' + kind + '/' + id);
   return '<span class="art art-' + kind + ' ' + className + '" data-art="' + kind + '/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + (['zone','mod','gear','material','skill'].includes(kind) ? '' : shadow) + body + '</svg></span>';
 }
-

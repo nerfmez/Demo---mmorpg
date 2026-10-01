@@ -193,6 +193,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (s.chill) s.chill.duration *= control;
   if (s.kind === 'curse_zone') s.duration *= control;
   s.arc = Math.min(s.arc, 360);
+  s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   if (s.damage !== undefined) s.damage *= s.damageMult;
   return s;
 }

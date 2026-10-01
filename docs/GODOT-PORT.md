@@ -79,7 +79,8 @@ Grade promotion retains existing affixes and +N, then adds a unique affix. Enhan
 separate: +1..+5 modifies base stats only by 4% per step. Character-level gates, recipe
 materials and catalysts are data. Skill ranks 2..5 unlock at character Lv5/12/22/34 and
 require the skill's progression stat. They add 6% per rank, with 5% extra MP per rank;
-mods remain the source of behavioural growth. All upgrades succeed without destruction.
+mods remain the source of behavioural growth. Cap leech after mods and calculate its
+recovery from actual target HP removed, never overkill damage. All upgrades succeed without destruction.
 Use `gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` for both
 UI eligibility and rules. Previews must not mutate state.
 

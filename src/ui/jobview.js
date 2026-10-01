@@ -85,7 +85,8 @@ export function jobView(ui,{effectText}) {
   }).join('');
   const edges=entries.flatMap(([id,n])=>n.links.filter(l=>!ids.has(l)||id<l).map(l=>{
     const [x,y]=coords[id],[xx,yy]=coords[l],taken=ch.jobNodes.includes(id)&&ch.jobNodes.includes(l);
-    return `<line x1="${x}" y1="${y}" x2="${xx}" y2="${yy}" class="seeker-edge ${taken?'taken':''} ${ids.has(l)?'':'external'}"/>`;
+    const midpoint=(x+xx)/2, bend=Math.abs(xx-x)>160&&Math.abs(yy-y)<90?75:0;
+    return `<path d="M${x} ${y} C${midpoint} ${y+bend},${midpoint} ${yy+bend},${xx} ${yy}" fill="none" class="seeker-edge ${taken?'taken':''} ${ids.has(l)?'':'external'}"/>`;
   })).join('');
   const nodes=entries.map(([id,n])=>{
     const state=jobNodeState(ch,data,id),xy=coords[id],selected=sel.node===id;

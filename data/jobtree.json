@@ -22,7 +22,7 @@
       "category": "foundation",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "foundation-1"
     },
@@ -48,7 +48,7 @@
       "category": "melee",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "melee-1"
     },
@@ -72,8 +72,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        230,
-        290
+        155,
+        440
       ],
       "section": "melee-1"
     },
@@ -106,7 +106,7 @@
       "category": "specialist",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "vanguard-1"
     },
@@ -131,8 +131,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        570,
-        180
+        495,
+        220
       ],
       "section": "vanguard-2"
     },
@@ -157,8 +157,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        570,
-        290
+        645,
+        220
       ],
       "section": "vanguard-2"
     },
@@ -185,7 +185,7 @@
       "category": "area",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "area-1"
     },
@@ -209,8 +209,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        230,
-        290
+        155,
+        440
       ],
       "section": "area-1"
     },
@@ -243,7 +243,7 @@
       "category": "specialist",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "arcanist-1"
     },
@@ -267,8 +267,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        570,
-        180
+        495,
+        220
       ],
       "section": "arcanist-2"
     },
@@ -293,8 +293,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        570,
-        290
+        645,
+        220
       ],
       "section": "arcanist-2"
     },
@@ -320,7 +320,7 @@
       "category": "projectile",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "projectile-1"
     },
@@ -345,8 +345,8 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        230,
-        290
+        155,
+        440
       ],
       "section": "projectile-1"
     },
@@ -379,7 +379,7 @@
       "category": "specialist",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "ranger-1"
     },
@@ -403,8 +403,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        570,
-        180
+        495,
+        220
       ],
       "section": "ranger-2"
     },
@@ -429,8 +429,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        570,
-        290
+        645,
+        220
       ],
       "section": "ranger-2"
     },
@@ -456,7 +456,7 @@
       "category": "support",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "support-1"
     },
@@ -480,8 +480,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        230,
-        290
+        155,
+        440
       ],
       "section": "support-1"
     },
@@ -514,7 +514,7 @@
       "category": "specialist",
       "clusterPos": [
         230,
-        180
+        220
       ],
       "section": "warden-1"
     },
@@ -538,8 +538,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        570,
-        180
+        495,
+        220
       ],
       "section": "warden-2"
     },
@@ -563,8 +563,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        570,
-        290
+        645,
+        220
       ],
       "section": "warden-2"
     },
@@ -588,8 +588,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        570,
-        180
+        495,
+        440
       ],
       "section": "melee-2"
     },
@@ -614,8 +614,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        570,
-        290
+        645,
+        440
       ],
       "section": "melee-2"
     },
@@ -640,8 +640,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        910,
-        180
+        835,
+        220
       ],
       "section": "vanguard-3"
     },
@@ -665,8 +665,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        910,
-        290
+        985,
+        220
       ],
       "section": "vanguard-3"
     },
@@ -691,8 +691,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        180
+        1175,
+        220
       ],
       "section": "vanguard-4"
     },
@@ -717,8 +717,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        290
+        1325,
+        220
       ],
       "section": "vanguard-4"
     },
@@ -742,8 +742,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        570,
-        180
+        495,
+        440
       ],
       "section": "area-2"
     },
@@ -767,8 +767,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        570,
-        290
+        645,
+        440
       ],
       "section": "area-2"
     },
@@ -793,8 +793,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        910,
-        180
+        835,
+        220
       ],
       "section": "arcanist-3"
     },
@@ -818,8 +818,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        910,
-        290
+        985,
+        220
       ],
       "section": "arcanist-3"
     },
@@ -844,8 +844,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        180
+        1175,
+        220
       ],
       "section": "arcanist-4"
     },
@@ -870,8 +870,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        290
+        1325,
+        220
       ],
       "section": "arcanist-4"
     },
@@ -896,8 +896,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        570,
-        180
+        495,
+        440
       ],
       "section": "support-2"
     },
@@ -922,8 +922,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        570,
-        290
+        645,
+        440
       ],
       "section": "support-2"
     },
@@ -948,8 +948,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        910,
-        180
+        835,
+        220
       ],
       "section": "warden-3"
     },
@@ -973,8 +973,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        910,
-        290
+        985,
+        220
       ],
       "section": "warden-3"
     },
@@ -999,8 +999,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        180
+        1175,
+        220
       ],
       "section": "warden-4"
     },
@@ -1025,8 +1025,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        290
+        1325,
+        220
       ],
       "section": "warden-4"
     },
@@ -1051,7 +1051,7 @@
       "category": "projectile",
       "clusterPos": [
         570,
-        180
+        440
       ],
       "section": "projectile-2"
     },
@@ -1077,7 +1077,7 @@
       "category": "projectile",
       "clusterPos": [
         910,
-        180
+        440
       ],
       "section": "projectile-3"
     },
@@ -1102,8 +1102,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        910,
-        180
+        835,
+        220
       ],
       "section": "ranger-3"
     },
@@ -1127,8 +1127,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        910,
-        290
+        985,
+        220
       ],
       "section": "ranger-3"
     },
@@ -1153,8 +1153,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        180
+        1175,
+        220
       ],
       "section": "ranger-4"
     },
@@ -1179,8 +1179,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        1250,
-        290
+        1325,
+        220
       ],
       "section": "ranger-4"
     },
@@ -1205,8 +1205,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        230,
-        180
+        155,
+        220
       ],
       "section": "control-1"
     },
@@ -1231,8 +1231,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        230,
-        290
+        305,
+        220
       ],
       "section": "control-1"
     },
@@ -1258,7 +1258,7 @@
       "category": "control",
       "clusterPos": [
         570,
-        180
+        440
       ],
       "section": "control-2"
     },
@@ -1284,7 +1284,7 @@
       "category": "control",
       "clusterPos": [
         910,
-        180
+        440
       ],
       "section": "control-3"
     },
@@ -1308,8 +1308,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        230,
-        180
+        155,
+        220
       ],
       "section": "summon-1"
     },
@@ -1333,8 +1333,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        230,
-        290
+        305,
+        220
       ],
       "section": "summon-1"
     },
@@ -1360,7 +1360,7 @@
       "category": "summon",
       "clusterPos": [
         570,
-        180
+        440
       ],
       "section": "summon-2"
     },
@@ -1386,7 +1386,7 @@
       "category": "summon",
       "clusterPos": [
         910,
-        180
+        440
       ],
       "section": "summon-3"
     },
@@ -1411,8 +1411,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        230,
-        180
+        155,
+        220
       ],
       "section": "lasting-1"
     },
@@ -1437,8 +1437,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        230,
-        290
+        305,
+        220
       ],
       "section": "lasting-1"
     },
@@ -1463,8 +1463,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        570,
-        180
+        495,
+        440
       ],
       "section": "lasting-2"
     },
@@ -1489,8 +1489,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        570,
-        290
+        645,
+        440
       ],
       "section": "lasting-2"
     },
@@ -1515,8 +1515,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        230,
-        180
+        155,
+        220
       ],
       "section": "mobility-1"
     },
@@ -1541,8 +1541,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        230,
-        290
+        305,
+        220
       ],
       "section": "mobility-1"
     },
@@ -1568,7 +1568,7 @@
       "category": "mobility",
       "clusterPos": [
         570,
-        180
+        440
       ],
       "section": "mobility-2"
     },
@@ -1594,7 +1594,7 @@
       "category": "mobility",
       "clusterPos": [
         910,
-        180
+        440
       ],
       "section": "mobility-3"
     },
@@ -1618,7 +1618,7 @@
       ],
       "clusterPos": [
         230,
-        290
+        430
       ],
       "section": "foundation-1"
     },
@@ -1640,8 +1640,8 @@
         26
       ],
       "clusterPos": [
-        230,
-        400
+        155,
+        640
       ],
       "section": "foundation-1"
     },
@@ -1663,8 +1663,8 @@
         43
       ],
       "clusterPos": [
-        230,
-        510
+        305,
+        640
       ],
       "section": "foundation-1"
     },
@@ -1685,8 +1685,8 @@
         43
       ],
       "clusterPos": [
-        570,
-        180
+        645,
+        640
       ],
       "section": "foundation-2"
     },
@@ -1707,8 +1707,8 @@
         43
       ],
       "clusterPos": [
-        570,
-        290
+        495,
+        640
       ],
       "section": "foundation-2"
     },
@@ -1730,8 +1730,8 @@
         26
       ],
       "clusterPos": [
-        230,
-        400
+        305,
+        440
       ],
       "section": "melee-1"
     },
@@ -1753,7 +1753,7 @@
       ],
       "clusterPos": [
         570,
-        400
+        690
       ],
       "section": "melee-2"
     },
@@ -1775,8 +1775,8 @@
         9
       ],
       "clusterPos": [
-        230,
-        400
+        305,
+        440
       ],
       "section": "projectile-1"
     },
@@ -1798,7 +1798,7 @@
       ],
       "clusterPos": [
         570,
-        290
+        690
       ],
       "section": "projectile-2"
     },
@@ -1820,8 +1820,8 @@
         9
       ],
       "clusterPos": [
-        230,
-        400
+        305,
+        440
       ],
       "section": "area-1"
     },
@@ -1844,7 +1844,7 @@
       ],
       "clusterPos": [
         570,
-        400
+        690
       ],
       "section": "area-2"
     },
@@ -1867,7 +1867,7 @@
       ],
       "clusterPos": [
         910,
-        180
+        690
       ],
       "section": "area-3"
     },
@@ -1890,7 +1890,7 @@
       ],
       "clusterPos": [
         1250,
-        180
+        690
       ],
       "section": "area-4"
     },
@@ -1914,7 +1914,7 @@
       ],
       "clusterPos": [
         910,
-        180
+        440
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-3"
@@ -1937,8 +1937,8 @@
         9
       ],
       "clusterPos": [
-        1250,
-        180
+        1175,
+        440
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-4"
@@ -1961,7 +1961,7 @@
       ],
       "clusterPos": [
         910,
-        290
+        690
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-3"
@@ -1984,8 +1984,8 @@
         26
       ],
       "clusterPos": [
-        1250,
-        290
+        1325,
+        650
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-4"
@@ -2009,7 +2009,7 @@
       ],
       "clusterPos": [
         570,
-        290
+        690
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
       "section": "control-2"
@@ -2033,7 +2033,7 @@
       ],
       "clusterPos": [
         910,
-        290
+        690
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
       "section": "control-3"
@@ -2056,7 +2056,7 @@
       ],
       "clusterPos": [
         1250,
-        180
+        690
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
       "section": "control-4"
@@ -2079,8 +2079,8 @@
         26
       ],
       "clusterPos": [
-        230,
-        400
+        305,
+        440
       ],
       "section": "support-1"
     },
@@ -2102,7 +2102,7 @@
       ],
       "clusterPos": [
         570,
-        400
+        690
       ],
       "section": "support-2"
     },
@@ -2125,7 +2125,7 @@
       ],
       "clusterPos": [
         910,
-        180
+        440
       ],
       "section": "support-3"
     },
@@ -2147,7 +2147,7 @@
       ],
       "clusterPos": [
         1250,
-        180
+        440
       ],
       "section": "support-4"
     },
@@ -2170,7 +2170,7 @@
       ],
       "clusterPos": [
         910,
-        290
+        690
       ],
       "section": "projectile-3"
     },
@@ -2192,7 +2192,7 @@
       ],
       "clusterPos": [
         1250,
-        180
+        690
       ],
       "section": "projectile-4"
     },
@@ -2216,8 +2216,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        400
+        495,
+        480
       ]
     },
     "vanguard_t2_2": {
@@ -2240,8 +2240,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        510
+        645,
+        480
       ]
     },
     "vanguard_t2_3": {
@@ -2264,8 +2264,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        620
+        495,
+        650
       ]
     },
     "vanguard_t2_4": {
@@ -2288,8 +2288,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        730
+        645,
+        650
       ]
     },
     "vanguard_t2_5": {
@@ -2314,7 +2314,7 @@
       ],
       "clusterPos": [
         570,
-        840
+        820
       ]
     },
     "vanguard_t2_6": {
@@ -2339,7 +2339,7 @@
       ],
       "clusterPos": [
         570,
-        950
+        990
       ]
     },
     "vanguard_t3_1": {
@@ -2362,8 +2362,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        400
+        835,
+        480
       ]
     },
     "vanguard_t3_2": {
@@ -2386,8 +2386,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        510
+        985,
+        480
       ]
     },
     "vanguard_t3_3": {
@@ -2410,8 +2410,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        620
+        835,
+        650
       ]
     },
     "vanguard_t3_4": {
@@ -2434,8 +2434,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        730
+        985,
+        650
       ]
     },
     "vanguard_t3_5": {
@@ -2460,7 +2460,7 @@
       ],
       "clusterPos": [
         910,
-        840
+        820
       ]
     },
     "vanguard_t3_6": {
@@ -2485,7 +2485,7 @@
       ],
       "clusterPos": [
         910,
-        950
+        990
       ]
     },
     "vanguard_t4_1": {
@@ -2508,8 +2508,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        400
+        1175,
+        480
       ]
     },
     "vanguard_t4_2": {
@@ -2532,8 +2532,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        510
+        1325,
+        480
       ]
     },
     "vanguard_t4_3": {
@@ -2556,8 +2556,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        620
+        1175,
+        650
       ]
     },
     "vanguard_t4_4": {
@@ -2580,8 +2580,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        730
+        1325,
+        650
       ]
     },
     "vanguard_t4_5": {
@@ -2606,7 +2606,7 @@
       ],
       "clusterPos": [
         1250,
-        840
+        820
       ]
     },
     "vanguard_t4_6": {
@@ -2631,7 +2631,7 @@
       ],
       "clusterPos": [
         1250,
-        950
+        990
       ]
     },
     "vanguard_t5_1": {
@@ -2654,8 +2654,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        180
+        1515,
+        480
       ]
     },
     "vanguard_t5_2": {
@@ -2678,8 +2678,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        290
+        1665,
+        480
       ]
     },
     "vanguard_t5_3": {
@@ -2702,8 +2702,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        400
+        1515,
+        650
       ]
     },
     "vanguard_t5_4": {
@@ -2726,8 +2726,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        510
+        1665,
+        650
       ]
     },
     "vanguard_t5_5": {
@@ -2752,7 +2752,7 @@
       ],
       "clusterPos": [
         1590,
-        620
+        820
       ]
     },
     "vanguard_t5_6": {
@@ -2777,7 +2777,7 @@
       ],
       "clusterPos": [
         1590,
-        730
+        990
       ]
     },
     "vanguard_t6_1": {
@@ -2800,8 +2800,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        180
+        1855,
+        480
       ]
     },
     "vanguard_t6_2": {
@@ -2824,8 +2824,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        290
+        2005,
+        480
       ]
     },
     "vanguard_t6_3": {
@@ -2848,8 +2848,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        400
+        1855,
+        650
       ]
     },
     "vanguard_t6_4": {
@@ -2872,8 +2872,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        510
+        2005,
+        650
       ]
     },
     "vanguard_t6_5": {
@@ -2898,7 +2898,7 @@
       ],
       "clusterPos": [
         1930,
-        620
+        820
       ]
     },
     "vanguard_t6_6": {
@@ -2921,7 +2921,7 @@
       ],
       "clusterPos": [
         1930,
-        730
+        990
       ]
     },
     "arcanist_t2_1": {
@@ -2944,8 +2944,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        400
+        495,
+        480
       ]
     },
     "arcanist_t2_2": {
@@ -2968,8 +2968,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        510
+        645,
+        480
       ]
     },
     "arcanist_t2_3": {
@@ -2992,8 +2992,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        620
+        495,
+        650
       ]
     },
     "arcanist_t2_4": {
@@ -3016,8 +3016,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        730
+        645,
+        650
       ]
     },
     "arcanist_t2_5": {
@@ -3042,7 +3042,7 @@
       ],
       "clusterPos": [
         570,
-        840
+        820
       ]
     },
     "arcanist_t2_6": {
@@ -3067,7 +3067,7 @@
       ],
       "clusterPos": [
         570,
-        950
+        990
       ]
     },
     "arcanist_t3_1": {
@@ -3090,8 +3090,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        400
+        835,
+        480
       ]
     },
     "arcanist_t3_2": {
@@ -3114,8 +3114,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        510
+        985,
+        480
       ]
     },
     "arcanist_t3_3": {
@@ -3138,8 +3138,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        620
+        835,
+        650
       ]
     },
     "arcanist_t3_4": {
@@ -3162,8 +3162,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        730
+        985,
+        650
       ]
     },
     "arcanist_t3_5": {
@@ -3188,7 +3188,7 @@
       ],
       "clusterPos": [
         910,
-        840
+        820
       ]
     },
     "arcanist_t3_6": {
@@ -3213,7 +3213,7 @@
       ],
       "clusterPos": [
         910,
-        950
+        990
       ]
     },
     "arcanist_t4_1": {
@@ -3236,8 +3236,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        400
+        1175,
+        480
       ]
     },
     "arcanist_t4_2": {
@@ -3260,8 +3260,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        510
+        1325,
+        480
       ]
     },
     "arcanist_t4_3": {
@@ -3284,8 +3284,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        620
+        1175,
+        650
       ]
     },
     "arcanist_t4_4": {
@@ -3308,8 +3308,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        730
+        1325,
+        650
       ]
     },
     "arcanist_t4_5": {
@@ -3334,7 +3334,7 @@
       ],
       "clusterPos": [
         1250,
-        840
+        820
       ]
     },
     "arcanist_t4_6": {
@@ -3359,7 +3359,7 @@
       ],
       "clusterPos": [
         1250,
-        950
+        990
       ]
     },
     "arcanist_t5_1": {
@@ -3382,8 +3382,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        180
+        1515,
+        480
       ]
     },
     "arcanist_t5_2": {
@@ -3406,8 +3406,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        290
+        1665,
+        480
       ]
     },
     "arcanist_t5_3": {
@@ -3430,8 +3430,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        400
+        1515,
+        650
       ]
     },
     "arcanist_t5_4": {
@@ -3454,8 +3454,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        510
+        1665,
+        650
       ]
     },
     "arcanist_t5_5": {
@@ -3480,7 +3480,7 @@
       ],
       "clusterPos": [
         1590,
-        620
+        820
       ]
     },
     "arcanist_t5_6": {
@@ -3505,7 +3505,7 @@
       ],
       "clusterPos": [
         1590,
-        730
+        990
       ]
     },
     "arcanist_t6_1": {
@@ -3528,8 +3528,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        180
+        1855,
+        480
       ]
     },
     "arcanist_t6_2": {
@@ -3552,8 +3552,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        290
+        2005,
+        480
       ]
     },
     "arcanist_t6_3": {
@@ -3576,8 +3576,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        400
+        1855,
+        650
       ]
     },
     "arcanist_t6_4": {
@@ -3600,8 +3600,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        510
+        2005,
+        650
       ]
     },
     "arcanist_t6_5": {
@@ -3626,7 +3626,7 @@
       ],
       "clusterPos": [
         1930,
-        620
+        820
       ]
     },
     "arcanist_t6_6": {
@@ -3649,7 +3649,7 @@
       ],
       "clusterPos": [
         1930,
-        730
+        990
       ]
     },
     "warden_t2_1": {
@@ -3672,8 +3672,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        400
+        495,
+        480
       ]
     },
     "warden_t2_2": {
@@ -3696,8 +3696,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        510
+        645,
+        480
       ]
     },
     "warden_t2_3": {
@@ -3720,8 +3720,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        620
+        495,
+        650
       ]
     },
     "warden_t2_4": {
@@ -3744,8 +3744,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        730
+        645,
+        650
       ]
     },
     "warden_t2_5": {
@@ -3770,7 +3770,7 @@
       ],
       "clusterPos": [
         570,
-        840
+        820
       ]
     },
     "warden_t2_6": {
@@ -3795,7 +3795,7 @@
       ],
       "clusterPos": [
         570,
-        950
+        990
       ]
     },
     "warden_t3_1": {
@@ -3818,8 +3818,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        400
+        835,
+        480
       ]
     },
     "warden_t3_2": {
@@ -3842,8 +3842,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        510
+        985,
+        480
       ]
     },
     "warden_t3_3": {
@@ -3866,8 +3866,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        620
+        835,
+        650
       ]
     },
     "warden_t3_4": {
@@ -3890,8 +3890,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        730
+        985,
+        650
       ]
     },
     "warden_t3_5": {
@@ -3916,7 +3916,7 @@
       ],
       "clusterPos": [
         910,
-        840
+        820
       ]
     },
     "warden_t3_6": {
@@ -3941,7 +3941,7 @@
       ],
       "clusterPos": [
         910,
-        950
+        990
       ]
     },
     "warden_t4_1": {
@@ -3964,8 +3964,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        400
+        1175,
+        480
       ]
     },
     "warden_t4_2": {
@@ -3988,8 +3988,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        510
+        1325,
+        480
       ]
     },
     "warden_t4_3": {
@@ -4012,8 +4012,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        620
+        1175,
+        650
       ]
     },
     "warden_t4_4": {
@@ -4036,8 +4036,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        730
+        1325,
+        650
       ]
     },
     "warden_t4_5": {
@@ -4062,7 +4062,7 @@
       ],
       "clusterPos": [
         1250,
-        840
+        820
       ]
     },
     "warden_t4_6": {
@@ -4087,7 +4087,7 @@
       ],
       "clusterPos": [
         1250,
-        950
+        990
       ]
     },
     "warden_t5_1": {
@@ -4110,8 +4110,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        180
+        1515,
+        480
       ]
     },
     "warden_t5_2": {
@@ -4134,8 +4134,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        290
+        1665,
+        480
       ]
     },
     "warden_t5_3": {
@@ -4158,8 +4158,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        400
+        1515,
+        650
       ]
     },
     "warden_t5_4": {
@@ -4182,8 +4182,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        510
+        1665,
+        650
       ]
     },
     "warden_t5_5": {
@@ -4208,7 +4208,7 @@
       ],
       "clusterPos": [
         1590,
-        620
+        820
       ]
     },
     "warden_t5_6": {
@@ -4233,7 +4233,7 @@
       ],
       "clusterPos": [
         1590,
-        730
+        990
       ]
     },
     "warden_t6_1": {
@@ -4256,8 +4256,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        180
+        1855,
+        480
       ]
     },
     "warden_t6_2": {
@@ -4280,8 +4280,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        290
+        2005,
+        480
       ]
     },
     "warden_t6_3": {
@@ -4304,8 +4304,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        400
+        1855,
+        650
       ]
     },
     "warden_t6_4": {
@@ -4328,8 +4328,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        510
+        2005,
+        650
       ]
     },
     "warden_t6_5": {
@@ -4354,7 +4354,7 @@
       ],
       "clusterPos": [
         1930,
-        620
+        820
       ]
     },
     "warden_t6_6": {
@@ -4377,7 +4377,7 @@
       ],
       "clusterPos": [
         1930,
-        730
+        990
       ]
     },
     "ranger_t2_1": {
@@ -4400,8 +4400,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        400
+        495,
+        480
       ]
     },
     "ranger_t2_2": {
@@ -4424,8 +4424,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        510
+        645,
+        480
       ]
     },
     "ranger_t2_3": {
@@ -4448,8 +4448,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        620
+        495,
+        650
       ]
     },
     "ranger_t2_4": {
@@ -4472,8 +4472,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        730
+        645,
+        650
       ]
     },
     "ranger_t2_5": {
@@ -4498,7 +4498,7 @@
       ],
       "clusterPos": [
         570,
-        840
+        820
       ]
     },
     "ranger_t2_6": {
@@ -4523,7 +4523,7 @@
       ],
       "clusterPos": [
         570,
-        950
+        990
       ]
     },
     "ranger_t3_1": {
@@ -4546,8 +4546,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        400
+        835,
+        480
       ]
     },
     "ranger_t3_2": {
@@ -4570,8 +4570,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        510
+        985,
+        480
       ]
     },
     "ranger_t3_3": {
@@ -4594,8 +4594,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        620
+        835,
+        650
       ]
     },
     "ranger_t3_4": {
@@ -4618,8 +4618,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        730
+        985,
+        650
       ]
     },
     "ranger_t3_5": {
@@ -4644,7 +4644,7 @@
       ],
       "clusterPos": [
         910,
-        840
+        820
       ]
     },
     "ranger_t3_6": {
@@ -4669,7 +4669,7 @@
       ],
       "clusterPos": [
         910,
-        950
+        990
       ]
     },
     "ranger_t4_1": {
@@ -4692,8 +4692,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        400
+        1175,
+        480
       ]
     },
     "ranger_t4_2": {
@@ -4716,8 +4716,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        510
+        1325,
+        480
       ]
     },
     "ranger_t4_3": {
@@ -4740,8 +4740,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        620
+        1175,
+        650
       ]
     },
     "ranger_t4_4": {
@@ -4764,8 +4764,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        730
+        1325,
+        650
       ]
     },
     "ranger_t4_5": {
@@ -4790,7 +4790,7 @@
       ],
       "clusterPos": [
         1250,
-        840
+        820
       ]
     },
     "ranger_t4_6": {
@@ -4815,7 +4815,7 @@
       ],
       "clusterPos": [
         1250,
-        950
+        990
       ]
     },
     "ranger_t5_1": {
@@ -4838,8 +4838,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        180
+        1515,
+        480
       ]
     },
     "ranger_t5_2": {
@@ -4862,8 +4862,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        290
+        1665,
+        480
       ]
     },
     "ranger_t5_3": {
@@ -4886,8 +4886,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        400
+        1515,
+        650
       ]
     },
     "ranger_t5_4": {
@@ -4910,8 +4910,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        510
+        1665,
+        650
       ]
     },
     "ranger_t5_5": {
@@ -4936,7 +4936,7 @@
       ],
       "clusterPos": [
         1590,
-        620
+        820
       ]
     },
     "ranger_t5_6": {
@@ -4961,7 +4961,7 @@
       ],
       "clusterPos": [
         1590,
-        730
+        990
       ]
     },
     "ranger_t6_1": {
@@ -4984,8 +4984,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        180
+        1855,
+        480
       ]
     },
     "ranger_t6_2": {
@@ -5008,8 +5008,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        290
+        2005,
+        480
       ]
     },
     "ranger_t6_3": {
@@ -5032,8 +5032,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        400
+        1855,
+        650
       ]
     },
     "ranger_t6_4": {
@@ -5056,8 +5056,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        510
+        2005,
+        650
       ]
     },
     "ranger_t6_5": {
@@ -5082,7 +5082,7 @@
       ],
       "clusterPos": [
         1930,
-        620
+        820
       ]
     },
     "ranger_t6_6": {
@@ -5105,7 +5105,7 @@
       ],
       "clusterPos": [
         1930,
-        730
+        990
       ]
     }
   },

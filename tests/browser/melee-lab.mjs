@@ -19,6 +19,7 @@ try{
     const slash=L.vfx.slash.bind(L.vfx),hit=L.vfx.hitSpark.bind(L.vfx);
     L.vfx.slash=(e,w)=>{window.__cuts.push(e);slash(e,w);};L.vfx.hitSpark=e=>{window.__hits.push(e);hit(e);};
     L.preview('full');L.state.paused=true;
+    if (L.tuning.get('slash').fx.cast.trailStart === 0 && !L.vfx.trail.on) throw Error('zero-delay blade trail must start immediately');
   });
   const shot=async name=>{await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));await page.screenshot({path:OUT+name});};
   const tick=async n=>page.evaluate(n=>{for(let i=0;i<n;i++)window.__lab.step(1/60);},n);

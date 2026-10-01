@@ -373,6 +373,7 @@ export class Vfx {
     this.swingDelay = (spin ? look.cast.trailStart * .65 : look.cast.trailStart) * e.total;
     this.swingLeft = spin ? e.total * .7 + .5 : e.total - this.swingDelay + look.cast.trailEnd;
     this.trail.begin({ ...cfg, trailLife: look.swing.trailLife, trailOpacity: look.swing.trailOpacity, trailCoreWidth: look.swing.trailCoreWidth }, look.colors.body, look.colors.core);
+    if (this.swingDelay <= 0) this.trail.start();
   }
 
   endSwing(clear = false) {

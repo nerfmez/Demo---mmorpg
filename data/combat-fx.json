@@ -189,6 +189,52 @@
         "emberWidth": 0.22,
         "emberShrink": 0.3
       }
+    },
+    "slash": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0,
+        "trailEnd": 1.38
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.11,
+        "height": 0.95,
+        "tilt": 0.91,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 1.09,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.01,
+        "sparkWidth": 0.01,
+        "sparkLife": 0.27,
+        "speed": 5.5,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 6.68,
+        "heavyScale": 1.22,
+        "shake": 0.26,
+        "hitStop": 0.025
+      }
     }
   },
   "projectileDefaults": {

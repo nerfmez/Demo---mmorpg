@@ -168,7 +168,9 @@
           1.4
         ],
         "trailDrift": 0.6,
-        "trailSpread": 0.08
+        "trailSpread": 0.08,
+        "headHeat": 0.48,
+        "headTurbulence": 0.24
       },
       "impact": {
         "size": 1.5,

@@ -41,6 +41,7 @@ export function flameMesh(cfg, mode = 0) {
       uLength:{value:cfg.projectile.length}, uWidth:{value:cfg.projectile.width},
       uHeadRadii:{value:new THREE.Vector2(...cfg.projectile.headRadii)}, uHaloScale:{value:1},
       uTail:{value:new THREE.Vector3(cfg.projectile.tailHalfWidth,cfg.projectile.tailSway,cfg.projectile.flowSpeed)},
+      uHeadHeat:{value:new THREE.Vector2(cfg.projectile.headHeat,cfg.projectile.headTurbulence)},
       uGlowRadius:{value:cfg.projectile.glowRadius}, uGlowStrength:{value:cfg.projectile.glowStrength} },
     transparent:true, depthWrite:false, depthTest:mode!==2, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
@@ -62,7 +63,7 @@ export function flameMesh(cfg, mode = 0) {
       }`,
     fragmentShader: /* glsl */ `
       uniform float uTime,uSeed,uAlpha,uMode,uProgress,uLength,uWidth;
-      uniform vec2 uHeadRadii; uniform vec3 uTail; varying vec2 vUv;
+      uniform vec2 uHeadRadii,uHeadHeat; uniform vec3 uTail; varying vec2 vUv;
       ${NOISE} ${PALETTE}
       void main(){
         vec2 p=vUv;
@@ -76,7 +77,7 @@ export function flameMesh(cfg, mode = 0) {
         vec2 warp=vec2(noise21(adv*0.45+17.0),noise21(adv*0.45-11.0))-0.5;
         float n=flow(adv+warp*2.0);
         vec2 headQ=q/uHeadRadii;
-        float head=(1.0-length(headQ))*min(uHeadRadii.x,uHeadRadii.y);
+        float head=(1.0-length(headQ)+(n-0.5)*0.08)*min(uHeadRadii.x,uHeadRadii.y);
         float d;
         if(uMode<0.5){
           float taper=pow(1.0-age,0.85);
@@ -131,9 +132,13 @@ export function flameMesh(cfg, mode = 0) {
         if(uMode>1.5) heat+=exp(-uProgress*11.0)*0.7;
         vec3 col=flameColor(heat);
         if(uMode<0.5){
-          // White-hot oval with a thin golden transition at its perimeter.
-          float hot=1.0-smoothstep(0.93,1.0,length(headQ));
-          col=mix(col,mix(uHot,uCore,hot),smoothstep(-aa,aa,head));
+          // A moving hot pocket inside orange/gold flame, rather than a
+          // uniformly white ellipse. The tapered trailing side feeds the wake.
+          vec2 hotQ=(q-vec2(uHeadRadii.x*0.10,0.0))/uHeadRadii;
+          float inward=1.0-smoothstep(0.05,1.0,length(hotQ));
+          float pocket=flow(vec2(q.x*13.0+uTime*uTail.z,q.y*17.0)+warp*1.7);
+          float heatHead=inward*uHeadHeat.x+(pocket-0.25)*uHeadHeat.y;
+          col=mix(col,flameColor(max(0.0,heatHead)),smoothstep(-aa,aa,head));
         }
         gl_FragColor=vec4(col,alpha);
         #include <colorspace_fragment>

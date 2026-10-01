@@ -135,7 +135,7 @@ export function palmTrunk(height=5.2,lean=1.25,rings=11) {
 }
 // One arching frond along +Z as a painted card (palmFrondTexture): the rachis arches up then
 // falls away, and the two halves fold down from it in a shallow V that deepens toward the tip,
-// the way real coconut leaflets hang. UV u runs across (rachis at .5), v from tip (0) to base (1).
+// the way real coconut leaflets hang. UV u runs across (rachis at .5), v from the stalk end (0, canvas bottom) to the tip (1, canvas top).
 export function palmFrond(length=3.4,lift=1.0,droop=1.7,width=1.15) {
   const positions=[],uvs=[],normals=[],index=[],steps=14;
   const spine=t=>[Math.sin(t*2.4)*.06*t,Math.sin(t*Math.PI*.5)*lift-t*t*t*droop,t*length];
@@ -143,7 +143,7 @@ export function palmFrond(length=3.4,lift=1.0,droop=1.7,width=1.15) {
     const t=i/steps,p=spine(t),half=width*.5*(.55+.45*Math.sin(Math.PI*Math.min(1,t*1.1+.05))),fold=half*(.35+.55*t);
     for(const [u,side] of [[0,-1],[.5,0],[1,1]]){
       positions.push(p[0]+side*half,p[1]-Math.abs(side)*fold,p[2]-Math.abs(side)*half*.18);
-      uvs.push(u,1-t);normals.push(0,1,0);
+      uvs.push(u,t);normals.push(0,1,0);
     }
   }
   for(let i=0;i<steps;i++)for(let k=0;k<2;k++){

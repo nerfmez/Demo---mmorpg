@@ -341,13 +341,13 @@ test('town residents stand on dry ground clear of streets and existing work equi
 });
 
 test('generated coconut palms stand scattered behind the beach and lean toward the sea', () => {
-  const world=createWorld(data.world),{palmBelt,beach}=data.world.sea;
+  const world=createWorld(data.world),{palmBelt,beach,palmMinBack}=data.world.sea;
   const generated=world.circles.filter(c=>c.type==='palm'&&!c.id);
-  assert.ok(generated.length>=10,'shore palms exist');
+  assert.ok(generated.length>=5&&generated.length<=18,`a few scattered shore palms (${generated.length})`);
   let seaward=0;
   for(const p of generated){
     const d=world.coastAt(p.x,p.z).distance;
-    assert.ok(d<=beach+palmBelt&&d>=beach-3.5,`palm at ${p.x.toFixed(1)},${p.z.toFixed(1)} is off the back-beach band (${d.toFixed(1)})`);
+    assert.ok(d<=beach+palmBelt&&d>=beach+palmMinBack-.01,`palm at ${p.x.toFixed(1)},${p.z.toFixed(1)} is off the back-beach band (${d.toFixed(1)})`);
     assert.ok(!world.isWater(p.x,p.z,.5),'palm stands on dry ground');
     // the lean direction (sin rot, cos rot) heads to lower coast distance, i.e. the sea
     if(world.coastAt(p.x+Math.sin(p.rot)*2,p.z+Math.cos(p.rot)*2).distance<d)seaward++;

@@ -9530,7 +9530,9 @@
   "den": null,
   "sea": {
     "palmBelt": 12,
-    "palmGroupSpacing": 11,
+    "palmGroupSpacing": 24,
+    "palmMinBack": 1.5,
+    "palmPairChance": 0.2,
     "palmGap": 3.4,
     "beach": 11,
     "shore": [

@@ -317,23 +317,23 @@ export function createWorld(worldData) {
 
   const palmBelt = worldData.sea?.palmBelt ?? Infinity, beachWidth = worldData.sea?.beach || 14;
   // ---------- coconut palms along the back of the beach ----------
-  // Scattered singles and small groups of two or three, well apart, the way palms stand on a
-  // real beach: group centres are dart-thrown along the band behind the swash, members fan out
+  // Scattered single palms, now and then a pair, well apart and on the ground behind the open
+  // sand, the way they stand along a real beach: group centres are dart-thrown along the band behind the swash, members fan out
   // from their centre and every trunk leans out toward the sea. Own generator: nothing else moves.
   if (shore && Number.isFinite(palmBelt)) {
     const prng = createRng(4421), centres = [], placed = [], sea = worldData.sea;
-    const groupGap = sea.palmGroupSpacing ?? 11, gap = sea.palmGap ?? 3.4;
+    const groupGap = sea.palmGroupSpacing ?? 11, gap = sea.palmGap ?? 3.4, minBack = sea.palmMinBack ?? -3, pairs = sea.palmPairChance ?? .35;
     const seaward = (x, z) => Math.atan2(-(coastAt(x + 1, z).distance - coastAt(x - 1, z).distance), -(coastAt(x, z + 1).distance - coastAt(x, z - 1).distance));
     const fits = (x, z, r) => {
       const c = coastAt(x, z), back = c.distance - beachWidth;
-      return ['beach', 'rock'].includes(c.kind) && (zoneAt(x, z).trees || []).includes('palm') && back >= -3 && back <= palmBelt &&
+      return ['beach', 'rock'].includes(c.kind) && (zoneAt(x, z).trees || []).includes('palm') && back >= minBack && back <= palmBelt &&
         !placed.some((q) => dist(x, z, q.x, q.z) < gap) && !blockedForProp(x, z, r, { roadPad: 1.6 });
     };
     for (let tries = 0; tries < 2500; tries++) {
       const x = prng.range(b.minX + 1, b.maxX - 1), z = prng.range(b.minZ + 1, b.maxZ - 1);
       if (centres.some((q) => dist(x, z, q.x, q.z) < groupGap) || !fits(x, z, 0.5)) continue;
       centres.push({ x, z });
-      const size = prng.next() < 0.45 ? 1 : prng.next() < 0.65 ? 2 : 3, fan = prng.range(0, Math.PI * 2);
+      const size = prng.next() < pairs ? 2 : 1, fan = prng.range(0, Math.PI * 2);
       for (let m = 0; m < size; m++) {
         const a = fan + m * 2.3 + prng.range(-0.4, 0.4), d = m === 0 ? 0 : prng.range(gap, gap + 1.6);
         const px = x + Math.sin(a) * d, pz = z + Math.cos(a) * d, scale = prng.range(0.8, 1.3), r = 0.4 * scale;

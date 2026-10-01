@@ -2,7 +2,7 @@
 // each beat (cast, travel, impact, aftermath) at a fixed 60 fps step, so the frames are the same
 // on every machine. Usage: npm run build && node tests/browser/skill-fx.mjs [skill]
 // Frames go to tests/browser/out/skill-fx-<skill>-<beat>.png (BROWSER=webkit for WebKit).
-// VIDEO=1 records every frame instead and encodes tests/browser/out/skill-fx-<skill>.mp4 (needs ffmpeg).
+// VIDEO=1 records one cast at 15 fps (every 4th 60 fps step) into tests/browser/out/skill-fx-<skill>.gif (needs ffmpeg).
 import { chromium, webkit } from 'playwright';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
@@ -90,24 +90,24 @@ try {
   const shot = (beat) => page.screenshot({ path: `${OUT}${TAG}-${beat}.png` });
   const step = (n) => page.evaluate((k) => window.__frontier.step(k), n);
   if (process.env.VIDEO) {
-    // one cast, every 60 fps frame of the action area, played back at real speed
+    // one cast, every 4th 60 fps step of the action area (rendering here is slow), played back at real speed
     const dir = `${OUT}${TAG}-frames/`;
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
     const clip = { x: 0, y: 180, width: 820, height: 460 };
     let n = 0;
-    for (const len of [118]) {
+    for (const len of [30]) {
       await page.evaluate(() => window.__frontier.cast());
       for (let i = 0; i < len; i++) {
-        await step(1);
+        await step(4);
         await page.screenshot({ path: `${dir}${String(n++).padStart(4, '0')}.png`, clip });
       }
     }
     await browser.close();
-    const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-framerate', '60', '-i', `${dir}%04d.png`, '-vf', 'scale=820:-2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', `${OUT}${TAG}.mp4`]);
+    const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-framerate', '15', '-i', `${dir}%04d.png`, '-vf', 'scale=480:-1,split[a][b];[a]palettegen=max_colors=96[p];[b][p]paletteuse', '-loop', '0', `${OUT}${TAG}.gif`]);
     if (r.status !== 0) throw new Error(`ffmpeg failed: ${r.stderr}`);
     if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
-    console.log(`saved ${TAG}.mp4 (${n} frames)`);
+    console.log(`saved ${TAG}.gif (${n} frames)`);
     stop();
     process.exit(0);
   }

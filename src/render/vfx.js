@@ -376,7 +376,7 @@ export class Vfx {
       const expand = 1 - Math.pow(1 - t, 2);
       for (const petal of petals.children) {
         const a = petal.userData.a;
-        const r = 0.08 + expand * 0.85;
+        const r = 0.06 + expand * 0.58;
         petal.position.set(Math.sin(a) * r, (0.1 + Math.sin(t * Math.PI) * 0.18), Math.cos(a) * r);
         petal.scale.set(petal.userData.w * (1 - t * 0.45), petal.userData.w * (1 - t * 0.45), petal.userData.len * (0.8 + expand * 0.5));
         petal.material.opacity = (petal.userData.w < 0.75 ? 0.9 : 0.72) * (1 - t);

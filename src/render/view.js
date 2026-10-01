@@ -466,7 +466,7 @@ export class View {
     const g = this.game;
     const p = g.player;
     const seen = new Set();
-    // last frame's camera: it moves smoothly, and the margin covers one frame of movement
+    // render() has already moved the camera for this frame
     this.camera.updateMatrixWorld();
     _frustum.setFromProjectionMatrix(_viewProj.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
     let drawn = 0;
@@ -735,6 +735,10 @@ export class View {
     if (this.mode === 'game' && g) {
       const p = g.player;
       this.updateHero(dt, time);
+      // the camera moves first, so monsters are culled against this frame's view (also after a snap)
+      focus = { x: p.x + g.input.moveX * 1.2, y: this.heroY, z: p.z + g.input.moveZ * 1.2 };
+      zoneId = world.zoneAt(p.x, p.z).id;
+      this.updateCamera(dt, focus);
       for (const n of this.npcs) {
         if (n.scenery) {
           const dx = n.root.position.x - p.x, dz = n.root.position.z - p.z;
@@ -797,9 +801,6 @@ export class View {
         this.aimArrow.scale.set(1, 1, aim.length || 6);
         conform(this.aimArrow);
       }
-      focus = { x: p.x + g.input.moveX * 1.2, y: this.heroY, z: p.z + g.input.moveZ * 1.2 };
-      zoneId = world.zoneAt(p.x, p.z).id;
-      this.updateCamera(dt, focus);
     } else if (this.mode === 'create' && this.previewHero) {
       // hero preview on the plaza, slow orbit
       const h = this.previewHero;

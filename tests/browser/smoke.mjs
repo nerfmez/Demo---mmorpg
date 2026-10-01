@@ -195,6 +195,23 @@ async function run(name, contextOpts) {
     return { unlocked, ok: r.ok, d: Math.hypot(game.player.x - wp.x, game.player.z - wp.z) };
   });
   check(tp.unlocked && tp.ok && tp.d < 6, `${name}: waypoint unlocks and fast travel works (${JSON.stringify(tp)})`);
+  // the first frame after a camera snap (fast travel, respawn) must already draw the monsters there
+  const snap = await page.evaluate(() => {
+    const v = window.__frontier.view;
+    v.snapCamera();
+    v.render(0, performance.now() / 1000, {});
+    const P = v.camera.position.clone();
+    let onScreen = 0, missed = 0;
+    for (const mv of v.monsterViews.values()) {
+      P.copy(mv.rig.root.position).project(v.camera);
+      if (Math.abs(P.x) < 1 && Math.abs(P.y) < 1 && P.z < 1) {
+        onScreen++;
+        if (!mv.rig.root.visible) missed++;
+      }
+    }
+    return { onScreen, missed };
+  });
+  check(snap.missed === 0, `${name}: monsters on screen are drawn on the first frame after a camera snap (${JSON.stringify(snap)})`);
 
   // ---- terrain: the hero stands on the ground on high and low places ----
   const terrainSpots=await page.evaluate(()=>{

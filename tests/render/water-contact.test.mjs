@@ -29,7 +29,9 @@ test('actual hulls, rotated stone base and piles intersect water; raised timber 
 test('waterline uses tapered hull, not a rectangular building footprint',()=>{
  const [x,z,angle]=world.data.harbor.boats[0],boat={x,z,angle};
  assert.ok(sample(x,z).distance<0);
- for(const lx of [0,1.2]){const p=fromBoxLocal(boat,lx,3.5);assert.ok(sample(p.x,p.z).distance>0,'waterline is narrower/shorter than upper gunwale');}
+ // Both points lie inside the upper gunwale's extent but clear of the tapered
+ // waterline by more than a texel, independent of the relocated texture grid.
+ for(const [lx,lz] of [[0,3.7],[1.1,0]]){const p=fromBoxLocal(boat,lx,lz);assert.ok(sample(p.x,p.z).distance>0,'waterline is narrower/shorter than upper gunwale');}
  const pier=world.docks.find(d=>d.id==='market_west'),p=fromBoxLocal(pier,0,pier.hz-.5);
  assert.ok(sample(p.x,p.z).distance>0,'open centre below deck, between its piles');
 });

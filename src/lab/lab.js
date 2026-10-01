@@ -146,8 +146,9 @@ function stepProjectiles(dt) {
     pr.z += pr.vz * dt;
     pr.travelled += pr.speed * dt;
     const d = Math.hypot(pr.x - dummy.position.x, pr.z - dummy.position.z);
-    if (d < 0.45 + pr.radius || pr.travelled > pr.range) impact(pr);
-    else keep.push(pr);
+    // like the game: only a hit explodes; running out of range just ends the projectile
+    if (d < 0.45 + pr.radius) impact(pr);
+    else if (pr.travelled <= pr.range) keep.push(pr);
   }
   fakeGame.projectiles = keep;
 }
@@ -180,6 +181,7 @@ function step(dt) {
 // ---------- frame loop ----------
 let last = performance.now();
 let fps = 60;
+const camTarget = new THREE.Vector3();
 let panelH = 0;
 function resize() {
   const w = window.innerWidth;
@@ -206,7 +208,7 @@ function frame(now) {
     }
     step(dt);
   }
-  const target = new THREE.Vector3(-state.distance / 2, 0, 0);
+  const target = camTarget.set(-state.distance / 2, 0, 0);
   camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom);
   if (shake > 0) {
     camera.position.x += (Math.random() - 0.5) * shake * 0.35;

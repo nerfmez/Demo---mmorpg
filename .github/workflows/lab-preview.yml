@@ -1,18 +1,16 @@
 name: Skill Lab preview
 
-# Builds the Skill Lab (lab.html) from an effects branch. When this succeeds, the Pages deploy
-# (deploy.yml, which runs from main) publishes it at <site>/lab/lab.html, so the owner can try
-# work-in-progress skill effects on the iPad without waiting for a merge or for screenshots.
+# Isolated owner review of f8ae388. Full Chromium/WebKit checks continue
+# on claude/vfx-physical-attacks; this preview branch is never merged.
 on:
   push:
-    branches: ['claude/vfx-**']
-  workflow_dispatch:
+    branches: [claude/vfx-physical-owner-review-20261001]
 
 permissions:
   contents: read
 
 concurrency:
-  group: lab-preview-${{ github.ref }}
+  group: physical-owner-preview
   cancel-in-progress: true
 
 jobs:
@@ -26,77 +24,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test tests/core/combat.test.js tests/core/combat-fx.test.js tests/core/lab-tuning.test.js tests/core/physical-events.test.js
-        if: startsWith(github.ref_name, 'claude/vfx-physical')
-      - run: npm test
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
       - run: npm run build
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-lab-playwright-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps chromium webkit
-      - name: Firebolt Lab review (Chromium)
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
-        run: node tests/browser/firebolt-lab.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: firebolt-lab-chromium
-          path: tests/browser/out/firebolt-lab/
-          retention-days: 7
-      - name: Firebolt Lab review (WebKit)
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
-        run: BROWSER=webkit node tests/browser/firebolt-lab.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: firebolt-lab-webkit
-          path: tests/browser/out/firebolt-lab/
-          retention-days: 7
-      - name: Physical attack Lab (Chromium)
-        if: startsWith(github.ref_name, 'claude/vfx-physical')
-        run: |
-          node tests/browser/melee-lab.mjs
-          node tests/browser/physical-lab.mjs
-      - uses: actions/upload-artifact@v4
-        if: always() && startsWith(github.ref_name, 'claude/vfx-physical')
-        with:
-          name: melee-lab-chromium
-          path: |
-            tests/browser/out/melee-lab/
-            tests/browser/out/physical-lab/
-          retention-days: 7
-      - name: Physical attack Lab (WebKit)
-        if: startsWith(github.ref_name, 'claude/vfx-physical')
-        run: |
-          BROWSER=webkit node tests/browser/melee-lab.mjs
-          BROWSER=webkit node tests/browser/physical-lab.mjs
-      - uses: actions/upload-artifact@v4
-        if: always() && startsWith(github.ref_name, 'claude/vfx-physical')
-        with:
-          name: melee-lab-webkit
-          path: |
-            tests/browser/out/melee-lab/
-            tests/browser/out/physical-lab/
-          retention-days: 7
-      - name: Shared Lab editor (Chromium)
-        run: node tests/browser/lab-editor.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lab-editor-chromium
-          path: tests/browser/out/lab-editor/
-          retention-days: 7
-      - name: Shared Lab editor (WebKit)
-        run: BROWSER=webkit node tests/browser/lab-editor.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lab-editor-webkit
-          path: tests/browser/out/lab-editor/
-          retention-days: 7
-      - name: Record which source the lab shows
-        run: printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > dist/lab-source.json
+      - name: Record review source
+        run: printf '{"branch":"%s","sha":"%s","review":true,"checks":"36888603719"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > dist/lab-source.json
       - uses: actions/upload-artifact@v4
         with:
           name: lab-dist

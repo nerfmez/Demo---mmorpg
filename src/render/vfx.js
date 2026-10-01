@@ -13,9 +13,6 @@ const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _base = new THREE.Vector3();
 const _tip = new THREE.Vector3();
-const _smoke = new THREE.Color();
-const _smokeCore = new THREE.Color();
-const SMOKE = new THREE.Color(0x3a3436);
 
 const ELEMENT = {
   physical: { core: 0xfff3c4, glow: 0xffc24a, dots: 0xffe08a },
@@ -218,7 +215,8 @@ export class Vfx {
     this.discGeo = discGeometry();
     this.ringGeo = ringGeometry();
     this.coneGeo = new THREE.ConeGeometry(1, 1, 5); // scaled per use (radius, height, radius)
-    this.sharedGeo = new Set([this.discGeo, this.ringGeo, this.coneGeo]);
+    this.planeGeo = new THREE.PlaneGeometry(1, 1);
+    this.sharedGeo = new Set([this.discGeo, this.ringGeo, this.coneGeo, this.planeGeo]);
     this.glow = glowTexture();
     // one reused glow for a spell gathering at the hand or weapon tip (FX.skills[id].cast)
     this.castFx = null;
@@ -309,7 +307,7 @@ export class Vfx {
     if (!look) return;
     const c = el(element);
     this.castGlow.material.color.set(c.glow);
-    this.castFx = { look, c, t: 0, dur: Math.max(0.08, e.total), focus: !!FX.weapons[e.weapon]?.focus, weapon: e.weapon, spawned: 0 };
+    this.castFx = { look, c, t: 0, dur: Math.max(0.08, e.total), focus: !!FX.weapons[e.weapon]?.focus, weapon: e.weapon, acc: 0 };
   }
 
   /** Where a spell gathers: a focus weapon's tip (staff, wand), otherwise the right hand. */
@@ -343,17 +341,12 @@ export class Vfx {
     this.castPoint(rig, cf, _p0);
     this.castGlow.visible = true;
     this.castGlow.position.copy(_p0);
-    this.castGlow.scale.setScalar(L.glow * (0.35 + 0.65 * k));
-    // sparks start on a sphere around the focus during the first 70% and arrive with the release
-    const due = Math.min(L.sparks, Math.ceil(L.sparks * Math.min(1, k / 0.7)));
-    for (; cf.spawned < due; cf.spawned++) {
-      const a = Math.random() * Math.PI * 2;
-      const b = (Math.random() - 0.5) * 1.4;
-      const ox = Math.sin(a) * Math.cos(b) * L.radius;
-      const oy = Math.sin(b) * L.radius;
-      const oz = Math.cos(a) * Math.cos(b) * L.radius;
-      const life = Math.max(0.06, (1 - k) * cf.dur);
-      this.fx.add(_p0.x + ox, _p0.y + oy, _p0.z + oz, -ox / life, -oy / life, -oz / life, { color: cf.c.dots, size: L.sparkSize, sizeEnd: L.sparkSize * 0.4, life, drag: 0, shape: L.sparkShape, spin: 8 });
+    this.castGlow.scale.setScalar(L.glow * (0.4 + 0.6 * k));
+    // fire light swelling in the hand: overlapping soft blobs that grow with the cast
+    cf.acc += L.blobRate * dt;
+    for (; cf.acc >= 1; cf.acc--) {
+      const sz = L.blobSize * (0.5 + 0.7 * k) * (0.8 + Math.random() * 0.4);
+      this.fx.add(_p0.x, _p0.y, _p0.z, (Math.random() - 0.5) * 0.6, 0.4 + Math.random() * 0.5, (Math.random() - 0.5) * 0.6, { color: cf.c.glow, core: heatOf(cf.c), colorEnd: rimOf(cf.c), size: sz, sizeEnd: sz * 0.3, life: 0.16, drag: 2, shape: 'blob', spin: (Math.random() - 0.5) * 6 });
     }
   }
 
@@ -540,29 +533,75 @@ export class Vfx {
     });
   }
 
-  /** A projectile with an impact look lands: star flash, flame tongues, falling embers, cel smoke. */
+  /** The angle that turns an atlas shape's up axis along a world direction, as seen on screen. */
+  screenRot(vx, vy, vz) {
+    if (!this.camera) return Math.atan2(-vz, vx) - Math.PI / 2;
+    _dir.set(vx, vy, vz).transformDirection(this.camera.matrixWorldInverse);
+    return Math.atan2(_dir.y, _dir.x) - Math.PI / 2;
+  }
+
+  /** A flat additive pool of light on the ground (fire lighting the floor), fading over dur. */
+  groundLight(x, z, radius, color, opacity, dur) {
+    const m = new THREE.Mesh(this.planeGeo, new THREE.MeshBasicMaterial({ map: this.glow, color, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, this.gy(x, z) + 0.06, z);
+    m.scale.setScalar(radius * 2);
+    this.spawn(m, dur, (t) => (m.material.opacity = opacity * (1 - t) * (1 - t)));
+  }
+
+  /**
+   * A projectile with an impact look lands, in the reference's order: a white spiky flash and a red
+   * halo lighting the ground, a yellow comic burst with speed lines flying out, then a lumpy fireball
+   * cluster that cools from orange to grey smoke and breaks into small puffs, with embers.
+   */
   skillImpact(e, L) {
     const c = el(e.element);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
-    this.cel.add(e.x, y, e.z, 0, 0, 0, { color: rimOf(c), core: heatOf(c), size: L.flash, sizeEnd: L.flash * 1.25, life: L.dur, drag: 0, shape: L.flashShape, spin: 3 });
-    this.fx.add(e.x, y, e.z, 0, 0, 0, { color: c.glow, size: L.flash * 0.8, sizeEnd: L.flash * 0.3, life: L.dur * 0.8, drag: 0, shape: 'flare' });
-    for (let i = 0; i < L.flames; i++) {
+    this.groundLight(e.x, e.z, L.light, rimOf(c), 0.7, 0.45);
+    // a tinted see-through sphere of heat (normal blend, so it still shows on bright sand)
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glow, color: rimOf(c), transparent: true, depthWrite: false, opacity: L.haloOpacity }));
+    halo.position.set(e.x, y, e.z);
+    this.spawn(halo, L.haloLife, (t) => {
+      halo.material.opacity = L.haloOpacity * (1 - t) * (1 - t);
+      halo.scale.setScalar(L.halo * (0.6 + 0.5 * t));
+    });
+    const glow = this.sprite(heatOf(c), L.flash * 1.4, 0.9);
+    glow.position.set(e.x, y, e.z);
+    this.spawn(glow, L.flashLife * 1.5, (t) => (glow.material.opacity = 0.9 * (1 - t)));
+    this.cel.add(e.x, y, e.z, 0, 0, 0, { color: heatOf(c), core: 0xffffff, size: L.flash, sizeEnd: L.flash * 1.3, life: L.flashLife, drag: 0, shape: 'burst', hold: 0.6 });
+    this.cel.add(e.x, y, e.z, 0, 0, 0, { color: heatOf(c), core: 0xffffff, colorEnd: rimOf(c), coreEnd: heatOf(c), size: L.burst, sizeEnd: L.burstEnd, life: L.burstLife, drag: 0, shape: 'burst', spin: 1.5 });
+    for (let i = 0; i < L.lines; i++) {
       const a = Math.random() * Math.PI * 2;
-      const v = 1.5 + Math.random() * 2;
-      this.cel.add(e.x, y - 0.1, e.z, Math.sin(a) * v, 2 + Math.random() * 2, Math.cos(a) * v, { color: rimOf(c), core: heatOf(c), size: L.flameSize * (0.6 + Math.random() * 0.6), sizeEnd: L.flameSize * 0.15, life: L.flameLife * (0.6 + Math.random() * 0.6), drag: 3, shape: 'flame', rot: (Math.random() - 0.5) * 0.8 });
+      const v = L.lineSpeed * (0.6 + Math.random() * 0.6);
+      const vx = Math.sin(a) * v;
+      const vy = (Math.random() - 0.2) * v * 0.6;
+      const vz = Math.cos(a) * v;
+      const hot = i % 2 === 0;
+      this.cel.add(e.x + vx * 0.03, y + vy * 0.03, e.z + vz * 0.03, vx, vy, vz, { color: hot ? heatOf(c) : rimOf(c), core: hot ? 0xffffff : heatOf(c), colorEnd: rimOf(c), size: L.lineSize * (0.6 + Math.random() * 0.7), sizeEnd: L.lineSize * 0.4, life: L.lineLife * (0.6 + Math.random() * 0.6), drag: 4, shape: 'streak', rot: this.screenRot(vx, vy, vz), hold: 0.5 });
+    }
+    const smoke = L.smokeColor;
+    const lit = L.smokeLightColor;
+    for (let i = 0; i < L.clouds; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * L.cloudSpread;
+      const v = 0.3 + Math.random() * 0.5;
+      const sz = L.cloudSize * (0.7 + Math.random() * 0.5);
+      this.cel.add(e.x + Math.sin(a) * r, y + (Math.random() - 0.4) * L.cloudSpread, e.z + Math.cos(a) * r, Math.sin(a) * v, 0.4 + Math.random() * 0.5, Math.cos(a) * v, { color: rimOf(c), core: heatOf(c), colorEnd: smoke, coreEnd: lit, colorDelay: L.cloudCool, colorSpan: L.cloudCoolSpan, hold: L.cloudHold, size: sz, sizeEnd: sz * (L.cloudSizeEnd / L.cloudSize), life: L.cloudLife * (0.8 + Math.random() * 0.4), drag: 2.5, gravity: -0.4, shape: 'cloud', rot: (Math.random() - 0.5) * 0.6 });
+    }
+    // small puffs drift further and outlast the cluster, so the cloud seems to break apart
+    for (let i = 0; i < L.puffs; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = 1.2 + Math.random() * 1.2;
+      this.cel.add(e.x, y + 0.2, e.z, Math.sin(a) * v, 0.7 + Math.random() * 0.8, Math.cos(a) * v, { color: rimOf(c), core: heatOf(c), colorEnd: smoke, coreEnd: lit, colorDelay: L.cloudCool, colorSpan: L.cloudCoolSpan, hold: L.cloudHold, size: L.puffSize, sizeEnd: L.puffSize * 0.6, life: L.cloudLife * 1.3, drag: 1.6, gravity: -0.3, shape: 'cloud' });
     }
     for (let i = 0; i < L.embers; i++) {
       const a = Math.random() * Math.PI * 2;
-      const v = 2.5 + Math.random() * 3.5;
-      this.fx.add(e.x, y, e.z, Math.sin(a) * v, 1.5 + Math.random() * 3, Math.cos(a) * v, { color: c.dots, size: L.emberSize * (0.6 + Math.random() * 0.8), sizeEnd: L.emberSize * 0.3, life: L.emberLife * (0.6 + Math.random() * 0.6), drag: 1.5, gravity: 7, shape: L.emberShape, spin: (Math.random() - 0.5) * 12 });
+      const v = 3 + Math.random() * 4;
+      const vx = Math.sin(a) * v;
+      const vy = 1 + Math.random() * 3;
+      const vz = Math.cos(a) * v;
+      this.fx.add(e.x, y, e.z, vx, vy, vz, { color: c.dots, core: heatOf(c), colorEnd: rimOf(c), size: L.emberSize * (0.6 + Math.random() * 0.6), sizeEnd: L.emberSize * 0.4, life: 0.4 + Math.random() * 0.4, drag: 1.5, gravity: 5, shape: 'streak', rot: this.screenRot(vx, vy, vz) });
     }
-    _smoke.set(c.glow).lerp(SMOKE, 0.7);
-    _smokeCore.copy(_smoke).lerp(SMOKE, -0.35);
-    for (let i = 0; i < L.smoke; i++) {
-      const a = Math.random() * Math.PI * 2;
-      this.cel.add(e.x + Math.sin(a) * 0.3, y, e.z + Math.cos(a) * 0.3, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: _smoke, core: _smokeCore, size: L.smokeSize * (0.6 + Math.random() * 0.5), sizeEnd: L.smokeSize * 1.5, life: L.smokeLife * (0.7 + Math.random() * 0.5), drag: 2.5, gravity: -1, alpha: 0.6, shape: 'puff', spin: (Math.random() - 0.5) * 1.5 });
-    }
-    if (L.ring) this.ring(e.x, e.z, L.ring, c.glow, 0.3);
   }
 
   hitSpark(e, height = 0.9) {
@@ -877,11 +916,12 @@ export class Vfx {
         } else if (look?.travel) {
           v.add(this.sprite(c.glow, look.travel.glow, 0.85));
           v.add(this.sprite(c.core, look.travel.core, 1));
-          v.userData.flames = 0;
-          v.userData.embers = 0;
-          // the release: a short flare where the projectile leaves the hand (one per projectile, so a split fans out)
-          const f = look.cast?.flare;
-          if (f) this.fx.add(pr.x, y, pr.z, 0, 0, 0, { color: c.core, size: f, sizeEnd: f * 0.3, life: 0.14, drag: 0, shape: 'flare' });
+          // warm light the fire throws on the ground under it
+          const pool = new THREE.Mesh(this.planeGeo, new THREE.MeshBasicMaterial({ map: this.glow, color: c.glow, transparent: true, opacity: look.travel.lightOpacity, depthWrite: false, blending: THREE.AdditiveBlending }));
+          pool.rotation.x = -Math.PI / 2;
+          pool.scale.setScalar(look.travel.light * 2);
+          v.add(pool);
+          v.userData = { fire: 0, smoke: 0, embers: 0, pool };
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
           v.add(this.sprite(c.glow, size * 1.8, 0.85));
@@ -893,6 +933,7 @@ export class Vfx {
       v.position.set(pr.x, y, pr.z);
       const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
       if (look?.travel) {
+        v.userData.pool.position.y = this.gy(pr.x, pr.z) + 0.06 - y;
         this.travel(v, pr, y, back, look.travel, c, dt, time);
         continue;
       }
@@ -911,26 +952,31 @@ export class Vfx {
     }
   }
 
-  /** A projectile with a travel look: pulsing core, flame tongues and embers shed at a fixed rate. */
+  /**
+   * A projectile with a travel look, as in the reference fire trail: a glowing ribbon of soft fire
+   * blobs that shrink behind the head, grey cartoon smoke left along the path, and ember streaks.
+   */
   travel(v, pr, y, back, L, c, dt, time) {
     v.children[1].scale.setScalar(L.core * (1 + Math.sin(time * 30 + pr.id) * L.pulse));
     const u = v.userData;
-    // the flame tips point back along the path as seen on screen, so they join into one tail
-    let tail = Math.atan2(-back.z, back.x) - Math.PI / 2;
-    const cam = this.camera;
-    if (cam) {
-      _base.set(pr.x, y, pr.z).project(cam);
-      _tip.set(pr.x + back.x, y, pr.z + back.z).project(cam);
-      tail = Math.atan2(_tip.y - _base.y, (_tip.x - _base.x) * cam.aspect) - Math.PI / 2;
+    u.fire += L.fireRate * dt;
+    for (; u.fire >= 1; u.fire--) {
+      const o = Math.random() * 0.15;
+      const sz = L.fireSize * (0.8 + Math.random() * 0.4);
+      this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.1, pr.z + back.z * o, back.x * 0.4 + (Math.random() - 0.5) * 0.4, 0.2 + Math.random() * 0.3, back.z * 0.4 + (Math.random() - 0.5) * 0.4, { color: c.glow, core: c.core, colorEnd: rimOf(c), coreEnd: heatOf(c), size: sz, sizeEnd: sz * 0.15, life: L.fireLife * (0.8 + Math.random() * 0.4), drag: 2, shape: 'blob', spin: (Math.random() - 0.5) * 8 });
     }
-    u.flames += L.flameRate * dt;
-    for (; u.flames >= 1; u.flames--) {
-      const o = Math.random() * 0.2;
-      this.cel.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * 0.3, 0.25, back.z * 0.3, { color: rimOf(c), core: heatOf(c), size: L.flameSize * (0.8 + Math.random() * 0.4), sizeEnd: L.flameSize * 0.1, life: L.flameLife * (0.7 + Math.random() * 0.6), drag: 3, shape: L.shape, rot: tail + (Math.random() - 0.5) * 0.5 });
+    u.smoke += L.smokeRate * dt;
+    for (; u.smoke >= 1; u.smoke--) {
+      const o = 0.4 + Math.random() * 0.4;
+      const sz = L.smokeSize * (0.7 + Math.random() * 0.6);
+      this.cel.add(pr.x + back.x * o + (Math.random() - 0.5) * 0.45, y - 0.1 + (Math.random() - 0.5) * 0.35, pr.z + back.z * o + (Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.5, 0.25 + Math.random() * 0.3, (Math.random() - 0.5) * 0.5, { color: L.smokeColor, core: L.smokeLightColor, size: sz, sizeEnd: sz * (L.smokeSizeEnd / L.smokeSize), life: L.smokeLife * (0.7 + Math.random() * 0.6), drag: 2, shape: 'cloud', rot: (Math.random() - 0.5) * 0.8, alpha: L.smokeAlpha, hold: L.smokeHold });
     }
     u.embers += L.emberRate * dt;
     for (; u.embers >= 1; u.embers--) {
-      this.fx.add(pr.x, y, pr.z, back.x * 2 + (Math.random() - 0.5) * 1.5, 0.5 + Math.random() * 1.2, back.z * 2 + (Math.random() - 0.5) * 1.5, { color: c.dots, size: L.emberSize * (0.6 + Math.random() * 0.8), sizeEnd: L.emberSize * 0.3, life: L.emberLife * (0.6 + Math.random() * 0.6), drag: 2, gravity: 2, shape: L.emberShape, spin: (Math.random() - 0.5) * 10 });
+      const vx = back.x * 2 + (Math.random() - 0.5) * 3;
+      const vy = 0.5 + Math.random() * 1.5;
+      const vz = back.z * 2 + (Math.random() - 0.5) * 3;
+      this.fx.add(pr.x, y, pr.z, vx, vy, vz, { color: c.dots, core: heatOf(c), colorEnd: rimOf(c), size: L.emberSize * (0.6 + Math.random() * 0.6), sizeEnd: L.emberSize * 0.4, life: L.emberLife * (0.6 + Math.random() * 0.6), drag: 2, gravity: 2, shape: 'streak', rot: this.screenRot(vx, vy, vz) });
     }
   }
 

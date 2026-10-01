@@ -38,11 +38,12 @@ test('skill looks name real skills, known shapes and positive sizes; casts gathe
       assert.ok(['cast', 'travel', 'impact'].includes(beat), `${id}: ${beat} is a known beat`);
       for (const [key, value] of Object.entries(cfg)) {
         if (/shape$/i.test(key)) assert.ok(shapes.has(value), `${id}.${beat}.${key}: ${value} is an fx-shapes.js shape`);
+        else if (/Color$/.test(key)) assert.match(value, /^#[0-9a-f]{6}$/i, `${id}.${beat}.${key} is a hex colour`);
         else assert.ok(Number.isFinite(value) && value >= 0, `${id}.${beat}.${key} is a non-negative number`);
       }
     }
     // an impact shorter than one frame at 30 fps would not be seen on the iPad
-    if (look.impact) assert.ok(look.impact.dur >= 1 / 30 && look.impact.flash > 0, `${id}: the impact flash is visible`);
+    if (look.impact) assert.ok(look.impact.flashLife >= 1 / 30 && look.impact.flash > 0, `${id}: the impact flash is visible`);
   }
   assert.ok(fx.skills.firebolt?.cast && fx.skills.firebolt.travel && fx.skills.firebolt.impact, 'firebolt has all three beats');
 });

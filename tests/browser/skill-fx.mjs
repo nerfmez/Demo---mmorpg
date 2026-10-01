@@ -93,13 +93,15 @@ try {
   seen = [];
   for (let i = 0; i < 90 && !seen.includes('impact'); i++) seen = seen.concat(await step(1));
   if (!seen.includes('impact')) throw new Error('no impact within 1.5 s');
-  await step(3);
-  await shot('3-impact');
-  await step(15);
-  await shot('4-after');
+  // the impact unfolds over about a second: flash, burst, fireball, smoke
+  const beats = [['3-flash', 2], ['4-burst', 5], ['5-fireball', 14], ['6-smoke', 30]];
+  for (const [beat, n] of beats) {
+    await step(n);
+    await shot(beat);
+  }
   await browser.close();
   if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
-  console.log(`saved ${TAG}-{1-cast,2-travel,3-impact,4-after}.png`);
+  console.log(`saved ${TAG}-{1-cast,2-travel,${beats.map((b) => b[0]).join(',')}}.png`);
 } finally {
   stop();
 }

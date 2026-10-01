@@ -13,6 +13,14 @@ export class Particles {
     this.pos = new Float32Array(capacity * 3);
     this.col = new Float32Array(capacity * 3);
     this.core = new Float32Array(capacity * 3);
+    // colour over life: rim and core go from *0 to *1, starting after the fraction fade[i] of the life
+    this.col0 = new Float32Array(capacity * 3);
+    this.col1 = new Float32Array(capacity * 3);
+    this.core0 = new Float32Array(capacity * 3);
+    this.core1 = new Float32Array(capacity * 3);
+    this.fade = new Float32Array(capacity);
+    this.span = new Float32Array(capacity); // fraction of the life the colour change takes
+    this.hold = new Float32Array(capacity); // fraction of the life at full alpha before fading out
     this.size = new Float32Array(capacity);
     this.alpha = new Float32Array(capacity);
     this.vel = new Float32Array(capacity * 3);
@@ -73,10 +81,13 @@ export class Particles {
 
   /**
    * Spawn one particle. shape is an fx-shapes.js name or index (0, the default, is a soft dot);
-   * core is the colour of a shape's inner cut-out (white when omitted); rot is the starting angle
-   * (random when omitted), spin its turn rate in rad/s.
+   * core is the colour of a shape's inner cut-out (white when omitted); colorEnd/coreEnd are the
+   * colours they turn into over the life (fire cooling to smoke), starting after colorDelay of it
+   * and taking colorSpan of it.
+   * hold is the fraction of the life kept at full alpha before it fades (cartoon smoke stays solid).
+   * rot is the starting angle (random when omitted), spin its turn rate in rad/s.
    */
-  add(x, y, z, vx, vy, vz, { color = 0xffffff, core = null, size = 0.3, sizeEnd = null, life = 0.6, gravity = 0, drag = 1.5, alpha = 1, shape = 0, rot = null, spin = 0 } = {}) {
+  add(x, y, z, vx, vy, vz, { color = 0xffffff, core = null, colorEnd = null, coreEnd = null, colorDelay = 0, colorSpan = 1, hold = 0.15, size = 0.3, sizeEnd = null, life = 0.6, gravity = 0, drag = 1.5, alpha = 1, shape = 0, rot = null, spin = 0 } = {}) {
     if (this.count >= this.cap) return;
     const i = this.count++;
     this.pos[i * 3] = x;
@@ -86,14 +97,17 @@ export class Particles {
     this.vel[i * 3 + 1] = vy;
     this.vel[i * 3 + 2] = vz;
     // no allocation per particle: garbage from thousands of Colors caused GC stutter
-    const c = typeof color === 'number' || typeof color === 'string' ? SCRATCH.set(color) : color;
-    this.col[i * 3] = c.r;
-    this.col[i * 3 + 1] = c.g;
-    this.col[i * 3 + 2] = c.b;
-    const k = core === null ? WHITE : typeof core === 'number' || typeof core === 'string' ? SCRATCH.set(core) : core;
-    this.core[i * 3] = k.r;
-    this.core[i * 3 + 1] = k.g;
-    this.core[i * 3 + 2] = k.b;
+    this.setRGB(this.col0, i, color);
+    this.setRGB(this.col1, i, colorEnd ?? color);
+    this.setRGB(this.core0, i, core ?? WHITE);
+    this.setRGB(this.core1, i, coreEnd ?? core ?? WHITE);
+    for (let c = 0; c < 3; c++) {
+      this.col[i * 3 + c] = this.col0[i * 3 + c];
+      this.core[i * 3 + c] = this.core0[i * 3 + c];
+    }
+    this.fade[i] = Math.min(0.99, colorDelay);
+    this.span[i] = Math.max(0.01, colorSpan);
+    this.hold[i] = Math.min(0.95, Math.max(0.15, hold));
     this.size0[i] = size;
     this.size1[i] = sizeEnd ?? size * 0.2;
     this.size[i] = size;
@@ -106,6 +120,13 @@ export class Particles {
     this.shape[i] = shapeIndex(shape);
     this.rot[i] = rot ?? Math.random() * Math.PI * 2;
     this.spin[i] = spin;
+  }
+
+  setRGB(arr, i, color) {
+    const c = typeof color === 'number' || typeof color === 'string' ? SCRATCH.set(color) : color;
+    arr[i * 3] = c.r;
+    arr[i * 3 + 1] = c.g;
+    arr[i * 3 + 2] = c.b;
   }
 
   burst(x, y, z, n, opts = {}) {
@@ -142,8 +163,15 @@ export class Particles {
       this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
       const t = 1 - this.life[i] / this.maxLife[i];
       this.size[i] = this.size0[i] + (this.size1[i] - this.size0[i]) * t;
-      this.alpha[i] = this.alpha0[i] * (t < 0.15 ? t / 0.15 : 1 - (t - 0.15) / 0.85);
+      const h = this.hold[i];
+      this.alpha[i] = this.alpha0[i] * (t < 0.15 ? t / 0.15 : t < h ? 1 : 1 - (t - h) / (1 - h));
       this.rot[i] += this.spin[i] * dt;
+      const f = this.fade[i];
+      const tc = t <= f ? 0 : Math.min(1, (t - f) / this.span[i]);
+      for (let c = i * 3; c < i * 3 + 3; c++) {
+        this.col[c] = this.col0[c] + (this.col1[c] - this.col0[c]) * tc;
+        this.core[c] = this.core0[c] + (this.core1[c] - this.core0[c]) * tc;
+      }
     }
     this.count = n;
     const g = this.points.geometry;
@@ -163,6 +191,10 @@ export class Particles {
       this.vel[to * 3 + c] = this.vel[from * 3 + c];
       this.col[to * 3 + c] = this.col[from * 3 + c];
       this.core[to * 3 + c] = this.core[from * 3 + c];
+      this.col0[to * 3 + c] = this.col0[from * 3 + c];
+      this.col1[to * 3 + c] = this.col1[from * 3 + c];
+      this.core0[to * 3 + c] = this.core0[from * 3 + c];
+      this.core1[to * 3 + c] = this.core1[from * 3 + c];
     }
     this.size[to] = this.size[from];
     this.size0[to] = this.size0[from];
@@ -176,5 +208,8 @@ export class Particles {
     this.shape[to] = this.shape[from];
     this.rot[to] = this.rot[from];
     this.spin[to] = this.spin[from];
+    this.fade[to] = this.fade[from];
+    this.hold[to] = this.hold[from];
+    this.span[to] = this.span[from];
   }
 }

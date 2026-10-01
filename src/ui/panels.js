@@ -725,12 +725,13 @@ function optionText(data, o) {
 
 function describeSkill(s) {
   const parts = [];
+  const number = v => Math.round(v * 10) / 10;
   if (s.damage !== undefined) parts.push(s.kind === 'dot_zone' ? `ดาเมจ ${Math.round(s.damage)}/วิ × ${s.duration.toFixed(1)} วิ` : `ดาเมจ ${Math.round(s.damage)}`);
   if (s.heal !== undefined) parts.push(`ฮีล ${Math.round(s.heal)}/วิ × ${s.duration.toFixed(1)} วิ`);
-  if (s.barrier !== undefined) parts.push(`เกราะ ${Math.round(s.barrier)} (${s.duration} วิ)`);
-  if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${s.summon.hp} · ${s.summon.life} วิ`);
-  if (s.takenMult) parts.push(`รับดาเมจ +${Math.round((s.takenMult - 1) * 100)}% · ตีเบาลง ${Math.round((1 - s.dealtMult) * 100)}% · ${s.duration} วิ`);
-  if (s.damageBuff) parts.push(`ดาเมจ +${Math.round(s.damageBuff * 100)}% · เร็ว +${Math.round(s.speedBuff * 100)}% · ${s.duration} วิ`);
+  if (s.barrier !== undefined) parts.push(`เกราะ ${Math.round(s.barrier)} (${number(s.duration)} วิ)`);
+  if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${number(s.summon.life)} วิ`);
+  if (s.takenMult) parts.push(`รับดาเมจ +${Math.round((s.takenMult - 1) * 100)}% · ตีเบาลง ${Math.round((1 - s.dealtMult) * 100)}% · ${number(s.duration)} วิ`);
+  if (s.damageBuff) parts.push(`ดาเมจ +${Math.round(s.damageBuff * 100)}% · เร็ว +${Math.round(s.speedBuff * 100)}% · ${number(s.duration)} วิ`);
   if (s.projectiles > 1) parts.push(`${s.projectiles} ลูก`);
   if (s.pierce) parts.push(`ทะลุ ${s.pierce}`);
   if (s.chain) parts.push(`เด้ง ${s.chain}`);
@@ -744,10 +745,9 @@ function describeSkill(s) {
   if (s.reflect) parts.push(`สะท้อน ${Math.round(s.reflect * 100)}%`);
   if (s.trigger) parts.push('ร่ายเองเมื่อหลบ');
   if (s.kind === 'melee_arc') parts.push(`ระยะ ${s.range.toFixed(1)} ม. มุม ${Math.round(s.arc)}°`);
-  else if (s.range) parts.push(`ระยะ ${s.range} ม.`);
+  else if (s.range) parts.push(`ระยะ ${number(s.range)} ม.`);
   if (s.radius && s.kind !== 'self_barrier') parts.push(`รัศมี ${s.radius.toFixed(1)}`);
   parts.push(`คูลดาวน์ ${s.cooldown.toFixed(1)} วิ`);
-  if (s.cost) parts.push(`MP ${s.cost}`);
+  if (s.cost) parts.push(`MP ${number(s.cost)}`);
   return parts.join(' · ');
 }
-

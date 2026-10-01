@@ -26,7 +26,9 @@ try{
   assert.ok(await page.locator('[data-act="skill-up"][data-skill="slash"]').isDisabled(),'rank cannot be rushed at Lv1 even with materials');
   await page.evaluate(()=>{window.__frontier.game.ch.level=5;window.__frontier.panels.render();});
   await click('[data-act="skill-up"][data-skill="slash"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.skills.slash),2);
-  assert.ok(await page.locator('[data-act="skill-up"][data-skill="slash"]').isDisabled(),'next rank needs character Lv12');await overflow();await shot('growth');
+  assert.ok(await page.locator('[data-act="skill-up"][data-skill="slash"]').isDisabled(),'next rank needs character Lv12');
+  assert.doesNotMatch(await page.locator('.pbody').innerText(),/\d+\.\d{5,}/,'growth previews format fractional stats readably');
+  await overflow();await shot('growth');
   await page.evaluate(()=>{window.__frontier.game.ch.level=40;window.__frontier.panels.open('bag');});
   await click('[data-act="inspect-item"][data-id="1"]');await click('[data-act="gear-up"][data-uid="1"]');
   await click('[data-act="gear-grade"][data-uid="1"]');

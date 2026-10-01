@@ -44,6 +44,38 @@ cooldown and insufficient-MP visuals. Review fixtures use never-saved `?fresh=1`
 Screenshots under `tests/browser/out/fieldhud-*` are real rendered game captures.
 Browser touch emulation is not a physical iPad or a device-FPS measurement.
 
+### Bottom-edge correction and surface polish (30 September 2026)
+
+The previous EXP dock was 40px high on tablets/desktops and centered the actual
+tracks within it. Checking only the dock's bounding box missed the visible space
+below the tracks. The dock is now 24px plus the device's bottom safe inset, with
+two equal-width tracks, labels above them, and a 2px bottom margin. The tracks
+are 4px high at every supported viewport; promotional mottos are removed.
+
+The HUD reserves the safe inset once. Combat controls and the joystick input zone
+no longer add the same inset a second time. This keeps the controls lower without
+placing them over the iOS home indicator. Percentages, independent progression,
+MAX state, original skill illustrations and slot actions retain their behavior.
+
+Player/quest frames, minimap rim, combat rims and menu surfaces now share a navy
+palette, fine silver/ivory keylines and restrained warm accents. HP/MP fills have
+quieter highlights; names and selected navigation receive clearer hierarchy.
+While a panel is open, gameplay HUD siblings and EXP are hidden so their shapes
+do not show through the translucent menu. Closing restores the same live HUD.
+
+`fieldhud.mjs` now checks the actual tracks' distance from the viewport edge,
+a synthetic 34px bottom inset, viewport-height changes, one-time safe-area
+reservation, and HUD visibility while opening/closing menus. It also captures
+the iPad safe-inset state and skill panel alongside its existing four-viewport
+hit-testing, original artwork, cooldown and empty-slot checks.
+
+Local review uses Chromium at iPad, desktop, phone landscape and phone portrait
+sizes. WebKit binaries can be downloaded here but cannot launch without the
+missing GTK4/GStreamer and related system libraries. The existing Field HUD
+GitHub Actions matrix installs dependencies and runs both engines on this PR.
+Neither browser emulation nor a passing technical check substitutes for the
+owner's visual review or a physical iPad check.
+
 ### Empty-slot navigation and touch click-through
 Opening an empty combat slot is committed on the native click after a valid tap,
 not on pointerup. Otherwise the newly opened menu can receive the same touch's

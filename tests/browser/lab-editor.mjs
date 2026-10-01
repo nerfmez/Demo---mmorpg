@@ -87,12 +87,25 @@ try {
   assert.equal(await page.evaluate(() => window.__lab.tuning.get('hunter_shot').fx.projectile.scale), 1.8, 'reset leaves the other skill’s values alone');
   await page.getByLabel('สกิลที่ปรับ', { exact: true }).selectOption('firebolt');
   await page.setViewportSize({ width: 768, height: 1024 });
+  await page.locator('#panel').evaluate((node) => { node.scrollTop = 0; });
+  await page.evaluate(() => { const L = window.__lab; L.preview('projectile'); L.state.paused = true; for (let i=0;i<18;i++) L.step(1/60); });
   await shot('editor-portrait.png');
+  const portraitBounds = await page.evaluate(() => { const v=window.__lab.view; return [v.hero, v.dummy].map(o=>o.position.clone().project(v.camera).x); });
+  assert(portraitBounds.every(x=>Math.abs(x)<.9), 'portrait view keeps caster and target inside the stage');
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'touch inspector must not overflow the viewport');
   await page.getByRole('button', { name: 'ปิดตัวปรับ', exact: true }).click();
   assert.equal(await page.evaluate(() => window.__lab.state.reviewPhase), 'full');
-  writeFileSync(OUT + 'report.json', JSON.stringify({ ok: !errors.length, browser: process.env.BROWSER || 'chromium', flow, color, arrow, impact, errors }, null, 2));
+  // Exercise the editor's explicit cleanup with rendered GPU resources.
+  const cleanupProbe = async (cycles) => page.evaluate(async (cycles) => {
+    const L=window.__lab, paint=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    for(let i=0;i<cycles;i++) for(const phase of ['cast','projectile','impact']) {
+      L.preview(phase, false); L.state.paused=true; L.step(1/60); await paint(); L.clear(); await paint();
+    }
+    return L.stats().geometries;
+  }, cycles);
+  const warm=await cleanupProbe(1), repeated=await cleanupProbe(8);
+  assert.equal(repeated, warm, 'repeated inspector previews must retain a stable geometry count');
+  writeFileSync(OUT + 'report.json', JSON.stringify({ ok: !errors.length, browser: process.env.BROWSER || 'chromium', flow, color, arrow, impact, portraitBounds, cleanup:{warm,repeated}, errors }, null, 2));
   assert.equal(errors.length, 0, errors.join('\n'));
-  writeFileSync(OUT + 'report.json', JSON.stringify({ ok: true, browser: process.env.BROWSER || 'chromium', flow, color, arrow, impact, errors }, null, 2));
   console.log('Lab editor passed: shader, colors, replay, per-skill persistence, export/import, resets, stage preview and portrait layout');
 } finally { await browser?.close(); try { process.kill(-server.pid); } catch {} }

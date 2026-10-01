@@ -251,11 +251,15 @@ let fps = 60;
 const camTarget = new THREE.Vector3();
 let panelH = 0;
 let panelW = 0;
+let viewFit = 1;
 function resize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
+  // Preserve horizontal room for caster and target when a portrait inspector
+  // reduces the available view. The owner's selected zoom remains the base.
+  viewFit = Math.max(1, h / Math.max(1, w - panelW));
   // keep the action centred in the part of the screen above the touch panel
   camera.setViewOffset(w, h, panelW / 2, panelH / 2, w, h);
   camera.updateProjectionMatrix();
@@ -279,7 +283,7 @@ function frame(now) {
     step(dt);
   }
   const target = camTarget.set(-state.distance / 2, 0, 0);
-  camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom);
+  camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom * viewFit);
   if (shake > 0) {
     camera.position.x += (Math.random() - 0.5) * shake * 0.35;
     camera.position.y += (Math.random() - 0.5) * shake * 0.35;
@@ -381,7 +385,7 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, stats: () => ({ ...renderer.info.memory }) };
+window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, hero: hero.root, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
 
 

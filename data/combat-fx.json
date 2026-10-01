@@ -1,27 +1,139 @@
 {
   "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json; 'overrides' tweaks it for one monster (type.attack).",
   "weapons": {
-    "sword": {"tip": 0.95, "base": 0.8, "life": 0.16, "minSpeed": 15, "fullSpeed": 60, "zone": 0.1, "dust": 0},
-    "dagger": {"tip": 0.5, "base": 0.38, "life": 0.12, "minSpeed": 8, "fullSpeed": 30, "zone": 0.1, "dust": 0},
-    "axe": {"tip": 0.85, "base": 0.55, "life": 0.2, "minSpeed": 20, "fullSpeed": 70, "zone": 0.13, "dust": 5},
-    "greatblade": {"tip": 1.2, "base": 0.85, "life": 0.24, "minSpeed": 20, "fullSpeed": 80, "zone": 0.13, "dust": 8},
-    "staff": {"tip": 1.0, "base": 0.8, "life": 0.14, "minSpeed": 15, "fullSpeed": 60, "zone": 0.1, "dust": 0},
-    "wand": {"tip": 0.35, "base": 0.22, "life": 0.12, "minSpeed": 10, "fullSpeed": 40, "zone": 0.1, "dust": 0},
-    "bow": {"tip": 0.6, "base": 0.45, "life": 0.12, "minSpeed": 10, "fullSpeed": 40, "zone": 0.1, "dust": 0},
-    "none": {"tip": 0.25, "base": 0.1, "life": 0.1, "minSpeed": 10, "fullSpeed": 40, "zone": 0.1, "dust": 0}
+    "sword": {
+      "tip": 0.95,
+      "base": 0.8,
+      "life": 0.16,
+      "minSpeed": 15,
+      "fullSpeed": 60,
+      "zone": 0.1,
+      "dust": 0
+    },
+    "dagger": {
+      "tip": 0.5,
+      "base": 0.38,
+      "life": 0.12,
+      "minSpeed": 8,
+      "fullSpeed": 30,
+      "zone": 0.1,
+      "dust": 0
+    },
+    "axe": {
+      "tip": 0.85,
+      "base": 0.55,
+      "life": 0.2,
+      "minSpeed": 20,
+      "fullSpeed": 70,
+      "zone": 0.13,
+      "dust": 5
+    },
+    "greatblade": {
+      "tip": 1.2,
+      "base": 0.85,
+      "life": 0.24,
+      "minSpeed": 20,
+      "fullSpeed": 80,
+      "zone": 0.13,
+      "dust": 8
+    },
+    "staff": {
+      "tip": 1.0,
+      "base": 0.8,
+      "life": 0.14,
+      "minSpeed": 15,
+      "fullSpeed": 60,
+      "zone": 0.1,
+      "dust": 0
+    },
+    "wand": {
+      "tip": 0.35,
+      "base": 0.22,
+      "life": 0.12,
+      "minSpeed": 10,
+      "fullSpeed": 40,
+      "zone": 0.1,
+      "dust": 0
+    },
+    "bow": {
+      "tip": 0.6,
+      "base": 0.45,
+      "life": 0.12,
+      "minSpeed": 10,
+      "fullSpeed": 40,
+      "zone": 0.1,
+      "dust": 0
+    },
+    "none": {
+      "tip": 0.25,
+      "base": 0.1,
+      "life": 0.1,
+      "minSpeed": 10,
+      "fullSpeed": 40,
+      "zone": 0.1,
+      "dust": 0
+    }
   },
   "monsters": {
-    "slap": {"kind": "splash", "color": "#5fb7c0", "core": "#f0fffb", "height": 0.3, "droplets": 18, "dur": 0.34},
-    "peck": {"kind": "thrust", "color": "#ffe9a8", "core": "#ffffff", "height": 0.85, "width": 0.1, "feathers": 5, "dur": 0.16},
-    "pinch": {"kind": "snap", "color": "#ff8a3d", "core": "#fff1d2", "height": 0.45, "sparks": 10, "dur": 0.22},
-    "bite": {"kind": "fangs", "color": "#efe9d6", "core": "#ffffff", "height": 0.5, "sparks": 7, "dur": 0.22},
-    "sweep": {"kind": "smear", "color": "#b8453a", "core": "#ffd9a8", "height": 0.8, "dust": 12, "dur": 0.38}
+    "slap": {
+      "kind": "splash",
+      "color": "#5fb7c0",
+      "core": "#f0fffb",
+      "height": 0.3,
+      "droplets": 18,
+      "dur": 0.34
+    },
+    "peck": {
+      "kind": "thrust",
+      "color": "#ffe9a8",
+      "core": "#ffffff",
+      "height": 0.85,
+      "width": 0.1,
+      "feathers": 5,
+      "dur": 0.16
+    },
+    "pinch": {
+      "kind": "snap",
+      "color": "#ff8a3d",
+      "core": "#fff1d2",
+      "height": 0.45,
+      "sparks": 10,
+      "dur": 0.22
+    },
+    "bite": {
+      "kind": "fangs",
+      "color": "#efe9d6",
+      "core": "#ffffff",
+      "height": 0.5,
+      "sparks": 7,
+      "dur": 0.22
+    },
+    "sweep": {
+      "kind": "smear",
+      "color": "#b8453a",
+      "core": "#ffd9a8",
+      "height": 0.8,
+      "dust": 12,
+      "dur": 0.38
+    }
   },
   "overrides": {
-    "hermit_crab.pinch": {"scale": 1.25, "color": "#ffb05e"},
-    "greyfang.bite": {"scale": 1.3, "color": "#d8d4e6"},
-    "thornback_wolf.bite": {"color": "#e4dfcf"},
-    "tusk_boar.bite": {"scale": 1.1, "color": "#f1e4c0", "height": 0.35}
+    "hermit_crab.pinch": {
+      "scale": 1.25,
+      "color": "#ffb05e"
+    },
+    "greyfang.bite": {
+      "scale": 1.3,
+      "color": "#d8d4e6"
+    },
+    "thornback_wolf.bite": {
+      "color": "#e4dfcf"
+    },
+    "tusk_boar.bite": {
+      "scale": 1.1,
+      "color": "#f1e4c0",
+      "height": 0.35
+    }
   },
   "skills": {
     "firebolt": {
@@ -30,7 +142,7 @@
         "rim": "#f28328",
         "body": "#ffb43d",
         "hot": "#fff0a0",
-        "core": "#fffef4"
+        "core": "#ffffff"
       },
       "cast": {
         "size": 0.55
@@ -38,8 +150,8 @@
       "projectile": {
         "length": 3.0,
         "headRadius": 0.35,
-        "glowRadius": 0.8,
-        "glowStrength": 0.3,
+        "glowRadius": 1.15,
+        "glowStrength": 0.85,
         "width": 1.25,
         "trailRate": 45,
         "trailLife": 0.2,

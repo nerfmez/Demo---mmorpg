@@ -92,7 +92,7 @@ export function flameMesh(cfg, mode = 0) {
         vec3 col=flameColor(heat);
         if(uMode<0.5){
           // White-hot filled head; only a thin golden transition at its perimeter.
-          float hot=1.0-smoothstep(0.82,1.0,length(q)/uHeadRadius);
+          float hot=1.0-smoothstep(0.93,1.0,length(q)/uHeadRadius);
           col=mix(col,mix(uHot,uCore,hot),smoothstep(-aa,aa,head));
         }
         gl_FragColor=vec4(col,alpha);
@@ -115,7 +115,7 @@ export function flameMesh(cfg, mode = 0) {
       varying vec2 vLocal;
       void main(){
         float r=length(vLocal)/uGlowRadius;
-        float glow=exp(-r*r*4.5)*uGlowStrength;
+        float glow=(exp(-r*r*2.5)*0.62+exp(-r*r*9.0)*0.38)*uGlowStrength;
         if(uMode<0.5){
           float trail=exp(-pow(vLocal.y/0.27,2.0))*0.04;
           trail*=step(-uLength*0.72,vLocal.x)*step(vLocal.x,-0.12);

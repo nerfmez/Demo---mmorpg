@@ -106,6 +106,7 @@ try {
         dustParticles: f.view.vfx.dust.count,
         events: f.fireboltEvents.slice(),
         targetHp: target.hp,
+        targetMaxHp: target.maxHp,
       };
     };
     f.paused = false;
@@ -134,7 +135,7 @@ try {
   await page.evaluate(() => __frontier.fireboltStep(0.6, true));
   const impact = await page.evaluate(() => __frontier.fireboltSnapshot());
   assert(impact.events.some(e => e.type === 'impact' && e.kind === 'firebolt'), 'real Firebolt hit did not emit impact');
-  assert(impact.targetHp < 1e9, 'target state invalid');
+  assert(impact.targetHp < impact.targetMaxHp, 'Firebolt impact did not damage the real target');
   await capture('03-impact');
 
   assert.deepEqual(errors, [], 'browser errors: ' + errors.join('\n'));

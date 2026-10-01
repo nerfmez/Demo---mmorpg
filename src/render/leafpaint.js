@@ -51,39 +51,55 @@ export function needleTexture() {
  needles=new THREE.CanvasTexture(canvas);needles.colorSpace=THREE.SRGBColorSpace;needles.anisotropy=4;return needles;
 }
 
-// A coconut-palm frond, rachis running down the middle (u=.5) from base (bottom, v=1) to tip (top).
-// Calm on purpose: a modest number of broad, tapered leaflets with clear gaps between them, each
-// shaded from a deeper green at the stalk to a sunlit tip, leafed full right down to the crown.
+// An anime-style coconut frond (canvas top = tip, bottom = crown): one solid leaf mass, narrow
+// at the stalk, widest about three quarters out and drawn to a point, broken by a few big
+// V-notches along both edges instead of hundreds of thin leaflets. Cel-shaded in flat tones —
+// a sunlit half and a shaded half either side of a pale midrib — with a soft same-hue rim and a
+// handful of short separation strokes.
 let frond;
 export function palmFrondTexture() {
  if(frond)return frond;
  const W=256,H=1024,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
- const c=canvas.getContext('2d'),rng=createRng(1307),cx=W/2;
- const leaflet=(x0,y0,x1,y1,bx,by,width,col)=>{
-  const pts=[],n=14;
-  for(let k=0;k<=n;k++){const t=k/n,u=1-t;pts.push([u*u*x0+2*u*t*bx+t*t*x1,u*u*y0+2*u*t*by+t*t*y1]);}
-  const left=[],right=[];
-  for(let k=0;k<=n;k++){
-   const a=pts[Math.max(0,k-1)],b=pts[Math.min(n,k+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;
-   const w=width*Math.pow(Math.sin(Math.PI*Math.min(1,.08+k/n*.95)),.7)*.5;
-   left.push([pts[k][0]-dy/l*w,pts[k][1]+dx/l*w]);right.push([pts[k][0]+dy/l*w,pts[k][1]-dx/l*w]);
-  }
-  const g=c.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,col[0]);g.addColorStop(1,col[1]);
-  c.fillStyle=g;c.beginPath();c.moveTo(...left[0]);for(const p of left)c.lineTo(...p);for(const p of right.reverse())c.lineTo(...p);c.closePath();c.fill();
+ const c=canvas.getContext('2d'),rng=createRng(1307),cx=W/2,top=H*.02,bottom=H*.99;
+ const yAt=s=>bottom-(bottom-top)*s; // s: 0 at the crown, 1 at the tip
+ const half=s=>W*(.05+.42*Math.pow(Math.sin(Math.PI*Math.pow(Math.min(1,s),1.9)),.75));
+ const outline=side=>{const pts=[];for(let k=0;k<=60;k++){const s=k/60;pts.push([cx+side*half(s),yAt(s)]);}return pts;};
+ const fillHalf=(side,col)=>{
+  c.fillStyle=col;c.beginPath();c.moveTo(cx,yAt(0));
+  for(const p of outline(side))c.lineTo(...p);c.lineTo(cx,yAt(1));c.closePath();c.fill();
  };
- const count=21,pitch=H*.96/count;
- const shades=[['#5a9845','#9ccd6c'],['#62a04b','#a8d476'],['#55913f','#93c565']];
- for(let i=0;i<count;i++){
-  const t=i/count,y=H*.04+t*H*.96; // t=0 at the tip, 1 at the crown: leafed all the way down
-  // full length through the middle, tapering to the tip, still broad at the crown end
-  const reach=(t<.5?Math.pow(Math.sin(Math.PI*(.06+t*.94)),.5)*.45+.04:.49-.12*(t-.5)/.5)*W;
-  for(const side of [-1,1]){
-   const len=reach*rng.range(.9,1.0),rise=len*.62;
-   // each leaflet darkens toward the stalk and lightens to its tip; neighbours differ a little
-   leaflet(cx+side*4,y,cx+side*len,y-rise,cx+side*len*.6,y-rise*.2,Math.min(pitch*.7,26),shades[Math.floor(rng.next()*shades.length)]);
+ fillHalf(-1,'#5e9e48');fillHalf(1,'#8cc85f');
+ // a deeper band at the crown end and a warm sunlit band toward the tip, in flat cel steps
+ c.globalCompositeOperation='source-atop';
+ c.fillStyle='rgba(40,80,35,.28)';c.fillRect(0,yAt(.16),W,bottom-yAt(.16));
+ c.fillStyle='rgba(225,240,150,.18)';c.fillRect(0,0,W,yAt(.72));
+ c.globalCompositeOperation='source-over';
+ // soft rim in a darker green of the same hue
+ c.strokeStyle='#4a843c';c.lineWidth=3;c.lineJoin='round';
+ for(const side of [-1,1]){c.beginPath();outline(side).forEach((p,k)=>k?c.lineTo(...p):c.moveTo(...p));c.stroke();}
+ // a few short separation strokes on the leaf blade
+ c.strokeStyle='rgba(55,100,45,.55)';c.lineWidth=2.2;c.lineCap='round';
+ for(const side of [-1,1])for(let k=0;k<6;k++){
+  const s=.3+k*.1+rng.range(-.02,.02),y=yAt(s),h=half(s);
+  c.beginPath();c.moveTo(cx+side*h*.92,y);c.lineTo(cx+side*h*.45,y+h*.35);c.stroke();
+ }
+ // big V-notches cut from both edges, opening outward and pointing back toward the crown
+ c.globalCompositeOperation='destination-out';c.fillStyle='#000';
+ for(const side of [-1,1]){
+  let s=.24+rng.range(0,.04);
+  while(s<.93){
+   const width=rng.range(.045,.07),h=half(s+width/2),depth=rng.range(.42,.62);
+   c.beginPath();
+   c.moveTo(cx+side*(half(s)+2),yAt(s));
+   c.lineTo(cx+side*h*(1-depth),yAt(s+width*.2));
+   c.lineTo(cx+side*(half(s+width)+2),yAt(s+width));
+   c.closePath();c.fill();
+   s+=width+rng.range(.06,.1);
   }
  }
- c.strokeStyle='#a9bd6a';c.lineCap='round';
- for(let k=0;k<24;k++){const y=H*.04+(H*.96)*k/24,y2=H*.04+(H*.96)*(k+1)/24;c.lineWidth=3+8*((k+1)/24);c.beginPath();c.moveTo(cx,y);c.lineTo(cx,y2+1);c.stroke();}
+ c.globalCompositeOperation='source-over';
+ // pale midrib from the crown to just short of the tip
+ c.strokeStyle='#cfe08e';c.lineCap='round';
+ for(let k=0;k<20;k++){const s0=k/20*.96,s1=(k+1)/20*.96;c.lineWidth=7-5.5*s0;c.beginPath();c.moveTo(cx,yAt(s0));c.lineTo(cx,yAt(s1));c.stroke();}
  frond=new THREE.CanvasTexture(canvas);frond.colorSpace=THREE.SRGBColorSpace;frond.anisotropy=4;return frond;
 }

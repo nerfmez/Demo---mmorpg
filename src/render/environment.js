@@ -625,7 +625,7 @@ function createTown(world, rng) {
     }
     if (bx.type === 'stall') {
       const i=stallIndex++;
-      g.add(slice ? marketStall(bx,slice.awningColors[i % slice.awningColors.length],gy(bx.x,bx.z),slice.stallGoods[i]==='fish')
+      g.add(slice ? marketStall(bx,bx.awningColor||slice.awningColors[i % slice.awningColors.length],gy(bx.x,bx.z),slice.stallGoods[i]==='fish')
         : stall(bx,rng.pick(['#d8483a','#3b6ad0','#e0a030']),gy(bx.x,bx.z)));
     }
   }

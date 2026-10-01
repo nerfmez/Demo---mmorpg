@@ -16,22 +16,30 @@ const sample=(x,z)=>{
 };
 test('actual hulls, rotated stone base and piles intersect water; raised timber decks do not',()=>{
  for(const [x,z] of world.data.harbor.boats)assert.ok(sample(x,z).distance<0,`boat ${x},${z}`);
- assert.ok(sample(-25,-9).distance>1,'water may pass below elevated deck');
  const pier=world.docks.find(d=>d.id==='market_west');
- const pile=fromBoxLocal(pier,pier.hx-.2,pier.hz-.3);
- assert.ok(sample(pile.x,pile.z).distance<0,'actual pile blocks surface');
+ assert.ok(sample(pier.x,pier.z).distance>1,'water may pass below elevated deck');
+ for(const deck of world.docks.filter(d=>d.kind==='pier'&&!d.rampFromTerrain))
+  for(const lx of [-deck.hx+.2,deck.hx-.2])for(const lz of [-deck.hz+.3,deck.hz-.3]){
+   const pile=fromBoxLocal(deck,lx,lz);
+   assert.ok(sample(pile.x,pile.z).distance<0,deck.id+' actual pile blocks surface');
+  }
  const d=world.docks.find(d=>d.kind==='breakwater');
  for(const z of [-8,0,8]){const p=fromBoxLocal(d,0,z);assert.ok(sample(p.x,p.z).distance<0,'solid rotated masonry');}
 });
 test('waterline uses tapered hull, not a rectangular building footprint',()=>{
- assert.ok(sample(-20,-7).distance<0);
- assert.ok(sample(-18.8,-3.5).distance>0,'open water next to pointed bow');
- assert.ok(sample(-20,-3.5).distance>0,'waterline is narrower/shorter than upper gunwale');
- assert.ok(sample(-25,.5).distance>0,'open centre below deck, between its piles');
+ const [x,z,angle]=world.data.harbor.boats[0],boat={x,z,angle};
+ assert.ok(sample(x,z).distance<0);
+ // Both points lie inside the upper gunwale's extent but clear of the tapered
+ // waterline by more than a texel, independent of the relocated texture grid.
+ for(const [lx,lz] of [[0,3.7],[1.1,0]]){const p=fromBoxLocal(boat,lx,lz);assert.ok(sample(p.x,p.z).distance>0,'waterline is narrower/shorter than upper gunwale');}
+ const pier=world.docks.find(d=>d.id==='market_west'),p=fromBoxLocal(pier,0,pier.hz-.5);
+ assert.ok(sample(p.x,p.z).distance>0,'open centre below deck, between its piles');
 });
 test('incoming exposure is reduced behind the physical hull and recovers in open water',()=>{
- assert.ok(sample(-20,-11).exposure<sample(-20,-2.7).exposure);
- assert.equal(sample(0,20).exposure,1);
+ const [x,z]=world.data.harbor.boats[0];
+ assert.ok(sample(x,z-4).exposure<sample(x,z+4.3).exposure);
+ const [dx,dz]=data.world.town.placement?.referenceOffset||[0,0];
+ assert.equal(sample(dx,60+dz).exposure,1);
 });
 test('above-water decoration creates no contact and texture is owned/disposed exactly once',()=>{
  const w={waterLevel:0,data:{sea:{shore:[[-5,-2],[5,-2]],surf:{contactTexel:.1}}}};

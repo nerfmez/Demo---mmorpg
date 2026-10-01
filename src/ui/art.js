@@ -175,7 +175,7 @@ Object.assign(monster, {
 });
 Object.assign(zone, {
   landing: zoneBase(P('M6 87Q49 60 122 90V117H6Z','#e5d4a7','none')+P('M6 105Q55 88 122 106V117H6Z','#75b9c0','none')+L('M21 106Q59 92 110 105','#f2efdb',4)+P('M72 48l-5 47h15l-5-47Z','#ad8e62')+P('M69 32l5-19 7 19Z','#e1be78'),'#e2d1a4','#d4e7e5'),
-  headland: zoneBase(P('M6 100L34 80 64 85 93 103V117H6Z','#99ad77','none')+P('M6 107Q70 99 122 89V117H6Z','#72aeb6','none')+P('M49 36h24l7 67H42Z','#eee1c0')+P('M48 62h26v13H46Z','#648c9b')+P('M44 35l17-20 17 20Z','#4c7388')+C(61,41,5,'#e7c077'),'#aabc86','#d9e8dc')
+  headland: zoneBase(P('M6 100L34 66 64 72 93 98V117H6Z','#99ad77','none')+P('M34 66V97L72 113 91 98 64 72Z','#a59d86')+P('M6 109Q70 103 122 90V117H6Z','#72aeb6','none')+P('M47 86L43 54 51 29 72 33 80 59 75 91Z','#8caaac')+P('M52 76L52 48 61 36 70 48 69 78Z','#c2ded6')+diamond(61,57,10,'#8dd8da')+L('M39 105L44 98m46 7l12-6','#e3e9d4',3),'#aabc86','#d9e8dc')
 });
 export const ART = { gear, material, skill, mod, monster, zone, job };
 export function hasArt(kind, id) { return !!ART[kind]?.[id]; }

@@ -34,7 +34,7 @@ const state = {
   speed: 1,
   paused: false,
   auto: false,
-  ground: 'sand',
+  ground: GROUNDS[params.get('ground')] ? params.get('ground') : 'sand',
   distance: 6,
   zoom: 0.55,
   open: false, // settings rows shown
@@ -301,7 +301,8 @@ fetch('./lab-source.json')
   .then((r) => (r.ok ? r.json() : null))
   .then((j) => j && (source = ` · ${j.branch} ${String(j.sha).slice(0, 7)}`))
   .catch(() => {});
-scene.background = new THREE.Color(GROUNDS.sand.sky);
+scene.background = new THREE.Color(GROUNDS[state.ground].sky);
+floorMat.color.set(GROUNDS[state.ground].floor);
 render();
 window.__lab = { state, cast, step, vfx };
 requestAnimationFrame(frame);

@@ -1,4 +1,5 @@
 // Title screen, save slots and character creation (HTML over the live 3D world).
+import { seekerBrand } from './fieldhud.js';
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../render/hero.js';
@@ -46,8 +47,7 @@ export class Menu {
     const last = lastSlot();
     const lastInfo = last ? listSlots()[last - 1] : null;
     this.show(`<div class="title-card">
-      <div class="logo">Azure<br><span>Coast</span></div>
-      <div class="logo-th">เมืองท่าสีคราม</div>
+      <div class="title-brand" role="img" aria-label="SEEKER">${seekerBrand()}</div>
       <div class="logo-sub">Demo · Anime MMORPG + Buildcraft</div>
       <div class="menu-buttons">
         ${lastInfo ? `<button class="mbtn primary" data-act="continue">▶ เล่นต่อ<small>${esc(lastInfo.name)} · Lv.${lastInfo.level}</small></button>` : ''}

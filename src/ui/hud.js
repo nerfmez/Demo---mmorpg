@@ -3,7 +3,7 @@ import { icon } from './icons.js';
 import { trackedQuest } from '../core/quests.js';
 import { mapImage } from './mapimage.js';
 import { loadPref, savePref } from '../save.js';
-import { fieldIcon, seekerBrand, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
+import { fieldIcon, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
 
 const h = (html) => {
   const t = document.createElement('template');
@@ -73,7 +73,6 @@ export class Hud {
     this.mbars = new Map();
 
     this.el = {
-      brand: h(`<div class="field-brand passive" aria-hidden="true">${seekerBrand()}</div>`),
       frame: h(`<button class="pframe" aria-label="เปิดตัวละครและค่าสถานะ" title="ตัวละคร · C">
         <div class="portrait"></div><div class="lvl-badge">1</div>
         <div class="bars">

@@ -19,6 +19,8 @@ registered in `data/models.json` → `monsters` and skinned onto the procedural 
 | greyfang (boss) | 01a0e875-1ed7-7166-be3e-dd55e10b8555 | 01a0e877-9a24-76d6-abcb-a9aa8179dd1d | 5,019 |
 | horned_warden (boss) | 01a0e875-3599-7153-93c9-3052342d9f13 | 01a0e877-a4b3-74ff-94f8-46ce01f997b9 | 5,215 |
 | salt_slime (level 1 redesign A) | 01a0f578-4d4a-777f-9e8a-9fb905e719f1 | 01a0f57a-c37d-7182-97bf-8f6083cee753 | 3,112 |
+| shore_gull | 01a0f575-db66-77b5-af52-2d8585fbe117 | 01a0f585-fb16-7249-8e2e-c5b30bfa5550 | 4,165 |
+| hermit_crab | 01a0f575-e191-731d-8404-c6516f09e101 | 01a0f585-ffb4-7347-8aef-434b23bb0f2a | 4,688 |
 
 The salt slime concept was redrawn for a level-1 monster (the first design looked too fierce); the 3D model
 is Meshy 6 image-to-3d with `should_remesh` and `target_polycount` 3000, then

@@ -349,6 +349,21 @@ export function marketStall(bx,color,y,fish) {
     box(.70,.38,.62,'#a88b60',x,.23,-.46);
     for(const dx of [-.25,.25])box(.055,.42,.035,C.wood,x+dx,.23,-.12);
   }
+  // Rear displays identify the facing supply row from the south-facing camera.
+  if(bx.openCounter&&stock!=='fish'){
+    const back=-bx.hz+.07;
+    for(const x of [-.72,0,.72]){
+      if(stock==='cloth'){
+        box(.50,.49,.05,x===0?'#c7d3c6':'#d7bd85',x,1.48,back);
+        box(.56,.06,.06,C.wood,x,1.74,back);
+      }else if(stock==='rope'){
+        for(const r of [.20,.15,.10])part(new THREE.TorusGeometry(r,.022,5,12),C.rope,x,1.46,back);
+      }else{
+        part(new THREE.CylinderGeometry(.20,.17,.29,8),'#b5a27b',x,1.35,back+.10);
+        for(const dx of [-.08,.08])part(new THREE.SphereGeometry(.095,7,5),x===0?'#a7b16b':'#c29458',x+dx,1.51,back+.10);
+      }
+    }
+  }
   const root=b.finish();root.position.set(bx.x,y,bx.z);root.rotation.y=bx.angle;return root;
 }
 

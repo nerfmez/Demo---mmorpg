@@ -123,7 +123,7 @@ try {
     await stage(...deckPoint('market_west_ramp',-1));await shot('05-quay-pier-join-gameplay');
     await stage(...deckPoint('repair_ramp',-7));await shot('06-shipyard-slipway-gameplay');
     const launch=worldData.harbor.workProps.find(p=>p.id==='launch_hull');
-    if(launch)await stage(launch.x+5,launch.z+5);
+    if(launch)await stage(launch.x+5,launch.z);
     else {const [sx,sz]=frontage('repair_store');await stage(sx-2,sz+2);}
     await shot('08-shipyard-working-yard-gameplay');
     report.townLife=await page.evaluate(()=>{
@@ -133,7 +133,7 @@ try {
       return {residents:f.view.npcs.filter(n=>n.scenery).length,shipwrightVisible:n.root.visible,workGestureChanges:Math.abs(first-n.bones.armR.rotation.x)>.01};
     });assert.ok(report.townLife.shipwrightVisible&&report.townLife.workGestureChanges);
     const wash=worldData.harbor.workProps.find(p=>p.id==='west_laundry');
-    if(wash){await stage(wash.x,wash.z+4.3);await shot('13-residential-courtyard-life-gameplay');}
+    if(wash){await stage(wash.x,wash.z+3.3);await shot('13-residential-courtyard-life-gameplay');}
     await stage(worldData.town.centre[0],worldData.town.centre[1]+3.3);await shot('14-organised-market-gameplay');
     for(const [id,name] of [['fish_market','10-fish-market-gameplay'],['market_0','11-netter-shop-gameplay'],['market_1','12-sailmaker-shop-gameplay']]){
       const [x,z]=frontage(id);await stage(x,z+2);await shot(name);

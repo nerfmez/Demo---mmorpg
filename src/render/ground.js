@@ -14,6 +14,7 @@ import art from '../../data/art.json' with {type:'json'};
 const TILE = 32;
 
 import { NOISE_GLSL, GROUND_COLOR_GLSL } from './ground-color.js';
+import { bakeGroundFieldData } from './ground-field.js';
 export { NOISE_GLSL } from './ground-color.js';
 
 const smooth = (e0, e1, x) => {
@@ -170,6 +171,22 @@ export function surfaceData(world) {
   return result;
 }
 
+// The baked low-frequency ground fields (see ground-field.js), shared by terrain and grass.
+// Built once per world; owned for the page lifetime like the shared brush atlas.
+const fieldCache = new WeakMap();
+export function groundFieldUniforms(world) {
+  if (!fieldCache.has(world)) {
+    const hf = world.heightfield, f = bakeGroundFieldData(hf.ox, hf.oz, (hf.w - 1) * hf.res, (hf.h - 1) * hf.res, art.ground.fieldTexels ?? 2);
+    const textures = f.data.map((data) => {
+      const t = new THREE.DataTexture(data, f.width, f.height, THREE.RGBAFormat, THREE.UnsignedByteType);
+      t.magFilter = t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true; t.userData.shared = true;
+      return t;
+    });
+    fieldCache.set(world, { uField0: { value: textures[0] }, uField1: { value: textures[1] }, uField2: { value: textures[2] }, uFieldRect: { value: new THREE.Vector4(...f.rect) } });
+  }
+  return fieldCache.get(world);
+}
+
 export function createTerrain(world) {
   const hf = world.heightfield;
   const { w, h, ox, oz, res, data } = hf;
@@ -256,6 +273,7 @@ function terrainMaterial(world) {
     shader.uniforms.uArena = { value: new THREE.Vector3(arena.x, arena.z, arena.r) };
     shader.uniforms.uWater = { value: world.waterLevel };
     shader.uniforms.uGroundBrush=brush;
+    Object.assign(shader.uniforms, groundFieldUniforms(world));
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -295,7 +313,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v11';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v12';
   return mat;
 }
 
@@ -448,9 +466,12 @@ function seaMaterial(world, contacts) {
           // during drainage. The next patch is reseeded only while it is invisible.
           vec2 swashP=(vW-normal*edge)*uFoam.x;
           swashP+=normal*swashAge*uMotion.x;
-          vec2 sheet=foamSheet(swashP,swashAge*uSurf.z,generation,uSurf.z*.88);
           float trail=smoothstep(.04,.22,behind)*(1.0-smoothstep(sheetWidth*.5,sheetWidth,behind));
-          float broken=smoothstep(.17,.55,vnoise(swashP*.7+generation*8.3));
+          // the foam sheet and broken rim only exist in a narrow band at the waterline; open
+          // water skips them (same result, they would be multiplied by zero)
+          vec2 sheet=vec2(0.0);
+          if(trail*build*drain>.001)sheet=foamSheet(swashP,swashAge*uSurf.z,generation,uSurf.z*.88);
+          float broken=rim>.001?smoothstep(.17,.55,vnoise(swashP*.7+generation*8.3)):0.0;
           float wash=rim*(.50+.45*build*drain)*mix(.40,1.0,broken)
                      +sheet.x*trail*build*drain;
           float washMist=sheet.y*trail*build*drain;

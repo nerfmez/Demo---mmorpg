@@ -2,9 +2,10 @@
 // each beat (cast, travel, impact, aftermath) at a fixed 60 fps step, so the frames are the same
 // on every machine. Usage: npm run build && node tests/browser/skill-fx.mjs [skill]
 // Frames go to tests/browser/out/skill-fx-<skill>-<beat>.png (BROWSER=webkit for WebKit).
+// VIDEO=1 records every frame instead and encodes tests/browser/out/skill-fx-<skill>.mp4 (needs ffmpeg).
 import { chromium, webkit } from 'playwright';
-import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import { mkdirSync, rmSync } from 'node:fs';
 
 const SKILL = process.argv[2] || 'firebolt';
 const TAG = `skill-fx-${SKILL}`;
@@ -74,8 +75,12 @@ try {
         return events;
       };
       f.step(30); // settle
-      g.setAimPoint(spot.x - 4.5, spot.z);
-      g.castSlot(0, { x: spot.x - 4.5, z: spot.z });
+      f.cast = () => {
+        g.player.mp = 999;
+        g.player.cooldowns[0] = 0;
+        g.setAimPoint(spot.x - 4.5, spot.z);
+        g.castSlot(0, { x: spot.x - 4.5, z: spot.z });
+      };
       return { ok: true };
     },
     SKILL,
@@ -84,6 +89,29 @@ try {
 
   const shot = (beat) => page.screenshot({ path: `${OUT}${TAG}-${beat}.png` });
   const step = (n) => page.evaluate((k) => window.__frontier.step(k), n);
+  if (process.env.VIDEO) {
+    // two casts, every 60 fps frame of the action area, played back at real speed
+    const dir = `${OUT}${TAG}-frames/`;
+    rmSync(dir, { recursive: true, force: true });
+    mkdirSync(dir, { recursive: true });
+    const clip = { x: 0, y: 180, width: 820, height: 460 };
+    let n = 0;
+    for (const len of [100, 110]) {
+      await page.evaluate(() => window.__frontier.cast());
+      for (let i = 0; i < len; i++) {
+        await step(1);
+        await page.screenshot({ path: `${dir}${String(n++).padStart(4, '0')}.png`, clip });
+      }
+    }
+    await browser.close();
+    const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-framerate', '60', '-i', `${dir}%04d.png`, '-vf', 'scale=820:-2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', `${OUT}${TAG}.mp4`]);
+    if (r.status !== 0) throw new Error(`ffmpeg failed: ${r.stderr}`);
+    if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
+    console.log(`saved ${TAG}.mp4 (${n} frames)`);
+    stop();
+    process.exit(0);
+  }
+  await page.evaluate(() => window.__frontier.cast());
   await step(8);
   await shot('1-cast');
   let seen = [];

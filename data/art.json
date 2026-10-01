@@ -11,7 +11,7 @@
   },
   "grass": {
     "blade": { "height": [0.5, 0.84], "width": [0.026, 0.046], "bend": [0.06, 0.17] },
-    "tipLightening": 0.36,
+    "tipLightening": 0.6,
     "groundStrokeShade": 0.8,
     "groundStrokeLight": 0.8,
     "rootBlendHeight": 0.75
@@ -37,7 +37,9 @@
       "woodSeam": "#75634c"
     },
     "townPatchSpacing": 4.8,
-    "grassPerPatch": 15,
+    "wildPatchSpacing": 4.2,
+    "wildMinDensity": 0.08,
+    "grassPerPatch": 20,
     "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
   },
   "anime": {

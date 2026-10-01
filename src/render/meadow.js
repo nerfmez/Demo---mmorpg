@@ -29,19 +29,20 @@ export function meadowPlants(world, extraPatches=[]) {
     patches.push({x:px,z:pz,s:rng.range(.62,.91)});
     if(rng.next()<.21)flowerPatches.push({x:px+.25,z:pz+.4,s:rng.range(.85,1.15),color:rng.pick([0,0,1,2])});
   }
-  for(const patch of patches){
-    const density=meadowDensity(patch.x,patch.z),axis=rng.range(0,Math.PI*2);
+  // One patch: loose elongated islands; centres carry taller blades, edges taper into ground paint.
+  const plant=(patch,r0)=>{
+    const density=meadowDensity(patch.x,patch.z),axis=r0.range(0,Math.PI*2);
     for(let k=0;k<art.ground.grassPerPatch;k++){
-      if(rng.next()>.48+density*.72)continue;
-      // Loose elongated islands; centres carry taller blades, edges taper into ground paint.
-      const a=rng.range(0,Math.PI*2),r=k===0?0:Math.sqrt(rng.next())*1.7;
+      if(r0.next()>.48+density*.72)continue;
+      const a=r0.range(0,Math.PI*2),r=k===0?0:Math.sqrt(r0.next())*1.7;
       const lx=Math.sin(a)*r,lz=Math.cos(a)*r*.65;
       const x=patch.x+Math.cos(axis)*lx+Math.sin(axis)*lz,z=patch.z-Math.sin(axis)*lx+Math.cos(axis)*lz;
       if(!clear(x,z)||meadowDensity(x,z)<.12)continue;
-      const s=patch.s*rng.range(.80,1.30)*(1-r*.12);
-      grass.push({x,z,y:world.groundY(x,z)-.018,ry:axis+rng.range(-1.0,1.0),s});
+      const s=patch.s*r0.range(.80,1.30)*(1-r*.12);
+      grass.push({x,z,y:world.groundY(x,z)-.018,ry:axis+r0.range(-1.0,1.0),s});
     }
-  }
+  };
+  for(const patch of patches)plant(patch,rng);
   for(const patch of flowerPatches){
     if(meadowDensity(patch.x,patch.z)<.18)continue;
     const count=patch.color<=1?7:4,axis=rng.range(0,6.28);
@@ -50,6 +51,15 @@ export function meadowPlants(world, extraPatches=[]) {
       const x=patch.x+Math.sin(a)*r,z=patch.z+Math.cos(a)*r*.75;
       if(clear(x,z))flowers.push({x,z,y:world.groundY(x,z)-.01,s:patch.s*rng.range(.83,1.2),ry:a,color:art.ground.flowerColors[patch.color]});
     }
+  }
+  // Fill open meadows outside town too, so clearings are grassy rather than bare paint. Its own
+  // generator, run last, keeps every map/town patch and flower exactly where it was.
+  const wild=createRng(1931),wildSpacing=art.ground.wildPatchSpacing;
+  for(let z=b.minZ+wildSpacing/2;z<b.maxZ;z+=wildSpacing)for(let x=b.minX+wildSpacing/2;x<b.maxX;x+=wildSpacing){
+    if(world.zoneAt(x,z).safe)continue;
+    const px=x+wild.range(-2.2,2.2),pz=z+wild.range(-2.2,2.2);
+    if(!clear(px,pz)||meadowDensity(px,pz)<art.ground.wildMinDensity)continue;
+    plant({x:px,z:pz,s:wild.range(.7,1.05)},wild);
   }
   return {grass,flowers};
 }

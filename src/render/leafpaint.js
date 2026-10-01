@@ -52,17 +52,15 @@ export function needleTexture() {
 }
 
 // A coconut-palm frond, rachis running down the middle (u=.5) from base (bottom, v=1) to tip (top).
-// Long, fairly broad, tapered leaflets in mixed greens sweep from the rachis toward the tip and
-// overlap a little, longest at mid-frond, with a few split or missing; small gaps stay clear.
+// Calm on purpose: a modest number of broad, tapered leaflets that sit side by side with clear
+// gaps instead of stacking, in two close greens that only warm toward the tip. The stalk end is
+// bare so overlapping crown bases stay quiet.
 let frond;
 export function palmFrondTexture() {
  if(frond)return frond;
  const W=256,H=1024,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
  const c=canvas.getContext('2d'),rng=createRng(1307),cx=W/2;
- const greens=['#4c8a3e','#589844','#64a54b','#72b153','#80bc5c','#8fc666'];
- const tipGreens=['#9bcf6c','#aad87a','#bce287'];
- // a tapered leaflet along a gentle curve, filled, with a lighter upper half
- const leaflet=(x0,y0,x1,y1,bx,by,width,col,light)=>{
+ const leaflet=(x0,y0,x1,y1,bx,by,width,col)=>{
   const pts=[],n=14;
   for(let k=0;k<=n;k++){const t=k/n,u=1-t;pts.push([u*u*x0+2*u*t*bx+t*t*x1,u*u*y0+2*u*t*by+t*t*y1]);}
   const left=[],right=[];
@@ -72,29 +70,19 @@ export function palmFrondTexture() {
    left.push([pts[k][0]-dy/l*w,pts[k][1]+dx/l*w]);right.push([pts[k][0]+dy/l*w,pts[k][1]-dx/l*w]);
   }
   c.fillStyle=col;c.beginPath();c.moveTo(...left[0]);for(const p of left)c.lineTo(...p);for(const p of right.reverse())c.lineTo(...p);c.closePath();c.fill();
-  c.strokeStyle=light;c.lineWidth=Math.max(1,width*.18);c.beginPath();c.moveTo(...pts[1]);for(const p of pts.slice(2,n))c.lineTo(...p);c.stroke();
  };
- const count=44;
+ const count=26,pitch=H*.8/count;
  for(let i=0;i<count;i++){
-  const t=i/count,y=H*.03+t*H*.95; // t=0 at the tip, 1 at the base
-  // the stalk end stays bare and the first leaflets are short and sparse, so a crown of
-  // fronds stays calm where they all overlap
-  if(t>.84)continue;
-  const nearBase=Math.max(0,(t-.6)/.24);
-  const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.98+.05)),.5)*.46+.03)*W*(1-.55*nearBase);
+  const t=i/count,y=H*.04+t*H*.8; // t=0 at the tip; the last fifth of the card is bare stalk
+  const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.95+.06)),.5)*.45+.04)*W*(1-.35*Math.max(0,(t-.7)/.3));
   for(const side of [-1,1]){
-   if(rng.next()<.05+.45*nearBase)continue;
-   const len=reach*rng.range(.85,1.0),rise=len*rng.range(.55,.75);
-   const tipish=rng.next()<.2+.45*(1-t);
-   const col=tipish?tipGreens[Math.floor(rng.next()*tipGreens.length)]:greens[Math.floor(rng.next()*greens.length)];
-   const x0=cx+side*4,x1=cx+side*len,y1=y-rise,bx=cx+side*len*.6,by=y-rise*.2+rng.range(-4,8);
-   leaflet(x0,y,x1,y1,bx,by,rng.range(21,28)*(.7+.3*t),col,'rgba(225,240,170,.38)');
-   if(rng.next()<.08){c.strokeStyle='#000';c.globalCompositeOperation='destination-out';c.lineWidth=2.5;
-    c.beginPath();c.moveTo(cx+side*len*.55,y-rise*.45);c.lineTo(x1,y1+6);c.stroke();c.globalCompositeOperation='source-over';}
+   const len=reach*rng.range(.9,1.0),rise=len*.62;
+   const col=t<.35?(rng.next()<.5?'#8cc463':'#80bb5b'):(rng.next()<.5?'#6fae52':'#68a74d');
+   // leaflet width stays under the row pitch, so neighbours touch at most and never stack
+   leaflet(cx+side*4,y,cx+side*len,y-rise,cx+side*len*.6,y-rise*.2,Math.min(pitch*.85,22),col);
   }
  }
- const grad=c.createLinearGradient(0,H,0,0);grad.addColorStop(0,'#cfc47c');grad.addColorStop(1,'#93bb62');
- c.strokeStyle=grad;c.lineCap='round';
- for(let k=0;k<24;k++){const y=H*k/24,y2=H*(k+1)/24;c.lineWidth=3+10*((k+1)/24);c.beginPath();c.moveTo(cx,y);c.lineTo(cx,y2+1);c.stroke();}
+ c.strokeStyle='#a9bd6a';c.lineCap='round';
+ for(let k=0;k<24;k++){const y=H*k/24,y2=H*(k+1)/24;c.lineWidth=3+8*((k+1)/24);c.beginPath();c.moveTo(cx,y);c.lineTo(cx,y2+1);c.stroke();}
  frond=new THREE.CanvasTexture(canvas);frond.colorSpace=THREE.SRGBColorSpace;frond.anisotropy=4;return frond;
 }

@@ -16,7 +16,7 @@ try {
   const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
   browser = await engine.launch(engine === chromium ? { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] } : {});
   const page = await browser.newPage({ viewport: { width: 1180, height: 820 }, acceptDownloads: true });
-  const errors = []; page.on('pageerror', (e) => errors.push(String(e)));
+  const errors = []; page.on('pageerror', (e) => errors.push(e.stack || String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto('http://localhost:4187/lab.html?skill=firebolt');
   await page.waitForFunction(() => window.__lab); await page.waitForLoadState('networkidle');
@@ -41,6 +41,8 @@ try {
   });
   assert.equal(flow, 26, 'flow control must reach the real flame shader');
   await shot('editor-projectile.png');
+  await page.locator('#panel').evaluate((node) => { node.scrollTop = 0; });
+  await shot('editor-overview.png');
   await section('สี');
   await page.locator('input[type=color][data-field="fx.colors.rim"]').evaluate((node) => { node.value = '#ff3300'; node.dispatchEvent(new Event('input', { bubbles: true })); });
   await page.waitForTimeout(250);
@@ -87,6 +89,7 @@ try {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'touch inspector must not overflow the viewport');
   await page.getByRole('button', { name: 'ปิดตัวปรับ', exact: true }).click();
   assert.equal(await page.evaluate(() => window.__lab.state.reviewPhase), 'full');
+  writeFileSync(OUT + 'report.json', JSON.stringify({ ok: !errors.length, browser: process.env.BROWSER || 'chromium', flow, color, arrow, impact, errors }, null, 2));
   assert.equal(errors.length, 0, errors.join('\n'));
   writeFileSync(OUT + 'report.json', JSON.stringify({ ok: true, browser: process.env.BROWSER || 'chromium', flow, color, arrow, impact, errors }, null, 2));
   console.log('Lab editor passed: shader, colors, replay, per-skill persistence, export/import, resets, stage preview and portrait layout');

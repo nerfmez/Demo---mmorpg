@@ -53,8 +53,7 @@ export function needleTexture() {
 
 // A coconut-palm frond, rachis running down the middle (u=.5) from base (bottom, v=1) to tip (top).
 // Calm on purpose: a modest number of broad, tapered leaflets with clear gaps between them, each
-// shaded from a deeper green at the stalk to a sunlit tip. The stalk end is
-// bare so overlapping crown bases stay quiet.
+// shaded from a deeper green at the stalk to a sunlit tip, leafed full right down to the crown.
 let frond;
 export function palmFrondTexture() {
  if(frond)return frond;
@@ -72,11 +71,12 @@ export function palmFrondTexture() {
   const g=c.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,col[0]);g.addColorStop(1,col[1]);
   c.fillStyle=g;c.beginPath();c.moveTo(...left[0]);for(const p of left)c.lineTo(...p);for(const p of right.reverse())c.lineTo(...p);c.closePath();c.fill();
  };
- const count=17,pitch=H*.8/count;
+ const count=21,pitch=H*.96/count;
  const shades=[['#5a9845','#9ccd6c'],['#62a04b','#a8d476'],['#55913f','#93c565']];
  for(let i=0;i<count;i++){
-  const t=i/count,y=H*.04+t*H*.8; // t=0 at the tip; the last fifth of the card is bare stalk
-  const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.95+.06)),.5)*.45+.04)*W*(1-.35*Math.max(0,(t-.7)/.3));
+  const t=i/count,y=H*.04+t*H*.96; // t=0 at the tip, 1 at the crown: leafed all the way down
+  // full length through the middle, tapering to the tip, still broad at the crown end
+  const reach=(t<.5?Math.pow(Math.sin(Math.PI*(.06+t*.94)),.5)*.45+.04:.49-.12*(t-.5)/.5)*W;
   for(const side of [-1,1]){
    const len=reach*rng.range(.9,1.0),rise=len*.62;
    // each leaflet darkens toward the stalk and lightens to its tip; neighbours differ a little

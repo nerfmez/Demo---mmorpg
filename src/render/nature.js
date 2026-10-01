@@ -140,7 +140,7 @@ export function palmFrond(length=3.4,lift=1.0,droop=1.7,width=1.15) {
   const positions=[],uvs=[],normals=[],index=[],steps=14;
   const spine=t=>[Math.sin(t*2.4)*.06*t,Math.sin(t*Math.PI*.5)*lift-t*t*t*droop,t*length];
   for(let i=0;i<=steps;i++){
-    const t=i/steps,p=spine(t),half=width*.5*(.55+.45*Math.sin(Math.PI*Math.min(1,t*1.1+.05))),fold=half*(.35+.55*t);
+    const t=i/steps,p=spine(t),half=width*.5*(.8+.2*Math.sin(Math.PI*Math.min(1,t*1.1+.05))),fold=half*(.35+.55*t);
     for(const [u,side] of [[0,-1],[.5,0],[1,1]]){
       positions.push(p[0]+side*half,p[1]-Math.abs(side)*fold,p[2]-Math.abs(side)*half*.18);
       uvs.push(u,t);normals.push(0,1,0);

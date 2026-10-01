@@ -267,6 +267,8 @@ async function vrmHero() {
   });
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium&hero=vrm`);
   await page.waitForFunction(() => window.__frontier && window.__frontier.game && window.__frontier.game.time > 0.5, null, { timeout: 60000 });
+  // models load in the background; the hero is rebuilt with the VRM body only once it has arrived
+  await page.waitForFunction(() => typeof window.__frontier.view.hero?.setFace === 'function', null, { timeout: 60000 }).catch(() => {});
   const info = await page.evaluate(async () => {
     const { game, view } = window.__frontier;
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));

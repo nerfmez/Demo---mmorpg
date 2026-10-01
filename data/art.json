@@ -11,10 +11,9 @@
   },
   "grass": {
     "tipLightening": 0.36,
-    "rootShade": 0.68,
     "groundStrokeShade": 0.4,
     "groundStrokeLight": 0.4,
-    "rootBlendHeight": 0.34
+    "rootBlendHeight": 0.75
   },
   "ground": {
     "palette": {

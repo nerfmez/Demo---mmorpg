@@ -1,5 +1,5 @@
 {
-  "_doc": "Azure Coast reference-layout blockout. X east, Z south, metres. The city contour and streets follow the supplied right-hand plan. North hunting space is retained; exteriors are reused pending layout review.",
+  "_doc": "Azure Coast compact port blocks. Rounded reference contour, shared residential courts, compact market, grouped working yards. X east, Z south, metres. Existing gameplay and anime lighting/camera remain.",
   "id": "azure-harbor-v1",
   "name": "Azure Coast — Harbor Reach",
   "nameTh": "ชายฝั่งสีคราม · เมืองท่า",
@@ -3118,8 +3118,8 @@
   "town": {
     "height": 0.7,
     "centre": [
-      0.0,
-      -12.6
+      2,
+      -9
     ],
     "plazaRadius": 10,
     "workbench": [
@@ -3131,769 +3131,56 @@
       -23.1
     ],
     "respawn": [
-      -2.94,
-      -13.44
+      -2,
+      -9
     ],
     "well": [
-      2.1,
-      -10.08
+      0,
+      -8
     ],
     "stalls": [
       [
-        -27.6,
-        -7.38,
+        -28.0,
+        -8.0,
+        0.55
+      ],
+      [
+        -17.5,
+        -5.0,
+        0.55
+      ],
+      [
+        -10.0,
+        -4.0,
         0.1
       ],
       [
-        -16.5,
-        -4.98,
+        8.0,
+        -4.0,
+        -0.1
+      ],
+      [
+        19.0,
+        1.5,
+        -0.45
+      ],
+      [
+        8.0,
+        -25.0,
+        -1.5707963267948966
+      ],
+      [
+        -19.0,
+        -22.5,
         0.1
       ],
       [
-        9.48,
-        -4.98,
-        -0.4
-      ],
-      [
-        25.62,
-        -10.92,
-        -0.4
-      ],
-      [
-        -11.82,
-        -4.2,
-        0.05
-      ],
-      [
-        -4.2,
-        -5.04,
-        0.05
-      ],
-      [
-        -7.2,
-        -28.62,
-        0.05
-      ],
-      [
-        7.86,
-        -26.04,
+        -5.0,
+        -9.0,
         0.05
       ]
     ],
     "buildings": [
-      {
-        "id": "home_0",
-        "x": -63.0,
-        "z": -66.36,
-        "hx": 3.65,
-        "hz": 3.1,
-        "angle": -2.43498,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#a56b4f",
-        "variant": "cottage",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -65.5646,
-            -69.3642
-          ],
-          [
-            -67.5476,
-            -71.6871
-          ]
-        ]
-      },
-      {
-        "id": "home_1",
-        "x": -51.24,
-        "z": -72.66,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 2.67795,
-        "height": 6,
-        "kind": "house",
-        "roofColor": "#82634c",
-        "variant": "timber_home",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -49.6077,
-            -75.9247
-          ],
-          [
-            -47.88,
-            -79.38
-          ]
-        ]
-      },
-      {
-        "id": "home_2",
-        "x": -51.96,
-        "z": -63.78,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 0.49555,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#727778",
-        "variant": "front_gable",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            -50.2244,
-            -60.5691
-          ],
-          [
-            -49.4338,
-            -59.1066
-          ]
-        ]
-      },
-      {
-        "id": "home_3",
-        "x": -35.88,
-        "z": -77.52,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": -0.8567,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#668491",
-        "variant": "cottage",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -38.6382,
-            -75.1295
-          ],
-          [
-            -39.6376,
-            -74.2633
-          ]
-        ]
-      },
-      {
-        "id": "home_4",
-        "x": -27.6,
-        "z": -80.82,
-        "hx": 3.2,
-        "hz": 3.1,
-        "angle": 2.91632,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#af795a",
-        "variant": "netters_home",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -26.7177,
-            -84.6702
-          ],
-          [
-            -25.1323,
-            -91.5882
-          ]
-        ]
-      },
-      {
-        "id": "home_5",
-        "x": -18.48,
-        "z": -77.7,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 2.91632,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#86796a",
-        "variant": "front_gable",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -17.6647,
-            -81.2578
-          ],
-          [
-            -15.788,
-            -89.4468
-          ]
-        ]
-      },
-      {
-        "id": "home_6",
-        "x": -6.3,
-        "z": -76.86,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": 3.12119,
-        "height": 6,
-        "kind": "house",
-        "roofColor": "#a56b4f",
-        "variant": "timber_home",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            -6.2255,
-            -80.5092
-          ],
-          [
-            -6.0625,
-            -88.4951
-          ]
-        ]
-      },
-      {
-        "id": "home_7",
-        "x": 4.2,
-        "z": -76.44,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 3.12119,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#82634c",
-        "variant": "netters_home",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            4.2745,
-            -80.0892
-          ],
-          [
-            4.4417,
-            -88.2807
-          ]
-        ]
-      },
-      {
-        "id": "home_8",
-        "x": -63.84,
-        "z": -44.52,
-        "hx": 3.2,
-        "hz": 3.1,
-        "angle": 0.12435,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#727778",
-        "variant": "front_gable",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -63.3501,
-            -40.6005
-          ],
-          [
-            -62.8837,
-            -36.8695
-          ]
-        ]
-      },
-      {
-        "id": "home_9",
-        "x": -56.1,
-        "z": -48.3,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": -2.82736,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#668491",
-        "variant": "cottage",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -57.2282,
-            -51.7713
-          ],
-          [
-            -58.2592,
-            -54.9438
-          ]
-        ]
-      },
-      {
-        "id": "home_10",
-        "x": -47.88,
-        "z": -53.34,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 0.57023,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#af795a",
-        "variant": "netters_home",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            -45.9096,
-            -50.2675
-          ],
-          [
-            -44.961,
-            -48.7883
-          ]
-        ]
-      },
-      {
-        "id": "home_11",
-        "x": -36.54,
-        "z": -54.6,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -0.08866,
-        "height": 6,
-        "kind": "house",
-        "roofColor": "#86796a",
-        "variant": "timber_home",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -36.8632,
-            -50.9643
-          ],
-          [
-            -37.0471,
-            -48.8958
-          ]
-        ]
-      },
-      {
-        "id": "home_12",
-        "x": -33.6,
-        "z": -43.08,
-        "hx": 3.65,
-        "hz": 3.1,
-        "angle": 3.05293,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#a56b4f",
-        "variant": "cottage",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -33.2503,
-            -47.0145
-          ],
-          [
-            -33.1141,
-            -48.5462
-          ]
-        ]
-      },
-      {
-        "id": "home_13",
-        "x": -63.84,
-        "z": -30.24,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -1.29069,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#82634c",
-        "variant": "netters_home",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -67.3477,
-            -29.2309
-          ],
-          [
-            -69.5894,
-            -28.5861
-          ]
-        ]
-      },
-      {
-        "id": "home_14",
-        "x": -53.34,
-        "z": -29.4,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 0.04442,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#727778",
-        "variant": "front_gable",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            -53.1779,
-            -25.7536
-          ],
-          [
-            -52.9947,
-            -21.6314
-          ]
-        ]
-      },
-      {
-        "id": "home_15",
-        "x": -43.26,
-        "z": -37.8,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": -2.31918,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#668491",
-        "variant": "cottage",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -45.9347,
-            -40.2837
-          ],
-          [
-            -49.8005,
-            -43.8733
-          ]
-        ]
-      },
-      {
-        "id": "home_16",
-        "x": -26.46,
-        "z": -29.4,
-        "hx": 3.2,
-        "hz": 3.1,
-        "angle": -3.05845,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#af795a",
-        "variant": "netters_home",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -26.788,
-            -33.3364
-          ],
-          [
-            -26.8916,
-            -34.579
-          ]
-        ]
-      },
-      {
-        "id": "home_17",
-        "x": -57.12,
-        "z": -14.7,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -3.09718,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#86796a",
-        "variant": "front_gable",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -57.2821,
-            -18.3464
-          ],
-          [
-            -57.4193,
-            -21.4347
-          ]
-        ]
-      },
-      {
-        "id": "home_19",
-        "x": -49.8,
-        "z": -8.7,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -0.25518,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#82634c",
-        "variant": "netters_home",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -50.7213,
-            -5.1682
-          ],
-          [
-            -51.0488,
-            -3.9127
-          ]
-        ]
-      },
-      {
-        "id": "home_20",
-        "x": -33.9,
-        "z": -9.96,
-        "hx": 3.2,
-        "hz": 3.1,
-        "angle": -1.98979,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#727778",
-        "variant": "front_gable",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -37.5083,
-            -11.567
-          ],
-          [
-            -38.6327,
-            -12.0678
-          ]
-        ]
-      },
-      {
-        "id": "home_21",
-        "x": -34.5,
-        "z": -23.34,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": -2.44967,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#668491",
-        "variant": "cottage",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -36.8288,
-            -26.1506
-          ],
-          [
-            -39.3806,
-            -29.2304
-          ]
-        ]
-      },
-      {
-        "id": "home_23",
-        "x": -29.4,
-        "z": -71.4,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -0.8567,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#86796a",
-        "variant": "front_gable",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -32.1582,
-            -69.0095
-          ],
-          [
-            -33.8291,
-            -67.5614
-          ]
-        ]
-      },
-      {
-        "id": "home_24",
-        "x": -16.8,
-        "z": -64.68,
-        "hx": 3.65,
-        "hz": 3.1,
-        "angle": 0.64781,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#a56b4f",
-        "variant": "cottage",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -14.4164,
-            -61.5302
-          ],
-          [
-            -11.9278,
-            -58.2417
-          ]
-        ]
-      },
-      {
-        "id": "home_25",
-        "x": -6.3,
-        "z": -67.2,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -0.11488,
-        "height": 6,
-        "kind": "house",
-        "roofColor": "#82634c",
-        "variant": "timber_home",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -6.7184,
-            -63.5741
-          ],
-          [
-            -7.2105,
-            -59.3089
-          ]
-        ]
-      },
-      {
-        "id": "home_26",
-        "x": 3.36,
-        "z": -64.26,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -0.11488,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#727778",
-        "variant": "front_gable",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            2.9416,
-            -60.6341
-          ],
-          [
-            2.6573,
-            -58.1703
-          ]
-        ]
-      },
-      {
-        "id": "home_27",
-        "x": -53.28,
-        "z": -89.94,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": 0.44075,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#668491",
-        "variant": "cottage",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -51.7228,
-            -86.6388
-          ],
-          [
-            -50.7422,
-            -84.5597
-          ]
-        ]
-      },
-      {
-        "id": "home_28",
-        "x": -21.66,
-        "z": -97.14,
-        "hx": 3.2,
-        "hz": 3.1,
-        "angle": -0.22528,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#af795a",
-        "variant": "netters_home",
-        "wallColor": "#e1d7bd",
-        "entryPath": [
-          [
-            -22.5423,
-            -93.2898
-          ],
-          [
-            -23.042,
-            -91.1092
-          ]
-        ]
-      },
-      {
-        "id": "home_29",
-        "x": -9.24,
-        "z": -95.04,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -0.03738,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#86796a",
-        "variant": "front_gable",
-        "wallColor": "#ddd2b8",
-        "entryPath": [
-          [
-            -9.3764,
-            -91.3925
-          ],
-          [
-            -9.4818,
-            -88.5734
-          ]
-        ]
-      },
-      {
-        "id": "home_30",
-        "x": -75.48,
-        "z": -13.44,
-        "hx": 3.65,
-        "hz": 2.8,
-        "angle": 1.68567,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#a56b4f",
-        "variant": "cottage",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            -71.8541,
-            -13.8584
-          ],
-          [
-            -69.5087,
-            -14.129
-          ]
-        ]
-      },
-      {
-        "id": "home_31",
-        "x": -60.0,
-        "z": 10.74,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": -2.16455,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#82634c",
-        "variant": "netters_home",
-        "wallColor": "#e5d9bd",
-        "entryPath": [
-          [
-            -63.0253,
-            8.6979
-          ],
-          [
-            -67.2,
-            5.88
-          ]
-        ]
-      },
-      {
-        "id": "home_34",
-        "x": 35.76,
-        "z": -73.26,
-        "hx": 3.2,
-        "hz": 2.8,
-        "angle": 2.47843,
-        "height": 3.6,
-        "kind": "house",
-        "roofColor": "#af795a",
-        "variant": "netters_home",
-        "wallColor": "#d0d7c6",
-        "entryPath": [
-          [
-            38.007,
-            -76.1364
-          ],
-          [
-            40.2915,
-            -79.0608
-          ]
-        ]
-      },
       {
         "id": "fish_market",
         "x": -24.0,
@@ -3912,14 +3199,14 @@
             -11.7645
           ],
           [
-            -21.4585,
-            -6.5384
+            -25.4706,
+            -0.5781
           ]
         ]
       },
       {
         "id": "craft_house",
-        "x": -10.08,
+        "x": -10.58,
         "z": -46.2,
         "hx": 5,
         "hz": 3.5,
@@ -3931,16 +3218,12 @@
         "wallColor": "#d3cdbb",
         "entryPath": [
           [
-            -9.8626,
+            -10.3626,
             -41.8554
           ],
           [
-            -5.8626,
-            -40.6554
-          ],
-          [
-            -6.258,
-            -32.5374
+            -12.5883,
+            -34.4365
           ]
         ]
       },
@@ -3993,23 +3276,23 @@
       {
         "id": "market_0",
         "x": 0.0,
-        "z": -23.1,
+        "z": -22.0,
         "hx": 4.8,
         "hz": 3.1,
         "angle": 0,
         "height": 3.8,
         "kind": "shop",
-        "roofColor": "#a77b57",
-        "variant": "provisioner",
-        "wallColor": "#ded2b5",
+        "roofColor": "#788684",
+        "variant": "netter_shop",
+        "wallColor": "#d9cfb6",
         "entryPath": [
           [
             0.0,
-            -19.15
+            -18.05
           ],
           [
-            -1.5943,
-            -12.95
+            -1.329,
+            -12.8817
           ]
         ]
       },
@@ -4022,9 +3305,9 @@
         "angle": 0,
         "height": 3.8,
         "kind": "shop",
-        "roofColor": "#8c8068",
-        "variant": "provisioner",
-        "wallColor": "#d8d6bc",
+        "roofColor": "#996e51",
+        "variant": "sail_shop",
+        "wallColor": "#dfd4b9",
         "entryPath": [
           [
             20.7,
@@ -4242,6 +3525,798 @@
             76.7831
           ]
         ]
+      },
+      {
+        "id": "home_0",
+        "x": -62.97028,
+        "z": -66.32518,
+        "hx": 4.15,
+        "hz": 3.3,
+        "angle": -2.43498,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#a56b4f",
+        "variant": "cottage",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -65.6647,
+            -69.4815
+          ],
+          [
+            -67.5476,
+            -71.6871
+          ]
+        ],
+        "blockId": "residential_0_1"
+      },
+      {
+        "id": "home_1",
+        "x": -51.05522,
+        "z": -73.02957,
+        "hx": 4.4,
+        "hz": 3.55,
+        "angle": 2.67795,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#84694f",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -49.0875,
+            -76.965
+          ],
+          [
+            -47.88,
+            -79.38
+          ]
+        ],
+        "blockId": "residential_1_1"
+      },
+      {
+        "id": "home_2",
+        "x": -43.65512,
+        "z": -55.7414,
+        "hx": 4.05,
+        "hz": 3.45,
+        "angle": 0.4483,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#797e7a",
+        "variant": "netters_home",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            -41.7913,
+            -51.8663
+          ],
+          [
+            -42.0161,
+            -49.3375
+          ]
+        ],
+        "blockId": "residential_1_1"
+      },
+      {
+        "id": "home_3",
+        "x": -35.44357,
+        "z": -77.89824,
+        "hx": 4.65,
+        "hz": 3.3,
+        "angle": -0.8567,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#9b7052",
+        "variant": "cottage",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -38.5797,
+            -75.1803
+          ],
+          [
+            -39.6376,
+            -74.2633
+          ]
+        ],
+        "blockId": "residential_1_0"
+      },
+      {
+        "id": "home_4",
+        "x": -26.12326,
+        "z": -82.78721,
+        "hx": 4.15,
+        "hz": 3.55,
+        "angle": 2.91632,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#ad7b5a",
+        "variant": "front_gable",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -25.1404,
+            -87.076
+          ],
+          [
+            -24.1576,
+            -91.3649
+          ]
+        ],
+        "blockId": "residential_2_0"
+      },
+      {
+        "id": "home_5",
+        "x": -16.75666,
+        "z": -80.7433,
+        "hx": 4.4,
+        "hz": 3.45,
+        "angle": 2.91632,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#6d858c",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -15.7961,
+            -84.9346
+          ],
+          [
+            -14.8847,
+            -89.2472
+          ]
+        ],
+        "blockId": "residential_2_0"
+      },
+      {
+        "id": "home_6",
+        "x": -6.237,
+        "z": -79.94692,
+        "hx": 4.05,
+        "hz": 3.3,
+        "angle": 3.12119,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#86776a",
+        "variant": "cottage",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            -6.1523,
+            -84.0961
+          ],
+          [
+            -6.0625,
+            -88.4951
+          ]
+        ],
+        "blockId": "residential_3_0"
+      },
+      {
+        "id": "home_7",
+        "x": 4.2621,
+        "z": -79.48258,
+        "hx": 4.65,
+        "hz": 3.55,
+        "angle": 3.12119,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#a56b4f",
+        "variant": "front_gable",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            4.3519,
+            -83.8817
+          ],
+          [
+            4.4417,
+            -88.2807
+          ]
+        ],
+        "blockId": "residential_3_0"
+      },
+      {
+        "id": "home_8",
+        "x": -63.83876,
+        "z": -44.51006,
+        "hx": 4.15,
+        "hz": 3.45,
+        "angle": 0.12435,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#84694f",
+        "variant": "netters_home",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -63.3054,
+            -40.2433
+          ],
+          [
+            -62.8837,
+            -36.8695
+          ]
+        ],
+        "blockId": "residential_0_2"
+      },
+      {
+        "id": "home_9",
+        "x": -54.48718,
+        "z": -49.80817,
+        "hx": 4.4,
+        "hz": 3.3,
+        "angle": -2.82736,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#797e7a",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -55.7699,
+            -53.755
+          ],
+          [
+            -56.4508,
+            -55.5666
+          ]
+        ],
+        "blockId": "residential_1_1"
+      },
+      {
+        "id": "home_12",
+        "x": -33.60551,
+        "z": -43.01796,
+        "hx": 4.15,
+        "hz": 3.3,
+        "angle": 3.05293,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#6d858c",
+        "variant": "cottage",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -33.2381,
+            -47.1517
+          ],
+          [
+            -33.1141,
+            -48.5462
+          ]
+        ],
+        "blockId": "residential_1_2"
+      },
+      {
+        "id": "home_13",
+        "x": -63.739,
+        "z": -29.2285,
+        "hx": 4.4,
+        "hz": 3.55,
+        "angle": -1.29069,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#86776a",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -67.9675,
+            -28.0121
+          ],
+          [
+            -69.3129,
+            -27.625
+          ]
+        ],
+        "blockId": "residential_0_2"
+      },
+      {
+        "id": "home_14",
+        "x": -53.33661,
+        "z": -29.32377,
+        "hx": 4.05,
+        "hz": 3.45,
+        "angle": 0.04442,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#a56b4f",
+        "variant": "netters_home",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            -53.1457,
+            -25.028
+          ],
+          [
+            -52.9947,
+            -21.6314
+          ]
+        ],
+        "blockId": "residential_1_2"
+      },
+      {
+        "id": "home_15",
+        "x": -44.94835,
+        "z": -38.00312,
+        "hx": 4.65,
+        "hz": 3.3,
+        "angle": -2.31918,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#84694f",
+        "variant": "cottage",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -47.9894,
+            -40.827
+          ],
+          [
+            -50.4809,
+            -43.1405
+          ]
+        ],
+        "blockId": "residential_1_2"
+      },
+      {
+        "id": "home_16",
+        "x": -26.40992,
+        "z": -28.79906,
+        "hx": 4.15,
+        "hz": 3.55,
+        "angle": -3.05845,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#797e7a",
+        "variant": "front_gable",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -26.7753,
+            -33.1839
+          ],
+          [
+            -26.8916,
+            -34.579
+          ]
+        ],
+        "blockId": "residential_2_2"
+      },
+      {
+        "id": "home_17",
+        "x": -57.14404,
+        "z": -15.24082,
+        "hx": 4.4,
+        "hz": 3.45,
+        "angle": -3.09718,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#9b7052",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -57.335,
+            -19.5366
+          ],
+          [
+            -57.4193,
+            -21.4347
+          ]
+        ],
+        "blockId": "residential_0_3"
+      },
+      {
+        "id": "home_19",
+        "x": -47.1735,
+        "z": -10.67271,
+        "hx": 4.05,
+        "hz": 3.3,
+        "angle": 1.0637,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#ad7b5a",
+        "variant": "cottage",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            -43.5457,
+            -8.6573
+          ],
+          [
+            -41.1855,
+            -7.3461
+          ]
+        ],
+        "blockId": "residential_1_3"
+      },
+      {
+        "id": "home_20",
+        "x": -33.9,
+        "z": -9.96,
+        "hx": 3.2,
+        "hz": 3.1,
+        "angle": -1.98979,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#727778",
+        "variant": "front_gable",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -37.5083,
+            -11.567
+          ],
+          [
+            -38.6327,
+            -12.0678
+          ]
+        ],
+        "blockId": "residential_1_3"
+      },
+      {
+        "id": "home_21",
+        "x": -36.45451,
+        "z": -22.56418,
+        "hx": 4.15,
+        "hz": 3.45,
+        "angle": -2.44967,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#86776a",
+        "variant": "netters_home",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -39.198,
+            -25.8753
+          ],
+          [
+            -40.9206,
+            -27.9543
+          ]
+        ],
+        "blockId": "residential_1_3"
+      },
+      {
+        "id": "home_23",
+        "x": -28.32523,
+        "z": -69.68488,
+        "hx": 4.4,
+        "hz": 3.3,
+        "angle": -0.8567,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#a56b4f",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -31.4613,
+            -66.9669
+          ],
+          [
+            -32.5193,
+            -66.05
+          ]
+        ],
+        "blockId": "residential_2_1"
+      },
+      {
+        "id": "home_24",
+        "x": -16.78548,
+        "z": -64.66081,
+        "hx": 4.05,
+        "hz": 3.55,
+        "angle": 0.64781,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#84694f",
+        "variant": "front_gable",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            -14.1303,
+            -61.1522
+          ],
+          [
+            -11.9278,
+            -58.2417
+          ]
+        ],
+        "blockId": "residential_2_1"
+      },
+      {
+        "id": "home_25",
+        "x": -4.39267,
+        "z": -66.2819,
+        "hx": 4.65,
+        "hz": 3.45,
+        "angle": -0.11488,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#797e7a",
+        "variant": "netters_home",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -4.8856,
+            -62.0102
+          ],
+          [
+            -5.2237,
+            -59.0797
+          ]
+        ],
+        "blockId": "residential_3_1"
+      },
+      {
+        "id": "home_26",
+        "x": 5.30898,
+        "z": -63.70285,
+        "hx": 4.15,
+        "hz": 3.3,
+        "angle": -0.11488,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#9b7052",
+        "variant": "cottage",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            4.8333,
+            -59.5802
+          ],
+          [
+            4.6442,
+            -57.9411
+          ]
+        ],
+        "blockId": "residential_3_1"
+      },
+      {
+        "id": "home_27",
+        "x": -53.64315,
+        "z": -90.70989,
+        "hx": 4.4,
+        "hz": 3.55,
+        "angle": 0.44075,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#ad7b5a",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -51.766,
+            -86.7304
+          ],
+          [
+            -50.7422,
+            -84.5597
+          ]
+        ],
+        "blockId": "residential_1_0"
+      },
+      {
+        "id": "home_28",
+        "x": -21.54543,
+        "z": -97.63993,
+        "hx": 4.05,
+        "hz": 3.45,
+        "angle": -0.22528,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#6d858c",
+        "variant": "netters_home",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            -22.5059,
+            -93.4486
+          ],
+          [
+            -23.042,
+            -91.1092
+          ]
+        ],
+        "blockId": "residential_2_0"
+      },
+      {
+        "id": "home_29",
+        "x": -9.21836,
+        "z": -95.61852,
+        "hx": 4.65,
+        "hz": 3.3,
+        "angle": -0.03738,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#86776a",
+        "variant": "cottage",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -9.3735,
+            -91.4714
+          ],
+          [
+            -9.4818,
+            -88.5734
+          ]
+        ],
+        "blockId": "residential_2_0"
+      },
+      {
+        "id": "home_30",
+        "x": -76.26391,
+        "z": -13.34955,
+        "hx": 4.15,
+        "hz": 3.55,
+        "angle": 1.68567,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#a56b4f",
+        "variant": "front_gable",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -71.8929,
+            -13.8539
+          ],
+          [
+            -69.5087,
+            -14.129
+          ]
+        ],
+        "blockId": "residential_0_3"
+      },
+      {
+        "id": "home_31",
+        "x": -59.74179,
+        "z": 12.06588,
+        "hx": 4.4,
+        "hz": 3.45,
+        "angle": -1.45592,
+        "height": 6,
+        "kind": "house",
+        "roofColor": "#84694f",
+        "variant": "timber_home",
+        "wallColor": "#d9ceb5",
+        "entryPath": [
+          [
+            -64.0135,
+            12.5588
+          ],
+          [
+            -67.2,
+            5.88
+          ]
+        ],
+        "blockId": "residential_0_3"
+      },
+      {
+        "id": "home_34",
+        "x": 35.76,
+        "z": -73.26,
+        "hx": 3.2,
+        "hz": 2.8,
+        "angle": 2.47843,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#af795a",
+        "variant": "netters_home",
+        "wallColor": "#d0d7c6",
+        "entryPath": [
+          [
+            38.007,
+            -76.1364
+          ],
+          [
+            40.2915,
+            -79.0608
+          ]
+        ],
+        "blockId": "residential_3_1"
+      },
+      {
+        "id": "home_35",
+        "x": -65.31173,
+        "z": -82.53658,
+        "hx": 4.65,
+        "hz": 3.55,
+        "angle": 0.70662,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#9b7052",
+        "variant": "front_gable",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            -62.455,
+            -79.1901
+          ],
+          [
+            -60.8967,
+            -77.3648
+          ]
+        ],
+        "blockId": "residential_0_0"
+      },
+      {
+        "id": "home_38",
+        "x": 0.63153,
+        "z": -50.30066,
+        "hx": 4.05,
+        "hz": 3.55,
+        "angle": 3.02671,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#86776a",
+        "variant": "front_gable",
+        "wallColor": "#d2d6c4",
+        "entryPath": [
+          [
+            1.1359,
+            -54.6717
+          ],
+          [
+            1.5543,
+            -58.2976
+          ]
+        ],
+        "blockId": "residential_3_1"
+      },
+      {
+        "id": "home_47",
+        "x": 1.98312,
+        "z": -95.13234,
+        "hx": 4.65,
+        "hz": 3.55,
+        "angle": -0.02041,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#84694f",
+        "variant": "front_gable",
+        "wallColor": "#e5d9bd",
+        "entryPath": [
+          [
+            1.8933,
+            -90.7333
+          ],
+          [
+            1.8444,
+            -88.3338
+          ]
+        ],
+        "blockId": "residential_3_0"
+      },
+      {
+        "id": "home_48",
+        "x": -78.89867,
+        "z": -40.01826,
+        "hx": 4.15,
+        "hz": 3.45,
+        "angle": 1.5677,
+        "height": 3.85,
+        "kind": "house",
+        "roofColor": "#797e7a",
+        "variant": "netters_home",
+        "wallColor": "#e1d7bd",
+        "entryPath": [
+          [
+            -74.5987,
+            -40.0049
+          ],
+          [
+            -72.1987,
+            -39.9975
+          ]
+        ],
+        "blockId": "residential_0_2"
       }
     ],
     "walls": null,
@@ -4292,6 +4367,15 @@
     "districtStyle": {
       "id": "azure-exteriors-1",
       "buildingIds": [
+        "warehouse_0",
+        "warehouse_1",
+        "warehouse_2",
+        "warehouse_3",
+        "warehouse_4",
+        "warehouse_5",
+        "repair_shed",
+        "repair_store",
+        "boat_store",
         "home_0",
         "home_1",
         "home_2",
@@ -4302,8 +4386,6 @@
         "home_7",
         "home_8",
         "home_9",
-        "home_10",
-        "home_11",
         "home_12",
         "home_13",
         "home_14",
@@ -4323,66 +4405,1751 @@
         "home_30",
         "home_31",
         "home_34",
-        "warehouse_0",
-        "warehouse_1",
-        "warehouse_2",
-        "warehouse_3",
-        "warehouse_4",
-        "warehouse_5",
-        "repair_shed",
-        "repair_store",
-        "boat_store"
+        "home_35",
+        "home_38",
+        "home_47",
+        "home_48"
       ]
     },
     "surfaces": [
       {
+        "id": "market_apron",
         "kind": "paving",
         "points": [
           [
-            -25.2,
-            -17.22
+            -16.8199,
+            -23.3441
           ],
           [
-            -12.6,
-            -29.4
+            -16.2481,
+            -23.7182
           ],
           [
-            7.56,
-            -28.56
+            -15.626,
+            -23.9659
           ],
           [
-            21.0,
-            -18.48
+            -14.9536,
+            -24.0872
           ],
           [
-            28.56,
-            -2.52
+            -5.0464,
+            -24.9128
           ],
           [
-            15.96,
-            13.02
+            -4.3498,
+            -24.943
           ],
           [
-            5.88,
-            9.66
+            -3.6553,
+            -24.9175
           ],
           [
-            -21.0,
-            6.72
+            -2.9628,
+            -24.8362
           ],
           [
-            -28.56,
-            6.72
+            13.9628,
+            -22.1638
           ],
           [
-            -31.5,
-            -4.2
+            14.6346,
+            -22.0059
           ],
           [
-            -25.2,
-            -17.22
+            15.2671,
+            -21.7506
+          ],
+          [
+            15.8602,
+            -21.3979
+          ],
+          [
+            24.1398,
+            -15.6021
+          ],
+          [
+            24.6177,
+            -15.1509
+          ],
+          [
+            24.9044,
+            -14.6002
+          ],
+          [
+            25.0,
+            -13.95
+          ],
+          [
+            25.0,
+            -4.05
+          ],
+          [
+            24.922,
+            -3.3799
+          ],
+          [
+            24.6878,
+            -2.7698
+          ],
+          [
+            24.2976,
+            -2.2195
+          ],
+          [
+            16.7024,
+            6.2195
+          ],
+          [
+            16.1974,
+            6.6323
+          ],
+          [
+            15.6189,
+            6.8298
+          ],
+          [
+            14.9669,
+            6.8122
+          ],
+          [
+            6.0331,
+            5.1878
+          ],
+          [
+            5.3428,
+            5.0749
+          ],
+          [
+            4.6494,
+            4.9864
+          ],
+          [
+            3.9529,
+            4.9224
+          ],
+          [
+            -20.9529,
+            3.0776
+          ],
+          [
+            -21.6046,
+            2.9411
+          ],
+          [
+            -22.1637,
+            2.6353
+          ],
+          [
+            -22.63,
+            2.16
+          ],
+          [
+            -27.37,
+            -4.16
+          ],
+          [
+            -27.6991,
+            -4.7415
+          ],
+          [
+            -27.8465,
+            -5.3658
+          ],
+          [
+            -27.8122,
+            -6.0331
+          ],
+          [
+            -26.1878,
+            -14.9669
+          ],
+          [
+            -25.9924,
+            -15.6137
+          ],
+          [
+            -25.6565,
+            -16.1767
+          ],
+          [
+            -25.1801,
+            -16.6559
+          ],
+          [
+            -16.8199,
+            -23.3441
           ]
         ]
+      },
+      {
+        "id": "residential_0_1",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -62.666,
+            -71.9756
+          ],
+          [
+            -62.1466,
+            -72.2656
+          ],
+          [
+            -61.6532,
+            -72.2267
+          ],
+          [
+            -61.1857,
+            -71.8587
+          ],
+          [
+            -57.2252,
+            -67.2193
+          ],
+          [
+            -56.9352,
+            -66.6999
+          ],
+          [
+            -56.9742,
+            -66.2064
+          ],
+          [
+            -57.3421,
+            -65.739
+          ],
+          [
+            -63.2745,
+            -60.6747
+          ],
+          [
+            -63.7939,
+            -60.3847
+          ],
+          [
+            -64.2874,
+            -60.4237
+          ],
+          [
+            -64.7548,
+            -60.7916
+          ],
+          [
+            -68.7153,
+            -65.4311
+          ],
+          [
+            -69.0053,
+            -65.9505
+          ],
+          [
+            -68.9664,
+            -66.4439
+          ],
+          [
+            -68.5985,
+            -66.9114
+          ],
+          [
+            -62.666,
+            -71.9756
+          ]
+        ]
+      },
+      {
+        "id": "residential_1_1",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -57.8149,
+            -70.4271
+          ],
+          [
+            -57.672,
+            -71.1076
+          ],
+          [
+            -57.4611,
+            -71.7664
+          ],
+          [
+            -57.182,
+            -72.4034
+          ],
+          [
+            -54.2305,
+            -78.3067
+          ],
+          [
+            -53.8652,
+            -78.7763
+          ],
+          [
+            -53.3957,
+            -78.9328
+          ],
+          [
+            -52.8217,
+            -78.7763
+          ],
+          [
+            -45.398,
+            -75.0644
+          ],
+          [
+            -44.8386,
+            -74.6931
+          ],
+          [
+            -44.4126,
+            -74.2053
+          ],
+          [
+            -44.12,
+            -73.601
+          ],
+          [
+            -37.7811,
+            -55.0074
+          ],
+          [
+            -37.6929,
+            -54.3952
+          ],
+          [
+            -37.8801,
+            -53.8839
+          ],
+          [
+            -38.3427,
+            -53.4734
+          ],
+          [
+            -47.3741,
+            -48.0563
+          ],
+          [
+            -47.9853,
+            -47.7202
+          ],
+          [
+            -48.6183,
+            -47.432
+          ],
+          [
+            -49.2731,
+            -47.1916
+          ],
+          [
+            -57.1667,
+            -44.6262
+          ],
+          [
+            -57.7575,
+            -44.5569
+          ],
+          [
+            -58.1986,
+            -44.7816
+          ],
+          [
+            -58.4898,
+            -45.3003
+          ],
+          [
+            -60.3753,
+            -51.1016
+          ],
+          [
+            -60.5374,
+            -51.7716
+          ],
+          [
+            -60.5912,
+            -52.4502
+          ],
+          [
+            -60.5365,
+            -53.1374
+          ],
+          [
+            -57.8149,
+            -70.4271
+          ]
+        ]
+      },
+      {
+        "id": "residential_1_0",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -51.7455,
+            -96.4146
+          ],
+          [
+            -51.1276,
+            -96.5897
+          ],
+          [
+            -50.5401,
+            -96.5175
+          ],
+          [
+            -49.9828,
+            -96.1982
+          ],
+          [
+            -36.7277,
+            -85.3664
+          ],
+          [
+            -36.1996,
+            -84.9091
+          ],
+          [
+            -35.6994,
+            -84.4231
+          ],
+          [
+            -35.227,
+            -83.9085
+          ],
+          [
+            -29.4635,
+            -77.2585
+          ],
+          [
+            -29.1697,
+            -76.7412
+          ],
+          [
+            -29.2049,
+            -76.2475
+          ],
+          [
+            -29.5693,
+            -75.7773
+          ],
+          [
+            -34.179,
+            -71.7822
+          ],
+          [
+            -34.7187,
+            -71.462
+          ],
+          [
+            -35.2799,
+            -71.4184
+          ],
+          [
+            -35.8626,
+            -71.6514
+          ],
+          [
+            -55.6003,
+            -84.0003
+          ],
+          [
+            -56.1446,
+            -84.4152
+          ],
+          [
+            -56.5906,
+            -84.9174
+          ],
+          [
+            -56.9384,
+            -85.5069
+          ],
+          [
+            -59.754,
+            -91.4761
+          ],
+          [
+            -59.8974,
+            -92.0535
+          ],
+          [
+            -59.7301,
+            -92.5193
+          ],
+          [
+            -59.2523,
+            -92.8737
+          ],
+          [
+            -51.7455,
+            -96.4146
+          ]
+        ]
+      },
+      {
+        "id": "residential_2_0",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -30.2111,
+            -87.1095
+          ],
+          [
+            -30.0456,
+            -87.7894
+          ],
+          [
+            -29.862,
+            -88.4643
+          ],
+          [
+            -29.6603,
+            -89.1342
+          ],
+          [
+            -25.6397,
+            -101.8647
+          ],
+          [
+            -25.3488,
+            -102.4031
+          ],
+          [
+            -24.8975,
+            -102.6834
+          ],
+          [
+            -24.2858,
+            -102.7056
+          ],
+          [
+            -4.6566,
+            -99.6723
+          ],
+          [
+            -4.0845,
+            -99.4667
+          ],
+          [
+            -3.7517,
+            -99.0635
+          ],
+          [
+            -3.6582,
+            -98.4627
+          ],
+          [
+            -3.8861,
+            -92.367
+          ],
+          [
+            -3.9641,
+            -91.6818
+          ],
+          [
+            -4.1455,
+            -91.0252
+          ],
+          [
+            -4.4305,
+            -90.3972
+          ],
+          [
+            -12.1323,
+            -76.3597
+          ],
+          [
+            -12.5271,
+            -75.872
+          ],
+          [
+            -13.0382,
+            -75.6364
+          ],
+          [
+            -13.6654,
+            -75.6528
+          ],
+          [
+            -21.242,
+            -77.2277
+          ],
+          [
+            -21.9268,
+            -77.3725
+          ],
+          [
+            -22.6106,
+            -77.5219
+          ],
+          [
+            -23.2935,
+            -77.676
+          ],
+          [
+            -30.8964,
+            -79.4183
+          ],
+          [
+            -31.4389,
+            -79.6623
+          ],
+          [
+            -31.7019,
+            -80.0816
+          ],
+          [
+            -31.6853,
+            -80.6763
+          ],
+          [
+            -30.2111,
+            -87.1095
+          ]
+        ]
+      },
+      {
+        "id": "residential_3_0",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -11.0238,
+            -83.0952
+          ],
+          [
+            -10.9602,
+            -83.7831
+          ],
+          [
+            -10.7982,
+            -84.4468
+          ],
+          [
+            -10.5376,
+            -85.0865
+          ],
+          [
+            -3.8417,
+            -98.6511
+          ],
+          [
+            -3.4669,
+            -99.1718
+          ],
+          [
+            -2.962,
+            -99.4785
+          ],
+          [
+            -2.3272,
+            -99.5712
+          ],
+          [
+            6.471,
+            -99.3916
+          ],
+          [
+            7.071,
+            -99.2643
+          ],
+          [
+            7.4714,
+            -98.9108
+          ],
+          [
+            7.6721,
+            -98.3312
+          ],
+          [
+            9.6484,
+            -84.7595
+          ],
+          [
+            9.7301,
+            -84.0656
+          ],
+          [
+            9.7734,
+            -83.3694
+          ],
+          [
+            9.7783,
+            -82.6707
+          ],
+          [
+            9.6436,
+            -76.0721
+          ],
+          [
+            9.5151,
+            -75.4912
+          ],
+          [
+            9.158,
+            -75.1485
+          ],
+          [
+            8.5724,
+            -75.0437
+          ],
+          [
+            -0.2257,
+            -75.2233
+          ],
+          [
+            -0.9253,
+            -75.2434
+          ],
+          [
+            -1.6244,
+            -75.2753
+          ],
+          [
+            -2.3229,
+            -75.319
+          ],
+          [
+            -10.1223,
+            -75.8724
+          ],
+          [
+            -10.7018,
+            -76.0303
+          ],
+          [
+            -11.0437,
+            -76.405
+          ],
+          [
+            -11.1482,
+            -76.9965
+          ],
+          [
+            -11.0238,
+            -83.0952
+          ]
+        ]
+      },
+      {
+        "id": "residential_0_2",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -83.1366,
+            -43.9314
+          ],
+          [
+            -83.021,
+            -44.5405
+          ],
+          [
+            -82.6785,
+            -44.9676
+          ],
+          [
+            -82.1092,
+            -45.2129
+          ],
+          [
+            -70.3018,
+            -47.8818
+          ],
+          [
+            -69.6171,
+            -48.0249
+          ],
+          [
+            -68.9284,
+            -48.1455
+          ],
+          [
+            -68.2358,
+            -48.2435
+          ],
+          [
+            -60.496,
+            -49.211
+          ],
+          [
+            -59.9027,
+            -49.1675
+          ],
+          [
+            -59.512,
+            -48.8637
+          ],
+          [
+            -59.3239,
+            -48.2993
+          ],
+          [
+            -58.5301,
+            -41.9487
+          ],
+          [
+            -58.4556,
+            -41.2532
+          ],
+          [
+            -58.4059,
+            -40.556
+          ],
+          [
+            -58.3809,
+            -39.857
+          ],
+          [
+            -58.1399,
+            -26.4836
+          ],
+          [
+            -58.2415,
+            -25.8681
+          ],
+          [
+            -58.5715,
+            -25.4214
+          ],
+          [
+            -59.13,
+            -25.1435
+          ],
+          [
+            -65.4728,
+            -23.3189
+          ],
+          [
+            -66.128,
+            -23.2259
+          ],
+          [
+            -66.748,
+            -23.3341
+          ],
+          [
+            -67.333,
+            -23.6435
+          ],
+          [
+            -82.3129,
+            -34.4665
+          ],
+          [
+            -82.7853,
+            -34.9248
+          ],
+          [
+            -83.068,
+            -35.4798
+          ],
+          [
+            -83.1607,
+            -36.1314
+          ],
+          [
+            -83.1366,
+            -43.9314
+          ]
+        ]
+      },
+      {
+        "id": "residential_1_2",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -45.0605,
+            -44.1261
+          ],
+          [
+            -44.5008,
+            -44.5413
+          ],
+          [
+            -43.91,
+            -44.906
+          ],
+          [
+            -43.2881,
+            -45.2204
+          ],
+          [
+            -39.1293,
+            -47.1065
+          ],
+          [
+            -38.4818,
+            -47.3371
+          ],
+          [
+            -37.8144,
+            -47.4507
+          ],
+          [
+            -37.1272,
+            -47.4472
+          ],
+          [
+            -29.3578,
+            -46.7565
+          ],
+          [
+            -28.7871,
+            -46.5887
+          ],
+          [
+            -28.4694,
+            -46.209
+          ],
+          [
+            -28.4049,
+            -45.6177
+          ],
+          [
+            -28.945,
+            -39.5416
+          ],
+          [
+            -29.0929,
+            -38.8946
+          ],
+          [
+            -29.4126,
+            -38.3482
+          ],
+          [
+            -29.9041,
+            -37.9022
+          ],
+          [
+            -47.4365,
+            -25.8869
+          ],
+          [
+            -48.0343,
+            -25.552
+          ],
+          [
+            -48.6726,
+            -25.3386
+          ],
+          [
+            -49.3516,
+            -25.2467
+          ],
+          [
+            -56.9441,
+            -24.9092
+          ],
+          [
+            -57.5321,
+            -24.9999
+          ],
+          [
+            -57.8973,
+            -25.334
+          ],
+          [
+            -58.0397,
+            -25.9116
+          ],
+          [
+            -58.3239,
+            -32.3052
+          ],
+          [
+            -58.2591,
+            -32.9614
+          ],
+          [
+            -58.0026,
+            -33.5312
+          ],
+          [
+            -57.5544,
+            -34.0148
+          ],
+          [
+            -45.0605,
+            -44.1261
+          ]
+        ]
+      },
+      {
+        "id": "residential_2_2",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -22.8846,
+            -33.4579
+          ],
+          [
+            -22.2936,
+            -33.3901
+          ],
+          [
+            -21.9158,
+            -33.0704
+          ],
+          [
+            -21.7511,
+            -32.4987
+          ],
+          [
+            -21.203,
+            -25.9215
+          ],
+          [
+            -21.2708,
+            -25.3305
+          ],
+          [
+            -21.5905,
+            -24.9527
+          ],
+          [
+            -22.1621,
+            -24.788
+          ],
+          [
+            -29.9352,
+            -24.1402
+          ],
+          [
+            -30.5262,
+            -24.208
+          ],
+          [
+            -30.9041,
+            -24.5277
+          ],
+          [
+            -31.0688,
+            -25.0994
+          ],
+          [
+            -31.6169,
+            -31.6766
+          ],
+          [
+            -31.5491,
+            -32.2676
+          ],
+          [
+            -31.2293,
+            -32.6454
+          ],
+          [
+            -30.6577,
+            -32.8102
+          ],
+          [
+            -22.8846,
+            -33.4579
+          ]
+        ]
+      },
+      {
+        "id": "residential_0_3",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -73.553,
+            -18.6452
+          ],
+          [
+            -72.857,
+            -18.7178
+          ],
+          [
+            -72.1597,
+            -18.775
+          ],
+          [
+            -71.4612,
+            -18.817
+          ],
+          [
+            -63.5763,
+            -19.2043
+          ],
+          [
+            -62.8772,
+            -19.238
+          ],
+          [
+            -62.1779,
+            -19.2708
+          ],
+          [
+            -61.4786,
+            -19.3024
+          ],
+          [
+            -53.1868,
+            -19.6709
+          ],
+          [
+            -52.5989,
+            -19.5802
+          ],
+          [
+            -52.2337,
+            -19.2461
+          ],
+          [
+            -52.0912,
+            -18.6685
+          ],
+          [
+            -51.8071,
+            -12.2748
+          ],
+          [
+            -51.7943,
+            -11.5762
+          ],
+          [
+            -51.8181,
+            -10.8787
+          ],
+          [
+            -51.8785,
+            -10.1825
+          ],
+          [
+            -54.8058,
+            15.7011
+          ],
+          [
+            -54.9872,
+            16.2941
+          ],
+          [
+            -55.3742,
+            16.682
+          ],
+          [
+            -55.9668,
+            16.8648
+          ],
+          [
+            -62.3247,
+            17.5984
+          ],
+          [
+            -62.9677,
+            17.5674
+          ],
+          [
+            -63.5059,
+            17.3139
+          ],
+          [
+            -63.9394,
+            16.838
+          ],
+          [
+            -79.4462,
+            -7.0528
+          ],
+          [
+            -79.7772,
+            -7.658
+          ],
+          [
+            -80.0078,
+            -8.2993
+          ],
+          [
+            -80.1382,
+            -8.9767
+          ],
+          [
+            -81.0323,
+            -16.7252
+          ],
+          [
+            -80.9832,
+            -17.3181
+          ],
+          [
+            -80.6757,
+            -17.7059
+          ],
+          [
+            -80.1095,
+            -17.8887
+          ],
+          [
+            -73.553,
+            -18.6452
+          ]
+        ]
+      },
+      {
+        "id": "residential_1_3",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -48.9121,
+            -15.9856
+          ],
+          [
+            -48.5489,
+            -16.5806
+          ],
+          [
+            -48.1394,
+            -17.1417
+          ],
+          [
+            -47.6833,
+            -17.6688
+          ],
+          [
+            -43.6966,
+            -21.9132
+          ],
+          [
+            -43.2074,
+            -22.4129
+          ],
+          [
+            -42.6982,
+            -22.8913
+          ],
+          [
+            -42.1692,
+            -23.3485
+          ],
+          [
+            -36.163,
+            -28.325
+          ],
+          [
+            -35.6394,
+            -28.6074
+          ],
+          [
+            -35.1466,
+            -28.5612
+          ],
+          [
+            -34.6846,
+            -28.1864
+          ],
+          [
+            -30.6012,
+            -23.2583
+          ],
+          [
+            -30.2155,
+            -22.6933
+          ],
+          [
+            -29.9514,
+            -22.0761
+          ],
+          [
+            -29.8091,
+            -21.4069
+          ],
+          [
+            -28.8322,
+            -13.0702
+          ],
+          [
+            -28.8118,
+            -12.3842
+          ],
+          [
+            -28.9134,
+            -11.7169
+          ],
+          [
+            -29.1372,
+            -11.0681
+          ],
+          [
+            -31.5375,
+            -5.6785
+          ],
+          [
+            -31.8915,
+            -5.1433
+          ],
+          [
+            -32.3838,
+            -4.8166
+          ],
+          [
+            -33.0145,
+            -4.6985
+          ],
+          [
+            -44.895,
+            -4.4627
+          ],
+          [
+            -45.5802,
+            -4.5078
+          ],
+          [
+            -46.2361,
+            -4.6709
+          ],
+          [
+            -46.8627,
+            -4.9518
+          ],
+          [
+            -52.195,
+            -7.9142
+          ],
+          [
+            -52.6483,
+            -8.2995
+          ],
+          [
+            -52.7843,
+            -8.7755
+          ],
+          [
+            -52.603,
+            -9.342
+          ],
+          [
+            -48.9121,
+            -15.9856
+          ]
+        ]
+      },
+      {
+        "id": "residential_2_1",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -29.4261,
+            -75.612
+          ],
+          [
+            -28.8769,
+            -75.9507
+          ],
+          [
+            -28.2875,
+            -76.0497
+          ],
+          [
+            -27.6579,
+            -75.9092
+          ],
+          [
+            -16.5177,
+            -71.4467
+          ],
+          [
+            -15.9058,
+            -71.1367
+          ],
+          [
+            -15.3697,
+            -70.7275
+          ],
+          [
+            -14.9094,
+            -70.2189
+          ],
+          [
+            -10.9267,
+            -64.9561
+          ],
+          [
+            -10.6677,
+            -64.4205
+          ],
+          [
+            -10.7356,
+            -63.9302
+          ],
+          [
+            -11.1304,
+            -63.4852
+          ],
+          [
+            -17.1907,
+            -58.899
+          ],
+          [
+            -17.7609,
+            -58.5976
+          ],
+          [
+            -18.3555,
+            -58.5381
+          ],
+          [
+            -18.9742,
+            -58.7205
+          ],
+          [
+            -27.0716,
+            -62.615
+          ],
+          [
+            -27.6737,
+            -62.956
+          ],
+          [
+            -28.2184,
+            -63.3722
+          ],
+          [
+            -28.7056,
+            -63.8636
+          ],
+          [
+            -34.1415,
+            -70.1357
+          ],
+          [
+            -34.4354,
+            -70.653
+          ],
+          [
+            -34.4001,
+            -71.1467
+          ],
+          [
+            -34.0357,
+            -71.6169
+          ],
+          [
+            -29.4261,
+            -75.612
+          ]
+        ]
+      },
+      {
+        "id": "residential_3_1",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -9.4399,
+            -70.0855
+          ],
+          [
+            -9.258,
+            -70.6844
+          ],
+          [
+            -8.8728,
+            -71.0902
+          ],
+          [
+            -8.2841,
+            -71.3029
+          ],
+          [
+            33.7886,
+            -78.3851
+          ],
+          [
+            34.4558,
+            -78.4101
+          ],
+          [
+            35.0767,
+            -78.2528
+          ],
+          [
+            35.6515,
+            -77.913
+          ],
+          [
+            40.3009,
+            -74.2809
+          ],
+          [
+            40.6888,
+            -73.8299
+          ],
+          [
+            40.7492,
+            -73.3386
+          ],
+          [
+            40.482,
+            -72.8071
+          ],
+          [
+            37.3424,
+            -68.788
+          ],
+          [
+            36.8881,
+            -68.2608
+          ],
+          [
+            36.3873,
+            -67.7824
+          ],
+          [
+            35.8398,
+            -67.3527
+          ],
+          [
+            5.8071,
+            -46.0312
+          ],
+          [
+            5.2155,
+            -45.7069
+          ],
+          [
+            4.5825,
+            -45.5444
+          ],
+          [
+            3.9078,
+            -45.5437
+          ],
+          [
+            -3.6421,
+            -46.4149
+          ],
+          [
+            -4.2598,
+            -46.592
+          ],
+          [
+            -4.7223,
+            -46.9628
+          ],
+          [
+            -5.0296,
+            -47.5272
+          ],
+          [
+            -9.9494,
+            -61.6928
+          ],
+          [
+            -10.1274,
+            -62.3597
+          ],
+          [
+            -10.2021,
+            -63.038
+          ],
+          [
+            -10.1736,
+            -63.7277
+          ],
+          [
+            -9.4399,
+            -70.0855
+          ]
+        ]
+      },
+      {
+        "id": "residential_0_0",
+        "kind": "paving",
+        "strength": 0.75,
+        "preserveRoad": true,
+        "points": [
+          [
+            -64.7896,
+            -88.7018
+          ],
+          [
+            -64.2702,
+            -88.9918
+          ],
+          [
+            -63.7767,
+            -88.9528
+          ],
+          [
+            -63.3093,
+            -88.5849
+          ],
+          [
+            -59.0241,
+            -83.5652
+          ],
+          [
+            -58.7341,
+            -83.0458
+          ],
+          [
+            -58.773,
+            -82.5524
+          ],
+          [
+            -59.141,
+            -82.0849
+          ],
+          [
+            -65.8339,
+            -76.3714
+          ],
+          [
+            -66.3533,
+            -76.0814
+          ],
+          [
+            -66.8467,
+            -76.1203
+          ],
+          [
+            -67.3142,
+            -76.4882
+          ],
+          [
+            -71.5994,
+            -81.5079
+          ],
+          [
+            -71.8894,
+            -82.0273
+          ],
+          [
+            -71.8504,
+            -82.5208
+          ],
+          [
+            -71.4825,
+            -82.9882
+          ],
+          [
+            -64.7896,
+            -88.7018
+          ]
+        ]
+      }
+    ],
+    "trees": [
+      {
+        "id": "courtyard_tree_0",
+        "x": -59.5,
+        "z": -87.0,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 0.0
+      },
+      {
+        "id": "courtyard_tree_1",
+        "x": -63.0,
+        "z": -57.0,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 0.83
+      },
+      {
+        "id": "courtyard_tree_2",
+        "x": -38.0,
+        "z": -60.5,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 1.66
+      },
+      {
+        "id": "courtyard_tree_4",
+        "x": -50.5,
+        "z": -17.0,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 3.32
+      },
+      {
+        "id": "courtyard_tree_5",
+        "x": -32.5,
+        "z": -37.5,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 4.15
+      },
+      {
+        "id": "courtyard_tree_6",
+        "x": -75.0,
+        "z": -5.0,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 4.98
+      },
+      {
+        "id": "courtyard_tree_7",
+        "x": -34.0,
+        "z": -16.5,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 5.81
+      },
+      {
+        "id": "courtyard_tree_8",
+        "x": 11.0,
+        "z": -35.5,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 6.64
+      },
+      {
+        "id": "courtyard_tree_9",
+        "x": 4.0,
+        "z": -4.0,
+        "r": 0.48,
+        "species": "birch",
+        "scale": 0.82,
+        "rot": 7.47
+      },
+      {
+        "id": "courtyard_tree_10",
+        "x": 93.0,
+        "z": 45.0,
+        "r": 0.48,
+        "species": "palm",
+        "scale": 0.82,
+        "rot": 8.3
+      },
+      {
+        "id": "courtyard_tree_11",
+        "x": -63.0,
+        "z": 75.0,
+        "r": 0.48,
+        "species": "palm",
+        "scale": 0.82,
+        "rot": 9.13
       }
     ]
   },
@@ -6197,6 +7964,106 @@
         "angle": -0.02,
         "height": 0.8,
         "kind": "fish_crates"
+      },
+      {
+        "id": "guild_pier_cargo_0",
+        "x": -9.24642866303241,
+        "z": 13.483901898974562,
+        "hx": 0.32,
+        "hz": 0.55,
+        "kind": "fish_crates",
+        "height": 0.8,
+        "angle": 0.08
+      },
+      {
+        "id": "guild_pier_cargo_1",
+        "x": -6.55463766235293,
+        "z": 15.77611942980818,
+        "hx": 0.32,
+        "hz": 0.65,
+        "kind": "barrels",
+        "height": 0.95,
+        "angle": 0.08
+      },
+      {
+        "id": "east_pier_cargo_0",
+        "x": 13.771230820987165,
+        "z": 19.461632510399255,
+        "hx": 0.32,
+        "hz": 0.55,
+        "kind": "fish_crates",
+        "height": 0.8,
+        "angle": -0.62
+      },
+      {
+        "id": "east_pier_cargo_1",
+        "x": 15.08582967229652,
+        "z": 23.471848197882423,
+        "hx": 0.32,
+        "hz": 0.65,
+        "kind": "barrels",
+        "height": 0.95,
+        "angle": -0.62
+      },
+      {
+        "id": "cargo_pier_cargo_0",
+        "x": 31.958647829932584,
+        "z": 35.26398217256955,
+        "hx": 0.32,
+        "hz": 0.55,
+        "kind": "fish_crates",
+        "height": 0.8,
+        "angle": -1.57
+      },
+      {
+        "id": "cargo_pier_cargo_1",
+        "x": 29.46135613341949,
+        "z": 38.665971911314614,
+        "hx": 0.32,
+        "hz": 0.65,
+        "kind": "barrels",
+        "height": 0.95,
+        "angle": -1.57
+      },
+      {
+        "id": "west_pier_cargo_0",
+        "x": -47.31589416795402,
+        "z": 49.268372288444866,
+        "hx": 0.32,
+        "hz": 0.55,
+        "kind": "fish_crates",
+        "height": 0.8,
+        "angle": 1.9
+      },
+      {
+        "id": "west_pier_cargo_1",
+        "x": -45.8553547359533,
+        "z": 45.810508125761345,
+        "hx": 0.32,
+        "hz": 0.65,
+        "kind": "barrels",
+        "height": 0.95,
+        "angle": 1.9
+      },
+      {
+        "id": "shipyard_pier_cargo_0",
+        "x": 32.7990061769524,
+        "z": 80.23398202988888,
+        "hx": 0.32,
+        "hz": 0.55,
+        "kind": "fish_crates",
+        "height": 0.8,
+        "angle": -1.57
+      },
+      {
+        "id": "shipyard_pier_cargo_1",
+        "x": 30.300997786399652,
+        "z": 82.7359720539953,
+        "hx": 0.32,
+        "hz": 0.65,
+        "kind": "barrels",
+        "height": 0.95,
+        "angle": -1.57
       }
     ],
     "workProps": [
@@ -6279,6 +8146,86 @@
         "kind": "repair_bench",
         "height": 1.15,
         "angle": 0.1
+      },
+      {
+        "id": "launch_hull",
+        "x": 51.0,
+        "z": 54.0,
+        "hx": 1.85,
+        "hz": 5.2,
+        "kind": "repair_hull",
+        "height": 2,
+        "angle": -1.5708
+      },
+      {
+        "id": "launch_timber",
+        "x": 52.0,
+        "z": 48.0,
+        "hx": 1,
+        "hz": 2.3,
+        "kind": "timber_stack",
+        "height": 0.72,
+        "angle": -1.5708
+      },
+      {
+        "id": "launch_tools",
+        "x": 55.0,
+        "z": 59.0,
+        "hx": 1,
+        "hz": 0.6,
+        "kind": "repair_bench",
+        "height": 1.15,
+        "angle": -1.5708
+      },
+      {
+        "id": "repair_rope",
+        "x": 67.5,
+        "z": 80.0,
+        "hx": 1.2,
+        "hz": 1,
+        "kind": "rope_store",
+        "height": 1.7,
+        "angle": -0.1
+      },
+      {
+        "id": "cargo_side_0",
+        "x": 42.0,
+        "z": -17.0,
+        "hx": 1.4,
+        "hz": 1,
+        "kind": "cargo_stack",
+        "height": 1.45,
+        "angle": -0.7
+      },
+      {
+        "id": "cargo_side_1",
+        "x": 58.5,
+        "z": 0.5,
+        "hx": 1.4,
+        "hz": 1,
+        "kind": "cargo_stack",
+        "height": 1.45,
+        "angle": -0.7
+      },
+      {
+        "id": "cargo_side_2",
+        "x": 76.5,
+        "z": 19.5,
+        "hx": 1.4,
+        "hz": 1,
+        "kind": "cargo_stack",
+        "height": 1.45,
+        "angle": -0.7
+      },
+      {
+        "id": "quay_nets",
+        "x": -54.0,
+        "z": 12.0,
+        "hx": 1.2,
+        "hz": 1,
+        "kind": "rope_store",
+        "height": 1.7,
+        "angle": 0.1
       }
     ],
     "lighthouseStyle": {
@@ -6309,5 +8256,5 @@
       }
     ]
   },
-  "layoutRevision": "azure-reference-layout-2"
+  "layoutRevision": "azure-reference-layout-3"
 }

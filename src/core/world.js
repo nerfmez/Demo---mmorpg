@@ -175,6 +175,9 @@ export function createWorld(worldData) {
     const building = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 3.4, hz: 2.8 } : entry;
     addBox({ ...building, type: 'house' });
   }
+  for (const tree of town.trees || []) {
+    addCircle({ ...tree, type: tree.species });
+  }
   addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
   addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
   for (const [x, z, a] of town.stalls || []) addBox({ x, z, hx: 1.6, hz: 1.1, angle: a, type: 'stall' });

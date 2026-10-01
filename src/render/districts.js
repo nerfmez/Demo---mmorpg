@@ -141,6 +141,19 @@ export function harborWorkProp(p,y){
     box(1.20,.08,.24,C.metal,0,1.01,.02,0,.2);
     box(.23,.15,.28,C.wood,-.70,1.03,.15);
     box(.10,.08,.65,C.wood,.65,1.01,-.1,0,-.2);
+  } else if(p.kind==='rope_store'){
+    for(const x of [-.92,.92])box(.10,1.62,.12,C.wood,x,.81,-.4);
+    box(1.95,.10,.12,C.wood,0,1.57,-.4);
+    for(let i=0;i<9;i++){
+      const x=-.78+i*.195,sag=Math.sin(i/8*Math.PI)*.20;
+      box(.022,1.0,.022,'#91a087',x,1.0-sag,-.38);
+    }
+    for(let i=0;i<5;i++)for(let j=0;j<8;j++){
+      const x=-.68+j*.195,sag=Math.sin((j+.5)/8*Math.PI)*.20;
+      box(.205,.022,.022,'#91a087',x,.6+i*.2-sag,-.38,0,0,Math.cos((j+.5)/8*Math.PI)*-.32);
+    }
+    for(const x of [-.60,0,.60])for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.26-i*.06,.025,5,12),C.rope,x,.055,.42,Math.PI/2);
+    part(new THREE.SphereGeometry(.20,8,5).scale(.8,1.2,.8),'#c79767',.82,1.12,-.31);
   } else if(p.kind==='repair_hull'){
     const hz=p.hz-.18,hx=p.hx-.18;
     // Keel, low unfinished side planks and exposed ribs on timber trestles.

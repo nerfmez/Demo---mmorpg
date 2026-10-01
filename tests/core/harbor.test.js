@@ -248,3 +248,17 @@ test('district work areas use individual dry colliders and every frontage has a 
     }
   }
 });
+
+test('authored courtyard shade uses existing tree models and dry, off-road trunk collisions', () => {
+  for (const tree of data.world.town.trees || []) {
+    const trunk=world.circles.find(c=>c.id===tree.id);
+    assert.ok(trunk,tree.id+' has a trunk collider');
+    assert.equal(trunk.type,tree.species);
+    assert.equal(trunk.r,tree.r);
+    assert.equal(trunk.scale,tree.scale);
+    assert.ok(['birch','palm'].includes(trunk.type));
+    assert.ok(!world.isWater(tree.x,tree.z,tree.r));
+    assert.ok(world.roadDist(tree.x,tree.z)>tree.r+.45);
+    assert.ok(!world.isFree(tree.x,tree.z,.45));
+  }
+});

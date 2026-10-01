@@ -96,7 +96,10 @@ export function surfaceData(world) {
         const distance=pointInPolygon(points,x,z)?edge:-edge;
         const wear=(valueNoise(x*.24,z*.24,76)-.5)*.85;
         const patch=smooth(-1.1+wear,.65+wear,distance)*smooth(-.1,.5,wd.sea?-coast[k*2+1]:1);
-        if(surface.kind==='paving')stone[k]=Math.max(stone[k],patch);
+        if(surface.kind==='paving') {
+          const street=surface.preserveRoad ? 1-smooth(.25,.85,road[k]) : 1;
+          stone[k]=Math.max(stone[k],patch*(surface.strength ?? 1)*street);
+        }
         else {dirt[k]=Math.max(dirt[k],patch*.72);road[k]=Math.max(road[k],patch*.38);}
       }
       if (ruins) {
@@ -107,7 +110,7 @@ export function surfaceData(world) {
       const zn = inside ? world.zoneAt(x, z) : null;
       if (zn && zn.id === 'ruins' && stone[k] < 0.5 && valueNoise(x * 0.23, z * 0.23, 3) > 0.68) stone[k] = 0.62;
       const dirtBias = zn ? { highlands: 0.18, wolf_den: 0.14, ruins: 0.08 }[zn.id] || 0 : 0.1;
-      dirt[k] = smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2);
+      dirt[k] = Math.max(dirt[k], smooth(0.62 - dirtBias, 0.72 - dirtBias, valueNoise(x * 0.07, z * 0.07, 11) * 0.8 + valueNoise(x * 0.3, z * 0.3, 12) * 0.2));
       for(const surface of wd.harbor?.workSurfaces||[]){
         const p=toBoxLocal(surface,x,z),radius=Math.hypot(p.lx/surface.rx,p.lz/surface.rz);
         if(radius>1.3)continue;

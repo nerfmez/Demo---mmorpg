@@ -189,6 +189,54 @@ function provisions(b,bx) {
   box(1.15,.70,.10,C.wood,3.15,2.38,front+.21);
   part(new THREE.SphereGeometry(.24,8,5).scale(1.65,.65,.16),'#dec58f',3.15,2.42,front+.29);
 }
+function netterShop(b,bx) {
+  const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.85;
+  shopShell(b,bx,front,2.4,{timber:true,openBays:[[-1.35,4.6]]});
+  shopRoof(b,w,d-1.6,2.4,1.15,-.8,bx.roofColor,{hip:true});
+  shopDoor(b,3.15,front+.15);
+  box(4.9,.10,.9,'#78928b',-1.35,2.14,front+.56,.10);
+  for(const x of [-3.72,1.02])box(.11,2.12,.11,C.wood,x,1.06,front+.98);
+  // A hanging, sagging net and buoy rack distinguish the tackle frontage.
+  for(let i=0;i<11;i++){
+    const x=-3.35+i*.36,sag=Math.sin(i/10*Math.PI)*.18;
+    box(.022,1.15,.022,'#94a38c',x,1.26-sag,front+.26);
+  }
+  for(let i=0;i<6;i++)for(let j=0;j<10;j++){
+    const x=-3.17+j*.36,sag=Math.sin((j+.5)/10*Math.PI)*.18;
+    box(.37,.022,.022,'#94a38c',x,.75+i*.22-sag,front+.26,0,0,Math.cos((j+.5)/10*Math.PI)*-.14);
+  }
+  box(3.5,.12,.8,'#a1845e',-1.65,.76,bx.hz-.53);
+  for(const x of [-2.8,-1.65,-.5])for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.32-i*.075,.03,5,14),C.rope,x,.85,bx.hz-.53,Math.PI/2);
+  for(const x of [.55,1.15]){
+    box(.02,.67,.02,C.rope,x,1.57,front+.42);
+    part(new THREE.SphereGeometry(.20,8,6).scale(.8,1.2,.8),x<1?'#cd9866':'#9aafa0',x,1.27,front+.42);
+  }
+  box(1.20,.70,.10,'#607c75',3.15,2.39,front+.20);
+  part(new THREE.TorusGeometry(.23,.045,5,12),'#e0d0a7',3.15,2.4,front+.27);
+  shopLantern(b,2.25,1.6,front+.26);
+}
+function sailShop(b,bx) {
+  const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.85;
+  shopShell(b,bx,front,2.45,{openBays:[[1.0,4.5]]});
+  shopRoof(b,w,d-1.6,2.45,1.18,-.8,bx.roofColor,{frontGable:true});
+  shopDoor(b,-3.15,front+.15);
+  // Warm cloth shade and a sail pictogram, with rolls and a cutting table.
+  for(let i=0;i<7;i++)box(.85,.06,.90,i%2?'#e2d3ac':'#b79268',-.95+i*.85,2.17,front+.57,.13);
+  for(const x of [-1.35,4.15])box(.11,2.13,.11,C.wood,x,1.06,front+1.0);
+  box(3.75,.14,1.0,'#a3845e',1.2,.80,bx.hz-.59);
+  for(const x of [-.35,2.75])for(const z of [-.36,.36])box(.12,.74,.12,C.wood,x,.37,bx.hz-.59+z);
+  box(2.7,.035,.80,'#e3d6b2',1.3,.89,bx.hz-.61,0,.10);
+  for(const x of [-.1,.6,1.3,2.0,2.7]){
+    part(new THREE.CylinderGeometry(.19,.19,.74,8),x%1> .4?'#9eada3':'#d7c79e',x,1.32,front+.28,Math.PI/2);
+    part(new THREE.CylinderGeometry(.095,.095,.012,8),C.dark,x,1.32,front+.66,Math.PI/2);
+  }
+  box(1.45,.75,.12,C.wood,-3.15,2.41,front+.21);
+  box(.045,.58,.035,'#e2d5b1',-3.36,2.42,front+.30);
+  const sail=new THREE.BufferGeometry();
+  sail.setAttribute('position',new THREE.Float32BufferAttribute([-.13,-.24,0,-.13,.27,0,.40,-.21,0],3));sail.computeVertexNormals();
+  part(sail,'#e2d5b1',-3.15,2.43,front+.31);
+  shopLantern(b,-2.28,1.63,front+.28);
+}
 function harborInn(b,bx) {
   const {box,part}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.95,roofZ=-.90;
   shopShell(b,bx,front,4.46);
@@ -239,6 +287,8 @@ export function marketBuilding(bx,y) {
   if(bx.variant==='fish_hall')fishHall(b,bx);
   else if(bx.variant==='workshop')craftHouse(b,bx);
   else if(bx.variant==='provisioner')provisions(b,bx);
+  else if(bx.variant==='netter_shop')netterShop(b,bx);
+  else if(bx.variant==='sail_shop')sailShop(b,bx);
   else harborInn(b,bx);
   const root=b.finish();root.position.set(bx.x,y,bx.z);root.rotation.y=bx.angle;return root;
 }
@@ -345,11 +395,11 @@ export function marketQuay(world) {
   }
   // Rope coils and hanging nets sit on the outer edges of the two market piers.
   for(const d of world.docks.filter(d=>d.id==='market_west'||d.id==='market_east')){
-    const x=d.x+d.hx-.45,z=d.z+2,y=d.height;
+    const {x,z}=fromBoxLocal(d,d.hx-.45,2),y=d.height;
     for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.35-i*.08,.035,5,16),C.rope,x,y+.05,z,Math.PI/2);
-    for(let i=0;i<7;i++)box(.023,.78,.023,'#8f9b82',d.x-d.hx+.2,y-.25,d.z-1+i*.28);
-    for(let i=0;i<4;i++)box(.023,.025,1.7,'#8f9b82',d.x-d.hx+.2,y-.56+i*.23,d.z-.15);
-    for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.12,8,5),'#b9905f',d.x-d.hx+.2,y+.10,d.z-.8+i*.6);
+    for(let i=0;i<7;i++) {const p=fromBoxLocal(d,-d.hx+.2,-1+i*.28);box(.023,.78,.023,'#8f9b82',p.x,y-.25,p.z);}
+    for(let i=0;i<4;i++) {const p=fromBoxLocal(d,-d.hx+.2,-.15);box(.023,.025,1.7,'#8f9b82',p.x,y-.56+i*.23,p.z,0,d.angle);}
+    for(let i=0;i<3;i++) {const p=fromBoxLocal(d,-d.hx+.2,-.8+i*.6);part(new THREE.SphereGeometry(.12,8,5),'#b9905f',p.x,y+.10,p.z);}
   }
   for(const cargo of world.data.harbor.dockCargo || []) {
     cargoGroups.push(marketDockCargo(cargo,world.groundY(cargo.x,cargo.z)));

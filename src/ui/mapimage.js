@@ -45,9 +45,9 @@ export function mapImage(world) {
       let c = mix(light, dark, 0.3 + n * 0.13);
       const slope = Math.hypot(dx, dz) / 2;
       if (slope > 0.75) c = mix(c, ROCK, Math.min(1, (slope - 0.75) * 2.5));
-      if (town.surfaces?.length
-        ? town.surfaces.some(s => s.kind === 'paving' && pointInPolygon(s.points, x, z))
-        : Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
+      if (town.surfaces?.length) {
+        for (const s of town.surfaces) if (s.kind === 'paving' && pointInPolygon(s.points, x, z)) c = mix(c, PLAZA, s.strength ?? 1);
+      } else if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
       if (world.data.sea) {
         const d = world.coastAt(x, z).distance;
         const beach = world.data.sea.beach || 14;

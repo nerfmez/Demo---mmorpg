@@ -90,13 +90,13 @@ try {
   const shot = (beat) => page.screenshot({ path: `${OUT}${TAG}-${beat}.png` });
   const step = (n) => page.evaluate((k) => window.__frontier.step(k), n);
   if (process.env.VIDEO) {
-    // two casts, every 60 fps frame of the action area, played back at real speed
+    // one cast, every 60 fps frame of the action area, played back at real speed
     const dir = `${OUT}${TAG}-frames/`;
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
     const clip = { x: 0, y: 180, width: 820, height: 460 };
     let n = 0;
-    for (const len of [100, 110]) {
+    for (const len of [118]) {
       await page.evaluate(() => window.__frontier.cast());
       for (let i = 0; i < len; i++) {
         await step(1);

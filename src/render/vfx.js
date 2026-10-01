@@ -230,6 +230,7 @@ export class Vfx {
     this.sharedGeo = new Set([this.discGeo, this.ringGeo, this.coneGeo, this.planeGeo]);
     this.glow = glowTexture();
     // one reused glow for a spell gathering at the hand or weapon tip (FX.skills[id].cast)
+    this.timers = []; // {t, fn}: delayed stages of one-shot effects
     this.castFx = null;
     this.castGlow = this.sprite(0xffffff, 1, 0.9);
     this.castGlow.material.userData.shared = true;
@@ -570,6 +571,39 @@ export class Vfx {
     this.spawn(m, dur, (t) => (m.material.opacity = opacity * (1 - t) * (1 - t)));
   }
 
+  /** A soft dark patch under smoke, so the cloud sits on the ground (normal blend). */
+  groundShadow(x, z, radius, opacity, dur) {
+    const m = new THREE.Mesh(this.planeGeo, new THREE.MeshBasicMaterial({ map: this.glow, color: 0x1a1820, transparent: true, opacity: 0, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, this.gy(x, z) + 0.05, z);
+    m.scale.setScalar(radius * 2);
+    this.spawn(m, dur, (t) => (m.material.opacity = opacity * Math.min(1, t * 6) * (t > 0.6 ? (1 - t) / 0.4 : 1)));
+  }
+
+  /** Cartoon smoke puffs that pop out, hold solid, then shrink away (they never turn see-through). */
+  smokePuffs(x, y, z, n, L, spread, rise, outward) {
+    const o = emitOpts();
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * spread;
+      const v = outward * (0.4 + Math.random() * 0.8);
+      const sz = L.puffSize * (0.6 + Math.random() * 0.8);
+      Object.assign(o, EMIT_DEFAULT);
+      o.color = colorOf(L.smokeColor);
+      o.core = colorOf(L.smokeLightColor);
+      o.size = sz * 0.3;
+      o.sizeEnd = sz;
+      o.swell = 0.25;
+      o.hold = 0.9;
+      o.life = L.smokeLife * (0.6 + Math.random() * 0.8);
+      o.drag = 2.2;
+      o.gravity = -rise;
+      o.shape = i % 3 === 0 ? 'ball' : 'cloud';
+      o.rot = (Math.random() - 0.5) * 0.6;
+      this.cel.add(x + Math.sin(a) * r, y + (Math.random() - 0.3) * spread * 0.8, z + Math.cos(a) * r, Math.sin(a) * v, rise * 0.3 + Math.random() * 0.4, Math.cos(a) * v, o);
+    }
+  }
+
   /**
    * A projectile with an impact look lands, in the reference's order: a white spiky flash and a red
    * halo lighting the ground, a yellow comic burst with speed lines flying out, then a lumpy fireball
@@ -577,52 +611,49 @@ export class Vfx {
    */
   skillImpact(e, L) {
     const c = el(e.element);
-    const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
-    this.groundLight(e.x, e.z, L.light, rimOf(c), 0.7, 0.45);
-    // a tinted see-through sphere of heat (normal blend, so it still shows on bright sand)
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glow, color: rimOf(c), transparent: true, depthWrite: false, opacity: L.haloOpacity }));
-    halo.position.set(e.x, y, e.z);
-    this.spawn(halo, L.haloLife, (t) => {
-      halo.material.opacity = L.haloOpacity * (1 - t) * (1 - t);
-      halo.scale.setScalar(L.halo * (0.6 + 0.5 * t));
-    });
-    const glow = this.sprite(heatOf(c), L.flash * 1.4, 0.9);
-    glow.position.set(e.x, y, e.z);
-    this.spawn(glow, L.flashLife * 1.5, (t) => (glow.material.opacity = 0.9 * (1 - t)));
-    this.cel.add(e.x, y, e.z, 0, 0, 0, { color: heatOf(c), core: 0xffffff, size: L.flash, sizeEnd: L.flash * 1.3, life: L.flashLife, drag: 0, shape: 'burst', hold: 0.6 });
-    this.cel.add(e.x, y, e.z, 0, 0, 0, { color: heatOf(c), core: 0xffffff, colorEnd: rimOf(c), coreEnd: heatOf(c), size: L.burst, sizeEnd: L.burstEnd, life: L.burstLife, drag: 0, shape: 'burst', spin: 1.5 });
+    const x = e.x;
+    const z = e.z;
+    const y = this.gy(x, z) + (e.y ?? 1.0);
+    // 1. the instant: a white spiky flash and a wide patch of lit ground
+    this.groundLight(x, z, L.light, rimOf(c), 0.85, L.lightLife);
+    this.cel.add(x, y, z, 0, 0, 0, { color: 0xffffff, core: 0xffffff, size: L.flash, sizeEnd: L.flash * 1.4, life: L.flashLife, drag: 0, shape: 'burst', hold: 0.7 });
+    // 2. a see-through sphere of light that swells and goes white -> yellow -> red
+    this.cel.add(x, y, z, 0, 0, 0, { color: 0xffffff, core: 0xffffff, colorEnd: rimOf(c), coreEnd: heatOf(c), colorDelay: 0.15, colorSpan: 0.6, size: L.orb * 0.55, sizeEnd: L.orb, life: L.orbLife, drag: 0, shape: 'orb', hold: 0.55, rot: 0 });
+    // the yellow comic burst inside it
+    this.cel.add(x, y, z, 0, 0, 0, { color: heatOf(c), core: 0xffffff, colorEnd: rimOf(c), coreEnd: heatOf(c), colorDelay: 0.3, size: L.burst, sizeEnd: L.burstEnd, life: L.burstLife, drag: 0, shape: 'burst', spin: 1.2, hold: 0.6 });
+    // many long thin needles shooting out, white first, then yellow and red
     for (let i = 0; i < L.lines; i++) {
       const a = Math.random() * Math.PI * 2;
-      const v = L.lineSpeed * (0.6 + Math.random() * 0.6);
+      const v = L.lineSpeed * (0.5 + Math.random() * 0.8);
       const vx = Math.sin(a) * v;
-      const vy = (Math.random() - 0.2) * v * 0.6;
+      const vy = (Math.random() - 0.25) * v * 0.7;
       const vz = Math.cos(a) * v;
-      const hot = i % 2 === 0;
-      this.cel.add(e.x + vx * 0.03, y + vy * 0.03, e.z + vz * 0.03, vx, vy, vz, { color: hot ? heatOf(c) : rimOf(c), core: hot ? 0xffffff : heatOf(c), colorEnd: rimOf(c), size: L.lineSize * (0.6 + Math.random() * 0.7), sizeEnd: L.lineSize * 0.4, life: L.lineLife * (0.6 + Math.random() * 0.6), drag: 4, shape: 'streak', rot: this.screenRot(vx, vy, vz), hold: 0.5 });
+      const first = i < L.lines * 0.5;
+      this.cel.add(x + vx * 0.04, y + vy * 0.04, z + vz * 0.04, vx, vy, vz, { color: first ? 0xffffff : heatOf(c), core: 0xffffff, colorEnd: first ? heatOf(c) : rimOf(c), coreEnd: heatOf(c), size: L.lineSize * (0.5 + Math.random() * 0.8), sizeEnd: L.lineSize * 0.5, life: L.lineLife * (0.5 + Math.random() * 0.7), drag: 3, shape: 'needle', rot: this.screenRot(vx, vy, vz), hold: 0.5 });
     }
-    const smoke = colorOf(L.smokeColor);
-    const lit = colorOf(L.smokeLightColor);
-    for (let i = 0; i < L.clouds; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = Math.random() * L.cloudSpread;
-      const v = 0.3 + Math.random() * 0.5;
-      const sz = L.cloudSize * (0.7 + Math.random() * 0.5);
-      this.cel.add(e.x + Math.sin(a) * r, y + (Math.random() - 0.4) * L.cloudSpread, e.z + Math.cos(a) * r, Math.sin(a) * v, 0.4 + Math.random() * 0.5, Math.cos(a) * v, { color: rimOf(c), core: heatOf(c), colorEnd: smoke, coreEnd: lit, colorDelay: L.cloudCool, colorSpan: L.cloudCoolSpan, hold: L.cloudHold, size: sz, sizeEnd: sz * (L.cloudSizeEnd / L.cloudSize), life: L.cloudLife * (0.8 + Math.random() * 0.4), drag: 2.5, gravity: -0.4, shape: 'cloud', rot: (Math.random() - 0.5) * 0.6 });
-    }
-    // small puffs drift further and outlast the cluster, so the cloud seems to break apart
-    for (let i = 0; i < L.puffs; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const v = 1.2 + Math.random() * 1.2;
-      this.cel.add(e.x, y + 0.2, e.z, Math.sin(a) * v, 0.7 + Math.random() * 0.8, Math.cos(a) * v, { color: rimOf(c), core: heatOf(c), colorEnd: smoke, coreEnd: lit, colorDelay: L.cloudCool, colorSpan: L.cloudCoolSpan, hold: L.cloudHold, size: L.puffSize, sizeEnd: L.puffSize * 0.6, life: L.cloudLife * 1.3, drag: 1.6, gravity: -0.3, shape: 'cloud' });
-    }
-    for (let i = 0; i < L.embers; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const v = 3 + Math.random() * 4;
-      const vx = Math.sin(a) * v;
-      const vy = 1 + Math.random() * 3;
-      const vz = Math.cos(a) * v;
-      this.fx.add(e.x, y, e.z, vx, vy, vz, { color: c.dots, core: heatOf(c), colorEnd: rimOf(c), size: L.emberSize * (0.6 + Math.random() * 0.6), sizeEnd: L.emberSize * 0.4, life: 0.4 + Math.random() * 0.4, drag: 1.5, gravity: 5, shape: 'streak', rot: this.screenRot(vx, vy, vz) });
-    }
+    // 3. after the flash: the lumpy fireball, cooling to smoke that breaks into shrinking puffs
+    this.later(L.fireballDelay, () => {
+      const smoke = colorOf(L.smokeColor);
+      const lit = colorOf(L.smokeLightColor);
+      for (let i = 0; i < L.clouds; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * L.cloudSpread;
+        const v = 0.25 + Math.random() * 0.45;
+        const sz = L.cloudSize * (0.6 + Math.random() * 0.7);
+        this.cel.add(x + Math.sin(a) * r, y + (Math.random() - 0.4) * L.cloudSpread, z + Math.cos(a) * r, Math.sin(a) * v, 0.35 + Math.random() * 0.5, Math.cos(a) * v, { color: rimOf(c), core: i % 3 ? c.dots : heatOf(c), colorEnd: smoke, coreEnd: lit, colorDelay: L.cloudCool, colorSpan: L.cloudCoolSpan, size: sz * 0.4, sizeEnd: sz, swell: 0.2, hold: 0.95, life: L.cloudLife * (0.75 + Math.random() * 0.5), drag: 2.4, gravity: -0.45, shape: i % 4 ? 'cloud' : 'ball', rot: (Math.random() - 0.5) * 0.8 });
+      }
+      for (let i = 0; i < L.embers; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const v = 3 + Math.random() * 4;
+        const vx = Math.sin(a) * v;
+        const vy = 1 + Math.random() * 3;
+        const vz = Math.cos(a) * v;
+        this.fx.add(x, y, z, vx, vy, vz, { color: c.dots, core: heatOf(c), colorEnd: rimOf(c), size: L.emberSize * (0.6 + Math.random() * 0.6), sizeEnd: L.emberSize * 0.4, life: 0.4 + Math.random() * 0.5, drag: 1.5, gravity: 5, shape: 'streak', rot: this.screenRot(vx, vy, vz) });
+      }
+      this.groundShadow(x, z, L.cloudSpread + L.cloudSize * 0.8, 0.35, L.cloudLife * 1.3);
+    });
+    // 4. the smoke left when the fireball has cooled: small solid puffs drifting up and out
+    this.later(L.fireballDelay + L.cloudLife * 0.45, () => this.smokePuffs(x, y + 0.4, z, L.puffs, L, L.cloudSpread, 0.8, 0.7));
   }
 
   hitSpark(e, height = 0.9) {
@@ -997,22 +1028,24 @@ export class Vfx {
       p.spin = (Math.random() - 0.5) * 8;
       this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.1, pr.z + back.z * o, back.x * 0.4 + (Math.random() - 0.5) * 0.4, 0.2 + Math.random() * 0.3, back.z * 0.4 + (Math.random() - 0.5) * 0.4, p);
     }
+    // grey puffs left along the path: they pop out, hold solid and shrink away (reference fire trail)
     u.smoke += L.smokeRate * dt;
     for (; u.smoke >= 1; u.smoke--) {
-      const o = 0.4 + Math.random() * 0.4;
-      const sz = L.smokeSize * (0.7 + Math.random() * 0.6);
+      const o = 0.35 + Math.random() * 0.4;
+      const sz = L.smokeSize * (0.6 + Math.random() * 0.8);
       const p = emitOpts();
       p.color = colorOf(L.smokeColor);
       p.core = colorOf(L.smokeLightColor);
-      p.size = sz;
-      p.sizeEnd = sz * (L.smokeSizeEnd / L.smokeSize);
-      p.life = L.smokeLife * (0.7 + Math.random() * 0.6);
+      p.size = sz * 0.3;
+      p.sizeEnd = sz;
+      p.swell = 0.3;
+      p.hold = 0.9;
+      p.life = L.smokeLife * (0.6 + Math.random() * 0.8);
       p.drag = 2;
+      p.gravity = -0.4;
       p.shape = 'cloud';
-      p.rot = (Math.random() - 0.5) * 0.8;
-      p.alpha = L.smokeAlpha;
-      p.hold = L.smokeHold;
-      this.cel.add(pr.x + back.x * o + (Math.random() - 0.5) * 0.45, y - 0.1 + (Math.random() - 0.5) * 0.35, pr.z + back.z * o + (Math.random() - 0.5) * 0.45, (Math.random() - 0.5) * 0.5, 0.25 + Math.random() * 0.3, (Math.random() - 0.5) * 0.5, p);
+      p.rot = (Math.random() - 0.5) * 0.6;
+      this.cel.add(pr.x + back.x * o + (Math.random() - 0.5) * 0.5, y - 0.05 + (Math.random() - 0.5) * 0.4, pr.z + back.z * o + (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.6, 0.2 + Math.random() * 0.3, (Math.random() - 0.5) * 0.6, p);
     }
     u.embers += L.emberRate * dt;
     for (; u.embers >= 1; u.embers--) {
@@ -1217,7 +1250,20 @@ export class Vfx {
     }
   }
 
+  /** Run fn after delay seconds of effect time (stages of an explosion). */
+  later(delay, fn) {
+    this.timers.push({ t: delay, fn });
+  }
+
   update(dt) {
+    for (let i = this.timers.length - 1; i >= 0; i--) {
+      const tm = this.timers[i];
+      tm.t -= dt;
+      if (tm.t <= 0) {
+        this.timers.splice(i, 1);
+        tm.fn();
+      }
+    }
     this.fx.update(dt);
     this.dust.update(dt);
     this.cel.update(dt);

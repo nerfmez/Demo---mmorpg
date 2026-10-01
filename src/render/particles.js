@@ -21,6 +21,7 @@ export class Particles {
     this.fade = new Float32Array(capacity);
     this.span = new Float32Array(capacity); // fraction of the life the colour change takes
     this.hold = new Float32Array(capacity); // fraction of the life at full alpha before fading out
+    this.swell = new Float32Array(capacity); // >0: grow to sizeEnd by this fraction, then shrink away
     this.size = new Float32Array(capacity);
     this.alpha = new Float32Array(capacity);
     this.vel = new Float32Array(capacity * 3);
@@ -85,9 +86,11 @@ export class Particles {
    * colours they turn into over the life (fire cooling to smoke), starting after colorDelay of it
    * and taking colorSpan of it.
    * hold is the fraction of the life kept at full alpha before it fades (cartoon smoke stays solid).
+   * swell > 0 makes the size pop out to sizeEnd by that fraction of the life and then shrink to
+   * nothing, which is how cartoon smoke breaks up (puffs shrink instead of turning see-through).
    * rot is the starting angle (random when omitted), spin its turn rate in rad/s.
    */
-  add(x, y, z, vx, vy, vz, { color = 0xffffff, core = null, colorEnd = null, coreEnd = null, colorDelay = 0, colorSpan = 1, hold = 0.15, size = 0.3, sizeEnd = null, life = 0.6, gravity = 0, drag = 1.5, alpha = 1, shape = 0, rot = null, spin = 0 } = {}) {
+  add(x, y, z, vx, vy, vz, { color = 0xffffff, core = null, colorEnd = null, coreEnd = null, colorDelay = 0, colorSpan = 1, hold = 0.15, swell = 0, size = 0.3, sizeEnd = null, life = 0.6, gravity = 0, drag = 1.5, alpha = 1, shape = 0, rot = null, spin = 0 } = {}) {
     if (this.count >= this.cap) return;
     const i = this.count++;
     this.pos[i * 3] = x;
@@ -108,6 +111,7 @@ export class Particles {
     this.fade[i] = Math.min(0.99, colorDelay);
     this.span[i] = Math.max(0.01, colorSpan);
     this.hold[i] = Math.min(0.95, Math.max(0.15, hold));
+    this.swell[i] = Math.min(0.95, swell);
     this.size0[i] = size;
     this.size1[i] = sizeEnd ?? size * 0.2;
     this.size[i] = size;
@@ -162,7 +166,9 @@ export class Particles {
       this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt;
       this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
       const t = 1 - this.life[i] / this.maxLife[i];
-      this.size[i] = this.size0[i] + (this.size1[i] - this.size0[i]) * t;
+      const sw = this.swell[i];
+      if (sw > 0) this.size[i] = t < sw ? this.size0[i] + (this.size1[i] - this.size0[i]) * Math.sqrt(t / sw) : this.size1[i] * (1 - ((t - sw) / (1 - sw)) ** 1.5);
+      else this.size[i] = this.size0[i] + (this.size1[i] - this.size0[i]) * t;
       const h = this.hold[i];
       this.alpha[i] = this.alpha0[i] * (t < 0.15 ? t / 0.15 : t < h ? 1 : 1 - (t - h) / (1 - h));
       this.rot[i] += this.spin[i] * dt;
@@ -211,5 +217,6 @@ export class Particles {
     this.fade[to] = this.fade[from];
     this.hold[to] = this.hold[from];
     this.span[to] = this.span[from];
+    this.swell[to] = this.swell[from];
   }
 }

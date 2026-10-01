@@ -4,9 +4,9 @@
 // unused: shape 0 stays the original soft round dot, drawn by the shader.
 import * as THREE from 'three';
 
-export const SHAPES = { dot: 0, spark: 1, star: 2, flame: 3, puff: 4, shard: 5, ring: 6, flare: 7, burst: 8, streak: 9, blob: 10, cloud: 11 };
+export const SHAPES = { dot: 0, spark: 1, star: 2, flame: 3, puff: 4, shard: 5, ring: 6, flare: 7, burst: 8, streak: 9, blob: 10, cloud: 11, needle: 12, ball: 13, orb: 14 };
 export const ATLAS_COLS = 4;
-export const ATLAS_ROWS = 3;
+export const ATLAS_ROWS = 4;
 const CELL = 64;
 
 /** A shape name from data/combat-fx.json, or a number, to its atlas index. Unknown names are dots. */
@@ -91,6 +91,14 @@ const DRAW = {
     g.quadraticCurveTo(-3.2 * k, 0, 0, -30 * k);
     g.fill();
   },
+  // a long thin speed line for the first instant of an impact
+  needle: (g, k) => {
+    g.beginPath();
+    g.moveTo(0, -31 * k);
+    g.quadraticCurveTo(1.4 * k + 0.4, 0, 0, 31 * k);
+    g.quadraticCurveTo(-1.4 * k - 0.4, 0, 0, -31 * k);
+    g.fill();
+  },
 };
 
 // Soft shapes are painted with gradients instead of a flat rim/core cut-out.
@@ -139,6 +147,39 @@ const PAINT = {
     g.fillStyle = '#ffffff';
     g.fill();
     g.restore();
+  },
+  // one round smoke puff: lit body (core tone) with a shadow band on the lower-right (rim tone)
+  ball: (g) => {
+    g.beginPath();
+    g.arc(0, 0, 27, 0, Math.PI * 2);
+    g.fillStyle = 'rgba(0,0,0,0.95)';
+    g.fill();
+    g.save();
+    g.clip();
+    g.beginPath();
+    g.arc(-5, -6, 26, 0, Math.PI * 2);
+    g.fillStyle = '#ffffff';
+    g.fill();
+    g.restore();
+  },
+  // a see-through sphere of heat/light: even fill, a brighter edge, hot centre as the core tone
+  orb: (g) => {
+    g.beginPath();
+    g.arc(0, 0, 29, 0, Math.PI * 2);
+    const body = g.createRadialGradient(0, 0, 0, 0, 0, 29);
+    body.addColorStop(0, 'rgba(0,0,0,0.55)');
+    body.addColorStop(0.82, 'rgba(0,0,0,0.6)');
+    body.addColorStop(0.93, 'rgba(0,0,0,0.85)');
+    body.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = body;
+    g.fill();
+    const hot = g.createRadialGradient(0, 0, 0, 0, 0, 22);
+    hot.addColorStop(0, 'rgba(255,255,255,1)');
+    hot.addColorStop(1, 'rgba(255,255,255,0)');
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = hot;
+    g.fillRect(-32, -32, 64, 64);
+    g.globalCompositeOperation = 'source-over';
   },
 };
 

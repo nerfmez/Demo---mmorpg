@@ -11,6 +11,7 @@ import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
+import combatFx from '../../data/combat-fx.json';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform, attachWindShadow } from './patch.js';
 import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
@@ -360,9 +361,16 @@ export class View {
       case 'lob':
         v.lob(e);
         break;
-      case 'impact':
+      case 'impact': {
         v.impact(e);
+        // a spell impact with a look lands with weight: a short shake and hit-stop (data/combat-fx.json)
+        const hit = combatFx.skills[e.kind]?.impact;
+        if (hit) {
+          this.addShake(hit.shake || 0);
+          this.hitStop = Math.max(this.hitStop || 0, hit.hitStop || 0);
+        }
         break;
+      }
       case 'hit': {
         v.hitSpark(e);
         const mv = this.monsterViews.get(e.id);

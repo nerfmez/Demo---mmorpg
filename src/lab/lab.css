@@ -88,7 +88,10 @@ button:disabled {
 .tuning-card { padding: 12px; border: 1px solid #465679; border-radius: 14px; background: #172238; }
 .tuning-header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between; }
 .tuning-header strong { font-size: 17px; }
-select { min-height: 44px; max-width: 100%; padding: 0 12px; border: 1px solid #647393; border-radius: 9px; background: #25324d; color: inherit; font: inherit; }
+select { min-height: 44px; max-width: 100%; padding: 0 34px 0 12px; border: 1px solid #647393; border-radius: 9px; background: #25324d; color: #f2f4f8; font: inherit; color-scheme: dark; appearance: none; -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #f2f4f8 50%), linear-gradient(135deg, #f2f4f8 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
+}
 .tuning-note, .tuning-status { margin: 10px 0; color: #c4cedf; font-size: 13px; }
 .tuning-status { min-height: 18px; margin-bottom: 0; }
 .tuning-auto { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; }

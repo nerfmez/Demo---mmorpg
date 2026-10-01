@@ -34,7 +34,8 @@ try {
     p.x=spot.x;p.z=spot.z;p.hp=p.maxHp;p.mp=p.maxMp;
     g.monsters=[m];m.hp=m.maxHp=1000000;
     g.ch.stats.INT=30;g.ch.skills.firebolt=1;g.ch.slots[0]={skill:'firebolt',mods:[]};g.refresh();
-    f.view.zoom=0.55;f.view.snapCamera();
+    f.view.zoom=0.85;f.view.snapCamera();
+    document.getElementById('hud').style.visibility='hidden'; // clean effects review; same live game camera
     f.captureTarget={x:m.x,z:m.z,id:m.id};
     f.captureHits=0;f.captureTime=0;
     return {player:[p.x,p.z],target:[m.x,m.z],type:m.type,skill:g.skills[0].id};

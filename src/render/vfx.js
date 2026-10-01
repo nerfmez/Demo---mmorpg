@@ -14,6 +14,8 @@ const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _base = new THREE.Vector3();
 const _tip = new THREE.Vector3();
+const FIRE_EMBER = { color: FX.fireball.middle, size: 0.12, sizeEnd: 0.02, life: 0.3, drag: 2 };
+const FIRE_CHARGE_SPARK = { color: FX.fireball.middle, size: 0.1, sizeEnd: 0.02, life: 0.22, drag: 0 };
 
 const ELEMENT = {
   physical: { core: 0xfff3c4, glow: 0xffc24a, dots: 0xffe08a },
@@ -759,12 +761,21 @@ export class Vfx {
     if (cast?.skill.id === 'firebolt' && cast.skill.element === 'fire') {
       if (!this.fireCharge) {
         this.fireCharge = makeFireball();
+        this.fireCharge.userData.emberTime = 0;
         for (let i = 1; i < this.fireCharge.children.length; i++) this.fireCharge.children[i].visible = false;
         this.scene.add(this.fireCharge);
       }
       const a = cast.aim.angle, p = game.player;
       this.fireCharge.position.set(p.x + Math.sin(a) * 0.6, this.gy(p.x,p.z) + 1.05, p.z + Math.cos(a) * 0.6);
       animateFireball(this.fireCharge, time, 0.15 + 0.85 * Math.min(1,cast.t / Math.max(0.001,cast.total)));
+      this.fireCharge.userData.emberTime += Math.min(dt,0.1);
+      while (this.fireCharge.userData.emberTime >= 1 / FX.fireball.emberRate) {
+        this.fireCharge.userData.emberTime -= 1 / FX.fireball.emberRate;
+        const a = time * 31 + this.fireCharge.userData.emberTime * 110;
+        const q = this.fireCharge.position;
+        const dx = Math.cos(a) * 0.7, dy = Math.sin(a) * 0.7;
+        this.fx.add(q.x+dx,q.y+dy,q.z,-dx*4,-dy*4,0,FIRE_CHARGE_SPARK);
+      }
     } else if (this.fireCharge) {
       disposeObject(this.fireCharge);
       this.fireCharge = null;
@@ -804,7 +815,7 @@ export class Vfx {
         v.userData.emberTime += Math.min(dt,0.1);
         while (v.userData.emberTime >= 1 / FX.fireball.emberRate) {
           v.userData.emberTime -= 1 / FX.fireball.emberRate;
-          this.fx.add(pr.x-pr.vx/pr.speed*0.7,y,pr.z-pr.vz/pr.speed*0.7,-pr.vx/pr.speed,0.45,-pr.vz/pr.speed,{color:FX.fireball.middle,size:0.12,sizeEnd:0.02,life:0.3,drag:2});
+          this.fx.add(pr.x-pr.vx/pr.speed*0.7,y,pr.z-pr.vz/pr.speed*0.7,-pr.vx/pr.speed,0.45,-pr.vz/pr.speed,FIRE_EMBER);
         }
         continue;
       }

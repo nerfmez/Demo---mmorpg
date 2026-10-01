@@ -43,10 +43,16 @@ export function makeFireball() {
   const g=new THREE.Group();
   const head=new THREE.Mesh(sphere,new THREE.ShaderMaterial({
     uniforms:{uT:{value:0},uOuter:{value:new THREE.Color(c.outer)},uMiddle:{value:new THREE.Color(c.middle)},uCore:{value:new THREE.Color(c.core)}},toneMapped:false,
-    vertexShader:`varying vec3 vN; varying vec3 vP; void main(){ vN=normalize(normalMatrix*normal); vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    vertexShader:`varying vec3 vN; varying vec3 vP; uniform float uT;
+      void main(){ vN=normalize(normalMatrix*normal); vP=position;
+        float flicker=sin(position.y*16.0+position.z*11.0-uT*17.0)*0.045+sin(position.x*21.0+uT*13.0)*0.025;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position*(1.0+flicker),1.0);
+      }`,
     fragmentShader:`varying vec3 vN,vP; uniform float uT; uniform vec3 uOuter,uMiddle,uCore;
       void main(){ float f=sin(vP.y*11.0+vP.z*7.0-uT*20.0)*0.09+sin(vP.x*13.0+uT*9.0)*0.05;
-        float band=abs(vN.z)+f;
+        float a=atan(vP.y,vP.x);
+        float tongues=sin(a*5.0+vP.z*9.0-uT*10.0)*0.14+sin(a*9.0+uT*7.0)*0.07;
+        float band=abs(vN.z)+f+tongues*(1.0-abs(vN.z));
         vec3 col=band<0.30?uOuter:(band<0.65?uMiddle:uCore);
         gl_FragColor=vec4(col,1.0); #include <colorspace_fragment>
       }`.replace('#include','\n#include'),
@@ -56,7 +62,7 @@ export function makeFireball() {
   // Three intersecting strips form a volume from every camera angle. Local +Z is forward.
   for(let i=0;i<3;i++) {
     const tail=new THREE.Mesh(plane,flameMaterial(i*0.73));
-    tail.rotation.set(0,Math.PI/2,i*Math.PI/3);
+    tail.rotation.set(0,-Math.PI/2,i*Math.PI/3);
     tail.position.z=-c.tailLength*0.44;
     tail.scale.set(c.tailLength,c.radius*2.6,1);
     // Rotate about forward axis, rather than the strip's own normal.

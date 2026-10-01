@@ -75,8 +75,8 @@ export const GROUND_COLOR_GLSL=SURFACE_PAINT_GLSL+MEADOW_FIELD_GLSL+/* glsl */ `
 vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,float up,float water){
   vec2 meadow=meadowField(w);
   float mid=vnoise(w*1.30+3.0),fine=vnoise(w*5.2),broad=vnoise(w*.085+13.0);
-  float patch=smoothstep(.14,.86,meadow.x*.70+broad*.30);
-  vec3 grass=mix(tintD*.88,tintL*1.03,patch);
+  float patchTone=smoothstep(.14,.86,meadow.x*.70+broad*.30);
+  vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
   grass=mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17);
   grass=mix(grass,grass*1.12,paintDaubs(w,1.5)*.22);
   // Fine tapered blades with curved tips, jittered roots and grouped density.

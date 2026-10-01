@@ -101,12 +101,17 @@ vec3 paintedTimber(vec2 w){
 }
 `;
 export const GROUND_COLOR_GLSL=SURFACE_PAINT_GLSL+MEADOW_FIELD_GLSL+/* glsl */ `
+// The meadow's own green at a point, before soil, roads or brush strokes: grass blades take this
+// colour above their root, so a clump standing on a dirt edge is still green, not dirt-brown.
+vec3 lawnTone(vec2 w,vec3 tintL,vec3 tintD){
+  float patchTone=smoothstep(.14,.86,meadowField(w).x*.70+vnoise(w*.085+13.0)*.30);
+  vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
+  return mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17);
+}
 vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,float up,float water){
   vec2 meadow=meadowField(w);
   float mid=vnoise(w*1.30+3.0),fine=vnoise(w*5.2),broad=vnoise(w*.085+13.0);
-  float patchTone=smoothstep(.14,.86,meadow.x*.70+broad*.30);
-  vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
-  grass=mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17);
+  vec3 grass=lawnTone(w,tintL,tintD);
   vec3 brush=groundBrush(w);
   grass*=.88+brush.r*.26;
   float planted=.32+smoothstep(.12,.65,meadow.x)*.68;
@@ -137,7 +142,11 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
     bank=mix(bank,grass*.78,smoothstep(.43,.73,vnoise(w*.42+51.0))*(1.0-damp)*.23);
     col=mix(col,bank,smoothstep(.22,.80,splat.b));
   }
-  if(splat.g>.05)col=mix(col,paintedPaving(w,grass,1.0),smoothstep(.17,.86,splat.g+(mid-.5)*.07));
+  // paving frays into the soil at a wandering border, not along a ruled line
+  if(splat.g>.05){
+    float pave=splat.g+(vnoise(w*.38+57.0)-.5)*${f(art.ground.pavingEdgeWobble)}+(mid-.5)*.22+(fine-.5)*.08;
+    col=mix(col,paintedPaving(w,grass,1.0),smoothstep(.30,.52,pave));
+  }
   // Broad cut faces and restrained chips preserve the terrain's real slope silhouette.
   if(up<.85){
     float strata=vnoise(vec2(w.x*.21+w.y*.19,y*2.7));

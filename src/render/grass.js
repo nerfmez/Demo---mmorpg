@@ -68,15 +68,17 @@ export function grassMaterial(world) {
       ${GROUND_COLOR_GLSL}`)
       .replace('#include <color_fragment>',`#include <color_fragment>
         vec3 base=groundColor(vGrassRoot.xz,vGrassRoot.y,vGrassLight,vGrassDark,vGrassSplat,vGrassCoast,vGrassUp,uGrassWater);
-        base=mix(base,base*vec3(.70,.81,.80),1.0-smoothstep(uGrassWater-.4,uGrassWater+.05,vGrassRoot.y));
-        base*=groundCloud(vGrassRoot.xz,uTime);
-        // the root is exactly the ground colour under the clump; the blade lightens smoothly up to its tip
+        vec3 lawn=lawnTone(vGrassRoot.xz,vGrassLight,vGrassDark);
+        // the root is exactly the ground colour under the clump (grass on lawn, earth on a dirt edge);
+        // above it the blade turns to the meadow's own green and lightens smoothly up to its tip
         float rise=smoothstep(.0,uGrassRootHeight,vGrassHeight);
-        diffuseColor.rgb=base*(1.0+uGrassTip*rise);`);
+        vec3 blade=mix(base,lawn*(1.0+uGrassTip),rise);
+        blade=mix(blade,blade*vec3(.70,.81,.80),1.0-smoothstep(uGrassWater-.4,uGrassWater+.05,vGrassRoot.y));
+        diffuseColor.rgb=blade*groundCloud(vGrassRoot.xz,uTime);`);
     // Grass uses the terrain normal even on the reverse of a blade. Otherwise DoubleSide
     // negates the normal and makes half the clumps look almost black.
     s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');
   };
-  m.customProgramCacheKey=()=> 'grass-shared-ground-v5';
+  m.customProgramCacheKey=()=> 'grass-shared-ground-v6';
   return m;
 }

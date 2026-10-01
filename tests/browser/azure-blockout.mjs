@@ -106,10 +106,16 @@ try {
     });assert.equal(report.frontages.reached,worldData.town.buildings.length);
     await stage(...worldData.town.centre);await shot('02-market-square-gameplay');
     const [rx,rz]=frontage('home_2');await stage(rx,rz+2);await shot('03-residential-lanes-gameplay');
-    await stage(...frontage('warehouse_3'));await shot('04-warehouse-row-gameplay');
+    await stage(...frontage('warehouse_4'));await shot('04-warehouse-row-gameplay');
     await stage(...deckPoint('market_west_ramp',-1));await shot('05-quay-pier-join-gameplay');
     await stage(...deckPoint('repair_ramp',-7));await shot('06-shipyard-slipway-gameplay');
-    const [sx,sz]=frontage('repair_store');await stage(sx-2,sz+2);await shot('08-shipyard-working-yard-gameplay');
+    const launch=worldData.harbor.workProps.find(p=>p.id==='launch_hull');
+    if(launch)await stage(launch.x,launch.z+launch.hx+4);
+    else {const [sx,sz]=frontage('repair_store');await stage(sx-2,sz+2);}
+    await shot('08-shipyard-working-yard-gameplay');
+    for(const [id,name] of [['fish_market','10-fish-market-gameplay'],['market_0','11-netter-shop-gameplay'],['market_1','12-sailmaker-shop-gameplay']]){
+      const [x,z]=frontage(id);await stage(x,z+2);await shot(name);
+    }
     const [lx,lz]=worldData.harbor.lighthouse;await stage(lx+3,lz+6);await shot('07-lighthouse-cape-gameplay');
     await page.evaluate(()=>{const f=window.__frontier;f.game.ch.progress.zones=f.world.zones.map(z=>z.id);f.panels.open('map');});
     await shot('09-revised-local-map');await page.evaluate(()=>window.__frontier.panels.close());

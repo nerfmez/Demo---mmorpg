@@ -61,6 +61,8 @@ this numeric audit does not establish hardware FPS or subjective difficulty.
 Character schema v3 performs a free, one-time tree refund. It preserves gold, stat points,
 skill ranks, mods, equipped UIDs and materials. Existing gear affix QUALITY maps to the new
 range without rerolling. Repeated migration is idempotent. No item or skill is deleted.
+Legacy recipe pools that could not fill their grade receive the missing unique affixes
+at the new minimum value, once, without changing their existing affixes or enhancement.
 Published `/lab/` previews use separate save slots; import an exported main code to try an
 existing build safely. The main-game save envelope stays version 2.
 

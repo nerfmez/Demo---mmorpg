@@ -15,6 +15,16 @@ test('v2 migration refunds network points once, retains ownership and roll quali
  const item=ch.gear.find(g=>g.uid===99);assert.equal(item.upgrade,4);assert.equal(item.grade,'A');assert.equal(item.options[0].value,def.max);assert.ok(ch.progress.balanceMigration);
  const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);
 });
+test('legacy small affix pools gain missing grade slots once without rerolling',()=>{
+ const ch=createCharacter(data);ch.version=2;const base=data.recipes.recipes.salt_boots.result;
+ const original=[{id:'move_pct',value:4},{id:'cdr_pct',value:3}];
+ ch.gear.push({uid:88,base,grade:'S',upgrade:3,options:structuredClone(original)});
+ migrateCharacter(ch,data);const item=ch.gear.find(g=>g.uid===88);
+ assert.equal(item.grade,'S');assert.equal(item.upgrade,3);assert.equal(item.options.length,3);
+ assert.deepEqual(item.options.slice(0,2).map(o=>o.id),original.map(o=>o.id));
+ assert.equal(item.options[2].id,'defense_flat');assert.equal(item.options[2].value,data.items.gearOptions.defense_flat.min);
+ const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);
+});
 test('power growth is bounded across independent sources; tank and speed caps are authoritative',()=>{
  const ch=createCharacter(data);ch.level=40;for(const stat in ch.stats)ch.stats[stat]=1000;
  ch.jobNodes=Object.keys(data.jobtree.nodes);const d=derive(ch,data),caps=data.progression.character.caps;

@@ -93,13 +93,22 @@ export function migrateCharacter(ch, data) {
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
   if ((ch.version || 1) < 3) {
     for (const item of ch.gear) {
-      for (const option of item.options || []) {
+      item.options = item.options || [];
+      for (const option of item.options) {
         const old = data.items.legacyOptionRanges?.[option.id], def = data.items.gearOptions[option.id];
         if (!old || !def) continue;
         const quality = old.max === old.min ? 1 : Math.max(0, Math.min(1, (option.value - old.min) / (old.max - old.min)));
         option.value = Math.round(def.min + quality * (def.max - def.min));
       }
       if (data.items.gearBases[item.base].starter && !item.options?.length) item.grade = 'C';
+      // Some old recipe pools were smaller than their grade's affix count. Repair
+      // only missing slots, conservatively at the new minimum; never reroll an
+      // owned option or spend resources during migration.
+      const base = data.items.gearBases[item.base], count = data.items.grades.optionCount[item.grade];
+      for (const id of base.optionPool || []) {
+        if (item.options.length >= count) break;
+        if (!item.options.some(o => o.id === id)) item.options.push({ id, value: data.items.gearOptions[id].min });
+      }
     }
   }
   if (ch.treeRevision !== data.jobtree.revision) {

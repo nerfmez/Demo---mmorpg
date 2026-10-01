@@ -69,7 +69,9 @@ touch gestures never allocate points. Minimum touch targets stay 44 logical pixe
 
 Character v3 migration uses `treeRevision`: refund all old network points once for free,
 reset the profession/network and retain skills, mods, stats, materials, gold and gear UIDs.
-Old affix values map to the new range at their existing quality percentile, once. The save
+Old affix values map to the new range at their existing quality percentile, once. Old
+undersized recipe pools receive missing unique grade affixes at the new minimum value;
+retain existing affixes, UID and enhancement, and never fill again after character v3. The save
 slot envelope remains version 2. `/lab/` branch previews use separate storage keys and
 cannot migrate, delete or overwrite main-game saves; exported codes can be imported into
 preview slots.

@@ -38,7 +38,8 @@ export function flameMesh(cfg, mode = 0) {
   const mat = new THREE.ShaderMaterial({
     uniforms: { ...palette(cfg), uTime:{value:0}, uSeed:{value:0}, uScale:{value:1},
       uAlpha:{value:1}, uMode:{value:mode}, uVelocity:{value:new THREE.Vector3(0,1,0)},
-      uLength:{value:cfg.projectile.length}, uWidth:{value:cfg.projectile.width} },
+      uLength:{value:cfg.projectile.length}, uWidth:{value:cfg.projectile.width},
+      uHeadRadius:{value:cfg.projectile.headRadius} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       uniform vec3 uVelocity; uniform float uScale,uLength,uWidth,uMode;
@@ -54,7 +55,7 @@ export function flameMesh(cfg, mode = 0) {
         gl_Position=projectionMatrix*mv;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime,uSeed,uAlpha,uMode; varying vec2 vUv;
+      uniform float uTime,uSeed,uAlpha,uMode,uLength,uWidth,uHeadRadius; varying vec2 vUv;
       ${NOISE} ${PALETTE}
       void main(){
         vec2 p=vUv;
@@ -62,10 +63,9 @@ export function flameMesh(cfg, mode = 0) {
         float n=flow(vec2(p.x*8.0+t,p.y*5.0-t*0.24));
         float d;
         if(uMode<0.5){
-          // A rounded leading flame and a tapered, advecting wake. The field bends,
-          // opens into tongues and sheds gaps; it is not a rigid ball with ribbons.
-          float head=(1.0-length((p-vec2(0.76,0.5))/vec2(0.155,0.39)))*0.35;
-          head+=(flow(p*9.0+vec2(t*0.6,-t))-0.5)*0.16;
+          // Keep the bright leading head round in world units, independently of
+          // the long wake quad. Moving heat stays inside; tongues erode behind it.
+          float head=(1.0-length((p-vec2(0.76,0.5))*vec2(uLength,uWidth))/uHeadRadius)*0.35;
           float x=clamp(p.x/0.76,0.0,1.0);
           float bend=(flow(vec2(p.x*5.0+t*0.6,3.0+uSeed))-0.5)*0.36*(1.0-x);
           float w=0.28*pow(x,0.75)*(1.0-smoothstep(0.72,0.92,p.x));

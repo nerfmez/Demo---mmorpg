@@ -37,6 +37,7 @@
       },
       "projectile": {
         "length": 2.35,
+        "headRadius": 0.35,
         "width": 0.96,
         "trailRate": 70,
         "trailLife": 0.25,

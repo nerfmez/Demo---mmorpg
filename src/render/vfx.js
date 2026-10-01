@@ -228,6 +228,9 @@ export class Vfx {
     this.swingCfg = null;
     this.swingDelay = 0;
     this.swingLeft = 0;
+    // Reused by Firebolt's per-frame trail; do not allocate one options object per particle.
+    this.fireTrailOpts = { color: 0xffffff, size: 0.4, sizeEnd: 0.05, life: 0.22, drag: 4.2 };
+    this.fireEmberOpts = { color: 0xffffff, size: 0.15, sizeEnd: 0.025, life: 0.38, gravity: 2.2, drag: 1.6 };
   }
 
   gy(x, z) {
@@ -951,30 +954,25 @@ export class Vfx {
         const flameN = Math.floor(flameF) + (Math.random() < flameF - Math.floor(flameF) ? 1 : 0);
         const lx = dz;
         const lz = -dx;
+        const trailOpts = this.fireTrailOpts;
+        trailOpts.life = cfg.trailLife ?? 0.22;
         for (let k = 0; k < flameN; k++) {
           const o = 0.15 + Math.random() * 0.5;
           const side = (Math.random() - 0.5) * 0.22;
-          this.fx.add(pr.x + bx * o + lx * side, y + (Math.random() - 0.5) * 0.15, pr.z + bz * o + lz * side, bx * (1.1 + Math.random() * 0.9), 0.45 + Math.random() * 0.35, bz * (1.1 + Math.random() * 0.9), {
-            color: Math.random() < 0.28 ? c.core : c.glow,
-            size: 0.34 + Math.random() * 0.18,
-            sizeEnd: 0.05,
-            life: cfg.trailLife ?? 0.22,
-            drag: 4.2,
-          });
+          trailOpts.color = Math.random() < 0.28 ? c.core : c.glow;
+          trailOpts.size = 0.34 + Math.random() * 0.18;
+          this.fx.add(pr.x + bx * o + lx * side, y + (Math.random() - 0.5) * 0.15, pr.z + bz * o + lz * side, bx * (1.1 + Math.random() * 0.9), 0.45 + Math.random() * 0.35, bz * (1.1 + Math.random() * 0.9), trailOpts);
         }
         const emberRate = cfg.emberRate ?? 13;
         const emberF = dt * emberRate;
         const emberN = Math.floor(emberF) + (Math.random() < emberF - Math.floor(emberF) ? 1 : 0);
+        const emberOpts = this.fireEmberOpts;
+        emberOpts.color = c.dots;
+        emberOpts.life = cfg.emberLife ?? 0.38;
         for (let k = 0; k < emberN; k++) {
           const o = 0.25 + Math.random() * 0.65;
-          this.fx.add(pr.x + bx * o, y + (Math.random() - 0.5) * 0.2, pr.z + bz * o, bx * 0.7 + (Math.random() - 0.5) * 0.8, 0.8 + Math.random() * 0.7, bz * 0.7 + (Math.random() - 0.5) * 0.8, {
-            color: c.dots,
-            size: 0.12 + Math.random() * 0.09,
-            sizeEnd: 0.025,
-            life: cfg.emberLife ?? 0.38,
-            gravity: 2.2,
-            drag: 1.6,
-          });
+          emberOpts.size = 0.12 + Math.random() * 0.09;
+          this.fx.add(pr.x + bx * o, y + (Math.random() - 0.5) * 0.2, pr.z + bz * o, bx * 0.7 + (Math.random() - 0.5) * 0.8, 0.8 + Math.random() * 0.7, bz * 0.7 + (Math.random() - 0.5) * 0.8, emberOpts);
         }
       } else {
         v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);

@@ -60,31 +60,35 @@ try {
   });
   assert.ok(walk.townUnlocked&&walk.quest==='done','walk reaches town and advances actual onboarding');report.walk=walk;
   await capture('02-town-arrival');
-  for(const [name,x,z,zoom] of [['03-harbor-square',62,27,1.35],['04-working-pier',62,76,1.25],['05-lighthouse',126,44,1.35],['06-inland-fields',60,-32,1.25]]){await stage(x,z,zoom);await capture(name);}
+  const locations=await page.evaluate(()=>{
+    const w=window.__frontier.world,d=w.data,p=w.docks.find(p=>p.kind==='pier'&&!p.rampFromTerrain),m=w.waypoints.find(w=>w.id==='meadow');
+    return {square:d.town.centre,pier:[p.x,p.z],lighthouse:d.harbor.lighthouse,fields:[m.x,m.z]};
+  });
+  for(const [name,pos,zoom] of [['03-harbor-square',locations.square,1.35],['04-working-pier',locations.pier,1.25],['05-lighthouse',locations.lighthouse.map(v=>v+3),1.35],['06-inland-fields',locations.fields,1.25]]){await stage(...pos,zoom);await capture(name);}
   // All four coast creatures have independent live rigs and readable wind-up poses.
-  await stage(-60,55,.9);
+  await stage(locations.fields[0],locations.fields[1]+5,.9);
   await page.addStyleTag({content:'#hud {visibility:hidden}'});
   await page.evaluate(()=>{
-    const f=window.__frontier;
+    const f=window.__frontier,w=f.world.waypoints.find(w=>w.id==='meadow');
     ['reef_crab','salt_slime','shore_gull','hermit_crab'].forEach((type,i)=>{
       const m=f.game.monsters.find(m=>m.type===type);
-      Object.assign(m,{x:-66+i*4,z:51,facing:0,state:'windup',stateT:.6,aggro:true});
+      Object.assign(m,{x:w.x-6+i*4,z:w.z+1,facing:0,state:'windup',stateT:.6,aggro:true});
       m.windup={name:m.def.primaryAttack,total:m.def.attacks[m.def.primaryAttack].windup,angle:0};
     });
     f.view.render(.016,f.game.time,{});
   });
   await capture('07-coastal-monsters');
-  await stage(62,42,3);
+  await stage(...locations.square,3);
   // Review-only wide camera: move fog beyond the overview; gameplay retains its normal fog.
   await page.evaluate(()=>{const f=window.__frontier;f.view.scene.fog.near=100;f.view.scene.fog.far=180;});
   await capture('13-harbor-overview');
   await page.evaluate(()=>{const f=window.__frontier;f.view.scene.fog.near=44;f.view.scene.fog.far=84;});
   await page.addStyleTag({content:'#hud {visibility:visible}'});
-  await stage(62,27,1);
+  await stage(...locations.square,1);
   await page.evaluate(()=>{const f=window.__frontier;f.game.ch.progress.zones=f.world.zones.map(z=>z.id);f.panels.open('map');});
   await capture('08-local-map');await page.evaluate(()=>window.__frontier.panels.close());
   await page.evaluate(()=>{
-    const f=window.__frontier,x=-40,z=f.world.shoreZ(x);Object.assign(f.game.player,{x,z:z-5});f.view.snapCamera();f.view.zoom=1.15;
+    const f=window.__frontier,[x,z]=f.world.data.playerSpawn;Object.assign(f.game.player,{x,z});f.view.snapCamera();f.view.zoom=1.15;
     f.originalRender=f.view.render.bind(f.view);f.view.render=(dt,time,ui)=>f.originalRender(dt,f.surfCaptureTime??time,ui);
   });
   for(const [name,phase] of [['09-surf-low',0],['10-surf-runup',.5],['11-surf-return',1]]){

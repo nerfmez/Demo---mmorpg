@@ -47,6 +47,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `render/ground.js` (splat map and shader) | Terrain shader, or `MeshInstance3D` with a splat texture. The procedural noise GLSL ports to Godot shading language almost directly. |
 | `render/hero.js`, `render/rig.js`, `render/monsters.js` (procedural models and animation) | Replace with real rigged models (`.glb`) and `AnimationTree`. The procedural poses show what each animation should read as (wind-up, charge, shell, slam). |
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
+| `render/trail.js`, `data/combat-fx.json` | Melee looks. A player's swing draws a ribbon between two points on the real weapon (grip + `base`/`tip` metres along the blade, per weapon type) while the strike moves, which in Godot is a trail on a `BoneAttachment3D` of the weapon; the hit area (the skill's `range` and `arc`) is a separate flat wedge that flashes on the ground. Each monster melee attack name (`slap`, `peck`, `pinch`, `bite`, `sweep`) has its own look (water splash, beak needle, closing claws, fangs, heavy band), tweakable per monster in `overrides`. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css`, `ui/art.css` and `ui/workspaces.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
 
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
@@ -111,6 +112,14 @@ each frame (bone map `MAP` there); in Godot, import the GLB with its `Skeleton3D
 retarget the same poses (or author them as clips). Clothes are colour zones cut from the
 bind-pose position (`clothZone` in the shader), coloured from the look; hair, face, scarf,
 helms and weapons are still attached to the head, chest and hand bones.
+An opt-in second hero body is a VRM 1.0 file made in VRoid Studio (`?hero=vrm`,
+`public/models/hero_vrm.vrm`, registered as `characters.hero_vrm`; `render/vrm-body.js`). It is
+slimmed from `assets/vrm/hero_vrm.source.vrm` by `scripts/prep-vrm.mjs` (only the expression morph
+targets the game uses are kept). It reuses the same driver-bone retarget (`bindSkinSync` in
+`skinned.js`, VRM humanoid bones mapped to the driver bones), keeps its own face, hair and textures,
+and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
+through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
+the scarf and armour pieces are not used with this body yet.
 Regular monsters have Meshy models too (`data/models.json` → `monsters`, GLBs in
 `public/models/monsters/`). Meshy only rigs humanoids, so `render/monsterSkin.js` skins each
 model onto the procedural monster rig at load: `bones` moves rig joints onto the model,
@@ -118,6 +127,11 @@ model onto the procedural monster rig at load: `bones` moves rig joints onto the
 distance (`sharpness`, `minWeight`), `pitch`/`yaw`/`scale`/`offset` align the model, and
 `keep` leaves procedural parts on some bones (the wisp's motes). In Godot, rig the GLBs with
 the same bone names and weights (or paint them) and keep the animation from `monsters.js`.
+The salt slime model (a level-1 redesign: dome jelly with a shell, salt crust and seaweed) has one
+rig bone, `body`, so every vertex follows it and the squash/stretch comes from scaling that bone.
+The shore gull and hermit crab models follow the same scheme: the gull skins to `body`, `head`,
+`wingL/R` and `legL/R`; the hermit crab reuses the reef crab rig (`shell`, `head`, `mandL/R`, six legs),
+so its shell tuck scales those bones.
 The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
 head mesh; in Godot use a face texture with UV offsets per expression. Hair (`render/hair.js`)
 is one merged mesh per style built from lock curves; export it once per style as a mesh and
@@ -210,8 +224,9 @@ behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
 
 ### Azure Coast local starter (30 September 2026)
 
-The active `world.json` is a 320 × 240 m harbor prototype (with a large U-shaped bay),
-not the complete Asterfall continent. New characters start at the safe landing beach
+The active `world.json` is a 320 × 300 m local harbor prototype with a compact,
+asymmetric U-bay. Its current reference-layout correction awaits owner review.
+New characters start at the safe landing beach
 and unlock the town checkpoint by walking there. The town, nearby grove, fields
 and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
 previous map for historical regression tests.
@@ -245,15 +260,29 @@ A later save with this map ID keeps its current position and unlocked checkpoint
 
 ## Azure Coast U-bay blockout
 
-The map remains 320 × 240 m with `shoreZ(x)` defining the water side of the existing X/Z shoreline. `sea.edgeKinds` tags each shoreline segment as beach, quay, breakwater or shipyard. `coastSample()` gives the signed nearest distance for side-coast painting, collision radius clearance and surf; quay/slipway edges do not receive sand or beach runup. Exported terrain includes the carved bay and every settlement rectangle.
+Current layout revision is `azure-original-beach-8`, based on main `7102e4310ca79fa56a2fab8a44c8ea7bf7e91ca7`. The owner rejected the merged PR #22 layout; earlier layout approval is superseded. The correction remains a draft awaiting image review. Read map dimensions from `bounds` (currently 370 × 300 m, including the original western beach and northern hunting grounds).
+
+`town.placement` pins the original beach map source `88e2a2bc0a8d288909b05b86d6e9d1d394362f00`, original town centre `[62,22]`, reference offset `[78.4,34.5]`, reference pixel origin `[1230,400]` and scale `.42` m/pixel. The city is translated as one assembly. Keep the western arrival spawn `[-132,80]`, original landing checkpoint, forest/glade and pond at their old world coordinates. The town services and city scenery use their relocated authored coordinates. The outside coastline graft retains the original western beach while preserving the city cape/U bay. East/south bounds extend to fit the relocated port; original west/north bounds remain. The northern headland and farm beds are outside the enlarged city. Preserve this metadata when exporting/importing; do not translate the whole world.
+
+`shoreZ(x)` and `sea.shore/edgeKinds` remain the fallback for existing single-valued shores. Optional `sea.coastline` is an ordered coastal contour used for capes that genuinely require multiple land/water intervals at one X. Close its two distant northern endpoints for even/odd containment; that closing mainland edge is outside the playable/heightfield bounds and is not a surf segment. `seaContains()` uses the contour interior as land. `coastSample()` takes the nearest real coast segment and signs its distance with that same containment (positive inland). `sea.coastKinds` has one tag per real segment: beach, rock, quay, breakwater or shipyard. Do not infer water from a single `shoreZ` intersection on this layout.
+
+Terrain carving, water collision/actor clearance, beach paint, surf distance/kind, water extents, quay coping and the static contact bake share this contour. The static contact texture clips its coast extents to `bounds` plus its existing 6 m side/north and 18 m south margins; distant mainland closure points must not reduce pier-pile resolution under the existing 2048 maximum dimension. Tests inspect all four submerged piles on every timber berth. Only beach segments receive sand/runup; quay, breakwater and repair frontage remain flat port water. `town.surfaces` holds `{kind:'paving',points:[[x,z],...],strength?,preserveRoad?}` polygons for the irregular market apron and shared residential courts; ground and map painting share them, with the legacy plaza-radius fallback when absent. Paving strength defaults to 1; `preserveRoad` gates court paving using the baked road mask so lanes remain readable. Authored dirt paint survives base noise. The layout exporter retains `layoutRevision`, `sea` and `town` along with docks, colliders, landmarks and spawns; the heightmap includes the carved contour and settlement plots.
 
 `town.buildings` accepts the legacy `[x,z,angle]` format and authored objects `{id,x,z,angle,hx,hz,height,kind,roofColor}`. For the active `town.blockout` pass, visible boxes exactly match these oriented collider dimensions; roof colors are stored per building. No interiors are present. `docks` and their local ramp endpoints export directly. Save JSON remains version 2; the optional `worldLayoutRevision` relocates old coordinates once while preserving equipment, levels and the seven-step quest records.
 
-The owner approved this layout on 30 September 2026 and authorized one market-to-pier style slice. `town.styleSlice` selects four building IDs, authored exterior variants, awning colors, stall goods and a quay range. The owner subsequently approved continuing other districts; `town.districtStyle` selects the other 18 primary buildings for authored exteriors. Finished bases stay within the same per-building X/Z collider dimensions; roof colors remain per-building. There are no interior or new fishing rules.
+The revised town has 67 exterior plots: 48 homes, six shops, ten warehouses and three repair/storage buildings. `town.styleSlice` and `town.districtStyle` select reused exterior assemblies; select IDs from data, not fixed counts. Per-building dimensions/colors/rotation remain authoritative. Cottage window and planter offsets adapt to smaller footprints, while doors retain human scale. Depot roofs follow the long plot axis; their window frames are clamped to the available width. The inn's porch, window spacing and planters adapt to its narrower plot. All bases/displays fit their individual oriented X/Z colliders. No interiors or new fishing rules are introduced. `netter_shop` and `sail_shop` distinguish the two small port shops from the provisioner. `harbor.workProps.kind=rope_store` adds a static net/coil/buoy rack inside its own plot. `town.trees` authors `{id,x,z,r,species,scale,rot}` birch/palm instances using the existing circle collision and tree renderer. `town.rocks` authors `{id,x,z,r,scale,rot}` shoreline boulders using the existing instanced boulder renderer and circle collision. Preserve IDs, radii and scales in the layout export; these static instances introduce no new per-frame resource owner.
 
-Road corners and the coast are now densely sampled curves baked in `world.json`; terrain, collision, safe routes, minimap and export all use those same polylines. Shore X remains strictly increasing, and `edgeKinds` remains one tag per segment. The breakwater approach keeps its original joining points to avoid a deck/terrain height step. Cosmetic road and paving wear only changes paint weights. The low market coping follows the same shore and leaves gaps at pier approaches. Market geometry is merged per color during scene construction, with no extra frame updates. Nearest-coast lookup compares squared distances and takes one square root after finding the nearest segment.
+`town.stalls` accepts legacy `[x,z,angle]` tuples or authored `{id,x,z,hx,hz,height,angle,row,stock,awningColor,openCounter}` objects. Respect each awning color and fish/produce/cloth/rope stock; the shortened rear awning exposes the counter. Authored stalls contain their own storage and do not receive the old loose side crates. `town.market.rows` groups stall IDs; `town.market.aisle` records the clear walking centerline/width. The revised residential loop goes around these rows.
 
-The market style is approved for district expansion; the new district exteriors await owner image review. Merge and deploy remain unapproved. Browser screenshots cannot establish hardware iPad FPS.
+`harbor.workProps` adds static `bench`, `planter`, `wash_line` and `market_board` exterior assemblies. A `repair_hull` with `stage:planking` uses its individual `hx/hz/height` for the large unfinished ship, open frames, partial strakes, stern platform, trestles and scaffold. Keep the visible work within the same oriented collision footprint. The public ramp remains independent and walkable.
+
+`town.residents` authors `{id,x,z,r,angle,look,outfit,activity?,tool?}` fixed residents. Export their `citizen` circle colliders and place the existing procedural NPC rig at `groundY`; they have no new service/quest/save records. `sort`/`work` add small upper-body gestures after idle animation; a `mallet` is a cosmetic child of the right hand. `town.life` controls draw distance and gesture period. Cache animation state, cull updates beyond the draw distance, and release models/tools with the existing NPC root. No new AI patrol or GPU resource owner is introduced.
+
+Road/coast corners are rounded curves baked in `world.json`; terrain, collision, safe routes, minimap and export use those same polylines. The fallback shore X stays strictly increasing, while the optional coastal contour can double back. Dock ramps sample/interpolate along local Z after rotation, with recessed supporting terrain preventing hidden or coplanar approaches. Adjacent timber ramps/decks overlap by 2.5 cm across their local seam to keep continuous walking clearance despite floating-point rounding. Procedural props must also reject expanded dock footprints, even where deck support makes `isWater()` false, so random trunks cannot obstruct the relocated approaches. Low coping follows only quay/shipyard/breakwater coast kinds and clips openings against all joining dock rectangles, including the slipway and breakwater. Cosmetic road/paving wear changes paint weights only. Geometry is merged per color at construction time; nearest-coast lookup compares squared distances before one square root.
+
+Run `AZURE_LAYOUT_REVIEW=1 node tests/browser/azure-blockout.mjs` for current review: safe arrival/first quest, town checkpoint, market-to-pier route, all 67 entry paths, three market-aisle lanes, shipwright gesture/visibility, thirteen original-camera landscape location shots including the original arrival beach, one full-ship portrait view, the local map, registered city capture and an actual-renderer overview of the full beach-map placement. The overhead camera/fog changes are capture-only; its 1012×1224 frame registers the supplied plan rectangle [1009,115,1515,727] with X=(px-1230)*.42+78.4 and Z=(py-400)*.42+34.5, using the authored `town.placement` offset. Keep both breakwater legs and the water inlet behind them when importing the contour. Older style/wave review notes below describe the reused assemblies and previous layout; current geometry must be reviewed again. Merge/deploy are unapproved and hardware iPad FPS remains unmeasured.
+
+The `headland` checkpoint/spawn zone now lies northeast of town; the southwest lighthouse cape is safe settlement. Checkpoint labels, the zone pictogram and `h_lighthouse`/`h_hermits` directions describe the northern headland. Preserve these existing internal IDs, targets, counts and rewards so saved quest progress remains valid.
 
 ### Market visual audit
 
@@ -281,7 +310,7 @@ The market apron uses overlapping coast/plaza paint masks instead of a rectangle
 
 `harbor.lighthouseStyle` controls stripe and roof colors on the existing radius-2 landmark. Low breakwater coping leaves its centre open; water-side armour stones sit outside the deck. A 0.025 m visual lift prevents land/deck coplanarity while preserving world walking support. Launch rails use the slipway's own local slope. Mooring anchor endpoints are transformed through the selected pier's local X/Z rectangle before returning to world coordinates, including rotated side piers.
 
-`AZURE_DISTRICT_REVIEW=1` captures eight original-camera locations plus one labeled layout view and walks all 18 authored frontage connections. The current collider/path safety test is in `tests/core/harbor.test.js`. No new interior, boat-driving or fishing rule; save/quest/combat/input contracts remain unchanged. Hardware iPad performance is still unmeasured.
+`AZURE_LAYOUT_REVIEW=1` is the current data-driven location review and walks every authored frontage connection. The current collider/path safety test is in `tests/core/harbor.test.js`. `AZURE_DISTRICT_REVIEW=1` retains historical staging for the earlier district-art review. No new interior, boat-driving or fishing rule; save/quest/combat/input contracts remain unchanged. Hardware iPad performance is still unmeasured.
 
 ### Structure contours and rounded breaking foam
 

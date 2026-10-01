@@ -1,6 +1,7 @@
 // UI fixtures supply a review character, never fabricated click results.
 // Default: full game and real renderer. OFFLINE_UI=1: real Game/Panels without renderer.
 import assert from 'node:assert/strict';
+import {freezeScene} from './freeze-scene.mjs';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
@@ -20,7 +21,7 @@ try{
  for(const [name,width,height,touch]of sizes){
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
   if(offline){await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:css});await page.addScriptTag({content:code});}
-  else {await page.goto('http://localhost:4187/?fresh=1&quality=low&seed=7');await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});}
+  else {await page.goto('http://localhost:4187/?fresh=1&quality=low&seed=7');await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});await freezeScene(page);}
   await page.evaluate(()=>document.fonts.ready);
   await page.evaluate(()=>{const f=window.__frontier,g=f.game;g.ch.name='Seeker';g.ch.level=18;g.ch.jobLevel=18;g.ch.jobPoints=12;g.ch.jobNodes=['origin','v1','v2','r1','r2','f_hp'];g.ch.gold=2400;for(const k in g.ch.stats)g.ch.stats[k]=20;g.ch.mods=Object.keys(g.data.mods.mods).map((id,i)=>({id,uid:900+i,level:1}));g.ch.slots[0]={skill:'firebolt',mods:[]};g.ch.skills.firebolt=1;g.refresh();f.panels.open('job');});
   const click=async selector=>{const l=page.locator(selector).first();return touch?l.tap():l.click();};

@@ -4,7 +4,7 @@
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
 import { createRng } from './rng.js';
-import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample } from './math.js';
+import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
 
 const CELL = 8;
@@ -54,10 +54,11 @@ export function createWorld(worldData) {
   };
   const inRiver = (x, z, pad = 0) => !!river && distToPolyline(x, z, river.points) < river.width / 2 + pad;
   const inPond = (x, z, pad = 0) => (worldData.ponds || []).some(([px, pz, r]) => dist(x, z, px, pz) < r + pad);
-  // the sea: south of the shore line
+  // Single-valued shores keep their original contract. Concave port capes may
+  // opt into an authored contour shared with terrain, painting and water.
   const shore = worldData.sea?.shore || null;
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
-  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? z > shoreZ(x) : coastSample(worldData.sea, x, z).distance < pad);
+  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? seaContains(worldData.sea, x, z) : coastSample(worldData.sea, x, z).distance < pad);
   const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2) && !dockAt(x, z, pad);
   // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
   const coastAt = (x, z) => shore ? coastSample(worldData.sea, x, z) : { distance: Infinity, kind: 'beach' };
@@ -163,6 +164,7 @@ export function createWorld(worldData) {
   const blockedForProp = (x, z, r, { roadPad = 1.2, slope = 0.9 } = {}) =>
     !inBounds(x, z) ||
     isWater(x, z, r + 0.8) ||
+    docks.some(d => pointInBox(d, x, z, r + 0.8)) ||
     onBridge(x, z, r + 2) ||
     roadDist(x, z) < r + roadPad ||
     clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + r) ||
@@ -174,9 +176,19 @@ export function createWorld(worldData) {
     const building = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 3.4, hz: 2.8 } : entry;
     addBox({ ...building, type: 'house' });
   }
+  for (const tree of town.trees || []) {
+    addCircle({ ...tree, type: tree.species });
+  }
+  for (const rock of town.rocks || []) {
+    addCircle({ ...rock, type: 'boulder' });
+  }
   addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
   addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
-  for (const [x, z, a] of town.stalls || []) addBox({ x, z, hx: 1.6, hz: 1.1, angle: a, type: 'stall' });
+  for (const entry of town.stalls || []) {
+    const stall = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 1.6, hz: 1.1 } : entry;
+    addBox({ ...stall, type: 'stall' });
+  }
+  for (const resident of town.residents || []) addCircle({ ...resident, type: 'citizen', scale: 1, rot: resident.angle });
   const tr = zoneById('settlement').rects[0];
   const walls = town.walls;
   const gateZ = walls ? roadZAt(roads[0].points, walls.east) : town.centre[1];
@@ -201,7 +213,9 @@ export function createWorld(worldData) {
   }
   decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
   for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
-  for (const [x, z, a] of town.stalls || []) {
+  for (const entry of town.stalls || []) {
+    if (!Array.isArray(entry)) continue; // Authored counters contain their own storage.
+    const [x, z, a] = entry;
     decor.crates.push({ x: x + Math.cos(a) * 2.4, z: z - Math.sin(a) * 2.4, s: 0.8, rot: a, kind: 'crate' });
     decor.crates.push({ x: x - Math.cos(a) * 2.2, z: z + Math.sin(a) * 2.2, s: 0.7, rot: a + 0.4, kind: 'barrel' });
   }

@@ -14,6 +14,7 @@ import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
+import { attachVrmBody } from './vrm-body.js';
 
 export const DEFAULT_LOOK = {
   hairStyle: 'messy',
@@ -53,9 +54,10 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
-  const T = o.npc || o.procedural ? null : characterBase('hero_base');
+  const V = o.npc || o.procedural ? null : characterBase('hero_vrm'); // only loaded with ?hero=vrm
+  const T = o.npc || o.procedural || V ? null : characterBase('hero_base');
   // driver bones sit on the skinned body's joints when there is one
-  const B = (name, parent, pos) => rb.bone(name, parent, T?.joints[name] || pos);
+  const B = (name, parent, pos) => rb.bone(name, parent, (T || V)?.joints[name] || pos);
   B('body', 'root');
   B('hips', 'body', [0, 0.93, 0]);
   B('torso', 'hips', [0, 0.02, 0]);
@@ -74,7 +76,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const armor = gear.armor || 'tunic';
   const tunic = armor === 'pelt' ? '#6f6a64' : armor === 'mantle' ? '#3a5a8a' : armor === 'plate' ? '#8f96a3' : L.tunic;
 
-  if (!T) {
+  if (!T && !V) {
     // legs
     for (const n of ['L', 'R']) {
       rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
@@ -132,18 +134,18 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     }
   } // end of the procedural body
   // shoulder guard (left)
-  if (!o.npc) {
+  if (!o.npc && !V) {
     rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), armor === 'plate' ? '#9aa0ad' : LEATHER, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
     rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
   }
   // neck, head, face
-  if (!T) {
+  if (!T && !V) {
     rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
     const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
     rb.add('head', headGeo, L.skin);
     rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
   }
-  const paintedFace = !!T?.faceGeo;
+  const paintedFace = !!T?.faceGeo || !!V;
   for (const s of paintedFace ? [] : [1, -1]) {
     const eye = new THREE.Shape();
     eye.moveTo(-.026,.005);
@@ -162,8 +164,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (!paintedFace) rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
   const hairStyle = o.longHair ? 'ponytail' : L.hairStyle;
   if (hairStyle === 'ponytail') rb.bone('tail', 'head', [0, 0.2, -0.12]);
-  // scarf wrap (hero only)
-  if (!o.npc || o.scarf) {
+  // scarf wrap (hero only; the VRM hero has none yet)
+  if ((!o.npc || o.scarf) && !V) {
     rb.add('chest', new THREE.TorusGeometry(0.1, 0.05, 8, 16).rotateX(Math.PI / 2).scale(1.05, 1.2, 0.95), L.scarf, { pos: [0, 0.35, -0.005] });
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
@@ -175,7 +177,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
 
   const rig = rb.build();
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
-  attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
+  if (!V) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
   let neckParts = rig.bones.chest;
   if (T) {
     fitParts(rig.bones.head, T.headFit);
@@ -184,9 +186,13 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     // sleeves keep the chosen tunic colour; armour colours the body through `vest`
     attachSkinnedBody(rig, T, { skin: L.skin, tunic: L.tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
   }
+  if (V) {
+    fitParts(rig.bones.head, V.headFit);
+    attachVrmBody(rig, V);
+  }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
-  if (!o.npc || o.scarf) {
+  if ((!o.npc || o.scarf) && !V) {
     rig.scarfAnchor = new THREE.Group();
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
     neckParts.add(rig.scarfAnchor);

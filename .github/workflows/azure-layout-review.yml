@@ -1,0 +1,42 @@
+name: Azure Coast layout review
+
+on:
+  pull_request:
+    paths:
+      - 'data/world.json'
+      - 'src/core/world.js'
+      - 'src/render/**'
+      - 'src/ui/mapimage.js'
+      - 'tests/browser/azure-blockout.mjs'
+      - 'tests/core/harbor.test.js'
+      - 'tests/fixtures/azure-beach/**'
+      - 'tests/render/water-contact.test.mjs'
+      - 'tests/render/azure-footprints.test.mjs'
+      - '.github/workflows/azure-layout-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  focused-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify roads, water, old saves and model collision footprints
+        run: node --test tests/core/harbor.test.js tests/core/world.test.js tests/core/save.test.js tests/render/water-contact.test.mjs tests/render/azure-footprints.test.mjs
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Walk arrival, frontage paths and pier; capture layout and gameplay
+        run: AZURE_LAYOUT_REVIEW=1 node tests/browser/azure-blockout.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: azure-layout-chromium
+          path: tests/browser/out/azure-layout-chromium/
+          retention-days: 14

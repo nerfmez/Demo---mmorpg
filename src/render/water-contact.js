@@ -58,9 +58,12 @@ function connectedLoops(segments) {
 }
 
 export function bakeWaterContact(world, scenery) {
-  const settings=world.data.sea.surf||{},shore=world.data.sea.shore;
-  const minX=Math.min(...shore.map(p=>p[0]))-6,maxX=Math.max(...shore.map(p=>p[0]))+6;
-  const minZ=Math.min(...shore.map(p=>p[1]))-6,maxZ=Math.max(...shore.map(p=>p[1]))+18;
+  const settings=world.data.sea.surf||{},shore=world.data.sea.coastline || world.data.sea.shore;
+  // Distant mainland closure points are not visible contact scenery. Clip the
+  // bake to the playable coast so they cannot spend resolution needed by piles.
+  const b=world.data.bounds;
+  const minX=Math.max(Math.min(...shore.map(p=>p[0]))-6,b?b.minX-6:-Infinity),maxX=Math.min(Math.max(...shore.map(p=>p[0]))+6,b?b.maxX+6:Infinity);
+  const minZ=Math.max(Math.min(...shore.map(p=>p[1]))-6,b?b.minZ-6:-Infinity),maxZ=Math.min(Math.max(...shore.map(p=>p[1]))+18,b?b.maxZ+18:Infinity);
   const texel=Math.max(settings.contactTexel??.16,(maxX-minX)/2048,(maxZ-minZ)/2048);
   const w=Math.ceil((maxX-minX)/texel),h=Math.ceil((maxZ-minZ)/texel),range=settings.contactRange??2.4;
   const mask=new Uint8Array(w*h),distance=new Float32Array(w*h).fill(range);

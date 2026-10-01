@@ -1,7 +1,7 @@
 // One painted picture of the whole map (zone colours, hill shading, cliffs, water, roads and
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
-import { fromBoxLocal } from '../core/math.js';
+import { fromBoxLocal, pointInPolygon } from '../core/math.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -45,7 +45,9 @@ export function mapImage(world) {
       let c = mix(light, dark, 0.3 + n * 0.13);
       const slope = Math.hypot(dx, dz) / 2;
       if (slope > 0.75) c = mix(c, ROCK, Math.min(1, (slope - 0.75) * 2.5));
-      if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
+      if (town.surfaces?.length) {
+        for (const s of town.surfaces) if (s.kind === 'paving' && pointInPolygon(s.points, x, z)) c = mix(c, PLAZA, s.strength ?? 1);
+      } else if (Math.hypot(x - town.centre[0], z - town.centre[1]) < town.plazaRadius) c = PLAZA;
       if (world.data.sea) {
         const d = world.coastAt(x, z).distance;
         const beach = world.data.sea.beach || 14;
@@ -148,10 +150,10 @@ export function mapImage(world) {
   }
   for(const bx of world.boxes){
     if(bx.type==='house'||bx.type==='stall'||bx.type==='tent'){
-      poly(bx,bx.type==='house'?'#ba7854':'#e4d3a7','#6c694c');
+      poly(bx,bx.type==='house'?'#ba7854':bx.awningColor||'#e4d3a7','#6c694c');
       const ridge=[fromBoxLocal(bx,-bx.hx,0),fromBoxLocal(bx,bx.hx,0)];
       const corners=[fromBoxLocal(bx,-bx.hx,-bx.hz),fromBoxLocal(bx,bx.hx,-bx.hz),...ridge.slice().reverse()];
-      g.beginPath();corners.forEach((p,i)=>i?g.lineTo(tx(p.x),tz(p.z)):g.moveTo(tx(p.x),tz(p.z)));g.closePath();g.fillStyle=bx.type==='house'?'#dfa379':'#f7edcc';g.fill();
+      g.beginPath();corners.forEach((p,i)=>i?g.lineTo(tx(p.x),tz(p.z)):g.moveTo(tx(p.x),tz(p.z)));g.closePath();g.fillStyle=bx.type==='house'?'#dfa379':bx.awningColor||'#f7edcc';g.fill();
       g.beginPath();g.moveTo(tx(ridge[0].x),tz(ridge[0].z));g.lineTo(tx(ridge[1].x),tz(ridge[1].z));g.lineWidth=1.2;g.strokeStyle='#735e46';g.stroke();
     } else if(bx.type==='workbench')poly(bx,'#aa8050','#695c3e');
     else if(bx.type==='ruin_wall')poly(bx,'#e1d7b6','#89977b');

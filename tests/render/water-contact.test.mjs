@@ -18,8 +18,11 @@ test('actual hulls, rotated stone base and piles intersect water; raised timber 
  for(const [x,z] of world.data.harbor.boats)assert.ok(sample(x,z).distance<0,`boat ${x},${z}`);
  const pier=world.docks.find(d=>d.id==='market_west');
  assert.ok(sample(pier.x,pier.z).distance>1,'water may pass below elevated deck');
- const pile=fromBoxLocal(pier,pier.hx-.2,pier.hz-.3);
- assert.ok(sample(pile.x,pile.z).distance<0,'actual pile blocks surface');
+ for(const deck of world.docks.filter(d=>d.kind==='pier'&&!d.rampFromTerrain))
+  for(const lx of [-deck.hx+.2,deck.hx-.2])for(const lz of [-deck.hz+.3,deck.hz-.3]){
+   const pile=fromBoxLocal(deck,lx,lz);
+   assert.ok(sample(pile.x,pile.z).distance<0,deck.id+' actual pile blocks surface');
+  }
  const d=world.docks.find(d=>d.kind==='breakwater');
  for(const z of [-8,0,8]){const p=fromBoxLocal(d,0,z);assert.ok(sample(p.x,p.z).distance<0,'solid rotated masonry');}
 });

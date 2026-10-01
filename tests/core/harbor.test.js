@@ -339,3 +339,25 @@ test('town residents stand on dry ground clear of streets and existing work equi
     assert.ok(!world.isWater(resident.x,resident.z,resident.r),resident.id+' has wet feet');
   }
 });
+
+test('generated coconut palms stand scattered behind the beach and lean toward the sea', () => {
+  const world=createWorld(data.world),{palmBelt,beach,palmMinBack}=data.world.sea;
+  const generated=world.circles.filter(c=>c.type==='palm'&&!c.id);
+  assert.ok(generated.length>=5&&generated.length<=18,`a few scattered shore palms (${generated.length})`);
+  let seaward=0;
+  for(const p of generated){
+    const d=world.coastAt(p.x,p.z).distance;
+    assert.ok(d<=beach+palmBelt&&d>=beach+palmMinBack-.01,`palm at ${p.x.toFixed(1)},${p.z.toFixed(1)} is off the back-beach band (${d.toFixed(1)})`);
+    assert.ok(!world.isWater(p.x,p.z,.5),'palm stands on dry ground');
+    // the lean direction (sin rot, cos rot) heads to lower coast distance, i.e. the sea
+    if(world.coastAt(p.x+Math.sin(p.rot)*2,p.z+Math.cos(p.rot)*2).distance<d)seaward++;
+  }
+  assert.ok(seaward/generated.length>.8,'palms lean out over the sand');
+  for(const p of generated)for(const q of generated)if(p!==q)assert.ok(Math.hypot(p.x-q.x,p.z-q.z)>=data.world.sea.palmGap-1e-9,'crowns keep apart');
+});
+
+test('the lighthouse collider uses its authored radius', () => {
+  const world=createWorld(data.world),tower=world.circles.find(c=>c.type==='lighthouse');
+  assert.equal(tower.r,data.world.harbor.lighthouseRadius);
+  assert.ok(!world.isFree(tower.x+tower.r-.3,tower.z,.1),'walls block');
+});

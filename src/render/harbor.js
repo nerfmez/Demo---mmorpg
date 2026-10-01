@@ -5,6 +5,29 @@ import { toon, outlined } from './toon.js';
 import { builder, marketFishingBoat } from './market.js';
 import { coastalLighthouse, districtScenery } from './districts.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import art from '../../data/art.json' with {type:'json'};
+import { createRng } from '../core/rng.js';
+
+const plank=art.architecture.pier;
+// A timber deck of separate boards (one merged mesh): ragged board ends, tiny gaps, a little
+// twist and lift per board, laid on two stringers, instead of one ruler-straight box. The
+// boards sit on the painted plank pitch, so the shader's seams fall in the real gaps.
+function timberDeck(d,rng) {
+  const parts=[],m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),t=plank.plankThickness;
+  const [lo,hi]=plank.plankEndJitter;
+  for(let k=Math.floor(-d.hz/plank.plankDepth);k*plank.plankDepth<d.hz;k++){
+    const z0=Math.max(-d.hz,k*plank.plankDepth),z1=Math.min(d.hz,(k+1)*plank.plankDepth);
+    const depth=z1-z0-plank.plankGap;if(depth<.08)continue;
+    const left=-d.hx-rng.range(lo,hi),right=d.hx+rng.range(lo,hi);
+    const g=new THREE.BoxGeometry(right-left,t,depth);
+    e.set(rng.range(-1,1)*plank.plankTilt,rng.range(-1,1)*plank.plankYaw,0);
+    m.compose(new THREE.Vector3((left+right)/2,-t/2+rng.range(-1,1)*plank.plankLift,(z0+z1)/2),q.setFromEuler(e),new THREE.Vector3(1,1,1));
+    parts.push(g.applyMatrix4(m));
+  }
+  for(const x of [-d.hx+.38,d.hx-.38])parts.push(new THREE.BoxGeometry(.2,.2,d.hz*2-.1).translate(x,-t-.1,0));
+  const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());return geometry;
+}
 
 export function createHarbor(world) {
   const root = new THREE.Group();
@@ -19,12 +42,13 @@ export function createHarbor(world) {
     // Shear in local Z: keep the exact XZ footprint and both endpoint heights.
     // Rotating a whole box would shorten its projected deck and open a join gap.
     const slope=d.rampFromTerrain ? (d.height-d.startY)/(2*d.hz) : 0;
-    const deckGeometry=new THREE.BoxGeometry(d.hx*2,.3,d.hz*2);
+    const surfaceKind=['breakwater','slipway'].includes(d.kind)?'paving':'wood';
+    const rng=createRng(7919+Math.round(d.x*31+d.z*17));
+    const deckGeometry=surfaceKind==='wood'?timberDeck(d,rng):new THREE.BoxGeometry(d.hx*2,.3,d.hz*2).translate(0,-.15,0);
     const positions=deckGeometry.attributes.position;
     for(let i=0;i<positions.count;i++)positions.setY(i,positions.getY(i)+slope*positions.getZ(i));
     deckGeometry.computeVertexNormals();
-    const surfaceKind=['breakwater','slipway'].includes(d.kind)?'paving':'wood';
-    part(deckGeometry,'#ffffff',0,-.15,0,pier,walkSurfaceMaterial(surfaceKind,1,[d.x,d.z]));
+    part(deckGeometry,'#ffffff',0,0,0,pier,walkSurfaceMaterial(surfaceKind,1,[d.x,d.z]));
     const details=builder();
     if(d.kind==='slipway'){
       // Low launch rails follow the same local slope and leave the centre open.
@@ -45,9 +69,15 @@ export function createHarbor(world) {
     }
     pier.add(details.finish());
     // Plank joins and grain are painted into the deck, including the sloping join.
-    for(const x of d.kind === 'slipway' ? [] : [-d.hx+.2,d.hx-.2]) for(const z of [-d.hz+.3,d.hz-.3]) {
-      part(new THREE.CylinderGeometry(.14,.18,4,6),'#6e5439',x,-1.4+slope*z,z,pier);
-      part(new THREE.TorusGeometry(.2,.045,5,10),'#d1ba82',x,.48+slope*z,z,pier).rotation.x=Math.PI/2;
+    // Corner piles plus intermediate ones on long decks; each leans, rises and thickens a little
+    // differently, like driven timber, while its waterline stays at the authored spot.
+    const pileZ=[-d.hz+.3,d.hz-.3],span=2*d.hz-.6,extra=Math.floor(span/plank.pileSpacing);
+    for(let i=1;i<=extra;i++)pileZ.push(-d.hz+.3+span*i/(extra+1));
+    for(const x of d.kind === 'slipway' ? [] : [-d.hx+.2,d.hx-.2]) for(const [n,z] of pileZ.entries()) {
+      const r=rng.range(.88,1.12),rise=rng.range(-.08,.1),corner=n<2;
+      const pile=part(new THREE.CylinderGeometry(.14*r,.18*r,4+rise,6),'#6e5439',x,-1.4+rise/2+slope*z,z,pier);
+      pile.rotation.set(rng.range(-1,1)*plank.pileLean,rng.range(0,Math.PI),rng.range(-1,1)*plank.pileLean);
+      if(corner||rng.next()<.5)part(new THREE.TorusGeometry(.2,.045,5,10),'#d1ba82',x,.48+rise+slope*z,z,pier).rotation.set(Math.PI/2+rng.range(-.12,.12),0,rng.range(-.12,.12));
     }
     root.add(pier);
   }

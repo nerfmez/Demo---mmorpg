@@ -50,3 +50,56 @@ export function needleTexture() {
  }
  needles=new THREE.CanvasTexture(canvas);needles.colorSpace=THREE.SRGBColorSpace;needles.anisotropy=4;return needles;
 }
+
+// An anime-style coconut frond (canvas top = tip, bottom = crown): one solid leaf mass, narrow
+// at the stalk, widest about three quarters out and drawn to a point, broken by a few big
+// V-notches along both edges instead of hundreds of thin leaflets. Cel-shaded in flat tones —
+// a sunlit half and a shaded half either side of a pale midrib — with a soft same-hue rim and a
+// handful of short separation strokes.
+let frond;
+export function palmFrondTexture() {
+ if(frond)return frond;
+ const W=256,H=1024,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+ const c=canvas.getContext('2d'),rng=createRng(1307),cx=W/2,top=H*.02,bottom=H*.99;
+ const yAt=s=>bottom-(bottom-top)*s; // s: 0 at the crown, 1 at the tip
+ const half=s=>W*(.05+.42*Math.pow(Math.sin(Math.PI*Math.pow(Math.min(1,s),1.9)),.75));
+ const outline=side=>{const pts=[];for(let k=0;k<=60;k++){const s=k/60;pts.push([cx+side*half(s),yAt(s)]);}return pts;};
+ const fillHalf=(side,col)=>{
+  c.fillStyle=col;c.beginPath();c.moveTo(cx,yAt(0));
+  for(const p of outline(side))c.lineTo(...p);c.lineTo(cx,yAt(1));c.closePath();c.fill();
+ };
+ fillHalf(-1,'#5e9e48');fillHalf(1,'#8cc85f');
+ // a deeper band at the crown end and a warm sunlit band toward the tip, in flat cel steps
+ c.globalCompositeOperation='source-atop';
+ c.fillStyle='rgba(40,80,35,.28)';c.fillRect(0,yAt(.16),W,bottom-yAt(.16));
+ c.fillStyle='rgba(225,240,150,.18)';c.fillRect(0,0,W,yAt(.72));
+ c.globalCompositeOperation='source-over';
+ // soft rim in a darker green of the same hue
+ c.strokeStyle='#4a843c';c.lineWidth=3;c.lineJoin='round';
+ for(const side of [-1,1]){c.beginPath();outline(side).forEach((p,k)=>k?c.lineTo(...p):c.moveTo(...p));c.stroke();}
+ // a few short separation strokes on the leaf blade
+ c.strokeStyle='rgba(55,100,45,.55)';c.lineWidth=2.2;c.lineCap='round';
+ for(const side of [-1,1])for(let k=0;k<6;k++){
+  const s=.3+k*.1+rng.range(-.02,.02),y=yAt(s),h=half(s);
+  c.beginPath();c.moveTo(cx+side*h*.92,y);c.lineTo(cx+side*h*.45,y+h*.35);c.stroke();
+ }
+ // big V-notches cut from both edges, opening outward and pointing back toward the crown
+ c.globalCompositeOperation='destination-out';c.fillStyle='#000';
+ for(const side of [-1,1]){
+  let s=.24+rng.range(0,.04);
+  while(s<.93){
+   const width=rng.range(.045,.07),h=half(s+width/2),depth=rng.range(.42,.62);
+   c.beginPath();
+   c.moveTo(cx+side*(half(s)+2),yAt(s));
+   c.lineTo(cx+side*h*(1-depth),yAt(s+width*.2));
+   c.lineTo(cx+side*(half(s+width)+2),yAt(s+width));
+   c.closePath();c.fill();
+   s+=width+rng.range(.06,.1);
+  }
+ }
+ c.globalCompositeOperation='source-over';
+ // pale midrib from the crown to just short of the tip
+ c.strokeStyle='#cfe08e';c.lineCap='round';
+ for(let k=0;k<20;k++){const s0=k/20*.96,s1=(k+1)/20*.96;c.lineWidth=7-5.5*s0;c.beginPath();c.moveTo(cx,yAt(s0));c.lineTo(cx,yAt(s1));c.stroke();}
+ frond=new THREE.CanvasTexture(canvas);frond.colorSpace=THREE.SRGBColorSpace;frond.anisotropy=4;return frond;
+}

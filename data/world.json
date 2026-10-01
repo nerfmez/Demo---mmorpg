@@ -9529,7 +9529,12 @@
   "camp": null,
   "den": null,
   "sea": {
-    "beach": 8,
+    "palmBelt": 12,
+    "palmGroupSpacing": 24,
+    "palmMinBack": 1.5,
+    "palmPairChance": 0.2,
+    "palmGap": 3.4,
+    "beach": 11,
     "shore": [
       [
         -220,
@@ -9626,6 +9631,10 @@
       "crestWidth": 0.13,
       "crestLength": 12,
       "crestOpacity": 0.24,
+      "sparkleDensity": 0.014,
+      "sparkleSize": 0.09,
+      "sparkleScale": 1.4,
+      "reflectionPatches": 0.06,
       "contactTexel": 0.16,
       "contactRange": 2.4,
       "contactShelter": 8,
@@ -12518,6 +12527,7 @@
     }
   ],
   "harbor": {
+    "lighthouseRadius": 3.1,
     "lighthouse": [
       18.76,
       138.66

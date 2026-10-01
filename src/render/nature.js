@@ -1,5 +1,6 @@
 // Authored low-poly silhouettes for the frontier's foliage. All variants stay instanced.
 import * as THREE from 'three';
+import art from '../../data/art.json';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createRng} from '../core/rng.js';
 
@@ -46,7 +47,10 @@ export function meadowGrass() {
  const rng=createRng(620),positions=[];
  // Six narrow three-segment blades: delicate curved tips, no broad triangular fern cards.
  for(let i=0;i<6;i++){
-  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(.34,.61),width=rng.range(.018,.036),bend=rng.range(.13,.30);
+  // blade height/width/bend ranges (metres) from art.grass.blade: tall and upright enough to read
+  // as standing under the 3/4 camera
+  const B=art.grass.blade;
+  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(...B.height),width=rng.range(...B.width),bend=rng.range(...B.bend);
   const points=[];
   for(let j=0;j<=3;j++){
    const t=j/3,w=width*(j===0?.33:j===3?0:1-t*.72);
@@ -109,4 +113,42 @@ export function beachShell(kind = 'fan') {
   }
  }
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g;
+}
+
+// Coconut palm, built along +Y and leaning toward +Z (instance ry turns the lean). The trunk is a
+// stack of short flared rings following a soft curve; vertex colour darkens each ring's foot and
+// lights its lip. Returns the geometry and the local crown position for placing fronds.
+export function palmTrunk(height=5.2,lean=1.25,rings=11) {
+  const parts=[],at=t=>new THREE.Vector3(0,height*t,lean*Math.pow(t,1.7));
+  const dark=new THREE.Color('#6f5640'),light=new THREE.Color('#b39672');
+  for(let i=0;i<rings;i++){
+    const t0=i/rings,t1=(i+1)/rings,a=at(t0),b=at(t1),dir=b.clone().sub(a),r=.27-.11*t0;
+    const g=new THREE.CylinderGeometry(r*1.05,r*.84,dir.length()*1.02,8,1,false);
+    const pos=g.attributes.position,col=[];
+    for(let k=0;k<pos.count;k++){const c=dark.clone().lerp(light,pos.getY(k)>0?.85:.15);col.push(c.r,c.g,c.b);}
+    g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize()));
+    g.translate((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);g.deleteAttribute('uv');parts.push(g);
+  }
+  const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
+  return {geometry,crown:at(1)};
+}
+// One arching frond along +Z as a painted card (palmFrondTexture): the rachis arches up then
+// falls away, and the two halves fold down from it in a shallow V that deepens toward the tip,
+// the way real coconut leaflets hang. UV u runs across (rachis at .5), v from the stalk end (0, canvas bottom) to the tip (1, canvas top).
+export function palmFrond(length=3.4,lift=1.0,droop=1.7,width=1.15) {
+  const positions=[],uvs=[],normals=[],index=[],steps=14;
+  const spine=t=>[Math.sin(t*2.4)*.06*t,Math.sin(t*Math.PI*.5)*lift-t*t*t*droop,t*length];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps,p=spine(t),half=width*.5*(.8+.2*Math.sin(Math.PI*Math.min(1,t*1.1+.05))),fold=half*(.35+.55*t);
+    for(const [u,side] of [[0,-1],[.5,0],[1,1]]){
+      positions.push(p[0]+side*half,p[1]-Math.abs(side)*fold,p[2]-Math.abs(side)*half*.18);
+      uvs.push(u,t);normals.push(0,1,0);
+    }
+  }
+  for(let i=0;i<steps;i++)for(let k=0;k<2;k++){
+    const a=i*3+k,b=a+1,c=a+3,d=a+4;index.push(a,c,b,b,c,d);
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setIndex(index);return g;
 }

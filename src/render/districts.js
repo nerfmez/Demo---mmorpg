@@ -1,9 +1,33 @@
 // Authored port exteriors. All local geometry stays inside its data footprint.
 // Static colour batches reuse the market's cel materials and normal lifecycle.
 import * as THREE from 'three';
-import { builder, shopDoor, shopWindow, shopRoof, shopLantern } from './market.js';
+import { builder, shopDoor, shopWindow, shopRoof, shopLantern, seeded } from './market.js';
 import { fromBoxLocal } from '../core/math.js';
+import art from '../../data/art.json' with {type:'json'};
+import { darker } from './toon.js';
 const C={wood:'#80644c',plank:'#a48660',dark:'#554f43',stone:'#a9aa98',rope:'#c0ae7f',leaf:'#74875c',metal:'#78857f'};
+// A laid stone footing, not a cut slab: its outline wanders inward a little, step by step, and
+// loose edge stones sit along it. Everything stays inside the w×d plot.
+function plinth(b,w,d,h){
+  const rng=seeded(w,d,h,7),shape=new THREE.Shape(),points=[];
+  const corners=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]];
+  for(let c=0;c<4;c++){
+    const [ax,az]=corners[c],[cx,cz]=corners[(c+1)%4],len=Math.hypot(cx-ax,cz-az),steps=Math.max(2,Math.round(len/.5));
+    const nx=-(cz-az)/len,nz=(cx-ax)/len; // inward normal for this winding
+    for(let i=0;i<steps;i++){
+      const t=i/steps,inset=i===0?.04:rng.range(.02,.17);
+      points.push([ax+(cx-ax)*t+nx*inset,az+(cz-az)*t+nz*inset]);
+    }
+  }
+  points.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:false}).rotateX(-Math.PI/2);
+  b.part(geometry,C.stone);
+  for(const [i,[x,z]] of points.entries()){
+    if(rng.next()<.55)continue;
+    const r=rng.range(.11,.19),k=Math.max(Math.abs(x)/(w/2-r-.02),Math.abs(z)/(d/2-r-.02),1);
+    b.part(new THREE.DodecahedronGeometry(r,0).scale(1.2,.55,1),'#8f9282',x/k,h*.55,z/k,0,rng.range(0,3));
+  }
+}
 function pot(b,x,z){
   b.part(new THREE.CylinderGeometry(.28,.21,.40,8),'#b58061',x,.30,z);
   b.part(new THREE.DodecahedronGeometry(.34,0),C.leaf,x,.65,z);
@@ -22,7 +46,7 @@ function barrel(b,x,z,y=0){
 function cottage(b,bx){
   const {box}=b,w=bx.hx*2,d=bx.hz*2,two=bx.variant==='timber_home';
   const rise=two?1.27:1.05,wall=bx.height-rise-.13,front=bx.hz-1.15,back=-bx.hz+.22;
-  box(w,.12,d,C.stone,0,.06,0);
+  plinth(b,w,d,.12);
   box(w-.5,wall-.12,front-back,bx.wallColor,0,(wall+.12)/2,(front+back)/2);
   for(const x of [-bx.hx+.28,bx.hx-.28])box(.14,wall,.14,C.wood,x,wall/2,front);
   box(w-.42,.13,.13,C.wood,0,wall-.06,front+.025);
@@ -54,7 +78,7 @@ function cottage(b,bx){
 }
 function warehouse(b,bx){
   const {box}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.8,back=-bx.hz+.22,wall=3.68;
-  box(w,.18,d,C.stone,0,.09,0);
+  plinth(b,w,d,.18);
   box(w-.5,wall-.18,front-back,bx.wallColor,0,(wall+.18)/2,(front+back)/2);
   const timber=bx.variant==='sail_store';
   for(const x of [-bx.hx+.28,bx.hx-.28])box(.18,wall,.18,C.wood,x,wall/2,front);
@@ -89,7 +113,7 @@ function warehouse(b,bx){
 }
 function repairShed(b,bx){
   const {box}=b,w=bx.hx*2,d=bx.hz*2,front=bx.hz-1.8,wall=2.46;
-  box(w,.12,d,C.stone,0,.06,0);
+  plinth(b,w,d,.12);
   box(w-.45,wall-.12,d-1.95,bx.wallColor,0,(wall+.12)/2,-.97);
   shopRoof(b,w,d-1.6,wall,1.18,-.80,bx.roofColor,{frontGable:true});
   box(5.35,1.95,.10,C.dark,.3,1.15,front+.12);
@@ -128,39 +152,47 @@ export function residentTool(kind){
   }
   return b.finish();
 }
+// A carvel hull on the stocks: flat transom stern (-z), widest a little aft of midships, a fine
+// pointed bow (+z) with a raked stem, and a sheer line that rises toward the bow. Every frame,
+// rail and strake reads off the same half-breadth and sheer, so the shape stays fair and symmetric.
 function constructionHull(b,p) {
-  const {box,part}=b,hx=p.hx-.70,hz=p.hz-.40,keel=.86,rim=p.height-.65;
-  const beam=z=>hx*(.25+.75*Math.sin((z/hz+1)*Math.PI/2));
-  const railPoints=[];
-  box(.23,.22,hz*2,C.dark,0,keel,0);
-  for(const z of [-hz*.66,-hz*.22,hz*.22,hz*.66]){
+  const {box,part}=b,hx=p.hx-.70,hz=p.hz-.40,keel=.86,rim=p.height-.75;
+  const half=u=>u<.42?hx*(.66+.34*Math.sin(u/.42*Math.PI/2)):hx*Math.pow(Math.cos((u-.42)/.58*Math.PI/2),.85);
+  const sheer=u=>rim+.34*u*u;
+  const zAt=u=>-hz+u*hz*2,frames=12,railPoints=[];
+  const curve=points=>new THREE.CatmullRomCurve3(points.map(v=>new THREE.Vector3(...v)));
+  const section=(x,top,z)=>[[-x,top,z],[-x*.86,keel+(top-keel)*.45,z],[-x*.42,keel+.10,z],[0,keel,z],[x*.42,keel+.10,z],[x*.86,keel+(top-keel)*.45,z],[x,top,z]];
+  box(.23,.22,hz*1.86,C.dark,0,keel,-hz*.07);
+  for(const z of [-hz*.66,-hz*.22,hz*.22,hz*.62]){
     box(p.hx*1.82,.18,.28,C.wood,0,.66,z);
     for(const x of [-p.hx*.78,p.hx*.78])box(.20,.60,.30,C.wood,x,.30,z);
     box(p.hx*1.6,.11,.14,C.plank,0,.26,z);
   }
-  for(let i=0;i<11;i++){
-    const z=-hz+i*hz*2/10,x=beam(z);
-    const points=[[-x,rim,z],[-x*.78,keel+(rim-keel)*.38,z],[-x*.28,keel+.12,z],[0,keel,z],[x*.28,keel+.12,z],[x*.78,keel+(rim-keel)*.38,z],[x,rim,z]].map(v=>new THREE.Vector3(...v));
-    part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),18,.09,5,false),'#c2a073');
-    railPoints.push({x,z});
+  for(let i=0;i<=frames;i++){
+    const u=i/frames*.94,z=zAt(u),x=half(u),top=sheer(u);
+    part(new THREE.TubeGeometry(curve(section(x,top,z)),18,.09,5,false),'#c2a073');
+    railPoints.push({x,z,top,u});
   }
-  for(const side of [-1,1]){
-    part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPoints.map(q=>new THREE.Vector3(side*q.x,rim,q.z))),30,.10,5,false),C.wood);
-    // Partially fitted strakes leave both the open interior and bare frames visible.
-    for(let band=0;band<3;band++)for(let i=0;i<10;i++){
-      if(side===1&&band>0&&i>2&&i<8)continue;
-      const a=railPoints[i],c=railPoints[i+1],t=.18+band*.22,u=t+.19;
-      const point=(q,v)=>[side*q.x*Math.sqrt(v),keel+(rim-keel)*v,q.z];
-      const vs=[point(a,t),point(c,t),point(a,u),point(c,u)];
-      const face=new THREE.BufferGeometry();face.setAttribute('position',new THREE.Float32BufferAttribute([0,2,1,1,2,3,0,1,2,1,3,2].flatMap(k=>vs[k]),3));face.computeVertexNormals();
-      part(face,band%2?'#a48059':'#aa895f');
-    }
+  // the stem rises from the keel and rakes forward to the bow tip, where both rails meet
+  const tip={x:0,z:hz,top:sheer(1)+.12,u:1};
+  part(new THREE.TubeGeometry(curve([[0,keel,zAt(.86)],[0,keel+.35,zAt(.95)],[0,(keel+tip.top)/2+.2,hz-.12],[0,tip.top+.25,hz+.05]]),16,.11,6,false),C.wood);
+  for(const side of [-1,1])
+    part(new THREE.TubeGeometry(curve([...railPoints,tip].map(q=>[side*q.x,q.top,q.z])),40,.10,5,false),C.wood);
+  // transom: horizontal planks across the flat stern
+  const stern=railPoints[0];
+  for(let k=0;k<5;k++){const v=k/5,y=keel+.15+(stern.top-keel-.15)*(v+.1);box(stern.x*2*(.55+.45*Math.sqrt(v+.1)),.16,.08,k%2?'#a48059':'#aa895f',0,y,stern.z-.02);}
+  // partially fitted strakes: three bands on the near side, one on the far side, frames bare above
+  for(const side of [-1,1])for(let band=0;band<(side<0?3:1);band++)for(let i=0;i<frames;i++){
+    const a=railPoints[i],c=railPoints[i+1],t=.18+band*.22,v=t+.19;
+    const point=(q,f)=>[side*q.x*Math.sqrt(f)*1.01,keel+(q.top-keel)*f,q.z];
+    const vs=[point(a,t),point(c,t),point(a,v),point(c,v)];
+    const face=new THREE.BufferGeometry();face.setAttribute('position',new THREE.Float32BufferAttribute([0,2,1,1,2,3,0,1,2,1,3,2].flatMap(k=>vs[k]),3));face.computeVertexNormals();
+    part(face,band%2?'#a48059':'#aa895f');
   }
   // A short stern deck is fitted; the central work bay is still open.
-  const deckZ=-hz*.59,deckWidth=beam(deckZ)*1.55;
-  for(let i=0;i<6;i++)box(deckWidth,.10,.43,i%2?'#b29468':'#ad895f',0,rim-.29,deckZ-1.05+i*.43);
+  const deckZ=-hz*.62,deckU=(deckZ+hz)/(2*hz),deckWidth=half(deckU)*1.7,deckY=sheer(deckU)-.29;
+  for(let i=0;i<6;i++)box(deckWidth,.10,.43,i%2?'#b29468':'#ad895f',0,deckY,deckZ-1.05+i*.43);
   box(.22,1.25,.22,C.wood,0,keel+.67,-hz*.15);
-  box(.20,rim-keel+.25,.18,C.wood,0,(rim+keel)/2,hz+.06,-.08);
   const workX=hx+.42,workY=1.62;
   for(const z of [-hz*.57,0,hz*.57])box(.13,workY,.16,C.wood,workX,workY/2,z);
   for(const x of [workX-.12,workX+.12])box(.22,.10,hz*1.30,C.plank,x,workY,0);
@@ -182,7 +214,12 @@ export function harborWorkProp(p,y){
     for(const x of [-.66,.66]){part(new THREE.CylinderGeometry(.28,.28,.09,10),C.wood,x,.30,-.20,0,0,Math.PI/2);part(new THREE.TorusGeometry(.25,.024,5,12),C.metal,x,.30,-.20,0,Math.PI/2);}
     crate(b,0,.63,-.18,.74,.69,.48);
   } else if(p.kind==='timber_stack'){
-    for(let yy=0;yy<3;yy++)for(const xx of [-.65,0,.65])box(.42,.18,p.hz*2-.10,yy%2?C.plank:'#b09873',xx,.16+yy*.19,0);
+    // stacked by hand: each board a little off line, turned and shorter or longer than its neighbour
+    const rng=seeded(p.x,p.z,3);
+    for(let yy=0;yy<3;yy++)for(const xx of [-.65,0,.65]){
+      const cut=rng.range(0,.35);
+      box(.42,.18,p.hz*2-.10-cut,yy%2?C.plank:'#b09873',xx+rng.range(-.05,.05),.16+yy*.19,rng.range(-cut,cut)/2,0,rng.range(-.035,.035));
+    }
     for(const z of [-1.5,1.5])box(1.82,.09,.14,C.wood,0,.07,z);
   } else if(p.kind==='repair_bench'){
     box(1.95,.15,1.05,C.plank,0,.87,0);
@@ -258,23 +295,53 @@ export function harborWorkProp(p,y){
   }
   const root=b.finish();root.position.set(p.x,y,p.z);root.rotation.y=p.angle;return root;
 }
+// A landmark tower that reads from across the bay: a rough stone footing, a tall tapered shaft in
+// alternating bands with moulded rings, staggered windows, a corbelled gallery with railing, a
+// glazed lantern room with a warm lamp and a domed cap with a vane. Doors and windows keep human
+// scale; the footing fits the data collider (harbor.lighthouseRadius).
 export function coastalLighthouse(world){
-  const b=builder(),{box,part}=b,h=world.data.harbor,[x,z]=h.lighthouse;
-  part(new THREE.CylinderGeometry(1.14,1.75,8.2,12),'#ede1c1',0,4.1,0);
-  part(new THREE.CylinderGeometry(1.36,1.43,1.05,12),h.lighthouseStyle.stripeColor,0,5.27,0);
-  part(new THREE.CylinderGeometry(1.64,1.66,.21,12),C.stone,0,8.23,0);
-  part(new THREE.CylinderGeometry(.94,.94,1.45,8),'#e9c779',0,9.06,0);
-  for(let i=0;i<8;i++){
-    const a=i*Math.PI/4,s=Math.sin(a),c=Math.cos(a);
-    box(.09,1.54,.09,C.metal,s*.97,9.07,c*.97);
-    box(.055,.55,.055,C.metal,s*1.49,8.62,c*1.49);
-    const na=a+Math.PI/4,nx=Math.sin(na)*1.49,nz=Math.cos(na)*1.49;
-    part(new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(s*1.49,8.89,c*1.49),new THREE.Vector3(nx,8.89,nz)),1,.033,5,false),C.metal);
+  const b=builder(),{box,part}=b,h=world.data.harbor,[x,z]=h.lighthouse,style=h.lighthouseStyle,L=art.architecture.lighthouse;
+  const white='#f1e8d2',stripe=style.stripeColor,top=L.height,rBase=L.baseRadius,rTop=L.topRadius,radius=y=>rBase+(rTop-rBase)*(y/top);
+  const foot=(h.lighthouseRadius??2)-.05,gallery=rTop+.95,lantern=L.lanternRadius;
+  part(new THREE.CylinderGeometry(foot-.08,foot,.7,12),C.stone,0,.35,0);
+  part(new THREE.CylinderGeometry(rBase+.25,rBase+.32,.5,16),'#9ea08f',0,.95,0);
+  for(let i=0;i<20;i++){const a=i/20*Math.PI*2+.2;part(new THREE.DodecahedronGeometry(.26+(i%3)*.05,0).scale(1.1,.7,1),'#8f9282',Math.sin(a)*(foot-.3),.22,Math.cos(a)*(foot-.3),0,a);}
+  const bands=L.bands,y0Shaft=1.2;
+  for(let k=0;k<bands;k++){
+    const y0=y0Shaft+(top-y0Shaft)*k/bands,y1=y0Shaft+(top-y0Shaft)*(k+1)/bands;
+    part(new THREE.CylinderGeometry(radius(y1),radius(y0),y1-y0,20),k%2?stripe:white,0,(y0+y1)/2,0);
+    part(new THREE.CylinderGeometry(radius(y0)+.07,radius(y0)+.07,.12,20),darker(white,.82),0,y0,0);
   }
-  part(new THREE.ConeGeometry(1.39,1.12,8),h.lighthouseStyle.roofColor,0,10.30,0);
-  shopDoor(b,0,1.73,1.80);
-  box(1.18,.07,.23,C.stone,0,.035,1.77);
-  for(const yy of [3.15,6.77]){box(.54,.71,.04,C.wood,0,yy,yy>5?1.23:1.50);box(.36,.54,.06,'#70959a',0,yy,yy>5?1.24:1.51);}
+  // door with a stone porch and steps on the south face, windows climbing round the shaft
+  const doorZ=radius(1.2)-.02;
+  shopDoor(b,0,doorZ+.05,2.1);
+  box(1.9,.18,.5,C.stone,0,2.5,doorZ+.18);
+  for(const side of [-1,1])box(.28,2.4,.3,C.stone,side*.86,1.2+.0,doorZ+.12);
+  for(const [k,yy] of [[0,.1],[1,.28],[2,.46]])box(1.8-k*.2,.18,.62-k*.15,C.stone,0,yy,foot-.1-k*.12);
+  for(let k=0;k<6;k++){
+    const yy=4.2+k*2.55,a=k*1.05+.55,r=radius(yy)+.02;
+    box(.62,.92,.08,darker(white,.78),Math.sin(a)*r,yy,Math.cos(a)*r,0,a);
+    box(.44,.72,.08,'#5f8a92',Math.sin(a)*(r+.02),yy,Math.cos(a)*(r+.02),0,a);
+    box(.72,.1,.2,C.stone,Math.sin(a)*(r+.05),yy-.52,Math.cos(a)*(r+.05),0,a);
+  }
+  // gallery: corbels, deck, posts and rails
+  for(let i=0;i<16;i++){const a=i/16*Math.PI*2;box(.2,.6,.62,C.stone,Math.sin(a)*(rTop+.28),top-.3,Math.cos(a)*(rTop+.28),0,a);}
+  part(new THREE.CylinderGeometry(gallery+.1,gallery-.1,.28,24),C.stone,0,top+.14,0);
+  for(let i=0;i<28;i++){const a=i/28*Math.PI*2;box(.06,.8,.06,C.metal,Math.sin(a)*gallery,top+.66,Math.cos(a)*gallery);}
+  part(new THREE.TorusGeometry(gallery,.05,5,40),C.metal,0,top+1.06,0,Math.PI/2);
+  part(new THREE.TorusGeometry(gallery,.03,4,40),C.metal,0,top+.66,0,Math.PI/2);
+  // lantern room: low wall, glowing lamp behind glass, mullions, roof ring and dome
+  part(new THREE.CylinderGeometry(lantern+.08,lantern+.12,.7,16),white,0,top+.63,0);
+  part(new THREE.CylinderGeometry(lantern,lantern,1.9,16),'#cfe7df',0,top+1.93,0);
+  part(new THREE.CylinderGeometry(lantern*.55,lantern*.55,1.3,12),'#ffe08a',0,top+1.85,0);
+  for(let i=0;i<10;i++){const a=i/10*Math.PI*2;box(.1,1.95,.1,C.metal,Math.sin(a)*(lantern+.02),top+1.93,Math.cos(a)*(lantern+.02));}
+  part(new THREE.CylinderGeometry(lantern+.22,lantern+.05,.22,16),C.metal,0,top+2.98,0);
+  part(new THREE.SphereGeometry(lantern+.16,20,10,0,Math.PI*2,0,Math.PI/2).scale(1,.85,1),style.roofColor,0,top+3.06,0);
+  const crown=top+3.06+(lantern+.16)*.85;
+  part(new THREE.SphereGeometry(.22,10,8),C.metal,0,crown+.1,0);
+  part(new THREE.ConeGeometry(.07,.8,6),C.metal,0,crown+.6,0);
+  box(.95,.06,.04,C.metal,.15,crown+.62,0);
+  part(new THREE.ConeGeometry(.11,.24,3),C.metal,.68,crown+.62,0,0,0,-Math.PI/2);
   const root=b.finish();root.position.set(x,world.groundY(x,z),z);return root;
 }
 export function districtScenery(world){

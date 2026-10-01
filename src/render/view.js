@@ -19,6 +19,7 @@ import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
+import { residentTool } from './districts.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -99,8 +100,20 @@ export class View {
     trainer.root.position.set(t.trainer[0] + 1.2, world.groundY(t.trainer[0] + 1.2, t.trainer[1] - 0.2), t.trainer[1] - 0.2);
     trainer.root.rotation.y = -Math.PI / 2 + 0.3;
     trainer.job = 'trainer';
-    for (const n of [smith, trainer]) {
+    const townNpcs = [smith, trainer];
+    for (const resident of t.residents || []) {
+      const n = buildHumanoid(resident.look, {}, { npc: true, ...(resident.outfit || {}) });
+      n.root.position.set(resident.x, world.groundY(resident.x, resident.z), resident.z);
+      n.root.rotation.y = resident.angle;
+      n.root.userData.residentId = resident.id;
+      n.scenery = true;
+      n.activity = resident.activity;
+      if (resident.tool) n.bones.handR.add(residentTool(resident.tool));
+      townNpcs.push(n);
+    }
+    for (const n of townNpcs) {
       n.anim = new HumanoidAnimator(n);
+      n.idleState = { speed: 0, facing: n.root.rotation.y, moving: false, dash: null, dead: false, time: 0 };
       this.scene.add(n.root);
       if (n.scarf) this.scene.add(n.scarf.mesh);
       this.npcs.push(n);
@@ -703,7 +716,23 @@ export class View {
       const p = g.player;
       this.updateHero(dt, time);
       for (const n of this.npcs) {
-        n.anim.update(dt, { speed: 0, facing: n.root.rotation.y, moving: false, dash: null, dead: false, time: time + n.root.position.x });
+        if (n.scenery) {
+          const dx = n.root.position.x - p.x, dz = n.root.position.z - p.z;
+          const range = world.data.town.life?.drawDistance ?? VIEW_RADIUS;
+          n.root.visible = dx * dx + dz * dz < range * range;
+          if (!n.root.visible) continue;
+        }
+        n.idleState.time = time + n.root.position.x;
+        n.anim.update(dt, n.idleState);
+        if (n.activity) {
+          const wave = Math.sin(n.idleState.time * Math.PI * 2 / world.data.town.life.gesturePeriod);
+          const strength = n.activity === 'work' ? .22 : .06;
+          n.bones.armL.rotation.x = -.58;
+          n.bones.elbowL.rotation.x = -.82;
+          n.bones.armR.rotation.x = -.62 + wave * strength;
+          n.bones.elbowR.rotation.x = -.78 - wave * strength;
+          n.bones.head.rotation.x = .12;
+        }
         if (n.job === 'smith' && !n.anim.action && Math.random() < dt * 0.7) n.anim.play('slashA', 0.9);
         updateScarf(n, dt, 0);
       }
@@ -898,4 +927,3 @@ export class View {
     return c.toDataURL();
   }
 }
-

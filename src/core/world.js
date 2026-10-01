@@ -183,7 +183,11 @@ export function createWorld(worldData) {
   }
   addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
   addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
-  for (const [x, z, a] of town.stalls || []) addBox({ x, z, hx: 1.6, hz: 1.1, angle: a, type: 'stall' });
+  for (const entry of town.stalls || []) {
+    const stall = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 1.6, hz: 1.1 } : entry;
+    addBox({ ...stall, type: 'stall' });
+  }
+  for (const resident of town.residents || []) addCircle({ ...resident, type: 'citizen', scale: 1, rot: resident.angle });
   const tr = zoneById('settlement').rects[0];
   const walls = town.walls;
   const gateZ = walls ? roadZAt(roads[0].points, walls.east) : town.centre[1];
@@ -208,7 +212,9 @@ export function createWorld(worldData) {
   }
   decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
   for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
-  for (const [x, z, a] of town.stalls || []) {
+  for (const entry of town.stalls || []) {
+    if (!Array.isArray(entry)) continue; // Authored counters contain their own storage.
+    const [x, z, a] = entry;
     decor.crates.push({ x: x + Math.cos(a) * 2.4, z: z - Math.sin(a) * 2.4, s: 0.8, rot: a, kind: 'crate' });
     decor.crates.push({ x: x - Math.cos(a) * 2.2, z: z + Math.sin(a) * 2.2, s: 0.7, rot: a + 0.4, kind: 'barrel' });
   }

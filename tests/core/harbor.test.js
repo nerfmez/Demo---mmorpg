@@ -286,3 +286,32 @@ test('authored cape rocks use existing boulder collision and leave streets and e
     assert.ok(!world.isFree(rock.x,rock.z,.45));
   }
 });
+
+test('the organised market aisle supports walking across its full advertised width',()=>{
+  const aisle=data.world.town.market.aisle,[a,b]=aisle.points;
+  const length=Math.hypot(b[0]-a[0],b[1]-a[1]),dx=(b[0]-a[0])/length,dz=(b[1]-a[1])/length;
+  for(let offset=-aisle.width/2+.45;offset<=aisle.width/2-.45;offset+=.3){
+    let previous;
+    for(let t=0;t<=length;t+=.2){
+      const p=[a[0]+dx*t-dz*offset,a[1]+dz*t+dx*offset];
+      assert.ok(world.isFree(...p,.45),'market aisle is blocked at '+p);
+      if(previous){
+        const moved=world.move(...previous,.45,p[0]-previous[0],p[1]-previous[1]);
+        assert.ok(Math.hypot(moved.x-p[0],moved.z-p[1])<.05,'market aisle walking interrupted');
+      }
+      previous=p;
+    }
+  }
+});
+
+test('town residents stand on dry ground clear of streets and existing work equipment',()=>{
+  const withoutResidents=createWorld({...data.world,town:{...data.world.town,residents:[]}});
+  for(const resident of data.world.town.residents){
+    const collider=world.circles.find(c=>c.id===resident.id);
+    assert.equal(collider.type,'citizen');
+    for(const key of ['x','z','r'])assert.equal(collider[key],resident[key]);
+    assert.ok(withoutResidents.isFree(resident.x,resident.z,resident.r),resident.id+' intersects scenery');
+    assert.ok(world.roadDist(resident.x,resident.z)>resident.r,resident.id+' blocks a street');
+    assert.ok(!world.isWater(resident.x,resident.z,resident.r),resident.id+' has wet feet');
+  }
+});

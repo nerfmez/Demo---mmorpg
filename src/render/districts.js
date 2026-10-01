@@ -120,6 +120,55 @@ export function districtBuilding(bx,y){
   else cottage(b,bx);
   const root=b.finish();root.position.set(bx.x,y,bx.z);root.rotation.y=bx.angle;return root;
 }
+export function residentTool(kind){
+  const b=builder();
+  if(kind==='mallet'){
+    b.box(.035,.25,.035,C.wood,0,.035,0);
+    b.box(.19,.07,.08,C.plank,0,.18,0);
+  }
+  return b.finish();
+}
+function constructionHull(b,p) {
+  const {box,part}=b,hx=p.hx-.70,hz=p.hz-.40,keel=.86,rim=p.height-.65;
+  const beam=z=>hx*(.25+.75*Math.sin((z/hz+1)*Math.PI/2));
+  const railPoints=[];
+  box(.23,.22,hz*2,C.dark,0,keel,0);
+  for(const z of [-hz*.66,-hz*.22,hz*.22,hz*.66]){
+    box(p.hx*1.82,.18,.28,C.wood,0,.66,z);
+    for(const x of [-p.hx*.78,p.hx*.78])box(.20,.60,.30,C.wood,x,.30,z);
+    box(p.hx*1.6,.11,.14,C.plank,0,.26,z);
+  }
+  for(let i=0;i<11;i++){
+    const z=-hz+i*hz*2/10,x=beam(z);
+    const points=[[-x,rim,z],[-x*.78,keel+(rim-keel)*.38,z],[-x*.28,keel+.12,z],[0,keel,z],[x*.28,keel+.12,z],[x*.78,keel+(rim-keel)*.38,z],[x,rim,z]].map(v=>new THREE.Vector3(...v));
+    part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),18,.09,5,false),'#c2a073');
+    railPoints.push({x,z});
+  }
+  for(const side of [-1,1]){
+    part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPoints.map(q=>new THREE.Vector3(side*q.x,rim,q.z))),30,.10,5,false),C.wood);
+    // Partially fitted strakes leave both the open interior and bare frames visible.
+    for(let band=0;band<3;band++)for(let i=0;i<10;i++){
+      if(side===1&&band>0&&i>2&&i<8)continue;
+      const a=railPoints[i],c=railPoints[i+1],t=.18+band*.22,u=t+.19;
+      const point=(q,v)=>[side*q.x*Math.sqrt(v),keel+(rim-keel)*v,q.z];
+      const vs=[point(a,t),point(c,t),point(a,u),point(c,u)];
+      const face=new THREE.BufferGeometry();face.setAttribute('position',new THREE.Float32BufferAttribute([0,2,1,1,2,3,0,1,2,1,3,2].flatMap(k=>vs[k]),3));face.computeVertexNormals();
+      part(face,band%2?'#a48059':'#aa895f');
+    }
+  }
+  // A short stern deck is fitted; the central work bay is still open.
+  const deckZ=-hz*.59,deckWidth=beam(deckZ)*1.55;
+  for(let i=0;i<6;i++)box(deckWidth,.10,.43,i%2?'#b29468':'#ad895f',0,rim-.29,deckZ-1.05+i*.43);
+  box(.22,1.25,.22,C.wood,0,keel+.67,-hz*.15);
+  box(.20,rim-keel+.25,.18,C.wood,0,(rim+keel)/2,hz+.06,-.08);
+  const workX=hx+.42,workY=1.62;
+  for(const z of [-hz*.57,0,hz*.57])box(.13,workY,.16,C.wood,workX,workY/2,z);
+  for(const x of [workX-.12,workX+.12])box(.22,.10,hz*1.30,C.plank,x,workY,0);
+  for(const z of [-hz*.55,hz*.55]){
+    box(.09,.90,.09,C.wood,workX,workY+.45,z);
+  }
+  box(.12,.09,hz*1.12,C.wood,workX,workY+.90,0);
+}
 export function harborWorkProp(p,y){
   const b=builder(),{box,part}=b;
   if(p.kind==='cargo_stack'){
@@ -154,6 +203,37 @@ export function harborWorkProp(p,y){
     }
     for(const x of [-.60,0,.60])for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.26-i*.06,.025,5,12),C.rope,x,.055,.42,Math.PI/2);
     part(new THREE.SphereGeometry(.20,8,5).scale(.8,1.2,.8),'#c79767',.82,1.12,-.31);
+  } else if(p.kind==='bench'){
+    const w=p.hx*2-.14,d=p.hz*2-.10,h=p.height;
+    box(w,.12,d*.72,C.plank,0,h*.43,.05);
+    for(const x of [-p.hx+.19,p.hx-.19]){box(.14,h*.4,d*.66,C.wood,x,h*.20,.05);box(.10,h*.92,.10,C.wood,x,h*.46,-p.hz+.12);}
+    for(const yy of [.63,.86])box(w,h*.16,.09,C.plank,0,h*yy,-p.hz+.12);
+  } else if(p.kind==='planter'){
+    box(p.hx*2-.06,p.height*.36,p.hz*2-.06,'#9c7f5d',0,p.height*.18,0);
+    box(p.hx*2-.03,.08,p.hz*2-.03,C.wood,0,p.height*.36,0);
+    for(const x of [-p.hx*.42,0,p.hx*.42]){
+      part(new THREE.DodecahedronGeometry(.25,0).scale(1,.84,1),C.leaf,x,p.height*.61,0);
+      part(new THREE.SphereGeometry(.065,7,5),'#cfac76',x+.08,p.height*.81,.05);
+    }
+  } else if(p.kind==='wash_line'){
+    for(const x of [-p.hx+.12,p.hx-.12])box(.09,p.height-.04,.09,C.wood,x,(p.height-.04)/2,0);
+    const rope=[[-p.hx+.12,p.height-.14,0],[0,p.height-.33,.08],[p.hx-.12,p.height-.14,0]].map(v=>new THREE.Vector3(...v));
+    part(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rope),12,.023,5,false),C.rope);
+    for(const [i,x] of [-.77,0,.77].entries()){
+      const color=['#e6dbbf','#a5b4a5','#ba957c'][i];
+      box(.49,.57,.025,color,x,p.height-.62,.07,0,0,(i-1)*.055);
+      for(const dx of [-.18,.18])box(.025,.07,.045,C.wood,x+dx,p.height-.30,.07);
+      if(i===0)for(const side of [-1,1])box(.19,.22,.025,color,x+side*.31,p.height-.46,.07,0,0,side*.2);
+    }
+  } else if(p.kind==='market_board'){
+    for(const x of [-p.hx+.16,p.hx-.16])box(.10,p.height-.08,.10,C.wood,x,(p.height-.08)/2,0);
+    box(p.hx*2-.12,.12,.12,C.wood,0,p.height-.15,0);
+    box(p.hx*1.7,.61,.08,'#708b82',0,p.height-.68,.03);
+    for(const x of [-.6,.6])box(.025,.34,.025,C.rope,x,p.height-.36,.02);
+    part(new THREE.SphereGeometry(.18,8,5).scale(2,.56,.18),'#e0d4ae',.06,p.height-.68,.09);
+    part(new THREE.ConeGeometry(.16,.25,3).scale(1,1,.16),'#e0d4ae',-.34,p.height-.68,.09,0,0,-Math.PI/2);
+  } else if(p.kind==='repair_hull'&&p.stage==='planking'){
+    constructionHull(b,p);
   } else if(p.kind==='repair_hull'){
     const hz=p.hz-.18,hx=p.hx-.18;
     // Keel, low unfinished side planks and exposed ribs on timber trestles.

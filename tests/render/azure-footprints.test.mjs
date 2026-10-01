@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { districtBuilding, harborWorkProp } from '../../src/render/districts.js';
-import { marketBuilding, marketDockCargo } from '../../src/render/market.js';
+import { marketBuilding, marketDockCargo, marketStall } from '../../src/render/market.js';
 import { disposeObject } from '../../src/render/dispose.js';
 
 const world=JSON.parse(readFileSync(new URL('../../data/world.json',import.meta.url)));
@@ -22,4 +22,7 @@ test('authored exterior models fit their individual collision footprints',()=>{
 test('port equipment and pier cargo fit their authored collision footprints',()=>{
   for(const p of world.harbor.workProps)check(p,harborWorkProp);
   for(const p of world.harbor.dockCargo)check(p,marketDockCargo);
+});
+test('market canopies, stock and under-counter storage fit each stall collider',()=>{
+  for(const stall of world.town.stalls)check(stall,(plot,y)=>marketStall(plot,y,plot.awningColor));
 });

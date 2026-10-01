@@ -299,37 +299,55 @@ export function marketBuilding(bx,y) {
 
 export function marketStall(bx,color,y,fish) {
   const b=builder(),{box,part}=b,w=bx.hx*2,d=bx.hz*2;
+  const stock=bx.stock||(fish?'fish':'produce'),front=bx.openCounter ? .22 : bx.hz-.02;
   box(w,.14,d-.12,C.wood,0,.95,0);box(w-.05,.86,.1,'#9b7954',0,.48,d/2-.12);
-  for(const x of [-bx.hx+.12,bx.hx-.12])for(const z of [-bx.hz+.12,bx.hz-.12])box(.12,2.4,.12,C.wood,x,1.2,z);
-  // Curved sag in the fabric replaces the flat rectangular awning silhouette.
-  const pos=[],idx=[];const steps=10;
+  for(const x of [-bx.hx+.12,bx.hx-.12])for(const z of [-bx.hz+.12,front-.10])box(.12,2.4,.12,C.wood,x,1.2,z);
+  // Short rear awnings expose the trading counters from the production camera.
+  const pos=[],idx=[],steps=10,backZ=-bx.hz+.02;
   for(let j=0;j<=steps;j++)for(const x of [-bx.hx+.02,bx.hx-.02]){
-    const t=j/steps;pos.push(x,2.45-Math.sin(t*Math.PI)*.14-t*.09,-bx.hz+.02+t*(d-.04));
+    const t=j/steps;pos.push(x,2.45-Math.sin(t*Math.PI)*.14-t*.09,backZ+t*(front-backZ));
   }
   for(let j=0;j<steps;j++){const k=j*2;idx.push(k,k+2,k+1,k+1,k+2,k+3);}
   const fabric=new THREE.BufferGeometry();fabric.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));fabric.setIndex(idx);fabric.computeVertexNormals();
-  // Double faces are explicit so the shared toon material stays opaque and single-sided.
-  const back=fabric.clone();back.setIndex(idx.flatMap((_,i)=>i%3===0?[idx[i],idx[i+2],idx[i+1]]:[]));back.computeVertexNormals();
-  part(fabric,color);part(back,color);
-  for(let i=0;i<6;i++){const x=-bx.hx+.28+i*(w-.56)/5;part(new THREE.SphereGeometry(.18,7,4).scale(1,.42,.33),color,x,2.34,bx.hz-.06);}
+  const underside=fabric.clone();underside.setIndex(idx.flatMap((_,i)=>i%3===0?[idx[i],idx[i+2],idx[i+1]]:[]));underside.computeVertexNormals();
+  part(fabric,color);part(underside,color);
+  for(let i=0;i<6;i++){const x=-bx.hx+.28+i*(w-.56)/5;part(new THREE.SphereGeometry(.18,7,4).scale(1,.42,.33),color,x,2.34,front-.04);}
+  const goodsZ=bx.openCounter ? .44 : 0;
   for(const x of [-.75,.75]){
-    box(1.2,.11,1.15,C.dark,x,1.06,0);
-    for(const z of [-.53,.53])box(1.2,.15,.055,C.wood,x,1.14,z);
-    for(let i=0;i<4;i++){
-      if(fish){part(new THREE.SphereGeometry(.19,8,5).scale(.68,.35,1.7),i%2?C.fish:'#879ea0',x-.39+i*.26,1.17,0,0,(i%2-.5)*.15);part(new THREE.ConeGeometry(.1,.17,3),C.fish,x-.39+i*.26,1.17,-.37,Math.PI/2);}
-      else {box(.18,.14,.42,i%2?'#b6a783':'#8b9d86',x-.38+i*.25,1.18,0);}
+    box(1.2,.11,.95,C.dark,x,1.06,goodsZ);
+    for(const z of [-.44,.44])box(1.2,.15,.055,C.wood,x,1.14,goodsZ+z);
+    if(stock==='cloth'){
+      for(let i=0;i<3;i++){
+        const xx=x-.36+i*.35;
+        part(new THREE.CylinderGeometry(.13,.13,.64,8),i%2?'#d7bd85':'#c7d3c6',xx,1.22,goodsZ,Math.PI/2);
+        part(new THREE.CylinderGeometry(.055,.055,.018,8),C.wood,xx,1.22,goodsZ+.33,Math.PI/2);
+      }
+    }else if(stock==='rope'){
+      for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.23-i*.06,.022,5,12),C.rope,x,1.16,goodsZ,Math.PI/2);
+      part(new THREE.SphereGeometry(.12,8,5).scale(1,1.5,1),'#c99c62',x+.4,1.28,goodsZ);
+    }else for(let i=0;i<4;i++){
+      if(stock==='fish'){
+        part(new THREE.SphereGeometry(.19,8,5).scale(.68,.35,1.7),i%2?C.fish:'#879ea0',x-.39+i*.26,1.17,goodsZ,0,(i%2-.5)*.15);
+        part(new THREE.ConeGeometry(.1,.17,3),C.fish,x-.39+i*.26,1.17,goodsZ-.37,Math.PI/2);
+      }else{
+        for(const dz of [-.16,.13])part(new THREE.SphereGeometry(.115,8,5),i%2?'#a7b16b':'#c29458',x-.38+i*.25,1.22,goodsZ+dz);
+      }
     }
   }
-  // Back-rail goods and under-table storage make each stall a working counter.
   box(w-.25,.08,.08,C.wood,0,1.95,-bx.hz+.14);
   for(const x of [-.95,0,.95]){
-    if(fish){
+    if(stock==='fish'){
       part(new THREE.CylinderGeometry(.012,.012,.22,5),C.rope,x,1.82,-bx.hz+.15);
       part(new THREE.SphereGeometry(.16,8,5).scale(.58,1.5,.45),C.fish,x,1.58,-bx.hz+.15);
-    } else {
+    }else{
       part(new THREE.CylinderGeometry(.22,.19,.35,8),'#b5a27b',x,.25,.05);
       for(let i=0;i<3;i++)part(new THREE.SphereGeometry(.09,7,5),'#ba8052',x+(i-1)*.10,.46,.05);
     }
+  }
+  // Storage stays beneath the counter footprint, leaving the shared aisle open.
+  if(bx.openCounter)for(const x of [-.8,.8]){
+    box(.70,.38,.62,'#a88b60',x,.23,-.46);
+    for(const dx of [-.25,.25])box(.055,.42,.035,C.wood,x+dx,.23,-.12);
   }
   const root=b.finish();root.position.set(bx.x,y,bx.z);root.rotation.y=bx.angle;return root;
 }

@@ -32,7 +32,7 @@ test('gear presentation preserves base identity independently of grade and enhan
  const sword=ch.gear.find(i=>i.uid===ch.equipped.weapon);sword.base='tusk_blade';
  assert.equal(gearLook(ch,data).weapon,before.weapon,'same weapon family');
  assert.equal(gearLook(ch,data).bases.weapon,'tusk_blade','different base chooses different model');
- assert.equal(ch.version,2);
+ assert.equal(ch.version,3);
 });
 
 
@@ -76,3 +76,4 @@ test('baked gait tables are complete cycles for every driver bone',async()=>{
  }
  assert.ok(gait.run.speed>gait.walk.speed);
 });
+

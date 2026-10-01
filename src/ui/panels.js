@@ -1,3 +1,4 @@
+import { gradeBadge, gradeGuide, optionList, craftGoal } from './progressionview.js';
 // Menu panels: Character, Skills (slots + mods), Job Tree, Bag (equipment), Workbench,
 // Journal (quests + progress), World Map (fast travel) and Settings (graphics + save).
 // The game is paused while a panel is open (single-player demo).
@@ -10,7 +11,7 @@ import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
-import { canAfford, craft, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
+import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
 import { inventoryView } from './inventory.js';
 
@@ -20,7 +21,7 @@ const TAG_TH = {
   Lightning: 'สายฟ้า', Poison: 'พิษ', Chain: 'เด้งต่อ', Control: 'ควบคุม', Debuff: 'ดีบัฟ', Curse: 'คำสาป', Guard: 'การ์ด', Buff: 'บัฟ', Warcry: 'คำราม',
   Heal: 'ฮีล', Persistent: 'ค้างพื้น', Summon: 'อัญเชิญ', Minion: 'ลูกสมุน', Movement: 'เคลื่อนที่', Trigger: 'ทริกเกอร์',
 };
-const REASON_TH = { materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
+const REASON_TH = { level: 'เลเวลตัวละครยังไม่ถึงขั้นที่กำหนด', invalid: 'การตั้งค่าคราฟต์ไม่ถูกต้อง', materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
 const CRAFT_FILTERS = [
   ['weapon', 'อาวุธ'],
@@ -71,6 +72,16 @@ export class Panels {
     this.body.addEventListener('click', (e) => this.onClick(e));
     this.overlay.addEventListener('change', e => {
       if(e.target.matches('[data-page-select]')) return this.open(e.target.value);
+      if(e.target.matches('[data-batch-select]')) {
+        const id=e.target.dataset.batchSelect,field=e.target.dataset.field;
+        const goals=this.sel.craftGoals||(this.sel.craftGoals={});
+        const goal=goals[id]||(goals[id]={attempts:5,grade:'A',option:'',quality:0});
+        goal[field]=['attempts','quality'].includes(field)?Number(e.target.value):e.target.value;
+        this.render();
+        const control=this.body.querySelector(`[data-batch-select="${id}"]`);
+        if(control)control.closest('details').open=true;
+        return;
+      }
       if(e.target.matches('[data-workspace-select]')) {
         this.sel[e.target.dataset.workspaceSelect] = e.target.value;
         this.render();
@@ -254,7 +265,7 @@ export class Panels {
 
   render_mods() { return modsWorkspace(this, {describeSkill}); }
   render_movement() { return movementWorkspace(this); }
-  render_growth() { return growthWorkspace(this, {costHtml}); }
+  render_growth() { return growthWorkspace(this, {costHtml,describeSkill}); }
 
   // ---------- Job tree ----------
   render_job() {
@@ -265,17 +276,17 @@ export class Panels {
   gearLine(it) {
     const data = this.game.data;
     const base = data.items.gearBases[it.base];
-    const st = gearStats(it, data);
+    const st = gearStats({ ...it, options: [] }, data);
     const imp = weaponImplicit(it, data);
     const wt = base.weaponType ? data.items.weaponTypes?.[base.weaponType] : null;
-    return `<span class="grade" style="color:${data.items.grades.colors[it.grade]}">${it.grade}</span> <b>${base.nameTh}${it.upgrade ? ` +${it.upgrade}` : ''}</b> <span class="muted">${base.name}</span>
+    return `${gradeBadge(data,it.grade,it.options.length)} <b>${base.nameTh}${it.upgrade ? ` +${it.upgrade}` : ''}</b> <span class="muted">${base.name}</span>
       <div class="muted">${Object.entries(st)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>
       ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${it.options.length ? `<div class="gear-options">${it.options.map((o) => optionText(data, o)).join(' · ')}</div>` : ''}`;
+      ${optionList(data,it.options)}`;
   }
 
   render_bag() {
@@ -312,7 +323,8 @@ export class Panels {
           name = `${b.nameTh} <span class="muted">${b.name} · ${wt ? wt.nameTh : data.items.slotNames?.[b.slot] || b.slot}</span>`;
           desc = `${Object.entries(b.stats)
             .map(([k, v]) => effectText(k, v))
-            .join(' · ')} · Option: ${r.optionPool.map((o) => data.items.gearOptions[o].labelTh.replace('{v}', '?')).join(', ')}`;
+            .join(' · ')}`;
+          metadata = `<details class="recipe-affixes"><summary>ออฟชั่นที่สุ่มได้ (${r.optionPool.length} แบบ)</summary>${r.optionPool.map(o=>`<p>${data.items.gearOptions[o].labelTh.replace('{v}',data.items.gearOptions[o].min+'–'+data.items.gearOptions[o].max)}</p>`).join('')}</details>`;
           req = b.requires;
         } else if (r.type === 'skill') {
           const s = data.skills.combat[r.result];
@@ -337,13 +349,13 @@ export class Panels {
           .map(([k, v]) => `${k} ${v}`)
           .join(', ')}</span> · ` : '';
         return `<div class="recipe-card card ${block ? '' : 'ready'}"><div class="recipe-hero">${art(r.type==='gear'?'gear':r.type==='mod'?'mod':'skill',r.result)}<div class="recipe-info"><b>${name}</b><p class="muted">${esc(desc)}</p><div class="recipe-requirements">${reqTxt}</div>${metadata}</div></div><div class="cost">${costHtml(ch, data, r.cost)}</div>
-          <div class="recipe-action"><small class="${block ? 'muted' : 'ok'}">${block ? REASON_TH[block] || block : 'พร้อมคราฟต์'}</small><button class="btn primary" data-act="craft" data-id="${id}" ${block || !g.nearby().workbench ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์'}</button></div></div>`;
+          <div class="recipe-action"><small class="${block ? 'muted' : 'ok'}">${block ? REASON_TH[block] || block : 'พร้อมคราฟต์'}</small><button class="btn primary" data-act="craft" data-id="${id}" ${block || !g.nearby().workbench ? 'disabled' : ''}>${block === 'learned' ? 'มีแล้ว' : 'คราฟต์ 1 ครั้ง'}</button></div>${r.type==='gear'?craftGoal(this,id,r,costHtml):''}</div>`;
       })
       .join('');
     return `${this.lastResult ? `<div class="result-pop" role="status">${this.lastResult}</div>` : ''}
       <div class="workbench-summary"><div><b>โต๊ะคราฟต์กรีนฮอลโลว์</b><small>${g.nearby().workbench ? 'เลือกสูตรและตรวจวัตถุดิบก่อนคราฟต์' : 'ดูสูตรได้ทุกที่ · กลับโต๊ะคราฟต์ในนิคมเพื่อสร้างของ'}</small></div><button class="btn ${this.sel.craftReady ? 'on' : ''}" data-act="craft-ready" aria-pressed="${!!this.sel.craftReady}">คราฟต์ได้ ${readyCount}/${recipes.length}${this.sel.craftReady ? ' · ดูทั้งหมด' : ' · กรอง'}</button></div>
       <div class="switch" style="margin:8px 0">${CRAFT_FILTERS.map(([id, label]) => `<button class="btn ${cat === id ? 'on' : ''}" data-act="craft-filter" data-id="${id}">${label}</button>`).join('')}</div>
-      <div class="recipe-grid">${rows || '<div class="inventory-empty"><h3>ยังไม่มีสูตรที่คราฟต์ได้</h3><p>แตะ “ดูทั้งหมด” เพื่อเช็กวัตถุดิบที่ขาด</p></div>'}</div>
+      ${['weapon','armor','charm'].includes(cat)?gradeGuide(data):''}<div class="recipe-grid">${rows || '<div class="inventory-empty"><h3>ยังไม่มีสูตรที่คราฟต์ได้</h3><p>แตะ “ดูทั้งหมด” เพื่อเช็กวัตถุดิบที่ขาด</p></div>'}</div>
       <div class="muted" style="margin-top:10px">สูตรที่คราฟต์ได้ตอนนี้มีขอบสีเขียว · อัปสกิล/ม็อด (หน้าอัปเลเวล) และตีบวกอุปกรณ์ (กระเป๋า) ได้ขณะอยู่ที่โต๊ะนี้</div>`;
   }
 
@@ -569,8 +581,15 @@ export class Panels {
         this.sel.craftReady = !this.sel.craftReady;
         return this.render(true);
       case 'gear-up':
+        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่อตีบวก');
         r = upgradeGear(ch, data, Number(t.dataset.uid));
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+        return this.changed();
+      case 'gear-grade':
+        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่อเลื่อนเกรด');
+        r=promoteGear(ch,data,Number(t.dataset.uid),g.rng);
+        if(!r.ok) return this.flash(REASON_TH[r.reason]||r.reason);
+        this.lastResult='เลื่อนเกรดสำเร็จ · ออฟชั่นเดิมอยู่ครบ และสุ่มเพิ่มแล้ว';
         return this.changed();
       case 'mod-up':
         if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่ออัปเลเวล');
@@ -580,6 +599,18 @@ export class Panels {
       case 'sell':
         sellMaterial(ch, data, t.dataset.id, 1);
         return this.changed();
+      case 'craft-batch': {
+        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์ก่อน');
+        const goal=this.sel.craftGoals?.[t.dataset.id]||{attempts:5,grade:'A',option:'',quality:0};
+        const batch=craftBatch(ch,data,t.dataset.id,g.rng,{...goal,grade:goal.grade||null,option:goal.option||null});
+        if(!batch.ok) return this.flash(REASON_TH[batch.reason]||batch.reason);
+        for(const item of batch.items)g.notify({type:'craft'});
+        this.lastResult=`<h3>คราฟต์ ${batch.attempts} ครั้ง · ${batch.matched?'ได้ตามเป้าหมาย':batch.reason==='materials'?'วัตถุดิบหมด':'ครบจำนวนที่ตั้งไว้'}</h3><p>ใช้จริง ${Object.entries(batch.spent).map(([k,v])=>(k==='gold'?'Gold':data.items.materials[k].nameTh)+' ×'+v).join(' · ')}</p><div class="craft-results">${batch.items.map(it=>`<section class="craft-result grade-${it.grade}">${art('gear',it.base)}${this.gearLine(it)}<button class="btn" data-act="inspect-crafted" data-uid="${it.uid}">ดูและเทียบของที่สวม</button></section>`).join('')}</div>`;
+        this.changed();this.body.scrollTop=0;return;
+      }
+      case 'inspect-crafted':
+        this.sel.bag='gear';this.sel.gear='all';this.sel.item=t.dataset.uid;this.sel.detail=true;this.lastResult=null;
+        return this.open('bag');
       case 'craft': {
         if (!g.nearby().workbench) return this.flash('กลับไปที่โต๊ะคราฟต์ในนิคมก่อน');
         r = craft(ch, data, t.dataset.id, g.rng);
@@ -719,3 +750,4 @@ function describeSkill(s) {
   if (s.cost) parts.push(`MP ${s.cost}`);
   return parts.join(' · ');
 }
+

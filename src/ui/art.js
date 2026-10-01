@@ -1,3 +1,4 @@
+import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
 // Authored cel-style artwork. Identity is keyed by content ID, never grade or rarity.
@@ -177,10 +178,34 @@ Object.assign(zone, {
   landing: zoneBase(P('M6 87Q49 60 122 90V117H6Z','#e5d4a7','none')+P('M6 105Q55 88 122 106V117H6Z','#75b9c0','none')+L('M21 106Q59 92 110 105','#f2efdb',4)+P('M72 48l-5 47h15l-5-47Z','#ad8e62')+P('M69 32l5-19 7 19Z','#e1be78'),'#e2d1a4','#d4e7e5'),
   headland: zoneBase(P('M6 100L34 66 64 72 93 98V117H6Z','#99ad77','none')+P('M34 66V97L72 113 91 98 64 72Z','#a59d86')+P('M6 109Q70 103 122 90V117H6Z','#72aeb6','none')+P('M47 86L43 54 51 29 72 33 80 59 75 91Z','#8caaac')+P('M52 76L52 48 61 36 70 48 69 78Z','#c2ded6')+diamond(61,57,10,'#8dd8da')+L('M39 105L44 98m46 7l12-6','#e3e9d4',3),'#aabc86','#d9e8dc')
 });
+// Saturated metal, leather and elemental colours, with hard cel planes rather than a glow filter.
+const CEL = {
+ '#493c35':'#29374d','#d4b47b':'#e8aa44','#c5d3d8':'#79a9cf','#f3f5e7':'#e7f8ff',
+ '#bf9760':'#d88931','#795b43':'#844332','#8b6943':'#805039','#b65445':'#d75437',
+ '#c69b60':'#dc9840','#efe3b8':'#ffdf8d','#e6e2cc':'#e8f1de','#544d4b':'#384256',
+ '#5caec0':'#22aaca','#b9c6ce':'#6e9dbd','#eee4c7':'#ffe7a2','#ad8e62':'#ca8236',
+ '#8daaac':'#5495b6','#89babe':'#47b8cb','#d0b384':'#e0a458','#8caaac':'#438bad',
+ '#b55d42':'#d86630','#bd9a6a':'#ca8a47','#ece8d2':'#eff9df','#acc7d3':'#6bacd2',
+ '#cad9d9':'#96dbeb','#9ebbc8':'#66a5ce','#adbc99':'#6ea962','#86a594':'#39a787',
+ '#7b9479':'#558953','#9fc3a2':'#72ba72','#c2ded6':'#90eadb','#c7a471':'#dda04a',
+ '#d8c698':'#f5d17a','#e3d4b5':'#ffe3a1','#aa8061':'#bb713e','#b6926b':'#d99544',
+ '#d4c39d':'#ecc76d','#d4cbae':'#e4dfab','#9aacb0':'#6c99c0','#b1c6c8':'#79bcca',
+ '#b9bf9b':'#80ac6b','#adad82':'#8ca456','#c5a877':'#e6b455','#b6a786':'#c09b57'
+};
+function celObject(body,kind,id) {
+ const coloured=body.replace(/#[0-9a-f]{6}/gi,c=>CEL[c.toLowerCase()]||c);
+ const mask=coloured.replace(/fill="(?!none)[^"]*"/g,'fill="#ffffff"').replace(/stroke="(?!none)[^"]*"/g,'stroke="#ffffff"');
+ const name='cel-'+kind+'-'+id;
+ return P('M12 28l16-16h73l15 15v75l-15 14H28l-16-16z','#e9f1f3','#a8bdc9',1.8)+P('M13 63l50-50H29L13 29z','#ffffff','none')+`<defs><mask id="${name}" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">${mask}</mask></defs>`+coloured+`<g mask="url(#${name})">`+P('M0 99L128 37V128H0z','#1d356338','none')+P('M0 10H128L0 99z','#ffffff16','none')+'</g>'+L('M17 101l12 10h26M94 17h7l10 10','#718fa5',1.8);
+}
+for (const [id,body] of Object.entries(gear)) gear[id]=celObject(body,'gear',id);
+for (const [id,body] of Object.entries(material)) material[id]=celObject(body,'material',id);
+Object.assign(skill,SKILL_ART);
 export const ART = { gear, material, skill, mod, monster, zone, job };
 export function hasArt(kind, id) { return !!ART[kind]?.[id]; }
 export function art(kind, id, className = '') {
   const body = ART[kind]?.[id];
   if (!body) throw new Error('Missing authored artwork: ' + kind + '/' + id);
-  return '<span class="art art-' + kind + ' ' + className + '" data-art="' + kind + '/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + (kind === 'zone' || kind === 'mod' ? '' : shadow) + body + '</svg></span>';
+  return '<span class="art art-' + kind + ' ' + className + '" data-art="' + kind + '/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + (['zone','mod','gear','material','skill'].includes(kind) ? '' : shadow) + body + '</svg></span>';
 }
+

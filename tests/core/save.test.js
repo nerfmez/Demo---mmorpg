@@ -48,3 +48,14 @@ test('export codes round-trip (Thai names included) and bad codes are refused', 
   assert.equal(save.importCode('not a code', 2), false);
   assert.equal(save.loadSlot(2), null);
 });
+
+
+test('published previews isolate all writes, deletes and legacy migration from main saves',async()=>{
+ store.clear();const main=createCharacter(data,{name:'Main'});save.writeSlot(1,main);const before=store.get('frontier.slot.1');
+ globalThis.location={pathname:'/Demo---mmorpg/lab/'};
+ const preview=await import('../../src/save.js?balance-preview-test');delete globalThis.location;
+ assert.ok(preview.IS_PREVIEW);assert.equal(preview.loadSlot(1),null);
+ assert.ok(preview.importCode(save.exportCode(1),1));const copy=preview.loadSlot(1).character;copy.name='Preview';preview.writeSlot(1,copy);
+ assert.equal(save.loadSlot(1).character.name,'Main');assert.equal(preview.loadSlot(1).character.name,'Preview');
+ preview.deleteSlot(1);assert.equal(store.get('frontier.slot.1'),before);assert.equal(preview.migrateLegacy(),false);
+});

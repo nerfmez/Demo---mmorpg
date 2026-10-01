@@ -1,5 +1,8 @@
 // Shared actual-input regression for category views, Job gates and touch gestures.
 import assert from 'node:assert/strict';
+import {loadData} from '../../src/core/data-node.js';
+import {jobNodeState} from '../../src/core/character.js';
+const data=loadData();
 
 export async function verifyPassiveGestures(page, {context, engineName, capture = async () => {}}) {
   await page.evaluate(() => {
@@ -40,6 +43,8 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), 18);
   await jump('v2');
   await tap('[data-act="take-node"]');
+  await jump('m_atk');
+  await tap('[data-act="take-node"]');
   await jump('vj');
   await tap('[data-act="take-node"]');
   assert.ok(await page.evaluate(() => window.__frontier.game.ch.jobNodes.includes('vj')));
@@ -47,15 +52,18 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   assert.ok(await page.locator('[data-act="take-node"]').isDisabled(), 'second Job stays blocked across categories');
   await jump('v9');
   assert.ok(await page.locator('[data-act="take-node"]').isDisabled(), 'stage IV stays locked before enough earlier-tier investment');
-  assert.match(await page.locator('.journal-tier-status').innerText(), /1\/3/, 'tier panel shows invested/required earlier-stage points');
-  const points = await page.evaluate(() => window.__frontier.game.ch.jobPoints);
-  await jump('v3');
-  await tap('[data-act="take-node"]');
-  await jump('v7');
-  await tap('[data-act="take-node"]');
+  assert.match(await page.locator('.journal-tier-status').innerText(), /4\/17/, 'major group counts total investment');
+  const candidates=Object.entries(data.jobtree.nodes).filter(([,n])=>n.category==='melee'||(n.category==='specialist'&&(n.requiresJob||n.branch)==='vanguard'));
+  while(true){
+    const ch=await page.evaluate(()=>window.__frontier.game.ch);
+    if(ch.jobNodes.length-1>=17)break;
+    const id=jobNodeState(ch,data,'v7').can?'v7':candidates.find(([id])=>id!=='v9'&&jobNodeState(ch,data,id).can)?.[0];
+    assert.ok(id,'a connected investment exists before section IV');
+    await jump(id);await tap('[data-act="take-node"]');
+  }
   await jump('v9');
-  assert.ok(await page.locator('[data-act="take-node"]').isEnabled(), 'stage IV unlocks after enough points in earlier stages');
-  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), points - 2, 'only actual node allocation spends points');
+  assert.ok(await page.locator('[data-act="take-node"]').isEnabled(), 'major section and connected path are both ready');
+  assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),2,'17 real allocations spend 17 points');
 
   const before = await page.evaluate(() => JSON.stringify(window.__frontier.game.ch.jobNodes));
   const selected = await page.evaluate(() => window.__frontier.panels.sel.node);
@@ -97,3 +105,4 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   await tap('[data-act="close-journal"]');
   assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
 }
+

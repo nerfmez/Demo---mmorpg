@@ -1,8 +1,10 @@
 // Local saves (this browser only): 3 slots, each one character with its progress and
 // position. Every read/write is guarded: private mode or blocked storage just means no save,
 // never a crash. Export/import codes let a save move between browsers or devices.
-const PREFIX = 'frontier.slot.';
-const LAST = 'frontier.lastSlot';
+// A published branch under /lab/ must never migrate or overwrite the main game's save.
+export const IS_PREVIEW = typeof location !== 'undefined' && /\/lab(?:\/|$)/.test(location.pathname);
+const PREFIX = IS_PREVIEW ? 'frontier.preview.slot.' : 'frontier.slot.';
+const LAST = IS_PREVIEW ? 'frontier.preview.lastSlot' : 'frontier.lastSlot';
 const LEGACY = 'frontier-demo.save.v1';
 export const SLOT_COUNT = 3;
 
@@ -31,6 +33,7 @@ const remove = (k) => {
 
 /** Move the single save from the first demo into slot 1 (once). */
 export function migrateLegacy() {
+  if (IS_PREVIEW) return false;
   const raw = read(LEGACY);
   if (!raw || read(PREFIX + 1)) return false;
   try {

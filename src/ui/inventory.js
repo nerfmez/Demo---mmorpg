@@ -2,7 +2,8 @@
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { gearItem, gearStats, weaponImplicit, meetsRequires } from '../core/character.js';
-import { gearUpgradeCost, modUpgradeCost, canAfford } from '../core/crafting.js';
+import { gearUpgradeCost, gearUpgradeState, gearUpgradePreview, gearGradeState, modUpgradeCost } from '../core/crafting.js';
+import { gradeBadge, optionList, upgradeTrack, stateText } from './progressionview.js';
 import { rulesHtml } from './buildmeta.js';
 import { modSlotOf } from '../core/skills.js';
 
@@ -31,7 +32,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
   let list = [];
   if (category === 'gear') list = ch.gear.filter((it) => sel.gear === 'all' || data.items.gearBases[it.base].slot === sel.gear).map((it) => {
     const base = data.items.gearBases[it.base];
-    return { id: String(it.uid), name: base.nameTh, graphic: art('gear',it.base), badge: it.grade + (it.upgrade ? ' · +'+it.upgrade : ''), color: data.items.grades.colors[it.grade], equipped: ch.equipped[base.slot] === it.uid, item: it };
+    return { id: String(it.uid), name: base.nameTh, graphic: art('gear',it.base), badge: it.grade + (it.upgrade ? ' · +'+it.upgrade : ''), grade: it.grade, color: data.items.grades.colors[it.grade], equipped: ch.equipped[base.slot] === it.uid, item: it };
   });
   if (category === 'materials') list = mats.map(([id, count]) => {
     const m = data.items.materials[id];
@@ -69,10 +70,15 @@ export function inventoryView(ui, { costHtml, effectText }) {
         ? `<span class="equipped-label">✓ สวมใส่อยู่</span>${base.slot !== 'weapon' ? `<button class="btn" data-act="unequip" data-slot="${base.slot}">ถอดอุปกรณ์</button>` : ''}`
         : `<button class="btn primary" data-act="equip-gear" data-uid="${it.uid}" ${req.ok ? '' : 'disabled'}>สวมใส่</button>`;
       if (up) {
-        content += `<div class="upgrade-cost"><small>ตีบวกเป็น +${it.upgrade + 1}</small><div class="cost">${costHtml(ch, data, up)}</div></div>`;
-        actions += `<button class="btn" data-act="gear-up" data-uid="${it.uid}" ${near.workbench && canAfford(ch, up) ? '' : 'disabled'}>ตีบวก</button>`;
+        const state = gearUpgradeState(ch,data,it), preview = gearUpgradePreview(data,it);
+        const changes = Object.keys(preview.after).filter(k=>preview.after[k]!==preview.before[k]).map(k=>`${effectText(k,preview.before[k])} → ${preview.after[k]}`).join(' · ');
+        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${upgradeTrack(data.items.upgrade.requiresLevel,it.upgrade,'+')}<p>${changes}</p><small>สำเร็จแน่นอน · ออฟชั่นเดิมอยู่ครบ</small><p class="${state.ok?'ok':'no'}">${stateText(state)}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
+        actions += `<button class="btn" data-act="gear-up" data-uid="${it.uid}" ${near.workbench && state.ok ? '' : 'disabled'}>ตีบวก +${it.upgrade+1}</button>`;
         if (!near.workbench) content += '<p class="muted">ตีบวกได้ที่โต๊ะคราฟต์ในนิคม</p>';
       }
+      const grade = gearGradeState(ch,data,it);
+      content += `<section class="grade-promotion"><h4>เกรด ${gradeBadge(data,it.grade,it.options.length)}</h4>${grade.cost?`<p>${it.grade} → ${grade.grade} · เพิ่มเป็น ${data.items.grades.optionCount[grade.grade]} ออฟชั่น</p><small>เก็บออฟชั่นเดิม และสุ่มเพิ่มจากสายของไอเทมนี้</small><p class="${grade.ok?'ok':'no'}">${stateText(grade)}</p><div class="cost">${costHtml(ch,data,grade.cost)}</div>`:'<p>เกรดสูงสุด · 3 ออฟชั่น</p>'}</section>`;
+      if (grade.cost) actions += `<button class="btn" data-act="gear-grade" data-uid="${it.uid}" ${near.workbench&&grade.ok?'':'disabled'}>เลื่อนเกรด ${grade.grade}</button>`;
     } else if (category === 'materials') {
       const uses = Object.values(data.recipes.recipes).filter((r) => r.cost[selected.id]).map((r) => (data.items.gearBases[r.result] || data.skills.combat[r.result] || data.skills.movement[r.result] || data.mods.mods[r.result])?.nameTh).filter(Boolean);
       const sources = Object.entries(data.monsters.monsters).filter(([,m]) => m.drops.some((d) => d.item === selected.id)).map(([id,m]) => `<span class="source-creature">${art('monster',id)}<span>${m.nameTh}</span></span>`);
@@ -94,7 +100,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
     <div class="inventory-tabs">${categories.map(([id, label, count]) => `<button class="btn ${id === category ? 'on' : ''}" data-act="inventory-category" data-id="${id}" aria-pressed="${id === category}">${label}<span>${count}</span></button>`).join('')}</div>
     </div><div class="inventory-layout"><div class="inventory-list">
     ${category === 'gear' ? `<div class="switch inventory-filter">${FILTERS.map(([id, label]) => `<button class="btn small ${sel.gear === id ? 'on' : ''}" data-act="gear-filter" data-id="${id}">${label}</button>`).join('')}</div>` : ''}
-    <div class="item-grid">${list.map((it) => `<button class="item-tile ${it.id === selected?.id ? 'on' : ''}" style="--item-color:${it.color}" data-act="inspect-item" data-id="${it.id}" aria-pressed="${it.id === selected?.id}" aria-label="${esc(it.name)}${it.equipped ? ' · สวมอยู่' : ''}"><span class="item-badge">${it.badge}</span>${it.graphic}<b>${esc(it.name)}</b>${it.equipped ? '<span class="item-equipped">✓</span>' : ''}</button>`).join('')}</div>
+    <div class="item-grid">${list.map((it) => `<button class="item-tile ${it.id === selected?.id ? 'on' : ''} ${it.grade?'grade-'+it.grade:''}" style="--item-color:${it.color}" data-act="inspect-item" data-id="${it.id}" aria-pressed="${it.id === selected?.id}" aria-label="${esc(it.name)}${it.equipped ? ' · สวมอยู่' : ''}"><span class="item-badge">${it.badge}</span>${it.graphic}<b>${esc(it.name)}</b>${it.grade?gradeBadge(data,it.grade,it.item.options.length,true):''}${it.equipped ? '<span class="item-equipped">✓</span>' : ''}</button>`).join('')}</div>
     <p class="muted inventory-caption">${list.length ? 'แตะไอเทมเพื่อดูรายละเอียด' : 'ไม่มีไอเทมในหมวดนี้'}</p></div>
     <aside class="item-detail" aria-label="รายละเอียดไอเทม"><button class="btn detail-back" data-act="inventory-back">← กลับไปเลือกของ</button>${detail}</aside></div></div>`;
 }

@@ -3,7 +3,7 @@
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 2;
+export const CHARACTER_VERSION = 3;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -31,6 +31,7 @@ export function createCharacter(data, opts = {}) {
     jobExp: 0,
     jobPoints: 0,
     jobNodes: [data.jobtree.origin],
+    treeRevision: data.jobtree.revision,
     gold: st.gold,
     materials: {},
     gear: [],
@@ -51,14 +52,14 @@ export function createCharacter(data, opts = {}) {
   for (const baseId of startGear) {
     const base = data.items.gearBases[baseId];
     if (!base) continue;
-    const item = { uid: ch.nextUid++, base: baseId, grade: 'B', upgrade: 0, options: [] };
+    const item = { uid: ch.nextUid++, base: baseId, grade: 'C', upgrade: 0, options: [] };
     ch.gear.push(item);
     ch.equipped[base.slot] = item.uid;
   }
   return ch;
 }
 
-/** Bring an older save up to date (v1 -> v2). Never throws on missing fields. */
+/** Bring older saves up to date. Rebalance migration is one-time and preserves ownership. */
 export function migrateCharacter(ch, data) {
   if (!ch || typeof ch !== 'object') return null;
   const slots = data.items.slots || ['weapon', 'armor'];
@@ -83,12 +84,31 @@ export function migrateCharacter(ch, data) {
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
   if (!ch.kit) ch.kit = 'sword';
+  ch.skills = ch.skills || { ...data.progression.start.skills };
   if (!ch.skills.hunter_shot) ch.skills.hunter_shot = 1;
   // drop references to things that no longer exist
   ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });
   ch.mods = (ch.mods || []).filter((m) => data.mods.mods[m.id]);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
+  if ((ch.version || 1) < 3) {
+    for (const item of ch.gear) {
+      for (const option of item.options || []) {
+        const old = data.items.legacyOptionRanges?.[option.id], def = data.items.gearOptions[option.id];
+        if (!old || !def) continue;
+        const quality = old.max === old.min ? 1 : Math.max(0, Math.min(1, (option.value - old.min) / (old.max - old.min)));
+        option.value = Math.round(def.min + quality * (def.max - def.min));
+      }
+      if (data.items.gearBases[item.base].starter && !item.options?.length) item.grade = 'C';
+    }
+  }
+  if (ch.treeRevision !== data.jobtree.revision) {
+    const spent = new Set((ch.jobNodes || []).filter(id => id !== data.jobtree.origin)).size;
+    ch.jobPoints = (ch.jobPoints || 0) + spent;
+    ch.jobNodes = [data.jobtree.origin];
+    ch.treeRevision = data.jobtree.revision;
+    ch.progress.balanceMigration = 'ปรับสมดุลใหม่: คืนแต้มต้นไม้ทั้งหมดฟรี เลือกเส้นทางและอาชีพใหม่ได้ อุปกรณ์ สกิล ม็อด และวัตถุดิบยังอยู่ครบ';
+  }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
@@ -150,19 +170,11 @@ export function meetsRequires(ch, requires = {}) {
 // ---------- Job Tree ----------
 
 export function jobTierProgress(ch, data, nodeId) {
-  const tree = data.jobtree;
-  const node = tree.nodes[nodeId];
-  if (!node) return { tier: 0, requires: 0, spent: 0, scope: [] };
-  const tier = node.tier || 0;
-  const requires = node.requiresSpent || 0;
-  if (!tier) return { tier, requires, spent: 0, scope: [] };
-  // Profession pages contain four independent choices; count only the selected branch.
-  const sameScope = ([, n]) =>
-    n.category === node.category &&
-    (node.category !== 'specialist' || n.group === node.group);
-  const scope = Object.entries(tree.nodes).filter(sameScope);
-  const spent = scope.filter(([id, n]) => n.tier < tier && ch.jobNodes.includes(id)).length;
-  return { tier, requires, spent, scope: scope.map(([id]) => id) };
+  const tree = data.jobtree, node = tree.nodes[nodeId];
+  const section = tree.sections?.[node?.section];
+  const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin);
+  const spent = new Set(ch.jobNodes.filter(id => scope.includes(id))).size;
+  return { tier: section?.tier || 0, requires: section?.requiresSpent || 0, spent, scope, section: node?.section };
 }
 
 export function jobNodeState(ch, data, nodeId) {
@@ -177,7 +189,7 @@ export function jobNodeState(ch, data, nodeId) {
   if (node.type === 'job') {
     if (ch.jobLevel < data.progression.job.jobChoiceLevel)
       return { can: false, reason: 'job_level', need: data.progression.job.jobChoiceLevel };
-    const other = ch.jobNodes.find((n) => tree.nodes[n].type === 'job');
+    const other = ch.jobNodes.find((n) => tree.nodes[n]?.type === 'job');
     if (other) return { can: false, reason: 'one_job', other };
   }
 
@@ -185,11 +197,9 @@ export function jobNodeState(ch, data, nodeId) {
   if (tier.tier && tier.spent < tier.requires)
     return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
 
-  // Old data without tier metadata still follows the original connected-graph rule.
-  if (!tier.tier) {
-    const linked = node.links.some((l) => ch.jobNodes.includes(l));
-    if (!linked) return { can: false, reason: 'not_linked' };
-  }
+  // Section unlock and network adjacency are independent requirements.
+  if (!node.links.some((l) => ch.jobNodes.includes(l)))
+    return { can: false, reason: 'not_linked' };
 
   if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
   return { can: true, tier: tier.tier, have: tier.spent, need: tier.requires };
@@ -203,53 +213,32 @@ export function allocateJobNode(ch, data, nodeId) {
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
 }
 
-/**
- * Suggested tier route for UI preview. It never mutates the real character.
- * Tiers are gates, not exclusive branches: the helper picks any currently
- * available lower-tier notes until the target's requirement is satisfied.
- */
+/** Shortest connected route for inspection. Section gates still require total investment;
+ * this helper never invents unrelated filler purchases or mutates the character. */
 export function jobPath(ch, data, target) {
-  const { nodes } = data.jobtree;
-  const wanted = nodes[target];
-  if (!wanted) return [];
+  const nodes = data.jobtree.nodes;
+  if (!nodes[target]) return [];
   if (ch.jobNodes.includes(target)) return [target];
-
-  const chosenJob = currentJob(ch, data)?.branch;
-  if (wanted.requiresJob && wanted.requiresJob !== chosenJob) return [];
-  if (wanted.type === 'job') {
-    if (ch.jobLevel < data.progression.job.jobChoiceLevel) return [];
-    const other = ch.jobNodes.find((id) => nodes[id].type === 'job');
-    if (other && other !== target) return [];
+  const job = currentJob(ch, data)?.branch;
+  const allowed = id => !nodes[id].requiresJob || nodes[id].requiresJob === job;
+  const queue = ch.jobNodes.filter(id => nodes[id]).map(id => [id]);
+  const seen = new Set(ch.jobNodes);
+  while (queue.length) {
+    const path = queue.shift();
+    for (const next of nodes[path.at(-1)].links) {
+      if (seen.has(next) || !allowed(next)) continue;
+      if (nodes[next].type === 'job' && (job || ch.jobLevel < data.progression.job.jobChoiceLevel)) continue;
+      seen.add(next);
+      const route = [...path, next];
+      if (next === target) return route.filter(id => !ch.jobNodes.includes(id));
+      queue.push(route);
+    }
   }
-
-  const sim = { ...ch, jobNodes: [...ch.jobNodes], jobPoints: 9999 };
-  const path = [];
-  const sameScope = (n) =>
-    n.category === wanted.category &&
-    (wanted.category !== 'specialist' || n.group === wanted.group);
-
-  const candidates = Object.entries(nodes)
-    .filter(([id, n]) => id !== target && !sim.jobNodes.includes(id) && sameScope(n) && (n.tier || 0) < (wanted.tier || 0))
-    .sort(([a, x], [b, y]) => (x.tier || 0) - (y.tier || 0) || a.localeCompare(b));
-
-  let guard = 0;
-  while (jobNodeState(sim, data, target).reason === 'tier_points' && guard++ < nodes.length) {
-    const available = candidates.filter(([id]) => jobNodeState(sim, data, id).can)
-      .sort(([a, x], [b, y]) => (y.tier || 0) - (x.tier || 0) || a.localeCompare(b));
-    const next = available[0];
-    if (!next) return [];
-    const [id] = next;
-    allocateJobNode(sim, data, id);
-    path.push(id);
-    const at = candidates.findIndex(([candidate]) => candidate === id);
-    if (at >= 0) candidates.splice(at, 1);
-  }
-
-  return jobNodeState(sim, data, target).can ? [...path, target] : [];
+  return [];
 }
 
 export function currentJob(ch, data) {
-  const id = ch.jobNodes.find((n) => data.jobtree.nodes[n].type === 'job');
+  const id = ch.jobNodes.find((n) => data.jobtree.nodes[n]?.type === 'job');
   return id ? data.jobtree.nodes[id] : null;
 }
 
@@ -292,7 +281,6 @@ export function gearStats(item, data) {
   const mult = g.statMult[item.grade] * (1 + item.upgrade * data.items.upgrade.statPerLevel);
   const out = {};
   for (const k in base.stats) out[k] = Math.round(base.stats[k] * mult * 10) / 10;
-  for (const k in out) if (Math.abs(out[k]) >= 3) out[k] = Math.round(out[k]);
   for (const o of item.options) {
     const stat = data.items.gearOptions[o.id].stat;
     out[stat] = (out[stat] || 0) + o.value;
@@ -345,8 +333,8 @@ export function gearLook(ch, data) {
 export function derive(ch, data) {
   const pc = data.progression.character;
   const d = {
-    attack: 0,
-    magic: 0,
+    attack: pc.base.attack || 0,
+    magic: pc.base.magic || 0,
     defense: 0,
     maxHp: 0,
     maxMp: 0,
@@ -394,19 +382,23 @@ export function derive(ch, data) {
     for (const k in imp) add(k, imp[k]);
   }
   for (const n of ch.jobNodes) {
-    const eff = data.jobtree.nodes[n].effects;
+    const eff = data.jobtree.nodes[n]?.effects || {};
     for (const k in eff) add(k, eff[k]);
   }
   const base = pc.base;
+  const soft = pc.softCaps;
+  for (const stat of soft?.stats || []) if (d[stat] > soft.threshold)
+    d[stat] = soft.threshold + (d[stat] - soft.threshold) * soft.overflowFactor;
+  for (const [stat, limit] of Object.entries(pc.caps || {}))
+    d[stat] = limit < 0 ? Math.max(d[stat], limit) : Math.min(d[stat], limit);
   d.maxHp = Math.round((base.hp + base.hpPerLevel * (ch.level - 1) + base.hpPerVit * ch.stats.VIT + d.maxHp) * (1 + d.maxHpPct / 100));
   d.maxMp = Math.round((base.mp + base.mpPerLevel * (ch.level - 1) + base.mpPerInt * ch.stats.INT + d.maxMp) * (1 + d.maxMpPct / 100));
-  d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * 0.08;
+  d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
-  d.cooldownPct = Math.min(d.cooldownPct, 40);
-  d.critChance = Math.min(d.critChancePct, 60) / 100;
+  d.critChance = d.critChancePct / 100;
   d.critMult = pc.critMult;
-  d.attack = Math.round(d.attack);
-  d.magic = Math.round(d.magic);
+  d.attack = Math.round(d.attack * 10) / 10;
+  d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);
   const w = gearItem(ch, ch.equipped.weapon);
   d.weaponType = w ? data.items.gearBases[w.base].weaponType : 'none';

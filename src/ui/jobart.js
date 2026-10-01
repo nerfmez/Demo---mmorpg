@@ -85,3 +85,12 @@ Object.assign(JOB_ART, {
  mov_speed:group(arrow,'translate(-1 4) scale(.88)')+line('M10 18h33M8 34h17','#b4d2c0',5),
  mov_cd:group(ring,'translate(7 7) scale(.88)')+group(arrow,'translate(51 59) scale(.43)'),
 });
+
+
+// The extended profession exercises use their effect illustration and visible section marks.
+const practiceArt={vanguard:[blade,shield,shield,blade,drop,shield],arcanist:[star,drop,drop,ring,eye,shield],warden:[cross,shield,cross,paw,ring,drop],ranger:[arrow,arrow,eye,ring,cross,eye]};
+const practiceColours={vanguard:'#ea9b51',arcanist:'#9480e4',warden:'#58bf93',ranger:'#62bccc'};
+for(const [branch,illustrations] of Object.entries(practiceArt))for(let tier=2;tier<=6;tier++)for(let row=0;row<6;row++) {
+ const ticks=Array.from({length:tier-1},(_,i)=>circle(28+i*18,113,3.5,practiceColours[branch])).join('');
+ JOB_ART[`${branch}_t${tier}_${row+1}`]=circle(64,61,49,practiceColours[branch]+'22')+group(illustrations[row],`translate(${row-3} ${tier-3}) scale(.82) rotate(${(tier-2)*3+row} 64 64)`)+ticks;
+}

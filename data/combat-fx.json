@@ -1,5 +1,10 @@
 {
   "_doc": "Look of melee attacks, read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json; 'overrides' tweaks it for one monster (type.attack).",
+  "fireball": {
+    "outer": "#e83d19", "middle": "#ff9f20", "core": "#fff0a0",
+    "radius": 0.29, "tailLength": 1.55, "emberRate": 24,
+    "impactDuration": 0.36, "impactRadius": 1.0
+  },
   "weapons": {
     "sword": {"tip": 0.95, "base": 0.8, "life": 0.16, "minSpeed": 15, "fullSpeed": 60, "zone": 0.1, "dust": 0},
     "dagger": {"tip": 0.5, "base": 0.38, "life": 0.12, "minSpeed": 8, "fullSpeed": 30, "zone": 0.1, "dust": 0},

@@ -8,6 +8,7 @@ import { toon } from './toon.js';
 import { makeDecal, conform } from './decal.js';
 import { BladeTrail } from './trail.js';
 import FX from '../../data/combat-fx.json';
+import { makeFireball, animateFireball, fireballImpact } from './fireball.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -453,6 +454,7 @@ export class Vfx {
   }
 
   impact(e) {
+    if (e.kind === 'firebolt' && e.element === 'fire') return fireballImpact(this, e);
     const c = el(e.element);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
     this.fx.burst(e.x, y, e.z, 10, { color: c.dots, size: 0.28, speed: 4, life: 0.35, up: 0.8 });
@@ -753,6 +755,20 @@ export class Vfx {
   // ---------- persistent visuals synced to the game ----------
 
   syncProjectiles(game, dt, time) {
+    const cast = game.player.cast;
+    if (cast?.skill.id === 'firebolt' && cast.skill.element === 'fire') {
+      if (!this.fireCharge) {
+        this.fireCharge = makeFireball();
+        for (let i = 1; i < this.fireCharge.children.length; i++) this.fireCharge.children[i].visible = false;
+        this.scene.add(this.fireCharge);
+      }
+      const a = cast.aim.angle, p = game.player;
+      this.fireCharge.position.set(p.x + Math.sin(a) * 0.6, this.gy(p.x,p.z) + 1.05, p.z + Math.cos(a) * 0.6);
+      animateFireball(this.fireCharge, time, 0.15 + 0.85 * Math.min(1,cast.t / Math.max(0.001,cast.total)));
+    } else if (this.fireCharge) {
+      disposeObject(this.fireCharge);
+      this.fireCharge = null;
+    }
     const seen = new Set();
     for (const pr of game.projectiles) {
       seen.add(pr.id);
@@ -760,9 +776,12 @@ export class Vfx {
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
       const arrow = pr.kind === 'hunter_shot';
+      const fireball = pr.kind === 'firebolt' && element === 'fire';
       if (!v) {
-        v = new THREE.Group();
-        if (arrow) {
+        v = fireball ? makeFireball() : new THREE.Group();
+        if (fireball) {
+          v.userData.emberTime = 0;
+        } else if (arrow) {
           const ag = arrowGeometry();
           const shaft = new THREE.Mesh(ag.shaft, toon('#8a5c3a'));
           const tip = new THREE.Mesh(ag.tip, toon('#d8dbe2'));
@@ -779,6 +798,16 @@ export class Vfx {
       }
       const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       v.position.set(pr.x, y, pr.z);
+      if (fireball) {
+        v.rotation.y = Math.atan2(pr.vx, pr.vz);
+        animateFireball(v,time + pr.id * 0.13);
+        v.userData.emberTime += Math.min(dt,0.1);
+        while (v.userData.emberTime >= 1 / FX.fireball.emberRate) {
+          v.userData.emberTime -= 1 / FX.fireball.emberRate;
+          this.fx.add(pr.x-pr.vx/pr.speed*0.7,y,pr.z-pr.vz/pr.speed*0.7,-pr.vx/pr.speed,0.45,-pr.vz/pr.speed,{color:FX.fireball.middle,size:0.12,sizeEnd:0.02,life:0.3,drag:2});
+        }
+        continue;
+      }
       if (arrow) v.rotation.y = Math.atan2(pr.vx, pr.vz);
       else v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
       const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };

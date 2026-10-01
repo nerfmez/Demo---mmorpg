@@ -374,7 +374,11 @@ export function createEnvironment(world) {
   const lilyGeo = new THREE.CircleGeometry(0.4, 10, 0.3, Math.PI * 1.8);
   lilyGeo.rotateX(-Math.PI / 2);
   root.add(instanced(lilyGeo, toon('#5aa640'), d.lilies.map((l) => ({ x: l.x, z: l.z, y: world.waterLevel + 0.03, s: l.s, ry: l.rot })), { shadow: false }));
-  root.add(instanced(fernGeometry(), mat('#4f9a3a', { double: true, wind: 0.12 }), d.ferns.map((f) => ({ x: f.x, z: f.z, y: gy(f.x, f.z), s: f.s, ry: f.rot })), { shadow: false }));
+  const fernMat=patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12});
+  const fernCompile=fernMat.onBeforeCompile;
+  fernMat.onBeforeCompile=(s,r)=>{fernCompile.call(fernMat,s,r);s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');};
+  fernMat.customProgramCacheKey=()=> 'ground-ferns-v1';
+  root.add(instanced(fernGeometry(),fernMat,d.ferns.map((f)=>({x:f.x,z:f.z,y:gy(f.x,f.z)-.015,s:f.s,ry:f.rot})),{shadow:false}));
   const stems = [];
   const caps = [];
   for (const m of d.mushrooms) {
@@ -439,24 +443,25 @@ export function createEnvironment(world) {
 
 
 function fernGeometry() {
-  const pos = [];
-  const n = 6;
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2;
-    const dx = Math.sin(a);
-    const dz = Math.cos(a);
-    const px = Math.cos(a) * 0.09;
-    const pz = -Math.sin(a) * 0.09;
-    // a leaf: base, two mid points, arching tip
-    pos.push(0, 0.02, 0, dx * 0.35 + px, 0.3, dz * 0.35 + pz, dx * 0.35 - px, 0.3, dz * 0.35 - pz);
-    pos.push(dx * 0.35 + px, 0.3, dz * 0.35 + pz, dx * 0.7, 0.18, dz * 0.7, dx * 0.35 - px, 0.3, dz * 0.35 - pz);
+  const positions=[],colors=[],normals=[];
+  const dark=new THREE.Color(animeConfig.palette.groundDark),light=new THREE.Color(animeConfig.palette.groundLight);
+  const vertex=(p,t)=>{positions.push(...p);normals.push(0,1,0);const c=dark.clone().lerp(light,t);colors.push(c.r,c.g,c.b);};
+  for(let frond=0;frond<6;frond++){
+    const angle=frond*2.39996,dx=Math.sin(angle),dz=Math.cos(angle),px=dz,pz=-dx;
+    const point=(t,side=0)=>[dx*t*.66+px*side,.025+Math.sin(t*Math.PI*.75)*.43,dz*t*.66+pz*side];
+    for(let i=1;i<=7;i++){
+      const t=i/8,width=Math.sin(t*Math.PI)*(.13-frond*.004);
+      for(const side of [-1,1]){
+        const root=point(t-.055),shoulder=point(t+.045,width*.45*side),tip=point(t+.014,width*side),back=point(t-.015,width*.46*side);
+        vertex(root,.25);vertex(shoulder,.53);vertex(tip,.81);
+        vertex(root,.25);vertex(tip,.81);vertex(back,.43);
+      }
+      const a=point(t-.12,-.006),b=point(t-.12,.006),c=point(t,.006),d=point(t,-.006);
+      for(const p of [a,b,c,a,c,d])vertex(p,.39);
+    }
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  const nrm = [];
-  for (let i = 0; i < pos.length / 3; i++) nrm.push(0, 1, 0);
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  return g;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;
 }
 
 function pillarGeometry(h, broken = false) {

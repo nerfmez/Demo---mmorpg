@@ -47,6 +47,7 @@ export function outlineMaterial(color = '#2a2230', width = 0.018) {
       .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * outlineWidth;');
   };
   m.customProgramCacheKey = () => `outline-${width}`;
+  m.userData.outlineWidth = width;
   outlineCache.set(key, m);
   return m;
 }

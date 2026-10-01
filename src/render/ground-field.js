@@ -32,3 +32,36 @@ vec2 meadowField(vec2 w){
   return vec2((.15+cover*.85)*(1.0-worn*.86),worn);
 }
 `;
+
+// ---------- baked low-frequency fields ----------
+// The painted ground needs ~20 slowly varying value noises per pixel (meadow cover, wobbles,
+// broad tints). They are computed here once at load into three small RGBA textures (texels per
+// metre from art.ground.fieldTexels) and sampled with linear filtering, instead of re-hashed for
+// every fragment of the terrain and every grass blade. Same formulas as the GLSL they replace.
+// Channels: F0 meadow cover, worn, broad(.085), ochre(.47); F1 bare(.5), wobble(.42),
+// width(.11), paving(.38); F2 townTone(.21), bank(.42), shore(.21), sandySoil(.62).
+const noiseAt=(x,z,k,c)=>paintNoise(x*k+c,z*k+c);
+export function meadowFieldAt(x,z) {
+  const px=x+(paintNoise(x*.11+17,z*.11+17)-.5)*3.6;
+  const pz=z+(paintNoise(x*.11+43,z*.11+43)-.5)*3.6;
+  const cover=smooth(.36,.69,paintNoise(px*.19,pz*.19)*.72+paintNoise(px*.58+31,pz*.58+31)*.28);
+  const worn=smooth(.66,.80,paintNoise(px*.10+59,pz*.10+59));
+  return [(.15+cover*.85)*(1-worn*.86),worn];
+}
+export function bakeGroundFieldData(x0,z0,width,depth,texels) {
+  const w=Math.ceil(width*texels)+1,h=Math.ceil(depth*texels)+1,n=w*h;
+  const f=[new Uint8Array(n*4),new Uint8Array(n*4),new Uint8Array(n*4)];
+  const q=v=>Math.max(0,Math.min(255,Math.round(v*255)));
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+    const x=x0+i/texels,z=z0+j/texels,k=(j*w+i)*4,[cover,worn]=meadowFieldAt(x,z);
+    f[0][k]=q(cover);f[0][k+1]=q(worn);f[0][k+2]=q(noiseAt(x,z,.085,13));f[0][k+3]=q(noiseAt(x,z,.47,37));
+    f[1][k]=q(noiseAt(x,z,.5,91));f[1][k+1]=q(noiseAt(x,z,.42,71));f[1][k+2]=q(noiseAt(x,z,.11,33));f[1][k+3]=q(noiseAt(x,z,.38,57));
+    f[2][k]=q(noiseAt(x,z,.21,5));f[2][k+1]=q(noiseAt(x,z,.42,51));f[2][k+2]=q(noiseAt(x,z,.21,19));f[2][k+3]=q(noiseAt(x,z,.62,3));
+  }
+  return {width:w,height:h,data:f,rect:[x0,z0,(w-1)/texels,(h-1)/texels]};
+}
+export const GROUND_FIELD_GLSL=/* glsl */ `
+uniform sampler2D uField0,uField1,uField2;uniform vec4 uFieldRect;
+// half-texel inset so world coordinates land on texel centres of the baked grid
+vec2 fieldUV(vec2 w){vec2 size=vec2(textureSize(uField0,0));return ((w-uFieldRect.xy)/uFieldRect.zw*(size-1.0)+.5)/size;}
+`;

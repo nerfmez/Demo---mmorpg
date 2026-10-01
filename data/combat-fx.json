@@ -27,20 +27,22 @@
     "firebolt": {
       "element": "fire",
       "colors": {
-        "rim": "#dd431c",
-        "body": "#ff8826",
-        "hot": "#ffda4a",
-        "core": "#fff4ae"
+        "rim": "#f28328",
+        "body": "#ffb43d",
+        "hot": "#fff0a0",
+        "core": "#fffef4"
       },
       "cast": {
         "size": 0.55
       },
       "projectile": {
-        "length": 2.35,
+        "length": 3.0,
         "headRadius": 0.35,
-        "width": 0.96,
-        "trailRate": 70,
-        "trailLife": 0.25,
+        "glowRadius": 0.8,
+        "glowStrength": 0.3,
+        "width": 1.25,
+        "trailRate": 45,
+        "trailLife": 0.2,
         "trailSize": 0.32
       },
       "impact": {

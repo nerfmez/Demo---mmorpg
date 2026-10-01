@@ -52,6 +52,16 @@ try {
   for(const s of [warm,repeated]){
     assert.equal(s.casts,false);assert.equal(s.projectiles,0);assert.equal(s.particles,0);assert.equal(s.active,0);
   }
+  // Reference contrast check: the same rendered effect against the Lab's dark floor.
+  await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
+  await page.getByRole('button',{name:'มืด',exact:true}).click();
+  await page.getByRole('button',{name:'▾ ซ่อน',exact:true}).click();
+  await page.evaluate(()=>{window.__lab.cast();for(let i=0;i<22;i++)window.__lab.step(1/60);});
+  await page.screenshot({path:`${OUT}dark-travel.png`});
+  await page.evaluate(()=>{for(let i=0;i<120;i++)window.__lab.step(1/60);});
+  await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
+  await page.getByRole('button',{name:'ทราย',exact:true}).click();
+  await page.getByRole('button',{name:'▾ ซ่อน',exact:true}).click();
   await drain(1,{count:5,weapon:'none'});
   await page.screenshot({path:`${OUT}split-expired.png`});
   // Converted element takes the normal element renderer and does not retain fire.

@@ -1,5 +1,5 @@
-// Original procedural flame contours. One billboard for the moving body, one bounded
-// instanced pool for detached wisps, embers and smoke; no textures or paid assets.
+// Original flowing fire: hot circular core, domain-warped tongues and soft corona.
+// Shared billboards and a bounded wisp/ember/smoke pool; no copied textures/assets.
 import * as THREE from 'three';
 
 const NOISE = /* glsl */ `
@@ -39,17 +39,19 @@ export function flameMesh(cfg, mode = 0) {
     uniforms: { ...palette(cfg), uTime:{value:0}, uSeed:{value:0}, uScale:{value:1},
       uAlpha:{value:1}, uMode:{value:mode}, uVelocity:{value:new THREE.Vector3(0,1,0)},
       uLength:{value:cfg.projectile.length}, uWidth:{value:cfg.projectile.width},
-      uHeadRadius:{value:cfg.projectile.headRadius} },
+      uHeadRadius:{value:cfg.projectile.headRadius}, uHaloScale:{value:1},
+      uGlowRadius:{value:cfg.projectile.glowRadius}, uGlowStrength:{value:cfg.projectile.glowStrength} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      uniform vec3 uVelocity; uniform float uScale,uLength,uWidth,uMode;
-      varying vec2 vUv;
+      uniform vec3 uVelocity; uniform float uScale,uLength,uWidth,uMode,uHaloScale;
+      varying vec2 vUv; varying vec2 vLocal;
       void main(){
         vUv=uv;
         vec2 d=(viewMatrix*vec4(uVelocity,0.0)).xy;
         d=length(d)<0.001?vec2(0,1):normalize(d);
         vec2 p=vec2((uv.x-0.76)*uLength,(uv.y-0.5)*uWidth);
         if(uMode>0.5) p=(uv-0.5)*uWidth;
+        p*=uHaloScale; vLocal=p;
         vec4 mv=modelViewMatrix*vec4(0,0,0,1);
         mv.xy+=(d*p.x+vec2(-d.y,d.x)*p.y)*uScale;
         gl_Position=projectionMatrix*mv;
@@ -59,43 +61,76 @@ export function flameMesh(cfg, mode = 0) {
       ${NOISE} ${PALETTE}
       void main(){
         vec2 p=vUv;
+        vec2 q=(p-vec2(0.76,0.5))*vec2(uLength,uWidth);
         float t=uTime*6.0+uSeed;
-        float n=flow(vec2(p.x*8.0+t,p.y*5.0-t*0.24));
+        float age=clamp(-q.x/(uLength*0.72),0.0,1.0);
+        // Advected vector warp rolls the fire around negative spaces. The wake
+        // changes thickness, curls and breaks rather than retaining a strip shape.
+        vec2 adv=vec2(q.x*3.6+t*1.4,q.y*5.5-t*0.35);
+        vec2 warp=vec2(noise21(adv+17.0),noise21(adv-11.0))-0.5;
+        float n=flow(adv+warp*1.5);
+        float head=uHeadRadius-length(q);
         float d;
         if(uMode<0.5){
-          // Keep the bright leading head round in world units, independently of
-          // the long wake quad. Moving heat stays inside; tongues erode behind it.
-          float head=(1.0-length((p-vec2(0.76,0.5))*vec2(uLength,uWidth))/uHeadRadius)*0.35;
-          float x=clamp(p.x/0.76,0.0,1.0);
-          float bend=(flow(vec2(p.x*5.0+t*0.6,3.0+uSeed))-0.5)*0.36*(1.0-x);
-          float w=0.28*pow(x,0.75)*(1.0-smoothstep(0.72,0.92,p.x));
-          float wake=w-abs(p.y-0.5-bend)+(n-0.58)*0.19*(1.0-x);
-          float branchA=0.14*pow(x,0.8)-abs(p.y-0.64-bend*0.55)+(n-0.5)*0.11;
-          float branchB=0.11*pow(clamp((p.x-0.22)/0.54,0.0,1.0),0.8)
-            -abs(p.y-0.34-bend*0.8)+(n-0.5)*0.09;
-          float branches=max(branchA,branchB)*(1.0-smoothstep(0.69,0.84,p.x));
-          // Limit branches to their own tail intervals without an artificial end cap.
-          branches=min(branches,min(p.x-0.04,0.81-p.x));
-          d=max(head,max(wake,branches));
-          float gap=flow(vec2(p.x*13.0+t*1.4,p.y*9.0));
-          d-=smoothstep(0.66,0.86,gap)*0.11*(1.0-smoothstep(0.45,0.7,p.x));
+          float wake=0.20*(1.0-age*0.5)-abs(q.y+warp.y*0.45*age)
+                     +(n-0.45)*(0.25+0.5*age);
+          float holes=noise21(adv*1.7+warp+31.0);
+          wake-=smoothstep(0.55,0.78,holes)*(0.10+0.22*age);
+          wake=min(wake,min(-q.x,q.x+uLength*0.72));
+          wake=min(wake,uWidth*0.48-abs(q.y));
+          d=max(head,wake);
         } else {
-          vec2 q=(p-0.5)*2.0;
-          vec2 radial=q/max(length(q),0.001);
+          vec2 r=(p-0.5)*2.0;
+          vec2 radial=r/max(length(r),0.001);
           float lobes=flow(radial*2.8+vec2(uSeed,t*0.4));
-          d=(0.70+(lobes-0.5)*0.42-length(q))*0.58;
+          d=(0.70+(lobes-0.5)*0.42-length(r))*0.58;
         }
         float aa=max(fwidth(d),0.007);
         float alpha=smoothstep(-aa,aa,d)*uAlpha;
         if(alpha<0.01) discard;
-        float heat=max(0.0,d)*1.4+(n-0.5)*0.19;
-        gl_FragColor=vec4(flameColor(heat),alpha);
+        float heat=(max(0.0,d)*2.0+n*0.36)*(1.0-age*0.40);
+        vec3 col=flameColor(heat);
+        if(uMode<0.5){
+          // White-hot filled head; only a thin golden transition at its perimeter.
+          float hot=1.0-smoothstep(0.82,1.0,length(q)/uHeadRadius);
+          col=mix(col,mix(uHot,uCore,hot),smoothstep(-aa,aa,head));
+        }
+        gl_FragColor=vec4(col,alpha);
         #include <colorspace_fragment>
       }`,
   });
   const mesh = new THREE.Mesh(sharedQuad(),mat);
   mesh.frustumCulled = false;
   mesh.renderOrder = 6;
+  // Separate additive corona: emission remains bright on dark ground without
+  // bleaching the solid silhouette. Uniform references share the same clock,
+  // direction, scale and expiry as their owning body; disposal frees both mats.
+  const haloMat = new THREE.ShaderMaterial({
+    uniforms: { ...mat.uniforms, uHaloScale:{value:2.4} },
+    vertexShader: mat.vertexShader,
+    transparent:true, depthWrite:false, side:THREE.DoubleSide,
+    blending:THREE.AdditiveBlending,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uBody; uniform float uGlowRadius,uGlowStrength,uAlpha,uMode,uLength;
+      varying vec2 vLocal;
+      void main(){
+        float r=length(vLocal)/uGlowRadius;
+        float glow=exp(-r*r*4.5)*uGlowStrength;
+        if(uMode<0.5){
+          float trail=exp(-pow(vLocal.y/0.27,2.0))*0.04;
+          trail*=step(-uLength*0.72,vLocal.x)*step(vLocal.x,-0.12);
+          trail*=1.0-smoothstep(0.25,1.0,-vLocal.x/(uLength*0.72));
+          glow+=trail;
+        }
+        float a=glow*uAlpha;
+        if(a<0.002)discard;
+        gl_FragColor=vec4(uBody,a);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const halo=new THREE.Mesh(sharedQuad(),haloMat);
+  halo.frustumCulled=false; halo.renderOrder=4;
+  mesh.add(halo);
   return mesh;
 }
 
@@ -153,7 +188,7 @@ export class FlameParticles {
             float width=0.48*pow(clamp((1.0-p.y)*0.5,0.0,1.0),1.1);
             float tongue=width-abs(p.x+(n-0.5)*0.40);
             d=min(max(head,tongue),0.9-abs(p.y))+(n-0.5)*0.10;
-            col=flameColor(max(0.0,d)*0.8*(1.0-age));
+            col=flameColor((max(0.0,d)*2.4+0.17)*(1.0-age));
           }
           float aa=max(fwidth(d),0.008);
           float fade=(1.0-smoothstep(kind>1.5?0.25:0.55,1.0,age));

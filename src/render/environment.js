@@ -2,13 +2,14 @@
 // and standing on the terrain. Repeated props use chunked InstancedMesh (frustum culling per
 // chunk) so the demo stays light on iPad. Grass, flowers, reeds, ferns and canopies sway.
 import * as THREE from 'three';
+import art from '../../data/art.json' with {type:'json'};
 import { outlineStructure } from './architecture.js';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
 import {leafTexture,needleTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
-import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell} from './nature.js';
+import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
 import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
 import { attachGrassSurface, grassMaterial } from './grass.js';
 import { meadowPlants } from './meadow.js';
@@ -130,17 +131,22 @@ export function createEnvironment(world) {
   const greens = ['#f8f1d4', '#e8eddd', '#f8f5dc', '#ecf1de'];
   const palmTrunks = [];
   const palmFronds = [];
-  const PALM_LEAN = 0.2;
+  const palmShape = palmTrunk(), palmCoconuts = [];
   for (const c of world.circles.filter((q) => q.type === 'palm')) {
-    const s = c.scale * 0.9;
+    const s = c.scale * 0.95;
     const y = gy(c.x, c.z) - 0.1;
     palmTrunks.push({ x: c.x, z: c.z, y, s, ry: c.rot });
-    const tx = c.x + Math.sin(c.rot) * 5 * Math.sin(PALM_LEAN) * s;
-    const tz = c.z + Math.cos(c.rot) * 5 * Math.sin(PALM_LEAN) * s;
-    const ty = y + 5 * Math.cos(PALM_LEAN) * s;
-    for (let i = 0; i < 7; i++) {
-      const col = new THREE.Color(rng.pick(['#6f9650', '#7aa257', '#668c4a']));
-      palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.9, 1.1), ry: c.rot + (i / 7) * Math.PI * 2 + rng.range(-0.2, 0.2), color: `#${col.getHexString()}` });
+    // crown sits where the curved trunk ends, turned by the same ry as the trunk
+    const tx = c.x + Math.sin(c.rot) * palmShape.crown.z * s, tz = c.z + Math.cos(c.rot) * palmShape.crown.z * s;
+    const ty = y + palmShape.crown.y * s;
+    for (let i = 0, n = art.architecture.palm.fronds; i < n; i++) {
+      const col = new THREE.Color(rng.pick(['#ffffff', '#f1f6e8', '#e4eedb']));
+      palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.88, 1.12), ry: c.rot + (i / art.architecture.palm.fronds) * Math.PI * 2 + rng.range(-0.18, 0.18), color: `#${col.getHexString()}`, young: false });
+    }
+    for (let i = 0; i < 3; i++) palmFronds.push({ x: tx, z: tz, y: ty + .05, s: s * rng.range(.62, .75), ry: c.rot + i * 2.1 + .5, color: '#f4fbe8', young: true });
+    for (let i = 0; i < 4; i++) {
+      const a = c.rot + i * 1.57 + rng.range(-.3, .3);
+      palmCoconuts.push({ x: tx + Math.sin(a) * .26 * s, z: tz + Math.cos(a) * .26 * s, y: ty - .22 * s, s: s * rng.range(.9, 1.1), color: rng.pick(['#7c6a3a', '#8a7a3f', '#6f7a3a']) });
     }
   }
   const cloudTrees=[],cloudBirches=[];
@@ -225,20 +231,12 @@ export function createEnvironment(world) {
   const willowGeo = leafCrown(23);
   const willowMat=mat('#ffffff',{double:true,wind:.045,windBase:1.2,see:true});willowMat.map=leafTexture();willowMat.alphaTest=.45;willowMat.forceSinglePass=true;
   root.add(instanced(willowGeo,willowMat,willowLeaves.map(it=>({...it,ry:0})),{shadow:true}));
-  // palms: a leaning ringed trunk and drooping fronds
-  const palmGeo = new THREE.CylinderGeometry(0.16, 0.26, 5, 7, 5);
-  palmGeo.translate(0, 2.5, 0);
-  palmGeo.rotateX(PALM_LEAN);
-  root.add(instanced(palmGeo, mat('#8f7453'), palmTrunks, { outline: '#564132', outlineWidth: 0.027 }));
-  const frondGeo = new THREE.ConeGeometry(0.42, 3.2, 4, 3);
-  frondGeo.rotateX(Math.PI / 2);
-  frondGeo.scale(1, 0.18, 1);
-  frondGeo.translate(0, 0, 1.6);
-  // droop: bend the far end down
-  const fp = frondGeo.attributes.position;
-  for (let i = 0; i < fp.count; i++) fp.setY(i, fp.getY(i) + 0.35 * fp.getZ(i) - 0.22 * fp.getZ(i) * fp.getZ(i));
-  frondGeo.computeVertexNormals();
-  root.add(instanced(frondGeo, mat('#ffffff', { double: true, wind: 0.05, windBase: 0 }), palmFronds, { outline: '#3f5a36', outlineWidth: 0.02, wind: 0.05 }));
+  // palms: a curved, ringed trunk, arching leaflet fronds with young ones standing up, coconuts
+  root.add(instanced(palmShape.geometry, mat('#ffffff', { vertexColors: true }), palmTrunks, { outline: '#4f3d2e', outlineWidth: 0.024 }));
+  const frondMat = mat('#ffffff', { double: true, vertexColors: true, wind: 0.05, windBase: 0 });
+  root.add(instanced(palmFrond(art.architecture.palm.frondLength, art.architecture.palm.frondLift, art.architecture.palm.frondDroop), frondMat, palmFronds.filter((f) => !f.young), { outline: '#2f5230', outlineWidth: 0.016, wind: 0.05 }));
+  root.add(instanced(palmFrond(2.2, 1.5, .5), frondMat, palmFronds.filter((f) => f.young), { outline: '#2f5230', outlineWidth: 0.014, wind: 0.05 }));
+  root.add(instanced(new THREE.SphereGeometry(.17, 8, 6), mat('#ffffff'), palmCoconuts, { outline: '#3d3524', outlineWidth: 0.012 }));
 
   // ----- rocks, boulders, crystals, stumps, logs -----
   const rocks = [];

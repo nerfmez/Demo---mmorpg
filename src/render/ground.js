@@ -304,7 +304,7 @@ ${GROUND_COLOR_GLSL}`
 function seaMaterial(world, contacts) {
   const surf = world.data.sea.surf || {};
   const material=new THREE.ShaderMaterial({
-    uniforms: { uCrest:{value:new THREE.Vector4(surf.crestBend ?? 1.0,surf.crestWidth ?? .13,surf.crestLength ?? 12,surf.crestOpacity ?? .24)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)} },
+    uniforms: { uCrest:{value:new THREE.Vector4(surf.crestBend ?? 1.0,surf.crestWidth ?? .13,surf.crestLength ?? 12,surf.crestOpacity ?? .24)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)}, uSparkle:{value:new THREE.Vector4(surf.sparkleDensity ?? .03,surf.sparkleSize ?? .09,surf.sparkleScale ?? 1.4,surf.reflectionPatches ?? .06)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       attribute float depth; attribute float shore; attribute float beachWash;
@@ -312,7 +312,7 @@ function seaMaterial(world, contacts) {
       varying float vBeachWash;
       void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec4 uMotion; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact; uniform vec4 uCrest;
+      uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec4 uMotion; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact; uniform vec4 uCrest; uniform vec4 uSparkle;
       varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
       ${NOISE_GLSL}
       // Graphic anime water: a curved crest with finite rounded strokes.
@@ -340,7 +340,9 @@ function seaMaterial(world, contacts) {
         vec3 arc=portWave(p);
         float base=(p.y+uTime*uMotion.w/uSurf.z)/uMotion.w;
         float across=(arc.x-floor(base+.5))*uMotion.w;
-        float aa=max(fwidth(across),.035),ends=smoothstep(0.0,.12,1.0-abs(arc.y));
+        // anti-alias from the continuous phase: 'across' jumps by a whole spacing at the row seam,
+        // and its derivative there would smear a straight bright line along the seam
+        float aa=max(fwidth(base)*uMotion.w,.035),ends=smoothstep(0.0,.12,1.0-abs(arc.y));
         return vec2(1.0-smoothstep(arc.z*.45,arc.z+aa,abs(across)),
                     1.0-smoothstep(arc.z*.6,arc.z+aa,abs(across-.18)))*ends;
       }
@@ -406,8 +408,9 @@ function seaMaterial(world, contacts) {
         if(behind < -.14) discard;
         float cover=smoothstep(-.14,.12,behind);
         float d=max(0.0,vDepth);
-        vec3 col=mix(vec3(.22,.48,.46),vec3(.10,.34,.41),smoothstep(0.0,2.5,d));
-        col=mix(col,vec3(.06,.24,.34),smoothstep(2.0,7.0,d));
+        // clear turquoise over the shallows, a saturated cobalt in deep water
+        vec3 col=mix(vec3(.20,.56,.50),vec3(.07,.36,.46),smoothstep(0.0,2.5,d));
+        col=mix(col,vec3(.03,.19,.36),smoothstep(2.0,8.0,d));
         float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
         col+=(drift-.5)*.035;
         // Submerged light ripples deform independently and softly ebb in brightness.
@@ -420,6 +423,18 @@ function seaMaterial(world, contacts) {
           float lightPulse=.5+.5*sin(uTime*.8+vW.x*.16+vW.y*.11);
           col+=vec3(.022,.035,.028)*caustic*lightPulse*(1.0-smoothstep(.0,3.0,d));
         }
+        // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water
+        vec2 skyP=vW*.045+vec2(uTime*.010,uTime*.004);
+        float sky=smoothstep(.56,.60,vnoise(skyP+vec2(vnoise(vW*.11+uTime*.02),0.0)*.6));
+        col+=vec3(.05,.09,.10)*sky*uSparkle.w/.06*smoothstep(.6,2.5,d);
+        // sun glints: sparse four-point stars that twinkle in and out on the open water
+        vec2 gp=vW/uSparkle.z,gc=floor(gp),gl=fract(gp)-.5;
+        float gseed=hash12(gc+floor(uTime*.7+hash12(gc)*7.0)*13.1);
+        vec2 gq=gl-(vec2(hash12(gc+3.7),hash12(gc+9.1))-.5)*.6;
+        float twinkle=sin(fract(uTime*.7+hash12(gc)*7.0)*3.14159);
+        float star=max(1.0-smoothstep(.0,uSparkle.y,abs(gq.x)*.25+abs(gq.y)),1.0-smoothstep(.0,uSparkle.y,abs(gq.y)*.25+abs(gq.x)));
+        float glint=star*step(1.0-uSparkle.x,gseed)*twinkle*smoothstep(.8,2.5,d);
+        col=mix(col,vec3(1.0,.98,.90),clamp(glint,0.0,1.0)*.9);
         float jag=(vnoise(coast*1.6+vec2(uTime*.28,-uTime*.19))-.5)*.16;
         float rim=1.0-smoothstep(uSurf.w,uSurf.w+.07,abs(behind+jag));
         float foam=0.0,softFoam=0.0;

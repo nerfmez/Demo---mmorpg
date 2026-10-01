@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { builder, shopDoor, shopWindow, shopRoof, shopLantern, seeded } from './market.js';
 import { fromBoxLocal } from '../core/math.js';
+import art from '../../data/art.json' with {type:'json'};
+import { darker } from './toon.js';
 const C={wood:'#80644c',plank:'#a48660',dark:'#554f43',stone:'#a9aa98',rope:'#c0ae7f',leaf:'#74875c',metal:'#78857f'};
 // A laid stone footing, not a cut slab: its outline wanders inward a little, step by step, and
 // loose edge stones sit along it. Everything stays inside the w×d plot.
@@ -293,23 +295,47 @@ export function harborWorkProp(p,y){
   }
   const root=b.finish();root.position.set(p.x,y,p.z);root.rotation.y=p.angle;return root;
 }
+// A landmark tower that reads from across the bay: a rough stone footing, a tall tapered shaft in
+// alternating bands with moulded rings, staggered windows, a corbelled gallery with railing, a
+// glazed lantern room with a warm lamp and a domed cap with a vane. All within the 2 m collider.
 export function coastalLighthouse(world){
-  const b=builder(),{box,part}=b,h=world.data.harbor,[x,z]=h.lighthouse;
-  part(new THREE.CylinderGeometry(1.14,1.75,8.2,12),'#ede1c1',0,4.1,0);
-  part(new THREE.CylinderGeometry(1.36,1.43,1.05,12),h.lighthouseStyle.stripeColor,0,5.27,0);
-  part(new THREE.CylinderGeometry(1.64,1.66,.21,12),C.stone,0,8.23,0);
-  part(new THREE.CylinderGeometry(.94,.94,1.45,8),'#e9c779',0,9.06,0);
-  for(let i=0;i<8;i++){
-    const a=i*Math.PI/4,s=Math.sin(a),c=Math.cos(a);
-    box(.09,1.54,.09,C.metal,s*.97,9.07,c*.97);
-    box(.055,.55,.055,C.metal,s*1.49,8.62,c*1.49);
-    const na=a+Math.PI/4,nx=Math.sin(na)*1.49,nz=Math.cos(na)*1.49;
-    part(new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(s*1.49,8.89,c*1.49),new THREE.Vector3(nx,8.89,nz)),1,.033,5,false),C.metal);
+  const b=builder(),{box,part}=b,h=world.data.harbor,[x,z]=h.lighthouse,style=h.lighthouseStyle,L=art.architecture.lighthouse;
+  const white='#f1e8d2',stripe=style.stripeColor,top=L.height,rBase=1.62,rTop=1.02,radius=y=>rBase+(rTop-rBase)*(y/top);
+  part(new THREE.CylinderGeometry(1.92,1.98,.62,10),C.stone,0,.31,0);
+  for(let i=0;i<14;i++){const a=i/14*Math.PI*2+.2;part(new THREE.DodecahedronGeometry(.24+(i%3)*.04,0).scale(1.1,.7,1),'#8f9282',Math.sin(a)*1.78,.2,Math.cos(a)*1.78,0,a);}
+  const bands=L.bands;
+  for(let k=0;k<bands;k++){
+    const y0=.62+(top-.62)*k/bands,y1=.62+(top-.62)*(k+1)/bands;
+    part(new THREE.CylinderGeometry(radius(y1),radius(y0),y1-y0,16),k%2?stripe:white,0,(y0+y1)/2,0);
+    if(k)part(new THREE.CylinderGeometry(radius(y0)+.05,radius(y0)+.05,.09,16),darker(white,.82),0,y0,0);
   }
-  part(new THREE.ConeGeometry(1.39,1.12,8),h.lighthouseStyle.roofColor,0,10.30,0);
-  shopDoor(b,0,1.73,1.80);
-  box(1.18,.07,.23,C.stone,0,.035,1.77);
-  for(const yy of [3.15,6.77]){box(.54,.71,.04,C.wood,0,yy,yy>5?1.23:1.50);box(.36,.54,.06,'#70959a',0,yy,yy>5?1.24:1.51);}
+  // door with a stone surround and steps on the south face, small windows climbing round the shaft
+  shopDoor(b,0,radius(1)-.05,1.85);
+  box(1.5,.09,.2,C.stone,0,2.2,radius(2.2)+.02);
+  for(const [k,yy] of [[0,.08],[1,.2]])box(1.4-k*.25,.16,.5-k*.18,C.stone,0,yy,radius(.2)+.35-k*.1);
+  for(let k=0;k<4;k++){
+    const yy=3.4+k*2.05,a=k*1.15+.6,r=radius(yy)+.02;
+    box(.5,.72,.06,darker(white,.78),Math.sin(a)*r,yy,Math.cos(a)*r,0,a);
+    box(.34,.54,.06,'#5f8a92',Math.sin(a)*(r+.02),yy,Math.cos(a)*(r+.02),0,a);
+    box(.58,.08,.16,C.stone,Math.sin(a)*(r+.04),yy-.4,Math.cos(a)*(r+.04),0,a);
+  }
+  // gallery: corbels, deck, posts and rail
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2;box(.16,.42,.42,C.stone,Math.sin(a)*(rTop+.18),top-.2,Math.cos(a)*(rTop+.18),0,a);}
+  part(new THREE.CylinderGeometry(1.86,1.7,.22,16),C.stone,0,top+.11,0);
+  for(let i=0;i<20;i++){const a=i/20*Math.PI*2;box(.05,.62,.05,C.metal,Math.sin(a)*1.76,top+.53,Math.cos(a)*1.76);}
+  part(new THREE.TorusGeometry(1.76,.04,5,32),C.metal,0,top+.84,0,Math.PI/2);
+  part(new THREE.TorusGeometry(1.76,.025,4,32),C.metal,0,top+.52,0,Math.PI/2);
+  // lantern room: low wall, glowing lamp behind glass, mullions
+  part(new THREE.CylinderGeometry(1.0,1.04,.5,12),white,0,top+.47,0);
+  part(new THREE.CylinderGeometry(.92,.92,1.35,12),'#cfe7df',0,top+1.4,0);
+  part(new THREE.CylinderGeometry(.5,.5,.9,10),'#ffe08a',0,top+1.35,0);
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;box(.08,1.4,.08,C.metal,Math.sin(a)*.94,top+1.4,Math.cos(a)*.94);}
+  part(new THREE.CylinderGeometry(1.12,1.0,.16,12),C.metal,0,top+2.15,0);
+  part(new THREE.SphereGeometry(1.08,16,8,0,Math.PI*2,0,Math.PI/2).scale(1,.82,1),style.roofColor,0,top+2.2,0);
+  part(new THREE.SphereGeometry(.16,8,6),C.metal,0,top+3.14,0);
+  part(new THREE.ConeGeometry(.05,.6,6),C.metal,0,top+3.5,0);
+  box(.7,.05,.03,C.metal,.12,top+3.5,0);
+  part(new THREE.ConeGeometry(.08,.18,3),C.metal,.5,top+3.5,0,0,0,-Math.PI/2);
   const root=b.finish();root.position.set(x,world.groundY(x,z),z);return root;
 }
 export function districtScenery(world){

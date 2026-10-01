@@ -114,3 +114,43 @@ export function beachShell(kind = 'fan') {
  }
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g;
 }
+
+// Coconut palm, built along +Y and leaning toward +Z (instance ry turns the lean). The trunk is a
+// stack of short flared rings following a soft curve; vertex colour darkens each ring's foot and
+// lights its lip. Returns the geometry and the local crown position for placing fronds.
+export function palmTrunk(height=5.2,lean=1.25,rings=11) {
+  const parts=[],at=t=>new THREE.Vector3(0,height*t,lean*Math.pow(t,1.7));
+  const dark=new THREE.Color('#6f5640'),light=new THREE.Color('#b39672');
+  for(let i=0;i<rings;i++){
+    const t0=i/rings,t1=(i+1)/rings,a=at(t0),b=at(t1),dir=b.clone().sub(a),r=.27-.11*t0;
+    const g=new THREE.CylinderGeometry(r*1.05,r*.84,dir.length()*1.02,8,1,false);
+    const pos=g.attributes.position,col=[];
+    for(let k=0;k<pos.count;k++){const c=dark.clone().lerp(light,pos.getY(k)>0?.85:.15);col.push(c.r,c.g,c.b);}
+    g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize()));
+    g.translate((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);g.deleteAttribute('uv');parts.push(g);
+  }
+  const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
+  return {geometry,crown:at(1)};
+}
+// One arching frond along +Z: a midrib and paired, swept-back leaflets that taper to the tip.
+// Colour runs from a deep base to a sunlit tip; young fronds stand up, old ones droop.
+export function palmFrond(length=3.4,lift=1.0,droop=1.7) {
+  const positions=[],colors=[],normals=[];
+  const base=new THREE.Color('#4d8f45'),tip=new THREE.Color('#a8d873');
+  const spine=t=>[0,Math.sin(t*Math.PI*.55)*lift-t*t*droop,t*length];
+  const vertex=(p,t)=>{positions.push(...p);normals.push(0,1,0);const c=base.clone().lerp(tip,t);colors.push(c.r,c.g,c.b);};
+  const steps=16;
+  for(let i=1;i<steps;i++){
+    const t=i/steps,dt=1/steps,w=(.78*Math.pow(Math.sin(Math.PI*Math.min(1,t*1.08)),.7)+.08)*(1-t*.25);
+    const a=spine(t),b=spine(Math.min(1,t+dt*.8));
+    for(const side of [-1,1]){
+      const end=[side*w,a[1]-w*.38,a[2]-w*.32];
+      vertex(a,t*.8);vertex(b,t*.8+.05);vertex(end,Math.min(1,t+.25));
+    }
+    const m=spine(t-dt);
+    for(const p of [[-.03,m[1]+.02,m[2]],[.03,m[1]+.02,m[2]],[.03,a[1]+.02,a[2]],[-.03,m[1]+.02,m[2]],[.03,a[1]+.02,a[2]],[-.03,a[1]+.02,a[2]]])vertex(p,t*.6);
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;
+}

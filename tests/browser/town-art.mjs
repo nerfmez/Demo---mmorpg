@@ -17,7 +17,7 @@ try{
   await page.waitForFunction(()=>window.__frontier?.modelsReady&&window.__frontier.game.time>.2,null,{timeout:90000});
   await page.evaluate(()=>{window.__freeze=true;const f=window.__frontier;f.paused=true;f.input.disabled=true;f.game.time=12;
     document.querySelector('.banner')?.remove();for(const s of ['#hud','.hud','#ui'])document.querySelectorAll(s).forEach(e=>e.style.opacity=0);});
-  const scenes=[['01-homes',24,21,1.25],['02-fish-hall',49,27.5,1.25],['03-warehouses',139,-13,1.4],['04-shipyard-hull',136,90,1.4],['05-boats',43,47,1.25],['06-inn-street',98,-6,1.25],['07-gable-row',20,6.5,1.25],['08-overview',60,14,2.1],['09-overview-west',28,12,2.1]];
+  const scenes=[['01-homes',24,21,1.25],['02-fish-hall',49,27.5,1.25],['03-warehouses',139,-13,1.4],['04-shipyard-hull',136,90,1.4],['05-boats',43,47,1.25],['06-inn-street',98,-6,1.25],['07-gable-row',20,6.5,1.25],['08-overview',60,14,2.1],['09-overview-west',28,12,2.1],['10-lighthouse',19,132,1.5],['11-palms',-155,53,1.1],['12-bay-water',60,62,1.9]];
   for(const [name,x,z,zoom] of scenes){
     const state=await page.evaluate(([x,z,zoom])=>{
       const f=window.__frontier,g=f.game,v=f.view;Object.assign(g.player,g.freeSpotNear(x,z));g.player.facing=2.8;

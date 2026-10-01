@@ -13,10 +13,13 @@ const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
 const _base = new THREE.Vector3();
 const _tip = new THREE.Vector3();
+const _smoke = new THREE.Color();
+const _smokeCore = new THREE.Color();
+const SMOKE = new THREE.Color(0x3a3436);
 
 const ELEMENT = {
   physical: { core: 0xfff3c4, glow: 0xffc24a, dots: 0xffe08a },
-  fire: { core: 0xfff0b0, glow: 0xff7a2a, dots: 0xffa040 },
+  fire: { core: 0xfff0b0, glow: 0xff7a2a, dots: 0xffa040, rim: 0xff4a14, heat: 0xffd23c },
   cold: { core: 0xeaffff, glow: 0x58c8ff, dots: 0xa8e8ff },
   earth: { core: 0xf4e3c0, glow: 0xb08a5a, dots: 0xd8c09a },
   poison: { core: 0xeaffb0, glow: 0x86d13a, dots: 0xb6ec5a },
@@ -26,6 +29,9 @@ const ELEMENT = {
   none: { core: 0xeafff4, glow: 0x6fe0b0, dots: 0xb4ffe0 },
 };
 export const el = (e) => ELEMENT[e] || ELEMENT.physical;
+// the two flat tones of a cel-drawn shape (flame, flash, cut-out): outer rim and inner heat
+const rimOf = (c) => c.rim ?? c.glow;
+const heatOf = (c) => c.heat ?? c.core;
 const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch']);
 
 let glowTex = null;
@@ -195,20 +201,32 @@ function ringGeometry(inner = 0.86, outer = 1, segs = 56) {
 }
 
 export class Vfx {
-  constructor(scene, world) {
+  constructor(scene, world, camera = null) {
     this.scene = scene;
     this.world = world;
+    this.camera = camera; // used to aim screen-facing flame shapes along a path
     this.fx = new Particles(3200, { additive: true });
     this.dust = new Particles(900, { additive: false });
-    scene.add(this.fx.points, this.dust.points);
+    // solid two-tone cartoon shapes (flames, flashes, smoke): drawn under the additive glow
+    this.cel = new Particles(1200, { additive: false });
+    this.cel.points.renderOrder = 4;
+    scene.add(this.fx.points, this.dust.points, this.cel.points);
     this.active = []; // {obj, t, dur, update(k), keep?}
     this.projectiles = new Map();
     this.areas = new Map();
     this.telegraphs = new Map();
     this.discGeo = discGeometry();
     this.ringGeo = ringGeometry();
-    this.sharedGeo = new Set([this.discGeo, this.ringGeo]);
+    this.coneGeo = new THREE.ConeGeometry(1, 1, 5); // scaled per use (radius, height, radius)
+    this.sharedGeo = new Set([this.discGeo, this.ringGeo, this.coneGeo]);
     this.glow = glowTexture();
+    // one reused glow for a spell gathering at the hand or weapon tip (FX.skills[id].cast)
+    this.castFx = null;
+    this.castGlow = this.sprite(0xffffff, 1, 0.9);
+    this.castGlow.material.userData.shared = true;
+    this.castGlow.visible = false;
+    this.castGlow.renderOrder = 6;
+    scene.add(this.castGlow);
     this.shake = 0;
     this.trail = new BladeTrail(scene);
     this.swingCfg = null;
@@ -223,6 +241,7 @@ export class Vfx {
   setPointScale(h) {
     this.fx.uniforms.uScale.value = h * 0.9;
     this.dust.uniforms.uScale.value = h * 0.9;
+    this.cel.uniforms.uScale.value = h * 0.9;
   }
 
   spawn(obj, dur, update) {
@@ -284,6 +303,60 @@ export class Vfx {
     this.trail.update(dt, _base, _tip);
   }
 
+  /** A spell with a cast look (data/combat-fx.json 'skills') starts: light gathers for castTime. */
+  beginCast(e, element) {
+    const look = FX.skills[e.skill]?.cast;
+    if (!look) return;
+    const c = el(element);
+    this.castGlow.material.color.set(c.glow);
+    this.castFx = { look, c, t: 0, dur: Math.max(0.08, e.total), focus: !!FX.weapons[e.weapon]?.focus, weapon: e.weapon, spawned: 0 };
+  }
+
+  /** Where a spell gathers: a focus weapon's tip (staff, wand), otherwise the right hand. */
+  castPoint(rig, cf, out) {
+    const b = rig.bones;
+    if (cf.focus && b.weapon) {
+      b.weapon.updateWorldMatrix(true, false);
+      b.weapon.getWorldPosition(out);
+      b.weapon.getWorldDirection(_dir);
+      out.addScaledVector(_dir, FX.weapons[cf.weapon].tip);
+    } else if (b.handR) {
+      b.handR.updateWorldMatrix(true, false);
+      b.handR.getWorldPosition(out);
+    } else {
+      out.copy(rig.root.position);
+      out.y += 1.2;
+    }
+  }
+
+  updateCast(dt, rig) {
+    const cf = this.castFx;
+    if (!cf) return;
+    cf.t += dt;
+    const k = cf.t / cf.dur;
+    if (k >= 1 || !rig) {
+      this.castGlow.visible = false;
+      this.castFx = null;
+      return;
+    }
+    const L = cf.look;
+    this.castPoint(rig, cf, _p0);
+    this.castGlow.visible = true;
+    this.castGlow.position.copy(_p0);
+    this.castGlow.scale.setScalar(L.glow * (0.35 + 0.65 * k));
+    // sparks start on a sphere around the focus during the first 70% and arrive with the release
+    const due = Math.min(L.sparks, Math.ceil(L.sparks * Math.min(1, k / 0.7)));
+    for (; cf.spawned < due; cf.spawned++) {
+      const a = Math.random() * Math.PI * 2;
+      const b = (Math.random() - 0.5) * 1.4;
+      const ox = Math.sin(a) * Math.cos(b) * L.radius;
+      const oy = Math.sin(b) * L.radius;
+      const oz = Math.cos(a) * Math.cos(b) * L.radius;
+      const life = Math.max(0.06, (1 - k) * cf.dur);
+      this.fx.add(_p0.x + ox, _p0.y + oy, _p0.z + oz, -ox / life, -oy / life, -oz / life, { color: cf.c.dots, size: L.sparkSize, sizeEnd: L.sparkSize * 0.4, life, drag: 0, shape: L.sparkShape, spin: 8 });
+    }
+  }
+
   /**
    * The strike lands: the ground wedge is exactly the skill's hit area (range and arc), so it shows
    * where a hit can land. The light that follows the weapon itself is the blade trail.
@@ -339,14 +412,15 @@ export class Vfx {
         const r = e.radius * (0.55 + Math.random() * 0.35);
         const x = e.x + Math.sin(a) * r;
         const z = e.z + Math.cos(a) * r;
-        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.9 + Math.random() * 0.5, 5), matI);
+        const spike = new THREE.Mesh(this.coneGeo, matI);
+        spike.userData.len = 0.9 + Math.random() * 0.5;
         spike.position.set(x, this.gy(x, z) + 0.3, z);
         spike.rotation.set(Math.cos(a) * 0.5, 0, -Math.sin(a) * 0.5);
         group.add(spike);
       }
       this.spawn(group, 0.9, (t) => {
-        const s = t < 0.15 ? t / 0.15 : t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
-        group.children.forEach((sp) => sp.scale.setScalar(Math.max(0.01, s)));
+        const s = Math.max(0.01, t < 0.15 ? t / 0.15 : t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1);
+        group.children.forEach((sp) => sp.scale.set(0.16 * s, sp.userData.len * s, 0.16 * s));
       });
     }
   }
@@ -453,6 +527,8 @@ export class Vfx {
   }
 
   impact(e) {
+    const look = FX.skills[e.kind]?.impact;
+    if (look) return this.skillImpact(e, look);
     const c = el(e.element);
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
     this.fx.burst(e.x, y, e.z, 10, { color: c.dots, size: 0.28, speed: 4, life: 0.35, up: 0.8 });
@@ -462,6 +538,31 @@ export class Vfx {
       s.material.opacity = 0.9 * (1 - t);
       s.scale.setScalar(1.2 + t * 1.2);
     });
+  }
+
+  /** A projectile with an impact look lands: star flash, flame tongues, falling embers, cel smoke. */
+  skillImpact(e, L) {
+    const c = el(e.element);
+    const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
+    this.cel.add(e.x, y, e.z, 0, 0, 0, { color: rimOf(c), core: heatOf(c), size: L.flash, sizeEnd: L.flash * 1.25, life: L.dur, drag: 0, shape: L.flashShape, spin: 3 });
+    this.fx.add(e.x, y, e.z, 0, 0, 0, { color: c.glow, size: L.flash * 0.8, sizeEnd: L.flash * 0.3, life: L.dur * 0.8, drag: 0, shape: 'flare' });
+    for (let i = 0; i < L.flames; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = 1.5 + Math.random() * 2;
+      this.cel.add(e.x, y - 0.1, e.z, Math.sin(a) * v, 2 + Math.random() * 2, Math.cos(a) * v, { color: rimOf(c), core: heatOf(c), size: L.flameSize * (0.6 + Math.random() * 0.6), sizeEnd: L.flameSize * 0.15, life: L.flameLife * (0.6 + Math.random() * 0.6), drag: 3, shape: 'flame', rot: (Math.random() - 0.5) * 0.8 });
+    }
+    for (let i = 0; i < L.embers; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = 2.5 + Math.random() * 3.5;
+      this.fx.add(e.x, y, e.z, Math.sin(a) * v, 1.5 + Math.random() * 3, Math.cos(a) * v, { color: c.dots, size: L.emberSize * (0.6 + Math.random() * 0.8), sizeEnd: L.emberSize * 0.3, life: L.emberLife * (0.6 + Math.random() * 0.6), drag: 1.5, gravity: 7, shape: L.emberShape, spin: (Math.random() - 0.5) * 12 });
+    }
+    _smoke.set(c.glow).lerp(SMOKE, 0.7);
+    _smokeCore.copy(_smoke).lerp(SMOKE, -0.35);
+    for (let i = 0; i < L.smoke; i++) {
+      const a = Math.random() * Math.PI * 2;
+      this.cel.add(e.x + Math.sin(a) * 0.3, y, e.z + Math.cos(a) * 0.3, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: _smoke, core: _smokeCore, size: L.smokeSize * (0.6 + Math.random() * 0.5), sizeEnd: L.smokeSize * 1.5, life: L.smokeLife * (0.7 + Math.random() * 0.5), drag: 2.5, gravity: -1, alpha: 0.6, shape: 'puff', spin: (Math.random() - 0.5) * 1.5 });
+    }
+    if (L.ring) this.ring(e.x, e.z, L.ring, c.glow, 0.3);
   }
 
   hitSpark(e, height = 0.9) {
@@ -497,7 +598,9 @@ export class Vfx {
       const h = (i === 0 ? 1.8 : 1.0 + Math.random() * 0.6) * (e.echo ? 0.8 : 1);
       const x = e.x + Math.sin(a) * r;
       const z = e.z + Math.cos(a) * r;
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.28 + Math.random() * 0.15, h, 5), mat);
+      const cone = new THREE.Mesh(this.coneGeo, mat);
+      const cr = 0.28 + Math.random() * 0.15;
+      cone.scale.set(cr, h, cr);
       cone.position.set(x, 0, z);
       cone.rotation.set((Math.random() - 0.5) * 0.5, Math.random() * 3, (Math.random() - 0.5) * 0.5);
       cone.userData.h = h;
@@ -760,6 +863,8 @@ export class Vfx {
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
       const arrow = pr.kind === 'hunter_shot';
+      const look = pr.owner === 'player' ? FX.skills[pr.kind] : null;
+      const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       if (!v) {
         v = new THREE.Group();
         if (arrow) {
@@ -769,6 +874,14 @@ export class Vfx {
           const fl = new THREE.Mesh(ag.fletch, toon('#f4f0e8'));
           v.add(shaft, tip, fl);
           v.add(this.sprite(c.glow, 0.7, 0.4));
+        } else if (look?.travel) {
+          v.add(this.sprite(c.glow, look.travel.glow, 0.85));
+          v.add(this.sprite(c.core, look.travel.core, 1));
+          v.userData.flames = 0;
+          v.userData.embers = 0;
+          // the release: a short flare where the projectile leaves the hand (one per projectile, so a split fans out)
+          const f = look.cast?.flare;
+          if (f) this.fx.add(pr.x, y, pr.z, 0, 0, 0, { color: c.core, size: f, sizeEnd: f * 0.3, life: 0.14, drag: 0, shape: 'flare' });
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
           v.add(this.sprite(c.glow, size * 1.8, 0.85));
@@ -777,11 +890,14 @@ export class Vfx {
         this.scene.add(v);
         this.projectiles.set(pr.id, v);
       }
-      const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       v.position.set(pr.x, y, pr.z);
+      const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
+      if (look?.travel) {
+        this.travel(v, pr, y, back, look.travel, c, dt, time);
+        continue;
+      }
       if (arrow) v.rotation.y = Math.atan2(pr.vx, pr.vz);
       else v.children[1].scale.setScalar(0.7 + Math.sin(time * 30 + pr.id) * 0.08);
-      const back = { x: -pr.vx / pr.speed, z: -pr.vz / pr.speed };
       for (let k = 0; k < (arrow ? 1 : 2); k++) {
         const o = Math.random() * 0.35;
         this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * 1.2, 0.3, back.z * 1.2, { color: c.dots, size: arrow ? 0.18 : 0.32, sizeEnd: 0.05, life: 0.28, drag: 4 });
@@ -792,6 +908,29 @@ export class Vfx {
         disposeObject(v, this.sharedGeo);
         this.projectiles.delete(id);
       }
+    }
+  }
+
+  /** A projectile with a travel look: pulsing core, flame tongues and embers shed at a fixed rate. */
+  travel(v, pr, y, back, L, c, dt, time) {
+    v.children[1].scale.setScalar(L.core * (1 + Math.sin(time * 30 + pr.id) * L.pulse));
+    const u = v.userData;
+    // the flame tips point back along the path as seen on screen, so they join into one tail
+    let tail = Math.atan2(-back.z, back.x) - Math.PI / 2;
+    const cam = this.camera;
+    if (cam) {
+      _base.set(pr.x, y, pr.z).project(cam);
+      _tip.set(pr.x + back.x, y, pr.z + back.z).project(cam);
+      tail = Math.atan2(_tip.y - _base.y, (_tip.x - _base.x) * cam.aspect) - Math.PI / 2;
+    }
+    u.flames += L.flameRate * dt;
+    for (; u.flames >= 1; u.flames--) {
+      const o = Math.random() * 0.2;
+      this.cel.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * 0.3, 0.25, back.z * 0.3, { color: rimOf(c), core: heatOf(c), size: L.flameSize * (0.8 + Math.random() * 0.4), sizeEnd: L.flameSize * 0.1, life: L.flameLife * (0.7 + Math.random() * 0.6), drag: 3, shape: L.shape, rot: tail + (Math.random() - 0.5) * 0.5 });
+    }
+    u.embers += L.emberRate * dt;
+    for (; u.embers >= 1; u.embers--) {
+      this.fx.add(pr.x, y, pr.z, back.x * 2 + (Math.random() - 0.5) * 1.5, 0.5 + Math.random() * 1.2, back.z * 2 + (Math.random() - 0.5) * 1.5, { color: c.dots, size: L.emberSize * (0.6 + Math.random() * 0.8), sizeEnd: L.emberSize * 0.3, life: L.emberLife * (0.6 + Math.random() * 0.6), drag: 2, gravity: 2, shape: L.emberShape, spin: (Math.random() - 0.5) * 10 });
     }
   }
 
@@ -981,6 +1120,7 @@ export class Vfx {
   update(dt) {
     this.fx.update(dt);
     this.dust.update(dt);
+    this.cel.update(dt);
     const keep = [];
     for (const a of this.active) {
       a.t += dt;

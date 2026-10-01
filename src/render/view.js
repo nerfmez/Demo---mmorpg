@@ -94,7 +94,7 @@ export class View {
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
 
-    this.vfx = new Vfx(this.scene, world);
+    this.vfx = new Vfx(this.scene, world, this.camera);
 
     // town NPCs
     const t = world.data.town;
@@ -322,7 +322,11 @@ export class View {
     switch (e.type) {
       case 'castStart':
         this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc' || e.kind === 'melee_nova') v.beginSwing(e, g.skills.find((s) => s && s.id === e.skill)?.element);
+        {
+          const element = g.skills.find((s) => s && s.id === e.skill)?.element;
+          if (e.kind === 'melee_arc' || e.kind === 'melee_nova') v.beginSwing(e, element);
+          else v.beginCast(e, element);
+        }
         break;
       case 'slash':
         v.slash(e, g.derived.weaponType);
@@ -700,6 +704,7 @@ export class View {
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
     this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
     this.vfx.updateTrail(dt, r);
+    this.vfx.updateCast(dt, r);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
     setFlash(r.material, this.heroFlash > 0 ? 0.5 : 0, 0, p.statuses?.chill ? 0.25 : 0);

@@ -18,3 +18,8 @@ Use it when you add or restyle effects. It is a style target only: the packs are
 - Keep our anime cel look (see `AGENTS.md`). The effects must not hide monster wind-ups or turn combat into a screen-clearing race. Effect shapes still follow gameplay hit areas.
 - Fit iPad performance: pooled/reused particles, no per-frame allocations, `disposeObject()` for anything removed.
 - Change the shape, colour and timing to suit our skills and mods (split, pierce, chain, ground, echo, element, trigger). Don't copy a gallery effect one to one.
+
+## Progress
+
+- Foundation and pilot (Firebolt): shape atlas (`src/render/fx-shapes.js`), two-tone cel particles, per-skill looks in `data/combat-fx.json` `skills`, shared cone geometry for spikes/stones. Focused capture: `node tests/browser/skill-fx.mjs firebolt`.
+- Next: the other skills in groups of 3–4, element-specific impacts, visible mods, a reduced-effects setting.

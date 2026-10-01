@@ -11,6 +11,7 @@ const shopOnly=process.env.AZURE_SHOP_REVIEW==='1';
 const districtOnly=process.env.AZURE_DISTRICT_REVIEW==='1';
 const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
 const worldData=JSON.parse(readFileSync('data/world.json','utf8'));
+const referenceOffset=worldData.town.placement?.referenceOffset||[0,0];
 const styleReview=!!worldData.town.styleSlice;
 const out=`tests/browser/out/azure-${layoutOnly?'layout':styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});
 const port=4191,base=`http://localhost:${port}/`;
@@ -117,7 +118,8 @@ try {
     });assert.equal(report.frontages.reached,worldData.town.buildings.length);
     await stage(...worldData.town.centre);await shot('02-market-square-gameplay');
     const residential=worldData.roads.find(r=>r.id==='residential_cross');
-    const junction=residential.points.reduce((best,p)=>Math.hypot(p[0]+39.9,p[1]+64.26)<Math.hypot(best[0]+39.9,best[1]+64.26)?p:best,residential.points[0]);
+    const [dx,dz]=referenceOffset;
+    const junction=residential.points.reduce((best,p)=>Math.hypot(p[0]+39.9-dx,p[1]+64.26-dz)<Math.hypot(best[0]+39.9-dx,best[1]+64.26-dz)?p:best,residential.points[0]);
     await stage(...junction);await shot('03-residential-lanes-gameplay');
     await stage(...frontage('warehouse_4'));await shot('04-warehouse-row-gameplay');
     await stage(...deckPoint('market_west_ramp',-1));await shot('05-quay-pier-join-gameplay');
@@ -150,6 +152,7 @@ try {
     const [lx,lz]=worldData.harbor.lighthouse;await stage(lx+3,lz+6);await shot('07-lighthouse-cape-gameplay');
     await page.evaluate(()=>{const f=window.__frontier;f.game.ch.progress.zones=f.world.zones.map(z=>z.id);f.panels.open('map');});
     await shot('09-revised-local-map');await page.evaluate(()=>window.__frontier.panels.close());
+    await stage(...worldData.playerSpawn);await shot('17-original-arrival-beach-gameplay');
   }else if(finishOnly){
     if(process.env.AZURE_WAVE_ONLY!=='1'){
     await stage(-129.62,-18.16);await shot('19-outlined-cottage-gameplay');
@@ -253,14 +256,15 @@ try {
       for(const element of document.body.children) if(element.tagName!=='CANVAS')element.style.visibility='hidden';
       if(layoutOnly){
         // Register the actual game capture to the supplied plan's rectangle:
-        // source pixels [1009,115,1515,727], X=(px-1230)*.42,
-        // Z=(py-400)*.42. A distant narrow frustum keeps parallax <1 pixel
+        // source pixels [1009,115,1515,727], X=(px-1230)*.42+offsetX,
+        // Z=(py-400)*.42+offsetZ. A distant narrow frustum keeps parallax <1 pixel
         // while retaining the real renderer. This camera is review-only.
         const height=257.04,landY=.7,distance=6000;
         v.scene.fog.near=10000;v.scene.fog.far=12000;
         v.camera.near=5800;v.camera.far=6200;
         v.camera.fov=2*Math.atan(height/(2*(distance-landY)))*180/Math.PI;
-        v.camera.up.set(0,0,-1);v.camera.position.set(13.44,distance,8.82);v.camera.lookAt(13.44,landY,8.82);
+        const [dx,dz]=f.world.data.town.placement?.referenceOffset||[0,0];
+        v.camera.up.set(0,0,-1);v.camera.position.set(13.44+dx,distance,8.82+dz);v.camera.lookAt(13.44+dx,landY,8.82+dz);
       }else{
         v.scene.fog.near=600;v.scene.fog.far=900;
         v.camera.far=900;v.camera.fov=53;v.camera.up.set(0,0,-1);v.camera.position.set(0,285,8);v.camera.lookAt(0,0,8);
@@ -270,16 +274,45 @@ try {
       // Capture the WebGL pixels synchronously before browser compositing can
       // clear a non-preserved drawing buffer; labels remain a review-only overlay.
       const pixels=document.createElement('img');pixels.src=v.renderer.domElement.toDataURL('image/png');
+      pixels.dataset.azureReview='pixels';
       pixels.style.cssText='position:fixed;inset:0;width:100%;height:100%;visibility:visible';document.body.append(pixels);
       v.canvasRect=v.renderer.domElement.getBoundingClientRect();
       const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;pointer-events:none;visibility:visible';document.body.append(overlay);
+      overlay.dataset.azureReview='labels';
       if(layoutOnly)return;
       for(const [text,x,z] of [['บ้าน / ซอยวน',-110,-20],['ตลาด · คราฟต์ · วาร์ป',0,-49],['ทางออกสู่พื้นที่ล่า',0,-105],['โกดัง / ลานสินค้า',115,-26],['อู่เรือ / ทางลาด',128,76],['ประภาคาร / กันคลื่น',-125,82],['ปากอ่าวเปิดทางใต้',0,106]]){
         const p=v.project(x,2,z);const label=document.createElement('div');label.textContent=text;label.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);font:18px Mitr,sans-serif;padding:5px 10px;background:#163b41de;color:white;border-radius:4px`;overlay.append(label);
       }
     },layoutOnly);
     await shot('01-u-bay-overview');
-    if(layoutOnly)report.planRegistration={sourcePixelRect:[1009,115,1515,727],metresPerSourcePixel:.42,originPixel:[1230,400],camera:'review only; original gameplay camera retained'};
+    if(layoutOnly){
+      report.planRegistration={sourcePixelRect:[1009,115,1515,727],metresPerSourcePixel:.42,originPixel:[1230,400],worldOffset:referenceOffset,camera:'review only; original gameplay camera retained'};
+      await page.setViewportSize({width:1480,height:1200});
+      report.worldPlacement=await page.evaluate(()=>{
+        const f=window.__frontier,v=f.view,wd=f.world.data,b=wd.bounds;
+        for(const e of document.querySelectorAll('[data-azure-review]'))e.remove();
+        v.resize();
+        const x=(b.minX+b.maxX)/2,z=(b.minZ+b.maxZ)/2,height=b.maxZ-b.minZ+40,landY=.7,distance=6000;
+        v.camera.fov=2*Math.atan(height/(2*(distance-landY)))*180/Math.PI;
+        v.camera.position.set(x,distance,z);v.camera.lookAt(x,landY,z);
+        v.camera.updateProjectionMatrix();v.camera.updateMatrixWorld();v.renderer.render(v.scene,v.camera);
+        const pixels=document.createElement('img');pixels.src=v.renderer.domElement.toDataURL('image/png');
+        pixels.dataset.azureReview='pixels';pixels.style.cssText='position:fixed;inset:0;width:100%;height:100%;visibility:visible';document.body.append(pixels);
+        const overlay=document.createElement('div');overlay.dataset.azureReview='labels';
+        overlay.style.cssText='position:fixed;inset:0;pointer-events:none;visibility:visible';document.body.append(overlay);
+        for(const [text,px,pz] of [['Original arrival beach',...wd.playerSpawn],['Azure Coast / original town (62, 22)',...wd.town.centre],['Original forest',-110,-70],['Original grove',-110,12]]){
+          const p=v.project(px,2,pz),label=document.createElement('div');label.textContent=text;
+          label.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-110%);font:17px Mitr,sans-serif;padding:4px 9px;background:#163b41e8;color:white;border-radius:4px`;
+          overlay.append(label);
+          const marker=document.createElement('div');marker.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-50%);width:8px;height:8px;border:2px solid white;border-radius:50%;background:#dcab5e`;
+          overlay.append(marker);
+        }
+        return {sourceCommit:wd.town.placement?.sourceCommit,townCentre:wd.town.centre,playerSpawn:wd.playerSpawn,bounds:wd.bounds,camera:'review only; actual game renderer'};
+      });
+      assert.deepEqual(report.worldPlacement.townCentre,[62,22]);
+      assert.deepEqual(report.worldPlacement.playerSpawn,[-132,80]);
+      await shot('16-original-beach-map-placement');
+    }
   }
   assert.deepEqual(report.errors,[],'no runtime/asset/shader errors');
   report.passed=true;writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));

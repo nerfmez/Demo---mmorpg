@@ -9,6 +9,8 @@ on:
       - 'src/ui/mapimage.js'
       - 'tests/browser/azure-blockout.mjs'
       - 'tests/core/harbor.test.js'
+      - 'tests/fixtures/azure-beach/**'
+      - 'tests/render/water-contact.test.mjs'
       - 'tests/render/azure-footprints.test.mjs'
       - '.github/workflows/azure-layout-review.yml'
 

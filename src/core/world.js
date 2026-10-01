@@ -164,6 +164,7 @@ export function createWorld(worldData) {
   const blockedForProp = (x, z, r, { roadPad = 1.2, slope = 0.9 } = {}) =>
     !inBounds(x, z) ||
     isWater(x, z, r + 0.8) ||
+    docks.some(d => pointInBox(d, x, z, r + 0.8)) ||
     onBridge(x, z, r + 2) ||
     roadDist(x, z) < r + roadPad ||
     clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + r) ||

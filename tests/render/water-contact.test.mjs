@@ -33,7 +33,8 @@ test('waterline uses tapered hull, not a rectangular building footprint',()=>{
 test('incoming exposure is reduced behind the physical hull and recovers in open water',()=>{
  const [x,z]=world.data.harbor.boats[0];
  assert.ok(sample(x,z-4).exposure<sample(x,z+4.3).exposure);
- assert.equal(sample(0,60).exposure,1);
+ const [dx,dz]=data.world.town.placement?.referenceOffset||[0,0];
+ assert.equal(sample(dx,60+dz).exposure,1);
 });
 test('above-water decoration creates no contact and texture is owned/disposed exactly once',()=>{
  const w={waterLevel:0,data:{sea:{shore:[[-5,-2],[5,-2]],surf:{contactTexel:.1}}}};

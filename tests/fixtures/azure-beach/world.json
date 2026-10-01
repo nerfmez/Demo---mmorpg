@@ -1,0 +1,998 @@
+{
+  "_doc": "Azure Coast local starter region only. X east, Z south, Y height; shore is a single-valued X/Z polyline. Original Frontier data retained under tests/fixtures/frontier for regression.",
+  "id": "azure-harbor-v1",
+  "name": "Azure Coast — Harbor Reach",
+  "nameTh": "ชายฝั่งสีคราม · เมืองท่า",
+  "seed": 7331,
+  "bounds": {
+    "minX": -160,
+    "maxX": 160,
+    "minZ": -120,
+    "maxZ": 120
+  },
+  "playerSpawn": [
+    -132,
+    80
+  ],
+  "waterLevel": -0.4,
+  "terrain": {
+    "res": 1,
+    "margin": 40,
+    "noiseScale": 0.0175,
+    "maxWalkSlope": 1,
+    "hills": [
+      [
+        -95,
+        -55,
+        30,
+        2.6
+      ],
+      [
+        -32,
+        -79,
+        24,
+        2.3
+      ],
+      [
+        23,
+        -68,
+        28,
+        3
+      ],
+      [
+        110,
+        -68,
+        27,
+        4.6
+      ],
+      [
+        -137,
+        -103,
+        18,
+        3.5
+      ],
+      [
+        130,
+        22,
+        17,
+        2
+      ]
+    ],
+    "plateaus": [
+      {
+        "id": "headland",
+        "x": 126,
+        "z": 40,
+        "rx": 17,
+        "rz": 15,
+        "height": 3.2,
+        "edge": 2.2,
+        "power": 2.5
+      }
+    ],
+    "pads": [
+      [
+        126,
+        40,
+        5
+      ],
+      [
+        -132,
+        80,
+        4
+      ]
+    ]
+  },
+  "roads": [
+    {
+      "id": "arrival",
+      "width": 5,
+      "points": [
+        [
+          -132,
+          80
+        ],
+        [
+          -115,
+          63
+        ],
+        [
+          -94,
+          51
+        ],
+        [
+          -73,
+          42
+        ],
+        [
+          -46,
+          37
+        ],
+        [
+          -19,
+          29
+        ],
+        [
+          9,
+          23
+        ],
+        [
+          31,
+          22
+        ],
+        [
+          62,
+          22
+        ]
+      ]
+    },
+    {
+      "id": "harbor_street",
+      "width": 5,
+      "points": [
+        [
+          62,
+          -5
+        ],
+        [
+          62,
+          22
+        ],
+        [
+          62,
+          49
+        ],
+        [
+          62,
+          61
+        ]
+      ]
+    },
+    {
+      "id": "market_lane",
+      "width": 5,
+      "points": [
+        [
+          31,
+          22
+        ],
+        [
+          62,
+          22
+        ],
+        [
+          94,
+          22
+        ]
+      ]
+    },
+    {
+      "id": "north_road",
+      "width": 5,
+      "points": [
+        [
+          62,
+          22
+        ],
+        [
+          48,
+          -3
+        ],
+        [
+          32,
+          -22
+        ],
+        [
+          8,
+          -40
+        ],
+        [
+          0,
+          -67
+        ],
+        [
+          0,
+          -102
+        ],
+        [
+          0,
+          -116
+        ]
+      ]
+    },
+    {
+      "id": "grove_loop",
+      "width": 3.5,
+      "points": [
+        [
+          -19,
+          29
+        ],
+        [
+          -28,
+          5
+        ],
+        [
+          -56,
+          -18
+        ],
+        [
+          -85,
+          -39
+        ],
+        [
+          -112,
+          -55
+        ],
+        [
+          -132,
+          -42
+        ],
+        [
+          -119,
+          -12
+        ],
+        [
+          -94,
+          15
+        ],
+        [
+          -73,
+          42
+        ]
+      ]
+    },
+    {
+      "id": "headland",
+      "width": 4,
+      "points": [
+        [
+          94,
+          22
+        ],
+        [
+          108,
+          23
+        ],
+        [
+          117,
+          29
+        ],
+        [
+          126,
+          33
+        ]
+      ]
+    },
+    {
+      "id": "farm_lane",
+      "width": 3.5,
+      "points": [
+        [
+          32,
+          -22
+        ],
+        [
+          61,
+          -32
+        ],
+        [
+          93,
+          -30
+        ],
+        [
+          119,
+          -18
+        ]
+      ]
+    }
+  ],
+  "river": null,
+  "ponds": [
+    [
+      -70,
+      -80,
+      5
+    ]
+  ],
+  "zones": [
+    {
+      "id": "settlement",
+      "name": "เมืองท่าสีคราม",
+      "nameTh": "เมืองท่าสีคราม",
+      "rects": [
+        [
+          25,
+          103,
+          -5,
+          58
+        ]
+      ],
+      "level": 1,
+      "hillAmp": 0.12,
+      "treeDensity": 0,
+      "trees": [
+        "tree"
+      ],
+      "palette": [
+        "#91b358",
+        "#709346"
+      ],
+      "safe": true,
+      "label": [
+        62,
+        22
+      ]
+    },
+    {
+      "id": "landing",
+      "name": "หาดผู้มาเยือน",
+      "nameTh": "หาดผู้มาเยือน",
+      "rects": [
+        [
+          -151,
+          -113,
+          54,
+          83
+        ]
+      ],
+      "level": 1,
+      "hillAmp": 0.2,
+      "treeDensity": 0,
+      "trees": [
+        "palm"
+      ],
+      "palette": [
+        "#c0bf88",
+        "#aba777"
+      ],
+      "safe": true,
+      "label": [
+        -132,
+        68
+      ]
+    },
+    {
+      "id": "headland",
+      "name": "แหลมประภาคาร",
+      "nameTh": "แหลมประภาคาร",
+      "rects": [
+        [
+          106,
+          160,
+          20,
+          120
+        ]
+      ],
+      "level": 3,
+      "hillAmp": 0.55,
+      "treeDensity": 0.1,
+      "trees": [
+        "palm",
+        "tree"
+      ],
+      "palette": [
+        "#a8b77c",
+        "#92a66a"
+      ],
+      "label": [
+        132,
+        49
+      ]
+    },
+    {
+      "id": "coast",
+      "name": "หาดเปลือกหอย",
+      "nameTh": "หาดเปลือกหอย",
+      "rects": [
+        [
+          -160,
+          160,
+          36,
+          120
+        ]
+      ],
+      "level": 1,
+      "hillAmp": 0.3,
+      "treeDensity": 0.12,
+      "trees": [
+        "palm",
+        "tree"
+      ],
+      "palette": [
+        "#a8b77c",
+        "#92a66a"
+      ],
+      "label": [
+        -38,
+        77
+      ]
+    },
+    {
+      "id": "forest",
+      "name": "ป่าโปร่งริมฝั่ง",
+      "nameTh": "ป่าโปร่งริมฝั่ง",
+      "rects": [
+        [
+          -160,
+          -55,
+          -120,
+          -15
+        ]
+      ],
+      "level": 3,
+      "hillAmp": 1.4,
+      "treeDensity": 0.4,
+      "trees": [
+        "tree",
+        "birch"
+      ],
+      "palette": [
+        "#71a556",
+        "#508143"
+      ],
+      "label": [
+        -110,
+        -70
+      ]
+    },
+    {
+      "id": "glade",
+      "name": "สวนและพุ่มริมทาง",
+      "nameTh": "สวนและพุ่มริมทาง",
+      "rects": [
+        [
+          -160,
+          -55,
+          -15,
+          36
+        ]
+      ],
+      "level": 2,
+      "hillAmp": 0.8,
+      "treeDensity": 0.2,
+      "trees": [
+        "tree",
+        "birch"
+      ],
+      "palette": [
+        "#8bac58",
+        "#6c934a"
+      ],
+      "label": [
+        -110,
+        12
+      ]
+    },
+    {
+      "id": "highlands",
+      "name": "เนินหลังเมือง",
+      "nameTh": "เนินหลังเมือง",
+      "rects": [
+        [
+          100,
+          160,
+          -120,
+          36
+        ]
+      ],
+      "level": 3,
+      "hillAmp": 1.6,
+      "treeDensity": 0.2,
+      "trees": [
+        "tree",
+        "birch"
+      ],
+      "palette": [
+        "#aab66e",
+        "#879652"
+      ],
+      "label": [
+        130,
+        -62
+      ]
+    },
+    {
+      "id": "meadow",
+      "name": "ทุ่งรอบเมือง",
+      "nameTh": "ทุ่งรอบเมือง",
+      "rects": [
+        [
+          -55,
+          100,
+          -120,
+          36
+        ]
+      ],
+      "level": 1,
+      "hillAmp": 0.9,
+      "treeDensity": 0.13,
+      "trees": [
+        "tree"
+      ],
+      "palette": [
+        "#95b456",
+        "#78994a"
+      ],
+      "label": [
+        26,
+        -66
+      ]
+    }
+  ],
+  "spawns": [
+    {
+      "monster": "salt_slime",
+      "zone": "coast",
+      "count": 12,
+      "level": [
+        1,
+        1
+      ]
+    },
+    {
+      "monster": "reef_crab",
+      "zone": "coast",
+      "count": 10,
+      "level": [
+        1,
+        2
+      ]
+    },
+    {
+      "monster": "shore_gull",
+      "zone": "coast",
+      "count": 6,
+      "level": [
+        2,
+        2
+      ]
+    },
+    {
+      "monster": "hermit_crab",
+      "zone": "headland",
+      "count": 5,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "shore_gull",
+      "zone": "headland",
+      "count": 4,
+      "level": [
+        2,
+        3
+      ]
+    },
+    {
+      "monster": "tusk_boar",
+      "zone": "meadow",
+      "count": 14,
+      "level": [
+        1,
+        2
+      ]
+    },
+    {
+      "monster": "salt_slime",
+      "zone": "meadow",
+      "count": 5,
+      "level": [
+        1,
+        2
+      ]
+    },
+    {
+      "monster": "sporecap",
+      "zone": "glade",
+      "count": 8,
+      "level": [
+        2,
+        3
+      ]
+    },
+    {
+      "monster": "tusk_boar",
+      "zone": "glade",
+      "count": 6,
+      "level": [
+        2,
+        3
+      ]
+    },
+    {
+      "monster": "moss_beetle",
+      "zone": "forest",
+      "count": 7,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "thornback_wolf",
+      "zone": "forest",
+      "count": 6,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "sporecap",
+      "zone": "forest",
+      "count": 5,
+      "level": [
+        3,
+        3
+      ]
+    },
+    {
+      "monster": "tusk_boar",
+      "zone": "highlands",
+      "count": 5,
+      "level": [
+        2,
+        3
+      ]
+    }
+  ],
+  "respawnSeconds": 40,
+  "zoneDrops": {
+    "_doc": "Extra drops for any monster killed in a zone.",
+    "highlands": [
+      {
+        "item": "ruin_shard",
+        "chance": 0.12,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "coast": [
+      {
+        "item": "sea_pearl",
+        "chance": 0.05,
+        "min": 1,
+        "max": 1
+      }
+    ]
+  },
+  "bosses": [],
+  "waypoints": [
+    {
+      "id": "landing",
+      "name": "Arrival Beach",
+      "nameTh": "หาดผู้มาเยือน",
+      "pos": [
+        -139,
+        74
+      ],
+      "unlocked": true
+    },
+    {
+      "id": "town",
+      "name": "Harbor Square",
+      "nameTh": "ลานเมืองท่า",
+      "pos": [
+        68,
+        16
+      ]
+    },
+    {
+      "id": "meadow",
+      "name": "Fields",
+      "nameTh": "ทุ่งรอบเมือง",
+      "pos": [
+        6,
+        -36
+      ]
+    },
+    {
+      "id": "forest",
+      "name": "Coastal Grove",
+      "nameTh": "ป่าโปร่งริมฝั่ง",
+      "pos": [
+        -100,
+        -43
+      ]
+    },
+    {
+      "id": "headland",
+      "name": "Lighthouse",
+      "nameTh": "แหลมประภาคาร",
+      "pos": [
+        125,
+        35
+      ]
+    }
+  ],
+  "town": {
+    "height": 0.7,
+    "centre": [
+      62,
+      22
+    ],
+    "plazaRadius": 10,
+    "workbench": [
+      51,
+      12
+    ],
+    "trainer": [
+      76,
+      30
+    ],
+    "respawn": [
+      62,
+      22
+    ],
+    "well": [
+      52,
+      31
+    ],
+    "stalls": [
+      [
+        45,
+        29,
+        1.57
+      ],
+      [
+        73,
+        13,
+        0
+      ],
+      [
+        73,
+        42,
+        0
+      ]
+    ],
+    "buildings": [
+      [
+        35,
+        7,
+        0
+      ],
+      [
+        36,
+        38,
+        0
+      ],
+      [
+        41,
+        -1,
+        0
+      ],
+      [
+        78,
+        1,
+        0
+      ],
+      [
+        94,
+        7,
+        0
+      ],
+      [
+        94,
+        38,
+        0
+      ],
+      [
+        49,
+        46,
+        0
+      ],
+      [
+        85,
+        49,
+        0
+      ]
+    ],
+    "walls": null
+  },
+  "ruins": null,
+  "camp": null,
+  "den": null,
+  "sea": {
+    "beach": 20,
+    "shore": [
+      [
+        -220,
+        84
+      ],
+      [
+        -160,
+        84
+      ],
+      [
+        -120,
+        82
+      ],
+      [
+        -90,
+        71
+      ],
+      [
+        -50,
+        68
+      ],
+      [
+        0,
+        63
+      ],
+      [
+        40,
+        60
+      ],
+      [
+        65,
+        61
+      ],
+      [
+        95,
+        66
+      ],
+      [
+        120,
+        71
+      ],
+      [
+        160,
+        79
+      ],
+      [
+        220,
+        80
+      ]
+    ],
+    "shellDensity": 0.2,
+    "surf": {
+      "period": 7.5,
+      "runup": 2.6,
+      "retreat": 1.6,
+      "foamWidth": 0.075
+    }
+  },
+  "safeRoutes": [
+    {
+      "points": [
+        [
+          -132,
+          80
+        ],
+        [
+          -115,
+          63
+        ],
+        [
+          -94,
+          51
+        ],
+        [
+          -73,
+          42
+        ],
+        [
+          -46,
+          37
+        ],
+        [
+          -19,
+          29
+        ],
+        [
+          9,
+          23
+        ],
+        [
+          31,
+          22
+        ],
+        [
+          62,
+          22
+        ]
+      ],
+      "width": 12
+    }
+  ],
+  "docks": [
+    {
+      "id": "pier_ramp",
+      "x": 62,
+      "z": 55,
+      "hx": 3,
+      "hz": 3,
+      "angle": 0,
+      "height": 0.7,
+      "rampFromTerrain": true
+    },
+    {
+      "id": "harbor_pier",
+      "x": 62,
+      "z": 72,
+      "hx": 3,
+      "hz": 14,
+      "angle": 0,
+      "height": 0.7
+    },
+    {
+      "id": "pier_head",
+      "x": 62,
+      "z": 84,
+      "hx": 11,
+      "hz": 3,
+      "angle": 0,
+      "height": 0.7
+    }
+  ],
+  "harbor": {
+    "lighthouse": [
+      126,
+      40
+    ],
+    "boats": [
+      [
+        49,
+        81,
+        0
+      ],
+      [
+        77,
+        77,
+        0
+      ]
+    ],
+    "signs": [
+      [
+        -123,
+        62,
+        "town"
+      ],
+      [
+        28,
+        22,
+        "harbor"
+      ],
+      [
+        57,
+        -2,
+        "fields"
+      ]
+    ],
+    "crates": [
+      [
+        53,
+        55
+      ],
+      [
+        71,
+        56
+      ],
+      [
+        61,
+        83
+      ]
+    ],
+    "farmBeds": [
+      [
+        64,
+        -43
+      ],
+      [
+        76,
+        -43
+      ],
+      [
+        88,
+        -43
+      ]
+    ],
+    "overlook": [
+      -133,
+      68
+    ]
+  }
+}

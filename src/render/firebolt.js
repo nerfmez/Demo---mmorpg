@@ -40,6 +40,7 @@ export function flameMesh(cfg, mode = 0) {
       uAlpha:{value:1}, uMode:{value:mode}, uProgress:{value:0}, uVelocity:{value:new THREE.Vector3(0,1,0)},
       uLength:{value:cfg.projectile.length}, uWidth:{value:cfg.projectile.width},
       uHeadRadii:{value:new THREE.Vector2(...cfg.projectile.headRadii)}, uHaloScale:{value:1},
+      uTail:{value:new THREE.Vector3(cfg.projectile.tailHalfWidth,cfg.projectile.tailSway,cfg.projectile.flowSpeed)},
       uGlowRadius:{value:cfg.projectile.glowRadius}, uGlowStrength:{value:cfg.projectile.glowStrength} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
@@ -61,38 +62,58 @@ export function flameMesh(cfg, mode = 0) {
       }`,
     fragmentShader: /* glsl */ `
       uniform float uTime,uSeed,uAlpha,uMode,uProgress,uLength,uWidth;
-      uniform vec2 uHeadRadii; varying vec2 vUv;
+      uniform vec2 uHeadRadii; uniform vec3 uTail; varying vec2 vUv;
       ${NOISE} ${PALETTE}
       void main(){
         vec2 p=vUv;
         vec2 q=(p-vec2(0.76,0.5))*vec2(uLength,uWidth);
         float t=uTime*6.0+uSeed;
         float age=clamp(-q.x/(uLength*0.72),0.0,1.0);
-        // Advected vector warp rolls the fire around negative spaces. The wake
-        // changes thickness, curls and breaks rather than retaining a strip shape.
-        vec2 adv=vec2(q.x*3.6+t*1.4,q.y*5.5-t*0.35);
-        vec2 warp=vec2(noise21(adv+17.0),noise21(adv-11.0))-0.5;
-        float n=flow(adv+warp*1.5);
+        // Phase moves toward the tail. Taper bounds the silhouette even when
+        // noise peaks; separate curling ribbons shed at different distances.
+        float phase=q.x*5.0+uTime*uTail.z+uSeed;
+        vec2 adv=vec2(q.x*4.0+uTime*uTail.z,q.y*8.0);
+        float n=flow(adv);
         vec2 headQ=q/uHeadRadii;
         float head=(1.0-length(headQ))*min(uHeadRadii.x,uHeadRadii.y);
         float d;
         if(uMode<0.5){
-          float wake=0.13*(1.0-age*0.5)-abs(q.y+warp.y*0.30*age)
-                     +(n-0.45)*(0.14+0.30*age);
-          float holes=noise21(adv*1.7+warp+31.0);
-          wake-=smoothstep(0.55,0.78,holes)*(0.07+0.15*age);
-          wake=min(wake,min(-q.x,q.x+uLength*0.72));
-          wake=min(wake,uWidth*0.48-abs(q.y));
+          float taper=pow(1.0-age,0.85);
+          float bend=uTail.y*age*(sin(phase)*0.65+sin(phase*0.57+1.7)*0.35);
+          float scallop=0.7+0.3*noise21(adv+19.0);
+          float wake=uTail.x*taper*scallop-abs(q.y-bend);
+          // A thin hot stream and two offset tongues, with soft pointed ends.
+          float topAge=clamp(age/0.88,0.0,1.0);
+          float topBend=bend+sin(age*3.14159)*0.12*(0.7+0.3*sin(phase+1.4));
+          float top=0.045*pow(1.0-topAge,0.8)-abs(q.y-topBend);
+          float bottomAge=clamp(age/0.70,0.0,1.0);
+          float bottomBend=bend-sin(bottomAge*3.14159)*0.14;
+          float bottom=0.04*(1.0-bottomAge)-abs(q.y-bottomBend);
+          wake=max(wake,max(top,bottom));
+          wake=min(wake,min(-q.x,(1.0-age)*0.18));
           d=max(head,wake);
         } else {
           vec2 r=(p-0.5)*2.0;
           vec2 radial=r/max(length(r),0.001);
           if(uMode>1.5){
-            float a=atan(r.y,r.x);
-            float rays=pow(abs(sin(a*5.0+uSeed)),8.0);
-            float burst=0.54+0.28*rays-length(r);
-            float ring=0.045-abs(length(r)-(0.25+uProgress*0.62));
-            d=max(burst,ring)*0.58;
+            // Contact flash collapses in a few frames; irregular flame lobes
+            // stretch forward and peel apart without an expanding ring/star.
+            float flash=exp(-uProgress*11.0);
+            vec2 h=r-vec2(uProgress*0.12,0.0);
+            float core=(1.0-length(h/(vec2(0.42,0.35)*(0.25+0.75*flash))))*0.16;
+            float peel=sin(uProgress*3.14159);
+            float flame=-1.0;
+            for(int i=0;i<3;i++){
+              float fi=float(i)-1.0;
+              vec2 c=vec2(uProgress*0.24,fi*peel*0.22);
+              vec2 radius=vec2(0.35*(1.0-uProgress)+0.06,0.11*(1.0-uProgress)+0.025);
+              vec2 tongue=(r-c)/radius;
+              float curl=sin(tongue.x*2.8-uProgress*8.0+fi*2.3)*0.24;
+              tongue.y+=curl;
+              float lobe=(1.0-length(tongue))*min(radius.x,radius.y);
+              flame=max(flame,lobe);
+            }
+            d=max(core,flame);
           } else {
             float lobes=flow(radial*2.8+vec2(uSeed,t*0.4));
             d=(0.70+(lobes-0.5)*0.42-length(r))*0.58;
@@ -101,7 +122,8 @@ export function flameMesh(cfg, mode = 0) {
         float aa=max(fwidth(d),0.007);
         float alpha=smoothstep(-aa,aa,d)*uAlpha;
         if(alpha<0.01) discard;
-        float heat=(max(0.0,d)*2.0+n*0.36)*(1.0-age*0.40);
+        float heat=(max(0.0,d)*2.0+n*0.22)*(1.0-age*0.72);
+        if(uMode>1.5) heat+=exp(-uProgress*11.0)*0.7;
         vec3 col=flameColor(heat);
         if(uMode<0.5){
           // White-hot oval with a thin golden transition at its perimeter.
@@ -162,25 +184,27 @@ export class FlameParticles {
     const g=new THREE.InstancedBufferGeometry();
     const q=sharedQuad();
     g.index=q.index; g.attributes.position=q.attributes.position; g.attributes.uv=q.attributes.uv;
+    g.setAttribute('aVel',new THREE.InstancedBufferAttribute(this.vel,3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('aPos',new THREE.InstancedBufferAttribute(this.pos,3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('aInfo',new THREE.InstancedBufferAttribute(this.info,4).setUsage(THREE.DynamicDrawUsage));
     g.instanceCount=0;
     const mat=new THREE.ShaderMaterial({
       uniforms:{...palette(cfg),uTime:{value:0}},transparent:true,depthWrite:false,
       vertexShader: /* glsl */ `
-        attribute vec3 aPos; attribute vec4 aInfo;
+        attribute vec3 aPos,aVel; attribute vec4 aInfo;
         varying vec2 vUv; varying vec4 vInfo;
         void main(){
           vUv=uv; vInfo=aInfo;
           vec2 p=(uv-0.5)*aInfo.x;
-          // Wisps rise; little embers retain their slanted, needle-like silhouette.
-          if(aInfo.z<0.5) p.x*=0.65;
-          if(aInfo.z>0.5 && aInfo.z<1.5) { p.x*=0.22; p.y*=0.7; }
-          float a=aInfo.w*6.28;
-          if(aInfo.z>1.5) a=0.0;
-          p=mat2(cos(a),-sin(a),sin(a),cos(a))*p;
+          // Follow drift rather than a fixed random rotation: the tail wisps
+          // and impact streaks continue the motion of their parent flame.
+          if(aInfo.z<0.5) p.x*=0.38;
+          if(aInfo.z>0.5 && aInfo.z<1.5) { p.x*=0.16; p.y*=0.7; }
+          vec2 d=(viewMatrix*vec4(aVel,0.0)).xy;
+          d=length(d)<0.001?vec2(0,1):normalize(d);
+          if(aInfo.z>1.5) d=vec2(0,1);
           vec4 mv=viewMatrix*vec4(aPos,1);
-          mv.xy+=p;
+          mv.xy+=d*p.y+vec2(-d.y,d.x)*p.x;
           gl_Position=projectionMatrix*mv;
         }`,
       fragmentShader: /* glsl */ `
@@ -246,6 +270,6 @@ export class FlameParticles {
     }
     this.count=n;
     const g=this.mesh.geometry;g.instanceCount=n;
-    g.attributes.aPos.needsUpdate=true;g.attributes.aInfo.needsUpdate=true;
+    g.attributes.aPos.needsUpdate=true;g.attributes.aVel.needsUpdate=true;g.attributes.aInfo.needsUpdate=true;
   }
 }

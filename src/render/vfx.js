@@ -296,18 +296,39 @@ export class Vfx {
     const flash = flameMesh(cfg, 2);
     flash.position.set(e.x, y, e.z);
     flash.material.uniforms.uWidth.value = f.size;
+    flash.material.uniforms.uGlowRadius.value = f.glowRadius;
+    // Reuse the nearest last-rendered Firebolt direction; core events stay unchanged.
+    let nearest = Infinity;
+    for (const v of this.projectiles.values()) {
+      const u = v.children[0]?.material?.uniforms;
+      if (!u?.uVelocity) continue;
+      const dx = v.position.x - e.x, dz = v.position.z - e.z;
+      const distance = dx * dx + dz * dz;
+      if (distance < nearest) {
+        nearest = distance;
+        flash.material.uniforms.uVelocity.value.copy(u.uVelocity.value);
+      }
+    }
+    const direction = flash.material.uniforms.uVelocity.value;
+    const speed = Math.hypot(direction.x, direction.z) || 1;
+    const forwardX = direction.x / speed, forwardZ = direction.z / speed;
     this.spawn(flash, f.flashLife, (k) => {
       const u = flash.material.uniforms;
       u.uTime.value = k * f.flashLife;
       u.uProgress.value = k;
-      u.uScale.value = 0.5 + Math.sin(k * Math.PI * 0.8) * 0.5;
-      u.uAlpha.value = 1 - k * k;
+      u.uScale.value = 1;
+      u.uAlpha.value = 1 - k;
     });
     for (let i = 0; i < f.wisps + f.embers; i++) {
-      const a = i * 2.39996, r = i < f.wisps ? 1.8 : 3.8;
-      this.flames.emit(e.x, y, e.z, Math.cos(a) * r, 0.6 + Math.sin(a * 3) * 0.7,
-        Math.sin(a) * r, i < f.wisps ? 0.6 : 0.24, i < f.wisps ? 0.3 : 0.4,
-        i < f.wisps ? 0 : 1, i * 0.618 % 1);
+      const wisp = i < f.wisps, a = i * 2.39996;
+      const r = wisp ? f.wispSpeed : f.emberSpeed;
+      const lateral = Math.sin(a) * r * 0.7;
+      const forward = (0.2 + Math.cos(a) * 0.55) * r;
+      this.flames.emit(e.x, y, e.z,
+        forwardX * forward - forwardZ * lateral, 0.3 + (1 + Math.sin(a * 1.7)) * r * 0.25,
+        forwardZ * forward + forwardX * lateral,
+        wisp ? f.wispSize : f.emberSize, wisp ? f.wispLife : f.emberLife,
+        wisp ? 0 : 1, i * 0.618 % 1);
     }
     this.shake = Math.max(this.shake, f.shake);
   }
@@ -861,9 +882,9 @@ export class Vfx {
         const bx = -pr.vx / speed, bz = -pr.vz / speed;
         while (v.userData.trail >= 1) {
           v.userData.trail--;
-          const off = 0.3 + Math.random() * 0.65;
-          this.flames.emit(pr.x + bx * off, y + (Math.random() - 0.5) * 0.25,
-            pr.z + bz * off, bx * 1.6, 0.3, bz * 1.6,
+          const off = cfg.trailOffset[0] + Math.random() * (cfg.trailOffset[1] - cfg.trailOffset[0]);
+          this.flames.emit(pr.x + bx * off, y + (Math.random() - 0.5) * cfg.trailSpread,
+            pr.z + bz * off, bx * cfg.trailDrift, 0.15, bz * cfg.trailDrift,
             cfg.trailSize, cfg.trailLife, 0, Math.random());
         }
         continue;

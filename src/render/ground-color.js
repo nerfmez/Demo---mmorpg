@@ -6,8 +6,10 @@ export { NOISE_GLSL } from './ground-field.js';
 const rgb=hex=>{const c=new THREE.Color(hex);return `vec3(${[c.r,c.g,c.b].map(v=>v.toFixed(5)).join(',')})`;};
 const p=art.ground.palette;
 // All ground types share the same brush scale and warm, restrained highlight colours.
-// Analytic strokes are anti-aliased with screen derivatives, never a floating decal plane.
+// A shared mipmapped brush atlas and analytic marks stay on real ground/deck surfaces.
 export const SURFACE_PAINT_GLSL=NOISE_GLSL+/* glsl */ `
+uniform sampler2D uGroundBrush;
+vec3 groundBrush(vec2 w){return texture2D(uGroundBrush,w/12.0).rgb;}
 float paintDaubs(vec2 w,float scale){
   vec2 cell=floor(w*scale),q=fract(w*scale)-.5;
   q-=(vec2(hash12(cell+13.2),hash12(cell+37.7))-.5)*.60;
@@ -22,6 +24,7 @@ vec3 paintedEarth(vec2 w,float wet){
   vec3 earth=mix(${rgb(p.earthShadow)},${rgb(p.earthLight)},smoothstep(.20,.79,broad+(brush-.5)*.16));
   float strokes=paintDaubs(w,2.1);
   earth=mix(earth,earth*1.12+${rgb(p.dust)}*.07,strokes*.35);
+  earth*=.88+groundBrush(w).r*.24;
   vec2 cell=floor(w*1.6),q=fract(w*1.6)-.5;
   q-=(vec2(hash12(cell+7.0),hash12(cell+19.0))-.5)*.58;
   float seed=hash12(cell),d=length(q*vec2(1.1,1.6));
@@ -37,13 +40,13 @@ vec3 paintedPaving(vec2 w,vec3 moss,float weather){
   vec2 tile=vec2(w.x*(1.05+hash12(vec2(course,19.0))*.20)+hash12(vec2(course,7.0))*.9,w.y/height)+warp*.055;
   vec2 cell=floor(tile),q=fract(tile)-.5;
   float seed=hash12(cell),radius=.075+seed*.04;
-  vec2 a=abs(q)-vec2(.445-radius,.424-radius);
+  vec2 a=abs(q)-vec2(.445-radius+(seed-.5)*.036,.424-radius+(hash12(cell+21.0)-.5)*.028);
   float distance=length(max(a,0.0))+min(max(a.x,a.y),0.0)-radius;
-  distance+=(vnoise(w*13.0)-.5)*.016;
+  distance+=(vnoise(w*7.0)-.5)*.035+(vnoise(w*19.0)-.5)*.012;
   float aa=max(fwidth(distance),.005),stoneMask=1.0-smoothstep(-aa,aa,distance);
   float edge=1.0-smoothstep(-.055,-.012,distance);
   vec3 stone=mix(${rgb(p.stoneShadow)},${rgb(p.stoneLight)},seed*.75+.12);
-  stone*=.96+(vnoise(w*2.6)-.5)*.10;
+  stone*=.90+groundBrush(w).r*.18+(vnoise(w*2.6)-.5)*.06;
   float face=paintDaubs(w,3.7);
   stone=mix(stone,stone*1.08+vec3(.012),face*.28);
   // A soft upper lip, without a bright square drawn around every slab.
@@ -78,28 +81,16 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   float patchTone=smoothstep(.14,.86,meadow.x*.70+broad*.30);
   vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
   grass=mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,vnoise(w*.47+37.0))*.17);
-  grass=mix(grass,grass*1.12,paintDaubs(w,1.5)*.22);
-  // Fine tapered blades with curved tips, jittered roots and grouped density.
-  vec2 cell=floor(w*2.25),q=fract(w*2.25)-.5;
-  q-=(vec2(hash12(cell+13.2),hash12(cell+37.7))-.5)*.60;
-  float seed=hash12(cell),angle=(seed-.5)*1.7;
-  q=mat2(cos(angle),-sin(angle),sin(angle),cos(angle))*q;
-  float tufts=0.0;
-  for(int b=0;b<4;b++){
-    float side=float(b)-1.5,dy=q.y+.23-abs(side)*.035,t=dy/.43;
-    float curve=side*(dy*.16+dy*dy*.72),width=.034*max(0.0,1.0-t);
-    float d=abs(q.x-side*.077-curve),aa=max(fwidth(d),.005);
-    float blade=(1.0-smoothstep(width-aa,width+aa,d))*step(0.0,t)*(1.0-step(1.0,t));
-    tufts=max(tufts,blade);
-  }
-  float planted=smoothstep(.12,.65,meadow.x)*step(.24,seed);
-  vec3 bladeColor=seed>.49?grass*1.24+${rgb(p.grassOchre)}*.04:grass*.77;
-  grass=mix(grass,bladeColor,tufts*planted*.78);
+  vec3 brush=groundBrush(w);
+  grass*=.88+brush.r*.26;
+  float planted=.32+smoothstep(.12,.65,meadow.x)*.68;
+  grass=mix(grass,grass*.76,brush.g*planted*.82);
+  grass=mix(grass,grass*1.27+${rgb(p.grassOchre)}*.05,brush.b*planted*.88);
   grass*=.99+(fine-.5)*.025;
   vec3 earth=paintedEarth(w,0.0);
   // Irregular open soil islands are part of the painted terrain, not separate overlay quads.
-  float soil=meadow.y*.66+smoothstep(.28,.84,splat.a)*.74;
-  vec3 col=mix(grass,earth,clamp(soil,0.0,.92));
+  float soil=meadow.y*.30+smoothstep(.48,.90,splat.a)*.40;
+  vec3 col=mix(grass,earth,clamp(soil,0.0,.68));
   float roadEdge=splat.r+(mid-.5)*.17+(fine-.5)*.04;
   col=mix(col,earth,smoothstep(.18,.83,roadEdge));
   if(splat.b>.05){
@@ -119,6 +110,7 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   if(coast.x>.01){
   vec3 sand=mix(${rgb(p.sandShadow)},${rgb(p.sandLight)},smoothstep(.17,.83,broad+(mid-.5)*.19));
   sand=mix(sand,sand*1.08,paintDaubs(w,3.1)*.24);
+  sand*=.94+brush.r*.12;
   // Very shallow wind-brushed marks: curved, discontinuous, warm instead of glittery.
   float ripple=sin(w.y*11.0+vnoise(w*.8)*4.8+w.x*.33);
   sand*=1.0-.045*smoothstep(.74,.98,ripple)*smoothstep(.45,.69,vnoise(w*1.8));

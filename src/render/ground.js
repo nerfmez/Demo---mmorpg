@@ -8,6 +8,7 @@ import { rasterPolyline, boxBlur, valueNoise } from '../core/terrain.js';
 import { timeUniform } from './patch.js';
 import { bakeWaterContact, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
+import { groundBrushUniform } from './ground-brush.js';
 
 const TILE = 32;
 
@@ -236,12 +237,14 @@ export function createTerrain(world) {
 
 function terrainMaterial(world) {
   const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  const brush=groundBrushUniform(mat);
   const bossList = world.data.bosses || [];
   const arena = (bossList.find((b) => b.final) || bossList[0])?.arena || { x: 9999, z: 9999, r: 1 };
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = timeUniform;
     shader.uniforms.uArena = { value: new THREE.Vector3(arena.x, arena.z, arena.r) };
     shader.uniforms.uWater = { value: world.waterLevel };
+    shader.uniforms.uGroundBrush=brush;
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -281,7 +284,7 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v8';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v9';
   return mat;
 }
 

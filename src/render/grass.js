@@ -5,6 +5,7 @@ import { surfaceData } from './ground.js';
 import { GROUND_COLOR_GLSL } from './ground-color.js';
 import { patchMaterial, timeUniform } from './patch.js';
 import art from '../../data/art.json';
+import { groundBrushUniform } from './ground-brush.js';
 
 export function sampleGround(world,x,z) {
   const h=world.heightfield,s=surfaceData(world);
@@ -42,12 +43,14 @@ export function attachGrassSurface(mesh,items,world) {
 
 export function grassMaterial(world) {
   const m=new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide});
+  const brush=groundBrushUniform(m);
   patchMaterial(m,{wind:.15});
   const previous=m.onBeforeCompile;
   m.onBeforeCompile=(s,r)=>{
     previous.call(m,s,r);
     s.uniforms.uTime=timeUniform;
     s.uniforms.uGrassWater={value:world.waterLevel};
+    s.uniforms.uGroundBrush=brush;
     s.uniforms.uGrassTip={value:art.grass.tipLightening};
     s.uniforms.uGrassRootHeight={value:art.grass.rootBlendHeight};
     const vary=`varying vec3 vGrassRoot,vGrassLight,vGrassDark; varying vec4 vGrassSplat; varying vec2 vGrassCoast; varying float vGrassHeight,vGrassUp;`;
@@ -72,6 +75,6 @@ export function grassMaterial(world) {
     // negates the normal and makes half the clumps look almost black.
     s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');
   };
-  m.customProgramCacheKey=()=> 'grass-shared-ground-v2';
+  m.customProgramCacheKey=()=> 'grass-shared-ground-v3';
   return m;
 }

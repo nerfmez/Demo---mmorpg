@@ -33,14 +33,18 @@ jobs:
         id: scope
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PREVIOUS_HEAD: ${{ github.event.before }}
         run: |
           node --input-type=module <<'JS'
           import {execFileSync} from 'node:child_process';
           import {appendFileSync} from 'node:fs';
           const files=execFileSync('git',['diff','--name-only',process.env.BASE_SHA,'HEAD'],{encoding:'utf8'}).trim().split('\n');
-          const ground=/^(data\/art\.json|src\/render\/(ground(?:-color|-field)?|grass|meadow|nature|environment|harbor|walk-surface)\.js|tests\/browser\/ground-surfaces\.mjs|tests\/render\/ground-surfaces\.test\.mjs|docs\/[^\n]+|\.github\/workflows\/azure-layout-review\.yml)$/;
+          const ground=/^(data\/art\.json|src\/render\/(ground(?:-color|-field|-brush)?|grass|meadow|nature|environment|harbor|walk-surface)\.js|tests\/browser\/ground-surfaces\.mjs|tests\/render\/ground-surfaces\.test\.mjs|docs\/[^\n]+|\.github\/workflows\/azure-layout-review\.yml)$/;
           const onlyGround=files.some(f=>f==='src/render/ground-color.js')&&files.every(f=>ground.test(f));
           appendFileSync(process.env.GITHUB_OUTPUT,`ground=${onlyGround}\n`);
+          const previous=process.env.PREVIOUS_HEAD;
+          const newHarness=!previous||!!execFileSync('git',['diff','--name-only',previous,'HEAD','--','tests/browser/ground-surfaces.mjs'],{encoding:'utf8'}).trim();
+          appendFileSync(process.env.GITHUB_OUTPUT,`baseline=${newHarness}\n`);
           JS
       - uses: actions/setup-node@v4
         with:
@@ -63,7 +67,7 @@ jobs:
           GROUND_SOURCE: ${{ github.event.pull_request.head.sha }}
         run: node tests/browser/ground-surfaces.mjs
       - name: Capture identical locations from merged PR 24
-        if: steps.scope.outputs.ground == 'true'
+        if: steps.scope.outputs.ground == 'true' && steps.scope.outputs.baseline == 'true'
         env:
           GROUND_SOURCE: '7f7e46ee3e19fc6ca23d29f3adcd60ec97be0ee3'
           GROUND_BEFORE: '1'
@@ -81,7 +85,7 @@ jobs:
           path: tests/browser/out/ground-chromium/
           retention-days: 14
       - uses: actions/upload-artifact@v4
-        if: always() && steps.scope.outputs.ground == 'true'
+        if: always() && steps.scope.outputs.ground == 'true' && steps.scope.outputs.baseline == 'true'
         with:
           name: ground-before-pr24-chromium
           path: .ground-before/tests/browser/out/ground-chromium/

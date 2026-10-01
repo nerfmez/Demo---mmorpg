@@ -32,18 +32,18 @@ export function meadowPlants(world, extraPatches=[]) {
   for(const patch of patches){
     const density=meadowDensity(patch.x,patch.z),axis=rng.range(0,Math.PI*2);
     for(let k=0;k<art.ground.grassPerPatch;k++){
-      if(rng.next()>.22+density*.86)continue;
+      if(rng.next()>.48+density*.72)continue;
       // Loose elongated islands; centres carry taller blades, edges taper into ground paint.
       const a=rng.range(0,Math.PI*2),r=k===0?0:Math.sqrt(rng.next())*1.7;
       const lx=Math.sin(a)*r,lz=Math.cos(a)*r*.65;
       const x=patch.x+Math.cos(axis)*lx+Math.sin(axis)*lz,z=patch.z-Math.sin(axis)*lx+Math.cos(axis)*lz;
-      if(!clear(x,z)||meadowDensity(x,z)<.16)continue;
-      const s=patch.s*rng.range(.62,1.03)*(1-r*.12);
+      if(!clear(x,z)||meadowDensity(x,z)<.12)continue;
+      const s=patch.s*rng.range(.80,1.30)*(1-r*.12);
       grass.push({x,z,y:world.groundY(x,z)-.018,ry:axis+rng.range(-1.0,1.0),s});
     }
   }
   for(const patch of flowerPatches){
-    if(meadowDensity(patch.x,patch.z)<.29)continue;
+    if(meadowDensity(patch.x,patch.z)<.18)continue;
     const count=patch.color<=1?7:4,axis=rng.range(0,6.28);
     for(let k=0;k<count;k++){
       const a=axis+k*2.39996,r=k===0?0:Math.sqrt(k/count)*rng.range(.35,.83);

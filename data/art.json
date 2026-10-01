@@ -16,8 +16,8 @@
   "ground": {
     "palette": {
       "grassOchre": "#a3af56",
-      "earthShadow": "#a28757",
-      "earthLight": "#bda374",
+      "earthShadow": "#ad9667",
+      "earthLight": "#c4ae80",
       "dust": "#c9b68a",
       "mud": "#6d7053",
       "stoneShadow": "#9b9f8c",
@@ -34,7 +34,7 @@
       "woodSeam": "#75634c"
     },
     "townPatchSpacing": 4.8,
-    "grassPerPatch": 11,
+    "grassPerPatch": 15,
     "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
   },
   "anime": {

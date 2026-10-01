@@ -149,6 +149,19 @@ async function run(name, contextOpts) {
   check(res.kills > 0, `${name}: monsters die and drop loot`);
   check(res.quest && res.quest.progress > 0, `${name}: kills advance the boar side quest`);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-2-meadow.png` });
+  // monsters outside the camera are not drawn (view.js culls them); every one on screen must be
+  const cull = await page.evaluate(() => {
+    const v = window.__frontier.view;
+    const P = v.camera.position.clone();
+    let hidden = 0, missed = 0;
+    for (const mv of v.monsterViews.values()) {
+      P.copy(mv.rig.root.position).project(v.camera);
+      if (!mv.rig.root.visible) hidden++;
+      if (Math.abs(P.x) < 1 && Math.abs(P.y) < 1 && P.z < 1 && !mv.rig.root.visible) missed++;
+    }
+    return { total: v.monsterViews.size, hidden, missed };
+  });
+  check(cull.missed === 0, `${name}: every monster on screen is drawn (${JSON.stringify(cull)})`);
 
   // ---- every panel opens without errors (craft needs the workbench) ----
   await page.evaluate(() => {
@@ -182,6 +195,23 @@ async function run(name, contextOpts) {
     return { unlocked, ok: r.ok, d: Math.hypot(game.player.x - wp.x, game.player.z - wp.z) };
   });
   check(tp.unlocked && tp.ok && tp.d < 6, `${name}: waypoint unlocks and fast travel works (${JSON.stringify(tp)})`);
+  // the first frame after a camera snap (fast travel, respawn) must already draw the monsters there
+  const snap = await page.evaluate(() => {
+    const v = window.__frontier.view;
+    v.snapCamera();
+    v.render(0, performance.now() / 1000, {});
+    const P = v.camera.position.clone();
+    let onScreen = 0, missed = 0;
+    for (const mv of v.monsterViews.values()) {
+      P.copy(mv.rig.root.position).project(v.camera);
+      if (Math.abs(P.x) < 1 && Math.abs(P.y) < 1 && P.z < 1) {
+        onScreen++;
+        if (!mv.rig.root.visible) missed++;
+      }
+    }
+    return { onScreen, missed };
+  });
+  check(snap.missed === 0, `${name}: monsters on screen are drawn on the first frame after a camera snap (${JSON.stringify(snap)})`);
 
   // ---- terrain: the hero stands on the ground on high and low places ----
   const terrainSpots=await page.evaluate(()=>{
@@ -237,6 +267,8 @@ async function vrmHero() {
   });
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium&hero=vrm`);
   await page.waitForFunction(() => window.__frontier && window.__frontier.game && window.__frontier.game.time > 0.5, null, { timeout: 60000 });
+  // models load in the background; the hero is rebuilt with the VRM body only once it has arrived
+  await page.waitForFunction(() => typeof window.__frontier.view.hero?.setFace === 'function', null, { timeout: 60000 }).catch(() => {});
   const info = await page.evaluate(async () => {
     const { game, view } = window.__frontier;
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));

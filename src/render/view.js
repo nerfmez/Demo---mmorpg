@@ -23,6 +23,13 @@ import { residentTool } from './districts.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
+// Monster models are skinned, so three.js cannot cull them (frustumCulled is off); the view tests a
+// sphere around each one against the camera instead. The margin keeps a monster just past the edge
+// drawn, so its shadow and wind-up do not pop in.
+const CULL_MARGIN = 2;
+const _frustum = new THREE.Frustum();
+const _viewProj = new THREE.Matrix4();
+const _sphere = new THREE.Sphere();
 
 const ZONE_FOG = {
   settlement: '#c4e4ee',
@@ -121,6 +128,7 @@ export class View {
     this.npcMarkers = [this.marker(t.workbench[0], t.workbench[1], '#ffd166'), this.marker(t.trainer[0], t.trainer[1], '#8fd0ff')];
 
     this.monsterViews = new Map();
+    this.cullMonsters = true; // skip monster models outside the camera (off only to measure)
     this.allyViews = new Map();
     this.dropViews = new Map();
 
@@ -458,6 +466,10 @@ export class View {
     const g = this.game;
     const p = g.player;
     const seen = new Set();
+    // render() has already moved the camera for this frame
+    this.camera.updateMatrixWorld();
+    _frustum.setFromProjectionMatrix(_viewProj.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+    let drawn = 0;
     for (const m of g.monsters) {
       const far = Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS;
       if (far && !this.monsterViews.has(m.id)) continue;
@@ -490,8 +502,15 @@ export class View {
       mv.kz = damp(mv.kz || 0, 0, 14, dt);
       r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
       mv.hurt = Math.max(0, mv.hurt - dt * 5);
+      // off screen: not drawn and not posed (the simulation still moves it and lets it attack)
+      const h = (r.height || 1.5) * (r.baseScale || 1);
+      _sphere.center.set(r.root.position.x, r.root.position.y + h * 0.5, r.root.position.z);
+      _sphere.radius = Math.max(1.2, h) + CULL_MARGIN;
+      const onScreen = !this.cullMonsters || _frustum.intersectsSphere(_sphere);
+      r.root.visible = onScreen;
+      if (onScreen) drawn++;
       const tgt = m.targetUnit || p;
-      r.animate(
+      if (onScreen) r.animate(
         r,
         {
           moving: m.moving && ['chase', 'idle', 'return', 'circle', 'retreat'].includes(m.state),
@@ -528,7 +547,7 @@ export class View {
       else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
       else setFlash(r.material, 0, 0, 0);
       if (mv.halo) {
-        mv.halo.visible = !m.dead;
+        mv.halo.visible = !m.dead && onScreen;
         mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);
         mv.halo.scale.setScalar((r.glowScale || 1.9) * r.baseScale);
       }
@@ -537,6 +556,7 @@ export class View {
       if (m.statuses?.poison && Math.random() < dt * 6) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 0.8, 0, { color: 0xa8e04a, size: 0.2, life: 0.6 });
       if (m.statuses?.hex && Math.random() < dt * 5) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.6, mv.y + 1.4 * r.baseScale, m.z + (Math.random() - 0.5) * 0.6, 0, 0.5, 0, { color: 0xb88cff, size: 0.22, life: 0.6 });
     }
+    this.monstersDrawn = drawn;
     for (const [id, mv] of this.monsterViews) {
       if (!seen.has(id)) {
         this.releaseRig(mv.rig);
@@ -715,6 +735,10 @@ export class View {
     if (this.mode === 'game' && g) {
       const p = g.player;
       this.updateHero(dt, time);
+      // the camera moves first, so monsters are culled against this frame's view (also after a snap)
+      focus = { x: p.x + g.input.moveX * 1.2, y: this.heroY, z: p.z + g.input.moveZ * 1.2 };
+      zoneId = world.zoneAt(p.x, p.z).id;
+      this.updateCamera(dt, focus);
       for (const n of this.npcs) {
         if (n.scenery) {
           const dx = n.root.position.x - p.x, dz = n.root.position.z - p.z;
@@ -777,9 +801,6 @@ export class View {
         this.aimArrow.scale.set(1, 1, aim.length || 6);
         conform(this.aimArrow);
       }
-      focus = { x: p.x + g.input.moveX * 1.2, y: this.heroY, z: p.z + g.input.moveZ * 1.2 };
-      zoneId = world.zoneAt(p.x, p.z).id;
-      this.updateCamera(dt, focus);
     } else if (this.mode === 'create' && this.previewHero) {
       // hero preview on the plaza, slow orbit
       const h = this.previewHero;

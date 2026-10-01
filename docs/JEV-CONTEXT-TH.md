@@ -8,7 +8,28 @@ Jev เป็นตัวคัดบริบทสำหรับเริ่�
 
 `AGENTS.md` กำหนดขั้นตอนร่วมกัน และ `CLAUDE.md` นำเข้าไฟล์นี้ ฝั่ง client ต้องมีเครื่องมือ GitHub ที่เขียน branch/file และอ่าน Actions ได้ หรือใช้ Git credentials ปกติ การมีเอกสารอย่างเดียวไม่ได้เพิ่มสิทธิ์ให้ client ที่ไม่มีเครื่องมือดังกล่าว
 
-## ช่องทางเรียกสำหรับ agent
+## ช่องทางตรงสำหรับ Claude (Claude Code on the web)
+
+Session ของ Claude ที่ผู้ใช้ต่อ TypeSafe ไว้ ส่ง request ไป `api.typesafe.ai` ผ่าน proxy ซึ่งใส่คีย์จริงให้เอง Claude จึงรันสคริปต์ได้ทันทีโดยไม่ต้อง push branch คำขอและไม่ต้องรอ Actions ให้ใช้ช่องทางนี้ก่อน ถ้าล้มเหลว (proxy ไม่มีสิทธิ์, 401/403, network) ให้ใช้ช่องทาง GitHub ด้านล่างแทน
+
+```sh
+git worktree add <scratch>/jev-src <source SHA 40 ตัว>
+cd <scratch>/jev-src
+NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt \
+TYPESAFE_API_KEY=injected-by-proxy \
+JEV_OUTPUT_DIR=<scratch>/jev-out JEV_CACHE_DIR=<scratch>/jev-cache \
+JEV_TASK='...' JEV_KEYWORDS='...' node scripts/jev-context.mjs
+git worktree remove --force <scratch>/jev-src
+```
+
+- `TYPESAFE_API_KEY=injected-by-proxy` เป็นค่าหลอกให้สคริปต์ผ่านการตรวจว่ามีคีย์ proxy แทนที่ด้วยคีย์จริง ห้ามอ่าน แสดง หรือ commit คีย์จริง
+- `NODE_USE_ENV_PROXY=1` จำเป็นเพราะ `fetch` ของ Node ไม่อ่าน `HTTPS_PROXY` เอง (Node ≥ 22.21)
+- ใช้ worktree ของ commit ที่ต้องการ ไม่รันบน working tree ที่มีไฟล์ยังไม่ commit และเก็บ output/cache นอก repo
+- ตรวจ `Source commit` และ `Status: jev` ในรายงานก่อนใช้ ถ้าได้ `fallback` แปลว่าไม่ได้ใช้ Jev
+- การรันตรงไม่ผ่านตัวนับงบ GitHub และไม่มี artifact ให้บันทึก status, tokens/cost, ไฟล์ที่เลือก และ source SHA ใน PR/handoff ยอดจริงดูจากหน้าบิล TypeSafe
+- ทดสอบแล้ววันที่ 1 ตุลาคม 2026 บน `b6f3478`: ผลตรงกับรอบ Actions [36839356423](https://github.com/nerfmez/Demo---mmorpg/actions/runs/36839356423) (7,086 input tokens, ไฟล์และช่วงบรรทัดเดียวกัน)
+
+## ช่องทางเรียกผ่าน GitHub (ChatGPT หรือเมื่อไม่มีช่องทางตรง)
 
 1. อ่าน SHA ของ source ที่จะทำงานให้เป็น commit 40 ตัวอักษร และ SHA ของ `main` ล่าสุดสำหรับสร้าง branch คำขอ
 2. สร้าง branch ใหม่ `jev/request/<id>` จาก main โดย id เป็นตัวอักษรเล็ก ตัวเลข หรือขีด ความยาวไม่เกิน 80 ตัว และไม่ซ้ำ

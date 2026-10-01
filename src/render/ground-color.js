@@ -5,6 +5,10 @@ import { NOISE_GLSL, MEADOW_FIELD_GLSL } from './ground-field.js';
 export { NOISE_GLSL } from './ground-field.js';
 const rgb=hex=>{const c=new THREE.Color(hex);return `vec3(${[c.r,c.g,c.b].map(v=>v.toFixed(5)).join(',')})`;};
 const p=art.ground.palette;
+// how strongly the brush atlas's leaf strokes darken/lighten the ground (kept low: the ground is
+// mottled lawn, the standing clumps in grass.js are the grass)
+const blade=art.grass;
+const f=(n)=>Number(n).toFixed(3);
 // All ground types share the same brush scale and warm, restrained highlight colours.
 // A shared mipmapped brush atlas and analytic marks stay on real ground/deck surfaces.
 export const SURFACE_PAINT_GLSL=NOISE_GLSL+/* glsl */ `
@@ -84,8 +88,8 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   vec3 brush=groundBrush(w);
   grass*=.88+brush.r*.26;
   float planted=.32+smoothstep(.12,.65,meadow.x)*.68;
-  grass=mix(grass,grass*.76,brush.g*planted*.82);
-  grass=mix(grass,grass*1.27+${rgb(p.grassOchre)}*.05,brush.b*planted*.88);
+  grass=mix(grass,grass*.76,brush.g*planted*${f(blade.groundStrokeShade)});
+  grass=mix(grass,grass*1.27+${rgb(p.grassOchre)}*.05,brush.b*planted*${f(blade.groundStrokeLight)});
   grass*=.99+(fine-.5)*.025;
   vec3 earth=paintedEarth(w,0.0);
   // Irregular open soil islands are part of the painted terrain, not separate overlay quads.

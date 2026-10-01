@@ -53,6 +53,7 @@ export function grassMaterial(world) {
     s.uniforms.uGroundBrush=brush;
     s.uniforms.uGrassTip={value:art.grass.tipLightening};
     s.uniforms.uGrassRootHeight={value:art.grass.rootBlendHeight};
+    s.uniforms.uGrassRootShade={value:art.grass.rootShade};
     const vary=`varying vec3 vGrassRoot,vGrassLight,vGrassDark; varying vec4 vGrassSplat; varying vec2 vGrassCoast; varying float vGrassHeight,vGrassUp;`;
     s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>
       ${vary}
@@ -64,17 +65,19 @@ export function grassMaterial(world) {
         vGrassRoot.y=aGrassY;vGrassHeight=position.y;
         vGrassLight=aGrassLight;vGrassDark=aGrassDark;vGrassSplat=aGrassSplat;vGrassCoast=aGrassCoast;vGrassUp=aGrassNormal.y;`);
     s.fragmentShader=s.fragmentShader.replace('#include <common>',`#include <common>
-      ${vary} uniform float uTime,uGrassWater,uGrassTip,uGrassRootHeight;
+      ${vary} uniform float uTime,uGrassWater,uGrassTip,uGrassRootHeight,uGrassRootShade;
       ${GROUND_COLOR_GLSL}`)
       .replace('#include <color_fragment>',`#include <color_fragment>
         vec3 base=groundColor(vGrassRoot.xz,vGrassRoot.y,vGrassLight,vGrassDark,vGrassSplat,vGrassCoast,vGrassUp,uGrassWater);
         base=mix(base,base*vec3(.70,.81,.80),1.0-smoothstep(uGrassWater-.4,uGrassWater+.05,vGrassRoot.y));
         base*=groundCloud(vGrassRoot.xz,uTime);
-        diffuseColor.rgb=base*(1.0+uGrassTip*smoothstep(.02,uGrassRootHeight,vGrassHeight));`);
+        // a darker root and a lit tip make each clump read as standing up out of the ground
+        float rise=smoothstep(.0,uGrassRootHeight,vGrassHeight);
+        diffuseColor.rgb=base*mix(uGrassRootShade,1.0,rise)*(1.0+uGrassTip*rise);`);
     // Grass uses the terrain normal even on the reverse of a blade. Otherwise DoubleSide
     // negates the normal and makes half the clumps look almost black.
     s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');
   };
-  m.customProgramCacheKey=()=> 'grass-shared-ground-v3';
+  m.customProgramCacheKey=()=> 'grass-shared-ground-v4';
   return m;
 }

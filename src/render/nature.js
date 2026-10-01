@@ -46,7 +46,8 @@ export function meadowGrass() {
  const rng=createRng(620),positions=[];
  // Six narrow three-segment blades: delicate curved tips, no broad triangular fern cards.
  for(let i=0;i<6;i++){
-  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(.34,.61),width=rng.range(.018,.036),bend=rng.range(.13,.30);
+  // taller, a little wider and less bent than before, so a clump stands up under the 3/4 camera
+  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(.50,.84),width=rng.range(.026,.046),bend=rng.range(.06,.17);
   const points=[];
   for(let j=0;j<=3;j++){
    const t=j/3,w=width*(j===0?.33:j===3?0:1-t*.72);

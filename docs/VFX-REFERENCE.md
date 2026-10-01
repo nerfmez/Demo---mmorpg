@@ -21,5 +21,6 @@ Use it when you add or restyle effects. It is a style target only: the packs are
 
 ## Progress
 
-- Foundation and pilot (Firebolt): shape atlas (`src/render/fx-shapes.js`), two-tone cel particles, per-skill looks in `data/combat-fx.json` `skills`, shared cone geometry for spikes/stones. Focused capture: `node tests/browser/skill-fx.mjs firebolt`.
+- Foundation and pilot (Firebolt): shape atlas (`src/render/fx-shapes.js`), two-tone cel particles with colour over life, per-skill looks in `data/combat-fx.json` `skills`, shared cone geometry for spikes/stones. Focused capture: `node tests/browser/skill-fx.mjs firebolt`.
+- Study the reference frames before styling: the gallery's videos are at `effects/<name>.mp4` beside the gallery page (a browser user agent and the gallery as referer are needed). Firebolt follows `CFXR Fireball + Fire Trail` (glowing ribbon, grey smoke trail, embers, ground light) and `CFXR Explosion 2` / `CFXR Hit A` (spiky flash with speed lines, heat halo, comic burst, fireball cooling to smoke that breaks into puffs).
 - Next: the other skills in groups of 3–4, element-specific impacts, visible mods, a reduced-effects setting.

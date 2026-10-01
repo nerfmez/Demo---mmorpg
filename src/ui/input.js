@@ -6,6 +6,7 @@
 //     (area skills place a circle; others pick a direction). Release to cast.
 import { icon } from './icons.js';
 import { art } from './art.js';
+import { joystickMarks } from './fieldhud.js';
 
 // skills aimed at a point on the ground (drag places a circle)
 const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'];
@@ -57,7 +58,7 @@ export class Input {
 
     // ---- joystick ----
     this.joyZone = h(`<div class="joyzone"></div>`);
-    this.joyEl = h(`<div class="joy idle"><i></i></div>`);
+    this.joyEl = h(`<div class="joy idle"><i></i><span class="joy-marks" aria-hidden="true">${joystickMarks()}</span></div>`);
     root.appendChild(this.joyZone);
     root.appendChild(this.joyEl);
     this.bindJoystick();
@@ -229,7 +230,9 @@ export class Input {
 
   bindSkillButton(b, i) {
     let start = null;
+    let configureOnClick = false;
     const clear = () => {
+      configureOnClick = false;
       const id = start?.id;
       start = null;
       this.held.delete(0);
@@ -279,9 +282,16 @@ export class Input {
           this.game.castSlot(i);
         }
         this.pressFx(b);
-      } else {
-        if (!this.game.skills[i]) this.ui.configureSkill?.(i);
-        else this.castSlot(i, true);
+      } else if (!start.dragging) {
+        if (!this.game.skills[i]) {
+          // Opening on pointerup hides this button before the browser dispatches
+          // its compatibility click, which can hit a different loadout slot.
+          // Navigation opens on that click; combat still fires on release.
+          clear();
+          configureOnClick = true;
+          return;
+        }
+        this.castSlot(i, true);
       }
       clear();
     };
@@ -289,9 +299,13 @@ export class Input {
     b.addEventListener('pointercancel', end);
     b.addEventListener('lostpointercapture', end);
     b.addEventListener('click', (e) => {
-      if (e.detail !== 0) return;
+      const configure = configureOnClick;
+      configureOnClick = false;
+      if (e.detail !== 0 && !configure) return;
+      e.preventDefault();
+      e.stopPropagation();
       if (!this.game.skills[i]) this.ui.configureSkill?.(i);
-      else this.castSlot(i, true);
+      else if (e.detail === 0) this.castSlot(i, true);
     });
   }
 
@@ -478,6 +492,7 @@ export class Input {
       if (b.dataset.skill !== key) {
         b.dataset.skill = key;
         b.querySelector('.ic').innerHTML = s ? art('skill',s.id) : icon('plus');
+        b.dataset.tone = s?.element || 'physical';
         b.classList.toggle('empty', !s);
         b.querySelector('.slabel').textContent = s ? s.def.nameTh : 'ใส่สกิล';
         b.querySelector('.skill-cost').textContent = s?.cost ? `${s.cost} MP` : '';

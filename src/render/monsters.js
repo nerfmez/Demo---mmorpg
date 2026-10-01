@@ -11,6 +11,7 @@ import { attachMonsterModel } from './monsterSkin.js';
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 const cone = (r, h, seg = 5) => new THREE.ConeGeometry(r, h, seg);
+const CRAB_CLAWS = [[1, 'mandL'], [-1, 'mandR']];
 
 // ---------- quadrupeds (boar, wolves) ----------
 
@@ -204,8 +205,8 @@ function buildBeetle() {
   return rig;
 }
 
-// Reef crab: same rig and moves as the beetle (shell guard, spit), with a wide carapace and big claws.
-function buildCrab() {
+// Coastal crabs share a shell/claw rig; claws open, reach and close for a pinch.
+function buildCrab(hermit = false) {
   const C = { shell: '#d8643a', light: '#f09a5a', belly: '#f3d2a8', leg: '#b8482a', claw: '#e2703e', tip: '#3a2a22', eye: '#1c1410', barn: '#e8e0cc' };
   const rb = new RigBuilder({ outline: 0.03, darkness: 0.3 });
   rb.bone('body', 'root', [0, 0.32, 0]);
@@ -213,6 +214,11 @@ function buildCrab() {
   rb.bone('head', 'body', [0, 0.0, 0.42]);
   rb.add('body', sph(0.5, 12, 8).scale(1.25, 0.4, 0.95), C.belly);
   rb.add('shell', new THREE.SphereGeometry(0.62, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.3, 0.62, 1.0), C.shell);
+  if (hermit) {
+    rb.add('shell', sph(.65, 14, 10).scale(.85, 1.1, 1.15), '#b99b70', { pos: [0, .38, -.18] });
+    for (let i = 0; i < 3; i++) rb.add('shell', new THREE.TorusGeometry(.36 - i * .1, .055, 6, 16), '#ead9b5', { pos: [0, .65, .39 + i * .035] });
+    rb.add('shell', cone(.2, .55, 7), '#e0c79c', { pos: [0, 1.04, -.28], rot: [-.4, 0, 0] });
+  }
   for (let i = 0; i < 6; i++) {
     const a = i * 1.05 + 0.3;
     rb.add('shell', sph(0.07 + (i % 2) * 0.03, 7, 5).scale(1, 0.55, 1), i % 3 ? C.light : C.shell, { pos: [Math.sin(a) * 0.45, 0.3, Math.cos(a) * 0.3], plain: true });
@@ -242,6 +248,8 @@ function buildCrab() {
   rig.legs = legs;
   rig.height = 1.0;
   rig.bodyY = 0.32;
+  rig.hermit = hermit;
+  if (hermit) rig.height = 1.8;
   return rig;
 }
 
@@ -259,7 +267,7 @@ function animBeetle(r, s, dt, time) {
   let headX = 0;
   let mand = Math.sin(time * 5 + r.seed) * 0.08;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  if (s.windup === 'spit') {
+  if (s.windup === 'spit' || s.windup === 'bite') {
     headX = -0.45 * k;
     mand = 0.4 * k;
   } else if (s.state === 'recover' && s.lastAttack === 'spit') headX = 0.25;
@@ -271,7 +279,44 @@ function animBeetle(r, s, dt, time) {
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.5, 6, dt);
   b.mandL.rotation.y = damp(b.mandL.rotation.y, -mand, 16, dt);
   b.mandR.rotation.y = damp(b.mandR.rotation.y, mand, 16, dt);
+  b.mandL.rotation.x = damp(b.mandL.rotation.x, s.windup === 'bite' ? -.65 * k : 0, 14, dt);
+  b.mandR.rotation.x = damp(b.mandR.rotation.x, s.windup === 'bite' ? -.65 * k : 0, 14, dt);
   b.body.rotation.z = s.moving ? Math.sin(ph * 0.5) * 0.04 : Math.sin(time * 1.5) * 0.015;
+}
+
+// -1 is the fully drawn-back pose; +1 is contact. Timing comes from the same
+// attack definition as the simulation, so the strike does not look like a dash.
+function coastalStrike(s, name) {
+  if (s.windup === name) return -clamp01(s.windupT / s.windupTotal);
+  if (s.state !== 'act' || s.lastAttack !== name) return 0;
+  if (s.actT <= s.hitTime) return -1 + 2 * clamp01(s.actT / s.hitTime);
+  return 1 - clamp01((s.actT - s.hitTime) / (s.actionTotal - s.hitTime));
+}
+
+function animCrab(r, s, dt, time) {
+  const b = r.bones;
+  const stroke = coastalStrike(s, 'pinch');
+  const ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
+  r.phase = (r.phase || 0) + dt * (s.moving ? 11 : 0);
+  const tucked = r.shellK = damp(r.shellK || 0, s.state === 'shell' ? 1 : 0, 12, dt);
+  for (let i = 0; i < r.legs.length; i++) {
+    const leg = b[r.legs[i]];
+    leg.rotation.y = s.moving ? Math.sin(r.phase + i * Math.PI) * .3 : 0;
+    leg.rotation.x = s.moving ? Math.max(0, Math.cos(r.phase + i * Math.PI)) * -.2 : 0;
+    leg.scale.setScalar(1 - tucked * .8);
+  }
+  b.body.position.y = damp(b.body.position.y, .32 - tucked * .08, 16, dt);
+  b.shell.scale.set(1, 1 - (s.hurt || 0) * .035, 1);
+  b.head.scale.setScalar(1 - tucked * .88);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * .35, 8, dt);
+  for (const [side, name] of CRAB_CLAWS) {
+    const claw = b[name];
+    claw.rotation.x = damp(claw.rotation.x, -.85 * ready + .25 * hit, 20, dt);
+    claw.rotation.y = damp(claw.rotation.y, side * (-.55 * ready + .35 * hit), 20, dt);
+    claw.position.z = claw.userData.rest.pos.z + .32 * hit;
+    claw.scale.setScalar(1 - tucked * .85);
+  }
+  b.body.rotation.z = s.moving ? Math.sin(r.phase) * .025 : Math.sin(time * 1.5) * .008;
 }
 
 // ---------- wisp ----------
@@ -629,13 +674,72 @@ function animWarden(r, s, dt, time) {
 
 // ---------- registry ----------
 
+function buildSaltSlime() {
+  const rb = new RigBuilder({ outline: .022, darkness: .3 });
+  rb.bone('body', 'root', [0, .35, 0]);
+  rb.add('body', sph(.65, 16, 12).scale(1, .66, 1), '#56aeb4');
+  rb.add('body', sph(.47, 12, 8).scale(1, .6, 1), '#8dd4ca', { pos: [0, .08, .13], plain: true });
+  for (const x of [-.2, .2]) rb.add('body', sph(.045, 8, 5).scale(.8, 1.5, .6), '#233e48', { pos: [x, .12, .55], plain: true });
+  // Salt crystals give this creature a coastal silhouette and show its material.
+  for (const [x, y, z] of [[-.26,.37,-.18],[0,.43,-.23],[.24,.34,-.16]]) rb.add('body', new THREE.OctahedronGeometry(.14), '#e3f1dc', { pos: [x,y,z], rot: [0,.3,.2] });
+  const rig = rb.build(); rig.height = 1.15; return rig;
+}
+
+function animSaltSlime(r, s, dt, time) {
+  const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
+  const stroke = coastalStrike(s, 'slap');
+  const ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
+  const spit = s.windup === 'salt_spit' ? k : 0;
+  const squash = 1 - .25 * ready - .2 * hit + .15 * spit + Math.sin(time * 3 + r.seed) * .025;
+  const body = r.bones.body;
+  body.scale.set(1 / Math.sqrt(squash), squash, (1 + .4 * hit) / Math.sqrt(squash));
+  body.position.z = .2 * hit;
+  body.position.y = damp(body.position.y, .35 - .06 * ready, 18, dt);
+  body.rotation.x = damp(body.rotation.x, -.16 * spit + .15 * hit, 18, dt);
+}
+
+function buildShoreGull() {
+  const rb = new RigBuilder({ outline: .025, darkness: .3 });
+  rb.bone('body', 'root', [0, .65, 0]);
+  rb.add('body', sph(.38, 12, 10).scale(.8, 1, 1.2), '#e2dfcb');
+  rb.bone('head', 'body', [0,.38,.26]);
+  rb.add('head', sph(.23, 12, 8), '#f0ead8');
+  rb.add('head', cone(.08,.32,5).rotateX(Math.PI/2), '#d5a34b', {pos:[0,-.03,.29]});
+  for (const [side, suffix] of [[1,'L'],[-1,'R']]) {
+    rb.add('head', sph(.035,6,4), '#283d49', {pos:[side*.17,.04,.12],plain:true});
+    rb.bone('wing'+suffix,'body',[side*.29,.12,-.05]);
+    rb.add('wing'+suffix,sph(.3,10,8).scale(.3,1,1.4),'#687f8a',{pos:[side*.03,-.08,-.08]});
+    rb.bone('leg'+suffix,'body',[side*.14,-.22,.03]);
+    rb.add('leg'+suffix,cylDown(.035,.025,.4,5),'#bb8a45');
+    rb.add('leg'+suffix,new THREE.BoxGeometry(.16,.055,.24),'#bb8a45',{pos:[0,-.4,.06]});
+  }
+  rb.add('body',cone(.19,.45,4).rotateX(-Math.PI/2),'#566e79',{pos:[0,-.05,-.53]});
+  const rig = rb.build(); rig.height=1.4; return rig;
+}
+
+function animShoreGull(r,s,dt,time) {
+  r.phase=(r.phase||0)+dt*(s.moving?12:0);
+  const stroke=coastalStrike(s,'peck'),ready=Math.max(0,-stroke),hit=Math.max(0,stroke);
+  for (const [side,n] of [[1,'L'],[-1,'R']]) {
+    r.bones['leg'+n].rotation.x=s.moving?Math.sin(r.phase+(side>0?0:Math.PI))*.5:0;
+    r.bones['wing'+n].rotation.z=damp(r.bones['wing'+n].rotation.z,side*(s.state==='retreat'?.25+Math.sin(time*14)*.15:.05+.25*ready),12,dt);
+  }
+  r.bones.body.rotation.x=damp(r.bones.body.rotation.x,-.15*ready+.3*hit,20,dt);
+  r.bones.body.position.y=.65+Math.sin(time*2+r.seed)*.02;
+  r.bones.head.rotation.y=damp(r.bones.head.rotation.y,s.lookYaw*.6,8,dt);
+  r.bones.head.rotation.x=damp(r.bones.head.rotation.x,-.55*ready+1.1*hit,24,dt);
+}
+
 const BUILDERS = {
   tusk_boar: [buildBoar, (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.62, paw: true })],
   thornback_wolf: [() => buildWolf('wolf'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   greyfang: [() => buildWolf('greyfang'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   spirit_wolf: [() => buildWolf('spirit'), (r, s, dt, t) => animQuad(r, s, dt, t, { bodyY: 0.72, gallop: true })],
   moss_beetle: [buildBeetle, animBeetle],
-  reef_crab: [buildCrab, animBeetle],
+  reef_crab: [buildCrab, animCrab],
+  salt_slime: [buildSaltSlime, animSaltSlime],
+  shore_gull: [buildShoreGull, animShoreGull],
+  hermit_crab: [() => buildCrab(true), animCrab],
   marsh_wisp: [buildWisp, animWisp],
   sporecap: [buildSporecap, animSporecap],
   crag_golem: [buildGolem, animGolem],

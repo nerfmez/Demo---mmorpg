@@ -8,10 +8,10 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | Web demo | Godot | How |
 |---|---|---|
 | `data/*.json` | `res://data/*.json` | Copy the files. Load with `JSON.parse_string(FileAccess.get_file_as_string(path))`. Field names stay the same. |
-| `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints and bridges. |
+| `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## What gets translated (logic, `src/core/`)
 
@@ -26,9 +26,9 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `quests.js` | `Quests.gd` | Journal state lives in `character.progress.quests`. Feed it the same events (kill, collect, craft). |
 | `terrain.js` | Import step only | Builds the heightfield; Godot can load `heightmap.json` instead. |
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
-| `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, stunned, shell, return`. Keep the wind-up tell before every attack. |
+| `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges are optional river crossings. |
+| `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Dock clearance checks the actor footprint across the union of adjoining decks and dry shore; outer sea edges still block. `groundY()` interpolates from `startY` to `height` using dock-local Z after rotation. The render mesh shears in local Z so its XZ footprint matches collision exactly. Safe starting roads use distance to the `safeRoutes` polylines. |
 
 ### `game.js` → scenes
 
@@ -49,7 +49,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css`, `ui/art.css` and `ui/workspaces.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. |
 
-`ui/art.js` and `ui/jobart.js` contain 187 individually authored SVG illustrations keyed by base content ID.
+`ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
@@ -188,3 +188,133 @@ full-rect Control, not a Window; show node details on selection only. Modifier i
 art uses the shared SVG faceted-gem/engraved-symbol templates in `gemart.js` and
 `sigils.js`; their colours never determine compatibility. Preserve the existing
 core eligibility checks and save IDs.
+
+### Clean SEEKER combat HUD (29 September 2026)
+
+`ui/fieldhud.css` now skins the live field HUD with navy translucent surfaces, thin silver
+edges and a right-hand action cluster on mouse and touch. `ui/fieldhud.js` provides small
+menu/joystick symbols plus XP/quest presentation. Combat and movement buttons reuse
+the unchanged full-colour illustrations from ui/art.js; do not replace them with glyphs
+or import an entire concept image. Modifier items keep the engraved gems separately.
+Keep the actual portrait, HP/barrier/MP, all four combat slots, separate movement charges,
+interrupted drag behavior and per-skill targeting untouched when porting. The footer
+shows independent blue EXP and gold Job tracks; max-level tracks explicitly say MAX.
+Short landscape/portrait relocate and compact the quest tracker rather than covering
+combat controls. Details and acceptance checks are in `docs/COMBAT-HUD.md`.
+
+### Render light/shadow pass (29 September 2026)
+`data/rendering.json` is now the single lighting/preset source. `world.presentation`
+and `art.anime.light` were removed; `daylight` is live and `legacy` is an explicit
+comparison profile in the same file. Use shadow-receiving materials on imported
+actor bodies, not hulls. Preserve painted foliage colours and apply a restrained
+scene-shadow mask rather than re-lighting individual cards.
+The same wind deformation must be active in both colour and shadow rendering.
+WebGL uses a shared customDepthMaterial per fill material (`render/patch.js`),
+with the fill's alpha texture/test and wind uniforms, but no camera-space dither.
+When changing quality, update and release shadow buffers as well as DPR. WebGL
+native AA is a fixed context policy (including Low), not a switch changed by
+setQuality. Godot can use its own viewport AA controls with equivalent documented
+behaviour. See `RENDER-LIGHT-SHADOW.md` and renderer regression tests.
+
+### Azure Coast local starter (30 September 2026)
+
+The active `world.json` is a 320 × 240 m harbor prototype (with a large U-shaped bay),
+not the complete Asterfall continent. New characters start at the safe landing beach
+and unlock the town checkpoint by walking there. The town, nearby grove, fields
+and lighthouse are the only authored region. `tests/fixtures/frontier/` retains the
+previous map for historical regression tests.
+
+Translate `coastal_melee`, `coastal_slime` and `coastal_skirmisher` in `ai.js`.
+`primaryAttack` selects a stationary frontal slap, peck or pinch; each attack has
+`arc`, `windup`, `hitTime` (after windup), `duration`, `recover` and `cooldown` in
+`monsters.json`. Lock aim after 55% of windup and test range/arc once at contact,
+including summons. Contact never uses the charge collision path. Drive animation
+from these same times, with the body planted and the head/claw/body following through.
+
+Salt slime uses a slow `salt_spit` projectile when outside slap range. Its aim stays
+locked, it carries no poison, and terrain/collision use the existing projectile rules.
+The grounded shore gull walks in, pecks, recovers and walks toward a fixed retreat
+point at normal movement speed; retreat cannot damage units and times out if blocked.
+Reef crab uses only a slow frontal pinch. Hermit crab also enters shell after its
+configured attack count (or sustained hits), then clears `shell` and enters `emerge`.
+`emergeDamageTaken` applies only during that stationary opening, before normal pursuit
+resumes. Leashing clears transient combat/guard state. See `COASTAL-COMBAT.md` and
+`tests/core/coastal-attacks.test.js` for the port acceptance cases.
+Part drops feed the new low-cost recipes.
+Procedural harbor and monster meshes are review assets; owner visual approval
+remains separate from passing gameplay tests.
+
+Save version remains 2. The optional `worldId` prevents restoring old coordinates
+on a different map. On migration preserve the character build and quest history,
+filter unavailable waypoints, add the landing checkpoint, and clear `pos` once.
+A later save with this map ID keeps its current position and unlocked checkpoints.
+
+
+
+## Azure Coast U-bay blockout
+
+The map remains 320 × 240 m with `shoreZ(x)` defining the water side of the existing X/Z shoreline. `sea.edgeKinds` tags each shoreline segment as beach, quay, breakwater or shipyard. `coastSample()` gives the signed nearest distance for side-coast painting, collision radius clearance and surf; quay/slipway edges do not receive sand or beach runup. Exported terrain includes the carved bay and every settlement rectangle.
+
+`town.buildings` accepts the legacy `[x,z,angle]` format and authored objects `{id,x,z,angle,hx,hz,height,kind,roofColor}`. For the active `town.blockout` pass, visible boxes exactly match these oriented collider dimensions; roof colors are stored per building. No interiors are present. `docks` and their local ramp endpoints export directly. Save JSON remains version 2; the optional `worldLayoutRevision` relocates old coordinates once while preserving equipment, levels and the seven-step quest records.
+
+The owner approved this layout on 30 September 2026 and authorized one market-to-pier style slice. `town.styleSlice` selects four building IDs, authored exterior variants, awning colors, stall goods and a quay range. The owner subsequently approved continuing other districts; `town.districtStyle` selects the other 18 primary buildings for authored exteriors. Finished bases stay within the same per-building X/Z collider dimensions; roof colors remain per-building. There are no interior or new fishing rules.
+
+Road corners and the coast are now densely sampled curves baked in `world.json`; terrain, collision, safe routes, minimap and export all use those same polylines. Shore X remains strictly increasing, and `edgeKinds` remains one tag per segment. The breakwater approach keeps its original joining points to avoid a deck/terrain height step. Cosmetic road and paving wear only changes paint weights. The low market coping follows the same shore and leaves gaps at pier approaches. Market geometry is merged per color during scene construction, with no extra frame updates. Nearest-coast lookup compares squared distances and takes one square root after finding the nearest segment.
+
+The market style is approved for district expansion; the new district exteriors await owner image review. Merge and deploy remain unapproved. Browser screenshots cannot establish hardware iPad FPS.
+
+### Market visual audit
+
+`wallColor` is authored per reviewed building; the base remains inside its original X/Z collider. Door foundations are recessed into low thresholds, and fish/workshop/provisioner/inn frontages have distinct working details. No entrance or interior collision rule changes.
+
+The market apron uses overlapping coast/plaza paint masks instead of a rectangle ending before the quay strip. Road attenuation is continuous across paving blends. Beach water still follows terrain as a thin swash film; quay, breakwater and repair-front water stays at the water level. Their foam is restrained and opacity masks the coarse submerged terrain. Market coping segments are clipped precisely against dock-local rectangles; the stone face meets the coping vertically.
+
+`town.styleSlice.boatIndices` selects all four existing decorative boats for the open fishing-boat exterior. Floors close the visible hull, static ropes connect to the nearest pier side, and the east boat clears its pier. Boats remain non-interactive decoration. Pier planks use 0.32 m courses with instanced seams; collider dimensions and ramp interpolation are unchanged.
+
+### Solid pier approaches and authored dock cargo
+
+`docks[].terrainRecess` is optional and data-driven. Before sampling ramp heights, carve supporting terrain under the slab along dock-local Z, tapering from zero at the dry endpoint. Active pier ramps use 0.32 m; the repair slipway keeps 0.08 m. Ground and deck must not share a coplanar area: movement support alone does not establish a visually joined approach. Deck X/Z dimensions and walking interpolation stay unchanged.
+
+`harbor.dockCargo` contains `{id,x,z,hx,hz,angle,height,kind}` groups. Add their authored oriented box colliders to the world; render fish crates, barrels or a net rack within those same bounds, anchored at `groundY`. The reviewed piers retain a three-metre clear central aisle. Eight stalls use the existing stall collider/content format. These are exterior working props, without fishing, boat control or interior interactions. Current checks are in `tests/core/harbor.test.js`; focused captures use `AZURE_MARKET_REVIEW=1` in `tests/browser/azure-blockout.mjs`.
+
+### Distinct shop exterior assemblies
+
+`marketBuilding()` dispatches the four authored `variant` values to separate exterior assemblies: open fish counters under a low hipped roof; front-gabled timber workshop with anvil, tools and forge; single-slope provision shop with striped awning and supply shelves; two-storey inn with small dormer, shallow porch and seating. Preserve their gameplay-camera readability, authored wall/roof colors and low silhouettes when porting. Recess the main wall/eaves within the original `hx/hz` plot and keep the exterior displays inside that plot. The existing oriented collider covers the complete solid exterior plot; no interior access or new service interaction is added. Static parts remain merged by color at construction time, without frame callbacks. `AZURE_SHOP_REVIEW=1` captures the four original-camera frontages without a full-map capture.
+
+### Authored district exteriors and working yards
+
+`town.districtStyle.buildingIds` selects cottage, front-gable, netter and timber-home variants, three warehouse variants and a repair workshop. Keep per-building `variant`, `wallColor`, `roofColor`, `hx/hz` and height; these are solid exterior plots. `town.blockout` remains a fallback/procedural-decoration suppression switch, not the selector for these finished building meshes.
+
+`harbor.workProps` uses the same authored `{id,x,z,hx,hz,angle,height,kind}` oriented-box contract as dock cargo, with world collider type `harbor_work`. Render cargo stacks, handcarts, timber, dry hull on trestles and bench within those bounds. These props do not add interactions or save state. `town.buildings[].entryPath` is a world-X/Z polyline from the clear front threshold to an existing road; it only paints a soft worn path. `harbor.workSurfaces` holds `{x,z,rx,rz,angle}` ellipses that blend worn-earth paint around loading/repair work, with no terrain-height or collision changes.
+
+`harbor.lighthouseStyle` controls stripe and roof colors on the existing radius-2 landmark. Low breakwater coping leaves its centre open; water-side armour stones sit outside the deck. A 0.025 m visual lift prevents land/deck coplanarity while preserving world walking support. Launch rails use the slipway's own local slope. Mooring anchor endpoints are transformed through the selected pier's local X/Z rectangle before returning to world coordinates, including rotated side piers.
+
+`AZURE_DISTRICT_REVIEW=1` captures eight original-camera locations plus one labeled layout view and walks all 18 authored frontage connections. The current collider/path safety test is in `tests/core/harbor.test.js`. No new interior, boat-driving or fishing rule; save/quest/combat/input contracts remain unchanged. Hardware iPad performance is still unmeasured.
+
+### Structure contours and rounded breaking foam
+
+`art.architecture` contains `hullWidth`, `hullDarkness`, `edgeAngle`, `edgeColor`, and `edgeOpacity`. Use a same-hue silhouette hull plus depth-tested feature edges at sharp geometry joins; omit coplanar triangle diagonals and low-angle facets. Generate one line batch per structure, skip previously styled children, and preserve character/foliage shaders. The Three implementation is `render/architecture.js`; its owned edge geometry follows `disposeObject`, with shared cached contour materials. Structure transforms/colliders remain unchanged.
+
+`sea.surf.foamScale/foamIntensity/portFoam/foamColor` tune the existing sea material; `foamDrift`, `foamLifetime` (seconds) and `causticSpeed` control deformation and decay. Recover the waterward normal from derivatives of the existing signed shore distance and world X/Z coordinates. Advect swash with its moving runup edge and incoming graphic crests with their phase; use a bounded per-wave coordinate and a new seed generation for each wave. Warped multi-scale noise opens unequal branching water channels through young foam, then erodes white remnants over a finite lifetime. Do not draw fixed Voronoi border lines or reveal the same stationary pattern with a brightness mask. Submerged light ripples also deform and fade, with low contrast and no fixed surface grid.
+
+Keep flat port water and terrain-following beach runup as separate existing masks. Limit foam detail to the near-shore strip and antialias fine pores with derivatives. The shared GPU clock drives the material; no additional water mesh, physics, texture or CPU particle system is introduced. `AZURE_FINISH_REVIEW=1 AZURE_WAVE_ONLY=1` captures beach/quay/breakwater views; optional `AZURE_WAVE_SEQUENCE=1` samples one full cycle at 12 frames per simulated second for motion review. This sampling rate is not a hardware performance measurement. Hardware iPad FPS remains unmeasured.
+
+
+### Water contact at static harbor geometry
+
+`render/water-contact.js` intersects marked scenery meshes with the visible sea plane (`waterLevel + 0.015`), including transformed/instanced rocks and rotated dock assemblies. Ignore inverted-hull outlines and all geometry entirely above/below that plane. Split the segments into connected closed loops and union their raster fills, so a mast nested within a hull does not create an artificial water hole. This distinguishes submerged piles from raised timber decks. The breakwater now has a stone foundation down to `waterLevel - 0.8`, inside its existing X/Z footprint; walking support/collision is unchanged.
+
+Bake one linear-filtered RGBA8 field at scene creation: signed waterline distance, outward X/Z normal and incoming-wave exposure. `sea.surf.contactTexel/contactRange/contactShelter/contactWidth/contactIntensity` tune this visual field. Its maximum dimension is 2048; distant water skips contact detail. `View` creates scenery before water so the bake uses the actual rendered hulls, quay walls, piles, armour stones and scenery rocks. The sea material owns the texture; `ownContactTexture` releases it once when that material is disposed. No per-frame geometry extraction, texture updates or CPU collision work.
+
+Incoming crests move north from the open bay; `sea.surf.waveSpacing` and `period` define their travel speed. Beach runup is phased from the same arriving crest at the nearest coast. Port crests are finite curved anime ribbons with rounded tapered ends; incoming-wave exposure attenuates them. Beach crests retain the previously reviewed thin, intermittent treatment. Contact foam starts when a crest reaches the nearest physical waterline, spreads along that contour, then dissipates; a short outward return ripple follows the struck contour. Incidence and exposure reduce the sheltered side. The sea surface is masked inside solid cross-sections. Beach swash remains based on the existing shore/heightfield, with unequal branching water channels replacing uniform circular foam holes. This is a static stylized contact approximation, not a fluid/wave-reflection simulation, and does not respond to actors or future moving boats. Core movement, saves and services are unchanged.
+
+`node --test tests/render/water-contact.test.mjs` checks hull taper, rotated solid masonry/piles, open water below elevated timber decks, exposure and texture ownership. `AZURE_FINISH_REVIEW=1 AZURE_WAVE_ONLY=1 AZURE_CONTACT_REVIEW=1` captures incoming/impact/spread at a working berth, stone armour and quay wall. Optional `AZURE_WAVE_SEQUENCE=1` samples a 6 s contact animation (72 frames/12 samples per simulated second); ordinary wave-only mode still reviews one beach swash cycle. Sampling does not measure device FPS.
+
+
+### Graphic anime port crests (owner review correction)
+
+The volumetric swell pass was rejected by the owner: preserve anime graphic crest marks, soften their straight rigid appearance, and retain the beach treatment from 7f895603ef1cc2064d6d1a18163767593cf68c03. Remove the GPU height/slope shading and its four swell settings. All sea meshes again use their original level/terrain-film surfaces. Beach runup, foam channels, phases, palette and thin offshore crest code are restored from that source.
+
+`sea.surf.crestBend` sets port-crest curvature in metres, `crestWidth` the ribbon width, `crestLength` the spacing of varying-length arc groups, and `crestOpacity` their light-cream contrast. The port shader moves curved crests north; individually bowed along-crest groups produce unequal strokes, with continuously tapered rounded tips and antialiased edges. Row/group seeds change while the marks are invisible between crests. A restrained teal underside preserves the drawn anime look without volumetric gradient waves. Derive port contact timing from the same curved phase; beach contact timing stays at the reviewed old phase. No geometry, texture, ownership, water physics, collider or save change.
+
+`node tests/browser/azure-wave-lines.mjs` captures the pier and beach in the original gameplay camera/HUD. Optional `BEFORE_ROOT=/path/to/built/revision` checks identical player/camera transforms. `BASELINE_SHA`/`REVIEW_PARENT` record comparison source identities; the report also records the live port material style/settings to guard against stale captures. `WAVE_SEQUENCE=1` captures one 7.5 s pier cycle at six samples per simulated second, plus matched beach stills to review the restored treatment. These samples do not measure PC/iPad rendering FPS.

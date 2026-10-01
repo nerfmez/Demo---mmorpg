@@ -2,6 +2,7 @@
 // and standing on the terrain. Repeated props use chunked InstancedMesh (frustum culling per
 // chunk) so the demo stays light on iPad. Grass, flowers, reeds, ferns and canopies sway.
 import * as THREE from 'three';
+import { outlineStructure } from './architecture.js';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
@@ -13,6 +14,9 @@ import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture }
 import { attachGrassSurface, grassMaterial } from './grass.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { createHarbor } from './harbor.js';
+import { marketBuilding, marketStall, marketQuay } from './market.js';
+import { districtBuilding } from './districts.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -204,9 +208,9 @@ export function createEnvironment(world) {
   // Only the town/meadow study changes canopy geometry; other biomes remain a comparison.
   const cloudMat=animeStudy?animeFoliageMaterial():mat('#ffffff',{vertexColors:true,double:true,wind:.025,windBase:1.2,see:true});
   cloudMat.map=studyLeafTexture();cloudMat.alphaTest=.4;cloudMat.forceSinglePass=true;
-  const cloudGroup=instanced(cloudCrown(3),cloudMat,cloudTrees,{receiveShadow:!animeStudy});
+  const cloudGroup=instanced(cloudCrown(3),cloudMat,cloudTrees,{receiveShadow:true});
   cloudGroup.name='art-study-crowns';root.add(cloudGroup);
-  root.add(instanced(cloudCrown(7),cloudMat,cloudBirches,{receiveShadow:!animeStudy}));
+  root.add(instanced(cloudCrown(7),cloudMat,cloudBirches,{receiveShadow:true}));
   // Jagged patches supply the entire crown; no spherical filler underneath.
   if(animeStudy)root.add(instanced(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
   const canopyGeo = leafCrown(3);
@@ -255,7 +259,8 @@ export function createEnvironment(world) {
   for (const bx of world.boxes) if (bx.type === 'log') logs.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) + 0.35, sx: 1, sy: 1, sz: bx.hz * 2, ry: bx.angle });
   if(artReviewLayout)for(const [x,z,s] of animeConfig.sample.rocks)rocks.push({x,z,y:gy(x,z)+s*.36,s,sy:s*.75,ry:s*2,color:animeConfig.palette.rock});
   for (const l of world.decor.logsDecor) logs.push({ x: l.x, z: l.z, y: gy(l.x, l.z) + 0.3, sx: 0.8, sy: 0.8, sz: 1.6, ry: l.angle });
-  root.add(instanced(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 }));
+  const shoreRocks=instanced(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 });
+  shoreRocks.userData.waterContact=true;root.add(shoreRocks);
   root.add(instanced(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
   const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
   crystalGeo.scale(0.55, 1.9, 0.55);
@@ -310,13 +315,14 @@ export function createEnvironment(world) {
   // ----- bridges, town, camp -----
   for (const br of world.bridges) root.add(createBridge(world, br));
   root.add(createTown(world, rng));
+  if (world.data.harbor) root.add(createHarbor(world));
   if (world.data.camp) root.add(createCamp(world));
 
   // ----- small decoration -----
   const d = world.decor;
   // Grouped plant patches: short curved leaves and readable flowers, leaving paths clear.
   const grass=[],flowers=[],detailRng=createRng(842);
-  const clear=(x,z)=>!world.isBeach(x,z,2.5)&&!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&(!artReviewLayout||distToPolyline(x,z,animeConfig.sample.path)>1.45)&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
+  const clear=(x,z)=>!(world.data.town.blockout&&world.zoneAt(x,z).safe)&&!world.isBeach(x,z,2.5)&&!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&(!artReviewLayout||distToPolyline(x,z,animeConfig.sample.path)>1.45)&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
   // Low relief shells have distinct fan/spiral silhouettes and raised ribs. Chunked like plants.
   for (const kind of ['fan', 'spiral']) {
     const shells = (d.shells || []).filter(s => s.kind === kind).map(s => ({ x:s.x, z:s.z, y:gy(s.x,s.z)+.025, s:s.s, ry:s.rot, color:kind==='fan'?'#f2decd':'#dfc5a9' }));
@@ -367,7 +373,7 @@ export function createEnvironment(world) {
   root.add(instanced(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
   const studyBushMat=animeStudy?animeFoliageMaterial(true):mat('#ffffff',{vertexColors:true,double:true,wind:.025});
   studyBushMat.map=studyShrubTexture();studyBushMat.alphaTest=.4;studyBushMat.forceSinglePass=true;
-  root.add(instanced(lowShrub(),studyBushMat,studyBushes,{receiveShadow:!animeStudy}));
+  root.add(instanced(lowShrub(),studyBushMat,studyBushes,{receiveShadow:true}));
   if(animeStudy){
 
     root.add(instanced(shrubStems(),new THREE.MeshLambertMaterial({color:'#78654c'}),studyBushes,{shadow:false}));
@@ -551,7 +557,7 @@ function createBridge(world, br) {
       g.add(rail);
     }
   }
-  return g;
+  return outlineStructure(g);
 }
 
 function lantern(x, y, z) {
@@ -600,18 +606,30 @@ function waypointStone() {
   crystal.castShadow = true;
   g.add(crystal);
   g.userData.crystal = crystal;
-  return g;
+  return outlineStructure(g);
 }
 
 function createTown(world, rng) {
   const g = new THREE.Group();
   const gy = (x, z) => world.groundY(x, z);
   const roofCols = ['#b8543f', '#4f6fa8', '#8f5a3c', '#5e8a4a'];
+  const t = world.data.town, slice=t.styleSlice;
+  let stallIndex=0;
   for (const bx of world.boxes) {
-    if (bx.type === 'house') g.add(house(bx, rng.pick(roofCols), gy(bx.x, bx.z)));
-    if (bx.type === 'stall') g.add(stall(bx, rng.pick(['#d8483a', '#3b6ad0', '#e0a030']), gy(bx.x, bx.z)));
+    if (bx.type === 'house') {
+      const y=gy(bx.x,bx.z);
+      const model=slice?.buildingIds.includes(bx.id) ? marketBuilding(bx,y)
+        : t.districtStyle?.buildingIds.includes(bx.id) ? districtBuilding(bx,y)
+        : t.blockout ? blockoutBuilding(bx,y) : house(bx,bx.roofColor || rng.pick(roofCols),y);
+      g.add(model);
+    }
+    if (bx.type === 'stall') {
+      const i=stallIndex++;
+      g.add(slice ? marketStall(bx,slice.awningColors[i % slice.awningColors.length],gy(bx.x,bx.z),slice.stallGoods[i]==='fish')
+        : stall(bx,rng.pick(['#d8483a','#3b6ad0','#e0a030']),gy(bx.x,bx.z)));
+    }
   }
-  const t = world.data.town;
+  if(slice)g.add(marketQuay(world));
   // workbench: table + anvil + tools
   const wb = new THREE.Group();
   wb.position.set(t.workbench[0], gy(t.workbench[0], t.workbench[1]), t.workbench[1] - 1.6);
@@ -661,6 +679,7 @@ function createTown(world, rng) {
   roof.position.set(wx, wy + 2.2, wz);
   roof.rotation.y = Math.PI / 4;
   g.add(roof);
+  for(const structure of g.children)outlineStructure(structure);
   return g;
 }
 
@@ -731,6 +750,18 @@ function createCamp(world) {
   return g;
 }
 
+// Review boxes use the exact authored collider footprint. No full-town detail yet.
+function blockoutBuilding(bx, y) {
+  const g = new THREE.Group(); g.position.set(bx.x, y, bx.z); g.rotation.y = bx.angle;
+  const height = bx.height || 3.6;
+  const colors = { house: '#dbd8c7', shop: '#d5ba85', warehouse: '#bcaa94', shipyard: '#aca7b8' };
+  const body = outlined(new THREE.BoxGeometry(bx.hx * 2, height, bx.hz * 2), toon(colors[bx.kind] || colors.house), { outline: '#64665b', width: .025 });
+  body.position.y = height / 2; g.add(body);
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(bx.hx * 2, .16, bx.hz * 2), toon(bx.roofColor));
+  cap.position.y = height + .08; g.add(cap);
+  return g;
+}
+
 function house(bx, roofCol, y) {
   const g = new THREE.Group();
   g.position.set(bx.x, y, bx.z);
@@ -739,7 +770,7 @@ function house(bx, roofCol, y) {
   const d = bx.hz * 2 - 0.4;
   const study=inArtStudy(bx.x,bx.z);
   const anime=animeStudy&&study;
-  if(anime)roofCol=bx.z>0?'#b67551':'#668e87';
+  if(anime && !bx.roofColor)roofCol=bx.z>0?'#b67551':'#668e87';
   const finish=(color,kind)=>study?paintSurface(animeStudy?new THREE.MeshLambertMaterial({color:kind==='plaster'?animeConfig.palette.plaster:kind==='timber'?animeConfig.palette.wood:color}):mat(color),kind):toon(color);
   const walls = outlined(new THREE.BoxGeometry(w, 3.2, d), finish('#efe2c6','plaster'), { outline: '#6b5a44', width: 0.03 });
   walls.position.y = 1.2;

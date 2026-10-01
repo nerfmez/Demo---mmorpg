@@ -12,11 +12,13 @@ import { monsterModel } from './models.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
-import { timeUniform } from './patch.js';
+import { timeUniform, attachWindShadow } from './patch.js';
+import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
+import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
-import { animeStudy, animeConfig } from './anime-study.js';
+import { animeStudy } from './anime-study.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -37,11 +39,13 @@ export class View {
   constructor(canvas, world, { quality = 'high' } = {}) {
     this.world = world;
     this.game = null;
-    this.quality = quality;
+    this.quality = qualitySettings(quality).name;
     this.mode = 'title';
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality !== 'low', powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: renderConfig.nativeAntialias, powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.shadowMap.enabled = quality !== 'low';
+    // Native AA is fixed for the context lifetime. All tiers use the same request,
+    // so low->high and high->low cannot silently retain different context attributes.
+    this.renderer.shadowMap.enabled = qualitySettings(this.quality).shadowMapSize > 0;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.scene = new THREE.Scene();
     this.fogColor = new THREE.Color(ZONE_FOG.settlement);
@@ -54,13 +58,13 @@ export class View {
     this.shake = 0;
     this.time = 0;
 
-    const light = animeStudy ? animeConfig.light : world.data.presentation || {};
-    const hemi = new THREE.HemisphereLight(light.ambientSky || '#fff6e0', light.ambientGround || '#6f8f5a', light.ambientIntensity ?? 1.25);
-    this.scene.add(hemi);
-    this.sun = new THREE.DirectionalLight(light.sunColor || '#fff1d6', light.sunIntensity ?? 2.1);
+    const light = lightingSettings(animeStudy ? renderConfig.lighting.active : 'legacy');
+    this.lightingProfile = light.name;
+    this.hemisphere = new THREE.HemisphereLight(light.ambientSky, light.ambientGround, light.ambientIntensity);
+    this.scene.add(this.hemisphere);
+    this.sun = new THREE.DirectionalLight(light.sunColor, light.sunIntensity);
     this.sun.castShadow = true;
-    const s = quality === 'high' ? 2048 : 1024;
-    this.sun.shadow.mapSize.set(s, s);
+    applyShadowQuality(this.renderer, this.sun, this.quality);
     const sc = this.sun.shadow.camera;
     sc.left = -28;
     sc.right = 28;
@@ -68,15 +72,17 @@ export class View {
     sc.bottom = -24;
     sc.near = 1;
     sc.far = 90;
-    this.sun.shadow.bias = -0.0008;
-    this.sun.shadow.normalBias = 0.03;
+    this.sun.shadow.bias = renderConfig.shadow.bias;
+    this.sun.shadow.normalBias = renderConfig.shadow.normalBias;
     this.sun.shadow.intensity = light.shadowIntensity ?? 1;
     this.scene.add(this.sun, this.sun.target);
+    syncPaintedLighting(this.hemisphere, this.sun);
 
     this.terrain = createTerrain(world);
     this.scene.add(this.terrain.group);
-    this.scene.add(createWater(world));
     const env = createEnvironment(world);
+    this.scene.add(createWater(world, env.root));
+    env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
 
@@ -234,7 +240,7 @@ export class View {
     const c = this.renderer.domElement;
     const w = c.clientWidth || window.innerWidth;
     const h = c.clientHeight || window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, this.quality === 'high' ? 2 : this.quality === 'medium' ? 1.5 : 1);
+    const dpr = Math.min(window.devicePixelRatio || 1, qualitySettings(this.quality).pixelRatio);
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -244,11 +250,18 @@ export class View {
   }
 
   setQuality(q) {
-    this.quality = q;
-    this.renderer.shadowMap.enabled = q !== 'low';
-    this.scene.traverse((o) => {
-      if (o.material) o.material.needsUpdate = true;
-    });
+    const next = qualitySettings(q);
+    if (next.name === this.quality) return;
+    const wasEnabled = this.renderer.shadowMap.enabled;
+    this.quality = next.name;
+    applyShadowQuality(this.renderer, this.sun, this.quality);
+    if (wasEnabled !== this.renderer.shadowMap.enabled) {
+      const materials = new Set();
+      this.scene.traverse(o => {
+        for (const material of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) materials.add(material);
+      });
+      for (const material of materials) material.needsUpdate = true;
+    }
     this.resize();
   }
 
@@ -469,17 +482,19 @@ export class View {
       r.animate(
         r,
         {
-          moving: m.moving && ['chase', 'idle', 'return', 'circle'].includes(m.state),
+          moving: m.moving && ['chase', 'idle', 'return', 'circle', 'retreat'].includes(m.state),
           speedFactor: m.aggro ? 1 : 0.4,
           state: m.state,
           windup: m.state === 'windup' && m.windup ? m.windup.name : null,
           windupT: m.stateT,
           windupTotal: m.windup?.total || 1,
           actT: m.stateT,
+          actionTotal: m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur,
+          hitTime: m.melee ? m.def.attacks[m.melee.name].hitTime : 0,
           enraged: m.enraged,
           lastAttack: mv.lastAttack,
           hurt: mv.hurt,
-          lookYaw: m.aggro && !m.dead ? this.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
+          lookYaw: m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? this.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
           turn: mv.turn,
           alt: m.alt,
         },
@@ -767,7 +782,7 @@ export class View {
     }
     this.ambient(dt, focus.x, focus.z, zoneId);
     // zone-tinted fog/sky
-    const target = new THREE.Color(ZONE_FOG[zoneId] || ZONE_FOG.meadow);
+    const target = (this._zoneFogTarget ||= new THREE.Color()).set(ZONE_FOG[zoneId] || ZONE_FOG.meadow);
     this.fogColor.lerp(target, 1 - Math.exp(-dt * 1.5));
     this.scene.fog.color.copy(this.fogColor);
     this.scene.background.copy(this.fogColor);
@@ -775,13 +790,14 @@ export class View {
     this.camera.updateMatrixWorld();
     if (this.mode === 'game' && g) {
       const p = g.player;
-      const sp = new THREE.Vector3(p.x, this.heroY + 1.0, p.z).project(this.camera);
-      const db = this.renderer.getDrawingBufferSize(new THREE.Vector2());
+      const sp = (this._seePosition ||= new THREE.Vector3()).set(p.x, this.heroY + 1.0, p.z).project(this.camera);
+      const db = this.renderer.getDrawingBufferSize(this._bufferSize ||= new THREE.Vector2());
       seeUniforms.uSeeCenter.value.set((sp.x * 0.5 + 0.5) * db.x, (sp.y * 0.5 + 0.5) * db.y);
       seeUniforms.uSeeDepth.value = sp.z * 0.5 + 0.5;
       seeUniforms.uSeeRadius.value = (95 * this.renderer.getPixelRatio()) / this.zoom;
     } else seeUniforms.uSeeCenter.value.set(-9999, -9999);
-    this.sun.position.set(focus.x - 14, focus.y + 26, focus.z + 10);
+    const sunOffset = renderConfig.shadow.sunOffset;
+    this.sun.position.set(focus.x + sunOffset[0], focus.y + sunOffset[1], focus.z + sunOffset[2]);
     this.sun.target.position.set(focus.x, focus.y, focus.z);
     this.renderer.render(this.scene, this.camera);
   }
@@ -813,7 +829,7 @@ export class View {
     const [x, z] = this.world.data.playerSpawn;
     const y = this.world.groundY(x, z);
     const rigs = [];
-    for (const type of ['tusk_boar', 'thornback_wolf', 'moss_beetle', 'reef_crab', 'marsh_wisp', 'sporecap', 'crag_golem', 'gale_hawk', 'horned_warden']) {
+    for (const type of new Set([...this.world.data.spawns.map(s => s.monster), ...(this.world.data.bosses || []).map(b => b.monster)])) {
       const rig = buildMonster(type, 1);
       rigs.push(rig);
       rig.root.position.set(x, y, z);
@@ -882,3 +898,4 @@ export class View {
     return c.toDataURL();
   }
 }
+

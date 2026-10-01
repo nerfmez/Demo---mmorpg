@@ -15,10 +15,19 @@ export function atlasView(ui) {
    ...data.world.spawns.filter(s=>s.zone===zone.id).map(s=>s.monster),
    ...(data.world.bosses||[]).filter(bs=>w.zoneAt(bs.pos[0],bs.pos[1]).id===zone.id).map(bs=>bs.monster)
  ])];
- const fog=w.zones.filter(z=>!prog.zones.includes(z.id)).flatMap(z=>z.rects.map(r=>`<div class="fog" style="left:${L(r[0])};top:${T(r[2])};width:${(r[1]-r[0])/W*100}%;height:${(r[3]-r[2])/H*100}%"></div>`)).join('');
+ // Partition at zone boundaries so overlapping rectangles follow zoneAt priority.
+ // An undiscovered coast/meadow must not fog over the discovered landing or town.
+ const xs=[...new Set([b.minX,b.maxX,...w.zones.flatMap(z=>z.rects.flatMap(r=>r.slice(0,2)))])].filter(x=>x>=b.minX&&x<=b.maxX).sort((a,b)=>a-b);
+ const zs=[...new Set([b.minZ,b.maxZ,...w.zones.flatMap(z=>z.rects.flatMap(r=>r.slice(2,4)))])].filter(z=>z>=b.minZ&&z<=b.maxZ).sort((a,b)=>a-b);
+ let fog='';
+ for(let i=1;i<xs.length;i++)for(let j=1;j<zs.length;j++) {
+   if(prog.zones.includes(w.zoneAt((xs[i-1]+xs[i])/2,(zs[j-1]+zs[j])/2).id))continue;
+   fog+=`<div class="fog" style="left:${L(xs[i-1])};top:${T(zs[j-1])};width:${(xs[i]-xs[i-1])/W*100}%;height:${(zs[j]-zs[j-1])/H*100}%"></div>`;
+ }
  const labels=w.zones.map(z=>{
    const r=z.rects.reduce((a,c)=>(c[1]-c[0])*(c[3]-c[2])>(a[1]-a[0])*(a[3]-a[2])?c:a);
-   return `<div class="zlabel ${zone.id===z.id?'selected':''}" style="left:${L((r[0]+r[1])/2)};top:${T((r[2]+r[3])/2)}"><b>${esc(z.nameTh)}</b><small>${z.safe?'เขตปลอดภัย':'Lv.'+z.level+'+'}</small></div>`;
+   const [lx,lz]=z.label||[(r[0]+r[1])/2,(r[2]+r[3])/2];
+   return `<div class="zlabel ${zone.id===z.id?'selected':''}" style="left:${L(lx)};top:${T(lz)}"><b>${esc(z.nameTh)}</b><small>${z.safe?'เขตปลอดภัย':'Lv.'+z.level+'+'}</small></div>`;
  }).join('');
  const pins=w.waypoints.map(p=>{
    const on=g.isWaypointUnlocked(p.id);
@@ -31,11 +40,11 @@ export function atlasView(ui) {
    const m=data.monsters.monsters[id];
    return `<article class="creature-entry">${art('monster',id)}<div><b>${m.nameTh}</b><div class="drop-pictures">${m.drops.filter(d=>d.item!=='gold').map(d=>`<span title="${data.items.materials[d.item].nameTh}">${art('material',d.item)}<small>${data.items.materials[d.item].nameTh}</small></span>`).join('')}</div></div></article>`;
  }).join('');
- const services=zone.safe?`<div class="town-services"><div>${icon('hammer')}<span><b>โต๊ะคราฟต์</b><small>คราฟต์ · ตีบวก · อัปเกรดสกิล</small></span></div><div>${icon('person')}<span><b>ครูฝึก</b><small>ตรวจแต้มและพัฒนาตัวละคร</small></span></div></div>`:'';
- return `<div class="atlas-heading"><div><span class="section-kicker">GREENHOLLOW / FIELD GUIDE</span><h3>แผนที่ชายแดน</h3></div><span class="level-pill">สำรวจ ${prog.zones.length} / ${w.zones.length}</span></div>
+ const services=zone.id==='settlement'?`<div class="town-services"><div>${icon('hammer')}<span><b>โต๊ะคราฟต์</b><small>คราฟต์ · ตีบวก · อัปเกรดสกิล</small></span></div><div>${icon('person')}<span><b>ครูฝึก</b><small>ตรวจแต้มและพัฒนาตัวละคร</small></span></div></div>`:'';
+ return `<div class="atlas-heading"><div><span class="section-kicker">AZURE COAST / FIELD GUIDE</span><h3>แผนที่ชายฝั่ง</h3></div><span class="level-pill">สำรวจ ${prog.zones.length} / ${w.zones.length}</span></div>
  ${ui.lastResult?`<div class="result-pop" role="status">${ui.lastResult}</div>`:''}
  <div class="atlas-layout"><div class="atlas-main"><div class="worldmap" style="aspect-ratio:${W}/${H}">
-   <img src="${mapImage(w).url()}" alt="แผนที่ภูมิประเทศ เส้นทาง แม่น้ำ และนิคมกรีนฮอลโลว์" draggable="false">${fog}${labels}
+   <img src="${mapImage(w).url()}" alt="แผนที่ชายหาด เมืองท่า และเส้นทางรอบเมือง" draggable="false">${fog}${labels}
    <span class="townmark" style="left:${L(town.workbench[0])};top:${T(town.workbench[1])}">${icon('hammer')}</span>
    ${bosses}${pins}${target?`<span class="questmark" style="left:${L(target.x)};top:${T(target.z)}">★</span>`:''}
    <span class="youmark" style="left:${L(g.player.x)};top:${T(g.player.z)};transform:translate(-50%,-50%) rotate(${Math.PI-g.player.facing}rad)"></span>
@@ -45,7 +54,7 @@ export function atlasView(ui) {
  </div><aside class="region-detail">
    <div class="region-cover">${art('zone',zone.id)}<div><span class="section-kicker">${zone.safe?'SETTLEMENT':'EXPLORATION'}</span><h3>${zone.nameTh}</h3><small>${zone.name}</small></div></div>
    <div class="region-detail-body"><div class="section-heading"><span class="level-pill">${zone.safe?'เขตปลอดภัย':'แนะนำ Lv.'+zone.level+'+'}</span><small>${prog.zones.includes(zone.id)?'สำรวจแล้ว':'ยังไม่สำรวจ'}</small></div>
-   ${wp?`<div class="travel-card"><b>${wp.nameTh}</b><small>${unlocked?'เปิดใช้แล้ว · เดินทางได้เมื่อพ้นการต่อสู้':'เดินไปแตะหินนี้เพื่อเปิดใช้'}</small><button class="btn primary" data-act="teleport" data-id="${wp.id}" ${unlocked?'':'disabled'}>${icon('portal')} เดินทางไปที่นี่</button></div>`:'<p class="muted">พื้นที่นี้ไม่มีหินวาร์ป · ใช้เส้นทางจากป่ารากตะไคร่</p>'}
+   ${wp?`<div class="travel-card"><b>${wp.nameTh}</b><small>${unlocked?'เปิดใช้แล้ว · เดินทางได้เมื่อพ้นการต่อสู้':'เดินไปแตะหินนี้เพื่อเปิดใช้'}</small><button class="btn primary" data-act="teleport" data-id="${wp.id}" ${unlocked?'':'disabled'}>${icon('portal')} เดินทางไปที่นี่</button></div>`:'<p class="muted">พื้นที่นี้ไม่มีหินวาร์ป · เดินตามถนนจากเมืองท่า</p>'}
    ${services}${creatures?`<h3 class="creature-heading">มอนสเตอร์และของดรอป</h3>${creatures}`:''}</div>
  </aside></div>`;
 }

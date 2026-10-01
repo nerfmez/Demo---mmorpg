@@ -106,7 +106,7 @@ export class Game {
   }
 
   isSafe(x, z) {
-    return !!this.world.zoneAt(x, z).safe;
+    return this.world.isSafe(x, z);
   }
 
   monsterById(id) {
@@ -191,6 +191,8 @@ export class Game {
     for (const s of w.spawns) {
       for (let i = 0; i < s.count; i++) {
         const pt = this.world.randomPointInZone(s.zone, 1, this.rng, avoid);
+        if (!pt) continue;
+        if (w.id) avoid.push({ x: pt.x, z: pt.z, r: 6 });
         const sp = { monster: s.monster, zone: s.zone, level: s.level, x: pt.x, z: pt.z, respawnAt: 0, entity: null, respawn: w.respawnSeconds };
         this.spawnPoints.push(sp);
         this.spawnAt(sp);
@@ -577,6 +579,7 @@ export class Game {
     if (crit) dmg *= this.derived.critMult;
     if (!opts.dot) dmg *= 1 - m.defense / (m.defense + 60);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
+    if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;
     dmg = Math.max(1, Math.round(dmg));
     m.hp -= dmg;
@@ -610,6 +613,7 @@ export class Game {
     m.deathT = 0;
     m.windup = null;
     m.charge = null;
+    m.melee = null;
     this.stats.kills++;
     const p = this.player;
     const prog = this.ch.progress;
@@ -1000,6 +1004,7 @@ export class Game {
       }
     }
     if (best && best.id !== 'town') return this.freeSpotNear(best.x, best.z + 2.2);
+    if (!best) return this.freeSpotNear(...this.data.world.playerSpawn);
     const r = this.data.world.town.respawn;
     return { x: r[0], z: r[1] };
   }
@@ -1350,7 +1355,7 @@ export class Game {
           if (dist(pr.x, pr.z, u.x, u.z) < u.r + pr.radius) {
             const src = this.monsterById(pr.sourceId);
             this.damageUnit(u, pr.damage, src, { poison: pr.poison });
-            this.emit({ type: 'impact', kind: pr.kind, element: pr.kind === 'spit' ? 'poison' : 'arcane', x: pr.x, z: pr.z });
+            this.emit({ type: 'impact', kind: pr.kind, element: pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane'), x: pr.x, z: pr.z });
             dead = true;
             break;
           }

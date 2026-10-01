@@ -1,0 +1,143 @@
+name: Jev Context
+
+on:
+  push:
+    branches: ['jev/request/**']
+    paths: ['jev-request.json']
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'What should ChatGPT / Claude change? Thai or English.'
+        required: true
+        type: string
+      keywords:
+        description: 'Optional English search terms, e.g. foliage bush leafpaint'
+        type: string
+      target_ref:
+        description: 'Source branch or commit to inspect'
+        default: main
+        required: true
+        type: string
+  pull_request:
+    paths:
+      - '.github/workflows/jev-context.yml'
+      - 'scripts/jev-context.mjs'
+      - 'tests/tools/**'
+
+permissions:
+  contents: read
+  actions: read
+
+# Serialize paid runs, including retries, so they cannot race the monthly allowance check.
+concurrency:
+  group: jev-context-paid
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/tools/*.test.mjs
+
+  context:
+    needs: validate
+    # A one-request live setup check on our own Jev integration branch; no fork secrets.
+    # Other PRs run only unpaid tests. Agents submit requests by pushing request JSON.
+    if: >-
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'codex/jev-'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout the integration tools
+        uses: actions/checkout@v4
+        with:
+          # Agent-request branches supply data only; execute the tool from trusted main.
+          ref: ${{ github.event_name == 'push' && github.event.repository.default_branch || github.event.pull_request.head.sha || github.sha }}
+          path: tooling
+          persist-credentials: false
+      - name: Checkout agent request data
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: request
+          sparse-checkout: jev-request.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate and prepare task
+        id: request
+        env:
+          JEV_EVENT: ${{ github.event_name }}
+          JEV_BRANCH: ${{ github.ref_name }}
+          JEV_TASK: ${{ inputs.task || 'Fix the EXP and Job EXP bars that sit too high on iPad. Preserve the game rules and improve field HUD spacing.' }}
+          JEV_KEYWORDS: ${{ inputs.keywords || '' }}
+          JEV_SOURCE_REF: ${{ inputs.target_ref || github.event.pull_request.base.sha || github.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { randomUUID } from 'node:crypto';
+          import { validateAgentRequest } from './tooling/scripts/jev-context.mjs';
+          const input = process.env.JEV_EVENT === 'push'
+            ? validateAgentRequest(JSON.parse(readFileSync('request/jev-request.json', 'utf8')), process.env.JEV_BRANCH)
+            : { task: process.env.JEV_TASK, keywords: process.env.JEV_KEYWORDS, source_ref: process.env.JEV_SOURCE_REF };
+          for (const key of ['task', 'keywords', 'source_ref']) {
+            const delimiter = randomUUID();
+            appendFileSync(process.env.GITHUB_OUTPUT, `${key}<<${delimiter}\n${input[key]}\n${delimiter}\n`);
+          }
+          NODE
+      - name: Checkout the source to inspect
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.request.outputs.source_ref }}
+          path: project
+          persist-credentials: false
+      - name: Compute exact cache identity
+        id: identity
+        env:
+          JEV_TASK: ${{ steps.request.outputs.task }}
+          JEV_KEYWORDS: ${{ steps.request.outputs.keywords }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const sha = execFileSync('git', ['-C', 'project', 'rev-parse', 'HEAD']).toString().trim();
+          const digest = createHash('sha256').update(readFileSync('tooling/scripts/jev-context.mjs'))
+            .update(JSON.stringify([process.env.JEV_TASK, process.env.JEV_KEYWORDS])).digest('hex');
+          appendFileSync(process.env.GITHUB_OUTPUT, `key=jev-context-v1-${sha}-${digest}\n`);
+          NODE
+      - name: Restore decisions for the same source and task
+        uses: actions/cache@v4
+        with:
+          path: .jev-cache
+          key: ${{ steps.identity.outputs.key }}
+      - name: Rank relevant source with Jev
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          JEV_PROJECT_ROOT: project
+          JEV_OUTPUT_DIR: jev-out
+          JEV_CACHE_DIR: .jev-cache
+          JEV_TASK: ${{ steps.request.outputs.task }}
+          JEV_KEYWORDS: ${{ steps.request.outputs.keywords }}
+        run: node tooling/scripts/jev-context.mjs
+      - name: Upload shared context and usage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jev-context-${{ github.run_id }}-${{ github.run_attempt }}
+          path: jev-out/
+          retention-days: 14
+          if-no-files-found: warn

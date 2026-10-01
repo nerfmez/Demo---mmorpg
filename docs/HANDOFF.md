@@ -1,9 +1,29 @@
-# Handoff notes (for a new Claude session)
+# Handoff notes (for ChatGPT, Claude and other agents)
 
 Read `AGENTS.md` first, then `README.md` and `docs/DESIGN-STATUS.md`. The owner plays on an
 iPad, writes in Thai, and deploys from `main` to GitHub Pages
 (https://nerfmez.github.io/Demo---mmorpg/). Always `git fetch` first: the owner also works on
 this repo with other tools, so `main` may have moved.
+
+## Shared Jev workflow (2026-09-30)
+
+`AGENTS.md` is the shared instruction source; `CLAUDE.md` imports it. Read
+[JEV-CONTEXT-TH.md](JEV-CONTEXT-TH.md) for request examples and retrieval limits.
+Search known paths/contracts directly first. Use Jev only for unresolved source
+discovery where ranked context helps, including debugging, impacts and port planning.
+Multi-file work alone is not a trigger. Follow the risk-based validation tiers in
+AGENTS.md: planning/docs do not run gameplay tests; deliver focused review evidence
+early, report pending CI, and complete applicable checks before merge.
+Follow the exact-commit, budget, full-source inspection and handoff rules there;
+Jev does not replace reproduction, reference searches, tests or image review.
+
+The harbor starter-map work is tracked separately in
+[draft PR #18](https://github.com/nerfmez/Demo---mmorpg/pull/18). Check its current
+description, branch and test status before continuing; it is not the map on main
+at the time of this note. Owner image review remains pending. Its target is a
+local coastal harbor region with more land than sea, new players starting on the
+beach, and beginner-appropriate beach monsters. The continent image is a concept,
+not a final layout or authorization to build the whole continent.
 
 ## State (2026-09-29)
 

@@ -110,33 +110,26 @@
     "reef_crab": {
       "name": "Reef Crab",
       "nameTh": "ปูแนวปะการัง",
-      "behavior": "shell_spitter",
-      "hp": 70,
-      "damage": 8,
-      "defense": 12,
-      "speed": 2.6,
+      "behavior": "coastal_melee",
+      "hp": 42,
+      "damage": 6,
+      "defense": 3,
+      "speed": 2.1,
       "radius": 0.8,
-      "aggroRange": 7,
-      "leashRange": 15,
-      "exp": 16,
-      "jobExp": 11,
+      "aggroRange": 5,
+      "leashRange": 11,
+      "exp": 12,
+      "jobExp": 8,
       "attacks": {
-        "spit": {
-          "range": 7,
-          "windup": 0.55,
-          "recover": 0.5,
-          "cooldown": 2.6,
-          "speed": 10,
-          "damageMult": 1.0,
-          "poisonDps": 0,
-          "poisonDuration": 0
-        },
-        "shell": {
-          "hitsToTrigger": 4,
-          "window": 2.0,
-          "duration": 2.2,
-          "damageTaken": 0.25,
-          "cooldown": 6
+        "pinch": {
+          "range": 1.4,
+          "arc": 80,
+          "windup": 0.8,
+          "hitTime": 0.16,
+          "duration": 0.4,
+          "recover": 0.9,
+          "cooldown": 2.3,
+          "damageMult": 1
         }
       },
       "drops": [
@@ -158,7 +151,8 @@
           "min": 4,
           "max": 8
         }
-      ]
+      ],
+      "primaryAttack": "pinch"
     },
     "marsh_wisp": {
       "name": "Marsh Wisp",
@@ -574,6 +568,178 @@
           "max": 120
         }
       ]
+    },
+    "salt_slime": {
+      "name": "สไลม์น้ำเค็ม",
+      "nameTh": "สไลม์น้ำเค็ม",
+      "behavior": "coastal_slime",
+      "hp": 32,
+      "damage": 5,
+      "defense": 1,
+      "speed": 1.6,
+      "radius": 0.6,
+      "aggroRange": 4.8,
+      "leashRange": 10,
+      "exp": 10,
+      "jobExp": 6,
+      "attacks": {
+        "slap": {
+          "range": 1.1,
+          "arc": 110,
+          "windup": 0.85,
+          "hitTime": 0.14,
+          "duration": 0.36,
+          "recover": 1,
+          "cooldown": 2.4,
+          "damageMult": 1
+        },
+        "salt_spit": {
+          "minRange": 1.7,
+          "range": 5,
+          "windup": 1,
+          "recover": 1,
+          "cooldown": 6,
+          "speed": 5.5,
+          "projectileRadius": 0.25,
+          "damageMult": 0.8
+        }
+      },
+      "drops": [
+        {
+          "item": "salt_gel",
+          "chance": 1,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 2,
+          "max": 5
+        }
+      ],
+      "primaryAttack": "slap"
+    },
+    "shore_gull": {
+      "name": "นกชายฝั่ง",
+      "nameTh": "นกชายฝั่ง",
+      "behavior": "coastal_skirmisher",
+      "hp": 40,
+      "damage": 6,
+      "defense": 2,
+      "speed": 3.1,
+      "radius": 0.55,
+      "aggroRange": 5.5,
+      "leashRange": 12,
+      "exp": 14,
+      "jobExp": 9,
+      "attacks": {
+        "peck": {
+          "range": 1.25,
+          "arc": 60,
+          "windup": 0.65,
+          "hitTime": 0.1,
+          "duration": 0.3,
+          "recover": 0.25,
+          "cooldown": 2,
+          "damageMult": 1
+        }
+      },
+      "drops": [
+        {
+          "item": "shore_feather",
+          "chance": 0.9,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "hawk_feather",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 2,
+          "max": 5
+        }
+      ],
+      "primaryAttack": "peck",
+      "retreat": {
+        "distance": 2.6,
+        "duration": 1.2,
+        "pause": 0.4
+      }
+    },
+    "hermit_crab": {
+      "name": "เสฉวนหินปะการัง",
+      "nameTh": "เสฉวนหินปะการัง",
+      "behavior": "coastal_melee",
+      "hp": 85,
+      "damage": 9,
+      "defense": 7,
+      "speed": 1.5,
+      "radius": 0.85,
+      "aggroRange": 5.5,
+      "leashRange": 13,
+      "exp": 23,
+      "jobExp": 15,
+      "attacks": {
+        "pinch": {
+          "range": 1.8,
+          "arc": 75,
+          "windup": 1.1,
+          "hitTime": 0.2,
+          "duration": 0.45,
+          "recover": 0.85,
+          "cooldown": 3,
+          "damageMult": 1.3
+        },
+        "shell": {
+          "afterAttacks": 2,
+          "hitsToTrigger": 4,
+          "window": 2,
+          "duration": 1.8,
+          "damageTaken": 0.4,
+          "cooldown": 6,
+          "emerge": 1.1,
+          "emergeDamageTaken": 1.35
+        }
+      },
+      "drops": [
+        {
+          "item": "hermit_fragment",
+          "chance": 0.9,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "crab_shell",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "sea_pearl",
+          "chance": 0.12,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 2,
+          "max": 5
+        }
+      ],
+      "primaryAttack": "pinch"
     }
   }
 }

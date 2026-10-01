@@ -66,9 +66,9 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   rock=mix(rock,vec3(.49,.47,.41),step(.72,strata)*.4);
   vec3 col=mix(grass,dry,splat.a*.55);
   col=mix(col,mud,smoothstep(.2,.8,splat.b));
-  float roadEdge=splat.r+(mid-.5)*.25+(fine-.5)*.10;
-  col=mix(col,road,smoothstep(.41,.55,roadEdge));
-  col=mix(col,stone,smoothstep(.45,.55,splat.g+(mid-.5)*.14));
+  float roadEdge=splat.r+(mid-.5)*.14+(fine-.5)*.05;
+  col=mix(col,road,smoothstep(.18,.80,roadEdge));
+  col=mix(col,stone,smoothstep(.16,.84,splat.g+(mid-.5)*.10));
   float cliff=1.0-smoothstep(.68,.82,up+(fine-.5)*.035);
   col=mix(col,rock,cliff);
   // A dedicated sand layer covers both ground grass strokes and the path texture.

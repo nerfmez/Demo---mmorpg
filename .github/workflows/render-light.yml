@@ -1,0 +1,71 @@
+name: Renderer light and shadow review
+on:
+  workflow_call:
+    inputs:
+      review_ref:
+        type: string
+        required: false
+        default: ''
+  pull_request:
+
+permissions:
+  contents: read
+concurrency:
+  group: render-light-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+        suite: [visual, regression]
+    env:
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        uses: ./.github/actions/change-scope
+        with:
+          force-render: ${{ inputs.review_ref != '' }}
+      - name: Gameplay regression ownership
+        run: echo 'Smoke and UX belong to CI / test; this job retains its check name without repeating them.'
+      - name: Checkout requested render source
+        if: matrix.suite == 'visual' && inputs.review_ref != ''
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.review_ref }}
+      - uses: actions/setup-node@v4
+        if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build
+        if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+        if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+      - name: Pinned unmodified baseline screenshots
+        if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/render-baseline"
+          git archive 58bc3db4f929eb699b2e5d40fac43638b0151ccb | tar -x -C "$RUNNER_TEMP/render-baseline"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/render-baseline/node_modules"
+          (cd "$RUNNER_TEMP/render-baseline" && npm run build)
+          python3 -m http.server 4194 --bind 127.0.0.1 --directory "$RUNNER_TEMP/render-baseline/dist" > /tmp/render-http.log 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER' EXIT
+          BASELINE=1 RENDER_URL=http://127.0.0.1:4194/ node tests/browser/render-light.mjs
+      - name: Current real render and quality round trip
+        if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        run: node tests/browser/render-light.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        with:
+          name: render-light-${{ matrix.browser }}-${{ matrix.suite }}
+          path: tests/browser/out/
+          retention-days: 7

@@ -1,7 +1,7 @@
 // Simulation rules from the design doc, checked headless.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { data } from './helpers.js';
+import { legacyData as data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
 import { softTarget } from '../../src/core/targeting.js';
 import { distToPolyline } from '../../src/core/math.js';

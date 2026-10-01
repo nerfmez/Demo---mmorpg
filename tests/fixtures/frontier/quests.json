@@ -1,0 +1,245 @@
+{
+  "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items.",
+  "main": [
+    "m_boars",
+    "m_craft",
+    "m_forest",
+    "m_greyfang",
+    "m_wetland",
+    "m_highlands",
+    "m_warden"
+  ],
+  "side": [
+    "s_coast",
+    "s_crabs",
+    "s_spores",
+    "s_feathers",
+    "s_mods",
+    "s_job",
+    "s_golems",
+    "s_wolves",
+    "s_collector"
+  ],
+  "quests": {
+    "m_boars": {
+      "name": "Trouble in the Meadow",
+      "nameTh": "ความวุ่นวายในทุ่งหญ้า",
+      "descTh": "หมูป่างาแหลมรบกวนนิคม ล่ามัน 5 ตัว แล้วเก็บหนังกับเขี้ยวไว้คราฟต์",
+      "type": "kill",
+      "target": "tusk_boar",
+      "count": 5,
+      "reward": {
+        "gold": 40,
+        "exp": 40,
+        "jobExp": 20,
+        "items": {
+          "boar_hide": 2
+        }
+      }
+    },
+    "m_craft": {
+      "name": "Tools of the Trade",
+      "nameTh": "เครื่องมือของนักเดินทาง",
+      "descTh": "กลับไปที่โต๊ะคราฟต์ในนิคม แล้วคราฟต์อะไรก็ได้ 1 อย่าง (อุปกรณ์ สกิล หรือ Mod)",
+      "type": "craft",
+      "count": 1,
+      "reward": {
+        "gold": 30,
+        "exp": 30,
+        "items": {
+          "glow_dust": 2
+        }
+      }
+    },
+    "m_forest": {
+      "name": "Into the Mossroot",
+      "nameTh": "เข้าป่ารากตะไคร่",
+      "descTh": "เดินทางขึ้นเหนือเข้าป่า แล้วเปิดใช้หินวาร์ปที่ลานกลางป่า",
+      "type": "waypoint",
+      "target": "forest",
+      "count": 1,
+      "reward": {
+        "gold": 40,
+        "exp": 60,
+        "jobExp": 30
+      }
+    },
+    "m_greyfang": {
+      "name": "The Alpha of the Pack",
+      "nameTh": "จ่าฝูงแห่งป่า",
+      "descTh": "หมาป่าหลังหนามถูกนำโดยเกรย์แฟง ตามทางแยกไปถ้ำทางตะวันตกเฉียงเหนือแล้วปราบมัน",
+      "type": "kill",
+      "target": "greyfang",
+      "count": 1,
+      "reward": {
+        "gold": 80,
+        "exp": 150,
+        "jobExp": 80
+      }
+    },
+    "m_wetland": {
+      "name": "Across the River",
+      "nameTh": "ข้ามแม่น้ำ",
+      "descTh": "ข้ามสะพานใหญ่ไปทางตะวันออก แล้วเปิดใช้หินวาร์ปที่ชุ่มน้ำ",
+      "type": "waypoint",
+      "target": "wetland",
+      "count": 1,
+      "reward": {
+        "gold": 50,
+        "exp": 120,
+        "jobExp": 50
+      }
+    },
+    "m_highlands": {
+      "name": "Highland Scouts",
+      "nameTh": "สอดแนมที่ราบสูง",
+      "descTh": "ขึ้นไปยังแคมป์บนที่ราบสูงผาหินทางตะวันออกเฉียงเหนือ (ข้ามสะพานเหนือ)",
+      "type": "waypoint",
+      "target": "highlands",
+      "count": 1,
+      "reward": {
+        "gold": 60,
+        "exp": 180,
+        "jobExp": 70,
+        "items": {
+          "ruin_shard": 1
+        }
+      }
+    },
+    "m_warden": {
+      "name": "The Ancient Warden",
+      "nameTh": "ผู้พิทักษ์โบราณ",
+      "descTh": "ขึ้นทางลาดสู่ซากโบราณบนที่ราบสูงตะวันออก แล้วปราบ Horned Warden",
+      "type": "kill",
+      "target": "horned_warden",
+      "count": 1,
+      "reward": {
+        "gold": 200,
+        "exp": 400,
+        "jobExp": 200
+      }
+    },
+    "s_spores": {
+      "name": "Mushroom Menace",
+      "nameTh": "เห็ดป่วนทุ่ง",
+      "descTh": "กำจัดเห็ดสปอร์ 8 ตัว ระวังหมอกพิษที่มันพ่น",
+      "type": "kill",
+      "target": "sporecap",
+      "count": 8,
+      "reward": {
+        "gold": 40,
+        "exp": 80,
+        "items": {
+          "spore_sac": 2
+        }
+      }
+    },
+    "s_wolves": {
+      "name": "Thinning the Pack",
+      "nameTh": "ลดจำนวนฝูง",
+      "descTh": "ล่าหมาป่าหลังหนาม 10 ตัว",
+      "type": "kill",
+      "target": "thornback_wolf",
+      "count": 10,
+      "reward": {
+        "gold": 50,
+        "exp": 100,
+        "items": {
+          "wolf_fang": 2
+        }
+      }
+    },
+    "s_golems": {
+      "name": "Stone Hearts",
+      "nameTh": "หัวใจศิลา",
+      "descTh": "ทุบโกเลมผาหิน 5 ตัวบนที่ราบสูง",
+      "type": "kill",
+      "target": "crag_golem",
+      "count": 5,
+      "reward": {
+        "gold": 80,
+        "exp": 160,
+        "items": {
+          "golem_heart": 1
+        }
+      }
+    },
+    "s_feathers": {
+      "name": "Feather Trade",
+      "nameTh": "ค้าขนนก",
+      "descTh": "เก็บขนเหยี่ยว 6 ชิ้น (พ่อค้านิคมอยากได้)",
+      "type": "collect",
+      "target": "hawk_feather",
+      "count": 6,
+      "reward": {
+        "gold": 90,
+        "exp": 60
+      }
+    },
+    "s_collector": {
+      "name": "Frontier Collector",
+      "nameTh": "นักสะสมชายแดน",
+      "descTh": "เก็บหินผา 8 ชิ้น ใช้สร้างรั้วนิคม",
+      "type": "collect",
+      "target": "crag_stone",
+      "count": 8,
+      "reward": {
+        "gold": 70,
+        "exp": 60,
+        "items": {
+          "ruin_shard": 1
+        }
+      }
+    },
+    "s_mods": {
+      "name": "Build Experiment",
+      "nameTh": "ทดลอง Build",
+      "descTh": "ใส่ Mod ให้สกิลรวม 2 ครั้ง (เมนูสกิล)",
+      "type": "socket",
+      "count": 2,
+      "reward": {
+        "gold": 40,
+        "exp": 50
+      }
+    },
+    "s_job": {
+      "name": "Choose Your Path",
+      "nameTh": "เลือกเส้นทาง",
+      "descTh": "เมื่อถึง Job Lv.5 ให้เลือก Job ใน Job Tree",
+      "type": "job",
+      "count": 1,
+      "reward": {
+        "gold": 60,
+        "exp": 80
+      }
+    },
+    "s_coast": {
+      "name": "Where the River Meets the Sea",
+      "nameTh": "ปากแม่น้ำสู่ทะเล",
+      "descTh": "เดินลงใต้ตามทางชายฝั่ง แล้วเปิดใช้หินวาร์ปที่ชายหาดตะวันรอน",
+      "type": "waypoint",
+      "target": "coast",
+      "count": 1,
+      "reward": {
+        "gold": 40,
+        "exp": 80,
+        "jobExp": 30
+      }
+    },
+    "s_crabs": {
+      "name": "Crab Season",
+      "nameTh": "ฤดูจับปู",
+      "descTh": "ปูแนวปะการังยึดชายหาด ล่ามัน 10 ตัว (มันหดกระดองเมื่อโดนรัว — รอจังหวะ)",
+      "type": "kill",
+      "target": "reef_crab",
+      "count": 10,
+      "reward": {
+        "gold": 60,
+        "exp": 110,
+        "items": {
+          "crab_shell": 2
+        }
+      }
+    }
+  }
+}

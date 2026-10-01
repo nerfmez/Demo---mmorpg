@@ -1,13 +1,18 @@
 name: CI
 
+# Feature branches are validated on PRs; main pushes still validate the merged source.
 on:
   push:
+    branches: [main]
   pull_request:
-
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Chromium and WebKit (the iPad Safari engine) run side by side instead of one after the other.
     strategy:
       fail-fast: false
       matrix:
@@ -16,20 +21,40 @@ jobs:
       BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        uses: ./.github/actions/change-scope
+      - name: Validation scope
+        run: echo 'Game=${{ steps.scope.outputs.game }}; tools=${{ steps.scope.outputs.tools }}; UI=${{ steps.scope.outputs.ui }}; map=${{ steps.scope.outputs.map }}'
       - uses: actions/setup-node@v4
+        if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+        if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
+      - run: npm run test:tools
+        if: steps.scope.outputs.tools == 'true'
       - run: npm test
+        if: steps.scope.outputs.game == 'true'
       - run: npm run build
+        if: steps.scope.outputs.game == 'true'
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+        if: steps.scope.outputs.game == 'true'
       - name: Browser smoke test
+        if: steps.scope.outputs.game == 'true'
         run: npm run test:browser
+      - name: Distinct coastal attack patterns and contact poses
+        run: node tests/browser/coastal-attacks.mjs
       - name: Game UI workflows (desktop/tablet/phone)
+        if: steps.scope.outputs.ui == 'true'
         run: npm run test:ux
+      - name: Harbor walkthrough and art review captures
+        if: steps.scope.outputs.map == 'true'
+        run: node tests/browser/capture.mjs
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.scope.outputs.game == 'true'
         with:
           name: screenshots-${{ matrix.browser }}
           path: tests/browser/out/

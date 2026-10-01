@@ -712,6 +712,46 @@
         "heal_pct",
         "summon_pct"
       ]
+    },
+    "salt_boots": {
+      "type": "gear",
+      "result": "tide_boots",
+      "cost": {
+        "salt_gel": 3,
+        "crab_shell": 2,
+        "gold": 12
+      },
+      "optionPool": [
+        "move_pct",
+        "defense_flat"
+      ]
+    },
+    "shore_circlet": {
+      "type": "gear",
+      "result": "feather_circlet",
+      "cost": {
+        "shore_feather": 4,
+        "salt_gel": 2,
+        "gold": 18
+      },
+      "optionPool": [
+        "mp_flat",
+        "cdr_pct"
+      ]
+    },
+    "hermit_guard": {
+      "type": "gear",
+      "result": "shell_guard",
+      "cost": {
+        "hermit_fragment": 4,
+        "crab_shell": 2,
+        "gold": 25
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct"
+      ]
     }
   }
 }

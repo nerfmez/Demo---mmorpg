@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import {verifyPassiveGestures} from './passive-checks.mjs';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
+if(JSON.parse(readFileSync(new URL('../../data/world.json',import.meta.url),'utf8')).harbor&&!process.env.DREAMLOOP_NETWORK_ONLY){process.env.HARBOR_VERIFY_NETWORK=process.env.DREAMLOOP_TERRAIN_ONLY?'':'1';await import('./harbor-capture.mjs');process.exit(0);}
 const pass=process.env.DREAMLOOP_PASS||'after';
 const OUT=new URL(`./out/dreamloop-${pass}/`,import.meta.url).pathname;mkdirSync(OUT,{recursive:true});
 const engine=process.env.BROWSER==='webkit'?webkit:chromium,PORT=4186;

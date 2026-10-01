@@ -1,0 +1,579 @@
+{
+  "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up.",
+  "monsters": {
+    "tusk_boar": {
+      "name": "Tusk Boar",
+      "nameTh": "หมูป่างาแหลม",
+      "behavior": "charger",
+      "hp": 55,
+      "damage": 9,
+      "defense": 4,
+      "speed": 3.6,
+      "radius": 0.7,
+      "aggroRange": 7,
+      "leashRange": 18,
+      "exp": 12,
+      "jobExp": 8,
+      "attacks": {
+        "bite": {
+          "range": 1.7,
+          "windup": 0.4,
+          "recover": 0.6,
+          "cooldown": 1.4,
+          "damageMult": 1.0
+        },
+        "charge": {
+          "minRange": 3,
+          "maxRange": 8,
+          "windup": 0.75,
+          "speed": 13,
+          "duration": 0.65,
+          "recover": 0.9,
+          "cooldown": 5,
+          "damageMult": 1.6
+        }
+      },
+      "drops": [
+        {
+          "item": "boar_hide",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "boar_tusk",
+          "chance": 0.45,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 7
+        }
+      ]
+    },
+    "moss_beetle": {
+      "name": "Moss Shell Beetle",
+      "nameTh": "ด้วงกระดองตะไคร่",
+      "behavior": "shell_spitter",
+      "hp": 80,
+      "damage": 8,
+      "defense": 10,
+      "speed": 2.1,
+      "radius": 0.8,
+      "aggroRange": 8,
+      "leashRange": 16,
+      "exp": 18,
+      "jobExp": 12,
+      "attacks": {
+        "spit": {
+          "range": 8,
+          "windup": 0.55,
+          "recover": 0.5,
+          "cooldown": 2.6,
+          "speed": 9,
+          "damageMult": 1.0,
+          "poisonDps": 3,
+          "poisonDuration": 3
+        },
+        "shell": {
+          "hitsToTrigger": 3,
+          "window": 2.0,
+          "duration": 2.2,
+          "damageTaken": 0.25,
+          "cooldown": 6
+        }
+      },
+      "drops": [
+        {
+          "item": "beetle_shell",
+          "chance": 0.65,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "venom_gland",
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 9
+        }
+      ]
+    },
+    "reef_crab": {
+      "name": "Reef Crab",
+      "nameTh": "ปูแนวปะการัง",
+      "behavior": "shell_spitter",
+      "hp": 70,
+      "damage": 8,
+      "defense": 12,
+      "speed": 2.6,
+      "radius": 0.8,
+      "aggroRange": 7,
+      "leashRange": 15,
+      "exp": 16,
+      "jobExp": 11,
+      "attacks": {
+        "spit": {
+          "range": 7,
+          "windup": 0.55,
+          "recover": 0.5,
+          "cooldown": 2.6,
+          "speed": 10,
+          "damageMult": 1.0,
+          "poisonDps": 0,
+          "poisonDuration": 0
+        },
+        "shell": {
+          "hitsToTrigger": 4,
+          "window": 2.0,
+          "duration": 2.2,
+          "damageTaken": 0.25,
+          "cooldown": 6
+        }
+      },
+      "drops": [
+        {
+          "item": "crab_shell",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "sea_pearl",
+          "chance": 0.08,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 8
+        }
+      ]
+    },
+    "marsh_wisp": {
+      "name": "Marsh Wisp",
+      "nameTh": "ภูตไฟหนองน้ำ",
+      "behavior": "kiter",
+      "hp": 45,
+      "damage": 11,
+      "defense": 2,
+      "speed": 3.2,
+      "radius": 0.55,
+      "hover": 1.1,
+      "aggroRange": 10,
+      "leashRange": 18,
+      "exp": 20,
+      "jobExp": 14,
+      "attacks": {
+        "orb": {
+          "range": 10,
+          "windup": 0.45,
+          "recover": 0.4,
+          "cooldown": 2.2,
+          "speed": 8,
+          "damageMult": 1.0
+        },
+        "blink": {
+          "triggerRange": 3.2,
+          "distance": 5.5,
+          "cooldown": 5
+        }
+      },
+      "keepDistance": [
+        6,
+        9
+      ],
+      "drops": [
+        {
+          "item": "wisp_core",
+          "chance": 0.4,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 10
+        }
+      ]
+    },
+    "thornback_wolf": {
+      "name": "Thornback Wolf",
+      "nameTh": "หมาป่าหลังหนาม",
+      "behavior": "pack_wolf",
+      "hp": 70,
+      "damage": 10,
+      "defense": 5,
+      "speed": 5.0,
+      "radius": 0.7,
+      "aggroRange": 9,
+      "leashRange": 22,
+      "exp": 22,
+      "jobExp": 15,
+      "attacks": {
+        "bite": {
+          "range": 1.8,
+          "windup": 0.35,
+          "recover": 0.5,
+          "cooldown": 1.3,
+          "damageMult": 1.0
+        },
+        "lunge": {
+          "minRange": 2.5,
+          "maxRange": 7.5,
+          "windup": 0.55,
+          "speed": 15,
+          "duration": 0.38,
+          "recover": 0.8,
+          "cooldown": 4.5,
+          "damageMult": 1.4
+        },
+        "howl": {
+          "windup": 0.8,
+          "recover": 0.4,
+          "cooldown": 18,
+          "radius": 12,
+          "speedBuff": 0.25,
+          "duration": 6
+        }
+      },
+      "circle": [
+        3.5,
+        5.5
+      ],
+      "drops": [
+        {
+          "item": "wolf_pelt",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "wolf_fang",
+          "chance": 0.4,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 9
+        }
+      ]
+    },
+    "sporecap": {
+      "name": "Sporecap",
+      "nameTh": "เห็ดสปอร์",
+      "behavior": "spore",
+      "hp": 60,
+      "damage": 7,
+      "defense": 6,
+      "speed": 1.7,
+      "radius": 0.6,
+      "aggroRange": 7,
+      "leashRange": 14,
+      "exp": 16,
+      "jobExp": 11,
+      "attacks": {
+        "puff": {
+          "range": 4.5,
+          "windup": 0.8,
+          "recover": 0.6,
+          "cooldown": 5,
+          "radius": 3.2,
+          "duration": 4,
+          "dps": 6,
+          "damageMult": 1.0
+        },
+        "hop": {
+          "distance": 4.5,
+          "duration": 0.5,
+          "cooldown": 3
+        }
+      },
+      "drops": [
+        {
+          "item": "spore_sac",
+          "chance": 0.65,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 7
+        }
+      ]
+    },
+    "crag_golem": {
+      "name": "Crag Golem",
+      "nameTh": "โกเลมผาหิน",
+      "behavior": "golem",
+      "hp": 190,
+      "damage": 15,
+      "defense": 24,
+      "speed": 2.0,
+      "radius": 1.1,
+      "aggroRange": 9,
+      "leashRange": 16,
+      "exp": 45,
+      "jobExp": 30,
+      "attacks": {
+        "pound": {
+          "range": 3.2,
+          "radius": 3.4,
+          "windup": 1.0,
+          "recover": 1.1,
+          "cooldown": 4,
+          "damageMult": 1.4
+        },
+        "throw": {
+          "minRange": 5,
+          "range": 12,
+          "windup": 0.9,
+          "flight": 0.95,
+          "radius": 1.9,
+          "recover": 0.8,
+          "cooldown": 5,
+          "damageMult": 1.2
+        }
+      },
+      "drops": [
+        {
+          "item": "crag_stone",
+          "chance": 0.8,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "golem_heart",
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 8,
+          "max": 16
+        }
+      ]
+    },
+    "gale_hawk": {
+      "name": "Gale Hawk",
+      "nameTh": "เหยี่ยวพายุ",
+      "behavior": "hawk",
+      "hp": 55,
+      "damage": 12,
+      "defense": 3,
+      "speed": 6.5,
+      "radius": 0.6,
+      "hover": 2.6,
+      "aggroRange": 12,
+      "leashRange": 22,
+      "exp": 26,
+      "jobExp": 18,
+      "attacks": {
+        "dive": {
+          "range": 12,
+          "windup": 0.7,
+          "radius": 1.5,
+          "speed": 18,
+          "recover": 1.0,
+          "cooldown": 3.5,
+          "damageMult": 1.3
+        }
+      },
+      "circle": [
+        5,
+        7
+      ],
+      "drops": [
+        {
+          "item": "hawk_feather",
+          "chance": 0.75,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "storm_quill",
+          "chance": 0.15,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 5,
+          "max": 10
+        }
+      ],
+      "flyer": true
+    },
+    "greyfang": {
+      "name": "Greyfang",
+      "nameTh": "เกรย์แฟง จ่าฝูง",
+      "behavior": "greyfang",
+      "boss": true,
+      "miniBoss": true,
+      "hp": 700,
+      "damage": 15,
+      "defense": 10,
+      "speed": 5.2,
+      "radius": 1.2,
+      "aggroRange": 11,
+      "leashRange": 20,
+      "exp": 180,
+      "jobExp": 110,
+      "attacks": {
+        "bite": {
+          "range": 2.6,
+          "windup": 0.45,
+          "recover": 0.6,
+          "cooldown": 1.6,
+          "damageMult": 1.1
+        },
+        "triple": {
+          "minRange": 3,
+          "maxRange": 11,
+          "windup": 0.45,
+          "speed": 16,
+          "duration": 0.32,
+          "recover": 0.3,
+          "cooldown": 8,
+          "damageMult": 1.3,
+          "count": 3
+        },
+        "howl": {
+          "windup": 1.0,
+          "recover": 0.5,
+          "cooldown": 20,
+          "summon": 2
+        }
+      },
+      "enrageAt": 0.4,
+      "drops": [
+        {
+          "item": "greyfang_mane",
+          "chance": 1,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "wolf_fang",
+          "chance": 1,
+          "min": 3,
+          "max": 4
+        },
+        {
+          "item": "wolf_pelt",
+          "chance": 1,
+          "min": 2,
+          "max": 3
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 60,
+          "max": 90
+        }
+      ]
+    },
+    "horned_warden": {
+      "name": "Horned Warden",
+      "nameTh": "ผู้พิทักษ์เขาเหล็ก",
+      "behavior": "warden_boss",
+      "boss": true,
+      "hp": 900,
+      "damage": 16,
+      "defense": 14,
+      "speed": 3.4,
+      "radius": 1.5,
+      "aggroRange": 12,
+      "leashRange": 26,
+      "exp": 260,
+      "jobExp": 160,
+      "attacks": {
+        "sweep": {
+          "range": 3.4,
+          "arc": 150,
+          "windup": 0.65,
+          "recover": 0.7,
+          "cooldown": 2.2,
+          "damageMult": 1.0
+        },
+        "gore": {
+          "minRange": 4,
+          "maxRange": 13,
+          "windup": 0.95,
+          "speed": 15,
+          "duration": 0.8,
+          "recover": 1.2,
+          "cooldown": 7,
+          "damageMult": 1.8
+        },
+        "slam": {
+          "radius": 4.8,
+          "windup": 1.1,
+          "recover": 1.0,
+          "cooldown": 9,
+          "damageMult": 2.0,
+          "shockwaveSpeed": 7,
+          "shockwaveMax": 11
+        }
+      },
+      "enrageAt": 0.5,
+      "drops": [
+        {
+          "item": "warden_horn",
+          "chance": 1,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "ancient_core",
+          "chance": 1,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "ruin_shard",
+          "chance": 1,
+          "min": 3,
+          "max": 5
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 80,
+          "max": 120
+        }
+      ]
+    }
+  }
+}

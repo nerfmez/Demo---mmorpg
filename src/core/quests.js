@@ -35,7 +35,9 @@ export function refreshQuests(ch, data) {
       finished.push(id);
     }
   }
-  return finished;
+  // A discovery can finish a main quest without a later kill/craft event. Unlock
+  // the next step immediately, including already-discovered waypoint steps.
+  return finished.length ? finished.concat(refreshQuests(ch, data)) : finished;
 }
 
 /** Feed a game event into the journal. Returns quest ids completed by it. */

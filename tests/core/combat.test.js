@@ -1,7 +1,7 @@
 // Combat feel rules: 1-2-3 melee combo with a finisher, and short flinches that never cancel a wind-up.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { data } from './helpers.js';
+import { legacyData as data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
 
 const setup = (seed) => {

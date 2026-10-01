@@ -10,7 +10,9 @@
     "test:browser": "node tests/browser/smoke.mjs",
     "test:ux": "node tests/browser/ux.mjs",
     "export:layout": "node scripts/export-layout.mjs",
-    "test:dreamloop": "node tests/browser/dreamloop.mjs"
+    "test:dreamloop": "node tests/browser/dreamloop.mjs",
+    "test:tools": "node --test tests/tools/*.test.mjs",
+    "jev:context": "node scripts/jev-context.mjs"
   },
   "repository": {
     "type": "git",

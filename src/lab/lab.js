@@ -177,8 +177,9 @@ function castMelee(s, element) {
   if (state.reviewPhase === 'impact') { meleeHit(s,element,step); return; }
   const e={skill:state.skill,kind:s.kind,total:s.castTime,weapon:state.weapon,step};
   heroAnim.play(e.skill,s.castTime+.28,e.weapon,step,s.castTime,s.kind);
+  vfx.beginSwing(e,element);
+  if (state.reviewPhase === 'cast') later(s.castTime, () => vfx.endSwing());
   if (state.reviewPhase !== 'cast') {
-    vfx.beginSwing(e,element);
     later(s.castTime,()=>{
       const hits=meleeContact(s,step)?1:0;
       const hit={skill:e.skill,x:0,z:0,angle:-Math.PI/2,element,range:s.range,arc:s.arc,radius:s.radius,step,finisher:step===2,hits};

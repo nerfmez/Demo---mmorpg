@@ -624,7 +624,10 @@ export class Vfx {
       return;
     }
     // The arrow's impact event draws its contact once, including obstacle hits.
-    if (e.skill === 'hunter_shot') return;
+    if (e.skill === 'hunter_shot') {
+      if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
+      return;
+    }
     if (e.element === 'physical' || e.attackKind === 'melee_arc' || e.attackKind === 'melee_nova') {
       this.contacts.burst(e, this.contactLook(e.skill, e.element), y + height);
       if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
@@ -667,7 +670,7 @@ export class Vfx {
     const crack = groundCracks(cfg, e.radius, this.world, e.x, e.z);
     this.spawn(crack, .45, t => { crack.material.uniforms.uProgress.value = 1; crack.material.uniforms.uOpacity.value = cfg.cast.opacity * (1 - t); });
     this.chips.burst(e, cold ? { ...cfg, colors: { ...cfg.colors, debris: '#dff4ff' } } : cfg, this.gy(e.x, e.z));
-    this.dust.burst(e.x, this.gy(e.x, e.z) + .15, f.dust, { color: cold ? '#e6f6ff' : cfg.colors.debris, size: f.dustSize, sizeEnd: f.dustSize * 1.4, speed: 1.6, life: f.dustLife, up: .3, drag: 5 });
+    this.dust.burst(e.x, this.gy(e.x, e.z) + .15, e.z, f.dust, { color: cold ? '#e6f6ff' : cfg.colors.debris, size: f.dustSize, sizeEnd: f.dustSize * 1.4, speed: 1.6, life: f.dustLife, up: .3, drag: 5 });
     this.shake = Math.max(this.shake, cfg.impact.shake);
   }
 

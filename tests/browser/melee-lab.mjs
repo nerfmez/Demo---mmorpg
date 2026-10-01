@@ -56,11 +56,13 @@ try{
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   const cancelled=await page.evaluate(()=>{const L=window.__lab;const before=window.__hits.length;L.preview('full');L.state.paused=true;L.step(1/60);L.clear();for(let i=0;i<30;i++)L.step(1/60);return {hits:window.__hits.length-before,contacts:L.vfx.contacts.count,trail:L.vfx.trail.mesh.visible};});
   assert.equal(cancelled.hits,0);assert.equal(cancelled.contacts,0);assert.equal(cancelled.trail,false);
+  const prepareOnly=await page.evaluate(()=>{const L=window.__lab,before=window.__hits.length;L.preview('cast');L.state.paused=true;for(let i=0;i<9;i++)L.step(1/60);return {trail:L.vfx.trail.mesh.visible,hits:window.__hits.length-before,cuts:L.vfx.active.length};});
+  assert(prepareOnly.trail);assert.equal(prepareOnly.hits,0);assert.equal(prepareOnly.cuts,0);
   const probe=async cycles=>page.evaluate(async cycles=>{const L=window.__lab,paint=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     for(let i=0;i<cycles;i++){L.preview('full',false);L.state.paused=true;for(let j=0;j<16;j++)L.step(1/60);await paint();L.clear();await paint();}
     return L.stats().geometries;},cycles);
   const warm=await probe(1),repeated=await probe(8);assert.equal(repeated,warm);
-  const report={ok:!errors.length,browser:process.env.BROWSER||'chromium',combo,miss,arcMiss,tuned,whirl,impact,cleanup:{warm,repeated},cancelled,sequence,errors};
+  const report={ok:!errors.length,browser:process.env.BROWSER||'chromium',combo,miss,arcMiss,tuned,whirl,impact,cleanup:{warm,repeated},cancelled,prepareOnly,sequence,errors};
   writeFileSync(OUT+'report.json',JSON.stringify(report,null,2));assert.equal(errors.length,0,errors.join('\n'));
   console.log(JSON.stringify({ok:true,combo,cleanup:{warm,repeated},browser:report.browser}));
 }finally{await browser?.close();try{process.kill(-server.pid);}catch{}}

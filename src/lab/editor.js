@@ -26,6 +26,11 @@ const LABELS = {
 const label = (key) => LABELS[key] || String(key).replace(/([a-z])([A-Z])/g, '$1 $2');
 function fieldLabel(path) {
   const key = path.at(-1);
+  const group = path.at(-2);
+  if (group === 'burst' && key === 'height') return 'ความสูงหิน';
+  if (group === 'attack' && key === 'height') return 'ความสูงรอยกัด';
+  if (group === 'swing' && key === 'arc') return 'มุมรอยฟัน';
+  if (group === 'attack' && key === 'arc') return 'มุมรอยกัด';
   if (typeof key !== 'number') return label(key);
   const parent = path.at(-2);
   const suffix = parent === 'headRadii' ? ['ตามแนวพุ่ง', 'แนวขวาง'][key] : parent === 'trailOffset' ? ['ต้นช่วง', 'ปลายช่วง'][key] : String(key + 1);

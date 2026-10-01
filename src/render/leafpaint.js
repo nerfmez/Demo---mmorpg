@@ -50,3 +50,47 @@ export function needleTexture() {
  }
  needles=new THREE.CanvasTexture(canvas);needles.colorSpace=THREE.SRGBColorSpace;needles.anisotropy=4;return needles;
 }
+
+// A coconut-palm frond, rachis running down the middle (u=.5) from base (bottom, v=1) to tip (top).
+// Many long, narrow, tapered leaflets in mixed greens sweep from the rachis toward the tip and
+// overlap a little, longest at mid-frond, with a few split or missing; small gaps stay clear.
+let frond;
+export function palmFrondTexture() {
+ if(frond)return frond;
+ const W=256,H=1024,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+ const c=canvas.getContext('2d'),rng=createRng(1307),cx=W/2;
+ const greens=['#4c8a3e','#589844','#64a54b','#72b153','#80bc5c','#8fc666'];
+ const tipGreens=['#9bcf6c','#aad87a','#bce287'];
+ // a tapered leaflet along a gentle curve, filled, with a lighter upper half
+ const leaflet=(x0,y0,x1,y1,bx,by,width,col,light)=>{
+  const pts=[],n=14;
+  for(let k=0;k<=n;k++){const t=k/n,u=1-t;pts.push([u*u*x0+2*u*t*bx+t*t*x1,u*u*y0+2*u*t*by+t*t*y1]);}
+  const left=[],right=[];
+  for(let k=0;k<=n;k++){
+   const a=pts[Math.max(0,k-1)],b=pts[Math.min(n,k+1)],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;
+   const w=width*Math.pow(Math.sin(Math.PI*Math.min(1,.08+k/n*.95)),.7)*.5;
+   left.push([pts[k][0]-dy/l*w,pts[k][1]+dx/l*w]);right.push([pts[k][0]+dy/l*w,pts[k][1]-dx/l*w]);
+  }
+  c.fillStyle=col;c.beginPath();c.moveTo(...left[0]);for(const p of left)c.lineTo(...p);for(const p of right.reverse())c.lineTo(...p);c.closePath();c.fill();
+  c.strokeStyle=light;c.lineWidth=Math.max(1,width*.18);c.beginPath();c.moveTo(...pts[1]);for(const p of pts.slice(2,n))c.lineTo(...p);c.stroke();
+ };
+ const count=96;
+ for(let i=0;i<count;i++){
+  const t=i/count,y=H*.03+t*H*.95; // t=0 at the tip, 1 at the base
+  const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.98+.05)),.5)*.46+.03)*W;
+  for(const side of [-1,1]){
+   if(rng.next()<.05)continue;
+   const len=reach*rng.range(.85,1.0),rise=len*rng.range(.55,.75);
+   const tipish=rng.next()<.2+.45*(1-t);
+   const col=tipish?tipGreens[Math.floor(rng.next()*tipGreens.length)]:greens[Math.floor(rng.next()*greens.length)];
+   const x0=cx+side*4,x1=cx+side*len,y1=y-rise,bx=cx+side*len*.6,by=y-rise*.2+rng.range(-4,8);
+   leaflet(x0,y,x1,y1,bx,by,rng.range(11,16)*(.65+.35*t),col,'rgba(225,240,170,.35)');
+   if(rng.next()<.08){c.strokeStyle='#000';c.globalCompositeOperation='destination-out';c.lineWidth=2.5;
+    c.beginPath();c.moveTo(cx+side*len*.55,y-rise*.45);c.lineTo(x1,y1+6);c.stroke();c.globalCompositeOperation='source-over';}
+  }
+ }
+ const grad=c.createLinearGradient(0,H,0,0);grad.addColorStop(0,'#cfc47c');grad.addColorStop(1,'#93bb62');
+ c.strokeStyle=grad;c.lineCap='round';
+ for(let k=0;k<24;k++){const y=H*k/24,y2=H*(k+1)/24;c.lineWidth=3+10*((k+1)/24);c.beginPath();c.moveTo(cx,y);c.lineTo(cx,y2+1);c.stroke();}
+ frond=new THREE.CanvasTexture(canvas);frond.colorSpace=THREE.SRGBColorSpace;frond.anisotropy=4;return frond;
+}

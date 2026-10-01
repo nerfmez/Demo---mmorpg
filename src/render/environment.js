@@ -7,7 +7,7 @@ import { outlineStructure } from './architecture.js';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
-import {leafTexture,needleTexture} from './leafpaint.js';
+import {leafTexture,needleTexture,palmFrondTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
 import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
@@ -131,7 +131,7 @@ export function createEnvironment(world) {
   const greens = ['#f8f1d4', '#e8eddd', '#f8f5dc', '#ecf1de'];
   const palmTrunks = [];
   const palmFronds = [];
-  const palmShape = palmTrunk(), palmCoconuts = [];
+  const palmShape = palmTrunk(), palmCoconuts = [], fallenCoconuts = [];
   for (const c of world.circles.filter((q) => q.type === 'palm')) {
     const s = c.scale * 0.95;
     const y = gy(c.x, c.z) - 0.1;
@@ -140,10 +140,15 @@ export function createEnvironment(world) {
     const tx = c.x + Math.sin(c.rot) * palmShape.crown.z * s, tz = c.z + Math.cos(c.rot) * palmShape.crown.z * s;
     const ty = y + palmShape.crown.y * s;
     for (let i = 0, n = art.architecture.palm.fronds; i < n; i++) {
-      const col = new THREE.Color(rng.pick(['#ffffff', '#f6faec', '#eef6df']));
+      const col = new THREE.Color(rng.pick(['#ffffff', '#f3f8e6', '#e8f0d6', '#fbf6e0']));
       palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.88, 1.12), ry: c.rot + (i / art.architecture.palm.fronds) * Math.PI * 2 + rng.range(-0.18, 0.18), color: `#${col.getHexString()}`, young: false });
     }
     for (let i = 0; i < 3; i++) palmFronds.push({ x: tx, z: tz, y: ty + .05, s: s * rng.range(.62, .75), ry: c.rot + i * 2.1 + .5, color: '#f4fbe8', young: true });
+    for (let i = 0, n = rng.int(...art.architecture.palm.fallenCoconuts); i < n; i++) {
+      const a = rng.range(0, Math.PI * 2), r = rng.range(.7, 2.8) * s, fx = tx + Math.sin(a) * r, fz = tz + Math.cos(a) * r;
+      if (world.isWater(fx, fz, .3) || !world.isFree(fx, fz, .1)) continue;
+      fallenCoconuts.push({ x: fx, z: fz, y: gy(fx, fz) + .1, s: s * rng.range(.85, 1.1), ry: rng.range(0, 6.28), rz: rng.range(-.5, .5), color: rng.pick(['#7c6a3a', '#6b5532', '#8a7a3f', '#5d6a34']) });
+    }
     for (let i = 0; i < 4; i++) {
       const a = c.rot + i * 1.57 + rng.range(-.3, .3);
       palmCoconuts.push({ x: tx + Math.sin(a) * .26 * s, z: tz + Math.cos(a) * .26 * s, y: ty - .22 * s, s: s * rng.range(.9, 1.1), color: rng.pick(['#7c6a3a', '#8a7a3f', '#6f7a3a']) });
@@ -233,9 +238,14 @@ export function createEnvironment(world) {
   root.add(instanced(willowGeo,willowMat,willowLeaves.map(it=>({...it,ry:0})),{shadow:true}));
   // palms: a curved, ringed trunk, arching leaflet fronds with young ones standing up, coconuts
   root.add(instanced(palmShape.geometry, mat('#ffffff', { vertexColors: true }), palmTrunks, { outline: '#4f3d2e', outlineWidth: 0.024 }));
-  const frondMat = mat('#ffffff', { double: true, vertexColors: true, wind: 0.05, windBase: 0 });
-  root.add(instanced(palmFrond(art.architecture.palm.frondLength, art.architecture.palm.frondLift, art.architecture.palm.frondDroop), frondMat, palmFronds.filter((f) => !f.young), { outline: '#4f7d3f', outlineWidth: 0.01, wind: 0.05 }));
-  root.add(instanced(palmFrond(2.2, 1.5, .5), frondMat, palmFronds.filter((f) => f.young), { outline: '#4f7d3f', outlineWidth: 0.009, wind: 0.05 }));
+  // painted leaflet cards, alpha-tested like the willow and pine foliage; no outline hull
+  const frondMat = mat('#ffffff', { double: true, wind: 0.05, windBase: 0 });
+  frondMat.map = palmFrondTexture(); frondMat.alphaTest = 0.45; frondMat.forceSinglePass = true;
+  const P = art.architecture.palm;
+  root.add(instanced(palmFrond(P.frondLength, P.frondLift, P.frondDroop, P.frondWidth), frondMat, palmFronds.filter((f) => !f.young), { wind: 0.05 }));
+  root.add(instanced(palmFrond(P.frondLength * .7, 1.4, .45, P.frondWidth * .7), frondMat, palmFronds.filter((f) => f.young), { wind: 0.05 }));
+  // fallen coconuts scattered on the sand under each crown
+  root.add(instanced(new THREE.SphereGeometry(.17, 9, 7).scale(1, .86, 1.12), mat('#ffffff'), fallenCoconuts, { outline: '#3d3524', outlineWidth: 0.01 }));
   root.add(instanced(new THREE.SphereGeometry(.17, 8, 6), mat('#ffffff'), palmCoconuts, { outline: '#3d3524', outlineWidth: 0.012 }));
 
   // ----- rocks, boulders, crystals, stumps, logs -----

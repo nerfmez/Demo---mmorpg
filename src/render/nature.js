@@ -133,29 +133,22 @@ export function palmTrunk(height=5.2,lean=1.25,rings=11) {
   const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
   return {geometry,crown:at(1)};
 }
-// One arching frond along +Z: a slender midrib and many paired leaflets that hang lower toward
-// the tip, so the frond falls softly instead of standing as a stiff fan. Colour runs from a fresh
-// mid-green base to a sunlit yellow-green tip; young fronds stand up, old ones droop.
-export function palmFrond(length=3.4,lift=1.0,droop=1.7) {
-  const positions=[],colors=[],normals=[];
-  const base=new THREE.Color('#6aa84f'),tip=new THREE.Color('#cbe68c');
-  const spine=t=>[Math.sin(t*2.2)*.08*t,Math.sin(t*Math.PI*.5)*lift-t*t*t*droop,t*length];
-  const vertex=(p,t)=>{positions.push(...p);normals.push(0,1,0);const c=base.clone().lerp(tip,Math.min(1,t));colors.push(c.r,c.g,c.b);};
-  const steps=24;
-  for(let i=1;i<steps;i++){
-    const t=i/steps,dt=1/steps,w=(.62*Math.pow(Math.sin(Math.PI*Math.min(1,t*1.05)),.6)+.05)*(1-t*.3);
-    const a=spine(t),b=spine(Math.min(1,t+dt*.55));
-    for(const side of [-1,1]){
-      // leaflets sweep back and hang: more at the tip, a little alternate flutter
-      const hang=w*(.45+.75*t)+(i%2)*.04;
-      const end=[a[0]+side*w*.9,a[1]-hang,a[2]-w*.42];
-      const mid=[a[0]+side*w*.45,a[1]-hang*.35+.02,a[2]-w*.12];
-      vertex(a,t*.7);vertex(b,t*.7+.04);vertex(mid,t*.85+.1);
-      vertex(a,t*.7);vertex(mid,t*.85+.1);vertex(end,t+.3);
+// One arching frond along +Z as a painted card (palmFrondTexture): the rachis arches up then
+// falls away, and the two halves fold down from it in a shallow V that deepens toward the tip,
+// the way real coconut leaflets hang. UV u runs across (rachis at .5), v from tip (0) to base (1).
+export function palmFrond(length=3.4,lift=1.0,droop=1.7,width=1.15) {
+  const positions=[],uvs=[],normals=[],index=[],steps=14;
+  const spine=t=>[Math.sin(t*2.4)*.06*t,Math.sin(t*Math.PI*.5)*lift-t*t*t*droop,t*length];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps,p=spine(t),half=width*.5*(.55+.45*Math.sin(Math.PI*Math.min(1,t*1.1+.05))),fold=half*(.35+.55*t);
+    for(const [u,side] of [[0,-1],[.5,0],[1,1]]){
+      positions.push(p[0]+side*half,p[1]-Math.abs(side)*fold,p[2]-Math.abs(side)*half*.18);
+      uvs.push(u,1-t);normals.push(0,1,0);
     }
-    const m=spine(t-dt);
-    for(const p of [[m[0]-.02,m[1]+.015,m[2]],[m[0]+.02,m[1]+.015,m[2]],[a[0]+.02,a[1]+.015,a[2]],[m[0]-.02,m[1]+.015,m[2]],[a[0]+.02,a[1]+.015,a[2]],[a[0]-.02,a[1]+.015,a[2]]])vertex(p,t*.5);
+  }
+  for(let i=0;i<steps;i++)for(let k=0;k<2;k++){
+    const a=i*3+k,b=a+1,c=a+3,d=a+4;index.push(a,c,b,b,c,d);
   }
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-  g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setIndex(index);return g;
 }

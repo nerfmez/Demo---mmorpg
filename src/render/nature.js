@@ -43,24 +43,33 @@ export function branchTrunk() {
  return join(parts);
 }
 export function meadowGrass() {
- const rng=createRng(620),parts=[];
- for(let i=0;i<8;i++){
-  const g=leafBlade(.028+rng.next()*.027,.28+rng.next()*.34);
-  // Curl upward from a narrow root, with a fine pointed tip.
-  const p=g.attributes.position;
-  for(let k=0;k<p.count;k++){const t=p.getZ(k);p.setXYZ(k,p.getX(k),t*.95,p.getY(k)+t*t*.48);}
-  g.computeVertexNormals();g.rotateY(i*2.399);g.translate(Math.sin(i*2.399)*.12,0,Math.cos(i*2.399)*.12);
-  coloured(g);const c=g.attributes.color;
-  for(let k=0;k<p.count;k++){const t=Math.min(1,p.getY(k)/.6),col=new THREE.Color().setRGB(.60+t*.35,.67+t*.28,.43+t*.28);c.setXYZ(k,col.r,col.g,col.b);}
-  parts.push(g);
+ const rng=createRng(620),positions=[];
+ // Six narrow three-segment blades: delicate curved tips, no broad triangular fern cards.
+ for(let i=0;i<6;i++){
+  const a=i*2.39996+rng.range(-.25,.25),h=rng.range(.34,.61),width=rng.range(.018,.036),bend=rng.range(.13,.30);
+  const points=[];
+  for(let j=0;j<=3;j++){
+   const t=j/3,w=width*(j===0?.33:j===3?0:1-t*.72);
+   const y=h*(t-.13*t*t),z=bend*t*t,offset=Math.sin(a)*.07;
+   points.push([Math.cos(a)*(-w)+Math.sin(a)*z+offset,y,-Math.sin(a)*(-w)+Math.cos(a)*z+Math.cos(a)*.07]);
+   points.push([Math.cos(a)*w+Math.sin(a)*z+offset,y,-Math.sin(a)*w+Math.cos(a)*z+Math.cos(a)*.07]);
+  }
+  for(let j=0;j<3;j++){
+   const k=j*2;positions.push(...points[k],...points[k+1],...points[k+2]);
+   if(j<2)positions.push(...points[k+1],...points[k+3],...points[k+2]);
+  }
  }
- return join(parts);
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();
+ const colors=[];for(let i=0;i<g.attributes.position.count;i++){
+  const t=Math.min(1,g.attributes.position.getY(i)/.54);colors.push(.63+t*.32,.71+t*.24,.46+t*.25);
+ }
+ g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;
 }
 export function wildflowers() {
- const parts=[],h=.24;
+ const parts=[],h=.29;
  const stem=new THREE.CylinderGeometry(.008,.011,h,3);stem.translate(0,h/2,0);parts.push(coloured(stem,'#71844d'));
  for(let i=0;i<5;i++){
-  const a=i*Math.PI*2/5,g=new THREE.CircleGeometry(.052,5);g.rotateX(-Math.PI/2);g.scale(.8,1,1.28);g.translate(Math.sin(a)*.057,h,Math.cos(a)*.057);parts.push(coloured(g));
+  const a=i*Math.PI*2/5,g=new THREE.CircleGeometry(.060,6);g.rotateX(-Math.PI/2);g.scale(.85,1,1.32);g.rotateZ(Math.sin(a)*.12);g.translate(Math.sin(a)*.064,h+Math.cos(a)*.006,Math.cos(a)*.064);parts.push(coloured(g));
  }
  const center=new THREE.CircleGeometry(.03,6);center.rotateX(-Math.PI/2);center.translate(0,h+.004,0);parts.push(coloured(center,'#e2b856'));
  const g=leafBlade(.028,.14);g.rotateY(1.5);g.translate(0,h*.38,0);parts.push(coloured(g,'#7b9b55'));

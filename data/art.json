@@ -10,8 +10,32 @@
     "shrubLeavesPerSpray": 24
   },
   "grass": {
-    "tipLightening": 0.14,
-    "rootBlendHeight": 0.28
+    "tipLightening": 0.23,
+    "rootBlendHeight": 0.34
+  },
+  "ground": {
+    "palette": {
+      "grassOchre": "#a3af56",
+      "earthShadow": "#ad9667",
+      "earthLight": "#c4ae80",
+      "dust": "#c9b68a",
+      "mud": "#6d7053",
+      "stoneShadow": "#9b9f8c",
+      "stoneLight": "#b8b8a0",
+      "mortar": "#7a8067",
+      "sandShadow": "#bdad80",
+      "sandLight": "#d4c498",
+      "sandWet": "#999b7e",
+      "rockShadow": "#7f897c",
+      "rockLight": "#a4ad99",
+      "woodShadow": "#98754e",
+      "woodLight": "#b69a6d",
+      "woodSilver": "#abb199",
+      "woodSeam": "#75634c"
+    },
+    "townPatchSpacing": 4.8,
+    "grassPerPatch": 15,
+    "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
   },
   "anime": {
     "bounds": {
@@ -27,8 +51,8 @@
       "shrubShadow": "#345f48",
       "shrubMid": "#6c9c51",
       "shrubLight": "#afc875",
-      "groundLight": "#9cbb64",
-      "groundDark": "#6f964d",
+      "groundLight": "#a1b861",
+      "groundDark": "#657f3f",
       "rock": "#abb4b4",
       "wood": "#8b6851",
       "plaster": "#f1e3c5",

@@ -6,12 +6,13 @@ import { outlineStructure } from './architecture.js';
 import { toon, outlined, darker } from './toon.js';
 import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
-import { distToPolyline } from '../core/math.js';
 import {leafTexture,needleTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell} from './nature.js';
 import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
 import { attachGrassSurface, grassMaterial } from './grass.js';
+import { meadowPlants } from './meadow.js';
+import { walkSurfaceMaterial } from './walk-surface.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createHarbor } from './harbor.js';
@@ -321,8 +322,7 @@ export function createEnvironment(world) {
   // ----- small decoration -----
   const d = world.decor;
   // Grouped plant patches: short curved leaves and readable flowers, leaving paths clear.
-  const grass=[],flowers=[],detailRng=createRng(842);
-  const clear=(x,z)=>!(world.data.town.blockout&&world.zoneAt(x,z).safe)&&!world.isBeach(x,z,2.5)&&!world.isWater(x,z,.7)&&world.roadDist(x,z)>.0&&(!artReviewLayout||distToPolyline(x,z,animeConfig.sample.path)>1.45)&&world.slopeAt(x,z)<.7&&!(world.zoneAt(x,z).safe&&Math.hypot(x-world.data.town.centre[0],z-world.data.town.centre[1])<world.data.town.plazaRadius);
+  const detailRng=createRng(842);
   // Low relief shells have distinct fan/spiral silhouettes and raised ribs. Chunked like plants.
   for (const kind of ['fan', 'spiral']) {
     const shells = (d.shells || []).filter(s => s.kind === kind).map(s => ({ x:s.x, z:s.z, y:gy(s.x,s.z)+.025, s:s.s, ry:s.rot, color:kind==='fan'?'#f2decd':'#dfc5a9' }));
@@ -330,7 +330,7 @@ export function createEnvironment(world) {
     shoreProps.name = `beach-shell-${kind}`;
     root.add(shoreProps);
   }
-  const grassPatches=[...d.grass];
+  const grassPatches=[];
   if(artReviewLayout) {
     // Quiet centre, denser planting around specimens and at the cottage edge.
     const patches=[...animeConfig.sample.bushes,...animeConfig.sample.rocks,[-190.5,19,1.2],[-196.8,24.1,.8]];
@@ -339,25 +339,9 @@ export function createEnvironment(world) {
       grassPatches.push({x:px+Math.cos(a)*r,z:pz+Math.sin(a)*r,s:detailRng.range(.55,.95)});
     }
   }
-  for(const g of grassPatches){
-    for(let k=0;k<10;k++){
-      const a=detailRng.range(0,6.28),r=k===0?0:detailRng.range(.15,1.3),x=g.x+Math.sin(a)*r,z=g.z+Math.cos(a)*r;
-      if(!clear(x,z))continue;
-      const scale=g.s*detailRng.range(.43,.78);
-      grass.push({x,z,y:gy(x,z)-.025,ry:a,s:scale,color:inArtStudy(x,z)?undefined:grassTint(world,x,z,scale)});
-    }
-  }
-  root.add(instanced(meadowGrass(),grassMaterial(world),grass.filter(it=>inArtStudy(it.x,it.z)),{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
-  root.add(instanced(meadowGrass(),mat('#ffffff',{vertexColors:true,double:true,wind:.15}),grass.filter(it=>!inArtStudy(it.x,it.z)),{shadow:false}));
-  const flowerCols=['#fff9e6','#f5dc77','#ecd0da','#c4b7db','#bcdae0'];
-  for(const f of d.flowers){
-    const cluster=f.color===0||f.color===1?6:4;
-    for(let k=0;k<cluster;k++){
-      const a=detailRng.range(0,6.28),r=k===0?0:detailRng.range(.12,.55),x=f.x+Math.sin(a)*r,z=f.z+Math.cos(a)*r;
-      if(clear(x,z))flowers.push({x,z,y:gy(x,z),s:f.s*detailRng.range(.7,1.1),ry:a,color:flowerCols[f.color]});
-    }
-  }
-  root.add(instanced(wildflowers(),mat('#ffffff',{vertexColors:true,double:true,wind:.12}),flowers,{shadow:false}));
+  const {grass,flowers}=meadowPlants(world,grassPatches);
+  root.add(instanced(meadowGrass(),grassMaterial(world),grass,{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
+  root.add(instanced(wildflowers(),patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12}),flowers,{shadow:false}));
   const bushGeo=leafCrown(11);
   const bushes = [],studyBushes=[];
   const berries = [];
@@ -390,7 +374,11 @@ export function createEnvironment(world) {
   const lilyGeo = new THREE.CircleGeometry(0.4, 10, 0.3, Math.PI * 1.8);
   lilyGeo.rotateX(-Math.PI / 2);
   root.add(instanced(lilyGeo, toon('#5aa640'), d.lilies.map((l) => ({ x: l.x, z: l.z, y: world.waterLevel + 0.03, s: l.s, ry: l.rot })), { shadow: false }));
-  root.add(instanced(fernGeometry(), mat('#4f9a3a', { double: true, wind: 0.12 }), d.ferns.map((f) => ({ x: f.x, z: f.z, y: gy(f.x, f.z), s: f.s, ry: f.rot })), { shadow: false }));
+  const fernMat=patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12});
+  const fernCompile=fernMat.onBeforeCompile;
+  fernMat.onBeforeCompile=(s,r)=>{fernCompile.call(fernMat,s,r);s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');};
+  fernMat.customProgramCacheKey=()=> 'ground-ferns-v1';
+  root.add(instanced(fernGeometry(),fernMat,d.ferns.map((f)=>({x:f.x,z:f.z,y:gy(f.x,f.z)-.015,s:f.s,ry:f.rot})),{shadow:false}));
   const stems = [];
   const caps = [];
   for (const m of d.mushrooms) {
@@ -454,30 +442,26 @@ export function createEnvironment(world) {
 }
 
 
-function grassTint(world,x,z,s) {
-  const zone=world.zoneAt(x,z),c=new THREE.Color(zone.palette?zone.palette[0]:'#86c24e');
-  c.offsetHSL(0,-.05,(s-1)*.08-.06);return '#'+c.getHexString();
-}
-
 function fernGeometry() {
-  const pos = [];
-  const n = 6;
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2;
-    const dx = Math.sin(a);
-    const dz = Math.cos(a);
-    const px = Math.cos(a) * 0.09;
-    const pz = -Math.sin(a) * 0.09;
-    // a leaf: base, two mid points, arching tip
-    pos.push(0, 0.02, 0, dx * 0.35 + px, 0.3, dz * 0.35 + pz, dx * 0.35 - px, 0.3, dz * 0.35 - pz);
-    pos.push(dx * 0.35 + px, 0.3, dz * 0.35 + pz, dx * 0.7, 0.18, dz * 0.7, dx * 0.35 - px, 0.3, dz * 0.35 - pz);
+  const positions=[],colors=[],normals=[];
+  const dark=new THREE.Color(animeConfig.palette.groundDark),light=new THREE.Color(animeConfig.palette.groundLight);
+  const vertex=(p,t)=>{positions.push(...p);normals.push(0,1,0);const c=dark.clone().lerp(light,t);colors.push(c.r,c.g,c.b);};
+  for(let frond=0;frond<6;frond++){
+    const angle=frond*2.39996,dx=Math.sin(angle),dz=Math.cos(angle),px=dz,pz=-dx;
+    const point=(t,side=0)=>[dx*t*.66+px*side,.025+Math.sin(t*Math.PI*.75)*.43,dz*t*.66+pz*side];
+    for(let i=1;i<=7;i++){
+      const t=i/8,width=Math.sin(t*Math.PI)*(.13-frond*.004);
+      for(const side of [-1,1]){
+        const root=point(t-.055),shoulder=point(t+.045,width*.45*side),tip=point(t+.014,width*side),back=point(t-.015,width*.46*side);
+        vertex(root,.25);vertex(shoulder,.53);vertex(tip,.81);
+        vertex(root,.25);vertex(tip,.81);vertex(back,.43);
+      }
+      const a=point(t-.12,-.006),b=point(t-.12,.006),c=point(t,.006),d=point(t,-.006);
+      for(const p of [a,b,c,a,c,d])vertex(p,.39);
+    }
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  const nrm = [];
-  for (let i = 0; i < pos.length / 3; i++) nrm.push(0, 1, 0);
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  return g;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;
 }
 
 function pillarGeometry(h, broken = false) {
@@ -525,14 +509,12 @@ function createBridge(world, br) {
   const g = new THREE.Group();
   g.position.set(br.x, 0, br.z);
   g.rotation.y = br.angle;
-  const plankA = toon('#a8744a');
-  const plankB = toon('#9a6a42');
   const n = Math.round((br.hx * 2) / 0.55);
   const floorY = world.waterLevel - 1.2;
   for (let i = 0; i < n; i++) {
     const x = -br.hx + 0.28 + i * 0.55;
     const y = world.deckY(br, x);
-    const p = outlined(new THREE.BoxGeometry(0.5, 0.18, br.hz * 2), i % 2 ? plankA : plankB, { outline: '#4a2e1a', width: 0.02 });
+    const p = outlined(new THREE.BoxGeometry(0.5, 0.18, br.hz * 2), walkSurfaceMaterial('wood',i%2?1.07:1,[br.x+x,br.z],true), { outline: '#4a2e1a', width: 0.02 });
     p.position.set(x, y - 0.09, 0);
     g.add(p);
   }

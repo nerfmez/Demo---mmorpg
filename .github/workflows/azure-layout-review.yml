@@ -4,14 +4,17 @@ on:
   pull_request:
     paths:
       - 'data/world.json'
+      - 'data/art.json'
       - 'src/core/world.js'
       - 'src/render/**'
       - 'src/ui/mapimage.js'
       - 'tests/browser/azure-blockout.mjs'
+      - 'tests/browser/ground-surfaces.mjs'
       - 'tests/core/harbor.test.js'
       - 'tests/fixtures/azure-beach/**'
       - 'tests/render/water-contact.test.mjs'
       - 'tests/render/azure-footprints.test.mjs'
+      - 'tests/render/ground-surfaces.test.mjs'
       - '.github/workflows/azure-layout-review.yml'
 
 permissions:
@@ -23,6 +26,26 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Choose the review for the changed content
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PREVIOUS_HEAD: ${{ github.event.before }}
+        run: |
+          node --input-type=module <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const files=execFileSync('git',['diff','--name-only',process.env.BASE_SHA,'HEAD'],{encoding:'utf8'}).trim().split('\n');
+          const ground=/^(data\/art\.json|src\/render\/(ground(?:-color|-field|-brush)?|grass|meadow|nature|environment|harbor|walk-surface)\.js|tests\/browser\/ground-surfaces\.mjs|tests\/render\/ground-surfaces\.test\.mjs|docs\/[^\n]+|\.github\/workflows\/azure-layout-review\.yml)$/;
+          const onlyGround=files.some(f=>f==='src/render/ground-color.js')&&files.every(f=>ground.test(f));
+          appendFileSync(process.env.GITHUB_OUTPUT,`ground=${onlyGround}\n`);
+          const previous=process.env.PREVIOUS_HEAD;
+          const newHarness=!previous||!!execFileSync('git',['diff','--name-only',previous,'HEAD','--','tests/browser/ground-surfaces.mjs'],{encoding:'utf8'}).trim();
+          appendFileSync(process.env.GITHUB_OUTPUT,`baseline=${newHarness}\n`);
+          JS
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -30,12 +53,45 @@ jobs:
       - run: npm ci
       - name: Verify roads, water, old saves and model collision footprints
         run: node --test tests/core/harbor.test.js tests/core/world.test.js tests/core/save.test.js tests/render/water-contact.test.mjs tests/render/azure-footprints.test.mjs
+      - name: Verify ground continuity and surface material ownership
+        if: steps.scope.outputs.ground == 'true'
+        run: node --test tests/render/ground-surfaces.test.mjs
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - name: Walk arrival, frontage paths and pier; capture layout and gameplay
+        if: steps.scope.outputs.ground != 'true'
         run: AZURE_LAYOUT_REVIEW=1 node tests/browser/azure-blockout.mjs
+      - name: Capture the changed ground in the production game camera
+        if: steps.scope.outputs.ground == 'true'
+        env:
+          GROUND_SOURCE: ${{ github.event.pull_request.head.sha }}
+        run: node tests/browser/ground-surfaces.mjs
+      - name: Capture identical locations from merged PR 24
+        if: steps.scope.outputs.ground == 'true' && steps.scope.outputs.baseline == 'true'
+        env:
+          GROUND_SOURCE: '7f7e46ee3e19fc6ca23d29f3adcd60ec97be0ee3'
+          GROUND_BEFORE: '1'
+        run: |
+          git worktree add --detach .ground-before "$GROUND_SOURCE"
+          cp tests/browser/ground-surfaces.mjs .ground-before/tests/browser/ground-surfaces.mjs
+          ln -s "$GITHUB_WORKSPACE/node_modules" .ground-before/node_modules
+          cd .ground-before
+          node node_modules/vite/bin/vite.js build
+          node tests/browser/ground-surfaces.mjs
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.scope.outputs.ground == 'true'
+        with:
+          name: ground-after-chromium
+          path: tests/browser/out/ground-chromium/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.scope.outputs.ground == 'true' && steps.scope.outputs.baseline == 'true'
+        with:
+          name: ground-before-pr24-chromium
+          path: .ground-before/tests/browser/out/ground-chromium/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.scope.outputs.ground != 'true'
         with:
           name: azure-layout-chromium
           path: tests/browser/out/azure-layout-chromium/

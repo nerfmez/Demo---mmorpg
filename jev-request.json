@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "claude-vfx-test-1790844908",
+  "agent": "claude",
+  "task": "Test request: locate the skill/combat VFX pipeline for a future restyle toward a cartoon VFX reference (chunky hit bursts, slashes, element trails). Find where effects read game events, element colours, particle pooling, blade trails and tunable FX data, plus related tests.",
+  "keywords": "src/render/vfx.js particles.js trail.js ribbon.js data/combat-fx.json ELEMENT game.events hit slash trail element",
+  "source_commit": "b6f347812e44c2ceeb9970da09dc358499f3b9b0"
+}

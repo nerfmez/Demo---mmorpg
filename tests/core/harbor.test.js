@@ -340,10 +340,10 @@ test('town residents stand on dry ground clear of streets and existing work equi
   }
 });
 
-test('generated coconut palms grow in groves behind the beach and lean toward the sea', () => {
+test('generated coconut palms stand scattered behind the beach and lean toward the sea', () => {
   const world=createWorld(data.world),{palmBelt,beach}=data.world.sea;
   const generated=world.circles.filter(c=>c.type==='palm'&&!c.id);
-  assert.ok(generated.length>=12,'shore groves exist');
+  assert.ok(generated.length>=10,'shore palms exist');
   let seaward=0;
   for(const p of generated){
     const d=world.coastAt(p.x,p.z).distance;
@@ -353,7 +353,7 @@ test('generated coconut palms grow in groves behind the beach and lean toward th
     if(world.coastAt(p.x+Math.sin(p.rot)*2,p.z+Math.cos(p.rot)*2).distance<d)seaward++;
   }
   assert.ok(seaward/generated.length>.8,'palms lean out over the sand');
-  for(const p of generated)for(const q of generated)if(p!==q)assert.ok(Math.hypot(p.x-q.x,p.z-q.z)>=2.3,'crowns keep apart');
+  for(const p of generated)for(const q of generated)if(p!==q)assert.ok(Math.hypot(p.x-q.x,p.z-q.z)>=data.world.sea.palmGap-1e-9,'crowns keep apart');
 });
 
 test('the lighthouse collider uses its authored radius', () => {

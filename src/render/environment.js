@@ -143,7 +143,7 @@ export function createEnvironment(world) {
       const col = new THREE.Color(rng.pick(['#ffffff', '#f3f8e6', '#e8f0d6', '#fbf6e0']));
       palmFronds.push({ x: tx, z: tz, y: ty, s: s * rng.range(0.88, 1.12), ry: c.rot + (i / art.architecture.palm.fronds) * Math.PI * 2 + rng.range(-0.18, 0.18), color: `#${col.getHexString()}`, young: false });
     }
-    for (let i = 0; i < 3; i++) palmFronds.push({ x: tx, z: tz, y: ty + .05, s: s * rng.range(.62, .75), ry: c.rot + i * 2.1 + .5, color: '#f4fbe8', young: true });
+    for (let i = 0; i < 2; i++) palmFronds.push({ x: tx, z: tz, y: ty + .05, s: s * rng.range(.62, .75), ry: c.rot + i * 3.1 + .5, color: '#f4fbe8', young: true });
     for (let i = 0, n = rng.int(...art.architecture.palm.fallenCoconuts); i < n; i++) {
       const a = rng.range(0, Math.PI * 2), r = rng.range(.7, 2.8) * s, fx = tx + Math.sin(a) * r, fz = tz + Math.cos(a) * r;
       if (world.isWater(fx, fz, .3) || !world.isFree(fx, fz, .1)) continue;

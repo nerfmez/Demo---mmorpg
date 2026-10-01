@@ -687,7 +687,7 @@
     "edgeAngle": 55,
     "edgeColor": "#594c45",
     "edgeOpacity": 0.78,
-    "palm": { "frondLength": 3.3, "frondLift": 0.8, "frondDroop": 1.7, "frondWidth": 1.35, "fronds": 11, "fallenCoconuts": [0, 3] },
+    "palm": { "frondLength": 3.3, "frondLift": 0.8, "frondDroop": 1.7, "frondWidth": 1.35, "fronds": 9, "fallenCoconuts": [0, 3] },
     "lighthouse": { "height": 19.5, "bands": 7, "baseRadius": 2.55, "topRadius": 1.55, "lanternRadius": 1.3 },
     "handmade": { "smallSize": 1.6, "smallTurn": 0.022, "mediumSize": 4, "mediumTurn": 0.008 },
     "roof": { "courseDepth": 0.42, "courseOverlap": 1.12, "tileThickness": 0.045, "tileLift": 0.03, "plateLength": [0.55, 1.5],

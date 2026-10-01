@@ -77,9 +77,13 @@ export function palmFrondTexture() {
  const count=44;
  for(let i=0;i<count;i++){
   const t=i/count,y=H*.03+t*H*.95; // t=0 at the tip, 1 at the base
-  const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.98+.05)),.5)*.46+.03)*W;
+  // the stalk end stays bare and the first leaflets are short and sparse, so a crown of
+  // fronds stays calm where they all overlap
+  if(t>.84)continue;
+  const nearBase=Math.max(0,(t-.6)/.24);
+  const reach=(Math.pow(Math.sin(Math.PI*Math.min(1,(1-t)*.98+.05)),.5)*.46+.03)*W*(1-.55*nearBase);
   for(const side of [-1,1]){
-   if(rng.next()<.05)continue;
+   if(rng.next()<.05+.45*nearBase)continue;
    const len=reach*rng.range(.85,1.0),rise=len*rng.range(.55,.75);
    const tipish=rng.next()<.2+.45*(1-t);
    const col=tipish?tipGreens[Math.floor(rng.next()*tipGreens.length)]:greens[Math.floor(rng.next()*greens.length)];

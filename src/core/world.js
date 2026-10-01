@@ -316,26 +316,34 @@ export function createWorld(worldData) {
   }
 
   const palmBelt = worldData.sea?.palmBelt ?? Infinity, beachWidth = worldData.sea?.beach || 14;
-  // ---------- coconut palm groves along the back of the beach ----------
-  // Loose clusters on the sandy band behind the swash, each trunk leaning out toward the sea;
-  // their own generator keeps every other placement unchanged.
+  // ---------- coconut palms along the back of the beach ----------
+  // Scattered singles and small groups of two or three, well apart, the way palms stand on a
+  // real beach: group centres are dart-thrown along the band behind the swash, members fan out
+  // from their centre and every trunk leans out toward the sea. Own generator: nothing else moves.
   if (shore && Number.isFinite(palmBelt)) {
-    const prng = createRng(4421), placed = [], step = 2.1;
-    for (let x = b.minX + 1; x < b.maxX - 1; x += step) for (let z = b.minZ + 1; z < b.maxZ - 1; z += step) {
-      const px = x + prng.range(-0.9, 0.9), pz = z + prng.range(-0.9, 0.9);
-      const c = coastAt(px, pz), zn = zoneAt(px, pz);
-      if (!['beach', 'rock'].includes(c.kind) || !(zn.trees || []).includes('palm')) { prng.next(); continue; }
-      const back = c.distance - beachWidth; // metres behind the dry-sand line
-      if (back < -3 || back > palmBelt) { prng.next(); continue; }
-      const band = 1 - Math.abs(back - 2) / (palmBelt * 0.75);
-      const cluster = smooth01((valueNoise(px * 0.055, pz * 0.055, 91) - 0.44) / 0.18);
-      if (prng.next() > Math.max(0, band) * cluster * 0.55) continue;
-      const scale = prng.range(0.8, 1.25), r = 0.4 * scale;
-      if (placed.some((q) => dist(px, pz, q.x, q.z) < 2.3) || blockedForProp(px, pz, r, { roadPad: 1.6 })) continue;
-      const gx = coastAt(px + 1, pz).distance - coastAt(px - 1, pz).distance, gz = coastAt(px, pz + 1).distance - coastAt(px, pz - 1).distance;
-      const rot = Math.atan2(-gx, -gz) + prng.range(-0.7, 0.7);
-      placed.push({ x: px, z: pz });
-      addCircle({ x: px, z: pz, r, type: 'palm', scale, rot });
+    const prng = createRng(4421), centres = [], placed = [], sea = worldData.sea;
+    const groupGap = sea.palmGroupSpacing ?? 11, gap = sea.palmGap ?? 3.4;
+    const seaward = (x, z) => Math.atan2(-(coastAt(x + 1, z).distance - coastAt(x - 1, z).distance), -(coastAt(x, z + 1).distance - coastAt(x, z - 1).distance));
+    const fits = (x, z, r) => {
+      const c = coastAt(x, z), back = c.distance - beachWidth;
+      return ['beach', 'rock'].includes(c.kind) && (zoneAt(x, z).trees || []).includes('palm') && back >= -3 && back <= palmBelt &&
+        !placed.some((q) => dist(x, z, q.x, q.z) < gap) && !blockedForProp(x, z, r, { roadPad: 1.6 });
+    };
+    for (let tries = 0; tries < 2500; tries++) {
+      const x = prng.range(b.minX + 1, b.maxX - 1), z = prng.range(b.minZ + 1, b.maxZ - 1);
+      if (centres.some((q) => dist(x, z, q.x, q.z) < groupGap) || !fits(x, z, 0.5)) continue;
+      centres.push({ x, z });
+      const size = prng.next() < 0.45 ? 1 : prng.next() < 0.65 ? 2 : 3, fan = prng.range(0, Math.PI * 2);
+      for (let m = 0; m < size; m++) {
+        const a = fan + m * 2.3 + prng.range(-0.4, 0.4), d = m === 0 ? 0 : prng.range(gap, gap + 1.6);
+        const px = x + Math.sin(a) * d, pz = z + Math.cos(a) * d, scale = prng.range(0.8, 1.3), r = 0.4 * scale;
+        if (m > 0 && !fits(px, pz, r)) continue;
+        // lean seaward, splayed a little away from the group's centre
+        let rot = seaward(px, pz) + prng.range(-0.45, 0.45);
+        if (m > 0) rot += Math.sin(a - rot) * 0.35;
+        placed.push({ x: px, z: pz });
+        addCircle({ x: px, z: pz, r, type: 'palm', scale, rot });
+      }
     }
   }
 

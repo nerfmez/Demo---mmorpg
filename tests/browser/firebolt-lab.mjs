@@ -16,6 +16,11 @@ try {
   const engine=process.env.BROWSER==='webkit'?webkit:chromium;
   browser=await engine.launch(engine===chromium?{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{});
   const page=await browser.newPage({viewport:{width:1000,height:750}});
+  const screenshot=async(name)=>{
+    // WebKit may return the previous composited WebGL frame without this barrier.
+    await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+    await page.screenshot({path:`${OUT}${name}`});
+  };
   const errors=[];
   page.on('pageerror',e=>errors.push(String(e)));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -31,7 +36,7 @@ try {
   const sample=[];
   for(let i=0;i<42;i++){
     await page.evaluate(()=>{window.__lab.step(1/60);window.__lab.step(1/60);});
-    await page.screenshot({path:`${OUT}frame-${String(i).padStart(3,'0')}.png`});
+    await screenshot(`frame-${String(i).padStart(3,'0')}.png`);
     sample.push(await page.evaluate(()=>{
       const L=window.__lab;let smoke=0;
       for(let k=0;k<L.vfx.flames.count;k++)if(L.vfx.flames.info[k*4+2]>1.5)smoke++;
@@ -62,17 +67,17 @@ try {
   await page.getByRole('button',{name:'มืด',exact:true}).click();
   await page.getByRole('button',{name:'▾ ซ่อน',exact:true}).click();
   await page.evaluate(()=>{window.__lab.cast();for(let i=0;i<10;i++)window.__lab.step(1/60);});
-  await page.screenshot({path:`${OUT}dark-charge.png`});
+  await screenshot('dark-charge.png');
   await page.evaluate(()=>{for(let i=0;i<24;i++)window.__lab.step(1/60);});
-  await page.screenshot({path:`${OUT}dark-travel.png`});
+  await screenshot('dark-travel.png');
   await page.evaluate(()=>{for(let i=0;i<12;i++)window.__lab.step(1/60);});
-  await page.screenshot({path:`${OUT}dark-impact.png`});
+  await screenshot('dark-impact.png');
   await page.evaluate(()=>{for(let i=0;i<120;i++)window.__lab.step(1/60);});
   await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
   await page.getByRole('button',{name:'ทราย',exact:true}).click();
   await page.getByRole('button',{name:'▾ ซ่อน',exact:true}).click();
   await drain(1,{count:5,weapon:'none'});
-  await page.screenshot({path:`${OUT}split-expired.png`});
+  await screenshot('split-expired.png');
   // Converted element takes the normal element renderer and does not retain fire.
   await page.evaluate(()=>{
     const L=window.__lab;L.state.count=1;L.state.element='cold';L.cast();
@@ -81,7 +86,7 @@ try {
     const pr=[...L.vfx.projectiles.values()][0];
     if(pr?.children.length!==2)throw new Error('cold projectile did not use element sprites');
   });
-  await page.screenshot({path:`${OUT}cold-conversion.png`});
+  await screenshot('cold-conversion.png');
   const report={browser:process.env.BROWSER||'chromium',warm,repeated,errors,sample};
   writeFileSync(`${OUT}report.json`,JSON.stringify(report,null,2));
   assert.equal(errors.length,0,errors.join('\n'));

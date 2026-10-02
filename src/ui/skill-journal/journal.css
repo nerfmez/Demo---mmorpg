@@ -98,3 +98,33 @@
 @media(max-height:520px){.skill-journal .notebook{height:calc(100% - 55px)}}
 /* A short spread has one row of branches, with room for labels below each touch target. */
 @media(max-height:520px){.skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport{top:62px;bottom:42px}.skill-journal .chapter-note{display:none}.skill-journal .map-controls{bottom:0}.skill-journal .node,.skill-journal .travel-view .node{width:calc(44px * var(--inverse));height:calc(44px * var(--inverse));padding:0}.skill-journal .junction-view .discipline-caption>span{display:none}}
+/* Allocate by paper height, not a global screen-height breakpoint. The user's
+   776×540 clip otherwise leaves a large book with a ~100px masked node band. */
+.skill-journal .atlas-space {container-type:size;container-name:journal-paper}
+.skill-journal .old-ink-note {z-index:0}
+@container journal-paper (max-height:450px){
+ .skill-journal .map-header {top:12px;left:25px;right:25px}
+ .skill-journal .map-header h1 {font-size:18px;margin-top:4px}
+ .skill-journal .map-header p,.skill-journal .travel-leaf-labels,.skill-journal .chapter-note,.skill-journal .old-ink-note {display:none}
+ .skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport {top:74px;bottom:50px}
+ .skill-journal .junction-pagination {top:6px;right:22px}
+ .skill-journal .map-controls {bottom:0;right:17px}
+ .skill-journal .map-controls .icon-button {width:44px;height:44px}
+ .skill-journal .map-status {bottom:12px;left:25px;font-size:8px;max-width:55%}
+ .skill-journal .node,.skill-journal .travel-view .node {width:calc(44px * var(--inverse));height:calc(44px * var(--inverse));padding:0}
+ .skill-journal .node-disc,.skill-journal .travel-view .node-disc,.skill-journal .travel-view .node.notable .node-disc {width:calc(34px * var(--inverse));height:calc(34px * var(--inverse))}
+ .skill-journal .node-caption b,.skill-journal .travel-view .node-caption b {font-size:11px}
+ .skill-journal .node-caption small {display:none}
+ .skill-journal .junction-view .discipline-node {width:calc(58px * var(--inverse));height:calc(58px * var(--inverse))}
+ .skill-journal .junction-view .discipline-disc {width:calc(44px * var(--inverse));height:calc(44px * var(--inverse))}
+ .skill-journal .junction-view .discipline-caption>span,.skill-journal .junction-view .discipline-caption small {display:none}
+ .skill-journal .inspector {top:8px;bottom:50px;max-height:none;padding:18px 18px 12px}
+ .skill-journal .detail-kicker {margin-bottom:9px;font-size:7px}
+ .skill-journal .detail-emblem {width:32px;height:32px;margin-bottom:8px}
+ .skill-journal .detail-emblem svg {width:20px;height:20px}
+ .skill-journal .inspector h2 {font-size:20px;margin:4px 0 8px}
+ .skill-journal .detail-action {padding-top:8px;margin-top:8px}
+ .skill-journal .detail-action>small {display:none}
+ .skill-journal .learn-button {min-height:44px}
+}
+@media(max-height:520px){.skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport{top:62px;bottom:42px}}

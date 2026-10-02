@@ -77,11 +77,14 @@ function junctions(){return tree.constellations.flatMap(c=>{
  });}
 function openBranch(key){const [place,branch]=key.split(':');if(!junctions().some(c=>c.key===key))return;changePage(()=>{if(branch)state.branch=branch;state.place=place;state.view='path';renderRegion();},1);}
 function showJunction(){if(state.tier===1&&state.view==='travel')return;changePage(()=>{state.view=state.tier<4?'travel':'junction';renderRegion();},-1);}
-function travelSpreads(){return chapterSpreads(tree,state.tier,innerHeight<=520?4:6);}
+// The book can be short even when the browser viewport is taller than 520px.
+// Use the paper's measured allocation, matching the container query below.
+const compactPaper=()=>innerHeight<=520||(innerWidth>760&&q('.atlas-space').clientHeight<=450);
+function travelSpreads(){return chapterSpreads(tree,state.tier,compactPaper()?4:6);}
 function revealInk(){const sheet=q('.app-shell');sheet.classList.remove('ink-revealing');void sheet.offsetWidth;sheet.classList.add('ink-revealing');}
 function drawTravel(){
  const spreads=travelSpreads();state.travelPage=Math.max(0,Math.min(state.travelPages[state.tier]??state.travelPage,spreads.length-1));state.travelPages[state.tier]=state.travelPage;
- const leaves=spreads[state.travelPage],mobile=innerWidth<=760,short=innerHeight<=520,width=short?1700:mobile?1020:2500,height=short?440:mobile?leaves.reduce((n,l)=>n+Math.ceil(l.entries.length/2),0)*250+170:970;
+ const leaves=spreads[state.travelPage],mobile=innerWidth<=760,short=compactPaper(),width=short?1700:mobile?1020:2500,height=short?440:mobile?leaves.reduce((n,l)=>n+Math.ceil(l.entries.length/2),0)*250+170:970;
  state.entries=leaves.flatMap(l=>l.entries);state.coords={};let rowOffset=0;
  leaves.forEach((leaf,side)=>{leaf.entries.forEach(([id],i)=>state.coords[id]=short?[(side?1110:150)+(i%2)*420,110+Math.floor(i/2)*180]:[mobile?(i%2?770:250):(side?1650:200)+(i%2)*650,mobile?180+(rowOffset+Math.floor(i/2))*250:200+Math.floor(i/2)*270]);rowOffset+=Math.ceil(leaf.entries.length/2);});
  q('#place-title').textContent='ค่อย ๆ เขียนเส้นทาง';q('#place-desc').textContent='ต่อยอดจากสิ่งที่เรียนรู้ · เปิดดูโหนดได้ก่อนใช้แต้ม';
@@ -98,7 +101,7 @@ function drawNodes(layout,outside){
  paintGraph();camera.configure(layout.width,layout.height);map.classList.remove('arriving');void map.offsetWidth;map.classList.add('arriving');
 }
 function renderJunction(stage){
- const all=junctions(),mobile=innerWidth<=760,short=innerHeight<=520,pageSize=short?(mobile?2:4):8;
+ const all=junctions(),mobile=innerWidth<=760,short=compactPaper(),pageSize=short?(mobile?2:4):8;
  state.junctionPage=Math.max(0,Math.min(state.junctionPage,Math.ceil(all.length/pageSize)-1));
  const branches=all.slice(state.junctionPage*pageSize,(state.junctionPage+1)*pageSize);
  const columns=mobile?2:4,rows=Math.ceil(branches.length/columns),width=mobile?780:short?2100:2300,height=short?260:mobile?rows*285+75:rows*330+120;
@@ -124,8 +127,8 @@ function select(id){
 }
 function graphLayout(entries){
  if(state.tier===1&&state.view==='travel'&&state.travelPage===0){
-  const mobile=innerWidth<=760,short=innerHeight<=520,width=mobile&&!short?1020:1700,height=short?440:mobile?1220:780;
-  return {width,height,coords:Object.fromEntries(entries.map(([id],i)=>[id,mobile&&!short?[i%2?770:250,140+Math.floor(i/2)*270]:[220+(i%4)*420,(short?110:170)+Math.floor(i/4)*(short?180:380)]]))};
+  const mobile=innerWidth<=760,short=compactPaper(),width=mobile&&!short?1020:1700,height=short?440:mobile?1060:780;
+  return {width,height,coords:Object.fromEntries(entries.map(([id],i)=>[id,mobile&&!short?[i%2?770:250,140+Math.floor(i/2)*240]:[220+(i%4)*420,(short?110:170)+Math.floor(i/4)*(short?180:380)]]))};
  }
  if(innerWidth<=760){
   const ordered=[...entries].sort((a,b)=>a[1].clusterPos[1]-b[1].clusterPos[1]||a[1].clusterPos[0]-b[1].clusterPos[0]);
@@ -208,8 +211,10 @@ listen(root,'input',e=>{if(e.target.id==='node-search')searchResults(e.target.va
 listen(q('#dialog'),'click',e=>{if(e.target===q('#dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog();}});
 listen(root,'keydown',e=>{if(e.key==='Escape'){if(q('#dialog').open){e.preventDefault();e.stopPropagation();closeDialog();return;}if(q('#sound-control').open){e.preventDefault();e.stopPropagation();q('#sound-control').open=false;return;}if(state.selected){e.preventDefault();e.stopPropagation();closeDetail(true);return;}}if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(e.target.tagName)&&!q('#dialog').open){e.preventDefault();search();}});
 renderRegion();
-let layoutKey=`${innerWidth<=760}:${innerHeight<=520}`,resizeTimer;
-listen(window,'resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{const key=`${innerWidth<=760}:${innerHeight<=520}`,id=state.selected;if(key!==layoutKey){layoutKey=key;renderRegion();if(id&&state.coords[id])select(id);}else if(id)camera.setSheet(innerWidth>760?inspector.offsetWidth+20:0);},150);});
+let layoutKey=`${innerWidth<=760}:${compactPaper()}`,resizeTimer;
+const resizePaper=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(destroyed)return;const key=`${innerWidth<=760}:${compactPaper()}`,id=state.selected;if(key!==layoutKey){layoutKey=key;renderRegion();if(id&&state.coords[id])select(id);}else if(id)camera.setSheet(innerWidth>760?inspector.offsetWidth+20:0);},150);};
+listen(window,'resize',resizePaper);listen(window,'frontier:viewport',resizePaper);
+const paperResize=new ResizeObserver(resizePaper);paperResize.observe(q('.atlas-space'));cleanups.push(()=>paperResize.disconnect());
 const snapshot=()=>({tier:state.tier,place:state.place,view:state.view,travelPage:state.travelPage,junctionPage:state.junctionPage,branch:state.branch,selected:state.selected,points:ch.jobPoints,owned:[...ch.jobNodes],progress:journalProgress(ch,data),camera:camera.snapshot(),pageTurn:pageTurns.snapshot(),audio:paperAudio.snapshot()});
 return {snapshot,audioEvents:()=>paperAudio.events(),refresh(){if(destroyed)return;updateChrome();paintGraph();if(state.selected)select(state.selected);},destroy(){if(destroyed)return;destroyed=true;clearTimeout(toastTimer);clearTimeout(unlockTimer);clearTimeout(resizeTimer);closeDialog();state.selected=null;state.justLearned=null;camera.destroy();pageTurns.destroy();paperAudio.destroy();cleanups.forEach(fn=>fn());}};
 }

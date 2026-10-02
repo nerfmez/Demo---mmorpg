@@ -160,6 +160,7 @@ export class Input {
   onKey(e, down) {
     // Key releases still count when focus moved into a menu input.
     if (!down) this.keys.delete(e.key.toLowerCase());
+    if (this.ui.blocked?.()) return;
     if (e.target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
     const k = e.key.toLowerCase();
     if ((k === ' ' || k === 'enter') && e.target.closest?.('button')) return;

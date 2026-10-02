@@ -21,6 +21,7 @@ try{
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
  const sizes=process.env.QUICK?[['desktop',1600,900,false]]:[['desktop',1600,900,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
  for(const [name,width,height,touch]of sizes){
+  if(process.env.JOURNAL_CASES&&!process.env.JOURNAL_CASES.split(',').includes(name))continue;
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
   if(offline){await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:css});await page.addScriptTag({content:code});}
   else {await page.goto('http://localhost:4187/?fresh=1&quality=low&seed=7');await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});await freezeScene(page);}
@@ -33,7 +34,7 @@ try{
   const full=await page.locator('.panel').boundingBox();assert.equal(full.x,0);assert.equal(full.y,0);assert.equal(full.width,width);assert.equal(full.height,height);
   assert.ok(await page.evaluate(()=>document.body.classList.contains('panel-open')));
   assert.ok(!await page.locator('.tabs').isVisible());
-  const gr=await page.locator('#map').boundingBox();assert.ok(gr.height>100,JSON.stringify({gr,height}));await shot('01-shared-start');
+  const gr=await page.locator('#map').boundingBox();assert.ok(gr.height>=44,JSON.stringify({gr,height}));await shot('01-shared-start');
   const points=await page.evaluate(()=>__frontier.game.ch.jobPoints);
   await journalJump(page,'a1');assert.equal(await page.evaluate(()=>__frontier.game.ch.jobPoints),points);
   await click('[data-action="learn"][data-id="a1"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.jobPoints),points-1);

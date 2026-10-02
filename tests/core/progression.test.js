@@ -15,7 +15,9 @@ test('allocated stats improve their actual combat values',()=>{
 test('section gates and small-node links are independent, including unlocked sections',()=>{
  const ch=createCharacter(data);ch.jobPoints=39;ch.jobLevel=40;
  assert.equal(jobNodeState(ch,data,'v2').reason,'not_linked');
- assert.equal(jobNodeState(ch,data,'v5').reason,'tier_points');
+ assert.equal(jobNodeState(ch,data,'v5').reason,'not_linked');
+ assert.equal(jobTierProgress(ch,data,'v5').requires,0,'small nodes never have an independent investment gate');
+ assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
  for(const id of ['v1','m_atk','f_hp'])assert.ok(allocateJobNode(ch,data,id).done,id);
  assert.equal(jobTierProgress(ch,data,'v5').spent,3,'all invested points count toward the major section');
  assert.equal(jobNodeState(ch,data,'v5').reason,'not_linked','section unlock cannot bypass a predecessor');

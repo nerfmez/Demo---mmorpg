@@ -7,7 +7,7 @@ export const TAGS = {
   Attack:'กายภาพ',Spell:'เวท',Melee:'ประชิด',Projectile:'โปรเจกไทล์',Area:'วงกว้าง',Damage:'ทำดาเมจ',
   DoT:'ดาเมจต่อเนื่อง',Persistent:'พื้นที่คงอยู่',Chain:'เด้งต่อ',Control:'ควบคุม',Debuff:'ดีบัฟ',
   Curse:'คำสาป',Guard:'เกราะ/การ์ด',Buff:'บัฟ',Warcry:'คำราม',Heal:'ฟื้นฟู',Summon:'อัญเชิญ',
-  Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
+  Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',Mana:'มานา',
   Fire:'ไฟ',Earth:'ดิน',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',Arcane:'อาร์เคน',Physical:'ดาเมจกายภาพ',
 };
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};

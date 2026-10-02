@@ -111,3 +111,12 @@ is returned to the bag, with a warning shown before upgrading and confirmation a
 Stat respec and migration use the same enforcement; invalid gear never contributes to
 derived combat stats or the hero's appearance. Re-equipping requires meeting its actual
 current requirements. No item is deleted, and no upgrade is blocked by insufficient stats.
+
+### Clarified small-node progression and mana investment
+
+The 0/3/9/17/25/33 investment thresholds apply only to notable and job nodes.
+Minor nodes require a connected owned neighbour, not a separate total-points gate.
+Existing major thresholds, one-profession rules and version-4 ownership remain.
+Resource gear rolls, the shared eight-node mana route and Mana Siphon are alternatives
+to offensive investment; reduced mana cost is capped at 35%, and on-hit recovery shares
+a one-second player cooldown across targets and skill slots.

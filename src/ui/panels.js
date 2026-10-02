@@ -259,6 +259,8 @@ export class Panels {
           <span>Job</span><b>${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก (Job Lv.' + data.progression.job.jobChoiceLevel + ')'}</b>
           <span>อาวุธ</span><b>${data.items.weaponTypes?.[d.weaponType]?.nameTh || '-'}</b>
           <span>HP / MP</span><b>${g.player.maxHp} / ${g.player.maxMp}</b>
+          <span>ฟื้นมานา</span><b>${d.mpRegen.toFixed(2)} MP/วิ</b>
+          ${pct('ลดค่าใช้มานา',d.manaCostPct)}
           <span>พลังโจมตี (Attack)</span><b>${d.attack}</b>
           <span>พลังเวท (Magic)</span><b>${d.magic}</b>
           <span>ป้องกัน</span><b>${d.defense}</b>
@@ -690,7 +692,8 @@ const EFFECT_TH = {
   critChancePct: 'โอกาสคริ %',
   damageTakenPct: 'ดาเมจที่ได้รับ %',
   hpRegen: 'ฟื้น HP/วิ',
-  mpRegenPct: 'ฟื้น MP %',
+  mpRegenPct: 'ฟื้นมานา %',
+  manaCostPct: 'ลดค่าใช้มานา %',
   projectileSpeedPct: 'ความเร็วกระสุน %',
   areaRadiusPct: 'รัศมีวงกว้าง %',
   echoDamagePct: 'ดาเมจ Echo %',
@@ -726,6 +729,7 @@ function describeSkill(s) {
   if (s.repeats) parts.push(`ฟันซ้ำ ${s.repeats} ครั้ง`);
   if (s.echo) parts.push(`Echo ${Math.round(s.echo.mult * 100)}%`);
   if (s.ground) parts.push('ทิ้งไฟ');
+  if (s.manaOnHit) parts.push(`คืน ${number(s.manaOnHit)} MP เมื่อโดน · ครั้งเดียวต่อ ${s.manaOnHitCooldown} วิ`);
   if (s.chill) parts.push(`ช้าลง ${Math.round(s.chill.slow * 100)}%`);
   if (s.slow) parts.push(`ช้าลง ${Math.round(s.slow * 100)}%`);
   if (s.knock) parts.push('กระแทกกระเด็น');

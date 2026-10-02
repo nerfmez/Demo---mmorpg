@@ -108,3 +108,15 @@ for(const [element,[shape,colour]] of Object.entries(elementArt))for(let rank=1;
  const composition=rank===1?group(shape,'translate(12 8) scale(.8)'):rank===2?circle(64,64,48,colour+'22')+group(shape,'translate(5 0) scale(.9)'):group(shape,'translate(-1 -3)')+line('M21 110h86M23 23l-7-7m89 7 7-7',colour,5);
  JOB_ART[`element_${element}_${rank}`]=composition+Array.from({length:rank},(_,i)=>circle(47+i*17,117,3,colour)).join('');
 }
+
+// Shared mana route: reservoir, breathing rhythm and careful casting.
+Object.assign(JOB_ART, {
+ mana_pool_1:group(drop,'translate(14 7) scale(.8)')+path('M19 97h90v15H19z','#a6b8d0'),
+ mana_flow_1:group(drop,'translate(34 9) scale(.55)')+line('M17 89q47 24 95 0M25 106q40 18 76 0','#aacbdf',6),
+ mana_pool_2:path('M22 48h84l-8 60H30z','#9db6d0')+group(drop,'translate(38 -8) scale(.45)')+line('M34 83h61','#d9dfb5',5),
+ mana_flow_2:group(ring,'translate(6 6) scale(.9)')+group(drop,'translate(36 25) scale(.48)'),
+ mana_efficiency:group(drop,'translate(8 6) scale(.72)')+line('M74 44h39M83 59h24M80 77l13 13 22-31','#a9c5da',6),
+ mana_reservoir:path('M21 21h86v86l-43 12-43-12z','#859db7')+group(drop,'translate(33 31) scale(.49)')+line('M34 89h60','#d5d3a7',5),
+ mana_cycling:group(ring,'rotate(50 64 64)')+group(drop,'translate(27 24) scale(.58)')+circle(20,66,6,'#aecddf'),
+ mana_master:circle(64,64,51,'#91bcd333')+group(drop,'translate(17 -1) scale(.76)')+line('M12 109h104M17 22h22m50 0h22','#d9ca92',6),
+});

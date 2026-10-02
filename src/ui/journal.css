@@ -143,3 +143,42 @@
 /* Paired network branches have separate lanes; labels fit the space between siblings. */
 .panel .journal-screen .seeker-node-caption{width:140px}
 @media(max-width:700px){.panel .journal-screen .seeker-node-caption{width:calc(140px / var(--inverse-zoom,1))}}
+
+/* A readable contents page; the node network opens at a useful reading scale. */
+.journal-investment{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 24px;border-bottom:1px solid #8d9d8140;font-size:12px;background:#f7f0e5;flex:none}
+.journal-investment b{white-space:nowrap;color:#466755;font-weight:500}
+.journal-investment small{font-size:10px;font-weight:400;margin-left:6px;color:#7c8b74}
+.journal-investment>span{color:#79846e;font-size:11px;line-height:1.6}
+.journal-chapter-grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:16px;padding:24px max(24px,5vw);touch-action:pan-y;overscroll-behavior:contain}
+.panel .journal-chapter-grid .journal-chapter{position:relative;inset:auto;transform:none;width:100%;height:auto;min-height:170px;border:1px solid #b9b99d80;border-radius:7px;display:grid;grid-template-columns:66px minmax(0,1fr);grid-template-rows:auto auto auto auto;text-align:left;padding:18px;gap:4px 16px;background:#f8f2e4;box-shadow:0 2px 8px #606d4520;color:var(--chapter-ink)}
+.journal-chapter-grid .journal-chapter:hover,.journal-chapter-grid .journal-chapter:focus-visible{background:#fcf8ed;border-color:var(--chapter-ink)}
+.journal-chapter-grid .journal-chapter-no{position:absolute;top:6px;right:10px;font-size:10px;opacity:.55}
+.journal-chapter-grid .journal-stamp{grid-column:1;grid-row:1/5;width:58px;height:58px;margin:auto 0;border-width:1px}
+.journal-chapter-grid .journal-stamp svg{width:30px;height:30px}
+.journal-chapter-grid .journal-chapter strong{font-size:18px;grid-column:2;line-height:1.5;white-space:normal}
+.journal-chapter-grid .journal-subtitle{grid-column:2;font-size:12px;white-space:normal;line-height:1.5}
+.journal-chapter-grid .journal-chapter-desc{grid-column:2;font-size:11px;line-height:1.6;color:#859077}
+.journal-chapter-grid .journal-chapter>small{grid-column:2;font-size:11px;margin-top:6px;line-height:1.5}
+.journal-stage-nav{display:flex;gap:8px;overflow-x:auto;flex:none;padding:7px 20px;border-bottom:1px solid #8d9d8140;touch-action:pan-x}
+.panel .journal-stage-nav button{flex:none;min-height:40px;background:#f7f0e2;color:#546e5d;border:1px solid #afbaa1;border-radius:5px;padding:6px 12px;font-family:inherit;font-size:12px;box-shadow:none;cursor:pointer}
+.journal-stage-nav button:hover,.journal-stage-nav button:focus-visible{border-color:var(--chapter-ink);background:#fdf8e9}
+.journal-section-heading{max-width:100%;padding-inline:14px;text-align:center}
+.journal-section-heading b{font-size:14px}
+.journal-section-heading span{font-size:11px}
+.journal-inspector .seeker-route{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.journal-inspector .seeker-route>b,.journal-inspector .seeker-route>small{width:100%;font-size:11px}
+.journal-inspector .seeker-route .btn{font-size:11px;padding:5px 8px;min-height:36px}
+@media(max-width:900px){.journal-chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:18px}}
+@media(max-width:700px){
+ .journal-investment{display:block;padding:8px 12px;font-size:11px}
+ .journal-investment>span{display:block;font-size:9px;margin-top:4px}
+ .journal-chapter-grid{grid-template-columns:1fr;gap:10px;padding:12px}
+ .panel .journal-chapter-grid .journal-chapter{grid-template-columns:52px minmax(0,1fr);min-height:130px;padding:15px;gap:2px 12px}
+ .journal-chapter-grid .journal-chapter strong{font-size:16px}
+ .journal-chapter-grid .journal-stamp{width:48px;height:48px}
+ .journal-stage-nav{padding:5px 10px;gap:5px}
+ .panel .journal-stage-nav button{font-size:10px;min-height:40px;padding:5px 8px}
+}
+.journal-chapter-grid .journal-stamp{min-width:0}
+.journal-chapter-grid .journal-chapter-no{left:auto}
+.panel .journal-chapter-grid .journal-chapter strong{margin:0}

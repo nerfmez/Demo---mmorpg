@@ -193,7 +193,8 @@ export function jobTierProgress(ch, data, nodeId) {
   const section = tree.sections?.[node?.section];
   const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin);
   const spent = new Set(ch.jobNodes.filter(id => scope.includes(id))).size;
-  return { tier: section?.tier || 0, requires: section?.requiresSpent || 0, spent, scope, section: node?.section };
+  const major = node?.type === 'notable' || node?.type === 'job';
+  return { tier: section?.tier || 0, requires: major ? section?.requiresSpent || 0 : 0, major, spent, scope, section: node?.section };
 }
 
 export function jobNodeState(ch, data, nodeId) {
@@ -216,7 +217,7 @@ export function jobNodeState(ch, data, nodeId) {
   if (tier.tier && tier.spent < tier.requires)
     return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
 
-  // Section unlock and network adjacency are independent requirements.
+  // Only major nodes use the investment gate. Small nodes progress through links.
   if (!node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
 
@@ -409,6 +410,7 @@ export function derive(ch, data) {
     damageTakenPct: 0,
     hpRegen: pc.base.hpRegen,
     mpRegenPct: 0,
+    manaCostPct: 0,
     projectileSpeedPct: 0,
     areaRadiusPct: 0,
     echoDamagePct: 0,

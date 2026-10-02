@@ -8,7 +8,7 @@ import {SIGILS} from '../../src/ui/sigils.js';
 import {art,hasArt} from '../../src/ui/art.js';
 
 test('rebalance retains legacy content IDs and optional chapter navigation',()=>{
- const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id)&&!id.startsWith('element_'));
+ const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id)&&!id.startsWith('element_')&&!id.startsWith('mana_'));
  assert.equal(originals.length,87);
  for(const [id,n] of originals){assert.ok(data.jobtree.sections[n.section],id);assert.ok(n.links.every(id=>data.jobtree.nodes[id]));}
  for(const group of data.jobtree.groups){assert.equal(data.jobtree.nodes[group.job].type,'job');assert.equal(data.jobtree.nodes[group.job].branch,group.id);}
@@ -43,10 +43,10 @@ test('opening a chapter gives no bonus and opens neither permanent inspector nor
  assert.ok(!sub.includes('class="journal-inspector'));assert.equal(JSON.stringify(ch),before);
  assert.ok(sub.includes('journal-gateway'),'cross-chapter prerequisites stay reachable');
 });
-test('all fifteen mod item drawings share the gem engraving renderer, not raster illustrations',()=>{
- assert.equal(Object.keys(MOD_ART).length,15);
+test('all mod item drawings share the gem engraving renderer, not raster illustrations',()=>{
+ assert.equal(Object.keys(MOD_ART).length,16);
  assert.deepEqual(Object.keys(MOD_ART).sort(),Object.keys(data.mods.mods).sort());
- assert.equal(new Set(Object.keys(MOD_ART).map(k=>SIGILS[k])).size,15);
+ assert.equal(new Set(Object.keys(MOD_ART).map(k=>SIGILS[k])).size,16);
  for(const id of Object.keys(data.mods.mods)){
   assert.ok(hasArt('mod',id));const svg=art('mod',id);
   assert.ok(svg.includes(`data-gem="${id}"`));

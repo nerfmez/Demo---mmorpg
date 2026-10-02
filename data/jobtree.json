@@ -21,14 +21,16 @@
         "element_cold_1",
         "element_lightning_1",
         "element_earth_1",
-        "element_poison_1"
+        "element_poison_1",
+        "mana_pool_1",
+        "mana_flow_1"
       ],
       "effects": {},
       "group": "origin",
       "category": "foundation",
       "clusterPos": [
-        230,
-        220
+        190,
+        400
       ],
       "section": "foundation-1"
     },
@@ -53,8 +55,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "melee-1"
     },
@@ -78,8 +80,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        155,
-        440
+        410,
+        235
       ],
       "section": "melee-1"
     },
@@ -111,8 +113,8 @@
       "group": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "vanguard-1"
     },
@@ -137,8 +139,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        495,
-        220
+        410,
+        235
       ],
       "section": "vanguard-2"
     },
@@ -163,8 +165,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        645,
-        220
+        190,
+        400
       ],
       "section": "vanguard-2"
     },
@@ -190,8 +192,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "area-1"
     },
@@ -215,8 +217,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        155,
-        440
+        410,
+        235
       ],
       "section": "area-1"
     },
@@ -248,8 +250,8 @@
       "group": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "arcanist-1"
     },
@@ -273,8 +275,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        495,
-        220
+        410,
+        235
       ],
       "section": "arcanist-2"
     },
@@ -299,8 +301,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        645,
-        220
+        190,
+        400
       ],
       "section": "arcanist-2"
     },
@@ -325,8 +327,8 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "projectile-1"
     },
@@ -351,8 +353,8 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        155,
-        440
+        410,
+        235
       ],
       "section": "projectile-1"
     },
@@ -384,8 +386,8 @@
       "group": "ranger",
       "category": "specialist",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "ranger-1"
     },
@@ -409,8 +411,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        495,
-        220
+        410,
+        235
       ],
       "section": "ranger-2"
     },
@@ -435,8 +437,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        645,
-        220
+        190,
+        400
       ],
       "section": "ranger-2"
     },
@@ -461,8 +463,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "support-1"
     },
@@ -486,8 +488,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        155,
-        440
+        410,
+        235
       ],
       "section": "support-1"
     },
@@ -519,8 +521,8 @@
       "group": "warden",
       "category": "specialist",
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "section": "warden-1"
     },
@@ -544,8 +546,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        495,
-        220
+        410,
+        235
       ],
       "section": "warden-2"
     },
@@ -569,8 +571,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        645,
-        220
+        190,
+        400
       ],
       "section": "warden-2"
     },
@@ -594,8 +596,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        495,
-        440
+        630,
+        235
       ],
       "section": "melee-2"
     },
@@ -620,8 +622,8 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        645,
-        440
+        850,
+        235
       ],
       "section": "melee-2"
     },
@@ -646,8 +648,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        835,
-        220
+        630,
+        235
       ],
       "section": "vanguard-3"
     },
@@ -671,8 +673,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        985,
-        220
+        850,
+        235
       ],
       "section": "vanguard-3"
     },
@@ -697,8 +699,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        1175,
-        220
+        1070,
+        235
       ],
       "section": "vanguard-4"
     },
@@ -723,8 +725,8 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        1325,
-        220
+        1290,
+        235
       ],
       "section": "vanguard-4"
     },
@@ -748,8 +750,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        495,
-        440
+        630,
+        235
       ],
       "section": "area-2"
     },
@@ -773,8 +775,8 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        645,
-        440
+        850,
+        235
       ],
       "section": "area-2"
     },
@@ -799,8 +801,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        835,
-        220
+        630,
+        235
       ],
       "section": "arcanist-3"
     },
@@ -824,8 +826,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        985,
-        220
+        850,
+        235
       ],
       "section": "arcanist-3"
     },
@@ -850,8 +852,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        1175,
-        220
+        1070,
+        235
       ],
       "section": "arcanist-4"
     },
@@ -876,8 +878,8 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        1325,
-        220
+        1290,
+        235
       ],
       "section": "arcanist-4"
     },
@@ -902,8 +904,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        495,
-        440
+        630,
+        235
       ],
       "section": "support-2"
     },
@@ -928,8 +930,8 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        645,
-        440
+        850,
+        235
       ],
       "section": "support-2"
     },
@@ -954,8 +956,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        835,
-        220
+        630,
+        235
       ],
       "section": "warden-3"
     },
@@ -979,8 +981,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        985,
-        220
+        850,
+        235
       ],
       "section": "warden-3"
     },
@@ -1005,8 +1007,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        1175,
-        220
+        1070,
+        235
       ],
       "section": "warden-4"
     },
@@ -1031,8 +1033,8 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        1325,
-        220
+        1290,
+        235
       ],
       "section": "warden-4"
     },
@@ -1056,8 +1058,8 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        570,
-        440
+        630,
+        235
       ],
       "section": "projectile-2"
     },
@@ -1082,8 +1084,8 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        910,
-        440
+        1070,
+        235
       ],
       "section": "projectile-3"
     },
@@ -1108,8 +1110,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        835,
-        220
+        630,
+        235
       ],
       "section": "ranger-3"
     },
@@ -1133,8 +1135,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        985,
-        220
+        850,
+        235
       ],
       "section": "ranger-3"
     },
@@ -1159,8 +1161,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        1175,
-        220
+        1070,
+        235
       ],
       "section": "ranger-4"
     },
@@ -1185,8 +1187,8 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        1325,
-        220
+        1290,
+        235
       ],
       "section": "ranger-4"
     },
@@ -1211,8 +1213,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        155,
-        220
+        190,
+        235
       ],
       "section": "control-1"
     },
@@ -1237,8 +1239,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        305,
-        220
+        410,
+        235
       ],
       "section": "control-1"
     },
@@ -1263,8 +1265,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        570,
-        440
+        630,
+        235
       ],
       "section": "control-2"
     },
@@ -1289,8 +1291,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        910,
-        440
+        1070,
+        235
       ],
       "section": "control-3"
     },
@@ -1314,8 +1316,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        155,
-        220
+        190,
+        235
       ],
       "section": "summon-1"
     },
@@ -1339,8 +1341,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        305,
-        220
+        410,
+        235
       ],
       "section": "summon-1"
     },
@@ -1365,8 +1367,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        570,
-        440
+        630,
+        235
       ],
       "section": "summon-2"
     },
@@ -1391,8 +1393,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        910,
-        440
+        1070,
+        235
       ],
       "section": "summon-3"
     },
@@ -1417,8 +1419,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        155,
-        220
+        190,
+        235
       ],
       "section": "lasting-1"
     },
@@ -1443,8 +1445,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        305,
-        220
+        410,
+        235
       ],
       "section": "lasting-1"
     },
@@ -1469,8 +1471,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        495,
-        440
+        630,
+        235
       ],
       "section": "lasting-2"
     },
@@ -1495,8 +1497,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        645,
-        440
+        850,
+        235
       ],
       "section": "lasting-2"
     },
@@ -1521,8 +1523,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        155,
-        220
+        190,
+        235
       ],
       "section": "mobility-1"
     },
@@ -1547,8 +1549,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        305,
-        220
+        410,
+        235
       ],
       "section": "mobility-1"
     },
@@ -1573,8 +1575,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        570,
-        440
+        630,
+        235
       ],
       "section": "mobility-2"
     },
@@ -1599,8 +1601,8 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        910,
-        440
+        1070,
+        235
       ],
       "section": "mobility-3"
     },
@@ -1623,8 +1625,8 @@
         26
       ],
       "clusterPos": [
-        230,
-        430
+        410,
+        400
       ],
       "section": "foundation-1"
     },
@@ -1646,8 +1648,8 @@
         26
       ],
       "clusterPos": [
-        155,
-        640
+        190,
+        565
       ],
       "section": "foundation-1"
     },
@@ -1669,8 +1671,8 @@
         43
       ],
       "clusterPos": [
-        305,
-        640
+        410,
+        565
       ],
       "section": "foundation-1"
     },
@@ -1691,8 +1693,8 @@
         43
       ],
       "clusterPos": [
-        645,
-        640
+        630,
+        730
       ],
       "section": "foundation-2"
     },
@@ -1713,8 +1715,8 @@
         43
       ],
       "clusterPos": [
-        495,
-        640
+        850,
+        565
       ],
       "section": "foundation-2"
     },
@@ -1736,8 +1738,8 @@
         26
       ],
       "clusterPos": [
-        305,
-        440
+        190,
+        400
       ],
       "section": "melee-1"
     },
@@ -1758,8 +1760,8 @@
         26
       ],
       "clusterPos": [
-        570,
-        690
+        630,
+        400
       ],
       "section": "melee-2"
     },
@@ -1781,8 +1783,8 @@
         9
       ],
       "clusterPos": [
-        305,
-        440
+        190,
+        400
       ],
       "section": "projectile-1"
     },
@@ -1803,8 +1805,8 @@
         9
       ],
       "clusterPos": [
-        570,
-        690
+        850,
+        235
       ],
       "section": "projectile-2"
     },
@@ -1826,8 +1828,8 @@
         9
       ],
       "clusterPos": [
-        305,
-        440
+        190,
+        400
       ],
       "section": "area-1"
     },
@@ -1849,8 +1851,8 @@
         9
       ],
       "clusterPos": [
-        570,
-        690
+        630,
+        400
       ],
       "section": "area-2"
     },
@@ -1872,8 +1874,8 @@
         26
       ],
       "clusterPos": [
-        910,
-        690
+        1070,
+        235
       ],
       "section": "area-3"
     },
@@ -1895,8 +1897,8 @@
         26
       ],
       "clusterPos": [
-        1250,
-        690
+        1510,
+        235
       ],
       "section": "area-4"
     },
@@ -1919,8 +1921,8 @@
         9
       ],
       "clusterPos": [
-        910,
-        440
+        1070,
+        235
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-3"
@@ -1943,8 +1945,8 @@
         9
       ],
       "clusterPos": [
-        1175,
-        440
+        1510,
+        235
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-4"
@@ -1966,8 +1968,8 @@
         26
       ],
       "clusterPos": [
-        910,
-        690
+        1290,
+        235
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-3"
@@ -1990,8 +1992,8 @@
         26
       ],
       "clusterPos": [
-        1325,
-        650
+        1730,
+        235
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
       "section": "lasting-4"
@@ -2014,8 +2016,8 @@
         9
       ],
       "clusterPos": [
-        570,
-        690
+        850,
+        235
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
       "section": "control-2"
@@ -2038,8 +2040,8 @@
         9
       ],
       "clusterPos": [
-        910,
-        690
+        1290,
+        235
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
       "section": "control-3"
@@ -2061,8 +2063,8 @@
         9
       ],
       "clusterPos": [
-        1250,
-        690
+        1510,
+        235
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
       "section": "control-4"
@@ -2085,8 +2087,8 @@
         26
       ],
       "clusterPos": [
-        305,
-        440
+        190,
+        400
       ],
       "section": "support-1"
     },
@@ -2107,8 +2109,8 @@
         26
       ],
       "clusterPos": [
-        570,
-        690
+        630,
+        400
       ],
       "section": "support-2"
     },
@@ -2130,8 +2132,8 @@
         9
       ],
       "clusterPos": [
-        910,
-        440
+        1070,
+        235
       ],
       "section": "support-3"
     },
@@ -2152,8 +2154,8 @@
         26
       ],
       "clusterPos": [
-        1250,
-        440
+        1510,
+        235
       ],
       "section": "support-4"
     },
@@ -2175,8 +2177,8 @@
         9
       ],
       "clusterPos": [
-        910,
-        690
+        1290,
+        235
       ],
       "section": "projectile-3"
     },
@@ -2197,8 +2199,8 @@
         9
       ],
       "clusterPos": [
-        1250,
-        690
+        1510,
+        235
       ],
       "section": "projectile-4"
     },
@@ -2222,8 +2224,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        480
+        410,
+        400
       ]
     },
     "vanguard_t2_2": {
@@ -2246,8 +2248,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        480
+        190,
+        565
       ]
     },
     "vanguard_t2_3": {
@@ -2270,8 +2272,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        650
+        410,
+        565
       ]
     },
     "vanguard_t2_4": {
@@ -2294,8 +2296,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        650
+        190,
+        730
       ]
     },
     "vanguard_t2_5": {
@@ -2319,8 +2321,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        820
+        410,
+        730
       ]
     },
     "vanguard_t2_6": {
@@ -2344,8 +2346,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        990
+        190,
+        895
       ]
     },
     "vanguard_t3_1": {
@@ -2368,8 +2370,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        480
+        630,
+        400
       ]
     },
     "vanguard_t3_2": {
@@ -2392,8 +2394,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        480
+        850,
+        400
       ]
     },
     "vanguard_t3_3": {
@@ -2416,8 +2418,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        650
+        630,
+        565
       ]
     },
     "vanguard_t3_4": {
@@ -2440,8 +2442,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        650
+        850,
+        565
       ]
     },
     "vanguard_t3_5": {
@@ -2465,8 +2467,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        820
+        630,
+        730
       ]
     },
     "vanguard_t3_6": {
@@ -2490,8 +2492,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        990
+        850,
+        730
       ]
     },
     "vanguard_t4_1": {
@@ -2514,8 +2516,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        480
+        1070,
+        400
       ]
     },
     "vanguard_t4_2": {
@@ -2538,8 +2540,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        480
+        1290,
+        400
       ]
     },
     "vanguard_t4_3": {
@@ -2562,8 +2564,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        650
+        1070,
+        565
       ]
     },
     "vanguard_t4_4": {
@@ -2586,8 +2588,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        650
+        1290,
+        565
       ]
     },
     "vanguard_t4_5": {
@@ -2611,8 +2613,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        820
+        1070,
+        730
       ]
     },
     "vanguard_t4_6": {
@@ -2636,8 +2638,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        990
+        1290,
+        730
       ]
     },
     "vanguard_t5_1": {
@@ -2660,8 +2662,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        480
+        1510,
+        235
       ]
     },
     "vanguard_t5_2": {
@@ -2684,8 +2686,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        480
+        1730,
+        235
       ]
     },
     "vanguard_t5_3": {
@@ -2708,8 +2710,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        650
+        1510,
+        400
       ]
     },
     "vanguard_t5_4": {
@@ -2732,8 +2734,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        650
+        1730,
+        400
       ]
     },
     "vanguard_t5_5": {
@@ -2757,8 +2759,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        820
+        1510,
+        565
       ]
     },
     "vanguard_t5_6": {
@@ -2782,8 +2784,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        990
+        1730,
+        565
       ]
     },
     "vanguard_t6_1": {
@@ -2806,8 +2808,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        480
+        1950,
+        235
       ]
     },
     "vanguard_t6_2": {
@@ -2830,8 +2832,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        480
+        2170,
+        235
       ]
     },
     "vanguard_t6_3": {
@@ -2854,8 +2856,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        650
+        1950,
+        400
       ]
     },
     "vanguard_t6_4": {
@@ -2878,8 +2880,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        650
+        2170,
+        400
       ]
     },
     "vanguard_t6_5": {
@@ -2903,8 +2905,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        820
+        1950,
+        565
       ]
     },
     "vanguard_t6_6": {
@@ -2926,8 +2928,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        990
+        2170,
+        565
       ]
     },
     "arcanist_t2_1": {
@@ -2950,8 +2952,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        480
+        410,
+        400
       ]
     },
     "arcanist_t2_2": {
@@ -2974,8 +2976,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        480
+        190,
+        565
       ]
     },
     "arcanist_t2_3": {
@@ -2998,8 +3000,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        650
+        410,
+        565
       ]
     },
     "arcanist_t2_4": {
@@ -3022,8 +3024,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        650
+        190,
+        730
       ]
     },
     "arcanist_t2_5": {
@@ -3047,8 +3049,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        820
+        410,
+        730
       ]
     },
     "arcanist_t2_6": {
@@ -3072,8 +3074,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        990
+        190,
+        895
       ]
     },
     "arcanist_t3_1": {
@@ -3096,8 +3098,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        480
+        630,
+        400
       ]
     },
     "arcanist_t3_2": {
@@ -3120,8 +3122,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        480
+        850,
+        400
       ]
     },
     "arcanist_t3_3": {
@@ -3144,8 +3146,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        650
+        630,
+        565
       ]
     },
     "arcanist_t3_4": {
@@ -3168,8 +3170,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        650
+        850,
+        565
       ]
     },
     "arcanist_t3_5": {
@@ -3193,8 +3195,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        820
+        630,
+        730
       ]
     },
     "arcanist_t3_6": {
@@ -3218,8 +3220,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        990
+        850,
+        730
       ]
     },
     "arcanist_t4_1": {
@@ -3242,8 +3244,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        480
+        1070,
+        400
       ]
     },
     "arcanist_t4_2": {
@@ -3266,8 +3268,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        480
+        1290,
+        400
       ]
     },
     "arcanist_t4_3": {
@@ -3290,8 +3292,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        650
+        1070,
+        565
       ]
     },
     "arcanist_t4_4": {
@@ -3314,8 +3316,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        650
+        1290,
+        565
       ]
     },
     "arcanist_t4_5": {
@@ -3339,8 +3341,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        820
+        1070,
+        730
       ]
     },
     "arcanist_t4_6": {
@@ -3364,8 +3366,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        990
+        1290,
+        730
       ]
     },
     "arcanist_t5_1": {
@@ -3388,8 +3390,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        480
+        1510,
+        235
       ]
     },
     "arcanist_t5_2": {
@@ -3412,8 +3414,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        480
+        1730,
+        235
       ]
     },
     "arcanist_t5_3": {
@@ -3436,8 +3438,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        650
+        1510,
+        400
       ]
     },
     "arcanist_t5_4": {
@@ -3460,8 +3462,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        650
+        1730,
+        400
       ]
     },
     "arcanist_t5_5": {
@@ -3485,8 +3487,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        820
+        1510,
+        565
       ]
     },
     "arcanist_t5_6": {
@@ -3510,8 +3512,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        990
+        1730,
+        565
       ]
     },
     "arcanist_t6_1": {
@@ -3534,8 +3536,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        480
+        1950,
+        235
       ]
     },
     "arcanist_t6_2": {
@@ -3558,8 +3560,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        480
+        2170,
+        235
       ]
     },
     "arcanist_t6_3": {
@@ -3582,8 +3584,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        650
+        1950,
+        400
       ]
     },
     "arcanist_t6_4": {
@@ -3606,8 +3608,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        650
+        2170,
+        400
       ]
     },
     "arcanist_t6_5": {
@@ -3631,8 +3633,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        820
+        1950,
+        565
       ]
     },
     "arcanist_t6_6": {
@@ -3654,8 +3656,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        990
+        2170,
+        565
       ]
     },
     "warden_t2_1": {
@@ -3678,8 +3680,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        480
+        410,
+        400
       ]
     },
     "warden_t2_2": {
@@ -3702,8 +3704,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        480
+        190,
+        565
       ]
     },
     "warden_t2_3": {
@@ -3726,8 +3728,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        650
+        410,
+        565
       ]
     },
     "warden_t2_4": {
@@ -3750,8 +3752,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        650
+        190,
+        730
       ]
     },
     "warden_t2_5": {
@@ -3775,8 +3777,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        820
+        410,
+        730
       ]
     },
     "warden_t2_6": {
@@ -3800,8 +3802,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        990
+        190,
+        895
       ]
     },
     "warden_t3_1": {
@@ -3824,8 +3826,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        480
+        630,
+        400
       ]
     },
     "warden_t3_2": {
@@ -3848,8 +3850,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        480
+        850,
+        400
       ]
     },
     "warden_t3_3": {
@@ -3872,8 +3874,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        650
+        630,
+        565
       ]
     },
     "warden_t3_4": {
@@ -3896,8 +3898,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        650
+        850,
+        565
       ]
     },
     "warden_t3_5": {
@@ -3921,8 +3923,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        820
+        630,
+        730
       ]
     },
     "warden_t3_6": {
@@ -3946,8 +3948,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        990
+        850,
+        730
       ]
     },
     "warden_t4_1": {
@@ -3970,8 +3972,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        480
+        1070,
+        400
       ]
     },
     "warden_t4_2": {
@@ -3994,8 +3996,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        480
+        1290,
+        400
       ]
     },
     "warden_t4_3": {
@@ -4018,8 +4020,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        650
+        1070,
+        565
       ]
     },
     "warden_t4_4": {
@@ -4042,8 +4044,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        650
+        1290,
+        565
       ]
     },
     "warden_t4_5": {
@@ -4067,8 +4069,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        820
+        1070,
+        730
       ]
     },
     "warden_t4_6": {
@@ -4092,8 +4094,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        990
+        1290,
+        730
       ]
     },
     "warden_t5_1": {
@@ -4116,8 +4118,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        480
+        1510,
+        235
       ]
     },
     "warden_t5_2": {
@@ -4140,8 +4142,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        480
+        1730,
+        235
       ]
     },
     "warden_t5_3": {
@@ -4164,8 +4166,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        650
+        1510,
+        400
       ]
     },
     "warden_t5_4": {
@@ -4188,8 +4190,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        650
+        1730,
+        400
       ]
     },
     "warden_t5_5": {
@@ -4213,8 +4215,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        820
+        1510,
+        565
       ]
     },
     "warden_t5_6": {
@@ -4238,8 +4240,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        990
+        1730,
+        565
       ]
     },
     "warden_t6_1": {
@@ -4262,8 +4264,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        480
+        1950,
+        235
       ]
     },
     "warden_t6_2": {
@@ -4286,8 +4288,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        480
+        2170,
+        235
       ]
     },
     "warden_t6_3": {
@@ -4310,8 +4312,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        650
+        1950,
+        400
       ]
     },
     "warden_t6_4": {
@@ -4334,8 +4336,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        650
+        2170,
+        400
       ]
     },
     "warden_t6_5": {
@@ -4359,8 +4361,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        820
+        1950,
+        565
       ]
     },
     "warden_t6_6": {
@@ -4382,8 +4384,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        990
+        2170,
+        565
       ]
     },
     "ranger_t2_1": {
@@ -4406,8 +4408,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        480
+        410,
+        400
       ]
     },
     "ranger_t2_2": {
@@ -4430,8 +4432,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        480
+        190,
+        565
       ]
     },
     "ranger_t2_3": {
@@ -4454,8 +4456,8 @@
         0
       ],
       "clusterPos": [
-        495,
-        650
+        410,
+        565
       ]
     },
     "ranger_t2_4": {
@@ -4478,8 +4480,8 @@
         0
       ],
       "clusterPos": [
-        645,
-        650
+        190,
+        730
       ]
     },
     "ranger_t2_5": {
@@ -4503,8 +4505,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        820
+        410,
+        730
       ]
     },
     "ranger_t2_6": {
@@ -4528,8 +4530,8 @@
         0
       ],
       "clusterPos": [
-        570,
-        990
+        190,
+        895
       ]
     },
     "ranger_t3_1": {
@@ -4552,8 +4554,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        480
+        630,
+        400
       ]
     },
     "ranger_t3_2": {
@@ -4576,8 +4578,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        480
+        850,
+        400
       ]
     },
     "ranger_t3_3": {
@@ -4600,8 +4602,8 @@
         0
       ],
       "clusterPos": [
-        835,
-        650
+        630,
+        565
       ]
     },
     "ranger_t3_4": {
@@ -4624,8 +4626,8 @@
         0
       ],
       "clusterPos": [
-        985,
-        650
+        850,
+        565
       ]
     },
     "ranger_t3_5": {
@@ -4649,8 +4651,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        820
+        630,
+        730
       ]
     },
     "ranger_t3_6": {
@@ -4674,8 +4676,8 @@
         0
       ],
       "clusterPos": [
-        910,
-        990
+        850,
+        730
       ]
     },
     "ranger_t4_1": {
@@ -4698,8 +4700,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        480
+        1070,
+        400
       ]
     },
     "ranger_t4_2": {
@@ -4722,8 +4724,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        480
+        1290,
+        400
       ]
     },
     "ranger_t4_3": {
@@ -4746,8 +4748,8 @@
         0
       ],
       "clusterPos": [
-        1175,
-        650
+        1070,
+        565
       ]
     },
     "ranger_t4_4": {
@@ -4770,8 +4772,8 @@
         0
       ],
       "clusterPos": [
-        1325,
-        650
+        1290,
+        565
       ]
     },
     "ranger_t4_5": {
@@ -4795,8 +4797,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        820
+        1070,
+        730
       ]
     },
     "ranger_t4_6": {
@@ -4820,8 +4822,8 @@
         0
       ],
       "clusterPos": [
-        1250,
-        990
+        1290,
+        730
       ]
     },
     "ranger_t5_1": {
@@ -4844,8 +4846,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        480
+        1510,
+        235
       ]
     },
     "ranger_t5_2": {
@@ -4868,8 +4870,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        480
+        1730,
+        235
       ]
     },
     "ranger_t5_3": {
@@ -4892,8 +4894,8 @@
         0
       ],
       "clusterPos": [
-        1515,
-        650
+        1510,
+        400
       ]
     },
     "ranger_t5_4": {
@@ -4916,8 +4918,8 @@
         0
       ],
       "clusterPos": [
-        1665,
-        650
+        1730,
+        400
       ]
     },
     "ranger_t5_5": {
@@ -4941,8 +4943,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        820
+        1510,
+        565
       ]
     },
     "ranger_t5_6": {
@@ -4966,8 +4968,8 @@
         0
       ],
       "clusterPos": [
-        1590,
-        990
+        1730,
+        565
       ]
     },
     "ranger_t6_1": {
@@ -4990,8 +4992,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        480
+        1950,
+        235
       ]
     },
     "ranger_t6_2": {
@@ -5014,8 +5016,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        480
+        2170,
+        235
       ]
     },
     "ranger_t6_3": {
@@ -5038,8 +5040,8 @@
         0
       ],
       "clusterPos": [
-        1855,
-        650
+        1950,
+        400
       ]
     },
     "ranger_t6_4": {
@@ -5062,8 +5064,8 @@
         0
       ],
       "clusterPos": [
-        2005,
-        650
+        2170,
+        400
       ]
     },
     "ranger_t6_5": {
@@ -5087,8 +5089,8 @@
         0
       ],
       "clusterPos": [
-        1930,
-        820
+        1950,
+        565
       ]
     },
     "ranger_t6_6": {
@@ -5110,13 +5112,13 @@
         0
       ],
       "clusterPos": [
-        1930,
-        990
+        2170,
+        565
       ]
     },
     "element_physical_1": {
       "name": "กายภาพ Focus 1",
-      "nameTh": "จารึกกายภาพ I",
+      "nameTh": "จารึกคมเหล็ก",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
@@ -5136,18 +5138,18 @@
         0
       ],
       "clusterPos": [
-        230,
-        220
+        190,
+        235
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กกายภาพปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_physical_2": {
       "name": "กายภาพ Focus 2",
-      "nameTh": "จารึกกายภาพ II",
+      "nameTh": "รอยคมเหล็ก",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
-      "section": "elements-2",
+      "section": "elements-1",
       "tags": [
         "Physical"
       ],
@@ -5156,21 +5158,22 @@
       },
       "links": [
         "element_physical_1",
-        "element_physical_3"
+        "element_physical_3",
+        "mana_efficiency"
       ],
       "pos": [
         0,
         0
       ],
       "clusterPos": [
-        570,
-        220
+        410,
+        235
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กกายภาพปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_physical_3": {
       "name": "กายภาพ Focus 3",
-      "nameTh": "จารึกกายภาพ III",
+      "nameTh": "หัวใจคมเหล็ก",
       "type": "notable",
       "group": "hybrid",
       "category": "elements",
@@ -5189,14 +5192,14 @@
         0
       ],
       "clusterPos": [
-        910,
-        220
+        630,
+        235
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กกายภาพปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_fire_1": {
       "name": "ไฟ Focus 1",
-      "nameTh": "จารึกไฟ I",
+      "nameTh": "จารึกอัคนี",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
@@ -5216,18 +5219,18 @@
         0
       ],
       "clusterPos": [
-        230,
+        190,
         400
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กไฟปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_fire_2": {
       "name": "ไฟ Focus 2",
-      "nameTh": "จารึกไฟ II",
+      "nameTh": "รอยอัคนี",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
-      "section": "elements-2",
+      "section": "elements-1",
       "tags": [
         "Fire"
       ],
@@ -5236,21 +5239,22 @@
       },
       "links": [
         "element_fire_1",
-        "element_fire_3"
+        "element_fire_3",
+        "mana_efficiency"
       ],
       "pos": [
         0,
         0
       ],
       "clusterPos": [
-        570,
+        410,
         400
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กไฟปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_fire_3": {
       "name": "ไฟ Focus 3",
-      "nameTh": "จารึกไฟ III",
+      "nameTh": "หัวใจอัคนี",
       "type": "notable",
       "group": "hybrid",
       "category": "elements",
@@ -5269,14 +5273,14 @@
         0
       ],
       "clusterPos": [
-        910,
-        400
+        850,
+        235
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กไฟปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_cold_1": {
       "name": "น้ำแข็ง Focus 1",
-      "nameTh": "จารึกน้ำแข็ง I",
+      "nameTh": "จารึกเหมันต์",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
@@ -5296,18 +5300,18 @@
         0
       ],
       "clusterPos": [
-        230,
-        580
+        190,
+        565
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กน้ำแข็งปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_cold_2": {
       "name": "น้ำแข็ง Focus 2",
-      "nameTh": "จารึกน้ำแข็ง II",
+      "nameTh": "รอยเหมันต์",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
-      "section": "elements-2",
+      "section": "elements-1",
       "tags": [
         "Cold"
       ],
@@ -5316,21 +5320,22 @@
       },
       "links": [
         "element_cold_1",
-        "element_cold_3"
+        "element_cold_3",
+        "mana_efficiency"
       ],
       "pos": [
         0,
         0
       ],
       "clusterPos": [
-        570,
-        580
+        410,
+        565
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กน้ำแข็งปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_cold_3": {
       "name": "น้ำแข็ง Focus 3",
-      "nameTh": "จารึกน้ำแข็ง III",
+      "nameTh": "หัวใจเหมันต์",
       "type": "notable",
       "group": "hybrid",
       "category": "elements",
@@ -5349,14 +5354,14 @@
         0
       ],
       "clusterPos": [
-        910,
-        580
+        630,
+        400
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กน้ำแข็งปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_lightning_1": {
       "name": "สายฟ้า Focus 1",
-      "nameTh": "จารึกสายฟ้า I",
+      "nameTh": "จารึกอสนี",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
@@ -5376,18 +5381,18 @@
         0
       ],
       "clusterPos": [
-        230,
-        760
+        190,
+        730
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กสายฟ้าปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_lightning_2": {
       "name": "สายฟ้า Focus 2",
-      "nameTh": "จารึกสายฟ้า II",
+      "nameTh": "รอยอสนี",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
-      "section": "elements-2",
+      "section": "elements-1",
       "tags": [
         "Lightning"
       ],
@@ -5396,21 +5401,22 @@
       },
       "links": [
         "element_lightning_1",
-        "element_lightning_3"
+        "element_lightning_3",
+        "mana_efficiency"
       ],
       "pos": [
         0,
         0
       ],
       "clusterPos": [
-        570,
-        760
+        410,
+        730
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กสายฟ้าปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_lightning_3": {
       "name": "สายฟ้า Focus 3",
-      "nameTh": "จารึกสายฟ้า III",
+      "nameTh": "หัวใจอสนี",
       "type": "notable",
       "group": "hybrid",
       "category": "elements",
@@ -5429,14 +5435,14 @@
         0
       ],
       "clusterPos": [
-        910,
-        760
+        850,
+        400
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กสายฟ้าปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_earth_1": {
       "name": "ดิน Focus 1",
-      "nameTh": "จารึกดิน I",
+      "nameTh": "จารึกปฐพี",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
@@ -5456,18 +5462,18 @@
         0
       ],
       "clusterPos": [
-        230,
-        940
+        190,
+        895
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กดินปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_earth_2": {
       "name": "ดิน Focus 2",
-      "nameTh": "จารึกดิน II",
+      "nameTh": "รอยปฐพี",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
-      "section": "elements-2",
+      "section": "elements-1",
       "tags": [
         "Earth"
       ],
@@ -5476,21 +5482,22 @@
       },
       "links": [
         "element_earth_1",
-        "element_earth_3"
+        "element_earth_3",
+        "mana_efficiency"
       ],
       "pos": [
         0,
         0
       ],
       "clusterPos": [
-        570,
-        940
+        410,
+        895
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กดินปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_earth_3": {
       "name": "ดิน Focus 3",
-      "nameTh": "จารึกดิน III",
+      "nameTh": "หัวใจปฐพี",
       "type": "notable",
       "group": "hybrid",
       "category": "elements",
@@ -5509,14 +5516,14 @@
         0
       ],
       "clusterPos": [
-        910,
-        940
+        630,
+        565
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กดินปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_poison_1": {
       "name": "พิษ Focus 1",
-      "nameTh": "จารึกพิษ I",
+      "nameTh": "จารึกพิษ",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
@@ -5536,18 +5543,18 @@
         0
       ],
       "clusterPos": [
-        230,
-        1120
+        190,
+        1060
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กพิษปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_poison_2": {
       "name": "พิษ Focus 2",
-      "nameTh": "จารึกพิษ II",
+      "nameTh": "รอยพิษ",
       "type": "minor",
       "group": "hybrid",
       "category": "elements",
-      "section": "elements-2",
+      "section": "elements-1",
       "tags": [
         "Poison"
       ],
@@ -5556,21 +5563,22 @@
       },
       "links": [
         "element_poison_1",
-        "element_poison_3"
+        "element_poison_3",
+        "mana_efficiency"
       ],
       "pos": [
         0,
         0
       ],
       "clusterPos": [
-        570,
-        1120
+        410,
+        1060
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กพิษปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     },
     "element_poison_3": {
       "name": "พิษ Focus 3",
-      "nameTh": "จารึกพิษ III",
+      "nameTh": "หัวใจพิษ",
       "type": "notable",
       "group": "hybrid",
       "category": "elements",
@@ -5589,10 +5597,225 @@
         0
       ],
       "clusterPos": [
-        910,
-        1120
+        850,
+        565
       ],
       "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กพิษปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "mana_pool_1": {
+      "name": "Mana Pouch",
+      "nameTh": "ถุงมานา",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-1",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "maxMpPct": 6
+      },
+      "links": [
+        "origin",
+        "mana_pool_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        190,
+        235
+      ]
+    },
+    "mana_flow_1": {
+      "name": "Quiet Breath",
+      "nameTh": "ลมหายใจสงบ",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-1",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "mpRegenPct": 8
+      },
+      "links": [
+        "origin",
+        "mana_flow_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        410,
+        235
+      ]
+    },
+    "mana_pool_2": {
+      "name": "Inner Well",
+      "nameTh": "บ่อเก็บพลัง",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-2",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "maxMpPct": 6
+      },
+      "links": [
+        "mana_pool_1",
+        "mana_efficiency"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        630,
+        235
+      ]
+    },
+    "mana_flow_2": {
+      "name": "Unbroken Flow",
+      "nameTh": "น้ำไหลไม่ขาด",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-2",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "mpRegenPct": 8
+      },
+      "links": [
+        "mana_flow_1",
+        "mana_efficiency"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        850,
+        235
+      ]
+    },
+    "mana_efficiency": {
+      "name": "Measured Casting",
+      "nameTh": "ร่ายอย่างประหยัด",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-2",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "manaCostPct": 3
+      },
+      "links": [
+        "mana_pool_2",
+        "mana_flow_2",
+        "mana_reservoir",
+        "element_physical_2",
+        "element_fire_2",
+        "element_cold_2",
+        "element_lightning_2",
+        "element_earth_2",
+        "element_poison_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        630,
+        400
+      ]
+    },
+    "mana_reservoir": {
+      "name": "Reserve Mana",
+      "nameTh": "มานาสำรอง",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-2",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "maxMp": 8
+      },
+      "links": [
+        "mana_efficiency",
+        "mana_cycling"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        850,
+        400
+      ]
+    },
+    "mana_cycling": {
+      "name": "Mana Cycle",
+      "nameTh": "วงจรพลัง",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-2",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "mpRegenPct": 6
+      },
+      "links": [
+        "mana_reservoir",
+        "mana_master"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        630,
+        565
+      ]
+    },
+    "mana_master": {
+      "name": "Stillwater Well",
+      "nameTh": "บ่อพลังไร้คลื่น",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "foundation",
+      "section": "foundation-3",
+      "tags": [
+        "Mana"
+      ],
+      "effects": {
+        "manaCostPct": 4,
+        "maxMpPct": 8
+      },
+      "links": [
+        "mana_cycling"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1070,
+        235
+      ]
     }
   },
   "groups": [
@@ -5637,7 +5860,8 @@
         335
       ],
       "descTh": "เตรียมตัว · พลังชีวิต · มานา",
-      "maxTier": 2
+      "maxTier": 3,
+      "labelTh": "พื้นฐาน / มานา"
     },
     {
       "id": "melee",
@@ -5650,7 +5874,8 @@
         160
       ],
       "descTh": "ยืนระยะ · วงฟัน · ฟื้นฟู",
-      "maxTier": 2
+      "maxTier": 2,
+      "labelTh": "ประชิด / ยืนระยะ"
     },
     {
       "id": "area",
@@ -5663,7 +5888,8 @@
         125
       ],
       "descTh": "มานา · ขอบเขต · พลังพื้นที่",
-      "maxTier": 4
+      "maxTier": 4,
+      "labelTh": "เวท / วงกว้าง"
     },
     {
       "id": "summon",
@@ -5676,7 +5902,8 @@
         170
       ],
       "descTh": "เยียวยา · พันธะ · พื้นที่",
-      "maxTier": 3
+      "maxTier": 3,
+      "labelTh": "อัญเชิญ / เยียวยา"
     },
     {
       "id": "specialist",
@@ -5689,7 +5916,8 @@
         335
       ],
       "descTh": "เลือกอาชีพเมื่อพร้อม · 4 คำสาบาน",
-      "maxTier": 6
+      "maxTier": 6,
+      "labelTh": "เลือกอาชีพ"
     },
     {
       "id": "support",
@@ -5702,7 +5930,8 @@
         515
       ],
       "descTh": "ปกป้อง · ผู้ร่วมทาง · ฮีล",
-      "maxTier": 4
+      "maxTier": 4,
+      "labelTh": "ป้องกัน / สนับสนุน"
     },
     {
       "id": "lasting",
@@ -5715,7 +5944,8 @@
         555
       ],
       "descTh": "สมุนไพร · พันธะ · การกัดกร่อน",
-      "maxTier": 4
+      "maxTier": 4,
+      "labelTh": "ต่อเนื่อง / พื้นที่"
     },
     {
       "id": "projectile",
@@ -5728,7 +5958,8 @@
         535
       ],
       "descTh": "วิถีอาวุธ · ก้าวเดิน · ปลายพิษ",
-      "maxTier": 4
+      "maxTier": 4,
+      "labelTh": "โปรเจกไทล์ / ยิงไกล"
     },
     {
       "id": "control",
@@ -5741,7 +5972,8 @@
         330
       ],
       "descTh": "อาวุธผสานเวท · จังหวะ · ตรึงเวลา",
-      "maxTier": 4
+      "maxTier": 4,
+      "labelTh": "ควบคุม / คำสาป"
     },
     {
       "id": "mobility",
@@ -5754,7 +5986,8 @@
         345
       ],
       "descTh": "ประสานอาวุธ · ความคล่อง · ฟื้นตัว",
-      "maxTier": 3
+      "maxTier": 3,
+      "labelTh": "เคลื่อนที่ / ประสานอาวุธ"
     },
     {
       "id": "elements",
@@ -5767,7 +6000,8 @@
         590
       ],
       "descTh": "ไฟ · น้ำแข็ง · สายฟ้า · ดิน · พิษ · กายภาพ",
-      "maxTier": 3
+      "maxTier": 3,
+      "labelTh": "ธาตุ / กายภาพ"
     }
   ],
   "revision": 2,
@@ -5787,7 +6021,7 @@
     "vanguard-1": {
       "category": "specialist",
       "branch": "vanguard",
-      "tier": 1,
+      "tier": 2,
       "requiresSpent": 3
     },
     "vanguard-2": {
@@ -5805,7 +6039,7 @@
     "arcanist-1": {
       "category": "specialist",
       "branch": "arcanist",
-      "tier": 1,
+      "tier": 2,
       "requiresSpent": 3
     },
     "arcanist-2": {
@@ -5829,7 +6063,7 @@
     "ranger-1": {
       "category": "specialist",
       "branch": "ranger",
-      "tier": 1,
+      "tier": 2,
       "requiresSpent": 3
     },
     "ranger-2": {
@@ -5847,7 +6081,7 @@
     "warden-1": {
       "category": "specialist",
       "branch": "warden",
-      "tier": 1,
+      "tier": 2,
       "requiresSpent": 3
     },
     "warden-2": {
@@ -6113,6 +6347,48 @@
       "branch": null,
       "tier": 3,
       "requiresSpent": 9
+    },
+    "foundation-3": {
+      "category": "foundation",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
     }
+  },
+  "stages": [
+    {
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    {
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    {
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    {
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    {
+      "tier": 5,
+      "requiresSpent": 25
+    },
+    {
+      "tier": 6,
+      "requiresSpent": 33
+    }
+  ],
+  "layout": {
+    "columnWidth": 440,
+    "padding": 80,
+    "laneX": [
+      110,
+      330
+    ],
+    "rowStart": 235,
+    "rowGap": 165
   }
 }

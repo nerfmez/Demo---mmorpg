@@ -59,7 +59,8 @@
       "damageTakenPct": -25,
       "hpRegen": 5,
       "leechPct": 8,
-      "extraMovementCharges": 1
+      "extraMovementCharges": 1,
+      "manaCostPct": 35
     },
     "softCaps": {
       "threshold": 50,

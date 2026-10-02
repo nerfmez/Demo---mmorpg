@@ -304,7 +304,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "STR"
@@ -333,7 +336,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX"
@@ -362,7 +368,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wolf_fang",
       "requirementStat": "DEX"
@@ -392,7 +401,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT"
@@ -421,7 +433,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT"
@@ -450,7 +465,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR"
@@ -479,7 +497,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "storm_quill",
       "requirementStat": "DEX"
@@ -509,7 +530,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "greyfang_mane",
       "requirementStat": "AGI"
@@ -538,7 +562,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "warden_horn",
       "requirementStat": "STR"
@@ -568,7 +595,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT"
@@ -679,7 +709,10 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT"
@@ -767,7 +800,10 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT"
@@ -789,7 +825,10 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT"
@@ -873,7 +912,10 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT"
@@ -920,7 +962,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX"
@@ -946,7 +991,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT"
@@ -972,7 +1020,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT"
@@ -998,7 +1049,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "AGI"
@@ -1024,7 +1078,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "golem_heart",
       "requirementStat": "VIT"
@@ -1051,7 +1108,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT"
@@ -1096,7 +1156,10 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "crab_shell",
       "requirementStat": "AGI"
@@ -1125,7 +1188,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "sea_pearl",
       "requirementStat": "INT"
@@ -1208,7 +1274,10 @@
       "labelTh": "MP สูงสุด +{v}",
       "stat": "maxMp",
       "min": 5,
-      "max": 13
+      "max": 13,
+      "tags": [
+        "Mana"
+      ]
     },
     "defense_flat": {
       "label": "+{v} Defense",
@@ -1318,6 +1387,36 @@
       ],
       "min": 3,
       "max": 8
+    },
+    "mp_pct": {
+      "label": "+{v}% Max MP",
+      "labelTh": "มานาสูงสุด +{v}%",
+      "stat": "maxMpPct",
+      "min": 3,
+      "max": 8,
+      "tags": [
+        "Mana"
+      ]
+    },
+    "mp_regen_pct": {
+      "label": "+{v}% Mana Regeneration",
+      "labelTh": "ฟื้นมานา +{v}%",
+      "stat": "mpRegenPct",
+      "min": 4,
+      "max": 10,
+      "tags": [
+        "Mana"
+      ]
+    },
+    "mana_cost_pct": {
+      "label": "{v}% Reduced Mana Cost",
+      "labelTh": "ลดค่าใช้มานา {v}%",
+      "stat": "manaCostPct",
+      "min": 2,
+      "max": 5,
+      "tags": [
+        "Mana"
+      ]
     }
   },
   "grades": {
@@ -1525,7 +1624,9 @@
       "coldDamagePct": 0.15,
       "lightningDamagePct": 0.15,
       "earthDamagePct": 0.15,
-      "poisonDamagePct": 0.15
+      "poisonDamagePct": 0.15,
+      "maxMpPct": 0.15,
+      "manaCostPct": 0.35
     }
   }
 }

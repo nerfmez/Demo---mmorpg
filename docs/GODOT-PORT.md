@@ -56,11 +56,11 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
-`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
-travel-journal chapters before showing the relevant part of the 225-node passive network.
+`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with eleven
+travel-journal chapters before showing the relevant part of the 233-node passive network.
 Major `jobtree.sections` own `tier` and `requiresSpent`: thresholds use TOTAL allocated
-Job Points (origin excluded). Each node references a section and must ALSO connect to an
-owned neighbour. An unlocked section never bypasses adjacency. Keep one profession,
+Job Points (origin excluded). Only notable/job nodes enforce section investment; minor nodes progress by links.
+Every purchasable node references a section and must connect to an owned neighbour. An unlocked section never bypasses adjacency. Keep one profession,
 Job Lv5 choice and `requiresJob` restrictions. Job level extends to 40 (39 points);
 each profession has sufficient connected choices in its base chapter plus specialization.
 `jobPath()` previews the shortest connected route without inventing filler purchases.
@@ -428,3 +428,21 @@ Spirit Wolf (`renderer: spirit`) has a small inward summoning mark and two short
 `render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or 1 device pixel per CSS pixel, and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
 
 `tests/browser/gpu-bench.mjs` times fixed scenes through to GPU completion and the CPU submission separately (SwiftShader: relative before/after only, not iPad FPS); it fails if any shader errors are logged.
+
+### Resource build contract
+
+`maxMpPct`, `mpRegenPct` and `manaCostPct` gear/node effects add into derived stats.
+The reduction is capped at 35% before `computeSkill()` applies it once to rank-scaled
+combat cost. Reuse this once-only rule after combining a future fusion cost. Movement
+skills currently have no MP cost. Existing version-4 saves and tree revision 2 persist.
+
+Mana Siphon compiles into flat `manaOnHit`/`manaOnHitCooldown` fields and `hitOpts()`
+passes them through direct-hit paths. `player.nextManaGainT` is a runtime timestamp,
+shared by all player skills, not a per-target or per-projectile counter and not saved.
+`hitMonster()` refunds only a direct, non-ally hit on a live target while the player
+is alive, clamped to max MP. Burning/poison ground and reflected/minion hits have no
+refund. Keep seeded combat and the resource test cases when porting.
+
+`jobtree.stages` and `layout` are presentation metadata; view navigation never purchases.
+Each node's `clusterPos` matches its threshold column. Duplicate section thresholds
+render one column, and only major nodes require the displayed total-spent investment.

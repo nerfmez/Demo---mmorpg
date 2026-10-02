@@ -31,7 +31,7 @@ jobs:
         if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance')"
       - name: Progression and crafting safety
         if: startsWith(github.ref_name, 'claude/vfx-balance')
-        run: node --test tests/core/balance.test.js tests/core/progression.test.js tests/core/crafting.test.js tests/core/data.test.js tests/core/workspaces.test.js tests/core/journal.test.js tests/core/skills.test.js
+        run: node --test tests/core/balance.test.js tests/core/progression.test.js tests/core/crafting.test.js tests/core/data.test.js tests/core/workspaces.test.js tests/core/journal.test.js tests/core/skills.test.js tests/core/mana.test.js
       - run: npm run build
       - uses: actions/cache@v4
         with:

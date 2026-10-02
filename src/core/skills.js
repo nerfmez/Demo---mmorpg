@@ -53,7 +53,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     arc: def.arc || 0,
     cooldown: def.cooldown * (1 - derived.cooldownPct / 100),
     castTime: def.castTime,
-    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)),
+    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostPct || 0) / 100),
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
@@ -79,6 +79,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
     repeatDelay: 0,
     knock: 0,
     leech: derived.leechPct || 0,
+    manaOnHit: 0,
+    manaOnHitCooldown: 0,
     requirementsMet: meetsRequires(ch, def.requires).ok,
     mods: [],
   };
@@ -167,6 +169,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (e.radiusMult) radiusMult *= e.radiusMult;
     if (e.durationMult) s.durationMult = lv(e.durationMult, L);
     if (e.leechPct) s.leech += lv(e.leechPct, L);
+    if (e.manaOnHit) {
+      s.manaOnHit = Math.max(s.manaOnHit, lv(e.manaOnHit, L));
+      s.manaOnHitCooldown = Math.max(s.manaOnHitCooldown, e.manaOnHitCooldown);
+    }
     if (e.extraSummons && s.summon) {
       s.summon.count += lv(e.extraSummons, L);
       s.summon.damage *= 1 + lv(e.summonDamage, L);

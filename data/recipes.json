@@ -20,7 +20,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hunter_bow": {
@@ -42,7 +45,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "fang_dagger": {
@@ -64,7 +70,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "wisp_staff": {
@@ -87,7 +96,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "spore_wand": {
@@ -109,7 +121,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "crag_axe": {
@@ -131,7 +146,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "storm_bow": {
@@ -154,7 +172,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "greyfang_sabre": {
@@ -176,7 +197,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "horn_greatblade": {
@@ -199,7 +223,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "ancient_staff": {
@@ -223,7 +250,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hide_vest": {
@@ -286,7 +316,10 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "crag_plate": {
@@ -348,7 +381,10 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "feather_circlet": {
@@ -364,7 +400,10 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "horned_helm": {
@@ -411,7 +450,10 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "crag_greaves": {
@@ -447,7 +489,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "wisp_pendant": {
@@ -469,7 +514,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "spore_amulet": {
@@ -491,7 +539,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "feather_charm": {
@@ -513,7 +564,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "golem_amulet": {
@@ -535,7 +589,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "ancient_ring": {
@@ -557,7 +614,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "learn_whirl_blade": {
@@ -820,7 +880,10 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "pearl_pendant": {
@@ -842,7 +905,10 @@
         "cold_pct",
         "lightning_pct",
         "earth_pct",
-        "poison_pct"
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "salt_boots": {
@@ -858,7 +924,10 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "shore_circlet": {
@@ -874,7 +943,10 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hermit_guard": {
@@ -892,6 +964,15 @@
         "poison_on_hit",
         "regen_flat"
       ]
+    },
+    "mod_mana_siphon": {
+      "type": "mod",
+      "result": "mana_siphon",
+      "cost": {
+        "wisp_core": 1,
+        "glow_dust": 3,
+        "gold": 30
+      }
     }
   }
 }

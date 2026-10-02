@@ -174,7 +174,7 @@ test('Fire ground scales its own element once, independently of a converted dire
 test('element options and connected tree branches feed the same bonuses and preserve current saves', () => {
   const ch = createCharacter(data); ch.jobPoints = 20; ch.jobLevel = 40;
   assert.ok(allocateJobNode(ch, data, 'element_fire_1').done);
-  assert.equal(jobNodeState(ch, data, 'element_fire_2').reason, 'tier_points');
+  assert.ok(jobNodeState(ch, data, 'element_fire_2').can, 'minor successor follows its link without a global gate');
   for (const id of ['element_cold_1', 'element_lightning_1']) assert.ok(allocateJobNode(ch, data, id).done);
   assert.ok(allocateJobNode(ch, data, 'element_fire_2').done);
   assert.equal(jobNodeState(ch, data, 'element_poison_2').reason, 'not_linked');

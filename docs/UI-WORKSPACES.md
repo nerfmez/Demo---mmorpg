@@ -18,7 +18,7 @@ movement, upgrades, inventory and crafting still have separate responsibilities.
 
 ## Chapters and selective investment
 
-The ten large overview marks are **chapters containing choices**, not purchasable
+The eleven chapter cards are **chapters containing choices**, not purchasable
 keystones, completion tasks or exclusive paths. Only individual linked nodes spend
 Job Points. Every chapter can be left partly invested while choosing branches in
 other chapters. Names and memberships now express journeys, with mixed effects:
@@ -36,20 +36,20 @@ other chapters. Names and memberships now express journeys, with mixed effects:
 
 Old internal category IDs remain for compatibility; they are not the visible
 chapter names or a filter limiting what effects may be added to a chapter.
-The 87 legacy node IDs remain inside the expanded 225-node network. Numerical effects
+The 87 legacy node IDs remain inside the expanded 233-node network. Numerical effects
 are rebalanced and new profession exercises extend single-focus investment to Job Lv40.
 Character v4 refunds the old network once rather than retaining disconnected selections.
 Dashed external markers are
 actual adjacent nodes in other chapters; opening them only navigates. They do not
 require completing the source chapter. The overview shows invested points only,
 not a percent-complete meter. Search finds all nodes and opens the correct chapter.
-Portrait overview rearranges the same chapters into two columns, preserving links.
+The contents page uses scrollable cards with functional labels; phones use one column. External node links remain available inside each chapter.
 
 ### Passive stages
 
 Major `sections` now own `tier` and `requiresSpent` metadata. They unlock from TOTAL
-Job Points invested, excluding the origin. Every small node ALSO requires an owned linked
-neighbour. An unlocked group does not grant a bonus or bypass its network. The four
+Job Points invested, excluding the origin. Only notable/job nodes use these total-spent gates. Minor nodes require an owned linked
+neighbour without their own investment gate. An unlocked group does not grant a bonus or bypass its network. The four
 profession oaths retain their level and one-profession rules. Groups offer optional
 branches; the player does not need to complete a previous chapter. See `BALANCE-40.md`.
 
@@ -62,7 +62,7 @@ free network refund, preserving other progression and existing item roll quality
 ## Mod item art
 
 `src/ui/gemart.js` defines a shared small faceted jewel with a single-colour etched
-mark. `src/ui/sigils.js` supplies fifteen distinct vector symbols. `ART.mod` uses
+mark. `src/ui/sigils.js` supplies sixteen distinct vector symbols. `ART.mod` uses
 these drawings centrally, so the inventory, modifier list, socket presentation,
 crafting and upgrades use the same item identity. There are no raster illustrations,
 external requests, or per-item generated images. Muted gem tint is visual identity,
@@ -142,7 +142,7 @@ use stat-active converters when checking element requirements. Conversion never 
 a native Projectile/Area/Spell type to a different shape.
 
 Rolled element options show matching chips in the bag and recipe pool; repeat crafting
-can target each option. “รอยจารึกธาตุ” adds 18 optional passive nodes to the 225-node,
+can target each option. “รอยจารึกธาตุ” adds 18 optional passive nodes to the 233-node,
 11-chapter journal without changing older allocations. Node details show their element,
 search finds the Thai element name, and each path requires the prior connected node as
 well as its 0/3/9-point major section gate. Amounts and affix pools remain JSON content.
@@ -159,3 +159,26 @@ resource-only at the workbench. Raw character stats gate wearing, computed from 
 item's actual power by core `gearRequirements`. Previews show next enhancement's wear
 requirements and a grade promotion range; worn gear that becomes unusable returns to
 the bag with a clear warning. No character-level requirement applies to upgrading gear.
+
+## Mana build choices and readable stages
+
+Equipment rolls now offer max MP %, mana regeneration % and reduced mana cost on crafted
+weapons, charms and selected mana clothing. They consume the same 2/3/4/5 option slots.
+`manaCostPct` is capped at 35%, applies once to rank-scaled combat cost and does not alter
+zero-cost skills. Character stats show real regeneration and reduced cost.
+
+Eight optional `mana_*` nodes in First Footsteps form a shared connected resource path;
+no profession is required. The seven small choices plus two fire small nodes reach the
+9-point major unlock without buying an unrelated element. Opening a card or stage shortcut
+only navigates. Remaining points and total spent points have separate labels.
+
+`jobtree.stages` supplies 0/3/9/17/25/33, `sections` reference those tiers, and `layout`
+supplies column/lane spacing. Duplicate thresholds share one band; `clusterPos` lies in
+that actual band. Minor-only bands are labeled paths, never a points requirement.
+Major descriptions show total spent / needed and a linked route with navigable node names.
+The graph starts at 100% near an owned/available node, with stage shortcuts and fit/zoom.
+
+The new Mana Siphon gem fits direct Damage, excludes DoT/Summon/Minion, and requires INT 6.
+It returns 1/1.5/2 MP per successful direct player hit at ranks 1/2/3, with a shared
+1-second player cooldown. Multiple targets, projectiles, repeats and other skills share
+that cooldown. DoT, allies, dead players and dead targets cannot refund MP.

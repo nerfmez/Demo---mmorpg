@@ -36,7 +36,7 @@ export function skillGrowthPreview(ch,data,id,describe) {
  const before=computeSkill(view,data,derived,slot),after=computeSkill({...view,skills:{...view.skills,[id]:ch.skills[id]+1}},data,derived,slot);
  return `<div class="growth-preview"><div><small>ตอนนี้</small><p>${describe(before)}</p></div><span>→</span><div><small>หลังอัป</small><p>${describe(after)}</p></div></div><p class="muted">MP ${before.cost.toFixed(1)} → ${after.cost.toFixed(1)} · คูลดาวน์ ${before.cooldown.toFixed(2)} วิ</p>`;
 }
-const MOD_EFFECTS={extraProjectiles:'กระสุนเพิ่ม',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',groundDps:'พลังไฟพื้น',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์'};
+const MOD_EFFECTS={extraProjectiles:'กระสุนเพิ่ม',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',groundDps:'พลังไฟพื้น',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',manaOnHit:'มานาคืนเมื่อโจมตีโดน',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์'};
 export function modGrowthPreview(def,level) {
  return `<div class="mod-growth-preview">${Object.entries(def.effect).filter(([,v])=>Array.isArray(v)&&v[level]!==v[level-1]).map(([k,v])=>`<p>${MOD_EFFECTS[k]||'พลังม็อด'} <b>${v[level-1]} → ${v[level]}</b></p>`).join('')}</div>`;
 }

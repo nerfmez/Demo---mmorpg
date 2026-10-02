@@ -36,7 +36,7 @@ try{
       Number(getComputedStyle(hud).zIndex) > Number(getComputedStyle(xp).zIndex));
   }), 'fullscreen journal must paint above the body-level EXP strip');
   assert.ok(!await page.locator('.tabs').isVisible());
-  const gr=await page.locator('.seeker-graph').boundingBox();await shot('00-layout');assert.ok(gr.height>height*.72, JSON.stringify({gr,height}));
+  const gr=await page.locator('.journal-chapter-grid').boundingBox();await shot('00-layout');assert.ok(gr.height>height*.62, JSON.stringify({gr,height}));
   await shot('01-overview');
   // In a compact viewport the chart can be panned; search is the direct way to any node.
   if(width>=700){await click('.journal-chapter[data-id="area"]');await shot('02-archive');}
@@ -50,16 +50,17 @@ try{
   // Partial investment leaves other branches untouched and does not lock other books.
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('a2')),false);
   await click('.journal-back');assert.equal(await page.locator('.journal-chapter').count(),11);
-  assert.match(await page.locator('.journal-chapter[data-id="area"]').innerText(),/ลงทุนแล้ว 1 แต้ม/);
+  assert.match(await page.locator('.journal-chapter[data-id="area"]').innerText(),/ใช้ไปแล้ว 1 แต้ม/);
   const before=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes));
+  await click('.journal-chapter[data-id="area"]');
   const rect=await page.locator('.seeker-graph').boundingBox();
   await page.mouse.move(rect.x+rect.width*.55,rect.y+rect.height*.6);await page.mouse.down();await page.mouse.move(rect.x+rect.width*.55+60,rect.y+rect.height*.6+10,{steps:6});await page.mouse.up();
   assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes)),before);
   await click('[data-fit]');
-  await click('[data-act="close-journal"]');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
+  await click('.journal-back');await click('[data-act="close-journal"]');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
   // Open actual menu workspace; the fixtures are not the implementation.
   await page.evaluate(()=>window.__frontier.panels.open('mods'));
-  assert.equal(await page.locator('.seeker-mod-list [data-gem]').count(),15);
+  assert.equal(await page.locator('.seeker-mod-list [data-gem]').count(),16);
   await click('.seeker-mod-tile[data-uid="900"]');await shot('04-mod-gems');
   await click('[data-act="socket"][data-uid="900"]');assert.ok(await page.evaluate(()=>window.__frontier.game.ch.slots[0].mods.includes(900)));
   const base=await page.evaluate(()=>window.__frontier.game.skills[0].projectiles); // compiler remains authoritative
@@ -67,7 +68,7 @@ try{
   await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-gem="split"]').count());
   await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-gem]').count());
   assert.deepEqual(errors,[]);
-  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,chapters:11,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
+  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,chapters:11,modGemTypes:16,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
  }
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}
 

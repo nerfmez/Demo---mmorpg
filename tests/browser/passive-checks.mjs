@@ -27,6 +27,13 @@ export async function verifyPassiveGestures(page,{context,engineName,capture=asy
  const before=await state();
  await page.locator('#map').evaluate(el=>{el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:91,pointerType:'touch',clientX:100,clientY:150}));el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:91}));});
  await tap('[data-action="zoom-out"]');await tap('[data-action="zoom-in"]');
+ // A fitted wide spread has no horizontal room to pan. Zoom using the actual
+ // controls until there is room for this drag; keep the purchase assertions.
+ for(let i=0;i<6;i++){
+  const room=await page.locator('#map').evaluate(el=>document.querySelector('#plane').offsetWidth*window.__frontier.panels.jobJournal.snapshot().camera.z-el.clientWidth);
+  if(room>150)break;
+  await tap('[data-action="zoom-in"]');
+ }
  const box=await page.locator('#map').boundingBox(),cameraBefore=(await state()).camera;
  await page.mouse.move(box.x+box.width*.35,box.y+box.height*.4);await page.mouse.down();await page.mouse.move(box.x+box.width*.35+55,box.y+box.height*.4+15,{steps:6});await page.mouse.up();
  assert.ok(Math.abs((await state()).camera.x-cameraBefore.x)>20,'drag pans without purchase');

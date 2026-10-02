@@ -5,7 +5,8 @@ body {width:var(--viewport-w,100vw);height:var(--viewport-h,100dvh)}
 body.ingame #hud {height:calc(var(--viewport-h,100dvh) - var(--xp-h))}
 .menu-layer {height:var(--viewport-h,100dvh)}
 .overlay.is-journal {width:var(--viewport-w,100vw);height:var(--viewport-h,100dvh)}
-.fullscreen-gate {position:fixed;inset:0;width:var(--viewport-w,100vw);height:var(--viewport-h,100dvh);z-index:1000;display:grid;place-items:center;padding:calc(20px + var(--safe-t)) calc(20px + var(--safe-r)) calc(20px + var(--safe-b)) calc(20px + var(--safe-l));background:#122137d9;backdrop-filter:blur(12px);overflow:auto}
+.fullscreen-gate {position:fixed;inset:0;margin:0;max-width:none;max-height:none;border:0;color:inherit;width:var(--viewport-w,100vw);height:var(--viewport-h,100dvh);z-index:1000;display:grid;place-items:center;padding:calc(20px + var(--safe-t)) calc(20px + var(--safe-r)) calc(20px + var(--safe-b)) calc(20px + var(--safe-l));background:#122137d9;backdrop-filter:blur(12px);overflow:auto}
+.fullscreen-gate::backdrop {background:transparent}
 .fullscreen-gate[hidden],.fullscreen-control[hidden],.fullscreen-gate button[hidden] {display:none}
 .fullscreen-gate,.fullscreen-gate * {touch-action:pan-y}
 .fullscreen-card {width:min(100%,420px);text-align:center;padding:24px 26px;border:1px solid #b5d5f333;border-radius:20px;background:linear-gradient(145deg,#243b55,#172a42);box-shadow:0 24px 80px #08162655}

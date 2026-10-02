@@ -49,6 +49,11 @@ jobs:
         run: node tests/browser/skill-journal.mjs
         env:
           BROWSER: ${{ matrix.browser }}
+      - name: Fullscreen pause governs journal modals
+        if: steps.scope.outputs.ui == 'true'
+        run: node tests/browser/fullscreen-overlays.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
       - name: Workspaces and passive touch gestures
         if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/workspaces.mjs
@@ -62,5 +67,6 @@ jobs:
             tests/browser/out/workspaces*
             tests/browser/out/journal*
             tests/browser/out/skill-journal/
+            tests/browser/out/fullscreen-overlays-*/
           if-no-files-found: ignore
           retention-days: 7

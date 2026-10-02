@@ -8,17 +8,38 @@ export function createFullscreen({ bypass = false, onBlocked = () => {}, onResiz
   const standalone = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
   const active = () => Boolean(doc.fullscreenElement || doc.webkitFullscreenElement);
   let blocked = !bypass && !standalone && !active(), pending = false, entered = active(), fallback = bypass || standalone, failed = false, resizeFrame = 0;
-  const overlay = doc.createElement('section');
+  // A native modal must own the top layer: journal search/respec dialogs escape
+  // ordinary CSS stacking and would otherwise remain interactive while paused.
+  const overlay = doc.createElement('dialog');
   overlay.className = 'fullscreen-gate';
   overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-labelledby', 'fullscreen-title');
   overlay.innerHTML = `<div class="fullscreen-card"><span class="fullscreen-kicker">AZURE COAST</span><div class="fullscreen-symbol" aria-hidden="true">⛶</div><h1 id="fullscreen-title"></h1><p id="fullscreen-message"></p><button class="fullscreen-enter" type="button">เข้าเกมเต็มจอ</button><button class="fullscreen-fallback" type="button">เล่นในพื้นที่หน้าจอที่ใช้ได้</button><small>ออกจากเต็มจอได้ด้วย Esc หรือปุ่มของเบราว์เซอร์</small><p class="fullscreen-status" role="status" aria-live="polite"></p></div>`;
   const control = doc.createElement('button'); control.type = 'button'; control.className = 'fullscreen-control'; control.textContent = '⛶ เล่นเต็มจอ'; control.setAttribute('aria-label', 'เล่นเต็มจอ');
   doc.body.append(overlay, control);
   const enter = overlay.querySelector('.fullscreen-enter'), alt = overlay.querySelector('.fullscreen-fallback'), status = overlay.querySelector('.fullscreen-status');
+  const suspendedDialogs = new Map();
   const paint = () => {
-    overlay.hidden = !blocked; control.hidden = blocked || active() || standalone;
+    const hud = doc.getElementById('hud');
+    // Restore ancestors before close() returns focus to the preserved workspace.
+    if (!blocked && hud) hud.inert = false;
+    overlay.hidden = !blocked;
+    if (blocked) {
+      if (!overlay.open) overlay.showModal();
+      // Explicit inertness also protects native dialogs that escape an inert
+      // ancestor. Keep their content/open state for the return to fullscreen.
+      for (const dialog of doc.querySelectorAll('dialog[open]')) {
+        if (dialog === overlay) continue;
+        if (!suspendedDialogs.has(dialog)) suspendedDialogs.set(dialog, dialog.inert);
+        dialog.inert = true;
+      }
+    } else {
+      for (const [dialog, inert] of suspendedDialogs) dialog.inert = inert;
+      suspendedDialogs.clear();
+      if (overlay.open) overlay.close();
+    }
+    control.hidden = blocked || active() || standalone;
     doc.body.classList.toggle('fullscreen-blocked', blocked);
-    doc.getElementById('hud').inert = blocked;
+    if (hud) hud.inert = blocked;
     overlay.querySelector('h1').textContent = entered ? 'พักเกมไว้แล้ว' : 'เข้าเกมเต็มจอ';
     overlay.querySelector('#fullscreen-message').textContent = supported
       ? (entered ? 'กลับเข้าเต็มจอเพื่อเล่นต่อ · ตัวละครและหน้าที่เปิดไว้ยังอยู่เหมือนเดิม' : 'เปิดพื้นที่ให้เกมและปุ่มสัมผัส ด้วยการแตะครั้งเดียว')
@@ -58,8 +79,11 @@ export function createFullscreen({ bypass = false, onBlocked = () => {}, onResiz
     } finally { pending = false; paint(); }
   };
   enter.addEventListener('click', open); control.addEventListener('click', open);
+  // Esc may exit browser fullscreen, but cannot dismiss the paused-game gate.
+  overlay.addEventListener('cancel', e => e.preventDefault());
   alt.addEventListener('click', () => { fallback = true; blocked = false; paint(); resize(); });
   overlay.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return; }
     if (e.key !== 'Tab') return;
     const buttons = [...overlay.querySelectorAll('button')].filter(b => !b.hidden && !b.disabled);
     if (!buttons.length) return;

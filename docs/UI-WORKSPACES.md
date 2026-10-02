@@ -182,3 +182,6 @@ The new Mana Siphon gem fits direct Damage, excludes DoT/Summon/Minion, and requ
 It returns 1/1.5/2 MP per successful direct player hit at ranks 1/2/3, with a shared
 1-second player cooldown. Multiple targets, projectiles, repeats and other skills share
 that cooldown. DoT, allies, dead players and dead targets cannot refund MP.
+
+On phones, focusing a selected node anchors it above the details sheet, so its disc and
+caption remain visible while reading requirements. Camera movement still cannot allocate.

@@ -119,9 +119,20 @@ export function mountJobNetwork(ui) {
     output.value=Math.round(cam.zoom*100)+'%';
   };
   const fit=()=>{Object.assign(cam,{x:w/2,y:h/2,zoom:clamp(fitZoom())});paint();};
+  const center=(x,y)=>{
+    cam.x=x;cam.y=y;cam.zoom=1;
+    const sheet=ui.body.querySelector('.journal-inspector');
+    if(root.clientWidth<700&&sheet){
+      const visible=sheet.getBoundingClientRect().top-root.getBoundingClientRect().top;
+      // Keep the selected node above the phone's details sheet, including its caption.
+      const anchor=Math.max(60,Math.min(root.clientHeight/2,visible*.5));
+      cam.y+=root.clientHeight/2-anchor;
+    }
+    paint();
+  };
   const focus=()=>{
     const n=ui.game.data.jobtree.nodes[root.dataset.selected];
-    if(!n)return fit();[cam.x,cam.y]=n.clusterPos;cam.zoom=1;paint();
+    if(!n)return fit();center(...n.clusterPos);
   };
   const zoom=(next,x=root.clientWidth/2,y=root.clientHeight/2)=>{
     next=clamp(next);const dx=x-root.clientWidth/2,dy=y-root.clientHeight/2;
@@ -131,7 +142,7 @@ export function mountJobNetwork(ui) {
     const t=e.target.closest('[data-zoom],[data-fit],[data-focus],[data-focus-stage]');if(!t)return;
     if(t.dataset.zoom)zoom(cam.zoom*(+t.dataset.zoom>0?1.2:1/1.2));
     if(t.hasAttribute('data-fit'))fit();if(t.hasAttribute('data-focus'))focus();
-    if(t.hasAttribute('data-focus-stage')){Object.assign(cam,{x:+t.dataset.stageX,y:+t.dataset.stageY,zoom:1});paint();}
+    if(t.hasAttribute('data-focus-stage'))center(+t.dataset.stageX,+t.dataset.stageY);
   };
   const pts=new Map();let drag=null,suppress=false;
   const measure=()=>{const p=[...pts.values()];return p.length===1?{x:p[0].x,y:p[0].y,d:0}:{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2,d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)};};
@@ -163,6 +174,6 @@ export function mountJobNetwork(ui) {
   const listeners=[['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',cancel],['lostpointercapture',lost],['click',guard,true],['wheel',wheel,{passive:false}],['keydown',keydown]];
   for(const args of listeners)root.addEventListener(...args);ui.body.addEventListener('click',click);
   const resize=new ResizeObserver(paint);resize.observe(root);paint();
-  if(ui.focusNextNode){focus();ui.focusNextNode=false;}
+  if(ui.focusNextNode||(root.clientWidth<700&&ui.sel.node)){focus();ui.focusNextNode=false;}
   return()=>{resize.disconnect();ui.body.removeEventListener('click',click);for(const args of listeners)root.removeEventListener(...args);pts.clear();};
 }

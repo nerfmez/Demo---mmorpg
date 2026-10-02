@@ -108,7 +108,9 @@ try{
   assert.ok(await page.locator('.seeker-route [data-id="mana_pool_1"]').count());
   for(const id of ['mana_pool_1','mana_flow_1','mana_pool_2','mana_flow_2','mana_efficiency','mana_reservoir','mana_cycling']){await jump(id);await click('[data-act="take-node"]');}
   assert.ok(await page.evaluate(()=>window.__frontier.game.derived.manaCostPct>0));
-  await jump('mana_master');await overflow();await shot('mana-tree');
+  await jump('mana_master');
+  if(width<700){const node=await page.locator('.seeker-node.selected').boundingBox(),sheet=await page.locator('.journal-inspector').boundingBox();assert.ok(node.y+node.height<sheet.y,'selected node stays visible above the phone details sheet');}
+  await overflow();await shot('mana-tree');
   await open('craft');if(await page.locator('[data-act="craft-back"]').count())await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="weapon"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
   if(!(await page.locator('.recipe-affixes [data-skill-tag="Mana"]').first().isVisible()))await page.locator('.recipe-affixes>summary').click();
   assert.ok(await page.locator('.recipe-affixes [data-skill-tag="Mana"]').count()>=3);

@@ -54,7 +54,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     arc: def.arc || 0,
     cooldown: def.cooldown * (1 - derived.cooldownPct / 100),
     castTime: def.castTime,
-    cost: def.cost,
+    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)),
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
@@ -193,6 +193,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (s.chill) s.chill.duration *= control;
   if (s.kind === 'curse_zone') s.duration *= control;
   s.arc = Math.min(s.arc, 360);
+  s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
   if (s.damage !== undefined) s.damage *= s.damageMult;
   return s;
 }

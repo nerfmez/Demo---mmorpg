@@ -226,7 +226,17 @@
         "attack": 6,
         "magic": 2
       },
-      "requires": {}
+      "requires": {},
+      "starter": true,
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "crit_pct",
+        "melee_pct",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "STR"
     },
     "old_bow": {
       "name": "Old Bow",
@@ -237,7 +247,17 @@
         "attack": 6,
         "magic": 1
       },
-      "requires": {}
+      "requires": {},
+      "starter": true,
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "crit_pct",
+        "projectile_pct",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "DEX"
     },
     "apprentice_staff": {
       "name": "Apprentice Staff",
@@ -248,7 +268,17 @@
         "attack": 2,
         "magic": 7
       },
-      "requires": {}
+      "requires": {},
+      "starter": true,
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "crit_pct",
+        "spell_pct",
+        "mp_flat"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "INT"
     },
     "tusk_blade": {
       "name": "Tusk Blade",
@@ -256,12 +286,22 @@
       "slot": "weapon",
       "weaponType": "sword",
       "stats": {
-        "attack": 16,
-        "magic": 2
+        "attack": 11.5,
+        "magic": 1.4
       },
       "requires": {
         "STR": 6
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "poison_on_hit",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "boar_tusk",
+      "requirementStat": "STR"
     },
     "hunter_bow": {
       "name": "Hunter Bow",
@@ -269,12 +309,22 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 14,
-        "magic": 2
+        "attack": 10.1,
+        "magic": 1.4
       },
       "requires": {
         "DEX": 5
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "boar_tusk",
+      "requirementStat": "DEX"
     },
     "fang_dagger": {
       "name": "Fang Dagger",
@@ -282,12 +332,22 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "stats": {
-        "attack": 13,
-        "critChancePct": 3
+        "attack": 9.4,
+        "critChancePct": 2.2
       },
       "requires": {
         "DEX": 5
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "leech_pct",
+        "poison_on_hit",
+        "melee_pct"
+      ],
+      "upgradeMaterial": "wolf_fang",
+      "requirementStat": "DEX"
     },
     "wisp_staff": {
       "name": "Wisp Staff",
@@ -295,12 +355,23 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 5,
-        "magic": 17
+        "attack": 3.6,
+        "magic": 12.2
       },
       "requires": {
         "INT": 6
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "area_pct",
+        "spell_pct",
+        "mp_flat",
+        "cdr_pct",
+        "heal_pct"
+      ],
+      "upgradeMaterial": "wisp_core",
+      "requirementStat": "INT"
     },
     "spore_wand": {
       "name": "Spore Wand",
@@ -308,12 +379,22 @@
       "slot": "weapon",
       "weaponType": "wand",
       "stats": {
-        "attack": 3,
-        "magic": 14
+        "attack": 2.2,
+        "magic": 10.1
       },
       "requires": {
         "INT": 5
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "summon_pct",
+        "poison_on_hit",
+        "cdr_pct"
+      ],
+      "upgradeMaterial": "spore_sac",
+      "requirementStat": "INT"
     },
     "crag_axe": {
       "name": "Crag Axe",
@@ -321,12 +402,22 @@
       "slot": "weapon",
       "weaponType": "axe",
       "stats": {
-        "attack": 25,
-        "maxHp": 10
+        "attack": 18.0,
+        "maxHp": 8.0
       },
       "requires": {
         "STR": 9
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "hp_flat",
+        "defense_flat",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "STR"
     },
     "storm_bow": {
       "name": "Storm Bow",
@@ -334,12 +425,22 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 26,
-        "magic": 5
+        "attack": 18.7,
+        "magic": 3.6
       },
       "requires": {
         "DEX": 10
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "move_pct",
+        "cdr_pct"
+      ],
+      "upgradeMaterial": "storm_quill",
+      "requirementStat": "DEX"
     },
     "greyfang_sabre": {
       "name": "Greyfang Sabre",
@@ -347,13 +448,23 @@
       "slot": "weapon",
       "weaponType": "sword",
       "stats": {
-        "attack": 22,
-        "critChancePct": 5,
-        "moveSpeedPct": 3
+        "attack": 15.8,
+        "critChancePct": 3.8,
+        "moveSpeedPct": 2.2
       },
       "requires": {
         "AGI": 8
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "greyfang_mane",
+      "requirementStat": "AGI"
     },
     "horn_greatblade": {
       "name": "Horn Greatblade",
@@ -361,12 +472,22 @@
       "slot": "weapon",
       "weaponType": "greatblade",
       "stats": {
-        "attack": 32,
-        "magic": 8
+        "attack": 23.0,
+        "magic": 5.8
       },
       "requires": {
         "STR": 10
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "hp_flat",
+        "defense_flat"
+      ],
+      "upgradeMaterial": "warden_horn",
+      "requirementStat": "STR"
     },
     "ancient_staff": {
       "name": "Ancient Core Staff",
@@ -374,12 +495,23 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 8,
-        "magic": 30
+        "attack": 5.8,
+        "magic": 21.6
       },
       "requires": {
         "INT": 10
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "area_pct",
+        "spell_pct",
+        "heal_pct",
+        "cdr_pct",
+        "mp_flat"
+      ],
+      "upgradeMaterial": "ancient_core",
+      "requirementStat": "INT"
     },
     "travel_tunic": {
       "name": "Travel Tunic",
@@ -390,7 +522,17 @@
         "defense": 3,
         "maxHp": 10
       },
-      "requires": {}
+      "requires": {},
+      "starter": true,
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "hp_flat",
+        "barrier_pct",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "VIT"
     },
     "hide_vest": {
       "name": "Hide Vest",
@@ -398,10 +540,20 @@
       "slot": "armor",
       "look": "hide",
       "stats": {
-        "defense": 8,
-        "maxHp": 30
+        "defense": 6.4,
+        "maxHp": 24.0
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "move_pct",
+        "barrier_pct",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "VIT"
     },
     "shell_guard": {
       "name": "Shell Guard",
@@ -409,12 +561,22 @@
       "slot": "armor",
       "look": "shell",
       "stats": {
-        "defense": 16,
-        "maxHp": 20
+        "defense": 12.8,
+        "maxHp": 16.0
       },
       "requires": {
         "VIT": 6
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "barrier_pct",
+        "poison_on_hit",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "VIT"
     },
     "wolfpelt_coat": {
       "name": "Wolfpelt Coat",
@@ -422,11 +584,21 @@
       "slot": "armor",
       "look": "pelt",
       "stats": {
-        "defense": 11,
-        "maxHp": 25,
-        "moveSpeedPct": 4
+        "defense": 8.8,
+        "maxHp": 20.0,
+        "moveSpeedPct": 3.0
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "move_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "wolf_pelt",
+      "requirementStat": "VIT"
     },
     "storm_mantle": {
       "name": "Storm Mantle",
@@ -434,13 +606,23 @@
       "slot": "armor",
       "look": "mantle",
       "stats": {
-        "defense": 8,
-        "maxMp": 25,
-        "cooldownPct": 5
+        "defense": 6.4,
+        "maxMp": 20.0,
+        "cooldownPct": 3.8
       },
       "requires": {
         "INT": 8
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "move_pct",
+        "magic_flat"
+      ],
+      "upgradeMaterial": "hawk_feather",
+      "requirementStat": "INT"
     },
     "crag_plate": {
       "name": "Crag Plate",
@@ -448,12 +630,22 @@
       "slot": "armor",
       "look": "plate",
       "stats": {
-        "defense": 26,
-        "maxHp": 40
+        "defense": 20.8,
+        "maxHp": 32.0
       },
       "requires": {
         "VIT": 10
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "move_pct"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "VIT"
     },
     "leather_cap": {
       "name": "Leather Cap",
@@ -461,10 +653,20 @@
       "slot": "helm",
       "look": "cap",
       "stats": {
-        "defense": 3,
-        "maxHp": 10
+        "defense": 2.4,
+        "maxHp": 8.0
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "crit_pct",
+        "barrier_pct",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "VIT"
     },
     "beetle_helm": {
       "name": "Beetle Helm",
@@ -472,12 +674,22 @@
       "slot": "helm",
       "look": "beetle",
       "stats": {
-        "defense": 7,
-        "maxHp": 10
+        "defense": 5.6,
+        "maxHp": 8.0
       },
       "requires": {
         "VIT": 5
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "move_pct"
+      ],
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "VIT"
     },
     "spore_hood": {
       "name": "Spore Hood",
@@ -485,10 +697,20 @@
       "slot": "helm",
       "look": "hood",
       "stats": {
-        "defense": 4,
-        "healPct": 10
+        "defense": 3.2,
+        "healPct": 7.5
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "heal_pct",
+        "mp_flat",
+        "summon_pct",
+        "regen_flat",
+        "magic_flat"
+      ],
+      "upgradeMaterial": "spore_sac",
+      "requirementStat": "INT"
     },
     "feather_circlet": {
       "name": "Feather Circlet",
@@ -496,11 +718,21 @@
       "slot": "helm",
       "look": "circlet",
       "stats": {
-        "defense": 2,
-        "cooldownPct": 4,
-        "maxMp": 10
+        "defense": 1.6,
+        "cooldownPct": 3.0,
+        "maxMp": 8.0
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "cdr_pct",
+        "mp_flat",
+        "spell_pct",
+        "crit_pct",
+        "magic_flat"
+      ],
+      "upgradeMaterial": "hawk_feather",
+      "requirementStat": "INT"
     },
     "horned_helm": {
       "name": "Horned Helm",
@@ -508,13 +740,23 @@
       "slot": "helm",
       "look": "horned",
       "stats": {
-        "defense": 12,
-        "maxHp": 30,
-        "attack": 4
+        "defense": 9.6,
+        "maxHp": 24.0,
+        "attack": 2.9
       },
       "requires": {
         "STR": 8
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "attack_flat",
+        "melee_pct",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "warden_horn",
+      "requirementStat": "STR"
     },
     "travel_boots": {
       "name": "Travel Boots",
@@ -524,99 +766,199 @@
         "defense": 2,
         "moveSpeedPct": 2
       },
-      "requires": {}
+      "requires": {},
+      "starter": true,
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "hp_flat",
+        "barrier_pct",
+        "regen_flat"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "AGI"
     },
     "wolf_boots": {
       "name": "Wolf Boots",
       "nameTh": "รองเท้าหมาป่า",
       "slot": "boots",
       "stats": {
-        "defense": 4,
-        "moveSpeedPct": 6
+        "defense": 3.2,
+        "moveSpeedPct": 4.5
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
+      ],
+      "upgradeMaterial": "wolf_pelt",
+      "requirementStat": "AGI"
     },
     "wisp_slippers": {
       "name": "Wisp Slippers",
       "nameTh": "รองเท้าภูตไฟ",
       "slot": "boots",
       "stats": {
-        "defense": 3,
-        "mpRegenPct": 20
+        "defense": 2.4,
+        "mpRegenPct": 15.0
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "mp_flat",
+        "move_pct",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "upgradeMaterial": "glow_dust",
+      "requirementStat": "INT"
     },
     "crag_greaves": {
       "name": "Crag Greaves",
       "nameTh": "สนับแข้งผาหิน",
       "slot": "boots",
       "stats": {
-        "defense": 10,
-        "maxHp": 20
+        "defense": 8.0,
+        "maxHp": 16.0
       },
       "requires": {
         "VIT": 7
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "regen_flat",
+        "move_pct",
+        "cdr_pct"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "VIT"
     },
     "tusk_charm": {
       "name": "Tusk Charm",
       "nameTh": "เครื่องรางเขี้ยว",
       "slot": "charm",
       "stats": {
-        "critChancePct": 3
+        "critChancePct": 2.2
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "crit_pct",
+        "attack_flat",
+        "melee_pct",
+        "projectile_pct",
+        "defense_flat"
+      ],
+      "upgradeMaterial": "boar_tusk",
+      "requirementStat": "DEX"
     },
     "wisp_pendant": {
       "name": "Wisp Pendant",
       "nameTh": "จี้ภูตไฟ",
       "slot": "charm",
       "stats": {
-        "maxMp": 20,
-        "magic": 3
+        "maxMp": 16.0,
+        "magic": 2.2
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "area_pct",
+        "heal_pct"
+      ],
+      "upgradeMaterial": "wisp_core",
+      "requirementStat": "INT"
     },
     "spore_amulet": {
       "name": "Spore Amulet",
       "nameTh": "เครื่องรางสปอร์",
       "slot": "charm",
       "stats": {
-        "healPct": 12,
+        "healPct": 9.0,
         "hpRegen": 1
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "heal_pct",
+        "regen_flat",
+        "summon_pct",
+        "poison_on_hit",
+        "mp_flat"
+      ],
+      "upgradeMaterial": "spore_sac",
+      "requirementStat": "INT"
     },
     "feather_charm": {
       "name": "Feather Charm",
       "nameTh": "เครื่องรางขนนก",
       "slot": "charm",
       "stats": {
-        "moveSpeedPct": 4,
-        "cooldownPct": 3
+        "moveSpeedPct": 3.0,
+        "cooldownPct": 2.2
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "move_pct",
+        "cdr_pct",
+        "projectile_pct",
+        "crit_pct",
+        "attack_flat"
+      ],
+      "upgradeMaterial": "hawk_feather",
+      "requirementStat": "AGI"
     },
     "golem_amulet": {
       "name": "Golem Heart Amulet",
       "nameTh": "จี้หัวใจโกเลม",
       "slot": "charm",
       "stats": {
-        "maxHp": 40,
-        "defense": 5
+        "maxHp": 32.0,
+        "defense": 4.0
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "crit_pct"
+      ],
+      "upgradeMaterial": "golem_heart",
+      "requirementStat": "VIT"
     },
     "ancient_ring": {
       "name": "Ancient Ring",
       "nameTh": "แหวนโบราณ",
       "slot": "charm",
       "stats": {
-        "attack": 6,
-        "magic": 6,
-        "critChancePct": 3
+        "attack": 4.3,
+        "magic": 4.3,
+        "critChancePct": 2.2
       },
-      "requires": {}
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "crit_pct",
+        "cdr_pct",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "ancient_core",
+      "requirementStat": "INT"
     },
     "crabshell_helm": {
       "name": "Crabshell Helm",
@@ -624,37 +966,67 @@
       "slot": "helm",
       "look": "beetle",
       "stats": {
-        "defense": 9,
-        "maxHp": 14
+        "defense": 7.2,
+        "maxHp": 11.2
       },
       "requires": {
         "VIT": 6
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "barrier_pct",
+        "regen_flat",
+        "move_pct"
+      ],
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "VIT"
     },
     "tide_boots": {
       "name": "Tide Walkers",
       "nameTh": "รองเท้าเดินคลื่น",
       "slot": "boots",
       "stats": {
-        "moveSpeedPct": 6,
-        "defense": 4
+        "moveSpeedPct": 4.5,
+        "defense": 3.2
       },
       "requires": {
         "AGI": 6
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "move_pct",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat",
+        "mp_flat"
+      ],
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "AGI"
     },
     "pearl_pendant": {
       "name": "Pearl Pendant",
       "nameTh": "จี้ไข่มุกทะเล",
       "slot": "charm",
       "stats": {
-        "maxMp": 25,
-        "magic": 4,
-        "maxHp": 10
+        "maxMp": 20.0,
+        "magic": 2.9,
+        "maxHp": 8.0
       },
       "requires": {
         "INT": 6
-      }
+      },
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "heal_pct",
+        "summon_pct"
+      ],
+      "upgradeMaterial": "sea_pearl",
+      "requirementStat": "INT"
     }
   },
   "gearOptions": {
@@ -663,131 +1035,131 @@
       "label": "+{v} Attack",
       "labelTh": "พลังโจมตี +{v}",
       "stat": "attack",
-      "min": 2,
-      "max": 6
+      "min": 1,
+      "max": 3
     },
     "magic_flat": {
       "label": "+{v} Magic",
       "labelTh": "พลังเวท +{v}",
       "stat": "magic",
-      "min": 2,
-      "max": 6
+      "min": 1,
+      "max": 3
     },
     "melee_pct": {
       "label": "+{v}% melee damage",
       "labelTh": "ดาเมจระยะประชิด +{v}%",
       "stat": "meleeDamagePct",
-      "min": 5,
-      "max": 14
+      "min": 3,
+      "max": 9
     },
     "projectile_pct": {
       "label": "+{v}% projectile damage",
       "labelTh": "ดาเมจกระสุน +{v}%",
       "stat": "projectileDamagePct",
-      "min": 5,
-      "max": 14
+      "min": 3,
+      "max": 9
     },
     "spell_pct": {
       "label": "+{v}% spell damage",
       "labelTh": "ดาเมจเวท +{v}%",
       "stat": "spellDamagePct",
-      "min": 5,
-      "max": 12
+      "min": 3,
+      "max": 8
     },
     "area_pct": {
       "label": "+{v}% area damage",
       "labelTh": "ดาเมจวงกว้าง +{v}%",
       "stat": "areaDamagePct",
-      "min": 5,
-      "max": 14
+      "min": 3,
+      "max": 9
     },
     "summon_pct": {
       "label": "+{v}% summon damage",
       "labelTh": "ดาเมจอัญเชิญ +{v}%",
       "stat": "summonDamagePct",
-      "min": 8,
-      "max": 20
+      "min": 5,
+      "max": 13
     },
     "poison_on_hit": {
       "label": "{v}% chance to poison",
       "labelTh": "โอกาสติดพิษ {v}%",
       "stat": "poisonChancePct",
-      "min": 8,
-      "max": 20
+      "min": 5,
+      "max": 13
     },
     "crit_pct": {
       "label": "+{v}% crit chance",
       "labelTh": "โอกาสคริติคอล +{v}%",
       "stat": "critChancePct",
-      "min": 2,
-      "max": 6
+      "min": 1,
+      "max": 4
     },
     "hp_flat": {
       "label": "+{v} Max HP",
       "labelTh": "HP สูงสุด +{v}",
       "stat": "maxHp",
-      "min": 10,
-      "max": 30
+      "min": 6,
+      "max": 20
     },
     "mp_flat": {
       "label": "+{v} Max MP",
       "labelTh": "MP สูงสุด +{v}",
       "stat": "maxMp",
-      "min": 8,
-      "max": 20
+      "min": 5,
+      "max": 13
     },
     "defense_flat": {
       "label": "+{v} Defense",
       "labelTh": "ป้องกัน +{v}",
       "stat": "defense",
-      "min": 2,
-      "max": 7
+      "min": 1,
+      "max": 4
     },
     "barrier_pct": {
       "label": "+{v}% barrier",
       "labelTh": "เกราะเวท +{v}%",
       "stat": "barrierPct",
-      "min": 8,
-      "max": 20
+      "min": 5,
+      "max": 13
     },
     "heal_pct": {
       "label": "+{v}% healing",
       "labelTh": "การฟื้นฟู +{v}%",
       "stat": "healPct",
-      "min": 8,
-      "max": 20
+      "min": 5,
+      "max": 13
     },
     "move_pct": {
       "label": "+{v}% move speed",
       "labelTh": "ความเร็วเดิน +{v}%",
       "stat": "moveSpeedPct",
-      "min": 3,
-      "max": 8
+      "min": 2,
+      "max": 5
     },
     "cdr_pct": {
       "label": "{v}% faster cooldowns",
       "labelTh": "คูลดาวน์เร็วขึ้น {v}%",
       "stat": "cooldownPct",
-      "min": 3,
-      "max": 8
+      "min": 2,
+      "max": 5
     },
     "leech_pct": {
       "label": "{v}% life leech",
       "labelTh": "ดูดเลือด {v}%",
       "stat": "leechPct",
       "min": 1,
-      "max": 3
+      "max": 2
     },
     "regen_flat": {
       "label": "+{v} HP regen",
       "labelTh": "ฟื้น HP +{v}/วิ",
       "stat": "hpRegen",
       "min": 1,
-      "max": 3
+      "max": 2
     }
   },
   "grades": {
-    "_doc": "Crafted Grade is random and separate from Upgrade (+N).",
+    "_doc": "Grade adds unique affix slots: C 2, B 3, A 4, S 5. Base-stat variance is only -5% to +5%; enhancement is independent.",
     "order": [
       "C",
       "B",
@@ -801,49 +1173,191 @@
       "S": 4
     },
     "statMult": {
-      "C": 0.85,
-      "B": 1.0,
-      "A": 1.15,
-      "S": 1.3
+      "C": 0.95,
+      "B": 1,
+      "A": 1.02,
+      "S": 1.05
     },
     "optionCount": {
-      "C": 0,
-      "B": 1,
-      "A": 2,
-      "S": 3
+      "C": 2,
+      "B": 3,
+      "A": 4,
+      "S": 5
     },
     "colors": {
-      "C": "#b8b8b8",
-      "B": "#6fcf6f",
-      "A": "#5aa9ff",
-      "S": "#ffb347"
+      "C": "#718396",
+      "B": "#16885e",
+      "A": "#4267d6",
+      "S": "#bd7217"
+    },
+    "names": {
+      "C": "ธรรมดา",
+      "B": "ดี",
+      "A": "หายาก",
+      "S": "พิเศษ"
     }
   },
   "upgrade": {
-    "_doc": "Upgrade (+N) is separate from Grade. Always succeeds in the demo; fail/success is not locked yet.",
+    "_doc": "Guaranteed +1..+5, limited only by materials and gold. Each step adds 4% to base stats. Wearing a stronger item requires higher character stats, not a character level.",
     "max": 5,
-    "statPerLevel": 0.08,
+    "statPerLevel": 0.04,
     "cost": [
       {
+        "material": 2,
+        "glow_dust": 1,
+        "gold": 35
+      },
+      {
+        "material": 3,
+        "glow_dust": 2,
+        "gold": 75
+      },
+      {
+        "material": 4,
         "ruin_shard": 1,
-        "gold": 30
+        "gold": 140
       },
       {
-        "ruin_shard": 1,
-        "gold": 60
-      },
-      {
+        "material": 5,
         "ruin_shard": 2,
-        "gold": 100
+        "gold": 240
       },
       {
-        "ruin_shard": 2,
-        "gold": 150
-      },
-      {
+        "material": 6,
         "ruin_shard": 3,
-        "gold": 220
+        "ancient_core": 1,
+        "gold": 380
       }
     ]
+  },
+  "crafting": {
+    "batchSizes": [
+      1,
+      5,
+      10
+    ],
+    "maxBatch": 10
+  },
+  "gradeUpgrade": {
+    "_doc": "Promote one grade retaining existing affixes and +N; add one unique affix, no level/stat gate to upgrading. Wearing uses the resulting actual item requirements.",
+    "cost": {
+      "B": {
+        "wisp_core": 1,
+        "glow_dust": 5,
+        "gold": 90
+      },
+      "A": {
+        "wisp_core": 2,
+        "ruin_shard": 1,
+        "gold": 180
+      },
+      "S": {
+        "ancient_core": 1,
+        "ruin_shard": 3,
+        "gold": 400
+      }
+    }
+  },
+  "legacyOptionRanges": {
+    "attack_flat": {
+      "min": 2,
+      "max": 6
+    },
+    "magic_flat": {
+      "min": 2,
+      "max": 6
+    },
+    "melee_pct": {
+      "min": 5,
+      "max": 14
+    },
+    "projectile_pct": {
+      "min": 5,
+      "max": 14
+    },
+    "spell_pct": {
+      "min": 5,
+      "max": 12
+    },
+    "area_pct": {
+      "min": 5,
+      "max": 14
+    },
+    "summon_pct": {
+      "min": 8,
+      "max": 20
+    },
+    "poison_on_hit": {
+      "min": 8,
+      "max": 20
+    },
+    "crit_pct": {
+      "min": 2,
+      "max": 6
+    },
+    "hp_flat": {
+      "min": 10,
+      "max": 30
+    },
+    "mp_flat": {
+      "min": 8,
+      "max": 20
+    },
+    "defense_flat": {
+      "min": 2,
+      "max": 7
+    },
+    "barrier_pct": {
+      "min": 8,
+      "max": 20
+    },
+    "heal_pct": {
+      "min": 8,
+      "max": 20
+    },
+    "move_pct": {
+      "min": 3,
+      "max": 8
+    },
+    "cdr_pct": {
+      "min": 3,
+      "max": 8
+    },
+    "leech_pct": {
+      "min": 1,
+      "max": 3
+    },
+    "regen_flat": {
+      "min": 1,
+      "max": 3
+    }
+  },
+  "requirements": {
+    "_doc": "Wear requirements use trained character stats, not level or gear-granted bonuses. Weighted actual item power above its C/+0 baseline plus a two-affix allowance increases the base requirement. All weights and growth are tunable here.",
+    "minimumStat": 3,
+    "basePowerFactor": 0.35,
+    "extraPowerFactor": 0.5,
+    "affixAllowance": 2,
+    "weights": {
+      "attack": 1,
+      "magic": 1,
+      "defense": 1,
+      "maxHp": 0.08,
+      "maxMp": 0.1,
+      "critChancePct": 0.5,
+      "cooldownPct": 0.6,
+      "moveSpeedPct": 0.7,
+      "hpRegen": 1.5,
+      "leechPct": 1.5,
+      "meleeDamagePct": 0.15,
+      "projectileDamagePct": 0.15,
+      "spellDamagePct": 0.15,
+      "areaDamagePct": 0.15,
+      "summonDamagePct": 0.15,
+      "poisonChancePct": 0.1,
+      "barrierPct": 0.15,
+      "healPct": 0.15,
+      "mpRegenPct": 0.15
+    }
   }
 }

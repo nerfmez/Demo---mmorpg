@@ -3,7 +3,8 @@ import { art } from './art.js';
 import { icon } from './icons.js';
 import { meetsRequires } from '../core/character.js';
 import { modFits } from '../core/skills.js';
-import { skillUpgradeCost, modUpgradeCost, canAfford } from '../core/crafting.js';
+import { skillUpgradeCost, modUpgradeCost, skillUpgradeState, modUpgradeState } from '../core/crafting.js';
+import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
 import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus } from './buildmeta.js';
 
 function loadout(ui, modMode=false) {
@@ -53,8 +54,11 @@ export function movementWorkspace(ui) {
  }).join('')}</div><div class="seeker-result">สกิลที่ใช้อยู่: ${ui.game.move.def.nameTh} · ชาร์จสูงสุด ${ui.game.move.def.charges+ui.game.derived.extraMovementCharges} · คืนชาร์จจริง ${ui.game.move.recharge.toFixed(1)} วิ</div>`;
 }
 
-export function growthWorkspace(ui,{costHtml}) {
+export function growthWorkspace(ui,{costHtml,describeSkill}) {
  const {game:g,sel}=ui,{ch,data}=g,kind=sel.growthKind||'skill',isSkill=kind==='skill';
- const entries=isSkill?Object.entries(ch.skills).filter(([id])=>data.skills.combat[id]).map(([id,level])=>({id,level,def:data.skills.combat[id],cost:skillUpgradeCost(data,id,level)})):ch.mods.map(inst=>({...inst,def:data.mods.mods[inst.id],cost:modUpgradeCost(data,inst)}));
- return heading('อัปเลเวลสกิล / ม็อด','ใช้วัตถุดิบและ Gold ที่โต๊ะคราฟต์ · ไม่ใช้ Stat Point หรือ Job Point')+`<div class="seeker-action-row"><button class="btn ${isSkill?'on':''}" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn ${!isSkill?'on':''}" data-act="growth-filter" data-id="mod">ม็อด</button><span>${g.nearby().workbench?'อยู่ใกล้โต๊ะคราฟต์':'ดูได้ทุกที่ · กลับโต๊ะคราฟต์เพื่ออัปเกรด'}</span></div><div class="seeker-growth-grid">${entries.map(e=>`<section class="card"><div class="seeker-hero">${art(isSkill?'skill':'mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${isSkill?tagsHtml(e.def.tags):rulesHtml(e.def)}${e.cost?`<div class="cost">${costHtml(ch,data,e.cost)}</div><button class="btn primary" data-act="${isSkill?'skill-up':'mod-up'}" ${isSkill?`data-skill="${e.id}"`:`data-uid="${e.uid}"`} ${g.nearby().workbench&&canAfford(ch,e.cost)?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button>`:''}</section>`).join('')||'<p>ยังไม่มีรายการในหมวดนี้</p>'}</div>`;
+ const entries=isSkill?Object.entries(ch.skills).filter(([id])=>data.skills.combat[id]).map(([id,level])=>({id,level,def:data.skills.combat[id],state:skillUpgradeState(ch,data,id)})):ch.mods.map(inst=>({...inst,def:data.mods.mods[inst.id],state:modUpgradeState(ch,data,inst)}));
+ return heading('ฝึกสกิล / พัฒนาม็อด','ใช้วัตถุดิบจากโลกและ Gold · สกิลเพิ่มพลังทีละขั้น ม็อดเปลี่ยนวิธีเล่น')+`<div class="seeker-action-row"><button class="btn ${isSkill?'on':''}" data-act="growth-filter" data-id="skill">สกิล</button><button class="btn ${!isSkill?'on':''}" data-act="growth-filter" data-id="mod">ม็อด</button><span>${g.nearby().workbench?'อยู่ใกล้โต๊ะคราฟต์':'กลับโต๊ะคราฟต์เพื่ออัปเกรด'}</span></div><div class="seeker-growth-grid">${entries.map(e=>{
+ const levels=isSkill?data.progression.skillUpgrade.steps.map(s=>s.requiresLevel):data.progression.modUpgrade.requiresLevel;
+ return `<section class="card"><div class="seeker-hero">${art(isSkill?'skill':'mod',e.id)}<div><h3>${e.def.nameTh}</h3><span>Lv.${e.level}${e.state.cost?' → Lv.'+(e.level+1):' · สูงสุด'}</span></div></div>${isSkill?tagsHtml(e.def.tags):rulesHtml(e.def)}${upgradeTrack(levels,e.level-1,'Lv.',2)}${e.state.cost?`${isSkill?skillGrowthPreview(ch,data,e.id,describeSkill):modGrowthPreview(e.def,e.level)}<p class="${e.state.ok?'ok':'no'}">${stateText(e.state)}</p><div class="cost">${costHtml(ch,data,e.state.cost)}</div><small>สำเร็จแน่นอน · ใช้วัตถุดิบ ไม่ใช้แต้มต้นไม้</small><button class="btn primary" data-act="${isSkill?'skill-up':'mod-up'}" ${isSkill?`data-skill="${e.id}"`:`data-uid="${e.uid}"`} ${g.nearby().workbench&&e.state.ok?'':'disabled'}>อัปเป็น Lv.${e.level+1}</button>`:''}</section>`;
+ }).join('')||'<p>ยังไม่มีรายการในหมวดนี้</p>'}</div>`;
 }

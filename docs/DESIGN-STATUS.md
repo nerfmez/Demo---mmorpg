@@ -14,11 +14,11 @@
 | 7 | Skill Core + Mod ตาม Tag | ✅ | `data/mods.json`, `core/skills.js` · มี 15 Mod รวม Trigger (Cast on Dodge), Multistrike, Knockback, Pack Leader |
 | 8 | อัป Skill/Mod ด้วยของจากโลก | ✅ | อัปสกิลใช้ Material ตามสาย อัป Mod ใช้ Ruin Shard + Glow Dust (ที่โต๊ะคราฟต์) · ยังไม่มี Mastery (ตั้งใจเลื่อนไว้) |
 | 9 | Character Level → Stat Points, Stat เป็นเงื่อนไข | ✅ | STR/AGI/VIT/INT/DEX · สกิล Mod และอาวุธบางชิ้นต้องมี Stat ถึง · ตัวเลขยังเป็นค่าชั่วคราว |
-| 10 | Job Level → Job Points → Job Tree | ✅ | `data/jobtree.json` 87 โหนด · หน้ารวม 10 บทธีมการเดินทาง · ภายในแต่ละบทแบ่งเป็นขั้น I–IV โดยขั้นลึกขึ้นต้องลงทุน Job Points ในขั้นก่อนหน้าของบทนั้นให้ถึงจำนวนที่กำหนด ไม่บังคับเส้นเดียว · อาชีพหลัก 4 สาย (Vanguard, Arcanist, Ranger, Warden) |
+| 10 | Job Level → Job Points → Job Tree | ✅ | `data/jobtree.json` 207 โหนด · 10 บท · กลุ่มขั้น I–VI ปลดล็อกด้วยแต้มลงทุนรวม แต่โหนดย่อยต้องต่อจากโหนดที่เป็นเจ้าของ · Job Lv.40 ลงสายเดียวได้ 39 แต้ม · อาชีพหลัก 4 สาย (Vanguard, Arcanist, Ranger, Warden) |
 | 11 | เลือก Job ทีหลัง | ✅ | โหนด Job เปิดที่ Job Lv.5 เลือกได้สายเดียว |
 | 12 | Respec ด้วยเงินในเกม | ✅ | รีแต้ม Stat และ Job ในนิคม ใช้ Gold อย่างเดียว |
 | 13 | มอนดรอป Material ของตัวเอง | ✅ | รูปร่างมอนบอกของที่ดรอป (งา, กระดอง, แกนเรืองแสง, เขา) · มี test ยืนยันว่า Material ทุกชิ้นมีที่ใช้ |
-| 14 | Craft ได้ Grade สุ่ม + Option / ตีบวกแยก | ✅ | อุปกรณ์ 5 ช่อง (อาวุธ เกราะ หมวก รองเท้า เครื่องราง) กว่า 30 แบบ · อาวุธ 7 ประเภทมีโบนัสในตัว · Grade C/B/A/S, Option pool ตามสูตร, ตีบวก +1..+5 · ยังไม่มีสำเร็จ/ล้มเหลว |
+| 14 | Craft ได้ Grade สุ่ม + Option / ตีบวกแยก | ✅ | อุปกรณ์ 5 ช่อง (อาวุธ เกราะ หมวก รองเท้า เครื่องราง) กว่า 30 แบบ · อาวุธ 7 ประเภทมีโบนัสในตัว · Grade C/B/A/S มี 2/3/4/5 ออฟชั่น · คราฟต์ซ้ำมีเป้าหมายและงบ · เลื่อนเกรดคงออฟชั่นเดิม · +1..+5 ใช้วัตถุดิบ ไม่ล็อกเลเวล/สเตตัสตอนอัป · สวมใส่ตามรีเควสพลังจริงของไอเทม |
 | 15 | Economy loop | 🟡 | ฟาร์ม → Material → คราฟต์/อัป/ขาย NPC · ยังไม่มีเทรดระหว่างผู้เล่น (ต้องมี server) |
 | 16 | Theme "Fantasy Frontier" | ✅ | เมืองท่าชายฝั่งสีครามและชายหาดเริ่มต้น · แผนทวีปเป็นแนวคิดที่ปรับได้ |
 | 17 | Demo 1 แมพที่มี Journey | ✅ | ผังเมืองฉบับแก้เรฟ 320×300 ม. รอตรวจ · หาดปลอดภัย → เมืองท่า → ทุ่ง/สวน/ป่า/แหลมเหนือเมือง · ประภาคารอยู่ในเขตเมืองปลอดภัย · หินวาร์ป 5 จุด · ภารกิจหลัก 7 + รอง 6 · ยังไม่สร้างทั้งทวีปหรือใส่บอสพื้นที่แรก |
@@ -95,3 +95,19 @@ functional; no fake potion or persistent-lock controls. See `COMBAT-HUD.md`.
 ภาพฉบับทดลอง: [จุดเริ่มบน iPad](reference/harbor-review/beach-ipad.png) · [ภาพรวมเมือง](reference/harbor-review/harbor-overview.png) · [มอนชายฝั่ง](reference/harbor-review/coastal-monsters.png) · [ผังพื้นที่จริง](reference/harbor-review/local-map.png)
 
 ภาพรวมเมืองใช้กล้องรีวิวที่ถอยไกลและเลื่อนระยะหมอก เพื่อเห็นผังได้ครบ; ภาพจุดเริ่มเป็นกล้องเล่นจริง โมเดลและผังยังรอเจ้าของตรวจ
+
+## Major progression balance — October 2026
+
+Current rules and migration are documented in `BALANCE-40.md`: section gates plus real
+network prerequisites, Job Lv40, moderated stat/skill/gear stacking, grade affix counts,
+bounded repeat crafting, data-driven level/material upgrades, v3 save preservation and
+91 anime item/skill icons. Earlier dated entries above describe historical revisions.
+
+## Dedicated crafting and stat-based equipment wearing (2026-10-02)
+
+Owner clarification supersedes the earlier equipment level gates: upgrade freely with
+materials, but wearing requires trained stats appropriate to the item's actual power.
+C/B/A/S now has 2/3/4/5 unique affixes. Each recipe opens a reusable workshop with one-click
+repeat, per-recipe goals/results and an easy return after comparing with equipped gear.
+Character v4 adds missing old gear affixes once while keeping existing rolls, grade,
+enhancement and UIDs. Gear that no longer meets wear requirements stays in the bag.

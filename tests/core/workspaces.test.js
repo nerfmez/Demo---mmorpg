@@ -27,23 +27,20 @@ test('constellations cover every node and specialist subviews preserve the four 
   assert.ok(t.constellations.some(c=>c.id===n.category),id);
   assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
  }
- assert.equal(Object.keys(t.nodes).length,87);
- for(const chapter of t.constellations.filter(c=>c.id!=='specialist')){
-  const ns=Object.values(t.nodes).filter(n=>n.category===chapter.id);
-  for(const tier of [...new Set(ns.map(n=>n.tier).filter(t=>t>1))]){
-   const sample=ns.find(n=>n.tier===tier),lower=ns.filter(n=>n.tier<tier).length;
-   assert.ok(sample.requiresSpent<lower,chapter.id+' tier '+tier+' must leave at least one earlier option skippable');
-  }
+ assert.equal(Object.keys(t.nodes).length,207);
+ for(const [id,n] of Object.entries(t.nodes)){
+  assert.ok(t.sections[n.section],id+' belongs to a major section');
+  assert.ok(!('tier' in n)&&!('requiresSpent' in n),id+' has no individual stage gate');
  }
- for(const group of t.groups){const ns=clusterNodes(t,'specialist',group.id);assert.equal(ns.length,7);assert.ok(ns.some(([id])=>id===group.job));}
+ for(const group of t.groups){const ns=clusterNodes(t,'specialist',group.id);assert.equal(ns.length,37);assert.ok(ns.some(([id])=>id===group.job));}
 });
 test('new small stat nodes spend Job Points only and retain old saved nodes',()=>{
  const ch=createCharacter(data);ch.jobPoints=20;const before=ch.statPoints;
  assert.ok(allocateJobNode(ch,data,'f_hp').done);assert.equal(ch.statPoints,before);assert.equal(ch.jobPoints,19);
  const base=createCharacter(data);assert.equal(derive(ch,data).maxHp-derive(base,data).maxHp,12);
  const old={...ch,jobNodes:['origin','a1','a2','aj'],jobLevel:8};migrateCharacter(old,data);
- assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,2);
- assert.equal(data.jobtree.nodes.aoe_master.tier,4);assert.equal(data.jobtree.nodes.aoe_master.requiresSpent,6);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
+ assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,4);
+ assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].tier,4);assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].requiresSpent,17);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
 });
 test('mod compatibility uses all/any/excludes and explanations expose each rule',()=>{
  const S=data.skills.combat,M=data.mods.mods;
@@ -81,3 +78,4 @@ test('mod UI distinguishes incompatible type, full sockets and stat-inactive sto
  ch.mods.push({id:'pierce',uid:101,level:1},{id:'burning_ground',uid:102,level:1});socketMod(ch,data,0,101);
  state=modStatus(ch,data,0,ch.mods[2]);assert.ok(state.fit.ok);assert.ok(!state.can);assert.match(state.reason,/เต็ม/);
 });
+

@@ -574,6 +574,7 @@ export class Game {
   /** Damage to a monster from the player, an ally or a damage-over-time effect. */
   hitMonster(m, amount, opts = {}) {
     if (m.dead) return 0;
+    const hpBefore = Math.max(0, m.hp);
     let dmg = amount;
     const crit = opts.crit ?? false;
     if (crit) dmg *= this.derived.critMult;
@@ -601,7 +602,7 @@ export class Game {
         this.moveEntity(m, d.x * k, d.z * k);
         if (!m.boss && m.state === 'windup') m.stateT = Math.max(0, m.stateT - 0.25); // knocks the rhythm back a little
       }
-      if (opts.leech && !opts.byAlly) this.healPlayer((dmg * opts.leech) / 100, true);
+      if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
     } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;

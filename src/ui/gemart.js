@@ -2,7 +2,7 @@ import {SIGILS} from './sigils.js';
 // A single small gemstone asset family. Only the engraving identifies the mod;
 // tint is decorative, never a compatibility, rarity or activation signal.
 export const GEM_TINTS={
- split:'#577d96',pierce:'#587e94',bounce:'#597988',burning_ground:'#9b674e',echo:'#777194',wide_arc:'#97704e',multistrike:'#8f6554',frost_shift:'#548494',knockback:'#79735b',concentrated:'#926953',lingering:'#767089',life_leech:'#835f67',spiked_ward:'#608277',pack_leader:'#64826a',cast_on_dodge:'#667794'
+ split:'#397cb8',pierce:'#3494b4',bounce:'#28a3af',burning_ground:'#d56b29',echo:'#8564d3',wide_arc:'#c28b35',multistrike:'#ce6843',frost_shift:'#409fc8',knockback:'#a59b39',concentrated:'#ba7841',lingering:'#8968c2',life_leech:'#b95278',spiked_ward:'#2d9b91',pack_leader:'#50a66c',cast_on_dodge:'#627bd1'
 };
 function engravedGem(id,tint){
  const mark=`<path d="${SIGILS[id]}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -16,3 +16,4 @@ function engravedGem(id,tint){
  <g transform="translate(32 34) scale(2.55)" color="#f5ecd8">${mark}</g></g>`;
 }
 export const MOD_ART=Object.fromEntries(Object.entries(GEM_TINTS).map(([id,tint])=>[id,engravedGem(id,tint)]));
+

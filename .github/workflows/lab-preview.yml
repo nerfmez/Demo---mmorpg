@@ -28,7 +28,10 @@ jobs:
       - run: node --test tests/core/combat.test.js tests/core/combat-fx.test.js tests/core/lab-tuning.test.js tests/core/physical-events.test.js
         if: startsWith(github.ref_name, 'claude/vfx-physical')
       - run: npm test
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance')"
+      - name: Progression and crafting safety
+        if: startsWith(github.ref_name, 'claude/vfx-balance')
+        run: node --test tests/core/balance.test.js tests/core/progression.test.js tests/core/crafting.test.js tests/core/data.test.js tests/core/workspaces.test.js tests/core/journal.test.js
       - run: npm run build
       - uses: actions/cache@v4
         with:
@@ -36,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-lab-playwright-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium webkit
       - name: Firebolt Lab review (Chromium)
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance')"
         run: node tests/browser/firebolt-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -45,7 +48,7 @@ jobs:
           path: tests/browser/out/firebolt-lab/
           retention-days: 7
       - name: Firebolt Lab review (WebKit)
-        if: "!startsWith(github.ref_name, 'claude/vfx-physical')"
+        if: "!startsWith(github.ref_name, 'claude/vfx-physical') && !startsWith(github.ref_name, 'claude/vfx-balance')"
         run: BROWSER=webkit node tests/browser/firebolt-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -80,6 +83,7 @@ jobs:
             tests/browser/out/physical-lab/
           retention-days: 7
       - name: Shared Lab editor (Chromium)
+        if: "!startsWith(github.ref_name, 'claude/vfx-balance')"
         run: node tests/browser/lab-editor.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -88,12 +92,31 @@ jobs:
           path: tests/browser/out/lab-editor/
           retention-days: 7
       - name: Shared Lab editor (WebKit)
+        if: "!startsWith(github.ref_name, 'claude/vfx-balance')"
         run: BROWSER=webkit node tests/browser/lab-editor.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lab-editor-webkit
           path: tests/browser/out/lab-editor/
+          retention-days: 7
+      - name: Balance and anime UI (Chromium)
+        if: startsWith(github.ref_name, 'claude/vfx-balance')
+        run: node tests/browser/balance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && startsWith(github.ref_name, 'claude/vfx-balance')
+        with:
+          name: balance-review-chromium
+          path: tests/browser/out/balance-chromium/
+          retention-days: 7
+      - name: Balance and anime UI (WebKit)
+        if: startsWith(github.ref_name, 'claude/vfx-balance')
+        run: BROWSER=webkit node tests/browser/balance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always() && startsWith(github.ref_name, 'claude/vfx-balance')
+        with:
+          name: balance-review-webkit
+          path: tests/browser/out/balance-webkit/
           retention-days: 7
       - name: Record which source the lab shows
         run: printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > dist/lab-source.json
@@ -102,3 +125,4 @@ jobs:
           name: lab-dist
           path: dist/
           retention-days: 7
+

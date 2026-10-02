@@ -1,5 +1,5 @@
 {
-  "_doc": "Travel-journal chapters: thematic, mixed-effect partial-investment networks. Legacy category IDs are internal only. Node IDs, effects, costs and every original link remain unchanged for v2 saves. A chapter is a view, never a purchasable bonus or a completion gate.",
+  "_doc": "Major section tiers unlock from TOTAL Job Points spent. Each small node must also connect to an owned neighbour. A profession can invest 39 points at Job Lv40 inside its base chapter and specialization.",
   "origin": "origin",
   "nodes": {
     "origin": {
@@ -21,11 +21,10 @@
       "group": "origin",
       "category": "foundation",
       "clusterPos": [
-        210,
-        300
+        230,
+        220
       ],
-      "tier": 0,
-      "requiresSpent": 0
+      "section": "foundation-1"
     },
     "v1": {
       "name": "Blade Practice",
@@ -43,16 +42,15 @@
         "m_atk"
       ],
       "effects": {
-        "meleeDamagePct": 8
+        "meleeDamagePct": 5.2
       },
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        215,
-        290
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "melee-1"
     },
     "v2": {
       "name": "Tough Body",
@@ -69,16 +67,15 @@
         "v6"
       ],
       "effects": {
-        "maxHpPct": 10
+        "maxHpPct": 6.5
       },
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        495,
-        290
+        155,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "melee-1"
     },
     "vj": {
       "name": "Vanguard",
@@ -96,21 +93,22 @@
         "v5",
         "v6",
         "v7",
-        "v8"
+        "v8",
+        "vanguard_t2_1",
+        "vanguard_t2_2"
       ],
       "effects": {
-        "barrierPct": 20,
+        "barrierPct": 13.0,
         "meleeHitBarrier": 3
       },
       "descTh": "สายประชิด/แท็งก์: เกราะเวทแรงขึ้น ตีประชิดโดนแล้วได้เกราะ",
       "group": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        220,
-        310
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "vanguard-1"
     },
     "v3": {
       "name": "Iron Hide",
@@ -126,18 +124,17 @@
         "v9"
       ],
       "effects": {
-        "defense": 12,
+        "defense": 7.8,
         "damageTakenPct": -5
       },
       "group": "vanguard",
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        485,
-        160
+        495,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "vanguard-2"
     },
     "v4": {
       "name": "Cleave",
@@ -153,18 +150,17 @@
         "v10"
       ],
       "effects": {
-        "meleeDamagePct": 15,
+        "meleeDamagePct": 9.8,
         "meleeArcAdd": 30
       },
       "group": "vanguard",
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        485,
-        465
+        645,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "vanguard-2"
     },
     "a1": {
       "name": "Arcane Study",
@@ -183,16 +179,15 @@
         "cc_time"
       ],
       "effects": {
-        "spellDamagePct": 8
+        "spellDamagePct": 5.2
       },
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        200,
-        310
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "area-1"
     },
     "a2": {
       "name": "Deep Well",
@@ -209,16 +204,15 @@
         "a6"
       ],
       "effects": {
-        "maxMpPct": 12
+        "maxMpPct": 7.8
       },
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        440,
-        170
+        155,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "area-1"
     },
     "aj": {
       "name": "Arcanist",
@@ -236,21 +230,22 @@
         "a5",
         "a6",
         "a7",
-        "a8"
+        "a8",
+        "arcanist_t2_1",
+        "arcanist_t2_2"
       ],
       "effects": {
         "areaRadiusPct": 20,
-        "areaDamagePct": 10
+        "areaDamagePct": 6.5
       },
       "descTh": "สายเวทวงกว้าง: รัศมีและดาเมจวงกว้างเพิ่ม",
       "group": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        220,
-        310
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "arcanist-1"
     },
     "a3": {
       "name": "Echoing Mind",
@@ -272,11 +267,10 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        485,
-        160
+        495,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "arcanist-2"
     },
     "a4": {
       "name": "Mana Flow",
@@ -299,11 +293,10 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        485,
-        465
+        645,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "arcanist-2"
     },
     "r1": {
       "name": "Steady Aim",
@@ -321,16 +314,15 @@
         "p_speed"
       ],
       "effects": {
-        "projectileDamagePct": 8
+        "projectileDamagePct": 5.2
       },
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        195,
-        315
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "projectile-1"
     },
     "r2": {
       "name": "Light Feet",
@@ -353,11 +345,10 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        440,
-        315
+        155,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "projectile-1"
     },
     "rj": {
       "name": "Ranger",
@@ -375,7 +366,9 @@
         "r5",
         "r6",
         "r7",
-        "r8"
+        "r8",
+        "ranger_t2_1",
+        "ranger_t2_2"
       ],
       "effects": {
         "extraMovementCharges": 1,
@@ -385,11 +378,10 @@
       "group": "ranger",
       "category": "specialist",
       "clusterPos": [
-        220,
-        310
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "ranger-1"
     },
     "r3": {
       "name": "Keen Eye",
@@ -405,17 +397,16 @@
         "r9"
       ],
       "effects": {
-        "critChancePct": 10
+        "critChancePct": 6.5
       },
       "group": "ranger",
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        485,
-        160
+        495,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "ranger-2"
     },
     "r4": {
       "name": "Swift Draw",
@@ -431,18 +422,17 @@
         "r10"
       ],
       "effects": {
-        "projectileDamagePct": 12,
-        "cooldownPct": 8
+        "projectileDamagePct": 7.8,
+        "cooldownPct": 5.2
       },
       "group": "ranger",
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        485,
-        465
+        645,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "ranger-2"
     },
     "w1": {
       "name": "Mending",
@@ -460,16 +450,15 @@
         "sup_hp"
       ],
       "effects": {
-        "healPct": 10
+        "healPct": 6.5
       },
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        185,
-        300
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "support-1"
     },
     "w2": {
       "name": "Shelter",
@@ -486,16 +475,15 @@
         "w6"
       ],
       "effects": {
-        "barrierPct": 10
+        "barrierPct": 6.5
       },
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        430,
-        300
+        155,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "support-1"
     },
     "wj": {
       "name": "Warden",
@@ -513,21 +501,22 @@
         "w5",
         "w6",
         "w7",
-        "w8"
+        "w8",
+        "warden_t2_1",
+        "warden_t2_2"
       ],
       "effects": {
         "healGrantsBarrierPct": 40,
-        "healPct": 10
+        "healPct": 6.5
       },
       "descTh": "สายซัพพอร์ต: ฮีลแล้วให้เกราะเวทด้วย เหมาะกับปาร์ตี้",
       "group": "warden",
       "category": "specialist",
       "clusterPos": [
-        220,
-        310
+        230,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "warden-1"
     },
     "w3": {
       "name": "Aegis Aura",
@@ -549,11 +538,10 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        485,
-        160
+        495,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "warden-2"
     },
     "w4": {
       "name": "Renewal",
@@ -575,11 +563,10 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        485,
-        465
+        645,
+        220
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "warden-2"
     },
     "v5": {
       "name": "Measured Strike",
@@ -601,11 +588,10 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        760,
-        170
+        495,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "melee-2"
     },
     "v6": {
       "name": "Field Medicine",
@@ -628,11 +614,10 @@
       "group": "vanguard",
       "category": "melee",
       "clusterPos": [
-        760,
-        415
+        645,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "melee-2"
     },
     "v7": {
       "name": "Bulwark",
@@ -644,7 +629,7 @@
         "v9"
       ],
       "effects": {
-        "barrierPct": 15,
+        "barrierPct": 9.8,
         "defense": 6
       },
       "pos": [
@@ -655,11 +640,10 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        735,
-        160
+        835,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "vanguard-3"
     },
     "v8": {
       "name": "Siphoning Edge",
@@ -681,11 +665,10 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        735,
-        465
+        985,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "vanguard-3"
     },
     "v9": {
       "name": "Unbroken Line",
@@ -698,7 +681,7 @@
       ],
       "effects": {
         "meleeHitBarrier": 2,
-        "maxHpPct": 8
+        "maxHpPct": 5.2
       },
       "pos": [
         7.72,
@@ -708,11 +691,10 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        175
+        1175,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "vanguard-4"
     },
     "v10": {
       "name": "Wide Reprisal",
@@ -725,7 +707,7 @@
       ],
       "effects": {
         "meleeArcAdd": 20,
-        "areaDamagePct": 8
+        "areaDamagePct": 5.2
       },
       "pos": [
         21.48,
@@ -735,11 +717,10 @@
       "requiresJob": "vanguard",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        455
+        1325,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "vanguard-4"
     },
     "a5": {
       "name": "Spell Reach",
@@ -761,11 +742,10 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        700,
-        145
+        495,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "area-2"
     },
     "a6": {
       "name": "Channel Memory",
@@ -787,11 +767,10 @@
       "group": "arcanist",
       "category": "area",
       "clusterPos": [
-        685,
-        325
+        645,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "area-2"
     },
     "a7": {
       "name": "Living Conduit",
@@ -803,7 +782,7 @@
         "a9"
       ],
       "effects": {
-        "summonDamagePct": 12,
+        "summonDamagePct": 7.8,
         "maxMpPct": 6
       },
       "pos": [
@@ -814,11 +793,10 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        735,
-        160
+        835,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "arcanist-3"
     },
     "a8": {
       "name": "Afterimage",
@@ -840,11 +818,10 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        735,
-        465
+        985,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "arcanist-3"
     },
     "a9": {
       "name": "Resonant Field",
@@ -867,11 +844,10 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        175
+        1175,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "arcanist-4"
     },
     "a10": {
       "name": "Arcane Reservoir",
@@ -883,7 +859,7 @@
         "a4"
       ],
       "effects": {
-        "maxMpPct": 15,
+        "maxMpPct": 9.8,
         "cooldownPct": 4
       },
       "pos": [
@@ -894,11 +870,10 @@
       "requiresJob": "arcanist",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        455
+        1325,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "arcanist-4"
     },
     "w5": {
       "name": "Spirit Pact",
@@ -912,7 +887,7 @@
         "sum_mp"
       ],
       "effects": {
-        "summonDamagePct": 10
+        "summonDamagePct": 6.5
       },
       "pos": [
         75.77,
@@ -921,11 +896,10 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        695,
-        170
+        495,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "support-2"
     },
     "w6": {
       "name": "Shared Shelter",
@@ -938,7 +912,7 @@
         "wr4"
       ],
       "effects": {
-        "barrierPct": 8,
+        "barrierPct": 5.2,
         "areaRadiusPct": 6
       },
       "pos": [
@@ -948,11 +922,10 @@
       "group": "warden",
       "category": "support",
       "clusterPos": [
-        690,
-        435
+        645,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "support-2"
     },
     "w7": {
       "name": "Lifewell",
@@ -964,7 +937,7 @@
         "w9"
       ],
       "effects": {
-        "healPct": 12,
+        "healPct": 7.8,
         "hpRegen": 0.6
       },
       "pos": [
@@ -975,11 +948,10 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        735,
-        160
+        835,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "warden-3"
     },
     "w8": {
       "name": "Companion Keeper",
@@ -991,7 +963,7 @@
         "w10"
       ],
       "effects": {
-        "summonDamagePct": 18
+        "summonDamagePct": 11.7
       },
       "pos": [
         62.57,
@@ -1001,11 +973,10 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        735,
-        465
+        985,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "warden-3"
     },
     "w9": {
       "name": "Sanctuary",
@@ -1028,11 +999,10 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        175
+        1175,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "warden-4"
     },
     "w10": {
       "name": "Evergreen",
@@ -1045,7 +1015,7 @@
       ],
       "effects": {
         "hpRegen": 1.2,
-        "maxHpPct": 10
+        "maxHpPct": 6.5
       },
       "pos": [
         78.52,
@@ -1055,11 +1025,10 @@
       "requiresJob": "warden",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        455
+        1325,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "warden-4"
     },
     "r5": {
       "name": "Windborne",
@@ -1081,11 +1050,10 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        710,
-        160
+        570,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "projectile-2"
     },
     "r6": {
       "name": "Venom Tip",
@@ -1108,11 +1076,10 @@
       "group": "ranger",
       "category": "projectile",
       "clusterPos": [
-        710,
-        360
+        910,
+        440
       ],
-      "tier": 3,
-      "requiresSpent": 3
+      "section": "projectile-3"
     },
     "r7": {
       "name": "Predator Bond",
@@ -1124,7 +1091,7 @@
         "r9"
       ],
       "effects": {
-        "summonDamagePct": 12,
+        "summonDamagePct": 7.8,
         "moveSpeedPct": 3
       },
       "pos": [
@@ -1135,11 +1102,10 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        735,
-        160
+        835,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "ranger-3"
     },
     "r8": {
       "name": "Quick Recovery",
@@ -1161,11 +1127,10 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        735,
-        465
+        985,
+        220
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "ranger-3"
     },
     "r9": {
       "name": "Gale Step",
@@ -1188,11 +1153,10 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        175
+        1175,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "ranger-4"
     },
     "r10": {
       "name": "Serrated Volley",
@@ -1205,7 +1169,7 @@
       ],
       "effects": {
         "poisonChancePct": 15,
-        "projectileDamagePct": 8
+        "projectileDamagePct": 5.2
       },
       "pos": [
         7.72,
@@ -1215,11 +1179,10 @@
       "requiresJob": "ranger",
       "category": "specialist",
       "clusterPos": [
-        1045,
-        455
+        1325,
+        220
       ],
-      "tier": 4,
-      "requiresSpent": 3
+      "section": "ranger-4"
     },
     "va1": {
       "name": "Martial Focus",
@@ -1242,11 +1205,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        235,
-        165
+        155,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "control-1"
     },
     "va2": {
       "name": "Runic Edge",
@@ -1269,11 +1231,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        235,
-        425
+        305,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "control-1"
     },
     "va3": {
       "name": "Spellblade",
@@ -1296,11 +1257,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        540,
-        285
+        570,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "control-2"
     },
     "va4": {
       "name": "Battle Rhythm",
@@ -1323,11 +1283,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "control",
       "clusterPos": [
-        845,
-        190
+        910,
+        440
       ],
-      "tier": 3,
-      "requiresSpent": 3
+      "section": "control-3"
     },
     "aw1": {
       "name": "Spirit Thread",
@@ -1349,11 +1308,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        300,
-        180
+        155,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "summon-1"
     },
     "aw2": {
       "name": "Kindled Life",
@@ -1375,11 +1333,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        300,
-        450
+        305,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "summon-1"
     },
     "aw3": {
       "name": "Ritual Circle",
@@ -1402,11 +1359,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        635,
-        315
+        570,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "summon-2"
     },
     "aw4": {
       "name": "Life Exchange",
@@ -1423,17 +1379,16 @@
         "w5"
       ],
       "effects": {
-        "healPct": 8,
+        "healPct": 5.2,
         "maxMpPct": 6
       },
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "summon",
       "clusterPos": [
-        960,
-        315
+        910,
+        440
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "summon-3"
     },
     "wr1": {
       "name": "Wild Companion",
@@ -1456,11 +1411,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        220,
-        170
+        155,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "lasting-1"
     },
     "wr2": {
       "name": "Herbalist",
@@ -1483,11 +1437,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        220,
-        440
+        305,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "lasting-1"
     },
     "wr3": {
       "name": "Wild Bond",
@@ -1504,17 +1457,16 @@
         "wr4"
       ],
       "effects": {
-        "summonDamagePct": 8,
+        "summonDamagePct": 5.2,
         "moveSpeedPct": 3
       },
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        470,
-        315
+        495,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "lasting-2"
     },
     "wr4": {
       "name": "Green Venom",
@@ -1537,11 +1489,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "lasting",
       "clusterPos": [
-        710,
-        315
+        645,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "lasting-2"
     },
     "rv1": {
       "name": "Skirmisher",
@@ -1564,11 +1515,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        260,
-        180
+        155,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "mobility-1"
     },
     "rv2": {
       "name": "Sure Footing",
@@ -1591,11 +1541,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        260,
-        445
+        305,
+        220
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "mobility-1"
     },
     "rv3": {
       "name": "Crossfire",
@@ -1618,11 +1567,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        620,
-        310
+        570,
+        440
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "mobility-2"
     },
     "rv4": {
       "name": "Second Wind",
@@ -1645,11 +1593,10 @@
       "descTh": "เส้นทางร่วม · ผสานสองสายได้โดยไม่ต้องเปลี่ยนอาชีพ",
       "category": "mobility",
       "clusterPos": [
-        970,
-        310
+        910,
+        440
       ],
-      "tier": 3,
-      "requiresSpent": 2
+      "section": "mobility-3"
     },
     "f_hp": {
       "name": "F Hp",
@@ -1670,11 +1617,10 @@
         26
       ],
       "clusterPos": [
-        435,
-        300
+        230,
+        430
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "foundation-1"
     },
     "f_mp": {
       "name": "F Mp",
@@ -1694,11 +1640,10 @@
         26
       ],
       "clusterPos": [
-        695,
-        180
+        155,
+        640
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "foundation-1"
     },
     "f_def": {
       "name": "F Def",
@@ -1718,11 +1663,10 @@
         43
       ],
       "clusterPos": [
-        695,
-        420
+        305,
+        640
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "foundation-1"
     },
     "f_atk": {
       "name": "F Atk",
@@ -1741,11 +1685,10 @@
         43
       ],
       "clusterPos": [
-        995,
-        420
+        645,
+        640
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "foundation-2"
     },
     "f_mag": {
       "name": "F Mag",
@@ -1764,11 +1707,10 @@
         43
       ],
       "clusterPos": [
-        995,
-        180
+        495,
+        640
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "foundation-2"
     },
     "m_atk": {
       "name": "M Atk",
@@ -1788,11 +1730,10 @@
         26
       ],
       "clusterPos": [
-        460,
-        525
+        305,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "melee-1"
     },
     "m_leech": {
       "name": "M Leech",
@@ -1811,11 +1752,10 @@
         26
       ],
       "clusterPos": [
-        735,
-        545
+        570,
+        690
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "melee-2"
     },
     "p_speed": {
       "name": "P Speed",
@@ -1835,11 +1775,10 @@
         9
       ],
       "clusterPos": [
-        420,
-        540
+        305,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "projectile-1"
     },
     "p_dmg": {
       "name": "P Dmg",
@@ -1858,11 +1797,10 @@
         9
       ],
       "clusterPos": [
-        700,
-        560
+        570,
+        690
       ],
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "projectile-2"
     },
     "aoe_radius": {
       "name": "Aoe Radius",
@@ -1882,11 +1820,10 @@
         9
       ],
       "clusterPos": [
-        420,
-        485
+        305,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "area-1"
     },
     "aoe_radius2": {
       "name": "Aoe Radius2",
@@ -1906,11 +1843,10 @@
         9
       ],
       "clusterPos": [
-        650,
-        515
+        570,
+        690
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "area-2"
     },
     "aoe_damage": {
       "name": "Aoe Damage",
@@ -1930,11 +1866,10 @@
         26
       ],
       "clusterPos": [
-        865,
-        450
+        910,
+        690
       ],
-      "tier": 3,
-      "requiresSpent": 4
+      "section": "area-3"
     },
     "aoe_master": {
       "name": "Aoe Master",
@@ -1944,7 +1879,7 @@
       "category": "area",
       "effects": {
         "areaRadiusPct": 10,
-        "areaDamagePct": 8
+        "areaDamagePct": 5.2
       },
       "links": [
         "aoe_damage"
@@ -1954,11 +1889,10 @@
         26
       ],
       "clusterPos": [
-        1090,
-        465
+        1250,
+        690
       ],
-      "tier": 4,
-      "requiresSpent": 6
+      "section": "area-4"
     },
     "dot_power": {
       "name": "Dot Power",
@@ -1979,12 +1913,11 @@
         9
       ],
       "clusterPos": [
-        865,
-        455
+        910,
+        440
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
-      "tier": 3,
-      "requiresSpent": 3
+      "section": "lasting-3"
     },
     "dot_power2": {
       "name": "Dot Power2",
@@ -2004,12 +1937,11 @@
         9
       ],
       "clusterPos": [
-        1115,
-        455
+        1175,
+        440
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
-      "tier": 4,
-      "requiresSpent": 5
+      "section": "lasting-4"
     },
     "lasting_time": {
       "name": "Lasting Time",
@@ -2028,12 +1960,11 @@
         26
       ],
       "clusterPos": [
-        900,
-        210
+        910,
+        690
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
-      "tier": 3,
-      "requiresSpent": 3
+      "section": "lasting-3"
     },
     "dot_master": {
       "name": "Dot Master",
@@ -2053,12 +1984,11 @@
         26
       ],
       "clusterPos": [
-        1300,
-        315
+        1325,
+        650
       ],
       "descTh": "ดาเมจพื้นที่ต่อเนื่องมีผลกับบึงพิษและพื้นไฟจากม็อด ไม่เพิ่มดาเมจโจมตีตรงหรือสถานะพิษ/ติดไฟบนตัวศัตรู; ระยะเวลามีผลกับพื้นที่พิษ น้ำพุ และพื้นไฟ",
-      "tier": 4,
-      "requiresSpent": 5
+      "section": "lasting-4"
     },
     "cc_time": {
       "name": "Cc Time",
@@ -2078,12 +2008,11 @@
         9
       ],
       "clusterPos": [
-        575,
-        535
+        570,
+        690
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
-      "tier": 2,
-      "requiresSpent": 1
+      "section": "control-2"
     },
     "cc_time2": {
       "name": "Cc Time2",
@@ -2103,12 +2032,11 @@
         9
       ],
       "clusterPos": [
-        850,
-        505
+        910,
+        690
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
-      "tier": 3,
-      "requiresSpent": 3
+      "section": "control-3"
     },
     "cc_master": {
       "name": "Cc Master",
@@ -2127,12 +2055,11 @@
         9
       ],
       "clusterPos": [
-        1120,
-        470
+        1250,
+        690
       ],
       "descTh": "เพิ่มระยะเวลาความเย็นที่ทำให้ช้า และคำสาปอ่อนแรง ไม่เพิ่มความแรงของดีบัฟ และไม่เพิ่มระยะเวลาบัฟ",
-      "tier": 4,
-      "requiresSpent": 5
+      "section": "control-4"
     },
     "sup_hp": {
       "name": "Sup Hp",
@@ -2152,11 +2079,10 @@
         26
       ],
       "clusterPos": [
-        415,
-        530
+        305,
+        440
       ],
-      "tier": 1,
-      "requiresSpent": 0
+      "section": "support-1"
     },
     "sup_heal": {
       "name": "Sup Heal",
@@ -2175,11 +2101,10 @@
         26
       ],
       "clusterPos": [
-        670,
-        560
+        570,
+        690
       ],
-      "tier": 2,
-      "requiresSpent": 2
+      "section": "support-2"
     },
     "sum_mp": {
       "name": "Sum Mp",
@@ -2199,11 +2124,10 @@
         9
       ],
       "clusterPos": [
-        925,
-        165
+        910,
+        440
       ],
-      "tier": 3,
-      "requiresSpent": 4
+      "section": "support-3"
     },
     "sum_damage": {
       "name": "Sum Damage",
@@ -2222,11 +2146,10 @@
         26
       ],
       "clusterPos": [
-        1150,
-        230
+        1250,
+        440
       ],
-      "tier": 4,
-      "requiresSpent": 5
+      "section": "support-4"
     },
     "mov_speed": {
       "name": "Mov Speed",
@@ -2246,11 +2169,10 @@
         9
       ],
       "clusterPos": [
-        965,
-        535
+        910,
+        690
       ],
-      "tier": 3,
-      "requiresSpent": 3
+      "section": "projectile-3"
     },
     "mov_cd": {
       "name": "Mov Cd",
@@ -2269,11 +2191,2922 @@
         9
       ],
       "clusterPos": [
-        1195,
-        455
+        1250,
+        690
       ],
-      "tier": 4,
-      "requiresSpent": 4
+      "section": "projectile-4"
+    },
+    "vanguard_t2_1": {
+      "name": "Vanguard Practice 2.1",
+      "nameTh": "ฝึกคมดาบ 1",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-2",
+      "effects": {
+        "meleeDamagePct": 2
+      },
+      "links": [
+        "vj",
+        "vanguard_t2_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        480
+      ]
+    },
+    "vanguard_t2_2": {
+      "name": "Vanguard Practice 2.2",
+      "nameTh": "ยืนหยัด 1",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-2",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "vj",
+        "vanguard_t2_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        480
+      ]
+    },
+    "vanguard_t2_3": {
+      "name": "Vanguard Practice 2.3",
+      "nameTh": "ตั้งรับ 1",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-2",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "vanguard_t2_1",
+        "vanguard_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        650
+      ]
+    },
+    "vanguard_t2_4": {
+      "name": "Vanguard Practice 2.4",
+      "nameTh": "อ่านวงฟัน 1",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-2",
+      "effects": {
+        "meleeArcAdd": 4
+      },
+      "links": [
+        "vanguard_t2_2",
+        "vanguard_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        650
+      ]
+    },
+    "vanguard_t2_5": {
+      "name": "Vanguard Practice 2.5",
+      "nameTh": "พักหายใจ 1",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-2",
+      "effects": {
+        "hpRegen": 0.1
+      },
+      "links": [
+        "vanguard_t2_3",
+        "vanguard_t2_4",
+        "vanguard_t2_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        820
+      ]
+    },
+    "vanguard_t2_6": {
+      "name": "Vanguard Practice 2.6",
+      "nameTh": "รักษาเกราะ 1",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-2",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "vanguard_t2_5",
+        "vanguard_t3_1",
+        "vanguard_t3_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        990
+      ]
+    },
+    "vanguard_t3_1": {
+      "name": "Vanguard Practice 3.1",
+      "nameTh": "ฝึกคมดาบ 2",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-3",
+      "effects": {
+        "meleeDamagePct": 2
+      },
+      "links": [
+        "vanguard_t2_6",
+        "vanguard_t3_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        480
+      ]
+    },
+    "vanguard_t3_2": {
+      "name": "Vanguard Practice 3.2",
+      "nameTh": "ยืนหยัด 2",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-3",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "vanguard_t2_6",
+        "vanguard_t3_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        480
+      ]
+    },
+    "vanguard_t3_3": {
+      "name": "Vanguard Practice 3.3",
+      "nameTh": "ตั้งรับ 2",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-3",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "vanguard_t3_1",
+        "vanguard_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        650
+      ]
+    },
+    "vanguard_t3_4": {
+      "name": "Vanguard Practice 3.4",
+      "nameTh": "อ่านวงฟัน 2",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-3",
+      "effects": {
+        "meleeArcAdd": 4
+      },
+      "links": [
+        "vanguard_t3_2",
+        "vanguard_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        650
+      ]
+    },
+    "vanguard_t3_5": {
+      "name": "Vanguard Practice 3.5",
+      "nameTh": "พักหายใจ 2",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-3",
+      "effects": {
+        "hpRegen": 0.1
+      },
+      "links": [
+        "vanguard_t3_3",
+        "vanguard_t3_4",
+        "vanguard_t3_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        820
+      ]
+    },
+    "vanguard_t3_6": {
+      "name": "Vanguard Practice 3.6",
+      "nameTh": "รักษาเกราะ 2",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-3",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "vanguard_t3_5",
+        "vanguard_t4_1",
+        "vanguard_t4_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        990
+      ]
+    },
+    "vanguard_t4_1": {
+      "name": "Vanguard Practice 4.1",
+      "nameTh": "ฝึกคมดาบ 3",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-4",
+      "effects": {
+        "meleeDamagePct": 2
+      },
+      "links": [
+        "vanguard_t3_6",
+        "vanguard_t4_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        480
+      ]
+    },
+    "vanguard_t4_2": {
+      "name": "Vanguard Practice 4.2",
+      "nameTh": "ยืนหยัด 3",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-4",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "vanguard_t3_6",
+        "vanguard_t4_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        480
+      ]
+    },
+    "vanguard_t4_3": {
+      "name": "Vanguard Practice 4.3",
+      "nameTh": "ตั้งรับ 3",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-4",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "vanguard_t4_1",
+        "vanguard_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        650
+      ]
+    },
+    "vanguard_t4_4": {
+      "name": "Vanguard Practice 4.4",
+      "nameTh": "อ่านวงฟัน 3",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-4",
+      "effects": {
+        "meleeArcAdd": 4
+      },
+      "links": [
+        "vanguard_t4_2",
+        "vanguard_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        650
+      ]
+    },
+    "vanguard_t4_5": {
+      "name": "Vanguard Practice 4.5",
+      "nameTh": "พักหายใจ 3",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-4",
+      "effects": {
+        "hpRegen": 0.1
+      },
+      "links": [
+        "vanguard_t4_3",
+        "vanguard_t4_4",
+        "vanguard_t4_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        820
+      ]
+    },
+    "vanguard_t4_6": {
+      "name": "Vanguard Practice 4.6",
+      "nameTh": "รักษาเกราะ 3",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-4",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "vanguard_t4_5",
+        "vanguard_t5_1",
+        "vanguard_t5_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        990
+      ]
+    },
+    "vanguard_t5_1": {
+      "name": "Vanguard Practice 5.1",
+      "nameTh": "ฝึกคมดาบ 4",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-5",
+      "effects": {
+        "meleeDamagePct": 2
+      },
+      "links": [
+        "vanguard_t4_6",
+        "vanguard_t5_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        480
+      ]
+    },
+    "vanguard_t5_2": {
+      "name": "Vanguard Practice 5.2",
+      "nameTh": "ยืนหยัด 4",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-5",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "vanguard_t4_6",
+        "vanguard_t5_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        480
+      ]
+    },
+    "vanguard_t5_3": {
+      "name": "Vanguard Practice 5.3",
+      "nameTh": "ตั้งรับ 4",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-5",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "vanguard_t5_1",
+        "vanguard_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        650
+      ]
+    },
+    "vanguard_t5_4": {
+      "name": "Vanguard Practice 5.4",
+      "nameTh": "อ่านวงฟัน 4",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-5",
+      "effects": {
+        "meleeArcAdd": 4
+      },
+      "links": [
+        "vanguard_t5_2",
+        "vanguard_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        650
+      ]
+    },
+    "vanguard_t5_5": {
+      "name": "Vanguard Practice 5.5",
+      "nameTh": "พักหายใจ 4",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-5",
+      "effects": {
+        "hpRegen": 0.1
+      },
+      "links": [
+        "vanguard_t5_3",
+        "vanguard_t5_4",
+        "vanguard_t5_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        820
+      ]
+    },
+    "vanguard_t5_6": {
+      "name": "Vanguard Practice 5.6",
+      "nameTh": "รักษาเกราะ 4",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-5",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "vanguard_t5_5",
+        "vanguard_t6_1",
+        "vanguard_t6_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        990
+      ]
+    },
+    "vanguard_t6_1": {
+      "name": "Vanguard Practice 6.1",
+      "nameTh": "ฝึกคมดาบ 5",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-6",
+      "effects": {
+        "meleeDamagePct": 2
+      },
+      "links": [
+        "vanguard_t5_6",
+        "vanguard_t6_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        480
+      ]
+    },
+    "vanguard_t6_2": {
+      "name": "Vanguard Practice 6.2",
+      "nameTh": "ยืนหยัด 5",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-6",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "vanguard_t5_6",
+        "vanguard_t6_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        480
+      ]
+    },
+    "vanguard_t6_3": {
+      "name": "Vanguard Practice 6.3",
+      "nameTh": "ตั้งรับ 5",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-6",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "vanguard_t6_1",
+        "vanguard_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        650
+      ]
+    },
+    "vanguard_t6_4": {
+      "name": "Vanguard Practice 6.4",
+      "nameTh": "อ่านวงฟัน 5",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-6",
+      "effects": {
+        "meleeArcAdd": 4
+      },
+      "links": [
+        "vanguard_t6_2",
+        "vanguard_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        650
+      ]
+    },
+    "vanguard_t6_5": {
+      "name": "Vanguard Practice 6.5",
+      "nameTh": "พักหายใจ 5",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-6",
+      "effects": {
+        "hpRegen": 0.1
+      },
+      "links": [
+        "vanguard_t6_3",
+        "vanguard_t6_4",
+        "vanguard_t6_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        820
+      ]
+    },
+    "vanguard_t6_6": {
+      "name": "Vanguard Practice 6.6",
+      "nameTh": "รักษาเกราะ 5",
+      "type": "minor",
+      "group": "vanguard",
+      "category": "specialist",
+      "requiresJob": "vanguard",
+      "section": "vanguard-6",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "vanguard_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        990
+      ]
+    },
+    "arcanist_t2_1": {
+      "name": "Arcanist Practice 2.1",
+      "nameTh": "เรียงพลังเวท 1",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-2",
+      "effects": {
+        "spellDamagePct": 2
+      },
+      "links": [
+        "aj",
+        "arcanist_t2_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        480
+      ]
+    },
+    "arcanist_t2_2": {
+      "name": "Arcanist Practice 2.2",
+      "nameTh": "เตรียมมานา 1",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-2",
+      "effects": {
+        "maxMpPct": 2
+      },
+      "links": [
+        "aj",
+        "arcanist_t2_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        480
+      ]
+    },
+    "arcanist_t2_3": {
+      "name": "Arcanist Practice 2.3",
+      "nameTh": "หมุนเวียนมานา 1",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-2",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "arcanist_t2_1",
+        "arcanist_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        650
+      ]
+    },
+    "arcanist_t2_4": {
+      "name": "Arcanist Practice 2.4",
+      "nameTh": "ขยายเขตร่าย 1",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-2",
+      "effects": {
+        "areaRadiusPct": 2
+      },
+      "links": [
+        "arcanist_t2_2",
+        "arcanist_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        650
+      ]
+    },
+    "arcanist_t2_5": {
+      "name": "Arcanist Practice 2.5",
+      "nameTh": "คุมจังหวะ 1",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-2",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "arcanist_t2_3",
+        "arcanist_t2_4",
+        "arcanist_t2_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        820
+      ]
+    },
+    "arcanist_t2_6": {
+      "name": "Arcanist Practice 2.6",
+      "nameTh": "ตั้งรับ 1",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-2",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "arcanist_t2_5",
+        "arcanist_t3_1",
+        "arcanist_t3_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        990
+      ]
+    },
+    "arcanist_t3_1": {
+      "name": "Arcanist Practice 3.1",
+      "nameTh": "เรียงพลังเวท 2",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-3",
+      "effects": {
+        "spellDamagePct": 2
+      },
+      "links": [
+        "arcanist_t2_6",
+        "arcanist_t3_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        480
+      ]
+    },
+    "arcanist_t3_2": {
+      "name": "Arcanist Practice 3.2",
+      "nameTh": "เตรียมมานา 2",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-3",
+      "effects": {
+        "maxMpPct": 2
+      },
+      "links": [
+        "arcanist_t2_6",
+        "arcanist_t3_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        480
+      ]
+    },
+    "arcanist_t3_3": {
+      "name": "Arcanist Practice 3.3",
+      "nameTh": "หมุนเวียนมานา 2",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-3",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "arcanist_t3_1",
+        "arcanist_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        650
+      ]
+    },
+    "arcanist_t3_4": {
+      "name": "Arcanist Practice 3.4",
+      "nameTh": "ขยายเขตร่าย 2",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-3",
+      "effects": {
+        "areaRadiusPct": 2
+      },
+      "links": [
+        "arcanist_t3_2",
+        "arcanist_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        650
+      ]
+    },
+    "arcanist_t3_5": {
+      "name": "Arcanist Practice 3.5",
+      "nameTh": "คุมจังหวะ 2",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-3",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "arcanist_t3_3",
+        "arcanist_t3_4",
+        "arcanist_t3_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        820
+      ]
+    },
+    "arcanist_t3_6": {
+      "name": "Arcanist Practice 3.6",
+      "nameTh": "ตั้งรับ 2",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-3",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "arcanist_t3_5",
+        "arcanist_t4_1",
+        "arcanist_t4_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        990
+      ]
+    },
+    "arcanist_t4_1": {
+      "name": "Arcanist Practice 4.1",
+      "nameTh": "เรียงพลังเวท 3",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-4",
+      "effects": {
+        "spellDamagePct": 2
+      },
+      "links": [
+        "arcanist_t3_6",
+        "arcanist_t4_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        480
+      ]
+    },
+    "arcanist_t4_2": {
+      "name": "Arcanist Practice 4.2",
+      "nameTh": "เตรียมมานา 3",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-4",
+      "effects": {
+        "maxMpPct": 2
+      },
+      "links": [
+        "arcanist_t3_6",
+        "arcanist_t4_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        480
+      ]
+    },
+    "arcanist_t4_3": {
+      "name": "Arcanist Practice 4.3",
+      "nameTh": "หมุนเวียนมานา 3",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-4",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "arcanist_t4_1",
+        "arcanist_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        650
+      ]
+    },
+    "arcanist_t4_4": {
+      "name": "Arcanist Practice 4.4",
+      "nameTh": "ขยายเขตร่าย 3",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-4",
+      "effects": {
+        "areaRadiusPct": 2
+      },
+      "links": [
+        "arcanist_t4_2",
+        "arcanist_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        650
+      ]
+    },
+    "arcanist_t4_5": {
+      "name": "Arcanist Practice 4.5",
+      "nameTh": "คุมจังหวะ 3",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-4",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "arcanist_t4_3",
+        "arcanist_t4_4",
+        "arcanist_t4_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        820
+      ]
+    },
+    "arcanist_t4_6": {
+      "name": "Arcanist Practice 4.6",
+      "nameTh": "ตั้งรับ 3",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-4",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "arcanist_t4_5",
+        "arcanist_t5_1",
+        "arcanist_t5_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        990
+      ]
+    },
+    "arcanist_t5_1": {
+      "name": "Arcanist Practice 5.1",
+      "nameTh": "เรียงพลังเวท 4",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-5",
+      "effects": {
+        "spellDamagePct": 2
+      },
+      "links": [
+        "arcanist_t4_6",
+        "arcanist_t5_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        480
+      ]
+    },
+    "arcanist_t5_2": {
+      "name": "Arcanist Practice 5.2",
+      "nameTh": "เตรียมมานา 4",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-5",
+      "effects": {
+        "maxMpPct": 2
+      },
+      "links": [
+        "arcanist_t4_6",
+        "arcanist_t5_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        480
+      ]
+    },
+    "arcanist_t5_3": {
+      "name": "Arcanist Practice 5.3",
+      "nameTh": "หมุนเวียนมานา 4",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-5",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "arcanist_t5_1",
+        "arcanist_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        650
+      ]
+    },
+    "arcanist_t5_4": {
+      "name": "Arcanist Practice 5.4",
+      "nameTh": "ขยายเขตร่าย 4",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-5",
+      "effects": {
+        "areaRadiusPct": 2
+      },
+      "links": [
+        "arcanist_t5_2",
+        "arcanist_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        650
+      ]
+    },
+    "arcanist_t5_5": {
+      "name": "Arcanist Practice 5.5",
+      "nameTh": "คุมจังหวะ 4",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-5",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "arcanist_t5_3",
+        "arcanist_t5_4",
+        "arcanist_t5_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        820
+      ]
+    },
+    "arcanist_t5_6": {
+      "name": "Arcanist Practice 5.6",
+      "nameTh": "ตั้งรับ 4",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-5",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "arcanist_t5_5",
+        "arcanist_t6_1",
+        "arcanist_t6_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        990
+      ]
+    },
+    "arcanist_t6_1": {
+      "name": "Arcanist Practice 6.1",
+      "nameTh": "เรียงพลังเวท 5",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-6",
+      "effects": {
+        "spellDamagePct": 2
+      },
+      "links": [
+        "arcanist_t5_6",
+        "arcanist_t6_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        480
+      ]
+    },
+    "arcanist_t6_2": {
+      "name": "Arcanist Practice 6.2",
+      "nameTh": "เตรียมมานา 5",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-6",
+      "effects": {
+        "maxMpPct": 2
+      },
+      "links": [
+        "arcanist_t5_6",
+        "arcanist_t6_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        480
+      ]
+    },
+    "arcanist_t6_3": {
+      "name": "Arcanist Practice 6.3",
+      "nameTh": "หมุนเวียนมานา 5",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-6",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "arcanist_t6_1",
+        "arcanist_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        650
+      ]
+    },
+    "arcanist_t6_4": {
+      "name": "Arcanist Practice 6.4",
+      "nameTh": "ขยายเขตร่าย 5",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-6",
+      "effects": {
+        "areaRadiusPct": 2
+      },
+      "links": [
+        "arcanist_t6_2",
+        "arcanist_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        650
+      ]
+    },
+    "arcanist_t6_5": {
+      "name": "Arcanist Practice 6.5",
+      "nameTh": "คุมจังหวะ 5",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-6",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "arcanist_t6_3",
+        "arcanist_t6_4",
+        "arcanist_t6_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        820
+      ]
+    },
+    "arcanist_t6_6": {
+      "name": "Arcanist Practice 6.6",
+      "nameTh": "ตั้งรับ 5",
+      "type": "minor",
+      "group": "arcanist",
+      "category": "specialist",
+      "requiresJob": "arcanist",
+      "section": "arcanist-6",
+      "effects": {
+        "defense": 1
+      },
+      "links": [
+        "arcanist_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        990
+      ]
+    },
+    "warden_t2_1": {
+      "name": "Warden Practice 2.1",
+      "nameTh": "สานพลังฟื้นฟู 1",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-2",
+      "effects": {
+        "healPct": 2
+      },
+      "links": [
+        "wj",
+        "warden_t2_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        480
+      ]
+    },
+    "warden_t2_2": {
+      "name": "Warden Practice 2.2",
+      "nameTh": "รักษาเกราะ 1",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-2",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "wj",
+        "warden_t2_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        480
+      ]
+    },
+    "warden_t2_3": {
+      "name": "Warden Practice 2.3",
+      "nameTh": "ยืนหยัด 1",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-2",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "warden_t2_1",
+        "warden_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        650
+      ]
+    },
+    "warden_t2_4": {
+      "name": "Warden Practice 2.4",
+      "nameTh": "ฝึกผู้ร่วมทาง 1",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-2",
+      "effects": {
+        "summonDamagePct": 2
+      },
+      "links": [
+        "warden_t2_2",
+        "warden_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        650
+      ]
+    },
+    "warden_t2_5": {
+      "name": "Warden Practice 2.5",
+      "nameTh": "รักษาพื้นที่ 1",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-2",
+      "effects": {
+        "persistentDurationPct": 2
+      },
+      "links": [
+        "warden_t2_3",
+        "warden_t2_4",
+        "warden_t2_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        820
+      ]
+    },
+    "warden_t2_6": {
+      "name": "Warden Practice 2.6",
+      "nameTh": "หมุนเวียนมานา 1",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-2",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "warden_t2_5",
+        "warden_t3_1",
+        "warden_t3_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        990
+      ]
+    },
+    "warden_t3_1": {
+      "name": "Warden Practice 3.1",
+      "nameTh": "สานพลังฟื้นฟู 2",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-3",
+      "effects": {
+        "healPct": 2
+      },
+      "links": [
+        "warden_t2_6",
+        "warden_t3_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        480
+      ]
+    },
+    "warden_t3_2": {
+      "name": "Warden Practice 3.2",
+      "nameTh": "รักษาเกราะ 2",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-3",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "warden_t2_6",
+        "warden_t3_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        480
+      ]
+    },
+    "warden_t3_3": {
+      "name": "Warden Practice 3.3",
+      "nameTh": "ยืนหยัด 2",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-3",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "warden_t3_1",
+        "warden_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        650
+      ]
+    },
+    "warden_t3_4": {
+      "name": "Warden Practice 3.4",
+      "nameTh": "ฝึกผู้ร่วมทาง 2",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-3",
+      "effects": {
+        "summonDamagePct": 2
+      },
+      "links": [
+        "warden_t3_2",
+        "warden_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        650
+      ]
+    },
+    "warden_t3_5": {
+      "name": "Warden Practice 3.5",
+      "nameTh": "รักษาพื้นที่ 2",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-3",
+      "effects": {
+        "persistentDurationPct": 2
+      },
+      "links": [
+        "warden_t3_3",
+        "warden_t3_4",
+        "warden_t3_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        820
+      ]
+    },
+    "warden_t3_6": {
+      "name": "Warden Practice 3.6",
+      "nameTh": "หมุนเวียนมานา 2",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-3",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "warden_t3_5",
+        "warden_t4_1",
+        "warden_t4_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        990
+      ]
+    },
+    "warden_t4_1": {
+      "name": "Warden Practice 4.1",
+      "nameTh": "สานพลังฟื้นฟู 3",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-4",
+      "effects": {
+        "healPct": 2
+      },
+      "links": [
+        "warden_t3_6",
+        "warden_t4_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        480
+      ]
+    },
+    "warden_t4_2": {
+      "name": "Warden Practice 4.2",
+      "nameTh": "รักษาเกราะ 3",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-4",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "warden_t3_6",
+        "warden_t4_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        480
+      ]
+    },
+    "warden_t4_3": {
+      "name": "Warden Practice 4.3",
+      "nameTh": "ยืนหยัด 3",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-4",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "warden_t4_1",
+        "warden_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        650
+      ]
+    },
+    "warden_t4_4": {
+      "name": "Warden Practice 4.4",
+      "nameTh": "ฝึกผู้ร่วมทาง 3",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-4",
+      "effects": {
+        "summonDamagePct": 2
+      },
+      "links": [
+        "warden_t4_2",
+        "warden_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        650
+      ]
+    },
+    "warden_t4_5": {
+      "name": "Warden Practice 4.5",
+      "nameTh": "รักษาพื้นที่ 3",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-4",
+      "effects": {
+        "persistentDurationPct": 2
+      },
+      "links": [
+        "warden_t4_3",
+        "warden_t4_4",
+        "warden_t4_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        820
+      ]
+    },
+    "warden_t4_6": {
+      "name": "Warden Practice 4.6",
+      "nameTh": "หมุนเวียนมานา 3",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-4",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "warden_t4_5",
+        "warden_t5_1",
+        "warden_t5_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        990
+      ]
+    },
+    "warden_t5_1": {
+      "name": "Warden Practice 5.1",
+      "nameTh": "สานพลังฟื้นฟู 4",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-5",
+      "effects": {
+        "healPct": 2
+      },
+      "links": [
+        "warden_t4_6",
+        "warden_t5_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        480
+      ]
+    },
+    "warden_t5_2": {
+      "name": "Warden Practice 5.2",
+      "nameTh": "รักษาเกราะ 4",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-5",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "warden_t4_6",
+        "warden_t5_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        480
+      ]
+    },
+    "warden_t5_3": {
+      "name": "Warden Practice 5.3",
+      "nameTh": "ยืนหยัด 4",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-5",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "warden_t5_1",
+        "warden_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        650
+      ]
+    },
+    "warden_t5_4": {
+      "name": "Warden Practice 5.4",
+      "nameTh": "ฝึกผู้ร่วมทาง 4",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-5",
+      "effects": {
+        "summonDamagePct": 2
+      },
+      "links": [
+        "warden_t5_2",
+        "warden_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        650
+      ]
+    },
+    "warden_t5_5": {
+      "name": "Warden Practice 5.5",
+      "nameTh": "รักษาพื้นที่ 4",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-5",
+      "effects": {
+        "persistentDurationPct": 2
+      },
+      "links": [
+        "warden_t5_3",
+        "warden_t5_4",
+        "warden_t5_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        820
+      ]
+    },
+    "warden_t5_6": {
+      "name": "Warden Practice 5.6",
+      "nameTh": "หมุนเวียนมานา 4",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-5",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "warden_t5_5",
+        "warden_t6_1",
+        "warden_t6_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        990
+      ]
+    },
+    "warden_t6_1": {
+      "name": "Warden Practice 6.1",
+      "nameTh": "สานพลังฟื้นฟู 5",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-6",
+      "effects": {
+        "healPct": 2
+      },
+      "links": [
+        "warden_t5_6",
+        "warden_t6_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        480
+      ]
+    },
+    "warden_t6_2": {
+      "name": "Warden Practice 6.2",
+      "nameTh": "รักษาเกราะ 5",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-6",
+      "effects": {
+        "barrierPct": 2
+      },
+      "links": [
+        "warden_t5_6",
+        "warden_t6_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        480
+      ]
+    },
+    "warden_t6_3": {
+      "name": "Warden Practice 6.3",
+      "nameTh": "ยืนหยัด 5",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-6",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "warden_t6_1",
+        "warden_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        650
+      ]
+    },
+    "warden_t6_4": {
+      "name": "Warden Practice 6.4",
+      "nameTh": "ฝึกผู้ร่วมทาง 5",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-6",
+      "effects": {
+        "summonDamagePct": 2
+      },
+      "links": [
+        "warden_t6_2",
+        "warden_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        650
+      ]
+    },
+    "warden_t6_5": {
+      "name": "Warden Practice 6.5",
+      "nameTh": "รักษาพื้นที่ 5",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-6",
+      "effects": {
+        "persistentDurationPct": 2
+      },
+      "links": [
+        "warden_t6_3",
+        "warden_t6_4",
+        "warden_t6_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        820
+      ]
+    },
+    "warden_t6_6": {
+      "name": "Warden Practice 6.6",
+      "nameTh": "หมุนเวียนมานา 5",
+      "type": "minor",
+      "group": "warden",
+      "category": "specialist",
+      "requiresJob": "warden",
+      "section": "warden-6",
+      "effects": {
+        "mpRegenPct": 3
+      },
+      "links": [
+        "warden_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        990
+      ]
+    },
+    "ranger_t2_1": {
+      "name": "Ranger Practice 2.1",
+      "nameTh": "ฝึกวิถีลูกศร 1",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-2",
+      "effects": {
+        "projectileDamagePct": 2
+      },
+      "links": [
+        "rj",
+        "ranger_t2_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        480
+      ]
+    },
+    "ranger_t2_2": {
+      "name": "Ranger Practice 2.2",
+      "nameTh": "อ่านวิถี 1",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-2",
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "links": [
+        "rj",
+        "ranger_t2_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        480
+      ]
+    },
+    "ranger_t2_3": {
+      "name": "Ranger Practice 2.3",
+      "nameTh": "เล็งจุดอ่อน 1",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-2",
+      "effects": {
+        "critChancePct": 0.5
+      },
+      "links": [
+        "ranger_t2_1",
+        "ranger_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        495,
+        650
+      ]
+    },
+    "ranger_t2_4": {
+      "name": "Ranger Practice 2.4",
+      "nameTh": "ก้าวแม่นยำ 1",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-2",
+      "effects": {
+        "moveSpeedPct": 1
+      },
+      "links": [
+        "ranger_t2_2",
+        "ranger_t2_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        645,
+        650
+      ]
+    },
+    "ranger_t2_5": {
+      "name": "Ranger Practice 2.5",
+      "nameTh": "ยืนหยัด 1",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-2",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "ranger_t2_3",
+        "ranger_t2_4",
+        "ranger_t2_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        820
+      ]
+    },
+    "ranger_t2_6": {
+      "name": "Ranger Practice 2.6",
+      "nameTh": "คุมจังหวะ 1",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-2",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "ranger_t2_5",
+        "ranger_t3_1",
+        "ranger_t3_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        990
+      ]
+    },
+    "ranger_t3_1": {
+      "name": "Ranger Practice 3.1",
+      "nameTh": "ฝึกวิถีลูกศร 2",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-3",
+      "effects": {
+        "projectileDamagePct": 2
+      },
+      "links": [
+        "ranger_t2_6",
+        "ranger_t3_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        480
+      ]
+    },
+    "ranger_t3_2": {
+      "name": "Ranger Practice 3.2",
+      "nameTh": "อ่านวิถี 2",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-3",
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "links": [
+        "ranger_t2_6",
+        "ranger_t3_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        480
+      ]
+    },
+    "ranger_t3_3": {
+      "name": "Ranger Practice 3.3",
+      "nameTh": "เล็งจุดอ่อน 2",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-3",
+      "effects": {
+        "critChancePct": 0.5
+      },
+      "links": [
+        "ranger_t3_1",
+        "ranger_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        835,
+        650
+      ]
+    },
+    "ranger_t3_4": {
+      "name": "Ranger Practice 3.4",
+      "nameTh": "ก้าวแม่นยำ 2",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-3",
+      "effects": {
+        "moveSpeedPct": 1
+      },
+      "links": [
+        "ranger_t3_2",
+        "ranger_t3_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        985,
+        650
+      ]
+    },
+    "ranger_t3_5": {
+      "name": "Ranger Practice 3.5",
+      "nameTh": "ยืนหยัด 2",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-3",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "ranger_t3_3",
+        "ranger_t3_4",
+        "ranger_t3_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        820
+      ]
+    },
+    "ranger_t3_6": {
+      "name": "Ranger Practice 3.6",
+      "nameTh": "คุมจังหวะ 2",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-3",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "ranger_t3_5",
+        "ranger_t4_1",
+        "ranger_t4_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        990
+      ]
+    },
+    "ranger_t4_1": {
+      "name": "Ranger Practice 4.1",
+      "nameTh": "ฝึกวิถีลูกศร 3",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-4",
+      "effects": {
+        "projectileDamagePct": 2
+      },
+      "links": [
+        "ranger_t3_6",
+        "ranger_t4_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        480
+      ]
+    },
+    "ranger_t4_2": {
+      "name": "Ranger Practice 4.2",
+      "nameTh": "อ่านวิถี 3",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-4",
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "links": [
+        "ranger_t3_6",
+        "ranger_t4_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        480
+      ]
+    },
+    "ranger_t4_3": {
+      "name": "Ranger Practice 4.3",
+      "nameTh": "เล็งจุดอ่อน 3",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-4",
+      "effects": {
+        "critChancePct": 0.5
+      },
+      "links": [
+        "ranger_t4_1",
+        "ranger_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1175,
+        650
+      ]
+    },
+    "ranger_t4_4": {
+      "name": "Ranger Practice 4.4",
+      "nameTh": "ก้าวแม่นยำ 3",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-4",
+      "effects": {
+        "moveSpeedPct": 1
+      },
+      "links": [
+        "ranger_t4_2",
+        "ranger_t4_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1325,
+        650
+      ]
+    },
+    "ranger_t4_5": {
+      "name": "Ranger Practice 4.5",
+      "nameTh": "ยืนหยัด 3",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-4",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "ranger_t4_3",
+        "ranger_t4_4",
+        "ranger_t4_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        820
+      ]
+    },
+    "ranger_t4_6": {
+      "name": "Ranger Practice 4.6",
+      "nameTh": "คุมจังหวะ 3",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-4",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "ranger_t4_5",
+        "ranger_t5_1",
+        "ranger_t5_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1250,
+        990
+      ]
+    },
+    "ranger_t5_1": {
+      "name": "Ranger Practice 5.1",
+      "nameTh": "ฝึกวิถีลูกศร 4",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-5",
+      "effects": {
+        "projectileDamagePct": 2
+      },
+      "links": [
+        "ranger_t4_6",
+        "ranger_t5_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        480
+      ]
+    },
+    "ranger_t5_2": {
+      "name": "Ranger Practice 5.2",
+      "nameTh": "อ่านวิถี 4",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-5",
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "links": [
+        "ranger_t4_6",
+        "ranger_t5_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        480
+      ]
+    },
+    "ranger_t5_3": {
+      "name": "Ranger Practice 5.3",
+      "nameTh": "เล็งจุดอ่อน 4",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-5",
+      "effects": {
+        "critChancePct": 0.5
+      },
+      "links": [
+        "ranger_t5_1",
+        "ranger_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1515,
+        650
+      ]
+    },
+    "ranger_t5_4": {
+      "name": "Ranger Practice 5.4",
+      "nameTh": "ก้าวแม่นยำ 4",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-5",
+      "effects": {
+        "moveSpeedPct": 1
+      },
+      "links": [
+        "ranger_t5_2",
+        "ranger_t5_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1665,
+        650
+      ]
+    },
+    "ranger_t5_5": {
+      "name": "Ranger Practice 5.5",
+      "nameTh": "ยืนหยัด 4",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-5",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "ranger_t5_3",
+        "ranger_t5_4",
+        "ranger_t5_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        820
+      ]
+    },
+    "ranger_t5_6": {
+      "name": "Ranger Practice 5.6",
+      "nameTh": "คุมจังหวะ 4",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-5",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "ranger_t5_5",
+        "ranger_t6_1",
+        "ranger_t6_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1590,
+        990
+      ]
+    },
+    "ranger_t6_1": {
+      "name": "Ranger Practice 6.1",
+      "nameTh": "ฝึกวิถีลูกศร 5",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-6",
+      "effects": {
+        "projectileDamagePct": 2
+      },
+      "links": [
+        "ranger_t5_6",
+        "ranger_t6_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        480
+      ]
+    },
+    "ranger_t6_2": {
+      "name": "Ranger Practice 6.2",
+      "nameTh": "อ่านวิถี 5",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-6",
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "links": [
+        "ranger_t5_6",
+        "ranger_t6_4"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        480
+      ]
+    },
+    "ranger_t6_3": {
+      "name": "Ranger Practice 6.3",
+      "nameTh": "เล็งจุดอ่อน 5",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-6",
+      "effects": {
+        "critChancePct": 0.5
+      },
+      "links": [
+        "ranger_t6_1",
+        "ranger_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1855,
+        650
+      ]
+    },
+    "ranger_t6_4": {
+      "name": "Ranger Practice 6.4",
+      "nameTh": "ก้าวแม่นยำ 5",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-6",
+      "effects": {
+        "moveSpeedPct": 1
+      },
+      "links": [
+        "ranger_t6_2",
+        "ranger_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        2005,
+        650
+      ]
+    },
+    "ranger_t6_5": {
+      "name": "Ranger Practice 6.5",
+      "nameTh": "ยืนหยัด 5",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-6",
+      "effects": {
+        "maxHpPct": 2
+      },
+      "links": [
+        "ranger_t6_3",
+        "ranger_t6_4",
+        "ranger_t6_6"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        820
+      ]
+    },
+    "ranger_t6_6": {
+      "name": "Ranger Practice 6.6",
+      "nameTh": "คุมจังหวะ 5",
+      "type": "minor",
+      "group": "ranger",
+      "category": "specialist",
+      "requiresJob": "ranger",
+      "section": "ranger-6",
+      "effects": {
+        "controlDurationPct": 2
+      },
+      "links": [
+        "ranger_t6_5"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        1930,
+        990
+      ]
     }
   },
   "groups": [
@@ -2370,7 +5203,7 @@
         335
       ],
       "descTh": "เลือกอาชีพเมื่อพร้อม · 4 คำสาบาน",
-      "maxTier": 4
+      "maxTier": 6
     },
     {
       "id": "support",
@@ -2437,5 +5270,332 @@
       "descTh": "ประสานอาวุธ · ความคล่อง · ฟื้นตัว",
       "maxTier": 3
     }
-  ]
+  ],
+  "revision": 2,
+  "sections": {
+    "foundation-1": {
+      "category": "foundation",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "melee-1": {
+      "category": "melee",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "vanguard-1": {
+      "category": "specialist",
+      "branch": "vanguard",
+      "tier": 1,
+      "requiresSpent": 3
+    },
+    "vanguard-2": {
+      "category": "specialist",
+      "branch": "vanguard",
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "area-1": {
+      "category": "area",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "arcanist-1": {
+      "category": "specialist",
+      "branch": "arcanist",
+      "tier": 1,
+      "requiresSpent": 3
+    },
+    "arcanist-2": {
+      "category": "specialist",
+      "branch": "arcanist",
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "projectile-1": {
+      "category": "projectile",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "projectile-2": {
+      "category": "projectile",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "ranger-1": {
+      "category": "specialist",
+      "branch": "ranger",
+      "tier": 1,
+      "requiresSpent": 3
+    },
+    "ranger-2": {
+      "category": "specialist",
+      "branch": "ranger",
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "support-1": {
+      "category": "support",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "warden-1": {
+      "category": "specialist",
+      "branch": "warden",
+      "tier": 1,
+      "requiresSpent": 3
+    },
+    "warden-2": {
+      "category": "specialist",
+      "branch": "warden",
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "melee-2": {
+      "category": "melee",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "vanguard-3": {
+      "category": "specialist",
+      "branch": "vanguard",
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "vanguard-4": {
+      "category": "specialist",
+      "branch": "vanguard",
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "area-2": {
+      "category": "area",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "arcanist-3": {
+      "category": "specialist",
+      "branch": "arcanist",
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "arcanist-4": {
+      "category": "specialist",
+      "branch": "arcanist",
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "support-2": {
+      "category": "support",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "warden-3": {
+      "category": "specialist",
+      "branch": "warden",
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "warden-4": {
+      "category": "specialist",
+      "branch": "warden",
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "projectile-3": {
+      "category": "projectile",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "ranger-3": {
+      "category": "specialist",
+      "branch": "ranger",
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "ranger-4": {
+      "category": "specialist",
+      "branch": "ranger",
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "control-1": {
+      "category": "control",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "control-2": {
+      "category": "control",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "control-3": {
+      "category": "control",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "summon-1": {
+      "category": "summon",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "summon-2": {
+      "category": "summon",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "summon-3": {
+      "category": "summon",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "lasting-1": {
+      "category": "lasting",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "lasting-2": {
+      "category": "lasting",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "mobility-1": {
+      "category": "mobility",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "mobility-2": {
+      "category": "mobility",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "mobility-3": {
+      "category": "mobility",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "foundation-2": {
+      "category": "foundation",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "area-3": {
+      "category": "area",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "area-4": {
+      "category": "area",
+      "branch": null,
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "lasting-3": {
+      "category": "lasting",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "lasting-4": {
+      "category": "lasting",
+      "branch": null,
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "control-4": {
+      "category": "control",
+      "branch": null,
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "support-3": {
+      "category": "support",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
+    },
+    "support-4": {
+      "category": "support",
+      "branch": null,
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "projectile-4": {
+      "category": "projectile",
+      "branch": null,
+      "tier": 4,
+      "requiresSpent": 17
+    },
+    "vanguard-5": {
+      "category": "specialist",
+      "branch": "vanguard",
+      "tier": 5,
+      "requiresSpent": 25
+    },
+    "vanguard-6": {
+      "category": "specialist",
+      "branch": "vanguard",
+      "tier": 6,
+      "requiresSpent": 33
+    },
+    "arcanist-5": {
+      "category": "specialist",
+      "branch": "arcanist",
+      "tier": 5,
+      "requiresSpent": 25
+    },
+    "arcanist-6": {
+      "category": "specialist",
+      "branch": "arcanist",
+      "tier": 6,
+      "requiresSpent": 33
+    },
+    "warden-5": {
+      "category": "specialist",
+      "branch": "warden",
+      "tier": 5,
+      "requiresSpent": 25
+    },
+    "warden-6": {
+      "category": "specialist",
+      "branch": "warden",
+      "tier": 6,
+      "requiresSpent": 33
+    },
+    "ranger-5": {
+      "category": "specialist",
+      "branch": "ranger",
+      "tier": 5,
+      "requiresSpent": 25
+    },
+    "ranger-6": {
+      "category": "specialist",
+      "branch": "ranger",
+      "tier": 6,
+      "requiresSpent": 33
+    }
+  }
 }

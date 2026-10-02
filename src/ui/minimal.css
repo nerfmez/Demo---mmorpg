@@ -96,3 +96,20 @@
  .overlay:not(.is-journal) .pbody[data-panel="bag"] .item-tile .art{width:64px;height:64px}
  .overlay:not(.is-journal) .pbody[data-panel="bag"] .item-tile b{font-size:11px}
 }
+
+
+/* Progression surfaces follow the owner's dark Minimal Panel direction. */
+.overlay:not(.is-journal) .pbody :is(.growth-preview,.craft-result,.grade-guide>div,.upgrade-track li){background:#12293b99;color:#d8e8f1;border-color:#789ab950}
+.overlay:not(.is-journal) .pbody .growth-preview{border:1px solid #789ab933}
+.overlay:not(.is-journal) .pbody .affix-row{background:#5289b31c;border-color:#73a7cf}
+.overlay:not(.is-journal) .pbody .grade-badge{background:#142a3999;border-color:currentColor}
+.overlay:not(.is-journal) .pbody .grade-C{color:#b6c5d4}.overlay:not(.is-journal) .pbody .grade-B{color:#74d6b0}.overlay:not(.is-journal) .pbody .grade-A{color:#83adff}.overlay:not(.is-journal) .pbody .grade-S{color:#ffd277}
+.overlay:not(.is-journal) .pbody .item-tile.grade-C,.overlay:not(.is-journal) .pbody .craft-result.grade-C{border-color:#91a6b955}
+.overlay:not(.is-journal) .pbody .item-tile.grade-B,.overlay:not(.is-journal) .pbody .craft-result.grade-B{border-color:#63bd9877}
+.overlay:not(.is-journal) .pbody .item-tile.grade-A,.overlay:not(.is-journal) .pbody .craft-result.grade-A{border-color:#83adff;box-shadow:inset 0 -3px #83adff27}
+.overlay:not(.is-journal) .pbody .item-tile.grade-S,.overlay:not(.is-journal) .pbody .craft-result.grade-S{border:2px solid #edbc60;box-shadow:inset 0 -4px #edbc6036;background:#614b2336}
+.overlay:not(.is-journal) .pbody .upgrade-track li.done{background:#205a4455;border-color:#75bb93}.overlay:not(.is-journal) .pbody .upgrade-track li.next{background:#795b282f;border-color:#b99654;color:#ffe2a5}
+.overlay:not(.is-journal) .pbody .upgrade-track li small{font-size:10px}.overlay:not(.is-journal) .pbody .craft-goals label{color:#b7cfdb}
+.overlay:not(.is-journal) .pbody :is(.craft-repeat,.upgrade-cost,.grade-promotion){border-color:#86a5b344}.overlay:not(.is-journal) .pbody :is(.craft-repeat summary,.recipe-affixes summary){color:#a4d8d0}
+.journal-section-heading>b{font-size:calc(15px * var(--inverse-zoom,1))}.journal-section-heading>span{font-size:calc(11px * var(--inverse-zoom,1))}
+@media(max-width:700px){.overlay:not(.is-journal) .pbody .upgrade-track li small{font-size:9px}}

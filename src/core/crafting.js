@@ -1,4 +1,5 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
+import { gearStats, gearRequirements, gearPower, enforceEquipment, meetsRequires } from './character.js';
 
 export function canAfford(ch, cost) {
   for (const k in cost) {
@@ -75,32 +76,65 @@ export function craft(ch, data, recipeId, rng) {
 
 export function gearUpgradeCost(data, item) {
   const u = data.items.upgrade;
-  return item.upgrade >= u.max ? null : u.cost[item.upgrade];
+  if (item.upgrade >= u.max) return null;
+  return materialCost(u.cost[item.upgrade], data.items.gearBases[item.base].upgradeMaterial);
+}
+
+function materialCost(step, material) {
+  const { material: count = 0, requiresLevel, requiresStat, ...cost } = step;
+  if (count) cost[material] = (cost[material] || 0) + count;
+  return cost;
+}
+
+export function gearUpgradeState(ch, data, item) {
+  if (!item) return { ok: false, reason: 'unknown' };
+  const cost = gearUpgradeCost(data, item);
+  if (!cost) return { ok: false, reason: 'max' };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
+}
+
+export function gearUpgradePreview(data, item) {
+  if (!gearUpgradeCost(data, item)) return null;
+  const after = { ...item, upgrade:item.upgrade+1 };
+  return { before: gearStats(item, data), after: gearStats(after, data), beforeRequires:gearRequirements(item,data), afterRequires:gearRequirements(after,data) };
 }
 
 export function upgradeGear(ch, data, uid) {
   const item = ch.gear.find((g) => g.uid === uid);
   if (!item) return { ok: false, reason: 'unknown' };
-  const cost = gearUpgradeCost(data, item);
-  if (!cost) return { ok: false, reason: 'max' };
-  if (!pay(ch, cost)) return { ok: false, reason: 'materials' };
+  const state = gearUpgradeState(ch, data, item);
+  if (!state.ok) return state;
+  pay(ch, state.cost);
   item.upgrade++;
-  return { ok: true, item };
+  return { ok: true, item, unequipped:enforceEquipment(ch,data) };
 }
 
 export function skillUpgradeCost(data, skillId, level) {
   const su = data.progression.skillUpgrade;
   if (level >= su.maxLevel) return null;
   const def = data.skills.combat[skillId];
-  return { [def.upgradeMaterial]: level + 1, gold: su.goldPerLevel * level };
+  if (!def || !su.steps[level - 1]) return null;
+  return materialCost(su.steps[level - 1], def.upgradeMaterial);
+}
+
+export function skillUpgradeState(ch, data, skillId) {
+  const level = ch.skills[skillId];
+  if (!level) return { ok: false, reason: 'not_learned' };
+  const cost = skillUpgradeCost(data, skillId, level);
+  if (!cost) return { ok: false, reason: 'max' };
+  const step = data.progression.skillUpgrade.steps[level - 1], stat = data.skills.combat[skillId].upgradeStat;
+  if (ch.level < step.requiresLevel) return { ok: false, reason: 'level', need: step.requiresLevel, cost };
+  const req = meetsRequires(ch, { [stat]: step.requiresStat });
+  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }
 
 export function upgradeSkill(ch, data, skillId) {
   const level = ch.skills[skillId];
   if (!level) return { ok: false, reason: 'not_learned' };
-  const cost = skillUpgradeCost(data, skillId, level);
-  if (!cost) return { ok: false, reason: 'max' };
-  if (!pay(ch, cost)) return { ok: false, reason: 'materials' };
+  const state = skillUpgradeState(ch, data, skillId);
+  if (!state.ok) return state;
+  pay(ch, state.cost);
   ch.skills[skillId] = level + 1;
   return { ok: true, level: level + 1 };
 }
@@ -110,14 +144,81 @@ export function modUpgradeCost(data, inst) {
   return inst.level >= mu.maxLevel ? null : mu.cost[inst.level - 1];
 }
 
-export function upgradeMod(ch, data, uid) {
-  const inst = ch.mods.find((m) => m.uid === uid);
+export function modUpgradeState(ch, data, inst) {
   if (!inst) return { ok: false, reason: 'unknown' };
   const cost = modUpgradeCost(data, inst);
   if (!cost) return { ok: false, reason: 'max' };
-  if (!pay(ch, cost)) return { ok: false, reason: 'materials' };
+  const need = data.progression.modUpgrade.requiresLevel[inst.level - 1];
+  if (ch.level < need) return { ok: false, reason: 'level', need, cost };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost, need };
+}
+
+export function upgradeMod(ch, data, uid) {
+  const inst = ch.mods.find((m) => m.uid === uid);
+  if (!inst) return { ok: false, reason: 'unknown' };
+  const state = modUpgradeState(ch, data, inst);
+  if (!state.ok) return state;
+  pay(ch, state.cost);
   inst.level++;
   return { ok: true, level: inst.level };
+}
+
+export function gearGradeState(ch, data, item) {
+  if (!item) return { ok: false, reason: 'unknown' };
+  const grade = data.items.grades.order[data.items.grades.order.indexOf(item.grade) + 1];
+  if (!grade) return { ok: false, reason: 'max' };
+  const rules = data.items.gradeUpgrade, cost = rules.cost[grade];
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', grade, cost };
+}
+
+/** Promotion keeps owned rolls; show the range of possible new wear requirements. */
+export function gearGradePreview(data, item) {
+  const grade = data.items.grades.order[data.items.grades.order.indexOf(item.grade)+1];
+  if (!grade) return null;
+  const count = data.items.grades.optionCount[grade] - item.options.length;
+  const pool = data.items.gearBases[item.base].optionPool.filter(id => !item.options.some(o => o.id===id));
+  const candidate = upper => {
+    const options = pool.map(id => ({ id, value:data.items.gearOptions[id][upper?'max':'min'] }));
+    options.sort((a,b) => (upper?-1:1) * (gearPower({ [data.items.gearOptions[a.id].stat]:a.value },data)-gearPower({ [data.items.gearOptions[b.id].stat]:b.value },data)));
+    return gearRequirements({ ...item, grade, options:[...item.options,...options.slice(0,Math.max(0,count))] },data);
+  };
+  return { beforeRequires:gearRequirements(item,data), minRequires:candidate(false), maxRequires:candidate(true) };
+}
+
+export function promoteGear(ch, data, uid, rng) {
+  const item = ch.gear.find(g => g.uid === uid), state = gearGradeState(ch, data, item);
+  if (!state.ok) return state;
+  const count = data.items.grades.optionCount[state.grade];
+  const pool = data.items.gearBases[item.base].optionPool.filter(id => !item.options.some(o => o.id === id));
+  if (pool.length < count - item.options.length) return { ok: false, reason: 'pool' };
+  pay(ch, state.cost);
+  while (item.options.length < count) {
+    const id = pool.splice(rng.int(0, pool.length - 1), 1)[0], def = data.items.gearOptions[id];
+    item.options.push({ id, value: rng.int(def.min, def.max) });
+  }
+  item.grade = state.grade;
+  return { ok: true, item, unequipped:enforceEquipment(ch,data) };
+}
+
+/** At most ten independent crafts. Keep every result; stop at target or first unpaid attempt. */
+export function craftBatch(ch, data, recipeId, rng, { attempts = 1, grade = null, option = null, quality = 0 } = {}) {
+  const recipe = data.recipes.recipes[recipeId], grades = data.items.grades.order;
+  if (!recipe || recipe.type !== 'gear' || !Number.isInteger(attempts) || attempts < 1 || attempts > data.items.crafting.maxBatch ||
+      (grade !== null && !grades.includes(grade)) || (option !== null && !recipe.optionPool.includes(option)) ||
+      !Number.isFinite(quality) || quality < 0 || quality > 1)
+    return { ok: false, reason: 'invalid', items: [], spent: {}, attempts: 0 };
+  const items = [], spent = {};
+  let reason = 'limit';
+  for (let n = 0; n < attempts; n++) {
+    const result = craft(ch, data, recipeId, rng);
+    if (!result.ok) { reason = result.reason; break; }
+    items.push(result.item);
+    for (const [key, count] of Object.entries(recipe.cost)) spent[key] = (spent[key] || 0) + count;
+    const gradeMatch = !grade || grades.indexOf(result.item.grade) >= grades.indexOf(grade);
+    const optionMatch = !option || result.item.options.some(o => o.id === option && o.value >= data.items.gearOptions[option].min + quality * (data.items.gearOptions[option].max - data.items.gearOptions[option].min));
+    if ((grade || option) && gradeMatch && optionMatch) { reason = 'target'; break; }
+  }
+  return { ok: items.length > 0, items, spent, reason, attempts: items.length, matched: reason === 'target' };
 }
 
 export function sellMaterial(ch, data, id, qty = 1) {

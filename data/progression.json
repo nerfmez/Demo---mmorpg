@@ -16,44 +16,72 @@
       "DEX": 3
     },
     "base": {
-      "hp": 90,
-      "hpPerLevel": 10,
-      "hpPerVit": 9,
-      "mp": 40,
-      "mpPerLevel": 3,
-      "mpPerInt": 4,
+      "hp": 99,
+      "hpPerLevel": 4,
+      "hpPerVit": 6,
+      "mp": 44.5,
+      "mpPerLevel": 1.2,
+      "mpPerInt": 2.5,
       "mpRegen": 2.5,
       "hpRegen": 0.6,
-      "moveSpeed": 6.0
+      "moveSpeed": 6.0,
+      "attack": 1.65,
+      "magic": 2.25,
+      "mpRegenPerInt": 0.025
     },
     "perStat": {
       "STR": {
-        "attack": 1.2
+        "attack": 0.45
       },
       "INT": {
-        "magic": 1.2
+        "magic": 0.45
       },
       "VIT": {
-        "defense": 0.4,
-        "barrierPct": 2
+        "defense": 0.25,
+        "barrierPct": 0.6
       },
       "AGI": {
-        "moveSpeedPct": 1,
-        "cooldownPct": 0.6
+        "moveSpeedPct": 0.35,
+        "cooldownPct": 0.2
       },
       "DEX": {
-        "critChancePct": 0.6,
-        "projectileDamagePct": 1.5
+        "critChancePct": 0.15,
+        "projectileDamagePct": 0.45,
+        "attack": 0.2
       }
     },
     "critMult": 1.5,
-    "baseCritChancePct": 5
+    "baseCritChancePct": 5,
+    "caps": {
+      "cooldownPct": 25,
+      "critChancePct": 40,
+      "moveSpeedPct": 30,
+      "damageTakenPct": -25,
+      "hpRegen": 5,
+      "leechPct": 8,
+      "extraMovementCharges": 1
+    },
+    "softCaps": {
+      "threshold": 50,
+      "overflowFactor": 0.5,
+      "stats": [
+        "meleeDamagePct",
+        "projectileDamagePct",
+        "areaDamagePct",
+        "spellDamagePct",
+        "summonDamagePct",
+        "dotDamagePct",
+        "maxHpPct",
+        "barrierPct",
+        "healPct"
+      ]
+    }
   },
   "job": {
-    "maxLevel": 20,
+    "maxLevel": 40,
     "expCurve": {
-      "base": 15,
-      "exponent": 1.45
+      "base": 18,
+      "exponent": 1.48
     },
     "pointsPerLevel": 1,
     "jobChoiceLevel": 5
@@ -64,10 +92,39 @@
     "jobGoldPerLevel": 12
   },
   "skillUpgrade": {
-    "_doc": "Level N -> N+1 costs its upgradeMaterial x (N+1) and gold. Each level: +12% damage/heal/barrier.",
+    "_doc": "World materials + gold raise skill rank. Rank gates prevent early maximum power; mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 5,
-    "perLevel": 0.12,
-    "goldPerLevel": 25
+    "perLevel": 0.06,
+    "manaPerLevel": 0.05,
+    "steps": [
+      {
+        "requiresLevel": 5,
+        "requiresStat": 5,
+        "material": 3,
+        "gold": 35
+      },
+      {
+        "requiresLevel": 12,
+        "requiresStat": 7,
+        "material": 5,
+        "gold": 90,
+        "glow_dust": 2
+      },
+      {
+        "requiresLevel": 22,
+        "requiresStat": 9,
+        "material": 8,
+        "gold": 180,
+        "ruin_shard": 1
+      },
+      {
+        "requiresLevel": 34,
+        "requiresStat": 11,
+        "material": 12,
+        "gold": 320,
+        "ruin_shard": 2
+      }
+    ]
   },
   "modUpgrade": {
     "maxLevel": 3,
@@ -82,6 +139,10 @@
         "glow_dust": 3,
         "gold": 80
       }
+    ],
+    "requiresLevel": [
+      10,
+      24
     ]
   },
   "monsterScaling": {
@@ -165,7 +226,7 @@
   "combat": {
     "_doc": "Combat feel. Consecutive melee swings within comboWindow seconds count 1-2-3; the third is a finisher (more damage, knocks back). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
     "comboWindow": 1.1,
-    "finisherMult": 1.5,
+    "finisherMult": 1.3,
     "finisherKnock": 2.2,
     "stagger": 0.14
   }

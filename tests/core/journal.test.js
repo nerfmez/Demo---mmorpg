@@ -1,6 +1,5 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createHash} from 'node:crypto';
 import {data} from './helpers.js';
 import {createCharacter,allocateJobNode,derive,jobNodeState} from '../../src/core/character.js';
 import {clusterNodes,jobView} from '../../src/ui/jobview.js';
@@ -8,9 +7,11 @@ import {MOD_ART} from '../../src/ui/gemart.js';
 import {SIGILS} from '../../src/ui/sigils.js';
 import {art,hasArt} from '../../src/ui/art.js';
 
-test('journal reorganization preserves all 87 original effects, links, types and job gates',()=>{
- const projection=Object.entries(data.jobtree.nodes).sort(([a],[b])=>a<b?-1:1).map(([id,n])=>[id,n.effects,n.links,n.type,n.requiresJob??null,n.job??null,n.jobLevel??null]);
- assert.equal(createHash('sha256').update(JSON.stringify(projection)).digest('hex'),'63b4da9484fa3e486647787110f37508caeca0f5f2f39bd2a3ec2afff7a9651b');
+test('rebalance retains legacy content IDs and optional chapter navigation',()=>{
+ const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id));
+ assert.equal(originals.length,87);
+ for(const [id,n] of originals){assert.ok(data.jobtree.sections[n.section],id);assert.ok(n.links.every(id=>data.jobtree.nodes[id]));}
+ for(const group of data.jobtree.groups){assert.equal(data.jobtree.nodes[group.job].type,'job');assert.equal(data.jobtree.nodes[group.job].branch,group.id);}
 });
 test('themed chapters have mixed investments rather than renamed single-stat categories',()=>{
  for(const c of data.jobtree.constellations){
@@ -53,3 +54,4 @@ test('all fifteen mod item drawings share the gem engraving renderer, not raster
   assert.ok(svg.includes('stroke="currentColor"'));assert.ok(svg.includes(MOD_ART[id]));
  }
 });
+

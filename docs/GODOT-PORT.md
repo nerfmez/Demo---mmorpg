@@ -11,7 +11,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 2`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 4`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## What gets translated (logic, `src/core/`)
 
@@ -57,17 +57,52 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
-travel-journal chapters before showing the relevant part of the 87-node passive network.
-Each node in `data/jobtree.json` has `tier` and `requiresSpent`: a later tier unlocks
-when enough Job Points have already been invested in lower tiers of that same chapter.
-This is a stage gate, not an exact path requirement, so players can combine branches
-inside a chapter. Specialization counts the four profession oaths separately and
-`requiresJob` remains authoritative. Links are retained for visual relationships,
-cross-chapter navigation and layout, but they no longer force the exact allocation path
-when tier metadata exists. `jobPath()` is only a non-mutating suggested tier preview.
-Per-category pan/zoom cameras are view state, never saved in the character; version-2
-saves are preserved. Use different disc sizes for small and major nodes, but keep touch
-targets at least 44 logical pixels at every supported zoom.
+travel-journal chapters before showing the relevant part of the 207-node passive network.
+Major `jobtree.sections` own `tier` and `requiresSpent`: thresholds use TOTAL allocated
+Job Points (origin excluded). Each node references a section and must ALSO connect to an
+owned neighbour. An unlocked section never bypasses adjacency. Keep one profession,
+Job Lv5 choice and `requiresJob` restrictions. Job level extends to 40 (39 points);
+each profession has sufficient connected choices in its base chapter plus specialization.
+`jobPath()` previews the shortest connected route without inventing filler purchases.
+Per-category pan/zoom cameras are view state. Nodes and purchase buttons remain separate;
+touch gestures never allocate points. Minimum touch targets stay 44 logical pixels.
+
+Character v4 retains the one-time `treeRevision` refund from v3: reset the old network
+and profession, retaining stats, skills, mods, materials, gold and gear UIDs. Only v1/v2
+roll values map to the new range at their original quality percentile. All pre-v4 gear
+gains missing 2/3/4/5 grade slots at conservative minimum values; never reroll existing
+affixes, consume RNG or repeat the fill after v4. Invalidated equipped gear stays owned
+in the bag. The slot envelope remains version 2. `/lab/` uses separate storage keys;
+exported main codes can be imported without overwriting main-game saves.
+
+Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports five.
+Grade promotion retains existing rolls and +N, adding one unique affix. Enhancement
++1..+5 changes base stats by 4% per step. Both upgrades use materials/gold only: no
+character-level or stat gate. Skill ranks 2..5 retain their separate Lv5/12/22/34 and
+stat gates, 6% direct growth and 5% MP growth; mods supply behavioural growth.
+
+`gearRequirements(item,data)` calculates wear requirements from actual weighted base,
+grade, enhancement and affix power using `items.requirements`. Check raw `character.stats`
+with `gearEquipState`, never level or gear-granted power. Use it for equip, derived stats
+and appearance. `enforceEquipment` returns invalidated equipment to the bag after upgrades,
+stat respec and migration. Do not delete the item or reject a funded upgrade. Show exact
+after-enhancement requirements; `gearGradePreview` gives RNG-free min/max wear requirements
+for possible new affixes. Actual grade rolls determine the final requirement.
+
+Cap leech after mods and recover only actual target HP removed, never overkill damage.
+`gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` are shared
+by UI and rules; all previews are pure. Equipment state helpers check resources only.
+
+`craftBatch()` allows 1..10 independent attempts, optional grade/affix/quality targets,
+and stops on target or the first unpaid attempt. Bill only completed attempts and notify
+quest progress once per item; preserve every result and UID. Never auto-equip or destroy
+unwanted rolls. A selected recipe opens one reusable `craftview.js` workshop; selection
+and comparison never craft or spend. Preserve its repeat button, goals, recent twenty
+result UIDs and a return-to-workshop path after bag comparison. All results stay in the bag.
+
+The bag/workbench/growth views share grade pips, ranges and progression requirements via
+`ui/progressionview.js`. Port `tests/core/balance.test.js`, `crafting.test.js` and the mouse/
+touch flows in `tests/browser/balance.mjs`. Exact tuning/research is in `BALANCE-40.md`.
 
 Rebuild separate Control scenes for combat loadout, modifiers, movement, material
 upgrades and passive paths. A desktop/tablet navigation rail becomes a compact page
@@ -254,7 +289,7 @@ Part drops feed the new low-cost recipes.
 Procedural harbor and monster meshes are review assets; owner visual approval
 remains separate from passing gameplay tests.
 
-Save version remains 2. The optional `worldId` prevents restoring old coordinates
+Save character version is 3. The optional `worldId` prevents restoring old coordinates
 on a different map. On migration preserve the character build and quest history,
 filter unavailable waypoints, add the landing checkpoint, and clear `pos` once.
 A later save with this map ID keeps its current position and unlocked checkpoints.
@@ -271,7 +306,7 @@ Current layout revision is `azure-original-beach-8`, based on main `7102e4310ca7
 
 Terrain carving, water collision/actor clearance, beach paint, surf distance/kind, water extents, quay coping and the static contact bake share this contour. The static contact texture clips its coast extents to `bounds` plus its existing 6 m side/north and 18 m south margins; distant mainland closure points must not reduce pier-pile resolution under the existing 2048 maximum dimension. Tests inspect all four submerged piles on every timber berth. Only beach segments receive sand/runup; quay, breakwater and repair frontage remain flat port water. `town.surfaces` holds `{kind:'paving',points:[[x,z],...],strength?,preserveRoad?}` polygons for the irregular market apron and shared residential courts; ground and map painting share them, with the legacy plaza-radius fallback when absent. Paving strength defaults to 1; `preserveRoad` gates court paving using the baked road mask so lanes remain readable. Authored dirt paint survives base noise. The layout exporter retains `layoutRevision`, `sea` and `town` along with docks, colliders, landmarks and spawns; the heightmap includes the carved contour and settlement plots.
 
-`town.buildings` accepts the legacy `[x,z,angle]` format and authored objects `{id,x,z,angle,hx,hz,height,kind,roofColor}`. For the active `town.blockout` pass, visible boxes exactly match these oriented collider dimensions; roof colors are stored per building. No interiors are present. `docks` and their local ramp endpoints export directly. Save JSON remains version 2; the optional `worldLayoutRevision` relocates old coordinates once while preserving equipment, levels and the seven-step quest records.
+`town.buildings` accepts the legacy `[x,z,angle]` format and authored objects `{id,x,z,angle,hx,hz,height,kind,roofColor}`. For the active `town.blockout` pass, visible boxes exactly match these oriented collider dimensions; roof colors are stored per building. No interiors are present. `docks` and their local ramp endpoints export directly. Save character JSON is version 3; the optional `worldLayoutRevision` relocates old coordinates once while preserving equipment, levels and the seven-step quest records.
 
 The revised town has 67 exterior plots: 48 homes, six shops, ten warehouses and three repair/storage buildings. `town.styleSlice` and `town.districtStyle` select reused exterior assemblies; select IDs from data, not fixed counts. Per-building dimensions/colors/rotation remain authoritative. Cottage window and planter offsets adapt to smaller footprints, while doors retain human scale. Depot roofs follow the long plot axis; their window frames are clamped to the available width. The inn's porch, window spacing and planters adapt to its narrower plot. All bases/displays fit their individual oriented X/Z colliders. No interiors or new fishing rules are introduced. `netter_shop` and `sail_shop` distinguish the two small port shops from the provisioner. `harbor.workProps.kind=rope_store` adds a static net/coil/buoy rack inside its own plot. `town.trees` authors `{id,x,z,r,species,scale,rot}` birch/palm instances using the existing circle collision and tree renderer. `town.rocks` authors `{id,x,z,r,scale,rot}` shoreline boulders using the existing instanced boulder renderer and circle collision. Preserve IDs, radii and scales in the layout export; these static instances introduce no new per-frame resource owner.
 

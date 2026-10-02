@@ -56,16 +56,21 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
-`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with eleven
-travel-journal chapters before showing the relevant part of the 233-node passive network.
-Major `jobtree.sections` own `tier` and `requiresSpent`: thresholds use TOTAL allocated
-Job Points (origin excluded). Only notable/job nodes enforce section investment; minor nodes progress by links.
-Every purchasable node references a section and must connect to an owned neighbour. An unlocked section never bypasses adjacency. Keep one profession,
-Job Lv5 choice and `requiresJob` restrictions. Job level extends to 40 (39 points);
-each profession has sufficient connected choices in its base chapter plus specialization.
-`jobPath()` previews the shortest connected route without inventing filler purchases.
-Per-category pan/zoom cameras are view state. Nodes and purchase buttons remain separate;
-touch gestures never allocate points. Minimum touch targets stay 44 logical pixels.
+`ui/mapimage.js` uses the generated world's real positions. `ui/jobview.js` opens at
+shared foundation (stage I) in an open travel notebook. The six global journey areas
+require 0/3/9/17/25/33 TOTAL allocated Job Points (origin excluded). The origin connects
+only to stage-I foundation nodes; no fresh build can start directly in a profession or
+element path, even with many unspent points. Every node references a `section`, and
+**all** nodes in that area enforce its shared `requiresSpent`, plus an owned linked
+neighbour. Opening an area never bypasses adjacency. `jobJourneyProgress()` derives
+current/next areas from owned node IDs, without additional save fields.
+Keep one profession, Job Lv5 choice and `requiresJob` restrictions. Job Lv40 supplies
+39 points; common foundation plus each profession's base and specialization has
+sufficient connected choices. `jobPath()` previews linked routes without buying them.
+Per-area/place/profession pan/zoom cameras are view state. Nodes and purchase buttons
+remain separate; touch gestures never allocate. Minimum targets stay 44 logical pixels.
+Existing v4 ownership and all node IDs/effects survive the new topology unchanged;
+only future purchases enforce the new shared area gates.
 
 Character v4 retains the one-time `treeRevision` refund from v3: reset the old network
 and profession, retaining stats, skills, mods, materials, gold and gear UIDs. Only v1/v2
@@ -143,7 +148,7 @@ already-element-scaled primary hit again to obtain ground damage.
 Equipment and recipe pools expose six 3–8% damage options (physical/fire/cold/lightning/
 earth/poison) on crafted weapons and charms, in the existing grade slots. Their power
 weights and soft caps live in JSON. The optional “รอยจารึกธาตุ” chapter has six connected
-three-node paths: 4%, 4%, 6%, major section gates at 0/3/9 total points. Existing node
+three-node paths: 4%, 4%, 6%, shared area gates at 3 points for stage-II roots/children and 9 points for stage-III ends. Existing node
 IDs, tree revision 2 and save version 4 are retained; no refund or reroll occurs.
 
 Port the new derived fields along with their Node tests:
@@ -255,14 +260,15 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 
 
 ### Travel journal presentation (review branch)
-The passive graph and allocation rules are unchanged by the travel-journal revision.
-Use each node's `category` and `clusterPos` for themed chapter views, and overview
-`mapPos`/icon metadata for the large chapter marks. These marks are navigation only;
-no completion prerequisite or category-wide purchase exists. Map the view to a
-full-rect Control, not a Window; show node details on selection only. Modifier item
-art uses the shared SVG faceted-gem/engraved-symbol templates in `gemart.js` and
-`sigils.js`; their colours never determine compatibility. Preserve the existing
-core eligibility checks and save IDs.
+Render a fullscreen open book with two parchment leaves, a stitched gutter, six
+ribbon stage bookmarks, ink routes and original travel sketches. Default to shared
+foundation, with no category-card overview. Use each node's `category`, section tier
+and page-local `clusterPos` for the current place/area/profession graph. The left margin
+index selects places in the current area, never purchases. Future search jumps render
+a sealed page with its spent/required count; hide allocation controls until it opens.
+Details appear on node selection only. On phones, condense notes into a strip above
+the graph and keep the selected node visible above the details sheet. Modifier item
+art still uses `gemart.js`/`sigils.js`; colours never determine compatibility.
 
 ### Clean SEEKER combat HUD (29 September 2026)
 
@@ -443,6 +449,6 @@ shared by all player skills, not a per-target or per-projectile counter and not 
 is alive, clamped to max MP. Burning/poison ground and reflected/minion hits have no
 refund. Keep seeded combat and the resource test cases when porting.
 
-`jobtree.stages` and `layout` are presentation metadata; view navigation never purchases.
-Each node's `clusterPos` matches its threshold column. Duplicate section thresholds
-render one column, and only major nodes require the displayed total-spent investment.
+`jobtree.stages` is the authoritative shared-area unlock table; `layout` defines page-local
+coordinates. Navigation never purchases. Every node in an area enforces its total-spent
+gate and linked predecessor. The common foundation is the only origin-linked area.

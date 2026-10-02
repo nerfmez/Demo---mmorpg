@@ -58,11 +58,19 @@ try{
   await click('[data-act="return-craft"]');assert.equal(await page.locator('.craft-workspace').getAttribute('data-recipe'),'tusk_blade');assert.equal(await page.locator('.craft-result').count(),7);
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="hunter_bow"]');assert.equal(await page.locator('.craft-result').count(),0,'another recipe has its own history');
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="tusk_blade"]');assert.equal(await page.locator('.craft-result').count(),7,'recipe and goals persist through comparison and switching');
-  await open('job');await jump('v2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.seeker-node-detail').innerText(),/ต่อจากโหนด/);
-  await jump('v1');await click('[data-act="take-node"]');await jump('v2');await click('[data-act="take-node"]');await jump('v5');assert.ok(!(await page.locator('[data-act="take-node"]').isDisabled()));assert.match(await page.locator('.journal-tier-status').innerText(),/ไม่มีเกณฑ์แต้มรวม/);
+  await open('job');assert.equal(await page.locator('.seeker-node').count(),8);
+  assert.ok(await page.locator('.journey-bookmark[data-id="2"]').isDisabled(),'everyone starts in the common foundation, even with 39 unspent points');
+  await overflow();await shot('foundation');
+  for(const id of ['f_hp','f_def','f_atk']){await jump(id);await click('[data-act="take-node"]');}
+  const stageBefore=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch));
+  await click('.journey-bookmark[data-id="2"]');
+  assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch)),stageBefore,'turning a page cannot spend');
+  await jump('v2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.seeker-node-detail').innerText(),/ต่อจากโหนด/);
+  await jump('v1');await click('[data-act="take-node"]');await jump('v2');await click('[data-act="take-node"]');await jump('v5');assert.ok(await page.locator('[data-act="take-node"]').isEnabled());assert.match(await page.locator('.journal-tier-status').innerText(),/พื้นที่ขั้น 2/);
   await jump('m_atk');await click('[data-act="take-node"]');await jump('v5');await click('[data-act="take-node"]');await jump('vj');await click('[data-act="take-node"]');
-  assert.ok(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('vj')));await jump('v9');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.journal-tier-status').innerText(),/5\/17/);
-  assert.equal(await page.locator('.journal-section').count(),5);await click('[data-act="dismiss-node"]');await click('[data-fit]');await shot('tree');
+  assert.ok(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('vj')));await jump('v9');
+  assert.equal(await page.locator('[data-act="take-node"]').count(),0,'sealed areas contain no purchase controls');assert.match(await page.locator('.journey-locked').innerText(),/8\/17/);await shot('locked-page');
+  await click('.journey-bookmark[data-id="2"]');await click('[data-fit]');await shot('tree');
   // Type filters and mod rules are visible chips sourced from actual compiler tags.
   await open('skills');await page.locator('[data-workspace-select="skillFilter"]').selectOption('Attack');
   assert.equal(await page.locator('.seeker-library-item').count(),3);assert.equal(await page.locator('.seeker-library-item [data-skill-tag="Attack"]').first().textContent(),'กายภาพ');
@@ -91,19 +99,17 @@ try{
   await open('craft');await click('[data-act="craft-filter"][data-id="weapon"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
   await page.locator('.recipe-affixes>summary').click();assert.equal(await page.locator('.recipe-affixes [data-element-tag="Fire"]').count(),1);
   await page.locator('.craft-repeat>summary').click();await page.locator('[data-field="option"]').selectOption('fire_pct');await overflow();await shot('element-craft');
-  await open('job');await jump('element_fire_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());
+  await open('job');await jump('f_mp');await click('[data-act="take-node"]');await jump('element_fire_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());
   await jump('element_fire_1');assert.equal(await page.locator('.seeker-node-detail [data-element-tag="Fire"]').count(),1);await click('[data-act="take-node"]');
   await jump('element_fire_2');await click('[data-act="take-node"]');
   assert.equal(await page.evaluate(()=>window.__frontier.game.derived.fireDamagePct),8);await overflow();await shot('element-tree');
-  // Scrollable chapter selection, shared mana investment and navigation never spend points.
-  await click('[data-act="dismiss-node"]');await click('.journal-back');
-  assert.equal(await page.locator('.journal-chapter-grid .journal-chapter').count(),11);
+  // Shared sequential areas, connected mana investment and navigation never spend.
+  await click('.journey-bookmark[data-id="1"]');
+  assert.equal(await page.locator('.seeker-constellation').count(),1);assert.equal(await page.locator('.seeker-node').count(),8);
   await overflow();await shot('tree-contents');
-  await click('.journal-chapter[data-id="foundation"]');
   const navBefore=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch));
-  await click('[data-focus-stage]:last-child');
+  await click('.journey-bookmark[data-id="2"]');
   assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch)),navBefore);
-  assert.equal(await page.locator('.seeker-graph-tools output').textContent(),'100%');
   await jump('mana_pool_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());
   assert.ok(await page.locator('.seeker-route [data-id="mana_pool_1"]').count());
   for(const id of ['mana_pool_1','mana_flow_1','mana_pool_2','mana_flow_2','mana_efficiency','mana_reservoir','mana_cycling']){await jump(id);await click('[data-act="take-node"]');}

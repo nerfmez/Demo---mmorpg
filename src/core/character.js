@@ -194,7 +194,15 @@ export function jobTierProgress(ch, data, nodeId) {
   const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin);
   const spent = new Set(ch.jobNodes.filter(id => scope.includes(id))).size;
   const major = node?.type === 'notable' || node?.type === 'job';
-  return { tier: section?.tier || 0, requires: major ? section?.requiresSpent || 0 : 0, major, spent, scope, section: node?.section };
+  return { tier: section?.tier || 0, requires: section?.requiresSpent || 0, major, spent, scope, section: node?.section };
+}
+
+/** The next journal area opens from total invested points, shared by all paths.
+ * Opening an area never purchases nodes or bypasses their connected predecessors. */
+export function jobJourneyProgress(ch, data) {
+  const spent = new Set(ch.jobNodes.filter(id => id !== data.jobtree.origin && data.jobtree.nodes[id])).size;
+  const stages = data.jobtree.stages.map(stage => ({...stage, unlocked: spent >= stage.requiresSpent}));
+  return {spent, stages, current: stages.filter(stage => stage.unlocked).at(-1), next: stages.find(stage => !stage.unlocked)};
 }
 
 export function jobNodeState(ch, data, nodeId) {
@@ -217,7 +225,7 @@ export function jobNodeState(ch, data, nodeId) {
   if (tier.tier && tier.spent < tier.requires)
     return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
 
-  // Only major nodes use the investment gate. Small nodes progress through links.
+  // The gate belongs to the whole journey area; every small node still needs a link.
   if (!node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
 

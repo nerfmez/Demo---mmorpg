@@ -9,14 +9,14 @@ const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} ≈ ${b}`);
 const manaRoute=['mana_pool_1','mana_flow_1','mana_pool_2','mana_flow_2','mana_efficiency','mana_reservoir','mana_cycling'];
 
 test('a focused elemental build can buy connected mana choices before its major unlock',()=>{
- const ch=createCharacter(data);ch.jobLevel=40;ch.jobPoints=39;const before=derive(ch,data);
+ const ch=createCharacter(data);ch.jobLevel=40;ch.jobPoints=39;const before=derive(ch,data);for(const id of ['f_hp','f_mp','f_mag'])assert.ok(allocateJobNode(ch,data,id).done);
  assert.equal(jobNodeState(ch,data,'element_fire_2').reason,'not_linked');
  for(const id of ['element_fire_1','element_fire_2'])assert.ok(allocateJobNode(ch,data,id).done,id);
  assert.equal(jobNodeState(ch,data,'element_fire_3').reason,'tier_points');
  assert.equal(jobNodeState(ch,data,'mana_master').reason,'tier_points');
- assert.equal(jobTierProgress(ch,data,'mana_pool_2').requires,0);
+ assert.equal(jobTierProgress(ch,data,'mana_pool_2').requires,3);
  for(const id of manaRoute)assert.ok(allocateJobNode(ch,data,id).done,id);
- assert.equal(jobTierProgress(ch,data,'element_fire_3').spent,9);
+ assert.equal(jobTierProgress(ch,data,'element_fire_3').spent,12);
  assert.ok(jobNodeState(ch,data,'element_fire_3').can);assert.ok(jobNodeState(ch,data,'mana_master').can);
  const after=derive(ch,data);assert.ok(after.maxMp>before.maxMp);assert.ok(after.mpRegen>before.mpRegen);assert.equal(after.manaCostPct,3);
  const saved=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),saved,'content update preserves existing version-4 ownership and rolls');
@@ -56,12 +56,10 @@ test('misses, damage over time, allies, death and already dead targets cannot re
  g.player.dead=true;g.hitMonster(m,10,opts);assert.equal(g.player.mp,10);
  g.player.dead=false;m.dead=true;assert.equal(g.hitMonster(m,10,opts),0);assert.equal(g.player.mp,10);
 });
-test('shared stage layout keeps chapter nodes inside their own band, with no duplicate threshold bands',()=>{
- const t=data.jobtree,layout=t.layout;
- for(const c of t.constellations)for(const branch of c.id==='specialist'?t.groups.map(g=>g.id):[null]){
-  const ns=clusterNodes(t,c.id,branch),gates=[...new Set(ns.map(([,n])=>t.sections[n.section].requiresSpent))].sort((a,b)=>a-b);
-  for(const [id,n]of ns){const section=t.sections[n.section],left=layout.padding+gates.indexOf(section.requiresSpent)*layout.columnWidth;assert.ok(n.clusterPos[0]>left&&n.clusterPos[0]<left+layout.columnWidth,id);assert.equal(section.tier,t.stages.find(s=>s.requiresSpent===section.requiresSpent).tier);}
- }
- const ch=createCharacter(data),ui={game:{ch,data},sel:{constellation:'foundation',node:'mana_pool_2'}};
- const before=JSON.stringify(ch),html=jobView(ui,{effectText:(k,v)=>k+' '+v});assert.ok(html.includes('แต้มคงเหลือ'));assert.ok(html.includes('นับรวมทุกสาย'));assert.ok(html.includes('data-focus-stage'));assert.ok(html.includes('data-act="jump-node" data-id="mana_pool_1"'));assert.equal(JSON.stringify(ch),before);
+test('journal pages share area gates while preserving authored positions and path inspection',()=>{
+ const t=data.jobtree;
+ for(const [id,n]of Object.entries(t.nodes)){const section=t.sections[n.section];assert.equal(section.requiresSpent,t.stages.find(s=>s.tier===section.tier).requiresSpent);assert.ok(n.clusterPos[0]>0&&n.clusterPos[0]<t.layout.pageWidth,id);if(section.tier===1)assert.equal(n.category,'foundation');}
+ const ch=createCharacter(data);ch.jobPoints=39;for(const id of ['f_hp','f_mp','f_mag'])assert.ok(allocateJobNode(ch,data,id).done);
+ const ui={game:{ch,data},sel:{journalStage:2,constellation:'foundation',node:'mana_pool_2'}};
+ const before=JSON.stringify(ch),html=jobView(ui,{effectText:(k,v)=>k+' '+v});assert.ok(html.includes('แต้มคงเหลือ'));assert.ok(html.includes('นับรวมตลอดการเดินทาง'));assert.ok(html.includes('data-act="journal-stage"'));assert.ok(html.includes('data-act="jump-node" data-id="mana_pool_1"'));assert.equal(JSON.stringify(ch),before);
 });

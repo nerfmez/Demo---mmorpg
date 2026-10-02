@@ -34,8 +34,10 @@ try{
   const nav=async tab=>{if(await page.locator('.is-journal').count()){await page.keyboard.press('Escape');await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(width<=700)await page.locator('[data-page-select]').selectOption(tab);else await click(`[data-tab="${tab}"]`);};
   const shot=async label=>{await page.screenshot({path:out+size+'-'+label+'.png',timeout:60000});};
   const noOverflow=async()=>assert.ok(await page.locator('.pbody').evaluate(el=>el.scrollWidth<=el.clientWidth+2),size+' content horizontal overflow');
-  assert.equal(await page.locator('.seeker-constellation').count(),11);assert.equal(await page.locator('.seeker-node').count(),0);await noOverflow();await shot('categories');
-  await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search [type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');assert.equal(await page.locator('.seeker-node').count(),8);await shot('area');
+  assert.equal(await page.locator('.seeker-constellation').count(),1);assert.equal(await page.locator('.seeker-node').count(),8);await noOverflow();await shot('foundation');
+  for(const id of ['f_hp','f_mp','f_mag']){const name=await page.evaluate(id=>window.__frontier.game.data.jobtree.nodes[id].nameTh,id);await page.locator('#node-search').fill(name);await click('.seeker-node-search [type="submit"]');await click(`.seeker-search-result[data-id="${id}"]`);await click('[data-act="take-node"]');}
+  await click('.journey-bookmark[data-id="2"]');
+  await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search [type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');await shot('area');
   const before=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
   await click('[data-focus]');await click('.seeker-node[data-id="a1"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection must not spend');
   await click('[data-act="take-node"][data-id="a1"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-1);

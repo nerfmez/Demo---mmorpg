@@ -25,8 +25,8 @@ test('themed chapters have mixed investments rather than renamed single-stat cat
  assert.ok(camp.some(([,n])=>'meleeDamagePct' in n.effects));
 });
 test('players invest selectively across chapters without completing any chapter',()=>{
- const ch=createCharacter(data);ch.jobLevel=18;ch.jobPoints=12;const stat=ch.statPoints;
- for(const id of ['v1','a1','r1','f_hp'])assert.ok(allocateJobNode(ch,data,id).done,id);
+ const ch=createCharacter(data);ch.jobLevel=18;ch.jobPoints=17;for(const id of ['f_hp','f_def','f_atk','f_mp','f_mag'])assert.ok(allocateJobNode(ch,data,id).done);const stat=ch.statPoints;
+ for(const id of ['v1','a1','r1','w1'])assert.ok(allocateJobNode(ch,data,id).done,id);
  assert.equal(ch.jobPoints,8);assert.equal(ch.statPoints,stat);
  assert.ok(!ch.jobNodes.includes('v2'));assert.ok(!ch.jobNodes.includes('a2'));assert.ok(!ch.jobNodes.includes('r2'));
  assert.ok(!jobNodeState(ch,data,'aoe_master').can,'cannot skip the path to an endpoint');
@@ -36,11 +36,11 @@ test('opening a chapter gives no bonus and opens neither permanent inspector nor
  const ch=createCharacter(data),ui={game:{ch,data},sel:{},overlay:{clientWidth:1180}};
  const before=JSON.stringify(ch);const format=(k,v)=>k+' '+v;
  const over=jobView(ui,{effectText:format});
- assert.equal((over.match(/class="seeker-constellation /g)||[]).length,11);
+ assert.ok(over.includes('journey-book'));assert.ok(over.includes('journey-sketch'));assert.equal((over.match(/class="seeker-node /g)||[]).length,8);assert.ok(!over.includes('journal-chapter-grid'));
  assert.ok(!over.includes('class="journal-inspector'));
- ui.sel.constellation='area';const sub=jobView(ui,{effectText:format});
- assert.equal((sub.match(/class="seeker-node /g)||[]).length,8);
- assert.ok(!sub.includes('class="journal-inspector'));assert.equal(JSON.stringify(ch),before);
+ ch.jobPoints=39;for(const id of ['f_hp','f_mp','f_mag'])assert.ok(allocateJobNode(ch,data,id).done);const trained=JSON.stringify(ch);ui.sel.journalStage=2;ui.sel.constellation='area';const sub=jobView(ui,{effectText:format});
+ assert.equal((sub.match(/class="seeker-node /g)||[]).length,clusterNodes(data.jobtree,'area',null,2).length);
+ assert.ok(!sub.includes('class="journal-inspector'));assert.equal(JSON.stringify(ch),trained);
  assert.ok(sub.includes('journal-gateway'),'cross-chapter prerequisites stay reachable');
 });
 test('all mod item drawings share the gem engraving renderer, not raster illustrations',()=>{

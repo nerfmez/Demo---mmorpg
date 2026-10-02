@@ -434,6 +434,13 @@ export class Panels {
       case 'close-journal': return this.close();
       case 'dismiss-node': this.sel.node = null; return this.render();
       case 'journal-reset': this.sel.journalReset = !this.sel.journalReset; return this.render();
+      case 'journal-stage':
+        this.sel.journalStage = Number(t.dataset.id);
+        this.sel.constellation = null;
+        this.sel.node = null;
+        this.sel.nodeSearch = '';
+        this.sel.journalReset = false;
+        return this.render(true);
       case 'constellation':
         this.sel.constellation = t.dataset.id || null;
         this.sel.journalReset = false;
@@ -450,6 +457,7 @@ export class Panels {
       case 'jump-node': {
         const n = data.jobtree.nodes[t.dataset.id];
         if(!n) return;
+        this.sel.journalStage = data.jobtree.sections[n.section].tier;
         this.sel.constellation = n.category;
         this.sel.jobBranch = n.branch || n.requiresJob || this.sel.jobBranch;
         this.sel.node = t.dataset.id;

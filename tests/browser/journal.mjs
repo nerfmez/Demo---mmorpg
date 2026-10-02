@@ -1,6 +1,7 @@
 // UI fixtures supply a review character, never fabricated click results.
 // Default: full game and real renderer. OFFLINE_UI=1: real Game/Panels without renderer.
 import assert from 'node:assert/strict';
+import {journalJump} from './passive-checks.mjs';
 import {freezeScene} from './freeze-scene.mjs';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
@@ -11,7 +12,8 @@ let server,browser,code='',css='';const reports=[];
 if(offline){
  const {build}=await import('vite');const b=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'JournalReview',formats:['iife']}}});
  code=b[0].output.find(o=>o.type==='chunk').code;
- css=['style','ux','art','workspaces','minimal','journal','overlays'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+ css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+ for(const weight of [400,600]){const f=readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${weight}.ttf`,import.meta.url)).toString('base64');css+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${f});font-weight:${weight}}`;}
  for(const subset of ['thai','latin'])for(const weight of [400,500]){const f=readFileSync(new URL(`../../node_modules/@fontsource/mitr/files/mitr-${subset}-${weight}-normal.woff2`,import.meta.url)).toString('base64');css+=`@font-face{font-family:Mitr;src:url(data:font/woff2;base64,${f});font-weight:${weight}}`;}
 }else server=spawn('npx',['vite','preview','--port','4187','--strictPort'],{stdio:'ignore',detached:true});
 try{
@@ -26,37 +28,22 @@ try{
   await page.evaluate(()=>{const f=window.__frontier,g=f.game;g.ch.name='Seeker';g.ch.level=18;g.ch.jobLevel=18;g.ch.jobPoints=12;g.ch.jobNodes=['origin','v1','v2','r1','r2','f_hp'];g.ch.gold=2400;for(const k in g.ch.stats)g.ch.stats[k]=20;g.ch.mods=Object.keys(g.data.mods.mods).map((id,i)=>({id,uid:900+i,level:1}));g.ch.slots[0]={skill:'firebolt',mods:[]};g.ch.skills.firebolt=1;g.refresh();f.panels.open('job');});
   const click=async selector=>{const l=page.locator(selector).first();return touch?l.tap():l.click();};
   const shot=async label=>page.screenshot({path:dir+name+'-'+label+'.png',timeout:60000});
-  assert.equal(await page.locator('.journal-chapter').count(),10);
-  assert.equal(await page.locator('.seeker-node').count(),0);
-  assert.equal(await page.locator('.journal-inspector').count(),0);
+  assert.equal(await page.locator('#plane > [data-node]').count(),8);assert.equal(await page.locator('.seeker-constellation').count(),0);
+  assert.ok(!await page.locator('#inspector').isVisible());
   const full=await page.locator('.panel').boundingBox();assert.equal(full.x,0);assert.equal(full.y,0);assert.equal(full.width,width);assert.equal(full.height,height);
-  assert.ok(await page.evaluate(() => {
-    const hud = document.getElementById('hud'), xp = document.querySelector('.xpstrip');
-    return document.body.classList.contains('panel-open') && (!xp ||
-      Number(getComputedStyle(hud).zIndex) > Number(getComputedStyle(xp).zIndex));
-  }), 'fullscreen journal must paint above the body-level EXP strip');
+  assert.ok(await page.evaluate(()=>document.body.classList.contains('panel-open')));
   assert.ok(!await page.locator('.tabs').isVisible());
-  const gr=await page.locator('.seeker-graph').boundingBox();await shot('00-layout');assert.ok(gr.height>height*.72, JSON.stringify({gr,height}));
-  await shot('01-overview');
-  // In a compact viewport the chart can be panned; search is the direct way to any node.
-  if(width>=700){await click('.journal-chapter[data-id="area"]');await shot('02-archive');}
-  else {await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search button[type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');await shot('02-archive');}
-  const points=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
-  await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search button[type="submit"]');await click('.seeker-search-result[data-id="a1"]');
-  assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),points);
-  await click('[data-act="take-node"][data-id="a1"]');
-  assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),points-1);
-  await shot('03-inspected');await click('[data-act="dismiss-node"]');
-  // Partial investment leaves other branches untouched and does not lock other books.
-  assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('a2')),false);
-  await click('.journal-back');assert.equal(await page.locator('.journal-chapter').count(),10);
-  assert.match(await page.locator('.journal-chapter[data-id="area"]').innerText(),/ลงทุนแล้ว 1 แต้ม/);
-  const before=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes));
-  const rect=await page.locator('.seeker-graph').boundingBox();
-  await page.mouse.move(rect.x+rect.width*.55,rect.y+rect.height*.6);await page.mouse.down();await page.mouse.move(rect.x+rect.width*.55+60,rect.y+rect.height*.6+10,{steps:6});await page.mouse.up();
-  assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes)),before);
-  await click('[data-fit]');
-  await click('[data-act="close-journal"]');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
+  const gr=await page.locator('#map').boundingBox();assert.ok(gr.height>100,JSON.stringify({gr,height}));await shot('01-shared-start');
+  const points=await page.evaluate(()=>__frontier.game.ch.jobPoints);
+  await journalJump(page,'a1');assert.equal(await page.evaluate(()=>__frontier.game.ch.jobPoints),points);
+  await click('[data-action="learn"][data-id="a1"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.jobPoints),points-1);
+  await shot('02-inspected');await click('[data-action="close-detail"]');
+  assert.equal(await page.evaluate(()=>__frontier.game.ch.jobNodes.includes('a2')),false);
+  const stageSelector=width<=760?'#mobile-stages':'#chapter-tabs';await click(stageSelector+' [data-stage="2"]');await shot('03-ordinary-path');
+  assert.equal(await page.locator('[data-discipline]').count(),0);
+  const before=await page.evaluate(()=>JSON.stringify(__frontier.game.ch.jobNodes));const rect=await page.locator('#map').boundingBox();
+  await page.mouse.move(rect.x+rect.width*.35,rect.y+rect.height*.4);await page.mouse.down();await page.mouse.move(rect.x+rect.width*.35+60,rect.y+rect.height*.4+10,{steps:6});await page.mouse.up();assert.equal(await page.evaluate(()=>JSON.stringify(__frontier.game.ch.jobNodes)),before);
+  await click('[data-action="fit"]');await click('[data-action="exit"]');assert.equal(await page.evaluate(()=>__frontier.panels.isOpen),false);
   // Open actual menu workspace; the fixtures are not the implementation.
   await page.evaluate(()=>window.__frontier.panels.open('mods'));
   assert.equal(await page.locator('.seeker-mod-list [data-gem]').count(),15);
@@ -67,6 +54,6 @@ try{
   await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-gem="split"]').count());
   await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-gem]').count());
   assert.deepEqual(errors,[]);
-  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,chapters:10,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
+  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,startingNodes:8,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
  }
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}

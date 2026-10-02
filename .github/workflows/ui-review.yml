@@ -3,6 +3,7 @@ on:
   pull_request:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: seeker-ui-review-${{ github.ref }}
   cancel-in-progress: true
@@ -29,6 +30,11 @@ jobs:
           cache: npm
       - run: npm ci
         if: steps.scope.outputs.ui == 'true'
+      - name: Verify published Lab can be preserved
+        if: steps.scope.outputs.ui == 'true' && steps.scope.outputs.tools == 'true' && matrix.browser == 'chromium'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/preserve-published-lab.mjs lab-preservation-check
       - run: npm run build
         if: steps.scope.outputs.ui == 'true'
       - run: npx playwright install --with-deps ${{ matrix.browser }}
@@ -36,6 +42,11 @@ jobs:
       - name: Fullscreen travel journal and engraved modifier gems
         if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/journal.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
+      - name: Journal page turns, audio and lifecycle
+        if: steps.scope.outputs.ui == 'true'
+        run: node tests/browser/skill-journal.mjs
         env:
           BROWSER: ${{ matrix.browser }}
       - name: Workspaces and passive touch gestures
@@ -50,5 +61,6 @@ jobs:
           path: |
             tests/browser/out/workspaces*
             tests/browser/out/journal*
+            tests/browser/out/skill-journal/
           if-no-files-found: ignore
           retention-days: 7

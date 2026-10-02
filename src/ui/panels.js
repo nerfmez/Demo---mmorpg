@@ -219,6 +219,7 @@ export class Panels {
     this.body.dataset.panel = this.tab;
     this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
     const scroll = top ? 0 : this.body.scrollTop;
+    if(this.tab==='job'&&this.jobJournal&&this.body.querySelector('.skill-journal')){this.jobJournal.refresh();return;}
     this.cleanJobNetwork?.();
     this.body.innerHTML = this[`render_${this.tab}`]();
     if(this.lastResult && ['skills','mods','movement','growth','job'].includes(this.tab)) this.body.insertAdjacentHTML('afterbegin', `<div class="result-pop" role="status">${this.lastResult}</div>`);

@@ -32,12 +32,12 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      # <site>/lab/lab.html: this build's Skill Lab, or the one an effects branch just built
-      - name: Skill Lab from this build
+      # Preserve the exact already-published /lab preview on main releases.
+      - name: Preserve published Skill Lab
         if: github.event_name != 'workflow_run'
-        run: |
-          mkdir lab-out && cp -r dist/. lab-out/
-          printf '{"branch":"%s","sha":"%s"}\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > lab-out/lab-source.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/preserve-published-lab.mjs lab-out
       - name: Skill Lab from the effects branch
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4

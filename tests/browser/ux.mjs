@@ -98,7 +98,7 @@ try {
     await activate('[data-act="craft-ready"]');
     assert.ok(await page.locator('.recipe-card').count() > 0);
     assert.equal(await page.locator('.recipe-card [data-act="craft-open"]:disabled').count(), 0);
-    await activate('[data-act="craft-open"][data-id="hide_vest"]');
+    await activate('.recipe-pick[data-act="craft-open"][data-id="hide_vest"]');
     await activate('[data-act="craft"][data-id="hide_vest"]');
     const made = await page.evaluate(() => window.__frontier.game.ch.gear.at(-1).uid);
     await activate('[data-tab="bag"]');
@@ -112,7 +112,7 @@ try {
     await activate('[data-tab="craft"]');
     await activate('[data-act="craft-back"]');
     await activate('[data-act="craft-filter"][data-id="mod"]');
-    await activate('[data-act="craft-open"][data-id="mod_wide_arc"]');
+    await activate('.recipe-pick[data-act="craft-open"][data-id="mod_wide_arc"]');
     await activate('[data-act="craft"][data-id="mod_wide_arc"]');
     const mod = await page.evaluate(() => window.__frontier.game.ch.mods.at(-1).uid);
     await activate('[data-tab="skills"]');
@@ -229,4 +229,3 @@ try {
   await browser?.close();
   try { process.kill(-server.pid); } catch {}
 }
-

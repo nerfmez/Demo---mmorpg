@@ -17,7 +17,11 @@ export function createCamera(root,plane,output,onInspect) {
     else {cam={...target};draw();frame=0;}
   };
   const schedule=()=>{if(!frame){last=0;frame=requestAnimationFrame(animate);}};
-  const constrain=()=>{target.x=Math.max(-100,Math.min(width+100,target.x));target.y=Math.max(-100,Math.min(height+100,target.y));};
+  const constrain=()=>{
+    // Keep a useful portion of the paper in view instead of panning into blanks.
+    const halfX=Math.min(width/2,Math.max(0,(root.clientWidth-sheet-70)/2/target.z)),halfY=Math.min(height/2,Math.max(0,(root.clientHeight-40)/2/target.z));
+    target.x=Math.max(halfX,Math.min(width-halfX,target.x));target.y=Math.max(halfY,Math.min(height-halfY,target.y));
+  };
   const fit=()=>{const free=root.clientWidth-sheet;target={x:width/2,y:height/2,z:clampZ(Math.min((free-70)/width,(root.clientHeight-40)/height))};schedule();};
   const focus=(x,y)=>{target={x,y,z:Math.max(target.z,.82)};schedule();};
   const zoom=(factor,x,y)=>{
@@ -53,6 +57,7 @@ export function createCamera(root,plane,output,onInspect) {
   const key=e=>{if(e.target!==root)return;const moves={ArrowLeft:[-70,0],ArrowRight:[70,0],ArrowUp:[0,-70],ArrowDown:[0,70]};if(moves[e.key]){e.preventDefault();target.x+=moves[e.key][0]/target.z;target.y+=moves[e.key][1]/target.z;constrain();schedule();}else if(['+','=','-','Home'].includes(e.key)){e.preventDefault();e.key==='Home'?fit():zoom(e.key==='-'?1/1.2:1.2);}};
   const events=[['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',cancel],['lostpointercapture',e=>{if(pointers.has(e.pointerId))cancel(e);}],['click',click,true],['wheel',wheel,{passive:false}],['keydown',key]];
   events.forEach(args=>root.addEventListener(...args));
-  const resize=new ResizeObserver(schedule);resize.observe(root);
+  let measuredWidth=root.clientWidth,measuredHeight=root.clientHeight;
+  const resize=new ResizeObserver(()=>{const w=root.clientWidth,h=root.clientHeight;if(w!==measuredWidth||h!==measuredHeight){measuredWidth=w;measuredHeight=h;constrain();schedule();}});resize.observe(root);
   return {fit,focus,zoom,frame(x,y,z){target={x,y,z:clampZ(z)};schedule();},configure(w,h){width=w;height=h;fit();},setSheet(px){sheet=px;schedule();},snapshot(){return {...target};},destroy(){cancelAnimationFrame(frame);resize.disconnect();events.forEach(args=>root.removeEventListener(...args));}};
 }

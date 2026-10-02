@@ -12,6 +12,7 @@ import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
 import { Menu } from './ui/menu.js';
+import { createFullscreen } from './ui/fullscreen.js';
 import { migrateLegacy, writeSlot, exportCode, loadPref, savePref } from './save.js';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/thai-500.css';
@@ -48,6 +49,12 @@ const setQuality = (q) => {
 
 const F = (window.__frontier = { view, world, fps: 0, paused: false, game: null });
 let session = null;
+const fullscreen = createFullscreen({
+  bypass: fresh, // Existing never-saved browser-test fixture skips the entry menu.
+  onBlocked: () => session?.input.reset(),
+  onResize: () => view.resize(),
+});
+F.fullscreen = fullscreen;
 const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
 
 function startGame(character, slot) {
@@ -79,7 +86,8 @@ function startGame(character, slot) {
   });
   hud.onPanel = (tab) => panels.open(tab);
   const ui = {
-    panelOpen: () => panels.isOpen,
+    blocked: () => fullscreen.blocked,
+    panelOpen: () => panels.isOpen || fullscreen.blocked,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
     closeMenu: () => {
@@ -176,7 +184,7 @@ document.addEventListener(
 document.addEventListener(
   'touchmove',
   (e) => {
-    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs')) e.preventDefault();
+    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs, .questtrack, .fullscreen-gate')) e.preventDefault();
   },
   { passive: false }
 );
@@ -212,8 +220,8 @@ function frame(now) {
   time += dt;
   const s = session;
   if (s) {
-    s.input.update();
-    const paused = s.panels.isOpen || F.paused;
+    if (!fullscreen.blocked) s.input.update();
+    const paused = s.panels.isOpen || F.paused || fullscreen.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
@@ -226,7 +234,7 @@ function frame(now) {
     }
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
-    if (s.panels.tab !== 'job') view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
+    if (s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
     s.saveT += dt;
     if (s.saveT > 10) {
@@ -239,7 +247,7 @@ function frame(now) {
       s.refreshBadges();
       s.refreshPortrait();
     }
-  } else view.render(dt, time);
+  } else if (!fullscreen.blocked) view.render(dt, time);
   fpsAcc += dt;
   fpsN++;
   if (fpsAcc > 1) {

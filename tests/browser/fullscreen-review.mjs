@@ -48,8 +48,19 @@ try {
  await p.locator('[data-act="new"]').tap();await p.locator('[data-act="start"]').tap();await p.waitForFunction(()=>__frontier.game?.time>.1);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});
  const overlap=await p.evaluate(()=>{const q=document.querySelector('.quest-widget').getBoundingClientRect(),c=document.querySelector('.combat').getBoundingClientRect(),canvas=document.querySelector('#game').getBoundingClientRect();return{questBottom:q.bottom,combatTop:c.top,gap:c.top-q.bottom,canvasWidth:canvas.width,canvasHeight:canvas.height,viewportWidth:visualViewport.width,viewportHeight:visualViewport.height}});assert.ok(overlap.gap>=8,JSON.stringify(overlap));assert.equal(overlap.canvasHeight,overlap.viewportHeight);await p.screenshot({path:out+'tablet-hud.png'});
  await p.evaluate(()=>document.exitFullscreen());await p.waitForFunction(()=>__frontier.fullscreen.blocked);const time=await p.evaluate(()=>__frontier.game.time);await p.keyboard.press('w');await p.keyboard.press('1');await p.waitForTimeout(150);assert.equal(await p.evaluate(()=>__frontier.game.time),time);assert.equal(await p.evaluate(()=>__frontier.input.keys.size),0);await p.screenshot({path:out+'live-paused-reentry.png'});
- await enterFullscreenGate(p);await p.waitForFunction(t=>__frontier.game.time>t,time);await p.setViewportSize({width:640,height:1024});await p.waitForTimeout(250);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});await p.screenshot({path:out+'live-portrait.png'});
+ await enterFullscreenGate(p);await p.waitForFunction(t=>__frontier.game.time>t,time);
+ await p.evaluate(()=>__frontier.panels.open('job'));
+ for(const action of ['search','respec']){
+  await p.locator(`[data-action="${action}"]`).tap();if(action==='search')await p.locator('#node-search').fill('v1');
+  await p.evaluate(()=>document.exitFullscreen());await p.waitForFunction(()=>__frontier.fullscreen.blocked);
+  assert.equal(await p.locator('#dialog').evaluate(d=>d.open&&d.inert),true);
+  assert.equal(await p.locator('.fullscreen-enter').evaluate(b=>{const r=b.getBoundingClientRect();return b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),true);
+  const pausedTime=await p.evaluate(()=>__frontier.game.time);await p.keyboard.type('paused');await p.keyboard.press('Escape');assert.equal(await p.evaluate(()=>__frontier.game.time),pausedTime);assert.equal(await p.locator('.fullscreen-gate').evaluate(d=>d.open),true);
+  if(action==='search')assert.equal(await p.locator('#node-search').inputValue(),'v1');await p.screenshot({path:out+`live-${action}-paused.png`});
+  await enterFullscreenGate(p);assert.equal(await p.locator('#dialog').evaluate(d=>d.open&&!d.inert),true);await p.locator('[data-action="close-dialog"]').tap();
+ }
+ await p.evaluate(()=>__frontier.panels.close());await p.setViewportSize({width:640,height:1024});await p.waitForTimeout(250);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});await p.screenshot({path:out+'live-portrait.png'});
  await p.reload({waitUntil:'commit'});await p.waitForFunction(()=>window.__frontier?.menu);await freezeScene(p);await enterFullscreenGate(p);await p.locator('[data-act="continue"]').tap();await p.waitForFunction(()=>__frontier.game?.time>.1);assert.equal(await p.evaluate(()=>__frontier.game.ch.name),'นักเดินทาง');
- assert.deepEqual(errors,[]);reports.push({actualGame:true,overlap,exitPauses:true,reentryResumes:true,reloadContinuePreserved:true,pageErrors:errors});await ctx.close();
+ assert.deepEqual(errors,[]);reports.push({actualGame:true,overlap,exitPauses:true,reentryResumes:true,searchAndRespecGovernedByGate:true,reloadContinuePreserved:true,pageErrors:errors});await ctx.close();
  writeFileSync(out+'live-report.json',JSON.stringify(reports,null,2));console.log('PASS fullscreen, HUD budget and book geometry review');}
 } finally {await browser.close();}

@@ -6,7 +6,7 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
-const OUT=new URL('./out/harbor/',import.meta.url).pathname;mkdirSync(OUT,{recursive:true});
+const OUT=new URL(process.env.DREAMLOOP_PASS?`./out/dreamloop-${process.env.DREAMLOOP_PASS}/`:'./out/harbor/',import.meta.url).pathname;mkdirSync(OUT,{recursive:true});
 const PORT=4180,base=process.env.DREAMLOOP_URL||`http://localhost:${PORT}/`;
 const server=process.env.DREAMLOOP_URL?null:spawn('npx',['vite','preview','--port',String(PORT),'--strictPort'],{stdio:'ignore',detached:true});
 let browser;

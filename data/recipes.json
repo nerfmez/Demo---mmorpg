@@ -14,7 +14,16 @@
         "melee_pct",
         "crit_pct",
         "poison_on_hit",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hunter_bow": {
@@ -30,7 +39,16 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "fang_dagger": {
@@ -46,7 +64,16 @@
         "crit_pct",
         "leech_pct",
         "poison_on_hit",
-        "melee_pct"
+        "melee_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "wisp_staff": {
@@ -63,7 +90,16 @@
         "spell_pct",
         "mp_flat",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "spore_wand": {
@@ -79,7 +115,16 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "cdr_pct"
+        "cdr_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "crag_axe": {
@@ -95,7 +140,16 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "storm_bow": {
@@ -112,7 +166,16 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "greyfang_sabre": {
@@ -128,7 +191,16 @@
         "melee_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "horn_greatblade": {
@@ -145,7 +217,16 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "ancient_staff": {
@@ -163,7 +244,16 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hide_vest": {
@@ -226,7 +316,10 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "crag_plate": {
@@ -288,7 +381,10 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "feather_circlet": {
@@ -304,7 +400,10 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "horned_helm": {
@@ -351,7 +450,10 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "crag_greaves": {
@@ -381,7 +483,16 @@
         "attack_flat",
         "melee_pct",
         "projectile_pct",
-        "defense_flat"
+        "defense_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "wisp_pendant": {
@@ -397,7 +508,16 @@
         "mp_flat",
         "spell_pct",
         "area_pct",
-        "heal_pct"
+        "heal_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "spore_amulet": {
@@ -413,7 +533,16 @@
         "regen_flat",
         "summon_pct",
         "poison_on_hit",
-        "mp_flat"
+        "mp_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "feather_charm": {
@@ -429,7 +558,16 @@
         "cdr_pct",
         "projectile_pct",
         "crit_pct",
-        "attack_flat"
+        "attack_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "golem_amulet": {
@@ -445,7 +583,16 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "crit_pct"
+        "crit_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "ancient_ring": {
@@ -461,7 +608,16 @@
         "magic_flat",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "learn_whirl_blade": {
@@ -724,7 +880,10 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "pearl_pendant": {
@@ -740,7 +899,16 @@
         "mp_flat",
         "spell_pct",
         "heal_pct",
-        "summon_pct"
+        "summon_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "salt_boots": {
@@ -756,7 +924,10 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "shore_circlet": {
@@ -772,7 +943,10 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ]
     },
     "hermit_guard": {
@@ -790,6 +964,15 @@
         "poison_on_hit",
         "regen_flat"
       ]
+    },
+    "mod_mana_siphon": {
+      "type": "mod",
+      "result": "mana_siphon",
+      "cost": {
+        "wisp_core": 1,
+        "glow_dust": 3,
+        "gold": 30
+      }
     }
   }
 }

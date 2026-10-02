@@ -2,6 +2,7 @@
 // character's derived stats into one flat description that the simulation executes.
 
 import { meetsRequires } from './character.js';
+import { ELEMENT_TAGS, effectiveSkillTags, skillTagFit, elementDamageIncrease } from './skill-tags.js';
 
 export function skillDef(data, id) {
   return data.skills.combat[id] || null;
@@ -18,13 +19,9 @@ export function modDef(data, id) {
 /** Does this mod fit this skill? Returns {ok, reason}. */
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
-  const tags = skill.tags || [];
   if (mod.requiresPersistent && !['dot_zone', 'heal_zone'].includes(skill.kind) && !companions.some(m => m?.effect?.groundDps && modFits(skill, m).ok))
     return { ok: false, reason: 'needs_persistent' };
-  if (mod.requiresAll && !mod.requiresAll.every((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAll.join('+')}` };
-  if (mod.requiresAny && !mod.requiresAny.some((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAny.join('/')}` };
-  if (mod.excludes && mod.excludes.some((t) => tags.includes(t))) return { ok: false, reason: `not for ${mod.excludes.join('/')}` };
-  return { ok: true };
+  return skillTagFit(skill, mod, companions);
 }
 
 const lv = (v, level) => (Array.isArray(v) ? v[Math.min(level, v.length) - 1] : v);
@@ -40,7 +37,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (!def) return null;
   const level = ch.skills[slot.skill] || 1;
   const levelMult = 1 + data.progression.skillUpgrade.perLevel * (level - 1);
-  const tags = new Set(def.tags);
+  const companionMods = slot.mods.map(uid => modDef(data, ch.mods.find(m => m.uid === uid)?.id)).filter(Boolean);
+  const activeCompanions = companionMods.filter(m => meetsRequires(ch, m.requires).ok);
+  const tags = effectiveSkillTags(def, activeCompanions);
   const s = {
     id: slot.skill,
     slot: slotIndex,
@@ -54,7 +53,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     arc: def.arc || 0,
     cooldown: def.cooldown * (1 - derived.cooldownPct / 100),
     castTime: def.castTime,
-    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)),
+    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostPct || 0) / 100),
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
@@ -80,6 +79,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
     repeatDelay: 0,
     knock: 0,
     leech: derived.leechPct || 0,
+    manaOnHit: 0,
+    manaOnHitCooldown: 0,
     requirementsMet: meetsRequires(ch, def.requires).ok,
     mods: [],
   };
@@ -92,7 +93,8 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Area') && tags.has('Damage')) inc += derived.areaDamagePct;
   if (tags.has('Spell') && tags.has('Damage')) inc += derived.spellDamagePct;
 
-  if (def.damage) s.damage = (def.damage.base + def.damage.scale * power) * levelMult * (1 + inc / 100);
+  const baseDamage = def.damage ? (def.damage.base + def.damage.scale * power) * levelMult : undefined;
+  if (def.damage) s.damage = baseDamage * (1 + inc / 100);
   if (def.heal) s.heal = (def.heal.base + def.heal.scale * power) * levelMult * (1 + derived.healPct / 100);
   if (def.barrier) s.barrier = (def.barrier.base + def.barrier.scale * power) * levelMult * (1 + derived.barrierPct / 100);
   if (def.kind === 'curse_zone') {
@@ -110,7 +112,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
       count: sm.count,
       life: sm.life,
       hp: Math.round(sm.hp.base + sm.hp.vit * ch.stats.VIT + sm.hp.level * ch.level),
-      damage: (sm.damage.base + sm.damage.scale * derived.magic) * levelMult * (1 + derived.summonDamagePct / 100),
+      damage: (sm.damage.base + sm.damage.scale * derived.magic) * levelMult * (1 + (derived.summonDamagePct + elementDamageIncrease(tags, derived)) / 100),
       speed: sm.speed,
       range: sm.range,
       attackCooldown: sm.attackCooldown,
@@ -119,20 +121,19 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;
 
-  const companionMods = slot.mods.map(uid => modDef(data, ch.mods.find(m => m.uid === uid)?.id)).filter(Boolean);
   let radiusMult = 1;
   for (const uid of slot.mods) {
     const inst = ch.mods.find((m) => m.uid === uid);
     if (!inst) continue;
     const m = modDef(data, inst.id);
     if (!m) continue;
-    const fit = modFits(def, m, companionMods.filter(m => meetsRequires(ch, m.requires).ok));
+    const fit = modFits(def, m, activeCompanions);
     const e = m.effect;
     const L = inst.level || 1;
     const active = fit.ok && meetsRequires(ch, m.requires).ok;
     s.mods.push({ id: inst.id, level: L, active, reason: fit.ok ? (active ? null : 'requires') : fit.reason });
     if (!active) continue; // socketed but inactive until stats are met
-    for (const t of m.tags) tags.add(t);
+    for (const t of m.tags) if (!ELEMENT_TAGS.includes(t)) tags.add(t);
     if (e.extraProjectiles) {
       s.projectiles += lv(e.extraProjectiles, L);
       s.spread = Math.max(s.spread, e.spread);
@@ -168,6 +169,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
     if (e.radiusMult) radiusMult *= e.radiusMult;
     if (e.durationMult) s.durationMult = lv(e.durationMult, L);
     if (e.leechPct) s.leech += lv(e.leechPct, L);
+    if (e.manaOnHit) {
+      s.manaOnHit = Math.max(s.manaOnHit, lv(e.manaOnHit, L));
+      s.manaOnHitCooldown = Math.max(s.manaOnHitCooldown, e.manaOnHitCooldown);
+    }
     if (e.extraSummons && s.summon) {
       s.summon.count += lv(e.extraSummons, L);
       s.summon.damage *= 1 + lv(e.summonDamage, L);
@@ -194,7 +199,17 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (s.kind === 'curse_zone') s.duration *= control;
   s.arc = Math.min(s.arc, 360);
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
-  if (s.damage !== undefined) s.damage *= s.damageMult;
+  if (baseDamage !== undefined) {
+    const dotMult = s.kind === 'dot_zone' ? dot : 1;
+    s.damage = baseDamage * (1 + (inc + elementDamageIncrease(tags, derived)) / 100) * dotMult * s.damageMult;
+    // Burning Ground stays Fire even when the direct hit is converted to Cold.
+    // Its own element increase replaces the hit's, instead of scaling the hit again.
+    if (s.ground) {
+      s.ground.tags = new Set(['Fire', 'Area', 'Damage', 'DoT', 'Persistent']);
+      s.ground.element = 'fire';
+      s.ground.damage = baseDamage * (1 + (inc + (derived.fireDamagePct || 0)) / 100) * dotMult * s.damageMult * s.ground.dpsMult;
+    }
+  }
   return s;
 }
 
@@ -204,13 +219,15 @@ export function movementSkill(ch, data, derived) {
     id: ch.movement,
     def,
     kind: def.kind,
+    tags: new Set(def.tags),
+    element: def.element || 'none',
     distance: def.distance,
     duration: def.duration,
     charges: def.charges + derived.extraMovementCharges,
     recharge: def.recharge * (1 - derived.cooldownPct / 100),
     invulnerable: def.invulnerable,
   };
-  if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };
+  if (def.landing) out.landing = { radius: def.landing.radius, damage: (def.landing.damage.base + def.landing.damage.scale * derived.attack) * (1 + ((derived.areaDamagePct || 0) + elementDamageIncrease(out.tags, derived)) / 100) };
   return out;
 }
 
@@ -245,7 +262,7 @@ export function socketMod(ch, data, slotIndex, uid) {
   if (!slot || !slot.skill) return { ok: false, reason: 'empty_slot' };
   const inst = ch.mods.find((m) => m.uid === uid);
   if (!inst) return { ok: false, reason: 'no_mod' };
-  const fit = modFits(skillDef(data, slot.skill), modDef(data, inst.id), slot.mods.map(u => modDef(data, ch.mods.find(m => m.uid === u)?.id)).filter(Boolean));
+  const fit = modFits(skillDef(data, slot.skill), modDef(data, inst.id), slot.mods.map(u => modDef(data, ch.mods.find(m => m.uid === u)?.id)).filter(m => m && meetsRequires(ch, m.requires).ok));
   if (!fit.ok) return { ok: false, reason: fit.reason };
   if (slot.mods.some((u) => ch.mods.find((m) => m.uid === u)?.id === inst.id)) return { ok: false, reason: 'duplicate' };
   if (slot.mods.length >= data.mods.maxModsPerSkill) return { ok: false, reason: 'full' };

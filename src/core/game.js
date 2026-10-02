@@ -63,6 +63,7 @@ export class Game {
       buffs: {},
       cooldowns: [0, 0, 0, 0],
       triggerCd: [0, 0, 0, 0],
+      nextManaGainT: 0,
       movement: { charges: 0, rechargeT: 0 },
       dash: null,
       cast: null,
@@ -603,6 +604,10 @@ export class Game {
         if (!m.boss && m.state === 'windup') m.stateT = Math.max(0, m.stateT - 0.25); // knocks the rhythm back a little
       }
       if (opts.leech && !opts.byAlly) this.healPlayer((Math.min(dmg, hpBefore) * opts.leech) / 100, true);
+      if (opts.manaOnHit > 0 && hpBefore > 0 && !opts.byAlly && !this.player.dead && this.time >= this.player.nextManaGainT) {
+        this.player.mp = Math.min(this.player.maxMp, this.player.mp + opts.manaOnHit);
+        this.player.nextManaGainT = this.time + opts.manaOnHitCooldown;
+      }
     } else setAggro(this, m, this.player);
     if (m.hp <= 0) this.killMonster(m);
     return dmg;
@@ -716,7 +721,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, manaOnHit: s.manaOnHit, manaOnHitCooldown: s.manaOnHitCooldown, ...extra };
   }
 
   /** The combo step (0, 1, 2 = finisher) a melee swing landing at time t would be. */
@@ -921,7 +926,7 @@ export class Game {
 
   spawnGround(s, x, z, mult = 1) {
     if (!s.ground) return;
-    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.damage * mult * s.ground.dpsMult * 0.5, element: 'fire', dot: true });
+    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.ground.damage * mult * 0.5, element: s.ground.element, dot: true });
   }
 
   // ---------- update ----------

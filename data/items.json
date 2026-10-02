@@ -298,7 +298,16 @@
         "melee_pct",
         "crit_pct",
         "poison_on_hit",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "STR"
@@ -321,7 +330,16 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX"
@@ -344,7 +362,16 @@
         "crit_pct",
         "leech_pct",
         "poison_on_hit",
-        "melee_pct"
+        "melee_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wolf_fang",
       "requirementStat": "DEX"
@@ -368,7 +395,16 @@
         "spell_pct",
         "mp_flat",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT"
@@ -391,7 +427,16 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "cdr_pct"
+        "cdr_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT"
@@ -414,7 +459,16 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR"
@@ -437,7 +491,16 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "storm_quill",
       "requirementStat": "DEX"
@@ -461,7 +524,16 @@
         "melee_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "greyfang_mane",
       "requirementStat": "AGI"
@@ -484,7 +556,16 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "warden_horn",
       "requirementStat": "STR"
@@ -508,7 +589,16 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT"
@@ -619,7 +709,10 @@
         "spell_pct",
         "cdr_pct",
         "move_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT"
@@ -707,7 +800,10 @@
         "mp_flat",
         "summon_pct",
         "regen_flat",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT"
@@ -729,7 +825,10 @@
         "mp_flat",
         "spell_pct",
         "crit_pct",
-        "magic_flat"
+        "magic_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT"
@@ -813,7 +912,10 @@
         "move_pct",
         "cdr_pct",
         "defense_flat",
-        "hp_flat"
+        "hp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT"
@@ -854,7 +956,16 @@
         "attack_flat",
         "melee_pct",
         "projectile_pct",
-        "defense_flat"
+        "defense_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "boar_tusk",
       "requirementStat": "DEX"
@@ -874,7 +985,16 @@
         "mp_flat",
         "spell_pct",
         "area_pct",
-        "heal_pct"
+        "heal_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT"
@@ -894,7 +1014,16 @@
         "regen_flat",
         "summon_pct",
         "poison_on_hit",
-        "mp_flat"
+        "mp_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT"
@@ -914,7 +1043,16 @@
         "cdr_pct",
         "projectile_pct",
         "crit_pct",
-        "attack_flat"
+        "attack_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "AGI"
@@ -934,7 +1072,16 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "crit_pct"
+        "crit_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "golem_heart",
       "requirementStat": "VIT"
@@ -955,7 +1102,16 @@
         "magic_flat",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT"
@@ -1000,7 +1156,10 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat",
-        "mp_flat"
+        "mp_flat",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "crab_shell",
       "requirementStat": "AGI"
@@ -1023,7 +1182,16 @@
         "mp_flat",
         "spell_pct",
         "heal_pct",
-        "summon_pct"
+        "summon_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct",
+        "mp_pct",
+        "mp_regen_pct",
+        "mana_cost_pct"
       ],
       "upgradeMaterial": "sea_pearl",
       "requirementStat": "INT"
@@ -1106,7 +1274,10 @@
       "labelTh": "MP สูงสุด +{v}",
       "stat": "maxMp",
       "min": 5,
-      "max": 13
+      "max": 13,
+      "tags": [
+        "Mana"
+      ]
     },
     "defense_flat": {
       "label": "+{v} Defense",
@@ -1156,6 +1327,96 @@
       "stat": "hpRegen",
       "min": 1,
       "max": 2
+    },
+    "physical_pct": {
+      "label": "+{v}% physical damage",
+      "labelTh": "ดาเมจกายภาพ +{v}%",
+      "stat": "physicalDamagePct",
+      "tags": [
+        "Physical"
+      ],
+      "min": 3,
+      "max": 8
+    },
+    "fire_pct": {
+      "label": "+{v}% fire damage",
+      "labelTh": "ดาเมจไฟ +{v}%",
+      "stat": "fireDamagePct",
+      "tags": [
+        "Fire"
+      ],
+      "min": 3,
+      "max": 8
+    },
+    "cold_pct": {
+      "label": "+{v}% cold damage",
+      "labelTh": "ดาเมจน้ำแข็ง +{v}%",
+      "stat": "coldDamagePct",
+      "tags": [
+        "Cold"
+      ],
+      "min": 3,
+      "max": 8
+    },
+    "lightning_pct": {
+      "label": "+{v}% lightning damage",
+      "labelTh": "ดาเมจสายฟ้า +{v}%",
+      "stat": "lightningDamagePct",
+      "tags": [
+        "Lightning"
+      ],
+      "min": 3,
+      "max": 8
+    },
+    "earth_pct": {
+      "label": "+{v}% earth damage",
+      "labelTh": "ดาเมจดิน +{v}%",
+      "stat": "earthDamagePct",
+      "tags": [
+        "Earth"
+      ],
+      "min": 3,
+      "max": 8
+    },
+    "poison_pct": {
+      "label": "+{v}% poison damage",
+      "labelTh": "ดาเมจพิษ +{v}%",
+      "stat": "poisonDamagePct",
+      "tags": [
+        "Poison"
+      ],
+      "min": 3,
+      "max": 8
+    },
+    "mp_pct": {
+      "label": "+{v}% Max MP",
+      "labelTh": "มานาสูงสุด +{v}%",
+      "stat": "maxMpPct",
+      "min": 3,
+      "max": 8,
+      "tags": [
+        "Mana"
+      ]
+    },
+    "mp_regen_pct": {
+      "label": "+{v}% Mana Regeneration",
+      "labelTh": "ฟื้นมานา +{v}%",
+      "stat": "mpRegenPct",
+      "min": 4,
+      "max": 10,
+      "tags": [
+        "Mana"
+      ]
+    },
+    "mana_cost_pct": {
+      "label": "{v}% Reduced Mana Cost",
+      "labelTh": "ลดค่าใช้มานา {v}%",
+      "stat": "manaCostPct",
+      "min": 2,
+      "max": 5,
+      "tags": [
+        "Mana"
+      ]
     }
   },
   "grades": {
@@ -1357,7 +1618,15 @@
       "poisonChancePct": 0.1,
       "barrierPct": 0.15,
       "healPct": 0.15,
-      "mpRegenPct": 0.15
+      "mpRegenPct": 0.15,
+      "physicalDamagePct": 0.15,
+      "fireDamagePct": 0.15,
+      "coldDamagePct": 0.15,
+      "lightningDamagePct": 0.15,
+      "earthDamagePct": 0.15,
+      "poisonDamagePct": 0.15,
+      "maxMpPct": 0.15,
+      "manaCostPct": 0.35
     }
   }
 }

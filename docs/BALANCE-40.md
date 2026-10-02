@@ -8,7 +8,7 @@ growth and behaviour-changing mods retain separate purposes.
 
 - Character and Job caps are 40. Job Lv40 grants 39 points. Four professions each have
   connected choices sufficient for a single-focus build, including utility and defence.
-- Major sections unlock at total investments 0, 3, 9, 17, 25 and 33; profession entrances
+- Shared foundation starts every new build. Global journey areas open at 0, 3, 9, 17, 25 and 33 spent points; profession entrances
   additionally require Job Lv5 and three invested points. Small nodes ALWAYS require an
   owned linked neighbour. Section unlock, connection, points and profession are separate.
 - Stat growth is slower. Starting HP is preserved. STR/INT give 0.45 power per point;
@@ -111,3 +111,14 @@ is returned to the bag, with a warning shown before upgrading and confirmation a
 Stat respec and migration use the same enforcement; invalid gear never contributes to
 derived combat stats or the hero's appearance. Re-equipping requires meeting its actual
 current requirements. No item is deleted, and no upgrade is blocked by insufficient stats.
+
+### Clarified small-node progression and mana investment
+
+Every new character begins in the shared foundation. The 0/3/9/17/25/33 thresholds
+open six global journey areas; all nodes in an area share its gate. Minor nodes also
+require an owned linked neighbour. Three invested foundation points open stage II.
+Existing node IDs/effects, one-profession rules and version-4 ownership remain.
+Unspent points cannot open areas, and this revision does not reset existing saves.
+Resource gear rolls, the shared eight-node mana route and Mana Siphon are alternatives
+to offensive investment; reduced mana cost is capped at 35%, and on-hit recovery shares
+a one-second player cooldown across targets and skill slots.

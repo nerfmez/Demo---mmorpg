@@ -259,6 +259,8 @@ export class Panels {
           <span>Job</span><b>${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก (Job Lv.' + data.progression.job.jobChoiceLevel + ')'}</b>
           <span>อาวุธ</span><b>${data.items.weaponTypes?.[d.weaponType]?.nameTh || '-'}</b>
           <span>HP / MP</span><b>${g.player.maxHp} / ${g.player.maxMp}</b>
+          <span>ฟื้นมานา</span><b>${d.mpRegen.toFixed(2)} MP/วิ</b>
+          ${pct('ลดค่าใช้มานา',d.manaCostPct)}
           <span>พลังโจมตี (Attack)</span><b>${d.attack}</b>
           <span>พลังเวท (Magic)</span><b>${d.magic}</b>
           <span>ป้องกัน</span><b>${d.defense}</b>
@@ -266,7 +268,7 @@ export class Panels {
           <span>ความเร็วเดิน</span><b>${d.moveSpeed.toFixed(1)} m/s</b>
           <span>คูลดาวน์เร็วขึ้น</span><b>${d.cooldownPct.toFixed(0)}%</b>
           ${pct('ดาเมจประชิด', d.meleeDamagePct)}${pct('ดาเมจกระสุน', d.projectileDamagePct)}${pct('ดาเมจเวท', d.spellDamagePct)}${pct('ดาเมจวงกว้าง', d.areaDamagePct)}
-          ${pct('ดาเมจอัญเชิญ', d.summonDamagePct)}${pct('เกราะเวท', d.barrierPct)}${pct('การฟื้นฟู', d.healPct)}
+          ${pct('ดาเมจกายภาพ',d.physicalDamagePct)}${pct('ดาเมจไฟ',d.fireDamagePct)}${pct('ดาเมจน้ำแข็ง',d.coldDamagePct)}${pct('ดาเมจสายฟ้า',d.lightningDamagePct)}${pct('ดาเมจดิน',d.earthDamagePct)}${pct('ดาเมจพิษ',d.poisonDamagePct)}${pct('ดาเมจอัญเชิญ', d.summonDamagePct)}${pct('เกราะเวท', d.barrierPct)}${pct('การฟื้นฟู', d.healPct)}
           ${d.leechPct ? `<span>ดูดเลือด</span><b>${d.leechPct.toFixed(1)}%</b>` : ''}
           ${d.poisonChancePct ? `<span>โอกาสติดพิษ</span><b>${d.poisonChancePct.toFixed(0)}%</b>` : ''}
           <span>Gold</span><b>${ch.gold}</b>
@@ -432,6 +434,13 @@ export class Panels {
       case 'close-journal': return this.close();
       case 'dismiss-node': this.sel.node = null; return this.render();
       case 'journal-reset': this.sel.journalReset = !this.sel.journalReset; return this.render();
+      case 'journal-stage':
+        this.sel.journalStage = Number(t.dataset.id);
+        this.sel.constellation = null;
+        this.sel.node = null;
+        this.sel.nodeSearch = '';
+        this.sel.journalReset = false;
+        return this.render(true);
       case 'constellation':
         this.sel.constellation = t.dataset.id || null;
         this.sel.journalReset = false;
@@ -448,6 +457,7 @@ export class Panels {
       case 'jump-node': {
         const n = data.jobtree.nodes[t.dataset.id];
         if(!n) return;
+        this.sel.journalStage = data.jobtree.sections[n.section].tier;
         this.sel.constellation = n.category;
         this.sel.jobBranch = n.branch || n.requiresJob || this.sel.jobBranch;
         this.sel.node = t.dataset.id;
@@ -673,6 +683,13 @@ const EFFECT_TH = {
   persistentDurationPct: 'ระยะเวลาพื้นที่คงอยู่ %',
   controlDurationPct: 'ระยะเวลาควบคุม/คำสาป %',
   spellDamagePct: 'ดาเมจเวท %',
+  physicalDamagePct: 'ดาเมจกายภาพ %',
+  fireDamagePct: 'ดาเมจไฟ %',
+  coldDamagePct: 'ดาเมจน้ำแข็ง %',
+  lightningDamagePct: 'ดาเมจสายฟ้า %',
+  earthDamagePct: 'ดาเมจดิน %',
+  poisonDamagePct: 'ดาเมจพิษ %',
+  arcaneDamagePct: 'ดาเมจอาร์เคน %',
   summonDamagePct: 'ดาเมจอัญเชิญ %',
   maxHpPct: 'HP %',
   maxMpPct: 'MP %',
@@ -683,7 +700,8 @@ const EFFECT_TH = {
   critChancePct: 'โอกาสคริ %',
   damageTakenPct: 'ดาเมจที่ได้รับ %',
   hpRegen: 'ฟื้น HP/วิ',
-  mpRegenPct: 'ฟื้น MP %',
+  mpRegenPct: 'ฟื้นมานา %',
+  manaCostPct: 'ลดค่าใช้มานา %',
   projectileSpeedPct: 'ความเร็วกระสุน %',
   areaRadiusPct: 'รัศมีวงกว้าง %',
   echoDamagePct: 'ดาเมจ Echo %',
@@ -719,6 +737,7 @@ function describeSkill(s) {
   if (s.repeats) parts.push(`ฟันซ้ำ ${s.repeats} ครั้ง`);
   if (s.echo) parts.push(`Echo ${Math.round(s.echo.mult * 100)}%`);
   if (s.ground) parts.push('ทิ้งไฟ');
+  if (s.manaOnHit) parts.push(`คืน ${number(s.manaOnHit)} MP เมื่อโดน · ครั้งเดียวต่อ ${s.manaOnHitCooldown} วิ`);
   if (s.chill) parts.push(`ช้าลง ${Math.round(s.chill.slow * 100)}%`);
   if (s.slow) parts.push(`ช้าลง ${Math.round(s.slow * 100)}%`);
   if (s.knock) parts.push('กระแทกกระเด็น');

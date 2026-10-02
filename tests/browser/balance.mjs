@@ -58,12 +58,77 @@ try{
   await click('[data-act="return-craft"]');assert.equal(await page.locator('.craft-workspace').getAttribute('data-recipe'),'tusk_blade');assert.equal(await page.locator('.craft-result').count(),7);
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="hunter_bow"]');assert.equal(await page.locator('.craft-result').count(),0,'another recipe has its own history');
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="tusk_blade"]');assert.equal(await page.locator('.craft-result').count(),7,'recipe and goals persist through comparison and switching');
-  await open('job');await jump('v2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.seeker-node-detail').innerText(),/ต่อจากโหนด/);
-  await jump('v1');await click('[data-act="take-node"]');await jump('v2');await click('[data-act="take-node"]');await jump('v5');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.journal-tier-status').innerText(),/2\/3/);
+  await open('job');assert.equal(await page.locator('.seeker-node').count(),8);
+  assert.ok(await page.locator('.journey-bookmark[data-id="2"]').isDisabled(),'everyone starts in the common foundation, even with 39 unspent points');
+  if(width>=700)assert.ok(await page.locator('.journey-place').first().isVisible(),'the handwritten index is open on larger screens');
+  for(const id of ['f_atk','f_mag']){const n=await page.locator(`.seeker-node[data-id="${id}"]`).boundingBox(),g=await page.locator('.seeker-graph').boundingBox();assert.ok(n.x>=g.x&&n.x+n.width<=g.x+g.width&&n.y+n.height<=g.y+g.height,'foundation ends fit the initial page');}
+  await overflow();await shot('foundation');
+  for(const id of ['f_hp','f_def','f_atk']){await jump(id);await click('[data-act="take-node"]');}
+  const stageBefore=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch));
+  await click('.journey-bookmark[data-id="2"]');
+  assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch)),stageBefore,'turning a page cannot spend');
+  await jump('v2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.seeker-node-detail').innerText(),/ต่อจากโหนด/);
+  await jump('v1');await click('[data-act="take-node"]');await jump('v2');await click('[data-act="take-node"]');await jump('v5');assert.ok(await page.locator('[data-act="take-node"]').isEnabled());assert.match(await page.locator('.journal-tier-status').innerText(),/พื้นที่ขั้น 2/);
   await jump('m_atk');await click('[data-act="take-node"]');await jump('v5');await click('[data-act="take-node"]');await jump('vj');await click('[data-act="take-node"]');
-  assert.ok(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('vj')));await jump('v9');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.journal-tier-status').innerText(),/5\/17/);
-  assert.equal(await page.locator('.journal-section').count(),6);await click('[data-act="dismiss-node"]');await click('[data-fit]');await shot('tree');
-  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,ok:true});await ctx.close();
+  assert.ok(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('vj')));await jump('v9');
+  assert.equal(await page.locator('[data-act="take-node"]').count(),0,'sealed areas contain no purchase controls');assert.match(await page.locator('.journey-locked').innerText(),/8\/17/);await shot('locked-page');
+  await click('.journey-bookmark[data-id="2"]');await click('[data-fit]');await shot('tree');
+  // Type filters and mod rules are visible chips sourced from actual compiler tags.
+  await open('skills');await page.locator('[data-workspace-select="skillFilter"]').selectOption('Attack');
+  assert.equal(await page.locator('.seeker-library-item').count(),3);assert.equal(await page.locator('.seeker-library-item [data-skill-tag="Attack"]').first().textContent(),'กายภาพ');
+  await page.locator('[data-workspace-select="skillFilter"]').selectOption('Spell');
+  const stone=page.locator('.seeker-library-item').filter({has:page.locator('[data-act="choose-skill"][data-id="stone_burst"]')});
+  assert.equal(await stone.locator('[data-skill-tag="Spell"]').count(),1);assert.equal(await stone.locator('[data-damage-element="physical"]').count(),1);assert.equal(await stone.locator('[data-skill-tag="Attack"]').count(),0);
+  await page.locator('[data-workspace-select="skillFilter"]').selectOption('Projectile');assert.equal(await page.locator('.seeker-library-item').count(),2);
+  await click('[data-act="skill-slot"][data-slot="2"]');await overflow();await shot('tags-skills');
+  await page.evaluate(()=>{const g=window.__frontier.game;g.ch.mods=[{id:'split',uid:5001,level:1},{id:'echo',uid:5002,level:1}];g.ch.slots[2]={skill:'firebolt',mods:[]};g.refresh();});
+  await open('mods');await click('.seeker-mod-tile[data-uid="5001"]');
+  assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);assert.ok(await page.locator('.seeker-focus [data-tag-scope="mod"]').isVisible());
+  assert.ok(!(await page.locator('[data-act="socket"][data-uid="5001"]').isDisabled()));await overflow();await shot('tags-mods');
+  await click('.seeker-mod-tile[data-uid="5002"]');assert.ok(await page.locator('[data-act="socket"][data-uid="5002"]').isDisabled());
+  assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Area"]').count(),1);assert.equal(await page.locator('.seeker-focus [data-mod-rule="exclude"] .seeker-tag').count(),2);await overflow();await shot('tags-incompatible');
+  await open('craft');await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="mod"]');
+  assert.equal(await page.locator('.recipe-card').filter({has:page.locator('[data-id="mod_split"]')}).locator('[data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);await overflow();await shot('tags-craft');
+  // Element filters, conversion metadata, new recipe goals and connected elemental nodes.
+  await open('skills');await page.locator('[data-workspace-select="skillFilter"]').selectOption('Fire');
+  assert.equal(await page.locator('.seeker-library-item').count(),1);assert.equal(await page.locator('.seeker-library-item [data-element-tag="Fire"]').count(),1);
+  await page.locator('[data-workspace-select="skillFilter"]').selectOption('Earth');
+  assert.equal(await page.locator('.seeker-library-item [data-element-tag="Earth"]').count(),1);assert.equal(await page.locator('.seeker-library-item [data-element-tag="Physical"]').count(),1);
+  await page.evaluate(()=>{const g=window.__frontier.game;g.ch.mods=[{id:'frost_shift',uid:5011,level:1},{id:'burning_ground',uid:5012,level:1}];g.ch.slots[2]={skill:'firebolt',mods:[5011,5012]};g.refresh();window.__frontier.panels.render();});
+  assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="element"] [data-element-tag="Cold"]').count(),1);
+  assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="element"] [data-element-tag="Fire"]').count(),0);
+  assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="secondary"] [data-element-tag="Fire"]').count(),1);await overflow();await shot('element-conversion');
+  await open('craft');await click('[data-act="craft-filter"][data-id="weapon"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
+  await page.locator('.recipe-affixes>summary').click();assert.equal(await page.locator('.recipe-affixes [data-element-tag="Fire"]').count(),1);
+  await page.locator('.craft-repeat>summary').click();await page.locator('[data-field="option"]').selectOption('fire_pct');await overflow();await shot('element-craft');
+  await open('job');await jump('f_mp');await click('[data-act="take-node"]');await jump('element_fire_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());
+  await jump('element_fire_1');assert.equal(await page.locator('.seeker-node-detail [data-element-tag="Fire"]').count(),1);await click('[data-act="take-node"]');
+  await jump('element_fire_2');await click('[data-act="take-node"]');
+  assert.equal(await page.evaluate(()=>window.__frontier.game.derived.fireDamagePct),8);await overflow();await shot('element-tree');
+  // Shared sequential areas, connected mana investment and navigation never spend.
+  await click('.journey-bookmark[data-id="1"]');
+  assert.equal(await page.locator('.seeker-constellation').count(),1);assert.equal(await page.locator('.seeker-node').count(),8);
+  await overflow();await shot('tree-contents');
+  const navBefore=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch));
+  await click('.journey-bookmark[data-id="2"]');
+  assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch)),navBefore);
+  await jump('mana_pool_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());
+  assert.ok(await page.locator('.seeker-route [data-id="mana_pool_1"]').count());
+  for(const id of ['mana_pool_1','mana_flow_1','mana_pool_2','mana_flow_2','mana_efficiency','mana_reservoir','mana_cycling']){await jump(id);await click('[data-act="take-node"]');}
+  assert.ok(await page.evaluate(()=>window.__frontier.game.derived.manaCostPct>0));
+  await jump('mana_master');
+  if(width<700){const node=await page.locator('.seeker-node.selected').boundingBox(),sheet=await page.locator('.journal-inspector').boundingBox();assert.ok(node.y+node.height<sheet.y,'selected node stays visible above the phone details sheet');}
+  await overflow();await shot('mana-tree');
+  await open('craft');if(await page.locator('[data-act="craft-back"]').count())await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="weapon"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
+  if(!(await page.locator('.recipe-affixes [data-skill-tag="Mana"]').first().isVisible()))await page.locator('.recipe-affixes>summary').click();
+  assert.ok(await page.locator('.recipe-affixes [data-skill-tag="Mana"]').count()>=3);
+  if(!(await page.locator('[data-field="option"]').isVisible()))await page.locator('.craft-repeat>summary').click();
+  await page.locator('[data-field="option"]').selectOption('mana_cost_pct');await overflow();await shot('mana-options');
+  await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="mod"]');await click('[data-act="craft-open"][data-id="mod_mana_siphon"]');await click('[data-act="craft"][data-id="mod_mana_siphon"]');
+  await open('mods');await click('.seeker-mod-tile:has([data-gem="mana_siphon"])');
+  assert.equal(await page.locator('.seeker-focus [data-tag-scope="mod"] [data-skill-tag="Mana"]').count(),1);
+  await overflow();await shot('mana-mod');
+  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,visibleTypeTags:true,elementRules:true,ok:true});await ctx.close();
  }
  const ctx=await browser.newContext({viewport:{width:1180,height:900},deviceScaleFactor:1}),page=await ctx.newPage();
  for(const kind of ['skill','gear','material','mod']){
@@ -72,5 +137,5 @@ try{
   await page.setContent(`<!doctype html><html lang="th"><body><h1>Frontier / ${kind}</h1><main>${cells}</main></body></html>`);
   await page.addStyleTag({content:css+'body{margin:0;background:#eef1e9;color:#38514c;font-family:Mitr}h1{padding:20px;font-size:22px}main{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:20px}figure{margin:0;text-align:center;display:grid;justify-items:center;gap:9px}figure .art{width:112px;height:112px}figcaption{font-size:11px}'});await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:out+'art-'+kind+'.png',fullPage:true});
  }
- await ctx.close();writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS balance '+name+' '+reports.length+' viewports + all 91 icons');
+ await ctx.close();writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS balance '+name+' '+reports.length+' viewports + all icons');
 }finally{await browser.close();}

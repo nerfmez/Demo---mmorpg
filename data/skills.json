@@ -8,7 +8,8 @@
       "tags": [
         "Attack",
         "Melee",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "melee_arc",
       "power": "attack",
@@ -35,7 +36,8 @@
         "Attack",
         "Melee",
         "Area",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "melee_nova",
       "power": "attack",
@@ -63,7 +65,8 @@
       "tags": [
         "Attack",
         "Projectile",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "projectile",
       "power": "attack",
@@ -151,7 +154,8 @@
         "Spell",
         "Area",
         "Earth",
-        "Damage"
+        "Damage",
+        "Physical"
       ],
       "kind": "ground_area",
       "power": "spell",
@@ -250,7 +254,8 @@
         "Spell",
         "Area",
         "Curse",
-        "Debuff"
+        "Debuff",
+        "Arcane"
       ],
       "kind": "curse_zone",
       "power": "spell",
@@ -361,7 +366,8 @@
       "tags": [
         "Spell",
         "Summon",
-        "Minion"
+        "Minion",
+        "Physical"
       ],
       "kind": "summon",
       "power": "spell",
@@ -451,7 +457,9 @@
       "tags": [
         "Movement",
         "Attack",
-        "Area"
+        "Area",
+        "Physical",
+        "Damage"
       ],
       "kind": "leap",
       "distance": 7,
@@ -469,7 +477,8 @@
       "requires": {
         "STR": 6
       },
-      "icon": "leap"
+      "icon": "leap",
+      "element": "physical"
     }
   }
 }

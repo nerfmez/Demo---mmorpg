@@ -1,0 +1,32 @@
+{
+  "status": "proposal_only_not_loaded_by_game",
+  "sourceCommit": "fa34e9f2e4fe6c7e41afc34a93c1a20173626bf3",
+  "hosts": ["slash", "whirl_blade", "hunter_shot"],
+  "donors": ["firebolt", "frost_nova", "chain_spark"],
+  "levels": [10, 20, 40],
+  "hostDamageFactor": 0.9,
+  "conversionFraction": 0.3,
+  "spellDamageFraction": 0.35,
+  "spellEffectFraction": 0.5,
+  "positiveModFraction": 0.5,
+  "addedDamageCapFraction": 0.25,
+  "manaFraction": 0.65,
+  "flatMana": 1,
+  "manaPerActiveDonorMod": 1,
+  "donorMustBeDedicated": true,
+  "hostModSlotsConsumed": 1,
+  "maxDonorMods": 2,
+  "defenseStatPointFraction": 0.2,
+  "hybridPrimaryDamagePointFraction": 0.55,
+  "compatibility": {
+    "slash": ["firebolt", "frost_nova", "chain_spark"],
+    "whirl_blade": ["firebolt", "frost_nova", "chain_spark"],
+    "hunter_shot": ["firebolt", "frost_nova", "chain_spark"]
+  },
+  "projectionMods": {
+    "fire_melee": ["burning_ground", "lingering", "life_leech", "knockback"],
+    "fire_projectile": ["split", "pierce", "bounce", "burning_ground", "lingering", "life_leech", "knockback"],
+    "cold_impact": ["concentrated", "echo", "life_leech", "knockback"],
+    "lightning_impact": ["bounce", "life_leech"]
+  }
+}

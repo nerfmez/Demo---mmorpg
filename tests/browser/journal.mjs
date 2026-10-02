@@ -23,11 +23,12 @@ try{
   if(offline){await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:css});await page.addScriptTag({content:code});}
   else {await page.goto('http://localhost:4187/?fresh=1&quality=low&seed=7');await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});await freezeScene(page);}
   await page.evaluate(()=>document.fonts.ready);
-  await page.evaluate(()=>{const f=window.__frontier,g=f.game;g.ch.name='Seeker';g.ch.level=18;g.ch.jobLevel=18;g.ch.jobPoints=12;g.ch.jobNodes=['origin','v1','v2','r1','r2','f_hp'];g.ch.gold=2400;for(const k in g.ch.stats)g.ch.stats[k]=20;g.ch.mods=Object.keys(g.data.mods.mods).map((id,i)=>({id,uid:900+i,level:1}));g.ch.slots[0]={skill:'firebolt',mods:[]};g.ch.skills.firebolt=1;g.refresh();f.panels.open('job');});
+  await page.evaluate(()=>{const f=window.__frontier,g=f.game;g.ch.name='Seeker';g.ch.level=18;g.ch.jobLevel=18;g.ch.jobPoints=17;g.ch.jobNodes=['origin'];g.ch.gold=2400;for(const k in g.ch.stats)g.ch.stats[k]=20;g.ch.mods=Object.keys(g.data.mods.mods).map((id,i)=>({id,uid:900+i,level:1}));g.ch.slots[0]={skill:'firebolt',mods:[]};g.ch.skills.firebolt=1;g.refresh();f.panels.open('job');});
   const click=async selector=>{const l=page.locator(selector).first();return touch?l.tap():l.click();};
   const shot=async label=>page.screenshot({path:dir+name+'-'+label+'.png',timeout:60000});
-  assert.equal(await page.locator('.journal-chapter').count(),10);
-  assert.equal(await page.locator('.seeker-node').count(),0);
+  assert.equal(await page.locator('.journey-book').count(),1);
+  assert.equal(await page.locator('.seeker-node').count(),8);
+  assert.ok(await page.locator('.journey-bookmark[data-id="2"]').isDisabled());
   assert.equal(await page.locator('.journal-inspector').count(),0);
   const full=await page.locator('.panel').boundingBox();assert.equal(full.x,0);assert.equal(full.y,0);assert.equal(full.width,width);assert.equal(full.height,height);
   assert.ok(await page.evaluate(() => {
@@ -36,30 +37,26 @@ try{
       Number(getComputedStyle(hud).zIndex) > Number(getComputedStyle(xp).zIndex));
   }), 'fullscreen journal must paint above the body-level EXP strip');
   assert.ok(!await page.locator('.tabs').isVisible());
-  const gr=await page.locator('.seeker-graph').boundingBox();await shot('00-layout');assert.ok(gr.height>height*.72, JSON.stringify({gr,height}));
-  await shot('01-overview');
-  // In a compact viewport the chart can be panned; search is the direct way to any node.
-  if(width>=700){await click('.journal-chapter[data-id="area"]');await shot('02-archive');}
-  else {await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search button[type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');await shot('02-archive');}
+  await shot('01-foundation');
+  const jump=async id=>{const name=await page.evaluate(id=>window.__frontier.game.data.jobtree.nodes[id].nameTh,id);await page.locator('#node-search').fill(name);await click('.seeker-node-search button[type="submit"]');await click(`.seeker-search-result[data-id="${id}"]`);};
+  for(const id of ['f_hp','f_mp','f_mag']){await jump(id);await click('[data-act="take-node"]');}
   const points=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
-  await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search button[type="submit"]');await click('.seeker-search-result[data-id="a1"]');
+  await click('.journey-bookmark[data-id="2"]');await shot('02-next-area');
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),points);
+  await jump('a1');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),points);
   await click('[data-act="take-node"][data-id="a1"]');
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),points-1);
   await shot('03-inspected');await click('[data-act="dismiss-node"]');
-  // Partial investment leaves other branches untouched and does not lock other books.
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('a2')),false);
-  await click('.journal-back');assert.equal(await page.locator('.journal-chapter').count(),10);
-  assert.match(await page.locator('.journal-chapter[data-id="area"]').innerText(),/ลงทุนแล้ว 1 แต้ม/);
   const before=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes));
+  await click('.journey-bookmark[data-id="1"]');await click('.journey-bookmark[data-id="2"]');
   const rect=await page.locator('.seeker-graph').boundingBox();
   await page.mouse.move(rect.x+rect.width*.55,rect.y+rect.height*.6);await page.mouse.down();await page.mouse.move(rect.x+rect.width*.55+60,rect.y+rect.height*.6+10,{steps:6});await page.mouse.up();
   assert.equal(await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes)),before);
-  await click('[data-fit]');
-  await click('[data-act="close-journal"]');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
+  await click('[data-fit]');await click('[data-act="close-journal"]');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);
   // Open actual menu workspace; the fixtures are not the implementation.
   await page.evaluate(()=>window.__frontier.panels.open('mods'));
-  assert.equal(await page.locator('.seeker-mod-list [data-gem]').count(),15);
+  assert.equal(await page.locator('.seeker-mod-list [data-gem]').count(),16);
   await click('.seeker-mod-tile[data-uid="900"]');await shot('04-mod-gems');
   await click('[data-act="socket"][data-uid="900"]');assert.ok(await page.evaluate(()=>window.__frontier.game.ch.slots[0].mods.includes(900)));
   const base=await page.evaluate(()=>window.__frontier.game.skills[0].projectiles); // compiler remains authoritative
@@ -67,6 +64,7 @@ try{
   await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-gem="split"]').count());
   await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-gem]').count());
   assert.deepEqual(errors,[]);
-  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,chapters:10,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
+  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,journeyAreas:6,modGemTypes:16,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
  }
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}
+

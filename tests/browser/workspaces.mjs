@@ -34,8 +34,10 @@ try{
   const nav=async tab=>{if(await page.locator('.is-journal').count()){await page.keyboard.press('Escape');await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(width<=700)await page.locator('[data-page-select]').selectOption(tab);else await click(`[data-tab="${tab}"]`);};
   const shot=async label=>{await page.screenshot({path:out+size+'-'+label+'.png',timeout:60000});};
   const noOverflow=async()=>assert.ok(await page.locator('.pbody').evaluate(el=>el.scrollWidth<=el.clientWidth+2),size+' content horizontal overflow');
-  assert.equal(await page.locator('.seeker-constellation').count(),10);assert.equal(await page.locator('.seeker-node').count(),0);await noOverflow();await shot('categories');
-  await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search [type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');assert.equal(await page.locator('.seeker-node').count(),8);await shot('area');
+  assert.equal(await page.locator('.seeker-constellation').count(),1);assert.equal(await page.locator('.seeker-node').count(),8);await noOverflow();await shot('foundation');
+  for(const id of ['f_hp','f_mp','f_mag']){const name=await page.evaluate(id=>window.__frontier.game.data.jobtree.nodes[id].nameTh,id);await page.locator('#node-search').fill(name);await click('.seeker-node-search [type="submit"]');await click(`.seeker-search-result[data-id="${id}"]`);await click('[data-act="take-node"]');}
+  await click('.journey-bookmark[data-id="2"]');
+  await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search [type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');await shot('area');
   const before=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
   await click('[data-focus]');await click('.seeker-node[data-id="a1"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection must not spend');
   await click('[data-act="take-node"][data-id="a1"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-1);
@@ -53,7 +55,7 @@ try{
   await page.locator('[data-workspace-select="skillFilter"]').selectOption('DoT');assert.equal(await page.locator('.seeker-library-item').count(),1);await click('[data-act="choose-skill"][data-id="venom_mire"]');
   await click('[data-act="pick-socket"]');assert.equal(await page.locator('.pbody').getAttribute('data-panel'),'mods');assert.equal(await page.locator('.seeker-library-item').count(),0);
   const uid=await page.evaluate(()=>window.__frontier.game.ch.mods.find(m=>m.id==='split').uid);
-  await click(`.seeker-mod-tile[data-uid="${uid}"]`);assert.match(await page.locator('.seeker-mod-status').innerText(),/ขาดประเภท.*กระสุน/);assert.ok(await page.locator('[data-act="socket"]').isDisabled());await shot('incompatible');
+  await click(`.seeker-mod-tile[data-uid="${uid}"]`);assert.match(await page.locator('.seeker-mod-status').innerText(),/ขาดประเภท.*โปรเจกไทล์/);assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);assert.ok(await page.locator('[data-act="socket"]').isDisabled());await shot('incompatible');
   const lingering=await page.evaluate(()=>window.__frontier.game.ch.mods.find(m=>m.id==='lingering').uid);
   await click(`.seeker-mod-tile[data-uid="${lingering}"]`);await click(`[data-act="socket"][data-uid="${lingering}"]`);assert.ok(await page.evaluate(uid=>window.__frontier.game.ch.slots[0].mods.includes(uid),lingering));
   assert.ok(await page.evaluate(()=>window.__frontier.game.skills[0].duration>window.__frontier.game.data.skills.combat.venom_mire.duration));await noOverflow();await shot('mods');

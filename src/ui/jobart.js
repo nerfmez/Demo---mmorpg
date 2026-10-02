@@ -94,3 +94,29 @@ for(const [branch,illustrations] of Object.entries(practiceArt))for(let tier=2;t
  const ticks=Array.from({length:tier-1},(_,i)=>circle(28+i*18,113,3.5,practiceColours[branch])).join('');
  JOB_ART[`${branch}_t${tier}_${row+1}`]=circle(64,61,49,practiceColours[branch]+'22')+group(illustrations[row],`translate(${row-3} ${tier-3}) scale(.82) rotate(${(tier-2)*3+row} 64 64)`)+ticks;
 }
+
+// Element schools share their silhouette, with distinct rank compositions.
+const elementArt={
+ physical:[blade,'#c9ced4'],
+ fire:[path('M63 15c2 25 31 33 29 62-1 29-48 40-61 12-10-21 9-42 20-48l-2 27c15-10 19-31 14-53z','#efa054')+path('M64 63c13 16 21 28 4 40-25-1-26-21-4-40z','#ffe0a0'),'#efa054'],
+ cold:[line('M64 17v86M27 37l74 44M27 81l74-44M50 23l14 14 14-14M50 97l14-14 14 14M26 51l17 2-7-17M102 67l-17-2 7 17','#a5dcea',7),'#a5dcea'],
+ lightning:[path('M70 12 28 67h31l-7 45 47-64H69l13-36z','#f2d779'),'#f2d779'],
+ earth:[path('M22 86 37 47l29-20 30 29 14 33-42 17z','#b9a176')+line('M37 47 68 67l28-11M68 67v39','#f2d5a6',5),'#b9a176'],
+ poison:[group(drop,'translate(13 1) scale(.8)')+path('M28 99q33-13 74 0l-7 13H35z','#93bd73')+circle(92,29,8,'#bfe096'),'#93bd73'],
+};
+for(const [element,[shape,colour]] of Object.entries(elementArt))for(let rank=1;rank<=3;rank++) {
+ const composition=rank===1?group(shape,'translate(12 8) scale(.8)'):rank===2?circle(64,64,48,colour+'22')+group(shape,'translate(5 0) scale(.9)'):group(shape,'translate(-1 -3)')+line('M21 110h86M23 23l-7-7m89 7 7-7',colour,5);
+ JOB_ART[`element_${element}_${rank}`]=composition+Array.from({length:rank},(_,i)=>circle(47+i*17,117,3,colour)).join('');
+}
+
+// Shared mana route: reservoir, breathing rhythm and careful casting.
+Object.assign(JOB_ART, {
+ mana_pool_1:group(drop,'translate(14 7) scale(.8)')+path('M19 97h90v15H19z','#a6b8d0'),
+ mana_flow_1:group(drop,'translate(34 9) scale(.55)')+line('M17 89q47 24 95 0M25 106q40 18 76 0','#aacbdf',6),
+ mana_pool_2:path('M22 48h84l-8 60H30z','#9db6d0')+group(drop,'translate(38 -8) scale(.45)')+line('M34 83h61','#d9dfb5',5),
+ mana_flow_2:group(ring,'translate(6 6) scale(.9)')+group(drop,'translate(36 25) scale(.48)'),
+ mana_efficiency:group(drop,'translate(8 6) scale(.72)')+line('M74 44h39M83 59h24M80 77l13 13 22-31','#a9c5da',6),
+ mana_reservoir:path('M21 21h86v86l-43 12-43-12z','#859db7')+group(drop,'translate(33 31) scale(.49)')+line('M34 89h60','#d5d3a7',5),
+ mana_cycling:group(ring,'rotate(50 64 64)')+group(drop,'translate(27 24) scale(.58)')+circle(20,66,6,'#aecddf'),
+ mana_master:circle(64,64,51,'#91bcd333')+group(drop,'translate(17 -1) scale(.76)')+line('M12 109h104M17 22h22m50 0h22','#d9ca92',6),
+});

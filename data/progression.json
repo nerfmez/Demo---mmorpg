@@ -59,7 +59,8 @@
       "damageTakenPct": -25,
       "hpRegen": 5,
       "leechPct": 8,
-      "extraMovementCharges": 1
+      "extraMovementCharges": 1,
+      "manaCostPct": 35
     },
     "softCaps": {
       "threshold": 50,
@@ -73,7 +74,13 @@
         "dotDamagePct",
         "maxHpPct",
         "barrierPct",
-        "healPct"
+        "healPct",
+        "physicalDamagePct",
+        "fireDamagePct",
+        "coldDamagePct",
+        "lightningDamagePct",
+        "earthDamagePct",
+        "poisonDamagePct"
       ]
     }
   },

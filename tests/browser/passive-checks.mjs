@@ -13,7 +13,7 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
     f.game.ch.jobPoints = 19;
     f.game.ch.gold = 1000;
     f.panels.jobCameras = {};
-    Object.assign(f.panels.sel, {node: null, constellation: null, nodeSearch: '', jobBranch: 'vanguard'});
+    Object.assign(f.panels.sel, {node: null, constellation: null, nodeSearch: '', jobBranch: 'vanguard', journalStage: 1});
     f.panels.open('job');
   });
   const tap = async selector => {
@@ -33,14 +33,15 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   };
   const camera = () => page.evaluate(() => {
     const ui = window.__frontier.panels;
-    return {...ui.jobCameras[ui.sel.constellation + ':' + (ui.sel.jobBranch || '')]};
+    return {...ui.jobCameras[ui.sel.journalStage + ':' + (ui.sel.constellation || 'default') + ':' + (ui.sel.jobBranch || '')]};
   });
-  assert.equal(await page.locator('.seeker-constellation').count(), 10);
-  assert.equal(await page.locator('.seeker-node').count(), 0, 'overview is not the whole giant graph');
+  assert.equal(await page.locator('.seeker-constellation').count(), 1);
+  assert.equal(await page.locator('.seeker-node').count(), 8, 'common foundation is the first page');
+  for(const id of ['f_hp','f_def','f_atk']){await jump(id);await tap('[data-act="take-node"]');}
   await jump('v1');
-  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobNodes.length), 1, 'inspection does not spend');
+  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobNodes.length), 4, 'inspection does not spend');
   await tap('[data-act="take-node"]');
-  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), 18);
+  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), 15);
   await jump('v2');
   await tap('[data-act="take-node"]');
   await jump('m_atk');
@@ -50,10 +51,11 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   assert.ok(await page.evaluate(() => window.__frontier.game.ch.jobNodes.includes('vj')));
   await jump('aj');
   assert.ok(await page.locator('[data-act="take-node"]').isDisabled(), 'second Job stays blocked across categories');
-  await jump('v9');
-  assert.ok(await page.locator('[data-act="take-node"]').isDisabled(), 'stage IV stays locked before enough earlier-tier investment');
-  assert.match(await page.locator('.journal-tier-status').innerText(), /4\/17/, 'major group counts total investment');
-  const candidates=Object.entries(data.jobtree.nodes).filter(([,n])=>n.category==='melee'||(n.category==='specialist'&&(n.requiresJob||n.branch)==='vanguard'));
+  await page.locator('#node-search').fill(data.jobtree.nodes.v9.nameTh);
+  await tap('.seeker-node-search [type="submit"]');await tap('.seeker-search-result[data-id="v9"]');
+  assert.equal(await page.locator('[data-act="take-node"]').count(),0, 'sealed area cannot be purchased');
+  assert.match(await page.locator('.journey-locked').innerText(), /7\/17/, 'area counts total investment');
+  const candidates=Object.entries(data.jobtree.nodes).filter(([,n])=>n.category==='foundation'||n.category==='melee'||(n.category==='specialist'&&(n.requiresJob||n.branch)==='vanguard'));
   while(true){
     const ch=await page.evaluate(()=>window.__frontier.game.ch);
     if(ch.jobNodes.length-1>=17)break;
@@ -66,6 +68,7 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),2,'17 real allocations spend 17 points');
 
   const before = await page.evaluate(() => JSON.stringify(window.__frontier.game.ch.jobNodes));
+  const pointsBefore = await page.evaluate(() => window.__frontier.game.ch.jobPoints);
   const selected = await page.evaluate(() => window.__frontier.panels.sel.node);
   await page.locator('.seeker-graph').evaluate(el => {
     el.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, pointerId: 91, pointerType: 'touch', clientX: 100, clientY: 150}));
@@ -74,13 +77,31 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   await tap('[data-zoom="-1"]');
   await tap('[data-zoom="1"]');
   await page.locator('.seeker-graph').scrollIntoViewIfNeeded();
-  // Use the visible intersection, including short landscape screens.
-  const box = await page.locator('.seeker-graph').evaluate(el => {
+  // A visible graph rectangle may still be covered by the open inspector.
+  // Hit-test the entire gesture path without hiding it or changing selection.
+  const graph = page.locator('.seeker-graph');
+  const gesturePoint = offsets => graph.evaluate((el, offsets) => {
     const r = el.getBoundingClientRect(), p = el.closest('.pbody').getBoundingClientRect();
     const left = Math.max(r.left, p.left, 0), right = Math.min(r.right, p.right, innerWidth);
     const top = Math.max(r.top, p.top, 0), bottom = Math.min(r.bottom, p.bottom, innerHeight);
-    return {x: (left + right) / 2, y: top + (bottom - top) * .2};
-  });
+    const receives = (x, y) => {
+      const hit = document.elementFromPoint(x, y);
+      return x > left && x < right && y > top && y < bottom && !!hit && el.contains(hit);
+    };
+    const candidates = [{x: (left + right) / 2, y: top + (bottom - top) * .2}];
+    for (let y = top + 8; y < bottom - 8; y += 12)
+      for (let x = left + 8; x < right - 8; x += 12) candidates.push({x, y});
+    return candidates.find(({x, y}) => offsets.every(([dx, dy]) => receives(x + dx, y + dy))) || null;
+  }, offsets);
+  assert.ok(await page.locator('.seeker-node-detail').isVisible(), 'inspector stays open during gestures');
+  const box = await gesturePoint(Array.from({length: 7}, (_, i) => [55 * i / 6, 15 * i / 6]));
+  assert.ok(box, 'an unobstructed graph drag path exists with the inspector open');
+  for (const [dx, dy] of [[0, 0], [55, 15]]) {
+    assert.ok(await graph.evaluate((el, {x, y}) => {
+      const hit = document.elementFromPoint(x, y);
+      return !!hit && el.contains(hit);
+    }, {x: box.x + dx, y: box.y + dy}), 'graph receives pointer at the drag endpoint');
+  }
   const prev = await camera();
   await page.mouse.move(box.x, box.y);
   await page.mouse.down();
@@ -88,21 +109,23 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
   await page.mouse.up();
   assert.ok(Math.abs((await camera()).x - prev.x) > 20, 'drag pans the active category');
   if (engineName === 'chromium' && page.viewportSize().width === 1180) {
+    const pinch = await gesturePoint([[-35, 0], [35, 0], [-62, 0], [62, 0]]);
+    assert.ok(pinch, 'graph receives both fingers at the pinch start and end');
     const cdp = await context.newCDPSession(page), zoomBefore = (await camera()).zoom;
     try {
-      await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x: box.x - 35, y: box.y, id: 1}, {x: box.x + 35, y: box.y, id: 2}]});
-      await cdp.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x: box.x - 62, y: box.y, id: 1}, {x: box.x + 62, y: box.y, id: 2}]});
+      await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x: pinch.x - 35, y: pinch.y, id: 1}, {x: pinch.x + 35, y: pinch.y, id: 2}]});
+      await cdp.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x: pinch.x - 62, y: pinch.y, id: 1}, {x: pinch.x + 62, y: pinch.y, id: 2}]});
       await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
       assert.ok((await camera()).zoom > zoomBefore, 'native two-finger pinch zooms');
     } finally { await cdp.detach(); }
   }
   assert.equal(await page.evaluate(() => JSON.stringify(window.__frontier.game.ch.jobNodes)), before, 'gestures never spend');
+  assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobPoints), pointsBefore, 'gestures never spend points');
   assert.equal(await page.evaluate(() => window.__frontier.panels.sel.node), selected, 'gestures never select a node');
+  assert.ok(await page.locator('.seeker-node-detail').isVisible(), 'gestures leave the inspector open');
   await capture('job-detail');
   await tap('[data-fit]');
   await capture('job-overview');
-  await tap('.journal-back');
   await tap('[data-act="close-journal"]');
   assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
 }
-

@@ -387,6 +387,33 @@
       "requires": {
         "AGI": 8
       }
+    },
+    "mana_siphon": {
+      "name": "Mana Siphon",
+      "nameTh": "ดูดซับมานา",
+      "desc": "โจมตีด้วยสกิลนี้โดน คืนมานา 1 / 1.5 / 2 หน่วย · คืนได้ครั้งเดียวต่อ 1 วินาทีร่วมกันทุกสกิล ไม่เพิ่มตามจำนวนเป้า ลูก ซ้ำ หรือเด้ง ไม่ทำงานกับพื้นที่ต่อเนื่องและลูกสมุน",
+      "tags": [
+        "Mana"
+      ],
+      "requiresAll": [
+        "Damage"
+      ],
+      "excludes": [
+        "DoT",
+        "Summon",
+        "Minion"
+      ],
+      "requires": {
+        "INT": 6
+      },
+      "effect": {
+        "manaOnHit": [
+          1,
+          1.5,
+          2
+        ],
+        "manaOnHitCooldown": 1
+      }
     }
   },
   "maxModsPerSkill": 2

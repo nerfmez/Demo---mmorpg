@@ -1,7 +1,7 @@
 // Shared progression language for the bag, workbench and skill growth.
 import { computeSkill } from '../core/skills.js';
 import { derive, gearRequirements } from '../core/character.js';
-import { esc } from './buildmeta.js';
+import { esc, tagsHtml } from './buildmeta.js';
 
 export function gradeBadge(data, grade, count = data.items.grades.optionCount[grade], compact = false) {
  const g=data.items.grades;
@@ -12,7 +12,7 @@ export function gradeGuide(data) {
  return `<div class="grade-guide">${g.order.map(grade=>`<div>${gradeBadge(data,grade)}<small>โอกาส ${Math.round(g.weights[grade]/total*100)}%</small></div>`).join('')}</div><p class="muted">เกรดเพิ่มจำนวนออฟชั่น · ตีบวกเพิ่มเฉพาะค่าพื้นฐาน · คราฟต์แต่ละครั้งสุ่มใหม่</p>`;
 }
 export function optionList(data, options) {
- return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],quality=def.max===def.min?1:(o.value-def.min)/(def.max-def.min);return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}</span><small>ช่วง ${def.min}–${def.max}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
+ return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],quality=def.max===def.min?1:(o.value-def.min)/(def.max-def.min);return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}${def.tags?tagsHtml(def.tags,'option'):''}</span><small>ช่วง ${def.min}–${def.max}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
 }
 export function upgradeTrack(levels, completed, prefix='Lv.',first=1) {
  return `<ol class="upgrade-track">${levels.map((level,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>ตัวละคร Lv.${level}</small></li>`).join('')}</ol>`;
@@ -36,7 +36,7 @@ export function skillGrowthPreview(ch,data,id,describe) {
  const before=computeSkill(view,data,derived,slot),after=computeSkill({...view,skills:{...view.skills,[id]:ch.skills[id]+1}},data,derived,slot);
  return `<div class="growth-preview"><div><small>ตอนนี้</small><p>${describe(before)}</p></div><span>→</span><div><small>หลังอัป</small><p>${describe(after)}</p></div></div><p class="muted">MP ${before.cost.toFixed(1)} → ${after.cost.toFixed(1)} · คูลดาวน์ ${before.cooldown.toFixed(2)} วิ</p>`;
 }
-const MOD_EFFECTS={extraProjectiles:'กระสุนเพิ่ม',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',groundDps:'พลังไฟพื้น',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์'};
+const MOD_EFFECTS={extraProjectiles:'กระสุนเพิ่ม',pierce:'ทะลุเป้า',chain:'เด้งเพิ่ม',damageMult:'ตัวคูณดาเมจ',groundDps:'พลังไฟพื้น',echoMult:'พลังร่ายซ้ำ',arcAdd:'มุมฟันเพิ่ม',rangeAdd:'ระยะเพิ่ม',repeatMult:'พลังฟันซ้ำ',chillSlow:'ชะลอ',knock:'ระยะกระเด็น',durationMult:'ตัวคูณเวลาพื้นที่',leechPct:'ดูดเลือด %',manaOnHit:'มานาคืนเมื่อโจมตีโดน',reflect:'สะท้อน',summonDamage:'พลังอัญเชิญเพิ่ม',internalCooldown:'คูลดาวน์ทริกเกอร์'};
 export function modGrowthPreview(def,level) {
  return `<div class="mod-growth-preview">${Object.entries(def.effect).filter(([,v])=>Array.isArray(v)&&v[level]!==v[level-1]).map(([k,v])=>`<p>${MOD_EFFECTS[k]||'พลังม็อด'} <b>${v[level-1]} → ${v[level]}</b></p>`).join('')}</div>`;
 }

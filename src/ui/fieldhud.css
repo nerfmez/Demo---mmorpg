@@ -1,11 +1,7 @@
 /* Approved SEEKER field HUD: cool glass, thin silver edges, open combat space.
    Presentation only. All skill slots and input handlers remain the real ones. */
-body.ingame {--xp-h:calc(40px + var(--safe-b));--field-glass:linear-gradient(125deg,#172a43d9,#233952ad);--field-line:#cfdefb55;--field-text:#f0f5ff;--field-muted:#b8c9e2}
+body.ingame {--xp-h:18px;--field-glass:linear-gradient(125deg,#172a43d9,#233952ad);--field-line:#cfdefb55;--field-text:#f0f5ff;--field-muted:#b8c9e2}
 body.ingame #hud {bottom:var(--xp-h);color:var(--field-text)}
-#hud .field-brand {position:absolute;top:calc(14px + var(--safe-t));left:calc(22px + var(--safe-l));display:flex;align-items:center;gap:10px;color:#e7f0ff;opacity:.94;text-shadow:0 1px 6px #152744}
-.field-brand>svg {width:38px;height:38px;stroke-width:1}
-.field-brand b {font:22px/1.2 Georgia,serif;letter-spacing:7px;font-weight:400}
-.field-brand small {display:block;font:6px/1.8 sans-serif;letter-spacing:2.4px;margin-top:3px}
 #hud .pframe {left:calc(22px + var(--safe-l));top:calc(70px + var(--safe-t));width:334px;min-height:106px;padding:12px;gap:14px;background:var(--field-glass);border:1px solid var(--field-line);border-radius:13px;box-shadow:0 4px 18px #0c1b3426;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:var(--field-text)}
 #hud .pframe .portrait {width:74px;height:74px;border:1.5px solid #d8e9ff;box-shadow:0 0 0 4px #78b4f31c;background-color:#23324a}
 #hud .pframe .lvl-badge {left:64px;top:72px;min-width:24px;height:24px;border:1px solid #badbff;border-radius:50%;font-size:11px;background:#20354e;box-shadow:none}
@@ -119,18 +115,18 @@ body.ingame #hud .hint {bottom:10px;font-size:9px;color:#d7e4f4b3}
 #hud .mbar .bar>.fill {background:linear-gradient(#ff9c91,#e54c61)}
 #hud .mbar.target .bar {border-color:#d8e7ff}
 /* Bottom-anchored twin tracks: labels stay outside fills; only widths change. */
-body.ingame .field-xp {height:var(--xp-h);padding:0 max(18px,var(--safe-r)) var(--safe-b) max(18px,var(--safe-l));display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,390px) minmax(230px,340px) minmax(0,1fr);align-items:center;gap:24px;background:linear-gradient(90deg,#15273ce3,#20364ecc,#14273be3);border-top:1px solid #ccdefb2b}
-.field-xp .field-motto {font:6px/1.4 sans-serif;letter-spacing:1.5px;color:#bfd1e3a6;white-space:nowrap}
+/* flush with the bottom edge: no home-indicator inset under the strip */
+body.ingame .field-xp {height:var(--xp-h);padding:0 max(12px,var(--safe-r)) 0 max(12px,var(--safe-l));display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:16px;background:linear-gradient(90deg,#15273cc4,#20364eb0,#14273bc4);border-top:1px solid #ccdefb22}
+.field-xp .field-motto {display:none;font:6px/1.4 sans-serif;letter-spacing:1.5px;color:#bfd1e3a6;white-space:nowrap}
 .field-xp .field-motto.end {text-align:right}
-body.ingame .field-xp .xpseg {height:100%;background:none;overflow:visible;display:grid;grid-template-columns:auto minmax(50px,1fr) auto;gap:10px;align-items:center;border-radius:0;min-width:0}
-body.ingame .field-xp .xpseg.job {border-left:1px solid #c3d7f33b;padding-left:24px}
-.field-xp .xp-label {font-size:11px;font-weight:400;white-space:nowrap;color:#e7f1ff}
-.field-xp .xp-track {height:8px;position:relative;border:1px solid #a8c6e74a;border-radius:10px;background:#10243cca;overflow:hidden}
+body.ingame .field-xp .xpseg {height:100%;background:none;overflow:visible;display:grid;grid-template-columns:auto minmax(50px,1fr) auto;gap:8px;align-items:center;border-radius:0;min-width:0}
+body.ingame .field-xp .xpseg.job {border-left:1px solid #c3d7f33b;padding-left:16px}
+.field-xp .xp-label {font-size:9px;font-weight:400;white-space:nowrap;color:#e7f1ff}
+.field-xp .xp-track {height:5px;position:relative;border:1px solid #a8c6e74a;border-radius:10px;background:#10243cca;overflow:hidden}
 .field-xp .xp-track>.fill {position:absolute;left:0;top:0;bottom:0;width:0;border-radius:10px;transition:width .25s ease-out}
 .field-xp .exp .fill {background:linear-gradient(#9fddff,#40aeec 60%,#2982ba)}
 .field-xp .job .fill {background:linear-gradient(#ffe7ad,#e0b86c 60%,#bd9450)}
-body.ingame .field-xp .xpseg span {position:static;font-size:10px;line-height:1.4;letter-spacing:0;color:#dae8f9;text-shadow:none;white-space:nowrap}
-body.panel-open .field-brand {visibility:hidden}
+body.ingame .field-xp .xpseg span {position:static;font-size:9px;line-height:1.2;letter-spacing:0;color:#dae8f9;text-shadow:none;white-space:nowrap}
 @media(min-width:1450px) and (min-height:700px) {
  #hud .pframe {width:376px;min-height:117px;padding:14px;gap:16px}
  #hud .pframe .portrait {width:84px;height:84px}
@@ -146,13 +142,12 @@ body.panel-open .field-brand {visibility:hidden}
  body.ingame #hud .combat {right:38px;bottom:25px}
 }
 @media(max-width:1100px) {
- body.ingame .field-xp {grid-template-columns:1fr 1fr;gap:14px;padding-inline:16px}
+ body.ingame .field-xp {gap:12px;padding-inline:12px}
  .field-xp .field-motto {display:none}
 }
 /* Short landscape: maps and quests fit above the right-hand controls. */
 @media(max-height:560px) and (orientation:landscape) {
- body.ingame {--xp-h:calc(27px + var(--safe-b))}
- #hud .field-brand {display:none}
+ body.ingame {--xp-h:16px}
  #hud .pframe {top:calc(9px + var(--safe-t));left:calc(12px + var(--safe-l));width:235px;min-height:80px;padding:9px;gap:9px}
  #hud .pframe .portrait {width:48px;height:48px}
  #hud .pframe .lvl-badge {left:45px;top:53px;width:20px;height:20px;font-size:9px}
@@ -203,14 +198,10 @@ body.panel-open .field-brand {visibility:hidden}
  #hud .bossbar {top:66px;width:29vw;left:48%}
  .field-xp .xp-label {font-size:9px}
  body.ingame .field-xp .xpseg span {font-size:9px}
- .field-xp .xp-track {height:6px}
+ .field-xp .xp-track {height:4px}
 }
 @media(max-width:600px) and (orientation:portrait) {
- body.ingame {--xp-h:calc(35px + var(--safe-b))}
- #hud .field-brand {left:10px;top:calc(10px + var(--safe-t));gap:7px}
- .field-brand>svg {width:26px;height:26px}
- .field-brand b {font-size:17px;letter-spacing:5px}
- .field-brand small {font-size:5px;letter-spacing:1.2px}
+ body.ingame {--xp-h:20px}
  #hud .pframe {left:calc(10px + var(--safe-l));top:calc(48px + var(--safe-t));width:210px;min-height:92px;padding:9px;gap:9px}
  #hud .pframe .portrait {width:44px;height:44px}
  #hud .pframe .lvl-badge {left:40px;top:64px;min-width:20px;height:20px;font-size:9px}
@@ -255,11 +246,11 @@ body.panel-open .field-brand {visibility:hidden}
  #hud .zonebanner {top:275px;left:12px;max-width:60vw}
  #hud .zonebanner .zn {font-size:18px}
  body.ingame .field-xp {gap:12px;padding-inline:10px}
- body.ingame .field-xp .xpseg {gap:5px;grid-template-columns:auto 1fr}
+ body.ingame .field-xp .xpseg {gap:5px;grid-template-columns:auto 1fr auto}
  body.ingame .field-xp .xpseg.job {padding-left:10px}
  .field-xp .xp-label {font-size:9px}
- body.ingame .field-xp .xpseg span {font-size:8px;grid-row:1;grid-column:2;text-align:right}
- .field-xp .xp-track {grid-column:1/-1;grid-row:2;height:5px;margin-top:-7px}
+ body.ingame .field-xp .xpseg span {font-size:8px}
+ .field-xp .xp-track {height:4px}
 }
 @media(prefers-reduced-motion:reduce) {
  .field-xp .xp-track>.fill {transition:none}

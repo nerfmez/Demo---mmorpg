@@ -979,6 +979,18 @@ textarea {
   font-size: 20px;
   text-shadow: 0 2px 6px #000;
 }
+.title-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  color: #f2f6ff;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 10px #0b1830, 0 1px 2px #000a;
+}
+.title-brand > svg { width: clamp(52px, 8vw, 84px); height: clamp(52px, 8vw, 84px); stroke-width: 1; }
+.title-brand > span { text-align: left; }
+.title-brand b { display: block; font: 400 clamp(40px, 7vw, 74px)/1.05 Georgia, serif; letter-spacing: .32em; }
+.title-brand small { display: block; font: 500 clamp(9px, 1.2vw, 13px)/1.8 sans-serif; letter-spacing: .3em; opacity: .85; margin-top: 4px; }
 .logo-sub {
   color: var(--ink-dim);
   font-size: 13px;

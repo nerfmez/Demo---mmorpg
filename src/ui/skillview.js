@@ -5,7 +5,7 @@ import { meetsRequires } from '../core/character.js';
 import { modFits } from '../core/skills.js';
 import { skillUpgradeCost, modUpgradeCost, skillUpgradeState, modUpgradeState } from '../core/crafting.js';
 import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
-import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus } from './buildmeta.js';
+import { esc, FILTERS, tagsHtml, elementHtml, skillMeta, rulesHtml, modRuleChips, modStatus } from './buildmeta.js';
 
 function loadout(ui, modMode=false) {
   const {ch,data}=ui.game, selected=ui.sel.skill??0;
@@ -22,7 +22,7 @@ export function skillsView(ui, {describeSkill}) {
   const filter=sel.skillFilter||'all';
   const choices=Object.entries(data.skills.combat).filter(([,d])=>filter==='all'||d.tags.includes(filter)).map(([id,d])=>{
     const learned=!!ch.skills[id],req=meetsRequires(ch,d.requires);
-    return `<article class="seeker-library-item ${slot.skill===id?'selected':''}">${art('skill',id)}<div><b>${d.nameTh}</b>${tagsHtml(d.tags)}<small>${learned?'Lv.'+ch.skills[id]:'ยังไม่เรียน'}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></div><button class="btn small" data-act="choose-skill" data-slot="${index}" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${slot.skill===id?'ใส่อยู่':'ใส่ช่อง '+(index+1)}</button></article>`;
+    return `<article class="seeker-library-item ${slot.skill===id?'selected':''}">${art('skill',id)}<div><b>${d.nameTh}</b>${tagsHtml(d.tags)}${elementHtml(d.element)}<small>${learned?'Lv.'+ch.skills[id]:'ยังไม่เรียน'}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></div><button class="btn small" data-act="choose-skill" data-slot="${index}" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${slot.skill===id?'ใส่อยู่':'ใส่ช่อง '+(index+1)}</button></article>`;
   }).join('');
   return heading('จัดชุดสกิล','เลือกช่องก่อน แล้วเลือกสกิล · การดูรายละเอียดไม่ใช้วัตถุดิบ')+loadout(ui)+`<div class="seeker-build-grid"><section class="card seeker-focus">
     ${def?`<div class="seeker-hero">${art('skill',slot.skill)}<div><small>ช่อง ${index+1}</small><h3>${def.nameTh}</h3><span>${def.name} · Lv.${ch.skills[slot.skill]}</span></div></div><p>${esc(def.desc)}</p>${skillMeta(def,s)}<div class="seeker-result"><small>ผลสกิลปัจจุบัน รวมม็อดและพาสซีฟ</small><p>${describeSkill(s)}</p></div><div class="seeker-action-row"><button class="btn" data-act="choose-skill" data-slot="${index}" data-id="">ถอดสกิล</button><button class="btn primary" data-act="pick-socket" data-slot="${index}">จัดม็อด · ${slot.mods.length}/${data.mods.maxModsPerSkill}</button></div>`:`<h3>ช่อง ${index+1} ยังว่าง</h3><p>เลือกสกิลจากคลังด้านข้าง</p>`}
@@ -34,7 +34,7 @@ export function modsWorkspace(ui,{describeSkill}) {
  const {game:g,sel}=ui,{ch,data}=g,index=sel.skill??0,slot=ch.slots[index],def=data.skills.combat[slot.skill],compiled=g.skills[index];
  const shown=ch.mods.map(inst=>({inst,status:modStatus(ch,data,index,inst)})).filter(({status})=>!sel.compatibleOnly||status.fit.ok);
  const chosen=shown.find(({inst})=>inst.uid===sel.modUid)||shown[0];
- const list=shown.map(({inst,status:st})=>`<button class="seeker-mod-tile ${inst.uid===chosen?.inst.uid?'selected':''} ${st.fit.ok?'':'incompatible'}" data-act="inspect-mod" data-uid="${inst.uid}" aria-pressed="${inst.uid===chosen?.inst.uid}">${art('mod',inst.id)}<span><b>${data.mods.mods[inst.id].nameTh}</b><small>Lv.${inst.level} · ${st.own?'ใส่อยู่':st.fit.ok?'ประเภทตรง':'ประเภทไม่ตรง'}</small></span></button>`).join('');
+ const list=shown.map(({inst,status:st})=>`<button class="seeker-mod-tile ${inst.uid===chosen?.inst.uid?'selected':''} ${st.fit.ok?'':'incompatible'}" data-act="inspect-mod" data-uid="${inst.uid}" aria-pressed="${inst.uid===chosen?.inst.uid}">${art('mod',inst.id)}<span class="seeker-mod-info"><b>${data.mods.mods[inst.id].nameTh}</b>${modRuleChips(data.mods.mods[inst.id],true)}<small>Lv.${inst.level} · ${st.own?'ใส่อยู่':st.fit.ok?'ประเภทตรง':'ประเภทไม่ตรง'}</small></span></button>`).join('');
  let detail='<h3>ยังไม่มีม็อด</h3><p>คราฟต์ม็อด หรือปิดตัวกรองเพื่อดูทั้งหมด</p>'+action('craft','ไปดูสูตร');
  if(chosen){
   const {inst,status:st}=chosen,md=data.mods.mods[inst.id];

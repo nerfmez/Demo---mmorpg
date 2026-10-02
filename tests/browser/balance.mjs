@@ -63,7 +63,23 @@ try{
   await jump('m_atk');await click('[data-act="take-node"]');await jump('v5');await click('[data-act="take-node"]');await jump('vj');await click('[data-act="take-node"]');
   assert.ok(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('vj')));await jump('v9');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());assert.match(await page.locator('.journal-tier-status').innerText(),/5\/17/);
   assert.equal(await page.locator('.journal-section').count(),6);await click('[data-act="dismiss-node"]');await click('[data-fit]');await shot('tree');
-  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,ok:true});await ctx.close();
+  // Type filters and mod rules are visible chips sourced from actual compiler tags.
+  await open('skills');await page.locator('[data-workspace-select="skillFilter"]').selectOption('Attack');
+  assert.equal(await page.locator('.seeker-library-item').count(),3);assert.equal(await page.locator('.seeker-library-item [data-skill-tag="Attack"]').first().textContent(),'กายภาพ');
+  await page.locator('[data-workspace-select="skillFilter"]').selectOption('Spell');
+  const stone=page.locator('.seeker-library-item').filter({has:page.locator('[data-act="choose-skill"][data-id="stone_burst"]')});
+  assert.equal(await stone.locator('[data-skill-tag="Spell"]').count(),1);assert.equal(await stone.locator('[data-damage-element="physical"]').count(),1);assert.equal(await stone.locator('[data-skill-tag="Attack"]').count(),0);
+  await page.locator('[data-workspace-select="skillFilter"]').selectOption('Projectile');assert.equal(await page.locator('.seeker-library-item').count(),2);
+  await click('[data-act="skill-slot"][data-slot="2"]');await overflow();await shot('tags-skills');
+  await page.evaluate(()=>{const g=window.__frontier.game;g.ch.mods=[{id:'split',uid:5001,level:1},{id:'echo',uid:5002,level:1}];g.ch.slots[2]={skill:'firebolt',mods:[]};g.refresh();});
+  await open('mods');await click('.seeker-mod-tile[data-uid="5001"]');
+  assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);assert.ok(await page.locator('.seeker-focus [data-tag-scope="mod"]').isVisible());
+  assert.ok(!(await page.locator('[data-act="socket"][data-uid="5001"]').isDisabled()));await overflow();await shot('tags-mods');
+  await click('.seeker-mod-tile[data-uid="5002"]');assert.ok(await page.locator('[data-act="socket"][data-uid="5002"]').isDisabled());
+  assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Area"]').count(),1);assert.equal(await page.locator('.seeker-focus [data-mod-rule="exclude"] .seeker-tag').count(),2);await overflow();await shot('tags-incompatible');
+  await open('craft');await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="mod"]');
+  assert.equal(await page.locator('.recipe-card').filter({has:page.locator('[data-id="mod_split"]')}).locator('[data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);await overflow();await shot('tags-craft');
+  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,visibleTypeTags:true,ok:true});await ctx.close();
  }
  const ctx=await browser.newContext({viewport:{width:1180,height:900},deviceScaleFactor:1}),page=await ctx.newPage();
  for(const kind of ['skill','gear','material','mod']){

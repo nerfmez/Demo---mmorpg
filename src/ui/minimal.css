@@ -83,6 +83,23 @@
 .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-hero .art-mod{width:78px;height:78px}
 .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-tile{min-height:100px;padding:8px 5px;gap:0}
 .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-tile .art{width:58px;height:58px}
+
+/* Native type chips and modifier eligibility use the same names as the compiler. */
+.seeker-rule{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:7px 0;min-width:0}
+.seeker-rule>.seeker-tags{display:contents}
+.seeker-rule>span:first-child{font-size:11px;font-weight:500;margin-right:3px}
+.seeker-rule>small{flex-basis:100%;font-size:10px}
+.seeker-compatibility.compact .seeker-rule{margin:5px 0}
+.seeker-compatibility.compact .seeker-tag{font-size:10px;padding:2px 5px}
+.seeker-mod-info{min-width:0;width:100%}
+.seeker-mod-tile .seeker-rule{justify-content:center}
+.seeker-mod-rules>b{display:block;margin-top:9px}
+.seeker-element{display:inline-block;font-size:10px;line-height:1.6;padding:2px 6px;border:1px dashed #a7bdca60;border-radius:4px;margin:2px 0;color:#cbdde8}
+.overlay:not(.is-journal) .seeker-tag[data-skill-tag="Attack"]{background:#b37a6726;border-color:#d5a39380;color:#f1c7b8}
+.overlay:not(.is-journal) .seeker-tag[data-skill-tag="Spell"]{background:#8b77b92b;border-color:#b8a3df85;color:#ded0ff}
+.overlay:not(.is-journal) .seeker-tag[data-skill-tag="Projectile"]{background:#557fa32b;border-color:#8db9dc80;color:#c3e6ff}
+.overlay:not(.is-journal) .seeker-tag[data-skill-tag="Area"]{background:#528b822b;border-color:#8ac3b780;color:#bceade}
+.overlay:not(.is-journal) [data-mod-rule="exclude"] .seeker-tag{background:#a3505525;border-color:#d0929760;color:#f3b8bd}
 .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-list{margin-top:10px}
 @media(min-width:1000px) and (min-height:700px){
  .overlay:not(.is-journal) .pbody[data-panel="mods"] .seeker-mod-list{max-height:calc(100dvh - 390px);overflow-y:auto;overscroll-behavior:contain;padding:2px 5px 2px 2px;scrollbar-width:thin}

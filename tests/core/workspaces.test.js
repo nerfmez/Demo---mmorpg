@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {data} from './helpers.js';
 import {createCharacter,derive,allocateJobNode,jobNodeState,migrateCharacter} from '../../src/core/character.js';
 import {modFits,socketMod,computeSkill,unsocketMod} from '../../src/core/skills.js';
-import {TAGS,modRules,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
+import {TAGS,FILTERS,tagsHtml,modRules,modRuleChips,rulesHtml,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
 import {clusterNodes} from '../../src/ui/jobview.js';
 function fixture(id='venom_mire',mods=[]) {
  const ch=createCharacter(data); for(const k in ch.stats)ch.stats[k]=20;
@@ -50,6 +50,23 @@ test('mod compatibility uses all/any/excludes and explanations expose each rule'
  assert.ok(modRules(M.cast_on_dodge).some(r=>r.includes('อย่างน้อยหนึ่ง')));
  assert.ok(!modFits(null,M.split).ok);
 });
+test('type chips match native eligibility and keep physical damage separate from spell type',()=>{
+ assert.equal(TAGS.Attack,'กายภาพ');assert.equal(TAGS.Projectile,'โปรเจกไทล์');
+ for(const tag of ['Attack','Spell','Projectile','Area'])assert.ok(FILTERS.some(([id])=>id===tag));
+ const stone=skillMeta(data.skills.combat.stone_burst);
+ assert.match(stone,/data-skill-tag="Spell"/);assert.match(stone,/data-skill-tag="Area"/);
+ assert.match(stone,/data-damage-element="physical"/);assert.doesNotMatch(stone,/data-skill-tag="Attack"/);
+ for(const mod of Object.values(data.mods.mods)){
+  const html=modRuleChips(mod),full=rulesHtml(mod);
+  for(const [key,rule] of [['requiresAll','all'],['requiresAny','any'],['excludes','exclude']])for(const tag of mod[key]||[]){
+   assert.match(html,new RegExp('data-mod-rule="'+rule+'"'));
+   assert.ok(html.includes('data-skill-tag="'+tag+'"'));
+  }
+  assert.match(full,/data-tag-scope="mod"/);assert.doesNotMatch(full,/<details/);
+ }
+ assert.match(tagsHtml(['Area'],'added'),/data-tag-scope="added"/);
+ const split=data.mods.mods.split;assert.ok(!modFits(data.skills.combat.slash,split).ok,'shown Projectile requirement still cannot be bypassed by an added tag');
+});
 test('Lingering needs an actual lasting field, not just any damage or a curse',()=>{
  const S=data.skills.combat,M=data.mods.mods;
  for(const id of ['slash','firebolt','hex','ward','war_cry'])assert.ok(!modFits(S[id],M.lingering).ok,id);
@@ -78,4 +95,3 @@ test('mod UI distinguishes incompatible type, full sockets and stat-inactive sto
  ch.mods.push({id:'pierce',uid:101,level:1},{id:'burning_ground',uid:102,level:1});socketMod(ch,data,0,101);
  state=modStatus(ch,data,0,ch.mods[2]);assert.ok(state.fit.ok);assert.ok(!state.can);assert.match(state.reason,/เต็ม/);
 });
-

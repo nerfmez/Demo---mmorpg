@@ -72,6 +72,15 @@ not a skill-compatibility rule. The real tag/stat rules remain visible and autho
 
 `src/ui/buildmeta.js` is the shared presentation vocabulary for native tags, damage element, stat requirements, and all/any/excluded modifier tags. It reads the same definitions and calls the same `modFits` check used by socketing. Skill cards, selected skill details, movement, upgrades, crafting and inventory modifier details show this metadata; native skill types are not hidden in a collapsed section. Effective extra tags are explicitly labeled as modifier additions and do not silently change native-tag eligibility.
 
+Type badges use short names: กายภาพ (`Attack`), เวท (`Spell`), โปรเจกไทล์
+(`Projectile`), วงกว้าง (`Area`), ประชิด (`Melee`), ต่อเนื่อง (`DoT`) and the
+other native tags. Both Attack and Spell are selectable skill filters. Modifier
+tiles and recipe cards show required/all, at-least-one/any and forbidden tags
+as badges; modifier details show the modifier's own tags separately. Read these
+from existing definitions, never infer compatibility from descriptions or icon
+colours. Damage element is separate: Stone Burst remains Spell even though
+its damage is physical, and Frost Shift does not change Attack to Spell.
+
 The modifier page distinguishes: type mismatch, missing stats (stored but inactive), already equipped here, equipped in another slot (move), duplicate modifier type, and full capacity. Incompatible modifiers remain inspectable. A filter can show type-compatible entries only, without concealing stat requirements.
 
 `DoT` means damage over time; `Persistent` means a lasting field. Healing Spring is Persistent but is not DoT. Hex is a duration-based curse, not a Persistent field.

@@ -113,6 +113,15 @@ all/any/excluded tags and exact incompatibility reasons. Modifier-added tags are
 separately and do not silently grant native-tag eligibility. Calls to core `modFits()`
 remain the authority for compatibility; do not duplicate the rules in Godot UI code.
 
+Native `Attack` is displayed as กายภาพ, `Spell` as เวท, `Projectile` as โปรเจกไทล์,
+and `Area` as วงกว้าง. Keep the identifiers unchanged. Skill filters include both
+Attack and Spell. Render modifier `requiresAll`, `requiresAny` and `excludes` as
+visible tag chips with distinct all/any/forbidden labels on selection tiles,
+craft recipes and details. The modifier's own `tags` are a separate row; they
+are not its eligibility condition. Display `element` separately: Stone Burst
+is a Spell with physical damage, while Frost Shift does not turn an Attack
+into a Spell. Added tags are labeled separately and retain native compatibility.
+
 ### Ability-family scaling and modifier compatibility
 
 Port the new derived fields along with their Node tests:

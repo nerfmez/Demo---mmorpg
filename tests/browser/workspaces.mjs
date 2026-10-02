@@ -53,7 +53,7 @@ try{
   await page.locator('[data-workspace-select="skillFilter"]').selectOption('DoT');assert.equal(await page.locator('.seeker-library-item').count(),1);await click('[data-act="choose-skill"][data-id="venom_mire"]');
   await click('[data-act="pick-socket"]');assert.equal(await page.locator('.pbody').getAttribute('data-panel'),'mods');assert.equal(await page.locator('.seeker-library-item').count(),0);
   const uid=await page.evaluate(()=>window.__frontier.game.ch.mods.find(m=>m.id==='split').uid);
-  await click(`.seeker-mod-tile[data-uid="${uid}"]`);assert.match(await page.locator('.seeker-mod-status').innerText(),/ขาดประเภท.*กระสุน/);assert.ok(await page.locator('[data-act="socket"]').isDisabled());await shot('incompatible');
+  await click(`.seeker-mod-tile[data-uid="${uid}"]`);assert.match(await page.locator('.seeker-mod-status').innerText(),/ขาดประเภท.*โปรเจกไทล์/);assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);assert.ok(await page.locator('[data-act="socket"]').isDisabled());await shot('incompatible');
   const lingering=await page.evaluate(()=>window.__frontier.game.ch.mods.find(m=>m.id==='lingering').uid);
   await click(`.seeker-mod-tile[data-uid="${lingering}"]`);await click(`[data-act="socket"][data-uid="${lingering}"]`);assert.ok(await page.evaluate(uid=>window.__frontier.game.ch.slots[0].mods.includes(uid),lingering));
   assert.ok(await page.evaluate(()=>window.__frontier.game.skills[0].duration>window.__frontier.game.data.skills.combat.venom_mire.duration));await noOverflow();await shot('mods');

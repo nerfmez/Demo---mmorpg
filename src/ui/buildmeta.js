@@ -3,16 +3,19 @@ import { modFits, modSlotOf } from '../core/skills.js';
 import { meetsRequires } from '../core/character.js';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const TAGS = {
-  Attack:'โจมตี',Spell:'เวท',Melee:'ประชิด',Projectile:'กระสุน',Area:'วงกว้าง',Damage:'ทำดาเมจ',
+  Attack:'กายภาพ',Spell:'เวท',Melee:'ประชิด',Projectile:'โปรเจกไทล์',Area:'วงกว้าง',Damage:'ทำดาเมจ',
   DoT:'ดาเมจต่อเนื่อง',Persistent:'พื้นที่คงอยู่',Chain:'เด้งต่อ',Control:'ควบคุม',Debuff:'ดีบัฟ',
   Curse:'คำสาป',Guard:'เกราะ/การ์ด',Buff:'บัฟ',Warcry:'คำราม',Heal:'ฟื้นฟู',Summon:'อัญเชิญ',
   Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
   Fire:'ไฟ',Earth:'ดิน',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',
 };
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};
-export const FILTERS = [['all','ทั้งหมด'],['Melee','ประชิด'],['Projectile','กระสุน'],['Area','วงกว้าง'],['DoT','ต่อเนื่อง'],['Persistent','คงอยู่'],['Control','ควบคุม'],['Guard','ป้องกัน'],['Heal','ฟื้นฟู'],['Summon','อัญเชิญ']];
-export function tagsHtml(tags) {
-  return `<div class="seeker-tags">${[...tags].map(t=>`<span class="seeker-tag" data-skill-tag="${esc(t)}">${esc(TAGS[t] || t)}</span>`).join('')}</div>`;
+export const FILTERS = [['all','ทั้งหมด'],['Attack','กายภาพ'],['Spell','เวท'],['Melee','ประชิด'],['Projectile','โปรเจกไทล์'],['Area','วงกว้าง'],['DoT','ต่อเนื่อง'],['Persistent','คงอยู่'],['Control','ควบคุม'],['Guard','ป้องกัน'],['Heal','ฟื้นฟู'],['Summon','อัญเชิญ']];
+export function tagsHtml(tags, scope='native') {
+  return `<div class="seeker-tags" data-tag-scope="${esc(scope)}">${[...tags].map(t=>`<span class="seeker-tag" data-skill-tag="${esc(t)}">${esc(TAGS[t] || t)}</span>`).join('')}</div>`;
+}
+export function elementHtml(element) {
+  return element && element!=='none' ? `<span class="seeker-element" data-damage-element="${esc(element)}">ดาเมจ: ${esc(ELEMENTS[element] || element)}</span>` : '';
 }
 export function requirementsHtml(def) {
   const req=Object.entries(def.requires||{});
@@ -26,8 +29,14 @@ export function modRules(mod) {
   if(mod.requiresPersistent) rules.push('ต้องมีพื้นที่คงอยู่: บึงพิษ / น้ำพุฟื้นฟู หรือใส่ทิ้งไฟบนพื้นก่อน');
   return rules.length?rules:['ไม่จำกัดประเภทสกิล'];
 }
+export function modRuleChips(mod, compact=false) {
+  const row=(kind,label,tags)=>tags?.length?`<div class="seeker-rule" data-mod-rule="${kind}"><span>${label}</span>${tagsHtml(tags,'rule')}</div>`:'';
+  const rules=row('all',compact?'ต้องมี':'ต้องมีครบทุกแท็ก',mod.requiresAll)+row('any',compact?'อย่างน้อยหนึ่ง':'และมีอย่างน้อยหนึ่งแท็ก',mod.requiresAny)+row('exclude','ห้ามใช้กับ',mod.excludes)+
+    (mod.requiresPersistent?'<div class="seeker-rule" data-mod-rule="persistent"><span>ต้องมี</span><span class="seeker-tag" data-required-capability="persistent">พื้นที่คงอยู่</span><small>จากสกิล หรือม็อดทิ้งไฟบนพื้นที่ทำงาน</small></div>':'');
+  return `<div class="seeker-compatibility ${compact?'compact':''}">${rules||'<span class="muted">ทุกประเภทสกิล</span>'}</div>`;
+}
 export function rulesHtml(mod) {
-  return `<div class="seeker-mod-rules"><b>ใช้ร่วมกับสกิล</b>${modRules(mod).map(r=>`<div>${esc(r)}</div>`).join('')}${requirementsHtml(mod)}<small>ตรวจจากแท็กพื้นฐานของสกิล · เงื่อนไขพื้นที่คงอยู่ตรวจม็อดร่วมด้วย</small></div>`;
+  return `<div class="seeker-mod-rules"><small>แท็กม็อด</small>${tagsHtml(mod.tags||[],'mod')}<b>แท็กสกิลที่รองรับ</b>${modRuleChips(mod)}${requirementsHtml(mod)}<small>ตรวจแท็กพื้นฐานของสกิล · แท็กที่ม็อดเพิ่มไม่ได้ปลดเงื่อนไขม็อดอื่น</small></div>`;
 }
 export function fitReason(fit) {
   if(fit.ok)return 'ประเภทตรงกัน';
@@ -50,5 +59,5 @@ export function modStatus(ch,data,index,inst) {
 }
 export function skillMeta(def, compiled) {
   const native=def.tags||[], effective=compiled?[...compiled.tags].filter(t=>!native.includes(t)):[];
-  return `<div class="seeker-skill-meta"><small>ประเภทพื้นฐาน</small>${tagsHtml(native)}${def.element?`<p>ธาตุดาเมจ: <b>${ELEMENTS[compiled?.element||def.element]||esc(def.element)}</b></p>`:''}${effective.length?`<small>ความสามารถเสริมจากม็อดที่ทำงาน</small>${tagsHtml(effective)}`:''}${requirementsHtml(def)}</div>`;
+  return `<div class="seeker-skill-meta"><small>แท็กสกิลพื้นฐาน</small>${tagsHtml(native)}${elementHtml(compiled?.element||def.element)}${effective.length?`<small>แท็กที่ม็อดเพิ่ม</small>${tagsHtml(effective,'added')}`:''}${requirementsHtml(def)}</div>`;
 }

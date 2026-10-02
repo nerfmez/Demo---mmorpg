@@ -88,7 +88,7 @@ try{
   assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="element"] [data-element-tag="Cold"]').count(),1);
   assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="element"] [data-element-tag="Fire"]').count(),0);
   assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="secondary"] [data-element-tag="Fire"]').count(),1);await overflow();await shot('element-conversion');
-  await open('craft');await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="gear"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
+  await open('craft');await click('[data-act="craft-filter"][data-id="gear"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
   await page.locator('.recipe-affixes>summary').click();assert.equal(await page.locator('.recipe-affixes [data-element-tag="Fire"]').count(),1);
   await page.locator('.craft-repeat>summary').click();await page.locator('[data-field="option"]').selectOption('fire_pct');await overflow();await shot('element-craft');
   await open('job');await jump('element_fire_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());

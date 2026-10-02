@@ -134,7 +134,8 @@ all/any/excluded rules. Do not treat a modifier's own elemental tags as primary 
 
 Element increases add to the existing type increases before multiplying skill power;
 they apply to current direct-hit/field damage, physical summons and Leap's landing,
-not healing/barriers or burn/poison status potency. Burning Ground has its own Fire
+not healing/barriers. Burn/poison statuses keep their existing hit-derived damage
+without a second element multiplier. Burning Ground has its own Fire
 tags, element and precompiled `ground.damage` per second. `Game.spawnGround()` reads
 that value, then applies the cast multiplier and .5-second tick. Never scale the
 already-element-scaled primary hit again to obtain ground damage.

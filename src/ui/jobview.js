@@ -47,6 +47,7 @@ export function jobView(ui,{effectText}){
 
 /** Camera affects the view only. No pointer gesture allocates points. */
 export function mountJobNetwork(ui) {
+  const index=ui.body.querySelector('.journey-index');if(index)index.open=ui.overlay.clientWidth>=700;
   const root=ui.body.querySelector('.seeker-graph');if(!root)return()=>{};
   const plane=root.querySelector('.seeker-plane'),output=ui.body.querySelector('.seeker-graph-tools output');
   const w=+root.dataset.width,h=+root.dataset.height,key=root.dataset.stage+':'+(ui.sel.constellation||'default')+':'+(ui.sel.jobBranch||'');
@@ -54,7 +55,8 @@ export function mountJobNetwork(ui) {
   const fitZoom=()=>Math.min(root.clientWidth/w,root.clientHeight/h)*.95;
   const clamp=z=>Math.max(.3,Math.min(1.7,z));
   const start=ui.game.data.jobtree.nodes[root.dataset.selected]?.clusterPos||[w/2,h/2];
-  const cam=cameras[key]||(cameras[key]={x:w/2,y:Math.max(root.clientHeight/2,start[1]+root.clientHeight/2-160),zoom:1});
+  const showFoundation=root.dataset.stage==='1'&&!ui.sel.node;
+  const cam=cameras[key]||(cameras[key]=showFoundation?{x:w/2,y:h/2,zoom:clamp(fitZoom())}:{x:w/2,y:Math.max(root.clientHeight/2,start[1]+root.clientHeight/2-160),zoom:1});
   const paint=()=>{
     plane.style.setProperty('--inverse-zoom',1/cam.zoom);
     plane.style.setProperty('--node-hit',Math.max(60,44/cam.zoom)+'px');

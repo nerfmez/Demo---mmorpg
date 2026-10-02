@@ -308,3 +308,7 @@
  .journey-pagination{gap:8px}.journey-pagination .btn{font-size:9px!important;padding-inline:8px}
  .panel .journey-journal .journal-footer{min-height:43px}
 }
+
+/* The shared first page fits the complete route; captions keep a readable size. */
+.journey-journal .seeker-graph[data-stage="1"] .seeker-node-caption{width:130px;transform:translateX(-50%) scale(var(--inverse-zoom));transform-origin:top center}
+@media(max-width:700px){.journey-journal .seeker-graph[data-stage="1"] .seeker-node-caption{width:90px}}

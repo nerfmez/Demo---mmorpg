@@ -60,6 +60,8 @@ try{
   await click('[data-act="craft-back"]');await click('[data-act="craft-open"][data-id="tusk_blade"]');assert.equal(await page.locator('.craft-result').count(),7,'recipe and goals persist through comparison and switching');
   await open('job');assert.equal(await page.locator('.seeker-node').count(),8);
   assert.ok(await page.locator('.journey-bookmark[data-id="2"]').isDisabled(),'everyone starts in the common foundation, even with 39 unspent points');
+  if(width>=700)assert.ok(await page.locator('.journey-place').first().isVisible(),'the handwritten index is open on larger screens');
+  for(const id of ['f_atk','f_mag']){const n=await page.locator(`.seeker-node[data-id="${id}"]`).boundingBox(),g=await page.locator('.seeker-graph').boundingBox();assert.ok(n.x>=g.x&&n.x+n.width<=g.x+g.width&&n.y+n.height<=g.y+g.height,'foundation ends fit the initial page');}
   await overflow();await shot('foundation');
   for(const id of ['f_hp','f_def','f_atk']){await jump(id);await click('[data-act="take-node"]');}
   const stageBefore=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch));

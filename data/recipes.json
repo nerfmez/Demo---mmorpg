@@ -14,7 +14,13 @@
         "melee_pct",
         "crit_pct",
         "poison_on_hit",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "hunter_bow": {
@@ -30,7 +36,13 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "fang_dagger": {
@@ -46,7 +58,13 @@
         "crit_pct",
         "leech_pct",
         "poison_on_hit",
-        "melee_pct"
+        "melee_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "wisp_staff": {
@@ -63,7 +81,13 @@
         "spell_pct",
         "mp_flat",
         "cdr_pct",
-        "heal_pct"
+        "heal_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "spore_wand": {
@@ -79,7 +103,13 @@
         "spell_pct",
         "summon_pct",
         "poison_on_hit",
-        "cdr_pct"
+        "cdr_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "crag_axe": {
@@ -95,7 +125,13 @@
         "melee_pct",
         "hp_flat",
         "defense_flat",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "storm_bow": {
@@ -112,7 +148,13 @@
         "projectile_pct",
         "crit_pct",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "greyfang_sabre": {
@@ -128,7 +170,13 @@
         "melee_pct",
         "crit_pct",
         "move_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "horn_greatblade": {
@@ -145,7 +193,13 @@
         "melee_pct",
         "crit_pct",
         "hp_flat",
-        "defense_flat"
+        "defense_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "ancient_staff": {
@@ -163,7 +217,13 @@
         "spell_pct",
         "heal_pct",
         "cdr_pct",
-        "mp_flat"
+        "mp_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "hide_vest": {
@@ -381,7 +441,13 @@
         "attack_flat",
         "melee_pct",
         "projectile_pct",
-        "defense_flat"
+        "defense_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "wisp_pendant": {
@@ -397,7 +463,13 @@
         "mp_flat",
         "spell_pct",
         "area_pct",
-        "heal_pct"
+        "heal_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "spore_amulet": {
@@ -413,7 +485,13 @@
         "regen_flat",
         "summon_pct",
         "poison_on_hit",
-        "mp_flat"
+        "mp_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "feather_charm": {
@@ -429,7 +507,13 @@
         "cdr_pct",
         "projectile_pct",
         "crit_pct",
-        "attack_flat"
+        "attack_flat",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "golem_amulet": {
@@ -445,7 +529,13 @@
         "defense_flat",
         "barrier_pct",
         "regen_flat",
-        "crit_pct"
+        "crit_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "ancient_ring": {
@@ -461,7 +551,13 @@
         "magic_flat",
         "crit_pct",
         "cdr_pct",
-        "leech_pct"
+        "leech_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "learn_whirl_blade": {
@@ -740,7 +836,13 @@
         "mp_flat",
         "spell_pct",
         "heal_pct",
-        "summon_pct"
+        "summon_pct",
+        "physical_pct",
+        "fire_pct",
+        "cold_pct",
+        "lightning_pct",
+        "earth_pct",
+        "poison_pct"
       ]
     },
     "salt_boots": {

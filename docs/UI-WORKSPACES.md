@@ -36,7 +36,7 @@ other chapters. Names and memberships now express journeys, with mixed effects:
 
 Old internal category IDs remain for compatibility; they are not the visible
 chapter names or a filter limiting what effects may be added to a chapter.
-The 87 legacy node IDs remain inside the expanded 207-node network. Numerical effects
+The 87 legacy node IDs remain inside the expanded 225-node network. Numerical effects
 are rebalanced and new profession exercises extend single-focus investment to Job Lv40.
 Character v4 refunds the old network once rather than retaining disconnected selections.
 Dashed external markers are
@@ -70,7 +70,7 @@ not a skill-compatibility rule. The real tag/stat rules remain visible and autho
 
 ## Shared type vocabulary and compatibility
 
-`src/ui/buildmeta.js` is the shared presentation vocabulary for native tags, damage element, stat requirements, and all/any/excluded modifier tags. It reads the same definitions and calls the same `modFits` check used by socketing. Skill cards, selected skill details, movement, upgrades, crafting and inventory modifier details show this metadata; native skill types are not hidden in a collapsed section. Effective extra tags are explicitly labeled as modifier additions and do not silently change native-tag eligibility.
+`src/ui/buildmeta.js` is the shared presentation vocabulary for native tags, damage element, stat requirements, and all/any/excluded modifier tags. It reads the same definitions and calls the same `modFits` check used by socketing. Skill cards, selected skill details, movement, upgrades, crafting and inventory modifier details show this metadata; native skill types are not hidden in a collapsed section. Effective extra tags are explicitly labeled as modifier additions and do not silently change native shape eligibility. Active element conversion replaces the element tags used for element-specific requirements.
 
 Type badges use short names: กายภาพ (`Attack`), เวท (`Spell`), โปรเจกไทล์
 (`Projectile`), วงกว้าง (`Area`), ประชิด (`Melee`), ต่อเนื่อง (`DoT`) and the
@@ -133,6 +133,19 @@ journal keeps paper/ink sections and connected nodes. `tests/browser/balance.mjs
 real controls in desktop/iPad/phone Chromium and WebKit and captures all icon sheets.
 
 ### Selected recipe workshops and equipment wear (2026-10-02)
+
+Element chips also use the shared core taxonomy: Fire, Cold, Lightning, Earth, Poison,
+Arcane and Physical damage. Skill filters include these tags. The detail separates
+native type from current element; conversion shows the original element in a short
+explanatory line, and a Fire ground effect is explicitly secondary. Modifier panels
+use stat-active converters when checking element requirements. Conversion never grants
+a native Projectile/Area/Spell type to a different shape.
+
+Rolled element options show matching chips in the bag and recipe pool; repeat crafting
+can target each option. “รอยจารึกธาตุ” adds 18 optional passive nodes to the 225-node,
+11-chapter journal without changing older allocations. Node details show their element,
+search finds the Thai element name, and each path requires the prior connected node as
+well as its 0/3/9-point major section gate. Amounts and affix pools remain JSON content.
 
 `craftview.js` is a generic workshop for every recipe. Choosing an item opens its own
 detail; the catalog never crafts on selection. The single-craft button stays in place

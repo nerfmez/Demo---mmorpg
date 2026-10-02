@@ -73,7 +73,13 @@
         "dotDamagePct",
         "maxHpPct",
         "barrierPct",
-        "healPct"
+        "healPct",
+        "physicalDamagePct",
+        "fireDamagePct",
+        "coldDamagePct",
+        "lightningDamagePct",
+        "earthDamagePct",
+        "poisonDamagePct"
       ]
     }
   },

@@ -79,7 +79,23 @@ try{
   assert.equal(await page.locator('.seeker-focus [data-mod-rule="all"] [data-skill-tag="Area"]').count(),1);assert.equal(await page.locator('.seeker-focus [data-mod-rule="exclude"] .seeker-tag').count(),2);await overflow();await shot('tags-incompatible');
   await open('craft');await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="mod"]');
   assert.equal(await page.locator('.recipe-card').filter({has:page.locator('[data-id="mod_split"]')}).locator('[data-mod-rule="all"] [data-skill-tag="Projectile"]').count(),1);await overflow();await shot('tags-craft');
-  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,visibleTypeTags:true,ok:true});await ctx.close();
+  // Element filters, conversion metadata, new recipe goals and connected elemental nodes.
+  await open('skills');await page.locator('[data-workspace-select="skillFilter"]').selectOption('Fire');
+  assert.equal(await page.locator('.seeker-library-item').count(),1);assert.equal(await page.locator('.seeker-library-item [data-element-tag="Fire"]').count(),1);
+  await page.locator('[data-workspace-select="skillFilter"]').selectOption('Earth');
+  assert.equal(await page.locator('.seeker-library-item [data-element-tag="Earth"]').count(),1);assert.equal(await page.locator('.seeker-library-item [data-element-tag="Physical"]').count(),1);
+  await page.evaluate(()=>{const g=window.__frontier.game;g.ch.mods=[{id:'frost_shift',uid:5011,level:1},{id:'burning_ground',uid:5012,level:1}];g.ch.slots[2]={skill:'firebolt',mods:[5011,5012]};g.refresh();window.__frontier.panels.render();});
+  assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="element"] [data-element-tag="Cold"]').count(),1);
+  assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="element"] [data-element-tag="Fire"]').count(),0);
+  assert.equal(await page.locator('.seeker-skill-meta [data-tag-scope="secondary"] [data-element-tag="Fire"]').count(),1);await overflow();await shot('element-conversion');
+  await open('craft');await click('[data-act="craft-back"]');await click('[data-act="craft-filter"][data-id="gear"]');await click('[data-act="craft-open"][data-id="wisp_staff"]');
+  await page.locator('.recipe-affixes>summary').click();assert.equal(await page.locator('.recipe-affixes [data-element-tag="Fire"]').count(),1);
+  await page.locator('.craft-repeat>summary').click();await page.locator('[data-field="option"]').selectOption('fire_pct');await overflow();await shot('element-craft');
+  await open('job');await jump('element_fire_2');assert.ok(await page.locator('[data-act="take-node"]').isDisabled());
+  await jump('element_fire_1');assert.equal(await page.locator('.seeker-node-detail [data-element-tag="Fire"]').count(),1);await click('[data-act="take-node"]');
+  await jump('element_fire_2');await click('[data-act="take-node"]');
+  assert.equal(await page.evaluate(()=>window.__frontier.game.derived.fireDamagePct),8);await overflow();await shot('element-tree');
+  assert.deepEqual(errors,[],size+' browser errors');reports.push({size,touch,rankGates:true,gradeAffixes:true,wearStatRequirements:true,dedicatedWorkshop:true,boundedCraft:true,connectedTree:true,visibleTypeTags:true,elementRules:true,ok:true});await ctx.close();
  }
  const ctx=await browser.newContext({viewport:{width:1180,height:900},deviceScaleFactor:1}),page=await ctx.newPage();
  for(const kind of ['skill','gear','material','mod']){

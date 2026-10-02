@@ -95,6 +95,16 @@
 .seeker-mod-tile .seeker-rule{justify-content:center}
 .seeker-mod-rules>b{display:block;margin-top:9px}
 .seeker-element{display:inline-block;font-size:10px;line-height:1.6;padding:2px 6px;border:1px dashed #a7bdca60;border-radius:4px;margin:2px 0;color:#cbdde8}
+.seeker-tag[data-element-tag]{border-style:solid;font-weight:500}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Fire"]{background:#ac4c282e;border-color:#ff966a90;color:#ffc19a}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Cold"]{background:#3b8baf2e;border-color:#81d9f690;color:#b6edff}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Lightning"]{background:#ae92322e;border-color:#edda7d90;color:#fff0a5}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Poison"]{background:#478d572e;border-color:#8bd78c90;color:#b9f5b1}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Earth"]{background:#93723f2e;border-color:#d9b47b90;color:#ebcd9e}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Arcane"]{background:#835ac52e;border-color:#c6a4f490;color:#e5cbff}
+.overlay:not(.is-journal) .seeker-tag[data-element-tag="Physical"]{background:#778b932e;border-color:#bdced890;color:#e1eaf0}
+.affix-row .seeker-tags{display:inline-flex;margin:0 0 0 6px;vertical-align:middle}
+.affix-row .seeker-tag{font-size:9px;padding:1px 5px}
 .overlay:not(.is-journal) .seeker-tag[data-skill-tag="Attack"]{background:#b37a6726;border-color:#d5a39380;color:#f1c7b8}
 .overlay:not(.is-journal) .seeker-tag[data-skill-tag="Spell"]{background:#8b77b92b;border-color:#b8a3df85;color:#ded0ff}
 .overlay:not(.is-journal) .seeker-tag[data-skill-tag="Projectile"]{background:#557fa32b;border-color:#8db9dc80;color:#c3e6ff}

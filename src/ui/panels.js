@@ -266,7 +266,7 @@ export class Panels {
           <span>ความเร็วเดิน</span><b>${d.moveSpeed.toFixed(1)} m/s</b>
           <span>คูลดาวน์เร็วขึ้น</span><b>${d.cooldownPct.toFixed(0)}%</b>
           ${pct('ดาเมจประชิด', d.meleeDamagePct)}${pct('ดาเมจกระสุน', d.projectileDamagePct)}${pct('ดาเมจเวท', d.spellDamagePct)}${pct('ดาเมจวงกว้าง', d.areaDamagePct)}
-          ${pct('ดาเมจอัญเชิญ', d.summonDamagePct)}${pct('เกราะเวท', d.barrierPct)}${pct('การฟื้นฟู', d.healPct)}
+          ${pct('ดาเมจกายภาพ',d.physicalDamagePct)}${pct('ดาเมจไฟ',d.fireDamagePct)}${pct('ดาเมจน้ำแข็ง',d.coldDamagePct)}${pct('ดาเมจสายฟ้า',d.lightningDamagePct)}${pct('ดาเมจดิน',d.earthDamagePct)}${pct('ดาเมจพิษ',d.poisonDamagePct)}${pct('ดาเมจอัญเชิญ', d.summonDamagePct)}${pct('เกราะเวท', d.barrierPct)}${pct('การฟื้นฟู', d.healPct)}
           ${d.leechPct ? `<span>ดูดเลือด</span><b>${d.leechPct.toFixed(1)}%</b>` : ''}
           ${d.poisonChancePct ? `<span>โอกาสติดพิษ</span><b>${d.poisonChancePct.toFixed(0)}%</b>` : ''}
           <span>Gold</span><b>${ch.gold}</b>
@@ -673,6 +673,13 @@ const EFFECT_TH = {
   persistentDurationPct: 'ระยะเวลาพื้นที่คงอยู่ %',
   controlDurationPct: 'ระยะเวลาควบคุม/คำสาป %',
   spellDamagePct: 'ดาเมจเวท %',
+  physicalDamagePct: 'ดาเมจกายภาพ %',
+  fireDamagePct: 'ดาเมจไฟ %',
+  coldDamagePct: 'ดาเมจน้ำแข็ง %',
+  lightningDamagePct: 'ดาเมจสายฟ้า %',
+  earthDamagePct: 'ดาเมจดิน %',
+  poisonDamagePct: 'ดาเมจพิษ %',
+  arcaneDamagePct: 'ดาเมจอาร์เคน %',
   summonDamagePct: 'ดาเมจอัญเชิญ %',
   maxHpPct: 'HP %',
   maxMpPct: 'MP %',

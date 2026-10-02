@@ -8,7 +8,7 @@ import {SIGILS} from '../../src/ui/sigils.js';
 import {art,hasArt} from '../../src/ui/art.js';
 
 test('rebalance retains legacy content IDs and optional chapter navigation',()=>{
- const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id));
+ const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id)&&!id.startsWith('element_'));
  assert.equal(originals.length,87);
  for(const [id,n] of originals){assert.ok(data.jobtree.sections[n.section],id);assert.ok(n.links.every(id=>data.jobtree.nodes[id]));}
  for(const group of data.jobtree.groups){assert.equal(data.jobtree.nodes[group.job].type,'job');assert.equal(data.jobtree.nodes[group.job].branch,group.id);}
@@ -36,7 +36,7 @@ test('opening a chapter gives no bonus and opens neither permanent inspector nor
  const ch=createCharacter(data),ui={game:{ch,data},sel:{},overlay:{clientWidth:1180}};
  const before=JSON.stringify(ch);const format=(k,v)=>k+' '+v;
  const over=jobView(ui,{effectText:format});
- assert.equal((over.match(/class="seeker-constellation /g)||[]).length,10);
+ assert.equal((over.match(/class="seeker-constellation /g)||[]).length,11);
  assert.ok(!over.includes('class="journal-inspector'));
  ui.sel.constellation='area';const sub=jobView(ui,{effectText:format});
  assert.equal((sub.match(/class="seeker-node /g)||[]).length,8);

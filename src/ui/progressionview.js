@@ -1,7 +1,7 @@
 // Shared progression language for the bag, workbench and skill growth.
 import { computeSkill } from '../core/skills.js';
 import { derive, gearRequirements } from '../core/character.js';
-import { esc } from './buildmeta.js';
+import { esc, tagsHtml } from './buildmeta.js';
 
 export function gradeBadge(data, grade, count = data.items.grades.optionCount[grade], compact = false) {
  const g=data.items.grades;
@@ -12,7 +12,7 @@ export function gradeGuide(data) {
  return `<div class="grade-guide">${g.order.map(grade=>`<div>${gradeBadge(data,grade)}<small>โอกาส ${Math.round(g.weights[grade]/total*100)}%</small></div>`).join('')}</div><p class="muted">เกรดเพิ่มจำนวนออฟชั่น · ตีบวกเพิ่มเฉพาะค่าพื้นฐาน · คราฟต์แต่ละครั้งสุ่มใหม่</p>`;
 }
 export function optionList(data, options) {
- return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],quality=def.max===def.min?1:(o.value-def.min)/(def.max-def.min);return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}</span><small>ช่วง ${def.min}–${def.max}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
+ return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],quality=def.max===def.min?1:(o.value-def.min)/(def.max-def.min);return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}${def.tags?tagsHtml(def.tags,'option'):''}</span><small>ช่วง ${def.min}–${def.max}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
 }
 export function upgradeTrack(levels, completed, prefix='Lv.',first=1) {
  return `<ol class="upgrade-track">${levels.map((level,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>ตัวละคร Lv.${level}</small></li>`).join('')}</ol>`;

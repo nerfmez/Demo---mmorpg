@@ -26,7 +26,7 @@ try{
   await page.evaluate(()=>{const f=window.__frontier,g=f.game;g.ch.name='Seeker';g.ch.level=18;g.ch.jobLevel=18;g.ch.jobPoints=12;g.ch.jobNodes=['origin','v1','v2','r1','r2','f_hp'];g.ch.gold=2400;for(const k in g.ch.stats)g.ch.stats[k]=20;g.ch.mods=Object.keys(g.data.mods.mods).map((id,i)=>({id,uid:900+i,level:1}));g.ch.slots[0]={skill:'firebolt',mods:[]};g.ch.skills.firebolt=1;g.refresh();f.panels.open('job');});
   const click=async selector=>{const l=page.locator(selector).first();return touch?l.tap():l.click();};
   const shot=async label=>page.screenshot({path:dir+name+'-'+label+'.png',timeout:60000});
-  assert.equal(await page.locator('.journal-chapter').count(),10);
+  assert.equal(await page.locator('.journal-chapter').count(),11);
   assert.equal(await page.locator('.seeker-node').count(),0);
   assert.equal(await page.locator('.journal-inspector').count(),0);
   const full=await page.locator('.panel').boundingBox();assert.equal(full.x,0);assert.equal(full.y,0);assert.equal(full.width,width);assert.equal(full.height,height);
@@ -49,7 +49,7 @@ try{
   await shot('03-inspected');await click('[data-act="dismiss-node"]');
   // Partial investment leaves other branches untouched and does not lock other books.
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobNodes.includes('a2')),false);
-  await click('.journal-back');assert.equal(await page.locator('.journal-chapter').count(),10);
+  await click('.journal-back');assert.equal(await page.locator('.journal-chapter').count(),11);
   assert.match(await page.locator('.journal-chapter[data-id="area"]').innerText(),/ลงทุนแล้ว 1 แต้ม/);
   const before=await page.evaluate(()=>JSON.stringify(window.__frontier.game.ch.jobNodes));
   const rect=await page.locator('.seeker-graph').boundingBox();
@@ -67,6 +67,7 @@ try{
   await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-gem="split"]').count());
   await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-gem]').count());
   assert.deepEqual(errors,[]);
-  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,chapters:10,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
+  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,chapters:11,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
  }
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}
+

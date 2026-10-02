@@ -4,7 +4,8 @@ import {data} from './helpers.js';
 import {createCharacter,derive,allocateJobNode,jobNodeState,migrateCharacter} from '../../src/core/character.js';
 import {modFits,socketMod,computeSkill,unsocketMod} from '../../src/core/skills.js';
 import {TAGS,FILTERS,tagsHtml,modRules,modRuleChips,rulesHtml,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
-import {clusterNodes} from '../../src/ui/jobview.js';
+import {clusterNodes,jobView} from '../../src/ui/jobview.js';
+import {optionList} from '../../src/ui/progressionview.js';
 function fixture(id='venom_mire',mods=[]) {
  const ch=createCharacter(data); for(const k in ch.stats)ch.stats[k]=20;
  ch.skills[id]=1;ch.slots[0]={skill:id,mods:[]};ch.mods=mods.map((id,i)=>({id,uid:100+i,level:1}));
@@ -22,12 +23,12 @@ test('every skill, movement and mod has a known visible type and complete rule v
  assert.ok(!data.skills.combat.hex.tags.includes('Persistent'));
 });
 test('constellations cover every node and specialist subviews preserve the four jobs',()=>{
- const t=data.jobtree;assert.equal(t.constellations.length,10);
+ const t=data.jobtree;assert.equal(t.constellations.length,11);
  for(const [id,n]of Object.entries(t.nodes)){
   assert.ok(t.constellations.some(c=>c.id===n.category),id);
   assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
  }
- assert.equal(Object.keys(t.nodes).length,207);
+ assert.equal(Object.keys(t.nodes).length,225);
  for(const [id,n] of Object.entries(t.nodes)){
   assert.ok(t.sections[n.section],id+' belongs to a major section');
   assert.ok(!('tier' in n)&&!('requiresSpent' in n),id+' has no individual stage gate');
@@ -66,6 +67,17 @@ test('type chips match native eligibility and keep physical damage separate from
  }
  assert.match(tagsHtml(['Area'],'added'),/data-tag-scope="added"/);
  const split=data.mods.mods.split;assert.ok(!modFits(data.skills.combat.slash,split).ok,'shown Projectile requirement still cannot be bypassed by an added tag');
+});
+test('current element chips, crafting options and tree inspection share visible elemental names',()=>{
+ for(const tag of ['Physical','Fire','Cold','Lightning','Earth','Poison','Arcane'])assert.ok(FILTERS.some(([id])=>id===tag));
+ const f=fixture('firebolt',['frost_shift','burning_ground']),html=skillMeta(data.skills.combat.firebolt,f.skill());
+ const current=html.match(/data-tag-scope="element">([\s\S]*?)<\/div>/)[1];
+ assert.match(current,/data-element-tag="Cold"/);assert.doesNotMatch(current,/data-element-tag="Fire"/);
+ assert.match(html,/data-tag-scope="secondary"/);assert.match(html,/เปลี่ยนจาก ไฟ → น้ำแข็ง/);
+ const opts=optionList(data,[{id:'fire_pct',value:5}]);assert.match(opts,/data-element-tag="Fire"/);assert.match(opts,/ดาเมจไฟ/);
+ const ui={game:{ch:f.ch,data},sel:{constellation:'elements',node:'element_fire_1'},overlay:{clientWidth:1180}};
+ const tree=jobView(ui,{effectText:(key,n)=>key+' '+n});assert.match(tree,/data-tag-scope="node"/);assert.match(tree,/data-element-tag="Fire"/);
+ ui.sel.nodeSearch='ไฟ';const found=jobView(ui,{effectText:(key,n)=>key+' '+n});assert.match(found,/data-id="element_fire_1"/);
 });
 test('Lingering needs an actual lasting field, not just any damage or a curse',()=>{
  const S=data.skills.combat,M=data.mods.mods;

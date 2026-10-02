@@ -15,7 +15,13 @@
         "a1",
         "r1",
         "w1",
-        "f_hp"
+        "f_hp",
+        "element_physical_1",
+        "element_fire_1",
+        "element_cold_1",
+        "element_lightning_1",
+        "element_earth_1",
+        "element_poison_1"
       ],
       "effects": {},
       "group": "origin",
@@ -5107,6 +5113,486 @@
         1930,
         990
       ]
+    },
+    "element_physical_1": {
+      "name": "กายภาพ Focus 1",
+      "nameTh": "จารึกกายภาพ I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-1",
+      "tags": [
+        "Physical"
+      ],
+      "effects": {
+        "physicalDamagePct": 4
+      },
+      "links": [
+        "origin",
+        "element_physical_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        230,
+        220
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กกายภาพปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_physical_2": {
+      "name": "กายภาพ Focus 2",
+      "nameTh": "จารึกกายภาพ II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-2",
+      "tags": [
+        "Physical"
+      ],
+      "effects": {
+        "physicalDamagePct": 4
+      },
+      "links": [
+        "element_physical_1",
+        "element_physical_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        220
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กกายภาพปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_physical_3": {
+      "name": "กายภาพ Focus 3",
+      "nameTh": "จารึกกายภาพ III",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-3",
+      "tags": [
+        "Physical"
+      ],
+      "effects": {
+        "physicalDamagePct": 6
+      },
+      "links": [
+        "element_physical_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        220
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กกายภาพปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_fire_1": {
+      "name": "ไฟ Focus 1",
+      "nameTh": "จารึกไฟ I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-1",
+      "tags": [
+        "Fire"
+      ],
+      "effects": {
+        "fireDamagePct": 4
+      },
+      "links": [
+        "origin",
+        "element_fire_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        230,
+        400
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กไฟปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_fire_2": {
+      "name": "ไฟ Focus 2",
+      "nameTh": "จารึกไฟ II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-2",
+      "tags": [
+        "Fire"
+      ],
+      "effects": {
+        "fireDamagePct": 4
+      },
+      "links": [
+        "element_fire_1",
+        "element_fire_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        400
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กไฟปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_fire_3": {
+      "name": "ไฟ Focus 3",
+      "nameTh": "จารึกไฟ III",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-3",
+      "tags": [
+        "Fire"
+      ],
+      "effects": {
+        "fireDamagePct": 6
+      },
+      "links": [
+        "element_fire_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        400
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กไฟปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_cold_1": {
+      "name": "น้ำแข็ง Focus 1",
+      "nameTh": "จารึกน้ำแข็ง I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-1",
+      "tags": [
+        "Cold"
+      ],
+      "effects": {
+        "coldDamagePct": 4
+      },
+      "links": [
+        "origin",
+        "element_cold_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        230,
+        580
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กน้ำแข็งปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_cold_2": {
+      "name": "น้ำแข็ง Focus 2",
+      "nameTh": "จารึกน้ำแข็ง II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-2",
+      "tags": [
+        "Cold"
+      ],
+      "effects": {
+        "coldDamagePct": 4
+      },
+      "links": [
+        "element_cold_1",
+        "element_cold_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        580
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กน้ำแข็งปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_cold_3": {
+      "name": "น้ำแข็ง Focus 3",
+      "nameTh": "จารึกน้ำแข็ง III",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-3",
+      "tags": [
+        "Cold"
+      ],
+      "effects": {
+        "coldDamagePct": 6
+      },
+      "links": [
+        "element_cold_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        580
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กน้ำแข็งปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_lightning_1": {
+      "name": "สายฟ้า Focus 1",
+      "nameTh": "จารึกสายฟ้า I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-1",
+      "tags": [
+        "Lightning"
+      ],
+      "effects": {
+        "lightningDamagePct": 4
+      },
+      "links": [
+        "origin",
+        "element_lightning_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        230,
+        760
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กสายฟ้าปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_lightning_2": {
+      "name": "สายฟ้า Focus 2",
+      "nameTh": "จารึกสายฟ้า II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-2",
+      "tags": [
+        "Lightning"
+      ],
+      "effects": {
+        "lightningDamagePct": 4
+      },
+      "links": [
+        "element_lightning_1",
+        "element_lightning_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        760
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กสายฟ้าปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_lightning_3": {
+      "name": "สายฟ้า Focus 3",
+      "nameTh": "จารึกสายฟ้า III",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-3",
+      "tags": [
+        "Lightning"
+      ],
+      "effects": {
+        "lightningDamagePct": 6
+      },
+      "links": [
+        "element_lightning_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        760
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กสายฟ้าปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_earth_1": {
+      "name": "ดิน Focus 1",
+      "nameTh": "จารึกดิน I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-1",
+      "tags": [
+        "Earth"
+      ],
+      "effects": {
+        "earthDamagePct": 4
+      },
+      "links": [
+        "origin",
+        "element_earth_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        230,
+        940
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กดินปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_earth_2": {
+      "name": "ดิน Focus 2",
+      "nameTh": "จารึกดิน II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-2",
+      "tags": [
+        "Earth"
+      ],
+      "effects": {
+        "earthDamagePct": 4
+      },
+      "links": [
+        "element_earth_1",
+        "element_earth_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        940
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กดินปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_earth_3": {
+      "name": "ดิน Focus 3",
+      "nameTh": "จารึกดิน III",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-3",
+      "tags": [
+        "Earth"
+      ],
+      "effects": {
+        "earthDamagePct": 6
+      },
+      "links": [
+        "element_earth_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        940
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กดินปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_poison_1": {
+      "name": "พิษ Focus 1",
+      "nameTh": "จารึกพิษ I",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-1",
+      "tags": [
+        "Poison"
+      ],
+      "effects": {
+        "poisonDamagePct": 4
+      },
+      "links": [
+        "origin",
+        "element_poison_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        230,
+        1120
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กพิษปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_poison_2": {
+      "name": "พิษ Focus 2",
+      "nameTh": "จารึกพิษ II",
+      "type": "minor",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-2",
+      "tags": [
+        "Poison"
+      ],
+      "effects": {
+        "poisonDamagePct": 4
+      },
+      "links": [
+        "element_poison_1",
+        "element_poison_3"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        570,
+        1120
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กพิษปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
+    },
+    "element_poison_3": {
+      "name": "พิษ Focus 3",
+      "nameTh": "จารึกพิษ III",
+      "type": "notable",
+      "group": "hybrid",
+      "category": "elements",
+      "section": "elements-3",
+      "tags": [
+        "Poison"
+      ],
+      "effects": {
+        "poisonDamagePct": 6
+      },
+      "links": [
+        "element_poison_2"
+      ],
+      "pos": [
+        0,
+        0
+      ],
+      "clusterPos": [
+        910,
+        1120
+      ],
+      "descTh": "เพิ่มเฉพาะดาเมจที่มีแท็กพิษปัจจุบัน หลังเปลี่ยนธาตุ · รวมกับโบนัสประเภทสกิลในกลุ่มบวกเดียวกัน"
     }
   },
   "groups": [
@@ -5268,6 +5754,19 @@
         345
       ],
       "descTh": "ประสานอาวุธ · ความคล่อง · ฟื้นตัว",
+      "maxTier": 3
+    },
+    {
+      "id": "elements",
+      "nameTh": "รอยจารึกธาตุ",
+      "name": "Traces of the Elements",
+      "icon": "book",
+      "color": "#84654c",
+      "mapPos": [
+        1410,
+        590
+      ],
+      "descTh": "ไฟ · น้ำแข็ง · สายฟ้า · ดิน · พิษ · กายภาพ",
       "maxTier": 3
     }
   ],
@@ -5596,6 +6095,24 @@
       "branch": "ranger",
       "tier": 6,
       "requiresSpent": 33
+    },
+    "elements-1": {
+      "category": "elements",
+      "branch": null,
+      "tier": 1,
+      "requiresSpent": 0
+    },
+    "elements-2": {
+      "category": "elements",
+      "branch": null,
+      "tier": 2,
+      "requiresSpent": 3
+    },
+    "elements-3": {
+      "category": "elements",
+      "branch": null,
+      "tier": 3,
+      "requiresSpent": 9
     }
   }
 }

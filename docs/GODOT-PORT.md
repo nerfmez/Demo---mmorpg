@@ -57,7 +57,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
-travel-journal chapters before showing the relevant part of the 207-node passive network.
+travel-journal chapters before showing the relevant part of the 225-node passive network.
 Major `jobtree.sections` own `tier` and `requiresSpent`: thresholds use TOTAL allocated
 Job Points (origin excluded). Each node references a section and must ALSO connect to an
 owned neighbour. An unlocked section never bypasses adjacency. Keep one profession,
@@ -110,7 +110,7 @@ selector on narrow phones. Keep inspection separate from allocating points, sock
 and spending materials. `ui/buildmeta.js` is presentation vocabulary shared by skill,
 modifier, crafting and inventory details: native tags, damage element, stat requirements,
 all/any/excluded tags and exact incompatibility reasons. Modifier-added tags are labeled
-separately and do not silently grant native-tag eligibility. Calls to core `modFits()`
+separately; shape tags do not silently grant native eligibility. Element conversion replaces the current element tags before element eligibility is checked. Calls to core `modFits()`
 remain the authority for compatibility; do not duplicate the rules in Godot UI code.
 
 Native `Attack` is displayed as กายภาพ, `Spell` as เวท, `Projectile` as โปรเจกไทล์,
@@ -123,6 +123,27 @@ is a Spell with physical damage, while Frost Shift does not turn an Attack
 into a Spell. Added tags are labeled separately and retain native compatibility.
 
 ### Ability-family scaling and modifier compatibility
+
+`core/skill-tags.js` is the shared element taxonomy and current-element resolver.
+Port `Physical`, `Fire`, `Cold`, `Lightning`, `Poison`, `Earth`, `Arcane` and their
+`*DamagePct` derived fields. `Attack` remains the skill type; `Physical` is its damage
+kind. Stone Burst has Earth + Physical and remains a Spell. Active converters qualify
+against native tags, replace all primary element tags, and leave the native shape
+unchanged. Non-converting mods can require current element tags through the existing
+all/any/excluded rules. Do not treat a modifier's own elemental tags as primary tags.
+
+Element increases add to the existing type increases before multiplying skill power;
+they apply to current direct-hit/field damage, physical summons and Leap's landing,
+not healing/barriers or burn/poison status potency. Burning Ground has its own Fire
+tags, element and precompiled `ground.damage` per second. `Game.spawnGround()` reads
+that value, then applies the cast multiplier and .5-second tick. Never scale the
+already-element-scaled primary hit again to obtain ground damage.
+
+Equipment and recipe pools expose six 3–8% damage options (physical/fire/cold/lightning/
+earth/poison) on crafted weapons and charms, in the existing grade slots. Their power
+weights and soft caps live in JSON. The optional “รอยจารึกธาตุ” chapter has six connected
+three-node paths: 4%, 4%, 6%, major section gates at 0/3/9 total points. Existing node
+IDs, tree revision 2 and save version 4 are retained; no refund or reroll occurs.
 
 Port the new derived fields along with their Node tests:
 

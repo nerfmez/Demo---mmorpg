@@ -2,6 +2,8 @@
 // equipment (5 slots), appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 
+import { ELEMENT_STATS } from './skill-tags.js';
+
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
 export const CHARACTER_VERSION = 4;
 
@@ -416,6 +418,7 @@ export function derive(ch, data) {
     meleeArcAdd: 0,
     poisonChancePct: 0,
     leechPct: 0,
+    ...Object.fromEntries(Object.values(ELEMENT_STATS).map(stat => [stat, 0])),
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;

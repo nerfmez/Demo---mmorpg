@@ -35,7 +35,7 @@ export async function verifyPassiveGestures(page, {context, engineName, capture 
     const ui = window.__frontier.panels;
     return {...ui.jobCameras[ui.sel.constellation + ':' + (ui.sel.jobBranch || '')]};
   });
-  assert.equal(await page.locator('.seeker-constellation').count(), 10);
+  assert.equal(await page.locator('.seeker-constellation').count(), 11);
   assert.equal(await page.locator('.seeker-node').count(), 0, 'overview is not the whole giant graph');
   await jump('v1');
   assert.equal(await page.evaluate(() => window.__frontier.game.ch.jobNodes.length), 1, 'inspection does not spend');

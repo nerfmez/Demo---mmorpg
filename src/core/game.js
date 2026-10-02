@@ -921,7 +921,7 @@ export class Game {
 
   spawnGround(s, x, z, mult = 1) {
     if (!s.ground) return;
-    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.damage * mult * s.ground.dpsMult * 0.5, element: 'fire', dot: true });
+    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.ground.damage * mult * 0.5, element: s.ground.element, dot: true });
   }
 
   // ---------- update ----------

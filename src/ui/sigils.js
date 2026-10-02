@@ -30,12 +30,15 @@ export const SIGILS = {
  drop:'M12 2c4 6 8 10 8 14a8 8 0 1 1-16 0c0-4 4-8 8-14z',
  sword:'M4 21l5-5m-3-3 5 5M8 14L19 3h3v3L11 17',
  plus:'M12 4v16M4 12h16',
+ earth:'M3 17l3-8 6-5 6 6 3 8-9 3zM6 9l6 5 6-4m-6 4v7',
  eye:'M1 12c6-11 16-11 22 0-6 11-16 11-22 0zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
 };
 export function sigil(name) {return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="${SIGILS[name]||SIGILS.plus}"/></svg>`;}
 export function effectSigil(n) {
  const k=Object.keys(n.effects||{}).join(' ').toLowerCase();
  if(n.type==='job')return 'flag';if(n.type==='origin')return 'compass';
+ const element=(n.tags||[]).find(tag=>['Fire','Cold','Lightning','Earth','Poison','Physical','Arcane'].includes(tag));
+ if(element)return {Fire:'camp',Cold:'frost_shift',Lightning:'cast_on_dodge',Earth:'earth',Poison:'river',Physical:'sword',Arcane:'quill'}[element];
  if(k.includes('heal')||k.includes('hp')||k.includes('leech'))return 'heart';
  if(k.includes('mp')||k.includes('magic'))return 'drop';
  if(k.includes('defense')||k.includes('barrier')||k.includes('taken'))return 'shield';

@@ -34,7 +34,7 @@ try{
   const nav=async tab=>{if(await page.locator('.is-journal').count()){await page.keyboard.press('Escape');await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(width<=700)await page.locator('[data-page-select]').selectOption(tab);else await click(`[data-tab="${tab}"]`);};
   const shot=async label=>{await page.screenshot({path:out+size+'-'+label+'.png',timeout:60000});};
   const noOverflow=async()=>assert.ok(await page.locator('.pbody').evaluate(el=>el.scrollWidth<=el.clientWidth+2),size+' content horizontal overflow');
-  assert.equal(await page.locator('.seeker-constellation').count(),10);assert.equal(await page.locator('.seeker-node').count(),0);await noOverflow();await shot('categories');
+  assert.equal(await page.locator('.seeker-constellation').count(),11);assert.equal(await page.locator('.seeker-node').count(),0);await noOverflow();await shot('categories');
   await page.locator('#node-search').fill('ศึกษาเวท');await click('.seeker-node-search [type="submit"]');await click('.seeker-search-result[data-id="a1"]');await click('[data-act="dismiss-node"]');assert.equal(await page.locator('.seeker-node').count(),8);await shot('area');
   const before=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
   await click('[data-focus]');await click('.seeker-node[data-id="a1"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection must not spend');

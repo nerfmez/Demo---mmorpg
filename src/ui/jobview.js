@@ -1,5 +1,5 @@
 import {jobNodeState, jobTierProgress, currentJob, respecCost} from '../core/character.js';
-import {esc} from './buildmeta.js';
+import {esc,tagsHtml,TAGS} from './buildmeta.js';
 import {sigil, effectSigil} from './sigils.js';
 
 export function clusterNodes(tree, category, branch) {
@@ -38,7 +38,7 @@ function detail(ui, id, format) {
   const text=st.taken?'ลงทุนแล้ว':st.reason==='tier_points'? `กลุ่มนี้ต้องใช้แต้มที่ลงทุนรวมอีก ${Math.max(0,st.need-st.have)} แต้ม`:st.reason==='not_linked'?'ต้องต่อจากโหนดที่ลงทุนไว้':st.reason==='no_points'?'แต้มพาสซีฟไม่พอ':st.reason==='job_level'?'ต้องมี Job Lv.'+st.need:st.reason==='one_job'?'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน':st.reason==='requires_job'?'ต้องเลือกอาชีพ '+tree.groups.find(x=>x.id===st.need)?.nameTh:'พร้อมลงทุน 1 แต้ม';
   const cross=n.links.filter(k=>tree.nodes[k].category!==n.category);
   const tierStatus=tier.tier? `<div class="journal-tier-status"><b>กลุ่มขั้น ${tierName(tier.tier)}</b><span>${tier.requires?`แต้มลงทุนรวม ${tier.spent}/${tier.requires}`:'กลุ่มเริ่มต้น · ยังต้องต่อเส้นเชื่อม'}</span></div>`:'';
-  return `<aside class="journal-inspector seeker-node-detail" role="region" aria-label="รายละเอียดโหนด" aria-live="polite"><button class="journal-dismiss" data-act="dismiss-node" aria-label="ปิดรายละเอียดโหนด">×</button><small>${chapter.nameTh} / ${n.type==='minor'?'บันทึกย่อย':n.type==='job'?'คำสาบาน':'บันทึกสำคัญ'}</small><h3>${n.nameTh}</h3>${tierStatus}<div class="seeker-effects">${effects(n,format).map(e=>`<p>${e}</p>`).join('')||'<p>จุดเริ่มต้นของทุกเส้นทาง</p>'}</div><p>${text}</p><button class="btn primary" data-act="take-node" data-id="${id}" ${st.can?'':'disabled'}>${st.taken?'บันทึกแล้ว ✓':'ลงทุน · 1 แต้ม'}</button>${cross.length?`<details class="seeker-crosslinks"><summary>เชื่อมไปยังบันทึกอื่น (${cross.length})</summary>${cross.map(k=>button('jump-node',k,tree.nodes[k].nameTh+' ↗')).join('')}</details>`:''}</aside>`;
+  return `<aside class="journal-inspector seeker-node-detail" role="region" aria-label="รายละเอียดโหนด" aria-live="polite"><button class="journal-dismiss" data-act="dismiss-node" aria-label="ปิดรายละเอียดโหนด">×</button><small>${chapter.nameTh} / ${n.type==='minor'?'บันทึกย่อย':n.type==='job'?'คำสาบาน':'บันทึกสำคัญ'}</small><h3>${n.nameTh}</h3>${n.tags?tagsHtml(n.tags,'node'):''}${tierStatus}<div class="seeker-effects">${effects(n,format).map(e=>`<p>${e}</p>`).join('')||'<p>จุดเริ่มต้นของทุกเส้นทาง</p>'}</div><p>${text}</p><button class="btn primary" data-act="take-node" data-id="${id}" ${st.can?'':'disabled'}>${st.taken?'บันทึกแล้ว ✓':'ลงทุน · 1 แต้ม'}</button>${cross.length?`<details class="seeker-crosslinks"><summary>เชื่อมไปยังบันทึกอื่น (${cross.length})</summary>${cross.map(k=>button('jump-node',k,tree.nodes[k].nameTh+' ↗')).join('')}</details>`:''}</aside>`;
 }
 
 export function jobView(ui,{effectText}) {
@@ -46,12 +46,12 @@ export function jobView(ui,{effectText}) {
   const category=chapters.find(c=>c.id===sel.constellation),branch=sel.jobBranch||tree.groups[0].id;
   const head=journalHeader(ui,category),query=sel.nodeSearch?.trim().toLocaleLowerCase();
   if(query) {
-    const matches=Object.entries(tree.nodes).filter(([id,n])=>[id,n.name,n.nameTh,n.descTh,...effects(n,effectText),chapters.find(c=>c.id===n.category).nameTh].join(' ').toLocaleLowerCase().includes(query));
+    const matches=Object.entries(tree.nodes).filter(([id,n])=>[id,n.name,n.nameTh,n.descTh,...(n.tags||[]).map(t=>TAGS[t]||t),...effects(n,effectText),chapters.find(c=>c.id===n.category).nameTh].join(' ').toLocaleLowerCase().includes(query));
     return `<div class="journal-screen">${head}<section class="journal-results"><div class="journal-results-head"><h3>พบ ${matches.length} บันทึก</h3>${button('clear-node-search','','กลับผัง')}</div>${matches.map(([id,n])=>`<button class="seeker-search-result" data-act="jump-node" data-id="${id}"><b>${n.nameTh}</b><span>${chapters.find(c=>c.id===n.category).nameTh} · ${effects(n,effectText).join(' · ')}</span></button>`).join('')||'<p>ไม่พบบันทึกที่ตรงกัน</p>'}</section></div>`;
   }
   if(!category) {
     const narrow=ui.overlay.clientWidth<700;
-    const mapWidth=narrow?600:1580,mapHeight=narrow?1200:710;
+    const mapWidth=narrow?600:1580,mapHeight=narrow?110+Math.ceil(chapters.length/2)*230:Math.max(710,...chapters.map(c=>c.mapPos[1]+155));
     const positions=Object.fromEntries(chapters.map((c,i)=>[c.id,narrow?[i%2?435:165,110+Math.floor(i/2)*230]:c.mapPos]));
     const paths=new Set();
     for(const n of Object.values(tree.nodes))for(const target of n.links) {

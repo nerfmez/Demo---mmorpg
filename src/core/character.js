@@ -3,7 +3,7 @@
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 3;
+export const CHARACTER_VERSION = 4;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -52,7 +52,8 @@ export function createCharacter(data, opts = {}) {
   for (const baseId of startGear) {
     const base = data.items.gearBases[baseId];
     if (!base) continue;
-    const item = { uid: ch.nextUid++, base: baseId, grade: 'C', upgrade: 0, options: [] };
+    const options = base.optionPool.slice(0, data.items.grades.optionCount.C).map(id => ({ id, value: data.items.gearOptions[id].min }));
+    const item = { uid: ch.nextUid++, base: baseId, grade: 'C', upgrade: 0, options };
     ch.gear.push(item);
     ch.equipped[base.slot] = item.uid;
   }
@@ -101,15 +102,20 @@ export function migrateCharacter(ch, data) {
         option.value = Math.round(def.min + quality * (def.max - def.min));
       }
       if (data.items.gearBases[item.base].starter && !item.options?.length) item.grade = 'C';
-      // Some old recipe pools were smaller than their grade's affix count. Repair
-      // only missing slots, conservatively at the new minimum; never reroll an
-      // owned option or spend resources during migration.
+    }
+  }
+  if ((ch.version || 1) < 4) {
+    for (const item of ch.gear) {
+      item.options = item.options || [];
+      // New grades gain their missing slots once, at conservative minimum rolls.
+      // Existing rolls, grade, enhancement and ownership remain intact.
       const base = data.items.gearBases[item.base], count = data.items.grades.optionCount[item.grade];
       for (const id of base.optionPool || []) {
         if (item.options.length >= count) break;
         if (!item.options.some(o => o.id === id)) item.options.push({ id, value: data.items.gearOptions[id].min });
       }
     }
+    ch.progress.gearMigration = 'เกรดอุปกรณ์ใหม่ C/B/A/S มี 2/3/4/5 ออฟชั่น เติมช่องที่ขาดแล้ว · ตีบวกได้ตามวัตถุดิบ สวมใส่ตามสเตตัส';
   }
   if (ch.treeRevision !== data.jobtree.revision) {
     const spent = new Set((ch.jobNodes || []).filter(id => id !== data.jobtree.origin)).size;
@@ -119,6 +125,8 @@ export function migrateCharacter(ch, data) {
     ch.progress.balanceMigration = 'ปรับสมดุลใหม่: คืนแต้มต้นไม้ทั้งหมดฟรี เลือกเส้นทางและอาชีพใหม่ได้ อุปกรณ์ สกิล ม็อด และวัตถุดิบยังอยู่ครบ';
   }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
+  const moved = enforceEquipment(ch, data);
+  if (moved.length) ch.progress.equipmentNotice = 'รีเควสสเตตัสเพิ่ม: เก็บอุปกรณ์ที่สวมไม่ได้ไว้ในกระเป๋า ' + moved.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh).join(', ');
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
   ch.version = CHARACTER_VERSION;
@@ -265,6 +273,7 @@ export function respecStats(ch, data) {
   ch.stats = { ...start };
   ch.statPoints += spent;
   ch.gold -= cost;
+  enforceEquipment(ch, data);
   return true;
 }
 
@@ -304,12 +313,45 @@ export function weaponImplicit(item, data) {
   return data.items.weaponTypes?.[base.weaponType]?.implicit || {};
 }
 
+/** Actual item power controls wear requirements; character level never does. */
+export function gearPower(stats, data) {
+  const weights = data.items.requirements.weights;
+  return Object.entries(stats).reduce((sum,[stat,value]) => sum + Math.abs(value) * (weights[stat] || 0), 0);
+}
+
+export function gearRequirements(item, data) {
+  const base = data.items.gearBases[item.base], rules = data.items.requirements;
+  const baseline = gearPower(gearStats({ ...item, grade:'C', upgrade:0, options:[] },data),data);
+  const extra = Math.ceil(Math.max(0,gearPower(gearStats(item,data),data) - baseline - rules.affixAllowance) * rules.extraPowerFactor - 1e-9);
+  const initial = Object.keys(base.requires || {}).length ? base.requires : { [base.requirementStat]: base.starter ? rules.minimumStat : Math.max(rules.minimumStat,Math.ceil(baseline * rules.basePowerFactor)) };
+  return Object.fromEntries(Object.entries(initial).map(([stat,value]) => [stat,value + extra]));
+}
+
+export function gearEquipState(ch, data, item) {
+  if (!item) return { ok:false, reason:'unknown', requires:{}, missing:[] };
+  const requires = gearRequirements(item,data), state = meetsRequires(ch,requires);
+  return { ...state, reason:state.ok ? null : 'requires', requires };
+}
+
+/** Keep an upgraded or respec-invalidated item in the bag, never delete it. */
+export function enforceEquipment(ch, data) {
+  const moved = [];
+  for (const slot of data.items.slots) {
+    const item = gearItem(ch,ch.equipped[slot]);
+    if (item && !gearEquipState(ch,data,item).ok) {
+      moved.push({ slot, uid:item.uid, requires:gearRequirements(item,data) });
+      ch.equipped[slot] = null;
+    }
+  }
+  return moved;
+}
+
 export function equip(ch, data, uid) {
   const item = gearItem(ch, uid);
   if (!item) return { ok: false };
   const base = data.items.gearBases[item.base];
-  const req = meetsRequires(ch, base.requires);
-  if (!req.ok) return { ok: false, missing: req.missing };
+  const req = gearEquipState(ch, data, item);
+  if (!req.ok) return req;
   ch.equipped[base.slot] = uid;
   return { ok: true };
 }
@@ -325,14 +367,14 @@ export function gearLook(ch, data) {
   const out = { weapon: null, armor: 'tunic', helm: null, bases: {} };
   for (const slot of data.items.slots) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (item) out.bases[slot] = item.base;
+    if (item && gearEquipState(ch,data,item).ok) out.bases[slot] = item.base;
   }
   const w = gearItem(ch, ch.equipped.weapon);
-  if (w) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
+  if (w && gearEquipState(ch,data,w).ok) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
   const a = gearItem(ch, ch.equipped.armor);
-  if (a) out.armor = data.items.gearBases[a.base].look || 'tunic';
+  if (a && gearEquipState(ch,data,a).ok) out.armor = data.items.gearBases[a.base].look || 'tunic';
   const h = gearItem(ch, ch.equipped.helm);
-  if (h) out.helm = data.items.gearBases[h.base].look || null;
+  if (h && gearEquipState(ch,data,h).ok) out.helm = data.items.gearBases[h.base].look || null;
   return out;
 }
 
@@ -384,7 +426,7 @@ export function derive(ch, data) {
   }
   for (const slot of data.items.slots || ['weapon', 'armor']) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (!item) continue;
+    if (!item || !gearEquipState(ch,data,item).ok) continue;
     const gs = gearStats(item, data);
     for (const k in gs) add(k, gs[k]);
     const imp = weaponImplicit(item, data);
@@ -410,6 +452,6 @@ export function derive(ch, data) {
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);
   const w = gearItem(ch, ch.equipped.weapon);
-  d.weaponType = w ? data.items.gearBases[w.base].weaponType : 'none';
+  d.weaponType = w && gearEquipState(ch,data,w).ok ? data.items.gearBases[w.base].weaponType : 'none';
   return d;
 }

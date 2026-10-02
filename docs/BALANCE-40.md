@@ -17,10 +17,11 @@ growth and behaviour-changing mods retain separate purposes.
   Leech includes mod bonuses in its cap and only recovers from actual remaining target HP,
   never overkill damage.
 - Crafted base gear is moderated. Grade variance is -5%..+5%, rather than -15%..+30%.
-  C/B/A/S add 0/1/2/3 unique affixes. Tiny pools are expanded so S actually has three.
+  C/B/A/S add 2/3/4/5 unique affixes. Every base and recipe pool supports five distinct options.
 - +1..+5 adds 4% per step to base stats, not rolled affixes. It uses the recipe's monster
-  part plus catalysts/gold, with level gates 1/5/12/22/34. Grade promotion is separate,
-  gated at 5/14/28: retain existing rolls and enhancement, then add one unique affix.
+  part plus catalysts/gold, with no character-level or stat gate to upgrading. Grade
+  promotion is separate and also resource-only: retain existing rolls and enhancement,
+  then add one unique affix. Wearing uses the actual resulting item requirements.
 - Skill ranks 2..5 require character Lv5/12/22/34 and progression stats 5/7/9/11. World
   materials/gold pay for ranks. Maximum direct power growth is +24%, previously +48%;
   MP-cost growth reaches +20%. Mod ranks require character Lv10/24. Repeats, ground damage
@@ -29,7 +30,9 @@ growth and behaviour-changing mods retain separate purposes.
   Rare single-part requirements stay unchanged. First-craft quest supplies are adjusted
   to the new starter recipe, so onboarding never depends on a lucky drop.
 - Repeat crafting has an explicit maximum of 1/5/10 attempts, grade/affix/quality goals,
-  maximum budget and actual spend. Stop at target/material shortage, preserve all results,
+  maximum budget and actual spend. Each selected recipe opens its own workshop with a
+  stable one-click repeat button, per-recipe goals and the latest twenty results. Selecting
+  a recipe never spends anything. Stop at target/material shortage, preserve all results,
   and let the player inspect/compare any roll. No automatic disposal or replacement.
 
 ## Isolated power audit
@@ -58,11 +61,13 @@ this numeric audit does not establish hardware FPS or subjective difficulty.
 
 ## Saves and art
 
-Character schema v3 performs a free, one-time tree refund. It preserves gold, stat points,
+Character schema v4 retains the free, one-time tree refund introduced in v3. It preserves gold, stat points,
 skill ranks, mods, equipped UIDs and materials. Existing gear affix QUALITY maps to the new
 range without rerolling. Repeated migration is idempotent. No item or skill is deleted.
-Legacy recipe pools that could not fill their grade receive the missing unique affixes
-at the new minimum value, once, without changing their existing affixes or enhancement.
+All v1/v2/v3 items receive missing slots up to 2/3/4/5 at conservative minimum rolls,
+once, without changing existing affixes, grade, UID or enhancement. v3 roll values are
+not converted again. Any item whose new wear requirements are unmet stays in the bag;
+its ownership and investment are preserved. Starter items also have two minimum rolls.
 Published `/lab/` previews use separate save slots; import an exported main code to try an
 existing build safely. The main-game save envelope stays version 2.
 
@@ -86,3 +91,23 @@ unchanged. Contact sheets and UI captures are produced by `tests/browser/balance
 - [Undecember Rune Growth](https://guide.floor.line.games/UD/en_US/detail/1166916578064600787):
   world-earned resources and gold support skill growth. Frontier preserves behaviour mods
   as its primary build choices and has guaranteed non-destructive upgrades.
+
+## Equipment wear requirements (owner clarification, 2026-10-02)
+
+Enhancement and grade promotion require only materials/gold at a workbench. They can be
+performed at character Lv1 even if the item cannot be worn. Skill/mod rank gates are separate.
+
+`gearRequirements()` uses only trained character stats. The base's `requirementStat` selects
+STR/DEX/INT/VIT/AGI according to the item; existing base requirements retain their identity.
+For bases without explicit requirements, the minimum is 3 (starter gear always uses this
+baseline), otherwise ceil(C/+0 base power × 0.35), with a floor of 3. Every requirement
+increases by ceil(max(0, actual weighted item power − C/+0 weighted base power − 2) × 0.5).
+Weights, allowance and growth factors live in `items.requirements`; actual enhancement
+and affix values are included. Better rolls therefore demand equal or greater stats.
+
+Previews show exact after-enhancement requirements and a min/max range for new grade
+affixes without rolling RNG. An equipped item upgraded beyond the owner's trained stats
+is returned to the bag, with a warning shown before upgrading and confirmation afterward.
+Stat respec and migration use the same enforcement; invalid gear never contributes to
+derived combat stats or the hero's appearance. Re-equipping requires meeting its actual
+current requirements. No item is deleted, and no upgrade is blocked by insufficient stats.

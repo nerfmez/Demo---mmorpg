@@ -13,7 +13,8 @@
         "attack_flat",
         "melee_pct",
         "crit_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "leech_pct"
       ]
     },
     "hunter_bow": {
@@ -28,7 +29,8 @@
         "attack_flat",
         "projectile_pct",
         "crit_pct",
-        "move_pct"
+        "move_pct",
+        "leech_pct"
       ]
     },
     "fang_dagger": {
@@ -43,7 +45,8 @@
         "attack_flat",
         "crit_pct",
         "leech_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "melee_pct"
       ]
     },
     "wisp_staff": {
@@ -173,7 +176,9 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "move_pct"
+        "move_pct",
+        "barrier_pct",
+        "regen_flat"
       ]
     },
     "shell_guard": {
@@ -188,7 +193,8 @@
         "defense_flat",
         "hp_flat",
         "barrier_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "regen_flat"
       ]
     },
     "wolfpelt_coat": {
@@ -202,7 +208,8 @@
         "hp_flat",
         "defense_flat",
         "move_pct",
-        "regen_flat"
+        "regen_flat",
+        "barrier_pct"
       ]
     },
     "storm_mantle": {
@@ -218,7 +225,8 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "move_pct"
+        "move_pct",
+        "magic_flat"
       ]
     },
     "crag_plate": {
@@ -233,7 +241,8 @@
         "hp_flat",
         "defense_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "move_pct"
       ]
     },
     "leather_cap": {
@@ -246,7 +255,9 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "crit_pct"
+        "crit_pct",
+        "barrier_pct",
+        "regen_flat"
       ]
     },
     "beetle_helm": {
@@ -259,7 +270,9 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "regen_flat",
+        "move_pct"
       ]
     },
     "spore_hood": {
@@ -274,7 +287,8 @@
         "heal_pct",
         "mp_flat",
         "summon_pct",
-        "regen_flat"
+        "regen_flat",
+        "magic_flat"
       ]
     },
     "feather_circlet": {
@@ -289,7 +303,8 @@
         "cdr_pct",
         "mp_flat",
         "spell_pct",
-        "crit_pct"
+        "crit_pct",
+        "magic_flat"
       ]
     },
     "horned_helm": {
@@ -304,7 +319,8 @@
         "hp_flat",
         "defense_flat",
         "attack_flat",
-        "melee_pct"
+        "melee_pct",
+        "barrier_pct"
       ]
     },
     "wolf_boots": {
@@ -317,7 +333,9 @@
       "optionPool": [
         "move_pct",
         "defense_flat",
-        "crit_pct"
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
       ]
     },
     "wisp_slippers": {
@@ -331,7 +349,9 @@
       "optionPool": [
         "mp_flat",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat"
       ]
     },
     "crag_greaves": {
@@ -344,7 +364,9 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "regen_flat"
+        "regen_flat",
+        "move_pct",
+        "cdr_pct"
       ]
     },
     "tusk_charm": {
@@ -358,7 +380,8 @@
         "crit_pct",
         "attack_flat",
         "melee_pct",
-        "projectile_pct"
+        "projectile_pct",
+        "defense_flat"
       ]
     },
     "wisp_pendant": {
@@ -373,7 +396,8 @@
         "magic_flat",
         "mp_flat",
         "spell_pct",
-        "area_pct"
+        "area_pct",
+        "heal_pct"
       ]
     },
     "spore_amulet": {
@@ -388,7 +412,8 @@
         "heal_pct",
         "regen_flat",
         "summon_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "mp_flat"
       ]
     },
     "feather_charm": {
@@ -403,7 +428,8 @@
         "move_pct",
         "cdr_pct",
         "projectile_pct",
-        "crit_pct"
+        "crit_pct",
+        "attack_flat"
       ]
     },
     "golem_amulet": {
@@ -418,7 +444,8 @@
         "hp_flat",
         "defense_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "crit_pct"
       ]
     },
     "ancient_ring": {
@@ -680,7 +707,8 @@
         "hp_flat",
         "defense_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "move_pct"
       ]
     },
     "tide_boots": {
@@ -694,7 +722,9 @@
       "optionPool": [
         "move_pct",
         "cdr_pct",
-        "defense_flat"
+        "defense_flat",
+        "hp_flat",
+        "mp_flat"
       ]
     },
     "pearl_pendant": {
@@ -724,7 +754,9 @@
       "optionPool": [
         "move_pct",
         "cdr_pct",
-        "defense_flat"
+        "defense_flat",
+        "hp_flat",
+        "mp_flat"
       ]
     },
     "shore_circlet": {
@@ -739,7 +771,8 @@
         "cdr_pct",
         "mp_flat",
         "spell_pct",
-        "crit_pct"
+        "crit_pct",
+        "magic_flat"
       ]
     },
     "hermit_guard": {
@@ -754,7 +787,8 @@
         "defense_flat",
         "hp_flat",
         "barrier_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "regen_flat"
       ]
     }
   }

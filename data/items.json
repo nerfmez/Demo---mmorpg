@@ -231,9 +231,12 @@
       "optionPool": [
         "attack_flat",
         "magic_flat",
-        "crit_pct"
+        "crit_pct",
+        "melee_pct",
+        "leech_pct"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "STR"
     },
     "old_bow": {
       "name": "Old Bow",
@@ -249,9 +252,12 @@
       "optionPool": [
         "attack_flat",
         "magic_flat",
-        "crit_pct"
+        "crit_pct",
+        "projectile_pct",
+        "leech_pct"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "DEX"
     },
     "apprentice_staff": {
       "name": "Apprentice Staff",
@@ -267,9 +273,12 @@
       "optionPool": [
         "attack_flat",
         "magic_flat",
-        "crit_pct"
+        "crit_pct",
+        "spell_pct",
+        "mp_flat"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "INT"
     },
     "tusk_blade": {
       "name": "Tusk Blade",
@@ -288,9 +297,11 @@
         "attack_flat",
         "melee_pct",
         "crit_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "leech_pct"
       ],
-      "upgradeMaterial": "boar_tusk"
+      "upgradeMaterial": "boar_tusk",
+      "requirementStat": "STR"
     },
     "hunter_bow": {
       "name": "Hunter Bow",
@@ -309,9 +320,11 @@
         "attack_flat",
         "projectile_pct",
         "crit_pct",
-        "move_pct"
+        "move_pct",
+        "leech_pct"
       ],
-      "upgradeMaterial": "boar_tusk"
+      "upgradeMaterial": "boar_tusk",
+      "requirementStat": "DEX"
     },
     "fang_dagger": {
       "name": "Fang Dagger",
@@ -330,9 +343,11 @@
         "attack_flat",
         "crit_pct",
         "leech_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "melee_pct"
       ],
-      "upgradeMaterial": "wolf_fang"
+      "upgradeMaterial": "wolf_fang",
+      "requirementStat": "DEX"
     },
     "wisp_staff": {
       "name": "Wisp Staff",
@@ -355,7 +370,8 @@
         "cdr_pct",
         "heal_pct"
       ],
-      "upgradeMaterial": "wisp_core"
+      "upgradeMaterial": "wisp_core",
+      "requirementStat": "INT"
     },
     "spore_wand": {
       "name": "Spore Wand",
@@ -377,7 +393,8 @@
         "poison_on_hit",
         "cdr_pct"
       ],
-      "upgradeMaterial": "spore_sac"
+      "upgradeMaterial": "spore_sac",
+      "requirementStat": "INT"
     },
     "crag_axe": {
       "name": "Crag Axe",
@@ -399,7 +416,8 @@
         "defense_flat",
         "leech_pct"
       ],
-      "upgradeMaterial": "crag_stone"
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "STR"
     },
     "storm_bow": {
       "name": "Storm Bow",
@@ -421,7 +439,8 @@
         "move_pct",
         "cdr_pct"
       ],
-      "upgradeMaterial": "storm_quill"
+      "upgradeMaterial": "storm_quill",
+      "requirementStat": "DEX"
     },
     "greyfang_sabre": {
       "name": "Greyfang Sabre",
@@ -444,7 +463,8 @@
         "move_pct",
         "leech_pct"
       ],
-      "upgradeMaterial": "greyfang_mane"
+      "upgradeMaterial": "greyfang_mane",
+      "requirementStat": "AGI"
     },
     "horn_greatblade": {
       "name": "Horn Greatblade",
@@ -466,7 +486,8 @@
         "hp_flat",
         "defense_flat"
       ],
-      "upgradeMaterial": "warden_horn"
+      "upgradeMaterial": "warden_horn",
+      "requirementStat": "STR"
     },
     "ancient_staff": {
       "name": "Ancient Core Staff",
@@ -489,7 +510,8 @@
         "cdr_pct",
         "mp_flat"
       ],
-      "upgradeMaterial": "ancient_core"
+      "upgradeMaterial": "ancient_core",
+      "requirementStat": "INT"
     },
     "travel_tunic": {
       "name": "Travel Tunic",
@@ -503,11 +525,14 @@
       "requires": {},
       "starter": true,
       "optionPool": [
-        "hp_flat",
         "defense_flat",
-        "mp_flat"
+        "mp_flat",
+        "hp_flat",
+        "barrier_pct",
+        "regen_flat"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "VIT"
     },
     "hide_vest": {
       "name": "Hide Vest",
@@ -523,9 +548,12 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "move_pct"
+        "move_pct",
+        "barrier_pct",
+        "regen_flat"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "VIT"
     },
     "shell_guard": {
       "name": "Shell Guard",
@@ -544,9 +572,11 @@
         "defense_flat",
         "hp_flat",
         "barrier_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "regen_flat"
       ],
-      "upgradeMaterial": "beetle_shell"
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "VIT"
     },
     "wolfpelt_coat": {
       "name": "Wolfpelt Coat",
@@ -564,9 +594,11 @@
         "hp_flat",
         "defense_flat",
         "move_pct",
-        "regen_flat"
+        "regen_flat",
+        "barrier_pct"
       ],
-      "upgradeMaterial": "wolf_pelt"
+      "upgradeMaterial": "wolf_pelt",
+      "requirementStat": "VIT"
     },
     "storm_mantle": {
       "name": "Storm Mantle",
@@ -586,9 +618,11 @@
         "mp_flat",
         "spell_pct",
         "cdr_pct",
-        "move_pct"
+        "move_pct",
+        "magic_flat"
       ],
-      "upgradeMaterial": "hawk_feather"
+      "upgradeMaterial": "hawk_feather",
+      "requirementStat": "INT"
     },
     "crag_plate": {
       "name": "Crag Plate",
@@ -607,9 +641,11 @@
         "hp_flat",
         "defense_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "move_pct"
       ],
-      "upgradeMaterial": "crag_stone"
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "VIT"
     },
     "leather_cap": {
       "name": "Leather Cap",
@@ -625,9 +661,12 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "crit_pct"
+        "crit_pct",
+        "barrier_pct",
+        "regen_flat"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "VIT"
     },
     "beetle_helm": {
       "name": "Beetle Helm",
@@ -645,9 +684,12 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "barrier_pct"
+        "barrier_pct",
+        "regen_flat",
+        "move_pct"
       ],
-      "upgradeMaterial": "beetle_shell"
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "VIT"
     },
     "spore_hood": {
       "name": "Spore Hood",
@@ -664,9 +706,11 @@
         "heal_pct",
         "mp_flat",
         "summon_pct",
-        "regen_flat"
+        "regen_flat",
+        "magic_flat"
       ],
-      "upgradeMaterial": "spore_sac"
+      "upgradeMaterial": "spore_sac",
+      "requirementStat": "INT"
     },
     "feather_circlet": {
       "name": "Feather Circlet",
@@ -684,9 +728,11 @@
         "cdr_pct",
         "mp_flat",
         "spell_pct",
-        "crit_pct"
+        "crit_pct",
+        "magic_flat"
       ],
-      "upgradeMaterial": "hawk_feather"
+      "upgradeMaterial": "hawk_feather",
+      "requirementStat": "INT"
     },
     "horned_helm": {
       "name": "Horned Helm",
@@ -706,9 +752,11 @@
         "hp_flat",
         "defense_flat",
         "attack_flat",
-        "melee_pct"
+        "melee_pct",
+        "barrier_pct"
       ],
-      "upgradeMaterial": "warden_horn"
+      "upgradeMaterial": "warden_horn",
+      "requirementStat": "STR"
     },
     "travel_boots": {
       "name": "Travel Boots",
@@ -721,11 +769,14 @@
       "requires": {},
       "starter": true,
       "optionPool": [
-        "hp_flat",
         "defense_flat",
-        "mp_flat"
+        "mp_flat",
+        "hp_flat",
+        "barrier_pct",
+        "regen_flat"
       ],
-      "upgradeMaterial": "boar_hide"
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "AGI"
     },
     "wolf_boots": {
       "name": "Wolf Boots",
@@ -740,9 +791,12 @@
       "optionPool": [
         "move_pct",
         "defense_flat",
-        "crit_pct"
+        "crit_pct",
+        "cdr_pct",
+        "hp_flat"
       ],
-      "upgradeMaterial": "wolf_pelt"
+      "upgradeMaterial": "wolf_pelt",
+      "requirementStat": "AGI"
     },
     "wisp_slippers": {
       "name": "Wisp Slippers",
@@ -757,9 +811,12 @@
       "optionPool": [
         "mp_flat",
         "move_pct",
-        "cdr_pct"
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat"
       ],
-      "upgradeMaterial": "glow_dust"
+      "upgradeMaterial": "glow_dust",
+      "requirementStat": "INT"
     },
     "crag_greaves": {
       "name": "Crag Greaves",
@@ -776,9 +833,12 @@
       "optionPool": [
         "hp_flat",
         "defense_flat",
-        "regen_flat"
+        "regen_flat",
+        "move_pct",
+        "cdr_pct"
       ],
-      "upgradeMaterial": "crag_stone"
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "VIT"
     },
     "tusk_charm": {
       "name": "Tusk Charm",
@@ -793,9 +853,11 @@
         "crit_pct",
         "attack_flat",
         "melee_pct",
-        "projectile_pct"
+        "projectile_pct",
+        "defense_flat"
       ],
-      "upgradeMaterial": "boar_tusk"
+      "upgradeMaterial": "boar_tusk",
+      "requirementStat": "DEX"
     },
     "wisp_pendant": {
       "name": "Wisp Pendant",
@@ -811,9 +873,11 @@
         "magic_flat",
         "mp_flat",
         "spell_pct",
-        "area_pct"
+        "area_pct",
+        "heal_pct"
       ],
-      "upgradeMaterial": "wisp_core"
+      "upgradeMaterial": "wisp_core",
+      "requirementStat": "INT"
     },
     "spore_amulet": {
       "name": "Spore Amulet",
@@ -829,9 +893,11 @@
         "heal_pct",
         "regen_flat",
         "summon_pct",
-        "poison_on_hit"
+        "poison_on_hit",
+        "mp_flat"
       ],
-      "upgradeMaterial": "spore_sac"
+      "upgradeMaterial": "spore_sac",
+      "requirementStat": "INT"
     },
     "feather_charm": {
       "name": "Feather Charm",
@@ -847,9 +913,11 @@
         "move_pct",
         "cdr_pct",
         "projectile_pct",
-        "crit_pct"
+        "crit_pct",
+        "attack_flat"
       ],
-      "upgradeMaterial": "hawk_feather"
+      "upgradeMaterial": "hawk_feather",
+      "requirementStat": "AGI"
     },
     "golem_amulet": {
       "name": "Golem Heart Amulet",
@@ -865,9 +933,11 @@
         "hp_flat",
         "defense_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "crit_pct"
       ],
-      "upgradeMaterial": "golem_heart"
+      "upgradeMaterial": "golem_heart",
+      "requirementStat": "VIT"
     },
     "ancient_ring": {
       "name": "Ancient Ring",
@@ -887,7 +957,8 @@
         "cdr_pct",
         "leech_pct"
       ],
-      "upgradeMaterial": "ancient_core"
+      "upgradeMaterial": "ancient_core",
+      "requirementStat": "INT"
     },
     "crabshell_helm": {
       "name": "Crabshell Helm",
@@ -906,9 +977,11 @@
         "hp_flat",
         "defense_flat",
         "barrier_pct",
-        "regen_flat"
+        "regen_flat",
+        "move_pct"
       ],
-      "upgradeMaterial": "crab_shell"
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "VIT"
     },
     "tide_boots": {
       "name": "Tide Walkers",
@@ -925,9 +998,12 @@
       "optionPool": [
         "move_pct",
         "cdr_pct",
-        "defense_flat"
+        "defense_flat",
+        "hp_flat",
+        "mp_flat"
       ],
-      "upgradeMaterial": "crab_shell"
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "AGI"
     },
     "pearl_pendant": {
       "name": "Pearl Pendant",
@@ -949,7 +1025,8 @@
         "heal_pct",
         "summon_pct"
       ],
-      "upgradeMaterial": "sea_pearl"
+      "upgradeMaterial": "sea_pearl",
+      "requirementStat": "INT"
     }
   },
   "gearOptions": {
@@ -1082,7 +1159,7 @@
     }
   },
   "grades": {
-    "_doc": "Grade adds affix slots: C 0, B 1, A 2, S 3. Base-stat variance is only -5% to +5%; enhancement is independent.",
+    "_doc": "Grade adds unique affix slots: C 2, B 3, A 4, S 5. Base-stat variance is only -5% to +5%; enhancement is independent.",
     "order": [
       "C",
       "B",
@@ -1102,10 +1179,10 @@
       "S": 1.05
     },
     "optionCount": {
-      "C": 0,
-      "B": 1,
-      "A": 2,
-      "S": 3
+      "C": 2,
+      "B": 3,
+      "A": 4,
+      "S": 5
     },
     "colors": {
       "C": "#718396",
@@ -1121,16 +1198,9 @@
     }
   },
   "upgrade": {
-    "_doc": "Guaranteed +1..+5 with level gates. Each step adds 4% to base stats only; affixes, grade and UID remain. Primary material comes from the item recipe.",
+    "_doc": "Guaranteed +1..+5, limited only by materials and gold. Each step adds 4% to base stats. Wearing a stronger item requires higher character stats, not a character level.",
     "max": 5,
     "statPerLevel": 0.04,
-    "requiresLevel": [
-      1,
-      5,
-      12,
-      22,
-      34
-    ],
     "cost": [
       {
         "material": 2,
@@ -1169,12 +1239,7 @@
     "maxBatch": 10
   },
   "gradeUpgrade": {
-    "_doc": "Promote one grade retaining affixes and +N. Add one unique affix; no reroll or failure.",
-    "requiresLevel": {
-      "B": 5,
-      "A": 14,
-      "S": 28
-    },
+    "_doc": "Promote one grade retaining existing affixes and +N; add one unique affix, no level/stat gate to upgrading. Wearing uses the resulting actual item requirements.",
     "cost": {
       "B": {
         "wisp_core": 1,
@@ -1265,6 +1330,34 @@
     "regen_flat": {
       "min": 1,
       "max": 3
+    }
+  },
+  "requirements": {
+    "_doc": "Wear requirements use trained character stats, not level or gear-granted bonuses. Weighted actual item power above its C/+0 baseline plus a two-affix allowance increases the base requirement. All weights and growth are tunable here.",
+    "minimumStat": 3,
+    "basePowerFactor": 0.35,
+    "extraPowerFactor": 0.5,
+    "affixAllowance": 2,
+    "weights": {
+      "attack": 1,
+      "magic": 1,
+      "defense": 1,
+      "maxHp": 0.08,
+      "maxMp": 0.1,
+      "critChancePct": 0.5,
+      "cooldownPct": 0.6,
+      "moveSpeedPct": 0.7,
+      "hpRegen": 1.5,
+      "leechPct": 1.5,
+      "meleeDamagePct": 0.15,
+      "projectileDamagePct": 0.15,
+      "spellDamagePct": 0.15,
+      "areaDamagePct": 0.15,
+      "summonDamagePct": 0.15,
+      "poisonChancePct": 0.1,
+      "barrierPct": 0.15,
+      "healPct": 0.15,
+      "mpRegenPct": 0.15
     }
   }
 }

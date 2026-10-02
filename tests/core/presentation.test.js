@@ -26,13 +26,13 @@ test('every named content entry has distinct authored artwork within its categor
 });
 
 test('gear presentation preserves base identity independently of grade and enhancement',()=>{
- const ch=createCharacter(data),before=gearLook(ch,data);
+ const ch=createCharacter(data);for(const stat in ch.stats)ch.stats[stat]=100;const before=gearLook(ch,data);
  for(const item of ch.gear){item.grade='S';item.upgrade=5;}
  assert.deepEqual(gearLook(ch,data),before,'grade/enhancement do not replace identity');
  const sword=ch.gear.find(i=>i.uid===ch.equipped.weapon);sword.base='tusk_blade';
  assert.equal(gearLook(ch,data).weapon,before.weapon,'same weapon family');
  assert.equal(gearLook(ch,data).bases.weapon,'tusk_blade','different base chooses different model');
- assert.equal(ch.version,3);
+ assert.equal(ch.version,4);
 });
 
 

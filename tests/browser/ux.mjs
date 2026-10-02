@@ -77,6 +77,7 @@ try {
       g.ch.materials = { boar_hide: 16, boar_tusk: 8, glow_dust: 6, ruin_shard: 3 };
       g.ch.gold = 500;
       g.ch.stats.STR = 6;
+      g.ch.stats.VIT = 12;
       g.refresh();
     });
     await activate('.quick-actions [aria-label="กระเป๋า"]');
@@ -96,7 +97,8 @@ try {
     await activate('[data-act="craft-filter"][data-id="armor"]');
     await activate('[data-act="craft-ready"]');
     assert.ok(await page.locator('.recipe-card').count() > 0);
-    assert.equal(await page.locator('.recipe-card [data-act="craft"]:disabled').count(), 0);
+    assert.equal(await page.locator('.recipe-card [data-act="craft-open"]:disabled').count(), 0);
+    await activate('[data-act="craft-open"][data-id="hide_vest"]');
     await activate('[data-act="craft"][data-id="hide_vest"]');
     const made = await page.evaluate(() => window.__frontier.game.ch.gear.at(-1).uid);
     await activate('[data-tab="bag"]');
@@ -108,7 +110,9 @@ try {
     await activate(`.item-detail [data-act="equip-gear"][data-uid="${made}"]`);
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.equipped.armor), made);
     await activate('[data-tab="craft"]');
+    await activate('[data-act="craft-back"]');
     await activate('[data-act="craft-filter"][data-id="mod"]');
+    await activate('[data-act="craft-open"][data-id="mod_wide_arc"]');
     await activate('[data-act="craft"][data-id="mod_wide_arc"]');
     const mod = await page.evaluate(() => window.__frontier.game.ch.mods.at(-1).uid);
     await activate('[data-tab="skills"]');
@@ -225,3 +229,4 @@ try {
   await browser?.close();
   try { process.kill(-server.pid); } catch {}
 }
+

@@ -18,7 +18,7 @@
 | 11 | เลือก Job ทีหลัง | ✅ | โหนด Job เปิดที่ Job Lv.5 เลือกได้สายเดียว |
 | 12 | Respec ด้วยเงินในเกม | ✅ | รีแต้ม Stat และ Job ในนิคม ใช้ Gold อย่างเดียว |
 | 13 | มอนดรอป Material ของตัวเอง | ✅ | รูปร่างมอนบอกของที่ดรอป (งา, กระดอง, แกนเรืองแสง, เขา) · มี test ยืนยันว่า Material ทุกชิ้นมีที่ใช้ |
-| 14 | Craft ได้ Grade สุ่ม + Option / ตีบวกแยก | ✅ | อุปกรณ์ 5 ช่อง (อาวุธ เกราะ หมวก รองเท้า เครื่องราง) กว่า 30 แบบ · อาวุธ 7 ประเภทมีโบนัสในตัว · Grade C/B/A/S เพิ่ม 0/1/2/3 ออฟชั่น · คราฟต์ซ้ำมีเป้าหมายและงบ · เลื่อนเกรดคงออฟชั่นเดิม · +1..+5 มีขั้นเลเวล สำเร็จแน่นอน |
+| 14 | Craft ได้ Grade สุ่ม + Option / ตีบวกแยก | ✅ | อุปกรณ์ 5 ช่อง (อาวุธ เกราะ หมวก รองเท้า เครื่องราง) กว่า 30 แบบ · อาวุธ 7 ประเภทมีโบนัสในตัว · Grade C/B/A/S มี 2/3/4/5 ออฟชั่น · คราฟต์ซ้ำมีเป้าหมายและงบ · เลื่อนเกรดคงออฟชั่นเดิม · +1..+5 ใช้วัตถุดิบ ไม่ล็อกเลเวล/สเตตัสตอนอัป · สวมใส่ตามรีเควสพลังจริงของไอเทม |
 | 15 | Economy loop | 🟡 | ฟาร์ม → Material → คราฟต์/อัป/ขาย NPC · ยังไม่มีเทรดระหว่างผู้เล่น (ต้องมี server) |
 | 16 | Theme "Fantasy Frontier" | ✅ | เมืองท่าชายฝั่งสีครามและชายหาดเริ่มต้น · แผนทวีปเป็นแนวคิดที่ปรับได้ |
 | 17 | Demo 1 แมพที่มี Journey | ✅ | ผังเมืองฉบับแก้เรฟ 320×300 ม. รอตรวจ · หาดปลอดภัย → เมืองท่า → ทุ่ง/สวน/ป่า/แหลมเหนือเมือง · ประภาคารอยู่ในเขตเมืองปลอดภัย · หินวาร์ป 5 จุด · ภารกิจหลัก 7 + รอง 6 · ยังไม่สร้างทั้งทวีปหรือใส่บอสพื้นที่แรก |
@@ -102,3 +102,12 @@ Current rules and migration are documented in `BALANCE-40.md`: section gates plu
 network prerequisites, Job Lv40, moderated stat/skill/gear stacking, grade affix counts,
 bounded repeat crafting, data-driven level/material upgrades, v3 save preservation and
 91 anime item/skill icons. Earlier dated entries above describe historical revisions.
+
+## Dedicated crafting and stat-based equipment wearing (2026-10-02)
+
+Owner clarification supersedes the earlier equipment level gates: upgrade freely with
+materials, but wearing requires trained stats appropriate to the item's actual power.
+C/B/A/S now has 2/3/4/5 unique affixes. Each recipe opens a reusable workshop with one-click
+repeat, per-recipe goals/results and an easy return after comparing with equipped gear.
+Character v4 adds missing old gear affixes once while keeping existing rolls, grade,
+enhancement and UIDs. Gear that no longer meets wear requirements stays in the bag.

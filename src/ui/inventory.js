@@ -1,9 +1,9 @@
 // Presentation only: selection and comparison never mutate the character.
 import { icon } from './icons.js';
 import { art } from './art.js';
-import { gearItem, gearStats, weaponImplicit, meetsRequires } from '../core/character.js';
-import { gearUpgradeCost, gearUpgradeState, gearUpgradePreview, gearGradeState, modUpgradeCost } from '../core/crafting.js';
-import { gradeBadge, optionList, upgradeTrack, stateText } from './progressionview.js';
+import { gearItem, gearStats, weaponImplicit, gearEquipState, meetsRequires } from '../core/character.js';
+import { gearUpgradeCost, gearUpgradeState, gearUpgradePreview, gearGradeState, gearGradePreview, modUpgradeCost } from '../core/crafting.js';
+import { gradeBadge, gearUpgradeTrack, wearRequirements, wearRequirementRange, stateText } from './progressionview.js';
 import { rulesHtml } from './buildmeta.js';
 import { modSlotOf } from '../core/skills.js';
 
@@ -50,7 +50,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
     let actions = '';
     if (category === 'gear') {
       const base = data.items.gearBases[it.base];
-      const req = meetsRequires(ch, base.requires);
+      const req = gearEquipState(ch, data, it);
       const old = gearItem(ch, ch.equipped[base.slot]);
       const up = gearUpgradeCost(data, it);
       content = ui.gearLine(it);
@@ -72,12 +72,13 @@ export function inventoryView(ui, { costHtml, effectText }) {
       if (up) {
         const state = gearUpgradeState(ch,data,it), preview = gearUpgradePreview(data,it);
         const changes = Object.keys(preview.after).filter(k=>preview.after[k]!==preview.before[k]).map(k=>`${effectText(k,preview.before[k])} → ${preview.after[k]}`).join(' · ');
-        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${upgradeTrack(data.items.upgrade.requiresLevel,it.upgrade,'+')}<p>${changes}</p><small>สำเร็จแน่นอน · ออฟชั่นเดิมอยู่ครบ</small><p class="${state.ok?'ok':'no'}">${stateText(state)}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
+        const canWearAfter = meetsRequires(ch,preview.afterRequires).ok;
+        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${gearUpgradeTrack(data,it)}<p>${changes}</p>${wearRequirements(ch,preview.afterRequires,'รีเควสสวมใส่หลังตีบวก')}<small>ตีบวกได้เมื่อวัตถุดิบพอ · ไม่ล็อกเลเวลหรือสเตตัส</small>${!canWearAfter?`<p class="wear-warning">ยังใส่หลังอัปไม่ได้${selected.equipped?' · จะถอดเก็บไว้ในกระเป๋า':''}</p>`:''}<p class="${state.ok?'ok':'no'}">${stateText(state)}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
         actions += `<button class="btn" data-act="gear-up" data-uid="${it.uid}" ${near.workbench && state.ok ? '' : 'disabled'}>ตีบวก +${it.upgrade+1}</button>`;
         if (!near.workbench) content += '<p class="muted">ตีบวกได้ที่โต๊ะคราฟต์ในนิคม</p>';
       }
       const grade = gearGradeState(ch,data,it);
-      content += `<section class="grade-promotion"><h4>เกรด ${gradeBadge(data,it.grade,it.options.length)}</h4>${grade.cost?`<p>${it.grade} → ${grade.grade} · เพิ่มเป็น ${data.items.grades.optionCount[grade.grade]} ออฟชั่น</p><small>เก็บออฟชั่นเดิม และสุ่มเพิ่มจากสายของไอเทมนี้</small><p class="${grade.ok?'ok':'no'}">${stateText(grade)}</p><div class="cost">${costHtml(ch,data,grade.cost)}</div>`:'<p>เกรดสูงสุด · 3 ออฟชั่น</p>'}</section>`;
+      content += `<section class="grade-promotion"><h4>เกรด ${gradeBadge(data,it.grade,it.options.length)}</h4>${grade.cost?`<p>${it.grade} → ${grade.grade} · เพิ่มเป็น ${data.items.grades.optionCount[grade.grade]} ออฟชั่น</p><small>เก็บออฟชั่นเดิม และสุ่มเพิ่มจากสายของไอเทมนี้</small>${wearRequirementRange(ch,gearGradePreview(data,it))}<p class="muted">เลื่อนเกรดได้ตามวัตถุดิบ · สวมใส่ตามรีเควสของผลจริง</p><p class="${grade.ok?'ok':'no'}">${stateText(grade)}</p><div class="cost">${costHtml(ch,data,grade.cost)}</div>`:`<p>เกรดสูงสุด · ${data.items.grades.optionCount.S} ออฟชั่น</p>`}</section>`;
       if (grade.cost) actions += `<button class="btn" data-act="gear-grade" data-uid="${it.uid}" ${near.workbench&&grade.ok?'':'disabled'}>เลื่อนเกรด ${grade.grade}</button>`;
     } else if (category === 'materials') {
       const uses = Object.values(data.recipes.recipes).filter((r) => r.cost[selected.id]).map((r) => (data.items.gearBases[r.result] || data.skills.combat[r.result] || data.skills.movement[r.result] || data.mods.mods[r.result])?.nameTh).filter(Boolean);

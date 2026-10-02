@@ -11,7 +11,7 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 3`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 4`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## What gets translated (logic, `src/core/`)
 
@@ -67,32 +67,42 @@ each profession has sufficient connected choices in its base chapter plus specia
 Per-category pan/zoom cameras are view state. Nodes and purchase buttons remain separate;
 touch gestures never allocate points. Minimum touch targets stay 44 logical pixels.
 
-Character v3 migration uses `treeRevision`: refund all old network points once for free,
-reset the profession/network and retain skills, mods, stats, materials, gold and gear UIDs.
-Old affix values map to the new range at their existing quality percentile, once. Old
-undersized recipe pools receive missing unique grade affixes at the new minimum value;
-retain existing affixes, UID and enhancement, and never fill again after character v3. The save
-slot envelope remains version 2. `/lab/` branch previews use separate storage keys and
-cannot migrate, delete or overwrite main-game saves; exported codes can be imported into
-preview slots.
+Character v4 retains the one-time `treeRevision` refund from v3: reset the old network
+and profession, retaining stats, skills, mods, materials, gold and gear UIDs. Only v1/v2
+roll values map to the new range at their original quality percentile. All pre-v4 gear
+gains missing 2/3/4/5 grade slots at conservative minimum values; never reroll existing
+affixes, consume RNG or repeat the fill after v4. Invalidated equipped gear stays owned
+in the bag. The slot envelope remains version 2. `/lab/` uses separate storage keys;
+exported main codes can be imported without overwriting main-game saves.
 
-Crafted grades C/B/A/S have 0/1/2/3 unique affixes; every recipe pool supports all grades.
-Grade promotion retains existing affixes and +N, then adds a unique affix. Enhancement is
-separate: +1..+5 modifies base stats only by 4% per step. Character-level gates, recipe
-materials and catalysts are data. Skill ranks 2..5 unlock at character Lv5/12/22/34 and
-require the skill's progression stat. They add 6% per rank, with 5% extra MP per rank;
-mods remain the source of behavioural growth. Cap leech after mods and calculate its
-recovery from actual target HP removed, never overkill damage. All upgrades succeed without destruction.
-Use `gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` for both
-UI eligibility and rules. Previews must not mutate state.
+Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports five.
+Grade promotion retains existing rolls and +N, adding one unique affix. Enhancement
++1..+5 changes base stats by 4% per step. Both upgrades use materials/gold only: no
+character-level or stat gate. Skill ranks 2..5 retain their separate Lv5/12/22/34 and
+stat gates, 6% direct growth and 5% MP growth; mods supply behavioural growth.
 
-`craftBatch()` allows only 1..10 crafts, optionally targeting minimum grade, a specific
-affix and roll quality. Stop immediately at the target or first unaffordable attempt.
-Preserve every result and UID; bill only completed attempts. Notify quest crafting once
-per completed item. Never auto-equip, salvage or destroy unsuccessful rolls.
-The bag/workbench/growth views share grade pips, affix ranges and level milestones via
-`ui/progressionview.js`. Verify `tests/core/balance.test.js` and `tests/browser/balance.mjs`
-in the port. See `BALANCE-40.md` for the numeric audit and research.
+`gearRequirements(item,data)` calculates wear requirements from actual weighted base,
+grade, enhancement and affix power using `items.requirements`. Check raw `character.stats`
+with `gearEquipState`, never level or gear-granted power. Use it for equip, derived stats
+and appearance. `enforceEquipment` returns invalidated equipment to the bag after upgrades,
+stat respec and migration. Do not delete the item or reject a funded upgrade. Show exact
+after-enhancement requirements; `gearGradePreview` gives RNG-free min/max wear requirements
+for possible new affixes. Actual grade rolls determine the final requirement.
+
+Cap leech after mods and recover only actual target HP removed, never overkill damage.
+`gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` are shared
+by UI and rules; all previews are pure. Equipment state helpers check resources only.
+
+`craftBatch()` allows 1..10 independent attempts, optional grade/affix/quality targets,
+and stops on target or the first unpaid attempt. Bill only completed attempts and notify
+quest progress once per item; preserve every result and UID. Never auto-equip or destroy
+unwanted rolls. A selected recipe opens one reusable `craftview.js` workshop; selection
+and comparison never craft or spend. Preserve its repeat button, goals, recent twenty
+result UIDs and a return-to-workshop path after bag comparison. All results stay in the bag.
+
+The bag/workbench/growth views share grade pips, ranges and progression requirements via
+`ui/progressionview.js`. Port `tests/core/balance.test.js`, `crafting.test.js` and the mouse/
+touch flows in `tests/browser/balance.mjs`. Exact tuning/research is in `BALANCE-40.md`.
 
 Rebuild separate Control scenes for combat loadout, modifiers, movement, material
 upgrades and passive paths. A desktop/tablet navigation rail becomes a compact page

@@ -4,7 +4,7 @@ import {createCharacter,derive} from '../src/core/character.js';
 import {computeSkill} from '../src/core/skills.js';
 const data=loadData(),out=[];
 for(const kit of ['sword','bow','staff'])for(const level of [1,10,20,40]){
- const ch=createCharacter(data,{kit});ch.level=level;const points=(level-1)*3+4;
+ const ch=createCharacter(data,{kit});for(const item of ch.gear)item.options=[];ch.level=level;const points=(level-1)*3+4;
  const stat=kit==='sword'?'STR':kit==='bow'?'DEX':'INT';ch.stats[stat]+=Math.floor(points*.65);ch.stats.VIT+=Math.floor(points*.2);
  const id=kit==='sword'?'slash':kit==='bow'?'hunter_shot':'firebolt';ch.slots[0]={skill:id,mods:[]};
  // Equal-investment comparison deliberately retains rank 5/+5 at high levels, including legacy saves.

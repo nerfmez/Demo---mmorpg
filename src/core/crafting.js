@@ -1,5 +1,5 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
-import { gearStats, meetsRequires } from './character.js';
+import { gearStats, gearRequirements, gearPower, enforceEquipment, meetsRequires } from './character.js';
 
 export function canAfford(ch, cost) {
   for (const k in cost) {
@@ -90,14 +90,13 @@ export function gearUpgradeState(ch, data, item) {
   if (!item) return { ok: false, reason: 'unknown' };
   const cost = gearUpgradeCost(data, item);
   if (!cost) return { ok: false, reason: 'max' };
-  const need = data.items.upgrade.requiresLevel[item.upgrade];
-  if (ch.level < need) return { ok: false, reason: 'level', need, cost };
-  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost, need };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }
 
 export function gearUpgradePreview(data, item) {
   if (!gearUpgradeCost(data, item)) return null;
-  return { before: gearStats(item, data), after: gearStats({ ...item, upgrade: item.upgrade + 1 }, data) };
+  const after = { ...item, upgrade:item.upgrade+1 };
+  return { before: gearStats(item, data), after: gearStats(after, data), beforeRequires:gearRequirements(item,data), afterRequires:gearRequirements(after,data) };
 }
 
 export function upgradeGear(ch, data, uid) {
@@ -107,7 +106,7 @@ export function upgradeGear(ch, data, uid) {
   if (!state.ok) return state;
   pay(ch, state.cost);
   item.upgrade++;
-  return { ok: true, item };
+  return { ok: true, item, unequipped:enforceEquipment(ch,data) };
 }
 
 export function skillUpgradeCost(data, skillId, level) {
@@ -168,9 +167,22 @@ export function gearGradeState(ch, data, item) {
   if (!item) return { ok: false, reason: 'unknown' };
   const grade = data.items.grades.order[data.items.grades.order.indexOf(item.grade) + 1];
   if (!grade) return { ok: false, reason: 'max' };
-  const rules = data.items.gradeUpgrade, cost = rules.cost[grade], need = rules.requiresLevel[grade];
-  if (ch.level < need) return { ok: false, reason: 'level', grade, need, cost };
-  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', grade, cost, need };
+  const rules = data.items.gradeUpgrade, cost = rules.cost[grade];
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', grade, cost };
+}
+
+/** Promotion keeps owned rolls; show the range of possible new wear requirements. */
+export function gearGradePreview(data, item) {
+  const grade = data.items.grades.order[data.items.grades.order.indexOf(item.grade)+1];
+  if (!grade) return null;
+  const count = data.items.grades.optionCount[grade] - item.options.length;
+  const pool = data.items.gearBases[item.base].optionPool.filter(id => !item.options.some(o => o.id===id));
+  const candidate = upper => {
+    const options = pool.map(id => ({ id, value:data.items.gearOptions[id][upper?'max':'min'] }));
+    options.sort((a,b) => (upper?-1:1) * (gearPower({ [data.items.gearOptions[a.id].stat]:a.value },data)-gearPower({ [data.items.gearOptions[b.id].stat]:b.value },data)));
+    return gearRequirements({ ...item, grade, options:[...item.options,...options.slice(0,Math.max(0,count))] },data);
+  };
+  return { beforeRequires:gearRequirements(item,data), minRequires:candidate(false), maxRequires:candidate(true) };
 }
 
 export function promoteGear(ch, data, uid, rng) {
@@ -185,7 +197,7 @@ export function promoteGear(ch, data, uid, rng) {
     item.options.push({ id, value: rng.int(def.min, def.max) });
   }
   item.grade = state.grade;
-  return { ok: true, item };
+  return { ok: true, item, unequipped:enforceEquipment(ch,data) };
 }
 
 /** At most ten independent crafts. Keep every result; stop at target or first unpaid attempt. */

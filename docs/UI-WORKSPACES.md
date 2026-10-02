@@ -38,7 +38,7 @@ Old internal category IDs remain for compatibility; they are not the visible
 chapter names or a filter limiting what effects may be added to a chapter.
 The 87 legacy node IDs remain inside the expanded 207-node network. Numerical effects
 are rebalanced and new profession exercises extend single-focus investment to Job Lv40.
-Character v3 refunds the old network once rather than retaining disconnected selections.
+Character v4 refunds the old network once rather than retaining disconnected selections.
 Dashed external markers are
 actual adjacent nodes in other chapters; opening them only navigates. They do not
 require completing the source chapter. The overview shows invested points only,
@@ -56,7 +56,7 @@ branches; the player does not need to complete a previous chapter. See `BALANCE-
 
 The UI shows a large section's unlock investment, and separate small-node connection
 requirements. Job points and character Stat Points remain separate; profession changes
-use town/Gold respec. Character v3 has an explicit one-time balance migration with a
+use town/Gold respec. Character v4 has an explicit one-time balance migration with a
 free network refund, preserving other progression and existing item roll quality.
 
 ## Mod item art
@@ -117,8 +117,23 @@ For a runtime without local HTTP browser access, `OFFLINE_UI=1 CHROMIUM_EXECUTAB
 ## Material progression and anime icons, October 2026
 
 The bag, workbench and growth workspace share grade letters, affix pips and quality ranges,
-level milestones and actual upgrade previews. Repeat crafting is bounded by attempts and
+skill level milestones, equipment wear requirements and actual upgrade previews. Repeat crafting is bounded by attempts and
 resources and displays actual spend and every retained result. All 91 skill/gear/material/
 mod icons receive original cel artwork while keeping the dark panel design. The passive
 journal keeps paper/ink sections and connected nodes. `tests/browser/balance.mjs` checks
 real controls in desktop/iPad/phone Chromium and WebKit and captures all icon sheets.
+
+### Selected recipe workshops and equipment wear (2026-10-02)
+
+`craftview.js` is a generic workshop for every recipe. Choosing an item opens its own
+detail; the catalog never crafts on selection. The single-craft button stays in place
+after each roll. Goals, expansion state and up to twenty recent result UIDs are stored
+per recipe in view state, while the bag retains all crafted items. Comparing a result
+opens the bag with a return-to-the-same-workshop button. Catalog/detail/back and repeated
+crafting are checked with real mouse/touch input in Chromium and WebKit.
+
+C/B/A/S frames show 2/3/4/5 affix pips and actual roll counts. Enhancement/promotion is
+resource-only at the workbench. Raw character stats gate wearing, computed from the
+item's actual power by core `gearRequirements`. Previews show next enhancement's wear
+requirements and a grade promotion range; worn gear that becomes unusable returns to
+the bag with a clear warning. No character-level requirement applies to upgrading gear.

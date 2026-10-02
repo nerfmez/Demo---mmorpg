@@ -46,7 +46,7 @@ const ZONE_FOG = {
 };
 
 export class View {
-  constructor(canvas, world, { quality = 'high' } = {}) {
+  constructor(canvas, world, { quality = 'high', harborV4 = null } = {}) {
     this.world = world;
     this.game = null;
     this.quality = qualitySettings(quality).name;
@@ -90,7 +90,8 @@ export class View {
 
     this.terrain = createTerrain(world);
     this.scene.add(this.terrain.group);
-    const env = createEnvironment(world);
+    const env = createEnvironment(world, { harborV4 });
+    this.harborV4 = harborV4?.root.userData.preview ?? null;
     this.scene.add(createWater(world, env.root));
     env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
     bakeGrassColours(this.renderer, env.root, world); // one GPU pass; blades then just read colours

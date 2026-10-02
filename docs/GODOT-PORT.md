@@ -397,3 +397,18 @@ Spirit Wolf (`renderer: spirit`) has a small inward summoning mark and two short
 `render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or 1 device pixel per CSS pixel, and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
 
 `tests/browser/gpu-bench.mjs` times fixed scenes through to GPU completion and the CPU submission separately (SwiftShader: relative before/after only, not iPad FPS); it fails if any shader errors are logged.
+
+## Local Harbor V4 art preview
+
+The opt-in web review `?harbor=v4` reads `data/harbor-v4.json` and the unchanged
+segmented GLB. It replaces visual structures only, keeping the deployed map ID,
+terrain, docks, trees, quests and save schema. `createWorld(worldData,
+{extraBoxes})` accepts the data-only prop obstacles after seeded scenery is
+generated and before the collision grid is built. Godot can add these authored
+static boxes at that same stage; this optional review data is not enabled in the
+ordinary game. Boat and Pier share one rigid placement, preserving the source
+mooring rope, and the prototype Ground/Water/Quay context groups are excluded; the game's
+curved shoreline and quay remain unchanged.
+The imported pier's land approach is fitted to the existing shallow ramp in the
+renderer; core deck/ground heights are unchanged. Main-deck plank gaps retain the
+source wear while the same continuous game deck supports the player's footprint.

@@ -9,7 +9,7 @@ import { buildHeightfield, valueNoise } from './terrain.js';
 
 const CELL = 8;
 
-export function createWorld(worldData) {
+export function createWorld(worldData, { extraBoxes = [] } = {}) {
   const rng = createRng(worldData.seed);
   const b = worldData.bounds;
   const water = worldData.waterLevel ?? -0.4;
@@ -436,6 +436,10 @@ export function createWorld(worldData) {
       if (zn.id === 'forest' || zn.id === 'wetland' || zn.id === 'glade' || zn.id === 'wolf_den') decor.mushrooms.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.3), red: rng.chance(0.4) });
     } else if (r < 0.93 && !zn.safe) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.8, 1.6) });
   }
+
+  // Optional authored presentation obstacles are added after seeded scenery:
+  // existing terrain, trees and decoration stay identical in local art previews.
+  for (const box of extraBoxes) addBox({ ...box });
 
   // ---------- collision grid ----------
   const grid = new Map();

@@ -113,7 +113,7 @@ export function mergeGeometries(geos) {
   return out;
 }
 
-export function createEnvironment(world) {
+export function createEnvironment(world, { harborV4 = null } = {}) {
   const root = new THREE.Group();
   const rng = createRng(99);
   const gy = (x, z) => world.groundY(x, z);
@@ -323,8 +323,9 @@ export function createEnvironment(world) {
 
   // ----- bridges, town, camp -----
   for (const br of world.bridges) root.add(createBridge(world, br));
-  root.add(createTown(world, rng));
-  if (world.data.harbor) root.add(createHarbor(world));
+  root.add(createTown(world, rng, harborV4?.config));
+  if (world.data.harbor) root.add(createHarbor(world, harborV4?.config));
+  if (harborV4) root.add(harborV4.root);
   if (world.data.camp) root.add(createCamp(world));
 
   // ----- small decoration -----
@@ -599,7 +600,7 @@ function waypointStone() {
   return outlineStructure(g);
 }
 
-function createTown(world, rng) {
+function createTown(world, rng, harborV4 = null) {
   const g = new THREE.Group();
   const gy = (x, z) => world.groundY(x, z);
   const roofCols = ['#b8543f', '#4f6fa8', '#8f5a3c', '#5e8a4a'];
@@ -607,6 +608,7 @@ function createTown(world, rng) {
   let stallIndex=0;
   for (const bx of world.boxes) {
     if (bx.type === 'house') {
+      if (harborV4?.replacedBuildingIds.includes(bx.id)) continue;
       const y=gy(bx.x,bx.z);
       const model=slice?.buildingIds.includes(bx.id) ? marketBuilding(bx,y)
         : t.districtStyle?.buildingIds.includes(bx.id) ? districtBuilding(bx,y)
@@ -619,7 +621,7 @@ function createTown(world, rng) {
         : stall(bx,rng.pick(['#d8483a','#3b6ad0','#e0a030']),gy(bx.x,bx.z)));
     }
   }
-  if(slice)g.add(marketQuay(world));
+  if(slice)g.add(marketQuay(world, harborV4));
   // workbench: table + anvil + tools
   const wb = new THREE.Group();
   wb.position.set(t.workbench[0], gy(t.workbench[0], t.workbench[1]), t.workbench[1] - 1.6);

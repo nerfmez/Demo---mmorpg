@@ -1,0 +1,203 @@
+{
+  "sourceSha": "6ae28dd1af73df07f09040600d4ac31db8acf26e",
+  "status": "Harbor V4 local integration",
+  "viewport": [
+    1180,
+    820
+  ],
+  "quality": "medium",
+  "seed": 9,
+  "simulation": "paused",
+  "phase": "final after Quay exclusion and approach fit",
+  "nativeScreenshotSave": "blocked: upload helper hosted tools/list HTTP 401",
+  "renderer": "Chromium ANGLE SwiftShader (software); no physical iPad measurement",
+  "scenes": [
+    {
+      "name": "v4-fish-hall",
+      "zoom": 1.15,
+      "position": [
+        48.9,
+        30
+      ],
+      "groundY": 0.699999988079071,
+      "isFree": true,
+      "calls": {
+        "samples": 60,
+        "mean": 338.45,
+        "p50": 344,
+        "p95": 344,
+        "max": 344
+      },
+      "triangles": {
+        "samples": 60,
+        "mean": 385489.13333333336,
+        "p50": 391686,
+        "p95": 391686,
+        "max": 391686
+      },
+      "frameIntervalMs": {
+        "samples": 60,
+        "mean": 618.5866666666666,
+        "p50": 600,
+        "p95": 950,
+        "max": 2483.2000000000007
+      },
+      "cpuRenderWallMs": {
+        "samples": 61,
+        "mean": 7.02459016388099,
+        "p50": 5.699999999720603,
+        "p95": 10.199999999720603,
+        "max": 31.600000000093132
+      },
+      "geometries": {
+        "samples": 60,
+        "mean": 256,
+        "p50": 256,
+        "p95": 256,
+        "max": 256
+      },
+      "preview": {
+        "sourceSha256": "3ccdeef84a318815652d9b5ab5f590f9549d5227b8ca9ea93ee5b288b4f9171f",
+        "triangles": 29527,
+        "logicalGroups": [
+          "Fishmongers_Hall",
+          "Outfitters",
+          "Sailmakers_Cottage",
+          "Pier",
+          "Boat"
+        ],
+        "propAssemblies": 22
+      },
+      "buffer": [
+        1180,
+        820
+      ],
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "name": "v4-market-pier",
+      "zoom": 1.25,
+      "position": [
+        52.150514,
+        52.112905
+      ],
+      "groundY": 0.7,
+      "isFree": true,
+      "calls": {
+        "samples": 60,
+        "mean": 216,
+        "p50": 216,
+        "p95": 216,
+        "max": 216
+      },
+      "triangles": {
+        "samples": 60,
+        "mean": 261226,
+        "p50": 261226,
+        "p95": 261226,
+        "max": 261226
+      },
+      "frameIntervalMs": {
+        "samples": 60,
+        "mean": 526.3666666666666,
+        "p50": 516.6999999999971,
+        "p95": 866.5999999999985,
+        "max": 1016.6999999999971
+      },
+      "cpuRenderWallMs": {
+        "samples": 61,
+        "mean": 19.198360655731598,
+        "p50": 4.900000000372529,
+        "p95": 7.300000000279397,
+        "max": 858.7999999998137
+      },
+      "geometries": {
+        "samples": 60,
+        "mean": 272,
+        "p50": 272,
+        "p95": 272,
+        "max": 272
+      },
+      "preview": {
+        "sourceSha256": "3ccdeef84a318815652d9b5ab5f590f9549d5227b8ca9ea93ee5b288b4f9171f",
+        "triangles": 29527,
+        "logicalGroups": [
+          "Fishmongers_Hall",
+          "Outfitters",
+          "Sailmakers_Cottage",
+          "Pier",
+          "Boat"
+        ],
+        "propAssemblies": 22
+      },
+      "buffer": [
+        1180,
+        820
+      ],
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    {
+      "name": "v4-harbor-street",
+      "zoom": 1.15,
+      "position": [
+        72,
+        35.3
+      ],
+      "groundY": 0.699999737739563,
+      "isFree": true,
+      "calls": {
+        "samples": 60,
+        "mean": 280,
+        "p50": 280,
+        "p95": 280,
+        "max": 280
+      },
+      "triangles": {
+        "samples": 60,
+        "mean": 313640,
+        "p50": 313640,
+        "p95": 313640,
+        "max": 313640
+      },
+      "frameIntervalMs": {
+        "samples": 60,
+        "mean": 538.5900000000001,
+        "p50": 516.6999999999971,
+        "p95": 683.3000000000029,
+        "max": 700
+      },
+      "cpuRenderWallMs": {
+        "samples": 61,
+        "mean": 6.559016393421248,
+        "p50": 5.399999999906868,
+        "p95": 10.100000000093132,
+        "max": 32.5
+      },
+      "geometries": {
+        "samples": 60,
+        "mean": 323,
+        "p50": 323,
+        "p95": 323,
+        "max": 323
+      },
+      "preview": {
+        "sourceSha256": "3ccdeef84a318815652d9b5ab5f590f9549d5227b8ca9ea93ee5b288b4f9171f",
+        "triangles": 29527,
+        "logicalGroups": [
+          "Fishmongers_Hall",
+          "Outfitters",
+          "Sailmakers_Cottage",
+          "Pier",
+          "Boat"
+        ],
+        "propAssemblies": 22
+      },
+      "buffer": [
+        1180,
+        820
+      ],
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    }
+  ],
+  "errors": []
+}

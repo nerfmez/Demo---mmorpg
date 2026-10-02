@@ -453,7 +453,7 @@ export function marketDockCargo(cargo,y) {
   const root=b.finish();root.position.set(cargo.x,y,cargo.z);root.rotation.y=cargo.angle;return root;
 }
 
-export function marketQuay(world) {
+export function marketQuay(world, harborV4 = null) {
   const b=builder(),{box,part}=b,range=world.data.town.styleSlice.quayRange,cargoGroups=[];
   const sea=world.data.sea, shore=sea.coastline || sea.shore;
   // The low coping follows the same curve as water/collision; no separate coast.
@@ -488,6 +488,7 @@ export function marketQuay(world) {
   }
   // Rope coils and hanging nets sit on the outer edges of the two market piers.
   for(const d of world.docks.filter(d=>d.id==='market_west'||d.id==='market_east')){
+    if (harborV4?.replacedDockIds.includes(d.id)) continue;
     const {x,z}=fromBoxLocal(d,d.hx-.45,2),y=d.height;
     for(let i=0;i<3;i++)part(new THREE.TorusGeometry(.35-i*.08,.035,5,16),C.rope,x,y+.05,z,Math.PI/2);
     for(let i=0;i<7;i++) {const p=fromBoxLocal(d,-d.hx+.2,-1+i*.28);box(.023,.78,.023,'#8f9b82',p.x,y-.25,p.z);}
@@ -495,9 +496,11 @@ export function marketQuay(world) {
     for(let i=0;i<3;i++) {const p=fromBoxLocal(d,-d.hx+.2,-.8+i*.6);part(new THREE.SphereGeometry(.12,8,5),'#b9905f',p.x,y+.10,p.z);}
   }
   for(const cargo of world.data.harbor.dockCargo || []) {
+    if (harborV4?.replacedCargoIds.includes(cargo.id)) continue;
     cargoGroups.push(marketDockCargo(cargo,world.groundY(cargo.x,cargo.z)));
   }
   for(const index of world.data.town.styleSlice.boatIndices || []) {
+    if (harborV4?.replacedBoatIndices.includes(index)) continue;
     const [x,z,angle]=world.data.harbor.boats[index];
     const berth=world.docks.filter(d=>d.kind==='pier'&&!d.rampFromTerrain).sort((a,c)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(c.x-x,c.z-z))[0];
     if(!berth)continue;

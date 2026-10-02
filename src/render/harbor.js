@@ -29,13 +29,14 @@ function timberDeck(d,rng) {
   const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());return geometry;
 }
 
-export function createHarbor(world) {
+export function createHarbor(world, harborV4 = null) {
   const root = new THREE.Group();
   const part = (geo, color, x, y, z, parent = root, material = null) => {
     const mesh = outlined(geo, material || toon(color), { outline: '#51483b', width: .025 });
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
   };
   for (const d of world.docks) {
+    if (harborV4?.replacedDockIds.includes(d.id)) continue;
     const pier = new THREE.Group();
     pier.userData.waterContact=true;
     pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height+(d.kind==='breakwater'?.025:0),d.z); pier.rotation.y=d.angle;
@@ -96,6 +97,7 @@ export function createHarbor(world) {
   }
   if(world.data.town.districtStyle)root.add(districtScenery(world));
   for(const [index,[x,z,a]] of h.boats.entries()) {
+    if (harborV4?.replacedBoatIndices.includes(index)) continue;
     if(world.data.town.styleSlice?.boatIndices?.includes(index)){root.add(marketFishingBoat(x,z,a,world.waterLevel));continue;}
     const boat=new THREE.Group();boat.userData.waterContact=true;boat.position.set(x,world.waterLevel+.15,z);boat.rotation.y=a;
     part(new THREE.SphereGeometry(1,12,8).scale(1.25,.65,3.8),'#654c37',0,0,0,boat);

@@ -8,6 +8,8 @@ import { View } from './render/view.js';
 import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
 import { loadModels } from './render/models.js';
+import { loadHarborV4, createHarborV4 } from './render/harbor-v4.js';
+import harborV4Config from '../data/harbor-v4.json' with { type: 'json' };
 import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
@@ -27,11 +29,28 @@ const coarse = matchMedia('(pointer: coarse)').matches;
 document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
+async function boot() {
 migrateLegacy();
-const world = createWorld(data.world);
+// Explicit local art preview; the ordinary game remains the deployed baseline.
+// Load before scene construction so water contact and static batching see the art.
+let harborV4 = null;
+if (params.get('harbor') === 'v4') {
+  try {
+    const source = await loadHarborV4(new URL(harborV4Config.file, document.baseURI).href);
+    harborV4 = { source, config: harborV4Config };
+  } catch (error) {
+    console.error('Harbor V4 preview failed to load', error);
+    throw error;
+  }
+}
+const world = createWorld(data.world, { extraBoxes: harborV4?.config.colliders });
+if (harborV4) {
+  harborV4.root = createHarborV4(harborV4.source, harborV4.config, world);
+  delete harborV4.source; // drop the excluded prototype and consumed source buffers
+}
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
-const view = new View(canvas, world, { quality });
+const view = new View(canvas, world, { quality, harborV4 });
 // Imported models load in the background; the procedural shapes stand in until they arrive,
 // then the hero, the creation preview and the portrait are rebuilt once.
 loadModels(data.models).then(() => {
@@ -254,4 +273,9 @@ requestAnimationFrame((t) => {
   last = t;
   document.getElementById('loading').classList.add('done');
   frame(t);
+});
+}
+boot().catch(error => {
+  console.error(error);
+  document.getElementById('loading').textContent = 'Local preview failed to load. See browser console.';
 });

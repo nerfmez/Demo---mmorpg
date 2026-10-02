@@ -49,6 +49,8 @@ A PR CI preflight verifies artifact availability before merge.
   from group drilldowns including the second dense spread without spending points.
 - Full-game Continue → purchase → reload → Continue preserved v4 nodes, gear, mods,
   materials, stats, skills, appearance, gold and persisted audio preferences.
+- Compact landscape dense chapters use one row per spread; 44px+ branch targets
+  stay inside the map, clear the heading, and accept native touch input.
 - Existing mod/skill/craft workspaces passed a focused iPad review. Browser page errors
   were empty. Native settled captures were inspected; no hardware FPS claim is made.
 - All 24 tool tests, including two Lab-preservation regression tests, passed. YAML and
@@ -80,3 +82,5 @@ Native Chromium captures from the current integrated UI:
 ![iPad journal](ipad.png)
 
 ![Phone ordinary paths](phone.png)
+
+![Compact landscape shared starting nodes](landscape.png)

@@ -96,3 +96,5 @@
 .skill-journal .notebook{height:calc(100% - 86px)}
 @media(max-width:760px){.skill-journal .notebook{height:calc(100% - 65px)}}
 @media(max-height:520px){.skill-journal .notebook{height:calc(100% - 55px)}}
+/* A short spread has one row of branches, with room for labels below each touch target. */
+@media(max-height:520px){.skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport{top:62px;bottom:42px}.skill-journal .chapter-note{display:none}.skill-journal .map-controls{bottom:0}.skill-journal .node,.skill-journal .travel-view .node{width:calc(44px * var(--inverse));height:calc(44px * var(--inverse));padding:0}.skill-journal .junction-view .discipline-caption>span{display:none}}

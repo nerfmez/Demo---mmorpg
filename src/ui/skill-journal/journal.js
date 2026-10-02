@@ -77,20 +77,20 @@ function junctions(){return tree.constellations.flatMap(c=>{
  });}
 function openBranch(key){const [place,branch]=key.split(':');if(!junctions().some(c=>c.key===key))return;changePage(()=>{if(branch)state.branch=branch;state.place=place;state.view='path';renderRegion();},1);}
 function showJunction(){if(state.tier===1&&state.view==='travel')return;changePage(()=>{state.view=state.tier<4?'travel':'junction';renderRegion();},-1);}
-function travelSpreads(){return chapterSpreads(tree,state.tier);}
+function travelSpreads(){return chapterSpreads(tree,state.tier,innerHeight<=520?4:6);}
 function revealInk(){const sheet=q('.app-shell');sheet.classList.remove('ink-revealing');void sheet.offsetWidth;sheet.classList.add('ink-revealing');}
 function drawTravel(){
  const spreads=travelSpreads();state.travelPage=Math.max(0,Math.min(state.travelPages[state.tier]??state.travelPage,spreads.length-1));state.travelPages[state.tier]=state.travelPage;
- const leaves=spreads[state.travelPage],mobile=innerWidth<=760,width=mobile?1020:2500,height=mobile?leaves.reduce((n,l)=>n+Math.ceil(l.entries.length/2),0)*250+170:970;
+ const leaves=spreads[state.travelPage],mobile=innerWidth<=760,short=innerHeight<=520,width=short?1700:mobile?1020:2500,height=short?440:mobile?leaves.reduce((n,l)=>n+Math.ceil(l.entries.length/2),0)*250+170:970;
  state.entries=leaves.flatMap(l=>l.entries);state.coords={};let rowOffset=0;
- leaves.forEach((leaf,side)=>{leaf.entries.forEach(([id],i)=>state.coords[id]=[mobile?(i%2?770:250):(side?1650:200)+(i%2)*650,mobile?180+(rowOffset+Math.floor(i/2))*250:200+Math.floor(i/2)*270]);rowOffset+=Math.ceil(leaf.entries.length/2);});
+ leaves.forEach((leaf,side)=>{leaf.entries.forEach(([id],i)=>state.coords[id]=short?[(side?1110:150)+(i%2)*420,110+Math.floor(i/2)*180]:[mobile?(i%2?770:250):(side?1650:200)+(i%2)*650,mobile?180+(rowOffset+Math.floor(i/2))*250:200+Math.floor(i/2)*270]);rowOffset+=Math.ceil(leaf.entries.length/2);});
  q('#place-title').textContent='ค่อย ๆ เขียนเส้นทาง';q('#place-desc').textContent='ต่อยอดจากสิ่งที่เรียนรู้ · เปิดดูโหนดได้ก่อนใช้แต้ม';
  q('#junction-pagination').hidden=spreads.length<=1;q('#junction-pagination').innerHTML=`<button data-travel-page="-1" ${state.travelPage===0?'disabled':''} aria-label="หน้ารอยทางก่อนหน้า">←</button><span>รอยทาง ${state.travelPage+1} / ${spreads.length}</span><button data-travel-page="1" ${state.travelPage===spreads.length-1?'disabled':''} aria-label="หน้ารอยทางถัดไป">→</button>`;
  q('#travel-leaf-labels').hidden=false;q('#travel-leaf-labels').innerHTML=leaves.map((l,i)=>`<span style="${inkStyle(l.color)}">${esc(l.label)}<small>${num(state.tier)}.${num(state.travelPage*2+i+1)}</small></span>`).join('');
  const ids=new Set(state.entries.map(([id])=>id));const outside=[...new Set(state.entries.flatMap(([,n])=>n.links.filter(k=>!ids.has(k))))].filter(k=>tree.sections[tree.nodes[k].section].tier<=state.tier).slice(0,mobile?2:4);
  outside.forEach((id,i)=>state.coords[id]=[mobile?260+i*500:300+i*620,35]);
  drawNodes({width,height},outside);
- if(mobile)camera.frame(width/2,400,.35);
+ if(mobile&&!short)camera.frame(width/2,400,.35);
 }
 function drawNodes(layout,outside){
  plane.style.width=layout.width+'px';plane.style.height=layout.height+'px';
@@ -98,18 +98,18 @@ function drawNodes(layout,outside){
  paintGraph();camera.configure(layout.width,layout.height);map.classList.remove('arriving');void map.offsetWidth;map.classList.add('arriving');
 }
 function renderJunction(stage){
- const all=junctions(),mobile=innerWidth<=760,short=innerHeight<=520,pageSize=8;
+ const all=junctions(),mobile=innerWidth<=760,short=innerHeight<=520,pageSize=short?(mobile?2:4):8;
  state.junctionPage=Math.max(0,Math.min(state.junctionPage,Math.ceil(all.length/pageSize)-1));
  const branches=all.slice(state.junctionPage*pageSize,(state.junctionPage+1)*pageSize);
- const columns=mobile?2:4,rows=Math.ceil(branches.length/columns),width=mobile?780:2300,height=mobile?rows*285+75:short?rows*340+100:rows*330+120;
- const xs=mobile?[175,605]:[180,755,1545,2120];
+ const columns=mobile?2:4,rows=Math.ceil(branches.length/columns),width=mobile?780:short?2100:2300,height=short?260:mobile?rows*285+75:rows*330+120;
+ const xs=mobile?[175,605]:short?[150,750,1350,1950]:[180,755,1545,2120];
  q('#junction-pagination').hidden=all.length<=pageSize;
  q('#junction-pagination').innerHTML=`<button data-junction-page="-1" ${state.junctionPage===0?'disabled':''} aria-label="หน้าทางแยกก่อนหน้า">←</button><span>ทางแยก ${state.junctionPage+1} / ${Math.ceil(all.length/pageSize)}</span><button data-junction-page="1" ${state.junctionPage===Math.ceil(all.length/pageSize)-1?'disabled':''} aria-label="หน้าทางแยกถัดไป">→</button>`;
  state.entries=[];state.coords={};plane.style.width=width+'px';plane.style.height=height+'px';
  const nodes=branches.map((c,i)=>({c,x:xs[i%columns],y:130+Math.floor(i/columns)*(mobile?285:short?340:330)}));
  plane.innerHTML=`<svg class="junction-traces" width="${width}" height="${height}" aria-hidden="true">${nodes.map(({x,y},i)=>i?`<path d="M${nodes[i-1].x} ${nodes[i-1].y} Q${(nodes[i-1].x+x)/2} ${y-38},${x} ${y}"/>`:'').join('')}</svg>`+nodes.map(({c,x,y},i)=>{const ready=c.entries.filter(([id])=>jobNodeState(ch,data,id).can).length,owned=c.entries.filter(([id])=>ch.jobNodes.includes(id)).length;return `<button class="discipline-node ${ready?'has-ready':''}" data-gateway="branch:${c.key}" data-discipline="${c.key}" style="left:${x}px;top:${y}px;${inkStyle(c.color)}" aria-label="เปิดหน้าสาย ${esc(c.labelTh)} · ไม่ใช้แต้ม"><span class="discipline-number">${num(state.junctionPage*pageSize+i+1)}</span><span class="discipline-disc">${icon(c.icon)}<span class="discipline-open">${icon('arrow')}</span></span><span class="discipline-caption"><b>${esc(c.nameTh)}</b><span>${esc(c.labelTh)}</span><small>${c.entries.length} รอยจด${owned?' · บันทึกแล้ว '+owned:ready?' · พร้อม '+ready:' · ดูเงื่อนไขในหน้า'}</small></span></button>`}).join('');
  q('#map-status').innerHTML=`${icon('signpost')} <span>${all.length} ทางในบทนี้</span><i></i><span>เปิดหน้าสาย · ลากเพื่อดูต่อ · ไม่ใช้แต้ม</span>`;
- camera.configure(width,height);if(mobile)camera.frame(width/2,390,.46);
+ camera.configure(width,height);if(mobile)camera.frame(width/2,short?height/2:390,.46);
 }
 function closeDetail(restore=false){const id=state.selected;state.selected=null;inspector.classList.remove('open');inspector.inert=true;inspector.setAttribute('aria-hidden','true');q('.atlas-space').classList.remove('has-detail');camera.setSheet(0);plane.querySelectorAll('.node.selected').forEach(el=>{el.classList.remove('selected');el.setAttribute('aria-pressed','false')});if(restore&&id)plane.querySelector(`[data-node="${id}"]`)?.focus({preventScroll:true});}
 function reasonText(st){return st.taken?'เรียนรู้แล้ว':st.can?'พร้อมเรียนรู้':({not_linked:'ต้องเชื่อมจากโหนดที่เรียนรู้แล้ว',no_points:'แต้มคงเหลือไม่เพียงพอ',tier_points:`ต้องลงทุนรวม ${st.need} แต้ม`,job_level:`ต้องมี Job Lv.${st.need}`,one_job:'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน',requires_job:`ต้องเรียนรู้โหนด ${tree.groups.find(g=>g.id===st.need)?.nameTh||st.need}`}[st.reason]||'ยังเรียนรู้ไม่ได้');}
@@ -124,8 +124,8 @@ function select(id){
 }
 function graphLayout(entries){
  if(state.tier===1&&state.view==='travel'&&state.travelPage===0){
-  const mobile=innerWidth<=760,short=innerHeight<=520,width=mobile&&!short?1020:1700,height=short?560:mobile?1220:780;
-  return {width,height,coords:Object.fromEntries(entries.map(([id],i)=>[id,mobile&&!short?[i%2?770:250,140+Math.floor(i/2)*270]:[220+(i%4)*420,170+Math.floor(i/4)*(short?250:380)]]))};
+  const mobile=innerWidth<=760,short=innerHeight<=520,width=mobile&&!short?1020:1700,height=short?440:mobile?1220:780;
+  return {width,height,coords:Object.fromEntries(entries.map(([id],i)=>[id,mobile&&!short?[i%2?770:250,140+Math.floor(i/2)*270]:[220+(i%4)*420,(short?110:170)+Math.floor(i/4)*(short?180:380)]]))};
  }
  if(innerWidth<=760){
   const ordered=[...entries].sort((a,b)=>a[1].clusterPos[1]-b[1].clusterPos[1]||a[1].clusterPos[0]-b[1].clusterPos[0]);

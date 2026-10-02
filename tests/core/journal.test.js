@@ -40,10 +40,12 @@ test('journal starts at real shared links and indexes every current node without
  const start=startingEntries(data.jobtree).map(([id])=>id);
  assert.equal(start.length,8);assert.ok(start.includes(data.jobtree.origin));
  for(const id of data.jobtree.nodes.origin.links)assert.ok(start.includes(id));
- const indexes=journalProgress(ch,data).stages.flatMap(s=>chapterSpreads(data.jobtree,s.tier).flatMap(p=>p.flatMap(l=>l.entries.map(([id])=>id))));
- assert.equal(indexes.length,Object.keys(data.jobtree.nodes).length);
- assert.equal(new Set(indexes).size,indexes.length);
- assert.deepEqual([...indexes].sort(),Object.keys(data.jobtree.nodes).sort());
+ for(const leafSize of [4,6]){
+  const indexes=journalProgress(ch,data).stages.flatMap(s=>chapterSpreads(data.jobtree,s.tier,leafSize).flatMap(p=>p.flatMap(l=>l.entries.map(([id])=>id))));
+  assert.equal(indexes.length,Object.keys(data.jobtree.nodes).length);
+  assert.equal(new Set(indexes).size,indexes.length);
+  assert.deepEqual([...indexes].sort(),Object.keys(data.jobtree.nodes).sort());
+ }
  assert.equal(JSON.stringify({ch,tree:data.jobtree}),before);
 });
 test('journal chapter labels reflect current section minima, not new eligibility rules',()=>{
@@ -69,4 +71,3 @@ test('all fifteen mod item drawings share the gem engraving renderer, not raster
   assert.ok(svg.includes('stroke="currentColor"'));assert.ok(svg.includes(MOD_ART[id]));
  }
 });
-

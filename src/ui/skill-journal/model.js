@@ -12,15 +12,15 @@ export function startingEntries(tree){
  const ids=new Set([tree.origin,...Object.entries(tree.nodes).filter(([,n])=>n.category==='foundation'&&tree.sections[n.section].tier===1).map(([id])=>id),...tree.nodes[tree.origin].links.filter(id=>tree.sections[tree.nodes[id].section].tier===1)]);
  return [...ids].map(id=>[id,tree.nodes[id]]);
 }
-export function chapterSpreads(tree,tier){
+export function chapterSpreads(tree,tier,leafSize=6){
  const shared=tier===1?new Set(startingEntries(tree).map(([id])=>id)):new Set();
  const entries=(category,branch)=>Object.entries(tree.nodes).filter(([id,n])=>!shared.has(id)&&n.category===category&&tree.sections[n.section].tier===tier&&(category!=='specialist'||(n.branch||n.requiresJob)===branch)).sort((a,b)=>a[1].clusterPos[1]-b[1].clusterPos[1]||a[1].clusterPos[0]-b[1].clusterPos[0]);
  const leaves=[];
  for(const c of tree.constellations.filter(c=>c.id!=='specialist')){
-  const nodes=entries(c.id);for(let i=0;i<nodes.length;i+=6)leaves.push({label:c.labelTh||c.nameTh,color:c.color,entries:nodes.slice(i,i+6)});
+  const nodes=entries(c.id);for(let i=0;i<nodes.length;i+=leafSize)leaves.push({label:c.labelTh||c.nameTh,color:c.color,entries:nodes.slice(i,i+leafSize)});
  }
  const spreads=tier===1?[[{label:'ก้าวแรกร่วมกัน',color:tree.constellations.find(c=>c.id==='foundation').color,entries:startingEntries(tree)}]]:[];
  for(let i=0;i<leaves.length;i+=2)spreads.push(leaves.slice(i,i+2));
- for(const g of tree.groups){const nodes=entries('specialist',g.id),notes=[];for(let i=0;i<nodes.length;i+=6)notes.push({label:g.nameTh+' · รอยจดที่เกี่ยวข้อง',color:g.color,entries:nodes.slice(i,i+6)});for(let i=0;i<notes.length;i+=2)spreads.push(notes.slice(i,i+2));}
+ for(const g of tree.groups){const nodes=entries('specialist',g.id),notes=[];for(let i=0;i<nodes.length;i+=leafSize)notes.push({label:g.nameTh+' · รอยจดที่เกี่ยวข้อง',color:g.color,entries:nodes.slice(i,i+leafSize)});for(let i=0;i<notes.length;i+=2)spreads.push(notes.slice(i,i+2));}
  return spreads;
 }

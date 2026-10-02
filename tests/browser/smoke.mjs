@@ -6,6 +6,7 @@
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
+import { enterFullscreenGate } from './fullscreen-entry.mjs';
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
@@ -50,6 +51,8 @@ async function run(name, contextOpts) {
   // ---- title screen -> new character -> game, then continue from the save ----
   await page.goto(`http://localhost:${PORT}/?quality=low`);
   await page.waitForSelector('.menu-layer.on .title-card', { timeout: 30000 });
+  const entry = await enterFullscreenGate(page);
+  check(!entry.blocked && (entry.active || entry.fallback), `${name}: fullscreen entry or supported product fallback allows the title flow`);
   await page.waitForTimeout(600);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-0-title.png` });
   await page.click('[data-act="new"]');
@@ -75,6 +78,7 @@ async function run(name, contextOpts) {
   });
   await page.reload();
   await page.waitForSelector('[data-act="continue"]', { timeout: 30000 });
+  await enterFullscreenGate(page);
   await page.click('[data-act="continue"]');
   await page.waitForFunction(() => window.__frontier.game && window.__frontier.game.time > 0.2, null, { timeout: 30000 });
   const cont = await page.evaluate(() => ({ name: window.__frontier.game.ch.name, gold: window.__frontier.game.ch.gold }));
@@ -306,4 +310,3 @@ try {
 }
 console.log(failures ? `${failures} FAILED` : 'ALL OK');
 process.exit(failures ? 1 : 0);
-

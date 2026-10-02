@@ -4,6 +4,7 @@ import {chromium} from 'playwright';
 import {build} from 'vite';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {freezeScene} from './freeze-scene.mjs';
+import {enterFullscreenGate} from './fullscreen-entry.mjs';
 const out=process.env.FULLSCREEN_OUT||new URL('./out/fullscreen-review/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
 const styles=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal','fullscreen'];
 let css=styles.map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
@@ -43,10 +44,12 @@ try {
  if(process.env.REVIEW_UI_ONLY){console.log('PASS focused book/fullscreen UI');process.exitCode=0;} else {
  const ctx=await browser.newContext({viewport:{width:1024,height:640},hasTouch:true,isMobile:true}),p=await ctx.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(60000);
  await p.goto(process.env.FULLSCREEN_URL||'http://localhost:5178/?quality=low&dynres=0',{waitUntil:'commit'});await p.waitForFunction(()=>window.__frontier?.menu);await freezeScene(p);await p.waitForFunction(()=>document.querySelector('#loading').classList.contains('done'));
- await p.screenshot({path:out+'fullscreen-entry.png'});await p.locator('.fullscreen-enter').tap();await p.waitForFunction(()=>!!document.fullscreenElement&&!__frontier.fullscreen.blocked);
+ await p.screenshot({path:out+'fullscreen-entry.png'});await enterFullscreenGate(p);await p.waitForFunction(()=>!!document.fullscreenElement&&!__frontier.fullscreen.blocked);
  await p.locator('[data-act="new"]').tap();await p.locator('[data-act="start"]').tap();await p.waitForFunction(()=>__frontier.game?.time>.1);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});
  const overlap=await p.evaluate(()=>{const q=document.querySelector('.quest-widget').getBoundingClientRect(),c=document.querySelector('.combat').getBoundingClientRect(),canvas=document.querySelector('#game').getBoundingClientRect();return{questBottom:q.bottom,combatTop:c.top,gap:c.top-q.bottom,canvasWidth:canvas.width,canvasHeight:canvas.height,viewportWidth:visualViewport.width,viewportHeight:visualViewport.height}});assert.ok(overlap.gap>=8,JSON.stringify(overlap));assert.equal(overlap.canvasHeight,overlap.viewportHeight);await p.screenshot({path:out+'tablet-hud.png'});
  await p.evaluate(()=>document.exitFullscreen());await p.waitForFunction(()=>__frontier.fullscreen.blocked);const time=await p.evaluate(()=>__frontier.game.time);await p.keyboard.press('w');await p.keyboard.press('1');await p.waitForTimeout(150);assert.equal(await p.evaluate(()=>__frontier.game.time),time);assert.equal(await p.evaluate(()=>__frontier.input.keys.size),0);await p.screenshot({path:out+'live-paused-reentry.png'});
- await p.locator('.fullscreen-enter').tap();await p.waitForFunction(t=>__frontier.game.time>t,time);await p.setViewportSize({width:640,height:1024});await p.waitForTimeout(250);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});await p.screenshot({path:out+'live-portrait.png'});assert.deepEqual(errors,[]);reports.push({actualGame:true,overlap,exitPauses:true,reentryResumes:true,pageErrors:errors});await ctx.close();
+ await enterFullscreenGate(p);await p.waitForFunction(t=>__frontier.game.time>t,time);await p.setViewportSize({width:640,height:1024});await p.waitForTimeout(250);await p.evaluate(()=>{const v=__frontier.view;Object.getPrototypeOf(v).render.call(v,0,performance.now()/1000,{});});await p.screenshot({path:out+'live-portrait.png'});
+ await p.reload({waitUntil:'commit'});await p.waitForFunction(()=>__frontier?.menu);await freezeScene(p);await enterFullscreenGate(p);await p.locator('[data-act="continue"]').tap();await p.waitForFunction(()=>__frontier.game?.time>.1);assert.equal(await p.evaluate(()=>__frontier.game.ch.name),'นักเดินทาง');
+ assert.deepEqual(errors,[]);reports.push({actualGame:true,overlap,exitPauses:true,reentryResumes:true,reloadContinuePreserved:true,pageErrors:errors});await ctx.close();
  writeFileSync(out+'live-report.json',JSON.stringify(reports,null,2));console.log('PASS fullscreen, HUD budget and book geometry review');}
 } finally {await browser.close();}

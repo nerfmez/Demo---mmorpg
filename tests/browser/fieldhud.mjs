@@ -90,7 +90,7 @@ try {
   await activate('.panel-close');
   await activate('.menu-toggle');await activate('.menu [aria-label="Job Tree"]');
   const full=await page.locator('.panel').boundingBox();assert.equal(full.width,width);assert.equal(full.height,height);
-  await activate('[data-act="close-journal"]');
+  await activate('.skill-journal [data-action="exit"]');
   await activate('.minimap');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),true);await activate('.panel-close');
   await page.evaluate(()=>{const f=window.__frontier;f.game.player.cooldowns[1]=2;f.game.player.cooldowns[2]=4;f.game.player.mp=0;f.input.refreshButtons();});
   await settle();

@@ -56,15 +56,22 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
-`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` opens with ten
-travel-journal chapters before showing the relevant part of the 207-node passive network.
+`ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` mounts the worn journal in `ui/skill-journal/`. Its read-only model
+places current foundation nodes and actual origin neighbours on one starting spread,
+ordinary paginated paths in early chapters and group drilldowns in dense chapters IV+.
+All 207 current passive IDs remain reachable; no category chooser appears at entry.
 Major `jobtree.sections` own `tier` and `requiresSpent`: thresholds use TOTAL allocated
 Job Points (origin excluded). Each node references a section and must ALSO connect to an
 owned neighbour. An unlocked section never bypasses adjacency. Keep one profession,
 Job Lv5 choice and `requiresJob` restrictions. Job level extends to 40 (39 points);
 each profession has sufficient connected choices in its base chapter plus specialization.
 `jobPath()` previews the shortest connected route without inventing filler purchases.
-Per-category pan/zoom cameras are view state. Nodes and purchase buttons remain separate;
+Pan/zoom and book pagination are transient view state. A finite 620 ms decorative
+leaf never owns actions; rapid turns cancel the previous leaf, and reduced motion
+uses immediate navigation. Original paper noise uses a gesture-created AudioContext,
+mute/SFX preferences under `frontier-demo.journal-paper-sfx.v1`, and explicit cleanup
+on panel exit. Port these as disposable view/audio owners, not character save fields.
+Nodes and purchase buttons remain separate;
 touch gestures never allocate points. Minimum touch targets stay 44 logical pixels.
 
 Character v4 retains the one-time `treeRevision` refund from v3: reset the old network
@@ -225,8 +232,8 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
 
 ### Travel journal presentation (review branch)
 The passive graph and allocation rules are unchanged by the travel-journal revision.
-Use each node's `category` and `clusterPos` for themed chapter views, and overview
-`mapPos`/icon metadata for the large chapter marks. These marks are navigation only;
+Use each node's `category` and `clusterPos` for paginated early spreads and later
+subgraphs. Dense chapter IV+ group marks are navigation only;
 no completion prerequisite or category-wide purchase exists. Map the view to a
 full-rect Control, not a Window; show node details on selection only. Modifier item
 art uses the shared SVG faceted-gem/engraved-symbol templates in `gemart.js` and

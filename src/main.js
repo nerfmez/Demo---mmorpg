@@ -205,7 +205,7 @@ let fpsAcc = 0;
 let fpsN = 0;
 
 function frame(now) {
-  const scale = governor?.update(now - last);
+  const scale = session?.panels.tab === 'job' ? null : governor?.update(now - last);
   if (scale) view.setRenderScale(scale);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
@@ -224,7 +224,9 @@ function frame(now) {
       if (SAVE_ON.has(e.type)) s.save();
       if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
     }
-    view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
+    // The job journal is opaque and already pauses the game. Keep the completed
+    // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
+    if (s.panels.tab !== 'job') view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
     s.saveT += dt;
     if (s.saveT > 10) {

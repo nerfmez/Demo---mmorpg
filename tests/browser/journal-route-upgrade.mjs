@@ -1,6 +1,6 @@
 // Benefits-first presentation: real Game/Panel input and measured, unscrolled content.
 import assert from 'node:assert/strict';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
 import {build} from 'vite';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {journalJump} from './passive-checks.mjs';
@@ -13,7 +13,8 @@ const reviewControls='<button hidden id="review-open" style="position:fixed;top:
 const html='<!doctype html><html lang="th"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Local compact route-upgrade review</title><style>'+css+'</style><body><div id="hud"></div>'+reviewControls+'<script>'+code.replaceAll('</script','<\\/script')+'\n__frontier.game.ch.jobLevel=20;__frontier.game.ch.jobPoints=19;__frontier.panels.onVisibility=open=>document.querySelector("#review-open").hidden=open;document.querySelector("#review-open").onclick=()=>__frontier.panels.open("job");__frontier.panels.open("job");</script></body></html>';
 writeFileSync(out+'interactive-review.html',html);
 if(process.env.JOURNAL_EXPORT_ONLY)process.exit(0);
-const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox']});
+const engineName=process.env.BROWSER||'chromium',engine=engineName==='webkit'?webkit:chromium;
+const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox']:[]});
 const cases=[['ipad',1180,820,true],['phone',390,844,true],['compact',776,540,true],['phone-short',390,667,true],['landscape',844,390,true],['desktop',1440,900,false],['reduced',390,844,true]];const report=[];
 const first=['lesson.prepare','lesson.strike','lesson.rhythm'];
 try{for(const [label,width,height,touch] of cases){

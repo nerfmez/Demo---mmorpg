@@ -6,6 +6,8 @@ import { outlineMaterial, darker } from './toon.js';
 const style=art.architecture;
 const edgeMaterial=new THREE.LineBasicMaterial({color:style.edgeColor,transparent:true,opacity:style.edgeOpacity,depthWrite:false});
 edgeMaterial.userData.shared=true;
+const blackBuildingEdges=new THREE.LineBasicMaterial({color:'#000000',transparent:true,opacity:.85,depthWrite:false});
+blackBuildingEdges.userData.shared=true;
 
 /** One depth-tested feature-edge batch per structure; no triangle wireframe. */
 export function outlineStructure(root){
@@ -13,12 +15,13 @@ export function outlineStructure(root){
   root.updateMatrixWorld(true);
   const inverse=root.matrixWorld.clone().invert(),edges=[];
   function visit(o){
+    if(o.userData.skipStructureOutline)return;
     if(o!==root&&o.userData.structureOutlined)return;
     if(o.isMesh&&!o.isInstancedMesh){
       const main=o.parent?.userData.mesh;
       if(main&&main!==o)return; // inverted hull shares the main geometry
       if(main===o){
-        const material=outlineMaterial(darker('#'+o.material.color.getHexString(),style.hullDarkness),style.hullWidth);
+        const material=outlineMaterial(root.userData.cityBlackContours?'#000000':darker('#'+o.material.color.getHexString(),style.hullDarkness),style.hullWidth);
         material.userData.shared=true;
         for(const sibling of o.parent.children)if(sibling!==o&&sibling.isMesh&&sibling.geometry===o.geometry)sibling.material=material;
       }
@@ -32,7 +35,7 @@ export function outlineStructure(root){
   visit(root);
   if(edges.length){
     const geometry=mergeGeometries(edges);edges.forEach(g=>g.dispose());geometry.computeBoundingSphere();
-    const lines=new THREE.LineSegments(geometry,edgeMaterial);lines.name='structure-feature-edges';root.add(lines);
+    const lines=new THREE.LineSegments(geometry,root.userData.cityBlackContours?blackBuildingEdges:edgeMaterial);lines.name='structure-feature-edges';root.add(lines);
   }
   root.userData.structureOutlined=true;return root;
 }

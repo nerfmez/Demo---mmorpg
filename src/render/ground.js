@@ -10,6 +10,7 @@ import { bakeWaterContact, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
+import { cityFloorAt } from '../core/city.js';
 import art from '../../data/art.json' with {type:'json'};
 
 const TILE = 32;
@@ -86,7 +87,11 @@ export function surfaceData(world) {
         const beach = wd.sea.beach || 14;
         // 1 on open sand, easing through a sandy-soil back-beach band to 0 at the meadow
         coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + (art.ground.backBeach ?? 3.5), d) : 0;
-        if(['quay','shipyard','breakwater'].includes(c.kind) && d >= 0 && d < 5.5) {
+        // Remove only the obsolete coarse cobble paint beside the source cape;
+        // its heightfield, cliffs, shoreline and existing dirt paths remain.
+        const cape=wd.city?.capeTransition?.bounds;
+        const capeJoin=cape&&x>=cape[0]&&x<=cape[1]&&z>=cape[2]&&z<=cape[3];
+        if(!capeJoin&&['quay','shipyard','breakwater'].includes(c.kind) && d >= 0 && d < 5.5) {
           const wear=(valueNoise(x*.28,z*.28,74)-.5)*1.1;
           stone[k]=Math.max(stone[k],1-smooth(2.3+wear,4.8+wear,d));
         }
@@ -684,10 +689,13 @@ export function createWater(world, scenery = null) {
         const c = world.coastAt(x, z);
         const shoreD = -c.distance;
         // Only beaches carry the thin film over terrain. Port water stays flat.
-        pos.push(x, c.kind==='beach' ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
+        // Source city slabs are raised solid land, not beach film. A raised
+        // swash vertex here made a bright strip along the imported shore edge.
+        const beachFilm=c.kind==='beach'&&!cityFloorAt(world.data.city,x,z);
+        pos.push(x, beachFilm ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
-        shore.push(shoreD); washMask.push(c.kind === 'beach' ? 1 : 0);
+        shore.push(shoreD); washMask.push(beachFilm ? 1 : 0);
       }
     for (let j = 0; j < ch; j++)
       for (let i = 0; i < cw; i++) {

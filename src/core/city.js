@@ -1,5 +1,20 @@
 // Source-derived walk surfaces. No render imports; usable by the Godot exporter.
-import { pointInPolygon } from './math.js';
+import { pointInPolygon, distToSegment } from './math.js';
+
+// Only the cape's dry exterior joins are graded. Wet causeways and the
+// approved interior paving stay at their authored height.
+export function cityFloorHeight(city,hf,x,z,floor){
+  const join=city?.capeTransition;
+  if(!join||x<join.bounds[0]||x>join.bounds[1]||z<join.bounds[2]||z>join.bounds[3])return floor.height;
+  const native=hf.heightAt(x,z);
+  if(native<.4)return floor.height;
+  let edge=Infinity;
+  for(const loop of [floor.points,...floor.holes||[]])for(let i=0;i<loop.length;i++){
+    const a=loop[i],b=loop[(i+1)%loop.length];edge=Math.min(edge,distToSegment(x,z,...a,...b).d);
+  }
+  const t=Math.min(1,edge/join.width),smooth=t*t*(3-2*t);
+  return (native+.018)*(1-smooth)+floor.height*smooth;
+}
 
 // Exact source street polygons; a paved plaza is walkable but is not a narrow road.
 export function cityRoadDistance(city,x,z){

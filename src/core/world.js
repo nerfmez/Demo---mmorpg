@@ -6,7 +6,7 @@
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
-import { cityFloorAt, cityRoadDistance } from './city.js';
+import { cityFloorAt, cityRoadDistance, cityFloorHeight } from './city.js';
 
 const CELL = 8;
 
@@ -46,7 +46,10 @@ export function createWorld(worldData) {
   // Adjacent decks support the whole actor across their shared seam. Outer edges
   // still reject any footprint extending over water; dry shore can support a ramp join.
   const dockAt = (x, z, pad = 0) => {
-    const deck = docks.find(d => pointInBox(d, x, z));
+    // At a flush stone/wood edge the actor centre may already be on land while
+    // part of its footprint remains over the deck. Check that union as well.
+    const deck = docks.find(d => pointInBox(d, x, z)) ||
+      (pad > 0 ? docks.find(d => pointInBox(d, x, z, pad)) : null);
     if (!deck || pad <= 0) return deck || null;
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, px = x + Math.sin(a) * pad, pz = z + Math.cos(a) * pad;
@@ -75,7 +78,7 @@ export function createWorld(worldData) {
   // Preserve native terrain ramps outside the overlay. Obsolete street meshes
   // are removed from the town, but their original terrain grading stays intact.
   const hf = buildHeightfield(worldData.city?.enabled ? {...worldData,roads:worldData.city.terrainRoads} : worldData, zoneAt);
-  const terrainY = (x, z) => cityFloorAt(worldData.city, x, z)?.height ?? hf.heightAt(x, z);
+  const terrainY = (x, z) => {const floor=cityFloorAt(worldData.city,x,z);return floor?cityFloorHeight(worldData.city,hf,x,z,floor):hf.heightAt(x,z);};
   for (const dock of docks) if (dock.rampFromTerrain) {
     const start = fromBoxLocal(dock, 0, -dock.hz);
     dock.startY = terrainY(start.x, start.z);

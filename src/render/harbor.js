@@ -19,6 +19,7 @@ function timberDeck(d,rng) {
   for(let k=Math.floor(-d.hz/plank.plankDepth);k*plank.plankDepth<d.hz;k++){
     const z0=Math.max(-d.hz,k*plank.plankDepth),z1=Math.min(d.hz,(k+1)*plank.plankDepth);
     const depth=z1-z0-plank.plankGap;if(depth<.08)continue;
+    if(d.shoreCut && z0>Math.max(...d.shoreCut))continue;
     const left=-d.hx-rng.range(lo,hi),right=d.hx+rng.range(lo,hi);
     const g=new THREE.BoxGeometry(right-left,t,depth);
     e.set(rng.range(-1,1)*plank.plankTilt,rng.range(-1,1)*plank.plankYaw,0);
@@ -26,7 +27,17 @@ function timberDeck(d,rng) {
     parts.push(g.applyMatrix4(m));
   }
   for(const x of [-d.hx+.38,d.hx-.38])parts.push(new THREE.BoxGeometry(.2,.2,d.hz*2-.1).translate(x,-t-.1,0));
-  const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());return geometry;
+  const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
+  if(d.shoreCut){
+    // Clip the SAME plank assembly to the actual source quay edge. No wood or
+    // orphan post extends behind the stone. Collision support meets that quay.
+    const p=geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      const t=(p.getX(i)+d.hx)/(2*d.hx),end=d.shoreCut[0]+(d.shoreCut[1]-d.shoreCut[0])*t;
+      p.setZ(i,Math.min(p.getZ(i),end));
+    }
+  }
+  return geometry;
 }
 
 export function createHarbor(world) {
@@ -35,7 +46,9 @@ export function createHarbor(world) {
     const mesh = outlined(geo, material || toon(color), { outline: '#51483b', width: .025 });
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
   };
-  for (const d of world.data.city?.enabled ? world.docks.filter(d=>d.kind==='city_join') : world.docks) {
+  // The city uses a single native timber assembly per collision footprint. Imported
+  // slabs and the old crossjoins are omitted, so boards/piles cannot double up.
+  for (const d of world.docks) {
     const pier = new THREE.Group();
     pier.userData.waterContact=true;
     pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height+(d.kind==='breakwater'?.025:0),d.z); pier.rotation.y=d.angle;
@@ -71,7 +84,8 @@ export function createHarbor(world) {
     // Plank joins and grain are painted into the deck, including the sloping join.
     // Corner piles plus intermediate ones on long decks; each leans, rises and thickens a little
     // differently, like driven timber, while its waterline stays at the authored spot.
-    const pileZ=[-d.hz+.3,d.hz-.3],span=2*d.hz-.6,extra=Math.floor(span/plank.pileSpacing);
+    const shore=d.shoreCut?Math.min(...d.shoreCut)-.55:d.hz-.3;
+    const pileZ=[-d.hz+.3,shore],span=shore+d.hz-.3,extra=Math.floor(span/plank.pileSpacing);
     for(let i=1;i<=extra;i++)pileZ.push(-d.hz+.3+span*i/(extra+1));
     for(const x of d.kind === 'slipway' ? [] : [-d.hx+.2,d.hx-.2]) for(const [n,z] of pileZ.entries()) {
       const r=rng.range(.88,1.12),rise=rng.range(-.08,.1),corner=n<2;
@@ -121,5 +135,22 @@ export function createHarbor(world) {
     for(const offset of [-2,0,2]) part(new THREE.BoxGeometry(.35,.25,9),'#7c9551',x+offset,world.groundY(x,z)+.2,z);
   }
   for(const structure of root.children)outlineStructure(structure);
+  // Two slim mooring lines per boat tie the actual hull to its adjacent deck.
+  // These are static, merged together, and never create walking obstacles.
+  if(world.data.city?.enabled){
+    const lines=[];
+    for(const berth of world.data.city.boatBerths||[]){
+      const d=world.docks[berth.dock],[bx,bz,a]=h.boats[berth.boat],side=berth.side;
+      for(const along of [-2.2,2.2]){
+        const start=new THREE.Vector3(bx-Math.cos(a)*side*.92,world.waterLevel+.63,bz+Math.sin(a)*side*.92);
+        start.x+=Math.sin(a)*along;start.z+=Math.cos(a)*along;
+        const end=new THREE.Vector3(d.x+Math.cos(a)*side*(d.hx-.2),d.height+.32,d.z-Math.sin(a)*side*(d.hx-.2));
+        end.x+=Math.sin(a)*(along+(berth.along||0));end.z+=Math.cos(a)*(along+(berth.along||0));
+        const mid=start.clone().lerp(end,.5);mid.y-=.16;
+        lines.push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(start,mid,end),6,.025,4,false));
+      }
+    }
+    if(lines.length){const geo=mergeGeometries(lines);lines.forEach(g=>g.dispose());root.add(new THREE.Mesh(geo,toon('#c0a774')));}
+  }
   return root;
 }

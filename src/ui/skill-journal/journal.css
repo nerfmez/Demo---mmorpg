@@ -206,3 +206,63 @@
  .skill-journal .inspector{top:auto;bottom:0}
  .skill-journal .has-detail .map-viewport{bottom:var(--detail-height,292px)}
 }
+
+/* Small field note: intrinsic height, one clear bonus row and one purchase row. */
+.skill-journal .inspector{top:22px;bottom:auto;width:268px;padding:14px 16px;max-height:none}
+.skill-journal #detail-content{display:flex;gap:0}
+.skill-journal .detail-essential{flex:0 0 auto}
+.skill-journal .detail-header{gap:9px;margin:0 0 7px;padding-right:22px}
+.skill-journal .detail-header h2{font-size:18px;line-height:1.45}
+.skill-journal .detail-header .detail-emblem{width:26px;height:26px}
+.skill-journal .detail-header .detail-emblem svg{width:16px;height:16px}
+.skill-journal .inspector-close{top:0;right:0;width:44px;height:44px}
+.skill-journal .node-benefits{margin:0;padding:4px 0;border-bottom:0}
+.skill-journal .node-benefits>div{font-size:13px;min-height:36px}
+.skill-journal .node-benefits b{font-size:26px}
+.skill-journal .node-benefits p{font-size:11px}
+.skill-journal .detail-action{display:block;border:0;padding:0;margin:8px 0 0}
+.skill-journal .availability{font-size:11px;line-height:1.5;margin:0 0 7px}
+.skill-journal .route-purchase-row{display:flex;align-items:stretch;gap:7px}
+.skill-journal .learn-button{flex:1;min-height:44px;padding:8px 10px;font-size:12px;gap:8px}
+.skill-journal .learn-button>span{font-size:11px;white-space:nowrap}
+.skill-journal .route-preview-button{flex:none;min-height:44px;padding:5px 9px;border:1px solid #b8a078;color:#796443;font-size:11px;background:#e8d8b228}
+.skill-journal .detail-more{min-height:44px;font-size:11px;padding:3px 0;margin:0}
+.skill-journal .blocking-prerequisites{margin-bottom:7px;gap:5px}
+.skill-journal .blocking-prerequisites button{font-size:10px;padding:4px 8px}
+.skill-journal .node.route-highlight .node-disc{border-color:#a27b3e;box-shadow:0 0 0 4px #b18b4729,0 0 0 5px #a887525c}
+.skill-journal .node.route-highlight .node-caption b{color:#866237}
+.skill-journal .edge.route-highlight:not(.learned){stroke:#a88c59;stroke-width:2;stroke-dasharray:none;opacity:.7}
+.skill-journal .route-total{font-size:13px;color:#796443;margin:0 0 12px}
+.skill-journal .route-list{list-style:none;counter-reset:route;margin:0 0 10px;padding:0;display:grid;gap:5px}
+.skill-journal .route-list li{counter-increment:route;display:flex;align-items:center;gap:8px;min-height:46px;padding:7px 10px;border:1px solid #d8c9a966}
+.skill-journal .route-list li:before{content:counter(route,decimal-leading-zero);font:italic 12px Georgia,serif;color:#a4906c}
+.skill-journal .route-list li>span{flex:1;min-width:0}
+.skill-journal .route-list b{display:block;font-size:12px;font-weight:400;color:#665b43}
+.skill-journal .route-list small{display:block;font-size:10px;color:#948363}
+.skill-journal .route-list strong{font-size:11px;color:#806d48;white-space:nowrap;font-weight:400}
+.skill-journal dialog:has(.route-list){padding:18px}
+.skill-journal dialog:has(.route-list) .dialog-top{margin-bottom:12px}
+.skill-journal dialog:has(.route-list) .dialog-top h2{font-size:18px}
+@media(max-width:760px){
+ .skill-journal .inspector{top:auto;bottom:0;width:100%;padding:13px 18px 14px;max-height:none}
+ .skill-journal .inspector-close{top:7px;right:8px;width:44px;height:44px}
+ .skill-journal .detail-header{padding-right:32px;margin-bottom:5px}
+ .skill-journal .detail-header h2{font-size:18px}
+ .skill-journal .detail-header .detail-emblem{width:24px;height:24px}
+ .skill-journal .node-benefits>div{min-height:33px}
+ .skill-journal .detail-action{margin-top:5px}
+}
+@media(min-width:761px){
+ @container journal-paper (max-height:450px){.skill-journal .inspector{top:10px;bottom:auto;width:268px;padding:12px 14px}}
+ @container journal-paper (max-height:280px){
+  .skill-journal .inspector{width:365px}
+  .skill-journal #detail-content{display:grid;grid-template-columns:1fr 1.1fr;gap:14px}
+  .skill-journal .detail-header{padding:0}
+  .skill-journal .detail-header h2{font-size:16px}
+  .skill-journal .detail-action{margin-top:28px}
+  .skill-journal .route-purchase-row{flex-wrap:wrap}
+  .skill-journal .route-preview-button{flex:1}
+ }
+}
+@media(max-height:600px) and (min-width:761px){.skill-journal .route-list{grid-template-columns:1fr 1fr}.skill-journal .route-list li{padding:6px}}
+@media(max-height:720px) and (max-width:760px){.skill-journal .route-list{grid-template-columns:1fr 1fr}.skill-journal .route-list li{padding:5px;gap:5px;flex-wrap:wrap}.skill-journal .route-list strong{font-size:10px}.skill-journal .route-list b{font-size:11px}.skill-journal .route-list small{font-size:9px}}

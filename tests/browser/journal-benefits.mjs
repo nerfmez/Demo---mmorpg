@@ -28,7 +28,7 @@ try{for(const [label,width,height,touch] of cases){
   const actual=await page.locator(`[data-benefit="${key}"]`).innerText();assert.ok(actual.includes(value),actual);
   const fit=await page.evaluate(()=>{
    const inspector=document.querySelector('#inspector'),r=inspector.getBoundingClientRect(),essential=document.querySelector('.detail-essential'),content=document.querySelector('#detail-content');
-   const items=[...document.querySelectorAll('.detail-header h2,.benefit-heading,.node-benefits>div,.availability,.blocking-prerequisites button,.learn-button,.detail-more,.inspector-close')].map(el=>{
+   const items=[...document.querySelectorAll('.detail-header h2,.node-benefits>div,.availability,.blocking-prerequisites button,.learn-button,.detail-more,.inspector-close')].map(el=>{
     const b=el.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(el);const text=range.getBoundingClientRect();return {text:el.textContent.trim(),inside:b.left>=r.left-1&&b.right<=r.right+1&&b.top>=r.top-1&&b.bottom<=r.bottom+1&&text.bottom<=b.bottom+1,visible:b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth,hit:el.matches('button')?el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2)):true};
    });
    return {items,scroll:[inspector,essential,content].map(el=>({class:el.className,client:el.clientHeight,scroll:el.scrollHeight,top:el.scrollTop}))};
@@ -38,9 +38,9 @@ try{for(const [label,width,height,touch] of cases){
  }
  const summaries=await page.locator('.node-caption small').allTextContents();assert.ok(summaries.includes('HP +12'));assert.ok(summaries.includes('การฟื้นฟู +5%'));assert.ok(summaries.every(x=>!x.includes('ก่อน:')));
  await page.screenshot({path:out+label+'-overview.png'});
- await journalJump(page,'lesson.care');assert.equal(await page.locator('.learn-button').isDisabled(),true);await essentials('basic-locked','healPct','+5%');
+ await journalJump(page,'lesson.care');assert.equal(await page.locator('.learn-button').isEnabled(),true);await essentials('basic-route-preview','healPct','+5%');
  const before=await snapshot();await page.evaluate(()=>__frontier.panels.jobJournal.learn('lesson.care'));assert.equal((await snapshot()).points,before.points);assert.equal((await snapshot()).routes.events.length,0);
- await tap('.blocking-prerequisites [data-jump="lesson.prepare"]');await essentials('basic-ready','maxHp','+12');assert.equal(await page.locator('.learn-button').isEnabled(),true);
+ await tap('[data-node="lesson.prepare"]');await essentials('basic-ready','maxHp','+12');assert.equal(await page.locator('.learn-button').isEnabled(),true);
  await tap('.learn-button');await essentials('basic-owned','maxHp','+12');assert.equal((await snapshot()).points,before.points-1);assert.equal(await page.locator('.learn-button').isDisabled(),true);
  const paid=await snapshot();await page.evaluate(()=>__frontier.panels.jobJournal.learn('lesson.prepare'));assert.deepEqual((await snapshot()).owned,paid.owned);assert.equal((await snapshot()).routes.events.length,paid.routes.events.length);
  if(label==='phone'){

@@ -23,8 +23,9 @@ try{
    const f=__frontier;Object.assign(f.game.player,{x:f.game.world.data.town.centre[0],z:f.game.world.data.town.centre[1]});Object.assign(f.game.ch,{jobNodes:['origin','v1'],jobLevel:20,jobPoints:18,gold:1000});
   });
   await page.locator('.fullscreen-enter').tap();await page.evaluate(()=>__frontier.panels.open('job'));
-  for(const action of ['search','respec','node-details']){
+  for(const action of ['search','respec','node-details','route-preview']){
    if(action==='node-details')await journalJump(page,'advanced.power');
+   if(action==='route-preview')await journalJump(page,'lesson.rhythm');
    await page.locator(`[data-action="${action}"]`).tap();
    if(action==='search')await page.locator('#node-search').fill('v1');
    else if(action==='respec')assert.equal(await page.locator('[data-action="confirm-respec"]').isEnabled(),true,'exercise an actionable respec');

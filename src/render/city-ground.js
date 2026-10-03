@@ -101,22 +101,5 @@ export function cityGround(world, root) {
     g.rotateX(-Math.PI/2).translate(t.x-root.position.x,world.groundY(t.x,t.z)-root.position.y,t.z-root.position.z);parts.push(g);
   }
   if(parts.length){const g=mergeGeometries(parts);parts.forEach(p=>p.dispose());const rim=outlined(g,toon('#969582'),{outline:'#656957',width:.012,castShadow:false});rim.name='native-tree-soil-borders';root.add(rim);}
-  // Close the diagnosed see-through gap beneath source cape edges. Existing
-  // native terrain is retained; these are structural faces, not another slab.
-  const skirt=[];
-  for(const floor of floors)for(const loop of [floor.points,...floor.holes||[]])for(let i=0;i<loop.length;i++){
-    const a=loop[i],b=loop[(i+1)%loop.length],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/1.5);
-    for(let k=0;k<n;k++){
-      const x0=a[0]+(b[0]-a[0])*k/n,z0=a[1]+(b[1]-a[1])*k/n,x1=a[0]+(b[0]-a[0])*(k+1)/n,z1=a[1]+(b[1]-a[1])*(k+1)/n;
-      const x=(x0+x1)/2,z=(z0+z1)/2;
-      if(x<cape.bounds[0]||x>cape.bounds[1]||z<cape.bounds[2]||z>cape.bounds[3]||hf.heightAt(x,z)>=floor.height-.05)continue;
-      const y0=cityFloorHeight(world.data.city,hf,x0,z0,floor),y1=cityFloorHeight(world.data.city,hf,x1,z1,floor);
-      const lo0=Math.min(hf.heightAt(x0,z0),world.waterLevel-.5),lo1=Math.min(hf.heightAt(x1,z1),world.waterLevel-.5);
-      for(const p of [[x0,y0,z0],[x1,y1,z1],[x0,lo0,z0],[x1,y1,z1],[x1,lo1,z1],[x0,lo0,z0]])skirt.push(p[0]-root.position.x,p[1]-root.position.y,p[2]-root.position.z);
-    }
-  }
-  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(skirt,3));geo.computeVertexNormals();geo.computeBoundingSphere();
-  const rock=material('cliff');rock.side=THREE.DoubleSide;
-  const face=new THREE.Mesh(geo,rock);face.name='cape-source-edge-retaining-faces';face.receiveShadow=true;root.add(face);
   return {material,trees:trees.length};
 }

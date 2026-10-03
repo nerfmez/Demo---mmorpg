@@ -52,7 +52,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Verify roads, water, old saves and model collision footprints
-        run: node --test tests/core/harbor.test.js tests/core/world.test.js tests/core/save.test.js tests/render/water-contact.test.mjs tests/render/azure-footprints.test.mjs
+        run: node --test tests/core/harbor.test.js tests/core/world.test.js tests/core/save.test.js tests/render/water-contact.test.mjs tests/render/azure-footprints.test.mjs tests/render/city-occlusion.test.mjs
       - name: Verify ground continuity and surface material ownership
         if: steps.scope.outputs.ground == 'true'
         run: node --test tests/render/ground-surfaces.test.mjs

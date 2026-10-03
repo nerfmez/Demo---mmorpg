@@ -9,6 +9,7 @@ import { timeUniform } from './patch.js';
 import { bakeWaterContact, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform } from './ground-brush.js';
+import { coveredTerrainCell } from './city-terrain.js';
 import art from '../../data/art.json' with {type:'json'};
 
 const TILE = 32;
@@ -238,10 +239,16 @@ export function createTerrain(world) {
           tintD[v * 3 + 2] = surf.db[k];
         }
       const idx = [];
+      let coveredTriangles = 0;
       for (let j = 0; j < chh; j++)
         for (let i = 0; i < cw; i++) {
           const a = j * vw + i;
           const b2 = a + vw;
+          // The opaque source slab fully covers these native terrain quads.
+          // Keep the shared heightfield/collisions and a conservative edge band;
+          // omit only hidden render indices, never source-city geometry.
+          const x=pos[a*3]+res/2,z=pos[a*3+2]+res/2;
+          if(coveredTerrainCell(world.data.city,x,z,Math.max(pos[a*3+1],pos[(a+1)*3+1],pos[b2*3+1],pos[(b2+1)*3+1]),res)){coveredTriangles+=2;continue;}
           idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
         }
       const geo = new THREE.BufferGeometry();
@@ -253,6 +260,7 @@ export function createTerrain(world) {
       geo.setAttribute('aTintL', new THREE.BufferAttribute(tintL, 3));
       geo.setAttribute('aTintD', new THREE.BufferAttribute(tintD, 3));
       geo.setIndex(idx);
+      geo.userData.cityCoveredTriangles=coveredTriangles;
       geo.computeBoundingSphere();
       const mesh = new THREE.Mesh(geo, mat);
       mesh.receiveShadow = true;

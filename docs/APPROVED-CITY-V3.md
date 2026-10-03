@@ -73,6 +73,13 @@ The one-time water-contact bake runs after native hulls and imported waterline
 geometry exist. Loading remains covered until assets and contacts are ready;
 asset failure leaves a visible retry message.
 
+Native terrain quads fully hidden under an opaque source slab are omitted from
+render indices only. All native heights/attributes, navigation, collision and
+coastline remain unchanged; native peaks and a conservative full-cell slab edge
+band remain rendered. This avoids shading hidden terrain without changing the
+approved city assets or appearance. Focused coverage tests verify concave edges,
+native peaks and every omitted real-map quad.
+
 ## Validation
 
 `tests/core/city.test.js` verifies asset hashes, the exact east-facing matrix,

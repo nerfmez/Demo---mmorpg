@@ -1,5 +1,16 @@
 # Matched approved-city performance review
 
+The initial timings below are superseded for the release gate by controlled
+single-path measurements. These use synchronous one-pixel readback, eight
+warm-up frames, 32 measured frames/view/run, frozen game/RAF callbacks and ABBA
+fresh-context order. The initial city reproduced close-view regressions.
+An in-context coverage probe identified hidden native terrain shading as a
+substantial cost: full indices averaged 654–659 ms at the fountain, versus
+442–448 ms when fully covered terrain quads were omitted. Imported geometry,
+native heightfield vertices/collisions and the source slab edge band remain
+unchanged. Controlled final-head results and raw samples are in the PR delivery
+report; no physical-device FPS claim is made.
+
 Baseline: `85fe85a70cdae43376aec811a2767f366e8587b6`. After: approved V3 integration on that base. Exact release head is recorded in the PR and delivery report.
 
 Both use Chromium SwiftShader, viewport 1180×820, touch/mobile browser context, device scale 1, seed 9, medium quality, dynamic resolution off, paused simulation, identical camera coordinates/zoom/fog. Frame samples include render plus requestAnimationFrame scheduling (12 samples/view; p95 is maximum), with the ordinary render loop still active. They are software-renderer observations, not physical-device FPS or isolated GPU draw timings.

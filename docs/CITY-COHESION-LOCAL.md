@@ -17,3 +17,5 @@ Buildings use black game-rendered feature contours. Open imported gables use fea
 Focused checks: city/world/harbor and boat/seam checks; actual Chromium/WebKit gameplay/UI checks; matched player-camera sector review; shader/buffer stability; matched calls, triangles, bytes, load and GPU-barrier timings. Software renderer timings and offline game-clock motion capture are not physical-device FPS measurements. Lint/type scripts are absent.
 
 Original review photos could not be materialized in this executor: `library file transfer failed: download failed`. Supplied parent observations were used alongside actual game pixels and GLB source inspection; local original-photo inspection is not claimed.
+
+Final cape correction is limited to exterior ground joins: dry source edges grade to native terrain, original shoreline/heightfield stay intact, obsolete coarse native cobble paint is removed beside the cape, and a narrow dirt connection meets the existing path. The source surface XZ polygons and all buildings remain unchanged. Native beach film no longer rises over source city land. Splash distance fade uses ordered GLSL smoothstep edges.

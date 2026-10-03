@@ -1,8 +1,8 @@
 {
   "_doc": "Exact approved V3 city at the existing Azure Coast town anchor; only the approved east-facing house edit. Native western terrain/coast data, leafy trees, saves and progression preserved. Narrow game-side shore joins support source piers without moving any imported node.",
   "id": "azure-harbor-v1",
-  "name": "Azure Coast — Harbor Reach",
-  "nameTh": "ชายฝั่งสีคราม · เมืองท่า",
+  "name": "Azure Coast \u2014 Harbor Reach",
+  "nameTh": "\u0e0a\u0e32\u0e22\u0e1d\u0e31\u0e48\u0e07\u0e2a\u0e35\u0e04\u0e23\u0e32\u0e21 \u00b7 \u0e40\u0e21\u0e37\u0e2d\u0e07\u0e17\u0e48\u0e32",
   "seed": 7331,
   "bounds": {
     "minX": -160,
@@ -1714,6 +1714,28 @@
           -93
         ]
       ]
+    },
+    {
+      "id": "city_cape_path_join",
+      "width": 2.2,
+      "points": [
+        [
+          20,
+          120
+        ],
+        [
+          21,
+          124
+        ],
+        [
+          25,
+          131
+        ],
+        [
+          30,
+          136.5
+        ]
+      ]
     }
   ],
   "river": null,
@@ -1727,8 +1749,8 @@
   "zones": [
     {
       "id": "landing",
-      "name": "หาดผู้มาเยือน",
-      "nameTh": "หาดผู้มาเยือน",
+      "name": "\u0e2b\u0e32\u0e14\u0e1c\u0e39\u0e49\u0e21\u0e32\u0e40\u0e22\u0e37\u0e2d\u0e19",
+      "nameTh": "\u0e2b\u0e32\u0e14\u0e1c\u0e39\u0e49\u0e21\u0e32\u0e40\u0e22\u0e37\u0e2d\u0e19",
       "rects": [
         [
           -151,
@@ -1755,8 +1777,8 @@
     },
     {
       "id": "settlement",
-      "name": "เมืองท่าสีคราม",
-      "nameTh": "เมืองท่าสีคราม",
+      "name": "\u0e40\u0e21\u0e37\u0e2d\u0e07\u0e17\u0e48\u0e32\u0e2a\u0e35\u0e04\u0e23\u0e32\u0e21",
+      "nameTh": "\u0e40\u0e21\u0e37\u0e2d\u0e07\u0e17\u0e48\u0e32\u0e2a\u0e35\u0e04\u0e23\u0e32\u0e21",
       "rects": [
         [
           -5.6,
@@ -1795,8 +1817,8 @@
     },
     {
       "id": "headland",
-      "name": "แหลมเหนือเมือง",
-      "nameTh": "แหลมเหนือเมือง",
+      "name": "\u0e41\u0e2b\u0e25\u0e21\u0e40\u0e2b\u0e19\u0e37\u0e2d\u0e40\u0e21\u0e37\u0e2d\u0e07",
+      "nameTh": "\u0e41\u0e2b\u0e25\u0e21\u0e40\u0e2b\u0e19\u0e37\u0e2d\u0e40\u0e21\u0e37\u0e2d\u0e07",
       "rects": [
         [
           125,
@@ -1823,8 +1845,8 @@
     },
     {
       "id": "coast",
-      "name": "หาดเปลือกหอย",
-      "nameTh": "หาดเปลือกหอย",
+      "name": "\u0e2b\u0e32\u0e14\u0e40\u0e1b\u0e25\u0e37\u0e2d\u0e01\u0e2b\u0e2d\u0e22",
+      "nameTh": "\u0e2b\u0e32\u0e14\u0e40\u0e1b\u0e25\u0e37\u0e2d\u0e01\u0e2b\u0e2d\u0e22",
       "rects": [
         [
           -160,
@@ -1851,8 +1873,8 @@
     },
     {
       "id": "forest",
-      "name": "ป่าโปร่งริมฝั่ง",
-      "nameTh": "ป่าโปร่งริมฝั่ง",
+      "name": "\u0e1b\u0e48\u0e32\u0e42\u0e1b\u0e23\u0e48\u0e07\u0e23\u0e34\u0e21\u0e1d\u0e31\u0e48\u0e07",
+      "nameTh": "\u0e1b\u0e48\u0e32\u0e42\u0e1b\u0e23\u0e48\u0e07\u0e23\u0e34\u0e21\u0e1d\u0e31\u0e48\u0e07",
       "rects": [
         [
           -160,
@@ -1879,8 +1901,8 @@
     },
     {
       "id": "glade",
-      "name": "สวนและพุ่มริมทาง",
-      "nameTh": "สวนและพุ่มริมทาง",
+      "name": "\u0e2a\u0e27\u0e19\u0e41\u0e25\u0e30\u0e1e\u0e38\u0e48\u0e21\u0e23\u0e34\u0e21\u0e17\u0e32\u0e07",
+      "nameTh": "\u0e2a\u0e27\u0e19\u0e41\u0e25\u0e30\u0e1e\u0e38\u0e48\u0e21\u0e23\u0e34\u0e21\u0e17\u0e32\u0e07",
       "rects": [
         [
           -160,
@@ -1907,8 +1929,8 @@
     },
     {
       "id": "highlands",
-      "name": "เนินหลังเมือง",
-      "nameTh": "เนินหลังเมือง",
+      "name": "\u0e40\u0e19\u0e34\u0e19\u0e2b\u0e25\u0e31\u0e07\u0e40\u0e21\u0e37\u0e2d\u0e07",
+      "nameTh": "\u0e40\u0e19\u0e34\u0e19\u0e2b\u0e25\u0e31\u0e07\u0e40\u0e21\u0e37\u0e2d\u0e07",
       "rects": [
         [
           100,
@@ -1935,8 +1957,8 @@
     },
     {
       "id": "meadow",
-      "name": "ทุ่งรอบเมือง",
-      "nameTh": "ทุ่งรอบเมือง",
+      "name": "\u0e17\u0e38\u0e48\u0e07\u0e23\u0e2d\u0e1a\u0e40\u0e21\u0e37\u0e2d\u0e07",
+      "nameTh": "\u0e17\u0e38\u0e48\u0e07\u0e23\u0e2d\u0e1a\u0e40\u0e21\u0e37\u0e2d\u0e07",
       "rects": [
         [
           -55,
@@ -2105,7 +2127,7 @@
     {
       "id": "landing",
       "name": "Arrival Beach",
-      "nameTh": "หาดผู้มาเยือน",
+      "nameTh": "\u0e2b\u0e32\u0e14\u0e1c\u0e39\u0e49\u0e21\u0e32\u0e40\u0e22\u0e37\u0e2d\u0e19",
       "pos": [
         -139,
         74
@@ -2115,7 +2137,7 @@
     {
       "id": "town",
       "name": "Harbor Square",
-      "nameTh": "ลานเมืองท่า",
+      "nameTh": "\u0e25\u0e32\u0e19\u0e40\u0e21\u0e37\u0e2d\u0e07\u0e17\u0e48\u0e32",
       "pos": [
         88.06,
         13.5
@@ -2124,7 +2146,7 @@
     {
       "id": "meadow",
       "name": "Fields",
-      "nameTh": "ทุ่งรอบเมือง",
+      "nameTh": "\u0e17\u0e38\u0e48\u0e07\u0e23\u0e2d\u0e1a\u0e40\u0e21\u0e37\u0e2d\u0e07",
       "pos": [
         -21,
         -35
@@ -2133,7 +2155,7 @@
     {
       "id": "forest",
       "name": "Coastal Grove",
-      "nameTh": "ป่าโปร่งริมฝั่ง",
+      "nameTh": "\u0e1b\u0e48\u0e32\u0e42\u0e1b\u0e23\u0e48\u0e07\u0e23\u0e34\u0e21\u0e1d\u0e31\u0e48\u0e07",
       "pos": [
         -100,
         -43
@@ -2142,7 +2164,7 @@
     {
       "id": "headland",
       "name": "North Headland",
-      "nameTh": "แหลมเหนือเมือง",
+      "nameTh": "\u0e41\u0e2b\u0e25\u0e21\u0e40\u0e2b\u0e19\u0e37\u0e2d\u0e40\u0e21\u0e37\u0e2d\u0e07",
       "pos": [
         186,
         -90

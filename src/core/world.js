@@ -6,7 +6,7 @@
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
-import { cityFloorAt, cityRoadDistance } from './city.js';
+import { cityFloorAt, cityRoadDistance, cityFloorHeight } from './city.js';
 
 const CELL = 8;
 
@@ -78,7 +78,7 @@ export function createWorld(worldData) {
   // Preserve native terrain ramps outside the overlay. Obsolete street meshes
   // are removed from the town, but their original terrain grading stays intact.
   const hf = buildHeightfield(worldData.city?.enabled ? {...worldData,roads:worldData.city.terrainRoads} : worldData, zoneAt);
-  const terrainY = (x, z) => cityFloorAt(worldData.city, x, z)?.height ?? hf.heightAt(x, z);
+  const terrainY = (x, z) => {const floor=cityFloorAt(worldData.city,x,z);return floor?cityFloorHeight(worldData.city,hf,x,z,floor):hf.heightAt(x,z);};
   for (const dock of docks) if (dock.rampFromTerrain) {
     const start = fromBoxLocal(dock, 0, -dock.hz);
     dock.startY = terrainY(start.x, start.z);

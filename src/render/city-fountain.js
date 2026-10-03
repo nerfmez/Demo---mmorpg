@@ -78,7 +78,7 @@ export function cityFountain(root, world) {
       void main(){float t=fract(uTime*1.4+splashPhase.x);vec3 p=position;
         p.xz+=vec2(cos(splashPhase.y),sin(splashPhase.y))*t*.28;p.y+=sin(t*3.14159)*.24;
         vec4 view=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*view;
-        gl_PointSize=2.5;vFade=(1.-t)*smoothstep(100.,45.,length(view.xyz));}`,
+        gl_PointSize=2.5;vFade=(1.-t)*(1.-smoothstep(45.,100.,length(view.xyz)));}`,
     fragmentShader:`varying float vFade;void main(){float d=length(gl_PointCoord-.5);gl_FragColor=vec4(.76,.92,.87,(1.-smoothstep(.24,.5,d))*vFade*.60);}`});
   const spray=new THREE.Points(splashGeo,splashMat);spray.name='fountain-light-splash';root.add(spray);
   return pool;

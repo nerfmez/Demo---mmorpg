@@ -6,6 +6,7 @@ import { outlineStructure } from './architecture.js';
 import { batchStatic } from './static-batch.js';
 import { cityGround } from './city-ground.js';
 import { cityFountain } from './city-fountain.js';
+import { gradeCapeMesh } from './city-cape.js';
 
 export async function loadCity(world) {
   const city = world.data.city;
@@ -26,6 +27,7 @@ export async function loadCity(world) {
   let meshes = 0;
   for (const { file, scene } of files) {
     scene.name = file.file;
+    scene.updateMatrixWorld(true);
     scene.userData.cityBlackContours=['05_Residential.glb','06_Civic.glb','07_Warehouses.glb','08_Shipyard.glb'].includes(file.file);
     if(file.file==='11_Props.glb')for(const [name,delta]of Object.entries(city.propOffsets||{})){
       // Move the existing placement-ready node, never clone an offset gallery.
@@ -37,6 +39,13 @@ export async function loadCity(world) {
     scene.traverse(o => { if (o.isMesh) solids.push(o); });
     for (const mesh of solids) {
       const old = mesh.material; originals.add(old);
+      if(file.file==='01_Ground.glb'&&/^Mainland[ _]continuous/.test(mesh.name))gradeCapeMesh(mesh,world,root,city.floors[0]);
+      if(file.file==='01_Ground.glb'&&/^Lighthouse[ _]rock[ _]grassy/.test(mesh.name))gradeCapeMesh(mesh,world,root,city.floors[1]);
+      if(file.file==='02_Roads.glb')gradeCapeMesh(mesh,world,root,city.floors[0],true);
+      if(/^Coastal[ _]shallow[ _]shelf/.test(mesh.name)){
+        // Authored shallow-water context never replaces the actual game sea.
+        mesh.removeFromParent();mesh.geometry.dispose();continue;
+      }
       const water=mesh.name.startsWith('Fountain') && /(visible_water|upper_pool|highest_pool|visible water|upper pool|highest pool)/.test(mesh.name);
       if(mesh.name.startsWith('Fountain') && /(arcing|falling_stream|falling stream|bronze_finial|bronze finial)/.test(mesh.name)) {
         mesh.removeFromParent();mesh.geometry.dispose();continue;
@@ -51,8 +60,8 @@ export async function loadCity(world) {
       }
       mesh.material = materials.get(key);
       if(water){mesh.material=fountainWater;mesh.userData.skipStructureOutline=true;mesh.castShadow=false;}
-      if (mesh.name.startsWith('Mainland_continuous') || mesh.name.startsWith('Mainland continuous')) mesh.material=ground.material('base');
-      if (mesh.name.startsWith('Lighthouse_rock_grassy') || mesh.name.startsWith('Lighthouse rock grassy')) mesh.material=ground.material('lawn');
+      if (mesh.name.startsWith('Mainland_continuous') || /^Mainland[ _]continuous/.test(mesh.name)) mesh.material=ground.material('base');
+      if (mesh.name.startsWith('Lighthouse_rock_grassy') || /^Lighthouse[ _]rock[ _]grassy/.test(mesh.name)) mesh.material=ground.material('lawn');
       if(file.file==='02_Roads.glb')mesh.material=ground.material(mesh.name.startsWith('Market')?'plaza':'road');
       mesh.castShadow = !['01_Ground.glb', '02_Roads.glb', '03_Quays.glb'].includes(file.file);
       if(water)mesh.castShadow=false;

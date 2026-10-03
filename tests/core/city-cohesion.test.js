@@ -36,3 +36,15 @@ test('flush deck entrances support a walking actor across wood/stone junctions',
     }
   }
 });
+test('cape joins grade only dry border terrain and preserve source water crossings',()=>{
+  const hf=world.heightfield,city=data.world.city;
+  assert.ok(Math.abs(world.terrainY(16,125.5)-hf.heightAt(16,125.5))<.04,'dry source edge meets native terrain');
+  assert.equal(world.terrainY(40,104),.76,'approved source causeway above native water stays raised');
+  assert.equal(world.terrainY(62,30),.76,'city interior remains authored');
+  const road=data.world.roads.find(r=>r.id==='city_cape_path_join');assert.equal(road.width,2.2);
+  let p={x:road.points[0][0],z:road.points[0][1]};
+  for(let i=1;i<road.points.length;i++){
+    const a=road.points[i-1],b=road.points[i],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.1);
+    for(let k=1;k<=n;k++){const x=a[0]+(b[0]-a[0])*k/n,z=a[1]+(b[1]-a[1])*k/n,m=world.move(p.x,p.z,.45,x-p.x,z-p.z);assert.ok(Math.hypot(m.x-x,m.z-z)<.02,'cape dirt join stays clear');p=m;}
+  }
+});

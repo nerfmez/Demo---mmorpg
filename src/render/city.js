@@ -10,6 +10,7 @@ export async function loadCity(world) {
   if (!city?.enabled) return null;
   const start = performance.now(), loader = new GLTFLoader();
   const root = new THREE.Group(); root.name = 'approved-v3-city';
+  root.userData.waterContact=true;
   root.position.fromArray(city.offset);
   const files = await Promise.all(city.files.map(async file => {
     const gltf = await loader.loadAsync(new URL(file.url, new URL(import.meta.env.BASE_URL, location.href)).href);

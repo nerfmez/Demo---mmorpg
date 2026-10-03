@@ -79,6 +79,11 @@ export function mapImage(world) {
   g.drawImage(small, 0, 0, canvas.width, canvas.height);
   const tx = (x) => (x - b.minX) * PX;
   const tz = (z) => (z - b.minZ) * PX;
+  if(world.data.city?.enabled){
+    const fill=(points,color)=>{g.beginPath();points.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();g.fillStyle=color;g.fill();};
+    for(const floor of world.data.city.floors)fill(floor.points,'#c8c1a9');
+    for(const road of world.data.city.roads){g.beginPath();for(const loop of road.loops){loop.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();}g.fillStyle='#a5a08e';g.fill('evenodd');}
+  }
 
   const poly = (box, fill, stroke) => {
     const pts = [
@@ -149,7 +154,7 @@ export function mapImage(world) {
     g.restore();
   }
   for(const bx of world.boxes){
-    if(bx.type==='house'||bx.type==='stall'||bx.type==='tent'){
+    if(bx.type==='house'||bx.type==='city_building'||bx.type==='stall'||bx.type==='tent'){
       poly(bx,bx.type==='house'?'#ba7854':bx.awningColor||'#e4d3a7','#6c694c');
       const ridge=[fromBoxLocal(bx,-bx.hx,0),fromBoxLocal(bx,bx.hx,0)];
       const corners=[fromBoxLocal(bx,-bx.hx,-bx.hz),fromBoxLocal(bx,bx.hx,-bx.hz),...ridge.slice().reverse()];
@@ -158,6 +163,7 @@ export function mapImage(world) {
     } else if(bx.type==='workbench')poly(bx,'#aa8050','#695c3e');
     else if(bx.type==='ruin_wall')poly(bx,'#e1d7b6','#89977b');
     else if(bx.type==='fence')poly(bx,'#a18a55','#6c764e');
+    else if(bx.type==='city_wall')poly(bx,'#d7cdb0','#7b8274');
   }
   for(const br of world.bridges){
     poly(br,'#c9a575','#736548');
@@ -166,6 +172,11 @@ export function mapImage(world) {
       const a=fromBoxLocal(br,x,-br.hz),c=fromBoxLocal(br,x,br.hz);
       g.beginPath();g.moveTo(tx(a.x),tz(a.z));g.lineTo(tx(c.x),tz(c.z));g.stroke();
     }
+  }
+  if(world.data.city?.enabled){
+    for(const dock of world.docks)poly(dock,'#ad8b5b','#736548');
+    const f=world.data.city.fountain;
+    g.beginPath();g.arc(tx(f.x),tz(f.z),f.r*PX,0,Math.PI*2);g.fillStyle='#80babb';g.fill();g.lineWidth=2;g.strokeStyle='#e5dcc6';g.stroke();
   }
   // Short water strokes communicate current without obscuring river crossings.
   g.strokeStyle='#def0d877';g.lineWidth=.9;

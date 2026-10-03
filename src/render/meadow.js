@@ -3,6 +3,7 @@ import art from '../../data/art.json' with {type:'json'};
 import { createRng } from '../core/rng.js';
 import { meadowDensity } from './ground-field.js';
 import { surfaceData } from './ground.js';
+import { cityFloorAt } from '../core/city.js';
 
 export function meadowPlants(world, extraPatches=[]) {
   const rng=createRng(842),field=surfaceData(world),hf=world.heightfield,grass=[],flowers=[];
@@ -13,6 +14,7 @@ export function meadowPlants(world, extraPatches=[]) {
       array[(a+1)*stride]*(1-v)+array[(a+hf.w)*stride]*(1-u)+array[(a+hf.w+1)*stride]*(u+v-1);
   };
   const clear=(x,z)=>{
+    if(cityFloorAt(world.data.city,x,z))return false;
     const b=world.bounds;
     if(x<=b.minX+.3||x>=b.maxX-.3||z<=b.minZ+.3||z>=b.maxZ-.3)return false;
     if(world.isWater(x,z,.6)||world.dockAt(x,z)||world.roadDist(x,z)<.1||world.slopeAt(x,z)>.65)return false;

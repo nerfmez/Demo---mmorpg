@@ -6,7 +6,9 @@ import { districtBuilding, harborWorkProp } from '../../src/render/districts.js'
 import { marketBuilding, marketDockCargo, marketStall } from '../../src/render/market.js';
 import { disposeObject } from '../../src/render/dispose.js';
 
-const world=JSON.parse(readFileSync(new URL('../../data/world.json',import.meta.url)));
+// Procedural pre-city art keeps its footprint coverage; imported source geometry
+// and the current city collision/navigation are covered by tests/core/city.test.js.
+const world=JSON.parse(readFileSync(new URL('../fixtures/azure-pre-city/world.json',import.meta.url)));
 function check(plot,make){
   const model=make({...plot,x:0,z:0,angle:0},0);
   try{

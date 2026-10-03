@@ -92,7 +92,14 @@ export class View {
     this.terrain = createTerrain(world);
     this.scene.add(this.terrain.group);
     const env = createEnvironment(world);
-    this.scene.add(createWater(world, env.root));
+    // Keep only authored native hull/pile contact roots before batching moves
+    // their geometry. These CPU-only clones share buffers and are never rendered.
+    const nativeContacts=new THREE.Group();
+    if(world.data.city?.enabled){
+      env.root.updateMatrixWorld(true);
+      env.root.traverse(o=>{if(o.userData.waterContact){const copy=o.clone(true);o.matrixWorld.decompose(copy.position,copy.quaternion,copy.scale);nativeContacts.add(copy);}});
+    }
+    if(!world.data.city?.enabled)this.scene.add(createWater(world, env.root));
     env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
     bakeGrassColours(this.renderer, env.root, world); // one GPU pass; blades then just read colours
     // after the water-contact bake: merge fixed scenery that shares a material, per map cell
@@ -100,7 +107,15 @@ export class View {
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
     this.cityReady = loadCity(world).then(city => {
-      if (city) { this.scene.add(city.root); this.cityRoot = city.root; this.cityStats = city.stats; }
+      if (city) {
+        this.scene.add(city.root); this.cityRoot = city.root; this.cityStats = city.stats;
+        // One bake from actual native hulls and imported foundations/piles.
+        const start=performance.now();nativeContacts.add(city.root);
+        const water=createWater(world,nativeContacts);
+        nativeContacts.remove(city.root);this.scene.add(city.root,water);
+        this.cityStats.waterContactMs=performance.now()-start;
+        this.cityStats.waterContactSections=water.userData.contactSections;
+      }
     });
 
     this.vfx = new Vfx(this.scene, world);

@@ -11,6 +11,6 @@ import quests from '../data/quests.json';
 import models from '../data/models.json';
 import city from '../data/city-v3.json';
 
-if (world.city?.enabled) world.city = { ...city, enabled: true };
+if (world.city?.enabled) world.city = { ...city, ...world.city, docks: [...city.docks,...world.city.joins||[]] };
 
 export const data = { skills, mods, monsters, items, recipes, progression, jobtree, world, quests, models };

@@ -652,7 +652,9 @@ export function createWater(world, scenery = null) {
   }
   const sea = world.data.sea;
   if (sea) {
-    const seaMat = seaMaterial(world,bakeWaterContact(world,scenery));
+    const contact=bakeWaterContact(world,scenery);
+    group.userData.contactSections=contact.sections;
+    const seaMat = seaMaterial(world,contact);
     // Match the terrain grid so the thin film cannot cut through sand at coarse triangle edges.
     // Cull in tiles; only the few swash tiles in the camera view reach the GPU.
     const hf = world.heightfield;

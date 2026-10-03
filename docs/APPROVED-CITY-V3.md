@@ -104,3 +104,14 @@ separate checks. There are no repository lint or type-check scripts.
 Performance comparisons must identify exact commits, matching camera/quality/
 viewport and renderer. Chromium SwiftShader timings are software-renderer samples,
 not physical phone/iPad FPS. Real-device mobile performance remains unmeasured.
+
+### Journal compatibility
+
+The WebKit phone-landscape review exposed native ancestor scrolling in the
+journal canvas. A focused journal-only reproduction kept the camera fully fitted
+but native `scrollIntoView` moved `.atlas-space` 159 px horizontally, placing the
+map outside the screen. Its three camera containers now use `overflow: clip`;
+the inspector and lists retain their own scrolling. The browser regression waits
+for camera settling, requests native scrolling at both ends of the graph, and
+keeps the original minimum-size, map bounds, hit-test and caption assertions.
+No journal progression/content, EXP/Job rules or fullscreen behavior changed.

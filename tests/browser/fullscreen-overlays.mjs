@@ -35,7 +35,10 @@ try{
    await page.evaluate(action=>document.querySelector(action==='search'?'#node-search':'[data-action="confirm-respec"]').focus(),action);
    assert.equal(await page.locator('.fullscreen-gate').evaluate(d=>d.contains(document.activeElement)),true,'underlying dialog cannot steal focus');
    await page.keyboard.type('paused');await page.keyboard.press('Escape');assert.equal(await page.locator('.fullscreen-gate').evaluate(d=>d.open),true,'Esc cannot dismiss the pause gate');
-   const target=await page.locator(action==='search'?'#node-search':'[data-action="confirm-respec"]').boundingBox();await page.touchscreen.tap(target.x+target.width/2,target.y+target.height/2);
+   // Modal positions change with content. Do not accidentally press a visible
+   // gate resume/fallback button while trying to touch the suspended dialog.
+   const target=await page.locator(action==='search'?'#node-search':'[data-action="confirm-respec"]').evaluate(el=>{const r=el.getBoundingClientRect();for(const x of [r.left+2,r.right-2,r.x+r.width/2])for(const y of [r.top+2,r.bottom-2,r.y+r.height/2])if(!document.elementFromPoint(x,y)?.closest('.fullscreen-gate button'))return {x,y};return null;});
+   assert.ok(target,'a suspended-dialog coordinate outside gate actions');await page.touchscreen.tap(target.x,target.y);
    assert.deepEqual(await page.evaluate(()=>({owned:[...__frontier.game.ch.jobNodes],gold:__frontier.game.ch.gold,points:__frontier.game.ch.jobPoints,selected:__frontier.panels.jobJournal.snapshot().selected})),before,'paused input cannot search, purchase or respec');
    if(action==='search')assert.equal(await page.locator('#node-search').inputValue(),'v1');
    await page.screenshot({path:out+`${label}-${action}-paused.png`});

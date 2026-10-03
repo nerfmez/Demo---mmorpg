@@ -4,15 +4,21 @@ export function journalProgress(ch,data){
  const spent=new Set(ch.jobNodes.filter(id=>id!==tree.origin&&known.has(id))).size;
  const tiers=[...new Set(Object.values(tree.sections).map(s=>s.tier))].sort((a,b)=>a-b);
  const names=['ก้าวแรกของการเดินทาง','ทางแยกนอกเมือง','เขียนเส้นทางของตัวเอง','พ้นขอบฟ้า','ใต้แสงดาว','เส้นทางที่ยังเปิดกว้าง'];
- const stages=tiers.map(tier=>{const requiresSpent=Math.min(...Object.values(tree.sections).filter(s=>s.tier===tier).map(s=>s.requiresSpent));return {tier,requiresSpent,nameTh:names[tier-1]||`บท ${tier}`,unlocked:spent>=requiresSpent};});
+ const stages=tree.presentation?.stages.map(s=>({tier:s.id,requiresSpent:s.gate,nameTh:s.name,unlocked:spent>=s.gate}))||tiers.map(tier=>{const requiresSpent=Math.min(...Object.values(tree.sections).filter(s=>s.tier===tier).map(s=>s.requiresSpent));return {tier,requiresSpent,nameTh:names[tier-1]||`บท ${tier}`,unlocked:spent>=requiresSpent};});
  return {spent,stages,current:stages.filter(s=>s.unlocked).at(-1)||stages[0],next:stages.find(s=>!s.unlocked)||null};
 }
 export function startingEntries(tree){
+ if(tree.presentation?.stages)return tree.presentation.stages[0].nodes.map(id=>[id,tree.nodes[id]]);
  // Gather CURRENT canonical foundation and actual origin neighbours. No old IDs/data.
  const ids=new Set([tree.origin,...Object.entries(tree.nodes).filter(([,n])=>n.category==='foundation'&&tree.sections[n.section].tier===1).map(([id])=>id),...tree.nodes[tree.origin].links.filter(id=>tree.sections[tree.nodes[id].section].tier===1)]);
  return [...ids].map(id=>[id,tree.nodes[id]]);
 }
 export function chapterSpreads(tree,tier,leafSize=6){
+ if(tree.presentation?.stages){
+  const stage=tree.presentation.stages.find(s=>s.id===tier);if(!stage)return [];
+  const paths=stage.nodes?[{name:stage.name,nodes:stage.nodes}]:stage.paths;
+  return paths.map(p=>[{label:p.name,color:'#617d82',entries:p.nodes.map(id=>[id,tree.nodes[id]])}]);
+ }
  const shared=tier===1?new Set(startingEntries(tree).map(([id])=>id)):new Set();
  const entries=(category,branch)=>Object.entries(tree.nodes).filter(([id,n])=>!shared.has(id)&&n.category===category&&tree.sections[n.section].tier===tier&&(category!=='specialist'||(n.branch||n.requiresJob)===branch)).sort((a,b)=>a[1].clusterPos[1]-b[1].clusterPos[1]||a[1].clusterPos[0]-b[1].clusterPos[0]);
  const leaves=[];

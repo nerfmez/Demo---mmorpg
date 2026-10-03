@@ -35,11 +35,11 @@ try{
   const nav=async tab=>{if(await page.locator('.is-journal').count()){await click('[data-action="exit"]');await page.evaluate(t=>window.__frontier.panels.open(t),tab);return;}if(width<=700)await page.locator('[data-page-select]').selectOption(tab);else await click(`[data-tab="${tab}"]`);};
   const shot=async label=>{await page.screenshot({path:out+size+'-'+label+'.png',timeout:60000});};
   const noOverflow=async()=>assert.ok(await page.locator('.pbody').evaluate(el=>el.scrollWidth<=el.clientWidth+2),size+' content horizontal overflow');
-  assert.equal(await page.locator('#plane > [data-node]').count(),8);assert.equal(await page.locator('.seeker-constellation').count(),0);await noOverflow();await shot('shared-start');
+  assert.equal(await page.locator('#plane > [data-node]').count(),6);assert.equal(await page.locator('.seeker-constellation').count(),0);await noOverflow();await shot('shared-start');
   const before=await page.evaluate(()=>window.__frontier.game.ch.jobPoints);
-  await journalJump(page,'a1');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection never spends');
+  await journalJump(page,'lesson.prepare');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before,'inspection never spends');
   await click('[data-action="learn"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-1);
-  await journalJump(page,'aoe_radius');assert.ok(await page.locator('[data-action="learn"][data-id="aoe_radius"]').count());
+  await journalJump(page,'lesson.strike');assert.ok(await page.locator('[data-action="learn"][data-id="lesson.strike"]').count());
   await click('[data-action="learn"]');assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),before-2);
   await click('[data-action="close-detail"]');await click('[data-action="fit"]');await noOverflow();await shot('ordinary-path');
   const pts=await page.evaluate(()=>window.__frontier.game.ch.jobPoints),rect=await page.locator('#map').boundingBox();

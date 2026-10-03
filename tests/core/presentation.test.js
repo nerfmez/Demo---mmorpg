@@ -1,3 +1,4 @@
+// Legacy cel artwork coverage; reviewed journal nodes use the shared engraved sigils.
 // Presentation contracts that prevent missing/reused art when content is added.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +11,7 @@ test('every named content entry has distinct authored artwork within its categor
   gear:Object.keys(data.items.gearBases),material:Object.keys(data.items.materials),
   skill:[...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)],
   mod:Object.keys(data.mods.mods),monster:Object.keys(data.monsters.monsters),
-  zone:[...new Set([...data.world.zones,...legacyData.world.zones].map(z=>z.id))],job:Object.keys(data.jobtree.nodes)
+  zone:[...new Set([...data.world.zones,...legacyData.world.zones].map(z=>z.id))],job:Object.entries(data.jobtree.nodes).filter(([,n])=>!n.stage).map(([id])=>id)
  };
  for(const [kind,ids] of Object.entries(catalogs)){
   assert.deepEqual(Object.keys(ART[kind]).sort(),[...ids].sort(),kind+' artwork coverage');

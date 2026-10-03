@@ -13,17 +13,13 @@ export async function verifyPassiveGestures(page,{context,engineName,capture=asy
  await page.evaluate(()=>{const f=window.__frontier;f.panels.close();f.game.ch.jobNodes=['origin'];f.game.ch.jobLevel=20;f.game.ch.jobPoints=19;f.game.ch.gold=1000;f.panels.journalState=null;f.panels.open('job');});
  const tap=async s=>{const t=page.locator(s).first();if(await page.evaluate(()=>navigator.maxTouchPoints>0))await t.tap();else await t.click();await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));};
  const state=()=>page.evaluate(()=>__frontier.panels.jobJournal.snapshot());
- assert.equal(await page.locator('#plane > [data-node]').count(),8);assert.equal(await page.locator('.seeker-constellation').count(),0);
+ assert.equal(await page.locator('#plane > [data-node]').count(),6);assert.equal(await page.locator('.seeker-constellation').count(),0);
  assert.equal((await state()).audio.plays,0);assert.equal((await state()).audio.contextState,'not-created');
- await journalJump(page,'v1');assert.equal((await state()).owned.length,1,'inspection never spends');await tap('[data-action="learn"]');assert.equal((await state()).points,18);
- for(const id of ['v2','m_atk','vj']){await journalJump(page,id);await tap('[data-action="learn"]');}
- assert.ok((await state()).owned.includes('vj'));
- await journalJump(page,'aj');assert.ok(await page.locator('[data-action="learn"]').isDisabled(),'second existing profession blocked');
- await journalJump(page,'v9');assert.ok(await page.locator('#locked-region').isVisible());assert.match(await page.locator('#locked-region').innerText(),/17 แต้ม/);assert.equal((await state()).progress.spent,4);
- const candidates=Object.entries(data.jobtree.nodes).filter(([,n])=>n.category==='melee'||(n.category==='specialist'&&(n.requiresJob||n.branch)==='vanguard'));
- while(true){const ch=await page.evaluate(()=>__frontier.game.ch);if(ch.jobNodes.length-1>=17)break;const id=jobNodeState(ch,data,'v7').can?'v7':candidates.find(([id])=>id!=='v9'&&jobNodeState(ch,data,id).can)?.[0];assert.ok(id,'connected investment exists');await journalJump(page,id);await tap('[data-action="learn"]');}
- await journalJump(page,'v9');assert.ok(await page.locator('[data-action="learn"]').isEnabled());assert.equal((await state()).points,2);
- await capture('job-detail');await tap('[data-action="close-detail"]');
+ await journalJump(page,'lesson.prepare');assert.equal((await state()).owned.length,1,'inspection never spends');await tap('[data-action="learn"]');assert.equal((await state()).points,18);
+ for(const id of ['lesson.strike','lesson.rhythm','path.impact','path.reach','path.precision','path.horizon']){await journalJump(page,id);await tap('[data-action="learn"]');}
+ assert.equal((await state()).progress.spent,7);await journalJump(page,'advanced.power');assert.ok(await page.locator('[data-action="learn"]').isEnabled());
+ await journalJump(page,'advanced.flow');assert.ok(await page.locator('[data-action="learn"]').isDisabled(),'both named parents required');
+ await journalJump(page,'advanced.power');await capture('job-detail');await tap('[data-action="close-detail"]');
  const before=await state();
  await page.locator('#map').evaluate(el=>{el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:91,pointerType:'touch',clientX:100,clientY:150}));el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:91}));});
  await tap('[data-action="zoom-out"]');await tap('[data-action="zoom-in"]');

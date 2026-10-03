@@ -9,7 +9,7 @@ import {SIGILS} from '../../src/ui/sigils.js';
 import {art,hasArt} from '../../src/ui/art.js';
 
 test('rebalance retains legacy content IDs and optional chapter navigation',()=>{
- const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id));
+ const originals=Object.entries(data.jobtree.nodes).filter(([id])=>!/_t[2-6]_/.test(id)&&!data.jobtree.nodes[id].stage);
  assert.equal(originals.length,87);
  for(const [id,n] of originals){assert.ok(data.jobtree.sections[n.section],id);assert.ok(n.links.every(id=>data.jobtree.nodes[id]));}
  for(const group of data.jobtree.groups){assert.equal(data.jobtree.nodes[group.job].type,'job');assert.equal(data.jobtree.nodes[group.job].branch,group.id);}
@@ -38,19 +38,20 @@ test('journal starts at real shared links and indexes every current node without
  const ui={game:{ch,data},sel:{},overlay:{clientWidth:1180}};
  assert.match(jobView(ui),/skill-journal/);assert.ok(!jobView(ui).includes('seeker-constellation'));
  const start=startingEntries(data.jobtree).map(([id])=>id);
- assert.equal(start.length,8);assert.ok(start.includes(data.jobtree.origin));
- for(const id of data.jobtree.nodes.origin.links)assert.ok(start.includes(id));
+ assert.equal(start.length,6);assert.ok(start.includes(data.jobtree.origin));
+ assert.ok(start.includes('lesson.prepare'));
  for(const leafSize of [4,6]){
   const indexes=journalProgress(ch,data).stages.flatMap(s=>chapterSpreads(data.jobtree,s.tier,leafSize).flatMap(p=>p.flatMap(l=>l.entries.map(([id])=>id))));
-  assert.equal(indexes.length,Object.keys(data.jobtree.nodes).length);
+  const active=data.jobtree.presentation.stages.flatMap(s=>s.nodes||s.paths.flatMap(p=>p.nodes));
+  assert.equal(indexes.length,36);
   assert.equal(new Set(indexes).size,indexes.length);
-  assert.deepEqual([...indexes].sort(),Object.keys(data.jobtree.nodes).sort());
+  assert.deepEqual([...indexes].sort(),active.sort());
  }
  assert.equal(JSON.stringify({ch,tree:data.jobtree}),before);
 });
 test('journal chapter labels reflect current section minima, not new eligibility rules',()=>{
  const ch=createCharacter(data);ch.jobLevel=18;ch.jobPoints=17;
- assert.deepEqual(journalProgress(ch,data).stages.map(s=>s.requiresSpent),[0,3,9,17,25,33]);
+ assert.deepEqual(journalProgress(ch,data).stages.map(s=>s.requiresSpent),[0,3,7]);
  assert.equal(journalProgress(ch,data).current.tier,1);
  for(const id of ['v1','a1','r1'])assert.ok(allocateJobNode(ch,data,id).done);
  assert.equal(journalProgress(ch,data).current.tier,2);

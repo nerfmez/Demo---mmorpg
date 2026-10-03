@@ -59,6 +59,11 @@ jobs:
         run: node tests/browser/workspaces.mjs
         env:
           BROWSER: ${{ matrix.browser }}
+      - name: Saved character Continue, reviewed allocation and reload
+        if: steps.scope.outputs.ui == 'true'
+        run: node tests/browser/journal-save.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
         if: always() && steps.scope.outputs.ui == 'true'
         with:

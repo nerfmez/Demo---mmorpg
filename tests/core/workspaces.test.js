@@ -27,7 +27,7 @@ test('constellations cover every node and specialist subviews preserve the four 
   assert.ok(t.constellations.some(c=>c.id===n.category),id);
   assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
  }
- assert.equal(Object.keys(t.nodes).length,207);
+ assert.equal(Object.keys(t.nodes).length,242);
  for(const [id,n] of Object.entries(t.nodes)){
   assert.ok(t.sections[n.section],id+' belongs to a major section');
   assert.ok(!('tier' in n)&&!('requiresSpent' in n),id+' has no individual stage gate');

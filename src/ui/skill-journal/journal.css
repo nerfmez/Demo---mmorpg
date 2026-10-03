@@ -128,3 +128,7 @@
  .skill-journal .learn-button {min-height:44px}
 }
 @media(max-height:520px){.skill-journal .map-viewport,.skill-journal .travel-view .map-viewport,.skill-journal .junction-view .map-viewport{top:62px;bottom:42px}}
+
+.skill-journal .edge.purchased{stroke-dasharray:4 6;stroke:var(--node-ink,#597567);stroke-width:1.6;opacity:.8}
+.skill-journal .edge.learned{stroke-dasharray:4 6}
+.skill-journal .edge.route-pending{opacity:0}

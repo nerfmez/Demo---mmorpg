@@ -214,6 +214,12 @@ export function jobNodeState(ch, data, nodeId) {
   if (tier.tier && tier.spent < tier.requires)
     return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
 
+  // Directed reviewed skills require ALL named parents. Legacy adjacency rules
+  // remain intact for existing content and retained saves.
+  if (node.requires) {
+    const missing = node.requires.filter(id => !ch.jobNodes.includes(id));
+    if (missing.length) return { can: false, reason: 'prerequisite', missing };
+  }
   // Section unlock and network adjacency are independent requirements.
   if (!node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
@@ -236,6 +242,17 @@ export function jobPath(ch, data, target) {
   const nodes = data.jobtree.nodes;
   if (!nodes[target]) return [];
   if (ch.jobNodes.includes(target)) return [target];
+  if (nodes[target].requires) {
+    const ordered = [], seen = new Set();
+    const visit = id => {
+      if (seen.has(id) || ch.jobNodes.includes(id) || !nodes[id]) return;
+      seen.add(id);
+      for (const parent of nodes[id].requires || []) visit(parent);
+      ordered.push(id);
+    };
+    visit(target);
+    return ordered;
+  }
   const job = currentJob(ch, data)?.branch;
   const allowed = id => !nodes[id].requiresJob || nodes[id].requiresJob === job;
   const queue = ch.jobNodes.filter(id => nodes[id]).map(id => [id]);

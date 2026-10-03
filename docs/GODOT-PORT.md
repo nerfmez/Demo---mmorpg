@@ -404,3 +404,7 @@ Spirit Wolf (`renderer: spirit`) has a small inward summoning mark and two short
 `render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or 1 device pixel per CSS pixel, and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
 
 `tests/browser/gpu-bench.mjs` times fixed scenes through to GPU completion and the CPU submission separately (SwiftShader: relative before/after only, not iPad FPS); it fails if any shader errors are logged.
+
+## Reviewed directed journal graph
+
+`jobtree.presentation.stages/groups` indexes the shared first page and free later gateways. New skill `requires` lists are ALL-parent directed prerequisites in `Character.gd`; legacy nodes keep adjacency and profession rules. Keep the existing tree revision and ownership IDs when adding this graph so old saves retain points, bonuses and choices. Layout, paper motion and success-only dashed ink are presentation; they never allocate points. See `REVIEWED-SKILL-TREE.md`.

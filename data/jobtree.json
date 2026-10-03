@@ -15,7 +15,8 @@
         "a1",
         "r1",
         "w1",
-        "f_hp"
+        "f_hp",
+        "lesson.prepare"
       ],
       "effects": {},
       "group": "origin",
@@ -5107,6 +5108,886 @@
         1930,
         990
       ]
+    },
+    "lesson.prepare": {
+      "name": "เตรียมพร้อม",
+      "stage": 1,
+      "requires": [
+        "origin"
+      ],
+      "cost": 1,
+      "effects": {
+        "maxHp": 12
+      },
+      "note": "เรียนรู้วิธีอ่านเงื่อนไขและใช้หนึ่งแต้ม",
+      "nameTh": "เตรียมพร้อม",
+      "descTh": "เรียนรู้วิธีอ่านเงื่อนไขและใช้หนึ่งแต้ม",
+      "type": "minor",
+      "section": "stage-1",
+      "category": "support",
+      "links": [
+        "origin",
+        "lesson.strike",
+        "lesson.care"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "lesson.strike": {
+      "name": "ฝึกแรงปะทะ",
+      "stage": 1,
+      "requires": [
+        "lesson.prepare"
+      ],
+      "cost": 1,
+      "effects": {
+        "attack": 2
+      },
+      "note": "เริ่มทิศทางโจมตี ผสมกับการดูแลได้",
+      "nameTh": "ฝึกแรงปะทะ",
+      "descTh": "เริ่มทิศทางโจมตี ผสมกับการดูแลได้",
+      "type": "minor",
+      "section": "stage-1",
+      "category": "melee",
+      "links": [
+        "lesson.prepare",
+        "lesson.rhythm"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "lesson.rhythm": {
+      "name": "จังหวะโจมตี",
+      "stage": 1,
+      "requires": [
+        "lesson.strike"
+      ],
+      "cost": 1,
+      "effects": {
+        "meleeDamagePct": 4
+      },
+      "note": "ต่อจากแรงปะทะ ต้องเรียนรู้จุดก่อนหน้า",
+      "nameTh": "จังหวะโจมตี",
+      "descTh": "ต่อจากแรงปะทะ ต้องเรียนรู้จุดก่อนหน้า",
+      "type": "minor",
+      "section": "stage-1",
+      "category": "melee",
+      "links": [
+        "lesson.strike",
+        "path.impact"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "lesson.care": {
+      "name": "ดูแลตัวเอง",
+      "stage": 1,
+      "requires": [
+        "lesson.prepare"
+      ],
+      "cost": 1,
+      "effects": {
+        "healPct": 5
+      },
+      "note": "เริ่มทิศทางดูแล ผสมกับการโจมตีได้",
+      "nameTh": "ดูแลตัวเอง",
+      "descTh": "เริ่มทิศทางดูแล ผสมกับการโจมตีได้",
+      "type": "minor",
+      "section": "stage-1",
+      "category": "support",
+      "links": [
+        "lesson.prepare",
+        "lesson.shelter"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "lesson.shelter": {
+      "name": "ตั้งหลัก",
+      "stage": 1,
+      "requires": [
+        "lesson.care"
+      ],
+      "cost": 1,
+      "effects": {
+        "defense": 2
+      },
+      "note": "ต่อจากการดูแล ต้องเรียนรู้จุดก่อนหน้า",
+      "nameTh": "ตั้งหลัก",
+      "descTh": "ต่อจากการดูแล ต้องเรียนรู้จุดก่อนหน้า",
+      "type": "minor",
+      "section": "stage-1",
+      "category": "lasting",
+      "links": [
+        "lesson.care",
+        "path.support"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.impact": {
+      "name": "ต่อแรงปะทะ",
+      "stage": 2,
+      "requires": [
+        "lesson.rhythm"
+      ],
+      "cost": 1,
+      "effects": {
+        "attack": 2
+      },
+      "note": "เริ่มทางแรงและระยะในขั้น 2",
+      "nameTh": "ต่อแรงปะทะ",
+      "descTh": "เริ่มทางแรงและระยะในขั้น 2",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "melee",
+      "links": [
+        "lesson.rhythm",
+        "path.reach",
+        "path.burst"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.reach": {
+      "name": "ลูกศรเบา",
+      "stage": 2,
+      "requires": [
+        "path.impact"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileSpeedPct": 5
+      },
+      "note": "เพิ่มระยะทางเลือก ไม่ล็อกอาชีพ",
+      "nameTh": "ลูกศรเบา",
+      "descTh": "เพิ่มระยะทางเลือก ไม่ล็อกอาชีพ",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "projectile",
+      "links": [
+        "path.impact",
+        "path.precision"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.burst": {
+      "name": "วงกระทบ",
+      "stage": 2,
+      "requires": [
+        "path.impact"
+      ],
+      "cost": 1,
+      "effects": {
+        "areaRadiusPct": 4
+      },
+      "note": "ลองการโจมตีพื้นที่หลังเรียนรู้รากของทาง",
+      "nameTh": "วงกระทบ",
+      "descTh": "ลองการโจมตีพื้นที่หลังเรียนรู้รากของทาง",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "area",
+      "links": [
+        "path.impact",
+        "advanced.flow",
+        "path.expansion"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.support": {
+      "name": "ต่อการดูแล",
+      "stage": 2,
+      "requires": [
+        "lesson.shelter"
+      ],
+      "cost": 1,
+      "effects": {
+        "maxHp": 12
+      },
+      "note": "เริ่มทางตั้งหลักและเคลื่อนที่ในขั้น 2",
+      "nameTh": "ต่อการดูแล",
+      "descTh": "เริ่มทางตั้งหลักและเคลื่อนที่ในขั้น 2",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "support",
+      "links": [
+        "lesson.shelter",
+        "path.ward",
+        "path.step"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.ward": {
+      "name": "เกราะร่วมทาง",
+      "stage": 2,
+      "requires": [
+        "path.support"
+      ],
+      "cost": 1,
+      "effects": {
+        "barrierPct": 5
+      },
+      "note": "ต่อยอดการป้องกัน",
+      "nameTh": "เกราะร่วมทาง",
+      "descTh": "ต่อยอดการป้องกัน",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "lasting",
+      "links": [
+        "path.support",
+        "path.recovery"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.step": {
+      "name": "ก้าวเบา",
+      "stage": 2,
+      "requires": [
+        "path.support"
+      ],
+      "cost": 1,
+      "effects": {
+        "moveSpeedPct": 3
+      },
+      "note": "เพิ่มการเคลื่อนที่ โดยไม่เปลี่ยนอาชีพ",
+      "nameTh": "ก้าวเบา",
+      "descTh": "เพิ่มการเคลื่อนที่ โดยไม่เปลี่ยนอาชีพ",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "mobility",
+      "links": [
+        "path.support",
+        "advanced.flow",
+        "path.pace"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.power": {
+      "name": "รวมพลัง",
+      "stage": 3,
+      "requires": [
+        "path.horizon"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileDamagePct": 5
+      },
+      "note": "ต่อจากมองไกล · สายที่จำเป็นใช้ 7 แต้มก่อนเข้าบทนี้",
+      "nameTh": "รวมพลัง",
+      "descTh": "ต่อจากมองไกล · สายที่จำเป็นใช้ 7 แต้มก่อนเข้าบทนี้",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "projectile",
+      "links": [
+        "path.horizon",
+        "advanced.precision",
+        "advanced.arc"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.precision": {
+      "name": "ระยะที่แม่นยำ",
+      "stage": 3,
+      "requires": [
+        "advanced.power"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileSpeedPct": 5
+      },
+      "note": "ลำดับถัดจากรวมพลัง",
+      "nameTh": "ระยะที่แม่นยำ",
+      "descTh": "ลำดับถัดจากรวมพลัง",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "projectile",
+      "links": [
+        "advanced.power",
+        "advanced.focus"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.arc": {
+      "name": "ขอบเขตพลัง",
+      "stage": 3,
+      "requires": [
+        "advanced.power"
+      ],
+      "cost": 1,
+      "effects": {
+        "areaRadiusPct": 5
+      },
+      "note": "อีกทางจากรวมพลัง ผสมกับระยะที่แม่นยำได้",
+      "nameTh": "ขอบเขตพลัง",
+      "descTh": "อีกทางจากรวมพลัง ผสมกับระยะที่แม่นยำได้",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "area",
+      "links": [
+        "advanced.power",
+        "advanced.wave"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.guard": {
+      "name": "ดูแลไม่ขาดช่วง",
+      "stage": 3,
+      "requires": [
+        "path.endurance"
+      ],
+      "cost": 1,
+      "effects": {
+        "healPct": 5
+      },
+      "note": "ต่อจากตั้งหลักมั่นคง · สายที่จำเป็นใช้ 7 แต้มก่อนเข้าบทนี้",
+      "nameTh": "ดูแลไม่ขาดช่วง",
+      "descTh": "ต่อจากตั้งหลักมั่นคง · สายที่จำเป็นใช้ 7 แต้มก่อนเข้าบทนี้",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "support",
+      "links": [
+        "path.endurance",
+        "advanced.renew",
+        "advanced.endure"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.renew": {
+      "name": "ฟื้นตัว",
+      "stage": 3,
+      "requires": [
+        "advanced.guard"
+      ],
+      "cost": 1,
+      "effects": {
+        "maxHp": 12
+      },
+      "note": "ลำดับถัดจากดูแลไม่ขาดช่วง",
+      "nameTh": "ฟื้นตัว",
+      "descTh": "ลำดับถัดจากดูแลไม่ขาดช่วง",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "support",
+      "links": [
+        "advanced.guard",
+        "advanced.restore"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.endure": {
+      "name": "ยืนระยะ",
+      "stage": 3,
+      "requires": [
+        "advanced.guard"
+      ],
+      "cost": 1,
+      "effects": {
+        "defense": 2
+      },
+      "note": "อีกทางจากดูแลไม่ขาดช่วง",
+      "nameTh": "ยืนระยะ",
+      "descTh": "อีกทางจากดูแลไม่ขาดช่วง",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "lasting",
+      "links": [
+        "advanced.guard",
+        "advanced.fortify"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.flow": {
+      "name": "จังหวะผสม",
+      "stage": 3,
+      "requires": [
+        "path.burst",
+        "path.step"
+      ],
+      "cost": 1,
+      "effects": {
+        "areaDamagePct": 5
+      },
+      "note": "ต้องเรียนรู้ทั้งวงกระทบและก้าวเบา เป็นเงื่อนไขร่วม ไม่ใช่เลือกอาชีพ",
+      "nameTh": "จังหวะผสม",
+      "descTh": "ต้องเรียนรู้ทั้งวงกระทบและก้าวเบา เป็นเงื่อนไขร่วม ไม่ใช่เลือกอาชีพ",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "area",
+      "links": [
+        "path.burst",
+        "path.step",
+        "advanced.echo",
+        "advanced.dash"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.echo": {
+      "name": "ส่งแรงต่อ",
+      "stage": 3,
+      "requires": [
+        "advanced.flow"
+      ],
+      "cost": 1,
+      "effects": {
+        "spellDamagePct": 5
+      },
+      "note": "ต่อจากจังหวะผสม",
+      "nameTh": "ส่งแรงต่อ",
+      "descTh": "ต่อจากจังหวะผสม",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "area",
+      "links": [
+        "advanced.flow",
+        "advanced.resonance"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.dash": {
+      "name": "ก้าวต่อเนื่อง",
+      "stage": 3,
+      "requires": [
+        "advanced.flow"
+      ],
+      "cost": 1,
+      "effects": {
+        "moveSpeedPct": 3
+      },
+      "note": "อีกทางจากจังหวะผสม",
+      "nameTh": "ก้าวต่อเนื่อง",
+      "descTh": "อีกทางจากจังหวะผสม",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "mobility",
+      "links": [
+        "advanced.flow",
+        "advanced.momentum"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.precision": {
+      "name": "อ่านระยะ",
+      "stage": 2,
+      "requires": [
+        "path.reach"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileDamagePct": 3
+      },
+      "note": "ต่อจากลูกศรเบา บนทางที่นำไปสู่พลังขั้นถัดไป",
+      "nameTh": "อ่านระยะ",
+      "descTh": "ต่อจากลูกศรเบา บนทางที่นำไปสู่พลังขั้นถัดไป",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "projectile",
+      "links": [
+        "path.reach",
+        "path.horizon"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.horizon": {
+      "name": "มองไกล",
+      "stage": 2,
+      "requires": [
+        "path.precision"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "note": "ปลายทางระยะ · จุดก่อนรวมพลังในบท 3",
+      "nameTh": "มองไกล",
+      "descTh": "ปลายทางระยะ · จุดก่อนรวมพลังในบท 3",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "projectile",
+      "links": [
+        "path.precision",
+        "advanced.power"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.expansion": {
+      "name": "ขยายวง",
+      "stage": 2,
+      "requires": [
+        "path.burst"
+      ],
+      "cost": 1,
+      "effects": {
+        "areaRadiusPct": 3
+      },
+      "note": "ทางเลือกต่อจากวงกระทบ ไม่บังคับเพื่อเข้าทางระยะ",
+      "nameTh": "ขยายวง",
+      "descTh": "ทางเลือกต่อจากวงกระทบ ไม่บังคับเพื่อเข้าทางระยะ",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "area",
+      "links": [
+        "path.burst"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.recovery": {
+      "name": "พักให้พร้อม",
+      "stage": 2,
+      "requires": [
+        "path.ward"
+      ],
+      "cost": 1,
+      "effects": {
+        "healPct": 3
+      },
+      "note": "ต่อจากเกราะร่วมทาง บนทางดูแลต่อเนื่อง",
+      "nameTh": "พักให้พร้อม",
+      "descTh": "ต่อจากเกราะร่วมทาง บนทางดูแลต่อเนื่อง",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "support",
+      "links": [
+        "path.ward",
+        "path.endurance"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.endurance": {
+      "name": "ตั้งหลักมั่นคง",
+      "stage": 2,
+      "requires": [
+        "path.recovery"
+      ],
+      "cost": 1,
+      "effects": {
+        "defense": 2
+      },
+      "note": "ปลายทางดูแล · จุดก่อนดูแลไม่ขาดช่วงในบท 3",
+      "nameTh": "ตั้งหลักมั่นคง",
+      "descTh": "ปลายทางดูแล · จุดก่อนดูแลไม่ขาดช่วงในบท 3",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "lasting",
+      "links": [
+        "path.recovery",
+        "advanced.guard"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "path.pace": {
+      "name": "ก้าวสม่ำเสมอ",
+      "stage": 2,
+      "requires": [
+        "path.step"
+      ],
+      "cost": 1,
+      "effects": {
+        "moveSpeedPct": 2
+      },
+      "note": "ทางเลือกต่อจากก้าวเบา ไม่บังคับเพื่อเข้าทางดูแล",
+      "nameTh": "ก้าวสม่ำเสมอ",
+      "descTh": "ทางเลือกต่อจากก้าวเบา ไม่บังคับเพื่อเข้าทางดูแล",
+      "type": "minor",
+      "section": "stage-2",
+      "category": "mobility",
+      "links": [
+        "path.step"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.focus": {
+      "name": "อ่านจังหวะยิง",
+      "stage": 3,
+      "requires": [
+        "advanced.precision"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileDamagePct": 3
+      },
+      "note": "ต่อยอดความแม่นยำ เลือกได้แยกจากทางพื้นที่",
+      "nameTh": "อ่านจังหวะยิง",
+      "descTh": "ต่อยอดความแม่นยำ เลือกได้แยกจากทางพื้นที่",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "projectile",
+      "links": [
+        "advanced.precision",
+        "advanced.finality"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.finality": {
+      "name": "ส่งแรงแม่นยำ",
+      "stage": 3,
+      "requires": [
+        "advanced.focus"
+      ],
+      "cost": 1,
+      "effects": {
+        "projectileSpeedPct": 3
+      },
+      "note": "ปลายทางความแม่นยำ",
+      "nameTh": "ส่งแรงแม่นยำ",
+      "descTh": "ปลายทางความแม่นยำ",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "projectile",
+      "links": [
+        "advanced.focus"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.wave": {
+      "name": "วงพลังต่อเนื่อง",
+      "stage": 3,
+      "requires": [
+        "advanced.arc"
+      ],
+      "cost": 1,
+      "effects": {
+        "areaDamagePct": 3
+      },
+      "note": "ทางเลือกพื้นที่ ต่อจากขอบเขตพลัง",
+      "nameTh": "วงพลังต่อเนื่อง",
+      "descTh": "ทางเลือกพื้นที่ ต่อจากขอบเขตพลัง",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "area",
+      "links": [
+        "advanced.arc"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.restore": {
+      "name": "ฟื้นอย่างต่อเนื่อง",
+      "stage": 3,
+      "requires": [
+        "advanced.renew"
+      ],
+      "cost": 1,
+      "effects": {
+        "healPct": 3
+      },
+      "note": "ต่อยอดการฟื้นตัว เลือกได้แยกจากการยืนระยะ",
+      "nameTh": "ฟื้นอย่างต่อเนื่อง",
+      "descTh": "ต่อยอดการฟื้นตัว เลือกได้แยกจากการยืนระยะ",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "support",
+      "links": [
+        "advanced.renew"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.fortify": {
+      "name": "รับแรงได้นาน",
+      "stage": 3,
+      "requires": [
+        "advanced.endure"
+      ],
+      "cost": 1,
+      "effects": {
+        "barrierPct": 3
+      },
+      "note": "ทางเลือกต่อจากยืนระยะ",
+      "nameTh": "รับแรงได้นาน",
+      "descTh": "ทางเลือกต่อจากยืนระยะ",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "lasting",
+      "links": [
+        "advanced.endure",
+        "advanced.longwalk"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.longwalk": {
+      "name": "อยู่ร่วมทาง",
+      "stage": 3,
+      "requires": [
+        "advanced.fortify"
+      ],
+      "cost": 1,
+      "effects": {
+        "defense": 2
+      },
+      "note": "ปลายทางป้องกันต่อเนื่อง",
+      "nameTh": "อยู่ร่วมทาง",
+      "descTh": "ปลายทางป้องกันต่อเนื่อง",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "lasting",
+      "links": [
+        "advanced.fortify"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.resonance": {
+      "name": "ส่งต่อจังหวะ",
+      "stage": 3,
+      "requires": [
+        "advanced.echo"
+      ],
+      "cost": 1,
+      "effects": {
+        "spellDamagePct": 3
+      },
+      "note": "ต่อจากส่งแรงต่อ",
+      "nameTh": "ส่งต่อจังหวะ",
+      "descTh": "ต่อจากส่งแรงต่อ",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "area",
+      "links": [
+        "advanced.echo",
+        "advanced.continuum"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.momentum": {
+      "name": "ก้าวมีจังหวะ",
+      "stage": 3,
+      "requires": [
+        "advanced.dash"
+      ],
+      "cost": 1,
+      "effects": {
+        "moveSpeedPct": 2
+      },
+      "note": "ต่อจากก้าวต่อเนื่อง",
+      "nameTh": "ก้าวมีจังหวะ",
+      "descTh": "ต่อจากก้าวต่อเนื่อง",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "mobility",
+      "links": [
+        "advanced.dash",
+        "advanced.continuum"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
+    },
+    "advanced.continuum": {
+      "name": "ต่อเนื่องร่วมกัน",
+      "stage": 3,
+      "requires": [
+        "advanced.resonance",
+        "advanced.momentum"
+      ],
+      "cost": 1,
+      "effects": {
+        "areaDamagePct": 3
+      },
+      "note": "ต้องมีทั้งส่งต่อจังหวะและก้าวมีจังหวะ ภายในทางผสมนี้",
+      "nameTh": "ต่อเนื่องร่วมกัน",
+      "descTh": "ต้องมีทั้งส่งต่อจังหวะและก้าวมีจังหวะ ภายในทางผสมนี้",
+      "type": "minor",
+      "section": "stage-3",
+      "category": "area",
+      "links": [
+        "advanced.resonance",
+        "advanced.momentum"
+      ],
+      "clusterPos": [
+        0,
+        0
+      ]
     }
   },
   "groups": [
@@ -5596,6 +6477,204 @@
       "branch": "ranger",
       "tier": 6,
       "requiresSpent": 33
+    },
+    "stage-1": {
+      "tier": 1,
+      "requiresSpent": 0,
+      "nameTh": "เริ่มทีละก้าว"
+    },
+    "stage-2": {
+      "tier": 2,
+      "requiresSpent": 3,
+      "nameTh": "ขยายวิธีเล่น"
+    },
+    "stage-3": {
+      "tier": 3,
+      "requiresSpent": 7,
+      "nameTh": "ผสมสิ่งที่เรียนรู้"
     }
+  },
+  "reviewedSource": "0171f34de70fdd5021ec4504a639587eddb09c24",
+  "presentation": {
+    "stages": [
+      {
+        "id": 1,
+        "name": "เริ่มทีละก้าว",
+        "gate": 0,
+        "note": "เริ่มจากหนึ่งรอยจด แล้วลองต่อยอด 2 ทิศทาง",
+        "paths": [],
+        "nodes": [
+          "origin",
+          "lesson.prepare",
+          "lesson.strike",
+          "lesson.rhythm",
+          "lesson.care",
+          "lesson.shelter"
+        ]
+      },
+      {
+        "id": 2,
+        "name": "ขยายวิธีเล่น",
+        "gate": 3,
+        "note": "2 ทางหลัก · ทางละ 6 รอยจด · ทางเลือกย่อยไม่บังคับซื้อทั้งหมด",
+        "paths": [
+          {
+            "id": "impact",
+            "name": "แรงและระยะ",
+            "note": "จากแรงปะทะ สู่ระยะไกลหรือพื้นที่",
+            "icon": "horizon",
+            "nodes": [
+              "path.impact",
+              "path.reach",
+              "path.precision",
+              "path.horizon",
+              "path.burst",
+              "path.expansion"
+            ]
+          },
+          {
+            "id": "support",
+            "name": "ตั้งหลักและเคลื่อนที่",
+            "note": "จากการดูแล สู่ป้องกันหรือก้าวต่อ",
+            "icon": "tree",
+            "nodes": [
+              "path.support",
+              "path.ward",
+              "path.recovery",
+              "path.endurance",
+              "path.step",
+              "path.pace"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "ผสมสิ่งที่เรียนรู้",
+        "gate": 7,
+        "note": "3 ทางหลัก · ทางละ 6 รอยจด · เงื่อนไขก่อนหน้าระบุชัด",
+        "paths": [
+          {
+            "id": "power",
+            "name": "ต่อยอดพลัง",
+            "note": "ต่อจากมองไกล · ไม่ต้องซื้อทางดูแล",
+            "icon": "camp",
+            "nodes": [
+              "advanced.power",
+              "advanced.precision",
+              "advanced.focus",
+              "advanced.finality",
+              "advanced.arc",
+              "advanced.wave"
+            ]
+          },
+          {
+            "id": "guard",
+            "name": "ดูแลต่อเนื่อง",
+            "note": "ต่อจากตั้งหลักมั่นคง · ไม่ต้องซื้อทางโจมตี",
+            "icon": "tree",
+            "nodes": [
+              "advanced.guard",
+              "advanced.renew",
+              "advanced.restore",
+              "advanced.endure",
+              "advanced.fortify",
+              "advanced.longwalk"
+            ]
+          },
+          {
+            "id": "flow",
+            "name": "จังหวะผสม",
+            "note": "ต้องมีทั้งวงกระทบ และก้าวเบา",
+            "icon": "signpost",
+            "nodes": [
+              "advanced.flow",
+              "advanced.echo",
+              "advanced.resonance",
+              "advanced.dash",
+              "advanced.momentum",
+              "advanced.continuum"
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "id": "impact",
+        "name": "แรงและระยะ",
+        "note": "จากแรงปะทะ สู่ระยะไกลหรือพื้นที่",
+        "icon": "horizon",
+        "nodes": [
+          "path.impact",
+          "path.reach",
+          "path.precision",
+          "path.horizon",
+          "path.burst",
+          "path.expansion"
+        ],
+        "color": "#a56444"
+      },
+      {
+        "id": "support",
+        "name": "ตั้งหลักและเคลื่อนที่",
+        "note": "จากการดูแล สู่ป้องกันหรือก้าวต่อ",
+        "icon": "tree",
+        "nodes": [
+          "path.support",
+          "path.ward",
+          "path.recovery",
+          "path.endurance",
+          "path.step",
+          "path.pace"
+        ],
+        "color": "#557955"
+      },
+      {
+        "id": "power",
+        "name": "ต่อยอดพลัง",
+        "note": "ต่อจากมองไกล · ไม่ต้องซื้อทางดูแล",
+        "icon": "camp",
+        "nodes": [
+          "advanced.power",
+          "advanced.precision",
+          "advanced.focus",
+          "advanced.finality",
+          "advanced.arc",
+          "advanced.wave"
+        ],
+        "color": "#55898d"
+      },
+      {
+        "id": "guard",
+        "name": "ดูแลต่อเนื่อง",
+        "note": "ต่อจากตั้งหลักมั่นคง · ไม่ต้องซื้อทางโจมตี",
+        "icon": "tree",
+        "nodes": [
+          "advanced.guard",
+          "advanced.renew",
+          "advanced.restore",
+          "advanced.endure",
+          "advanced.fortify",
+          "advanced.longwalk"
+        ],
+        "color": "#557955"
+      },
+      {
+        "id": "flow",
+        "name": "จังหวะผสม",
+        "note": "ต้องมีทั้งวงกระทบ และก้าวเบา",
+        "icon": "signpost",
+        "nodes": [
+          "advanced.flow",
+          "advanced.echo",
+          "advanced.resonance",
+          "advanced.dash",
+          "advanced.momentum",
+          "advanced.continuum"
+        ],
+        "color": "#526e8b"
+      }
+    ]
   }
 }

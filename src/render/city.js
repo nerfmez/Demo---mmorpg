@@ -8,7 +8,7 @@ import { cityGround } from './city-ground.js';
 import { cityFountain } from './city-fountain.js';
 import { cityBank } from './city-bank.js';
 import { loadCityDressing } from './city-dressing.js';
-import { gradeCapeMesh } from './city-cape.js';
+import { gradeCapeMesh, trimCityPaving } from './city-cape.js';
 
 export async function loadCity(world) {
   const city = world.data.city;
@@ -42,9 +42,15 @@ export async function loadCity(world) {
     scene.traverse(o => { if (o.isMesh) solids.push(o); });
     for (const mesh of solids) {
       const old = mesh.material; originals.add(old);
-      if(file.file==='01_Ground.glb'&&/^Mainland[ _]continuous/.test(mesh.name))gradeCapeMesh(mesh,world,root,city.floors[0]);
+      if(file.file==='01_Ground.glb'&&/^Mainland[ _]continuous/.test(mesh.name)){
+        gradeCapeMesh(mesh,world,root,city.floors[0]);
+        if(city.propertyBoundary)trimCityPaving(mesh,world,root);
+      }
       if(file.file==='01_Ground.glb'&&/^Lighthouse[ _]rock[ _]grassy/.test(mesh.name))gradeCapeMesh(mesh,world,root,city.floors[1]);
-      if(file.file==='02_Roads.glb')gradeCapeMesh(mesh,world,root,city.floors[0],true);
+      if(file.file==='02_Roads.glb'){
+        gradeCapeMesh(mesh,world,root,city.floors[0],true);
+        if(city.propertyBoundary)trimCityPaving(mesh,world,root);
+      }
       if(/^Continuous[ _]coastal[ _]cliff[ _]face/.test(mesh.name)){mesh.removeFromParent();mesh.geometry.dispose();continue;}
       if(/^Coastal[ _]shallow[ _]shelf/.test(mesh.name)){
         // Authored shallow-water context never replaces the actual game sea.

@@ -18,6 +18,7 @@ export function cityFloorHeight(city,hf,x,z,floor){
 
 // Exact source street polygons; a paved plaza is walkable but is not a narrow road.
 export function cityRoadDistance(city,x,z){
+  if(city.propertyBoundary&&!cityFloorAt(city,x,z))return Infinity;
   let best=Infinity;
   for(const road of city.roads){
     if(road.name.startsWith('Market '))continue;
@@ -35,6 +36,14 @@ export function cityRoadDistance(city,x,z){
     best=Math.min(best,inside?-edge:edge);
   }
   return best;
+}
+
+// Stable cosmetic exclusion: clipping a slab must not consume a different
+// random sequence and reshuffle plants across the rest of the beach map.
+export function cityPlantingFloorAt(city,x,z){
+  const previous=city?.propertyBoundary?.previousPaving;
+  if(previous&&pointInPolygon(previous.points,x,z)&&!(previous.holes||[]).some(h=>pointInPolygon(h,x,z)))return previous;
+  return cityFloorAt(city,x,z);
 }
 
 export function cityFloorAt(city, x, z, radius = 0) {

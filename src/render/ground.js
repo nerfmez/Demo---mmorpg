@@ -11,6 +11,7 @@ import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
 import { groundBrushUniform } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
+import { outsideClearingWeight } from '../core/ground-regions.js';
 import art from '../../data/art.json' with {type:'json'};
 
 const TILE = 32;
@@ -134,6 +135,11 @@ export function surfaceData(world) {
         const patch=1-smooth(.62+wear,1.18+wear,radius);
         dirt[k]=Math.max(dirt[k],patch*.92);
         road[k]=Math.max(road[k],patch*.55);
+      }
+      if(!cityFloorAt(wd.city,x,z)&&!world.isWater(x,z)){
+        const clearing=outsideClearingWeight(wd.city,x,z);
+        dirt[k]=Math.max(dirt[k],clearing*.97);
+        road[k]=Math.max(road[k],clearing*.92);
       }
       road[k] *= 1 - stone[k] * .7;
     }

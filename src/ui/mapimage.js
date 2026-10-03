@@ -2,6 +2,7 @@
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
 import { fromBoxLocal, pointInPolygon } from '../core/math.js';
+import {outsideClearingWeight} from '../core/ground-regions.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -16,6 +17,18 @@ const SAND = hex('#e9dbad');
 const PLAZA = hex('#d9cfb8');
 
 let cached = null;
+
+// Union overlapping floors (mainland, quay strips and island), subtracting
+// each floor's holes. Even/odd across all floors cuts holes in their overlaps.
+export function clipCityFloors(g,floors,tx,tz){
+  g.beginPath();
+  for(const floor of floors)for(const [i,loop]of [floor.points,...floor.holes||[]].entries()){
+    const area=loop.reduce((a,p,k)=>{const q=loop[(k+1)%loop.length];return a+p[0]*q[1]-q[0]*p[1];},0);
+    const points=(area>0)===(i===0)?loop:[...loop].reverse();
+    points.forEach(([x,z],j)=>j?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();
+  }
+  g.clip('nonzero');
+}
 
 /** @returns {{canvas: HTMLCanvasElement, px: number, minX: number, minZ: number, url: () => string}} */
 export function mapImage(world) {
@@ -55,6 +68,7 @@ export function mapImage(world) {
       }
       const rd = world.roadDist(x, z);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
+      if(!world.isWater(x,z))c=mix(c,ROAD,outsideClearingWeight(world.data.city,x,z)*(.88+n*.08));
       // hill shade: light from the north-west (slopes facing -x/-z are lit), high ground a bit lighter
       const shade = 0.97 + Math.max(-0.14, Math.min(0.14, (dx + dz) * 0.13)) + Math.max(-0.1, Math.min(0.12, h * 0.018));
       c = [c[0] * shade, c[1] * shade, c[2] * shade];
@@ -82,7 +96,10 @@ export function mapImage(world) {
   if(world.data.city?.enabled){
     const fill=(loops,color)=>{g.beginPath();for(const points of loops){points.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();}g.fillStyle=color;g.fill('evenodd');};
     for(const floor of world.data.city.floors)fill([floor.points,...floor.holes||[]],'#c8c1a9');
+    // Street metadata retains approved curves; draw only the actual clipped land.
+    g.save();clipCityFloors(g,world.data.city.floors,tx,tz);
     for(const road of world.data.city.roads){g.beginPath();for(const loop of road.loops){loop.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();}g.fillStyle='#a5a08e';g.fill('evenodd');}
+    g.restore();
   }
 
   const poly = (box, fill, stroke) => {

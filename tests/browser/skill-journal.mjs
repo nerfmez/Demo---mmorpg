@@ -37,7 +37,7 @@ try{for(const [label,width,height,touch,reduced] of cases){
  await tap('#sound-control summary');await tap('#sound-mute');await page.locator('#sound-volume').fill('15');assert.equal((await snapshot()).audio.volume,.15);
  for(let i=0;i<6;i++){await stage(i%2?2:1);assert.ok((await snapshot()).pageTurn.layers<=1);assert.equal((await snapshot()).points,points);assert.equal(await page.locator('.paper-turn-layer [data-action],.paper-turn-layer [data-node]').count(),0);}
  await page.waitForFunction(()=>__frontier.panels.jobJournal.snapshot().pageTurn.layers===0,null,{timeout:5000});await page.waitForTimeout(550);assert.equal((await snapshot()).audio.activeVoice,false);
- await stage(1);await journalJump(page,'lesson.rhythm');assert.ok(await page.locator('[data-action="learn"]').isDisabled(),'directed predecessor');
+ await stage(1);await journalJump(page,'lesson.rhythm');assert.ok(await page.locator('[data-action="learn"]').isEnabled(),'directed prerequisite route is explicitly priced');assert.equal((await snapshot()).preview.cost,3);assert.equal((await snapshot()).points,points,'inspection never allocates');
  for(const id of ['lesson.prepare','lesson.strike','lesson.rhythm']){await journalJump(page,id);await tap('[data-action="learn"]');}
  assert.equal((await snapshot()).points,points-3);assert.equal((await snapshot()).progress.current.tier,2);
  const successful=await snapshot();assert.equal(successful.routes.events.length,3);await page.evaluate(()=>__frontier.panels.jobJournal.learn('lesson.rhythm'));assert.equal((await snapshot()).points,points-3);assert.equal((await snapshot()).routes.events.length,3,'duplicate purchase draws no route');

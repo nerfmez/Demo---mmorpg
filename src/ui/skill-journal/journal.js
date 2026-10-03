@@ -1,4 +1,5 @@
 import {jobNodeState,jobPath,allocateJobNode,respecCost,respecJob} from '../../core/character.js';
+import {planJobRoute,allocateJobRoute} from '../../core/job-route.js';
 import {journalProgress} from './model.js';
 import {createLayout} from './layout.js';
 import {sigil,effectSigil} from '../sigils.js';
@@ -17,12 +18,14 @@ const {data,ch}=ui.game,tree=data.jobtree;
 const presentation=createPresentation(tree,tree.presentation||currentPresentation),layoutRules=createLayout(tree);
 const state=ui.journalState||(ui.journalState={tier:presentation.tiers[0],view:'foundation',place:null,selected:null,coords:{},entries:[],memories:{},context:[]});
 state.memories||={};state.context||=[];if(!presentation.tiers.includes(state.tier))state.tier=presentation.tiers[0];
-let destroyed=false;const cleanups=[];
+let destroyed=false,previewPlan=null,upgradeInFlight=false;const cleanups=[];
 function listen(target,type,handler,options){target.addEventListener(type,handler,options);cleanups.push(()=>target.removeEventListener(type,handler,options));}
 const extraIcons={sound:'M3 9h4l5-4v14l-5-4H3zM16 8q4 4 0 8M19 5q7 7 0 14',silent:'M3 9h4l5-4v14l-5-4H3zM17 9l5 6M22 9l-5 6',search:'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',arrow:'M4 12h16m-6-6 6 6-6 6',close:'M6 6l12 12M6 18L18 6',lock:'M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5zM12 14v3',check:'M5 12l4 4L19 6',menu:'M4 7h16M4 12h16M4 17h16',reset:'M3 10a9 9 0 1 1 1 8M3 4v6h6',expand:'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5',chevron:'M8 4l8 8-8 8',minus:'M5 12h14',zoom:'M12 5v14M5 12h14'};
 const icon=name=>extraIcons[name]?`<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${extraIcons[name]}"/></svg>`:sigil(name);
 const effectEntries=n=>Object.entries(n.effects||{});
 const num=n=>String(n).padStart(2,'0');
+const statSummary=n=>effectEntries(n).map(([key,value])=>effectText(key,value)).join(' · ')||'จุดเริ่มต้นร่วมกัน';
+const hasExpandedDetails=n=>tree.sections[n.section].tier>=3||n.type==='notable'||n.type==='job'||Boolean(n.detailTh)||effectEntries(n).some(([key])=>['extraMovementCharges','meleeHitBarrier','healGrantsBarrierPct','meleeArcAdd','poisonChancePct','leechPct'].includes(key));
 root.innerHTML=`
 <header class="journal-toolbar"><div><span class="journal-series">SEEKER / FIELD JOURNAL</span><h1>สมุดบันทึกการเดินทาง</h1></div><button class="icon-button journal-exit" data-action="exit" aria-label="กลับเข้าเกม">${icon('close')}</button></header>
 <div class="notebook"><div class="book-cover" aria-hidden="true"></div><nav class="chapter-tabs" id="chapter-tabs" aria-label="แถบคั่นบท"></nav>
@@ -49,7 +52,7 @@ root.innerHTML=`
 <div class="journal-toast" role="status" aria-live="polite" id="toast"></div>
 <dialog id="dialog" aria-labelledby="dialog-title"><div class="dialog-top"><h2 id="dialog-title"></h2><button class="icon-button" data-action="close-dialog" aria-label="ปิดหน้าต่าง">${icon('close')}</button></div><div id="dialog-content"></div></dialog>`;
 const q=s=>root.querySelector(s), inspector=q('#inspector'), map=q('#map'), plane=q('#plane');
-let paperHeight=q('.atlas-space').clientHeight;const layoutCache=new Map();
+let paperHeight=q('.atlas-space').clientHeight,compactRow=false;const layoutCache=new Map();
 const camera=createCamera(map,plane,q('#zoom'),(id,gateway)=>gateway?openBranch(id):select(id));
 const routes=createRouteMotion(),paperAudio=createPaperAudio(ui.journalAudioSettings);
 const pageTurns=createPageTurn(q('.app-shell'));let navigationCount=0,detailCamera=null;
@@ -83,9 +86,9 @@ const compactPaper=()=>innerHeight<=520||(innerWidth>760&&paperHeight<=450);
 function nodeName(n){return n.type==='job'?Object.keys(n.effects||{}).slice(0,1).map(effectLabel).join(''):n.nameTh;}
 function drawNodes(ids,primary){
  const viewport=camera.viewport(),layout=layoutRules.layout(ids,[...primary],state.tier,innerWidth<=760,viewport.height<200);
- state.entries=ids.map(id=>[id,tree.nodes[id]]);state.coords=layout.coords;
+ state.entries=ids.map(id=>[id,tree.nodes[id]]);state.coords=layout.coords;compactRow=layout.compactRow;
  plane.style.width=layout.width+'px';plane.style.height=layout.height+'px';
- plane.innerHTML=`<svg class="connections" width="${layout.width}" height="${layout.height}" aria-hidden="true"><g class="base-routes"></g></svg>`+state.entries.map(([id,n])=>`<button class="node ${primary.has(id)?'':'context-node'}" data-node="${esc(id)}" aria-pressed="false" style="left:${state.coords[id][0]}px;top:${state.coords[id][1]}px;${inkStyle(palette(n))}"><span class="node-disc">${icon(effectSigil(n))}</span><span class="node-state"></span><span class="node-caption"><b>${esc(nodeName(n))}</b><small>${n.type==='origin'?'จุดเริ่มต้นร่วมกัน':n.requires?.length?'ก่อน: '+(n.requires||[]).map(k=>tree.nodes[k].nameTh).join(' + '):''}</small></span></button>`).join('');
+ plane.innerHTML=`<svg class="connections" width="${layout.width}" height="${layout.height}" aria-hidden="true"><g class="base-routes"></g></svg>`+state.entries.map(([id,n])=>`<button class="node ${primary.has(id)?'':'context-node'}" data-node="${esc(id)}" aria-pressed="false" style="left:${state.coords[id][0]}px;top:${state.coords[id][1]}px;${inkStyle(palette(n))}"><span class="node-disc">${icon(effectSigil(n))}</span><span class="node-state"></span><span class="node-caption"><b>${esc(nodeName(n))}</b><small>${esc(statSummary(n))}</small></span></button>`).join('');
  paintGraph();camera.configure(layout.width,layout.height);
 }
 function renderJunction(){
@@ -94,22 +97,55 @@ function renderJunction(){
  plane.innerHTML=groups.map((g,i)=>{const ready=g.ids.filter(id=>jobNodeState(ch,data,id).can).length,owned=g.ids.filter(id=>ch.jobNodes.includes(id)).length;return `<button class="discipline-node ${ready?'has-ready':''}" data-gateway="${g.id}" data-discipline="${g.id}" style="left:${(i%columns+.5)*width/columns}px;top:${compact?(Math.floor(i/columns)+.5)*height/rows:155+Math.floor(i/columns)*310}px;${inkStyle(g.color)}"><span class="discipline-number">${num(i+1)}</span><span class="discipline-disc">${icon(g.icon)}<span class="discipline-open">${icon('arrow')}</span></span><span class="discipline-caption"><b>${esc(g.name)}</b><span>${esc(g.note||'เปิดดูโหนดย่อยที่เชื่อมกัน')}</span><small>${owned} / ${g.ids.length} บันทึก · ${ready} พร้อมเรียนรู้</small></span></button>`;}).join('');camera.configure(width,height);
  q('#map-status').textContent=`${groups.length} รอยทางหลัก · เปิดดูได้ทุกสาย · การเปิดดูไม่ใช้แต้ม`;
 }
-function closeDetail(restore=false){const id=state.selected;state.selected=null;inspector.classList.remove('open');inspector.inert=true;inspector.setAttribute('aria-hidden','true');q('.atlas-space').classList.remove('has-detail');camera.setSheet(0);if(id&&detailCamera)camera.frame(detailCamera.x,detailCamera.y,detailCamera.z);plane.querySelectorAll('.node.selected').forEach(el=>{el.classList.remove('selected');el.setAttribute('aria-pressed','false')});if(restore&&id)plane.querySelector(`[data-node="${id}"]`)?.focus({preventScroll:true});}
+function closeDetail(restore=false){previewPlan=null;const id=state.selected;state.selected=null;inspector.classList.remove('open');inspector.inert=true;inspector.setAttribute('aria-hidden','true');q('.atlas-space').classList.remove('has-detail');camera.setSheet(0);if(id&&detailCamera)camera.frame(detailCamera.x,detailCamera.y,detailCamera.z);plane.querySelectorAll('.route-highlight').forEach(el=>el.classList.remove('route-highlight'));plane.querySelectorAll('.node.selected').forEach(el=>{el.classList.remove('selected');el.setAttribute('aria-pressed','false')});if(restore&&id)plane.querySelector(`[data-node="${id}"]`)?.focus({preventScroll:true});}
 function reasonText(st){if(st.missing?.length)return 'ต้องเรียนรู้ '+st.missing.map(id=>tree.nodes[id].nameTh).join(' + ')+' ก่อน';return st.taken?'เรียนรู้แล้ว':st.can?'พร้อมเรียนรู้':({not_linked:'ต้องเชื่อมจากโหนดที่เรียนรู้แล้ว',no_points:'แต้มคงเหลือไม่เพียงพอ',tier_points:`ต้องลงทุนรวม ${st.need} แต้ม`,job_level:`ต้องมี Job Lv.${st.need}`,one_job:'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน',requires_job:`ต้องเรียนรู้โหนด ${(tree.groups||[]).find(g=>g.id===st.need)?.nameTh||st.need}`}[st.reason]||'ยังเรียนรู้ไม่ได้');}
 function select(id,focus=true){
  const n=tree.nodes[id];if(!n||!state.coords[id])return;
  const st=jobNodeState(ch,data,id);if(!state.selected)detailCamera=camera.snapshot();state.selected=id;inspector.style.cssText=inkStyle(palette(n));
  plane.querySelectorAll('.node').forEach(el=>{const on=el.dataset.node===id;el.classList.toggle('selected',on);el.setAttribute('aria-pressed',String(on))});
- const path=jobPath(ch,data,id).filter(k=>k!==id),tier=tree.sections[n.section].tier;
- q('#detail-content').innerHTML=`<div class="detail-scroll"><div class="detail-kicker">FIELD NOTE · ENTRY ${num(tier)}</div><div class="detail-emblem ${st.taken?'learned':''}">${icon(effectSigil(n))}</div><span class="type-label">${n.type==='origin'?'จุดเริ่มต้นร่วมกัน':n.type==='job'?'โหนดอาชีพ · เลือกได้หนึ่งสาย':n.type==='notable'?'โหนดหลัก':'โหนดพื้นฐาน'}</span><h2>${esc(n.nameTh)}</h2><p class="detail-subtitle">${esc(n.descTh||'สิ่งที่เรียนรู้ระหว่างทาง และเลือกพาติดตัวไปต่อ')}</p>${n.tags?.length?`<div class="tag-list">${n.tags.map(t=>`<span>${esc(TAGS[t]||t)}</span>`).join('')}</div>`:''}<div class="effect-list">${effectEntries(n).map(([k,v])=>`<div><span>${esc(effectLabel(k))}</span><b>${esc(effectValue(k,v))}</b></div>`).join('')||'<p>นักเดินทางทุกคนเริ่มที่นี่</p>'}</div><div class="requirements"><span class="detail-section-label">โหนดก่อนหน้า · ต้องเรียนรู้ครบทุกจุด</span>${n.type==='origin'?'<p>จุดตั้งต้น · ไม่ใช้แต้ม</p>':(n.requires||[]).map(k=>{const linked=tree.nodes[k],owned=ch.jobNodes.includes(k);return `<button data-jump="${k}" class="requirement-link ${owned?'owned':''}">${icon(owned?'check':'chevron')}<span>${esc(linked.nameTh)}</span><small>${owned?'เรียนรู้แล้ว':'ดูโหนด'}</small></button>`}).join('')}<p class="path-hint">${journalProgress(ch,data).spent>=tree.sections[n.section].requiresSpent?'✓':'🔒'} ลงทุนรวม ${tree.sections[n.section].requiresSpent} แต้ม · ตอนนี้ ${journalProgress(ch,data).spent}</p>${(n.requires||[]).length>1?'<p class="path-hint">ต้องมีทั้งสองจุด ไม่ใช่เลือกเพียงจุดใดจุดหนึ่ง</p>':''}</div>${!st.can&&!st.taken&&path.length?`<p class="path-hint">เส้นทางสั้นที่สุดยังเหลือ ${path.length} โหนดก่อนจุดนี้ · ยังต้องผ่านเงื่อนไขพื้นที่</p>`:''}</div><div class="detail-action"><p class="availability ${st.can||st.taken?'ready':''}"><span class="little-dot"></span>${esc(reasonText(st))}</p><button class="learn-button" data-action="learn" data-id="${id}" ${st.can?'':'disabled'}>${st.taken?`บันทึกแล้ว ${icon('check')}`:`เรียนรู้และบันทึก <span>1 แต้ม ${icon('arrow')}</span>`}</button><small>การเลือกดูโหนดไม่ใช้แต้ม</small></div>`;
+ const plan=planJobRoute(ch,data,id,routeOptions());previewPlan=plan;
+ const missing=plan.missing||[];
+ q('#detail-content').innerHTML=`<div class="detail-essential"><header class="detail-header"><div class="detail-emblem ${st.taken?'learned':''}">${icon(effectSigil(n))}</div><h2>${esc(n.nameTh)}</h2></header><div class="effect-list node-benefits" aria-label="โบนัสจากโหนดนี้">${effectEntries(n).map(([k,v])=>`<div data-benefit="${esc(k)}"><span>${esc(effectLabel(k))}</span><b>${esc(effectValue(k,v))}</b></div>`).join('')||'<p>จุดเริ่มต้น · ไม่ใช้แต้ม</p>'}</div>${hasExpandedDetails(n)?`<button class="detail-more" data-action="node-details" data-id="${esc(id)}">รายละเอียด ${icon('chevron')}</button>`:''}</div><div class="detail-action">${!plan.can&&!plan.taken?`<p class="availability" role="status">${esc(routeReason(plan))}</p>`:plan.requiresAllFork?'<p class="availability ready">รวมโหนดที่จำเป็นทั้งสองทาง</p>':''}${missing.length?`<div class="blocking-prerequisites" aria-label="โหนดนอกทางที่ต้องเรียนรู้ก่อน">${missing.map(k=>`<button data-action="open-node-route" data-id="${esc(k)}">${esc(tree.nodes[k]?.nameTh||k)} ${icon('arrow')}</button>`).join('')}</div>`:''}<div class="route-purchase-row">${plan.nodes.length>1?`<button class="route-preview-button" data-action="route-preview" aria-label="ดู ${plan.nodes.length} โหนดที่จะเรียนรู้">ดู ${plan.nodes.length} โหนด</button>`:''}<button class="learn-button" data-action="learn" data-id="${esc(id)}" ${plan.can?'':'disabled'}>${plan.taken?`เรียนรู้แล้ว ${icon('check')}`:`อัปเกรด <span>${plan.cost} แต้ม ${icon('arrow')}</span>`}</button></div></div>`;
  inspector.inert=false;inspector.setAttribute('aria-hidden','false');inspector.classList.add('open');q('.atlas-space').classList.add('has-detail');
- const wide=innerWidth>760;camera.setSheet(wide?inspector.offsetWidth+20:0);if(focus)camera.focus(...state.coords[id]);
+ const wide=innerWidth>760;camera.setSheet(wide?inspector.offsetWidth+20:0);highlightPlan(plan);
+ if(focus){if(plan.nodes.length>1)frameRoute(plan.nodes);else camera.focus(...state.coords[id]);}
+
 }
-function curve(source,target){const [x,y]=state.coords[source],[xx,yy]=state.coords[target];return `M${x} ${y} C${x+(xx-x)*.3} ${y},${x+(xx-x)*.7} ${yy},${xx} ${yy}`;}
+function routeOptions(){return {tier:state.tier,groupId:state.view==='path'?state.place:`stage-${state.tier}`};}
+function routeReason(plan){return plan.reason==='no_points'?`ต้องใช้ ${plan.cost} แต้ม · มี ${ch.jobPoints}`:({outside_group:'เรียนรู้โหนดนอกทางนี้ก่อน',ambiguous_route:'เลือกโหนดก่อนหน้าด้วยตนเอง',ambiguous_group:'เลือกทางหลักให้ชัดเจนก่อน',invalid_graph:'เส้นทางนี้ยังไม่สมบูรณ์',stale_preview:'เส้นทางเปลี่ยนแล้ว · ตรวจสอบราคาอีกครั้ง'}[plan.reason]||reasonText(plan));}
+function highlightPlan(plan){
+ const pending=new Set(plan.nodes);plane.querySelectorAll('.route-highlight').forEach(el=>el.classList.remove('route-highlight'));
+ for(const el of plane.querySelectorAll('[data-node]'))el.classList.toggle('route-highlight',pending.size>1&&pending.has(el.dataset.node));
+ for(const edge of plane.querySelectorAll('.base-routes path')){const ids=JSON.parse(edge.dataset.edge);edge.classList.toggle('route-highlight',pending.size>1&&ids.some(id=>pending.has(id))&&ids.every(id=>pending.has(id)||ch.jobNodes.includes(id)));}
+}
+function frameRoute(ids){
+ if(ids.length>1){camera.fit();return;}
+ const framed=[...new Set([...ids,...ids.flatMap(id=>(tree.nodes[id].requires||[]).filter(parent=>ch.jobNodes.includes(parent)))])];
+ const points=framed.filter(id=>state.coords[id]).map(id=>state.coords[id]);if(!points.length)return;
+ const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys),viewport=camera.viewport(),free=viewport.width-(innerWidth>760?inspector.offsetWidth+20:0);
+ const z=Math.max(.18,Math.min(.82,(free-150)/Math.max(180,right-left),(viewport.height-130)/Math.max(150,bottom-top)));camera.frame((left+right)/2,(top+bottom)/2+15/z,z);
+}
+function openNodeRoute(id){if(!tree.nodes[id])return;changePage(()=>{state.tier=presentation.tierOf(id);state.place=presentation.groupOf(id);state.view=state.tier===presentation.tiers[0]?'foundation':'path';state.context=[];renderRegion();});select(id);}
+function previewRoute(){
+ if(!previewPlan?.nodes.length)return;const plan=previewPlan;
+ showDialog('เส้นทางที่จะเรียนรู้',`<p class="route-total">${plan.nodes.length} โหนด · รวม <b>${plan.cost} แต้ม</b>${plan.requiresAllFork?' · จำเป็นทั้งสองทาง':''}</p><ol class="route-list">${plan.nodes.map(id=>{const n=tree.nodes[id];return `<li data-preview-node="${esc(id)}"><span><b>${esc(n.nameTh)}</b><small>${esc(statSummary(n))}</small></span><strong>1 แต้ม</strong></li>`}).join('')}</ol><button class="quiet-button" data-action="back-to-node">กลับไปดูโหนด ${icon('arrow')}</button>`);
+}
+function upgrade(id){
+ if(upgradeInFlight||state.selected!==id||previewPlan?.target!==id)return;
+ upgradeInFlight=true;
+ try{
+  const approved=previewPlan,previous=journalProgress(ch,data),result=allocateJobRoute(ch,data,id,{...routeOptions(),expectedNodes:approved.nodes,expectedCost:approved.cost});
+  if(!result.done){toast(routeReason(result));select(id,false);return;}
+  ui.game.notify({type:'job'});ui.changed();updateChrome();paintGraph();select(id,false);frameRoute(result.acquired);
+  let index=0;for(const node of result.acquired)for(const parent of tree.nodes[node].requires||[])if(ch.jobNodes.includes(parent)&&state.coords[parent]&&state.coords[node])routes.draw(plane.querySelector('.connections'),parent,node,curve(parent,node),index++*110);
+  const next=journalProgress(ch,data);toast(`เรียนรู้ ${result.acquired.length} โหนด · ใช้ ${result.cost} แต้ม${next.current.tier>previous.current.tier?' · เปิดบท '+num(next.current.tier):''}`);
+ }finally{upgradeInFlight=false;}
+}
+function curve(source,target){const [x,y]=state.coords[source],[xx,yy]=state.coords[target],arc=compactRow&&Math.abs(xx-x)>300?-95:0;return `M${x} ${y} C${x+(xx-x)*.3} ${y+arc},${x+(xx-x)*.7} ${yy+arc},${xx} ${yy}`;}
 function edgeHtml(){const seen=new Set();let html='';for(const [id,n] of state.entries)for(const k of n.requires||[]){if(!state.coords[k])continue;const pair=JSON.stringify([id,k].sort());if(seen.has(pair))continue;seen.add(pair);const owned=ch.jobNodes.includes(id)&&ch.jobNodes.includes(k);html+=`<path data-edge="${esc(pair)}" d="${curve(k,id)}" class="edge ${owned?'learned':''}"/>`;}return html;}
 function paintGraph(){
  const connections=plane.querySelector('.base-routes');if(!connections)return;if(!connections.children.length)connections.innerHTML=edgeHtml();else for(const path of connections.children){const [a,b]=JSON.parse(path.dataset.edge);path.classList.toggle('learned',!path.classList.contains('route-pending')&&ch.jobNodes.includes(a)&&ch.jobNodes.includes(b));}
- for(const [id,n] of state.entries){const el=[...plane.querySelectorAll('[data-node]')].find(el=>el.dataset.node===id),st=jobNodeState(ch,data,id),context=state.view==='path'&&!presentation.groups(state.tier).find(g=>g.id===state.place)?.ids.includes(id);el.className=`node ${n.type} ${context?'context-node':''} ${st.taken?'learned':st.can?'available':'locked'} ${state.selected===id?'selected':''}`;el.setAttribute('aria-label',`${n.nameTh} · ${reasonText(st)}`);el.querySelector('.node-state').innerHTML=st.taken?icon('check'):st.can?'<span class="little-dot"></span>':icon('lock');}
+ for(const [id,n] of state.entries){const el=[...plane.querySelectorAll('[data-node]')].find(el=>el.dataset.node===id),st=jobNodeState(ch,data,id),context=state.view==='path'&&!presentation.groups(state.tier).find(g=>g.id===state.place)?.ids.includes(id);el.className=`node ${n.type} ${context?'context-node':''} ${st.taken?'learned':st.can?'available':'locked'} ${state.selected===id?'selected':''}`;el.setAttribute('aria-label',`${n.nameTh} · ${statSummary(n)} · ${reasonText(st)}`);el.querySelector('.node-state').innerHTML=st.taken?icon('check'):st.can?'<span class="little-dot"></span>':icon('lock');}
  q('#map-status').innerHTML=`<span class="little-dot"></span>${state.entries.filter(([id])=>jobNodeState(ch,data,id).can).length} พร้อมเรียนรู้ <i></i><span class="route-key"></span>เส้นประ = รอยทางที่บันทึกแล้ว`;
 }
 function renderRegion(){
@@ -137,6 +173,11 @@ function learn(id){
 }
 function search(){showDialog('ค้นหาเส้นทาง',`<div class="search-field">${icon('search')}<input type="search" id="node-search" aria-label="ค้นหาชื่อหรือค่าสถานะ" placeholder="ชื่อโหนด ธาตุ หรือค่าสถานะ…" autocomplete="off"></div><p class="dialog-note">ค้นหาได้ทุกพื้นที่ · การเปิดดูไม่ใช้แต้ม</p><p class="dialog-note">รอยจดเดิมที่เรียนรู้แล้วค้นหาได้ · โบนัสยังอยู่ครบ</p><div id="search-results" class="dialog-list"></div>`);searchResults('');q('#node-search').focus();}
 function searchResults(query){const text=query.trim().toLocaleLowerCase();const entries=Object.entries(tree.nodes).filter(([id,n])=>presentation.stage(presentation.tierOf(id)).includes(id)||ch.jobNodes.includes(id)).filter(([id,n])=>text?[id,n.name,n.nameTh,n.descTh,...(n.tags||[]).map(t=>TAGS[t]||t),...effectEntries(n).map(([k,v])=>effectText(k,v))].join(' ').toLocaleLowerCase().includes(text):jobNodeState(ch,data,id).can);q('#search-results').innerHTML=`<div class="result-count">${text?entries.length+' โหนดที่พบ':'พร้อมเรียนรู้ตอนนี้'}</div>`+entries.map(([id,n])=>{const s=tree.sections[n.section],unlocked=journalProgress(ch,data).spent>=s.requiresSpent;return `<button class="search-result" ${presentation.stage(presentation.tierOf(id)).includes(id)?`data-jump="${id}"`:`data-legacy="${id}"`}><span class="result-icon">${icon(effectSigil(n))}</span><span><b>${esc(n.nameTh)}</b><small>พื้นที่ ${num(s.tier)} · ${esc(effectEntries(n).map(([k,v])=>effectText(k,v)).join(' · '))}</small></span>${unlocked?icon('arrow'):`<span class="result-lock">${icon('lock')} ${s.requiresSpent} แต้ม</span>`}</button>`}).join('')+(entries.length?'':'<p class="empty-results">ไม่พบโหนดที่ตรงกัน ลองค้นหาด้วยคำสั้นลง</p>');}
+// Expanded notes are an explicit modal; essential bonuses and purchase state stay on the card.
+function nodeDetails(id){
+ const n=tree.nodes[id];if(!n||state.selected!==id||!hasExpandedDetails(n))return;
+ showDialog(n.nameTh,`<div class="expanded-node-note"><div class="effect-list">${effectEntries(n).map(([k,v])=>`<div><span>${esc(effectLabel(k))}</span><b>${esc(effectValue(k,v))}</b></div>`).join('')}</div><p>${esc(n.detailTh||n.descTh||'')}</p></div><button class="quiet-button" data-action="back-to-node">กลับไปดูโหนด ${icon('arrow')}</button>`);
+}
 function resetDialog(){const cost=respecCost(ch,data).job,inTown=ui.game.nearby().inTown;showDialog('คืนแต้มเส้นทาง',`<p class="reset-copy">คืนแต้มสกิลที่ลงทุนไว้ทั้งหมด · ต้องอยู่ในเมือง</p><div class="reset-cost"><span>ค่าธรรมเนียม</span><b>${cost} G</b></div><p class="dialog-note">${inTown?'แต้มและรอยจดเดิมจะถูกคืนเมื่อยืนยัน':'กลับเข้าเมืองก่อนคืนแต้ม'} · มี ${ch.gold} G</p><button class="primary-button full" data-action="confirm-respec" ${!inTown||ch.gold<cost||ch.jobNodes.length<2?'disabled':''}>ยืนยันคืนแต้ม ${icon('reset')}</button><button class="quiet-button" data-action="cancel-respec">ยกเลิก</button>`);}
 function legacyNote(id){const n=tree.nodes[id];if(!n||!ch.jobNodes.includes(id))return;showDialog('รอยจดที่ติดตัวมา',`<h3>${esc(n.nameTh)}</h3><p class="dialog-note">เรียนรู้แล้ว · โบนัสและความคืบหน้าเดิมยังอยู่ครบ</p><div class="effect-list">${effectEntries(n).map(([k,v])=>`<div><span>${esc(effectLabel(k))}</span><b>${esc(effectValue(k,v))}</b></div>`).join('')}</div><button class="quiet-button" data-action="search">กลับการค้นหา</button>`);}
 listen(root,'click',e=>{
@@ -148,9 +189,9 @@ listen(root,'click',e=>{
  switch(t.dataset.action){
  case 'exit':ui.close();break;
  case 'toggle-sound':{const s=paperAudio.snapshot();paperAudio.set(!s.muted);soundControls();if(s.muted)paperAudio.prime();break;}
- case 'search':search();break;case 'junction':showJunction();break;case 'close-dialog':case 'cancel-respec':closeDialog();break;
+ case 'search':search();break;case 'junction':showJunction();break;case 'close-dialog':case 'back-to-node':case 'cancel-respec':closeDialog();break;
 
- case 'close-detail':closeDetail(true);break;case 'learn':learn(t.dataset.id);break;
+ case 'close-detail':closeDetail(true);break;case 'learn':upgrade(t.dataset.id);break;case 'route-preview':previewRoute();break;case 'open-node-route':openNodeRoute(t.dataset.id);break;case 'node-details':nodeDetails(t.dataset.id);break;
  case 'fit':camera.fit();break;case 'zoom-out':camera.zoom(1/1.2);break;case 'zoom-in':camera.zoom(1.2);break;
  case 'respec':resetDialog();break;case 'confirm-respec':if(ui.game.nearby().inTown&&respecJob(ch,data)){ui.changed();closeDialog();routes.cancel();navigate(presentation.tiers[0]);toast('คืนแต้มแล้ว พร้อมออกเดินทางอีกครั้ง');}break;
  }
@@ -163,6 +204,13 @@ let layoutKey=`${innerWidth<=760}:${compactPaper()}`,resizeTimer;
 const resizePaper=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(destroyed)return;const key=`${innerWidth<=760}:${compactPaper()}`,id=state.selected;if(key!==layoutKey){layoutKey=key;renderRegion();if(id&&state.coords[id])select(id);}else if(id)camera.setSheet(innerWidth>760?inspector.offsetWidth+20:0);},150);};
 listen(window,'resize',resizePaper);listen(window,'frontier:viewport',resizePaper);
 const paperResize=new ResizeObserver(entries=>{paperHeight=entries[0].contentRect.height;resizePaper();});paperResize.observe(q('.atlas-space'));cleanups.push(()=>paperResize.disconnect());
-const snapshot=()=>({tier:state.tier,place:state.place,view:state.view,selected:state.selected,visible:state.entries.map(([id])=>id),groups:presentation.groups(state.tier).map(g=>({id:g.id,count:g.ids.length})),points:ch.jobPoints,owned:[...ch.jobNodes],progress:journalProgress(ch,data),camera:camera.snapshot(),routes:routes.snapshot(),navigation:{count:navigationCount,active:pageTurns.snapshot().active},pageTurn:pageTurns.snapshot(),audio:paperAudio.snapshot()});
-return {snapshot,learn,audioEvents:()=>paperAudio.events(),refresh(){if(destroyed)return;updateChrome();if(state.view==='junction'){for(const g of presentation.groups(state.tier)){const el=[...plane.querySelectorAll('[data-gateway]')].find(el=>el.dataset.gateway===g.id);if(el){const ready=g.ids.filter(id=>jobNodeState(ch,data,id).can).length;el.classList.toggle('has-ready',ready>0);el.querySelector('.discipline-caption small').textContent=`${g.ids.filter(id=>ch.jobNodes.includes(id)).length} / ${g.ids.length} บันทึก · ${ready} พร้อมเรียนรู้`;}}return;}paintGraph();if(state.selected)select(state.selected,false);},destroy(){if(destroyed)return;destroyed=true;clearTimeout(toastTimer);clearTimeout(resizeTimer);closeDialog();state.selected=null;routes.cancel();pageTurns.destroy();camera.destroy();paperAudio.destroy();cleanups.forEach(fn=>fn());}};
+let detailResizeFrame=0,detailHeight=-1;
+const detailResize=new ResizeObserver(entries=>{
+ const height=Math.ceil(entries[0].borderBoxSize?.[0]?.blockSize??inspector.offsetHeight);if(height===detailHeight)return;detailHeight=height;
+ // Updating ancestor layout inside a ResizeObserver delivery can re-notify the
+ // map/card in WebKit. Commit the measured sheet size in the next frame instead.
+ cancelAnimationFrame(detailResizeFrame);detailResizeFrame=requestAnimationFrame(()=>{detailResizeFrame=0;if(!destroyed)q('.atlas-space').style.setProperty('--detail-height',height+'px');});
+});detailResize.observe(inspector);cleanups.push(()=>{detailResize.disconnect();cancelAnimationFrame(detailResizeFrame);});
+const snapshot=()=>({tier:state.tier,place:state.place,view:state.view,selected:state.selected,visible:state.entries.map(([id])=>id),groups:presentation.groups(state.tier).map(g=>({id:g.id,count:g.ids.length})),points:ch.jobPoints,owned:[...ch.jobNodes],progress:journalProgress(ch,data),camera:camera.snapshot(),routes:routes.snapshot(),preview:previewPlan?{target:previewPlan.target,nodes:[...previewPlan.nodes],cost:previewPlan.cost,can:previewPlan.can,reason:previewPlan.reason,requiresAllFork:previewPlan.requiresAllFork}:null,navigation:{count:navigationCount,active:pageTurns.snapshot().active},pageTurn:pageTurns.snapshot(),audio:paperAudio.snapshot()});
+return {snapshot,learn,upgrade,audioEvents:()=>paperAudio.events(),refresh(){if(destroyed)return;updateChrome();if(state.view==='junction'){for(const g of presentation.groups(state.tier)){const el=[...plane.querySelectorAll('[data-gateway]')].find(el=>el.dataset.gateway===g.id);if(el){const ready=g.ids.filter(id=>jobNodeState(ch,data,id).can).length;el.classList.toggle('has-ready',ready>0);el.querySelector('.discipline-caption small').textContent=`${g.ids.filter(id=>ch.jobNodes.includes(id)).length} / ${g.ids.length} บันทึก · ${ready} พร้อมเรียนรู้`;}}return;}paintGraph();if(state.selected)select(state.selected,false);},destroy(){if(destroyed)return;destroyed=true;clearTimeout(toastTimer);clearTimeout(resizeTimer);closeDialog();state.selected=null;routes.cancel();pageTurns.destroy();camera.destroy();paperAudio.destroy();cleanups.forEach(fn=>fn());}};
 }

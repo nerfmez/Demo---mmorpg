@@ -35,7 +35,7 @@ const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality });
 // Imported models load in the background; the procedural shapes stand in until they arrive,
 // then the hero, the creation preview and the portrait are rebuilt once.
-loadModels(data.models).then(() => {
+Promise.all([loadModels(data.models), view.cityReady]).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();
@@ -262,6 +262,9 @@ if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined
 else menu.showTitle();
 requestAnimationFrame((t) => {
   last = t;
-  document.getElementById('loading').classList.add('done');
+  view.cityReady.then(() => document.getElementById('loading').classList.add('done')).catch(error => {
+    console.error('City assets could not load', error);
+    document.getElementById('loading').textContent = 'City assets could not load. Reload to retry.';
+  });
   frame(t);
 });

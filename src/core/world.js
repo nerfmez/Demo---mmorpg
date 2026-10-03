@@ -6,6 +6,7 @@
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
+import { cityFloorAt, cityRoadDistance } from './city.js';
 
 const CELL = 8;
 
@@ -23,12 +24,13 @@ export function createWorld(worldData) {
     return fallback;
   };
   const zoneById = (id) => zones.find((q) => q.id === id);
-  const isSafe = (x, z) => !!zoneAt(x, z).safe || (worldData.safeRoutes || []).some(route => distToPolyline(x, z, route.points) < route.width / 2);
+  const isSafe = (x, z) => !!cityFloorAt(worldData.city, x, z) || !!zoneAt(x, z).safe || (worldData.safeRoutes || []).some(route => distToPolyline(x, z, route.points) < route.width / 2);
 
   // ---------- roads / water ----------
   const roads = worldData.roads || [];
   /** Distance from the edge of the nearest road (negative = on the road). */
   const roadDist = (x, z) => {
+    if(cityFloorAt(worldData.city,x,z))return cityRoadDistance(worldData.city,x,z);
     let best = Infinity;
     for (const r of roads) {
       const d = distToPolyline(x, z, r.points) - r.width / 2;
@@ -40,7 +42,7 @@ export function createWorld(worldData) {
   const bridges = (river?.bridges || []).map((br) => ({ ...br, hx: br.halfLength, hz: br.halfWidth }));
   const bridgeAt = (x, z, pad = 0) => bridges.find((br) => pointInBox(br, x, z, pad)) || null;
   const onBridge = (x, z, pad = 0) => !!bridgeAt(x, z, pad);
-  const docks = (worldData.docks || []).map(d => ({ ...d }));
+  const docks = (worldData.city?.enabled ? worldData.city.docks : worldData.docks || []).map(d => ({ ...d }));
   // Adjacent decks support the whole actor across their shared seam. Outer edges
   // still reject any footprint extending over water; dry shore can support a ramp join.
   const dockAt = (x, z, pad = 0) => {
@@ -58,7 +60,7 @@ export function createWorld(worldData) {
   // opt into an authored contour shared with terrain, painting and water.
   const shore = worldData.sea?.shore || null;
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
-  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? seaContains(worldData.sea, x, z) : coastSample(worldData.sea, x, z).distance < pad);
+  const inSea = (x, z, pad = 0) => !cityFloorAt(worldData.city, x, z, Math.max(0, pad)) && !!shore && (pad === 0 ? seaContains(worldData.sea, x, z) : coastSample(worldData.sea, x, z).distance < pad);
   const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2) && !dockAt(x, z, pad);
   // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
   const coastAt = (x, z) => shore ? coastSample(worldData.sea, x, z) : { distance: Infinity, kind: 'beach' };
@@ -70,8 +72,10 @@ export function createWorld(worldData) {
     (inSea(x, z, pad) || inPond(x, z, pad) || (!river?.walkable && inRiver(x, z, pad)));
 
   // ---------- terrain ----------
-  const hf = buildHeightfield(worldData, zoneAt);
-  const terrainY = hf.heightAt;
+  // Preserve native terrain ramps outside the overlay. Obsolete street meshes
+  // are removed from the town, but their original terrain grading stays intact.
+  const hf = buildHeightfield(worldData.city?.enabled ? {...worldData,roads:worldData.city.terrainRoads} : worldData, zoneAt);
+  const terrainY = (x, z) => cityFloorAt(worldData.city, x, z)?.height ?? hf.heightAt(x, z);
   for (const dock of docks) if (dock.rampFromTerrain) {
     const start = fromBoxLocal(dock, 0, -dock.hz);
     dock.startY = terrainY(start.x, start.z);
@@ -173,7 +177,7 @@ export function createWorld(worldData) {
     overlaps(x, z, r);
 
   // ---------- town ----------
-  for (const entry of town.buildings) {
+  for (const entry of worldData.city?.enabled ? [] : town.buildings) {
     const building = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 3.4, hz: 2.8 } : entry;
     addBox({ ...building, type: 'house' });
   }
@@ -183,13 +187,19 @@ export function createWorld(worldData) {
   for (const rock of town.rocks || []) {
     addCircle({ ...rock, type: 'boulder' });
   }
-  addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
-  addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
-  for (const entry of town.stalls || []) {
+  if (!worldData.city?.enabled) {
+    addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
+    addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
+  }
+  for (const entry of worldData.city?.enabled ? [] : town.stalls || []) {
     const stall = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 1.6, hz: 1.1 } : entry;
     addBox({ ...stall, type: 'stall' });
   }
   for (const resident of town.residents || []) addCircle({ ...resident, type: 'citizen', scale: 1, rot: resident.angle });
+  for (const collider of worldData.city?.enabled ? worldData.city.colliders : []) {
+    if (collider.hx !== undefined) addBox({ ...collider });
+    else addCircle({ ...collider, scale: 1, rot: 0 });
+  }
   const tr = zoneById('settlement').rects[0];
   const walls = town.walls;
   const gateZ = walls ? roadZAt(roads[0].points, walls.east) : town.centre[1];
@@ -212,6 +222,7 @@ export function createWorld(worldData) {
   fenceRun(tr[0] + 1, walls.south, walls.east, walls.south);
   decor.lanterns.push({ x: walls.east + 1.5, z: gateZ - 5 }, { x: walls.east + 1.5, z: gateZ + 5 });
   }
+  if (!worldData.city?.enabled) {
   decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
   for (const a of [0.8, 2.4, 3.9, 5.5]) decor.lanterns.push({ x: town.centre[0] + Math.sin(a) * (town.plazaRadius + 0.5), z: town.centre[1] + Math.cos(a) * (town.plazaRadius + 0.5) });
   for (const entry of town.stalls || []) {
@@ -222,6 +233,7 @@ export function createWorld(worldData) {
   }
   decor.crates.push({ x: town.workbench[0] + 2.2, z: town.workbench[1] - 1.2, s: 0.8, rot: 0.3, kind: 'crate' });
   decor.crates.push({ x: town.workbench[0] - 2.4, z: town.workbench[1] - 1.4, s: 0.75, rot: 0, kind: 'barrel' });
+  }
   if (walls) decor.banners.push({ x: walls.east - 0.6, z: gateZ - walls.gateHalf - 0.5, color: '#c9302c' }, { x: walls.east - 0.6, z: gateZ + walls.gateHalf + 0.5, color: '#c9302c' });
   for (const [x, z] of worldData.harbor?.crates || []) {
     decor.crates.push({ x, z, s: .8, rot: .2, kind: 'crate' });
@@ -403,6 +415,7 @@ export function createWorld(worldData) {
     const x = rng.range(b.minX, b.maxX);
     const z = rng.range(b.minZ, b.maxZ);
     const zn = zoneAt(x, z);
+    if (cityFloorAt(worldData.city, x, z)) continue;
     if (isWater(x, z, 0.6)) {
       if (inPond(x, z, -0.8) && rng.chance(0.3)) decor.lilies.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.1) });
       continue;
@@ -468,6 +481,10 @@ export function createWorld(worldData) {
   const tooSteep = (x0, z0, x1, z1) => {
     const s = Math.hypot(x1 - x0, z1 - z0);
     if (s < 1e-5) return false;
+    // Authored quay coping is a small curb above the timber. Treat its real
+    // step as a step, rather than dividing that height by one tiny frame's move.
+    if(worldData.city?.enabled && Math.abs(groundY(x1,z1)-groundY(x0,z0))<=worldData.city.stepHeight &&
+      (cityFloorAt(worldData.city,x0,z0)||dockAt(x0,z0)) && (cityFloorAt(worldData.city,x1,z1)||dockAt(x1,z1)))return false;
     return groundY(x1, z1) - groundY(x0, z0) > maxSlope * s + 0.04;
   };
 

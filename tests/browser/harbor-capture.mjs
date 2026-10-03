@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { verifyPassiveGestures } from './passive-checks.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+if(JSON.parse(readFileSync('data/world.json','utf8')).city?.enabled){await import('./city-review.mjs');process.exit(0);}
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const OUT=new URL(process.env.DREAMLOOP_PASS?`./out/dreamloop-${process.env.DREAMLOOP_PASS}/`:'./out/harbor/',import.meta.url).pathname;mkdirSync(OUT,{recursive:true});
 const PORT=4180,base=process.env.DREAMLOOP_URL||`http://localhost:${PORT}/`;

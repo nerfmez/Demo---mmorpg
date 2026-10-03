@@ -221,7 +221,7 @@ async function run(name, contextOpts) {
   const terrainSpots=await page.evaluate(()=>{
     const w=window.__frontier.world;
     const wp=w.waypoints.find(p=>p.id==='forest');
-    const deck=w.docks.find(d=>!d.rampFromTerrain && (!d.kind || d.kind==='pier'));
+    const deck=w.docks.find(d=>!d.rampFromTerrain && (!d.kind || d.kind==='pier'||d.kind==='city_pier'));
     return [
       ['headland',...w.data.harbor.lighthouse],
       ['highlands',...w.zoneById('highlands').label],

@@ -13,6 +13,19 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
 | Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 4`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
+## Approved V3 city overlay
+
+`layout.json.city` carries the approved GLB files, common translation, exact source
+walk surfaces, street loops, collider/entry data and native timber shore joins.
+Import the eleven runtime chunks under one translated parent without changing
+child transforms. Exclude source Sea/Trees and retain native water/leafy foliage.
+Use the original terrain heightmap beneath/outside the city. At a city point,
+select the highest containing floor after excluding its `holes`; dock support takes precedence. Adjacent
+docks and dry shore jointly support actor footprints. Permit the data-authored
+`city.stepHeight` only between supported city surfaces; retain native slope and
+water rules elsewhere. Disable replaced procedural town/quay/lighthouse meshes.
+See [approved input and integration notes](APPROVED-CITY-V3.md).
+
 ## What gets translated (logic, `src/core/`)
 
 `src/core/` has no Three.js or DOM code. Translate each file into GDScript, mostly line by line.

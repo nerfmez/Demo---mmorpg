@@ -22,6 +22,7 @@ import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
 import { residentTool } from './districts.js';
+import { loadCity } from './city.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -91,13 +92,31 @@ export class View {
     this.terrain = createTerrain(world);
     this.scene.add(this.terrain.group);
     const env = createEnvironment(world);
-    this.scene.add(createWater(world, env.root));
+    // Keep only authored native hull/pile contact roots before batching moves
+    // their geometry. These CPU-only clones share buffers and are never rendered.
+    const nativeContacts=new THREE.Group();
+    if(world.data.city?.enabled){
+      env.root.updateMatrixWorld(true);
+      env.root.traverse(o=>{if(o.userData.waterContact){const copy=o.clone(true);o.matrixWorld.decompose(copy.position,copy.quaternion,copy.scale);nativeContacts.add(copy);}});
+    }
+    if(!world.data.city?.enabled)this.scene.add(createWater(world, env.root));
     env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
     bakeGrassColours(this.renderer, env.root, world); // one GPU pass; blades then just read colours
     // after the water-contact bake: merge fixed scenery that shares a material, per map cell
     this.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
+    this.cityReady = loadCity(world).then(city => {
+      if (city) {
+        this.scene.add(city.root); this.cityRoot = city.root; this.cityStats = city.stats;
+        // One bake from actual native hulls and imported foundations/piles.
+        const start=performance.now();nativeContacts.add(city.root);
+        const water=createWater(world,nativeContacts);
+        nativeContacts.remove(city.root);this.scene.add(city.root,water);
+        this.cityStats.waterContactMs=performance.now()-start;
+        this.cityStats.waterContactSections=water.userData.contactSections;
+      }
+    });
 
     this.vfx = new Vfx(this.scene, world);
 
@@ -881,8 +900,10 @@ export class View {
     this.hidePreview(); // frees the old preview's per-rig materials, skeleton and scarf
     const h = buildHumanoid(look, gear);
     h.anim = new HumanoidAnimator(h);
-    const [cx, cz] = this.world.data.town.centre;
-    h.root.position.set(cx + 2, this.world.groundY(cx + 2, cz + 2), cz + 2);
+    const city=this.world.data.city?.enabled;
+    const [cx,cz]=city?this.world.data.town.respawn:this.world.data.town.centre;
+    const x=cx+(city?0:2),z=cz+(city?0:2);
+    h.root.position.set(x,this.world.groundY(x,z),z);
     h.root.rotation.y = 0.3;
     this.scene.add(h.root);
     if (h.scarf) this.scene.add(h.scarf.mesh);

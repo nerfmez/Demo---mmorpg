@@ -17,6 +17,7 @@ const out = {
   layoutRevision: data.world.layoutRevision || null,
   sea: data.world.sea || null,
   town: data.world.town,
+  city: data.world.city?.enabled ? data.world.city : null,
   harbor: data.world.harbor || null,
   bounds: world.bounds,
   waterLevel: world.waterLevel,

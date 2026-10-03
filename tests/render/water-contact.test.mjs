@@ -1,12 +1,16 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {data} from '../core/helpers.js';
+import {data as activeData} from '../core/helpers.js';
+import {readFileSync} from 'node:fs';
 import {createWorld} from '../../src/core/world.js';
 import {fromBoxLocal} from '../../src/core/math.js';
 import {createHarbor} from '../../src/render/harbor.js';
 import {marketQuay} from '../../src/render/market.js';
 import {bakeWaterContact,ownContactTexture} from '../../src/render/water-contact.js';
+// Original procedural waterline geometry remains regression coverage. The city
+// browser probe verifies source walls and pier piles are included in its bake.
+const data={...activeData,world:JSON.parse(readFileSync(new URL('../fixtures/azure-pre-city/world.json',import.meta.url)))};
 const world=createWorld(data.world),scenery=new THREE.Group();
 scenery.add(createHarbor(world),marketQuay(world));
 const field=bakeWaterContact(world,scenery);

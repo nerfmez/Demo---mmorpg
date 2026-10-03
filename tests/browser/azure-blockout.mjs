@@ -11,6 +11,7 @@ const shopOnly=process.env.AZURE_SHOP_REVIEW==='1';
 const districtOnly=process.env.AZURE_DISTRICT_REVIEW==='1';
 const marketOnly=process.env.AZURE_MARKET_REVIEW==='1';
 const worldData=JSON.parse(readFileSync('data/world.json','utf8'));
+if(worldData.city?.enabled){await import('./city-review.mjs');process.exit(0);}
 const referenceOffset=worldData.town.placement?.referenceOffset||[0,0];
 const styleReview=!!worldData.town.styleSlice;
 const out=`tests/browser/out/azure-${layoutOnly?'layout':styleReview?'style':'blockout'}-${engine.name()}/`;mkdirSync(out,{recursive:true});

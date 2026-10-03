@@ -452,6 +452,9 @@ then blend the clearing regions. Preserve every recorded native tree island.
 Grass rendering compacts each existing chunk to conservative camera-visible
 clump spheres (including maximum wind). Keep immutable instance/colour inputs,
 reuse buffers without per-frame allocations and retain the full chunk bounds.
+Update visibility after camera/world transforms and before render-list attribute
+uploads (the scene pre-render hook), so camera moves use current matrices/colours
+in their first frame. Do not compact from an individual mesh's draw callback.
 Index the same 30 blade triangles using 42 distinct position/gradient vertices
 instead of 90; lighting still uses the unchanged sampled terrain normal.
 Road paint is affine in its centre tone: combine bare-earth/road layer weights

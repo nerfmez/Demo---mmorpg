@@ -8,6 +8,7 @@ import { createTerrain, createWater } from './ground.js';
 import { createEnvironment } from './environment.js';
 import { batchStatic } from './static-batch.js';
 import { bakeGrassColours } from './grass.js';
+import { installGrassCulling } from './grass-culling.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
@@ -105,6 +106,7 @@ export class View {
     // after the water-contact bake: merge fixed scenery that shares a material, per map cell
     this.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
     this.scene.add(env.root);
+    installGrassCulling(this.scene,env.root);
     this.waypointStones = env.waypoints;
     this.cityReady = loadCity(world).then(city => {
       if (city) {

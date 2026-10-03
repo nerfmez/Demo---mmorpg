@@ -135,3 +135,74 @@
 .skill-journal .edge.route-pending{opacity:0}
 
 @media(max-height:420px) and (min-width:761px){.skill-journal .map-viewport{top:44px;bottom:22px}.skill-journal .map-header{top:8px}.skill-journal .map-header h1{font-size:16px}.skill-journal .map-header p{display:none}.skill-journal .map-status{font-size:8px}.skill-journal .node-caption b{font-size:11px}.skill-journal .node-caption small{font-size:9px}}
+
+/* Benefits stay visible on a single card. Longer notes have an explicit Details action. */
+.skill-journal .detail-essential{flex:1;min-height:0;display:flex;flex-direction:column}
+.skill-journal .detail-header{display:flex;align-items:center;gap:12px;padding-right:26px;margin:0 0 24px}
+.skill-journal .detail-header .detail-emblem{position:relative;inset:auto;display:grid;flex:none;width:34px;height:34px;margin:0}
+.skill-journal .detail-header .detail-emblem svg{width:19px;height:19px}
+.skill-journal .detail-header h2{font-size:22px;line-height:1.45;margin:0;max-width:none}
+.skill-journal .benefit-heading{font-size:11px;color:#82745b}
+.skill-journal .node-benefits{margin:8px 0 0;padding:13px 0;border-bottom:0}
+.skill-journal .node-benefits>div{font-size:14px;color:#575441;gap:14px;margin:0;min-height:52px}
+.skill-journal .node-benefits b{font-size:38px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.skill-journal .node-benefits p{font-size:13px;color:#74694f}
+.skill-journal .detail-more{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;font-size:12px;color:#776444;border-top:1px solid #c8b28c66;margin-top:8px;padding:6px 0}
+.skill-journal .detail-more svg,.skill-journal .blocking-prerequisites svg,.skill-journal .expanded-node-note+button svg{width:14px;height:14px;flex:none}
+.skill-journal .detail-action{margin-top:16px;padding-top:12px}
+.skill-journal .availability{font-size:12px;line-height:1.5;margin-bottom:9px;align-items:flex-start;color:#806743}
+.skill-journal .availability .little-dot{flex:none;margin-top:6px}
+.skill-journal .blocking-prerequisites{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.skill-journal .blocking-prerequisites button{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1 1 auto;min-height:44px;padding:6px 10px;font-size:11px;line-height:1.4;color:#705e40;border:1px solid #c8b28c80;background:#eee1c329;text-align:left}
+.skill-journal .learn-button{min-height:48px;font-size:13px}
+.skill-journal .learn-button>span{font-size:12px}
+.skill-journal .expanded-node-note>p{font-size:14px;line-height:1.8;color:#746747;margin:18px 0 24px}
+.skill-journal .expanded-node-note .effect-list>div{font-size:14px;color:#5e573f}
+.skill-journal .node-caption small{display:block;font-size:10px;line-height:1.4;color:#7c7055;margin-top:3px}
+.skill-journal .locked .node-caption small{color:#938468}
+
+@media(max-width:760px){
+ .skill-journal .inspector{height:auto;max-height:none;padding:22px 20px 16px}
+ .skill-journal .has-detail .map-viewport{bottom:var(--detail-height,292px)}
+ .skill-journal .detail-header{margin-bottom:12px;padding-right:28px}
+ .skill-journal .detail-header h2{font-size:20px}
+ .skill-journal .node-benefits{padding:4px 0}
+ .skill-journal .node-benefits>div{min-height:43px;font-size:14px}
+ .skill-journal .node-benefits b{font-size:32px}
+ .skill-journal .detail-action{margin-top:9px;padding-top:9px}
+ .skill-journal .detail-more{margin-top:3px}
+ .skill-journal .learn-button{min-height:44px;padding:10px 12px}
+ .skill-journal .node-caption small{font-size:9px}
+}
+@container journal-paper (max-height:450px){
+ .skill-journal .detail-header{margin-bottom:10px;padding-right:30px}
+ .skill-journal .detail-header h2{font-size:20px}
+ .skill-journal .benefit-heading{font-size:10px}
+ .skill-journal .node-benefits{padding:4px 0;margin-top:6px}
+ .skill-journal .node-benefits>div{min-height:38px;font-size:13px}
+ .skill-journal .node-benefits b{font-size:30px}
+ .skill-journal .detail-action{margin-top:8px;padding-top:8px}
+ .skill-journal .availability{font-size:11px}
+ .skill-journal .learn-button{min-height:44px;padding:9px 12px}
+ .skill-journal .detail-more{margin-top:0}
+ .skill-journal .node-caption small{display:block;font-size:9px}
+}
+@media(min-width:761px){
+ @container journal-paper (max-height:450px){
+  .skill-journal .inspector{top:8px;bottom:8px;padding:15px 16px 12px}
+ }
+ @container journal-paper (max-height:360px){
+  .skill-journal .inspector{width:430px}
+  .skill-journal #detail-content{display:grid;grid-template-columns:1fr 1.1fr;gap:16px}
+  .skill-journal .detail-header{padding:0;margin-bottom:8px;gap:8px}
+  .skill-journal .detail-header .detail-emblem{width:28px;height:28px}
+  .skill-journal .detail-header h2{font-size:18px}
+  .skill-journal .detail-action{display:flex;flex-direction:column;justify-content:flex-end;margin:34px 0 0;padding:0;border:0}
+  .skill-journal .blocking-prerequisites button{font-size:10px;padding:4px 8px}
+  .skill-journal .detail-more{font-size:11px}
+ }
+}
+@media(max-width:760px){
+ .skill-journal .inspector{top:auto;bottom:0}
+ .skill-journal .has-detail .map-viewport{bottom:var(--detail-height,292px)}
+}

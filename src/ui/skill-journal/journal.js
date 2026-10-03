@@ -82,7 +82,7 @@ function showJunction(){changePage(()=>{state.view=state.tier===presentation.tie
 const compactPaper=()=>innerHeight<=520||(innerWidth>760&&paperHeight<=450);
 function nodeName(n){return n.type==='job'?Object.keys(n.effects||{}).slice(0,1).map(effectLabel).join(''):n.nameTh;}
 function drawNodes(ids,primary){
- const viewport=camera.viewport(),layout=layoutRules.layout(ids,[...primary],state.tier,innerWidth<=760);
+ const viewport=camera.viewport(),layout=layoutRules.layout(ids,[...primary],state.tier,innerWidth<=760,viewport.height<200);
  state.entries=ids.map(id=>[id,tree.nodes[id]]);state.coords=layout.coords;
  plane.style.width=layout.width+'px';plane.style.height=layout.height+'px';
  plane.innerHTML=`<svg class="connections" width="${layout.width}" height="${layout.height}" aria-hidden="true"><g class="base-routes"></g></svg>`+state.entries.map(([id,n])=>`<button class="node ${primary.has(id)?'':'context-node'}" data-node="${esc(id)}" aria-pressed="false" style="left:${state.coords[id][0]}px;top:${state.coords[id][1]}px;${inkStyle(palette(n))}"><span class="node-disc">${icon(effectSigil(n))}</span><span class="node-state"></span><span class="node-caption"><b>${esc(nodeName(n))}</b><small>${n.type==='origin'?'จุดเริ่มต้นร่วมกัน':n.requires?.length?'ก่อน: '+(n.requires||[]).map(k=>tree.nodes[k].nameTh).join(' + '):''}</small></span></button>`).join('');

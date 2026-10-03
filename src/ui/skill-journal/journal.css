@@ -132,3 +132,5 @@
 .skill-journal .edge.purchased{stroke-dasharray:4 6;stroke:var(--node-ink,#597567);stroke-width:1.6;opacity:.8}
 .skill-journal .edge.learned{stroke-dasharray:4 6}
 .skill-journal .edge.route-pending{opacity:0}
+
+@media(max-height:420px) and (min-width:761px){.skill-journal .map-viewport{top:44px;bottom:22px}.skill-journal .map-header{top:8px}.skill-journal .map-header h1{font-size:16px}.skill-journal .map-header p{display:none}.skill-journal .map-status{font-size:8px}.skill-journal .node-caption b{font-size:11px}.skill-journal .node-caption small{font-size:9px}}

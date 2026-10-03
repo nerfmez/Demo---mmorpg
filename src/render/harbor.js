@@ -35,7 +35,7 @@ export function createHarbor(world) {
     const mesh = outlined(geo, material || toon(color), { outline: '#51483b', width: .025 });
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
   };
-  for (const d of world.docks) {
+  for (const d of world.data.city?.enabled ? [] : world.docks) {
     const pier = new THREE.Group();
     pier.userData.waterContact=true;
     pier.position.set(d.x,d.rampFromTerrain ? (d.height+d.startY)/2 : d.height+(d.kind==='breakwater'?.025:0),d.z); pier.rotation.y=d.angle;
@@ -83,6 +83,7 @@ export function createHarbor(world) {
   }
   const h=world.data.harbor;
   const [lx,lz]=h.lighthouse, y=world.groundY(lx,lz);
+  if (!world.data.city?.enabled) {
   if(h.lighthouseStyle)root.add(coastalLighthouse(world));
   else {
   const tower=new THREE.Group(); tower.position.set(lx,y,lz);
@@ -93,6 +94,7 @@ export function createHarbor(world) {
   part(new THREE.ConeGeometry(1.6,1.4,8),'#466c84',0,11.3,0,tower);
   part(new THREE.BoxGeometry(.85,1.9,.13),'#765a3e',0,.95,1.82,tower);
   root.add(tower);
+  }
   }
   if(world.data.town.districtStyle)root.add(districtScenery(world));
   for(const [index,[x,z,a]] of h.boats.entries()) {

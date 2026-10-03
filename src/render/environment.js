@@ -601,6 +601,7 @@ function waypointStone() {
 
 function createTown(world, rng) {
   const g = new THREE.Group();
+  if (world.data.city?.enabled) return g;
   const gy = (x, z) => world.groundY(x, z);
   const roofCols = ['#b8543f', '#4f6fa8', '#8f5a3c', '#5e8a4a'];
   const t = world.data.town, slice=t.styleSlice;

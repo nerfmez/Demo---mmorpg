@@ -6,6 +6,7 @@
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
+import { cityFloorAt } from './city.js';
 
 const CELL = 8;
 
@@ -40,7 +41,7 @@ export function createWorld(worldData) {
   const bridges = (river?.bridges || []).map((br) => ({ ...br, hx: br.halfLength, hz: br.halfWidth }));
   const bridgeAt = (x, z, pad = 0) => bridges.find((br) => pointInBox(br, x, z, pad)) || null;
   const onBridge = (x, z, pad = 0) => !!bridgeAt(x, z, pad);
-  const docks = (worldData.docks || []).map(d => ({ ...d }));
+  const docks = (worldData.city?.enabled ? worldData.city.docks : worldData.docks || []).map(d => ({ ...d }));
   // Adjacent decks support the whole actor across their shared seam. Outer edges
   // still reject any footprint extending over water; dry shore can support a ramp join.
   const dockAt = (x, z, pad = 0) => {
@@ -58,7 +59,7 @@ export function createWorld(worldData) {
   // opt into an authored contour shared with terrain, painting and water.
   const shore = worldData.sea?.shore || null;
   const shoreZ = (x) => (shore ? polylineZAtX(shore, x) : Infinity);
-  const inSea = (x, z, pad = 0) => !!shore && (pad === 0 ? seaContains(worldData.sea, x, z) : coastSample(worldData.sea, x, z).distance < pad);
+  const inSea = (x, z, pad = 0) => !cityFloorAt(worldData.city, x, z, Math.max(0, pad)) && !!shore && (pad === 0 ? seaContains(worldData.sea, x, z) : coastSample(worldData.sea, x, z).distance < pad);
   const isWater = (x, z, pad = 0) => (inRiver(x, z, pad) || inPond(x, z, pad) || inSea(x, z, pad)) && !onBridge(x, z, 0.2) && !dockAt(x, z, pad);
   // One coastal mask for ground paint, plants and shells. Positive pad extends inland.
   const coastAt = (x, z) => shore ? coastSample(worldData.sea, x, z) : { distance: Infinity, kind: 'beach' };
@@ -71,7 +72,7 @@ export function createWorld(worldData) {
 
   // ---------- terrain ----------
   const hf = buildHeightfield(worldData, zoneAt);
-  const terrainY = hf.heightAt;
+  const terrainY = (x, z) => cityFloorAt(worldData.city, x, z)?.height ?? hf.heightAt(x, z);
   for (const dock of docks) if (dock.rampFromTerrain) {
     const start = fromBoxLocal(dock, 0, -dock.hz);
     dock.startY = terrainY(start.x, start.z);
@@ -173,7 +174,7 @@ export function createWorld(worldData) {
     overlaps(x, z, r);
 
   // ---------- town ----------
-  for (const entry of town.buildings) {
+  for (const entry of worldData.city?.enabled ? [] : town.buildings) {
     const building = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 3.4, hz: 2.8 } : entry;
     addBox({ ...building, type: 'house' });
   }
@@ -183,13 +184,19 @@ export function createWorld(worldData) {
   for (const rock of town.rocks || []) {
     addCircle({ ...rock, type: 'boulder' });
   }
-  addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
-  addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
-  for (const entry of town.stalls || []) {
+  if (!worldData.city?.enabled) {
+    addBox({ x: town.workbench[0], z: town.workbench[1] - 1.6, hx: 1.3, hz: 0.6, angle: 0, type: 'workbench' });
+    addCircle({ x: town.well[0], z: town.well[1], r: 1.3, type: 'well', scale: 1, rot: 0 });
+  }
+  for (const entry of worldData.city?.enabled ? [] : town.stalls || []) {
     const stall = Array.isArray(entry) ? { x: entry[0], z: entry[1], angle: entry[2], hx: 1.6, hz: 1.1 } : entry;
     addBox({ ...stall, type: 'stall' });
   }
   for (const resident of town.residents || []) addCircle({ ...resident, type: 'citizen', scale: 1, rot: resident.angle });
+  for (const collider of worldData.city?.enabled ? worldData.city.colliders : []) {
+    if (collider.hx !== undefined) addBox({ ...collider });
+    else addCircle({ ...collider, scale: 1, rot: 0 });
+  }
   const tr = zoneById('settlement').rects[0];
   const walls = town.walls;
   const gateZ = walls ? roadZAt(roads[0].points, walls.east) : town.centre[1];

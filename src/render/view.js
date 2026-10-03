@@ -22,6 +22,7 @@ import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
 import { residentTool } from './districts.js';
+import { loadCity } from './city.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -98,6 +99,9 @@ export class View {
     this.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
     this.scene.add(env.root);
     this.waypointStones = env.waypoints;
+    this.cityReady = loadCity(world).then(city => {
+      if (city) { this.scene.add(city.root); this.cityRoot = city.root; this.cityStats = city.stats; }
+    });
 
     this.vfx = new Vfx(this.scene, world);
 

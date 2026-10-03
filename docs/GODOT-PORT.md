@@ -431,3 +431,19 @@ The local city review uses original native timber for all city piers, with `city
 Cape integration: `city.capeTransition` grades only dry exterior source-floor edges to the existing heightfield via `cityFloorHeight`; native-water causeways and interior city heights stay authored. The renderer subdivides only cape surface triangles at load and uses this same height function. A narrow data road joins the existing cape dirt path. Native cape cobble paint is removed locally and sea film stays below raised source land; native coast/heightfield data are unchanged.
 
 Connected fountain water: three fixed subdivided pool disks deform in the vertex shader with matching normals and advected surface shading. Broad overflow sheets cross both stone tier lips and descend into the next pool. Nine jet/crown curves and ten lip/curtain sections merge into one geometry; 57 splash points and 19 instanced foam patches share render time. CPU buffers and matrices are fixed at load; no new gameplay or fluid solver.
+
+Local quay/dressing review: rebuild exposed outer and bay retaining faces from the
+existing first two `city.floors` polygons, including holes, at `cityFloorHeight`.
+Face normals point away from supported land; render both sides and extend bottoms
+below the native height/water. Split other-floor intersections, omit hidden lower
+walls and make higher internal edges short risers. The narrow inset top transition
+uses upward normals. Native terrain indices, foam, roads and dock support stay intact.
+The original imported inland-facing cliff is suppressed at render load only.
+
+`city.dressing` records individual placement-ready GLB identities and deterministic
+world-X/Z placements with metre scale, angle and optional supported `lift/stackOn`.
+Use the same solid oriented boxes from `dressing.colliders` in world collision;
+stacked upper copies reuse their lower footprint. Roads, all existing entry/NPC
+routes, warp, spawn, fountain and pier landings are reserved. Load each type once,
+apply the existing toon contours and merge static scenery by material and 24 m
+cell. Props add no service, save, progression, light or per-frame callback.

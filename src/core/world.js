@@ -199,7 +199,7 @@ export function createWorld(worldData) {
     addBox({ ...stall, type: 'stall' });
   }
   for (const resident of town.residents || []) addCircle({ ...resident, type: 'citizen', scale: 1, rot: resident.angle });
-  for (const collider of worldData.city?.enabled ? worldData.city.colliders : []) {
+  for (const collider of worldData.city?.enabled ? [...worldData.city.colliders,...worldData.city.dressing?.colliders||[]] : []) {
     if (collider.hx !== undefined) addBox({ ...collider });
     else addCircle({ ...collider, scale: 1, rot: 0 });
   }

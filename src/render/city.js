@@ -6,6 +6,8 @@ import { outlineStructure } from './architecture.js';
 import { batchStatic } from './static-batch.js';
 import { cityGround } from './city-ground.js';
 import { cityFountain } from './city-fountain.js';
+import { cityBank } from './city-bank.js';
+import { loadCityDressing } from './city-dressing.js';
 import { gradeCapeMesh } from './city-cape.js';
 
 export async function loadCity(world) {
@@ -16,6 +18,7 @@ export async function loadCity(world) {
   root.userData.waterContact=true;
   root.position.fromArray(city.offset);
   const ground = cityGround(world, root);
+  const bank=cityBank(world,root);
   const fountainWater = cityFountain(root, world);
   // Native timber now owns every deck/pile, with exactly the core dock footprint.
   const runtimeFiles=city.files.filter(file=>file.file!=='10_Timber_Piers.glb');
@@ -42,6 +45,7 @@ export async function loadCity(world) {
       if(file.file==='01_Ground.glb'&&/^Mainland[ _]continuous/.test(mesh.name))gradeCapeMesh(mesh,world,root,city.floors[0]);
       if(file.file==='01_Ground.glb'&&/^Lighthouse[ _]rock[ _]grassy/.test(mesh.name))gradeCapeMesh(mesh,world,root,city.floors[1]);
       if(file.file==='02_Roads.glb')gradeCapeMesh(mesh,world,root,city.floors[0],true);
+      if(/^Continuous[ _]coastal[ _]cliff[ _]face/.test(mesh.name)){mesh.removeFromParent();mesh.geometry.dispose();continue;}
       if(/^Coastal[ _]shallow[ _]shelf/.test(mesh.name)){
         // Authored shallow-water context never replaces the actual game sea.
         mesh.removeFromParent();mesh.geometry.dispose();continue;
@@ -80,6 +84,7 @@ export async function loadCity(world) {
     root.add(scene);
   }
   for (const material of originals) material.dispose();
+  const dressing=await loadCityDressing(world,root,loader);
   const batch = batchStatic(root, { cell: 24 });
-  return { root, stats: { readyMs: performance.now() - start, sourceMeshDraws: meshes, batch, treeBeds:ground.trees, assetBytes: runtimeFiles.reduce((n, f) => n + f.bytes, 0), sourceTriangles: runtimeFiles.reduce((n, f) => n + f.placedTriangles, 0) } };
+  return { root, stats: { readyMs: performance.now() - start, sourceMeshDraws: meshes, batch, treeBeds:ground.trees, bank, dressing, assetBytes: runtimeFiles.reduce((n, f) => n + f.bytes, 0), sourceTriangles: runtimeFiles.reduce((n, f) => n + f.placedTriangles, 0) } };
 }

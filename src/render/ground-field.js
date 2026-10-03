@@ -21,7 +21,13 @@ export function meadowDensity(x,z) {
 }
 export const NOISE_GLSL=/* glsl */ `
 float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
-float vnoise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.0-2.0*f);return mix(mix(hash12(i),hash12(i+vec2(1,0)),u.x),mix(hash12(i+vec2(0,1)),hash12(i+vec2(1,1)),u.x),u.y);}
+// Hash four value-noise corners together; same operation order and interpolation.
+vec4 noiseCorners(vec2 i){
+  vec4 a=fract((i.x+vec4(0,1,0,1))*.1031),b=fract((i.y+vec4(0,0,1,1))*.1031);
+  vec4 d=a*(b+33.33)+b*(a+33.33)+a*(a+33.33);
+  vec4 x=a+d,y=b+d;return fract((x+y)*x);
+}
+float vnoise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.0-2.0*f);vec4 h=noiseCorners(i);return mix(mix(h.x,h.y,u.x),mix(h.z,h.w,u.x),u.y);}
 float fbm3(vec2 p){float v=0.0,a=.5;for(int i=0;i<3;i++){v+=a*vnoise(p);p=p*2.03+17.1;a*=.5;}return v/.875;}
 `;
 export const MEADOW_FIELD_GLSL=/* glsl */ `

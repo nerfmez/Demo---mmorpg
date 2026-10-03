@@ -457,6 +457,9 @@ instead of 90; lighting still uses the unchanged sampled terrain normal.
 Road paint is affine in its centre tone: combine bare-earth/road layer weights
 first and evaluate their identical procedural spatial detail only once. Preserve
 the original final colour; no paint texture, light or ground height is changed.
+Evaluate the four value-noise corner hashes as a vec4 with the original
+operation order and interpolation. Preserve scalar/vector float equality and
+actual-game pixel equality; do not approximate noise or alter its constants.
 
 Connected fountain water: three fixed subdivided pool disks deform in the vertex shader with matching normals and advected surface shading. Broad overflow sheets cross both stone tier lips and descend into the next pool. Nine jet/crown curves and ten lip/curtain sections merge into one geometry; 57 splash points and 19 instanced foam patches share render time. CPU buffers and matrices are fixed at load; no new gameplay or fluid solver.
 

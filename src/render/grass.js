@@ -7,6 +7,7 @@ import { GROUND_COLOR_GLSL, GROUND_CLOUD_GLSL } from './ground-color.js';
 import { patchMaterial, timeUniform } from './patch.js';
 import art from '../../data/art.json';
 import { groundBrushUniform } from './ground-brush.js';
+import {prepareGrassCulling} from './grass-culling.js';
 
 export function sampleGround(world,x,z) {
   const h=world.heightfield,s=surfaceData(world);
@@ -34,7 +35,16 @@ export function attachGrassSurface(mesh,items,world) {
   mesh.geometry=mesh.geometry.clone();
   const fields={aGrassLight:3,aGrassDark:3,aGrassSplat:4,aGrassCoast:2,aGrassNormal:3,aGrassY:1,aGrassTown:1};
   const arrays=Object.fromEntries(Object.entries(fields).map(([k,n])=>[k,new Float32Array(items.length*n)]));
+  const positions=mesh.geometry.attributes.position,radii=new Float32Array(items.length);
+  let radius=0;
+  for(let i=0;i<positions.count;i++){
+    const x=positions.getX(i),y=positions.getY(i),z=positions.getZ(i);
+    radius=Math.max(radius,Math.hypot(x,y,z)+Math.max(0,y)*.15*Math.hypot(1,.6));
+  }
+  mesh.userData.grassRadii=radii;
   items.forEach((it,i)=>{
+    const scale=it.s??1;
+    radii[i]=radius*Math.max(it.sx??scale,it.sy??scale,it.sz??scale)+.02;
     const p=sampleGround(world,it.x,it.z);
     for(const [k,v] of Object.entries({aGrassLight:p.light,aGrassDark:p.dark,aGrassSplat:p.splat,aGrassCoast:p.coast,aGrassNormal:p.normal,aGrassY:[p.height],aGrassTown:[p.town]})) arrays[k].set(v,i*fields[k]);
   });
@@ -125,6 +135,7 @@ export function bakeGrassColours(renderer,root,world) {
     scene.remove(cloud);points.dispose();target.dispose();
     // only what the blade shader still reads stays on the GPU
     for(const k of ['aGrassLight','aGrassDark','aGrassSplat','aGrassCoast','aGrassTown'])g.deleteAttribute(k);
+    prepareGrassCulling(mesh);
   }
   renderer.setRenderTarget(previous);material.dispose();
   return meshes.length;

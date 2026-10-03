@@ -39,7 +39,7 @@ test('boundary clipping does not reshuffle existing native trees or core decorat
   assert.deepEqual(world.heightfield.data,old.heightfield.data);
 });
 test('organic clearing contains real walkable play pockets and retained islands',()=>{
-  assert.equal(city.outsideClearings.length,1);
+  assert.equal(city.outsideClearings.length,5);
   assert.ok(outsideClearingWeight(city,72,-79)>.9,'broad existing trail junction');
   assert.ok(outsideClearingWeight(city,79,-54)>.9,'gate neck');
   assert.equal(outsideClearingWeight(city,59.5,-74.08),0,'retain actual native tree island');
@@ -53,4 +53,16 @@ test('organic clearing contains real walkable play pockets and retained islands'
       assert.ok(Math.hypot(m.x-x,m.z-z)<.015,'gate to existing junction traversal '+[x,z]);p=m;
     }
   }
+});
+
+test('outside ground connects existing destinations while retaining native tree islands',()=>{
+  assert.deepEqual(data.world.waypoints.map(w=>w.id),['landing','town','meadow','forest','headland']);
+  for(const [id,x,z]of[['meadow',-21,-35],['forest',-100,-43],['headland',186,-90]]){
+    assert.ok(outsideClearingWeight(city,x,z)>.85,id+' actual waypoint uses earth clearing');
+    assert.ok([[x-2,z],[x+2,z],[x,z-2],[x,z+2]].some(p=>world.isFree(...p,.45)),id+' actual waypoint approach stays free');
+  }
+  for(const r of city.outsideClearings)for(const [x,z]of r.retainedTreeIslands||[])
+    assert.equal(outsideClearingWeight(city,x,z),0,r.id+' retained native vegetation island');
+  assert.equal(outsideClearingWeight(city,0,-116),0,'obsolete destinationless north stub');
+  assert.equal(outsideClearingWeight(city,180,36),0,'retired old exterior warehouse spur');
 });

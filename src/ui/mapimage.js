@@ -2,7 +2,9 @@
 // landmarks), made once from the same world data the 3D view uses. The minimap and the world
 // map panel both draw from it.
 import { fromBoxLocal, pointInPolygon } from '../core/math.js';
-import {outsideClearingWeight} from '../core/ground-regions.js';
+import {outsideClearingWeight,outsideRoadDistance} from '../core/ground-regions.js';
+
+import {cityFloorAt} from '../core/city.js';
 
 const PX = 3; // canvas pixels per metre (the map is large; keeps the image near 1300 px wide)
 
@@ -66,7 +68,7 @@ export function mapImage(world) {
         const beach = world.data.sea.beach || 14;
         if (world.isBeach(x, z)) c = mix(c, SAND, Math.min(1, (beach - d) / 5));
       }
-      const rd = world.roadDist(x, z);
+      const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z):outsideRoadDistance(world.data.city,world.roads,x,z);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
       if(!world.isWater(x,z))c=mix(c,ROAD,outsideClearingWeight(world.data.city,x,z)*(.88+n*.08));
       // hill shade: light from the north-west (slopes facing -x/-z are lit), high ground a bit lighter

@@ -440,11 +440,23 @@ planting exclusion, so clipping the slab cannot reshuffle the existing seeded
 map plants. Newly exposed lawns use their own cosmetic seed. The five documented
 `treeRelocations` retain tree IDs, species, scale and full planter/canopy clearance.
 
-`city.outsideClearings` is a bounded local art prototype, with irregular earth
+`city.outsideClearings` is a local ground-art review connecting existing meadow,
+forest and headland destinations, with irregular earth
 regions, soft worn edges and retained vegetation holes. Bake
 `outsideClearingWeight` into both terrain splats and the map; it changes no
-heightfield, water, safety routes, encounter spawn or POI data. Major outside-road
-network changes remain subject to the separate road-purpose plan review.
+heightfield, water, safety routes, encounter spawn or POI data.
+`outsideRoadReview.replacedRoadIds` retires obsolete exterior road paint only;
+retain the original simulation roads for terrain grading and placement RNG.
+The painter and map use `outsideRoadDistance` for retained arrival/cape paths,
+then blend the clearing regions. Preserve every recorded native tree island.
+Grass rendering compacts each existing chunk to conservative camera-visible
+clump spheres (including maximum wind). Keep immutable instance/colour inputs,
+reuse buffers without per-frame allocations and retain the full chunk bounds.
+Index the same 30 blade triangles using 42 distinct position/gradient vertices
+instead of 90; lighting still uses the unchanged sampled terrain normal.
+Road paint is affine in its centre tone: combine bare-earth/road layer weights
+first and evaluate their identical procedural spatial detail only once. Preserve
+the original final colour; no paint texture, light or ground height is changed.
 
 Connected fountain water: three fixed subdivided pool disks deform in the vertex shader with matching normals and advected surface shading. Broad overflow sheets cross both stone tier lips and descend into the next pool. Nine jet/crown curves and ten lip/curtain sections merge into one geometry; 57 splash points and 19 instanced foam patches share render time. CPU buffers and matrices are fixed at load; no new gameplay or fluid solver.
 

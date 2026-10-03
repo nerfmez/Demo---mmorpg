@@ -60,12 +60,12 @@ export function cityGround(world, root) {
         .replace('#include <color_fragment>',`#include <color_fragment>
           vec2 w=vCityGround;vec2 mask=texture2D(uCityMask,(w-vec2(-24.,-76.))/vec2(194.,216.)).rg;
           vec3 grass=mix(${colour(art.ground.palette.grassOchre)},vec3(.19,.30,.075),.72)*(.88+groundBrush(w).r*.22);
-          vec3 earth=paintedEarth(w,0.0);
+          vec3 earth=vec3(0.);if(mask.x>.001${kind==='base'?'||mask.y>.001':''})earth=paintedEarth(w,0.0);
           vec3 pave=citySetts(w,vec2(.44,.30),vec3(.48,.435,.35));
           ${kind==='road'?'pave=citySetts(w,vec2(.65,.45),vec3(.54,.51,.425));':''}
           ${kind==='plaza'?'pave=citySetts(w,vec2(.54,.36),vec3(.57,.50,.385));float ring=abs(length(w-vec2(62.,22.))-7.3);pave=mix(pave,pave*.82,1.-smoothstep(.10,.18,ring));':''}
           ${kind==='lawn'?`vec3 brush=groundBrush(w);pave=${colour('#8ba250')}*(.86+brush.r*.25+(vnoise(w*.45)-.5)*.08);pave*=1.-brush.g*.08+brush.b*.07;`:''}
-          ${kind==='base'?'pave=mix(pave,mix(earth,grass,smoothstep(.10,.88,mask.y)),mask.y);':''}
+          ${kind==='base'?'if(mask.y>.001)pave=mix(pave,mix(earth,grass,smoothstep(.10,.88,mask.y)),mask.y);':''}
           diffuseColor.rgb=mix(pave,earth*.82,mask.x);
         `);
     };

@@ -18,10 +18,13 @@ export function cityFountain(root, world) {
         float shimmer=sin(p.x*9.+uTime*2.)*sin(p.y*11.-uTime*2.8);
         float ripple=0.;
         float nearFlow=1.-smoothstep(28.,70.,distance(cameraPosition,vec3(${x},2.,${z})));
-        if(nearFlow>.01)for(int i=0;i<8;i++){
-          float a=float(i)*.785398;vec2 hit=vec2(cos(a),sin(a))*3.9;
-          float age=fract(uTime*.42+float(i)*.137),d=length(p-hit);
-          ripple+=exp(-pow((d-age*.85)*37.,2.))*(1.-age)*.32*nearFlow;
+        if(nearFlow>.01){
+          // The small rings never reach the next jet. Select the nearest of
+          // eight impacts analytically instead of evaluating eight exponentials.
+          float i=mod(floor((atan(p.y,p.x)+6.283185)/.785398+.5),8.);
+          float a=i*.785398;vec2 hit=vec2(cos(a),sin(a))*3.9;
+          float age=fract(uTime*.42+i*.137),d=length(p-hit);
+          ripple=exp(-pow((d-age*.85)*37.,2.))*(1.-age)*.32*nearFlow;
         }
         diffuseColor.rgb*=.93+wave*.035+shimmer*.025;
         diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.60,.80,.77),clamp(ripple,0.,.45));

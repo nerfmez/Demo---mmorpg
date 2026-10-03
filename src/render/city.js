@@ -59,7 +59,7 @@ export async function loadCity(world) {
         materials.set(key, m);
       }
       mesh.material = materials.get(key);
-      if(water){mesh.material=fountainWater;mesh.userData.skipStructureOutline=true;mesh.castShadow=false;}
+      if(water){fountainWater.userData.preparePool(mesh);mesh.material=fountainWater;mesh.userData.skipStructureOutline=true;mesh.castShadow=false;}
       if (mesh.name.startsWith('Mainland_continuous') || /^Mainland[ _]continuous/.test(mesh.name)) mesh.material=ground.material('base');
       if (mesh.name.startsWith('Lighthouse_rock_grassy') || /^Lighthouse[ _]rock[ _]grassy/.test(mesh.name)) mesh.material=ground.material('lawn');
       if(file.file==='02_Roads.glb')mesh.material=ground.material(mesh.name.startsWith('Market')?'plaza':'road');

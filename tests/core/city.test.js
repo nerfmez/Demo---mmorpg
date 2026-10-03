@@ -1,6 +1,7 @@
 import {test}from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';import{createHash}from'node:crypto';
 import{data}from'./helpers.js';import{createWorld}from'../../src/core/world.js';import{Game}from'../../src/core/game.js';import{createCharacter,migrateCharacter}from'../../src/core/character.js';import{fromBoxLocal}from'../../src/core/math.js';import{cityNavigation}from'./city-navigation.js';
 const world=createWorld(data.world),city=data.world.city;
+import{cityFloorAt}from'../../src/core/city.js';
 const before=JSON.parse(readFileSync(new URL('../fixtures/azure-pre-city/world.json',import.meta.url)));
 const provenance=JSON.parse(readFileSync(new URL('../../docs/city-v3-source-provenance.json',import.meta.url)));
 const navigation=cityNavigation(world);
@@ -8,6 +9,8 @@ test('approved producer city identity, full paving and exact east-facing house s
  assert.equal(city.files.length,11);assert.equal(city.files.reduce((n,f)=>n+f.bytes,0),5454368);
  for(const f of city.files){const b=readFileSync(new URL('../../public/'+f.url,import.meta.url));assert.equal(b.length,f.bytes);assert.equal(createHash('sha256').update(b).digest('hex'),f.sha256);assert.equal(b.toString('ascii',0,4),'glTF');assert.equal(b.readUInt32LE(8),b.length);}
  assert.ok(!city.files.some(f=>/Sea|Trees/.test(f.file)));assert.deepEqual(city.offset,[72.32,.76,41.2]);
+ assert.equal(cityFloorAt(city,21,104),null,'source mainland inner loop remains a hole');
+ assert.equal(world.terrainY(21,104),world.heightfield.heightAt(21,104),'source hole uses actual native terrain height');
  const f=provenance.find(p=>p.name==='Fountain broad octagonal first step');assert.ok(f.bounds[1][0]-f.bounds[0][0]>10);
  const b=readFileSync(new URL('../../public/assets/city-v3/05_Residential.glb',import.meta.url));const gltf=JSON.parse(b.toString('utf8',20,20+b.readUInt32LE(12)));const n=gltf.nodes.find(n=>n.name==='AC_Home_Balcony_026');
  assert.deepEqual(n.translation,[-48.2400016784668,.07999999821186066,-24.959999084472656]);assert.ok(Math.abs(n.rotation[1]-Math.SQRT1_2)<1e-6);assert.ok(Math.abs(n.rotation[3]-Math.SQRT1_2)<1e-6);

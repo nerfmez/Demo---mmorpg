@@ -140,6 +140,22 @@ manifest['terrainRoads']=json.loads((root/'tests/fixtures/azure-pre-city/world.j
 roadGroups={}
 for road in manifest['roads']:roadGroups.setdefault(road['name'],[]).append(simplify(road['points']))
 manifest['roads']=[{'name':name,'loops':loops}for name,loops in roadGroups.items()]
+# A nested boundary of the same source top surface is a hole, not a second
+# filled walk slab. Keep its exact loop for navigation and terrain visibility.
+def inside(p,loop):
+ hit=False
+ for i,u in enumerate(loop):
+  v=loop[i-1]
+  if (u[1]>p[1])!=(v[1]>p[1]) and p[0]<(v[0]-u[0])*(p[1]-u[1])/(v[1]-u[1])+u[0]:hit=not hit
+ return hit
+def area(loop):return abs(sum(p[0]*loop[(i+1)%len(loop)][1]-p[1]*loop[(i+1)%len(loop)][0]for i,p in enumerate(loop)))/2
+outer=[]
+for floor in manifest['floors']:
+ parents=[f for f in manifest['floors']if f is not floor and f['name']==floor['name'] and area(f['points'])>area(floor['points']) and all(inside(p,f['points'])for p in floor['points'])]
+ if parents:min(parents,key=lambda f:area(f['points'])).setdefault('holes',[]).append(floor['points'])
+ else:outer.append(floor)
+manifest['floors']=outer
+assert sum(len(f.get('holes',[]))for f in outer)==1, 'Approved source has one nested mainland slab boundary'
 for surface in manifest['floors']:
  p=surface['points'];surface['bounds']=[min(q[0]for q in p),max(q[0]for q in p),min(q[1]for q in p),max(q[1]for q in p)]
 for surface in manifest['roads']:

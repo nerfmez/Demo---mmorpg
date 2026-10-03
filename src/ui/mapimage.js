@@ -80,8 +80,8 @@ export function mapImage(world) {
   const tx = (x) => (x - b.minX) * PX;
   const tz = (z) => (z - b.minZ) * PX;
   if(world.data.city?.enabled){
-    const fill=(points,color)=>{g.beginPath();points.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();g.fillStyle=color;g.fill();};
-    for(const floor of world.data.city.floors)fill(floor.points,'#c8c1a9');
+    const fill=(loops,color)=>{g.beginPath();for(const points of loops){points.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();}g.fillStyle=color;g.fill('evenodd');};
+    for(const floor of world.data.city.floors)fill([floor.points,...floor.holes||[]],'#c8c1a9');
     for(const road of world.data.city.roads){g.beginPath();for(const loop of road.loops){loop.forEach(([x,z],i)=>i?g.lineTo(tx(x),tz(z)):g.moveTo(tx(x),tz(z)));g.closePath();}g.fillStyle='#a5a08e';g.fill('evenodd');}
   }
 

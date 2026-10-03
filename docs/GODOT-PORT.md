@@ -20,7 +20,7 @@ walk surfaces, street loops, collider/entry data and native timber shore joins.
 Import the eleven runtime chunks under one translated parent without changing
 child transforms. Exclude source Sea/Trees and retain native water/leafy foliage.
 Use the original terrain heightmap beneath/outside the city. At a city point,
-select the highest containing floor; dock support takes precedence. Adjacent
+select the highest containing floor after excluding its `holes`; dock support takes precedence. Adjacent
 docks and dry shore jointly support actor footprints. Permit the data-authored
 `city.stepHeight` only between supported city surfaces; retain native slope and
 water rules elsewhere. Disable replaced procedural town/quay/lighthouse meshes.

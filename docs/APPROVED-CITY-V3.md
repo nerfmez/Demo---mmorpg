@@ -79,6 +79,10 @@ coastline remain unchanged; native peaks and a conservative full-cell slab edge
 band remain rendered. This avoids shading hidden terrain without changing the
 approved city assets or appearance. Focused coverage tests verify concave edges,
 native peaks and every omitted real-map quad.
+The mainland's nested source boundary is explicitly retained as a hole, including
+its native terrain and edge band. The character-creation preview stands at the
+clear town respawn beside the fountain; new characters still spawn on the original
+western beach. The real browser creator verifies the preview has clear footing.
 
 ## Validation
 

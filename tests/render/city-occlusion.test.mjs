@@ -13,6 +13,9 @@ test('native terrain peaks, source slab edges and concave corners remain rendere
   assert.equal(coveredTerrainCell(city,2.5,2.5,.96,1),false,'native peak reaches slab');
   assert.equal(coveredTerrainCell(city,10,10,0,1),false,'outside source slab');
   assert.equal(coveredTerrainCell({...city,enabled:false},2.5,2.5,0,1),false);
+  const holed={enabled:true,floors:[{height:1,points:[[0,0],[30,0],[30,30],[0,30]],holes:[[[10,10],[20,10],[20,20],[10,20]]]}]};
+  assert.equal(coveredTerrainCell(holed,15,15,0,1),false,'retain native terrain in source holes');
+  assert.equal(coveredTerrainCell(holed,9.5,15,0,1),false,'retain hole boundary band');
 });
 test('real city coverage preserves the native heightfield and contains every omitted quad',()=>{
   const world=createWorld(loadData().world),hf=world.heightfield,original=hf.data.slice(),city=world.data.city;
@@ -21,7 +24,7 @@ test('real city coverage preserves the native heightfield and contains every omi
     const x=hf.ox+(i+.5)*hf.res,z=hf.oz+(j+.5)*hf.res,k=j*hf.w+i;
     const max=Math.max(hf.data[k],hf.data[k+1],hf.data[k+hf.w],hf.data[k+hf.w+1]);
     if(!coveredTerrainCell(city,x,z,max,hf.res)){kept++;continue;}removed++;
-    assert.ok(city.floors.some(f=>max<f.height-.05&&[-.5,0,.5].every(dx=>[-.5,0,.5].every(dz=>pointInPolygon(f.points,x+dx*hf.res,z+dz*hf.res)))),'entire omitted quad is below opaque source slab');
+    assert.ok(city.floors.some(f=>max<f.height-.05&&[-.5,0,.5].every(dx=>[-.5,0,.5].every(dz=>pointInPolygon(f.points,x+dx*hf.res,z+dz*hf.res)&&!f.holes?.some(hole=>pointInPolygon(hole,x+dx*hf.res,z+dz*hf.res))))),'entire omitted quad is below opaque source slab');
   }
   assert.ok(removed>5000);assert.ok(kept>removed);assert.deepEqual(hf.data,original);
 });

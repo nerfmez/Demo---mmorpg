@@ -900,8 +900,10 @@ export class View {
     this.hidePreview(); // frees the old preview's per-rig materials, skeleton and scarf
     const h = buildHumanoid(look, gear);
     h.anim = new HumanoidAnimator(h);
-    const [cx, cz] = this.world.data.town.centre;
-    h.root.position.set(cx + 2, this.world.groundY(cx + 2, cz + 2), cz + 2);
+    const city=this.world.data.city?.enabled;
+    const [cx,cz]=city?this.world.data.town.respawn:this.world.data.town.centre;
+    const x=cx+(city?0:2),z=cz+(city?0:2);
+    h.root.position.set(x,this.world.groundY(x,z),z);
     h.root.rotation.y = 0.3;
     this.scene.add(h.root);
     if (h.scarf) this.scene.add(h.scarf.mesh);

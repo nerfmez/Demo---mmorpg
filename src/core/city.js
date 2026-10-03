@@ -28,11 +28,13 @@ export function cityFloorAt(city, x, z, radius = 0) {
   for (const floor of city.floors) {
     if (floor.bounds && (x < floor.bounds[0] || x > floor.bounds[1] || z < floor.bounds[2] || z > floor.bounds[3])) continue;
     if (!pointInPolygon(floor.points, x, z)) continue;
+    if (floor.holes?.some(hole=>pointInPolygon(hole,x,z))) continue;
     if (radius > 0) {
       let supported = true;
       for (let i = 0; i < 12; i++) {
         const a = i * Math.PI / 6;
-        if (!pointInPolygon(floor.points, x + Math.sin(a) * radius, z + Math.cos(a) * radius)) { supported = false; break; }
+        const px=x+Math.sin(a)*radius,pz=z+Math.cos(a)*radius;
+        if (!pointInPolygon(floor.points, px, pz)||floor.holes?.some(hole=>pointInPolygon(hole,px,pz))) { supported = false; break; }
       }
       if (!supported) continue;
     }

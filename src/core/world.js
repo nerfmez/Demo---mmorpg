@@ -46,7 +46,10 @@ export function createWorld(worldData) {
   // Adjacent decks support the whole actor across their shared seam. Outer edges
   // still reject any footprint extending over water; dry shore can support a ramp join.
   const dockAt = (x, z, pad = 0) => {
-    const deck = docks.find(d => pointInBox(d, x, z));
+    // At a flush stone/wood edge the actor centre may already be on land while
+    // part of its footprint remains over the deck. Check that union as well.
+    const deck = docks.find(d => pointInBox(d, x, z)) ||
+      (pad > 0 ? docks.find(d => pointInBox(d, x, z, pad)) : null);
     if (!deck || pad <= 0) return deck || null;
     for (let i = 0; i < 16; i++) {
       const a = i * Math.PI / 8, px = x + Math.sin(a) * pad, pz = z + Math.cos(a) * pad;

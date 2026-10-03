@@ -418,6 +418,10 @@ Spirit Wolf (`renderer: spirit`) has a small inward summoning mark and two short
 
 `tests/browser/gpu-bench.mjs` times fixed scenes through to GPU completion and the CPU submission separately (SwiftShader: relative before/after only, not iPad FPS); it fails if any shader errors are logged.
 
+## Local city cohesion presentation
+
+The local city review uses original native timber for all city piers, with `city-v3.docks[].shoreCut` giving the two landward cut coordinates in pier-local Z. Clip the same deck assembly to that shore segment and keep its posts waterward; never overlay separate crossbridges. Walking support across a flush edge is the union of the adjacent deck and stone: `dockAt` may select a deck touching an actor's radius even after its centre reaches the shore, then checks all sixteen boundary samples. Point-height queries still select only the surface under the centre. `boatBerths`/`propOffsets` describe render placements, not new game systems. Paving/soil masks, black building contours and fountain flow/ripples/splash are presentation only; use baked masks, static merged buffers and shared shader time in Godot. Keep EXP/Job, saves, NPC anchors, approved building/street layout and native coastline unchanged.
+
 ## Reviewed directed journal graph
 
 `jobtree.presentation.stages/groups` indexes the shared first page and free later gateways. New skill `requires` lists are ALL-parent directed prerequisites in `Character.gd`; legacy nodes keep adjacency and profession rules. Keep the existing tree revision and ownership IDs when adding this graph so old saves retain points, bonuses and choices. Layout, paper motion and success-only dashed ink are presentation; they never allocate points. See `REVIEWED-SKILL-TREE.md`.

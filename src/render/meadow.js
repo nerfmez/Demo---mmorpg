@@ -3,7 +3,8 @@ import art from '../../data/art.json' with {type:'json'};
 import { createRng } from '../core/rng.js';
 import { meadowDensity } from './ground-field.js';
 import { surfaceData } from './ground.js';
-import { cityFloorAt } from '../core/city.js';
+import {outsideRoadDistance} from '../core/ground-regions.js';
+import { cityFloorAt, cityPlantingFloorAt } from '../core/city.js';
 
 export function meadowPlants(world, extraPatches=[]) {
   const rng=createRng(842),field=surfaceData(world),hf=world.heightfield,grass=[],flowers=[];
@@ -13,11 +14,11 @@ export function meadowPlants(world, extraPatches=[]) {
     return u+v<=1?array[a*stride]*(1-u-v)+array[(a+1)*stride]*u+array[(a+hf.w)*stride]*v:
       array[(a+1)*stride]*(1-v)+array[(a+hf.w)*stride]*(1-u)+array[(a+hf.w+1)*stride]*(u+v-1);
   };
-  const clear=(x,z)=>{
-    if(cityFloorAt(world.data.city,x,z))return false;
+  const clear=(x,z,restored=false)=>{
+    if((restored?cityFloorAt:cityPlantingFloorAt)(world.data.city,x,z))return false;
     const b=world.bounds;
     if(x<=b.minX+.3||x>=b.maxX-.3||z<=b.minZ+.3||z>=b.maxZ-.3)return false;
-    if(world.isWater(x,z,.6)||world.dockAt(x,z)||world.roadDist(x,z)<.1||world.slopeAt(x,z)>.65)return false;
+    if(world.isWater(x,z,.6)||world.dockAt(x,z)||outsideRoadDistance(world.data.city,world.roads,x,z)<.1||world.slopeAt(x,z)>.65)return false;
     if(sample(field.coast,x,z,2)>art.ground.duneGrassLimit||sample(field.road,x,z)>.40||sample(field.stone,x,z)>.16||sample(field.mud,x,z)>.35||sample(field.dirt,x,z)>.84)return false;
     return world.isFree(x,z,.12);
   };
@@ -32,14 +33,14 @@ export function meadowPlants(world, extraPatches=[]) {
     if(rng.next()<.21)flowerPatches.push({x:px+.25,z:pz+.4,s:rng.range(.85,1.15),color:rng.pick([0,0,1,2])});
   }
   // One patch: loose elongated islands; centres carry taller blades, edges taper into ground paint.
-  const plant=(patch,r0)=>{
+  const plant=(patch,r0,restored=false)=>{
     const density=meadowDensity(patch.x,patch.z),axis=r0.range(0,Math.PI*2);
     for(let k=0;k<art.ground.grassPerPatch;k++){
       if(r0.next()>.48+density*.72)continue;
       const a=r0.range(0,Math.PI*2),r=k===0?0:Math.sqrt(r0.next())*1.7;
       const lx=Math.sin(a)*r,lz=Math.cos(a)*r*.65;
       const x=patch.x+Math.cos(axis)*lx+Math.sin(axis)*lz,z=patch.z-Math.sin(axis)*lx+Math.cos(axis)*lz;
-      if(!clear(x,z)||meadowDensity(x,z)<.12)continue;
+      if(!clear(x,z,restored)||meadowDensity(x,z)<.12)continue;
       // the back-beach band keeps only scattered dune tufts, thinning toward the sand
       const shore=sample(field.coast,x,z,2)/art.ground.duneGrassLimit;
       if(shore>0&&((Math.sin(x*12.9898+z*78.233)*43758.5453)%1+1)%1<.15+shore*.8)continue;
@@ -65,6 +66,17 @@ export function meadowPlants(world, extraPatches=[]) {
     const px=x+wild.range(-2.2,2.2),pz=z+wild.range(-2.2,2.2);
     if(!clear(px,pz)||meadowDensity(px,pz)<art.ground.wildMinDensity)continue;
     plant({x:px,z:pz,s:wild.range(.7,1.05)},wild);
+  }
+  // Newly exposed ground gets its own restrained native lawn patches, after
+  // the unchanged map passes. Existing meadow/flower instances keep their RNG.
+  const repair=world.data.city?.propertyBoundary;
+  if(repair){
+    const local=createRng(20261004),spacing=repair.restoredLawnSpacing,bb=repair.previousPaving.bounds;
+    for(let z=bb[2]+spacing/2;z<bb[3];z+=spacing)for(let x=bb[0]+spacing/2;x<bb[1];x+=spacing){
+      const px=x+local.range(-1,1),pz=z+local.range(-1,1);
+      if(!cityPlantingFloorAt(world.data.city,px,pz)||!clear(px,pz,true))continue;
+      plant({x:px,z:pz,s:local.range(.62,.91)},local,true);
+    }
   }
   return {grass,flowers};
 }

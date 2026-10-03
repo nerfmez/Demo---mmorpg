@@ -1,5 +1,6 @@
 // Authored low-poly silhouettes for the frontier's foliage. All variants stay instanced.
 import * as THREE from 'three';
+import {mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import art from '../../data/art.json';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createRng} from '../core/rng.js';
@@ -67,7 +68,10 @@ export function meadowGrass() {
  const colors=[];for(let i=0;i<g.attributes.position.count;i++){
   const t=Math.min(1,g.attributes.position.getY(i)/.54);colors.push(.63+t*.32,.71+t*.24,.46+t*.25);
  }
- g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));return g;
+ g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+ // Grass lighting takes the sampled terrain normal, so duplicate face normals
+ // do not need separate vertices. Keep every triangle, blade and gradient.
+ g.deleteAttribute('normal');const indexed=mergeVertices(g,1e-7);indexed.computeVertexNormals();g.dispose();return indexed;
 }
 export function wildflowers() {
  const parts=[],h=.29;

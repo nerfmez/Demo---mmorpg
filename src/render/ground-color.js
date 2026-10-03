@@ -51,8 +51,8 @@ float gravel(vec2 w,float scale,float keep,float size){
 }
 // A trodden dirt road: dusty worn centre, darker trodden sides, gravel at two sizes, damp and dry
 // patches and fine grit, so it reads as real ground rather than one flat paint stroke.
-vec3 roadEarth(vec2 w,vec3 earth,float centre){
-  vec3 e=mix(earth*.92,earth*1.07+${rgb(p.dust)}*.05,smoothstep(.55,.98,centre));
+vec3 roadEarth(vec2 w,vec3 earth,float centreTone){
+  vec3 e=mix(earth*.92,earth*1.07+${rgb(p.dust)}*.05,centreTone);
   float patches=vnoise(w*.75+23.0);
   e=mix(e*.90,e,smoothstep(.25,.55,patches));
   e=mix(e,e*1.06+${rgb(p.dust)}*.04,smoothstep(.62,.85,patches));
@@ -154,8 +154,14 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   if(soil+bare+onRoad>.002){
     vec3 earth=paintedEarth(w,0.0);
     col=mix(grass,earth,soil);
-    if(bare>.002)col=mix(col,roadEarth(w,earth,splat.a)*.97,bare);
-    if(onRoad>.002)col=mix(col,roadEarth(w,earth,splat.r),onRoad);
+    if(bare>.002||onRoad>.002){
+      // roadEarth is affine in its centre tone. Combine the two layer weights
+      // first: one unchanged procedural road paint, with the same final colour.
+      float b=bare>.002?bare:0.0,r=onRoad>.002?onRoad:0.0;
+      float bareWeight=(1.0-r)*b*.97,roadWeight=bareWeight+r;
+      float centreTone=(bareWeight*smoothstep(.55,.98,splat.a)+r*smoothstep(.55,.98,splat.r))/roadWeight;
+      col=col*((1.0-r)*(1.0-b))+roadEarth(w,earth,centreTone)*roadWeight;
+    }
   }
   // darker soil just inside the border, under the grass overhang
   col*=1.0-.12*onRoad*(1.0-smoothstep(.54,.78,roadEdge));

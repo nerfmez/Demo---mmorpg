@@ -6,7 +6,7 @@
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise } from './terrain.js';
-import { cityFloorAt, cityRoadDistance, cityFloorHeight } from './city.js';
+import { cityFloorAt, cityRoadDistance, cityFloorHeight, cityPlantingFloorAt } from './city.js';
 
 const CELL = 8;
 
@@ -418,7 +418,7 @@ export function createWorld(worldData) {
     const x = rng.range(b.minX, b.maxX);
     const z = rng.range(b.minZ, b.maxZ);
     const zn = zoneAt(x, z);
-    if (cityFloorAt(worldData.city, x, z)) continue;
+    if (cityPlantingFloorAt(worldData.city, x, z)) continue;
     if (isWater(x, z, 0.6)) {
       if (inPond(x, z, -0.8) && rng.chance(0.3)) decor.lilies.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.1) });
       continue;

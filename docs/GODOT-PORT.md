@@ -430,6 +430,40 @@ The local city review uses original native timber for all city piers, with `city
 
 Cape integration: `city.capeTransition` grades only dry exterior source-floor edges to the existing heightfield via `cityFloorHeight`; native-water causeways and interior city heights stay authored. The renderer subdivides only cape surface triangles at load and uses this same height function. A narrow data road joins the existing cape dirt path. Native cape cobble paint is removed locally and sea film stays below raised source land; native coast/heightfield data are unchanged.
 
+Local boundary repair: `city.propertyBoundary` clips the mainland top and streets
+to the source limestone-wall endpoints while retaining coastal quay contours and
+the small unfenced harbor-entry apron. Use the same `city.floors` polygon for
+walk support, terrain coverage, retaining faces and map clipping. Preserve fully
+contained source triangles and cape triangulation; do not retessellate every
+street against the entire land mesh. `previousPaving` is only a stable cosmetic
+planting exclusion, so clipping the slab cannot reshuffle the existing seeded
+map plants. Newly exposed lawns use their own cosmetic seed. The five documented
+`treeRelocations` retain tree IDs, species, scale and full planter/canopy clearance.
+
+`city.outsideClearings` is a local ground-art review connecting existing meadow,
+forest and headland destinations, with irregular earth
+regions, soft worn edges and retained vegetation holes. Bake
+`outsideClearingWeight` into both terrain splats and the map; it changes no
+heightfield, water, safety routes, encounter spawn or POI data.
+`outsideRoadReview.replacedRoadIds` retires obsolete exterior road paint only;
+retain the original simulation roads for terrain grading and placement RNG.
+The painter and map use `outsideRoadDistance` for retained arrival/cape paths,
+then blend the clearing regions. Preserve every recorded native tree island.
+Grass rendering compacts each existing chunk to conservative camera-visible
+clump spheres (including maximum wind). Keep immutable instance/colour inputs,
+reuse buffers without per-frame allocations and retain the full chunk bounds.
+Update visibility after camera/world transforms and before render-list attribute
+uploads (the scene pre-render hook), so camera moves use current matrices/colours
+in their first frame. Do not compact from an individual mesh's draw callback.
+Index the same 30 blade triangles using 42 distinct position/gradient vertices
+instead of 90; lighting still uses the unchanged sampled terrain normal.
+Road paint is affine in its centre tone: combine bare-earth/road layer weights
+first and evaluate their identical procedural spatial detail only once. Preserve
+the original final colour; no paint texture, light or ground height is changed.
+Evaluate the four value-noise corner hashes as a vec4 with the original
+operation order and interpolation. Preserve scalar/vector float equality and
+actual-game pixel equality; do not approximate noise or alter its constants.
+
 Connected fountain water: three fixed subdivided pool disks deform in the vertex shader with matching normals and advected surface shading. Broad overflow sheets cross both stone tier lips and descend into the next pool. Nine jet/crown curves and ten lip/curtain sections merge into one geometry; 57 splash points and 19 instanced foam patches share render time. CPU buffers and matrices are fixed at load; no new gameplay or fluid solver.
 
 Local quay/dressing review: rebuild exposed outer and bay retaining faces from the

@@ -2,7 +2,9 @@
 
 Final integration base: `8778cebd9c526e3f4f629c255411a8dea4bfd533` (current main fetched 2026-10-03, including city release PR52). Reviewed locally in `icon-raster-review`. The earlier preparation checkout remains `/workspace/icon-raster-prep`, based on301ac85. Main's city changes do not overlap the icon overlay. The owner approved this bounded icon release on 2026-10-04 UTC. Release checks and Pages verification are recorded in the PR; the unrelated UI prototype is excluded.
 
-## Complete delivery
+Local transparency follow-up on the UI branch: the 17 skill images now use reviewed transparent 1254px reference edits; the 59 gear/material files remain unchanged. Original hashes and delivery provenance are retained in the manifest. See [the separate transparency review](SKILL-TRANSPARENCY-REVIEW-2026-10-04.md) for current evidence and limits. The release results below describe the earlier 512px icon release.
+
+## Complete delivery (original icon release)
 
 All76 supplied PNG illustrations are registered:37 gear (13 weapons,6 armor,6 helmets,5 boots,7 charms),22 materials,13 combat skills and4 movement skills. Nine authenticated Drive ZIPs and every PNG were verified against the supplied SHA256 manifests. All76 image hashes are unique, all images are512×512, and all59 gear/material images retain transparency. Delivered PNG bytes are unchanged, totaling17,197,804 bytes. Original1254 PNGs were not downloaded locally; artist-provided full-resolution hashes and Library IDs are retained as provenance in `icon-assets-manifest.json`. Source ZIPs remain outside deployment under `/workspace/scratch/icon-incoming/verified-drive`.
 

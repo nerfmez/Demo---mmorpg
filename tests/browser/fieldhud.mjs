@@ -40,7 +40,7 @@ try {
   });
   const settle=()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   await settle();
-  const activate=async selector=>touch?page.locator(selector).tap():page.locator(selector).click();
+  const activate=async selector=>{if(height>width&&selector==='#atelier [data-action="close"]')return page.keyboard.press('Escape');return touch?page.locator(selector).tap():page.locator(selector).click();};
   const targets=['.pframe','.minimap','.quick-actions [aria-label="กระเป๋า"]','.quick-actions [aria-label="สกิล"]','.menu-toggle','.quest-collapse','.questtrack','.sbtn.attack','.sbtn.s1','.sbtn.s2','.sbtn.s3','.sbtn.move'];
   for(const selector of targets){
    const hit=await page.locator(selector).evaluate(el=>{const r=el.getBoundingClientRect(),h=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {w:r.width,h:r.height,left:r.left,top:r.top,right:r.right,bottom:r.bottom,hit:el.contains(h)};});
@@ -90,8 +90,8 @@ try {
   await page.screenshot({path:out+size+'-hud.png',timeout:60000});
   await activate('.quest-collapse');assert.equal(await page.locator('.quest-collapse').getAttribute('aria-expanded'),'false');
   await activate('.quest-collapse');
-  await activate('.quick-actions [aria-label="สกิล"]');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');
-  await activate('.panel-close');
+  await activate('.quick-actions [aria-label="สกิล"]');assert.equal(await page.locator('#atelier .loadout-window h1').textContent(),'ชุดสกิล');
+  await activate('#atelier [data-action="close"]');
   await activate('.menu-toggle');await activate('.menu [aria-label="Job Tree"]');
   const full=await page.locator('.panel').boundingBox();assert.equal(full.width,width);assert.equal(full.height,height);
   await activate('.skill-journal [data-action="exit"]');
@@ -102,9 +102,9 @@ try {
   assert.match(await page.locator('.pframe .mp span').innerText(),/MP\s+0\s*\//);
   await page.screenshot({path:out+size+'-cooldowns.png',timeout:60000});
   await page.evaluate(()=>{const f=window.__frontier;f.game.ch.slots[3]={skill:null,mods:[]};f.game.refresh();f.input.refreshButtons();});
-  await activate('.sbtn.s3');assert.equal(await page.locator('#panel-title').textContent(),'ชุดสกิล');
-  assert.equal(await page.locator('.loadout-slot.on').getAttribute('data-slot'),'3','empty-slot tap must not click through to a different loadout slot');
-  await activate('.panel-close');
+  await activate('.sbtn.s3');assert.equal(await page.locator('#atelier .loadout-window h1').textContent(),'ชุดสกิล');
+  assert.equal(await page.locator('#atelier .skill-card.selected').getAttribute('data-target'),'3','empty-slot tap must not click through to a different loadout slot');
+  await activate('#atelier [data-action="close"]');
   assert.deepEqual(errors,[],size+' page errors');reports.push({size,width,height,touch,ok:true,modelsReady:true,source:'full game renderer, real HUD',controls:5,originalSkillImages:verifiedArt});
   writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS field HUD '+name+' '+size);await ctx.close();
  }

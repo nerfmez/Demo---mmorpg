@@ -35,6 +35,8 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 
 ## Validation and early review
 
+For all visual, UI and animation work, follow [the visual quality workflow](docs/VISUAL_QUALITY_WORKFLOW.md). Define observable visual criteria, review an unobscured normal-speed prototype, then inspect the exact final runtime artifacts separately from technical tests. Major visible defects block a completion claim. Include a short delivery review record with artifact identity, inspected views/timestamps, faults found/fixed and remaining limits.
+
 Choose checks from the changed behaviour, not the number of files. Planning/read-only
 work runs no tests. Do not make a reviewable draft wait for unrelated full suites.
 
@@ -82,4 +84,3 @@ work runs no tests. Do not make a reviewable draft wait for unrelated full suite
 - Never request, print, commit, or put `TYPESAFE_API_KEY` in the game frontend. Use the repository Secret for Actions; use offline retrieval if no key is available locally.
 - When changing the context tool, run `npm run test:tools`. Do not claim measured token/time savings until the trial has been evaluated.
 - In a PR or task handoff, record the source SHA, task/keywords, request/run link, report status/cache use, files actually inspected, unresolved impacts and test results. The next agent must fetch current source and recheck report identity before reuse. See [the shared guide](docs/JEV-CONTEXT-TH.md) and [handoff notes](docs/HANDOFF.md).
-

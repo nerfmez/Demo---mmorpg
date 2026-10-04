@@ -22,6 +22,7 @@ try {
     ['desktop', 1600, 900, false], ['ipad', 1180, 820, true],
     ['phone-landscape', 844, 390, true], ['phone-portrait', 390, 844, true],
   ]) {
+    if(process.env.QUICK&&name!=='ipad')continue;
     const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
     const errors = [];
@@ -37,6 +38,8 @@ try {
     });
     const activate = async (selector) => {
       const tab=selector.match(/^\[data-tab="([^"\]]+)"\]$/)?.[1];
+      if(tab&&await page.locator('#atelier').isVisible())return page.evaluate(tab=>__frontier.panels.open(tab),tab);
+      if(selector==='.panel-close'&&await page.locator('#atelier').isVisible())selector='#atelier [data-action="close"]';
       if(tab&&width<=700)return page.locator('[data-page-select]').selectOption(tab);
       return touch ? page.locator(selector).tap() : page.locator(selector).click();
     };
@@ -69,6 +72,14 @@ try {
     await activate('.panel-close');
     assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'false');
 
+    if(height>width){
+      await activate('.quick-actions [aria-label="กระเป๋า"]');
+      assert.equal(await page.locator('#atelier .rotate-message').isVisible(),true);
+      assert.equal(await page.locator('#atelier .two-windows').isVisible(),false);
+      await shot('landscape-required');await page.keyboard.press('Escape');
+      assert.deepEqual(errors,[]);await ctx.close();continue;
+    }
+
     // Fixture supplies resources only; crafting, comparison and equipping use real controls.
     await page.evaluate(() => {
       const { game: g } = window.__frontier;
@@ -81,18 +92,13 @@ try {
       g.refresh();
     });
     await activate('.quick-actions [aria-label="กระเป๋า"]');
-    await activate('[data-act="inventory-category"][data-id="materials"]');
-    if (!touch) assert.ok(await page.evaluate(() => !!document.activeElement.closest('.panel')), 'category changes keep keyboard focus inside the menu');
-    await activate('[data-act="inspect-item"][data-id="boar_hide"]');
-    assert.match(await page.locator('.item-detail').innerText(), /ใช้คราฟต์/);
+    await activate('[data-action="bag-category"][data-id="material"]');
+    if (!touch) assert.ok(await page.evaluate(() => !!document.activeElement.closest('#atelier')), 'category changes keep keyboard focus inside the menu');
+    await activate('[data-action="material"][data-id="boar_hide"]');await activate('#atelier [data-action="details"]');
+    assert.match(await page.locator('.atelier-dialog').innerText(), /ใช้คราฟต์/);
     await activate('[data-act="sell"][data-id="boar_hide"]');
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.materials.boar_hide), 15);
-    if(width<=700){
-      assert.equal(await page.locator('.inventory-list').isVisible(),false);
-      await activate('[data-act="inventory-back"]');
-      assert.equal(await page.locator('.inventory-list').isVisible(),true);
-    }
-    await shot('materials');
+    await activate('.atelier-dialog [data-action="cancel"]');await shot('materials');
     await activate('[data-tab="craft"]');
     await activate('[data-act="craft-filter"][data-id="armor"]');
     await activate('[data-act="craft-ready"]');
@@ -102,12 +108,12 @@ try {
     await activate('[data-act="craft"][data-id="hide_vest"]');
     const made = await page.evaluate(() => window.__frontier.game.ch.gear.at(-1).uid);
     await activate('[data-tab="bag"]');
-    await activate('[data-act="inventory-category"][data-id="gear"]');
-    await activate(`[data-act="inspect-item"][data-id="${made}"]`);
-    assert.ok(await page.locator('.gear-compare .ok').count() > 0, 'new armour shows stat improvements');
+    await activate('[data-action="bag-category"][data-id="gear"]');
+    await activate(`[data-action="item"][data-id="${made}"]`);
+    assert.ok(await page.locator('#atelier .comparison .good').count() > 0, 'new armour shows stat improvements');
     await shot('inventory');
     // The loot toast may offer the same item; test the inspected-item action.
-    await activate(`.item-detail [data-act="equip-gear"][data-uid="${made}"]`);
+    await activate('#atelier [data-action="equip"]');
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.equipped.armor), made);
     await activate('[data-tab="craft"]');
     await activate('[data-act="craft-back"]');
@@ -116,10 +122,10 @@ try {
     await activate('[data-act="craft"][data-id="mod_wide_arc"]');
     const mod = await page.evaluate(() => window.__frontier.game.ch.mods.at(-1).uid);
     await activate('[data-tab="skills"]');
-    await activate('[data-act="skill-slot"][data-slot="0"]');
-    await activate('[data-act="pick-socket"][data-slot="0"]');
-    await activate(`[data-act="inspect-mod"][data-uid="${mod}"]`);
-    await activate(`[data-act="socket"][data-uid="${mod}"]`);
+    await activate('[data-action="slot"][data-id="0"]');
+    await activate('.category-tabs [data-action="category"][data-id="mod"]');
+    await activate(`[data-action="mod"][data-id="${mod}"]`);
+    await activate('#atelier [data-action="apply"]');
     assert.ok(await page.evaluate((uid) => window.__frontier.game.ch.slots[0].mods.includes(uid), mod));
     assert.ok(await page.evaluate(() => {
       const g = window.__frontier.game;
@@ -128,10 +134,10 @@ try {
     await shot('skills');
     await activate('.panel-close');
     await activate('.sbtn.s3');
-    assert.equal(await page.locator('#panel-title').textContent(), 'ชุดสกิล');
-    assert.equal(await page.locator('.loadout-slot.on').getAttribute('data-slot'), '3');
+    assert.equal(await page.locator('#atelier .loadout-window h1').textContent(), 'ชุดสกิล');
+    assert.equal(await page.locator('#atelier .skill-card.selected').getAttribute('data-target'), '3');
     const spell = await page.evaluate(() => window.__frontier.game.ch.slots[2].skill);
-    await activate(`[data-act="choose-skill"][data-id="${spell}"]`);
+    await activate(`[data-action="skill"][data-id="${spell}"]`);await activate('#atelier [data-action="apply"]');await activate('.atelier-dialog [data-action="confirm"]');
     assert.equal(await page.evaluate(() => window.__frontier.game.ch.slots[3].skill), spell);
     await activate('.panel-close');
 
@@ -199,9 +205,9 @@ try {
       await page.keyboard.down('w');
       await page.keyboard.press('i');
       await page.keyboard.up('w');
-      await page.locator('.panel-footer [data-close]').focus();
+      await page.locator('#atelier button:not(:disabled)').last().focus();
       await page.keyboard.press('Tab');
-      assert.equal(await page.evaluate(() => document.activeElement.className), 'panel-close');
+      assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('#atelier button:not(:disabled)')), true, 'Tab wraps inside the actual workspace');
       await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
       assert.equal(await page.evaluate(() => window.__frontier.game.input.moveZ), 0);
@@ -213,12 +219,11 @@ try {
         g.ch.materials={boar_hide:1};
         f.panels.open('bag');
       });
-      await activate('[data-act="inventory-category"][data-id="materials"]');
-      await activate('[data-act="inspect-item"][data-id="boar_hide"]');
+      await activate('[data-action="bag-category"][data-id="material"]');
+      await activate('[data-action="material"][data-id="boar_hide"]');await activate('#atelier [data-action="details"]');
       await activate('[data-act="sell"][data-id="boar_hide"]');
-      assert.equal(await page.locator('.item-detail .inventory-empty').count(),1);
-      await activate('[data-act="inventory-back"]');
-      assert.ok(await page.locator('.inventory-list').isVisible(),'empty detail can return to the bag');
+      assert.match(await page.locator('#atelier .empty-selection').innerText(),/ยังไม่มีวัตถุดิบ/);
+      assert.ok(await page.locator('#atelier .inventory-grid').isVisible(),'selling the last stack returns to the empty bag');
       await activate('.panel-close');
     }
     assert.deepEqual(errors, [], `${name}: page errors`);

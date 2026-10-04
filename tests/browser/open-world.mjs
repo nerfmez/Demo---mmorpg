@@ -12,7 +12,7 @@ const data = loadData(), AZURE = 'azure-harbor-v1', FRONTIER = 'frontier-wilds-v
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
 const out = new URL(`./out/open-world-${engine.name()}/`, import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
-const port = 4207, url = `http://localhost:${port}/?fresh=1&quality=low&seed=4&streamBudget=${process.env.STREAM_BUDGET || 120}`;
+const port = 4207, url = `http://localhost:${port}/?fresh=1&quality=low&seed=4&streamBudget=${process.env.STREAM_BUDGET || 600}`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 for (let i = 0; ; i++) {
   try { if ((await fetch(url)).ok) break; } catch {}
@@ -42,7 +42,9 @@ try {
     requestAnimationFrame(tick);
   });
   console.log('placed', JSON.stringify(await page.evaluate(() => [window.__frontier.game.player.x, window.__frontier.view.mode])));
-  await page.waitForFunction((id) => window.__frontier.view.neighbourReady(id), FRONTIER);
+  // Software-GPU CI renders a frame in ~1 s; the per-frame budget (?streamBudget) is large here
+  // and the wait long, while the slicing itself is what the stepMs report measures.
+  await page.waitForFunction((id) => window.__frontier.view.neighbourReady(id), FRONTIER, { timeout: 420000 });
   const stream = await page.evaluate((id) => { window.__stopGaps = true; const g = window.__gaps.slice(1).sort((a, b) => a - b); const n = window.__frontier.view.neighbours.get(id); return { frames: g.length, worstFrameMs: Math.round(g[g.length - 1]), p95FrameMs: Math.round(g[Math.floor(g.length * 0.95)]), buildMs: Math.round(n.buildMs), stepMs: n.stepMs }; }, FRONTIER);
   report.stream = stream; console.log('streamed', JSON.stringify(stream));
   // The Frontier is drawn across the border, at its atlas delta.
@@ -56,7 +58,7 @@ try {
   // Walk across: same document, same session, now on the Frontier.
   await place(seam.gate[0] + 1.2, seam.gate[1]);
   await page.keyboard.down('ArrowLeft');
-  await page.waitForFunction((id) => window.__frontier.world.data.id === id, FRONTIER);
+  await page.waitForFunction((id) => window.__frontier.world.data.id === id, FRONTIER, { timeout: 240000 });
   await page.keyboard.up('ArrowLeft');
   const across = await page.evaluate(() => ({ same: window.__sameDocument, world: window.__frontier.world.data.id, game: window.__frontier.game.data.world.id, x: window.__frontier.game.player.x, z: window.__frontier.game.player.z, monsters: window.__frontier.game.monsters.length }));
   assert.equal(across.same, true, 'no reload');
@@ -70,12 +72,12 @@ try {
   // And back.
   await place(data.maps[FRONTIER].bounds.maxX - 1.2, seam.gate[1] - fz);
   await page.keyboard.down('ArrowRight');
-  await page.waitForFunction((id) => window.__frontier.world.data.id === id, AZURE);
+  await page.waitForFunction((id) => window.__frontier.world.data.id === id, AZURE, { timeout: 240000 });
   await page.keyboard.up('ArrowRight');
   assert.equal(await page.evaluate(() => window.__sameDocument), true, 'no reload on the way back');
   // Far from the seam the neighbour is dropped again.
   await place(60, 20);
-  await page.waitForFunction((id) => !window.__frontier.view.neighbours.has(id), FRONTIER);
+  await page.waitForFunction((id) => !window.__frontier.view.neighbours.has(id), FRONTIER, { timeout: 240000 });
   report.errors = errors;
   writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
   assert.deepEqual(errors, []);

@@ -5,7 +5,7 @@
 
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
-import { buildHeightfield, valueNoise } from './terrain.js';
+import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
 import { cityFloorAt, cityRoadDistance, cityFloorHeight, cityPlantingFloorAt } from './city.js';
 
 const CELL = 8;
@@ -168,6 +168,8 @@ export function createWorld(worldData) {
     addCircle({ x, z, r, type: 'lighthouse', scale: 1, rot: 0 });
   }
 
+  // Past an open seam edge (data atlas.seams) the land belongs to the neighbouring map.
+  const pastSeam = (x, z) => (x < b.minX && seamOpen(worldData, 'minX', z)) || (x > b.maxX && seamOpen(worldData, 'maxX', z)) || (z < b.minZ && seamOpen(worldData, 'minZ', x)) || (z > b.maxZ && seamOpen(worldData, 'maxZ', x));
   const inBounds = (x, z, m = 1) => x > b.minX + m && x < b.maxX - m && z > b.minZ + m && z < b.maxZ - m;
   const blockedForProp = (x, z, r, { roadPad = 1.2, slope = 0.9 } = {}) =>
     !inBounds(x, z) ||
@@ -250,6 +252,13 @@ export function createWorld(worldData) {
   for (const wp of waypoints) addCircle({ x: wp.x, z: wp.z, r: 0.7, type: 'waypoint', id: wp.id, scale: 1, rot: 0 });
   // Travel points to linked maps (data/maps). They sit on roads, so they add no collider.
   const exits = (worldData.exits || []).map((e) => ({ ...e, x: e.pos[0], z: e.pos[1] }));
+  // Open edges shared with a neighbouring map: walking off one continues on the other.
+  const seams = (worldData.atlas?.seams || []).map((seam) => ({ ...seam, outward: seam.edge.startsWith('max') ? 1 : -1, alongX: seam.edge === 'minZ' || seam.edge === 'maxZ' }));
+  /** The seam a circle at (x,z) is pressed against, or null. */
+  const seamAt = (x, z, r) => seams.find((seam) => {
+    const along = seam.alongX ? x : z, across = seam.alongX ? z : x;
+    return along >= seam.span[0] && along <= seam.span[1] && (across - b[seam.edge]) * seam.outward >= -(r + 0.3);
+  }) || null;
 
   // ---------- ruins ----------
   const ruins = worldData.ruins;
@@ -372,12 +381,13 @@ export function createWorld(worldData) {
       if (!inBounds(jx, jz, -0.5)) {
         // forest band on the mountains around the map: looks enclosed, never reachable
         if (inSea(jx, jz, 2) || isBeach(jx, jz, 2)) continue; // open coast to the horizon
+        if (pastSeam(jx, jz)) continue; // the neighbouring map continues here
         if (rng.next() < 0.55) decor.edgeTrees.push({ x: jx, z: jz, type: rng.chance(0.25) ? 'birch' : 'tree', scale: rng.range(0.9, 1.5), rot: rng.range(0, 6.28) });
         continue;
       }
       const zn = zoneAt(jx, jz);
       if (isBeach(jx, jz, 1.5)) continue;
-      const edge = Math.min(jx - b.minX, b.maxX - jx, jz - b.minZ) < 10 ? 0.45 : 0;
+      const edge = Math.min(seamOpen(worldData, 'minX', jz) ? Infinity : jx - b.minX, seamOpen(worldData, 'maxX', jz) ? Infinity : b.maxX - jx, seamOpen(worldData, 'minZ', jx) ? Infinity : jz - b.minZ) < 10 ? 0.45 : 0;
       // trees gather in groves with open clearings between them
       const grove = smooth01((valueNoise(jx * 0.035, jz * 0.035, 17) - 0.42) / 0.3) * 1.8;
       const density = (zn.treeDensity || 0) * 0.3 * grove + edge + (zn.safe ? -0.3 : 0);
@@ -596,6 +606,8 @@ export function createWorld(worldData) {
     decor,
     waypoints,
     exits,
+    seams,
+    seamAt,
     isFree,
     tooSteep,
     move,

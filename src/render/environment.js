@@ -447,6 +447,8 @@ export function createEnvironment(world) {
     waypoints.set(wp.id, g);
   }
   for (const exit of world.exits || []) root.add(exitGate(exit, world));
+  // A border gate marks where a road crosses an open seam into the neighbouring map.
+  for (const seam of world.seams || []) if (seam.gate) root.add(exitGate({ id: 'border-' + seam.to, x: seam.gate[0] - seam.outward * (seam.alongX ? 0 : 3), z: seam.gate[1] - seam.outward * (seam.alongX ? 3 : 0) }, world));
   return { root, waypoints };
 }
 

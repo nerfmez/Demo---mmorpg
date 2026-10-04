@@ -46,7 +46,11 @@ export class Game {
     this.checkT = 0;
 
     let [sx, sz] = data.world.playerSpawn;
-    if (this.ch.pos && this.world.isFree(this.ch.pos[0], this.ch.pos[1], PLAYER_RADIUS)) [sx, sz] = this.ch.pos;
+    if (this.ch.pos) {
+      // A seam crossing can land beside a tree on the far side: step to the nearest free spot.
+      const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1]);
+      if (this.world.isFree(spot.x, spot.z, PLAYER_RADIUS)) [sx, sz] = [spot.x, spot.z];
+    }
     this.player = {
       id: this.nextId++,
       kind: 'player',
@@ -515,10 +519,34 @@ export class Game {
     if (dist(p.x, p.z, exit.x, exit.z) > exit.r) return { ok: false, reason: 'far' };
     if (p.dead) return { ok: false, reason: 'dead' };
     if (this.inCombat()) return { ok: false, reason: 'combat' };
-    enterMap(this.ch, this.data, exit.to, exit.arrive);
-    this.travelled = exit.to; // the character now belongs to the destination map
-    this.emit({ type: 'travel', to: exit.to, name: exit.nameTh });
-    return { ok: true, character: this.ch, to: exit.to };
+    return this.arriveIn(exit.to, exit.arrive, exit.nameTh);
+  }
+
+  /**
+   * Walk off an open seam into the neighbouring map: the same world point, expressed
+   * in that map's coordinates (global = local + atlas.offset), just inside its edge.
+   */
+  crossSeam(seam) {
+    const p = this.player;
+    const here = this.data.world, there = this.data.maps?.[seam.to];
+    const back = there?.atlas?.seams?.find((s) => s.to === here.id);
+    if (!back) return { ok: false, reason: 'unknown' };
+    if (p.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    const [hx, hz] = here.atlas.offset, [tx, tz] = there.atlas.offset, b = there.bounds, inset = p.r + 0.6;
+    let x = p.x + hx - tx, z = p.z + hz - tz;
+    if (back.edge === 'minX') x = Math.max(x, b.minX + inset);
+    if (back.edge === 'maxX') x = Math.min(x, b.maxX - inset);
+    if (back.edge === 'minZ') z = Math.max(z, b.minZ + inset);
+    if (back.edge === 'maxZ') z = Math.min(z, b.maxZ - inset);
+    return this.arriveIn(seam.to, [Math.round(x * 10) / 10, Math.round(z * 10) / 10], there.nameTh);
+  }
+
+  arriveIn(to, pos, name) {
+    enterMap(this.ch, this.data, to, pos);
+    this.travelled = to; // the character now belongs to the destination map
+    this.emit({ type: 'travel', to, name });
+    return { ok: true, character: this.ch, to };
   }
 
   /** Fast travel to a discovered waypoint. */
@@ -1108,6 +1136,16 @@ export class Game {
     p.moving = mlen > 0.08;
     if (p.moving) {
       this.moveEntity(p, mx * speed * dt, mz * speed * dt);
+      // Pressing on against an open seam walks on into the neighbouring map.
+      const seam = this.world.seams.length ? this.world.seamAt(p.x, p.z, p.r) : null;
+      if (seam && !this.travelled && (seam.alongX ? mz : mx) * seam.outward > 0.3 * mlen) {
+        const crossed = this.crossSeam(seam);
+        if (!crossed.ok && this.time - (this.seamNoticeT ?? -9) > 3) {
+          this.seamNoticeT = this.time;
+          this.emit({ type: 'travelRefused', reason: crossed.reason });
+        }
+        if (crossed.ok) return;
+      }
       if (!p.cast) {
         const a = Math.atan2(mx, mz);
         p.facing += clamp(angleDiff(p.facing, a), -14 * dt, 14 * dt);

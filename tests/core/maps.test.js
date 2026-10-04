@@ -13,39 +13,55 @@ const on = (id) => ({ ...data, world: data.maps[id] });
 const worlds = Object.fromEntries(Object.keys(data.maps).map((id) => [id, createWorld(data.maps[id])]));
 const step = (g, seconds) => { for (let i = 0; i < seconds * 60; i++) g.update(1 / 60); };
 
-test('maps are registered by id and linked both ways by walkable exits', () => {
+const global = (id, x, z) => [x + data.maps[id].atlas.offset[0], z + data.maps[id].atlas.offset[1]];
+
+test('maps are registered by id and meet along open seams that agree in world space', () => {
   assert.deepEqual(Object.keys(data.maps), [AZURE, FRONTIER]);
   assert.equal(data.world, data.maps[AZURE], 'the starting map is played by default');
   const view = { ...data };
   assert.equal(selectMap(view, FRONTIER), data.maps[FRONTIER]);
   assert.equal(selectMap(view, 'unknown'), data.maps[FRONTIER], 'unknown ids keep the current map');
   for (const [id, world] of Object.entries(worlds)) {
-    assert.ok(world.exits.length, id + ' has an exit');
-    for (const exit of world.exits) {
-      const dest = worlds[exit.to];
-      assert.ok(dest, exit.id + ' leads to a known map');
-      assert.ok(world.isFree(exit.x, exit.z, 0.45) && world.roadDist(exit.x, exit.z) < 3, exit.id + ' stands on a walkable road');
-      assert.ok(dest.isFree(exit.arrive[0], exit.arrive[1], 0.45), exit.id + ' arrival is free');
-      assert.ok(dest.exits.some((back) => back.to === id), exit.id + ' has a way back');
-      for (const back of dest.exits) assert.ok(Math.hypot(back.x - exit.arrive[0], back.z - exit.arrive[1]) > back.r + 1, 'arrival is clear of the return exit');
+    assert.ok(world.seams.length, id + ' has a seam');
+    for (const seam of world.seams) {
+      const there = worlds[seam.to], back = there.seams.find((s) => s.to === id);
+      assert.ok(back, id + ' seam has a matching seam on ' + seam.to);
+      const at = (w, s, along) => (s.alongX ? [along, w.bounds[s.edge]] : [w.bounds[s.edge], along]);
+      // The shared edges are the same world line over the same span.
+      const [a0, a1] = [at(world, seam, seam.span[0]), at(world, seam, seam.span[1])].map(([x, z]) => global(id, x, z));
+      const [b0, b1] = [at(there, back, back.span[0]), at(there, back, back.span[1])].map(([x, z]) => global(seam.to, x, z));
+      assert.deepEqual(a0, b0);
+      assert.deepEqual(a1, b1);
+      // Both maps stand on the same ground along the seam (no step, no mountain wall).
+      for (let along = seam.span[0]; along <= seam.span[1]; along += 7) {
+        const [x, z] = at(world, seam, along), [gx, gz] = global(id, x, z);
+        const [ox, oz] = data.maps[seam.to].atlas.offset;
+        assert.ok(Math.abs(world.terrainY(x, z) - there.terrainY(gx - ox, gz - oz)) < 0.08, `${id} seam step at ${along}`);
+        const [px, pz] = seam.alongX ? [x, z + seam.outward * 12] : [x + seam.outward * 12, z];
+        assert.ok(world.terrainY(px, pz) < world.terrainY(x, z) + 1.5, `${id} no wall past the seam at ${along}`);
+      }
+      // The border road is walkable on both sides and its gates are one world point.
+      assert.deepEqual(global(id, ...seam.gate), global(seam.to, ...back.gate));
+      const [gx, gz] = seam.gate, step = seam.alongX ? [0, -seam.outward * 2] : [-seam.outward * 2, 0];
+      assert.ok(world.isFree(gx + step[0], gz + step[1], 0.45) && world.roadDist(gx + step[0], gz + step[1]) < 1, id + ' border road');
     }
   }
 });
 
-test('travel keeps the character and swaps per-map discovery; returning restores it', () => {
+test('walking off a seam continues at the same world point on the neighbouring map, and back', () => {
   const azure = new Game(on(AZURE), { world: worlds[AZURE], seed: 3 });
-  const exit = worlds[AZURE].exits[0];
+  const seam = worlds[AZURE].seams[0];
   azure.ch.progress.zones.push('meadow');
   azure.ch.progress.waypoints.push('forest');
   const gold = (azure.ch.gold = 321), level = azure.ch.level, gear = azure.ch.gear.length;
-  assert.equal(azure.travel(exit.id).reason, 'far');
-  [azure.player.x, azure.player.z] = [exit.x, exit.z];
-  assert.deepEqual(azure.nearby().exit, exit.id);
-  const result = azure.travel(exit.id);
-  assert.ok(result.ok);
-  const ch = result.character;
-  assert.equal(ch.worldId, FRONTIER);
-  assert.deepEqual(ch.pos, exit.arrive);
+  [azure.player.x, azure.player.z] = [seam.gate[0] + 2, seam.gate[1]];
+  azure.input.moveX = -1; // west, into the seam
+  for (let i = 0; i < 120 && !azure.travelled; i++) azure.update(1 / 60);
+  assert.equal(azure.travelled, FRONTIER, 'pressing on across the seam crosses');
+  const ch = azure.ch;
+  const [wx, wz] = global(FRONTIER, ...ch.pos);
+  assert.ok(Math.abs(wz - global(AZURE, azure.player.x, azure.player.z)[1]) < 0.2, 'same point along the seam');
+  assert.ok(Math.abs(wx - global(AZURE, worlds[AZURE].bounds.minX, 0)[0]) < 1.5, 'just across the border');
   assert.equal(azure.snapshot().pos, ch.pos, 'a travelled game no longer writes its old position');
   assert.ok(ch.progress.maps[AZURE].zones.includes('meadow') && ch.progress.maps[AZURE].waypoints.includes('forest'));
   assert.ok(!ch.progress.waypoints.includes('forest'), 'an Azure stone does not unlock the Frontier one with the same id');
@@ -53,31 +69,33 @@ test('travel keeps the character and swaps per-map discovery; returning restores
   assert.ok(azure.drainEvents().some((e) => e.type === 'travel' && e.to === FRONTIER));
 
   const frontier = new Game(on(FRONTIER), { world: worlds[FRONTIER], character: JSON.parse(JSON.stringify(ch)), seed: 4 });
-  assert.deepEqual([frontier.player.x, frontier.player.z], exit.arrive, 'arrives at the authored point');
+  assert.ok(Math.hypot(frontier.player.x - ch.pos[0], frontier.player.z - ch.pos[1]) < 1, 'arrives where it crossed');
   assert.equal(frontier.ch.gold, gold);
   assert.equal(frontier.ch.level, level);
   assert.equal(frontier.ch.gear.length, gear);
   assert.ok(frontier.spawnPoints.some((s) => s.monster === 'greyfang') || frontier.monsters.some((m) => m.type === 'greyfang'), 'the old bosses are back');
-  step(frontier, 1);
-  assert.ok(frontier.ch.progress.zones.includes('settlement'));
-  const back = worlds[FRONTIER].exits[0];
-  [frontier.player.x, frontier.player.z] = [back.x, back.z];
-  const home = frontier.travel(back.id).character;
+  frontier.input.moveX = 1; // east, back into Azure
+  for (let i = 0; i < 120 && !frontier.travelled; i++) frontier.update(1 / 60);
+  const home = frontier.ch;
   assert.equal(home.worldId, AZURE);
   assert.ok(home.progress.zones.includes('meadow') && home.progress.waypoints.includes('forest'), 'Azure discovery restored');
-  assert.ok(home.progress.maps[FRONTIER].zones.includes('settlement'), 'Frontier discovery kept for the next visit');
+  assert.ok(home.progress.maps[FRONTIER].zones.includes('wetland'), 'Frontier discovery kept for the next visit');
 });
 
-test('travel is refused while dead or in combat', () => {
+test('a seam does not cross while dead or in combat, and says why once', () => {
   const g = new Game(on(AZURE), { world: worlds[AZURE], seed: 5 });
-  const exit = worlds[AZURE].exits[0];
-  [g.player.x, g.player.z] = [exit.x, exit.z];
+  const seam = worlds[AZURE].seams[0];
+  [g.player.x, g.player.z] = [seam.gate[0] + 1, seam.gate[1]];
   g.inCombat = () => true;
-  assert.equal(g.travel(exit.id).reason, 'combat');
+  g.input.moveX = -1;
+  for (let i = 0; i < 60; i++) g.update(1 / 60);
+  assert.equal(g.ch.worldId, AZURE);
+  assert.equal(g.drainEvents().filter((e) => e.type === 'travelRefused' && e.reason === 'combat').length, 1);
+  assert.ok(g.player.x >= worlds[AZURE].bounds.minX, 'held at the edge');
+  assert.equal(g.crossSeam(seam).reason, 'combat');
   g.inCombat = () => false;
   g.player.dead = true;
-  assert.equal(g.travel(exit.id).reason, 'dead');
-  assert.equal(g.ch.worldId, AZURE);
+  assert.equal(g.crossSeam(seam).reason, 'dead');
 });
 
 test('map-scoped quests count only on their own map', () => {

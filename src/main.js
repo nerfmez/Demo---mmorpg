@@ -127,12 +127,8 @@ function startGame(character, slot) {
       else if (n.trainer) panels.open('job');
       else if (n.waypoint) panels.open('map');
       else if (n.exit) {
-        const result = game.travel(n.exit);
+        const result = game.travel(n.exit); // success arrives as a 'travel' event
         if (!result.ok) hud.toast(result.reason === 'combat' ? 'ออกเดินทางระหว่างต่อสู้ไม่ได้' : 'ยังเดินทางไม่ได้', '#ffb36b');
-        else {
-          session = null; // stop simulating and saving the old map
-          travelTo(result.character, slot, data.maps[result.to].nameTh);
-        }
       }
     },
   };
@@ -180,7 +176,7 @@ function startGame(character, slot) {
     hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 
-  session = { game, hud, panels, input, ui, save, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
+  session = { game, hud, panels, input, ui, save, slot, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
   Object.assign(F, { game, hud, panels, input, save });
   save();
 
@@ -257,6 +253,13 @@ function frame(now) {
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
     if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {
+      if (e.type === 'travel') {
+        // Through an exit or across an open seam: stop this map and load the next.
+        session = null;
+        travelTo(s.game.ch, s.slot, e.name);
+        break;
+      }
+      if (e.type === 'travelRefused') s.hud.toast(e.reason === 'combat' ? 'ข้ามเขตแดนระหว่างต่อสู้ไม่ได้' : 'ยังข้ามเขตแดนไม่ได้', '#ffb36b');
       view.handleEvent(e);
       s.hud.handleEvent(e);
       if (SAVE_ON.has(e.type)) s.save();

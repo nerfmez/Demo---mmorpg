@@ -30,7 +30,8 @@ export function questTarget(game, id) {
   if (!id) return null;
   const q = game.data.quests.quests[id];
   // Quests on another map (or with nothing to find here) point at the exit that leads on.
-  const exits = game.world.exits;
+  // Seams with a road gate lead on as well as exits.
+  const exits = [...game.world.exits, ...game.world.seams.filter((s) => s.gate).map((s) => ({ to: s.to, x: s.gate[0], z: s.gate[1] }))];
   const toward = q.world && q.world !== game.data.world.id ? exits.find((e) => e.to === q.world) : null;
   if (toward) return { x: toward.x, z: toward.z };
   return localQuestTarget(game, q) || (exits[0] && ['kill', 'collect', 'waypoint'].includes(q.type) ? { x: exits[0].x, z: exits[0].z } : null);

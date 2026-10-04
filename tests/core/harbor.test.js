@@ -39,6 +39,7 @@ test('all active roads are continuous and walkable, with a safe arrival route', 
       let x=ax,z=az;
       for(let t=0;t<=distance;t+=.3) {
         const nx=ax+(bx-ax)*t/distance, nz=az+(bz-az)*t/distance;
+        if(world.seamAt(nx,nz,.45))break; // past here the neighbouring map carries the road (maps.test.js)
         assert.ok(world.isFree(nx,nz,.45), `${road.id} blocked at ${nx},${nz}`);
         assert.ok(!world.tooSteep(x,z,nx,nz),`${road.id} cliff`);
         if(road.id==='arrival') assert.ok(world.isSafe(nx,nz));

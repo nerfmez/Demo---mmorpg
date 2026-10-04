@@ -41,7 +41,7 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `maps.js` | `Maps.gd` autoload + one scene per map | `data.maps` registers the start map (`data/world.json`) and linked maps (`data/maps/*.json`) by id. Build one map at a time: `exits[]` (`pos`, `r`, `to`, `arrive`) are travel points; `Game.travel()` refuses far/dead/combat and calls `enterMap()`, which stores the current map's `progress.zones`/`waypoints` under `progress.maps[id]` and restores the destination's (plus its free stones). Then `change_scene_to_file()` the destination with the saved character; the web build reloads the page. Quests with `world` count waypoint/zone targets only on that map. |
+| `maps.js` | `Maps.gd` autoload + one scene per map | `data.maps` registers the start map (`data/world.json`) and linked maps (`data/maps/*.json`) by id. Maps meet along open seams (see "Linked Greenhollow Frontier map"); `exits[]` (`pos`, `r`, `to`, `arrive`) remain for point travel; `Game.travel()` refuses far/dead/combat and calls `enterMap()`, which stores the current map's `progress.zones`/`waypoints` under `progress.maps[id]` and restores the destination's (plus its free stones). Then `change_scene_to_file()` the destination with the saved character; the web build reloads the page. Quests with `world` count waypoint/zone targets only on that map. |
 | `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Dock clearance checks the actor footprint across the union of adjoining decks and dry shore; outer sea edges still block. `groundY()` interpolates from `startY` to `height` using dock-local Z after rotation. The render mesh shears in local Z so its XZ footprint matches collision exactly. Safe starting roads use distance to the `safeRoutes` polylines. |
 
 ### `game.js` → scenes
@@ -485,9 +485,17 @@ cell. Props add no service, save, progression, light or per-frame callback.
 
 ## Linked Greenhollow Frontier map
 
-The original demo map (`data/maps/frontier-wilds.json`, id `frontier-wilds-v1`) is
-reached from Azure's north road gate and keeps its zone ids, both bosses and the
-old quest chain (`f_road` → `m_warden` after `h_lighthouse`). Tree density is
+The original demo map (`data/maps/frontier-wilds.json`, id `frontier-wilds-v1`) lies
+west of Azure in one world: `atlas.offset` places each map (global = local + offset)
+and `atlas.seams` lists the edges two maps share (edge, span in local metres, the
+border-road `gate`, blend `band` and the common height `profile` written by
+`scripts/atlas-seams.mjs`). Past an open seam there is no mountain wall or edge
+forest; within the band the heightfield blends to the profile so both sides meet
+at the same ground. Walking on against a seam (`world.seamAt`) calls
+`Game.crossSeam()`, which maps the point to the neighbour's coordinates just inside
+its edge; the web build then reloads into that map (a later streaming pass keeps
+both loaded near the border). The coastlines meet at the same world line. It keeps
+its zone ids, both bosses and the old quest chain (`f_road` → `m_warden` after `h_lighthouse`). Tree density is
 thinned to Azure's level so the map costs no more to draw. Its outpost
 buildings/stalls carry a `kit` node name: draw that node from the approved city
 kit file (`town.kit.nodes`), reset its city placement, centre it on the data box

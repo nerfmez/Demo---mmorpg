@@ -73,11 +73,11 @@ body.loadout-open .fullscreen-control{z-index:39}
 
 /* Give coin faces room to read on the shortest supported landscape view. */
 @media(max-height:480px){
- #atelier .two-windows.skills{top:48px;bottom:23px}
+ #atelier .two-windows.skills{top:48px;bottom:19px}
  #atelier .skills .window-head{height:36px}
  #atelier .skills .library-note{height:19px}
  #atelier .skills .grid-footer{height:19px}
- #atelier .skills .selection-shelf{height:80px;min-height:80px}
+ #atelier .skills .selection-shelf{height:88px;min-height:88px}
  #atelier .skills .coin-cell{padding:0}
  #atelier .skills .socket .coin{width:31px;height:31px}
  #atelier .skills .socket-empty{width:29px;height:29px}

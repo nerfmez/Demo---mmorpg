@@ -13,11 +13,12 @@ import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
 import { outsideClearingWeight, outsideRoadVisible } from '../core/ground-regions.js';
 import art from '../../data/art.json' with {type:'json'};
+import { regionShift } from './region-shift.js';
 
 const TILE = 32;
 
 import { NOISE_GLSL, GROUND_COLOR_GLSL } from './ground-color.js';
-import { bakeGroundFieldData } from './ground-field.js';
+import { groundFieldSteps } from './ground-field.js';
 export { NOISE_GLSL } from './ground-color.js';
 
 const smooth = (e0, e1, x) => {
@@ -28,6 +29,16 @@ const smooth = (e0, e1, x) => {
 /** Per-grid-vertex surface data: splat (road, paving, mud, dirt) and blurred zone tints. */
 const surfaceCache = new WeakMap();
 export function surfaceData(world) {
+  if(surfaceCache.has(world)) return surfaceCache.get(world);
+  const steps = surfaceSteps(world);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** Per-cell ground surfaces, yielding every few rows (open-world streaming). */
+export function* surfaceSteps(world) {
   if(surfaceCache.has(world)) return surfaceCache.get(world);
   const hf = world.heightfield;
   const { w, h, ox, oz, res } = hf;
@@ -75,6 +86,7 @@ export function surfaceData(world) {
   const ruins = wd.ruins;
   const b = world.bounds;
   for (let j = 0; j < h; j++) {
+    if (j && j % 40 === 0) yield;
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
@@ -158,6 +170,7 @@ export function surfaceData(world) {
     return cache.get(hex);
   };
   for (let j = 0; j < h; j++) {
+    if (j && j % 40 === 0) yield;
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
@@ -177,6 +190,28 @@ export function surfaceData(world) {
       db[k] = cd.b;
     }
   }
+  // Open seams: zone tints fade to the shared seam tint (atlas.seams profile), so the
+  // neighbouring map's paint meets this one along the border; local patches fade out.
+  for (const seam of world.seams || []) {
+    if (!seam.profile?.[0]?.[2]) continue;
+    const band = seam.band ?? 24;
+    for (let j = 0; j < h; j++)
+      for (let i = 0; i < w; i++) {
+        const x = ox + i * res, z = oz + j * res, along = seam.alongX ? x : z;
+        const past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
+        const inside = ((seam.alongX ? z : x) - b[seam.edge]) * -seam.outward;
+        if (past >= band || inside >= band) continue;
+        const m = (1 - smooth(0, band, Math.max(0, inside))) * (1 - smooth(0, band, past));
+        const at = seam.profile[Math.max(0, Math.min(seam.profile.length - 1, Math.round(((along - seam.profile[0][0]) / (seam.profile[seam.profile.length - 1][0] - seam.profile[0][0] || 1)) * (seam.profile.length - 1))))];
+        const cl = col(at[2]), cd = col(at[3]), k = j * w + i;
+        lr[k] += (cl.r - lr[k]) * m; lg[k] += (cl.g - lg[k]) * m; lb[k] += (cl.b - lb[k]) * m;
+        // Map-local soil/stone patches fade to meadow; roads (both maps draw them) stay.
+        dirt[k] *= 1 - m; mud[k] *= 1 - m; stone[k] *= 1 - m; planned[k] *= 1 - m;
+        dr[k] += (cd.r - dr[k]) * m; dg[k] += (cd.g - dg[k]) * m; db[k] += (cd.b - db[k]) * m;
+      }
+    yield;
+  }
+  yield;
   const blur = (a) => boxBlur(boxBlur(a, w, h, 6), w, h, 4);
   [lr, lg, lb, dr, dg, db] = [lr, lg, lb, dr, dg, db].map(blur);
   const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: blur(planned) };
@@ -189,25 +224,61 @@ export function surfaceData(world) {
 const fieldCache = new WeakMap();
 export function groundFieldUniforms(world) {
   if (!fieldCache.has(world)) {
-    const hf = world.heightfield, f = bakeGroundFieldData(hf.ox, hf.oz, (hf.w - 1) * hf.res, (hf.h - 1) * hf.res, art.ground.fieldTexels ?? 2);
+    const steps = groundFieldUniformSteps(world);
+    for (;;) if (steps.next().done) break;
+  }
+  return fieldCache.get(world);
+}
+
+/** Bake the ground fields in slices (open-world streaming); cached per world. */
+export function* groundFieldUniformSteps(world) {
+  if (!fieldCache.has(world)) {
+    const hf = world.heightfield, offset = world.data.atlas?.offset || [0, 0];
+    const f = yield* groundFieldSteps(hf.ox, hf.oz, (hf.w - 1) * hf.res, (hf.h - 1) * hf.res, art.ground.fieldTexels ?? 2, offset);
     const textures = f.data.map((data) => {
       const t = new THREE.DataTexture(data, f.width, f.height, THREE.RGBAFormat, THREE.UnsignedByteType);
       t.magFilter = t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true; t.userData.shared = true;
       return t;
     });
-    fieldCache.set(world, { uField0: { value: textures[0] }, uField1: { value: textures[1] }, uField2: { value: textures[2] }, uFieldRect: { value: new THREE.Vector4(...f.rect) } });
+    fieldCache.set(world, { uField0: { value: textures[0] }, uField1: { value: textures[1] }, uField2: { value: textures[2] }, uFieldRect: { value: new THREE.Vector4(...f.rect) }, uNoiseOffset: { value: new THREE.Vector2(...offset) } });
   }
   return fieldCache.get(world);
 }
 
+/** Free a map's cached ground data when its region is dropped (open-world streaming). */
+export function releaseGroundCaches(world) {
+  surfaceCache.delete(world);
+  const fields = fieldCache.get(world);
+  if (fields) for (const k of ['uField0', 'uField1', 'uField2']) fields[k].value.dispose();
+  fieldCache.delete(world);
+}
+
 export function createTerrain(world) {
+  const steps = terrainSteps(world);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** Terrain tiles, yielding every few tiles so a neighbouring map can stream in. */
+export function* terrainSteps(world) {
   const hf = world.heightfield;
   const { w, h, ox, oz, res, data } = hf;
-  const surf = surfaceData(world);
+  const surf = yield* surfaceSteps(world);
+  yield* groundFieldUniformSteps(world); // baked now, not at the first draw
   const mat = terrainMaterial(world);
   const group = new THREE.Group();
   group.name = 'terrain';
   const H = (i, j) => data[Math.min(h - 1, Math.max(0, j)) * w + Math.min(w - 1, Math.max(0, i))];
+  // Past an open seam the neighbouring map draws its own ground; never overlap it.
+  const b = world.bounds;
+  const pastSeam = (x, z) => (world.seams || []).some((s) => {
+    const along = s.alongX ? x : z, across = s.alongX ? z : x;
+    return along >= s.span[0] && along <= s.span[1] && (across - b[s.edge]) * s.outward > 0;
+  });
+  yield;
+  let tiles = 0;
   for (let tj = 0; tj < h - 1; tj += TILE) {
     for (let ti = 0; ti < w - 1; ti += TILE) {
       const cw = Math.min(TILE, w - 1 - ti);
@@ -261,6 +332,7 @@ export function createTerrain(world) {
           // omit only hidden render indices, never source-city geometry.
           const x=pos[a*3]+res/2,z=pos[a*3+2]+res/2;
           if(coveredTerrainCell(world.data.city,x,z,Math.max(pos[a*3+1],pos[(a+1)*3+1],pos[b2*3+1],pos[(b2+1)*3+1]),res)){coveredTriangles+=2;continue;}
+          if(pastSeam(x,z))continue;
           idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
         }
       const geo = new THREE.BufferGeometry();
@@ -277,7 +349,9 @@ export function createTerrain(world) {
       const mesh = new THREE.Mesh(geo, mat);
       mesh.receiveShadow = true;
       mesh.castShadow = false;
-      group.add(mesh);
+      if (idx.length) group.add(mesh);
+      else geo.dispose();
+      if (++tiles % 6 === 0) yield;
     }
   }
   return { group, material: mat };
@@ -288,23 +362,25 @@ function terrainMaterial(world) {
   const brush=groundBrushUniform(mat);
   const bossList = world.data.bosses || [];
   const arena = (bossList.find((b) => b.final) || bossList[0])?.arena || { x: 9999, z: 9999, r: 1 };
+  const shift = regionShift();
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = timeUniform;
     shader.uniforms.uArena = { value: new THREE.Vector3(arena.x, arena.z, arena.r) };
     shader.uniforms.uWater = { value: world.waterLevel };
     shader.uniforms.uGroundBrush=brush;
+    shader.uniforms.uRegionShift=shift;
     Object.assign(shader.uniforms, groundFieldUniforms(world));
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
 attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; varying vec2 vCoast; varying float vTown;
-varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp;`
+varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; uniform vec3 uRegionShift;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
@@ -327,8 +403,8 @@ ${GROUND_COLOR_GLSL}`
   col = mix(col, vec3(0.55, 0.50, 0.66), clamp(ring, 0.0, 1.0) * 0.75);
   // under the water line: darker, bluish
   col = mix(col, col * vec3(0.70, 0.81, 0.80), (1.0-smoothstep(uWater - 0.4, uWater + 0.05, y)));
-  // drifting cloud shadows
-  col *= groundCloud(w,uTime);
+  // drifting cloud shadows (world metres, so they drift on across a seam)
+  col *= groundCloud(w+uNoiseOffset,uTime);
   diffuseColor.rgb = col;
 }`
       );
@@ -343,13 +419,14 @@ ${GROUND_COLOR_GLSL}`
 function seaMaterial(world, contacts) {
   const surf = world.data.sea.surf || {};
   const material=new THREE.ShaderMaterial({
-    uniforms: { uCrest:{value:new THREE.Vector4(surf.crestBend ?? 1.0,surf.crestWidth ?? .13,surf.crestLength ?? 12,surf.crestOpacity ?? .24)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)}, uSparkle:{value:new THREE.Vector4(surf.sparkleDensity ?? .03,surf.sparkleSize ?? .09,surf.sparkleScale ?? 1.4,surf.reflectionPatches ?? .06)} },
+    uniforms: { uRegionShift: regionShift(), uCrest:{value:new THREE.Vector4(surf.crestBend ?? 1.0,surf.crestWidth ?? .13,surf.crestLength ?? 12,surf.crestOpacity ?? .24)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)}, uSparkle:{value:new THREE.Vector4(surf.sparkleDensity ?? .03,surf.sparkleSize ?? .09,surf.sparkleScale ?? 1.4,surf.reflectionPatches ?? .06)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
       attribute float depth; attribute float shore; attribute float beachWash;
       varying float vDepth; varying float vShore; varying vec2 vW;
       varying float vBeachWash;
-      void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
+      uniform vec3 uRegionShift;
+      void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz-uRegionShift.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
       uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec4 uMotion; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact; uniform vec4 uCrest; uniform vec4 uSparkle;
       varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
@@ -557,14 +634,15 @@ function seaMaterial(world, contacts) {
 
 function waterMaterial() {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: timeUniform },
+    uniforms: { uTime: timeUniform, uRegionShift: regionShift() },
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide,
     vertexShader: /* glsl */ `
       attribute float depth; attribute float along;
       varying float vDepth; varying float vAlong; varying vec2 vW;
-      void main(){ vDepth = depth; vAlong = along; vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
+      uniform vec3 uRegionShift;
+      void main(){ vDepth = depth; vAlong = along; vec4 wp = modelMatrix * vec4(position,1.0); vW = wp.xz - uRegionShift.xz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
     fragmentShader: /* glsl */ `
       uniform float uTime; varying float vDepth; varying float vAlong; varying vec2 vW;
       ${NOISE_GLSL}

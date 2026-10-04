@@ -41,6 +41,8 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
+| `maps.js` | `Maps.gd` autoload + one scene per map | `data.maps` registers the start map (`data/world.json`) and linked maps (`data/maps/*.json`) by id. Maps meet along open seams (see "Linked Greenhollow Frontier map"); `exits[]` (`pos`, `r`, `to`, `arrive`) remain for point travel; `Game.travel()` refuses far/dead/combat and calls `enterMap()`, which stores the current map's `progress.zones`/`waypoints` under `progress.maps[id]` and restores the destination's (plus its free stones). Then `change_scene_to_file()` the destination with the saved character; the web build reloads the page. Quests with `world` count waypoint/zone targets only on that map. |
+| `atlas.js` | `WorldAtlas.gd` | One world for the player: `toWorld`/`toLocal` (local + atlas.offset), discovery per map (`progress.maps`) read as one world (`worldTotals`), and stones on any map (`Game.teleportTo(id, mapId)` travels there). The minimap and world map draw every map's image at its offset (`ui/mapimage.js worldMapImage`); zone/stone selections are `mapId:id`. |
 | `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Dock clearance checks the actor footprint across the union of adjoining decks and dry shore; outer sea edges still block. `groundY()` interpolates from `startY` to `height` using dock-local Z after rotation. The render mesh shears in local Z so its XZ footprint matches collision exactly. Safe starting roads use distance to the `safeRoutes` polylines. |
 
 ### `game.js` → scenes
@@ -505,3 +507,34 @@ stacked upper copies reuse their lower footprint. Roads, all existing entry/NPC
 routes, warp, spawn, fountain and pier landings are reserved. Load each type once,
 apply the existing toon contours and merge static scenery by material and 24 m
 cell. Props add no service, save, progression, light or per-frame callback.
+
+## Linked Greenhollow Frontier map
+
+The original demo map (`data/maps/frontier-wilds.json`, id `frontier-wilds-v1`, mirrored
+east-west so its safe outpost meets the border and the final boss is ~400 m away; a
+town fence may stand on `walls.west`) lies west of Azure in one world: `atlas.offset` places each map (global = local + offset)
+and `atlas.seams` lists the edges two maps share (edge, span in local metres, the
+border-road `gate`, blend `band`, a `quiet` band where no monster spawns (the border is a calm crossing, so no monster needs simulating on both sides) and the common height `profile` written by
+`scripts/atlas-seams.mjs`). Past an open seam there is no mountain wall or edge
+forest; within the band the heightfield blends to the profile so both sides meet
+at the same ground. Walking on against a seam (`world.seamAt`) calls
+`Game.crossSeam()`, which maps the point to the neighbour's coordinates just inside
+its edge. Every map's rules/collision world is built at boot; the renderer streams
+the neighbouring map's scene (`render/region.js`: terrain, scenery, water, kits,
+town NPCs) a few milliseconds per frame once the player is within 140 m of a seam,
+places it at the atlas delta and drops it past 200 m. If it is ready when the player
+crosses, `Game.enterWorld()` carries the same session on (monsters of the new map,
+discovery swapped, data.world selected) and `View.switchRegion()` makes it the scene
+origin; otherwise the page reloads into the new map (also `?stream=0`). World-space
+ground/water shaders subtract their region's shift (`render/region-shift.js`) to
+sample their own baked fields, and procedural paint, clouds and meadow density use
+world metres (`uNoiseOffset` = atlas offset) so patterns run on across the seam; the
+seam profile also carries a shared ground tint and fades map-local soil patches. In
+Godot: one scene per map placed at its offset, loaded with `ResourceLoader` threads
+near a seam, freed when far; the same seam data applies. The coastlines meet at the same world line. It keeps
+its zone ids, both bosses and the old quest chain (`f_road` → `m_warden` after `h_lighthouse`). Tree density is
+thinned to Azure's level so the map costs no more to draw. Its outpost
+buildings/stalls carry a `kit` node name: draw that node from the approved city
+kit file (`town.kit.nodes`), reset its city placement, centre it on the data box
+and keep the box as the collider; `town.kit.materialColors` uses the same palette
+as the city. Saves are `version: 5` (adds `progress.maps`).

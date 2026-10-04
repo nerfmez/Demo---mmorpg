@@ -39,6 +39,7 @@ test('all active roads are continuous and walkable, with a safe arrival route', 
       let x=ax,z=az;
       for(let t=0;t<=distance;t+=.3) {
         const nx=ax+(bx-ax)*t/distance, nz=az+(bz-az)*t/distance;
+        if(world.seamAt(nx,nz,.45))break; // past here the neighbouring map carries the road (maps.test.js)
         assert.ok(world.isFree(nx,nz,.45), `${road.id} blocked at ${nx},${nz}`);
         assert.ok(!world.tooSteep(x,z,nx,nz),`${road.id} cliff`);
         if(road.id==='arrival') assert.ok(world.isSafe(nx,nz));
@@ -169,10 +170,12 @@ test('a pre-town death returns to the beach; unlocked town restores the town che
 });
 
 test('active quests only send players to reachable content; all new parts have recipes', () => {
+  const maps=Object.values(data.maps);
   for(const id of [...data.quests.main,...data.quests.side]) {
-    const q=data.quests.quests[id];
-    if(q.type==='kill') assert.ok(data.world.spawns.some(s=>s.monster===q.target),id);
-    if(q.type==='waypoint') assert.ok(world.waypoints.some(w=>w.id===q.target),id);
+    const q=data.quests.quests[id],where=q.world?[data.maps[q.world]]:maps;
+    assert.ok(where.every(Boolean),id+' map exists');
+    if(q.type==='kill') assert.ok(where.some(m=>m.spawns.some(s=>s.monster===q.target)||(m.bosses||[]).some(b=>b.monster===q.target)),id);
+    if(q.type==='waypoint') assert.ok(where.some(m=>m.waypoints.some(w=>w.id===q.target)),id);
   }
   for(const id of ['salt_gel','shore_feather','hermit_fragment']) assert.ok(Object.values(data.recipes.recipes).some(r=>r.cost[id]),id);
   for(const wp of world.waypoints) assert.ok(world.isFree(wp.x,wp.z+2.2,.45),wp.id+' arrival');

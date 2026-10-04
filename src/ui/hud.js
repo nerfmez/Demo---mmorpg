@@ -1,7 +1,8 @@
 // Heads-up display: player frame, minimap, quest tracker, combat feedback, prompts, toasts.
 import { icon } from './icons.js';
 import { trackedQuest } from '../core/quests.js';
-import { mapImage } from './mapimage.js';
+import { worldMapImage } from './mapimage.js';
+import { toWorld, waypointUnlocked } from '../core/atlas.js';
 import { loadPref, savePref } from '../save.js';
 import { fieldIcon, xpMarkup, xpPresentation, trackerMarkup } from './fieldhud.js';
 
@@ -28,8 +29,17 @@ export function rewardText(data, r = {}) {
 /** Where the tracked quest wants the player to go (for the minimap marker), or null. */
 export function questTarget(game, id) {
   if (!id) return null;
+  const q = game.data.quests.quests[id];
+  // Quests on another map (or with nothing to find here) point at the exit that leads on.
+  // Seams with a road gate lead on as well as exits.
+  const exits = [...game.world.exits, ...game.world.seams.filter((s) => s.gate).map((s) => ({ to: s.to, x: s.gate[0], z: s.gate[1] }))];
+  const toward = q.world && q.world !== game.data.world.id ? exits.find((e) => e.to === q.world) : null;
+  if (toward) return { x: toward.x, z: toward.z };
+  return localQuestTarget(game, q) || (exits[0] && ['kill', 'collect', 'waypoint'].includes(q.type) ? { x: exits[0].x, z: exits[0].z } : null);
+}
+
+function localQuestTarget(game, q) {
   const data = game.data;
-  const q = data.quests.quests[id];
   const p = game.player;
   const nearestMonster = (types) => {
     let best = null;
@@ -135,7 +145,7 @@ export class Hud {
       if (this.menuOpen && !this.el.topright.contains(e.target)) this.setMenuOpen(false);
     });
     this.tracker = this.el.topright.querySelector('.questtrack');
-    this.map = mapImage(game.world);
+    this.map = worldMapImage(game.worlds || { [game.data.world.id]: game.world });
   }
 
   setPortrait(url) {
@@ -176,7 +186,10 @@ export class Hud {
     const S = this.mini.width;
     const game = this.game;
     const p = game.player;
-    const mb = this.map;
+    // One world: the minimap reads the stitched world image in world metres, so it
+    // runs on across the border between streamed maps.
+    const mb = (this.map = worldMapImage(game.worlds || { [game.data.world.id]: game.world }));
+    const data = game.data, [pwx, pwz] = toWorld(data, data.world.id, p.x, p.z);
     const range = 36; // metres from the centre to the edge
     const k = S / 2 / range; // canvas px per metre
     g.save();
@@ -184,10 +197,11 @@ export class Hud {
     g.fillRect(0, 0, S, S);
     g.translate(S / 2, S / 2);
     g.scale(k / mb.px, k / mb.px);
-    g.translate(-(p.x - mb.minX) * mb.px, -(p.z - mb.minZ) * mb.px);
+    g.translate(-(pwx - mb.minX) * mb.px, -(pwz - mb.minZ) * mb.px);
     g.drawImage(mb.canvas, 0, 0);
     g.restore();
     const toS = (x, z) => [S / 2 + (x - p.x) * k, S / 2 + (z - p.z) * k];
+    const toSW = (mapId, x, z) => { const [wx, wz] = toWorld(data, mapId, x, z); return [S / 2 + (wx - pwx) * k, S / 2 + (wz - pwz) * k]; };
     const inView = (x, y, pad = 10) => x > -pad && y > -pad && x < S + pad && y < S + pad;
     const edge = (x, y, color, r) => {
       const a = Math.atan2(y - S / 2, x - S / 2);
@@ -199,11 +213,11 @@ export class Hud {
       g.lineWidth = 2;
       g.stroke();
     };
-    // waypoints
-    for (const wp of game.world.waypoints) {
-      const [x, y] = toS(wp.x, wp.z);
+    // waypoints of every map in the world
+    for (const [mapId, map] of Object.entries(data.maps || { [data.world.id]: data.world })) for (const wp of map.waypoints) {
+      const [x, y] = toSW(mapId, wp.pos[0], wp.pos[1]);
       if (!inView(x, y)) continue;
-      const on = game.isWaypointUnlocked(wp.id);
+      const on = waypointUnlocked(game.ch, data, mapId, wp.id);
       g.save();
       g.translate(x, y);
       g.rotate(Math.PI / 4);
@@ -214,10 +228,9 @@ export class Hud {
       g.strokeRect(-6, -6, 12, 12);
       g.restore();
     }
-    // town points
-    const t = game.data.world.town;
-    for (const [pos, col] of [[t.workbench, '#ffd166'], [t.trainer, '#8fd0ff']]) {
-      const [x, y] = toS(pos[0], pos[1]);
+    // town points of every map
+    for (const [mapId, map] of Object.entries(data.maps || { [data.world.id]: data.world })) for (const [pos, col] of [[map.town.workbench, '#ffd166'], [map.town.trainer, '#8fd0ff']]) {
+      const [x, y] = toSW(mapId, pos[0], pos[1]);
       if (!inView(x, y)) continue;
       g.fillStyle = col;
       g.beginPath();
@@ -530,14 +543,15 @@ export class Hud {
 
     // interaction prompt
     const near = g.nearby();
-    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.waypoint ? 'waypoint' : null;
+    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.waypoint ? 'waypoint' : near.exit ? 'exit:' + near.exit : null;
     if (prompt !== this.lastPrompt) {
       this.lastPrompt = prompt;
       this.el.prompt.innerHTML = '';
       this.el.prompt.classList.toggle('on', !!prompt);
       if (prompt) {
-        const label = { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
-        const ic = { workbench: 'hammer', trainer: 'tree', waypoint: 'portal' }[prompt];
+        const exit = near.exit && g.world.exits.find((e) => e.id === near.exit);
+        const label = exit ? 'เดินทางไป' + exit.nameTh : { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
+        const ic = exit ? 'portal' : { workbench: 'hammer', trainer: 'tree', waypoint: 'portal' }[prompt];
         const b = h(`<button class="pbtn">${icon(ic)}<span>${label}</span><kbd>E</kbd></button>`);
         b.addEventListener('click', () => ui.interact());
         this.el.prompt.appendChild(b);

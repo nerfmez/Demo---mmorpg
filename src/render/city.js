@@ -1,11 +1,11 @@
 // Approved V3: one common placement transform, lossless source geometry and native contours.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { toon, darker, outlineMaterial } from './toon.js';
+import { darker, outlineMaterial } from './toon.js';
 import { outlineStructure } from './architecture.js';
 import { batchStatic } from './static-batch.js';
 import { cityFloorAt } from '../core/city.js';
-import { cityColor } from './city-palette.js';
+import { importedMaterial } from './city-palette.js';
 import { cityGround } from './city-ground.js';
 import { cityFountain } from './city-fountain.js';
 import { cityBank } from './city-bank.js';
@@ -21,18 +21,6 @@ function rockInWater(mesh,world,root){
   if(!world.isWater(x,z))return false;
   for(let i=0;i<8;i++)if(cityFloorAt(world.data.city,x+Math.sin(i*Math.PI/4)*clear,z+Math.cos(i*Math.PI/4)*clear))return false;
   return true;
-}
-
-// True when some edge belongs to a single triangle (after welding by position).
-function hasOpenEdges(geometry){
-  const p=geometry.attributes.position,index=geometry.index,n=index?index.count:p.count,ids=new Map(),edges=new Map();
-  const vertex=i=>{const k=Math.round(p.getX(i)*1e4)+','+Math.round(p.getY(i)*1e4)+','+Math.round(p.getZ(i)*1e4);let id=ids.get(k);if(id===undefined)ids.set(k,id=ids.size);return id;};
-  for(let t=0;t+2<n;t+=3){
-    const a=vertex(index?index.getX(t):t),b=vertex(index?index.getX(t+1):t+1),c=vertex(index?index.getX(t+2):t+2);
-    for(const [u,v]of [[a,b],[b,c],[c,a]]){const e=u<v?u*1048576+v:v*1048576+u;edges.set(e,(edges.get(e)||0)+1);}
-  }
-  for(const count of edges.values())if(count===1)return true;
-  return false;
 }
 
 export async function loadCity(world) {
@@ -92,18 +80,7 @@ export async function loadCity(world) {
       }
       meshes++;
       // Indigo/teal timber reads as blue paint on buildings; data maps it to wood.
-      const base=cityColor(city,old,mesh.name);
-      // Source art is double-sided. Closed solids stay front-only; open sheets
-      // (awnings, canvas, roof skins) keep both faces or vanish from behind.
-      const side=old.side===THREE.DoubleSide&&hasOpenEdges(mesh.geometry)?THREE.DoubleSide:THREE.FrontSide;
-      const key = `${base.getHex()}/${old.emissive?.getHex() || 0}/${side}`;
-      if (!materials.has(key)) {
-        const m = toon('#' + base.getHexString(),{side}).clone();
-        m.color.copy(base); m.userData.shared = true;
-        if (old.emissive) m.emissive.copy(old.emissive);
-        materials.set(key, m);
-      }
-      mesh.material = materials.get(key);
+      mesh.material = importedMaterial(city, old, mesh, materials);
       if(water){fountainWater.userData.preparePool(mesh);mesh.material=fountainWater;mesh.userData.skipStructureOutline=true;mesh.castShadow=false;}
       if (mesh.name.startsWith('Mainland_continuous') || /^Mainland[ _]continuous/.test(mesh.name)) mesh.material=ground.material('base');
       if (mesh.name.startsWith('Lighthouse_rock_grassy') || /^Lighthouse[ _]rock[ _]grassy/.test(mesh.name)) mesh.material=ground.material('lawn');

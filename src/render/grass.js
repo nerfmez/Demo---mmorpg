@@ -2,6 +2,7 @@
 // load (bakeGrassColours, one small GPU pass read back into per-clump colours). Rendering a blade
 // then only blends two stored colours: no per-pixel or per-vertex ground shader, no frame update.
 import * as THREE from 'three';
+import { regionShift } from './region-shift.js';
 import { surfaceData, groundFieldUniforms } from './ground.js';
 import { GROUND_COLOR_GLSL, GROUND_CLOUD_GLSL } from './ground-color.js';
 import { patchMaterial, timeUniform } from './patch.js';
@@ -55,17 +56,19 @@ export function attachGrassSurface(mesh,items,world) {
 export function grassMaterial(world) {
   const m=new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide});
   m.userData.groundBrush=groundBrushUniform(m);
+  const shift=regionShift();
   patchMaterial(m,{wind:.15});
   const previous=m.onBeforeCompile;
   m.onBeforeCompile=(s,r)=>{
     previous.call(m,s,r);
     s.uniforms.uTime=timeUniform;
     s.uniforms.uGrassWater={value:world.waterLevel};
+    s.uniforms.uRegionShift=shift;s.uniforms.uNoiseOffset={value:new THREE.Vector2(...(world.data.atlas?.offset||[0,0]))};
     s.uniforms.uGrassTip={value:art.grass.tipLightening};
     s.uniforms.uGrassRootHeight={value:art.grass.rootBlendHeight};
     const vary=`varying vec3 vGrassBase,vGrassLawn,vGrassShade; varying float vGrassHeight;`;
     s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>
-      ${vary} uniform float uGrassWater;
+      ${vary} uniform float uGrassWater; uniform vec3 uRegionShift; uniform vec2 uNoiseOffset;
       attribute vec3 aGrassNormal,aGrassBase,aGrassLawn; attribute float aGrassY;
       ${GROUND_CLOUD_GLSL}`)
       .replace('#include <defaultnormal_vertex>',`#include <defaultnormal_vertex>
@@ -76,7 +79,7 @@ export function grassMaterial(world) {
         // baked per clump (stored at half scale so values above 1 survive 8-bit storage)
         vGrassBase=aGrassBase*2.0;vGrassLawn=aGrassLawn*2.0;
         // underwater tint and drifting cloud shade apply alike to root and tip
-        vGrassShade=mix(vec3(1.0),vec3(.70,.81,.80),1.0-smoothstep(uGrassWater-.4,uGrassWater+.05,aGrassY))*groundCloud(root.xz,uTime);`);
+        vGrassShade=mix(vec3(1.0),vec3(.70,.81,.80),1.0-smoothstep(uGrassWater-.4,uGrassWater+.05,aGrassY))*groundCloud(root.xz-uRegionShift.xz+uNoiseOffset,uTime);`);
     s.fragmentShader=s.fragmentShader.replace('#include <common>',`#include <common>
       ${vary} uniform float uGrassTip,uGrassRootHeight;`)
       .replace('#include <color_fragment>',`#include <color_fragment>
@@ -96,6 +99,12 @@ export function grassMaterial(world) {
 // runs the full painted-ground function at the clump root (and the meadow's own lawn tone).
 // The two results are read back into 8-bit per-clump attributes; the bake inputs are then freed.
 export function bakeGrassColours(renderer,root,world) {
+  const steps=bakeGrassSteps(renderer,root,world);
+  for(;;){const r=steps.next();if(r.done)return r.value;}
+}
+
+/** The same bake one grass chunk at a time; the render target is restored between. */
+export function* bakeGrassSteps(renderer,root,world) {
   const meshes=[];root.traverse(o=>{if(o.name==='ground-blended-grass')meshes.push(o);});
   if(!meshes.length)return 0;
   root.updateMatrixWorld(true);
@@ -136,6 +145,8 @@ export function bakeGrassColours(renderer,root,world) {
     // only what the blade shader still reads stays on the GPU
     for(const k of ['aGrassLight','aGrassDark','aGrassSplat','aGrassCoast','aGrassTown'])g.deleteAttribute(k);
     prepareGrassCulling(mesh);
+    renderer.setRenderTarget(previous);
+    yield;
   }
   renderer.setRenderTarget(previous);material.dispose();
   return meshes.length;

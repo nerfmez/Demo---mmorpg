@@ -209,6 +209,9 @@
 .worldmap .wpt.selected { border-radius: 50%; background: #fffbe866; outline: 1px solid #ffffb4; }
 .worldmap .townmark { width: 22px; height: 22px; padding: 2px; background: #365449; border: 1px solid #f0d48b; border-radius: 4px; }
 .worldmap .townmark svg { width: 100%; height: 100%; }
+.worldmap .exitmark { display: flex; align-items: center; gap: 3px; padding: 2px 6px 2px 3px; background: #2f4a5c; color: #f3ead2; border: 1px solid #f0d48b; border-radius: 10px; font-size: 9px; white-space: nowrap; pointer-events: none; z-index: 5; }
+.worldmap .exitmark svg { width: 16px; height: 16px; }
+.worldmap .exitmark small { font-size: 9px; }
 .worldmap .bossmark { width: 26px; height: 26px; background: #f0dcc0; border: 1px solid #7d4e38; border-radius: 6px; }
 .worldmap .bossmark .art { width: 26px; height: 26px; }
 .worldmap .questmark { font-size: 22px; color: #ffe796; text-shadow: 0 1px 2px #70562b; pointer-events: none; z-index: 6; }

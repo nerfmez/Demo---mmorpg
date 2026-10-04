@@ -8,6 +8,7 @@ import { art } from './art.js';
 import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
 import { tagsHtml, rulesHtml } from './buildmeta.js';
 import { atlasView } from './atlas.js';
+import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
@@ -364,7 +365,8 @@ export class Panels {
     const sideOrder = [...Q.side].sort((a, b) => (questState(ch, a).status === 'done') - (questState(ch, b).status === 'done'));
     const p = ch.progress;
     const kills = Object.values(p.kills).reduce((a, b) => a + b, 0);
-    const bosses = (data.world.bosses || []).map((b) => `<span>${data.monsters.monsters[b.monster].name}</span><b>${p.bossKills[b.id] ? `ปราบแล้ว ×${p.bossKills[b.id]}` : '—'}</b>`).join('');
+    const totals = worldTotals(ch, data); // one world: every map's zones and stones
+    const bosses = Object.values(data.maps || { x: data.world }).flatMap((m) => m.bosses || []).map((b) => `<span>${data.monsters.monsters[b.monster].name}</span><b>${p.bossKills[b.id] ? `ปราบแล้ว ×${p.bossKills[b.id]}` : '—'}</b>`).join('');
     const doneCount = [...Q.main, ...Q.side].filter((id) => questState(ch, id).status === 'done').length;
     return `<div class="grid2">
       <div class="card"><h3>เนื้อเรื่องหลัก</h3>${Q.main.filter(id=>questState(ch,id).status!=='done').map(row).join('') || '<p class="muted">ทำเนื้อเรื่องหลักครบแล้ว</p>'}<p class="muted">${Q.main.filter(id=>questState(ch,id).status==='locked').length} ภารกิจจะเปิดเมื่อทำเรื่องก่อนหน้าสำเร็จ</p></div>
@@ -372,8 +374,8 @@ export class Panels {
         <details class="journal-completed"><summary>ภารกิจที่สำเร็จแล้ว · ${doneCount}</summary>${[...Q.main,...Q.side].filter(id=>questState(ch,id).status==='done').map(row).join('') || '<p class="muted">ยังไม่มีภารกิจที่สำเร็จ</p>'}</details>
         <div class="card" style="margin-top:12px"><h3>ความคืบหน้า</h3><div class="kv">
           <span>ภารกิจสำเร็จ</span><b>${doneCount}/${Q.main.length + Q.side.length}</b>
-          <span>สำรวจพื้นที่</span><b>${p.zones.length}/${g.world.zones.length}</b>
-          <span>หินวาร์ป</span><b>${p.waypoints.length}/${g.world.waypoints.length}</b>
+          <span>สำรวจพื้นที่</span><b>${totals.zones[0]}/${totals.zones[1]}</b>
+          <span>หินวาร์ป</span><b>${totals.waypoints[0]}/${totals.waypoints[1]}</b>
           <span>ล่ามอนแล้ว</span><b>${kills} ตัว</b>
           ${bosses}
           <span>คราฟต์แล้ว</span><b>${p.crafted || 0} ครั้ง</b>
@@ -439,8 +441,8 @@ export class Panels {
         if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
       case 'select-waypoint':
-        this.sel.waypoint = t.dataset.id;
-        this.sel.zone = t.dataset.id === 'town' ? 'settlement' : t.dataset.id;
+        this.sel.waypoint = t.dataset.id; // "mapId:id" (one world, ids repeat per map)
+        this.sel.zone = t.dataset.zone;
         this.render();
         if (matchMedia('(max-width: 700px)').matches) this.body.querySelector('.region-detail')?.scrollIntoView({block:'start'});
         return;
@@ -639,7 +641,7 @@ export class Panels {
         return;
       }
       case 'teleport': {
-        const res = g.teleportTo(t.dataset.id);
+        const res = g.teleportTo(t.dataset.id, t.dataset.map || undefined);
         if (res.ok) {
           this.close();
           this.onChange?.();

@@ -4,7 +4,7 @@ Current rules only. The code and `data/` are the source of truth for numbers.
 
 ## What this is
 
-A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style buildcraft. The design brief is `docs/DESIGN-SUMMARY-TH.txt`; `docs/DESIGN-STATUS.md` tracks what is built. The owner plays on an iPad (Safari/WebKit) and does not use a computer, so every change must work with touch controls.
+A playable web demo (an open world: Azure Coast and the Greenhollow Frontier meet along a seam; the neighbouring map streams in near the border) of an anime-style top-down MMORPG with PoE-style buildcraft. The design brief is `docs/DESIGN-SUMMARY-TH.txt`; `docs/DESIGN-STATUS.md` tracks what is built. The owner plays on an iPad (Safari/WebKit) and does not use a computer, so every change must work with touch controls.
 
 ## Architecture rules (keep it Godot-portable)
 
@@ -23,7 +23,7 @@ A playable 1-map web demo of an anime-style top-down MMORPG with PoE-style build
 - Character Level gives Stat Points. Job Level gives Job Points for the Job Tree. The Job is chosen later, not at creation. Respec costs in-game gold only.
 - Monsters drop their own parts, and every material must have a use (tested in `tests/core/data.test.js`).
 - Crafted gear has a random Grade and options. Upgrade (+N) is a separate system.
-- The game starts on a title screen (`ui/menu.js`): new character, 3 save slots, continue. Tests skip it with `?fresh=1` (a never-saved character). Saves are character JSON (`version: 4`); change the shape only with a migration in `migrateCharacter()` and a test.
+- The game starts on a title screen (`ui/menu.js`): new character, 3 save slots, continue. Tests skip it with `?fresh=1` (a never-saved character). Saves are character JSON (`version: 5`); change the shape only with a migration in `migrateCharacter()` and a test.
 - The map has real height: keep roads and ramps walkable and bridges joined to both banks (tested in `tests/core/world.test.js`).
 - Art: "change the camera, not the style". Keep the anime cel look (3-step toon ramp, soft same-hue outlines), normal proportions (about 6.5 heads, never chibi), vivid but not pastel, and monsters that are not plush toys. The reference images in `docs/reference/` are style targets, not in-game sprites. For skill and combat effects, `docs/VFX-REFERENCE.md` is both the VFX research library and style target. Before implementing or substantially restyling a combat VFX, search the linked Cartoon FX Remaster gallery for effects matching the skill's element and function, study multiple relevant clips when available (anticipation, main motion, impact, trail and lingering/status layers), then build an original version for Frontier. Never copy paid assets or reproduce one reference one-to-one.
 

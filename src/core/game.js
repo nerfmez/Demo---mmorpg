@@ -11,6 +11,8 @@ import { rollDrops, addItem } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
+import { enterMap, selectMap } from './maps.js';
+import { waypointUnlocked } from './atlas.js';
 
 const PLAYER_RADIUS = 0.45;
 const PICKUP_RADIUS = 1.4;
@@ -45,7 +47,11 @@ export class Game {
     this.checkT = 0;
 
     let [sx, sz] = data.world.playerSpawn;
-    if (this.ch.pos && this.world.isFree(this.ch.pos[0], this.ch.pos[1], PLAYER_RADIUS)) [sx, sz] = this.ch.pos;
+    if (this.ch.pos) {
+      // A seam crossing can land beside a tree on the far side: step to the nearest free spot.
+      const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1]);
+      if (this.world.isFree(spot.x, spot.z, PLAYER_RADIUS)) [sx, sz] = [spot.x, spot.z];
+    }
     this.player = {
       id: this.nextId++,
       kind: 'player',
@@ -127,6 +133,7 @@ export class Game {
 
   /** Save-ready character with the current position. */
   snapshot() {
+    if (this.travelled) return this.ch;
     const p = this.player;
     this.ch.pos = p.dead ? null : [Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10];
     return this.ch;
@@ -487,7 +494,9 @@ export class Game {
     const p = this.player;
     const t = this.data.world.town;
     const wp = this.world.waypoints.find((w) => dist(p.x, p.z, w.x, w.z) < WAYPOINT_RADIUS && this.isWaypointUnlocked(w.id));
+    const exit = this.world.exits.find((e) => dist(p.x, p.z, e.x, e.z) < e.r && this.data.maps?.[e.to]);
     return {
+      exit: exit ? exit.id : null,
       workbench: dist(p.x, p.z, t.workbench[0], t.workbench[1]) < INTERACT_RADIUS,
       trainer: dist(p.x, p.z, t.trainer[0], t.trainer[1]) < INTERACT_RADIUS,
       waypoint: wp ? wp.id : null,
@@ -500,9 +509,92 @@ export class Game {
     return this.monsters.some((m) => !m.dead && m.aggro && dist(m.x, m.z, p.x, p.z) < 16);
   }
 
-  /** Fast travel to a discovered waypoint. */
-  teleportTo(id) {
+  /**
+   * Travel through an exit to its linked map. Returns the save-ready character placed
+   * at the destination; the caller rebuilds the world from data.maps[ch.worldId].
+   */
+  travel(id) {
     const p = this.player;
+    const exit = this.world.exits.find((e) => e.id === id);
+    if (!exit || !this.data.maps?.[exit.to]) return { ok: false, reason: 'unknown' };
+    if (dist(p.x, p.z, exit.x, exit.z) > exit.r) return { ok: false, reason: 'far' };
+    if (p.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    return this.arriveIn(exit.to, exit.arrive, exit.nameTh);
+  }
+
+  /**
+   * Walk off an open seam into the neighbouring map: the same world point, expressed
+   * in that map's coordinates (global = local + atlas.offset), just inside its edge.
+   */
+  crossSeam(seam) {
+    const p = this.player;
+    const here = this.data.world, there = this.data.maps?.[seam.to];
+    const back = there?.atlas?.seams?.find((s) => s.to === here.id);
+    if (!back) return { ok: false, reason: 'unknown' };
+    if (p.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    const [hx, hz] = here.atlas.offset, [tx, tz] = there.atlas.offset, b = there.bounds, inset = p.r + 0.6;
+    let x = p.x + hx - tx, z = p.z + hz - tz;
+    if (back.edge === 'minX') x = Math.max(x, b.minX + inset);
+    if (back.edge === 'maxX') x = Math.min(x, b.maxX - inset);
+    if (back.edge === 'minZ') z = Math.max(z, b.minZ + inset);
+    if (back.edge === 'maxZ') z = Math.min(z, b.maxZ - inset);
+    return this.arriveIn(seam.to, [Math.round(x * 10) / 10, Math.round(z * 10) / 10], there.nameTh, true);
+  }
+
+  /**
+   * Open world: carry on in the neighbouring map in the same session (no reload).
+   * Call after a crossing (`travelled`) once the destination world is built; the
+   * character already belongs to it. Monsters, shots and drops of the old map end.
+   */
+  enterWorld(world) {
+    const p = this.player, from = this.data.world;
+    if (this.travelled !== world.data.id) throw new Error('enterWorld: not travelling to ' + world.data.id);
+    selectMap(this.data, world.data.id);
+    this.world = world;
+    this.travelled = null;
+    const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1]);
+    const [fx, fz] = from.atlas.offset, [tx, tz] = world.data.atlas.offset;
+    p.x = spot.x;
+    p.z = spot.z;
+    p.dash = null;
+    p.cast = null;
+    p.targetId = null;
+    for (const a of this.allies) {
+      a.x += fx - tx;
+      a.z += fz - tz;
+    }
+    this.monsters = [];
+    this.projectiles = [];
+    this.areas = [];
+    this.drops = [];
+    this.spawnPoints = [];
+    this.zoneId = world.zoneAt(p.x, p.z).id;
+    this.spawnMonsters();
+    this.emit({ type: 'worldChanged', from: from.id, to: world.data.id, shift: [fx - tx, fz - tz] });
+    this.completeQuests(refreshQuests(this.ch, this.data));
+  }
+
+  arriveIn(to, pos, name, seam = false) {
+    enterMap(this.ch, this.data, to, pos);
+    this.travelled = to; // the character now belongs to the destination map
+    this.emit({ type: 'travel', to, name, seam });
+    return { ok: true, character: this.ch, to };
+  }
+
+  /** Fast travel to a discovered waypoint. */
+  teleportTo(id, mapId = this.data.world.id) {
+    const p = this.player;
+    if (mapId !== this.data.world.id) {
+      // A stone on another map of the same world: travel there (in place when streamed).
+      const map = this.data.maps?.[mapId], stone = map?.waypoints.find((w) => w.id === id);
+      if (!stone) return { ok: false, reason: 'unknown' };
+      if (!waypointUnlocked(this.ch, this.data, mapId, id)) return { ok: false, reason: 'locked' };
+      if (p.dead) return { ok: false, reason: 'dead' };
+      if (this.inCombat()) return { ok: false, reason: 'combat' };
+      return this.arriveIn(mapId, [stone.pos[0], stone.pos[1] + 2.2], stone.nameTh);
+    }
     const wp = this.world.waypoints.find((w) => w.id === id);
     if (!wp) return { ok: false, reason: 'unknown' };
     if (!this.isWaypointUnlocked(id)) return { ok: false, reason: 'locked' };
@@ -940,7 +1032,9 @@ export class Game {
       return true;
     });
     for (const fn of due) fn();
+    if (this.travelled) return; // the character belongs to the next map: the old one stops
     this.updatePlayer(dt);
+    if (this.travelled) return; // crossed this frame: no world checks against the old map
     const p = this.player;
     for (const m of this.monsters) {
       if (m.dead) {
@@ -1087,6 +1181,16 @@ export class Game {
     p.moving = mlen > 0.08;
     if (p.moving) {
       this.moveEntity(p, mx * speed * dt, mz * speed * dt);
+      // Pressing on against an open seam walks on into the neighbouring map.
+      const seam = this.world.seams.length ? this.world.seamAt(p.x, p.z, p.r) : null;
+      if (seam && !this.travelled && (seam.alongX ? mz : mx) * seam.outward > 0.3 * mlen) {
+        const crossed = this.crossSeam(seam);
+        if (!crossed.ok && this.time - (this.seamNoticeT ?? -9) > 3) {
+          this.seamNoticeT = this.time;
+          this.emit({ type: 'travelRefused', reason: crossed.reason });
+        }
+        if (crossed.ok) return;
+      }
       if (!p.cast) {
         const a = Math.atan2(mx, mz);
         p.facing += clamp(angleDiff(p.facing, a), -14 * dt, 14 * dt);

@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {timeUniform} from './patch.js';
+import { regionShift } from './region-shift.js';
 
 const WATER_HEIGHT_GLSL=`
 float waterHeight(vec2 p,float tier){
@@ -12,7 +13,9 @@ float waterHeight(vec2 p,float tier){
 }`;
 export function cityFountain(root,world){
  const {x,z}=world.data.city.fountain,ox=root.position.x,oy=root.position.y,oz=root.position.z;
- const centre=`vec2(${x},${z})`;
+ const centre=`(vec2(${x},${z})+uRegionShift.xz)`,shift=regionShift();
+ // Drawn as a neighbouring map, the fountain's world centre moves by the region shift.
+ const shifted=sh=>{sh.uniforms.uRegionShift=shift;sh.vertexShader='uniform vec3 uRegionShift;\n'+sh.vertexShader;sh.fragmentShader='uniform vec3 uRegionShift;\n'+sh.fragmentShader;};
  const pool=new THREE.MeshPhongMaterial({color:'#368e99',specular:'#c5eee6',shininess:65,transparent:true,opacity:.90,depthWrite:false});
  pool.userData.walkSurface='animated-fountain-water-mass';
  pool.userData.preparePool=mesh=>{
@@ -27,7 +30,7 @@ export function cityFountain(root,world){
   mesh.geometry=g;old.dispose();
  };
  pool.onBeforeCompile=s=>{
-  s.uniforms.uTime=timeUniform;
+  s.uniforms.uTime=timeUniform;shifted(s);
   s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>\nuniform float uTime;varying vec3 vFountain;${WATER_HEIGHT_GLSL}`)
    .replace('#include <beginnormal_vertex>',`#include <beginnormal_vertex>
     vec3 fw=(modelMatrix*vec4(position,1.)).xyz;vec2 fp=fw.xz-${centre};float tier=fw.y;
@@ -75,7 +78,7 @@ export function cityFountain(root,world){
  const geo=mergeGeometries(parts);parts.forEach(g=>g.dispose());geo.computeBoundingSphere();geo.boundingSphere.radius+=.12;
  const flow=new THREE.MeshBasicMaterial({color:'#78bfc8',transparent:true,opacity:.82,depthWrite:false,side:THREE.DoubleSide});
  flow.onBeforeCompile=s=>{
-  s.uniforms.uTime=timeUniform;
+  s.uniforms.uTime=timeUniform;shifted(s);
   s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>\nuniform float uTime;attribute float flowPhase,flowMode;varying vec2 vFlow;varying float vFlowPhase,vFlowMode;${WATER_HEIGHT_GLSL}`)
    .replace('#include <begin_vertex>',`#include <begin_vertex>
     vFlow=uv;vFlowPhase=flowPhase;vFlowMode=flowMode;
@@ -104,7 +107,7 @@ export function cityFountain(root,world){
  // One instanced draw of soft expanding foam patches at every tier impact.
  const foamGeo=new THREE.RingGeometry(.035,.23,16);foamGeo.rotateX(-Math.PI/2);foamGeo.setAttribute('impactPhase',new THREE.InstancedBufferAttribute(new Float32Array(hits.map((_,i)=>i*.137)),1));
  const foamMat=new THREE.MeshBasicMaterial({color:'#d1eee5',transparent:true,opacity:.42,depthWrite:false,side:THREE.DoubleSide});foamMat.userData.walkSurface='fountain-impact-foam';
- foamMat.onBeforeCompile=s=>{s.uniforms.uTime=timeUniform;s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>\nuniform float uTime;attribute float impactPhase;varying float vFoamFade;${WATER_HEIGHT_GLSL}`).replace('#include <begin_vertex>',`#include <begin_vertex>\nfloat age=fract(uTime*.63+impactPhase);transformed.xz*=.45+age*1.8;vec3 wp=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;transformed.y+=waterHeight(wp.xz-${centre},wp.y);vFoamFade=(1.-age)*.8;`);s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\nvarying float vFoamFade;').replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.a*=vFoamFade;');};foamMat.customProgramCacheKey=()=> 'city-tier-impact-foam-v1';
+ foamMat.onBeforeCompile=s=>{s.uniforms.uTime=timeUniform;shifted(s);s.vertexShader=s.vertexShader.replace('#include <common>',`#include <common>\nuniform float uTime;attribute float impactPhase;varying float vFoamFade;${WATER_HEIGHT_GLSL}`).replace('#include <begin_vertex>',`#include <begin_vertex>\nfloat age=fract(uTime*.63+impactPhase);transformed.xz*=.45+age*1.8;vec3 wp=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;transformed.y+=waterHeight(wp.xz-${centre},wp.y);vFoamFade=(1.-age)*.8;`);s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\nvarying float vFoamFade;').replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.a*=vFoamFade;');};foamMat.customProgramCacheKey=()=> 'city-tier-impact-foam-v1';
  const foam=new THREE.InstancedMesh(foamGeo,foamMat,hits.length),matrix=new THREE.Matrix4();hits.forEach((p,i)=>foam.setMatrixAt(i,matrix.makeTranslation(p.x,p.y,p.z)));foam.name='fountain-tier-impact-foam';foam.instanceMatrix.needsUpdate=true;root.add(foam);
  return pool;
 }

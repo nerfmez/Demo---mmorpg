@@ -126,6 +126,7 @@ vec3 lawnTone(vec2 w,vec3 tintL,vec3 tintD,float town){
 vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,float up,float water,float town){
   vec2 fuv=fieldUV(w);
   vec4 F0=texture2D(uField0,fuv),F1=texture2D(uField1,fuv),F2=texture2D(uField2,fuv);
+  w+=uNoiseOffset; // procedural paint in world (atlas) metres: continuous across open seams
   vec2 meadow=F0.xy;
   float mid=vnoise(w*1.30+3.0),fine=vnoise(w*5.2),broad=F0.z;
   vec3 grass=lawnTone(F0,F2,tintL,tintD,town);

@@ -13,7 +13,8 @@ import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
 import { Menu } from './ui/menu.js';
 import { createFullscreen } from './ui/fullscreen.js';
-import { migrateLegacy, writeSlot, exportCode, loadPref, savePref } from './save.js';
+import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
+import { characterMap, selectMap } from './core/maps.js';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/thai-500.css';
 import '@fontsource/mitr/thai-600.css';
@@ -29,10 +30,25 @@ document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
 migrateLegacy();
-const world = createWorld(data.world);
+// One map is built per page. A trip through an exit (or loading a save from another
+// map) reloads into that map; ?map=<id> opens one directly for tests and captures.
+const trip = takeTravel();
+const tripCharacter = trip ? (trip.slot ? loadSlot(trip.slot)?.character : trip.character) : null;
+selectMap(data, tripCharacter ? characterMap(data, tripCharacter) : params.get('map'));
+document.querySelector('#loading .load-title').textContent = data.world.name || '';
+// Every map's rules/collision are built up front (cheap next to rendering), so the
+// open world can stream a neighbouring map's scene and hand over without a reload.
+const worlds = Object.fromEntries(Object.keys(data.maps).map((id) => [id, null]));
+const coreWorld = (id) => (worlds[id] ||= createWorld(data.maps[id]));
+const world = coreWorld(data.world.id);
+for (const id of Object.keys(worlds)) coreWorld(id);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality });
+// ?stream=0 turns open-world streaming off (seams then cross with a reload, as in tests).
+if (params.get('stream') !== '0') view.coreWorld = coreWorld;
+// ?streamBudget=<ms> lets software-GPU tests stream the neighbour in fewer (slow) frames.
+if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
 // Imported models load in the background; the procedural shapes stand in until they arrive,
 // then the hero, the creation preview and the portrait are rebuilt once.
 Promise.all([loadModels(data.models), view.cityReady]).then(() => {
@@ -47,7 +63,8 @@ const setQuality = (q) => {
   view.setQuality(q);
 };
 
-const F = (window.__frontier = { view, world, fps: 0, paused: false, game: null });
+const F = (window.__frontier = { view, fps: 0, paused: false, game: null });
+Object.defineProperty(F, 'world', { get: () => view.world }); // follows open-world crossings
 let session = null;
 const fullscreen = createFullscreen({
   bypass: fresh, // Existing never-saved browser-test fixture skips the entry menu.
@@ -57,8 +74,24 @@ const fullscreen = createFullscreen({
 F.fullscreen = fullscreen;
 const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
 
+/** Reload into the character's map (saved slot, or the unsaved test character). */
+function travelTo(character, slot, name) {
+  if (slot) writeSlot(slot, character);
+  stashTravel(slot ? { slot } : { character });
+  const loading = document.getElementById('loading');
+  loading.querySelector('.load-title').textContent = name || '';
+  loading.querySelector('.load-sub').textContent = 'กำลังเดินทาง…';
+  loading.classList.remove('done');
+  const url = new URL(location.href);
+  url.searchParams.delete('map');
+  // Let the overlay paint before the page unloads.
+  requestAnimationFrame(() => setTimeout(() => location.replace(url.href), 30));
+}
+
 function startGame(character, slot) {
+  if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
   const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
+  game.worlds = worlds; // every map's rules world: the HUD and atlas show one world
   view.attachGame(game);
   view.mode = 'game';
   view.snapCamera();
@@ -105,6 +138,10 @@ function startGame(character, slot) {
       if (n.workbench) panels.open('craft');
       else if (n.trainer) panels.open('job');
       else if (n.waypoint) panels.open('map');
+      else if (n.exit) {
+        const result = game.travel(n.exit); // success arrives as a 'travel' event
+        if (!result.ok) hud.toast(result.reason === 'combat' ? 'ออกเดินทางระหว่างต่อสู้ไม่ได้' : 'ยังเดินทางไม่ได้', '#ffb36b');
+      }
     },
   };
   const input = new Input(hudRoot, canvas, game, view, ui);
@@ -151,7 +188,7 @@ function startGame(character, slot) {
     hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 
-  session = { game, hud, panels, input, ui, save, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
+  session = { game, hud, panels, input, ui, save, slot, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
   Object.assign(F, { game, hud, panels, input, save });
   save();
 
@@ -228,6 +265,23 @@ function frame(now) {
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
     if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {
+      if (e.type === 'travel') {
+        if (view.neighbourReady(e.to)) {
+          // Open world: the neighbouring map is already streamed in; carry on in place
+          // (walking across a seam, or a stone just over the border).
+          s.game.enterWorld(coreWorld(e.to));
+          view.switchRegion(e.to);
+          if (!e.seam) view.snapCamera();
+          s.hud.toast(e.name, '#bfe6ff');
+          s.save();
+          continue;
+        }
+        // A far map (stone travel) or a seam reached before it finished streaming: reload.
+        session = null;
+        travelTo(s.game.ch, s.slot, e.name);
+        break;
+      }
+      if (e.type === 'travelRefused') s.hud.toast(e.reason === 'combat' ? 'ข้ามเขตแดนระหว่างต่อสู้ไม่ได้' : 'ยังข้ามเขตแดนไม่ได้', '#ffb36b');
       view.handleEvent(e);
       s.hud.handleEvent(e);
       if (SAVE_ON.has(e.type)) s.save();
@@ -259,7 +313,8 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
+if (tripCharacter) startGame(tripCharacter, trip.slot || null);
+else if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
 else menu.showTitle();
 requestAnimationFrame((t) => {
   last = t;

@@ -110,6 +110,25 @@ export function rasterPolyline(grid, pts, reach, visit) {
  * @param {object} worldData data/world.json
  * @param {(x:number,z:number)=>object} zoneAt zone lookup (for hill amplitude)
  */
+/** True when `along` lies on the open span of a seam on that edge (atlas.seams). */
+export function seamOpen(worldData, edge, along) {
+  for (const seam of worldData.atlas?.seams || []) if (seam.edge === edge && along >= seam.span[0] && along <= seam.span[1]) return seam;
+  return null;
+}
+
+/** Height of a seam profile ([[along, h], ...] sorted by along) at `along`. */
+export function seamHeight(profile, along) {
+  if (along <= profile[0][0]) return profile[0][1];
+  for (let k = 1; k < profile.length; k++) {
+    const [a1, h1] = profile[k];
+    if (along <= a1) {
+      const [a0, h0] = profile[k - 1];
+      return h0 + ((h1 - h0) * (along - a0)) / (a1 - a0 || 1);
+    }
+  }
+  return profile[profile.length - 1][1];
+}
+
 export function buildHeightfield(worldData, zoneAt) {
   const t = worldData.terrain;
   const b = worldData.bounds;
@@ -184,8 +203,10 @@ export function buildHeightfield(worldData, zoneAt) {
     for (let i = 0; i < w; i++) {
       const x = X(i);
       const z = Z(j);
-      // no mountains on the sea side: the sea runs to the horizon
-      const out = Math.max(b.minX + inset - x, x - (b.maxX - inset), b.minZ + inset - z, sea ? 0 : z - (b.maxZ - inset), 0);
+      // no mountains on the sea side (the sea runs to the horizon) or along an
+      // open seam with a neighbouring map (the land continues there)
+      const open = (edge, along) => seamOpen(worldData, edge, along) ? 0 : 1;
+      const out = Math.max((b.minX + inset - x) * open('minX', z), (x - (b.maxX - inset)) * open('maxX', z), (b.minZ + inset - z) * open('minZ', x), sea ? 0 : (z - (b.maxZ - inset)) * open('maxZ', x), 0);
       if (out > 0) hf[j * w + i] += smoothstep(0, 24, out) * 13 + out * 0.12 + (valueNoise(x * 0.09, z * 0.09, seed + 7) - 0.5) * 5 * smoothstep(0, 12, out);
     }
 
@@ -344,6 +365,25 @@ export function buildHeightfield(worldData, zoneAt) {
       const deck=startY+(dock.height-startY)*t;
       hf[j*w+i]=Math.min(hf[j*w+i],deck-dock.terrainRecess*Math.min(1,t*10));
     }
+  }
+
+  // 8. seams: an edge shared with a neighbouring map (atlas.seams) blends to one
+  // common height profile, so both maps meet on the same ground. Past the edge the
+  // profile continues instead of the mountain wall.
+  for (const seam of worldData.atlas?.seams || []) {
+    if (!seam.profile?.length) continue;
+    const alongX = seam.edge === 'minZ' || seam.edge === 'maxZ', edgeAt = b[seam.edge], inward = seam.edge.startsWith('max') ? -1 : 1;
+    const band = seam.band ?? 24;
+    for (let j = 0; j < h; j++)
+      for (let i = 0; i < w; i++) {
+        const x = X(i), z = Z(j), along = alongX ? x : z;
+        const past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
+        if (past >= band) continue;
+        const inside = ((alongX ? z : x) - edgeAt) * inward; // metres inside the map
+        if (inside >= band) continue;
+        const m = (1 - smoothstep(0, band, Math.max(0, inside))) * (1 - smoothstep(0, band, past));
+        hf[j * w + i] = hf[j * w + i] * (1 - m) + seamHeight(seam.profile, along) * m;
+      }
   }
 
   return {

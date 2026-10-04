@@ -45,6 +45,12 @@ jobs:
       - name: Browser smoke test
         if: steps.scope.outputs.game == 'true'
         run: npm run test:browser
+      - name: Map travel round trip with a reload (seam crossing with streaming off, saved slot)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/map-travel.mjs
+      - name: Open world (stream the neighbouring map in, cross the seam without a reload, drop it again)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/open-world.mjs
       - name: Distinct coastal attack patterns and contact poses
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/coastal-attacks.mjs

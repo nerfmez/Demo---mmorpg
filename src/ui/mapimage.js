@@ -18,7 +18,7 @@ const DEEP = hex('#5eacb1');
 const SAND = hex('#e9dbad');
 const PLAZA = hex('#d9cfb8');
 
-let cached = null;
+const cache = new Map(); // one painted image per map (world object)
 
 // Union overlapping floors (mainland, quay strips and island), subtracting
 // each floor's holes. Even/odd across all floors cuts holes in their overlaps.
@@ -34,7 +34,7 @@ export function clipCityFloors(g,floors,tx,tz){
 
 /** @returns {{canvas: HTMLCanvasElement, px: number, minX: number, minZ: number, url: () => string}} */
 export function mapImage(world) {
-  if (cached && cached.world === world) return cached.image;
+  if (cache.has(world)) return cache.get(world);
   const b = world.bounds;
   const W = Math.round(b.maxX - b.minX);
   const H = Math.round(b.maxZ - b.minZ);
@@ -204,20 +204,59 @@ export function mapImage(world) {
     g.beginPath();g.moveTo(tx(x-.7),tz(z));g.quadraticCurveTo(tx(x),tz(z+.3),tx(x+1),tz(z));g.stroke();
   }
 
-  cached = {
-    world,
-    image: {
-      canvas,
-      px: PX,
-      minX: b.minX,
-      minZ: b.minZ,
-      width: W,
-      height: H,
-      url() {
-        if (!this._url) this._url = canvas.toDataURL('image/png');
-        return this._url;
-      },
+  const image = {
+    canvas,
+    px: PX,
+    minX: b.minX,
+    minZ: b.minZ,
+    width: W,
+    height: H,
+    url() {
+      if (!this._url) this._url = canvas.toDataURL('image/png');
+      return this._url;
     },
   };
-  return cached.image;
+  cache.set(world, image);
+  return image;
+}
+
+let worldCache = null;
+/**
+ * The whole world on one canvas, in world metres (map local + atlas offset): every
+ * map's painted image placed at its offset. The minimap and the world map read it,
+ * so the border between streamed maps never shows on the map.
+ */
+export function worldMapImage(worlds) {
+  const list = Object.values(worlds);
+  if (worldCache && worldCache.list.length === list.length && worldCache.list.every((w, i) => w === list[i])) return worldCache.image;
+  const rect = [Infinity, -Infinity, Infinity, -Infinity];
+  for (const w of list) {
+    const [ox, oz] = w.data.atlas?.offset || [0, 0], b = w.bounds;
+    rect[0] = Math.min(rect[0], b.minX + ox); rect[1] = Math.max(rect[1], b.maxX + ox);
+    rect[2] = Math.min(rect[2], b.minZ + oz); rect[3] = Math.max(rect[3], b.maxZ + oz);
+  }
+  const W = Math.round(rect[1] - rect[0]), H = Math.round(rect[3] - rect[2]);
+  const canvas = document.createElement('canvas');
+  canvas.width = W * PX;
+  canvas.height = H * PX;
+  const g = canvas.getContext('2d');
+  // Where no map lies: hill country to the north, open sea to the south (the coast
+  // runs along every map's south edge).
+  const sea = g.createLinearGradient(0, 0, 0, canvas.height);
+  sea.addColorStop(0, '#5f7656'); sea.addColorStop(.55, '#6b8460'); sea.addColorStop(.75, '#7fb0b0');
+  g.fillStyle = sea;
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  for (const w of list) {
+    const m = mapImage(w), [ox, oz] = w.data.atlas?.offset || [0, 0];
+    g.drawImage(m.canvas, (m.minX + ox - rect[0]) * PX, (m.minZ + oz - rect[2]) * PX);
+  }
+  const image = {
+    canvas, px: PX, minX: rect[0], minZ: rect[2], width: W, height: H,
+    url() {
+      if (!this._url) this._url = canvas.toDataURL('image/png');
+      return this._url;
+    },
+  };
+  worldCache = { list, image };
+  return image;
 }

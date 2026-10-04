@@ -150,13 +150,13 @@ try {
 
     await activate('.minimap');
     const beforeTravel=await page.evaluate(()=>({x:window.__frontier.game.player.x,z:window.__frontier.game.player.z}));
-    await activate('[data-act="select-zone"][data-id="meadow"]');
+    await activate('[data-act="select-zone"][data-id="azure-harbor-v1:meadow"]');
     assert.equal(await page.locator('.region-detail [data-art="monster/tusk_boar"]').count(),1);
     assert.ok(await page.locator('.region-detail [data-art="material/boar_hide"]').count());
     assert.equal(await page.locator('[data-act="teleport"][data-id="meadow"]').isDisabled(),true);
     assert.deepEqual(await page.evaluate(()=>({x:window.__frontier.game.player.x,z:window.__frontier.game.player.z})),beforeTravel,'selecting region must not travel');
     await page.evaluate(()=>{window.__frontier.game.ch.progress.waypoints.push('meadow');});
-    await activate('[data-act="select-zone"][data-id="meadow"]');
+    await activate('[data-act="select-zone"][data-id="azure-harbor-v1:meadow"]');
     await shot('map');
     await activate('[data-act="teleport"][data-id="meadow"]');
     assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);

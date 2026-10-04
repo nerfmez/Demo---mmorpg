@@ -51,6 +51,9 @@ jobs:
       - name: Open world (stream the neighbouring map in, cross the seam without a reload, drop it again)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/open-world.mjs
+      - name: Open world from the Frontier (Azure's city and harbour stream in at Azure's place)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/open-world-city.mjs
       - name: Two hands, gloves, shields and arrows (hero model, equipment screen, arrow crafting)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/gear-hands.mjs

@@ -107,6 +107,9 @@ export function* regionSteps(view, world) {
       return false;
     }
     root.add(obj);
+    // Kits arrive frozen (static batching) after the region may already sit at its atlas delta:
+    // give them this region's world matrices now, or they draw at the map's own coordinates.
+    recompose(obj);
     return true;
   };
   region.ready = loadCity(world)
@@ -162,9 +165,15 @@ export function placeRegion(region, dx, dz) {
   // Static scenery is frozen after batching (matrixWorldAutoUpdate off), so three never
   // recomputes it, even when forced. Recompose every world matrix here, parents first.
   root.updateMatrix();
-  root.traverse((o) => {
-    if (o === root) o.matrixWorld.copy(o.matrix);
-    else o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
+  root.matrixWorld.copy(root.matrix);
+  for (const child of root.children) recompose(child);
+}
+
+/** Recompute world matrices under `obj` from its parent, parents first (frozen nodes included). */
+function recompose(obj) {
+  obj.traverse((o) => {
+    if (o.matrixAutoUpdate) o.updateMatrix();
+    o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix);
   });
 }
 

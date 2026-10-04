@@ -840,6 +840,197 @@
         "regen_flat"
       ],
       "itemLevel": 3
+    },
+    "beetle_maul": {
+      "type": "gear",
+      "result": "beetle_maul",
+      "cost": {
+        "beetle_shell": 6,
+        "boar_tusk": 4,
+        "gold": 40
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "hp_flat",
+        "defense_flat",
+        "leech_pct"
+      ],
+      "itemLevel": 2
+    },
+    "crab_shield": {
+      "type": "gear",
+      "result": "crab_shield",
+      "cost": {
+        "crab_shell": 5,
+        "salt_gel": 2,
+        "gold": 25
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "itemLevel": 1
+    },
+    "beetle_buckler": {
+      "type": "gear",
+      "result": "beetle_buckler",
+      "cost": {
+        "beetle_shell": 5,
+        "boar_hide": 3,
+        "gold": 30
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "melee_pct"
+      ],
+      "itemLevel": 2
+    },
+    "crag_tower_shield": {
+      "type": "gear",
+      "result": "crag_tower_shield",
+      "cost": {
+        "crag_stone": 8,
+        "golem_heart": 1,
+        "beetle_shell": 4,
+        "gold": 90
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "itemLevel": 6
+    },
+    "hide_gloves": {
+      "type": "gear",
+      "result": "hide_gloves",
+      "cost": {
+        "boar_hide": 4,
+        "gold": 15
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "hp_flat",
+        "defense_flat",
+        "melee_pct"
+      ],
+      "itemLevel": 1
+    },
+    "shell_mitts": {
+      "type": "gear",
+      "result": "shell_mitts",
+      "cost": {
+        "crab_shell": 4,
+        "shore_feather": 2,
+        "gold": 15
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "regen_flat",
+        "block_pct",
+        "barrier_pct"
+      ],
+      "itemLevel": 1
+    },
+    "wolf_grips": {
+      "type": "gear",
+      "result": "wolf_grips",
+      "cost": {
+        "wolf_pelt": 4,
+        "wolf_fang": 2,
+        "gold": 35
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "itemLevel": 3
+    },
+    "wisp_wraps": {
+      "type": "gear",
+      "result": "wisp_wraps",
+      "cost": {
+        "glow_dust": 5,
+        "wisp_core": 1,
+        "gold": 45
+      },
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "cdr_pct",
+        "mp_flat",
+        "area_pct"
+      ],
+      "itemLevel": 5
+    },
+    "crag_gauntlets": {
+      "type": "gear",
+      "result": "crag_gauntlets",
+      "cost": {
+        "crag_stone": 6,
+        "boar_hide": 6,
+        "gold": 70
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "attack_flat",
+        "melee_pct",
+        "block_pct"
+      ],
+      "itemLevel": 6
+    },
+    "arrows_feather": {
+      "type": "arrow",
+      "result": "feather_arrow",
+      "qty": 50,
+      "cost": {
+        "shore_feather": 2,
+        "gold": 4
+      }
+    },
+    "arrows_tusk": {
+      "type": "arrow",
+      "result": "tusk_arrow",
+      "qty": 50,
+      "cost": {
+        "boar_tusk": 2,
+        "gold": 5
+      }
+    },
+    "arrows_hawk": {
+      "type": "arrow",
+      "result": "hawk_arrow",
+      "qty": 50,
+      "cost": {
+        "hawk_feather": 2,
+        "boar_tusk": 1,
+        "gold": 8
+      }
+    },
+    "arrows_storm": {
+      "type": "arrow",
+      "result": "storm_arrow",
+      "qty": 40,
+      "cost": {
+        "storm_quill": 1,
+        "hawk_feather": 2,
+        "gold": 15
+      }
     }
   }
 }

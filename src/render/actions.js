@@ -83,7 +83,7 @@ export const ACTIONS = {
   slashA: act(0.46, [[0, REST], [0.3, A_WIND], [0.46, A_HIT], [0.64, A_END], [1, REST]]),
   slashB: act(0.46, [[0, hold(A_END, { drop: [-0.05, 0, 0] })], [0.28, B_WIND], [0.46, B_HIT], [0.64, B_END], [1, REST]]),
   slashC: act(0.48, [[0, REST], [0.34, C_WIND], [0.48, C_HIT], [0.7, hold(C_HIT, { armR: [-1.15, 0, -0.1], drop: [-0.14, 0, 0] })], [1, REST]]),
-  // greatblade / axe: both hands, bigger wind-up, deeper stance
+  // greatblade: both hands, bigger wind-up, deeper stance
   heavyA: act(0.5, [[0, hold(REST, G)], [0.32, HA_WIND], [0.5, HA_HIT], [0.72, hold(HA_HIT, { torso: [0.4, 0.5, 0] })], [1, REST]]),
   heavyB: act(0.5, [[0, hold(REST, G)], [0.32, HB_WIND], [0.5, HB_HIT], [0.72, hold(HB_HIT, { torso: [0.2, 0.85, 0] })], [1, REST]]),
   heavyC: act(0.5, [[0, hold(REST, G)], [0.34, hold(C_WIND, G)], [0.5, hold(C_HIT, { ...G, drop: [-0.2, 0, 0] })], [0.74, hold(C_HIT, { ...G, drop: [-0.18, 0, 0] })], [1, REST]]),
@@ -141,7 +141,8 @@ const BY_KIND = {
   melee_arc: 'combo', melee_nova: 'whirl', chain: 'zap', ground_area: 'slam', nova: 'nova', dot_zone: 'sow',
   curse_zone: 'hex', self_barrier: 'ward', buff: 'warcry', heal_zone: 'heal', summon: 'summon',
 };
-const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], axe: ['heavyA', 'heavyB', 'heavyC'], dagger: ['stabA', 'stabB', 'stabC'] };
+// Heavy one-hand weapons (axe, mace) swing one-handed like a sword so the left hand stays free for a shield.
+const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], dagger: ['stabA', 'stabB', 'stabC'] };
 
 /**
  * The action for a cast.

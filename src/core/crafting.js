@@ -1,6 +1,7 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
-import { gearStats, gearRequirements, gearPower, enforceEquipment, meetsRequires } from './character.js';
+import { gearStats, gearRequirements, gearPower, enforceEquipment, meetsRequires, arrowTotal, wornSlot } from './character.js';
 import { equipmentItemLevel, validModGrade } from './item-metadata.js';
+import { modRequires } from './skills.js';
 
 export function canAfford(ch, cost) {
   for (const k in cost) {
@@ -30,6 +31,7 @@ export function recipeBlocker(ch, data, recipeId) {
   if (!r) return 'unknown';
   if (r.type === 'skill' && ch.skills[r.result]) return 'learned';
   if (r.type === 'movement' && ch.movementSkills.includes(r.result)) return 'learned';
+  if (r.type === 'arrow' && arrowTotal(ch) >= data.items.arrows.capacity) return 'full';
   if (!canAfford(ch, r.cost)) return 'materials';
   return null;
 }
@@ -66,6 +68,13 @@ export function craft(ch, data, recipeId, rng) {
   if (r.type === 'movement') {
     ch.movementSkills.push(r.result);
     return { ok: true, kind: 'movement', id: r.result };
+  }
+  if (r.type === 'arrow') {
+    // The quiver holds `capacity` arrows in all; a full craft past it is trimmed, never lost silently.
+    const qty = Math.min(r.qty, data.items.arrows.capacity - arrowTotal(ch));
+    ch.arrows.stock[r.result] = (ch.arrows.stock[r.result] || 0) + qty;
+    if (!data.items.arrows.types[ch.arrows.use]) ch.arrows.use = r.result;
+    return { ok: true, kind: 'arrow', id: r.result, qty };
   }
   if (r.type === 'mod') {
     const item = { uid: ch.nextUid++, id: r.result, level: 1, grade: validModGrade(data, r.grade) };
@@ -151,6 +160,9 @@ export function modUpgradeState(ch, data, inst) {
   if (!cost) return { ok: false, reason: 'max' };
   const need = data.progression.modUpgrade.requiresLevel[inst.level - 1];
   if (ch.level < need) return { ok: false, reason: 'level', need, cost };
+  // The next rank must be wearable: its stat requirement rises (modRequires).
+  const req = meetsRequires(ch, modRequires(data, data.mods.mods[inst.id], inst.level + 1));
+  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost, need };
   return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost, need };
 }
 
@@ -241,4 +253,81 @@ export function rollDrops(data, monsterId, zoneId, rng) {
     if (rng.chance(d.chance)) out.push({ item: d.item, qty: rng.int(d.min, d.max) });
   }
   return out;
+}
+
+// ---------- Selling and salvaging gear (town only; the UI and Game gate that) ----------
+
+/** Why an item may not be sold or salvaged, or null. */
+export function gearDisposalBlocker(ch, data, item) {
+  if (!item) return 'unknown';
+  if (wornSlot(ch, data, item)) return 'equipped';
+  if (item.locked) return 'locked';
+  return null;
+}
+
+export function gearRecipe(data, baseId) {
+  return Object.values(data.recipes.recipes).find((r) => r.type === 'gear' && r.result === baseId) || null;
+}
+
+export function gearSellValue(data, item) {
+  const g = data.items.salvage.sellGold, lv = item.itemLevel || data.items.gearBases[item.base].itemLevel || 1;
+  return Math.max(1, Math.round((g.base + g.perItemLevel * lv) * (g.gradeMult[item.grade] || 1) * (1 + g.perUpgrade * (item.upgrade || 0))));
+}
+
+/** Materials a salvage returns: a grade share of the recipe, plus a share of the +N steps. */
+export function salvageReturn(data, item) {
+  const rules = data.items.salvage, out = {}, recipe = gearRecipe(data, item.base);
+  const share = rules.returnByGrade[item.grade] || rules.returnByGrade.C;
+  const main = data.items.gearBases[item.base].upgradeMaterial;
+  for (const [k, n] of Object.entries(recipe?.cost || {})) if (k !== 'gold' && Math.floor(n * share) > 0) out[k] = Math.floor(n * share);
+  if (main && !out[main]) out[main] = 1;
+  for (let i = 0; i < (item.upgrade || 0); i++) {
+    for (const [k, n] of Object.entries(materialCost(data.items.upgrade.cost[i], main))) {
+      const back = Math.floor(n * rules.upgradeReturn);
+      if (k !== 'gold' && back > 0) out[k] = (out[k] || 0) + back;
+    }
+  }
+  return out;
+}
+
+function removeGear(ch, item) {
+  ch.gear = ch.gear.filter((g) => g.uid !== item.uid);
+}
+
+export function sellGear(ch, data, uid) {
+  const item = ch.gear.find((g) => g.uid === uid), block = gearDisposalBlocker(ch, data, item);
+  if (block) return { ok: false, reason: block };
+  const gold = gearSellValue(data, item);
+  removeGear(ch, item);
+  ch.gold += gold;
+  return { ok: true, gold };
+}
+
+export function salvageGear(ch, data, uid) {
+  const item = ch.gear.find((g) => g.uid === uid), block = gearDisposalBlocker(ch, data, item);
+  if (block) return { ok: false, reason: block };
+  const back = salvageReturn(data, item);
+  removeGear(ch, item);
+  for (const [k, n] of Object.entries(back)) addItem(ch, k, n);
+  return { ok: true, materials: back };
+}
+
+/** Salvage every unlocked, unworn item of `grades` (e.g. ['C']). Returns the total returned. */
+export function salvageMany(ch, data, grades) {
+  const total = {};
+  let count = 0;
+  for (const item of [...ch.gear]) {
+    if (!grades.includes(item.grade) || gearDisposalBlocker(ch, data, item)) continue;
+    const r = salvageGear(ch, data, item.uid);
+    count++;
+    for (const [k, n] of Object.entries(r.materials)) total[k] = (total[k] || 0) + n;
+  }
+  return { ok: count > 0, count, materials: total };
+}
+
+export function toggleGearLock(ch, uid) {
+  const item = ch.gear.find((g) => g.uid === uid);
+  if (!item) return { ok: false, reason: 'unknown' };
+  item.locked = !item.locked;
+  return { ok: true, locked: item.locked };
 }

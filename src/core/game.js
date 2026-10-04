@@ -5,9 +5,9 @@
 import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
-import { createCharacter, migrateCharacter, derive, addExp, gearLook } from './character.js';
+import { createCharacter, migrateCharacter, derive, addExp, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
-import { rollDrops, addItem } from './crafting.js';
+import { rollDrops, addItem, craft } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
@@ -388,6 +388,11 @@ export class Game {
       this.emit({ type: 'fail', reason: 'mp', slot: i });
       return false;
     }
+    const arrows = arrowsPerCast(this.data, s);
+    if (arrows && arrowTotal(this.ch) < arrows) {
+      this.emit({ type: 'fail', reason: 'arrows', slot: i });
+      return false;
+    }
     const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
@@ -402,6 +407,13 @@ export class Game {
     if (clearOneShotManualAim) this.input.manualAim = false;
     p.mp -= s.cost;
     p.cooldowns[i] = s.cooldown;
+    if (arrows) {
+      const before = arrowInUse(this.ch, this.data);
+      spendArrows(this.ch, this.data, arrows);
+      const after = arrowInUse(this.ch, this.data);
+      this.emit({ type: 'arrows', left: arrowTotal(this.ch), use: after });
+      if (after !== before) this.refresh(); // the next type (or none) changes a bow's stats
+    }
     // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
     // so the announced animation and the swing always agree
     const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + s.castTime) : 0;
@@ -581,6 +593,21 @@ export class Game {
     this.travelled = to; // the character now belongs to the destination map
     this.emit({ type: 'travel', to, name, seam });
     return { ok: true, character: this.ch, to };
+  }
+
+  /** Arrows are crafted anywhere, but not mid-fight. */
+  craftArrows(recipeId) {
+    const r = this.data.recipes.recipes[recipeId];
+    if (r?.type !== 'arrow') return { ok: false, reason: 'unknown' };
+    if (this.player.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    const before = arrowInUse(this.ch, this.data);
+    const result = craft(this.ch, this.data, recipeId, this.rng);
+    if (result.ok) {
+      this.emit({ type: 'arrows', left: arrowTotal(this.ch), use: arrowInUse(this.ch, this.data), crafted: result.qty });
+      if (arrowInUse(this.ch, this.data) !== before) this.refresh();
+    }
+    return result;
   }
 
   /** Fast travel to a discovered waypoint. */
@@ -764,6 +791,16 @@ export class Game {
       return 0;
     }
     let dmg = amount * (1 - this.derived.defense / (this.derived.defense + 60)) * (1 + this.derived.damageTakenPct / 100);
+    let blocked = false;
+    // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
+    if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {
+      const rules = this.data.progression.combat.block;
+      const a = angleTo(p.x, p.z, source.x, source.z), off = Math.abs(Math.atan2(Math.sin(a - p.facing), Math.cos(a - p.facing)));
+      if (off <= (rules.arcDeg * Math.PI) / 360 && this.rng.chance(this.derived.blockChance)) {
+        blocked = true;
+        dmg *= rules.taken;
+      }
+    }
     dmg = Math.max(1, Math.round(dmg));
     let absorbed = 0;
     if (p.barrier > 0) {
@@ -774,7 +811,7 @@ export class Game {
     }
     p.hp -= dmg;
     p.hurtT = 0.25;
-    this.emit({ type: 'playerHit', amount: dmg, absorbed, x: p.x, z: p.z });
+    this.emit({ type: 'playerHit', amount: dmg, absorbed, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
     if (opts.knock && dmg > 0) {
       const d = dirFromAngle(opts.knock.angle);

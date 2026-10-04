@@ -156,63 +156,83 @@
   },
   "slots": [
     "weapon",
+    "offhand",
     "armor",
     "helm",
+    "gloves",
     "boots",
     "charm"
   ],
   "slotNames": {
-    "weapon": "อาวุธ",
+    "weapon": "มือขวา",
+    "offhand": "มือซ้าย",
     "armor": "เกราะ",
     "helm": "หมวก",
+    "gloves": "ถุงมือ",
     "boots": "รองเท้า",
     "charm": "เครื่องราง"
   },
   "weaponTypes": {
-    "_doc": "Every weapon type has a built-in (implicit) bonus. No type locks you out of any skill.",
+    "_doc": "Every weapon type has a built-in (implicit) bonus. No type locks you out of any skill. hands: light = either hand (two light weapons dual-wield with no penalty), heavy = right hand only (a shield or nothing in the left), two = both hands (bow: arrows in the left). Base stats follow handRules.baseFactor x the light reference for the item level (base stats only, never options).",
     "sword": {
       "nameTh": "ดาบ",
       "implicit": {
         "meleeDamagePct": 5
-      }
+      },
+      "hands": "light"
     },
     "dagger": {
       "nameTh": "มีดสั้น",
       "implicit": {
         "critChancePct": 6,
         "cooldownPct": 3
-      }
+      },
+      "hands": "light"
     },
     "axe": {
-      "nameTh": "ขวาน",
+      "nameTh": "ขวานศึก",
       "implicit": {
         "meleeDamagePct": 10
-      }
+      },
+      "hands": "heavy"
     },
     "greatblade": {
       "nameTh": "ดาบใหญ่",
       "implicit": {
         "meleeDamagePct": 8,
         "maxHp": 15
-      }
+      },
+      "hands": "two"
     },
     "bow": {
       "nameTh": "ธนู",
       "implicit": {
         "projectileDamagePct": 10
-      }
+      },
+      "hands": "two",
+      "ammo": true
     },
     "staff": {
       "nameTh": "คทา",
       "implicit": {
         "spellDamagePct": 10
-      }
+      },
+      "hands": "two"
     },
     "wand": {
       "nameTh": "ไม้กายสิทธิ์",
       "implicit": {
         "spellDamagePct": 6,
         "cooldownPct": 5
+      },
+      "hands": "light"
+    },
+    "mace": {
+      "nameTh": "กระบอง",
+      "hands": "heavy",
+      "implicit": {
+        "meleeDamagePct": 8,
+        "maxHp": 12
       }
     }
   },
@@ -245,8 +265,8 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 6,
-        "magic": 1
+        "attack": 13,
+        "magic": 2
       },
       "requires": {},
       "starter": true,
@@ -267,8 +287,8 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 2,
-        "magic": 7
+        "attack": 4,
+        "magic": 14
       },
       "requires": {},
       "starter": true,
@@ -313,12 +333,10 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 10.1,
-        "magic": 1.4
+        "attack": 20.5,
+        "magic": 2.8
       },
-      "requires": {
-        "DEX": 5
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "attack_flat",
@@ -337,7 +355,7 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "stats": {
-        "attack": 9.4,
+        "attack": 12.5,
         "critChancePct": 2.2
       },
       "requires": {
@@ -361,12 +379,10 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 3.6,
-        "magic": 12.2
+        "attack": 6,
+        "magic": 30
       },
-      "requires": {
-        "INT": 6
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "magic_flat",
@@ -410,12 +426,10 @@
       "slot": "weapon",
       "weaponType": "axe",
       "stats": {
-        "attack": 18.0,
-        "maxHp": 8.0
+        "attack": 28,
+        "maxHp": 12
       },
-      "requires": {
-        "STR": 9
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "attack_flat",
@@ -434,12 +448,10 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 18.7,
-        "magic": 3.6
+        "attack": 28.5,
+        "magic": 5
       },
-      "requires": {
-        "DEX": 10
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "attack_flat",
@@ -483,12 +495,10 @@
       "slot": "weapon",
       "weaponType": "greatblade",
       "stats": {
-        "attack": 23.0,
-        "magic": 5.8
+        "attack": 41,
+        "magic": 9
       },
-      "requires": {
-        "STR": 10
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "attack_flat",
@@ -507,12 +517,10 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 5.8,
-        "magic": 21.6
+        "attack": 9,
+        "magic": 41
       },
-      "requires": {
-        "INT": 10
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "magic_flat",
@@ -555,7 +563,7 @@
       "look": "hide",
       "stats": {
         "defense": 6.4,
-        "maxHp": 24.0
+        "maxHp": 24
       },
       "requires": {},
       "starter": false,
@@ -577,7 +585,7 @@
       "look": "shell",
       "stats": {
         "defense": 12.8,
-        "maxHp": 16.0
+        "maxHp": 16
       },
       "requires": {
         "VIT": 6
@@ -601,8 +609,8 @@
       "look": "pelt",
       "stats": {
         "defense": 8.8,
-        "maxHp": 20.0,
-        "moveSpeedPct": 3.0
+        "maxHp": 20,
+        "moveSpeedPct": 3
       },
       "requires": {},
       "starter": false,
@@ -624,7 +632,7 @@
       "look": "mantle",
       "stats": {
         "defense": 6.4,
-        "maxMp": 20.0,
+        "maxMp": 20,
         "cooldownPct": 3.8
       },
       "requires": {
@@ -649,7 +657,7 @@
       "look": "plate",
       "stats": {
         "defense": 20.8,
-        "maxHp": 32.0
+        "maxHp": 32
       },
       "requires": {
         "VIT": 10
@@ -673,7 +681,7 @@
       "look": "cap",
       "stats": {
         "defense": 2.4,
-        "maxHp": 8.0
+        "maxHp": 8
       },
       "requires": {},
       "starter": false,
@@ -695,7 +703,7 @@
       "look": "beetle",
       "stats": {
         "defense": 5.6,
-        "maxHp": 8.0
+        "maxHp": 8
       },
       "requires": {
         "VIT": 5
@@ -741,8 +749,8 @@
       "look": "circlet",
       "stats": {
         "defense": 1.6,
-        "cooldownPct": 3.0,
-        "maxMp": 8.0
+        "cooldownPct": 3,
+        "maxMp": 8
       },
       "requires": {},
       "starter": false,
@@ -764,7 +772,7 @@
       "look": "horned",
       "stats": {
         "defense": 9.6,
-        "maxHp": 24.0,
+        "maxHp": 24,
         "attack": 2.9
       },
       "requires": {
@@ -830,7 +838,7 @@
       "slot": "boots",
       "stats": {
         "defense": 2.4,
-        "mpRegenPct": 15.0
+        "mpRegenPct": 15
       },
       "requires": {},
       "starter": false,
@@ -850,8 +858,8 @@
       "nameTh": "สนับแข้งผาหิน",
       "slot": "boots",
       "stats": {
-        "defense": 8.0,
-        "maxHp": 16.0
+        "defense": 8,
+        "maxHp": 16
       },
       "requires": {
         "VIT": 7
@@ -893,7 +901,7 @@
       "nameTh": "จี้ภูตไฟ",
       "slot": "charm",
       "stats": {
-        "maxMp": 16.0,
+        "maxMp": 16,
         "magic": 2.2
       },
       "requires": {},
@@ -914,7 +922,7 @@
       "nameTh": "เครื่องรางสปอร์",
       "slot": "charm",
       "stats": {
-        "healPct": 9.0,
+        "healPct": 9,
         "hpRegen": 1
       },
       "requires": {},
@@ -935,7 +943,7 @@
       "nameTh": "เครื่องรางขนนก",
       "slot": "charm",
       "stats": {
-        "moveSpeedPct": 3.0,
+        "moveSpeedPct": 3,
         "cooldownPct": 2.2
       },
       "requires": {},
@@ -956,8 +964,8 @@
       "nameTh": "จี้หัวใจโกเลม",
       "slot": "charm",
       "stats": {
-        "maxHp": 32.0,
-        "defense": 4.0
+        "maxHp": 32,
+        "defense": 4
       },
       "requires": {},
       "starter": false,
@@ -1046,9 +1054,9 @@
       "nameTh": "จี้ไข่มุกทะเล",
       "slot": "charm",
       "stats": {
-        "maxMp": 20.0,
+        "maxMp": 20,
         "magic": 2.9,
-        "maxHp": 8.0
+        "maxHp": 8
       },
       "requires": {
         "INT": 6
@@ -1064,6 +1072,206 @@
       "upgradeMaterial": "sea_pearl",
       "requirementStat": "INT",
       "itemLevel": 1
+    },
+    "beetle_maul": {
+      "starter": false,
+      "requires": {},
+      "name": "Beetle Maul",
+      "nameTh": "กระบองกระดองด้วง",
+      "slot": "weapon",
+      "weaponType": "mace",
+      "stats": {
+        "attack": 18.5,
+        "maxHp": 10
+      },
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "hp_flat",
+        "defense_flat",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "STR",
+      "itemLevel": 2
+    },
+    "crab_shield": {
+      "starter": false,
+      "requires": {},
+      "name": "Crab Shell Shield",
+      "nameTh": "โล่กระดองปู",
+      "slot": "offhand",
+      "offhandType": "shield",
+      "stats": {
+        "defense": 4,
+        "blockChancePct": 10
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "VIT",
+      "itemLevel": 1
+    },
+    "beetle_buckler": {
+      "starter": false,
+      "requires": {},
+      "name": "Beetle Buckler",
+      "nameTh": "โล่กลมกระดองด้วง",
+      "slot": "offhand",
+      "offhandType": "shield",
+      "stats": {
+        "defense": 5.5,
+        "blockChancePct": 12
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "melee_pct"
+      ],
+      "upgradeMaterial": "beetle_shell",
+      "requirementStat": "VIT",
+      "itemLevel": 2
+    },
+    "crag_tower_shield": {
+      "starter": false,
+      "requires": {},
+      "name": "Crag Tower Shield",
+      "nameTh": "โล่หอคอยศิลาผา",
+      "slot": "offhand",
+      "offhandType": "shield",
+      "stats": {
+        "defense": 12,
+        "maxHp": 20,
+        "blockChancePct": 18
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "VIT",
+      "itemLevel": 6
+    },
+    "hide_gloves": {
+      "starter": false,
+      "requires": {},
+      "name": "Hide Gloves",
+      "nameTh": "ถุงมือหนังหมูป่า",
+      "slot": "gloves",
+      "look": "hide",
+      "stats": {
+        "defense": 1.5,
+        "attack": 1.5
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "hp_flat",
+        "defense_flat",
+        "melee_pct"
+      ],
+      "upgradeMaterial": "boar_hide",
+      "requirementStat": "STR",
+      "itemLevel": 1
+    },
+    "shell_mitts": {
+      "starter": false,
+      "requires": {},
+      "name": "Shell Mitts",
+      "nameTh": "ถุงมือเปลือกปู",
+      "slot": "gloves",
+      "look": "shell",
+      "stats": {
+        "defense": 2.5,
+        "maxHp": 6
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "regen_flat",
+        "block_pct",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "crab_shell",
+      "requirementStat": "VIT",
+      "itemLevel": 1
+    },
+    "wolf_grips": {
+      "starter": false,
+      "requires": {},
+      "name": "Wolf Grips",
+      "nameTh": "ถุงมือหนังหมาป่า",
+      "slot": "gloves",
+      "look": "pelt",
+      "stats": {
+        "attack": 2.5,
+        "critChancePct": 3
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "upgradeMaterial": "wolf_pelt",
+      "requirementStat": "DEX",
+      "itemLevel": 3
+    },
+    "wisp_wraps": {
+      "starter": false,
+      "requires": {},
+      "name": "Wisp Wraps",
+      "nameTh": "ผ้าพันมือแสงวิญญาณ",
+      "slot": "gloves",
+      "look": "wrap",
+      "stats": {
+        "magic": 3,
+        "cooldownPct": 2.5
+      },
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "cdr_pct",
+        "mp_flat",
+        "area_pct"
+      ],
+      "upgradeMaterial": "glow_dust",
+      "requirementStat": "INT",
+      "itemLevel": 5
+    },
+    "crag_gauntlets": {
+      "starter": false,
+      "requires": {},
+      "name": "Crag Gauntlets",
+      "nameTh": "ถุงมือเหล็กศิลาผา",
+      "slot": "gloves",
+      "look": "plate",
+      "stats": {
+        "defense": 6,
+        "maxHp": 12,
+        "attack": 2
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "attack_flat",
+        "melee_pct",
+        "block_pct"
+      ],
+      "upgradeMaterial": "crag_stone",
+      "requirementStat": "STR",
+      "itemLevel": 6
     }
   },
   "gearOptions": {
@@ -1193,6 +1401,13 @@
       "stat": "hpRegen",
       "min": 1,
       "max": 2
+    },
+    "block_pct": {
+      "label": "+{v}% Block Chance",
+      "labelTh": "โอกาสบล็อก +{v}%",
+      "stat": "blockChancePct",
+      "min": 2,
+      "max": 5
     }
   },
   "grades": {
@@ -1394,7 +1609,94 @@
       "poisonChancePct": 0.1,
       "barrierPct": 0.15,
       "healPct": 0.15,
-      "mpRegenPct": 0.15
+      "mpRegenPct": 0.15,
+      "blockChancePct": 0.6
+    }
+  },
+  "handRules": {
+    "_doc": "Weapon base power = baseFactor x reference(itemLevel). Reference is a light one-hand weapon: starter, or base + perItemLevel x (itemLevel - 1). Tested in tests/core/gear-hands.test.js. Dual wielding two light weapons needs the sum of both wear requirements.",
+    "light": {
+      "baseFactor": 1
+    },
+    "heavy": {
+      "baseFactor": 1.5
+    },
+    "two": {
+      "baseFactor": 2
+    },
+    "reference": {
+      "starter": 8,
+      "base": 12,
+      "perItemLevel": 1.75
+    },
+    "tolerance": [
+      0.8,
+      1.25
+    ]
+  },
+  "offhandTypes": {
+    "_doc": "Left-hand items that are not weapons.",
+    "shield": {
+      "nameTh": "โล่"
+    }
+  },
+  "arrows": {
+    "_doc": "Arrows are spent by Attack+Projectile skills (perCast, plus multiShotExtra when a mod adds projectiles) and are crafted anywhere outside combat. With a bow, the arrows in use fill the left hand and add their stats. When the type in use runs out the next stocked type is used; with none, those skills cannot be cast.",
+    "capacity": 400,
+    "perCast": 1,
+    "multiShotExtra": 1,
+    "start": {
+      "feather_arrow": 200
+    },
+    "types": {
+      "feather_arrow": {
+        "name": "Feather Arrows",
+        "nameTh": "ลูกธนูขนนก",
+        "stats": {}
+      },
+      "tusk_arrow": {
+        "name": "Tusk Arrows",
+        "nameTh": "ลูกธนูหัวเขี้ยว",
+        "stats": {
+          "attack": 1.5
+        }
+      },
+      "hawk_arrow": {
+        "name": "Hawk Arrows",
+        "nameTh": "ลูกธนูขนเหยี่ยว",
+        "stats": {
+          "projectileDamagePct": 8
+        }
+      },
+      "storm_arrow": {
+        "name": "Storm Arrows",
+        "nameTh": "ลูกธนูขนพายุ",
+        "stats": {
+          "attack": 3,
+          "critChancePct": 3
+        }
+      }
+    }
+  },
+  "salvage": {
+    "_doc": "Selling and salvaging gear (town only). Salvage returns a share of the crafting recipe (rounded down, at least 1 of the main material); +N returns a share of the upgrade materials. Gold comes from the recipe gold and the item level. Equipped and locked items are refused.",
+    "returnByGrade": {
+      "C": 0.3,
+      "B": 0.4,
+      "A": 0.5,
+      "S": 0.6
+    },
+    "upgradeReturn": 0.5,
+    "sellGold": {
+      "perItemLevel": 6,
+      "base": 4,
+      "gradeMult": {
+        "C": 1,
+        "B": 1.5,
+        "A": 2.5,
+        "S": 5
+      },
+      "perUpgrade": 0.2
     }
   }
 }

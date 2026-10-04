@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
 import fs from 'node:fs/promises';
 import {loadoutCharacter} from './loadout-fixture.mjs';
+import {freezeScene} from './freeze-scene.mjs';
 const engineName=process.env.BROWSER||'chromium',engine=engineName==='webkit'?webkit:chromium;
 const origin=process.env.UI_ORIGIN||'http://127.0.0.1:4186',out=process.env.UI_OUT||'evidence/ui-live';
 await fs.mkdir(out,{recursive:true});
@@ -24,7 +25,7 @@ const check=async(label,run)=>{await run();checks.push(label);console.log('PASS 
 const state=()=>page.evaluate(()=>{const f=__frontier;return {ui:f.panels.loadout.state,slots:structuredClone(f.game.ch.slots),mods:structuredClone(f.game.ch.mods),gear:structuredClone(f.game.ch.gear),equipped:{...f.game.ch.equipped},save:JSON.parse(localStorage.getItem('frontier.slot.1')).character}});
 const mod=async id=>{const uid=await page.evaluate(id=>__frontier.game.ch.mods.find(m=>m.id===id).uid,id);await tap(`#atelier [data-action="mod"][data-id="${uid}"]`);return uid;};
 const open=async tab=>{await page.evaluate(tab=>__frontier.panels.open(tab),tab);};
-const ready=async()=>{await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier?.game);await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(()=>getComputedStyle(document.getElementById('loading')).opacity==='0');};
+const ready=async()=>{await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier?.game);await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(()=>getComputedStyle(document.getElementById('loading')).opacity==='0');await freezeScene(page);};
 const boot=async()=>{await page.goto(origin+'/?quality=low&seed=701&dynres=0');await page.waitForFunction(()=>window.__frontier?.menu);if(await page.locator('.fullscreen-gate').isVisible())await tap(await page.locator('.fullscreen-fallback').isVisible()?'.fullscreen-fallback':'.fullscreen-enter');await tap('[data-act="continue"]');await ready();};
 try {
  await boot();
@@ -78,5 +79,5 @@ try {
   const after=await page.evaluate(()=>({...__frontier.view.renderer.info.memory}));assert.deepEqual(after,before);await fs.writeFile(`${out}/avatar-resources.json`,JSON.stringify({before,after,cycles:6},null,2));
  });
  assert.deepEqual(errors,[]);checks.push('no JavaScript/console errors');
- await fs.writeFile(`${out}/report.json`,JSON.stringify({engine:engineName,source:'actual game and persisted save; touch simulation',checks,errors,geometry},null,2));console.log(`COMPLETE ${checks.length} checks`);
+ await fs.writeFile(`${out}/report.json`,JSON.stringify({engine:engineName,source:'actual game and persisted save; touch simulation',capture:'existing freezeScene helper holds the completed world frame; simulation and UI remain native',checks,errors,geometry},null,2));console.log(`COMPLETE ${checks.length} checks`);
 }catch(error){console.log('FAILURE',String(error),'ERRORS',errors);await page.screenshot({path:`${out}/failure.png`});if(await page.evaluate(()=>!!__frontier?.panels))console.log('STATE',await state());throw error;}finally{await browser.close();}

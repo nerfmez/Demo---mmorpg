@@ -150,6 +150,17 @@ previews any change on a copy. Gear sells (`sellGear`) or salvages (`salvageGear
 `salvageMany`) in town into a grade share of its recipe plus part of its +N materials;
 worn and `locked` items are refused.
 
+### Balance model, gear tiers and drops
+
+`core/balance.js` is a pure model of a reference hero per kit at each level, against the
+average monster of that level, wearing the expected gear tier (`progression.balance`).
+Port it with the data so the same targets can be checked; see [BALANCE-25.md](BALANCE-25.md).
+Gear bases sit on tiers (item level 1/6/11/16/21). `gearDropCandidates` picks bases made from
+the monster's parts at the tier for its level (falling back to the nearest lower tier).
+`rollGearDrop` rolls a grade best-first (`items.gearDrops`) and options like a craft. A
+`drop` of item `gear` carries `gear`; pickup gives it a new uid. `goldFindPct`,
+`materialFindPct` and `gearFindPct` (capped) scale kill gold, part chances and gear chances.
+
 Cap leech after mods and recover only actual target HP removed, never overkill damage.
 `gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` are shared
 by UI and rules; all previews are pure. Equipment state helpers check resources only.

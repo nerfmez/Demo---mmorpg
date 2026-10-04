@@ -19,12 +19,14 @@ for (let i = 0; ; i++) {
   if (i > 60) throw Error('server startup');
   await new Promise((r) => setTimeout(r, 250));
 }
-const browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
-const page = await (await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true })).newPage();
 const errors = [];
-page.setDefaultTimeout(120000);
-page.on('pageerror', (e) => errors.push(e.message));
+let browser;
 try {
+  // Launch inside try: a missing browser still stops the preview server below.
+  browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
+  const page = await (await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true })).newPage();
+  page.setDefaultTimeout(120000);
+  page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(url);
   await page.waitForFunction((id) => window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done') && window.__frontier.world.data.id === id, FRONTIER);
   const seam = data.maps[FRONTIER].atlas.seams.find((s) => s.to === AZURE), [fx, fz] = data.maps[FRONTIER].atlas.offset;
@@ -57,6 +59,6 @@ try {
   assert.deepEqual(errors, []);
   console.log('PASS open world city', engine.name());
 } finally {
-  await browser.close();
+  await browser?.close();
   process.kill(-server.pid);
 }

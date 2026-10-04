@@ -1,5 +1,7 @@
 # Progression and crafting balance, October 2026
 
+> Levels, zones, gear tiers and drops are superseded by [BALANCE-25.md](BALANCE-25.md).
+
 Source baseline: `bc86bcbdecb99a37586dd7dab95d6ac9419935ce`. Scope is the existing anime
 MMORPG demo, not new endgame content. Character Stat Points, Job Points, skill/material
 growth and behaviour-changing mods retain separate purposes.

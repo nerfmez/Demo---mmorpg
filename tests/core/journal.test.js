@@ -43,7 +43,7 @@ test('journal starts at real shared links and indexes every current node without
  for(const leafSize of [4,6]){
   const indexes=journalProgress(ch,data).stages.flatMap(s=>chapterSpreads(data.jobtree,s.tier,leafSize).flatMap(p=>p.flatMap(l=>l.entries.map(([id])=>id))));
   const active=data.jobtree.presentation.stages.flatMap(s=>s.nodes||s.paths.flatMap(p=>p.nodes));
-  assert.equal(indexes.length,36);
+  assert.equal(indexes.length,active.length);
   assert.equal(new Set(indexes).size,indexes.length);
   assert.deepEqual([...indexes].sort(),active.sort());
  }
@@ -51,7 +51,7 @@ test('journal starts at real shared links and indexes every current node without
 });
 test('journal chapter labels reflect current section minima, not new eligibility rules',()=>{
  const ch=createCharacter(data);ch.jobLevel=18;ch.jobPoints=17;
- assert.deepEqual(journalProgress(ch,data).stages.map(s=>s.requiresSpent),[0,3,7]);
+ assert.deepEqual(journalProgress(ch,data).stages.map(s=>s.requiresSpent),[0,3,7,17,25]);
  assert.equal(journalProgress(ch,data).current.tier,1);
  for(const id of ['v1','a1','r1'])assert.ok(allocateJobNode(ch,data,id).done);
  assert.equal(journalProgress(ch,data).current.tier,2);

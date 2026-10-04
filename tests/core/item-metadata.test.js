@@ -7,7 +7,7 @@ import {computeSkill,socketMod} from '../../src/core/skills.js';
 import {createRng} from '../../src/core/rng.js';
 import {normalizeItemMetadata} from '../../src/core/item-metadata.js';
 
-const funded=()=>{const ch=createCharacter(data);ch.level=40;ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;for(const stat in ch.stats)ch.stats[stat]=100;return ch;};
+const funded=()=>{const ch=createCharacter(data);ch.level=data.progression.character.maxLevel;ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;for(const stat in ch.stats)ch.stats[stat]=100;return ch;};
 
 test('every gear base/recipe and mod recipe has valid authored metadata',()=>{
   for(const base of Object.values(data.items.gearBases))assert.ok(Number.isSafeInteger(base.itemLevel)&&base.itemLevel>0);
@@ -26,9 +26,8 @@ test('crafting copies the specific recipe level and mod grade, independent of en
     if(recipe.type==='gear'){assert.equal(result.item.itemLevel,recipe.itemLevel);assert.equal(result.item.upgrade,0);}
     else{assert.equal(result.item.grade,recipe.grade);assert.equal(result.item.level,1);}
   }
-  assert.equal(data.recipes.recipes.tide_boots.itemLevel,2);
-  assert.equal(data.recipes.recipes.salt_boots.itemLevel,1);
-  assert.equal(data.items.gearBases.tide_boots.itemLevel,1,'unknown legacy recipe uses conservative base level');
+  // Gear tiers: every recipe makes items at its base's tier (scripts/gear-tiers.mjs).
+  for(const r of Object.values(data.recipes.recipes))if(r.type==='gear')assert.equal(r.itemLevel,data.items.gearBases[r.result].itemLevel,r.result);
 });
 
 test('missing/invalid metadata gains deterministic defaults while valid values and ownership survive repeat migration',()=>{

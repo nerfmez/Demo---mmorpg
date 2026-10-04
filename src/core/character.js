@@ -140,6 +140,21 @@ export function migrateCharacter(ch, data) {
     ch.arrows = { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } };
   }
   ch.arrows.stock = Object.fromEntries(Object.entries(ch.arrows.stock || {}).filter(([id, n]) => data.items.arrows?.types[id] && n > 0));
+  // The character cap fell from 40 to 30: bring higher saves down to the cap and take back the
+  // stat points of the removed levels (from unspent points first, else by a free stat reset).
+  const cap = data.progression.character.maxLevel;
+  if (ch.level > cap) {
+    const excess = (ch.level - cap) * data.progression.character.statPointsPerLevel;
+    if (ch.statPoints < excess) {
+      const start = data.progression.character.startingStats;
+      for (const s of STATS) { ch.statPoints += ch.stats[s] - start[s]; ch.stats[s] = start[s]; }
+      ch.progress.equipmentNotice = 'เลเวลตันลดเหลือ Lv' + cap + ': คืนแต้มสเตตัสให้จัดใหม่ฟรี';
+    }
+    ch.statPoints -= excess;
+    ch.level = cap;
+    ch.exp = 0;
+    enforceEquipment(ch, data);
+  }
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
   ch.version = CHARACTER_VERSION;
@@ -233,6 +248,9 @@ export function jobNodeState(ch, data, nodeId) {
     const missing = node.requires.filter(id => !ch.jobNodes.includes(id));
     if (missing.length) return { can: false, reason: 'prerequisite', missing };
   }
+  // Where paths meet (a fork rejoining, a bridge between lines) ANY ONE named parent is enough.
+  if (node.requiresAny?.length && !node.requiresAny.some(id => ch.jobNodes.includes(id)))
+    return { can: false, reason: 'prerequisite', missing: [...node.requiresAny], any: true };
   // Section unlock and network adjacency are independent requirements.
   if (!node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
@@ -249,18 +267,48 @@ export function allocateJobNode(ch, data, nodeId) {
   return { can: true, done: true, job: data.jobtree.nodes[nodeId].type === 'job' };
 }
 
+/** Every parent a directed node names: ALL of `requires` and the ANY-ONE `requiresAny`. */
+export function jobParents(node) {
+  return [...(node?.requires || []), ...(node?.requiresAny || [])];
+}
+
+/** Unowned points needed to own `id` along directed parents (cheapest any-parent each time). */
+export function jobRouteCost(ch, data, id, allowed = null, memo = new Map()) {
+  const nodes = data.jobtree.nodes;
+  if (ch.jobNodes.includes(id)) return 0;
+  if (!nodes[id] || (allowed && !allowed(id))) return Infinity;
+  if (memo.has(id)) return memo.get(id);
+  memo.set(id, Infinity); // guards a malformed cycle
+  const n = nodes[id];
+  let cost = 1 + (n.requires || []).reduce((a, p) => a + jobRouteCost(ch, data, p, allowed, memo), 0);
+  if (n.requiresAny?.length) cost += Math.min(...n.requiresAny.map(p => jobRouteCost(ch, data, p, allowed, memo)));
+  memo.set(id, cost);
+  return cost;
+}
+
+/** The any-parent to route through, or null when one is owned or none is needed. */
+export function cheapestParent(ch, data, id, allowed = null) {
+  const any = data.jobtree.nodes[id]?.requiresAny;
+  if (!any?.length || any.some(p => ch.jobNodes.includes(p))) return null;
+  let best = null, cost = Infinity;
+  for (const p of any) { const c = jobRouteCost(ch, data, p, allowed); if (c < cost) { best = p; cost = c; } }
+  return best ?? (allowed ? null : any[0]);
+}
+
 /** Shortest connected route for inspection. Section gates still require total investment;
  * this helper never invents unrelated filler purchases or mutates the character. */
 export function jobPath(ch, data, target) {
   const nodes = data.jobtree.nodes;
   if (!nodes[target]) return [];
   if (ch.jobNodes.includes(target)) return [target];
-  if (nodes[target].requires) {
+  if (nodes[target].requires || nodes[target].requiresAny) {
     const ordered = [], seen = new Set();
     const visit = id => {
       if (seen.has(id) || ch.jobNodes.includes(id) || !nodes[id]) return;
       seen.add(id);
       for (const parent of nodes[id].requires || []) visit(parent);
+      const any = cheapestParent(ch, data, id);
+      if (any) visit(any);
       ordered.push(id);
     };
     visit(target);
@@ -555,6 +603,17 @@ export function derive(ch, data) {
     poisonChancePct: 0,
     leechPct: 0,
     blockChancePct: 0,
+    goldFindPct: 0,
+    materialFindPct: 0,
+    gearFindPct: 0,
+    critMultPct: 0,
+    damagePct: 0,
+    attackDamagePct: 0,
+    castSpeedPct: 0,
+    elementalDamagePct: 0,
+    penetrationPct: 0,
+    movementRechargePct: 0,
+    manaCostReductionPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -591,7 +650,7 @@ export function derive(ch, data) {
   d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
   d.critChance = d.critChancePct / 100;
-  d.critMult = pc.critMult;
+  d.critMult = pc.critMult * (1 + d.critMultPct / 100);
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);

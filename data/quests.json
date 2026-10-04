@@ -1,5 +1,5 @@
 {
-  "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items. world (optional): a waypoint/zone quest counts only on that map id.",
+  "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items. world (optional): a waypoint/zone quest counts only on that map id. level: the character level a quest is meant for; rewards scale with it (exp = a share of that level, tests/core/balance-model.test.js).",
   "main": [
     "h_arrival",
     "h_slimes",
@@ -37,13 +37,14 @@
       "target": "tusk_boar",
       "count": 5,
       "reward": {
-        "gold": 40,
-        "exp": 40,
-        "jobExp": 20,
+        "gold": 130,
+        "exp": 691,
+        "jobExp": 394,
         "items": {
           "boar_hide": 2
         }
-      }
+      },
+      "level": 9
     },
     "m_craft": {
       "name": "Tools of the Trade",
@@ -67,11 +68,12 @@
       "target": "forest",
       "count": 1,
       "reward": {
-        "gold": 40,
-        "exp": 60,
-        "jobExp": 30
+        "gold": 210,
+        "exp": 1220,
+        "jobExp": 637
       },
-      "world": "frontier-wilds-v1"
+      "world": "frontier-wilds-v1",
+      "level": 10
     },
     "m_greyfang": {
       "name": "The Alpha of the Pack",
@@ -81,10 +83,11 @@
       "target": "greyfang",
       "count": 1,
       "reward": {
-        "gold": 80,
-        "exp": 150,
-        "jobExp": 80
-      }
+        "gold": 280,
+        "exp": 2559,
+        "jobExp": 1145
+      },
+      "level": 14
     },
     "m_wetland": {
       "name": "Across the River",
@@ -94,11 +97,12 @@
       "target": "wetland",
       "count": 1,
       "reward": {
-        "gold": 50,
-        "exp": 120,
-        "jobExp": 50
+        "gold": 320,
+        "exp": 3432,
+        "jobExp": 1511
       },
-      "world": "frontier-wilds-v1"
+      "world": "frontier-wilds-v1",
+      "level": 16
     },
     "m_highlands": {
       "name": "Highland Scouts",
@@ -108,14 +112,15 @@
       "target": "highlands",
       "count": 1,
       "reward": {
-        "gold": 60,
-        "exp": 180,
-        "jobExp": 70,
+        "gold": 370,
+        "exp": 5009,
+        "jobExp": 2069,
         "items": {
           "ruin_shard": 1
         }
       },
-      "world": "frontier-wilds-v1"
+      "world": "frontier-wilds-v1",
+      "level": 19
     },
     "m_warden": {
       "name": "The Ancient Warden",
@@ -125,10 +130,11 @@
       "target": "horned_warden",
       "count": 1,
       "reward": {
-        "gold": 200,
-        "exp": 400,
-        "jobExp": 200
-      }
+        "gold": 480,
+        "exp": 9161,
+        "jobExp": 3409
+      },
+      "level": 25
     },
     "s_spores": {
       "name": "Mushroom Menace",
@@ -138,12 +144,13 @@
       "target": "sporecap",
       "count": 8,
       "reward": {
-        "gold": 40,
-        "exp": 80,
+        "gold": 140,
+        "exp": 872,
         "items": {
           "spore_sac": 2
         }
-      }
+      },
+      "level": 10
     },
     "s_wolves": {
       "name": "Thinning the Pack",
@@ -153,12 +160,13 @@
       "target": "thornback_wolf",
       "count": 10,
       "reward": {
-        "gold": 50,
-        "exp": 100,
+        "gold": 165,
+        "exp": 1302,
         "items": {
           "wolf_fang": 2
         }
-      }
+      },
+      "level": 12
     },
     "s_golems": {
       "name": "Stone Hearts",
@@ -168,12 +176,13 @@
       "target": "crag_golem",
       "count": 5,
       "reward": {
-        "gold": 80,
-        "exp": 160,
+        "gold": 250,
+        "exp": 3578,
         "items": {
           "golem_heart": 1
         }
-      }
+      },
+      "level": 19
     },
     "s_feathers": {
       "name": "Feather Trade",
@@ -183,9 +192,10 @@
       "target": "hawk_feather",
       "count": 6,
       "reward": {
-        "gold": 90,
-        "exp": 60
-      }
+        "gold": 235,
+        "exp": 3177
+      },
+      "level": 18
     },
     "s_collector": {
       "name": "Frontier Collector",
@@ -195,12 +205,13 @@
       "target": "crag_stone",
       "count": 8,
       "reward": {
-        "gold": 70,
-        "exp": 60,
+        "gold": 260,
+        "exp": 4005,
         "items": {
           "ruin_shard": 1
         }
-      }
+      },
+      "level": 20
     },
     "s_mods": {
       "name": "Build Experiment",
@@ -209,9 +220,10 @@
       "type": "socket",
       "count": 2,
       "reward": {
-        "gold": 40,
-        "exp": 50
-      }
+        "gold": 90,
+        "exp": 283
+      },
+      "level": 6
     },
     "s_job": {
       "name": "Choose Your Path",
@@ -220,9 +232,10 @@
       "type": "job",
       "count": 1,
       "reward": {
-        "gold": 60,
-        "exp": 80
-      }
+        "gold": 90,
+        "exp": 283
+      },
+      "level": 6
     },
     "s_coast": {
       "name": "Where the River Meets the Sea",
@@ -232,11 +245,12 @@
       "target": "coast",
       "count": 1,
       "reward": {
-        "gold": 40,
-        "exp": 80,
-        "jobExp": 30
+        "gold": 200,
+        "exp": 2127,
+        "jobExp": 989
       },
-      "world": "frontier-wilds-v1"
+      "world": "frontier-wilds-v1",
+      "level": 15
     },
     "s_crabs": {
       "name": "Crab Season",
@@ -261,11 +275,12 @@
       "target": "town",
       "count": 1,
       "reward": {
-        "gold": 20,
-        "exp": 15,
-        "jobExp": 10
+        "gold": 50,
+        "exp": 8,
+        "jobExp": 6
       },
-      "world": "azure-harbor-v1"
+      "world": "azure-harbor-v1",
+      "level": 1
     },
     "h_slimes": {
       "name": "เจลเกลือริมฝั่ง",
@@ -275,10 +290,11 @@
       "target": "salt_slime",
       "count": 3,
       "reward": {
-        "gold": 20,
-        "exp": 25,
-        "jobExp": 15
-      }
+        "gold": 50,
+        "exp": 8,
+        "jobExp": 6
+      },
+      "level": 1
     },
     "h_crabs": {
       "name": "ก้ามปูและจังหวะหลบ",
@@ -288,14 +304,15 @@
       "target": "reef_crab",
       "count": 3,
       "reward": {
-        "gold": 20,
-        "exp": 25,
-        "jobExp": 15,
+        "gold": 65,
+        "exp": 35,
+        "jobExp": 46,
         "items": {
           "crab_shell": 2,
           "salt_gel": 4
         }
-      }
+      },
+      "level": 2
     },
     "h_craft": {
       "name": "รองเท้าสำหรับการเดินทาง",
@@ -304,10 +321,11 @@
       "type": "craft",
       "count": 1,
       "reward": {
-        "gold": 25,
+        "gold": 65,
         "exp": 35,
-        "jobExp": 20
-      }
+        "jobExp": 46
+      },
+      "level": 2
     },
     "h_fields": {
       "name": "เส้นทางหลังเมือง",
@@ -317,11 +335,12 @@
       "target": "meadow",
       "count": 1,
       "reward": {
-        "gold": 25,
-        "exp": 45,
-        "jobExp": 25
+        "gold": 85,
+        "exp": 86,
+        "jobExp": 76
       },
-      "world": "azure-harbor-v1"
+      "world": "azure-harbor-v1",
+      "level": 3
     },
     "h_grove": {
       "name": "สำรวจป่าโปร่ง",
@@ -331,11 +350,12 @@
       "target": "forest",
       "count": 1,
       "reward": {
-        "gold": 35,
-        "exp": 70,
-        "jobExp": 40
+        "gold": 120,
+        "exp": 266,
+        "jobExp": 209
       },
-      "world": "azure-harbor-v1"
+      "world": "azure-harbor-v1",
+      "level": 6
     },
     "h_lighthouse": {
       "name": "แสงแห่งชายฝั่ง",
@@ -345,11 +365,12 @@
       "target": "headland",
       "count": 1,
       "reward": {
-        "gold": 50,
-        "exp": 100,
-        "jobExp": 60
+        "gold": 155,
+        "exp": 557,
+        "jobExp": 329
       },
-      "world": "azure-harbor-v1"
+      "world": "azure-harbor-v1",
+      "level": 7
     },
     "h_birds": {
       "name": "นกจอมขโมย",
@@ -359,12 +380,13 @@
       "target": "shore_gull",
       "count": 5,
       "reward": {
-        "gold": 30,
-        "exp": 45,
+        "gold": 45,
+        "exp": 25,
         "items": {
           "shore_feather": 2
         }
-      }
+      },
+      "level": 2
     },
     "h_hermits": {
       "name": "เสฉวนบนแหลม",
@@ -374,12 +396,13 @@
       "target": "hermit_crab",
       "count": 4,
       "reward": {
-        "gold": 45,
-        "exp": 75,
+        "gold": 105,
+        "exp": 398,
         "items": {
           "hermit_fragment": 2
         }
-      }
+      },
+      "level": 7
     },
     "f_road": {
       "name": "The North Road",
@@ -390,10 +413,11 @@
       "world": "frontier-wilds-v1",
       "count": 1,
       "reward": {
-        "gold": 40,
-        "exp": 120,
-        "jobExp": 50
-      }
+        "gold": 175,
+        "exp": 747,
+        "jobExp": 398
+      },
+      "level": 8
     }
   }
 }

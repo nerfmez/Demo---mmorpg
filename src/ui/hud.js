@@ -401,6 +401,10 @@ export class Hud {
         this.float(e.x, 2.2, e.z, `+${e.amount}`, 'heal');
         break;
       case 'pickup': {
+        if (e.item === 'gear') {
+          this.toast(`ได้ ${d.items.gearBases[e.base]?.nameTh || e.base} · เกรด ${e.grade}`, d.items.grades.colors[e.grade]);
+          break;
+        }
         const name = e.item === 'gold' ? 'Gold' : d.items.materials[e.item]?.nameTh || e.item;
         this.toast(`+${e.qty} ${name}`, e.item === 'gold' ? '#ffd166' : d.items.materials[e.item]?.color);
         break;

@@ -7,7 +7,7 @@ import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, addExp, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
-import { rollDrops, addItem, craft } from './crafting.js';
+import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
@@ -697,7 +697,9 @@ export class Game {
     let dmg = amount;
     const crit = opts.crit ?? false;
     if (crit) dmg *= this.derived.critMult;
-    if (!opts.dot) dmg *= 1 - m.defense / (m.defense + 60);
+    // Penetration ignores a share of the monster's defense.
+    const def = m.defense * (1 - (this.derived.penetrationPct || 0) / 100);
+    if (!opts.dot) dmg *= 1 - def / (def + 60);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;
@@ -739,7 +741,7 @@ export class Game {
     const prog = this.ch.progress;
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
-    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng);
+    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived);
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
@@ -747,6 +749,13 @@ export class Game {
       this.drops.push(drop);
       this.emit({ type: 'drop', id: drop.id, item: drop.item, fromX: m.x, fromZ: m.z });
     });
+    // Gear from the monster's own parts, at its level's tier; rare except from bosses.
+    const gear = m.minion ? null : rollGearDrop(this.data, m.type, m.level, m.boss, this.rng, this.derived.gearFindPct);
+    if (gear) {
+      const drop = { id: this.newId(), item: 'gear', gear, qty: 1, x: m.x, z: m.z, t: 0 };
+      this.drops.push(drop);
+      this.emit({ type: 'drop', id: drop.id, item: 'gear', base: gear.base, grade: gear.grade, fromX: m.x, fromZ: m.z });
+    }
     const gained = addExp(this.ch, this.data, m.exp, m.jobExp);
     this.emit({ type: 'exp', exp: m.exp, jobExp: m.jobExp, x: m.x, z: m.z });
     if (gained.levels) this.onLevelUp();
@@ -1585,6 +1594,12 @@ export class Game {
           d.z += (p.z - d.z) * k;
         }
         if (dd < PICKUP_RADIUS * 0.5) {
+          if (d.item === 'gear') {
+            const item = { uid: this.ch.nextUid++, ...d.gear };
+            this.ch.gear.push(item);
+            this.emit({ type: 'pickup', id: d.id, item: 'gear', base: item.base, grade: item.grade, uid: item.uid, qty: 1 });
+            continue;
+          }
           addItem(this.ch, d.item, d.qty);
           if (d.item !== 'gold') {
             const c = this.ch.progress.collected;

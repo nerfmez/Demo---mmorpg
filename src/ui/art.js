@@ -222,6 +222,52 @@ function celObject(body,kind,id) {
 for (const [id,body] of Object.entries(gear)) gear[id]=celObject(body,'gear',id);
 for (const [id,body] of Object.entries(material)) material[id]=celObject(body,'material',id);
 Object.assign(skill,SKILL_ART);
+
+// Forged gear (tiers 1-5, scripts/gear-tiers.mjs): one parametric silhouette per kind, coloured
+// per item, with more ornament (fuller, runes, a glowing gem) at higher tiers.
+function forged(kind, [main, trim, accent], tier) {
+  const rune = tier >= 3, gem = tier >= 4 ? diamond(64, 64, 7, accent) + spark(86, 30, 6) : tier >= 2 ? C(64, 64, 5, accent) : '';
+  switch (kind) {
+    case 'sword': return P('M42 92L84 20l13-7-3 15-44 70z', main) + P('M86 22L52 92l42-64 0-12z', '#ffffff55', 'none') + (rune ? L('M58 76l6-10m6-10 6-10', accent, 3) : '') + P('M32 86l26 16 5-8-26-15z', trim) + P('M36 94l12 7-11 17-10-7z', '#6b4f3a') + (tier >= 4 ? diamond(46, 92, 6, accent) : '');
+    case 'dagger': return P('M46 86L80 34l14-6-3 14-38 54z', main) + P('M80 34L52 84l39-42z', '#ffffff55', 'none') + P('M40 80l22 14 4-7-22-13z', trim) + P('M44 88l10 6-9 15-9-6z', '#6b4f3a') + (rune ? L('M64 70l8-10', accent, 3) : '') + (tier >= 4 ? diamond(52, 86, 5, accent) : '');
+    case 'greatblade': return P('M38 96L80 18l18-6-1 18-46 78z', main) + P('M80 18L50 92l47-62 1-18z', '#ffffff50', 'none') + (rune ? L('M56 78l8-13m8-13 8-13', accent, 3.4) : '') + P('M24 88l32 20 7-10-32-19z', trim) + P('M30 98l13 8-11 16-11-8z', '#5f4636') + (tier >= 4 ? diamond(40, 96, 7, accent) : '');
+    case 'mace': return P('M60 58l8 3-14 54-8-3z', '#7a5a3e') + E(70, 40, 24, 22, main) + P('M58 22l6-10 6 10zM88 34l12-2-6 11zM86 56l10 8-12 2zM50 50l-12 4 6-11z', trim) + (rune ? L('M62 38h16M60 46h20', accent, 3) : '') + gem.replace('64, 64', '70, 40');
+    case 'axe': return P('M58 30l9 3-16 80-9-3z', '#7a5a3e') + P('M60 26c22-10 42-2 42 18-14-8-28-6-40 4z', main) + P('M60 26c-18-6-32 4-30 22 10-8 20-10 30-8z', trim) + (rune ? L('M78 30l10 6', accent, 3) : '') + (tier >= 4 ? diamond(62, 34, 6, accent) : '');
+    case 'wand': return P('M42 106l32-64 12 5-32 64z', '#7a5a3e') + C(82, 34, 16, main) + C(82, 34, 6, accent) + L('M70 24c8-8 20-6 24 4M68 46c-6 8 2 16 10 14', trim, 3) + (tier >= 4 ? spark(96, 20, 7) : '');
+    case 'staff': return P('M36 118l42-96 11 4-42 96z', '#7a5a3e') + E(86, 24, 22, 17, 'none', trim, 5) + diamond(86, 24, 12, main) + (rune ? L('M58 74l6-14m4-10 6-14', accent, 3) : '') + (tier >= 4 ? spark(104, 12, 7) + spark(68, 12, 5) : '');
+    case 'bow': return L('M30 12c48 20 60 76 26 106', ink, 13) + L('M30 12c48 20 60 76 26 106', main, 9) + L('M30 12c48 20 60 76 26 106', '#ffffff40', 2.5) + L('M30 12L56 118', '#efe6cf', 2) + P('M58 56l14-5 3 14-14 5z', trim) + (rune ? L('M60 36l6 6M68 86l-6 6', accent, 3) : '') + (tier >= 4 ? diamond(76, 64, 6, accent) : '');
+    case 'shield': return P('M64 14l40 14-6 46c-5 20-22 34-34 42-20-12-34-26-36-42l-4-46z', main) + P('M64 22v86c18-12 26-26 28-36l4-34z', '#00000022', 'none') + L('M64 14l40 14-6 46c-5 20-22 34-34 42-20-12-34-26-36-42l-4-46z', trim, 4) + (rune ? L('M44 46h40M48 70h32', accent, 3) : '') + (gem || C(64, 56, 7, accent));
+    case 'armor': return P('M34 30l18-10h24l18 10 10 30-14 6-4 44H42l-4-44-14-6z', main) + P('M52 20l12 18 12-18', 'none', trim, 4) + P('M42 70h44v8H42z', trim) + (rune ? L('M50 50l14 10 14-10', accent, 3) : '') + gem.replace('64, 64', '64, 90');
+    case 'helm': return P('M28 74c0-36 72-36 72 0v18H28z', main) + P('M28 74h72v10H28z', trim) + P('M64 30v44', 'none', '#ffffff66', 4) + (rune ? L('M40 62h48', accent, 3) : '') + (tier >= 4 ? diamond(64, 46, 7, accent) : C(64, 50, 5, accent));
+    case 'gloves': return P('M40 50c0-14 8-26 16-26l4 28 6-30c6 0 10 4 10 10l-2 26 6-20c6 0 8 4 8 10l-6 30c10-6 16-2 18 4-12 10-22 22-34 30H46c-6-14-8-36-6-62z', main) + P('M44 96h36v14H44z', trim) + (rune ? L('M50 68c10 4 20 4 28 0', accent, 3) : '') + (tier >= 4 ? diamond(62, 80, 6, accent) : '');
+    case 'boots': return P('M48 24h30l-4 50 22 14c7 4 6 16-2 18H42l-1-30z', main) + P('M48 24l-1 22 30 1 1-23z', trim) + P('M42 96h58v12H42z', '#493e37') + (rune ? L('M50 60h24', accent, 3) : '') + (tier >= 4 ? spark(96, 70, 6) : '');
+    default: return cord + P('M44 60c4-18 36-18 40 0l-6 30H50z', main) + C(64, 74, 12, trim) + (tier >= 3 ? diamond(64, 74, 7, accent) : C(64, 74, 5, accent));
+  }
+}
+// Weapons are drawn a size up so they read beside the painted icons.
+const BIG = { sword: 1.18, dagger: 1.35, greatblade: 1.08, mace: 1.15, axe: 1.15, wand: 1.12, staff: 1, bow: 1 };
+const sized = (kind, body) => (BIG[kind] && BIG[kind] !== 1 ? G(body, 'translate(' + 64 * (1 - BIG[kind]) + ' ' + 64 * (1 - BIG[kind]) + ') scale(' + BIG[kind] + ')') : body);
+const FORGED = {
+  shell_knife: ['dagger', ['#e9b49a', '#c9a46a', '#f4c79a'], 1], tusk_club: ['mace', ['#efe0bd', '#b9915e', '#d9c27b'], 1],
+  tusk_greatblade: ['greatblade', ['#efe0bd', '#a17a4b', '#d9c27b'], 1], tide_staff: ['staff', ['#9fd7e8', '#c9a46a', '#f2eefc'], 1],
+  wolfbite_sword: ['sword', ['#c9d3d8', '#7d8a96', '#f0e6cc'], 2], venom_wand: ['wand', ['#8fbf5a', '#6b4f7a', '#c9f07a'], 2],
+  hermit_cleaver: ['greatblade', ['#e2a27c', '#8a5a3a', '#f4c79a'], 2], spore_staff: ['staff', ['#c88a7a', '#8a6a5a', '#eed6a1'], 2],
+  fang_bow: ['bow', ['#8d7a64', '#e9d4a6', '#c9d3d8'], 2],
+  frontier_kris: ['dagger', ['#d8dee3', '#5f7f5b', '#9fe07a'], 3], moonleaf_wand: ['wand', ['#cfe7f0', '#7a9a6a', '#f4f0ff'], 3],
+  ranger_axe: ['axe', ['#9aa7a0', '#5f7f5b', '#e8d48a'], 3], knight_greatsword: ['greatblade', ['#dfe6ea', '#3f6aa0', '#f3d17c'], 3],
+  tidecaller_staff: ['staff', ['#6fc3d8', '#2f6f8a', '#e9fbff'], 3], dusk_longbow: ['bow', ['#6a4f7a', '#d9b46a', '#f0a868'], 3],
+  kite_shield: ['shield', ['#3f6aa0', '#e2c27a', '#f3d17c'], 3], ranger_coat: ['armor', ['#5f7f5b', '#c9a46a', '#e8d48a'], 3],
+  ranger_hood: ['helm', ['#4f6f4b', '#a8865a', '#e8d48a'], 3], brigand_gloves: ['gloves', ['#6b5a4a', '#3f3a34', '#9fe07a'], 3],
+  trail_boots: ['boots', ['#8a6a4a', '#5f7f5b', '#e8d48a'], 3], fang_talisman: ['charm', ['#d8dee3', '#7d8a96', '#b9d8ff'], 3],
+  stormglass_blade: ['sword', ['#bfe4f0', '#4f7f9a', '#8fe8ff'], 4], wisp_stiletto: ['dagger', ['#e6f7f3', '#7fb6a8', '#9bddcf'], 4],
+  lantern_wand: ['wand', ['#f3e3a0', '#7a6a4a', '#9bddcf'], 4], thunder_maul: ['mace', ['#7c8d90', '#e8b867', '#8fe8ff'], 4],
+  galebreaker: ['greatblade', ['#d5e8ef', '#6d96a4', '#d5c58b'], 4], highland_shield: ['shield', ['#7c8d90', '#d5c58b', '#8fe8ff'], 4],
+  gale_boots: ['boots', ['#6d96a4', '#d5c58b', '#e9fbff'], 4],
+  oathblade: ['sword', ['#e9e2c8', '#8a7a4a', '#f0c060'], 5], ruin_fang: ['dagger', ['#cfc6a8', '#6a6a5a', '#90cfbf'], 5],
+  relic_wand: ['wand', ['#d9c27b', '#6a5a3a', '#90cfbf'], 5], skyrender_bow: ['bow', ['#5f8fa8', '#e8d48a', '#c9f0ff'], 5],
+};
+for (const [id, [kind, palette, tier]] of Object.entries(FORGED)) gear[id] = sized(kind, forged(kind, palette, tier));
+
 export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles (crafted ammunition, not a named catalogue item): shaft, head and fletching per type.

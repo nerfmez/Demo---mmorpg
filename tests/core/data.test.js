@@ -48,3 +48,7 @@ test('start loadout is valid', () => {
   assert.ok(st.movementSkills.includes(st.movement));
   assert.equal(st.slots.length, data.progression.slotCount);
 });
+
+test('every material has a sell value', () => {
+  for (const [id, m] of Object.entries(data.items.materials)) assert.ok(Number.isFinite(m.value) && m.value > 0, id);
+});

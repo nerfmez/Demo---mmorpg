@@ -141,17 +141,20 @@
     "salt_gel": {
       "name": "เจลเกลือทะเล",
       "nameTh": "เจลเกลือทะเล",
-      "color": "#58b9c4"
+      "color": "#58b9c4",
+      "value": 2
     },
     "shore_feather": {
       "name": "ขนนกชายฝั่ง",
       "nameTh": "ขนนกชายฝั่ง",
-      "color": "#e6ddd0"
+      "color": "#e6ddd0",
+      "value": 3
     },
     "hermit_fragment": {
       "name": "เศษเปลือกเสฉวน",
       "nameTh": "เศษเปลือกเสฉวน",
-      "color": "#c18b62"
+      "color": "#c18b62",
+      "value": 8
     }
   },
   "slots": [
@@ -355,12 +358,10 @@
       "slot": "weapon",
       "weaponType": "dagger",
       "stats": {
-        "attack": 12.5,
-        "critChancePct": 2.2
+        "attack": 19.1,
+        "critChancePct": 3.4
       },
-      "requires": {
-        "DEX": 5
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "attack_flat",
@@ -371,7 +372,7 @@
       ],
       "upgradeMaterial": "wolf_fang",
       "requirementStat": "DEX",
-      "itemLevel": 3
+      "itemLevel": 6
     },
     "wisp_staff": {
       "name": "Wisp Staff",
@@ -379,8 +380,8 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 6.6,
-        "magic": 33.0
+        "attack": 14,
+        "magic": 70.1
       },
       "requires": {},
       "starter": false,
@@ -394,7 +395,7 @@
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
-      "itemLevel": 5
+      "itemLevel": 16
     },
     "spore_wand": {
       "name": "Spore Wand",
@@ -418,7 +419,7 @@
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
-      "itemLevel": 2
+      "itemLevel": 1
     },
     "crag_axe": {
       "name": "Crag Axe",
@@ -426,8 +427,8 @@
       "slot": "weapon",
       "weaponType": "axe",
       "stats": {
-        "attack": 28,
-        "maxHp": 12
+        "attack": 68.2,
+        "maxHp": 29.2
       },
       "requires": {},
       "starter": false,
@@ -440,7 +441,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR",
-      "itemLevel": 6
+      "itemLevel": 21
     },
     "storm_bow": {
       "name": "Storm Bow",
@@ -448,8 +449,8 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 31.4,
-        "magic": 5.5
+        "attack": 71.6,
+        "magic": 12.5
       },
       "requires": {},
       "starter": false,
@@ -462,7 +463,7 @@
       ],
       "upgradeMaterial": "storm_quill",
       "requirementStat": "DEX",
-      "itemLevel": 4
+      "itemLevel": 16
     },
     "greyfang_sabre": {
       "name": "Greyfang Sabre",
@@ -470,13 +471,11 @@
       "slot": "weapon",
       "weaponType": "sword",
       "stats": {
-        "attack": 15.8,
-        "critChancePct": 3.8,
-        "moveSpeedPct": 2.2
+        "attack": 24.2,
+        "critChancePct": 5.8,
+        "moveSpeedPct": 3.4
       },
-      "requires": {
-        "AGI": 8
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "attack_flat",
@@ -487,7 +486,7 @@
       ],
       "upgradeMaterial": "greyfang_mane",
       "requirementStat": "AGI",
-      "itemLevel": 5
+      "itemLevel": 11
     },
     "horn_greatblade": {
       "name": "Horn Greatblade",
@@ -495,8 +494,8 @@
       "slot": "weapon",
       "weaponType": "greatblade",
       "stats": {
-        "attack": 45.1,
-        "magic": 9.9
+        "attack": 84.8,
+        "magic": 18.6
       },
       "requires": {},
       "starter": false,
@@ -509,7 +508,7 @@
       ],
       "upgradeMaterial": "warden_horn",
       "requirementStat": "STR",
-      "itemLevel": 9
+      "itemLevel": 21
     },
     "ancient_staff": {
       "name": "Ancient Core Staff",
@@ -517,8 +516,8 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 9.9,
-        "magic": 45.1
+        "attack": 18.6,
+        "magic": 84.8
       },
       "requires": {},
       "starter": false,
@@ -532,7 +531,7 @@
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
-      "itemLevel": 9
+      "itemLevel": 21
     },
     "travel_tunic": {
       "name": "Travel Tunic",
@@ -584,12 +583,10 @@
       "slot": "armor",
       "look": "shell",
       "stats": {
-        "defense": 12.8,
-        "maxHp": 16
+        "defense": 16.3,
+        "maxHp": 20.4
       },
-      "requires": {
-        "VIT": 6
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "defense_flat",
@@ -600,7 +597,7 @@
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "VIT",
-      "itemLevel": 2
+      "itemLevel": 6
     },
     "wolfpelt_coat": {
       "name": "Wolfpelt Coat",
@@ -608,9 +605,9 @@
       "slot": "armor",
       "look": "pelt",
       "stats": {
-        "defense": 8.8,
-        "maxHp": 20,
-        "moveSpeedPct": 3
+        "defense": 12.7,
+        "maxHp": 28.7,
+        "moveSpeedPct": 4.3
       },
       "requires": {},
       "starter": false,
@@ -623,7 +620,7 @@
       ],
       "upgradeMaterial": "wolf_pelt",
       "requirementStat": "VIT",
-      "itemLevel": 3
+      "itemLevel": 6
     },
     "storm_mantle": {
       "name": "Storm Mantle",
@@ -631,13 +628,11 @@
       "slot": "armor",
       "look": "mantle",
       "stats": {
-        "defense": 6.4,
-        "maxMp": 20,
-        "cooldownPct": 3.8
+        "defense": 27.8,
+        "maxMp": 86.6,
+        "cooldownPct": 16.5
       },
-      "requires": {
-        "INT": 8
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "mp_flat",
@@ -648,7 +643,7 @@
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
-      "itemLevel": 4
+      "itemLevel": 16
     },
     "crag_plate": {
       "name": "Crag Plate",
@@ -656,12 +651,10 @@
       "slot": "armor",
       "look": "plate",
       "stats": {
-        "defense": 20.8,
-        "maxHp": 32
+        "defense": 53.9,
+        "maxHp": 82.9
       },
-      "requires": {
-        "VIT": 10
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "hp_flat",
@@ -672,7 +665,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",
-      "itemLevel": 6
+      "itemLevel": 21
     },
     "leather_cap": {
       "name": "Leather Cap",
@@ -702,12 +695,10 @@
       "slot": "helm",
       "look": "beetle",
       "stats": {
-        "defense": 5.6,
-        "maxHp": 8
+        "defense": 7.2,
+        "maxHp": 10.2
       },
-      "requires": {
-        "VIT": 5
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "hp_flat",
@@ -718,7 +709,7 @@
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "VIT",
-      "itemLevel": 2
+      "itemLevel": 6
     },
     "spore_hood": {
       "name": "Spore Hood",
@@ -726,8 +717,8 @@
       "slot": "helm",
       "look": "hood",
       "stats": {
-        "defense": 3.2,
-        "healPct": 7.5
+        "defense": 5.9,
+        "healPct": 13.9
       },
       "requires": {},
       "starter": false,
@@ -740,7 +731,7 @@
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
-      "itemLevel": 2
+      "itemLevel": 6
     },
     "feather_circlet": {
       "name": "Feather Circlet",
@@ -748,9 +739,9 @@
       "slot": "helm",
       "look": "circlet",
       "stats": {
-        "defense": 1.6,
-        "cooldownPct": 3,
-        "maxMp": 8
+        "defense": 7.8,
+        "cooldownPct": 14.7,
+        "maxMp": 39.3
       },
       "requires": {},
       "starter": false,
@@ -763,7 +754,7 @@
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "INT",
-      "itemLevel": 2
+      "itemLevel": 16
     },
     "horned_helm": {
       "name": "Horned Helm",
@@ -771,13 +762,11 @@
       "slot": "helm",
       "look": "horned",
       "stats": {
-        "defense": 9.6,
-        "maxHp": 24,
-        "attack": 2.9
+        "defense": 17.9,
+        "maxHp": 44.8,
+        "attack": 5.4
       },
-      "requires": {
-        "STR": 8
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "hp_flat",
@@ -788,7 +777,7 @@
       ],
       "upgradeMaterial": "warden_horn",
       "requirementStat": "STR",
-      "itemLevel": 9
+      "itemLevel": 21
     },
     "travel_boots": {
       "name": "Travel Boots",
@@ -816,8 +805,8 @@
       "nameTh": "รองเท้าหมาป่า",
       "slot": "boots",
       "stats": {
-        "defense": 3.2,
-        "moveSpeedPct": 4.5
+        "defense": 3,
+        "moveSpeedPct": 4.2
       },
       "requires": {},
       "starter": false,
@@ -830,7 +819,7 @@
       ],
       "upgradeMaterial": "wolf_pelt",
       "requirementStat": "AGI",
-      "itemLevel": 3
+      "itemLevel": 6
     },
     "wisp_slippers": {
       "name": "Wisp Slippers",
@@ -858,12 +847,10 @@
       "nameTh": "สนับแข้งผาหิน",
       "slot": "boots",
       "stats": {
-        "defense": 8,
-        "maxHp": 16
+        "defense": 17.4,
+        "maxHp": 34.8
       },
-      "requires": {
-        "VIT": 7
-      },
+      "requires": {},
       "starter": false,
       "optionPool": [
         "hp_flat",
@@ -874,7 +861,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",
-      "itemLevel": 6
+      "itemLevel": 21
     },
     "tusk_charm": {
       "name": "Tusk Charm",
@@ -901,8 +888,8 @@
       "nameTh": "จี้ภูตไฟ",
       "slot": "charm",
       "stats": {
-        "maxMp": 16,
-        "magic": 2.2
+        "maxMp": 19.1,
+        "magic": 2.7
       },
       "requires": {},
       "starter": false,
@@ -915,15 +902,15 @@
       ],
       "upgradeMaterial": "wisp_core",
       "requirementStat": "INT",
-      "itemLevel": 5
+      "itemLevel": 16
     },
     "spore_amulet": {
       "name": "Spore Amulet",
       "nameTh": "เครื่องรางสปอร์",
       "slot": "charm",
       "stats": {
-        "healPct": 9,
-        "hpRegen": 1
+        "healPct": 7.8,
+        "hpRegen": 0.9
       },
       "requires": {},
       "starter": false,
@@ -936,15 +923,15 @@
       ],
       "upgradeMaterial": "spore_sac",
       "requirementStat": "INT",
-      "itemLevel": 2
+      "itemLevel": 6
     },
     "feather_charm": {
       "name": "Feather Charm",
       "nameTh": "เครื่องรางขนนก",
       "slot": "charm",
       "stats": {
-        "moveSpeedPct": 3,
-        "cooldownPct": 2.2
+        "moveSpeedPct": 4,
+        "cooldownPct": 3
       },
       "requires": {},
       "starter": false,
@@ -957,15 +944,15 @@
       ],
       "upgradeMaterial": "hawk_feather",
       "requirementStat": "AGI",
-      "itemLevel": 4
+      "itemLevel": 16
     },
     "golem_amulet": {
       "name": "Golem Heart Amulet",
       "nameTh": "จี้หัวใจโกเลม",
       "slot": "charm",
       "stats": {
-        "maxHp": 32,
-        "defense": 4
+        "maxHp": 27.7,
+        "defense": 3.4
       },
       "requires": {},
       "starter": false,
@@ -978,16 +965,16 @@
       ],
       "upgradeMaterial": "golem_heart",
       "requirementStat": "VIT",
-      "itemLevel": 6
+      "itemLevel": 21
     },
     "ancient_ring": {
       "name": "Ancient Ring",
       "nameTh": "แหวนโบราณ",
       "slot": "charm",
       "stats": {
-        "attack": 4.3,
-        "magic": 4.3,
-        "critChancePct": 2.2
+        "attack": 2.5,
+        "magic": 2.5,
+        "critChancePct": 1.3
       },
       "requires": {},
       "starter": false,
@@ -1000,7 +987,7 @@
       ],
       "upgradeMaterial": "ancient_core",
       "requirementStat": "INT",
-      "itemLevel": 9
+      "itemLevel": 21
     },
     "crabshell_helm": {
       "name": "Crabshell Helm",
@@ -1081,8 +1068,8 @@
       "slot": "weapon",
       "weaponType": "mace",
       "stats": {
-        "attack": 18.5,
-        "maxHp": 10
+        "attack": 29.8,
+        "maxHp": 16.1
       },
       "optionPool": [
         "attack_flat",
@@ -1093,7 +1080,7 @@
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "STR",
-      "itemLevel": 2
+      "itemLevel": 6
     },
     "crab_shield": {
       "starter": false,
@@ -1125,7 +1112,7 @@
       "slot": "offhand",
       "offhandType": "shield",
       "stats": {
-        "defense": 5.5,
+        "defense": 4.8,
         "blockChancePct": 12
       },
       "optionPool": [
@@ -1137,7 +1124,7 @@
       ],
       "upgradeMaterial": "beetle_shell",
       "requirementStat": "VIT",
-      "itemLevel": 2
+      "itemLevel": 6
     },
     "crag_tower_shield": {
       "starter": false,
@@ -1147,8 +1134,8 @@
       "slot": "offhand",
       "offhandType": "shield",
       "stats": {
-        "defense": 12,
-        "maxHp": 20,
+        "defense": 26.1,
+        "maxHp": 43.3,
         "blockChancePct": 18
       },
       "optionPool": [
@@ -1160,7 +1147,7 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "VIT",
-      "itemLevel": 6
+      "itemLevel": 21
     },
     "hide_gloves": {
       "starter": false,
@@ -1226,7 +1213,7 @@
       ],
       "upgradeMaterial": "wolf_pelt",
       "requirementStat": "DEX",
-      "itemLevel": 3
+      "itemLevel": 6
     },
     "wisp_wraps": {
       "starter": false,
@@ -1236,8 +1223,8 @@
       "slot": "gloves",
       "look": "wrap",
       "stats": {
-        "magic": 3,
-        "cooldownPct": 2.5
+        "magic": 6.9,
+        "cooldownPct": 5.7
       },
       "optionPool": [
         "magic_flat",
@@ -1248,7 +1235,7 @@
       ],
       "upgradeMaterial": "glow_dust",
       "requirementStat": "INT",
-      "itemLevel": 5
+      "itemLevel": 16
     },
     "crag_gauntlets": {
       "starter": false,
@@ -1258,9 +1245,9 @@
       "slot": "gloves",
       "look": "plate",
       "stats": {
-        "defense": 6,
-        "maxHp": 12,
-        "attack": 2
+        "defense": 9,
+        "maxHp": 18,
+        "attack": 3
       },
       "optionPool": [
         "defense_flat",
@@ -1271,7 +1258,714 @@
       ],
       "upgradeMaterial": "crag_stone",
       "requirementStat": "STR",
+      "itemLevel": 21
+    },
+    "shell_knife": {
+      "name": "Shell Knife",
+      "nameTh": "มีดเปลือกปู",
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 10.2,
+        "critChancePct": 3.6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "crab_shell",
+      "itemLevel": 1
+    },
+    "tusk_club": {
+      "name": "Tusk Club",
+      "nameTh": "กระบองเขี้ยวหมูป่า",
+      "slot": "weapon",
+      "weaponType": "mace",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "hp_flat",
+        "defense_flat",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 16.6,
+        "maxHp": 18
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "boar_tusk",
+      "itemLevel": 1
+    },
+    "tusk_greatblade": {
+      "name": "Tusk Greatblade",
+      "nameTh": "ดาบใหญ่เขี้ยวหมูป่า",
+      "slot": "weapon",
+      "weaponType": "greatblade",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "area_pct",
+        "hp_flat",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 21.6,
+        "magic": 4.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "boar_tusk",
+      "itemLevel": 1
+    },
+    "tide_staff": {
+      "name": "Tide Staff",
+      "nameTh": "คทาคลื่นทะเล",
+      "slot": "weapon",
+      "weaponType": "staff",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "area_pct",
+        "mp_flat",
+        "cdr_pct"
+      ],
+      "stats": {
+        "attack": 4,
+        "magic": 22.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "sea_pearl",
+      "itemLevel": 1
+    },
+    "wolfbite_sword": {
+      "name": "Wolfbite Sword",
+      "nameTh": "ดาบเขี้ยวหมาป่า",
+      "slot": "weapon",
+      "weaponType": "sword",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "leech_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "attack": 18.7,
+        "magic": 2.1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_fang",
       "itemLevel": 6
+    },
+    "venom_wand": {
+      "name": "Venom Wand",
+      "nameTh": "ไม้กายสิทธิ์พิษ",
+      "slot": "weapon",
+      "weaponType": "wand",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "poison_on_hit",
+        "cdr_pct",
+        "mp_flat"
+      ],
+      "stats": {
+        "attack": 3.1,
+        "magic": 17.6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "venom_gland",
+      "itemLevel": 6
+    },
+    "hermit_cleaver": {
+      "name": "Hermit Cleaver",
+      "nameTh": "ดาบใหญ่เปลือกเสฉวน",
+      "slot": "weapon",
+      "weaponType": "greatblade",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "area_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "stats": {
+        "attack": 37.4,
+        "magic": 8.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "hermit_fragment",
+      "itemLevel": 6
+    },
+    "spore_staff": {
+      "name": "Spore Staff",
+      "nameTh": "คทาสปอร์",
+      "slot": "weapon",
+      "weaponType": "staff",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "summon_pct",
+        "poison_on_hit",
+        "heal_pct"
+      ],
+      "stats": {
+        "attack": 6.8,
+        "magic": 38.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 6
+    },
+    "fang_bow": {
+      "name": "Fang Bow",
+      "nameTh": "ธนูเขี้ยวหมาป่า",
+      "slot": "weapon",
+      "weaponType": "bow",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 40.2,
+        "magic": 5.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_fang",
+      "itemLevel": 6
+    },
+    "frontier_kris": {
+      "name": "Frontier Kris",
+      "nameTh": "กริชพรานชายแดน",
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "poison_on_hit",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 25.1,
+        "critChancePct": 8.9
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_fang",
+      "itemLevel": 11
+    },
+    "moonleaf_wand": {
+      "name": "Moonleaf Wand",
+      "nameTh": "ไม้กายสิทธิ์ใบจันทร์",
+      "slot": "weapon",
+      "weaponType": "wand",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "heal_pct",
+        "cdr_pct",
+        "mp_flat"
+      ],
+      "stats": {
+        "attack": 4.4,
+        "magic": 25.1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 11
+    },
+    "ranger_axe": {
+      "name": "Ranger Axe",
+      "nameTh": "ขวานศึกพรานป่า",
+      "slot": "weapon",
+      "weaponType": "axe",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "hp_flat",
+        "defense_flat",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 40.8,
+        "maxHp": 43
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "beetle_shell",
+      "itemLevel": 11
+    },
+    "knight_greatsword": {
+      "name": "Frontier Knight Greatsword",
+      "nameTh": "ดาบใหญ่อัศวินชายแดน",
+      "slot": "weapon",
+      "weaponType": "greatblade",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "area_pct",
+        "hp_flat",
+        "defense_flat"
+      ],
+      "stats": {
+        "attack": 53.2,
+        "magic": 11.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 11
+    },
+    "tidecaller_staff": {
+      "name": "Tidecaller Staff",
+      "nameTh": "คทาเรียกกระแสน้ำ",
+      "slot": "weapon",
+      "weaponType": "staff",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "area_pct",
+        "barrier_pct",
+        "mp_flat"
+      ],
+      "stats": {
+        "attack": 9.7,
+        "magic": 55.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "sea_pearl",
+      "itemLevel": 11
+    },
+    "dusk_longbow": {
+      "name": "Dusk Longbow",
+      "nameTh": "ธนูยาวสนธยา",
+      "slot": "weapon",
+      "weaponType": "bow",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "move_pct",
+        "cdr_pct"
+      ],
+      "stats": {
+        "attack": 57.1,
+        "magic": 7.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_pelt",
+      "itemLevel": 11
+    },
+    "kite_shield": {
+      "name": "Kite Shield",
+      "nameTh": "โล่ว่าวอัศวิน",
+      "slot": "offhand",
+      "offhandType": "shield",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "stats": {
+        "defense": 10.1,
+        "maxHp": 28.9,
+        "blockChancePct": 15
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "beetle_shell",
+      "itemLevel": 11
+    },
+    "ranger_coat": {
+      "name": "Ranger Coat",
+      "nameTh": "เสื้อคลุมพราน",
+      "slot": "armor",
+      "look": "pelt",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "move_pct",
+        "regen_flat",
+        "projectile_pct"
+      ],
+      "stats": {
+        "defense": 21,
+        "maxHp": 139.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_pelt",
+      "itemLevel": 11
+    },
+    "ranger_hood": {
+      "name": "Ranger Hood",
+      "nameTh": "ฮู้ดพราน",
+      "slot": "helm",
+      "look": "hood",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "defense_flat",
+        "crit_pct",
+        "cdr_pct",
+        "move_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 9.5,
+        "maxHp": 47.6,
+        "cooldownPct": 1.6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_pelt",
+      "itemLevel": 11
+    },
+    "brigand_gloves": {
+      "name": "Brigand Gloves",
+      "nameTh": "ถุงมือโจรป่า",
+      "slot": "gloves",
+      "look": "pelt",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "poison_on_hit",
+        "leech_pct",
+        "move_pct"
+      ],
+      "stats": {
+        "defense": 3.2,
+        "attack": 3.2,
+        "critChancePct": 1.6
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_pelt",
+      "itemLevel": 11
+    },
+    "trail_boots": {
+      "name": "Trail Boots",
+      "nameTh": "รองเท้าเดินป่า",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "hp_flat",
+        "regen_flat",
+        "cdr_pct"
+      ],
+      "stats": {
+        "defense": 6.4,
+        "moveSpeedPct": 3.2,
+        "maxHp": 25.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_pelt",
+      "itemLevel": 11
+    },
+    "fang_talisman": {
+      "name": "Moonfang Talisman",
+      "nameTh": "เครื่องรางเขี้ยวจันทร์",
+      "slot": "charm",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "crit_pct",
+        "attack_flat",
+        "move_pct",
+        "leech_pct",
+        "melee_pct"
+      ],
+      "stats": {
+        "critChancePct": 3.5,
+        "attack": 1.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wolf_fang",
+      "itemLevel": 11
+    },
+    "stormglass_blade": {
+      "name": "Stormglass Blade",
+      "nameTh": "ดาบแก้วพายุ",
+      "slot": "weapon",
+      "weaponType": "sword",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "cdr_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 34.4,
+        "magic": 3.8
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "hawk_feather",
+      "itemLevel": 16
+    },
+    "wisp_stiletto": {
+      "name": "Wisplight Stiletto",
+      "nameTh": "มีดแหลมแสงวิญญาณ",
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "cdr_pct",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 32.5,
+        "critChancePct": 11.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wisp_core",
+      "itemLevel": 16
+    },
+    "lantern_wand": {
+      "name": "Spirit Lantern Wand",
+      "nameTh": "ไม้กายสิทธิ์ตะเกียงวิญญาณ",
+      "slot": "weapon",
+      "weaponType": "wand",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "summon_pct",
+        "cdr_pct",
+        "mp_flat"
+      ],
+      "stats": {
+        "attack": 5.7,
+        "magic": 32.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wisp_core",
+      "itemLevel": 16
+    },
+    "thunder_maul": {
+      "name": "Roaring Thunder Maul",
+      "nameTh": "กระบองสายฟ้าคำราม",
+      "slot": "weapon",
+      "weaponType": "mace",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "area_pct",
+        "hp_flat",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 52.8,
+        "maxHp": 57.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "crag_stone",
+      "itemLevel": 16
+    },
+    "galebreaker": {
+      "name": "Galebreaker",
+      "nameTh": "ดาบใหญ่ฝ่าลมพายุ",
+      "slot": "weapon",
+      "weaponType": "greatblade",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "area_pct",
+        "move_pct",
+        "hp_flat"
+      ],
+      "stats": {
+        "attack": 69,
+        "magic": 15.1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "hawk_feather",
+      "itemLevel": 16
+    },
+    "highland_shield": {
+      "name": "Highland Shield",
+      "nameTh": "โล่ที่ราบสูง",
+      "slot": "offhand",
+      "offhandType": "shield",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "stats": {
+        "defense": 16.8,
+        "maxHp": 48.1,
+        "blockChancePct": 17
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "crag_stone",
+      "itemLevel": 16
+    },
+    "gale_boots": {
+      "name": "Gale Boots",
+      "nameTh": "รองเท้าวายุ",
+      "slot": "boots",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "move_pct",
+        "defense_flat",
+        "cdr_pct",
+        "hp_flat",
+        "projectile_pct"
+      ],
+      "stats": {
+        "defense": 9.2,
+        "moveSpeedPct": 4.6,
+        "maxHp": 37
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "hawk_feather",
+      "itemLevel": 16
+    },
+    "oathblade": {
+      "name": "Ancient Oathblade",
+      "nameTh": "ดาบสาบานโบราณ",
+      "slot": "weapon",
+      "weaponType": "sword",
+      "requirementStat": "STR",
+      "optionPool": [
+        "attack_flat",
+        "melee_pct",
+        "crit_pct",
+        "hp_flat",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 42.3,
+        "magic": 4.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "crag_stone",
+      "itemLevel": 21
+    },
+    "ruin_fang": {
+      "name": "Ruinfang",
+      "nameTh": "มีดเขี้ยวซากโบราณ",
+      "slot": "weapon",
+      "weaponType": "dagger",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "poison_on_hit",
+        "move_pct",
+        "leech_pct"
+      ],
+      "stats": {
+        "attack": 39.9,
+        "critChancePct": 14.1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "storm_quill",
+      "itemLevel": 21
+    },
+    "relic_wand": {
+      "name": "Relic Wand",
+      "nameTh": "ไม้กายสิทธิ์โบราณวัตถุ",
+      "slot": "weapon",
+      "weaponType": "wand",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "spell_pct",
+        "area_pct",
+        "cdr_pct",
+        "mp_flat"
+      ],
+      "stats": {
+        "attack": 7.1,
+        "magic": 39.9
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "wisp_core",
+      "itemLevel": 21
+    },
+    "skyrender_bow": {
+      "name": "Skyrender Bow",
+      "nameTh": "ธนูฉีกฟ้า",
+      "slot": "weapon",
+      "weaponType": "bow",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "projectile_pct",
+        "crit_pct",
+        "cdr_pct",
+        "move_pct"
+      ],
+      "stats": {
+        "attack": 91,
+        "magic": 12.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "storm_quill",
+      "itemLevel": 21
     }
   },
   "gearOptions": {
@@ -1675,6 +2369,14 @@
           "attack": 3,
           "critChancePct": 3
         }
+      },
+      "hunter_arrow": {
+        "name": "Hunter Arrows",
+        "nameTh": "ลูกธนูนักล่า",
+        "stats": {
+          "materialFindPct": 10,
+          "gearFindPct": 10
+        }
       }
     }
   },
@@ -1697,6 +2399,24 @@
         "S": 5
       },
       "perUpgrade": 0.2
+    }
+  },
+  "gearDrops": {
+    "_doc": "Monsters drop gear made from their own parts (any recipe of the base uses one of the monster's drop materials), of the gear tier for the monster level (progression.balance.gearTiers; the nearest lower tier when none fits). A normal kill rolls each grade once, best first, at these chances; a boss always drops one item by weight. Starter gear never drops.",
+    "normal": {
+      "S": 0.0003,
+      "A": 0.001,
+      "B": 0.004,
+      "C": 0.012
+    },
+    "boss": {
+      "count": 1,
+      "weights": {
+        "C": 40,
+        "B": 35,
+        "A": 20,
+        "S": 5
+      }
     }
   }
 }

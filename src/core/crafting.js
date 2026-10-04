@@ -244,13 +244,17 @@ export function sellMaterial(ch, data, id, qty = 1) {
   return gold;
 }
 
-/** Roll drops for one kill. Returns [{item, qty}]. */
-export function rollDrops(data, monsterId, zoneId, rng) {
+/** Roll drops for one kill. Returns [{item, qty}]. find: derived goldFindPct/materialFindPct. */
+export function rollDrops(data, monsterId, zoneId, rng, find = {}) {
   const m = data.monsters.monsters[monsterId];
   const table = [...m.drops, ...(data.world.zoneDrops[zoneId] || [])];
   const out = [];
   for (const d of table) {
-    if (rng.chance(d.chance)) out.push({ item: d.item, qty: rng.int(d.min, d.max) });
+    const gold = d.item === 'gold';
+    const chance = gold ? d.chance : Math.min(1, d.chance * (1 + (find.materialFindPct || 0) / 100));
+    if (!rng.chance(chance)) continue;
+    const qty = rng.int(d.min, d.max);
+    out.push({ item: d.item, qty: gold ? Math.round(qty * (1 + (find.goldFindPct || 0) / 100)) : qty });
   }
   return out;
 }
@@ -330,4 +334,42 @@ export function toggleGearLock(ch, uid) {
   if (!item) return { ok: false, reason: 'unknown' };
   item.locked = !item.locked;
   return { ok: true, locked: item.locked };
+}
+
+// ---------- Gear drops ----------
+
+/** Bases a monster can drop at `level`: made from its parts, at the tier for that level. */
+export function gearDropCandidates(data, monsterId, level) {
+  const parts = new Set(data.monsters.monsters[monsterId].drops.map((d) => d.item).filter((i) => i !== 'gold'));
+  const made = new Set(Object.values(data.recipes.recipes).filter((r) => r.type === 'gear' && Object.keys(r.cost).some((k) => parts.has(k))).map((r) => r.result));
+  const tiers = data.progression.balance.gearTiers.filter((t) => t <= level);
+  for (const tier of tiers.reverse()) {
+    const list = [...made].filter((id) => !data.items.gearBases[id].starter && data.items.gearBases[id].itemLevel === tier);
+    if (list.length) return list;
+  }
+  return [];
+}
+
+/** One kill's gear drop (or null). Rolls a grade, then a base and options like a craft. */
+export function rollGearDrop(data, monsterId, level, boss, rng, gearFindPct = 0) {
+  const rules = data.items.gearDrops, list = gearDropCandidates(data, monsterId, level);
+  if (!list.length) return null;
+  let grade = null;
+  if (boss) grade = rng.weighted(rules.boss.weights);
+  else {
+    let r = rng.next();
+    for (const g of ['S', 'A', 'B', 'C']) {
+      const chance = rules.normal[g] * (1 + gearFindPct / 100);
+      if (r < chance) { grade = g; break; }
+      r -= chance;
+    }
+  }
+  if (!grade) return null;
+  const base = list[Math.floor(rng.next() * list.length)], def = data.items.gearBases[base];
+  const pool = [...def.optionPool], options = [];
+  for (let i = 0; i < data.items.grades.optionCount[grade] && pool.length; i++) {
+    const id = pool.splice(Math.floor(rng.next() * pool.length), 1)[0], o = data.items.gearOptions[id];
+    options.push({ id, value: rng.int(o.min, o.max) });
+  }
+  return { base, itemLevel: def.itemLevel, grade, upgrade: 0, options };
 }

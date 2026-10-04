@@ -97,3 +97,15 @@ test('new skill kinds compute their extra parameters', () => {
   assert.ok(socketMod(ch, data, 3, give(ch, 'pack_leader')).ok);
   assert.equal(computeSkill(ch, data, d, 3).summon.count, 2);
 });
+
+test('an element-changing mod lets elemental damage apply to the skill', () => {
+  const ch = createCharacter(data);
+  for (const s of Object.keys(ch.stats)) ch.stats[s] = 60;
+  const i = slotOf(ch, 'slash');
+  const plain = (extra) => computeSkill(ch, data, { ...derive(ch, data), ...extra }, i).damage;
+  assert.equal(plain({ elementalDamagePct: 50 }), plain({}), 'physical Slash ignores elemental damage');
+  assert.ok(socketMod(ch, data, i, give(ch, 'frost_shift')).ok);
+  const base = plain({}), cold = plain({ elementalDamagePct: 50 });
+  assert.equal(computeSkill(ch, data, derive(ch, data), i).element, 'cold');
+  assert.ok(Math.abs(cold / base - 1.5) < 0.2, `${cold} vs ${base}`);
+});

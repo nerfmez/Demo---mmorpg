@@ -2,7 +2,7 @@
 export function createCamera(root,plane,output,onInspect) {
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let measuredWidth=root.clientWidth,measuredHeight=root.clientHeight,fitRequested=true;
-  let width=1000,height=850,cam={x:500,y:425,z:1},target={...cam},frame=0,last=0,pointers=new Map(),gesture=null,blocked=false,sheet=0,bounds=null;
+  let readable=0,width=1000,height=850,cam={x:500,y:425,z:1},target={...cam},frame=0,last=0,pointers=new Map(),gesture=null,blocked=false,sheet=0,bounds=null;
   const clampZ=z=>Math.max(.18,Math.min(1.7,z));
   const center=()=>({x:(measuredWidth-sheet)/2,y:measuredHeight/2});
   let inverseZoom=0,frames=0,inverseWrites=0;
@@ -24,7 +24,8 @@ export function createCamera(root,plane,output,onInspect) {
     const halfX=Math.min(width/2,Math.max(0,(measuredWidth-sheet-70)/2/target.z)),halfY=Math.min(height/2,Math.max(0,(measuredHeight-40)/2/target.z));
     target.x=Math.max(halfX,Math.min(width-halfX,target.x));target.y=Math.max(halfY,Math.min(height-halfY,target.y));
   };
-  const fit=()=>{fitRequested=true;const free=measuredWidth-sheet;target={x:width/2,y:height/2,z:clampZ(Math.min((free-70)/width,(measuredHeight-40)/height))};schedule();};
+  // readable: the smallest zoom a page stays legible at (fixed-size captions); a taller page scrolls.
+  const fit=()=>{fitRequested=true;const free=measuredWidth-sheet,z=clampZ(Math.max(readable,Math.min((free-70)/width,(measuredHeight-40)/height)));target={x:width/2,y:z>(measuredHeight-40)/height?Math.min(height/2,(measuredHeight-40)/2/z):height/2,z};schedule();};
   const focus=(x,y)=>{fitRequested=false;target={x,y,z:Math.max(target.z,.82)};schedule();};
   const zoom=(factor,x,y)=>{
     fitRequested=false;const c=center();x??=c.x;y??=c.y;const z=clampZ(target.z*factor);
@@ -62,5 +63,5 @@ export function createCamera(root,plane,output,onInspect) {
   const events=[['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',cancel],['lostpointercapture',e=>{if(e.target===root&&pointers.has(e.pointerId))cancel(e);}],['click',click,true],['wheel',wheel,{passive:false}],['keydown',key]];
   events.forEach(args=>root.addEventListener(...args));
   const resize=new ResizeObserver(()=>{const w=root.clientWidth,h=root.clientHeight;if(w!==measuredWidth||h!==measuredHeight){measuredWidth=w;measuredHeight=h;if(fitRequested)fit();else{constrain();schedule();}}});resize.observe(root);
-  return {fit,focus,zoom,viewport:()=>({width:measuredWidth,height:measuredHeight}),frame(x,y,z){fitRequested=false;target={x,y,z:clampZ(z)};schedule();},configure(w,h){width=w;height=h;fit();},setSheet(px){sheet=px;schedule();},snapshot(){return {...target,active:!!frame,frames,inverseWrites};},destroy(){cancelAnimationFrame(frame);resize.disconnect();events.forEach(args=>root.removeEventListener(...args));}};
+  return {fit,focus,zoom,viewport:()=>({width:measuredWidth,height:measuredHeight}),frame(x,y,z){fitRequested=false;target={x,y,z:clampZ(z)};schedule();},configure(w,h,minZoom=0){width=w;height=h;readable=minZoom;fit();},setSheet(px){sheet=px;schedule();},snapshot(){return {...target,active:!!frame,frames,inverseWrites};},destroy(){cancelAnimationFrame(frame);resize.disconnect();events.forEach(args=>root.removeEventListener(...args));}};
 }

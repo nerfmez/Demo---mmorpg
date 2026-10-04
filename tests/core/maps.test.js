@@ -79,7 +79,8 @@ test('walking off a seam continues at the same world point on the neighbouring m
   const home = frontier.ch;
   assert.equal(home.worldId, AZURE);
   assert.ok(home.progress.zones.includes('meadow') && home.progress.waypoints.includes('forest'), 'Azure discovery restored');
-  assert.ok(home.progress.maps[FRONTIER].zones.includes('wetland'), 'Frontier discovery kept for the next visit');
+  assert.ok(home.progress.maps[FRONTIER].zones.includes(worlds[FRONTIER].zoneAt(...ch.pos).id), 'Frontier discovery kept for the next visit');
+  assert.equal(worlds[FRONTIER].zoneAt(...ch.pos).id, 'settlement', 'the border road arrives at the outpost');
 });
 
 test('a seam does not cross while dead or in combat, and says why once', () => {
@@ -161,4 +162,36 @@ test('open world: the same session carries on in the neighbouring map without a 
   g.enterWorld(worlds[AZURE]);
   assert.equal(shared.world, data.maps[AZURE]);
   assert.ok(Math.abs(g.player.z - seam.gate[1]) < 2);
+});
+
+test('the mirrored Frontier stays walkable: every road, bridge, stone and boss arena', () => {
+  const world = worlds[FRONTIER], b = world.bounds;
+  for (const road of world.roads) {
+    for (let i = 1; i < road.points.length; i++) {
+      const [ax, az] = road.points[i - 1], [bx, bz] = road.points[i], distance = Math.hypot(bx - ax, bz - az);
+      let x = ax, z = az, started = false;
+      for (let t = 0; t <= distance; t += 0.3) {
+        const nx = ax + ((bx - ax) * t) / distance, nz = az + ((bz - az) * t) / distance;
+        // Ends past the map edge or the seam belong to the outside / the neighbour.
+        if (nx < b.minX + 1 || nx > b.maxX - 1 || nz < b.minZ + 1 || nz > b.maxZ - 1 || world.seamAt(nx, nz, 0.45)) { x = nx; z = nz; started = false; continue; }
+        assert.ok(world.isFree(nx, nz, 0.45), `${road.id} blocked at ${nx.toFixed(1)},${nz.toFixed(1)}`);
+        if (started) {
+          assert.ok(!world.tooSteep(x, z, nx, nz), `${road.id} cliff at ${nx.toFixed(1)},${nz.toFixed(1)}`);
+          const moved = world.move(x, z, 0.45, nx - x, nz - z);
+          assert.ok(Math.hypot(moved.x - nx, moved.z - nz) < 0.05, `${road.id} movement interrupted at ${nx.toFixed(1)},${nz.toFixed(1)}`);
+        }
+        x = nx; z = nz; started = true;
+      }
+    }
+  }
+  for (const br of world.bridges) for (const side of [-1, 1]) {
+    const c = Math.cos(br.angle), s = Math.sin(br.angle), end = br.hx + 1.5;
+    assert.ok(!world.isWater(br.x + side * end * c, br.z - side * end * s), `${br.id} reaches a bank`);
+  }
+  for (const wp of world.waypoints) assert.ok(world.isFree(wp.x, wp.z + 2.2, 0.45), wp.id + ' arrival');
+  for (const boss of data.maps[FRONTIER].bosses) assert.ok(world.isFree(...boss.pos, 1), boss.id + ' arena');
+  // The outpost now meets Azure: the safe town is at the border, the final boss far west.
+  const warden = data.maps[FRONTIER].bosses.find((x) => x.final), seam = data.maps[FRONTIER].atlas.seams[0];
+  assert.ok(seam.gate[0] - warden.pos[0] > 350, 'the final boss is far from the border');
+  assert.ok(world.isSafe(seam.gate[0] - 6, seam.gate[1]), 'crossing lands in the safe outpost');
 });

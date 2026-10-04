@@ -50,7 +50,7 @@ try{
   assert.equal(await page.evaluate(()=>__frontier.world.data.id),FRONTIER,'Continue returns to the saved map');
   await travelFrom('frontier','ArrowRight');
   const home=await page.evaluate(()=>({map:__frontier.world.data.id,slot:JSON.parse(localStorage.getItem('frontier.slot.1')).character}));
-  assert.equal(home.map,AZURE);assert.equal(home.slot.worldId,AZURE);assert.ok(home.slot.progress.maps[FRONTIER].zones.includes('wetland'));
+  assert.equal(home.map,AZURE);assert.equal(home.slot.worldId,AZURE);assert.ok(home.slot.progress.maps[FRONTIER].zones.includes('settlement'));
   await page.screenshot({path:out+'azure-return.png'});
   assert.deepEqual(errors,[]);
   console.log('PASS map travel',engine.name());

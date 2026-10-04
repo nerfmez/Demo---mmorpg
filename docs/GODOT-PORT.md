@@ -485,8 +485,9 @@ cell. Props add no service, save, progression, light or per-frame callback.
 
 ## Linked Greenhollow Frontier map
 
-The original demo map (`data/maps/frontier-wilds.json`, id `frontier-wilds-v1`) lies
-west of Azure in one world: `atlas.offset` places each map (global = local + offset)
+The original demo map (`data/maps/frontier-wilds.json`, id `frontier-wilds-v1`, mirrored
+east-west so its safe outpost meets the border and the final boss is ~400 m away; a
+town fence may stand on `walls.west`) lies west of Azure in one world: `atlas.offset` places each map (global = local + offset)
 and `atlas.seams` lists the edges two maps share (edge, span in local metres, the
 border-road `gate`, blend `band` and the common height `profile` written by
 `scripts/atlas-seams.mjs`). Past an open seam there is no mountain wall or edge

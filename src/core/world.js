@@ -207,7 +207,11 @@ export function createWorld(worldData) {
   }
   const tr = zoneById('settlement').rects[0];
   const walls = town.walls;
-  const gateZ = walls ? roadZAt(roads[0].points, walls.east) : town.centre[1];
+  // The fence stands on the town's open-country side: walls.east, or walls.west for a
+  // town at a map's east edge. `wallX` is its line, `out` points away from the plaza.
+  const wallX = walls ? walls.east ?? walls.west : 0, out = walls?.east !== undefined ? 1 : -1;
+  const backX = out > 0 ? tr => tr[0] + 1 : tr => tr[1] - 1;
+  const gateZ = walls ? roadZAt(roads[0].points, wallX) : town.centre[1];
   const fenceRun = (x0, z0, x1, z1, gates = []) => {
     const len = Math.hypot(x1 - x0, z1 - z0);
     const n = Math.round(len / 4);
@@ -222,10 +226,10 @@ export function createWorld(worldData) {
     }
   };
   if (walls) {
-  fenceRun(walls.east, tr[2], walls.east, tr[3], [{ x: walls.east, z: gateZ }]);
-  fenceRun(tr[0] + 1, walls.north, walls.east, walls.north);
-  fenceRun(tr[0] + 1, walls.south, walls.east, walls.south);
-  decor.lanterns.push({ x: walls.east + 1.5, z: gateZ - 5 }, { x: walls.east + 1.5, z: gateZ + 5 });
+  fenceRun(wallX, tr[2], wallX, tr[3], [{ x: wallX, z: gateZ }]);
+  fenceRun(backX(tr), walls.north, wallX, walls.north);
+  fenceRun(backX(tr), walls.south, wallX, walls.south);
+  decor.lanterns.push({ x: wallX + 1.5 * out, z: gateZ - 5 }, { x: wallX + 1.5 * out, z: gateZ + 5 });
   }
   if (!worldData.city?.enabled) {
   decor.lanterns.push({ x: town.workbench[0] + 3, z: town.workbench[1] + 1 }, { x: town.trainer[0] + 3, z: town.trainer[1] - 1 });
@@ -239,7 +243,7 @@ export function createWorld(worldData) {
   decor.crates.push({ x: town.workbench[0] + 2.2, z: town.workbench[1] - 1.2, s: 0.8, rot: 0.3, kind: 'crate' });
   decor.crates.push({ x: town.workbench[0] - 2.4, z: town.workbench[1] - 1.4, s: 0.75, rot: 0, kind: 'barrel' });
   }
-  if (walls) decor.banners.push({ x: walls.east - 0.6, z: gateZ - walls.gateHalf - 0.5, color: '#c9302c' }, { x: walls.east - 0.6, z: gateZ + walls.gateHalf + 0.5, color: '#c9302c' });
+  if (walls) decor.banners.push({ x: wallX - 0.6 * out, z: gateZ - walls.gateHalf - 0.5, color: '#c9302c' }, { x: wallX - 0.6 * out, z: gateZ + walls.gateHalf + 0.5, color: '#c9302c' });
   for (const [x, z] of worldData.harbor?.crates || []) {
     decor.crates.push({ x, z, s: .8, rot: .2, kind: 'crate' });
     addBox({ x, z, hx: .4, hz: .4, angle: .2, type: 'harbor_crate' });

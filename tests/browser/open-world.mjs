@@ -33,7 +33,7 @@ try {
   await page.evaluate(() => { window.__sameDocument = true; document.querySelector('.banner')?.remove(); });
   const seam = data.maps[AZURE].atlas.seams[0];
   // Walk-in distance: 100 m inside the seam on the border road's line.
-  const place = (x, z) => page.evaluate(([x, z]) => { const F = window.__frontier, g = F.game; Object.assign(g.player, g.freeSpotNear(x, z)); g.player.hp = 1e9; for (const m of g.monsters) m.aggro = false; F.view.snapCamera(); }, [x, z]);
+  const place = (x, z) => page.evaluate(([x, z]) => { const F = window.__frontier, g = F.game; Object.assign(g.player, g.freeSpotNear(x, z)); g.player.hp = 1e9; g.monsters = g.monsters.filter((m) => Math.hypot(m.x - g.player.x, m.z - g.player.z) > 40); F.view.snapCamera(); }, [x, z]); // crossing is refused in combat
   await place(seam.gate[0] + 100, seam.gate[1]);
   // Record frame gaps while the neighbour streams in.
   await page.evaluate(() => {

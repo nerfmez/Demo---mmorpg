@@ -4,11 +4,36 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { toon, darker, outlineMaterial } from './toon.js';
 import { outlineStructure } from './architecture.js';
 import { batchStatic } from './static-batch.js';
+import { cityFloorAt } from '../core/city.js';
+import { cityColor } from './city-palette.js';
 import { cityGround } from './city-ground.js';
 import { cityFountain } from './city-fountain.js';
 import { cityBank } from './city-bank.js';
 import { loadCityDressing } from './city-dressing.js';
 import { gradeCapeMesh, trimCityPaving } from './city-cape.js';
+
+const rockBox=new THREE.Box3(),rockCentre=new THREE.Vector3(),rockSize=new THREE.Vector3();
+// A source rock stays only where it stands in the game sea, clear of the quay:
+// beside the stone wall its low-poly top reads as a flat grey slab.
+function rockInWater(mesh,world,root){
+  rockBox.setFromObject(mesh).getCenter(rockCentre);rockBox.getSize(rockSize);
+  const x=rockCentre.x+root.position.x,z=rockCentre.z+root.position.z,clear=Math.max(rockSize.x,rockSize.z)/2+3;
+  if(!world.isWater(x,z))return false;
+  for(let i=0;i<8;i++)if(cityFloorAt(world.data.city,x+Math.sin(i*Math.PI/4)*clear,z+Math.cos(i*Math.PI/4)*clear))return false;
+  return true;
+}
+
+// True when some edge belongs to a single triangle (after welding by position).
+function hasOpenEdges(geometry){
+  const p=geometry.attributes.position,index=geometry.index,n=index?index.count:p.count,ids=new Map(),edges=new Map();
+  const vertex=i=>{const k=Math.round(p.getX(i)*1e4)+','+Math.round(p.getY(i)*1e4)+','+Math.round(p.getZ(i)*1e4);let id=ids.get(k);if(id===undefined)ids.set(k,id=ids.size);return id;};
+  for(let t=0;t+2<n;t+=3){
+    const a=vertex(index?index.getX(t):t),b=vertex(index?index.getX(t+1):t+1),c=vertex(index?index.getX(t+2):t+2);
+    for(const [u,v]of [[a,b],[b,c],[c,a]]){const e=u<v?u*1048576+v:v*1048576+u;edges.set(e,(edges.get(e)||0)+1);}
+  }
+  for(const count of edges.values())if(count===1)return true;
+  return false;
+}
 
 export async function loadCity(world) {
   const city = world.data.city;
@@ -52,6 +77,11 @@ export async function loadCity(world) {
         if(city.propertyBoundary)trimCityPaving(mesh,world,root);
       }
       if(/^Continuous[ _]coastal[ _]cliff[ _]face/.test(mesh.name)){mesh.removeFromParent();mesh.geometry.dispose();continue;}
+      if(/^Coastal[ _]weathered[ _]rock/.test(mesh.name)&&!rockInWater(mesh,world,root)){
+        // Source rocks follow the authored coastline, not the game's. Keep only
+        // those standing in the game sea; inland ones poke through paving/grass.
+        mesh.removeFromParent();mesh.geometry.dispose();continue;
+      }
       if(/^Coastal[ _]shallow[ _]shelf/.test(mesh.name)){
         // Authored shallow-water context never replaces the actual game sea.
         mesh.removeFromParent();mesh.geometry.dispose();continue;
@@ -61,10 +91,15 @@ export async function loadCity(world) {
         mesh.removeFromParent();mesh.geometry.dispose();continue;
       }
       meshes++;
-      const key = `${old.color.getHex()}/${old.emissive?.getHex() || 0}`;
+      // Indigo/teal timber reads as blue paint on buildings; data maps it to wood.
+      const base=cityColor(city,old,mesh.name);
+      // Source art is double-sided. Closed solids stay front-only; open sheets
+      // (awnings, canvas, roof skins) keep both faces or vanish from behind.
+      const side=old.side===THREE.DoubleSide&&hasOpenEdges(mesh.geometry)?THREE.DoubleSide:THREE.FrontSide;
+      const key = `${base.getHex()}/${old.emissive?.getHex() || 0}/${side}`;
       if (!materials.has(key)) {
-        const m = toon('#' + old.color.getHexString()).clone();
-        m.color.copy(old.color); m.userData.shared = true;
+        const m = toon('#' + base.getHexString(),{side}).clone();
+        m.color.copy(base); m.userData.shared = true;
         if (old.emissive) m.emissive.copy(old.emissive);
         materials.set(key, m);
       }

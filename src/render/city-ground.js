@@ -23,7 +23,7 @@ const edgeDistance = (points,x,z) => {
 };
 
 export function cityGround(world, root) {
-  const floors=world.data.city.floors.slice(0,2), bounds=[-24,-76,194,216],size=512;
+  const fountain=world.data.city.fountain,floors=world.data.city.floors.slice(0,2), bounds=[-24,-76,194,216],size=512;
   const trees=world.circles.filter(c=>['tree','birch','palm'].includes(c.type)&&cityFloorAt(world.data.city,c.x,c.z));
   const bytes=new Uint8Array(size*size*4);
   const lightBytes=new Uint8Array(size*size*4),darkBytes=new Uint8Array(size*size*4),surface=surfaceData(world),hf=world.heightfield;
@@ -74,8 +74,17 @@ export function cityGround(world, root) {
           float row=floor(w.y/size.y);vec2 p=w/size+vec2(mod(row,2.)*.5,0.);
           vec2 cell=floor(p),q=fract(p);float d=min(min(q.x,1.-q.x)*size.x,min(q.y,1.-q.y)*size.y);
           float aa=max(fwidth(d),.002);float joint=1.-smoothstep(.008-aa,.014+aa,d);
-          vec3 stone=tone*(.97+hash12(cell)*.06)+(vnoise(w*4.)-.5)*.009;
-          return mix(stone,tone*.88,joint);
+          float h=hash12(cell);vec3 stone=tone*(.95+h*.10)*mix(vec3(1.),vec3(1.04,.99,.93),step(.82,h))+(vnoise(w*4.)-.5)*.009;
+          return mix(stone,tone*.86,joint);
+        }
+        // Concentric fan setts around the fountain: rows by radius, stones by arc.
+        vec3 cityRings(vec2 d,float rowW,float stoneL,vec3 tone){
+          float r=max(length(d),.001),a=atan(d.y,d.x),row=floor(r/rowW),mid=(row+.5)*rowW;
+          float n=max(6.,floor(6.2831853*mid/stoneL)),t=a/6.2831853*n+mod(row,2.)*.5,cell=floor(t);
+          float dr=min(fract(r/rowW),1.-fract(r/rowW))*rowW,da=min(fract(t),1.-fract(t))*6.2831853*mid/n;
+          float d2=min(dr,da),aa=max(fwidth(d2),.002),joint=1.-smoothstep(.008-aa,.014+aa,d2);
+          float h=hash12(vec2(row,cell));vec3 stone=tone*(.95+h*.10)+(vnoise(d*4.)-.5)*.009;
+          return mix(stone,tone*.86,joint);
         }`)
         .replace('#include <color_fragment>',`#include <color_fragment>
           vec2 w=vCityGround;vec4 mask=texture2D(uCityMask,(w-vec2(-24.,-76.))/vec2(194.,216.));
@@ -83,14 +92,22 @@ export function cityGround(world, root) {
           vec3 earth=vec3(0.);if(mask.x>.001${kind==='base'?'||mask.y>.001':''})earth=paintedEarth(w,0.0);
           vec3 pave=citySetts(w,vec2(.44,.30),vec3(.48,.435,.35));
           ${kind==='road'?'pave=citySetts(w,vec2(.65,.45),vec3(.54,.51,.425));':''}
-          ${kind==='plaza'?'pave=citySetts(w,vec2(.54,.36),vec3(.57,.50,.385));float ring=abs(length(w-vec2(62.,22.))-7.3);pave=mix(pave,pave*.82,1.-smoothstep(.10,.18,ring));':''}
+          ${kind==='plaza'?`pave=citySetts(w,vec2(.54,.36),vec3(.57,.50,.385));
+            vec2 fd=w-vec2(${fountain.x},${fountain.z});float fr=length(fd);
+            vec3 rings=cityRings(fd,.40,.52,vec3(.60,.53,.41));
+            // Cream border bands frame the fan; a few warm rays mark the four streets.
+            float band=1.-smoothstep(.0,.06,abs(fr-7.3)-.32),outer=1.-smoothstep(.0,.06,abs(fr-12.6)-.22);
+            float ray=step(.9,fract(atan(fd.y,fd.x)/1.5707963+.05))*step(7.6,fr)*step(fr,12.4);
+            rings=mix(rings,rings*vec3(1.05,1.0,.92),ray*.8);
+            rings=mix(rings,cityRings(fd,.64,.34,vec3(.74,.68,.55)),max(band,outer));
+            pave=mix(rings,pave,smoothstep(12.8,13.4,fr));`:''}
           ${kind==='lawn'?`vec3 brush=groundBrush(w);pave=${colour('#8ba250')}*(.86+brush.r*.25+(vnoise(w*.45)-.5)*.08);pave*=1.-brush.g*.08+brush.b*.07;`:''}
           ${kind==='base'?'if(mask.y>.001)pave=mix(pave,mix(earth,grass,smoothstep(.10,.88,mask.y)),mask.y);':''}
           ${['base','road','lawn','cliff'].includes(kind)?`if(${['lawn','cliff'].includes(kind)?'true':'mask.b>.001'}){vec2 uv=(w-vec2(-24.,-76.))/vec2(194.,216.);vec4 L=texture2D(uCapeLight,uv),D=texture2D(uCapeDark,uv);vec3 native=groundColor(w,${kind==='cliff'?'vCityHeight':'.70'},L.rgb,D.rgb,vec4(mask.a,0.,0.,D.a),vec2(0.),${kind==='cliff'?'0.':'1.'},-.4,L.a)*groundCloud(w,uTime);pave=${['lawn','cliff'].includes(kind)?'native':'mix(pave,native,mask.b)'};}`:''}
           diffuseColor.rgb=mix(pave,earth*.82,mask.x);
         `);
     };
-    m.customProgramCacheKey=()=>`city-ground-v1-${kind}`;materials.set(kind,m);return m;
+    m.customProgramCacheKey=()=>`city-ground-v2-${kind}`;materials.set(kind,m);return m;
   };
   const parts=[];
   // Low segmented stone borders only around town trees, not forest edge trees.

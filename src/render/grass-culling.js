@@ -32,7 +32,7 @@ export function updateGrassVisibility(mesh,camera){
   if(!changed)return;
   s.matrix.set(matrix);s.lastEnabled=s.enabled;
   grassFrustum.setFromProjectionMatrix(grassClipMatrix);
-  const transforms=s.sources[0];let count=0,dirty=false;
+  const transforms=s.sources[0];let count=0,first=-1;
   for(let i=0;i<s.count;i++){
     const offset=i*16,x=transforms[offset+12],y=transforms[offset+13],z=transforms[offset+14],radius=s.radii[i];
     let visible=true;
@@ -41,14 +41,16 @@ export function updateGrassVisibility(mesh,camera){
       if(n.x*x+n.y*y+n.z*z+plane.constant < -radius){visible=false;break;}
     }
     if(!visible)continue;
-    if(s.indices[count]!==i){s.indices[count]=i;dirty=true;}
+    if(s.indices[count]!==i){s.indices[count]=i;if(first<0)first=count;}
     count++;
   }
-  if(count!==mesh.count)dirty=true;
-  if(!dirty)return;
+  if(first<0){if(count!==mesh.count)mesh.count=count;return;}
+  // Only the reordered tail is rewritten and uploaded; the unchanged prefix and
+  // the slots past count stay on the GPU as they were.
   for(let a=0;a<s.attributes.length;a++){
     const attribute=s.attributes[a],source=s.sources[a],size=attribute.itemSize,target=attribute.array;
-    for(let i=0;i<count;i++)for(let j=0;j<size;j++)target[i*size+j]=source[s.indices[i]*size+j];
+    for(let i=first;i<count;i++)for(let j=0;j<size;j++)target[i*size+j]=source[s.indices[i]*size+j];
+    attribute.clearUpdateRanges();attribute.addUpdateRange(first*size,(count-first)*size);
     attribute.needsUpdate=true;
   }
   mesh.count=count;

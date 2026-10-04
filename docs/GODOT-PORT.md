@@ -493,8 +493,19 @@ border-road `gate`, blend `band` and the common height `profile` written by
 forest; within the band the heightfield blends to the profile so both sides meet
 at the same ground. Walking on against a seam (`world.seamAt`) calls
 `Game.crossSeam()`, which maps the point to the neighbour's coordinates just inside
-its edge; the web build then reloads into that map (a later streaming pass keeps
-both loaded near the border). The coastlines meet at the same world line. It keeps
+its edge. Every map's rules/collision world is built at boot; the renderer streams
+the neighbouring map's scene (`render/region.js`: terrain, scenery, water, kits,
+town NPCs) a few milliseconds per frame once the player is within 140 m of a seam,
+places it at the atlas delta and drops it past 200 m. If it is ready when the player
+crosses, `Game.enterWorld()` carries the same session on (monsters of the new map,
+discovery swapped, data.world selected) and `View.switchRegion()` makes it the scene
+origin; otherwise the page reloads into the new map (also `?stream=0`). World-space
+ground/water shaders subtract their region's shift (`render/region-shift.js`) to
+sample their own baked fields, and procedural paint, clouds and meadow density use
+world metres (`uNoiseOffset` = atlas offset) so patterns run on across the seam; the
+seam profile also carries a shared ground tint and fades map-local soil patches. In
+Godot: one scene per map placed at its offset, loaded with `ResourceLoader` threads
+near a seam, freed when far; the same seam data applies. The coastlines meet at the same world line. It keeps
 its zone ids, both bosses and the old quest chain (`f_road` → `m_warden` after `h_lighthouse`). Tree density is
 thinned to Azure's level so the map costs no more to draw. Its outpost
 buildings/stalls carry a `kit` node name: draw that node from the approved city

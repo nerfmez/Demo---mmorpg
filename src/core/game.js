@@ -11,7 +11,7 @@ import { rollDrops, addItem } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
-import { enterMap } from './maps.js';
+import { enterMap, selectMap } from './maps.js';
 
 const PLAYER_RADIUS = 0.45;
 const PICKUP_RADIUS = 1.4;
@@ -539,13 +539,46 @@ export class Game {
     if (back.edge === 'maxX') x = Math.min(x, b.maxX - inset);
     if (back.edge === 'minZ') z = Math.max(z, b.minZ + inset);
     if (back.edge === 'maxZ') z = Math.min(z, b.maxZ - inset);
-    return this.arriveIn(seam.to, [Math.round(x * 10) / 10, Math.round(z * 10) / 10], there.nameTh);
+    return this.arriveIn(seam.to, [Math.round(x * 10) / 10, Math.round(z * 10) / 10], there.nameTh, true);
   }
 
-  arriveIn(to, pos, name) {
+  /**
+   * Open world: carry on in the neighbouring map in the same session (no reload).
+   * Call after a crossing (`travelled`) once the destination world is built; the
+   * character already belongs to it. Monsters, shots and drops of the old map end.
+   */
+  enterWorld(world) {
+    const p = this.player, from = this.data.world;
+    if (this.travelled !== world.data.id) throw new Error('enterWorld: not travelling to ' + world.data.id);
+    selectMap(this.data, world.data.id);
+    this.world = world;
+    this.travelled = null;
+    const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1]);
+    const [fx, fz] = from.atlas.offset, [tx, tz] = world.data.atlas.offset;
+    p.x = spot.x;
+    p.z = spot.z;
+    p.dash = null;
+    p.cast = null;
+    p.targetId = null;
+    for (const a of this.allies) {
+      a.x += fx - tx;
+      a.z += fz - tz;
+    }
+    this.monsters = [];
+    this.projectiles = [];
+    this.areas = [];
+    this.drops = [];
+    this.spawnPoints = [];
+    this.zoneId = world.zoneAt(p.x, p.z).id;
+    this.spawnMonsters();
+    this.emit({ type: 'worldChanged', from: from.id, to: world.data.id, shift: [fx - tx, fz - tz] });
+    this.completeQuests(refreshQuests(this.ch, this.data));
+  }
+
+  arriveIn(to, pos, name, seam = false) {
     enterMap(this.ch, this.data, to, pos);
     this.travelled = to; // the character now belongs to the destination map
-    this.emit({ type: 'travel', to, name });
+    this.emit({ type: 'travel', to, name, seam });
     return { ok: true, character: this.ch, to };
   }
 

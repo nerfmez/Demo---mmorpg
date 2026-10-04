@@ -12,7 +12,7 @@ import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
 import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
 import { attachGrassSurface, grassMaterial } from './grass.js';
-import { meadowPlants } from './meadow.js';
+import { meadowPlantSteps } from './meadow.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -113,7 +113,17 @@ export function mergeGeometries(geos) {
   return out;
 }
 
+/** Build the whole scenery now. */
 export function createEnvironment(world) {
+  const steps = environmentSteps(world);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** The scenery in sections; yields between them so a neighbouring map can stream in. */
+export function* environmentSteps(world) {
   const root = new THREE.Group();
   const rng = createRng(99);
   const gy = (x, z) => world.groundY(x, z);
@@ -248,6 +258,7 @@ export function createEnvironment(world) {
   root.add(instanced(new THREE.SphereGeometry(.17, 9, 7).scale(1, .86, 1.12), mat('#ffffff'), fallenCoconuts, { outline: '#3d3524', outlineWidth: 0.01 }));
   root.add(instanced(new THREE.SphereGeometry(.17, 8, 6), mat('#ffffff'), palmCoconuts, { outline: '#3d3524', outlineWidth: 0.012 }));
 
+  yield;
   // ----- rocks, boulders, crystals, stumps, logs -----
   const rocks = [];
   const crystals = [];
@@ -282,6 +293,7 @@ export function createEnvironment(world) {
   logGeo.rotateX(Math.PI / 2);
   root.add(instanced(logGeo, mat('#7f5638'), logs, { outline: '#3b2618', outlineWidth: 0.04 }));
 
+  yield;
   // ----- ruins -----
   const pillars = [];
   const broken = [];
@@ -321,12 +333,14 @@ export function createEnvironment(world) {
     root.add(altar);
   }
 
+  yield;
   // ----- bridges, town, camp -----
   for (const br of world.bridges) root.add(createBridge(world, br));
   root.add(createTown(world, rng));
   if (world.data.harbor) root.add(createHarbor(world));
   if (world.data.camp) root.add(createCamp(world));
 
+  yield;
   // ----- small decoration -----
   const d = world.decor;
   // Grouped plant patches: short curved leaves and readable flowers, leaving paths clear.
@@ -347,13 +361,22 @@ export function createEnvironment(world) {
       grassPatches.push({x:px+Math.cos(a)*r,z:pz+Math.sin(a)*r,s:detailRng.range(.55,.95)});
     }
   }
-  const {grass,flowers}=meadowPlants(world,grassPatches);
-  root.add(instanced(meadowGrass(),grassMaterial(world),grass,{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
+  const {grass,flowers}=yield* meadowPlantSteps(world,grassPatches);
+  yield;
+  // Built a strip of chunks at a time: each chunk mesh is the same as one big call.
+  const bladeGeo=meadowGrass(),bladeMat=grassMaterial(world),strips=new Map();
+  for(const it of grass){const k=Math.floor(it.x/(CHUNK*2));if(!strips.has(k))strips.set(k,[]);strips.get(k).push(it);}
+  for(const strip of [...strips.keys()].sort((a,b)=>a-b)){
+    root.add(instanced(bladeGeo,bladeMat,strips.get(strip),{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
+    yield;
+  }
+  yield;
   root.add(instanced(wildflowers(),patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12}),flowers,{shadow:false}));
   const bushGeo=leafCrown(11);
   const bushes = [],studyBushes=[];
   const berries = [];
   const allBushes=artReviewLayout?[...d.bushes,...animeConfig.sample.bushes.map(([x,z,s])=>({x,z,s}))]:d.bushes;
+  yield;
   for (const bsh of allBushes) {
     const y = gy(bsh.x, bsh.z);
     if(inArtStudy(bsh.x,bsh.z))studyBushes.push({x:bsh.x,z:bsh.z,y:y-.015,sx:1.25*bsh.s,sy:1.05*bsh.s,sz:1.1*bsh.s,ry:bsh.x*.27+bsh.z*.13});
@@ -374,6 +397,7 @@ export function createEnvironment(world) {
   const reedGeo = new THREE.ConeGeometry(0.05, 1.2, 4);
   reedGeo.translate(0, 0.6, 0);
   const reeds = [];
+  yield;
   for (const r of d.reeds) {
     const y = sy(r.x, r.z) - 0.1;
     for (let k = 0; k < 3; k++) reeds.push({ x: r.x + Math.sin(k * 2.1) * 0.2, z: r.z + Math.cos(k * 2.1) * 0.2, y, s: r.s, rz: Math.sin(k + r.rot) * 0.15, color: k === 1 ? '#7a9b3c' : '#5f8a35' });
@@ -389,6 +413,7 @@ export function createEnvironment(world) {
   root.add(instanced(fernGeometry(),fernMat,d.ferns.map((f)=>({x:f.x,z:f.z,y:gy(f.x,f.z)-.015,s:f.s,ry:f.rot})),{shadow:false}));
   const stems = [];
   const caps = [];
+  yield;
   for (const m of d.mushrooms) {
     const y = gy(m.x, m.z);
     for (let k = 0; k < 3; k++) {
@@ -418,6 +443,7 @@ export function createEnvironment(world) {
   barrelGeo.translate(0, 0.5, 0);
   root.add(instanced(barrelGeo, mat('#9a6a42'), barrels.map((c) => ({ x: c.x, z: c.z, y: gy(c.x, c.z), s: c.s, ry: c.rot })), { outline: '#3b2618', outlineWidth: 0.03 }));
 
+  yield;
   // fences, lanterns, banners
   const posts = [];
   const rails = [];
@@ -438,6 +464,7 @@ export function createEnvironment(world) {
   for (const l of d.lanterns) root.add(lantern(l.x, gy(l.x, l.z), l.z));
   for (const bn of d.banners) root.add(banner(bn.x, gy(bn.x, bn.z), bn.z, bn.color));
 
+  yield;
   // waypoint stones (the view lights them up once discovered)
   const waypoints = new Map();
   for (const wp of world.waypoints) {
@@ -448,7 +475,8 @@ export function createEnvironment(world) {
   }
   for (const exit of world.exits || []) root.add(exitGate(exit, world));
   // A border gate marks where a road crosses an open seam into the neighbouring map.
-  for (const seam of world.seams || []) if (seam.gate) root.add(exitGate({ id: 'border-' + seam.to, x: seam.gate[0] - seam.outward * (seam.alongX ? 0 : 3), z: seam.gate[1] - seam.outward * (seam.alongX ? 3 : 0) }, world));
+  // Both maps list the seam; the map whose seam edge is minX/minZ draws the one gate.
+  for (const seam of world.seams || []) if (seam.gate && seam.edge.startsWith('min')) root.add(exitGate({ id: 'border-' + seam.to, x: seam.gate[0] - seam.outward * (seam.alongX ? 0 : 3), z: seam.gate[1] - seam.outward * (seam.alongX ? 3 : 0) }, world));
   return { root, waypoints };
 }
 

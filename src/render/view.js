@@ -4,10 +4,6 @@
 // attached. Camera modes: 'title' (slow flyover), 'create' (close-up of the hero preview),
 // 'game' (follow).
 import * as THREE from 'three';
-import { createTerrain, createWater } from './ground.js';
-import { createEnvironment } from './environment.js';
-import { batchStatic } from './static-batch.js';
-import { bakeGrassColours } from './grass.js';
 import { installGrassCulling } from './grass-culling.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
@@ -15,19 +11,20 @@ import { monsterModel } from './models.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
-import { timeUniform, attachWindShadow } from './patch.js';
+import { timeUniform } from './patch.js';
 import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
-import { residentTool } from './districts.js';
-import { loadCity } from './city.js';
-import { loadTownKit } from './town-kit.js';
+import { buildRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
-const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
+const VIEW_RADIUS = 58;
+// Open world: start building the neighbouring map this far (m) inside a seam, drop it
+// past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
+const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)
 // Monster models are skinned, so three.js cannot cull them (frustumCulled is off); the view tests a
 // sphere around each one against the camera instead. The margin keeps a monster just past the edge
 // drawn, so its shadow and wind-up do not pop in.
@@ -50,7 +47,6 @@ const ZONE_FOG = {
 
 export class View {
   constructor(canvas, world, { quality = 'high' } = {}) {
-    this.world = world;
     this.game = null;
     this.quality = qualitySettings(quality).name;
     this.mode = 'title';
@@ -91,70 +87,15 @@ export class View {
     this.scene.add(this.sun, this.sun.target);
     syncPaintedLighting(this.hemisphere, this.sun);
 
-    this.terrain = createTerrain(world);
-    this.scene.add(this.terrain.group);
-    const env = createEnvironment(world);
-    // Keep only authored native hull/pile contact roots before batching moves
-    // their geometry. These CPU-only clones share buffers and are never rendered.
-    const nativeContacts=new THREE.Group();
-    if(world.data.city?.enabled){
-      env.root.updateMatrixWorld(true);
-      env.root.traverse(o=>{if(o.userData.waterContact){const copy=o.clone(true);o.matrixWorld.decompose(copy.position,copy.quaternion,copy.scale);nativeContacts.add(copy);}});
-    }
-    if(!world.data.city?.enabled)this.scene.add(createWater(world, env.root));
-    env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
-    bakeGrassColours(this.renderer, env.root, world); // one GPU pass; blades then just read colours
-    // after the water-contact bake: merge fixed scenery that shares a material, per map cell
-    this.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
-    this.scene.add(env.root);
-    installGrassCulling(this.scene,env.root);
-    this.waypointStones = env.waypoints;
-    this.cityReady = loadCity(world).then(city => {
-      if (city) {
-        this.scene.add(city.root); this.cityRoot = city.root; this.cityStats = city.stats;
-        // One bake from actual native hulls and imported foundations/piles.
-        const start=performance.now();nativeContacts.add(city.root);
-        const water=createWater(world,nativeContacts);
-        nativeContacts.remove(city.root);this.scene.add(city.root,water);
-        this.cityStats.waterContactMs=performance.now()-start;
-        this.cityStats.waterContactSections=water.userData.contactSections;
-      }
-    }).then(() => loadTownKit(world)).then(kit => {
-      if (kit) { this.scene.add(kit.root); this.townKitRoot = kit.root; this.townKitStats = kit.stats; }
-    });
-
     this.vfx = new Vfx(this.scene, world);
 
-    // town NPCs
-    const t = world.data.town;
-    this.npcs = [];
-    const smith = buildHumanoid({ skin: '#e8b890', hair: '#8a4a2a', tunic: '#d9c7a8', hairStyle: 'short' }, {}, { npc: true, apron: '#5b3a22', beard: '#8a4a2a' });
-    smith.root.position.set(t.workbench[0] + 1.6, world.groundY(t.workbench[0] + 1.6, t.workbench[1] + 0.2), t.workbench[1] + 0.2);
-    smith.root.rotation.y = -Math.PI / 2 - 0.4;
-    smith.job = 'smith';
-    const trainer = buildHumanoid({ skin: '#f6d2b5', hair: '#f0d48a', tunic: '#fbf6ee', scarf: '#3b6ad0', eyes: '#3a6ad0' }, {}, { npc: true, longHair: true, straps: true, scarf: true });
-    trainer.root.position.set(t.trainer[0] + 1.2, world.groundY(t.trainer[0] + 1.2, t.trainer[1] - 0.2), t.trainer[1] - 0.2);
-    trainer.root.rotation.y = -Math.PI / 2 + 0.3;
-    trainer.job = 'trainer';
-    const townNpcs = [smith, trainer];
-    for (const resident of t.residents || []) {
-      const n = buildHumanoid(resident.look, {}, { npc: true, ...(resident.outfit || {}) });
-      n.root.position.set(resident.x, world.groundY(resident.x, resident.z), resident.z);
-      n.root.rotation.y = resident.angle;
-      n.root.userData.residentId = resident.id;
-      n.scenery = true;
-      n.activity = resident.activity;
-      if (resident.tool) n.bones.handR.add(residentTool(resident.tool));
-      townNpcs.push(n);
-    }
-    for (const n of townNpcs) {
-      n.anim = new HumanoidAnimator(n);
-      n.idleState = { speed: 0, facing: n.root.rotation.y, moving: false, dash: null, dead: false, time: 0 };
-      this.scene.add(n.root);
-      if (n.scarf) this.scene.add(n.scarf.mesh);
-      this.npcs.push(n);
-    }
-    this.npcMarkers = [this.marker(t.workbench[0], t.workbench[1], '#ffd166'), this.marker(t.trainer[0], t.trainer[1], '#8fd0ff')];
+    // The map's static scene; a neighbouring map streams in beside it (region.js).
+    this.region = buildRegion(this, world);
+    this.scene.add(this.region.root);
+    this.neighbours = new Map();
+    this.cityReady = this.region.ready;
+    this.grassList = [...this.region.grass]; // rebuilt only when a region comes or goes
+    installGrassCulling(this.scene, () => this.grassList);
 
     this.monsterViews = new Map();
     this.cullMonsters = true; // skip monster models outside the camera (off only to measure)
@@ -171,20 +112,110 @@ export class View {
     this.aimArrow.visible = false;
     this.scene.add(this.aimArrow);
 
-    // campfire flame and house chimneys
-    this.fires = [];
-    if (world.data.camp) {
-      const [fx, fz] = world.data.camp.fire;
-      const f = this.vfx.sprite(0xffa040, 1.6, 0.9);
-      f.position.set(fx, world.groundY(fx, fz) + 0.6, fz);
-      this.scene.add(f);
-      this.fires.push({ sprite: f, x: fx, z: fz });
-    }
-    this.chimneys = world.boxes.filter((b) => b.type === 'house' && !b.kit).map((b) => new THREE.Vector3(b.x, world.groundY(b.x, b.z) + 4.9, b.z));
     this.ambientT = 0;
 
     this.raycaster = new THREE.Raycaster();
     this.resize();
+  }
+
+  // The active map's region (region.js) owns its static scene and town NPCs.
+  get world() { return this.region.world; }
+  get terrain() { return this.region.terrain; }
+  get waypointStones() { return this.region.waypointStones; }
+  get npcs() { return this.region.npcs; }
+  get npcMarkers() { return this.region.npcMarkers; }
+  get fires() { return this.region.fires; }
+  get chimneys() { return this.region.chimneys; }
+  get staticBatch() { return this.region.staticBatch; }
+  get cityRoot() { return this.region.cityRoot; }
+  get cityStats() { return this.region.stats.city; }
+  get townKitRoot() { return this.region.townKitRoot; }
+  get townKitStats() { return this.region.stats.townKit; }
+
+  // ---------- open world streaming ----------
+  // Near an open seam the neighbouring map is built a few milliseconds per frame and
+  // placed at its atlas delta, so it is in view before the border and walking across
+  // needs no reload. Far from every seam it is dropped again (memory returns to one map).
+  updateStreaming(px, pz) {
+    if (!this.coreWorld) return;
+    const world = this.world, b = world.bounds;
+    const wanted = new Set();
+    for (const seam of world.seams) {
+      const along = seam.alongX ? px : pz, inside = (b[seam.edge] - (seam.alongX ? pz : px)) * seam.outward;
+      const near = along > seam.span[0] - STREAM_IN && along < seam.span[1] + STREAM_IN;
+      if (near && inside < STREAM_OUT) wanted.add(seam.to);
+      if (near && inside < STREAM_IN && !this.neighbours.has(seam.to)) this.neighbours.set(seam.to, { steps: regionSteps(this, this.coreWorld(seam.to)), region: null, buildMs: 0 });
+    }
+    for (const [id, n] of this.neighbours) {
+      if (!wanted.has(id)) {
+        if (n.region) disposeRegion(n.region);
+        else n.steps.return();
+        this.neighbours.delete(id);
+        this.refreshGrass();
+        continue;
+      }
+      if (!n.steps) continue;
+      const start = performance.now();
+      do {
+        const t0 = performance.now();
+        const r = n.steps.next();
+        (n.stepMs ||= []).push(Math.round(performance.now() - t0));
+        if (r.done) {
+          n.region = r.value;
+          n.steps = null;
+          this.placeNeighbour(n.region);
+          this.scene.add(n.region.root);
+          this.refreshGrass();
+          break;
+        }
+      } while (performance.now() - start < (this.streamBudgetMs ?? STREAM_BUDGET_MS));
+      n.buildMs += performance.now() - start;
+    }
+  }
+
+  placeNeighbour(region) {
+    const [ax, az] = this.world.data.atlas.offset, [nx, nz] = region.world.data.atlas.offset;
+    placeRegion(region, nx - ax, nz - az);
+  }
+
+  neighbourReady(id) {
+    return !!this.neighbours.get(id)?.region;
+  }
+
+  /**
+   * The player walked across a seam and the game now plays `id` (Game.enterWorld):
+   * that region becomes the scene origin and the old one becomes its neighbour.
+   * The camera and every view in game coordinates move by the same shift.
+   */
+  switchRegion(id) {
+    const next = this.neighbours.get(id)?.region;
+    if (!next) return false;
+    const prev = this.region, [ax, az] = prev.world.data.atlas.offset, [nx, nz] = next.world.data.atlas.offset;
+    const dx = ax - nx, dz = az - nz; // old local -> new local
+    this.neighbours.delete(id);
+    this.region = next;
+    placeRegion(next, 0, 0);
+    this.neighbours.set(prev.world.data.id, { steps: null, region: prev, buildMs: 0 });
+    for (const n of this.neighbours.values()) if (n.region) this.placeNeighbour(n.region);
+    this.camTarget.x += dx;
+    this.camTarget.z += dz;
+    this.camera.position.x += dx;
+    this.camera.position.z += dz;
+    this.lastHeroPos = null;
+    this.hero?.scarf?.reset();
+    for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
+    this.monsterViews.clear();
+    for (const v of this.dropViews.values()) disposeObject(v);
+    this.dropViews.clear();
+    this.vfx.world = next.world;
+    for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = next.world;
+    this.refreshGrass();
+    return true;
+  }
+
+  refreshGrass() {
+    this.grassList = [...this.region.grass];
+    for (const n of this.neighbours.values()) if (n.region) this.grassList.push(...n.region.grass);
   }
 
   /** Attach (or replace) the running game. */
@@ -787,6 +818,7 @@ export class View {
       focus = { x: p.x + g.input.moveX * 1.2, y: this.heroY, z: p.z + g.input.moveZ * 1.2 };
       zoneId = world.zoneAt(p.x, p.z).id;
       this.updateCamera(dt, focus);
+      this.updateStreaming(p.x, p.z);
       for (const n of this.npcs) {
         if (n.scenery) {
           const dx = n.root.position.x - p.x, dz = n.root.position.z - p.z;

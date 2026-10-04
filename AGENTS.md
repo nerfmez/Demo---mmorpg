@@ -4,7 +4,7 @@ Current rules only. The code and `data/` are the source of truth for numbers.
 
 ## What this is
 
-A playable web demo (Azure Coast plus the linked Greenhollow Frontier map, one built at a time) of an anime-style top-down MMORPG with PoE-style buildcraft. The design brief is `docs/DESIGN-SUMMARY-TH.txt`; `docs/DESIGN-STATUS.md` tracks what is built. The owner plays on an iPad (Safari/WebKit) and does not use a computer, so every change must work with touch controls.
+A playable web demo (an open world: Azure Coast and the Greenhollow Frontier meet along a seam; the neighbouring map streams in near the border) of an anime-style top-down MMORPG with PoE-style buildcraft. The design brief is `docs/DESIGN-SUMMARY-TH.txt`; `docs/DESIGN-STATUS.md` tracks what is built. The owner plays on an iPad (Safari/WebKit) and does not use a computer, so every change must work with touch controls.
 
 ## Architecture rules (keep it Godot-portable)
 

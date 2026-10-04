@@ -19,6 +19,8 @@ const edgeHeight = (world, seam, along) => {
   const b = world.bounds, alongX = seam.edge === 'minZ' || seam.edge === 'maxZ';
   return alongX ? world.terrainY(along, b[seam.edge]) : world.terrainY(b[seam.edge], along);
 };
+const alongX2 = (seam) => seam.edge === 'minZ' || seam.edge === 'maxZ';
+const mixHex = (a, b) => '#' + [1, 3, 5].map((i) => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, '0')).join('');
 const profiles = {};
 for (const [id, map] of Object.entries(data.maps)) {
   for (const seam of map.atlas?.seams || []) {
@@ -31,7 +33,11 @@ for (const [id, map] of Object.entries(data.maps)) {
       const [x, z] = alongX ? [a, b[seam.edge]] : [b[seam.edge], a];
       // Dry land stays clear of the water level; the sea keeps its own depth.
       const floor = raw[id].inSea(x, z, 2) ? -Infinity : raw[id].waterLevel + 0.35;
-      out.push([a, Math.round(Math.max(floor, (mine + theirs) / 2) * 100) / 100]);
+      // Ground tint: both maps' zone palettes averaged, so the paint meets as well.
+      const [ox2, oz2] = alongX2(back) ? [a + shift, raw[seam.to].bounds[back.edge]] : [raw[seam.to].bounds[back.edge], a + shift];
+      const mineZone = raw[id].zoneAt(x, z), theirZone = raw[seam.to].zoneAt(ox2, oz2);
+      const [L, D] = [0, 1].map((k) => mixHex(mineZone.palette?.[k] || '#9ccf5a', theirZone.palette?.[k] || '#78b046'));
+      out.push([a, Math.round(Math.max(floor, (mine + theirs) / 2) * 100) / 100, L, D]);
     }
     profiles[id] = (profiles[id] || []).concat([{ seam, profile: out }]);
   }

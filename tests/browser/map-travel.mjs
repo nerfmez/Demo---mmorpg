@@ -1,5 +1,7 @@
 // Azure west border road -> Greenhollow Frontier -> back, by walking across the open
-// seam (keyboard, the same input path as the joystick) and the page reload. Checks the saved slot, per-map discovery and that only one map is built.
+// seam (keyboard, the same input path as the joystick) with streaming off (?stream=0),
+// so the reload fallback and the saved slot are what is tested; open-world.mjs covers
+// the in-place hand-over. Checks the saved slot, per-map discovery and that only one map is built.
 import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
@@ -9,7 +11,7 @@ import {createCharacter} from '../../src/core/character.js';
 import {enterFullscreenGate} from './fullscreen-entry.mjs';
 const data=loadData(),AZURE='azure-harbor-v1',FRONTIER='frontier-wilds-v1';
 const character=createCharacter(data,{name:'นักเดินทาง'});Object.assign(character,{gold:777,level:6});
-const url=process.env.TRAVEL_URL||'http://localhost:4196/?quality=low&seed=3',out=new URL(`./out/map-travel-${process.env.BROWSER||'chromium'}/`,import.meta.url).pathname;mkdirSync(out,{recursive:true});
+const url=process.env.TRAVEL_URL||'http://localhost:4196/?quality=low&seed=3&stream=0',out=new URL(`./out/map-travel-${process.env.BROWSER||'chromium'}/`,import.meta.url).pathname;mkdirSync(out,{recursive:true});
 const server=process.env.TRAVEL_URL?null:spawn('node',['node_modules/vite/bin/vite.js','preview','--port','4196','--strictPort'],{stdio:'ignore',detached:true});
 if(server)for(let i=0;;i++){try{if((await fetch(url)).ok)break;}catch{}if(i>60)throw Error('travel server startup');await new Promise(r=>setTimeout(r,250));}
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;

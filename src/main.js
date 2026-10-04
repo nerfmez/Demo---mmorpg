@@ -36,10 +36,19 @@ const trip = takeTravel();
 const tripCharacter = trip ? (trip.slot ? loadSlot(trip.slot)?.character : trip.character) : null;
 selectMap(data, tripCharacter ? characterMap(data, tripCharacter) : params.get('map'));
 document.querySelector('#loading .load-title').textContent = data.world.name || '';
-const world = createWorld(data.world);
+// Every map's rules/collision are built up front (cheap next to rendering), so the
+// open world can stream a neighbouring map's scene and hand over without a reload.
+const worlds = Object.fromEntries(Object.keys(data.maps).map((id) => [id, null]));
+const coreWorld = (id) => (worlds[id] ||= createWorld(data.maps[id]));
+const world = coreWorld(data.world.id);
+for (const id of Object.keys(worlds)) coreWorld(id);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality });
+// ?stream=0 turns open-world streaming off (seams then cross with a reload, as in tests).
+if (params.get('stream') !== '0') view.coreWorld = coreWorld;
+// ?streamBudget=<ms> lets software-GPU tests stream the neighbour in fewer (slow) frames.
+if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
 // Imported models load in the background; the procedural shapes stand in until they arrive,
 // then the hero, the creation preview and the portrait are rebuilt once.
 Promise.all([loadModels(data.models), view.cityReady]).then(() => {
@@ -54,7 +63,8 @@ const setQuality = (q) => {
   view.setQuality(q);
 };
 
-const F = (window.__frontier = { view, world, fps: 0, paused: false, game: null });
+const F = (window.__frontier = { view, fps: 0, paused: false, game: null });
+Object.defineProperty(F, 'world', { get: () => view.world }); // follows open-world crossings
 let session = null;
 const fullscreen = createFullscreen({
   bypass: fresh, // Existing never-saved browser-test fixture skips the entry menu.
@@ -254,7 +264,15 @@ function frame(now) {
     if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {
       if (e.type === 'travel') {
-        // Through an exit or across an open seam: stop this map and load the next.
+        if (e.seam && view.neighbourReady(e.to)) {
+          // Open world: the neighbouring map is already streamed in; carry on in place.
+          s.game.enterWorld(coreWorld(e.to));
+          view.switchRegion(e.to);
+          s.hud.toast(e.name, '#bfe6ff');
+          s.save();
+          continue;
+        }
+        // An exit, or a seam reached before its neighbour finished streaming: reload.
         session = null;
         travelTo(s.game.ch, s.slot, e.name);
         break;

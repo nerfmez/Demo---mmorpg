@@ -133,3 +133,32 @@ test('v4 saves gain per-map discovery; a Frontier save loaded on Azure is moved,
   assert.equal(characterMap(data, legacy), AZURE);
   assert.equal(migrateCharacter(legacy, data).pos, null);
 });
+
+test('open world: the same session carries on in the neighbouring map without a reload', () => {
+  const shared = { ...data, world: data.maps[AZURE] }; // one data view, swapped in place
+  const g = new Game(shared, { world: worlds[AZURE], seed: 6 });
+  const seam = worlds[AZURE].seams[0];
+  [g.player.x, g.player.z] = [seam.gate[0] + 1.5, seam.gate[1]];
+  const before = g.player.id, oldMonsters = g.monsters.length;
+  g.input.moveX = -1;
+  for (let i = 0; i < 120 && !g.travelled; i++) g.update(1 / 60);
+  assert.equal(g.travelled, FRONTIER);
+  assert.throws(() => g.enterWorld(worlds[AZURE]), /not travelling/);
+  g.enterWorld(worlds[FRONTIER]);
+  assert.equal(g.travelled, null);
+  assert.equal(shared.world, data.maps[FRONTIER], 'the data view now plays the Frontier');
+  assert.equal(g.world, worlds[FRONTIER]);
+  assert.equal(g.player.id, before, 'same player, same session');
+  assert.ok(worlds[FRONTIER].isFree(g.player.x, g.player.z, 0.45));
+  assert.ok(g.monsters.length > 0 && g.monsters.length !== oldMonsters, 'Frontier monsters replace Azure ones');
+  assert.ok(g.spawnPoints.some((s) => s.monster === 'greyfang'));
+  const changed = g.drainEvents().find((e) => e.type === 'worldChanged');
+  assert.deepEqual(changed.shift, [384, 93], 'old local -> new local shift for the renderer');
+  // Keep playing: walk back east across the same seam.
+  g.input.moveX = 1;
+  for (let i = 0; i < 240 && !g.travelled; i++) g.update(1 / 60);
+  assert.equal(g.travelled, AZURE);
+  g.enterWorld(worlds[AZURE]);
+  assert.equal(shared.world, data.maps[AZURE]);
+  assert.ok(Math.abs(g.player.z - seam.gate[1]) < 2);
+});

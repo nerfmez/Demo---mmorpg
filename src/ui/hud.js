@@ -145,6 +145,7 @@ export class Hud {
     });
     this.tracker = this.el.topright.querySelector('.questtrack');
     this.map = mapImage(game.world);
+    this.mapWorld = game.world;
   }
 
   setPortrait(url) {
@@ -185,6 +186,11 @@ export class Hud {
     const S = this.mini.width;
     const game = this.game;
     const p = game.player;
+    // Open world: after walking into the neighbouring map the minimap follows it.
+    if (this.mapWorld !== this.game.world) {
+      this.mapWorld = this.game.world;
+      this.map = mapImage(this.game.world);
+    }
     const mb = this.map;
     const range = 36; // metres from the centre to the edge
     const k = S / 2 / range; // canvas px per metre

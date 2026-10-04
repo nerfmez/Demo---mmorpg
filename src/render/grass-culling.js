@@ -15,12 +15,15 @@ export function prepareGrassCulling(mesh){
 // Scene hooks run after world/camera matrices update and before render-list
 // construction uploads attributes. Object hooks would leave this draw one frame
 // behind the camera: count changes immediately, but reordered GPU buffers do not.
-export function installGrassCulling(scene,root){
-  const meshes=[];root.traverse(o=>{if(o.userData.grassCulling)meshes.push(o);});
+// `source` is a root to collect from once, or a function returning the current meshes
+// (the open world adds and drops a neighbouring map's grass).
+export function installGrassCulling(scene,source){
+  const meshes=[];if(typeof source!=='function')source.traverse(o=>{if(o.userData.grassCulling)meshes.push(o);});
+  const list=typeof source==='function'?source:()=>meshes;
   const previous=scene.onBeforeRender;
   scene.onBeforeRender=function(renderer,renderedScene,camera,target){
     previous.call(this,renderer,renderedScene,camera,target);
-    for(const mesh of meshes)updateGrassVisibility(mesh,camera);
+    for(const mesh of list())updateGrassVisibility(mesh,camera);
   };
 }
 export function updateGrassVisibility(mesh,camera){

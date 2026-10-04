@@ -1,13 +1,21 @@
 // Cosmetic planting only. Terrain, roads, colliders, quest and save data are untouched.
 import art from '../../data/art.json' with {type:'json'};
 import { createRng } from '../core/rng.js';
-import { meadowDensity } from './ground-field.js';
+import { meadowDensity as worldMeadow } from './ground-field.js';
 import { surfaceData } from './ground.js';
 import {outsideRoadDistance} from '../core/ground-regions.js';
 import { cityFloorAt, cityPlantingFloorAt } from '../core/city.js';
 
 export function meadowPlants(world, extraPatches=[]) {
+  const steps=meadowPlantSteps(world,extraPatches);
+  for(;;){const r=steps.next();if(r.done)return r.value;}
+}
+
+/** The same placements in slices (open-world streaming); identical RNG order. */
+export function* meadowPlantSteps(world, extraPatches=[]) {
   const rng=createRng(842),field=surfaceData(world),hf=world.heightfield,grass=[],flowers=[];
+  // Meadow density is a world-metre pattern (atlas offset), continuous across open seams.
+  const [nox,noz]=world.data.atlas?.offset||[0,0],meadowDensity=(x,z)=>worldMeadow(x+nox,z+noz);
   const sample=(array,x,z,stride=1)=>{
     const gx=Math.max(0,Math.min(hf.w-1.00001,(x-hf.ox)/hf.res)),gz=Math.max(0,Math.min(hf.h-1.00001,(z-hf.oz)/hf.res));
     const i=Math.floor(gx),j=Math.floor(gz),u=gx-i,v=gz-j,a=j*hf.w+i;
@@ -48,7 +56,8 @@ export function meadowPlants(world, extraPatches=[]) {
       grass.push({x,z,y:world.groundY(x,z)-.018,ry:axis+r0.range(-1.0,1.0),s});
     }
   };
-  for(const patch of patches)plant(patch,rng);
+  let done=0;
+  for(const patch of patches){plant(patch,rng);if(++done%120===0)yield;}
   for(const patch of flowerPatches){
     if(meadowDensity(patch.x,patch.z)<.18)continue;
     const count=patch.color<=1?7:4,axis=rng.range(0,6.28);
@@ -61,12 +70,12 @@ export function meadowPlants(world, extraPatches=[]) {
   // Fill open meadows outside town too, so clearings are grassy rather than bare paint. Its own
   // generator, run last, keeps every map/town patch and flower exactly where it was.
   const wild=createRng(1931),wildSpacing=art.ground.wildPatchSpacing;
-  for(let z=b.minZ+wildSpacing/2;z<b.maxZ;z+=wildSpacing)for(let x=b.minX+wildSpacing/2;x<b.maxX;x+=wildSpacing){
+  for(let z=b.minZ+wildSpacing/2;z<b.maxZ;z+=wildSpacing){yield;for(let x=b.minX+wildSpacing/2;x<b.maxX;x+=wildSpacing){
     if(world.zoneAt(x,z).safe)continue;
     const px=x+wild.range(-2.2,2.2),pz=z+wild.range(-2.2,2.2);
     if(!clear(px,pz)||meadowDensity(px,pz)<art.ground.wildMinDensity)continue;
     plant({x:px,z:pz,s:wild.range(.7,1.05)},wild);
-  }
+  }}
   // Newly exposed ground gets its own restrained native lawn patches, after
   // the unchanged map passes. Existing meadow/flower instances keep their RNG.
   const repair=world.data.city?.propertyBoundary;

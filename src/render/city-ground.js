@@ -9,6 +9,7 @@ import { timeUniform } from './patch.js';
 import { distToPolyline } from '../core/math.js';
 import { groundBrushUniform } from './ground-brush.js';
 import { outlined, toon } from './toon.js';
+import { regionShift } from './region-shift.js';
 import art from '../../data/art.json' with {type:'json'};
 
 const colour = hex => { const c = new THREE.Color(hex); return `vec3(${c.r},${c.g},${c.b})`; };
@@ -23,6 +24,7 @@ const edgeDistance = (points,x,z) => {
 };
 
 export function cityGround(world, root) {
+  const shift=regionShift(); // materials are made after the kit loads; keep this region's shift
   const fountain=world.data.city.fountain,floors=world.data.city.floors.slice(0,2), bounds=[-24,-76,194,216],size=512;
   const trees=world.circles.filter(c=>['tree','birch','palm'].includes(c.type)&&cityFloorAt(world.data.city,c.x,c.z));
   const bytes=new Uint8Array(size*size*4);
@@ -63,12 +65,13 @@ export function cityGround(world, root) {
     let released=false;
     m.addEventListener('dispose',()=>{if(released)return;released=true;if(--owners===0){mask.dispose();tintTextures.forEach(t=>t.dispose());}});
     m.onBeforeCompile=shader=>{
-      shader.uniforms.uGroundBrush=brush;shader.uniforms.uCityMask={value:mask};
+      shader.uniforms.uGroundBrush=brush;shader.uniforms.uRegionShift=shift;shader.uniforms.uCityMask={value:mask};
       shader.uniforms.uCapeLight={value:tintTextures[0]};shader.uniforms.uCapeDark={value:tintTextures[1]};shader.uniforms.uTime=timeUniform;
       Object.assign(shader.uniforms,groundFieldUniforms(world));
       shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vCityGround;')
         .replace('#include <common>','#include <common>\nvarying float vCityHeight;')
-        .replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 cityWorld=(modelMatrix*vec4(position,1.0)).xyz;vCityGround=cityWorld.xz;vCityHeight=cityWorld.y;');
+        .replace('#include <common>','#include <common>\nuniform vec3 uRegionShift;')
+        .replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 cityWorld=(modelMatrix*vec4(position,1.0)).xyz-uRegionShift;vCityGround=cityWorld.xz;vCityHeight=cityWorld.y;');
       shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>\nvarying vec2 vCityGround;varying float vCityHeight;uniform sampler2D uCityMask,uCapeLight,uCapeDark;uniform float uTime;\n${GROUND_COLOR_GLSL}
         vec3 citySetts(vec2 w,vec2 size,vec3 tone){
           float row=floor(w.y/size.y);vec2 p=w/size+vec2(mod(row,2.)*.5,0.);

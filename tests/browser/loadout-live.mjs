@@ -25,7 +25,7 @@ const check=async(label,run)=>{await run();checks.push(label);console.log('PASS 
 const state=()=>page.evaluate(()=>{const f=__frontier;return {ui:f.panels.loadout.state,slots:structuredClone(f.game.ch.slots),mods:structuredClone(f.game.ch.mods),gear:structuredClone(f.game.ch.gear),equipped:{...f.game.ch.equipped},save:JSON.parse(localStorage.getItem('frontier.slot.1')).character}});
 const mod=async id=>{const uid=await page.evaluate(id=>__frontier.game.ch.mods.find(m=>m.id===id).uid,id);await tap(`#atelier [data-action="mod"][data-id="${uid}"]`);return uid;};
 const open=async tab=>{await page.evaluate(tab=>__frontier.panels.open(tab),tab);};
-const ready=async()=>{await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier?.game);await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(()=>getComputedStyle(document.getElementById('loading')).opacity==='0');await freezeScene(page);};
+const ready=async()=>{await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier?.game);await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(()=>getComputedStyle(document.getElementById('loading')).opacity==='0');await page.evaluate(()=>window.__loadoutReviewDraw=__frontier.view.render.bind(__frontier.view));await freezeScene(page);};
 const boot=async()=>{await page.goto(origin+'/?quality=low&seed=701&dynres=0');await page.waitForFunction(()=>window.__frontier?.menu);if(await page.locator('.fullscreen-gate').isVisible())await tap(await page.locator('.fullscreen-fallback').isVisible()?'.fullscreen-fallback':'.fullscreen-enter');await tap('[data-act="continue"]');await ready();};
 try {
  await boot();
@@ -56,11 +56,11 @@ try {
  // Review views use a test-only saved character; production state stays entirely native.
  await page.evaluate(ch=>{Object.assign(__frontier.game.ch,ch);__frontier.game.refresh();},character);
  for(const viewport of [{width:1440,height:900},{width:1180,height:820},{width:844,height:390}]){
-  await page.setViewportSize(viewport);
+  await page.setViewportSize(viewport);await page.waitForTimeout(80);await page.evaluate(()=>__loadoutReviewDraw(0,performance.now()/1000,{}));
   for(const view of ['equipment','skills','mods','materials']){
    await open(view==='equipment'||view==='materials'?'bag':view==='mods'?'mods':'skills');
    if(view==='materials')await tap('[data-action="bag-category"][data-id="material"]');else if(view==='equipment')await tap('[data-action="bag-category"][data-id="gear"]');
-   await page.waitForFunction(()=>[...document.querySelectorAll('#atelier img')].every(i=>i.complete&&i.naturalWidth));
+   await page.waitForFunction(()=>[...document.querySelectorAll('#atelier img')].every(i=>i.complete&&i.naturalWidth));await page.locator('#atelier img').evaluateAll(async images=>{await Promise.all(images.map(image=>image.decode()));});
    await check(`${view} ${viewport.width}x${viewport.height}: distinct windows, actions, no essential scroll`,async()=>{
     const geo=await page.evaluate(()=>{const r=e=>{const a=e.getBoundingClientRect();return {x:a.x,y:a.y,right:a.right,bottom:a.bottom}};const panels=[...document.querySelectorAll('#atelier .window')].map(r),bad=[...document.querySelectorAll('#atelier button')].filter(e=>e.getClientRects().length).map(r).filter(r=>r.x<0||r.y<0||r.right>innerWidth+.5||r.bottom>innerHeight+.5),shelf=document.querySelector('.selection-shelf');return {panels,bad,scroll:document.documentElement.scrollHeight,height:innerHeight,shelf:r(shelf),actions:[...shelf.querySelectorAll('button')].map(r),coinBounds:[...document.querySelectorAll('#atelier .coin-cell')].map(cell=>({cell:r(cell),coin:r(cell.querySelector('.coin'))})),pngs:document.querySelectorAll('#atelier .object-art img').length};});
     assert.ok(geo.panels[1].x-geo.panels[0].right>=40);assert.equal(geo.bad.length,0,JSON.stringify(geo));assert.ok(geo.scroll<=geo.height);assert.ok(geo.coinBounds.every(({cell,coin})=>coin.y>=cell.y-.5&&coin.bottom<=cell.bottom+.5),'coin art fits each library cell');assert.ok(geo.actions.every(a=>a.bottom<=geo.shelf.bottom+.5));if(process.env.REQUIRE_RASTER==='1')assert.ok(geo.pngs>0,'supplied PNGs resolve');geometry.push({view,viewport,...geo});

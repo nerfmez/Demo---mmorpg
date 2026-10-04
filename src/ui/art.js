@@ -1,3 +1,4 @@
+import {rasterIconMarkup} from './raster-icons.js';
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
@@ -215,6 +216,8 @@ Object.assign(skill,SKILL_ART);
 export const ART = { gear, material, skill, mod, monster, zone, job };
 export function hasArt(kind, id) { return !!ART[kind]?.[id]; }
 export function art(kind, id, className = '') {
+  const raster = rasterIconMarkup(kind, id, className);
+  if (raster) return raster;
   const body = ART[kind]?.[id];
   if (!body) throw new Error('Missing authored artwork: ' + kind + '/' + id);
   return '<span class="art art-' + kind + ' ' + className + '" data-art="' + kind + '/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + (['zone','mod','gear','material','skill'].includes(kind) ? '' : shadow) + body + '</svg></span>';

@@ -55,14 +55,18 @@ try {
   assert.equal(await page.locator('.combat .art-skill').count(),5);
   assert.equal(await page.locator('.combat [data-field-skill]').count(),0);
   const expectedArt=Object.fromEntries([...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)].map(id=>[id,art('skill',id)]));
-  const verifiedArt=await page.evaluate(expected=>{
+  const verifiedArt=await page.evaluate(async expected=>{
     const f=window.__frontier,g=f.game;
     const saved={slots:g.ch.slots.map(s=>({...s,mods:[...s.mods]})),skills:{...g.ch.skills},movement:g.ch.movement};
     let checked=0;
-    const check=(button,id)=>{
+    const check=async(button,id)=>{
       const template=document.createElement('template');template.innerHTML=expected[id];
-      if(button.querySelector('.ic').innerHTML!==template.innerHTML)throw Error('Original artwork mismatch: '+id);
-      const svg=button.querySelector('.art-skill>svg');
+      const actual=document.createElement('template');actual.innerHTML=button.querySelector('.ic').innerHTML;
+      // Node emits /assets while Vite Pages builds emit ./assets; compare their canonical URLs.
+      for(const fragment of [template.content,actual.content])for(const img of fragment.querySelectorAll('img'))img.setAttribute('src',new URL(img.getAttribute('src').replace(/^\.?\//,''),document.baseURI).href);
+      if(actual.innerHTML!==template.innerHTML)throw Error('Artwork mismatch: '+id);
+      const svg=button.querySelector('.art-skill>svg, .art-skill>img');
+      if(svg?.tagName==='IMG')await svg.decode();
       if(!svg||getComputedStyle(svg).filter!=='none')throw Error('Artwork recoloured: '+id);
       const r=svg.getBoundingClientRect(),b=button.getBoundingClientRect();
       if(r.width<16||r.height<16||r.left<b.left||r.top<b.top||r.right>b.right||r.bottom>b.bottom)throw Error('Artwork clipped: '+id);
@@ -71,10 +75,10 @@ try {
     try {
       for(const id of Object.keys(g.data.skills.combat)){
         g.ch.slots[0]={skill:id,mods:[]};g.ch.skills[id]=1;g.refresh();f.input.refreshButtons();
-        check(f.input.buttons[0],id);
+        await check(f.input.buttons[0],id);
       }
       for(const id of Object.keys(g.data.skills.movement)){
-        g.ch.movement=id;g.refresh();f.input.refreshButtons();check(f.input.moveBtn,id);
+        g.ch.movement=id;g.refresh();f.input.refreshButtons();await check(f.input.moveBtn,id);
       }
     } finally {
       g.ch.slots=saved.slots;g.ch.skills=saved.skills;g.ch.movement=saved.movement;g.refresh();f.input.refreshButtons();

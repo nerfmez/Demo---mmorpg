@@ -5,13 +5,13 @@ import {createCharacter, expToNext, jobExpToNext} from '../../src/core/character
 import {xpPresentation, trackerMarkup} from '../../src/ui/fieldhud.js';
 import {art, hasArt} from '../../src/ui/art.js';
 import {readFileSync} from 'node:fs';
-test('all combat and movement skills retain the original authored illustrations',()=>{
+test('all combat and movement skills retain authored content-specific illustrations',()=>{
  for(const id of [...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)]){
   assert.ok(hasArt('skill',id),id);
   assert.ok(art('skill',id).includes('data-art="skill/'+id+'"'),id);
  }
 });
-test('HUD uses original skill art rather than replacement glyphs',()=>{
+test('HUD uses content-specific skill art rather than generic glyphs',()=>{
  const input=readFileSync(new URL('../../src/ui/input.js',import.meta.url),'utf8');
  assert.ok(input.includes("s ? art('skill',s.id) : icon('plus')"));
  assert.ok(input.includes("innerHTML = art('skill',mv.id);"));

@@ -43162,6 +43162,11 @@
       ]
     }
   ],
+  "materialColors": {
+    "03_Indigo_timber": "#7a5537",
+    "03 • weathered indigo timber": "#7a5537",
+    "04 • dark joinery": "#5a3e2a"
+  },
   "meshColors": {
     "AC_Ship_Under_Construction_Mesh_1": "#6b4a30",
     "AC_Ship_Under_Construction_Mesh_3": "#8a6240"

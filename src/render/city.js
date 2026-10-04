@@ -5,6 +5,7 @@ import { toon, darker, outlineMaterial } from './toon.js';
 import { outlineStructure } from './architecture.js';
 import { batchStatic } from './static-batch.js';
 import { cityFloorAt } from '../core/city.js';
+import { cityColor } from './city-palette.js';
 import { cityGround } from './city-ground.js';
 import { cityFountain } from './city-fountain.js';
 import { cityBank } from './city-bank.js';
@@ -78,8 +79,8 @@ export async function loadCity(world) {
         mesh.removeFromParent();mesh.geometry.dispose();continue;
       }
       meshes++;
-      // Recolour only named source parts (e.g. teal ship stringers) to the wood palette.
-      const tint=city.meshColors?.[mesh.name],base=tint?new THREE.Color(tint):old.color;
+      // Indigo/teal timber reads as blue paint on buildings; data maps it to wood.
+      const base=cityColor(city,old,mesh.name);
       const key = `${base.getHex()}/${old.emissive?.getHex() || 0}`;
       if (!materials.has(key)) {
         const m = toon('#' + base.getHexString()).clone();

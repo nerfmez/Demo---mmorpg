@@ -96,6 +96,7 @@ export function listSlots() {
       kit: c.kit || 'sword',
       playTime: c.progress?.playTime || 0,
       zones: c.progress?.zones?.length || 1,
+      worldId: c.worldId || null,
       bossKills: c.bossKills || 0,
       bosses: Object.keys(c.progress?.bossKills || {}).length,
       savedAt: s.savedAt || 0,

@@ -12,9 +12,27 @@ inspector are hidden. The chart owns the screen between a small search/points
 bar and pan/zoom controls. Details appear only after selecting a node and have
 an explicit close button. The initial overview never opens a details panel.
 
-Other build workspaces use quiet dark translucent panels and blue selection
-accents (the owner's Minimal Panel direction). Equipping skills, managing mods,
-movement, upgrades, inventory and crafting still have separate responsibilities.
+Equipment/inventory and skill/mod management now use the reviewed two-window
+landscape layout. The left equipment window owns the full-body equipped avatar;
+the right bag owns paginated painted objects and a compact selected-item action.
+The skill window shows four combat objects and their actual mod sockets, plus the
+separate movement slot. The right library contains skill art and owned coin
+instances. Coins use red for attack power, blue for mechanics and green for
+support; these colors never identify damage elements.
+
+Details open on tap. Existing upgrade, grade and sale handlers remain available
+in inventory details; skill/mod upgrades and crafting keep their existing pages.
+The accepted passive travel journal is unchanged. Portrait shows a rotate prompt
+for these two workspaces; their essential landscape actions never require scroll.
+
+The controller is `src/ui/loadout-workspace.js`, owned by the normal `Panels`
+lifecycle. It reads the actual character and calls the existing equip/socket core
+and save callback. It never grants review items or installs renderer overrides.
+Insertion, replacement and removal flights are cosmetic: the core commits first,
+new input cancels the old motion, and reduced motion seats immediately. Temporary
+avatar targets use the existing renderer and release their resources after capture.
+The icon release remains the sole owner of painted assets and `art()` routing.
+`tests/browser/loadout-live.mjs` verifies the real game and a persisted test save.
 
 ## Chapters and selective investment
 

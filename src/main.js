@@ -79,6 +79,7 @@ function startGame(character, slot) {
       return slot ? exportCode(slot) : '';
     },
     slot,
+    getAvatarContext: () => ({renderer: view.renderer, modelsReady: F.modelsReady}),
     onVisibility: () => {
       hud.setMenuOpen(false);
       input.reset();

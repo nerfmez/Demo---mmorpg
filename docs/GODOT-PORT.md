@@ -157,6 +157,14 @@ and four movement. No channeling executor is added. Run `tests/core/workspaces.t
 assertions in the port and reproduce the separate-page flows in
 `tests/browser/workspaces.mjs`. See `UI-WORKSPACES.md` for reference and verification scope.
 
+The equipment/loadout UI uses two separate landscape windows with selected-object
+details on demand. Port `loadout-workspace.js` selection/pagination to Control nodes;
+retain the existing core equip, socket, notify and save contracts. A flying coin
+is presentation only: commit state first, cancel superseded motion, and keep the
+latest visible attachment. Reuse existing scene rendering for a cached full-body
+equipment portrait and release temporary render targets. No character/save shape
+or passive-tree rule changes accompany this presentation.
+
 `gearLook()` includes a `bases` map of equipped item IDs (derived presentation metadata,
 not saved state). `render/equipment.js` uses it for distinct weapon/boot/charm silhouettes.
 Imported models are listed in `data/models.json` (GLB files in `public/models/`, currently

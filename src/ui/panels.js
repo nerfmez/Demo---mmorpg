@@ -15,6 +15,9 @@ import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
 import { inventoryView } from './inventory.js';
+import { createLoadoutWorkspace } from './loadout-workspace.js';
+
+const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
 
 const STAT_TH = { STR: 'พลังกาย · ดาเมจประชิด', AGI: 'ความคล่อง · ความเร็ว/คูลดาวน์', VIT: 'ความอึด · HP/ป้องกัน/เกราะ', INT: 'สติปัญญา · พลังเวท/MP', DEX: 'ความแม่น · คริ/กระสุน' };
 const TAG_TH = {
@@ -42,9 +45,9 @@ const fmtTime = (sec) => {
 
 export class Panels {
   /**
-   * @param {{onChange?:Function, onQuality:Function, getQuality:Function, onTitle?:Function, exportSave?:Function, slot?:number|null, onVisibility?:Function}} opts
+   * @param {{onChange?:Function, onQuality:Function, getQuality:Function, onTitle?:Function, exportSave?:Function, slot?:number|null, onVisibility?:Function, getAvatarContext?:Function}} opts
    */
-  constructor(root, game, { onChange, onQuality, getQuality, onTitle, exportSave, slot = null, onVisibility }) {
+  constructor(root, game, { onChange, onQuality, getQuality, onTitle, exportSave, slot = null, onVisibility, getAvatarContext }) {
     this.game = game;
     this.onChange = onChange;
     this.onQuality = onQuality;
@@ -66,6 +69,15 @@ export class Panels {
     root.appendChild(this.overlay);
     this.tabsEl = this.overlay.querySelector('.tabs');
     this.body = this.overlay.querySelector('.pbody');
+    this.loadout = createLoadoutWorkspace(this, {
+      getAvatarContext,
+      inventoryDetails: (category, id) => {
+        const selection = {...this.sel, bag: category, gear: 'all', item: String(id)};
+        const template = document.createElement('template');
+        template.innerHTML = inventoryView({game: this.game, sel: selection, gearLine: this.gearLine.bind(this)}, {costHtml, effectText});
+        return ['.item-detail-top', '.item-actions', '.item-description'].map(selector => template.content.querySelector(selector)?.outerHTML || '').join('');
+      },
+    });
     this.overlay.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.close()));
     this.overlay.addEventListener('pointerdown', (e) => {
       if (e.target === this.overlay) this.close();
@@ -147,19 +159,30 @@ export class Panels {
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
     this.overlay.classList.toggle('is-journal', tab === 'job');
+    this.overlay.classList.toggle('is-atelier', LOADOUT_TABS.has(tab));
     this.overlay.classList.add('on');
     document.body.classList.add('panel-open');
+    document.body.classList.toggle('loadout-open', LOADOUT_TABS.has(tab));
     this.onVisibility?.(true);
+    if (LOADOUT_TABS.has(tab)) {
+      this.cleanJobNetwork?.();
+      this.cleanJobNetwork = null;
+      this.loadout.open(tab);
+      return;
+    }
+    this.loadout.close();
     this.render(true);
     this.overlay.querySelector('.panel').focus({ preventScroll: true });
   }
 
   close() {
+    this.loadout.close();
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on', 'is-journal');
+    this.overlay.classList.remove('on', 'is-journal', 'is-atelier');
     document.body.classList.remove('panel-open');
+    document.body.classList.remove('loadout-open');
     this.lastResult = null;
     this.sel.socket = undefined;
     this.onVisibility?.(false);
@@ -193,6 +216,7 @@ export class Panels {
 
   render(top = false) {
     if (!this.isOpen) return;
+    if (LOADOUT_TABS.has(this.tab)) return this.loadout.refresh();
     const g = this.game;
     const b = this.badges();
     const tabs = [

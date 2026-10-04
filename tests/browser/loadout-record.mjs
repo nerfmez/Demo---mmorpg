@@ -13,7 +13,7 @@ const page=browser.contexts().flatMap(c=>c.pages()).find(p=>p.url().includes('fr
 if(!page)throw Error('Open the local full game with ?fresh=1 before recording');
 await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier?.game);
 await page.evaluate(ch=>{
- const f=__frontier,g=f.game;Object.assign(g.ch,ch);g.refresh(true);
+ const f=__frontier,g=f.game;Object.assign(g.ch,ch);g.refresh(true);f.hud.el.frame.querySelector('.pname').textContent=ch.name;
  const [x,z]=g.world.data.town.workbench;Object.assign(g.player,g.freeSpotNear(x+1.5,z));f.view.snapCamera();f.panels.open('mods');
 },loadoutCharacter());
 await freezeScene(page);await page.evaluate(()=>document.fonts.ready);

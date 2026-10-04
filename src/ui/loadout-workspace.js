@@ -26,6 +26,7 @@ function normalizeSelection(){
  slot=Math.max(0,Math.min(ch.slots.length-1,slot));
  const gear=ch.gear.filter(i=>filter==='all'||data.items.gearBases[i.base].slot===filter);
  if(!gear.some(i=>i.uid===selected))selected=gear[0]?.uid??null;
+ if(screen==='equipment'&&bagCategory==='gear')ui.sel.item=selected===null?null:String(selected);
  const materials=Object.entries(ch.materials).filter(([,n])=>n>0);
  if(!materials.some(([id])=>id===materialId))materialId=materials[0]?.[0]??null;
  if(!ch.mods.some(m=>m.uid===modUid))modUid=ch.mods[0]?.uid??null;
@@ -173,7 +174,16 @@ function makeAvatar(){
 return {
  root,
  get state(){return {screen,category,bagCategory,selected,materialId,slot,skillId,modUid,page,pending,moving:motionAnimations.length>0}},
- open(tab){root.hidden=false;screen=tab==='bag'?'equipment':'skills';slot=ui.sel.skill??slot;if(screen==='equipment'&&ui.sel.item)selected=Number(ui.sel.item);if(tab==='mods')category='mod';else if(tab==='movement')category='movement';else if(tab==='skills')category='skill';page=0;pending=null;notice='';render();makeAvatar();root.focus({preventScroll:true});},
+ open(tab){
+  root.hidden=false;screen=tab==='bag'?'equipment':'skills';slot=ui.sel.skill??slot;page=0;
+  if(screen==='equipment'&&ui.sel.item&&Number(ui.sel.item)!==selected){
+   selected=Number(ui.sel.item);filter='all';bagCategory='gear';page=Math.max(0,Math.floor(ch.gear.findIndex(i=>i.uid===selected)/12));
+  }
+  if(tab==='mods')category='mod';
+  else if(tab==='movement'){category='movement';skillId=ch.movement;}
+  else if(tab==='skills'){category='skill';skillId=ch.slots[slot]?.skill||skillId;}
+  pending=null;notice='';render();makeAvatar();root.focus({preventScroll:true});
+ },
  close(){cancelMotion();pending=null;root.hidden=true;clearTimeout(avatarTimer);},
  render,cancelMotion,
  refresh(){if(modelKey()!==renderedModel||JSON.stringify([notice,ui.lastResult])!==renderedNotice)render();},

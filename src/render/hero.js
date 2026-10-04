@@ -15,6 +15,7 @@ import { buildOutfit } from './outfit.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
+import {attachHairSampleBody} from './hairsample.js';
 
 export const DEFAULT_LOOK = {
   hairStyle: 'messy',
@@ -55,9 +56,10 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
   const V = o.npc || o.procedural ? null : characterBase('hero_vrm'); // only loaded with ?hero=vrm
-  const T = o.npc || o.procedural || V ? null : characterBase('hero_base');
+  const X = o.npc || o.procedural || V ? null : characterBase('hairsample');
+  const T = o.npc || o.procedural || V || X ? null : characterBase('hero_base');
   // driver bones sit on the skinned body's joints when there is one
-  const B = (name, parent, pos) => rb.bone(name, parent, (T || V)?.joints[name] || pos);
+  const B = (name, parent, pos) => rb.bone(name, parent, (X || T || V)?.joints[name] || pos);
   B('body', 'root');
   B('hips', 'body', [0, 0.93, 0]);
   B('torso', 'hips', [0, 0.02, 0]);
@@ -76,7 +78,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const armor = gear.armor || 'tunic';
   const tunic = armor === 'pelt' ? '#6f6a64' : armor === 'mantle' ? '#3a5a8a' : armor === 'plate' ? '#8f96a3' : L.tunic;
 
-  if (!T && !V) {
+  if (!T && !V && !X) {
     // legs
     for (const n of ['L', 'R']) {
       rb.add(`leg${n}`, cyl(0.085, 0.072, 0.46), PANTS);
@@ -139,13 +141,13 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
   }
   // neck, head, face
-  if (!T && !V) {
+  if (!T && !V && !X) {
     rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
     const headGeo = new THREE.SphereGeometry(0.125, 16, 12).scale(0.95, 1.08, 1.0).translate(0, 0.12, 0.005);
     rb.add('head', headGeo, L.skin);
     rb.add('head', new THREE.ConeGeometry(.011,.027,4).rotateX(Math.PI/2), L.skin, {pos:[0,.083,.128],plain:true});
   }
-  const paintedFace = !!T?.faceGeo || !!V;
+  const paintedFace = !!T?.faceGeo || !!V || !!X;
   for (const s of paintedFace ? [] : [1, -1]) {
     const eye = new THREE.Shape();
     eye.moveTo(-.026,.005);
@@ -171,13 +173,13 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
-  const outfit = T ? buildOutfit(rb, T, gear, { leather: LEATHER, boots: bootColor }) : null;
+  const outfit = T || X ? buildOutfit(rb, T || X, gear, { leather: LEATHER, boots: bootColor }) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
-  if (!V) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
+  if (!V && !X) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
   let neckParts = rig.bones.chest;
   if (T) {
     fitParts(rig.bones.head, T.headFit);
@@ -185,6 +187,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     fitParts(rig.bones.armL, T.armFit);
     // sleeves keep the chosen tunic colour; armour colours the body through `vest`
     attachSkinnedBody(rig, T, { skin: L.skin, tunic: L.tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
+  }
+  if (X) {
+    fitParts(rig.bones.head, X.headFit);
+    neckParts = fitParts(rig.bones.chest, X.neckFit, { skip: ['chestWear'] });
+    attachHairSampleBody(rig, X, gear, {tunic, pants:PANTS, boots:bootColor, vest:outfit?.vest});
   }
   if (V) {
     fitParts(rig.bones.head, V.headFit);

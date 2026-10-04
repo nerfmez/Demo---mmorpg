@@ -55,6 +55,12 @@
       "tris": 19181,
       "armDrop": 1.3,
       "source": "VRoid Studio (VRM 1.0), made by the owner (author Ball); opt-in with ?hero=vrm, see docs/ART-NEXT-STEPS-TH.md"
+    },
+    "hairsample": {
+      "file": "models/hairsample-male.glb",
+      "hairsample": true,
+      "tris": 24858,
+      "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
     }
   },
   "monsters": {

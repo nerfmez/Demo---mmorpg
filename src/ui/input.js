@@ -496,8 +496,9 @@ export class Input {
         b.dataset.tone = s?.element || 'physical';
         b.classList.toggle('empty', !s);
         b.querySelector('.slabel').textContent = s ? s.def.nameTh : 'ใส่สกิล';
-        b.querySelector('.skill-cost').textContent = s?.cost ? `${s.cost} MP` : '';
-        const label = s ? `${s.def.nameTh} · ${s.cost} MP · ช่อง ${i + 1}` : `ใส่สกิลช่อง ${i + 1}`;
+        const displayCost = s ? Math.round(s.cost * 10) / 10 : 0;
+        b.querySelector('.skill-cost').textContent = s?.cost ? `${displayCost} MP` : '';
+        const label = s ? `${s.def.nameTh} · ${displayCost} MP · ช่อง ${i + 1}` : `ใส่สกิลช่อง ${i + 1}`;
         b.setAttribute('aria-label', label);
         b.title = label;
       }

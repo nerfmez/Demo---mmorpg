@@ -1,4 +1,4 @@
-import {jobNodeState,jobPath,allocateJobNode,respecCost,respecJob} from '../../core/character.js';
+import {jobNodeState,jobPath,allocateJobNode,respecCost,respecJob,jobParents} from '../../core/character.js';
 import {planJobRoute,allocateJobRoute} from '../../core/job-route.js';
 import {journalProgress} from './model.js';
 import {createLayout} from './layout.js';
@@ -85,13 +85,14 @@ function showJunction(){changePage(()=>{const at=presentation.groups(state.tier)
 const compactPaper=()=>innerHeight<=520||(innerWidth>760&&paperHeight<=450);
 function nodeName(n){return n.type==='job'?Object.keys(n.effects||{}).slice(0,1).map(effectLabel).join(''):n.nameTh;}
 function drawNodes(ids,primary){
- const viewport=camera.viewport(),layout=layoutRules.layout(ids,[...primary],state.tier,innerWidth<=760,viewport.height<200,viewport);
+ const viewport=camera.viewport(),layout=layoutRules.layout(ids,[...primary],state.tier,innerWidth<=760,viewport.height<200,viewport,presentation.groups(state.tier).find(g=>g.id===state.place)?.grid);
  state.entries=ids.map(id=>[id,tree.nodes[id]]);state.coords=layout.coords;compactRow=layout.compactRow;
  plane.style.width=layout.width+'px';plane.style.height=layout.height+'px';
  plane.innerHTML=`<svg class="connections" width="${layout.width}" height="${layout.height}" aria-hidden="true"><g class="base-routes"></g></svg>`+state.entries.map(([id,n])=>`<button class="node ${primary.has(id)?'':'context-node'}" data-node="${esc(id)}" aria-pressed="false" style="left:${state.coords[id][0]}px;top:${state.coords[id][1]}px;${inkStyle(palette(n))}"><span class="node-disc">${icon(effectSigil(n))}</span><span class="node-state"></span><span class="node-caption"><b>${esc(nodeName(n))}</b><small>${esc(statSummary(n))}</small></span></button>`).join('');
- paintGraph();camera.configure(layout.width,layout.height);
- // A wrapped line taller than the page: open at readable size on the next step to learn.
- if(layout.zoom&&layout.height*layout.zoom>viewport.height){const next=ids.find(id=>primary.has(id)&&!ch.jobNodes.includes(id))||ids[ids.length-1],[x,y]=state.coords[next];camera.frame(layout.width/2,Math.max(viewport.height/2/layout.zoom,Math.min(layout.height-viewport.height/2/layout.zoom,y)),layout.zoom);}
+ plane.classList.toggle('grid-page',Boolean(layout.column));plane.style.setProperty('--column',layout.column+'px');
+ paintGraph();camera.configure(layout.width,layout.height,layout.zoom||0);
+ // A line page taller than the view: open at readable size on a step that can be learned now.
+ if(layout.zoom&&layout.height*layout.zoom>viewport.height){const next=ids.find(id=>primary.has(id)&&jobNodeState(ch,data,id).can)||ids.find(id=>primary.has(id)&&!ch.jobNodes.includes(id))||ids[ids.length-1],[x,y]=state.coords[next];camera.frame(layout.width/2,Math.max(viewport.height/2/layout.zoom,Math.min(layout.height-viewport.height/2/layout.zoom,y)),layout.zoom);}
 }
 function junctionPaging(){const compact=compactPaper(),columns=compact?4:innerWidth<=760?2:3,size=columns*(compact?1:2);return {compact,columns,size};}
 function renderJunction(){
@@ -100,12 +101,12 @@ function renderJunction(){
  state.junctionPage=Math.max(0,Math.min(state.junctionPage||0,pages-1));const first=state.junctionPage*size,groups=all.slice(first,first+size);
  const rows=Math.ceil(groups.length/columns),viewport=camera.viewport(),width=compact?(viewport.width-70)/.5:columns*460,height=compact?Math.max((viewport.height-40)/.5,rows*160):rows*310+60;
  const pager=q('#junction-pagination');pager.hidden=pages<2;pager.innerHTML=pages<2?'':`<button data-junction-page="-1" ${state.junctionPage===0?'disabled':''} aria-label="หน้ารอยทางก่อนหน้า">←</button><span>รอยทาง ${num(first+1)}–${num(first+groups.length)} จาก ${num(all.length)}</span><button data-junction-page="1" ${state.junctionPage===pages-1?'disabled':''} aria-label="หน้ารอยทางถัดไป">→</button>`;
- state.entries=[];state.coords={};plane.style.width=width+'px';plane.style.height=height+'px';
+ state.entries=[];state.coords={};plane.classList.remove('grid-page');plane.style.width=width+'px';plane.style.height=height+'px';
  plane.innerHTML=groups.map((g,i)=>{const ready=g.ids.filter(id=>jobNodeState(ch,data,id).can).length,owned=g.ids.filter(id=>ch.jobNodes.includes(id)).length;return `<button class="discipline-node ${ready?'has-ready':''}" data-gateway="${g.id}" data-discipline="${g.id}" style="left:${(i%columns+.5)*width/columns}px;top:${compact?(Math.floor(i/columns)+.5)*height/rows:155+Math.floor(i/columns)*310}px;${inkStyle(g.color)}"><span class="discipline-number">${num(first+i+1)}</span><span class="discipline-disc">${icon(g.icon)}<span class="discipline-open">${icon('arrow')}</span></span><span class="discipline-caption"><b>${esc(g.name)}</b><span>${esc(g.note||'เปิดดูโหนดย่อยที่เชื่อมกัน')}</span><small>${owned} / ${g.ids.length} บันทึก · ${ready} พร้อมเรียนรู้</small></span></button>`;}).join('');camera.configure(width,height);
  q('#map-status').textContent=`${all.length} รอยทางหลัก · เปิดดูได้ทุกสาย · การเปิดดูไม่ใช้แต้ม`;
 }
 function closeDetail(restore=false){previewPlan=null;const id=state.selected;state.selected=null;inspector.classList.remove('open');inspector.inert=true;inspector.setAttribute('aria-hidden','true');q('.atlas-space').classList.remove('has-detail');camera.setSheet(0);if(id&&detailCamera)camera.frame(detailCamera.x,detailCamera.y,detailCamera.z);plane.querySelectorAll('.route-highlight').forEach(el=>el.classList.remove('route-highlight'));plane.querySelectorAll('.node.selected').forEach(el=>{el.classList.remove('selected');el.setAttribute('aria-pressed','false')});if(restore&&id)plane.querySelector(`[data-node="${id}"]`)?.focus({preventScroll:true});}
-function reasonText(st){if(st.missing?.length)return 'ต้องเรียนรู้ '+st.missing.map(id=>tree.nodes[id].nameTh).join(' + ')+' ก่อน';return st.taken?'เรียนรู้แล้ว':st.can?'พร้อมเรียนรู้':({not_linked:'ต้องเชื่อมจากโหนดที่เรียนรู้แล้ว',no_points:'แต้มคงเหลือไม่เพียงพอ',tier_points:`ต้องลงทุนรวม ${st.need} แต้ม`,job_level:`ต้องมี Job Lv.${st.need}`,one_job:'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน',requires_job:`ต้องเรียนรู้โหนด ${(tree.groups||[]).find(g=>g.id===st.need)?.nameTh||st.need}`}[st.reason]||'ยังเรียนรู้ไม่ได้');}
+function reasonText(st){if(st.missing?.length)return 'ต้องเรียนรู้ '+st.missing.map(id=>tree.nodes[id].nameTh).join(st.any?' หรือ ':' + ')+' ก่อน';return st.taken?'เรียนรู้แล้ว':st.can?'พร้อมเรียนรู้':({not_linked:'ต้องเชื่อมจากโหนดที่เรียนรู้แล้ว',no_points:'แต้มคงเหลือไม่เพียงพอ',tier_points:`ต้องลงทุนรวม ${st.need} แต้ม`,job_level:`ต้องมี Job Lv.${st.need}`,one_job:'เลือกอาชีพได้หนึ่งสาย · รีแต้มก่อนเปลี่ยน',requires_job:`ต้องเรียนรู้โหนด ${(tree.groups||[]).find(g=>g.id===st.need)?.nameTh||st.need}`}[st.reason]||'ยังเรียนรู้ไม่ได้');}
 function select(id,focus=true){
  const n=tree.nodes[id];if(!n||!state.coords[id])return;
  const st=jobNodeState(ch,data,id);if(!state.selected)detailCamera=camera.snapshot();state.selected=id;inspector.style.cssText=inkStyle(palette(n));
@@ -127,7 +128,7 @@ function highlightPlan(plan){
 }
 function frameRoute(ids){
  if(ids.length>1){camera.fit();return;}
- const framed=[...new Set([...ids,...ids.flatMap(id=>(tree.nodes[id].requires||[]).filter(parent=>ch.jobNodes.includes(parent)))])];
+ const framed=[...new Set([...ids,...ids.flatMap(id=>jobParents(tree.nodes[id]).filter(parent=>ch.jobNodes.includes(parent)))])];
  const points=framed.filter(id=>state.coords[id]).map(id=>state.coords[id]);if(!points.length)return;
  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys),viewport=camera.viewport(),free=viewport.width-(innerWidth>760?inspector.offsetWidth+20:0);
  const z=Math.max(.18,Math.min(.82,(free-150)/Math.max(180,right-left),(viewport.height-130)/Math.max(150,bottom-top)));camera.frame((left+right)/2,(top+bottom)/2+15/z,z);
@@ -144,12 +145,12 @@ function upgrade(id){
   const approved=previewPlan,previous=journalProgress(ch,data),result=allocateJobRoute(ch,data,id,{...routeOptions(),expectedNodes:approved.nodes,expectedCost:approved.cost});
   if(!result.done){toast(routeReason(result));select(id,false);return;}
   ui.game.notify({type:'job'});ui.changed();updateChrome();paintGraph();select(id,false);frameRoute(result.acquired);
-  let index=0;for(const node of result.acquired)for(const parent of tree.nodes[node].requires||[])if(ch.jobNodes.includes(parent)&&state.coords[parent]&&state.coords[node])routes.draw(plane.querySelector('.connections'),parent,node,curve(parent,node),index++*110);
+  let index=0;for(const node of result.acquired)for(const parent of jobParents(tree.nodes[node]))if(ch.jobNodes.includes(parent)&&state.coords[parent]&&state.coords[node])routes.draw(plane.querySelector('.connections'),parent,node,curve(parent,node),index++*110);
   const next=journalProgress(ch,data);toast(`เรียนรู้ ${result.acquired.length} โหนด · ใช้ ${result.cost} แต้ม${next.current.tier>previous.current.tier?' · เปิดบท '+num(next.current.tier):''}`);
  }finally{upgradeInFlight=false;}
 }
 function curve(source,target){const [x,y]=state.coords[source],[xx,yy]=state.coords[target],arc=compactRow&&Math.abs(xx-x)>300?-95:0;return `M${x} ${y} C${x+(xx-x)*.3} ${y+arc},${x+(xx-x)*.7} ${yy+arc},${xx} ${yy}`;}
-function edgeHtml(){const seen=new Set();let html='';for(const [id,n] of state.entries)for(const k of n.requires||[]){if(!state.coords[k])continue;const pair=JSON.stringify([id,k].sort());if(seen.has(pair))continue;seen.add(pair);const owned=ch.jobNodes.includes(id)&&ch.jobNodes.includes(k);html+=`<path data-edge="${esc(pair)}" d="${curve(k,id)}" class="edge ${owned?'learned':''}"/>`;}return html;}
+function edgeHtml(){const seen=new Set();let html='';for(const [id,n] of state.entries)for(const k of jobParents(n)){if(!state.coords[k])continue;const pair=JSON.stringify([id,k].sort());if(seen.has(pair))continue;seen.add(pair);const owned=ch.jobNodes.includes(id)&&ch.jobNodes.includes(k);html+=`<path data-edge="${esc(pair)}" d="${curve(k,id)}" class="edge ${owned?'learned':''}"/>`;}return html;}
 function paintGraph(){
  const connections=plane.querySelector('.base-routes');if(!connections)return;if(!connections.children.length)connections.innerHTML=edgeHtml();else for(const path of connections.children){const [a,b]=JSON.parse(path.dataset.edge);path.classList.toggle('learned',!path.classList.contains('route-pending')&&ch.jobNodes.includes(a)&&ch.jobNodes.includes(b));}
  for(const [id,n] of state.entries){const el=[...plane.querySelectorAll('[data-node]')].find(el=>el.dataset.node===id),st=jobNodeState(ch,data,id),context=state.view==='path'&&!presentation.groups(state.tier).find(g=>g.id===state.place)?.ids.includes(id);el.className=`node ${n.type} ${context?'context-node':''} ${st.taken?'learned':st.can?'available':'locked'} ${state.selected===id?'selected':''}`;el.setAttribute('aria-label',`${n.nameTh} · ${statSummary(n)} · ${reasonText(st)}`);el.querySelector('.node-state').innerHTML=st.taken?icon('check'):st.can?'<span class="little-dot"></span>':icon('lock');}
@@ -165,15 +166,15 @@ function renderRegion(){
  q('#place-desc').textContent=first?'เริ่มจากเตรียมพร้อม · ต่อทีละจุด แล้วค่อยขยายเส้นทาง':junction?'เปิดดูรอยทางย่อย · ต้องผ่านโหนดก่อนหน้าและเกณฑ์แต้ม':`ต่อจากรอยจดที่เรียนรู้ · ดูโหนดก่อนหน้าได้ในหน้านี้`;
  q('#place-switch').hidden=first||junction;q('#place-switch').innerHTML=`<span class="back-mark">←</span><span>กลับรอยทางหลัก</span>`;
  q('.atlas-space').classList.toggle('stage-gated',!stage.unlocked);q('.atlas-space').dataset.gate=stage.unlocked?'':`เปิดดูได้ · ลงทุนรวม ${stage.requiresSpent} แต้ม เพื่อเรียนรู้บทนี้ (ตอนนี้ ${journalProgress(ch,data).spent})`;
- if(junction)renderJunction();else{const primary=first?presentation.stage(state.tier):group?.ids||[];const ids=first?primary:[...new Set([...primary,...primary.flatMap(id=>tree.nodes[id].requires||[]),...state.context])];drawNodes(ids,new Set(primary));}
+ if(junction)renderJunction();else{const primary=first?presentation.stage(state.tier):group?.ids||[];const ids=first?primary:[...new Set([...primary,...primary.flatMap(id=>jobParents(tree.nodes[id])),...state.context])];drawNodes(ids,new Set(primary));}
  const memory=state.memories[viewKey()];if(memory)camera.frame(memory.x,memory.y,memory.z);
 }
 function navigate(tier){tier=Number(tier);if(!presentation.tiers.includes(tier))return;changePage(()=>{state.tier=tier;state.junctionPage=0;state.place=null;state.view=tier===presentation.tiers[0]?'foundation':'junction';state.context=[];renderRegion();},tier<state.tier?-1:1);}
-function jump(id){if(!tree.nodes[id])return;const fromSearch=q('#dialog').open;if(fromSearch)closeDialog();if(state.coords[id]&&(tree.nodes[id].requires||[]).every(k=>state.coords[k])){select(id);return;}if(state.view==='path'&&!fromSearch){state.context=[...new Set([...state.context,...jobPath(ch,data,id),id,...(tree.nodes[id].requires||[])])];const chosen=state.place;renderRegion();state.place=chosen;select(id);return;}
+function jump(id){if(!tree.nodes[id])return;const fromSearch=q('#dialog').open;if(fromSearch)closeDialog();if(state.coords[id]&&jobParents(tree.nodes[id]).every(k=>state.coords[k])){select(id);return;}if(state.view==='path'&&!fromSearch){state.context=[...new Set([...state.context,...jobPath(ch,data,id),id,...jobParents(tree.nodes[id])])];const chosen=state.place;renderRegion();state.place=chosen;select(id);return;}
  const tier=presentation.tierOf(id);changePage(()=>{state.tier=tier;state.place=presentation.groupOf(id);state.view=tier===presentation.tiers[0]?'foundation':'path';state.context=[];renderRegion();});select(id);
 }
 function learn(id){
- const sources=(tree.nodes[id]?.requires||[]).filter(k=>ch.jobNodes.includes(k)),source=sources[0],previous=journalProgress(ch,data),result=allocateJobNode(ch,data,id);if(!result.done){toast(reasonText(result));return;}
+ const sources=jobParents(tree.nodes[id]).filter(k=>ch.jobNodes.includes(k)),source=sources[0],previous=journalProgress(ch,data),result=allocateJobNode(ch,data,id);if(!result.done){toast(reasonText(result));return;}
  ui.game.notify({type:'job'});ui.changed();updateChrome();paintGraph();select(id,false);
  if(source&&state.coords[source]&&state.coords[id]){const a=state.coords[source],b=state.coords[id],viewport=camera.viewport(),free=viewport.width-(innerWidth>760?inspector.offsetWidth+20:0),z=Math.max(.18,Math.min(camera.snapshot().z,(free-130)/Math.max(130,Math.abs(a[0]-b[0])),(viewport.height-130)/Math.max(130,Math.abs(a[1]-b[1]))));camera.frame((a[0]+b[0])/2,(a[1]+b[1])/2+20/z,z);for(const parent of sources)if(state.coords[parent])routes.draw(plane.querySelector('.connections'),parent,id,curve(parent,id));}
  const next=journalProgress(ch,data);toast(next.current.tier>previous.current.tier?`บท ${num(next.current.tier)} เปิดแล้ว · สำรวจรอยทางใหม่ได้`:`บันทึก ${tree.nodes[id].nameTh} แล้ว`);

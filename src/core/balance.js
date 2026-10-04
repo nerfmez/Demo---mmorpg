@@ -131,7 +131,7 @@ export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null) {
 export function linePath(data, lineId) {
   const N = data.jobtree.nodes, own = Object.keys(N).filter((id) => N[id].line === lineId);
   const path = [], seen = new Set();
-  const visit = (id) => { if (seen.has(id) || id === data.jobtree.origin) return; seen.add(id); for (const p of N[id].requires || []) visit(p); path.push(id); };
+  const visit = (id) => { if (seen.has(id) || id === data.jobtree.origin) return; seen.add(id); for (const p of N[id].requires || []) visit(p); for (const p of N[id].requiresAny || []) if (N[p].line === lineId) visit(p); path.push(id); };
   own.forEach(visit);
   return path;
 }

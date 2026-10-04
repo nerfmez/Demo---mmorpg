@@ -154,3 +154,51 @@ test('fast casting runs out of MP in a long fight unless MP is taken too', async
   const mixed = longFightDps(data, 'staff', cap, [...new Set([...speed.slice(0, 24), ...mana.filter((id) => !speed.includes(id)).slice(0, 15)])]);
   assert.ok(mixed.dps > pure.dps * 1.2, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
 });
+
+test('each journal page holds three related lines that fork inside and meet their neighbours', () => {
+  const N = data.jobtree.nodes;
+  for (const stage of data.jobtree.presentation.stages.filter((s) => s.id >= 2)) for (const page of stage.paths.filter((p) => p.line)) {
+    const lines = new Set(page.nodes.map((id) => N[id].line).filter(Boolean));
+    assert.equal(lines.size, 3, `${page.id} shows three lines`);
+    for (const id of page.nodes) assert.ok(page.grid[id], `${id} has a place on ${page.id}`);
+    if (page.id.endsWith('.mastery')) continue;
+    for (const line of lines) {
+      const entry = `${line}.${stage.id}.entry`, join = `${line}.${stage.id}.join`;
+      assert.equal(page.nodes.filter((id) => N[id].requires?.includes(entry)).length, 2, `${entry} forks into two focuses`);
+      assert.ok(N[join].requiresAny.length >= 3 && N[join].requiresAny.some((id) => N[id].bridge), `${join} is reached from either focus or a bridge`);
+    }
+    assert.ok(page.nodes.filter((id) => N[id].bridge).length >= 2, `${page.id} joins its lines`);
+  }
+  const cross = Object.values(N).filter((n) => n.bridge && n.cross);
+  assert.ok(cross.length >= 3 && cross.every((n) => new Set(n.bridge.map((l) => data.jobtree.presentation.stages[2].paths.find((p) => p.nodes.some((id) => N[id].line === l))?.id)).size === 2), 'some bridges cross to another page');
+});
+
+test('a player can change line through a bridge and keep going in the new line', async () => {
+  const { createCharacter } = await import('../../src/core/character.js');
+  const { allocateJobRoute, planJobRoute } = await import('../../src/core/job-route.js');
+  const ch = createCharacter(data);
+  ch.jobLevel = data.progression.job.maxLevel; ch.jobPoints = 39;
+  const take = (id) => { const r = allocateJobRoute(ch, data, id); assert.ok(r.done, `${id} ${r.reason}`); return r; };
+  take('lesson.rhythm'); // the first page's three steps open stage 2
+  take('line.physical.2.a2');
+  take('bridge.physical-damage.2');
+  assert.deepEqual(planJobRoute(ch, data, 'line.damage.2.join').nodes, ['line.damage.2.join'], 'the bridge opens the other line\'s meeting point');
+  take('line.damage.2.join');
+  take('line.damage.3.a1');
+  assert.ok(ch.jobNodes.includes('line.damage.3.entry'));
+  assert.ok(!ch.jobNodes.includes('line.damage.2.entry'), 'the other line\'s start was never needed');
+  // A one-of meeting point routes through the cheapest owned side.
+  assert.deepEqual(planJobRoute(ch, data, 'line.physical.2.join').nodes, ['line.physical.2.join']);
+});
+
+test('mixing lines that suit each other is as viable as staying pure', async () => {
+  const { linePath, balanceAt } = await import('../../src/core/balance.js');
+  const P = (l) => linePath(data, 'line.' + l);
+  const mix = (a, b) => [...new Set([...P(a).slice(0, 20), ...P(b).filter((x) => !P(a).includes(x))])].slice(0, 39);
+  const at = (kit, list) => { const base = balanceAt(data, kit, cap), r = balanceAt(data, kit, cap, list); return { dps: r.dps / base.dps, ttd: r.ttd / base.ttd }; };
+  const bow = at('bow', mix('crit', 'speed'));
+  assert.ok(bow.dps >= Math.min(at('bow', P('crit').slice(0, 39)).dps, at('bow', P('speed').slice(0, 39)).dps), `bow crit+speed ${bow.dps.toFixed(2)}x`);
+  const tank = at('sword', mix('physical', 'guardian'));
+  assert.ok(tank.dps >= 1.45 && tank.ttd >= 1.3, `sword physical+guardian ${tank.dps.toFixed(2)}x damage, ${tank.ttd.toFixed(2)}x survival`);
+  assert.ok(at('staff', mix('element', 'mana')).dps >= 1.45, 'a staff can mix element with MP');
+});

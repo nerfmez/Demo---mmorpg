@@ -1,4 +1,4 @@
-import {allocateJobNode,jobNodeState} from './character.js';
+import {allocateJobNode,jobNodeState,cheapestParent} from './character.js';
 
 // Planning never mutates the character. The canonical single-node allocator
 // remains the authority for eligibility and charged costs.
@@ -31,6 +31,9 @@ export function planJobRoute(ch,data,target,{groupId,tier}={}) {
     } else {
       if(current.requires.filter(k=>!ch.jobNodes.includes(k)&&included.has(k)).length>1)result.requiresAllFork=true;
       for(const parent of current.requires)visit(parent);
+      // A meeting point needs one parent: route through the cheapest one on this page.
+      const any=cheapestParent(ch,data,id,k=>included.has(k)&&tree.sections[tree.nodes[k]?.section]?.tier===nodeTier)??cheapestParent(ch,data,id);
+      if(any)visit(any);
     }
     visiting.delete(id);seen.add(id);result.nodes.push(id);
   }

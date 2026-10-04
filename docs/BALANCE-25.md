@@ -98,9 +98,24 @@ grades (C/B/A/S 45/35/16/4%).
 
 ## Journal build lines
 
-The field journal has nine build lines. Each runs from stage 2 to stage 5 and ends in a
-mastery chain, so one line alone takes all 39 Job points (Job Lv40) through the stage gates
-(0/3/7/17/25 points spent). `scripts/journal-lines.mjs` generates them into `data/jobtree.json`.
+The field journal has nine build lines on three pages per stage. Each page holds three lines
+that suit each other: weapon (physical, damage, crit), magic and tempo (element, MP, speed),
+and survival and hunting (guardian, agility, treasure).
+
+- **Inside a line:** each stage starts at an entry and forks into two focuses (for crit: crit
+  chance or crit damage). The focuses meet again at a meeting node, which needs only one of
+  them (`requiresAny`).
+- **Between lines:** bridge nodes beside the entries mix two neighbouring lines. A bridge
+  needs either line's entry and opens either line's meeting node, so a player can change line
+  on the way.
+- **Across pages:** at stages 3 and 4, three bridges cross to another page: crit + treasure
+  (bow), speed + agility, physical + guardian.
+- **Mastery:** after stage 5, each line continues into a mastery chain on its own page.
+- **Points:** one line alone still takes all 39 Job points (Job Lv40) through the stage gates
+  (0/3/7/17/25 points spent).
+
+`scripts/journal-lines.mjs` generates the nodes, bridges and page grids into
+`data/jobtree.json`.
 
 | Line | Gives |
 |---|---|
@@ -123,6 +138,9 @@ mastery chain, so one line alone takes all 39 Job points (Job Lv40) through the 
   - In a 90-second fight (`longFightDps`), a staff with pure speed is held back by MP. Speed
     24 + MP 15 beats it by more than 1.2×.
   - All line stats fit their caps after the soft cap.
+  - Mixed builds hold up. Bow crit + speed is at least as strong as either pure line. Sword
+    physical + guardian keeps at least 1.45× DPS and 1.3× time-to-die. Staff element + MP
+    keeps at least 1.45× DPS.
 - **Farming.** The treasure line plus hunter arrows (parts +10%, gear +10%) net 1.1–1.6× a
   sword hero's income at the same level, after the arrow cost (about 9–13% of gross). Find
   stats are capped at 60/50/40 and add nothing to the power score.

@@ -39,24 +39,41 @@ try {
         await page.screenshot({ path: `${out}${name}-stage${stage}-page${p + 2}.png` });
       }
     }
-    // Buy along one line through every gate with the journal's own rules.
+    // Start in the physical line, cross the bridge, then follow damage to the end, all with the
+    // journal's own rules (one node at a time, every gate checked).
     const bought = await page.evaluate(() => {
       const f = window.__frontier, g = f.game, d = g.data, N = d.jobtree.nodes;
       const path = [], seen = new Set();
-      const visit = (id) => { if (seen.has(id) || id === d.jobtree.origin) return; seen.add(id); for (const p of N[id].requires || []) visit(p); path.push(id); };
-      Object.keys(N).filter((id) => N[id].line === 'line.crit').forEach(visit);
+      const visit = (id) => { if (seen.has(id) || id === d.jobtree.origin || g.ch.jobNodes.includes(id)) return; seen.add(id); for (const p of N[id].requires || []) visit(p); path.push(id); };
+      ['line.physical.2.a2', 'line.physical.2.b1', 'bridge.physical-damage.2', 'line.damage.2.join'].forEach(visit);
+      Object.keys(N).filter((id) => N[id].line === 'line.damage' && N[id].stage > 2).forEach(visit);
       let n = 0;
       for (const id of path) { if (!g.ch.jobPoints) break; f.panels.jobJournal.learn(id); n++; }
-      return { n, left: g.ch.jobPoints, owned: g.ch.jobNodes.filter((id) => N[id]?.line === 'line.crit').length };
+      return { n, left: g.ch.jobPoints, damage: g.ch.jobNodes.filter((id) => N[id]?.line === 'line.damage').length, bridge: g.ch.jobNodes.includes('bridge.physical-damage.2') };
     });
     assert.equal(bought.left, 0, JSON.stringify(bought));
-    await page.locator(`${tabs} [data-stage="5"]`).first().click();
-    await page.waitForTimeout(700);
-    await page.screenshot({ path: `${out}${name}-crit-line-bought.png` });
-    // The line's own page: a long chain ending in the mastery nodes.
-    await page.locator('[data-gateway="line.crit.5"]').click();
-    await page.waitForTimeout(1200);
-    await page.screenshot({ path: `${out}${name}-crit-line-page.png` });
+    assert.ok(bought.bridge, 'crossed into the damage line');
+    // A group page: three lines side by side, each forking, with bridges between them.
+    const nodesClear = async (label) => {
+      const boxes = await page.locator('#plane > [data-node]').evaluateAll((els) => els.map((e) => { const r = e.querySelector('.node-disc').getBoundingClientRect(), t = document.createRange(); t.selectNodeContents(e.querySelector('.node-caption b')); const c = t.getBoundingClientRect(); return [Math.min(r.x, c.x), r.y, Math.max(r.right, c.right) - Math.min(r.x, c.x), c.bottom - r.y]; }));
+      assert.ok(boxes.length > 10, label);
+      for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) assert.ok(a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1], `${name} ${label}: nodes overlap`);
+    };
+    for (const [stage, gate] of [[3, 'fam.weapon.3'], [5, 'fam.weapon.5'], [5, 'fam.weapon.mastery']]) {
+      await page.locator(`${tabs} [data-stage="${stage}"]`).first().click();
+      await page.waitForTimeout(800);
+      for (let i = 0; i < 3 && !(await page.locator(`[data-gateway="${gate}"]`).count()); i++) { await page.locator('#junction-pagination [data-junction-page="1"]').click(); await page.waitForTimeout(600); }
+      await page.locator(`[data-gateway="${gate}"]`).click();
+      await page.waitForTimeout(1200);
+      await nodesClear(gate);
+      await page.screenshot({ path: `${out}${name}-${gate}.png` });
+      // The whole page, for review, when it scrolls.
+      await page.locator('[data-action="fit"]').click();
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: `${out}${name}-${gate}-fit.png` });
+      await page.locator('#place-switch').click();
+      await page.waitForTimeout(600);
+    }
     console.log(name, JSON.stringify(bought));
   }
   assert.deepEqual(errors, []);

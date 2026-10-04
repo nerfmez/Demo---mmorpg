@@ -27,8 +27,8 @@ test('constellations cover every node and specialist subviews preserve the four 
   assert.ok(t.constellations.some(c=>c.id===n.category),id);
   assert.equal(n.clusterPos.length,2);assert.ok(n.clusterPos.every(Number.isFinite));
  }
- // 242 original nodes plus the generated build lines (scripts/journal-lines.mjs).
- assert.equal(Object.keys(t.nodes).length,242+Object.values(t.nodes).filter(n=>n.line).length);
+ // 242 original nodes plus the generated build lines and their bridges (scripts/journal-lines.mjs).
+ assert.equal(Object.keys(t.nodes).length,242+Object.values(t.nodes).filter(n=>n.line||n.bridge).length);
  for(const [id,n] of Object.entries(t.nodes)){
   assert.ok(t.sections[n.section],id+' belongs to a major section');
   assert.ok(!('tier' in n)&&!('requiresSpent' in n),id+' has no individual stage gate');

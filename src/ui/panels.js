@@ -167,6 +167,7 @@ export class Panels {
     if (LOADOUT_TABS.has(tab)) {
       this.cleanJobNetwork?.();
       this.cleanJobNetwork = null;
+      this.body.replaceChildren();
       this.loadout.open(tab);
       return;
     }

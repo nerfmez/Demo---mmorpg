@@ -200,7 +200,7 @@ return {
  open(tab){
   root.hidden=false;screen=tab==='bag'?'equipment':'skills';slot=ui.sel.skill??slot;page=0;
   if(screen==='equipment'&&ui.sel.item&&Number(ui.sel.item)!==selected){
-   selected=Number(ui.sel.item);filter='all';bagCategory='gear';page=Math.max(0,Math.floor(ch.gear.findIndex(i=>i.uid===selected)/12));
+   selected=Number(ui.sel.item);filter='all';bagCategory='gear';page=Math.max(0,Math.floor(ch.gear.findIndex(i=>i.uid===selected)/bagPageSize()));
   }
   if(tab==='mods')category='mod';
   else if(tab==='movement'){category='movement';skillId=ch.movement;}

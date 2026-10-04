@@ -205,9 +205,9 @@ try {
       await page.keyboard.down('w');
       await page.keyboard.press('i');
       await page.keyboard.up('w');
-      await page.locator('.panel-footer [data-close]').focus();
+      await page.locator('#atelier button:not(:disabled)').last().focus();
       await page.keyboard.press('Tab');
-      assert.equal(await page.evaluate(() => document.activeElement.className), 'panel-close');
+      assert.equal(await page.evaluate(() => document.activeElement === document.querySelector('#atelier button:not(:disabled)')), true, 'Tab wraps inside the actual workspace');
       await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(() => window.__frontier.panels.isOpen), false);
       assert.equal(await page.evaluate(() => window.__frontier.game.input.moveZ), 0);

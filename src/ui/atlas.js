@@ -41,12 +41,12 @@ export function atlasView(ui) {
    return `<article class="creature-entry">${art('monster',id)}<div><b>${m.nameTh}</b><div class="drop-pictures">${m.drops.filter(d=>d.item!=='gold').map(d=>`<span title="${data.items.materials[d.item].nameTh}">${art('material',d.item)}<small>${data.items.materials[d.item].nameTh}</small></span>`).join('')}</div></div></article>`;
  }).join('');
  const services=zone.id==='settlement'?`<div class="town-services"><div>${icon('hammer')}<span><b>โต๊ะคราฟต์</b><small>คราฟต์ · ตีบวก · อัปเกรดสกิล</small></span></div><div>${icon('person')}<span><b>ครูฝึก</b><small>ตรวจแต้มและพัฒนาตัวละคร</small></span></div></div>`:'';
- return `<div class="atlas-heading"><div><span class="section-kicker">AZURE COAST / FIELD GUIDE</span><h3>แผนที่ชายฝั่ง</h3></div><span class="level-pill">สำรวจ ${prog.zones.length} / ${w.zones.length}</span></div>
+ return `<div class="atlas-heading"><div><span class="section-kicker">${esc(w.data.name||'').toUpperCase()} / FIELD GUIDE</span><h3>${esc(w.data.nameTh||'แผนที่')}</h3></div><span class="level-pill">สำรวจ ${prog.zones.length} / ${w.zones.length}</span></div>
  ${ui.lastResult?`<div class="result-pop" role="status">${ui.lastResult}</div>`:''}
  <div class="atlas-layout"><div class="atlas-main"><div class="worldmap" style="aspect-ratio:${W}/${H}">
    <img src="${mapImage(w).url()}" alt="แผนที่ชายหาด เมืองท่า และเส้นทางรอบเมือง" draggable="false">${fog}${labels}
    <span class="townmark" style="left:${L(town.workbench[0])};top:${T(town.workbench[1])}">${icon('hammer')}</span>
-   ${bosses}${pins}${target?`<span class="questmark" style="left:${L(target.x)};top:${T(target.z)}">★</span>`:''}
+   ${bosses}${pins}${w.exits.map(e=>`<span class="exitmark" style="left:${L(e.x)};top:${T(e.z)}" title="ทางไป${esc(e.nameTh)}">${icon('portal')}<small>${esc(e.nameTh)}</small></span>`).join('')}${target?`<span class="questmark" style="left:${L(target.x)};top:${T(target.z)}">★</span>`:''}
    <span class="youmark" style="left:${L(g.player.x)};top:${T(g.player.z)};transform:translate(-50%,-50%) rotate(${Math.PI-g.player.facing}rad)"></span>
    <span class="map-north">N<br>↑</span></div>
    <div class="map-legend"><span><i class="legend-player"></i>คุณ</span><span>${icon('portal')}หินวาร์ป</span><span>★ เป้าหมาย</span><span>${icon('hammer')}โต๊ะคราฟต์</span></div>

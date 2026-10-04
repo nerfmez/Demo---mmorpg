@@ -877,7 +877,7 @@ export class View {
     }
     this.ambient(dt, focus.x, focus.z, zoneId);
     // zone-tinted fog/sky
-    const target = (this._zoneFogTarget ||= new THREE.Color()).set(ZONE_FOG[zoneId] || ZONE_FOG.meadow);
+    const target = (this._zoneFogTarget ||= new THREE.Color()).set(world.zoneById(zoneId)?.fog || ZONE_FOG[zoneId] || ZONE_FOG.meadow);
     this.fogColor.lerp(target, 1 - Math.exp(-dt * 1.5));
     this.scene.fog.color.copy(this.fogColor);
     this.scene.background.copy(this.fogColor);

@@ -11,6 +11,7 @@ import { rollDrops, addItem } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
+import { enterMap } from './maps.js';
 
 const PLAYER_RADIUS = 0.45;
 const PICKUP_RADIUS = 1.4;
@@ -127,6 +128,7 @@ export class Game {
 
   /** Save-ready character with the current position. */
   snapshot() {
+    if (this.travelled) return this.ch;
     const p = this.player;
     this.ch.pos = p.dead ? null : [Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10];
     return this.ch;
@@ -487,7 +489,9 @@ export class Game {
     const p = this.player;
     const t = this.data.world.town;
     const wp = this.world.waypoints.find((w) => dist(p.x, p.z, w.x, w.z) < WAYPOINT_RADIUS && this.isWaypointUnlocked(w.id));
+    const exit = this.world.exits.find((e) => dist(p.x, p.z, e.x, e.z) < e.r && this.data.maps?.[e.to]);
     return {
+      exit: exit ? exit.id : null,
       workbench: dist(p.x, p.z, t.workbench[0], t.workbench[1]) < INTERACT_RADIUS,
       trainer: dist(p.x, p.z, t.trainer[0], t.trainer[1]) < INTERACT_RADIUS,
       waypoint: wp ? wp.id : null,
@@ -498,6 +502,23 @@ export class Game {
   inCombat() {
     const p = this.player;
     return this.monsters.some((m) => !m.dead && m.aggro && dist(m.x, m.z, p.x, p.z) < 16);
+  }
+
+  /**
+   * Travel through an exit to its linked map. Returns the save-ready character placed
+   * at the destination; the caller rebuilds the world from data.maps[ch.worldId].
+   */
+  travel(id) {
+    const p = this.player;
+    const exit = this.world.exits.find((e) => e.id === id);
+    if (!exit || !this.data.maps?.[exit.to]) return { ok: false, reason: 'unknown' };
+    if (dist(p.x, p.z, exit.x, exit.z) > exit.r) return { ok: false, reason: 'far' };
+    if (p.dead) return { ok: false, reason: 'dead' };
+    if (this.inCombat()) return { ok: false, reason: 'combat' };
+    enterMap(this.ch, this.data, exit.to, exit.arrive);
+    this.travelled = exit.to; // the character now belongs to the destination map
+    this.emit({ type: 'travel', to: exit.to, name: exit.nameTh });
+    return { ok: true, character: this.ch, to: exit.to };
   }
 
   /** Fast travel to a discovered waypoint. */

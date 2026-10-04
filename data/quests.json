@@ -1,5 +1,5 @@
 {
-  "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items.",
+  "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items. world (optional): a waypoint/zone quest counts only on that map id.",
   "main": [
     "h_arrival",
     "h_slimes",
@@ -7,7 +7,13 @@
     "h_craft",
     "h_fields",
     "h_grove",
-    "h_lighthouse"
+    "h_lighthouse",
+    "f_road",
+    "m_forest",
+    "m_greyfang",
+    "m_wetland",
+    "m_highlands",
+    "m_warden"
   ],
   "side": [
     "h_birds",
@@ -15,7 +21,12 @@
     "m_boars",
     "s_mods",
     "s_job",
-    "s_spores"
+    "s_spores",
+    "s_wolves",
+    "s_golems",
+    "s_feathers",
+    "s_collector",
+    "s_coast"
   ],
   "quests": {
     "m_boars": {
@@ -59,7 +70,8 @@
         "gold": 40,
         "exp": 60,
         "jobExp": 30
-      }
+      },
+      "world": "frontier-wilds-v1"
     },
     "m_greyfang": {
       "name": "The Alpha of the Pack",
@@ -85,7 +97,8 @@
         "gold": 50,
         "exp": 120,
         "jobExp": 50
-      }
+      },
+      "world": "frontier-wilds-v1"
     },
     "m_highlands": {
       "name": "Highland Scouts",
@@ -101,7 +114,8 @@
         "items": {
           "ruin_shard": 1
         }
-      }
+      },
+      "world": "frontier-wilds-v1"
     },
     "m_warden": {
       "name": "The Ancient Warden",
@@ -221,7 +235,8 @@
         "gold": 40,
         "exp": 80,
         "jobExp": 30
-      }
+      },
+      "world": "frontier-wilds-v1"
     },
     "s_crabs": {
       "name": "Crab Season",
@@ -249,7 +264,8 @@
         "gold": 20,
         "exp": 15,
         "jobExp": 10
-      }
+      },
+      "world": "azure-harbor-v1"
     },
     "h_slimes": {
       "name": "เจลเกลือริมฝั่ง",
@@ -304,7 +320,8 @@
         "gold": 25,
         "exp": 45,
         "jobExp": 25
-      }
+      },
+      "world": "azure-harbor-v1"
     },
     "h_grove": {
       "name": "สำรวจป่าโปร่ง",
@@ -317,7 +334,8 @@
         "gold": 35,
         "exp": 70,
         "jobExp": 40
-      }
+      },
+      "world": "azure-harbor-v1"
     },
     "h_lighthouse": {
       "name": "แสงแห่งชายฝั่ง",
@@ -330,7 +348,8 @@
         "gold": 50,
         "exp": 100,
         "jobExp": 60
-      }
+      },
+      "world": "azure-harbor-v1"
     },
     "h_birds": {
       "name": "นกจอมขโมย",
@@ -360,6 +379,20 @@
         "items": {
           "hermit_fragment": 2
         }
+      }
+    },
+    "f_road": {
+      "name": "The North Road",
+      "nameTh": "ถนนสู่ชายแดน",
+      "descTh": "ตามถนนเหนือสุดทางออกจากชายฝั่งสีคราม แล้วเดินทางไปเปิดใช้หินวาร์ปที่ประตูนิคมชายแดนกรีนฮอลโลว์",
+      "type": "waypoint",
+      "target": "town",
+      "world": "frontier-wilds-v1",
+      "count": 1,
+      "reward": {
+        "gold": 40,
+        "exp": 120,
+        "jobExp": 50
       }
     }
   }

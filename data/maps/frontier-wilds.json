@@ -1,0 +1,1382 @@
+{
+  "_doc": "Greenhollow Frontier: the original demo map, reached from Azure Coast by its north road. Same schema as data/world.json; Demo map 'Greenhollow Frontier'. World is the XZ plane in metres, Y up (same axes as Godot); north is -Z (up on screen). src/core/world.js + src/core/terrain.js turn this into a deterministic layout and heightfield that both the simulation and the renderer use. Zones are rectangles [minX, maxX, minZ, maxZ]; the first zone whose rect contains a point wins. exits[] are travel points (pos, r) to another map (to = map id) arriving at that map's arrive [x, z]. Zone and waypoint discovery is kept per map (character.progress.maps).",
+  "id": "frontier-wilds-v1",
+  "name": "Greenhollow Frontier",
+  "nameTh": "ชายแดนกรีนฮอลโลว์",
+  "layoutRevision": "frontier-wilds-1",
+  "seed": 7331,
+  "bounds": {
+    "minX": -224,
+    "maxX": 224,
+    "minZ": -144,
+    "maxZ": 208
+  },
+  "playerSpawn": [
+    -204,
+    3
+  ],
+  "waterLevel": -0.4,
+  "terrain": {
+    "_doc": "Heightfield on a res-metre grid. hills: [x, z, radius, height]. plateaus: raised areas with cliff edges (edge = cliff width in metres). pads: flattened circles [x, z, radius]. Roads are smoothed into ramps automatically.",
+    "res": 1,
+    "margin": 40,
+    "noiseScale": 0.0175,
+    "maxWalkSlope": 1,
+    "hills": [
+      [
+        -131.2,
+        -35.2,
+        25.6,
+        1.6
+      ],
+      [
+        -92.8,
+        48,
+        20.8,
+        1.3
+      ],
+      [
+        -48,
+        -28.8,
+        17.6,
+        1.2
+      ],
+      [
+        -140.8,
+        67.2,
+        19.2,
+        2
+      ],
+      [
+        -64,
+        38.4,
+        14.4,
+        0.8
+      ],
+      [
+        -128,
+        112,
+        22.4,
+        2.2
+      ],
+      [
+        -40,
+        118.4,
+        19.2,
+        1.6
+      ],
+      [
+        -64,
+        -108.8,
+        25.6,
+        3
+      ],
+      [
+        -32,
+        -121.6,
+        19.2,
+        2.4
+      ],
+      [
+        -12.8,
+        -48,
+        14.4,
+        1.6
+      ],
+      [
+        -137.6,
+        -99.2,
+        22.4,
+        2.8
+      ],
+      [
+        -115.2,
+        -70.4,
+        16,
+        1.8
+      ],
+      [
+        64,
+        -121.6,
+        32,
+        4.5
+      ],
+      [
+        115.2,
+        -128,
+        28.8,
+        5.5
+      ],
+      [
+        140.8,
+        -96,
+        22.4,
+        3.5
+      ],
+      [
+        92.8,
+        -57.6,
+        19.2,
+        2.4
+      ],
+      [
+        44.8,
+        -140.8,
+        22.4,
+        3.5
+      ],
+      [
+        195.2,
+        -99.2,
+        32,
+        5
+      ],
+      [
+        160,
+        -128,
+        22.4,
+        4
+      ],
+      [
+        112,
+        115.2,
+        19.2,
+        1.2
+      ],
+      [
+        128,
+        64,
+        16,
+        1
+      ]
+    ],
+    "plateaus": [
+      {
+        "id": "ruins",
+        "x": 188.8,
+        "z": 12.8,
+        "rx": 41.6,
+        "rz": 57.6,
+        "height": 3.2,
+        "edge": 1.8,
+        "power": 3
+      },
+      {
+        "id": "mesa_east",
+        "x": 108.8,
+        "z": -115.2,
+        "rx": 11.2,
+        "rz": 8,
+        "height": 3.5,
+        "edge": 1.2,
+        "power": 2.5
+      },
+      {
+        "id": "mesa_west",
+        "x": 38.4,
+        "z": -108.8,
+        "rx": 9.6,
+        "rz": 12.8,
+        "height": 3,
+        "edge": 1.2,
+        "power": 2.5
+      }
+    ],
+    "pads": [
+      [
+        195.2,
+        9.6,
+        17
+      ],
+      [
+        -99.2,
+        -124.8,
+        10
+      ],
+      [
+        73.6,
+        -76.8,
+        6
+      ]
+    ]
+  },
+  "roads": [
+    {
+      "id": "main",
+      "width": 5,
+      "points": [
+        [
+          -230,
+          1
+        ],
+        [
+          -212,
+          1
+        ],
+        [
+          -196,
+          2
+        ],
+        [
+          -160,
+          3.2
+        ],
+        [
+          -137.6,
+          -3.2
+        ],
+        [
+          -112,
+          6.4
+        ],
+        [
+          -88,
+          12.8
+        ],
+        [
+          -64,
+          4.8
+        ],
+        [
+          -40,
+          -4.8
+        ],
+        [
+          -16,
+          -1.6
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          38.4,
+          4.8
+        ],
+        [
+          60.8,
+          12.8
+        ],
+        [
+          83.2,
+          6.4
+        ],
+        [
+          105.6,
+          0
+        ],
+        [
+          128,
+          3.2
+        ],
+        [
+          147.2,
+          6.4
+        ],
+        [
+          166.4,
+          8
+        ],
+        [
+          188.8,
+          9.6
+        ],
+        [
+          214.4,
+          9.6
+        ]
+      ]
+    },
+    {
+      "id": "forest_trail",
+      "width": 3.5,
+      "points": [
+        [
+          -112,
+          6.4
+        ],
+        [
+          -108.8,
+          -19.2
+        ],
+        [
+          -96,
+          -48
+        ],
+        [
+          -80,
+          -70.4
+        ],
+        [
+          -64,
+          -80
+        ],
+        [
+          -41.6,
+          -75.2
+        ],
+        [
+          -16,
+          -70.4
+        ],
+        [
+          27.2,
+          -75.2
+        ],
+        [
+          51.2,
+          -80
+        ],
+        [
+          73.6,
+          -89.6
+        ],
+        [
+          99.2,
+          -96
+        ],
+        [
+          124.8,
+          -86.4
+        ],
+        [
+          147.2,
+          -67.2
+        ],
+        [
+          166.4,
+          -48
+        ],
+        [
+          176,
+          -28.8
+        ]
+      ]
+    },
+    {
+      "id": "wolf_trail",
+      "width": 3,
+      "points": [
+        [
+          -80,
+          -70.4
+        ],
+        [
+          -83.2,
+          -92.8
+        ],
+        [
+          -92.8,
+          -112
+        ],
+        [
+          -99.2,
+          -121.6
+        ]
+      ]
+    },
+    {
+      "id": "glade_trail",
+      "width": 3.5,
+      "points": [
+        [
+          -88,
+          12.8
+        ],
+        [
+          -92.8,
+          41.6
+        ],
+        [
+          -86.4,
+          70.4
+        ],
+        [
+          -76.8,
+          96
+        ],
+        [
+          -80,
+          115.2
+        ]
+      ]
+    },
+    {
+      "id": "wetland_trail",
+      "width": 3.5,
+      "points": [
+        [
+          60.8,
+          12.8
+        ],
+        [
+          54.4,
+          41.6
+        ],
+        [
+          64,
+          70.4
+        ],
+        [
+          80,
+          92.8
+        ],
+        [
+          73.6,
+          115.2
+        ]
+      ]
+    },
+    {
+      "id": "coast_trail",
+      "width": 3.5,
+      "points": [
+        [
+          -83.2,
+          102.4
+        ],
+        [
+          -70.4,
+          128
+        ],
+        [
+          -51.2,
+          147.2
+        ],
+        [
+          -25.6,
+          156.8
+        ],
+        [
+          6.4,
+          158.4
+        ]
+      ]
+    },
+    {
+      "id": "coast_east_trail",
+      "width": 3.5,
+      "points": [
+        [
+          73.6,
+          115.2
+        ],
+        [
+          83.2,
+          137.6
+        ],
+        [
+          105.6,
+          153.6
+        ],
+        [
+          134.4,
+          156.8
+        ]
+      ]
+    }
+  ],
+  "river": {
+    "_doc": "Shallow walkable stream. Cross anywhere with a gentle bank; bridges remain optional.",
+    "width": 8,
+    "points": [
+      [
+        6.4,
+        -166.4
+      ],
+      [
+        9.6,
+        -115.2
+      ],
+      [
+        3.2,
+        -83.2
+      ],
+      [
+        11.2,
+        -51.2
+      ],
+      [
+        19.2,
+        -22.4
+      ],
+      [
+        19.2,
+        3.2
+      ],
+      [
+        25.6,
+        32
+      ],
+      [
+        35.2,
+        64
+      ],
+      [
+        27.2,
+        96
+      ],
+      [
+        36.8,
+        128
+      ],
+      [
+        35.2,
+        160
+      ],
+      [
+        33.6,
+        179.2
+      ],
+      [
+        32,
+        216
+      ]
+    ],
+    "bridges": [
+      {
+        "id": "main_bridge",
+        "x": 19.2,
+        "z": 2.4,
+        "halfLength": 7,
+        "halfWidth": 2.6,
+        "angle": -0.124
+      },
+      {
+        "id": "north_bridge",
+        "x": 5.8,
+        "z": -72.8,
+        "halfLength": 6.5,
+        "halfWidth": 2.2,
+        "angle": 0.11
+      }
+    ],
+    "walkable": true,
+    "depth": 0.18,
+    "bankWidth": 10
+  },
+  "ponds": [
+    [
+      76.8,
+      48,
+      8.1
+    ],
+    [
+      88,
+      73.6,
+      6.8
+    ],
+    [
+      48,
+      92.8,
+      9.5
+    ],
+    [
+      102.4,
+      32,
+      5.4
+    ],
+    [
+      -56,
+      128,
+      6.8
+    ],
+    [
+      -137.6,
+      48,
+      4.7
+    ]
+  ],
+  "zones": [
+    {
+      "id": "settlement",
+      "name": "Frontier Settlement",
+      "nameTh": "นิคมชายแดน",
+      "rects": [
+        [
+          -224,
+          -184,
+          -32,
+          32
+        ]
+      ],
+      "safe": true,
+      "level": 1,
+      "hillAmp": 0.15,
+      "treeDensity": 0,
+      "palette": [
+        "#91b358",
+        "#709346"
+      ],
+      "fog": "#c4e4ee"
+    },
+    {
+      "id": "wolf_den",
+      "name": "Greyfang Den",
+      "nameTh": "ถ้ำหมาป่าเกรย์แฟง",
+      "rects": [
+        [
+          -131.2,
+          -67.2,
+          -144,
+          -102.4
+        ]
+      ],
+      "level": 5,
+      "hillAmp": 1.4,
+      "treeDensity": 0.39,
+      "trees": [
+        "birch",
+        "tree"
+      ],
+      "palette": [
+        "#799650",
+        "#567941"
+      ],
+      "fog": "#a4c4b2"
+    },
+    {
+      "id": "ruins",
+      "name": "Ancient Ruins",
+      "nameTh": "ซากโบราณ",
+      "rects": [
+        [
+          144,
+          224,
+          -44.8,
+          70.4
+        ]
+      ],
+      "level": 8,
+      "hillAmp": 0.3,
+      "treeDensity": 0.1,
+      "trees": [
+        "tree"
+      ],
+      "palette": [
+        "#9eae71",
+        "#7d9256"
+      ],
+      "fog": "#d6d0e8"
+    },
+    {
+      "id": "highlands",
+      "name": "Crag Highlands",
+      "nameTh": "ที่ราบสูงผาหิน",
+      "rects": [
+        [
+          32,
+          224,
+          -144,
+          -44.8
+        ]
+      ],
+      "level": 6,
+      "hillAmp": 2.2,
+      "treeDensity": 0.18,
+      "trees": [
+        "birch",
+        "birch",
+        "tree"
+      ],
+      "palette": [
+        "#aab66e",
+        "#879652"
+      ],
+      "fog": "#d3e3ec"
+    },
+    {
+      "id": "forest",
+      "name": "Mossroot Forest",
+      "nameTh": "ป่ารากตะไคร่",
+      "rects": [
+        [
+          -160,
+          32,
+          -144,
+          -48
+        ]
+      ],
+      "level": 3,
+      "hillAmp": 1.8,
+      "treeDensity": 0.55,
+      "trees": [
+        "tree",
+        "tree",
+        "birch",
+        "birch"
+      ],
+      "palette": [
+        "#71a556",
+        "#508143"
+      ],
+      "fog": "#a9d2bb"
+    },
+    {
+      "id": "glade",
+      "name": "Bramble Glade",
+      "nameTh": "ทุ่งพุ่มหนาม",
+      "rects": [
+        [
+          -224,
+          -16,
+          67.2,
+          144
+        ],
+        [
+          -224,
+          -160,
+          51.2,
+          67.2
+        ]
+      ],
+      "level": 2,
+      "hillAmp": 1.1,
+      "treeDensity": 0.28,
+      "trees": [
+        "birch",
+        "tree"
+      ],
+      "palette": [
+        "#8bac58",
+        "#6c934a"
+      ],
+      "fog": "#cfe6e8"
+    },
+    {
+      "id": "wetland",
+      "name": "Glimmer Wetland",
+      "nameTh": "ที่ชุ่มน้ำประกายแสง",
+      "rects": [
+        [
+          -16,
+          144,
+          -44.8,
+          144
+        ],
+        [
+          144,
+          224,
+          70.4,
+          144
+        ]
+      ],
+      "level": 5,
+      "hillAmp": 0.35,
+      "treeDensity": 0.23,
+      "trees": [
+        "willow",
+        "tree"
+      ],
+      "palette": [
+        "#72a76c",
+        "#528958"
+      ],
+      "fog": "#b6dde0"
+    },
+    {
+      "id": "coast",
+      "name": "Sunfall Coast",
+      "nameTh": "ชายฝั่งตะวันรอน",
+      "rects": [
+        [
+          -224,
+          224,
+          144,
+          208
+        ]
+      ],
+      "level": 4,
+      "hillAmp": 0.35,
+      "treeDensity": 0.12,
+      "trees": [
+        "palm",
+        "palm",
+        "tree"
+      ],
+      "palette": [
+        "#a8b77c",
+        "#92a66a"
+      ],
+      "fog": "#c6e8f2"
+    },
+    {
+      "id": "meadow",
+      "name": "Sunny Meadow",
+      "nameTh": "ทุ่งหญ้าแดดอุ่น",
+      "rects": [
+        [
+          -160,
+          -16,
+          -48,
+          67.2
+        ],
+        [
+          -224,
+          -160,
+          -144,
+          -51.2
+        ]
+      ],
+      "level": 1,
+      "hillAmp": 1.3,
+      "treeDensity": 0.14,
+      "trees": [
+        "tree"
+      ],
+      "palette": [
+        "#95b456",
+        "#78994a"
+      ],
+      "fog": "#c4e6ef"
+    }
+  ],
+  "spawns": [
+    {
+      "monster": "tusk_boar",
+      "zone": "meadow",
+      "count": 29,
+      "level": [
+        1,
+        2
+      ]
+    },
+    {
+      "monster": "tusk_boar",
+      "zone": "glade",
+      "count": 12,
+      "level": [
+        2,
+        3
+      ]
+    },
+    {
+      "monster": "sporecap",
+      "zone": "glade",
+      "count": 14,
+      "level": [
+        2,
+        3
+      ]
+    },
+    {
+      "monster": "moss_beetle",
+      "zone": "glade",
+      "count": 5,
+      "level": [
+        2,
+        3
+      ]
+    },
+    {
+      "monster": "tusk_boar",
+      "zone": "forest",
+      "count": 7,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "moss_beetle",
+      "zone": "forest",
+      "count": 17,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "thornback_wolf",
+      "zone": "forest",
+      "count": 19,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "sporecap",
+      "zone": "forest",
+      "count": 10,
+      "level": [
+        3,
+        4
+      ]
+    },
+    {
+      "monster": "thornback_wolf",
+      "zone": "wolf_den",
+      "count": 14,
+      "level": [
+        5,
+        5
+      ]
+    },
+    {
+      "monster": "moss_beetle",
+      "zone": "wetland",
+      "count": 10,
+      "level": [
+        5,
+        6
+      ]
+    },
+    {
+      "monster": "marsh_wisp",
+      "zone": "wetland",
+      "count": 22,
+      "level": [
+        5,
+        6
+      ]
+    },
+    {
+      "monster": "sporecap",
+      "zone": "wetland",
+      "count": 12,
+      "level": [
+        5,
+        6
+      ]
+    },
+    {
+      "monster": "crag_golem",
+      "zone": "highlands",
+      "count": 14,
+      "level": [
+        6,
+        7
+      ]
+    },
+    {
+      "monster": "gale_hawk",
+      "zone": "highlands",
+      "count": 17,
+      "level": [
+        6,
+        7
+      ]
+    },
+    {
+      "monster": "thornback_wolf",
+      "zone": "highlands",
+      "count": 7,
+      "level": [
+        6,
+        7
+      ]
+    },
+    {
+      "monster": "marsh_wisp",
+      "zone": "highlands",
+      "count": 7,
+      "level": [
+        6,
+        7
+      ]
+    },
+    {
+      "monster": "marsh_wisp",
+      "zone": "ruins",
+      "count": 12,
+      "level": [
+        8,
+        9
+      ]
+    },
+    {
+      "monster": "crag_golem",
+      "zone": "ruins",
+      "count": 10,
+      "level": [
+        8,
+        9
+      ]
+    },
+    {
+      "monster": "gale_hawk",
+      "zone": "ruins",
+      "count": 5,
+      "level": [
+        8,
+        9
+      ]
+    },
+    {
+      "monster": "moss_beetle",
+      "zone": "ruins",
+      "count": 5,
+      "level": [
+        8,
+        9
+      ]
+    },
+    {
+      "monster": "reef_crab",
+      "zone": "coast",
+      "count": 22,
+      "level": [
+        3,
+        5
+      ]
+    },
+    {
+      "monster": "gale_hawk",
+      "zone": "coast",
+      "count": 6,
+      "level": [
+        4,
+        5
+      ]
+    },
+    {
+      "monster": "tusk_boar",
+      "zone": "coast",
+      "count": 6,
+      "level": [
+        3,
+        4
+      ]
+    }
+  ],
+  "respawnSeconds": 24,
+  "zoneDrops": {
+    "_doc": "Extra drops for any monster killed in a zone.",
+    "wetland": [
+      {
+        "item": "ruin_shard",
+        "chance": 0.08,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "highlands": [
+      {
+        "item": "ruin_shard",
+        "chance": 0.12,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "ruins": [
+      {
+        "item": "ruin_shard",
+        "chance": 0.35,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "wolf_den": [
+      {
+        "item": "wolf_fang",
+        "chance": 0.15,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "coast": [
+      {
+        "item": "sea_pearl",
+        "chance": 0.05,
+        "min": 1,
+        "max": 1
+      }
+    ]
+  },
+  "bosses": [
+    {
+      "id": "greyfang",
+      "monster": "greyfang",
+      "pos": [
+        -99.2,
+        -124.8
+      ],
+      "level": 5,
+      "respawnSeconds": 90,
+      "arena": {
+        "x": -99.2,
+        "z": -124.8,
+        "r": 10
+      }
+    },
+    {
+      "id": "warden",
+      "monster": "horned_warden",
+      "pos": [
+        195.2,
+        9.6
+      ],
+      "level": 9,
+      "respawnSeconds": 120,
+      "arena": {
+        "x": 195.2,
+        "z": 9.6,
+        "r": 16
+      },
+      "final": true
+    }
+  ],
+  "waypoints": [
+    {
+      "id": "town",
+      "name": "Settlement Gate",
+      "nameTh": "ประตูนิคม",
+      "pos": [
+        -189,
+        -12
+      ],
+      "unlocked": true
+    },
+    {
+      "id": "meadow",
+      "name": "Meadow Stone",
+      "nameTh": "หินทุ่งหญ้า",
+      "pos": [
+        -99.2,
+        25.6
+      ]
+    },
+    {
+      "id": "glade",
+      "name": "Glade Stone",
+      "nameTh": "หินทุ่งพุ่มหนาม",
+      "pos": [
+        -64,
+        99.2
+      ]
+    },
+    {
+      "id": "forest",
+      "name": "Forest Clearing",
+      "nameTh": "ลานกลางป่า",
+      "pos": [
+        -57.6,
+        -64
+      ]
+    },
+    {
+      "id": "wetland",
+      "name": "Wetland Stone",
+      "nameTh": "หินที่ชุ่มน้ำ",
+      "pos": [
+        70.4,
+        24
+      ]
+    },
+    {
+      "id": "highlands",
+      "name": "Highland Camp",
+      "nameTh": "แคมป์ที่ราบสูง",
+      "pos": [
+        73.6,
+        -76.8
+      ]
+    },
+    {
+      "id": "ruins",
+      "name": "Ruins Approach",
+      "nameTh": "ทางขึ้นซากโบราณ",
+      "pos": [
+        134.4,
+        14.4
+      ]
+    },
+    {
+      "id": "coast",
+      "name": "Sunfall Beach Stone",
+      "nameTh": "หินชายหาดตะวันรอน",
+      "pos": [
+        -9.6,
+        153.6
+      ]
+    }
+  ],
+  "town": {
+    "height": 0.4,
+    "centre": [
+      -204,
+      0
+    ],
+    "plazaRadius": 9,
+    "workbench": [
+      -196,
+      -9
+    ],
+    "trainer": [
+      -196,
+      9
+    ],
+    "respawn": [
+      -204,
+      3
+    ],
+    "well": [
+      -207,
+      -5
+    ],
+    "stalls": [
+      [
+        -213,
+        -6,
+        1.57
+      ],
+      [
+        -213,
+        7,
+        1.57
+      ]
+    ],
+    "buildings": [
+      [
+        -213,
+        -16,
+        0.2
+      ],
+      [
+        -216,
+        16,
+        -0.25
+      ],
+      [
+        -195,
+        -21,
+        0.05
+      ],
+      [
+        -194,
+        21,
+        0
+      ],
+      [
+        -208,
+        27,
+        1.57
+      ],
+      [
+        -220,
+        -27,
+        0.4
+      ],
+      [
+        -204,
+        -26,
+        0
+      ]
+    ],
+    "walls": {
+      "east": -184,
+      "north": -32,
+      "south": 32,
+      "gateHalf": 4.5
+    }
+  },
+  "ruins": {
+    "pillars": 22,
+    "centre": [
+      195.2,
+      9.6
+    ],
+    "ringRadius": 18
+  },
+  "camp": {
+    "tents": [
+      [
+        79.6,
+        -69.4,
+        0.4
+      ],
+      [
+        66.6,
+        -68.4,
+        -0.3
+      ]
+    ],
+    "fire": [
+      73.6,
+      -70.4
+    ]
+  },
+  "den": {
+    "centre": [
+      -99.2,
+      -124.8
+    ],
+    "radius": 9
+  },
+  "sea": {
+    "_doc": "Sea along the south edge: everything south of the shore line is water; a sandy beach is shaped just north of it.",
+    "beach": 20,
+    "shore": [
+      [
+        -320,
+        176
+      ],
+      [
+        -224,
+        172.8
+      ],
+      [
+        -160,
+        179.2
+      ],
+      [
+        -96,
+        174.4
+      ],
+      [
+        -48,
+        180.8
+      ],
+      [
+        0,
+        176
+      ],
+      [
+        33.6,
+        182.4
+      ],
+      [
+        72,
+        174.4
+      ],
+      [
+        128,
+        179.2
+      ],
+      [
+        176,
+        172.8
+      ],
+      [
+        224,
+        177.6
+      ],
+      [
+        320,
+        174.4
+      ]
+    ],
+    "shellDensity": 0.2,
+    "surf": {
+      "period": 7.5,
+      "runup": 2.6,
+      "retreat": 1.6,
+      "foamWidth": 0.075
+    }
+  },
+  "exits": [
+    {
+      "id": "to-azure",
+      "to": "azure-harbor-v1",
+      "pos": [
+        -219,
+        1
+      ],
+      "r": 4,
+      "arrive": [0, -97],
+      "name": "Azure Coast",
+      "nameTh": "ชายฝั่งสีคราม"
+    }
+  ]
+}

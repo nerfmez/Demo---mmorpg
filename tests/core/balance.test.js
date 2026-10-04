@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
-import {createCharacter,migrateCharacter,derive} from '../../src/core/character.js';
+import {CHARACTER_VERSION,createCharacter,migrateCharacter,derive} from '../../src/core/character.js';
 import {computeSkill} from '../../src/core/skills.js';
 import {gearUpgradePreview} from '../../src/core/crafting.js';
 
@@ -10,7 +10,7 @@ test('v2 migration refunds network points once, retains ownership and roll quali
  ch.gear.push({uid:99,base:'tusk_blade',grade:'A',upgrade:4,options:[{id:'attack_flat',value:6}]});
  const before={gold:ch.gold,materials:structuredClone(ch.materials),equipped:structuredClone(ch.equipped),skills:structuredClone(ch.skills),stats:structuredClone(ch.stats),nextUid:ch.nextUid};
  const def=data.items.gearOptions.attack_flat;
- migrateCharacter(ch,data);assert.equal(ch.version,4);assert.equal(ch.jobPoints,11);assert.deepEqual(ch.jobNodes,['origin']);
+ migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.jobPoints,11);assert.deepEqual(ch.jobNodes,['origin']);
  assert.deepEqual({gold:ch.gold,materials:ch.materials,equipped:ch.equipped,skills:ch.skills,stats:ch.stats,nextUid:ch.nextUid},before);
  const item=ch.gear.find(g=>g.uid===99);assert.equal(item.upgrade,4);assert.equal(item.grade,'A');assert.equal(item.options[0].value,def.max);assert.ok(ch.progress.balanceMigration);
  const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);
@@ -50,7 +50,7 @@ test('v3 gear migration adds two affixes once without changing existing rolls or
  const item=ch.gear[0];item.grade='B';item.upgrade=3;item.options=[{id:'attack_flat',value:2}];
  ch.stats.STR=100;const before={nodes:structuredClone(ch.jobNodes),points:ch.jobPoints,gold:ch.gold,materials:structuredClone(ch.materials),uid:item.uid};
  migrateCharacter(ch,data);assert.equal(item.options.length,3);assert.deepEqual(item.options[0],{id:'attack_flat',value:2});
- assert.equal(item.upgrade,3);assert.equal(item.grade,'B');assert.equal(item.uid,before.uid);assert.equal(ch.version,4);
+ assert.equal(item.upgrade,3);assert.equal(item.grade,'B');assert.equal(item.uid,before.uid);assert.equal(ch.version,CHARACTER_VERSION);
  assert.deepEqual(ch.jobNodes,before.nodes);assert.equal(ch.jobPoints,before.points);assert.equal(ch.gold,before.gold);assert.deepEqual(ch.materials,before.materials);
  const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);
 });

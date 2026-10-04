@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { legacyData as data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
-import { createCharacter, migrateCharacter, derive, equip, unequip, gearLook } from '../../src/core/character.js';
+import {CHARACTER_VERSION,createCharacter, migrateCharacter, derive, equip, unequip, gearLook } from '../../src/core/character.js';
 import { craft } from '../../src/core/crafting.js';
 import { questState, trackedQuest } from '../../src/core/quests.js';
 import { createRng } from '../../src/core/rng.js';
@@ -122,7 +122,7 @@ test('an old v1 save migrates without losing progress', () => {
   old.equipped = { weapon: old.equipped.weapon, armor: old.equipped.armor };
   old.gear.push({ uid: 99, base: 'no_longer_exists', grade: 'C', upgrade: 0, options: [] });
   const ch = migrateCharacter(JSON.parse(JSON.stringify(old)), data);
-  assert.equal(ch.version, 4);
+  assert.equal(ch.version, CHARACTER_VERSION);
   assert.equal(ch.level, 7);
   assert.ok(ch.progress.waypoints.includes('town'));
   assert.ok('helm' in ch.equipped && 'charm' in ch.equipped);

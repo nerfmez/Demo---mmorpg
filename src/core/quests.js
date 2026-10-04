@@ -26,8 +26,10 @@ export function refreshQuests(ch, data) {
     if (st.status !== 'active') continue;
     const def = Q.quests[id];
     const p = ch.progress;
-    if (def.type === 'waypoint' && p.waypoints.includes(def.target)) st.progress = def.count;
-    if (def.type === 'zone' && p.zones.includes(def.target)) st.progress = def.count;
+    // Discovery lists hold the current map only; ids can repeat on another map.
+    const here = !def.world || def.world === data.world.id;
+    if (here && def.type === 'waypoint' && p.waypoints.includes(def.target)) st.progress = def.count;
+    if (here && def.type === 'zone' && p.zones.includes(def.target)) st.progress = def.count;
     if (def.type === 'job' && ch.jobNodes.some((n) => data.jobtree.nodes[n].type === 'job')) st.progress = def.count;
     if (def.type === 'socket') st.progress = Math.min(def.count, p.socketed || 0);
     if (st.progress >= def.count) {

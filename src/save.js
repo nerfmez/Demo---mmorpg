@@ -135,3 +135,24 @@ export function loadPref(key, fallback) {
 export function savePref(key, value) {
   write(`frontier-demo.${key}`, value);
 }
+
+// Map travel reloads the page so only one map is ever held in memory. The pending
+// trip (slot, or the unsaved test character) survives the reload in sessionStorage.
+const TRAVEL = 'frontier.travel';
+export function stashTravel(trip) {
+  try {
+    sessionStorage.setItem(TRAVEL, JSON.stringify(trip));
+    return true;
+  } catch {
+    return false;
+  }
+}
+export function takeTravel() {
+  try {
+    const raw = sessionStorage.getItem(TRAVEL);
+    sessionStorage.removeItem(TRAVEL);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}

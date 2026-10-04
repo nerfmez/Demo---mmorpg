@@ -1,13 +1,14 @@
 // Character progression: Character Level -> Stat Points, Job Level -> Job Points (Job Tree),
 // equipment (5 slots), appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
+import { enterMap } from './maps.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 4;
+export const CHARACTER_VERSION = 5;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
-  return { waypoints: starter ? starter.waypoints.filter(w => w.unlocked).map(w => w.id) : ['town'], zones: starter ? ['landing'] : ['settlement'], kills: {}, collected: {}, quests: {}, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {} };
+  return { waypoints: starter ? starter.waypoints.filter(w => w.unlocked).map(w => w.id) : ['town'], zones: starter ? ['landing'] : ['settlement'], kills: {}, collected: {}, quests: {}, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {}, maps: {} };
 }
 
 /**
@@ -67,7 +68,10 @@ export function migrateCharacter(ch, data) {
   ch.equipped = ch.equipped || {};
   for (const s of slots) if (!(s in ch.equipped)) ch.equipped[s] = null;
   ch.progress = { ...emptyProgress(data), ...(ch.progress || {}) };
-  if (data.world.id && ch.worldId !== data.world.id) {
+  if (data.world.id && ch.worldId !== data.world.id && data.maps?.[ch.worldId]) {
+    // A linked map's character loaded on another map: swap discovery, keep everything else.
+    enterMap(ch, data, data.world.id);
+  } else if (data.world.id && ch.worldId !== data.world.id) {
     // Old coordinates can be free here but still refer to another map. Move once;
     // retain inventory, levels, job choices and the historical quest records.
     ch.pos = null;
@@ -81,7 +85,7 @@ export function migrateCharacter(ch, data) {
     ch.pos = null;
   }
   ch.worldLayoutRevision = data.world.layoutRevision || null;
-  for (const k of ['kills', 'collected', 'quests', 'bossKills']) ch.progress[k] = ch.progress[k] || {};
+  for (const k of ['kills', 'collected', 'quests', 'bossKills', 'maps']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
   if (!ch.kit) ch.kit = 'sword';

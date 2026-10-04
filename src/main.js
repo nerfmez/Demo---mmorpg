@@ -13,7 +13,8 @@ import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
 import { Menu } from './ui/menu.js';
 import { createFullscreen } from './ui/fullscreen.js';
-import { migrateLegacy, writeSlot, exportCode, loadPref, savePref } from './save.js';
+import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
+import { characterMap, selectMap } from './core/maps.js';
 import '@fontsource/mitr/thai-400.css';
 import '@fontsource/mitr/thai-500.css';
 import '@fontsource/mitr/thai-600.css';
@@ -29,6 +30,11 @@ document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
 migrateLegacy();
+// One map is built per page. A trip through an exit (or loading a save from another
+// map) reloads into that map; ?map=<id> opens one directly for tests and captures.
+const trip = takeTravel();
+const tripCharacter = trip ? (trip.slot ? loadSlot(trip.slot)?.character : trip.character) : null;
+selectMap(data, tripCharacter ? characterMap(data, tripCharacter) : params.get('map'));
 const world = createWorld(data.world);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
@@ -57,7 +63,22 @@ const fullscreen = createFullscreen({
 F.fullscreen = fullscreen;
 const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
 
+/** Reload into the character's map (saved slot, or the unsaved test character). */
+function travelTo(character, slot, name) {
+  if (slot) writeSlot(slot, character);
+  stashTravel(slot ? { slot } : { character });
+  const loading = document.getElementById('loading');
+  loading.querySelector('.load-title').textContent = name || '';
+  loading.querySelector('.load-sub').textContent = 'กำลังเดินทาง…';
+  loading.classList.remove('done');
+  const url = new URL(location.href);
+  url.searchParams.delete('map');
+  // Let the overlay paint before the page unloads.
+  requestAnimationFrame(() => setTimeout(() => location.replace(url.href), 30));
+}
+
 function startGame(character, slot) {
+  if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
   const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
   view.attachGame(game);
   view.mode = 'game';
@@ -104,6 +125,14 @@ function startGame(character, slot) {
       if (n.workbench) panels.open('craft');
       else if (n.trainer) panels.open('job');
       else if (n.waypoint) panels.open('map');
+      else if (n.exit) {
+        const result = game.travel(n.exit);
+        if (!result.ok) hud.toast(result.reason === 'combat' ? 'ออกเดินทางระหว่างต่อสู้ไม่ได้' : 'ยังเดินทางไม่ได้', '#ffb36b');
+        else {
+          session = null; // stop simulating and saving the old map
+          travelTo(result.character, slot, data.maps[result.to].nameTh);
+        }
+      }
     },
   };
   const input = new Input(hudRoot, canvas, game, view, ui);
@@ -258,7 +287,8 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
+if (tripCharacter) startGame(tripCharacter, trip.slot || null);
+else if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
 else menu.showTitle();
 requestAnimationFrame((t) => {
   last = t;

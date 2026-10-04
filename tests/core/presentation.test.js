@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {data,legacyData} from './helpers.js';
 import {ART,art,hasArt} from '../../src/ui/art.js';
 import {rasterIconUrl} from '../../src/ui/raster-icons.js';
-import {createCharacter,gearLook} from '../../src/core/character.js';
+import {CHARACTER_VERSION,createCharacter,gearLook} from '../../src/core/character.js';
 
 test('every named content entry has distinct authored artwork within its category',()=>{
  const catalogs={
@@ -35,7 +35,7 @@ test('gear presentation preserves base identity independently of grade and enhan
  const sword=ch.gear.find(i=>i.uid===ch.equipped.weapon);sword.base='tusk_blade';
  assert.equal(gearLook(ch,data).weapon,before.weapon,'same weapon family');
  assert.equal(gearLook(ch,data).bases.weapon,'tusk_blade','different base chooses different model');
- assert.equal(ch.version,4);
+ assert.equal(ch.version,CHARACTER_VERSION);
 });
 
 

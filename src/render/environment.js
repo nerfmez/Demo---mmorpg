@@ -446,7 +446,59 @@ export function createEnvironment(world) {
     root.add(g);
     waypoints.set(wp.id, g);
   }
+  for (const exit of world.exits || []) root.add(exitGate(exit, world));
   return { root, waypoints };
+}
+
+// A timber road gate with a hanging sign marks the way to a linked map. It faces
+// along the road it stands on; travel itself is the HUD prompt inside exit.r.
+function exitGate(exit, world) {
+  let best = Infinity, dir = 0, width = 6;
+  for (const road of world.roads) {
+    const pts = road.points;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ax, az] = pts[i], [bx, bz] = pts[i + 1], dx = bx - ax, dz = bz - az, len = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((exit.x - ax) * dx + (exit.z - az) * dz) / len));
+      const d = Math.hypot(exit.x - ax - dx * t, exit.z - az - dz * t);
+      if (d < best) { best = d; dir = Math.atan2(dx, dz); width = road.width; }
+    }
+  }
+  const g = new THREE.Group(), wood = toon('#8a5c3a'), dark = toon('#6b4a30'), sign = toon('#d9b27c');
+  const line = { outline: '#3b2618', width: 0.025 };
+  g.position.set(exit.x, world.groundY(exit.x, exit.z), exit.z);
+  g.rotation.y = dir;
+  const span = width / 2 + 0.9;
+  for (const side of [-1, 1]) {
+    const post = outlined(new THREE.CylinderGeometry(0.2, 0.24, 4.2, 8), wood, line);
+    post.position.set(side * span, 2.1, 0);
+    const foot = outlined(new THREE.CylinderGeometry(0.38, 0.44, 0.35, 8), dark, line);
+    foot.position.set(side * span, 0.17, 0);
+    const cap = outlined(new THREE.ConeGeometry(0.3, 0.32, 8), dark, line);
+    cap.position.set(side * span, 4.36, 0);
+    g.add(post, foot, cap);
+  }
+  const beam = outlined(new THREE.BoxGeometry(span * 2 + 0.9, 0.3, 0.34), dark, line);
+  beam.position.y = 3.85;
+  const lintel = outlined(new THREE.BoxGeometry(span * 2 - 0.2, 0.18, 0.24), wood, line);
+  lintel.position.y = 3.35;
+  const board = outlined(new THREE.BoxGeometry(2.4, 0.78, 0.12), sign, line);
+  board.position.set(0, 2.72, 0);
+  const trim = outlined(new THREE.BoxGeometry(2.0, 0.08, 0.14), dark, line);
+  trim.position.set(0, 2.6, 0);
+  g.add(beam, lintel, board, trim);
+  for (const side of [-1, 1]) {
+    const rope = outlined(new THREE.CylinderGeometry(0.025, 0.025, 0.42, 4), dark, line);
+    rope.position.set(side * 0.95, 3.12, 0);
+    g.add(rope);
+  }
+  for (const side of [-1, 1]) {
+    const l = lantern(0, 0, 0);
+    l.position.set(side * (span + 0.9), 0, 0.6);
+    l.rotation.y = side < 0 ? Math.PI : 0;
+    g.add(l);
+  }
+  g.name = 'exit-gate-' + exit.id;
+  return g;
 }
 
 

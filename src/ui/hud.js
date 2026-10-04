@@ -28,8 +28,16 @@ export function rewardText(data, r = {}) {
 /** Where the tracked quest wants the player to go (for the minimap marker), or null. */
 export function questTarget(game, id) {
   if (!id) return null;
+  const q = game.data.quests.quests[id];
+  // Quests on another map (or with nothing to find here) point at the exit that leads on.
+  const exits = game.world.exits;
+  const toward = q.world && q.world !== game.data.world.id ? exits.find((e) => e.to === q.world) : null;
+  if (toward) return { x: toward.x, z: toward.z };
+  return localQuestTarget(game, q) || (exits[0] && ['kill', 'collect', 'waypoint'].includes(q.type) ? { x: exits[0].x, z: exits[0].z } : null);
+}
+
+function localQuestTarget(game, q) {
   const data = game.data;
-  const q = data.quests.quests[id];
   const p = game.player;
   const nearestMonster = (types) => {
     let best = null;
@@ -530,14 +538,15 @@ export class Hud {
 
     // interaction prompt
     const near = g.nearby();
-    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.waypoint ? 'waypoint' : null;
+    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.waypoint ? 'waypoint' : near.exit ? 'exit:' + near.exit : null;
     if (prompt !== this.lastPrompt) {
       this.lastPrompt = prompt;
       this.el.prompt.innerHTML = '';
       this.el.prompt.classList.toggle('on', !!prompt);
       if (prompt) {
-        const label = { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
-        const ic = { workbench: 'hammer', trainer: 'tree', waypoint: 'portal' }[prompt];
+        const exit = near.exit && g.world.exits.find((e) => e.id === near.exit);
+        const label = exit ? 'เดินทางไป' + exit.nameTh : { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
+        const ic = exit ? 'portal' : { workbench: 'hammer', trainer: 'tree', waypoint: 'portal' }[prompt];
         const b = h(`<button class="pbtn">${icon(ic)}<span>${label}</span><kbd>E</kbd></button>`);
         b.addEventListener('click', () => ui.interact());
         this.el.prompt.appendChild(b);

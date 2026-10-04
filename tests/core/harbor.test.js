@@ -169,10 +169,12 @@ test('a pre-town death returns to the beach; unlocked town restores the town che
 });
 
 test('active quests only send players to reachable content; all new parts have recipes', () => {
+  const maps=Object.values(data.maps);
   for(const id of [...data.quests.main,...data.quests.side]) {
-    const q=data.quests.quests[id];
-    if(q.type==='kill') assert.ok(data.world.spawns.some(s=>s.monster===q.target),id);
-    if(q.type==='waypoint') assert.ok(world.waypoints.some(w=>w.id===q.target),id);
+    const q=data.quests.quests[id],where=q.world?[data.maps[q.world]]:maps;
+    assert.ok(where.every(Boolean),id+' map exists');
+    if(q.type==='kill') assert.ok(where.some(m=>m.spawns.some(s=>s.monster===q.target)||(m.bosses||[]).some(b=>b.monster===q.target)),id);
+    if(q.type==='waypoint') assert.ok(where.some(m=>m.waypoints.some(w=>w.id===q.target)),id);
   }
   for(const id of ['salt_gel','shore_feather','hermit_fragment']) assert.ok(Object.values(data.recipes.recipes).some(r=>r.cost[id]),id);
   for(const wp of world.waypoints) assert.ok(world.isFree(wp.x,wp.z+2.2,.45),wp.id+' arrival');

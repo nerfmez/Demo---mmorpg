@@ -248,6 +248,8 @@ export function createWorld(worldData) {
   // ---------- waypoints ----------
   const waypoints = (worldData.waypoints || []).map((wp) => ({ ...wp, x: wp.pos[0], z: wp.pos[1] }));
   for (const wp of waypoints) addCircle({ x: wp.x, z: wp.z, r: 0.7, type: 'waypoint', id: wp.id, scale: 1, rot: 0 });
+  // Travel points to linked maps (data/maps). They sit on roads, so they add no collider.
+  const exits = (worldData.exits || []).map((e) => ({ ...e, x: e.pos[0], z: e.pos[1] }));
 
   // ---------- ruins ----------
   const ruins = worldData.ruins;
@@ -593,6 +595,7 @@ export function createWorld(worldData) {
     boxes,
     decor,
     waypoints,
+    exits,
     isFree,
     tooSteep,
     move,

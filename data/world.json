@@ -2123,6 +2123,17 @@
     ]
   },
   "bosses": [],
+  "exits": [
+    {
+      "id": "to-frontier",
+      "to": "frontier-wilds-v1",
+      "pos": [0, -104],
+      "r": 4,
+      "arrive": [-212, 1],
+      "name": "Greenhollow Frontier",
+      "nameTh": "ชายแดนกรีนฮอลโลว์"
+    }
+  ],
   "waypoints": [
     {
       "id": "landing",

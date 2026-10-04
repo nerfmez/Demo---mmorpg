@@ -35,6 +35,7 @@ migrateLegacy();
 const trip = takeTravel();
 const tripCharacter = trip ? (trip.slot ? loadSlot(trip.slot)?.character : trip.character) : null;
 selectMap(data, tripCharacter ? characterMap(data, tripCharacter) : params.get('map'));
+document.querySelector('#loading .load-title').textContent = data.world.name || '';
 const world = createWorld(data.world);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');

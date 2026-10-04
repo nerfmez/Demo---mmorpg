@@ -624,7 +624,7 @@
       ],
       "level": 5,
       "hillAmp": 1.4,
-      "treeDensity": 0.39,
+      "treeDensity": 0.3,
       "trees": [
         "birch",
         "tree"
@@ -673,7 +673,7 @@
       ],
       "level": 6,
       "hillAmp": 2.2,
-      "treeDensity": 0.18,
+      "treeDensity": 0.15,
       "trees": [
         "birch",
         "birch",
@@ -699,7 +699,7 @@
       ],
       "level": 3,
       "hillAmp": 1.8,
-      "treeDensity": 0.55,
+      "treeDensity": 0.4,
       "trees": [
         "tree",
         "tree",
@@ -732,7 +732,7 @@
       ],
       "level": 2,
       "hillAmp": 1.1,
-      "treeDensity": 0.28,
+      "treeDensity": 0.2,
       "trees": [
         "birch",
         "tree"
@@ -763,7 +763,7 @@
       ],
       "level": 5,
       "hillAmp": 0.35,
-      "treeDensity": 0.23,
+      "treeDensity": 0.14,
       "trees": [
         "willow",
         "tree"
@@ -1216,59 +1216,143 @@
       -5
     ],
     "stalls": [
-      [
-        -213,
-        -6,
-        1.57
-      ],
-      [
-        -213,
-        7,
-        1.57
-      ]
+      {
+        "id": "outpost_stall_0",
+        "x": -213,
+        "z": -6,
+        "angle": 1.57,
+        "hx": 1.36,
+        "hz": 0.82,
+        "kit": "AC_Market_Open_Stall_069"
+      },
+      {
+        "id": "outpost_stall_1",
+        "x": -213,
+        "z": 7,
+        "angle": 1.57,
+        "hx": 1.36,
+        "hz": 0.82,
+        "kit": "AC_Market_Open_Stall_070"
+      }
     ],
     "buildings": [
-      [
-        -213,
-        -16,
-        0.2
-      ],
-      [
-        -216,
-        16,
-        -0.25
-      ],
-      [
-        -195,
-        -21,
-        0.05
-      ],
-      [
-        -194,
-        21,
-        0
-      ],
-      [
-        -208,
-        27,
-        1.57
-      ],
-      [
-        -220,
-        -27,
-        0.4
-      ],
-      [
-        -204,
-        -26,
-        0
-      ]
+      {
+        "id": "outpost_house_0",
+        "x": -213,
+        "z": -16,
+        "angle": 0.51,
+        "hx": 2.36,
+        "hz": 2.77,
+        "kit": "AC_Home_Cottage_021"
+      },
+      {
+        "id": "outpost_house_1",
+        "x": -216,
+        "z": 16,
+        "angle": 2.5,
+        "hx": 2.42,
+        "hz": 2.67,
+        "kit": "AC_Home_Veranda_022"
+      },
+      {
+        "id": "outpost_house_2",
+        "x": -195,
+        "z": -21,
+        "angle": -0.4,
+        "hx": 2.28,
+        "hz": 2.74,
+        "kit": "AC_Home_Balcony_023"
+      },
+      {
+        "id": "outpost_house_3",
+        "x": -194,
+        "z": 21,
+        "angle": -2.7,
+        "hx": 2.02,
+        "hz": 2.37,
+        "kit": "AC_Home_Cottage_027"
+      },
+      {
+        "id": "outpost_house_4",
+        "x": -208,
+        "z": 27,
+        "angle": 2.99,
+        "hx": 2.36,
+        "hz": 2.6,
+        "kit": "AC_Home_Veranda_025"
+      },
+      {
+        "id": "outpost_house_5",
+        "x": -220,
+        "z": -27,
+        "angle": 0.53,
+        "hx": 2.31,
+        "hz": 2.77,
+        "kit": "AC_Home_Balcony_029"
+      },
+      {
+        "id": "outpost_house_6",
+        "x": -204,
+        "z": -26,
+        "angle": 0,
+        "hx": 2.08,
+        "hz": 2.44,
+        "kit": "AC_Home_Cottage_039"
+      }
     ],
     "walls": {
       "east": -184,
       "north": -32,
       "south": 32,
       "gateHalf": 4.5
+    },
+    "kit": {
+      "_doc": "Buildings/stalls with a kit node are drawn from the approved city kit files (src/render/town-kit.js). yaw turns a node so its door faces +Z before the box angle.",
+      "base": "assets/city-v3/",
+      "sink": 0.05,
+      "nodes": {
+        "AC_Home_Cottage_021": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Home_Veranda_022": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Home_Balcony_023": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Home_Cottage_027": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Home_Veranda_025": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Home_Balcony_029": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Home_Cottage_039": {
+          "file": "05_Residential.glb",
+          "yaw": 0
+        },
+        "AC_Market_Open_Stall_069": {
+          "file": "11_Props.glb",
+          "yaw": 0
+        },
+        "AC_Market_Open_Stall_070": {
+          "file": "11_Props.glb",
+          "yaw": 0
+        }
+      },
+      "materialColors": {
+        "03_Indigo_timber": "#7a5537",
+        "03 • weathered indigo timber": "#7a5537",
+        "04 • dark joinery": "#5a3e2a"
+      }
     }
   },
   "ruins": {
@@ -1374,7 +1458,10 @@
         1
       ],
       "r": 4,
-      "arrive": [0, -97],
+      "arrive": [
+        0,
+        -97
+      ],
       "name": "Azure Coast",
       "nameTh": "ชายฝั่งสีคราม"
     }

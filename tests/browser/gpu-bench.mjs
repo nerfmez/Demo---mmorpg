@@ -14,10 +14,12 @@ try{
   const page=await (await browser.newContext({viewport:{width:1180,height:820},deviceScaleFactor:2})).newPage();
   const errors=[];page.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,300));});page.on('pageerror',e=>errors.push(String(e)));
   await page.addInitScript(()=>{const raf=requestAnimationFrame.bind(window);window.requestAnimationFrame=cb=>raf(t=>{if(!window.__freeze)cb(t)});});
-  await page.goto(base+`?fresh=1&seed=9&quality=${quality}`);
+  // BENCH_MAP=frontier-wilds-v1 measures the linked Frontier map instead of Azure.
+  const map=process.env.BENCH_MAP||'';
+  await page.goto(base+`?fresh=1&seed=9&quality=${quality}`+(map?`&map=${map}`:''));
   await page.waitForFunction(()=>window.__frontier?.modelsReady&&window.__frontier.game.time>.2,null,{timeout:120000});
   await page.evaluate(()=>{window.__freeze=true;const f=window.__frontier;f.paused=true;f.input.disabled=true;document.querySelector('.banner')?.remove();});
-  const scenes=[['glade',-110,8],['town',40,15],['market',60,22],['beach',-132,80],['harbour',43,47],['forest',-100,-70]];
+  const scenes=map==='frontier-wilds-v1'?[['outpost',-204,0],['meadow',-60,-40],['forest',-58,-64],['den',-99,-115],['wetland',70,24],['ruins',190,18],['coast',-10,150]]:[['glade',-110,8],['town',40,15],['market',60,22],['beach',-132,80],['harbour',43,47],['forest',-100,-70]];
   const only=(process.env.BENCH_SCENES||'').split(',').filter(Boolean);
   const results=[];
   for(const [name,x,z] of scenes.filter(s=>!only.length||only.includes(s[0]))){

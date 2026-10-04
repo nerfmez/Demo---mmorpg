@@ -24,6 +24,7 @@ import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
 import { residentTool } from './districts.js';
 import { loadCity } from './city.js';
+import { loadTownKit } from './town-kit.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58; // monsters farther than this have no model (level of detail)
@@ -118,6 +119,8 @@ export class View {
         this.cityStats.waterContactMs=performance.now()-start;
         this.cityStats.waterContactSections=water.userData.contactSections;
       }
+    }).then(() => loadTownKit(world)).then(kit => {
+      if (kit) { this.scene.add(kit.root); this.townKitRoot = kit.root; this.townKitStats = kit.stats; }
     });
 
     this.vfx = new Vfx(this.scene, world);
@@ -177,7 +180,7 @@ export class View {
       this.scene.add(f);
       this.fires.push({ sprite: f, x: fx, z: fz });
     }
-    this.chimneys = world.boxes.filter((b) => b.type === 'house').map((b) => new THREE.Vector3(b.x, world.groundY(b.x, b.z) + 4.9, b.z));
+    this.chimneys = world.boxes.filter((b) => b.type === 'house' && !b.kit).map((b) => new THREE.Vector3(b.x, world.groundY(b.x, b.z) + 4.9, b.z));
     this.ambientT = 0;
 
     this.raycaster = new THREE.Raycaster();

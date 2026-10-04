@@ -45,6 +45,9 @@ jobs:
       - name: Browser smoke test
         if: steps.scope.outputs.game == 'true'
         run: npm run test:browser
+      - name: Map travel round trip (Azure gate -> Frontier -> back, saved slot)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/map-travel.mjs
       - name: Distinct coastal attack patterns and contact poses
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/coastal-attacks.mjs

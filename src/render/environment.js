@@ -659,6 +659,7 @@ function createTown(world, rng) {
   const t = world.data.town, slice=t.styleSlice;
   let stallIndex=0;
   for (const bx of world.boxes) {
+    if (bx.kit) continue; // drawn by the town kit (town-kit.js)
     if (bx.type === 'house') {
       const y=gy(bx.x,bx.z);
       const model=slice?.buildingIds.includes(bx.id) ? marketBuilding(bx,y)

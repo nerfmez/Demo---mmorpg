@@ -1913,7 +1913,7 @@
           -15
         ]
       ],
-      "level": 5,
+      "level": 6,
       "hillAmp": 1.4,
       "treeDensity": 0.4,
       "trees": [
@@ -2100,8 +2100,8 @@
       "zone": "forest",
       "count": 7,
       "level": [
-        5,
-        6
+        6,
+        7
       ]
     },
     {
@@ -2109,8 +2109,8 @@
       "zone": "forest",
       "count": 6,
       "level": [
-        5,
-        6
+        6,
+        7
       ]
     },
     {
@@ -2118,8 +2118,8 @@
       "zone": "forest",
       "count": 5,
       "level": [
-        5,
-        5
+        6,
+        6
       ]
     },
     {

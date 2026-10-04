@@ -688,7 +688,7 @@ export class View {
       seen.add(d.id);
       let v = this.dropViews.get(d.id);
       if (!v) {
-        v = this.makeDrop(d.item);
+        v = this.makeDrop(d.item, d.gear);
         v.userData.born = time;
         this.scene.add(v);
         this.dropViews.set(d.id, v);
@@ -706,20 +706,21 @@ export class View {
     }
   }
 
-  makeDrop(item) {
+  makeDrop(item, gear = null) {
     const g = new THREE.Group();
     const data = this.world && this.game.data.items.materials[item];
-    const color = item === 'gold' ? '#ffd24a' : data?.color || '#ffffff';
+    // Gear glows in its grade colour; A and S also send up a beam like rare parts.
+    const color = gear ? this.game.data.items.grades.colors[gear.grade] : item === 'gold' ? '#ffd24a' : data?.color || '#ffffff';
     g.userData.color = new THREE.Color(color).getHex();
     const mesh = item === 'gold'
       ? new THREE.Mesh(this.coinGeo || (this.coinGeo = Object.assign(new THREE.CylinderGeometry(0.22,0.22,0.06,14).rotateX(Math.PI/2), { userData: { shared: true } })),toon('#ffd24a',{emissive:'#8a6a00',emissiveIntensity:.4}))
-      : dropSprite(item);
+      : gear ? dropSprite(gear.base, 'gear') : dropSprite(item);
     mesh.castShadow = true;
     g.add(mesh);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
     glow.scale.set(0.9, 0.9, 1);
     g.add(glow);
-    if (data?.rare) {
+    if (data?.rare || (gear && ['A', 'S'].includes(gear.grade))) {
       const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.3, 4, 10, 1, true), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending }));
       beam.position.y = 2;
       g.add(beam);

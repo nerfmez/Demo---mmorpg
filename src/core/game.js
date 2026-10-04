@@ -7,7 +7,7 @@ import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, addExp, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
-import { rollDrops, addItem, craft } from './crafting.js';
+import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
@@ -747,6 +747,13 @@ export class Game {
       this.drops.push(drop);
       this.emit({ type: 'drop', id: drop.id, item: drop.item, fromX: m.x, fromZ: m.z });
     });
+    // Gear from the monster's own parts, at its level's tier; rare except from bosses.
+    const gear = m.minion ? null : rollGearDrop(this.data, m.type, m.level, m.boss, this.rng);
+    if (gear) {
+      const drop = { id: this.newId(), item: 'gear', gear, qty: 1, x: m.x, z: m.z, t: 0 };
+      this.drops.push(drop);
+      this.emit({ type: 'drop', id: drop.id, item: 'gear', base: gear.base, grade: gear.grade, fromX: m.x, fromZ: m.z });
+    }
     const gained = addExp(this.ch, this.data, m.exp, m.jobExp);
     this.emit({ type: 'exp', exp: m.exp, jobExp: m.jobExp, x: m.x, z: m.z });
     if (gained.levels) this.onLevelUp();
@@ -1585,6 +1592,12 @@ export class Game {
           d.z += (p.z - d.z) * k;
         }
         if (dd < PICKUP_RADIUS * 0.5) {
+          if (d.item === 'gear') {
+            const item = { uid: this.ch.nextUid++, ...d.gear };
+            this.ch.gear.push(item);
+            this.emit({ type: 'pickup', id: d.id, item: 'gear', base: item.base, grade: item.grade, uid: item.uid, qty: 1 });
+            continue;
+          }
           addItem(this.ch, d.item, d.qty);
           if (d.item !== 'gold') {
             const c = this.ch.progress.collected;

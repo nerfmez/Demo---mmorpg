@@ -331,3 +331,40 @@ export function toggleGearLock(ch, uid) {
   item.locked = !item.locked;
   return { ok: true, locked: item.locked };
 }
+
+// ---------- Gear drops ----------
+
+/** Bases a monster can drop at `level`: made from its parts, at the tier for that level. */
+export function gearDropCandidates(data, monsterId, level) {
+  const parts = new Set(data.monsters.monsters[monsterId].drops.map((d) => d.item).filter((i) => i !== 'gold'));
+  const made = new Set(Object.values(data.recipes.recipes).filter((r) => r.type === 'gear' && Object.keys(r.cost).some((k) => parts.has(k))).map((r) => r.result));
+  const tiers = data.progression.balance.gearTiers.filter((t) => t <= level);
+  for (const tier of tiers.reverse()) {
+    const list = [...made].filter((id) => !data.items.gearBases[id].starter && data.items.gearBases[id].itemLevel === tier);
+    if (list.length) return list;
+  }
+  return [];
+}
+
+/** One kill's gear drop (or null). Rolls a grade, then a base and options like a craft. */
+export function rollGearDrop(data, monsterId, level, boss, rng) {
+  const rules = data.items.gearDrops, list = gearDropCandidates(data, monsterId, level);
+  if (!list.length) return null;
+  let grade = null;
+  if (boss) grade = rng.weighted(rules.boss.weights);
+  else {
+    let r = rng.next();
+    for (const g of ['S', 'A', 'B', 'C']) {
+      if (r < rules.normal[g]) { grade = g; break; }
+      r -= rules.normal[g];
+    }
+  }
+  if (!grade) return null;
+  const base = list[Math.floor(rng.next() * list.length)], def = data.items.gearBases[base];
+  const pool = [...def.optionPool], options = [];
+  for (let i = 0; i < data.items.grades.optionCount[grade] && pool.length; i++) {
+    const id = pool.splice(Math.floor(rng.next() * pool.length), 1)[0], o = data.items.gearOptions[id];
+    options.push({ id, value: rng.int(o.min, o.max) });
+  }
+  return { base, itemLevel: def.itemLevel, grade, upgrade: 0, options };
+}

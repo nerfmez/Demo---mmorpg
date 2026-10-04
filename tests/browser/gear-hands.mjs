@@ -104,6 +104,21 @@ try {
   await page.locator('[data-act="craft-arrows"][data-id="arrows_feather"]').tap();
   await page.waitForFunction((n) => Object.values(window.__frontier.game.ch.arrows.stock).reduce((a, k) => a + k, 0) > n, stock);
   await shot('05-arrows-crafted');
+  // A gear drop on the ground glows in its grade colour and is picked up into the bag.
+  await page.locator('.panel-close').first().tap().catch(() => {});
+  await page.evaluate(() => { const f = window.__frontier; f.panels.close?.(); });
+  const dropped = await page.evaluate(() => {
+    const f = window.__frontier, g = f.game, p = g.player;
+    g.monsters = [];
+    g.drops.push({ id: g.newId(), item: 'gear', gear: { base: 'kite_shield', itemLevel: 11, grade: 'S', upgrade: 0, options: [] }, qty: 1, x: p.x + 2.2, z: p.z + 0.6, t: -999 });
+    f.view.zoom = 0.4; f.view.snapCamera();
+    return g.ch.gear.length;
+  });
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: out + '06-gear-drop.png' });
+  await page.evaluate(() => { const g = window.__frontier.game, d = g.drops.find((x) => x.item === 'gear'); d.t = 1; g.player.x = d.x; g.player.z = d.z; });
+  await page.waitForFunction((n) => window.__frontier.game.ch.gear.length === n + 1, dropped);
+  assert.equal(await page.evaluate(() => window.__frontier.game.ch.gear.at(-1).base), 'kite_shield');
   assert.deepEqual(errors, []);
   console.log('PASS gear hands', engine.name());
 } finally {

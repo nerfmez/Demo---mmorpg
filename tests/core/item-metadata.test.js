@@ -26,9 +26,8 @@ test('crafting copies the specific recipe level and mod grade, independent of en
     if(recipe.type==='gear'){assert.equal(result.item.itemLevel,recipe.itemLevel);assert.equal(result.item.upgrade,0);}
     else{assert.equal(result.item.grade,recipe.grade);assert.equal(result.item.level,1);}
   }
-  assert.equal(data.recipes.recipes.tide_boots.itemLevel,2);
-  assert.equal(data.recipes.recipes.salt_boots.itemLevel,1);
-  assert.equal(data.items.gearBases.tide_boots.itemLevel,1,'unknown legacy recipe uses conservative base level');
+  // Gear tiers: every recipe makes items at its base's tier (scripts/gear-tiers.mjs).
+  for(const r of Object.values(data.recipes.recipes))if(r.type==='gear')assert.equal(r.itemLevel,data.items.gearBases[r.result].itemLevel,r.result);
 });
 
 test('missing/invalid metadata gains deterministic defaults while valid values and ownership survive repeat migration',()=>{

@@ -24,7 +24,7 @@ export function loadModels(registry = {}) {
           .loadAsync(m.file)
           .then((gltf) => {
             if (group === 'characters' || group === 'monsters') {
-              loaded.set(`${group}/${id}`, (m.vrm ? prepareVrmBody : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
+              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
               return;
             }
             gltf.scene.updateMatrixWorld(true);

@@ -25,12 +25,17 @@ const FACE_EXPRESSION = { open: null, blink: ['blink', 1], attack: ['angry', 0.7
 /** Pose the loaded VRM once (arms down), and measure its joints for the driver rig. */
 export function prepareVrmBody(gltf, cfg) {
   const scene = gltf.scene;
-  const vrm = gltf.parser.json.extensions?.VRMC_vrm;
+  const vrm = cfg.hairsample ? gltf.parser.json.asset.extras?.hairsample : gltf.parser.json.extensions?.VRMC_vrm;
   if (!vrm) throw new Error('hero_vrm: not a VRM 1.0 file');
+  // VRM0 master faces -Z; game-facing +Z. Only the new asset needs this basis.
+  if (cfg.hairsample) scene.rotation.y = Math.PI;
   const byNode = new Map();
   for (const [obj, a] of gltf.parser.associations) if (a && a.nodes !== undefined && obj.isObject3D) byNode.set(a.nodes, obj);
+  // GLTFLoader reduces associations per scene. The wardrobe-only scene does not
+  // retain the body's node associations; native bone/face names remain stable.
+  const nodeObject = node => byNode.get(node) || (cfg.hairsample ? scene.getObjectByName(gltf.parser.json.nodes[node].name) : null);
   const H = {};
-  for (const [name, { node }] of Object.entries(vrm.humanoid.humanBones)) H[name] = byNode.get(node);
+  for (const [name, { node }] of Object.entries(vrm.humanoid.humanBones)) H[name] = nodeObject(node);
   for (const need of Object.keys(HUMANOID_TO_DRIVER)) if (need !== 'upperChest' && !H[need]) throw new Error(`hero_vrm: missing humanoid bone ${need}`);
   H.upperChest = H.upperChest || H.chest || H.spine;
   scene.updateMatrixWorld(true);
@@ -79,15 +84,18 @@ export function prepareVrmBody(gltf, cfg) {
   // expression presets -> morph target binds, by node name so a clone can find its own meshes
   const expressions = {};
   for (const [name, e] of Object.entries(vrm.expressions?.preset || {})) {
-    const binds = (e.morphTargetBinds || []).map((b) => ({ node: byNode.get(b.node)?.name, index: b.index, weight: b.weight })).filter((b) => b.node);
+    const binds = (e.morphTargetBinds || []).map((b) => ({ node: nodeObject(b.node)?.name, index: b.index, weight: b.weight })).filter((b) => b.node);
     if (binds.length) expressions[name] = binds;
   }
 
-  scene.traverse((o) => {
+  for (const sourceScene of cfg.hairsample ? gltf.scenes : [scene]) sourceScene.traverse((o) => {
     if (o.geometry) o.geometry.userData.shared = true;
     if (o.material?.map) o.material.map.userData.shared = true;
   });
-  return { scene, joints, headFit, map, shoulders: { [H.leftShoulder?.name]: ['armL', 1], [H.rightShoulder?.name]: ['armR', -1] }, hipsName: H.hips.name, expressions, hipsParentInv: H.hips.parent.matrixWorld.clone().invert() };
+  const world = {};
+  for (const [name, driver] of Object.entries(HUMANOID_TO_DRIVER)) world[driver] = J[name].toArray();
+  const neckFit = {pos:J.head.clone().sub(J.upperChest).sub(new THREE.Vector3(0,.36,0)).toArray(),scale:1};
+  return { scene, wardrobe:cfg.hairsample ? gltf.scenes.find(s=>s.name==='RuntimeWardrobe') : null, joints, world, headFit, neckFit, map, shoulders: { [H.leftShoulder?.name]: ['armL', 1], [H.rightShoulder?.name]: ['armR', -1] }, hipsName: H.hips.name, expressions, hipsParentInv: H.hips.parent.matrixWorld.clone().invert() };
 }
 
 /**
@@ -95,7 +103,7 @@ export function prepareVrmBody(gltf, cfg) {
  * `flat` turns the shading normal toward the camera (faces are painted for near-flat lighting;
  * raw directional shading cuts the nose and cheeks into hard bands).
  */
-function toonCopy(src, flash, rim, flat) {
+export function toonCopy(src, flash, rim, flat) {
   const m = new THREE.MeshToonMaterial({
     map: src.map,
     color: src.color ? src.color.clone() : new THREE.Color(0xffffff),

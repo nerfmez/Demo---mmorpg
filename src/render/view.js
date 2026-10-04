@@ -721,10 +721,10 @@ export class View {
   updateHero(dt, time) {
     const g = this.game;
     const p = g.player;
-    const r = this.hero;
     const look = g.ch.appearance || DEFAULT_LOOK;
     const key = JSON.stringify([look, g.gearLook()]);
     if (key !== this.heroLookKey) this.setHeroLook(look, g.gearLook());
+    const r = this.hero;
     const ground = this.world.groundY(p.x, p.z);
     // falling off ledges looks like a fall, stepping up is quick
     if (ground >= this.heroY) {

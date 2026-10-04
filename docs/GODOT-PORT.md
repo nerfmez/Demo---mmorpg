@@ -195,6 +195,13 @@ targets the game uses are kept). It reuses the same driver-bone retarget (`bindS
 and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
 through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
 the scarf and armour pieces are not used with this body yet.
+The default player now uses the approved HairSample VRM0 master derivative
+(`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
+the complete base body; optional garment geometry lives in a separate wardrobe
+scene and shares the cloned native skeleton at runtime. Existing driver motion,
+equipment fields and save v4 remain unchanged. In Godot, import the two scenes
+and bind the equipment meshes to that same Skeleton3D. Source identities and
+conversion details are in [HAIRSAMPLE-INTEGRATION.md](HAIRSAMPLE-INTEGRATION.md).
 Regular monsters have Meshy models too (`data/models.json` → `monsters`, GLBs in
 `public/models/monsters/`). Meshy only rigs humanoids, so `render/monsterSkin.js` skins each
 model onto the procedural monster rig at load: `bones` moves rig joints onto the model,

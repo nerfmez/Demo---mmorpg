@@ -47,14 +47,14 @@ try{
   await click('[data-action="fit"]');await click('[data-action="exit"]');assert.equal(await page.evaluate(()=>__frontier.panels.isOpen),false);
   // Open actual menu workspace; the fixtures are not the implementation.
   await page.evaluate(()=>window.__frontier.panels.open('mods'));
-  assert.equal(await page.locator('.seeker-mod-list [data-gem]').count(),15);
-  await click('.seeker-mod-tile[data-uid="900"]');await shot('04-mod-gems');
+  assert.equal(await page.locator('.seeker-mod-list [data-mod-coin]').count(),15);
+  await click('.seeker-mod-tile[data-uid="900"]');await shot('04-mod-coins');
   await click('[data-act="socket"][data-uid="900"]');assert.ok(await page.evaluate(()=>window.__frontier.game.ch.slots[0].mods.includes(900)));
   const base=await page.evaluate(()=>window.__frontier.game.skills[0].projectiles); // compiler remains authoritative
   await page.evaluate(()=>window.__frontier.panels.open('bag'));
-  await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-gem="split"]').count());
-  await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-gem]').count());
+  await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-mod-coin="split"]').count());
+  await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-mod-coin]').count());
   assert.deepEqual(errors,[]);
-  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,startingNodes:6,modGemTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
+  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,startingNodes:6,modCoinTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
  }
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}

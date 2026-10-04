@@ -1,7 +1,7 @@
 /* Greenhollow field journal — warm paper, illustrated objects, persistent navigation.
    The world palette is unchanged. Content identity lives in art.js; grade is a badge. */
 .art { display: inline-grid; place-items: center; width: 64px; height: 64px; flex: none; line-height: 0; vertical-align: middle; }
-.art > svg, .panel .art > svg { display: block; width: 100%; height: 100%; }
+.art > svg, .panel .art > svg, .art > img, .panel .art > img { display: block; width: 100%; height: 100%; }
 .section-kicker { display: block; color: #697568; font-size: 10px; letter-spacing: 1.4px; }
 .section-heading { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 0 0 12px; }
 .section-heading h3 { margin: 0; }
@@ -258,7 +258,7 @@ body:not(.touch) .combat { background: #294b44ed; border-color: #a2b18d; }
 body:not(.touch) .combat .sbtn { background: #e4e7d4f5; border-color: #b9c6a3; }
 body:not(.touch) .combat .move { background: #cbdcc5; }
 .sbtn .ic .art { width: 60px; height: 60px; }
-.sbtn .ic .art svg, body.touch .sbtn.attack .ic .art svg, body.touch .sbtn.move .ic .art svg { width: 100%; height: 100%; }
+.sbtn .ic .art svg, .sbtn .ic .art img, body.touch .sbtn.attack .ic .art svg, body.touch .sbtn.move .ic .art svg { width: 100%; height: 100%; }
 .sbtn .slabel { color: #284d39; font-weight: 500; text-shadow: 0 1px 1px #ffffdf; bottom: 6px; }
 .sbtn .skill-cost { color: #376e85; top: 2px; right: 4px; font-size: 8px; background: #edf2e3b8; padding: 0 2px; border-radius: 3px; }
 body:not(.touch) .sbtn .key { color: #566951; }
@@ -267,7 +267,7 @@ body.touch .sbtn.move .ic .art { width: 42px; height: 42px; }
 .sbtn .charges { z-index: 4; }
 body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
 .sbtn .cd { background: conic-gradient(#233e48bf var(--cd, 0%), transparent 0); }
-.sbtn .ic .art svg { filter: none; }
+.sbtn .ic .art svg, .sbtn .ic .art img { filter: none; }
 .sbtn .cdt { color: #fff; }
 .sbtn.empty { background: #416056de !important; }
 .pframe, .quest-widget { background: #244b48ed; border-color: #a2ae8570; }
@@ -578,3 +578,6 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
  .pbody[data-panel="job"] .network-detail .node-status {margin:5px 0;font-size:10px}
  .pbody[data-panel="job"] .network-detail>.btn {min-height:38px;font-size:12px}
 }
+
+/* Supplied raster icons retain the existing art wrapper and icon geometry. */
+.art > img { object-fit:contain; user-select:none; -webkit-user-drag:none; }

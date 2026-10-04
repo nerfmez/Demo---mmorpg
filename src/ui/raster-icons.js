@@ -1,0 +1,93 @@
+// Only list PNGs that have actually been supplied, verified and included.
+// Unregistered IDs retain their existing authored SVG; never invent placeholders.
+export const RASTER_ICONS = Object.freeze({
+ "material/greyfang_mane": "assets/icons/material/greyfang_mane.png",
+ "material/warden_horn": "assets/icons/material/warden_horn.png",
+ "material/ancient_core": "assets/icons/material/ancient_core.png",
+ "material/crab_shell": "assets/icons/material/crab_shell.png",
+ "material/sea_pearl": "assets/icons/material/sea_pearl.png",
+ "material/salt_gel": "assets/icons/material/salt_gel.png",
+ "material/shore_feather": "assets/icons/material/shore_feather.png",
+ "material/hermit_fragment": "assets/icons/material/hermit_fragment.png",
+ "skill/ward": "assets/icons/skill/ward.png",
+ "skill/war_cry": "assets/icons/skill/war_cry.png",
+ "skill/healing_spring": "assets/icons/skill/healing_spring.png",
+ "skill/spirit_wolf": "assets/icons/skill/spirit_wolf.png",
+ "skill/dash": "assets/icons/skill/dash.png",
+ "skill/roll": "assets/icons/skill/roll.png",
+ "skill/blink": "assets/icons/skill/blink.png",
+ "skill/leap": "assets/icons/skill/leap.png",
+ "material/boar_hide": "assets/icons/material/boar_hide.png",
+ "material/boar_tusk": "assets/icons/material/boar_tusk.png",
+ "material/beetle_shell": "assets/icons/material/beetle_shell.png",
+ "material/venom_gland": "assets/icons/material/venom_gland.png",
+ "material/wisp_core": "assets/icons/material/wisp_core.png",
+ "material/glow_dust": "assets/icons/material/glow_dust.png",
+ "material/ruin_shard": "assets/icons/material/ruin_shard.png",
+ "material/wolf_pelt": "assets/icons/material/wolf_pelt.png",
+ "material/wolf_fang": "assets/icons/material/wolf_fang.png",
+ "material/spore_sac": "assets/icons/material/spore_sac.png",
+ "material/crag_stone": "assets/icons/material/crag_stone.png",
+ "material/golem_heart": "assets/icons/material/golem_heart.png",
+ "material/hawk_feather": "assets/icons/material/hawk_feather.png",
+ "material/storm_quill": "assets/icons/material/storm_quill.png",
+ "gear/tusk_charm": "assets/icons/gear/tusk_charm.png",
+ "gear/wisp_pendant": "assets/icons/gear/wisp_pendant.png",
+ "gear/spore_amulet": "assets/icons/gear/spore_amulet.png",
+ "gear/feather_charm": "assets/icons/gear/feather_charm.png",
+ "gear/golem_amulet": "assets/icons/gear/golem_amulet.png",
+ "gear/ancient_ring": "assets/icons/gear/ancient_ring.png",
+ "gear/pearl_pendant": "assets/icons/gear/pearl_pendant.png",
+ "gear/leather_cap": "assets/icons/gear/leather_cap.png",
+ "gear/beetle_helm": "assets/icons/gear/beetle_helm.png",
+ "gear/spore_hood": "assets/icons/gear/spore_hood.png",
+ "gear/feather_circlet": "assets/icons/gear/feather_circlet.png",
+ "gear/horned_helm": "assets/icons/gear/horned_helm.png",
+ "gear/crabshell_helm": "assets/icons/gear/crabshell_helm.png",
+ "gear/wolf_boots": "assets/icons/gear/wolf_boots.png",
+ "gear/wisp_slippers": "assets/icons/gear/wisp_slippers.png",
+ "gear/crag_greaves": "assets/icons/gear/crag_greaves.png",
+ "gear/tide_boots": "assets/icons/gear/tide_boots.png",
+ "gear/hide_vest": "assets/icons/gear/hide_vest.png",
+ "gear/shell_guard": "assets/icons/gear/shell_guard.png",
+ "gear/wolfpelt_coat": "assets/icons/gear/wolfpelt_coat.png",
+ "gear/storm_mantle": "assets/icons/gear/storm_mantle.png",
+ "gear/crag_plate": "assets/icons/gear/crag_plate.png",
+ "gear/tusk_blade": "assets/icons/gear/tusk_blade.png",
+ "gear/hunter_bow": "assets/icons/gear/hunter_bow.png",
+ "gear/fang_dagger": "assets/icons/gear/fang_dagger.png",
+ "gear/spore_wand": "assets/icons/gear/spore_wand.png",
+ "gear/crag_axe": "assets/icons/gear/crag_axe.png",
+ "gear/storm_bow": "assets/icons/gear/storm_bow.png",
+ "gear/greyfang_sabre": "assets/icons/gear/greyfang_sabre.png",
+ "gear/horn_greatblade": "assets/icons/gear/horn_greatblade.png",
+ "gear/ancient_staff": "assets/icons/gear/ancient_staff.png",
+ "skill/slash": "assets/icons/skill/slash.png",
+ "skill/whirl_blade": "assets/icons/skill/whirl_blade.png",
+ "skill/hunter_shot": "assets/icons/skill/hunter_shot.png",
+ "skill/firebolt": "assets/icons/skill/firebolt.png",
+ "skill/chain_spark": "assets/icons/skill/chain_spark.png",
+ "skill/stone_burst": "assets/icons/skill/stone_burst.png",
+ "skill/frost_nova": "assets/icons/skill/frost_nova.png",
+ "skill/venom_mire": "assets/icons/skill/venom_mire.png",
+ "skill/hex": "assets/icons/skill/hex.png",
+ "gear/rusty_sword": "assets/icons/gear/rusty_sword.png",
+ "gear/old_bow": "assets/icons/gear/old_bow.png",
+ "gear/apprentice_staff": "assets/icons/gear/apprentice_staff.png",
+ "gear/travel_tunic": "assets/icons/gear/travel_tunic.png",
+ "gear/travel_boots": "assets/icons/gear/travel_boots.png",
+ "gear/wisp_staff": "assets/icons/gear/wisp_staff.png"
+});
+export const EXPECTED_RASTER_KEYS = Object.freeze(["gear/rusty_sword", "gear/old_bow", "gear/apprentice_staff", "gear/tusk_blade", "gear/hunter_bow", "gear/fang_dagger", "gear/wisp_staff", "gear/spore_wand", "gear/crag_axe", "gear/storm_bow", "gear/greyfang_sabre", "gear/horn_greatblade", "gear/ancient_staff", "gear/travel_tunic", "gear/hide_vest", "gear/shell_guard", "gear/wolfpelt_coat", "gear/storm_mantle", "gear/crag_plate", "gear/leather_cap", "gear/beetle_helm", "gear/spore_hood", "gear/feather_circlet", "gear/horned_helm", "gear/travel_boots", "gear/wolf_boots", "gear/wisp_slippers", "gear/crag_greaves", "gear/tusk_charm", "gear/wisp_pendant", "gear/spore_amulet", "gear/feather_charm", "gear/golem_amulet", "gear/ancient_ring", "gear/crabshell_helm", "gear/tide_boots", "gear/pearl_pendant", "material/boar_hide", "material/boar_tusk", "material/beetle_shell", "material/venom_gland", "material/wisp_core", "material/glow_dust", "material/ruin_shard", "material/wolf_pelt", "material/wolf_fang", "material/spore_sac", "material/crag_stone", "material/golem_heart", "material/hawk_feather", "material/storm_quill", "material/greyfang_mane", "material/warden_horn", "material/ancient_core", "material/crab_shell", "material/sea_pearl", "material/salt_gel", "material/shore_feather", "material/hermit_fragment", "skill/slash", "skill/whirl_blade", "skill/hunter_shot", "skill/firebolt", "skill/chain_spark", "skill/stone_burst", "skill/frost_nova", "skill/venom_mire", "skill/hex", "skill/ward", "skill/war_cry", "skill/healing_spring", "skill/spirit_wolf", "skill/dash", "skill/roll", "skill/blink", "skill/leap"]);
+const allowed = new Set(EXPECTED_RASTER_KEYS);
+export function rasterIconUrl(kind, id, registry = RASTER_ICONS, base = import.meta.env?.BASE_URL || '/') {
+ const key = kind + '/' + id, path = registry[key];
+ if (!allowed.has(key) || !path) return null;
+ if (path !== `assets/icons/${key}.png`) throw new Error('Invalid raster icon path: ' + key);
+ return base.replace(/\/?$/, '/') + path;
+}
+export function rasterIconMarkup(kind, id, className = '', registry = RASTER_ICONS) {
+ const url = rasterIconUrl(kind, id, registry);
+ if (!url) return null;
+ return `<span class="art art-${kind} ${className}" data-art="${kind}/${id}" aria-hidden="true"><img src="${url}" width="128" height="128" alt="" decoding="async" draggable="false"></span>`;
+}

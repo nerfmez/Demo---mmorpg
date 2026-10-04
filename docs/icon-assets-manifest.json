@@ -1,0 +1,1401 @@
+{
+  "source_commit": "301ac85cf7c723b98d0e51cf7919e45a1967e83b",
+  "verified_assets": [
+    {
+      "key": "material/greyfang_mane",
+      "path": "assets/icons/material/greyfang_mane.png",
+      "sha256": "5c46eb6373b5867cb09e4734a3dd44c242afcdec973242669d40497849ae3352",
+      "bytes": 224310,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_b10a6d119ab08191a67e6862a2424685",
+      "raw_source_sha256": "e1117289623479f8f46e96e5c7ec36cf179250e92a821081558d8f380957eb53"
+    },
+    {
+      "key": "material/warden_horn",
+      "path": "assets/icons/material/warden_horn.png",
+      "sha256": "4b3584da888d315e13f46e69a2a448dfb3fe907bdf1798d12232cfa06967bfb4",
+      "bytes": 169766,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_00c0628e52fc8191b482afb7985571f3",
+      "raw_source_sha256": "f9d51790f57ab39dcea8edd1e74d96dd9764f425d6fd7ae95023c4592f89c7de"
+    },
+    {
+      "key": "material/ancient_core",
+      "path": "assets/icons/material/ancient_core.png",
+      "sha256": "4749d907bab58c07c74231add4ca4bc7207a90c868e457372ac3df41f1584a1a",
+      "bytes": 293436,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_e477b6c28ba8819180f6df77f7b04317",
+      "raw_source_sha256": "d179e058f39d99e1654232faf25bd0771e9be3237e42130b2f825ee1195116d1"
+    },
+    {
+      "key": "material/crab_shell",
+      "path": "assets/icons/material/crab_shell.png",
+      "sha256": "3e8c99001488d4617f1d990959a3cd38ad63a7ce8eed36d0bcf61aff3da9ea93",
+      "bytes": 161052,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_97eab7b7e00c819195d99cffa0ab2ff9",
+      "raw_source_sha256": "b9e0472f4883611ae4ca83b2e47208f529879b3772cc604c8fe198a6724f8162"
+    },
+    {
+      "key": "material/sea_pearl",
+      "path": "assets/icons/material/sea_pearl.png",
+      "sha256": "1cc11956d6019ab819062a4401622715f563bc8ef622af6aa519164fa0aa346b",
+      "bytes": 190772,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_7d21f14134b88191a6f864028a457644",
+      "raw_source_sha256": "415b48804464a89efdacddbb2733441ae27fc7e69721c428c9b538e547bcedfa"
+    },
+    {
+      "key": "material/salt_gel",
+      "path": "assets/icons/material/salt_gel.png",
+      "sha256": "37ef4cd60bb90bf27b070bef2396c210c384a025a4e0eb44b0c7cb30ceea6f17",
+      "bytes": 218544,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_3ee18fe414f08191aa7740dc41c72235",
+      "raw_source_sha256": "0816eaf7986dcd87642956c4ebca210f3fff61e336ceaa7d4e9eb39a5114393e"
+    },
+    {
+      "key": "material/shore_feather",
+      "path": "assets/icons/material/shore_feather.png",
+      "sha256": "98a8318e6822cea32bd7aba3bad913a46c1b9318742f81a817bf44197c9ecc8b",
+      "bytes": 173828,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_c47edbd45f9c819186683bfa5b04b48b",
+      "raw_source_sha256": "7039fe9c87a0d51f68771cfdc0cd4560872579c52531ee88fde1277e475ccf52"
+    },
+    {
+      "key": "material/hermit_fragment",
+      "path": "assets/icons/material/hermit_fragment.png",
+      "sha256": "57a322da2f6378069df43ddfecf79dbc874c7003d14dffa1a98c91280b8902be",
+      "bytes": 258204,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_archive_sha256": "fd4381fc73af26ecc6f10ec01259dff204986122d2f65473ff78e7b162f3179b",
+      "source_library_file_id": "libfile_d409765394d881918c0b3cb570ae7bb8",
+      "raw_source_sha256": "589d25f32af329304702fb703a53b0919d8f5a4f80ab930c568cdbe8fa446a55"
+    },
+    {
+      "key": "skill/ward",
+      "path": "assets/icons/skill/ward.png",
+      "sha256": "b1397c00bcf9822b82c5138f95543150c7e1bcc9197d5548a0fc753230388f5d",
+      "bytes": 339471,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_dbce8f88fac08191817009337971438f",
+      "raw_source_sha256": "3dfe7a501133023293d766941feecbd1157ecdd2a0bd68de8d768f87ca324b56"
+    },
+    {
+      "key": "skill/war_cry",
+      "path": "assets/icons/skill/war_cry.png",
+      "sha256": "c5582ed8cc7e716d706bebf92b5e226938f41c638b08f360f6701782f3b108fc",
+      "bytes": 415984,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_4e4f5b6275c0819195f2110ed4771308",
+      "raw_source_sha256": "dbd6b485649fd71860274e2d2c75de4a35169eeda756eaf7fc13e16933097871"
+    },
+    {
+      "key": "skill/healing_spring",
+      "path": "assets/icons/skill/healing_spring.png",
+      "sha256": "c76b425db098e59bd9c9bdb950c63db767a8c8feb6b3a47378408f61dd6dc963",
+      "bytes": 394719,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_e3ea88adc5d8819182b9fcc8d8cabae8",
+      "raw_source_sha256": "cfc44770b6ba057f9ec78419788c1fe862d7d1b6941ab024b461e3de1e8524e0"
+    },
+    {
+      "key": "skill/spirit_wolf",
+      "path": "assets/icons/skill/spirit_wolf.png",
+      "sha256": "1d2fcd62d8b657d5912aa6cf6d851a98ebab62a617b692bac1757f05bcb3ab61",
+      "bytes": 381295,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_c70a63f061148191a978335a469206ad",
+      "raw_source_sha256": "194b09d809a08d4d4f816292d70b7f62dcddf321442b72fff017fbfcd73bbcbb"
+    },
+    {
+      "key": "skill/dash",
+      "path": "assets/icons/skill/dash.png",
+      "sha256": "acfc8493d4194568a3ad9e92d2ae8a448107e367ee2923c39f08b5ce53abd2db",
+      "bytes": 312265,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_952105ed850c8191bd51bcde359558a1",
+      "raw_source_sha256": "f7521d9c9d0dab19a51a6e0e4c2e64d8c2ae61d3818da2de6805d5bd06a9ab51"
+    },
+    {
+      "key": "skill/roll",
+      "path": "assets/icons/skill/roll.png",
+      "sha256": "836f9e2f437094a06c91dd02f8c5873b78735c690a60f3bfe35df4d6a693e761",
+      "bytes": 367827,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_367dc8b5f2f88191898e8ba5edddaace",
+      "raw_source_sha256": "e0c4ed9181d4779bb12b2afb15316c9a344f4da7d0f5876f2bf2fdf88a966ff5"
+    },
+    {
+      "key": "skill/blink",
+      "path": "assets/icons/skill/blink.png",
+      "sha256": "44de04451db8ea4b39e8e8d7a6ac96da36d0a32a8684074ee07afd2f50ada330",
+      "bytes": 327750,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_75601502f438819186cebd144a8b568e",
+      "raw_source_sha256": "ceab290f69efe395e26158c0040333e65dfef88097a45a10c4875c7ed7330648"
+    },
+    {
+      "key": "skill/leap",
+      "path": "assets/icons/skill/leap.png",
+      "sha256": "b5bc7ee198e0a29fd14555df850f4f8613dcb790c147416e676f0db00683e338",
+      "bytes": 480267,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part02.zip",
+      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+      "source_library_file_id": "libfile_8f3c77a6f59081918d70967d18381b55",
+      "raw_source_sha256": "685583b851ebb24313ad0a10e75d9f084244c7b79b403e24e7cb4c29af6eaed5"
+    },
+    {
+      "key": "material/boar_hide",
+      "path": "assets/icons/material/boar_hide.png",
+      "sha256": "a73e876a0fba83ae197060b9041556d23aaa4dad264caa01374d8b0725b20303",
+      "bytes": 193087,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_5fc5839050408191b052275dbd6c7bd7",
+      "raw_source_sha256": "205cd8cbd94d4a0998a10e7add65d3e05cf6d2f4a1974c2e366554236a5eba21"
+    },
+    {
+      "key": "material/boar_tusk",
+      "path": "assets/icons/material/boar_tusk.png",
+      "sha256": "f7f0dcdc5eace8be373594f4d45d586546e6b98cad48db492738bb95cb64533a",
+      "bytes": 157881,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_79ce7954691c8191a24b9dc5d140b052",
+      "raw_source_sha256": "2787fd01a3c3688c8cae9ff79373ea9cf3edf3e93356bd0d36041431a09f9874"
+    },
+    {
+      "key": "material/beetle_shell",
+      "path": "assets/icons/material/beetle_shell.png",
+      "sha256": "67503da6d94695cefb7d116ab7fd96bfb476e99932bc3cde906f43bef80298a0",
+      "bytes": 213466,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_fcaa7ead22f08191992bdd568026ce98",
+      "raw_source_sha256": "84990cc2bf6dc2c2abcdf001f446d23cd144ad86618c75f0889186b4e458b1fe"
+    },
+    {
+      "key": "material/venom_gland",
+      "path": "assets/icons/material/venom_gland.png",
+      "sha256": "eccf666593bab8789caa74be32cec112704846beb3d3bb005be8487e22b727a1",
+      "bytes": 180703,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_2bf419ffecfc8191b6dde99c620ff864",
+      "raw_source_sha256": "29394c58384b001e9bde18a15fa26b530408ef14f08f93cb3c5ac1593254aaa5"
+    },
+    {
+      "key": "material/wisp_core",
+      "path": "assets/icons/material/wisp_core.png",
+      "sha256": "5c20b5711c9067eec348667101e91f6be51a4d8768bc8c252b99b9a8755777b4",
+      "bytes": 202186,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_d47a73f6b88c8191b030bb1d85e89bc5",
+      "raw_source_sha256": "80c6a24d599035757ea7c8fc74143be9e30fdada1f2d3e1cc2755a0680f24c17"
+    },
+    {
+      "key": "material/glow_dust",
+      "path": "assets/icons/material/glow_dust.png",
+      "sha256": "baea64206cb21d85b8b1dd0a2e28af03cbc2a799a8570d63c6f2616a038eeec5",
+      "bytes": 154003,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_6abc9dba91788191935776b83c59c949",
+      "raw_source_sha256": "d42a1c601337d62b0fab1249e140629d939acd23c6f7ccb236140c2656e4b930"
+    },
+    {
+      "key": "material/ruin_shard",
+      "path": "assets/icons/material/ruin_shard.png",
+      "sha256": "bd80ec1c179b916d376885505e39a94b88293bb113fdfbb669f9f4079b2e8e8d",
+      "bytes": 188856,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_2e8dcf71046081918937a1adf2f37147",
+      "raw_source_sha256": "fe6e4caa5436ed2074cf224fb89cc0ceba53b5ce9c19226df3a7045cc0f17ce9"
+    },
+    {
+      "key": "material/wolf_pelt",
+      "path": "assets/icons/material/wolf_pelt.png",
+      "sha256": "7297db5691804fc1703a2a174b3180289ace25b3b967e41b4963b9dfc9324628",
+      "bytes": 176673,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_cb058d24b6e08191be237709eb0d9570",
+      "raw_source_sha256": "a9cd5e649a6024401e767546f59f6867fcf2e26be9bf9e54b136783c55230c11"
+    },
+    {
+      "key": "material/wolf_fang",
+      "path": "assets/icons/material/wolf_fang.png",
+      "sha256": "b1bcc189cb16baa33f785bf0c7232a92c615ebf7ce7ee0239281d6a2b58698bc",
+      "bytes": 112706,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_e7f9b0a6888c8191bab4b409bf8702ff",
+      "raw_source_sha256": "529ec94660e147f411081c0d74400efb9298452d10013333b842f06431715f1a"
+    },
+    {
+      "key": "material/spore_sac",
+      "path": "assets/icons/material/spore_sac.png",
+      "sha256": "14e84601d982278025c76ea08f0a2f0dd509cfeca0dda4de559df243c52bbb79",
+      "bytes": 202274,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_61c28ab4df6081918693ef45ac7de490",
+      "raw_source_sha256": "84e7c5f4c1baf4ec163d056cf22c5efc6b6c8b24e0c09b7f9d95bafa4b23461e"
+    },
+    {
+      "key": "material/crag_stone",
+      "path": "assets/icons/material/crag_stone.png",
+      "sha256": "d8a07ece22bbac256daa6bb97d0b322eefa358988d0973d0491f269347c63ae8",
+      "bytes": 162524,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_0bcd63866f7c8191905f605d16872981",
+      "raw_source_sha256": "19001a4e8aebf9409a9b13a92f9bfed65af9e6e172e3933632064352d49336b2"
+    },
+    {
+      "key": "material/golem_heart",
+      "path": "assets/icons/material/golem_heart.png",
+      "sha256": "335b619af61dc5e541dd97a34ced13cdec66bde1d19633bb139afafdd20c1fb1",
+      "bytes": 267800,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_42c255f84e888191a09a9b2adf78e659",
+      "raw_source_sha256": "8dd557292b8acf2c22773634b799ed36de70d9d9c69baf93c62891b756603bbd"
+    },
+    {
+      "key": "material/hawk_feather",
+      "path": "assets/icons/material/hawk_feather.png",
+      "sha256": "b0751f64bd4be952a3ddbfd82ef6c93d78b42ae58be46b303afb85c8413f2c59",
+      "bytes": 157473,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_75f2fe677c908191b02eeb52fe40f1ab",
+      "raw_source_sha256": "e0316ab5dd2aeac71afe4e698b780a274dfc5fb80657062c1af060f07daaf231"
+    },
+    {
+      "key": "material/storm_quill",
+      "path": "assets/icons/material/storm_quill.png",
+      "sha256": "c21c98597160ece9146fb3a615ff2bec76660d3c5c1146d393e2236183a260cf",
+      "bytes": 202604,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+      "source_library_file_id": "libfile_32ff42c8739081918244823f92eb46c1",
+      "raw_source_sha256": "cc924ebea7c8d6ffbff8f8f213dd0459670b82022951ef87c06f9c13b5360ce2"
+    },
+    {
+      "key": "gear/tusk_charm",
+      "path": "assets/icons/gear/tusk_charm.png",
+      "sha256": "8b2ffe01cccdcee0977a5016d96d3e02b897b3773d2633db9a90f13000f1dbaf",
+      "bytes": 198877,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_0509611eaa3c819196819e4aa38fc142",
+      "raw_source_sha256": "6208784f90e6dfa86eec4cd7001c3694b7425d768505b72d057e065a5f4a4a5b"
+    },
+    {
+      "key": "gear/wisp_pendant",
+      "path": "assets/icons/gear/wisp_pendant.png",
+      "sha256": "c26c584660ff008ca37dbb814796d5301dce9799dd4ad94cc5952b72aec19507",
+      "bytes": 198214,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_8e70fb0a7b388191a46bd03612603cc8",
+      "raw_source_sha256": "5f146379397e429395951306372ca757ab7a9706877d47b6e022d8a7e8a66a01"
+    },
+    {
+      "key": "gear/spore_amulet",
+      "path": "assets/icons/gear/spore_amulet.png",
+      "sha256": "2d064e1a3abbd4bf14cc4313f8346bf976e58ac9d2c7af97a59e1467d6354058",
+      "bytes": 224122,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_860193dc11248191af89552e0e360652",
+      "raw_source_sha256": "3b3f08ddcce159fb845ce9fff3121f9526acc48042503a00985d74bf9029b4fd"
+    },
+    {
+      "key": "gear/feather_charm",
+      "path": "assets/icons/gear/feather_charm.png",
+      "sha256": "2e3518f8c16645772e028cc11318a2a339848f8192d1d0a3a9b34ab2a44b81f4",
+      "bytes": 235609,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_4fc72995a604819181df961af522778e",
+      "raw_source_sha256": "8b138f8a48942fef249a7d397c60cca454fbcc92efa0211396fac4856b0556ec"
+    },
+    {
+      "key": "gear/golem_amulet",
+      "path": "assets/icons/gear/golem_amulet.png",
+      "sha256": "dd59f649db58b0f3218f52f37a7771dcd5fa859cb3cc31862dc14214cb1881bd",
+      "bytes": 213835,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_405acc248e108191a7db48ee77cc2ef6",
+      "raw_source_sha256": "0355545a34b4482beabde5f75c5478bdeb0b5510a6fdc4e16285ffd67e65f14b"
+    },
+    {
+      "key": "gear/ancient_ring",
+      "path": "assets/icons/gear/ancient_ring.png",
+      "sha256": "16aeefca5cad68a9410e945cb1bcf85cdf29498cc9609bff3c0002e2d15ce5aa",
+      "bytes": 298070,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_68f52edc20f4819190975b4b5eab9f40",
+      "raw_source_sha256": "6744d33917550cf90477dee6a6714d09702b1cbebd1c692e91ea2ed55ad1b896"
+    },
+    {
+      "key": "gear/pearl_pendant",
+      "path": "assets/icons/gear/pearl_pendant.png",
+      "sha256": "e106cd45ef931b65597a882258b9aa8a381a9cf7ad01ffe15549b62fc61179d4",
+      "bytes": 211029,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "charms-deploy512-part01.zip",
+      "source_archive_sha256": "ad5ad16fd28de4cf7351837ee238a206cd4efba3f9beeb895b8d1304e155deb4",
+      "source_library_file_id": "libfile_773320425ee08191b609a01788d9fe8a",
+      "raw_source_sha256": "c829f5c101fbc5bc267434b7c51e1b724e7b40bc12dccd2a634a01f1e91c4a9e"
+    },
+    {
+      "key": "gear/leather_cap",
+      "path": "assets/icons/gear/leather_cap.png",
+      "sha256": "74fbe29fdabb78ddf71265e14456b566d0d7e5a66393a102b9420792639fb032",
+      "bytes": 179577,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_ba73f2b8da948191bdf1f79bc1d18c8a",
+      "raw_source_sha256": "15a3de1112bd0adebe494e9030a6e621bf691273bdd2107f8dbf41b3e3661681"
+    },
+    {
+      "key": "gear/beetle_helm",
+      "path": "assets/icons/gear/beetle_helm.png",
+      "sha256": "b784a33ac99dd2f6f30bc4a3fa4725206e2ccb4b33dcd64d74c8c9dad599ed61",
+      "bytes": 173679,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_083a46e4a7c8819197067aeb429297e4",
+      "raw_source_sha256": "b7f6b677106849bf2b5756f2cfcd9856f9d83a52d6756b1263f8007ac907addd"
+    },
+    {
+      "key": "gear/spore_hood",
+      "path": "assets/icons/gear/spore_hood.png",
+      "sha256": "1fbca97f46d5aad77f73c7f6ec91c0afa696bab18cef6fb3cc65e2dde55a4fb6",
+      "bytes": 208060,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_f90fe1b7cb18819194e551477c53b617",
+      "raw_source_sha256": "159ab1b70f441d3ae64fd1ae01daa58e999593bb3f35575d337b66471fdabd3a"
+    },
+    {
+      "key": "gear/feather_circlet",
+      "path": "assets/icons/gear/feather_circlet.png",
+      "sha256": "99e34dc686b11c543373d2cde651a755dcc7dc21c56ab5c7ae4e1184d5737b8c",
+      "bytes": 217913,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_78224048e3b88191abfef305376458c6",
+      "raw_source_sha256": "6ce14048623852e27912937d0431c92d0ea2640dadef484d1624db0c826a3781"
+    },
+    {
+      "key": "gear/horned_helm",
+      "path": "assets/icons/gear/horned_helm.png",
+      "sha256": "8cdacac62af20adf7c1273b0f7bf59db805a5f0fd2754105f6fec67a302f19c7",
+      "bytes": 178563,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_c258294f29208191bf57812db8f554f3",
+      "raw_source_sha256": "3474d773b23621713d247b8409307ba17e424bc3e23b85a3b7a7ce830c47f31f"
+    },
+    {
+      "key": "gear/crabshell_helm",
+      "path": "assets/icons/gear/crabshell_helm.png",
+      "sha256": "9bb5f75e01696fa84f5b32558062c0dd6ac010cc1aa24b208044e9b5bad50744",
+      "bytes": 201603,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_1893debe9c2081918faff332ab31dc40",
+      "raw_source_sha256": "7945fa453bbf1d92c7dbb2a8ce6caf57f39f9acfb148991f02c8e7490b046ee0"
+    },
+    {
+      "key": "gear/wolf_boots",
+      "path": "assets/icons/gear/wolf_boots.png",
+      "sha256": "36a5edca573a263d23cc2f2c2d06528488947345e2c6c933b9d3d3bb051e52f0",
+      "bytes": 249654,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_6766f7eec3008191abd463ac09141a59",
+      "raw_source_sha256": "db6164c5e04c071570726d062c7f8903e2056107a9721d1dcc9690d8f05eeb09"
+    },
+    {
+      "key": "gear/wisp_slippers",
+      "path": "assets/icons/gear/wisp_slippers.png",
+      "sha256": "b86f8fb1ce56596c8b56741247f07a311e8f2fde96d47937d5dde3c9fb28433f",
+      "bytes": 201062,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_39eef338dbb88191a67efaf25729dc3e",
+      "raw_source_sha256": "8c9d930e5d196dfcca295c1facd965e5fca855890b7d26047ff2a7985002d771"
+    },
+    {
+      "key": "gear/crag_greaves",
+      "path": "assets/icons/gear/crag_greaves.png",
+      "sha256": "53a368e9491f83773b4e9f3dfab35c51eafe7a5e813ca7c6f78aa9cfd08f9d82",
+      "bytes": 245997,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_61ebd5526c1881919c61392bd8a884d8",
+      "raw_source_sha256": "fd239ac9d2a7c96afcea11ac7683bf07fae14c6e7922b7367278d2f0e43cecd2"
+    },
+    {
+      "key": "gear/tide_boots",
+      "path": "assets/icons/gear/tide_boots.png",
+      "sha256": "f32cd3a66351652f426f96ecae6e358b68f2844e3062bd0921c58e575194a3f5",
+      "bytes": 249792,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-helmets-boots-512-part01.zip",
+      "source_archive_sha256": "c95a77aa12ec1a8a70b0d2c960e482e36520fab552e004cb4a5dfa186d9b455b",
+      "source_library_file_id": "libfile_fe733149cba48191be55888e10a56c54",
+      "raw_source_sha256": "3c98c6e55f46197e67597ee83506733bc707db6ec4cb0132ff551c95fda3cb39"
+    },
+    {
+      "key": "gear/hide_vest",
+      "path": "assets/icons/gear/hide_vest.png",
+      "sha256": "7ee70a32b2485fd31077004296ddd61ec2bd8f778f6ca979b7a682b0a314896a",
+      "bytes": 243538,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch04-crafted-armor-deploy512.zip",
+      "source_archive_sha256": "64438f5392db0e0bfd700b2daebd5048fa79d4d622fc03410b3220c1ce594a3c",
+      "source_library_file_id": "libfile_3a7a51225f288191851d6a8b85291ab9",
+      "raw_source_sha256": "7eb092a01481f335608b7c974774cd61a8d7733d744c2cbdee6cb5bc39b4e969"
+    },
+    {
+      "key": "gear/shell_guard",
+      "path": "assets/icons/gear/shell_guard.png",
+      "sha256": "df59e69b65197227f17edc5901cd43fe921e5d4a01f056ef3d206127b5a04709",
+      "bytes": 260054,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch04-crafted-armor-deploy512.zip",
+      "source_archive_sha256": "64438f5392db0e0bfd700b2daebd5048fa79d4d622fc03410b3220c1ce594a3c",
+      "source_library_file_id": "libfile_68a10a800d508191ab4952b0e4b228bf",
+      "raw_source_sha256": "ce01a5d723d0e7adf8b807c30c6d9e65a2b521209069558342b9eeebf89386ef"
+    },
+    {
+      "key": "gear/wolfpelt_coat",
+      "path": "assets/icons/gear/wolfpelt_coat.png",
+      "sha256": "cfe7c41750c3be7fad9fd9936ced7624e6426d1ab91512311a91226fc1a1a8a3",
+      "bytes": 226250,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch04-crafted-armor-deploy512.zip",
+      "source_archive_sha256": "64438f5392db0e0bfd700b2daebd5048fa79d4d622fc03410b3220c1ce594a3c",
+      "source_library_file_id": "libfile_7e3eef246e048191a95ab6f87bdc415b",
+      "raw_source_sha256": "b14d9778c3b6dacf8d1d344c92b28d2d99c83c022510e59dc10cc7dba99c66b7"
+    },
+    {
+      "key": "gear/storm_mantle",
+      "path": "assets/icons/gear/storm_mantle.png",
+      "sha256": "c0783e062a3f3a84e4f615b36fcc96db4e3191d4d7dbf99e2ecddb2c033c104f",
+      "bytes": 278301,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch04-crafted-armor-deploy512.zip",
+      "source_archive_sha256": "64438f5392db0e0bfd700b2daebd5048fa79d4d622fc03410b3220c1ce594a3c",
+      "source_library_file_id": "libfile_d2ad8ee1f83c8191a604f4a96fa2a7d1",
+      "raw_source_sha256": "9739b6ad55f76d9d829da7b81052151387b47a5fc12efcf2564ae89c61f2110b"
+    },
+    {
+      "key": "gear/crag_plate",
+      "path": "assets/icons/gear/crag_plate.png",
+      "sha256": "959195761851e9bd884d6d91a58d5e38fe9bdbb961d5b7a76502729adf77cbcb",
+      "bytes": 283198,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch04-crafted-armor-deploy512.zip",
+      "source_archive_sha256": "64438f5392db0e0bfd700b2daebd5048fa79d4d622fc03410b3220c1ce594a3c",
+      "source_library_file_id": "libfile_660a09fb0bb48191a6a3545a2585b5dd",
+      "raw_source_sha256": "457ef6cf0b03b7a641523fda4ab1b9df0d4d557e3e482941d7979bc1bc2350bd"
+    },
+    {
+      "key": "gear/tusk_blade",
+      "path": "assets/icons/gear/tusk_blade.png",
+      "sha256": "412e0e60b56dc1d89f747b0ac2229a06c74b1559aef821fc1b3eb0e6023b09fd",
+      "bytes": 103740,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_10bdc800de0c8191996813f785b1a672",
+      "raw_source_sha256": "7ab06132235bb60ce20c5f11b74db0c4ee2362e672c75f1e5ae847d1f78b59c0"
+    },
+    {
+      "key": "gear/hunter_bow",
+      "path": "assets/icons/gear/hunter_bow.png",
+      "sha256": "7c3829d45edb59694915a4f9e51965bd8f653f31e10ee3e64727aa5995f43913",
+      "bytes": 123343,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_83e04a6acd0c8191912be8f107fa7e8e",
+      "raw_source_sha256": "1dbd2cf45bd0a81348dbd8013ed168e4e6eb25a43d4b01bae28c89d40bd73f0b"
+    },
+    {
+      "key": "gear/fang_dagger",
+      "path": "assets/icons/gear/fang_dagger.png",
+      "sha256": "02907c80c6317758b079c574dbaf8c7942f03e017d3d989273315a0b00fb7e48",
+      "bytes": 102159,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_a486570f10c08191ba20e07de2c3b2cf",
+      "raw_source_sha256": "c3aa249c1f4fae7174fe73bdef4a1708af69b6d900618019e0415c00bc8e3212"
+    },
+    {
+      "key": "gear/spore_wand",
+      "path": "assets/icons/gear/spore_wand.png",
+      "sha256": "d3d94b51389b0367dcf616bf124832a965d01a5b407376fa5debbbd952a60be5",
+      "bytes": 106535,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_917d8b7887088191bd88398948134521",
+      "raw_source_sha256": "b847a7ed620804d27ca07178a7b5ca2b3d31360c74a6d057ed0dc143ad96e5c4"
+    },
+    {
+      "key": "gear/crag_axe",
+      "path": "assets/icons/gear/crag_axe.png",
+      "sha256": "304f7f17d24f96cff895e40bdc27572d54de772166822017d9a4dd6f09546bed",
+      "bytes": 135238,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_dfc49e8cde648191923ddd0f9efb95b8",
+      "raw_source_sha256": "9110db2c62c4eb3afb52444d1849d7768968eaf2b52bd0dc8bdf72e2fa143bdf"
+    },
+    {
+      "key": "gear/storm_bow",
+      "path": "assets/icons/gear/storm_bow.png",
+      "sha256": "8290d6b1b776d789993d58e27298eada9a646f5519a3897e6e014b9c02377d7b",
+      "bytes": 131237,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_35a81bdf514c8191800a46c82dcae317",
+      "raw_source_sha256": "6bf42b1d436aa7414cc4729c5fffdb8dcfc2c2402f0d91efa6a9b4583d8ac426"
+    },
+    {
+      "key": "gear/greyfang_sabre",
+      "path": "assets/icons/gear/greyfang_sabre.png",
+      "sha256": "f5d5767f678dd13d5df50bea13b566c929e1990f8897c60143eea9077309b0ca",
+      "bytes": 90472,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_06b7c68781008191b54554965d6675d4",
+      "raw_source_sha256": "ebdf236f2d502d6581e83778ef2726f1cb352733df3519d623f370fee42443b4"
+    },
+    {
+      "key": "gear/horn_greatblade",
+      "path": "assets/icons/gear/horn_greatblade.png",
+      "sha256": "e01534bb8d0a1fa2ee81738f8e1cb0252fdcbd354101258e33fe066f590b740c",
+      "bytes": 158016,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_910469c0faac819193ed198be080a999",
+      "raw_source_sha256": "3e970e38a7dbdb373d4ee8f44a16fef3a28e1bb2305f7e7bdf188ce41525bb62"
+    },
+    {
+      "key": "gear/ancient_staff",
+      "path": "assets/icons/gear/ancient_staff.png",
+      "sha256": "13495e89953cd2dda66da19241fb1048b9c71a53d84cab935d1026086e72b9bc",
+      "bytes": 102236,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch03-crafted-weapons-deploy512.zip",
+      "source_archive_sha256": "852667164d3d36aee752ec333776bfed2ed2b5b0a216bdab6ae7c2fa0a56619b",
+      "source_library_file_id": "libfile_b9d46cd3dcf881918b25a5f9089f836c",
+      "raw_source_sha256": "96a7e927fc93988321881cf2f73ff3c41eb8a9a541e70e2abe4200f041426742"
+    },
+    {
+      "key": "skill/slash",
+      "path": "assets/icons/skill/slash.png",
+      "sha256": "40aa8ab4e8c8f92aa60765a8d32d1dcc40bf7e9e73ed8184e29188074971f6d7",
+      "bytes": 300721,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_b6cea6454a808191a253315406e602be",
+      "raw_source_sha256": "8a11dee31f04a7c3bcb75455ae5ff97fcc7c919d766a8cea7c0bf2d0b95dade5"
+    },
+    {
+      "key": "skill/whirl_blade",
+      "path": "assets/icons/skill/whirl_blade.png",
+      "sha256": "a647a5949ed959740eafc7d2cf10baa89be9b20135384ff22b1f18cfdadcdf5b",
+      "bytes": 389231,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_6d549829590881919885f4ee487db81a",
+      "raw_source_sha256": "40245bddf68e90ba7e82f9ea638b0ecc1aa5b7413d9c5ac41ac08c18621788e5"
+    },
+    {
+      "key": "skill/hunter_shot",
+      "path": "assets/icons/skill/hunter_shot.png",
+      "sha256": "d81a5c32a64590af5ee4d62a9f324d5abd85d5bec89c438c9fcfc09bfcc0743d",
+      "bytes": 342314,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_7e6468ed014c81918e1714c3f2161fa7",
+      "raw_source_sha256": "499eb22df775fddc29413b629e0af266b34befa9bf018cf160b325999ac3ab1e"
+    },
+    {
+      "key": "skill/firebolt",
+      "path": "assets/icons/skill/firebolt.png",
+      "sha256": "c2727c42874e22c6cfcb3f5817c15b0385c30ed7e227cebeeb62a1107cc91ae7",
+      "bytes": 276688,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_83f18088bfd4819192dfacc036dd822c",
+      "raw_source_sha256": "2100129d314047d9a5d88727f95d2d63a02aa7ce3194d4f1f1694ad59cc55e37"
+    },
+    {
+      "key": "skill/chain_spark",
+      "path": "assets/icons/skill/chain_spark.png",
+      "sha256": "a208fd65abd37c819e4446d2eafb2d409c3d3d85a809eae15ff763dddc673949",
+      "bytes": 276374,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_f95d63295e308191bdcf01b1e85b15bd",
+      "raw_source_sha256": "107276345da47a4cbfd4bc74c4c2aea0e2d06a167dcc7607c58a2adb4e8901da"
+    },
+    {
+      "key": "skill/stone_burst",
+      "path": "assets/icons/skill/stone_burst.png",
+      "sha256": "014cc603d5588ba042cd058cd0c9d354237c90c682ef2d02df3147feef056e8c",
+      "bytes": 394721,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_4fa73a475bb08191981b05d5f22ed830",
+      "raw_source_sha256": "439217d4c31eb23c0a38f1fdda714c851e8f0e9d73fb9cf3e097a4c5e304f8e3"
+    },
+    {
+      "key": "skill/frost_nova",
+      "path": "assets/icons/skill/frost_nova.png",
+      "sha256": "03100df290996fa5aeac5cc89a9081957feeed66e2f78b958214f08c832a29ea",
+      "bytes": 472622,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_1defcda0b3988191bd07819dbb2b36df",
+      "raw_source_sha256": "808ccfec6a7548f6ed1bd6815a92271ca84ab914a0debb1dde37a9959f740065"
+    },
+    {
+      "key": "skill/venom_mire",
+      "path": "assets/icons/skill/venom_mire.png",
+      "sha256": "6e0f2890c4dd1ae33285502a107267656f7bef40969768dec49912a18a998e07",
+      "bytes": 363417,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_9502c26532b08191891e808bbbc0dc12",
+      "raw_source_sha256": "06b7ba173011c3b1472856be051ee63104f52bffcf6b1e9a4f6d93b82a70983b"
+    },
+    {
+      "key": "skill/hex",
+      "path": "assets/icons/skill/hex.png",
+      "sha256": "576a4742d507033824c3da03b78702bdf1d057da1b48a468ce4b0009928730ac",
+      "bytes": 363396,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGB",
+      "alpha_extrema": null,
+      "source_archive": "batch02-skills-512-part01.zip",
+      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+      "source_library_file_id": "libfile_f01138cda99481918bcf1f3860316374",
+      "raw_source_sha256": "308468ffc196b6f61e5aadcec41e04e1ee736a3bed3139c95723b0bb84a6b900"
+    },
+    {
+      "key": "gear/rusty_sword",
+      "path": "assets/icons/gear/rusty_sword.png",
+      "sha256": "15705118d53fb803ed75a1fef7286602f243b3c6f8526232c2867ff4cccaab9a",
+      "bytes": 106824,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch01-starter-gear-deploy512.zip",
+      "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
+      "source_library_file_id": "libfile_fa5dd77a4a9c81919372b66f162bdf83",
+      "raw_source_sha256": "6c38512d7e183c2944b50af55dcd0148a6dc031adfb162af685288323e3a39c8"
+    },
+    {
+      "key": "gear/old_bow",
+      "path": "assets/icons/gear/old_bow.png",
+      "sha256": "3b79613dbb4ed7a222f78931c0766618288706eb2a5d617427e836212491e231",
+      "bytes": 87548,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch01-starter-gear-deploy512.zip",
+      "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
+      "source_library_file_id": "libfile_a84821c066d48191b91e10aa30d75756",
+      "raw_source_sha256": "d289d5cf27af3e2bfb01352e2d22b1a07d461bc463995a24cd1643fb04a7dd3b"
+    },
+    {
+      "key": "gear/apprentice_staff",
+      "path": "assets/icons/gear/apprentice_staff.png",
+      "sha256": "9086c8ba3970587fbd79f42640b311e45595b5f0145c4568d4102c3317774fd0",
+      "bytes": 55010,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch01-starter-gear-deploy512.zip",
+      "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
+      "source_library_file_id": "libfile_7a64ec7baa34819198dbd9d6f3858760",
+      "raw_source_sha256": "5d076887df11da6e401edc0651af6aad48c1742d75727fd37ad39a555d2297c6"
+    },
+    {
+      "key": "gear/travel_tunic",
+      "path": "assets/icons/gear/travel_tunic.png",
+      "sha256": "d6d461d9f4cd7c93f033bf58555d8316610ec5d60463dec1342e9315befe6636",
+      "bytes": 203032,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch01-starter-gear-deploy512.zip",
+      "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
+      "source_library_file_id": "libfile_9f46f4803b608191ba36bc95d987f88d",
+      "raw_source_sha256": "22f5a20295de850448deef4c3216c75959b82c85fcb5d126af45f238f4e2f297"
+    },
+    {
+      "key": "gear/travel_boots",
+      "path": "assets/icons/gear/travel_boots.png",
+      "sha256": "178fbd50bacbb12884b5fd188645d6db7ee6926ed87f877ca14a3fb82b2f605d",
+      "bytes": 186504,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch01-starter-gear-deploy512.zip",
+      "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
+      "source_library_file_id": "libfile_81b0a262be088191b933181f4b94161f",
+      "raw_source_sha256": "0d979e5131b0dba6d1f47e5eb0b943ca307b709c82ed792b3db1a60358cc51bf"
+    },
+    {
+      "key": "gear/wisp_staff",
+      "path": "assets/icons/gear/wisp_staff.png",
+      "sha256": "a1b424aa16518e7b790f87c6969864776bbf8e6590f1dbd43c6d1c31eb5ec9be",
+      "bytes": 67703,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "batch01-starter-gear-deploy512.zip",
+      "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
+      "source_library_file_id": "libfile_dd80b877a1748191becd7bed6c54c246",
+      "raw_source_sha256": "52a0e2f962acdd0b73828b9c51cc06c55bd329eaff0ff5df0d80279dd90153a7"
+    }
+  ],
+  "pending_count": 0,
+  "preservation": "Delivered 512 PNG bytes copied unchanged. Source ZIPs kept outside deployment; original 1254 source hashes/Library IDs retained as provenance, not locally verified.",
+  "integration_base_commit": "8778cebd9c526e3f4f629c255411a8dea4bfd533"
+}

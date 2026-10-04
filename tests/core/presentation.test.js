@@ -4,6 +4,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data,legacyData} from './helpers.js';
 import {ART,art,hasArt} from '../../src/ui/art.js';
+import {rasterIconUrl} from '../../src/ui/raster-icons.js';
 import {createCharacter,gearLook} from '../../src/core/character.js';
 
 test('every named content entry has distinct authored artwork within its category',()=>{
@@ -20,7 +21,8 @@ test('every named content entry has distinct authored artwork within its categor
    assert.ok(hasArt(kind,id),kind+'/'+id);
    assert.ok(!seen.has(ART[kind][id]),kind+'/'+id+' duplicates '+seen.get(ART[kind][id]));
    seen.set(ART[kind][id],id);
-   assert.match(art(kind,id),/viewBox="0 0 128 128"/);
+   const raster=rasterIconUrl(kind,id);
+   if(raster){assert.ok(art(kind,id).includes(`src="${raster}"`));assert.match(art(kind,id),/<img /);}else assert.match(art(kind,id),/viewBox="0 0 128 128"/);
   }
  }
  assert.throws(()=>art('gear','missing'),/Missing authored artwork/);

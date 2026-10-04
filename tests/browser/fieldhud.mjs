@@ -62,7 +62,7 @@ try {
     const check=(button,id)=>{
       const template=document.createElement('template');template.innerHTML=expected[id];
       if(button.querySelector('.ic').innerHTML!==template.innerHTML)throw Error('Original artwork mismatch: '+id);
-      const svg=button.querySelector('.art-skill>svg');
+      const svg=button.querySelector('.art-skill>svg, .art-skill>img');
       if(!svg||getComputedStyle(svg).filter!=='none')throw Error('Artwork recoloured: '+id);
       const r=svg.getBoundingClientRect(),b=button.getBoundingClientRect();
       if(r.width<16||r.height<16||r.left<b.left||r.top<b.top||r.right>b.right||r.bottom>b.bottom)throw Error('Artwork clipped: '+id);

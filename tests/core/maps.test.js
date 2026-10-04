@@ -217,3 +217,16 @@ test('one world: discovery counts and waypoint travel span every map', async () 
   assert.equal(g.ch.worldId, FRONTIER);
   assert.ok(g.drainEvents().some((e) => e.type === 'travel' && e.to === FRONTIER && !e.seam));
 });
+
+test('the border is a calm crossing: no monster spawns within the quiet band of a seam', () => {
+  for (const id of Object.keys(data.maps)) {
+    const g = new Game(on(id), { world: worlds[id], seed: 11 });
+    const seam = worlds[id].seams[0], b = worlds[id].bounds;
+    assert.ok(seam.quiet >= 40);
+    for (const sp of g.spawnPoints) {
+      const inside = (sp.x - b[seam.edge]) * -seam.outward;
+      if (sp.z < seam.span[0] - seam.quiet || sp.z > seam.span[1] + seam.quiet) continue; // that stretch of edge is a wall, not the border
+      assert.ok(inside >= seam.quiet, `${id} ${sp.monster} spawns ${inside.toFixed(1)} m from the border`);
+    }
+  }
+});

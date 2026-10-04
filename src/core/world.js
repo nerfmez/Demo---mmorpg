@@ -258,6 +258,11 @@ export function createWorld(worldData) {
   const exits = (worldData.exits || []).map((e) => ({ ...e, x: e.pos[0], z: e.pos[1] }));
   // Open edges shared with a neighbouring map: walking off one continues on the other.
   const seams = (worldData.atlas?.seams || []).map((seam) => ({ ...seam, outward: seam.edge.startsWith('max') ? 1 : -1, alongX: seam.edge === 'minZ' || seam.edge === 'maxZ' }));
+  /** True within a seam's `quiet` metres: the border is a calm crossing, no spawns. */
+  const quietNearSeam = (x, z) => seams.some((seam) => {
+    const along = seam.alongX ? x : z, inside = ((seam.alongX ? z : x) - b[seam.edge]) * -seam.outward;
+    return along >= seam.span[0] - (seam.quiet || 0) && along <= seam.span[1] + (seam.quiet || 0) && inside < (seam.quiet || 0);
+  });
   /** The seam a circle at (x,z) is pressed against, or null. */
   const seamAt = (x, z, r) => seams.find((seam) => {
     const along = seam.alongX ? x : z, across = seam.alongX ? z : x;
@@ -569,6 +574,7 @@ export function createWorld(worldData) {
       if (isWater(x, z, (r + 0.5) * 0.3) || !isFree(x, z, r + 0.5)) continue;
       if (hf.slopeAt(x, z) > 0.6) continue;
       if (avoid.some((a) => dist(x, z, a.x, a.z) < a.r)) continue;
+      if (quietNearSeam(x, z)) continue;
       return { x, z };
     }
     // Exhaustion is explicit: never place a monster in water or in a safe area.
@@ -612,6 +618,7 @@ export function createWorld(worldData) {
     exits,
     seams,
     seamAt,
+    quietNearSeam,
     isFree,
     tooSteep,
     move,

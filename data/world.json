@@ -6583,7 +6583,7 @@
     "joins": []
   },
   "atlas": {
-    "_doc": "Place in the open world: global = local + offset. seams: edges shared with a neighbouring map (edge of bounds, span along that edge in local metres, the road gate where a path crosses, blend band and the common height profile [[along, h]] written by scripts/atlas-seams.mjs).",
+    "_doc": "Place in the open world: global = local + offset. seams: edges shared with a neighbouring map (edge of bounds, span along that edge in local metres, the road gate where a path crosses, blend band, quiet (metres either side where no monster spawns: a calm crossing) and the common height profile [[along, h]] written by scripts/atlas-seams.mjs).",
     "offset": [
       0,
       0
@@ -6956,7 +6956,8 @@
             "#9fb669",
             "#85a05a"
           ]
-        ]
+        ],
+        "quiet": 45
       }
     ]
   }

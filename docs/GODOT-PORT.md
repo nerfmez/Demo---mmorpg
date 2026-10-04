@@ -490,7 +490,7 @@ The original demo map (`data/maps/frontier-wilds.json`, id `frontier-wilds-v1`, 
 east-west so its safe outpost meets the border and the final boss is ~400 m away; a
 town fence may stand on `walls.west`) lies west of Azure in one world: `atlas.offset` places each map (global = local + offset)
 and `atlas.seams` lists the edges two maps share (edge, span in local metres, the
-border-road `gate`, blend `band` and the common height `profile` written by
+border-road `gate`, blend `band`, a `quiet` band where no monster spawns (the border is a calm crossing, so no monster needs simulating on both sides) and the common height `profile` written by
 `scripts/atlas-seams.mjs`). Past an open seam there is no mountain wall or edge
 forest; within the band the heightfield blends to the profile so both sides meet
 at the same ground. Walking on against a seam (`world.seamAt`) calls

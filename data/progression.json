@@ -1,10 +1,10 @@
 {
   "_doc": "Character Level gives Stat Points. Job Level (separate EXP) gives Job Points for the Job Tree. Skill/Mod levels are raised with materials + gold. Respec costs in-game gold only.",
   "character": {
-    "maxLevel": 40,
+    "maxLevel": 30,
     "expCurve": {
-      "base": 20,
-      "exponent": 1.55
+      "base": 22,
+      "exponent": 2.2
     },
     "statPointsPerLevel": 3,
     "startingStatPoints": 4,
@@ -82,7 +82,7 @@
     "maxLevel": 40,
     "expCurve": {
       "base": 18,
-      "exponent": 1.48
+      "exponent": 1.8
     },
     "pointsPerLevel": 1,
     "jobChoiceLevel": 5
@@ -99,27 +99,27 @@
     "manaPerLevel": 0.05,
     "steps": [
       {
-        "requiresLevel": 5,
+        "requiresLevel": 4,
         "requiresStat": 5,
         "material": 3,
         "gold": 35
       },
       {
-        "requiresLevel": 12,
+        "requiresLevel": 10,
         "requiresStat": 7,
         "material": 5,
         "gold": 90,
         "glow_dust": 2
       },
       {
-        "requiresLevel": 22,
+        "requiresLevel": 17,
         "requiresStat": 9,
         "material": 8,
         "gold": 180,
         "ruin_shard": 1
       },
       {
-        "requiresLevel": 34,
+        "requiresLevel": 24,
         "requiresStat": 11,
         "material": 12,
         "gold": 320,
@@ -142,17 +142,17 @@
       }
     ],
     "requiresLevel": [
-      10,
-      24
+      8,
+      18
     ],
     "requiresStatPerLevel": 2,
     "_doc": "Each rank above the first raises the mod stat requirement by requiresStatPerLevel (core/skills.js modRequires); an upgrade is refused until the next rank can be met."
   },
   "monsterScaling": {
-    "hpPerLevel": 0.22,
-    "damagePerLevel": 0.14,
+    "hpPerLevel": 0.3,
+    "damagePerLevel": 0.5,
     "defensePerLevel": 0.1,
-    "expPerLevel": 0.2
+    "expPerLevel": 0.15
   },
   "start": {
     "_doc": "Every new character learns these skills. The starting kit only picks the first weapon, how the skill slots are filled and the movement skill; all of it can be changed later (no Job at creation).",
@@ -242,5 +242,88 @@
     "_doc": "Power score = sqrt(offence x defence) x scale (core/power.js). offence = sustained damage per second of the best slotted damage skill; defence = effective HP against a frontal hit. minOffence keeps a support-only loadout from reading 0.",
     "scale": 10,
     "minOffence": 1
+  },
+  "balance": {
+    "_doc": "Balance model (core/balance.js, tests/core/balance-model.test.js): a reference hero per kit fights the average normal monster of its level wearing the expected gear tier. Targets are what the tuning must keep. weaponFactor follows items.handRules (sword kit dual-wields two light weapons).",
+    "monsterCap": 25,
+    "gearTiers": [
+      1,
+      6,
+      11,
+      16,
+      21
+    ],
+    "secondsPerKill": 6,
+    "monster": {
+      "hitMult": 1.1,
+      "hitInterval": 2.4
+    },
+    "gear": {
+      "gradeMult": 1.08,
+      "defense": [
+        7,
+        5.5
+      ],
+      "maxHp": [
+        18,
+        10
+      ]
+    },
+    "builds": {
+      "sword": {
+        "skill": "slash",
+        "weaponType": "sword",
+        "weaponFactor": 2,
+        "weaponSplit": {
+          "attack": 0.92,
+          "magic": 0.08
+        },
+        "stats": {
+          "STR": 0.6,
+          "DEX": 0.1
+        }
+      },
+      "bow": {
+        "skill": "hunter_shot",
+        "weaponType": "bow",
+        "weaponFactor": 2.2,
+        "weaponSplit": {
+          "attack": 0.88,
+          "magic": 0.12
+        },
+        "stats": {
+          "DEX": 0.6,
+          "AGI": 0.1
+        }
+      },
+      "staff": {
+        "skill": "firebolt",
+        "weaponType": "staff",
+        "weaponFactor": 2.2,
+        "weaponSplit": {
+          "attack": 0.15,
+          "magic": 0.85
+        },
+        "stats": {
+          "INT": 0.65
+        }
+      }
+    },
+    "targets": {
+      "ttk": [
+        1.5,
+        7
+      ],
+      "ttd": [
+        10,
+        45
+      ],
+      "hoursToCap": [
+        6.5,
+        10
+      ],
+      "_doc": "ttk: seconds to kill a same-level normal monster (the first levels are quick on purpose); ttd: seconds a hero survives standing in its hits without dodging; hoursToCap: playtime to the monster cap fighting same-level monsters (quests add more)."
+    },
+    "uptime": 0.55
   }
 }

@@ -380,7 +380,7 @@ export class Game {
     const s = this.skills[i];
     if (!s) return false;
     if (!s.requirementsMet) {
-      this.emit({ type: 'fail', reason: 'requires', slot: i });
+      this.emit({ type: 'fail', reason: s.weaponOk ? 'requires' : 'weapon', slot: i, need: s.def.requiresWeapon });
       return false;
     }
     if (p.cooldowns[i] > 0) return false;

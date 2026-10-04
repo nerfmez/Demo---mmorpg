@@ -173,7 +173,7 @@
     "charm": "เครื่องราง"
   },
   "weaponTypes": {
-    "_doc": "Every weapon type has a built-in (implicit) bonus. No type locks you out of any skill. hands: light = either hand (two light weapons dual-wield with no penalty), heavy = right hand only (a shield or nothing in the left), two = both hands (bow: arrows in the left). Base stats follow handRules.baseFactor x the light reference for the item level (base stats only, never options).",
+    "_doc": "Every weapon type has a built-in (implicit) bonus. Some skills need a weapon type (skills.json requiresWeapon). hands: light = either hand (two light weapons dual-wield with no penalty), heavy = right hand only (a shield or nothing in the left), two = both hands (bow: arrows in the left). Base stats follow handRules.baseFactor (two-hand 2.2x, a little more than two light weapons) x the light reference for the item level (base stats only, never options).",
     "sword": {
       "nameTh": "ดาบ",
       "implicit": {
@@ -265,8 +265,8 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 13,
-        "magic": 2
+        "attack": 14.3,
+        "magic": 2.2
       },
       "requires": {},
       "starter": true,
@@ -287,8 +287,8 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 4,
-        "magic": 14
+        "attack": 4.4,
+        "magic": 15.4
       },
       "requires": {},
       "starter": true,
@@ -333,8 +333,8 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 20.5,
-        "magic": 2.8
+        "attack": 22.6,
+        "magic": 3.1
       },
       "requires": {},
       "starter": false,
@@ -379,8 +379,8 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 6,
-        "magic": 30
+        "attack": 6.6,
+        "magic": 33.0
       },
       "requires": {},
       "starter": false,
@@ -448,8 +448,8 @@
       "slot": "weapon",
       "weaponType": "bow",
       "stats": {
-        "attack": 28.5,
-        "magic": 5
+        "attack": 31.4,
+        "magic": 5.5
       },
       "requires": {},
       "starter": false,
@@ -495,8 +495,8 @@
       "slot": "weapon",
       "weaponType": "greatblade",
       "stats": {
-        "attack": 41,
-        "magic": 9
+        "attack": 45.1,
+        "magic": 9.9
       },
       "requires": {},
       "starter": false,
@@ -517,8 +517,8 @@
       "slot": "weapon",
       "weaponType": "staff",
       "stats": {
-        "attack": 9,
-        "magic": 41
+        "attack": 9.9,
+        "magic": 45.1
       },
       "requires": {},
       "starter": false,
@@ -1622,7 +1622,7 @@
       "baseFactor": 1.5
     },
     "two": {
-      "baseFactor": 2
+      "baseFactor": 2.2
     },
     "reference": {
       "starter": 8,

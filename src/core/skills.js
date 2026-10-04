@@ -86,7 +86,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
     repeatDelay: 0,
     knock: 0,
     leech: derived.leechPct || 0,
-    requirementsMet: meetsRequires(ch, def.requires).ok,
+    // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
+    weaponOk: !def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType),
+    requirementsMet: meetsRequires(ch, def.requires).ok && (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)),
     mods: [],
   };
 

@@ -281,3 +281,34 @@ test('a higher mod rank asks for more stats: upgrades are refused until it can b
   assert.equal(s.mods[0].active, false);
   assert.equal(s.projectiles, 1, 'an inactive mod changes nothing');
 });
+
+test('two-hand weapons are a little more than two light ones, and some skills need a weapon type', async () => {
+  assert.ok(data.items.handRules.two.baseFactor > 2, 'two-hand beats two light weapons on base stats');
+  const { computeSkill } = await import('../../src/core/skills.js');
+  const ch = strong('sword');
+  ch.slots[0] = { skill: 'hunter_shot', mods: [] };
+  ch.slots[1] = { skill: 'whirl_blade', mods: [] };
+  ch.skills.whirl_blade = 1;
+  const g = new Game(data, { character: ch, seed: 8 });
+  assert.equal(g.skills[0].requirementsMet, false, 'a bow skill with a sword');
+  assert.equal(g.skills[1].requirementsMet, true);
+  const arrows = arrowTotal(g.ch);
+  g.drainEvents();
+  assert.equal(g.castSlot(0), false);
+  const fail = g.drainEvents().find((e) => e.type === 'fail');
+  assert.equal(fail.reason, 'weapon');
+  assert.deepEqual(fail.need, data.skills.combat.hunter_shot.requiresWeapon);
+  assert.equal(arrowTotal(g.ch), arrows, 'no arrows spent');
+  const bow = give(g.ch, 'hunter_bow');
+  assert.ok(equip(g.ch, data, bow.uid).ok);
+  g.refresh();
+  assert.equal(g.skills[0].requirementsMet, true);
+  assert.equal(g.skills[1].requirementsMet, false, 'whirl blade needs a melee weapon');
+  for (const [id, s] of Object.entries(data.skills.combat)) for (const w of s.requiresWeapon || []) assert.ok(data.items.weaponTypes[w], id + ' ' + w);
+  // Every kit's slotted skills work with its own starting weapon.
+  for (const kit of Object.keys(data.progression.start.kits)) {
+    const c = createCharacter(data, { kit });
+    const d = derive(c, data);
+    c.slots.forEach((_, i) => { const s = computeSkill(c, data, d, i); if (s) assert.ok(s.weaponOk, kit + ' ' + s.id); });
+  }
+});

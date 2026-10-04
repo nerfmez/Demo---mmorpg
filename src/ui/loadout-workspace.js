@@ -98,7 +98,13 @@ async function animateTransfers(transfers,targetSelector){
  target?.classList.remove('arriving');target?.classList.add('seated');motionAnimations=[];
  if(target){const a=target.animate([{filter:'brightness(2)',transform:'scale(.84)'},{filter:'brightness(1.3)',transform:'scale(1.08)',offset:.45},{filter:'brightness(1)',transform:'scale(1)'}],{duration:280});motionAnimations.push(a);await a.finished.catch(()=>{});if(token===motionToken){target.classList.remove('seated');motionAnimations=[];}}
 }
-function invalid(text){cancelMotion();notice=text;$('.atelier-notice').textContent=text;const node=$(`[data-target="${slot}"]`);if(node&&!matchMedia('(prefers-reduced-motion: reduce)').matches)motionAnimations.push(node.animate([{transform:'translateX(0)'},{transform:'translateX(4px)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:220}));}
+function invalid(text){
+ cancelMotion();notice=text;$('.atelier-notice').textContent=text;const node=$(`[data-target="${slot}"]`);
+ if(node&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  const animation=node.animate([{transform:'translateX(0)'},{transform:'translateX(4px)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:220});motionAnimations.push(animation);
+  animation.finished.catch(()=>{}).then(()=>{const index=motionAnimations.indexOf(animation);if(index>=0)motionAnimations.splice(index,1);});
+ }
+}
 function performMod(index=null){
  const inst=ch.mods.find(m=>m.uid===modUid);if(!inst)return;const st=modStatus(ch,data,slot,inst),targetSlot=slot;
  if(!st.fit.ok&&!st.own){invalid(st.reason);return;}

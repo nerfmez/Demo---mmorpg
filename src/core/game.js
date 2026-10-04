@@ -1032,7 +1032,9 @@ export class Game {
       return true;
     });
     for (const fn of due) fn();
+    if (this.travelled) return; // the character belongs to the next map: the old one stops
     this.updatePlayer(dt);
+    if (this.travelled) return; // crossed this frame: no world checks against the old map
     const p = this.player;
     for (const m of this.monsters) {
       if (m.dead) {

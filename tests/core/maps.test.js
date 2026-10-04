@@ -83,6 +83,25 @@ test('walking off a seam continues at the same world point on the neighbouring m
   assert.equal(worlds[FRONTIER].zoneAt(...ch.pos).id, 'settlement', 'the border road arrives at the outpost');
 });
 
+test('the crossing frame runs no world checks against the old map', () => {
+  // Regression: a world check due in the same frame as the crossing read Azure quests
+  // against the Frontier's discovery (its free "town" stone) and paid Azure's h_arrival.
+  const g = new Game(on(AZURE), { world: worlds[AZURE], seed: 6 });
+  const seam = worlds[AZURE].seams[0], gold = g.ch.gold;
+  assert.equal(questState(g.ch, 'h_arrival').status, 'active');
+  [g.player.x, g.player.z] = [seam.gate[0] + 0.05, seam.gate[1]];
+  g.input.moveX = -1;
+  for (let i = 0; i < 60 && !g.travelled; i++) {
+    g.checkT = 0; // a world check is due every frame
+    g.update(1 / 60);
+  }
+  assert.equal(g.travelled, FRONTIER);
+  for (let i = 0; i < 30; i++) g.update(1 / 60); // frames before the reload or hand-over
+  assert.equal(questState(g.ch, 'h_arrival').status, 'active', 'Azure quest untouched');
+  assert.equal(g.ch.gold, gold);
+  assert.ok(g.ch.progress.zones.every((z) => worlds[FRONTIER].zones.some((q) => q.id === z)), 'no Azure zone in Frontier discovery');
+});
+
 test('a seam does not cross while dead or in combat, and says why once', () => {
   const g = new Game(on(AZURE), { world: worlds[AZURE], seed: 5 });
   const seam = worlds[AZURE].seams[0];

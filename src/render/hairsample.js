@@ -7,6 +7,7 @@ const v=new THREE.Vector3(),q=new THREE.Quaternion(),p=new THREE.Quaternion();
 export function attachHairSampleBody(rig,T,gear,colors){
  attachVrmBody(rig,T);
  const body=rig.skin.body,wardrobe=new THREE.Group();
+ body.traverse(o=>{if(o.isSkinnedMesh&&o.material.isMeshToonMaterial)o.receiveShadow=true;});
  wardrobe.name='Runtime equipment';wardrobe.quaternion.copy(body.quaternion);
  rig.root.add(wardrobe);rig.root.updateMatrixWorld(true);
  let skeleton;

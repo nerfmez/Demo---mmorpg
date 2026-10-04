@@ -580,7 +580,9 @@ at the same ground. Walking on against a seam (`world.seamAt`) calls
 its edge. Every map's rules/collision world is built at boot; the renderer streams
 the neighbouring map's scene (`render/region.js`: terrain, scenery, water, kits,
 town NPCs) a few milliseconds per frame once the player is within 140 m of a seam,
-places it at the atlas delta and drops it past 200 m. If it is ready when the player
+places it at the atlas delta and drops it past 200 m. Imported kits (city, harbour,
+town kit) load after placement and arrive frozen; give them the region's transform when
+they are attached (in Godot, add them under the region's root node). If it is ready when the player
 crosses, `Game.enterWorld()` carries the same session on (monsters of the new map,
 discovery swapped, data.world selected) and `View.switchRegion()` makes it the scene
 origin; otherwise the page reloads into the new map (also `?stream=0`). World-space

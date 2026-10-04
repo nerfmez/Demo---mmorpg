@@ -81,4 +81,11 @@ body.loadout-open .fullscreen-control{z-index:39}
  #atelier .skills .coin-cell{padding:0}
  #atelier .skills .socket .coin{width:31px;height:31px}
  #atelier .skills .socket-empty{width:29px;height:29px}
+ #atelier .window-head>div>small,#atelier .character-caption small,#atelier .stage-inscription{display:none}
+ #atelier .quiet{font-size:9px}
+ #atelier .card-foot span{font-size:10px}
+ #atelier .skill-anchor b{font-size:10px}
+ #atelier .selected-summary small,#atelier .comparison,#atelier .shelf-actions>span{font-size:9px}
+ #atelier .comparison b{font-size:11px}
+ #atelier .shelf-actions button{font-size:10px}
 }

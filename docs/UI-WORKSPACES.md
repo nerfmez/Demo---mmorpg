@@ -79,12 +79,12 @@ free network refund, preserving other progression and existing item roll quality
 
 ## Mod item art
 
-`src/ui/gemart.js` defines a shared small faceted jewel with a single-colour etched
-mark. `src/ui/sigils.js` supplies fifteen distinct vector symbols. `ART.mod` uses
-these drawings centrally, so the inventory, modifier list, socket presentation,
-crafting and upgrades use the same item identity. There are no raster illustrations,
-external requests, or per-item generated images. Muted gem tint is visual identity,
-not a skill-compatibility rule. The real tag/stat rules remain visible and authoritative.
+`src/ui/mod-coins.js` draws the physical coins in the two loadout windows, including
+the flying coin and seated socket. Fifteen engraved symbols identify the existing
+mod types. Red faces mean attack power, blue means mechanics and green means support;
+the real tag/stat rules remain authoritative. The separate icon release owns
+`ART.mod` and the other shared icon surfaces, as well as the 76 painted skill,
+gear and material PNGs. This UI change does not duplicate those assets or their routing.
 
 ## Shared type vocabulary and compatibility
 

@@ -1,5 +1,7 @@
 // Physical role-colored coins; marks do not encode damage elements.
-export const modRole=id=>id==='concentrated'?'power':['life_leech','spiked_ward','pack_leader','lingering'].includes(id)?'support':'mechanic';
+import {MOD_GROUPS} from './gemart.js';
+const ROLE_CLASS={attack:'power',mechanics:'mechanic',support:'support'};
+export const modRole=id=>ROLE_CLASS[MOD_GROUPS[id]]||'mechanic';
 const glyphs={
   split:'M16 40V28M16 28L7 17M16 28L25 17M7 17v7M7 17h7M25 17v7M25 17h-7',
   pierce:'M6 28h35M32 20l9 8-9 8M16 16v24M24 16v24',

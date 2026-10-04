@@ -1,5 +1,5 @@
 {
-  "_doc": "Workbench recipes (town). type gear -> rolls Grade + options from optionPool. type skill -> teaches a combat skill. type movement -> teaches a movement skill. type mod -> creates a mod item. Skill and mod levels are raised with materials (see progression.json).",
+  "_doc": "Workbench recipes (town). type gear -> rolls Grade + options from optionPool. type skill -> teaches a combat skill. type movement -> teaches a movement skill. type mod -> creates a mod item. Skill and mod levels are raised with materials (see progression.json). Gear itemLevel and mod grade are authored progression metadata; mod grade changes name color only.",
   "recipes": {
     "tusk_blade": {
       "type": "gear",
@@ -15,7 +15,8 @@
         "crit_pct",
         "poison_on_hit",
         "leech_pct"
-      ]
+      ],
+      "itemLevel": 1
     },
     "hunter_bow": {
       "type": "gear",
@@ -31,7 +32,8 @@
         "crit_pct",
         "move_pct",
         "leech_pct"
-      ]
+      ],
+      "itemLevel": 1
     },
     "fang_dagger": {
       "type": "gear",
@@ -47,7 +49,8 @@
         "leech_pct",
         "poison_on_hit",
         "melee_pct"
-      ]
+      ],
+      "itemLevel": 3
     },
     "wisp_staff": {
       "type": "gear",
@@ -64,7 +67,8 @@
         "mp_flat",
         "cdr_pct",
         "heal_pct"
-      ]
+      ],
+      "itemLevel": 5
     },
     "spore_wand": {
       "type": "gear",
@@ -80,7 +84,8 @@
         "summon_pct",
         "poison_on_hit",
         "cdr_pct"
-      ]
+      ],
+      "itemLevel": 2
     },
     "crag_axe": {
       "type": "gear",
@@ -96,7 +101,8 @@
         "hp_flat",
         "defense_flat",
         "leech_pct"
-      ]
+      ],
+      "itemLevel": 6
     },
     "storm_bow": {
       "type": "gear",
@@ -113,7 +119,8 @@
         "crit_pct",
         "move_pct",
         "cdr_pct"
-      ]
+      ],
+      "itemLevel": 4
     },
     "greyfang_sabre": {
       "type": "gear",
@@ -129,7 +136,8 @@
         "crit_pct",
         "move_pct",
         "leech_pct"
-      ]
+      ],
+      "itemLevel": 5
     },
     "horn_greatblade": {
       "type": "gear",
@@ -146,7 +154,8 @@
         "crit_pct",
         "hp_flat",
         "defense_flat"
-      ]
+      ],
+      "itemLevel": 9
     },
     "ancient_staff": {
       "type": "gear",
@@ -164,7 +173,8 @@
         "heal_pct",
         "cdr_pct",
         "mp_flat"
-      ]
+      ],
+      "itemLevel": 9
     },
     "hide_vest": {
       "type": "gear",
@@ -179,7 +189,8 @@
         "move_pct",
         "barrier_pct",
         "regen_flat"
-      ]
+      ],
+      "itemLevel": 1
     },
     "shell_guard": {
       "type": "gear",
@@ -195,7 +206,8 @@
         "barrier_pct",
         "poison_on_hit",
         "regen_flat"
-      ]
+      ],
+      "itemLevel": 2
     },
     "wolfpelt_coat": {
       "type": "gear",
@@ -210,7 +222,8 @@
         "move_pct",
         "regen_flat",
         "barrier_pct"
-      ]
+      ],
+      "itemLevel": 3
     },
     "storm_mantle": {
       "type": "gear",
@@ -227,7 +240,8 @@
         "cdr_pct",
         "move_pct",
         "magic_flat"
-      ]
+      ],
+      "itemLevel": 4
     },
     "crag_plate": {
       "type": "gear",
@@ -243,7 +257,8 @@
         "barrier_pct",
         "regen_flat",
         "move_pct"
-      ]
+      ],
+      "itemLevel": 6
     },
     "leather_cap": {
       "type": "gear",
@@ -258,7 +273,8 @@
         "crit_pct",
         "barrier_pct",
         "regen_flat"
-      ]
+      ],
+      "itemLevel": 1
     },
     "beetle_helm": {
       "type": "gear",
@@ -273,7 +289,8 @@
         "barrier_pct",
         "regen_flat",
         "move_pct"
-      ]
+      ],
+      "itemLevel": 2
     },
     "spore_hood": {
       "type": "gear",
@@ -289,7 +306,8 @@
         "summon_pct",
         "regen_flat",
         "magic_flat"
-      ]
+      ],
+      "itemLevel": 2
     },
     "feather_circlet": {
       "type": "gear",
@@ -305,7 +323,8 @@
         "spell_pct",
         "crit_pct",
         "magic_flat"
-      ]
+      ],
+      "itemLevel": 2
     },
     "horned_helm": {
       "type": "gear",
@@ -321,7 +340,8 @@
         "attack_flat",
         "melee_pct",
         "barrier_pct"
-      ]
+      ],
+      "itemLevel": 9
     },
     "wolf_boots": {
       "type": "gear",
@@ -336,7 +356,8 @@
         "crit_pct",
         "cdr_pct",
         "hp_flat"
-      ]
+      ],
+      "itemLevel": 3
     },
     "wisp_slippers": {
       "type": "gear",
@@ -352,7 +373,8 @@
         "cdr_pct",
         "defense_flat",
         "hp_flat"
-      ]
+      ],
+      "itemLevel": 1
     },
     "crag_greaves": {
       "type": "gear",
@@ -367,7 +389,8 @@
         "regen_flat",
         "move_pct",
         "cdr_pct"
-      ]
+      ],
+      "itemLevel": 6
     },
     "tusk_charm": {
       "type": "gear",
@@ -382,7 +405,8 @@
         "melee_pct",
         "projectile_pct",
         "defense_flat"
-      ]
+      ],
+      "itemLevel": 1
     },
     "wisp_pendant": {
       "type": "gear",
@@ -398,7 +422,8 @@
         "spell_pct",
         "area_pct",
         "heal_pct"
-      ]
+      ],
+      "itemLevel": 5
     },
     "spore_amulet": {
       "type": "gear",
@@ -414,7 +439,8 @@
         "summon_pct",
         "poison_on_hit",
         "mp_flat"
-      ]
+      ],
+      "itemLevel": 2
     },
     "feather_charm": {
       "type": "gear",
@@ -430,7 +456,8 @@
         "projectile_pct",
         "crit_pct",
         "attack_flat"
-      ]
+      ],
+      "itemLevel": 4
     },
     "golem_amulet": {
       "type": "gear",
@@ -446,7 +473,8 @@
         "barrier_pct",
         "regen_flat",
         "crit_pct"
-      ]
+      ],
+      "itemLevel": 6
     },
     "ancient_ring": {
       "type": "gear",
@@ -462,7 +490,8 @@
         "crit_pct",
         "cdr_pct",
         "leech_pct"
-      ]
+      ],
+      "itemLevel": 9
     },
     "learn_whirl_blade": {
       "type": "skill",
@@ -570,7 +599,8 @@
         "boar_tusk": 2,
         "glow_dust": 2,
         "gold": 20
-      }
+      },
+      "grade": "C"
     },
     "mod_pierce": {
       "type": "mod",
@@ -578,7 +608,8 @@
       "cost": {
         "boar_tusk": 4,
         "gold": 15
-      }
+      },
+      "grade": "C"
     },
     "mod_bounce": {
       "type": "mod",
@@ -587,7 +618,8 @@
         "wisp_core": 1,
         "boar_tusk": 1,
         "gold": 20
-      }
+      },
+      "grade": "B"
     },
     "mod_burning_ground": {
       "type": "mod",
@@ -596,7 +628,8 @@
         "venom_gland": 2,
         "boar_hide": 1,
         "gold": 20
-      }
+      },
+      "grade": "C"
     },
     "mod_echo": {
       "type": "mod",
@@ -604,7 +637,8 @@
       "cost": {
         "wisp_core": 2,
         "gold": 30
-      }
+      },
+      "grade": "B"
     },
     "mod_wide_arc": {
       "type": "mod",
@@ -613,7 +647,8 @@
         "boar_hide": 4,
         "boar_tusk": 1,
         "gold": 15
-      }
+      },
+      "grade": "C"
     },
     "mod_multistrike": {
       "type": "mod",
@@ -622,7 +657,8 @@
         "wolf_fang": 2,
         "boar_tusk": 2,
         "gold": 30
-      }
+      },
+      "grade": "B"
     },
     "mod_frost_shift": {
       "type": "mod",
@@ -631,7 +667,8 @@
         "glow_dust": 4,
         "beetle_shell": 1,
         "gold": 20
-      }
+      },
+      "grade": "C"
     },
     "mod_knockback": {
       "type": "mod",
@@ -640,7 +677,8 @@
         "boar_hide": 2,
         "beetle_shell": 2,
         "gold": 20
-      }
+      },
+      "grade": "C"
     },
     "mod_concentrated": {
       "type": "mod",
@@ -649,7 +687,8 @@
         "crag_stone": 2,
         "glow_dust": 1,
         "gold": 30
-      }
+      },
+      "grade": "A"
     },
     "mod_lingering": {
       "type": "mod",
@@ -658,7 +697,8 @@
         "spore_sac": 2,
         "glow_dust": 1,
         "gold": 25
-      }
+      },
+      "grade": "C"
     },
     "mod_life_leech": {
       "type": "mod",
@@ -667,7 +707,8 @@
         "venom_gland": 1,
         "wolf_fang": 1,
         "gold": 30
-      }
+      },
+      "grade": "B"
     },
     "mod_spiked_ward": {
       "type": "mod",
@@ -676,7 +717,8 @@
         "beetle_shell": 4,
         "venom_gland": 1,
         "gold": 20
-      }
+      },
+      "grade": "C"
     },
     "mod_pack_leader": {
       "type": "mod",
@@ -685,7 +727,8 @@
         "wolf_fang": 4,
         "wolf_pelt": 2,
         "gold": 40
-      }
+      },
+      "grade": "B"
     },
     "mod_cast_on_dodge": {
       "type": "mod",
@@ -694,7 +737,8 @@
         "wisp_core": 2,
         "venom_gland": 1,
         "gold": 40
-      }
+      },
+      "grade": "B"
     },
     "crabshell_helm": {
       "type": "gear",
@@ -709,7 +753,8 @@
         "barrier_pct",
         "regen_flat",
         "move_pct"
-      ]
+      ],
+      "itemLevel": 1
     },
     "tide_boots": {
       "type": "gear",
@@ -725,7 +770,8 @@
         "defense_flat",
         "hp_flat",
         "mp_flat"
-      ]
+      ],
+      "itemLevel": 2
     },
     "pearl_pendant": {
       "type": "gear",
@@ -741,7 +787,8 @@
         "spell_pct",
         "heal_pct",
         "summon_pct"
-      ]
+      ],
+      "itemLevel": 1
     },
     "salt_boots": {
       "type": "gear",
@@ -757,7 +804,8 @@
         "defense_flat",
         "hp_flat",
         "mp_flat"
-      ]
+      ],
+      "itemLevel": 1
     },
     "shore_circlet": {
       "type": "gear",
@@ -773,7 +821,8 @@
         "spell_pct",
         "crit_pct",
         "magic_flat"
-      ]
+      ],
+      "itemLevel": 2
     },
     "hermit_guard": {
       "type": "gear",
@@ -789,7 +838,8 @@
         "barrier_pct",
         "poison_on_hit",
         "regen_flat"
-      ]
+      ],
+      "itemLevel": 3
     }
   }
 }

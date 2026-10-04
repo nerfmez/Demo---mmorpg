@@ -2,6 +2,8 @@
 // equipment (5 slots), appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 
+import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
+
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
 export const CHARACTER_VERSION = 4;
 
@@ -53,7 +55,7 @@ export function createCharacter(data, opts = {}) {
     const base = data.items.gearBases[baseId];
     if (!base) continue;
     const options = base.optionPool.slice(0, data.items.grades.optionCount.C).map(id => ({ id, value: data.items.gearOptions[id].min }));
-    const item = { uid: ch.nextUid++, base: baseId, grade: 'C', upgrade: 0, options };
+    const item = { uid: ch.nextUid++, base: baseId, itemLevel: equipmentItemLevel(data, {base:baseId}), grade: 'C', upgrade: 0, options };
     ch.gear.push(item);
     ch.equipped[base.slot] = item.uid;
   }
@@ -92,6 +94,7 @@ export function migrateCharacter(ch, data) {
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });
   ch.mods = (ch.mods || []).filter((m) => data.mods.mods[m.id]);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
+  normalizeItemMetadata(ch, data);
   if ((ch.version || 1) < 3) {
     for (const item of ch.gear) {
       item.options = item.options || [];

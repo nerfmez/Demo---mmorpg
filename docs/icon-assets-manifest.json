@@ -156,11 +156,11 @@
     {
       "key": "skill/ward",
       "path": "assets/icons/skill/ward.png",
-      "sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
-      "bytes": 1566574,
+      "sha256": "508b25dab0e3e60b0f910a7a184b67b9e931df932eab8cfba9cf095b3f89cfcb",
+      "bytes": 365025,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -187,16 +187,39 @@
         "clear_pixels": 518795,
         "partial_pixels": 1053716,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/ward.png",
+        "sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
+        "bytes": 1566574,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/war_cry",
       "path": "assets/icons/skill/war_cry.png",
-      "sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
-      "bytes": 2121741,
+      "sha256": "c422c989f20e45fed7c01f61d8b40a22fe264fe79fde5e4854c0be57df4cfb42",
+      "bytes": 487327,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -223,16 +246,39 @@
         "clear_pixels": 314734,
         "partial_pixels": 1257602,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/war_cry.png",
+        "sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
+        "bytes": 2121741,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/healing_spring",
       "path": "assets/icons/skill/healing_spring.png",
-      "sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
-      "bytes": 1731829,
+      "sha256": "7c86f93688fddc8107d9e914ee44e5de7c6db41ff0582d92d885a647498cf041",
+      "bytes": 407460,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -259,16 +305,39 @@
         "clear_pixels": 612114,
         "partial_pixels": 960145,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/healing_spring.png",
+        "sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
+        "bytes": 1731829,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/spirit_wolf",
       "path": "assets/icons/skill/spirit_wolf.png",
-      "sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
-      "bytes": 1875372,
+      "sha256": "c75a96b6ca8bd366bc5a78fca58861cb60dcc74874d2e57900e81b54abcc0ee9",
+      "bytes": 447159,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -295,16 +364,39 @@
         "clear_pixels": 439574,
         "partial_pixels": 1132003,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/spirit_wolf.png",
+        "sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
+        "bytes": 1875372,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/dash",
       "path": "assets/icons/skill/dash.png",
-      "sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
-      "bytes": 1193838,
+      "sha256": "73d2cf1f17a04e347c50ec53491340e5d8c07f4d23d70e0102bb3ae194c31399",
+      "bytes": 278948,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -331,16 +423,39 @@
         "clear_pixels": 776274,
         "partial_pixels": 796137,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/dash.png",
+        "sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
+        "bytes": 1193838,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/roll",
       "path": "assets/icons/skill/roll.png",
-      "sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
-      "bytes": 1884150,
+      "sha256": "41c08af0ffa707a46608c91ea6110261de6340f5e5d46e5f2a533b41472b9af2",
+      "bytes": 465184,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -367,16 +482,39 @@
         "clear_pixels": 472285,
         "partial_pixels": 1099943,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/roll.png",
+        "sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
+        "bytes": 1884150,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/blink",
       "path": "assets/icons/skill/blink.png",
-      "sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
-      "bytes": 1363968,
+      "sha256": "e58f31b2f2ee6bb8fb887e2f1310113c9edf170d0f3b36b241caf254af6a409f",
+      "bytes": 341364,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -403,16 +541,39 @@
         "clear_pixels": 903742,
         "partial_pixels": 668096,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/blink.png",
+        "sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
+        "bytes": 1363968,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/leap",
       "path": "assets/icons/skill/leap.png",
-      "sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
-      "bytes": 2418212,
+      "sha256": "c7a03f54af363101d80a4fd4eb1b37635a2fdfcc464a21ba6f1582667d790552",
+      "bytes": 548326,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -439,6 +600,29 @@
         "clear_pixels": 319137,
         "partial_pixels": 1253006,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/leap.png",
+        "sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
+        "bytes": 2418212,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
@@ -1299,11 +1483,11 @@
     {
       "key": "skill/slash",
       "path": "assets/icons/skill/slash.png",
-      "sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
-      "bytes": 1393844,
+      "sha256": "224bb3868f77b5985a91ce3eca7459450a0533e55afb8252d27bbd91d2351f9b",
+      "bytes": 345296,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1330,16 +1514,39 @@
         "clear_pixels": 722844,
         "partial_pixels": 848747,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/slash.png",
+        "sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
+        "bytes": 1393844,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/whirl_blade",
       "path": "assets/icons/skill/whirl_blade.png",
-      "sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
-      "bytes": 2058999,
+      "sha256": "17707e3ddb9cbb9597c0f1b817152bf776f07e7eae8bd2732420bb0196b32cee",
+      "bytes": 519962,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1366,16 +1573,39 @@
         "clear_pixels": 486822,
         "partial_pixels": 1085269,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/whirl_blade.png",
+        "sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
+        "bytes": 2058999,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/hunter_shot",
       "path": "assets/icons/skill/hunter_shot.png",
-      "sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
-      "bytes": 1323978,
+      "sha256": "139dc537b7857dd4bf3a0d2271c7e054538ea97e1a49663bbf52d87d3783cefc",
+      "bytes": 301709,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1402,16 +1632,39 @@
         "clear_pixels": 944850,
         "partial_pixels": 627663,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/hunter_shot.png",
+        "sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
+        "bytes": 1323978,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/firebolt",
       "path": "assets/icons/skill/firebolt.png",
-      "sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
-      "bytes": 1006381,
+      "sha256": "577674e29a927caa78bab586ebe38d3c5076c9878b4c1125cd45d646691da036",
+      "bytes": 259122,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1438,16 +1691,39 @@
         "clear_pixels": 895725,
         "partial_pixels": 674360,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/firebolt.png",
+        "sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
+        "bytes": 1006381,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/chain_spark",
       "path": "assets/icons/skill/chain_spark.png",
-      "sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
-      "bytes": 810625,
+      "sha256": "8c064aee2f21f063a984146a2473247935d988214a994d15cf0b57b82f1ad7d7",
+      "bytes": 213288,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1474,16 +1750,39 @@
         "clear_pixels": 1173144,
         "partial_pixels": 397242,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/chain_spark.png",
+        "sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
+        "bytes": 810625,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/stone_burst",
       "path": "assets/icons/skill/stone_burst.png",
-      "sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
-      "bytes": 1792875,
+      "sha256": "0ab4f942cf7705623612b34e43ad6577f373fdf5665a9b91411eff134c93d39e",
+      "bytes": 414423,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1510,16 +1809,39 @@
         "clear_pixels": 557946,
         "partial_pixels": 1013656,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/stone_burst.png",
+        "sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
+        "bytes": 1792875,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/frost_nova",
       "path": "assets/icons/skill/frost_nova.png",
-      "sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
-      "bytes": 2023121,
+      "sha256": "c4deead04a199c725cd53b509311f946ac4d9710c6fe2475fcd0f463200119bf",
+      "bytes": 518933,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1546,16 +1868,39 @@
         "clear_pixels": 571151,
         "partial_pixels": 999942,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/frost_nova.png",
+        "sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
+        "bytes": 2023121,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/venom_mire",
       "path": "assets/icons/skill/venom_mire.png",
-      "sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
-      "bytes": 1226736,
+      "sha256": "d60cc61a312925897b92a3d337c3b48fd645a792b4988957d083bbe8cc3046a2",
+      "bytes": 295975,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1582,16 +1927,39 @@
         "clear_pixels": 877573,
         "partial_pixels": 694478,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/venom_mire.png",
+        "sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
+        "bytes": 1226736,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
       "key": "skill/hex",
       "path": "assets/icons/skill/hex.png",
-      "sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
-      "bytes": 1566381,
+      "sha256": "e26ddced7edeff09c9385e49d8072fb17f0c4c65572e93c82719361df4c7a577",
+      "bytes": 376831,
       "dimensions": [
-        1254,
-        1254
+        512,
+        512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
@@ -1618,6 +1986,29 @@
         "clear_pixels": 752998,
         "partial_pixels": 818970,
         "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+      },
+      "transparent_master": {
+        "path": "assets-source/skills/hex.png",
+        "sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
+        "bytes": 1566381,
+        "dimensions": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ]
+      },
+      "delivery_export": {
+        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+        "source_sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
+        "source_dimensions": [
+          1254,
+          1254
+        ],
+        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
       }
     },
     {
@@ -1738,5 +2129,6 @@
   "pending_count": 0,
   "preservation": "The 59 original gear/material PNG files remain unchanged at 512px. The 17 skill PNGs were replaced locally with reviewed 1254px transparent reference edits; original delivery provenance and pre-edit hashes are retained for reversal.",
   "integration_base_commit": "8778cebd9c526e3f4f629c255411a8dea4bfd533",
-  "transparency_edit_base_commit": "5b321e051458aafddbef1cd01bc5c7f339c603e7"
+  "transparency_edit_base_commit": "5b321e051458aafddbef1cd01bc5c7f339c603e7",
+  "skill_delivery": "512px transparent delivery PNGs; unchanged 1254px approved masters retained outside public/ in assets-source/skills/"
 }

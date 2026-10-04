@@ -1,5 +1,7 @@
 # Skill artwork transparency — local UI review
 
+**Follow-up:** [local premerge WebKit review and 512px delivery exports](PREMERGE-WEBKIT-REVIEW-2026-10-04.md). The 1254px outputs below are retained masters; the later review changes delivery sizing and completes the browser-engine checks. This historical record preserves the earlier artifacts and their limits.
+
 This follow-up changes only the 17 skill PNGs on `codex/ui-live-integration-20261004`, based on local UI commit `5b321e051458aafddbef1cd01bc5c7f339c603e7`. It is a local review delivery, without a push, merge or public deployment. The accepted Skill Tree source, gameplay, VFX, saves, HUD anchors, equipment/material art and UI layout code are unchanged by this follow-up.
 
 ## Findings and acceptance criteria

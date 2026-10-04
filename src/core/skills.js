@@ -22,6 +22,8 @@ export function modRequires(data, mod, level = 1) {
   return Object.fromEntries(Object.entries(mod?.requires || {}).map(([k, v]) => [k, v + step * (level - 1)]));
 }
 
+const ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison'];
+
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
   const tags = skill.tags || [];
@@ -58,9 +60,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
     range: def.range || 0,
     radius: def.radius || 0,
     arc: def.arc || 0,
-    cooldown: def.cooldown * (1 - derived.cooldownPct / 100),
-    castTime: def.castTime,
-    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)),
+    // castSpeedPct is action speed: casting and the cooldown after it both run faster.
+    cooldown: (def.cooldown * (1 - derived.cooldownPct / 100)) / (1 + (derived.castSpeedPct || 0) / 100),
+    castTime: def.castTime / (1 + (derived.castSpeedPct || 0) / 100),
+    cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
@@ -99,6 +102,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Projectile')) inc += derived.projectileDamagePct;
   if (tags.has('Area') && tags.has('Damage')) inc += derived.areaDamagePct;
   if (tags.has('Spell') && tags.has('Damage')) inc += derived.spellDamagePct;
+  if (ELEMENTS.some((t) => tags.has(t))) inc += derived.elementalDamagePct || 0;
+  if (tags.has('Damage')) inc += derived.damagePct || 0;
+  if (tags.has('Attack')) inc += derived.attackDamagePct || 0;
 
   if (def.damage) s.damage = (def.damage.base + def.damage.scale * power) * levelMult * (1 + inc / 100);
   if (def.heal) s.heal = (def.heal.base + def.heal.scale * power) * levelMult * (1 + derived.healPct / 100);
@@ -216,7 +222,7 @@ export function movementSkill(ch, data, derived) {
     distance: def.distance,
     duration: def.duration,
     charges: def.charges + derived.extraMovementCharges,
-    recharge: def.recharge * (1 - derived.cooldownPct / 100),
+    recharge: def.recharge * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
     invulnerable: def.invulnerable,
   };
   if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };

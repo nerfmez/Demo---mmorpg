@@ -34,7 +34,7 @@ export function referenceMonster(data, level) {
 }
 
 /** A character of `kit` at `level`: stat points spent per the kit's build, main skill slotted. */
-export function referenceHero(data, kit, level) {
+export function referenceHero(data, kit, level, jobNodes = null) {
   const b = data.progression.balance, build = b.builds[kit];
   const ch = createCharacter(data, { kit });
   ch.level = level;
@@ -48,6 +48,7 @@ export function referenceHero(data, kit, level) {
   ch.stats.VIT += points - spent;
   ch.slots = [{ skill: build.skill, mods: [] }, ...ch.slots.slice(1).map(() => ({ skill: null, mods: [] }))];
   ch.skills[build.skill] = skillRankAt(data, level);
+  if (jobNodes) ch.jobNodes = [data.jobtree.origin, ...jobNodes];
   // Expected gear stands in for items: a weapon pair/two-hand weapon and an armour set.
   ch.gear = [];
   for (const s of Object.keys(ch.equipped)) ch.equipped[s] = null;
@@ -62,15 +63,16 @@ export function referenceHero(data, kit, level) {
   return { ch, d, itemLevel: il };
 }
 
-export function balanceAt(data, kit, level) {
+export function balanceAt(data, kit, level, jobNodes = null) {
   const b = data.progression.balance;
-  const { ch, d, itemLevel } = referenceHero(data, kit, level);
+  const { ch, d, itemLevel } = referenceHero(data, kit, level, jobNodes);
   const m = referenceMonster(data, level);
   const s = computeSkill(ch, data, d, 0);
   // A kill takes `casts` hits. uptime is the share of a fight spent casting (approach, aiming
   // and dodging take the rest). MP regenerates over the fight and the walk to the next one.
   const crit = 1 + d.critChance * (d.critMult - 1);
-  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * (1 - m.defense / (m.defense + 60));
+  const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
+  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * (1 - mdef / (mdef + 60));
   const casts = m.hp / perCast;
   const byRate = casts * Math.max(s.cooldown, s.castTime, 0.35) / b.uptime;
   const byMana = s.cost ? (casts * s.cost) / d.mpRegen - b.secondsPerKill : 0;
@@ -123,4 +125,36 @@ export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null) {
   const hits = (r.ttk * b.uptime) / Math.max(0.35, skill.cooldown, skill.castTime);
   const arrowCost = arrowRecipe ? killsPerHour * hits * (recipeValue(data, arrowRecipe) / arrowRecipe.qty) : 0;
   return { gross: Math.round(gross), arrows: Math.round(arrowCost), net: Math.round(gross - arrowCost) };
+}
+
+/** Journal nodes of one build line, in buying order, with the shared entry path before it. */
+export function linePath(data, lineId) {
+  const N = data.jobtree.nodes, own = Object.keys(N).filter((id) => N[id].line === lineId);
+  const path = [], seen = new Set();
+  const visit = (id) => { if (seen.has(id) || id === data.jobtree.origin) return; seen.add(id); for (const p of N[id].requires || []) visit(p); path.push(id); };
+  own.forEach(visit);
+  return path;
+}
+
+/** Sum of a line's effects (all its nodes), e.g. for caps and the farming model. */
+export function lineEffects(data, lineId) {
+  const out = {};
+  for (const id of linePath(data, lineId)) if (data.jobtree.nodes[id].line === lineId) for (const [k, v] of Object.entries(data.jobtree.nodes[id].effects)) out[k] = (out[k] || 0) + v;
+  return out;
+}
+
+/**
+ * Damage per second over a long fight (a boss) with no walking to refill MP: casting is
+ * limited by the cooldown or by MP (pool + regeneration over the fight), whichever binds.
+ */
+export function longFightDps(data, kit, level, jobNodes = null, seconds = 90) {
+  const b = data.progression.balance;
+  const { ch, d } = referenceHero(data, kit, level, jobNodes);
+  const s = computeSkill(ch, data, d, 0), m = referenceMonster(data, level);
+  const crit = 1 + d.critChance * (d.critMult - 1);
+  const mdef = m.defense * (1 - (d.penetrationPct || 0) / 100);
+  const perCast = (s.damage || 0) * crit * Math.max(1, s.projectiles || 1) * (1 - mdef / (mdef + 60));
+  const byRate = b.uptime / Math.max(s.cooldown, s.castTime, 0.35);
+  const byMana = s.cost ? (d.maxMp + d.mpRegen * seconds) / seconds / s.cost : Infinity;
+  return { dps: Math.round(perCast * Math.min(byRate, byMana) * 10) / 10, manaLimited: byMana < byRate };
 }

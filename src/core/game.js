@@ -697,7 +697,9 @@ export class Game {
     let dmg = amount;
     const crit = opts.crit ?? false;
     if (crit) dmg *= this.derived.critMult;
-    if (!opts.dot) dmg *= 1 - m.defense / (m.defense + 60);
+    // Penetration ignores a share of the monster's defense.
+    const def = m.defense * (1 - (this.derived.penetrationPct || 0) / 100);
+    if (!opts.dot) dmg *= 1 - def / (def + 60);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
     if (m.statuses.hex) dmg *= m.statuses.hex.taken;

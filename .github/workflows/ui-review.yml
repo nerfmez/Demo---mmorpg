@@ -64,6 +64,11 @@ jobs:
         run: node tests/browser/journal-route-upgrade.mjs
         env:
           BROWSER: ${{ matrix.browser }}
+      - name: Journal build lines, paged stages and wrapped line pages
+        if: steps.scope.outputs.ui == 'true'
+        run: node tests/browser/journal-lines.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
       - name: Saved character Continue, atomic route allocation, reload and respec
         if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/journal-route-save.mjs

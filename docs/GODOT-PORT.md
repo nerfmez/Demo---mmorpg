@@ -161,6 +161,16 @@ the monster's parts at the tier for its level (falling back to the nearest lower
 `drop` of item `gear` carries `gear`; pickup gives it a new uid. `goldFindPct`,
 `materialFindPct` and `gearFindPct` (capped) scale kill gold, part chances and gear chances.
 
+Journal build lines are ordinary job nodes with a `line` id, `requires` chains and sections
+`stage-4`/`stage-5` (gates 17 and 25 spent). New derived stats: `damagePct` (Damage tag),
+`attackDamagePct` (Attack tag), `elementalDamagePct` (Fire/Cold/Lightning/Poison tags),
+`critMultPct` (multiplies `critMult`), `castSpeedPct` (divides cast time AND cooldown),
+`penetrationPct` (multiplies monster defence by `1 - pct/100` in `hitMonster`),
+`movementRechargePct` and `manaCostReductionPct`. Caps and soft caps are in
+`progression.json`. `balance.js` `lineEffects`, `linePath` and `longFightDps` model them.
+The journal pages the stage overview (6 lines per spread, 4 on phones and short screens) and wraps a
+long line into back-and-forth rows; both are presentation only.
+
 Cap leech after mods and recover only actual target HP removed, never overkill damage.
 `gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` are shared
 by UI and rules; all previews are pure. Equipment state helpers check resources only.

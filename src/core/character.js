@@ -558,6 +558,14 @@ export function derive(ch, data) {
     goldFindPct: 0,
     materialFindPct: 0,
     gearFindPct: 0,
+    critMultPct: 0,
+    damagePct: 0,
+    attackDamagePct: 0,
+    castSpeedPct: 0,
+    elementalDamagePct: 0,
+    penetrationPct: 0,
+    movementRechargePct: 0,
+    manaCostReductionPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -594,7 +602,7 @@ export function derive(ch, data) {
   d.mpRegen = base.mpRegen * (1 + d.mpRegenPct / 100) + ch.stats.INT * base.mpRegenPerInt;
   d.moveSpeed = base.moveSpeed * (1 + d.moveSpeedPct / 100);
   d.critChance = d.critChancePct / 100;
-  d.critMult = pc.critMult;
+  d.critMult = pc.critMult * (1 + d.critMultPct / 100);
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);

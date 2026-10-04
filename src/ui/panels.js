@@ -699,6 +699,14 @@ function costHtml(ch, data, cost) {
 
 const EFFECT_TH = {
   attack: 'พลังโจมตี',
+  damagePct: 'ดาเมจทุกแบบ %',
+  attackDamagePct: 'ดาเมจสกิลโจมตี %',
+  critMultPct: 'ความแรงคริ %',
+  castSpeedPct: 'ความเร็วร่าย/โจมตี %',
+  elementalDamagePct: 'ดาเมจธาตุ %',
+  penetrationPct: 'เจาะเกราะ %',
+  movementRechargePct: 'สกิลเคลื่อนที่ฟื้นไว %',
+  manaCostReductionPct: 'ใช้ MP น้อยลง %',
   magic: 'พลังเวท',
   defense: 'ป้องกัน',
   maxHp: 'HP',

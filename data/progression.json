@@ -63,7 +63,12 @@
       "blockChancePct": 50,
       "goldFindPct": 60,
       "materialFindPct": 50,
-      "gearFindPct": 40
+      "gearFindPct": 40,
+      "critMultPct": 100,
+      "castSpeedPct": 40,
+      "penetrationPct": 50,
+      "movementRechargePct": 40,
+      "manaCostReductionPct": 40
     },
     "softCaps": {
       "threshold": 50,
@@ -77,7 +82,11 @@
         "dotDamagePct",
         "maxHpPct",
         "barrierPct",
-        "healPct"
+        "healPct",
+        "elementalDamagePct",
+        "critMultPct",
+        "damagePct",
+        "attackDamagePct"
       ]
     },
     "_farmDoc": "goldFindPct/materialFindPct/gearFindPct (Ranger farming line, hunter arrows) raise gold, material chances and gear drop chances on kills, up to caps; they add nothing to the power score."
@@ -332,9 +341,9 @@
     "farming": {
       "_doc": "A Ranger who takes the whole farming line and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js).",
       "find": {
-        "goldFindPct": 40,
-        "materialFindPct": 35,
-        "gearFindPct": 35
+        "goldFindPct": 49,
+        "materialFindPct": 44.3,
+        "gearFindPct": 40
       },
       "arrow": "arrows_hunter",
       "plainArrow": "arrows_tusk",

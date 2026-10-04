@@ -8,8 +8,10 @@ const buy=(ch,ids)=>{for(const id of ids)assert.equal(allocateJobNode(ch,data,id
 test('reviewed path counts, directed reachability, 15/17 point plans and no trial points',()=>{
  assert.equal(createCharacter(data).jobPoints,0);
  const stages=data.jobtree.presentation.stages;
- assert.deepEqual(stages.map(s=>s.gate),[0,3,7]);
- assert.deepEqual(stages.map(s=>s.nodes?.length||s.paths.map(p=>p.nodes.length)),[6,[6,6],[6,6,6]]);
+ assert.deepEqual(stages.map(s=>s.gate),[0,3,7,17,25]);
+ // The reviewed paths are unchanged; the build lines (scripts/journal-lines.mjs) follow them.
+ const reviewed=s=>s.nodes?.length||s.paths.filter(p=>!p.line).map(p=>p.nodes.length);
+ assert.deepEqual(stages.slice(0,3).map(reviewed),[6,[6,6],[6,6,6]]);
  for(const [i,chain] of [[0,first],[1,['lesson.prepare','lesson.care','lesson.shelter']]]){
   const ch=funded();buy(ch,chain);buy(ch,stages[1].paths[i].nodes);buy(ch,stages[2].paths[i].nodes);
   assert.equal(39-ch.jobPoints,15);

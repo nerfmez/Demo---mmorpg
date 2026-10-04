@@ -41,7 +41,7 @@ try{
   await shot('02-inspected');await click('[data-action="close-detail"]');
   assert.equal(await page.evaluate(()=>__frontier.game.ch.jobNodes.includes('lesson.strike')),false);
   const stageSelector=width<=760?'#mobile-stages':'#chapter-tabs';await click(stageSelector+' [data-stage="2"]');await shot('03-ordinary-path');
-  assert.equal(await page.locator('[data-discipline]').count(),2);
+  assert.ok(await page.locator('[data-discipline]').count()>=4);assert.equal(await page.locator('[data-discipline="impact"],[data-discipline="support"]').count(),2,'reviewed paths lead the first page; build lines follow');
   const before=await page.evaluate(()=>JSON.stringify(__frontier.game.ch.jobNodes));const rect=await page.locator('#map').boundingBox();
   await page.mouse.move(rect.x+rect.width*.35,rect.y+rect.height*.4);await page.mouse.down();await page.mouse.move(rect.x+rect.width*.35+60,rect.y+rect.height*.4+10,{steps:6});await page.mouse.up();assert.equal(await page.evaluate(()=>JSON.stringify(__frontier.game.ch.jobNodes)),before);
   await click('[data-action="fit"]');await click('[data-action="exit"]');assert.equal(await page.evaluate(()=>__frontier.panels.isOpen),false);

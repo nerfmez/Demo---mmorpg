@@ -96,13 +96,33 @@ Bosses always drop one item, weighted C 40 / B 35 / A 20 / S 5. Gear lands on th
 its grade colour (A/S with a beam) and is picked up into the bag. Crafting still rolls better
 grades (C/B/A/S 45/35/16/4%).
 
-## Ranger farming line
+## Journal build lines
 
-- **Bonuses:** `goldFindPct`, `materialFindPct` and `gearFindPct`, capped at 60/50/40.
-- **Where they come from:**
-  - The Ranger tier columns "ตาพรานล่าทรัพย์" (Hunter's Eye: parts +5% ×5) and
-    "ถุงทองนักล่า" (Hunter's Purse: gold +8% and gear +5% ×5).
-  - Hunter arrows add parts +10% and gear +10%.
-- **Tradeoff:** they add nothing to the power score, and arrows cost about 9–13% of gross
-  income.
-- **Model check:** the farming Ranger nets 1.1–1.6× a sword hero's income at the same level.
+The field journal has nine build lines. Each runs from stage 2 to stage 5 and ends in a
+mastery chain, so one line alone takes all 39 Job points (Job Lv40) through the stage gates
+(0/3/7/17/25 points spent). `scripts/journal-lines.mjs` generates them into `data/jobtree.json`.
+
+| Line | Gives |
+|---|---|
+| ดาเมจล้วน (damage) | attack, magic, `damagePct` |
+| คริติคอล (crit) | `critChancePct`, `critMultPct` |
+| ตีเร็ว (speed) | `castSpeedPct` (cast time and cooldown), `cooldownPct` |
+| ธาตุ (element) | `elementalDamagePct`, poison chance |
+| กายภาพ (physical) | `attackDamagePct`, `penetrationPct` (ignores monster defence) |
+| ป้องกันและโจมตี (guardian) | max HP, defence, block, melee damage |
+| คล่องตัว (agility) | move speed, `movementRechargePct`, HP regen |
+| MP | max MP, MP regen, `manaCostReductionPct` |
+| ล่าสมบัติ (treasure) | gold, part and gear find, projectile damage |
+
+- **No penalties.** Lines only give. The trade-off is the points not spent elsewhere, and MP:
+  fast or many skills drain it unless the MP line (or MP gear) is taken.
+- **Model checks** (`tests/core/balance-model.test.js`, Lv25):
+  - A pure damage line on a kit it fits gives 1.45–2.0× DPS over no nodes, and lines are
+    within 1.35× of each other.
+  - Guardian gives at least 1.4× time-to-die.
+  - In a 90-second fight (`longFightDps`), a staff with pure speed is held back by MP. Speed
+    24 + MP 15 beats it by more than 1.2×.
+  - All line stats fit their caps after the soft cap.
+- **Farming.** The treasure line plus hunter arrows (parts +10%, gear +10%) net 1.1–1.6× a
+  sword hero's income at the same level, after the arrow cost (about 9–13% of gross). Find
+  stats are capped at 60/50/40 and add nothing to the power score.

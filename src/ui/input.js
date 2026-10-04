@@ -6,6 +6,7 @@
 //     (area skills place a circle; others pick a direction). Release to cast.
 import { icon } from './icons.js';
 import { art } from './art.js';
+import { arrowsPerCast, arrowTotal } from '../core/character.js';
 import { joystickMarks } from './fieldhud.js';
 
 // skills aimed at a point on the ground (drag places a circle)
@@ -492,6 +493,7 @@ export class Input {
       const key = s ? `${s.id}:${s.cost}:${s.requirementsMet}` : 'empty';
       if (b.dataset.skill !== key) {
         b.dataset.skill = key;
+        delete b.dataset.arrows; // the arrow count below rewrites the cost line
         b.querySelector('.ic').innerHTML = s ? art('skill',s.id) : icon('plus');
         b.dataset.tone = s?.element || 'physical';
         b.classList.toggle('empty', !s);
@@ -513,6 +515,15 @@ export class Input {
       b.querySelector('.cdt').textContent = cd > 0.1 ? cd < 1 ? cd.toFixed(1) : Math.ceil(cd) : '';
       b.classList.toggle('nomp', p.mp < s.cost);
       b.classList.toggle('locked', !s.requirementsMet);
+      // Arrow skills show what is left in the quiver; orange when low, dim when empty.
+      const need = arrowsPerCast(g.data, s), left = need ? arrowTotal(g.ch) : -1;
+      if (b.dataset.arrows !== String(left)) {
+        b.dataset.arrows = String(left);
+        const displayCost = Math.round(s.cost * 10) / 10;
+        b.querySelector('.skill-cost').textContent = need ? `${s.cost ? displayCost + ' MP · ' : ''}➶${left}` : s.cost ? `${displayCost} MP` : '';
+        b.classList.toggle('noammo', need > 0 && left < need);
+        b.classList.toggle('lowammo', need > 0 && left >= need && left <= g.data.items.arrows.capacity * 0.2);
+      }
     });
     const mv = g.move;
     if (this.moveBtn.dataset.skill !== mv.id) {

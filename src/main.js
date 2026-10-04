@@ -2,7 +2,7 @@
 // (simulation + HUD + input + panels), then one frame loop for everything.
 import { data } from './data.js';
 import { createWorld } from './core/world.js';
-import { createCharacter } from './core/character.js';
+import { createCharacter, equip } from './core/character.js';
 import { Game } from './core/game.js';
 import { View } from './render/view.js';
 import { renderConfig } from './render/settings.js';
@@ -63,7 +63,7 @@ const setQuality = (q) => {
   view.setQuality(q);
 };
 
-const F = (window.__frontier = { view, fps: 0, paused: false, game: null });
+const F = (window.__frontier = { view, fps: 0, paused: false, game: null, equip }); // equip: browser tests dress the hero
 Object.defineProperty(F, 'world', { get: () => view.world }); // follows open-world crossings
 let session = null;
 const fullscreen = createFullscreen({

@@ -1,12 +1,12 @@
 // Character progression: Character Level -> Stat Points, Job Level -> Job Points (Job Tree),
-// equipment (5 slots), appearance, and derived combat stats. The character object is plain
+// equipment (two hands + armour slots, items.slots), arrows, appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 import { enterMap } from './maps.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 5;
+export const CHARACTER_VERSION = 6;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -43,6 +43,7 @@ export function createCharacter(data, opts = {}) {
     movementSkills: [...st.movementSkills],
     movement: kit ? kit.movement : st.movement,
     mods: [],
+    arrows: { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } },
     slots: (kit ? kit.slots : st.slots).map((s) => ({ skill: s, mods: [] })),
     nextUid: 1,
     bossKills: 0,
@@ -134,6 +135,11 @@ export function migrateCharacter(ch, data) {
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
   const moved = enforceEquipment(ch, data);
   if (moved.length) ch.progress.equipmentNotice = 'รีเควสสเตตัสเพิ่ม: เก็บอุปกรณ์ที่สวมไม่ได้ไว้ในกระเป๋า ' + moved.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh).join(', ');
+  if ((ch.version || 1) < 6 || !ch.arrows) {
+    // v6: two hands, gloves and arrows. Existing archers keep shooting: everyone starts with a stock.
+    ch.arrows = { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } };
+  }
+  ch.arrows.stock = Object.fromEntries(Object.entries(ch.arrows.stock || {}).filter(([id, n]) => data.items.arrows?.types[id] && n > 0));
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
   ch.version = CHARACTER_VERSION;
@@ -337,6 +343,14 @@ export function weaponImplicit(item, data) {
   return data.items.weaponTypes?.[base.weaponType]?.implicit || {};
 }
 
+/** 'light' | 'heavy' | 'two' for weapons, 'off' for shields, null for armour. */
+export function handsOf(data, item) {
+  const base = item && data.items.gearBases[item.base];
+  if (!base) return null;
+  if (base.slot === 'offhand') return 'off';
+  return base.slot === 'weapon' ? data.items.weaponTypes[base.weaponType]?.hands || 'light' : null;
+}
+
 /** Actual item power controls wear requirements; character level never does. */
 export function gearPower(stats, data) {
   const weights = data.items.requirements.weights;
@@ -351,33 +365,89 @@ export function gearRequirements(item, data) {
   return Object.fromEntries(Object.entries(initial).map(([stat,value]) => [stat,value + extra]));
 }
 
-export function gearEquipState(ch, data, item) {
+const OTHER_HAND = { weapon: 'offhand', offhand: 'weapon' };
+
+/** Which slot an item occupies in `equipped`, or null. */
+export function wornSlot(ch, data, item, equipped = ch.equipped) {
+  return item ? data.items.slots.find((s) => equipped[s] === item.uid) || null : null;
+}
+
+/**
+ * Wear requirements in context: two light weapons held together each need the sum of
+ * both requirements (dual wielding costs twice the stats, by the normal power rule).
+ */
+export function wearRequirements(ch, data, item, slot = null, equipped = ch.equipped) {
+  const own = gearRequirements(item, data);
+  const at = slot || wornSlot(ch, data, item, equipped) || data.items.gearBases[item.base].slot;
+  const other = OTHER_HAND[at] && gearItem(ch, equipped[OTHER_HAND[at]]);
+  if (!other || other.uid === item.uid || handsOf(data, item) !== 'light' || handsOf(data, other) !== 'light') return own;
+  const sum = { ...own };
+  for (const [k, v] of Object.entries(gearRequirements(other, data))) sum[k] = (sum[k] || 0) + v;
+  return sum;
+}
+
+export function gearEquipState(ch, data, item, slot = null, equipped = ch.equipped) {
   if (!item) return { ok:false, reason:'unknown', requires:{}, missing:[] };
-  const requires = gearRequirements(item,data), state = meetsRequires(ch,requires);
+  const requires = wearRequirements(ch,data,item,slot,equipped), state = meetsRequires(ch,requires);
   return { ...state, reason:state.ok ? null : 'requires', requires };
+}
+
+/** Why `item` cannot go into `slot` next to what the other hand holds, or null. */
+export function handBlocker(ch, data, item, slot, equipped = ch.equipped) {
+  const hands = handsOf(data, item), base = data.items.gearBases[item.base];
+  if (slot !== 'weapon' && slot !== 'offhand') return base.slot === slot ? null : 'slot';
+  if (slot === 'weapon') return base.slot === 'weapon' ? null : 'slot';
+  if (hands !== 'light' && hands !== 'off') return 'slot';
+  const main = handsOf(data, gearItem(ch, equipped.weapon));
+  if (main === 'two') return 'two_hand';
+  if (hands === 'light' && main !== 'light') return 'needs_light';
+  return null;
 }
 
 /** Keep an upgraded or respec-invalidated item in the bag, never delete it. */
 export function enforceEquipment(ch, data) {
   const moved = [];
-  for (const slot of data.items.slots) {
+  const drop = (slot) => {
+    const item = gearItem(ch, ch.equipped[slot]);
+    moved.push({ slot, uid:item.uid, requires:wearRequirements(ch,data,item,slot) });
+    ch.equipped[slot] = null;
+  };
+  const off = gearItem(ch, ch.equipped.offhand);
+  if (off && (off.uid === ch.equipped.weapon || handBlocker(ch, data, off, 'offhand'))) drop('offhand');
+  // The left hand goes first: a pair can fail only because of its partner.
+  for (const slot of ['offhand', ...data.items.slots.filter((s) => s !== 'offhand')]) {
     const item = gearItem(ch,ch.equipped[slot]);
-    if (item && !gearEquipState(ch,data,item).ok) {
-      moved.push({ slot, uid:item.uid, requires:gearRequirements(item,data) });
-      ch.equipped[slot] = null;
-    }
+    if (item && !gearEquipState(ch,data,item,slot).ok) drop(slot);
   }
   return moved;
 }
 
-export function equip(ch, data, uid) {
+/** Equip into `slot` (default: the item's own slot; light weapons may go to 'offhand'). */
+export function equip(ch, data, uid, slot = null) {
   const item = gearItem(ch, uid);
   if (!item) return { ok: false };
   const base = data.items.gearBases[item.base];
-  const req = gearEquipState(ch, data, item);
+  slot = slot || base.slot;
+  const block = handBlocker(ch, data, item, slot);
+  if (block) return { ok: false, reason: block };
+  const next = { ...ch.equipped };
+  for (const s of data.items.slots) if (next[s] === uid) next[s] = null;
+  next[slot] = uid;
+  const freed = [];
+  // A two-hand weapon frees the left hand; a heavy one cannot be paired with a light weapon.
+  const off = gearItem(ch, next.offhand);
+  if (slot === 'weapon' && off && handBlocker(ch, data, off, 'offhand', next)) {
+    freed.push(off.uid);
+    next.offhand = null;
+  }
+  if (!next.weapon) return { ok: false, reason: 'weapon' }; // always hold something
+  const req = gearEquipState(ch, data, item, slot, next);
   if (!req.ok) return req;
-  ch.equipped[base.slot] = uid;
-  return { ok: true };
+  const partner = gearItem(ch, next[OTHER_HAND[slot]]);
+  if (partner && !gearEquipState(ch, data, partner, OTHER_HAND[slot], next).ok)
+    return { ...gearEquipState(ch, data, partner, OTHER_HAND[slot], next), reason: 'requires_pair' };
+  ch.equipped = next;
+  return { ok: true, freed };
 }
 
 export function unequip(ch, data, slot) {
@@ -386,19 +456,63 @@ export function unequip(ch, data, slot) {
   return { ok: true };
 }
 
+// ---------- Arrows ----------
+
+/** The arrow type that will be shot next: the chosen one, else any type still stocked. */
+export function arrowInUse(ch, data) {
+  const stock = ch.arrows?.stock || {}, types = data.items.arrows?.types || {};
+  if (types[ch.arrows?.use] && stock[ch.arrows.use] > 0) return ch.arrows.use;
+  return Object.keys(types).find((id) => stock[id] > 0) || null;
+}
+
+export function arrowTotal(ch) {
+  return Object.values(ch.arrows?.stock || {}).reduce((a, n) => a + n, 0);
+}
+
+/** Arrows one cast of skill `s` (computed) needs; 0 for anything but Attack+Projectile. */
+export function arrowsPerCast(data, s) {
+  const rules = data.items.arrows;
+  if (!rules || !s?.tags?.has?.('Attack') || !s.tags.has('Projectile')) return 0;
+  return rules.perCast + (s.projectiles > 1 ? rules.multiShotExtra : 0);
+}
+
+/** Take `n` arrows, from the type in use first. Returns false (and takes none) if short. */
+export function spendArrows(ch, data, n) {
+  if (arrowTotal(ch) < n) return false;
+  const stock = ch.arrows.stock;
+  while (n > 0) {
+    const id = arrowInUse(ch, data), take = Math.min(n, stock[id]);
+    stock[id] -= take;
+    n -= take;
+    if (!stock[id]) delete stock[id];
+  }
+  return true;
+}
+
+export function chooseArrows(ch, data, id) {
+  if (!data.items.arrows?.types[id]) return { ok: false, reason: 'unknown' };
+  ch.arrows.use = id;
+  return { ok: true };
+}
+
 /** What the renderer needs to dress the hero. */
 export function gearLook(ch, data) {
-  const out = { weapon: null, armor: 'tunic', helm: null, bases: {} };
+  const out = { weapon: null, offhand: null, armor: 'tunic', helm: null, gloves: null, bases: {} };
   for (const slot of data.items.slots) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (item && gearEquipState(ch,data,item).ok) out.bases[slot] = item.base;
+    if (item && gearEquipState(ch,data,item,slot).ok) out.bases[slot] = item.base;
   }
   const w = gearItem(ch, ch.equipped.weapon);
-  if (w && gearEquipState(ch,data,w).ok) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
+  if (w && gearEquipState(ch,data,w,'weapon').ok) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
+  const o = out.bases.offhand && data.items.gearBases[out.bases.offhand];
+  // Left hand: a shield, a second light weapon, or the arrows in use with a bow.
+  if (o) out.offhand = o.slot === 'offhand' ? o.offhandType || 'shield' : o.weaponType;
+  else if (out.weapon && data.items.weaponTypes[out.weapon]?.ammo && arrowInUse(ch, data)) out.offhand = 'quiver';
+  if (out.bases.gloves) out.gloves = data.items.gearBases[out.bases.gloves].look || 'hide';
   const a = gearItem(ch, ch.equipped.armor);
-  if (a && gearEquipState(ch,data,a).ok) out.armor = data.items.gearBases[a.base].look || 'tunic';
+  if (a && gearEquipState(ch,data,a,'armor').ok) out.armor = data.items.gearBases[a.base].look || 'tunic';
   const h = gearItem(ch, ch.equipped.helm);
-  if (h && gearEquipState(ch,data,h).ok) out.helm = data.items.gearBases[h.base].look || null;
+  if (h && gearEquipState(ch,data,h,'helm').ok) out.helm = data.items.gearBases[h.base].look || null;
   return out;
 }
 
@@ -440,6 +554,7 @@ export function derive(ch, data) {
     meleeArcAdd: 0,
     poisonChancePct: 0,
     leechPct: 0,
+    blockChancePct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;
@@ -450,12 +565,17 @@ export function derive(ch, data) {
   }
   for (const slot of data.items.slots || ['weapon', 'armor']) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (!item || !gearEquipState(ch,data,item).ok) continue;
+    if (!item || !gearEquipState(ch,data,item,slot).ok) continue;
     const gs = gearStats(item, data);
     for (const k in gs) add(k, gs[k]);
     const imp = weaponImplicit(item, data);
     for (const k in imp) add(k, imp[k]);
   }
+  // A bow's left hand holds the arrows in use: their stats count while any are left.
+  const main = gearItem(ch, ch.equipped.weapon);
+  const bow = main && gearEquipState(ch,data,main,'weapon').ok && data.items.weaponTypes[data.items.gearBases[main.base].weaponType]?.ammo;
+  const arrow = bow ? arrowInUse(ch, data) : null;
+  if (arrow) for (const [k, v] of Object.entries(data.items.arrows.types[arrow].stats)) add(k, v);
   for (const n of ch.jobNodes) {
     const eff = data.jobtree.nodes[n]?.effects || {};
     for (const k in eff) add(k, eff[k]);
@@ -475,7 +595,10 @@ export function derive(ch, data) {
   d.attack = Math.round(d.attack * 10) / 10;
   d.magic = Math.round(d.magic * 10) / 10;
   d.defense = Math.round(d.defense);
-  const w = gearItem(ch, ch.equipped.weapon);
-  d.weaponType = w && gearEquipState(ch,data,w).ok ? data.items.gearBases[w.base].weaponType : 'none';
+  d.weaponType = main && gearEquipState(ch,data,main,'weapon').ok ? data.items.gearBases[main.base].weaponType : 'none';
+  const off = gearItem(ch, ch.equipped.offhand), offOk = off && gearEquipState(ch,data,off,'offhand').ok;
+  d.offhand = offOk ? (handsOf(data, off) === 'off' ? 'shield' : 'weapon') : arrow ? 'arrows' : 'none';
+  d.dualWield = d.offhand === 'weapon';
+  d.blockChance = d.offhand === 'shield' ? d.blockChancePct / 100 : 0;
   return d;
 }

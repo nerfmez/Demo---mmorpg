@@ -1,5 +1,5 @@
 // One vocabulary for native skill tags and the rules enforced by core/skills.js.
-import { modFits, modSlotOf } from '../core/skills.js';
+import { modFits, modSlotOf, modRequires } from '../core/skills.js';
 import { meetsRequires } from '../core/character.js';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const TAGS = {
@@ -38,12 +38,14 @@ export function fitReason(fit) {
 /** Separate type fit, activation, ownership and socket capacity. Browsing never mutates. */
 export function modStatus(ch,data,index,inst) {
   const slot=ch.slots[index], md=data.mods.mods[inst.id];
-  const companions=(slot?.mods||[]).map(u=>data.mods.mods[ch.mods.find(m=>m.uid===u)?.id]).filter(Boolean);
-  const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,md?.requires), where=modSlotOf(ch,inst.uid);
+  const companionInsts=(slot?.mods||[]).map(u=>ch.mods.find(m=>m.uid===u)).filter(m=>m&&data.mods.mods[m.id]);
+  const companions=companionInsts.map(m=>data.mods.mods[m.id]);
+  // Higher ranks ask for more stats (modRequires).
+  const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,modRequires(data,md,inst.level||1)), where=modSlotOf(ch,inst.uid);
   const duplicate=!!slot?.mods.some(u=>u!==inst.uid&&ch.mods.find(m=>m.uid===u)?.id===inst.id);
   const full=(slot?.mods.length||0)>=data.mods.maxModsPerSkill;
   const own=where===index;
-  const activeCompanions=companions.filter(m=>meetsRequires(ch,m.requires).ok);
+  const activeCompanions=companionInsts.filter(m=>meetsRequires(ch,modRequires(data,data.mods.mods[m.id],m.level||1)).ok).map(m=>data.mods.mods[m.id]);
   const activeFit=modFits(data.skills.combat[slot?.skill],md,activeCompanions);
   const reason=!slot?.skill?'เลือกสกิลในช่องนี้ก่อน':!fit.ok?fitReason(fit):own?'ใส่ในช่องนี้แล้ว':duplicate?'มีม็อดชนิดนี้อยู่แล้ว':full?'ช่องม็อดเต็ม · ถอดหนึ่งชิ้นก่อน':'พร้อมใส่';
   return {fit,req,where,own,reason,active:req.ok&&activeFit.ok,can:!!slot?.skill&&fit.ok&&!own&&!duplicate&&!full};

@@ -4,14 +4,14 @@ import { craftView } from './craftview.js';
 // Journal (quests + progress), World Map (fast travel) and Settings (graphics + save).
 // The game is paused while a panel is open (single-player demo).
 import { icon } from './icons.js';
-import { art } from './art.js';
+import { art, arrowArt } from './art.js';
 import { skillsView, modsWorkspace, movementWorkspace, growthWorkspace } from './skillview.js';
 import { tagsHtml, rulesHtml } from './buildmeta.js';
 import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext } from '../core/character.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
@@ -29,12 +29,13 @@ const TAG_TH = {
 const REASON_TH = { level: 'เลเวลตัวละครยังไม่ถึงขั้นที่กำหนด', invalid: 'การตั้งค่าคราฟต์ไม่ถูกต้อง', materials: 'วัตถุดิบไม่พอ', learned: 'เรียนแล้ว', max: 'สูงสุดแล้ว', full: 'ช่อง Mod เต็ม', duplicate: 'ใส่ Mod ซ้ำไม่ได้', requires: 'Stat ไม่ถึง', not_learned: 'ยังไม่ได้เรียน' };
 const TELEPORT_TH = { combat: 'กำลังต่อสู้อยู่ — ออกจากการต่อสู้ก่อนแล้วค่อยวาร์ป', locked: 'ยังไม่ได้ปลดล็อก — เดินไปแตะหินวาร์ปนั้นก่อน', dead: 'หมดสติอยู่', unknown: 'ไม่พบจุดวาร์ป' };
 const CRAFT_FILTERS = [
-  ['weapon', 'อาวุธ'],
-  ['armor', 'ชุด/หมวก/รองเท้า'],
+  ['weapon', 'อาวุธ/โล่'],
+  ['armor', 'ชุด/หมวก/ถุงมือ/รองเท้า'],
   ['charm', 'เครื่องราง'],
   ['skill', 'สกิลใหม่'],
   ['movement', 'สกิลเคลื่อนที่'],
   ['mod', 'Skill Mod'],
+  ['arrow', 'ลูกธนู'],
 ];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -639,6 +640,14 @@ export class Panels {
         else this.lastResult = `${art('skill',r.id)} เรียน <b>${data.skills.movement[r.id].name}</b> แล้ว — เลือกใช้ในหน้าเคลื่อนที่`;
         this.changed();
         return;
+      }
+      case 'craft-arrows': {
+        r = g.craftArrows(t.dataset.id);
+        if (!r.ok) return this.flash(r.reason === 'combat' ? 'ออกจากการต่อสู้ก่อนแล้วค่อยคราฟต์ลูกธนู' : r.reason === 'full' ? 'ซองลูกธนูเต็มแล้ว' : REASON_TH[r.reason] || r.reason);
+        this.sel.craftRecipe = t.dataset.id;
+        this.lastResult = `${arrowArt(r.id)} ได้ <b>${data.items.arrows.types[r.id].nameTh}</b> ${r.qty} ลูก · ซอง ${arrowTotal(ch)}/${data.items.arrows.capacity}`;
+        g.lastArrowRecipe = t.dataset.id;
+        return this.changed();
       }
       case 'teleport': {
         const res = g.teleportTo(t.dataset.id, t.dataset.map || undefined);

@@ -28,6 +28,15 @@
       "zone": 0.13,
       "dust": 5
     },
+    "mace": {
+      "tip": 0.72,
+      "base": 0.5,
+      "life": 0.12,
+      "minSpeed": 7,
+      "fullSpeed": 30,
+      "zone": 0.13,
+      "dust": 6
+    },
     "greatblade": {
       "tip": 1.2,
       "base": 0.85,

@@ -23,9 +23,12 @@ function alphaPixels(png){
  }
  return {extrema:[min,max],clear,partial};
 }
-test('raster contract covers every equipment/material/combat/movement ID exactly once, excluding mods',()=>{
- const expected=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(expected.length,76);assert.deepEqual([...EXPECTED_RASTER_KEYS].sort(),expected.sort());assert.equal(new Set(EXPECTED_RASTER_KEYS).size,76);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),expected.sort());
+test('raster contract covers the 76 approved equipment/material/combat/movement IDs exactly once, excluding mods',()=>{
+ const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,76);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+ for(const key of EXPECTED_RASTER_KEYS)assert.ok(all.includes(key),key+' is live content');
+ // Content added after the approved set keeps its authored SVG until a PNG is supplied.
+ for(const key of all.filter(k=>!EXPECTED_RASTER_KEYS.includes(k))){const [kind,id]=key.split('/');assert.equal(rasterIconUrl(kind,id),null,key);assert.match(art(kind,id),/<svg/,key);}
 });
 test('only registered supplied PNGs replace existing illustrations; unknown/mod entries cannot opt in',()=>{
  for(const key of EXPECTED_RASTER_KEYS){const [kind,id]=key.split('/');if(!RASTER_ICONS[key]){assert.equal(rasterIconUrl(kind,id),null);assert.match(art(kind,id),/<svg/);}}

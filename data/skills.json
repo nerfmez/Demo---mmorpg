@@ -1,5 +1,5 @@
 {
-  "_doc": "Combat skills. Every attack, the basic one included, is a skill the player can equip or remove. Units: metres and seconds. damage = base + scale * power, where power is attackPower (Attack tag) or spellPower (Spell tag). kind picks how src/core/game.js executes it.",
+  "_doc": "Combat skills. Every attack, the basic one included, is a skill the player can equip or remove. Units: metres and seconds. damage = base + scale * power, where power is attackPower (Attack tag) or spellPower (Spell tag). kind picks how src/core/game.js executes it. requiresWeapon: the right-hand weapon types a skill can be cast with (absent = any).",
   "combat": {
     "slash": {
       "name": "Slash",
@@ -54,7 +54,14 @@
       },
       "upgradeMaterial": "wolf_fang",
       "icon": "whirl",
-      "upgradeStat": "STR"
+      "upgradeStat": "STR",
+      "requiresWeapon": [
+        "sword",
+        "dagger",
+        "axe",
+        "mace",
+        "greatblade"
+      ]
     },
     "hunter_shot": {
       "name": "Hunter's Shot",
@@ -81,7 +88,10 @@
       "requires": {},
       "upgradeMaterial": "boar_tusk",
       "icon": "arrow",
-      "upgradeStat": "DEX"
+      "upgradeStat": "DEX",
+      "requiresWeapon": [
+        "bow"
+      ]
     },
     "firebolt": {
       "name": "Firebolt",

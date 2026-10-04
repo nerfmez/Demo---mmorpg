@@ -16,6 +16,12 @@ export function modDef(data, id) {
 }
 
 /** Does this mod fit this skill? Returns {ok, reason}. */
+/** A mod's stat requirement at `level`: every rank above the first asks for more. */
+export function modRequires(data, mod, level = 1) {
+  const step = data.progression.modUpgrade.requiresStatPerLevel || 0;
+  return Object.fromEntries(Object.entries(mod?.requires || {}).map(([k, v]) => [k, v + step * (level - 1)]));
+}
+
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
   const tags = skill.tags || [];
@@ -80,7 +86,9 @@ export function computeSkill(ch, data, derived, slotIndex) {
     repeatDelay: 0,
     knock: 0,
     leech: derived.leechPct || 0,
-    requirementsMet: meetsRequires(ch, def.requires).ok,
+    // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
+    weaponOk: !def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType),
+    requirementsMet: meetsRequires(ch, def.requires).ok && (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)),
     mods: [],
   };
 
@@ -119,17 +127,18 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Area') && s.radius) s.radius *= 1 + derived.areaRadiusPct / 100;
   if (tags.has('Melee')) s.arc += derived.meleeArcAdd;
 
-  const companionMods = slot.mods.map(uid => modDef(data, ch.mods.find(m => m.uid === uid)?.id)).filter(Boolean);
+  const companionMods = slot.mods.map(uid => ch.mods.find(m => m.uid === uid)).filter(i => i && modDef(data, i.id))
+    .filter(i => meetsRequires(ch, modRequires(data, modDef(data, i.id), i.level || 1)).ok).map(i => modDef(data, i.id));
   let radiusMult = 1;
   for (const uid of slot.mods) {
     const inst = ch.mods.find((m) => m.uid === uid);
     if (!inst) continue;
     const m = modDef(data, inst.id);
     if (!m) continue;
-    const fit = modFits(def, m, companionMods.filter(m => meetsRequires(ch, m.requires).ok));
+    const fit = modFits(def, m, companionMods);
     const e = m.effect;
     const L = inst.level || 1;
-    const active = fit.ok && meetsRequires(ch, m.requires).ok;
+    const active = fit.ok && meetsRequires(ch, modRequires(data, m, L)).ok;
     s.mods.push({ id: inst.id, level: L, active, reason: fit.ok ? (active ? null : 'requires') : fit.reason });
     if (!active) continue; // socketed but inactive until stats are met
     for (const t of m.tags) tags.add(t);

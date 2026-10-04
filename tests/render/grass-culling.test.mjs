@@ -15,6 +15,8 @@ test('grass keeps viewport-edge wind spheres and matching baked colours without 
  updateGrassVisibility(mesh,camera);assert.equal(mesh.instanceMatrix.version,version,'fixed camera skips buffer updates');
  camera.position.set(30,0,10);camera.lookAt(30,0,0);camera.updateMatrixWorld(true);updateGrassVisibility(mesh,camera);
  assert.equal(mesh.count,1);assert.equal(matrixArray[12],30);assert.deepEqual([...colorArray.slice(0,3)],[20,21,22]);
+ assert.deepEqual(mesh.instanceMatrix.updateRanges,[{start:0,count:16}],'upload only the visible reordered slots');
+ assert.deepEqual(g.attributes.aGrassBase.updateRanges,[{start:0,count:3}]);
  mesh.userData.grassCulling.enabled=false;updateGrassVisibility(mesh,camera);
  assert.equal(mesh.count,3);assert.deepEqual([...colorArray],[10,11,12,20,21,22,30,31,32]);
  assert.equal(mesh.instanceMatrix.array,matrixArray);assert.equal(g.attributes.aGrassBase.array,colorArray);assert.ok(mesh.boundingSphere.equals(bounds));

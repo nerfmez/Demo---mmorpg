@@ -20,7 +20,9 @@ body.ingame #hud {height:calc(var(--viewport-h,100dvh) - var(--xp-h))}
 .fullscreen-fallback {background:#29405b;color:#d3e3f2;border:1px solid #87a5c64d}
 .fullscreen-card small {display:block;font-size:10px;color:#92a9c1;line-height:1.7;margin-top:18px}
 .fullscreen-card .fullscreen-status {font-size:11px;color:#ecd6ad;margin:10px 0 0}
-.fullscreen-control {position:fixed;top:calc(10px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:40;min-height:44px;padding:0 14px;border:1px solid #c1d7ef66;border-radius:9px;background:#1b304bea;color:#e7f2fc;font:12px 'Mitr',sans-serif;cursor:pointer}
+/* Icon-only and translucent so it never hides the play field; 44px stays a full touch target. */
+.fullscreen-control {position:fixed;top:calc(8px + var(--safe-t));left:50%;transform:translateX(-50%);z-index:40;width:44px;height:44px;padding:0;border:1px solid #c1d7ef40;border-radius:50%;background:#1b304b99;color:#e7f2fc;font:20px/1 system-ui,sans-serif;cursor:pointer;opacity:.75}
+.fullscreen-control:active {opacity:1}
 .fullscreen-gate button:focus-visible,.fullscreen-control:focus-visible {outline:2px solid #a0d8ff;outline-offset:4px}
 @media(max-height:520px){.fullscreen-card {padding:15px 24px}.fullscreen-symbol {display:none}.fullscreen-card h1 {font-size:21px;margin:10px 0}.fullscreen-card p {margin-bottom:10px}.fullscreen-card small {margin-top:10px}}
 /* Keep the established HUD anchors, but budget its height before the skill pad.

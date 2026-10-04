@@ -14,7 +14,7 @@ export function createFullscreen({ bypass = false, onBlocked = () => {}, onResiz
   overlay.className = 'fullscreen-gate';
   overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-labelledby', 'fullscreen-title');
   overlay.innerHTML = `<div class="fullscreen-card"><span class="fullscreen-kicker">AZURE COAST</span><div class="fullscreen-symbol" aria-hidden="true">⛶</div><h1 id="fullscreen-title"></h1><p id="fullscreen-message"></p><button class="fullscreen-enter" type="button">เข้าเกมเต็มจอ</button><button class="fullscreen-fallback" type="button">เล่นในพื้นที่หน้าจอที่ใช้ได้</button><small>ออกจากเต็มจอได้ด้วย Esc หรือปุ่มของเบราว์เซอร์</small><p class="fullscreen-status" role="status" aria-live="polite"></p></div>`;
-  const control = doc.createElement('button'); control.type = 'button'; control.className = 'fullscreen-control'; control.textContent = '⛶ เล่นเต็มจอ'; control.setAttribute('aria-label', 'เล่นเต็มจอ');
+  const control = doc.createElement('button'); control.type = 'button'; control.className = 'fullscreen-control'; control.textContent = '⛶'; control.title = 'เล่นเต็มจอ'; control.setAttribute('aria-label', 'เล่นเต็มจอ');
   doc.body.append(overlay, control);
   const enter = overlay.querySelector('.fullscreen-enter'), alt = overlay.querySelector('.fullscreen-fallback'), status = overlay.querySelector('.fullscreen-status');
   const suspendedDialogs = new Map();

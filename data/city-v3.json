@@ -43162,6 +43162,10 @@
       ]
     }
   ],
+  "meshColors": {
+    "AC_Ship_Under_Construction_Mesh_1": "#6b4a30",
+    "AC_Ship_Under_Construction_Mesh_3": "#8a6240"
+  },
   "propOffsets": {
     "AC_Fish_Display_Tray_083": [
       2.16,

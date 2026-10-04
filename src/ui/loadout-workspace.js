@@ -29,7 +29,7 @@ const modName=(inst,tag='b')=>`<${tag} class="mod-name" ${gradeStyle(inst?.grade
 const itemLevel=it=>`<span class="item-level" data-item-level="${equipmentItemLevel(data,it)}" title="เลเวลอุปกรณ์ · สวมใส่ตามสเตตัส">Lv. ${equipmentItemLevel(data,it)}</span>`;
 const HAND_REASON={two_hand:'ถืออาวุธสองมืออยู่ · มือซ้ายว่างไม่ได้',needs_light:'มือซ้ายถืออาวุธได้เมื่อมือขวาเป็นอาวุธเบา',slot:'ช่องนี้ใส่ของชิ้นนี้ไม่ได้',requires_pair:'สเตตัสไม่พอสำหรับถือสองมือ (รีเควสรวมสองชิ้น)',requires:'สเตตัสไม่ถึง',weapon:'มือขวาต้องถืออาวุธเสมอ',equipped:'สวมใส่อยู่',locked:'ล็อกอยู่'};
 const weaponNames=d=>d.requiresWeapon.map(w=>data.items.weaponTypes[w]?.nameTh||w).join(' / ');
-const statName={attack:'โจมตี',magic:'พลังเวท',defense:'ป้องกัน',maxHp:'HP',moveSpeedPct:'เร็ว %',critChancePct:'คริ %',spellDamagePct:'เวท %',meleeDamagePct:'ประชิด %',projectileDamagePct:'กระสุน %'};
+const statName={attack:'โจมตี',magic:'พลังเวท',defense:'ป้องกัน',maxHp:'HP',moveSpeedPct:'เร็ว %',critChancePct:'คริ %',spellDamagePct:'เวท %',meleeDamagePct:'ประชิด %',projectileDamagePct:'กระสุน %',materialFindPct:'วัตถุดิบ %',gearFindPct:'ดรอปอุปกรณ์ %',goldFindPct:'ทอง %'};
 // The icon release owns all painted assets and the central art() resolver.
 function picture(kind,id){return `<span class="object-art">${art(kind,id)}</span>`;}
 function emptyShelf(message){return `<section class="selection-shelf empty-selection"><h2>${message}</h2><span>เลือกวัตถุจากคลัง</span></section>`;}

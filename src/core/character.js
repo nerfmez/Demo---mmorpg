@@ -140,6 +140,21 @@ export function migrateCharacter(ch, data) {
     ch.arrows = { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } };
   }
   ch.arrows.stock = Object.fromEntries(Object.entries(ch.arrows.stock || {}).filter(([id, n]) => data.items.arrows?.types[id] && n > 0));
+  // The character cap fell from 40 to 30: bring higher saves down to the cap and take back the
+  // stat points of the removed levels (from unspent points first, else by a free stat reset).
+  const cap = data.progression.character.maxLevel;
+  if (ch.level > cap) {
+    const excess = (ch.level - cap) * data.progression.character.statPointsPerLevel;
+    if (ch.statPoints < excess) {
+      const start = data.progression.character.startingStats;
+      for (const s of STATS) { ch.statPoints += ch.stats[s] - start[s]; ch.stats[s] = start[s]; }
+      ch.progress.equipmentNotice = 'เลเวลตันลดเหลือ Lv' + cap + ': คืนแต้มสเตตัสให้จัดใหม่ฟรี';
+    }
+    ch.statPoints -= excess;
+    ch.level = cap;
+    ch.exp = 0;
+    enforceEquipment(ch, data);
+  }
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
   ch.version = CHARACTER_VERSION;

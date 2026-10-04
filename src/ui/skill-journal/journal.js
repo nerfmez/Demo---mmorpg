@@ -208,8 +208,9 @@ listen(root,'input',e=>{if(e.target.id==='node-search')searchResults(e.target.va
 listen(q('#dialog'),'click',e=>{if(e.target===q('#dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog();}});
 listen(root,'keydown',e=>{if(e.key==='Escape'){if(q('#dialog').open){e.preventDefault();e.stopPropagation();closeDialog();return;}if(q('#sound-control').open){e.preventDefault();e.stopPropagation();q('#sound-control').open=false;return;}if(state.selected){e.preventDefault();e.stopPropagation();closeDetail(true);return;}}if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(e.target.tagName)&&!q('#dialog').open){e.preventDefault();search();}});
 renderRegion();
-let layoutKey=`${innerWidth<=760}:${compactPaper()}`,resizeTimer;
-const resizePaper=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(destroyed)return;const key=`${innerWidth<=760}:${compactPaper()}`,id=state.selected;if(key!==layoutKey){layoutKey=key;renderRegion();if(id&&state.coords[id])select(id);}else if(id)camera.setSheet(innerWidth>760?inspector.offsetWidth+20:0);},150);};
+const layoutKeyNow=()=>`${innerWidth<=760}:${compactPaper()}:${Math.round(camera.viewport().width/40)}:${Math.round(camera.viewport().height/40)}`;// wrapped lines follow the viewport size
+let layoutKey=layoutKeyNow(),resizeTimer;
+const resizePaper=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(destroyed)return;const key=layoutKeyNow(),id=state.selected;if(key!==layoutKey){layoutKey=key;renderRegion();if(id&&state.coords[id])select(id);}else if(id)camera.setSheet(innerWidth>760?inspector.offsetWidth+20:0);},150);};
 listen(window,'resize',resizePaper);listen(window,'frontier:viewport',resizePaper);
 const paperResize=new ResizeObserver(entries=>{paperHeight=entries[0].contentRect.height;resizePaper();});paperResize.observe(q('.atlas-space'));cleanups.push(()=>paperResize.disconnect());
 let detailResizeFrame=0,detailHeight=-1;

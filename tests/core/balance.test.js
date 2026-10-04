@@ -58,3 +58,22 @@ test('all three new starter kits have two affixes per item and meet their wear r
  const {gearEquipState}=await import('../../src/core/character.js');
  for(const kit of ['sword','bow','staff']){const ch=createCharacter(data,{kit});for(const item of ch.gear){assert.equal(item.options.length,2);assert.ok(gearEquipState(ch,data,item).ok,item.base);}}
 });
+
+test('a save above the character cap comes down to it and loses the extra stat points', () => {
+  const cap = data.progression.character.maxLevel, per = data.progression.character.statPointsPerLevel;
+  // Unspent points cover the removed levels.
+  let ch = createCharacter(data);
+  Object.assign(ch, { level: cap + 5, exp: 123, statPoints: 5 * per + 2 });
+  ch.stats.STR += 4;
+  migrateCharacter(ch, data);
+  assert.equal(ch.level, cap); assert.equal(ch.exp, 0); assert.equal(ch.statPoints, 2); assert.equal(ch.stats.STR, data.progression.character.startingStats.STR + 4);
+  // Points already spent: a free stat reset, then the removed levels are taken back.
+  ch = createCharacter(data);
+  const spent = 10 * per;
+  Object.assign(ch, { level: cap + 10, statPoints: 0, gold: 77 });
+  ch.stats.STR += spent;
+  migrateCharacter(ch, data);
+  assert.equal(ch.level, cap); assert.equal(ch.statPoints, 0); assert.equal(ch.gold, 77);
+  assert.deepEqual(ch.stats, data.progression.character.startingStats);
+  const once = JSON.stringify(ch); migrateCharacter(ch, data); assert.equal(JSON.stringify(ch), once);
+});

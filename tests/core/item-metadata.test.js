@@ -7,7 +7,7 @@ import {computeSkill,socketMod} from '../../src/core/skills.js';
 import {createRng} from '../../src/core/rng.js';
 import {normalizeItemMetadata} from '../../src/core/item-metadata.js';
 
-const funded=()=>{const ch=createCharacter(data);ch.level=40;ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;for(const stat in ch.stats)ch.stats[stat]=100;return ch;};
+const funded=()=>{const ch=createCharacter(data);ch.level=data.progression.character.maxLevel;ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;for(const stat in ch.stats)ch.stats[stat]=100;return ch;};
 
 test('every gear base/recipe and mod recipe has valid authored metadata',()=>{
   for(const base of Object.values(data.items.gearBases))assert.ok(Number.isSafeInteger(base.itemLevel)&&base.itemLevel>0);

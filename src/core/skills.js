@@ -102,9 +102,11 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (tags.has('Projectile')) inc += derived.projectileDamagePct;
   if (tags.has('Area') && tags.has('Damage')) inc += derived.areaDamagePct;
   if (tags.has('Spell') && tags.has('Damage')) inc += derived.spellDamagePct;
-  if (ELEMENTS.some((t) => tags.has(t))) inc += derived.elementalDamagePct || 0;
-  if (tags.has('Damage')) inc += derived.damagePct || 0;
-  if (tags.has('Attack')) inc += derived.attackDamagePct || 0;
+  // Journal-line increases read the final tags (after mods), so an element-changing mod counts.
+  const lineInc = (t, element) => (ELEMENTS.some((e) => t.has(e) || e.toLowerCase() === element) ? derived.elementalDamagePct || 0 : 0)
+    + (t.has('Damage') ? derived.damagePct || 0 : 0) + (t.has('Attack') ? derived.attackDamagePct || 0 : 0);
+  const baseLineInc = lineInc(tags, def.element);
+  inc += baseLineInc;
 
   if (def.damage) s.damage = (def.damage.base + def.damage.scale * power) * levelMult * (1 + inc / 100);
   if (def.heal) s.heal = (def.heal.base + def.heal.scale * power) * levelMult * (1 + derived.healPct / 100);
@@ -188,6 +190,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.summon.damage *= 1 + lv(e.summonDamage, L);
     }
     if (e.trigger) s.trigger = { on: e.trigger, icd: lv(e.internalCooldown, L), damageMult: lv(e.damageMult, L) };
+  }
+  if (s.damage) {
+    const finalLineInc = lineInc(tags, s.element);
+    if (finalLineInc !== baseLineInc) s.damage *= (1 + (inc - baseLineInc + finalLineInc) / 100) / (1 + inc / 100);
   }
   if (s.durationMult) {
     if (s.kind === 'dot_zone' || s.kind === 'heal_zone') s.duration *= s.durationMult;

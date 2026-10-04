@@ -443,6 +443,7 @@ export class Hud {
       case 'fail':
         if (e.reason === 'mp') this.toast('MP ไม่พอ', '#3f8cff');
         if (e.reason === 'requires') this.toast('Stat ยังไม่ถึงเงื่อนไขของสกิลนี้', '#ff6b5a');
+        if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':
         this.el.death.classList.add('on');

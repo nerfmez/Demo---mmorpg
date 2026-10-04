@@ -126,3 +126,14 @@ body.loadout-open .fullscreen-control{z-index:39}
  #atelier .bag-grid .stack-count{bottom:1px;right:2px;font-size:10px}
  #atelier .item-level{font-size:8px}
 }
+/* Seven slots: two hands plus gloves. Columns of up to four, placed by slot name. */
+#atelier .wear-slot{max-height:23%}
+#atelier .wear-helm,#atelier .wear-weapon,#atelier .wear-gloves,#atelier .wear-charm{left:var(--wear-gap,18px)}
+#atelier .wear-armor,#atelier .wear-offhand,#atelier .wear-boots{right:var(--wear-gap,18px)}
+#atelier .wear-helm,#atelier .wear-armor{top:2%}#atelier .wear-weapon,#atelier .wear-offhand{top:26%}#atelier .wear-gloves{top:50%}#atelier .wear-charm,#atelier .wear-boots{top:74%}
+#atelier .wear-slot .ammo-count{position:absolute;right:4px;bottom:4px;font:700 11px/1 system-ui;background:#2f4a44;color:#f4e8c9;border-radius:6px;padding:2px 5px}
+#atelier .wear-slot.ammo-low .ammo-count{background:#c46a2b}
+#atelier .character-stats .power b{color:#9c5a12}
+#atelier .power-delta{font-weight:700}#atelier .power-delta.good{color:#2e7d4f}#atelier .power-delta.bad{color:#b3412e}
+#atelier .shelf-actions .hand-choice{display:flex;gap:6px}
+@media(max-height:480px){#atelier{--wear-gap:10px}#atelier .wear-slot .ammo-count{font-size:8px}}

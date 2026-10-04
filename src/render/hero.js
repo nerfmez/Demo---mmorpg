@@ -4,7 +4,7 @@
 // lean into turns), idle breathing and weight shift, keyframed actions with anticipation and
 // follow-through, hit reactions, and secondary motion (scarf, ponytail).
 import * as THREE from 'three';
-import { buildWeapon, equipmentDetails } from './equipment.js';
+import { buildWeapon, buildOffhand, buildGloves, equipmentDetails } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
@@ -175,10 +175,16 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   helm(rb, gear.helm, L);
   const outfit = T || X ? buildOutfit(rb, T || X, gear, { leather: LEATHER, boots: bootColor }) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
+  // Left hand: a second light weapon, a shield, or a quiver with a bow.
+  const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
+  buildGloves(rb, gear.gloves);
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
+  if (offhandModel) rig.bones.offhand.add(modelInstance('weapons', offhandModel, rig.material.userData.flash));
+  // A left-hand weapon is not animated: it keeps the right hand's resting angle (actions.js REST.weapon).
+  if (rig.bones.offhand && gear.offhand && !['shield', 'quiver'].includes(gear.offhand)) rig.bones.offhand.rotation.x = 1.2;
   if (!V && !X) attachHair(rig, hairStyle, L.hair, { helm: !!gear.helm && gear.helm !== 'circlet' });
   let neckParts = rig.bones.chest;
   if (T) {
@@ -208,6 +214,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
   rig.weaponKind = gear.weapon || 'sword';
+  rig.offhandKind = gear.offhand || null;
   return rig;
 }
 

@@ -223,6 +223,14 @@ for (const [id,body] of Object.entries(gear)) gear[id]=celObject(body,'gear',id)
 for (const [id,body] of Object.entries(material)) material[id]=celObject(body,'material',id);
 Object.assign(skill,SKILL_ART);
 export const ART = { gear, material, skill, mod, monster, zone, job };
+
+// Arrow bundles (crafted ammunition, not a named catalogue item): shaft, head and fletching per type.
+const ARROW_LOOK = { feather_arrow: ['#efe3b8', '#9aa3a8'], tusk_arrow: ['#c69b60', '#efe6cf'], hawk_arrow: ['#87ad9f', '#c9c5af'], storm_arrow: ['#6d96a4', '#d5c58b'] };
+export function arrowArt(id) {
+  const [fletch, head] = ARROW_LOOK[id] || ARROW_LOOK.feather_arrow;
+  const one = (dx) => G(L('M30 98L90 30', '#8b6943', 4) + P('M90 30l12-14-4 18z', head) + P('M30 98l-4-14 10 6zM30 98l14 4-6-10z', fletch), 'translate(' + dx + ' 0)');
+  return '<span class="art art-arrow" data-art="arrow/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + shadow + one(-12) + one(0) + one(12) + '</svg></span>';
+}
 export function hasArt(kind, id) { return !!ART[kind]?.[id]; }
 export function art(kind, id, className = '') {
   const raster = rasterIconMarkup(kind, id, className);

@@ -120,6 +120,36 @@ stat respec and migration. Do not delete the item or reject a funded upgrade. Sh
 after-enhancement requirements; `gearGradePreview` gives RNG-free min/max wear requirements
 for possible new affixes. Actual grade rolls determine the final requirement.
 
+### Hands, gloves, shields and arrows (save v6)
+
+`items.slots` is `weapon` (right hand), `offhand` (left hand), armour, helm, `gloves`,
+boots, charm. `weaponTypes[t].hands` is `light` (either hand), `heavy` (right only, a
+shield or nothing on the left) or `two` (both hands; `ammo: true` for bows). Base power is
+`handRules[hands].baseFactor` x the light reference for the item level (two 2x, heavy
+1.5x; base stats only, never affixes), tested in `tests/core/gear-hands.test.js`.
+`equip(ch, data, uid, slot)` takes the target hand; `handBlocker` explains a refusal and
+a two-hand or heavy weapon returns an incompatible left-hand item to the bag (`freed`).
+Two light weapons dual-wield with no penalty, but `wearRequirements` sums both items'
+requirements for each of them. Shields add `blockChancePct` (cap 50); `damagePlayer`
+lets through `combat.block.taken` of a hit from within `arcDeg` in front, never from
+behind or from a sourceless hazard.
+
+`ch.arrows = { use, stock }`. Attack+Projectile skills spend `arrowsPerCast` (perCast,
+plus multiShotExtra with extra projectiles); none left refuses the cast with a
+`fail`/`arrows` event and no MP spent. The type in use adds its stats with a bow and hands
+over to the next stocked type. Arrow recipes (`type: "arrow"`) are crafted anywhere outside
+combat through `Game.craftArrows`, up to `arrows.capacity` in all. Migration to v6 adds
+the new slots and the starting stock.
+
+Mod ranks raise their stat requirement by `modUpgrade.requiresStatPerLevel` per rank
+(`modRequires`); an unmet rank stays socketed but inactive, and the upgrade is refused.
+
+`core/power.js` folds everything into one power score: sqrt(best slotted damage skill DPS x
+effective HP vs a frontal hit) x `progression.power.scale`. `powerDelta(ch, data, change)`
+previews any change on a copy. Gear sells (`sellGear`) or salvages (`salvageGear`,
+`salvageMany`) in town into a grade share of its recipe plus part of its +N materials;
+worn and `locked` items are refused.
+
 Cap leech after mods and recover only actual target HP removed, never overkill damage.
 `gearUpgradeState`, `skillUpgradeState`, `modUpgradeState` and `gearGradeState` are shared
 by UI and rules; all previews are pure. Equipment state helpers check resources only.
@@ -537,4 +567,4 @@ thinned to Azure's level so the map costs no more to draw. Its outpost
 buildings/stalls carry a `kit` node name: draw that node from the approved city
 kit file (`town.kit.nodes`), reset its city placement, centre it on the data box
 and keep the box as the collider; `town.kit.materialColors` uses the same palette
-as the city. Saves are `version: 5` (adds `progress.maps`).
+as the city. Saves were `version: 5` here (adds `progress.maps`); v6 adds hands, gloves and arrows (see above).

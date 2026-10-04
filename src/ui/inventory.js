@@ -1,14 +1,14 @@
 // Presentation only: selection and comparison never mutate the character.
 import { icon } from './icons.js';
 import { art } from './art.js';
-import { gearItem, gearStats, weaponImplicit, gearEquipState, meetsRequires } from '../core/character.js';
+import { gearItem, gearStats, weaponImplicit, gearEquipState, meetsRequires, wornSlot } from '../core/character.js';
 import { gearUpgradeCost, gearUpgradeState, gearUpgradePreview, gearGradeState, gearGradePreview, modUpgradeCost } from '../core/crafting.js';
 import { gradeBadge, gearUpgradeTrack, wearRequirements, wearRequirementRange, stateText } from './progressionview.js';
 import { rulesHtml } from './buildmeta.js';
 import { modSlotOf } from '../core/skills.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const FILTERS = [['all', 'ทั้งหมด'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['helm', 'หมวก'], ['boots', 'รองเท้า'], ['charm', 'เครื่องราง']];
+const FILTERS = [['all', 'ทั้งหมด'], ['weapon', 'อาวุธ'], ['offhand', 'โล่'], ['armor', 'เกราะ'], ['helm', 'หมวก'], ['gloves', 'ถุงมือ'], ['boots', 'รองเท้า'], ['charm', 'เครื่องราง']];
 const comparisonStats = (it, data) => {
   const stats = gearStats(it, data);
   for (const [key, value] of Object.entries(weaponImplicit(it, data))) stats[key] = (stats[key] || 0) + value;
@@ -32,7 +32,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
   let list = [];
   if (category === 'gear') list = ch.gear.filter((it) => sel.gear === 'all' || data.items.gearBases[it.base].slot === sel.gear).map((it) => {
     const base = data.items.gearBases[it.base];
-    return { id: String(it.uid), name: base.nameTh, graphic: art('gear',it.base), badge: it.grade + (it.upgrade ? ' · +'+it.upgrade : ''), grade: it.grade, color: data.items.grades.colors[it.grade], equipped: ch.equipped[base.slot] === it.uid, item: it };
+    return { id: String(it.uid), name: base.nameTh, graphic: art('gear',it.base), badge: it.grade + (it.upgrade ? ' · +'+it.upgrade : ''), grade: it.grade, color: data.items.grades.colors[it.grade], equipped: !!wornSlot(ch, data, it), item: it };
   });
   if (category === 'materials') list = mats.map(([id, count]) => {
     const m = data.items.materials[id];
@@ -51,7 +51,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
     if (category === 'gear') {
       const base = data.items.gearBases[it.base];
       const req = gearEquipState(ch, data, it);
-      const old = gearItem(ch, ch.equipped[base.slot]);
+      const old = gearItem(ch, ch.equipped[wornSlot(ch, data, it) || base.slot]);
       const up = gearUpgradeCost(data, it);
       content = ui.gearLine(it);
       if (old && old.uid !== it.uid) {
@@ -67,7 +67,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
       }
       if (!req.ok) content += `<p class="no">ต้อง ${req.missing.join(', ')}</p>`;
       actions = selected.equipped
-        ? `<span class="equipped-label">✓ สวมใส่อยู่</span>${base.slot !== 'weapon' ? `<button class="btn" data-act="unequip" data-slot="${base.slot}">ถอดอุปกรณ์</button>` : ''}`
+        ? `<span class="equipped-label">✓ สวมใส่อยู่</span>${wornSlot(ch, data, it) !== 'weapon' ? `<button class="btn" data-act="unequip" data-slot="${wornSlot(ch, data, it)}">ถอดอุปกรณ์</button>` : ''}`
         : `<button class="btn primary" data-act="equip-gear" data-uid="${it.uid}" ${req.ok ? '' : 'disabled'}>สวมใส่</button>`;
       if (up) {
         const state = gearUpgradeState(ch,data,it), preview = gearUpgradePreview(data,it);

@@ -258,3 +258,5 @@ body.ingame .field-xp .xpseg span {position:static;font-size:9px;line-height:1.2
 
 /* Keep authored skill colours intact; cooldown/disabled state remains on the button. */
 body.ingame #hud .sbtn .ic .art > svg {filter:none}
+body.ingame #hud .sbtn.noammo {filter:saturate(.25) brightness(.85);border-color:#e08a3a90}
+body.ingame #hud .sbtn.lowammo .skill-cost {color:#ffb36b}

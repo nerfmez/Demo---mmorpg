@@ -7,13 +7,23 @@ const plate=(points,depth=.018)=>{
  return new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false,steps:1}).translate(0,0,-depth/2).rotateX(Math.PI/2);
 };
 const tube=(pts,r=.016)=>new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p))),12,r,5,false);
-const add=(rb,g,c,pos=[0,0,0],extra={})=>rb.add('weapon',g,c,{pos,...extra});
+let BONE='weapon'; // the hand bone buildWeapon is writing to
+const add=(rb,g,c,pos=[0,0,0],extra={})=>rb.add(BONE,g,c,{pos,...extra});
 
-export function buildWeapon(rb,kind,id) {
+/** A weapon in the right hand (bone 'weapon'), or a second light weapon in the left ('offhand'). */
+export function buildWeapon(rb,kind,id,bone='weapon',hand='handR') {
  if(!kind)return;
- id ||= {sword:'rusty_sword',dagger:'fang_dagger',greatblade:'horn_greatblade',axe:'crag_axe',bow:'old_bow',staff:'apprentice_staff',wand:'spore_wand'}[kind];
- rb.bone('weapon','handR',[0,-.04,0]);
+ id ||= {sword:'rusty_sword',dagger:'fang_dagger',greatblade:'horn_greatblade',axe:'crag_axe',mace:'beetle_maul',bow:'old_bow',staff:'apprentice_staff',wand:'spore_wand'}[kind];
+ BONE=bone;
+ rb.bone(bone,hand,[0,-.04,0]);
  if(hasModel('weapons',id))return id; // an imported model is attached after rb.build()
+ if(kind==='mace'){
+  add(rb,rod(.024,.62),'#7a5a3e',[0,0,.22]);
+  add(rb,new THREE.DodecahedronGeometry(.105),'#5f7f5b',[0,0,.58]);
+  for(const [x,y,z] of [[.1,0,.6],[-.1,0,.6],[0,.1,.6],[0,-.1,.6],[0,0,.7]])add(rb,new THREE.ConeGeometry(.03,.07,5).rotateX(z>.65?Math.PI/2:0).rotateZ(x>0?-Math.PI/2:x<0?Math.PI/2:y<0?Math.PI:0),'#d9c9a0',[x,y,z]);
+  add(rb,new THREE.CylinderGeometry(.034,.034,.05,6),'#b29b67',[0,0,-.05]);
+  return;
+ }
  if(['sword','dagger','greatblade'].includes(kind)){
   const blades={
    rusty_sword:[[-.025,.08],[-.03,.64],[0,.87],[.034,.69],[.016,.57],[.034,.52],[.027,.08]],
@@ -109,3 +119,31 @@ export function equipmentDetails(rb,bases={}) {
  }
 }
 
+
+/** Left hand: a shield on the forearm, a quiver on the back for a bow. Light weapons use buildWeapon. */
+export function buildOffhand(rb,kind,id) {
+ if(kind==='shield'){
+  rb.bone('offhand','handL',[0,.06,0]);
+  const look={crab_shield:['#d4704c','#f4c79a',.24],beetle_buckler:['#5f8a5a','#d9c27b',.2],crag_tower_shield:['#7c8d90','#e8b867',.26]}[id]||['#8a6748','#d9c27b',.22];
+  const [face,trim,r]=look, tall=id==='crag_tower_shield'?1.6:1, sides=id==='crag_tower_shield'?6:14;
+  // Strapped to the forearm, face turned forward and a little outward so the top-down camera reads it.
+  const o={rot:[0,.55,0]};
+  rb.add('offhand',new THREE.CylinderGeometry(r,r*.94,.045,sides).rotateX(Math.PI/2).scale(1,tall,1),face,{...o,pos:[.05,0,.07]});
+  rb.add('offhand',new THREE.TorusGeometry(r*.97,.018,5,sides).scale(1,tall,1),trim,{...o,pos:[.06,0,.095]});
+  rb.add('offhand',new THREE.SphereGeometry(r*.24,8,6),trim,{...o,pos:[.07,0,.11]});
+ } else if(kind==='quiver'){
+  rb.add('chest',new THREE.CylinderGeometry(.07,.06,.5,8),'#7a5434',{pos:[-.13,.02,-.19],rot:[.2,0,.45]});
+  rb.add('chest',new THREE.TorusGeometry(.07,.012,4,10).rotateX(Math.PI/2),'#c9a46a',{pos:[-.03,.24,-.24],rot:[.2,0,.45],plain:true});
+  for(const [dx,dz] of [[0,0],[.03,.02],[-.03,.015]])rb.add('chest',new THREE.ConeGeometry(.022,.08,4),'#efe6cf',{pos:[-.02+dx,.3,-.25+dz],rot:[.2,0,.45],plain:true});
+ }
+}
+
+/** Gloves: a cuff and back-of-hand plate on both hands, coloured by look. */
+export function buildGloves(rb,look) {
+ if(!look)return;
+ const [c,trim]={hide:['#a8764a','#e4c491'],shell:['#d48a62','#e9d3b0'],pelt:['#7d8a96','#c9b48c'],wrap:['#e6e0cf','#9fb7c9'],plate:['#8b9896','#c9c5af']}[look]||['#a8764a','#e4c491'];
+ for(const h of ['handL','handR']){
+  rb.add(h,new THREE.CylinderGeometry(.05,.044,.06,8),c,{pos:[0,.03,0]});
+  rb.add(h,new THREE.TorusGeometry(.05,.01,4,10).rotateX(Math.PI/2),trim,{pos:[0,.06,0],plain:true});
+ }
+}

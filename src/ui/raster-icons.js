@@ -1,6 +1,53 @@
 // Only list PNGs that have actually been supplied, verified and included.
 // Unregistered IDs retain their existing authored SVG; never invent placeholders.
 export const RASTER_ICONS = Object.freeze({
+ "gear/beetle_maul": "assets/icons/gear/beetle_maul.png",
+ "gear/crab_shield": "assets/icons/gear/crab_shield.png",
+ "gear/beetle_buckler": "assets/icons/gear/beetle_buckler.png",
+ "gear/crag_tower_shield": "assets/icons/gear/crag_tower_shield.png",
+ "gear/hide_gloves": "assets/icons/gear/hide_gloves.png",
+ "gear/shell_mitts": "assets/icons/gear/shell_mitts.png",
+ "gear/wolf_grips": "assets/icons/gear/wolf_grips.png",
+ "gear/wisp_wraps": "assets/icons/gear/wisp_wraps.png",
+ "gear/crag_gauntlets": "assets/icons/gear/crag_gauntlets.png",
+ "gear/shell_knife": "assets/icons/gear/shell_knife.png",
+ "gear/tusk_club": "assets/icons/gear/tusk_club.png",
+ "gear/tusk_greatblade": "assets/icons/gear/tusk_greatblade.png",
+ "gear/tide_staff": "assets/icons/gear/tide_staff.png",
+ "gear/wolfbite_sword": "assets/icons/gear/wolfbite_sword.png",
+ "gear/venom_wand": "assets/icons/gear/venom_wand.png",
+ "gear/hermit_cleaver": "assets/icons/gear/hermit_cleaver.png",
+ "gear/spore_staff": "assets/icons/gear/spore_staff.png",
+ "gear/fang_bow": "assets/icons/gear/fang_bow.png",
+ "gear/frontier_kris": "assets/icons/gear/frontier_kris.png",
+ "gear/moonleaf_wand": "assets/icons/gear/moonleaf_wand.png",
+ "gear/ranger_axe": "assets/icons/gear/ranger_axe.png",
+ "gear/knight_greatsword": "assets/icons/gear/knight_greatsword.png",
+ "gear/tidecaller_staff": "assets/icons/gear/tidecaller_staff.png",
+ "gear/dusk_longbow": "assets/icons/gear/dusk_longbow.png",
+ "gear/kite_shield": "assets/icons/gear/kite_shield.png",
+ "gear/ranger_coat": "assets/icons/gear/ranger_coat.png",
+ "gear/ranger_hood": "assets/icons/gear/ranger_hood.png",
+ "gear/brigand_gloves": "assets/icons/gear/brigand_gloves.png",
+ "gear/trail_boots": "assets/icons/gear/trail_boots.png",
+ "gear/fang_talisman": "assets/icons/gear/fang_talisman.png",
+ "gear/stormglass_blade": "assets/icons/gear/stormglass_blade.png",
+ "gear/wisp_stiletto": "assets/icons/gear/wisp_stiletto.png",
+ "gear/lantern_wand": "assets/icons/gear/lantern_wand.png",
+ "gear/thunder_maul": "assets/icons/gear/thunder_maul.png",
+ "gear/galebreaker": "assets/icons/gear/galebreaker.png",
+ "gear/highland_shield": "assets/icons/gear/highland_shield.png",
+ "gear/gale_boots": "assets/icons/gear/gale_boots.png",
+ "gear/oathblade": "assets/icons/gear/oathblade.png",
+ "gear/ruin_fang": "assets/icons/gear/ruin_fang.png",
+ "gear/relic_wand": "assets/icons/gear/relic_wand.png",
+ "gear/skyrender_bow": "assets/icons/gear/skyrender_bow.png",
+ "arrow/feather_arrow": "assets/icons/arrow/feather_arrow.png",
+ "arrow/tusk_arrow": "assets/icons/arrow/tusk_arrow.png",
+ "arrow/hawk_arrow": "assets/icons/arrow/hawk_arrow.png",
+ "arrow/storm_arrow": "assets/icons/arrow/storm_arrow.png",
+ "arrow/hunter_arrow": "assets/icons/arrow/hunter_arrow.png",
+
  "material/greyfang_mane": "assets/icons/material/greyfang_mane.png",
  "material/warden_horn": "assets/icons/material/warden_horn.png",
  "material/ancient_core": "assets/icons/material/ancient_core.png",
@@ -78,7 +125,7 @@ export const RASTER_ICONS = Object.freeze({
  "gear/travel_boots": "assets/icons/gear/travel_boots.png",
  "gear/wisp_staff": "assets/icons/gear/wisp_staff.png"
 });
-export const EXPECTED_RASTER_KEYS = Object.freeze(["gear/rusty_sword", "gear/old_bow", "gear/apprentice_staff", "gear/tusk_blade", "gear/hunter_bow", "gear/fang_dagger", "gear/wisp_staff", "gear/spore_wand", "gear/crag_axe", "gear/storm_bow", "gear/greyfang_sabre", "gear/horn_greatblade", "gear/ancient_staff", "gear/travel_tunic", "gear/hide_vest", "gear/shell_guard", "gear/wolfpelt_coat", "gear/storm_mantle", "gear/crag_plate", "gear/leather_cap", "gear/beetle_helm", "gear/spore_hood", "gear/feather_circlet", "gear/horned_helm", "gear/travel_boots", "gear/wolf_boots", "gear/wisp_slippers", "gear/crag_greaves", "gear/tusk_charm", "gear/wisp_pendant", "gear/spore_amulet", "gear/feather_charm", "gear/golem_amulet", "gear/ancient_ring", "gear/crabshell_helm", "gear/tide_boots", "gear/pearl_pendant", "material/boar_hide", "material/boar_tusk", "material/beetle_shell", "material/venom_gland", "material/wisp_core", "material/glow_dust", "material/ruin_shard", "material/wolf_pelt", "material/wolf_fang", "material/spore_sac", "material/crag_stone", "material/golem_heart", "material/hawk_feather", "material/storm_quill", "material/greyfang_mane", "material/warden_horn", "material/ancient_core", "material/crab_shell", "material/sea_pearl", "material/salt_gel", "material/shore_feather", "material/hermit_fragment", "skill/slash", "skill/whirl_blade", "skill/hunter_shot", "skill/firebolt", "skill/chain_spark", "skill/stone_burst", "skill/frost_nova", "skill/venom_mire", "skill/hex", "skill/ward", "skill/war_cry", "skill/healing_spring", "skill/spirit_wolf", "skill/dash", "skill/roll", "skill/blink", "skill/leap"]);
+export const EXPECTED_RASTER_KEYS = Object.freeze(["gear/beetle_maul", "gear/crab_shield", "gear/beetle_buckler", "gear/crag_tower_shield", "gear/hide_gloves", "gear/shell_mitts", "gear/wolf_grips", "gear/wisp_wraps", "gear/crag_gauntlets", "gear/shell_knife", "gear/tusk_club", "gear/tusk_greatblade", "gear/tide_staff", "gear/wolfbite_sword", "gear/venom_wand", "gear/hermit_cleaver", "gear/spore_staff", "gear/fang_bow", "gear/frontier_kris", "gear/moonleaf_wand", "gear/ranger_axe", "gear/knight_greatsword", "gear/tidecaller_staff", "gear/dusk_longbow", "gear/kite_shield", "gear/ranger_coat", "gear/ranger_hood", "gear/brigand_gloves", "gear/trail_boots", "gear/fang_talisman", "gear/stormglass_blade", "gear/wisp_stiletto", "gear/lantern_wand", "gear/thunder_maul", "gear/galebreaker", "gear/highland_shield", "gear/gale_boots", "gear/oathblade", "gear/ruin_fang", "gear/relic_wand", "gear/skyrender_bow", "arrow/feather_arrow", "arrow/tusk_arrow", "arrow/hawk_arrow", "arrow/storm_arrow", "arrow/hunter_arrow", "gear/rusty_sword", "gear/old_bow", "gear/apprentice_staff", "gear/tusk_blade", "gear/hunter_bow", "gear/fang_dagger", "gear/wisp_staff", "gear/spore_wand", "gear/crag_axe", "gear/storm_bow", "gear/greyfang_sabre", "gear/horn_greatblade", "gear/ancient_staff", "gear/travel_tunic", "gear/hide_vest", "gear/shell_guard", "gear/wolfpelt_coat", "gear/storm_mantle", "gear/crag_plate", "gear/leather_cap", "gear/beetle_helm", "gear/spore_hood", "gear/feather_circlet", "gear/horned_helm", "gear/travel_boots", "gear/wolf_boots", "gear/wisp_slippers", "gear/crag_greaves", "gear/tusk_charm", "gear/wisp_pendant", "gear/spore_amulet", "gear/feather_charm", "gear/golem_amulet", "gear/ancient_ring", "gear/crabshell_helm", "gear/tide_boots", "gear/pearl_pendant", "material/boar_hide", "material/boar_tusk", "material/beetle_shell", "material/venom_gland", "material/wisp_core", "material/glow_dust", "material/ruin_shard", "material/wolf_pelt", "material/wolf_fang", "material/spore_sac", "material/crag_stone", "material/golem_heart", "material/hawk_feather", "material/storm_quill", "material/greyfang_mane", "material/warden_horn", "material/ancient_core", "material/crab_shell", "material/sea_pearl", "material/salt_gel", "material/shore_feather", "material/hermit_fragment", "skill/slash", "skill/whirl_blade", "skill/hunter_shot", "skill/firebolt", "skill/chain_spark", "skill/stone_burst", "skill/frost_nova", "skill/venom_mire", "skill/hex", "skill/ward", "skill/war_cry", "skill/healing_spring", "skill/spirit_wolf", "skill/dash", "skill/roll", "skill/blink", "skill/leap"]);
 const allowed = new Set(EXPECTED_RASTER_KEYS);
 export function rasterIconUrl(kind, id, registry = RASTER_ICONS, base = import.meta.env?.BASE_URL || '/') {
  const key = kind + '/' + id, path = registry[key];

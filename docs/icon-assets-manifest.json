@@ -2124,11 +2124,1530 @@
       "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
       "source_library_file_id": "libfile_dd80b877a1748191becd7bed6c54c246",
       "raw_source_sha256": "52a0e2f962acdd0b73828b9c51cc06c55bd329eaff0ff5df0d80279dd90153a7"
+    },
+    {
+      "key": "gear/beetle_maul",
+      "path": "assets/icons/gear/beetle_maul.png",
+      "sha256": "bd36416bf7058aa0a61c521f512ba84a25cb8b9a2d87f1814e10f185f6d28057",
+      "bytes": 265420,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          1,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          57,
+          29,
+          448,
+          401
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/crab_shield",
+      "path": "assets/icons/gear/crab_shield.png",
+      "sha256": "9792951ae3db648c21dc75184bc874af1c2ce4954d99fef7a987cd2f816293dd",
+      "bytes": 442649,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          1,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          452,
+          24,
+          826,
+          415
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/beetle_buckler",
+      "path": "assets/icons/gear/beetle_buckler.png",
+      "sha256": "7bfcf1c1bdc1c0e229dd290a2b89550a68b94be7150ea8a3f05463b14335cc6c",
+      "bytes": 425019,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          1,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          911,
+          51,
+          1192,
+          402
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/crag_tower_shield",
+      "path": "assets/icons/gear/crag_tower_shield.png",
+      "sha256": "039cfd6f68fe64bbe543c702855cfe8d20692086912b8b6ccc9809fefecc1aaf",
+      "bytes": 343808,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          2,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          103,
+          400,
+          364,
+          832
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/hide_gloves",
+      "path": "assets/icons/gear/hide_gloves.png",
+      "sha256": "eb785e134526a473aa8dff68506da108684a7ad6e3ef92bae3471056a465deab",
+      "bytes": 385862,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-06-corrections-unsliced.png",
+        "source_sheet_sha256": "53ec0ab60eedfc15bb4f9f35be0241192bda498e1e19b38a27902f052c09bde4",
+        "cell": [
+          2,
+          1
+        ],
+        "grid": 2,
+        "extraction_bounds": [
+          45,
+          689,
+          622,
+          1208
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/shell_mitts",
+      "path": "assets/icons/gear/shell_mitts.png",
+      "sha256": "998ea43ae210ea0dfe4f74241f5bed0884e523e5d43ba7b95bfdec9bac97ea2c",
+      "bytes": 497729,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          2,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          854,
+          449,
+          1219,
+          818
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/wolf_grips",
+      "path": "assets/icons/gear/wolf_grips.png",
+      "sha256": "1c4bd9aa4f67311c984e7e490dd7dedbf031339e28a261dae598219f01563015",
+      "bytes": 455215,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          3,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          28,
+          842,
+          434,
+          1217
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/wisp_wraps",
+      "path": "assets/icons/gear/wisp_wraps.png",
+      "sha256": "7f97ce031701c041928e9d94b83a586e5f3018e20d33e824a271aa0a57a19d04",
+      "bytes": 378165,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-06-corrections-unsliced.png",
+        "source_sheet_sha256": "53ec0ab60eedfc15bb4f9f35be0241192bda498e1e19b38a27902f052c09bde4",
+        "cell": [
+          1,
+          2
+        ],
+        "grid": 2,
+        "extraction_bounds": [
+          648,
+          132,
+          1207,
+          615
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/crag_gauntlets",
+      "path": "assets/icons/gear/crag_gauntlets.png",
+      "sha256": "933210ef2c6a3ab1d9bad1113db061aa3dbfd519bf5420ee01d05d8f7d310d5b",
+      "bytes": 507372,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-01-DRAFT-unsliced.png",
+        "source_sheet_sha256": "eae734c289e0246efb2d3ced6b6dad4c1bc41fef2d80b30db32f4c8c9de40fce",
+        "cell": [
+          3,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          869,
+          850,
+          1227,
+          1201
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/shell_knife",
+      "path": "assets/icons/gear/shell_knife.png",
+      "sha256": "ee0116c83bea4214d3b1c3a2afbbe4cc22f1ea01e1314be333058870b58117af",
+      "bytes": 232486,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          1,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          50,
+          76,
+          388,
+          397
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/tusk_club",
+      "path": "assets/icons/gear/tusk_club.png",
+      "sha256": "59f8cbda1714a4070dcfdef6e1dbb856152dd95f0a6aec8231839c68b98ae5a9",
+      "bytes": 267315,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          1,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          446,
+          29,
+          835,
+          404
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/tusk_greatblade",
+      "path": "assets/icons/gear/tusk_greatblade.png",
+      "sha256": "c639a928628a64034350a6b92cf814178ea3f1eb3adbb5f642d1cfa4fd99c7ea",
+      "bytes": 180861,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          1,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          853,
+          23,
+          1224,
+          412
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/tide_staff",
+      "path": "assets/icons/gear/tide_staff.png",
+      "sha256": "5d60af593ab8dd521ee67820d749ba8f161e536cab8dc7193785c914584fa9a8",
+      "bytes": 192342,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          2,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          35,
+          423,
+          435,
+          823
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/wolfbite_sword",
+      "path": "assets/icons/gear/wolfbite_sword.png",
+      "sha256": "b56c7a6008f0b9bef0b009e0777bff8dbbfb74a121b2ef2224df2acd75883361",
+      "bytes": 170289,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          2,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          467,
+          422,
+          822,
+          835
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/venom_wand",
+      "path": "assets/icons/gear/venom_wand.png",
+      "sha256": "a5d13af427d872e1071fe4214eb94f2b80be96bc18263a095eb0533f6ecc26d3",
+      "bytes": 171914,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          2,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          883,
+          437,
+          1222,
+          821
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/hermit_cleaver",
+      "path": "assets/icons/gear/hermit_cleaver.png",
+      "sha256": "bd57396e967618400a03ad31958cccb5c76ba565c2e5a058c35e62d21f3df4be",
+      "bytes": 308864,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          3,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          30,
+          831,
+          424,
+          1224
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/spore_staff",
+      "path": "assets/icons/gear/spore_staff.png",
+      "sha256": "8c94d2b9e3e0b23ec0edc094e03fc43265ebef596bdfd9453b143513f211e901",
+      "bytes": 218589,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          3,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          444,
+          835,
+          832,
+          1231
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/fang_bow",
+      "path": "assets/icons/gear/fang_bow.png",
+      "sha256": "61f1493ab7a1a64603d5613749e05065b6a94fd8c135840abb095a812335259e",
+      "bytes": 173056,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-02-DRAFT-unsliced.png",
+        "source_sheet_sha256": "ce8a803953196d56a2671799e69c39ec020cdbe99c217180ea790cc3e3d84c6f",
+        "cell": [
+          3,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          850,
+          827,
+          1234,
+          1216
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/frontier_kris",
+      "path": "assets/icons/gear/frontier_kris.png",
+      "sha256": "a8fa21a58f2e63cdc27bb7d288ba8277df689eda84c8c19049ff157622b8c489",
+      "bytes": 172675,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          1,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          56,
+          8,
+          447,
+          411
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/moonleaf_wand",
+      "path": "assets/icons/gear/moonleaf_wand.png",
+      "sha256": "b057f2dc4447906fcb291e99f1ceba3468b295eff68dc4f06dbc59aa3d6e4e00",
+      "bytes": 164760,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          1,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          457,
+          19,
+          849,
+          415
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/ranger_axe",
+      "path": "assets/icons/gear/ranger_axe.png",
+      "sha256": "514588336b525f21f8d75f7dba46b25e4a79f73db98e1944f13be48a8db4eec5",
+      "bytes": 252749,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          1,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          867,
+          12,
+          1243,
+          415
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/knight_greatsword",
+      "path": "assets/icons/gear/knight_greatsword.png",
+      "sha256": "6cfe2a363ab2b26a68e118dace8e5c776973e85a8460380111404782acda5a40",
+      "bytes": 176013,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          2,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          31,
+          426,
+          427,
+          821
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/tidecaller_staff",
+      "path": "assets/icons/gear/tidecaller_staff.png",
+      "sha256": "c24317920f3e074618c3ea7165491de928fbe745e1cdfa2d2975e0569cc7f423",
+      "bytes": 143420,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          2,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          452,
+          416,
+          828,
+          827
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/dusk_longbow",
+      "path": "assets/icons/gear/dusk_longbow.png",
+      "sha256": "55e3bae52b1659ef2571ba8b612f40bc8b7d5b4adef73e0e4270aa48a3425c1b",
+      "bytes": 126747,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          2,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          861,
+          420,
+          1228,
+          815
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/kite_shield",
+      "path": "assets/icons/gear/kite_shield.png",
+      "sha256": "c4be6db4b3351b8be32c76bb435c65b7516e74dd1374e20f108529dc06f15596",
+      "bytes": 295459,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          3,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          83,
+          820,
+          343,
+          1219
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/ranger_coat",
+      "path": "assets/icons/gear/ranger_coat.png",
+      "sha256": "ab624986388024f6581b141cfa055e7eb8eee54a70eb10a87030abeabaef5da7",
+      "bytes": 381985,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          3,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          452,
+          823,
+          789,
+          1230
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/ranger_hood",
+      "path": "assets/icons/gear/ranger_hood.png",
+      "sha256": "2fcd10a64b508acd067b4b8be8319293b32acaf740aa4cb513a3e7986eee689b",
+      "bytes": 361975,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-03-DRAFT-unsliced.png",
+        "source_sheet_sha256": "dab985cad354bbfeb07d1b713dc4e3cd3879aa9f9f66fea6421dd4cf3a46a80b",
+        "cell": [
+          3,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          852,
+          837,
+          1228,
+          1223
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/brigand_gloves",
+      "path": "assets/icons/gear/brigand_gloves.png",
+      "sha256": "79b7918ac32cae3675479265d765852588fd2f7414c54d99e0b6c7afded28095",
+      "bytes": 354587,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          1,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          28,
+          33,
+          447,
+          401
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/trail_boots",
+      "path": "assets/icons/gear/trail_boots.png",
+      "sha256": "929cd2331dd55f3675d10ff03891fb3eccccff7c0d1d77656db694629bf939ae",
+      "bytes": 469768,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          1,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          457,
+          27,
+          817,
+          400
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/fang_talisman",
+      "path": "assets/icons/gear/fang_talisman.png",
+      "sha256": "b0e68fdb9396c5e9939b38dc5cf286d3dca6fe1493f90cb50fee34a3cb056438",
+      "bytes": 176240,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-06-corrections-unsliced.png",
+        "source_sheet_sha256": "53ec0ab60eedfc15bb4f9f35be0241192bda498e1e19b38a27902f052c09bde4",
+        "cell": [
+          2,
+          2
+        ],
+        "grid": 2,
+        "extraction_bounds": [
+          779,
+          659,
+          1118,
+          1205
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/stormglass_blade",
+      "path": "assets/icons/gear/stormglass_blade.png",
+      "sha256": "8f5c182053360bf563cce11a2f12a83a63a91d3e34a4ad2f5db22f07d56ab223",
+      "bytes": 138925,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          2,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          19,
+          395,
+          495,
+          820
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/wisp_stiletto",
+      "path": "assets/icons/gear/wisp_stiletto.png",
+      "sha256": "131337135f8d2a6c0d4fe9d71f05166ec2099e22c82fa4c80d0a20f62ad03bba",
+      "bytes": 122825,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          2,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          474,
+          440,
+          870,
+          818
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/lantern_wand",
+      "path": "assets/icons/gear/lantern_wand.png",
+      "sha256": "e0a8d79bba4eda4d704bcab62395ac03f85dcef401008e741186b7b2b798b445",
+      "bytes": 167696,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          2,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          923,
+          425,
+          1236,
+          812
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/thunder_maul",
+      "path": "assets/icons/gear/thunder_maul.png",
+      "sha256": "cc66425e07473384006f2b6a9174b4494fc9dc9451f65f1c5fa83a47453aa665",
+      "bytes": 250543,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          3,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          22,
+          808,
+          462,
+          1228
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/galebreaker",
+      "path": "assets/icons/gear/galebreaker.png",
+      "sha256": "cd42ec33cae75e65109a2624554d071ebc8440507c99a8427fca06e8ab8d426d",
+      "bytes": 180657,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          3,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          391,
+          799,
+          864,
+          1212
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/highland_shield",
+      "path": "assets/icons/gear/highland_shield.png",
+      "sha256": "f5b6e535fdd5260e226ca605b18dd7b55619b18a12422b26059118afbb723a07",
+      "bytes": 422390,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-04-DRAFT-unsliced.png",
+        "source_sheet_sha256": "6e00e30ff12c8c34cf18b97fc0d20b971db71ecd3e55ca307562bea20fd68356",
+        "cell": [
+          3,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          899,
+          819,
+          1241,
+          1228
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/gale_boots",
+      "path": "assets/icons/gear/gale_boots.png",
+      "sha256": "7abbe54fcdfe259f2eb04f8051e52b4f7258a9344e60234353d79be2bcc5d890",
+      "bytes": 456917,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          1,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          46,
+          72,
+          414,
+          404
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/oathblade",
+      "path": "assets/icons/gear/oathblade.png",
+      "sha256": "654431b7691f33e8c5b9c84f127357bedad4bab84663ae1ccff787b8d0b8ab0a",
+      "bytes": 168069,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          1,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          481,
+          37,
+          813,
+          410
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/ruin_fang",
+      "path": "assets/icons/gear/ruin_fang.png",
+      "sha256": "60eba7137550a86c5199f8aac3071515edd97e976e388a3a8f43cf0b2c4a41c8",
+      "bytes": 217777,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          1,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          891,
+          45,
+          1208,
+          418
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/relic_wand",
+      "path": "assets/icons/gear/relic_wand.png",
+      "sha256": "a39bfacefbd046997bdcd5874415ac57a72465242e994da99cf4cbbac1556d64",
+      "bytes": 231569,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          2,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          68,
+          448,
+          379,
+          818
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "gear/skyrender_bow",
+      "path": "assets/icons/gear/skyrender_bow.png",
+      "sha256": "8e63b4e80a6a92b193d32b7b40650721e3819f9347e6e1ce523d2f559085f9c5",
+      "bytes": 172989,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          2,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          465,
+          421,
+          813,
+          815
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "arrow/feather_arrow",
+      "path": "assets/icons/arrow/feather_arrow.png",
+      "sha256": "6ed8092ff3b583cf18740523369af5e7a8173f3041bc48613fcf4257d7765889",
+      "bytes": 220313,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          2,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          867,
+          468,
+          1227,
+          813
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "arrow/tusk_arrow",
+      "path": "assets/icons/arrow/tusk_arrow.png",
+      "sha256": "23f3c62e6e8f2feaa37cb4110dbb820c61e5f671aa365eb893da4a6086aefe44",
+      "bytes": 244923,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          3,
+          1
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          47,
+          858,
+          407,
+          1222
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "arrow/hawk_arrow",
+      "path": "assets/icons/arrow/hawk_arrow.png",
+      "sha256": "2d7adf6ada368cbb6528d50f918aa00450b12f4093c428f7140798912da19a52",
+      "bytes": 271161,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          3,
+          2
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          461,
+          862,
+          811,
+          1216
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "arrow/storm_arrow",
+      "path": "assets/icons/arrow/storm_arrow.png",
+      "sha256": "e6c12a31a23813eb61194979c08f75b9665dfcfc14a74c2fd1f7b10735b98dff",
+      "bytes": 256342,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-05-DRAFT-unsliced.png",
+        "source_sheet_sha256": "db4079baf9b981b0b11c5bf868b65f25ee541f682f88c8adb934ef2e542bcc2e",
+        "cell": [
+          3,
+          3
+        ],
+        "grid": 3,
+        "extraction_bounds": [
+          884,
+          857,
+          1221,
+          1223
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
+    },
+    {
+      "key": "arrow/hunter_arrow",
+      "path": "assets/icons/arrow/hunter_arrow.png",
+      "sha256": "12226bb428e8c12819fc87c46adbc078608993f46b96cbc5cb0c2b856ca4e7a5",
+      "bytes": 203535,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "batch-06-corrections-unsliced.png",
+        "source_sheet_sha256": "53ec0ab60eedfc15bb4f9f35be0241192bda498e1e19b38a27902f052c09bde4",
+        "cell": [
+          1,
+          1
+        ],
+        "grid": 2,
+        "extraction_bounds": [
+          57,
+          62,
+          640,
+          630
+        ],
+        "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
+        "reference": "Approved repository gear/material raster icons"
+      }
     }
   ],
   "pending_count": 0,
   "preservation": "The 59 original gear/material PNG files remain unchanged at 512px. The 17 skill PNGs were replaced locally with reviewed 1254px transparent reference edits; original delivery provenance and pre-edit hashes are retained for reversal.",
   "integration_base_commit": "8778cebd9c526e3f4f629c255411a8dea4bfd533",
   "transparency_edit_base_commit": "5b321e051458aafddbef1cd01bc5c7f339c603e7",
-  "skill_delivery": "512px transparent delivery PNGs; unchanged 1254px approved masters retained outside public/ in assets-source/skills/"
+  "skill_delivery": "512px transparent delivery PNGs; unchanged 1254px approved masters retained outside public/ in assets-source/skills/",
+  "expanded_items_source_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac"
 }

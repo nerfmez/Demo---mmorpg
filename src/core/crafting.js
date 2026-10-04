@@ -1,5 +1,6 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
 import { gearStats, gearRequirements, gearPower, enforceEquipment, meetsRequires } from './character.js';
+import { equipmentItemLevel, validModGrade } from './item-metadata.js';
 
 export function canAfford(ch, cost) {
   for (const k in cost) {
@@ -44,7 +45,7 @@ export function rollGear(data, recipe, rng) {
     const def = data.items.gearOptions[id];
     options.push({ id, value: rng.int(def.min, def.max) });
   }
-  return { base: recipe.result, grade, upgrade: 0, options };
+  return { base: recipe.result, itemLevel: equipmentItemLevel(data, {base:recipe.result, itemLevel:recipe.itemLevel}), grade, upgrade: 0, options };
 }
 
 /** Craft a recipe. Returns {ok, kind, item?} */
@@ -67,7 +68,7 @@ export function craft(ch, data, recipeId, rng) {
     return { ok: true, kind: 'movement', id: r.result };
   }
   if (r.type === 'mod') {
-    const item = { uid: ch.nextUid++, id: r.result, level: 1 };
+    const item = { uid: ch.nextUid++, id: r.result, level: 1, grade: validModGrade(data, r.grade) };
     ch.mods.push(item);
     return { ok: true, kind: 'mod', item };
   }

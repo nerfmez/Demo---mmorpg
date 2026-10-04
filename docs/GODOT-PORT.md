@@ -95,6 +95,15 @@ affixes, consume RNG or repeat the fill after v4. Invalidated equipped gear stay
 in the bag. The slot envelope remains version 2. `/lab/` uses separate storage keys;
 exported main codes can be imported without overwriting main-game saves.
 
+Equipment instances persist `itemLevel` from the exact gear recipe; starters use 1.
+Legacy instances without a valid positive integer use the conservative base level.
+Mod instances persist C/B/A/S `grade` from the authored mod recipe, independently
+of mod `level`; missing/invalid legacy grades become C. Normalize these optional
+fields on every migration without consuming RNG or changing map records. Preserve
+valid existing values. Neither field affects combat, prices, costs, stat wear gates
+or drops. Upgrades retain both fields. UI colors only mod names by grade; coin
+materials continue to encode attack/mechanic/support. See [the initial mapping](ITEM-METADATA-2026-10-04.md).
+
 Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports five.
 Grade promotion retains existing rolls and +N, adding one unique affix. Enhancement
 +1..+5 changes base stats by 4% per step. Both upgrades use materials/gold only: no

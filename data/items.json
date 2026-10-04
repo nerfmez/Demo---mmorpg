@@ -1,5 +1,5 @@
 {
-  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) is separate from Grade and uses ruin_shard. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam.",
+  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) is separate from Grade and uses ruin_shard. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam. Equipment itemLevel is persistent progression metadata, independent of grade, +N and stat wear requirements.",
   "materials": {
     "boar_hide": {
       "name": "Boar Hide",
@@ -236,7 +236,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "STR"
+      "requirementStat": "STR",
+      "itemLevel": 1
     },
     "old_bow": {
       "name": "Old Bow",
@@ -257,7 +258,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "DEX"
+      "requirementStat": "DEX",
+      "itemLevel": 1
     },
     "apprentice_staff": {
       "name": "Apprentice Staff",
@@ -278,7 +280,8 @@
         "mp_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 1
     },
     "tusk_blade": {
       "name": "Tusk Blade",
@@ -301,7 +304,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "boar_tusk",
-      "requirementStat": "STR"
+      "requirementStat": "STR",
+      "itemLevel": 1
     },
     "hunter_bow": {
       "name": "Hunter Bow",
@@ -324,7 +328,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "boar_tusk",
-      "requirementStat": "DEX"
+      "requirementStat": "DEX",
+      "itemLevel": 1
     },
     "fang_dagger": {
       "name": "Fang Dagger",
@@ -347,7 +352,8 @@
         "melee_pct"
       ],
       "upgradeMaterial": "wolf_fang",
-      "requirementStat": "DEX"
+      "requirementStat": "DEX",
+      "itemLevel": 3
     },
     "wisp_staff": {
       "name": "Wisp Staff",
@@ -371,7 +377,8 @@
         "heal_pct"
       ],
       "upgradeMaterial": "wisp_core",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 5
     },
     "spore_wand": {
       "name": "Spore Wand",
@@ -394,7 +401,8 @@
         "cdr_pct"
       ],
       "upgradeMaterial": "spore_sac",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 2
     },
     "crag_axe": {
       "name": "Crag Axe",
@@ -417,7 +425,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "STR"
+      "requirementStat": "STR",
+      "itemLevel": 6
     },
     "storm_bow": {
       "name": "Storm Bow",
@@ -440,7 +449,8 @@
         "cdr_pct"
       ],
       "upgradeMaterial": "storm_quill",
-      "requirementStat": "DEX"
+      "requirementStat": "DEX",
+      "itemLevel": 4
     },
     "greyfang_sabre": {
       "name": "Greyfang Sabre",
@@ -464,7 +474,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "greyfang_mane",
-      "requirementStat": "AGI"
+      "requirementStat": "AGI",
+      "itemLevel": 5
     },
     "horn_greatblade": {
       "name": "Horn Greatblade",
@@ -487,7 +498,8 @@
         "defense_flat"
       ],
       "upgradeMaterial": "warden_horn",
-      "requirementStat": "STR"
+      "requirementStat": "STR",
+      "itemLevel": 9
     },
     "ancient_staff": {
       "name": "Ancient Core Staff",
@@ -511,7 +523,8 @@
         "mp_flat"
       ],
       "upgradeMaterial": "ancient_core",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 9
     },
     "travel_tunic": {
       "name": "Travel Tunic",
@@ -532,7 +545,8 @@
         "regen_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 1
     },
     "hide_vest": {
       "name": "Hide Vest",
@@ -553,7 +567,8 @@
         "regen_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 1
     },
     "shell_guard": {
       "name": "Shell Guard",
@@ -576,7 +591,8 @@
         "regen_flat"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 2
     },
     "wolfpelt_coat": {
       "name": "Wolfpelt Coat",
@@ -598,7 +614,8 @@
         "barrier_pct"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 3
     },
     "storm_mantle": {
       "name": "Storm Mantle",
@@ -622,7 +639,8 @@
         "magic_flat"
       ],
       "upgradeMaterial": "hawk_feather",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 4
     },
     "crag_plate": {
       "name": "Crag Plate",
@@ -645,7 +663,8 @@
         "move_pct"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 6
     },
     "leather_cap": {
       "name": "Leather Cap",
@@ -666,7 +685,8 @@
         "regen_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 1
     },
     "beetle_helm": {
       "name": "Beetle Helm",
@@ -689,7 +709,8 @@
         "move_pct"
       ],
       "upgradeMaterial": "beetle_shell",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 2
     },
     "spore_hood": {
       "name": "Spore Hood",
@@ -710,7 +731,8 @@
         "magic_flat"
       ],
       "upgradeMaterial": "spore_sac",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 2
     },
     "feather_circlet": {
       "name": "Feather Circlet",
@@ -732,7 +754,8 @@
         "magic_flat"
       ],
       "upgradeMaterial": "hawk_feather",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 2
     },
     "horned_helm": {
       "name": "Horned Helm",
@@ -756,7 +779,8 @@
         "barrier_pct"
       ],
       "upgradeMaterial": "warden_horn",
-      "requirementStat": "STR"
+      "requirementStat": "STR",
+      "itemLevel": 9
     },
     "travel_boots": {
       "name": "Travel Boots",
@@ -776,7 +800,8 @@
         "regen_flat"
       ],
       "upgradeMaterial": "boar_hide",
-      "requirementStat": "AGI"
+      "requirementStat": "AGI",
+      "itemLevel": 1
     },
     "wolf_boots": {
       "name": "Wolf Boots",
@@ -796,7 +821,8 @@
         "hp_flat"
       ],
       "upgradeMaterial": "wolf_pelt",
-      "requirementStat": "AGI"
+      "requirementStat": "AGI",
+      "itemLevel": 3
     },
     "wisp_slippers": {
       "name": "Wisp Slippers",
@@ -816,7 +842,8 @@
         "hp_flat"
       ],
       "upgradeMaterial": "glow_dust",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 1
     },
     "crag_greaves": {
       "name": "Crag Greaves",
@@ -838,7 +865,8 @@
         "cdr_pct"
       ],
       "upgradeMaterial": "crag_stone",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 6
     },
     "tusk_charm": {
       "name": "Tusk Charm",
@@ -857,7 +885,8 @@
         "defense_flat"
       ],
       "upgradeMaterial": "boar_tusk",
-      "requirementStat": "DEX"
+      "requirementStat": "DEX",
+      "itemLevel": 1
     },
     "wisp_pendant": {
       "name": "Wisp Pendant",
@@ -877,7 +906,8 @@
         "heal_pct"
       ],
       "upgradeMaterial": "wisp_core",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 5
     },
     "spore_amulet": {
       "name": "Spore Amulet",
@@ -897,7 +927,8 @@
         "mp_flat"
       ],
       "upgradeMaterial": "spore_sac",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 2
     },
     "feather_charm": {
       "name": "Feather Charm",
@@ -917,7 +948,8 @@
         "attack_flat"
       ],
       "upgradeMaterial": "hawk_feather",
-      "requirementStat": "AGI"
+      "requirementStat": "AGI",
+      "itemLevel": 4
     },
     "golem_amulet": {
       "name": "Golem Heart Amulet",
@@ -937,7 +969,8 @@
         "crit_pct"
       ],
       "upgradeMaterial": "golem_heart",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 6
     },
     "ancient_ring": {
       "name": "Ancient Ring",
@@ -958,7 +991,8 @@
         "leech_pct"
       ],
       "upgradeMaterial": "ancient_core",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 9
     },
     "crabshell_helm": {
       "name": "Crabshell Helm",
@@ -981,7 +1015,8 @@
         "move_pct"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "VIT"
+      "requirementStat": "VIT",
+      "itemLevel": 1
     },
     "tide_boots": {
       "name": "Tide Walkers",
@@ -1003,7 +1038,8 @@
         "mp_flat"
       ],
       "upgradeMaterial": "crab_shell",
-      "requirementStat": "AGI"
+      "requirementStat": "AGI",
+      "itemLevel": 1
     },
     "pearl_pendant": {
       "name": "Pearl Pendant",
@@ -1026,7 +1062,8 @@
         "summon_pct"
       ],
       "upgradeMaterial": "sea_pearl",
-      "requirementStat": "INT"
+      "requirementStat": "INT",
+      "itemLevel": 1
     }
   },
   "gearOptions": {

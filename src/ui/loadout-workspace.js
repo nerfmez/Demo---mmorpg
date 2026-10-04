@@ -1,5 +1,5 @@
 import {art} from './art.js';
-import {equip, unequip, gearStats, gearEquipState, meetsRequires, weaponImplicit, handsOf, wornSlot, arrowInUse, arrowTotal} from '../core/character.js';
+import {equip, unequip, gearStats, gearEquipState, meetsRequires, weaponImplicit, handsOf, wornSlot, arrowInUse, arrowTotal, chooseArrows} from '../core/character.js';
 import {powerOf, powerDelta} from '../core/power.js';
 import {sellGear, salvageGear, salvageMany, toggleGearLock, gearSellValue, salvageReturn, gearDisposalBlocker} from '../core/crafting.js';
 import {equipmentItemLevel} from '../core/item-metadata.js';
@@ -29,7 +29,7 @@ const modName=(inst,tag='b')=>`<${tag} class="mod-name" ${gradeStyle(inst?.grade
 const itemLevel=it=>`<span class="item-level" data-item-level="${equipmentItemLevel(data,it)}" title="เลเวลอุปกรณ์ · สวมใส่ตามสเตตัส">Lv. ${equipmentItemLevel(data,it)}</span>`;
 const HAND_REASON={two_hand:'ถืออาวุธสองมืออยู่ · มือซ้ายว่างไม่ได้',needs_light:'มือซ้ายถืออาวุธได้เมื่อมือขวาเป็นอาวุธเบา',slot:'ช่องนี้ใส่ของชิ้นนี้ไม่ได้',requires_pair:'สเตตัสไม่พอสำหรับถือสองมือ (รีเควสรวมสองชิ้น)',requires:'สเตตัสไม่ถึง',weapon:'มือขวาต้องถืออาวุธเสมอ',equipped:'สวมใส่อยู่',locked:'ล็อกอยู่'};
 const weaponNames=d=>d.requiresWeapon.map(w=>data.items.weaponTypes[w]?.nameTh||w).join(' / ');
-const statName={attack:'โจมตี',magic:'พลังเวท',defense:'ป้องกัน',maxHp:'HP',moveSpeedPct:'เร็ว %',critChancePct:'คริ %',spellDamagePct:'เวท %',meleeDamagePct:'ประชิด %'};
+const statName={attack:'โจมตี',magic:'พลังเวท',defense:'ป้องกัน',maxHp:'HP',moveSpeedPct:'เร็ว %',critChancePct:'คริ %',spellDamagePct:'เวท %',meleeDamagePct:'ประชิด %',projectileDamagePct:'กระสุน %'};
 // The icon release owns all painted assets and the central art() resolver.
 function picture(kind,id){return `<span class="object-art">${art(kind,id)}</span>`;}
 function emptyShelf(message){return `<section class="selection-shelf empty-selection"><h2>${message}</h2><span>เลือกวัตถุจากคลัง</span></section>`;}
@@ -172,7 +172,12 @@ root.addEventListener('click',e=>{
   case 'sell-gear':{const it=ch.gear.find(i=>i.uid===selected),name=data.items.gearBases[it.base].nameTh;if(['A','S'].includes(it.grade)&&pending?.kind!=='sell'){pending={kind:'sell',uid:it.uid};dialog('ขาย '+name+' เกรด '+it.grade+'?',`<p>ได้ ${gearSellValue(data,it)} G · ขายแล้วเอาคืนไม่ได้</p>`,'sell-gear','ขาย');break;}const r=sellGear(ch,data,pending?.uid||selected);closeDialog();finish(r,'ขาย '+name+' ได้ '+(r.gold||0)+' G');break;}
   case 'salvage-gear':{const it=ch.gear.find(i=>i.uid===selected),name=data.items.gearBases[it.base].nameTh,back=salvageReturn(data,it),list=Object.entries(back).map(([k,n])=>data.items.materials[k].nameTh+' ×'+n).join(' · ');if(['A','S'].includes(it.grade)&&pending?.kind!=='salvage'){pending={kind:'salvage',uid:it.uid};dialog('ย่อย '+name+' เกรด '+it.grade+'?',`<p>ได้ ${list} · ย่อยแล้วเอาคืนไม่ได้</p>`,'salvage-gear','ย่อย');break;}const r=salvageGear(ch,data,pending?.uid||selected);closeDialog();finish(r,'ย่อย '+name+' ได้ '+list);break;}
   case 'salvage-c':{const r=salvageMany(ch,data,['C']);finish(r.ok?r:{ok:false,reason:'ไม่มีเกรด C ที่ย่อยได้'},'ย่อยเกรด C '+r.count+' ชิ้น');break;}
-  case 'arrows':ui.sel.craft='arrow';ui.open('craft');break;
+  case 'arrows':{
+   // Choose which stocked arrows to shoot, or go craft more (crafting works outside town).
+   const use=arrowInUse(ch,data),rows=Object.entries(data.items.arrows.types).map(([id,t])=>{const n=ch.arrows.stock[id]||0,stats=Object.entries(t.stats).map(([k,v])=>(statName[k]||k)+' +'+v).join(' · ')||'ลูกธนูพื้นฐาน';return `<div class="arrow-row ${id===use?'active':''}"><span><b>${t.nameTh}</b><small>${stats} · เหลือ ${n}</small></span>${id===use?'<em>ใช้อยู่</em>':btn('ใช้ลูกนี้','use-arrow',`data-id="${id}" ${n?'':'disabled'}`,'secondary')}</div>`;}).join('');
+   dialog('ลูกธนู',`<p>ซอง ${arrowTotal(ch)}/${data.items.arrows.capacity} ลูก</p><div class="arrow-list">${rows}</div>${btn('คราฟต์ลูกธนู →','arrow-craft','','primary')}`,null);break;}
+  case 'use-arrow':{const r=chooseArrows(ch,data,id);closeDialog();g.refresh();finish(r,'เปลี่ยนเป็น '+data.items.arrows.types[id].nameTh+' แล้ว');break;}
+  case 'arrow-craft':closeDialog();ui.sel.craft='arrow';ui.open('craft');break;
   case 'category':category=id;page=0;skillId=id==='movement'?ch.movement:ch.slots[slot].skill||'firebolt';notice='';render();break;
   case 'slot':slot=+id;ui.sel.skill=slot;if(category==='skill'&&ch.slots[slot].skill)skillId=ch.slots[slot].skill;notice='';render();break;
   case 'skill':skillId=id;notice='';render();break;

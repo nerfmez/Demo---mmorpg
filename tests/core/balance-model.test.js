@@ -83,3 +83,24 @@ test('the reference hero is built from real rules: its main skill and the expect
     assert.ok(s.weaponOk, kit + ' main skill fits the kit weapon');
   }
 });
+
+test('the Ranger farming line out-earns a sword hero after paying for its arrows', async () => {
+  const { farmingIncome } = await import('../../src/core/balance.js');
+  const F = data.progression.balance.farming;
+  // The line itself: what the job tree and hunter arrows grant, within the caps.
+  const nodes = Object.values(data.jobtree.nodes).filter((n) => n.effects?.goldFindPct || n.effects?.materialFindPct);
+  const sum = (k) => nodes.reduce((a, n) => a + (n.effects[k] || 0), 0) + (data.items.arrows.types.hunter_arrow.stats[k] || 0);
+  for (const k of ['goldFindPct', 'materialFindPct', 'gearFindPct']) {
+    assert.ok(Math.abs(sum(k) - F.find[k]) < 1e-9, `${k}: the model uses what the game grants (${sum(k)})`);
+    assert.ok(sum(k) <= data.progression.character.caps[k]);
+  }
+  for (const level of [8, 14, 20, 24]) {
+    const sword = farmingIncome(data, 'sword', level);
+    const farmer = farmingIncome(data, 'bow', level, F.find, data.recipes.recipes[F.arrow]);
+    const plain = farmingIncome(data, 'bow', level, {}, data.recipes.recipes[F.plainArrow]);
+    const ratio = farmer.net / sword.net, share = farmer.arrows / farmer.gross;
+    assert.ok(ratio >= F.netOverSword[0] && ratio <= F.netOverSword[1], `Lv${level} farmer/sword net ${ratio.toFixed(2)}`);
+    assert.ok(share >= F.arrowShare[0] && share <= F.arrowShare[1], `Lv${level} arrow share ${share.toFixed(2)}`);
+    assert.ok(plain.arrows / plain.gross < F.arrowShare[1], 'plain arrows stay a minor cost');
+  }
+});

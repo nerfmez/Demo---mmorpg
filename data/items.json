@@ -141,17 +141,20 @@
     "salt_gel": {
       "name": "เจลเกลือทะเล",
       "nameTh": "เจลเกลือทะเล",
-      "color": "#58b9c4"
+      "color": "#58b9c4",
+      "value": 2
     },
     "shore_feather": {
       "name": "ขนนกชายฝั่ง",
       "nameTh": "ขนนกชายฝั่ง",
-      "color": "#e6ddd0"
+      "color": "#e6ddd0",
+      "value": 3
     },
     "hermit_fragment": {
       "name": "เศษเปลือกเสฉวน",
       "nameTh": "เศษเปลือกเสฉวน",
-      "color": "#c18b62"
+      "color": "#c18b62",
+      "value": 8
     }
   },
   "slots": [
@@ -2365,6 +2368,14 @@
         "stats": {
           "attack": 3,
           "critChancePct": 3
+        }
+      },
+      "hunter_arrow": {
+        "name": "Hunter Arrows",
+        "nameTh": "ลูกธนูนักล่า",
+        "stats": {
+          "materialFindPct": 10,
+          "gearFindPct": 10
         }
       }
     }

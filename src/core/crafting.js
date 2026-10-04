@@ -244,13 +244,17 @@ export function sellMaterial(ch, data, id, qty = 1) {
   return gold;
 }
 
-/** Roll drops for one kill. Returns [{item, qty}]. */
-export function rollDrops(data, monsterId, zoneId, rng) {
+/** Roll drops for one kill. Returns [{item, qty}]. find: derived goldFindPct/materialFindPct. */
+export function rollDrops(data, monsterId, zoneId, rng, find = {}) {
   const m = data.monsters.monsters[monsterId];
   const table = [...m.drops, ...(data.world.zoneDrops[zoneId] || [])];
   const out = [];
   for (const d of table) {
-    if (rng.chance(d.chance)) out.push({ item: d.item, qty: rng.int(d.min, d.max) });
+    const gold = d.item === 'gold';
+    const chance = gold ? d.chance : Math.min(1, d.chance * (1 + (find.materialFindPct || 0) / 100));
+    if (!rng.chance(chance)) continue;
+    const qty = rng.int(d.min, d.max);
+    out.push({ item: d.item, qty: gold ? Math.round(qty * (1 + (find.goldFindPct || 0) / 100)) : qty });
   }
   return out;
 }
@@ -347,7 +351,7 @@ export function gearDropCandidates(data, monsterId, level) {
 }
 
 /** One kill's gear drop (or null). Rolls a grade, then a base and options like a craft. */
-export function rollGearDrop(data, monsterId, level, boss, rng) {
+export function rollGearDrop(data, monsterId, level, boss, rng, gearFindPct = 0) {
   const rules = data.items.gearDrops, list = gearDropCandidates(data, monsterId, level);
   if (!list.length) return null;
   let grade = null;
@@ -355,8 +359,9 @@ export function rollGearDrop(data, monsterId, level, boss, rng) {
   else {
     let r = rng.next();
     for (const g of ['S', 'A', 'B', 'C']) {
-      if (r < rules.normal[g]) { grade = g; break; }
-      r -= rules.normal[g];
+      const chance = rules.normal[g] * (1 + gearFindPct / 100);
+      if (r < chance) { grade = g; break; }
+      r -= chance;
     }
   }
   if (!grade) return null;

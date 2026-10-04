@@ -730,6 +730,10 @@ const EFFECT_TH = {
   meleeArcAdd: 'มุมฟัน°',
   poisonChancePct: 'โอกาสติดพิษ %',
   leechPct: 'ดูดเลือด %',
+  blockChancePct: 'โอกาสบล็อก %',
+  goldFindPct: 'ทองที่ได้ %',
+  materialFindPct: 'โอกาสได้วัตถุดิบ %',
+  gearFindPct: 'โอกาสดรอปอุปกรณ์ %',
 };
 
 function effectText(k, v) {

@@ -555,6 +555,9 @@ export function derive(ch, data) {
     poisonChancePct: 0,
     leechPct: 0,
     blockChancePct: 0,
+    goldFindPct: 0,
+    materialFindPct: 0,
+    gearFindPct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;

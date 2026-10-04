@@ -98,3 +98,29 @@ export function balanceReport(data) {
   }
   return { rows, hours };
 }
+
+/** Value of one recipe's inputs (material sell value + gold). */
+function recipeValue(data, r) {
+  return Object.entries(r.cost).reduce((a, [k, n]) => a + n * (k === 'gold' ? 1 : data.items.materials[k].value), 0);
+}
+
+/**
+ * Gold-equivalent income per hour at `level` for `kit`, with farming bonuses `find`
+ * (goldFindPct/materialFindPct/gearFindPct) and the arrows a bow spends (`arrowRecipe`).
+ */
+export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null) {
+  const b = data.progression.balance, r = balanceAt(data, kit, level), m = referenceMonster(data, level);
+  const normals = Object.values(data.monsters.monsters).filter((x) => !x.boss);
+  const avg = (f) => normals.reduce((a, x) => a + f(x), 0) / normals.length;
+  const gold = avg((x) => x.drops.filter((d) => d.item === 'gold').reduce((a, d) => a + d.chance * (d.min + d.max) / 2, 0)) * (1 + (find.goldFindPct || 0) / 100);
+  const mats = avg((x) => x.drops.filter((d) => d.item !== 'gold').reduce((a, d) => a + Math.min(1, d.chance * (1 + (find.materialFindPct || 0) / 100)) * (d.min + d.max) / 2 * data.items.materials[d.item].value, 0));
+  const g = data.items.salvage.sellGold, il = gearTierAt(data, level);
+  const gearRate = Object.entries(data.items.gearDrops.normal).reduce((a, [grade, c]) => a + c * (1 + (find.gearFindPct || 0) / 100) * (g.base + g.perItemLevel * il) * g.gradeMult[grade], 0);
+  const killsPerHour = 3600 / (r.ttk + b.secondsPerKill);
+  const gross = killsPerHour * (gold + mats + gearRate);
+  // A cast per hit: arrows spent per kill = hits to kill, priced by their recipe.
+  const skill = data.skills.combat[b.builds[kit].skill];
+  const hits = (r.ttk * b.uptime) / Math.max(0.35, skill.cooldown, skill.castTime);
+  const arrowCost = arrowRecipe ? killsPerHour * hits * (recipeValue(data, arrowRecipe) / arrowRecipe.qty) : 0;
+  return { gross: Math.round(gross), arrows: Math.round(arrowCost), net: Math.round(gross - arrowCost) };
+}

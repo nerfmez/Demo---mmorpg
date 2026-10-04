@@ -739,7 +739,7 @@ export class Game {
     const prog = this.ch.progress;
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
-    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng);
+    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived);
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
@@ -748,7 +748,7 @@ export class Game {
       this.emit({ type: 'drop', id: drop.id, item: drop.item, fromX: m.x, fromZ: m.z });
     });
     // Gear from the monster's own parts, at its level's tier; rare except from bosses.
-    const gear = m.minion ? null : rollGearDrop(this.data, m.type, m.level, m.boss, this.rng);
+    const gear = m.minion ? null : rollGearDrop(this.data, m.type, m.level, m.boss, this.rng, this.derived.gearFindPct);
     if (gear) {
       const drop = { id: this.newId(), item: 'gear', gear, qty: 1, x: m.x, z: m.z, t: 0 };
       this.drops.push(drop);

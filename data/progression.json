@@ -60,7 +60,10 @@
       "hpRegen": 5,
       "leechPct": 8,
       "extraMovementCharges": 1,
-      "blockChancePct": 50
+      "blockChancePct": 50,
+      "goldFindPct": 60,
+      "materialFindPct": 50,
+      "gearFindPct": 40
     },
     "softCaps": {
       "threshold": 50,
@@ -76,7 +79,8 @@
         "barrierPct",
         "healPct"
       ]
-    }
+    },
+    "_farmDoc": "goldFindPct/materialFindPct/gearFindPct (Ranger farming line, hunter arrows) raise gold, material chances and gear drop chances on kills, up to caps; they add nothing to the power score."
   },
   "job": {
     "maxLevel": 40,
@@ -324,6 +328,24 @@
       ],
       "_doc": "ttk: seconds to kill a same-level normal monster (the first levels are quick on purpose); ttd: seconds a hero survives standing in its hits without dodging; hoursToCap: playtime to the monster cap fighting same-level monsters (quests add more)."
     },
-    "uptime": 0.55
+    "uptime": 0.55,
+    "farming": {
+      "_doc": "A Ranger who takes the whole farming line and shoots hunter arrows must out-earn a same-level sword hero after paying for the arrows, but the arrows must cost a noticeable share (tests/core/balance-model.test.js).",
+      "find": {
+        "goldFindPct": 40,
+        "materialFindPct": 35,
+        "gearFindPct": 35
+      },
+      "arrow": "arrows_hunter",
+      "plainArrow": "arrows_tusk",
+      "netOverSword": [
+        1.1,
+        1.6
+      ],
+      "arrowShare": [
+        0.06,
+        0.25
+      ]
+    }
   }
 }

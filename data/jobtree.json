@@ -99,7 +99,7 @@
         "vanguard_t2_2"
       ],
       "effects": {
-        "barrierPct": 13.0,
+        "barrierPct": 13,
         "meleeHitBarrier": 3
       },
       "descTh": "สายประชิด/แท็งก์: เกราะเวทแรงขึ้น ตีประชิดโดนแล้วได้เกราะ",
@@ -4406,15 +4406,15 @@
       ]
     },
     "ranger_t2_2": {
-      "name": "Ranger Practice 2.2",
-      "nameTh": "อ่านวิถี 1",
+      "name": "Hunter's Eye 1",
+      "nameTh": "ตาพรานล่าทรัพย์ 1",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-2",
       "effects": {
-        "projectileSpeedPct": 3
+        "materialFindPct": 5
       },
       "links": [
         "rj",
@@ -4503,15 +4503,16 @@
       ]
     },
     "ranger_t2_6": {
-      "name": "Ranger Practice 2.6",
-      "nameTh": "คุมจังหวะ 1",
+      "name": "Hunter's Purse 1",
+      "nameTh": "ถุงทองนักล่า 1",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-2",
       "effects": {
-        "controlDurationPct": 2
+        "goldFindPct": 8,
+        "gearFindPct": 5
       },
       "links": [
         "ranger_t2_5",
@@ -4552,15 +4553,15 @@
       ]
     },
     "ranger_t3_2": {
-      "name": "Ranger Practice 3.2",
-      "nameTh": "อ่านวิถี 2",
+      "name": "Hunter's Eye 2",
+      "nameTh": "ตาพรานล่าทรัพย์ 2",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-3",
       "effects": {
-        "projectileSpeedPct": 3
+        "materialFindPct": 5
       },
       "links": [
         "ranger_t2_6",
@@ -4649,15 +4650,16 @@
       ]
     },
     "ranger_t3_6": {
-      "name": "Ranger Practice 3.6",
-      "nameTh": "คุมจังหวะ 2",
+      "name": "Hunter's Purse 2",
+      "nameTh": "ถุงทองนักล่า 2",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-3",
       "effects": {
-        "controlDurationPct": 2
+        "goldFindPct": 8,
+        "gearFindPct": 5
       },
       "links": [
         "ranger_t3_5",
@@ -4698,15 +4700,15 @@
       ]
     },
     "ranger_t4_2": {
-      "name": "Ranger Practice 4.2",
-      "nameTh": "อ่านวิถี 3",
+      "name": "Hunter's Eye 3",
+      "nameTh": "ตาพรานล่าทรัพย์ 3",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-4",
       "effects": {
-        "projectileSpeedPct": 3
+        "materialFindPct": 5
       },
       "links": [
         "ranger_t3_6",
@@ -4795,15 +4797,16 @@
       ]
     },
     "ranger_t4_6": {
-      "name": "Ranger Practice 4.6",
-      "nameTh": "คุมจังหวะ 3",
+      "name": "Hunter's Purse 3",
+      "nameTh": "ถุงทองนักล่า 3",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-4",
       "effects": {
-        "controlDurationPct": 2
+        "goldFindPct": 8,
+        "gearFindPct": 5
       },
       "links": [
         "ranger_t4_5",
@@ -4844,15 +4847,15 @@
       ]
     },
     "ranger_t5_2": {
-      "name": "Ranger Practice 5.2",
-      "nameTh": "อ่านวิถี 4",
+      "name": "Hunter's Eye 4",
+      "nameTh": "ตาพรานล่าทรัพย์ 4",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-5",
       "effects": {
-        "projectileSpeedPct": 3
+        "materialFindPct": 5
       },
       "links": [
         "ranger_t4_6",
@@ -4941,15 +4944,16 @@
       ]
     },
     "ranger_t5_6": {
-      "name": "Ranger Practice 5.6",
-      "nameTh": "คุมจังหวะ 4",
+      "name": "Hunter's Purse 4",
+      "nameTh": "ถุงทองนักล่า 4",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-5",
       "effects": {
-        "controlDurationPct": 2
+        "goldFindPct": 8,
+        "gearFindPct": 5
       },
       "links": [
         "ranger_t5_5",
@@ -4990,15 +4994,15 @@
       ]
     },
     "ranger_t6_2": {
-      "name": "Ranger Practice 6.2",
-      "nameTh": "อ่านวิถี 5",
+      "name": "Hunter's Eye 5",
+      "nameTh": "ตาพรานล่าทรัพย์ 5",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-6",
       "effects": {
-        "projectileSpeedPct": 3
+        "materialFindPct": 5
       },
       "links": [
         "ranger_t5_6",
@@ -5087,15 +5091,16 @@
       ]
     },
     "ranger_t6_6": {
-      "name": "Ranger Practice 6.6",
-      "nameTh": "คุมจังหวะ 5",
+      "name": "Hunter's Purse 5",
+      "nameTh": "ถุงทองนักล่า 5",
       "type": "minor",
       "group": "ranger",
       "category": "specialist",
       "requiresJob": "ranger",
       "section": "ranger-6",
       "effects": {
-        "controlDurationPct": 2
+        "goldFindPct": 8,
+        "gearFindPct": 5
       },
       "links": [
         "ranger_t6_5"

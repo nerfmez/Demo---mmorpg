@@ -12,7 +12,7 @@ let server,browser,code='',css='';const reports=[];
 if(offline){
  const {build}=await import('vite');const b=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'JournalReview',formats:['iife']}}});
  code=b[0].output.find(o=>o.type==='chunk').code;
- css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+ css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal','loadout-workspace'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
  for(const weight of [400,600]){const f=readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${weight}.ttf`,import.meta.url)).toString('base64');css+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${f});font-weight:${weight}}`;}
  for(const subset of ['thai','latin'])for(const weight of [400,500]){const f=readFileSync(new URL(`../../node_modules/@fontsource/mitr/files/mitr-${subset}-${weight}-normal.woff2`,import.meta.url)).toString('base64');css+=`@font-face{font-family:Mitr;src:url(data:font/woff2;base64,${f});font-weight:${weight}}`;}
 }else server=spawn('npx',['vite','preview','--port','4187','--strictPort'],{stdio:'ignore',detached:true});
@@ -47,14 +47,28 @@ try{
   await click('[data-action="fit"]');await click('[data-action="exit"]');assert.equal(await page.evaluate(()=>__frontier.panels.isOpen),false);
   // Open actual menu workspace; the fixtures are not the implementation.
   await page.evaluate(()=>window.__frontier.panels.open('mods'));
-  assert.equal(await page.locator('.seeker-mod-list [data-mod-coin]').count(),15);
-  await click('.seeker-mod-tile[data-uid="900"]');await shot('04-mod-coins');
-  await click('[data-act="socket"][data-uid="900"]');assert.ok(await page.evaluate(()=>window.__frontier.game.ch.slots[0].mods.includes(900)));
-  const base=await page.evaluate(()=>window.__frontier.game.skills[0].projectiles); // compiler remains authoritative
-  await page.evaluate(()=>window.__frontier.panels.open('bag'));
-  await click('[data-act="inventory-category"][data-id="mods"]');await shot('05-bag');assert.ok(await page.locator('[data-panel="bag"] [data-mod-coin="split"]').count());
+  let modCoinTypes=0;
+  if(height>width){
+   assert.equal(await page.locator('#atelier .rotate-message').isVisible(),true);
+   assert.equal(await page.locator('#atelier .two-windows').isVisible(),false);
+   await shot('04-landscape-prompt');await page.keyboard.press('Escape');
+   assert.equal(await page.evaluate(()=>__frontier.panels.isOpen),false);
+  }else{
+   modCoinTypes=await page.locator('#atelier .mod-grid .coin-cell').count();assert.equal(modCoinTypes,15);
+   await click('[data-action="mod"][data-id="900"]');await shot('04-mod-coins');
+   const base=await page.evaluate(()=>__frontier.game.skills[0].projectiles);
+   await click('#atelier [data-action="apply"]');
+   assert.ok(await page.evaluate(()=>__frontier.game.ch.slots[0].mods.includes(900)));
+   assert.ok(await page.evaluate(()=>__frontier.game.skills[0].projectiles)>base,'real compiler applies the owned split coin');
+   await page.waitForFunction(()=>!__frontier.panels.loadout.state.moving);
+   assert.equal(await page.locator('[data-target="0"] .socket[data-uid="900"].linked').count(),1);
+   await page.evaluate(()=>__frontier.panels.open('bag'));
+   assert.ok(await page.locator('#atelier .bag-grid [data-action="item"]').count()>0);
+   await shot('05-bag');await click('#atelier [data-action="details"]');
+   assert.equal(await page.locator('.atelier-dialog').isVisible(),true);await click('.atelier-dialog [data-action="cancel"]');
+  }
   await page.evaluate(()=>window.__frontier.panels.open('craft'));await click('[data-act="craft-filter"][data-id="mod"]');assert.ok(await page.locator('.recipe-card [data-mod-coin]').count());
   assert.deepEqual(errors,[]);
-  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,startingNodes:6,modCoinTypes:15,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
+  reports.push({viewport:name,width,height,touch,source:offline?'real Game+Panels, no renderer':'full game',fullscreen:true,startingNodes:6,modCoinTypes,landscapeRequired:height>width,ok:true});writeFileSync(dir+'report.json',JSON.stringify(reports,null,2));console.log('PASS journal '+engineName+' '+name);await ctx.close();
  }
 }finally{await browser?.close();if(server)try{process.kill(-server.pid);}catch{}}

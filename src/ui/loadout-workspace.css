@@ -137,3 +137,4 @@ body.loadout-open .fullscreen-control{z-index:39}
 #atelier .power-delta{font-weight:700}#atelier .power-delta.good{color:#2e7d4f}#atelier .power-delta.bad{color:#b3412e}
 #atelier .shelf-actions .hand-choice{display:flex;gap:6px}
 @media(max-height:480px){#atelier{--wear-gap:10px}#atelier .wear-slot .ammo-count{font-size:8px}}
+#atelier .arrow-list{display:grid;gap:6px;margin:8px 0}#atelier .arrow-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 8px;border:1px solid #b9c7bf;border-radius:6px}#atelier .arrow-row.active{border-color:#9c7437;background:#fcf0c7}#atelier .arrow-row small{display:block;font-size:11px;color:#5f766c}#atelier .arrow-row em{font-style:normal;font-weight:700;color:#9c5a12}

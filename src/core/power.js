@@ -10,8 +10,8 @@ export function skillDps(s, d) {
   if (!s?.damage) return 0;
   const crit = 1 + d.critChance * (d.critMult - 1);
   const hits = Math.max(1, s.projectiles || 1) * (1 + (s.repeats || 0) * (s.repeatMult || 0));
-  const persistent = s.duration && s.tick ? s.duration / s.tick : 1;
-  const per = s.damage * (s.damageMult || 1) * crit * hits * (s.kind === 'dot_zone' ? persistent : 1);
+  // computeSkill already folds damageMult into damage; a damage zone deals damage per second.
+  const per = s.damage * crit * hits * (s.kind === 'dot_zone' ? s.duration || 1 : 1);
   return per / Math.max(s.cooldown || 0, s.castTime || 0, 0.35);
 }
 

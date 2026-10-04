@@ -312,3 +312,10 @@ test('two-hand weapons are a little more than two light ones, and some skills ne
     c.slots.forEach((_, i) => { const s = computeSkill(c, data, d, i); if (s) assert.ok(s.weaponOk, kit + ' ' + s.id); });
   }
 });
+
+test('the power score counts a damage multiplier once and a damage zone per second of its duration', async () => {
+  const { skillDps } = await import('../../src/core/power.js');
+  const d = { critChance: 0, critMult: 1.5 };
+  assert.equal(skillDps({ damage: 70, damageMult: 0.7, projectiles: 1, cooldown: 1, castTime: 0.2 }, d), 70, 'damage already includes damageMult');
+  assert.equal(skillDps({ kind: 'dot_zone', damage: 10, tick: 0.5, duration: 4, cooldown: 8, castTime: 0.4 }, d), 5, '10/s over 4 s every 8 s');
+});

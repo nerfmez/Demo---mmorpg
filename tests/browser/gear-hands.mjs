@@ -95,8 +95,13 @@ try {
   for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) assert.ok(a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1], 'slots overlap ' + JSON.stringify([a, b]));
   await shot('04b-equipment-phone');
   await page.setViewportSize({ width: 1180, height: 820 });
-  // The left-hand arrows open arrow crafting, which works outside town.
+  // The left-hand arrows open a chooser: pick which stocked arrows to shoot, or craft more.
+  await page.evaluate(() => { window.__frontier.game.ch.arrows.stock.tusk_arrow = 30; window.__frontier.panels.loadout.render(); });
   await page.locator('#atelier .wear-offhand').tap();
+  await page.locator('.atelier-dialog [data-action="use-arrow"][data-id="tusk_arrow"]').tap();
+  assert.equal(await page.evaluate(() => window.__frontier.game.ch.arrows.use), 'tusk_arrow');
+  await page.locator('#atelier .wear-offhand').tap();
+  await page.locator('.atelier-dialog [data-action="arrow-craft"]').tap();
   await page.waitForSelector('[data-act="craft-open"][data-id="arrows_feather"]');
   await page.evaluate(() => { const ch = window.__frontier.game.ch; ch.materials.shore_feather = 10; ch.gold += 100; });
   await page.locator('.recipe-pick[data-act="craft-open"][data-id="arrows_feather"]').tap();

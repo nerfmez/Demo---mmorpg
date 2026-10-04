@@ -91,6 +91,7 @@ function travelTo(character, slot, name) {
 function startGame(character, slot) {
   if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
   const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
+  game.worlds = worlds; // every map's rules world: the HUD and atlas show one world
   view.attachGame(game);
   view.mode = 'game';
   view.snapCamera();
@@ -264,15 +265,17 @@ function frame(now) {
     if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {
       if (e.type === 'travel') {
-        if (e.seam && view.neighbourReady(e.to)) {
-          // Open world: the neighbouring map is already streamed in; carry on in place.
+        if (view.neighbourReady(e.to)) {
+          // Open world: the neighbouring map is already streamed in; carry on in place
+          // (walking across a seam, or a stone just over the border).
           s.game.enterWorld(coreWorld(e.to));
           view.switchRegion(e.to);
+          if (!e.seam) view.snapCamera();
           s.hud.toast(e.name, '#bfe6ff');
           s.save();
           continue;
         }
-        // An exit, or a seam reached before its neighbour finished streaming: reload.
+        // A far map (stone travel) or a seam reached before it finished streaming: reload.
         session = null;
         travelTo(s.game.ch, s.slot, e.name);
         break;

@@ -95,7 +95,7 @@ export function listSlots() {
       jobLevel: c.jobLevel || 1,
       kit: c.kit || 'sword',
       playTime: c.progress?.playTime || 0,
-      zones: c.progress?.zones?.length || 1,
+      zones: (c.progress?.zones?.length || 1) + Object.values(c.progress?.maps || {}).reduce((n, m) => n + (m.zones?.length || 0), 0),
       worldId: c.worldId || null,
       bossKills: c.bossKills || 0,
       bosses: Object.keys(c.progress?.bossKills || {}).length,

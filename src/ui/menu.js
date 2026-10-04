@@ -81,7 +81,7 @@ export class Menu {
         return `<div class="slot-card"><div class="slot-n">ช่อง ${s.slot}</div>
           <div class="slot-name">${esc(s.name)}</div>
           <div class="muted">Lv.${s.level} · Job ${s.jobLevel} · ${kit ? kit.nameTh : ''} · ${esc(this.data.maps[characterMap(this.data, s)].nameTh)}</div>
-          <div class="muted">เล่นไป ${fmtTime(s.playTime)} · สำรวจ ${s.zones}/${this.data.maps[characterMap(this.data, s)].zones.length} พื้นที่${s.bosses ? ` · ปราบบอส ${s.bosses} ตัว` : ''}${s.bossKills ? ' ★' : ''}</div>
+          <div class="muted">เล่นไป ${fmtTime(s.playTime)} · สำรวจ ${s.zones}/${Object.values(this.data.maps).reduce((n, m) => n + m.zones.length, 0)} พื้นที่${s.bosses ? ` · ปราบบอส ${s.bosses} ตัว` : ''}${s.bossKills ? ' ★' : ''}</div>
           <div class="muted">บันทึกล่าสุด ${s.savedAt ? new Date(s.savedAt).toLocaleString('th-TH') : '-'}</div>
           <div class="row-btns">
             <button class="btn primary" data-act="load" data-slot="${s.slot}">เล่น</button>

@@ -42,9 +42,9 @@ try{
   await page.evaluate(()=>{__frontier.view.zoom=1.5;});await page.waitForTimeout(1500);await page.screenshot({path:out+'frontier-arrival.png'});
   // Continue from the title also reopens the Frontier.
   await page.goto(url);await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);
-  // The slot card counts exploration against the save's own map, not the title map.
+  // The slot card counts exploration over the whole world and names the save's map.
   const card=await page.evaluate(()=>{__frontier.menu.showSlots('load');const t=document.querySelector('.slot-card').textContent;__frontier.menu.showTitle();return t;});
-  assert.match(card,new RegExp(`/${data.maps[FRONTIER].zones.length} พื้นที่`));assert.ok(card.includes(data.maps[FRONTIER].nameTh));
+  assert.match(card,new RegExp(`/${Object.values(data.maps).reduce((n,m)=>n+m.zones.length,0)} พื้นที่`));assert.ok(card.includes(data.maps[FRONTIER].nameTh));
   await Promise.all([page.waitForEvent('load'),page.locator('[data-act="continue"]').click()]);
   await page.waitForFunction(()=>window.__frontier?.fullscreen);await enterFullscreenGate(page);await ready();
   assert.equal(await page.evaluate(()=>__frontier.world.data.id),FRONTIER,'Continue returns to the saved map');

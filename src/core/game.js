@@ -12,6 +12,7 @@ import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
+import { waypointUnlocked } from './atlas.js';
 
 const PLAYER_RADIUS = 0.45;
 const PICKUP_RADIUS = 1.4;
@@ -583,8 +584,17 @@ export class Game {
   }
 
   /** Fast travel to a discovered waypoint. */
-  teleportTo(id) {
+  teleportTo(id, mapId = this.data.world.id) {
     const p = this.player;
+    if (mapId !== this.data.world.id) {
+      // A stone on another map of the same world: travel there (in place when streamed).
+      const map = this.data.maps?.[mapId], stone = map?.waypoints.find((w) => w.id === id);
+      if (!stone) return { ok: false, reason: 'unknown' };
+      if (!waypointUnlocked(this.ch, this.data, mapId, id)) return { ok: false, reason: 'locked' };
+      if (p.dead) return { ok: false, reason: 'dead' };
+      if (this.inCombat()) return { ok: false, reason: 'combat' };
+      return this.arriveIn(mapId, [stone.pos[0], stone.pos[1] + 2.2], stone.nameTh);
+    }
     const wp = this.world.waypoints.find((w) => w.id === id);
     if (!wp) return { ok: false, reason: 'unknown' };
     if (!this.isWaypointUnlocked(id)) return { ok: false, reason: 'locked' };

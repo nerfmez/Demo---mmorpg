@@ -195,3 +195,25 @@ test('the mirrored Frontier stays walkable: every road, bridge, stone and boss a
   assert.ok(seam.gate[0] - warden.pos[0] > 350, 'the final boss is far from the border');
   assert.ok(world.isSafe(seam.gate[0] - 6, seam.gate[1]), 'crossing lands in the safe outpost');
 });
+
+test('one world: discovery counts and waypoint travel span every map', async () => {
+  const { worldTotals, discovery, toWorld, toLocal, worldBounds } = await import('../../src/core/atlas.js');
+  const g = new Game(on(AZURE), { world: worlds[AZURE], seed: 8 });
+  g.ch.progress.maps[FRONTIER] = { zones: ['settlement', 'wolf_den'], waypoints: ['town', 'wetland'] };
+  const t = worldTotals(g.ch, on(AZURE));
+  const allZones = Object.values(data.maps).reduce((n, m) => n + m.zones.length, 0);
+  assert.equal(t.zones[1], allZones, 'zones of every map count');
+  assert.ok(t.zones[0] >= 2 + g.ch.progress.zones.length - 1);
+  assert.deepEqual(discovery(g.ch, on(AZURE))[FRONTIER].waypoints, ['town', 'wetland']);
+  assert.deepEqual(toLocal(data, FRONTIER, ...toWorld(data, FRONTIER, 10, 20)), [10, 20]);
+  const [x0, x1] = worldBounds(data);
+  assert.ok(x0 <= data.maps[FRONTIER].bounds.minX + data.maps[FRONTIER].atlas.offset[0] && x1 >= data.maps[AZURE].bounds.maxX);
+  // A Frontier stone from Azure: locked ones refuse; an unlocked one travels.
+  assert.equal(g.teleportTo('ruins', FRONTIER).reason, 'locked');
+  const r = g.teleportTo('wetland', FRONTIER);
+  assert.ok(r.ok);
+  const stone = data.maps[FRONTIER].waypoints.find((w) => w.id === 'wetland');
+  assert.deepEqual(g.ch.pos, [stone.pos[0], stone.pos[1] + 2.2]);
+  assert.equal(g.ch.worldId, FRONTIER);
+  assert.ok(g.drainEvents().some((e) => e.type === 'travel' && e.to === FRONTIER && !e.seam));
+});

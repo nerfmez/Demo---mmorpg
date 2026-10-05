@@ -20,18 +20,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    if: github.event_name != 'workflow_run'
+    uses: ./.github/workflows/ci.yml
+    with:
+      quick_gate: true
   build:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    needs: validate
+    if: always() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || needs.validate.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.source || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
-      - run: npm run build
+      # The quick gate built and tested this exact source before upload.
+      - uses: actions/download-artifact@v4
+        if: github.event_name != 'workflow_run'
+        with:
+          name: ci-dist-${{ needs.validate.outputs.source }}
+          path: dist/
+      # Lab-only publishing retains the existing main-game build path.
+      - run: npm test && npm run build
+        if: github.event_name == 'workflow_run'
       # Preserve the exact already-published /lab preview on main releases.
       - name: Preserve published Skill Lab
         if: github.event_name != 'workflow_run'

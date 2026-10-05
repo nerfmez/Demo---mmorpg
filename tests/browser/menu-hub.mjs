@@ -24,7 +24,17 @@ try {
     page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) errors.push(name + ': ' + m.text()); });
     await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0');
     await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
-    await page.evaluate(() => { document.querySelector('.banner')?.remove(); window.__frontier.paused = true; });
+    // This suite tests menu layout/navigation with gameplay already paused. Hold
+    // the completed world frame instead of spending software-GL time redrawing
+    // the same backdrop on every UI event. RAF, HUD and equipment previews stay
+    // live; smoke/combat/world suites retain real world rendering.
+    const heldFrame = await page.evaluate(() => {
+      document.querySelector('.banner')?.remove();
+      const f = window.__frontier;
+      f.paused = true;
+      f.view.render = () => {};
+      return f.view.renderer.info.render.frame;
+    });
     const open = () => page.evaluate(() => window.__frontier.panels.isOpen);
     const tap = (sel) => page.locator(sel).tap();
     const title = () => page.evaluate(() => (document.querySelector('#atelier:not([hidden]) h1') || document.querySelector('#panel-title'))?.textContent);
@@ -91,6 +101,7 @@ try {
     await tap('.quick-actions [aria-label="กระเป๋า"]');
     assert.equal(await page.locator('#atelier').isVisible() || height > width, true);
     await page.evaluate(() => window.__frontier.panels.close());
+    assert.equal(await page.evaluate(() => window.__frontier.view.renderer.info.render.frame), heldFrame, 'UI checks retain the completed world frame');
     console.log('PASS menu hub ' + engine.name() + ' ' + name);
     await page.context().close();
   }

@@ -4,6 +4,9 @@ inputs:
   force-render:
     description: Run renderer checks for an explicitly requested review ref.
     default: 'false'
+  force-full:
+    description: Run the complete regression inventory after merge or on request.
+    default: 'false'
 outputs:
   game:
     value: ${{ steps.classify.outputs.game }}
@@ -17,6 +20,10 @@ outputs:
     value: ${{ steps.classify.outputs.render }}
   map:
     value: ${{ steps.classify.outputs.map }}
+  browser-suites:
+    value: ${{ steps.classify.outputs.browser_suites }}
+  browser-reason:
+    value: ${{ steps.classify.outputs.browser_reason }}
 runs:
   using: composite
   steps:
@@ -24,4 +31,5 @@ runs:
       shell: bash
       env:
         FORCE_RENDER: ${{ inputs.force-render }}
+        FORCE_FULL: ${{ inputs.force-full }}
       run: node scripts/ci-scope.mjs

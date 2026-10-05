@@ -49,6 +49,8 @@ test('workflow routing preserves check matrices and a single owner of smoke/UX',
   assert.doesNotMatch(light, /npm run test:browser|npm run test:ux/);
   assert.doesNotMatch(ui, /\n  push:/);
   assert.match(ci, /steps\.scope\.outputs\.game == 'true'/);
+  assert.match(ci, /name: test \(\$\{\{ matrix.browser \}\}\)/);
+  assert.match(ci, /workflow_dispatch:/);
   assert.match(ui, /steps\.scope\.outputs\.ui == 'true'/);
 });
 test('the CI entrypoint writes main-push scope and handles first pushes conservatively', t => {
@@ -76,4 +78,5 @@ test('the CI entrypoint writes main-push scope and handles first pushes conserva
   assert.match(run(base, 'true'), /render=true/);
   const firstPush = run('0'.repeat(40));
   assert.doesNotMatch(firstPush, /=false/);
+  assert.match(firstPush, /browser_suites=\["boot","smoke"/);
 });

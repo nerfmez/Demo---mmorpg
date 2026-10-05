@@ -3,6 +3,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import { browserPlan } from './ci-browser-plan.mjs';
 
 const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 const LIGHT_FILES = new Set(['view', 'toon', 'patch', 'settings', 'painted', 'ground', 'ground-color', 'grass', 'environment', 'surfaceart', 'anime-study', 'art-study', 'leafpaint', 'nature']);
@@ -12,6 +13,7 @@ const all = () => ({ game: true, tools: true, ui: true, hud: true, render: true,
 export function classifyFiles(files) {
   const scope = { game: false, tools: false, ui: false, hud: false, render: false, map: false };
   for (const file of files) {
+    if (file === 'docs/WEAPON-MODEL-PROVENANCE.json') { scope.game = true; continue; }
     if (file.startsWith('docs/') || /^(AGENTS|CLAUDE|README)\.md$/.test(file) || /^(LICENSE|\.gitignore)$/.test(file)) continue;
     if (file.startsWith('.github/') || file.startsWith('scripts/') || file.startsWith('tests/tools/')) {
       scope.tools = true;
@@ -41,17 +43,21 @@ export function eventRange(eventName, event) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
   const { base, head } = eventRange(process.env.GITHUB_EVENT_NAME, event);
-  let scope;
-  if (!base || !head || /^0+$/.test(base)) scope = all();
+  let scope, files = [], forceFull = process.env.FORCE_FULL === 'true';
+  if (!base || !head || /^0+$/.test(base)) { scope = all(); forceFull = true; }
   else {
     // NUL delimiters preserve spaces/newlines in filenames. Missing commits are an
     // error, never an excuse to silently omit checks; checkout must fetch history.
-    const files = execFileSync('git', ['diff', '--name-only', '-z', base, head], { encoding: 'utf8' }).split('\0').filter(Boolean);
+    files = execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', base, head], { encoding: 'utf8' }).split('\0').filter(Boolean);
     scope = classifyFiles(files);
     console.log(`Changed files: ${files.length}; scope: ${JSON.stringify(scope)}`);
   }
   if (process.env.FORCE_RENDER === 'true') scope.render = true;
-  const output = Object.entries(scope).map(([key, value]) => `${key}=${value}`).join('\n') + '\n';
+  if (forceFull) scope = all();
+  const plan = browserPlan(files, { full: forceFull });
+  // JSON encodes filenames safely, including embedded newlines. Actions outputs
+  // remain single-line and are never interpolated into shell code.
+  const output = Object.entries({ ...scope, browser_suites: JSON.stringify(plan.suites), browser_reason: JSON.stringify(plan.reason) }).map(([key, value]) => `${key}=${value}`).join('\n') + '\n';
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, output);
   else process.stdout.write(output);
 }

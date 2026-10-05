@@ -48,8 +48,15 @@ new manifests; it passed after those were generated. Final splitter rerun also
 passed the focused3Atlas tests. No gameplay data, drop/item/skill art, CSS sizing,
 selected-region SVG cover, map geometry or marker changes.
 
-Latest main cd94bcf682eb08e5494dc5e301716fc3c38c3240 is integrated into the PR72
-branch, preserving PR70 wearable-level changes. PR71 remains open and untouched.
+Latest main cd3754e20411463eabc3a4ff96e1db4733dea603 is integrated into the PR72
+branch, preserving PR70 wearable-level changes and the independently merged PR71
+shop/potion changes. This agent did not merge PR71.
 Delivery: full set integrated locally and draft PR updated; CI/merge/deploy gates
 belong to the parent. No merge to main or deployment performed. Private preview
 URLs are intentionally absent from repository and PR text.
+
+Release gate on 2026-10-05: prior head251e645 passed9/10checks. UI WebKit
+review exceeded its22-minute job limit on both original and one targeted rerun.
+Annotations explicitly identify timeout; final save assertions reported ok:true
+but the check remains cancelled, not successful. No merge/deploy performed.
+Latest main reconciliation requires fresh exact-head gates before release.

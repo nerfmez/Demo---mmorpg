@@ -21,6 +21,11 @@ registered in `data/models.json` → `monsters` and skinned onto the procedural 
 | salt_slime (level 1 redesign A) | 01a0f578-4d4a-777f-9e8a-9fb905e719f1 | 01a0f57a-c37d-7182-97bf-8f6083cee753 | 3,112 |
 | shore_gull | 01a0f575-db66-77b5-af52-2d8585fbe117 | 01a0f585-fb16-7249-8e2e-c5b30bfa5550 | 4,165 |
 | hermit_crab | 01a0f575-e191-731d-8404-c6516f09e101 | 01a0f585-ffb4-7347-8aef-434b23bb0f2a | 4,688 |
+| thicket_mantis | 01a10a8d-6ae7-70dc-a47e-695d45be0ff9 | 01a10a8e-dc7f-77b7-84a8-982738c1ea21 | 3,541 |
+| reed_viper | 01a10a8e-5f55-72d7-95fd-0d279aac13c7 (stretched redo) | 01a10a8e-dfd7-74c7-8e23-0b0103e2038b | 3,610 |
+| ironhorn_ram | 01a10a8d-7fc8-7020-974b-07954c5c8130 | 01a10a8e-e309-76f3-8dd1-196eaf354665 | 4,141 |
+| duskmane_stalker | 01a10a8d-878e-71ab-9880-d70c9c012b38 | 01a10a8e-e610-76e6-894a-a1e7f92ce0ff | 4,168 |
+| rune_sentinel | 01a10a8d-8f1c-7318-862b-326fc767a087 | 01a10a8e-e950-7215-98da-7f21034ef70f | 3,073 |
 
 The salt slime concept was redrawn for a level-1 monster (the first design looked too fierce); the 3D model
 is Meshy 6 image-to-3d with `should_remesh` and `target_polycount` 3000, then

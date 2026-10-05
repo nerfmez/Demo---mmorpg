@@ -105,6 +105,13 @@ function animMantis(r, s, dt, time) {
     rear = 0.2 + Math.sin(time * 12) * 0.1;
   }
   if (s.hurt > 0) rear -= 0.25 * s.hurt;
+  if (r.model) {
+    // the imported model is bound with its scythes already raised and open (its display pose):
+    // rest lowers and folds them a little, the wind-up lifts them higher, the strike swings down
+    arm = 0.35 + (arm - 0.95) * 0.75;
+    blade = 0.5 + (blade + 0.25) * 0.4;
+    spread *= 0.5;
+  }
   b.thorax.rotation.x = damp(b.thorax.rotation.x, rear, 14, dt);
   b.body.position.y = damp(b.body.position.y, bodyY, 16, dt);
   b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.05, 0.2), 10, dt);
@@ -184,11 +191,14 @@ function animViper(r, s, dt, time) {
   b.head.position.z = damp(b.head.position.z, 0.55 - coil * 0.35, 12, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + Math.sin(r.phase) * amp * 0.4, 10, dt);
   b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
+  // the neck slopes down from the raised head and the body levels out again where it meets the
+  // ground (further back on the model, whose neck curls), so only the front rears up
+  const flat = r.model ? 4 : 2;
   for (let i = 0; i < VIPER_SEGS; i++) {
     const seg = b[`seg${i}`];
-    // the wave travels down the body; the neck bends down from the raised head
+    // the wave travels down the body
     seg.rotation.y = damp(seg.rotation.y, Math.sin(r.phase - i * 0.85) * amp * (i === 0 ? 0.5 : 1), 14, dt);
-    seg.rotation.x = damp(seg.rotation.x, i === 0 ? r.lift * 1.25 : i === 1 ? r.lift * 0.35 : 0, 12, dt);
+    seg.rotation.x = damp(seg.rotation.x, i === 0 ? -r.lift * 0.4 : i === flat ? r.lift * 1.2 : 0, 12, dt);
   }
 }
 
@@ -450,6 +460,7 @@ function animSentinel(r, s, dt, time) {
     lean = Math.sin(time * 9) * 0.12;
   }
   if (s.hurt > 0) lean -= 0.12 * s.hurt;
+  if (r.model) radius = Math.max(1, radius); // the model's inner shards already sit close to its body
   r.spin = (r.spin || 0) + dt * spin;
   r.radius = damp(r.radius || 1, radius, 8, dt);
   b.ring.rotation.y = r.spin;

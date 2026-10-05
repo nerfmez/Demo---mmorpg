@@ -9,6 +9,7 @@ import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } fr
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
 import STAFF_CAST from '../../data/staff-cast.json';
+import HOLDS from '../../data/weapon-holds.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
@@ -282,7 +283,10 @@ export class HumanoidAnimator {
    * @param {string} kind skill kind, for skills without their own action
    */
   play(skill, dur, weaponKind, step = this.combo, hitTime = null, kind = null) {
-    const name = pickAction(skill, kind, weaponKind || this.rig.weaponKind, step);
+    const weapon = weaponKind || this.rig.weaponKind;
+    // a heavy weapon held in both hands (nothing in the left) swings like the greatblade
+    const twoHanded = HOLDS.holds[weapon]?.two && !this.rig.offhandKind;
+    const name = pickAction(skill, kind, twoHanded && weapon !== 'staff' ? 'greatblade' : weapon, step);
     this.combo = step + 1;
     dur = Math.max(0.25, dur);
     const hit = ACTIONS[name].hit;
@@ -325,13 +329,20 @@ export class HumanoidAnimator {
     // base pose buffers are reused every frame (no per-frame allocation on the hot path)
     const gait = sampleGait(this.gaitU, kRun, this.buf.gait);
     const sway = Math.sin(it * 0.55);
+    // standing pose: the neutral base plus the weapon's stance (data/weapon-holds.json stances)
     const idle = this.buf.idle;
-    idle.legL[2] = idle.legR[2] = -sway * 0.03;
-    idle.armL[2] = 0.17 + breath * 0.012;
-    idle.armR[2] = -0.17 - breath * 0.012;
-    idle.chest[0] = breath * 0.015;
-    idle.head[1] = Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35;
-    idle.hips[2] = sway * 0.035;
+    const stance = HOLDS.stances[this.holdFor()?.stance ?? 'relaxed'];
+    for (const n of IDLE_BONES) {
+      const o = idle[n], a = IDLE_BASE[n], d = stance[n] ?? ZERO3;
+      o[0] = a[0] + d[0]; o[1] = a[1] + d[1]; o[2] = a[2] + d[2];
+    }
+    idle.legL[2] -= sway * 0.03;
+    idle.legR[2] -= sway * 0.03;
+    idle.armL[2] += 0.17 + breath * 0.012;
+    idle.armR[2] -= 0.17 + breath * 0.012;
+    idle.chest[0] += breath * 0.015;
+    idle.head[1] += Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35;
+    idle.hips[2] += sway * 0.035;
     const pose = this.buf.pose;
     for (const n in pose) if (!(n in idle) && n !== 'weapon') delete pose[n]; // channels an action or dash added
     for (const n in idle) {
@@ -344,12 +355,13 @@ export class HumanoidAnimator {
     pose.head[1] += this.lookYaw;
     pose.weapon = this.buf.weapon;
     pose.weapon[0] = 1.2 - 0.3 * m;
-    let bodyY = gait.by * m - (1 - m) * 0.004 * (1 - breath);
-    let bodyX = gait.bx * m;
+    let bodyY = gait.by * m + (1 - m) * ((stance.drop ?? 0) - 0.004 * (1 - breath));
+    let bodyX = gait.bx * m + (1 - m) * (stance.shift ?? 0);
     let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
     let hipsSpinX = 0;
     let spin = 0;
     let ikL = null, ikR = null; // raw hand targets of the current action
+    let swingW = 0, swingV = null, actionW = 0; // melee swing arc of the current action (actions.js swing/sw)
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
@@ -411,6 +423,8 @@ export class HumanoidAnimator {
       spin = ap.spin ? ap.spin[0] : 0;
       ikL = ap.ikL;
       ikR = ap.ikR;
+      actionW = wA;
+      if (ap.sw && ap.swing) { swingW = ap.sw[0] * wA; swingV = ap.swing; }
       for (const n in ap) {
         if (n === 'spin') continue;
         const lower = n.startsWith('leg') || n.startsWith('knee');
@@ -462,18 +476,31 @@ export class HumanoidAnimator {
       b.tail.rotation.z = tz;
     }
     if (this.rig.setFace) this.rig.setFace(this.expression(dt, s));
-    // hands reaching for targets: bow string, spell gestures, the second hand on a big weapon
-    const ikw = pose.ikw, grip = pose.grip ? pose.grip[0] : 0;
-    if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || grip > 0.01) {
+    // ---- the weapon hand: a per-weapon carry (data/weapon-holds.json) when not acting, the swing
+    // arc of a melee action, and the left hand on the haft of a two-handed weapon ----
+    const hold = this.holdFor();
+    const ikw = pose.ikw;
+    const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
+    // carry weight: full when idle or moving, handing over to the action's own arm keys
+    const busy = s.dead || (s.dash && s.dash.kind !== 'leap') || (this.action && (this.action.name === 'staffBolt' || this.action.name === 'bow'));
+    const holdW = busy || !hold ? 0 : swingV ? 1 : s.dash ? 0 : 1 - actionW;
+    if (b.weapon) b.weapon.position.copy(b.weapon.userData.rest.pos);
+    // through a spell or shout the weapon keeps its carry angle (a staff stays upright, a heavy
+    // weapon stays raised): only the hand moves. A two-handed weapon's left hand lets go meanwhile.
+    const gesture = this.action && !swingV ? actionW : 0;
+    const orientW = (hold?.castHold || hold?.grip !== undefined) && !busy && gesture > 0 ? 1 : holdW;
+    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW, swingV, swingW, orientW);
+    // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
+    const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) : pose.grip ? pose.grip[0] : 0;
+    if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
       root.updateMatrixWorld(true);
       if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(IK_T.fromArray(ikR)), ikw[1]);
-      if (grip > 0.01 && b.weapon) reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, -0.11)), grip);
-      else if (ikL && ikw?.[0] > 0.01) reachArm(b, 'L', root.localToWorld(IK_T.fromArray(ikL)), ikw[0]);
+      if (gripW > 0.01 && b.weapon) reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)), gripW);
+      if (ikL && leftBusy > 0.01) reachArm(b, 'L', root.localToWorld(IK_T.fromArray(ikL)), leftBusy);
     }
     // a drawn bow stands upright and faces the target whatever the hand's angle
     if (b.weapon) {
-      b.weapon.position.copy(b.weapon.userData.rest.pos);
       const aim = pose.aim ? pose.aim[0] : 0;
       if (aim > 0.01) {
         this.rig.root.updateMatrixWorld(true);
@@ -484,7 +511,7 @@ export class HumanoidAnimator {
     }
     // Staff grip is independent of wrist rotation, like the bow's aim solve.
     // Only staff ready/Firebolt is corrected; melee and other skills stay authored.
-    const staffSupport = b.weapon && this.rig.weaponKind === 'staff' && !s.dead && !s.dash && (!this.action || this.action.name === 'staffBolt');
+    const staffSupport = b.weapon && this.rig.weaponKind === 'staff' && !s.dead && !s.dash && this.action?.name === 'staffBolt';
     if (staffSupport) {
       const root = this.rig.root, aim = pose.staffAim?.[0] ?? 0;
       STAFF_TIP.fromArray(STAFF_CAST.readyTip).lerp(STAFF_TARGET.fromArray(STAFF_CAST.castTip), aim);
@@ -512,6 +539,55 @@ export class HumanoidAnimator {
     }
   }
 
+  /** This weapon's carry: two-handed when the type allows it and the left hand is free. */
+  holdFor() {
+    const h = HOLDS.holds[this.rig.weaponKind];
+    if (!h) return null;
+    return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
+  }
+
+  /**
+   * Put the right palm and the weapon's long axis where the carry (weight holdW) or the swing
+   * arc (weight swingW) wants them, in body space so they follow the body's bob and spin. The
+   * blade points out along the arc with its edge leading, so it traces the slash crescent.
+   */
+  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW) {
+    const b = this.b, body = b.body;
+    this.rig.root.updateMatrixWorld(true);
+    if (hold) {
+      W_HAND.fromArray(hold.hand);
+      W_DIR.fromArray(hold.dir).normalize();
+      W_UP.set(0, 1, 0);
+    }
+    if (swingV && swingW > 0.01) {
+      const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);
+      W_A.set(Math.sin(a) * r, y, Math.cos(a) * r);
+      W_B.set(Math.sin(a) * ce, Math.sin(e), Math.cos(a) * ce); // radial blade
+      W_T.set(Math.cos(a), 0, -Math.sin(a)); // the way the hand travels as the angle grows
+      W_N.crossVectors(W_B, W_T).normalize(); // swing plane normal: the blade's flat
+      const k = hold ? swingW : 1;
+      if (hold) {
+        W_HAND.lerp(W_A, k);
+        W_DIR.lerp(W_B, k).normalize();
+        W_UP.lerp(W_N, k).normalize();
+      } else {
+        W_HAND.copy(W_A); W_DIR.copy(W_B); W_UP.copy(W_N);
+      }
+    }
+    const w = Math.max(holdW, swingW), wo = Math.max(orientW, swingW);
+    if (w > 0.01) reachArm(b, 'R', body.localToWorld(IK_T.copy(W_HAND)), w);
+    // weapon frame: +Z along the blade, +Y the flat's normal
+    if (Math.abs(W_UP.dot(W_DIR)) > 0.97) W_UP.set(0, 0, 1);
+    W_X.crossVectors(W_UP, W_DIR).normalize();
+    W_UP.crossVectors(W_DIR, W_X);
+    W_M.makeBasis(W_X, W_UP, W_DIR);
+    W_Q.setFromRotationMatrix(W_M);
+    body.getWorldQuaternion(AIM_R).multiply(W_Q);
+    b.handR.updateMatrixWorld(true);
+    b.handR.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
+    b.weapon.quaternion.slerp(AIM_Q, wo);
+  }
+
   /** Painted-face expression: blinks, a fierce look while attacking, a wince when hit. */
   expression(dt, s) {
     this.blinkT -= dt;
@@ -529,20 +605,26 @@ export class HumanoidAnimator {
 
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
 const IK_T = new THREE.Vector3();
+const W_HAND = new THREE.Vector3(), W_DIR = new THREE.Vector3(), W_UP = new THREE.Vector3(), W_X = new THREE.Vector3();
+const W_A = new THREE.Vector3(), W_B = new THREE.Vector3(), W_T = new THREE.Vector3(), W_N = new THREE.Vector3();
+const W_M = new THREE.Matrix4(), W_Q = new THREE.Quaternion();
 const AIM_Q = new THREE.Quaternion();
 const AIM_R = new THREE.Quaternion();
 const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
+const ZERO3 = [0, 0, 0];
+// the neutral standing pose; stances add to it
+const IDLE_BASE = Object.fromEntries(IDLE_BONES.map((n) => [n, [0, 0, 0]]));
+IDLE_BASE.kneeL[0] = IDLE_BASE.kneeR[0] = 0.04;
+IDLE_BASE.armL[0] = IDLE_BASE.armR[0] = -0.05;
+IDLE_BASE.elbowL[0] = IDLE_BASE.elbowR[0] = -0.22;
+IDLE_BASE.torso[0] = 0.05;
 
 /** Per-animator scratch arrays for the locomotion pose. */
 function poseBuffers() {
   const set = (f) => Object.fromEntries(IDLE_BONES.map((n) => [n, f(n)]));
-  const idle = set(() => [0, 0, 0]);
-  idle.kneeL[0] = idle.kneeR[0] = 0.04;
-  idle.armL[0] = idle.armR[0] = -0.05;
-  idle.elbowL[0] = idle.elbowR[0] = -0.22;
-  idle.torso[0] = 0.05;
+  const idle = set(() => [0, 0, 0]); // IDLE_BASE + stance, rewritten every frame
   return { idle, base: set(() => [0, 0, 0]), pose: {}, weapon: [1.2, 0, 0], gait: { pose: set(() => [0, 0, 0]), bx: 0, by: 0 } };
 }
 

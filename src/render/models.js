@@ -101,6 +101,9 @@ export function modelInstance(group, id, flash) {
   const m = loaded.get(`${group}/${id}`);
   if (!m) return null;
   const g = new THREE.Group();
+  // Seat a specified source point in the palm without changing cached geometry.
+  g.position.fromArray(m.attachmentGrip).negate();
+  g.userData.attachmentGrip = m.attachmentGrip;
   const materials = new Map(); // one rig material per source material, shared by its parts
   for (const part of m.parts) {
     const materialFor = (source) => {
@@ -171,5 +174,5 @@ export function prepareWeaponModel(scene, metadata = {}) {
   for (const texture of sourceTextures) if (!keptTextures.has(texture)) { texture.dispose(); texture.source?.data?.close?.(); }
   const outline = outlineMaterial(metadata.outline || '#40332c', metadata.outlineWidth ?? 0.008);
   outline.userData.shared = true;
-  return { parts, outline };
+  return { parts, outline, attachmentGrip: [...(metadata.attachmentGrip || [0, 0, 0])] };
 }

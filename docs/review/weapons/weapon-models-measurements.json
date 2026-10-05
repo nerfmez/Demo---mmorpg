@@ -4,9 +4,9 @@
     "weaponRequests": 1,
     "weaponBytes": 1335312,
     "allResourceRequests": 72,
-    "allDecodedBytes": 41276926
+    "allDecodedBytes": 41287706
   },
-  "bowGrip": 8.659739592076221e-15,
+  "bowGrip": 3.1878870543082493e-14,
   "samples": [
     {
       "id": "rusty_sword",
@@ -133,6 +133,19 @@
         "activeTriangles": 139188,
         "drawCalls": 66
       },
+      "grip": {
+        "sourceAnchor": [
+          0,
+          0,
+          0
+        ],
+        "localTranslation": [
+          0,
+          0,
+          0
+        ],
+        "palmDistance": 8.43769498715119e-15
+      },
       "look": {
         "weapon": "staff",
         "offhand": null,
@@ -155,6 +168,19 @@
       "frame": {
         "activeTriangles": 122340,
         "drawCalls": 66
+      },
+      "grip": {
+        "sourceAnchor": [
+          0,
+          0,
+          0
+        ],
+        "localTranslation": [
+          0,
+          0,
+          0
+        ],
+        "palmDistance": 2.9976021664879227e-15
       },
       "look": {
         "weapon": "staff",
@@ -293,6 +319,19 @@
       "frame": {
         "activeTriangles": 99172,
         "drawCalls": 66
+      },
+      "grip": {
+        "sourceAnchor": [
+          0,
+          0,
+          0.585
+        ],
+        "localTranslation": [
+          0,
+          0,
+          -0.585
+        ],
+        "palmDistance": 6.772360450213455e-15
       },
       "look": {
         "weapon": "staff",
@@ -450,9 +489,9 @@
     {
       "geometries": 130,
       "textures": 59,
-      "programs": 73,
-      "drawCalls": 67,
-      "activeTriangles": 155950
+      "programs": 72,
+      "drawCalls": 66,
+      "activeTriangles": 155948
     },
     {
       "geometries": 130,
@@ -473,97 +512,97 @@
     {
       "file": "rusty_sword.glb",
       "bytes": 1335312,
-      "durationMs": 12.5
+      "durationMs": 16.5
     },
     {
       "file": "fang_bow.glb",
       "bytes": 1798328,
-      "durationMs": 27.100000000093132
+      "durationMs": 20.09999999962747
     },
     {
       "file": "frontier_kris.glb",
       "bytes": 2122152,
-      "durationMs": 2956.6999999999534
+      "durationMs": 1668.199999999255
     },
     {
       "file": "fang_dagger.glb",
       "bytes": 1533856,
-      "durationMs": 10
+      "durationMs": 8.5
     },
     {
       "file": "hermit_cleaver.glb",
       "bytes": 2244960,
-      "durationMs": 2619.7999999998137
+      "durationMs": 1609.800000000745
     },
     {
       "file": "spore_staff.glb",
       "bytes": 2451460,
-      "durationMs": 4913.90000000014
+      "durationMs": 2916.699999999255
     },
     {
       "file": "tide_staff.glb",
       "bytes": 2340576,
-      "durationMs": 3008.6999999999534
+      "durationMs": 1655.6000000014901
     },
     {
       "file": "tusk_greatblade.glb",
       "bytes": 1982672,
-      "durationMs": 17.600000000093132
+      "durationMs": 12.800000000745058
     },
     {
       "file": "venom_wand.glb",
       "bytes": 1709180,
-      "durationMs": 31.9000000001397
+      "durationMs": 17.799999998882413
     },
     {
       "file": "old_bow.glb",
       "bytes": 2231076,
-      "durationMs": 2904.899999999907
+      "durationMs": 3076.5
     },
     {
       "file": "spore_wand.glb",
       "bytes": 2637216,
-      "durationMs": 1783.3999999999069
+      "durationMs": 1712
     },
     {
       "file": "tusk_blade.glb",
       "bytes": 1961488,
-      "durationMs": 6.800000000046566
+      "durationMs": 14.400000000372529
     },
     {
       "file": "apprentice_staff.glb",
       "bytes": 2131268,
-      "durationMs": 1628.5999999998603
+      "durationMs": 1748.800000000745
     },
     {
       "file": "hunter_bow.glb",
       "bytes": 2167628,
-      "durationMs": 2562.399999999907
+      "durationMs": 2937.800000000745
     },
     {
       "file": "tusk_club.glb",
       "bytes": 2856900,
-      "durationMs": 1525.5
+      "durationMs": 1521.9000000003725
     },
     {
       "file": "shell_knife.glb",
       "bytes": 1195576,
-      "durationMs": 6.699999999953434
+      "durationMs": 19.199999999254942
     },
     {
       "file": "beetle_maul.glb",
       "bytes": 547672,
-      "durationMs": 12.300000000279397
+      "durationMs": 19.90000000037253
     },
     {
       "file": "skyrender_bow.glb",
       "bytes": 537032,
-      "durationMs": 11.5
+      "durationMs": 4.099999999627471
     },
     {
       "file": "wolfbite_sword.glb",
       "bytes": 1714200,
-      "durationMs": 6.5
+      "durationMs": 23.200000001117587
     }
   ],
   "requestsBeforeReload": 19,

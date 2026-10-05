@@ -39,6 +39,12 @@ try {
   const look=await equip(id);
   const sample=await page.evaluate(()=>{const f=window.__frontier,b=f.view.hero.bones.weapon;let tris=0,parts=0;b.traverse(o=>{if(o.isMesh&&o.material.isMeshToonMaterial){parts++;tris+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;}});f.view.renderer.render(f.view.scene,f.view.camera);const frame=f.view.renderer.info.render;return {parts,tris,kind:f.view.hero.weaponKind,offhand:f.view.hero.offhandKind,frame:{activeTriangles:frame.triangles,drawCalls:frame.calls}};});
   assert.equal(sample.tris,provenance[id].tris,id+' exact geometry');assert.ok(sample.parts>0);
+  if(['apprentice_staff','tide_staff','spore_staff'].includes(id)){
+   sample.grip=await page.evaluate(()=>{const r=window.__frontier.view.hero;r.root.updateMatrixWorld(true);const group=r.bones.weapon.children.find(o=>o.type==='Group'&&o.userData.attachmentGrip);const anchor=group.userData.attachmentGrip;const source=r.gripCenter.clone().fromArray(anchor);group.localToWorld(source);const palm=r.gripCenter.clone();r.skin.body.getObjectByName('J_Bip_R_Hand').localToWorld(palm);return {sourceAnchor:anchor,localTranslation:group.position.toArray(),palmDistance:source.distanceTo(palm)};});
+   assert.ok(sample.grip.palmDistance<1e-5,id+' chosen source grip meets actual palm');
+   assert.deepEqual(sample.grip.sourceAnchor,id==='apprentice_staff'?[0,0,.585]:[0,0,0]);
+   assert.ok(Math.abs(sample.grip.localTranslation[2]+(id==='apprentice_staff'?.585:0))<1e-12,'attachment sign');
+  }
   await shot({path:`${out}/${id}-desktop.png`,clip:{x:360,y:180,width:460,height:460}});
   samples.push({id,...sample,look});
  }

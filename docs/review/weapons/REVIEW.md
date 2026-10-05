@@ -25,3 +25,20 @@ Limits: still-image and sampled-phase inspection; no continuous normal-speed vid
 | `tide-remake-r1.png` | `b5a531e0264411cb5e1fa007227c444d3d7232a28e1d4a766c6a93cbf325c6c9` |
 | `tusk-greatblade-r4.png` | `ae366e1b3829c8637334488bd451fba1b7db1b8bda027d656dd8aaa55e2e08d9` |
 | `wolfbite-r4.png` | `b103634debee4c993c4fe07c92dc44c4631ffa3f95657e53650b6e9698b86db2` |
+
+## Owner bug-fix bundle after `b577765`
+
+Inspected the exact new game frames below: iPad 1180×820 and phone 844×390 equipment details show a reachable top Close, stone/gold names and owned/required counts. Native scrolling and all detail actions are separate functional tests, including repeated bag/equipped/workbench entry. The potion frame is an actual native two-finger drink while moving; the result JSON records unchanged joystick identity/vector and one consumed item.
+
+Apprentice Staff's unchanged source GLB is seated at its local Z +0.585 m midpoint through a per-instance −0.585 m translation. Inspected actual game full-body idle, walk and cast frames: hand grips the shaft approximately centrally, all parts remain attached and no excessive clipping/giant scale appears. Ordinary body depth overlap remains in the oblique camera. Tide/Spore already have central origins and were not shifted. The pose/IK/timing data and source GLB bytes are unchanged. Review covers sampled frames, not continuous playback or physical-device FPS.
+
+Both user-supplied Library JPEG transfers failed; these results do not claim a match to an unseen picture. Criteria come from the owner's explicit text requirement and observable game interactions.
+
+| New PNG | SHA-256 |
+| --- | --- |
+| `details-touch-ipad.png` | `63cb9e61933023d9e3795e00cc78658266ea694e8499dd9e0e0e63d656afd619` |
+| `details-touch-phone.png` | `578dccbdd49c2f7d6821f3480663c502cb4d02cfebb9810c49797c976f6d700d` |
+| `potions-two-finger.png` | `38284d26809ad788eaab1bd9c047dd994da6fa090a67bd9fe6a683474de41611` |
+| `apprentice-midpoint-idle.png` | `c8ecadb2e41e6e6f5ef437ca0f315e792f866b4f7c55827ffab4a5b131942bf5` |
+| `apprentice-midpoint-walk.png` | `12d4e7109b0a7db5120b43ccabff97bd9305f00a2d8a93fd528dd3036ce950e1` |
+| `apprentice-midpoint-cast.png` | `7791c8994627169d4c26077b8873bbbe38ab426cf666dc6604515c1523129169` |

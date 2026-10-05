@@ -1,4 +1,4 @@
-import { gradeBadge, optionList, wearRequirements } from './progressionview.js';
+import { gradeBadge, optionList, wearRequirements, stateText } from './progressionview.js';
 import { craftView } from './craftview.js';
 // Menu panels: Character, Skills (slots + mods), Job Tree, Bag (equipment), Workbench,
 // Journal (quests + progress), World Map (fast travel) and Settings (graphics + save).
@@ -13,7 +13,7 @@ import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
-import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
+import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
 import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
@@ -80,7 +80,16 @@ export class Panels {
         const selection = {...this.sel, bag: category, gear: 'all', item: String(id)};
         const template = document.createElement('template');
         template.innerHTML = inventoryView({game: this.game, sel: selection, gearLine: this.gearLine.bind(this)}, {costHtml, effectText});
-        return ['.item-detail-top', '.item-actions', '.item-description'].map(selector => template.content.querySelector(selector)?.outerHTML || '').join('');
+        const item = category === 'gear' && this.game.ch.gear.find(it => it.uid === Number(id));
+        const cost = template.content.querySelector('.upgrade-cost .cost');
+        let summary = '';
+        if (item && cost) {
+          const state = gearUpgradeState(this.game.ch, this.game.data, item);
+          const near = this.game.nearby().workbench;
+          summary = `<section class="detail-upgrade-summary"><b>วัตถุดิบตีบวก +${item.upgrade + 1}</b>${cost.outerHTML}<p class="${near && state.ok ? 'ok' : 'no'}" data-upgrade-status>${near ? stateText(state) : 'ต้องอยู่ใกล้โต๊ะคราฟต์ในนิคมเพื่อตีบวก'}</p></section>`;
+        }
+        return (template.content.querySelector('.item-detail-top')?.outerHTML || '') + summary
+          + ['.item-actions', '.item-description'].map(selector => template.content.querySelector(selector)?.outerHTML || '').join('');
       },
     });
     this.overlay.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.close()));

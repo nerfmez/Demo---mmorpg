@@ -103,7 +103,12 @@
       "outline": "#4a3a30",
       "outlineWidth": 0.003,
       "revision": "batch2_r1",
-      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json",
+      "attachmentGrip": [
+        0,
+        0,
+        0.585
+      ]
     },
     "hunter_bow": {
       "file": "models/weapons/hunter_bow.glb",

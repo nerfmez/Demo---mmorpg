@@ -60,8 +60,35 @@ export class Input {
     this.quickbar = h(`<div class="quickbar" role="group" aria-label="ไอเทมกดใช้"></div>`);
     this.itemButtons = Array.from({ length: game.data.items.consumables.quickSlots }, (_, i) => {
       const b = h(`<button class="qbtn"><span class="ic"></span><i class="cd"></i><b class="qn"></b><span class="key">${i + 5}</span></button>`);
-      b.addEventListener('pointerdown', (e) => e.stopPropagation());
-      b.addEventListener('click', () => this.useItem(i));
+      // Secondary touches do not synthesize click while the joystick is held.
+      // Own this pointer independently, as the combat/movement controls do.
+      let pressed = null;
+      const clear = () => {
+        const id = pressed;
+        pressed = null;
+        if (id !== null && b.hasPointerCapture(id)) b.releasePointerCapture(id);
+      };
+      this.resetHandlers.push(clear);
+      b.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (pressed !== null || this.ui.panelOpen()) return;
+        pressed = e.pointerId;
+        capture(b, e.pointerId);
+      });
+      b.addEventListener('pointerup', (e) => {
+        if (e.pointerId !== pressed) return;
+        e.preventDefault();
+        e.stopPropagation();
+        clear();
+        const r = b.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+        this.useItem(i);
+      });
+      const cancel = (e) => { if (e.pointerId === pressed) clear(); };
+      b.addEventListener('pointercancel', cancel);
+      b.addEventListener('lostpointercapture', cancel);
+      b.addEventListener('click', (e) => { if (e.detail === 0) this.useItem(i); });
       this.quickbar.appendChild(b);
       return b;
     });

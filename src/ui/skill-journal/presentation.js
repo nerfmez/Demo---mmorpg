@@ -1,3 +1,4 @@
+import {splitLineGroups,purchaseScope} from './line-groups.js';
 // Replaceable presentation metadata. This module never decides purchase eligibility.
 export const currentPresentation = {
   groups: [
@@ -13,14 +14,26 @@ export function createPresentation(tree,metadata=currentPresentation){
   const active=new Set(metadata.stages?.flatMap(s=>s.nodes||s.paths.flatMap(p=>p.nodes))||Object.keys(tree.nodes));
   const entries=Object.entries(tree.nodes).filter(([id])=>active.has(id)),tierOf=id=>tree.sections[tree.nodes[id]?.section]?.tier;
   const tiers=metadata.stages?.map(s=>s.id)||[...new Set(entries.map(([id])=>tierOf(id)))].sort((a,b)=>a-b);
-  const definitions=metadata.groups||[];
-  const groupOf=id=>{const n=tree.nodes[id];return definitions.find(g=>g.nodes?.includes(id)||g.id===n.presentationGroup||g.categories?.includes(n.category)||g.branches?.includes(n.branch||n.requiresJob))?.id||'other';};
+  const definitions=splitLineGroups(tree,metadata.groups||[]);
+  const byId=new Map(definitions.map(g=>[g.id,g])),groupCache=new Map();
+  const groupOf=id=>{
+    const n=tree.nodes[id];
+    return definitions.find(g=>g.nodes?.includes(id)||g.id===n.presentationGroup||g.categories?.includes(n.category)||g.branches?.includes(n.branch||n.requiresJob))?.id
+      ||definitions.find(g=>g.bridges?.includes(id))?.id||'other';
+  };
   const groups=tier=>{
-    const buckets=new Map();for(const [id] of entries)if(tierOf(id)===tier){const key=groupOf(id);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(id);}
-    return [...buckets].map(([id,ids])=>({...definitions.find(g=>g.id===id),id,ids,name:definitions.find(g=>g.id===id)?.name||'รอยทางอื่น',color:definitions.find(g=>g.id===id)?.color||'#617d82',icon:definitions.find(g=>g.id===id)?.icon||'compass'}));
+    if(groupCache.has(tier))return groupCache.get(tier);
+    const buckets=new Map();
+    for(const [id] of entries)if(tierOf(id)===tier){const key=groupOf(id);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(id);}
+    const result=[...buckets].map(([id,ids])=>{
+      const group=byId.get(id);
+      return {...group,id,ids:group?.lineId?ids.filter(k=>tree.nodes[k].line===group.lineId):ids,
+        name:group?.name||'รอยทางอื่น',color:group?.color||'#617d82',icon:group?.icon||'compass'};
+    });
+    groupCache.set(tier,result);return result;
   };
   function context(ids,extra=[]){const all=new Set([...ids,...extra]);for(const id of [...all])for(const k of tree.nodes[id]?.links||[])if(tree.nodes[k]&&tierOf(k)<=tierOf(id))all.add(k);return [...all];}
-  return {tiers,tierOf,groupOf,groups,stage:tier=>entries.filter(([id])=>tierOf(id)===tier).map(([id])=>id),context};
+  return {tiers,tierOf,groupOf,groups,hubs:tier=>groups(tier).filter(g=>!g.mastery),routeScope:(target,groupId)=>purchaseScope(tree,target,byId.get(groupId)),stage:tier=>entries.filter(([id])=>tierOf(id)===tier).map(([id])=>id),context};
 }
 // Deterministic graph layout: shared origin and connected branches, regardless of IDs/count.
 export function connectedLayout(tree,ids){

@@ -65,7 +65,12 @@ live deployment. No merge or deployment before owner proof review and final gate
 Review record and exact final artifact hashes will be added after inspection.
 Private proof delivery links belong in the task response, never in this repository.
 
-## Delivery review record — 2026-10-05
+## Superseded delivery review record — 2026-10-05
+
+**HOLD: the owner rejected these procedural Three.js visuals as insufficiently visible.**
+They were not Blender-authored. The earlier clips and frame review are historical
+evidence, not visual completion or owner approval. See `BOW-BLENDER-PROOFS.md`
+for the requested Blender proof pass. Gameplay and existing tests are preserved.
 
 Status: review draft, awaiting owner motion/feel review and required final-head CI.
 Production renderer identity (SHA-256 of `src/render/vfx.js`):

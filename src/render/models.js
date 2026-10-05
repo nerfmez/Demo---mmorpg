@@ -9,7 +9,8 @@ import { prepareHeroBase } from './skinned.js';
 import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareMonsterModel } from './monsterSkin.js';
 
-const loaded = new Map(); // "weapons/rusty_sword" -> {geometry, map, outline}
+const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
+const loading = new Map(); // deduplicate concurrent/repeated registry loads
 
 /** Load every model in the registry. Resolves when all have loaded or failed. */
 export function loadModels(registry = {}) {
@@ -19,32 +20,22 @@ export function loadModels(registry = {}) {
     if (group.startsWith('_')) continue;
     for (const [id, m] of Object.entries(entries)) {
       if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
-      jobs.push(
-        loader
+      const key = `${group}/${id}`;
+      if (loaded.has(key)) continue;
+      if (loading.has(key)) { jobs.push(loading.get(key)); continue; }
+      const job = loader
           .loadAsync(m.file)
           .then((gltf) => {
             if (group === 'characters' || group === 'monsters') {
               loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
               return;
             }
-            gltf.scene.updateMatrixWorld(true);
-            let mesh = null;
-            gltf.scene.traverse((o) => {
-              if (o.isMesh && !mesh) mesh = o;
-            });
-            if (!mesh) return;
-            // Bake the node transform so every copy attaches at the bone origin.
-            const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
-            geometry.userData.shared = true;
-            const map = mesh.material.map || null;
-            if (map) map.userData.shared = true;
-            mesh.geometry.dispose();
-            const outline = outlineMaterial(m.outline || '#40332c', 0.008);
-            outline.userData.shared = true;
-            loaded.set(`${group}/${id}`, { geometry, map, outline });
+            loaded.set(`${group}/${id}`, prepareWeaponModel(gltf.scene, m));
           })
           .catch((err) => console.warn('model not loaded:', m.file, err))
-      );
+          .finally(() => loading.delete(key));
+      loading.set(key, job);
+      jobs.push(job);
     }
   }
   return Promise.all(jobs);
@@ -71,25 +62,76 @@ export function hasModel(group, id) {
 export function modelInstance(group, id, flash) {
   const m = loaded.get(`${group}/${id}`);
   if (!m) return null;
-  const mat = new THREE.MeshToonMaterial({ map: m.map, gradientMap: toonRamp(), side: THREE.DoubleSide });
-  mat.userData.rig = true; // freed with the rig; the shared texture is kept
-  if (flash) {
-    mat.onBeforeCompile = (shader) => {
-      shader.uniforms.uFlash = flash;
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uFlash;')
-        .replace(
-          '#include <opaque_fragment>',
-          `outgoingLight = mix(outgoingLight, vec3(1.0), clamp(uFlash.x, 0.0, 1.0));
-outgoingLight += vec3(1.0, 0.45, 0.15) * uFlash.y + vec3(0.5, 0.8, 1.0) * uFlash.z;
-#include <opaque_fragment>`
-        );
-    };
-    mat.customProgramCacheKey = () => 'model-toon';
-  }
   const g = new THREE.Group();
-  const mesh = new THREE.Mesh(m.geometry, mat);
-  mesh.castShadow = true;
-  g.add(mesh, new THREE.Mesh(m.geometry, m.outline));
+  const materials = new Map(); // one rig material per source material, shared by its parts
+  for (const part of m.parts) {
+    const materialFor = (source) => {
+      if (materials.has(source)) return materials.get(source);
+      const mat = new THREE.MeshToonMaterial(source);
+      mat.userData.rig = true; // rig owns material; cached template owns geometry/textures
+      if (flash) {
+        mat.onBeforeCompile = (shader) => {
+          shader.uniforms.uFlash = flash;
+          shader.fragmentShader = shader.fragmentShader
+            .replace('#include <common>', '#include <common>\nuniform vec3 uFlash;')
+            .replace(
+              '#include <opaque_fragment>',
+              `outgoingLight = mix(outgoingLight, vec3(1.0), clamp(uFlash.x, 0.0, 1.0));
+    outgoingLight += vec3(1.0, 0.45, 0.15) * uFlash.y + vec3(0.5, 0.8, 1.0) * uFlash.z;
+    #include <opaque_fragment>`
+            );
+        };
+        mat.customProgramCacheKey = () => 'model-toon';
+      }
+      materials.set(source, mat);
+      return mat;
+    };
+    const mat = Array.isArray(part.material) ? part.material.map(materialFor) : materialFor(part.material);
+    const mesh = new THREE.Mesh(part.geometry, mat);
+    mesh.castShadow = true;
+    g.add(mesh);
+    // Transparent/cutout materials do not get an opaque hull over their holes.
+    const sources = Array.isArray(part.material) ? part.material : [part.material];
+    if (sources.every((s) => !s.transparent && !s.alphaTest)) g.add(new THREE.Mesh(part.geometry, m.outline));
+  }
   return g;
+}
+
+/** Cache all exported parts in the authored grip frame; no recentering or simplification. */
+export function prepareWeaponModel(scene, metadata = {}) {
+  scene.updateMatrixWorld(true);
+  const parts = [], materials = new Map(), geometries = new Set(), sourceMaterials = new Set(), keptTextures = new Set(), sourceTextures = new Set();
+  const materialFor = (source) => {
+    if (materials.has(source)) return materials.get(source);
+    const result = {
+      color: source.color?.clone() ?? new THREE.Color(0xffffff),
+      map: source.map || null, alphaMap: source.alphaMap || null,
+      gradientMap: toonRamp(), side: source.side,
+      transparent: source.transparent, opacity: source.opacity,
+      alphaTest: source.alphaTest, depthWrite: source.depthWrite,
+      vertexColors: source.vertexColors,
+      emissive: source.emissive?.clone() ?? new THREE.Color(0),
+      emissiveMap: source.emissiveMap || null, emissiveIntensity: source.emissiveIntensity ?? 1,
+      normalMap: source.normalMap || null, normalScale: source.normalScale?.clone(),
+    };
+    for (const value of Object.values(result)) if (value?.isTexture) { value.userData.shared = true; keptTextures.add(value); }
+    for (const value of Object.values(source)) if (value?.isTexture) sourceTextures.add(value);
+    sourceMaterials.add(source); materials.set(source, result);
+    return result;
+  };
+  scene.traverse((mesh) => {
+    if (!mesh.isMesh) return;
+    const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+    geometry.userData.shared = true;
+    const material = Array.isArray(mesh.material) ? mesh.material.map(materialFor) : materialFor(mesh.material);
+    parts.push({ geometry, material }); geometries.add(mesh.geometry);
+  });
+  if (!parts.length) throw new Error('weapon GLB contains no meshes');
+  for (const geometry of geometries) geometry.dispose();
+  for (const material of sourceMaterials) material.dispose();
+  // PBR-only maps are not sampled by the game's toon material; release their loader resources.
+  for (const texture of sourceTextures) if (!keptTextures.has(texture)) { texture.dispose(); texture.source?.data?.close?.(); }
+  const outline = outlineMaterial(metadata.outline || '#40332c', metadata.outlineWidth ?? 0.008);
+  outline.userData.shared = true;
+  return { parts, outline };
 }

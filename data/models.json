@@ -2,10 +2,156 @@
   "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose (shoulderWiden moves the shoulder joints out and clavicleLift raises the collarbones, for square shoulders), headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head. Monsters are skinned onto the procedural monster rigs (monsterSkin.js): scale/yaw align the model (feet on the ground), bones moves rig joints onto the model, segments are per-bone lines (aligned rest space, metres) that set the skin weights. rootScale enlarges the model's whole rig in the world.",
   "weapons": {
     "rusty_sword": {
-      "file": "models/rusty_sword.glb",
-      "tris": 1555,
+      "file": "models/weapons/rusty_sword.glb",
+      "tris": 5052,
       "outline": "#4a3a30",
-      "source": "Meshy image-to-3d meshy-t2 (task 01a0e72e-97ea-7309-ac95-517482e3289f), texture 512 px"
+      "outlineWidth": 0.003,
+      "revision": "remake R1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "fang_bow": {
+      "file": "models/weapons/fang_bow.glb",
+      "tris": 20996,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "pair7 R1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "frontier_kris": {
+      "file": "models/weapons/frontier_kris.glb",
+      "tris": 9646,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "pair8 R1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "fang_dagger": {
+      "file": "models/weapons/fang_dagger.glb",
+      "tris": 23610,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "blade_detail_r4",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "hermit_cleaver": {
+      "file": "models/weapons/hermit_cleaver.glb",
+      "tris": 12904,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "pair6_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "spore_staff": {
+      "file": "models/weapons/spore_staff.glb",
+      "tris": 26164,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "pair7 R1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "tide_staff": {
+      "file": "models/weapons/tide_staff.glb",
+      "tris": 17740,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "remake R1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "tusk_greatblade": {
+      "file": "models/weapons/tusk_greatblade.glb",
+      "tris": 27206,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "blade_detail_r4",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "venom_wand": {
+      "file": "models/weapons/venom_wand.glb",
+      "tris": 16008,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "pair6_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "old_bow": {
+      "file": "models/weapons/old_bow.glb",
+      "tris": 9820,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "batch2_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "spore_wand": {
+      "file": "models/weapons/spore_wand.glb",
+      "tris": 33168,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "batch2_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "tusk_blade": {
+      "file": "models/weapons/tusk_blade.glb",
+      "tris": 7376,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "batch2_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "apprentice_staff": {
+      "file": "models/weapons/apprentice_staff.glb",
+      "tris": 6156,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "batch2_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "hunter_bow": {
+      "file": "models/weapons/hunter_bow.glb",
+      "tris": 9784,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "batch3_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "tusk_club": {
+      "file": "models/weapons/tusk_club.glb",
+      "tris": 22224,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "batch3_r1",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "shell_knife": {
+      "file": "models/weapons/shell_knife.glb",
+      "tris": 15318,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "R4",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "beetle_maul": {
+      "file": "models/weapons/beetle_maul.glb",
+      "tris": 16332,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "R2",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "skyrender_bow": {
+      "file": "models/weapons/skyrender_bow.glb",
+      "tris": 12238,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "R2",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "wolfbite_sword": {
+      "file": "models/weapons/wolfbite_sword.glb",
+      "tris": 34544,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "blade_detail_r4",
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
     }
   },
   "characters": {

@@ -1,0 +1,347 @@
+{
+  "sourceMain": "7689351388703366d414f7025fcf83fce5fb4d4a",
+  "items": {
+    "rusty_sword": {
+      "revision": "remake R1",
+      "file": "models/weapons/rusty_sword.glb",
+      "sha256": "2d021e4f1a7766c502beb343908ad16a69fb51f703a81502d76cf12d0caf4065",
+      "bytes": 1335312,
+      "tris": 5052,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "rusty_sword_remake_R1_source.zip",
+      "sourceMember": "rusty_sword/rusty_sword.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "fang_bow": {
+      "revision": "pair7 R1",
+      "file": "models/weapons/fang_bow.glb",
+      "sha256": "ce6813a661eac99a50579b75a50d708ef52d6c373a659a92578d0d157a5ecaab",
+      "bytes": 1798328,
+      "tris": 20996,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "fang_bow_pair7_R1_source.zip",
+      "sourceMember": "fang_bow/fang_bow.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "bow limbs Y, belly +Z"
+    },
+    "frontier_kris": {
+      "revision": "pair8 R1",
+      "file": "models/weapons/frontier_kris.glb",
+      "sha256": "055aa9bce459c35fdbe369b821117a5e646e219550434befec1570199481ef58",
+      "bytes": 2122152,
+      "tris": 9646,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "frontier_kris_pair8_R1_source.zip",
+      "sourceMember": "frontier_kris/frontier_kris.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "fang_dagger": {
+      "revision": "blade_detail_r4",
+      "file": "models/weapons/fang_dagger.glb",
+      "sha256": "939f8a77f9f708f0ad18afdddd8d164e86dc92ecd3ae117c060032c0dcf3d743",
+      "bytes": 1533856,
+      "tris": 23610,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "fang_dagger_R4_approved_source.zip",
+      "sourceMember": "fang_dagger/fang_dagger.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "hermit_cleaver": {
+      "revision": "pair6_r1",
+      "file": "models/weapons/hermit_cleaver.glb",
+      "sha256": "4a8c6f538e4e8a285cfee3f5c27313ddadbadfec98799325a2fcea2d780521cb",
+      "bytes": 2244960,
+      "tris": 12904,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "hermit_cleaver_pair6_R1_source.zip",
+      "sourceMember": "pair6-r1/hermit_cleaver/hermit_cleaver.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "spore_staff": {
+      "revision": "pair7 R1",
+      "file": "models/weapons/spore_staff.glb",
+      "sha256": "89b357acdca491e5383720963fb61ce08678cc5675cf172dad53ee1b33e42bce",
+      "bytes": 2451460,
+      "tris": 26164,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "spore_staff_pair7_R1_source.zip",
+      "sourceMember": "spore_staff/spore_staff.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "tide_staff": {
+      "revision": "remake R1",
+      "file": "models/weapons/tide_staff.glb",
+      "sha256": "19d3738ebced4bf7f3bc920b898f37d21aa2882af76b6d203f7e9dd1f311c48c",
+      "bytes": 2340576,
+      "tris": 17740,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "tide_staff_remake_R1_source.zip",
+      "sourceMember": "tide_staff/tide_staff.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "tusk_greatblade": {
+      "revision": "blade_detail_r4",
+      "file": "models/weapons/tusk_greatblade.glb",
+      "sha256": "3a6a3722364567cfb99ed007ca92a69998be726a57c8d7cbb5feba9d68e587e6",
+      "bytes": 1982672,
+      "tris": 27206,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "tusk_greatblade_R4_approved_source.zip",
+      "sourceMember": "tusk_greatblade/tusk_greatblade.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "venom_wand": {
+      "revision": "pair6_r1",
+      "file": "models/weapons/venom_wand.glb",
+      "sha256": "8feafb42a7a8af044d6783884ebc0d58f2c0b63a6f5b0c834385191d040067a5",
+      "bytes": 1709180,
+      "tris": 16008,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "venom_wand_pair6_R1_source.zip",
+      "sourceMember": "pair6-r1/venom_wand/venom_wand.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "old_bow": {
+      "revision": "batch2_r1",
+      "file": "models/weapons/old_bow.glb",
+      "sha256": "25b1ebc1d3e9a4f8a0ed7e54f422e36adaef69d93797aa3386ad9168ad0c1f4a",
+      "bytes": 2231076,
+      "tris": 9820,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "weapons-batch2-r1-tusk-oldbow-apprentice-spore.zip",
+      "sourceMember": "old_bow/old_bow.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "bow limbs Y, belly +Z"
+    },
+    "spore_wand": {
+      "revision": "batch2_r1",
+      "file": "models/weapons/spore_wand.glb",
+      "sha256": "55ba88ad2f3536e4d2593a7de59af5b150584d66b6a9b97b747661f5d3fe412c",
+      "bytes": 2637216,
+      "tris": 33168,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "weapons-batch2-r1-tusk-oldbow-apprentice-spore.zip",
+      "sourceMember": "spore_wand/spore_wand.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "tusk_blade": {
+      "revision": "batch2_r1",
+      "file": "models/weapons/tusk_blade.glb",
+      "sha256": "21be524a54bcbac4209a0d92294cd76e712c90f0f2b26d001331f2ebe3f46a1e",
+      "bytes": 1961488,
+      "tris": 7376,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "weapons-batch2-r1-tusk-oldbow-apprentice-spore.zip",
+      "sourceMember": "tusk_blade/tusk_blade.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "apprentice_staff": {
+      "revision": "batch2_r1",
+      "file": "models/weapons/apprentice_staff.glb",
+      "sha256": "24c2836a3dfb588e5942e3a9d33d3a4a68d27103d5d510de6fea49f9c7b4ca17",
+      "bytes": 2131268,
+      "tris": 6156,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "weapons-batch2-r1-tusk-oldbow-apprentice-spore.zip",
+      "sourceMember": "apprentice_staff/apprentice_staff.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "hunter_bow": {
+      "revision": "batch3_r1",
+      "file": "models/weapons/hunter_bow.glb",
+      "sha256": "f63e421e3c2aa60e02c07e2555b6570efe126a5a4daea36e78d1aa07566e3976",
+      "bytes": 2167628,
+      "tris": 9784,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "weapons-batch3-r1-hunterbow-tuskclub.zip",
+      "sourceMember": "hunter_bow/hunter_bow.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "bow limbs Y, belly +Z"
+    },
+    "tusk_club": {
+      "revision": "batch3_r1",
+      "file": "models/weapons/tusk_club.glb",
+      "sha256": "8c405316470b24ac945f8495369203a052a1ffc85ae9ffd1c98ba1dba4f9ddd4",
+      "bytes": 2856900,
+      "tris": 22224,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "weapons-batch3-r1-hunterbow-tuskclub.zip",
+      "sourceMember": "tusk_club/tusk_club.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    },
+    "shell_knife": {
+      "revision": "R4",
+      "file": "models/weapons/shell_knife.glb",
+      "sha256": "e3a4a26814f4fd40f97f3ac9743b5e5c9ee9d3fec7dd2fb928cf047a311db999",
+      "bytes": 1195576,
+      "tris": 15318,
+      "materials": 1,
+      "embeddedTextures": 1,
+      "sourcePackage": "weapons-first4-current-shellR4-staffR3-maulR2-bowR2.zip",
+      "sourceMember": "shell_knife/shell_knife.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "game X right Y up Z forward; blades +Z, bow limbs Y"
+    },
+    "beetle_maul": {
+      "revision": "R2",
+      "file": "models/weapons/beetle_maul.glb",
+      "sha256": "d38c4844e7604eb5d3b45fe89ab70e9178c5712c6b8afd00c9c06eb792d1a219",
+      "bytes": 547672,
+      "tris": 16332,
+      "materials": 1,
+      "embeddedTextures": 1,
+      "sourcePackage": "weapons-first4-current-shellR4-staffR3-maulR2-bowR2.zip",
+      "sourceMember": "beetle_maul/beetle_maul.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "game X right Y up Z forward; blades +Z, bow limbs Y"
+    },
+    "skyrender_bow": {
+      "revision": "R2",
+      "file": "models/weapons/skyrender_bow.glb",
+      "sha256": "d3f810bdc612801849498e9ef34e2bd9aa9233fde4b63bb432b85bc87eaa043d",
+      "bytes": 537032,
+      "tris": 12238,
+      "materials": 1,
+      "embeddedTextures": 1,
+      "sourcePackage": "weapons-first4-current-shellR4-staffR3-maulR2-bowR2.zip",
+      "sourceMember": "skyrender_bow/skyrender_bow.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "game X right Y up Z forward; blades +Z, bow limbs Y"
+    },
+    "wolfbite_sword": {
+      "revision": "blade_detail_r4",
+      "file": "models/weapons/wolfbite_sword.glb",
+      "sha256": "3a8d0b43ae90916f1bc920a74382cbff9fcfd414751bc2eecc23a1ad591a2a40",
+      "bytes": 1714200,
+      "tris": 34544,
+      "materials": 1,
+      "embeddedTextures": 2,
+      "sourcePackage": "wolfbite_sword_R4_approved_source.zip",
+      "sourceMember": "wolfbite_sword/wolfbite_sword.glb",
+      "gripOrigin": [
+        0,
+        0,
+        0
+      ],
+      "scale": 1,
+      "orientation": "length +Z"
+    }
+  }
+}

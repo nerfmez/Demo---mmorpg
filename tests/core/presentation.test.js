@@ -41,8 +41,10 @@ test('gear presentation preserves base identity independently of grade and enhan
 });
 
 
-test('imported models name real gear bases and ship small GLB files',async()=>{
+test('imported models name real gear bases and respect measured asset budgets',async()=>{
  const {readFileSync}=await import('node:fs');
+ const {createHash}=await import('node:crypto');
+ const approved=JSON.parse(readFileSync(new URL('../../docs/WEAPON-MODEL-PROVENANCE.json',import.meta.url))).items;
  const all=Object.entries(data.models).filter(([g])=>!g.startsWith('_')).flatMap(([g,e])=>Object.entries(e).map(([id,m])=>[g,id,m]));
  for(const [group,id,m] of all){
   if(group==='weapons')assert.equal(data.items.gearBases[id]?.slot,'weapon',id+' is a weapon base');
@@ -55,6 +57,17 @@ test('imported models name real gear bases and ship small GLB files',async()=>{
   }
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
+  const original=group==='weapons' && approved[id];
+  if(original){
+   assert.equal(m.file,original.file);
+   assert.equal(m.revision,original.revision);
+   assert.equal(createHash('sha256').update(buf).digest('hex'),original.sha256,id+' exact original');
+   assert.equal(buf.length,original.bytes);
+   assert.equal(m.tris,original.tris);
+   const gltf=JSON.parse(buf.subarray(20,20+buf.readUInt32LE(12)));
+   assert.equal(gltf.meshes.flatMap(mesh=>mesh.primitives).reduce((n,p)=>n+gltf.accessors[p.indices].count/3,0),original.tris);
+   continue; // explicit original-source exception; no geometry reduction after approval
+  }
   // the VRM hero (opt-in, scripts/prep-vrm.mjs) is a bigger, single character: its budget is set apart
   assert.ok(buf.length<(m.hairsample?14336:m.vrm?4096:group==='characters'?600:400)*1024,m.file+' stays small for iPad');
   // a boss may carry a little more detail; one that summons (Greyfang's howl brings thornback

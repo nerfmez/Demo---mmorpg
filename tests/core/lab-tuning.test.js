@@ -54,19 +54,20 @@ test('reload, export/import and changed authored baselines preserve safe per-ski
   const c = new LabTuning(skills, fx); c.import(a.export('firebolt')); assert.equal(c.get('firebolt').fx.impact.embers, 22);
   const newer = structuredClone(fx); newer.skills.firebolt.impact.embers = 12;
   assert.equal(new LabTuning(skills, newer, storage).get('firebolt').fx.impact.embers, 12);
-  storage.setItem(STORAGE_KEY, '{broken'); assert.equal(new LabTuning(skills, fx, storage).get('firebolt').fx.impact.embers, 10);
+  storage.setItem(STORAGE_KEY, '{broken'); assert.equal(new LabTuning(skills, fx, storage).get('firebolt').fx.impact.embers, fx.skills.firebolt.impact.embers);
 });
 
 test('physical skill profiles generate their own shared phases and counts safely', () => {
   const store = new LabTuning(skills, fx);
-  for (const [id, phase, field] of [['hunter_shot','projectile','trailWidth'],['stone_burst','burst','rocks'],['spirit_wolf','attack','width']]) {
+  for (const [id, phase, field] of [['hunter_shot','projectile','trailWidth'],['stone_burst','cast','boundaryOpacity'],['spirit_wolf','attack','width']]) {
     const e = store.get(id);
     assert(e.fx._labPhases[phase]); assert(e.fields.some(f => f.path.join('.') === 'fx.' + phase + '.' + field));
   }
-  store.set('stone_burst', ['fx','burst','rocks'], 3.6);
-  assert.equal(store.get('stone_burst').fx.burst.rocks, 4);
+  assert.equal(store.set('stone_burst', ['fx','burst','rocks'], 3.6), false);
+  assert(!store.get('stone_burst').fields.some(f => f.path.join('.') === 'fx.cast.crackWidth'));
+  assert.equal(store.get('stone_burst').fx.burst.rocks, 7);
   store.reset('stone_burst'); assert.equal(store.get('stone_burst').fx.burst.rocks, 7);
-  assert.equal(store.get('slash').fx.swing.width, .11);
+  assert.equal(store.get('slash').fx.swing.width, fx.skills.slash.swing.width);
   const future = structuredClone(fx); delete future.skills.slash; delete future.skills.whirl_blade;
   const fallback = new LabTuning(skills, future); fallback.set('slash', ['fx','swing','width'], .4);
   assert.equal(fallback.get('whirl_blade').fx.swing.width, future.meleeDefaults.swing.width);

@@ -1,0 +1,8 @@
+{
+  "tip": 1.1475,
+  "shaftDirection": [0.45, -0.15, 1],
+  "readyTip": [0, 1.02, 0.48],
+  "castTip": [0, 1.05, 0.6],
+  "palm": [0, -0.07, 0],
+  "supportGrip": 0.65
+}

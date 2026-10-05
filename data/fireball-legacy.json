@@ -1,0 +1,54 @@
+{
+  "element": "fire",
+  "colors": {
+    "rim": "#f28328",
+    "body": "#ffb43d",
+    "hot": "#fff0a0",
+    "core": "#ffffff"
+  },
+  "cast": {
+    "size": 0.55,
+    "glowRadius": 0.4
+  },
+  "projectile": {
+    "length": 2.25,
+    "glowRadius": 0.85,
+    "glowStrength": 0.85,
+    "width": 0.8,
+    "trailRate": 18,
+    "trailLife": 0.16,
+    "trailSize": 0.18,
+    "headRadii": [
+      0.29,
+      0.19
+    ],
+    "tailHalfWidth": 0.115,
+    "tailSway": 0.15,
+    "flowSpeed": 18,
+    "trailOffset": [
+      0.85,
+      1.4
+    ],
+    "trailDrift": 0.6,
+    "trailSpread": 0.08,
+    "headHeat": 0.48,
+    "headTurbulence": 0.24
+  },
+  "impact": {
+    "size": 1.5,
+    "flashLife": 0.18,
+    "wisps": 8,
+    "embers": 10,
+    "shake": 0.04,
+    "hitStop": 0.02,
+    "glowRadius": 0.5,
+    "wispSize": 0.3,
+    "emberSize": 0.22,
+    "wispLife": 0.2,
+    "emberLife": 0.42,
+    "wispSpeed": 1.7,
+    "emberSpeed": 4.8,
+    "emberWidth": 0.22,
+    "emberShrink": 0.3
+  }
+}

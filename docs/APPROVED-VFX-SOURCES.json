@@ -1,0 +1,106 @@
+[
+  {
+    "name": "Fireball V5",
+    "path": "approved-vfx-sources/fireball-v5",
+    "source": "11Af1lZV135niZI6MKe32DVOVMe7UqDTK",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "WaterSlash V9",
+    "library_file_id": "libfile_2893a717f7788191b1498f70251366b7",
+    "resolved_filename": "Azure_Water_Sword_Slash_V9.blend",
+    "bytes": 786147,
+    "status": "deferred for a future skill; excluded from this integration"
+  },
+  {
+    "name": "Lightning",
+    "path": "blender-lightning/Azure-Verdict-Blender.blend",
+    "bytes": 1042824,
+    "sha256": "4216622cd63084ed9501d91f4b801857d1d60f92520065e59fea9fa69c18e1c1",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "FrostNova V2",
+    "path": "blender-frost-revision/frost_nova_v2.blend",
+    "bytes": 1316196,
+    "sha256": "ade517c2867d55c4cb799a4f6799ed91619ba251386c8438458c47d53302b623",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Slash",
+    "path": "blender-skill-batch02/slash/slash.blend",
+    "bytes": 1918560,
+    "sha256": "bf34384015479faf927988f972cc8534d5e5a9bf0b4fe349c2a7ba464cea6bdd",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Whirl",
+    "path": "blender-skill-batch02/whirl_blade/whirl_blade.blend",
+    "bytes": 1712596,
+    "sha256": "4ed81d11f56d9ad7f575132015803b510931e3ac5def2befb58e01913b0f30cd",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Hunter Shot",
+    "path": "blender-skill-batch02/hunter_shot/hunter_shot.blend",
+    "bytes": 1593992,
+    "sha256": "19900732a84591bfe60745dbed6d2ab4a02e8181cafc4f797089ba821764fab6",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "StoneBurst no cracks",
+    "path": "blender-skill-batch03-no-cracks/stone_burst/stone_burst.blend",
+    "bytes": 1091344,
+    "sha256": "488dffcad9a16c4dabe077df789c3199d323126def2935c852fcb0bf57295d88",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Leap no cracks",
+    "path": "blender-skill-batch03-no-cracks/leap/leap.blend",
+    "bytes": 1232596,
+    "sha256": "cb32a7dfe54b8b52343a6b1e18d097f4adc3ac174fe4c1d0932736630c85c1f1",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "HealingSpring bright",
+    "path": "healing-spring-brighter/healing_spring.blend",
+    "bytes": 928900,
+    "sha256": "f96a985080477fe639d550fe0d5b7461919fdd4d4454a31da3acec5b10890bf6",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "WarCry revised native 8s",
+    "path": "blender-warcry-authored/WarCry-Native-8s.blend",
+    "bytes": 3125856,
+    "sha256": "bef967c2c52e2856fc55f7dd51c4edf9478cdfed4fe52cb1f2577506380d7f64",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Dash",
+    "path": "blender-skill-batch06-revised/dash/dash.blend",
+    "bytes": 2392088,
+    "sha256": "bae3a1654038af6dee2570ea7e9b32be8de62b7b757c3758e7a16f10cb20730f",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Roll",
+    "path": "blender-skill-batch06-revised/roll/roll.blend",
+    "bytes": 2669996,
+    "sha256": "bf9196fbdb421e7c364923bc5956ce2b03dea1b798be4cb607fdf7e300bde0de",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "Blink",
+    "path": "blender-skill-batch06-revised/blink/blink.blend",
+    "bytes": 2449028,
+    "sha256": "cd4d48636efe1740285411d2bf0953edf14ce5ad3ee7d8485fd2581ccdf81fc4",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  },
+  {
+    "name": "SpiritWolf native 25s",
+    "path": "blender-skill-batch06-revised/spirit_wolf/Spirit-Wolf-Native-25s.blend",
+    "bytes": 2962284,
+    "sha256": "d97c0f58d233a1c65b276d24688fbdc65895d08938907ca8f2fc34ed2b627833",
+    "status": "integrated into existing skill renderer; see APPROVED-VFX-INTEGRATION.md for adaptations"
+  }
+]

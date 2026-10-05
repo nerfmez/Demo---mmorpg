@@ -48,6 +48,11 @@ const SC_HIT = { armR: [-1.6, -0.1, 0.05], elbowR: [0, 0, 0], weapon: [1.57, 0, 
 // ---------- spells (the staff or wand stays in the right hand) ----------
 const BOLT_GATHER = { torso: [0, -0.4, 0], chest: [0, -0.2, 0], ikL: [-0.05, 1.3, 0.22], ikw: [1, 0, 0], armR: [-0.3, 0.2, -0.4], elbowR: [-0.5, 0, 0], weapon: [1.2, 0, 0.3], legL: [-0.25, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.04, 0, 0] };
 const BOLT_OUT = { torso: [0.15, 0.3, 0], chest: [0.05, 0.1, 0], ikL: [0.1, 1.4, 0.66], ikw: [1, 0, 0], armR: [0.2, 0, -0.35], elbowR: [-0.3, 0, 0], weapon: [1.2, 0, 0.3], legL: [-0.45, 0, 0], kneeL: [0.55, 0, 0], legR: [0.25, 0, 0], kneeR: [0.15, 0, 0], drop: [-0.07, 0, 0] };
+// Staff-only Firebolt: hands support the raised shaft. The animator solves the
+// two grips and keeps its head at the forward cast socket; other weapons retain
+// their authored bolt/sword actions.
+const STAFF_GATHER = { torso: [-.03,-.10,0], chest: [0,-.05,0], armR: [-.3,0,-.4], elbowR: [-.7,0,0], armL: [-.7,0,.3], elbowL: [-1,0,0], staffAim: [1,0,0] };
+const STAFF_OUT = { ...STAFF_GATHER, torso: [.07,.08,0], chest: [0,.03,0], staffAim: [1,0,0] };
 const ZAP_COIL = { torso: [0.05, -0.55, 0], chest: [0, -0.2, 0], ikL: [-0.15, 1.2, 0.22], ikw: [1, 0, 0], armR: [-0.5, 0, -0.4], elbowR: [-1.0, 0, 0], weapon: [1.0, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.05, 0, 0] };
 const ZAP_FLICK = { torso: [0.1, 0.35, 0], chest: [0, 0.2, 0], head: [0, 0.15, 0], ikL: [0.48, 1.45, 0.45], ikw: [1, 0, 0], armR: [-2.5, 0, -0.5], elbowR: [-0.2, 0, 0], weapon: [0.3, 0, 0], legL: [-0.3, 0, 0], kneeL: [0.4, 0, 0], drop: [-0.04, 0, 0] };
 const SLAM_UP = { armR: [-2.8, 0, -0.2], elbowR: [-0.5, 0, 0], weapon: [0.1, 0, 0], armL: [-2.6, 0, 0.3], elbowL: [-0.4, 0, 0], torso: [-0.2, 0, 0], chest: [-0.15, 0, 0], head: [-0.25, 0, 0], drop: [0.02, 0, 0] };
@@ -79,6 +84,7 @@ const WHIRL_ARMS = { armR: [-1.3, 0, -1.3], elbowR: [-0.2, 0, 0], weapon: [1.57,
 const ZERO = { ikw: [0, 0, 0], grip: [0, 0, 0], drop: [0, 0, 0], aim: [0, 0, 0] };
 const act = (hit, keys) => ({ hit, keys: keys.map(([t, p]) => [t, Object.keys(p).length ? { ...ZERO, ...p } : p]) });
 export const ACTIONS = {
+  staffBolt: { hit: .42, keys: [[0,{...STAFF_GATHER,staffAim:[0,0,0]}],[.16,STAFF_GATHER],[.42,STAFF_OUT],[.58,STAFF_OUT],[1,{...STAFF_GATHER,staffAim:[0,0,0]}]] },
   // 1-2-3 sword combo: forehand down across to the left, backhand out to the right, overhead chop
   slashA: act(0.46, [[0, REST], [0.3, A_WIND], [0.46, A_HIT], [0.64, A_END], [1, REST]]),
   slashB: act(0.46, [[0, hold(A_END, { drop: [-0.05, 0, 0] })], [0.28, B_WIND], [0.46, B_HIT], [0.64, B_END], [1, REST]]),
@@ -154,6 +160,7 @@ const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], dagger: ['stabA', '
 export function pickAction(skill, kind, weapon, step = 0) {
   if (ACTIONS[skill]) return skill;
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
+  if (skill === 'firebolt' && weapon === 'staff') a = 'staffBolt';
   if (a === 'combo') a = (COMBOS[weapon] || ['slashA', 'slashB', 'slashC'])[step % 3];
   if (a === 'shoot') a = weapon === 'bow' ? 'bow' : 'throw';
   return a;

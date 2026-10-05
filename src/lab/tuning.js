@@ -81,7 +81,7 @@ export class LabTuning {
     const look = clone(authored || (['melee_arc', 'melee_nova'].includes(def.kind) ? this.fx.meleeDefaults : this.fx.projectileDefaults));
     const base = { fx: clone(look), replay: clone(replay) };
     const entry = { fx: look, replay, def: clone(def), base, signature: JSON.stringify(base) };
-    entry.fields = fieldsFor({ fx: base.fx, replay: base.replay });
+    entry.fields = fieldsFor({ fx: base.fx, replay: base.replay }).filter(field => field.path[0] !== 'fx' || !(look._labFixedFields || []).some(prefix => field.path.slice(1).join('.').startsWith(prefix + '.') || field.path.slice(1).join('.') === prefix));
     const saved = Object.hasOwn(this.saved, id) ? this.saved[id] : null;
     if (saved?.signature === entry.signature) mergeKnown(entry, saved.patch, entry.fields);
     Object.assign(entry.def, replay);

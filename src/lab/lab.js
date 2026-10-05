@@ -1,3 +1,4 @@
+import { installSpiritReveal, updateSpiritReveal } from '../render/spirit-reveal.js';
 // Skill Lab: the hero, a training dummy and the real effect code on a flat floor, nothing else.
 // It replays skills from data/skills.json + data/combat-fx.json the way the game's events drive
 // src/render/vfx.js (castStart, projectiles, impact), so the owner can judge an effect live on the
@@ -25,7 +26,8 @@ const GROUNDS = {
 };
 const ELEMENTS = ['fire', 'cold', 'lightning', 'poison', 'arcane', 'physical'];
 // skills the lab can replay; the rest appear disabled until their beats are wired here
-const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon']);
+const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon', 'nova','chain','buff','heal_zone','dash','blink','leap']);
+const LAB_SKILLS={...SKILLS,combat:{...SKILLS.combat,...SKILLS.movement}};
 
 const flat = { surfaceY: () => 0, groundY: () => 0 };
 const params = new URLSearchParams(location.search);
@@ -50,13 +52,13 @@ const state = {
   comboStep: 0,
 };
 
-if (!PLAYABLE.has(SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt';
+if (!PLAYABLE.has(LAB_SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt';
 const isMelee = (s) => s?.kind === 'melee_arc' || s?.kind === 'melee_nova';
-if (isMelee(SKILLS.combat[state.skill])) { state.weapon = 'sword'; state.distance = 2; }
+if (isMelee(LAB_SKILLS.combat[state.skill])) { state.weapon = 'sword'; state.distance = 2; }
 else if (state.skill === 'hunter_shot') state.weapon = 'bow';
 let storage = null;
 try { storage = window.localStorage; } catch {}
-const tuning = new LabTuning(SKILLS, FX, storage);
+const tuning = new LabTuning(LAB_SKILLS, FX, storage);
 tuning.get(state.skill);
 
 // ---------- scene ----------
@@ -85,7 +87,8 @@ const vfx = new Vfx(scene, flat, { config: tuning.fx });
 const fakeGame = { projectiles: [], areas: [] };
 // Keep one real summon rig across replays; changing sliders does not rebuild it.
 const wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible = false;
-let wolfReplay = null;
+const wolfReveal=installSpiritReveal(wolf);
+let wolfReplay = null, movementReplay=null;
 const wolfPose = { moving: false, speedFactor: 1.2, state: 'idle', lastAttack: 'bite', windup: null, windupT: 0, windupTotal: .25, hurt: 0, lookYaw: 0, turn: 0 };
 
 // training dummy: a post with a straw body; it bounces when hit
@@ -148,6 +151,29 @@ function cast() {
   if (isMelee(s)) return castMelee(s, element);
   if (s.kind === 'ground_area') return castGround(s, element);
   if (s.kind === 'summon') return castSummon(s, element);
+  if(['dash','blink','leap'].includes(s.kind)){
+    hero.root.position.set(0,0,0);hero.root.visible=true;
+    const dash={kind:state.skill,t:0,dur:s.duration,vx:-s.distance/s.duration,vz:0,fromX:0,fromZ:0,toX:-s.distance,toZ:0};
+    movementReplay={x:0,z:0,dash,total:s.duration,distance:s.distance,landed:false};
+    if(s.kind==='blink'){vfx.blink(0,0,-s.distance,0,0xb4a2ff,hero);movementReplay.x=-s.distance;}
+    return;
+  }
+  if(['chain','buff','heal_zone'].includes(s.kind)){
+    heroAnim.play(state.skill,s.castTime+.28,state.weapon,0,s.castTime,s.kind);
+    later(s.castTime,()=>{
+      if(s.kind==='chain')vfx.chain({element,points:[[0,0],[dummy.position.x,0]]});
+      if(s.kind==='buff')vfx.warcry({x:0,z:0,radius:s.radius});
+      if(s.kind==='heal_zone')fakeGame.areas.push({id:nextId++,owner:'player',kind:state.skill,x:0,z:0,radius:s.radius,t:0,delay:0,duration:s.duration});
+    });return;
+  }
+  if (s.kind === 'nova') {
+    const burst=()=>vfx.nova({x:0,z:0,radius:s.radius,element,approvedFrost:true});
+    if(state.reviewPhase==='burst'){burst();return;}
+    heroAnim.play(state.skill,s.castTime+.28,state.weapon,0,s.castTime,s.kind);
+    vfx.beginCast({skill:state.skill,total:s.castTime,weapon:state.weapon},element);
+    if(state.reviewPhase!=='cast')later(s.castTime,burst);
+    return;
+  }
   if (state.reviewPhase === 'impact') {
     impact({ kind: state.skill, element, x: dummy.position.x + 0.75, z: 0, vx: -s.speed, vz: 0 });
     return;
@@ -244,12 +270,13 @@ function stepWolf(dt) {
   wolfPose.windup = r.phase === 'windup' ? 'bite' : null; wolfPose.windupT = r.t;
   wolf.animate(wolf, wolfPose, dt, time);
   // Presentation replay only: this does not run combat AI or deal damage.
-  const fade = r.age > 1.6 ? Math.max(0, (2 - r.age) / .4) : Math.min(1, r.age * 5);
-  wolf.root.scale.setScalar(wolf.baseScale * Math.max(.01, fade));
+  wolf.root.scale.setScalar(wolf.baseScale);
+  updateSpiritReveal(wolfReveal,r.age,2-r.age,0);
   if (r.age >= 2) { wolf.root.visible = false; wolfReplay = null; }
 }
 function clearReplay() {
   timers.length = 0; fakeGame.projectiles.length = 0;
+  movementReplay=null;hero.root.position.set(0,0,0);hero.root.visible=true;vfx.movementSource=null;
   vfx.endCast();
   vfx.endSwing(true); vfx.contacts.clear(); vfx.shake = 0;
   wolfReplay = null; wolf.root.visible = false; vfx.chips.clear();
@@ -284,9 +311,9 @@ function replayPhase(phase = state.reviewPhase, refreshPanel = true) {
   if (refreshPanel) render();
 }
 function selectSkill(id) {
-  if (!PLAYABLE.has(SKILLS.combat[id]?.kind)) return;
+  if (!PLAYABLE.has(LAB_SKILLS.combat[id]?.kind)) return;
   clearTimeout(editTimer); editTimer = null; clearReplay();
-  const wasMelee=isMelee(SKILLS.combat[state.skill]), nowMelee=isMelee(SKILLS.combat[id]);
+  const wasMelee=isMelee(LAB_SKILLS.combat[state.skill]), nowMelee=isMelee(LAB_SKILLS.combat[id]);
   state.skill = id; state.element = null; state.reviewPhase = 'full';state.comboStep=0;
   const weapon=nowMelee?'sword':id==='hunter_shot'?'bow':'staff';
   if(state.weapon!==weapon){state.weapon=weapon;buildHero();}
@@ -352,7 +379,12 @@ function step(dt) {
     if (area.t >= area.delay + area.duration) fakeGame.areas.splice(i, 1);
   }
   stepWolf(dt);
-  heroAnim.update(dt, { speed: 0, facing: hero.root.rotation.y, moving: false, dash: null, dead: false, time });
+  if(movementReplay){const p=movementReplay,d=p.dash;
+    if(d){d.t=Math.min(d.dur,d.t+dt);const k=d.t/d.dur;p.x=-p.distance*(d.kind==='blink'?1:k);hero.root.position.set(p.x,d.kind==='leap'?Math.sin(Math.PI*k)*2:0,0);hero.root.visible=d.kind!=='blink'||k>=1;
+      if(k>=1){if(d.kind==='leap')vfx.leapLand({x:p.x,z:0,radius:skillDef().radius});p.dash=null;}}
+  }
+  heroAnim.update(dt, { speed: 0, facing: hero.root.rotation.y, moving: false, dash: movementReplay?.dash||null, dead: false, time });
+  if(movementReplay)vfx.syncMovement(movementReplay,0,dt,hero);
   vfx.updateTrail(dt, hero);
   vfx.updateCast?.(dt, hero);
   vfx.syncProjectiles(fakeGame, dt, time);
@@ -403,7 +435,7 @@ function frame(now) {
     step(dt);
   }
   const areaPad = skillDef()?.kind === 'ground_area' ? skillDef().radius : 0;
-  const target = camTarget.set(-(state.distance + areaPad) / 2, 0, 0);
+  const target = camTarget.set(['nova','buff','heal_zone'].includes(skillDef()?.kind) ? 0 : -(state.distance + areaPad) / 2, 0, 0);
   camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom * viewFit * (1 + areaPad / Math.max(2, state.distance)));
   if (shake > 0) {
     camera.position.x += (Math.random() - 0.5) * shake * 0.35;
@@ -473,7 +505,7 @@ function render() {
     if (state.editorOpen) state.element = null;
   });
   if (state.open) {
-    row('สกิล', Object.entries(SKILLS.combat).map(([id, s]) => [id, `${FX.skills?.[id] ? '★ ' : ''}${s.nameTh || s.name}`, !PLAYABLE.has(s.kind)]), (v) => v === state.skill, (v) => {
+    row('สกิล', Object.entries(LAB_SKILLS.combat).map(([id, s]) => [id, `${FX.skills?.[id] ? '★ ' : ''}${s.nameTh || s.name}`, !PLAYABLE.has(s.kind)]), (v) => v === state.skill, (v) => {
       selectSkill(v);
     });
     row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
@@ -496,7 +528,7 @@ function render() {
     row('กล้อง', [[0.4, 'ใกล้'], [0.55, 'กลาง'], [0.8, 'เกม']], (v) => v === state.zoom, (v) => (state.zoom = v));
   }
   if (state.editorOpen) mountTuningPanel(panel, {
-    tuning, state, skills: SKILLS.combat, playable: (skill) => PLAYABLE.has(skill?.kind),
+    tuning, state, skills: LAB_SKILLS.combat, playable: (skill) => PLAYABLE.has(skill?.kind),
     onSkill: selectSkill, onChange: tuningChanged, onPreview: replayPhase, onReset: resetTuning, onStatus: tuningStatus,
   });
   measurePanel();

@@ -8,6 +8,7 @@ import { buildWeapon, buildOffhand, buildGloves, equipmentDetails } from './equi
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
+import STAFF_CAST from '../../data/staff-cast.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
@@ -481,7 +482,34 @@ export class HumanoidAnimator {
         b.weapon.position.addScaledVector(IK_T.set(0, 0, -0.13).applyQuaternion(b.weapon.quaternion), aim);
       }
     }
+    // Staff grip is independent of wrist rotation, like the bow's aim solve.
+    // Only staff ready/Firebolt is corrected; melee and other skills stay authored.
+    const staffSupport = b.weapon && this.rig.weaponKind === 'staff' && !s.dead && !s.dash && (!this.action || this.action.name === 'staffBolt');
+    if (staffSupport) {
+      const root = this.rig.root, aim = pose.staffAim?.[0] ?? 0;
+      STAFF_TIP.fromArray(STAFF_CAST.readyTip).lerp(STAFF_TARGET.fromArray(STAFF_CAST.castTip), aim);
+      STAFF_DIR.fromArray(STAFF_CAST.shaftDirection).normalize();
+      STAFF_GRIP.copy(STAFF_TIP).addScaledVector(STAFF_DIR, -STAFF_CAST.tip);
+      root.updateMatrixWorld(true);
+      reachArm(b, 'R', root.localToWorld(IK_T.copy(STAFF_GRIP)), 1);
+      // Put the handle in the palm; orient the shaft in character space rather
+      // than inheriting the downward sword-rest wrist angle.
+      root.getWorldQuaternion(AIM_R).multiply(STAFF_Q.setFromUnitVectors(STAFF_Z, STAFF_DIR));
+      b.handR.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
+      b.weapon.quaternion.copy(AIM_Q);
+      b.weapon.position.fromArray(STAFF_CAST.palm);
+      root.updateMatrixWorld(true);
+      reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0,0,STAFF_CAST.supportGrip)), 1);
+      root.updateMatrixWorld(true);
+    }
     this.rig.syncSkin?.();
+    if (staffSupport && this.rig.hairsample) {
+      // Current main seats the weapon in the skinned right palm during syncSkin.
+      // Follow that final shaft with the support arm without changing its grip.
+      this.rig.root.updateMatrixWorld(true);
+      reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0,0,STAFF_CAST.supportGrip)), 1);
+      this.rig.syncSkin();
+    }
   }
 
   /** Painted-face expression: blinks, a fierce look while attacking, a wince when hit. */
@@ -499,7 +527,7 @@ export class HumanoidAnimator {
   }
 }
 
-const FIERCE = new Set(['slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
+const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
 const IK_T = new THREE.Vector3();
 const AIM_Q = new THREE.Quaternion();
 const AIM_R = new THREE.Quaternion();
@@ -559,3 +587,7 @@ export function updateScarf(rig, dt, speed) {
 }
 
 export { setFlash };
+
+const STAFF_TIP = new THREE.Vector3(), STAFF_TARGET = new THREE.Vector3();
+const STAFF_DIR = new THREE.Vector3(), STAFF_GRIP = new THREE.Vector3();
+const STAFF_Z = new THREE.Vector3(0,0,1), STAFF_Q = new THREE.Quaternion();

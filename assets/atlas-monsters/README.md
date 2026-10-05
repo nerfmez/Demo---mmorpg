@@ -1,23 +1,16 @@
 # Atlas monster portraits
 
-18 close-up face/leading-part portraits for the Atlas monster/drop list. All
-live spawns and bosses on Azure Coast and Greenhollow Frontier are covered.
+18 heads/leading parts cover all live spawns and bosses in both current maps.
+The runtime set uses the approved fresh journal watercolor direction. Normal
+thornback_wolf is brown; Greyfang remains charcoal grey. The reed-viper identity
+uses the approved concept_v3 reed hood. See ../atlas-journal/README.md for source
+provenance, pixel review, deterministic extraction and validation.
 
-The three source sheets were generated in six-creature batches with the built-in
-image_gen tool. Existing Meshy concepts establish identity; approved
-`reed_viper_concept_v3.png` supplies the reed hood. Existing item artwork supplies
-the anime cel shading target. The final hawk sheet removes unintended cyan
-crystals so its silhouette is feathered, as in the approved concept.
+manifest.json points to the current shared batches in ../atlas-journal. Run
+python3 scripts/split-atlas-journal.py to reproduce256px RGBA icons and labelled
+50px previews. Original cel sheets, preview and cel-manifest.json are retained
+here as historical sources and do not supply the current runtime portraits.
 
-`manifest.json` records source revision, source/image hashes, 1-based row/column
-to monster IDs, reference paths and actual alpha bounds. Run
-`python3 scripts/split-monster-sheets.py` from the repository root to reproduce
-256px RGBA runtime PNGs and the labelled 50px contact preview. Requires Pillow,
-numpy and scipy. Alpha components preserve features crossing nominal cell cuts;
-detached sentinel stones belong to its reserved cell. Only near-zero detached
-background specks are discarded; original contour alpha is retained.
-
-Runtime paths are `public/assets/icons/monster/<id>.png`. Only `atlasMonsterArt`
-opts into the central `MONSTER_PORTRAITS` registry; other monster-art consumers
-retain their original SVG. The existing 50px list footprint and drop pictures
-remain unchanged. Source sheets are editing/review assets, not shipped sheets.
+Runtime: public/assets/icons/monster/<id>.png. Only atlasMonsterArt opts into
+MONSTER_PORTRAITS. Shared art('monster',id) keeps authored SVGs for world boss
+pins and other consumers. Existing50px list footprint and drop pictures remain.

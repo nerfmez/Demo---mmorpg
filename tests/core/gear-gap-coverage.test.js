@@ -15,13 +15,14 @@ test('targeted garment recipes craft real graded items and spend exactly their c
   assert.ok(result.item.options.every(o=>recipe.optionPool.includes(o.id)));
  }
 });
-test('new garments use actual trained-stat requirements with no character-level wear gate',()=>{
- for(const [id,[level,,stat]] of Object.entries(plan)){
-  const ch=createCharacter(data),item={uid:ch.nextUid++,base:id,itemLevel:level,grade:'C',upgrade:0,options:[]};ch.gear.push(item);ch.level=1;
-  const req=gearRequirements(item,data);assert.deepEqual(Object.keys(req),[stat]);
-  ch.stats[stat]=req[stat]-1;assert.equal(equip(ch,data,item.uid).ok,false,id+' blocks insufficient stat');
-  ch.stats[stat]=req[stat];assert.equal(equip(ch,data,item.uid).ok,true,id+' permits sufficient stat below item level');
-  const raised=gearRequirements({...item,upgrade:5},data);assert.ok(raised[stat]>=req[stat],id+' enhancement never lowers wear requirement (small gains may fit the existing allowance)');
+test('new garments require their authored character level, independent of trained stats or enhancement',()=>{
+ for(const [id,[level]] of Object.entries(plan)){
+  const ch=createCharacter(data),item={uid:ch.nextUid++,base:id,itemLevel:level,grade:'C',upgrade:0,options:[]};ch.gear.push(item);
+  assert.deepEqual(gearRequirements(item,data),{level});
+  ch.level=level-1;for(const stat in ch.stats)ch.stats[stat]=999;
+  assert.equal(equip(ch,data,item.uid).reason,'level');
+  ch.level=level;assert.equal(equip(ch,data,item.uid).ok,true);
+  assert.deepEqual(gearRequirements({...item,upgrade:5,grade:'S'},data),{level});
  }
 });
 test('additions remain inside existing slot budgets and retain deliberate tradeoffs',()=>{

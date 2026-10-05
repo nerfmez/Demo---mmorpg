@@ -102,8 +102,8 @@ Legacy instances without a valid positive integer use the conservative base leve
 Mod instances persist C/B/A/S `grade` from the authored mod recipe, independently
 of mod `level`; missing/invalid legacy grades become C. Normalize these optional
 fields on every migration without consuming RNG or changing map records. Preserve
-valid existing values. Neither field affects combat, prices, costs, stat wear gates
-or drops. Upgrades retain both fields. UI colors only mod names by grade; coin
+valid existing values. Item level now gates wearable slots as described below; it
+does not change item stats, prices, costs or drops. Mod grade remains presentation only. Upgrades retain both fields. UI colors only mod names by grade; coin
 materials continue to encode attack/mechanic/support. See [the initial mapping](ITEM-METADATA-2026-10-04.md).
 
 Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports five.
@@ -112,13 +112,32 @@ Grade promotion retains existing rolls and +N, adding one unique affix. Enhancem
 character-level or stat gate. Skill ranks 2..5 retain their separate Lv4/10/17/24 and
 stat gates, 6% direct growth and 5% MP growth; mods supply behavioural growth.
 
-`gearRequirements(item,data)` calculates wear requirements from actual weighted base,
-grade, enhancement and affix power using `items.requirements`. Check raw `character.stats`
-with `gearEquipState`, never level or gear-granted power. Use it for equip, derived stats
-and appearance. `enforceEquipment` returns invalidated equipment to the bag after upgrades,
-stat respec and migration. Do not delete the item or reject a funded upgrade. Show exact
-after-enhancement requirements; `gearGradePreview` gives RNG-free min/max wear requirements
-for possible new affixes. Actual grade rolls determine the final requirement.
+`gearRequirements(item,data)` returns `{level: equipmentItemLevel(data,item)}` for
+`armor`, `helm`, `gloves`, `boots`, and `charm` (41 bases: 9/8/8/8/8). Only raw
+`character.level` satisfies this gate: not Job Level, allocated stats or equipment bonuses.
+Catalog levels are 1/6/11/16/21; Tide Walkers is Lv1. Preserve a valid stored instance level;
+legacy missing/invalid values keep the existing base-level fallback (then 1). A valid
+custom level above the cap stays intact and cannot be worn; do not clamp or reroll it.
+Grade, enhancement and affixes never raise a wearable's required level.
+
+The 38 `weapon` and 5 `offhand` shield bases retain weighted base/grade/enhancement/affix
+requirements from `items.requirements`, checked against raw `character.stats`. Dual-wield
+requirements, skill/mod gates and all stats, costs, rolls and options are unchanged.
+`gearEquipState` is authoritative for equip, derived stats and appearance. A wearable
+failure returns `reason:'level'`, `need`, `current` and a Thai `missing` description.
+
+`enforceEquipment` clears invalid slot references after upgrades, respec and migration
+(after level-cap adjustment). All items already live in `character.gear`; there is no
+gear capacity limit, only UI pagination. Never delete items, duplicate UIDs, or reject a
+funded craft/upgrade because of wear requirements. Legal worn items stay worn. This rule
+adds no save fields or version bump: standalone wearable PR70 keeps v6; with the potion
+and quick-slot migration from PR71, the combined build keeps v7. Migration reports
+returned items and preserves their level/grade/options/+N. Existing v6 saves can load
+directly in PR70. After a v7 build is released, deploy wearable changes from combined
+main retaining v7; an older v6 build rewrites a loaded v7 save to v6, so a later v7 load
+can grant starter potions again. This rollback hazard does not prevent a v6-only release.
+UI shows required/current character level in craft, bag and equipment details, including
+fixed-level upgrade/grade previews. Weapon/shield previews retain exact stat ranges.
 
 ### Hands, gloves, shields and arrows (save v6)
 

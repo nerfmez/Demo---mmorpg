@@ -1,4 +1,4 @@
-// Persistent presentation metadata. Neither field participates in combat or wear gates.
+// Persistent metadata: equipment level gates wearable slots; mod grade is presentation only.
 export function equipmentItemLevel(data, item) {
   return Number.isSafeInteger(item?.itemLevel) && item.itemLevel > 0
     ? item.itemLevel : data.items.gearBases[item?.base]?.itemLevel || 1;

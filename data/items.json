@@ -173,6 +173,41 @@
       "shape": "gem",
       "useTh": "อัปเลเวลสกิลและม็อด · ไม่ใช้แต้มต้นไม้",
       "sourceTh": "มอนสเตอร์ทั่วไปและบอสมีโอกาสพื้นฐาน 2% ครั้งละ 1 เม็ด · การย่อยอุปกรณ์ไม่ให้ผลึกทักษะ"
+    },
+    "mantis_scythe": {
+      "name": "Mantis Scythe",
+      "nameTh": "เคียวตั๊กแตน",
+      "color": "#a9c46a",
+      "value": 9,
+      "shape": "horn"
+    },
+    "viper_scale": {
+      "name": "Reed Viper Scale",
+      "nameTh": "เกล็ดงูกก",
+      "color": "#6f9a5c",
+      "value": 12,
+      "shape": "box"
+    },
+    "ram_horn": {
+      "name": "Ironhorn",
+      "nameTh": "เขาแพะผา",
+      "color": "#c8b48a",
+      "value": 16,
+      "shape": "horn"
+    },
+    "dusk_pelt": {
+      "name": "Duskmane Pelt",
+      "nameTh": "ขนเสือเงา",
+      "color": "#5d5a6e",
+      "value": 20,
+      "shape": "box"
+    },
+    "rune_core": {
+      "name": "Rune Core",
+      "nameTh": "แกนรูน",
+      "color": "#7fd0d8",
+      "value": 22,
+      "shape": "gem"
     }
   },
   "slots": [
@@ -2091,7 +2126,7 @@
       "stats": {
         "defense": 16.5,
         "maxHp": 41.2,
-        "critChancePct": 11.0,
+        "critChancePct": 11,
         "cooldownPct": 2.7
       },
       "requires": {},

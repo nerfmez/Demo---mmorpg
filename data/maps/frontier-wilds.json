@@ -889,7 +889,7 @@
     {
       "monster": "thornback_wolf",
       "zone": "forest",
-      "count": 19,
+      "count": 13,
       "level": [
         10,
         12
@@ -907,7 +907,7 @@
     {
       "monster": "thornback_wolf",
       "zone": "wolf_den",
-      "count": 14,
+      "count": 10,
       "level": [
         12,
         14
@@ -925,7 +925,7 @@
     {
       "monster": "marsh_wisp",
       "zone": "wetland",
-      "count": 22,
+      "count": 14,
       "level": [
         16,
         18
@@ -952,7 +952,7 @@
     {
       "monster": "gale_hawk",
       "zone": "highlands",
-      "count": 17,
+      "count": 12,
       "level": [
         18,
         21
@@ -961,7 +961,7 @@
     {
       "monster": "thornback_wolf",
       "zone": "highlands",
-      "count": 7,
+      "count": 3,
       "level": [
         18,
         21
@@ -979,7 +979,7 @@
     {
       "monster": "marsh_wisp",
       "zone": "ruins",
-      "count": 12,
+      "count": 7,
       "level": [
         21,
         24
@@ -1006,7 +1006,7 @@
     {
       "monster": "moss_beetle",
       "zone": "ruins",
-      "count": 5,
+      "count": 2,
       "level": [
         21,
         24
@@ -1015,7 +1015,7 @@
     {
       "monster": "reef_crab",
       "zone": "coast",
-      "count": 22,
+      "count": 14,
       "level": [
         14,
         16
@@ -1037,6 +1037,78 @@
       "level": [
         14,
         15
+      ]
+    },
+    {
+      "monster": "thicket_mantis",
+      "zone": "forest",
+      "count": 8,
+      "level": [
+        11,
+        12
+      ]
+    },
+    {
+      "monster": "thicket_mantis",
+      "zone": "wolf_den",
+      "count": 5,
+      "level": [
+        12,
+        14
+      ]
+    },
+    {
+      "monster": "reed_viper",
+      "zone": "coast",
+      "count": 8,
+      "level": [
+        14,
+        16
+      ]
+    },
+    {
+      "monster": "reed_viper",
+      "zone": "wetland",
+      "count": 12,
+      "level": [
+        16,
+        18
+      ]
+    },
+    {
+      "monster": "ironhorn_ram",
+      "zone": "highlands",
+      "count": 10,
+      "level": [
+        18,
+        21
+      ]
+    },
+    {
+      "monster": "duskmane_stalker",
+      "zone": "highlands",
+      "count": 5,
+      "level": [
+        20,
+        21
+      ]
+    },
+    {
+      "monster": "duskmane_stalker",
+      "zone": "ruins",
+      "count": 4,
+      "level": [
+        21,
+        23
+      ]
+    },
+    {
+      "monster": "rune_sentinel",
+      "zone": "ruins",
+      "count": 9,
+      "level": [
+        21,
+        24
       ]
     }
   ],

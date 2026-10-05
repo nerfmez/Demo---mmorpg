@@ -282,6 +282,7 @@ export class View {
 
   releaseRig(rig) {
     rig.root.removeFromParent();
+    if (rig.material.transparent) { rig.material.transparent = false; rig.material.depthWrite = true; rig.material.opacity = 1; rig.material.needsUpdate = true; if (rig.hull) { rig.hull.transparent = false; rig.hull.depthWrite = true; rig.hull.opacity = 1; rig.hull.needsUpdate = true; } }
     this.rigPool = this.rigPool || new Map();
     const key = rig.type + (rig.boss ? '#boss' : '');
     const pool = this.rigPool.get(key) || [];
@@ -428,6 +429,10 @@ export class View {
         break;
       case 'lob':
         v.lob(e);
+        break;
+      case 'beam':
+        v.beam(e);
+        this.addShake(0.08);
         break;
       case 'impact':
         v.impact(e);
@@ -624,6 +629,14 @@ export class View {
       else if (m.statuses?.chill) setFlash(r.material, 0, 0, 0.25);
       else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
       else setFlash(r.material, 0, 0, 0);
+      // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
+      if (m.def.behavior === 'stalker' || mv.fade < 1) {
+        mv.fade = damp(mv.fade ?? 1, m.stealth && !m.dead ? 0.38 : 1, 6, dt);
+        const mat = r.material, see = mv.fade < 0.99;
+        if (mat.transparent !== see) { mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true; if (r.hull) r.hull.needsUpdate = true; } // opaque/transparent are separate programs
+        mat.opacity = mv.fade;
+        if (r.hull) { r.hull.transparent = see; r.hull.depthWrite = !see; r.hull.opacity = see ? mv.fade * mv.fade : 1; }
+      }
       if (mv.halo) {
         mv.halo.visible = !m.dead && onScreen;
         mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);

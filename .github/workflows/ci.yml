@@ -54,6 +54,9 @@ jobs:
       - name: Open world from the Frontier (Azure's city and harbour stream in at Azure's place)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/open-world-city.mjs
+      - name: Mid/high monsters (wind-up, contact and recovery from the game camera, field guide)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/midhigh-monsters.mjs
       - name: Two hands, gloves, shields and arrows (hero model, equipment screen, arrow crafting)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/gear-hands.mjs

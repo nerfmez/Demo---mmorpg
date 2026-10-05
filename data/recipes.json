@@ -57,9 +57,10 @@
       "type": "gear",
       "result": "wisp_staff",
       "cost": {
-        "wisp_core": 10,
-        "glow_dust": 4,
-        "spore_sac": 37,
+        "wisp_core": 13,
+        "glow_dust": 8,
+        "viper_scale": 5,
+        "spore_sac": 23,
         "storm_quill": 1,
         "gold": 300
       },
@@ -94,10 +95,10 @@
       "type": "gear",
       "result": "crag_axe",
       "cost": {
-        "crag_stone": 12,
-        "golem_heart": 5,
-        "hawk_feather": 15,
-        "boar_tusk": 30,
+        "crag_stone": 17,
+        "golem_heart": 4,
+        "ram_horn": 11,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -114,10 +115,10 @@
       "type": "gear",
       "result": "storm_bow",
       "cost": {
-        "storm_quill": 11,
-        "hawk_feather": 4,
-        "beetle_shell": 12,
-        "boar_tusk": 25,
+        "storm_quill": 8,
+        "hawk_feather": 8,
+        "viper_scale": 8,
+        "boar_tusk": 18,
         "gold": 300
       },
       "optionPool": [
@@ -133,9 +134,10 @@
       "type": "gear",
       "result": "greyfang_sabre",
       "cost": {
-        "greyfang_mane": 8,
-        "wolf_fang": 14,
-        "boar_tusk": 20,
+        "greyfang_mane": 2,
+        "mantis_scythe": 10,
+        "wolf_fang": 8,
+        "boar_tusk": 12,
         "gold": 150
       },
       "optionPool": [
@@ -151,10 +153,11 @@
       "type": "gear",
       "result": "horn_greatblade",
       "cost": {
-        "warden_horn": 12,
-        "crag_stone": 5,
-        "hawk_feather": 15,
-        "boar_tusk": 30,
+        "warden_horn": 2,
+        "ram_horn": 20,
+        "crag_stone": 11,
+        "dusk_pelt": 6,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -171,10 +174,11 @@
       "type": "gear",
       "result": "ancient_staff",
       "cost": {
-        "ancient_core": 12,
-        "wisp_core": 5,
-        "glow_dust": 15,
-        "spore_sac": 30,
+        "ancient_core": 2,
+        "rune_core": 17,
+        "wisp_core": 9,
+        "glow_dust": 17,
+        "spore_sac": 20,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -244,9 +248,10 @@
       "type": "gear",
       "result": "storm_mantle",
       "cost": {
-        "hawk_feather": 10,
-        "storm_quill": 5,
-        "spore_sac": 37,
+        "hawk_feather": 13,
+        "viper_scale": 10,
+        "storm_quill": 3,
+        "spore_sac": 23,
         "gold": 300
       },
       "optionPool": [
@@ -262,9 +267,10 @@
       "type": "gear",
       "result": "crag_plate",
       "cost": {
-        "crag_stone": 27,
-        "golem_heart": 5,
-        "boar_hide": 30,
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "ram_horn": 9,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -332,9 +338,9 @@
       "type": "gear",
       "result": "feather_circlet",
       "cost": {
-        "hawk_feather": 10,
-        "glow_dust": 4,
-        "spore_sac": 37,
+        "hawk_feather": 13,
+        "glow_dust": 5,
+        "spore_sac": 46,
         "storm_quill": 1,
         "gold": 300
       },
@@ -351,9 +357,10 @@
       "type": "gear",
       "result": "horned_helm",
       "cost": {
-        "warden_horn": 12,
+        "warden_horn": 2,
+        "ram_horn": 17,
         "crag_stone": 20,
-        "boar_hide": 30,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -405,9 +412,10 @@
       "type": "gear",
       "result": "crag_greaves",
       "cost": {
-        "crag_stone": 27,
-        "golem_heart": 5,
-        "boar_hide": 30,
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "dusk_pelt": 9,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -440,9 +448,10 @@
       "type": "gear",
       "result": "wisp_pendant",
       "cost": {
-        "wisp_core": 10,
-        "glow_dust": 4,
-        "spore_sac": 37,
+        "wisp_core": 13,
+        "viper_scale": 5,
+        "glow_dust": 5,
+        "spore_sac": 23,
         "storm_quill": 1,
         "gold": 300
       },
@@ -476,10 +485,10 @@
       "type": "gear",
       "result": "feather_charm",
       "cost": {
-        "hawk_feather": 10,
-        "storm_quill": 5,
-        "beetle_shell": 12,
-        "boar_tusk": 25,
+        "hawk_feather": 13,
+        "storm_quill": 3,
+        "ram_horn": 5,
+        "boar_tusk": 18,
         "gold": 300
       },
       "optionPool": [
@@ -495,9 +504,10 @@
       "type": "gear",
       "result": "golem_amulet",
       "cost": {
-        "golem_heart": 12,
+        "golem_heart": 6,
         "crag_stone": 20,
-        "boar_hide": 30,
+        "rune_core": 6,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -514,10 +524,11 @@
       "type": "gear",
       "result": "ancient_ring",
       "cost": {
-        "ancient_core": 12,
-        "wisp_core": 5,
-        "glow_dust": 15,
-        "spore_sac": 30,
+        "ancient_core": 2,
+        "rune_core": 17,
+        "wisp_core": 9,
+        "glow_dust": 17,
+        "spore_sac": 20,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -848,9 +859,9 @@
       "type": "gear",
       "result": "feather_circlet",
       "cost": {
-        "shore_feather": 10,
-        "glow_dust": 4,
-        "spore_sac": 37,
+        "shore_feather": 13,
+        "glow_dust": 5,
+        "spore_sac": 46,
         "storm_quill": 1,
         "gold": 300
       },
@@ -937,9 +948,10 @@
       "type": "gear",
       "result": "crag_tower_shield",
       "cost": {
-        "crag_stone": 27,
-        "golem_heart": 5,
-        "boar_hide": 30,
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "ram_horn": 9,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1007,9 +1019,10 @@
       "type": "gear",
       "result": "wisp_wraps",
       "cost": {
-        "glow_dust": 10,
-        "wisp_core": 4,
-        "spore_sac": 37,
+        "glow_dust": 13,
+        "wisp_core": 5,
+        "viper_scale": 8,
+        "spore_sac": 23,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1026,9 +1039,10 @@
       "type": "gear",
       "result": "crag_gauntlets",
       "cost": {
-        "crag_stone": 27,
-        "golem_heart": 5,
-        "boar_hide": 30,
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "dusk_pelt": 9,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1238,9 +1252,10 @@
       "type": "gear",
       "result": "frontier_kris",
       "cost": {
-        "wolf_fang": 18,
+        "mantis_scythe": 8,
+        "wolf_fang": 8,
         "venom_gland": 4,
-        "boar_tusk": 20,
+        "boar_tusk": 12,
         "gold": 150
       },
       "itemLevel": 11,
@@ -1274,9 +1289,10 @@
       "type": "gear",
       "result": "ranger_axe",
       "cost": {
+        "mantis_scythe": 8,
         "beetle_shell": 8,
-        "wolf_fang": 14,
-        "boar_tusk": 20,
+        "wolf_fang": 6,
+        "boar_tusk": 12,
         "gold": 150
       },
       "itemLevel": 11,
@@ -1292,10 +1308,10 @@
       "type": "gear",
       "result": "knight_greatsword",
       "cost": {
-        "greyfang_mane": 8,
-        "beetle_shell": 4,
-        "wolf_fang": 10,
-        "boar_tusk": 20,
+        "greyfang_mane": 2,
+        "mantis_scythe": 12,
+        "beetle_shell": 6,
+        "boar_tusk": 12,
         "gold": 150
       },
       "itemLevel": 11,
@@ -1404,9 +1420,9 @@
       "result": "brigand_gloves",
       "cost": {
         "wolf_pelt": 8,
+        "mantis_scythe": 4,
         "venom_gland": 4,
-        "wolf_fang": 10,
-        "boar_tusk": 20,
+        "boar_tusk": 12,
         "gold": 150
       },
       "itemLevel": 11,
@@ -1441,9 +1457,10 @@
       "type": "gear",
       "result": "fang_talisman",
       "cost": {
-        "wolf_fang": 18,
-        "greyfang_mane": 4,
-        "boar_tusk": 20,
+        "wolf_fang": 14,
+        "greyfang_mane": 1,
+        "mantis_scythe": 4,
+        "boar_tusk": 12,
         "gold": 150
       },
       "itemLevel": 11,
@@ -1459,10 +1476,10 @@
       "type": "gear",
       "result": "stormglass_blade",
       "cost": {
-        "hawk_feather": 10,
-        "glow_dust": 4,
-        "beetle_shell": 12,
-        "boar_tusk": 25,
+        "hawk_feather": 13,
+        "viper_scale": 8,
+        "glow_dust": 5,
+        "boar_tusk": 18,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1479,10 +1496,10 @@
       "type": "gear",
       "result": "wisp_stiletto",
       "cost": {
-        "wisp_core": 10,
-        "glow_dust": 4,
-        "beetle_shell": 12,
-        "boar_tusk": 25,
+        "wisp_core": 13,
+        "viper_scale": 10,
+        "glow_dust": 5,
+        "boar_tusk": 18,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1499,9 +1516,10 @@
       "type": "gear",
       "result": "lantern_wand",
       "cost": {
-        "wisp_core": 10,
-        "glow_dust": 4,
-        "spore_sac": 37,
+        "wisp_core": 13,
+        "glow_dust": 8,
+        "viper_scale": 5,
+        "spore_sac": 23,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1519,9 +1537,9 @@
       "result": "thunder_maul",
       "cost": {
         "crag_stone": 10,
-        "storm_quill": 5,
-        "beetle_shell": 12,
-        "boar_tusk": 25,
+        "ram_horn": 10,
+        "storm_quill": 3,
+        "boar_tusk": 18,
         "gold": 300
       },
       "itemLevel": 16,
@@ -1537,10 +1555,10 @@
       "type": "gear",
       "result": "galebreaker",
       "cost": {
-        "hawk_feather": 10,
-        "crag_stone": 4,
-        "beetle_shell": 12,
-        "boar_tusk": 25,
+        "hawk_feather": 13,
+        "ram_horn": 8,
+        "crag_stone": 5,
+        "boar_tusk": 18,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1557,10 +1575,10 @@
       "type": "gear",
       "result": "highland_shield",
       "cost": {
-        "crag_stone": 10,
-        "hawk_feather": 4,
-        "crab_shell": 12,
-        "boar_hide": 25,
+        "crag_stone": 13,
+        "ram_horn": 8,
+        "crab_shell": 13,
+        "boar_hide": 18,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1577,10 +1595,10 @@
       "type": "gear",
       "result": "gale_boots",
       "cost": {
-        "hawk_feather": 10,
-        "wolf_pelt": 4,
-        "crab_shell": 12,
-        "boar_hide": 25,
+        "hawk_feather": 13,
+        "viper_scale": 5,
+        "dusk_pelt": 5,
+        "boar_hide": 18,
         "storm_quill": 1,
         "gold": 300
       },
@@ -1597,10 +1615,11 @@
       "type": "gear",
       "result": "oathblade",
       "cost": {
-        "crag_stone": 12,
-        "storm_quill": 5,
-        "hawk_feather": 15,
-        "boar_tusk": 30,
+        "crag_stone": 14,
+        "rune_core": 11,
+        "storm_quill": 4,
+        "hawk_feather": 14,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1617,10 +1636,11 @@
       "type": "gear",
       "result": "ruin_fang",
       "cost": {
-        "storm_quill": 12,
-        "wisp_core": 5,
-        "hawk_feather": 15,
-        "boar_tusk": 30,
+        "dusk_pelt": 14,
+        "storm_quill": 6,
+        "wisp_core": 6,
+        "hawk_feather": 14,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1637,10 +1657,11 @@
       "type": "gear",
       "result": "relic_wand",
       "cost": {
-        "wisp_core": 12,
-        "golem_heart": 5,
-        "glow_dust": 15,
-        "spore_sac": 30,
+        "rune_core": 14,
+        "wisp_core": 11,
+        "golem_heart": 4,
+        "glow_dust": 17,
+        "spore_sac": 20,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1657,9 +1678,10 @@
       "type": "gear",
       "result": "skyrender_bow",
       "cost": {
-        "storm_quill": 12,
-        "hawk_feather": 20,
-        "boar_tusk": 30,
+        "storm_quill": 10,
+        "dusk_pelt": 11,
+        "hawk_feather": 22,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1738,10 +1760,11 @@
       "type": "gear",
       "result": "wardenstalker_coat",
       "cost": {
-        "greyfang_mane": 12,
-        "hawk_feather": 5,
-        "crag_stone": 15,
-        "boar_hide": 30,
+        "greyfang_mane": 2,
+        "dusk_pelt": 20,
+        "hawk_feather": 9,
+        "crag_stone": 14,
+        "boar_hide": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1758,10 +1781,11 @@
       "type": "gear",
       "result": "wardenstalker_hood",
       "cost": {
-        "greyfang_mane": 12,
-        "warden_horn": 5,
-        "hawk_feather": 15,
-        "boar_tusk": 30,
+        "greyfang_mane": 2,
+        "warden_horn": 1,
+        "dusk_pelt": 17,
+        "hawk_feather": 17,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },
@@ -1778,10 +1802,11 @@
       "type": "gear",
       "result": "wardenstalker_gloves",
       "cost": {
-        "greyfang_mane": 12,
-        "wolf_fang": 5,
-        "hawk_feather": 15,
-        "boar_tusk": 30,
+        "greyfang_mane": 2,
+        "dusk_pelt": 17,
+        "wolf_fang": 9,
+        "hawk_feather": 17,
+        "boar_tusk": 17,
         "ruin_shard": 2,
         "gold": 500
       },

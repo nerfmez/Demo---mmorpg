@@ -611,10 +611,10 @@ unchanged gold. `progression.skillUpgrade.steps` uses `skill_crystal` (1/2/3/4),
 and `modUpgrade.cost` uses the same crystal (2/3). Never interpret these as Grade;
 existing grade-promotion costs and base crafting recipes remain unchanged.
 `rollDrops` appends `items.upgradeMaterialDrops` to monster/zone drops, with the
-same seeded RNG and material-find multiplier (20% stone, 15% crystal, quantity 1).
-Minions still award gold only. Non-starter gear salvage adds the data-defined
-`salvage.upgradeMaterials` (one of each), keeps existing recipe-part refunds and
-returns floor(50% of each paid enhancement step) in stones. Legacy +N items receive
+same seeded RNG and material-find multiplier (3% stone, 2% crystal, quantity 1).
+Minions still award gold only. Gear salvage creates no base stones/crystals at any grade, keeps existing recipe-part
+refunds and returns floor(50% of the total enhancement stone investment), e.g. +5
+uses 16 and refunds 8. Legacy +N items receive
 the same current-cost refund; no historical payment ledger is introduced.
 The existing sparse `character.materials` dictionary already persists both IDs;
 no schema/version change or conversion of old parts is needed. Missing keys are zero.

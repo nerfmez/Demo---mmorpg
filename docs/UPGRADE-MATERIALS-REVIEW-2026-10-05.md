@@ -1,3 +1,9 @@
+# SUPERSEDED ECONOMY — historical first review
+
+The user rejected the abundance in this first prototype. Current rates, salvage rules
+and validation are in [UPGRADE-MATERIALS-RARE-REVIEW-2026-10-05.md](UPGRADE-MATERIALS-RARE-REVIEW-2026-10-05.md).
+The 20%/15% and base-salvage bonus described below are no longer active.
+
 # Dedicated upgrade materials — local review
 
 Base: `1f575c49291bdc24820374e33a1fdc472ef18cac` (fetched origin/main).

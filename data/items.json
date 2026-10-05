@@ -163,7 +163,7 @@
       "value": 4,
       "shape": "rock",
       "useTh": "เสริมอุปกรณ์ +1 ถึง +5 · ไม่เปลี่ยนเกรด",
-      "sourceTh": "มอนสเตอร์ทุกชนิดมีโอกาสดรอป 20% ครั้งละ 1 เม็ด · ย่อยอุปกรณ์ที่ไม่ใช่ชุดเริ่มต้นได้ 1 เม็ด"
+      "sourceTh": "มอนสเตอร์ทั่วไปและบอสมีโอกาสพื้นฐาน 3% ครั้งละ 1 เม็ด · ย่อยของตีบวกคืนหินที่ใช้ 50% ปัดลง · ของ +0 ไม่ให้หิน"
     },
     "skill_crystal": {
       "name": "Skill Crystal",
@@ -172,7 +172,7 @@
       "value": 4,
       "shape": "gem",
       "useTh": "อัปเลเวลสกิลและม็อด · ไม่ใช้แต้มต้นไม้",
-      "sourceTh": "มอนสเตอร์ทุกชนิดมีโอกาสดรอป 15% ครั้งละ 1 เม็ด · ย่อยอุปกรณ์ที่ไม่ใช่ชุดเริ่มต้นได้ 1 เม็ด"
+      "sourceTh": "มอนสเตอร์ทั่วไปและบอสมีโอกาสพื้นฐาน 2% ครั้งละ 1 เม็ด · การย่อยอุปกรณ์ไม่ให้ผลึกทักษะ"
     }
   },
   "slots": [
@@ -2531,7 +2531,7 @@
     }
   },
   "salvage": {
-    "_doc": "Selling and salvaging gear (town only). Salvage returns a share of the crafting recipe (rounded down, at least 1 of the main material); +N returns a share of the upgrade materials. Gold comes from the recipe gold and the item level. Equipped and locked items are refused. Non-starter gear additionally returns upgradeMaterials once; +N refunds current enhancement-stone costs at upgradeReturn, including legacy upgraded gear. Starter gear gets no base upgradeMaterials bonus.",
+    "_doc": "Town only. Salvage returns a grade share of the crafting recipe (rounded down, at least 1 of the main part). No base stone or crystal reward for any gear or grade, including starters. Sum current +N enhancement costs then return floor(total * upgradeReturn) per material; never refund gold. Legacy +N gear uses that same current-cost valuation because saves have no payment history. Existing inventory is never converted. Equipped and locked items are refused.",
     "returnByGrade": {
       "C": 0.3,
       "B": 0.4,
@@ -2549,10 +2549,6 @@
         "S": 5
       },
       "perUpgrade": 0.2
-    },
-    "upgradeMaterials": {
-      "enhancement_stone": 1,
-      "skill_crystal": 1
     }
   },
   "gearDrops": {
@@ -2576,13 +2572,13 @@
   "upgradeMaterialDrops": [
     {
       "item": "enhancement_stone",
-      "chance": 0.2,
+      "chance": 0.03,
       "min": 1,
       "max": 1
     },
     {
       "item": "skill_crystal",
-      "chance": 0.15,
+      "chance": 0.02,
       "min": 1,
       "max": 1
     }

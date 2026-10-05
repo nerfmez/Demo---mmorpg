@@ -47,23 +47,23 @@ test('old sparse saves preserve parts, gold, existing +N, grades, skill/mod rank
  addItem(loaded,'enhancement_stone',4);addItem(loaded,'skill_crystal',4);const copy=migrateCharacter(serializeCharacter(loaded),data);
  assert.equal(copy.materials.enhancement_stone,4);assert.equal(copy.materials.skill_crystal,4);assert.ok(upgradeGear(copy,data,copy.gear[0].uid).ok);assert.ok(upgradeSkill(copy,data,'slash').ok);assert.deepEqual(Object.fromEntries(Object.keys(saved.materials).map(k=>[k,copy.materials[k]])),saved.materials);
 });
-test('salvage retains recipe parts and gives modest upgrade materials, protects worn/locked gear and excludes starter bonus',()=>{
+test('salvage retains recipe parts, refunds investment only and protects worn/locked gear',()=>{
  const ch=funded();const starter=ch.gear[0];assert.equal(salvageReturn(data,starter).skill_crystal,undefined);assert.equal(salvageReturn(data,starter).enhancement_stone,undefined);
  const gear={uid:ch.nextUid++,base:'tusk_blade',grade:'C',upgrade:0,options:[]};ch.gear.push(gear);
- const plain=salvageReturn(data,gear);assert.equal(plain.enhancement_stone,1);assert.equal(plain.skill_crystal,1);assert.ok(plain.boar_tusk>0);
- gear.upgrade=5;const upgraded=salvageReturn(data,gear);assert.equal(upgraded.enhancement_stone,8);assert.equal(upgraded.skill_crystal,1);assert.equal(upgraded.boar_tusk,plain.boar_tusk);
+ const plain=salvageReturn(data,gear);assert.equal(plain.enhancement_stone,undefined);assert.equal(plain.skill_crystal,undefined);assert.ok(plain.boar_tusk>0);
+ gear.upgrade=5;const upgraded=salvageReturn(data,gear);assert.equal(upgraded.enhancement_stone,8);assert.equal(upgraded.skill_crystal,undefined);assert.equal(upgraded.boar_tusk,plain.boar_tusk);
  gear.locked=true;let before=JSON.stringify(ch);assert.equal(salvageGear(ch,data,gear.uid).reason,'locked');assert.equal(salvageGear(ch,data,starter.uid).reason,'equipped');assert.equal(JSON.stringify(ch),before);
- gear.locked=false;assert.ok(salvageGear(ch,data,gear.uid).ok);assert.equal(ch.materials.enhancement_stone,8);assert.equal(ch.materials.skill_crystal,1);assert.ok(!ch.gear.includes(gear));
+ gear.locked=false;assert.ok(salvageGear(ch,data,gear.uid).ok);assert.equal(ch.materials.enhancement_stone,8);assert.equal(ch.materials.skill_crystal,undefined);assert.ok(!ch.gear.includes(gear));
  const a={...gear,uid:ch.nextUid++,upgrade:0},b={...a,uid:ch.nextUid++,locked:true};ch.gear.push(a,b);assert.equal(salvageMany(ch,data,['C']).count,1);assert.ok(ch.gear.includes(b));
 });
 test('shared drops append without replacing monster/zone loot and obey material-find',()=>{
  for(const [id,m] of Object.entries(data.monsters.monsters)){
   const probabilities=[],r={chance:p=>{probabilities.push(p);return true;},int:(a)=>a};const drops=rollDrops(data,id,'highlands',r,{materialFindPct:50,goldFindPct:20});
   assert.deepEqual(drops.map(d=>d.item),[...m.drops,...data.world.zoneDrops.highlands,...data.items.upgradeMaterialDrops].map(d=>d.item));
-  assert.ok(Math.abs(probabilities.at(-2)-.3)<1e-9);assert.ok(Math.abs(probabilities.at(-1)-.225)<1e-9);assert.equal(drops.at(-2).qty,1);assert.equal(drops.at(-1).qty,1);
+  assert.ok(Math.abs(probabilities.at(-2)-.045)<1e-9);assert.ok(Math.abs(probabilities.at(-1)-.03)<1e-9);assert.equal(drops.at(-2).qty,1);assert.equal(drops.at(-1).qty,1);
  }
  const tally={enhancement_stone:0,skill_crystal:0},rng=createRng(912);for(let i=0;i<10000;i++)for(const d of rollDrops(data,'tusk_boar','meadow',rng))if(d.item in tally)tally[d.item]+=d.qty;
- assert.ok(tally.enhancement_stone>1850&&tally.enhancement_stone<2150);assert.ok(tally.skill_crystal>1350&&tally.skill_crystal<1650);
+ assert.ok(tally.enhancement_stone>230&&tally.enhancement_stone<370);assert.ok(tally.skill_crystal>140&&tally.skill_crystal<260);
 });
 test('base crafting still uses monster parts and never requires the two upgrade materials',()=>{
  for(const recipe of Object.values(data.recipes.recipes)){assert.equal(recipe.cost.enhancement_stone,undefined);assert.equal(recipe.cost.skill_crystal,undefined);}
@@ -85,6 +85,7 @@ test('every starter base has no free stone/crystal salvage, and every +N refund 
  for(const [id,r] of Object.entries(data.recipes.recipes).filter(([,r])=>r.type==='gear'))for(const grade of data.items.grades.order){
   const back=salvageReturn(data,{base:r.result,grade,upgrade:0,options:[]});
   assert.ok(r.cost.gold>0,id+' consumes gold');assert.equal(back.gold,undefined,id+' cannot recover crafting gold');
+  assert.equal(back.enhancement_stone,undefined,id+' +0 creates no stone at any grade');assert.equal(back.skill_crystal,undefined,id+' creates no crystals');
   assert.ok(Object.entries(r.cost).some(([k,n])=>k!=='gold'&&(back[k]||0)<n),id+' always consumes at least one base part');
  }
 });
@@ -93,9 +94,17 @@ test('migrated legacy +N salvage adds the documented current-value refund withou
  const item={uid:ch.nextUid++,base:'tusk_blade',grade:'A',upgrade:5,itemLevel:1,options:[]};ch.gear.push(item);
  const loaded=migrateCharacter(JSON.parse(JSON.stringify(ch)),data),oldParts={...loaded.materials},gold=loaded.gold;
  const back=salvageReturn(data,loaded.gear.find(i=>i.uid===item.uid));
- assert.equal(back.enhancement_stone,8,'one base stone plus seven from current +1..+5 refund');assert.equal(back.skill_crystal,1);
+ assert.equal(back.enhancement_stone,8,'half of 16 invested stones, with no base bonus');assert.equal(back.skill_crystal,undefined);
  const result=salvageGear(loaded,data,item.uid);assert.ok(result.ok);assert.equal(loaded.gold,gold);
  for(const [id,count] of Object.entries(oldParts))assert.equal(loaded.materials[id],count+(back[id]||0));
- assert.equal(loaded.materials.enhancement_stone,8);assert.equal(loaded.materials.skill_crystal,1);
+ assert.equal(loaded.materials.enhancement_stone,8);assert.equal(loaded.materials.skill_crystal,undefined);
  const once=JSON.stringify(loaded);assert.equal(salvageGear(loaded,data,item.uid).reason,'unknown');assert.equal(JSON.stringify(loaded),once);
+});
+
+test('enhancement salvage refunds half the total investment at each level without a new stone faucet',()=>{
+ for(const base of ['rusty_sword','tusk_blade']){
+  for(const [upgrade,expected] of [0,0,1,3,5,8].entries()){
+   const back=salvageReturn(data,{base,grade:'S',upgrade,options:[]});assert.equal(back.enhancement_stone||0,expected,base+'/'+upgrade);assert.equal(back.skill_crystal,undefined);
+  }
+ }
 });

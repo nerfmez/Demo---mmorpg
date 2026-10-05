@@ -30,10 +30,10 @@ test('crafting fails without materials and takes nothing', () => {
   assert.equal(ch.materials.boar_tusk, 1);
 });
 
-test('upgrade (+N) is separate from grade and consumes its recipe material and catalyst', () => {
+test('upgrade (+N) is separate from grade and consumes enhancement stones', () => {
   const ch = createCharacter(data);
   ch.gold = 999;
-  ch.materials = { boar_hide: 5, glow_dust: 2 };
+  ch.materials = { enhancement_stone: 1 };
   const item = ch.gear[0];
   const grade = item.grade;
   assert.ok(upgradeGear(ch, data, item.uid).ok);
@@ -41,21 +41,21 @@ test('upgrade (+N) is separate from grade and consumes its recipe material and c
   assert.equal(item.grade, grade);
 });
 
-test('skills level up with materials from the world', () => {
+test('skills level up with skill crystals', () => {
   const ch = createCharacter(data);
   ch.gold = 999;
   ch.level = 5; ch.stats.STR = 5;
-  ch.materials = { boar_tusk: 3 };
+  ch.materials = { skill_crystal: 1 };
   assert.ok(upgradeSkill(ch, data, 'slash').ok);
   assert.equal(ch.skills.slash, 2);
-  assert.equal(ch.materials.boar_tusk, 0);
+  assert.equal(ch.materials.skill_crystal, 0);
 });
 
-test("drops are the monster's own parts plus gold", () => {
+test("drops retain the monster's own parts plus gold and shared upgrade materials", () => {
   const rng = createRng(3);
   const seen = new Set();
   for (let i = 0; i < 100; i++) for (const d of rollDrops(data, 'tusk_boar', 'meadow', rng)) seen.add(d.item);
-  assert.deepEqual([...seen].sort(), ['boar_hide', 'boar_tusk', 'gold']);
+  assert.deepEqual([...seen].sort(), ['boar_hide', 'boar_tusk', 'enhancement_stone', 'gold', 'skill_crystal']);
   const ch = createCharacter(data);
   ch.materials.boar_hide = 2;
   assert.equal(sellMaterial(ch, data, 'boar_hide', 5), 2 * data.items.materials.boar_hide.value);
@@ -98,8 +98,8 @@ test('equipment upgrades never require character level or stats; skill rank gate
  assert.ok(upgradeGear(ch,data,item.uid).ok);assert.ok(promoteGear(ch,data,item.uid,createRng(1)).ok);
  let before=JSON.stringify(ch);assert.equal(upgradeSkill(ch,data,'slash').reason,'level');assert.equal(JSON.stringify(ch),before);
  ch.level=5;before=JSON.stringify(ch);assert.equal(upgradeSkill(ch,data,'slash').reason,'requires');assert.equal(JSON.stringify(ch),before);
- ch.stats.STR=5;const cost=skillUpgradeCost(data,'slash',1);assert.ok(upgradeSkill(ch,data,'slash').ok);assert.equal(ch.skills.slash,2);assert.equal(cost.boar_tusk,3);
- assert.equal(gearUpgradeCost(data,item).ruin_shard,1);
+ ch.stats.STR=5;const cost=skillUpgradeCost(data,'slash',1);assert.ok(upgradeSkill(ch,data,'slash').ok);assert.equal(ch.skills.slash,2);assert.equal(cost.skill_crystal,1);
+ assert.equal(gearUpgradeCost(data,item).enhancement_stone,3);
 });
 
 test('Lv1 can enhance and promote to the maximum, but wearing follows the resulting stats',async()=>{

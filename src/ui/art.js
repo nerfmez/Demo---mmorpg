@@ -268,6 +268,9 @@ const FORGED = {
 };
 for (const [id, [kind, palette, tier]] of Object.entries(FORGED)) gear[id] = sized(kind, forged(kind, palette, tier));
 
+// Raster-only materials keep authored coverage for shared ground-loot consumers.
+for (const id of ['enhancement_stone', 'skill_crystal']) material[id] = `<image href="${rasterIconUrl('material',id)}" width="128" height="128"/>`;
+
 export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles use supplied raster art; retain the authored SVG fallback.

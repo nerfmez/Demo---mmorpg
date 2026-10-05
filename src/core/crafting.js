@@ -87,12 +87,11 @@ export function craft(ch, data, recipeId, rng) {
 export function gearUpgradeCost(data, item) {
   const u = data.items.upgrade;
   if (item.upgrade >= u.max) return null;
-  return materialCost(u.cost[item.upgrade], data.items.gearBases[item.base].upgradeMaterial);
+  return { ...u.cost[item.upgrade] };
 }
 
-function materialCost(step, material) {
-  const { material: count = 0, requiresLevel, requiresStat, ...cost } = step;
-  if (count) cost[material] = (cost[material] || 0) + count;
+function materialCost(step) {
+  const { requiresLevel, requiresStat, ...cost } = step;
   return cost;
 }
 
@@ -124,7 +123,7 @@ export function skillUpgradeCost(data, skillId, level) {
   if (level >= su.maxLevel) return null;
   const def = data.skills.combat[skillId];
   if (!def || !su.steps[level - 1]) return null;
-  return materialCost(su.steps[level - 1], def.upgradeMaterial);
+  return materialCost(su.steps[level - 1]);
 }
 
 export function skillUpgradeState(ch, data, skillId) {
@@ -247,7 +246,7 @@ export function sellMaterial(ch, data, id, qty = 1) {
 /** Roll drops for one kill. Returns [{item, qty}]. find: derived goldFindPct/materialFindPct. */
 export function rollDrops(data, monsterId, zoneId, rng, find = {}) {
   const m = data.monsters.monsters[monsterId];
-  const table = [...m.drops, ...(data.world.zoneDrops[zoneId] || [])];
+  const table = [...m.drops, ...(data.world.zoneDrops[zoneId] || []), ...data.items.upgradeMaterialDrops];
   const out = [];
   for (const d of table) {
     const gold = d.item === 'gold';
@@ -285,8 +284,11 @@ export function salvageReturn(data, item) {
   const main = data.items.gearBases[item.base].upgradeMaterial;
   for (const [k, n] of Object.entries(recipe?.cost || {})) if (k !== 'gold' && Math.floor(n * share) > 0) out[k] = Math.floor(n * share);
   if (main && !out[main]) out[main] = 1;
+  if (!data.items.gearBases[item.base].starter) {
+    for (const [k, n] of Object.entries(rules.upgradeMaterials)) out[k] = (out[k] || 0) + n;
+  }
   for (let i = 0; i < (item.upgrade || 0); i++) {
-    for (const [k, n] of Object.entries(materialCost(data.items.upgrade.cost[i], main))) {
+    for (const [k, n] of Object.entries(data.items.upgrade.cost[i])) {
       const back = Math.floor(n * rules.upgradeReturn);
       if (k !== 'gold' && back > 0) out[k] = (out[k] || 0) + back;
     }

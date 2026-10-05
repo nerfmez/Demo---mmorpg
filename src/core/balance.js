@@ -115,7 +115,7 @@ export function farmingIncome(data, kit, level, find = {}, arrowRecipe = null) {
   const normals = Object.values(data.monsters.monsters).filter((x) => !x.boss);
   const avg = (f) => normals.reduce((a, x) => a + f(x), 0) / normals.length;
   const gold = avg((x) => x.drops.filter((d) => d.item === 'gold').reduce((a, d) => a + d.chance * (d.min + d.max) / 2, 0)) * (1 + (find.goldFindPct || 0) / 100);
-  const mats = avg((x) => x.drops.filter((d) => d.item !== 'gold').reduce((a, d) => a + Math.min(1, d.chance * (1 + (find.materialFindPct || 0) / 100)) * (d.min + d.max) / 2 * data.items.materials[d.item].value, 0));
+  const mats = avg((x) => [...x.drops, ...data.items.upgradeMaterialDrops].filter((d) => d.item !== 'gold').reduce((a, d) => a + Math.min(1, d.chance * (1 + (find.materialFindPct || 0) / 100)) * (d.min + d.max) / 2 * data.items.materials[d.item].value, 0));
   const g = data.items.salvage.sellGold, il = gearTierAt(data, level);
   const gearRate = Object.entries(data.items.gearDrops.normal).reduce((a, [grade, c]) => a + c * (1 + (find.gearFindPct || 0) / 100) * (g.base + g.perItemLevel * il) * g.gradeMult[grade], 0);
   const killsPerHour = 3600 / (r.ttk + b.secondsPerKill);

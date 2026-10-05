@@ -51,7 +51,7 @@ const tags=d=>`<div class="tags">${(d.tags||[]).slice(0,3).map(t=>`<span>${TAGS[
 const header=(en,title,right='')=>`<header class="window-head"><div><small>${en}</small><h1>${title}</h1></div>${right}</header>`;
 const stats=it=>({...gearStats(it,data),...weaponImplicit(it,data)});
 function gearShelf(){
-  if(bagCategory==='material'){if(!materialId)return emptyShelf('ยังไม่มีวัตถุดิบ');const d=data.items.materials[materialId]; return `<section class="selection-shelf"><div class="selected-summary">${picture('material',materialId)}<div><small>วัตถุดิบ · มี ${ch.materials[materialId]} ชิ้น</small><h2>${d.nameTh}</h2><span class="compact-meta">${d.name}</span></div></div><div class="shelf-actions"><span>เลือกดูสูตรที่ใช้วัตถุดิบนี้</span>${btn('ดูการใช้งาน','details','','secondary')}</div></section>`;}
+  if(bagCategory==='material'){if(!materialId)return emptyShelf('ยังไม่มีวัตถุดิบ');const d=data.items.materials[materialId]; return `<section class="selection-shelf"><div class="selected-summary">${picture('material',materialId)}<div><small>วัตถุดิบ · มี ${ch.materials[materialId]} ชิ้น</small><h2>${d.nameTh}</h2><span class="compact-meta">${d.name}</span></div></div><div class="shelf-actions"><span>${esc(d.useTh || 'เลือกดูสูตรที่ใช้วัตถุดิบนี้')}</span>${btn('ดูการใช้งาน','details','','secondary')}</div></section>`;}
   const it=ch.gear.find(i=>i.uid===selected);if(!it)return emptyShelf('ยังไม่มีอุปกรณ์');
   const d=data.items.gearBases[it.base],at=wornSlot(ch,data,it),worn=!!at,light=handsOf(data,it)==='light';
   const target=worn?at:d.slot,old=ch.gear.find(i=>i.uid===ch.equipped[target]),a=stats(it),b=old&&!worn?stats(old):{},req=gearEquipState(ch,data,it,target);

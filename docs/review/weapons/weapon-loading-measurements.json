@@ -1,0 +1,40 @@
+{
+  "engine": "chromium",
+  "coldStart": {
+    "weaponRequests": 1,
+    "weaponDecodedBytes": 1335312,
+    "resourceRequests": 72,
+    "resourceDecodedBytes": 41287706,
+    "documentDecodedBytes": 975
+  },
+  "peakPair": {
+    "main": "wolfbite_sword",
+    "offhand": "spore_wand",
+    "sourceWeaponTriangles": 67712,
+    "opaqueWeaponTrianglesIncludingOutlines": 135424,
+    "wholeSceneTriangles": 222286,
+    "wholeSceneDrawCalls": 69,
+    "geometries": 117,
+    "textures": 48
+  },
+  "grip": {
+    "right": 0,
+    "left": 1.4295603459064552e-14
+  },
+  "bowGrip": 3.1776437161565096e-14,
+  "weaponRequests": [
+    "rusty_sword.glb",
+    "frontier_kris.glb",
+    "fang_dagger.glb",
+    "spore_staff.glb",
+    "tide_staff.glb",
+    "fang_bow.glb",
+    "wolfbite_sword.glb",
+    "spore_wand.glb"
+  ],
+  "staleCompletion": "current rig UUID unchanged",
+  "currentCompletion": "active animator/action/progress retained",
+  "missingFallback": "passed",
+  "failedFallback": "passed; no repeated request",
+  "errors": []
+}

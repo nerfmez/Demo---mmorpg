@@ -73,7 +73,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
         const state = gearUpgradeState(ch,data,it), preview = gearUpgradePreview(data,it);
         const changes = Object.keys(preview.after).filter(k=>preview.after[k]!==preview.before[k]).map(k=>`${effectText(k,preview.before[k])} → ${preview.after[k]}`).join(' · ');
         const canWearAfter = gearEquipState(ch,data,{...it,upgrade:it.upgrade+1}).ok;
-        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${gearUpgradeTrack(data,it)}<p>${changes}</p>${wearRequirements(ch,preview.afterRequires,'รีเควสสวมใส่หลังตีบวก')}<small>ตีบวกได้เมื่อวัตถุดิบพอ · ไม่ล็อกเลเวลหรือสเตตัส</small>${!canWearAfter?`<p class="wear-warning">ยังใส่หลังอัปไม่ได้${selected.equipped?' · จะถอดเก็บไว้ในกระเป๋า':''}</p>`:''}<p class="${state.ok?'ok':'no'}">${stateText(state)}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
+        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${gearUpgradeTrack(data,it)}<p>${changes}</p>${wearRequirements(ch,preview.afterRequires,'รีเควสสวมใส่หลังตีบวก')}<small>ตีบวกได้เมื่อวัตถุดิบพอ · ไม่ล็อกเลเวลหรือสเตตัส</small>${!canWearAfter?`<p class="wear-warning">ยังใส่หลังอัปไม่ได้${selected.equipped?' · จะถอดเก็บไว้ในกระเป๋า':''}</p>`:''}<p class="${near.workbench&&state.ok?'ok':'no'}">${near.workbench?stateText(state):'ต้องอยู่ใกล้โต๊ะคราฟต์ในนิคมเพื่อตีบวก'}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
         actions += `<button class="btn" data-act="gear-up" data-uid="${it.uid}" ${near.workbench && state.ok ? '' : 'disabled'}>ตีบวก +${it.upgrade+1}</button>`;
         if (!near.workbench) content += '<p class="muted">ตีบวกได้ที่โต๊ะคราฟต์ในนิคม</p>';
       }

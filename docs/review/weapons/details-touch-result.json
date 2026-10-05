@@ -1,0 +1,72 @@
+{
+  "engine": "chromium",
+  "scroll": "native touch swipe",
+  "results": [
+    {
+      "width": 1180,
+      "height": 820,
+      "before": {
+        "top": 0,
+        "scrollHeight": 1368,
+        "clientHeight": 691,
+        "closeVisible": true,
+        "point": {
+          "x": 546,
+          "y": 514.55
+        },
+        "target": "BUTTON",
+        "touchAction": "pan-y",
+        "inert": false,
+        "fullscreenBlocked": false
+      },
+      "after": {
+        "top": 247,
+        "scrollHeight": 1368,
+        "clientHeight": 691,
+        "closeVisible": true,
+        "point": {
+          "x": 546,
+          "y": 514.55
+        },
+        "target": "DIV",
+        "touchAction": "pan-y",
+        "inert": false,
+        "fullscreenBlocked": false
+      },
+      "closeAfterScroll": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "before": {
+        "top": 0,
+        "scrollHeight": 1255,
+        "clientHeight": 326,
+        "closeVisible": true,
+        "point": {
+          "x": 378,
+          "y": 244.725
+        },
+        "target": "DIV",
+        "touchAction": "pan-y",
+        "inert": false,
+        "fullscreenBlocked": false
+      },
+      "after": {
+        "top": 195,
+        "scrollHeight": 1255,
+        "clientHeight": 326,
+        "closeVisible": true,
+        "point": {
+          "x": 378,
+          "y": 244.725
+        },
+        "target": "BUTTON",
+        "touchAction": "pan-y",
+        "inert": false,
+        "fullscreenBlocked": false
+      },
+      "closeAfterScroll": true
+    }
+  ]
+}

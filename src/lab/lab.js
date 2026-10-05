@@ -114,7 +114,7 @@ function buildHero() {
   hero.root.rotation.y = -Math.PI / 2; // facing the dummy to the west
 }
 buildHero();
-loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
+loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }, { onWeaponReady: () => buildHero() }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
 
 function placeDummy() {
   dummy.position.set(-state.distance, 0, 0);

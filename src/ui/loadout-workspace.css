@@ -60,7 +60,15 @@ body.loadout-open .fullscreen-control{z-index:39}
 #atelier .empty-selection{justify-content:center;gap:6px}
 #atelier .mod-grid+.grid-footer{font-size:10px}
 #atelier .mod-grid~.grid-footer{min-height:20px}
-#atelier .atelier-dialog{max-height:85vh;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
+#atelier .atelier-dialog{max-height:85vh;overflow:auto;overscroll-behavior:contain}
+/* Touch action is constrained by the actual descendant under the finger. */
+#atelier .atelier-dialog,#atelier .atelier-dialog *{touch-action:pan-y}
+#atelier .detail-heading{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#f5efdb}
+#atelier .detail-heading .detail-close{flex:none;min-width:44px;min-height:44px;padding:4px 10px;font-size:20px}
+#atelier .detail-upgrade-summary{padding:10px 0;border-bottom:1px solid #a4ac9b}
+#atelier .atelier-dialog .item-detail-top{flex-direction:row;align-items:center}
+#atelier .atelier-dialog .item-detail-icon>.art{width:72px;height:72px;max-width:72px;margin:0}
+@media(max-height:480px){#atelier .atelier-dialog .item-detail-icon>.art{width:60px;height:60px;max-width:60px}#atelier .detail-upgrade-summary{padding:6px 0}}
 #atelier .atelier-dialog .item-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 #atelier .atelier-dialog .item-description{font-size:12px;line-height:1.6}
 #atelier .atelier-dialog .item-description .art{width:30px;height:30px}

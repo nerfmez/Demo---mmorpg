@@ -60,9 +60,20 @@ jobs:
       - name: Two hands, gloves, shields and arrows (hero model, equipment screen, arrow crafting)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/gear-hands.mjs
+      - name: Approved weapon originals (equip, save, shots, captures and resource stability)
+        if: steps.scope.outputs.game == 'true'
+        run: |
+          node tests/browser/weapon-loading.mjs
+          node tests/browser/weapon-models.mjs
       - name: Shop, potions and quick item slots (buy at the shopkeeper, drink from the HUD)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/shop-potions.mjs
+      - name: Potions while walking (independent pointers, cooldown and cancellation)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/potions-moving.mjs
+      - name: Equipment details (touch scrolling, visible close, upgrade materials)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/details-touch.mjs
       - name: Main menu (hub, grouped pages, back buttons, Esc)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/menu-hub.mjs

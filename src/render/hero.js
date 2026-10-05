@@ -183,6 +183,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   equipmentDetails(rb, gear.bases);
 
   const rig = rb.build();
+  rig.importedWeapon = !!weaponModel;
+  rig.importedOffhand = !!offhandModel;
   if (weaponModel) rig.bones.weapon.add(modelInstance('weapons', weaponModel, rig.material.userData.flash));
   if (offhandModel) rig.bones.offhand.add(modelInstance('weapons', offhandModel, rig.material.userData.flash));
   // A left-hand weapon is not animated: it keeps the right hand's resting angle (actions.js REST.weapon).

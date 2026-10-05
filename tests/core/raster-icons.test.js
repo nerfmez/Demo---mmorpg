@@ -23,9 +23,9 @@ function alphaPixels(png){
  }
  return {extrema:[min,max],clear,partial};
 }
-test('raster contract covers the 122 supplied equipment/material/ammunition/combat/movement IDs exactly once, excluding mods',()=>{
+test('raster contract covers the 128 supplied equipment/material/ammunition/combat/movement IDs exactly once, excluding mods',()=>{
  const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.items.arrows.types).map(id=>'arrow/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(new Set(EXPECTED_RASTER_KEYS).size,122);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,128);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
  for(const key of EXPECTED_RASTER_KEYS){
   assert.ok(all.includes(key),key+' is live content');
   const [kind,id]=key.split('/');
@@ -47,6 +47,6 @@ test('every registered image is a real PNG with its recorded native dimensions, 
 });
 
 test('registered supplied PNGs match the retained delivery hashes and coverage',()=>{
- assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,122);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
+ assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,128);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
  for(const a of manifest.verified_assets){assert.equal(RASTER_ICONS[a.key],a.path);const bytes=readFileSync(new URL('../../public/'+a.path,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256,a.key);}
 });

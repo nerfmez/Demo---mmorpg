@@ -1966,6 +1966,144 @@
       "starter": false,
       "upgradeMaterial": "storm_quill",
       "itemLevel": 21
+    },
+    "sporeweave_vest": {
+      "name": "Sporeweave Vest",
+      "nameTh": "เสื้อทอสปอร์",
+      "slot": "armor",
+      "requirementStat": "INT",
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "heal_pct",
+        "magic_flat",
+        "summon_pct"
+      ],
+      "stats": {
+        "defense": 10.3,
+        "maxMp": 51.4,
+        "healPct": 17.1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 6,
+      "look": "tunic"
+    },
+    "sporeweave_gloves": {
+      "name": "Sporeweave Gloves",
+      "nameTh": "ถุงมือทอสปอร์",
+      "slot": "gloves",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "heal_pct",
+        "summon_pct",
+        "mp_flat",
+        "poison_on_hit"
+      ],
+      "stats": {
+        "magic": 2.2,
+        "maxMp": 11.1,
+        "healPct": 4.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 6,
+      "look": "wrap"
+    },
+    "moonleaf_slippers": {
+      "name": "Moonleaf Slippers",
+      "nameTh": "รองเท้าผ้าใบจันทร์",
+      "slot": "boots",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat",
+        "heal_pct"
+      ],
+      "stats": {
+        "defense": 5.2,
+        "maxMp": 34.6,
+        "cooldownPct": 3.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 11
+    },
+    "wardenstalker_coat": {
+      "name": "Wardenstalker Coat",
+      "nameTh": "เสื้อพรานผู้พิทักษ์",
+      "slot": "armor",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "move_pct",
+        "projectile_pct",
+        "regen_flat"
+      ],
+      "stats": {
+        "defense": 46.3,
+        "maxHp": 123.5,
+        "moveSpeedPct": 6.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21,
+      "look": "pelt"
+    },
+    "wardenstalker_hood": {
+      "name": "Wardenstalker Hood",
+      "nameTh": "ฮู้ดพรานผู้พิทักษ์",
+      "slot": "helm",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "crit_pct",
+        "cdr_pct",
+        "move_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 16.5,
+        "maxHp": 41.2,
+        "critChancePct": 11.0,
+        "cooldownPct": 2.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21,
+      "look": "hood"
+    },
+    "wardenstalker_gloves": {
+      "name": "Wardenstalker Gloves",
+      "nameTh": "ถุงมือพรานผู้พิทักษ์",
+      "slot": "gloves",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "leech_pct",
+        "move_pct"
+      ],
+      "stats": {
+        "attack": 7.3,
+        "critChancePct": 7.3,
+        "defense": 2.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21,
+      "look": "pelt"
     }
   },
   "gearOptions": {

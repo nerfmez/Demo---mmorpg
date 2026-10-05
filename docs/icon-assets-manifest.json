@@ -3642,6 +3642,192 @@
         "export": "alpha-connected component extraction; fit inside 480 square; 16px transparent border; PNG RGBA 512",
         "reference": "Approved repository gear/material raster icons"
       }
+    },
+    {
+      "key": "gear/sporeweave_vest",
+      "path": "assets/icons/gear/sporeweave_vest.png",
+      "sha256": "0e0293c33ede27712a4f11c646877a1fdc26dc7699b1b9f4720f40ca97c2b865",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 392332,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "six-new-garments-source.png",
+        "source_sheet_sha256": "aa8e25a1f588c4b5c1d980e328ba7f06579821df0f452a6bb905addb13b75745",
+        "cell": [
+          1,
+          1
+        ],
+        "extraction_bounds": [
+          19,
+          110,
+          446,
+          598
+        ],
+        "export": "Connected alpha components, proportional 480px fit, 16px transparent margins"
+      }
+    },
+    {
+      "key": "gear/sporeweave_gloves",
+      "path": "assets/icons/gear/sporeweave_gloves.png",
+      "sha256": "348362641038c2b83308f62de5f5e0e8218e73cd15e1db3ce4d226cdf8698a97",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 412559,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "six-new-garments-source.png",
+        "source_sheet_sha256": "aa8e25a1f588c4b5c1d980e328ba7f06579821df0f452a6bb905addb13b75745",
+        "cell": [
+          1,
+          2
+        ],
+        "extraction_bounds": [
+          451,
+          196,
+          830,
+          581
+        ],
+        "export": "Connected alpha components, proportional 480px fit, 16px transparent margins"
+      }
+    },
+    {
+      "key": "gear/moonleaf_slippers",
+      "path": "assets/icons/gear/moonleaf_slippers.png",
+      "sha256": "46b6ba727e2f704e0535bea67265856b5fa2ab207e2260915762819e3e590fc0",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 365772,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "six-new-garments-source.png",
+        "source_sheet_sha256": "aa8e25a1f588c4b5c1d980e328ba7f06579821df0f452a6bb905addb13b75745",
+        "cell": [
+          1,
+          3
+        ],
+        "extraction_bounds": [
+          856,
+          227,
+          1237,
+          562
+        ],
+        "export": "Connected alpha components, proportional 480px fit, 16px transparent margins"
+      }
+    },
+    {
+      "key": "gear/wardenstalker_coat",
+      "path": "assets/icons/gear/wardenstalker_coat.png",
+      "sha256": "d3d44de27e00cf0cd3d313bf87a2aecc9d5cc83374e3e33d5401838a513b0e9c",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 348886,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "six-new-garments-source.png",
+        "source_sheet_sha256": "aa8e25a1f588c4b5c1d980e328ba7f06579821df0f452a6bb905addb13b75745",
+        "cell": [
+          2,
+          1
+        ],
+        "extraction_bounds": [
+          15,
+          648,
+          432,
+          1177
+        ],
+        "export": "Connected alpha components, proportional 480px fit, 16px transparent margins"
+      }
+    },
+    {
+      "key": "gear/wardenstalker_hood",
+      "path": "assets/icons/gear/wardenstalker_hood.png",
+      "sha256": "af1fe33d198d9bbb88e71a274297d27870cec2a51728d1f3fe294b3aec899d6b",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 387457,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "six-new-garments-source.png",
+        "source_sheet_sha256": "aa8e25a1f588c4b5c1d980e328ba7f06579821df0f452a6bb905addb13b75745",
+        "cell": [
+          2,
+          2
+        ],
+        "extraction_bounds": [
+          425,
+          676,
+          842,
+          1097
+        ],
+        "export": "Connected alpha components, proportional 480px fit, 16px transparent margins"
+      }
+    },
+    {
+      "key": "gear/wardenstalker_gloves",
+      "path": "assets/icons/gear/wardenstalker_gloves.png",
+      "sha256": "6ffb1a7f187898df0e161c7b4c403edc10886fced053c7fc065271ce61f754e9",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 399214,
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generation": {
+        "provider": "OpenAI built-in image generation",
+        "source_sheet": "six-new-garments-source.png",
+        "source_sheet_sha256": "aa8e25a1f588c4b5c1d980e328ba7f06579821df0f452a6bb905addb13b75745",
+        "cell": [
+          2,
+          3
+        ],
+        "extraction_bounds": [
+          865,
+          740,
+          1235,
+          1133
+        ],
+        "export": "Connected alpha components, proportional 480px fit, 16px transparent margins"
+      }
     }
   ],
   "pending_count": 0,

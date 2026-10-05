@@ -155,7 +155,12 @@ worn and `locked` items are refused.
 `core/balance.js` is a pure model of a reference hero per kit at each level, against the
 average monster of that level, wearing the expected gear tier (`progression.balance`).
 Port it with the data so the same targets can be checked; see [BALANCE-25.md](BALANCE-25.md).
-Gear bases sit on tiers (item level 1/6/11/16/21). `gearDropCandidates` picks bases made from
+Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions
+(Sporeweave vest/gloves at 6, Moonleaf Slippers at 11, Wardenstalker coat/hood/gloves
+at 21) use the same stat-based wear, recipe, grade, enhancement and drop rules;
+there is no character-level equip gate or set bonus. Their PNGs do not imply new
+3D outfit meshes; the current renderer reuses existing look templates.
+ `gearDropCandidates` picks bases made from
 the monster's parts at the tier for its level (falling back to the nearest lower tier).
 `rollGearDrop` rolls a grade best-first (`items.gearDrops`) and options like a craft. A
 `drop` of item `gear` carries `gear`; pickup gives it a new uid. `goldFindPct`,

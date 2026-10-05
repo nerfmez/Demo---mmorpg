@@ -182,3 +182,23 @@ test('sentinel beam hits along its line once and misses beside it; the stalker s
   s.until(() => s.m.state === 'windup', 6);
   assert.equal(s.m.stealth, false, 'every wind-up is shown in full');
 });
+
+test('killing a monster during its wind-up cancels the area it marked; a launched attack still lands', () => {
+  for (const [type, gap, block] of [['reed_viper', 6, 'strike'], ['duskmane_stalker', 5, 'claw']]) {
+    const a = arena(type);
+    a.place(gap); a.m.cd[block] = 99;
+    a.step(0.01);
+    assert.equal(a.m.state, 'windup');
+    assert.equal(a.g.areas.length, 1, `${type} marked its landing`);
+    a.g.killMonster(a.m);
+    assert.equal(a.g.areas.length, 0, `${type}: nothing lands after it died mid wind-up`);
+    for (let t = 0; t < 3; t += 0.01) a.g.updateAreas(0.01); // the game no longer drives a dead monster
+    assert.equal(a.hits.length, 0);
+  }
+  const v = arena('reed_viper');
+  v.place(6); v.m.cd.strike = 99;
+  v.step(0.01);
+  v.until(() => v.m.state === 'recover');
+  v.g.killMonster(v.m);
+  assert.equal(v.g.areas.length, 1, 'venom already in the air still lands');
+});

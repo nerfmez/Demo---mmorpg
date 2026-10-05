@@ -730,6 +730,15 @@ export class Game {
   }
 
   killMonster(m) {
+    // Killed during a wind-up: the attack it was marking never comes, so its pending areas go too
+    // (an attack already launched, like a boulder in flight, still lands).
+    if (m.state === 'windup') {
+      this.areas = this.areas.filter((a) => {
+        const cancel = a.owner === 'monster' && a.sourceId === m.id && a.t < a.delay;
+        if (cancel) this.emit({ type: 'areaEnd', id: a.id });
+        return !cancel;
+      });
+    }
     m.dead = true;
     m.hp = 0;
     m.deathT = 0;

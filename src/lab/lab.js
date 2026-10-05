@@ -1,4 +1,4 @@
-import { installSpiritReveal, updateSpiritReveal } from '../render/spirit-reveal.js';
+import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from '../render/spirit-reveal.js';
 // Skill Lab: the hero, a training dummy and the real effect code on a flat floor, nothing else.
 // It replays skills from data/skills.json + data/combat-fx.json the way the game's events drive
 // src/render/vfx.js (castStart, projectiles, impact), so the owner can judge an effect live on the
@@ -86,8 +86,8 @@ scene.add(grid);
 const vfx = new Vfx(scene, flat, { config: tuning.fx });
 const fakeGame = { projectiles: [], areas: [] };
 // Keep one real summon rig across replays; changing sliders does not rebuild it.
-const wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible = false;
-const wolfReveal=installSpiritReveal(wolf);
+let wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible = false;
+let wolfReveal=installSpiritReveal(wolf);
 let wolfReplay = null, movementReplay=null;
 const wolfPose = { moving: false, speedFactor: 1.2, state: 'idle', lastAttack: 'bite', windup: null, windupT: 0, windupTotal: .25, hurt: 0, lookYaw: 0, turn: 0 };
 
@@ -114,7 +114,7 @@ function buildHero() {
   hero.root.rotation.y = -Math.PI / 2; // facing the dummy to the west
 }
 buildHero();
-loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons }).then(buildHero);
+loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons, monsters: { thornback_wolf: MODELS.monsters.thornback_wolf } }).then(() => { buildHero(); removeSpiritReveal(wolfReveal); disposeObject(wolf.root); wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible=false; wolfReveal=installSpiritReveal(wolf); wolfReplay=null; });
 
 function placeDummy() {
   dummy.position.set(-state.distance, 0, 0);
@@ -540,7 +540,7 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, wolf: wolf.root, dummy }, stats: () => ({ ...renderer.info.memory }) };
+window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, get wolf(){return wolf.root;}, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
 
 

@@ -2,6 +2,8 @@
 // Shapes follow the gameplay hit areas (arc, radius, path), so what you see is what hits.
 // Everything is placed on the terrain; flat shapes are ground-hugging decals.
 import * as THREE from 'three';
+import { groundDust } from './ground-dust.js';
+import { soundPulse } from './sound-pulse.js';
 import { disposeObject } from './dispose.js';
 import { Particles } from './particles.js';
 import { toon } from './toon.js';
@@ -765,7 +767,7 @@ export class Vfx {
   }
 
   leapLand(e) {
-    this.playApproved('leap',e);this.shake=Math.max(this.shake,.15);
+    this.playApproved('leap',e);groundDust(this,e,this.config.skills.leap.dust);this.shake=Math.max(this.shake,.15);
   }
 
   dive(e) {
@@ -843,15 +845,12 @@ export class Vfx {
   }
 
   warcry(e) {
+    const cfg=this.config.skills.war_cry.pulse;
     for(let i=0;i<2;i++){
-      const m=artSurface('pressure',undefined,1.3),delay=i*.1,life=i?.467:.433;
-      const max=e.radius*(i?.75:1),scales=[[0,.4],[.1,max*.43],[7/30,max],[13/30,max]];
-      const alpha=i?[[0,0],[.1,.25],[5/30,.48],[14/30,0]]:[[0,.35],[2/30,.85],[5/30,.7],[12/30,0]];
-      m.position.set(e.x,this.gy(e.x,e.z)+.07+i*.015,e.z);m.rotation.z=i*.38;
-      this.spawn(m,life,t=>{const age=t*life;m.visible=age>=delay;const scale=keys(age-delay,scales);m.scale.set(scale*2,scale*2,1);const u=m.material.uniforms;u.uTime.value=age;u.uAlpha.value=keys(age,alpha);u.uDissolve.value=Math.max(0,(age-delay-.1)/.3)*.85;});
+      const m=soundPulse(cfg.color),delay=i*cfg.echoDelay,life=cfg.life+delay;
+      m.position.set(e.x,this.gy(e.x,e.z)+.22,e.z);
+      this.spawn(m,life,t=>{const age=t*life-delay,k=Math.max(0,age/cfg.life);m.visible=age>=0;const radius=.45+(e.radius-.45)*(1-Math.pow(1-k,2));m.scale.set(radius,1,radius);m.material.uniforms.uT.value=k;m.material.uniforms.uAlpha.value=cfg.opacity*(i?.6:1)*Math.min(1,k/.06)*Math.pow(1-k,1.4);});
     }
-    const y=this.gy(e.x,e.z);
-    this.fx.burst(e.x,y+.75,e.z,10,{color:0xffb950,size:.14,sizeEnd:.01,speed:2.3,up:1,life:.53,drag:2});
     this.shake=Math.max(this.shake,.12);
   }
 

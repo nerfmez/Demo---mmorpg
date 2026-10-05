@@ -109,6 +109,9 @@ all three contact/resource counts and touch drag aim. Local WebKit lacks system
 libraries. A later headless-shell start timed out; the supported full Chromium
 launch path produced the corrected Pin capture and passed root/geometry checks.
 Full Chromium's missing favicon is excluded from asset-failure reporting; other
-failed resource URLs remain failures. Full browser revalidation with the final
-cleanup assertions is recorded in `results.json` when it completes. CI handles
+failed resource URLs remain failures. Final full Chromium browser revalidation passed for all three skills and touch
+aim. After all shared meshes warmed, geometry stayed at 136 across one additional
+cast of each skill; area, projectile and root visual maps returned to zero. Pin
+appeared flat during its real status and expired. Results are recorded in
+`tests/browser/out/bow-skills-chromium/results.json`. CI handles
 full smoke/UX and WebKit. No merge or deployment has occurred.

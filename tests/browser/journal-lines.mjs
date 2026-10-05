@@ -1,3 +1,4 @@
+import {freezeScene} from './freeze-scene.mjs';
 // Build lines in the field journal: stage pages with many lines, a line's page, and a funded
 // character buying along one line. Screenshots for review. Usage after a build:
 // node tests/browser/journal-lines.mjs   (BROWSER=webkit for the iPad engine)
@@ -20,6 +21,7 @@ try {
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(url);
     await page.waitForFunction(() => window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
+    await freezeScene(page);
     // A character who has walked the damage line far enough to see every stage.
     await page.evaluate(() => { const g = window.__frontier.game; g.ch.jobLevel = 40; g.ch.jobPoints = 39; window.__frontier.panels.open('job'); });
     await page.waitForSelector('.skill-journal [data-stage="2"]');
@@ -53,17 +55,19 @@ try {
     });
     assert.equal(bought.left, 0, JSON.stringify(bought));
     assert.ok(bought.bridge, 'crossed into the damage line');
-    // A group page: three lines side by side, each forking, with bridges between them.
+    // A main line page: one fork plus its bridges; mastery stays within the same line.
     const nodesClear = async (label) => {
       const boxes = await page.locator('#plane > [data-node]').evaluateAll((els) => els.map((e) => { const r = e.querySelector('.node-disc').getBoundingClientRect(), t = document.createRange(); t.selectNodeContents(e.querySelector('.node-caption b')); const c = t.getBoundingClientRect(); return [Math.min(r.x, c.x), r.y, Math.max(r.right, c.right) - Math.min(r.x, c.x), c.bottom - r.y]; }));
-      assert.ok(boxes.length > 10, label);
+      assert.ok(boxes.length >= 8 && boxes.length <= 12, label);
       for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) assert.ok(a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1], `${name} ${label}: nodes overlap`);
     };
-    for (const [stage, gate] of [[3, 'fam.weapon.3'], [5, 'fam.weapon.5'], [5, 'fam.weapon.mastery']]) {
+    for (const [stage, gate] of [[3, 'view.physical.3'], [5, 'view.physical.5'], [5, 'view.physical.mastery']]) {
       await page.locator(`${tabs} [data-stage="${stage}"]`).first().click();
       await page.waitForTimeout(800);
-      for (let i = 0; i < 3 && !(await page.locator(`[data-gateway="${gate}"]`).count()); i++) { await page.locator('#junction-pagination [data-junction-page="1"]').click(); await page.waitForTimeout(600); }
-      await page.locator(`[data-gateway="${gate}"]`).click();
+      const hub=gate.endsWith('.mastery')?'view.physical.5':gate;
+      for (let i = 0; i < 3 && !(await page.locator(`[data-gateway="${hub}"]`).count()); i++) { await page.locator('#junction-pagination [data-junction-page="1"]').click(); await page.waitForTimeout(600); }
+      await page.locator(`[data-gateway="${hub}"]`).click();
+      if(gate!==hub)await page.locator(`[data-line-page="${gate}"]`).click();
       await page.waitForTimeout(1200);
       await nodesClear(gate);
       await page.screenshot({ path: `${out}${name}-${gate}.png` });

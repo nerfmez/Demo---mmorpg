@@ -69,6 +69,11 @@ jobs:
         run: node tests/browser/journal-lines.mjs
         env:
           BROWSER: ${{ matrix.browser }}
+      - name: Independent skill line hubs, readable phone forks and canonical bridge purchases
+        if: steps.scope.outputs.ui == 'true'
+        run: node tests/browser/skill-lines.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
       - name: Saved character Continue, atomic route allocation, reload and respec
         if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/journal-route-save.mjs
@@ -82,6 +87,7 @@ jobs:
             tests/browser/out/workspaces*
             tests/browser/out/journal*
             tests/browser/out/skill-journal/
+            tests/browser/out/skill-lines/
             tests/browser/out/fullscreen-overlays-*/
           if-no-files-found: ignore
           retention-days: 7

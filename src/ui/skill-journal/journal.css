@@ -270,3 +270,42 @@
 /* Build-line pages: a caption is as wide as its column on screen; stats wrap to two lines. */
 .skill-journal .grid-page .node-caption{width:max(96px,calc(var(--column) / var(--inverse) - 10px))}.skill-journal .grid-page .node-caption small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media(max-height:520px){.skill-journal .grid-page .node-caption small{display:none}}
+
+/* Each existing build line now has its own main gateway. These controls never buy. */
+.skill-journal .line-tools{position:absolute;top:111px;left:30px;right:30px;z-index:3;display:flex;gap:12px;align-items:center;overflow-x:auto;max-height:70px;scrollbar-width:thin}
+.skill-journal .line-tools button{min-height:44px;padding:5px 12px;border:1px solid #a99b7c66;border-radius:4px;background:#f6eeddbb;color:#665b43;white-space:nowrap;font-size:12px}
+.skill-journal .line-tools small{display:block;font-size:10px;color:#786c54}
+.skill-journal .line-page-tabs,.skill-journal .line-bridge-links{display:flex;gap:8px;align-items:center}
+.skill-journal .line-page-tabs [aria-pressed=true]{background:#dbe2ce;border-color:#667b58}
+.skill-journal .line-bridge-links>span{font-size:10px;color:#786c54}
+.skill-journal .line-view .map-viewport{top:178px}
+.skill-journal .line-page .node-caption{width:168px}
+.skill-journal .line-page .node-caption b{font-size:13px}
+.skill-journal .line-page .node-caption small{font-size:10px}
+.skill-journal .bridge-destinations{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;font-size:11px}
+.skill-journal .bridge-destinations>span{flex-basis:100%;color:#817357}
+.skill-journal .bridge-destinations button{min-height:44px;padding:5px 10px;border:1px solid #ac9c7d88;border-radius:4px}
+@media(max-width:760px){
+ .skill-journal .line-tools{left:16px;right:16px;top:113px}
+ .skill-journal .line-view .map-viewport{top:178px}
+ .skill-journal .line-view.has-detail .line-tools{display:none}
+ .skill-journal .line-view.has-detail .map-viewport{top:105px}
+ .skill-journal .line-page .node-caption{width:156px}
+ .skill-journal .line-page .node-caption b{font-size:12px}
+ .skill-journal .line-page .node-caption small{font-size:10px}
+}
+@media(max-height:520px){
+ .skill-journal .line-tools{top:54px;max-height:48px;left:20px;right:20px}
+ .skill-journal .line-view .map-viewport{top:110px}
+}
+.skill-journal .route-cross-page{font-size:11px;color:#806b43;margin:6px 0}
+@media(max-width:760px){
+ .skill-journal .line-view .place-switch{top:2px;right:0;left:auto;max-width:116px;font-size:9px}
+ .skill-journal .line-view .map-header h1{max-width:190px}
+ .skill-journal .line-view.has-detail .place-switch{top:2px}
+}
+@media(max-height:520px) and (min-width:761px){
+ .skill-journal .line-tools{top:3px;left:220px;right:175px;max-height:48px}
+ .skill-journal .line-view .map-viewport{top:62px;bottom:42px}
+ .skill-journal .line-view .map-header h1{max-width:180px}
+}

@@ -650,3 +650,18 @@ the same current-cost refund; no historical payment ledger is introduced.
 The existing sparse `character.materials` dictionary already persists both IDs;
 no schema/version change or conversion of old parts is needed. Missing keys are zero.
 The two RGBA PNGs are mapped in `raster-icons.js` for inventory/costs and ground loot.
+
+### Independent skill-line display hubs
+
+`ui/skill-journal/line-groups.js` splits each family into its existing named lines for
+presentation only. Chapters 2–5 have 11/12/9/9 overview hubs; chapter 5's nine line
+hubs each open their regular and mastery pages. Keep `jobtree.presentation.stages[].paths`
+as the canonical purchase scopes: a display ID such as `view.physical.3` resolves to
+`fam.weapon.3` for its line nodes. Resolve bridge proxies to the bridge's original
+scope even when inspecting them from the other line. Do not restrict route planning
+to visible nodes; previews list every charged node, including other lines. Preserve
+ALL `requires`, ANY `requiresAny`, links, chapter gates, point costs and saved node IDs.
+The 30 bridge nodes appear on both endpoint pages but are owned/charged only once.
+Search, prerequisite navigation and chapter navigation use display groups without
+rewriting game data. Captions and touch targets set a readable minimum camera zoom;
+long forks/mastery pages pan vertically instead of squeezing three lines together.

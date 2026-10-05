@@ -1,7 +1,23 @@
 // Reviewed directed layout; eligibility remains in core/character.js.
 const parents=n=>[...(n?.requires||[]),...(n?.requiresAny||[])];
 export function createLayout(tree){return {
-layout(ids,primary,tier,phone,short=false,view=null,grid=null){let width,height,coords={},snake=false,zoom=0;if(tier===1){width=phone?600:1300;height=phone?920:480;const positions=phone?[[300,70],[300,310],[135,550],[135,790],[465,550],[465,790]]:[[110,240],[405,240],[755,125],[1110,125],[755,350],[1110,350]];tree.presentation.stages[0].nodes.forEach((id,i)=>coords[id]=positions[i]);}
+layout(ids,primary,tier,phone,short=false,view=null,grid=null,linePage=null){
+ if(linePage){
+  // A shallow landscape page cannot stack a fork's labels. Keep a readable
+  // horizontal strip, with the same edges/parents and touch pan navigation.
+  if(short&&!phone){
+   const ordered=[...ids.filter(id=>!primary.includes(id)&&!linePage.bridges.includes(id)),...primary,...linePage.bridges];
+   return {width:ordered.length*220+100,height:140,coords:Object.fromEntries(ordered.map((id,i)=>[id,[100+i*220,48]])),compactRow:true,zoom:.8,column:220};
+  }
+  const width=phone?360:760,dx=phone?180:320,dy=phone?146:158,coords={},context=ids.filter(id=>!primary.includes(id)&&!linePage.bridges.includes(id));
+  context.forEach((id,i)=>coords[id]=[width/2,55+i*dy]);
+  const offset=context.length;
+  for(const id of primary){const [c,r]=grid[id];coords[id]=[width/2+(c-.5)*dx,55+(r+offset)*dy];}
+  const bottom=Math.max(...primary.map(id=>grid[id][1]))+offset+1;
+  linePage.bridges.forEach((id,i)=>coords[id]=[width/2+((i%2)-.5)*dx,55+(bottom+Math.floor(i/2))*dy]);
+  return {width,height:Math.max(...Object.values(coords).map(p=>p[1]))+125,coords,compactRow:false,zoom:phone?1:.9,column:dx};
+ }
+ let width,height,coords={},snake=false,zoom=0;if(tier===1){width=phone?600:1300;height=phone?920:480;const positions=phone?[[300,70],[300,310],[135,550],[135,790],[465,550],[465,790]]:[[110,240],[405,240],[755,125],[1110,125],[755,350],[1110,350]];tree.presentation.stages[0].nodes.forEach((id,i)=>coords[id]=positions[i]);}
  else{
   const context=ids.filter(id=>!primary.includes(id)),depths={},levels=new Map();
   const depth=id=>depths[id]??(depths[id]=1+Math.max(0,...tree.nodes[id].requires.filter(k=>primary.includes(k)).map(depth)));

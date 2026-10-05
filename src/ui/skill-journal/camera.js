@@ -3,7 +3,7 @@ export function createCamera(root,plane,output,onInspect) {
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let measuredWidth=root.clientWidth,measuredHeight=root.clientHeight,fitRequested=true;
   let readable=0,width=1000,height=850,cam={x:500,y:425,z:1},target={...cam},frame=0,last=0,pointers=new Map(),gesture=null,blocked=false,sheet=0,bounds=null;
-  const clampZ=z=>Math.max(.18,Math.min(1.7,z));
+  const clampZ=z=>Math.max(.18,readable,Math.min(1.7,z));
   const center=()=>({x:(measuredWidth-sheet)/2,y:measuredHeight/2});
   let inverseZoom=0,frames=0,inverseWrites=0;
   const draw=()=>{
@@ -63,5 +63,5 @@ export function createCamera(root,plane,output,onInspect) {
   const events=[['pointerdown',down],['pointermove',move],['pointerup',up],['pointercancel',cancel],['lostpointercapture',e=>{if(e.target===root&&pointers.has(e.pointerId))cancel(e);}],['click',click,true],['wheel',wheel,{passive:false}],['keydown',key]];
   events.forEach(args=>root.addEventListener(...args));
   const resize=new ResizeObserver(()=>{const w=root.clientWidth,h=root.clientHeight;if(w!==measuredWidth||h!==measuredHeight){measuredWidth=w;measuredHeight=h;if(fitRequested)fit();else{constrain();schedule();}}});resize.observe(root);
-  return {fit,focus,zoom,viewport:()=>({width:measuredWidth,height:measuredHeight}),frame(x,y,z){fitRequested=false;target={x,y,z:clampZ(z)};schedule();},configure(w,h,minZoom=0){width=w;height=h;readable=minZoom;fit();},setSheet(px){sheet=px;schedule();},snapshot(){return {...target,active:!!frame,frames,inverseWrites};},destroy(){cancelAnimationFrame(frame);resize.disconnect();events.forEach(args=>root.removeEventListener(...args));}};
+  return {fit,focus,zoom,viewport:()=>{measuredWidth=root.clientWidth;measuredHeight=root.clientHeight;return {width:measuredWidth,height:measuredHeight};},frame(x,y,z){fitRequested=false;target={x,y,z:clampZ(z)};schedule();},configure(w,h,minZoom=0){width=w;height=h;readable=minZoom;fit();},setSheet(px){sheet=px;schedule();},snapshot(){return {...target,active:!!frame,frames,inverseWrites};},destroy(){cancelAnimationFrame(frame);resize.disconnect();events.forEach(args=>root.removeEventListener(...args));}};
 }

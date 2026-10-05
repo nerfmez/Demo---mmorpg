@@ -241,7 +241,7 @@ body.ingame .field-xp .xpseg span {position:static;font-size:9px;line-height:1.2
  #hud .questtrack {padding-inline:7px}
  #hud .menu {top:176px;right:0;width:252px}
  body.ingame #hud .combat {width:216px;height:214px;right:calc(14px + var(--safe-r));bottom:16px}
- body.ingame #hud .quickbar {right:calc(14px + var(--safe-r));bottom:calc(238px + var(--safe-b));gap:6px}
+ body.ingame #hud .quickbar {right:calc(14px + var(--safe-r));bottom:calc(318px + var(--safe-b));gap:6px} /* above the centred interaction prompt (262px + its height) */
  body.ingame #hud .qbtn {--q:42px;border-radius:12px}
  body.ingame #hud .combat .sbtn.attack {width:82px;height:82px;right:0;bottom:0}
  body.ingame #hud .combat .sbtn.s1 {width:62px;height:62px;right:94px;bottom:84px}

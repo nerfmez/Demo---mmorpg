@@ -66,6 +66,25 @@ try {
     assert.deepEqual(overlap, [], 'quick bar overlaps ' + overlap);
     await page.context().close();
   }
+  // phone portrait: with the shop prompt showing, the quick bar must stay clear of it and of the buttons
+  {
+    const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })).newPage();
+    page.setDefaultTimeout(120000);
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0');
+    await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
+    await page.evaluate(() => { const g = window.__frontier.game, t = g.data.world.town; document.querySelector('.banner')?.remove(); Object.assign(g.player, g.freeSpotNear(t.shop[0], t.shop[1])); window.__frontier.view.snapCamera(); });
+    await page.locator('#hud .prompt .pbtn').waitFor();
+    await page.waitForTimeout(500);
+    const overlap = await page.evaluate(() => {
+      const r = (el) => el.getBoundingClientRect(), hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      const bar = r(document.querySelector('#hud .quickbar'));
+      return [...document.querySelectorAll('#hud .combat .sbtn, #hud .quest-widget, #hud .prompt .pbtn, #hud .pframe')].filter((el) => el.getClientRects().length && hit(bar, r(el))).map((el) => el.className);
+    });
+    await page.screenshot({ path: out + 'portrait-prompt.png' });
+    assert.deepEqual(overlap, [], 'portrait quick bar overlaps ' + overlap);
+    await page.context().close();
+  }
   assert.deepEqual(errors, []);
   console.log('PASS shop + potions', engine.name());
 } finally {

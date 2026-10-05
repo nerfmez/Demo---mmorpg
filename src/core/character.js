@@ -537,6 +537,7 @@ export function arrowTotal(ch) {
 /** Arrows one cast of skill `s` (computed) needs; 0 for anything but Attack+Projectile. */
 export function arrowsPerCast(data, s) {
   const rules = data.items.arrows;
+  if (s?.def?.ammoPerCast !== undefined) return s.def.ammoPerCast;
   if (!rules || !s?.tags?.has?.('Attack') || !s.tags.has('Projectile')) return 0;
   return rules.perCast + (s.projectiles > 1 ? rules.multiShotExtra : 0);
 }

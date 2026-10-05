@@ -157,7 +157,7 @@ export const ACTIONS = {
 
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', firebolt: 'bolt', chain_spark: 'zap',
+  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', heavy_draw: 'shoot', arrow_rain: 'shoot', pinning_arrow: 'shoot', firebolt: 'bolt', chain_spark: 'zap',
   stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'sow', hex: 'hex', ward: 'ward',
   war_cry: 'warcry', healing_spring: 'heal', spirit_wolf: 'summon',
 };

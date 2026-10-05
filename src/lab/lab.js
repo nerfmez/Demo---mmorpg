@@ -55,7 +55,7 @@ const state = {
 if (!PLAYABLE.has(LAB_SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt';
 const isMelee = (s) => s?.kind === 'melee_arc' || s?.kind === 'melee_nova';
 if (isMelee(LAB_SKILLS.combat[state.skill])) { state.weapon = 'sword'; state.distance = 2; }
-else if (state.skill === 'hunter_shot') state.weapon = 'bow';
+else if (['hunter_shot', 'heavy_draw', 'arrow_rain', 'pinning_arrow'].includes(state.skill)) state.weapon = 'bow';
 let storage = null;
 try { storage = window.localStorage; } catch {}
 const tuning = new LabTuning(LAB_SKILLS, FX, storage);
@@ -230,9 +230,13 @@ function castGround(s, element) {
   }
   if (state.reviewPhase === 'burst') { burst(); return; }
   heroAnim.play(state.skill, s.castTime + .28, state.weapon, 0, s.castTime, s.kind);
+  if (state.skill === 'arrow_rain') vfx.beginCast({ skill: state.skill, total: s.castTime, weapon: state.weapon }, element);
   later(s.castTime, () => {
-    fakeGame.areas.push({ id: nextId++, owner: 'player', kind: state.skill, element, x, z, radius: s.radius, t: 0, delay: s.delay, duration: .35 });
-    if (state.reviewPhase === 'full') later(s.delay, burst);
+    for (let wave = 0; wave < (s.waves || 1); wave++) {
+      const delay = s.delay + wave * (s.waveInterval || 0);
+      fakeGame.areas.push({ id: nextId++, owner: 'player', kind: state.skill, element, x, z, radius: s.radius, wave, t: 0, delay, duration: .35 });
+      if (state.reviewPhase === 'full') later(delay, burst);
+    }
   });
 }
 
@@ -315,7 +319,7 @@ function selectSkill(id) {
   clearTimeout(editTimer); editTimer = null; clearReplay();
   const wasMelee=isMelee(LAB_SKILLS.combat[state.skill]), nowMelee=isMelee(LAB_SKILLS.combat[id]);
   state.skill = id; state.element = null; state.reviewPhase = 'full';state.comboStep=0;
-  const weapon=nowMelee?'sword':id==='hunter_shot'?'bow':'staff';
+  const weapon=nowMelee?'sword':['hunter_shot','heavy_draw','arrow_rain','pinning_arrow'].includes(id)?'bow':'staff';
   if(state.weapon!==weapon){state.weapon=weapon;buildHero();}
   if(wasMelee!==nowMelee){state.distance=nowMelee?2:6;placeDummy();}
   tuning.get(id); vfx.refreshFlames();

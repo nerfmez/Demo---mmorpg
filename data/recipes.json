@@ -1818,6 +1818,33 @@
         "move_pct"
       ],
       "itemLevel": 21
+    },
+    "learn_heavy_draw": {
+      "type": "skill",
+      "result": "heavy_draw",
+      "cost": {
+        "boar_tusk": 4,
+        "boar_hide": 2,
+        "gold": 30
+      }
+    },
+    "learn_arrow_rain": {
+      "type": "skill",
+      "result": "arrow_rain",
+      "cost": {
+        "hawk_feather": 3,
+        "boar_tusk": 3,
+        "gold": 45
+      }
+    },
+    "learn_pinning_arrow": {
+      "type": "skill",
+      "result": "pinning_arrow",
+      "cost": {
+        "wolf_fang": 3,
+        "boar_hide": 2,
+        "gold": 30
+      }
     }
   }
 }

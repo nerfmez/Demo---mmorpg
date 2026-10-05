@@ -66,6 +66,11 @@ jobs:
       - name: Distinct coastal attack patterns and contact poses
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/coastal-attacks.mjs
+      - name: Three bow skills (real game, touch aim, resources and effect cleanup)
+        if: steps.scope.outputs.game == 'true'
+        env:
+          CAPTURE_VIDEO: '0'
+        run: node tests/browser/bow-skills.mjs
       - name: Skill Lab smoke (lab.html casts and hits)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/lab.mjs

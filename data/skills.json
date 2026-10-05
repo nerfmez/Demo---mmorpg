@@ -402,6 +402,115 @@
       "upgradeMaterial": "wolf_pelt",
       "icon": "wolf",
       "upgradeStat": "INT"
+    },
+    "heavy_draw": {
+      "name": "Heavy Draw",
+      "nameTh": "ศรง้างหนัก",
+      "desc": "ง้างตามเวลาคงที่ 0.55 วิ แล้วยิงศรกายภาพแรงหนึ่งครั้ง ไม่ต้องกดชาร์จ แตะเลือกเป้า / ลากเล็งทิศ ม็อดแตกกระสุนโดนศัตรูตัวเดิมได้ครั้งเดียวต่อการร่าย",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Damage"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 16,
+        "scale": 1.8
+      },
+      "range": 15,
+      "speed": 27,
+      "projectileRadius": 0.3,
+      "cooldown": 3.5,
+      "castTime": 0.55,
+      "fixedCastTime": true,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "DEX": 6
+      },
+      "upgradeMaterial": "boar_tusk",
+      "icon": "arrow",
+      "upgradeStat": "DEX",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "singleHitPerCast": true
+    },
+    "arrow_rain": {
+      "name": "Arrow Rain",
+      "nameTh": "ห่าฝนศร",
+      "desc": "เลือกพื้นที่เล็ก ฝนศรตก 3 ระลอกที่ตำแหน่งเดิม ศัตรูเดินออกได้ ใช้ลูกธนูรวม 3 ลูกต่อการร่าย ดาเมจพื้นที่ต่อระลอก ไม่มีกระสุนวิ่ง จึงใช้แตก / ทะลุ / เด้งไม่ได้",
+      "tags": [
+        "Attack",
+        "Area",
+        "Damage"
+      ],
+      "kind": "ground_area",
+      "power": "attack",
+      "damage": {
+        "base": 4,
+        "scale": 0.45
+      },
+      "range": 11,
+      "radius": 2.1,
+      "delay": 0.35,
+      "waves": 3,
+      "waveInterval": 0.3,
+      "cooldown": 5,
+      "castTime": 0.3,
+      "cost": 14,
+      "ammoPerCast": 3,
+      "element": "physical",
+      "requires": {
+        "DEX": 8
+      },
+      "upgradeMaterial": "hawk_feather",
+      "icon": "arrow",
+      "upgradeStat": "DEX",
+      "requiresWeapon": [
+        "bow"
+      ]
+    },
+    "pinning_arrow": {
+      "name": "Pinning Arrow",
+      "nameTh": "ศรตรึง",
+      "desc": "ศรกายภาพเบา ตรึงการเคลื่อนที่ 0.9 วิ (สูงสุด 1.2 วิ) ไม่ยกเลิกท่าโจมตีที่เริ่มแล้ว บอสตรึงเพียง 0.25 วิ หลังตรึงต้านการตรึงซ้ำ 2.5 วิ ใช้ร่วมกับกระแทกกระเด็นไม่ได้",
+      "tags": [
+        "Control",
+        "Attack",
+        "Projectile",
+        "Damage"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 4,
+        "scale": 0.45
+      },
+      "range": 13,
+      "speed": 24,
+      "projectileRadius": 0.3,
+      "cooldown": 5.5,
+      "castTime": 0.22,
+      "cost": 9,
+      "element": "physical",
+      "requires": {
+        "DEX": 6
+      },
+      "upgradeMaterial": "wolf_fang",
+      "icon": "arrow",
+      "upgradeStat": "DEX",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "root": {
+        "duration": 0.9,
+        "maxDuration": 1.2,
+        "bossDuration": 0.25,
+        "bossMaxDuration": 0.35,
+        "immunity": 2.5
+      }
     }
   },
   "movement": {

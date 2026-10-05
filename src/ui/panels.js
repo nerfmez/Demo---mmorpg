@@ -800,6 +800,10 @@ function describeSkill(s) {
   const parts = [];
   const number = v => Math.round(v * 10) / 10;
   if (s.damage !== undefined) parts.push(s.kind === 'dot_zone' ? `ดาเมจ ${Math.round(s.damage)}/วิ × ${s.duration.toFixed(1)} วิ` : `ดาเมจ ${Math.round(s.damage)}`);
+  if (s.waves > 1) parts.push(`${s.waves} ระลอก · ห่าง ${number(s.waveInterval)} วิ`);
+  if (s.root) parts.push(`ตรึง ${number(s.root.duration)} วิ · บอส ${number(s.root.bossDuration)} วิ · ต้านซ้ำ ${number(s.root.immunity)} วิ`);
+  if (s.def.ammoPerCast) parts.push(`ลูกธนู ${s.def.ammoPerCast}/ร่าย`);
+  if (s.def.fixedCastTime) parts.push(`ง้างคงที่ ${number(s.castTime)} วิ`);
   if (s.heal !== undefined) parts.push(`ฮีล ${Math.round(s.heal)}/วิ × ${s.duration.toFixed(1)} วิ`);
   if (s.barrier !== undefined) parts.push(`เกราะ ${Math.round(s.barrier)} (${number(s.duration)} วิ)`);
   if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${number(s.summon.life)} วิ`);

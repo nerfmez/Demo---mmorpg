@@ -708,3 +708,35 @@ The 30 bridge nodes appear on both endpoint pages but are owned/charged only onc
 Search, prerequisite navigation and chapter navigation use display groups without
 rewriting game data. Captions and touch targets set a readable minimum camera zoom;
 long forks/mastery pages pan vertically instead of squeezing three lines together.
+
+### Three bow skills (draft, 2026-10-05)
+
+`heavy_draw` and `pinning_arrow` use the existing Projectile execution; `arrow_rain`
+uses GroundArea. All require the equipped, wearable bow. Hunter's Shot stays the
+starting basic. Skill recipes teach rank 1; DEX, crystals and gold use the current
+rank contracts without adding character-level gates or changing save v7.
+
+- `fixedCastTime` preserves Heavy Draw's 0.55 s wind-up through action-speed
+  modifiers. `singleHitPerCast` shares a hit-ID set among that cast's Split arrows:
+  one direct hit per enemy per cast, including ricochets. Pierce still traverses
+  already-hit bodies. A subsequent cast owns a fresh set.
+- `waves`/`waveInterval` schedule three independent one-contact GroundAreas at
+  the same snapshotted point. Each checks current occupants at contact. Echo
+  schedules a scaled full sequence at that point; concentration changes radius
+  and damage. Decorative falling arrows never collide or spend ammo. A skill
+  definition's `ammoPerCast` overrides the legacy Attack+Projectile calculation;
+  MP and ammo are checked before either is spent. Old skills retain their rules.
+- `root` freezes movement only: walking, strafing, charges, dives, blinks and
+  collision separation. Attack state/timers continue. `rootImmunity` prevents
+  renewal during the root and for 2.5 s after it. Control passives can increase
+  regular/boss duration only to the authored caps. Root skills reject Knockback
+  in both socket validation and computed loaded slots. Neither status is added
+  to the character save; transient combat state keeps its existing lifetime.
+- Reuse the bow action, wood/metal arrow meshes and directional physical contact.
+  New arrow visuals blend from the real weapon socket into the simulation path.
+  Rain renders an upward bow release, bounded falling arrows and short contact
+  accents within the true area, with no cracks/pool. A root ring reads actual
+  status and disposes on expiry/death. Port these to shared meshes and owned
+  materials; dispose per-wave boundaries and per-root geometry.
+
+Tuning, constraints and proof status: `docs/BOW-SKILLS.md`.

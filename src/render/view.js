@@ -900,6 +900,7 @@ export class View {
       this.syncDrops(dt, time);
       this.vfx.syncProjectiles(g, dt, time);
       this.vfx.syncAreas(g, dt, time);
+      this.vfx.syncRoots(g);
       this.vfx.syncTelegraphs(g);
       // waypoint stones glow once discovered
       for (const [id, stone] of this.waypointStones) {

@@ -177,7 +177,6 @@ export class Input {
     if (e.target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
     const k = e.key.toLowerCase();
     if ((k === ' ' || k === 'enter') && e.target.closest?.('button')) return;
-    if (down && k === 'escape' && this.ui.closeMenu?.()) return;
     if (down && e.repeat && this.ui.panelOpen()) return;
     if (down && !e.repeat) {
       if (this.ui.panelOpen()) {
@@ -205,7 +204,7 @@ export class Input {
       if (k === 'c') this.ui.togglePanel('char');
       if (k === 'l') this.ui.togglePanel('journal');
       if (k === 'm') this.ui.togglePanel('map');
-      if (k === 'escape') this.ui.togglePanel('settings');
+      if (k === 'escape') this.ui.togglePanel('menu');
     }
     if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) {
       if (down) this.setTouch(false);

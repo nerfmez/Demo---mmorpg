@@ -124,22 +124,15 @@ function startGame(character, slot) {
     getAvatarContext: () => ({renderer: view.renderer,
       modelsReady: F.modelsReady && weaponModelsReady(game.gearLook().bases),
       modelRevision: weaponModelKey(game.gearLook().bases)}),
-    onVisibility: () => {
-      hud.setMenuOpen(false);
-      input.reset();
-    },
+    onVisibility: () => input.reset(),
   });
   hud.onPanel = (tab) => panels.open(tab);
+  F.panels = panels; // browser tests open a page directly
   const ui = {
     blocked: () => fullscreen.blocked,
     panelOpen: () => panels.isOpen || fullscreen.blocked,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
-    closeMenu: () => {
-      if (!hud.menuOpen) return false;
-      hud.setMenuOpen(false);
-      return true;
-    },
     configureSkill: (i) => {
       panels.sel.skill = i;
       panels.open('skills');
@@ -160,11 +153,6 @@ function startGame(character, slot) {
   const buttons = {
     bag: hud.addMenuButton('bag', 'I', () => panels.toggle('bag'), 'กระเป๋า'),
     book: hud.addMenuButton('book', 'K', () => panels.toggle('skills'), 'สกิล'),
-    tree: hud.addMenuButton('tree', 'J', () => panels.toggle('job'), 'Job Tree'),
-    person: hud.addMenuButton('person', 'C', () => panels.toggle('char'), 'ตัวละคร'),
-    scroll: hud.addMenuButton('scroll', 'L', () => panels.toggle('journal'), 'ภารกิจ'),
-    map: hud.addMenuButton('map', 'M', () => panels.toggle('map'), 'แผนที่'),
-    gear: hud.addMenuButton('gear', 'Esc', () => panels.toggle('settings'), 'ตั้งค่า'),
   };
   hud.onTracker(() => panels.open('journal'));
 
@@ -185,18 +173,6 @@ function startGame(character, slot) {
 
   const refreshBadges = () => {
     const b = panels.badges();
-    for (const [key, n] of [['person', b.char], ['tree', b.job]]) {
-      const btn = buttons[key];
-      let dot = btn.querySelector('.dot');
-      if (n > 0) {
-        if (!dot) {
-          dot = document.createElement('span');
-          dot.className = 'dot';
-          btn.appendChild(dot);
-        }
-        dot.textContent = n;
-      } else dot?.remove();
-    }
     hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 

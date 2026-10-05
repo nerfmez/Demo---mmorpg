@@ -92,10 +92,9 @@ export class Hud {
           <div class="statusline"></div>
         </div></button>`),
       topright: h(`<div class="topright">
-        <div class="map-cluster"><div class="quick-actions"><button class="iconbtn menu-toggle" aria-label="เมนูเพิ่มเติม" aria-expanded="false" aria-controls="game-menu">${fieldIcon('menu')}<span class="menu-label">เมนู</span></button></div>
+        <div class="map-cluster"><div class="quick-actions"><button class="iconbtn menu-toggle" aria-label="เปิดเมนูหลัก" aria-haspopup="dialog" title="เมนู · Esc">${fieldIcon('menu')}<span class="menu-label">เมนู</span></button></div>
         <button class="minimap" aria-label="เปิดแผนที่โลก" title="แผนที่ · M"><canvas width="300" height="300"></canvas><span class="map-north" aria-hidden="true">N</span><span class="map-open">${fieldIcon('map')}</span></button></div>
         <div class="location-chip passive"></div>
-        <nav class="menu" id="game-menu" aria-label="เมนูเกม" hidden></nav>
         <div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><span class="quest-count"></span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
         <button class="questtrack" id="quest-detail" aria-label="เปิดสมุดภารกิจ"></button></div></div>`),
       zone: h(`<div class="zonebanner passive"><div class="zd"></div><div class="zn"></div><div class="zs"></div></div>`),
@@ -131,19 +130,15 @@ export class Hud {
     this.portrait = q('.portrait');
     q('.pname').textContent = game.ch.name || '';
     this.mini = this.el.topright.querySelector('canvas');
-    this.menu = this.el.topright.querySelector('.menu');
     this.quickActions = this.el.topright.querySelector('.quick-actions');
     this.menuToggle = this.el.topright.querySelector('.menu-toggle');
-    this.menuToggle.addEventListener('click', () => this.setMenuOpen(!this.menuOpen));
+    this.menuToggle.addEventListener('click', () => this.onPanel?.('menu'));
     this.el.frame.addEventListener('click', () => this.onPanel?.('char'));
     this.el.topright.querySelector('.minimap').addEventListener('click', () => this.onPanel?.('map'));
     this.questWidget = this.el.topright.querySelector('.quest-widget');
     this.questToggle = this.el.topright.querySelector('.quest-collapse');
     this.questToggle.addEventListener('click', () => this.setQuestCollapsed(!this.questCollapsed));
     this.setQuestCollapsed(loadPref('questCollapsed', 'false') === 'true');
-    document.addEventListener('pointerdown', (e) => {
-      if (this.menuOpen && !this.el.topright.contains(e.target)) this.setMenuOpen(false);
-    });
     this.tracker = this.el.topright.querySelector('.questtrack');
     this.map = worldMapImage(game.worlds || { [game.data.world.id]: game.world });
   }
@@ -152,18 +147,12 @@ export class Hud {
     this.portrait.style.backgroundImage = `url(${url})`;
   }
 
+  // quick shortcuts beside the menu button (bag, skills); everything else lives in the main menu
   addMenuButton(name, key, onClick, label = '') {
     const b = h(`<button class="iconbtn" aria-label="${label || name}" title="${label} · ${key}">${fieldIcon(name)}<span class="menu-label">${label}</span><span class="key">${key}</span></button>`);
-    b.addEventListener('click', () => { this.setMenuOpen(false); onClick(); });
-    if (name === 'bag' || name === 'book') this.quickActions.insertBefore(b, this.menuToggle);
-    else this.menu.appendChild(b);
+    b.addEventListener('click', onClick);
+    this.quickActions.insertBefore(b, this.menuToggle);
     return b;
-  }
-
-  setMenuOpen(on) {
-    this.menuOpen = on;
-    this.menu.hidden = !on;
-    this.menuToggle.setAttribute('aria-expanded', String(on));
   }
 
   setQuestCollapsed(on) {

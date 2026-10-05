@@ -92,7 +92,7 @@ try {
   await activate('.quest-collapse');
   await activate('.quick-actions [aria-label="สกิล"]');assert.equal(await page.locator('#atelier .loadout-window h1').textContent(),'ชุดสกิล');
   await activate('#atelier [data-action="close"]');
-  await activate('.menu-toggle');await activate('.menu [aria-label="Job Tree"]');
+  await activate('.menu-toggle');await activate('.hub-tile[data-go="job"]');
   const full=await page.locator('.panel').boundingBox();assert.equal(full.width,width);assert.equal(full.height,height);
   await activate('.skill-journal [data-action="exit"]');
   await activate('.minimap');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),true);await activate('.panel-close');

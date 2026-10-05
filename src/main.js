@@ -141,6 +141,7 @@ function startGame(character, slot) {
       const n = game.nearby();
       if (n.workbench) panels.open('craft');
       else if (n.trainer) panels.open('job');
+      else if (n.shop) panels.open('shop');
       else if (n.waypoint) panels.open('map');
       else if (n.exit) {
         const result = game.travel(n.exit); // success arrives as a 'travel' event

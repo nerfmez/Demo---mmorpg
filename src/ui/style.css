@@ -523,6 +523,7 @@ body.touch .hint {
 .fnum.fire { color: #ffb070; }
 .fnum.hurt { color: #ff6b5a; }
 .fnum.heal { color: #7be07a; }
+.fnum.mana { color: #7cc4ff; }
 .fnum.info { color: #ffe9a8; font-size: 14px; }
 .fnum.dodge { color: #cfe6ff; font-size: 14px; }
 .mbar {

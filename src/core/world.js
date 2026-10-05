@@ -154,6 +154,7 @@ export function createWorld(worldData) {
     { x: worldData.playerSpawn[0], z: worldData.playerSpawn[1], r: 8 },
     { x: town.workbench[0], z: town.workbench[1], r: 4 },
     { x: town.trainer[0], z: town.trainer[1], r: 4 },
+    ...(town.shop ? [{ x: town.shop[0], z: town.shop[1], r: 3 }] : []),
     { x: town.respawn[0], z: town.respawn[1], r: 5 },
     { x: town.centre[0], z: town.centre[1], r: town.plazaRadius + 1 },
     ...bossList.map((bs) => ({ x: bs.arena.x, z: bs.arena.z, r: bs.arena.r - 2.5 })),
@@ -201,7 +202,8 @@ export function createWorld(worldData) {
     addBox({ ...stall, type: 'stall' });
   }
   for (const resident of town.residents || []) addCircle({ ...resident, type: 'citizen', scale: 1, rot: resident.angle });
-  for (const collider of worldData.city?.enabled ? [...worldData.city.colliders,...worldData.city.dressing?.colliders||[]] : []) {
+  const removedProps = new Set(worldData.city?.removedProps || []);
+  for (const collider of worldData.city?.enabled ? [...worldData.city.colliders,...worldData.city.dressing?.colliders||[]].filter(c => !removedProps.has(c.id)) : []) {
     if (collider.hx !== undefined) addBox({ ...collider });
     else addCircle({ ...collider, scale: 1, rot: 0 });
   }

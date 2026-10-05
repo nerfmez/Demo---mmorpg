@@ -16,6 +16,8 @@ import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questState, trackedQuest } from '../core/quests.js';
 import { inventoryView } from './inventory.js';
+import { potionArt } from './potionart.js';
+import { buyState, assignQuickItem, restoreAmount } from '../core/consumables.js';
 import { createLoadoutWorkspace } from './loadout-workspace.js';
 
 const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
@@ -231,13 +233,14 @@ export class Panels {
       ['job', 'เส้นทางพาสซีฟ', b.job],
       ['bag', 'กระเป๋า'],
       ['craft', 'โต๊ะคราฟต์'],
+      ['shop', 'ร้านค้า · ยา'],
       ['journal', 'ภารกิจ'],
       ['map', 'แผนที่'],
       ['settings', 'ตั้งค่า'],
     ];
     const active = document.activeElement;
     const activeData = active?.closest('.panel') ? { ...active.dataset } : null;
-    const tabIcon = {char:'person',skills:'book',mods:'hex',movement:'dash',growth:'spark',job:'tree',bag:'bag',craft:'hammer',journal:'scroll',map:'map',settings:'gear'};
+    const tabIcon = {char:'person',skills:'book',mods:'hex',movement:'dash',growth:'spark',job:'tree',bag:'bag',craft:'hammer',shop:'heal',journal:'scroll',map:'map',settings:'gear'};
     this.tabsEl.innerHTML = tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${icon(tabIcon[id])}<span>${label}</span>${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
     this.tabsEl.querySelector('.tab.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     this.overlay.querySelector('[data-page-select]').innerHTML = tabs.map(([id,label]) => `<option value="${id}" ${this.tab===id?'selected':''}>${label}</option>`).join('');
@@ -415,6 +418,33 @@ export class Panels {
       </div></div>`;
   }
 
+  // ---------- Shop + quick item slots ----------
+  render_shop() {
+    const g = this.game, ch = g.ch, data = g.data, cons = data.items.consumables, near = g.nearby().shop;
+    const pick = this.sel.quickSlot ?? 0, p = g.player;
+    const slots = ch.quickItems.map((id, i) => {
+      const def = id && cons.types[id];
+      return `<button class="quick-slot ${i === pick ? 'on' : ''} ${def ? '' : 'empty'}" data-act="quick-select" data-slot="${i}" aria-pressed="${i === pick}" aria-label="ช่องไอเทม ${i + 1}${def ? ' · ' + def.nameTh : ' · ว่าง'}">${def ? potionArt(def) : icon('plus')}<b>${def ? ch.consumables[id] || 0 : ''}</b><small>ช่อง ${i + 1} · ปุ่ม ${i + 5}</small></button>`;
+    }).join('');
+    const cards = data.items.shop.stock.map((id) => {
+      const def = cons.types[id], own = ch.consumables[id] || 0, amt = restoreAmount(data, id, p.maxHp, p.maxMp), r = def.restore;
+      const gives = def.group === 'hp' ? `ฟื้น HP ${r.hp} + ${r.hpPct}% <span class="muted">(ตอนนี้ ≈${amt.hp})</span>` : `ฟื้น MP ${r.mp} + ${r.mpPct}% <span class="muted">(ตอนนี้ ≈${amt.mp})</span>`;
+      const buys = data.items.shop.buyAmounts.map((n) => {
+        const st = buyState(ch, data, id, n);
+        return `<button class="btn ${n === 1 ? 'primary' : ''}" data-act="buy" data-id="${id}" data-n="${n}" ${near && st.ok ? '' : 'disabled'} title="${st.ok ? '' : st.reason === 'gold' ? 'Gold ไม่พอ' : st.reason === 'full' ? 'ถือได้สูงสุด ' + cons.stackMax : ''}">×${n} · ${def.price * n} G</button>`;
+      }).join('');
+      const inSlot = ch.quickItems.indexOf(id);
+      return `<section class="card shop-item"><div class="seeker-hero">${potionArt(def)}<div><h3>${esc(def.nameTh)}</h3><small>${esc(def.name)} · มี ${own}</small></div></div>
+        <p>${gives}</p><p class="muted">ดื่มแล้วยาชนิด${def.group === 'hp' ? 'เลือด' : 'มานา'}ใช้ซ้ำได้อีกใน ${cons.groupCooldown[def.group]} วินาที</p>
+        <div class="shop-buy">${buys}</div>
+        <button class="btn" data-act="quick-assign" data-id="${id}" ${inSlot === pick ? 'disabled' : ''}>${inSlot === pick ? 'อยู่ในช่อง ' + (pick + 1) + ' แล้ว' : 'ใส่ช่อง ' + (pick + 1) + (inSlot >= 0 ? ' (ย้ายจากช่อง ' + (inSlot + 1) + ')' : '')}</button></section>`;
+    }).join('');
+    return `<div class="card shop-head"><h3>ร้านค้า</h3><p class="${near ? 'ok' : 'muted'}">${near ? 'คุยกับพ่อค้าอยู่ · ซื้อยาได้เลย' : 'ซื้อได้เมื่อยืนอยู่ที่ร้านค้าในเมือง (จุดสีชมพูบนแผนที่) · จัดช่องไอเทมได้ทุกที่'}</p>
+      <h3>ช่องไอเทมกดใช้</h3><p class="muted">เลือกช่อง แล้วกด "ใส่ช่อง" ที่ยาที่ต้องการ · ในเกมแตะปุ่มยาข้างปุ่มสกิล หรือกด 5–8</p>
+      <div class="quick-slots">${slots}</div>${ch.quickItems[pick] ? `<button class="btn" data-act="quick-clear">เอายาออกจากช่อง ${pick + 1}</button>` : ''}</div>
+      <div class="shop-grid">${cards}</div>`;
+  }
+
   // ---------- actions ----------
   onClick(e) {
     const t = e.target.closest('[data-act]');
@@ -429,6 +459,19 @@ export class Panels {
         r = equipSkill(ch, data, Number(t.dataset.slot), t.dataset.id || null);
         this.sel.socket = undefined;
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
+        return this.changed();
+      case 'buy':
+        r = g.buyItem(t.dataset.id, Number(t.dataset.n));
+        if (!r.ok) this.flash({ far: 'ต้องยืนอยู่ที่ร้านค้า', gold: 'Gold ไม่พอ', full: 'ถือได้สูงสุด ' + data.items.consumables.stackMax + ' ขวด' }[r.reason] || r.reason);
+        return this.changed();
+      case 'quick-select':
+        this.sel.quickSlot = Number(t.dataset.slot);
+        return this.render();
+      case 'quick-assign':
+        assignQuickItem(ch, data, this.sel.quickSlot ?? 0, t.dataset.id);
+        return this.changed();
+      case 'quick-clear':
+        assignQuickItem(ch, data, this.sel.quickSlot ?? 0, null);
         return this.changed();
       case 'inventory-back':
         this.sel.detail = false;

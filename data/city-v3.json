@@ -43171,6 +43171,8 @@
     "AC_Ship_Under_Construction_Mesh_1": "#6b4a30",
     "AC_Ship_Under_Construction_Mesh_3": "#8a6240"
   },
+  "removedPropsDoc": "Approved props left out at runtime (node and collider), by owner request: the open stall in front of the outfitters door hid the potion shop.",
+  "removedProps": ["AC_Market_Open_Stall_074"],
   "propOffsets": {
     "AC_Fish_Display_Tray_083": [
       2.16,

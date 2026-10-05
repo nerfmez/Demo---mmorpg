@@ -106,31 +106,31 @@
     "jobGoldPerLevel": 12
   },
   "skillUpgrade": {
-    "_doc": "Skill crystals + gold raise skill rank. Rank gates prevent early maximum power; mods remain the source of behaviour changes. No failure or destruction.",
+    "_doc": "Skill crystals + gold raise skill rank at the workbench, at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 5,
     "perLevel": 0.06,
     "manaPerLevel": 0.05,
     "steps": [
       {
-        "requiresLevel": 4,
+        "balanceLevel": 4,
         "requiresStat": 5,
         "gold": 35,
         "skill_crystal": 1
       },
       {
-        "requiresLevel": 10,
+        "balanceLevel": 10,
         "requiresStat": 7,
         "gold": 90,
         "skill_crystal": 2
       },
       {
-        "requiresLevel": 17,
+        "balanceLevel": 17,
         "requiresStat": 9,
         "gold": 180,
         "skill_crystal": 3
       },
       {
-        "requiresLevel": 24,
+        "balanceLevel": 24,
         "requiresStat": 11,
         "gold": 320,
         "skill_crystal": 4
@@ -148,10 +148,6 @@
         "skill_crystal": 3,
         "gold": 80
       }
-    ],
-    "requiresLevel": [
-      8,
-      18
     ],
     "requiresStatPerLevel": 2,
     "_doc": "Each rank above the first raises the mod stat requirement by requiresStatPerLevel (core/skills.js modRequires); an upgrade is refused until the next rank can be met."

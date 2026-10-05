@@ -533,6 +533,9 @@ export class View {
       case 'heal':
         v.heal(e.x, e.z);
         break;
+      case 'potion':
+        v.heal(e.x, e.z);
+        break;
       case 'pickup': {
         const dv = this.dropViews.get(e.id);
         if (dv) v.pickup(dv.position.x, dv.position.y, dv.position.z, dv.userData.color);

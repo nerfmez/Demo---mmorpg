@@ -799,7 +799,7 @@ function optionText(data, o) {
 function describeSkill(s) {
   const parts = [];
   const number = v => Math.round(v * 10) / 10;
-  if (s.damage !== undefined) parts.push(s.kind === 'dot_zone' ? `ดาเมจ ${Math.round(s.damage)}/วิ × ${s.duration.toFixed(1)} วิ` : `ดาเมจ ${Math.round(s.damage)}`);
+  if (s.damage !== undefined) parts.push(s.kind === 'dot_zone' ? `ดาเมจ ${Math.round(s.damage)}/วิ × ${s.duration.toFixed(1)} วิ` : s.waves > 1 ? `ดาเมจ ${Math.round(s.damage)}/ระลอก` : `ดาเมจ ${Math.round(s.damage)}`);
   if (s.waves > 1) parts.push(`${s.waves} ระลอก · ห่าง ${number(s.waveInterval)} วิ`);
   if (s.root) parts.push(`ตรึง ${number(s.root.duration)} วิ · บอส ${number(s.root.bossDuration)} วิ · ต้านซ้ำ ${number(s.root.immunity)} วิ`);
   if (s.def.ammoPerCast) parts.push(`ลูกธนู ${s.def.ammoPerCast}/ร่าย`);

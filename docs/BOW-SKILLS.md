@@ -64,3 +64,51 @@ live deployment. No merge or deployment before owner proof review and final gate
 
 Review record and exact final artifact hashes will be added after inspection.
 Private proof delivery links belong in the task response, never in this repository.
+
+## Delivery review record — 2026-10-05
+
+Status: review draft, awaiting owner motion/feel review and required final-head CI.
+Production renderer identity (SHA-256 of `src/render/vfx.js`):
+`571e566e92c176ff85bdd2a5a8e9a9ddf7f06d5d80ccd2f03b9761a69bfabd4f`.
+
+Exact private-delivery originals in `tests/browser/out/bow-skills-chromium/`:
+
+| Artifact | SHA-256 |
+|---|---|
+| `heavy_draw.mp4` | `ad53d3e105509da408028e116ec8044bf6594d3b6c4ead43e8aa4dd8d3c16a53` |
+| `arrow_rain.mp4` | `2a0f22155f119bf5d3b16a3d1184e13ff00580b8264a813a56e3184353361764` |
+| `pinning_arrow.mp4` (root correction) | `7379cbd8d16ed0d3b61a800a200a5c95955f6c02ccd0c97009f2dd007f866cbf` |
+
+Each is a 2.5 s, 12 fps sample at normal simulation time, 1180 × 820 touch/tablet
+viewport. Reviewed game frames at 0, 0.42, 0.58, 0.83 and 1.58 s across the
+sequences; additionally extracted and inspected encoded video frames at 0.58 s
+(Heavy Draw), 0.83 s (Rain), 0.42/1.58 s (Pin root/expiry). This was frame review,
+not continuous playback or physical iPad testing. Heavy/Rain clips predate the
+root-only renderer correction; their relevant rendering is unchanged. The Pin
+clip includes the correction. A first narrow-zoom capture was rejected because
+the target overlapped the HUD; the delivered originals use normal game zoom and
+a four-metre fixture spacing.
+
+Fault found/fixed: root geometry was rotated twice and presented upright. Removed
+the second rotation and moved the thin green cue inside the existing target ring;
+final frames show the flat ring during root and no ring after expiry. The focused
+browser check also verifies the ring plane, actual visibility and cleanup.
+
+Within these sampled views, hero/bow and target silhouettes remain visible, Rain
+uses restrained falling arrows with a true-footprint boundary and no innate pool,
+and Pin's small green cue does not cover the target's pose. Arrow travel is short
+at this fixture spacing; owner normal-speed review is still needed for draw
+weight, flight legibility, three-wave rhythm and the subtle root colour at small
+screen sizes. Existing red targeting rings, HUD and coastal water remain native
+production presentation. Conservative balance values remain tunable.
+
+Validation: original full core suite 284/284, focused cross-system suite 35/35,
+and final bow safety/save suite 11/11 passed; builds passed. Heavy/Pin Lab checks
+passed; Rain Lab checks exactly three contacts. The initial real-game case passed
+all three contact/resource counts and touch drag aim. Local WebKit lacks system
+libraries. A later headless-shell start timed out; the supported full Chromium
+launch path produced the corrected Pin capture and passed root/geometry checks.
+Full Chromium's missing favicon is excluded from asset-failure reporting; other
+failed resource URLs remain failures. Full browser revalidation with the final
+cleanup assertions is recorded in `results.json` when it completes. CI handles
+full smoke/UX and WebKit. No merge or deployment has occurred.

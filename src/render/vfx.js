@@ -1229,9 +1229,9 @@ export class Vfx {
       let v = this.rootVisuals.get(m.id);
       const f = this.config.skills.pinning_arrow.root;
       if (!v) {
-        const geo = ringGeometry(Math.max(.1, m.r - f.width), m.r + f.width, 48);
+        const geo = ringGeometry(m.r + .12 - f.width, m.r + .12 + f.width, 48);
         v = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: f.color, transparent: true, opacity: f.opacity, depthWrite: false, side: THREE.DoubleSide }));
-        v.rotation.x = -Math.PI / 2; this.scene.add(v); this.rootVisuals.set(m.id, v);
+        this.scene.add(v); this.rootVisuals.set(m.id, v);
       }
       v.position.set(m.x, this.gy(m.x, m.z) + .06, m.z);
       v.material.opacity = f.opacity * Math.min(1, m.statuses.root.t / .15);

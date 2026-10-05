@@ -4,6 +4,7 @@ import { chromium, webkit } from 'playwright';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
+const cases=[['heavy_draw',1],['arrow_rain',2],['pinning_arrow',3]].filter(([id])=>!process.env.SKILL||process.env.SKILL.split(',').includes(id));
 const out = new URL(`./out/bow-skills-${engine.name()}/`, import.meta.url).pathname;
 mkdirSync(out, {recursive:true});
 const port=4232, url=`http://localhost:${port}/?fresh=1&seed=5&quality=low&stream=0`;
@@ -11,10 +12,12 @@ const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port',St
 let browser;
 try {
   for(let i=0;;i++){try{if((await fetch(url)).ok)break;}catch{}if(i>60)throw Error('preview startup');await new Promise(r=>setTimeout(r,250));}
-  browser=await engine.launch(engine===chromium?{args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{});
+  browser=await engine.launch(engine===chromium?{channel:'chromium',args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{});
   const page=await browser.newPage({viewport:{width:1180,height:820},hasTouch:true,isMobile:true});page.setDefaultTimeout(90000);
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(url);await page.waitForFunction(()=>window.__frontier?.modelsReady&&window.__frontier?.game?.time>.3&&document.getElementById('loading').classList.contains('done'));
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/Failed to load resource/.test(m.text()))errors.push(m.text());});
+  page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/favicon.ico'))errors.push(`${r.status()} ${r.url()}`);});
+  await page.goto(url);await page.waitForFunction(()=>window.__frontier?.modelsReady&&window.__frontier?.game?.time>.3&&document.getElementById('loading').classList.contains('done')).catch(async error=>{console.log('load diagnostic',await page.evaluate(()=>({models:window.__frontier?.modelsReady,time:window.__frontier?.game?.time,loading:document.getElementById('loading')?.className})),errors);throw error;});
+  console.log('real game ready',engine.name());
   await page.evaluate(()=>{
     const f=window.__frontier,g=f.game,ch=g.ch;
     f.paused=true;f.input.reset();f.input.disabled=true;g.spawnPoints=[];document.querySelector('.banner')?.remove();
@@ -37,7 +40,7 @@ try {
   });
   await page.waitForTimeout(500);
   const results={};
-  for(const [id,slot] of [['heavy_draw',1],['arrow_rain',2],['pinning_arrow',3]]){
+  for(const [id,slot] of cases){
     const dir=out+id+'/';mkdirSync(dir,{recursive:true});
     await page.evaluate(slot=>{
       const f=window.__frontier,g=f.game,m=f.bowTarget;
@@ -52,27 +55,33 @@ try {
     },slot);
     for(let frame=0;frame<30;frame++){
       if(frame)await page.evaluate(()=>{window.__frontier.bowStep(1/12);});
-      await page.screenshot({path:dir+String(frame).padStart(3,'0')+'.png'});
+      if(process.env.CAPTURE_FRAMES!=='0')await page.screenshot({path:dir+String(frame).padStart(3,'0')+'.png'});
     }
     const state=await page.evaluate(()=>{const f=window.__frontier;return {ammo:f.bowAmmo,hits:f.bowEvents.filter(e=>e.type==='hit').length,roots:f.bowEvents.filter(e=>e.type==='root').length,bursts:f.bowEvents.filter(e=>e.type==='burst').length,rootGone:!f.bowTarget.statuses.root,weapon:f.game.derived.weaponType,geometry:f.view.renderer.info.memory.geometries};});
     assert.equal(state.weapon,'bow');assert.equal(state.ammo,id==='arrow_rain'?3:1);assert.equal(state.hits,id==='arrow_rain'?3:1);if(id==='pinning_arrow'){assert.equal(state.roots,1);assert(state.rootGone);}results[id]=state;
-    if(engine===chromium&&process.env.CAPTURE_VIDEO!=='0')execFileSync('ffmpeg',['-y','-loglevel','error','-framerate','12','-i',dir+'%03d.png','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',out+id+'.mp4']);
+    if(engine===chromium&&process.env.CAPTURE_VIDEO!=='0'&&process.env.CAPTURE_FRAMES!=='0')execFileSync('ffmpeg',['-y','-loglevel','error','-framerate','12','-i',dir+'%03d.png','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',out+id+'.mp4']);
     console.log(id,JSON.stringify(state));
   }
-  // One warm capture and one additional cast per skill is the focused ownership probe.
-  for(const [id,slot] of [['heavy_draw',1],['arrow_rain',2],['pinning_arrow',3]]){
+  // All three captures warm shared arrow/contact geometry before the ownership probe.
+  const warmGeometry=await page.evaluate(()=>window.__frontier.view.renderer.info.memory.geometries);
+  for(const [id,slot] of cases){
     const cleanup=await page.evaluate(slot=>{
       const f=window.__frontier,g=f.game,m=f.bowTarget;
       g.player.cast=null;g.player.cooldowns.fill(0);g.player.mp=g.player.maxMp;g.projectiles=[];g.areas=[];g.pending=[];
       Object.assign(g.player,{...f.bowOrigin,targetId:m.id});Object.assign(m,{x:f.bowOrigin.x+4,z:f.bowOrigin.z,hp:10000,statuses:{}});
       g.setAimPoint(m.x,m.z);if(!g.castSlot(slot))throw Error('repeat cast failed');
-      let sawRoot=false;
-      for(let i=0;i<30;i++){f.bowStep(1/12);sawRoot ||= f.view.vfx.rootVisuals.size>0;}
-      return {geometry:f.view.renderer.info.memory.geometries,areas:f.view.vfx.areas.size,roots:f.view.vfx.rootVisuals.size,projectiles:f.view.vfx.projectiles.size,sawRoot};
+      let sawRoot=false, rootFlat=true;
+      for(let i=0;i<30;i++){f.bowStep(1/12);sawRoot ||= f.view.vfx.rootVisuals.size>0;
+        for(const root of f.view.vfx.rootVisuals.values()){
+          const pos=root.geometry.attributes.position;
+          for(let n=0;n<pos.count;n++)rootFlat &&= Math.abs(pos.getY(n))<1e-6;
+          rootFlat &&= root.rotation.x===0;
+        }}
+      return {geometry:f.view.renderer.info.memory.geometries,areas:f.view.vfx.areas.size,roots:f.view.vfx.rootVisuals.size,projectiles:f.view.vfx.projectiles.size,sawRoot,rootFlat};
     },slot);
     assert.equal(cleanup.areas,0);assert.equal(cleanup.roots,0);assert.equal(cleanup.projectiles,0);
-    assert.equal(cleanup.geometry,results[id].geometry,'geometries stabilize across warm/repeated casts');
-    if(id==='pinning_arrow')assert(cleanup.sawRoot,'real root cue appears before expiry');
+    assert.equal(cleanup.geometry,warmGeometry,'geometries stabilize across warm/repeated casts');
+    if(id==='pinning_arrow'){assert(cleanup.sawRoot,'real root cue appears before expiry');assert(cleanup.rootFlat,'root cue lies on the ground plane');}
     results[id].repeated=cleanup;
   }
   // Real touch gestures through product controls: area drag + projectile drag, no hold-charge path.
@@ -88,6 +97,7 @@ try {
   const rain=await drag(2);assert.equal(rain.skill,'arrow_rain');assert(Math.hypot(rain.aim.x-rain.player.x,rain.aim.z-rain.player.z)>0);
   await page.evaluate(()=>{const g=window.__frontier.game;g.player.cast=null;g.player.cooldowns.fill(0);});
   const heavy=await drag(1);assert.equal(heavy.skill,'heavy_draw');
-  assert.equal(errors.length,0,errors.join('\n'));results.touch={rain,heavy};writeFileSync(out+'results.json',JSON.stringify(results,null,2));
+  results.touch={rain,heavy};writeFileSync(out+'results.json',JSON.stringify(results,null,2));
+  assert.equal(errors.length,0,errors.join('\n'));
   console.log('real-game bow proof and touch aim passed',out);
 }finally{await browser?.close();try{process.kill(-server.pid);}catch{}}

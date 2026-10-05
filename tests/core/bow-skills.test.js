@@ -20,7 +20,7 @@ function arena(id) {
   g.isSafe = () => false; g.drainEvents();
   return { g, m, s:g.skills[0] };
 }
-function mod(g,id,level=1) { const inst={uid:g.ch.nextUid++,id,level};g.ch.mods.push(inst);assert(socketMod(g.ch,data,0,inst.uid).ok);g.refresh();return g.skills[0]; }
+function mod(g,id,level=1) { const inst={uid:g.ch.nextUid++,id,level,grade:'C'};g.ch.mods.push(inst);assert(socketMod(g.ch,data,0,inst.uid).ok);g.refresh();return g.skills[0]; }
 test('exactly three new learnable bow skills; Hunter Shot remains the starting bow basic',()=>{
   const ch=createCharacter(data);assert.equal(ch.skills.hunter_shot,1);
   for(const id of ids){assert.equal(ch.skills[id],undefined);assert.deepEqual(data.skills.combat[id].requiresWeapon,['bow']);assert.equal(data.recipes.recipes['learn_'+id].result,id);}
@@ -93,4 +93,21 @@ test('boss root and control passives stay capped; wrong weapon/stats do not cons
   for(const id of ids){const {g}=arena(id);const mp=g.player.mp, stock=arrowTotal(g.ch);
     g.ch.equipped.weapon=null;g.refresh();assert.equal(g.castSlot(0),false);assert.equal(g.player.mp,mp);assert.equal(arrowTotal(g.ch),stock);
   }
+});
+
+test('save/load retains new skill slots, compatible mods and arrows without changing old ranks',()=>{
+  for(const id of ids){
+    const {g}=arena(id);mod(g,id==='arrow_rain'?'echo':'pierce');
+    g.ch.skills[id]=3;const legacy=structuredClone(g.ch.skills);const before=JSON.parse(JSON.stringify(g.ch));
+    const restored=migrateCharacter(before,data);assert.deepEqual(restored.skills,legacy);assert.deepEqual(restored.slots,g.ch.slots);assert.deepEqual(restored.mods,g.ch.mods);assert.deepEqual(restored.arrows,g.ch.arrows);
+    const s=computeSkill(restored,data,derive(restored,data),0);assert.equal(s.level,3);assert(s.mods.every(m=>m.active));
+  }
+});
+
+test('stat failures and cooldowns are atomic; rain still costs three arrows at upgraded rank',()=>{
+  const {g}=arena('arrow_rain');g.ch.stats.DEX=1;g.refresh();const before=[g.player.mp,arrowTotal(g.ch)];
+  assert.equal(g.castSlot(0),false);assert.deepEqual([g.player.mp,arrowTotal(g.ch)],before);
+  g.ch.stats.DEX=12;g.ch.skills.arrow_rain=5;g.refresh(true);assert(g.castSlot(0));
+  const consumed=[g.player.mp,arrowTotal(g.ch)];assert.equal(consumed[1],before[1]-3);
+  g.player.cast=null;assert.equal(g.castSlot(0),false);assert.deepEqual([g.player.mp,arrowTotal(g.ch)],consumed);
 });

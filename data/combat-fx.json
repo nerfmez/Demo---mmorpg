@@ -455,7 +455,17 @@
         "heavyScale": 1.22,
         "shake": 0.018,
         "hitStop": 0.018
-      }
+      },
+      "body": {
+        "shadow": "#155b98",
+        "light": "#63d9f6",
+        "rim": "#81eeff",
+        "emission": 0.28,
+        "rimStrength": 0.38
+      },
+      "_labFixedFields": [
+        "body"
+      ]
     },
     "frost_nova": {
       "version": "approved-v2",
@@ -471,7 +481,15 @@
     },
     "war_cry": {
       "renderer": "approved",
-      "_labPhases": {}
+      "_labPhases": {},
+      "pulse": {
+        "life": 0.48,
+        "echoDelay": 0.1,
+        "opacity": 0.9,
+        "color": "#ff852a",
+        "core": "#ffd19a",
+        "visualRadiusScale": 0.42
+      }
     },
     "healing_spring": {
       "renderer": "approved",
@@ -491,7 +509,16 @@
     },
     "leap": {
       "renderer": "approved",
-      "_labPhases": {}
+      "_labPhases": {},
+      "dust": {
+        "count": 7,
+        "life": 0.68,
+        "radius": 1.85,
+        "height": 0.68,
+        "opacity": 0.95,
+        "color": "#b1a087",
+        "shadow": "#6f6859"
+      }
     }
   },
   "projectileDefaults": {

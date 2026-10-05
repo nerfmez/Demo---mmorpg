@@ -1,20 +1,31 @@
+import * as THREE from 'three';
+import FX from '../../data/combat-fx.json';
 // Reveal the existing animated companion; never substitute the static preview wolf.
 export function installSpiritReveal(rig){
+ const cfg=FX.skills.spirit_wolf.body;
  const state={height:{value:0},base:{value:0},parts:[]};
  rig.root.traverse(o=>{
   if(!o.isMesh||!o.material)return;
   const originals=o.material;const convert=original=>{
    const m=original.clone();m.userData={...m.userData,shared:false,rig:true};
+   const spiritBody=!!original.map;
+   if(spiritBody)m.userData.spiritBody=true;
    const prior=original.onBeforeCompile;
    m.onBeforeCompile=shader=>{
     prior?.call(original,shader);
+    if(spiritBody){
+     Object.assign(shader.uniforms,{uSpiritDark:{value:new THREE.Color(cfg.shadow)},uSpiritLight:{value:new THREE.Color(cfg.light)},uSpiritRim:{value:new THREE.Color(cfg.rim)},uSpiritEmission:{value:cfg.emission},uSpiritRimStrength:{value:cfg.rimStrength}});
+     shader.fragmentShader='uniform vec3 uSpiritDark,uSpiritLight,uSpiritRim;uniform float uSpiritEmission,uSpiritRimStrength;\n'+shader.fragmentShader;
+     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat spiritDetail=sqrt(clamp(dot(diffuseColor.rgb,vec3(.2126,.7152,.0722)),0.,1.));diffuseColor.rgb=mix(uSpiritDark,uSpiritLight,spiritDetail);');
+     shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','float spiritEdge=pow(1.-clamp(dot(normal,normalize(vViewPosition)),0.,1.),3.);outgoingLight+=diffuseColor.rgb*uSpiritEmission+uSpiritRim*spiritEdge*uSpiritRimStrength;\n#include <opaque_fragment>');
+    }
     shader.uniforms.uSpiritHeight=state.height;shader.uniforms.uSpiritBase=state.base;
     shader.vertexShader='varying float vSpiritY;\n'+shader.vertexShader;
     shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvSpiritY=(modelMatrix*vec4(transformed,1.)).y;');
     shader.fragmentShader='varying float vSpiritY;uniform float uSpiritHeight,uSpiritBase;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nfloat edgeNoise=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)*.08;if(vSpiritY-uSpiritBase>uSpiritHeight+edgeNoise)discard;');
    };
-   m.customProgramCacheKey=()=>original.customProgramCacheKey()+'-approved-spirit-reveal';return m;
+   m.customProgramCacheKey=()=>original.customProgramCacheKey()+'-approved-spirit-reveal-cyan-v2';return m;
   };
   o.material=Array.isArray(originals)?originals.map(convert):convert(originals);state.parts.push({o,originals,materials:Array.isArray(o.material)?o.material:[o.material]});
  });

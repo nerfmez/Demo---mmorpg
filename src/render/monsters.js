@@ -755,8 +755,8 @@ export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
   const rig = build();
   // an imported model, once loaded, replaces the procedural parts on the same bones
-  const model = monsterModel(type);
-  if (model) attachMonsterModel(rig, model);
+  const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
+  if (model) { attachMonsterModel(rig, model); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
   rig.animate = anim;
   rig.seed = Math.random() * 10;
   const s = monsterScale(type, level, boss);
@@ -770,7 +770,7 @@ export function buildMonster(type, level = 1, boss = false) {
 /** Model scale for a monster (higher levels are a little bigger; bosses fixed). */
 export function monsterScale(type, level = 1, boss = false) {
   // an imported model may be drawn at its own size (rootScale in data/models.json)
-  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type)?.cfg.rootScale ?? 1);
+  const base = (MONSTER_SCALE[type] || 1) * (monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type)?.cfg.rootScale ?? 1);
   return boss ? base : base * (1 + Math.min(0.25, (level - 1) * 0.03));
 }
 

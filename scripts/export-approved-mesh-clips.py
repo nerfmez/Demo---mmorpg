@@ -8,9 +8,10 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[1];src=Path(sys.argv[sys.argv.index('--')+1])
 profiles=[
  ('stone-burst','blender-skill-batch03-no-cracks/stone_burst/stone_burst.blend',37,69,2.3,('Stone Burst pillar','Low drifting earth dust','Ejected earth chip','Ground contact blade')),
- ('leap','blender-skill-batch03-no-cracks/leap/leap.blend',25,49,2.2,('Low impact plate','Low drifting earth dust','Ejected earth chip','Ground contact blade')),
+ ('leap','blender-skill-batch03-no-cracks/leap/leap.blend',25,49,2.2,('Low impact plate','Ejected earth chip','Ground contact blade')),
  ('lightning','blender-lightning/Azure-Verdict-Blender.blend',24,44,1,('Primary discharge pose','Tapered branch','Fine fork','Impact lance','Ground shock arc','Ballistic spark','Clinging residual arc')),
 ]
+only=sys.argv[sys.argv.index('--')+2:];profiles=[p for p in profiles if not only or p[0] in only]
 for name,path,start,end,radius,prefixes in profiles:
  source=src/path;bpy.ops.wm.open_mainfile(filepath=str(source));s=bpy.context.scene;deps=bpy.context.evaluated_depsgraph_get()
  objects=sorted([o for o in s.objects if o.type in ('MESH','CURVE') and o.name.startswith(prefixes)],key=lambda o:o.name)

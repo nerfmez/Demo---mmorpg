@@ -14,8 +14,9 @@ export function gradeGuide(data) {
 export function optionList(data, options) {
  return `<div class="affix-list">${options.map(o=>{const def=data.items.gearOptions[o.id],quality=def.max===def.min?1:(o.value-def.min)/(def.max-def.min);return `<div class="affix-row"><span>${esc(def.labelTh.replace('{v}',o.value))}</span><small>ช่วง ${def.min}–${def.max}</small><meter min="0" max="1" value="${quality}" aria-label="คุณภาพออฟชั่น ${Math.round(quality*100)} เปอร์เซ็นต์"></meter></div>`;}).join('')||'<p class="muted">ไม่มีออฟชั่น · เลื่อนเกรดเพื่อเพิ่มได้</p>'}</div>`;
 }
-export function upgradeTrack(levels, completed, prefix='Lv.',first=1) {
- return `<ol class="upgrade-track">${levels.map((level,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>ตัวละคร Lv.${level}</small></li>`).join('')}</ol>`;
+// One step per rank; `notes` is the requirement shown under each (ranks are not level-gated).
+export function upgradeTrack(notes, completed, prefix='Lv.',first=1) {
+ return `<ol class="upgrade-track">${notes.map((note,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>${esc(note)}</small></li>`).join('')}</ol>`;
 }
 export function wearRequirements(ch, requires, label='รีเควสสวมใส่') {
  return `<div class="gear-requires"><b>${label}</b>${Object.entries(requires).map(([stat,need])=>`<span class="${ch.stats[stat]>=need?'ok':'no'}" data-required-stat="${stat}" data-need="${need}">${stat} ${ch.stats[stat]}/${need}</span>`).join('')}</div>`;
@@ -28,7 +29,7 @@ export function gearUpgradeTrack(data, item) {
 }
 export function stateText(state) {
  if(state.ok)return 'พร้อมอัปเกรด';
- return state.reason==='level'?`ต้องมีตัวละคร Lv.${state.need}`:state.reason==='requires'?`ต้องมี ${state.missing.join(', ')}`:state.reason==='max'?'ระดับสูงสุด':state.reason==='materials'?'วัตถุดิบหรือ Gold ไม่พอ':'ยังอัปเกรดไม่ได้';
+ return state.reason==='requires'?`ต้องมี ${state.missing.join(', ')}`:state.reason==='max'?'ระดับสูงสุด':state.reason==='materials'?'วัตถุดิบหรือ Gold ไม่พอ':'ยังอัปเกรดไม่ได้';
 }
 export function skillGrowthPreview(ch,data,id,describe) {
  const derived=derive(ch,data),owned=ch.slots.findIndex(s=>s.skill===id),slot=owned<0?ch.slots.length:owned;

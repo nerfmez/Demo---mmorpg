@@ -411,3 +411,17 @@ body.ingame #hud { bottom: var(--xp-h); }
 @keyframes lowhp { 50% { opacity: .25; } }
 .fnum.finisher { font-size: 20px; color: #ffd98a; letter-spacing: 1px; }
 @media (prefers-reduced-motion: reduce) { .hurtveil.low { animation: none; } }
+
+/* Shop + quick item slots panel */
+.pbody[data-panel=shop] .shop-head .ok { color: #9be3a0; }
+.pbody[data-panel=shop] .quick-slots { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.pbody[data-panel=shop] .quick-slot { position: relative; width: 84px; min-height: 92px; display: grid; justify-items: center; align-content: start; gap: 2px; padding: 8px 4px 6px; border: 1.5px solid #c9b48a66; border-radius: 12px; background: #fff8ea12; color: inherit; cursor: pointer; }
+.pbody[data-panel=shop] .quick-slot svg { width: 44px; height: 44px; }
+.pbody[data-panel=shop] .quick-slot b { position: absolute; right: 8px; top: 40px; font-size: 13px; text-shadow: 0 1px 2px #000; }
+.pbody[data-panel=shop] .quick-slot small { font-size: 10px; opacity: .8; }
+.pbody[data-panel=shop] .quick-slot.on { border-color: #ffd166; box-shadow: 0 0 0 2px #ffd16655; background: #ffd16618; }
+.pbody[data-panel=shop] .quick-slot.empty { border-style: dashed; }
+.pbody[data-panel=shop] .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 12px; }
+.pbody[data-panel=shop] .shop-item .seeker-hero svg { width: 56px; height: 56px; flex: none; }
+.pbody[data-panel=shop] .shop-buy { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 8px; }
+.pbody[data-panel=shop] .shop-buy .btn { flex: 1 1 auto; min-height: 40px; }

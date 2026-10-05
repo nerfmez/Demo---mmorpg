@@ -4,9 +4,10 @@
 import { enterMap } from './maps.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
+import { startingConsumables, normalizeConsumables } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 6;
+export const CHARACTER_VERSION = 7;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -44,6 +45,7 @@ export function createCharacter(data, opts = {}) {
     movement: kit ? kit.movement : st.movement,
     mods: [],
     arrows: { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } },
+    ...startingConsumables(data),
     slots: (kit ? kit.slots : st.slots).map((s) => ({ skill: s, mods: [] })),
     nextUid: 1,
     bossKills: 0,
@@ -139,6 +141,13 @@ export function migrateCharacter(ch, data) {
     // v6: two hands, gloves and arrows. Existing archers keep shooting: everyone starts with a stock.
     ch.arrows = { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } };
   }
+  if ((ch.version || 1) < 7 || !ch.consumables || !ch.quickItems) {
+    // v7: potions and quick item slots. Existing heroes receive the starter potions once.
+    const start = startingConsumables(data);
+    ch.consumables = { ...start.consumables, ...(ch.consumables || {}) };
+    ch.quickItems = ch.quickItems || start.quickItems;
+  }
+  normalizeConsumables(ch, data);
   ch.arrows.stock = Object.fromEntries(Object.entries(ch.arrows.stock || {}).filter(([id, n]) => data.items.arrows?.types[id] && n > 0));
   // The character cap fell from 40 to 30: bring higher saves down to the cap and take back the
   // stat points of the removed levels (from unspent points first, else by a free stat reset).

@@ -1,13 +1,15 @@
 // Input for PC and mobile.
 // PC: WASD move, mouse aims (soft target follows the aim), left click = slot 1,
 //     right click = slot 2, 1-4 = slots, Space/Shift = movement skill.
-// Touch: floating joystick on the left, skill buttons on the right.
+//     5-8 = quick item slots (potions).
+// Touch: floating joystick on the left, skill buttons on the right, potion slots beside them.
 //     Tap a skill = quick cast at the soft target / facing. Drag a skill = aim it
 //     (area skills place a circle; others pick a direction). Release to cast.
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { arrowsPerCast, arrowTotal } from '../core/character.js';
 import { joystickMarks } from './fieldhud.js';
+import { potionArt } from './potionart.js';
 
 // skills aimed at a point on the ground (drag places a circle)
 const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'];
@@ -54,6 +56,16 @@ export class Input {
     this.combat.appendChild(this.moveBtn);
     this.bindMoveButton(this.moveBtn);
     root.appendChild(this.combat);
+    // ---- quick item slots (potions) ----
+    this.quickbar = h(`<div class="quickbar" role="group" aria-label="ไอเทมกดใช้"></div>`);
+    this.itemButtons = Array.from({ length: game.data.items.consumables.quickSlots }, (_, i) => {
+      const b = h(`<button class="qbtn"><span class="ic"></span><i class="cd"></i><b class="qn"></b><span class="key">${i + 5}</span></button>`);
+      b.addEventListener('pointerdown', (e) => e.stopPropagation());
+      b.addEventListener('click', () => this.useItem(i));
+      this.quickbar.appendChild(b);
+      return b;
+    });
+    root.appendChild(this.quickbar);
     this.cancelEl = h(`<div class="aim-cancel passive" hidden><b>✕</b><span>ลากมาที่นี่เพื่อยกเลิก</span></div>`);
     root.appendChild(this.cancelEl);
 
@@ -184,6 +196,7 @@ export class Input {
       if (k === '4') this.castSlot(3, true);
       if (k === 'q') this.castSlot(2, true);
       if (k === 'r') this.castSlot(3, true);
+      if (k >= '5' && k <= '8') this.useItem(Number(k) - 5);
       if (k === ' ' || k === 'shift') this.useMovement();
       if (k === 'e') this.ui.interact();
       if (k === 'i') this.ui.togglePanel('bag');
@@ -207,6 +220,13 @@ export class Input {
     if (!this.mouse) return null;
     const p = this.view.screenToGround(this.mouse.x, this.mouse.y);
     return p ? { x: p.x, z: p.z } : null;
+  }
+
+  /** Drink the potion in quick slot i; an empty slot opens the shop/potion panel to fill it. */
+  useItem(i) {
+    if (this.ui.panelOpen()) return;
+    if (!this.game.ch.quickItems[i]) return this.ui.togglePanel('shop');
+    this.game.useQuickItem(i);
   }
 
   castSlot(i, fromPress = false) {
@@ -524,6 +544,23 @@ export class Input {
         b.classList.toggle('noammo', need > 0 && left < need);
         b.classList.toggle('lowammo', need > 0 && left >= need && left <= g.data.items.arrows.capacity * 0.2);
       }
+    });
+    const cons = g.data.items.consumables;
+    this.itemButtons.forEach((b, i) => {
+      const id = g.ch.quickItems[i], def = id && cons.types[id], n = id ? g.ch.consumables[id] || 0 : 0;
+      const key = id ? `${id}:${n}` : 'empty';
+      if (b.dataset.item !== key) {
+        b.dataset.item = key;
+        b.querySelector('.ic').innerHTML = def ? potionArt(def) : icon('plus');
+        b.querySelector('.qn').textContent = def ? n : '';
+        b.classList.toggle('empty', !def);
+        b.classList.toggle('none', !!def && n < 1);
+        const label = def ? `${def.nameTh} · เหลือ ${n} · ปุ่ม ${i + 5}` : `ช่องไอเทม ${i + 1} · แตะเพื่อเลือกยา`;
+        b.setAttribute('aria-label', label);
+        b.title = label;
+      }
+      const cd = def ? p.itemCooldowns[def.group] || 0 : 0, total = def ? cons.groupCooldown[def.group] : 1;
+      b.style.setProperty('--cd', `${(cd / total) * 100}%`);
     });
     const mv = g.move;
     if (this.moveBtn.dataset.skill !== mv.id) {

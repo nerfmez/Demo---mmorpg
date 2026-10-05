@@ -30,12 +30,15 @@ test('missing keys, wrong material, too few crystals and insufficient gold rejec
   assert.equal(result.reason,'materials',kind+'/'+failure);assert.equal(JSON.stringify(ch),before);
  }
 });
-test('new material costs do not bypass the existing skill/mod level and stat gates',()=>{
+test('skill/mod ranks keep their stat gate but no character level gate',()=>{
  const ch=funded(),m=mod(ch);ch.materials={skill_crystal:100};
- for(const kind of ['skill','mod'])for(const failure of ['level','requires']){
-  ch.level=failure==='level'?1:30;for(const k in ch.stats)ch.stats[k]=failure==='requires'?0:100;
+ for(const kind of ['skill','mod']){
+  ch.level=1;for(const k in ch.stats)ch.stats[k]=0;
   const before=JSON.stringify(ch),r=kind==='skill'?upgradeSkill(ch,data,'slash'):upgradeMod(ch,data,m.uid);
-  assert.equal(r.reason,failure);assert.equal(JSON.stringify(ch),before);
+  assert.equal(r.reason,'requires',kind);assert.equal(JSON.stringify(ch),before);
+  for(const k in ch.stats)ch.stats[k]=100;
+  const up=kind==='skill'?upgradeSkill(ch,data,'slash'):upgradeMod(ch,data,m.uid);
+  assert.ok(up.ok,kind+' upgrades at character Lv1 with materials and stats');
  }
 });
 test('old sparse saves preserve parts, gold, existing +N, grades, skill/mod ranks and new drops on round trip',()=>{

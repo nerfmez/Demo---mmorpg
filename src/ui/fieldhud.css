@@ -57,7 +57,7 @@ body.ingame #hud {bottom:var(--xp-h);color:var(--field-text)}
 #hud .quest-widget.collapsed .secondary,#hud .quest-widget.collapsed .field-quest-row small {display:none}
 #hud .quest-widget.collapsed .questtrack {padding-top:0;padding-bottom:5px}
 #hud .quest-widget.collapsed .field-quest-row {padding-block:5px}
-/* Four real combat slots + one separate movement action. Never fabricate consumables. */
+/* Four real combat slots + one separate movement action; real potions sit in the quick item bar above. */
 body.ingame #hud .combat {position:absolute;left:auto;right:calc(28px + var(--safe-r));bottom:calc(25px + var(--safe-b));width:302px;height:260px;display:block;transform:none;padding:0;border:0;box-shadow:none;background:none;z-index:5;pointer-events:none}
 body.ingame #hud .combat .sbtn {--glyph:#d9edff;position:absolute;left:auto;top:auto;margin:0;padding:0;width:76px;height:76px;border:1.3px solid #ccdef9b8;border-radius:50%;background:radial-gradient(ellipse at 33% 20%,#527da886,transparent 65%),linear-gradient(145deg,#12233cec,#203854b8);color:var(--glyph);box-shadow:0 0 0 4px #182c412c,0 4px 10px #07193130;overflow:hidden;pointer-events:auto}
 body.ingame #hud .combat .sbtn::after {content:'';position:absolute;inset:5px;border:1px solid #b0d6ff14;border-radius:inherit;pointer-events:none}
@@ -66,6 +66,18 @@ body.ingame #hud .combat .sbtn.s1 {right:110px;bottom:115px}
 body.ingame #hud .combat .sbtn.s2 {right:18px;bottom:143px}
 body.ingame #hud .combat .sbtn.s3 {right:208px;bottom:139px;width:64px;height:64px}
 body.ingame #hud .combat .sbtn.move {right:145px;bottom:14px;width:76px;height:76px;background:radial-gradient(ellipse at 25% 20%,#427daf6b,transparent 70%),#1a2e49cb}
+body.ingame #hud .quickbar {position:absolute;right:calc(28px + var(--safe-r));bottom:calc(295px + var(--safe-b));display:flex;gap:8px;z-index:5;pointer-events:none}
+body.ingame #hud .qbtn {--q:48px;position:relative;width:var(--q);height:var(--q);padding:0;border:1.3px solid #ccdef9b8;border-radius:14px;background:radial-gradient(ellipse at 33% 20%,#527da886,transparent 65%),linear-gradient(145deg,#12233cec,#203854b8);box-shadow:0 0 0 3px #182c412c,0 3px 8px #07193130;overflow:hidden;pointer-events:auto;touch-action:manipulation}
+body.ingame #hud .qbtn .ic {position:absolute;inset:4px 4px 8px;display:grid;place-items:center;pointer-events:none}
+body.ingame #hud .qbtn .ic svg {width:100%;height:100%}
+body.ingame #hud .qbtn .cd {position:absolute;inset:0;z-index:1;background:conic-gradient(#07182b99 var(--cd,0%),transparent 0);pointer-events:none}
+body.ingame #hud .qbtn .qn {position:absolute;right:4px;bottom:2px;z-index:2;font:700 11px/1 sans-serif;color:#fff;text-shadow:0 1px 2px #0b1d34,0 0 3px #0b1d34}
+body.ingame #hud .qbtn .key {position:absolute;left:4px;top:2px;z-index:2;font:8px/1 sans-serif;color:#9eb5d3}
+body.ingame #hud .qbtn.empty {opacity:.6;border-style:dashed;background:#172d4777}
+body.ingame #hud .qbtn.empty .ic {inset:12px}
+body.ingame #hud .qbtn.none {filter:grayscale(.85);opacity:.6}
+body.ingame #hud .qbtn:active {transform:scale(.94);border-color:#fff}
+.panel-open #hud .quickbar {visibility:hidden}
 body.ingame #hud .sbtn[data-tone=fire] {--glyph:#ffe2a2}
 body.ingame #hud .sbtn[data-tone=poison] {--glyph:#b9f1ce}
 body.ingame #hud .sbtn[data-tone=cold] {--glyph:#b8e8ff}
@@ -176,6 +188,8 @@ body.ingame .field-xp .xpseg span {position:static;font-size:9px;line-height:1.2
  #hud .questtrack {padding-bottom:3px}
  #hud .menu {top:100px;width:250px}
  body.ingame #hud .combat {width:214px;height:184px;right:calc(16px + var(--safe-r));bottom:12px}
+ body.ingame #hud .quickbar {right:calc(16px + var(--safe-r));bottom:calc(204px + var(--safe-b));gap:6px}
+ body.ingame #hud .qbtn {--q:40px;border-radius:12px}
  body.ingame #hud .combat .sbtn.attack {width:82px;height:82px}
  body.ingame #hud .combat .sbtn.s1 {width:58px;height:58px;right:90px;bottom:76px}
  body.ingame #hud .combat .sbtn.s2 {width:58px;height:58px;right:13px;bottom:94px}
@@ -227,6 +241,8 @@ body.ingame .field-xp .xpseg span {position:static;font-size:9px;line-height:1.2
  #hud .questtrack {padding-inline:7px}
  #hud .menu {top:176px;right:0;width:252px}
  body.ingame #hud .combat {width:216px;height:214px;right:calc(14px + var(--safe-r));bottom:16px}
+ body.ingame #hud .quickbar {right:calc(14px + var(--safe-r));bottom:calc(238px + var(--safe-b));gap:6px}
+ body.ingame #hud .qbtn {--q:42px;border-radius:12px}
  body.ingame #hud .combat .sbtn.attack {width:82px;height:82px;right:0;bottom:0}
  body.ingame #hud .combat .sbtn.s1 {width:62px;height:62px;right:94px;bottom:84px}
  body.ingame #hud .combat .sbtn.s2 {width:62px;height:62px;right:9px;bottom:107px}

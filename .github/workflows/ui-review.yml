@@ -74,6 +74,11 @@ jobs:
         run: node tests/browser/skill-lines.mjs
         env:
           BROWSER: ${{ matrix.browser }}
+      - name: Wearable character level, crafting and equipped previews
+        if: steps.scope.outputs.ui == 'true'
+        run: node tests/browser/wearable-level.mjs
+        env:
+          BROWSER: ${{ matrix.browser }}
       - name: Saved character Continue, atomic route allocation, reload and respec
         if: steps.scope.outputs.ui == 'true'
         run: node tests/browser/journal-route-save.mjs

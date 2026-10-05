@@ -28,6 +28,8 @@ const shot = (name) => page.screenshot({ path: out + name + '.png' });
 const dress = (list) => page.evaluate((list) => {
   const { game: g } = window.__frontier, ch = g.ch;
   for (const s of Object.keys(ch.stats)) ch.stats[s] = 60;
+  // This is an advanced equipment/model fixture; satisfy authored wearable levels too.
+  ch.level = Math.max(ch.level, ...list.map(([base]) => g.data.items.gearBases[base].itemLevel));
   for (const [base, slot] of list) {
     const item = { uid: ch.nextUid++, base, itemLevel: g.data.items.gearBases[base].itemLevel, grade: 'B', upgrade: 0, options: [] };
     ch.gear.push(item);
@@ -48,6 +50,20 @@ try {
   await page.waitForFunction(() => window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
   await page.evaluate(() => document.querySelector('.banner')?.remove());
   assert.ok(await page.evaluate(() => typeof window.__frontier.equip === 'function'), 'equip is exposed for the test');
+
+  // High trained stats alone cannot bypass the new wearable level gate.
+  const underlevel = await page.evaluate(() => {
+    const { game: g, equip } = window.__frontier, ch = g.ch;
+    for (const s of Object.keys(ch.stats)) ch.stats[s] = 60;
+    const item = { uid: ch.nextUid++, base: 'crag_gauntlets', itemLevel: g.data.items.gearBases.crag_gauntlets.itemLevel, grade: 'B', upgrade: 0, options: [] };
+    ch.gear.push(item);
+    const before = JSON.stringify(ch), result = equip(ch, g.data, item.uid, 'gloves');
+    return { result, unchanged: JSON.stringify(ch) === before, level: ch.level, need: item.itemLevel };
+  });
+  assert.ok(underlevel.level < underlevel.need);
+  assert.equal(underlevel.result.ok, false);
+  assert.equal(underlevel.result.reason, 'level');
+  assert.ok(underlevel.unchanged, 'underlevel equip preserves inventory and slots');
 
   // Shield + heavy one-hand weapon + gloves.
   let look = await dress([['beetle_maul', 'weapon'], ['crag_tower_shield', 'offhand'], ['crag_gauntlets', 'gloves']]);

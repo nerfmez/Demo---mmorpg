@@ -1681,6 +1681,118 @@
         "hawk_feather": 2,
         "gold": 15
       }
+    },
+    "sporeweave_vest": {
+      "type": "gear",
+      "result": "sporeweave_vest",
+      "cost": {
+        "spore_sac": 16,
+        "boar_hide": 3,
+        "gold": 60
+      },
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "heal_pct",
+        "magic_flat",
+        "summon_pct"
+      ],
+      "itemLevel": 6
+    },
+    "sporeweave_gloves": {
+      "type": "gear",
+      "result": "sporeweave_gloves",
+      "cost": {
+        "spore_sac": 16,
+        "glow_dust": 3,
+        "gold": 60
+      },
+      "optionPool": [
+        "magic_flat",
+        "heal_pct",
+        "summon_pct",
+        "mp_flat",
+        "poison_on_hit"
+      ],
+      "itemLevel": 6
+    },
+    "moonleaf_slippers": {
+      "type": "gear",
+      "result": "moonleaf_slippers",
+      "cost": {
+        "spore_sac": 28,
+        "hawk_feather": 4,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "optionPool": [
+        "mp_flat",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat",
+        "heal_pct"
+      ],
+      "itemLevel": 11
+    },
+    "wardenstalker_coat": {
+      "type": "gear",
+      "result": "wardenstalker_coat",
+      "cost": {
+        "greyfang_mane": 12,
+        "hawk_feather": 5,
+        "crag_stone": 15,
+        "boar_hide": 30,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "move_pct",
+        "projectile_pct",
+        "regen_flat"
+      ],
+      "itemLevel": 21
+    },
+    "wardenstalker_hood": {
+      "type": "gear",
+      "result": "wardenstalker_hood",
+      "cost": {
+        "greyfang_mane": 12,
+        "warden_horn": 5,
+        "hawk_feather": 15,
+        "boar_tusk": 30,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "optionPool": [
+        "crit_pct",
+        "cdr_pct",
+        "move_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "itemLevel": 21
+    },
+    "wardenstalker_gloves": {
+      "type": "gear",
+      "result": "wardenstalker_gloves",
+      "cost": {
+        "greyfang_mane": 12,
+        "wolf_fang": 5,
+        "hawk_feather": 15,
+        "boar_tusk": 30,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "leech_pct",
+        "move_pct"
+      ],
+      "itemLevel": 21
     }
   }
 }

@@ -83,7 +83,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
     } else if (category === 'materials') {
       const uses = Object.values(data.recipes.recipes).filter((r) => r.cost[selected.id]).map((r) => (data.items.gearBases[r.result] || data.skills.combat[r.result] || data.skills.movement[r.result] || data.mods.mods[r.result])?.nameTh).filter(Boolean);
       const sources = Object.entries(data.monsters.monsters).filter(([,m]) => m.drops.some((d) => d.item === selected.id)).map(([id,m]) => `<span class="source-creature">${art('monster',id)}<span>${m.nameTh}</span></span>`);
-      content = `<h3>${esc(it.nameTh)}</h3><div class="muted">${esc(it.name)} ${it.rare ? '· วัตถุดิบหายาก' : ''}</div><p>มี ${ch.materials[selected.id]} ชิ้น</p><div class="detail-block"><small>หาได้จาก</small><p class="source-list">${sources.join('') || 'การสำรวจและภารกิจ'}</p></div><div class="detail-block"><small>ใช้คราฟต์</small><p>${uses.length ? uses.join(' · ') : 'ใช้ในการอัปเกรด'}</p></div>`;
+      content = `<h3>${esc(it.nameTh)}</h3><div class="muted">${esc(it.name)} ${it.rare ? '· วัตถุดิบหายาก' : ''}</div><p>มี ${ch.materials[selected.id]} ชิ้น</p><div class="detail-block"><small>หาได้จาก</small><p class="source-list">${it.sourceTh ? esc(it.sourceTh) : sources.join('') || 'การสำรวจและภารกิจ'}</p></div><div class="detail-block"><small>${it.useTh ? 'การใช้งาน' : 'ใช้คราฟต์'}</small><p>${it.useTh ? esc(it.useTh) : uses.length ? uses.join(' · ') : 'ใช้ในการอัปเกรด'}</p></div>`;
       actions = `<button class="btn" data-act="sell" data-id="${selected.id}" ${near.inTown ? '' : 'disabled'}>ขาย 1 ชิ้น · ${it.value} G</button>`;
       if (!near.inTown) content += '<p class="muted">กลับนิคมเพื่อขายวัตถุดิบ</p>';
     } else {

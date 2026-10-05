@@ -1,4 +1,4 @@
-import {rasterIconMarkup} from './raster-icons.js';
+import {rasterIconMarkup,rasterIconUrl} from './raster-icons.js';
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
@@ -268,6 +268,9 @@ const FORGED = {
 };
 for (const [id, [kind, palette, tier]] of Object.entries(FORGED)) gear[id] = sized(kind, forged(kind, palette, tier));
 
+// Raster-only materials keep authored coverage for shared ground-loot consumers.
+for (const id of ['enhancement_stone', 'skill_crystal']) material[id] = `<image href="${rasterIconUrl('material',id)}" width="128" height="128"/>`;
+
 export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles use supplied raster art; retain the authored SVG fallback.
@@ -279,7 +282,7 @@ export function arrowArt(id) {
   const one = (dx) => G(L('M30 98L90 30', '#8b6943', 4) + P('M90 30l12-14-4 18z', head) + P('M30 98l-4-14 10 6zM30 98l14 4-6-10z', fletch), 'translate(' + dx + ' 0)');
   return '<span class="art art-arrow" data-art="arrow/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + shadow + one(-12) + one(0) + one(12) + '</svg></span>';
 }
-export function hasArt(kind, id) { return !!ART[kind]?.[id]; }
+export function hasArt(kind, id) { return !!rasterIconUrl(kind,id) || !!ART[kind]?.[id]; }
 export function art(kind, id, className = '') {
   const raster = rasterIconMarkup(kind, id, className);
   if (raster) return raster;

@@ -1,5 +1,5 @@
 {
-  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) is separate from Grade and uses ruin_shard. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam. Equipment itemLevel is persistent progression metadata, independent of grade, +N and stat wear requirements.",
+  "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) uses enhancement_stone and stays separate from Grade. Skill/mod ranks use skill_crystal. Per-base upgradeMaterial is retained only as the legacy salvage fallback for base crafting parts. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam. Equipment itemLevel is persistent progression metadata, independent of grade, +N and stat wear requirements.",
   "materials": {
     "boar_hide": {
       "name": "Boar Hide",
@@ -155,6 +155,24 @@
       "nameTh": "เศษเปลือกเสฉวน",
       "color": "#c18b62",
       "value": 8
+    },
+    "enhancement_stone": {
+      "name": "Enhancement Stone",
+      "nameTh": "หินเสริมอุปกรณ์",
+      "color": "#dba951",
+      "value": 4,
+      "shape": "rock",
+      "useTh": "เสริมอุปกรณ์ +1 ถึง +5 · ไม่เปลี่ยนเกรด",
+      "sourceTh": "มอนสเตอร์ทั่วไปและบอสมีโอกาสพื้นฐาน 3% ครั้งละ 1 เม็ด · ย่อยของตีบวกคืนหินที่ใช้ 50% ปัดลง · ของ +0 ไม่ให้หิน"
+    },
+    "skill_crystal": {
+      "name": "Skill Crystal",
+      "nameTh": "ผลึกทักษะ",
+      "color": "#54d2d1",
+      "value": 4,
+      "shape": "gem",
+      "useTh": "อัปเลเวลสกิลและม็อด · ไม่ใช้แต้มต้นไม้",
+      "sourceTh": "มอนสเตอร์ทั่วไปและบอสมีโอกาสพื้นฐาน 2% ครั้งละ 1 เม็ด · การย่อยอุปกรณ์ไม่ให้ผลึกทักษะ"
     }
   },
   "slots": [
@@ -1966,6 +1984,144 @@
       "starter": false,
       "upgradeMaterial": "storm_quill",
       "itemLevel": 21
+    },
+    "sporeweave_vest": {
+      "name": "Sporeweave Vest",
+      "nameTh": "เสื้อทอสปอร์",
+      "slot": "armor",
+      "requirementStat": "INT",
+      "optionPool": [
+        "defense_flat",
+        "mp_flat",
+        "heal_pct",
+        "magic_flat",
+        "summon_pct"
+      ],
+      "stats": {
+        "defense": 10.3,
+        "maxMp": 51.4,
+        "healPct": 17.1
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 6,
+      "look": "tunic"
+    },
+    "sporeweave_gloves": {
+      "name": "Sporeweave Gloves",
+      "nameTh": "ถุงมือทอสปอร์",
+      "slot": "gloves",
+      "requirementStat": "INT",
+      "optionPool": [
+        "magic_flat",
+        "heal_pct",
+        "summon_pct",
+        "mp_flat",
+        "poison_on_hit"
+      ],
+      "stats": {
+        "magic": 2.2,
+        "maxMp": 11.1,
+        "healPct": 4.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 6,
+      "look": "wrap"
+    },
+    "moonleaf_slippers": {
+      "name": "Moonleaf Slippers",
+      "nameTh": "รองเท้าผ้าใบจันทร์",
+      "slot": "boots",
+      "requirementStat": "INT",
+      "optionPool": [
+        "mp_flat",
+        "cdr_pct",
+        "defense_flat",
+        "hp_flat",
+        "heal_pct"
+      ],
+      "stats": {
+        "defense": 5.2,
+        "maxMp": 34.6,
+        "cooldownPct": 3.5
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "spore_sac",
+      "itemLevel": 11
+    },
+    "wardenstalker_coat": {
+      "name": "Wardenstalker Coat",
+      "nameTh": "เสื้อพรานผู้พิทักษ์",
+      "slot": "armor",
+      "requirementStat": "VIT",
+      "optionPool": [
+        "defense_flat",
+        "hp_flat",
+        "move_pct",
+        "projectile_pct",
+        "regen_flat"
+      ],
+      "stats": {
+        "defense": 46.3,
+        "maxHp": 123.5,
+        "moveSpeedPct": 6.2
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21,
+      "look": "pelt"
+    },
+    "wardenstalker_hood": {
+      "name": "Wardenstalker Hood",
+      "nameTh": "ฮู้ดพรานผู้พิทักษ์",
+      "slot": "helm",
+      "requirementStat": "AGI",
+      "optionPool": [
+        "crit_pct",
+        "cdr_pct",
+        "move_pct",
+        "defense_flat",
+        "hp_flat"
+      ],
+      "stats": {
+        "defense": 16.5,
+        "maxHp": 41.2,
+        "critChancePct": 11.0,
+        "cooldownPct": 2.7
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21,
+      "look": "hood"
+    },
+    "wardenstalker_gloves": {
+      "name": "Wardenstalker Gloves",
+      "nameTh": "ถุงมือพรานผู้พิทักษ์",
+      "slot": "gloves",
+      "requirementStat": "DEX",
+      "optionPool": [
+        "attack_flat",
+        "crit_pct",
+        "projectile_pct",
+        "leech_pct",
+        "move_pct"
+      ],
+      "stats": {
+        "attack": 7.3,
+        "critChancePct": 7.3,
+        "defense": 2.4
+      },
+      "requires": {},
+      "starter": false,
+      "upgradeMaterial": "greyfang_mane",
+      "itemLevel": 21,
+      "look": "pelt"
     }
   },
   "gearOptions": {
@@ -2144,34 +2300,28 @@
     }
   },
   "upgrade": {
-    "_doc": "Guaranteed +1..+5, limited only by materials and gold. Each step adds 4% to base stats. Wearing a stronger item requires higher character stats, not a character level.",
+    "_doc": "Guaranteed +1..+5, limited only by materials and gold. Each step adds 4% to base stats. Wearing a stronger item requires higher character stats, not a character level. Enhancement stones replace all monster-part/catalyst costs; grade promotion is unchanged.",
     "max": 5,
     "statPerLevel": 0.04,
     "cost": [
       {
-        "material": 2,
-        "glow_dust": 1,
+        "enhancement_stone": 1,
         "gold": 35
       },
       {
-        "material": 3,
-        "glow_dust": 2,
+        "enhancement_stone": 2,
         "gold": 75
       },
       {
-        "material": 4,
-        "ruin_shard": 1,
+        "enhancement_stone": 3,
         "gold": 140
       },
       {
-        "material": 5,
-        "ruin_shard": 2,
+        "enhancement_stone": 4,
         "gold": 240
       },
       {
-        "material": 6,
-        "ruin_shard": 3,
-        "ancient_core": 1,
+        "enhancement_stone": 6,
         "gold": 380
       }
     ]
@@ -2381,7 +2531,7 @@
     }
   },
   "salvage": {
-    "_doc": "Selling and salvaging gear (town only). Salvage returns a share of the crafting recipe (rounded down, at least 1 of the main material); +N returns a share of the upgrade materials. Gold comes from the recipe gold and the item level. Equipped and locked items are refused.",
+    "_doc": "Town only. Salvage returns a grade share of the crafting recipe (rounded down, at least 1 of the main part). No base stone or crystal reward for any gear or grade, including starters. Sum current +N enhancement costs then return floor(total * upgradeReturn) per material; never refund gold. Legacy +N gear uses that same current-cost valuation because saves have no payment history. Existing inventory is never converted. Equipped and locked items are refused.",
     "returnByGrade": {
       "C": 0.3,
       "B": 0.4,
@@ -2418,5 +2568,19 @@
         "S": 5
       }
     }
-  }
+  },
+  "upgradeMaterialDrops": [
+    {
+      "item": "enhancement_stone",
+      "chance": 0.03,
+      "min": 1,
+      "max": 1
+    },
+    {
+      "item": "skill_crystal",
+      "chance": 0.02,
+      "min": 1,
+      "max": 1
+    }
+  ]
 }

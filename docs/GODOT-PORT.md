@@ -109,7 +109,7 @@ materials continue to encode attack/mechanic/support. See [the initial mapping](
 Crafted C/B/A/S gear has 2/3/4/5 unique affixes. Every base/recipe pool supports five.
 Grade promotion retains existing rolls and +N, adding one unique affix. Enhancement
 +1..+5 changes base stats by 4% per step. Both upgrades use materials/gold only: no
-character-level or stat gate. Skill ranks 2..5 retain their separate Lv5/12/22/34 and
+character-level or stat gate. Skill ranks 2..5 retain their separate Lv4/10/17/24 and
 stat gates, 6% direct growth and 5% MP growth; mods supply behavioural growth.
 
 `gearRequirements(item,data)` calculates wear requirements from actual weighted base,
@@ -155,7 +155,12 @@ worn and `locked` items are refused.
 `core/balance.js` is a pure model of a reference hero per kit at each level, against the
 average monster of that level, wearing the expected gear tier (`progression.balance`).
 Port it with the data so the same targets can be checked; see [BALANCE-25.md](BALANCE-25.md).
-Gear bases sit on tiers (item level 1/6/11/16/21). `gearDropCandidates` picks bases made from
+Gear bases sit on tiers (item level 1/6/11/16/21). The six targeted garment additions
+(Sporeweave vest/gloves at 6, Moonleaf Slippers at 11, Wardenstalker coat/hood/gloves
+at 21) use the same stat-based wear, recipe, grade, enhancement and drop rules;
+there is no character-level equip gate or set bonus. Their PNGs do not imply new
+3D outfit meshes; the current renderer reuses existing look templates.
+ `gearDropCandidates` picks bases made from
 the monster's parts at the tier for its level (falling back to the nearest lower tier).
 `rollGearDrop` rolls a grade best-first (`items.gearDrops`) and options like a craft. A
 `drop` of item `gear` carries `gear`; pickup gives it a new uid. `goldFindPct`,
@@ -598,3 +603,19 @@ buildings/stalls carry a `kit` node name: draw that node from the approved city
 kit file (`town.kit.nodes`), reset its city placement, centre it on the data box
 and keep the box as the collider; `town.kit.materialColors` uses the same palette
 as the city. Saves were `version: 5` here (adds `progress.maps`); v6 adds hands, gloves and arrows (see above).
+
+### Dedicated upgrade materials (local implementation, 2026-10-05)
+
+`items.upgrade.cost` prices +1..+5 with `enhancement_stone` (1/2/3/4/6) and
+unchanged gold. `progression.skillUpgrade.steps` uses `skill_crystal` (1/2/3/4),
+and `modUpgrade.cost` uses the same crystal (2/3). Never interpret these as Grade;
+existing grade-promotion costs and base crafting recipes remain unchanged.
+`rollDrops` appends `items.upgradeMaterialDrops` to monster/zone drops, with the
+same seeded RNG and material-find multiplier (3% stone, 2% crystal, quantity 1).
+Minions still award gold only. Gear salvage creates no base stones/crystals at any grade, keeps existing recipe-part
+refunds and returns floor(50% of the total enhancement stone investment), e.g. +5
+uses 16 and refunds 8. Legacy +N items receive
+the same current-cost refund; no historical payment ledger is introduced.
+The existing sparse `character.materials` dictionary already persists both IDs;
+no schema/version change or conversion of old parts is needed. Missing keys are zero.
+The two RGBA PNGs are mapped in `raster-icons.js` for inventory/costs and ground loot.

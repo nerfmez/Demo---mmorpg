@@ -1,11 +1,11 @@
 // Shared, cached item illustrations on ground loot. One texture per material or gear base.
 import * as THREE from 'three';
-import { ART } from '../ui/art.js';
+import { ART, hasArt } from '../ui/art.js';
 import {rasterIconUrl} from '../ui/raster-icons.js';
 const cache = new Map();
 const loader = new THREE.TextureLoader();
 export function dropSprite(id, kind = 'material') {
-  if (!ART[kind]?.[id]) throw new Error('Missing ' + kind + ' artwork: '+id);
+  if (!hasArt(kind,id)) throw new Error('Missing ' + kind + ' artwork: '+id);
   const key=kind+'/'+id;
   let material=cache.get(key);
   if(!material){

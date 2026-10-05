@@ -129,8 +129,13 @@ failure returns `reason:'level'`, `need`, `current` and a Thai `missing` descrip
 `enforceEquipment` clears invalid slot references after upgrades, respec and migration
 (after level-cap adjustment). All items already live in `character.gear`; there is no
 gear capacity limit, only UI pagination. Never delete items, duplicate UIDs, or reject a
-funded craft/upgrade because of wear requirements. Legal worn items stay worn. Save shape
-remains v6; migration reports returned items and preserves their level/grade/options/+N.
+funded craft/upgrade because of wear requirements. Legal worn items stay worn. This rule
+adds no save fields or version bump: standalone wearable PR70 keeps v6; with the potion
+and quick-slot migration from PR71, the combined build keeps v7. Migration reports
+returned items and preserves their level/grade/options/+N. Existing v6 saves can load
+directly in PR70. After a v7 build is released, deploy wearable changes from combined
+main retaining v7; an older v6 build rewrites a loaded v7 save to v6, so a later v7 load
+can grant starter potions again. This rollback hazard does not prevent a v6-only release.
 UI shows required/current character level in craft, bag and equipment details, including
 fixed-level upgrade/grade previews. Weapon/shield previews retain exact stat ranges.
 

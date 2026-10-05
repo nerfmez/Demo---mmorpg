@@ -59,7 +59,8 @@ derived stats/look and port contract. No unresolved source discovery.
 Final real-game Chromium flows pass desktop/iPad/phone with zero page errors. Inspected
 Tide Walkers craft, Lv6 craft at character Lv1, below-level bag, exact-level equip and
 fixed-level upgrade details. Return-notice display uses a UI fixture; actual migration
-item preservation is tested in core. Ready for draft review; CI/WebKit pending.
+item preservation is tested in core. Runtime/fixture CI passed Chromium and WebKit;
+see the CI record and compatibility documentation update below.
 
 Private review images are delivered separately in the owner conversation; no sharing expansion.
 
@@ -95,4 +96,28 @@ Local full Chromium gear-hands completed the gameplay assertions through pickup,
 failed its strict empty-console assertion on `/favicon.ico` 404. An independent page-load
 probe confirmed that same missing icon occurs before dressing. This unrelated local
 baseline is not changed; CI must still pass the original error check. WebKit is not
-installed locally. New-head Chromium/WebKit CI results are the premerge gate.
+installed locally. CI run 37285643548 passed Chromium and WebKit at production/fixture
+head `f8f80e0edadc50eb021c3d5f6d131507c58852f4`, including equipment and desktop/tablet/phone
+UI workflows. Seeker UI Review, Seeker Combat HUD and renderer light/shadow checks also
+passed. The subsequent compatibility documentation edit changes no runtime or fixtures.
+
+## PR71 compatibility and release ordering
+
+Reviewed main `852c22f1e6e209ad35c09d90308cd6e48e3c0c7a`, PR70 runtime/fixture head
+`f8f80e0edadc50eb021c3d5f6d131507c58852f4`, and PR71 head
+`0a856ff004a804d17b4ecf990ee4689ca7006f9f`. PR71 remains separate and unmerged.
+The local combined checkout merges cleanly. Focused wearable/item-metadata/consumable/
+save/crafting tests pass 37/37; v6-to-v7 migration preserves all 306 owned gear items,
+legal armor/shield, gold, next UID, exhausted v7 potions and four-slot order on reload.
+Underlevel equipment clears only its equipped reference. The previous combined head
+also built successfully; PR71's latest delta changes city/world content, not these
+save contracts. No combined browser/pixel review was performed.
+
+PR70 alone on current v6 main is safe for existing v6 saves under the intentional new
+wearable eligibility rule. It adds no save fields or version bump. Release PR70 first,
+then PR71, for a monotonic v6-to-v7 transition. If PR71 lands first, rebase PR70 on latest
+main, retain CHARACTER_VERSION 7 and revalidate combined migration before release.
+After v7 is in use, do not deploy the isolated v6 branch: its migrateCharacter() writes
+version 6, and PR71's version < 7 starter migration can replenish consumed potions when
+that downgraded save returns to v7. Normal repeated v7 loads do not replenish potions.
+This is a cross-version rollback risk, not a blocker for deploying PR70 on v6 main.

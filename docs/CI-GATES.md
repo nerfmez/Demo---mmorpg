@@ -30,7 +30,9 @@ summaries. Docs/tool-only runs explicitly report that no browser suite was selec
 There is no failure waiver. No branch protection/ruleset settings are changed.
 
 Pages game publishing calls the same workflow in quick-gate mode and depends on its
-success. It downloads the exact validated build instead of rebuilding before upload.
+success. Release calls always build/test core/boot, including documentation-only
+pushes, so there is always a validated artifact to upload. It downloads that exact
+build instead of rebuilding before upload.
 Skill Lab-only publishing keeps its existing path, lab preservation and live checks.
 The deployment environment and permissions remain unchanged. A conservative full
 fallback can still make a broad game release slower than a bounded local edit.

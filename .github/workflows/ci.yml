@@ -39,6 +39,7 @@ jobs:
         uses: ./.github/actions/change-scope
         with:
           force-full: ${{ github.event_name != 'pull_request' && !inputs.quick_gate }}
+          force-boot: ${{ inputs.quick_gate }}
       - name: Validation plan and exact source
         env:
           SOURCE: ${{ steps.source.outputs.sha }}

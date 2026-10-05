@@ -35,6 +35,7 @@ test('workflow shares exact-source build, shards both engines, and gates on all 
   const ci = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
   assert.match(ci, /ref: \$\{\{ github.event.pull_request.head.sha \|\| github.sha \}\}/);
   assert.match(ci, /force-full: \$\{\{ github.event_name != 'pull_request' && !inputs.quick_gate \}\}/);
+  assert.match(ci, /force-boot: \$\{\{ inputs.quick_gate \}\}/);
   assert.match(ci, /suite: \$\{\{ fromJSON\(needs.prepare.outputs.suites\) \}\}/);
   assert.match(ci, /needs: \[prepare, browser\]/);
   assert.match(ci, /test "\$BROWSER_RESULT" = success/);

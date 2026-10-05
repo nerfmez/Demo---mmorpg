@@ -7,6 +7,9 @@ inputs:
   force-full:
     description: Run the complete regression inventory after merge or on request.
     default: 'false'
+  force-boot:
+    description: Always produce a tested build and boot for a release upload.
+    default: 'false'
 outputs:
   game:
     value: ${{ steps.classify.outputs.game }}
@@ -32,4 +35,5 @@ runs:
       env:
         FORCE_RENDER: ${{ inputs.force-render }}
         FORCE_FULL: ${{ inputs.force-full }}
+        FORCE_BOOT: ${{ inputs.force-boot }}
       run: node scripts/ci-scope.mjs

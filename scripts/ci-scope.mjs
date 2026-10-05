@@ -55,6 +55,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (process.env.FORCE_RENDER === 'true') scope.render = true;
   if (forceFull) scope = all();
   const plan = browserPlan(files, { full: forceFull });
+  if (process.env.FORCE_BOOT === 'true') {
+    scope.game = true;
+    if (!plan.suites.includes('boot')) plan.suites.unshift('boot');
+    if (plan.suites.length === 1) plan.reason = 'release build/core/boot required even for documentation/tool changes';
+  }
   // JSON encodes filenames safely, including embedded newlines. Actions outputs
   // remain single-line and are never interpolated into shell code.
   const output = Object.entries({ ...scope, browser_suites: JSON.stringify(plan.suites), browser_reason: JSON.stringify(plan.reason) }).map(([key, value]) => `${key}=${value}`).join('\n') + '\n';

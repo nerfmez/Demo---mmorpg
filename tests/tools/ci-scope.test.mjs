@@ -66,16 +66,19 @@ test('the CI entrypoint writes main-push scope and handles first pushes conserva
   writeFileSync(join(dir, 'README.md'), 'after');
   git('add', '.'); git('commit', '-qm', 'docs');
   const head = git('rev-parse', 'HEAD'), event = join(dir, 'event.json'), output = join(dir, 'output');
-  const run = (before, force = 'false') => {
+  const run = (before, force = 'false', boot = 'false') => {
     writeFileSync(event, JSON.stringify({ before, after: head, ref: 'refs/heads/main' }));
     writeFileSync(output, '');
     execFileSync(process.execPath, [fileURLToPath(new URL('../../scripts/ci-scope.mjs', import.meta.url))], {
-      cwd: dir, env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_EVENT_NAME: 'push', GITHUB_OUTPUT: output, FORCE_RENDER: force },
+      cwd: dir, env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_EVENT_NAME: 'push', GITHUB_OUTPUT: output, FORCE_RENDER: force, FORCE_BOOT: boot },
     });
     return readFileSync(output, 'utf8');
   };
   assert.match(run(base), /game=false/);
   assert.match(run(base, 'true'), /render=true/);
+  const release = run(base, 'false', 'true');
+  assert.match(release, /game=true/);
+  assert.match(release, /browser_suites=\["boot"\]/);
   const firstPush = run('0'.repeat(40));
   assert.doesNotMatch(firstPush, /=false/);
   assert.match(firstPush, /browser_suites=\["boot","smoke"/);

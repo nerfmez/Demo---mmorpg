@@ -9,12 +9,13 @@ import { SUITES, FULL_SUITES, browserPlan } from '../../scripts/ci-browser-plan.
 test('full inventory retains every original CI browser check plus boot/save safety', () => {
   const original = ['smoke', 'map-travel', 'open-world', 'open-world-city', 'midhigh-monsters', 'gear-hands', 'weapon-loading', 'weapon-models', 'shop-potions', 'potions-moving', 'details-touch', 'menu-hub', 'coastal-attacks', 'lab', 'ux', 'capture'];
   const scripts = Object.values(SUITES).flat();
-  for (const name of [...original, 'boot', 'journal-route-save']) assert.ok(scripts.includes(`${name}.mjs`), name);
+  for (const name of [...original, 'boot', 'journal-route-save', 'details-game-touch']) assert.ok(scripts.includes(`${name}.mjs`), name);
   assert.equal(new Set(scripts).size, scripts.length, 'each check has one shard owner');
   for (const script of scripts) assert.ok(existsSync(new URL(`../browser/${script}`, import.meta.url)), script);
 });
-test('documentation and tooling select no browsers; mixed changes preserve affected checks', () => {
-  assert.deepEqual(browserPlan(['docs/HANDOFF.md', '.github/workflows/ci.yml', 'scripts/new-tool.mjs']).suites, []);
+test('documentation and tool tests select no browsers; infrastructure fails closed', () => {
+  assert.deepEqual(browserPlan(['docs/HANDOFF.md', 'tests/tools/ci-scope.test.mjs']).suites, []);
+  for (const path of ['.github/workflows/ci.yml', 'scripts/new-tool.mjs']) assert.deepEqual(browserPlan([path]).suites, FULL_SUITES);
   assert.deepEqual(browserPlan(['docs/HANDOFF.md', 'tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
   assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs', 'tests/browser/weapon-loading.mjs']).suites, ['boot', 'weapons', 'menu']);
 });
@@ -71,7 +72,7 @@ test('Pages upload depends on successful exact-source quick gate; lab publishing
   assert.match(deploy, /quick_gate: true/);
   assert.match(deploy, /needs: validate/);
   assert.match(deploy, /needs.validate.result == 'success'/);
-  assert.match(deploy, /name: ci-dist-\$\{\{ needs.validate.outputs.source \}\}/);
+  assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \}\}/);
   assert.match(deploy, /if: github.event_name == 'workflow_run'/);
   assert.doesNotMatch(deploy, /continue-on-error/);
 });

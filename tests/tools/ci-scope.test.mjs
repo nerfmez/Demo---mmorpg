@@ -24,9 +24,9 @@ test('UI, saves, renderer lighting and map changes select their consumers', () =
   assert.equal(classifyFiles(['data/world.json']).map, true);
   assert.equal(classifyFiles(['src/render/harbor.js']).map, true);
 });
-test('CI/tool changes request static tool checks, dependency changes request the full suite', () => {
+test('CI/build infrastructure requests game and tooling checks; dependencies request all owners', () => {
   assert.deepEqual(classifyFiles(['.github/workflows/ci.yml', 'scripts/ci-scope.mjs', 'tests/tools/ci-scope.test.mjs']),
-    { game: false, tools: true, ui: false, hud: false, render: false, map: false });
+    { game: true, tools: true, ui: false, hud: false, render: false, map: false });
   assert.ok(Object.values(classifyFiles(['package-lock.json'])).every(Boolean));
   assert.equal(classifyFiles(['new-runtime-file.js']).game, true);
 });

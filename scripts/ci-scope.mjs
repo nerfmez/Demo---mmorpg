@@ -17,6 +17,8 @@ export function classifyFiles(files) {
     if (file.startsWith('docs/') || /^(AGENTS|CLAUDE|README)\.md$/.test(file) || /^(LICENSE|\.gitignore)$/.test(file)) continue;
     if (file.startsWith('.github/') || file.startsWith('scripts/') || file.startsWith('tests/tools/')) {
       scope.tools = true;
+      // Keep scope and browserPlan aligned: CI/build infrastructure selects full.
+      if (!file.startsWith('tests/tools/')) scope.game = true;
       continue;
     }
     scope.game = true;

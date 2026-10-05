@@ -13,11 +13,14 @@ on:
     outputs:
       source:
         value: ${{ jobs.prepare.outputs.source }}
+      artifact:
+        value: ${{ jobs.prepare.outputs.artifact }}
 permissions:
   contents: read
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # New PR revisions may cancel stale quick gates; each main SHA keeps its full run.
+  group: ci-${{ github.workflow }}-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || inputs.quick_gate }}
 jobs:
   prepare:
     name: Build, core and CI tools
@@ -27,6 +30,7 @@ jobs:
       suites: ${{ steps.scope.outputs.browser-suites }}
       reason: ${{ steps.scope.outputs.browser-reason }}
       source: ${{ steps.source.outputs.sha }}
+      artifact: ${{ steps.source.outputs.artifact }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,7 +38,10 @@ jobs:
           # PR reports and artifacts refer to its exact head, not a synthetic merge.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - id: source
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "artifact=ci-dist-$sha-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
       - id: scope
         uses: ./.github/actions/change-scope
         with:
@@ -58,18 +65,27 @@ jobs:
       - run: npm ci
         if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
       - run: npm run test:tools
-        if: steps.scope.outputs.tools == 'true'
+        if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
       # All core tests, including migrations, save preservation and contact timing.
       - run: npm test
         if: steps.scope.outputs.game == 'true'
       - run: npm run build
         if: steps.scope.outputs.game == 'true'
+      - name: Bind build to the tested source
+        if: steps.scope.outputs.game == 'true'
+        env:
+          SOURCE: ${{ steps.source.outputs.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          test -s dist/index.html
+          printf '%s\n' "$SOURCE" > dist/ci-source.txt
       - uses: actions/upload-artifact@v4
         if: steps.scope.outputs.game == 'true'
         with:
-          name: ci-dist-${{ steps.source.outputs.sha }}
+          name: ${{ steps.source.outputs.artifact }}
           path: dist/
           retention-days: 3
+          if-no-files-found: error
 
   browser:
     name: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'Quick affected' || 'Full regression' }} (${{ matrix.browser }}, ${{ matrix.suite }})
@@ -98,17 +114,20 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
-          name: ci-dist-${{ needs.prepare.outputs.source }}
+          name: ${{ needs.prepare.outputs.artifact }}
           path: dist/
+      - name: Verify downloaded build source
+        run: test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run complete selected shard with timings
         run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ci-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}
+          name: ci-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
           path: tests/browser/out/
           retention-days: 7
+          if-no-files-found: error
 
   # Preserve required names. Both summaries fail if ANY selected shard fails,
   # is cancelled, or is unexpectedly skipped. Failures cannot be waived.
@@ -132,8 +151,14 @@ jobs:
         run: |
           echo "$MODE: $SOURCE; suites=$SUITES; prepare=$PREPARE; browser=$BROWSER_RESULT" | tee -a "$GITHUB_STEP_SUMMARY"
           test "$PREPARE" = success
+          test -n "$SOURCE"
           if [ "$GAME" = true ]; then
+            test -n "$SUITES"
+            test "$SUITES" != '[]'
             test "$BROWSER_RESULT" = success
-          else
+          elif [ "$GAME" = false ]; then
+            test "$SUITES" = '[]'
             test "$BROWSER_RESULT" = skipped
+          else
+            exit 1
           fi

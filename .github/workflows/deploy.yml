@@ -29,10 +29,14 @@ jobs:
     needs: validate
     if: always() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || needs.validate.result == 'success')
     runs-on: ubuntu-latest
+    outputs:
+      source: ${{ steps.release.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.validate.outputs.source || github.sha }}
+      - id: release
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -42,8 +46,15 @@ jobs:
       - uses: actions/download-artifact@v4
         if: github.event_name != 'workflow_run'
         with:
-          name: ci-dist-${{ needs.validate.outputs.source }}
+          name: ${{ needs.validate.outputs.artifact }}
           path: dist/
+      - name: Verify the build before Pages upload
+        if: github.event_name != 'workflow_run'
+        env:
+          SOURCE: ${{ needs.validate.outputs.source }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          test "$(cat dist/ci-source.txt)" = "$SOURCE"
       # Lab-only publishing retains the existing main-game build path.
       - run: npm test && npm run build
         if: github.event_name == 'workflow_run'
@@ -75,6 +86,8 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -93,7 +106,7 @@ jobs:
       - name: Published atomic route purchase and reload (Safari engine)
         if: github.event_name != 'workflow_run'
         env:
-          JOURNAL_SAVE_URL: ${{ steps.deployment.outputs.page_url }}?quality=low&release=${{ github.sha }}
+          JOURNAL_SAVE_URL: ${{ steps.deployment.outputs.page_url }}?quality=low&release=${{ needs.build.outputs.source }}
           JOURNAL_OUT: tests/browser/out/journal-live-webkit/
           BROWSER: webkit
         run: node tests/browser/journal-route-save.mjs

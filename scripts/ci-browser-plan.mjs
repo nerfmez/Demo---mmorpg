@@ -4,7 +4,7 @@ export const SUITES = {
   smoke: ['smoke.mjs'],
   world: ['map-travel.mjs', 'open-world.mjs', 'open-world-city.mjs'],
   combat: ['midhigh-monsters.mjs', 'coastal-attacks.mjs'],
-  equipment: ['gear-hands.mjs', 'details-touch.mjs'],
+  equipment: ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs'],
   weapons: ['weapon-loading.mjs', 'weapon-models.mjs'],
   items: ['shop-potions.mjs', 'potions-moving.mjs'],
   menu: ['menu-hub.mjs'],
@@ -21,7 +21,7 @@ const LOCAL_PATHS = {
   'src/ui/menu.js': ['smoke', 'menu', 'ux', 'save'],
   'src/ui/menu-map.js': ['world', 'menu', 'ux', 'capture'],
   'src/ui/mapimage.js': ['world', 'menu', 'ux', 'capture'],
-  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'ux'],
+  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux'],
 };
 export function browserPlan(files, { full = false } = {}) {
   if (full) return { suites: [...FULL_SUITES], reason: 'postmerge/manual full regression' };
@@ -34,7 +34,9 @@ export function browserPlan(files, { full = false } = {}) {
       game = true; selected.add('weapons'); continue;
     }
     if (file.startsWith('docs/') || /^(AGENTS|CLAUDE|README)\.md$/.test(file) || /^(LICENSE|\.gitignore)$/.test(file) ||
-        file.startsWith('.github/') || file.startsWith('scripts/') || file.startsWith('tests/tools/')) continue;
+        file.startsWith('tests/tools/')) continue;
+    // CI/build scripts change execution and artifact contracts, not just tooling.
+    // Unclassified infrastructure must exercise the full inventory before review.
     game = true;
     let affected = LOCAL_PATHS[file];
     if (file.startsWith('public/models/weapons/')) affected = ['smoke', 'equipment', 'weapons', 'combat', 'ux'];

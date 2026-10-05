@@ -1,32 +1,62 @@
 name: CI
 
-# Feature branches are validated on PRs; main pushes still validate the merged source.
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      quick_gate:
+        type: boolean
+        default: false
+    outputs:
+      source:
+        value: ${{ jobs.prepare.outputs.source }}
+      artifact:
+        value: ${{ jobs.prepare.outputs.artifact }}
 permissions:
   contents: read
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # New PR revisions may cancel stale quick gates; each main SHA keeps its full run.
+  group: ci-${{ github.workflow }}-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || inputs.quick_gate }}
 jobs:
-  test:
+  prepare:
+    name: Build, core and CI tools
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, webkit]
-    env:
-      BROWSER: ${{ matrix.browser }}
+    outputs:
+      game: ${{ steps.scope.outputs.game }}
+      suites: ${{ steps.scope.outputs.browser-suites }}
+      reason: ${{ steps.scope.outputs.browser-reason }}
+      source: ${{ steps.source.outputs.sha }}
+      artifact: ${{ steps.source.outputs.artifact }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # PR reports and artifacts refer to its exact head, not a synthetic merge.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - id: source
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "artifact=ci-dist-$sha-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
       - id: scope
         uses: ./.github/actions/change-scope
-      - name: Validation scope
-        run: echo 'Game=${{ steps.scope.outputs.game }}; tools=${{ steps.scope.outputs.tools }}; UI=${{ steps.scope.outputs.ui }}; map=${{ steps.scope.outputs.map }}'
+        with:
+          force-full: ${{ github.event_name != 'pull_request' && !inputs.quick_gate }}
+          force-boot: ${{ inputs.quick_gate }}
+      - name: Validation plan and exact source
+        env:
+          SOURCE: ${{ steps.source.outputs.sha }}
+          SUITES: ${{ steps.scope.outputs.browser-suites }}
+          REASON: ${{ steps.scope.outputs.browser-reason }}
+          MODE: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'Quick gate' || 'Full regression' }}
+        run: |
+          echo "$MODE source: $SOURCE" >> "$GITHUB_STEP_SUMMARY"
+          echo "Browser suites (each in Chromium and WebKit): $SUITES" >> "$GITHUB_STEP_SUMMARY"
+          echo "Routing: $REASON" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-node@v4
         if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
         with:
@@ -35,64 +65,100 @@ jobs:
       - run: npm ci
         if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
       - run: npm run test:tools
-        if: steps.scope.outputs.tools == 'true'
+        if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
+      # All core tests, including migrations, save preservation and contact timing.
       - run: npm test
         if: steps.scope.outputs.game == 'true'
       - run: npm run build
         if: steps.scope.outputs.game == 'true'
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Bind build to the tested source
         if: steps.scope.outputs.game == 'true'
-      - name: Browser smoke test
-        if: steps.scope.outputs.game == 'true'
-        run: npm run test:browser
-      - name: Map travel round trip with a reload (seam crossing with streaming off, saved slot)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/map-travel.mjs
-      - name: Open world (stream the neighbouring map in, cross the seam without a reload, drop it again)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/open-world.mjs
-      - name: Open world from the Frontier (Azure's city and harbour stream in at Azure's place)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/open-world-city.mjs
-      - name: Mid/high monsters (wind-up, contact and recovery from the game camera, field guide)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/midhigh-monsters.mjs
-      - name: Two hands, gloves, shields and arrows (hero model, equipment screen, arrow crafting)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/gear-hands.mjs
-      - name: Approved weapon originals (equip, save, shots, captures and resource stability)
-        if: steps.scope.outputs.game == 'true'
+        env:
+          SOURCE: ${{ steps.source.outputs.sha }}
         run: |
-          node tests/browser/weapon-loading.mjs
-          node tests/browser/weapon-models.mjs
-      - name: Shop, potions and quick item slots (buy at the shopkeeper, drink from the HUD)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/shop-potions.mjs
-      - name: Potions while walking (independent pointers, cooldown and cancellation)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/potions-moving.mjs
-      - name: Equipment details (touch scrolling, visible close, upgrade materials)
-        if: steps.scope.outputs.game == 'true'
-        run: |
-          node tests/browser/details-touch.mjs
-          node tests/browser/details-game-touch.mjs
-      - name: Main menu (hub, grouped pages, back buttons, Esc)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/menu-hub.mjs
-      - name: Distinct coastal attack patterns and contact poses
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/coastal-attacks.mjs
-      - name: Skill Lab smoke (lab.html casts and hits)
-        if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/lab.mjs
-      - name: Game UI workflows (desktop/tablet/phone)
-        if: steps.scope.outputs.ui == 'true'
-        run: npm run test:ux
-      - name: Harbor walkthrough and art review captures
-        if: steps.scope.outputs.map == 'true'
-        run: node tests/browser/capture.mjs
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          test -s dist/index.html
+          printf '%s\n' "$SOURCE" > dist/ci-source.txt
       - uses: actions/upload-artifact@v4
-        if: always() && steps.scope.outputs.game == 'true'
+        if: steps.scope.outputs.game == 'true'
         with:
-          name: screenshots-${{ matrix.browser }}
+          name: ${{ steps.source.outputs.artifact }}
+          path: dist/
+          retention-days: 3
+          if-no-files-found: error
+
+  browser:
+    name: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'Quick affected' || 'Full regression' }} (${{ matrix.browser }}, ${{ matrix.suite }})
+    needs: prepare
+    if: needs.prepare.outputs.game == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        browser: [chromium, webkit]
+        suite: ${{ fromJSON(needs.prepare.outputs.suites) }}
+    env:
+      BROWSER: ${{ matrix.browser }}
+      CI_SOURCE_SHA: ${{ needs.prepare.outputs.source }}
+      CI_MODE: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.prepare.outputs.artifact }}
+          path: dist/
+      - name: Verify downloaded build source
+        run: test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Run complete selected shard with timings
+        run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
           path: tests/browser/out/
+          retention-days: 7
+          if-no-files-found: error
+
+  # Preserve required names. Both summaries fail if ANY selected shard fails,
+  # is cancelled, or is unexpectedly skipped. Failures cannot be waived.
+  test:
+    name: test (${{ matrix.browser }})
+    needs: [prepare, browser]
+    if: always()
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - name: Report gate outcome at exact source
+        env:
+          PREPARE: ${{ needs.prepare.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          GAME: ${{ needs.prepare.outputs.game }}
+          SOURCE: ${{ needs.prepare.outputs.source }}
+          SUITES: ${{ needs.prepare.outputs.suites }}
+          MODE: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'Quick gate (affected suite; not a full-suite certification)' || 'Full regression' }}
+        run: |
+          echo "$MODE: $SOURCE; suites=$SUITES; prepare=$PREPARE; browser=$BROWSER_RESULT" | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$PREPARE" = success
+          test -n "$SOURCE"
+          if [ "$GAME" = true ]; then
+            test -n "$SUITES"
+            test "$SUITES" != '[]'
+            test "$BROWSER_RESULT" = success
+          elif [ "$GAME" = false ]; then
+            test "$SUITES" = '[]'
+            test "$BROWSER_RESULT" = skipped
+          else
+            exit 1
+          fi

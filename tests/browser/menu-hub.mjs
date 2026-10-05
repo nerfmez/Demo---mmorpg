@@ -18,13 +18,33 @@ try {
   for (let i = 0; ; i++) { try { if ((await fetch(base)).ok) break; } catch {} if (i > 80) throw Error('server'); await new Promise((r) => setTimeout(r, 250)); }
   browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
   for (const [name, width, height] of [['ipad', 1180, 820], ['phone-landscape', 844, 390], ['phone-portrait', 390, 844]]) {
+    const started = Date.now();
     const page = await (await browser.newContext({ viewport: { width, height }, hasTouch: true, isMobile: true })).newPage();
     page.setDefaultTimeout(60000);
     page.on('pageerror', (e) => errors.push(name + ': ' + String(e)));
     page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) errors.push(name + ': ' + m.text()); });
     await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0');
     await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
-    await page.evaluate(() => { document.querySelector('.banner')?.remove(); window.__frontier.paused = true; });
+    // This suite tests menu layout/navigation with gameplay already paused. Hold
+    // the completed world frame instead of spending software-GL time redrawing
+    // the same backdrop on every UI event. RAF, HUD and equipment previews stay
+    // live; smoke/combat/world suites retain real world rendering.
+    await page.evaluate(() => {
+      document.querySelector('.banner')?.remove();
+      const f = window.__frontier;
+      f.paused = true;
+      const evidence = window.__ciMenuDrawing = { heldWorldUpdates: 0, worldDraws: 0, previewDraws: 0 };
+      f.view.render = () => { evidence.heldWorldUpdates++; };
+      // Portrait/equipment previews intentionally share this renderer. Count
+      // world-scene draws separately rather than treating previews as a leak.
+      const render = f.view.renderer.render.bind(f.view.renderer);
+      f.view.renderer.render = (scene, ...args) => {
+        if (scene === f.view.scene) evidence.worldDraws++;
+        else evidence.previewDraws++;
+        return render(scene, ...args);
+      };
+    });
+    const readyAt = Date.now();
     const open = () => page.evaluate(() => window.__frontier.panels.isOpen);
     const tap = (sel) => page.locator(sel).tap();
     const title = () => page.evaluate(() => (document.querySelector('#atelier:not([hidden]) h1') || document.querySelector('#panel-title'))?.textContent);
@@ -91,7 +111,10 @@ try {
     await tap('.quick-actions [aria-label="กระเป๋า"]');
     assert.equal(await page.locator('#atelier').isVisible() || height > width, true);
     await page.evaluate(() => window.__frontier.panels.close());
-    console.log('PASS menu hub ' + engine.name() + ' ' + name);
+    const drawing = await page.evaluate(() => window.__ciMenuDrawing);
+    assert.equal(drawing.worldDraws, 0, 'UI checks retain the completed world frame');
+    assert.ok(drawing.heldWorldUpdates > 0, 'UI RAF remains active while world drawing is held');
+    console.log('PASS menu hub ' + engine.name() + ' ' + name, JSON.stringify({ bootMs: readyAt - started, uiMs: Date.now() - readyAt, ...drawing }));
     await page.context().close();
   }
   assert.deepEqual(errors, [], 'page errors');

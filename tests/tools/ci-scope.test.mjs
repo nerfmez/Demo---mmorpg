@@ -24,9 +24,9 @@ test('UI, saves, renderer lighting and map changes select their consumers', () =
   assert.equal(classifyFiles(['data/world.json']).map, true);
   assert.equal(classifyFiles(['src/render/harbor.js']).map, true);
 });
-test('CI/tool changes request static tool checks, dependency changes request the full suite', () => {
+test('CI/build infrastructure requests game and tooling checks; dependencies request all owners', () => {
   assert.deepEqual(classifyFiles(['.github/workflows/ci.yml', 'scripts/ci-scope.mjs', 'tests/tools/ci-scope.test.mjs']),
-    { game: false, tools: true, ui: false, hud: false, render: false, map: false });
+    { game: true, tools: true, ui: false, hud: false, render: false, map: false });
   assert.ok(Object.values(classifyFiles(['package-lock.json'])).every(Boolean));
   assert.equal(classifyFiles(['new-runtime-file.js']).game, true);
 });
@@ -49,6 +49,8 @@ test('workflow routing preserves check matrices and a single owner of smoke/UX',
   assert.doesNotMatch(light, /npm run test:browser|npm run test:ux/);
   assert.doesNotMatch(ui, /\n  push:/);
   assert.match(ci, /steps\.scope\.outputs\.game == 'true'/);
+  assert.match(ci, /name: test \(\$\{\{ matrix.browser \}\}\)/);
+  assert.match(ci, /workflow_dispatch:/);
   assert.match(ui, /steps\.scope\.outputs\.ui == 'true'/);
 });
 test('the CI entrypoint writes main-push scope and handles first pushes conservatively', t => {
@@ -64,16 +66,20 @@ test('the CI entrypoint writes main-push scope and handles first pushes conserva
   writeFileSync(join(dir, 'README.md'), 'after');
   git('add', '.'); git('commit', '-qm', 'docs');
   const head = git('rev-parse', 'HEAD'), event = join(dir, 'event.json'), output = join(dir, 'output');
-  const run = (before, force = 'false') => {
+  const run = (before, force = 'false', boot = 'false') => {
     writeFileSync(event, JSON.stringify({ before, after: head, ref: 'refs/heads/main' }));
     writeFileSync(output, '');
     execFileSync(process.execPath, [fileURLToPath(new URL('../../scripts/ci-scope.mjs', import.meta.url))], {
-      cwd: dir, env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_EVENT_NAME: 'push', GITHUB_OUTPUT: output, FORCE_RENDER: force },
+      cwd: dir, env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_EVENT_NAME: 'push', GITHUB_OUTPUT: output, FORCE_RENDER: force, FORCE_BOOT: boot },
     });
     return readFileSync(output, 'utf8');
   };
   assert.match(run(base), /game=false/);
   assert.match(run(base, 'true'), /render=true/);
+  const release = run(base, 'false', 'true');
+  assert.match(release, /game=true/);
+  assert.match(release, /browser_suites=\["boot"\]/);
   const firstPush = run('0'.repeat(40));
   assert.doesNotMatch(firstPush, /=false/);
+  assert.match(firstPush, /browser_suites=\["boot","smoke"/);
 });

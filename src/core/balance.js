@@ -5,6 +5,7 @@
 // Pure: it never touches a live game. Reproduce with `node scripts/balance-report.mjs`.
 import { createCharacter, derive, expToNext } from './character.js';
 import { computeSkill } from './skills.js';
+import { gearDropCandidates, gearRecipe } from './crafting.js';
 
 /** The expected gear item level at character level `level`: the highest tier reached. */
 export function gearTierAt(data, level) {
@@ -157,4 +158,63 @@ export function longFightDps(data, kit, level, jobNodes = null, seconds = 90) {
   const byRate = b.uptime / Math.max(s.cooldown, s.castTime, 0.35);
   const byMana = s.cost ? (d.maxMp + d.mpRegen * seconds) / seconds / s.cost : Infinity;
   return { dps: Math.round(perCast * Math.min(byRate, byMana) * 10) / 10, manaLimited: byMana < byRate };
+}
+
+/** Seconds the reference hero of `kit` needs to kill one `monsterId` at `level` (casting uptime included). */
+export function monsterTtk(data, kit, monsterId, level) {
+  const b = data.progression.balance, sc = data.progression.monsterScaling, m = data.monsters.monsters[monsterId];
+  const { ch, d } = referenceHero(data, kit, level);
+  const s = computeSkill(ch, data, d, 0), L = level - 1;
+  const hp = m.hp * (1 + sc.hpPerLevel * L), def = m.defense * (1 + sc.defensePerLevel * L) * (1 - (d.penetrationPct || 0) / 100);
+  const perCast = (s.damage || 0) * (1 + d.critChance * (d.critMult - 1)) * Math.max(1, s.projectiles || 1) * (1 - def / (def + 60));
+  return (hp / perCast) * Math.max(s.cooldown, s.castTime, 0.35) / b.uptime;
+}
+
+/** Experience per minute farming `monsterId` at `level` (kill time plus the walk to the next). */
+export function monsterExpPerMin(data, kit, monsterId, level) {
+  const m = data.monsters.monsters[monsterId], sc = data.progression.monsterScaling;
+  const exp = m.exp * (1 + sc.expPerLevel * (level - 1));
+  return (exp / (monsterTtk(data, kit, monsterId, level) + data.progression.balance.secondsPerKill)) * 60;
+}
+
+/** Materials only bosses drop (no normal monster has them). */
+export function bossOnlyMaterials(data) {
+  const M = Object.values(data.monsters.monsters), out = new Set();
+  for (const m of M.filter((x) => x.boss)) for (const d of m.drops) if (d.item !== 'gold' && !M.some((o) => !o.boss && o.drops.some((x) => x.item === d.item))) out.add(d.item);
+  return out;
+}
+
+/**
+ * Farming estimate for one gear recipe at its tier: for every normal part, the minutes to farm
+ * it from its quickest spawn at or below the tier band (tier .. tier + 5), counting the salvage
+ * of gear that same monster drops; boss-only parts count as boss kills (one part per kill). The
+ * total is an upper bound (parts are farmed one after another; in play several come at once).
+ */
+export function recipeFarming(data, recipe, kit = 'sword') {
+  const b = data.progression.balance, boss = bossOnlyMaterials(data), M = data.monsters.monsters;
+  const spawns = Object.values(data.maps || { w: data.world }).flatMap((m) => m.spawns);
+  const gearRate = Object.values(data.items.gearDrops.normal).reduce((a, c) => a + c, 0);
+  const share = data.items.salvage.returnByGrade.C;
+  const out = { minutes: 0, bossKills: 0, parts: {} };
+  for (const [item, n] of Object.entries(recipe.cost)) {
+    if (item === 'gold') continue;
+    if (boss.has(item)) { out.bossKills = Math.max(out.bossKills, n); out.parts[item] = { n, boss: true }; continue; }
+    let best = null;
+    for (const s of spawns) {
+      if (s.level[0] > recipe.itemLevel + 5) continue;
+      const drop = M[s.monster].drops.find((x) => x.item === item);
+      if (!drop) continue;
+      const level = Math.min(s.level[1], Math.max(s.level[0], recipe.itemLevel));
+      // gear it drops, salvaged at C grade, returns a share of the recipe parts too (small)
+      const made = gearDropCandidates(data, s.monster, level);
+      const salvage = made.length ? gearRate * made.reduce((a, id) => a + Math.floor((gearRecipe(data, id)?.cost[item] || 0) * share), 0) / made.length : 0;
+      const perKill = drop.chance * (drop.min + drop.max) / 2 + salvage;
+      const sec = (monsterTtk(data, kit, s.monster, level) + b.secondsPerKill) / perKill;
+      if (!best || sec < best.sec) best = { sec, monster: s.monster, level };
+    }
+    if (!best) throw new Error(`${recipe.result}: no normal source for ${item}`);
+    out.parts[item] = { n, monster: best.monster, level: best.level, minutes: (n * best.sec) / 60 };
+    out.minutes += (n * best.sec) / 60;
+  }
+  return out;
 }

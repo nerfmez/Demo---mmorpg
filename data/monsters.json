@@ -20,7 +20,7 @@
           "windup": 0.4,
           "recover": 0.6,
           "cooldown": 1.4,
-          "damageMult": 1.0
+          "damageMult": 1
         },
         "charge": {
           "minRange": 3,
@@ -74,13 +74,13 @@
           "recover": 0.5,
           "cooldown": 2.6,
           "speed": 9,
-          "damageMult": 1.0,
+          "damageMult": 1,
           "poisonDps": 3,
           "poisonDuration": 3
         },
         "shell": {
           "hitsToTrigger": 3,
-          "window": 2.0,
+          "window": 2,
           "duration": 2.2,
           "damageTaken": 0.25,
           "cooldown": 6
@@ -175,7 +175,7 @@
           "recover": 0.4,
           "cooldown": 2.2,
           "speed": 8,
-          "damageMult": 1.0
+          "damageMult": 1
         },
         "blink": {
           "triggerRange": 3.2,
@@ -215,7 +215,7 @@
       "hp": 70,
       "damage": 10,
       "defense": 5,
-      "speed": 5.0,
+      "speed": 5,
       "radius": 0.7,
       "aggroRange": 9,
       "leashRange": 22,
@@ -227,7 +227,7 @@
           "windup": 0.35,
           "recover": 0.5,
           "cooldown": 1.3,
-          "damageMult": 1.0
+          "damageMult": 1
         },
         "lunge": {
           "minRange": 2.5,
@@ -295,7 +295,7 @@
           "radius": 3.2,
           "duration": 4,
           "dps": 6,
-          "damageMult": 1.0
+          "damageMult": 1
         },
         "hop": {
           "distance": 4.5,
@@ -331,7 +331,7 @@
       "hp": 190,
       "damage": 15,
       "defense": 24,
-      "speed": 2.0,
+      "speed": 2,
       "radius": 1.1,
       "aggroRange": 9,
       "leashRange": 16,
@@ -341,7 +341,7 @@
         "pound": {
           "range": 3.2,
           "radius": 3.4,
-          "windup": 1.0,
+          "windup": 1,
           "recover": 1.1,
           "cooldown": 4,
           "damageMult": 1.4
@@ -398,7 +398,7 @@
           "windup": 0.7,
           "radius": 1.5,
           "speed": 18,
-          "recover": 1.0,
+          "recover": 1,
           "cooldown": 3.5,
           "damageMult": 1.3
         }
@@ -464,7 +464,7 @@
           "count": 3
         },
         "howl": {
-          "windup": 1.0,
+          "windup": 1,
           "recover": 0.5,
           "cooldown": 20,
           "summon": 2
@@ -519,7 +519,7 @@
           "windup": 0.65,
           "recover": 0.7,
           "cooldown": 2.2,
-          "damageMult": 1.0
+          "damageMult": 1
         },
         "gore": {
           "minRange": 4,
@@ -534,9 +534,9 @@
         "slam": {
           "radius": 4.8,
           "windup": 1.1,
-          "recover": 1.0,
+          "recover": 1,
           "cooldown": 9,
-          "damageMult": 2.0,
+          "damageMult": 2,
           "shockwaveSpeed": 7,
           "shockwaveMax": 11
         }
@@ -740,6 +740,295 @@
         }
       ],
       "primaryAttack": "pinch"
+    },
+    "thicket_mantis": {
+      "name": "Thicket Mantis",
+      "nameTh": "ตั๊กแตนพงหนาม",
+      "behavior": "mantis",
+      "hp": 64,
+      "damage": 10,
+      "defense": 5,
+      "speed": 4.2,
+      "radius": 0.7,
+      "aggroRange": 9,
+      "leashRange": 20,
+      "exp": 20,
+      "jobExp": 14,
+      "attacks": {
+        "scythe": {
+          "range": 1.9,
+          "arc": 150,
+          "windup": 0.6,
+          "hitTime": 0.12,
+          "duration": 0.4,
+          "recover": 0.35,
+          "cooldown": 2.2,
+          "damageMult": 1.15
+        },
+        "lunge": {
+          "minRange": 3,
+          "maxRange": 7,
+          "windup": 0.5,
+          "speed": 13,
+          "duration": 0.36,
+          "recover": 0.7,
+          "cooldown": 5,
+          "damageMult": 1.2
+        }
+      },
+      "retreat": {
+        "distance": 3.2,
+        "duration": 0.45,
+        "pause": 0.5
+      },
+      "drops": [
+        {
+          "item": "mantis_scythe",
+          "chance": 0.55,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "beetle_shell",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 9
+        }
+      ]
+    },
+    "reed_viper": {
+      "name": "Reed Viper",
+      "nameTh": "งูกกพิษ",
+      "behavior": "viper",
+      "hp": 52,
+      "damage": 10,
+      "defense": 3,
+      "speed": 3.4,
+      "radius": 0.6,
+      "aggroRange": 9,
+      "leashRange": 20,
+      "exp": 16,
+      "jobExp": 11,
+      "keepDistance": [
+        3,
+        6
+      ],
+      "attacks": {
+        "strike": {
+          "minRange": 0,
+          "maxRange": 5,
+          "windup": 0.55,
+          "speed": 16,
+          "duration": 0.28,
+          "recover": 0.75,
+          "cooldown": 3,
+          "damageMult": 1.25
+        },
+        "venom": {
+          "minRange": 2.5,
+          "range": 9,
+          "windup": 0.8,
+          "flight": 0.6,
+          "radius": 1.8,
+          "duration": 3,
+          "tick": 0.5,
+          "dps": 4,
+          "cooldown": 6,
+          "recover": 0.6,
+          "damageMult": 0.4
+        }
+      },
+      "drops": [
+        {
+          "item": "viper_scale",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "venom_gland",
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 8
+        }
+      ]
+    },
+    "ironhorn_ram": {
+      "name": "Ironhorn Ram",
+      "nameTh": "แพะผาเขาเหล็ก",
+      "behavior": "ram",
+      "hp": 120,
+      "damage": 12,
+      "defense": 14,
+      "speed": 3,
+      "radius": 0.95,
+      "aggroRange": 10,
+      "leashRange": 22,
+      "exp": 30,
+      "jobExp": 20,
+      "attacks": {
+        "ram": {
+          "minRange": 3.5,
+          "maxRange": 11,
+          "windup": 0.9,
+          "speed": 17,
+          "duration": 0.6,
+          "recover": 0.9,
+          "cooldown": 5.5,
+          "damageMult": 1.5,
+          "missStun": 1.4
+        },
+        "stomp": {
+          "range": 1.4,
+          "radius": 2.6,
+          "windup": 0.7,
+          "recover": 0.8,
+          "cooldown": 3.5,
+          "damageMult": 1.1
+        }
+      },
+      "drops": [
+        {
+          "item": "ram_horn",
+          "chance": 0.5,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "crag_stone",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 6,
+          "max": 12
+        }
+      ]
+    },
+    "duskmane_stalker": {
+      "name": "Duskmane Stalker",
+      "nameTh": "เสือเงาแผงคอเทา",
+      "behavior": "stalker",
+      "hp": 78,
+      "damage": 12,
+      "defense": 6,
+      "speed": 5.2,
+      "radius": 0.8,
+      "aggroRange": 10,
+      "leashRange": 22,
+      "exp": 24,
+      "jobExp": 16,
+      "circle": [
+        4.5,
+        7
+      ],
+      "attacks": {
+        "pounce": {
+          "minRange": 3,
+          "range": 9,
+          "windup": 0.75,
+          "radius": 1.6,
+          "recover": 0.4,
+          "cooldown": 5,
+          "damageMult": 1.4
+        },
+        "claw": {
+          "range": 1.6,
+          "arc": 120,
+          "windup": 0.4,
+          "hitTime": 0.1,
+          "duration": 0.32,
+          "recover": 0.5,
+          "cooldown": 1.6,
+          "damageMult": 1
+        }
+      },
+      "retreat": {
+        "distance": 4.5,
+        "duration": 0.6,
+        "pause": 0.3
+      },
+      "drops": [
+        {
+          "item": "dusk_pelt",
+          "chance": 0.55,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 5,
+          "max": 11
+        }
+      ]
+    },
+    "rune_sentinel": {
+      "name": "Rune Sentinel",
+      "nameTh": "ทหารยามศิลารูน",
+      "behavior": "sentinel",
+      "hp": 130,
+      "damage": 12,
+      "defense": 18,
+      "speed": 1.4,
+      "radius": 0.9,
+      "aggroRange": 11,
+      "leashRange": 12,
+      "exp": 32,
+      "jobExp": 21,
+      "attacks": {
+        "beam": {
+          "range": 12,
+          "width": 1.1,
+          "windup": 1.2,
+          "recover": 1,
+          "cooldown": 4.5,
+          "damageMult": 1.5
+        },
+        "shards": {
+          "range": 2.4,
+          "radius": 3.2,
+          "windup": 0.8,
+          "recover": 0.9,
+          "cooldown": 5,
+          "damageMult": 1.2
+        }
+      },
+      "drops": [
+        {
+          "item": "rune_core",
+          "chance": 0.4,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "ruin_shard",
+          "chance": 0.12,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 6,
+          "max": 12
+        }
+      ]
     }
   }
 }

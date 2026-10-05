@@ -207,6 +207,29 @@ all/any/excluded tags and exact incompatibility reasons. Modifier-added tags are
 separately and do not silently grant native-tag eligibility. Calls to core `modFits()`
 remain the authority for compatibility; do not duplicate the rules in Godot UI code.
 
+### Mid/high monsters (attack kinds and presentation)
+
+Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`. New attack kinds:
+
+- **`scythe`, `claw`:** planted strikes on the `m.melee` path. They hit once at `hitTime`
+  inside `arc`.
+- **`strike`, `ram`:** lanes on the charge path. `missStun` stuns a charge that hit nobody.
+- **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.
+- **`venom`:** a `venom_pool` area marked at the target for the whole wind-up plus flight, then
+  ticking.
+- **`pounce`:** a `pounce` area marked at the target, then a dive-style leap.
+- **`beam`:** at the end of the wind-up, a line (length `range`, width `width`) from the
+  monster. Emits `beam`.
+
+The stalker sets `m.stealth` while it circles. Any wind-up or a hit (`revealT` 2 s) clears it.
+The view fades its toon material (`transparent` needs a recompile, so it toggles only on
+change) and its outline hull; pooled rigs are reset on release.
+
+Rigs and animation live in `render/monsters-midhigh.js` (procedural, 700–4500 triangles).
+Telegraphs reuse the ring, sector and lane decals, with a fixed-length lane for the beam.
+`balance.js` adds `monsterTtk`, `monsterExpPerMin`, `bossOnlyMaterials` and `recipeFarming`.
+Browser review: `tests/browser/midhigh-monsters.mjs`.
+
 ### Ability-family scaling and modifier compatibility
 
 Port the new derived fields along with their Node tests:

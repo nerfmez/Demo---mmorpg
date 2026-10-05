@@ -29,7 +29,8 @@ const ELEMENT = {
   none: { core: 0xeafff4, glow: 0x6fe0b0, dots: 0xb4ffe0 },
 };
 export const el = (e) => ELEMENT[e] || ELEMENT.physical;
-const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch']);
+const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch', 'scythe', 'claw']);
+const RING_TELLS = new Set(['slam', 'stomp', 'shards']);
 
 let glowTex = null;
 export function glowTexture() {
@@ -639,7 +640,9 @@ export class Vfx {
 
   burst(e) {
     if (e.kind === 'stone_burst') return this.stoneBurst(e);
-    if (e.kind === 'slam' || e.kind === 'pound') return this.slam(e);
+    if (e.kind === 'slam' || e.kind === 'pound' || e.kind === 'stomp') return this.slam(e);
+    if (e.kind === 'shards') return this.shardBurst(e);
+    if (e.kind === 'pounce') return this.dive(e);
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
@@ -810,7 +813,38 @@ export class Vfx {
     this.fx.burst(e.x, y + 1.3, e.z, 10, { color: 0xe8e0ff, size: 0.25, speed: 2, life: 0.6, up: 1 });
   }
 
+  /** Rune sentinel: shards burst out over the marked ring, cyan sparks and a ring wave. */
+  shardBurst(e) {
+    const y = this.gy(e.x, e.z);
+    this.fx.burst(e.x, y + 0.9, e.z, 22, { color: 0x9ff0ff, size: 0.3, speed: e.radius * 2.4, life: 0.45, up: 0.15 });
+    this.dust.burst(e.x, y + 0.2, e.z, 12, { color: 0xa9a99a, size: 0.7, sizeEnd: 1.2, speed: e.radius * 1.8, life: 0.6, up: 0.2, drag: 3 });
+    this.ring(e.x, e.z, e.radius, 0x7fe3ee, 0.35);
+  }
+
+  /** Rune sentinel beam: a bright line along the locked aim that fades fast. */
+  beam(e) {
+    // a thin bright core inside a soft cyan sheath, read as a beam from the high camera
+    const core = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.14, e.width * 0.14, e.length, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0xd8fbff, 0.95));
+    const glow = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.42, e.width * 0.42, e.length, 10, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0x3fc6dc, 0.35));
+    const group = new THREE.Group();
+    group.add(glow, core);
+    group.position.set(e.x, this.gy(e.x, e.z) + 1.4, e.z);
+    group.rotation.y = e.angle;
+    this.spawn(group, 0.4, (t) => {
+      core.material.opacity = 0.95 * (1 - t);
+      glow.material.opacity = 0.35 * (1 - t);
+      const thin = 1 - t * 0.7;
+      core.scale.set(thin, thin, 1);
+      glow.scale.set(1 + t * 0.5, 1 + t * 0.5, 1);
+    });
+    for (let i = 0; i < 10; i++) {
+      const d = (i / 9) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
+      this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 1.2, 0, { color: 0x9ff0ff, size: 0.28, sizeEnd: 0.05, life: 0.4, drag: 2 });
+    }
+  }
+
   lob(e) {
+    if (e.kind === 'venom') return this.venomLob(e);
     // a boulder arcing from the golem to its target over e.duration
     const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.45, 0), toon('#8f877c'));
     rock.castShadow = true;
@@ -820,6 +854,16 @@ export class Vfx {
       rock.position.set(e.fromX + (e.x - e.fromX) * t, y0 + (y1 - y0) * t + Math.sin(t * Math.PI) * 5, e.fromZ + (e.z - e.fromZ) * t);
       rock.rotation.x += 0.2;
       rock.rotation.z += 0.13;
+    });
+  }
+
+  venomLob(e) {
+    // a glob of venom arcing from the viper's mouth to the marked pool
+    const glob = new THREE.Mesh(this.venomGeo || (this.venomGeo = Object.assign(new THREE.SphereGeometry(0.15, 8, 6), { userData: { shared: true } })), toon('#9adf4a', { emissive: '#4f8a2a', emissiveIntensity: 0.4 }));
+    const y0 = this.gy(e.fromX, e.fromZ) + 0.9, y1 = this.gy(e.x, e.z) + 0.2;
+    this.spawn(glob, e.duration, (t) => {
+      glob.position.set(e.fromX + (e.x - e.fromX) * t, y0 + (y1 - y0) * t + Math.sin(t * Math.PI) * 2.2, e.fromZ + (e.z - e.fromZ) * t);
+      if (Math.random() < 0.5) this.fx.add(glob.position.x, glob.position.y, glob.position.z, 0, -0.5, 0, { color: 0xb6ec4a, size: 0.16, sizeEnd: 0.03, life: 0.35 });
     });
   }
 
@@ -1104,7 +1148,32 @@ export class Vfx {
         boundary.material.opacity = cfg.cast.boundaryOpacity * (.7 + .3 * k);
       } };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound') {
+    if (a.kind === 'venom_pool') {
+      // marked like a boulder while the venom flies, then a bubbling green pool
+      const tell = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
+      tell.material.uniforms.uColor.value.set(0x9adf4a);
+      tell.material.uniforms.uColor2.value.set(0xd6f07a);
+      const pool = this.decal(this.discGeo, discMaterial('mire'), a.x, a.z, a.radius, 0, 0.07);
+      pool.material.uniforms.uColor.value.set(0x4f8a2a);
+      pool.material.uniforms.uColor2.value.set(0xb6ec4a);
+      const group = new THREE.Group();
+      group.add(tell, pool);
+      return {
+        obj: group,
+        update: (ar, t, dt) => {
+          const landed = ar.t >= ar.delay;
+          tell.material.uniforms.uFill.value = Math.min(1, ar.t / Math.max(0.01, ar.delay));
+          tell.material.uniforms.uA.value = landed ? 0 : 0.9;
+          pool.material.uniforms.uT.value = t;
+          pool.material.uniforms.uA.value = landed ? Math.min(1, (ar.t - ar.delay) * 6) * Math.min(1, (ar.delay + ar.duration - ar.t) * 2) * 0.9 : 0;
+          if (landed && Math.random() < dt * 10) {
+            const ang = Math.random() * Math.PI * 2, rr = Math.random() * ar.radius, x = ar.x + Math.sin(ang) * rr, z = ar.z + Math.cos(ang) * rr;
+            this.fx.add(x, this.gy(x, z) + 0.15, z, 0, 0.8, 0, { color: 0xb6ec4a, size: 0.22, sizeEnd: 0.05, life: 0.6, drag: 1 });
+          }
+        },
+      };
+    }
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
@@ -1147,16 +1216,16 @@ export class Vfx {
       const w = m.windup;
       if (m.dead || !w || m.state !== 'windup') continue;
       let kind = null;
-      if (w.name === 'slam') kind = 'slam';
+      if (RING_TELLS.has(w.name)) kind = 'slam';
       else if (COASTAL_CONTACTS.has(w.name)) kind = 'melee';
-      else if (w.name === 'gore' || w.name === 'charge' || w.name === 'lunge' || w.name === 'triple') kind = 'lane';
+      else if (w.name === 'gore' || w.name === 'charge' || w.name === 'lunge' || w.name === 'triple' || w.name === 'strike' || w.name === 'ram' || w.name === 'beam') kind = 'lane';
       if (!kind) continue;
       const key = `${m.id}:${w.name}`;
       seen.add(key);
       let v = this.telegraphs.get(key);
       if (!v) {
         if (kind === 'slam') {
-          const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, w.radius || m.def.attacks.slam.radius, 0, 0.07);
+          const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, w.radius || m.def.attacks[w.name].radius, 0, 0.07);
           mesh.material.uniforms.uColor.value.set(0xff6a3a);
           mesh.material.uniforms.uColor2.value.set(0xff9a5a);
           v = { mesh, kind };
@@ -1167,8 +1236,9 @@ export class Vfx {
           v = { mesh, kind };
         } else {
           const atk = m.def.attacks[w.name];
-          const len = (atk.speed || 12) * (atk.duration || 0.4);
-          const geo = new THREE.PlaneGeometry(m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
+          // a beam is a fixed line; a charge covers its speed over its duration
+          const len = w.name === 'beam' ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
+          const geo = new THREE.PlaneGeometry(w.name === 'beam' ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
           const mesh = makeDecal(geo, new THREE.MeshBasicMaterial({ color: 0xff7a4a, transparent: true, opacity: 0.25, depthWrite: false }), this.world, 0.07);
           v = { mesh, kind };
         }
@@ -1178,7 +1248,7 @@ export class Vfx {
       const k = Math.min(1, m.stateT / w.total);
       v.mesh.position.set(m.x, 0, m.z);
       if (v.kind === 'slam') {
-        const r = w.radius || m.def.attacks.slam.radius;
+        const r = w.radius || m.def.attacks[w.name].radius;
         v.mesh.scale.set(r, 1, r);
         v.mesh.material.uniforms.uFill.value = k;
         v.mesh.material.uniforms.uA.value = 0.9;

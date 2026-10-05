@@ -121,6 +121,7 @@ export function setAggro(game, m, unit = null, force = false) {
 
 export function onMonsterHit(game, m, by = null) {
   setAggro(game, m, by || game.player, !!by);
+  if (m.def.behavior === 'stalker') { m.revealT = 2; m.stealth = false; }
   const sh = m.def.attacks.shell;
   if (!sh || m.state === 'shell' || m.state === 'act') return;
   m.recentHits.push(game.time);
@@ -207,6 +208,7 @@ function startWindup(game, m, name, t, extra = {}) {
   setState(m, 'windup');
   const angle = t ? angleTo(m.x, m.z, t.x, t.z) : m.facing;
   m.windup = { name, total: atk.windup * tempo, angle, ...extra };
+  m.stealth = false; // every wind-up is shown in full
   m.facing = angle;
   m.moving = false;
   game.emit({ type: 'windup', id: m.id, name, total: m.windup.total, angle, x: m.x, z: m.z, radius: atk.radius, range: atk.range || atk.maxRange });
@@ -216,7 +218,7 @@ function windup(game, m, dt, t, gap) {
   const w = m.windup;
   const atk = m.def.attacks[w.name];
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl'].includes(w.name)) {
+  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards'].includes(w.name)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -226,6 +228,8 @@ function windup(game, m, dt, t, gap) {
     case 'slap':
     case 'peck':
     case 'pinch':
+    case 'scythe':
+    case 'claw':
       // A stationary strike has its own contact time and follow-through. It never
       // uses the charge collision path, and only tests the locked frontal arc once.
       m.melee = { name: w.name, angle: w.angle, damage: dmg, hit: false };
@@ -246,7 +250,9 @@ function windup(game, m, dt, t, gap) {
     case 'charge':
     case 'gore':
     case 'lunge':
-    case 'triple': {
+    case 'triple':
+    case 'strike':
+    case 'ram': {
       m.charge = { t: 0, dur: atk.duration, speed: atk.speed, angle: w.angle, hit: new Set(), dmg, left: w.left ?? (atk.count ? atk.count - 1 : 0) };
       if (w.name !== 'triple' || m.charge.left === (atk.count || 1) - 1) m.cd[w.name] = atk.cooldown;
       setState(m, 'act');
@@ -283,6 +289,28 @@ function windup(game, m, dt, t, gap) {
       m.cd.slam = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'stomp':
+    case 'shards':
+      // a ring around the monster, marked on the ground for the whole wind-up
+      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: w.name, x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: 0.3, damage: dmg });
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    case 'venom':
+      // the pool was marked at wind-up start; the venom now flies there
+      game.emit({ type: 'lob', id: m.id, kind: 'venom', fromX: m.x, fromZ: m.z, x: w.tx, z: w.tz, duration: atk.flight });
+      m.cd.venom = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    case 'beam': {
+      // a straight line from the monster, locked during the last part of the wind-up
+      const dir = dirFromAngle(w.angle), half = atk.width / 2;
+      game.emit({ type: 'beam', id: m.id, x: m.x, z: m.z, angle: w.angle, length: atk.range, width: atk.width });
+      for (const u of game.units()) {
+        const dx = u.x - m.x, dz = u.z - m.z, along = dx * dir.x + dz * dir.z, side = Math.abs(dx * dir.z - dz * dir.x);
+        if (along >= 0 && along <= atk.range + u.r && side <= half + u.r) game.damageUnit(u, dmg, m);
+      }
+      m.cd.beam = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'pound':
       // the telegraphed area was spawned at wind-up start and fires by itself
       m.cd.pound = atk.cooldown;
@@ -304,6 +332,7 @@ function windup(game, m, dt, t, gap) {
       m.windup = { ...w };
       return;
     }
+    case 'pounce':
     case 'dive': {
       m.charge = { t: 0, dur: 0.35, fromX: m.x, fromZ: m.z, toX: w.tx, toZ: w.tz, dive: true, hit: new Set(), dmg: 0 };
       setState(m, 'act');
@@ -370,9 +399,10 @@ function act(game, m, dt, t) {
     m.x = c.fromX + (c.toX - c.fromX) * k;
     m.z = c.fromZ + (c.toZ - c.fromZ) * k;
     if (k >= 1) {
+      const name = m.windup?.name === 'pounce' ? 'pounce' : 'dive', atk = m.def.attacks[name];
       m.charge = null;
-      m.cd.dive = m.def.attacks.dive.cooldown;
-      setState(m, 'recover', m.def.attacks.dive.recover);
+      m.cd[name] = atk.cooldown;
+      setState(m, 'recover', atk.recover);
     }
     return;
   }
@@ -405,6 +435,11 @@ function act(game, m, dt, t) {
       return;
     }
     const atk = m.def.attacks[name];
+    // a heavy charge that hit nobody leaves the monster off balance: the punish window
+    if (!c.hop && atk?.missStun && !c.hit.size) {
+      game.emit({ type: 'stunned', id: m.id, x: m.x, z: m.z });
+      return setState(m, 'stunned', atk.missStun);
+    }
     setState(m, 'recover', c.hop ? 0.3 : atk ? atk.recover : 0.8);
   }
 }
@@ -568,4 +603,66 @@ function wardenBoss(game, m, dt, { t, gap, slowMult }) {
   }
 }
 
-const BEHAVIORS = { charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+function mantis(game, m, dt, { t, gap, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.scythe.range && m.cd.scythe <= 0) return startWindup(game, m, 'scythe', t);
+  if (m.cd.lunge <= 0 && gap >= a.lunge.minRange && gap <= a.lunge.maxRange) return startWindup(game, m, 'lunge', t);
+  if (gap > a.scythe.range * 0.8) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+  else {
+    m.moving = false;
+    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 6);
+  }
+}
+
+function viper(game, m, dt, { t, gap, dToT, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.strike.maxRange && m.cd.strike <= 0) return startWindup(game, m, 'strike', t);
+  if (m.cd.venom <= 0 && gap >= a.venom.minRange && gap <= a.venom.range) {
+    // aim where the target stands now: step out of the marked pool
+    startWindup(game, m, 'venom', t, { tx: t.x, tz: t.z });
+    const lvl = 1 + (m.level - 1) * 0.15;
+    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'venom_pool', x: t.x, z: t.z, radius: a.venom.radius, delay: m.windup.total + a.venom.flight, duration: a.venom.duration, tick: a.venom.tick, damage: a.venom.dps * a.venom.tick * lvl });
+    return;
+  }
+  const [near, far] = m.def.keepDistance;
+  strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
+}
+
+function ram(game, m, dt, { t, gap, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.stomp.range && m.cd.stomp <= 0) return startWindup(game, m, 'stomp', t, { radius: a.stomp.radius });
+  if (m.cd.ram <= 0 && gap >= a.ram.minRange && gap <= a.ram.maxRange) return startWindup(game, m, 'ram', t);
+  if (gap > a.stomp.range * 0.8) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+  else {
+    m.moving = false;
+    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 3);
+  }
+}
+
+function stalker(game, m, dt, { t, gap, dToT, slowMult }) {
+  const a = m.def.attacks;
+  m.revealT = Math.max(0, (m.revealT || 0) - dt);
+  if (gap <= a.claw.range && m.cd.claw <= 0) return startWindup(game, m, 'claw', t);
+  if (m.cd.pounce <= 0 && gap >= a.pounce.minRange && gap <= a.pounce.range) {
+    startWindup(game, m, 'pounce', t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pounce', x: t.x, z: t.z, radius: a.pounce.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.pounce.damageMult });
+    return;
+  }
+  // between attacks it circles half-seen, out of reach
+  m.stealth = m.revealT <= 0;
+  const [near, far] = m.def.circle;
+  strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
+}
+
+function sentinel(game, m, dt, { t, gap, dToT, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.shards.range && m.cd.shards <= 0) return startWindup(game, m, 'shards', t, { radius: a.shards.radius });
+  if (m.cd.beam <= 0 && dToT <= a.beam.range) return startWindup(game, m, 'beam', t);
+  if (dToT > a.beam.range * 0.8) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+  else {
+    m.moving = false;
+    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 2);
+  }
+}
+
+const BEHAVIORS = { mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

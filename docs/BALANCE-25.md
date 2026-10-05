@@ -54,7 +54,7 @@ regenerates over the fight plus 6 s to the next one.
 | staff | 10 | 54.1 | 4.7 s | 22 s | 13.3 |
 | staff | 25 | 108.2 | 5.2 s | 37 s | 53.6 |
 
-Reaching Lv25 on same-level monsters alone takes 7.6 h (sword and bow) to 8.3 h (staff).
+Reaching Lv25 on same-level monsters alone takes 7.4–7.5 h (sword and bow) to 8.2 h (staff).
 Quests add more.
 
 | Target | Range |
@@ -79,6 +79,63 @@ This is a model. Feel, dodging and encounter difficulty still need play review.
 - **Recipes:** cost grows with the tier, with a main part, a second part, bulk lower-tier
   parts (10–30), a rare part from tier 4, and gold. First-tier recipes keep their onboarding
   values.
+
+## Mid/high monsters (levels 11–24)
+
+Five normal monsters fill the mid and high zones, so high gear does not hang on old monsters
+or repeated boss kills. Each has its own body, attack pattern and part. No new boss.
+
+| Monster | Levels, zone | Pattern | Drops | Main use |
+|---|---|---|---|---|
+| ตั๊กแตนพงหนาม `thicket_mantis` | 11–14 forest, wolf den | Rears with both scythes, X-slash in a 150° cone, hops back; lunge from 3–7 m | mantis_scythe 55%, beetle_shell 30% | IL11 blades, axe, gloves, talisman |
+| งูกกพิษ `reed_viper` | 14–18 Frontier coast, wetland | Coils, then a fast straight strike; lobs venom onto a marked pool (3 s); keeps 3–6 m | viper_scale 60% ×1–2, venom_gland 35% | IL16 wisp/storm gear, armour, boots |
+| แพะผาเขาเหล็ก `ironhorn_ram` | 18–21 highlands | Paws the ground, then a long charge (lane); a miss leaves it stunned 1.4 s; rears and stomps a 2.6 m ring | ram_horn 50%, crag_stone 30% | IL16 maul/shield, IL21 horn and crag gear |
+| เสือเงาแผงคอเทา `duskmane_stalker` | 20–23 highlands, ruins | Circles half-seen; crouches and pounces onto a marked spot; claw swipe; backs off. A hit or any wind-up reveals it | dusk_pelt 55% ×1–2 | Wardenstalker set, IL21 bow and dagger, greaves, gauntlets |
+| ทหารยามศิลารูน `rune_sentinel` | 21–24 ruins | Charges a 12 m beam (locked after 55% of a 1.2 s wind-up); shard ring around itself up close; slow, does not chase far | rune_core 40%, ruin_shard 12% | Ancient staff/ring, relic wand, oathblade |
+
+- **Experience:** each new monster gives experience per minute inside its zone's range, never
+  above the fastest monster already there (`monsterExpPerMin`, tested).
+- **Spawns:** they replace part of the old counts in those zones. The Frontier has 300 spawns
+  (was 282).
+
+### Recipes (IL11–21)
+
+The main part of each tier comes from the new monster of that band. A boss-only part stays as
+a small key (at most 2 per recipe; `greyfang_mane`, `warden_horn` and `ancient_core` stay
+boss-only), and bulk first-tier parts stay lighter (12–20 instead of 20–37).
+
+| Recipe | Before | Now |
+|---|---|---|
+| Wardenstalker coat / hood / gloves | greyfang_mane 12 each (36 Greyfang kills) | greyfang_mane 2, dusk_pelt 15–20 |
+| horn_greatblade, horned_helm | warden_horn 12 | warden_horn 2, ram_horn 15–20 |
+| ancient_staff, ancient_ring | ancient_core 12 | ancient_core 2, rune_core 17 |
+| greyfang_sabre, knight_greatsword | greyfang_mane 8 | greyfang_mane 2, mantis_scythe 10–12 |
+| IL21 bulk | boar_tusk / boar_hide 30 | 17 |
+| IL16 bulk | spore_sac 37, boar_tusk 25 | 18–23 |
+
+`ruin_shard` (2 per IL21 recipe) now also drops from the sentinel; before, only the Horned
+Warden dropped it. The tier rule still holds: each tier asks for at least 20% more parts than
+the one below.
+
+### Farming time (model)
+
+`recipeFarming` (core/balance.js) estimates minutes for one recipe:
+- Each part comes from its quickest spawn at or below the tier band (tier to tier + 5).
+- It includes C-grade salvage of the gear those monsters drop.
+- It adds the parts one after another, so it is an upper bound (in play several come at once).
+- These are calculated values, not measured play.
+
+| Tier | Average minutes per piece | Levelling through the band |
+|---|---|---|
+| IL11 | about 10 | 89 min (Lv11–15) |
+| IL16 | about 11 | 146 min (Lv16–20) |
+| IL21 | about 25 | 162 min (Lv21–25) |
+
+- **Tested:** at least three pieces of a tier fit inside the time to level through its band,
+  so a set is done before it goes out of date. Each tier takes longer than the one below.
+- **Boss kills:** no recipe needs more than 2 kills of a boss.
+- **Example:** the Wardenstalker set now takes about 50 min of farming plus 6 Greyfang kills
+  and 1 Horned Warden kill.
 
 ## Gear drops
 

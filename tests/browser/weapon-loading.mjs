@@ -49,6 +49,15 @@ try{
  // A failed GLB URL falls back once and never reloads on subsequent equips.
  await page.route('**/tide_staff.glb',r=>r.abort());await select('tide_staff');await current('tide_staff');await page.waitForTimeout(300);assert.ok(await triangles()>0);
  await select('rusty_sword');await current('rusty_sword');await select('tide_staff');await current('tide_staff');assert.equal(requests.filter(r=>r.endsWith('/tide_staff.glb')).length,1);
+ // Native bow shot with the supplied zero-origin grip, sampled at its authored hit phase.
+ await select('fang_bow');await current('fang_bow');await page.waitForFunction(()=>{let n=0;window.__frontier.view.hero.bones.weapon.traverse(o=>{if(o.isMesh&&o.material.isMeshToonMaterial)n+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;});return n===20996;});
+ await page.evaluate(()=>{const f=window.__frontier,g=f.game;g.ch.slots[0]={skill:'hunter_shot',mods:[]};g.refresh();g.player.mp=g.player.maxMp;g.player.cooldowns[0]=0;g.castSlot(0,{x:g.player.x+5,z:g.player.z});});
+ await page.waitForFunction(()=>!!window.__frontier.view.heroAnim.action);
+ await page.evaluate(()=>{const f=window.__frontier,a=f.view.heroAnim;f.paused=true;a.action.t=a.action.dur*a.action.hitAt;const update=a.update.bind(a);a.update=(_dt,s)=>update(0,s);f.view.updateHero(0,f.game.time);f.view.renderer.render(f.view.scene,f.view.camera);});
+ const bowGrip=await page.evaluate(()=>{const r=window.__frontier.view.hero;r.root.updateMatrixWorld(true);const palm=r.bones.weapon.position.clone().copy(r.gripCenter);r.skin.body.getObjectByName('J_Bip_R_Hand').localToWorld(palm);return r.bones.weapon.getWorldPosition(r.bones.weapon.position.clone()).distanceTo(palm);});
+ assert.ok(bowGrip<1e-5,'bow GLB zero grip seats in actual palm');
+ await page.screenshot({path:`${out}/bow-zero-origin-native-hit.png`});
+ await page.evaluate(()=>{delete window.__frontier.view.heroAnim.update;window.__frontier.paused=false;});
  // The largest completed legal light pair is measured with its outlines and current field.
  await select('wolfbite_sword');
  await page.evaluate(()=>{const f=window.__frontier,g=f.game,ch=g.ch;const base='spore_wand',item={uid:ch.nextUid++,base,itemLevel:g.data.items.gearBases[base].itemLevel,grade:'B',upgrade:0,options:[]};ch.gear.push(item);if(!f.equip(ch,g.data,item.uid,'offhand').ok)throw Error('dual equip');g.refresh();});
@@ -58,6 +67,6 @@ try{
  assert.ok(grip.right<1e-5&&grip.left<1e-5,'imported grips meet both palms');
  await page.screenshot({path:`${out}/largest-completed-light-pair.png`});
  assert.deepEqual(errors,[]);
- writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,peakPair,grip,weaponRequests:requests.map(r=>r.split('/').at(-1)),staleCompletion:'current rig UUID unchanged',currentCompletion:'active animator/action/progress retained',missingFallback:'passed',failedFallback:'passed; no repeated request',errors},null,2));
+ writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,peakPair,grip,bowGrip,weaponRequests:requests.map(r=>r.split('/').at(-1)),staleCompletion:'current rig UUID unchanged',currentCompletion:'active animator/action/progress retained',missingFallback:'passed',failedFallback:'passed; no repeated request',errors},null,2));
  console.log('PASS weapon loading',JSON.stringify(coldStart));
 }finally{await browser?.close();try{process.kill(-server.pid);}catch(e){if(e.code!=='ESRCH')throw e;}}

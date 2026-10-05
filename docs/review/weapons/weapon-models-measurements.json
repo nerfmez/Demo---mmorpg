@@ -1,0 +1,571 @@
+{
+  "engine": "chromium",
+  "coldStart": {
+    "weaponRequests": 1,
+    "weaponBytes": 1335312,
+    "allResourceRequests": 72,
+    "allDecodedBytes": 41276926
+  },
+  "bowGrip": 8.659739592076221e-15,
+  "samples": [
+    {
+      "id": "rusty_sword",
+      "parts": 1,
+      "tris": 5052,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 112422,
+        "drawCalls": 81
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "rusty_sword",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "fang_bow",
+      "parts": 1,
+      "tris": 20996,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 129020,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "fang_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "frontier_kris",
+      "parts": 1,
+      "tris": 9646,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 106152,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "frontier_kris",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "fang_dagger",
+      "parts": 1,
+      "tris": 23610,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 134080,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "fang_dagger",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "hermit_cleaver",
+      "parts": 1,
+      "tris": 12904,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 112668,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "hermit_cleaver",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "spore_staff",
+      "parts": 1,
+      "tris": 26164,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 139188,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "spore_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tide_staff",
+      "parts": 1,
+      "tris": 17740,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 122340,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tide_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tusk_greatblade",
+      "parts": 1,
+      "tris": 27206,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 141272,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tusk_greatblade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "venom_wand",
+      "parts": 1,
+      "tris": 16008,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 118876,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "venom_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "old_bow",
+      "parts": 1,
+      "tris": 9820,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 106668,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "old_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "spore_wand",
+      "parts": 1,
+      "tris": 33168,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 153196,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "spore_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tusk_blade",
+      "parts": 1,
+      "tris": 7376,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 101612,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tusk_blade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "apprentice_staff",
+      "parts": 1,
+      "tris": 6156,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 99172,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "apprentice_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "hunter_bow",
+      "parts": 1,
+      "tris": 9784,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 106596,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "hunter_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tusk_club",
+      "parts": 1,
+      "tris": 22224,
+      "kind": "mace",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 131308,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "mace",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tusk_club",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "shell_knife",
+      "parts": 1,
+      "tris": 15318,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 117496,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "shell_knife",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "beetle_maul",
+      "parts": 1,
+      "tris": 16332,
+      "kind": "mace",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 119524,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "mace",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "beetle_maul",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "skyrender_bow",
+      "parts": 1,
+      "tris": 12238,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 111504,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "skyrender_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "wolfbite_sword",
+      "parts": 1,
+      "tris": 34544,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 155948,
+        "drawCalls": 66
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "wolfbite_sword",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    }
+  ],
+  "resource": [
+    {
+      "geometries": 130,
+      "textures": 59,
+      "programs": 73,
+      "drawCalls": 67,
+      "activeTriangles": 155950
+    },
+    {
+      "geometries": 130,
+      "textures": 59,
+      "programs": 72,
+      "drawCalls": 66,
+      "activeTriangles": 155948
+    },
+    {
+      "geometries": 130,
+      "textures": 59,
+      "programs": 72,
+      "drawCalls": 66,
+      "activeTriangles": 155948
+    }
+  ],
+  "loading": [
+    {
+      "file": "rusty_sword.glb",
+      "bytes": 1335312,
+      "durationMs": 12.5
+    },
+    {
+      "file": "fang_bow.glb",
+      "bytes": 1798328,
+      "durationMs": 27.100000000093132
+    },
+    {
+      "file": "frontier_kris.glb",
+      "bytes": 2122152,
+      "durationMs": 2956.6999999999534
+    },
+    {
+      "file": "fang_dagger.glb",
+      "bytes": 1533856,
+      "durationMs": 10
+    },
+    {
+      "file": "hermit_cleaver.glb",
+      "bytes": 2244960,
+      "durationMs": 2619.7999999998137
+    },
+    {
+      "file": "spore_staff.glb",
+      "bytes": 2451460,
+      "durationMs": 4913.90000000014
+    },
+    {
+      "file": "tide_staff.glb",
+      "bytes": 2340576,
+      "durationMs": 3008.6999999999534
+    },
+    {
+      "file": "tusk_greatblade.glb",
+      "bytes": 1982672,
+      "durationMs": 17.600000000093132
+    },
+    {
+      "file": "venom_wand.glb",
+      "bytes": 1709180,
+      "durationMs": 31.9000000001397
+    },
+    {
+      "file": "old_bow.glb",
+      "bytes": 2231076,
+      "durationMs": 2904.899999999907
+    },
+    {
+      "file": "spore_wand.glb",
+      "bytes": 2637216,
+      "durationMs": 1783.3999999999069
+    },
+    {
+      "file": "tusk_blade.glb",
+      "bytes": 1961488,
+      "durationMs": 6.800000000046566
+    },
+    {
+      "file": "apprentice_staff.glb",
+      "bytes": 2131268,
+      "durationMs": 1628.5999999998603
+    },
+    {
+      "file": "hunter_bow.glb",
+      "bytes": 2167628,
+      "durationMs": 2562.399999999907
+    },
+    {
+      "file": "tusk_club.glb",
+      "bytes": 2856900,
+      "durationMs": 1525.5
+    },
+    {
+      "file": "shell_knife.glb",
+      "bytes": 1195576,
+      "durationMs": 6.699999999953434
+    },
+    {
+      "file": "beetle_maul.glb",
+      "bytes": 547672,
+      "durationMs": 12.300000000279397
+    },
+    {
+      "file": "skyrender_bow.glb",
+      "bytes": 537032,
+      "durationMs": 11.5
+    },
+    {
+      "file": "wolfbite_sword.glb",
+      "bytes": 1714200,
+      "durationMs": 6.5
+    }
+  ],
+  "requestsBeforeReload": 19,
+  "errors": []
+}

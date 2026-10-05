@@ -25,7 +25,7 @@ try {
   page.setDefaultTimeout(120000);
   await page.addInitScript(() => { const raf = requestAnimationFrame.bind(window); window.requestAnimationFrame = (cb) => raf((t) => { if (!window.__freeze) cb(t); }); });
   page.on('pageerror', (e) => report.errors.push(String(e)));
-  page.on('console', (m) => { if (m.type() === 'error') report.errors.push(m.text()); });
+  page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) report.errors.push(m.text() + ' ' + m.location().url); });
   await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0&map=frontier-wilds-v1');
   await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
   await page.evaluate(() => {
@@ -112,7 +112,7 @@ try {
     await shot(`${type}-${attack}-3-recover`);
     if (type === 'duskmane_stalker' && attack === 'claw') {
       // after the strike it backs off and circles half-seen until its next attack
-      const fade = await page.evaluate(() => { const f = window.__frontier, m = f.current; for (const k in m.cd) m.cd[k] = 4; f.until(() => m.stealth, 4); f.step(0.8); return [m.stealth, f.view.monsterViews.get(m.id)?.rig.material.opacity]; });
+      const fade = await page.evaluate(() => { const f = window.__frontier, m = f.current; for (const k in m.cd) m.cd[k] = 4; f.until(() => m.stealth, 4); f.step(0.8); return [m.stealth, (() => { const rig = f.view.monsterViews.get(m.id)?.rig; return (rig?.modelMaterial || rig?.material)?.opacity; })()]; });
       assert.equal(fade[0], true, 'the stalker circles in stealth');
       assert.ok(fade[1] < 0.6, 'and is drawn half-seen');
       await shot(`${type}-4-stalk`);
@@ -128,8 +128,8 @@ try {
     const box = (o) => { o.updateMatrixWorld(true); const min = [1e9, 1e9, 1e9], max = [-1e9, -1e9, -1e9]; o.traverse((c) => { if (!c.isMesh || !c.geometry) return; c.geometry.computeBoundingBox(); const b = c.geometry.boundingBox.clone().applyMatrix4(c.matrixWorld); for (const [i, k] of [[0, 'x'], [1, 'y'], [2, 'z']]) { min[i] = Math.min(min[i], b.min[k]); max[i] = Math.max(max[i], b.max[k]); } }); return max.map((v, i) => Math.round((v - min[i]) * 100) / 100); };
     const res = { hero: box(f.view.hero.root) };
     for (const type of ['thicket_mantis', 'reed_viper', 'ironhorn_ram', 'duskmane_stalker', 'rune_sentinel']) { const m = f.roster.find((x) => x.type === type); const rig = f.view.takeRig(type, m.level, false); rig.root.position.set(0, -500, 0); f.view.scene.add(rig.root); res[type] = { level: m.level, size: box(rig.root) }; f.view.releaseRig(rig); }
-    // triangles per rig: the new monsters stay inside the regular monster budget
-    const tris = (type) => { const rig = f.view.takeRig(type, 10, false); let n = 0; rig.root.traverse((c) => { if (c.isMesh && c.geometry) n += (c.geometry.index ? c.geometry.index.count : c.geometry.attributes.position.count) / 3; }); f.view.releaseRig(rig); return Math.round(n); };
+    // triangles per rig (an outline hull shares its body's geometry): the new monsters stay inside the regular monster budget
+    const tris = (type) => { const rig = f.view.takeRig(type, 10, false); let n = 0; const seen = new Set(); rig.root.traverse((c) => { if (c.isMesh && c.geometry && !seen.has(c.geometry)) seen.add(c.geometry), n += (c.geometry.index ? c.geometry.index.count : c.geometry.attributes.position.count) / 3; }); f.view.releaseRig(rig); return Math.round(n); };
     res.triangles = Object.fromEntries(['thornback_wolf', 'crag_golem', 'thicket_mantis', 'reed_viper', 'ironhorn_ram', 'duskmane_stalker', 'rune_sentinel'].map((t) => [t, tris(t)]));
     return res;
   });

@@ -46,6 +46,13 @@ const ZONE_FOG = {
   coast: '#c6e8f2',
 };
 
+// a stalking monster's half-seen look: the body fades, the outline hull fades less
+function fadeRig(mat, hull, see, fade) {
+  if (mat.transparent !== see) { mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true; if (hull) hull.needsUpdate = true; } // opaque/transparent are separate programs
+  mat.opacity = see ? fade : 1;
+  if (hull) { hull.transparent = see; hull.depthWrite = !see; hull.opacity = see ? fade * fade : 1; }
+}
+
 export class View {
   constructor(canvas, world, { quality = 'high' } = {}) {
     this.game = null;
@@ -284,7 +291,8 @@ export class View {
 
   releaseRig(rig) {
     rig.root.removeFromParent();
-    if (rig.material.transparent) { rig.material.transparent = false; rig.material.depthWrite = true; rig.material.opacity = 1; rig.material.needsUpdate = true; if (rig.hull) { rig.hull.transparent = false; rig.hull.depthWrite = true; rig.hull.opacity = 1; rig.hull.needsUpdate = true; } }
+    fadeRig(rig.material, rig.hull, false, 1);
+    if (rig.modelMaterial) fadeRig(rig.modelMaterial, rig.modelHull, false, 1);
     this.rigPool = this.rigPool || new Map();
     const key = rig.type + (rig.boss ? '#boss' : '');
     const pool = this.rigPool.get(key) || [];
@@ -634,10 +642,9 @@ export class View {
       // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
       if (m.def.behavior === 'stalker' || mv.fade < 1) {
         mv.fade = damp(mv.fade ?? 1, m.stealth && !m.dead ? 0.38 : 1, 6, dt);
-        const mat = r.material, see = mv.fade < 0.99;
-        if (mat.transparent !== see) { mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true; if (r.hull) r.hull.needsUpdate = true; } // opaque/transparent are separate programs
-        mat.opacity = mv.fade;
-        if (r.hull) { r.hull.transparent = see; r.hull.depthWrite = !see; r.hull.opacity = see ? mv.fade * mv.fade : 1; }
+        const see = mv.fade < 0.99;
+        fadeRig(r.material, r.hull, see, mv.fade);
+        if (r.modelMaterial) fadeRig(r.modelMaterial, r.modelHull, see, mv.fade);
       }
       if (mv.halo) {
         mv.halo.visible = !m.dead && onScreen;

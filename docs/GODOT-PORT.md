@@ -302,6 +302,14 @@ rig bone, `body`, so every vertex follows it and the squash/stretch comes from s
 The shore gull and hermit crab models follow the same scheme: the gull skins to `body`, `head`,
 `wingL/R` and `legL/R`; the hermit crab reuses the reef crab rig (`shell`, `head`, `mandL/R`, six legs),
 so its shell tuck scales those bones.
+The five mid/high monsters (mantis, viper, ram, stalker, sentinel) have models on their
+`monsters-midhigh.js` rigs. The mantis model is bound with its scythes raised, so its animator
+remaps the arm/blade angles when `rig.model` is set; the viper model rears its head on an S-shaped
+neck, so its bone chain follows that neck and its wind-ups tilt the head back from the neck
+(`seg0` undoes the tilt for the body) instead of lifting it; the sentinel's floating shards are each weighted to the
+nearest `shard0-5` bone and its pillar to a ring of `body` lines (so the stone stays rigid), and
+the ring never pulls in past its rest radius. The stalker's stealth fade applies to the model
+material too (`rig.modelMaterial`/`modelHull`).
 The face is a canvas atlas of four expressions (`render/face.js`) on a patch cut from the
 head mesh; in Godot use a face texture with UV offsets per expression. Hair (`render/hair.js`)
 is one merged mesh per style built from lock curves; export it once per style as a mesh and

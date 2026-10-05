@@ -142,6 +142,9 @@ export function attachMonsterModel(rig, T) {
     mesh.receiveShadow = m === mat; // never light the outline hull
     rig.root.add(mesh);
   }
+  // the stealth fade (view.js) also fades the model's own materials
+  rig.modelMaterial = mat;
+  rig.modelHull = mats[1] || null;
   rig.model = true;
   return rig;
 }

@@ -1,4 +1,4 @@
-import {rasterIconMarkup,rasterIconUrl} from './raster-icons.js';
+import {rasterIconMarkup,rasterIconUrl,MONSTER_PORTRAITS,REGION_PORTRAITS} from './raster-icons.js';
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
@@ -298,6 +298,14 @@ export function arrowArt(id) {
   return '<span class="art art-arrow" data-art="arrow/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + shadow + one(-12) + one(0) + one(12) + '</svg></span>';
 }
 export function hasArt(kind, id) { return !!rasterIconUrl(kind,id) || !!ART[kind]?.[id]; }
+// The region's monster/drop list owns these portraits. Keep the authored SVG
+// fallback for future content; art('monster', id) keeps world boss pins intact.
+export function atlasMonsterArt(id, registry = MONSTER_PORTRAITS) {
+  return rasterIconMarkup('monster', id, '', registry) || art('monster', id);
+}
+export function atlasRegionArt(mapId, id, registry = REGION_PORTRAITS) {
+  return rasterIconMarkup('region', mapId + '/' + id, '', registry) || art('zone', id);
+}
 export function art(kind, id, className = '') {
   const raster = rasterIconMarkup(kind, id, className);
   if (raster) return raster;

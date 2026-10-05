@@ -1,0 +1,247 @@
+{
+  "regions": [
+    {
+      "region": "azure-harbor-v1:landing",
+      "monsters": []
+    },
+    {
+      "region": "azure-harbor-v1:settlement",
+      "monsters": []
+    },
+    {
+      "region": "azure-harbor-v1:coast",
+      "monsters": [
+        "salt_slime",
+        "reef_crab",
+        "shore_gull"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:settlement",
+      "monsters": []
+    },
+    {
+      "region": "azure-harbor-v1:meadow",
+      "monsters": [
+        "tusk_boar",
+        "salt_slime"
+      ]
+    },
+    {
+      "region": "azure-harbor-v1:glade",
+      "monsters": [
+        "sporecap",
+        "tusk_boar"
+      ]
+    },
+    {
+      "region": "azure-harbor-v1:highlands",
+      "monsters": [
+        "tusk_boar"
+      ]
+    },
+    {
+      "region": "azure-harbor-v1:headland",
+      "monsters": [
+        "hermit_crab",
+        "shore_gull"
+      ]
+    },
+    {
+      "region": "azure-harbor-v1:forest",
+      "monsters": [
+        "moss_beetle",
+        "thornback_wolf",
+        "sporecap"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:meadow",
+      "monsters": [
+        "tusk_boar"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:glade",
+      "monsters": [
+        "tusk_boar",
+        "sporecap",
+        "moss_beetle"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:forest",
+      "monsters": [
+        "tusk_boar",
+        "moss_beetle",
+        "thornback_wolf",
+        "sporecap",
+        "thicket_mantis"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:wolf_den",
+      "monsters": [
+        "thornback_wolf",
+        "thicket_mantis",
+        "greyfang"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:coast",
+      "monsters": [
+        "reef_crab",
+        "gale_hawk",
+        "tusk_boar",
+        "reed_viper"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:wetland",
+      "monsters": [
+        "moss_beetle",
+        "marsh_wisp",
+        "sporecap",
+        "reed_viper"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:highlands",
+      "monsters": [
+        "crag_golem",
+        "gale_hawk",
+        "thornback_wolf",
+        "marsh_wisp",
+        "ironhorn_ram",
+        "duskmane_stalker"
+      ]
+    },
+    {
+      "region": "frontier-wilds-v1:ruins",
+      "monsters": [
+        "marsh_wisp",
+        "crag_golem",
+        "gale_hawk",
+        "moss_beetle",
+        "duskmane_stalker",
+        "rune_sentinel",
+        "horned_warden"
+      ]
+    }
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 960,
+      "portraitSizes": [
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ]
+      ]
+    },
+    {
+      "name": "ipad",
+      "width": 1180,
+      "height": 820,
+      "portraitSizes": [
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ]
+      ]
+    },
+    {
+      "name": "mobile-landscape",
+      "width": 844,
+      "height": 390,
+      "portraitSizes": [
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ]
+      ]
+    },
+    {
+      "name": "mobile-portrait",
+      "width": 390,
+      "height": 844,
+      "portraitSizes": [
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ],
+        [
+          50,
+          50
+        ]
+      ]
+    }
+  ],
+  "errors": [],
+  "badImages": [],
+  "monsterCount": 18,
+  "engine": "Chromium",
+  "webkit": "Unavailable in this environment; no physical iPad claim"
+}

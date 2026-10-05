@@ -1,0 +1,415 @@
+{
+  "version": 1,
+  "source_commit": "852c22f1e6e209ad35c09d90308cd6e48e3c0c7a",
+  "generator": "built-in image_gen",
+  "grid": {
+    "rows": 2,
+    "columns": 3
+  },
+  "sheets": [
+    {
+      "path": "assets/atlas-regions/source-sheet-1.png",
+      "cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "map": "azure-harbor-v1",
+          "id": "landing",
+          "source_bounds": [
+            44,
+            107,
+            477,
+            483
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/landing.png",
+          "sha256": "5146ea86084cd86cf603a077ccece276312cdc40fc7f439c41c45fb2a5ef7c8f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "map": "azure-harbor-v1",
+          "id": "settlement",
+          "source_bounds": [
+            558,
+            84,
+            992,
+            485
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/settlement.png",
+          "sha256": "d9c77782be23f31db826490e01f01a8fad4206141e48419fc94c6eed38fdb04a",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "map": "azure-harbor-v1",
+          "id": "coast",
+          "source_bounds": [
+            1071,
+            73,
+            1498,
+            490
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/coast.png",
+          "sha256": "fd1a177860bd606bcf866a14d4b50c1b03fce557c26aeae21183ede64925741d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "map": "frontier-wilds-v1",
+          "id": "settlement",
+          "source_bounds": [
+            46,
+            553,
+            481,
+            967
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/settlement.png",
+          "sha256": "6ad040e5918d4113aa6fced55a199c2e753dd5353604337709bbb8fc45bfc221",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "map": "azure-harbor-v1",
+          "id": "meadow",
+          "source_bounds": [
+            554,
+            569,
+            990,
+            975
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/meadow.png",
+          "sha256": "931df4a0912a9e2775e77c1919857b1ae58f6ca3f88530b2d1faa67108e841a2",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "map": "azure-harbor-v1",
+          "id": "glade",
+          "source_bounds": [
+            1062,
+            541,
+            1495,
+            969
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/glade.png",
+          "sha256": "582fbc5624cbeca94bcb0f12c1967eaee6458696a33be80062f5398f91dfe9d5",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "7cf75d1cf563b0a0a865997a59574b69bb9771cb14ba56f8253ea386b2f65120"
+    },
+    {
+      "path": "assets/atlas-regions/source-sheet-2.png",
+      "cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "map": "azure-harbor-v1",
+          "id": "highlands",
+          "source_bounds": [
+            27,
+            49,
+            502,
+            499
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/highlands.png",
+          "sha256": "1af0bbf5127be2694287e67ad0b66621aace9e5b9bf4ca5e4109195a80d4e180",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "map": "azure-harbor-v1",
+          "id": "headland",
+          "source_bounds": [
+            538,
+            57,
+            995,
+            499
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/headland.png",
+          "sha256": "3783f1668c40ace6fa27bd30f5d84f378e642e1e348abc9884e9ff815cd73b47",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "map": "azure-harbor-v1",
+          "id": "forest",
+          "source_bounds": [
+            1024,
+            33,
+            1510,
+            498
+          ],
+          "path": "public/assets/icons/region/azure-harbor-v1/forest.png",
+          "sha256": "3bb5a10d248a33c4731338758103ce1cffbdeaa4658a3e8fd64fc100a16c7840",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "map": "frontier-wilds-v1",
+          "id": "meadow",
+          "source_bounds": [
+            28,
+            543,
+            508,
+            995
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/meadow.png",
+          "sha256": "4931b6ec9ab61b4826f3827e025c85241809e312854fdfda9341e2f08b160430",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "map": "frontier-wilds-v1",
+          "id": "glade",
+          "source_bounds": [
+            533,
+            543,
+            1004,
+            993
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/glade.png",
+          "sha256": "b5208a6be1073aebcc3124fb94cab8021cf0a7121df4dc9dce4a64c4c61c255b",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "map": "frontier-wilds-v1",
+          "id": "forest",
+          "source_bounds": [
+            1023,
+            529,
+            1509,
+            997
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/forest.png",
+          "sha256": "0e7b43f14fa2c7db6bd1c9f213d999e6b336948104f844a952f331a0420e5a2f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "348d8f82e01619443588eb6d0285c5f7c4181cd129dca51fcbcea228ad2b3118"
+    },
+    {
+      "path": "assets/atlas-regions/source-sheet-3.png",
+      "cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "map": "frontier-wilds-v1",
+          "id": "wolf_den",
+          "source_bounds": [
+            16,
+            21,
+            520,
+            508
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/wolf_den.png",
+          "sha256": "6dc7a21e6fec871b13c4151371097dc5c317a9e10e6d40b29afa94afa845771c",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "map": "frontier-wilds-v1",
+          "id": "wetland",
+          "source_bounds": [
+            537,
+            42,
+            1014,
+            509
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/wetland.png",
+          "sha256": "ee8c64cc12ee723b720112b7684361af484e0238ec87be578f3b69ce83748ca5",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "map": "frontier-wilds-v1",
+          "id": "highlands",
+          "source_bounds": [
+            1032,
+            32,
+            1525,
+            515
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/highlands.png",
+          "sha256": "77be020dd64de89de8833e08c250395f0f7b38a1411ba910d93377eaa75af230",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "map": "frontier-wilds-v1",
+          "id": "coast",
+          "source_bounds": [
+            13,
+            527,
+            513,
+            1004
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/coast.png",
+          "sha256": "5d44204fd129acdfeaf007341c9822550490c09c3144140b488af49fc7dd6f1c",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "map": "frontier-wilds-v1",
+          "id": "ruins",
+          "source_bounds": [
+            531,
+            530,
+            1031,
+            1002
+          ],
+          "path": "public/assets/icons/region/frontier-wilds-v1/ruins.png",
+          "sha256": "c14849ac28191a7c882a6b68ecc567cd82d3d8d3a6764a26054d32f1756ef84c",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "0f8694e11de055c0c34c2c550a9a3bde2fb3396e9d277f3a309eec1b1f7a1f82"
+    }
+  ]
+}

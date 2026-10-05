@@ -1,0 +1,932 @@
+{
+  "version": 1,
+  "source_commit": "cd94bcf682eb08e5494dc5e301716fc3c38c3240",
+  "generator": "built-in image_gen",
+  "style": "approved fresh journal watercolor; brown normal thornback wolf",
+  "grid": {
+    "rows": 2,
+    "columns": 3
+  },
+  "sheets": [
+    {
+      "path": "assets/atlas-journal/approved-study.png",
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "moss_beetle",
+          "reference": "assets/meshy/monsters/moss_beetle_concept.png",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/monster/moss_beetle.png",
+          "source_bounds": [
+            33,
+            96,
+            506,
+            493
+          ],
+          "sha256": "143ef81ea8d8fde12b6e77e9e7849b4a0ecb749b2b9d5d45c78ef8af685a8a52",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "sporecap",
+          "reference": "assets/meshy/monsters/sporecap_concept.png",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/monster/sporecap.png",
+          "source_bounds": [
+            1036,
+            83,
+            1486,
+            514
+          ],
+          "sha256": "46728d8587c0631c6215fde8ab11cc46997a959aaa25ace8b53b0ab0921b148a",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "coast",
+          "row": 2,
+          "column": 1,
+          "path": "public/assets/icons/region/azure-harbor-v1/coast.png",
+          "source_bounds": [
+            9,
+            505,
+            543,
+            996
+          ],
+          "sha256": "c096aad5d9faaad4e1af457c9987fbaa58cf220eedf87101b1beaba600ecc1e5",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "forest",
+          "row": 2,
+          "column": 2,
+          "path": "public/assets/icons/region/frontier-wilds-v1/forest.png",
+          "source_bounds": [
+            544,
+            509,
+            1023,
+            983
+          ],
+          "sha256": "515942358c7c1091c0b966d19953ad9df712e54cd4f854b7f79a58693839bf74",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "settlement",
+          "row": 2,
+          "column": 3,
+          "path": "public/assets/icons/region/azure-harbor-v1/settlement.png",
+          "source_bounds": [
+            1030,
+            498,
+            1530,
+            993
+          ],
+          "sha256": "6135f1aff35fa91cbe0708d4c5e28a152e921c289d0cac71378efbf18e89033b",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [
+        {
+          "row": 1,
+          "column": 2,
+          "id": "thornback_wolf"
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "ab6bd83e5276f27d05ed90909d066aed0f32908a4dc213b36c88d5b226b051d7"
+    },
+    {
+      "path": "assets/atlas-journal/monsters-1.png",
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "tusk_boar",
+          "reference": "assets/meshy/monsters/tusk_boar_concept.png",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/monster/tusk_boar.png",
+          "source_bounds": [
+            34,
+            59,
+            540,
+            492
+          ],
+          "sha256": "e4164ba43dfea6afb54ab43072a5b68d1756ed3af5202fb7221afef28a49a2e7",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "reef_crab",
+          "reference": "assets/meshy/monsters/reef_crab_concept.png",
+          "row": 1,
+          "column": 2,
+          "path": "public/assets/icons/monster/reef_crab.png",
+          "source_bounds": [
+            563,
+            92,
+            1046,
+            487
+          ],
+          "sha256": "038e481c59cf88a46e726902c3eb037c29eb091db9a2a45a496e8f46fdc00c1f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "marsh_wisp",
+          "reference": "assets/meshy/monsters/marsh_wisp_concept.png",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/monster/marsh_wisp.png",
+          "source_bounds": [
+            1106,
+            28,
+            1484,
+            526
+          ],
+          "sha256": "d0aa681c505bec09cc94a0478f16e91905de742a9ecab4a6a2bb3f549a49a808",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "crag_golem",
+          "reference": "assets/meshy/monsters/crag_golem_concept.png",
+          "row": 2,
+          "column": 1,
+          "path": "public/assets/icons/monster/crag_golem.png",
+          "source_bounds": [
+            24,
+            525,
+            552,
+            970
+          ],
+          "sha256": "ca7270aa0f16b415a45860748f0dac1314563dd2049c658dbf24e0d6f497eacb",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "gale_hawk",
+          "reference": "assets/meshy/monsters/gale_hawk_concept.png",
+          "row": 2,
+          "column": 2,
+          "path": "public/assets/icons/monster/gale_hawk.png",
+          "source_bounds": [
+            572,
+            555,
+            996,
+            978
+          ],
+          "sha256": "0743184d99e7e6327ebd495ebd800c4a394ae6481e78f597c80f59df31b8b388",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "greyfang",
+          "reference": "assets/meshy/monsters/greyfang_concept.png",
+          "row": 2,
+          "column": 3,
+          "path": "public/assets/icons/monster/greyfang.png",
+          "source_bounds": [
+            1021,
+            522,
+            1518,
+            996
+          ],
+          "sha256": "0235a5a25055eca19fc886e451723d0bb24ba20f30fc1d0512ee95a2131b1cd4",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "d5f1a081557337bdf4b7f0eaa649b1a603ef54829c3fb4e3b8ad166ee1fb9bb8"
+    },
+    {
+      "path": "assets/atlas-journal/monsters-2.png",
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "horned_warden",
+          "reference": "assets/meshy/monsters/horned_warden_concept.png",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/monster/horned_warden.png",
+          "source_bounds": [
+            7,
+            12,
+            554,
+            515
+          ],
+          "sha256": "62497704f3e834297b9c703e461d7b92cea800e7b38b011c76e47146619ba07a",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "salt_slime",
+          "reference": "assets/meshy/monsters/salt_slime_concept.png",
+          "row": 1,
+          "column": 2,
+          "path": "public/assets/icons/monster/salt_slime.png",
+          "source_bounds": [
+            524,
+            100,
+            1026,
+            496
+          ],
+          "sha256": "caed72442860c1ada54438d3e887606b5a321b47a1d102975cbdc4fd0f0ed06d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "shore_gull",
+          "reference": "assets/meshy/monsters/shore_gull_concept.png",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/monster/shore_gull.png",
+          "source_bounds": [
+            1040,
+            90,
+            1527,
+            499
+          ],
+          "sha256": "7b567422dd2669715e3959573d90565273d08cf841ea61b7c2be1113fa45a4cb",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "hermit_crab",
+          "reference": "assets/meshy/monsters/hermit_crab_concept.png",
+          "row": 2,
+          "column": 1,
+          "path": "public/assets/icons/monster/hermit_crab.png",
+          "source_bounds": [
+            18,
+            530,
+            550,
+            1010
+          ],
+          "sha256": "39ee0a763d63f18c9db9a944ed2c9e52d519c9a45db8922432b80144105a118f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "thicket_mantis",
+          "reference": "assets/meshy/monsters/thicket_mantis_concept.png",
+          "row": 2,
+          "column": 2,
+          "path": "public/assets/icons/monster/thicket_mantis.png",
+          "source_bounds": [
+            552,
+            510,
+            1026,
+            1012
+          ],
+          "sha256": "63dfb98846afa97f8d6bd64de66f256c5162ddd24c5258ada0956bf0c809e630",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "reed_viper",
+          "reference": "assets/meshy/monsters/reed_viper_concept_v3.png",
+          "row": 2,
+          "column": 3,
+          "path": "public/assets/icons/monster/reed_viper.png",
+          "source_bounds": [
+            1033,
+            528,
+            1519,
+            1007
+          ],
+          "sha256": "5e842fadd910accc85b86c014cc9a5568e4f4ea29eb20cbb349e72ae7a0a5bf8",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "6c9136b0a186b07b820d15c757ca2535ce639131cb74d2821f9dd9e0e80c9c2a"
+    },
+    {
+      "path": "assets/atlas-journal/mixed-3.png",
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "ironhorn_ram",
+          "reference": "assets/meshy/monsters/ironhorn_ram_concept.png",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/monster/ironhorn_ram.png",
+          "source_bounds": [
+            50,
+            74,
+            561,
+            518
+          ],
+          "sha256": "5545f8b4687bf8668f17b4e9f15f5efb44513c821d101a020746eaa4593e683b",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "duskmane_stalker",
+          "reference": "assets/meshy/monsters/duskmane_stalker_concept.png",
+          "row": 1,
+          "column": 2,
+          "path": "public/assets/icons/monster/duskmane_stalker.png",
+          "source_bounds": [
+            567,
+            72,
+            1032,
+            521
+          ],
+          "sha256": "64563ed8b651c0465a14181255daf09ea7414696731ef8bd58173d3dde232a2f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "rune_sentinel",
+          "reference": "assets/meshy/monsters/rune_sentinel_concept.png",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/monster/rune_sentinel.png",
+          "source_bounds": [
+            1057,
+            73,
+            1500,
+            511
+          ],
+          "sha256": "81ba9df3a3bb11359caa89910bd19e867635fe536d2bed1da900ef1e76348286",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "meadow",
+          "row": 2,
+          "column": 3,
+          "path": "public/assets/icons/region/azure-harbor-v1/meadow.png",
+          "source_bounds": [
+            1031,
+            541,
+            1521,
+            974
+          ],
+          "sha256": "3e4d6438d09a64e410bbb50cfeb1c51615cba6a62c38f8d2e8ea5f3526bbf836",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [
+        {
+          "row": 2,
+          "column": 1,
+          "id": "thornback_wolf"
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "id": "landing"
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "9ca92df27abb1e313af2f3c1fd858e2b1d109131e1791f8e30e2fae086c38e9e"
+    },
+    {
+      "path": "assets/atlas-journal/identity-corrections.png",
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "thornback_wolf",
+          "reference": "assets/meshy/monsters/thornback_wolf_concept.png",
+          "row": 2,
+          "column": 1,
+          "path": "public/assets/icons/monster/thornback_wolf.png",
+          "source_bounds": [
+            20,
+            553,
+            544,
+            959
+          ],
+          "sha256": "5d59d440607a39bd35ac7e84f7b84fef9982b4f2e48dcb6ce552840b03d74582",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "landing",
+          "row": 2,
+          "column": 2,
+          "path": "public/assets/icons/region/azure-harbor-v1/landing.png",
+          "source_bounds": [
+            541,
+            552,
+            1026,
+            970
+          ],
+          "sha256": "1060156f765bdaaaed40ef1ad11f8165a3a2bc8e2f4353c8fa102b084decfb38",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "id": "ironhorn_ram"
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "id": "duskmane_stalker"
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "id": "rune_sentinel"
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "id": "meadow"
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "fae21e8b2ca303be43a952ddb6c8e7a67d3e4a369f06b2ba6fd00e0cf6f97270"
+    },
+    {
+      "path": "assets/atlas-journal/regions-1.png",
+      "cells": [
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "settlement",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/region/frontier-wilds-v1/settlement.png",
+          "source_bounds": [
+            23,
+            83,
+            519,
+            476
+          ],
+          "sha256": "bd72a4ee2241cca65f73f3ec88e904433d732efa0b7395971fbdd8672db41f79",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "glade",
+          "row": 1,
+          "column": 2,
+          "path": "public/assets/icons/region/azure-harbor-v1/glade.png",
+          "source_bounds": [
+            546,
+            56,
+            1007,
+            478
+          ],
+          "sha256": "ef514a4686246982681628c23cce5b5d47917d5a865f366e48428535f107301d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "highlands",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/region/azure-harbor-v1/highlands.png",
+          "source_bounds": [
+            1051,
+            130,
+            1515,
+            484
+          ],
+          "sha256": "e82d0984bfa7831830f45a144984a9aeeffa48c702d8f19d838bb881a1fdb9f8",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "headland",
+          "row": 2,
+          "column": 1,
+          "path": "public/assets/icons/region/azure-harbor-v1/headland.png",
+          "source_bounds": [
+            20,
+            560,
+            538,
+            979
+          ],
+          "sha256": "03bbd14b4d4c4f10ad9cef479847ba8d53f128d2b6bc829af9f40732406567a0",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "azure-harbor-v1",
+          "id": "forest",
+          "row": 2,
+          "column": 2,
+          "path": "public/assets/icons/region/azure-harbor-v1/forest.png",
+          "source_bounds": [
+            549,
+            507,
+            1003,
+            978
+          ],
+          "sha256": "08400e6b8fe57518ecd818aa4dade0e1f03245ec83bcc4939b6a400cfb839c6d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "meadow",
+          "row": 2,
+          "column": 3,
+          "path": "public/assets/icons/region/frontier-wilds-v1/meadow.png",
+          "source_bounds": [
+            1025,
+            550,
+            1517,
+            985
+          ],
+          "sha256": "292cbde8be4e385c31645c12d14aacefc33d1cef2ab7312545a53bf3d937b6a3",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "f6837741a14122e7a36ae47428d108e92b434eb26a0cd2b7b4dc0681d45c5e0a"
+    },
+    {
+      "path": "assets/atlas-journal/regions-2.png",
+      "cells": [
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "glade",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/region/frontier-wilds-v1/glade.png",
+          "source_bounds": [
+            12,
+            74,
+            521,
+            484
+          ],
+          "sha256": "f08262eb8ed00149c11dc2854db189cf08966c61a1aebc770154405f4449521e",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "wolf_den",
+          "row": 1,
+          "column": 2,
+          "path": "public/assets/icons/region/frontier-wilds-v1/wolf_den.png",
+          "source_bounds": [
+            525,
+            44,
+            1021,
+            496
+          ],
+          "sha256": "d959a298b201a2b76cd50646f10cdbcdde5cdfed948565085743efc1aacf8c02",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "wetland",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/region/frontier-wilds-v1/wetland.png",
+          "source_bounds": [
+            1025,
+            74,
+            1524,
+            498
+          ],
+          "sha256": "ecdf2374c060d715d5c1b509ab48023097fb7eca59e986c3744a03f5857d51ee",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "highlands",
+          "row": 2,
+          "column": 1,
+          "path": "public/assets/icons/region/frontier-wilds-v1/highlands.png",
+          "source_bounds": [
+            9,
+            545,
+            513,
+            980
+          ],
+          "sha256": "86691dad8f06c24e3297ffadea0d03bc02f02d01906ddb75e3325c589e0b9c62",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "coast",
+          "row": 2,
+          "column": 2,
+          "path": "public/assets/icons/region/frontier-wilds-v1/coast.png",
+          "source_bounds": [
+            523,
+            622,
+            1022,
+            970
+          ],
+          "sha256": "481b59d62d755987a50d1a4e62473a26187634cfa97544b4abba2b958dda1a3d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "region",
+          "map": "frontier-wilds-v1",
+          "id": "ruins",
+          "row": 2,
+          "column": 3,
+          "path": "public/assets/icons/region/frontier-wilds-v1/ruins.png",
+          "source_bounds": [
+            1023,
+            555,
+            1520,
+            978
+          ],
+          "sha256": "6e4cc4e244a6563a95986cf77733dc10e99168816a40e75357f6da7cca53d7b2",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "unused_cells": [],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "8643e4469196889a158df999f9e566dec6ad6f9b8a07f3b6bbad2e388d5a431e"
+    }
+  ]
+}

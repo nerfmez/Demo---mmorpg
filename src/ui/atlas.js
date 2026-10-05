@@ -2,7 +2,7 @@
 // world metres (core/atlas.js), so zones, stones and bosses read as one world. Selecting
 // a pin never travels immediately. Zone and stone ids repeat between maps, so selections
 // are "mapId:id".
-import { art } from './art.js';
+import { art, atlasMonsterArt, atlasRegionArt } from './art.js';
 import { icon } from './icons.js';
 import { worldMapImage } from './mapimage.js';
 import { questTarget } from './hud.js';
@@ -52,10 +52,10 @@ export function atlasView(ui) {
    bosses+=`<span class="townmark" style="left:${L(mapId,...map.town.workbench)};top:${T(mapId,...map.town.workbench)}">${icon('hammer')}</span>`;
  }
  const target=questTarget(g,trackedQuest(g.ch,data)), totals=worldTotals(g.ch,data);
- const cards=regions.sort((a,c)=>a.z.level-c.z.level).map(({mapId,z,on,known})=>`<button class="region-card ${on?'on':''}" data-act="select-zone" data-id="${atlasKey(mapId,z.id)}" aria-pressed="${on}">${art('zone',z.id)}<span><b>${z.nameTh}</b><small>${z.safe?'ปลอดภัย':'Lv.'+z.level+'+'} · ${known?'สำรวจแล้ว':'ยังไม่สำรวจ'}</small></span></button>`).join('');
+ const cards=regions.sort((a,c)=>a.z.level-c.z.level).map(({mapId,z,on,known})=>`<button class="region-card ${on?'on':''}" data-act="select-zone" data-id="${atlasKey(mapId,z.id)}" aria-pressed="${on}">${atlasRegionArt(mapId,z.id)}<span><b>${z.nameTh}</b><small>${z.safe?'ปลอดภัย':'Lv.'+z.level+'+'} · ${known?'สำรวจแล้ว':'ยังไม่สำรวจ'}</small></span></button>`).join('');
  const creatures=monsterIds.map(id=>{
    const m=data.monsters.monsters[id];
-   return `<article class="creature-entry">${art('monster',id)}<div><b>${m.nameTh}</b><div class="drop-pictures">${[...m.drops,...data.items.upgradeMaterialDrops].filter(d=>d.item!=='gold').map(d=>`<span title="${data.items.materials[d.item].nameTh}">${art('material',d.item)}<small>${data.items.materials[d.item].nameTh}</small></span>`).join('')}</div></div></article>`;
+   return `<article class="creature-entry">${atlasMonsterArt(id)}<div><b>${m.nameTh}</b><div class="drop-pictures">${[...m.drops,...data.items.upgradeMaterialDrops].filter(d=>d.item!=='gold').map(d=>`<span title="${data.items.materials[d.item].nameTh}">${art('material',d.item)}<small>${data.items.materials[d.item].nameTh}</small></span>`).join('')}</div></div></article>`;
  }).join('');
  const services=zone.safe&&zdata.town?`<div class="town-services"><div>${icon('hammer')}<span><b>โต๊ะคราฟต์</b><small>คราฟต์ · ตีบวก · อัปเกรดสกิล</small></span></div><div>${icon('person')}<span><b>ครูฝึก</b><small>ตรวจแต้มและพัฒนาตัวละคร</small></span></div></div>`:'';
  const known=found[zoneMap].zones.includes(zone.id);

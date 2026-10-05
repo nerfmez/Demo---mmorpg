@@ -1,0 +1,438 @@
+{
+  "version": 1,
+  "source_commit": "852c22f1e6e209ad35c09d90308cd6e48e3c0c7a",
+  "generator": "built-in image_gen",
+  "grid": {
+    "rows": 2,
+    "columns": 3
+  },
+  "sheets": [
+    {
+      "path": "assets/atlas-monsters/source-sheet-1.png",
+      "cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "id": "tusk_boar",
+          "reference": "assets/meshy/monsters/tusk_boar_concept.png",
+          "source_bounds": [
+            13,
+            39,
+            523,
+            514
+          ],
+          "path": "public/assets/icons/monster/tusk_boar.png",
+          "sha256": "b206c17a0cd482f61e85b904e4e1eba1f655bb6debda2c3a1eb126063460cc37",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "id": "moss_beetle",
+          "reference": "assets/meshy/monsters/moss_beetle_concept.png",
+          "source_bounds": [
+            524,
+            65,
+            1021,
+            510
+          ],
+          "path": "public/assets/icons/monster/moss_beetle.png",
+          "sha256": "9115128e8724665ca22f3db4e03c20f496d909ea41a3f7c2fb5473f353692a2d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "id": "reef_crab",
+          "reference": "assets/meshy/monsters/reef_crab_concept.png",
+          "source_bounds": [
+            1020,
+            74,
+            1528,
+            525
+          ],
+          "path": "public/assets/icons/monster/reef_crab.png",
+          "sha256": "95f207b8d9e2fa577afda14be262b9cd261520f06565117f78a34122a6abab3a",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "id": "marsh_wisp",
+          "reference": "assets/meshy/monsters/marsh_wisp_concept.png",
+          "source_bounds": [
+            25,
+            516,
+            500,
+            991
+          ],
+          "path": "public/assets/icons/monster/marsh_wisp.png",
+          "sha256": "338bc3ed1296b90b19f972e9fa96188d9c6fc92a5e687501eb701bc565efe47e",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "id": "thornback_wolf",
+          "reference": "assets/meshy/monsters/thornback_wolf_concept.png",
+          "source_bounds": [
+            512,
+            526,
+            1021,
+            995
+          ],
+          "path": "public/assets/icons/monster/thornback_wolf.png",
+          "sha256": "fde58e47915898aac682dea20fff15751505f8a060941f39289c1376ac57fa12",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "id": "sporecap",
+          "reference": "assets/meshy/monsters/sporecap_concept.png",
+          "source_bounds": [
+            1017,
+            523,
+            1529,
+            990
+          ],
+          "path": "public/assets/icons/monster/sporecap.png",
+          "sha256": "da39c09eb934dd66d299f3d44a05c952319fee1a220e79e984fed5cb6264fb5f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "3d6b7cf3620c0958741f08f57ff51ad346d7b75fd1918a7ed9f37be8efc81982"
+    },
+    {
+      "path": "assets/atlas-monsters/source-sheet-2.png",
+      "cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "id": "crag_golem",
+          "reference": "assets/meshy/monsters/crag_golem_concept.png",
+          "source_bounds": [
+            14,
+            29,
+            513,
+            507
+          ],
+          "path": "public/assets/icons/monster/crag_golem.png",
+          "sha256": "08958bdb45dd801452d2c482bfa62d441a42fced4e7ab108e072e5ae0e1e3055",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "id": "gale_hawk",
+          "reference": "assets/meshy/monsters/gale_hawk_concept.png",
+          "source_bounds": [
+            526,
+            18,
+            1007,
+            520
+          ],
+          "path": "public/assets/icons/monster/gale_hawk.png",
+          "sha256": "17271b772e7f468666cb78afb294ad914c5f468a53e0871ac44f04eaff303852",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "id": "greyfang",
+          "reference": "assets/meshy/monsters/greyfang_concept.png",
+          "source_bounds": [
+            1027,
+            9,
+            1525,
+            512
+          ],
+          "path": "public/assets/icons/monster/greyfang.png",
+          "sha256": "d809c93083f465a2b3ed8f15901d991c5fcb94129eb82cf0be3a78896a32abdc",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "id": "horned_warden",
+          "reference": "assets/meshy/monsters/horned_warden_concept.png",
+          "source_bounds": [
+            21,
+            504,
+            547,
+            1019
+          ],
+          "path": "public/assets/icons/monster/horned_warden.png",
+          "sha256": "40fd73ce51add6df43af909466ae3c3c043f61a40f850c0e7f8f2e640e23bde7",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "id": "salt_slime",
+          "reference": "assets/meshy/monsters/salt_slime_concept.png",
+          "source_bounds": [
+            535,
+            552,
+            1018,
+            999
+          ],
+          "path": "public/assets/icons/monster/salt_slime.png",
+          "sha256": "aec36fe2325cb9d71930ef3ed055aef80d80d3f5d93b4a2ede781409f59dd8e0",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "id": "shore_gull",
+          "reference": "assets/meshy/monsters/shore_gull_concept.png",
+          "source_bounds": [
+            1037,
+            537,
+            1518,
+            1014
+          ],
+          "path": "public/assets/icons/monster/shore_gull.png",
+          "sha256": "68b920293555c7471e9ca667b0a3f748782e4dcd0cf27e6af093330332a7f58d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "ef65394e8369e8f923a05fd60896c43704ee0fe4a0f1e706ad4d12997658a055"
+    },
+    {
+      "path": "assets/atlas-monsters/source-sheet-3.png",
+      "cells": [
+        {
+          "row": 1,
+          "column": 1,
+          "id": "hermit_crab",
+          "reference": "assets/meshy/monsters/hermit_crab_concept.png",
+          "source_bounds": [
+            14,
+            12,
+            545,
+            503
+          ],
+          "path": "public/assets/icons/monster/hermit_crab.png",
+          "sha256": "53ff4186c00cebd0f5b1c93d339b4161fe7bd923760d4a93bb6a17a55265259a",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "id": "thicket_mantis",
+          "reference": "assets/meshy/monsters/thicket_mantis_concept.png",
+          "source_bounds": [
+            529,
+            11,
+            1009,
+            504
+          ],
+          "path": "public/assets/icons/monster/thicket_mantis.png",
+          "sha256": "f156203cb1511f8495565a0afb4096458e651e38599371330477a8f2755d39a4",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "id": "reed_viper",
+          "reference": "assets/meshy/monsters/reed_viper_concept_v3.png",
+          "source_bounds": [
+            1026,
+            12,
+            1528,
+            498
+          ],
+          "path": "public/assets/icons/monster/reed_viper.png",
+          "sha256": "da689b4f2891d48f89c043ed744b90ae68537be60cb69849d34cc1c08f9d593f",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "id": "ironhorn_ram",
+          "reference": "assets/meshy/monsters/ironhorn_ram_concept.png",
+          "source_bounds": [
+            6,
+            509,
+            516,
+            1013
+          ],
+          "path": "public/assets/icons/monster/ironhorn_ram.png",
+          "sha256": "6fcc24b21c4d4ac4aac609efc37d92ae15a6fffaf7b916a788a4021974c85f54",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "id": "duskmane_stalker",
+          "reference": "assets/meshy/monsters/duskmane_stalker_concept.png",
+          "source_bounds": [
+            517,
+            500,
+            1027,
+            1014
+          ],
+          "path": "public/assets/icons/monster/duskmane_stalker.png",
+          "sha256": "3191035898d3578bf33873a282de37ab83969a3de0333f7bcce537e4e1ba177b",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "id": "rune_sentinel",
+          "reference": "assets/meshy/monsters/rune_sentinel_concept.png",
+          "source_bounds": [
+            1025,
+            506,
+            1531,
+            1012
+          ],
+          "path": "public/assets/icons/monster/rune_sentinel.png",
+          "sha256": "c23c17ede0770cdf4629b8667719d084fc5e97414aef585e0151183758dc9234",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "f4416f331838764b4b1a9c914d2a19c387f2700571cfb5710ebefdbbab00ae3f"
+    }
+  ],
+  "framing": "close-up monster head portraits"
+}

@@ -19,7 +19,7 @@ try{for(const [label,width,height,touch] of [['desktop',1440,900,false],['ipad',
  const ready=async()=>{await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(()=>[...document.images].every(i=>i.complete));};
  await tap('[data-action="bag-category"][data-id="material"]');await tap('[data-action="material"][data-id="enhancement_stone"]');await ready();
  assert.equal(await page.locator('[data-art="material/enhancement_stone"] img').first().evaluate(i=>i.naturalWidth),512);assert.equal(await page.locator('[data-art="material/skill_crystal"] img').first().evaluate(i=>i.naturalWidth),512);
- await page.screenshot({path:out+label+'-bag.png'});await tap('[data-action="details"]');assert.match(await page.locator('.atelier-dialog').innerText(),/20%/);assert.match(await page.locator('.atelier-dialog').innerText(),/ไม่เปลี่ยนเกรด/);await page.screenshot({path:out+label+'-source.png'});
+ await page.screenshot({path:out+label+'-bag.png'});await tap('[data-action="details"]');assert.match(await page.locator('.atelier-dialog').innerText(),/3%/);assert.match(await page.locator('.atelier-dialog').innerText(),/ไม่เปลี่ยนเกรด/);await page.screenshot({path:out+label+'-source.png'});
  // Reopen the bag to clear its material detail and select existing equipment.
  await page.evaluate(()=>{__frontier.panels.close();__frontier.panels.open('bag');});await tap('[data-action="bag-category"][data-id="gear"]');await tap('[data-action="details"]');
  const cost=page.locator('.upgrade-cost');assert.match(await cost.innerText(),/หินเสริมอุปกรณ์/);assert.doesNotMatch(await cost.innerText(),/หนังหมูป่า|ผงเรืองแสง/);await cost.locator('.cost').scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-equipment.png'});

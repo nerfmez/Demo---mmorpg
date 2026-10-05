@@ -284,14 +284,17 @@ export function salvageReturn(data, item) {
   const main = data.items.gearBases[item.base].upgradeMaterial;
   for (const [k, n] of Object.entries(recipe?.cost || {})) if (k !== 'gold' && Math.floor(n * share) > 0) out[k] = Math.floor(n * share);
   if (main && !out[main]) out[main] = 1;
-  if (!data.items.gearBases[item.base].starter) {
-    for (const [k, n] of Object.entries(rules.upgradeMaterials)) out[k] = (out[k] || 0) + n;
-  }
+  // No base upgrade-material faucet: only recover part of the invested +N cost.
+  // Legacy gear has no payment ledger, so it keeps the same current-cost valuation.
+  const invested = {};
   for (let i = 0; i < (item.upgrade || 0); i++) {
     for (const [k, n] of Object.entries(data.items.upgrade.cost[i])) {
-      const back = Math.floor(n * rules.upgradeReturn);
-      if (k !== 'gold' && back > 0) out[k] = (out[k] || 0) + back;
+      if (k !== 'gold') invested[k] = (invested[k] || 0) + n;
     }
+  }
+  for (const [k, n] of Object.entries(invested)) {
+    const back = Math.floor(n * rules.upgradeReturn);
+    if (back > 0) out[k] = (out[k] || 0) + back;
   }
   return out;
 }

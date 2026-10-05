@@ -304,8 +304,9 @@ The shore gull and hermit crab models follow the same scheme: the gull skins to 
 so its shell tuck scales those bones.
 The five mid/high monsters (mantis, viper, ram, stalker, sentinel) have models on their
 `monsters-midhigh.js` rigs. The mantis model is bound with its scythes raised, so its animator
-remaps the arm/blade angles when `rig.model` is set; the viper's bone chain follows the model's
-curled neck and levels out at `seg4`; the sentinel's floating shards are each weighted to the
+remaps the arm/blade angles when `rig.model` is set; the viper model rears its head on an S-shaped
+neck, so its bone chain follows that neck and its wind-ups tilt the head back from the neck
+(`seg0` undoes the tilt for the body) instead of lifting it; the sentinel's floating shards are each weighted to the
 nearest `shard0-5` bone and its pillar to a ring of `body` lines (so the stone stays rigid), and
 the ring never pulls in past its rest radius. The stalker's stealth fade applies to the model
 material too (`rig.modelMaterial`/`modelHull`).

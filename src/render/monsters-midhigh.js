@@ -186,19 +186,23 @@ function animViper(r, s, dt, time) {
   }
   if (s.hurt > 0) lift -= 0.2 * s.hurt;
   r.lift = damp(r.lift || 0, lift, 12, dt);
-  b.head.rotation.x = damp(b.head.rotation.x, -r.lift * 0.8, 12, dt);
-  b.head.position.y = damp(b.head.position.y, 0.3 + r.lift * 0.75, 12, dt);
-  b.head.position.z = damp(b.head.position.z, 0.55 - coil * 0.35, 12, dt);
+  // the model already rears its head high on an S-shaped neck: the head tilts back from the neck
+  // instead of rising (its pivot is where the neck meets the head) and the body stays put
+  const rest = b.head.userData.rest?.pos;
+  const model = !!r.model;
+  b.head.rotation.x = damp(b.head.rotation.x, -r.lift * (model ? 0.6 : 0.8), 12, dt);
+  b.head.position.y = damp(b.head.position.y, model ? rest.y : 0.3 + r.lift * 0.75, 12, dt);
+  b.head.position.z = damp(b.head.position.z, (model ? rest.z : 0.55) - coil * 0.35, 12, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + Math.sin(r.phase) * amp * 0.4, 10, dt);
   b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
-  // the neck slopes down from the raised head and the body levels out again where it meets the
-  // ground (further back on the model, whose neck curls), so only the front rears up
-  const flat = r.model ? 4 : 2;
   for (let i = 0; i < VIPER_SEGS; i++) {
     const seg = b[`seg${i}`];
     // the wave travels down the body
     seg.rotation.y = damp(seg.rotation.y, Math.sin(r.phase - i * 0.85) * amp * (i === 0 ? 0.5 : 1), 14, dt);
-    seg.rotation.x = damp(seg.rotation.x, i === 0 ? -r.lift * 0.4 : i === flat ? r.lift * 1.2 : 0, 12, dt);
+    // procedural: the neck slopes down from the raised head and the body levels out again at
+    // seg2, so only the front rears up; model: seg0 undoes the head tilt for the body
+    const x = model ? (i === 0 ? r.lift * 0.6 : 0) : i === 0 ? -r.lift * 0.4 : i === 2 ? r.lift * 1.2 : 0;
+    seg.rotation.x = damp(seg.rotation.x, x, 12, dt);
   }
 }
 

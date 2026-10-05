@@ -28,19 +28,20 @@ try {
   await page.waitForFunction(() => window.__lab, null, { timeout: 30000 });
   console.log(`lab ready in ${Date.now() - t0} ms`);
   // freeze the live loop and step it by hand so the frames are repeatable
-  const hits = await page.evaluate(() => {
+  const hits = await page.evaluate((skill) => {
     const L = window.__lab;
     L.state.paused = true;
     let hit = 0;
-    const orig = L.vfx.impact.bind(L.vfx);
-    L.vfx.impact = (e) => {
+    const method = skill === 'arrow_rain' ? 'burst' : 'impact';
+    const orig = L.vfx[method].bind(L.vfx);
+    L.vfx[method] = (e) => {
       hit++;
       orig(e);
     };
     L.cast();
     window.__hits = () => hit;
     return hit;
-  });
+  }, SKILL);
   const marks = [[12, 'cast'], [14, 'travel'], [8, 'impact'], [14, 'fireball'], [40, 'smoke']];
   let n = 0;
   for (const [frames, name] of marks) {
@@ -52,7 +53,7 @@ try {
   const hit = await page.evaluate(() => window.__hits());
   await browser.close();
   if (errors.length) throw new Error(`page errors: ${errors.join(' | ')}`);
-  if (hits !== 0 || hit < 1) throw new Error(`expected an impact, got ${hit}`);
+  if (hits !== 0 || (SKILL === 'arrow_rain' ? hit !== 3 : hit < 1)) throw new Error(`expected an impact, got ${hit}`);
   console.log(`ok: ${hit} impact(s), frames lab-${SKILL}-*.png`);
 } finally {
   try {

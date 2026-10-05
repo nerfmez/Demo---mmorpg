@@ -237,6 +237,9 @@ export class Vfx {
     this.fireRelease = new THREE.Vector3();
     this.fireReleasePending = false;
     this.seenProjectiles = new Set();
+    this.rootVisuals = new Map();
+    this.arrowRelease = new THREE.Vector3();
+    this.arrowReleasePending = false;
   }
 
   // Lab injects an isolated data copy; the game keeps its authored defaults.
@@ -333,11 +336,11 @@ export class Vfx {
       const mesh=frostMesh(4.2,true);mesh.visible=false;this.scene.add(mesh);
       this.castFrost={mesh,t:0,dur:e.total};return;
     }
-    if (e.skill === 'hunter_shot') {
-      const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
+    if (['hunter_shot', 'heavy_draw', 'pinning_arrow', 'arrow_rain'].includes(e.skill)) {
+      const cfg = this.config.skills[e.skill], f = cfg.cast, mesh = arrowStreak(cfg);
       mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
       mesh.material.uniforms.uOpacity.value = f.opacity; mesh.visible = false; this.scene.add(mesh);
-      this.castArrow = { mesh, t: 0, dur: e.total, weapon: e.weapon }; return;
+      this.castArrow = { mesh, t: 0, dur: e.total, weapon: e.weapon, skill: e.skill }; return;
     }
     if (e.skill !== 'firebolt' || element !== 'fire') return;
     const mesh = this.fireMesh(1);
@@ -367,13 +370,25 @@ export class Vfx {
     const a = this.castArrow;
     if (a) {
       a.t += dt;
-      if (cancelled || !rig || a.t >= a.dur) this.endCast();
+      if (cancelled || !rig || a.t >= a.dur) {
+        if (a.t >= a.dur && !player?.dead && !player?.dash && rig && a.mesh.visible && a.skill !== 'hunter_shot') {
+          this.arrowRelease.copy(a.mesh.position); this.arrowReleasePending = true;
+          if (a.skill === 'arrow_rain') {
+            const cfg = this.config.skills.arrow_rain, f = cfg.release, ag = arrowGeometry(), arrow = new THREE.Group();
+            arrow.add(new THREE.Mesh(ag.shaft, toon(cfg.colors.shaft)), new THREE.Mesh(ag.tip, toon(cfg.colors.tip)), new THREE.Mesh(ag.fletch, toon(cfg.colors.fletch)));
+            arrow.position.copy(this.arrowRelease); arrow.rotation.set(-Math.PI / 3, rig.root.rotation.y, 0);
+            const x = arrow.position.x, y = arrow.position.y, z = arrow.position.z, angle = rig.root.rotation.y;
+            this.spawn(arrow, f.life, k => { arrow.position.set(x + Math.sin(angle) * f.distance * k, y + f.height * k, z + Math.cos(angle) * f.distance * k); arrow.scale.setScalar(1 - k * .5); });
+          }
+        }
+        this.endCast();
+      }
       else {
         const w = rig.bones?.weapon;
         if (w && a.weapon !== 'none') { w.updateWorldMatrix(true, false); w.getWorldPosition(_p0); w.getWorldDirection(_dir); }
         else { rig.root.getWorldPosition(_p0); _p0.y += 1.2; _dir.set(Math.sin(rig.root.rotation.y), 0, Math.cos(rig.root.rotation.y)); }
         a.mesh.position.copy(_p0); a.mesh.rotation.y = Math.atan2(_dir.x, _dir.z); a.mesh.visible = true;
-        const f = this.config.skills.hunter_shot.cast, u = a.mesh.material.uniforms, k = a.t / a.dur;
+        const f = this.config.skills[a.skill].cast, u = a.mesh.material.uniforms, k = a.t / a.dur;
         u.uLength.value = f.length * (.2 + .8 * k); u.uOpacity.value = f.opacity * k; u.uT.value = a.t;
       }
     }
@@ -677,7 +692,7 @@ export class Vfx {
 
   impact(e) {
     if (e.kind === 'firebolt' && e.element === 'fire') return this.fireImpact(e);
-    if (e.kind === 'hunter_shot') {
+    if (this.config.skills[e.kind]?.renderer === 'arrow') {
       const cfg = this.contactLook(e.kind, e.element);
       this.contacts.burst({ ...e, fromX: e.x - (e.vx ?? 1), fromZ: e.z - (e.vz ?? 0) }, cfg, this.gy(e.x, e.z) + (e.y ?? 1));
       this.shake = Math.max(this.shake, cfg.impact.shake);
@@ -703,7 +718,7 @@ export class Vfx {
       return;
     }
     // The arrow's impact event draws its contact once, including obstacle hits.
-    if (e.skill === 'hunter_shot') {
+    if (this.config.skills[e.skill]?.renderer === 'arrow') {
       if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
       return;
     }
@@ -717,6 +732,11 @@ export class Vfx {
   }
 
   burst(e) {
+    if (e.kind === 'arrow_rain') {
+      const f = this.config.skills.arrow_rain.fall;
+      this.fx.burst(e.x, this.gy(e.x, e.z) + .08, e.z, 5, { color: f.color, size: .12, speed: 1.4, life: .16, up: .15 });
+      return;
+    }
     if (e.kind === 'stone_burst') return this.stoneBurst(e);
     if (e.kind === 'slam' || e.kind === 'pound' || e.kind === 'stomp') return this.slam(e);
     if (e.kind === 'shards') return this.shardBurst(e);
@@ -1079,7 +1099,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = pr.kind === 'hunter_shot';
+      const arrow = this.config.skills[pr.kind]?.renderer === 'arrow';
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {
@@ -1099,11 +1119,16 @@ export class Vfx {
           }
         } else if (arrow) {
           const ag = arrowGeometry();
-          const cfg = this.config.skills.hunter_shot;
+          const cfg = this.config.skills[pr.kind];
           const shaft = new THREE.Mesh(ag.shaft, toon(cfg.colors.shaft));
           const tip = new THREE.Mesh(ag.tip, toon(cfg.colors.tip));
           const fl = new THREE.Mesh(ag.fletch, toon(cfg.colors.fletch));
           v.add(shaft, tip, fl);
+          if (this.arrowReleasePending && pr.kind !== 'hunter_shot') {
+            const travelled = pr.travelled || 0, speed = pr.speed || 1;
+            const sx = pr.x - pr.vx / speed * travelled, sz = pr.z - pr.vz / speed * travelled;
+            v.userData.socketOffset = new THREE.Vector3().copy(this.arrowRelease).sub(_p0.set(sx, this.gy(sx, sz) + (pr.y ?? 1), sz));
+          }
           v.add(arrowStreak(element === 'physical' ? cfg : { ...cfg, colors: { ...cfg.colors, trail: c.glow, core: c.core } }));
         } else {
           const size = pr.owner === 'player' ? 0.9 : 0.8;
@@ -1147,6 +1172,7 @@ export class Vfx {
       }
       v.scale.setScalar(look.scale);
       if (arrow) {
+        if (v.userData.socketOffset) v.position.addScaledVector(v.userData.socketOffset, Math.max(0, 1 - (pr.travelled || 0) / 1.5));
         v.rotation.y = Math.atan2(pr.vx, pr.vz);
         v.children[3].material.uniforms.uT.value = time;
         continue;
@@ -1159,6 +1185,7 @@ export class Vfx {
       }
     }
     this.fireReleasePending = false;
+    this.arrowReleasePending = false;
     for (const [id, v] of this.projectiles) {
       if (!seen.has(id)) {
         if (v.children[0]?.userData.v5) {
@@ -1195,7 +1222,48 @@ export class Vfx {
     }
   }
 
+  // Read root state rather than extending a cosmetic timer on repeated impacts.
+  syncRoots(game) {
+    for (const m of game.monsters) {
+      if (m.dead || !m.statuses.root) continue;
+      let v = this.rootVisuals.get(m.id);
+      const f = this.config.skills.pinning_arrow.root;
+      if (!v) {
+        const geo = ringGeometry(m.r + .12 - f.width, m.r + .12 + f.width, 48);
+        v = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: f.color, transparent: true, opacity: f.opacity, depthWrite: false, side: THREE.DoubleSide }));
+        this.scene.add(v); this.rootVisuals.set(m.id, v);
+      }
+      v.position.set(m.x, this.gy(m.x, m.z) + .06, m.z);
+      v.material.opacity = f.opacity * Math.min(1, m.statuses.root.t / .15);
+    }
+    for (const [id, v] of this.rootVisuals) {
+      const m = game.monsterById(id);
+      if (!m || m.dead || !m.statuses.root) { disposeObject(v); this.rootVisuals.delete(id); }
+    }
+  }
+
   makeArea(a) {
+    if (a.kind === 'arrow_rain') {
+      const cfg = this.config.skills.arrow_rain, f = cfg.fall, group = new THREE.Group();
+      const boundary = this.decal(this.ringGeo, new THREE.MeshBasicMaterial({ color: f.color, transparent: true, depthWrite: false, opacity: f.boundaryOpacity, side: THREE.DoubleSide }), a.x, a.z, a.radius, 0, .035);
+      group.add(boundary);
+      const ag = arrowGeometry(), arrows = [];
+      const shaftMat = toon(cfg.colors.shaft), tipMat = toon(cfg.colors.tip), featherMat = toon(cfg.colors.fletch);
+      for (let i = 0; i < f.count; i++) {
+        const angle = i * 2.39996 + (a.wave || 0) * .8, radius = a.radius * .85 * Math.sqrt((i + .5) / f.count);
+        const arrow = new THREE.Group();
+        arrow.add(new THREE.Mesh(ag.shaft, shaftMat), new THREE.Mesh(ag.tip, tipMat), new THREE.Mesh(ag.fletch, featherMat));
+        arrow.position.set(a.x + Math.sin(angle) * radius, 0, a.z + Math.cos(angle) * radius);
+        arrow.rotation.x = Math.PI / 2; arrow.scale.setScalar(f.scale); group.add(arrow); arrows.push(arrow);
+      }
+      return { obj: group, update: ar => {
+        const remaining = ar.delay - ar.t;
+        group.visible = remaining >= 0 && remaining <= f.life;
+        boundary.material.opacity = f.boundaryOpacity * Math.min(1, Math.max(0, remaining / .08));
+        const k = Math.max(0, Math.min(1, 1 - remaining / f.life));
+        for (const arrow of arrows) arrow.position.y = this.gy(arrow.position.x, arrow.position.z) + .2 + f.height * (1 - k * k);
+      } };
+    }
     const fadeInOut = (ar) => {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));

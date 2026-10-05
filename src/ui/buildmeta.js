@@ -31,6 +31,7 @@ export function rulesHtml(mod) {
 }
 export function fitReason(fit) {
   if(fit.ok)return 'ประเภทตรงกัน';
+  if(fit.reason==='root_no_knockback')return 'ศรตรึงใช้ร่วมกับกระแทกกระเด็นไม่ได้';
   if(fit.reason==='needs_persistent')return 'ต้องมีพื้นที่คงอยู่ หรือใส่ทิ้งไฟบนพื้นก่อน';
   const [prefix,raw='']=fit.reason.split(' for ').length>1?['not',fit.reason.slice(8)]:['needs',fit.reason.replace(/^needs /,'')];
   return (prefix==='not'?'ห้ามใช้กับ ':'ขาดประเภท ')+raw.split(/([+/])/).map(x=>x==='+'?' + ':x==='/'?' หรือ ':TAGS[x]||x).join('');

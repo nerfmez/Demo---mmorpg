@@ -27,6 +27,7 @@ const ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison'];
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
   const tags = skill.tags || [];
+  if (skill.root && mod.effect?.knock) return { ok: false, reason: 'root_no_knockback' };
   if (mod.requiresPersistent && !['dot_zone', 'heal_zone'].includes(skill.kind) && !companions.some(m => m?.effect?.groundDps && modFits(skill, m).ok))
     return { ok: false, reason: 'needs_persistent' };
   if (mod.requiresAll && !mod.requiresAll.every((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAll.join('+')}` };
@@ -62,11 +63,14 @@ export function computeSkill(ch, data, derived, slotIndex) {
     arc: def.arc || 0,
     // castSpeedPct is action speed: casting and the cooldown after it both run faster.
     cooldown: (def.cooldown * (1 - derived.cooldownPct / 100)) / (1 + (derived.castSpeedPct || 0) / 100),
-    castTime: def.castTime / (1 + (derived.castSpeedPct || 0) / 100),
+    castTime: def.fixedCastTime ? def.castTime : def.castTime / (1 + (derived.castSpeedPct || 0) / 100),
     cost: def.cost * (1 + (data.progression.skillUpgrade.manaPerLevel || 0) * (level - 1)) * (1 - (derived.manaCostReductionPct || 0) / 100),
     speed: (def.speed || 0) * (1 + derived.projectileSpeedPct / 100),
     projectileRadius: def.projectileRadius || 0.3,
     delay: def.delay || 0,
+    waves: def.waves || 1,
+    waveInterval: def.waveInterval || 0,
+    root: def.root ? { ...def.root } : null,
     duration: def.duration || 0,
     tick: def.tick || 0.5,
     burnChance: def.burnChance || 0,
@@ -212,6 +216,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
   }
   const control = 1 + (derived.controlDurationPct || 0) / 100;
   if (s.chill) s.chill.duration *= control;
+  if (s.root) {
+    s.root.duration = Math.min(s.root.maxDuration, s.root.duration * control);
+    s.root.bossDuration = Math.min(s.root.bossMaxDuration, s.root.bossDuration * control);
+  }
   if (s.kind === 'curse_zone') s.duration *= control;
   s.arc = Math.min(s.arc, 360);
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);

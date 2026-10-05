@@ -178,6 +178,7 @@ function idle(game, m, dt, slowMult) {
 
 /** Walk toward a point. Returns true when arrived. */
 function walkTo(game, m, x, z, speed, dt) {
+  if (m.statuses.root) { m.moving = false; return false; }
   const d = dist(m.x, m.z, x, z);
   if (d < 0.3) {
     m.moving = false;
@@ -396,8 +397,10 @@ function act(game, m, dt, t) {
   c.t += dt;
   if (c.dive) {
     const k = Math.min(1, c.t / c.dur);
-    m.x = c.fromX + (c.toX - c.fromX) * k;
-    m.z = c.fromZ + (c.toZ - c.fromZ) * k;
+    if (!m.statuses.root) {
+      m.x = c.fromX + (c.toX - c.fromX) * k;
+      m.z = c.fromZ + (c.toZ - c.fromZ) * k;
+    }
     if (k >= 1) {
       const name = m.windup?.name === 'pounce' ? 'pounce' : 'dive', atk = m.def.attacks[name];
       m.charge = null;
@@ -486,7 +489,7 @@ function shellSpitter(game, m, dt, { t, gap, slowMult }) {
 function kiter(game, m, dt, { t, dToT, slowMult }) {
   const a = m.def.attacks;
   const [near, far] = m.def.keepDistance;
-  if (dToT < a.blink.triggerRange && m.cd.blink <= 0) {
+  if (!m.statuses.root && dToT < a.blink.triggerRange && m.cd.blink <= 0) {
     m.cd.blink = a.blink.cooldown;
     const away = angleTo(t.x, t.z, m.x, m.z);
     for (const off of [0, 0.6, -0.6, 1.2, -1.2, 2]) {

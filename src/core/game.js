@@ -166,6 +166,10 @@ export class Game {
 
   /** Move an entity with collision. Monsters stay out of the safe settlement. */
   moveEntity(e, dx, dz, opts = {}) {
+    if (e.kind === 'monster' && e.statuses?.root) {
+      e.moving = false;
+      return { blocked: false, blockedHard: false };
+    }
     if (e.def?.flyer) {
       const b = this.world.bounds;
       e.x = clamp(e.x + dx, b.minX + 1, b.maxX - 1);
@@ -428,6 +432,10 @@ export class Game {
   resolveAim(s, point) {
     const p = this.player;
     const t = this.target;
+    if ((s.def.fixedCastTime || s.root || s.waves > 1) && this.input.manualAim && !this.input.aimFromPointer) {
+      const angle = this.input.aimAngle, d = dirFromAngle(angle);
+      return { angle, x: s.kind === 'ground_area' ? p.x + d.x * s.range : p.x, z: s.kind === 'ground_area' ? p.z + d.z * s.range : p.z };
+    }
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
     if (['melee_arc', 'projectile', 'chain', 'melee_nova'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
@@ -747,6 +755,13 @@ export class Game {
     this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
+      if (opts.root && m.hp > 0 && !m.statuses.root && !m.statuses.rootImmunity) {
+        const duration = m.boss ? opts.root.bossDuration : opts.root.duration;
+        m.statuses.root = { t: duration };
+        m.statuses.rootImmunity = { t: duration + opts.root.immunity };
+        m.moving = false;
+        this.emit({ type: 'root', id: m.id, x: m.x, z: m.z, duration, boss: m.boss });
+      }
       if (opts.chill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
       if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0 };
       const pc = this.derived.poisonChancePct / 100;
@@ -898,7 +913,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, root: s.root, ...(s.root ? { stagger: 0 } : {}), ...extra };
   }
 
   /** The combo step (0, 1, 2 = finisher) a melee swing landing at time t would be. */
@@ -959,6 +974,7 @@ export class Game {
         return;
       }
       case 'projectile': {
+        const castHit = s.def.singleHitPerCast ? new Set() : null;
         const n = s.projectiles;
         const step = n > 1 ? (s.spread * DEG) / (n - 1) : 0;
         for (let i = 0; i < n; i++) {
@@ -966,6 +982,7 @@ export class Game {
           const d = dirFromAngle(a);
           this.spawnProjectile({
             owner: 'player',
+            castHit,
             kind: s.id,
             skill: s,
             x: p.x + d.x * 0.6,
@@ -1036,8 +1053,12 @@ export class Game {
         return;
       }
       case 'ground_area': {
-        this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay: s.delay, duration: 0.35, damage: s.damage * mult, element: s.element });
-        if (s.echo) this.spawnArea({ owner: 'player', kind: s.id, skill: s, echo: true, x: aim.x, z: aim.z, radius: s.radius, delay: s.delay + s.echo.delay, duration: 0.35, damage: s.damage * mult * s.echo.mult, element: s.element });
+        // Each wave is a single area contact at a fixed point, never a decorative projectile.
+        const sequence = (delay, scale, echo = false) => {
+          for (let wave = 0; wave < s.waves; wave++) this.spawnArea({ owner: 'player', kind: s.id, skill: s, echo, wave, x: aim.x, z: aim.z, radius: s.radius, delay: s.delay + delay + wave * s.waveInterval, duration: s.waves > 1 ? 0.12 : 0.35, damage: s.damage * mult * scale, element: s.element });
+        };
+        sequence(0, 1);
+        if (s.echo) sequence(s.echo.delay, s.echo.mult, true);
         return;
       }
       case 'nova': {
@@ -1136,6 +1157,7 @@ export class Game {
       if (m.dead) continue;
       m.hurtT = Math.max(0, m.hurtT - dt);
       updateMonster(this, m, dt);
+      if (m.statuses.root) m.moving = false;
     }
     this.separateMonsters();
     this.monsters = this.monsters.filter((m) => !(m.dead && m.deathT > 2.5));
@@ -1339,7 +1361,7 @@ export class Game {
       }
       if (st.t <= 0) delete m.statuses[k];
     }
-    for (const k of ['chill', 'hex', 'mire']) {
+    for (const k of ['chill', 'hex', 'mire', 'root', 'rootImmunity']) {
       if (!m.statuses[k]) continue;
       m.statuses[k].t -= dt;
       if (m.statuses[k].t <= 0) delete m.statuses[k];
@@ -1521,6 +1543,11 @@ export class Game {
           if (dist(pr.x, pr.z, m.x, m.z) > m.r + pr.radius) continue;
           pr.hit.add(m.id);
           const s = pr.skill;
+          if (pr.castHit?.has(m.id)) {
+            if (pr.pierce > 0) { pr.pierce--; continue; }
+            dead = true; break;
+          }
+          pr.castHit?.add(m.id);
           this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
           this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
           if (s.ground) this.spawnGround(s, m.x, m.z, pr.triggered ? s.trigger?.damageMult || 1 : 1);

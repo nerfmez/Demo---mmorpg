@@ -20,7 +20,8 @@ built artifact and exact checkout SHA. Neither `QUICK` viewport omission nor
 durations, exit codes and source SHA; artifact names include mode/source/engine/suite.
 Every assertion, viewport and capture in each selected script is retained. Menu-hub
 alone holds its already-rendered world backdrop while checking paused UI; it keeps
-RAF/input/UI previews live and asserts the renderer frame counter stays held.
+RAF/input/UI previews live and asserts zero additional world-scene draws, while
+separately recording preview draws and held frame updates.
 
 `test (chromium)` and `test (webkit)` retain the old check names. They now summarize
 **the quick affected gate**, not a claim that every browser test ran. Both summaries

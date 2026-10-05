@@ -540,7 +540,7 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx, tuning, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, get wolf(){return wolf.root;}, dummy }, stats: () => ({ ...renderer.info.memory }) };
+window.__lab = { state, cast, step, vfx, tuning, setWeapon: (w) => { state.weapon = w; buildHero(); }, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, get wolf(){return wolf.root;}, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
 
 

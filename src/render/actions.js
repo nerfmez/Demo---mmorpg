@@ -13,7 +13,13 @@
 // a full turn ends where it began); ikL / ikR [x, y, z] are hand targets in the character's
 // root space (x left, y up, z forward, metres) with weights ikw [left, right]; grip [w] puts
 // the left hand on the weapon's handle (two-handed weapons); aim [w] stands the weapon up
-// facing forward with its grip in the right palm (a drawn bow).
+// facing forward with its grip in the right palm (a drawn bow). swing [angle, elevation, height]
+// with weight sw [w] puts the right palm on an arc round the body (angle 0 = forward, + = the
+// hero's left; height in metres) with the blade pointing out along it, edge leading
+// (hero.js solveWeapon). Melee keys follow the approved slash crescent (vfx.js approvedCut):
+// cuts 1 and 3 rise from the hero's lower right to upper left, cut 2 (reversed) from lower left
+// to upper right, and the crescent is drawn whole at the hit: the blade reaches the far end of
+// its arc on the hit key, then follows through.
 
 export const READY = { armR: [-0.28, 0, -0.18], elbowR: [-0.55, 0, 0], armL: [-0.12, 0, 0.16], elbowL: [-0.35, 0, 0] };
 // neutral start/end: every channel an action may touch goes back to rest
@@ -81,24 +87,37 @@ const WHIRL_ARMS = { armR: [-1.3, 0, -1.3], elbowR: [-0.2, 0, 0], weapon: [1.57,
 
 // channels that must read as zero where a key leaves them out (samplePose would otherwise
 // borrow the neighbouring key's value, e.g. keep an IK weight on during a wind-up)
-const ZERO = { ikw: [0, 0, 0], grip: [0, 0, 0], drop: [0, 0, 0], aim: [0, 0, 0] };
+const ZERO = { ikw: [0, 0, 0], grip: [0, 0, 0], drop: [0, 0, 0], aim: [0, 0, 0], sw: [0, 0, 0] };
+// a swing key: palm on the arc at angle a, blade elevation e, palm height y
+const arc = (a, e, y) => ({ sw: [1, 0, 0], swing: [a, e, y] });
+// the three cuts' arcs (wind-up, just before the hit, hit at the far end, follow-through)
+const RISE_L = [arc(-2.0, -0.45, 0.92), arc(-1.0, -0.15, 1.0), arc(0.95, 0.25, 1.12), arc(1.55, 0.35, 1.18)];
+const RISE_R = [arc(1.7, -0.4, 0.95), arc(0.85, -0.12, 1.02), arc(-0.95, 0.25, 1.14), arc(-1.6, 0.35, 1.2)];
+const RISE_BIG = [arc(-2.25, -0.6, 0.86), arc(-1.1, -0.2, 0.98), arc(1.0, 0.42, 1.24), arc(1.65, 0.55, 1.3)];
+const body = (p) => Object.fromEntries(Object.entries(p).filter(([n]) => !['armR', 'elbowR', 'weapon', 'grip'].includes(n)));
+const cut = (hit, pre, poses, arcs, end = 0.66) => act(hit, [
+  [0, REST], [pre, { ...body(poses[0]), ...arcs[0] }], [hit - 0.06, { ...body(poses[0]), ...arcs[1] }],
+  [hit, { ...body(poses[1]), ...arcs[2] }], [end, { ...body(poses[2]), ...arcs[3] }], [1, REST],
+]);
 const act = (hit, keys) => ({ hit, keys: keys.map(([t, p]) => [t, Object.keys(p).length ? { ...ZERO, ...p } : p]) });
 export const ACTIONS = {
   staffBolt: { hit: .42, keys: [[0,{...STAFF_GATHER,staffAim:[0,0,0]}],[.16,STAFF_GATHER],[.42,STAFF_OUT],[.58,STAFF_OUT],[1,{...STAFF_GATHER,staffAim:[0,0,0]}]] },
-  // 1-2-3 sword combo: forehand down across to the left, backhand out to the right, overhead chop
-  slashA: act(0.46, [[0, REST], [0.3, A_WIND], [0.46, A_HIT], [0.64, A_END], [1, REST]]),
-  slashB: act(0.46, [[0, hold(A_END, { drop: [-0.05, 0, 0] })], [0.28, B_WIND], [0.46, B_HIT], [0.64, B_END], [1, REST]]),
-  slashC: act(0.48, [[0, REST], [0.34, C_WIND], [0.48, C_HIT], [0.7, hold(C_HIT, { armR: [-1.15, 0, -0.1], drop: [-0.14, 0, 0] })], [1, REST]]),
-  // greatblade: both hands, bigger wind-up, deeper stance
-  heavyA: act(0.5, [[0, hold(REST, G)], [0.32, HA_WIND], [0.5, HA_HIT], [0.72, hold(HA_HIT, { torso: [0.4, 0.5, 0] })], [1, REST]]),
-  heavyB: act(0.5, [[0, hold(REST, G)], [0.32, HB_WIND], [0.5, HB_HIT], [0.72, hold(HB_HIT, { torso: [0.2, 0.85, 0] })], [1, REST]]),
-  heavyC: act(0.5, [[0, hold(REST, G)], [0.34, hold(C_WIND, G)], [0.5, hold(C_HIT, { ...G, drop: [-0.2, 0, 0] })], [0.74, hold(C_HIT, { ...G, drop: [-0.18, 0, 0] })], [1, REST]]),
-  // dagger: thrust, reverse cut, lunging stab
-  stabA: act(0.42, [[0, REST], [0.26, SA_WIND], [0.42, SA_HIT], [0.6, SA_HIT], [1, REST]]),
-  stabB: act(0.44, [[0, REST], [0.26, SB_WIND], [0.44, SB_HIT], [0.62, hold(SB_HIT, { armR: [-1.0, 0.5, -1.2] })], [1, REST]]),
-  stabC: act(0.46, [[0, REST], [0.3, SC_WIND], [0.46, SC_HIT], [0.7, SC_HIT], [1, REST]]),
-  // whirl blade: a real turn with the blade held out
-  whirl: act(0.55, [[0, { ...REST, spin: [0, 0, 0] }], [0.25, { ...WHIRL_ARMS, torso: [0.2, -0.5, 0], spin: [-0.6, 0, 0] }], [0.55, { ...WHIRL_ARMS, spin: [Math.PI, 0, 0] }], [0.8, { ...WHIRL_ARMS, spin: [Math.PI * 2, 0, 0] }], [1, { ...REST, spin: [Math.PI * 2, 0, 0] }]]),
+  // 1-2-3 combo along the slash crescent: rising cut to the left, rising backhand to the right,
+  // a bigger rising finisher. The body twists with the blade (wind-up away, hit through).
+  slashA: cut(0.46, 0.3, [A_WIND, A_HIT, A_END], RISE_L),
+  slashB: cut(0.46, 0.28, [B_WIND, B_HIT, B_END], RISE_R),
+  slashC: cut(0.48, 0.32, [HA_WIND, HA_HIT, hold(HA_HIT, { torso: [0.4, 0.55, 0], drop: [-0.14, 0, 0] })], RISE_BIG, 0.7),
+  // two-handed (greatblade; axe and mace with a free left hand): the same arcs, slower and lower
+  heavyA: cut(0.5, 0.32, [HA_WIND, HA_HIT, hold(HA_HIT, { torso: [0.4, 0.5, 0] })], RISE_L, 0.72),
+  heavyB: cut(0.5, 0.32, [HB_WIND, HB_HIT, hold(HB_HIT, { torso: [0.2, 0.85, 0] })], RISE_R, 0.72),
+  heavyC: cut(0.5, 0.34, [HA_WIND, HA_HIT, hold(HA_HIT, { torso: [0.45, 0.6, 0], drop: [-0.2, 0, 0] })], RISE_BIG, 0.74),
+  // dagger: quick, tight cuts on the same arcs with a lunge on the third
+  stabA: cut(0.42, 0.26, [SA_WIND, SA_HIT, SA_HIT], RISE_L, 0.6),
+  stabB: cut(0.44, 0.26, [SB_WIND, SB_HIT, SB_HIT], RISE_R, 0.62),
+  stabC: cut(0.46, 0.3, [SC_WIND, SC_HIT, SC_HIT], RISE_L, 0.7),
+  // whirl blade: a real turn toward the hero's left (as the whirl crescents travel) with the
+  // blade held straight out to the left, leading the turn
+  whirl: act(0.55, [[0, { ...REST, spin: [0, 0, 0] }], [0.25, { ...body(WHIRL_ARMS), torso: [0.2, -0.5, 0], spin: [-0.6, 0, 0], ...arc(1.35, 0, 1.08) }], [0.55, { ...body(WHIRL_ARMS), spin: [Math.PI, 0, 0], ...arc(1.45, 0.05, 1.1) }], [0.8, { ...body(WHIRL_ARMS), spin: [Math.PI * 2, 0, 0], ...arc(1.45, 0.05, 1.1) }], [1, { ...REST, spin: [Math.PI * 2, 0, 0] }]]),
   // ranged
   bow: act(0.56, [[0, REST], [0.24, BOW_RAISE], [0.46, BOW_DRAW], [0.56, BOW_LOOSE], [0.78, BOW_LOOSE], [1, REST]]),
   throw: act(0.45, [[0, REST], [0.28, THROW_WIND], [0.45, THROW_OUT], [0.65, THROW_OUT], [1, REST]]),
@@ -147,7 +166,8 @@ const BY_KIND = {
   melee_arc: 'combo', melee_nova: 'whirl', chain: 'zap', ground_area: 'slam', nova: 'nova', dot_zone: 'sow',
   curse_zone: 'hex', self_barrier: 'ward', buff: 'warcry', heal_zone: 'heal', summon: 'summon',
 };
-// Heavy one-hand weapons (axe, mace) swing one-handed like a sword so the left hand stays free for a shield.
+// Heavy weapons (axe, mace) swing one-handed like a sword when a shield is in the left hand; with the
+// left hand free they are held in both and play the greatblade combo (hero.js play).
 const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], dagger: ['stabA', 'stabB', 'stabC'] };
 
 /**

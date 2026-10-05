@@ -338,6 +338,16 @@ holds the walk and run cycles as driver-bone Euler angles (XYZ) per frame; the c
 Skill actions (`render/actions.js`) are keyframed poses with a `hit` time; port each as an
 `Animation` with a method track (or signal) at the hit, and use `SkeletonIK3D` (or a
 two-bone IK modifier) for the ikL/ikR/grip channels.
+How the hero carries each weapon type is data (`data/weapon-holds.json`, read by
+`render/hero.js`): a right-palm target and a weapon direction in body space, a `one` carry
+(left hand busy) and a `two` grip whose left palm IK-targets `grip` metres along the weapon
+(heavy axe/mace with nothing in the left hand, greatblade). Melee actions add a `swing`
+channel `[angle, elevation, height]` with weight `sw`: the right palm follows a circle of
+`swing.radius` round the body and the blade points outward along it, keyed so the cut runs
+the same way and at the same time as the approved crescent (steps 1 and 3 lower right to
+upper left, step 2 reversed). During a non-swing action a `castHold` staff or a two-hand
+weapon keeps its carry angle while the arm gestures, and the two-hand left grip lets go.
+Port as a right-hand IK target with a look-at on the weapon bone, blended by these weights.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 
 Input gestures in `ui/input.js` are presentation behaviour: tap to cast, drag to aim,

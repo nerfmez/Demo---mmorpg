@@ -1,0 +1,22 @@
+{
+  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height.",
+  "swing": { "radius": 0.42 },
+  "holds": {
+    "sword": { "one": { "hand": [-0.22, 0.93, 0.06], "dir": [-0.22, -0.7, -0.68] } },
+    "dagger": { "one": { "hand": [-0.22, 0.94, 0.08], "dir": [-0.16, -0.78, -0.6] } },
+    "wand": { "one": { "hand": [-0.22, 0.96, 0.14], "dir": [-0.12, -0.42, 0.9] } },
+    "axe": {
+      "one": { "hand": [-0.24, 1.12, 0.1], "dir": [-0.1, 0.55, -0.83] },
+      "two": { "hand": [-0.05, 1.0, 0.3], "dir": [0.42, 0.78, 0.46], "grip": 0.26 }
+    },
+    "mace": {
+      "one": { "hand": [-0.24, 1.12, 0.1], "dir": [-0.1, 0.55, -0.83] },
+      "two": { "hand": [-0.05, 1.0, 0.3], "dir": [0.42, 0.78, 0.46], "grip": 0.22 }
+    },
+    "greatblade": {
+      "two": { "hand": [-0.05, 1.0, 0.3], "dir": [0.36, 0.82, 0.44], "grip": -0.11 }
+    },
+    "staff": { "one": { "hand": [-0.27, 1.0, 0.12], "dir": [-0.04, 1, 0.14], "castHold": true } },
+    "bow": { "one": { "hand": [-0.26, 0.96, 0.12], "dir": [0, -0.25, 1] } }
+  }
+}

@@ -347,6 +347,10 @@ channel `[angle, elevation, height]` with weight `sw`: the right palm follows a 
 the same way and at the same time as the approved crescent (steps 1 and 3 lower right to
 upper left, step 2 reversed). During a non-swing action a `castHold` staff or a two-hand
 weapon keeps its carry angle while the arm gestures, and the two-hand left grip lets go.
+The standing pose is a neutral base plus the carry's `stance` (`stances`: `relaxed` shifts
+the weight onto the right leg, `guard` is the staggered two-hand ready stance): bone offsets,
+a body `drop` and sideways `shift`, faded out by the walk/run blend. Port as an idle pose
+added under the locomotion blend.
 Port as a right-hand IK target with a look-at on the weapon bone, blended by these weights.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 

@@ -329,13 +329,20 @@ export class HumanoidAnimator {
     // base pose buffers are reused every frame (no per-frame allocation on the hot path)
     const gait = sampleGait(this.gaitU, kRun, this.buf.gait);
     const sway = Math.sin(it * 0.55);
+    // standing pose: the neutral base plus the weapon's stance (data/weapon-holds.json stances)
     const idle = this.buf.idle;
-    idle.legL[2] = idle.legR[2] = -sway * 0.03;
-    idle.armL[2] = 0.17 + breath * 0.012;
-    idle.armR[2] = -0.17 - breath * 0.012;
-    idle.chest[0] = breath * 0.015;
-    idle.head[1] = Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35;
-    idle.hips[2] = sway * 0.035;
+    const stance = HOLDS.stances[this.holdFor()?.stance ?? 'relaxed'];
+    for (const n of IDLE_BONES) {
+      const o = idle[n], a = IDLE_BASE[n], d = stance[n] ?? ZERO3;
+      o[0] = a[0] + d[0]; o[1] = a[1] + d[1]; o[2] = a[2] + d[2];
+    }
+    idle.legL[2] -= sway * 0.03;
+    idle.legR[2] -= sway * 0.03;
+    idle.armL[2] += 0.17 + breath * 0.012;
+    idle.armR[2] -= 0.17 + breath * 0.012;
+    idle.chest[0] += breath * 0.015;
+    idle.head[1] += Math.sin(it * 0.31) * Math.sin(it * 0.17) * 0.35;
+    idle.hips[2] += sway * 0.035;
     const pose = this.buf.pose;
     for (const n in pose) if (!(n in idle) && n !== 'weapon') delete pose[n]; // channels an action or dash added
     for (const n in idle) {
@@ -348,8 +355,8 @@ export class HumanoidAnimator {
     pose.head[1] += this.lookYaw;
     pose.weapon = this.buf.weapon;
     pose.weapon[0] = 1.2 - 0.3 * m;
-    let bodyY = gait.by * m - (1 - m) * 0.004 * (1 - breath);
-    let bodyX = gait.bx * m;
+    let bodyY = gait.by * m + (1 - m) * ((stance.drop ?? 0) - 0.004 * (1 - breath));
+    let bodyX = gait.bx * m + (1 - m) * (stance.shift ?? 0);
     let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
     let hipsSpinX = 0;
     let spin = 0;
@@ -606,15 +613,18 @@ const AIM_R = new THREE.Quaternion();
 const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
+const ZERO3 = [0, 0, 0];
+// the neutral standing pose; stances add to it
+const IDLE_BASE = Object.fromEntries(IDLE_BONES.map((n) => [n, [0, 0, 0]]));
+IDLE_BASE.kneeL[0] = IDLE_BASE.kneeR[0] = 0.04;
+IDLE_BASE.armL[0] = IDLE_BASE.armR[0] = -0.05;
+IDLE_BASE.elbowL[0] = IDLE_BASE.elbowR[0] = -0.22;
+IDLE_BASE.torso[0] = 0.05;
 
 /** Per-animator scratch arrays for the locomotion pose. */
 function poseBuffers() {
   const set = (f) => Object.fromEntries(IDLE_BONES.map((n) => [n, f(n)]));
-  const idle = set(() => [0, 0, 0]);
-  idle.kneeL[0] = idle.kneeR[0] = 0.04;
-  idle.armL[0] = idle.armR[0] = -0.05;
-  idle.elbowL[0] = idle.elbowR[0] = -0.22;
-  idle.torso[0] = 0.05;
+  const idle = set(() => [0, 0, 0]); // IDLE_BASE + stance, rewritten every frame
   return { idle, base: set(() => [0, 0, 0]), pose: {}, weapon: [1.2, 0, 0], gait: { pose: set(() => [0, 0, 0]), bx: 0, by: 0 } };
 }
 

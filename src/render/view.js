@@ -303,14 +303,25 @@ export class View {
     } else disposeObject(rig.root);
   }
 
-  setHeroLook(look, gear = {}) {
+  setHeroLook(look, gear = {}, preserveAnimation = false) {
+    look ||= DEFAULT_LOOK;
+    const previousRoot = preserveAnimation ? this.hero?.root : null;
+    const animator = preserveAnimation ? this.heroAnim : null;
     if (this.hero) {
       if (this.vfx.wardMesh) this.vfx.wardMesh.removeFromParent();
       disposeObject(this.hero.root);
       disposeObject(this.hero.scarf?.mesh);
     }
     this.hero = buildHumanoid(look, gear);
-    this.heroAnim = new HumanoidAnimator(this.hero);
+    if (animator) {
+      // A cached model arrived for unchanged gear: keep current swing, gait and IK blend state.
+      animator.rig = this.hero;
+      animator.b = this.hero.bones;
+      this.heroAnim = animator;
+      this.hero.root.position.copy(previousRoot.position);
+      this.hero.root.quaternion.copy(previousRoot.quaternion);
+      this.hero.root.scale.copy(previousRoot.scale);
+    } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
     if (this.hero.scarf) this.scene.add(this.hero.scarf.mesh);
     this.heroLookKey = JSON.stringify([look, gear]);

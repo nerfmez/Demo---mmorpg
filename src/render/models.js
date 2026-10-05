@@ -1,4 +1,4 @@
-// Imported GLB models (data/models.json), e.g. Meshy weapons. They load once at boot and
+// Imported GLB models (data/models.json). Weapons load once on demand and
 // replace a gear base's procedural shape; until then (or if loading fails) the procedural
 // shape is used. Geometry and textures are shared by every copy; each rig gets its own
 // toon material so hit flashes still reach the weapon.
@@ -11,14 +11,19 @@ import { prepareMonsterModel } from './monsterSkin.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
 const loading = new Map(); // deduplicate concurrent/repeated registry loads
+const weapons = new Map();
+const failedWeapons = new Set();
+const weaponListeners = new Set();
+const loader = new GLTFLoader();
 
-/** Load every model in the registry. Resolves when all have loaded or failed. */
-export function loadModels(registry = {}) {
-  const loader = new GLTFLoader();
+/** Register lazy weapons; load character/monster templates at boot as before. */
+export function loadModels(registry = {}, { onWeaponReady } = {}) {
+  if (onWeaponReady) weaponListeners.add(onWeaponReady);
   const jobs = [];
   for (const [group, entries] of Object.entries(registry)) {
     if (group.startsWith('_')) continue;
     for (const [id, m] of Object.entries(entries)) {
+      if (group === 'weapons') { weapons.set(id, m); continue; }
       if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
       const key = `${group}/${id}`;
       if (loaded.has(key)) continue;
@@ -41,6 +46,38 @@ export function loadModels(registry = {}) {
   return Promise.all(jobs);
 }
 
+/** Demand is keyed by item ID; completion caches a template, never an old hand/rig. */
+function requestWeapon(id) {
+  const metadata = weapons.get(id), key = `weapons/${id}`;
+  if (!metadata || loaded.has(key) || failedWeapons.has(id)) return;
+  if (loading.has(key)) return loading.get(key);
+  const job = loader.loadAsync(metadata.file).then((gltf) => {
+    loaded.set(key, prepareWeaponModel(gltf.scene, metadata));
+    for (const listener of weaponListeners) listener(id);
+  }).catch((err) => {
+    failedWeapons.add(id); // fallback stays visible; equips do not repeatedly retry a bad URL
+    console.warn('model not loaded:', metadata.file, err);
+  }).finally(() => loading.delete(key));
+  loading.set(key, job);
+  return job;
+}
+
+/** Only the current hands affect this readiness key, so stale requests cannot refresh new gear. */
+export function weaponModelKey(bases = {}) {
+  return `${loaded.has(`weapons/${bases.weapon}`)}:${loaded.has(`weapons/${bases.offhand}`)}`;
+}
+
+/** Portraits may wait for current demanded assets; absent/failed assets use fallback. */
+export function weaponModelsReady(bases = {}) {
+  let ready = true;
+  for (const id of [bases.weapon, bases.offhand]) {
+    if (weapons.has(id) && !loaded.has(`weapons/${id}`) && !failedWeapons.has(id)) {
+      requestWeapon(id); ready = false;
+    }
+  }
+  return ready;
+}
+
 /** A prepared monster model template (see monsterSkin.js), or null until it has loaded. */
 export function monsterModel(type) {
   return loaded.get(`monsters/${type}`) || null;
@@ -52,6 +89,7 @@ export function characterBase(id) {
 }
 
 export function hasModel(group, id) {
+  if (group === 'weapons' && !loaded.has(`weapons/${id}`)) requestWeapon(id);
   return loaded.has(`${group}/${id}`);
 }
 

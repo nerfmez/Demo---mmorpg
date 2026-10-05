@@ -220,7 +220,7 @@ function makeAvatar(){
  if(root.hidden||screen!=='equipment')return;
  const context=getAvatarContext?.();if(!context?.renderer)return;
  if(!context.modelsReady){clearTimeout(avatarTimer);avatarTimer=setTimeout(makeAvatar,100);return;}
- const gear=g.gearLook(),key=JSON.stringify([ch.appearance,gear]);if(key===avatarKey)return;
+ const gear=g.gearLook(),key=JSON.stringify([ch.appearance,gear,context.modelRevision]);if(key===avatarKey)return;
  try{avatar=equipmentAvatar(context.renderer,ch.appearance,gear);avatarKey=key;render();}catch(error){console.warn('equipment portrait unavailable',error);}
 }
 return {

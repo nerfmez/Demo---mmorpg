@@ -62,7 +62,9 @@ jobs:
         run: node tests/browser/gear-hands.mjs
       - name: Approved weapon originals (equip, save, shots, captures and resource stability)
         if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/weapon-models.mjs
+        run: |
+          node tests/browser/weapon-loading.mjs
+          node tests/browser/weapon-models.mjs
       - name: Shop, potions and quick item slots (buy at the shopkeeper, drink from the HUD)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/shop-potions.mjs

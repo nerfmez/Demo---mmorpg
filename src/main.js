@@ -10,7 +10,7 @@ import { ResolutionGovernor } from './render/resolution.js';
 import { contactReady } from './render/fireball-v5-contact.js';
 import { frostReady } from './render/frost-v2.js';
 import { approvedClipsReady } from './render/approved-mesh-clips.js';
-import { loadModels } from './render/models.js';
+import { loadModels, weaponModelKey, weaponModelsReady } from './render/models.js';
 import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
@@ -53,9 +53,14 @@ if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legac
 if (params.get('stream') !== '0') view.coreWorld = coreWorld;
 // ?streamBudget=<ms> lets software-GPU tests stream the neighbour in fewer (slow) frames.
 if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
-// Imported models load in the background; the procedural shapes stand in until they arrive,
-// then the hero, the creation preview and the portrait are rebuilt once.
-Promise.all([loadModels(data.models), view.cityReady, contactReady, frostReady, approvedClipsReady]).then(() => {
+// Character/monster models load at boot. Current weapons load on demand; procedural shapes stand in,
+// current hero, creation preview and portraits refresh when their requested templates arrive.
+Promise.all([loadModels(data.models, { onWeaponReady: (id) => {
+  const bases = F.game?.gearLook().bases;
+  if (id === bases?.weapon || id === bases?.offhand) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
+  // Refresh only the currently selected creation kit, not an obsolete async selection.
+  if (view.previewHero && data.progression.start.kits[F.menu?.kit]?.weapon === id) F.menu.refreshPreview();
+} }), view.cityReady, contactReady, frostReady, approvedClipsReady]).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();
@@ -116,7 +121,9 @@ function startGame(character, slot) {
       return slot ? exportCode(slot) : '';
     },
     slot,
-    getAvatarContext: () => ({renderer: view.renderer, modelsReady: F.modelsReady}),
+    getAvatarContext: () => ({renderer: view.renderer,
+      modelsReady: F.modelsReady && weaponModelsReady(game.gearLook().bases),
+      modelRevision: weaponModelKey(game.gearLook().bases)}),
     onVisibility: () => {
       hud.setMenuOpen(false);
       input.reset();
@@ -165,7 +172,7 @@ function startGame(character, slot) {
   const refreshPortrait = () => {
     const look = game.ch.appearance;
     const gear = game.gearLook();
-    const key = JSON.stringify([look, gear.helm, gear.weapon, !!F.modelsReady]);
+    const key = JSON.stringify([look, gear.helm, gear.weapon, !!F.modelsReady, weaponModelKey(gear.bases)]);
     if (key === portraitKey) return;
     portraitKey = key;
     try {

@@ -37,8 +37,11 @@ export function attachHairSampleBody(rig,T,gear,colors){
  const thumb=body.getObjectByName('J_Bip_R_Thumb1');if(thumb)thumb.rotation.set(0,.65,-.35);
  for(const i of [2,3]){const b=body.getObjectByName('J_Bip_R_Thumb'+i);if(b)b.rotation.z=-.45;}
  bindSkinSync(rig,body,T); // capture this rig's static grip as the finger rest basis
- const center=new THREE.Vector3(.064,-.029,0),bow=gear.weapon==='bow'?.13:0,sync=rig.syncSkin;
+ const center=new THREE.Vector3(.064,-.029,0),bow=gear.weapon==='bow' && !rig.importedWeapon ? .13 : 0,sync=rig.syncSkin;
+ const leftHand=rig.importedOffhand?body.getObjectByName('J_Bip_L_Hand'):null;
+ const leftCenter=new THREE.Vector3(-.064,-.029,0);
  rig.gripCenter=center;
+ rig.offhandGripCenter=leftHand?leftCenter:null;
  rig.syncSkin=()=>{
   sync();rig.root.updateMatrixWorld(true);
   weapon.getWorldQuaternion(q);hand.parent.getWorldQuaternion(p).invert();hand.quaternion.copy(p.multiply(q));
@@ -46,6 +49,11 @@ export function attachHairSampleBody(rig,T,gear,colors){
   v.copy(center);hand.localToWorld(v);
   if(bow){p.copy(q);v.addScaledVector(newDirection.set(0,0,1).applyQuaternion(p),-bow);}
   weapon.parent.worldToLocal(v);weapon.position.copy(v);
+  // Imported light offhands also author their grip at zero; retain the existing carry rotation.
+  if(leftHand&&rig.bones.offhand){
+   v.copy(leftCenter);leftHand.localToWorld(v);
+   rig.bones.offhand.parent.worldToLocal(v);rig.bones.offhand.position.copy(v);
+  }
  };
  rig.syncSkin();return rig;
 }

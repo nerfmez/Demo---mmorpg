@@ -60,3 +60,9 @@ review exceeded its22-minute job limit on both original and one targeted rerun.
 Annotations explicitly identify timeout; final save assertions reported ok:true
 but the check remains cancelled, not successful. No merge/deploy performed.
 Latest main reconciliation requires fresh exact-head gates before release.
+
+The authorized recovery raises only UI review's finite job budget from22to30
+minutes. Both prior22-minute attempts reached passing late save assertions;
+the extra8minutes cover runtime variance, artifact upload and cleanup. No test,
+success criterion, error handling, trigger, scope, matrix or step changed. A
+genuine hang/failure must be investigated rather than repeatedly raising this cap.

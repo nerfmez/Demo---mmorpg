@@ -56,3 +56,19 @@ test('only actual actor bodies receive shadows; skill artwork and HUD are not ch
  assert.match(read('src/ui/input.js'),/art\('skill',s\.id\)/);
  assert.match(read('src/ui/input.js'),/art\('skill',mv\.id\)/);
 });
+test('screen grade: authored in data, off on low, neutral-safe values, targets resized once and freed',async()=>{
+ const {PostFX}=await import('../../src/render/post.js');
+ const cfg=renderConfig.post;
+ assert.equal(qualitySettings('low').post,false,'weak devices draw straight to the canvas');
+ assert.equal(qualitySettings('medium').post,true,'the iPad preset keeps the grade');
+ for(const k of ['exposure','contrast','saturation'])assert.ok(cfg[k]>0.8&&cfg[k]<1.3,k+' stays a gentle grade');
+ for(const k of ["glow","shadowTintAmount","lightTintAmount","hazeAmount","hazeLift","sunWash","vignette"])assert.ok(cfg[k]>=0&&cfg[k]<=0.5,k);
+ for(const k of ["shadowTint","lightTint","sunWashColor"])assert.match(cfg[k],/^#[0-9a-f]{6}$/i);
+ const post=new PostFX({capabilities:{isWebGL2:true}},cfg);
+ assert.equal(post.setSize(1180,820),true);assert.equal(post.glow.width,295);assert.equal(post.scene.samples,cfg.samples);
+ assert.equal(post.setSize(1180,820),false,'an unchanged size does not reallocate');
+ const fog=new THREE.Color('#c6e8f2');post.setHaze(fog);const h=post.compositeMat.uniforms.uHaze.value;
+ assert.ok(h.r>=fog.clone().convertLinearToSRGB().r-1e-6&&h.b<=1,'the haze is the fog colour lifted toward white');
+ const freed=new Set();for(const t of [post.scene,post.glow,post.glowMat,post.compositeMat,post.geometry])t.addEventListener('dispose',()=>freed.add(t));
+ post.dispose();assert.equal(freed.size,5);
+});

@@ -14,6 +14,7 @@ import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
 import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
+import { PostFX } from './post.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
@@ -348,6 +349,27 @@ export class View {
     this.camera.fov = w / h < 1 ? 52 : 36;
     this.camera.updateProjectionMatrix();
     this.vfx.setPointScale(h * dpr);
+    this.syncPost();
+  }
+
+  /** The screen grade follows the preset: created on demand, freed (GPU targets too) when off. */
+  syncPost() {
+    const on = qualitySettings(this.quality).post && renderConfig.post && new URLSearchParams(location.search).get('post') !== '0';
+    if (!on) {
+      this.post?.dispose();
+      this.post = null;
+      return;
+    }
+    this.post ||= new PostFX(this.renderer, renderConfig.post);
+    const size = this.renderer.getDrawingBufferSize(this._postSize ||= new THREE.Vector2());
+    this.post.setSize(size.x, size.y);
+  }
+
+  /** Draw the scene to the canvas, through the screen grade when it is on. */
+  draw() {
+    if (!this.post) return this.renderer.render(this.scene, this.camera);
+    this.post.setHaze(this.fogColor);
+    this.post.render(this.scene, this.camera, this.time);
   }
 
   setQuality(q) {
@@ -955,7 +977,7 @@ export class View {
     const sunOffset = renderConfig.shadow.sunOffset;
     this.sun.position.set(focus.x + sunOffset[0], focus.y + sunOffset[1], focus.z + sunOffset[2]);
     this.sun.target.position.set(focus.x, focus.y, focus.z);
-    this.renderer.render(this.scene, this.camera);
+    this.draw();
   }
 
   /** Character-creation preview: a hero standing on the plaza. */
@@ -1015,7 +1037,7 @@ export class View {
     v.fx.burst(x, y + 1, z, 3, {});
     v.dust.burst(x, y + 1, z, 3, {});
     this.renderer.compile(this.scene, this.camera);
-    this.renderer.render(this.scene, this.camera);
+    this.draw(); // also compiles the screen grade
     tmp.removeFromParent();
     for (const rig of rigs) this.releaseRig(rig); // compiled models start the pool
     disposeObject(hero.root);

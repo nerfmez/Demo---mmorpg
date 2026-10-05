@@ -24,9 +24,30 @@
   "nativeAntialias": true,
   "dynamicResolution": {"enabled": true, "minScale": 0.67, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.125, "stepUp": 0.0625, "settle": 1.5, "recover": 4},
   "quality": {
-    "low": {"pixelRatio": 1, "shadowMapSize": 0},
-    "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024},
-    "high": {"pixelRatio": 2, "shadowMapSize": 2048}
+    "low": {"pixelRatio": 1, "shadowMapSize": 0, "post": false},
+    "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024, "post": true},
+    "high": {"pixelRatio": 2, "shadowMapSize": 2048, "post": true}
+  },
+  "post": {
+    "_doc": "Screen grade (src/render/post.js). Tints are display colours; 50% grey is neutral. hazeStart is the screen height (0 bottom, 1 top) where the fog-coloured haze begins.",
+    "samples": 4,
+    "exposure": 1.02,
+    "contrast": 1.12,
+    "saturation": 1.18,
+    "glow": 0.4,
+    "glowThreshold": 0.72,
+    "glowKnee": 0.2,
+    "shadowTint": "#6278a8",
+    "shadowTintAmount": 0.3,
+    "lightTint": "#cfa676",
+    "lightTintAmount": 0.26,
+    "hazeAmount": 0.2,
+    "hazeStart": 0.6,
+    "hazeLift": 0.35,
+    "sunWash": 0.22,
+    "sunWashColor": "#ffd9a0",
+    "sunWashPos": [0.05, 1.05],
+    "vignette": 0.28
   },
   "shadow": {"sunOffset": [-14, 26, 10], "normalBias": 0.03, "bias": -0.0008},
   "painted": {"shadowStrength": 0.28, "lightInfluence": 0.12, "referenceEnergy": 3.1}

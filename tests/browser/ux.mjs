@@ -38,7 +38,8 @@ try {
     });
     const activate = async (selector) => {
       const tab=selector.match(/^\[data-tab="([^"\]]+)"\]$/)?.[1];
-      if(tab&&await page.locator('#atelier').isVisible())return page.evaluate(tab=>__frontier.panels.open(tab),tab);
+      // a page outside the open page's group is reached through the main menu (covered by menu-hub.mjs)
+      if(tab&&(await page.locator('#atelier').isVisible()||!await page.locator(`[data-tab="${tab}"]`).count()))return page.evaluate(tab=>__frontier.panels.open(tab),tab);
       if(selector==='.panel-close'&&await page.locator('#atelier').isVisible())selector='#atelier [data-action="close"]';
       if(tab&&width<=700)return page.locator('[data-page-select]').selectOption(tab);
       return touch ? page.locator(selector).tap() : page.locator(selector).click();
@@ -59,18 +60,19 @@ try {
     await shot('hud');
 
     await activate('.menu-toggle');
-    assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'true');
-    await activate('.menu [aria-label="ภารกิจ"]');
+    assert.equal(await page.locator('#panel-title').textContent(), 'เมนูหลัก');
+    assert.equal(await page.locator('.hub-tile[data-go]').count(), 12, 'every page has one tile in the main menu');
+    await activate('.hub-tile[data-go="journal"]');
     assert.equal(await page.locator('#panel-title').textContent(), 'ภารกิจ');
-    assert.equal(await page.locator('[data-tab]').count(),12);
-    if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['bag','craft','shop','skills','job','map']) { await page.locator(`[data-tab="${tab}"]`).scrollIntoViewIfNeeded(); assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
+    assert.equal(await page.locator('[data-tab]').count(), 2, 'the sidebar lists only the open page\'s group');
+    assert.ok(await onscreen('.panel-back'), name + ': back to the main menu is reachable');
+    if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['journal','map']) { assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
     assert.ok(await page.locator('.qrow [data-art="monster/tusk_boar"]').count());
     await shot('journal');
     await page.locator('.pbody').evaluate((el) => el.scrollTop = el.scrollHeight);
     assert.ok(await onscreen('.panel-close'), 'close must remain reachable after scrolling');
     assert.ok(await onscreen('.panel-footer [data-close]'), 'return must remain reachable after scrolling');
     await activate('.panel-close');
-    assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'false');
 
     if(height>width){
       await activate('.quick-actions [aria-label="กระเป๋า"]');

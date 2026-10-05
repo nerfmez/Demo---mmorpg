@@ -155,3 +155,13 @@ resource-only at the workbench. Raw character stats gate wearing, computed from 
 item's actual power by core `gearRequirements`. Previews show next enhancement's wear
 requirements and a grade promotion range; worn gear that becomes unusable returns to
 the bag with a clear warning. No character-level requirement applies to upgrading gear.
+
+## Main menu (hub)
+
+The HUD menu button (and Esc) opens a main menu that lists every page in five groups: adventurer
+(character, passive path), skills and mods (skill set, mods, movement, level-up), items and shop
+(bag, crafting, shop), journey (quests, map) and system (settings). Nothing else is shown until a
+tile is pressed. A page lists only its own group in the sidebar (a select on phones) and has a
+"‹ เมนูหลัก" button that returns to the hub; the bag and skill workspaces carry the same button in
+their top bar. The passive travel journal is unchanged. Structure: `src/ui/menu-map.js`; styling:
+`src/ui/menus.css`; test: `tests/browser/menu-hub.mjs`.

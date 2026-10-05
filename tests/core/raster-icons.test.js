@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {inflateSync} from 'node:zlib';
 import {data} from './helpers.js';
 import {RASTER_ICONS,EXPECTED_RASTER_KEYS,rasterIconUrl,rasterIconMarkup} from '../../src/ui/raster-icons.js';
-import {art} from '../../src/ui/art.js';
+import {art,arrowArt} from '../../src/ui/art.js';
 const manifest=JSON.parse(readFileSync(new URL('../../docs/icon-assets-manifest.json',import.meta.url),'utf8'));
 const assets=new Map(manifest.verified_assets.map(a=>[a.key,a]));
 function alphaPixels(png){
@@ -23,12 +23,16 @@ function alphaPixels(png){
  }
  return {extrema:[min,max],clear,partial};
 }
-test('raster contract covers the 76 approved equipment/material/combat/movement IDs exactly once, excluding mods',()=>{
- const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(new Set(EXPECTED_RASTER_KEYS).size,76);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
- for(const key of EXPECTED_RASTER_KEYS)assert.ok(all.includes(key),key+' is live content');
+test('raster contract covers the 122 supplied equipment/material/ammunition/combat/movement IDs exactly once, excluding mods',()=>{
+ const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.items.arrows.types).map(id=>'arrow/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,122);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+ for(const key of EXPECTED_RASTER_KEYS){
+  assert.ok(all.includes(key),key+' is live content');
+  const [kind,id]=key.split('/');
+  assert.match(kind==='arrow'?arrowArt(id):art(kind,id),/<img /,key+' uses supplied raster');
+ }
  // Content added after the approved set keeps its authored SVG until a PNG is supplied.
- for(const key of all.filter(k=>!EXPECTED_RASTER_KEYS.includes(k))){const [kind,id]=key.split('/');assert.equal(rasterIconUrl(kind,id),null,key);assert.match(art(kind,id),/<svg/,key);}
+ for(const key of all.filter(k=>!EXPECTED_RASTER_KEYS.includes(k))){const [kind,id]=key.split('/');assert.equal(rasterIconUrl(kind,id),null,key);assert.match(kind==='arrow'?arrowArt(id):art(kind,id),/<svg/,key);}
 });
 test('only registered supplied PNGs replace existing illustrations; unknown/mod entries cannot opt in',()=>{
  for(const key of EXPECTED_RASTER_KEYS){const [kind,id]=key.split('/');if(!RASTER_ICONS[key]){assert.equal(rasterIconUrl(kind,id),null);assert.match(art(kind,id),/<svg/);}}
@@ -43,6 +47,6 @@ test('every registered image is a real PNG with its recorded native dimensions, 
 });
 
 test('registered supplied PNGs match the retained delivery hashes and coverage',()=>{
- assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,76);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
+ assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,122);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
  for(const a of manifest.verified_assets){assert.equal(RASTER_ICONS[a.key],a.path);const bytes=readFileSync(new URL('../../public/'+a.path,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256,a.key);}
 });

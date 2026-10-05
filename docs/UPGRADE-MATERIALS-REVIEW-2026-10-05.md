@@ -84,3 +84,23 @@ harness limitation, not a claimed game regression. Ground-loot mapping traced bu
 no ground sprite screenshot. Chromium touch emulation is not physical iPad/Safari
 validation. WebKit/full smoke remain premerge work after reconciliation. Static icons;
 no animation review needed. Ready for local owner review within these limits.
+
+## Follow-up affected safety check
+
+Nine tests in `upgrade-materials.test.js` passed, including two additional focused
+checks across every starter base and every gear recipe/grade. Starter +0 returns
+no stones/crystals; every starter +N stone refund is strictly below the stones paid;
+there is no repeatable starter crafting recipe. Every non-starter craft/salvage
+cycle consumes gold and at least one base material, so the one-of-each salvage
+bonus is a paid conversion, not a free loop. A migrated legacy A/+5 item returns
+8 stones (1 base + 7 enhancement) and 1 crystal, adds recipe refunds without
+subtracting any old inventory parts, and cannot be salvaged twice. Existing
+locked/equipped and bulk-salvage protections remain covered. No production change
+was needed after this follow-up. Prior 80-test/build/browser evidence still applies.
+
+The two-icon contact sheet is `two-icon-contact-sheet.png` in the delivery supplement.
+Reviewed at 1200×700: exact final 512px icons side by side on navy, complete silhouettes,
+transparent-edge compositing, unobscured readable English names and IDs. No icon
+pixels were edited. The original approved raster allowlist remains explicit; unknown
+future content still retains its existing SVG fallback. Parent should preserve PR62's
+approved-list/fallback semantics when reconciling the two additive material entries.

@@ -70,3 +70,32 @@ test('base crafting still uses monster parts and never requires the two upgrade 
  const ch=funded();ch.materials={...data.recipes.recipes.tusk_blade.cost};delete ch.materials.gold;assert.ok(craft(ch,data,'tusk_blade',createRng(1)).ok);
  for(const d of data.items.upgradeMaterialDrops){assert.ok(data.items.materials[d.item]);assert.ok(d.chance>0&&d.chance<=1);assert.equal(d.min,1);assert.equal(d.max,1);}
 });
+test('every starter base has no free stone/crystal salvage, and every +N refund is strictly less than its paid stone cost',()=>{
+ for(const [base,def] of Object.entries(data.items.gearBases).filter(([,d])=>d.starter)){
+  assert.ok(!Object.values(data.recipes.recipes).some(r=>r.type==='gear'&&r.result===base),'starter gear has no repeatable free crafting recipe');
+  let paid=0;
+  for(let upgrade=0;upgrade<=data.items.upgrade.max;upgrade++){
+   if(upgrade)paid+=data.items.upgrade.cost[upgrade-1].enhancement_stone;
+   const back=salvageReturn(data,{base,grade:'C',upgrade,options:[]});
+   assert.equal(back.skill_crystal,undefined,base+' cannot create crystals');
+   assert.ok(upgrade?(back.enhancement_stone||0)<paid:!back.enhancement_stone,base+'/'+upgrade+' cannot refund more than paid');
+   assert.equal(back.gold,undefined);
+  }
+ }
+ for(const [id,r] of Object.entries(data.recipes.recipes).filter(([,r])=>r.type==='gear'))for(const grade of data.items.grades.order){
+  const back=salvageReturn(data,{base:r.result,grade,upgrade:0,options:[]});
+  assert.ok(r.cost.gold>0,id+' consumes gold');assert.equal(back.gold,undefined,id+' cannot recover crafting gold');
+  assert.ok(Object.entries(r.cost).some(([k,n])=>k!=='gold'&&(back[k]||0)<n),id+' always consumes at least one base part');
+ }
+});
+test('migrated legacy +N salvage adds the documented current-value refund without converting old inventory or repeating',()=>{
+ const ch=funded();ch.materials={boar_tusk:47,boar_hide:23,ruin_shard:11,ancient_core:2};
+ const item={uid:ch.nextUid++,base:'tusk_blade',grade:'A',upgrade:5,itemLevel:1,options:[]};ch.gear.push(item);
+ const loaded=migrateCharacter(JSON.parse(JSON.stringify(ch)),data),oldParts={...loaded.materials},gold=loaded.gold;
+ const back=salvageReturn(data,loaded.gear.find(i=>i.uid===item.uid));
+ assert.equal(back.enhancement_stone,8,'one base stone plus seven from current +1..+5 refund');assert.equal(back.skill_crystal,1);
+ const result=salvageGear(loaded,data,item.uid);assert.ok(result.ok);assert.equal(loaded.gold,gold);
+ for(const [id,count] of Object.entries(oldParts))assert.equal(loaded.materials[id],count+(back[id]||0));
+ assert.equal(loaded.materials.enhancement_stone,8);assert.equal(loaded.materials.skill_crystal,1);
+ const once=JSON.stringify(loaded);assert.equal(salvageGear(loaded,data,item.uid).reason,'unknown');assert.equal(JSON.stringify(loaded),once);
+});

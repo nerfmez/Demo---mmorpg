@@ -130,7 +130,7 @@ test('parallel engine coverage, main full-run isolation, permissions and core/bu
   assert.match(ci, /browser: \[chromium, webkit\]/);
   assert.match(ci, /fail-fast: false/); assert.match(ci, /max-parallel: 6/);
   assert.match(ci, /group: ci-.*\|\| github.sha/);
-  assert.match(ci, /cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \|\| inputs.quick_gate \}\}/);
+  assert.match(ci, /cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \|\| inputs.quick_gate == true \}\}/);
   assert.match(ci, /permissions:\n  contents: read\nconcurrency:/);
   assert.match(deploy, /permissions:\n  contents: read\n  pages: write\n  id-token: write\n  actions: read\n/);
   assert.match(ci, /run: npm run test:tools\n\s+if: steps.scope.outputs.game == 'true' \|\| steps.scope.outputs.tools == 'true'/);

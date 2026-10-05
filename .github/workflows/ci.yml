@@ -20,7 +20,7 @@ permissions:
 concurrency:
   # New PR revisions may cancel stale quick gates; each main SHA keeps its full run.
   group: ci-${{ github.workflow }}-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && github.ref || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' || inputs.quick_gate }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || inputs.quick_gate == true }}
 jobs:
   prepare:
     name: Build, core and CI tools

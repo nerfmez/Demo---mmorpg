@@ -71,6 +71,15 @@ export function* regionSteps(view, world) {
   trainer.root.rotation.y = -Math.PI / 2 + 0.3;
   trainer.job = 'trainer';
   const townNpcs = [smith, trainer];
+  if (t.shopkeeper) {
+    // the potion seller (town.shop is where the player stands; town.shopkeeper is x, z, facing)
+    const [kx, kz, ka] = t.shopkeeper;
+    const merchant = buildHumanoid({ skin: '#f0c8a4', hair: '#5a3a5e', tunic: '#f4e6d0', scarf: '#c8436a', eyes: '#7a3a5a' }, {}, { npc: true, apron: '#8a3a52', scarf: true });
+    merchant.root.position.set(kx, world.groundY(kx, kz), kz);
+    merchant.root.rotation.y = ka;
+    merchant.job = 'shop';
+    townNpcs.push(merchant);
+  }
   for (const resident of t.residents || []) {
     const n = buildHumanoid(resident.look, {}, { npc: true, ...(resident.outfit || {}) });
     n.root.position.set(resident.x, world.groundY(resident.x, resident.z), resident.z);
@@ -89,6 +98,7 @@ export function* regionSteps(view, world) {
     region.npcs.push(n);
   }
   region.npcMarkers = [marker(root, world, t.workbench[0], t.workbench[1], '#ffd166'), marker(root, world, t.trainer[0], t.trainer[1], '#8fd0ff')];
+  if (t.shop) region.npcMarkers.push(marker(root, world, ...(t.shopkeeper || t.shop).slice(0, 2), '#ff8fa8'));
 
   // campfire flame and house chimneys
   if (world.data.camp) {

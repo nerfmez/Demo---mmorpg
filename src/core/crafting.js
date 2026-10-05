@@ -91,7 +91,7 @@ export function gearUpgradeCost(data, item) {
 }
 
 function materialCost(step) {
-  const { requiresLevel, requiresStat, ...cost } = step;
+  const { balanceLevel, requiresStat, ...cost } = step;
   return cost;
 }
 
@@ -132,7 +132,6 @@ export function skillUpgradeState(ch, data, skillId) {
   const cost = skillUpgradeCost(data, skillId, level);
   if (!cost) return { ok: false, reason: 'max' };
   const step = data.progression.skillUpgrade.steps[level - 1], stat = data.skills.combat[skillId].upgradeStat;
-  if (ch.level < step.requiresLevel) return { ok: false, reason: 'level', need: step.requiresLevel, cost };
   const req = meetsRequires(ch, { [stat]: step.requiresStat });
   if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
   return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
@@ -157,12 +156,10 @@ export function modUpgradeState(ch, data, inst) {
   if (!inst) return { ok: false, reason: 'unknown' };
   const cost = modUpgradeCost(data, inst);
   if (!cost) return { ok: false, reason: 'max' };
-  const need = data.progression.modUpgrade.requiresLevel[inst.level - 1];
-  if (ch.level < need) return { ok: false, reason: 'level', need, cost };
   // The next rank must be wearable: its stat requirement rises (modRequires).
   const req = meetsRequires(ch, modRequires(data, data.mods.mods[inst.id], inst.level + 1));
-  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost, need };
-  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost, need };
+  if (!req.ok) return { ok: false, reason: 'requires', missing: req.missing, cost };
+  return { ok: canAfford(ch, cost), reason: canAfford(ch, cost) ? null : 'materials', cost };
 }
 
 export function upgradeMod(ch, data, uid) {

@@ -13,6 +13,7 @@ import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
+import { buyConsumable, restoreAmount, consumableCount } from './consumables.js';
 
 const PLAYER_RADIUS = 0.45;
 const PICKUP_RADIUS = 1.4;
@@ -68,6 +69,7 @@ export class Game {
       statuses: {},
       buffs: {},
       cooldowns: [0, 0, 0, 0],
+      itemCooldowns: {}, // potion group -> seconds left
       triggerCd: [0, 0, 0, 0],
       movement: { charges: 0, rechargeT: 0 },
       dash: null,
@@ -511,9 +513,42 @@ export class Game {
       exit: exit ? exit.id : null,
       workbench: dist(p.x, p.z, t.workbench[0], t.workbench[1]) < INTERACT_RADIUS,
       trainer: dist(p.x, p.z, t.trainer[0], t.trainer[1]) < INTERACT_RADIUS,
+      shop: !!t.shop && dist(p.x, p.z, t.shop[0], t.shop[1]) < INTERACT_RADIUS,
       waypoint: wp ? wp.id : null,
       inTown: this.isSafe(p.x, p.z),
     };
+  }
+
+  /** Buy potions from the shopkeeper (only while standing at the shop). */
+  buyItem(id, count = 1) {
+    if (!this.nearby().shop) return { ok: false, reason: 'far' };
+    const r = buyConsumable(this.ch, this.data, id, count);
+    if (r.ok) this.emit({ type: 'bought', id, count, cost: r.cost });
+    return r;
+  }
+
+  /** Drink the potion in quick slot `slot`: restores at once, then its group cools down. */
+  useQuickItem(slot) {
+    const p = this.player, id = this.ch.quickItems?.[slot];
+    const def = id && this.data.items.consumables.types[id];
+    const fail = (reason) => {
+      if (reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
+      return { ok: false, reason };
+    };
+    if (!def) return fail('empty');
+    if (p.dead) return fail('dead');
+    if (consumableCount(this.ch, id) < 1) return fail('none');
+    if ((p.itemCooldowns[def.group] || 0) > 0) return fail('cooldown');
+    const amount = restoreAmount(this.data, id, p.maxHp, p.maxMp);
+    const hp = Math.min(amount.hp, p.maxHp - p.hp), mp = Math.min(amount.mp, p.maxMp - p.mp);
+    if (hp < 1 && mp < 1) return fail('full');
+    p.hp += Math.max(0, hp);
+    p.mp += Math.max(0, mp);
+    this.ch.consumables[id]--;
+    if (this.ch.consumables[id] <= 0) delete this.ch.consumables[id];
+    p.itemCooldowns[def.group] = this.data.items.consumables.groupCooldown[def.group] || 0;
+    this.emit({ type: 'potion', id, group: def.group, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
+    return { ok: true, hp, mp };
   }
 
   inCombat() {
@@ -1181,6 +1216,7 @@ export class Game {
     const inTown = this.isSafe(p.x, p.z);
     p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
     p.mp = Math.min(p.maxMp, p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
+    for (const k in p.itemCooldowns) p.itemCooldowns[k] = Math.max(0, p.itemCooldowns[k] - dt);
     for (let i = 0; i < p.cooldowns.length; i++) {
       p.cooldowns[i] = Math.max(0, p.cooldowns[i] - dt);
       p.triggerCd[i] = Math.max(0, p.triggerCd[i] - dt);

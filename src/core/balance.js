@@ -13,10 +13,10 @@ export function gearTierAt(data, level) {
   return tiers.filter((t) => t <= level).pop() || tiers[0];
 }
 
-/** Skill rank the reference hero has at `level` (every rank gate it meets). */
+/** Skill rank the reference hero has at `level` (ranks are not level-gated; balanceLevel is when it typically affords each). */
 export function skillRankAt(data, level) {
   const steps = data.progression.skillUpgrade.steps;
-  return 1 + steps.filter((s) => s.requiresLevel <= level).length;
+  return 1 + steps.filter((s) => s.balanceLevel <= level).length;
 }
 
 /** The average normal (non-boss) monster at `level`. */

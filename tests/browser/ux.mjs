@@ -62,8 +62,8 @@ try {
     assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'), 'true');
     await activate('.menu [aria-label="ภารกิจ"]');
     assert.equal(await page.locator('#panel-title').textContent(), 'ภารกิจ');
-    assert.equal(await page.locator('[data-tab]').count(),11);
-    if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['bag','craft','skills','job','map']) { await page.locator(`[data-tab="${tab}"]`).scrollIntoViewIfNeeded(); assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
+    assert.equal(await page.locator('[data-tab]').count(),12);
+    if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['bag','craft','shop','skills','job','map']) { await page.locator(`[data-tab="${tab}"]`).scrollIntoViewIfNeeded(); assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
     assert.ok(await page.locator('.qrow [data-art="monster/tusk_boar"]').count());
     await shot('journal');
     await page.locator('.pbody').evaluate((el) => el.scrollTop = el.scrollHeight);

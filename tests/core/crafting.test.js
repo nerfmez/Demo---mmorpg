@@ -93,11 +93,10 @@ test('promotion adds an affix without rerolling good options, changing +N or rep
  assert.ok(promoteGear(ch,data,uid,createRng(5)).ok);assert.deepEqual(item.options[0],first);assert.equal(item.options.length,4);assert.equal(item.upgrade,3);assert.equal(item.uid,uid);
  assert.ok(promoteGear(ch,data,uid,createRng(6)).ok);assert.equal(item.options.length,5);assert.equal(gearGradeState(ch,data,item).reason,'max');
 });
-test('equipment upgrades never require character level or stats; skill rank gates remain atomic',()=>{
+test('upgrades never require character level; the skill stat gate stays atomic',()=>{
  const ch=funded();ch.level=1;const item=ch.gear[0];item.upgrade=1;
  assert.ok(upgradeGear(ch,data,item.uid).ok);assert.ok(promoteGear(ch,data,item.uid,createRng(1)).ok);
- let before=JSON.stringify(ch);assert.equal(upgradeSkill(ch,data,'slash').reason,'level');assert.equal(JSON.stringify(ch),before);
- ch.level=5;before=JSON.stringify(ch);assert.equal(upgradeSkill(ch,data,'slash').reason,'requires');assert.equal(JSON.stringify(ch),before);
+ let before=JSON.stringify(ch);assert.equal(upgradeSkill(ch,data,'slash').reason,'requires','Lv1 is not refused for its level, only for the stat');assert.equal(JSON.stringify(ch),before);
  ch.stats.STR=5;const cost=skillUpgradeCost(data,'slash',1);assert.ok(upgradeSkill(ch,data,'slash').ok);assert.equal(ch.skills.slash,2);assert.equal(cost.skill_crystal,1);
  assert.equal(gearUpgradeCost(data,item).enhancement_stone,3);
 });

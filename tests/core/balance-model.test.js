@@ -52,8 +52,7 @@ test('bosses are long, readable fights at their level', () => {
 });
 
 test('skill and mod rank gates, and the job tree, are reachable within the monster cap', () => {
-  for (const s of data.progression.skillUpgrade.steps) assert.ok(s.requiresLevel <= cap);
-  for (const l of data.progression.modUpgrade.requiresLevel) assert.ok(l <= cap);
+  for (const s of data.progression.skillUpgrade.steps) assert.ok(s.balanceLevel <= cap);
   // Job points from same-level kills reach the top job-tree section by the cap.
   let job = 1, exp = 0;
   for (let L = 1; L < cap; L++) {

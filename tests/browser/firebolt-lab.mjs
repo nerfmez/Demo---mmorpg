@@ -14,16 +14,16 @@ try {
     await new Promise(r=>setTimeout(r,300));
   }
   const engine=process.env.BROWSER==='webkit'?webkit:chromium;
-  browser=await engine.launch(engine===chromium?{args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{});
+  browser=await engine.launch(engine===chromium?{executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{});
   const page=await browser.newPage({viewport:{width:1000,height:750}});
   const screenshot=async(name)=>{
     // WebKit may return the previous composited WebGL frame without this barrier.
     await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
     await page.screenshot({path:`${OUT}${name}`});
   };
-  const errors=[];
+  const errors=[];page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/favicon.ico'))errors.push(`HTTP ${r.status()} ${r.url()}`)});
   page.on('pageerror',e=>errors.push(String(e)));
-  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  page.on('console',m=>{if(m.type()==='error'&&!m.text().startsWith('Failed to load resource'))errors.push(m.text());});
   await page.goto('http://localhost:4186/lab.html?skill=firebolt');
   await page.waitForFunction(()=>window.__lab);
   await page.waitForLoadState('networkidle');
@@ -34,19 +34,20 @@ try {
     L.cast();
   });
   const sample=[];
-  for(let i=0;i<42;i++){
+  for(let i=0;i<66;i++){
     await page.evaluate(()=>{window.__lab.step(1/60);window.__lab.step(1/60);});
     await screenshot(`frame-${String(i).padStart(3,'0')}.png`);
     sample.push(await page.evaluate(()=>{
       const L=window.__lab;let smoke=0;
       for(let k=0;k<L.vfx.flames.count;k++)if(L.vfx.flames.info[k*4+2]>1.5)smoke++;
-      return {cast:!!L.vfx.castFlame,projectiles:L.vfx.projectiles.size,particles:L.vfx.flames.count,smoke,hits:window.__impacts};
+      return {cast:!!L.vfx.castFlame,projectiles:L.vfx.projectiles.size,particles:L.vfx.flames.count,active:L.vfx.active.length,smoke,hits:window.__impacts};
     }));
   }
   assert(sample.some(s=>s.cast),'charge phase never appeared');
   assert(sample.some(s=>s.projectiles>0),'projectile never appeared');
   assert.equal(sample.at(-1).hits,1,'single shot must impact once');
-  assert.equal(sample.at(-1).particles,0,'fire and sparks should finish');
+  assert.equal(sample.at(-1).particles,0,'legacy particles should finish');
+  assert.equal(sample.at(-1).active,0,'V5 contact flakes and wake should finish');
   assert(sample.every(s=>s.smoke===0),'Firebolt impact must not emit smoke');
   // Warm up once, then compare two batches after expiry and an actual GPU render.
   const drain=async(count,options={})=>{
@@ -77,10 +78,10 @@ try {
   const sparks=await page.evaluate(()=>{
     const f=window.__lab.vfx.flames;let count=0;
     for(let i=0;i<f.count;i++)if(f.info[i*4+2]===1)count++;
-    return {embers:count,active:window.__lab.vfx.active.length};
+    return {embers:count,active:window.__lab.vfx.active.length,v5:window.__lab.vfx.active.some(a=>a.obj.userData.v5)};
   });
-  assert(sparks.embers>0,'embers should remain visible after the contact flash');
-  assert.equal(sparks.active,0,'post-impact spark frame should have no contact flash');
+  assert(sparks.v5 || sparks.embers>0,'warm flakes should remain after compression');
+  if(!sparks.v5)assert.equal(sparks.active,0,'legacy contact flash should expire');
   await page.evaluate(()=>{for(let i=0;i<120;i++)window.__lab.step(1/60);});
   await page.getByRole('button',{name:'⚙ ตั้งค่า',exact:true}).click();
   await page.getByRole('button',{name:'ทราย',exact:true}).click();

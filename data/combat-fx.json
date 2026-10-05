@@ -146,6 +146,7 @@
   },
   "skills": {
     "firebolt": {
+      "version": "v5",
       "element": "fire",
       "colors": {
         "rim": "#f28328",
@@ -154,14 +155,20 @@
         "core": "#ffffff"
       },
       "cast": {
-        "size": 0.55,
-        "glowRadius": 0.4
+        "size": 0.64,
+        "glowRadius": 0.4,
+        "minScale": 0.04,
+        "growFraction": 0.92,
+        "gatherCount": 5,
+        "gatherRadius": 0.42,
+        "wispLength": 0.14,
+        "wispWidth": 0.045
       },
       "projectile": {
-        "length": 2.25,
+        "length": 2.4124,
         "glowRadius": 0.85,
         "glowStrength": 0.85,
-        "width": 0.8,
+        "width": 0.51,
         "trailRate": 18,
         "trailLife": 0.16,
         "trailSize": 0.18,
@@ -179,13 +186,14 @@
         "trailDrift": 0.6,
         "trailSpread": 0.08,
         "headHeat": 0.48,
-        "headTurbulence": 0.24
+        "headTurbulence": 0.24,
+        "launchDistance": 0.6
       },
       "impact": {
         "size": 1.5,
         "flashLife": 0.18,
         "wisps": 8,
-        "embers": 10,
+        "embers": 20,
         "shake": 0.04,
         "hitStop": 0.02,
         "glowRadius": 0.5,
@@ -196,7 +204,8 @@
         "wispSpeed": 1.7,
         "emberSpeed": 4.8,
         "emberWidth": 0.22,
-        "emberShrink": 0.3
+        "emberShrink": 0.3,
+        "contactLife": 1
       }
     },
     "slash": {
@@ -207,9 +216,9 @@
         "impact": "\u0e1b\u0e30\u0e17\u0e30"
       },
       "colors": {
-        "rim": "#547b96",
-        "body": "#dcecf5",
-        "core": "#fff8df",
+        "rim": "#668fa7",
+        "body": "#d9ecf3",
+        "core": "#fff4d7",
         "sparks": "#ffc879"
       },
       "cast": {
@@ -217,8 +226,8 @@
         "trailEnd": 1.38
       },
       "swing": {
-        "life": 0.21,
-        "width": 0.11,
+        "life": 0.23333333333333334,
+        "width": 0.24,
         "height": 0.95,
         "tilt": 0.91,
         "opacity": 0.92,
@@ -253,9 +262,9 @@
         "impact": "\u0e1b\u0e30\u0e17\u0e30"
       },
       "colors": {
-        "rim": "#ff4015",
-        "body": "#fecb3e",
-        "core": "#fee4a8",
+        "rim": "#ff602c",
+        "body": "#ffce59",
+        "core": "#ffefba",
         "sparks": "#ffc879"
       },
       "cast": {
@@ -263,7 +272,7 @@
         "trailEnd": 0
       },
       "swing": {
-        "life": 0.28,
+        "life": 0.3,
         "width": 0.3,
         "height": 0.95,
         "tilt": 0.14,
@@ -274,7 +283,7 @@
         "trailCoreWidth": 0.22,
         "zoneOpacity": 0,
         "arc": 189,
-        "turn": 2.17
+        "turn": 6.817
       },
       "impact": {
         "flashSize": 1.87,
@@ -291,7 +300,11 @@
         "heavyScale": 1.22,
         "shake": 0.045,
         "hitStop": 0.025
-      }
+      },
+      "_labFixedFields": [
+        "swing.arc",
+        "swing.turn"
+      ]
     },
     "hunter_shot": {
       "renderer": "arrow",
@@ -387,7 +400,13 @@
         "heavyScale": 1.22,
         "shake": 0.07,
         "hitStop": 0.018
-      }
+      },
+      "_labFixedFields": [
+        "colors",
+        "cast.opacity",
+        "cast.crackWidth",
+        "burst"
+      ]
     },
     "spirit_wolf": {
       "renderer": "spirit",
@@ -437,6 +456,42 @@
         "shake": 0.018,
         "hitStop": 0.018
       }
+    },
+    "frost_nova": {
+      "version": "approved-v2",
+      "element": "cold",
+      "_labPhases": {
+        "cast": "\u0e0a\u0e32\u0e23\u0e4c\u0e08",
+        "burst": "\u0e19\u0e49\u0e33\u0e41\u0e02\u0e47\u0e07\u0e1e\u0e38\u0e48\u0e07\u0e2d\u0e2d\u0e01"
+      }
+    },
+    "chain_spark": {
+      "renderer": "approved",
+      "_labPhases": {}
+    },
+    "war_cry": {
+      "renderer": "approved",
+      "_labPhases": {}
+    },
+    "healing_spring": {
+      "renderer": "approved",
+      "_labPhases": {}
+    },
+    "dash": {
+      "renderer": "approved",
+      "_labPhases": {}
+    },
+    "roll": {
+      "renderer": "approved",
+      "_labPhases": {}
+    },
+    "blink": {
+      "renderer": "approved",
+      "_labPhases": {}
+    },
+    "leap": {
+      "renderer": "approved",
+      "_labPhases": {}
     }
   },
   "projectileDefaults": {

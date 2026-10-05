@@ -8,9 +8,16 @@ import { toon } from './toon.js';
 import { makeDecal, conform } from './decal.js';
 import { BladeTrail } from './trail.js';
 import FX from '../../data/combat-fx.json';
-import { flameMesh, FlameParticles } from './firebolt.js';
-import { cutRibbon, ContactShards } from './melee.js';
-import { arrowStreak, groundCracks, rockGeometry, RockChips } from './physical.js';
+import LEGACY_FIRE from '../../data/fireball-legacy.json';
+import STAFF_CAST from '../../data/staff-cast.json';
+import { flameMesh as legacyFlameMesh, FlameParticles } from './firebolt.js';
+import { v5FlameMesh } from './fireball-v5.js';
+import { frostMesh } from './frost-v2.js';
+import { approvedMesh } from './approved-mesh-clips.js';
+import { poseEcho, echoOpacity } from './pose-echo.js';
+import { artSurface, healingMaterial, plusGeometry, keys, faceGameCamera } from './authored-surfaces.js';
+import { cutRibbon, approvedCut, ContactShards } from './melee.js';
+import { arrowStreak, rockGeometry, RockChips } from './physical.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -184,10 +191,12 @@ let arrowGeo = null;
 /** One shared set of arrow meshes for every arrow in flight. */
 function arrowGeometry() {
   if (!arrowGeo) {
+    const tip=new THREE.BufferGeometry();tip.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,-.085,0,-.19,0,.065,-.14, 0,0,0,0,.065,-.14,.085,0,-.19, 0,0,0,.085,0,-.19,0,-.065,-.14, 0,0,0,0,-.065,-.14,-.085,0,-.19],3));tip.computeVertexNormals();
+    const feathers=[];
+    for(const a of [0,Math.PI/2,Math.PI]){const x=Math.cos(a)*.09,y=Math.sin(a)*.09;feathers.push(0,0,-.46,x,y,-.63,x,y,-.69,0,0,-.46,x,y,-.69,0,0,-.59);}
+    const fletch=new THREE.BufferGeometry();fletch.setAttribute('position',new THREE.Float32BufferAttribute(feathers,3));fletch.computeVertexNormals();
     arrowGeo = {
-      shaft: new THREE.CylinderGeometry(0.025, 0.025, 0.9, 5).rotateX(Math.PI / 2),
-      tip: new THREE.ConeGeometry(0.06, 0.18, 5).rotateX(Math.PI / 2).translate(0, 0, 0.52),
-      fletch: new THREE.BoxGeometry(0.14, 0.02, 0.18).translate(0, 0, -0.4),
+      shaft: new THREE.CylinderGeometry(.022,.022,.46,6).rotateX(Math.PI/2).translate(0,0,-.29),tip,fletch,
     };
     for (const g of Object.values(arrowGeo)) g.userData.shared = true;
   }
@@ -223,6 +232,8 @@ export class Vfx {
     this.chips = new RockChips(scene);
     this.flames = new FlameParticles(scene, this.config.skills.firebolt);
     this.castFlame = null;
+    this.fireRelease = new THREE.Vector3();
+    this.fireReleasePending = false;
     this.seenProjectiles = new Set();
   }
 
@@ -250,6 +261,32 @@ export class Vfx {
     if (!element || element === 'physical') return cfg;
     const c = el(element);
     return { ...cfg, colors: { ...cfg.colors, core: c.core, sparks: c.dots } };
+  }
+
+  clearFireballs() {
+    this.endCast();
+    for (const [id, mesh] of this.projectiles) {
+      if (!mesh.userData.fireball) continue;
+      disposeObject(mesh, this.sharedGeo); this.projectiles.delete(id);
+    }
+    let live = 0;
+    for (const a of this.active) {
+      if (a.obj.userData.fireball || a.obj.userData.v5) disposeObject(a.obj, this.sharedGeo);
+      else this.active[live++] = a;
+    }
+    this.active.length = live;
+    this.flames.count = 0; this.flames.mesh.geometry.instanceCount = 0;
+    this.fireReleasePending = false;
+  }
+
+  fireConfig() {
+    return (this.fireballReviewVersion || this.config.skills.firebolt.version) === 'legacy' ? LEGACY_FIRE : this.config.skills.firebolt;
+  }
+
+  fireMesh(mode = 0) {
+    return (this.fireballReviewVersion || this.config.skills.firebolt.version) === 'legacy'
+      ? legacyFlameMesh(LEGACY_FIRE, mode)
+      : v5FlameMesh(this.config.skills.firebolt, mode);
   }
 
   refreshFlames() {
@@ -289,6 +326,11 @@ export class Vfx {
 
   beginCast(e, element) {
     this.endCast();
+    this.fireReleasePending = false;
+    if (e.skill === 'frost_nova' && element === 'cold') {
+      const mesh=frostMesh(4.2,true);mesh.visible=false;this.scene.add(mesh);
+      this.castFrost={mesh,t:0,dur:e.total};return;
+    }
     if (e.skill === 'hunter_shot') {
       const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
       mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
@@ -296,23 +338,30 @@ export class Vfx {
       this.castArrow = { mesh, t: 0, dur: e.total, weapon: e.weapon }; return;
     }
     if (e.skill !== 'firebolt' || element !== 'fire') return;
-    const mesh = flameMesh(this.config.skills.firebolt, 1);
-    mesh.material.uniforms.uWidth.value = this.config.skills.firebolt.cast.size;
-    mesh.material.uniforms.uGlowRadius.value = this.config.skills.firebolt.cast.glowRadius;
+    const mesh = this.fireMesh(1);
+    mesh.material.uniforms.uWidth.value = this.fireConfig().cast.size;
+    mesh.material.uniforms.uGlowRadius.value = this.fireConfig().cast.glowRadius;
     // Hidden until updateCast supplies an actual source rig (event x/z is the target).
     mesh.visible = false;
     this.scene.add(mesh);
-    this.castFlame = { mesh, t: 0, dur: e.total, weapon: e.weapon };
+    this.castFlame = { mesh, t: 0, dur: e.total, weapon: e.weapon, angle: e.angle };
   }
 
   endCast() {
+    if (this.castFrost) disposeObject(this.castFrost.mesh,this.sharedGeo);
+    this.castFrost=null;
     if (this.castArrow) { disposeObject(this.castArrow.mesh); this.castArrow = null; }
     if (!this.castFlame) return;
     disposeObject(this.castFlame.mesh);
     this.castFlame = null;
   }
 
-  updateCast(dt, rig, cancelled = false) {
+  updateCast(dt, rig, cancelled = false, player = null) {
+    if (this.castFrost) {
+      const f=this.castFrost;f.t+=dt;
+      if(cancelled||!rig||f.t>=f.dur)this.endCast();
+      else {f.mesh.position.copy(rig.root.position);f.mesh.visible=true;f.mesh.material.uniforms.uFrame.value=Math.min(6,f.t/f.dur*7);}
+    }
     const a = this.castArrow;
     if (a) {
       a.t += dt;
@@ -329,9 +378,20 @@ export class Vfx {
     const c = this.castFlame;
     if (!c) return;
     c.t += dt;
-    if (cancelled || !rig || c.t >= c.dur) { this.endCast(); return; }
+    if (cancelled || !rig || c.t >= c.dur) {
+      if (c.mesh.userData.v5 && c.mesh.visible && rig && !player?.dead && !player?.dash && c.t >= c.dur) {
+        this.fireRelease.copy(c.mesh.position);this.fireReleasePending = true;
+      }
+      this.endCast(); return;
+    }
     const w = rig.bones?.weapon;
-    if (w && c.weapon !== 'none') {
+    if (c.mesh.userData.v5 && w && c.weapon === 'staff') {
+      // Keep charge physically attached to the actual staff head. The staff-only
+      // cast pose raises this same socket ahead of the actor before release.
+      w.updateWorldMatrix(true, false);
+      w.localToWorld(_p0.set(0,0,STAFF_CAST.tip));
+      c.mesh.material.uniforms.uVelocity.value.set(Math.sin(c.angle),0,Math.cos(c.angle));
+    } else if (w && c.weapon !== 'none') {
       w.updateWorldMatrix(true, false);
       w.getWorldPosition(_p0); w.getWorldDirection(_dir);
       _p0.addScaledVector(_dir, this.config.weapons[c.weapon]?.tip ?? 0.25);
@@ -343,14 +403,24 @@ export class Vfx {
     }
     c.mesh.position.copy(_p0); c.mesh.visible = true;
     const u = c.mesh.material.uniforms, k = c.t / c.dur;
-    u.uTime.value = c.t; u.uScale.value = 0.25 + 0.75 * k * k;
+    u.uTime.value = c.mesh.userData.v5 ? k * .625 : c.t;
+    const f = this.fireConfig().cast;
+    if (c.mesh.userData.v5) {
+      // Gather into the existing staff socket within the unchanged cast time.
+      // The final charge size and release/flight geometry stay as approved.
+      const growth = Math.min(1, k / f.growFraction);
+      u.uScale.value = f.minScale + (1.05 - f.minScale) * growth * growth * (3 - 2 * growth);
+      u.uChargeBuild.value = k;
+      u.uProgress.value = k;
+    } else u.uScale.value = 0.25 + 0.75 * k * k;
   }
 
   fireImpact(e) {
-    const cfg = this.config.skills.firebolt, f = cfg.impact;
+    const cfg = this.fireConfig(), f = cfg.impact;
     const y = this.gy(e.x, e.z) + (e.y ?? 1.0);
-    const flash = flameMesh(cfg, 2);
+    const flash = this.fireMesh(2);
     flash.position.set(e.x, y, e.z);
+    flash.userData.fireball = true;
     flash.material.uniforms.uWidth.value = f.size;
     flash.material.uniforms.uGlowRadius.value = f.glowRadius;
     flash.material.uniforms.uSeed.value = Math.random() * 17;
@@ -358,6 +428,7 @@ export class Vfx {
     // Reuse the nearest last-rendered Firebolt direction; core events stay unchanged.
     let nearest = Infinity;
     for (const v of this.projectiles.values()) {
+      if (Number.isFinite(e.vx) && Number.isFinite(e.vz)) break;
       const u = v.children[0]?.material?.uniforms;
       if (!u?.uVelocity) continue;
       const dx = v.position.x - e.x, dz = v.position.z - e.z;
@@ -370,14 +441,14 @@ export class Vfx {
     const direction = flash.material.uniforms.uVelocity.value;
     const speed = Math.hypot(direction.x, direction.z) || 1;
     const forwardX = direction.x / speed, forwardZ = direction.z / speed;
-    this.spawn(flash, f.flashLife, (k) => {
+    this.spawn(flash, flash.userData.v5 ? f.contactLife : f.flashLife, (k) => {
       const u = flash.material.uniforms;
       u.uTime.value = k * f.flashLife;
       u.uProgress.value = k;
       u.uScale.value = 1;
-      u.uAlpha.value = 1 - k;
+      u.uAlpha.value = flash.userData.v5 ? 1 : 1 - k;
     });
-    for (let i = 0; i < f.wisps + f.embers; i++) {
+    for (let i = 0; !flash.userData.v5 && i < f.wisps + f.embers; i++) {
       const wisp = i < f.wisps, a = i * 2.39996;
       const r = wisp ? f.wispSpeed : f.emberSpeed;
       const lateral = Math.sin(a) * r * 0.7;
@@ -442,7 +513,7 @@ export class Vfx {
   slash(e, weapon) {
     const cfg = this.meleePalette(e.skill || 'slash', e.element), f = cfg.swing;
     const arc = (e.arc * Math.PI) / 180;
-    const cut = cutRibbon(cfg, e.range, arc, e.step === 1, e.finisher);
+    const cut = e.element==='physical' ? approvedCut(cfg,e.range,arc,e.step===1) : cutRibbon(cfg, e.range, arc, e.step === 1, e.finisher);
     cut.position.set(e.x, this.gy(e.x, e.z) + f.height, e.z); cut.rotation.y = e.angle;
     this.spawn(cut, f.life, (t) => (cut.material.uniforms.uT.value = t));
     if (f.zoneOpacity > 0) {
@@ -455,14 +526,19 @@ export class Vfx {
     const cfg = this.meleePalette(e.skill || 'whirl_blade', e.element);
     // Two travelling half cuts rather than an expanding explosion/ring.
     for (let i=0;i<2;i++) {
-      const m=cutRibbon(cfg,e.radius,(cfg.swing.arc ?? 205)*Math.PI/180,i===1);
+      const approved=e.element==='physical';
+      const m=approved?approvedCut(cfg,e.radius*(i?.82:1),189*Math.PI/180,false,true,i):cutRibbon(cfg,e.radius,(cfg.swing.arc ?? 205)*Math.PI/180,i===1);
       m.position.set(e.x,this.gy(e.x,e.z)+cfg.swing.height,e.z);
-      m.rotation.y=e.angle+i*Math.PI;
-      this.spawn(m,cfg.swing.life,(t)=>{m.material.uniforms.uT.value=t;m.rotation.y=e.angle+i*Math.PI+t*(cfg.swing.turn ?? 1.65);});
+      m.rotation.y=e.angle+(approved?0:i*Math.PI);
+      this.spawn(m,cfg.swing.life,(t)=>{m.material.uniforms.uT.value=t;m.rotation.y=e.angle+(approved?0:i*Math.PI+t*(cfg.swing.turn ?? 1.65));});
     }
   }
 
   nova(e) {
+    if (e.approvedFrost && e.element === 'cold') {
+      const mesh=frostMesh(e.radius);mesh.position.set(e.x,this.gy(e.x,e.z),e.z);
+      this.spawn(mesh,19/30,t=>{mesh.material.uniforms.uFrame.value=7+t*19;});return;
+    }
     const c = el(e.element);
     const y = this.gy(e.x, e.z);
     const m = this.decal(this.ringGeo, additive(c.glow, 0.95), e.x, e.z, 0.5);
@@ -651,6 +727,7 @@ export class Vfx {
   }
 
   stoneBurst(e) {
+    if(e.element==='physical'||!e.element){this.playApproved('stone-burst',e);this.shake=Math.max(this.shake,this.config.skills.stone_burst.impact.shake);return;}
     const cfg = this.config.skills.stone_burst, f = cfg.burst;
     const cold = e.element === 'cold', group = new THREE.Group();
     const mat = toon(cold ? '#bfe9ff' : cfg.colors.rock);
@@ -670,8 +747,6 @@ export class Vfx {
       if (elapsed > f.hold) { const k = Math.max(0, (f.life - elapsed) / Math.max(.01, f.life - f.hold)); up *= k * k * (3 - 2 * k); }
       for (const stone of group.children) stone.position.y = stone.userData.base + (up - .5) * stone.userData.height;
     });
-    const crack = groundCracks(cfg, e.radius, this.world, e.x, e.z);
-    this.spawn(crack, .45, t => { crack.material.uniforms.uProgress.value = 1; crack.material.uniforms.uOpacity.value = cfg.cast.opacity * (1 - t); });
     this.chips.burst(e, cold ? { ...cfg, colors: { ...cfg.colors, debris: '#dff4ff' } } : cfg, this.gy(e.x, e.z));
     this.dust.burst(e.x, this.gy(e.x, e.z) + .15, e.z, f.dust, { color: cold ? '#e6f6ff' : cfg.colors.debris, size: f.dustSize, sizeEnd: f.dustSize * 1.4, speed: 1.6, life: f.dustLife, up: .3, drag: 5 });
     this.shake = Math.max(this.shake, cfg.impact.shake);
@@ -684,12 +759,13 @@ export class Vfx {
     this.shake = Math.max(this.shake, e.kind === 'pound' ? 0.25 : 0.35);
   }
 
+  playApproved(name,e) {
+    const mesh=approvedMesh(name,e.radius);mesh.position.set(e.x,this.gy(e.x,e.z),e.z);
+    this.spawn(mesh,mesh.userData.clipLife,t=>{mesh.material.uniforms.uFrame.value=t*(mesh.userData.clipFrames-1);});
+  }
+
   leapLand(e) {
-    const y = this.gy(e.x, e.z);
-    this.dust.burst(e.x, y + 0.2, e.z, 18, { color: 0xd8c7a0, size: 0.9, sizeEnd: 1.5, speed: e.radius * 2.4, life: 0.6, up: 0.3, drag: 3 });
-    this.fx.burst(e.x, y + 0.3, e.z, 12, { color: 0xffe08a, size: 0.26, speed: 5, life: 0.4, up: 0.8 });
-    this.ring(e.x, e.z, e.radius, 0xffe0a0, 0.3);
-    this.shake = Math.max(this.shake, 0.15);
+    this.playApproved('leap',e);this.shake=Math.max(this.shake,.15);
   }
 
   dive(e) {
@@ -716,6 +792,10 @@ export class Vfx {
   }
 
   chain(e) {
+    if (e.element === 'lightning' || !e.element) {
+      for(let i=1;i<e.points.length;i++)this.playApproved('lightning',{x:e.points[i][0],z:e.points[i][1]});
+      return;
+    }
     const c = el(e.element || 'lightning');
     const pts = e.points;
     for (let i = 0; i < pts.length - 1; i++) {
@@ -743,18 +823,12 @@ export class Vfx {
   }
 
   summon(e) {
-    const cfg = this.config.skills.spirit_wolf, f = cfg.cast;
-    const look = { colors: cfg.colors, swing: { ...f, tilt: 0, finisherWidth: 1 } };
-    for (let i = 0; i < 2; i++) {
-      const arc = cutRibbon(look, f.radius, Math.PI * 1.15, i === 1);
-      arc.position.set(e.x, this.gy(e.x, e.z) + .06, e.z); arc.rotation.y = i * Math.PI;
-      this.spawn(arc, f.life, t => { arc.material.uniforms.uT.value = t; arc.scale.setScalar(1 - t * .5); });
+    for(let i=0;i<3;i++){
+      const angle=i*Math.PI*2/3,m=artSurface('movement',[.5,0,.5,.5]),life=26/60;
+      faceGameCamera(m);
+      this.spawn(m,life,t=>{const age=t*26-i*2,k=Math.max(0,Math.min(1,age/22));m.visible=age>=0;m.position.set(e.x+Math.cos(angle)*(.55-.2*k),this.gy(e.x,e.z)+.2+.65*k,e.z+Math.sin(angle)*(.45-.15*k));m.scale.set(.85*(.6+.2*Math.sin(Math.PI*k)),.85*(.6+.6*k),1);m.material.uniforms.uAlpha.value=.3*Math.sin(Math.PI*k);m.material.uniforms.uDissolve.value=.1+k*.85;m.material.uniforms.uTime.value=age/60;});
     }
-    const options = { color: cfg.colors.body, size: f.particleSize, sizeEnd: .015, life: f.particleLife, drag: 2 };
-    for (let i = 0; i < f.particles; i++) {
-      const a = i / Math.max(1, f.particles) * Math.PI * 2, dx = Math.sin(a), dz = Math.cos(a);
-      this.fx.add(e.x + dx * f.radius, this.gy(e.x, e.z) + .08, e.z + dz * f.radius, -dx, 1.8, -dz, options);
-    }
+    this.fx.burst(e.x,this.gy(e.x,e.z)+.2,e.z,8,{color:0xaaddff,size:.10,sizeEnd:.01,speed:1.2,up:1,life:28/60,drag:3});
   }
 
   bite(e) {
@@ -769,18 +843,16 @@ export class Vfx {
   }
 
   warcry(e) {
-    const y = this.gy(e.x, e.z);
-    for (let k = 0; k < 3; k++) {
-      const m = this.decal(this.ringGeo, additive(0xffb040, 0.8), e.x, e.z, 1, 0, 0.1);
-      this.spawn(m, 0.5 + k * 0.12, (t) => {
-        const s = 1 + t * e.radius;
-        m.scale.set(s, 1, s);
-        conform(m);
-        m.material.opacity = 0.8 * (1 - t);
-      });
+    for(let i=0;i<2;i++){
+      const m=artSurface('pressure',undefined,1.3),delay=i*.1,life=i?.467:.433;
+      const max=e.radius*(i?.75:1),scales=[[0,.4],[.1,max*.43],[7/30,max],[13/30,max]];
+      const alpha=i?[[0,0],[.1,.25],[5/30,.48],[14/30,0]]:[[0,.35],[2/30,.85],[5/30,.7],[12/30,0]];
+      m.position.set(e.x,this.gy(e.x,e.z)+.07+i*.015,e.z);m.rotation.z=i*.38;
+      this.spawn(m,life,t=>{const age=t*life;m.visible=age>=delay;const scale=keys(age-delay,scales);m.scale.set(scale*2,scale*2,1);const u=m.material.uniforms;u.uTime.value=age;u.uAlpha.value=keys(age,alpha);u.uDissolve.value=Math.max(0,(age-delay-.1)/.3)*.85;});
     }
-    for (let i = 0; i < 20; i++) this.fx.add(e.x + (Math.random() - 0.5), y + 1 + Math.random(), e.z + (Math.random() - 0.5), (Math.random() - 0.5) * 3, 2 + Math.random() * 2, (Math.random() - 0.5) * 3, { color: 0xffc860, size: 0.3, life: 0.6, drag: 2 });
-    this.shake = Math.max(this.shake, 0.12);
+    const y=this.gy(e.x,e.z);
+    this.fx.burst(e.x,y+.75,e.z,10,{color:0xffb950,size:.14,sizeEnd:.01,speed:2.3,up:1,life:.53,drag:2});
+    this.shake=Math.max(this.shake,.12);
   }
 
   curse(e) {
@@ -936,9 +1008,37 @@ export class Vfx {
     this.ring(x, z, 1.8, 0x8fe8ff, 0.6);
   }
 
-  blink(fromX, fromZ, x, z, color = 0xb4a2ff) {
-    this.fx.burst(fromX, this.gy(fromX, fromZ) + 1, fromZ, 16, { color, size: 0.3, speed: 3, life: 0.4, up: 1 });
-    this.fx.burst(x, this.gy(x, z) + 1, z, 16, { color, size: 0.3, speed: 3, life: 0.4, up: 1 });
+  blink(fromX, fromZ, x, z, color = 0xb4a2ff, rig = null) {
+    if(!rig){this.fx.burst(fromX,this.gy(fromX,fromZ)+1,fromZ,16,{color,size:.3,speed:3,life:.4,up:1});this.fx.burst(x,this.gy(x,z)+1,z,16,{color,size:.3,speed:3,life:.4,up:1});return;}
+    for(let i=0;i<2;i++){
+      const m=artSurface('movement',[i*.5,0,.5,.5]);m.position.set(i?x:fromX,this.gy(i?x:fromX,i?z:fromZ)+.9,i?z:fromZ);faceGameCamera(m);
+      this.spawn(m,21/60,t=>{const age=t*21-i;m.visible=age>=0;m.scale.set(2.1*(.35+.55*Math.min(1,age/20)),2.1*(.8+.32*Math.min(1,age/20)),1);m.material.uniforms.uAlpha.value=1-Math.max(0,(age-4)/16);m.material.uniforms.uDissolve.value=Math.max(0,(age-3)/17)*.95;m.material.uniforms.uTime.value=age/60;});
+    }
+    const ghost=poseEcho(rig.root,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
+    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)));
+  }
+
+  syncMovement(player,y,dt,rig) {
+    const d=player.dash;
+    if(!d){this.movementSource=null;return;}
+    if(d.kind==='blink'||d.kind==='leap')return;
+    if(this.movementSource!==d){
+      this.movementSource=d;this.movementEcho=0;this.movementDust=0;
+      if(d.kind==='dash'){
+        const m=artSurface('movement',[0,.5,.5,.5]);faceGameCamera(m);const speed=Math.hypot(d.vx,d.vz)||1,dx=d.vx/speed,dz=d.vz/speed;
+        // Resolve screen direction without rotating the camera-facing plane away.
+        m.rotation.z=-Math.atan2(dz*.815,dx);const life=d.dur+13/60;
+        this.spawn(m,life,t=>{const age=t*life,k=Math.max(0,(age-d.dur)/(13/60));if(age<=d.dur||t===0)m.position.set(player.x-dx*.9,y+.67,player.z-dz*.9);m.scale.set(2.8*(1-.6*k),2.8*(.3-.12*k),1);m.material.uniforms.uAlpha.value=Math.min(1,age/(2/60))*.7*(1-k);m.material.uniforms.uDissolve.value=k*.9;m.material.uniforms.uTime.value=age;});
+      }
+    }
+    if(d.kind==='dash'){
+      while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const ghost=poseEcho(rig.root,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)));this.movementEcho++;}
+    }else if(d.kind==='roll'){
+      while(this.movementDust<3&&d.t>=d.dur*(this.movementDust===0?.18:this.movementDust===1?.5:.78)){
+        const m=artSurface('movement',[.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
+        this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;});
+      }
+    }
   }
 
   dashTrail(x, y, z, kind) {
@@ -986,10 +1086,18 @@ export class Vfx {
       if (!v) {
         v = new THREE.Group();
         if (fire) {
-          const m = flameMesh(this.config.skills.firebolt);
+          const m = this.fireMesh();
           m.material.uniforms.uSeed.value = pr.id * 0.73;
           v.add(m);
           v.userData.trail = 0;
+          v.userData.fireTime = .625;
+          v.userData.fireTravelled = 0;
+          v.userData.fireball = true;
+          if (m.userData.v5 && this.fireReleasePending) {
+            const travelled=pr.travelled||0, speed=pr.speed||1;
+            const sx=pr.x-pr.vx/speed*travelled,sz=pr.z-pr.vz/speed*travelled;
+            v.userData.socketOffset=new THREE.Vector3().copy(this.fireRelease).sub(_p0.set(sx,this.gy(sx,sz)+(pr.y??1),sz));
+          }
         } else if (arrow) {
           const ag = arrowGeometry();
           const cfg = this.config.skills.hunter_shot;
@@ -1009,10 +1117,24 @@ export class Vfx {
       const y = this.gy(pr.x, pr.z) + (pr.y ?? 1);
       v.position.set(pr.x, y, pr.z);
       if (fire) {
-        const u = v.children[0].material.uniforms, cfg = this.config.skills.firebolt.projectile;
-        u.uTime.value = time;
+        const u = v.children[0].material.uniforms, cfg = this.fireConfig().projectile;
+        v.userData.fireTime += dt;
+        u.uTime.value = v.children[0].userData.v5 ? v.userData.fireTime : time;
         u.uVelocity.value.set(pr.vx, 0, pr.vz);
-        v.userData.trail += dt * cfg.trailRate;
+        if (v.children[0].userData.v5) {
+          // Never materialize a two-metre tail behind a newly released muzzle.
+          // Its back edge grows only into space the head has actually crossed.
+          v.userData.fireTravelled = pr.travelled ?? (v.userData.fireTravelled + pr.speed * dt);
+          u.uTravelled.value = v.userData.fireTravelled;
+          if (v.userData.socketOffset) {
+            const k=Math.min(1,u.uTravelled.value/cfg.launchDistance);
+            v.position.addScaledVector(v.userData.socketOffset,1-k*k*(3-2*k));
+          }
+          const core = v.children[0].userData.launchCore;
+          core.material.uniforms.uAlpha.value = Math.max(0, 1 - u.uTravelled.value / cfg.launchDistance);
+          core.visible = core.material.uniforms.uAlpha.value > 0;
+        }
+        v.userData.trail += dt * (v.children[0].userData.v5 ? 0 : cfg.trailRate);
         const speed = Math.hypot(pr.vx, pr.vz) || 1;
         const bx = -pr.vx / speed, bz = -pr.vz / speed;
         while (v.userData.trail >= 1) {
@@ -1037,9 +1159,17 @@ export class Vfx {
         this.fx.add(pr.x + back.x * o, y + (Math.random() - 0.5) * 0.12, pr.z + back.z * o, back.x * look.trailSpeed, 0.3, back.z * look.trailSpeed, { color: c.dots, size: (arrow ? 0.18 : 0.32) * look.trailScale, sizeEnd: 0.05 * look.trailScale, life: look.trailLife, drag: 4 });
       }
     }
+    this.fireReleasePending = false;
     for (const [id, v] of this.projectiles) {
       if (!seen.has(id)) {
-        disposeObject(v, this.sharedGeo);
+        if (v.children[0]?.userData.v5) {
+          const u = v.children[0].material.uniforms;
+          v.userData.fireball = true;
+          this.spawn(v, 2 / 24, k => {
+            u.uScale.value = .72 * (1 - k);
+            u.uTime.value = v.userData.fireTime + k * 2 / 24;
+          });
+        } else disposeObject(v, this.sharedGeo);
         this.projectiles.delete(id);
       }
     }
@@ -1116,35 +1246,29 @@ export class Vfx {
       };
     }
     if (a.kind === 'healing_spring') {
-      const m = this.decal(this.discGeo, discMaterial('heal'), a.x, a.z, a.radius, 0, 0.08);
-      m.material.uniforms.uColor.value.set(0x3fbf9a);
-      m.material.uniforms.uColor2.value.set(0xbfffe8);
-      return {
-        obj: m,
-        update: (ar, t, dt) => {
-          const live = ar.t - ar.delay;
-          m.visible = live >= 0;
-          m.material.uniforms.uT.value = t;
-          m.material.uniforms.uA.value = fadeInOut(ar);
-          if (live >= 0 && Math.random() < dt * 22) {
-            const ang = Math.random() * Math.PI * 2;
-            const r = Math.random() * ar.radius;
-            const x = ar.x + Math.sin(ang) * r;
-            const z = ar.z + Math.cos(ang) * r;
-            this.fx.add(x, this.gy(x, z) + 0.1, z, 0, 1.5 + Math.random(), 0, { color: 0x9dffd8, size: 0.26, life: 0.8, drag: 0.8 });
-          }
-        },
-      };
+      const group=new THREE.Group(),marks=[],motes=[];
+      const field=this.decal(this.discGeo,healingMaterial(),a.x,a.z,a.radius,0,.045);group.add(field);
+      const edge=this.decal(ringGeometry(1-.018/a.radius,1,96),additive(0x63ffb8,.6),a.x,a.z,a.radius,0,.05);edge.material.blending=THREE.NormalBlending;group.add(edge);
+      for(let i=0;i<4;i++){
+        const angle=i*Math.PI/2,m=new THREE.Mesh(plusGeometry(),additive(0x9bffcd,.65));
+        const x=a.x+Math.cos(angle)*(a.radius-.28),z=a.z+Math.sin(angle)*(a.radius-.28);
+        m.position.set(x,this.gy(x,z)+.055,z);m.rotation.set(-Math.PI/2,0,Math.PI/4);m.material.blending=THREE.NormalBlending;group.add(m);marks.push(m);
+        const g=new THREE.Mesh(new THREE.OctahedronGeometry(.04),additive(0x95ffd1,.7));g.userData.phase=i/7;g.userData.x=a.x+Math.cos(i*2.4)*(.6+i%3*.53);g.userData.z=a.z+Math.sin(i*2.4)*(.6+i%3*.53);group.add(g);motes.push(g);
+      }
+      const cross=new THREE.Mesh(plusGeometry(.12,.025),additive(0xbbffd2,.85));cross.position.set(a.x+1.1,this.gy(a.x+1.1,a.z-.45)+1.3,a.z-.45);cross.material.blending=THREE.NormalBlending;group.add(cross);
+      return {obj:group,update:(ar,t)=>{const age=ar.t-ar.delay,fade=fadeInOut(ar);group.visible=age>=0;field.material.uniforms.uT.value=age;field.material.uniforms.uA.value=fade;edge.material.opacity=.6*fade;
+        for(const m of marks)m.material.opacity=.65*fade;
+        cross.material.opacity=.85*fade*Math.sin(Math.PI*((age+.6)%1));cross.position.y=this.gy(a.x+1.1,a.z-.45)+1.3+.25*((age+.6)%1);
+        for(const g of motes){const q=(age+.6+g.userData.phase)%1;g.position.set(g.userData.x,this.gy(g.userData.x,g.userData.z)+.08+.75*q,g.userData.z);g.scale.setScalar(Math.max(0,Math.sin(Math.PI*q)));g.material.opacity=.7*fade;}
+      }};
     }
     if (a.kind === 'stone_burst') {
       const cfg = this.config.skills.stone_burst, group = new THREE.Group();
-      const crack = groundCracks(cfg, a.radius, this.world, a.x, a.z);
       const boundary = this.decal(this.ringGeo, new THREE.MeshBasicMaterial({ color: cfg.colors.debris, transparent: true, depthWrite: false, opacity: cfg.cast.boundaryOpacity, side: THREE.DoubleSide }), a.x, a.z, a.radius, 0, .025);
-      group.add(crack, boundary);
+      group.add(boundary);
       return { obj: group, update: ar => {
         group.visible = ar.t < ar.delay;
         const k = Math.min(1, ar.t / Math.max(.01, ar.delay));
-        crack.material.uniforms.uProgress.value = k;
         boundary.material.opacity = cfg.cast.boundaryOpacity * (.7 + .3 * k);
       } };
     }
@@ -1272,15 +1396,15 @@ export class Vfx {
     this.dust.update(dt);
     this.contacts.update(dt);
     this.chips.update(dt);
-    const keep = [];
+    let live = 0;
     for (const a of this.active) {
       a.t += dt;
       const k = Math.min(1, a.t / a.dur);
       a.update?.(k, a);
       if (a.t >= a.dur) {
         disposeObject(a.obj, this.sharedGeo);
-      } else keep.push(a);
+      } else this.active[live++] = a;
     }
-    this.active = keep;
+    this.active.length = live;
   }
 }

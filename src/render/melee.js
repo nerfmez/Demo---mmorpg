@@ -111,3 +111,20 @@ export class ContactShards {
   }
   dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mat.dispose();}
 }
+
+/** Direct mesh-formula translation of accepted batch02's authored crescents. */
+export function approvedCut(cfg,radius,arc,reverse=false,whirl=false,half=0){
+ const f=cfg.swing;
+ const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true,
+ uniforms:{uT:{value:0},uRadius:{value:radius},uArc:{value:arc},uWidth:{value:f.width},uOpacity:{value:f.opacity},uBody:{value:new THREE.Color(cfg.colors.body)},uCore:{value:new THREE.Color(cfg.colors.core)},uRim:{value:new THREE.Color(cfg.colors.rim)}},
+ vertexShader:`varying vec2 vUv;uniform float uT,uRadius,uArc,uWidth;void main(){vUv=uv;
+ float a=${whirl?'uv.x*uArc+uT*6.817+float('+half+')*3.14159265':'mix(-uArc*.5+uT*1.75,uArc*.5,uv.x)'};
+ ${reverse&&!whirl?'a=-a;':''}
+ float width=uWidth*${whirl?'(1.-uT*.9)':'(1.-uT*6./7.)'}*pow(max(0.,sin(uv.x*3.14159265)),.65)*(.35+.65*uv.x);
+ float r=uRadius-width*1.45*(1.-uv.y);vec3 p=vec3(sin(a)*r,sin(a)*${whirl?'.14':reverse?'-.46':'.46'},cos(a)*r);
+ gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+ fragmentShader:`varying vec2 vUv;uniform float uT,uOpacity;uniform vec3 uBody,uCore,uRim;void main(){vec3 c=vUv.y>.83?uCore:vUv.y>.31?uBody:uRim;float a=uOpacity*(1.-smoothstep(.88,1.,uT));gl_FragColor=vec4(c,a);
+ #include <colorspace_fragment>
+ }`});
+ const mesh=new THREE.Mesh(ribbonGeometry(),material);mesh.frustumCulled=false;return mesh;
+}

@@ -14,10 +14,10 @@ try {
     await new Promise((r) => setTimeout(r, 300));
   }
   const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
-  browser = await engine.launch(engine === chromium ? { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] } : {});
+  browser = await engine.launch(engine === chromium ? { executablePath:process.env.CHROMIUM_EXECUTABLE, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] } : {});
   const page = await browser.newPage({ viewport: { width: 1180, height: 820 }, acceptDownloads: true });
-  const errors = []; page.on('pageerror', (e) => errors.push(e.stack || String(e)));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  const errors = []; page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/favicon.ico'))errors.push(`HTTP ${r.status()} ${r.url()}`)}); page.on('pageerror', (e) => errors.push(e.stack || String(e)));
+  page.on('console', (m) => { if (m.type() === 'error' && !m.text().startsWith('Failed to load resource')) errors.push(m.text()); });
   await page.goto('http://localhost:4187/lab.html?skill=firebolt');
   await page.waitForFunction(() => window.__lab); await page.waitForLoadState('networkidle');
   await page.waitForFunction(() => document.getElementById('info').textContent.includes('ลูกไฟ'));
@@ -74,8 +74,8 @@ try {
   await page.locator('input[type=file]').setInputFiles({ name: 'tuning.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 1, skill: 'firebolt', patch: { fx: { impact: { embers: 16 } } } })) });
   await page.waitForFunction(() => window.__lab.tuning.get('firebolt').fx.impact.embers === 16);
   await page.waitForTimeout(250);
-  const impact = await page.evaluate(() => { const L = window.__lab; L.preview('impact'); L.state.paused = true; for (let i = 0; i < 15; i++) L.step(1 / 60); return { projectiles: L.vfx.projectiles.size, particles: L.vfx.flames.count, active: L.vfx.active.length }; });
-  assert.equal(impact.projectiles, 0); assert.equal(impact.active, 0); assert.equal(impact.particles, 16, 'impact-only preview shows imported embers after its flash');
+  const impact = await page.evaluate(() => { const L = window.__lab; L.preview('impact'); L.state.paused = true; for (let i = 0; i < 15; i++) L.step(1 / 60); return { projectiles: L.vfx.projectiles.size, particles: L.vfx.flames.count, active: L.vfx.active.length, v5Embers:L.vfx.active.find(a=>a.obj.userData.v5)?.obj.material.uniforms.uEmberCount.value }; });
+  assert.equal(impact.projectiles, 0); assert.equal(impact.active, 1); assert.equal(impact.particles, 0); assert.equal(impact.v5Embers, 16, 'impact-only V5 preview applies the imported visible flake count');
   await shot('editor-impact.png');
   const projectile = page.locator('details').filter({ has: page.locator('summary', { hasText: 'พุ่งและหาง' }) });
   await projectile.getByRole('button', { name: 'คืนค่าช่วงนี้', exact: true }).click();

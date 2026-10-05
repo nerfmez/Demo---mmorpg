@@ -1,3 +1,4 @@
+import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './spirit-reveal.js';
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
 // "Change the camera, not the style": high ARPG camera, same anime cel look.
 // The view is created for a world first (the title screen shows the real map), then a game is
@@ -220,10 +221,11 @@ export class View {
 
   /** Attach (or replace) the running game. */
   attachGame(game) {
+    this.vfx.clearFireballs();
     this.game = game;
     for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
     this.monsterViews.clear();
-    for (const v of this.allyViews.values()) this.releaseRig(v.rig);
+    for (const v of this.allyViews.values()) { removeSpiritReveal(v.reveal); this.releaseRig(v.rig); }
     this.allyViews.clear();
     for (const v of this.dropViews.values()) disposeObject(v);
     this.dropViews.clear();
@@ -406,7 +408,7 @@ export class View {
         v.whirl(e);
         break;
       case 'nova':
-        v.nova(e);
+        v.nova({ ...e, approvedFrost: true });
         this.addShake(0.1);
         break;
       case 'chain':
@@ -479,7 +481,7 @@ export class View {
       case 'movement':
         break;
       case 'blinkPlayer':
-        v.blink(e.fromX, e.fromZ, e.x, e.z);
+        v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
         break;
       case 'blink':
         v.blink(e.fromX, e.fromZ, e.x, e.z, 0x8fe4ff);
@@ -668,7 +670,7 @@ export class View {
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
-        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0 };
+        av = { rig, hurt: 0, y: rig.root.position.y, spawnT: 0, turn: 0, reveal: a.type==='spirit_wolf'?installSpiritReveal(rig):null };
         this.allyViews.set(a.id, av);
       }
       const r = av.rig;
@@ -682,12 +684,14 @@ export class View {
       av.hurt = Math.max(0, av.hurt - dt * 5);
       r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
-      r.root.scale.setScalar(r.baseScale * (0.4 + 0.6 * fade));
+      r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
+      if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
       if (Math.random() < dt * 12) this.vfx.fx.add(a.x + (Math.random() - 0.5) * 0.8, av.y + 0.5 + Math.random() * 0.7, a.z + (Math.random() - 0.5) * 0.8, 0, 0.6, 0, { color: 0x9fd8ff, size: 0.22, life: 0.5 });
     }
     for (const [id, av] of this.allyViews) {
       if (!seen.has(id)) {
         this.vfx.summon({ x: av.rig.root.position.x, z: av.rig.root.position.z });
+        removeSpiritReveal(av.reveal);
         this.releaseRig(av.rig);
         this.allyViews.delete(id);
       }
@@ -792,12 +796,13 @@ export class View {
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
     this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
-    this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash);
+    this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
     this.heroFlash = Math.max(0, (this.heroFlash || 0) - dt);
     setFlash(r.material, this.heroFlash > 0 ? 0.5 : 0, 0, p.statuses?.chill ? 0.25 : 0);
     updateScarf(r, dt, p.moving || p.dash ? 8 : 0);
-    if (p.dash && p.dash.kind !== 'blink') this.vfx.dashTrail(p.x, y, p.z, p.dash.kind);
+    this.vfx.syncMovement(p,y,dt,r);
+    if(p.dash?.kind==='leap')this.vfx.dashTrail(p.x,y,p.z,'leap');
     this.vfx.updateWard(p.barrier, time);
     if (p.buffs?.war_cry) this.vfx.buffAura(p.x, p.z, 0xffc860, dt);
   }

@@ -7,6 +7,9 @@ import { Game } from './core/game.js';
 import { View } from './render/view.js';
 import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
+import { contactReady } from './render/fireball-v5-contact.js';
+import { frostReady } from './render/frost-v2.js';
+import { approvedClipsReady } from './render/approved-mesh-clips.js';
 import { loadModels } from './render/models.js';
 import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
@@ -45,13 +48,14 @@ for (const id of Object.keys(worlds)) coreWorld(id);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality });
+if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legacy';
 // ?stream=0 turns open-world streaming off (seams then cross with a reload, as in tests).
 if (params.get('stream') !== '0') view.coreWorld = coreWorld;
 // ?streamBudget=<ms> lets software-GPU tests stream the neighbour in fewer (slow) frames.
 if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
 // Imported models load in the background; the procedural shapes stand in until they arrive,
 // then the hero, the creation preview and the portrait are rebuilt once.
-Promise.all([loadModels(data.models), view.cityReady]).then(() => {
+Promise.all([loadModels(data.models), view.cityReady, contactReady, frostReady, approvedClipsReady]).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();

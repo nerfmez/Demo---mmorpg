@@ -455,7 +455,17 @@
         "heavyScale": 1.22,
         "shake": 0.018,
         "hitStop": 0.018
-      }
+      },
+      "body": {
+        "shadow": "#155b98",
+        "light": "#63d9f6",
+        "rim": "#81eeff",
+        "emission": 0.28,
+        "rimStrength": 0.38
+      },
+      "_labFixedFields": [
+        "body"
+      ]
     },
     "frost_nova": {
       "version": "approved-v2",
@@ -475,8 +485,10 @@
       "pulse": {
         "life": 0.48,
         "echoDelay": 0.1,
-        "opacity": 0.58,
-        "color": "#d9e8e7"
+        "opacity": 0.9,
+        "color": "#ff852a",
+        "core": "#ffd19a",
+        "visualRadiusScale": 0.42
       }
     },
     "healing_spring": {

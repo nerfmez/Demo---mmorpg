@@ -847,9 +847,9 @@ export class Vfx {
   warcry(e) {
     const cfg=this.config.skills.war_cry.pulse;
     for(let i=0;i<2;i++){
-      const m=soundPulse(cfg.color),delay=i*cfg.echoDelay,life=cfg.life+delay;
+      const m=soundPulse(cfg),delay=i*cfg.echoDelay,life=cfg.life+delay;
       m.position.set(e.x,this.gy(e.x,e.z)+.22,e.z);
-      this.spawn(m,life,t=>{const age=t*life-delay,k=Math.max(0,age/cfg.life);m.visible=age>=0;const radius=.45+(e.radius-.45)*(1-Math.pow(1-k,2));m.scale.set(radius,1,radius);m.material.uniforms.uT.value=k;m.material.uniforms.uAlpha.value=cfg.opacity*(i?.6:1)*Math.min(1,k/.06)*Math.pow(1-k,1.4);});
+      this.spawn(m,life,t=>{const age=t*life-delay,k=Math.max(0,age/cfg.life);m.visible=age>=0;const radius=.45+(e.radius*cfg.visualRadiusScale-.45)*(1-Math.pow(1-k,2));m.scale.set(radius,1,radius);m.material.uniforms.uT.value=k;m.material.uniforms.uAlpha.value=cfg.opacity*(i?.6:1)*Math.min(1,k/.06)*Math.pow(1-k,1.4);});
     }
     this.shake=Math.max(this.shake,.12);
   }

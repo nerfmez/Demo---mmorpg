@@ -73,7 +73,9 @@ jobs:
         run: node tests/browser/potions-moving.mjs
       - name: Equipment details (touch scrolling, visible close, upgrade materials)
         if: steps.scope.outputs.game == 'true'
-        run: node tests/browser/details-touch.mjs
+        run: |
+          node tests/browser/details-touch.mjs
+          node tests/browser/details-game-touch.mjs
       - name: Main menu (hub, grouped pages, back buttons, Esc)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/menu-hub.mjs

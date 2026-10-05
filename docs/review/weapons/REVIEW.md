@@ -28,7 +28,7 @@ Limits: still-image and sampled-phase inspection; no continuous normal-speed vid
 
 ## Owner bug-fix bundle after `b577765`
 
-Inspected the exact new game frames below: iPad 1180×820 and phone 844×390 equipment details show a reachable top Close, stone/gold names and owned/required counts. Native scrolling and all detail actions are separate functional tests, including repeated bag/equipped/workbench entry. The potion frame is an actual native two-finger drink while moving; the result JSON records unchanged joystick identity/vector and one consumed item.
+Inspected the exact new game frames below: iPad 1180×820 and phone 844×390 equipment details show a reachable top Close, stone/gold names and owned/required counts. The initial native scrolling/action test used the isolated Game/Panels harness, including repeated bag/equipped/workbench entry; it omitted the main entry point's document touch guard. See the live finding below. The potion frame is an actual native two-finger drink while moving; the result JSON records unchanged joystick identity/vector and one consumed item.
 
 Apprentice Staff's unchanged source GLB is seated at its local Z +0.585 m midpoint through a per-instance −0.585 m translation. Inspected actual game full-body idle, walk and cast frames: hand grips the shaft approximately centrally, all parts remain attached and no excessive clipping/giant scale appears. Ordinary body depth overlap remains in the oblique camera. Tide/Spore already have central origins and were not shifted. The pose/IK/timing data and source GLB bytes are unchanged. Review covers sampled frames, not continuous playback or physical-device FPS.
 
@@ -42,3 +42,9 @@ Both user-supplied Library JPEG transfers failed; these results do not claim a m
 | `apprentice-midpoint-idle.png` | `c8ecadb2e41e6e6f5ef437ca0f315e792f866b4f7c55827ffab4a5b131942bf5` |
 | `apprentice-midpoint-walk.png` | `12d4e7109b0a7db5120b43ccabff97bd9305f00a2d8a93fd528dd3036ce950e1` |
 | `apprentice-midpoint-cast.png` | `7791c8994627169d4c26077b8873bbbe38ab426cf666dc6604515c1523129169` |
+
+## Published release and document touch guard
+
+PR75 merged as `8b69319647aeb24ec8d775ad9b39e6462315576b` after all 11 exact-head checks passed. [Pages run 37343801793](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37343801793) succeeded, including the published WebKit Dreamloop and route purchase/reload checks. All 19 published GLBs match the provenance byte counts and SHA-256 values (35,498,552 bytes total). Actual published Chromium checks passed all 19 geometry/equip paths, offhands, authored attacks, bow shots, save/reload, midpoint grip, cached requests and three warm resource rounds; the native two-finger potion check also passed. These probes used isolated fresh saves and this execution environment's configured proxy; they are not physical-device performance measurements.
+
+The actual published details swipe stayed at scrollTop 0 despite correct descendant CSS. `main.js`'s document `touchmove` handler still cancelled gestures outside its legacy scroll-container allowlist. The narrow follow-up adds `.atelier-dialog` to that allowlist; multi-touch remains blocked. `details-game-touch.mjs` loads the actual built entry point and tests this handler, native Chromium swipes, visible Close, owned/required costs and real upgrade payment at both viewports. WebKit uses the document-event cancellation contract plus DOM scrolling and actual taps; it does not claim native WebKit touch swipes.

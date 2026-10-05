@@ -80,3 +80,19 @@ Reviewed runtime source SHA256:
 - `src/ui/loadout-workspace.js`: `29b1e5fbc77fdc93a0157330e4c012d18d5e4a3bb296eaf61e12e623f1c13dde`
 - `src/ui/loadout-workspace.css`: `c7f01dedc905bd8523bb12dafe5fcc127ddc71194de69b2cf18c7d718db87d54`
 - `src/ui/progressionview.js`: `7bb10267bcca531995b6762ea9f5ff99daa6277bc88570bdf722deb59edf4689`
+
+## CI fixture correction
+
+Initial PR70 CI run 37283017304 failed in `gear-hands.mjs` on both Chromium and WebKit:
+`crag_gauntlets level`. That model/hand fixture set trained stats to 60 but left the
+character at Lv1 while equipping authored Lv21 gloves. The level refusal is correct.
+The fixture now advances to the highest authored level of its requested equipment,
+and first verifies Lv1/high-stat glove equip refusal is atomic. All original hand,
+shield, arrow, seven-slot, phone-layout and pickup assertions remain intact.
+No production code, gates or test assertions were relaxed.
+
+Local full Chromium gear-hands completed the gameplay assertions through pickup, then
+failed its strict empty-console assertion on `/favicon.ico` 404. An independent page-load
+probe confirmed that same missing icon occurs before dressing. This unrelated local
+baseline is not changed; CI must still pass the original error check. WebKit is not
+installed locally. New-head Chromium/WebKit CI results are the premerge gate.

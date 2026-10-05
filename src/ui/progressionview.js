@@ -18,14 +18,16 @@ export function optionList(data, options) {
 export function upgradeTrack(notes, completed, prefix='Lv.',first=1) {
  return `<ol class="upgrade-track">${notes.map((note,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>${esc(note)}</small></li>`).join('')}</ol>`;
 }
-export function wearRequirements(ch, requires, label='รีเควสสวมใส่') {
+export function wearRequirements(ch, requires, label='เงื่อนไขสวมใส่') {
+ if(requires.level!==undefined)return `<div class="gear-requires"><b>${label}</b><span class="${ch.level>=requires.level?'ok':'no'}" data-required-level="${requires.level}">ต้อง Lv.${requires.level} · ปัจจุบัน Lv.${ch.level}</span></div>`;
  return `<div class="gear-requires"><b>${label}</b>${Object.entries(requires).map(([stat,need])=>`<span class="${ch.stats[stat]>=need?'ok':'no'}" data-required-stat="${stat}" data-need="${need}">${stat} ${ch.stats[stat]}/${need}</span>`).join('')}</div>`;
 }
 export function wearRequirementRange(ch, preview) {
+ if(preview.maxRequires.level!==undefined)return wearRequirements(ch,preview.maxRequires,'หลังเลื่อนเกรด')+'<small>เลเวลที่ต้องการคงเดิม · เกรด ตีบวก และออฟชั่นไม่เพิ่มเลเวลสวมใส่</small>';
  return `<div class="gear-requires"><b>รีเควสหลังเลื่อนเกรด</b>${Object.entries(preview.maxRequires).map(([stat,max])=>`<span class="${ch.stats[stat]>=max?'ok':'no'}">${stat} ${preview.minRequires[stat]===max?max:preview.minRequires[stat]+'–'+max} · มี ${ch.stats[stat]}</span>`).join('')}</div><small>รีเควสจริงขึ้นกับออฟชั่นใหม่ที่สุ่มได้</small>`;
 }
 export function gearUpgradeTrack(data, item) {
- return `<ol class="upgrade-track">${Array.from({length:data.items.upgrade.max},(_,i)=>`<li class="${i<item.upgrade?'done':i===item.upgrade?'next':''}"><b>+${i+1}</b><small>${Object.entries(gearRequirements({...item,upgrade:i+1},data)).map(([stat,n])=>stat+' '+n).join(', ')}</small></li>`).join('')}</ol>`;
+ return `<ol class="upgrade-track">${Array.from({length:data.items.upgrade.max},(_,i)=>`<li class="${i<item.upgrade?'done':i===item.upgrade?'next':''}"><b>+${i+1}</b><small>${Object.entries(gearRequirements({...item,upgrade:i+1},data)).map(([stat,n])=>(stat==='level'?'Lv.':stat+' ')+n).join(', ')}</small></li>`).join('')}</ol>`;
 }
 export function stateText(state) {
  if(state.ok)return 'พร้อมอัปเกรด';

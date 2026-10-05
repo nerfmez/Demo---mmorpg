@@ -125,7 +125,7 @@ export function migrateCharacter(ch, data) {
         if (!item.options.some(o => o.id === id)) item.options.push({ id, value: data.items.gearOptions[id].min });
       }
     }
-    ch.progress.gearMigration = 'เกรดอุปกรณ์ใหม่ C/B/A/S มี 2/3/4/5 ออฟชั่น เติมช่องที่ขาดแล้ว · ตีบวกได้ตามวัตถุดิบ สวมใส่ตามสเตตัส';
+    ch.progress.gearMigration = 'เกรดอุปกรณ์ใหม่ C/B/A/S มี 2/3/4/5 ออฟชั่น เติมช่องที่ขาดแล้ว · ตีบวกได้ตามวัตถุดิบ';
   }
   if (ch.treeRevision !== data.jobtree.revision) {
     const spent = new Set((ch.jobNodes || []).filter(id => id !== data.jobtree.origin)).size;
@@ -135,8 +135,6 @@ export function migrateCharacter(ch, data) {
     ch.progress.balanceMigration = 'ปรับสมดุลใหม่: คืนแต้มต้นไม้ทั้งหมดฟรี เลือกเส้นทางและอาชีพใหม่ได้ อุปกรณ์ สกิล ม็อด และวัตถุดิบยังอยู่ครบ';
   }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
-  const moved = enforceEquipment(ch, data);
-  if (moved.length) ch.progress.equipmentNotice = 'รีเควสสเตตัสเพิ่ม: เก็บอุปกรณ์ที่สวมไม่ได้ไว้ในกระเป๋า ' + moved.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh).join(', ');
   if ((ch.version || 1) < 6 || !ch.arrows) {
     // v6: two hands, gloves and arrows. Existing archers keep shooting: everyone starts with a stock.
     ch.arrows = { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } };
@@ -162,8 +160,10 @@ export function migrateCharacter(ch, data) {
     ch.statPoints -= excess;
     ch.level = cap;
     ch.exp = 0;
-    enforceEquipment(ch, data);
   }
+  // Enforce after level-cap/stat migration as well. Items already live in gear; only clear slot references.
+  const moved = enforceEquipment(ch, data);
+  if (moved.length) ch.progress.equipmentNotice = 'เงื่อนไขสวมใส่ไม่ถึง: เก็บอุปกรณ์ไว้ในกระเป๋าครบ · ' + moved.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh).join(', ');
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
   ch.version = CHARACTER_VERSION;
@@ -408,7 +408,7 @@ export function handsOf(data, item) {
   return base.slot === 'weapon' ? data.items.weaponTypes[base.weaponType]?.hands || 'light' : null;
 }
 
-/** Actual item power controls wear requirements; character level never does. */
+/** Weighted power still controls weapon/shield requirements and item valuation. */
 export function gearPower(stats, data) {
   const weights = data.items.requirements.weights;
   return Object.entries(stats).reduce((sum,[stat,value]) => sum + Math.abs(value) * (weights[stat] || 0), 0);
@@ -416,6 +416,8 @@ export function gearPower(stats, data) {
 
 export function gearRequirements(item, data) {
   const base = data.items.gearBases[item.base], rules = data.items.requirements;
+  if (['armor', 'helm', 'gloves', 'boots', 'charm'].includes(base.slot))
+    return { level: equipmentItemLevel(data, item) };
   const baseline = gearPower(gearStats({ ...item, grade:'C', upgrade:0, options:[] },data),data);
   const extra = Math.ceil(Math.max(0,gearPower(gearStats(item,data),data) - baseline - rules.affixAllowance) * rules.extraPowerFactor - 1e-9);
   const initial = Object.keys(base.requires || {}).length ? base.requires : { [base.requirementStat]: base.starter ? rules.minimumStat : Math.max(rules.minimumStat,Math.ceil(baseline * rules.basePowerFactor)) };
@@ -445,7 +447,13 @@ export function wearRequirements(ch, data, item, slot = null, equipped = ch.equi
 
 export function gearEquipState(ch, data, item, slot = null, equipped = ch.equipped) {
   if (!item) return { ok:false, reason:'unknown', requires:{}, missing:[] };
-  const requires = wearRequirements(ch,data,item,slot,equipped), state = meetsRequires(ch,requires);
+  const requires = wearRequirements(ch,data,item,slot,equipped);
+  if (requires.level !== undefined) {
+    const ok = ch.level >= requires.level;
+    return { ok, reason:ok ? null : 'level', requires, need:requires.level, current:ch.level,
+      missing:ok ? [] : [`ตัวละคร Lv.${requires.level} (ปัจจุบัน Lv.${ch.level})`] };
+  }
+  const state = meetsRequires(ch,requires);
   return { ...state, reason:state.ok ? null : 'requires', requires };
 }
 

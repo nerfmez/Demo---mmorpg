@@ -51,7 +51,7 @@ test('metadata normalization preserves v5 map records, active map, position and 
   normalizeItemMetadata(ch,data);assert.deepEqual(ch,expected);normalizeItemMetadata(ch,data);assert.deepEqual(ch,expected);
 });
 
-test('equipment level does not change stats, wear requirements or character-level gates',()=>{
+test('weapon item level remains metadata and does not change stats or trained-stat gates',()=>{
   const ch=funded();const item=craft(ch,data,'horn_greatblade',createRng(5)).item;
   const low={...item,itemLevel:1},high={...item,itemLevel:999};
   assert.deepEqual(gearStats(low,data),gearStats(high,data));assert.deepEqual(gearRequirements(low,data),gearRequirements(high,data));

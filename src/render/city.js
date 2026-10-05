@@ -45,6 +45,12 @@ export async function loadCity(world) {
     scene.name = file.file;
     scene.updateMatrixWorld(true);
     scene.userData.cityBlackContours=['05_Residential.glb','06_Civic.glb','07_Warehouses.glb','08_Shipyard.glb'].includes(file.file);
+    if(file.file==='11_Props.glb')for(const name of city.removedProps||[]){
+      const prop=scene.getObjectByName(name);
+      if(!prop)throw new Error('Missing city prop: '+name);
+      prop.removeFromParent();
+      prop.traverse(o=>{if(o.isMesh)o.geometry.dispose();});
+    }
     if(file.file==='11_Props.glb')for(const [name,delta]of Object.entries(city.propOffsets||{})){
       // Move the existing placement-ready node, never clone an offset gallery.
       const prop=scene.getObjectByName(name);

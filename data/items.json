@@ -2565,6 +2565,109 @@
       }
     }
   },
+  "consumables": {
+    "_doc": "Potions bought at the town shop (town.shop) and used from the quick item slots. A potion restores flat + pct of the maximum, at once. Each group (hp, mp) has its own cooldown so one potion of each kind can be drunk back to back but not spammed. Stacks hold at most stackMax. New characters start with the start set; v7 saves receive it once.",
+    "quickSlots": 4,
+    "stackMax": 99,
+    "groupCooldown": {
+      "hp": 5,
+      "mp": 5
+    },
+    "start": {
+      "hp_potion_s": 5,
+      "mp_potion_s": 3
+    },
+    "startSlots": [
+      "hp_potion_s",
+      "mp_potion_s",
+      null,
+      null
+    ],
+    "types": {
+      "hp_potion_s": {
+        "name": "Small Health Potion",
+        "nameTh": "ยาเลือดขวดเล็ก",
+        "group": "hp",
+        "size": "s",
+        "restore": {
+          "hp": 40,
+          "hpPct": 15
+        },
+        "price": 10
+      },
+      "hp_potion_m": {
+        "name": "Health Potion",
+        "nameTh": "ยาเลือดขวดกลาง",
+        "group": "hp",
+        "size": "m",
+        "restore": {
+          "hp": 90,
+          "hpPct": 25
+        },
+        "price": 30
+      },
+      "hp_potion_l": {
+        "name": "Large Health Potion",
+        "nameTh": "ยาเลือดขวดใหญ่",
+        "group": "hp",
+        "size": "l",
+        "restore": {
+          "hp": 180,
+          "hpPct": 40
+        },
+        "price": 80
+      },
+      "mp_potion_s": {
+        "name": "Small Mana Potion",
+        "nameTh": "ยามานาขวดเล็ก",
+        "group": "mp",
+        "size": "s",
+        "restore": {
+          "mp": 20,
+          "mpPct": 15
+        },
+        "price": 10
+      },
+      "mp_potion_m": {
+        "name": "Mana Potion",
+        "nameTh": "ยามานาขวดกลาง",
+        "group": "mp",
+        "size": "m",
+        "restore": {
+          "mp": 45,
+          "mpPct": 25
+        },
+        "price": 30
+      },
+      "mp_potion_l": {
+        "name": "Large Mana Potion",
+        "nameTh": "ยามานาขวดใหญ่",
+        "group": "mp",
+        "size": "l",
+        "restore": {
+          "mp": 90,
+          "mpPct": 40
+        },
+        "price": 80
+      }
+    }
+  },
+  "shop": {
+    "_doc": "The shopkeeper at town.shop sells these consumables for gold (price per item, items.consumables). Buy amounts are the quick choices offered in the shop panel.",
+    "stock": [
+      "hp_potion_s",
+      "hp_potion_m",
+      "hp_potion_l",
+      "mp_potion_s",
+      "mp_potion_m",
+      "mp_potion_l"
+    ],
+    "buyAmounts": [
+      1,
+      5,
+      10
+    ]
+  },
   "salvage": {
     "_doc": "Town only. Salvage returns a grade share of the crafting recipe (rounded down, at least 1 of the main part). No base stone or crystal reward for any gear or grade, including starters. Sum current +N enhancement costs then return floor(total * upgradeReturn) per material; never refund gold. Legacy +N gear uses that same current-cost valuation because saves have no payment history. Existing inventory is never converted. Equipped and locked items are refused.",
     "returnByGrade": {

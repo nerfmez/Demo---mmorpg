@@ -229,7 +229,7 @@ export class Hud {
       g.restore();
     }
     // town points of every map
-    for (const [mapId, map] of Object.entries(data.maps || { [data.world.id]: data.world })) for (const [pos, col] of [[map.town.workbench, '#ffd166'], [map.town.trainer, '#8fd0ff']]) {
+    for (const [mapId, map] of Object.entries(data.maps || { [data.world.id]: data.world })) for (const [pos, col] of [[map.town.workbench, '#ffd166'], [map.town.trainer, '#8fd0ff'], ...(map.town.shop ? [[map.town.shop, '#ff8fa8']] : [])]) {
       const [x, y] = toSW(mapId, pos[0], pos[1]);
       if (!inView(x, y)) continue;
       g.fillStyle = col;
@@ -400,6 +400,13 @@ export class Hud {
       case 'heal':
         this.float(e.x, 2.2, e.z, `+${e.amount}`, 'heal');
         break;
+      case 'potion':
+        if (e.hp) this.float(e.x, 2.2, e.z, `+${e.hp}`, 'heal');
+        if (e.mp) this.float(e.x, 2.6, e.z, `+${e.mp} MP`, 'mana');
+        break;
+      case 'bought':
+        this.toast(`ซื้อ ${d.items.consumables.types[e.id]?.nameTh || e.id} ×${e.count} · ${e.cost} G`, '#ffd166');
+        break;
       case 'pickup': {
         if (e.item === 'gear') {
           this.toast(`ได้ ${d.items.gearBases[e.base]?.nameTh || e.base} · เกรด ${e.grade}`, d.items.grades.colors[e.grade]);
@@ -448,6 +455,9 @@ export class Hud {
         if (e.reason === 'mp') this.toast('MP ไม่พอ', '#3f8cff');
         if (e.reason === 'requires') this.toast('Stat ยังไม่ถึงเงื่อนไขของสกิลนี้', '#ff6b5a');
         if (e.reason === 'weapon') this.toast('สกิลนี้ต้องถือ ' + (e.need || []).map((w) => d.items.weaponTypes[w]?.nameTh || w).join(' / '), '#ff6b5a');
+        if (e.reason === 'potion_none') this.toast((d.items.consumables.types[e.item]?.nameTh || 'ยา') + 'หมดแล้ว · ซื้อได้ที่ร้านค้าในเมือง', '#ff9a6a');
+        if (e.reason === 'potion_cooldown') this.toast('ยังดื่มยาชนิดนี้ซ้ำไม่ได้ รอสักครู่', '#c8b8a0');
+        if (e.reason === 'potion_full') this.toast((d.items.consumables.types[e.item]?.group === 'mp' ? 'MP' : 'HP') + ' เต็มอยู่แล้ว', '#c8b8a0');
         if (e.reason === 'arrows') this.toast('ลูกธนูหมด · คราฟต์ได้ทุกที่นอกการต่อสู้ (กระเป๋า → มือซ้าย)', '#e08a3a');
         break;
       case 'playerDeath':
@@ -549,15 +559,15 @@ export class Hud {
 
     // interaction prompt
     const near = g.nearby();
-    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.waypoint ? 'waypoint' : near.exit ? 'exit:' + near.exit : null;
+    const prompt = near.workbench ? 'workbench' : near.trainer ? 'trainer' : near.shop ? 'shop' : near.waypoint ? 'waypoint' : near.exit ? 'exit:' + near.exit : null;
     if (prompt !== this.lastPrompt) {
       this.lastPrompt = prompt;
       this.el.prompt.innerHTML = '';
       this.el.prompt.classList.toggle('on', !!prompt);
       if (prompt) {
         const exit = near.exit && g.world.exits.find((e) => e.id === near.exit);
-        const label = exit ? 'เดินทางไป' + exit.nameTh : { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
-        const ic = exit ? 'portal' : { workbench: 'hammer', trainer: 'tree', waypoint: 'portal' }[prompt];
+        const label = exit ? 'เดินทางไป' + exit.nameTh : { workbench: 'ใช้โต๊ะคราฟต์', trainer: 'คุยกับครูฝึก', shop: 'ร้านค้า · ซื้อยา', waypoint: 'เดินทางผ่านหินวาร์ป' }[prompt];
+        const ic = exit ? 'portal' : { workbench: 'hammer', trainer: 'tree', shop: 'bag', waypoint: 'portal' }[prompt];
         const b = h(`<button class="pbtn">${icon(ic)}<span>${label}</span><kbd>E</kbd></button>`);
         b.addEventListener('click', () => ui.interact());
         this.el.prompt.appendChild(b);

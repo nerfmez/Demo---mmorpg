@@ -1,0 +1,92 @@
+/* Main menu (hub) + page navigation. Loaded last: one place for how the menu pages are
+   organised, so older panel rules in style/ux/art/minimal stay untouched.
+   Palette follows the HUD glass: deep navy, soft blue line, warm gold accent. */
+.overlay:not(.is-journal):not(.is-atelier) {
+  --m-bg: #142130; --m-card: #1b2e40; --m-card-2: #223a50; --m-line: #9db8cf30; --m-line-2: #9db8cf55;
+  --m-blue: #8dc3e8; --m-gold: #e6c77c; --m-text: #eaf1f6; --m-dim: #a9bccb;
+}
+
+/* ---- header: back to the main menu ---- */
+.panel-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px 0 12px; flex: none; border: 1px solid var(--m-line-2, #9db8cf55); border-radius: 22px; background: #8dc3e822; color: #eaf5ff; font: inherit; font-size: 14px; cursor: pointer; }
+.panel-back span { font-size: 24px; line-height: 1; margin-top: -3px; }
+.panel-back:hover, .panel-back:focus-visible { background: #8dc3e842; border-color: #b7dcf5; }
+.panel-back[hidden] { display: none; }
+
+/* ---- sidebar: only the open page's group ---- */
+.overlay:not(.is-journal):not(.is-atelier) .panel .tabs { padding: 14px 10px; gap: 6px; background: #0f1c28cc; }
+.tabs-title { display: block; padding: 2px 8px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--m-line, #9db8cf30); color: var(--m-gold, #e6c77c); font-size: 12px; letter-spacing: .3px; line-height: 1.4; }
+.overlay:not(.is-journal):not(.is-atelier) .panel .tab { min-height: 54px; border-radius: 9px; }
+.overlay:not(.is-journal):not(.is-atelier) .panel .tab svg { filter: none; color: #9fc3dd; }
+.overlay:not(.is-journal):not(.is-atelier) .panel .tab.on { background: #4e85b83d; border-color: #93c2e566; box-shadow: inset 3px 0 var(--m-gold, #e6c77c); }
+.overlay:not(.is-journal):not(.is-atelier) .panel .tab.on svg { color: var(--m-gold, #e6c77c); }
+
+/* one-page groups and the hub itself have no sidebar */
+.overlay.single-page .panel { grid-template-columns: minmax(0, 1fr); }
+.overlay.single-page .panel .tabs, .overlay.single-page .seeker-mobile-nav { display: none; }
+.overlay.single-page .pbody { grid-column: 1; }
+
+/* ---- the main menu ---- */
+.hub { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+@media (min-width: 1000px) {
+  /* five groups in one screen: skills and mods own the tall middle column */
+  .hub { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "hero build items" "world build system"; align-items: stretch; }
+  .hub-group[data-group=hero] { grid-area: hero; } .hub-group[data-group=build] { grid-area: build; }
+  .hub-group[data-group=items] { grid-area: items; } .hub-group[data-group=world] { grid-area: world; }
+  .hub-group[data-group=system] { grid-area: system; }
+}
+.hub-group { border: 1px solid var(--m-line); border-radius: 14px; background: var(--m-card); padding: 12px 14px 14px; }
+.hub-group > header { display: flex; align-items: center; gap: 12px; padding: 0 4px 10px; margin-bottom: 10px; border-bottom: 1px solid var(--m-line); }
+.hub-group > header svg { width: 38px; height: 38px; padding: 8px; flex: none; border-radius: 50%; background: #e6c77c22; border: 1px solid #e6c77c66; color: var(--m-gold); }
+.hub-group > header h3 { margin: 0; font-size: 17px; font-weight: 500; color: var(--m-text); }
+.hub-group > header small { display: block; margin-top: 2px; font-size: 12px; color: var(--m-dim); }
+.hub-tiles { display: grid; gap: 8px; }
+.hub-tile { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; column-gap: 12px; width: 100%; min-height: 58px; padding: 8px 14px; text-align: left; border: 1px solid var(--m-line); border-radius: 11px; background: var(--m-card-2); color: var(--m-text); font: inherit; cursor: pointer; transition: transform .12s, background .12s, border-color .12s; }
+.hub-tile > svg { width: 30px; height: 30px; color: #9fc3dd; }
+.hub-name { display: grid; gap: 2px; min-width: 0; }
+.hub-name b { font-size: 15px; font-weight: 500; }
+.hub-name small { font-size: 11.5px; color: var(--m-dim); line-height: 1.35; }
+.hub-state { font-style: normal; font-size: 12px; color: var(--m-gold); padding: 3px 9px; border-radius: 12px; background: #0b162040; white-space: nowrap; }
+.hub-tile kbd { display: none; }
+.hub-tile .dot { position: absolute; right: 8px; top: -7px; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--m-gold); color: #3a3220; font-size: 12px; font-weight: 600; box-shadow: 0 2px 6px #0a142060; }
+.hub-tile:hover { background: #2d4b66; border-color: var(--m-line-2); }
+.hub-tile:active { transform: scale(.985); background: #38608a; }
+.hub-tile:focus-visible { outline: 2px solid #a7d4f2; outline-offset: 2px; }
+body:not(.touch) .hub-tile kbd { display: inline-block; position: absolute; right: 10px; bottom: 6px; padding: 0 5px; border: 1px solid var(--m-line); border-radius: 4px; background: #0b162040; color: var(--m-dim); font: 10px/16px 'Mitr', sans-serif; }
+body:not(.touch) .hub-tile:has(.hub-state) kbd { right: 12px; bottom: 5px; }
+
+/* ---- header text: readable at arm's length on a tablet ---- */
+.overlay:not(.is-journal):not(.is-atelier) .panel-eyebrow { font-size: 11px; letter-spacing: .3px; color: var(--m-dim); }
+.overlay:not(.is-journal):not(.is-atelier) .panel-header h2 { font-size: 22px; }
+
+/* ---- page cards: a little more contrast and air than the older flat panels ---- */
+.overlay:not(.is-journal):not(.is-atelier) .pbody .card { background: #ffffff0a; border: 1px solid var(--m-line); border-radius: 12px; padding: 16px; box-shadow: none; }
+.overlay:not(.is-journal):not(.is-atelier) .pbody .muted { color: var(--m-dim); font-size: 12.5px; }
+.overlay:not(.is-journal):not(.is-atelier) .pbody h3 { color: var(--m-text); font-size: 16px; }
+
+/* ---- footer: say what the page is for, not a generic hint ---- */
+.overlay.is-hub .panel-footer > span { font-size: 12px; }
+
+/* ---- atelier (bag / skills) windows: same back button ---- */
+#atelier .workspace-nav .hub-back { display: inline-flex; align-items: center; gap: 4px; color: #f5e6bd; border-right: 1px solid #d7bc7d55; margin-right: 4px; padding-left: 12px; padding-right: 16px; }
+#atelier .workspace-nav .hub-back span { font-size: 20px; line-height: 1; margin-top: -2px; }
+#atelier .workspace-nav .hub-back:hover, #atelier .workspace-nav .hub-back:focus-visible { background: #ffffff1c; }
+
+/* ---- HUD: the single main-menu button ---- */
+#hud .quick-actions .menu-toggle { border-color: #e6c77c99; background: linear-gradient(180deg, #3a4f68e6, #25384ee6); }
+#hud .quick-actions .menu-toggle:active { background: #345778; }
+
+/* ---- compact heights (iPad landscape keyboard, phones) ---- */
+@media (max-width: 700px) {
+  .hub { grid-template-columns: 1fr; gap: 12px; }
+  .panel-back { padding: 0 12px 0 8px; min-height: 40px; font-size: 13px; }
+  .panel-header { gap: 8px; }
+}
+@media (max-height: 520px) and (min-width: 701px) {
+  .hub { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .hub-group { padding: 8px; }
+  .hub-group > header { padding-bottom: 6px; margin-bottom: 6px; }
+  .hub-tile { min-height: 48px; padding: 6px 10px; }
+  .hub-name small { display: none; }
+  .tabs-title { display: none; }
+  .overlay:not(.is-journal):not(.is-atelier) .panel .tab span:not(.dot) { white-space: normal; line-height: 1.2; text-align: center; }
+}

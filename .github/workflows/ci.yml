@@ -63,6 +63,9 @@ jobs:
       - name: Shop, potions and quick item slots (buy at the shopkeeper, drink from the HUD)
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/shop-potions.mjs
+      - name: Main menu (hub, grouped pages, back buttons, Esc)
+        if: steps.scope.outputs.game == 'true'
+        run: node tests/browser/menu-hub.mjs
       - name: Distinct coastal attack patterns and contact poses
         if: steps.scope.outputs.game == 'true'
         run: node tests/browser/coastal-attacks.mjs

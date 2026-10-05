@@ -19,6 +19,7 @@ import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
 import { buyState, assignQuickItem, restoreAmount } from '../core/consumables.js';
 import { createLoadoutWorkspace } from './loadout-workspace.js';
+import { MENU_GROUPS, MENU_PAGES, groupOf } from './menu-map.js';
 
 const LOADOUT_TABS = new Set(['bag', 'skills', 'mods', 'movement']);
 
@@ -65,10 +66,10 @@ export class Panels {
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
     this.overlay.innerHTML = `<section class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
-      <header class="panel-header"><div><small class="panel-eyebrow">SEEKER · FIELD JOURNAL</small><h2 id="panel-title"></h2></div>
+      <header class="panel-header"><button class="panel-back" data-hub aria-label="กลับเมนูหลัก" hidden><span aria-hidden="true">‹</span> เมนูหลัก</button><div><small class="panel-eyebrow">SEEKER · FIELD JOURNAL</small><h2 id="panel-title"></h2></div>
       <div class="panel-meta"><span class="panel-gold"></span><span class="pause-label">พักการเล่น</span></div>
       <button class="panel-close" data-close aria-label="ปิดเมนู">✕</button></header>
-      <label class="seeker-mobile-nav">หน้าต่าง <select aria-label="เลือกหน้าต่างเกม" data-page-select></select></label><nav class="tabs" role="tablist" aria-label="หน้าต่างเกม"></nav><div class="pbody" id="panel-content" role="tabpanel"></div>
+      <label class="seeker-mobile-nav">หน้า <select aria-label="เลือกหน้าต่างเกม" data-page-select></select></label><nav class="tabs" role="tablist" aria-label="หน้าต่างเกม"></nav><div class="pbody" id="panel-content" role="tabpanel"></div>
       <footer class="panel-footer"><span>เลือกดูรายละเอียด แล้วแตะปุ่มเพื่อใช้งาน</span><button class="btn" data-close>กลับเข้าเกม <kbd>Esc</kbd></button></footer></section>`;
     root.appendChild(this.overlay);
     this.tabsEl = this.overlay.querySelector('.tabs');
@@ -83,10 +84,15 @@ export class Panels {
       },
     });
     this.overlay.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.close()));
+    this.overlay.querySelector('[data-hub]').addEventListener('click', () => this.open('menu'));
     this.overlay.addEventListener('pointerdown', (e) => {
       if (e.target === this.overlay) this.close();
     });
-    this.body.addEventListener('click', (e) => this.onClick(e));
+    this.body.addEventListener('click', (e) => {
+      const go = e.target.closest('[data-go]');
+      if (go) { this.lastResult = null; this.open(go.dataset.go); return; }
+      this.onClick(e);
+    });
     this.body.addEventListener('toggle',e=>{
       if(e.target.matches('[data-craft-repeat]') && e.target.isConnected) {
         const open=this.sel.craftRepeatOpen||(this.sel.craftRepeatOpen={});
@@ -162,6 +168,7 @@ export class Panels {
     }
     if (this.tab !== tab) this.sel.detail = false;
     this.tab = tab;
+    this.overlay.classList.toggle('is-hub', tab === 'menu');
     this.overlay.classList.toggle('is-journal', tab === 'job');
     this.overlay.classList.toggle('is-atelier', LOADOUT_TABS.has(tab));
     this.overlay.classList.add('on');
@@ -185,7 +192,7 @@ export class Panels {
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
     this.tab = null;
-    this.overlay.classList.remove('on', 'is-journal', 'is-atelier');
+    this.overlay.classList.remove('on', 'is-journal', 'is-atelier', 'is-hub');
     document.body.classList.remove('panel-open');
     document.body.classList.remove('loadout-open');
     this.lastResult = null;
@@ -224,27 +231,20 @@ export class Panels {
     if (LOADOUT_TABS.has(this.tab)) return this.loadout.refresh();
     const g = this.game;
     const b = this.badges();
-    const tabs = [
-      ['char', 'ตัวละคร', b.char],
-      ['skills', 'ชุดสกิล'],
-      ['mods', 'ม็อด'],
-      ['movement', 'เคลื่อนที่'],
-      ['growth', 'อัปเลเวล'],
-      ['job', 'เส้นทางพาสซีฟ', b.job],
-      ['bag', 'กระเป๋า'],
-      ['craft', 'โต๊ะคราฟต์'],
-      ['shop', 'ร้านค้า · ยา'],
-      ['journal', 'ภารกิจ'],
-      ['map', 'แผนที่'],
-      ['settings', 'ตั้งค่า'],
-    ];
+    // the page list is the open page's group only; the main menu (hub) lists every group
+    const hub = this.tab === 'menu';
+    const group = groupOf(this.tab);
+    const badge = { char: b.char, job: b.job };
+    const tabs = hub ? [] : group.pages.map((id) => [id, MENU_PAGES[id].label, badge[id]]);
+    this.overlay.classList.toggle('single-page', hub || tabs.length < 2);
+    this.overlay.querySelector('[data-hub]').hidden = hub;
     const active = document.activeElement;
     const activeData = active?.closest('.panel') ? { ...active.dataset } : null;
-    const tabIcon = {char:'person',skills:'book',mods:'hex',movement:'dash',growth:'spark',job:'tree',bag:'bag',craft:'hammer',shop:'heal',journal:'scroll',map:'map',settings:'gear'};
-    this.tabsEl.innerHTML = tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${icon(tabIcon[id])}<span>${label}</span>${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
+    this.tabsEl.innerHTML = (group ? `<span class="tabs-title" role="presentation">${group.title}</span>` : '') + tabs.map(([id, label, n]) => `<button class="tab ${this.tab === id ? 'on' : ''}" id="tab-${id}" role="tab" aria-selected="${this.tab === id}" aria-controls="panel-content" data-tab="${id}">${icon(MENU_PAGES[id].icon)}<span>${label}</span>${n ? `<span class="dot">${n}</span>` : ''}</button>`).join('');
     this.tabsEl.querySelector('.tab.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     this.overlay.querySelector('[data-page-select]').innerHTML = tabs.map(([id,label]) => `<option value="${id}" ${this.tab===id?'selected':''}>${label}</option>`).join('');
-    this.overlay.querySelector('#panel-title').textContent = tabs.find(([id]) => id === this.tab)?.[1] || '';
+    this.overlay.querySelector('#panel-title').textContent = hub ? 'เมนูหลัก' : MENU_PAGES[this.tab]?.label || '';
+    this.overlay.querySelector('.panel-eyebrow').textContent = hub ? 'เลือกหน้าที่ต้องการ' : `เมนูหลัก › ${group?.title || ''}`;
     this.overlay.querySelector('.panel-gold').textContent = `${g.ch.gold.toLocaleString()} G`;
     this.body.dataset.panel = this.tab;
     this.body.setAttribute('aria-labelledby', `tab-${this.tab}`);
@@ -259,6 +259,32 @@ export class Panels {
       const focus = [...this.overlay.querySelectorAll('button, select')].find((el) => Object.entries(activeData).every(([key, val]) => el.dataset[key] === val));
       (focus || this.overlay.querySelector('.panel')).focus({ preventScroll: true });
     }
+  }
+
+  // ---------- Main menu (hub): every group, each page opens only when pressed ----------
+  pageState(id) {
+    const ch = this.game.ch;
+    switch (id) {
+      case 'char': return `Lv ${ch.level}`;
+      case 'job': return `Job Lv ${ch.jobLevel}`;
+      case 'skills': return `${ch.slots.filter((x) => x.skill).length}/${ch.slots.length} ช่อง`;
+      case 'mods': return `${ch.mods.length} เหรียญ`;
+      case 'bag': return `${ch.gear.length} ชิ้น`;
+      case 'shop': return `${ch.gold.toLocaleString()} G`;
+      default: return '';
+    }
+  }
+
+  render_menu() {
+    const badge = this.badges();
+    const n = { char: badge.char, job: badge.job };
+    return `<div class="hub">${MENU_GROUPS.map((g) => `<section class="hub-group" data-group="${g.id}" aria-labelledby="hub-${g.id}">
+      <header>${icon(g.icon)}<div><h3 id="hub-${g.id}">${g.title}</h3><small>${g.sub}</small></div></header>
+      <div class="hub-tiles">${g.pages.map((id) => {
+        const p = MENU_PAGES[id];
+        const state = this.pageState(id);
+        return `<button class="hub-tile" data-go="${id}">${icon(p.icon)}<span class="hub-name"><b>${p.label}</b><small>${p.desc}</small></span>${state ? `<em class="hub-state">${state}</em>` : ''}${n[id] > 0 ? `<span class="dot" aria-label="มี ${n[id]} แต้มที่ยังไม่ใช้">${n[id]}</span>` : ''}${p.key ? `<kbd>${p.key}</kbd>` : ''}</button>`;
+      }).join('')}</div></section>`).join('')}</div>`;
   }
 
   // ---------- Character ----------

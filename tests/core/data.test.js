@@ -27,7 +27,8 @@ test('recipes reference real results, materials and options', () => {
 test('every material is used by something (drops are never NPC junk only)', () => {
   const used = new Set();
   for (const r of Object.values(data.recipes.recipes)) for (const k of Object.keys(r.cost)) used.add(k);
-  for (const s of Object.values(data.skills.combat)) used.add(s.upgradeMaterial);
+  for (const s of data.progression.skillUpgrade.steps) for (const k of Object.keys(s)) used.add(k);
+  for (const c of Object.values(data.items.gradeUpgrade.cost)) for (const k of Object.keys(c)) used.add(k);
   for (const c of data.progression.modUpgrade.cost) for (const k of Object.keys(c)) used.add(k);
   for (const c of data.items.upgrade.cost) for (const k of Object.keys(c)) used.add(k);
   for (const id of matIds) assert.ok(used.has(id), `${id} has no use`);

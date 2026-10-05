@@ -23,9 +23,10 @@ function alphaPixels(png){
  }
  return {extrema:[min,max],clear,partial};
 }
-test('raster contract covers the 76 approved equipment/material/combat/movement IDs exactly once, excluding mods',()=>{
+test('raster contract covers the supplied equipment/material/combat/movement IDs exactly once, excluding mods',()=>{
+ for(const id of ['enhancement_stone','skill_crystal'])assert.ok(EXPECTED_RASTER_KEYS.includes('material/'+id));
  const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(new Set(EXPECTED_RASTER_KEYS).size,76);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,EXPECTED_RASTER_KEYS.length);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
  for(const key of EXPECTED_RASTER_KEYS)assert.ok(all.includes(key),key+' is live content');
  // Content added after the approved set keeps its authored SVG until a PNG is supplied.
  for(const key of all.filter(k=>!EXPECTED_RASTER_KEYS.includes(k))){const [kind,id]=key.split('/');assert.equal(rasterIconUrl(kind,id),null,key);assert.match(art(kind,id),/<svg/,key);}
@@ -39,10 +40,10 @@ test('only registered supplied PNGs replace existing illustrations; unknown/mod 
  assert.throws(()=>rasterIconUrl('skill','slash',{'skill/slash':'https://invalid/icon.png'}),/Invalid raster icon path/);
 });
 test('every registered image is a real PNG with its recorded native dimensions, never a missing or SVG stand-in',()=>{
- for(const[key,path]of Object.entries(RASTER_ICONS)){assert.ok(EXPECTED_RASTER_KEYS.includes(key),key);const file=new URL('../../public/'+path,import.meta.url);assert.ok(existsSync(file),path);const b=readFileSync(file),a=assets.get(key);assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.deepEqual([b.readUInt32BE(16),b.readUInt32BE(20)],a.dimensions,key);assert.deepEqual(a.dimensions,[512,512],key);if(key.startsWith('skill/')){const alpha=alphaPixels(b);assert.deepEqual(alpha.extrema,[0,255],key);assert.ok(alpha.clear>0&&alpha.partial>0,key+' transparent and soft edge pixels');const master=readFileSync(new URL('../../'+a.transparent_master.path,import.meta.url));assert.equal(createHash('sha256').update(master).digest('hex'),a.local_edit.output_sha256,key+' unchanged approved master');assert.deepEqual([master.readUInt32BE(16),master.readUInt32BE(20)],[1254,1254],key);assert.equal(a.delivery_export.source_sha256,a.transparent_master.sha256,key);}}
+ for(const[key,path]of Object.entries(RASTER_ICONS)){assert.ok(EXPECTED_RASTER_KEYS.includes(key),key);const file=new URL('../../public/'+path,import.meta.url);assert.ok(existsSync(file),path);const b=readFileSync(file),a=assets.get(key);assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.deepEqual([b.readUInt32BE(16),b.readUInt32BE(20)],a.dimensions,key);assert.deepEqual(a.dimensions,[512,512],key);if(key.startsWith('skill/')||['material/enhancement_stone','material/skill_crystal'].includes(key)){const alpha=alphaPixels(b);assert.deepEqual(alpha.extrema,[0,255],key);assert.ok(alpha.clear>0&&alpha.partial>0,key+' transparent and soft edge pixels');}if(key.startsWith('skill/')){const master=readFileSync(new URL('../../'+a.transparent_master.path,import.meta.url));assert.equal(createHash('sha256').update(master).digest('hex'),a.local_edit.output_sha256,key+' unchanged approved master');assert.deepEqual([master.readUInt32BE(16),master.readUInt32BE(20)],[1254,1254],key);assert.equal(a.delivery_export.source_sha256,a.transparent_master.sha256,key);}}
 });
 
 test('registered supplied PNGs match the retained delivery hashes and coverage',()=>{
- assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,76);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
+ assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,manifest.verified_assets.length);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
  for(const a of manifest.verified_assets){assert.equal(RASTER_ICONS[a.key],a.path);const bytes=readFileSync(new URL('../../public/'+a.path,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256,a.key);}
 });

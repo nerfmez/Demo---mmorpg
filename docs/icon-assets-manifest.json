@@ -2124,6 +2124,46 @@
       "source_archive_sha256": "7424c0a7bed74fadd36baf81e9e3feb7112d7e6bbf6cae67a6fb6f7faccb4390",
       "source_library_file_id": "libfile_dd80b877a1748191becd7bed6c54c246",
       "raw_source_sha256": "52a0e2f962acdd0b73828b9c51cc06c55bd329eaff0ff5df0d80279dd90153a7"
+    },
+    {
+      "key": "material/enhancement_stone",
+      "path": "assets/icons/material/enhancement_stone.png",
+      "sha256": "d9a66c7035c265ecabd90c44679bfa82d63da9c516399c5d833d89ba1c004bce",
+      "bytes": 206236,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generator": "OpenAI builtin imagegen",
+      "raw_source_sha256": "58e37bdfea4297849d933e5a9e14bb508f060d67925264acd6288eab526f4462",
+      "source_file": "exec-4be32b86-3691-4e7a-89dc-92e1031f0457.png",
+      "delivery_export": "ImageMagick Lanczos resize to 512x512 RGBA, source alpha retained",
+      "integration_base_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac"
+    },
+    {
+      "key": "material/skill_crystal",
+      "path": "assets/icons/material/skill_crystal.png",
+      "sha256": "fa2363718a47ef8e941f5b4eff64337b776059d6e4f1928a1f838e5de78de311",
+      "bytes": 124834,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "generator": "OpenAI builtin imagegen",
+      "raw_source_sha256": "f40698445959a9784b569bf7d54bec309232c5d8df91603f077bebe9b41cacf1",
+      "source_file": "exec-1dea9311-3f38-4155-90f5-99acb22ff386.png",
+      "delivery_export": "ImageMagick Lanczos resize to 512x512 RGBA, source alpha retained",
+      "integration_base_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac"
     }
   ],
   "pending_count": 0,

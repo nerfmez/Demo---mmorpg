@@ -106,7 +106,7 @@
     "jobGoldPerLevel": 12
   },
   "skillUpgrade": {
-    "_doc": "World materials + gold raise skill rank. Rank gates prevent early maximum power; mods remain the source of behaviour changes. No failure or destruction.",
+    "_doc": "Skill crystals + gold raise skill rank. Rank gates prevent early maximum power; mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 5,
     "perLevel": 0.06,
     "manaPerLevel": 0.05,
@@ -114,29 +114,26 @@
       {
         "requiresLevel": 4,
         "requiresStat": 5,
-        "material": 3,
-        "gold": 35
+        "gold": 35,
+        "skill_crystal": 1
       },
       {
         "requiresLevel": 10,
         "requiresStat": 7,
-        "material": 5,
         "gold": 90,
-        "glow_dust": 2
+        "skill_crystal": 2
       },
       {
         "requiresLevel": 17,
         "requiresStat": 9,
-        "material": 8,
         "gold": 180,
-        "ruin_shard": 1
+        "skill_crystal": 3
       },
       {
         "requiresLevel": 24,
         "requiresStat": 11,
-        "material": 12,
         "gold": 320,
-        "ruin_shard": 2
+        "skill_crystal": 4
       }
     ]
   },
@@ -144,13 +141,11 @@
     "maxLevel": 3,
     "cost": [
       {
-        "ruin_shard": 1,
-        "glow_dust": 2,
+        "skill_crystal": 2,
         "gold": 40
       },
       {
-        "ruin_shard": 2,
-        "glow_dust": 3,
+        "skill_crystal": 3,
         "gold": 80
       }
     ],

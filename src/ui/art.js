@@ -1,4 +1,4 @@
-import {rasterIconMarkup} from './raster-icons.js';
+import {rasterIconMarkup,rasterIconUrl} from './raster-icons.js';
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
@@ -267,6 +267,9 @@ const FORGED = {
   relic_wand: ['wand', ['#d9c27b', '#6a5a3a', '#90cfbf'], 5], skyrender_bow: ['bow', ['#5f8fa8', '#e8d48a', '#c9f0ff'], 5],
 };
 for (const [id, [kind, palette, tier]] of Object.entries(FORGED)) gear[id] = sized(kind, forged(kind, palette, tier));
+
+// Raster-only materials keep authored coverage for shared ground-loot consumers.
+for (const id of ['enhancement_stone', 'skill_crystal']) material[id] = `<image href="${rasterIconUrl('material',id)}" width="128" height="128"/>`;
 
 export const ART = { gear, material, skill, mod, monster, zone, job };
 

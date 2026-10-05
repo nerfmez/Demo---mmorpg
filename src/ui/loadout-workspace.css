@@ -66,6 +66,9 @@ body.loadout-open .fullscreen-control{z-index:39}
 #atelier .atelier-dialog .item-description .art{width:30px;height:30px}
 #atelier .atelier-dialog .cost .art{width:24px;height:24px}
 #atelier .atelier-dialog .cost{display:flex;flex-wrap:wrap;gap:8px}
+/* Cost chips sit on parchment here, unlike the dark growth workspace. */
+#atelier .atelier-dialog .cost .ok{color:#37634b}
+#atelier .atelier-dialog .cost .no{color:#984735}
 #atelier .atelier-dialog .source-creature{display:inline-flex;align-items:center;gap:5px;margin-right:8px}
 #atelier .atelier-dialog :is(.upgrade-cost,.grade-promotion){margin-top:12px;border-top:1px solid #a4ac9b;padding-top:10px}
 #atelier .atelier-dialog .muted{color:var(--muted)}

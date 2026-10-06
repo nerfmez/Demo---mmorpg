@@ -1,21 +1,169 @@
-name: PR80 temporary test work (closed)
+name: PR80 one complete B3-D1 build
 
-# Single packaging verification 37420552372 failed before any game opened.
-# VFX source-map hashes differed between the Vercel and Actions builds.
-# Original failed run 37418189275 is retained separately. Neither run was retried.
-# Packaging source: 533b29847dc5ed957dd848e04029849261ae39dd.
-# Exact offline symbols and logs are preserved in the run artifact and owner archive.
-# No push, schedule, deployment or automatic retry remains.
 on:
-  workflow_dispatch:
+  push:
+    branches: [bench/pr80-manual-20261006]
 permissions:
   contents: read
 concurrency:
   group: pr80-manual-benchmark-only
   cancel-in-progress: false
 jobs:
-  closed:
-    if: ${{ false }}
+  complete-build:
+    if: >-
+      github.event_name == 'push' &&
+      github.event.head_commit.message == '[pr80-one-build-20261006]' &&
+      github.repository == 'nerfmez/Demo---mmorpg' &&
+      github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
+      github.event.repository.private == false && github.run_attempt == 1
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      EVIDENCE: /tmp/pr80-one-build-evidence-${{ github.run_id }}
+      WEB_PACKAGE: /tmp/pr80-one-build-public-${{ github.run_id }}
+      SYMBOLS: /tmp/pr80-one-build-symbols-${{ github.run_id }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - run: echo 'Closed after one verification; waiting for owner review.'
+      - name: Initialize evidence before checkout
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE"
+          printf 'workflow=%s\nrun=%s\nattempt=%s\nrunner=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$RUNNER_NAME" > "$EVIDENCE/run.txt"
+      - uses: actions/checkout@v4
+        with:
+          ref: 533b29847dc5ed957dd848e04029849261ae39dd
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unchanged runtime and existing diagnostic contracts
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 533b29847dc5ed957dd848e04029849261ae39dd
+          git diff --exit-code 97cfaf42a5a9607abccab1872403b2303a9d27d6 HEAD -- src data public package.json package-lock.json vite.config.js tools/perf tools/device-test/ui.mjs tools/device-test/index.html
+          printf 'packaging=%s\nnode=%s\n' "$(git rev-parse HEAD)" "$(node --version)" > "$EVIDENCE/source.txt"
+          sha256sum tools/device-test/build-b3-package.mjs tools/device-test/package.mjs tools/device-test/ui.mjs tools/perf/recorder.mjs package-lock.json > "$EVIDENCE/source-SHA256SUMS.txt"
+          git show "$GITHUB_SHA:.github/workflows/pr80-benchmark-manual.yml" > "$EVIDENCE/workflow.yml"
+          node --test tools/perf/self-test.mjs 2>&1 | tee "$EVIDENCE/unit.tap"
+      - name: Build A and B once and generate their matching public and private outputs
+        id: build
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          node tools/device-test/build-b3-package.mjs "$WEB_PACKAGE" "$SYMBOLS" 2>&1 | tee "$EVIDENCE/build.log"
+      - name: Preserve full output ZIPs and verify same-build identity
+        if: always()
+        timeout-minutes: 15
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re, shutil, sys, zipfile
+          evidence = pathlib.Path(os.environ['EVIDENCE'])
+          evidence.mkdir(parents=True, exist_ok=True)
+          errors, outputs = [], {}
+          def digest(data, algorithm='sha256'):
+              return hashlib.new(algorithm, data).hexdigest()
+          def fail(message):
+              errors.append(message)
+          def collect(root):
+              entries = []
+              for path in sorted(root.rglob('*')):
+                  if path.is_symlink():
+                      raise ValueError('Symlink rejected: ' + str(path))
+                  if path.is_dir():
+                      continue
+                  if not path.is_file():
+                      raise ValueError('Non-regular entry rejected: ' + str(path))
+                  name = path.relative_to(root).as_posix()
+                  if name.startswith('/') or '..' in pathlib.PurePosixPath(name).parts or chr(92) in name:
+                      raise ValueError('Unsafe archive path: ' + name)
+                  data = path.read_bytes()
+                  if len(data) > 100 * 1024 * 1024:
+                      raise ValueError('File exceeds 100 MiB safety limit: ' + name)
+                  entries.append({'path': name, 'size': len(data), 'sha256': digest(data), 'sha1': digest(data, 'sha1')})
+              if not entries or len(entries) > 10000 or sum(item['size'] for item in entries) > 1024 ** 3:
+                  raise ValueError('Output directory violates archive safety limits')
+              return entries
+          def check_sums(root, entries):
+              listed, actual = set(), {item['path']: item['sha256'] for item in entries}
+              for line in (root / 'SHA256SUMS.txt').read_text().splitlines():
+                  match = re.fullmatch(r'([a-f0-9]{64})  (.+)', line)
+                  if not match:
+                      raise ValueError('Malformed SHA256SUMS line')
+                  sha, name = match.groups()
+                  if name in listed or actual.get(name) != sha:
+                      raise ValueError('Checksum mismatch or duplicate: ' + name)
+                  listed.add(name)
+              if listed != set(actual) - {'SHA256SUMS.txt'}:
+                  raise ValueError('Incomplete SHA256SUMS coverage')
+          for label, variable in [('public', 'WEB_PACKAGE'), ('offline-symbols', 'SYMBOLS')]:
+              root = pathlib.Path(os.environ[variable])
+              try:
+                  if not root.is_dir():
+                      raise ValueError('Output directory is absent')
+                  entries = collect(root)
+                  archive = evidence / ('B3-D1-' + label + '.zip')
+                  with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zipout:
+                      for item in entries:
+                          zipout.write(root / item['path'], item['path'])
+                  with zipfile.ZipFile(archive) as zipin:
+                      if zipin.namelist() != [item['path'] for item in entries]:
+                          raise ValueError('ZIP paths differ from complete output inventory')
+                      for item in entries:
+                          data = zipin.read(item['path'])
+                          if len(data) != item['size'] or digest(data) != item['sha256']:
+                              raise ValueError('ZIP changed file bytes: ' + item['path'])
+                  inventory = evidence / (label + '-file-inventory.json')
+                  inventory.write_text(json.dumps(entries, indent=2) + '\n')
+                  outputs[label] = {'archive': archive.name, 'archiveBytes': archive.stat().st_size, 'archiveSha256': digest(archive.read_bytes()), 'inventory': inventory.name, 'inventorySha256': digest(inventory.read_bytes()), 'files': len(entries), 'totalBinaryBytes': sum(item['size'] for item in entries), 'maxFileBytes': max(item['size'] for item in entries), 'safeZipVerified': True, 'sha256sumsSha256': digest((root / 'SHA256SUMS.txt').read_bytes())}
+                  check_sums(root, entries)
+                  outputs[label]['checksumsVerified'] = True
+                  shutil.copyfile(root / 'SHA256SUMS.txt', evidence / (label + '-SHA256SUMS.txt'))
+                  if label == 'public' and any(item['path'].endswith('.map') for item in entries):
+                      raise ValueError('Public output contains a source map')
+              except Exception as error:
+                  fail(label + ': ' + str(error))
+          public = pathlib.Path(os.environ['WEB_PACKAGE'])
+          private = pathlib.Path(os.environ['SYMBOLS'])
+          stack_sha, source_shas = None, None
+          try:
+              stack_bytes = (public / 'stack-manifest.json').read_bytes()
+              if stack_bytes != (private / 'stack-manifest.json').read_bytes():
+                  raise ValueError('Public and private stack manifests differ')
+              stack = json.loads(stack_bytes)
+              receipt = json.loads((private / 'build-receipt.json').read_text())
+              stack_sha, source_shas = digest(stack_bytes), stack['sources']
+              expected_sources = {'baseline': '1c6d2269d40f5e0524de13c6c5c5b1e2e4e56c0c', 'candidate': '08bf5cbb4bcd7b93f1b466ee88db79f1b347ee24'}
+              if source_shas != expected_sources or receipt['sources'] != expected_sources:
+                  raise ValueError('A/B source SHAs differ from approved snapshots')
+              if stack['packagingCommit'] != '533b29847dc5ed957dd848e04029849261ae39dd' or receipt['packagingCommit'] != stack['packagingCommit'] or receipt['stackManifestSha256'] != stack_sha:
+                  raise ValueError('Packaging or stack-manifest identity mismatch')
+              for pair in stack['pairs']:
+                  if digest((public / pair['javascript']).read_bytes()) != pair['javascriptSha256'] or digest((private / pair['javascript']).read_bytes()) != pair['javascriptSha256'] or digest((private / pair['sourceMap']).read_bytes()) != pair['sourceMapSha256']:
+                      raise ValueError('Same-build JS/map pair mismatch: ' + pair['javascript'])
+              for name in ['stack-manifest.json', 'mapping-proof.json', 'build-receipt.json']:
+                  shutil.copyfile(private / name, evidence / name)
+          except Exception as error:
+              fail('same-build: ' + str(error))
+          if os.environ.get('BUILD_OUTCOME') != 'success':
+              fail('Build step outcome: ' + os.environ.get('BUILD_OUTCOME', 'unknown'))
+          manifest = {'schema': 'pr80-one-complete-build-v1', 'diagnostic': 'B3-D1', 'workflowCommit': os.environ['GITHUB_SHA'], 'runId': os.environ['GITHUB_RUN_ID'], 'runAttempt': os.environ['GITHUB_RUN_ATTEMPT'], 'packagingCommit': '533b29847dc5ed957dd848e04029849261ae39dd', 'sources': source_shas, 'stackManifestSha256': stack_sha, 'buildInvocationCount': 1 if os.environ.get('BUILD_OUTCOME') in ('success', 'failure') else 0, 'outputs': outputs, 'complete': not errors and len(outputs) == 2, 'errors': errors}
+          (evidence / 'same-build-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          print(json.dumps(manifest, indent=2))
+          sys.exit(1 if errors else 0)
+          PY
+      - name: Preserve complete outputs and failure evidence without retry or deployment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr80-one-complete-build-${{ github.run_id }}
+          path: ${{ env.EVIDENCE }}/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

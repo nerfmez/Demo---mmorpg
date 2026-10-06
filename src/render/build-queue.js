@@ -22,13 +22,41 @@ export function afterTask(run) {
   return () => { stopped = true; clearTimeout(timer); };
 }
 
+function startupTasks() {
+  if (typeof MessageChannel !== 'function') return { schedule: afterTask, close() {} };
+  // Message-port callbacks are browser tasks, not microtasks. They leave the UI
+  // frame loop alive without the nested-timer clamp between construction slices.
+  // https://html.spec.whatwg.org/multipage/web-messaging.html#message-ports
+  const channel = new MessageChannel(), callbacks = new Map();
+  let token = 0, closed = false;
+  channel.port1.onmessage = event => {
+    if (closed) return;
+    const run = callbacks.get(event.data);
+    callbacks.delete(event.data);
+    run?.();
+  };
+  return {
+    schedule(run) {
+      if (closed) return () => {};
+      const id = ++token;
+      callbacks.set(id, run); channel.port2.postMessage(id);
+      return () => callbacks.delete(id);
+    },
+    close() {
+      if (closed) return;
+      closed = true; callbacks.clear(); channel.port1.onmessage = null;
+      channel.port1.close(); channel.port2.close();
+    },
+  };
+}
+
 const startupScheduling = new WeakMap();
 export function useStartupTaskScheduling(queue) {
   let state = startupScheduling.get(queue);
   if (!state) {
-    state = { owners: 0, schedule: queue.schedule, fallback: null };
+    state = { owners: 0, schedule: queue.schedule, fallback: null, tasks: startupTasks() };
     startupScheduling.set(queue, state);
-    queue.schedule = afterTask;
+    queue.schedule = state.tasks.schedule;
     // Keep the already-requested first paint opportunity. If rAF is withheld
     // (e.g. a background tab), this one-shot task can take over that exact handle.
     // The delay requests an opportunity, not a guaranteed paint or time limit.
@@ -50,6 +78,7 @@ export function useStartupTaskScheduling(queue) {
     const pending = queue.scheduled;
     queue.scheduled = null;
     pending?.();
+    state.tasks.close();
     queue.schedule = state.schedule;
     queue.wake();
   };

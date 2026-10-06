@@ -71,6 +71,16 @@ jobs:
         if: steps.scope.outputs.game == 'true'
       - run: npm run build
         if: steps.scope.outputs.game == 'true'
+      - name: Bind CI event and workflow to build
+        if: steps.scope.outputs.game == 'true'
+        env:
+          CI_SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          if [ -f scripts/ci-release-evidence.mjs ]; then
+            node scripts/ci-release-evidence.mjs --write-context
+          else
+            echo "Legacy PR head: no reusable context receipt; normal checks continue."
+          fi
       - name: Bind build to the tested source
         if: steps.scope.outputs.game == 'true'
         env:

@@ -70,9 +70,9 @@ test('Pages upload depends on successful exact-source quick gate; lab publishing
   const deploy = readFileSync(new URL('../../.github/workflows/deploy.yml', import.meta.url), 'utf8');
   assert.match(deploy, /uses: \.\/\.github\/workflows\/ci.yml/);
   assert.match(deploy, /quick_gate: true/);
-  assert.match(deploy, /needs: validate/);
+  assert.match(deploy, /needs: \[evidence, validate\]/);
   assert.match(deploy, /needs.validate.result == 'success'/);
-  assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \}\}/);
+  assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \|\| needs.evidence.outputs.artifact \}\}/);
   assert.match(deploy, /if: github.event_name == 'workflow_run'/);
   assert.doesNotMatch(deploy, /continue-on-error/);
 });

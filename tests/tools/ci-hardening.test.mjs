@@ -120,8 +120,8 @@ test('release uses the tested artifact, validates its source, and pins live-test
   assert.match(ci, /artifact=ci-dist-\$sha-\$GITHUB_RUN_ID-\$GITHUB_RUN_ATTEMPT/);
   assert.match(ci, /name: \$\{\{ needs.prepare.outputs.artifact \}\}/);
   assert.match(ci, /artifact:\n\s+value: \$\{\{ jobs.prepare.outputs.artifact \}\}/);
-  assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \}\}/);
-  assert.match(deploy, /test "\$\(cat dist\/ci-source.txt\)" = "\$SOURCE"/);
+  assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \|\| needs.evidence.outputs.artifact \}\}/);
+  assert.match(deploy, /run: node scripts\/ci-release-evidence.mjs --verify-build/);
   assert.match(deploy, /ref: \$\{\{ needs.build.outputs.source \}\}/);
   assert.match(deploy, /release=\$\{\{ needs.build.outputs.source \}\}/);
   assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 2);

@@ -1,92 +1,18 @@
-name: PR80 hardware test package (temporary)
+name: PR80 temporary test work (closed)
 
-# One packaging run only. No game runtime benchmark or deployment.
+# Completed build/UI-only run: 37407518489 at ddb76865282992bf44d468328ec85423578fa9a6.
+# The runnable packaging workflow remains in that commit and in its evidence artifact.
+# No push, schedule, pull_request, retry or deployment trigger remains.
 on:
-  push:
-    branches: [bench/pr80-manual-20261006]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: pr80-manual-benchmark-only
   cancel-in-progress: false
 jobs:
-  package:
-    if: >-
-      github.event_name == 'push' &&
-      github.event.head_commit.message == '[pr80-device-build:20261006-025314]' &&
-      github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
-      github.repository == 'nerfmez/Demo---mmorpg' &&
-      github.event.repository.private == false && github.run_attempt == 1
+  closed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-    env:
-      LAB: /tmp/pr80-device-${{ github.run_id }}
-      BASELINE: 1c6d2269d40f5e0524de13c6c5c5b1e2e4e56c0c
-      CANDIDATE: 08bf5cbb4bcd7b93f1b466ee88db79f1b347ee24
-      INSTRUMENTATION: 293229e0b303a868b1d6d5169a8decec10958205
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Verify unchanged game and recorder; test manual UI helpers
-        timeout-minutes: 3
-        run: |
-          set -euo pipefail
-          mkdir -p "$LAB/evidence"
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          git diff --exit-code "$INSTRUMENTATION" HEAD -- src data public tools/perf package.json package-lock.json
-          if git diff --name-only "$INSTRUMENTATION" HEAD | grep -Ev '^tools/device-test/|^\.github/workflows/pr80-benchmark-manual\.yml$'; then exit 1; fi
-          git show -s --format=fuller "$BASELINE" "$CANDIDATE" "$INSTRUMENTATION" HEAD > "$LAB/evidence/commits.txt"
-          git rev-parse origin/main > "$LAB/evidence/main-at-build.txt"
-          sha256sum tools/perf/* tools/device-test/* > "$LAB/evidence/tool-hashes.txt"
-          cp .github/workflows/pr80-benchmark-manual.yml "$LAB/evidence/workflow.yml"
-          node --test tools/perf/self-test.mjs tools/device-test/self-test.mjs 2>&1 | tee "$LAB/evidence/unit-tests.log"
-      - name: Build both exact profile sources with the same recorder
-        id: builds
-        timeout-minutes: 10
-        run: |
-          set -euo pipefail
-          node tools/perf/prepare.mjs "$BASELINE" "$LAB/baseline" 2>&1 | tee "$LAB/evidence/prepare-A.log"
-          node tools/perf/prepare.mjs "$CANDIDATE" "$LAB/candidate" 2>&1 | tee "$LAB/evidence/prepare-B.log"
-          for variant in baseline candidate; do
-            (cd "$LAB/$variant" && npm ci && npm run build -- --mode profile) 2>&1 | tee "$LAB/evidence/build-$variant.log"
-          done
-          node tools/device-test/package.mjs "$LAB/baseline" "$LAB/candidate" "$LAB/kit" 2>&1 | tee "$LAB/evidence/package.log"
-          (cd "$LAB/kit" && sha256sum --check SHA256SUMS.txt) > "$LAB/evidence/verify-files.log"
-      - name: Check only the UI in both engines using a labelled fixture (not the game)
-        id: ui
-        timeout-minutes: 10
-        run: |
-          set -euo pipefail
-          (cd "$LAB/candidate" && ./node_modules/.bin/playwright install --with-deps chromium webkit) > "$LAB/evidence/ui-browser-install.log" 2>&1
-          node tools/device-test/ui-test.mjs "$LAB/kit" "$LAB/candidate" "$LAB/evidence/ui" 2>&1 | tee "$LAB/evidence/ui-tests.log"
-      - name: Package downloadable files; no deployment
-        if: always() && steps.builds.outcome == 'success'
-        timeout-minutes: 4
-        run: |
-          set -euo pipefail
-          python3 -m zipfile -c "$LAB/PR80-hardware-test-kit.zip" "$LAB/kit"
-          sha256sum "$LAB/PR80-hardware-test-kit.zip" > "$LAB/evidence/package.sha256"
-      - uses: actions/upload-artifact@v4
-        if: always() && steps.builds.outcome == 'success'
-        with:
-          name: pr80-hardware-test-kit-${{ github.sha }}
-          path: /tmp/pr80-device-${{ github.run_id }}/PR80-hardware-test-kit.zip
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: pr80-hardware-test-evidence-${{ github.sha }}
-          path: /tmp/pr80-device-${{ github.run_id }}/evidence/
-          retention-days: 1
-          if-no-files-found: error
+      - run: echo 'This one-shot test work is closed; no build or benchmark is scheduled.'

@@ -13,23 +13,49 @@ export function encounterHabitat(data, mapId, spawn) {
 /** A full monster footprint, plus an aggro buffer, stays clear of safe services. */
 export function encounterPointAllowed(world, data, spawn, x, z, occupied = []) {
   const def = data.monsters.monsters[spawn.monster], rules = data.encounters.placement;
-  const r = Math.max(1, def.radius), guard = (def.aggroRange || 0) + def.radius;
+  const r = Math.max(1, def.radius);
+  const guard = (def.aggroRange || 0) + def.radius;
+  const wander = rules.wanderMargin || 0;
   const h = encounterHabitat(data, world.data.id, spawn);
   if (!h || !h.rects.some(rect => inside(rect, x, z))) return false;
   if (world.zoneAt(x, z).id !== spawn.zone || world.isSafe(x, z)) return false;
   if (!world.isFree(x, z, r + 0.5) || world.isWater(x, z, (r + 0.5) * 0.3)) return false;
   if (world.slopeAt(x, z) > rules.slopeLimit || world.quietNearSeam(x, z)) return false;
   if (world.dockAt(x, z, r) || world.roadDist(x, z) < r + rules.roadMargin) return false;
-  if (h.shoreMax !== undefined && world.coastAt(x, z).distance > h.shoreMax) return false;
+  if (h.shoreMax !== undefined) {
+    const coast = world.coastAt(x, z);
+    if (coast.distance < 0 || coast.distance > h.shoreMax) return false;
+    if (h.shoreKinds && !h.shoreKinds.includes(coast.kind)) return false;
+  }
+  const mapRules = data.encounters.maps[world.data.id];
+  // Leave a genuinely quiet approach, including the full ordinary idle wander.
+  // These are placement clearances, not invisible walls or combat immunity.
+  for (const edge of mapRules.transitions || []) {
+    if (edge.to !== spawn.zone) continue;
+    const from = world.zoneById(edge.from);
+    if (!from) throw new Error(`Unknown transition zone: ${edge.from}`);
+    if (from.rects.some(rect => Math.hypot(
+      Math.max(rect[0] - x, 0, x - rect[1]),
+      Math.max(rect[2] - z, 0, z - rect[3])) < guard + wander + edge.clearance)) return false;
+  }
+  for (const road of world.roads) {
+    if (!mapRules.quietRoads?.includes(road.id) || spawn.level[1] <= (mapRules.quietRoadMaxLevel || 0)) continue;
+    for (let i = 1; i < road.points.length; i++) {
+      const a = road.points[i - 1], b = road.points[i];
+      const dx = b[0] - a[0], dz = b[1] - a[1], length2 = dx * dx + dz * dz;
+      const t = length2 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / length2)) : 0;
+      if (Math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < road.width / 2 + guard + wander + rules.roadMargin) return false;
+    }
+  }
   // The geometry, rather than just a town centre, also protects irregular city floors.
   for (let i = 0; i < 16; i++) {
     const a = i * Math.PI / 8, pad = guard + rules.safeMargin;
     if (world.isSafe(x + Math.cos(a) * pad, z + Math.sin(a) * pad)) return false;
   }
   const wd = world.data;
-  if ([wd.playerSpawn, wd.town.respawn].some(p => distance(x, z, p) < guard + rules.spawnMargin)) return false;
-  if (world.waypoints.some(p => distance(x, z, [p.x, p.z]) < Math.max(9, guard + rules.waypointMargin))) return false;
-  if ((world.exits || []).some(p => distance(x, z, [p.x, p.z]) < guard + rules.spawnMargin)) return false;
+  if ([wd.playerSpawn, wd.town.respawn].some(p => distance(x, z, p) < guard + Math.max(rules.spawnMargin, wander))) return false;
+  if (world.waypoints.some(p => distance(x, z, [p.x, p.z]) < Math.max(9, guard + Math.max(rules.waypointMargin, wander)))) return false;
+  if ((world.exits || []).some(p => distance(x, z, [p.x, p.z]) < guard + Math.max(rules.spawnMargin, wander))) return false;
   if ((wd.bosses || []).some(bs => distance(x, z, bs.pos) < bs.arena.r + rules.bossMargin)) return false;
   return !occupied.some(p => Math.hypot(x - p.x, z - p.z) < rules.spacing);
 }

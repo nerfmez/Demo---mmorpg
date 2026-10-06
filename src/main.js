@@ -6,6 +6,7 @@ import { createCharacter, equip } from './core/character.js';
 import { Game } from './core/game.js';
 import { View } from './render/view.js';
 import { waitForRegionImports } from './render/region.js';
+import { useStartupTaskScheduling } from './render/build-queue.js';
 import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
 import { contactReady } from './render/fireball-v5-contact.js';
@@ -49,6 +50,7 @@ for (const id of Object.keys(worlds)) coreWorld(id);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality });
+const releaseStartupScheduling = useStartupTaskScheduling(view.buildQueue);
 if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legacy';
 // ?stream=0 turns open-world streaming off (seams then cross with a reload, as in tests).
 if (params.get('stream') !== '0') view.coreWorld = coreWorld;
@@ -309,14 +311,17 @@ function frame(now) {
 if (tripCharacter) startGame(tripCharacter, trip.slot || null);
 else if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
 else menu.showTitle();
+// Readiness and scheduler restoration must not depend on the first UI rAF.
+waitForRegionImports(view).then(() => {
+  releaseStartupScheduling();
+  initialWorldReady = true;
+  document.getElementById('loading').classList.add('done');
+}).catch(error => {
+  releaseStartupScheduling();
+  console.error('City assets could not load', error);
+  document.getElementById('loading').textContent = 'City assets could not load. Reload to retry.';
+});
 requestAnimationFrame((t) => {
   last = t;
-  waitForRegionImports(view).then(() => {
-    initialWorldReady = true;
-    document.getElementById('loading').classList.add('done');
-  }).catch(error => {
-    console.error('City assets could not load', error);
-    document.getElementById('loading').textContent = 'City assets could not load. Reload to retry.';
-  });
   frame(t);
 });

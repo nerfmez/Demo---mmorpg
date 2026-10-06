@@ -1,19 +1,76 @@
-name: PR80 temporary test work (closed)
-
-# B3-D1 validation attempt 37418189275 stopped before game boot:
-# anonymous source-map GET returned HTTP 403. No retry was requested.
-# Diagnostic source: 97cfaf42a5a9607abccab1872403b2303a9d27d6.
-# Evidence remains in the run artifact. No push or schedule trigger remains.
+name: PR80 B3-D1 offline symbols and real-game check (one shot)
 on:
-  workflow_dispatch:
+  push:
+    branches: [bench/pr80-manual-20261006]
 permissions:
   contents: read
 concurrency:
   group: pr80-manual-benchmark-only
   cancel-in-progress: false
 jobs:
-  closed:
-    if: ${{ false }}
+  actual-game:
+    if: >-
+      github.event_name == 'push' &&
+      github.event.head_commit.message == '[pr80-b3-packcheck:20261006-053353]' &&
+      github.repository == 'nerfmez/Demo---mmorpg' &&
+      github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
+      github.event.repository.private == false && github.run_attempt == 1
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      EVIDENCE: /tmp/pr80-b3-packcheck-${{ github.run_id }}
+      SYMBOLS: /tmp/pr80-b3-symbols-${{ github.run_id }}
+      WEB_PACKAGE: /tmp/pr80-b3-web-${{ github.run_id }}
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    defaults:
+      run:
+        shell: bash
     steps:
-      - run: echo 'Closed; no automatic test or deployment is scheduled.'
+      - uses: actions/checkout@v4
+        with:
+          ref: 533b29847dc5ed957dd848e04029849261ae39dd
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unchanged runtime and existing diagnostic contracts
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE"
+          git diff --exit-code 97cfaf42a5a9607abccab1872403b2303a9d27d6 HEAD -- src data public package.json package-lock.json vite.config.js tools/perf tools/device-test/ui.mjs tools/device-test/index.html
+          printf 'packaging=%s\nworkflow=%s\nrun=%s\nattempt=%s\nrunner=%s\n' "$(git rev-parse HEAD)" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$RUNNER_NAME" > "$EVIDENCE/source.txt"
+          git show "$GITHUB_SHA:.github/workflows/pr80-benchmark-manual.yml" > "$EVIDENCE/workflow.yml"
+          cp tools/device-test/live-check.mjs "$EVIDENCE/live-check.mjs"
+          node --test tools/perf/self-test.mjs 2>&1 | tee "$EVIDENCE/unit.tap"
+      - name: Build exact A and B and preserve offline JS-map pairs before game checks
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          node tools/device-test/build-b3-package.mjs "$WEB_PACKAGE" "$SYMBOLS" 2>&1 | tee "$EVIDENCE/build.log"
+          test -z "$(find "$WEB_PACKAGE" -name '*.map' -print -quit)"
+          (cd "$SYMBOLS" && sha256sum --check SHA256SUMS.txt) > "$EVIDENCE/symbol-checksums.log"
+          cp "$SYMBOLS/stack-manifest.json" "$SYMBOLS/mapping-proof.json" "$SYMBOLS/build-receipt.json" "$EVIDENCE/"
+          cp "$WEB_PACKAGE/SHA256SUMS.txt" "$EVIDENCE/local-public-SHA256SUMS.txt"
+          tar -czf "$EVIDENCE/B3-D1-offline-symbols.tar.gz" -C "$SYMBOLS" .
+          sha256sum "$EVIDENCE/B3-D1-offline-symbols.tar.gz" > "$EVIDENCE/offline-archive-sha256.txt"
+      - name: Install existing pinned browser dependencies
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm ci 2>&1 | tee "$EVIDENCE/install.log"
+          ./node_modules/.bin/playwright install --with-deps chromium webkit 2>&1 | tee "$EVIDENCE/browsers.log"
+      - name: Verify all public assets then real A and B games in Chromium and WebKit
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          node tools/device-test/live-check.mjs 2>&1 | tee "$EVIDENCE/live.log"
+      - name: Preserve exact symbols and all results even on failure; no retry or deployment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr80-b3-offline-verification-${{ github.run_id }}
+          path: ${{ env.EVIDENCE }}/
+          if-no-files-found: error
+          retention-days: 1

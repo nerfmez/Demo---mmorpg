@@ -4,15 +4,22 @@ import assert from 'node:assert/strict';
 import {FrameBuildQueue,afterPaint,afterTask,useStartupTaskScheduling} from '../../src/render/build-queue.js';
 
 function tasks(){
-  const old={requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout};
-  const frames=new Map(),timers=new Map();let id=0,time=0;
+  const old={requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout,MessageChannel:globalThis.MessageChannel};
+  const frames=new Map(),timers=new Map(),messages=new Map(),channels=[];let id=0,time=0;
   globalThis.requestAnimationFrame=fn=>{const key=++id;frames.set(key,fn);return key;};
   globalThis.cancelAnimationFrame=key=>frames.delete(key);
   globalThis.setTimeout=(fn,delay=0)=>{const key=++id;timers.set(key,{fn,delay});return key;};
   globalThis.clearTimeout=key=>timers.delete(key);
-  return {frames,timers,now:()=>time,tick:(n=1)=>{time+=n;},
+  globalThis.MessageChannel=class {
+    constructor(){
+      this.port1={onmessage:null,closed:0,close(){this.closed++;}};
+      this.port2={closed:0,postMessage:data=>{const handler=this.port1.onmessage;messages.set(++id,()=>handler?.({data}));},close(){this.closed++;}};
+      channels.push(this);
+    }
+  };
+  return {frames,timers,messages,channels,now:()=>time,tick:(n=1)=>{time+=n;},
     frame(){const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn());},
-    task(delay=0){const pending=[...timers].filter(([,t])=>t.delay===delay);for(const[key,t]of pending){if(timers.delete(key))t.fn();}},
+    task(delay=0){const posted=delay===0?[...messages]:[];const pending=[...timers].filter(([,t])=>t.delay===delay);for(const[key,t]of pending){if(timers.delete(key))t.fn();}for(const[key,fn]of posted){if(messages.delete(key))fn();}},
     close(){for(const[key,value]of Object.entries(old)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}}
   };
 }
@@ -56,7 +63,7 @@ test('first paint can proceed; restoration cancels pending startup work and resu
     assert.equal(queue.scheduled,initial);c.frame();assert.equal(queue.stats.steps,0);
     c.task();assert.equal(queue.stats.steps,1);
     c.task(16);assert.equal(queue.stats.steps,1,'fallback does not cancel a newer handle');
-    const stale=[...c.timers.values()].find(t=>t.delay===0).fn;
+    const stale=[...c.messages.values()][0];
     release();assert.equal(queue.schedule,afterPaint);assert.equal(c.frames.size,1);
     stale();assert.equal(queue.stats.steps,1,'cancelled startup callback cannot drain twice');
     c.task();assert.equal(queue.stats.steps,1,'restored queue waits for paint');
@@ -70,14 +77,61 @@ test('nested startup owners are queue local, release once, and restore the exact
   try{
     const original=run=>afterPaint(run),a=new FrameBuildQueue({schedule:original}),b=new FrameBuildQueue();
     const first=useStartupTaskScheduling(a),second=useStartupTaskScheduling(a);
+    const owned=a.schedule;
     const other=useStartupTaskScheduling(b);
+    assert.equal(c.channels.length,2,'one channel per queue, not per owner');
     assert.equal(c.timers.size,0,'empty queues need no first-frame fallback');
-    first();first();assert.equal(a.schedule,afterTask);assert.equal(b.schedule,afterTask);
-    second();assert.equal(a.schedule,original);assert.equal(b.schedule,afterTask);
+    first();first();assert.equal(a.schedule,owned);assert.notEqual(b.schedule,afterPaint);
+    assert.equal(c.channels[0].port1.closed,0);
+    second();assert.equal(a.schedule,original);assert.notEqual(b.schedule,afterPaint);
+    assert.equal(c.channels[0].port1.closed,1);assert.equal(c.channels[0].port2.closed,1);
     other();assert.equal(b.schedule,afterPaint);
-    const again=useStartupTaskScheduling(a);assert.equal(a.schedule,afterTask);
+    const again=useStartupTaskScheduling(a);assert.notEqual(a.schedule,original);
+    assert.equal(c.channels.length,3,'a new lease owns a fresh channel');
     again();assert.equal(a.schedule,original);
   }finally{c.close();}
+});
+
+test('message continuations are future tasks; cancellation and closed ports suppress stale work',async()=>{
+  const c=tasks();let ran=0,painted=0;
+  try{
+    const queue=new FrameBuildQueue(),release=useStartupTaskScheduling(queue),owned=queue.schedule;
+    const cancel=owned(()=>ran++),stale=[...c.messages.values()][0];
+    cancel();owned(()=>ran++);stale();assert.equal(ran,0);
+    await flush();assert.equal(ran,0,'microtasks cannot run the message continuation');
+    requestAnimationFrame(()=>painted++);c.frame();assert.equal(painted,1);assert.equal(ran,0);
+    c.task();assert.equal(ran,1);assert.equal(c.timers.size,0,'channel continuations use no recurring timers');
+    owned(()=>ran++);const beforeClose=[...c.messages.values()][0];
+    release();beforeClose();assert.equal(ran,1);
+    const posted=c.messages.size;owned(()=>ran++);assert.equal(c.messages.size,posted,'closed ports receive no new work');
+    c.task();assert.equal(ran,1);
+    assert.equal(c.channels[0].port1.closed,1);assert.equal(c.channels[0].port2.closed,1);
+  }finally{c.close();}
+});
+
+test('startup uses timer tasks only when MessageChannel is unavailable',async()=>{
+  const c=tasks();
+  try{
+    delete globalThis.MessageChannel;
+    const queue=new FrameBuildQueue({budgetMs:1,now:c.now}),release=useStartupTaskScheduling(queue);
+    const job=queue.enqueue((function*(){c.tick();yield;return 'done';})());
+    assert.equal(queue.schedule,afterTask);assert.equal(c.channels.length,0);
+    assert.equal(c.frames.size,0);await flush();assert.equal(queue.stats.steps,0);
+    c.task();assert.equal(queue.stats.steps,1);c.task();assert.equal(await job.promise,'done');
+    release();assert.equal(queue.schedule,afterPaint);
+  }finally{c.close();}
+});
+
+test('real MessageChannel finishes startup tasks and releases its ports',async()=>{
+  if(typeof MessageChannel!=='function')return;
+  let time=0;
+  const queue=new FrameBuildQueue({budgetMs:1,now:()=>time});
+  const release=useStartupTaskScheduling(queue);
+  try{
+    const job=queue.enqueue((function*(){for(let i=0;i<3;i++){time++;yield;}return 'done';})());
+    assert.equal(await job.promise,'done');assert.equal(queue.stats.steps,4);assert.equal(queue.stats.maxSliceMs,1);
+  }finally{release();}
+  assert.equal(queue.schedule,afterPaint);
 });
 
 test('restoration preserves unrelated queued jobs and their completion',async()=>{

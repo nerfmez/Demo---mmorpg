@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {FrameBuildQueue,afterPaint,afterTask,useStartupTaskScheduling} from '../../src/render/build-queue.js';
+import {FrameBuildQueue,afterPaint,useStartupTaskScheduling} from '../../src/render/build-queue.js';
 
 const source=readFileSync(new URL('../../src/main.js',import.meta.url),'utf8');
 const frameSource=source.slice(source.indexOf('function frame(now) {'),source.indexOf('if (tripCharacter)'));
@@ -13,11 +13,17 @@ const initialDrawState=source.match(/^let initialWorldReady = .*;$/m)?.[0] || 'l
 const flush=async()=>{for(let i=0;i<5;i++)await Promise.resolve();};
 
 function harness({game=false,fail=false}={}){
-  const old={raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame,st:globalThis.setTimeout,ct:globalThis.clearTimeout};
+  const old={raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame,st:globalThis.setTimeout,ct:globalThis.clearTimeout,mc:globalThis.MessageChannel};
   const frames=new Map(),timers=new Map(),errors=[];let id=0,clock=0,paintTime=0,timerTime=0,draws=0,uiFrames=0,updates=0;
   const raf=fn=>{const key=++id;frames.set(key,fn);return key;};
   globalThis.requestAnimationFrame=raf;globalThis.cancelAnimationFrame=key=>frames.delete(key);
   globalThis.setTimeout=(fn,delay=0)=>{const key=++id;timers.set(key,{fn,at:timerTime+delay});return key;};globalThis.clearTimeout=key=>timers.delete(key);
+  globalThis.MessageChannel=class {
+    constructor(){
+      this.port1={onmessage:null,close(){}};
+      this.port2={postMessage:data=>{const handler=this.port1.onmessage;const key=++id;timers.set(key,{fn:()=>handler?.({data}),at:timerTime});},close(){}};
+    }
+  };
   const loading={textContent:'building',done:false,classList:{add(name){if(name==='done')loading.done=true;}}};
   const fullscreen={blocked:false},F={paused:false,modelsReady:false};
   const view={region:{staticReady:false,importedState:'building'},hitStop:0,render(){draws++;},setRenderScale(){}};
@@ -43,7 +49,7 @@ function harness({game=false,fail=false}={}){
   return {view,F,fullscreen,session,queue,loading,errors,api,get draws(){return draws;},get uiFrames(){return uiFrames;},get updates(){return updates;},
     async paint(){paintTime+=16;const f=[...frames.values()];frames.clear();f.forEach(fn=>fn(paintTime));timerTime=paintTime;await tasks();},
     async task(delta=0){timerTime+=delta;await tasks();},
-    close(){for(const[k,v]of [['requestAnimationFrame',old.raf],['cancelAnimationFrame',old.caf],['setTimeout',old.st],['clearTimeout',old.ct]]){if(v===undefined)delete globalThis[k];else globalThis[k]=v;}}
+    close(){for(const[k,v]of [['requestAnimationFrame',old.raf],['cancelAnimationFrame',old.caf],['setTimeout',old.st],['clearTimeout',old.ct],['MessageChannel',old.mc]]){if(v===undefined)delete globalThis[k];else globalThis[k]=v;}}
   };
 }
 
@@ -80,7 +86,7 @@ test('an initial import error stays observable and does not dismiss loading or d
 test('actual startup readiness advances without UI rAF and restores paint scheduling before drawing',async()=>{
   const h=harness();
   try{
-    assert.equal(h.queue.schedule,afterTask);
+    assert.notEqual(h.queue.schedule,afterPaint);
     await h.task(16); // one-shot initial-frame fallback, not a construction slice
     assert.equal(h.queue.stats.steps,0);
     await h.task();assert.equal(h.queue.stats.steps,1);

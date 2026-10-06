@@ -20,21 +20,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  evidence:
+    timeout-minutes: 10
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      reuse: ${{ steps.resolve.outputs.reuse }}
+      source: ${{ steps.resolve.outputs.source }}
+      target: ${{ steps.resolve.outputs.target }}
+      tree: ${{ steps.resolve.outputs.tree }}
+      run: ${{ steps.resolve.outputs.run }}
+      artifact: ${{ steps.resolve.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: resolve
+        name: Verify already-tested release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci-release-evidence.mjs
+      - uses: actions/upload-artifact@v4
+        if: steps.resolve.outputs.reuse == 'true'
+        with:
+          name: ${{ steps.resolve.outputs.artifact }}
+          path: release-dist/
+          retention-days: 3
+          if-no-files-found: error
   validate:
-    if: github.event_name != 'workflow_run'
+    needs: evidence
+    if: always() && !cancelled() && github.event_name != 'workflow_run' && !(needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true')
     uses: ./.github/workflows/ci.yml
     with:
       quick_gate: true
   build:
-    needs: validate
-    if: always() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || needs.validate.result == 'success')
+    needs: [evidence, validate]
+    if: always() && !cancelled() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || needs.validate.result == 'success' || (needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true' && needs.validate.result == 'skipped'))
     runs-on: ubuntu-latest
     outputs:
       source: ${{ steps.release.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.validate.outputs.source || github.sha }}
+          ref: ${{ needs.validate.outputs.source || needs.evidence.outputs.target || github.sha }}
       - id: release
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
@@ -42,19 +73,20 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # The quick gate built and tested this exact source before upload.
+      # Download either the verified prior CI build or the normal fallback build.
       - uses: actions/download-artifact@v4
         if: github.event_name != 'workflow_run'
         with:
-          name: ${{ needs.validate.outputs.artifact }}
+          name: ${{ needs.validate.outputs.artifact || needs.evidence.outputs.artifact }}
           path: dist/
       - name: Verify the build before Pages upload
         if: github.event_name != 'workflow_run'
         env:
-          SOURCE: ${{ needs.validate.outputs.source }}
-        run: |
-          test "$(git rev-parse HEAD)" = "$SOURCE"
-          test "$(cat dist/ci-source.txt)" = "$SOURCE"
+          BUILD_ORIGIN: ${{ needs.validate.outputs.source || needs.evidence.outputs.source }}
+          RELEASE_TARGET: ${{ needs.validate.outputs.source || needs.evidence.outputs.target }}
+          RELEASE_TREE: ${{ needs.evidence.outputs.tree }}
+          EVIDENCE_RUN: ${{ needs.validate.result == 'skipped' && needs.evidence.outputs.run || '' }}
+        run: node scripts/ci-release-evidence.mjs --verify-build
       # Lab-only publishing retains the existing main-game build path.
       - run: npm test && npm run build
         if: github.event_name == 'workflow_run'

@@ -50,8 +50,8 @@ export class Game {
     let [sx, sz] = data.world.playerSpawn;
     if (this.ch.pos) {
       // A seam crossing can land beside a tree on the far side: step to the nearest free spot.
-      const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1]);
-      if (this.world.isFree(spot.x, spot.z, PLAYER_RADIUS)) [sx, sz] = [spot.x, spot.z];
+      const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1], {allowSeams:true});
+      if (this.world.isFree(spot.x, spot.z, PLAYER_RADIUS, {allowSeams:true})) [sx, sz] = [spot.x, spot.z];
     }
     this.player = {
       id: this.nextId++,
@@ -176,7 +176,7 @@ export class Game {
       }
       return { blocked: false, blockedHard: false };
     }
-    const res = this.world.move(e.x, e.z, e.r, dx, dz, { ignoreWater: e.def?.hover, ignoreSlope: e.def?.hover });
+    const res = this.world.move(e.x, e.z, e.r, dx, dz, { ignoreWater: e.def?.hover, ignoreSlope: e.def?.hover, allowSeams: !!opts.allowSeams });
     let nx = res.x;
     let nz = res.z;
     if (e.kind === 'monster' && this.isSafe(nx, nz)) {
@@ -582,7 +582,7 @@ export class Game {
 
   /**
    * Walk off an open seam into the neighbouring map: the same world point, expressed
-   * in that map's coordinates (global = local + atlas.offset), just inside its edge.
+   * in that map's coordinates (global = local + atlas.offset), without an inward hop.
    */
   crossSeam(seam) {
     const p = this.player;
@@ -591,13 +591,18 @@ export class Game {
     if (!back) return { ok: false, reason: 'unknown' };
     if (p.dead) return { ok: false, reason: 'dead' };
     if (this.inCombat()) return { ok: false, reason: 'combat' };
-    const [hx, hz] = here.atlas.offset, [tx, tz] = there.atlas.offset, b = there.bounds, inset = p.r + 0.6;
-    let x = p.x + hx - tx, z = p.z + hz - tz;
-    if (back.edge === 'minX') x = Math.max(x, b.minX + inset);
-    if (back.edge === 'maxX') x = Math.min(x, b.maxX - inset);
-    if (back.edge === 'minZ') z = Math.max(z, b.minZ + inset);
-    if (back.edge === 'maxZ') z = Math.min(z, b.maxZ - inset);
-    return this.arriveIn(seam.to, [Math.round(x * 10) / 10, Math.round(z * 10) / 10], there.nameTh, true);
+    if(this.world.seamAt(p.x,p.z,p.r)?.to!==seam.to)return {ok:false,reason:'far'};
+    if(this.canCrossSeam&&!this.canCrossSeam(seam.to))return {ok:false,reason:'loading'};
+    const [hx,hz]=here.atlas.offset,[tx,tz]=there.atlas.offset;
+    const x=p.x+hx-tx,z=p.z+hz-tz;
+    const destination=this.worlds?.[seam.to];
+    if(destination&&!destination.isFree(x,z,p.r,{allowSeams:true}))return {ok:false,reason:'blocked'};
+    // Flush discovery on the source world before enterMap swaps its history.
+    // An immediate reversal may occur before the normal 0.25 s discovery tick.
+    this.checkWorld();
+    // Preserve the same world point exactly. Snapshot rounding remains the save
+    // format's responsibility; crossing adds no inward hop or coordinate rounding.
+    return this.arriveIn(seam.to,[x,z],there.nameTh,true);
   }
 
   /**
@@ -611,7 +616,7 @@ export class Game {
     selectMap(this.data, world.data.id);
     this.world = world;
     this.travelled = null;
-    const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1]);
+    const spot = this.freeSpotNear(this.ch.pos[0], this.ch.pos[1], {allowSeams:true});
     const [fx, fz] = from.atlas.offset, [tx, tz] = world.data.atlas.offset;
     p.x = spot.x;
     p.z = spot.z;
@@ -686,12 +691,13 @@ export class Game {
     return { ok: true };
   }
 
-  freeSpotNear(x, z) {
+  freeSpotNear(x, z, options = {}) {
+    const radius=options.allowSeams&&this.world.seamAt(x,z,PLAYER_RADIUS)?PLAYER_RADIUS:PLAYER_RADIUS+.1;
     for (let r = 0; r < 6; r += 0.5)
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
         const tx = x + Math.sin(a) * r;
         const tz = z + Math.cos(a) * r;
-        if (this.world.isFree(tx, tz, PLAYER_RADIUS + 0.1)) return { x: tx, z: tz };
+        if (this.world.isFree(tx, tz, radius, options)) return { x: tx, z: tz };
       }
     return { x, z };
   }
@@ -1281,7 +1287,7 @@ export class Game {
     const speed = this.derived.moveSpeed * (p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
     if (p.moving) {
-      this.moveEntity(p, mx * speed * dt, mz * speed * dt);
+      this.moveEntity(p, mx * speed * dt, mz * speed * dt, {allowSeams:true});
       // Pressing on against an open seam walks on into the neighbouring map.
       const seam = this.world.seams.length ? this.world.seamAt(p.x, p.z, p.r) : null;
       if (seam && !this.travelled && (seam.alongX ? mz : mx) * seam.outward > 0.3 * mlen) {

@@ -5,6 +5,7 @@ import { createWorld } from './core/world.js';
 import { createCharacter, equip } from './core/character.js';
 import { Game } from './core/game.js';
 import { View } from './render/view.js';
+import { waitForRegionImports } from './render/region.js';
 import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
 import { contactReady } from './render/fireball-v5-contact.js';
@@ -60,7 +61,7 @@ Promise.all([loadModels(data.models, { onWeaponReady: (id) => {
   if (id === bases?.weapon || id === bases?.offhand) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
   // Refresh only the currently selected creation kit, not an obsolete async selection.
   if (view.previewHero && data.progression.start.kits[F.menu?.kit]?.weapon === id) F.menu.refreshPreview();
-} }), view.cityReady, contactReady, frostReady, approvedClipsReady]).then(() => {
+} }), waitForRegionImports(view), contactReady, frostReady, approvedClipsReady]).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();
@@ -101,6 +102,7 @@ function startGame(character, slot) {
   if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
   const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
   game.worlds = worlds; // every map's rules world: the HUD and atlas show one world
+  game.canCrossSeam = id => !view.coreWorld || view.neighbourReady(id);
   view.attachGame(game);
   view.mode = 'game';
   view.snapCamera();
@@ -247,7 +249,7 @@ function frame(now) {
   const s = session;
   if (s) {
     if (!fullscreen.blocked) s.input.update();
-    const paused = s.panels.isOpen || F.paused || fullscreen.blocked;
+    const paused = !view.region.staticReady || s.panels.isOpen || F.paused || fullscreen.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
@@ -269,7 +271,7 @@ function frame(now) {
         travelTo(s.game.ch, s.slot, e.name);
         break;
       }
-      if (e.type === 'travelRefused') s.hud.toast(e.reason === 'combat' ? 'ข้ามเขตแดนระหว่างต่อสู้ไม่ได้' : 'ยังข้ามเขตแดนไม่ได้', '#ffb36b');
+      if (e.type === 'travelRefused') s.hud.toast(e.reason === 'combat' ? 'ข้ามเขตแดนระหว่างต่อสู้ไม่ได้' : e.reason === 'loading' ? 'กำลังเตรียมพื้นที่ข้างหน้า' : 'ยังข้ามเขตแดนไม่ได้', '#ffb36b');
       view.handleEvent(e);
       s.hud.handleEvent(e);
       if (SAVE_ON.has(e.type)) s.save();
@@ -306,7 +308,7 @@ else if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || unde
 else menu.showTitle();
 requestAnimationFrame((t) => {
   last = t;
-  view.cityReady.then(() => document.getElementById('loading').classList.add('done')).catch(error => {
+  waitForRegionImports(view).then(() => document.getElementById('loading').classList.add('done')).catch(error => {
     console.error('City assets could not load', error);
     document.getElementById('loading').textContent = 'City assets could not load. Reload to retry.';
   });

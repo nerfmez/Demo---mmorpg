@@ -11,7 +11,7 @@ float waterHeight(vec2 p,float tier){
    +sin(p.x*7.+p.y*5.-uTime*2.3)*.016
    +sin(r*18.-uTime*5.1+tier)*.008;
 }`;
-export function cityFountain(root,world){
+export function cityFountain(root,world,owner){
  const {x,z}=world.data.city.fountain,ox=root.position.x,oy=root.position.y,oz=root.position.z;
  const centre=`(vec2(${x},${z})+uRegionShift.xz)`,shift=regionShift();
  // Drawn as a neighbouring map, the fountain's world centre moves by the region shift.
@@ -27,7 +27,7 @@ export function cityFountain(root,world){
   }
   for(let j=0;j<rings;j++)for(let i=0;i<seg;i++){const a=j*(seg+1)+i,b=a+seg+1;indices.push(a,a+1,b,a+1,b+1,b);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();g.computeBoundingSphere();g.boundingSphere.radius+=.07;
-  mesh.geometry=g;old.dispose();
+  mesh.geometry=g;owner?.geometry(g);if(!owner)old.dispose();
  };
  pool.onBeforeCompile=s=>{
   s.uniforms.uTime=timeUniform;shifted(s);

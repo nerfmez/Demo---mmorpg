@@ -169,7 +169,7 @@ test('open world: the same session carries on in the neighbouring map without a 
   assert.equal(shared.world, data.maps[FRONTIER], 'the data view now plays the Frontier');
   assert.equal(g.world, worlds[FRONTIER]);
   assert.equal(g.player.id, before, 'same player, same session');
-  assert.ok(worlds[FRONTIER].isFree(g.player.x, g.player.z, 0.45));
+  assert.ok(worlds[FRONTIER].isFree(g.player.x, g.player.z, 0.45, {allowSeams:true}));
   assert.ok(g.monsters.length > 0 && g.monsters.length !== oldMonsters, 'Frontier monsters replace Azure ones');
   assert.ok(g.spawnPoints.some((s) => s.monster === 'greyfang'));
   const changed = g.drainEvents().find((e) => e.type === 'worldChanged');

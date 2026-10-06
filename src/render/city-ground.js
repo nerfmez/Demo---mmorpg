@@ -1,13 +1,14 @@
 // Surface pigments share the native ground painter. The mask is baked once;
 // beds are painted into the walking surface, rather than floated over paving.
 import * as THREE from 'three';
+import { finishSteps } from './build-queue.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { cityFloorAt, cityFloorHeight } from '../core/city.js';
 import { GROUND_COLOR_GLSL } from './ground-color.js';
 import { groundFieldUniforms, surfaceData } from './ground.js';
 import { timeUniform } from './patch.js';
 import { distToPolyline } from '../core/math.js';
-import { groundBrushUniform } from './ground-brush.js';
+import { groundBrushUniform, groundBrushUniformSteps } from './ground-brush.js';
 import { outlined, toon } from './toon.js';
 import { regionShift } from './region-shift.js';
 import art from '../../data/art.json' with {type:'json'};
@@ -23,7 +24,8 @@ const edgeDistance = (points,x,z) => {
   return best;
 };
 
-export function cityGround(world, root) {
+export const cityGround = (world, root) => finishSteps(cityGroundSteps(world, root));
+export function* cityGroundSteps(world, root, owner) {
   const shift=regionShift(); // materials are made after the kit loads; keep this region's shift
   const fountain=world.data.city.fountain,floors=world.data.city.floors.slice(0,2), bounds=[-24,-76,194,216],size=512;
   const trees=world.circles.filter(c=>['tree','birch','palm'].includes(c.type)&&cityFloorAt(world.data.city,c.x,c.z));
@@ -31,7 +33,9 @@ export function cityGround(world, root) {
   const lightBytes=new Uint8Array(size*size*4),darkBytes=new Uint8Array(size*size*4),surface=surfaceData(world),hf=world.heightfield;
   const cape=world.data.city.capeTransition;
   const capePaths=world.roads.filter(r=>r.points.some(p=>p[0]<60&&p[1]>90));
-  for(let j=0;j<size;j++)for(let i=0;i<size;i++){
+  for(let j=0;j<size;j++){
+    if(j) yield;
+    for(let i=0;i<size;i++){
     const x=bounds[0]+(i+.5)/size*bounds[2],z=bounds[1]+(j+.5)/size*bounds[3],k=(j*size+i)*4;
     const ni=Math.max(0,Math.min(hf.w-1,Math.round((x-hf.ox)/hf.res))),nj=Math.max(0,Math.min(hf.h-1,Math.round((z-hf.oz)/hf.res))),nk=nj*hf.w+ni;
     for(const [c,channel]of ['r','g','b'].entries()){lightBytes[k+c]=surface['l'+channel][nk]*255;darkBytes[k+c]=surface['d'+channel][nk]*255;}
@@ -52,16 +56,18 @@ export function cityGround(world, root) {
     }
     bytes[k]=bed*255;bytes[k+1]=Math.max(0,Math.min(1,(6-edge)/5))*inland*255;bytes[k+2]=join*255;bytes[k+3]=road*255;
   }
+  }
   const mask=new THREE.DataTexture(bytes,size,size);mask.name='city-soil-and-edge-mask';
   mask.magFilter=mask.minFilter=THREE.LinearFilter;mask.needsUpdate=true;
   const tintTextures=[lightBytes,darkBytes].map(data=>{const t=new THREE.DataTexture(data,size,size);t.magFilter=t.minFilter=THREE.LinearFilter;t.needsUpdate=true;return t;});
+  for(const t of [mask,...tintTextures])owner?.texture(t);
   let owners=0;
   const materials=new Map();
   const material=kind=>{
     if(materials.has(kind))return materials.get(kind);
     const m=new THREE.MeshLambertMaterial({color:0xffffff}),brush=groundBrushUniform(m);
     // Custom world-space paint must retain its shader when static scenery is batched.
-    m.userData.walkSurface='city-'+kind;owners++;
+    m.userData.walkSurface='city-'+kind;owners++;owner?.depends(m,[mask,...tintTextures]);
     let released=false;
     m.addEventListener('dispose',()=>{if(released)return;released=true;if(--owners===0){mask.dispose();tintTextures.forEach(t=>t.dispose());}});
     m.onBeforeCompile=shader=>{
@@ -110,16 +116,22 @@ export function cityGround(world, root) {
           diffuseColor.rgb=mix(pave,earth*.82,mask.x);
         `);
     };
-    m.customProgramCacheKey=()=>`city-ground-v2-${kind}`;materials.set(kind,m);return m;
+    m.customProgramCacheKey=()=>`city-ground-v2-${kind}`;materials.set(kind,m);owner?.material(m);return m;
   };
+  if(owner){
+    const lease=owner.material(new THREE.Material());
+    yield* groundBrushUniformSteps(lease);
+    material('base');owner.release(lease);
+  } // base owns the mask even before a source mesh uses it
   const parts=[];
   // Low segmented stone borders only around town trees, not forest edge trees.
   for(const t of trees.filter(t=>t.type==='birch'&&t.x>0&&t.x<100&&t.z>-50&&t.z<45)){
+    yield;
     const shape=new THREE.Shape();shape.absarc(0,0,1.23,0,Math.PI*2,false);
     const hole=new THREE.Path();hole.absarc(0,0,1.10,0,Math.PI*2,true);shape.holes.push(hole);
     const g=new THREE.ExtrudeGeometry(shape,{depth:.075,bevelEnabled:false,curveSegments:16});
-    g.rotateX(-Math.PI/2).translate(t.x-root.position.x,world.groundY(t.x,t.z)-root.position.y,t.z-root.position.z);parts.push(g);
+    g.rotateX(-Math.PI/2).translate(t.x-root.position.x,world.groundY(t.x,t.z)-root.position.y,t.z-root.position.z);parts.push(g);owner?.geometry(g);
   }
-  if(parts.length){const g=mergeGeometries(parts);parts.forEach(p=>p.dispose());const rim=outlined(g,toon('#969582'),{outline:'#656957',width:.012,castShadow:false});rim.name='native-tree-soil-borders';root.add(rim);}
+  if(parts.length){const g=mergeGeometries(parts);parts.forEach(p=>owner?owner.release(p):p.dispose());const rim=outlined(g,toon('#969582'),{outline:'#656957',width:.012,castShadow:false});rim.name='native-tree-soil-borders';root.add(rim);owner?.own(rim);}
   return {material,trees:trees.length};
 }

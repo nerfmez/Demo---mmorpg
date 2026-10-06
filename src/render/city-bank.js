@@ -1,10 +1,13 @@
 // Continuous source-footprint retaining faces. Native terrain/coast are untouched.
 import * as THREE from 'three';
+import {finishSteps} from './build-queue.js';
+import {finishGeometrySteps} from './geometry-steps.js';
 import {toon} from './toon.js';
 import {cityFloorHeight} from '../core/city.js';
 import {pointInPolygon} from '../core/math.js';
 
-export function bankGeometry(world,offset){
+export const bankGeometry=(...args)=>finishSteps(bankGeometrySteps(...args));
+export function* bankGeometrySteps(world,offset,owner){
   const faces=[],caps=[],segments=[],city=world.data.city;
   const emit=(target,points)=>{for(const p of points)target.push(p[0]-offset[0],p[1]-offset[1],p[2]-offset[2]);};
   for(const [floorIndex,floor]of city.floors.slice(0,2).entries()){
@@ -21,6 +24,7 @@ export function bankGeometry(world,offset){
         const t=Math.min(.36,.18/Math.max(.5,den));return [a[0]+nx*t,a[1]+nz*t];
       });
       for(let i=0;i<loop.length;i++){
+        yield;
         const a=loop[i],b=loop[(i+1)%loop.length],ia=inner[i],ib=inner[(i+1)%loop.length],cape=city.capeTransition.bounds;
         const nearCape=Math.min(a[0],b[0])<=cape[1]&&Math.max(a[0],b[0])>=cape[0]&&Math.max(a[1],b[1])>=cape[2]&&Math.min(a[1],b[1])<=cape[3];
         const n=nearCape?Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/1.5):1,breaks=Array.from({length:n+1},(_,k)=>k/n);
@@ -34,6 +38,7 @@ export function bankGeometry(world,offset){
         }
         breaks.sort((a,b)=>a-b);
         for(let k=0;k<breaks.length-1;k++){
+          if(k&&k%16===0)yield;
           const t0=breaks[k],t1=breaks[k+1];if(t1-t0<1e-8)continue;
           const mx=a[0]+(b[0]-a[0])*(t0+t1)/2,mz=a[1]+(b[1]-a[1])*(t0+t1)/2;
           const covering=city.floors.slice(0,2).find(other=>other!==floor&&pointInPolygon(other.points,mx,mz)&&!(other.holes||[]).some(h=>pointInPolygon(h,mx,mz)));
@@ -53,12 +58,13 @@ export function bankGeometry(world,offset){
       }
     }
   }
-  const geometry=values=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(values,3));g.computeVertexNormals();g.computeBoundingSphere();return g;};
-  return {face:geometry(faces),cap:geometry(caps),segments};
+  const geometry=function*(values){const g=new THREE.BufferGeometry();owner?.geometry(g);g.setAttribute('position',new THREE.Float32BufferAttribute(values,3));return yield* finishGeometrySteps(g,true);};
+  return {face:yield* geometry(faces),cap:yield* geometry(caps),segments};
 }
 
-export function cityBank(world,root){
-  const bank=bankGeometry(world,root.position.toArray());
+export const cityBank=(...args)=>finishSteps(cityBankSteps(...args));
+export function* cityBankSteps(world,root,owner){
+  const bank=yield* bankGeometrySteps(world,root.position.toArray(),owner);
   const face=new THREE.Mesh(bank.face,toon('#939b8c',{side:THREE.DoubleSide}));face.name='continuous-city-retaining-bank';face.receiveShadow=true;
   const cap=new THREE.Mesh(bank.cap,toon('#b9b29a',{side:THREE.DoubleSide}));cap.name='continuous-city-bank-top-transition';cap.receiveShadow=true;
   root.add(face,cap);

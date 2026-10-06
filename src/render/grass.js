@@ -121,7 +121,7 @@ export function* bakeGrassSteps(renderer,root,world) {
       void main(){vec3 c=uMode<.5?groundColor(vRoot.xz,vRoot.y,vLight,vDark,vSplat,vCoast,vUp,uWater,vTown):lawnTone(vRoot.xz,vLight,vDark,vTown);
         gl_FragColor=vec4(clamp(c*.5,0.0,1.0),1.0);}`,
     depthTest:false,depthWrite:false,toneMapped:false});
-  const previous=renderer.getRenderTarget();
+  try {
   for(const mesh of meshes){
     const n=mesh.count,height=Math.ceil(n/width),g=mesh.geometry,positions=new Float32Array(n*3),roots=new Float32Array(n*3);
     for(let i=0;i<n;i++){
@@ -133,6 +133,8 @@ export function* bakeGrassSteps(renderer,root,world) {
     for(const k of ['aGrassLight','aGrassDark','aGrassNormal','aGrassSplat','aGrassCoast','aGrassY','aGrassTown'])points.setAttribute(k,new THREE.BufferAttribute(g.attributes[k].array,g.attributes[k].itemSize));
     const cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
     const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false}),pixels=new Uint8Array(width*height*4);
+    const previous=renderer.getRenderTarget(),clear=renderer.getClearColor(new THREE.Color()).clone(),alpha=renderer.getClearAlpha();
+    try {
     for(const [mode,name] of [[0,'aGrassBase'],[1,'aGrassLawn']]){
       material.uniforms.uMode.value=mode;
       renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
@@ -141,13 +143,15 @@ export function* bakeGrassSteps(renderer,root,world) {
       for(let i=0;i<n;i++)out.set(pixels.subarray(i*4,i*4+3),i*3);
       g.setAttribute(name,new THREE.InstancedBufferAttribute(out,3,true));
     }
-    scene.remove(cloud);points.dispose();target.dispose();
+    }finally{
+      renderer.setRenderTarget(previous);renderer.setClearColor(clear,alpha);
+      scene.remove(cloud);points.dispose();target.dispose();
+    }
     // only what the blade shader still reads stays on the GPU
     for(const k of ['aGrassLight','aGrassDark','aGrassSplat','aGrassCoast','aGrassTown'])g.deleteAttribute(k);
     prepareGrassCulling(mesh);
-    renderer.setRenderTarget(previous);
     yield;
   }
-  renderer.setRenderTarget(previous);material.dispose();
   return meshes.length;
+  }finally{material.dispose();}
 }

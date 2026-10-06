@@ -2,6 +2,7 @@
 // whole source materials by name (e.g. indigo timber -> warm wood) and single named
 // parts. Source files stay unchanged; the same rules serve the city and outpost kits.
 import * as THREE from 'three';
+import {finishSteps} from './build-queue.js';
 import { toon } from './toon.js';
 
 const scratch = new THREE.Color();
@@ -11,7 +12,8 @@ export function cityColor(palette, material, meshName = '') {
 }
 
 // True when some edge belongs to a single triangle (after welding by position).
-export function hasOpenEdges(geometry) {
+export const hasOpenEdges=geometry=>finishSteps(openEdgeSteps(geometry));
+export function* openEdgeSteps(geometry) {
   const p = geometry.attributes.position, index = geometry.index, n = index ? index.count : p.count, ids = new Map(), edges = new Map();
   const vertex = (i) => {
     const k = Math.round(p.getX(i) * 1e4) + ',' + Math.round(p.getY(i) * 1e4) + ',' + Math.round(p.getZ(i) * 1e4);
@@ -20,6 +22,7 @@ export function hasOpenEdges(geometry) {
     return id;
   };
   for (let t = 0; t + 2 < n; t += 3) {
+    if(t&&t%384===0)yield;
     const a = vertex(index ? index.getX(t) : t), b = vertex(index ? index.getX(t + 1) : t + 1), c = vertex(index ? index.getX(t + 2) : t + 2);
     for (const [u, v] of [[a, b], [b, c], [c, a]]) {
       const e = u < v ? u * 1048576 + v : v * 1048576 + u;
@@ -35,9 +38,10 @@ export function hasOpenEdges(geometry) {
  * stay front-only; open sheets (awnings, canvas, roof skins) keep both faces or vanish
  * from behind. `cache` maps colour/emissive/side to one material per load.
  */
-export function importedMaterial(palette, old, mesh, cache) {
-  const base = cityColor(palette, old, mesh.name);
-  const side = old.side === THREE.DoubleSide && hasOpenEdges(mesh.geometry) ? THREE.DoubleSide : THREE.FrontSide;
+export const importedMaterial=(...args)=>finishSteps(importedMaterialSteps(...args));
+export function* importedMaterialSteps(palette, old, mesh, cache, owner) {
+  const base = cityColor(palette, old, mesh.name).clone(); // local across iterator suspension
+  const side = old.side === THREE.DoubleSide && (yield* openEdgeSteps(mesh.geometry)) ? THREE.DoubleSide : THREE.FrontSide;
   const key = `${base.getHex()}/${old.emissive?.getHex() || 0}/${side}`;
   if (!cache.has(key)) {
     const m = toon('#' + base.getHexString(), { side }).clone();
@@ -45,6 +49,7 @@ export function importedMaterial(palette, old, mesh, cache) {
     m.userData.shared = true;
     if (old.emissive) m.emissive.copy(old.emissive);
     cache.set(key, m);
+    owner?.material(m,true); // per-import clone, not the global toon cache
   }
   return cache.get(key);
 }

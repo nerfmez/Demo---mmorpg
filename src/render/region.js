@@ -3,11 +3,13 @@
 // a neighbouring map is placed at its atlas delta, and its ground/water shaders take
 // the same delta as their region shift (region-shift.js). `regionSteps` yields between
 // the heavy parts so a neighbour can stream in over many frames; `buildRegion` runs it
-// all at once for the starting map.
+// all at once only for legacy callers; the starting map now uses startRegion too.
 import * as THREE from 'three';
-import { terrainSteps, createWater, releaseGroundCaches } from './ground.js';
+import {importJob} from './import-job.js';
+import {cancelledBuild} from './build-queue.js';
+import { terrainSteps, waterSteps, releaseGroundCaches } from './ground.js';
 import { environmentSteps } from './environment.js';
-import { batchStatic } from './static-batch.js';
+import { batchStaticSteps } from './static-batch.js';
 import { bakeGrassSteps } from './grass.js';
 import { attachWindShadow } from './patch.js';
 import { buildHumanoid, HumanoidAnimator } from './hero.js';
@@ -15,21 +17,63 @@ import { residentTool } from './districts.js';
 import { loadCity } from './city.js';
 import { loadTownKit } from './town-kit.js';
 import { disposeObject } from './dispose.js';
-import { beginRegion, useRegion } from './region-shift.js';
+import { beginRegion, useRegion, regionShift } from './region-shift.js';
 import { toon } from './toon.js';
 import { glowTexture } from './vfx.js';
 
-export function* regionSteps(view, world) {
-  const shift = beginRegion();
-  const root = new THREE.Group();
-  root.name = 'region-' + world.data.id;
-  const region = { world, shift, root, npcs: [], npcMarkers: [], fires: [], chimneys: [], grass: [], waypointStones: new Map(), disposed: false, ready: null, stats: {} };
+// Rule worlds/cached fields can be borrowed by an old and a replacement build.
+const groundOwners=new WeakMap();
+function createRegion(world){
+  const previous=regionShift(),shift=beginRegion();useRegion(previous);
+  const root=new THREE.Group();root.name='region-'+world.data.id;
+  const region={world,shift,root,npcs:[],npcMarkers:[],fires:[],chimneys:[],grass:[],waypointStones:new Map(),disposed:false,ready:null,stats:{},controller:new AbortController(),importedState:'building',staticReady:false,importDisposers:[]};
+  groundOwners.set(world,(groundOwners.get(world)||0)+1);
+  return region;
+}
+export function startRegion(view,world){
+  const region=createRegion(world);
+  const job=view.buildQueue.enqueue(regionSteps(view,world,region),{signal:region.controller.signal,label:'region.'+world.data.id});
+  region.staticReadyPromise=job.promise;
+  job.promise.catch(error=>{if(error.name!=='AbortError')region.error=error;disposeRegion(region);}); // includes cancellation before the first next()
+  region.ready=job.promise.then(result=>result.importsReady);
+  return region;
+}
+// Initial loading consumers must not treat an evicted region's cancelled result
+// as imported-ready. Follow a replacement, while preserving genuine failures.
+export async function waitForRegionImports(view) {
+  for (;;) {
+    const region = view.region;
+    let result;
+    try { result = await region.ready; }
+    catch (error) {
+      if (region !== view.region && error.name === 'AbortError') continue;
+      throw error;
+    }
+    if (region !== view.region) continue;
+    if (region.disposed || result?.status === 'cancelled') throw cancelledBuild();
+    if (result?.status !== 'imported-ready' || region.importedState !== 'imported-ready')
+      throw region.error || new Error('Region imports did not complete');
+    return result;
+  }
+}
 
-  region.terrain = yield* inRegion(shift, terrainSteps(world));
+export function* regionSteps(view, world, region) {
+  region ||= createRegion(world); // lazy: return() before the first next() owns nothing
+  const {shift}=region;
+  let completed=false;
+  try {
+    yield* inRegion(shift,assembleRegion(view,world,region));
+    completed=true;return region;
+  } catch(error){if(error.name!=='AbortError')region.error=error;throw error;} finally {if(!completed)disposeRegion(region);}
+}
+
+function* assembleRegion(view,world,region){
+  const {root,shift}=region;
+  region.terrain = yield* inRegion(shift, terrainSteps(world,{adopt:group=>root.add(group)}));
   root.add(region.terrain.group);
   yield;
   useRegion(shift); // another build may have run in between
-  const env = yield* inRegion(shift, environmentSteps(world));
+  const env = yield* inRegion(shift, environmentSteps(world,{adopt:group=>root.add(group)}));
   yield;
   useRegion(shift); // another build may have run in between
   // Keep only authored native hull/pile contact roots before batching moves
@@ -45,7 +89,7 @@ export function* regionSteps(view, world) {
       }
     });
   }
-  if (!world.data.city?.enabled) root.add(createWater(world, env.root));
+  if (!world.data.city?.enabled) root.add(yield* inRegion(shift,waterSteps(world,env.root,{adopt:group=>root.add(group)})));
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
@@ -53,7 +97,7 @@ export function* regionSteps(view, world) {
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
-  region.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
+  region.staticBatch = yield* inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || [])] }));
   root.add(env.root);
   env.root.traverse((o) => o.userData.grassCulling && region.grass.push(o));
   region.waypointStones = env.waypoints;
@@ -122,43 +166,63 @@ export function* regionSteps(view, world) {
     recompose(obj);
     return true;
   };
-  region.ready = loadCity(world)
-    .then((city) => {
-      if (!city || region.disposed) return city && disposeObject(city.root);
-      useRegion(shift);
-      region.cityRoot = city.root;
-      region.stats.city = city.stats;
-      // One bake from actual native hulls and imported foundations/piles.
-      const start = performance.now();
-      nativeContacts.add(city.root);
-      const water = createWater(world, nativeContacts);
-      nativeContacts.remove(city.root);
-      keep(city.root);
-      keep(water);
-      city.stats.waterContactMs = performance.now() - start;
-      city.stats.waterContactSections = water.userData.contactSections;
-    })
-    .then(() => loadTownKit(world))
-    .then((kit) => {
-      if (kit && keep(kit.root)) {
-        region.townKitRoot = kit.root;
-        region.stats.townKit = kit.stats;
+  const options={queue:view.buildQueue,signal:region.controller.signal,shift};
+  region.importedState='loading';
+  region.staticReady=true;
+  region.importsReady=(async()=>{
+    let city=null,kit=null,waterOwner=null;const installed=[];
+    const live=()=>{if(region.disposed)throw cancelledBuild();};
+    try {
+      city=await loadCity(world,options);live();
+      if(city){
+        region.importDisposers.push(city.dispose);
+        region.stats.city=city.stats;
+        // Bake in map-local space even if this region changed its atlas delta
+        // while files were arriving. The contact clones are borrowed CPU data.
+        nativeContacts.add(city.root);
+        const start=performance.now();
+        waterOwner=importJob(options);
+        let water;
+        try {
+          water=await waterOwner.run(waterSteps(world,nativeContacts,{owner:waterOwner,adopt:g=>{water=g;}}),'city.water-contact-and-install');
+          live();
+          const disposeWater=waterOwner.commit(water);region.importDisposers.push(disposeWater);
+        } catch(error){waterOwner.abort(water);throw error;}
+        finally {nativeContacts.remove(city.root);}
+        live();keep(city.root);region.cityRoot=city.root;keep(water);installed.push(city.root,water);
+        city.stats.waterContactMs=performance.now()-start;
+        city.stats.waterAssembly={...waterOwner.stats};city.stats.waterContactSections=water.userData.contactSections;
       }
-    });
+      live();kit=await loadTownKit(world,options);live();
+      if(kit){region.importDisposers.push(kit.dispose);keep(kit.root);installed.push(kit.root);region.townKitRoot=kit.root;region.stats.townKit=kit.stats;}
+      live();region.importedState='imported-ready';return {status:'imported-ready'};
+    } catch(error){
+      city?.dispose?.();kit?.dispose?.();
+      for(const dispose of region.importDisposers)dispose?.();
+      for(const obj of installed)obj.removeFromParent();
+      city?.root.removeFromParent();kit?.root.removeFromParent();
+      if(error.name==='AbortError'&&region.disposed){region.importedState='cancelled';return {status:'cancelled'};}
+      region.importedState='error';region.error=error;
+      throw error; // actual import failures remain observable by the consumer
+    } finally {nativeContacts.clear();}
+  })();
+  // Install a rejection observer immediately; keep the original promise rejected
+  // for initial loading/region consumers. This does not catch renderer exceptions.
+  region.ready ||= region.importsReady;
+  region.importsReady.catch(error=>console.error('Region import failed: '+world.data.id,error));
+
   return region;
 }
 
 // Materials made inside a nested build take this region's shift on every resume.
-function* inRegion(shift, steps) {
-  for (;;) {
-    useRegion(shift);
-    const r = steps.next();
-    if (r.done) return r.value;
-    yield;
-  }
+export function* inRegion(shift, steps) {
+  const resume=fn=>{const previous=regionShift();useRegion(shift);try{return fn();}finally{useRegion(previous);}};
+  let completed=false;
+  try {for(;;){const step=resume(()=>steps.next());if(step.done){completed=true;return step.value;}yield;}}
+  finally {if(!completed)resume(()=>steps.return?.());}
 }
 
-/** Build a whole region now (the starting map). */
+/** Synchronous compatibility entry; normal startup and streaming use the shared queue. */
 export function buildRegion(view, world) {
   const steps = regionSteps(view, world);
   for (;;) {
@@ -188,11 +252,17 @@ function recompose(obj) {
 }
 
 export function disposeRegion(region) {
+  if(!region||region.disposed)return;
   region.disposed = true;
+  region.importedState=region.error?'error':'cancelled';
+  region.controller?.abort();
+  const handled=new Set();
+  for(const dispose of region.importDisposers||[])for(const resource of dispose?.()||[])handled.add(resource);
   region.root.removeFromParent();
-  for (const n of region.npcs) n.scarf?.mesh?.removeFromParent();
-  disposeObject(region.root);
-  releaseGroundCaches(region.world);
+  disposeObject(region.root,handled);
+  const owners=Math.max(0,(groundOwners.get(region.world)||1)-1);
+  if(owners)groundOwners.set(region.world,owners);
+  else {groundOwners.delete(region.world);releaseGroundCaches(region.world);}
 }
 
 function marker(root, world, x, z, color) {

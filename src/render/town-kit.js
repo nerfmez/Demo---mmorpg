@@ -3,28 +3,32 @@
 // black feature contours). Each world box with a `kit` node name is drawn by that node;
 // its collider stays the data box. Loaded once, then merged by the static-cell batcher.
 import * as THREE from 'three';
+import {importJob} from './import-job.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { outlineStructure } from './architecture.js';
-import { importedMaterial } from './city-palette.js';
-import { batchStatic } from './static-batch.js';
+import { outlineStructureSteps } from './architecture.js';
+import { importedMaterialSteps } from './city-palette.js';
+import { batchStaticSteps } from './static-batch.js';
 
-const box = new THREE.Box3(), centre = new THREE.Vector3();
 
-export async function loadTownKit(world) {
+export async function loadTownKit(world, options={}) {
   const kit = world.data.town?.kit;
   const placed = world.boxes.filter((b) => b.kit);
   if (!kit || !placed.length) return null;
-  const start = performance.now(), loader = new GLTFLoader();
+  const start = performance.now(), loader = options.loader||new GLTFLoader(),job=importJob({...options,loader});
+  const root = new THREE.Group();root.name='town-kit';
+  const box=new THREE.Box3(),centre=new THREE.Vector3();
+  try {
   const files = [...new Set(placed.map((b) => kit.nodes[b.kit]?.file))];
   if (files.includes(undefined)) throw new Error('Town kit node without a file');
   const scenes = new Map(await Promise.all(files.map(async (file) => {
-    const gltf = await loader.loadAsync(new URL(kit.base + file, new URL(import.meta.env.BASE_URL, location.href)).href);
-    return [file, gltf.scene];
+    const gltf = await loader.loadAsync(job.assetURL(kit.base+file));
+    return [file, job.raw(gltf.scene)];
   })));
-  const root = new THREE.Group();
-  root.name = 'town-kit';
+
   const materials = new Map(), originals = new Set();
+  await job.run((function*(){
   for (const b of placed) {
+    yield;
     const source = scenes.get(kit.nodes[b.kit].file).getObjectByName(b.kit);
     if (!source) throw new Error('Missing town kit node: ' + b.kit);
     // A node is used once; its city placement is replaced by the data box.
@@ -40,22 +44,20 @@ export async function loadTownKit(world) {
     holder.add(source);
     holder.position.set(b.x, world.groundY(b.x, b.z) - (kit.sink ?? 0.05), b.z);
     holder.rotation.y = b.angle + (kit.nodes[b.kit].yaw || 0);
-    source.traverse((o) => {
-      if (!o.isMesh) return;
+    const solids=[];source.traverse(o=>{if(o.isMesh)solids.push(o);});
+    for(const o of solids){
+      yield;
       originals.add(o.material);
-      o.material = importedMaterial(kit, o.material, o, materials);
+      o.material = yield* importedMaterialSteps(kit, o.material, o, materials,job);
       o.castShadow = true;
       o.receiveShadow = true;
-    });
-    outlineStructure(holder);
-    root.add(holder);
+    }
+    yield* outlineStructureSteps(holder,job);
+    root.add(holder);job.own(holder);
   }
-  for (const m of originals) m.dispose();
-  // Unused nodes of the kit files are never added to the scene; free their buffers
-  // unless a placed node shares the same geometry.
-  const used = new Set();
-  root.traverse((o) => o.isMesh && used.add(o.geometry));
-  for (const scene of scenes.values()) scene.traverse((o) => o.isMesh && !used.has(o.geometry) && o.geometry.dispose());
-  const batch = batchStatic(root, { cell: 24 });
-  return { root, stats: { readyMs: performance.now() - start, kitNodes: placed.length, batch } };
+  })(),'town-kit.postload-assembly');
+  const batch=await job.run(batchStaticSteps(root,{cell:24,owner:job}),'town-kit.batch');
+  const dispose=job.commit(root);
+  return { root, dispose, stats: { readyMs: performance.now() - start, kitNodes: placed.length, batch } };
+  }catch(error){job.abort(root);throw error;}
 }

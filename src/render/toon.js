@@ -11,6 +11,7 @@ export function toonRamp() {
   ramp.magFilter = THREE.NearestFilter;
   ramp.generateMipmaps = false;
   ramp.needsUpdate = true;
+  ramp.userData.shared = true;
   return ramp;
 }
 
@@ -48,6 +49,7 @@ export function outlineMaterial(color = '#2a2230', width = 0.018) {
   };
   m.customProgramCacheKey = () => `outline-${width}`;
   m.userData.outlineWidth = width;
+  m.userData.shared = true;
   outlineCache.set(key, m);
   return m;
 }

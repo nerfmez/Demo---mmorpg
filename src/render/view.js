@@ -1,3 +1,4 @@
+import {FrameBuildQueue} from './build-queue.js';
 import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './spirit-reveal.js';
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
 // "Change the camera, not the style": high ARPG camera, same anime cel look.
@@ -20,7 +21,7 @@ import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
-import { buildRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
+import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 const VIEW_RADIUS = 58;
@@ -99,12 +100,14 @@ export class View {
     this.vfx = new Vfx(this.scene, world);
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
-    this.region = buildRegion(this, world);
+    this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
+    this.region = startRegion(this, world);
     this.scene.add(this.region.root);
     this.neighbours = new Map();
     this.cityReady = this.region.ready;
     this.grassList = [...this.region.grass]; // rebuilt only when a region comes or goes
     installGrassCulling(this.scene, () => this.grassList);
+    this.region.staticReadyPromise.then(()=>this.refreshGrass()).catch(error=>console.error('Initial region construction failed',error));
 
     this.monsterViews = new Map();
     this.cullMonsters = true; // skip monster models outside the camera (off only to measure)
@@ -152,35 +155,30 @@ export class View {
     for (const seam of world.seams) {
       const along = seam.alongX ? px : pz, inside = (b[seam.edge] - (seam.alongX ? pz : px)) * seam.outward;
       const near = along > seam.span[0] - STREAM_IN && along < seam.span[1] + STREAM_IN;
-      if (near && inside < STREAM_OUT) wanted.add(seam.to);
-      if (near && inside < STREAM_IN && !this.neighbours.has(seam.to)) this.neighbours.set(seam.to, { steps: regionSteps(this, this.coreWorld(seam.to)), region: null, buildMs: 0 });
-    }
-    for (const [id, n] of this.neighbours) {
-      if (!wanted.has(id)) {
-        if (n.region) disposeRegion(n.region);
-        else n.steps.return();
-        this.neighbours.delete(id);
-        this.refreshGrass();
-        continue;
+      const retained = along > seam.span[0] - STREAM_OUT && along < seam.span[1] + STREAM_OUT;
+      if (retained && inside < STREAM_OUT) wanted.add(seam.to);
+      if (near && inside < STREAM_IN && !this.neighbours.has(seam.to)) {
+        const n={steps:regionSteps(this,this.coreWorld(seam.to)),region:null,buildMs:0,stepMs:[],controller:new AbortController(),error:null};
+        this.neighbours.set(seam.to,n);
+        n.job=this.buildQueue.enqueue(n.steps,{signal:n.controller.signal,label:'region.'+seam.to,onStep:ms=>n.stepMs.push(Math.round(ms))});
+        n.job.promise.then(region=>{
+          if(n.controller.signal.aborted||this.neighbours.get(seam.to)!==n){disposeRegion(region);return;}
+          n.region=region;n.steps=null;n.buildMs=n.job.stats.cpuMs;
+          this.placeNeighbour(region);this.scene.add(region.root);this.refreshGrass();
+        }).catch(error=>{
+          n.steps=null;
+          if(error.name!=='AbortError'){n.error=error;console.error('Region construction failed: '+seam.to,error);}
+        });
       }
-      if (!n.steps) continue;
-      const start = performance.now();
-      do {
-        const t0 = performance.now();
-        const r = n.steps.next();
-        (n.stepMs ||= []).push(Math.round(performance.now() - t0));
-        if (r.done) {
-          n.region = r.value;
-          n.steps = null;
-          this.placeNeighbour(n.region);
-          this.scene.add(n.region.root);
-          this.refreshGrass();
-          break;
-        }
-      } while (performance.now() - start < (this.streamBudgetMs ?? STREAM_BUDGET_MS));
-      n.buildMs += performance.now() - start;
+    }
+    this.buildQueue.budgetMs=this.streamBudgetMs??STREAM_BUDGET_MS;
+    for (const [id,n] of this.neighbours) if(!wanted.has(id)) {
+      n.controller?.abort();
+      if(n.region)disposeRegion(n.region);else n.steps?.return();
+      this.neighbours.delete(id);this.refreshGrass();
     }
   }
+
 
   placeNeighbour(region) {
     const [ax, az] = this.world.data.atlas.offset, [nx, nz] = region.world.data.atlas.offset;

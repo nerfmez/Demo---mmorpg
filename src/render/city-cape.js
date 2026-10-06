@@ -1,6 +1,8 @@
 // Grade only the approved cape surface ends onto native dry terrain.
 // Source files and XZ silhouettes are unchanged; work is done once at load.
 import * as THREE from 'three';
+import { drainSteps } from './city-work.js';
+import { cityBoundsSteps, finishCityTrianglesSteps } from './city-geometry.js';
 import {cityFloorHeight} from '../core/city.js';
 import {pointInPolygon,distToSegment} from '../core/math.js';
 
@@ -43,7 +45,8 @@ function insideTriangle(poly,triangle){
 // Clip real geometry to the same source-derived property footprint used by
 // collision/terrain coverage. A colour mask would leave the old slab walkable.
 // Mainland is one flat top; road triangles keep their authored height/curves.
-export function trimCityPaving(mesh,world,root){
+export function trimCityPaving(...args){return drainSteps(trimCityPavingSteps(...args));}
+export function* trimCityPavingSteps(mesh,world,root){
   const old=mesh.geometry,inverse=mesh.matrixWorld.clone().invert(),vertices=[];
   const emit=poly=>{
     for(let i=1;i<poly.length-1;i++){
@@ -80,31 +83,36 @@ export function trimCityPaving(mesh,world,root){
   const pos=old.attributes.position,idx=old.index,count=idx?.count??pos.count;
   const bounds=land.map(t=>[Math.min(...t.map(p=>p.x)),Math.max(...t.map(p=>p.x)),Math.min(...t.map(p=>p.y)),Math.max(...t.map(p=>p.y))]);
   for(let i=0;i<count;i+=3){
+    if(i%96===0)yield;
     const tri=[0,1,2].map(k=>new THREE.Vector3().fromBufferAttribute(pos,idx?idx.getX(i+k):i+k).applyMatrix4(mesh.matrixWorld).add(root.position));
     // Keep contained source triangles intact. Repartitioning every street by
     // every land triangle needlessly doubled tessellation (and repeated cape trim).
     if(contained(tri)){emit(tri);continue;}
     const x0=Math.min(...tri.map(p=>p.x)),x1=Math.max(...tri.map(p=>p.x)),z0=Math.min(...tri.map(p=>p.z)),z1=Math.max(...tri.map(p=>p.z));
     for(let j=0;j<land.length;j++){
+      if(j%64===0)yield;
       const b=bounds[j];if(x1<b[0]||x0>b[1]||z1<b[2]||z0>b[3])continue;
       emit(insideTriangle(tri,land[j]));
     }
   }
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.computeVertexNormals();g.computeBoundingSphere();mesh.geometry=g;old.dispose();
+  const g=yield* finishCityTrianglesSteps(vertices);mesh.geometry=g;if(!old.userData.shared)old.dispose();
 }
-export function gradeCapeMesh(mesh,world,root,floor,trimRoad=false){
+export function gradeCapeMesh(...args){return drainSteps(gradeCapeMeshSteps(...args));}
+export function* gradeCapeMeshSteps(mesh,world,root,floor,trimRoad=false){
   const bounds=world.data.city.capeTransition.bounds,old=mesh.geometry;
-  old.computeBoundingBox();
+  yield* cityBoundsSteps(old, false);
   const box=old.boundingBox.clone().applyMatrix4(mesh.matrixWorld).translate(root.position);
   if(box.min.x>bounds[1]||box.max.z<bounds[2])return;
   const pos=old.attributes.position,idx=old.index,count=idx?.count??pos.count,vertices=[],inverse=mesh.matrixWorld.clone().invert();
-  const emit=(a,b,c,grade)=>{
+  let emitted=0;
+  const emit=function*(a,b,c,grade){
+    if(++emitted%64===0)yield;
     if(grade){
       const ab=a.distanceToSquared(b),bc=b.distanceToSquared(c),ca=c.distanceToSquared(a);
       if(Math.max(ab,bc,ca)>9){
-        if(ab>=bc&&ab>=ca){const m=a.clone().lerp(b,.5);emit(a,m,c,true);emit(m,b,c,true);}
-        else if(bc>=ca){const m=b.clone().lerp(c,.5);emit(a,b,m,true);emit(a,m,c,true);}
-        else{const m=c.clone().lerp(a,.5);emit(a,b,m,true);emit(m,b,c,true);}return;
+        if(ab>=bc&&ab>=ca){const m=a.clone().lerp(b,.5);yield* emit(a,m,c,true);yield* emit(m,b,c,true);}
+        else if(bc>=ca){const m=b.clone().lerp(c,.5);yield* emit(a,b,m,true);yield* emit(a,m,c,true);}
+        else{const m=c.clone().lerp(a,.5);yield* emit(a,b,m,true);yield* emit(m,b,c,true);}return;
       }
     }
     for(const p of [a,b,c]){
@@ -112,19 +120,20 @@ export function gradeCapeMesh(mesh,world,root,floor,trimRoad=false){
       q.sub(root.position).applyMatrix4(inverse);vertices.push(q.x,q.y,q.z);
     }
   };
-  const fan=(p,grade)=>{for(let i=1;i<p.length-1;i++)emit(p[0],p[i],p[i+1],grade);};
+  const fan=function*(p,grade){for(let i=1;i<p.length-1;i++)yield* emit(p[0],p[i],p[i+1],grade);};
   for(let i=0;i<count;i+=3){
+    if(i%96===0)yield;
     const tri=[0,1,2].map(k=>new THREE.Vector3().fromBufferAttribute(pos,idx?idx.getX(i+k):i+k).applyMatrix4(mesh.matrixWorld).add(root.position));
     // Partition along the cape review bounds; preserve every triangle outside.
-    fan(clip(tri,'z',bounds[2],false),false);
+    yield* fan(clip(tri,'z',bounds[2],false),false);
     const south=clip(tri,'z',bounds[2],true);if(south.length<3)continue;
-    fan(clip(south,'x',bounds[1],true),false);
+    yield* fan(clip(south,'x',bounds[1],true),false);
     const cape=clip(south,'x',bounds[1],false);
     // A few source road triangles protruded past solid land. Keep their exact
     // source centerline but trim those unsupported render edges to its footprint.
-    if(trimRoad)for(const land of landTriangles(world,true))fan(insideTriangle(cape,land),true);
-    else fan(cape,true);
+    if(trimRoad)for(const land of landTriangles(world,true)){yield* fan(insideTriangle(cape,land),true);yield;}
+    else yield* fan(cape,true);
   }
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));g.computeVertexNormals();g.computeBoundingSphere();
-  mesh.geometry=g;old.dispose();
+  const g=yield* finishCityTrianglesSteps(vertices);
+  mesh.geometry=g;if(!old.userData.shared)old.dispose();
 }

@@ -6,7 +6,8 @@
 // but the town goes from hundreds of draw calls to a few dozen, which limits frame rate on iPad.
 // Built once at load. A surface and its outline hull share one merged geometry, as they did before.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { drainSteps, cityNodes } from './city-work.js';
+import { cityPartSteps, transformCityGeometrySteps, mergeCityGeometriesSteps, cityBoundsSteps } from './city-geometry.js';
 
 // Only plain shared materials qualify: no wind or per-object shader inputs, no local-position
 // painting (walk surfaces), no transparency sorting except the shared feature-edge lines.
@@ -45,75 +46,90 @@ function hullFor(m) {
   }
   return batchHull.get(width);
 }
-const solid = (c, n, vc) => { const a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = c.r * (vc ? vc.getX(i) : 1); a[i * 3 + 1] = c.g * (vc ? vc.getY(i) : 1); a[i * 3 + 2] = c.b * (vc ? vc.getZ(i) : 1); } return a; };
-// one part in batch space: position, normal, surface colour and outline colour
-function part(geometry, surface, hull, matrix) {
-  const src = geometry.index ? geometry.toNonIndexed() : geometry, g = new THREE.BufferGeometry(), n = src.attributes.position.count;
-  g.setAttribute('position', src.attributes.position.clone());
-  g.setAttribute('normal', src.attributes.normal ? src.attributes.normal.clone() : new THREE.BufferAttribute(new Float32Array(n * 3), 3));
-  const vc = surface?.vertexColors && src.attributes.color;
-  g.setAttribute('color', new THREE.BufferAttribute(solid(surface ? surface.color : new THREE.Color(1, 1, 1), n, vc), 3));
-  g.setAttribute('hullColor', new THREE.BufferAttribute(solid(hull ? hull.color : new THREE.Color(0, 0, 0), n), 3));
-  if (src !== geometry) src.dispose();
-  return g.applyMatrix4(matrix);
-}
-
-export function batchStatic(root, { cell = 24, exclude = [] } = {}) {
+export function batchStatic(root, options) { return drainSteps(batchStaticSteps(root, options)); }
+export function* batchStaticSteps(root, { cell = 24, exclude = [] } = {}) {
   root.updateMatrixWorld(true);
   const skip = new Set();
   for (const e of exclude) e?.traverse((o) => skip.add(o));
   const inverse = root.matrixWorld.clone().invert(), groups = new Map(), centre = new THREE.Vector3(), box = new THREE.Box3(), seen = new Set();
-  const cellOf = (o) => { o.geometry.computeBoundingBox(); box.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld).getCenter(centre); return `${Math.floor(centre.x / cell)}/${Math.floor(centre.z / cell)}`; };
+  const cellOf = (o) => { box.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld).getCenter(centre); return `${Math.floor(centre.x / cell)}/${Math.floor(centre.z / cell)}`; };
   const add = (key, entry) => { if (!groups.has(key)) groups.set(key, []); groups.get(key).push(entry); };
-  root.traverse((o) => {
-    if (seen.has(o) || skip.has(o) || !o.visible || !o.geometry || !batchable(o)) return;
-    for (let p = o.parent; p && p !== root; p = p.parent) if (!p.visible) return;
+  for (const o of cityNodes(root)) {
+    yield;
+    if (seen.has(o) || skip.has(o) || !o.visible || !o.geometry || !batchable(o)) continue;
+    let hidden = false;
+    for (let p = o.parent; p && p !== root; p = p.parent) if (!p.visible) { hidden = true; break; }
+    if (hidden) continue;
+    yield* cityBoundsSteps(o.geometry, false);
     seen.add(o);
-    if (o.isLineSegments) return add(`L/${o.material.uuid}/${cellOf(o)}/${o.renderOrder}`, { lines: o });
+    if (o.isLineSegments) { add(`L/${o.material.uuid}/${cellOf(o)}/${o.renderOrder}`, { lines: o }); continue; }
     // a toon surface and the outline hull drawn from the same geometry travel together
     const hull = o.material.isMeshToonMaterial ? o.parent?.children.find((s) => s !== o && s.geometry === o.geometry && batchable(s) && !s.material.isMeshToonMaterial) : null;
     if (hull) seen.add(hull);
     const surface = o.material.isMeshToonMaterial ? o : null, outline = hull || (surface ? null : o);
     const kind = `${surface ? toonFor(surface.material).uuid : '-'}/${outline ? hullFor(outline.material).uuid : '-'}`;
     add(`M/${kind}/${cellOf(o)}/${o.castShadow}/${o.receiveShadow}/${o.renderOrder}`, { surface, outline, source: o });
-  });
+  }
   const freed = new Set(), matrix = new THREE.Matrix4();
+  const temporary = new Set();
   let before = 0, after = 0;
+  try {
   for (const list of groups.values()) {
+    yield;
     const draws = list[0].lines ? 1 : (list[0].surface ? 1 : 0) + (list[0].outline ? 1 : 0);
     before += list.length * draws;
     if (list.length < 2) { after += draws; continue; }
     if (list[0].lines) {
-      const merged = mergeGeometries(list.map(({ lines }) => { matrix.multiplyMatrices(inverse, lines.matrixWorld); return lines.geometry.clone().applyMatrix4(matrix); }));
+      const parts = [];
+      for (const { lines } of list) {
+        matrix.multiplyMatrices(inverse, lines.matrixWorld);
+        const part = lines.geometry.clone(); temporary.add(part); parts.push(part);
+        yield* transformCityGeometrySteps(part, matrix); yield;
+      }
+      const merged = yield* mergeCityGeometriesSteps(parts); temporary.add(merged);
+      for (const part of parts) { part.dispose(); temporary.delete(part); }
+
       const mesh = new THREE.LineSegments(merged, list[0].lines.material);
-      mesh.renderOrder = list[0].lines.renderOrder; mesh.name = 'static-batch'; root.add(mesh);
+      mesh.renderOrder = list[0].lines.renderOrder; mesh.name = 'static-batch'; root.add(mesh); temporary.delete(merged);
       for (const { lines } of list) { freed.add(lines.geometry); lines.removeFromParent(); }
       after++; continue;
     }
-    const parts = list.map(({ surface, outline, source }) => { matrix.multiplyMatrices(inverse, source.matrixWorld); return part(source.geometry, surface?.material, outline?.material, matrix); });
-    const merged = mergeGeometries(parts);
-    parts.forEach((g) => g.dispose());
-    merged.computeBoundingSphere();
+    const parts = [];
+    for (const { surface, outline, source } of list) {
+      matrix.multiplyMatrices(inverse, source.matrixWorld);
+      const part = yield* cityPartSteps(source.geometry, surface?.material, outline?.material, matrix);
+      temporary.add(part); parts.push(part); yield;
+    }
+    const merged = yield* mergeCityGeometriesSteps(parts); temporary.add(merged);
+    for (const part of parts) { part.dispose(); temporary.delete(part); }
+    yield* cityBoundsSteps(merged);
     const { surface, outline, source } = list[0];
     if (surface) { const m = new THREE.Mesh(merged, toonFor(surface.material)); Object.assign(m, { castShadow: source.castShadow, receiveShadow: source.receiveShadow, renderOrder: source.renderOrder, name: 'static-batch' }); root.add(m); }
     if (outline) { const h = new THREE.Mesh(merged, hullFor(outline.material)); Object.assign(h, { castShadow: false, receiveShadow: outline.receiveShadow, renderOrder: outline.renderOrder, name: 'static-batch' }); root.add(h); }
+    temporary.delete(merged);
     after += draws;
     for (const { surface: s, outline: h } of list) for (const o of [s, h]) if (o) { freed.add(o.geometry); o.removeFromParent(); }
   }
   // geometries still used by something that stayed (or marked shared) are kept
-  root.traverse((o) => { if (o.geometry) freed.delete(o.geometry); });
-  freed.forEach((g) => { if (!g.userData.shared) g.dispose(); });
+  for (const o of cityNodes(root)) { if (o.geometry) freed.delete(o.geometry); yield; }
+  for (const g of freed) { if (!g.userData.shared) g.dispose(); freed.delete(g); yield; }
   // Drop groups left empty by the merge, then freeze the static subtree: its matrices are final,
   // so the per-frame scene-graph update no longer walks thousands of scenery nodes.
   const empty = [];
-  root.traverse((o) => { if (o !== root && !skip.has(o) && !o.geometry && !o.isLight && o.children.length === 0) empty.push(o); });
+  for (const o of cityNodes(root)) { if (o !== root && !skip.has(o) && !o.geometry && !o.isLight && o.children.length === 0) empty.push(o); yield; }
   for (let o of empty) { while (o && o !== root && !o.geometry && o.children.length === 0 && !skip.has(o)) { const p = o.parent; o.removeFromParent(); o = p; } }
   root.updateMatrixWorld(true);
   for (const child of root.children) {
     let moving = false;
     child.traverse((o) => { if (skip.has(o)) moving = true; });
-    if (!moving) child.traverse((o) => { o.matrixAutoUpdate = false; o.matrixWorldAutoUpdate = false; });
+    if (!moving) for (const o of cityNodes(child)) { o.matrixAutoUpdate = false; o.matrixWorldAutoUpdate = false; yield; }
   }
-  let objects = 0; root.traverse(() => objects++);
+  let objects = 0; for (const o of cityNodes(root)) { objects++; yield; }
   return { before, after, objects };
+  } finally {
+    temporary.forEach(g => g.dispose());
+    // On cancellation, detached originals are no longer reached by root cleanup.
+    root.traverse(o => { if (o.geometry) freed.delete(o.geometry); });
+    freed.forEach(g => { if (!g.userData.shared) g.dispose(); });
+  }
 }

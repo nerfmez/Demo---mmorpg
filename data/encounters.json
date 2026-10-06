@@ -1,0 +1,66 @@
+{
+  "_doc": "Placement and field-guide presentation only. Every monster id, spawn count, level range, boss position, respawn time, zone drop and recipe remains in the existing world/content data. Rectangles use local XZ [minX,maxX,minZ,maxZ]; they never define terrain or discovery zones. Bounds are clipped by the real world zone/water/collision/safe-route tests.",
+  "revision": "encounter-guide-1",
+  "seed": 20261006,
+  "placement": {"attemptsPerPoint": 3000, "spacing": 6, "safeMargin": 1, "waypointMargin": 5, "spawnMargin": 8, "roadMargin": 2, "bossMargin": 3, "slopeLimit": 0.6, "retries": 4},
+  "maps": {
+    "azure-harbor-v1": {
+      "route": ["coast", "meadow", "glade", "highlands", "forest", "headland"],
+      "routeText": "หาด 1–2 → ทุ่ง 2–3 / สวน 3–4 → เนิน 4–5 → ป่า 6–7 / แหลม 6–8 → ชายแดน 8–9",
+      "warnings": {"forest": "ทางสวน Lv.3–4 ต่อป่า Lv.6–7 ยังมีช่องว่างเลเวล · ฝึกที่เนิน Lv.4–5 ก่อนเข้าป่าลึก", "headland": "ทางเลือกสำรวจ Lv.6–8 ไม่ใช่ทางลัดสำหรับผู้เพิ่งออกจากเมือง"},
+      "habitats": {
+        "coast:salt_slime": {"label": "ชายหาดตะวันตกใกล้ทางผู้มาเยือน", "rects": [[-158, -57, 36, 82]]},
+        "coast:reef_crab": {"label": "แนวทรายชื้นกลางหาด", "rects": [[-113, -15, 45, 80]], "shoreMax": 24},
+        "coast:shore_gull": {"label": "แนวหาดด้านเมือง", "rects": [[-73, -10, 36, 74]]},
+        "meadow:salt_slime": {"label": "เชิงทุ่งใกล้ทางลงหาด", "rects": [[-54, -16, 10, 35]]},
+        "meadow:tusk_boar": {"label": "ทุ่งตะวันตกและทุ่งหลังเมือง", "rects": [[-54, -12, -70, 9], [-52, 98, -118, -76]]},
+        "glade:tusk_boar": {"label": "ชายสวนฝั่งทางเข้าทุ่ง", "rects": [[-100, -56, -13, 33]]},
+        "glade:sporecap": {"label": "พุ่มร่มฝั่งตะวันตกของสวน", "rects": [[-158, -103, -13, 33]]},
+        "highlands:tusk_boar": {"label": "ไหล่เนินเหนือกำแพงเมือง", "rects": [[113, 158, -112, -54]]},
+        "forest:sporecap": {"label": "ชายป่าตอนใต้", "rects": [[-158, -69, -51, -28]]},
+        "forest:moss_beetle": {"label": "รากไม้และบ่อกลางป่า", "rects": [[-117, -69, -110, -53]]},
+        "forest:thornback_wolf": {"label": "ป่าลึกด้านตะวันตกเฉียงเหนือ", "rects": [[-158, -111, -117, -61]]},
+        "headland:shore_gull": {"label": "เชิงแหลมด้านตะวันตก", "rects": [[127, 168, -118, -75]]},
+        "headland:hermit_crab": {"label": "สันแหลมเหนือเมือง", "rects": [[168, 207, -118, -75]]}
+      }
+    },
+    "frontier-wilds-v1": {
+      "route": ["meadow", "glade", "forest", "wolf_den", "coast", "wetland", "highlands", "ruins"],
+      "routeText": "ทุ่ง 8–9 → พุ่มหนาม 9–10 → ป่า 10–12 → ถ้ำ 12–14 → ชายฝั่ง 14–16 → ชุ่มน้ำ 16–18 → ที่สูง 18–21 → ซากโบราณ 21–25",
+      "warnings": {"coast": "ชายฝั่ง Lv.14–16 สูงกว่าทุ่งพุ่มหนาม Lv.9–10 ที่อยู่ติดกัน · แนะนำผ่านป่าและถ้ำก่อน", "wetland": "อย่าตัดจากทุ่ง Lv.8–9 เข้ามาตรง ๆ · ชุ่มน้ำเริ่ม Lv.16", "highlands": "ทางจากป่า Lv.10–12 ข้ามสู่ที่สูง Lv.18–21 · แนะนำผ่านชายฝั่งและชุ่มน้ำก่อน", "ruins": "มอนทั่วไป Lv.21–24 · Warden Lv.25 อยู่ในลานแยก"},
+      "habitats": {
+        "meadow:tusk_boar": {"label": "ทุ่งหญ้ารอบถนนจากนิคม", "rects": [[37, 157, -43, 64], [163, 220, -139, -56]]},
+        "glade:tusk_boar": {"label": "ชายทุ่งพุ่มหนามด้านนิคม", "rects": [[120, 219, 72, 134]]},
+        "glade:sporecap": {"label": "พุ่มร่มด้านตะวันตกและสระใต้", "rects": [[20, 102, 72, 141]]},
+        "glade:moss_beetle": {"label": "พุ่มหนามช่วงกลางทุ่ง", "rects": [[83, 141, 85, 142]]},
+        "forest:tusk_boar": {"label": "ชายป่าด้านทุ่งหญ้า", "rects": [[83, 156, -88, -51]]},
+        "forest:moss_beetle": {"label": "รากไม้กลางป่า", "rects": [[10, 71, -139, -76]]},
+        "forest:thornback_wolf": {"label": "แนวป่าลึกข้างถ้ำ", "rects": [[78, 156, -139, -85]]},
+        "forest:sporecap": {"label": "ร่มไม้ใกล้ลำธาร", "rects": [[-29, 54, -87, -51]]},
+        "forest:thicket_mantis": {"label": "พุ่มรกริมถ้ำ", "rects": [[37, 83, -139, -96]]},
+        "wolf_den:thornback_wolf": {"label": "วงรอบถ้ำเกรย์แฟง", "rects": [[69, 129, -142, -104]]},
+        "wolf_den:thicket_mantis": {"label": "พุ่มฝั่งตะวันตกของถ้ำ", "rects": [[68, 92, -142, -104]]},
+        "coast:reef_crab": {"label": "ทรายชื้นตามแนวชายฝั่ง", "rects": [[-220, -58, 157, 188], [22, 217, 160, 188]], "shoreMax": 20},
+        "coast:tusk_boar": {"label": "สันทรายด้านในฝั่งทุ่ง", "rects": [[114, 215, 156, 170]]},
+        "coast:reed_viper": {"label": "กอพืชใกล้ปากลำธาร", "rects": [[-58, -3, 146, 178], [3, 49, 159, 179]]},
+        "coast:gale_hawk": {"label": "ปลายหาดด้านตะวันตก", "rects": [[-221, -142, 146, 178]]},
+        "wetland:marsh_wisp": {"label": "แนวบ่อน้ำลึกกลางพื้นที่ชุ่มน้ำ", "rects": [[-117, -32, 17, 119]]},
+        "wetland:reed_viper": {"label": "กอพืชริมลำธาร", "rects": [[-33, -3, -27, 135]]},
+        "wetland:sporecap": {"label": "ร่มไม้ขอบตะวันตกของหนอง", "rects": [[-140, -107, -26, 137], [-217, -150, 78, 138]]},
+        "wetland:moss_beetle": {"label": "ดินชื้นรอบชายหนองทางใต้", "rects": [[-103, -37, 101, 141], [-139, -89, -40, 10]]},
+        "highlands:crag_golem": {"label": "ลานหินด้านตะวันตก", "rects": [[-219, -141, -138, -58]]},
+        "highlands:gale_hawk": {"label": "สันผาด้านเหนือ", "rects": [[-144, -52, -141, -108]]},
+        "highlands:ironhorn_ram": {"label": "ไหล่ผากลางที่ราบสูง", "rects": [[-142, -74, -106, -61]]},
+        "highlands:marsh_wisp": {"label": "เชิงผาชื้นด้านลำธาร", "rects": [[-69, -47, -108, -62]]},
+        "highlands:thornback_wolf": {"label": "แนวป่ารอยต่อที่ราบสูง", "rects": [[-79, -47, -141, -109]]},
+        "highlands:duskmane_stalker": {"label": "ขอบผาด้านซากโบราณ", "rects": [[-217, -151, -77, -47]]},
+        "ruins:crag_golem": {"label": "ซากหินรอบลานโบราณ", "rects": [[-220, -181, -41, 67]]},
+        "ruins:rune_sentinel": {"label": "ทางเข้าซากโบราณฝั่งตะวันออก", "rects": [[-177, -147, -40, 65]]},
+        "ruins:marsh_wisp": {"label": "ขอบซากชื้นด้านหนอง", "rects": [[-187, -147, 33, 68]]},
+        "ruins:moss_beetle": {"label": "รากไม้บริเวณขอบซากด้านใต้", "rects": [[-219, -194, 38, 68]]},
+        "ruins:gale_hawk": {"label": "กำแพงซากด้านเหนือ", "rects": [[-216, -148, -42, -17]]},
+        "ruins:duskmane_stalker": {"label": "มุมเงาด้านตะวันตก", "rects": [[-222, -199, -21, 51]]}
+      }
+    }
+  }
+}

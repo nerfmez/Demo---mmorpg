@@ -239,6 +239,9 @@ let last = performance.now();
 let time = 0;
 let fpsAcc = 0;
 let fpsN = 0;
+// The opaque loading card hides the world. Let construction advance without
+// repeatedly drawing its still-unbatched scene behind that card.
+let initialWorldReady = false;
 
 function frame(now) {
   const scale = session?.panels.tab === 'job' ? null : governor?.update(now - last);
@@ -279,7 +282,7 @@ function frame(now) {
     }
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
-    if (s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
+    if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
     s.saveT += dt;
     if (s.saveT > 10) {
@@ -292,7 +295,7 @@ function frame(now) {
       s.refreshBadges();
       s.refreshPortrait();
     }
-  } else if (!fullscreen.blocked) view.render(dt, time);
+  } else if (initialWorldReady && !fullscreen.blocked) view.render(dt, time);
   fpsAcc += dt;
   fpsN++;
   if (fpsAcc > 1) {
@@ -308,7 +311,10 @@ else if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || unde
 else menu.showTitle();
 requestAnimationFrame((t) => {
   last = t;
-  waitForRegionImports(view).then(() => document.getElementById('loading').classList.add('done')).catch(error => {
+  waitForRegionImports(view).then(() => {
+    initialWorldReady = true;
+    document.getElementById('loading').classList.add('done');
+  }).catch(error => {
     console.error('City assets could not load', error);
     document.getElementById('loading').textContent = 'City assets could not load. Reload to retry.';
   });

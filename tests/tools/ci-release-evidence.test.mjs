@@ -200,3 +200,15 @@ test('workflow fallback and bypass both require a successful owner; no publicati
     }
   }
 });
+test('deploy explicitly survives skipped ancestors and requires successful build without cancellation', () => {
+  const deploy = readFileSync(new URL('../../.github/workflows/deploy.yml', import.meta.url), 'utf8');
+  const job = deploy.slice(deploy.indexOf('\n  deploy:\n'));
+  assert.match(job, /needs: build\n    if: always\(\) && !cancelled\(\) && needs.build.result == 'success'/);
+  const expression = job.match(/^[ \t]+if: (.+)$/m)[1];
+  const evaluate = (build, cancelled) => Function('return ' + expression.replace('always()', 'true').replace('cancelled()', String(cancelled)).replace('needs.build.result', JSON.stringify(build)))();
+  for (const ancestor of ['success', 'failure', 'skipped', 'cancelled']) for (const build of ['success', 'failure', 'skipped', 'cancelled'])
+    for (const cancelled of [true, false]) {
+      const shouldRun = evaluate(build, cancelled);
+      assert.equal(shouldRun, build === 'success' && !cancelled, `${ancestor}/${build}/${cancelled}`);
+    }
+});

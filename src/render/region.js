@@ -15,7 +15,8 @@ import { residentTool } from './districts.js';
 import { loadCity } from './city.js';
 import { loadTownKit } from './town-kit.js';
 import { disposeObject } from './dispose.js';
-import { beginRegion, useRegion } from './region-shift.js';
+import { beginRegion, useRegion, regionShift } from './region-shift.js';
+import { runCitySteps, cityAbortError } from './city-work.js';
 import { toon } from './toon.js';
 import { glowTexture } from './vfx.js';
 
@@ -110,6 +111,13 @@ export function* regionSteps(view, world) {
   }
   region.chimneys = world.boxes.filter((b) => b.type === 'house' && !b.kit).map((b) => new THREE.Vector3(b.x, world.groundY(b.x, b.z) + 4.9, b.z));
 
+  const importAbort = new AbortController();
+  region.importAbort = importAbort;
+  region.importedStatus = 'loading';
+  const resumeImport = fn => {
+    const previous = regionShift(); useRegion(shift);
+    try { return fn(); } finally { useRegion(previous); }
+  };
   // Imported kits load in the background; a region disposed meanwhile drops them.
   const keep = (obj) => {
     if (region.disposed) {
@@ -122,28 +130,47 @@ export function* regionSteps(view, world) {
     recompose(obj);
     return true;
   };
-  region.ready = loadCity(world)
-    .then((city) => {
-      if (!city || region.disposed) return city && disposeObject(city.root);
-      useRegion(shift);
-      region.cityRoot = city.root;
-      region.stats.city = city.stats;
-      // One bake from actual native hulls and imported foundations/piles.
-      const start = performance.now();
-      nativeContacts.add(city.root);
-      const water = createWater(world, nativeContacts);
-      nativeContacts.remove(city.root);
-      keep(city.root);
-      keep(water);
-      city.stats.waterContactMs = performance.now() - start;
-      city.stats.waterContactSections = water.userData.contactSections;
+  region.ready = loadCity(world, {
+    signal: importAbort.signal, shift,
+    onState: state => { if (!region.disposed) region.importedStatus = state; },
+  })
+    .then(async (city) => {
+      if (!city) return;
+      if (region.disposed) { city.dispose(); return; }
+      // Own the staged result even if cancellation precedes its first queue turn.
+      region.cityDispose = city.dispose;
+      let water;
+      try {
+        await runCitySteps((function* () {
+          const start = performance.now();
+          nativeContacts.add(city.root);
+          try { water = createWater(world, nativeContacts); }
+          finally { nativeContacts.remove(city.root); }
+          city.stats.waterContactMs = performance.now() - start;
+          city.stats.waterContactSections = water.userData.contactSections;
+          yield; // installation gets its own opportunity after the contact bake
+          if (region.disposed) throw cityAbortError();
+          keep(city.root); keep(water);
+          region.cityRoot = city.root; region.stats.city = city.stats;
+        })(), { signal: importAbort.signal, resume: resumeImport, stats: city.stats.installation = {} });
+      } catch (error) { city.dispose(); disposeObject(water); throw error; }
     })
-    .then(() => loadTownKit(world))
+    .then(() => region.disposed ? null : resumeImport(() => loadTownKit(world)))
     .then((kit) => {
       if (kit && keep(kit.root)) {
         region.townKitRoot = kit.root;
         region.stats.townKit = kit.stats;
       }
+      region.importedStatus = region.disposed ? 'cancelled' : 'imported-ready';
+      return { status: region.importedStatus };
+    })
+    .catch(error => {
+      if (region.disposed && error.name === 'AbortError') {
+        region.importedStatus = 'cancelled';
+        return { status: 'cancelled' };
+      }
+      region.importedStatus = 'error'; region.importError = error;
+      throw error; // preserve observable errors; never hide render/shader exceptions
     });
   return region;
 }
@@ -188,7 +215,11 @@ function recompose(obj) {
 }
 
 export function disposeRegion(region) {
+  if (region.disposed) return; // a late old cleanup must not evict a re-entered lifetime
   region.disposed = true;
+  region.importedStatus = 'cancelled';
+  region.importAbort?.abort();
+  region.cityDispose?.();
   region.root.removeFromParent();
   for (const n of region.npcs) n.scarf?.mesh?.removeFromParent();
   disposeObject(region.root);

@@ -14,6 +14,47 @@ export function afterPaint(run) {
   return () => { stopped = true; if (frame !== null) cancelAnimationFrame(frame); clearTimeout(timer); };
 }
 
+// Hidden initial construction can advance between UI frames, but must yield to
+// browser tasks rather than monopolising the microtask checkpoint.
+export function afterTask(run) {
+  let stopped = false;
+  const timer = setTimeout(() => { if (!stopped) run(); }, 0);
+  return () => { stopped = true; clearTimeout(timer); };
+}
+
+const startupScheduling = new WeakMap();
+export function useStartupTaskScheduling(queue) {
+  let state = startupScheduling.get(queue);
+  if (!state) {
+    state = { owners: 0, schedule: queue.schedule, fallback: null };
+    startupScheduling.set(queue, state);
+    queue.schedule = afterTask;
+    // Keep the already-requested first paint opportunity. If rAF is withheld
+    // (e.g. a background tab), this one-shot task can take over that exact handle.
+    // The delay requests an opportunity, not a guaranteed paint or time limit.
+    const pending = queue.scheduled;
+    if (pending) state.fallback = setTimeout(() => {
+      if (startupScheduling.get(queue) !== state || queue.scheduled !== pending) return;
+      queue.scheduled = null; pending(); queue.wake();
+    }, 16);
+    else queue.wake();
+  }
+  state.owners++;
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (--state.owners) return;
+    startupScheduling.delete(queue);
+    clearTimeout(state.fallback);
+    const pending = queue.scheduled;
+    queue.scheduled = null;
+    pending?.();
+    queue.schedule = state.schedule;
+    queue.wake();
+  };
+}
+
 export function cancelledBuild() {
   const error = new Error('Region construction cancelled'); error.name = 'AbortError'; return error;
 }

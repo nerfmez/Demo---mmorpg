@@ -1,64 +1,19 @@
-name: PR80 hosted real-game correctness (one shot)
+name: PR80 temporary test work (closed)
+
+# Completed hosted real-game correctness run: 37409938954.
+# Tested workflow/source commit: 409b3a9a258af012020536cd6ed86a7777348bbb.
+# The runnable workflow and evidence remain in that commit and its Actions artifact.
+# No push, schedule, pull_request, workflow_run, retry or deployment trigger remains.
 on:
-  push:
-    branches: [bench/pr80-manual-20261006]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: pr80-manual-benchmark-only
   cancel-in-progress: false
 jobs:
-  actual-game:
-    if: >-
-      github.event_name == 'push' &&
-      github.event.head_commit.message == '[pr80-live-check:20261006-032604]' &&
-      github.repository == 'nerfmez/Demo---mmorpg' &&
-      github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
-      github.event.repository.private == false && github.run_attempt == 1
+  closed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    env:
-      EVIDENCE: /tmp/pr80-hosted-${{ github.run_id }}
-      LIBGL_ALWAYS_SOFTWARE: '1'
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Source boundary and anonymous host access; stop on protection
-        timeout-minutes: 3
-        run: |
-          set -euo pipefail
-          mkdir -p "$EVIDENCE"
-          git diff --exit-code ddb76865282992bf44d468328ec85423578fa9a6 HEAD -- src data public package.json package-lock.json vite.config.js tools/perf tools/device-test/ui.mjs tools/device-test/index.html tools/device-test/package.mjs
-          printf 'sha=%s\nrun=%s\nattempt=%s\nrunner=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$RUNNER_NAME" > "$EVIDENCE/source.txt"
-          cp .github/workflows/pr80-benchmark-manual.yml "$EVIDENCE/workflow.yml"
-          cp tools/device-test/live-check.mjs "$EVIDENCE/live-check.mjs"
-          node --check tools/device-test/live-check.mjs
-          node tools/device-test/live-check.mjs --preflight 2>&1 | tee "$EVIDENCE/preflight.log"
-      - name: Install only the existing pinned browser dependencies
-        timeout-minutes: 10
-        run: |
-          set -euo pipefail
-          npm ci 2>&1 | tee "$EVIDENCE/install.log"
-          ./node_modules/.bin/playwright install --with-deps chromium webkit 2>&1 | tee "$EVIDENCE/browsers.log"
-      - name: Verify all hosted assets and actual A and B games in both engines
-        timeout-minutes: 35
-        run: |
-          set -euo pipefail
-          node tools/device-test/live-check.mjs 2>&1 | tee "$EVIDENCE/live.log"
-      - name: Preserve actual results and failures; no retry or deployment
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr80-hosted-real-game-${{ github.sha }}-${{ github.run_id }}
-          path: ${{ env.EVIDENCE }}/
-          if-no-files-found: error
-          retention-days: 1
+      - run: echo 'Closed after actual A/B hosted game verification; no automatic work is scheduled.'

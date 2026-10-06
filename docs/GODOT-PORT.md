@@ -708,3 +708,17 @@ The 30 bridge nodes appear on both endpoint pages but are owned/charged only onc
 Search, prerequisite navigation and chapter navigation use display groups without
 rewriting game data. Captions and touch targets set a readable minimum camera zoom;
 long forks/mastery pages pan vertically instead of squeezing three lines together.
+
+
+
+### Skill and mod upgrade services (2026-10-06)
+
+`Game.nearby().skillUpgrade` accepts the current map's workbench, trainer and
+optional additional `town.skillUpgradeStations` coordinates, within the same
+interaction radius. Azure's extra station is the actual `AC_Craft_Workshop_050`
+entrance from the approved city entries, not a decorative work table. It does
+not accept the town or safe zone as a whole. Growth cards, buttons and both
+action handlers use this service predicate; blocked cards show the location
+reason beside the button. Stat/material/gold requirements are unchanged.
+Equipment enhancement/promotion and crafting still use the original workbench
+gate. Port the service anchors and `tests/core/upgrade-services.test.js`.

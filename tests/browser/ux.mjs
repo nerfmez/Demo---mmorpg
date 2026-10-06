@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
+import { verifyUpgradeServices } from './upgrade-service-checks.mjs';
+import { enterFullscreenGate } from './fullscreen-entry.mjs';
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
@@ -228,6 +230,13 @@ try {
       assert.ok(await page.locator('#atelier .inventory-grid').isVisible(),'selling the last stack returns to the empty bag');
       await activate('.panel-close');
     }
+    await verifyUpgradeServices(page, { activate, touch, capture: shot, reload: async () => {
+      const url = new URL(page.url()); url.searchParams.delete('fresh');
+      await page.goto(url.href); await enterFullscreenGate(page);
+      await activate('[data-act="continue"]');
+      await page.waitForFunction(() => __frontier.game?.time > .3 && document.getElementById('loading').classList.contains('done'), null, { timeout: 60000 });
+      await page.evaluate(() => { __frontier.paused = true; });
+    } });
     assert.deepEqual(errors, [], `${name}: page errors`);
     console.log(`ok ${name}: HUD, persistent close, crafting, gear comparison/equip, sockets, empty skill slot, interrupted input`);
     await ctx.close();

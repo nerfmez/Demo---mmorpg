@@ -507,12 +507,22 @@ export class Game {
   nearby() {
     const p = this.player;
     const t = this.data.world.town;
+    const workbench = dist(p.x, p.z, t.workbench[0], t.workbench[1]) < INTERACT_RADIUS;
+    const trainer = dist(p.x, p.z, t.trainer[0], t.trainer[1]) < INTERACT_RADIUS;
+    // Skill/mod training also accepts the real craft workshop; scenery tables are not services.
+    let skillUpgrade = workbench || trainer;
+    const upgradeStations = t.skillUpgradeStations;
+    for (let i = 0; !skillUpgrade && i < (upgradeStations?.length || 0); i++) {
+      const [x, z] = upgradeStations[i];
+      skillUpgrade = dist(p.x, p.z, x, z) < INTERACT_RADIUS;
+    }
     const wp = this.world.waypoints.find((w) => dist(p.x, p.z, w.x, w.z) < WAYPOINT_RADIUS && this.isWaypointUnlocked(w.id));
     const exit = this.world.exits.find((e) => dist(p.x, p.z, e.x, e.z) < e.r && this.data.maps?.[e.to]);
     return {
       exit: exit ? exit.id : null,
-      workbench: dist(p.x, p.z, t.workbench[0], t.workbench[1]) < INTERACT_RADIUS,
-      trainer: dist(p.x, p.z, t.trainer[0], t.trainer[1]) < INTERACT_RADIUS,
+      workbench,
+      trainer,
+      skillUpgrade,
       shop: !!t.shop && dist(p.x, p.z, t.shop[0], t.shop[1]) < INTERACT_RADIUS,
       waypoint: wp ? wp.id : null,
       inTown: this.isSafe(p.x, p.z),

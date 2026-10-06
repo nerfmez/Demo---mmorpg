@@ -14,10 +14,10 @@ const manifests=Object.fromEntries(Object.entries(dirs).map(([k,d])=>[k,JSON.par
 for(const k of Object.keys(SHAS))assert.equal(manifests[k].source,SHAS[k]);
 for(const field of ['overlaySha256','recorderSha256'])assert.equal(manifests.baseline[field],manifests.candidate[field]);
 assert.equal(manifests.baseline.overlaySha256,'a15bb578723c1e5246abf73a83d9fa534ef3099c49a4061f283e0a68a226bae1');
-assert.equal(manifests.baseline.recorderSha256,'e0b556b9cae76ae63d057d096d715ca5b0d91665a31dcb6da67532a7419aa436');
+assert.equal(manifests.baseline.recorderSha256,sha(readFileSync(join(here,'../perf/recorder.mjs'))));
 assert.equal(readFileSync(join(dirs.baseline,'package-lock.json'),'utf8'),readFileSync(join(dirs.candidate,'package-lock.json'),'utf8'));
 mkdirSync(out,{recursive:true});
-const kit={schema:1,sources:SHAS,wrapperCommit:process.env.GITHUB_SHA||null,buildRun:process.env.GITHUB_RUN_ID||null,createdAt:new Date().toISOString(),overlaySha256:manifests.baseline.overlaySha256,recorderSha256:manifests.baseline.recorderSha256,uiSha256:sha(readFileSync(join(here,'ui.mjs'))),mode:'manual-device-test',normalGameDeployed:false,defaults:{seed:4,quality:'medium',dynres:0,streamBudget:6},runtimeVerified:false};
+const kit={schema:1,sources:SHAS,wrapperCommit:process.env.GITHUB_SHA||null,buildRun:process.env.GITHUB_RUN_ID||null,createdAt:new Date().toISOString(),overlaySha256:manifests.baseline.overlaySha256,recorderSha256:manifests.baseline.recorderSha256,uiSha256:sha(readFileSync(join(here,'ui.mjs'))),mode:'manual-device-test',diagnostic:'B3-D1',normalGameDeployed:false,defaults:{seed:4,quality:'medium',dynres:0,streamBudget:6},runtimeVerified:false};
 for(const [k,d] of Object.entries(dirs)){
  assert.deepEqual(JSON.parse(readFileSync(join(d,'dist/profile-source.json'))),manifests[k]);
  cpSync(join(d,'dist'),join(out,k),{recursive:true});

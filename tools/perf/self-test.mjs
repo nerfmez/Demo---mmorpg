@@ -84,3 +84,66 @@ test('phase changes do not relabel later first frames as initial startup',()=>{
  p.installView(View);const v=new View();advance(5);v.render();p.phase('next');advance(10);v.render();
  assert.equal(p.snapshot().frames[0].firstRenderDelayMs,5);assert.equal(p.snapshot().frames[1].firstRenderDelayMs,null);
 });
+
+// B3 diagnostics: controlled doubles validate observation, NOT physical iPad reproduction.
+import {installWebGLDiagnostics} from './recorder.mjs';
+function glFixture(){
+ const f=fixture(1000), storage=new Map();let time=0,calls=0,interval=null;
+ class Canvas extends EventTarget{constructor(){super();this.isConnected=true;this.gl=null;}getContext(){calls++;return this.gl;}}
+ const realm=new EventTarget();Object.assign(realm,{HTMLCanvasElement:Canvas,WeakRef,crypto:{randomUUID:()=> 'unit-doc'},
+  performance:{now:()=>time,timeOrigin:1000},document:Object.assign(new EventTarget(),{hidden:false,querySelectorAll:()=>[]}),
+  location:{pathname:'/candidate/'},sessionStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},
+  setInterval:fn=>{interval=fn;return 1;},clearInterval:()=>{interval=null;}});
+ const canvas=new Canvas();let lost=false;const nativeShader={};
+ const gl={canvas,drawingBufferWidth:1180,drawingBufferHeight:663,isContextLost:()=>lost,
+  createShader:()=>nativeShader,shaderSource(shader){if(shader!==nativeShader)throw new TypeError('unit invalid shader');},deleteShader(){},
+  createTexture:()=>({}),deleteTexture(){}};canvas.gl=gl;
+ const d=installWebGLDiagnostics(f.p,realm,{limit:50});
+ return {...f,realm,canvas,gl,d,nativeShader,storage,get calls(){return calls;},setLost:v=>{lost=v;},step:n=>{time+=n;f.advance(n);},poll:()=>interval?.()};
+}
+test('diagnostic observer never creates a WebGL context while collecting state',()=>{
+ const f=glFixture();assert.equal(f.calls,0);f.d.snapshot();assert.equal(f.calls,0);
+ assert.equal(f.canvas.getContext('webgl2'),f.gl);assert.equal(f.calls,1);f.d.snapshot();assert.equal(f.calls,1);f.d.disposeObserver();
+});
+test('shaderSource keeps original exception and includes timestamp stack and context state',()=>{
+ const f=glFixture();f.canvas.getContext('webgl2');f.step(7);f.gl.createShader(35633);
+ assert.throws(()=>f.gl.shaderSource(null,'shader text'),/unit invalid shader/);
+ const error=f.p.snapshot().errors.find(e=>e.where==='gl.shaderSource');assert.equal(error.at,7);assert.match(error.stack,/shaderSource/);
+ assert.equal(error.argumentKind,'null');assert.equal(error.state.isContextLost,false);
+ assert.equal(f.d.snapshot().faults.length,1);f.d.disposeObserver();
+});
+test('context lost and restored are observed without cancelling events or forcing recovery',()=>{
+ const f=glFixture();f.canvas.getContext('webgl2');f.setLost(true);
+ const event=new Event('webglcontextlost',{cancelable:true});f.canvas.dispatchEvent(event);
+ assert.equal(event.defaultPrevented,false);assert.equal(f.d.snapshot().contexts[0].isContextLost,true);
+ assert(f.p.snapshot().errors.some(e=>e.where==='webglcontextlost'));
+ f.setLost(false);f.canvas.dispatchEvent(new Event('webglcontextrestored'));
+ assert.equal(f.d.snapshot().contexts[0].generation,1);f.d.disposeObserver();
+});
+test('resource timeline does not delete resources during diagnostic sampling',()=>{
+ const f=glFixture();f.canvas.getContext('webgl2');const shader=f.gl.createShader(35633);f.d.snapshot();
+ assert.equal(f.d.snapshot().contexts[0].counts.Shader.deletedCalls,0);
+ f.gl.deleteShader(shader);assert.equal(f.d.snapshot().contexts[0].counts.Shader.deletedCalls,1);f.d.disposeObserver();
+});
+test('View errors are still thrown, failed frames are not labelled completed and stall is visible',()=>{
+ const f=glFixture();const failure=Error('render test failure');let fail=false;
+ const info={render:{calls:0,triangles:0},memory:{geometries:0,textures:0},reset(){}};
+ class View{constructor(){this.renderer={info};this.neighbours=new Map();}render(){if(fail)throw failure;}updateStreaming(){}switchRegion(){}}
+ f.p.installView(View);const view=new View();f.step(10);view.render();fail=true;f.step(5);
+ assert.throws(()=>view.render(),e=>e===failure);f.step(3000);f.poll();
+ assert.equal(f.p.snapshot().frames.at(-1).status,'error');assert.equal(f.p.snapshot().frameHealth.lastCompletedFrameAt,10);
+ assert.equal(f.d.snapshot().stall.lastAttempt.status,'error');f.d.disposeObserver();
+});
+test('streaming exceptions no longer receive a false ok span',()=>{
+ const {p}=fixture();class View{constructor(){this.neighbours=new Map();}updateStreaming(){throw Error('stream');}render(){}switchRegion(){}}p.installView(View);
+ assert.throws(()=>new View().updateStreaming(),/stream/);assert.equal(p.snapshot().events.at(-1).status,'error');
+});
+test('same-tab pagehide preserves persisted flag without claiming GPU reclamation',()=>{
+ const f=glFixture();f.canvas.getContext('webgl2');const e=new Event('pagehide');Object.defineProperty(e,'persisted',{value:true});f.realm.dispatchEvent(e);
+ assert.equal(JSON.parse(f.storage.get('pr80-gl-diagnostics-history-v1')).at(-1).persisted,true);
+ assert.equal(f.d.snapshot().limits.previousDocumentGPUReclamation,'not-observable');f.d.disposeObserver();
+});
+test('diagnostic extension never asks for forced context loss, GPU errors or recovery',()=>{
+ const s=readFileSync(new URL('./recorder.mjs',import.meta.url),'utf8');
+ assert.doesNotMatch(s,/\.forceContextLoss\s*\(|\.loseContext\s*\(|\.getError\s*\(|\.preventDefault\s*\(/);
+});

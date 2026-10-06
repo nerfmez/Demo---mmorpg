@@ -35,8 +35,8 @@ jobs:
       BASELINE: 1c6d2269d40f5e0524de13c6c5c5b1e2e4e56c0c
       CANDIDATE: 08bf5cbb4bcd7b93f1b466ee88db79f1b347ee24
       INSTRUMENTATION: 293229e0b303a868b1d6d5169a8decec10958205
-      LAB: ${{ runner.temp }}/pr80-profile-${{ github.run_id }}
-      EVIDENCE: ${{ runner.temp }}/pr80-evidence-${{ github.run_id }}
+      LAB: /tmp/pr80-profile-${{ github.run_id }}
+      EVIDENCE: /tmp/pr80-evidence-${{ github.run_id }}
       PERF_QUALITY: medium
       PERF_SOFTWARE_GPU: '1'
     steps:

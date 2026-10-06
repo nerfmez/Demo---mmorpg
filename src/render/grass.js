@@ -121,33 +121,49 @@ export function* bakeGrassSteps(renderer,root,world) {
       void main(){vec3 c=uMode<.5?groundColor(vRoot.xz,vRoot.y,vLight,vDark,vSplat,vCoast,vUp,uWater,vTown):lawnTone(vRoot.xz,vLight,vDark,vTown);
         gl_FragColor=vec4(clamp(c*.5,0.0,1.0),1.0);}`,
     depthTest:false,depthWrite:false,toneMapped:false});
-  const previous=renderer.getRenderTarget();
-  for(const mesh of meshes){
-    const n=mesh.count,height=Math.ceil(n/width),g=mesh.geometry,positions=new Float32Array(n*3),roots=new Float32Array(n*3);
-    for(let i=0;i<n;i++){
-      positions.set([((i%width)+.5)/width,(Math.floor(i/width)+.5)/height,0],i*3);
-      mesh.getMatrixAt(i,m4);p.setFromMatrixPosition(m4).applyMatrix4(mesh.matrixWorld);roots.set([p.x,p.y,p.z],i*3);
+  const clearColor=new THREE.Color();
+  try {
+    for(const mesh of meshes){
+      const n=mesh.count,height=Math.ceil(n/width),g=mesh.geometry,positions=new Float32Array(n*3),roots=new Float32Array(n*3);
+      for(let i=0;i<n;i++){
+        positions.set([((i%width)+.5)/width,(Math.floor(i/width)+.5)/height,0],i*3);
+        mesh.getMatrixAt(i,m4);p.setFromMatrixPosition(m4).applyMatrix4(mesh.matrixWorld);roots.set([p.x,p.y,p.z],i*3);
+      }
+      // Another consumer may render between yields. Snapshot its state per chunk,
+      // and restore it even if rendering/readback throws. Never hold a target open.
+      const previous=renderer.getRenderTarget(),clearAlpha=renderer.getClearAlpha();
+      renderer.getClearColor(clearColor);
+      const points=new THREE.BufferGeometry();
+      let cloud,target;
+      try {
+        points.setAttribute('position',new THREE.BufferAttribute(positions,3));points.setAttribute('aRoot',new THREE.BufferAttribute(roots,3));
+        for(const k of ['aGrassLight','aGrassDark','aGrassNormal','aGrassSplat','aGrassCoast','aGrassY','aGrassTown'])points.setAttribute(k,new THREE.BufferAttribute(g.attributes[k].array,g.attributes[k].itemSize));
+        cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
+        target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false});
+        const pixels=new Uint8Array(width*height*4);
+        for(const [mode,name] of [[0,'aGrassBase'],[1,'aGrassLawn']]){
+          material.uniforms.uMode.value=mode;
+          renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
+          renderer.readRenderTargetPixels(target,0,0,width,height,pixels);
+          const out=new Uint8Array(n*3);
+          for(let i=0;i<n;i++)out.set(pixels.subarray(i*4,i*4+3),i*3);
+          g.setAttribute(name,new THREE.InstancedBufferAttribute(out,3,true));
+        }
+      } finally {
+        renderer.setRenderTarget(previous);
+        renderer.setClearColor(clearColor,clearAlpha);
+        if(cloud)scene.remove(cloud);
+        points.dispose();target?.dispose();
+      }
+      // only what the blade shader still reads stays on the GPU
+      for(const k of ['aGrassLight','aGrassDark','aGrassSplat','aGrassCoast','aGrassTown'])g.deleteAttribute(k);
+      prepareGrassCulling(mesh);
+      yield;
     }
-    const points=new THREE.BufferGeometry();
-    points.setAttribute('position',new THREE.BufferAttribute(positions,3));points.setAttribute('aRoot',new THREE.BufferAttribute(roots,3));
-    for(const k of ['aGrassLight','aGrassDark','aGrassNormal','aGrassSplat','aGrassCoast','aGrassY','aGrassTown'])points.setAttribute(k,new THREE.BufferAttribute(g.attributes[k].array,g.attributes[k].itemSize));
-    const cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
-    const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false}),pixels=new Uint8Array(width*height*4);
-    for(const [mode,name] of [[0,'aGrassBase'],[1,'aGrassLawn']]){
-      material.uniforms.uMode.value=mode;
-      renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
-      renderer.readRenderTargetPixels(target,0,0,width,height,pixels);
-      const out=new Uint8Array(n*3);
-      for(let i=0;i<n;i++)out.set(pixels.subarray(i*4,i*4+3),i*3);
-      g.setAttribute(name,new THREE.InstancedBufferAttribute(out,3,true));
-    }
-    scene.remove(cloud);points.dispose();target.dispose();
-    // only what the blade shader still reads stays on the GPU
-    for(const k of ['aGrassLight','aGrassDark','aGrassSplat','aGrassCoast','aGrassTown'])g.deleteAttribute(k);
-    prepareGrassCulling(mesh);
-    renderer.setRenderTarget(previous);
-    yield;
+    return meshes.length;
+  } finally {
+    // The wrapper in region.js forwards cancellation here as well as exceptions.
+    // Shader uniforms reference shared ground textures; do not dispose those here.
+    material.dispose();
   }
-  renderer.setRenderTarget(previous);material.dispose();
-  return meshes.length;
 }

@@ -25,11 +25,27 @@ export function* regionSteps(view, world) {
   root.name = 'region-' + world.data.id;
   const region = { world, shift, root, npcs: [], npcMarkers: [], fires: [], chimneys: [], grass: [], waypointStones: new Map(), disposed: false, ready: null, stats: {} };
 
+  // Until the generator returns, it owns every completed section. Closing a
+  // streaming build must unwind nested GPU work before releasing its map cache.
+  let completed = false;
+  try {
+    const result = yield* populateRegion(view, region);
+    completed = true;
+    return result;
+  } finally {
+    if (!completed) disposeRegion(region);
+  }
+}
+
+function* populateRegion(view, region) {
+  const { world, shift, root } = region;
   region.terrain = yield* inRegion(shift, terrainSteps(world));
   root.add(region.terrain.group);
   yield;
   useRegion(shift); // another build may have run in between
   const env = yield* inRegion(shift, environmentSteps(world));
+  // Adopt before the first grass bake: it uploads attributes while we yield.
+  root.add(env.root);
   yield;
   useRegion(shift); // another build may have run in between
   // Keep only authored native hull/pile contact roots before batching moves
@@ -54,7 +70,6 @@ export function* regionSteps(view, world) {
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
   region.staticBatch = batchStatic(env.root, { exclude: [...(env.waypoints?.values?.() || [])] });
-  root.add(env.root);
   env.root.traverse((o) => o.userData.grassCulling && region.grass.push(o));
   region.waypointStones = env.waypoints;
   yield;
@@ -138,7 +153,7 @@ export function* regionSteps(view, world) {
       city.stats.waterContactMs = performance.now() - start;
       city.stats.waterContactSections = water.userData.contactSections;
     })
-    .then(() => loadTownKit(world))
+    .then(() => region.disposed ? null : loadTownKit(world))
     .then((kit) => {
       if (kit && keep(kit.root)) {
         region.townKitRoot = kit.root;
@@ -150,11 +165,17 @@ export function* regionSteps(view, world) {
 
 // Materials made inside a nested build take this region's shift on every resume.
 function* inRegion(shift, steps) {
-  for (;;) {
-    useRegion(shift);
-    const r = steps.next();
-    if (r.done) return r.value;
-    yield;
+  let completed = false;
+  try {
+    for (;;) {
+      useRegion(shift);
+      const r = steps.next();
+      if (r.done) { completed = true; return r.value; }
+      yield;
+    }
+  } finally {
+    // Manual next() forwarding does not propagate generator.return() by itself.
+    if (!completed) steps.return?.();
   }
 }
 
@@ -188,9 +209,11 @@ function recompose(obj) {
 }
 
 export function disposeRegion(region) {
+  // A late second cleanup must not evict a newer build of the same core world.
+  if (region.disposed) return;
   region.disposed = true;
   region.root.removeFromParent();
-  for (const n of region.npcs) n.scarf?.mesh?.removeFromParent();
+  // NPC scarf meshes are children of root too; leave them attached for disposal.
   disposeObject(region.root);
   releaseGroundCaches(region.world);
 }

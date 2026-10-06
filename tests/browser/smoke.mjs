@@ -7,6 +7,7 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
+import { initialUiReady, vrmHeroReady } from './startup-ready.mjs';
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
@@ -87,7 +88,43 @@ async function run(name, contextOpts) {
 
   // ---- a fresh, unsaved game for the rest ----
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=low`);
-  await page.waitForFunction(() => window.__frontier && window.__frontier.game && window.__frontier.game.time > 0.5, null, { timeout: 30000 });
+  try {
+    await page.waitForFunction(initialUiReady, null, { timeout: 30000 });
+  } catch (error) {
+    // Observe only after the readiness failure. Keep its deadline and rethrow
+    // it; diagnostics must never turn failed readiness into a pass.
+    const bounded = async task => {
+      let timer;
+      try { return await Promise.race([task, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('diagnostic snapshot deadline')), 2000); })]); }
+      finally { clearTimeout(timer); }
+    };
+    const snapshot = () => bounded(page.evaluate(() => {
+      const f=window.__frontier,v=f?.view,r=v?.region,q=v?.buildQueue,g=f?.game,loading=document.getElementById('loading');
+      return {
+        atMs:performance.now(),hidden:document.hidden,modelsReady:f?.modelsReady,
+        gameTime:g?.time,paused:f?.paused,panelOpen:f?.panels?.isOpen,panelTab:f?.panels?.tab,
+        simulationPaused:!r?.staticReady||!!f?.panels?.isOpen||!!f?.paused||!!f?.fullscreen?.blocked,
+        fullscreen:f?.fullscreen?.snapshot?.(),loadingDone:loading?.classList.contains('done'),loadingText:loading?.textContent,
+        region:{staticReady:r?.staticReady,importedState:r?.importedState,disposed:r?.disposed,error:r?.error?.message,
+          roots:r?.root?.children.map(o=>({name:o.name,children:o.children.length})).slice(0,10)},
+        queue:{scheduled:!!q?.scheduled,running:q?.running,stats:q?.stats,
+          jobs:q?.jobs.map(j=>({label:j.label,state:j.state,stats:j.stats})).slice(0,12)},
+        rendererFrames:v?.renderer?.info?.render?.frame,rafHeartbeat:window.__startupReadinessRaf
+      };
+    })).catch(failure => ({probeError:String(failure)}));
+    const first=await snapshot();
+    try {
+      await bounded(page.evaluate(() => {
+        const heartbeat=window.__startupReadinessRaf={count:0,startedAt:performance.now(),lastAt:null};
+        const tick=time=>{heartbeat.count++;heartbeat.lastAt=time;if(performance.now()-heartbeat.startedAt<1100)requestAnimationFrame(tick);};
+        requestAnimationFrame(tick);
+      }));
+      await page.waitForTimeout(1000);
+    } catch (failure) { console.error('FRESH_STARTUP_DIAGNOSTIC_HEARTBEAT',String(failure)); }
+    const second=await snapshot();
+    console.error('FRESH_STARTUP_DIAGNOSTIC',JSON.stringify({device:name,first,second,errors}));
+    throw error;
+  }
   check(errors.length === 0, `${name}: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.waitForTimeout(800);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-1-beach.png` });
@@ -272,9 +309,9 @@ async function vrmHero() {
     if (m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) errors.push(m.text());
   });
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium&hero=vrm`);
-  await page.waitForFunction(() => window.__frontier && window.__frontier.game && window.__frontier.game.time > 0.5, null, { timeout: 60000 });
+  await page.waitForFunction(initialUiReady, null, { timeout: 60000 });
   // models load in the background; the hero is rebuilt with the VRM body only once it has arrived
-  await page.waitForFunction(() => typeof window.__frontier.view.hero?.setFace === 'function', null, { timeout: 60000 }).catch(() => {});
+  await page.waitForFunction(vrmHeroReady, null, { timeout: 60000 });
   const info = await page.evaluate(async () => {
     const { game, view } = window.__frontier;
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));

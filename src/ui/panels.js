@@ -613,7 +613,7 @@ export class Panels {
         g.player.movement.rechargeT = 0;
         return this.changed();
       case 'skill-up':
-        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่ออัปเลเวล');
+        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
         r = upgradeSkill(ch, data, t.dataset.skill);
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
         return this.changed();
@@ -678,7 +678,7 @@ export class Panels {
         this.lastResult='เลื่อนเกรดสำเร็จ · ออฟชั่นเดิมอยู่ครบ และสุ่มเพิ่มแล้ว'+(r.unequipped.length?' · สเตตัสไม่ถึง เก็บไว้ในกระเป๋า':'');
         return this.changed();
       case 'mod-up':
-        if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่ออัปเลเวล');
+        if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');
         r = upgradeMod(ch, data, Number(t.dataset.uid));
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
         return this.changed();

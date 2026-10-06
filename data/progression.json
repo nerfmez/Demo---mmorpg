@@ -106,7 +106,7 @@
     "jobGoldPerLevel": 12
   },
   "skillUpgrade": {
-    "_doc": "Skill crystals + gold raise skill rank at the workbench, at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",
+    "_doc": "Skill crystals + gold raise skill rank at a workbench or trainer (including town.skillUpgradeStations), at any character level (only the stat requirement and the materials gate a rank). balanceLevel is not a gate: it is the level the balance model assumes a hero reaches each rank. Mods remain the source of behaviour changes. No failure or destruction.",
     "maxLevel": 5,
     "perLevel": 0.06,
     "manaPerLevel": 0.05,

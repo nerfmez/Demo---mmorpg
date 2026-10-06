@@ -1,15 +1,10 @@
 name: PR80 manual benchmark (temporary)
 
-# Intentionally manual-only: no push, pull_request, schedule or workflow_run trigger.
-# This new workflow is not bootstrapped through main or an automatic event.
+# One owner-authorized push, restricted to this branch and the exact commit marker below.
+# No schedule, pull_request, workflow_run, or automatic retry trigger.
 on:
-  workflow_dispatch:
-    inputs:
-      confirm:
-        description: Run the pinned PR80 benchmark once on a standard public-repo runner
-        required: true
-        type: boolean
-        default: false
+  push:
+    branches: [bench/pr80-manual-20261006]
 
 permissions:
   contents: read
@@ -22,7 +17,8 @@ jobs:
   benchmark:
     name: Both engines and all AB-BA-AB pairs on one runner
     if: >-
-      github.event_name == 'workflow_dispatch' && inputs.confirm == true &&
+      github.event_name == 'push' &&
+      github.event.head_commit.message == '[pr80-benchmark:20261006-022814]' &&
       github.repository == 'nerfmez/Demo---mmorpg' &&
       github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
       github.event.repository.private == false && github.run_attempt == 1

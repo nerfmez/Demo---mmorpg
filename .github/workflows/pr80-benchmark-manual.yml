@@ -1,83 +1,19 @@
-name: PR80 B3 diagnostics real-game check (one shot)
+name: PR80 temporary test work (closed)
+
+# B3-D1 validation attempt 37418189275 stopped before game boot:
+# anonymous source-map GET returned HTTP 403. No retry was requested.
+# Diagnostic source: 97cfaf42a5a9607abccab1872403b2303a9d27d6.
+# Evidence remains in the run artifact. No push or schedule trigger remains.
 on:
-  push:
-    branches: [bench/pr80-manual-20261006]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: pr80-manual-benchmark-only
   cancel-in-progress: false
 jobs:
-  actual-game:
-    if: >-
-      github.event_name == 'push' &&
-      github.event.head_commit.message == '[pr80-b3-check:20261006-045555]' &&
-      github.repository == 'nerfmez/Demo---mmorpg' &&
-      github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
-      github.event.repository.private == false && github.run_attempt == 1
+  closed:
+    if: ${{ false }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    env:
-      EVIDENCE: /tmp/pr80-b3-${{ github.run_id }}
-      LIBGL_ALWAYS_SOFTWARE: '1'
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: 97cfaf42a5a9607abccab1872403b2303a9d27d6
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Source boundary, unit contracts and minimal existing-check extension
-        timeout-minutes: 3
-        run: |
-          set -euo pipefail
-          mkdir -p "$EVIDENCE"
-          git diff --exit-code 456752595105a7b8ce408db0cf65cb0b6ec7f5e7 HEAD -- src data public package.json package-lock.json vite.config.js tools/perf/overlay.mjs tools/device-test/ui.mjs tools/device-test/index.html
-          printf 'diagnostic=%s\nworkflow=%s\nrun=%s\nattempt=%s\nrunner=%s\n' "$(git rev-parse HEAD)" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$RUNNER_NAME" > "$EVIDENCE/source.txt"
-          git show "$GITHUB_SHA:.github/workflows/pr80-benchmark-manual.yml" > "$EVIDENCE/workflow.yml"
-          node --test tools/perf/self-test.mjs 2>&1 | tee "$EVIDENCE/unit.tap"
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('tools/device-test/live-check.mjs')
-          s=p.read_text()
-          def rep(a,b):
-              global s
-              assert s.count(a)==1,(a,s.count(a))
-              s=s.replace(a,b)
-          rep("assert.deepEqual(kit.sources,SHAS);", "assert.deepEqual(kit.sources,SHAS);assert.equal(kit.diagnostic,'B3-D1');assert.equal(kit.recorderSha256,'d1f2b1bfb515489af7a916d0890418641f0fabca24a9eed3e0803a07076d0ecd');")
-          creation="const context=await browser.newContext({viewport:{width:1180,height:820},deviceScaleFactor:1,hasTouch:true,locale:'th-TH',acceptDownloads:true});const page=await context.newPage();"
-          rep(creation, '')
-          rep("  try{for(const [variant,run]", "  "+creation+"\n  try{for(const [variant,run]")
-          rep("assert.equal(data.summary.errors.length,0);", "assert.equal(data.summary.errors.length,0);const gd=data.profile.glDiagnostics;assert.equal(gd?.schema,'pr80-gl-v1');assert(gd.contexts.length>0);assert(gd.contexts.some(c=>c.counts.Shader.created>0));assert(gd.contexts.every(c=>c.isContextLost===false));assert.equal(gd.faults.length,0);assert.equal(data.profile.frameHealth.lastAttempt.status,'ok');result.glDiagnostics={documentId:gd.documentId,contexts:gd.contexts,history:gd.documentHistory,limits:gd.limits,coverage:gd.events.filter(e=>e.type==='coverage-unavailable')};if(variant==='candidate')assert(gd.documentHistory.some(d=>d.type==='pagehide'&&d.path==='/baseline/'),'Previous same-tab document transition was not observed');")
-          rep("result.diagnostic=await state();", "result.diagnostic=await state();await writeFile(join(dir,'profile-at-failure.json'),JSON.stringify(await page.evaluate(()=>window.__streamProfile?.snapshot()??null),null,2));")
-          rep("closing=true;await context.close();await save('results.json',report);", "if(result.ok){await page.locator('#home').click();await page.waitForURL(BASE,{waitUntil:'domcontentloaded'});}closing=true;for(const e of ['request','requestfinished','requestfailed','response','pageerror','console'])page.removeAllListeners(e);await save('results.json',report);")
-          rep("}}finally{await browser.close();}", "}}finally{await context.close();await browser.close();}")
-          p.write_text(s)
-          PY
-          node --check tools/device-test/live-check.mjs
-          cp tools/device-test/live-check.mjs "$EVIDENCE/live-check.mjs"
-          node tools/device-test/live-check.mjs --preflight 2>&1 | tee "$EVIDENCE/preflight.log"
-      - name: Install existing pinned browser dependencies
-        timeout-minutes: 10
-        run: |
-          set -euo pipefail
-          npm ci 2>&1 | tee "$EVIDENCE/install.log"
-          ./node_modules/.bin/playwright install --with-deps chromium webkit 2>&1 | tee "$EVIDENCE/browsers.log"
-      - name: Actual A and B games, same-tab transition, diagnostics and JSON
-        timeout-minutes: 35
-        run: |
-          set -euo pipefail
-          node tools/device-test/live-check.mjs 2>&1 | tee "$EVIDENCE/live.log"
-      - name: Preserve evidence including any failure; no retry or deploy
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr80-b3-diagnostic-${{ github.run_id }}
-          path: ${{ env.EVIDENCE }}/
-          if-no-files-found: error
-          retention-days: 1
+      - run: echo 'Closed; no automatic test or deployment is scheduled.'

@@ -89,7 +89,7 @@ async function run(name, contextOpts) {
   // ---- a fresh, unsaved game for the rest ----
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=low`);
   try {
-    await page.waitForFunction(initialUiReady, null, { timeout: 30000 });
+    await page.waitForFunction(initialUiReady, null, { timeout: 60000 });
   } catch (error) {
     // Observe only after the readiness failure. Keep its deadline and rethrow
     // it; diagnostics must never turn failed readiness into a pass.

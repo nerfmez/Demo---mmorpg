@@ -1,0 +1,177 @@
+name: PR80 manual benchmark (temporary)
+
+# Intentionally manual-only: no push, pull_request, schedule or workflow_run trigger.
+# This new workflow is not bootstrapped through main or an automatic event.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Run the pinned PR80 benchmark once on a standard public-repo runner
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr80-manual-benchmark-only
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    name: Both engines and all AB-BA-AB pairs on one runner
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.confirm == true &&
+      github.repository == 'nerfmez/Demo---mmorpg' &&
+      github.ref == 'refs/heads/bench/pr80-manual-20261006' &&
+      github.event.repository.private == false && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+    env:
+      BASELINE: 1c6d2269d40f5e0524de13c6c5c5b1e2e4e56c0c
+      CANDIDATE: 08bf5cbb4bcd7b93f1b466ee88db79f1b347ee24
+      INSTRUMENTATION: 293229e0b303a868b1d6d5169a8decec10958205
+      LAB: ${{ runner.temp }}/pr80-profile-${{ github.run_id }}
+      EVIDENCE: ${{ runner.temp }}/pr80-evidence-${{ github.run_id }}
+      PERF_QUALITY: medium
+      PERF_SOFTWARE_GPU: '1'
+    steps:
+      - name: Checkout the requested benchmark commit, without persistent credentials
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Record identities and enforce the source boundary
+        id: source
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          mkdir -p "$LAB" "$EVIDENCE/logs" "$EVIDENCE/sources"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          for source in "$BASELINE" "$CANDIDATE" "$INSTRUMENTATION"; do
+            git cat-file -e "$source^{commit}"
+            git show -s --format=fuller "$source"
+          done | tee "$EVIDENCE/sources/commits.txt"
+          test "$(git rev-parse "$CANDIDATE^")" = "$BASELINE"
+          test "$(git rev-parse "$INSTRUMENTATION^")" = "$CANDIDATE"
+          git diff --exit-code "$INSTRUMENTATION" HEAD -- tools/perf
+          test "$(git diff --name-only "$INSTRUMENTATION" HEAD)" = '.github/workflows/pr80-benchmark-manual.yml'
+          git diff --exit-code "$BASELINE" HEAD -- src/core src/main.js src/save.js data public
+          git diff --exit-code
+          sha256sum tools/perf/* | tee "$EVIDENCE/sources/instrumentation.sha256"
+          cp .github/workflows/pr80-benchmark-manual.yml "$EVIDENCE/sources/"
+          printf 'workflow_sha=%s\nrun_id=%s\nrun_attempt=%s\nref=%s\nrunner=%s\nos=%s\narch=%s\nimage=%s\n' \
+            "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_REF" \
+            "$RUNNER_NAME" "$RUNNER_OS" "$RUNNER_ARCH" "${ImageVersion:-unknown}" \
+            | tee "$EVIDENCE/sources/runner.txt"
+          uname -a >> "$EVIDENCE/sources/runner.txt"
+          lscpu >> "$EVIDENCE/sources/runner.txt"
+          printf '%s\n' 'Both engines run sequentially in this one job.' \
+            'Per engine: AB / BA / AB; baseline=1c6d226; candidate=08bf5cb.' \
+            'Pinned existing tools: medium; seed=4; 1180x820; DPR=1; dynres=0; streamBudget=6.' \
+            'Fresh browser process/context per variant; OS caches not purged.' \
+            'Existing harness waits for pendingImports=0 and activeLoads=0 before captures.' \
+            'Navigation deadline remains 30 seconds. No retries; failures remain failures.' \
+            'Software GPU runner; not physical iPad. Counts are not GPU-memory bytes.' \
+            > "$EVIDENCE/sources/settings.txt"
+
+      - name: Node 22 for both variants
+        id: node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the existing harness and export both pinned profiling sources
+        id: prepare
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          node --version | tee "$EVIDENCE/logs/node-version.txt"
+          npm --version | tee "$EVIDENCE/logs/npm-version.txt"
+          node --test tools/perf/self-test.mjs 2>&1 | tee "$EVIDENCE/logs/harness-tests.log"
+          node tools/perf/prepare.mjs "$BASELINE" "$LAB/baseline" 2>&1 | tee "$EVIDENCE/logs/prepare-baseline.log"
+          node tools/perf/prepare.mjs "$CANDIDATE" "$LAB/candidate" 2>&1 | tee "$EVIDENCE/logs/prepare-candidate.log"
+          cmp "$LAB/baseline/package-lock.json" "$LAB/candidate/package-lock.json"
+          cp "$LAB/baseline/profile-source.json" "$EVIDENCE/sources/baseline.json"
+          cp "$LAB/candidate/profile-source.json" "$EVIDENCE/sources/candidate.json"
+
+      - name: Install and profile-build baseline, then candidate, using the same tools
+        id: build
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          for variant in baseline candidate; do
+            (
+              cd "$LAB/$variant"
+              npm ci
+              npm run build -- --mode profile
+              test -s dist/index.html
+              cmp profile-source.json dist/profile-source.json
+            ) 2>&1 | tee "$EVIDENCE/logs/build-$variant.log"
+            (cd "$LAB/$variant/dist" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+              > "$EVIDENCE/sources/build-$variant.sha256"
+          done
+
+      - name: Install the pinned Playwright browsers and standard system dependencies
+        id: browsers
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          cd "$LAB/candidate"
+          npm ls playwright vite three 2>&1 | tee "$EVIDENCE/logs/dependency-versions.log"
+          ./node_modules/.bin/playwright install --with-deps chromium webkit 2>&1 \
+            | tee "$EVIDENCE/logs/browser-install.log"
+
+      - name: Chromium - existing three paired repetitions, 6 ms, imported-ready captures
+        id: chromium
+        timeout-minutes: 65
+        env:
+          BROWSER: chromium
+        run: |
+          set -euo pipefail
+          node tools/perf/run.mjs "$LAB/baseline" "$LAB/candidate" "$EVIDENCE/chromium" 2>&1 \
+            | tee "$EVIDENCE/logs/chromium.log"
+
+      - name: WebKit - same runner, sources, route and three paired repetitions
+        id: webkit
+        timeout-minutes: 65
+        env:
+          BROWSER: webkit
+        run: |
+          set -euo pipefail
+          node tools/perf/run.mjs "$LAB/baseline" "$LAB/candidate" "$EVIDENCE/webkit" 2>&1 \
+            | tee "$EVIDENCE/logs/webkit.log"
+
+      - name: Preserve step outcomes without converting an incomplete run into a pass
+        id: outcomes
+        if: always()
+        timeout-minutes: 2
+        env:
+          STEP_OUTCOMES: ${{ toJSON(steps) }}
+          FINAL_JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE"
+          printf '%s\n' "$STEP_OUTCOMES" > "$EVIDENCE/step-outcomes.json"
+          printf '%s\n' "$FINAL_JOB_STATUS" > "$EVIDENCE/job-status.txt"
+          if [ -d "$GITHUB_WORKSPACE/.git" ]; then
+            git status --porcelain > "$EVIDENCE/source-status.txt"
+          fi
+
+      - name: Upload measurements, screenshots, traces, settings and failure logs only
+        id: artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr80-benchmark-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.EVIDENCE }}/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 6

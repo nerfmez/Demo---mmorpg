@@ -1,6 +1,7 @@
 // Browse and mutate through real controls. Fixtures supply resources, never click results.
 import assert from 'node:assert/strict';
 import {verifyPassiveGestures,journalJump} from './passive-checks.mjs';
+import {verifyEncounterCraft} from './encounter-craft-review.mjs';
 import {freezeScene} from './freeze-scene.mjs';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
@@ -27,6 +28,19 @@ try{
  for(let i=0;;i++){try{if((await fetch(`http://localhost:${port}/`)).ok)break;}catch{}if(i>80)throw Error('preview timeout');await new Promise(r=>setTimeout(r,300));}
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
  const sizes=process.env.QUICK?[['ipad',1180,820,true]]:[['desktop',1440,960,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
+ // Keep the new review fixture in disposable contexts. Never replace the character
+ // object held by the existing loadout controllers in the legacy workspace checks.
+ for(const [size,width,height,touch]of sizes){
+  const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});
+  const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
+  try{
+   if(process.env.OFFLINE_UI){await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:offlineCss});await page.addScriptTag({content:offlineCode});await page.evaluate(()=>document.fonts.ready);}
+   else await page.goto(`http://localhost:${port}/?fresh=1&quality=low&seed=7`);
+   await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});await freezeScene(page);
+   await verifyEncounterCraft(page,{size,width,height,touch,out});
+   assert.deepEqual(errors,[],size+' encounter page errors');console.log('PASS encounter '+name+' '+size);
+  }finally{await ctx.close();}
+ }
  for(const [size,width,height,touch]of sizes){
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1});const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
   if(process.env.OFFLINE_UI){await page.setContent('<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><body><div id="hud"></div></body></html>');await page.addStyleTag({content:offlineCss});await page.addScriptTag({content:offlineCode});await page.evaluate(()=>document.fonts.ready);}else await page.goto(`http://localhost:${port}/?fresh=1&quality=low&seed=7`);await page.waitForFunction(()=>window.__frontier?.game?.time>.2,null,{timeout:60000});await freezeScene(page);

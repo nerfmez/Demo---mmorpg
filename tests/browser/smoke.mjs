@@ -128,7 +128,9 @@ async function run(name, contextOpts) {
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     let casts = 0;
     for (let i = 0; i < 100; i++) {
-      const near = game.monsters.filter((m) => !m.dead && !m.boss && m.zone === 'meadow').sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+      // The meadow also contains slimes. Exercise the boar quest with its actual
+      // target species rather than relying on whichever habitat happens to be nearest.
+      const near = game.monsters.filter((m) => !m.dead && !m.boss && m.zone === 'meadow' && m.type === 'tusk_boar').sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
       if (near) {
         if (Math.hypot(near.x - p.x, near.z - p.z) > 9) {
           // test harness: hop next to the next monster instead of walking

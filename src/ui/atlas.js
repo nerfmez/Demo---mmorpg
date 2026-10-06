@@ -9,7 +9,9 @@ import { discovery, toWorld, worldTotals, waypointUnlocked } from '../core/atlas
 import { encounterLayout, zoneEncounters, encounterLevelLabel } from '../core/encounters.js';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const kindName={normal:'ทั่วไป',elite:'Elite',miniboss:'มินิบอส',boss:'บอส'};
-const monsterColor=m=>/^#[\da-f]{6}$/i.test(m.color||'')?m.color:'#52695b';
+// Presentation-only palette; the monster definitions do not contain a color field.
+const markerColors={salt_slime:'#279bb4',reef_crab:'#d95b36',shore_gull:'#d1aa46',hermit_crab:'#ae7041',tusk_boar:'#b08058',moss_beetle:'#538341',sporecap:'#cd637d',thornback_wolf:'#647b94',marsh_wisp:'#52c6b0',thicket_mantis:'#80a33d',reed_viper:'#648c56',crag_golem:'#8e8272',gale_hawk:'#d39539',ironhorn_ram:'#b9a377',duskmane_stalker:'#9566b9',rune_sentinel:'#658abc',greyfang:'#555d74',horned_warden:'#a55143'};
+const monsterColor=id=>markerColors[id]||'#52695b';
 export const atlasKey=(mapId,id)=>mapId+':'+id;
 export function atlasView(ui) {
  const {game:g,sel}=ui, data=g.data, here=data.world.id;
@@ -46,7 +48,7 @@ export function atlasView(ui) {
    for(const p of encounterLayout(w,data)?.points||[]){
      if(!known.includes(p.zone))continue;
      const m=data.monsters.monsters[p.monster],[x,z]=toWorld(data,mapId,p.x,p.z),on=mapId===zoneMap&&p.zone===zone.id;
-     dots+=`<circle data-encounter-pin="${mapId}:${p.monster}" data-zone="${atlasKey(mapId,p.zone)}" cx="${x-image.minX}" cy="${z-image.minZ}" r="${on?2.2:1.5}" fill="${monsterColor(m)}" stroke="white" stroke-width=".7" opacity="${on?1:.55}"><title>${esc(m.nameTh)} · ${encounterLevelLabel([{min:p.level[0],max:p.level[1]}])} · ${esc(p.habitat)}</title></circle>`;
+     dots+=`<circle data-encounter-pin="${mapId}:${p.monster}" data-zone="${atlasKey(mapId,p.zone)}" cx="${x-image.minX}" cy="${z-image.minZ}" r="${on?3.4:1.8}" fill="${monsterColor(p.monster)}" stroke="white" stroke-width=".7" opacity="${on?1:.55}"><title>${esc(m.nameTh)} · ${encounterLevelLabel([{min:p.level[0],max:p.level[1]}])} · ${esc(p.habitat)}</title></circle>`;
    }
    for(const p of w.waypoints){
      const on=found[mapId].waypoints.includes(p.id),picked=wp&&wpAt===mapId&&wp.id===p.id;
@@ -60,7 +62,7 @@ export function atlasView(ui) {
  const creatures=entries.map(entry=>{
    const id=entry.id,m=data.monsters.monsters[id];
    const drops=[...new Map([...m.drops,...zdata.zoneDrops?.[zone.id]||[],...data.items.upgradeMaterialDrops].filter(d=>d.item!=='gold'&&d.chance>0).map(d=>[d.item,d])).values()];
-   return `<article class="creature-entry" data-encounter-entry="${id}" data-encounter-count="${entry.count}" data-level-min="${entry.min}" data-level-max="${entry.max}">${atlasMonsterArt(id)}<div><b><span style="display:inline-block;width:.65em;height:.65em;border-radius:50%;background:${monsterColor(m)};margin-right:.35em"></span>${esc(m.nameTh)}</b><small>${encounterLevelLabel([entry])} · ${kindName[entry.kind]} · ${entry.count} จุดเกิด</small><p class="muted">${esc(entry.habitats.join(' · '))}</p><div class="drop-pictures">${drops.map(d=>`<span title="${esc(data.items.materials[d.item]?.nameTh||d.item)}">${art('material',d.item)}<small>${esc(data.items.materials[d.item]?.nameTh||d.item)}</small></span>`).join('')}</div></div></article>`;
+   return `<article class="creature-entry" data-encounter-entry="${id}" data-encounter-count="${entry.count}" data-level-min="${entry.min}" data-level-max="${entry.max}">${atlasMonsterArt(id)}<div><b><span style="display:inline-block;width:.65em;height:.65em;border-radius:50%;background:${monsterColor(id)};margin-right:.35em"></span>${esc(m.nameTh)}</b><small style="display:block;margin-top:.25em">${encounterLevelLabel([entry])} · ${kindName[entry.kind]} · ${entry.count} จุดเกิด</small><p class="muted">${esc(entry.habitats.join(' · '))}</p><div class="drop-pictures">${drops.map(d=>`<span title="${esc(data.items.materials[d.item]?.nameTh||d.item)}">${art('material',d.item)}<small>${esc(data.items.materials[d.item]?.nameTh||d.item)}</small></span>`).join('')}</div></div></article>`;
  }).join('');
  const services=zone.safe&&zdata.town?`<div class="town-services"><div>${icon('hammer')}<span><b>โต๊ะคราฟต์</b><small>คราฟต์ · ตีบวก · อัปเกรดสกิล</small></span></div><div>${icon('person')}<span><b>ครูฝึก</b><small>ตรวจแต้มและพัฒนาตัวละคร</small></span></div></div>`:'';
  const known=found[zoneMap].zones.includes(zone.id),guide=data.encounters?.maps?.[zoneMap],warning=guide?.warnings?.[zone.id];

@@ -81,10 +81,11 @@ export async function verifyEncounterCraft(page,{size,width,height,touch,out}) {
   await page.locator('.worldmap').scrollIntoViewIfNeeded();await noOverflow();await shot('map-overview');
   await click('[data-act="select-zone"][data-id="frontier-wilds-v1:wetland"]');
   await page.locator('.region-detail').scrollIntoViewIfNeeded();await noOverflow();await shot('map-wetland');
-  report.checks.push('both maps actual normal counts','active simulation vs field guide','safe zones empty','zone selection never teleports','map touch controls and overflow');
+  const colors=await page.locator('[data-encounter-pin]').evaluateAll(nodes=>[...new Set(nodes.map(n=>n.getAttribute('fill')))]);assert.ok(colors.length>1,'species markers must not all use a missing color fallback');
+  report.checks.push('distinct species marker colors','both maps actual normal counts','active simulation vs field guide','safe zones empty','zone selection never teleports','map touch controls and overflow');
   report.ok=true;
  }finally{
-  await page.evaluate(saved=>{const f=__frontier,g=f.game,p=f.panels;p.close();g.ch=saved.ch;Object.assign(g.player,saved.player);p.sel=saved.sel;f.paused=saved.paused;g.refresh();},before);
+  await page.evaluate(saved=>{const f=__frontier,g=f.game,p=f.panels;p.close();for(const key of Object.keys(g.ch))delete g.ch[key];Object.assign(g.ch,saved.ch);Object.assign(g.player,saved.player);for(const key of Object.keys(p.sel))delete p.sel[key];Object.assign(p.sel,saved.sel);f.paused=saved.paused;g.refresh();},before);
   writeFileSync(out+size+'-encounter-report.json',JSON.stringify(report,null,2));
  }
  return report;

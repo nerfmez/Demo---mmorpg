@@ -1,14 +1,16 @@
 // Focused real Game/Panels test: no WebGL dependency; routes real public PNG bytes.
 import assert from 'node:assert/strict';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
+import {verifyUpgradeServices} from './upgrade-service-checks.mjs';
 import {build} from 'vite';
 import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
-const out=new URL('./out/upgrade-materials/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
+const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+const out=new URL('./out/upgrade-materials-'+engine.name()+'/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
 const result=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'UpgradeIntegration',formats:['iife']}}});
 const code=result[0].output.find(f=>f.type==='chunk').code;
 let css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal','loadout-workspace'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
 for(const w of [400,600])css+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${w}.ttf`,import.meta.url)).toString('base64')});font-weight:${w}}`;
-const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox']});
+const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox']:[]});
 const reports=[];
 try{for(const [label,width,height,touch] of [['desktop',1440,900,false],['ipad',1180,820,true]]){
  const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -27,5 +29,9 @@ try{for(const [label,width,height,touch] of [['desktop',1440,900,false],['ipad',
  await page.evaluate(()=>{__frontier.panels.close();__frontier.panels.open('growth');});await page.locator('[data-act="skill-up"][data-skill="slash"]').scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-skill.png'});await tap('[data-act="skill-up"][data-skill="slash"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.skills.slash),2);assert.equal(await page.evaluate(()=>__frontier.game.ch.materials.skill_crystal),14);
  await tap('[data-act="growth-filter"][data-id="mod"]');await page.locator('[data-act="mod-up"]').first().scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-mod.png'});await tap('[data-act="mod-up"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.mods.find(m=>m.id==='split').level),2);assert.equal(await page.evaluate(()=>__frontier.game.ch.materials.skill_crystal),12);
  await page.evaluate(()=>{__frontier.game.ch.materials.skill_crystal=0;__frontier.panels.render(true);});assert.ok(await page.locator('[data-act="mod-up"]').first().isDisabled());
- assert.deepEqual(errors,[]);reports.push({label,width,height,touch,errors,verified:['512px real PNGs','material source/use','equipment payment','skill payment','mod payment','insufficient crystal disables upgrade']});await context.close();
+ await verifyUpgradeServices(page,{activate:tap,touch,capture:service=>page.screenshot({path:out+label+'-'+service+'-services.png'}),reload:async()=>{
+  await page.reload();await page.addStyleTag({content:css});await page.addScriptTag({content:code});
+  await page.evaluate(()=>{const f=__frontier,saved=JSON.parse(localStorage.getItem('frontier.slot.3'));const g=new f.game.constructor(f.game.data,{character:saved.character,seed:7});f.game=g;f.panels.game=g;});
+ }});
+ assert.deepEqual(errors,[]);reports.push({label,width,height,touch,errors,verified:['512px real PNGs','material source/use','equipment payment','skill payment','mod payment','insufficient crystal disables upgrade','real workbench/trainer/workshop services','Repeat Slash ready/button parity','repeated touch/click atomic payment','close/reopen and reload preservation']});await context.close();
 }writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log(JSON.stringify(reports,null,2));}finally{await browser.close();}

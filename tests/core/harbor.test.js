@@ -40,15 +40,42 @@ test('all active roads are continuous and walkable, with a safe arrival route', 
       for(let t=0;t<=distance;t+=.3) {
         const nx=ax+(bx-ax)*t/distance, nz=az+(bz-az)*t/distance;
         if(world.seamAt(nx,nz,.45))break; // past here the neighbouring map carries the road (maps.test.js)
-        assert.ok(world.isFree(nx,nz,.45), `${road.id} blocked at ${nx},${nz}`);
+        // Player walking opts into open seam apertures; ordinary actors keep
+        // their radius-inset bounds. Handover still waits for the centre plane.
+        assert.ok(world.isFree(nx,nz,.45,{allowSeams:true}), `${road.id} blocked at ${nx},${nz}`);
         assert.ok(!world.tooSteep(x,z,nx,nz),`${road.id} cliff`);
         if(road.id==='arrival') assert.ok(world.isSafe(nx,nz));
-        const moved=world.move(x,z,.45,nx-x,nz-z);
+        const moved=world.move(x,z,.45,nx-x,nz-z,{allowSeams:true});
         assert.ok(Math.hypot(moved.x-nx,moved.z-nz)<.05,`${road.id} movement interrupted`);
         x=nx;z=nz;
       }
     }
   }
+});
+
+test('west-pass player walks the radius band and returns at the same world point', () => {
+  const g=new Game({...data,world:data.world},{world,seed:7}), r=g.player.r;
+  const seam=world.seams.find(s=>s.to==='frontier-wilds-v1');
+  const sample=[-159.7490052542952,-91.89960210171809];
+  assert.equal(world.seamAt(...sample,r),null,'handover does not trigger before the centre plane');
+  assert.equal(world.isFree(...sample,r),false,'ordinary actors retain radius-inset bounds');
+  assert.ok(world.isFree(...sample,r,{allowSeams:true}),'the player can walk the seam approach');
+  const start=[world.bounds.minX+r+.1,seam.gate[1]], delta=[sample[0]-start[0],sample[1]-start[1]];
+  assert.ok(world.move(...start,r,...delta).blocked,'ordinary movement remains inset');
+  const moved=world.move(...start,r,...delta,{allowSeams:true});
+  assert.equal(moved.blocked,false);assert.equal(moved.x,sample[0]);assert.equal(moved.z,sample[1]);
+  const other=createWorld(data.maps[seam.to]);
+  g.worlds={[world.data.id]:world,[other.data.id]:other};g.canCrossSeam=()=>true;
+  [g.player.x,g.player.z]=sample;assert.equal(g.crossSeam(seam).reason,'far');g.input.moveX=seam.outward;
+  for(let i=0;i<120&&!g.travelled;i++)g.update(1/60);
+  assert.equal(g.travelled,other.data.id);assert.equal(g.player.x,world.bounds[seam.edge]);
+  const point=[g.player.x,g.player.z];g.enterWorld(other);
+  const [ox,oz]=other.data.atlas.offset;
+  assert.deepEqual([g.player.x+ox,g.player.z+oz],point,'arrival preserves world coordinates');
+  g.input.moveX=-seam.outward;
+  for(let i=0;i<120&&!g.travelled;i++)g.update(1/60);
+  assert.equal(g.travelled,world.data.id);g.enterWorld(world);
+  assert.deepEqual([g.player.x,g.player.z],point,'reversal preserves the same world point');
 });
 
 test('pier decks support walking over deep water; their sides still block the sea', () => {

@@ -23,8 +23,18 @@ export function createWorld(worldData) {
     for (const zn of zones) for (const r of zn.rects) if (x >= r[0] && x < r[1] && z >= r[2] && z < r[3]) return zn;
     return fallback;
   };
+  // Authored rectangles are half-open. A player exactly on a linked positive
+  // edge still belongs to this map, not the fallback zone. Keep the raw query
+  // above for procedural generation so scenery RNG/heightfield inputs do not change.
+  const queryZoneAt = (x, z = 0) => {
+    for (const seam of worldData.atlas?.seams || []) {
+      if (seam.edge === 'maxX' && x === b.maxX) x -= 1e-7;
+      if (seam.edge === 'maxZ' && z === b.maxZ) z -= 1e-7;
+    }
+    return zoneAt(x, z);
+  };
   const zoneById = (id) => zones.find((q) => q.id === id);
-  const isSafe = (x, z) => !!cityFloorAt(worldData.city, x, z) || !!zoneAt(x, z).safe || (worldData.safeRoutes || []).some(route => distToPolyline(x, z, route.points) < route.width / 2);
+  const isSafe = (x, z) => !!cityFloorAt(worldData.city, x, z) || !!queryZoneAt(x, z).safe || (worldData.safeRoutes || []).some(route => distToPolyline(x, z, route.points) < route.width / 2);
 
   // ---------- roads / water ----------
   const roads = worldData.roads || [];
@@ -265,10 +275,10 @@ export function createWorld(worldData) {
     const along = seam.alongX ? x : z, inside = ((seam.alongX ? z : x) - b[seam.edge]) * -seam.outward;
     return along >= seam.span[0] - (seam.quiet || 0) && along <= seam.span[1] + (seam.quiet || 0) && inside < (seam.quiet || 0);
   });
-  /** The seam a circle at (x,z) is pressed against, or null. */
-  const seamAt = (x, z, r) => seams.find((seam) => {
+  /** Cross at the centre plane, not a radius before it. Closed span ends remain walls. */
+  const seamAt = (x, z, r = 0) => seams.find((seam) => {
     const along = seam.alongX ? x : z, across = seam.alongX ? z : x;
-    return along >= seam.span[0] && along <= seam.span[1] && (across - b[seam.edge]) * seam.outward >= -(r + 0.3);
+    return along >= seam.span[0] + r && along <= seam.span[1] - r && (across - b[seam.edge]) * seam.outward >= -1e-7;
   }) || null;
 
   // ---------- ruins ----------
@@ -491,9 +501,22 @@ export function createWorld(worldData) {
   for (const bx of boxes) addToGrid(bx, bx.x, bx.z, Math.hypot(bx.hx, bx.hz));
   const nearby = (x, z) => grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) || [];
 
+  // Only player walking / a saved seam arrival opts into these apertures.
+  // Monster movement, spawning, teleports and ordinary free-space tests retain
+  // the original radius-inset bounds. Geometry/collider data are unchanged.
+  function movementBounds(x,z,r,allowSeams){
+    const limits={minX:b.minX+r,maxX:b.maxX-r,minZ:b.minZ+r,maxZ:b.maxZ-r};
+    if(allowSeams)for(const seam of seams){
+      const along=seam.alongX?x:z;
+      if(along>=seam.span[0]+r&&along<=seam.span[1]-r)limits[seam.edge]=b[seam.edge];
+    }
+    return limits;
+  }
+
   /** True when a circle of radius r at (x,z) may stand there. */
-  function isFree(x, z, r, { ignoreWater = false } = {}) {
-    if (x < b.minX + r || x > b.maxX - r || z < b.minZ + r || z > b.maxZ - r) return false;
+  function isFree(x, z, r, { ignoreWater = false, allowSeams = false } = {}) {
+    if(!allowSeams){if(x<b.minX+r||x>b.maxX-r||z<b.minZ+r||z>b.maxZ-r)return false;}
+    else {const limits=movementBounds(x,z,r,true);if(x<limits.minX||x>limits.maxX||z<limits.minZ||z>limits.maxZ)return false;}
     if (!ignoreWater && blocksWater(x, z, r * 0.3)) return false;
     for (const o of nearby(x, z)) {
       if (o.hx !== undefined) {
@@ -516,8 +539,9 @@ export function createWorld(worldData) {
 
   /** Move a circle by (dx,dz), sliding along obstacles, water and cliffs. */
   function move(x, z, r, dx, dz, opts = {}) {
-    let nx = clamp(x + dx, b.minX + r, b.maxX - r);
-    let nz = clamp(z + dz, b.minZ + r, b.maxZ - r);
+    const limits=opts.allowSeams?movementBounds(x+dx,z+dz,r,true):null;
+    let nx = clamp(x + dx, limits?.minX??b.minX+r, limits?.maxX??b.maxX-r);
+    let nz = clamp(z + dz, limits?.minZ??b.minZ+r, limits?.maxZ??b.maxZ-r);
     for (let iter = 0; iter < 2; iter++) {
       for (const o of nearby(nx, nz)) {
         if (o.hx !== undefined) {
@@ -559,6 +583,7 @@ export function createWorld(worldData) {
       }
       blocked = true;
     }
+    if(limits){nx=clamp(nx,limits.minX,limits.maxX);nz=clamp(nz,limits.minZ,limits.maxZ);}
     if (Math.abs(nx - (x + dx)) > 1e-3 || Math.abs(nz - (z + dz)) > 1e-3) blocked = true;
     return { x: nx, z: nz, blocked };
   }
@@ -587,7 +612,7 @@ export function createWorld(worldData) {
     data: worldData,
     bounds: b,
     zones,
-    zoneAt,
+    zoneAt: queryZoneAt,
     zoneById,
     isSafe,
     docks,

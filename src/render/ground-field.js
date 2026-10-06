@@ -64,7 +64,7 @@ export function* groundFieldSteps(x0,z0,width,depth,texels,[nox,noz]=[0,0]) {
   const w=Math.ceil(width*texels)+1,h=Math.ceil(depth*texels)+1,n=w*h;
   const f=[new Uint8Array(n*4),new Uint8Array(n*4),new Uint8Array(n*4)];
   const q=v=>Math.max(0,Math.min(255,Math.round(v*255)));
-  for(let j=0;j<h;j++){if(j&&j%48===0)yield;for(let i=0;i<w;i++){
+  for(let j=0;j<h;j++){if(j&&j%4===0)yield;for(let i=0;i<w;i++){
     const x=x0+i/texels+nox,z=z0+j/texels+noz,k=(j*w+i)*4,[cover,worn]=meadowFieldAt(x,z);
     f[0][k]=q(cover);f[0][k+1]=q(worn);f[0][k+2]=q(noiseAt(x,z,.085,13));f[0][k+3]=q(noiseAt(x,z,.47,37));
     f[1][k]=q(noiseAt(x,z,.5,91));f[1][k+1]=q(noiseAt(x,z,.42,71));f[1][k+2]=q(noiseAt(x,z,.11,33));f[1][k+3]=q(noiseAt(x,z,.38,57));

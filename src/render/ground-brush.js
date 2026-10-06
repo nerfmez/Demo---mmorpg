@@ -1,14 +1,16 @@
 // One deterministic paint atlas for the whole ground family, baked once at construction.
 // R = mottled brush tone, G/B = irregular shadow/light grass blades. No external asset/DOM.
 import * as THREE from 'three';
+import {finishSteps} from './build-queue.js';
 import {createRng} from '../core/rng.js';
-let atlas=null,owners=0;
-function bakeBrushes(){
+let atlas=null,owners=0,baking=null,waiting=0;
+function* bakeBrushes(){
   const size=1024,bytes=new Uint8Array(size*size*4),rng=createRng(70921);
-  for(let i=0;i<bytes.length;i+=4){bytes[i]=128;bytes[i+3]=255;}
+  for(let i=0;i<bytes.length;i+=4){if(i&&i%16384===0)yield;bytes[i]=128;bytes[i+3]=255;}
   const index=(x,y)=>(((y%size+size)%size)*size+(x%size+size)%size)*4;
   // Overlapping uneven short brush daubs, not a smooth single-frequency noise wash.
   for(let i=0;i<4600;i++){
+    if(i%16===0)yield;
     const cx=rng.range(0,size),cy=rng.range(0,size),rx=rng.range(3,18),ry=rx*rng.range(.45,1.05),tone=rng.range(83,179);
     for(let y=Math.floor(cy-ry);y<=cy+ry;y++)for(let x=Math.floor(cx-rx);x<=cx+rx;x++){
       const u=(x+.5-cx)/rx,v=(y+.5-cy)/ry,d=u*u+v*v;
@@ -19,6 +21,7 @@ function bakeBrushes(){
   // Short stubble tufts: many small clusters of short tapered marks with gaps, so the lawn has a
   // painted texture without long leaves that read as grass lying flat on the ground.
   for(let tuft=0;tuft<1500;tuft++){
+    if(tuft%8===0)yield;
     const cx=rng.range(0,size),cy=rng.range(0,size),radius=rng.range(5,16),direction=rng.range(-.7,.7);
     const leaves=rng.int(7,15);
     for(let leaf=0;leaf<leaves;leaf++){
@@ -44,12 +47,24 @@ function bakeBrushes(){
   texture.generateMipmaps=true;texture.anisotropy=4;texture.needsUpdate=true;
   return texture;
 }
-export function groundBrushUniform(material){
-  if(!atlas)atlas=bakeBrushes();const texture=atlas;owners++;
-  let released=false;
-  material.addEventListener('dispose',()=>{
-    if(released)return;released=true;
-    if(--owners===0){texture.dispose();atlas=null;}
-  });
-  return {value:texture};
+export const groundBrushUniform=material=>finishSteps(groundBrushUniformSteps(material));
+export function* groundBrushUniformSteps(material){
+  waiting++;let completed=false;
+  try {
+    while(!atlas){
+      baking ||= bakeBrushes();
+      const step=baking.next();
+      if(step.done){atlas=step.value;baking=null;}else yield;
+    }
+    const texture=atlas;owners++;
+    let released=false;
+    material.addEventListener('dispose',()=>{
+      if(released)return;released=true;
+      if(--owners===0){texture.dispose();if(atlas===texture)atlas=null;}
+    });
+    completed=true;return {value:texture};
+  }finally{
+    waiting--;
+    if(!completed&&!waiting&&!owners){baking?.return();baking=null;atlas?.dispose();atlas=null;}
+  }
 }

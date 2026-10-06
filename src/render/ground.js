@@ -3,12 +3,15 @@
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
 import * as THREE from 'three';
+import {finishSteps} from './build-queue.js';
+import {ownsRegionPoint,clipRegionGeometrySteps} from './region-ownership.js';
 import { toBoxLocal, pointInPolygon, distToPolyline } from '../core/math.js';
-import { rasterPolyline, boxBlur, valueNoise } from '../core/terrain.js';
+import { valueNoise } from '../core/terrain.js';
+import {rasterPolylineSteps,boxBlurSteps} from './ground-work.js';
 import { timeUniform } from './patch.js';
-import { bakeWaterContact, ownContactTexture } from './water-contact.js';
+import { waterContactSteps, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
-import { groundBrushUniform } from './ground-brush.js';
+import { groundBrushUniform,groundBrushUniformSteps } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
 import { outsideClearingWeight, outsideRoadVisible } from '../core/ground-regions.js';
@@ -52,6 +55,7 @@ export function* surfaceSteps(world) {
   // Planned town ground (streets, courts, lawns) instead of wild-meadow noise; blurred for the shader.
   const planned = new Float32Array(n), townZones = new Set(art.ground.townZones || []);
   for (let k = 0; k < n; k++) {
+    if(k&&k%1024===0)yield;
     const x = ox + (k % w) * res, z = oz + Math.floor(k / w) * res, b = world.bounds;
     if (x > b.minX && x < b.maxX && z > b.minZ && z < b.maxZ && townZones.has(world.zoneAt(x, z).id)) planned[k] = 1;
   }
@@ -59,7 +63,7 @@ export function* surfaceSteps(world) {
   for (const r of world.roads) {
     if(!outsideRoadVisible(wd.city,r.id))continue;
     const half = r.width / 2;
-    rasterPolyline(grid, r.points, half + 1.5, (k, d) => {
+    yield* rasterPolylineSteps(grid, r.points, half + 1.5, (k, d) => {
       const x=ox+(k%w)*res, z=oz+Math.floor(k/w)*res;
       const worn=((valueNoise(x*.22,z*.22,71)-.5)*.7+(valueNoise(x*.85,z*.85,72)-.5)*.22)*(1-planned[k]*.65);
       road[k] = Math.max(road[k], 1 - smooth(half - .6 + worn, half + 1.05 + worn, d));
@@ -69,16 +73,16 @@ export function* surfaceSteps(world) {
   for(const building of wd.town.buildings) if(building.entryPath||wd.town.styleSlice?.buildingIds.includes(building.id)) {
     const half=building.entryPath?.length? .85:1.2;
     const points=building.entryPath||[[building.x,building.z+building.hz],[building.x,wd.town.centre[1]]];
-    rasterPolyline(grid,points,half+1,(k,d)=>{
+    yield* rasterPolylineSteps(grid,points,half+1,(k,d)=>{
       const x=ox+(k%w)*res,z=oz+Math.floor(k/w)*res;
       const wear=(valueNoise(x*.4,z*.4,77)-.5)*.3;
       road[k]=Math.max(road[k],1-smooth(half-.35+wear,half+.7+wear,d));
     });
   }
-  if(artReviewLayout)rasterPolyline(grid,animeConfig.sample.path,1.6,(k,d)=>{road[k]=Math.max(road[k],1-smooth(.65,1.5,d));});
+  if(artReviewLayout)yield* rasterPolylineSteps(grid,animeConfig.sample.path,1.6,(k,d)=>{road[k]=Math.max(road[k],1-smooth(.65,1.5,d));});
   if (wd.river) {
     const half = wd.river.width / 2;
-    rasterPolyline(grid, wd.river.points, half + 3, (k, d) => {
+    yield* rasterPolylineSteps(grid, wd.river.points, half + 3, (k, d) => {
       mud[k] = Math.max(mud[k], 1 - smooth(half - 0.3, half + 2.4, d));
     });
   }
@@ -86,7 +90,7 @@ export function* surfaceSteps(world) {
   const ruins = wd.ruins;
   const b = world.bounds;
   for (let j = 0; j < h; j++) {
-    if (j && j % 40 === 0) yield;
+    if (j && j % 4 === 0) yield;
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
@@ -170,7 +174,7 @@ export function* surfaceSteps(world) {
     return cache.get(hex);
   };
   for (let j = 0; j < h; j++) {
-    if (j && j % 40 === 0) yield;
+    if (j && j % 4 === 0) yield;
     const z = oz + j * res;
     for (let i = 0; i < w; i++) {
       const x = ox + i * res;
@@ -195,7 +199,8 @@ export function* surfaceSteps(world) {
   for (const seam of world.seams || []) {
     if (!seam.profile?.[0]?.[2]) continue;
     const band = seam.band ?? 24;
-    for (let j = 0; j < h; j++)
+    for (let j = 0; j < h; j++){
+      if(j%4===0)yield;
       for (let i = 0; i < w; i++) {
         const x = ox + i * res, z = oz + j * res, along = seam.alongX ? x : z;
         const past = Math.max(seam.span[0] - along, along - seam.span[1], 0);
@@ -209,12 +214,14 @@ export function* surfaceSteps(world) {
         dirt[k] *= 1 - m; mud[k] *= 1 - m; stone[k] *= 1 - m; planned[k] *= 1 - m;
         dr[k] += (cd.r - dr[k]) * m; dg[k] += (cd.g - dg[k]) * m; db[k] += (cd.b - db[k]) * m;
       }
+    }
     yield;
   }
   yield;
-  const blur = (a) => boxBlur(boxBlur(a, w, h, 6), w, h, 4);
-  [lr, lg, lb, dr, dg, db] = [lr, lg, lb, dr, dg, db].map(blur);
-  const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: blur(planned) };
+  const blur = function*(a){return yield* boxBlurSteps(yield* boxBlurSteps(a,w,h,6),w,h,4);};
+  const blurred=[];for(const field of [lr,lg,lb,dr,dg,db])blurred.push(yield* blur(field));
+  [lr,lg,lb,dr,dg,db]=blurred;
+  const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: yield* blur(planned) };
   surfaceCache.set(world,result);
   return result;
 }
@@ -262,21 +269,20 @@ export function createTerrain(world) {
 }
 
 /** Terrain tiles, yielding every few tiles so a neighbouring map can stream in. */
-export function* terrainSteps(world) {
+export function* terrainSteps(world, {adopt} = {}) {
   const hf = world.heightfield;
   const { w, h, ox, oz, res, data } = hf;
   const surf = yield* surfaceSteps(world);
   yield* groundFieldUniformSteps(world); // baked now, not at the first draw
-  const mat = terrainMaterial(world);
+  const mat = new THREE.MeshLambertMaterial({color:0xffffff});
+  let completed=false;
+  try {
+  const brush=yield* groundBrushUniformSteps(mat);
+  terrainMaterial(world,mat,brush);
   const group = new THREE.Group();
-  group.name = 'terrain';
+  group.name = 'terrain';adopt?.(group);
   const H = (i, j) => data[Math.min(h - 1, Math.max(0, j)) * w + Math.min(w - 1, Math.max(0, i))];
   // Past an open seam the neighbouring map draws its own ground; never overlap it.
-  const b = world.bounds;
-  const pastSeam = (x, z) => (world.seams || []).some((s) => {
-    const along = s.alongX ? x : z, across = s.alongX ? z : x;
-    return along >= s.span[0] && along <= s.span[1] && (across - b[s.edge]) * s.outward > 0;
-  });
   yield;
   let tiles = 0;
   for (let tj = 0; tj < h - 1; tj += TILE) {
@@ -332,7 +338,7 @@ export function* terrainSteps(world) {
           // omit only hidden render indices, never source-city geometry.
           const x=pos[a*3]+res/2,z=pos[a*3+2]+res/2;
           if(coveredTerrainCell(world.data.city,x,z,Math.max(pos[a*3+1],pos[(a+1)*3+1],pos[b2*3+1],pos[(b2+1)*3+1]),res)){coveredTriangles+=2;continue;}
-          if(pastSeam(x,z))continue;
+          if(!ownsRegionPoint(world,x,z))continue;
           idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
         }
       const geo = new THREE.BufferGeometry();
@@ -351,15 +357,14 @@ export function* terrainSteps(world) {
       mesh.castShadow = false;
       if (idx.length) group.add(mesh);
       else geo.dispose();
-      if (++tiles % 6 === 0) yield;
+      tiles++; yield;
     }
   }
-  return { group, material: mat };
+  completed=true;return { group, material: mat };
+  }finally{if(!completed)mat.dispose();}
 }
 
-function terrainMaterial(world) {
-  const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  const brush=groundBrushUniform(mat);
+function terrainMaterial(world,mat,brush) {
   const bossList = world.data.bosses || [];
   const arena = (bossList.find((b) => b.final) || bossList[0])?.arena || { x: 9999, z: 9999, r: 1 };
   const shift = regionShift();
@@ -673,9 +678,11 @@ function waterMaterial() {
 }
 
 /** River strip + ponds at the water level; depth comes from the heightfield. */
-export function createWater(world, scenery = null) {
+export const createWater=(...args)=>finishSteps(waterSteps(...args));
+export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
   const group = new THREE.Group();
-  const mat = waterMaterial();
+  adopt?.(group);
+  const mat = waterMaterial();owner?.material(mat);
   const wl = world.waterLevel;
   const hY = world.terrainY;
   const river = world.data.river;
@@ -750,9 +757,9 @@ export function createWater(world, scenery = null) {
   }
   const sea = world.data.sea;
   if (sea) {
-    const contact=bakeWaterContact(world,scenery);
+    const contact=yield* waterContactSteps(world,scenery);
     group.userData.contactSections=contact.sections;
-    const seaMat = seaMaterial(world,contact);
+    const seaMat = seaMaterial(world,contact);owner?.material(seaMat);
     // Match the terrain grid so the thin film cannot cut through sand at coarse triangle edges.
     // Cull in tiles; only the few swash tiles in the camera view reach the GPU.
     const hf = world.heightfield;
@@ -765,6 +772,7 @@ export function createWater(world, scenery = null) {
     const nx = Math.ceil((x1 - x0) / step);
     const nz = Math.ceil((z1 - zMin) / step);
     for(let tj=0;tj<nz;tj+=TILE) for(let ti=0;ti<nx;ti+=TILE) {
+    yield;
     const cw=Math.min(TILE,nx-ti),ch=Math.min(TILE,nz-tj);
     const pos = [], depth = [], along = [], shore = [], washMask = [], idx = [];
     for (let j = 0; j <= ch; j++)
@@ -799,6 +807,13 @@ export function createWater(world, scenery = null) {
       const xb = side < 0 ? x0 : x1 + 400;
       group.add(waterMesh([xa, wl, zMin + 10, xb, wl, zMin + 10, xa, wl, z1, xb, wl, z1], [5, 5, 5, 5], [0, 0, 0, 0], [0, 2, 1, 1, 2, 3], seaMat, [0,0,40,40]));
     }
+  }
+  for(const mesh of [...group.children]){
+    owner?.geometry(mesh.geometry);
+    mesh.geometry=yield* clipRegionGeometrySteps(mesh.geometry,world,owner);
+    mesh.geometry.computeBoundingSphere();
+    if(!(mesh.geometry.index?.count??mesh.geometry.attributes.position.count)){mesh.removeFromParent();owner?owner.release(mesh.geometry):mesh.geometry.dispose();}
+    yield;
   }
   return group;
 }

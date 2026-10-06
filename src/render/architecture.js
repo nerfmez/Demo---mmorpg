@@ -1,6 +1,7 @@
 // Construction-time contours only. Character/foliage materials stay independent.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { finishSteps } from './build-queue.js';
+import { edgeGeometrySteps, mergeGeometrySteps, transformGeometrySteps, finishGeometrySteps } from './geometry-steps.js';
 import art from '../../data/art.json' with { type:'json' };
 import { outlineMaterial, darker } from './toon.js';
 const style=art.architecture;
@@ -10,11 +11,13 @@ const blackBuildingEdges=new THREE.LineBasicMaterial({color:'#000000',transparen
 blackBuildingEdges.userData.shared=true;
 
 /** One depth-tested feature-edge batch per structure; no triangle wireframe. */
-export function outlineStructure(root){
+export const outlineStructure=root=>finishSteps(outlineStructureSteps(root));
+export function* outlineStructureSteps(root,owner){
   if(root.userData.structureOutlined)return root;
   root.updateMatrixWorld(true);
   const inverse=root.matrixWorld.clone().invert(),edges=[];
-  function visit(o){
+  function* visit(o){
+    yield;
     if(o.userData.skipStructureOutline)return;
     if(o!==root&&o.userData.structureOutlined)return;
     if(o.isMesh&&!o.isInstancedMesh){
@@ -25,17 +28,20 @@ export function outlineStructure(root){
         material.userData.shared=true;
         for(const sibling of o.parent.children)if(sibling!==o&&sibling.isMesh&&sibling.geometry===o.geometry)sibling.material=material;
       }
-      const geometry=new THREE.EdgesGeometry(o.geometry,style.edgeAngle);
+      const geometry=yield* edgeGeometrySteps(o.geometry,style.edgeAngle,owner);
       if(geometry.attributes.position.count){
-        geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse,o.matrixWorld));edges.push(geometry);
+        edges.push(geometry);yield* transformGeometrySteps(geometry,new THREE.Matrix4().multiplyMatrices(inverse,o.matrixWorld));
       }else geometry.dispose();
     }
-    for(const child of o.children)visit(child);
+    for(const child of o.children)yield* visit(child);
   }
-  visit(root);
+  let pending=null;
+  try {
+  yield* visit(root);
   if(edges.length){
-    const geometry=mergeGeometries(edges);edges.forEach(g=>g.dispose());geometry.computeBoundingSphere();
-    const lines=new THREE.LineSegments(geometry,root.userData.cityBlackContours?blackBuildingEdges:edgeMaterial);lines.name='structure-feature-edges';root.add(lines);
+    const geometry=yield* mergeGeometrySteps(edges,owner);pending=geometry;yield* finishGeometrySteps(geometry);
+    const lines=new THREE.LineSegments(geometry,root.userData.cityBlackContours?blackBuildingEdges:edgeMaterial);lines.name='structure-feature-edges';root.add(lines);pending=null;
   }
   root.userData.structureOutlined=true;return root;
+  } finally {if(pending)owner?owner.release(pending):pending.dispose();for(const g of edges)owner?owner.release(g):g.dispose();}
 }

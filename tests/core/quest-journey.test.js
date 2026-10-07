@@ -97,6 +97,20 @@ test('partial primary credit maps safely into a new multi-objective mission',()=
  const ch=createCharacter(data);delete ch.progress.questJournal;ch.progress.quests={m_warden:{status:'active',progress:1}};migrateQuestJournal(ch,data,{legacy:true});
  assert.deepEqual(ch.progress.quests.m_warden.objectives,{approach:0,primary:1});assert.equal(ch.progress.quests.m_warden.status,'active');
 });
+test('unknown historical quest records remain opaque through migration and reload, without rewards',()=>{
+ for(const version of [7,8]){
+  const g=fresh(),old=copy(g.snapshot());old.version=version;
+  if(version===7)delete old.progress.questJournal;
+  const records={intro:{done:true,note:'original history',extra:{stage:4,tags:['retired','keep']}},future_record:{status:'archived',progress:'seven',rewardClaimed:false,arbitrary:[1,{flag:true}]},retired_marker:17};
+  Object.assign(old.progress.quests,copy(records));
+  const owned=copy({gold:old.gold,exp:old.exp,jobExp:old.jobExp,materials:old.materials});
+  const loaded=new Game(g.data,{world:g.world,character:copy(old),seed:11});
+  const check=ch=>{for(const [id,record]of Object.entries(records))assert.deepEqual(ch.progress.quests[id],record,id+' remains unchanged');assert.deepEqual({gold:ch.gold,exp:ch.exp,jobExp:ch.jobExp,materials:ch.materials},owned);};
+  check(loaded.ch);for(const id of Object.keys(records))assert.equal(claimQuestReward(loaded.ch,g.data,id),null);
+  loaded.completeQuests(refreshQuests(loaded.ch,g.data));migrateCharacter(loaded.ch,g.data);check(loaded.ch);
+  const reloaded=new Game(g.data,{world:g.world,character:copy(loaded.snapshot()),seed:11});check(reloaded.ch);
+ }
+});
 test('previously active missions are not relocked by the new prerequisite order',()=>{
  const ch=createCharacter(data);ch.version=7;delete ch.progress.questJournal;ch.progress.quests={s_golems:{status:'active',progress:2}};migrateCharacter(ch,data);refreshQuests(ch,data);assert.equal(ch.progress.quests.s_golems.status,'active');assert.equal(ch.progress.quests.s_golems.progress,2);
 });

@@ -21,12 +21,12 @@ export function migrateQuestJournal(ch, data, { legacy = false } = {}) {
   p.quests ||= {};
   p.questJournal = { ...(previous || {}), version: 1, trackedId: previous?.trackedId || null };
   for (const [id, st] of Object.entries(p.quests)) {
+    const def = data.quests.quests[id];
+    if (!def) continue; // Unknown historical records are opaque; preserve every field unchanged.
     if (!st || typeof st !== 'object') { delete p.quests[id]; continue; }
     if (!validStatuses.has(st.status)) st.status = 'locked';
     st.progress = number(st.progress);
     if (upgrading && st.status === 'done') st.rewardClaimed = true;
-    const def = data.quests.quests[id];
-    if (!def) continue; // historical ids survive even if their content is retired
     const objectives = questObjectives(def);
     st.objectives ||= {};
     for (const o of objectives) {

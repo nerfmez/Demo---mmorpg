@@ -1,0 +1,336 @@
+{
+  "status": "approved identity candidate reconciled onto merged PR106; follow-up PR awaits exact-candidate release checks",
+  "source_main_sha": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "reviewed_pr106_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+  "approved_preview_commit": "0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9",
+  "approved_preview_library_id": "libfile_9c65741e721c819197c3ec667a5216d4",
+  "approved_archive_library_id": "libfile_0e93e09fcb9c81918251205699783280",
+  "applied_label_fields": [
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/salt_slime/name",
+      "before": "สไลม์น้ำเค็ม",
+      "proposed": "Tidal Slime",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/salt_slime/nameTh",
+      "before": "สไลม์น้ำเค็ม",
+      "proposed": "สไลม์คลื่นทะเล",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/tusk_boar/name",
+      "before": "Tusk Boar",
+      "proposed": "Boarbull",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/tusk_boar/nameTh",
+      "before": "หมูป่างาแหลม",
+      "proposed": "หมูกระทิง",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/thornback_wolf/name",
+      "before": "Thornback Wolf",
+      "proposed": "Maskfang Wolf",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/thornback_wolf/nameTh",
+      "before": "หมาป่าหลังหนาม",
+      "proposed": "หมาป่าหน้ากาก",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/greyfang/name",
+      "before": "Greyfang",
+      "proposed": "Greyfang Alpha",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/reed_viper/name",
+      "before": "Reed Viper",
+      "proposed": "Reedblade Viper",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/reed_viper/nameTh",
+      "before": "งูกกพิษ",
+      "proposed": "งูใบกกพิษ",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/marsh_wisp/name",
+      "before": "Marsh Wisp",
+      "proposed": "Lostlight Wisp",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/marsh_wisp/nameTh",
+      "before": "ภูตไฟหนองน้ำ",
+      "proposed": "ภูตแสงหลงทาง",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_hide/name",
+      "before": "Boar Hide",
+      "proposed": "Boarbull Hide",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_hide/nameTh",
+      "before": "หนังหมูป่า",
+      "proposed": "หนังหมูกระทิง",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_tusk/name",
+      "before": "Boar Tusk",
+      "proposed": "Boarbull Horn",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_tusk/nameTh",
+      "before": "เขี้ยวหมูป่า",
+      "proposed": "เขาหมูกระทิง",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wolf_pelt/name",
+      "before": "Thorn Pelt",
+      "proposed": "Maskfang Pelt",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wolf_pelt/nameTh",
+      "before": "หนังหมาป่าหนาม",
+      "proposed": "หนังหมาป่าหน้ากาก",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/viper_scale/name",
+      "before": "Reed Viper Scale",
+      "proposed": "Reedblade Scale",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/viper_scale/nameTh",
+      "before": "เกล็ดงูกก",
+      "proposed": "เกล็ดใบกก",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wisp_core/name",
+      "before": "Wisp Core",
+      "proposed": "Lostlight Core",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wisp_core/nameTh",
+      "before": "แกนภูตไฟ",
+      "proposed": "แกนภูตแสงหลงทาง",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/m_boars/descTh",
+      "before": "หมูป่างาแหลมออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขี้ยวไว้เตรียมของ",
+      "proposed": "หมูกระทิงออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขาไว้เตรียมของ",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/m_boars/objectiveTextTh",
+      "before": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+      "proposed": "กำจัดหมูกระทิงรวม 5 ตัว",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/m_boars/objectives/0/labelTh",
+      "before": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+      "proposed": "กำจัดหมูกระทิงรวม 5 ตัว",
+      "reason": "Literal objective label sync",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/s_wolves/descTh",
+      "before": "หมาป่าหลังหนามยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
+      "proposed": "หมาป่าหน้ากากยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/s_wolves/objectiveTextTh",
+      "before": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+      "proposed": "กำจัดหมาป่าหน้ากากรวม 10 ตัว",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/s_wolves/objectives/0/labelTh",
+      "before": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+      "proposed": "กำจัดหมาป่าหน้ากากรวม 10 ตัว",
+      "reason": "Literal objective label sync",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/h_slimes/descTh",
+      "before": "เริ่มจากสไลม์น้ำเค็มใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
+      "proposed": "เริ่มจากสไลม์คลื่นทะเลใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/h_slimes/objectiveTextTh",
+      "before": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+      "proposed": "กำจัดสไลม์คลื่นทะเลริมฝั่ง 3 ตัว",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": true
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/h_slimes/objectives/0/labelTh",
+      "before": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+      "proposed": "กำจัดสไลม์คลื่นทะเลริมฝั่ง 3 ตัว",
+      "reason": "Literal objective label sync",
+      "optional": false,
+      "approved": true
+    }
+  ],
+  "additional_gear_labels": "Optional proposals were not displayed in the six-monster preview and remain outside this patch.",
+  "unchanged": "Stable IDs, gameplay data except names/literal descriptions, save schema, recipes, costs, odds, rewards, models and other art",
+  "assets": [
+    {
+      "kind": "monster",
+      "id": "salt_slime",
+      "path": "public/assets/icons/monster/salt_slime.png",
+      "sha256": "eed14c0063c33bdf02773eeb1ec57d7fa51977d8c84f8146e5376ea8db0c3368"
+    },
+    {
+      "kind": "monster",
+      "id": "tusk_boar",
+      "path": "public/assets/icons/monster/tusk_boar.png",
+      "sha256": "842da18a33e77e421a2846f86883f87f58c60dd535e8f80ec18c02d889dc20fc"
+    },
+    {
+      "kind": "monster",
+      "id": "thornback_wolf",
+      "path": "public/assets/icons/monster/thornback_wolf.png",
+      "sha256": "6d357f9f6e8f72b74160ca068ab43b663accee214a011995236399d63a3e06fd"
+    },
+    {
+      "kind": "monster",
+      "id": "greyfang",
+      "path": "public/assets/icons/monster/greyfang.png",
+      "sha256": "346157e1686329d5924de7c1ee02a53ee3cc88385db59044f1d93072519ff930"
+    },
+    {
+      "kind": "monster",
+      "id": "reed_viper",
+      "path": "public/assets/icons/monster/reed_viper.png",
+      "sha256": "3356a4b4905a2cc7fede6aa6446ac6055d16ce5d0b9245d2ea82e16b0a6f2c38"
+    },
+    {
+      "kind": "material",
+      "id": "viper_scale",
+      "path": "public/assets/icons/material/viper_scale.png",
+      "sha256": "47b71f0b39b60620243ea59f5d48b4a64e07083da76054fa78e5f60c2740ea13"
+    },
+    {
+      "kind": "material",
+      "id": "wisp_core",
+      "path": "public/assets/icons/material/wisp_core.png",
+      "sha256": "16820050f786a6afeb801cf7cc9fc4e772b39884f69e74e50488c2d516e22e7f"
+    },
+    {
+      "kind": "monster",
+      "id": "marsh_wisp",
+      "path": "public/assets/icons/monster/marsh_wisp.png",
+      "sha256": "9bde849dd0c89ad9860eadafd31d66acf1da9e375662ea112dacb6b5450c55e8"
+    }
+  ],
+  "prepared_against_main_sha": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
+  "dependency_merge_sha": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "dependency_merged_at": "2026-10-07T14:31:23Z",
+  "inherited_ci_pr105_merge_sha": "0e26f5448d2247f00aa1435434ed0f6e77dfef93"
+}

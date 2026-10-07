@@ -70,6 +70,12 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
+The approved PR106 identities for `salt_slime`, `tusk_boar`, `thornback_wolf`,
+`greyfang`, `reed_viper` and `marsh_wisp` use the same transparent 256px PNGs
+in the field guide, boss pins, material-source details and quest pictures through
+`SHARED_MONSTER_PORTRAITS` in `ui/raster-icons.js`. Preserve their stable IDs.
+`viper_scale` and `wisp_core` use the approved 512px inventory PNG replacements;
+material names resolve centrally in `data/items.json` for costs, rewards and loot.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` mounts the worn journal in `ui/skill-journal/`. Its read-only model
 places current foundation nodes and actual origin neighbours on one starting spread,

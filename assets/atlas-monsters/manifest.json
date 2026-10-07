@@ -2,7 +2,7 @@
   "version": 1,
   "source_commit": "cd94bcf682eb08e5494dc5e301716fc3c38c3240",
   "generator": "built-in image_gen",
-  "style": "approved fresh journal watercolor; brown normal thornback wolf",
+  "style": "approved journal watercolor; PR106 six-monster identity replacements, 2026-10-07",
   "grid": {
     "rows": 2,
     "columns": 3
@@ -77,29 +77,6 @@
       "cells": [
         {
           "kind": "monster",
-          "id": "tusk_boar",
-          "reference": "assets/meshy/monsters/tusk_boar_concept.png",
-          "row": 1,
-          "column": 1,
-          "path": "public/assets/icons/monster/tusk_boar.png",
-          "source_bounds": [
-            34,
-            59,
-            540,
-            492
-          ],
-          "sha256": "e4164ba43dfea6afb54ab43072a5b68d1756ed3af5202fb7221afef28a49a2e7",
-          "dimensions": [
-            256,
-            256
-          ],
-          "alpha_extrema": [
-            0,
-            255
-          ]
-        },
-        {
-          "kind": "monster",
           "id": "reef_crab",
           "reference": "assets/meshy/monsters/reef_crab_concept.png",
           "row": 1,
@@ -112,29 +89,6 @@
             487
           ],
           "sha256": "038e481c59cf88a46e726902c3eb037c29eb091db9a2a45a496e8f46fdc00c1f",
-          "dimensions": [
-            256,
-            256
-          ],
-          "alpha_extrema": [
-            0,
-            255
-          ]
-        },
-        {
-          "kind": "monster",
-          "id": "marsh_wisp",
-          "reference": "assets/meshy/monsters/marsh_wisp_concept.png",
-          "row": 1,
-          "column": 3,
-          "path": "public/assets/icons/monster/marsh_wisp.png",
-          "source_bounds": [
-            1106,
-            28,
-            1484,
-            526
-          ],
-          "sha256": "d0aa681c505bec09cc94a0478f16e91905de742a9ecab4a6a2bb3f549a49a808",
           "dimensions": [
             256,
             256
@@ -189,6 +143,60 @@
             0,
             255
           ]
+        }
+      ],
+      "unused_cells": [],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "d5f1a081557337bdf4b7f0eaa649b1a603ef54829c3fb4e3b8ad166ee1fb9bb8",
+      "superseded_cells": [
+        {
+          "kind": "monster",
+          "id": "tusk_boar",
+          "reference": "assets/meshy/monsters/tusk_boar_concept.png",
+          "row": 1,
+          "column": 1,
+          "path": "public/assets/icons/monster/tusk_boar.png",
+          "source_bounds": [
+            34,
+            59,
+            540,
+            492
+          ],
+          "sha256": "e4164ba43dfea6afb54ab43072a5b68d1756ed3af5202fb7221afef28a49a2e7",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        {
+          "kind": "monster",
+          "id": "marsh_wisp",
+          "reference": "assets/meshy/monsters/marsh_wisp_concept.png",
+          "row": 1,
+          "column": 3,
+          "path": "public/assets/icons/monster/marsh_wisp.png",
+          "source_bounds": [
+            1106,
+            28,
+            1484,
+            526
+          ],
+          "sha256": "d0aa681c505bec09cc94a0478f16e91905de742a9ecab4a6a2bb3f549a49a808",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
         },
         {
           "kind": "monster",
@@ -213,13 +221,7 @@
             255
           ]
         }
-      ],
-      "unused_cells": [],
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "sha256": "d5f1a081557337bdf4b7f0eaa649b1a603ef54829c3fb4e3b8ad166ee1fb9bb8"
+      ]
     },
     {
       "path": "assets/atlas-journal/monsters-2.png",
@@ -238,29 +240,6 @@
             515
           ],
           "sha256": "62497704f3e834297b9c703e461d7b92cea800e7b38b011c76e47146619ba07a",
-          "dimensions": [
-            256,
-            256
-          ],
-          "alpha_extrema": [
-            0,
-            255
-          ]
-        },
-        {
-          "kind": "monster",
-          "id": "salt_slime",
-          "reference": "assets/meshy/monsters/salt_slime_concept.png",
-          "row": 1,
-          "column": 2,
-          "path": "public/assets/icons/monster/salt_slime.png",
-          "source_bounds": [
-            524,
-            100,
-            1026,
-            496
-          ],
-          "sha256": "caed72442860c1ada54438d3e887606b5a321b47a1d102975cbdc4fd0f0ed06d",
           "dimensions": [
             256,
             256
@@ -338,6 +317,37 @@
             0,
             255
           ]
+        }
+      ],
+      "unused_cells": [],
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "sha256": "6c9136b0a186b07b820d15c757ca2535ce639131cb74d2821f9dd9e0e80c9c2a",
+      "superseded_cells": [
+        {
+          "kind": "monster",
+          "id": "salt_slime",
+          "reference": "assets/meshy/monsters/salt_slime_concept.png",
+          "row": 1,
+          "column": 2,
+          "path": "public/assets/icons/monster/salt_slime.png",
+          "source_bounds": [
+            524,
+            100,
+            1026,
+            496
+          ],
+          "sha256": "caed72442860c1ada54438d3e887606b5a321b47a1d102975cbdc4fd0f0ed06d",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
         },
         {
           "kind": "monster",
@@ -362,13 +372,7 @@
             255
           ]
         }
-      ],
-      "unused_cells": [],
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "sha256": "6c9136b0a186b07b820d15c757ca2535ce639131cb74d2821f9dd9e0e80c9c2a"
+      ]
     },
     {
       "path": "assets/atlas-journal/mixed-3.png",
@@ -462,23 +466,38 @@
       "sha256": "9ca92df27abb1e313af2f3c1fd858e2b1d109131e1791f8e30e2fae086c38e9e"
     },
     {
-      "path": "assets/atlas-journal/identity-corrections.png",
+      "path": "assets/atlas-journal/identity-20261007/salt_slime.png",
+      "split_mode": "verified-export",
+      "sha256": "eed14c0063c33bdf02773eeb1ec57d7fa51977d8c84f8146e5376ea8db0c3368",
+      "dimensions": [
+        256,
+        256
+      ],
+      "approval": "Owner approved displayed six-monster identity preview on 2026-10-07",
+      "source_batch_url": "https://github.com/nerfmez/Demo---mmorpg/blob/0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9/docs/review/monster-identity-prep/sheets/portraits-candidate.png",
+      "source_batch_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_cell_bounds": [
+        61,
+        47,
+        525,
+        487
+      ],
       "cells": [
         {
           "kind": "monster",
-          "id": "thornback_wolf",
-          "reference": "assets/meshy/monsters/thornback_wolf_concept.png",
-          "row": 2,
+          "id": "salt_slime",
+          "row": 1,
           "column": 1,
-          "path": "public/assets/icons/monster/thornback_wolf.png",
-          "source_bounds": [
-            20,
-            553,
-            544,
-            959
-          ],
-          "sha256": "5d59d440607a39bd35ac7e84f7b84fef9982b4f2e48dcb6ce552840b03d74582",
+          "reference": "PR106 concept, owner-approved identity preview",
+          "path": "public/assets/icons/monster/salt_slime.png",
+          "sha256": "eed14c0063c33bdf02773eeb1ec57d7fa51977d8c84f8146e5376ea8db0c3368",
           "dimensions": [
+            256,
+            256
+          ],
+          "source_bounds": [
+            0,
+            0,
             256,
             256
           ],
@@ -487,34 +506,222 @@
             255
           ]
         }
+      ]
+    },
+    {
+      "path": "assets/atlas-journal/identity-20261007/tusk_boar.png",
+      "split_mode": "verified-export",
+      "sha256": "842da18a33e77e421a2846f86883f87f58c60dd535e8f80ec18c02d889dc20fc",
+      "dimensions": [
+        256,
+        256
       ],
-      "unused_cells": [
+      "approval": "Owner approved displayed six-monster identity preview on 2026-10-07",
+      "source_batch_url": "https://github.com/nerfmez/Demo---mmorpg/blob/0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9/docs/review/monster-identity-prep/sheets/portraits-candidate.png",
+      "source_batch_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_cell_bounds": [
+        512,
+        46,
+        1054,
+        512
+      ],
+      "cells": [
         {
+          "kind": "monster",
+          "id": "tusk_boar",
           "row": 1,
           "column": 1,
-          "id": "ironhorn_ram"
-        },
-        {
-          "row": 1,
-          "column": 2,
-          "id": "duskmane_stalker"
-        },
-        {
-          "row": 1,
-          "column": 3,
-          "id": "rune_sentinel"
-        },
-        {
-          "row": 2,
-          "column": 3,
-          "id": "meadow"
+          "reference": "PR106 concept, owner-approved identity preview",
+          "path": "public/assets/icons/monster/tusk_boar.png",
+          "sha256": "842da18a33e77e421a2846f86883f87f58c60dd535e8f80ec18c02d889dc20fc",
+          "dimensions": [
+            256,
+            256
+          ],
+          "source_bounds": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
         }
-      ],
+      ]
+    },
+    {
+      "path": "assets/atlas-journal/identity-20261007/thornback_wolf.png",
+      "split_mode": "verified-export",
+      "sha256": "6d357f9f6e8f72b74160ca068ab43b663accee214a011995236399d63a3e06fd",
       "dimensions": [
-        1536,
-        1024
+        256,
+        256
       ],
-      "sha256": "fae21e8b2ca303be43a952ddb6c8e7a67d3e4a369f06b2ba6fd00e0cf6f97270"
+      "approval": "Owner approved displayed six-monster identity preview on 2026-10-07",
+      "source_batch_url": "https://github.com/nerfmez/Demo---mmorpg/blob/0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9/docs/review/monster-identity-prep/sheets/portraits-candidate.png",
+      "source_batch_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_cell_bounds": [
+        1057,
+        20,
+        1518,
+        524
+      ],
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "thornback_wolf",
+          "row": 1,
+          "column": 1,
+          "reference": "PR106 concept, owner-approved identity preview",
+          "path": "public/assets/icons/monster/thornback_wolf.png",
+          "sha256": "6d357f9f6e8f72b74160ca068ab43b663accee214a011995236399d63a3e06fd",
+          "dimensions": [
+            256,
+            256
+          ],
+          "source_bounds": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "path": "assets/atlas-journal/identity-20261007/greyfang.png",
+      "split_mode": "verified-export",
+      "sha256": "346157e1686329d5924de7c1ee02a53ee3cc88385db59044f1d93072519ff930",
+      "dimensions": [
+        256,
+        256
+      ],
+      "approval": "Owner approved displayed six-monster identity preview on 2026-10-07",
+      "source_batch_url": "https://github.com/nerfmez/Demo---mmorpg/blob/0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9/docs/review/monster-identity-prep/sheets/portraits-candidate.png",
+      "source_batch_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_cell_bounds": [
+        25,
+        486,
+        582,
+        1014
+      ],
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "greyfang",
+          "row": 1,
+          "column": 1,
+          "reference": "PR106 concept, owner-approved identity preview",
+          "path": "public/assets/icons/monster/greyfang.png",
+          "sha256": "346157e1686329d5924de7c1ee02a53ee3cc88385db59044f1d93072519ff930",
+          "dimensions": [
+            256,
+            256
+          ],
+          "source_bounds": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "path": "assets/atlas-journal/identity-20261007/reed_viper.png",
+      "split_mode": "verified-export",
+      "sha256": "3356a4b4905a2cc7fede6aa6446ac6055d16ce5d0b9245d2ea82e16b0a6f2c38",
+      "dimensions": [
+        256,
+        256
+      ],
+      "approval": "Owner approved displayed six-monster identity preview on 2026-10-07",
+      "source_batch_url": "https://github.com/nerfmez/Demo---mmorpg/blob/0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9/docs/review/monster-identity-prep/sheets/portraits-candidate.png",
+      "source_batch_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_cell_bounds": [
+        575,
+        495,
+        1074,
+        1012
+      ],
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "reed_viper",
+          "row": 1,
+          "column": 1,
+          "reference": "PR106 concept, owner-approved identity preview",
+          "path": "public/assets/icons/monster/reed_viper.png",
+          "sha256": "3356a4b4905a2cc7fede6aa6446ac6055d16ce5d0b9245d2ea82e16b0a6f2c38",
+          "dimensions": [
+            256,
+            256
+          ],
+          "source_bounds": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "path": "assets/atlas-journal/identity-20261007/marsh_wisp.png",
+      "split_mode": "verified-export",
+      "sha256": "9bde849dd0c89ad9860eadafd31d66acf1da9e375662ea112dacb6b5450c55e8",
+      "dimensions": [
+        256,
+        256
+      ],
+      "approval": "Owner approved displayed six-monster identity preview on 2026-10-07",
+      "source_batch_url": "https://github.com/nerfmez/Demo---mmorpg/blob/0e782d8d4d7a8aa7498c8a79c899bdd5734f5dc9/docs/review/monster-identity-prep/sheets/wisp-correction.png",
+      "source_batch_sha256": "25037fd32266f98286827237bbe7342ca0c0bf01c6a5ad23b55fc41a5b296907",
+      "source_cell_bounds": [
+        17,
+        83,
+        1210,
+        1195
+      ],
+      "cells": [
+        {
+          "kind": "monster",
+          "id": "marsh_wisp",
+          "row": 1,
+          "column": 1,
+          "reference": "PR106 concept, owner-approved identity preview",
+          "path": "public/assets/icons/monster/marsh_wisp.png",
+          "sha256": "9bde849dd0c89ad9860eadafd31d66acf1da9e375662ea112dacb6b5450c55e8",
+          "dimensions": [
+            256,
+            256
+          ],
+          "source_bounds": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
     }
   ]
 }

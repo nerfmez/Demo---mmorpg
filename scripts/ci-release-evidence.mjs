@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validationPlan } from './ci-browser-plan.mjs';
+import { EQUIPMENT_PATHS, equipmentImpact, gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
 const SHA = /^[a-f0-9]{40}$/;
 const requireThat = (ok, message) => { if (!ok) throw Error(message); };
@@ -39,9 +40,10 @@ function validateIdentity({ repository, repositoryId, target, targetTree, pr, so
 export function validateEvidence(input) {
   const evidence = validateIdentity(input), { jobs, run, files } = input;
   requireThat(Array.isArray(files) && files.every(file => typeof file === 'string'), 'Missing authoritative changed paths');
-  const plan = validationPlan(files);
+  const plan = validationPlan(files, { impacts: input.impacts || {} });
   requireThat(plan.suites.includes('boot'), 'Release reuse requires real boot/save/reload/Continue');
   const expected = ['Build, core and CI tools', 'test (chromium)', 'test (webkit)',
+    'review (chromium)', 'review (webkit)', 'field-hud (chromium)', 'field-hud (webkit)',
     ...['chromium', 'webkit'].flatMap(browser => plan.suites.map(suite => `Quick affected (${browser}, ${suite})`))];
   requireThat(jobs.length === expected.length && new Set(jobs.map(job => job.name)).size === expected.length, 'Incomplete or ambiguous CI coverage');
   for (const name of expected) {
@@ -50,6 +52,8 @@ export function validateEvidence(input) {
       job.run_attempt === run.run_attempt, `Missing successful current-attempt job: ${name}`);
     const steps = name === 'Build, core and CI tools'
       ? ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']
+      : name.startsWith('review (') ? ['Verify shared UI evidence at head or merge tree']
+      : name.startsWith('field-hud (') ? ['Verify shared HUD evidence at head or merge tree']
       : name.startsWith('test (') ? ['Verify complete selected browser evidence', 'Report gate outcome at exact source']
       : ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'];
     requireThat(successfulSteps(job, steps), `Incomplete mandatory steps: ${name}`);
@@ -62,9 +66,9 @@ export function verifyExtractedBuild(directory, evidence) {
   requireThat(readFileSync(join(directory, 'index.html')).length > 0, 'Artifact has no built entrypoint');
 }
 
-export function ciContext({ environment, event, source, tree, files = [] }) {
+export function ciContext({ environment, event, source, tree, files = [], impacts = {} }) {
   const pr = event.pull_request;
-  return { version: 2, source, tree, plan: validationPlan(files, { full: environment.GITHUB_EVENT_NAME !== 'pull_request' }), repository: environment.GITHUB_REPOSITORY,
+  return { version: 2, source, tree, plan: validationPlan(files, { full: environment.GITHUB_EVENT_NAME !== 'pull_request', impacts }), repository: environment.GITHUB_REPOSITORY,
     runId: Number(environment.GITHUB_RUN_ID), attempt: Number(environment.GITHUB_RUN_ATTEMPT),
     eventName: environment.GITHUB_EVENT_NAME, workflowRef: environment.GITHUB_WORKFLOW_REF,
     workflowSha: environment.GITHUB_WORKFLOW_SHA,
@@ -162,7 +166,20 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     const baseTree = await api(`${prefix}/git/trees/${baseCommit.tree.sha}?recursive=1`);
     const headTree = await api(`${prefix}/git/trees/${sourceCommit.tree.sha}?recursive=1`);
     const files = changedTreePaths(baseTree, headTree);
-    evidence = validateEvidence({ ...identity, files });
+    // Derive shared-function impacts from GitHub-owned blobs, never artifact claims.
+    const impacts = {};
+    for (const path of files.filter(path => EQUIPMENT_PATHS.includes(path))) {
+      const before = baseTree.tree.find(entry => entry.path === path), after = headTree.tree.find(entry => entry.path === path);
+      if (!before || !after) continue;
+      const read = async entry => {
+        const blob = await api(`${prefix}/git/blobs/${entry.sha}`);
+        requireThat(blob.sha === entry.sha && blob.encoding === 'base64' && blob.size <= 2 * 1024 * 1024, 'Invalid bounded source blob');
+        return Buffer.from(blob.content, 'base64').toString('utf8');
+      };
+      const selected = equipmentImpact(path, await read(before), await read(after));
+      if (selected) impacts[path] = selected;
+    }
+    evidence = validateEvidence({ ...identity, files, impacts });
     verifyCiContext(context, evidence, pr, repository, repo.id);
     // PR workflows execute their event-ref configuration, while checkout tests
     // the explicit head. Both workflow blobs must match before reusing the build.
@@ -211,7 +228,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
     const files = event.pull_request ? execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', event.pull_request.base.sha, source],
       { encoding: 'utf8' }).split('\0').filter(Boolean) : [];
-    const context = ciContext({ environment: process.env, event, files,
+    const impacts = event.pull_request ? gitEquipmentImpacts(files, event.pull_request.base.sha, source) : {};
+    const context = ciContext({ environment: process.env, event, files, impacts,
       source, tree: execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim() });
     writeFileSync('dist/ci-context.json', JSON.stringify(context, null, 2) + '\n');
     console.log(`CI context: ${context.eventName}; PR ${context.pr?.number || 'none'}; workflow ${context.workflowRef}; workflow source ${context.workflowSha}`);

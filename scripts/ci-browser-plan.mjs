@@ -1,15 +1,20 @@
 // Single inventory: PR affected checks and full regression use the same scripts.
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 
-export const ROUTING_VERSION = 2;
+export const ROUTING_VERSION = 3;
 export const SUITES = {
   boot: ['boot.mjs'],
   smoke: ['smoke.mjs'],
   world: ['map-travel.mjs', 'open-world.mjs', 'open-world-city.mjs'],
   combat: ['midhigh-monsters.mjs', 'coastal-attacks.mjs'],
   equipment: ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs'],
+  'equipment-focus': ['equipment-focused.mjs'],
+  // PR101 owns this test until merge. Discover it at the tested source without
+  // copying the feature branch; the runner rejects its legacy single-engine form.
+  ...(existsSync(new URL('../tests/browser/equipment-inactive.mjs', import.meta.url))
+    ? { 'equipment-inactive': ['equipment-inactive.mjs'] } : {}),
   weapons: ['weapon-loading.mjs', 'weapon-models.mjs'],
   items: ['shop-potions.mjs', 'potions-moving.mjs'],
   menu: ['menu-hub.mjs'],
@@ -71,6 +76,7 @@ export function focusedReviewCovered(file) {
 export function routingDigest() {
   const hash = createHash('sha256');
   for (const path of ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs',
+    'scripts/ci-equipment-impact.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
     '.github/actions/change-scope/action.yml']) {
     hash.update(path + '\0'); hash.update(readFileSync(new URL(`../${path}`, import.meta.url))); hash.update('\0');
   }
@@ -81,7 +87,7 @@ export function validationPlan(files, options) {
   const paths = [...new Set(files)].sort();
   return { version: ROUTING_VERSION, routingDigest: routingDigest(), files: paths, ...browserPlan(paths, options) };
 }
-export function browserPlan(files, { full = false } = {}) {
+export function browserPlan(files, { full = false, impacts = {} } = {}) {
   if (full) return { suites: [...FULL_SUITES], reason: 'postmerge/manual full regression' };
   const selected = new Set();
   let game = false;
@@ -99,7 +105,10 @@ export function browserPlan(files, { full = false } = {}) {
     // CI/build scripts change execution and artifact contracts, not just tooling.
     // Unclassified infrastructure must exercise the full inventory before review.
     game = true;
-    let affected = boundedSuites(file);
+    // Diff-aware shared functions require independently inspected before/after source.
+    let affected = impacts[file] || boundedSuites(file);
+    if (/^tests\/core\/(equipment-inactive|gear-hands|wearable-level|crafting)\.test\.js$/.test(file))
+      affected = ['equipment', 'equipment-focus', 'wearable', 'save'];
     if (file.startsWith('public/models/weapons/')) affected = ['smoke', 'equipment', 'weapons', 'combat', 'ux'];
     if (!affected) affected = Object.entries(SUITES).filter(([, scripts]) => scripts.some(name => file === `tests/browser/${name}`)).map(([suite]) => suite);
     if (!affected.length) return { suites: [...FULL_SUITES], reason: `conservative full fallback: ${file}` };

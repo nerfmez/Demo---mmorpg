@@ -17,6 +17,7 @@ on:
         value: ${{ jobs.prepare.outputs.artifact }}
 permissions:
   contents: read
+  actions: read
 concurrency:
   # New PR revisions may cancel stale quick gates; each main SHA keeps its full run.
   group: ci-${{ github.workflow }}-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && github.ref || github.sha }}
@@ -31,6 +32,12 @@ jobs:
       reason: ${{ steps.scope.outputs.browser-reason }}
       source: ${{ steps.source.outputs.sha }}
       artifact: ${{ steps.source.outputs.artifact }}
+      matrix: ${{ steps.reviews.outputs.matrix }}
+      review-source: ${{ steps.reviews.outputs.review_source }}
+      review-tree: ${{ steps.reviews.outputs.review_tree }}
+      review-mode: ${{ steps.reviews.outputs.review_mode }}
+      ui-suites: ${{ steps.reviews.outputs.ui_suites }}
+      hud-suites: ${{ steps.reviews.outputs.hud_suites }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,11 +49,25 @@ jobs:
           sha=$(git rev-parse HEAD)
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "artifact=ci-dist-$sha-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      - name: Fetch the event merge revision
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags origin "$GITHUB_SHA"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
       - id: scope
         uses: ./.github/actions/change-scope
         with:
           force-full: ${{ github.event_name != 'pull_request' && !inputs.quick_gate }}
           force-boot: ${{ inputs.quick_gate }}
+      - id: reviews
+        name: Plan shared execution and explicit merge review
+        env:
+          CI_SUITES: ${{ steps.scope.outputs.browser-suites }}
+          CI_MODE: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}
+        run: node scripts/ci-review-plan.mjs
       - name: Validation plan and exact source
         env:
           SOURCE: ${{ steps.source.outputs.sha }}
@@ -57,13 +78,6 @@ jobs:
           echo "$MODE source: $SOURCE" >> "$GITHUB_STEP_SUMMARY"
           echo "Browser suites (each in Chromium and WebKit): $SUITES" >> "$GITHUB_STEP_SUMMARY"
           echo "Routing: $REASON" >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/setup-node@v4
-        if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-        if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
       - run: npm run test:tools
         if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
       # All core tests, including migrations, save preservation and contact timing.
@@ -71,6 +85,11 @@ jobs:
         if: steps.scope.outputs.game == 'true'
       - run: npm run build
         if: steps.scope.outputs.game == 'true'
+      - name: Verify published Lab can be preserved
+        if: github.event_name == 'pull_request' && steps.scope.outputs.tools == 'true' && steps.reviews.outputs.ui_suites != '[]'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/preserve-published-lab.mjs lab-preservation-check
       - name: Bind CI event and workflow to build
         if: steps.scope.outputs.game == 'true'
         env:
@@ -97,26 +116,44 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
+      - name: Build distinct merge review source
+        if: steps.reviews.outputs.merge_suites != '[]'
+        env:
+          MERGE_SOURCE: ${{ steps.reviews.outputs.merge_source }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/merge-review" "$MERGE_SOURCE"
+          cd "$RUNNER_TEMP/merge-review"
+          npm ci
+          npm run build
+          test "$(git rev-parse HEAD)" = "$MERGE_SOURCE"
+          test -s dist/index.html
+          printf '%s\n' "$MERGE_SOURCE" > dist/ci-source.txt
+      - uses: actions/upload-artifact@v4
+        if: steps.reviews.outputs.merge_suites != '[]'
+        with:
+          name: ci-dist-${{ steps.reviews.outputs.merge_source }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/merge-review/dist/
+          retention-days: 3
+          if-no-files-found: error
+
   browser:
-    name: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'Quick affected' || 'Full regression' }} (${{ matrix.browser }}, ${{ matrix.suite }})
+    name: ${{ matrix.label }} (${{ matrix.browser }}, ${{ matrix.suite }})
     needs: prepare
     if: needs.prepare.outputs.game == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 6
-      matrix:
-        browser: [chromium, webkit]
-        suite: ${{ fromJSON(needs.prepare.outputs.suites) }}
+      # Use available hosted capacity; the account scheduler still enforces its limit.
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     env:
       BROWSER: ${{ matrix.browser }}
-      CI_SOURCE_SHA: ${{ needs.prepare.outputs.source }}
-      CI_MODE: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}
+      CI_SOURCE_SHA: ${{ matrix.source }}
+      CI_MODE: ${{ matrix.mode }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.source }}
+          ref: ${{ matrix.source }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -124,10 +161,14 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.prepare.outputs.artifact }}
+          name: ${{ matrix.artifact }}
           path: dist/
       - name: Verify downloaded build source
         run: test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run complete selected shard with timings
         run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
@@ -135,17 +176,103 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ci-report-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
+          name: ci-report-${{ env.CI_MODE }}-${{ matrix.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
           path: tests/browser/out/ci/${{ env.CI_MODE }}-${{ matrix.browser }}-${{ matrix.suite }}.json
           retention-days: 7
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ci-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
+          name: ci-${{ env.CI_MODE }}-${{ matrix.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
           path: tests/browser/out/
           retention-days: 7
           if-no-files-found: error
+
+  review:
+    name: review (${{ matrix.browser }})
+    needs: [prepare, browser]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        if: needs.prepare.result == 'success'
+        with:
+          ref: ${{ needs.prepare.outputs.review-source }}
+      - uses: actions/setup-node@v4
+        if: needs.prepare.result == 'success'
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.ui-suites != '[]'
+        with:
+          pattern: ci-report-${{ needs.prepare.outputs.review-mode }}-${{ needs.prepare.outputs.review-source }}-${{ matrix.browser }}-*-${{ github.run_attempt }}
+          path: gate-reports/
+          merge-multiple: true
+      - name: Verify shared UI evidence at head or merge tree
+        env:
+          PREPARE: ${{ needs.prepare.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          CI_SOURCE_SHA: ${{ needs.prepare.outputs.review-source }}
+          CI_TREE: ${{ needs.prepare.outputs.review-tree }}
+          BROWSER: ${{ matrix.browser }}
+          CI_SUITES: ${{ needs.prepare.outputs.ui-suites }}
+          CI_MODE: ${{ needs.prepare.outputs.review-mode }}
+        run: |
+          test "$PREPARE" = success
+          test "$(git rev-parse HEAD)" = "$CI_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CI_TREE"
+          test -n "$CI_SUITES"
+          if [ "$CI_SUITES" != '[]' ]; then
+            test "$BROWSER_RESULT" = success
+            node scripts/ci-browser-gate.mjs
+          fi
+          echo "UI source=$CI_SOURCE_SHA tree=$CI_TREE suites=$CI_SUITES mode=$CI_MODE" >> "$GITHUB_STEP_SUMMARY"
+
+  field-hud:
+    name: field-hud (${{ matrix.browser }})
+    needs: [prepare, browser]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        if: needs.prepare.result == 'success'
+        with:
+          ref: ${{ needs.prepare.outputs.review-source }}
+      - uses: actions/setup-node@v4
+        if: needs.prepare.result == 'success'
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.hud-suites != '[]'
+        with:
+          pattern: ci-report-${{ needs.prepare.outputs.review-mode }}-${{ needs.prepare.outputs.review-source }}-${{ matrix.browser }}-*-${{ github.run_attempt }}
+          path: gate-reports/
+          merge-multiple: true
+      - name: Verify shared HUD evidence at head or merge tree
+        env:
+          PREPARE: ${{ needs.prepare.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          CI_SOURCE_SHA: ${{ needs.prepare.outputs.review-source }}
+          CI_TREE: ${{ needs.prepare.outputs.review-tree }}
+          BROWSER: ${{ matrix.browser }}
+          CI_SUITES: ${{ needs.prepare.outputs.hud-suites }}
+          CI_MODE: ${{ needs.prepare.outputs.review-mode }}
+        run: |
+          test "$PREPARE" = success
+          test "$(git rev-parse HEAD)" = "$CI_SOURCE_SHA"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CI_TREE"
+          test -n "$CI_SUITES"
+          if [ "$CI_SUITES" != '[]' ]; then
+            test "$BROWSER_RESULT" = success
+            node scripts/ci-browser-gate.mjs
+          fi
+          echo "HUD source=$CI_SOURCE_SHA tree=$CI_TREE suites=$CI_SUITES mode=$CI_MODE" >> "$GITHUB_STEP_SUMMARY"
 
   # Preserve required names. Both summaries fail if ANY selected shard fails,
   # is cancelled, or is unexpectedly skipped. Failures cannot be waived.

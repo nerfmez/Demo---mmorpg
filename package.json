@@ -30,6 +30,7 @@
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "acorn": "^8.19.0",
     "playwright": "^1.56.1",
     "vite": "^8.3.1"
   },

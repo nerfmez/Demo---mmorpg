@@ -6,7 +6,7 @@ import { SUITES } from './ci-browser-plan.mjs';
 
 export function verifyBrowserReports({ directory, source, browser, suites, mode }) {
   if (!/^[a-f0-9]{40}$/.test(source) || !['chromium', 'webkit'].includes(browser) ||
-      !['quick', 'full'].includes(mode) || !Array.isArray(suites) || !suites.length || new Set(suites).size !== suites.length)
+      !['quick', 'full', 'merge'].includes(mode) || !Array.isArray(suites) || !suites.length || new Set(suites).size !== suites.length)
     throw Error('Invalid selected browser gate identity');
   for (const suite of suites) {
     if (!SUITES[suite]) throw Error(`Unknown selected suite: ${suite}`);

@@ -1,6 +1,7 @@
 import { spawnSync, execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { SUITES } from './ci-browser-plan.mjs';
+import { validateEngineOwnership } from './ci-browser-engine.mjs';
 
 const suite = process.argv[2];
 if (!SUITES[suite]) throw Error(`Unknown browser suite: ${suite}`);
@@ -21,7 +22,14 @@ for (const script of SUITES[suite]) {
   saveReport(); // A killed/timed-out shard leaves an explicitly incomplete report.
   const start = Date.now();
   console.log(`START ${source} ${report.browser} ${suite}/${script}`);
-  const result = spawnSync(process.execPath, [`tests/browser/${script}`], { stdio: 'inherit', env: process.env });
+  let result;
+  try {
+    validateEngineOwnership(script, readFileSync(`tests/browser/${script}`, 'utf8'));
+    result = spawnSync(process.execPath, [`tests/browser/${script}`], { stdio: 'inherit', env: process.env });
+  } catch (error) {
+    console.error(error.message);
+    result = { status: 1, signal: null, error };
+  }
   const check = { script, startedAt: new Date(start).toISOString(), durationMs: Date.now() - start, exitCode: result.status, signal: result.signal, error: result.error?.message };
   report.checks.push(check);
   report.running = null;

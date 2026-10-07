@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { focusedReviewCovered, validationPlan } from './ci-browser-plan.mjs';
+import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
 const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 const LIGHT_FILES = new Set(['view', 'toon', 'patch', 'settings', 'painted', 'ground', 'ground-color', 'grass', 'environment', 'surfaceart', 'anime-study', 'art-study', 'leafpaint', 'nature']);
@@ -61,7 +62,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   if (process.env.FORCE_RENDER === 'true') scope.render = true;
   if (forceFull) scope = all();
-  const plan = validationPlan(files, { full: forceFull });
+  const impacts = !forceFull && base && head ? gitEquipmentImpacts(files, base, head) : {};
+  const plan = validationPlan(files, { full: forceFull, impacts });
   if (process.env.FORCE_BOOT === 'true') {
     scope.game = true;
     if (!plan.suites.includes('boot')) plan.suites.unshift('boot');

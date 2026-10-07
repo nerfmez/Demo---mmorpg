@@ -29,17 +29,42 @@ function comparison(before, after, effectText, caption) {
   }).join('')}</tbody></table></section>`;
 }
 // Fixed cosmetic trajectories: no game RNG, allocations per frame or gameplay callbacks.
-const metalSparks = [[-36,-22,-145],[-23,-38,-120],[-7,-43,-99],[16,-37,-66],[34,-23,-34],[41,-5,-7],[-39,-3,-177],[23,12,27]]
-  .map(([x,y,angle]) => `<i class="ws-metal-spark" style="--spark-x:${x}px;--spark-y:${y}px;--spark-angle:${angle}deg"></i>`).join('');
-// The striking face is (12,48). CSS anchors it exactly to the shared impact point.
-const workshopHammer = `<svg viewBox="0 0 52 52" fill="none"><path d="M14 32L44 8" stroke="#705334" stroke-width="9" stroke-linecap="round"/><path d="M14 31L43 8" stroke="#c89959" stroke-width="5" stroke-linecap="round"/><path d="M4 27H20L22 32V45L19 48H4L2 44V31Z" fill="#929fa5" stroke="#d4dde0" stroke-width="1.5"/><path d="M4 28H19L21 32H3Z" fill="#dce4e4"/><path d="M4 44H20V47H4Z" fill="#617079"/><path d="M6 33V41" stroke="#c0cbcf" stroke-width="2"/></svg>`;
+const metalSparks = [[-36,-22,-145],[-23,-38,-120],[-7,-43,-99],[16,-37,-66],[34,-23,-34],[41,-5,-7],[-39,-3,-177],[23,-12,-27]]
+  .map(([x,y,angle]) => `<path class="ws-metal-spark" d="M0 0H4" style="--spark-x:${x}px;--spark-y:${y}px;--spark-angle:${angle}deg"/>`).join('');
+// One orthographic side elevation. The face rests on the blank's y=144 plane;
+// the handle rotates about its fixed grip (248,78), not a moving icon anchor.
+// Item artwork is a separate identity thumbnail, never the physical strike target.
+const workshopScene = `<svg class="ws-forge-scene" viewBox="0 0 320 210" fill="none" aria-hidden="true">
+ <path d="M55 196H266" stroke="#9aab9d" stroke-opacity=".3"/>
+ <path d="M38 153H219V164H194L178 178V187H204V196H108V187H136V178L115 166H82Z" fill="#657b7d" stroke="#acc0b9" stroke-width="1.5" stroke-linejoin="round"/>
+ <path d="M83 154H218V160H84Z" fill="#a4b4ae"/>
+ <path d="M137 178H178V187H137Z" fill="#425d62"/>
+ <path d="M111 190H201" stroke="#91a49b" stroke-width="2"/>
+ <path d="M118 144H170V152H118Z" fill="#b69368" stroke="#e0c595" stroke-width="1"/>
+ <path data-workpiece-plane d="M118 144H170" stroke="#f0d9ac" stroke-width="1.5"/>
+ <g class="ws-hammer">
+  <path d="M143 130L248 78" stroke="#705334" stroke-width="10" stroke-linecap="round"/>
+  <path d="M145 127L248 76" stroke="#c89959" stroke-width="5" stroke-linecap="round"/>
+  <path d="M227 81L232 89M233 78L238 86M239 75L244 83" stroke="#76543b" stroke-width="2"/>
+  <circle data-hammer-grip cx="248" cy="78" r="4" fill="#bb8c51"/>
+  <path d="M130 119H158V144H130Z" fill="#8d9e9f" stroke="#d4dfdb" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M132 121H156V126H132Z" fill="#d5dfd9"/>
+  <path d="M132 136H156V143H132Z" fill="#526d75"/>
+  <path data-hammer-face d="M130 144H158" stroke="#e0e6dc" stroke-width="1.5"/>
+ </g>
+ <g class="ws-impact" data-impact-origin transform="translate(144 144)">
+  <g class="ws-spark"><circle r="9" fill="#f5bb6c" fill-opacity=".5"/><circle r="4" fill="#fff8dd"/></g>
+  <path class="ws-wave" d="M-12 0A12 12 0 0 1 12 0" stroke="#f6c580" stroke-width="1"/>
+  ${metalSparks}
+ </g>
+</svg>`;
 function stage({ graphic, name, meta, from, to, busy, kind, grade }) {
-  return `<section class="ws-stage ${busy ? 'is-working' : ''}" data-workshop-stage data-mode="${kind}" ${grade ? `data-grade="${esc(grade)}"` : ''} aria-label="ชิ้นงานที่เลือก"><div class="ws-stage-top"><span>${busy ? 'กำลังแสดงผล' : kind === 'craft' ? 'สร้างชิ้นใหม่' : 'ชิ้นงานที่เลือก'}</span><small>${esc(meta)}</small></div><div class="ws-pedestal"><span class="ws-ring ring-one" aria-hidden="true"></span><span class="ws-ring ring-two" aria-hidden="true"></span><div class="ws-item-art">${graphic}</div><span class="ws-hammer" aria-hidden="true">${workshopHammer}</span><span class="ws-impact" aria-hidden="true"><span class="ws-spark"></span><span class="ws-wave"></span>${metalSparks}</span></div><h2>${esc(name)}</h2><div class="ws-ranks"><span>${esc(from)}</span>${to ? `<i aria-hidden="true">→</i><strong>${esc(to)}</strong>` : ''}</div><p>${busy ? 'ผลถูกบันทึกแล้ว · ปิดหน้าได้โดยของไม่หาย' : kind === 'craft' ? 'สุ่มเฉพาะตอนยืนยัน · ดูสูตรไม่เสียทรัพยากร' : 'ตรวจค่าสถานะและวัตถุดิบก่อนยืนยัน'}</p></section>`;
+  return `<section class="ws-stage ${busy ? 'is-working' : ''}" data-workshop-stage data-mode="${kind}" ${grade ? `data-grade="${esc(grade)}"` : ''} aria-label="ชิ้นงานที่เลือก"><div class="ws-stage-top"><span>${busy ? 'กำลังแสดงผล' : kind === 'craft' ? 'สร้างชิ้นใหม่' : 'ชิ้นงานที่เลือก'}</span><small>${esc(meta)}</small></div><div class="ws-pedestal">${workshopScene}</div><div class="ws-stage-identity"><span class="ws-item-art">${graphic}</span><h2>${esc(name)}</h2></div><div class="ws-ranks"><span>${esc(from)}</span>${to ? `<i aria-hidden="true">→</i><strong>${esc(to)}</strong>` : ''}</div><p>${busy ? 'ผลถูกบันทึกแล้ว · ปิดหน้าได้โดยของไม่หาย' : kind === 'craft' ? 'สุ่มเฉพาะตอนยืนยัน · ดูสูตรไม่เสียทรัพยากร' : 'ตรวจค่าสถานะและวัตถุดิบก่อนยืนยัน'}</p></section>`;
 }
 function receiptView(ui) {
   const c = ui.workshop, r = c?.receipt;
   if (c?.error) return `<div class="ws-notice is-error" role="alert">${esc(c.error)}</div>`;
-  if (!r) return '';
+  if (!r) return '<section class="ws-notice is-ready"><span class="ws-result-mark" aria-hidden="true">◇</span><div><b>เลือกชิ้นงานและตรวจวัตถุดิบ</b><small>ยืนยันเมื่อพร้อม · ดูรายการได้โดยไม่เสียทรัพยากร</small></div></section>';
   const busy = c.busy;
   let text;
   if (r.action === 'gear-up') text = `ตีบวกสำเร็จ +${r.before.upgrade} → +${r.items[0].upgrade}`;

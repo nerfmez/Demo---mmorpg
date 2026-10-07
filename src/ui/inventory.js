@@ -2,8 +2,8 @@
 import { icon } from './icons.js';
 import { art } from './art.js';
 import { gearItem, gearStats, weaponImplicit, gearEquipState, wornSlot } from '../core/character.js';
-import { gearUpgradeCost, gearUpgradeState, gearUpgradePreview, gearGradeState, gearGradePreview, modUpgradeCost } from '../core/crafting.js';
-import { gradeBadge, gearUpgradeTrack, wearRequirements, wearRequirementRange, stateText } from './progressionview.js';
+import { modUpgradeCost } from '../core/crafting.js';
+import { gradeBadge, wearRequirements } from './progressionview.js';
 import { rulesHtml } from './buildmeta.js';
 import { modSlotOf } from '../core/skills.js';
 
@@ -52,7 +52,6 @@ export function inventoryView(ui, { costHtml, effectText }) {
       const base = data.items.gearBases[it.base];
       const req = gearEquipState(ch, data, it);
       const old = gearItem(ch, ch.equipped[wornSlot(ch, data, it) || base.slot]);
-      const up = gearUpgradeCost(data, it);
       content = ui.gearLine(it);
       if (old && old.uid !== it.uid) {
         const a = comparisonStats(it, data);
@@ -69,17 +68,9 @@ export function inventoryView(ui, { costHtml, effectText }) {
       actions = selected.equipped
         ? `<span class="equipped-label">✓ สวมใส่อยู่</span>${wornSlot(ch, data, it) !== 'weapon' ? `<button class="btn" data-act="unequip" data-slot="${wornSlot(ch, data, it)}">ถอดอุปกรณ์</button>` : ''}`
         : `<button class="btn primary" data-act="equip-gear" data-uid="${it.uid}" ${req.ok ? '' : 'disabled'}>สวมใส่</button>`;
-      if (up) {
-        const state = gearUpgradeState(ch,data,it), preview = gearUpgradePreview(data,it);
-        const changes = Object.keys(preview.after).filter(k=>preview.after[k]!==preview.before[k]).map(k=>`${effectText(k,preview.before[k])} → ${preview.after[k]}`).join(' · ');
-        const canWearAfter = gearEquipState(ch,data,{...it,upgrade:it.upgrade+1}).ok;
-        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${gearUpgradeTrack(data,it)}<p>${changes}</p>${wearRequirements(ch,preview.afterRequires,'รีเควสสวมใส่หลังตีบวก')}<small>ตีบวกได้เมื่อวัตถุดิบพอ · ไม่ล็อกเลเวลหรือสเตตัส</small>${!canWearAfter?`<p class="wear-warning">ยังใส่หลังอัปไม่ได้${selected.equipped?' · จะถอดเก็บไว้ในกระเป๋า':''}</p>`:''}<p class="${near.workbench&&state.ok?'ok':'no'}">${near.workbench?stateText(state):'ต้องอยู่ใกล้โต๊ะคราฟต์ในนิคมเพื่อตีบวก'}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
-        actions += `<button class="btn" data-act="gear-up" data-uid="${it.uid}" ${near.workbench && state.ok ? '' : 'disabled'}>ตีบวก +${it.upgrade+1}</button>`;
-        if (!near.workbench) content += '<p class="muted">ตีบวกได้ที่โต๊ะคราฟต์ในนิคม</p>';
-      }
-      const grade = gearGradeState(ch,data,it);
-      content += `<section class="grade-promotion"><h4>เกรด ${gradeBadge(data,it.grade,it.options.length)}</h4>${grade.cost?`<p>${it.grade} → ${grade.grade} · เพิ่มเป็น ${data.items.grades.optionCount[grade.grade]} ออฟชั่น</p><small>เก็บออฟชั่นเดิม และสุ่มเพิ่มจากสายของไอเทมนี้</small>${wearRequirementRange(ch,gearGradePreview(data,it))}<p class="muted">เลื่อนเกรดได้ตามวัตถุดิบ · สวมใส่ตามรีเควสของผลจริง</p><p class="${grade.ok?'ok':'no'}">${stateText(grade)}</p><div class="cost">${costHtml(ch,data,grade.cost)}</div>`:`<p>เกรดสูงสุด · ${data.items.grades.optionCount.S} ออฟชั่น</p>`}</section>`;
-      if (grade.cost) actions += `<button class="btn" data-act="gear-grade" data-uid="${it.uid}" ${near.workbench&&grade.ok?'':'disabled'}>เลื่อนเกรด ${grade.grade}</button>`;
+      // Enhancement has its own workspace. Bag links select a uid; they never spend.
+      content += `<section class="workshop-shortcut"><h4>พัฒนาอุปกรณ์ที่โรงช่าง</h4><p class="muted">ตีบวกเพิ่มค่าพื้นฐาน · เลื่อนเกรดเพิ่มช่องออฟชั่น<br>ตรวจค่าก่อน–หลังและวัตถุดิบก่อนยืนยันในหน้าเฉพาะ</p></section>`;
+      actions += `<button class="btn" data-act="forge-open" data-mode="upgrade" data-uid="${it.uid}">ไปหน้าตีบวก +${it.upgrade}</button><button class="btn" data-act="forge-open" data-mode="grade" data-uid="${it.uid}">ไปหน้าเลื่อนเกรด ${it.grade}</button>`;
     } else if (category === 'materials') {
       const uses = Object.values(data.recipes.recipes).filter((r) => r.cost[selected.id]).map((r) => (data.items.gearBases[r.result] || data.skills.combat[r.result] || data.skills.movement[r.result] || data.mods.mods[r.result])?.nameTh).filter(Boolean);
       const sources = Object.entries(data.monsters.monsters).filter(([,m]) => m.drops.some((d) => d.item === selected.id)).map(([id,m]) => `<span class="source-creature">${art('monster',id)}<span>${m.nameTh}</span></span>`);

@@ -2,7 +2,7 @@
 // CHROMIUM_EXECUTABLE=/usr/bin/chromium node tests/browser/monster-identity.mjs
 import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
-import {spawn} from 'node:child_process';
+import {spawn,execFileSync} from 'node:child_process';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {freezeScene} from './freeze-scene.mjs';
@@ -16,7 +16,7 @@ const expectedMonsters=Object.fromEntries(monsters.map(id=>[id,id==='greyfang'?'
 mkdirSync(out,{recursive:true});
 const port=4237,base=`http://localhost:${port}/`;
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port',String(port),'--strictPort'],{stdio:'ignore',detached:true});
-const errors=[],badResponses=[],report={engine:engine.name(),basis:approval.source_main_sha,views:[],assetHashes:[],errors,badResponses,ok:false};
+const errors=[],badResponses=[],report={engine:engine.name(),basis:approval.source_main_sha,sourceCommit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),capturedAt:new Date().toISOString(),modelDefinitionsSha256:createHash('sha256').update(readFileSync(new URL('../../data/models.json',import.meta.url))).digest('hex'),views:[],assetHashes:[],errors,badResponses,ok:false};
 let browser;
 try{
  for(let i=0;;i++){try{if((await fetch(base)).ok)break;}catch{}if(i>80)throw Error('preview server');await new Promise(r=>setTimeout(r,250));}
@@ -114,6 +114,6 @@ try{
  assert.deepEqual(errors,[]);assert.deepEqual(badResponses,[]);report.ok=true;
  console.log('PASS approved identities: desktop/iPad map, boss pin, bag/source details, craft costs, quest labels; exact served hashes; no page/image errors.');
 }finally{
- report.limitations=['PR106 model dependency pending; reviewed base models were not replaced by this patch.','Viewport emulation and SwiftShader; no physical iPad or Safari/performance claim.'];
+ report.limitations=['UI identity review on post-PR106 main; no 3D animation review is claimed.','Viewport emulation and SwiftShader; no physical iPad or Safari/performance claim.'];
  writeFileSync(out+'report.json',JSON.stringify(report,null,2)+'\n');await browser?.close();process.kill(-server.pid);
 }

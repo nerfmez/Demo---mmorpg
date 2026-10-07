@@ -1,12 +1,21 @@
 # Integrated pixel review, 2026-10-07
 
-Reviewed the owner-approved individual exports and their actual rendered use
+Refreshed after PR106's merge: reviewed the owner-approved individual exports
+and their actual rendered use
 on desktop 1440×960 and iPad viewport 1180×820, in Chromium/SwiftShader.
 `browser-report.json` records the exact served eight PNG hashes, screenshot
 hashes, viewport sizes and observed labels. All 18 generated runtime captures
 were inspected; eight representative captures are retained here. Reproduce the
 complete set with `CHROMIUM_EXECUTABLE=/usr/bin/chromium node
 tests/browser/monster-identity.mjs` after building.
+
+Exact runtime source: recovered patch `340fc17363f1ad1a5dc96b3887f95791c31a792b`,
+based on post-PR106 main `3225b3cdc8bff2909b4ce6297f683f4e01f899b1`.
+Capture run began at 15:57:31 UTC on 2026-10-07; each of the 18 final screenshots
+was opened as pixels after capture, through 16:02 UTC. Model definitions hash:
+`be8feacb2a2de43bce8db61dda271bbce615b030f146772a94a2ad6c74c8fb5d`.
+The final follow-up commit updates evidence and capture metadata only; runtime
+data, UI, approved assets and all main models remain the tested bytes.
 
 Acceptance criteria: recognize the approved six concepts at their existing
 footprints; retain the journal's subdued painted style and inventory's isolated
@@ -56,12 +65,15 @@ material labels in recipe costs and three changed quest cards. All eight
 served images match their approved hashes. Zero page exceptions, failed icon
 responses or page overflow. The scoped core/data/quest/save checks pass (50
 tests), and the production build passes with its existing bundle-size warning.
-The deterministic journal rebuild also passes.
+The deterministic journal rebuild passed during original preparation; its
+script, source assets and generated runtime bytes are retained exactly.
 
-PR106 remains the model dependency. These screenshots use the current main
-models behind paused menus; this patch imports no models and does not claim
-to review PR106's integrated 3D animation. Reconcile and repeat affected checks
-after its merge before releasing the follow-up PR. Local WebKit is unavailable;
-required release CI must supply that check. No physical iPad/Safari or FPS
-result is claimed. No blocking visible defect was found in this approved UI
-identity batch.
+PR106 merged at 14:31 UTC; its merge dependency is satisfied. These refreshed
+screenshots use post-PR106 main models behind paused menus. This patch preserves
+all models and does not claim a new 3D-animation review. No new visual defect
+was found in the approved UI identity batch; the existing pale cream map heading
+and detail stack badge remain outside this patch. Local checks use Chromium;
+required release CI must supply WebKit. No physical iPad/Safari or FPS result is
+claimed. PR106's separate deployment setup failure is not an integration gate.
+Draft PR111 is ready for parent release review within these stated limits;
+no merge or deployment was performed.

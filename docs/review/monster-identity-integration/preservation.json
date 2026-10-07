@@ -1,5 +1,6 @@
 {
-  "baseline": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
+  "baseline": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "recovered_from_commit": "7f58c19efcb3f38ed6f6b5196196c547ba5f9095",
   "pass": true,
   "approved_label_fields": 30,
   "data_checks": [
@@ -19,5 +20,7 @@
   "approved_asset_replacements": 8,
   "unchanged_icon_count": 168,
   "recipes_and_models_unchanged": true,
-  "core_render_and_layout_sources_unchanged": true
+  "core_render_and_layout_sources_unchanged": true,
+  "all_model_and_ci_files_unchanged": true,
+  "existing_patch_runtime_bytes_preserved": true
 }

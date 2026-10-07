@@ -2,9 +2,12 @@
 
 The owner approved the displayed PR106 portrait/material/name batch on
 2026-10-07 and requested integration after PR106 merges. This independent
-branch is based on main `0e2d9fd58b7e6e10b6226158130e642d366c301a`; it imports
-none of PR106's models. The inspected model/concept dependency is PR106 head
-`867147209c520c05c8f32b7b5dfb5710ec1a899d`.
+recovery branch is based on actual post-PR106 main
+`3225b3cdc8bff2909b4ce6297f683f4e01f899b1`. It cherry-picks the existing approved
+patch `7f58c19efcb3f38ed6f6b5196196c547ba5f9095` without conflicts, retaining
+PR106's model/concept dependency `867147209c520c05c8f32b7b5dfb5710ec1a899d`.
+The original integration branch remains untouched. Its remote head was still
+`7f58c19` and no PR was found when recovery began on 2026-10-07 after 15:55 UTC.
 
 ## Change and preservation
 
@@ -48,12 +51,15 @@ pixel/alpha review are retained there.
 Production build passes with the existing large-bundle warning. The focused
 Atlas, raster, live data, quest journey and save tests pass: 50 tests total.
 Browser verification and pixel review are recorded separately in `REVIEW.md`
-and `browser-report.json` once complete. Browser fixtures seed only fresh,
+and `browser-report.json`. Browser fixtures seed only fresh,
 local review state; they never alter production content or an owner's save.
 
-At preparation time PR106 is OPEN and unmerged. Before releasing the follow-up
-PR, confirm its merge, reconcile this branch onto the actual new main, inspect
-any intervening art/data changes, and repeat the affected checks on that head.
-Run the repository's required release gates, including WebKit through CI when
-available. Do not merge PR106 or this patch as part of preparation. No physical
-iPad, Safari or FPS claim is made by the local Chromium/SwiftShader review.
+PR106 merged at 14:31 UTC on 2026-10-07, satisfying the requested merge dependency.
+The focused checks and actual UI captures are repeated on the recovered patch
+with those models present. Only the port guide overlaps the intervening changes;
+Git retained both the PR106 model notes and this patch's UI notes automatically.
+All model, weapon, core/render, recipe and CI files remain byte-identical to
+post-PR106 main. Release CI owns the required premerge checks, including WebKit;
+PR106's deployment setup failure and PR109's separate fix are outside this patch.
+Do not merge or deploy this draft. No physical iPad, Safari or FPS claim is made
+by the local Chromium/SwiftShader review.

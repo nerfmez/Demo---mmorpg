@@ -1,6 +1,9 @@
 {
   "engine": "chromium",
-  "basis": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
+  "basis": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "sourceCommit": "340fc17363f1ad1a5dc96b3887f95791c31a792b",
+  "capturedAt": "2026-10-07T15:57:31.847Z",
+  "modelDefinitionsSha256": "be8feacb2a2de43bce8db61dda271bbce615b030f146772a94a2ad6c74c8fb5d",
   "views": [
     {
       "size": "desktop",
@@ -1573,54 +1576,7 @@
       "bossPin": {
         "src": "./assets/icons/monster/greyfang.png",
         "size": 24
-      },
-      "artifact_hashes": [
-        {
-          "file": "desktop-atlas-boss.png",
-          "sha256": "11223192f2988193f11a19c74371a4e91c3e7dd6799e0cfcc5d4fffe5cda5c22",
-          "retained": true
-        },
-        {
-          "file": "desktop-atlas-meadow.png",
-          "sha256": "46f24b8d118d4618602f06edc333bad914c1462dcdacf7c2dc12f2dc7db10b62",
-          "retained": false
-        },
-        {
-          "file": "desktop-atlas-wolves.png",
-          "sha256": "db1bbdef7dbaf4688ed6e5ad6c098ac1931dc7f7d4c808aa8786b7ca0bcf5b1f",
-          "retained": false
-        },
-        {
-          "file": "desktop-atlas-wetland.png",
-          "sha256": "3b9afc82b777610558d9d5c75a75686101ea2ccbf3a34522b5970ec8dc83c546",
-          "retained": false
-        },
-        {
-          "file": "desktop-bag.png",
-          "sha256": "1180980188a3d1ffc099debdec6014ee16ce86ef7ee74aa6ac397fc9186140a1",
-          "retained": false
-        },
-        {
-          "file": "desktop-material-source.png",
-          "sha256": "09e0861f54a81451cc6864277cf61f363340217157ee659f66c6f7df8ab80c59",
-          "retained": false
-        },
-        {
-          "file": "desktop-craft.png",
-          "sha256": "417d2800b916667db01aca311553d15407e9ee703488678507cd553dc3ab3546",
-          "retained": false
-        },
-        {
-          "file": "desktop-quest-slime.png",
-          "sha256": "f0295cb77c0f0056cd3ef0552f6fbf08555eb5a15abe16361314f3afd12ef7d2",
-          "retained": false
-        },
-        {
-          "file": "desktop-quest-optional.png",
-          "sha256": "e38268b5f97aa73307102e35b0f3da8e96281c0d925d2325c7e9b908a11b79a9",
-          "retained": true
-        }
-      ]
+      }
     },
     {
       "size": "ipad",
@@ -3193,54 +3149,7 @@
       "bossPin": {
         "src": "./assets/icons/monster/greyfang.png",
         "size": 24
-      },
-      "artifact_hashes": [
-        {
-          "file": "ipad-atlas-boss.png",
-          "sha256": "2e419d36643827a6fcbcd5b878eea9b39842c395703a2c01c07997961a56c82b",
-          "retained": false
-        },
-        {
-          "file": "ipad-atlas-meadow.png",
-          "sha256": "8514661f2fe3804b1604e355fd1d6926d50e4118deb31e57ea06d7d9ed6f6bde",
-          "retained": false
-        },
-        {
-          "file": "ipad-atlas-wolves.png",
-          "sha256": "ae10862e9ebebfa77e5d528dd70386f04ea5e7b033c083b7ec6bfcbc159ab787",
-          "retained": true
-        },
-        {
-          "file": "ipad-atlas-wetland.png",
-          "sha256": "1876f9e30d71574e552fb79b4f45cd2da2d30b7d33b3baeca09c43a0c7e2d383",
-          "retained": true
-        },
-        {
-          "file": "ipad-bag.png",
-          "sha256": "fb8f7534d99ddf330109a842b9902c488e1bb2bcfc15809d32e0f0d34c3cfe3f",
-          "retained": true
-        },
-        {
-          "file": "ipad-material-source.png",
-          "sha256": "829f770db055b4465f7c902f0b80adfd7f9bb222d0c114807d24474f39a0c2e6",
-          "retained": true
-        },
-        {
-          "file": "ipad-craft.png",
-          "sha256": "c572604c7391a41096dc90b5c10e3d69163d90cb9ac755855caa5da7b487e52f",
-          "retained": true
-        },
-        {
-          "file": "ipad-quest-slime.png",
-          "sha256": "a919494420bb09d5a1fdb91a3cf3231e219db2fc5cb320c9a59a5eb1ce693618",
-          "retained": true
-        },
-        {
-          "file": "ipad-quest-optional.png",
-          "sha256": "6345cf9010a6c536a0599dc7ef12b54d5da3fb6de87c22a7f9ae20775bddfaa4",
-          "retained": false
-        }
-      ]
+      }
     }
   ],
   "assetHashes": [
@@ -3281,22 +3190,102 @@
   "badResponses": [],
   "ok": true,
   "limitations": [
-    "PR106 model dependency pending; reviewed base models were not replaced by this patch.",
+    "UI identity review on post-PR106 main; no 3D animation review is claimed.",
     "Viewport emulation and SwiftShader; no physical iPad or Safari/performance claim."
   ],
-  "retained_captures": [
-    "captures/desktop-atlas-boss.png",
-    "captures/desktop-quest-optional.png",
-    "captures/ipad-atlas-wolves.png",
-    "captures/ipad-atlas-wetland.png",
-    "captures/ipad-bag.png",
-    "captures/ipad-material-source.png",
-    "captures/ipad-craft.png",
-    "captures/ipad-quest-slime.png"
+  "captureHashes": [
+    {
+      "file": "desktop-atlas-boss.png",
+      "sha256": "656b2aa263ef253abf5e783c224ba62d45fd537487b11f9637f4dc693579664a",
+      "retained": true
+    },
+    {
+      "file": "desktop-atlas-meadow.png",
+      "sha256": "b219586f69efa9fa8425a5704812cab3a828457a00aaefa72a5bc777a5192316",
+      "retained": false
+    },
+    {
+      "file": "desktop-atlas-wolves.png",
+      "sha256": "d4c77ce2b4fef45f683e89747b12a7bce67453dcc102054b5e010c32e8c38076",
+      "retained": false
+    },
+    {
+      "file": "desktop-atlas-wetland.png",
+      "sha256": "0204ed2d4100affc19e7c7110c111d2d1fba969a8ac27add7ee0514b936ee1e7",
+      "retained": false
+    },
+    {
+      "file": "desktop-bag.png",
+      "sha256": "41526de7f42b86719540fcc81d8a0c77f6568863c26f2407291d18adfd671103",
+      "retained": false
+    },
+    {
+      "file": "desktop-material-source.png",
+      "sha256": "54a4bb307e63ed241b355f30be3520d5f140da51fd9bb51cbddfca2401968713",
+      "retained": false
+    },
+    {
+      "file": "desktop-craft.png",
+      "sha256": "2fec09cf0c5f452575ec8ec80893b1b7e89579f64fbbf7a4bbde4a67a121de81",
+      "retained": false
+    },
+    {
+      "file": "desktop-quest-slime.png",
+      "sha256": "5e50b9ce610f62efe6f5821245f0f52dae2d7e9e903a0518e3255d999482bfc6",
+      "retained": false
+    },
+    {
+      "file": "desktop-quest-optional.png",
+      "sha256": "31130b58e94d2485c3e142c5efb9b8706c54d9b8f750f18d9f30b700ddbed2d6",
+      "retained": true
+    },
+    {
+      "file": "ipad-atlas-boss.png",
+      "sha256": "10cb70df52ee95fec3c3da16a96a44c1bdef36d738b473b8b59dd1b5a3a2a2e3",
+      "retained": false
+    },
+    {
+      "file": "ipad-atlas-meadow.png",
+      "sha256": "d97db4f95a253e4bc2e451876a9c544688eddb1acb07e73e70b033ff67b44dca",
+      "retained": false
+    },
+    {
+      "file": "ipad-atlas-wolves.png",
+      "sha256": "13be760851c5d5ab9eb49f74942031aa9b7257f7b0296f4511e73f50386cf3b3",
+      "retained": true
+    },
+    {
+      "file": "ipad-atlas-wetland.png",
+      "sha256": "4d1590504440ce8706a52efe2325f095aaa88cdd5b23e248058709226840f49b",
+      "retained": true
+    },
+    {
+      "file": "ipad-bag.png",
+      "sha256": "102ddf73bac5ea227c4a798067e95cb96323747ee9dcaae7e6cda7f201acb206",
+      "retained": true
+    },
+    {
+      "file": "ipad-material-source.png",
+      "sha256": "4252efe95b1ab811d4674cb3a21a0d6c09df843fe7bfa4d0902002c2ef58fa9f",
+      "retained": true
+    },
+    {
+      "file": "ipad-craft.png",
+      "sha256": "119d368ead4ec6787ed1ea3833744b99476f0b8aca7116070e0e5e35e9f53cec",
+      "retained": true
+    },
+    {
+      "file": "ipad-quest-slime.png",
+      "sha256": "4ac178af6b8dae1959c5cb4f80d5df862109bc12f5cae789d8ce32f287f28a38",
+      "retained": true
+    },
+    {
+      "file": "ipad-quest-optional.png",
+      "sha256": "1622e53b1b84103d0c9d551b0ebae78d0eedda1f46dd47c6bbe57f183d2e6442",
+      "retained": false
+    }
   ],
-  "webkit": {
-    "available": false,
-    "executable": "/home/agent/.cache/ms-playwright/webkit-2215/pw_run.sh",
-    "release_gate": "Use required CI WebKit review on final rebased head; no local Safari claim."
-  }
+  "visuallyReviewedAt": "2026-10-07T16:02:26.356577+00:00",
+  "visualReviewMethod": "All 18 final desktop/iPad screenshots opened as pixels; static UI only.",
+  "finalChangesAfterCapture": "Review evidence and capture metadata only; no runtime data/UI/assets/model changes."
 }

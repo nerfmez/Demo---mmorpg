@@ -25,7 +25,8 @@ try {
   await page.screenshot({path:`${out}/${label}-${tag}-before.png`});
   const snapshot=()=>page.evaluate(()=>JSON.stringify(__frontier.game.ch));
   const trigger=()=>page.evaluate(()=>{const p=__frontier.panels;p.onClick({target:document.querySelector('[data-act="gear-up"]')});});
-  const strikeStart=(Date.now()-videoEpoch)/1000;await trigger();const paid=await snapshot();
+  const beforeBox=await stage.boundingBox(),strikeStart=(Date.now()-videoEpoch)/1000;await trigger();const paid=await snapshot();
+  if(!captureOnly){const afterBox=await stage.boundingBox();assert.ok(Math.hypot(afterBox.x-beforeBox.x,afterBox.y-beforeBox.y)<1,'confirmation keeps the strike scene in place');}
   if(!captureOnly){await trigger();assert.equal(await snapshot(),paid,'repeated tap must not deduct twice');}
   await page.waitForFunction(()=>!__frontier.panels.workshop.busy);
   await stage.scrollIntoViewIfNeeded();await page.waitForTimeout(100);
@@ -36,7 +37,24 @@ try {
   await page.evaluate(()=>document.querySelector('[data-workshop-stage]').getAnimations({subtree:true}).forEach(a=>{a.pause();a.currentTime=0;}));
   const frames=reduced?[0,70,100,140,200]:[0,150,320,400,442,470,530,700];
   const samples=[];
-  for(const ms of frames){const sample=await page.evaluate(t=>{const stage=document.querySelector('[data-workshop-stage]');stage.getAnimations({subtree:true}).forEach(a=>{a.currentTime=t;});const h=stage.querySelector('.ws-hammer');return {ms:t,transform:getComputedStyle(h).transform,flash:getComputedStyle(stage.querySelector('.ws-spark')).opacity,sparks:stage.querySelectorAll('.ws-metal-spark').length};},ms);samples.push(sample);await page.screenshot({path:`${out}/${label}-${tag}-${ms}ms.png`,clip:await stage.boundingBox()});}
+  for(const ms of frames){const sample=await page.evaluate(t=>{
+   const stage=document.querySelector('[data-workshop-stage]');stage.getAnimations({subtree:true}).forEach(a=>{a.currentTime=t;});const h=stage.querySelector('.ws-hammer');
+   const point=(e,p)=>{const q=new DOMPoint(p.x,p.y).matrixTransform(e.getScreenCTM());return {x:q.x,y:q.y};};
+   const ends=e=>[point(e,e.getPointAtLength(0)),point(e,e.getPointAtLength(e.getTotalLength()))];
+   const face=stage.querySelector('[data-hammer-face]'),plane=stage.querySelector('[data-workpiece-plane]'),grip=stage.querySelector('[data-hammer-grip]');
+   return {ms:t,transform:getComputedStyle(h).transform,flash:getComputedStyle(stage.querySelector('.ws-spark')).opacity,sparks:stage.querySelectorAll('.ws-metal-spark').length,
+    geometry:{face:ends(face),plane:ends(plane),impact:point(stage.querySelector('[data-impact-origin]'),{x:0,y:0}),grip:point(grip,{x:grip.cx.baseVal.value,y:grip.cy.baseVal.value})}};
+  },ms);samples.push(sample);await page.screenshot({path:`${out}/${label}-${tag}-${ms}ms.png`,clip:await stage.boundingBox()});}
+  if(!captureOnly){
+   const contact=samples.filter(s=>reduced?s.ms===100:s.ms===442||s.ms===470);
+   for(const {geometry:g} of contact){
+    assert.ok(g.face.every(p=>Math.abs(p.y-g.plane[0].y)<.75),'flat hammer face meets the actual blank plane');
+    assert.ok(g.face.every(p=>p.x>=g.plane[0].x&&p.x<=g.plane[1].x),'face lands inside the supported blank');
+    assert.ok(Math.abs(g.impact.x-(g.face[0].x+g.face[1].x)/2)<.75&&Math.abs(g.impact.y-g.plane[0].y)<.75,'effects originate at contact');
+   }
+   assert.ok(samples.every(({geometry:g})=>g.face.every(p=>p.y<=g.plane[0].y+.75)),'hammer never crosses through the blank');
+   if(!reduced){const grip=samples[0].geometry.grip;assert.ok(samples.every(({geometry:g})=>Math.hypot(g.grip.x-grip.x,g.grip.y-grip.y)<.75),'normal swing has one fixed grip/pivot');}
+  }
   // Frozen animations are presentation only; finish/cancel retains the committed transaction.
   await page.evaluate(()=>__frontier.panels.workshop.finish());
   await page.clock.resume();
@@ -50,7 +68,7 @@ try {
    assert.equal(await snapshot(),crafted,'craft repeated/cancel cannot reroll');assert.equal(await page.evaluate(()=>JSON.stringify(__frontier.panels.workshop.receipt)),receipt);
   }
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'horizontal overflow');assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
-  reports.push({label,width,height,touch,reduced,context:'real Game and Panels; no 3D renderer',strikeStart,duration,samples,errors,missing,checks:captureOnly?['baseline capture']:['repeat guard','close/reopen','back/reopen','craft no reroll','receipt preserved','no horizontal overflow','no page errors/missing assets']});
+  reports.push({label,width,height,touch,reduced,context:'real Game and Panels; no 3D renderer',strikeStart,duration,samples,errors,missing,checks:captureOnly?['baseline capture']:['no scene jump at confirmation','actual SVG contact plane and effect origin','face stays above supported blank','fixed normal-motion grip/pivot','repeat guard','close/reopen','back/reopen','craft no reroll','receipt preserved','no horizontal overflow','no page errors/missing assets']});
   await context.close();await page.video().saveAs(`${out}/${label}-${tag}.webm`);
  }
  writeFileSync(`${out}/report.json`,JSON.stringify(reports,null,2));console.log(JSON.stringify(reports,null,2));

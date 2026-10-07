@@ -62,33 +62,49 @@ the current-main version. The diff against main contains workshop hooks only.
 
 ## Strike revision and executed evidence (2026-10-07)
 
-The custom workshop hammer has a readable flat striking face. It lifts up/back
-for 323 ms, accelerates diagonally downward for 119 ms, holds at contact for 51 ms,
-then recoils lightly for 102 ms and fades. The face lands at the same pedestal
-point as the effects: 50% / 78 px. It does not continue through the workpiece.
+The perspective revision uses one orthographic side elevation for the hammer,
+metal blank, anvil and effects. The original item artwork remains in a framed
+identity thumbnail below the physical scene. It is not a floating strike target.
+The handle rotates about a fixed grip at SVG (248,78); both ends of the flat face
+meet the blank's horizontal y=144 surface, within its supported width. Effects
+start at the middle of that contact, SVG (144,144). No separate icon projection,
+moving pivot, workpiece displacement or elliptical floor/shock plane is used.
 
-At contact only, eight short metallic sparks travel at most 44 px, a white-orange
-flash lasts 68 ms, and a small elliptical impact ring fades within 145 ms. There
-is no rotating ornament, continuous flare or full-stage glow. Reduced motion
-keeps a 14 px hammer-down movement and a smaller 53 ms flash; particles, ring and
-item movement are disabled. This remains CSS presentation. The only controller
+The hammer lifts from 20° to 37° over 323 ms, accelerates downward to 0° over
+119 ms, holds for 51 ms, then recoils to 4° over 102 ms and fades. Its grip stays
+fixed through this arc and the face never crosses below the blank. The ready
+instruction and result occupy the same-height notice row so confirmation does
+not move the scene before the strike.
+
+At contact only, eight short metallic sparks travel at most 44 SVG units above
+the surface, a white-orange flash lasts 68 ms, and a small upper shock arc fades
+within 145 ms. All scale with the same scene. There is no rotating ornament,
+continuous flare or full-stage glow. Reduced motion keeps a 14 SVG-unit down
+movement and a smaller 53 ms flash; sparks and arc are disabled. The identity
+thumbnail stays still in both modes. This remains CSS presentation. The only controller
 change extends reduced-motion feedback from 80 to 300 ms so the 240 ms hit reads.
 
 Executed checks:
 
 - `node --test tests/core/workshop.test.js tests/core/crafting.test.js tests/core/quest-journey.test.js`: **63/63 passed**, no failures/skips. Includes exact payment/command equivalence, seeded RNG, normal/reduced repeated requests, skip/close/reopen, stale timer not unlocking a later operation, receipt/UID/event/save preservation.
 - `npm run build`: passed; existing large-chunk warning remains.
-- `CHROMIUM_EXECUTABLE=/usr/bin/chromium node tests/browser/upgrade-materials.mjs`: passed desktop and iPad-sized, with real Game/Panels payments, workshop lifecycle and service/save checks.
-- `CHROMIUM_EXECUTABLE=/usr/bin/chromium node tests/browser/wearable-level.mjs`: passed desktop, iPad-sized and phone; under-level crafting, fixed-level upgrades and equipment preservation.
-- `tests/browser/workshop-motion.mjs`: passed iPad-sized 1180×820, phone landscape 844×390 and reduced-motion 1180×820 using real Game/Panels without the 3D renderer. Repeated taps, close/back/reopen, no craft reroll, receipt preservation, no horizontal overflow, no page errors or missing assets.
+- Prior-head check: `upgrade-materials.mjs` passed desktop and iPad-sized, with real Game/Panels payments, workshop lifecycle and service/save checks. Not repeated locally for the perspective revision.
+- Prior-head check: `wearable-level.mjs` passed desktop, iPad-sized and phone; under-level crafting, fixed-level upgrades and equipment preservation. Not repeated locally for the perspective revision.
+- `tests/browser/workshop-motion.mjs`: passed iPad-sized 1180×820, phone landscape 844×390 and reduced-motion 1180×820 using real Game/Panels without the 3D renderer. Actual screen coordinates verify face/blank/contact alignment, supported contact width, no penetration, a fixed normal-motion grip and no scene jump at confirmation. Repeated taps, close/back/reopen, no craft reroll, receipt preservation, no horizontal overflow, no page errors or missing assets also pass.
 - `tests/browser/workshop-game.mjs`: passed the same three views in the built game. The WebGL world and imported region initialized and were captured; the existing `freezeScene` helper then held the completed frame for paused UI review. Simulation stays paused, repeated taps pay once and finish/close/reopen retains state. No page errors or horizontal overflow. This is Chromium SwiftShader viewport emulation, not physical iPad testing or a performance result.
-- Syntax checks for the two changed production JS files and two new browser scripts, and `git diff --check`: passed.
+- Changed JS/capture-script syntax and `git diff --check`: passed.
 - `tests/browser/menu-hub.mjs`: passed iPad-sized, phone landscape and phone portrait after the integration follow-up below. The five-group iPad fit assertion remains unchanged.
 - **Blocked:** WebKit launch: browser executable `webkit-2215/pw_run.sh` is absent. Physical iPad/Safari and broad full-game regression were not run.
 
-The two focused capture scripts accept `EVIDENCE_DIR`. The motion script also
-accepts `CAPTURE_TAG` and `CAPTURE_ONLY=1` for baseline capture. Videos are recorded
-in real wall-clock time; diagnostic stills separately freeze the production CSS
+The two focused capture scripts accept `EVIDENCE_DIR`. The built-game script
+starts its short video only after the scene is ready; `timed-screencast.mjs`
+encodes each live CDP frame's timestamp into concat durations, verifies the
+encoded duration against the timestamps and converts the full-range source
+to limited-range MP4 explicitly. It does not speed up or slow down the action.
+The motion script also
+accepts `CAPTURE_TAG` and `CAPTURE_ONLY=1` for baseline capture. Its full-session
+WebM is diagnostic; delivered MP4s use the short timestamped built-game capture
+above. Diagnostic stills separately freeze the production CSS
 at authored transition times. Frozen diagnostic frames are excluded from the
 short delivered motion excerpts.
 
@@ -104,21 +120,28 @@ recoil; 6–12 metallic sparks only at contact; short local flash/ring; item, st
 and controls remain readable; reduced motion still communicates a hit without
 orbit/particles; cancellation never controls the committed result.
 
-Inspected exact after-artifact stage stills at 0/150/320/400/442/470/530/700 ms,
-reduced-motion 0/70/100/140/200 ms, full iPad/landscape screenshots and built-game
-impact/results. Inspected sampled sequential frames from original-speed MP4s
-(12 fps normal detail and 16 fps reduced sample). Observed the lift above/right,
-face arrested at contact, small recoil, local flash and short sparks with no UI
-occlusion. The static decorative rings remain stationary. Landscape uses vertical
-scrolling; it is not claimed to fit all controls in one screen.
+The owner rejected the earlier delivered `bf192915`/`300f18f` motion for confused
+perspective. Re-inspection of its real clip frames found a floating diagonal
+inventory picture, a side-view hammer striking the picture without a supporting
+plane, a translated grip, an unrelated elliptical impact ring and a scene jump
+when the receipt row appeared. Passing state checks had not resolved these faults.
 
-Found/fixed: the prior hammer swept through and the old reduced-motion mode hid
-all hit feedback. The new face/contact stop and reduced hit address both in the
-sampled frames. An early capture loaded legacy CSS after workshop CSS, causing an
-incorrect dark layout; capture CSS order was corrected and both before/after were
-recaptured. The first built-game harness checked `__frontier.paused`, while real
-pause also depends on `panels.isOpen`; it now checks the open panel and unchanged
-simulation time, and the final run passes.
+The first small perspective proof exposed the 442 ms contact with effects hidden
+only for that diagnostic image (Library `libfile_35689eafa5308191ab82479623646676`).
+Production effects remain visible. It showed the whole face flush with the blank,
+the blank supported on the anvil, and a separate framed item identity. Exact final
+stage stills at 0/150/320/400/442/470/530/700 ms and reduced 0/70/100/140/200 ms,
+sequential live-video frames, and real built-game iPad/landscape views are reviewed
+separately. Landscape still scrolls vertically; it is not claimed to fit all
+controls in one screen.
+
+The revision fixes these spatial mismatches with a single scene coordinate system
+and a stationary notice area. Sampling checks show a flush stop, separated recoil
+and aligned effects without occlusion. An initial MP4 conversion washed out colors;
+explicit range conversion fixed it. The full-session recorder's wall-clock offset
+selected world frames rather than the strike; those excerpts are not deliverables.
+The new short timestamped recording avoids that startup offset. Media identity,
+exact inspected timestamps and limits are recorded in the perspective manifest.
 
 **Ready for owner visual review within these limits, still draft/unmerged.**
 Continuous normal-speed playback inspection is unavailable in this execution
@@ -149,7 +172,8 @@ overflow coverage; the >50 px swipe and reachable-close assertions remain. Closi
 the loadout workspace now removes its old details dialog, preventing a hidden
 backdrop from surviving the workshop transition.
 
-Follow-up checks on Chromium `/usr/bin/chromium`:
+Follow-up checks on integration head `300f18f`, Chromium `/usr/bin/chromium`
+(before the perspective revision; these are not new local runs):
 
 - `details-touch.mjs`: passed 1180×820 and 844×390, native swipe plus repeated bag/equipped/crafted entry, costs/payment and away-from-bench checks.
 - `details-game-touch.mjs`: passed both sizes with the real document touch guard, native swipe, clean dialog transfer and exact payment. The initialized WebGL background was held with the existing UI capture helper.
@@ -159,11 +183,12 @@ Follow-up checks on Chromium `/usr/bin/chromium`:
 - `boot.mjs`: local run timed out clicking the title-screen start button before reaching the tile assertion. The motion-head CI log independently confirmed the 13-versus-12 failure; the expectation is repaired, but local boot is not claimed passed.
 - Build, changed JS syntax and whitespace checks passed. No workflow, bypass, timeout or unrelated gameplay feature was changed.
 
-Motion evidence was captured at `bf1929153d533859f26bca0823105c3cec735109`;
-the follow-up does not change the hammer, effects or controller. The delivery
-manifest records the final integration head separately. Library confirms the
-before/after images, original-speed clips, reduced-motion sample and built-game
-viewport images; exact file identities are in the delivery receipt.
+The first motion evidence was captured at `bf1929153d533859f26bca0823105c3cec735109`
+and was rejected by the owner. The integration head `300f18f191dee264ab7b8daa80ca6ab8c9ecc4c6`
+subsequently passed the full CI run `37574527790`, including Chromium and WebKit.
+That does not certify the new perspective revision. Its source/media identities
+and focused checks are recorded separately in the perspective delivery manifest.
+No workshop-controller or functional integration fix is reverted.
 
 ## Reproduction / Godot handoff
 

@@ -58,12 +58,16 @@ children = {c for n in j['nodes'] for c in n.get('children', [])}
 for r in [i for i in range(len(j['nodes'])) if i not in children]: walk(r, np.eye(4))
 
 P, N, T, I, base = [], [], [], [], 0
+mat_used = []
 mat_index = 0
 for i, n in enumerate(j['nodes']):
     if 'mesh' not in n: continue
     M = world[i]; NM = np.linalg.inv(M[:3, :3]).T
     for pr in j['meshes'][n['mesh']]['primitives']:
-        mat_index = pr.get('material', 0)
+        mi = pr.get('material', 0)
+        if mat_used and j['materials'][mi]['pbrMetallicRoughness'].get('baseColorTexture') != j['materials'][mat_used[0]]['pbrMetallicRoughness'].get('baseColorTexture'):
+            sys.exit('this model has primitives with different base colour textures; merge them into one atlas first (the output has a single colour map)')
+        mat_used.append(mi); mat_index = mi
         p = accessor(pr['attributes']['POSITION']).astype(float)
         nn = accessor(pr['attributes']['NORMAL']).astype(float) if 'NORMAL' in pr['attributes'] else np.zeros_like(p)
         uv = accessor(pr['attributes']['TEXCOORD_0']).astype(float)

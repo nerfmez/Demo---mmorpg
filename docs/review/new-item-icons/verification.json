@@ -1,0 +1,261 @@
+{
+  "engine": "chromium",
+  "views": [
+    {
+      "size": "ipad",
+      "width": 1180,
+      "height": 820,
+      "bag": [
+        "mantis_scythe",
+        "viper_scale",
+        "ram_horn",
+        "dusk_pelt",
+        "rune_core"
+      ],
+      "craft": [
+        {
+          "id": "mantis_scythe",
+          "recipe": "greyfang_sabre"
+        },
+        {
+          "id": "viper_scale",
+          "recipe": "wisp_staff"
+        },
+        {
+          "id": "ram_horn",
+          "recipe": "crag_axe"
+        },
+        {
+          "id": "dusk_pelt",
+          "recipe": "horn_greatblade"
+        },
+        {
+          "id": "rune_core",
+          "recipe": "ancient_staff"
+        }
+      ],
+      "potions": [
+        {
+          "id": "hp_potion_s",
+          "count": 9,
+          "restored": 61.61507600000006,
+          "cooldown": 5
+        },
+        {
+          "id": "hp_potion_m",
+          "count": 9,
+          "restored": 125.152,
+          "cooldown": 5
+        },
+        {
+          "id": "hp_potion_l",
+          "count": 9,
+          "restored": 127,
+          "cooldown": 5
+        },
+        {
+          "id": "mp_potion_s",
+          "count": 9,
+          "restored": 31.13025,
+          "cooldown": 5
+        },
+        {
+          "id": "mp_potion_m",
+          "count": 9,
+          "restored": 62,
+          "cooldown": 5
+        },
+        {
+          "id": "mp_potion_l",
+          "count": 9,
+          "restored": 62,
+          "cooldown": 5
+        }
+      ],
+      "artifacts": [
+        "ipad-bag.png",
+        "ipad-craft.png",
+        "ipad-shop.png",
+        "ipad-shop-mana.png",
+        "ipad-quickslots.png"
+      ],
+      "inspectedAt": "2026-10-07T05:22:25.742Z",
+      "hud": {
+        "overlaps": [],
+        "icons": [
+          {
+            "key": "consumable/hp_potion_s",
+            "width": 38,
+            "height": 38,
+            "inside": true
+          },
+          {
+            "key": "consumable/hp_potion_m",
+            "width": 38,
+            "height": 38,
+            "inside": true
+          },
+          {
+            "key": "consumable/hp_potion_l",
+            "width": 38,
+            "height": 38,
+            "inside": true
+          },
+          {
+            "key": "consumable/mp_potion_l",
+            "width": 38,
+            "height": 38,
+            "inside": true
+          }
+        ],
+        "overflow": false
+      }
+    },
+    {
+      "size": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "bag": [
+        "mantis_scythe",
+        "viper_scale",
+        "ram_horn",
+        "dusk_pelt",
+        "rune_core"
+      ],
+      "craft": [
+        {
+          "id": "mantis_scythe",
+          "recipe": "greyfang_sabre"
+        },
+        {
+          "id": "viper_scale",
+          "recipe": "wisp_staff"
+        },
+        {
+          "id": "ram_horn",
+          "recipe": "crag_axe"
+        },
+        {
+          "id": "dusk_pelt",
+          "recipe": "horn_greatblade"
+        },
+        {
+          "id": "rune_core",
+          "recipe": "ancient_staff"
+        }
+      ],
+      "potions": [
+        {
+          "id": "hp_potion_s",
+          "count": 9,
+          "restored": 62.691076000000066,
+          "cooldown": 5
+        },
+        {
+          "id": "hp_potion_m",
+          "count": 9,
+          "restored": 124.79261599999998,
+          "cooldown": 5
+        },
+        {
+          "id": "hp_potion_l",
+          "count": 9,
+          "restored": 127,
+          "cooldown": 5
+        },
+        {
+          "id": "mp_potion_s",
+          "count": 9,
+          "restored": 31.005169000000066,
+          "cooldown": 5
+        },
+        {
+          "id": "mp_potion_m",
+          "count": 9,
+          "restored": 62,
+          "cooldown": 5
+        },
+        {
+          "id": "mp_potion_l",
+          "count": 9,
+          "restored": 62,
+          "cooldown": 5
+        }
+      ],
+      "artifacts": [
+        "phone-landscape-bag.png",
+        "phone-landscape-craft.png",
+        "phone-landscape-shop.png",
+        "phone-landscape-shop-mana.png",
+        "phone-landscape-quickslots.png"
+      ],
+      "inspectedAt": "2026-10-07T05:23:14.792Z",
+      "hud": {
+        "overlaps": [],
+        "icons": [
+          {
+            "key": "consumable/hp_potion_s",
+            "width": 30,
+            "height": 30,
+            "inside": true
+          },
+          {
+            "key": "consumable/hp_potion_m",
+            "width": 30,
+            "height": 30,
+            "inside": true
+          },
+          {
+            "key": "consumable/hp_potion_l",
+            "width": 30,
+            "height": 30,
+            "inside": true
+          },
+          {
+            "key": "consumable/mp_potion_l",
+            "width": 30,
+            "height": 30,
+            "inside": true
+          }
+        ],
+        "overflow": false
+      }
+    }
+  ],
+  "errors": [],
+  "badResponses": [],
+  "ok": true,
+  "capture_method": "Real game, fresh never-saved fixture, touch controls; existing freezeScene helper holds the completed scenery frame while UI/game rules continue.",
+  "runtime_source_sha256": {
+    "src/ui/raster-icons.js": "f5e929e4de4351e25be8d38c877671099e0a82d0f020a60baca70c7f4a5e5f92",
+    "src/ui/potionart.js": "4c709a6a099c36ce8e4e300ace6bfd9c02f110436f003b2523dc8472a2461eeb",
+    "src/ui/ux.css": "984f6b0bfe4c29015de303a99ed77832f87e79a40b568abac808d4b0e6a7642c",
+    "src/ui/fieldhud.css": "7d0c540f7f4c6b19e675c73ec44b85b05bc47b529bd7292a2500f444e62a1a12"
+  },
+  "screenshot_sha256": {
+    "ipad-bag.png": "a10231692cd524a5242030bac47690d52dd9775682912ba51e7329bbd68006ed",
+    "ipad-craft.png": "821b16ab0cee5c8555b87a875c233f54fb6f8ca5ffb3f8456a8a0e72368a9d0a",
+    "ipad-quickslots.png": "e3d668dc0c4190a2106bfc79660044c7bfab010d68099c702b444f45af1d4765",
+    "ipad-shop-mana.png": "f3ab8f6beb664532e8f031f3b1ea54f4d404c1523e05659a18973f2f300881ae",
+    "ipad-shop.png": "378070eebe5a2b9eaee9becbc36aebee1696f29592aef87fd0bf181b611b52a9",
+    "phone-landscape-bag.png": "8d10cbdf3a2c1012974086c0b229a0c60c79a49de0007a44f852ecc11a41db0d",
+    "phone-landscape-craft.png": "5d721f95ebe98a23fe3dc5d99614774707415a5e6a2cf251f79a7ac9e17f7450",
+    "phone-landscape-quickslots.png": "c4f3fd0c17983451660a8cb0d73f7e58b9c355e13f0829dcdee5dbcf039ac3e9",
+    "phone-landscape-shop-mana.png": "eab4d629ac50b85bad0f6cceebc5bb9f4adcaabacc1ca5e4d504fac18c81acc3",
+    "phone-landscape-shop.png": "1e0a7dcd75df1efad8f8f4907ab29bcb0ee1b378013ebe2399e0d4103358a180"
+  },
+  "source_base": "380e3b077d422e968e0d8558e0cbdf255f9a8211",
+  "manual_visual_review_utc": "2026-10-07 05:24:20 UTC",
+  "manual_visual_review_artifacts": [
+    "ipad-bag.png",
+    "ipad-craft.png",
+    "ipad-quickslots.png",
+    "ipad-shop-mana.png",
+    "ipad-shop.png",
+    "phone-landscape-bag.png",
+    "phone-landscape-craft.png",
+    "phone-landscape-quickslots.png",
+    "phone-landscape-shop-mana.png",
+    "phone-landscape-shop.png"
+  ]
+}

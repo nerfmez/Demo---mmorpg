@@ -70,6 +70,7 @@ body.ingame #hud .quickbar {position:absolute;right:calc(28px + var(--safe-r));b
 body.ingame #hud .qbtn {--q:48px;position:relative;width:var(--q);height:var(--q);padding:0;border:1.3px solid #ccdef9b8;border-radius:14px;background:radial-gradient(ellipse at 33% 20%,#527da886,transparent 65%),linear-gradient(145deg,#12233cec,#203854b8);box-shadow:0 0 0 3px #182c412c,0 3px 8px #07193130;overflow:hidden;pointer-events:auto;touch-action:manipulation}
 body.ingame #hud .qbtn .ic {position:absolute;inset:4px 4px 8px;display:grid;place-items:center;pointer-events:none}
 body.ingame #hud .qbtn .ic svg {width:100%;height:100%}
+body.ingame #hud .qbtn .ic .potion-art {width:100%;height:100%}
 body.ingame #hud .qbtn .cd {position:absolute;inset:0;z-index:1;background:conic-gradient(#07182b99 var(--cd,0%),transparent 0);pointer-events:none}
 body.ingame #hud .qbtn .qn {position:absolute;right:4px;bottom:2px;z-index:2;font:700 11px/1 sans-serif;color:#fff;text-shadow:0 1px 2px #0b1d34,0 0 3px #0b1d34}
 body.ingame #hud .qbtn .key {position:absolute;left:4px;top:2px;z-index:2;font:8px/1 sans-serif;color:#9eb5d3}

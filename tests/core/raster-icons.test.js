@@ -5,7 +5,8 @@ import {createHash} from 'node:crypto';
 import {inflateSync} from 'node:zlib';
 import {data} from './helpers.js';
 import {RASTER_ICONS,EXPECTED_RASTER_KEYS,rasterIconUrl,rasterIconMarkup} from '../../src/ui/raster-icons.js';
-import {art,arrowArt} from '../../src/ui/art.js';
+import {art,arrowArt,ART} from '../../src/ui/art.js';
+import {potionArt} from '../../src/ui/potionart.js';
 const manifest=JSON.parse(readFileSync(new URL('../../docs/icon-assets-manifest.json',import.meta.url),'utf8'));
 const assets=new Map(manifest.verified_assets.map(a=>[a.key,a]));
 function alphaPixels(png){
@@ -14,25 +15,25 @@ function alphaPixels(png){
  assert.equal(png[24],8);assert.equal(png[25],6);assert.equal(png[28],0);
  const w=png.readUInt32BE(16),h=png.readUInt32BE(20),chunks=[];
  for(let p=8;p<png.length;){const n=png.readUInt32BE(p);if(png.toString('ascii',p+4,p+8)==='IDAT')chunks.push(png.subarray(p+8,p+8+n));p+=n+12;}
- const raw=inflateSync(Buffer.concat(chunks)),stride=w*4;let previous=Buffer.alloc(stride),offset=0,clear=0,partial=0,min=255,max=0;
+ const raw=inflateSync(Buffer.concat(chunks)),stride=w*4;let previous=Buffer.alloc(stride),offset=0,clear=0,partial=0,min=255,max=0,minX=w,minY=h,maxX=-1,maxY=-1;
  const paeth=(a,b,c)=>{const p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);return pa<=pb&&pa<=pc?a:pb<=pc?b:c;};
  for(let y=0;y<h;y++){
   const filter=raw[offset++],row=Buffer.allocUnsafe(stride);assert.ok(filter<=4);
-  for(let x=0;x<stride;x++){const a=x>=4?row[x-4]:0,b=previous[x],c=x>=4?previous[x-4]:0,p=filter===1?a:filter===2?b:filter===3?Math.floor((a+b)/2):filter===4?paeth(a,b,c):0;row[x]=(raw[offset++]+p)&255;if((x&3)===3){const v=row[x];min=Math.min(min,v);max=Math.max(max,v);if(v===0)clear++;else if(v<255)partial++;}}
+  for(let x=0;x<stride;x++){const a=x>=4?row[x-4]:0,b=previous[x],c=x>=4?previous[x-4]:0,p=filter===1?a:filter===2?b:filter===3?Math.floor((a+b)/2):filter===4?paeth(a,b,c):0;row[x]=(raw[offset++]+p)&255;if((x&3)===3){const v=row[x];min=Math.min(min,v);max=Math.max(max,v);if(v===0)clear++;else {if(v<255)partial++;const px=x>>2;minX=Math.min(minX,px);minY=Math.min(minY,y);maxX=Math.max(maxX,px);maxY=Math.max(maxY,y);}}}
   previous=row;
  }
- return {extrema:[min,max],clear,partial};
+ return {extrema:[min,max],clear,partial,bounds:[minX,minY,maxX+1,maxY+1]};
 }
-test('raster contract covers the 130 supplied equipment/material/ammunition/combat/movement IDs exactly once, excluding mods',()=>{
- const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.items.arrows.types).map(id=>'arrow/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(new Set(EXPECTED_RASTER_KEYS).size,130);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+test('raster contract covers the 141 supplied equipment/material/ammunition/consumable/combat/movement IDs exactly once, excluding mods',()=>{
+ const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.items.arrows.types).map(id=>'arrow/'+id),...Object.keys(data.items.consumables.types).map(id=>'consumable/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,141);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
  for(const key of EXPECTED_RASTER_KEYS){
   assert.ok(all.includes(key),key+' is live content');
   const [kind,id]=key.split('/');
-  assert.match(kind==='arrow'?arrowArt(id):art(kind,id),/<img /,key+' uses supplied raster');
+  assert.match(kind==='consumable'?potionArt(data.items.consumables.types[id]):kind==='arrow'?arrowArt(id):art(kind,id),/<img /,key+' uses supplied raster');
  }
  // Content added after the approved set keeps its authored SVG until a PNG is supplied.
- for(const key of all.filter(k=>!EXPECTED_RASTER_KEYS.includes(k))){const [kind,id]=key.split('/');assert.equal(rasterIconUrl(kind,id),null,key);assert.match(kind==='arrow'?arrowArt(id):art(kind,id),/<svg/,key);}
+ for(const key of all.filter(k=>!EXPECTED_RASTER_KEYS.includes(k))){const [kind,id]=key.split('/');assert.equal(rasterIconUrl(kind,id),null,key);assert.match(kind==='consumable'?potionArt(data.items.consumables.types[id]):kind==='arrow'?arrowArt(id):art(kind,id),/<svg/,key);}
 });
 test('only registered supplied PNGs replace existing illustrations; unknown/mod entries cannot opt in',()=>{
  for(const key of EXPECTED_RASTER_KEYS){const [kind,id]=key.split('/');if(!RASTER_ICONS[key]){assert.equal(rasterIconUrl(kind,id),null);assert.match(art(kind,id),/<svg/);}}
@@ -47,6 +48,48 @@ test('every registered image is a real PNG with its recorded native dimensions, 
 });
 
 test('registered supplied PNGs match the retained delivery hashes and coverage',()=>{
- assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,130);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
+ assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,141);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
  for(const a of manifest.verified_assets){assert.equal(RASTER_ICONS[a.key],a.path);const bytes=readFileSync(new URL('../../public/'+a.path,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256,a.key);}
+});
+
+test('new materials retain authored fallbacks and all six potion definitions map to their supplied PNGs',()=>{
+ for(const id of ['mantis_scythe','viper_scale','ram_horn','dusk_pelt','rune_core']){
+  assert.ok(ART.material[id],id+' retains its authored SVG body');
+  assert.equal(rasterIconMarkup('material',id,'',{}),null,id+' can fall back without a registry entry');
+  assert.equal(rasterIconUrl('material',id,RASTER_ICONS,'/demo/'),'/demo/assets/icons/material/'+id+'.png');
+ }
+ for(const [id,def]of Object.entries(data.items.consumables.types)){
+  assert.equal(`${def.group}_potion_${def.size}`,id);
+  const markup=potionArt(def);
+  assert.match(markup,new RegExp('data-art="consumable/'+id+'"'));
+  assert.match(markup,new RegExp('src="/assets/icons/consumable/'+id+'\\.png"'));
+  assert.match(markup,/class="art art-consumable potion-art"/);
+  assert.doesNotMatch(markup,/<svg/);
+  const fallback=potionArt(def,{});
+  assert.match(fallback,/<svg.*class="potion-art"/);
+  assert.doesNotMatch(fallback,/<img/);
+  assert.notEqual(fallback,potionArt(def,{}),'fallback gradients remain unique');
+ }
+ assert.equal(potionArt(null),'');
+ assert.match(potionArt({group:'hp',size:'future'}),/<svg/);
+});
+
+test('new final PNGs have clear margins and soft transparent edges, with potion size progression intact',()=>{
+ const ids=['material/mantis_scythe','material/viper_scale','material/ram_horn','material/dusk_pelt','material/rune_core',...Object.keys(data.items.consumables.types).map(id=>'consumable/'+id)];
+ const bounds=new Map();
+ for(const key of ids){
+  const bytes=readFileSync(new URL('../../public/'+RASTER_ICONS[key],import.meta.url)),alpha=alphaPixels(bytes);
+  assert.deepEqual(alpha.extrema,[0,255],key);
+  assert.ok(alpha.clear>0&&alpha.partial>0,key+' clear and soft edge pixels');
+  const [left,top,right,bottom]=alpha.bounds;
+  assert.ok(Math.min(left,top,512-right,512-bottom)>=16,key+' clear canvas margin');
+  bounds.set(key,alpha.bounds);
+  assert.equal(assets.get(key).source_archive_path,'final/'+key+'.png',key+' uses final export');
+ }
+ for(const group of ['hp','mp']){
+  const sizes=['s','m','l'].map(size=>bounds.get(`consumable/${group}_potion_${size}`));
+  const heights=sizes.map(([,top,,bottom])=>bottom-top);
+  assert.ok(heights[0]<heights[1]&&heights[1]<heights[2],group+' small/medium/large progression');
+  assert.ok(Math.max(...sizes.map(b=>b[3]))-Math.min(...sizes.map(b=>b[3]))<=2,group+' shared lower baseline');
+ }
 });

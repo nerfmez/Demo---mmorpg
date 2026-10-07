@@ -17,7 +17,10 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Queue instead of cancelling: back-to-back merges to main used to kill the run that was
+  # still publishing, so earlier merges never reached the site. GitHub keeps only the newest
+  # waiting run, which builds all of main, so nothing is lost.
+  cancel-in-progress: false
 
 jobs:
   evidence:

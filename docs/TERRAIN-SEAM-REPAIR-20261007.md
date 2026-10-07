@@ -77,7 +77,7 @@ After rebasing onto current main `24ff2b4`, the build and five-view browser
 regressions were repeated. Both engines passed all 60 coverage/ownership samples
 at every view, with no errors, lost context or retained render target. These final
 reports and stills are in `seam-final-chromium/` and `seam-final-webkit/` and were
-captured from `e6eb266aa2bf8d5c6d7146075f7c6037c834c28f`. The only subsequent
+captured from `e6eb266aa2bf8d5c6d7146075f7c6037c834c28f`. Subsequent
 commits record this evidence, publish the eight inspected PNGs under
 `docs/review/pr99-terrain-seams/` and strengthen independent test assertions;
 they change no executable renderer code.

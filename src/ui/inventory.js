@@ -25,8 +25,9 @@ export function inventoryView(ui, { costHtml, effectText }) {
   const equipped = data.items.slots.map((slot) => {
     const it = gearItem(ch, ch.equipped[slot]);
     const base = it && data.items.gearBases[it.base];
-    return `<button class="equipment-slot ${it ? '' : 'empty'}" data-act="inspect-equipped" data-uid="${it?.uid || ''}" ${it ? '' : 'disabled'} aria-label="${data.items.slotNames[slot]}: ${base?.nameTh || 'ว่าง'}">
-      <span>${data.items.slotNames[slot]}</span>${base ? art('gear',it.base) : icon(slot === 'weapon' ? 'sword' : slot)}<small>${base?.nameTh || 'ว่าง'}</small></button>`;
+    const inactive=it&&!gearEquipState(ch,data,it,slot).ok;
+    return `<button class="equipment-slot ${it ? '' : 'empty'} ${inactive?'equipment-inactive':''}" data-act="inspect-equipped" data-uid="${it?.uid || ''}" ${it ? '' : 'disabled'} aria-label="${data.items.slotNames[slot]}: ${base?.nameTh || 'ว่าง'}">
+      <span>${data.items.slotNames[slot]}</span>${base ? art('gear',it.base) : icon(slot === 'weapon' ? 'sword' : slot)}<small>${base?.nameTh || 'ว่าง'}</small>${inactive?'<strong class="inactive-badge">ไม่ได้ใช้</strong>':''}</button>`;
   }).join('');
 
   let list = [];
@@ -67,13 +68,13 @@ export function inventoryView(ui, { costHtml, effectText }) {
       }
       if (!req.ok) content += `<p class="no">ต้อง ${req.missing.join(', ')}</p>`;
       actions = selected.equipped
-        ? `<span class="equipped-label">✓ สวมใส่อยู่</span>${wornSlot(ch, data, it) !== 'weapon' ? `<button class="btn" data-act="unequip" data-slot="${wornSlot(ch, data, it)}">ถอดอุปกรณ์</button>` : ''}`
+        ? `<span class="equipped-label ${req.ok?'':'no'}">${req.ok?'✓ สวมใส่อยู่':'สถานะไม่ได้ใช้ · ยังอยู่ในช่อง'}</span>${wornSlot(ch, data, it) !== 'weapon' ? `<button class="btn" data-act="unequip" data-slot="${wornSlot(ch, data, it)}">ถอดอุปกรณ์</button>` : ''}`
         : `<button class="btn primary" data-act="equip-gear" data-uid="${it.uid}" ${req.ok ? '' : 'disabled'}>สวมใส่</button>`;
       if (up) {
         const state = gearUpgradeState(ch,data,it), preview = gearUpgradePreview(data,it);
         const changes = Object.keys(preview.after).filter(k=>preview.after[k]!==preview.before[k]).map(k=>`${effectText(k,preview.before[k])} → ${preview.after[k]}`).join(' · ');
         const canWearAfter = gearEquipState(ch,data,{...it,upgrade:it.upgrade+1}).ok;
-        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${gearUpgradeTrack(data,it)}<p>${changes}</p>${wearRequirements(ch,preview.afterRequires,'รีเควสสวมใส่หลังตีบวก')}<small>ตีบวกได้เมื่อวัตถุดิบพอ · ไม่ล็อกเลเวลหรือสเตตัส</small>${!canWearAfter?`<p class="wear-warning">ยังใส่หลังอัปไม่ได้${selected.equipped?' · จะถอดเก็บไว้ในกระเป๋า':''}</p>`:''}<p class="${near.workbench&&state.ok?'ok':'no'}">${near.workbench?stateText(state):'ต้องอยู่ใกล้โต๊ะคราฟต์ในนิคมเพื่อตีบวก'}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
+        content += `<div class="upgrade-cost"><h4>เสริมพลัง +${it.upgrade} → +${it.upgrade+1}</h4>${gearUpgradeTrack(data,it)}<p>${changes}</p>${wearRequirements(ch,gearEquipState(ch,data,{...it,upgrade:it.upgrade+1}).requires,'รีเควสสวมใส่หลังตีบวก')}<small>ตีบวกได้เมื่อวัตถุดิบพอ · ไม่ล็อกเลเวลหรือสเตตัส</small>${!canWearAfter?`<p class="wear-warning">ยังใส่หลังอัปไม่ได้${selected.equipped?' · ยังค้างในช่อง แต่สถานะไม่ได้ใช้':''}</p>`:''}<p class="${near.workbench&&state.ok?'ok':'no'}">${near.workbench?stateText(state):'ต้องอยู่ใกล้โต๊ะคราฟต์ในนิคมเพื่อตีบวก'}</p><div class="cost">${costHtml(ch, data, up)}</div></div>`;
         actions += `<button class="btn" data-act="gear-up" data-uid="${it.uid}" ${near.workbench && state.ok ? '' : 'disabled'}>ตีบวก +${it.upgrade+1}</button>`;
         if (!near.workbench) content += '<p class="muted">ตีบวกได้ที่โต๊ะคราฟต์ในนิคม</p>';
       }

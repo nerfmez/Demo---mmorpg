@@ -11,7 +11,7 @@ import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
@@ -367,12 +367,13 @@ export class Panels {
       ${wt ? `<div class="gear-implicit">${wt.nameTh} · ${Object.entries(imp)
         .map(([k, v]) => effectText(k, v))
         .join(' · ')}</div>` : ''}
-      ${optionList(data,it.options)}${wearRequirements(this.game.ch,gearRequirements(it,data))}`;
+      ${optionList(data,it.options)}${wearRequirements(this.game.ch,gearEquipState(this.game.ch,data,it).requires)}`;
   }
 
   render_bag() {
     const back=this.sel.returnCraftRecipe?`<button class="btn craft-return" data-act="return-craft">← กลับไปคราฟต์ ${this.game.data.items.gearBases[this.game.data.recipes.recipes[this.sel.returnCraftRecipe].result]?.nameTh||''}</button>`:'';
-    const notice=this.game.ch.progress.equipmentNotice?`<div class="result-pop" role="status">${esc(this.game.ch.progress.equipmentNotice)}</div>`:'';
+    const inactive=inactiveEquipment(this.game.ch,this.game.data);
+    const notice=inactive.length?`<div class="result-pop" role="status">${esc('สถานะไม่ได้ใช้ · '+inactive.map(i=>i.missing.join(', ')).join(' / '))}</div>`:'';
     return `${back}${notice}${this.lastResult ? `<div class="result-pop" role="status">${this.lastResult}</div>` : ''}${inventoryView(this, { costHtml, effectText })}`;
   }
 
@@ -551,7 +552,10 @@ export class Panels {
         allocateStat(ch, t.dataset.stat);
         return this.changed();
       case 'respec-stats':
-        respecStats(ch, data);
+        if (respecStats(ch, data)) {
+          const inactive=inactiveEquipment(ch,data);
+          this.lastResult='คืนแต้มสเตตัสแล้ว'+(inactive.length?' · อุปกรณ์ยังอยู่ในช่อง · สถานะไม่ได้ใช้: '+inactive.map(i=>i.missing.join(', ')).join(' / '):'');
+        }
         return this.changed();
       case 'respec-job':
         respecJob(ch, data);
@@ -633,13 +637,13 @@ export class Panels {
         if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่อตีบวก');
         r = upgradeGear(ch, data, Number(t.dataset.uid));
         if (!r.ok) this.flash(REASON_TH[r.reason] || r.reason);
-        else this.lastResult=`ตีบวกสำเร็จ +${r.item.upgrade}${r.unequipped.length?' · รีเควสเพิ่ม ยังใส่ไม่ได้ จึงเก็บไว้ในกระเป๋า':''}`;
+        else this.lastResult=`ตีบวกสำเร็จ +${r.item.upgrade}${r.inactive.length?' · สถานะไม่ได้ใช้ · '+r.inactive.map(i=>i.missing.join(', ')).join(' / '):''}`;
         return this.changed();
       case 'gear-grade':
         if(!g.nearby().workbench) return this.flash('กลับโต๊ะคราฟต์เพื่อเลื่อนเกรด');
         r=promoteGear(ch,data,Number(t.dataset.uid),g.rng);
         if(!r.ok) return this.flash(REASON_TH[r.reason]||r.reason);
-        this.lastResult='เลื่อนเกรดสำเร็จ · ออฟชั่นเดิมอยู่ครบ และสุ่มเพิ่มแล้ว'+(r.unequipped.length?' · สเตตัสไม่ถึง เก็บไว้ในกระเป๋า':'');
+        this.lastResult='เลื่อนเกรดสำเร็จ · ออฟชั่นเดิมอยู่ครบ และสุ่มเพิ่มแล้ว'+(r.inactive.length?' · สถานะไม่ได้ใช้ · '+r.inactive.map(i=>i.missing.join(', ')).join(' / '):'');
         return this.changed();
       case 'mod-up':
         if(!g.nearby().skillUpgrade) return this.flash('กลับจุดคราฟต์หรือครูฝึกเพื่ออัปเลเวล');

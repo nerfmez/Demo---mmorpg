@@ -58,10 +58,13 @@ test('two light weapons dual-wield with no penalty but need the sum of both wear
   const r = equip(weak, data, d.uid, 'offhand');
   assert.equal(r.ok, false);
   assert.deepEqual(weak.equipped, before);
-  // A stat respec below the pair's sum puts the left hand back in the bag, never deletes it.
+  // A stat loss keeps both hands slotted but inactive, never deletes either.
   ch.stats = { STR: 3, AGI: 3, VIT: 3, INT: 3, DEX: 3 };
   enforceEquipment(ch, data);
-  assert.equal(ch.equipped.offhand, null);
+  assert.equal(ch.equipped.offhand, b.uid);
+  assert.equal(ch.equipped.weapon, a.uid);
+  assert.equal(derive(ch,data).dualWield,false);
+  assert.equal(derive(ch,data).weaponType,'none');
   assert.ok(ch.gear.some((g) => g.uid === b.uid));
 });
 

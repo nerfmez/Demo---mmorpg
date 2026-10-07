@@ -162,9 +162,11 @@ export function migrateCharacter(ch, data) {
     ch.level = cap;
     ch.exp = 0;
   }
-  // Enforce after level-cap/stat migration as well. Items already live in gear; only clear slot references.
-  const moved = enforceEquipment(ch, data);
-  if (moved.length) ch.progress.equipmentNotice = 'เงื่อนไขสวมใส่ไม่ถึง: เก็บอุปกรณ์ไว้ในกระเป๋าครบ · ' + moved.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh).join(', ');
+  // Repair impossible hand combinations; unmet wear gates stay slotted and inactive.
+  enforceEquipment(ch, data);
+  const inactive = inactiveEquipment(ch, data);
+  if (inactive.length) ch.progress.equipmentNotice = 'อุปกรณ์ยังอยู่ในช่อง · สถานะไม่ได้ใช้: ' + inactive.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh + ' · ' + it.missing.join(', ')).join(' / ');
+  else delete ch.progress.equipmentNotice;
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 });
@@ -450,13 +452,16 @@ export function wearRequirements(ch, data, item, slot = null, equipped = ch.equi
 export function gearEquipState(ch, data, item, slot = null, equipped = ch.equipped) {
   if (!item) return { ok:false, reason:'unknown', requires:{}, missing:[] };
   const requires = wearRequirements(ch,data,item,slot,equipped);
-  if (requires.level !== undefined) {
-    const ok = ch.level >= requires.level;
-    return { ok, reason:ok ? null : 'level', requires, need:requires.level, current:ch.level,
-      missing:ok ? [] : [`ตัวละคร Lv.${requires.level} (ปัจจุบัน Lv.${ch.level})`] };
-  }
-  const state = meetsRequires(ch,requires);
-  return { ...state, reason:state.ok ? null : 'requires', requires };
+  const rows = Object.entries(requires).map(([stat, need]) => {
+    const current = stat === 'level' ? ch.level : (ch.stats[stat] || 0);
+    return { stat, need, current, deficit: Math.max(0, need - current) };
+  });
+  const missing = rows.filter(r => r.deficit > 0).map(r =>
+    r.stat === 'level' ? `Lv. มี ${r.current} / ต้องใช้ ${r.need} · ขาด ${r.deficit} เลเวล`
+      : `${r.stat} มี ${r.current} / ต้องใช้ ${r.need} · ขาด ${r.deficit}`);
+  const ok = missing.length === 0;
+  return { ok, reason: ok ? null : requires.level !== undefined ? 'level' : 'requires', requires, rows, missing,
+    ...(requires.level !== undefined ? { need: requires.level, current: ch.level } : {}) };
 }
 
 /** Why `item` cannot go into `slot` next to what the other hand holds, or null. */
@@ -471,7 +476,17 @@ export function handBlocker(ch, data, item, slot, equipped = ch.equipped) {
   return null;
 }
 
-/** Keep an upgraded or respec-invalidated item in the bag, never delete it. */
+/** Current inactive slots are derived, never stored: stat recovery reactivates them. */
+export function inactiveEquipment(ch, data) {
+  return data.items.slots.flatMap(slot => {
+    const item = gearItem(ch, ch.equipped[slot]);
+    if (!item) return [];
+    const state = gearEquipState(ch, data, item, slot);
+    return state.ok ? [] : [{ slot, uid: item.uid, ...state }];
+  });
+}
+
+/** Repair structurally impossible hands only. Unmet wear gates do not unequip. */
 export function enforceEquipment(ch, data) {
   const moved = [];
   const drop = (slot) => {
@@ -481,11 +496,6 @@ export function enforceEquipment(ch, data) {
   };
   const off = gearItem(ch, ch.equipped.offhand);
   if (off && (off.uid === ch.equipped.weapon || handBlocker(ch, data, off, 'offhand'))) drop('offhand');
-  // The left hand goes first: a pair can fail only because of its partner.
-  for (const slot of ['offhand', ...data.items.slots.filter((s) => s !== 'offhand')]) {
-    const item = gearItem(ch,ch.equipped[slot]);
-    if (item && !gearEquipState(ch,data,item,slot).ok) drop(slot);
-  }
   return moved;
 }
 
@@ -567,19 +577,19 @@ export function gearLook(ch, data) {
   const out = { weapon: null, offhand: null, armor: 'tunic', helm: null, gloves: null, bases: {} };
   for (const slot of data.items.slots) {
     const item = gearItem(ch, ch.equipped[slot]);
-    if (item && gearEquipState(ch,data,item,slot).ok) out.bases[slot] = item.base;
+    if (item) out.bases[slot] = item.base;
   }
   const w = gearItem(ch, ch.equipped.weapon);
-  if (w && gearEquipState(ch,data,w,'weapon').ok) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
+  if (w) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
   const o = out.bases.offhand && data.items.gearBases[out.bases.offhand];
   // Left hand: a shield, a second light weapon, or the arrows in use with a bow.
   if (o) out.offhand = o.slot === 'offhand' ? o.offhandType || 'shield' : o.weaponType;
   else if (out.weapon && data.items.weaponTypes[out.weapon]?.ammo && arrowInUse(ch, data)) out.offhand = 'quiver';
   if (out.bases.gloves) out.gloves = data.items.gearBases[out.bases.gloves].look || 'hide';
   const a = gearItem(ch, ch.equipped.armor);
-  if (a && gearEquipState(ch,data,a,'armor').ok) out.armor = data.items.gearBases[a.base].look || 'tunic';
+  if (a) out.armor = data.items.gearBases[a.base].look || 'tunic';
   const h = gearItem(ch, ch.equipped.helm);
-  if (h && gearEquipState(ch,data,h,'helm').ok) out.helm = data.items.gearBases[h.base].look || null;
+  if (h) out.helm = data.items.gearBases[h.base].look || null;
   return out;
 }
 

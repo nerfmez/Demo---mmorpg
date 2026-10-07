@@ -108,7 +108,7 @@ test('Lv1 can enhance and promote to the maximum, but wearing follows the result
  for(let n=0;n<3;n++)assert.ok(promoteGear(ch,data,uid,createRng(n+50)).ok);
  assert.equal(item.upgrade,5);assert.equal(item.grade,'S');assert.equal(item.options.length,5);
  assert.deepEqual(item.options.slice(0,owned.length),owned);assert.equal(item.uid,uid);
- assert.equal(ch.equipped.weapon,null,'insufficient stats keep the upgraded weapon safely in the bag');
+ assert.equal(ch.equipped.weapon,uid,'insufficient stats keep the upgraded weapon slotted but inactive');
  assert.equal(equip(ch,data,uid).reason,'requires');assert.equal(derive(ch,data).weaponType,'none');
  const requires=gearRequirements(item,data);for(const [stat,n] of Object.entries(requires))ch.stats[stat]=n;
  assert.ok(gearEquipState(ch,data,item).ok);assert.ok(equip(ch,data,uid).ok);assert.equal(ch.equipped.weapon,uid);

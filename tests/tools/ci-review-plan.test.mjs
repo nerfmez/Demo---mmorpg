@@ -10,6 +10,13 @@ import { reviewPlan, SCHEDULE } from '../../scripts/ci-review-plan.mjs';
 import { validateEngineOwnership } from '../../scripts/ci-browser-engine.mjs';
 const source = 'a'.repeat(40), merge = 'b'.repeat(40), tree = 'c'.repeat(40);
 
+test('every tool-test workflow installs locked parser dependencies first', () => {
+  const workflow = readFileSync(new URL('../../.github/workflows/jev-context.yml', import.meta.url), 'utf8');
+  const validate = workflow.split('  validate:')[1].split('  context:')[0];
+  assert.ok(validate.indexOf('run: npm ci') > 0);
+  assert.ok(validate.indexOf('run: npm ci') < validate.indexOf('run: node --test tests/tools/*.test.mjs'));
+});
+
 test('same-tree merge evidence has one execution per selected suite and engine', () => {
   const plan = reviewPlan({ source, merge, sourceTree: tree, mergeTree: tree, mode: 'quick', suites: FULL_SUITES });
   assert.equal(plan.source, source); assert.equal(plan.mode, 'quick'); assert.deepEqual(plan.mergeSuites, []);

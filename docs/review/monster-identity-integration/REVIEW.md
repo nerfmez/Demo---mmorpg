@@ -14,8 +14,9 @@ based on post-PR106 main `3225b3cdc8bff2909b4ce6297f683f4e01f899b1`.
 Capture run began at 15:57:31 UTC on 2026-10-07; each of the 18 final screenshots
 was opened as pixels after capture, through 16:02 UTC. Model definitions hash:
 `be8feacb2a2de43bce8db61dda271bbce615b030f146772a94a2ad6c74c8fb5d`.
-The final follow-up commit updates evidence and capture metadata only; runtime
-data, UI, approved assets and all main models remain the tested bytes.
+Recovery follow-up `4a76d2f` updates evidence and capture metadata only; the later
+CI assertion follow-up changes tests and this record. Runtime data, UI, approved
+assets and all main models remain the tested bytes.
 
 Acceptance criteria: recognize the approved six concepts at their existing
 footprints; retain the journal's subdued painted style and inventory's isolated
@@ -77,3 +78,23 @@ required release CI must supply WebKit. No physical iPad/Safari or FPS result is
 claimed. PR106's separate deployment setup failure is not an integration gate.
 Draft PR111 is ready for parent release review within these stated limits;
 no merge or deployment was performed.
+
+## CI assertion follow-up
+
+[CI run 37649015901](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37649015901)
+on `4a76d2f` failed in the full core suite: `presentation.test.js` treated the
+six shared PNG portraits as SVGs because it consulted only `RASTER_ICONS`.
+The failure was reproduced locally. CI build and browser execution were skipped
+after that core failure; the preceding build/browser results are local evidence.
+This is separate from the WebKit setup issue.
+
+The assertion now consults `SHARED_MONSTER_PORTRAITS` for monsters and requires
+exactly the six approved IDs. It checks each registered PNG path, preserves
+category coverage and distinct active artwork, requires distinct retained SVG
+fallbacks for every monster, and keeps SVG rendering checks for unregistered IDs.
+No assertion is skipped and no runtime, art, model or CI file changes.
+
+Before the single follow-up push, full `npm test` passed: **395 tests, 0 failures,
+0 skipped**, in about 70 seconds. The prior build and 18 visually inspected
+captures remain applicable to the identical runtime bytes. New CI is pending;
+the draft remains unmerged and undeployed.

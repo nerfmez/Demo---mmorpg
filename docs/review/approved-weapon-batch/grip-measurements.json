@@ -1,0 +1,192 @@
+{
+  "samples": [
+    {
+      "id": "knight_greatsword",
+      "label": "front",
+      "right": 1.6981694987982094e-14,
+      "left": null
+    },
+    {
+      "id": "knight_greatsword",
+      "label": "side",
+      "right": 1.1724291566434251e-14,
+      "left": null
+    },
+    {
+      "id": "knight_greatsword",
+      "label": "game-camera",
+      "right": 1.6981694987982094e-14,
+      "left": null
+    },
+    {
+      "id": "knight_greatsword",
+      "label": "windup",
+      "right": 1.6091724337024826e-14,
+      "left": null
+    },
+    {
+      "id": "knight_greatsword",
+      "label": "hit",
+      "right": 1.4217791915866692e-14,
+      "left": null
+    },
+    {
+      "id": "knight_greatsword",
+      "label": "recover",
+      "right": 7.108895957933346e-15,
+      "left": null
+    },
+    {
+      "id": "oathblade",
+      "label": "front",
+      "right": 8.045862168512413e-15,
+      "left": null
+    },
+    {
+      "id": "oathblade",
+      "label": "side",
+      "right": 7.191640501203643e-15,
+      "left": null
+    },
+    {
+      "id": "wisp_stiletto",
+      "label": "front",
+      "right": 1.3322676295501878e-15,
+      "left": null
+    },
+    {
+      "id": "wisp_stiletto",
+      "label": "side",
+      "right": 1.4238583238573986e-14,
+      "left": null
+    },
+    {
+      "id": "wisp_stiletto",
+      "label": "game-camera",
+      "right": 1.3322676295501878e-15,
+      "left": null
+    },
+    {
+      "id": "wisp_stiletto",
+      "label": "windup",
+      "right": 2.0512703655878746e-14,
+      "left": null
+    },
+    {
+      "id": "wisp_stiletto",
+      "label": "hit",
+      "right": 1.4595949719571162e-14,
+      "left": null
+    },
+    {
+      "id": "wisp_stiletto",
+      "label": "recover",
+      "right": 1.5543122344752192e-15,
+      "left": null
+    },
+    {
+      "id": "tidecaller_staff",
+      "label": "front",
+      "right": 7.229248575812844e-15,
+      "left": null
+    },
+    {
+      "id": "tidecaller_staff",
+      "label": "side",
+      "right": 3.191345691784114e-14,
+      "left": null
+    },
+    {
+      "id": "tidecaller_staff",
+      "label": "game-camera",
+      "right": 7.229248575812844e-15,
+      "left": null
+    },
+    {
+      "id": "tidecaller_staff",
+      "label": "windup",
+      "right": 7.771561172376096e-15,
+      "left": null
+    },
+    {
+      "id": "tidecaller_staff",
+      "label": "hit",
+      "right": 6.217248937900877e-15,
+      "left": null
+    },
+    {
+      "id": "tidecaller_staff",
+      "label": "recover",
+      "right": 1.0206808673417459e-14,
+      "left": null
+    },
+    {
+      "id": "dusk_longbow",
+      "label": "front",
+      "right": 2.220446049250313e-15,
+      "left": null
+    },
+    {
+      "id": "dusk_longbow",
+      "label": "side",
+      "right": 2.895873695547704e-14,
+      "left": null
+    },
+    {
+      "id": "dusk_longbow",
+      "label": "game-camera",
+      "right": 2.220446049250313e-15,
+      "left": null
+    },
+    {
+      "id": "dusk_longbow",
+      "label": "windup",
+      "right": 3.774758283725532e-15,
+      "left": null
+    },
+    {
+      "id": "dusk_longbow",
+      "label": "hit",
+      "right": 1.749649493562436e-14,
+      "left": null
+    },
+    {
+      "id": "dusk_longbow",
+      "label": "recover",
+      "right": 7.191640501203643e-15,
+      "left": null
+    },
+    {
+      "id": "ranger_axe",
+      "label": "front",
+      "right": 1.8536402780214043e-14,
+      "left": null
+    },
+    {
+      "id": "ranger_axe",
+      "label": "side",
+      "right": 1.591302455776226e-14,
+      "left": null
+    },
+    {
+      "id": "lantern_wand",
+      "label": "front",
+      "right": 1.0048591735576161e-14,
+      "left": null
+    },
+    {
+      "id": "lantern_wand",
+      "label": "side",
+      "right": 1.517719948885615e-14,
+      "left": null
+    },
+    {
+      "id": "oathblade-wisp",
+      "label": "dual",
+      "right": 7.588599744428075e-15,
+      "left": 1.4254156828833717e-14
+    }
+  ],
+  "errors": [],
+  "method": "Exact candidate in runtime; front/side/game camera and selected action frames. No normal-speed playback or hardware iPad performance claim."
+}

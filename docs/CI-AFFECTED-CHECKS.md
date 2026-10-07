@@ -52,6 +52,13 @@ run them after merge and on manual full runs. Existing smoke/UX scripts,
 assertions and viewport lists remain intact. The PR-only legacy review workflows
 also retain their checks for shared/unbounded edits.
 
+The wearable shard checks upgrade requirements directly: the next upgrade and
+every upgrade-track rank must retain Lv.6, with no wear warning and successful
+equip at exactly Lv.6. Deterministic C/B/A/S crafts use the real seeded RNG and
+UI actions, then upgrade through every rank with exact payment, UID, ownership
+and option preservation checks. Promotion copy is checked only when a next
+grade exists; S must show the maximum-grade state without a promotion action.
+
 These additional full owners make 23 suites / 46 browser jobs, plus build and
 two gate summaries. A bounded image or HUD CSS plan has four browser jobs; a
 quest component plan has six. These are job counts, not promised durations.

@@ -92,6 +92,17 @@ elapsed/simulation clocks are retained, not treated as ordinary iPad gameplay.
 PR98's WebKit black grass-root bake and toon cleanup fixes remain separate;
 black grass roots are still visible in this main-based WebKit seam branch.
 
+The current-main elapsed scenario completed two full crossing/return/eviction
+cycles and a third den sample after 604,743 ms (10.08 minutes). The sampled
+minimap geography stayed at 75,300 pixels; no Canvas/WebGL loss event, page error,
+GL error or leftover render target was recorded. The inspected wolf captures
+remain colored. The third crossing was refused because the fixture character
+had died; a secondary failure-state recorder had a scope error. Both failures
+are retained in `elapsed-main-v3/report.json`; this is not a five-cycle pass.
+Software rendering advanced only 31.7 seconds of simulation during those ten
+wall-clock minutes. The result bounds elapsed/cache behavior in this engine,
+not the owner's longer gameplay or Safari Metal memory behavior.
+
 The separate coastal rule mismatch at global `(-160,80)` also remains:
 Azure classifies it as dry while Frontier classifies it as water, despite equal
 edge height. This render-only change deliberately does not retune that gameplay

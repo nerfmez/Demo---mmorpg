@@ -37,6 +37,14 @@ try{
   await tap('.detail-close');
   await page.evaluate(()=>{const f=__frontier;f.panels.close();f.game.ch.stats.STR=100;f.game.refresh();f.panels.open('bag');});
   assert.equal(await page.locator('.wear-slot.equipment-inactive').count(),0);assert.equal(await page.evaluate(()=>__frontier.game.ch.equipped.weapon),ids.a);assert.equal(await page.evaluate(()=>__frontier.game.ch.equipped.offhand),ids.b);assert.equal(await page.evaluate(()=>__frontier.game.derived.dualWield),true);
+  await page.evaluate(async()=>{
+   const {migrateCharacter}=await import('/src/core/character.js');const f=__frontier,ch=f.game.ch;
+   f.panels.close();ch.level=f.game.data.progression.character.maxLevel+1;ch.statPoints=0;
+   migrateCharacter(ch,f.game.data);f.game.refresh();f.panels.open('bag');
+  });
+  assert.match(await page.locator('.atelier-notice').innerText(),/คืนแต้มสเตตัสให้จัดใหม่ฟรี/);
+  assert.match(await page.locator('.atelier-notice').innerText(),/สถานะไม่ได้ใช้/);
+  await page.screenshot({path:`${out}/${name}-cap-reset.png`});
   assert.deepEqual(errors,[]);report.push({name,width,height,retainedAndRecovered:true,pageErrors:errors});await context.close();console.log('PASS equipment inactive',name);
  }
  writeFileSync(`${out}/report.json`,JSON.stringify(report,null,2));

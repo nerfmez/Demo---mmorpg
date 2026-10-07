@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
-import {createCharacter,equip,gearRequirements,gearEquipState,inactiveEquipment,derive,gearLook,respecStats,migrateCharacter,unequip} from '../../src/core/character.js';
+import {createCharacter,equip,gearRequirements,gearEquipState,inactiveEquipment,derive,gearLook,respecStats,migrateCharacter,unequip,equipmentNotice} from '../../src/core/character.js';
 import {upgradeGear,promoteGear} from '../../src/core/crafting.js';
 import {createRng} from '../../src/core/rng.js';
 const fund=()=>{const ch=createCharacter(data);ch.gold=100000;for(const k in data.items.materials)ch.materials[k]=10000;for(const k in ch.stats)ch.stats[k]=999;return ch;};
@@ -32,4 +32,15 @@ test('promotion crossing the stat gate reports the exact deficit without changin
  const ch=fund(),it=give(ch,'tusk_blade');for(const [k,n] of Object.entries(gearRequirements(it,data)))ch.stats[k]=n;assert.ok(equip(ch,data,it.uid).ok);
  const result=promoteGear(ch,data,it.uid,createRng(1));assert.ok(result.ok);assert.deepEqual(result.unequipped,[]);assert.equal(ch.equipped.weapon,it.uid);
  const state=result.inactive.find(i=>i.uid===it.uid);assert.ok(state);assert.ok(state.rows.some(r=>r.deficit>0));assert.equal(derive(ch,data).weaponType,'none');
+});
+
+for(const staysValid of [true,false])test(`cap stat-reset notice survives migration with ${staysValid?'active':'inactive'} equipment`,()=>{
+ const ch=createCharacter(data);ch.level=data.progression.character.maxLevel+1;ch.statPoints=0;ch.stats.STR=20;
+ if(!staysValid){const it=give(ch,'tusk_blade');assert.ok(equip(ch,data,it.uid).ok);}
+ const beforeGear=structuredClone(ch.gear),slots={...ch.equipped};
+ migrateCharacter(ch,data);assert.deepEqual(ch.stats,data.progression.character.startingStats);assert.deepEqual(ch.gear,beforeGear);assert.deepEqual(ch.equipped,slots);
+ assert.match(ch.progress.equipmentNotice,/คืนแต้มสเตตัสให้จัดใหม่ฟรี/);assert.equal(equipmentNotice(ch,data),ch.progress.equipmentNotice);
+ assert.equal(ch.progress.equipmentNotice.includes('สถานะไม่ได้ใช้'),!staysValid);
+ const first=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),first,'repeat load neither deletes nor duplicates the explanation');
+ if(!staysValid){ch.stats.STR=100;const message=equipmentNotice(ch,data);assert.match(message,/คืนแต้มสเตตัส/);assert.equal(message.includes('สถานะไม่ได้ใช้'),false,'recovery removes stale inactivity but keeps reset explanation');}
 });

@@ -164,8 +164,8 @@ export function migrateCharacter(ch, data) {
   }
   // Repair impossible hand combinations; unmet wear gates stay slotted and inactive.
   enforceEquipment(ch, data);
-  const inactive = inactiveEquipment(ch, data);
-  if (inactive.length) ch.progress.equipmentNotice = 'อุปกรณ์ยังอยู่ในช่อง · สถานะไม่ได้ใช้: ' + inactive.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh + ' · ' + it.missing.join(', ')).join(' / ');
+  const notice = equipmentNotice(ch, data);
+  if (notice) ch.progress.equipmentNotice = notice;
   else delete ch.progress.equipmentNotice;
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
@@ -484,6 +484,16 @@ export function inactiveEquipment(ch, data) {
     const state = gearEquipState(ch, data, item, slot);
     return state.ok ? [] : [{ slot, uid: item.uid, ...state }];
   });
+}
+
+/** Preserve the existing cap-reset explanation, while recomputing wear status live. */
+export function equipmentNotice(ch, data) {
+  const saved = ch.progress?.equipmentNotice || '';
+  const reset = saved.startsWith('เลเวลตันลดเหลือ Lv') ? saved.split(' · อุปกรณ์ยังอยู่ในช่อง')[0] : '';
+  const inactive = inactiveEquipment(ch, data);
+  const wear = inactive.length ? 'อุปกรณ์ยังอยู่ในช่อง · สถานะไม่ได้ใช้: ' + inactive.map(it =>
+    data.items.gearBases[gearItem(ch,it.uid).base].nameTh + ' · ' + it.missing.join(', ')).join(' / ') : '';
+  return [reset, wear].filter(Boolean).join(' · ');
 }
 
 /** Repair structurally impossible hands only. Unmet wear gates do not unequip. */

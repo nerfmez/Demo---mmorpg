@@ -11,7 +11,7 @@ import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
@@ -372,8 +372,8 @@ export class Panels {
 
   render_bag() {
     const back=this.sel.returnCraftRecipe?`<button class="btn craft-return" data-act="return-craft">← กลับไปคราฟต์ ${this.game.data.items.gearBases[this.game.data.recipes.recipes[this.sel.returnCraftRecipe].result]?.nameTh||''}</button>`:'';
-    const inactive=inactiveEquipment(this.game.ch,this.game.data);
-    const notice=inactive.length?`<div class="result-pop" role="status">${esc('สถานะไม่ได้ใช้ · '+inactive.map(i=>i.missing.join(', ')).join(' / '))}</div>`:'';
+    const message=equipmentNotice(this.game.ch,this.game.data);
+    const notice=message?`<div class="result-pop" role="status">${esc(message)}</div>`:'';
     return `${back}${notice}${this.lastResult ? `<div class="result-pop" role="status">${this.lastResult}</div>` : ''}${inventoryView(this, { costHtml, effectText })}`;
   }
 

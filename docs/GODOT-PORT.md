@@ -133,7 +133,10 @@ respec, enhancement, promotion and migration retain unmet items in `character.eq
 `inactiveEquipment` derives status without saved flags; stat/level recovery reactivates items
 immediately. `derive` excludes their stats, affixes, implicits and ammo bonuses; inactive
 weapons cannot satisfy weapon-required skills. `gearLook` retains their visual identity.
-UI shows red slot/tile borders, text status and current/required/deficit numbers. Upgrades
+UI shows red slot/tile borders, text status and current/required/deficit numbers.
+`equipmentNotice` preserves the existing level-cap stat-reset explanation and appends
+current inactivity. Repeat migration does not duplicate it; recovered stats remove only
+the inactivity text, so the reason for the refunded build stays visible. Upgrades
 and promotions return `inactive` alongside `unequipped` (structural repairs only). Initial
 equip still refuses unmet gates. No save fields or version bump are added; migration keeps
 ownership, rolls and slots and reports inactivity after level-cap adjustment.

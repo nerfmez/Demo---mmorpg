@@ -1,5 +1,6 @@
 // HUD navigation and stateless presentation. Original skill artwork stays in art.js.
 import { expToNext, jobExpToNext } from '../core/character.js';
+import { questProgress } from '../core/quests.js';
 import { sigil } from './sigils.js';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const svg = body => `<svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
@@ -40,10 +41,12 @@ export function xpPresentation(ch, data) {
 }
 export function trackerMarkup(game, id, pos) {
   const {ch, data} = game;
-  if (!id) return '<div class="field-quest-row"><b>ภารกิจครบแล้ว</b><small>ลองคราฟต์ของใหม่หรือล่าบอสอีกครั้ง</small></div>';
-  const q = data.quests.quests[id], st = ch.progress.quests[id];
-  const distance = pos ? Math.round(Math.hypot(pos.x-game.player.x, pos.z-game.player.z)) : null;
-  const secondary = [...data.quests.main, ...data.quests.side].find(key => key !== id && ch.progress.quests[key]?.status === 'active');
-  const row = (def, state, cls, far = null) => `<div class="field-quest-row ${cls}"><span class="quest-diamond" aria-hidden="true">◇</span><div><b>${esc(def.nameTh)}</b><small>${esc(def.descTh)}</small></div><span class="quest-meta"><strong>${Math.min(state?.progress || 0, def.count)}/${def.count}</strong>${far !== null ? `<i>${far} ม.</i>` : ''}</span></div>`;
-  return row(q, st, 'tracked', distance) + (secondary ? row(data.quests.quests[secondary], ch.progress.quests[secondary], 'secondary') : '');
+  if (!id) return '<div class="field-quest-row"><b>เส้นทางนี้สำเร็จแล้ว</b><small>เปิดสมุดเพื่อดูงานทางเลือกและบันทึกการเดินทาง</small></div>';
+  const q = data.quests.quests[id], progress = questProgress(ch, data, id);
+  const chapter = data.quests.chapters?.find(c => c.id === q.chapter);
+  const rawDistance = pos?.distance ?? (Number.isFinite(pos?.x) && Number.isFinite(pos?.z) ? Math.hypot(pos.x-game.player.x, pos.z-game.player.z) : null);
+  const distance = Number.isFinite(rawDistance) ? Math.round(rawDistance) : null;
+  const next = progress.next;
+  const hint = pos?.remote ? `ไปต่อทาง ${pos.via}` : next?.menu && next.type !== 'craft' ? 'ทำต่อได้ในเมนูจากทุกพื้นที่' : pos?.label || '';
+  return `<div class="field-quest-row tracked" data-tracked-quest="${esc(id)}"><span class="quest-diamond" aria-hidden="true">◇</span><div><b>${esc(q.nameTh)}</b><small>${esc(next?.labelTh || q.descTh)}</small><small>${esc(hint || chapter?.nameTh || 'การเดินทาง')}</small></div><span class="quest-meta"><strong>${progress.current}/${progress.total}</strong>${distance !== null ? `<i>~${distance} ม.</i>` : ''}</span></div>`;
 }

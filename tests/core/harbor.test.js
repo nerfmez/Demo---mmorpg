@@ -29,7 +29,7 @@ test('new characters start on a safe dry beach beside the connected coastal town
   assert.ok(g.isSafe(g.player.x,g.player.z));
   assert.ok(!g.isWaypointUnlocked('town'));
   assert.equal(g.teleportTo('town').reason,'locked');
-  assert.equal(trackedQuest(g.ch,data),'h_arrival');
+  assert.equal(trackedQuest(g.ch,data),'h_slimes');
 });
 
 test('all active roads are continuous and walkable, with a safe arrival route', () => {
@@ -158,11 +158,11 @@ test('new coastline monsters visibly wind up and cannot damage before the windup
   }
 });
 
-test('newcomer progression reaches town, fights both starters, then crafts with beach drops', () => {
+test('an early town visit is remembered after shore lessons and still funds the first craft', () => {
   const g=new Game(data,{world,seed:4});
   const [x,z]=data.world.town.centre;
   g.player.x=x;g.player.z=z;step(g,.5);
-  assert.equal(questState(g.ch,'h_arrival').status,'active','arrival requires reaching its stone');
+  assert.equal(questState(g.ch,'h_arrival').status,'locked','arrival follows the shore lessons; early exploration stays available');
   const wp=world.waypoints.find(w=>w.id==='town');g.player.x=wp.x+1.5;g.player.z=wp.z;step(g,.5);
   assert.ok(g.isWaypointUnlocked('town'));
   assert.equal(trackedQuest(g.ch,data),'h_slimes');
@@ -257,7 +257,7 @@ test('the reference inlet remains water behind two connected lighthouse breakwat
 test('existing Azure saves retain all progress through the layout change and relocate only once', () => {
   const ch=createCharacter(data);ch.worldLayoutRevision='azure-reference-layout-7';
   ch.level=9;ch.jobLevel=6;ch.gold=456;ch.pos=[-16.4,-12.5];
-  ch.progress.quests.h_arrival={status:'done',progress:1};ch.progress.waypoints.push('town','forest');
+  ch.progress.quests.h_arrival={status:'done',progress:1,objectives:{primary:1},rewardClaimed:true};ch.progress.waypoints.push('town','forest');
   const before=structuredClone(ch);
   const saved=migrateCharacter(ch,data);
   for (const key of ['level','jobLevel','gold','gear','skills','slots','materials','progress']) assert.deepEqual(saved[key],before[key],key+' preserved');

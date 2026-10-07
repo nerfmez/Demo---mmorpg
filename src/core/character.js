@@ -2,16 +2,17 @@
 // equipment (two hands + armour slots, items.slots), arrows, appearance, and derived combat stats. The character object is plain
 // JSON so it can be saved and ported as-is (Godot: a Dictionary or a Resource).
 import { enterMap } from './maps.js';
+import { migrateQuestJournal } from './quests.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 7;
+export const CHARACTER_VERSION = 8;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
-  return { waypoints: starter ? starter.waypoints.filter(w => w.unlocked).map(w => w.id) : ['town'], zones: starter ? ['landing'] : ['settlement'], kills: {}, collected: {}, quests: {}, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {}, maps: {} };
+  return { waypoints: starter ? starter.waypoints.filter(w => w.unlocked).map(w => w.id) : ['town'], zones: starter ? ['landing'] : ['settlement'], kills: {}, collected: {}, quests: {}, questJournal: { version: 1, trackedId: null }, crafted: 0, socketed: 0, deaths: 0, playTime: 0, bossKills: {}, maps: {} };
 }
 
 /**
@@ -166,6 +167,7 @@ export function migrateCharacter(ch, data) {
   if (moved.length) ch.progress.equipmentNotice = 'เงื่อนไขสวมใส่ไม่ถึง: เก็บอุปกรณ์ไว้ในกระเป๋าครบ · ' + moved.map(it => data.items.gearBases[gearItem(ch,it.uid).base].nameTh).join(', ');
   ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
   if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
+  migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 });
   ch.version = CHARACTER_VERSION;
   return ch;
 }

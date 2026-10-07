@@ -4,6 +4,7 @@ import { data } from './helpers.js';
 import { balanceReport, referenceMonster, balanceAt, referenceHero } from '../../src/core/balance.js';
 import { expToNext, jobExpToNext } from '../../src/core/character.js';
 import { computeSkill } from '../../src/core/skills.js';
+import { questObjectives } from '../../src/core/quests.js';
 
 const B = data.progression.balance, cap = B.monsterCap;
 const report = balanceReport(data);
@@ -26,7 +27,7 @@ test('reaching the monster cap takes the target playtime, and later levels take 
   assert.ok(data.progression.character.maxLevel > cap, 'character levels continue past the monster cap');
 });
 
-test('monster levels stay within the cap and rise along the main quest path', () => {
+test('monster and quest recommendations stay within the cap; main combat difficulty rises', () => {
   for (const map of Object.values(data.maps)) {
     for (const z of map.zones) if (!z.safe) assert.ok(z.level >= 1 && z.level <= cap, `${map.id}/${z.id}`);
     for (const s of map.spawns) {
@@ -36,7 +37,15 @@ test('monster levels stay within the cap and rise along the main quest path', ()
     for (const b of map.bosses || []) assert.ok(b.level <= cap, b.monster);
   }
   const levels = data.quests.main.map((id) => data.quests.quests[id].level);
-  for (let i = 1; i < levels.length; i++) assert.ok(levels[i] >= levels[i - 1], `main quest ${data.quests.main[i]} level ${levels[i]}`);
+  for (const id of [...data.quests.main, ...data.quests.side]) {
+    const level = data.quests.quests[id].level;
+    assert.ok(Number.isInteger(level) && level >= 1 && level <= cap, `${id} recommended level ${level}`);
+  }
+  // A safe town/craft stop can follow a harder fight; recommendations describe
+  // the objective difficulty, not a level gate for the narrative sequence.
+  const combat = data.quests.main.filter(id => questObjectives(data.quests.quests[id]).some(o => o.type === 'kill'));
+  assert.ok(combat.length >= 2, 'the journey retains a rising combat path');
+  for (let i = 1; i < combat.length; i++) assert.ok(data.quests.quests[combat[i]].level >= data.quests.quests[combat[i - 1]].level, `main combat quest ${combat[i]} level ${data.quests.quests[combat[i]].level}`);
   assert.equal(levels.at(-1), cap, 'the last main quest is at the cap');
 });
 

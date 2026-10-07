@@ -15,7 +15,7 @@ import { questTarget, rewardText } from './hud.js';
 import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
-import { questState, trackedQuest } from '../core/quests.js';
+import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
 import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
 import { buyState, assignQuickItem, restoreAmount } from '../core/consumables.js';
@@ -393,44 +393,7 @@ export class Panels {
 
   // ---------- Journal ----------
   render_journal() {
-    const g = this.game;
-    const ch = g.ch;
-    const data = g.data;
-    const Q = data.quests;
-    const tracked = trackedQuest(ch, data);
-    const row = (id) => {
-      const q = Q.quests[id], st = questState(ch,id), done = st.status === 'done';
-      if (st.status === 'locked') return '';
-      const prog = Math.min(st.progress,q.count), target = !done ? questTarget(g,id) : null;
-      const far = target ? Math.round(Math.hypot(target.x-g.player.x,target.z-g.player.z)) : 0;
-      const picture = q.type==='kill' ? art('monster',q.target) : q.type==='collect' ? art('material',q.target) : q.type==='waypoint'||q.type==='zone' ? art('zone',q.target==='town'?'settlement':q.target) : q.type==='socket' ? art('mod','wide_arc') : q.type==='job' ? art('job','origin') : art('gear','tusk_blade');
-      const rewards = Object.entries(q.reward.items||{}).map(([item,n])=>`<span>${art('material',item)} ×${n}</span>`).join('');
-      return `<div class="qrow ${done?'done':''} ${id===tracked?'tracked':''}">${picture}<div class="qcontent">
-        <b>${done?'✓ ':id===tracked?'★ ':''}${esc(q.nameTh)}</b><div class="muted">${esc(q.descTh)}</div>
-        ${!done?`<div class="qbar"><i style="width:${prog/q.count*100}%"></i><span>${prog} / ${q.count}</span></div>`:''}
-        <div class="quest-rewards"><span>${rewardText(data,{...q.reward,items:{}})}</span>${rewards}</div>
-        ${far>12?`<small class="muted">ห่าง ${far} ม. · ตามดาวบนมินิแมพ</small>`:''}</div></div>`;
-    };
-    const sideOrder = [...Q.side].sort((a, b) => (questState(ch, a).status === 'done') - (questState(ch, b).status === 'done'));
-    const p = ch.progress;
-    const kills = Object.values(p.kills).reduce((a, b) => a + b, 0);
-    const totals = worldTotals(ch, data); // one world: every map's zones and stones
-    const bosses = Object.values(data.maps || { x: data.world }).flatMap((m) => m.bosses || []).map((b) => `<span>${data.monsters.monsters[b.monster].name}</span><b>${p.bossKills[b.id] ? `ปราบแล้ว ×${p.bossKills[b.id]}` : '—'}</b>`).join('');
-    const doneCount = [...Q.main, ...Q.side].filter((id) => questState(ch, id).status === 'done').length;
-    return `<div class="grid2">
-      <div class="card"><h3>เนื้อเรื่องหลัก</h3>${Q.main.filter(id=>questState(ch,id).status!=='done').map(row).join('') || '<p class="muted">ทำเนื้อเรื่องหลักครบแล้ว</p>'}<p class="muted">${Q.main.filter(id=>questState(ch,id).status==='locked').length} ภารกิจจะเปิดเมื่อทำเรื่องก่อนหน้าสำเร็จ</p></div>
-      <div><div class="card"><h3>ภารกิจรอง</h3>${sideOrder.filter(id=>questState(ch,id).status!=='done').map(row).join('')}</div>
-        <details class="journal-completed"><summary>ภารกิจที่สำเร็จแล้ว · ${doneCount}</summary>${[...Q.main,...Q.side].filter(id=>questState(ch,id).status==='done').map(row).join('') || '<p class="muted">ยังไม่มีภารกิจที่สำเร็จ</p>'}</details>
-        <div class="card" style="margin-top:12px"><h3>ความคืบหน้า</h3><div class="kv">
-          <span>ภารกิจสำเร็จ</span><b>${doneCount}/${Q.main.length + Q.side.length}</b>
-          <span>สำรวจพื้นที่</span><b>${totals.zones[0]}/${totals.zones[1]}</b>
-          <span>หินวาร์ป</span><b>${totals.waypoints[0]}/${totals.waypoints[1]}</b>
-          <span>ล่ามอนแล้ว</span><b>${kills} ตัว</b>
-          ${bosses}
-          <span>คราฟต์แล้ว</span><b>${p.crafted || 0} ครั้ง</b>
-          <span>หมดสติ</span><b>${p.deaths || 0} ครั้ง</b>
-          <span>เวลาเล่น</span><b>${fmtTime(p.playTime || 0)}</b>
-        </div></div></div></div>`;
+    return questJournalView(this, { art, rewardText });
   }
 
   // ---------- World map ----------
@@ -499,6 +462,7 @@ export class Panels {
     const data = g.data;
     const act = t.dataset.act;
     if (this.workshop.handle(t)) return;
+    if (act.startsWith('quest-') && handleQuestJournalAction(this, t)) return;
     let r;
     switch (act) {
       case 'choose-skill':

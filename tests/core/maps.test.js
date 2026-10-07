@@ -87,6 +87,8 @@ test('the crossing frame runs no world checks against the old map', () => {
   // Regression: a world check due in the same frame as the crossing read Azure quests
   // against the Frontier's discovery (its free "town" stone) and paid Azure's h_arrival.
   const g = new Game(on(AZURE), { world: worlds[AZURE], seed: 6 });
+  // Arrival follows the shore lessons now; activate it without discovering either town.
+  for (const target of ['salt_slime', 'reef_crab']) for (let i = 0; i < 3; i++) g.notify({ type: 'kill', target });
   const seam = worlds[AZURE].seams[0], gold = g.ch.gold;
   assert.equal(questState(g.ch, 'h_arrival').status, 'active');
   [g.player.x, g.player.z] = [seam.gate[0] + 0.05, seam.gate[1]];

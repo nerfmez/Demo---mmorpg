@@ -1,0 +1,233 @@
+{
+  "m_boars": {
+    "count": 5,
+    "reward": {
+      "gold": 130,
+      "exp": 691,
+      "jobExp": 394,
+      "items": {
+        "boar_hide": 2
+      }
+    }
+  },
+  "m_craft": {
+    "count": 1,
+    "reward": {
+      "gold": 30,
+      "exp": 30,
+      "items": {
+        "glow_dust": 2
+      }
+    }
+  },
+  "m_forest": {
+    "count": 1,
+    "reward": {
+      "gold": 210,
+      "exp": 1220,
+      "jobExp": 637
+    }
+  },
+  "m_greyfang": {
+    "count": 1,
+    "reward": {
+      "gold": 280,
+      "exp": 2559,
+      "jobExp": 1145
+    }
+  },
+  "m_wetland": {
+    "count": 1,
+    "reward": {
+      "gold": 320,
+      "exp": 3432,
+      "jobExp": 1511
+    }
+  },
+  "m_highlands": {
+    "count": 1,
+    "reward": {
+      "gold": 370,
+      "exp": 5009,
+      "jobExp": 2069,
+      "items": {
+        "ruin_shard": 1
+      }
+    }
+  },
+  "m_warden": {
+    "count": 1,
+    "reward": {
+      "gold": 480,
+      "exp": 9161,
+      "jobExp": 3409
+    }
+  },
+  "s_spores": {
+    "count": 8,
+    "reward": {
+      "gold": 140,
+      "exp": 872,
+      "items": {
+        "spore_sac": 2
+      }
+    }
+  },
+  "s_wolves": {
+    "count": 10,
+    "reward": {
+      "gold": 165,
+      "exp": 1302,
+      "items": {
+        "wolf_fang": 2
+      }
+    }
+  },
+  "s_golems": {
+    "count": 5,
+    "reward": {
+      "gold": 250,
+      "exp": 3578,
+      "items": {
+        "golem_heart": 1
+      }
+    }
+  },
+  "s_feathers": {
+    "count": 6,
+    "reward": {
+      "gold": 235,
+      "exp": 3177
+    }
+  },
+  "s_collector": {
+    "count": 8,
+    "reward": {
+      "gold": 260,
+      "exp": 4005,
+      "items": {
+        "ruin_shard": 1
+      }
+    }
+  },
+  "s_mods": {
+    "count": 2,
+    "reward": {
+      "gold": 90,
+      "exp": 283
+    }
+  },
+  "s_job": {
+    "count": 1,
+    "reward": {
+      "gold": 90,
+      "exp": 283
+    }
+  },
+  "s_coast": {
+    "count": 1,
+    "reward": {
+      "gold": 200,
+      "exp": 2127,
+      "jobExp": 989
+    }
+  },
+  "s_crabs": {
+    "count": 10,
+    "reward": {
+      "gold": 60,
+      "exp": 110,
+      "items": {
+        "crab_shell": 2
+      }
+    }
+  },
+  "h_arrival": {
+    "count": 1,
+    "reward": {
+      "gold": 50,
+      "exp": 8,
+      "jobExp": 6
+    }
+  },
+  "h_slimes": {
+    "count": 3,
+    "reward": {
+      "gold": 50,
+      "exp": 8,
+      "jobExp": 6
+    }
+  },
+  "h_crabs": {
+    "count": 3,
+    "reward": {
+      "gold": 65,
+      "exp": 35,
+      "jobExp": 46,
+      "items": {
+        "crab_shell": 2,
+        "salt_gel": 4
+      }
+    }
+  },
+  "h_craft": {
+    "count": 1,
+    "reward": {
+      "gold": 65,
+      "exp": 35,
+      "jobExp": 46
+    }
+  },
+  "h_fields": {
+    "count": 1,
+    "reward": {
+      "gold": 85,
+      "exp": 86,
+      "jobExp": 76
+    }
+  },
+  "h_grove": {
+    "count": 1,
+    "reward": {
+      "gold": 120,
+      "exp": 266,
+      "jobExp": 209
+    }
+  },
+  "h_lighthouse": {
+    "count": 1,
+    "reward": {
+      "gold": 155,
+      "exp": 557,
+      "jobExp": 329
+    }
+  },
+  "h_birds": {
+    "count": 5,
+    "reward": {
+      "gold": 45,
+      "exp": 25,
+      "items": {
+        "shore_feather": 2
+      }
+    }
+  },
+  "h_hermits": {
+    "count": 4,
+    "reward": {
+      "gold": 105,
+      "exp": 398,
+      "items": {
+        "hermit_fragment": 2
+      }
+    }
+  },
+  "f_road": {
+    "count": 1,
+    "reward": {
+      "gold": 175,
+      "exp": 747,
+      "jobExp": 398
+    }
+  }
+}

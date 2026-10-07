@@ -4,7 +4,7 @@ import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {loadData} from '../../src/core/data-node.js';
-import {createCharacter} from '../../src/core/character.js';
+import {createCharacter,CHARACTER_VERSION} from '../../src/core/character.js';
 import {Game} from '../../src/core/game.js';
 import {journalJump} from './passive-checks.mjs';
 import {enterFullscreenGate} from './fullscreen-entry.mjs';
@@ -23,7 +23,7 @@ try{
  assert.deepEqual(before.jobNodes,character.jobNodes);assert.equal(before.gold,4567);
  await page.evaluate(()=>__frontier.panels.open('job'));const heldFrame=await page.evaluate(()=>__frontier.view.renderer.info.render.frame);await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>__frontier.view.renderer.info.render.frame),heldFrame,'opaque journal holds the completed world frame');await journalJump(page,'lesson.prepare');await page.locator('[data-action="learn"]').tap();
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('frontier.slot.1')).character);assert.equal(saved.jobPoints,14);assert.ok(saved.jobNodes.includes('lesson.prepare'));assert.deepEqual(saved.jobNodes.filter(id=>id!=='lesson.prepare'),before.jobNodes);
- for(const key of ['gear','mods','materials','stats','skills','slots','appearance','kit'])assert.deepEqual(saved[key],before[key],key+' is retained');assert.equal(saved.gold,before.gold);assert.equal(saved.version,7);
+ for(const key of ['gear','mods','materials','stats','skills','slots','appearance','kit'])assert.deepEqual(saved[key],before[key],key+' is retained');assert.equal(saved.gold,before.gold);assert.equal(saved.version,CHARACTER_VERSION);
  await page.locator('[data-action="close-detail"]').tap();await page.locator('#sound-control summary').tap();await page.locator('#sound-volume').fill('23');await page.locator('#sound-mute').tap();await page.locator('[data-action="exit"]').tap();
  await page.reload();await continueGame();const loaded=await page.evaluate(()=>__frontier.game.snapshot());for(const key of ['jobNodes','jobPoints','gear','mods','materials','gold','stats','skills','slots','appearance','kit'])assert.deepEqual(loaded[key],saved[key],key+' survives reload/Continue');
  await page.evaluate(()=>__frontier.panels.open('job'));const audio=await page.evaluate(()=>__frontier.panels.jobJournal.snapshot().audio);assert.equal(audio.muted,true);assert.equal(audio.volume,.23);assert.equal(audio.contextState,'not-created');assert.equal(audio.plays,0);

@@ -24,14 +24,15 @@ test('field progress follows real EXP and independent Job EXP; caps show MAX',()
  ch.level=data.progression.character.maxLevel;ch.jobLevel=data.progression.job.maxLevel;ch.exp=0;ch.jobExp=0;
  const max=xpPresentation(ch,data);assert.equal(max.exp.percent,100);assert.equal(max.exp.text,'MAX');assert.equal(max.job.percent,100);assert.equal(max.job.text,'MAX');
 });
-test('tracker shows at most two actual active quests, escapes text, and never mutates state',()=>{
+test('tracker shows only the selected active quest, escapes text, and never mutates state',()=>{
  const ch=createCharacter(data),[id,...others]=data.quests.main;ch.progress.quests[id]={status:'active',progress:0};
  ch.progress.quests[others[0]]={status:'done',progress:99};
  const side=data.quests.side[0];ch.progress.quests[side]={status:'active',progress:2};
  const g={ch,data,player:{x:0,z:0}};const before=JSON.stringify(ch);
- const html=trackerMarkup(g,id,{x:3,z:4});assert.equal((html.match(/class="field-quest-row /g)||[]).length,2);
+ const html=trackerMarkup(g,id,{x:3,z:4});assert.equal((html.match(/class="field-quest-row /g)||[]).length,1);
+ assert.ok(html.includes('data-tracked-quest="'+id+'"'));assert.ok(!html.includes(data.quests.quests[side].nameTh));
  assert.ok(html.includes(data.quests.quests[id].nameTh));assert.ok(html.includes('5 ม.'));assert.equal(JSON.stringify(ch),before);
  const copy=structuredClone(data);copy.quests.quests[id].nameTh='<img src=x onerror=1>';
  assert.ok(!trackerMarkup({...g,data:copy},id,null).includes('<img'));
- assert.ok(trackerMarkup(g,null,null).includes('ภารกิจครบแล้ว'));
+ assert.ok(trackerMarkup(g,null,null).includes('เส้นทางนี้สำเร็จแล้ว'));
 });

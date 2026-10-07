@@ -158,6 +158,16 @@ async function run(name, contextOpts) {
   const res = await page.evaluate(async () => {
     const { game, input } = window.__frontier;
     input.disabled = true;
+    // This combat/loot fixture starts after the boar mission's authored story
+    // prerequisites; mark their rewards already paid, then use the real refresh.
+    const completePrerequisite = id => {
+      const q = game.data.quests.quests[id];
+      for (const prerequisite of q.requires || []) completePrerequisite(prerequisite);
+      game.ch.progress.quests[id] = { status: 'done', progress: q.count, objectives: Object.fromEntries((q.objectives || [{ id: 'primary', count: q.count }]).map(o => [o.id, o.count])), rewardClaimed: true };
+    };
+    for (const id of game.data.quests.quests.m_boars.requires || []) completePrerequisite(id);
+    game.refresh();
+    const questWasActive = game.ch.progress.quests.m_boars?.status === 'active';
     const p = game.player;
     p.x = -70;
     p.z = 10;
@@ -185,11 +195,12 @@ async function run(name, contextOpts) {
       for (let k = 0; k < 6; k++) game.update(1 / 60);
       await wait(30);
     }
-    return { gameTime: game.time - t0, kills: game.stats.kills, dealt: game.stats.damageDealt, casts, level: game.ch.level, quest: game.ch.progress.quests.m_boars };
+    return { gameTime: game.time - t0, kills: game.stats.kills, dealt: game.stats.damageDealt, casts, level: game.ch.level, questWasActive, quest: game.ch.progress.quests.m_boars };
   });
   console.log(`     gameTime=${res.gameTime.toFixed(1)}s casts=${res.casts} dealt=${res.dealt} kills=${res.kills} lv=${res.level} quest=${JSON.stringify(res.quest)}`);
   check(res.dealt > 0, `${name}: skills hit monsters`);
   check(res.kills > 0, `${name}: monsters die and drop loot`);
+  check(res.questWasActive, `${name}: the fixture opens the boar mission before fighting`);
   check(res.quest && res.quest.progress > 0, `${name}: kills advance the boar side quest`);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-2-meadow.png` });
   // monsters outside the camera are not drawn (view.js culls them); every one on screen must be

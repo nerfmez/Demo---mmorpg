@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { browserPlan, FULL_SUITES, ITEM_IMAGES, SUITES, validationPlan } from '../../scripts/ci-browser-plan.mjs';
 import { classifyFiles } from '../../scripts/ci-scope.mjs';
 import { verifyBrowserReports } from '../../scripts/ci-browser-gate.mjs';
@@ -44,6 +45,7 @@ test('full postmerge/manual inventory owns all legacy UI/HUD scripts before prem
   assert.match(ci, /force-full: \$\{\{ github.event_name != 'pull_request' && !inputs.quick_gate \}\}/);
   assert.match(ci, /Verify complete selected browser evidence/);
   assert.match(ci, /pattern: ci-.*github.run_attempt/);
+  assert.match(ci, /pattern: ci-report-/);
 });
 test('plan identity is deterministic and binds files and current routing bytes', () => {
   const paths = ['src/ui/quest-journal.js', 'public/assets/icons/gear/wisp_staff.png'];
@@ -51,15 +53,34 @@ test('plan identity is deterministic and binds files and current routing bytes',
   assert.match(validationPlan(paths).routingDigest, /^[a-f0-9]{64}$/);
 });
 
+test('changed routing bytes invalidate old plans even if the version was not bumped', async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'affected-policy-test-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const paths = ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-browser-run.mjs',
+    'scripts/ci-browser-gate.mjs', '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js'];
+  for (const path of paths) {
+    const destination = join(directory, path);
+    mkdirSync(join(destination, '..'), { recursive: true });
+    copyFileSync(new URL(`../../${path}`, import.meta.url), destination);
+  }
+  writeFileSync(join(directory, 'package.json'), '{"type":"module"}');
+  const policy = await import(pathToFileURL(join(directory, paths[0])));
+  const before = policy.validationPlan(['src/ui/fieldhud.css']);
+  writeFileSync(join(directory, paths[1]), readFileSync(join(directory, paths[1]), 'utf8') + '\n// routing revision\n');
+  const after = policy.validationPlan(['src/ui/fieldhud.css']);
+  assert.equal(before.version, after.version);
+  assert.deepEqual(before.suites, after.suites);
+  assert.notEqual(before.routingDigest, after.routingDigest);
+});
+
 test('selected report gate rejects missing/cancelled/incomplete/failing/partial/stale evidence', t => {
   const directory = mkdtempSync(join(tmpdir(), 'affected-gate-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  mkdirSync(join(directory, 'ci'));
   const source = 'a'.repeat(40), suites = ['boot', 'icons'];
   const fixture = suite => ({ source, sourceDirty: false, browser: 'chromium', mode: 'quick', suite,
     ok: true, complete: true, running: null, startedAt: 'start', finishedAt: 'finish',
     checks: SUITES[suite].map(script => ({ script, startedAt: 'start', durationMs: 1, exitCode: 0, signal: null })) });
-  const put = report => writeFileSync(join(directory, 'ci', `quick-chromium-${report.suite}.json`), JSON.stringify(report));
+  const put = report => writeFileSync(join(directory, `quick-chromium-${report.suite}.json`), JSON.stringify(report));
   put(fixture('boot')); put(fixture('icons'));
   const verify = () => verifyBrowserReports({ directory, source, browser: 'chromium', mode: 'quick', suites });
   assert.doesNotThrow(verify);
@@ -69,5 +90,5 @@ test('selected report gate rejects missing/cancelled/incomplete/failing/partial/
     r => r.checks[0].exitCode = 1, r => r.checks[0].signal = 'SIGTERM', r => r.checks[0].script = 'fake.mjs']) {
     const report = fixture('icons'); mutate(report); put(report); assert.throws(verify);
   }
-  rmSync(join(directory, 'ci/quick-chromium-icons.json')); assert.throws(verify);
+  rmSync(join(directory, 'quick-chromium-icons.json')); assert.throws(verify);
 });

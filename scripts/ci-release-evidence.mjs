@@ -51,7 +51,7 @@ export function validateEvidence(input) {
     const steps = name === 'Build, core and CI tools'
       ? ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']
       : name.startsWith('test (') ? ['Verify complete selected browser evidence', 'Report gate outcome at exact source']
-      : ['Verify downloaded build source', 'Run complete selected shard with timings', 'Run actions/upload-artifact@v4'];
+      : ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'];
     requireThat(successfulSteps(job, steps), `Incomplete mandatory steps: ${name}`);
   }
   return { ...evidence, plan };

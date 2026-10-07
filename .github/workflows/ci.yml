@@ -131,6 +131,14 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run complete selected shard with timings
         run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
+      - name: Upload selected browser report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-report-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
+          path: tests/browser/out/ci/${{ env.CI_MODE }}-${{ matrix.browser }}-${{ matrix.suite }}.json
+          retention-days: 7
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -161,7 +169,7 @@ jobs:
       - uses: actions/download-artifact@v4
         if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.game == 'true'
         with:
-          pattern: ci-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-*-${{ github.run_attempt }}
+          pattern: ci-report-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-*-${{ github.run_attempt }}
           path: gate-reports/
           merge-multiple: true
       - name: Verify complete selected browser evidence

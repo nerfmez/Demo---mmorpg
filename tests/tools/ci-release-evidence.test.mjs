@@ -40,7 +40,7 @@ function fixture(files = ['src/save.js']) {
     jobs: [job('Build, core and CI tools', ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']),
       ...['chromium', 'webkit'].map(browser => job(`test (${browser})`, ['Verify complete selected browser evidence', 'Report gate outcome at exact source'])),
       ...['chromium', 'webkit'].flatMap(browser => validationPlan(files).suites.map(suite => job(`Quick affected (${browser}, ${suite})`,
-        ['Verify downloaded build source', 'Run complete selected shard with timings', 'Run actions/upload-artifact@v4'])))],
+        ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'])))],
     artifact: { id: 456, name: `ci-dist-${source}-99-2`, expired: false, size_in_bytes: 100, digest: `sha256:${'d'.repeat(64)}`,
       workflow_run: { id: 99, head_sha: source, repository_id: id, head_repository_id: id } } };
 }

@@ -63,7 +63,7 @@ This PR changes no Workshop feature or transaction code.
 
 Both existing `test (chromium)` and `test (webkit)` summaries still require
 successful preparation and all selected shards. They also download this run
-attempt's reports and verify source, engine, suite, mode, clean checkout,
+attempt's small JSON report artifacts and verify source, engine, suite, mode, clean checkout,
 completion, exact script list and every exit status. Missing reports, cancelled
 children, partial scripts, unexpected skips or stale source cannot turn green.
 

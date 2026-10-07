@@ -10,7 +10,7 @@ export function verifyBrowserReports({ directory, source, browser, suites, mode 
     throw Error('Invalid selected browser gate identity');
   for (const suite of suites) {
     if (!SUITES[suite]) throw Error(`Unknown selected suite: ${suite}`);
-    const report = JSON.parse(readFileSync(join(directory, 'ci', `${mode}-${browser}-${suite}.json`), 'utf8'));
+    const report = JSON.parse(readFileSync(join(directory, `${mode}-${browser}-${suite}.json`), 'utf8'));
     if (report.source !== source || report.sourceDirty !== false || report.mode !== mode || report.browser !== browser ||
         report.suite !== suite || report.ok !== true || report.complete !== true || report.running !== null ||
         !report.startedAt || !report.finishedAt || !Array.isArray(report.checks) ||

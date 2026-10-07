@@ -131,6 +131,14 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run complete selected shard with timings
         run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
+      - name: Upload selected browser report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-report-${{ env.CI_MODE }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
+          path: tests/browser/out/ci/${{ env.CI_MODE }}-${{ matrix.browser }}-${{ matrix.suite }}.json
+          retention-days: 7
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -150,6 +158,28 @@ jobs:
       matrix:
         browser: [chromium, webkit]
     steps:
+      - uses: actions/checkout@v4
+        if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.game == 'true'
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+      - uses: actions/setup-node@v4
+        if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.game == 'true'
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.game == 'true'
+        with:
+          pattern: ci-report-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}-${{ needs.prepare.outputs.source }}-${{ matrix.browser }}-*-${{ github.run_attempt }}
+          path: gate-reports/
+          merge-multiple: true
+      - name: Verify complete selected browser evidence
+        if: needs.prepare.result == 'success' && needs.browser.result == 'success' && needs.prepare.outputs.game == 'true'
+        env:
+          CI_SOURCE_SHA: ${{ needs.prepare.outputs.source }}
+          BROWSER: ${{ matrix.browser }}
+          CI_SUITES: ${{ needs.prepare.outputs.suites }}
+          CI_MODE: ${{ (github.event_name == 'pull_request' || inputs.quick_gate) && 'quick' || 'full' }}
+        run: node scripts/ci-browser-gate.mjs
       - name: Report gate outcome at exact source
         env:
           PREPARE: ${{ needs.prepare.result }}

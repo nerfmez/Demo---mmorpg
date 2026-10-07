@@ -6,13 +6,13 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { FULL_SUITES } from './ci-browser-plan.mjs';
+import { validationPlan } from './ci-browser-plan.mjs';
 
 const SHA = /^[a-f0-9]{40}$/;
 const requireThat = (ok, message) => { if (!ok) throw Error(message); };
 const successfulSteps = (job, names) => names.every(name => job.steps?.some(step => step.name === name && step.conclusion === 'success'));
 
-export function validateEvidence({ repository, repositoryId, target, targetTree, pr, sourceTree, workflow, run, jobs, artifact }) {
+function validateIdentity({ repository, repositoryId, target, targetTree, pr, sourceTree, workflow, run, artifact }) {
   requireThat(SHA.test(target) && SHA.test(targetTree), 'Invalid release identity');
   requireThat(pr.merged_at && pr.merge_commit_sha === target && pr.base?.ref === 'main' &&
     pr.base.repo?.full_name === repository && pr.head?.repo?.full_name === repository &&
@@ -24,10 +24,25 @@ export function validateEvidence({ repository, repositoryId, target, targetTree,
     run.repository?.id === repositoryId && run.head_repository?.id === repositoryId &&
     run.status === 'completed' && run.conclusion === 'success' && Number.isSafeInteger(run.id) &&
     Number.isSafeInteger(run.run_attempt) && run.run_attempt > 0, 'CI run is not a trusted successful attempt');
-  // Deliberately require the full inventory. Narrow PRs without release boot/save
-  // certification keep the existing fallback; no classifier is weakened here.
+  const artifactName = `ci-dist-${source}-${run.id}-${run.run_attempt}`;
+  requireThat(artifact?.name === artifactName && Number.isSafeInteger(artifact.id) && artifact.expired === false &&
+    artifact.size_in_bytes > 0 && /^sha256:[a-f0-9]{64}$/.test(artifact.digest) &&
+    artifact.workflow_run?.id === run.id && artifact.workflow_run.head_sha === source &&
+    artifact.workflow_run.repository_id === repositoryId && artifact.workflow_run.head_repository_id === repositoryId,
+  'Missing immutable source/run/attempt build artifact');
+  return { version: 2, source, tree: targetTree, target, runId: run.id, attempt: run.run_attempt,
+    artifactId: artifact.id, artifactName, digest: artifact.digest };
+}
+
+// `files` comes from GitHub-owned base/head trees, NEVER from the downloaded
+// artifact's claims. Recompute with the exact release tree's routing policy.
+export function validateEvidence(input) {
+  const evidence = validateIdentity(input), { jobs, run, files } = input;
+  requireThat(Array.isArray(files) && files.every(file => typeof file === 'string'), 'Missing authoritative changed paths');
+  const plan = validationPlan(files);
+  requireThat(plan.suites.includes('boot'), 'Release reuse requires real boot/save/reload/Continue');
   const expected = ['Build, core and CI tools', 'test (chromium)', 'test (webkit)',
-    ...['chromium', 'webkit'].flatMap(browser => FULL_SUITES.map(suite => `Quick affected (${browser}, ${suite})`))];
+    ...['chromium', 'webkit'].flatMap(browser => plan.suites.map(suite => `Quick affected (${browser}, ${suite})`))];
   requireThat(jobs.length === expected.length && new Set(jobs.map(job => job.name)).size === expected.length, 'Incomplete or ambiguous CI coverage');
   for (const name of expected) {
     const job = jobs.find(job => job.name === name);
@@ -35,18 +50,11 @@ export function validateEvidence({ repository, repositoryId, target, targetTree,
       job.run_attempt === run.run_attempt, `Missing successful current-attempt job: ${name}`);
     const steps = name === 'Build, core and CI tools'
       ? ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']
-      : name.startsWith('test (') ? ['Report gate outcome at exact source']
-      : ['Verify downloaded build source', 'Run complete selected shard with timings', 'Run actions/upload-artifact@v4'];
+      : name.startsWith('test (') ? ['Verify complete selected browser evidence', 'Report gate outcome at exact source']
+      : ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'];
     requireThat(successfulSteps(job, steps), `Incomplete mandatory steps: ${name}`);
   }
-  const artifactName = `ci-dist-${source}-${run.id}-${run.run_attempt}`;
-  requireThat(artifact?.name === artifactName && Number.isSafeInteger(artifact.id) && artifact.expired === false &&
-    artifact.size_in_bytes > 0 && /^sha256:[a-f0-9]{64}$/.test(artifact.digest) &&
-    artifact.workflow_run?.id === run.id && artifact.workflow_run.head_sha === source &&
-    artifact.workflow_run.repository_id === repositoryId && artifact.workflow_run.head_repository_id === repositoryId,
-  'Missing immutable source/run/attempt build artifact');
-  return { version: 1, source, tree: targetTree, target, runId: run.id, attempt: run.run_attempt,
-    artifactId: artifact.id, artifactName, digest: artifact.digest };
+  return { ...evidence, plan };
 }
 
 export function verifyExtractedBuild(directory, evidence) {
@@ -54,9 +62,9 @@ export function verifyExtractedBuild(directory, evidence) {
   requireThat(readFileSync(join(directory, 'index.html')).length > 0, 'Artifact has no built entrypoint');
 }
 
-export function ciContext({ environment, event, source, tree }) {
+export function ciContext({ environment, event, source, tree, files = [] }) {
   const pr = event.pull_request;
-  return { version: 1, source, tree, repository: environment.GITHUB_REPOSITORY,
+  return { version: 2, source, tree, plan: validationPlan(files, { full: environment.GITHUB_EVENT_NAME !== 'pull_request' }), repository: environment.GITHUB_REPOSITORY,
     runId: Number(environment.GITHUB_RUN_ID), attempt: Number(environment.GITHUB_RUN_ATTEMPT),
     eventName: environment.GITHUB_EVENT_NAME, workflowRef: environment.GITHUB_WORKFLOW_REF,
     workflowSha: environment.GITHUB_WORKFLOW_SHA,
@@ -65,13 +73,26 @@ export function ciContext({ environment, event, source, tree }) {
 }
 
 export function verifyCiContext(context, evidence, pr, repository, repositoryId) {
-  requireThat(context.version === 1 && context.source === evidence.source && context.tree === evidence.tree &&
+  requireThat(context.version === 2 && context.source === evidence.source && context.tree === evidence.tree &&
     context.runId === evidence.runId && context.attempt === evidence.attempt && context.repository === repository &&
     context.eventName === 'pull_request' && context.pr?.number === pr.number && context.pr.base.ref === 'main' &&
     context.pr.base.repositoryId === repositoryId && context.pr.head.repositoryId === repositoryId &&
     context.pr.head.sha === evidence.source && SHA.test(context.pr.base.sha) && SHA.test(context.workflowSha) &&
     context.workflowRef === `${repository}/.github/workflows/ci.yml@refs/pull/${pr.number}/merge`,
   'CI event/workflow receipt does not certify this merged main PR');
+  if (evidence.plan) requireThat(JSON.stringify(context.plan) === JSON.stringify(evidence.plan),
+    'Artifact plan differs from authoritative diff/routing policy');
+}
+
+export function changedTreePaths(base, head) {
+  requireThat(base.truncated === false && head.truncated === false && Array.isArray(base.tree) && Array.isArray(head.tree),
+    'Missing/truncated authoritative source trees');
+  const entries = tree => new Map(tree.tree.filter(entry => entry.type !== 'tree').map(entry => {
+    requireThat(typeof entry.path === 'string' && SHA.test(entry.sha) && typeof entry.mode === 'string', 'Invalid tree entry');
+    return [entry.path, `${entry.mode}:${entry.type}:${entry.sha}`];
+  }));
+  const before = entries(base), after = entries(head);
+  return [...new Set([...before.keys(), ...after.keys()])].filter(path => before.get(path) !== after.get(path)).sort();
 }
 
 export function verifyPrAssociation(run, pr, branchPrs, timeline, repositoryId) {
@@ -106,8 +127,9 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     requireThat(sourceCommit.tree.sha === targetCommit.tree.sha, 'No identical tested source tree');
     const workflow = await api(`${prefix}/actions/workflows/ci.yml`);
     const list = await api(`${prefix}/actions/workflows/${workflow.id}/runs?event=pull_request&head_sha=${pr.head.sha}&per_page=100`);
-    const candidate = list.workflow_runs.find(run => run.head_sha === pr.head.sha && run.conclusion === 'success' && run.status === 'completed');
-    requireThat(candidate, 'No successful CI run for the PR source');
+    // Never reach past a newer failed/cancelled/incomplete run to an older pass.
+    const candidate = list.workflow_runs.find(run => run.head_sha === pr.head.sha);
+    requireThat(candidate?.conclusion === 'success' && candidate.status === 'completed', 'Latest CI run for PR source is not successful');
     const run = await api(`${prefix}/actions/runs/${candidate.id}`);
     const branchPrs = await api(`${prefix}/pulls?state=all&head=${encodeURIComponent(repository.split('/')[0] + ':' + pr.head.ref)}&per_page=100`);
     const timeline = await api(`${prefix}/issues/${pr.number}/timeline?per_page=100`);
@@ -118,8 +140,9 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     requireThat(artifacts.total_count === artifacts.artifacts.length, 'Truncated build artifacts');
     const matching = artifacts.artifacts.filter(artifact => artifact.name === `ci-dist-${pr.head.sha}-${run.id}-${run.run_attempt}`);
     requireThat(matching.length === 1, 'Missing or ambiguous build artifact');
-    const evidence = validateEvidence({ repository, repositoryId: repo.id, target, targetTree: targetCommit.tree.sha,
-      pr, sourceTree: sourceCommit.tree.sha, workflow, run, jobs: jobs.jobs, artifact: matching[0] });
+    const identity = { repository, repositoryId: repo.id, target, targetTree: targetCommit.tree.sha,
+      pr, sourceTree: sourceCommit.tree.sha, workflow, run, jobs: jobs.jobs, artifact: matching[0] };
+    let evidence = validateIdentity(identity);
     const archive = join(scratch, 'dist.zip'), extracted = join(scratch, 'dist');
     await download(`${prefix}/actions/artifacts/${evidence.artifactId}/zip`, archive);
     const digest = `sha256:${createHash('sha256').update(readFileSync(archive)).digest('hex')}`;
@@ -127,6 +150,19 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     await extract(archive, extracted);
     verifyExtractedBuild(extracted, evidence);
     const context = JSON.parse(readFileSync(join(extracted, 'ci-context.json'), 'utf8'));
+    verifyCiContext(context, evidence, pr, repository, repo.id);
+    // The receipt names the executed merge revision, but GitHub owns its parents.
+    // Bind its base/head before reading the two trees that reproduce git diff
+    // --no-renames BASE HEAD, including deletions, renames and mode changes.
+    const executedCommit = await api(`${prefix}/git/commits/${context.workflowSha}`);
+    requireThat(executedCommit.parents?.length === 2 && executedCommit.parents[0].sha === context.pr.base.sha &&
+      executedCommit.parents[1].sha === evidence.source, 'Executed PR revision does not bind this base/head');
+    const baseCommit = await api(`${prefix}/git/commits/${executedCommit.parents[0].sha}`);
+    requireThat(SHA.test(baseCommit.tree?.sha), 'Invalid CI base tree');
+    const baseTree = await api(`${prefix}/git/trees/${baseCommit.tree.sha}?recursive=1`);
+    const headTree = await api(`${prefix}/git/trees/${sourceCommit.tree.sha}?recursive=1`);
+    const files = changedTreePaths(baseTree, headTree);
+    evidence = validateEvidence({ ...identity, files });
     verifyCiContext(context, evidence, pr, repository, repo.id);
     // PR workflows execute their event-ref configuration, while checkout tests
     // the explicit head. Both workflow blobs must match before reusing the build.
@@ -141,7 +177,7 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     rmSync(directory, { recursive: true, force: true });
     mkdirSync(directory, { recursive: true });
     cpSync(extracted, directory, { recursive: true });
-    log(`Verified same-tree CI ${evidence.runId}/${evidence.attempt}: build ${evidence.source}; release ${evidence.target}; tree ${evidence.tree}`);
+    log(`Verified same-tree affected CI ${evidence.runId}/${evidence.attempt}: suites=${evidence.plan.suites.join(',')}; build ${evidence.source}; release ${evidence.target}; tree ${evidence.tree}; full postmerge regression remains separate`);
     return evidence; // Never expose reuse=true before archive and marker validation.
   } catch (error) {
     log(`Use normal release CI: ${error.message}`);
@@ -172,7 +208,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (process.argv[2] === '--write-context') {
     const source = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
     requireThat(source === process.env.CI_SOURCE_SHA, 'Context source differs from CI checkout');
-    const context = ciContext({ environment: process.env, event: JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')),
+    const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+    const files = event.pull_request ? execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', event.pull_request.base.sha, source],
+      { encoding: 'utf8' }).split('\0').filter(Boolean) : [];
+    const context = ciContext({ environment: process.env, event, files,
       source, tree: execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim() });
     writeFileSync('dist/ci-context.json', JSON.stringify(context, null, 2) + '\n');
     console.log(`CI context: ${context.eventName}; PR ${context.pr?.number || 'none'}; workflow ${context.workflowRef}; workflow source ${context.workflowSha}`);
@@ -196,7 +235,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT,
       Object.entries(outputs).map(([key, value]) => `${key}=${value}`).join('\n') + '\n');
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-      evidence ? `Reused complete CI ${evidence.runId}/${evidence.attempt}; build origin ${evidence.source}; release target ${evidence.target}; tree ${evidence.tree}.\n`
+      evidence ? `Reused successful affected CI ${evidence.runId}/${evidence.attempt}; suites=${evidence.plan.suites.join(',')}; build origin ${evidence.source}; release target ${evidence.target}; tree ${evidence.tree}. This is not full-regression certification; main full CI runs separately.\n`
         : 'No verified reusable complete CI build; normal release gate remains required.\n');
   }
 }

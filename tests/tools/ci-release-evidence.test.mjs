@@ -5,14 +5,14 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { FULL_SUITES } from '../../scripts/ci-browser-plan.mjs';
-import { ciContext, extractBuildArchive, resolveRelease, validateEvidence, verifyCiContext, verifyPrAssociation } from '../../scripts/ci-release-evidence.mjs';
+import { FULL_SUITES, validationPlan } from '../../scripts/ci-browser-plan.mjs';
+import { changedTreePaths, ciContext, extractBuildArchive, resolveRelease, validateEvidence, verifyCiContext, verifyPrAssociation } from '../../scripts/ci-release-evidence.mjs';
 
 const source = 'a'.repeat(40), target = 'b'.repeat(40), tree = 'c'.repeat(40);
 const repository = 'owner/demo', id = 123;
 const steps = names => names.map(name => ({ name, conclusion: 'success' }));
-function contextFixture() {
-  return { version: 1, source, tree, repository, runId: 99, attempt: 2, eventName: 'pull_request',
+function contextFixture(files = ['src/save.js']) {
+  return { version: 2, source, tree, plan: validationPlan(files), repository, runId: 99, attempt: 2, eventName: 'pull_request',
     workflowRef: `${repository}/.github/workflows/ci.yml@refs/pull/82/merge`, workflowSha: 'f'.repeat(40),
     pr: { number: 82, base: { ref: 'main', sha: '0'.repeat(40), repositoryId: id }, head: { sha: source, repositoryId: id } } };
 }
@@ -26,21 +26,21 @@ test('CI context receipt binds GitHub event PR/main and executed workflow identi
   }
   const context = ciContext({ environment: { GITHUB_REPOSITORY: repository, GITHUB_RUN_ID: '99', GITHUB_RUN_ATTEMPT: '2',
     GITHUB_EVENT_NAME: 'pull_request', GITHUB_WORKFLOW_REF: contextFixture().workflowRef, GITHUB_WORKFLOW_SHA: 'f'.repeat(40) },
-    event: { number: 82, pull_request: { base: { ref: 'main', sha: '0'.repeat(40), repo: { id } }, head: { sha: source, ref: 'feature', repo: { id } } } }, source, tree });
+    event: { number: 82, pull_request: { base: { ref: 'main', sha: '0'.repeat(40), repo: { id } }, head: { sha: source, ref: 'feature', repo: { id } } } }, source, tree, files: f.files });
   assert.deepEqual(context, contextFixture());
 });
-function fixture() {
+function fixture(files = ['src/save.js']) {
   const run = { id: 99, run_attempt: 2, workflow_id: 7, path: '.github/workflows/ci.yml',
     event: 'pull_request', head_sha: source, head_branch: 'feature', created_at: '2026-10-06T08:02:03Z', pull_requests: [], repository: { id }, head_repository: { id }, status: 'completed', conclusion: 'success' };
   const job = (name, names) => ({ name, status: 'completed', conclusion: 'success', run_id: run.id, run_attempt: 2, steps: steps(names) });
-  return { repository, repositoryId: id, target, targetTree: tree, sourceTree: tree,
+  return { repository, repositoryId: id, target, targetTree: tree, sourceTree: tree, files,
     pr: { number: 82, created_at: '2026-10-06T08:01:59Z', merged_at: '2026-10-06T08:32:05Z', merge_commit_sha: target,
       base: { ref: 'main', repo: { id, full_name: repository } }, head: { sha: source, ref: 'feature', repo: { id, full_name: repository } } },
     workflow: { id: 7, path: run.path }, run,
     jobs: [job('Build, core and CI tools', ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']),
-      ...['chromium', 'webkit'].map(browser => job(`test (${browser})`, ['Report gate outcome at exact source'])),
-      ...['chromium', 'webkit'].flatMap(browser => FULL_SUITES.map(suite => job(`Quick affected (${browser}, ${suite})`,
-        ['Verify downloaded build source', 'Run complete selected shard with timings', 'Run actions/upload-artifact@v4'])))],
+      ...['chromium', 'webkit'].map(browser => job(`test (${browser})`, ['Verify complete selected browser evidence', 'Report gate outcome at exact source'])),
+      ...['chromium', 'webkit'].flatMap(browser => validationPlan(files).suites.map(suite => job(`Quick affected (${browser}, ${suite})`,
+        ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'])))],
     artifact: { id: 456, name: `ci-dist-${source}-99-2`, expired: false, size_in_bytes: 100, digest: `sha256:${'d'.repeat(64)}`,
       workflow_run: { id: 99, head_sha: source, repository_id: id, head_repository_id: id } } };
 }
@@ -97,8 +97,8 @@ for (const [name, mutate] of [
   ['missing artifact', f => f.artifact = null],
 ]) test(`reuse rejects ${name}`, () => { const f = fixture(); mutate(f); assert.throws(() => validateEvidence(f)); });
 
-function resolverFixture(t) {
-  const f = fixture(), directory = mkdtempSync(join(tmpdir(), 'release-resolver-test-'));
+function resolverFixture(t, files = ['src/save.js']) {
+  const f = fixture(files), directory = mkdtempSync(join(tmpdir(), 'release-resolver-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const bytes = Buffer.from('immutable fixture archive');
   f.artifact.digest = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -106,6 +106,10 @@ function resolverFixture(t) {
   const responses = {
     [prefix]: { id }, [`${prefix}/git/commits/${target}`]: { tree: { sha: tree } },
     [`${prefix}/git/commits/${source}`]: { tree: { sha: tree } },
+    [`${prefix}/git/commits/${'f'.repeat(40)}`]: { parents: [{ sha: '0'.repeat(40) }, { sha: source }] },
+    [`${prefix}/git/commits/${'0'.repeat(40)}`]: { tree: { sha: '1'.repeat(40) } },
+    [`${prefix}/git/trees/${'1'.repeat(40)}?recursive=1`]: { truncated: false, tree: [] },
+    [`${prefix}/git/trees/${tree}?recursive=1`]: { truncated: false, tree: files.map(path => ({ path, sha: '2'.repeat(40), type: 'blob', mode: '100644' })) },
     [`${prefix}/commits/${target}/pulls?per_page=100`]: [f.pr], [`${prefix}/pulls/82`]: f.pr,
     [`${prefix}/actions/workflows/ci.yml`]: f.workflow,
     [`${prefix}/actions/workflows/7/runs?event=pull_request&head_sha=${source}&per_page=100`]: { workflow_runs: [f.run] },
@@ -120,7 +124,7 @@ function resolverFixture(t) {
   const options = { repository, target, eventName: 'push', ref: 'refs/heads/main', directory: join(directory, 'dist'), log: () => {},
     api: async path => { assert.ok(path in responses, path); return responses[path]; },
     download: async (path, destination) => { assert.equal(path, `${prefix}/actions/artifacts/456/zip`); writeFileSync(destination, bytes); },
-    extract: async (_, destination) => { mkdirSync(destination); writeFileSync(join(destination, 'ci-source.txt'), source + '\n'); writeFileSync(join(destination, 'index.html'), '<html>tested</html>'); writeFileSync(join(destination, 'ci-context.json'), JSON.stringify(contextFixture())); } };
+    extract: async (_, destination) => { mkdirSync(destination); writeFileSync(join(destination, 'ci-source.txt'), source + '\n'); writeFileSync(join(destination, 'index.html'), '<html>tested</html>'); writeFileSync(join(destination, 'ci-context.json'), JSON.stringify(contextFixture(files))); } };
   return { f, responses, options };
 }
 test('resolver enables reuse only after successful download, digest, source and entrypoint checks', async t => {
@@ -128,6 +132,62 @@ test('resolver enables reuse only after successful download, digest, source and 
   const evidence = await resolveRelease(options);
   assert.equal(evidence.source, source);
   assert.equal(JSON.parse(readFileSync(join(options.directory, 'ci-evidence.json'))).target, target);
+});
+
+for (const files of [
+  ['public/assets/icons/gear/wisp_staff.png'], ['src/ui/fieldhud.css'], ['src/ui/quest-journal.js'],
+  ['docs/icon-assets-manifest.json'],
+  ['public/assets/icons/material/crab_shell.png', 'src/ui/quest-journal.js'],
+]) test(`trusted narrow artifact reuses exactly the recomputed plan: ${files.join(',')}`, async t => {
+  const { f, options } = resolverFixture(t, files);
+  const evidence = await resolveRelease(options);
+  assert.deepEqual(evidence?.plan, validationPlan(files));
+  assert.ok(evidence.plan.suites.length < FULL_SUITES.length);
+  const selected = f.jobs.find(job => job.name.includes('Quick affected'));
+  for (const conclusion of ['failure', 'cancelled', 'skipped', null]) {
+    selected.conclusion = conclusion;
+    assert.equal(await resolveRelease(options), null, conclusion);
+  }
+  selected.conclusion = 'success';
+  f.jobs.splice(f.jobs.indexOf(selected), 1);
+  assert.equal(await resolveRelease(options), null, 'missing selected job');
+});
+
+for (const kind of ['version', 'routing digest', 'suite claims', 'changed files', 'receipt base', 'executed head', 'truncated tree', 'stale latest run'])
+  test(`narrow resolver rejects tampered/stale ${kind}`, async t => {
+    const files = ['public/assets/icons/gear/wisp_staff.png'];
+    const { f, responses, options } = resolverFixture(t, files);
+    if (['version', 'routing digest', 'suite claims', 'changed files', 'receipt base'].includes(kind)) {
+      const extract = options.extract;
+      options.extract = async (...args) => {
+        await extract(...args);
+        const path = join(args[1], 'ci-context.json'), context = JSON.parse(readFileSync(path));
+        if (kind === 'version') context.plan.version--;
+        if (kind === 'routing digest') context.plan.routingDigest = '9'.repeat(64);
+        if (kind === 'suite claims') context.plan.suites = ['boot'];
+        if (kind === 'changed files') context.plan.files = ['docs/claimed.md'];
+        if (kind === 'receipt base') context.pr.base.sha = '8'.repeat(40);
+        writeFileSync(path, JSON.stringify(context));
+      };
+    }
+    if (kind === 'executed head') responses[`repos/${repository}/git/commits/${'f'.repeat(40)}`].parents[1].sha = target;
+    if (kind === 'truncated tree') responses[`repos/${repository}/git/trees/${tree}?recursive=1`].truncated = true;
+    if (kind === 'stale latest run') responses[`repos/${repository}/actions/workflows/7/runs?event=pull_request&head_sha=${source}&per_page=100`]
+      .workflow_runs.unshift({ ...f.run, id: 100, conclusion: 'cancelled' });
+    assert.equal(await resolveRelease(options), null);
+  });
+
+test('authoritative tree diff retains deleted/renamed paths and mode changes', () => {
+  const entry = (path, mode = '100644') => ({ path, mode, type: 'blob', sha: '1'.repeat(40) });
+  const before = { truncated: false, tree: [entry('runtime.js'), entry('same.js'), entry('mode.js')] };
+  const after = { truncated: false, tree: [entry('docs/renamed.md'), entry('same.js'), entry('mode.js', '100755')] };
+  assert.deepEqual(changedTreePaths(before, after), ['docs/renamed.md', 'mode.js', 'runtime.js']);
+  assert.throws(() => changedTreePaths({ ...before, truncated: true }, after));
+});
+
+test('full/self-declared coverage cannot substitute for a missing authoritative diff', () => {
+  const f = fixture(); delete f.files;
+  assert.throws(() => validateEvidence(f), /authoritative/);
 });
 for (const kind of ['API unavailable', 'different tree', 'truncated jobs', 'download failed', 'digest mismatch', 'unsafe extraction', 'wrong marker', 'missing entrypoint', 'missing PR receipt', 'different executed workflow'])
   test(`resolver returns normal-gate fallback: ${kind}`, async t => {

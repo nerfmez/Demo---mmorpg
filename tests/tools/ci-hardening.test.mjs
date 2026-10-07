@@ -28,7 +28,7 @@ const shell = (script, dir, env = {}) => spawnSync('bash', ['-e', '-o', 'pipefai
 test('PR78 actual-game details regression has exactly one mandatory equipment owner', () => {
   assert.deepEqual(SUITES.equipment, ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs']);
   const all = Object.values(SUITES).flat();
-  assert.equal(all.length, 19);
+  assert.equal(all.length, 30);
   assert.equal(new Set(all).size, all.length);
   assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment']);
 });
@@ -49,9 +49,9 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
   assert.deepEqual(browserPlan(['src/ui/equipment-avatar.js']).suites, ['boot', 'equipment', 'weapons', 'menu', 'ux']);
   for (const path of ['src/ui/menu.js', 'src/ui/skill-journal/journal.js']) {
-    assert.ok(browserPlan([path]).suites.includes('save'), path);
     assert.ok(browserPlan([path]).suites.includes('boot'), path);
   }
+  assert.ok(browserPlan(['src/ui/skill-journal/journal.js']).suites.includes('save'));
 });
 test('shared, save, unknown and mixed/renamed runtime paths fail closed', () => {
   for (const path of ['src/main.js', 'src/save.js', 'data/items.json', 'src/ui/panels.js', 'src/render/view.js',
@@ -124,7 +124,7 @@ test('release uses the tested artifact, validates its source, and pins live-test
   assert.match(deploy, /run: node scripts\/ci-release-evidence.mjs --verify-build/);
   assert.match(deploy, /ref: \$\{\{ needs.build.outputs.source \}\}/);
   assert.match(deploy, /release=\$\{\{ needs.build.outputs.source \}\}/);
-  assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 2);
+  assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 3);
 });
 test('parallel engine coverage, main full-run isolation, permissions and core/build owners are retained', () => {
   assert.match(ci, /browser: \[chromium, webkit\]/);

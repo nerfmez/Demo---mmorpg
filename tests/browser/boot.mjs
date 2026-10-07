@@ -29,13 +29,16 @@ try {
     await page.goto(`${base}?quality=low&stream=0`);
     const entry = await enterFullscreenGate(page);
     assert.ok(!entry.blocked && (entry.active || entry.fallback));
+    await page.screenshot({ path: `tests/browser/out/boot/${engine.name()}-${device}-title.png` });
     await activate('[data-act="new"]');
     await page.locator('#heroName').fill('CI Boot');
     await activate('[data-act="kit"][data-kit="bow"]');
+    await activate('[data-act="look"][data-key="hairStyle"][data-val="ponytail"]');
+    await page.screenshot({ path: `tests/browser/out/boot/${engine.name()}-${device}-create.png` });
     await activate('[data-act="start"]');
     await ready();
-    const created = await page.evaluate(() => ({ name: __frontier.game.ch.name, weapon: __frontier.game.derived.weaponType, saved: !!localStorage.getItem('frontier.slot.1'), frame: __frontier.view.renderer.info.render.frame }));
-    assert.equal(created.name, 'CI Boot'); assert.equal(created.weapon, 'bow'); assert.ok(created.saved); assert.ok(created.frame > 0, 'world really renders');
+    const created = await page.evaluate(() => ({ name: __frontier.game.ch.name, weapon: __frontier.game.derived.weaponType, hair: __frontier.game.ch.appearance?.hairStyle, saved: !!localStorage.getItem('frontier.slot.1'), frame: __frontier.view.renderer.info.render.frame }));
+    assert.equal(created.name, 'CI Boot'); assert.equal(created.weapon, 'bow'); assert.equal(created.hair, 'ponytail'); assert.ok(created.saved); assert.ok(created.frame > 0, 'world really renders');
     await page.evaluate(() => { __frontier.game.ch.gold = 777; __frontier.save(); });
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('frontier.slot.1')).character);
     await page.reload();

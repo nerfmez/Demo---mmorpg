@@ -24,7 +24,8 @@ try {
  await page.evaluate(()=>{document.querySelector('.banner')?.remove();const f=window.__frontier;f.game.monsters=[];f.view.zoom=.3;f.view.snapCamera();f.game.ch.level=100;for(const s in f.game.ch.stats)f.game.ch.stats[s]=100;
   // Focused captures draw explicitly instead of continuously rasterizing the whole
   // static field in software while GLBs load. Animation/game updates still run.
-  f.weaponReviewDraw=f.view.renderer.render.bind(f.view.renderer);f.view.renderer.render=()=>{};
+  f.weaponReviewDraw=f.view.renderer.render.bind(f.view.renderer);
+  f.view.renderer.render=(scene,camera)=>{if(scene!==f.view.scene)f.weaponReviewDraw(scene,camera);};
  });
  const equip=async(id,off=null)=>{
   const result=await page.evaluate(({id,off})=>{const f=window.__frontier,g=f.game,ch=g.ch;ch.equipped.offhand=null;

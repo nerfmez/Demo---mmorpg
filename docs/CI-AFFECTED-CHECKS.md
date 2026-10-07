@@ -14,12 +14,15 @@ fields. It captures the title, creator and loaded game.
 | Example change | Previous PR browser suites | New PR browser suites, each in both engines |
 | --- | --- | --- |
 | Registered `public/assets/icons/gear/wisp_staff.png` | All 12 | boot, icons |
+| `docs/icon-assets-manifest.json` | Documentation-only | boot, icons |
 | `src/ui/fieldhud.css` | All 12 + serial broad UI/HUD review | boot, hud |
 | `src/ui/quest-journal.js` | All 12 + serial broad UI/HUD review | boot, quests, hud |
 | `src/ui/menu.js` | boot, smoke, menu, ux, save + broad UI/HUD review | boot, menu |
 | Item PNG + shared CSS/core/save/dependency/unknown file | All 12 | All 23 |
 | New/unregistered PNG or new UI/CSS module | All 12 | All 23 |
 
+The exact `docs/icon-assets-manifest.json` input also selects boot/icons and
+core/tools/build; other documentation paths retain their existing policy.
 Only registered gear/material/arrow/skill PNG paths qualify. Registry code,
 monster/region images, new images and other asset types remain conservative.
 The icon case decodes actual inventory pages, crafting categories, skill and

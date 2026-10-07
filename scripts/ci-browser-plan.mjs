@@ -86,10 +86,13 @@ export function browserPlan(files, { full = false } = {}) {
   const selected = new Set();
   let game = false;
   for (const file of files) {
-    // These have their own static/tool checks. Weapon provenance is runtime test
-    // input, despite living in docs, so it must be handled before the docs rule.
+    // Runtime test inputs under docs need exact-path exceptions before the
+    // documentation-only rule. Their consumers still require core/tools/build.
     if (file === 'docs/WEAPON-MODEL-PROVENANCE.json') {
       game = true; selected.add('weapons'); continue;
+    }
+    if (file === 'docs/icon-assets-manifest.json') {
+      game = true; selected.add('icons'); continue;
     }
     if (file.startsWith('docs/') || /^(AGENTS|CLAUDE|README)\.md$/.test(file) || /^(LICENSE|\.gitignore)$/.test(file) ||
         file.startsWith('tests/tools/')) continue;

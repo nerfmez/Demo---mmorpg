@@ -13,7 +13,9 @@ const all = () => ({ game: true, tools: true, ui: true, hud: true, render: true,
 export function classifyFiles(files) {
   const scope = { game: false, tools: false, ui: false, hud: false, render: false, map: false };
   for (const file of files) {
-    if (file === 'docs/WEAPON-MODEL-PROVENANCE.json') { scope.game = true; continue; }
+    if (['docs/WEAPON-MODEL-PROVENANCE.json', 'docs/icon-assets-manifest.json'].includes(file)) {
+      scope.game = true; continue;
+    }
     if (file.startsWith('docs/') || /^(AGENTS|CLAUDE|README)\.md$/.test(file) || /^(LICENSE|\.gitignore)$/.test(file)) continue;
     if (file.startsWith('.github/') || file.startsWith('scripts/') || file.startsWith('tests/tools/')) {
       scope.tools = true;

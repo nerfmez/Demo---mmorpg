@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -19,6 +20,44 @@ test('every routable item image selects real boot and all explicit icon consumer
   for (const path of ['public/assets/icons/gear/new.png', 'public/assets/icons/gear/wisp_staff.PNG',
     'public/assets/icons/material/../unknown.png', 'src/ui/raster-icons.js', 'public/assets/icons/monster/salt_slime.png'])
     assert.deepEqual(browserPlan([path]).suites, FULL_SUITES, path);
+});
+test('the exact icon manifest input selects boot/icons with game preparation; other docs remain documentation-only', () => {
+  const manifest = 'docs/icon-assets-manifest.json';
+  for (const files of [[manifest], [manifest, 'docs/HANDOFF.md'], [manifest, 'public/assets/icons/gear/wisp_staff.png']]) {
+    assert.deepEqual(browserPlan(files).suites, ['boot', 'icons']);
+    assert.deepEqual(classifyFiles(files), { game: true, tools: false, ui: false, hud: false, render: false, map: false });
+  }
+  for (const shared of ['src/ui/style.css', 'src/core/quests.js', 'src/save.js', 'package-lock.json', 'unknown.js'])
+    assert.deepEqual(browserPlan([manifest, shared]).suites, FULL_SUITES, shared);
+  for (const document of ['docs/icon-assets-manifest-notes.json', 'docs/nested/icon-assets-manifest.json', 'docs/HANDOFF.md']) {
+    assert.deepEqual(browserPlan([document]).suites, []);
+    assert.equal(classifyFiles([document]).game, false);
+  }
+});
+test('the actual scope CLI enables core/tools/build and boot/icons for a manifest-only PR diff', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'icon-manifest-scope-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const git = (...args) => execFileSync('git', args, { cwd: directory, encoding: 'utf8' }).trim();
+  git('init', '-q'); git('config', 'user.name', 'CI fixture'); git('config', 'user.email', 'ci@example.invalid');
+  writeFileSync(join(directory, 'README.md'), 'fixture'); git('add', '.'); git('commit', '-qm', 'base');
+  const base = git('rev-parse', 'HEAD');
+  mkdirSync(join(directory, 'docs')); writeFileSync(join(directory, 'docs/icon-assets-manifest.json'), '{}');
+  git('add', '.'); git('commit', '-qm', 'manifest input');
+  const event = join(directory, 'event.json'), output = join(directory, 'outputs');
+  writeFileSync(event, JSON.stringify({ pull_request: { base: { sha: base }, head: { sha: git('rev-parse', 'HEAD') } } }));
+  execFileSync(process.execPath, [new URL('../../scripts/ci-scope.mjs', import.meta.url).pathname], { cwd: directory, env: {
+    ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: event, GITHUB_OUTPUT: output,
+    FORCE_FULL: 'false', FORCE_BOOT: 'false', FORCE_RENDER: 'false',
+  } });
+  const outputs = readFileSync(output, 'utf8');
+  assert.match(outputs, /^game=true$/m);
+  assert.match(outputs, /^ui=false$/m); assert.match(outputs, /^hud=false$/m);
+  assert.deepEqual(JSON.parse(outputs.match(/^browser_suites=(.*)$/m)[1]), ['boot', 'icons']);
+  // The workflow's existing game preparation runs all three safety owners.
+  const ci = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  assert.match(ci, /run: npm run test:tools\n\s+if: steps.scope.outputs.game == 'true' \|\| steps.scope.outputs.tools == 'true'/);
+  for (const command of ['npm test', 'npm run build'])
+    assert.ok(ci.includes(`run: ${command}\n        if: steps.scope.outputs.game == 'true'`));
 });
 test('local CSS and own-page UI have explicit consumers without a blanket UI allowlist', () => {
   assert.deepEqual(browserPlan(['src/ui/fieldhud.css']).suites, ['boot', 'hud']);

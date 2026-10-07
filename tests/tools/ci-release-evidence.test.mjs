@@ -136,6 +136,7 @@ test('resolver enables reuse only after successful download, digest, source and 
 
 for (const files of [
   ['public/assets/icons/gear/wisp_staff.png'], ['src/ui/fieldhud.css'], ['src/ui/quest-journal.js'],
+  ['docs/icon-assets-manifest.json'],
   ['public/assets/icons/material/crab_shell.png', 'src/ui/quest-journal.js'],
 ]) test(`trusted narrow artifact reuses exactly the recomputed plan: ${files.join(',')}`, async t => {
   const { f, options } = resolverFixture(t, files);

@@ -696,13 +696,23 @@ export class View {
       else setFlash(r.material, 0, 0, 0);
       // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
       if (m.def.behavior === 'stalker' || mv.fade < 1) {
-        mv.fade = damp(mv.fade ?? 1, m.stealth && !m.dead ? 0.38 : 1, 6, dt);
+        const hidden = m.stealth && !m.dead;
+        if (mv.hidden !== undefined && mv.hidden !== hidden) {
+          // vanishing or appearing: a puff of grey smoke hides the change
+          const sy = mv.y + 0.7 * r.baseScale;
+          this.vfx.dust.burst(m.x, sy, m.z, 22, { color: 0x8d8a96, size: 0.9, sizeEnd: 2.0, speed: 2.2, life: 0.9, up: 0.5, drag: 2.5 });
+          this.vfx.dust.burst(m.x, sy + 0.3, m.z, 8, { color: 0x4a4656, size: 0.7, sizeEnd: 1.6, speed: 1.2, life: 1.1, up: 0.9, drag: 2 });
+        }
+        mv.hidden = hidden;
+        mv.fade = damp(mv.fade ?? 1, hidden ? 0 : 1, 9, dt);
+        const gone = hidden && mv.fade < 0.04; // truly gone, not a faint shape
+        r.root.visible = onScreen && !gone;
         const see = mv.fade < 0.99;
         fadeRig(r.material, r.hull, see, mv.fade);
         if (r.modelMaterial) fadeRig(r.modelMaterial, r.modelHull, see, mv.fade);
       }
       if (mv.halo) {
-        mv.halo.visible = !m.dead && onScreen;
+        mv.halo.visible = !m.dead && onScreen && !(mv.hidden && mv.fade < 0.04);
         mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);
         mv.halo.scale.setScalar((r.glowScale || 1.9) * r.baseScale);
       }

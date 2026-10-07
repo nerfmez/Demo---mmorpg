@@ -558,6 +558,7 @@ export class Hud {
       b.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -100%)`;
       b.querySelector('.fill').style.width = pct(m.hp, m.maxHp);
       b.classList.toggle('target', m.id === p.targetId);
+      b.style.visibility = mv.hidden && mv.fade < 0.04 ? 'hidden' : '';
     }
     for (const [id, b] of this.mbars) {
       if (!seen.has(id)) {

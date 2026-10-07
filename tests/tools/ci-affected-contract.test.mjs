@@ -21,6 +21,21 @@ test('every routable item image selects real boot and all explicit icon consumer
     'public/assets/icons/material/../unknown.png', 'src/ui/raster-icons.js', 'public/assets/icons/monster/salt_slime.png'])
     assert.deepEqual(browserPlan([path]).suites, FULL_SUITES, path);
 });
+test('new upstream material PNGs retain bounded consumers; registered consumables remain conservative', () => {
+  for (const id of ['mantis_scythe', 'viper_scale', 'ram_horn', 'dusk_pelt', 'rune_core']) {
+    const path = `public/assets/icons/material/${id}.png`;
+    assert.equal(ITEM_IMAGES.has(path), true, path);
+    assert.deepEqual(browserPlan([path]).suites, ['boot', 'icons'], path);
+    assert.equal(classifyFiles([path]).game, true, path);
+  }
+  // Registration alone cannot promise shop/quick-slot coverage from this case.
+  for (const id of ['hp_potion_s', 'hp_potion_m', 'hp_potion_l', 'mp_potion_s', 'mp_potion_m', 'mp_potion_l']) {
+    const path = `public/assets/icons/consumable/${id}.png`;
+    assert.equal(ITEM_IMAGES.has(path), false, path);
+    assert.deepEqual(browserPlan([path]).suites, FULL_SUITES, path);
+    assert.equal(classifyFiles([path]).game, true, path);
+  }
+});
 test('the exact icon manifest input selects boot/icons with game preparation; other docs remain documentation-only', () => {
   const manifest = 'docs/icon-assets-manifest.json';
   for (const files of [[manifest], [manifest, 'docs/HANDOFF.md'], [manifest, 'public/assets/icons/gear/wisp_staff.png']]) {

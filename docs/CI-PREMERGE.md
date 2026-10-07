@@ -62,6 +62,13 @@ All original assertions and viewports remain. Its former single-engine launcher
 is rejected rather than reported as WebKit success. CI also rejects device-only
 and offline-harness shortcuts.
 Browser process diagnostics are retained without retries or timeout changes.
+The weapon-model resource probe waits for each existing draw batch to complete
+on the GPU before sampling counts or navigating to the saved-game menu. Its
+WebGL fence is polled without blocking the page and inherits the existing
+90-second test timeout. Pending work, context loss and fence errors fail the
+check; fences are released on success or failure. Draws, captures, resource
+stabilization and saved-equipment/Continue assertions remain intact. Artifacts
+record GPU completion and reload timings so this boundary can be measured.
 Release evidence reads all artifact pages and rejects duplicate identities,
 ambiguous exact build names, truncation, changing totals and API errors. The
 source/run/attempt checks and normal validation fallback remain mandatory.

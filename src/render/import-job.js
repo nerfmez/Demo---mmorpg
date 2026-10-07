@@ -30,7 +30,7 @@ export function importJob({ queue, signal, shift = regionShift(), loader, assetU
     if (o.geometry && !o.geometry.userData?.shared) geometries.add(watch(o.geometry));
     for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) {
       // Cached toon and inverted-hull materials are not owned by an import job.
-      if (!m.userData?.shared && !m.isMeshToonMaterial && m.userData?.outlineWidth === undefined) materials.add(watch(m));
+      if (!m.userData?.shared) materials.add(watch(m));
     }
   });
   const cleanup = keep => {

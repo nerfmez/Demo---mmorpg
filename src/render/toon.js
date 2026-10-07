@@ -31,7 +31,10 @@ export function toon(color, opts = {}) {
     side: opts.side ?? THREE.FrontSide,
     vertexColors: !!opts.vertexColors,
   });
-  if (!opts.unique) matCache.set(key, m);
+  if (!opts.unique) {
+    m.userData.shared = true; // the cache owns it; region/rig cleanup only borrows it
+    matCache.set(key, m);
+  }
   return m;
 }
 

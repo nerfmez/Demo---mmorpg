@@ -1,0 +1,476 @@
+{
+  "main_sha": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
+  "pr106_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+  "status": "not integrated; pending owner review",
+  "method": "Connected alpha component ownership and proportional Lanczos export; no color-key/background removal or art repainting. Reused icons byte-identical.",
+  "assets": [
+    {
+      "kind": "monster",
+      "id": "salt_slime",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/portraits-candidate.png",
+      "source_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_bounds": [
+        61,
+        47,
+        525,
+        487
+      ],
+      "row": 1,
+      "column": 1,
+      "path": "candidate-icons/monster/salt_slime.png",
+      "sha256": "eed14c0063c33bdf02773eeb1ec57d7fa51977d8c84f8146e5376ea8db0c3368",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        12,
+        18,
+        244,
+        238
+      ],
+      "alpha_clear": 28418,
+      "alpha_partial": 36619,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "monster",
+      "id": "tusk_boar",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/portraits-candidate.png",
+      "source_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_bounds": [
+        512,
+        46,
+        1054,
+        512
+      ],
+      "row": 1,
+      "column": 2,
+      "path": "candidate-icons/monster/tusk_boar.png",
+      "sha256": "842da18a33e77e421a2846f86883f87f58c60dd535e8f80ec18c02d889dc20fc",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        12,
+        28,
+        244,
+        227
+      ],
+      "alpha_clear": 31540,
+      "alpha_partial": 33519,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "monster",
+      "id": "thornback_wolf",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/portraits-candidate.png",
+      "source_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_bounds": [
+        1057,
+        20,
+        1518,
+        524
+      ],
+      "row": 1,
+      "column": 3,
+      "path": "candidate-icons/monster/thornback_wolf.png",
+      "sha256": "6d357f9f6e8f72b74160ca068ab43b663accee214a011995236399d63a3e06fd",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        22,
+        12,
+        234,
+        244
+      ],
+      "alpha_clear": 33704,
+      "alpha_partial": 31449,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "monster",
+      "id": "greyfang",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/portraits-candidate.png",
+      "source_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_bounds": [
+        25,
+        486,
+        582,
+        1014
+      ],
+      "row": 2,
+      "column": 1,
+      "path": "candidate-icons/monster/greyfang.png",
+      "sha256": "346157e1686329d5924de7c1ee02a53ee3cc88385db59044f1d93072519ff930",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        12,
+        18,
+        244,
+        238
+      ],
+      "alpha_clear": 28990,
+      "alpha_partial": 36124,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "monster",
+      "id": "reed_viper",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/portraits-candidate.png",
+      "source_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+      "source_bounds": [
+        575,
+        495,
+        1074,
+        1012
+      ],
+      "row": 2,
+      "column": 2,
+      "path": "candidate-icons/monster/reed_viper.png",
+      "sha256": "3356a4b4905a2cc7fede6aa6446ac6055d16ce5d0b9245d2ea82e16b0a6f2c38",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        16,
+        12,
+        222,
+        244
+      ],
+      "alpha_clear": 34123,
+      "alpha_partial": 30817,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "material",
+      "id": "viper_scale",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/materials-candidate.png",
+      "source_sha256": "029d7488f060c90c47dad379862c7ade4beacfdf31e0c854d274ddd0d1e7856f",
+      "source_bounds": [
+        98,
+        33,
+        986,
+        862
+      ],
+      "row": 1,
+      "column": 1,
+      "path": "candidate-icons/material/viper_scale.png",
+      "sha256": "47b71f0b39b60620243ea59f5d48b4a64e07083da76054fa78e5f60c2740ea13",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        53,
+        44,
+        452,
+        453
+      ],
+      "alpha_clear": 208357,
+      "alpha_partial": 53157,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "material",
+      "id": "wisp_core",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/materials-candidate.png",
+      "source_sha256": "029d7488f060c90c47dad379862c7ade4beacfdf31e0c854d274ddd0d1e7856f",
+      "source_bounds": [
+        872,
+        85,
+        1677,
+        830
+      ],
+      "row": 1,
+      "column": 2,
+      "path": "candidate-icons/material/wisp_core.png",
+      "sha256": "16820050f786a6afeb801cf7cc9fc4e772b39884f69e74e50488c2d516e22e7f",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        28,
+        45,
+        481,
+        467
+      ],
+      "alpha_clear": 181426,
+      "alpha_partial": 79685,
+      "original_transparency_preserved": true
+    },
+    {
+      "kind": "monster",
+      "id": "marsh_wisp",
+      "status": "candidate, owner review pending",
+      "source_sheet": "sheets/wisp-correction.png",
+      "source_sha256": "25037fd32266f98286827237bbe7342ca0c0bf01c6a5ad23b55fc41a5b296907",
+      "source_bounds": [
+        17,
+        83,
+        1210,
+        1195
+      ],
+      "row": 1,
+      "column": 1,
+      "path": "candidate-icons/monster/marsh_wisp.png",
+      "sha256": "9bde849dd0c89ad9860eadafd31d66acf1da9e375662ea112dacb6b5450c55e8",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        48,
+        20,
+        219,
+        236
+      ],
+      "alpha_clear": 45311,
+      "alpha_partial": 19398,
+      "original_transparency_preserved": true,
+      "superseded_source": {
+        "source_sheet": "sheets/portraits-candidate.png",
+        "source_sha256": "78c2fd9e34b854562785f5b929aeff1de7abe6b7dffaf49546ffc5565a76c743",
+        "source_bounds": [
+          1105,
+          489,
+          1506,
+          1024
+        ],
+        "sha256": "07338c6611f29bacbb732829f049d9ebaac37058a3c13bf14dd7873bf4417bcf"
+      },
+      "correction": "Removed the extra gold-containing detached flame; the final wisp has one golden torso core and blue-only motes."
+    },
+    {
+      "kind": "material",
+      "id": "salt_gel",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/salt_gel.png",
+      "source_library_file_id": "libfile_3ee18fe414f08191aa7740dc41c72235",
+      "path": "candidate-icons/material/salt_gel.png",
+      "sha256": "37ef4cd60bb90bf27b070bef2396c210c384a025a4e0eb44b0c7cb30ceea6f17",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        32,
+        45,
+        488,
+        461
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "glow_dust",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/glow_dust.png",
+      "source_library_file_id": "libfile_6abc9dba91788191935776b83c59c949",
+      "path": "candidate-icons/material/glow_dust.png",
+      "sha256": "baea64206cb21d85b8b1dd0a2e28af03cbc2a799a8570d63c6f2616a038eeec5",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        38,
+        63,
+        474,
+        476
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "boar_hide",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/boar_hide.png",
+      "source_library_file_id": "libfile_5fc5839050408191b052275dbd6c7bd7",
+      "path": "candidate-icons/material/boar_hide.png",
+      "sha256": "a73e876a0fba83ae197060b9041556d23aaa4dad264caa01374d8b0725b20303",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        13,
+        37,
+        506,
+        488
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "boar_tusk",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/boar_tusk.png",
+      "source_library_file_id": "libfile_79ce7954691c8191a24b9dc5d140b052",
+      "path": "candidate-icons/material/boar_tusk.png",
+      "sha256": "f7f0dcdc5eace8be373594f4d45d586546e6b98cad48db492738bb95cb64533a",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        13,
+        16,
+        507,
+        491
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "wolf_pelt",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/wolf_pelt.png",
+      "source_library_file_id": "libfile_cb058d24b6e08191be237709eb0d9570",
+      "path": "candidate-icons/material/wolf_pelt.png",
+      "sha256": "7297db5691804fc1703a2a174b3180289ace25b3b967e41b4963b9dfc9324628",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        6,
+        32,
+        506,
+        468
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "wolf_fang",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/wolf_fang.png",
+      "source_library_file_id": "libfile_e7f9b0a6888c8191bab4b409bf8702ff",
+      "path": "candidate-icons/material/wolf_fang.png",
+      "sha256": "b1bcc189cb16baa33f785bf0c7232a92c615ebf7ce7ee0239281d6a2b58698bc",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        46,
+        30,
+        477,
+        485
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "greyfang_mane",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/greyfang_mane.png",
+      "source_library_file_id": "libfile_b10a6d119ab08191a67e6862a2424685",
+      "path": "candidate-icons/material/greyfang_mane.png",
+      "sha256": "5c46eb6373b5867cb09e4734a3dd44c242afcdec973242669d40497849ae3352",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        24,
+        14,
+        497,
+        493
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "venom_gland",
+      "status": "reuse approved bytes",
+      "source_path": "public/assets/icons/material/venom_gland.png",
+      "source_library_file_id": "libfile_2bf419ffecfc8191b6dde99c620ff864",
+      "path": "candidate-icons/material/venom_gland.png",
+      "sha256": "eccf666593bab8789caa74be32cec112704846beb3d3bb005be8487e22b727a1",
+      "dimensions": [
+        512,
+        512
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bounds": [
+        43,
+        42,
+        471,
+        466
+      ]
+    }
+  ]
+}

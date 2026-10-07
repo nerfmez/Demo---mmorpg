@@ -1,0 +1,2561 @@
+{
+  "status": "OWNER REVIEW CANDIDATE; not applied to runtime",
+  "main_sha": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
+  "pr106_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+  "pr106_url": "https://github.com/nerfmez/Demo---mmorpg/pull/106",
+  "monsters": [
+    {
+      "id": "salt_slime",
+      "current_name": "สไลม์น้ำเค็ม",
+      "current_nameTh": "สไลม์น้ำเค็ม",
+      "reference_name": "Tidal Slime",
+      "proposed_nameTh": "สไลม์คลื่นทะเล",
+      "thai_status": "proposed; owner review pending",
+      "observed_identity": "Cyan curling wave body, white foam crest, narrow eyes, white salt crystals at its base.",
+      "drops": [
+        {
+          "item": "salt_gel",
+          "chance": 1,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.2,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 2,
+          "max": 5
+        }
+      ],
+      "source_path": "assets/meshy/monsters/salt_slime_concept_v2.jpg",
+      "source_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+      "local_reference": "references/salt_slime_concept_v2.jpg",
+      "source_sha256": "2f4b7f32775003f193d65b26306e2a51472fa768d5054f172b3c018e5cce0335",
+      "source_url": "https://github.com/nerfmez/Demo---mmorpg/blob/867147209c520c05c8f32b7b5dfb5710ec1a899d/assets/meshy/monsters/salt_slime_concept_v2.jpg",
+      "current_portrait": "public/assets/icons/monster/salt_slime.png",
+      "current_portrait_sha256": "caed72442860c1ada54438d3e887606b5a321b47a1d102975cbdc4fd0f0ed06d",
+      "model_path": "public/models/monsters/salt_slime.glb"
+    },
+    {
+      "id": "tusk_boar",
+      "current_name": "Tusk Boar",
+      "current_nameTh": "หมูป่างาแหลม",
+      "reference_name": "Boarbull",
+      "proposed_nameTh": "หมูกระทิง",
+      "thai_status": "proposed; owner review pending",
+      "observed_identity": "Heavy rust-orange boar, tan chest, pink snout, broad ivory bull horns plus smaller tusks.",
+      "drops": [
+        {
+          "item": "boar_hide",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "boar_tusk",
+          "chance": 0.45,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 7
+        }
+      ],
+      "source_path": "assets/meshy/monsters/tusk_boar_concept_v2.jpg",
+      "source_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+      "local_reference": "references/tusk_boar_concept_v2.jpg",
+      "source_sha256": "e5b990ab1cdea34486eb936b988ad0824615dd33bfc244b4cdfb7646460a86a7",
+      "source_url": "https://github.com/nerfmez/Demo---mmorpg/blob/867147209c520c05c8f32b7b5dfb5710ec1a899d/assets/meshy/monsters/tusk_boar_concept_v2.jpg",
+      "current_portrait": "public/assets/icons/monster/tusk_boar.png",
+      "current_portrait_sha256": "e4164ba43dfea6afb54ab43072a5b68d1756ed3af5202fb7221afef28a49a2e7",
+      "model_path": "public/models/monsters/tusk_boar.glb"
+    },
+    {
+      "id": "thornback_wolf",
+      "current_name": "Thornback Wolf",
+      "current_nameTh": "หมาป่าหลังหนาม",
+      "reference_name": "Maskfang Wolf",
+      "proposed_nameTh": "หมาป่าหน้ากาก",
+      "thai_status": "proposed; owner review pending",
+      "observed_identity": "Charcoal-grey wolf, cream mask and cheek blades, amber eyes; no green thorns.",
+      "drops": [
+        {
+          "item": "wolf_pelt",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "wolf_fang",
+          "chance": 0.4,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 9
+        }
+      ],
+      "source_path": "assets/meshy/monsters/thornback_wolf_concept_v2.jpg",
+      "source_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+      "local_reference": "references/thornback_wolf_concept_v2.jpg",
+      "source_sha256": "cb25a49e132f5965a25d17c2e8994f3c56261de8b897b6f8677d19cfd1e2d734",
+      "source_url": "https://github.com/nerfmez/Demo---mmorpg/blob/867147209c520c05c8f32b7b5dfb5710ec1a899d/assets/meshy/monsters/thornback_wolf_concept_v2.jpg",
+      "current_portrait": "public/assets/icons/monster/thornback_wolf.png",
+      "current_portrait_sha256": "5d59d440607a39bd35ac7e84f7b84fef9982b4f2e48dcb6ce552840b03d74582",
+      "model_path": "public/models/monsters/thornback_wolf.glb"
+    },
+    {
+      "id": "greyfang",
+      "current_name": "Greyfang",
+      "current_nameTh": "เกรย์แฟง จ่าฝูง",
+      "reference_name": "Greyfang Alpha",
+      "proposed_nameTh": "เกรย์แฟง จ่าฝูง",
+      "thai_status": "existing",
+      "observed_identity": "Same masked wolf family, larger layered silver/cream mane and broader boss silhouette.",
+      "drops": [
+        {
+          "item": "greyfang_mane",
+          "chance": 1,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "wolf_fang",
+          "chance": 1,
+          "min": 3,
+          "max": 4
+        },
+        {
+          "item": "wolf_pelt",
+          "chance": 1,
+          "min": 2,
+          "max": 3
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 60,
+          "max": 90
+        }
+      ],
+      "source_path": "assets/meshy/monsters/greyfang_concept_v2.jpg",
+      "source_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+      "local_reference": "references/greyfang_concept_v2.jpg",
+      "source_sha256": "7ae01c5ade0df83636add4b8c0a72ee851e827a5b8d51134f07359b17fdc5312",
+      "source_url": "https://github.com/nerfmez/Demo---mmorpg/blob/867147209c520c05c8f32b7b5dfb5710ec1a899d/assets/meshy/monsters/greyfang_concept_v2.jpg",
+      "current_portrait": "public/assets/icons/monster/greyfang.png",
+      "current_portrait_sha256": "0235a5a25055eca19fc886e451723d0bb24ba20f30fc1d0512ee95a2131b1cd4",
+      "model_path": "public/models/monsters/greyfang.glb"
+    },
+    {
+      "id": "reed_viper",
+      "current_name": "Reed Viper",
+      "current_nameTh": "งูกกพิษ",
+      "reference_name": "Reedblade Viper",
+      "proposed_nameTh": "งูใบกกพิษ",
+      "thai_status": "proposed; owner review pending",
+      "observed_identity": "Coiled olive snake, cream segmented belly, amber eye, dark green reed blades edged gold.",
+      "drops": [
+        {
+          "item": "viper_scale",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "venom_gland",
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 8
+        }
+      ],
+      "source_path": "assets/meshy/monsters/reed_viper_concept_v4.jpg",
+      "source_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+      "local_reference": "references/reed_viper_concept_v4.jpg",
+      "source_sha256": "274d1bc9e3c20c5c8da9f9dafab1827100c0d6c99b6355d314ec8efe599165a2",
+      "source_url": "https://github.com/nerfmez/Demo---mmorpg/blob/867147209c520c05c8f32b7b5dfb5710ec1a899d/assets/meshy/monsters/reed_viper_concept_v4.jpg",
+      "current_portrait": "public/assets/icons/monster/reed_viper.png",
+      "current_portrait_sha256": "5e842fadd910accc85b86c014cc9a5568e4f4ea29eb20cbb349e72ae7a0a5bf8",
+      "model_path": "public/models/monsters/reed_viper.glb"
+    },
+    {
+      "id": "marsh_wisp",
+      "current_name": "Marsh Wisp",
+      "current_nameTh": "ภูตไฟหนองน้ำ",
+      "reference_name": "Lostlight Wisp",
+      "proposed_nameTh": "ภูตแสงหลงทาง",
+      "thai_status": "proposed; owner review pending",
+      "observed_identity": "Curling cyan/blue flames, dark face with pale eyes, large faceted golden core.",
+      "drops": [
+        {
+          "item": "wisp_core",
+          "chance": 0.4,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.7,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 10
+        }
+      ],
+      "source_path": "assets/meshy/monsters/marsh_wisp_concept_v2.jpg",
+      "source_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+      "local_reference": "references/marsh_wisp_concept_v2.jpg",
+      "source_sha256": "4f749699af63c87e8f92954081b1e8377579d3d1f3e438722f19437b542f8c28",
+      "source_url": "https://github.com/nerfmez/Demo---mmorpg/blob/867147209c520c05c8f32b7b5dfb5710ec1a899d/assets/meshy/monsters/marsh_wisp_concept_v2.jpg",
+      "current_portrait": "public/assets/icons/monster/marsh_wisp.png",
+      "current_portrait_sha256": "d0aa681c505bec09cc94a0478f16e91905de742a9ecab4a6a2bb3f549a49a808",
+      "model_path": "public/models/monsters/marsh_wisp.glb"
+    }
+  ],
+  "materials": [
+    {
+      "id": "salt_gel",
+      "current_name": "เจลเกลือทะเล",
+      "current_nameTh": "เจลเกลือทะเล",
+      "proposed_name": "เจลเกลือทะเล",
+      "proposed_nameTh": "เจลเกลือทะเล",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing cyan wave gel with white salt crystals matches the redesign; retain approved bytes.",
+      "current_path": "public/assets/icons/material/salt_gel.png",
+      "current_sha256": "37ef4cd60bb90bf27b070bef2396c210c384a025a4e0eb44b0c7cb30ceea6f17",
+      "source_library_file_id": "libfile_3ee18fe414f08191aa7740dc41c72235",
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_monsters": [
+        "salt_slime"
+      ],
+      "recipe_ids": [
+        "salt_boots",
+        "crab_shield",
+        "shell_knife",
+        "tusk_greatblade"
+      ],
+      "legacy_upgradeMaterial_gear": []
+    },
+    {
+      "id": "glow_dust",
+      "current_name": "Glow Dust",
+      "current_nameTh": "ผงเรืองแสง",
+      "proposed_name": "Glow Dust",
+      "proposed_nameTh": "ผงเรืองแสง",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing blue-white dust matches wisp drop and is shared by sporecap/salt_slime; retain generic name and bytes.",
+      "current_path": "public/assets/icons/material/glow_dust.png",
+      "current_sha256": "baea64206cb21d85b8b1dd0a2e28af03cbc2a799a8570d63c6f2616a038eeec5",
+      "source_library_file_id": "libfile_6abc9dba91788191935776b83c59c949",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "marsh_wisp",
+        "sporecap",
+        "salt_slime"
+      ],
+      "recipe_ids": [
+        "wisp_staff",
+        "spore_wand",
+        "ancient_staff",
+        "feather_circlet",
+        "wisp_slippers",
+        "wisp_pendant",
+        "ancient_ring",
+        "learn_stone_burst",
+        "learn_frost_nova",
+        "learn_healing_spring",
+        "learn_hex",
+        "learn_blink",
+        "mod_split",
+        "mod_frost_shift",
+        "mod_concentrated",
+        "mod_lingering",
+        "shore_circlet",
+        "wisp_wraps",
+        "stormglass_blade",
+        "wisp_stiletto",
+        "lantern_wand",
+        "relic_wand",
+        "sporeweave_gloves"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "wisp_slippers",
+        "wisp_wraps"
+      ]
+    },
+    {
+      "id": "boar_hide",
+      "current_name": "Boar Hide",
+      "current_nameTh": "หนังหมูป่า",
+      "proposed_name": "Boarbull Hide",
+      "proposed_nameTh": "หนังหมูกระทิง",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing rust-orange hide matches Boarbull fur; retain approved bytes.",
+      "current_path": "public/assets/icons/material/boar_hide.png",
+      "current_sha256": "a73e876a0fba83ae197060b9041556d23aaa4dad264caa01374d8b0725b20303",
+      "source_library_file_id": "libfile_5fc5839050408191b052275dbd6c7bd7",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "tusk_boar"
+      ],
+      "recipe_ids": [
+        "tusk_blade",
+        "hunter_bow",
+        "hide_vest",
+        "shell_guard",
+        "wolfpelt_coat",
+        "crag_plate",
+        "leather_cap",
+        "beetle_helm",
+        "horned_helm",
+        "wolf_boots",
+        "wisp_slippers",
+        "crag_greaves",
+        "golem_amulet",
+        "learn_whirl_blade",
+        "learn_healing_spring",
+        "learn_leap",
+        "mod_burning_ground",
+        "mod_wide_arc",
+        "mod_knockback",
+        "hermit_guard",
+        "beetle_buckler",
+        "crag_tower_shield",
+        "hide_gloves",
+        "crag_gauntlets",
+        "tusk_club",
+        "kite_shield",
+        "ranger_coat",
+        "trail_boots",
+        "highland_shield",
+        "gale_boots",
+        "sporeweave_vest",
+        "wardenstalker_coat"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "rusty_sword",
+        "old_bow",
+        "apprentice_staff",
+        "travel_tunic",
+        "hide_vest",
+        "leather_cap",
+        "travel_boots",
+        "hide_gloves"
+      ]
+    },
+    {
+      "id": "boar_tusk",
+      "current_name": "Boar Tusk",
+      "current_nameTh": "เขี้ยวหมูป่า",
+      "proposed_name": "Boarbull Horn",
+      "proposed_nameTh": "เขาหมูกระทิง",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing wide curved ivory horn with brown root matches the horn in the concept; retain bytes. Display noun becomes horn; stable ID stays boar_tusk. Do not create the extra tusk/horn shown on the sheet as another drop.",
+      "current_path": "public/assets/icons/material/boar_tusk.png",
+      "current_sha256": "f7f0dcdc5eace8be373594f4d45d586546e6b98cad48db492738bb95cb64533a",
+      "source_library_file_id": "libfile_79ce7954691c8191a24b9dc5d140b052",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "tusk_boar"
+      ],
+      "recipe_ids": [
+        "tusk_blade",
+        "hunter_bow",
+        "fang_dagger",
+        "crag_axe",
+        "storm_bow",
+        "greyfang_sabre",
+        "horn_greatblade",
+        "tusk_charm",
+        "feather_charm",
+        "learn_whirl_blade",
+        "learn_war_cry",
+        "mod_split",
+        "mod_pierce",
+        "mod_bounce",
+        "mod_wide_arc",
+        "mod_multistrike",
+        "beetle_maul",
+        "wolf_grips",
+        "arrows_tusk",
+        "arrows_hawk",
+        "tusk_club",
+        "tusk_greatblade",
+        "wolfbite_sword",
+        "hermit_cleaver",
+        "fang_bow",
+        "frontier_kris",
+        "ranger_axe",
+        "knight_greatsword",
+        "dusk_longbow",
+        "brigand_gloves",
+        "fang_talisman",
+        "stormglass_blade",
+        "wisp_stiletto",
+        "thunder_maul",
+        "galebreaker",
+        "oathblade",
+        "ruin_fang",
+        "skyrender_bow",
+        "wardenstalker_hood",
+        "wardenstalker_gloves"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "tusk_blade",
+        "hunter_bow",
+        "tusk_charm",
+        "tusk_club",
+        "tusk_greatblade"
+      ]
+    },
+    {
+      "id": "wolf_pelt",
+      "current_name": "Thorn Pelt",
+      "current_nameTh": "หนังหมาป่าหนาม",
+      "proposed_name": "Maskfang Pelt",
+      "proposed_nameTh": "หนังหมาป่าหน้ากาก",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing grey pelt matches both new wolves; retain bytes. Remove obsolete Thorn Pelt wording.",
+      "current_path": "public/assets/icons/material/wolf_pelt.png",
+      "current_sha256": "7297db5691804fc1703a2a174b3180289ace25b3b967e41b4963b9dfc9324628",
+      "source_library_file_id": "libfile_cb058d24b6e08191be237709eb0d9570",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "thornback_wolf",
+        "greyfang"
+      ],
+      "recipe_ids": [
+        "fang_dagger",
+        "wolfpelt_coat",
+        "wolf_boots",
+        "learn_war_cry",
+        "learn_spirit_wolf",
+        "mod_pack_leader",
+        "wolf_grips",
+        "wolfbite_sword",
+        "dusk_longbow",
+        "ranger_coat",
+        "ranger_hood",
+        "brigand_gloves",
+        "trail_boots"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "wolfpelt_coat",
+        "wolf_boots",
+        "wolf_grips",
+        "dusk_longbow",
+        "ranger_coat",
+        "ranger_hood",
+        "brigand_gloves",
+        "trail_boots"
+      ]
+    },
+    {
+      "id": "wolf_fang",
+      "current_name": "Wolf Fang",
+      "current_nameTh": "เขี้ยวหมาป่า",
+      "proposed_name": "Wolf Fang",
+      "proposed_nameTh": "เขี้ยวหมาป่า",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing ivory fang is shared by normal wolf and boss; keep generic label and bytes.",
+      "current_path": "public/assets/icons/material/wolf_fang.png",
+      "current_sha256": "b1bcc189cb16baa33f785bf0c7232a92c615ebf7ce7ee0239281d6a2b58698bc",
+      "source_library_file_id": "libfile_e7f9b0a6888c8191bab4b409bf8702ff",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "thornback_wolf",
+        "greyfang"
+      ],
+      "recipe_ids": [
+        "fang_dagger",
+        "greyfang_sabre",
+        "learn_spirit_wolf",
+        "learn_leap",
+        "mod_multistrike",
+        "mod_life_leech",
+        "mod_pack_leader",
+        "wolf_grips",
+        "wolfbite_sword",
+        "fang_bow",
+        "frontier_kris",
+        "ranger_axe",
+        "dusk_longbow",
+        "fang_talisman",
+        "arrows_hunter",
+        "wardenstalker_gloves"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "fang_dagger",
+        "wolfbite_sword",
+        "fang_bow",
+        "frontier_kris",
+        "fang_talisman"
+      ]
+    },
+    {
+      "id": "greyfang_mane",
+      "current_name": "Greyfang Mane",
+      "current_nameTh": "แผงคอเกรย์แฟง",
+      "proposed_name": "Greyfang Mane",
+      "proposed_nameTh": "แผงคอเกรย์แฟง",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing silver-grey mane matches the new alpha; keep label and bytes.",
+      "current_path": "public/assets/icons/material/greyfang_mane.png",
+      "current_sha256": "5c46eb6373b5867cb09e4734a3dd44c242afcdec973242669d40497849ae3352",
+      "source_library_file_id": "libfile_b10a6d119ab08191a67e6862a2424685",
+      "source_archive": "materials-deploy512-part02.zip",
+      "source_monsters": [
+        "greyfang"
+      ],
+      "recipe_ids": [
+        "greyfang_sabre",
+        "knight_greatsword",
+        "fang_talisman",
+        "wardenstalker_coat",
+        "wardenstalker_hood",
+        "wardenstalker_gloves"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "greyfang_sabre",
+        "knight_greatsword",
+        "wardenstalker_coat",
+        "wardenstalker_hood",
+        "wardenstalker_gloves"
+      ]
+    },
+    {
+      "id": "viper_scale",
+      "current_name": "Reed Viper Scale",
+      "current_nameTh": "เกล็ดงูกก",
+      "proposed_name": "Reedblade Scale",
+      "proposed_nameTh": "เกล็ดใบกก",
+      "artwork": "candidate",
+      "reason": "New candidate required: a dark green pointed reed blade edged gold, from the actual v4 drop drawing.",
+      "current_path": "public/assets/icons/material/viper_scale.png",
+      "current_sha256": "7e2d3b21b6ace9bff56c7beec2987aaa1b8435041852fa8ed428addfe82a7a2a",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_archive": "new-item-art-20261007.zip",
+      "source_monsters": [
+        "reed_viper"
+      ],
+      "recipe_ids": [
+        "wisp_staff",
+        "storm_bow",
+        "storm_mantle",
+        "wisp_pendant",
+        "wisp_wraps",
+        "stormglass_blade",
+        "wisp_stiletto",
+        "lantern_wand",
+        "gale_boots"
+      ],
+      "legacy_upgradeMaterial_gear": []
+    },
+    {
+      "id": "venom_gland",
+      "current_name": "Venom Gland",
+      "current_nameTh": "ต่อมพิษ",
+      "proposed_name": "Venom Gland",
+      "proposed_nameTh": "ต่อมพิษ",
+      "artwork": "reuse approved bytes",
+      "reason": "Existing green gland matches viper drop and is also used by unchanged moss_beetle; retain generic name and bytes.",
+      "current_path": "public/assets/icons/material/venom_gland.png",
+      "current_sha256": "eccf666593bab8789caa74be32cec112704846beb3d3bb005be8487e22b727a1",
+      "source_library_file_id": "libfile_2bf419ffecfc8191b6dde99c620ff864",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "moss_beetle",
+        "reed_viper"
+      ],
+      "recipe_ids": [
+        "shell_guard",
+        "spore_hood",
+        "spore_amulet",
+        "learn_venom_mire",
+        "mod_burning_ground",
+        "mod_life_leech",
+        "mod_spiked_ward",
+        "mod_cast_on_dodge",
+        "hermit_guard",
+        "venom_wand",
+        "spore_staff",
+        "frontier_kris",
+        "moonleaf_wand",
+        "tidecaller_staff",
+        "ranger_hood",
+        "brigand_gloves",
+        "moonleaf_slippers"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "venom_wand"
+      ]
+    },
+    {
+      "id": "wisp_core",
+      "current_name": "Wisp Core",
+      "current_nameTh": "แกนภูตไฟ",
+      "proposed_name": "Lostlight Core",
+      "proposed_nameTh": "แกนภูตแสงหลงทาง",
+      "artwork": "candidate",
+      "reason": "New candidate required: golden crystal in cyan flame, replacing a cyan spiral with no gold core.",
+      "current_path": "public/assets/icons/material/wisp_core.png",
+      "current_sha256": "5c20b5711c9067eec348667101e91f6be51a4d8768bc8c252b99b9a8755777b4",
+      "source_library_file_id": "libfile_d47a73f6b88c8191b030bb1d85e89bc5",
+      "source_archive": "materials-deploy512-part01.zip",
+      "source_monsters": [
+        "marsh_wisp"
+      ],
+      "recipe_ids": [
+        "wisp_staff",
+        "ancient_staff",
+        "wisp_pendant",
+        "ancient_ring",
+        "learn_chain_spark",
+        "learn_blink",
+        "mod_bounce",
+        "mod_echo",
+        "mod_cast_on_dodge",
+        "wisp_wraps",
+        "wisp_stiletto",
+        "lantern_wand",
+        "ruin_fang",
+        "relic_wand"
+      ],
+      "legacy_upgradeMaterial_gear": [
+        "wisp_staff",
+        "wisp_pendant",
+        "wisp_stiletto",
+        "lantern_wand",
+        "relic_wand"
+      ]
+    }
+  ],
+  "recipes": [
+    {
+      "id": "tusk_blade",
+      "type": "gear",
+      "result": "tusk_blade",
+      "affected_cost": {
+        "boar_tusk": 5,
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "boar_tusk": 5,
+        "boar_hide": 2,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "hunter_bow",
+      "type": "gear",
+      "result": "hunter_bow",
+      "affected_cost": {
+        "boar_tusk": 2,
+        "boar_hide": 4
+      },
+      "full_cost": {
+        "boar_tusk": 2,
+        "boar_hide": 4,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "fang_dagger",
+      "type": "gear",
+      "result": "fang_dagger",
+      "affected_cost": {
+        "wolf_fang": 6,
+        "wolf_pelt": 3,
+        "boar_tusk": 10
+      },
+      "full_cost": {
+        "wolf_fang": 6,
+        "wolf_pelt": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wisp_staff",
+      "type": "gear",
+      "result": "wisp_staff",
+      "affected_cost": {
+        "wisp_core": 13,
+        "glow_dust": 8,
+        "viper_scale": 5
+      },
+      "full_cost": {
+        "wisp_core": 13,
+        "glow_dust": 8,
+        "viper_scale": 5,
+        "spore_sac": 23,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "spore_wand",
+      "type": "gear",
+      "result": "spore_wand",
+      "affected_cost": {
+        "glow_dust": 1
+      },
+      "full_cost": {
+        "spore_sac": 4,
+        "glow_dust": 1,
+        "gold": 25
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "crag_axe",
+      "type": "gear",
+      "result": "crag_axe",
+      "affected_cost": {
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "crag_stone": 17,
+        "golem_heart": 4,
+        "ram_horn": 11,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "storm_bow",
+      "type": "gear",
+      "result": "storm_bow",
+      "affected_cost": {
+        "viper_scale": 8,
+        "boar_tusk": 18
+      },
+      "full_cost": {
+        "storm_quill": 8,
+        "hawk_feather": 8,
+        "viper_scale": 8,
+        "boar_tusk": 18,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "greyfang_sabre",
+      "type": "gear",
+      "result": "greyfang_sabre",
+      "affected_cost": {
+        "greyfang_mane": 2,
+        "wolf_fang": 8,
+        "boar_tusk": 12
+      },
+      "full_cost": {
+        "greyfang_mane": 2,
+        "mantis_scythe": 10,
+        "wolf_fang": 8,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "horn_greatblade",
+      "type": "gear",
+      "result": "horn_greatblade",
+      "affected_cost": {
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "warden_horn": 2,
+        "ram_horn": 20,
+        "crag_stone": 11,
+        "dusk_pelt": 6,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "ancient_staff",
+      "type": "gear",
+      "result": "ancient_staff",
+      "affected_cost": {
+        "wisp_core": 9,
+        "glow_dust": 17
+      },
+      "full_cost": {
+        "ancient_core": 2,
+        "rune_core": 17,
+        "wisp_core": 9,
+        "glow_dust": 17,
+        "spore_sac": 20,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "hide_vest",
+      "type": "gear",
+      "result": "hide_vest",
+      "affected_cost": {
+        "boar_hide": 6
+      },
+      "full_cost": {
+        "boar_hide": 6,
+        "gold": 15
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "shell_guard",
+      "type": "gear",
+      "result": "shell_guard",
+      "affected_cost": {
+        "venom_gland": 3,
+        "boar_hide": 10
+      },
+      "full_cost": {
+        "beetle_shell": 6,
+        "venom_gland": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wolfpelt_coat",
+      "type": "gear",
+      "result": "wolfpelt_coat",
+      "affected_cost": {
+        "wolf_pelt": 6,
+        "boar_hide": 10
+      },
+      "full_cost": {
+        "wolf_pelt": 6,
+        "hermit_fragment": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "storm_mantle",
+      "type": "gear",
+      "result": "storm_mantle",
+      "affected_cost": {
+        "viper_scale": 10
+      },
+      "full_cost": {
+        "hawk_feather": 13,
+        "viper_scale": 10,
+        "storm_quill": 3,
+        "spore_sac": 23,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "crag_plate",
+      "type": "gear",
+      "result": "crag_plate",
+      "affected_cost": {
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "ram_horn": 9,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "leather_cap",
+      "type": "gear",
+      "result": "leather_cap",
+      "affected_cost": {
+        "boar_hide": 4
+      },
+      "full_cost": {
+        "boar_hide": 4,
+        "gold": 10
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "beetle_helm",
+      "type": "gear",
+      "result": "beetle_helm",
+      "affected_cost": {
+        "boar_hide": 10
+      },
+      "full_cost": {
+        "beetle_shell": 6,
+        "hermit_fragment": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "spore_hood",
+      "type": "gear",
+      "result": "spore_hood",
+      "affected_cost": {
+        "venom_gland": 3
+      },
+      "full_cost": {
+        "spore_sac": 16,
+        "venom_gland": 3,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "feather_circlet",
+      "type": "gear",
+      "result": "feather_circlet",
+      "affected_cost": {
+        "glow_dust": 5
+      },
+      "full_cost": {
+        "hawk_feather": 13,
+        "glow_dust": 5,
+        "spore_sac": 46,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "horned_helm",
+      "type": "gear",
+      "result": "horned_helm",
+      "affected_cost": {
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "warden_horn": 2,
+        "ram_horn": 17,
+        "crag_stone": 20,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wolf_boots",
+      "type": "gear",
+      "result": "wolf_boots",
+      "affected_cost": {
+        "wolf_pelt": 6,
+        "boar_hide": 10
+      },
+      "full_cost": {
+        "wolf_pelt": 6,
+        "hermit_fragment": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wisp_slippers",
+      "type": "gear",
+      "result": "wisp_slippers",
+      "affected_cost": {
+        "glow_dust": 4,
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "glow_dust": 4,
+        "boar_hide": 2,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "crag_greaves",
+      "type": "gear",
+      "result": "crag_greaves",
+      "affected_cost": {
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "dusk_pelt": 9,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "tusk_charm",
+      "type": "gear",
+      "result": "tusk_charm",
+      "affected_cost": {
+        "boar_tusk": 4
+      },
+      "full_cost": {
+        "boar_tusk": 4,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wisp_pendant",
+      "type": "gear",
+      "result": "wisp_pendant",
+      "affected_cost": {
+        "wisp_core": 13,
+        "viper_scale": 5,
+        "glow_dust": 5
+      },
+      "full_cost": {
+        "wisp_core": 13,
+        "viper_scale": 5,
+        "glow_dust": 5,
+        "spore_sac": 23,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "spore_amulet",
+      "type": "gear",
+      "result": "spore_amulet",
+      "affected_cost": {
+        "venom_gland": 3
+      },
+      "full_cost": {
+        "spore_sac": 16,
+        "venom_gland": 3,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "feather_charm",
+      "type": "gear",
+      "result": "feather_charm",
+      "affected_cost": {
+        "boar_tusk": 18
+      },
+      "full_cost": {
+        "hawk_feather": 13,
+        "storm_quill": 3,
+        "ram_horn": 5,
+        "boar_tusk": 18,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "golem_amulet",
+      "type": "gear",
+      "result": "golem_amulet",
+      "affected_cost": {
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "golem_heart": 6,
+        "crag_stone": 20,
+        "rune_core": 6,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "ancient_ring",
+      "type": "gear",
+      "result": "ancient_ring",
+      "affected_cost": {
+        "wisp_core": 9,
+        "glow_dust": 17
+      },
+      "full_cost": {
+        "ancient_core": 2,
+        "rune_core": 17,
+        "wisp_core": 9,
+        "glow_dust": 17,
+        "spore_sac": 20,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_whirl_blade",
+      "type": "skill",
+      "result": "whirl_blade",
+      "affected_cost": {
+        "boar_tusk": 4,
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "boar_tusk": 4,
+        "boar_hide": 2,
+        "gold": 25
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_stone_burst",
+      "type": "skill",
+      "result": "stone_burst",
+      "affected_cost": {
+        "glow_dust": 1
+      },
+      "full_cost": {
+        "beetle_shell": 4,
+        "glow_dust": 1,
+        "gold": 25
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_frost_nova",
+      "type": "skill",
+      "result": "frost_nova",
+      "affected_cost": {
+        "glow_dust": 2
+      },
+      "full_cost": {
+        "glow_dust": 2,
+        "beetle_shell": 2,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_healing_spring",
+      "type": "skill",
+      "result": "healing_spring",
+      "affected_cost": {
+        "glow_dust": 4,
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "glow_dust": 4,
+        "boar_hide": 2,
+        "gold": 25
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_war_cry",
+      "type": "skill",
+      "result": "war_cry",
+      "affected_cost": {
+        "wolf_pelt": 2,
+        "boar_tusk": 2
+      },
+      "full_cost": {
+        "wolf_pelt": 2,
+        "boar_tusk": 2,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_venom_mire",
+      "type": "skill",
+      "result": "venom_mire",
+      "affected_cost": {
+        "venom_gland": 2
+      },
+      "full_cost": {
+        "venom_gland": 2,
+        "spore_sac": 2,
+        "gold": 35
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_hex",
+      "type": "skill",
+      "result": "hex",
+      "affected_cost": {
+        "glow_dust": 2
+      },
+      "full_cost": {
+        "spore_sac": 2,
+        "glow_dust": 2,
+        "gold": 35
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_spirit_wolf",
+      "type": "skill",
+      "result": "spirit_wolf",
+      "affected_cost": {
+        "wolf_fang": 4,
+        "wolf_pelt": 2
+      },
+      "full_cost": {
+        "wolf_fang": 4,
+        "wolf_pelt": 2,
+        "gold": 40
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_chain_spark",
+      "type": "skill",
+      "result": "chain_spark",
+      "affected_cost": {
+        "wisp_core": 2
+      },
+      "full_cost": {
+        "wisp_core": 2,
+        "hawk_feather": 1,
+        "gold": 45
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_blink",
+      "type": "movement",
+      "result": "blink",
+      "affected_cost": {
+        "wisp_core": 2,
+        "glow_dust": 2
+      },
+      "full_cost": {
+        "wisp_core": 2,
+        "glow_dust": 2,
+        "gold": 40
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "learn_leap",
+      "type": "movement",
+      "result": "leap",
+      "affected_cost": {
+        "wolf_fang": 2,
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "wolf_fang": 2,
+        "boar_hide": 2,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_split",
+      "type": "mod",
+      "result": "split",
+      "affected_cost": {
+        "boar_tusk": 2,
+        "glow_dust": 2
+      },
+      "full_cost": {
+        "boar_tusk": 2,
+        "glow_dust": 2,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_pierce",
+      "type": "mod",
+      "result": "pierce",
+      "affected_cost": {
+        "boar_tusk": 4
+      },
+      "full_cost": {
+        "boar_tusk": 4,
+        "gold": 15
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_bounce",
+      "type": "mod",
+      "result": "bounce",
+      "affected_cost": {
+        "wisp_core": 1,
+        "boar_tusk": 1
+      },
+      "full_cost": {
+        "wisp_core": 1,
+        "boar_tusk": 1,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_burning_ground",
+      "type": "mod",
+      "result": "burning_ground",
+      "affected_cost": {
+        "venom_gland": 2,
+        "boar_hide": 1
+      },
+      "full_cost": {
+        "venom_gland": 2,
+        "boar_hide": 1,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_echo",
+      "type": "mod",
+      "result": "echo",
+      "affected_cost": {
+        "wisp_core": 2
+      },
+      "full_cost": {
+        "wisp_core": 2,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_wide_arc",
+      "type": "mod",
+      "result": "wide_arc",
+      "affected_cost": {
+        "boar_hide": 4,
+        "boar_tusk": 1
+      },
+      "full_cost": {
+        "boar_hide": 4,
+        "boar_tusk": 1,
+        "gold": 15
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_multistrike",
+      "type": "mod",
+      "result": "multistrike",
+      "affected_cost": {
+        "wolf_fang": 2,
+        "boar_tusk": 2
+      },
+      "full_cost": {
+        "wolf_fang": 2,
+        "boar_tusk": 2,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_frost_shift",
+      "type": "mod",
+      "result": "frost_shift",
+      "affected_cost": {
+        "glow_dust": 4
+      },
+      "full_cost": {
+        "glow_dust": 4,
+        "beetle_shell": 1,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_knockback",
+      "type": "mod",
+      "result": "knockback",
+      "affected_cost": {
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "boar_hide": 2,
+        "beetle_shell": 2,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_concentrated",
+      "type": "mod",
+      "result": "concentrated",
+      "affected_cost": {
+        "glow_dust": 1
+      },
+      "full_cost": {
+        "crag_stone": 2,
+        "glow_dust": 1,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_lingering",
+      "type": "mod",
+      "result": "lingering",
+      "affected_cost": {
+        "glow_dust": 1
+      },
+      "full_cost": {
+        "spore_sac": 2,
+        "glow_dust": 1,
+        "gold": 25
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_life_leech",
+      "type": "mod",
+      "result": "life_leech",
+      "affected_cost": {
+        "venom_gland": 1,
+        "wolf_fang": 1
+      },
+      "full_cost": {
+        "venom_gland": 1,
+        "wolf_fang": 1,
+        "gold": 30
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_spiked_ward",
+      "type": "mod",
+      "result": "spiked_ward",
+      "affected_cost": {
+        "venom_gland": 1
+      },
+      "full_cost": {
+        "beetle_shell": 4,
+        "venom_gland": 1,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_pack_leader",
+      "type": "mod",
+      "result": "pack_leader",
+      "affected_cost": {
+        "wolf_fang": 4,
+        "wolf_pelt": 2
+      },
+      "full_cost": {
+        "wolf_fang": 4,
+        "wolf_pelt": 2,
+        "gold": 40
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "mod_cast_on_dodge",
+      "type": "mod",
+      "result": "cast_on_dodge",
+      "affected_cost": {
+        "wisp_core": 2,
+        "venom_gland": 1
+      },
+      "full_cost": {
+        "wisp_core": 2,
+        "venom_gland": 1,
+        "gold": 40
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "salt_boots",
+      "type": "gear",
+      "result": "tide_boots",
+      "affected_cost": {
+        "salt_gel": 4
+      },
+      "full_cost": {
+        "salt_gel": 4,
+        "crab_shell": 2,
+        "gold": 12
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "shore_circlet",
+      "type": "gear",
+      "result": "feather_circlet",
+      "affected_cost": {
+        "glow_dust": 5
+      },
+      "full_cost": {
+        "shore_feather": 13,
+        "glow_dust": 5,
+        "spore_sac": 46,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "hermit_guard",
+      "type": "gear",
+      "result": "shell_guard",
+      "affected_cost": {
+        "venom_gland": 3,
+        "boar_hide": 10
+      },
+      "full_cost": {
+        "hermit_fragment": 6,
+        "venom_gland": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "beetle_maul",
+      "type": "gear",
+      "result": "beetle_maul",
+      "affected_cost": {
+        "boar_tusk": 13
+      },
+      "full_cost": {
+        "beetle_shell": 6,
+        "boar_tusk": 13,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "crab_shield",
+      "type": "gear",
+      "result": "crab_shield",
+      "affected_cost": {
+        "salt_gel": 2
+      },
+      "full_cost": {
+        "crab_shell": 5,
+        "salt_gel": 2,
+        "gold": 25
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "beetle_buckler",
+      "type": "gear",
+      "result": "beetle_buckler",
+      "affected_cost": {
+        "boar_hide": 10
+      },
+      "full_cost": {
+        "beetle_shell": 6,
+        "hermit_fragment": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "crag_tower_shield",
+      "type": "gear",
+      "result": "crag_tower_shield",
+      "affected_cost": {
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "ram_horn": 9,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "hide_gloves",
+      "type": "gear",
+      "result": "hide_gloves",
+      "affected_cost": {
+        "boar_hide": 4
+      },
+      "full_cost": {
+        "boar_hide": 4,
+        "gold": 15
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wolf_grips",
+      "type": "gear",
+      "result": "wolf_grips",
+      "affected_cost": {
+        "wolf_pelt": 6,
+        "wolf_fang": 3,
+        "boar_tusk": 10
+      },
+      "full_cost": {
+        "wolf_pelt": 6,
+        "wolf_fang": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wisp_wraps",
+      "type": "gear",
+      "result": "wisp_wraps",
+      "affected_cost": {
+        "glow_dust": 13,
+        "wisp_core": 5,
+        "viper_scale": 8
+      },
+      "full_cost": {
+        "glow_dust": 13,
+        "wisp_core": 5,
+        "viper_scale": 8,
+        "spore_sac": 23,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "crag_gauntlets",
+      "type": "gear",
+      "result": "crag_gauntlets",
+      "affected_cost": {
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "crag_stone": 29,
+        "golem_heart": 4,
+        "dusk_pelt": 9,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "arrows_tusk",
+      "type": "arrow",
+      "result": "tusk_arrow",
+      "affected_cost": {
+        "boar_tusk": 2
+      },
+      "full_cost": {
+        "boar_tusk": 2,
+        "gold": 5
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "arrows_hawk",
+      "type": "arrow",
+      "result": "hawk_arrow",
+      "affected_cost": {
+        "boar_tusk": 1
+      },
+      "full_cost": {
+        "hawk_feather": 2,
+        "boar_tusk": 1,
+        "gold": 8
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "shell_knife",
+      "type": "gear",
+      "result": "shell_knife",
+      "affected_cost": {
+        "salt_gel": 2
+      },
+      "full_cost": {
+        "crab_shell": 5,
+        "salt_gel": 2,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "tusk_club",
+      "type": "gear",
+      "result": "tusk_club",
+      "affected_cost": {
+        "boar_tusk": 5,
+        "boar_hide": 2
+      },
+      "full_cost": {
+        "boar_tusk": 5,
+        "boar_hide": 2,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "tusk_greatblade",
+      "type": "gear",
+      "result": "tusk_greatblade",
+      "affected_cost": {
+        "boar_tusk": 5,
+        "salt_gel": 2
+      },
+      "full_cost": {
+        "boar_tusk": 5,
+        "salt_gel": 2,
+        "gold": 20
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wolfbite_sword",
+      "type": "gear",
+      "result": "wolfbite_sword",
+      "affected_cost": {
+        "wolf_fang": 6,
+        "wolf_pelt": 3,
+        "boar_tusk": 10
+      },
+      "full_cost": {
+        "wolf_fang": 6,
+        "wolf_pelt": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "venom_wand",
+      "type": "gear",
+      "result": "venom_wand",
+      "affected_cost": {
+        "venom_gland": 6
+      },
+      "full_cost": {
+        "venom_gland": 6,
+        "spore_sac": 13,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "hermit_cleaver",
+      "type": "gear",
+      "result": "hermit_cleaver",
+      "affected_cost": {
+        "boar_tusk": 10
+      },
+      "full_cost": {
+        "hermit_fragment": 6,
+        "beetle_shell": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "spore_staff",
+      "type": "gear",
+      "result": "spore_staff",
+      "affected_cost": {
+        "venom_gland": 3
+      },
+      "full_cost": {
+        "spore_sac": 16,
+        "venom_gland": 3,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "fang_bow",
+      "type": "gear",
+      "result": "fang_bow",
+      "affected_cost": {
+        "wolf_fang": 6,
+        "boar_tusk": 13
+      },
+      "full_cost": {
+        "wolf_fang": 6,
+        "boar_tusk": 13,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "frontier_kris",
+      "type": "gear",
+      "result": "frontier_kris",
+      "affected_cost": {
+        "wolf_fang": 8,
+        "venom_gland": 4,
+        "boar_tusk": 12
+      },
+      "full_cost": {
+        "mantis_scythe": 8,
+        "wolf_fang": 8,
+        "venom_gland": 4,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "moonleaf_wand",
+      "type": "gear",
+      "result": "moonleaf_wand",
+      "affected_cost": {
+        "venom_gland": 10
+      },
+      "full_cost": {
+        "spore_sac": 28,
+        "sea_pearl": 4,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "ranger_axe",
+      "type": "gear",
+      "result": "ranger_axe",
+      "affected_cost": {
+        "wolf_fang": 6,
+        "boar_tusk": 12
+      },
+      "full_cost": {
+        "mantis_scythe": 8,
+        "beetle_shell": 8,
+        "wolf_fang": 6,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "knight_greatsword",
+      "type": "gear",
+      "result": "knight_greatsword",
+      "affected_cost": {
+        "greyfang_mane": 2,
+        "boar_tusk": 12
+      },
+      "full_cost": {
+        "greyfang_mane": 2,
+        "mantis_scythe": 12,
+        "beetle_shell": 6,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "tidecaller_staff",
+      "type": "gear",
+      "result": "tidecaller_staff",
+      "affected_cost": {
+        "venom_gland": 10
+      },
+      "full_cost": {
+        "sea_pearl": 8,
+        "crab_shell": 4,
+        "venom_gland": 10,
+        "spore_sac": 20,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "dusk_longbow",
+      "type": "gear",
+      "result": "dusk_longbow",
+      "affected_cost": {
+        "wolf_pelt": 8,
+        "wolf_fang": 10,
+        "boar_tusk": 20
+      },
+      "full_cost": {
+        "wolf_pelt": 8,
+        "hawk_feather": 4,
+        "wolf_fang": 10,
+        "boar_tusk": 20,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "kite_shield",
+      "type": "gear",
+      "result": "kite_shield",
+      "affected_cost": {
+        "boar_hide": 20
+      },
+      "full_cost": {
+        "beetle_shell": 18,
+        "crab_shell": 4,
+        "boar_hide": 20,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "ranger_coat",
+      "type": "gear",
+      "result": "ranger_coat",
+      "affected_cost": {
+        "wolf_pelt": 8,
+        "boar_hide": 20
+      },
+      "full_cost": {
+        "wolf_pelt": 8,
+        "beetle_shell": 14,
+        "boar_hide": 20,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "ranger_hood",
+      "type": "gear",
+      "result": "ranger_hood",
+      "affected_cost": {
+        "wolf_pelt": 8,
+        "venom_gland": 10
+      },
+      "full_cost": {
+        "wolf_pelt": 8,
+        "spore_sac": 24,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "brigand_gloves",
+      "type": "gear",
+      "result": "brigand_gloves",
+      "affected_cost": {
+        "wolf_pelt": 8,
+        "venom_gland": 4,
+        "boar_tusk": 12
+      },
+      "full_cost": {
+        "wolf_pelt": 8,
+        "mantis_scythe": 4,
+        "venom_gland": 4,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "trail_boots",
+      "type": "gear",
+      "result": "trail_boots",
+      "affected_cost": {
+        "wolf_pelt": 8,
+        "boar_hide": 20
+      },
+      "full_cost": {
+        "wolf_pelt": 8,
+        "crab_shell": 4,
+        "beetle_shell": 10,
+        "boar_hide": 20,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "fang_talisman",
+      "type": "gear",
+      "result": "fang_talisman",
+      "affected_cost": {
+        "wolf_fang": 14,
+        "greyfang_mane": 1,
+        "boar_tusk": 12
+      },
+      "full_cost": {
+        "wolf_fang": 14,
+        "greyfang_mane": 1,
+        "mantis_scythe": 4,
+        "boar_tusk": 12,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "stormglass_blade",
+      "type": "gear",
+      "result": "stormglass_blade",
+      "affected_cost": {
+        "viper_scale": 8,
+        "glow_dust": 5,
+        "boar_tusk": 18
+      },
+      "full_cost": {
+        "hawk_feather": 13,
+        "viper_scale": 8,
+        "glow_dust": 5,
+        "boar_tusk": 18,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wisp_stiletto",
+      "type": "gear",
+      "result": "wisp_stiletto",
+      "affected_cost": {
+        "wisp_core": 13,
+        "viper_scale": 10,
+        "glow_dust": 5,
+        "boar_tusk": 18
+      },
+      "full_cost": {
+        "wisp_core": 13,
+        "viper_scale": 10,
+        "glow_dust": 5,
+        "boar_tusk": 18,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "lantern_wand",
+      "type": "gear",
+      "result": "lantern_wand",
+      "affected_cost": {
+        "wisp_core": 13,
+        "glow_dust": 8,
+        "viper_scale": 5
+      },
+      "full_cost": {
+        "wisp_core": 13,
+        "glow_dust": 8,
+        "viper_scale": 5,
+        "spore_sac": 23,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "thunder_maul",
+      "type": "gear",
+      "result": "thunder_maul",
+      "affected_cost": {
+        "boar_tusk": 18
+      },
+      "full_cost": {
+        "crag_stone": 10,
+        "ram_horn": 10,
+        "storm_quill": 3,
+        "boar_tusk": 18,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "galebreaker",
+      "type": "gear",
+      "result": "galebreaker",
+      "affected_cost": {
+        "boar_tusk": 18
+      },
+      "full_cost": {
+        "hawk_feather": 13,
+        "ram_horn": 8,
+        "crag_stone": 5,
+        "boar_tusk": 18,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "highland_shield",
+      "type": "gear",
+      "result": "highland_shield",
+      "affected_cost": {
+        "boar_hide": 18
+      },
+      "full_cost": {
+        "crag_stone": 13,
+        "ram_horn": 8,
+        "crab_shell": 13,
+        "boar_hide": 18,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "gale_boots",
+      "type": "gear",
+      "result": "gale_boots",
+      "affected_cost": {
+        "viper_scale": 5,
+        "boar_hide": 18
+      },
+      "full_cost": {
+        "hawk_feather": 13,
+        "viper_scale": 5,
+        "dusk_pelt": 5,
+        "boar_hide": 18,
+        "storm_quill": 1,
+        "gold": 300
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "oathblade",
+      "type": "gear",
+      "result": "oathblade",
+      "affected_cost": {
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "crag_stone": 14,
+        "rune_core": 11,
+        "storm_quill": 4,
+        "hawk_feather": 14,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "ruin_fang",
+      "type": "gear",
+      "result": "ruin_fang",
+      "affected_cost": {
+        "wisp_core": 6,
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "dusk_pelt": 14,
+        "storm_quill": 6,
+        "wisp_core": 6,
+        "hawk_feather": 14,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "relic_wand",
+      "type": "gear",
+      "result": "relic_wand",
+      "affected_cost": {
+        "wisp_core": 11,
+        "glow_dust": 17
+      },
+      "full_cost": {
+        "rune_core": 14,
+        "wisp_core": 11,
+        "golem_heart": 4,
+        "glow_dust": 17,
+        "spore_sac": 20,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "skyrender_bow",
+      "type": "gear",
+      "result": "skyrender_bow",
+      "affected_cost": {
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "storm_quill": 10,
+        "dusk_pelt": 11,
+        "hawk_feather": 22,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "arrows_hunter",
+      "type": "arrow",
+      "result": "hunter_arrow",
+      "affected_cost": {
+        "wolf_fang": 2
+      },
+      "full_cost": {
+        "wolf_fang": 2,
+        "hawk_feather": 2,
+        "gold": 15
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "sporeweave_vest",
+      "type": "gear",
+      "result": "sporeweave_vest",
+      "affected_cost": {
+        "boar_hide": 3
+      },
+      "full_cost": {
+        "spore_sac": 16,
+        "boar_hide": 3,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "sporeweave_gloves",
+      "type": "gear",
+      "result": "sporeweave_gloves",
+      "affected_cost": {
+        "glow_dust": 3
+      },
+      "full_cost": {
+        "spore_sac": 16,
+        "glow_dust": 3,
+        "gold": 60
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "moonleaf_slippers",
+      "type": "gear",
+      "result": "moonleaf_slippers",
+      "affected_cost": {
+        "venom_gland": 10
+      },
+      "full_cost": {
+        "spore_sac": 28,
+        "hawk_feather": 4,
+        "venom_gland": 10,
+        "gold": 150
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wardenstalker_coat",
+      "type": "gear",
+      "result": "wardenstalker_coat",
+      "affected_cost": {
+        "greyfang_mane": 2,
+        "boar_hide": 17
+      },
+      "full_cost": {
+        "greyfang_mane": 2,
+        "dusk_pelt": 20,
+        "hawk_feather": 9,
+        "crag_stone": 14,
+        "boar_hide": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wardenstalker_hood",
+      "type": "gear",
+      "result": "wardenstalker_hood",
+      "affected_cost": {
+        "greyfang_mane": 2,
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "greyfang_mane": 2,
+        "warden_horn": 1,
+        "dusk_pelt": 17,
+        "hawk_feather": 17,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    },
+    {
+      "id": "wardenstalker_gloves",
+      "type": "gear",
+      "result": "wardenstalker_gloves",
+      "affected_cost": {
+        "greyfang_mane": 2,
+        "wolf_fang": 9,
+        "boar_tusk": 17
+      },
+      "full_cost": {
+        "greyfang_mane": 2,
+        "dusk_pelt": 17,
+        "wolf_fang": 9,
+        "hawk_feather": 17,
+        "boar_tusk": 17,
+        "ruin_shard": 2,
+        "gold": 500
+      },
+      "label_sync": "dynamic from material definitions; no recipe mutation"
+    }
+  ],
+  "quests": [
+    {
+      "id": "m_boars",
+      "current": {
+        "name": "Trouble in the Meadow",
+        "nameTh": "เสบียงจากสองฟากทาง",
+        "descTh": "หมูป่างาแหลมออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขี้ยวไว้เตรียมของ",
+        "type": "kill",
+        "target": "tusk_boar",
+        "count": 5,
+        "reward": {
+          "gold": 130,
+          "exp": 691,
+          "jobExp": 394,
+          "items": {
+            "boar_hide": 2
+          }
+        },
+        "level": 9,
+        "requires": [
+          "f_road"
+        ],
+        "objectiveTextTh": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+        "chapter": "forest-traces",
+        "category": "optional",
+        "objectives": [
+          {
+            "id": "primary",
+            "type": "kill",
+            "count": 5,
+            "labelTh": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+            "target": "tusk_boar",
+            "worlds": [
+              "azure-harbor-v1",
+              "frontier-wilds-v1"
+            ]
+          }
+        ]
+      },
+      "label_sync": "literal text changes below; reward labels read items dynamically"
+    },
+    {
+      "id": "m_craft",
+      "current": {
+        "name": "Tools of the Trade",
+        "nameTh": "เครื่องมือของนักเดินทาง",
+        "descTh": "กลับไปที่โต๊ะคราฟต์ในนิคม แล้วคราฟต์อะไรก็ได้ 1 อย่าง (อุปกรณ์ สกิล หรือ Mod)",
+        "type": "craft",
+        "count": 1,
+        "reward": {
+          "gold": 30,
+          "exp": 30,
+          "items": {
+            "glow_dust": 2
+          }
+        }
+      },
+      "label_sync": "literal text changes below; reward labels read items dynamically"
+    },
+    {
+      "id": "m_greyfang",
+      "current": {
+        "name": "The Alpha of the Pack",
+        "nameTh": "ต้นทางของฝูง",
+        "descTh": "ตามรอยเข้าสู่ถ้ำหมาป่าแล้วปราบเกรย์แฟง เตรียมอุปกรณ์และจังหวะหลบก่อนเข้าสู้ หลังจัดการจ่าฝูงจึงเดินทางต่อไปตามสายน้ำ",
+        "type": "kill",
+        "target": "greyfang",
+        "count": 1,
+        "reward": {
+          "gold": 280,
+          "exp": 2559,
+          "jobExp": 1145
+        },
+        "level": 14,
+        "requires": [
+          "m_forest"
+        ],
+        "objectiveTextTh": "ปราบเกรย์แฟง 1 ครั้ง",
+        "chapter": "forest-traces",
+        "category": "story",
+        "objectives": [
+          {
+            "id": "approach",
+            "type": "zone",
+            "target": "wolf_den",
+            "world": "frontier-wilds-v1",
+            "count": 1,
+            "labelTh": "สำรวจถ้ำหมาป่า"
+          },
+          {
+            "id": "primary",
+            "type": "kill",
+            "count": 1,
+            "labelTh": "ปราบเกรย์แฟง 1 ครั้ง",
+            "target": "greyfang",
+            "world": "frontier-wilds-v1"
+          }
+        ]
+      },
+      "label_sync": "literal text changes below; reward labels read items dynamically"
+    },
+    {
+      "id": "s_wolves",
+      "current": {
+        "name": "Thinning the Pack",
+        "nameTh": "เส้นทางของฝูง",
+        "descTh": "หมาป่าหลังหนามยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
+        "type": "kill",
+        "target": "thornback_wolf",
+        "count": 10,
+        "reward": {
+          "gold": 165,
+          "exp": 1302,
+          "items": {
+            "wolf_fang": 2
+          }
+        },
+        "level": 12,
+        "requires": [
+          "m_forest"
+        ],
+        "objectiveTextTh": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+        "chapter": "forest-traces",
+        "category": "optional",
+        "objectives": [
+          {
+            "id": "primary",
+            "type": "kill",
+            "count": 10,
+            "labelTh": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+            "target": "thornback_wolf",
+            "worlds": [
+              "azure-harbor-v1",
+              "frontier-wilds-v1"
+            ]
+          }
+        ]
+      },
+      "label_sync": "literal text changes below; reward labels read items dynamically"
+    },
+    {
+      "id": "h_slimes",
+      "current": {
+        "name": "เจลเกลือริมฝั่ง",
+        "nameTh": "ก้าวแรกบนหาด",
+        "descTh": "เริ่มจากสไลม์น้ำเค็มใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
+        "type": "kill",
+        "target": "salt_slime",
+        "count": 3,
+        "reward": {
+          "gold": 50,
+          "exp": 8,
+          "jobExp": 6
+        },
+        "level": 1,
+        "requires": [],
+        "objectiveTextTh": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+        "chapter": "first-footsteps",
+        "category": "story",
+        "objectives": [
+          {
+            "id": "primary",
+            "type": "kill",
+            "count": 3,
+            "labelTh": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+            "target": "salt_slime",
+            "world": "azure-harbor-v1"
+          }
+        ]
+      },
+      "label_sync": "literal text changes below; reward labels read items dynamically"
+    },
+    {
+      "id": "h_crabs",
+      "current": {
+        "name": "ก้ามปูและจังหวะหลบ",
+        "nameTh": "วัตถุดิบก่อนออกเดินทาง",
+        "descTh": "ปูริมฝั่งให้ชิ้นส่วนที่ใช้เตรียมของเดินทาง รอจังหวะมันยกก้ามแล้วหลบ เมื่อพร้อมให้นำสิ่งที่หาได้เข้าเมืองท่า",
+        "type": "kill",
+        "target": "reef_crab",
+        "count": 3,
+        "reward": {
+          "gold": 65,
+          "exp": 35,
+          "jobExp": 46,
+          "items": {
+            "crab_shell": 2,
+            "salt_gel": 4
+          }
+        },
+        "level": 2,
+        "requires": [
+          "h_slimes"
+        ],
+        "objectiveTextTh": "กำจัดปูแนวปะการังริมฝั่ง 3 ตัว",
+        "chapter": "first-footsteps",
+        "category": "story",
+        "objectives": [
+          {
+            "id": "primary",
+            "type": "kill",
+            "count": 3,
+            "labelTh": "กำจัดปูแนวปะการังริมฝั่ง 3 ตัว",
+            "target": "reef_crab",
+            "world": "azure-harbor-v1"
+          }
+        ]
+      },
+      "label_sync": "literal text changes below; reward labels read items dynamically"
+    }
+  ],
+  "grade_promotion_costs": {
+    "B": {
+      "wisp_core": 1,
+      "glow_dust": 5,
+      "gold": 90
+    },
+    "A": {
+      "wisp_core": 2,
+      "ruin_shard": 1,
+      "gold": 180
+    },
+    "S": {
+      "ancient_core": 1,
+      "ruin_shard": 3,
+      "gold": 400
+    }
+  }
+}

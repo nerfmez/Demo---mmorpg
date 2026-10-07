@@ -1,0 +1,17 @@
+﻿kind,stable_id,current_name,current_nameTh,candidate_name,candidate_nameTh,status
+monster,salt_slime,สไลม์น้ำเค็ม,สไลม์น้ำเค็ม,Tidal Slime,สไลม์คลื่นทะเล,owner review pending
+monster,tusk_boar,Tusk Boar,หมูป่างาแหลม,Boarbull,หมูกระทิง,owner review pending
+monster,thornback_wolf,Thornback Wolf,หมาป่าหลังหนาม,Maskfang Wolf,หมาป่าหน้ากาก,owner review pending
+monster,greyfang,Greyfang,เกรย์แฟง จ่าฝูง,Greyfang Alpha,เกรย์แฟง จ่าฝูง,owner review pending
+monster,reed_viper,Reed Viper,งูกกพิษ,Reedblade Viper,งูใบกกพิษ,owner review pending
+monster,marsh_wisp,Marsh Wisp,ภูตไฟหนองน้ำ,Lostlight Wisp,ภูตแสงหลงทาง,owner review pending
+material,salt_gel,เจลเกลือทะเล,เจลเกลือทะเล,เจลเกลือทะเล,เจลเกลือทะเล,reuse approved bytes
+material,glow_dust,Glow Dust,ผงเรืองแสง,Glow Dust,ผงเรืองแสง,reuse approved bytes
+material,boar_hide,Boar Hide,หนังหมูป่า,Boarbull Hide,หนังหมูกระทิง,reuse approved bytes
+material,boar_tusk,Boar Tusk,เขี้ยวหมูป่า,Boarbull Horn,เขาหมูกระทิง,reuse approved bytes
+material,wolf_pelt,Thorn Pelt,หนังหมาป่าหนาม,Maskfang Pelt,หนังหมาป่าหน้ากาก,reuse approved bytes
+material,wolf_fang,Wolf Fang,เขี้ยวหมาป่า,Wolf Fang,เขี้ยวหมาป่า,reuse approved bytes
+material,greyfang_mane,Greyfang Mane,แผงคอเกรย์แฟง,Greyfang Mane,แผงคอเกรย์แฟง,reuse approved bytes
+material,viper_scale,Reed Viper Scale,เกล็ดงูกก,Reedblade Scale,เกล็ดใบกก,candidate
+material,venom_gland,Venom Gland,ต่อมพิษ,Venom Gland,ต่อมพิษ,reuse approved bytes
+material,wisp_core,Wisp Core,แกนภูตไฟ,Lostlight Core,แกนภูตแสงหลงทาง,candidate

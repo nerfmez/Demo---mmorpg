@@ -1,0 +1,419 @@
+{
+  "status": "proposed, not applied; not authorization to rename IDs",
+  "labels": [
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/salt_slime/name",
+      "before": "สไลม์น้ำเค็ม",
+      "proposed": "Tidal Slime",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/salt_slime/nameTh",
+      "before": "สไลม์น้ำเค็ม",
+      "proposed": "สไลม์คลื่นทะเล",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/tusk_boar/name",
+      "before": "Tusk Boar",
+      "proposed": "Boarbull",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/tusk_boar/nameTh",
+      "before": "หมูป่างาแหลม",
+      "proposed": "หมูกระทิง",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/thornback_wolf/name",
+      "before": "Thornback Wolf",
+      "proposed": "Maskfang Wolf",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/thornback_wolf/nameTh",
+      "before": "หมาป่าหลังหนาม",
+      "proposed": "หมาป่าหน้ากาก",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/greyfang/name",
+      "before": "Greyfang",
+      "proposed": "Greyfang Alpha",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/reed_viper/name",
+      "before": "Reed Viper",
+      "proposed": "Reedblade Viper",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/reed_viper/nameTh",
+      "before": "งูกกพิษ",
+      "proposed": "งูใบกกพิษ",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/marsh_wisp/name",
+      "before": "Marsh Wisp",
+      "proposed": "Lostlight Wisp",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/monsters.json",
+      "pointer": "/monsters/marsh_wisp/nameTh",
+      "before": "ภูตไฟหนองน้ำ",
+      "proposed": "ภูตแสงหลงทาง",
+      "reason": "Match PR106 concept title/identity",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_hide/name",
+      "before": "Boar Hide",
+      "proposed": "Boarbull Hide",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_hide/nameTh",
+      "before": "หนังหมูป่า",
+      "proposed": "หนังหมูกระทิง",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_tusk/name",
+      "before": "Boar Tusk",
+      "proposed": "Boarbull Horn",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/boar_tusk/nameTh",
+      "before": "เขี้ยวหมูป่า",
+      "proposed": "เขาหมูกระทิง",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wolf_pelt/name",
+      "before": "Thorn Pelt",
+      "proposed": "Maskfang Pelt",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wolf_pelt/nameTh",
+      "before": "หนังหมาป่าหนาม",
+      "proposed": "หนังหมาป่าหน้ากาก",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/viper_scale/name",
+      "before": "Reed Viper Scale",
+      "proposed": "Reedblade Scale",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/viper_scale/nameTh",
+      "before": "เกล็ดงูกก",
+      "proposed": "เกล็ดใบกก",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wisp_core/name",
+      "before": "Wisp Core",
+      "proposed": "Lostlight Core",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/materials/wisp_core/nameTh",
+      "before": "แกนภูตไฟ",
+      "proposed": "แกนภูตแสงหลงทาง",
+      "reason": "Consistent display label; stable ID preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/m_boars/descTh",
+      "before": "หมูป่างาแหลมออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขี้ยวไว้เตรียมของ",
+      "proposed": "หมูกระทิงออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขาไว้เตรียมของ",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/m_boars/objectiveTextTh",
+      "before": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+      "proposed": "กำจัดหมูกระทิงรวม 5 ตัว",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/m_boars/objectives/0/labelTh",
+      "before": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+      "proposed": "กำจัดหมูกระทิงรวม 5 ตัว",
+      "reason": "Literal objective label sync",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/s_wolves/descTh",
+      "before": "หมาป่าหลังหนามยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
+      "proposed": "หมาป่าหน้ากากยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/s_wolves/objectiveTextTh",
+      "before": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+      "proposed": "กำจัดหมาป่าหน้ากากรวม 10 ตัว",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/s_wolves/objectives/0/labelTh",
+      "before": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+      "proposed": "กำจัดหมาป่าหน้ากากรวม 10 ตัว",
+      "reason": "Literal objective label sync",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/h_slimes/descTh",
+      "before": "เริ่มจากสไลม์น้ำเค็มใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
+      "proposed": "เริ่มจากสไลม์คลื่นทะเลใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/h_slimes/objectiveTextTh",
+      "before": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+      "proposed": "กำจัดสไลม์คลื่นทะเลริมฝั่ง 3 ตัว",
+      "reason": "Literal quest name sync; counts/targets/rewards preserved",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/quests.json",
+      "pointer": "/quests/h_slimes/objectives/0/labelTh",
+      "before": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+      "proposed": "กำจัดสไลม์คลื่นทะเลริมฝั่ง 3 ตัว",
+      "reason": "Literal objective label sync",
+      "optional": false,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/tusk_blade/name",
+      "before": "Tusk Blade",
+      "proposed": "Boarbull Hornblade",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/tusk_blade/nameTh",
+      "before": "ดาบเขี้ยวหมูป่า",
+      "proposed": "ดาบเขาหมูกระทิง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/tusk_club/name",
+      "before": "Tusk Club",
+      "proposed": "Boarbull Horn Club",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/tusk_club/nameTh",
+      "before": "กระบองเขี้ยวหมูป่า",
+      "proposed": "กระบองเขาหมูกระทิง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/tusk_greatblade/name",
+      "before": "Tusk Greatblade",
+      "proposed": "Boarbull Greatblade",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/tusk_greatblade/nameTh",
+      "before": "ดาบใหญ่เขี้ยวหมูป่า",
+      "proposed": "ดาบใหญ่เขาหมูกระทิง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/hide_vest/name",
+      "before": "Hide Vest",
+      "proposed": "Boarbull Hide Vest",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/hide_vest/nameTh",
+      "before": "เสื้อหนังหมูป่า",
+      "proposed": "เสื้อหนังหมูกระทิง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/hide_gloves/name",
+      "before": "Hide Gloves",
+      "proposed": "Boarbull Hide Gloves",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/hide_gloves/nameTh",
+      "before": "ถุงมือหนังหมูป่า",
+      "proposed": "ถุงมือหนังหมูกระทิง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/wisp_staff/name",
+      "before": "Wisp Staff",
+      "proposed": "Lostlight Staff",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/wisp_staff/nameTh",
+      "before": "คทาภูตไฟ",
+      "proposed": "คทาภูตแสงหลงทาง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/wisp_slippers/name",
+      "before": "Wisp Slippers",
+      "proposed": "Lostlight Slippers",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/wisp_slippers/nameTh",
+      "before": "รองเท้าภูตไฟ",
+      "proposed": "รองเท้าภูตแสงหลงทาง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/wisp_pendant/name",
+      "before": "Wisp Pendant",
+      "proposed": "Lostlight Pendant",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    },
+    {
+      "file": "data/items.json",
+      "pointer": "/gearBases/wisp_pendant/nameTh",
+      "before": "จี้ภูตไฟ",
+      "proposed": "จี้ภูตแสงหลงทาง",
+      "reason": "Dependent old species/element wording; label-only option; existing art/models unchanged",
+      "optional": true,
+      "approved": false
+    }
+  ]
+}

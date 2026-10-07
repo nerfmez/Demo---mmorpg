@@ -1,0 +1,12 @@
+{
+  "main_sha": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
+  "pr106_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",
+  "decoded_rgba_assets": 16,
+  "byte_identical_reused_materials": 8,
+  "label_baselines_verified": 46,
+  "runtime_diff": [],
+  "game_tests": "not run; preparation/docs-only",
+  "build": "not run; no runtime edits",
+  "latest_concept_hashes_verified": 6,
+  "latest_head_change": "PR104/main merge only; six concept sheets, monster GLBs and relevant labels/recipes unchanged"
+}

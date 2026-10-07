@@ -21,9 +21,16 @@ their loadout workspace consumer. The shared gates verify these central shards
 at the required source, including a separate merge tree when needed.
 
 Scheduling uses the existing hosted account capacity, without the previous
-six-job cap. Long suites are placed first and engines are interleaved. Playwright
-downloads are cached by distribution/version, architecture, engine and dependency lock; browser/dependency
-installation still runs on every job. No account limits or billing are changed.
+six-job cap. Long suites are placed first and engines are interleaved. Browser
+shards and live WebKit checks use the official Playwright Noble image pinned to
+the locked SDK version and immutable image digest. Browser binaries and OS
+libraries are preinstalled; no per-job apt/browser installation or stale browser
+cache is used. A mandatory guard matches the lockfile, installed client/core,
+image metadata and selected executable. An SDK upgrade must update the image
+pin together, otherwise setup fails closed. Node/npm setup and all assertions
+remain. Container Node processes prefer IPv4 so Vite and readiness fetches agree
+on localhost. Containers use init and a 1 GiB shared-memory limit, without extra
+capabilities or host IPC sharing. No account limits or billing are changed.
 
 Equipment narrowing is defined in `scripts/ci-equipment-impact.mjs`. Shared
 character/crafting/panel/progression modules require before/after AST evidence

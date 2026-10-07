@@ -115,6 +115,12 @@ jobs:
     needs: build
     if: always() && !cancelled() && needs.build.result == 'success'
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble@sha256:f1e7e01021efd65dd1a2c56064be399f3e4de00fd021ac561325f2bfbb2b837a
+      options: --init --shm-size=1g
+    env:
+      BROWSER: webkit
+      NODE_OPTIONS: --dns-result-order=ipv4first
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -130,8 +136,24 @@ jobs:
           cache: npm
       - run: npm ci
         if: github.event_name != 'workflow_run'
-      - run: npx playwright install --with-deps webkit
+      - name: Verify preinstalled Playwright matches locked dependencies
         if: github.event_name != 'workflow_run'
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const version = require('./package-lock.json').packages['node_modules/playwright'].version;
+          const image = JSON.parse(fs.readFileSync('/ms-playwright/.docker-info', 'utf8'));
+          assert.equal(require('playwright/package.json').version, version);
+          assert.equal(require('playwright-core/package.json').version, version);
+          assert.equal(image.driverVersion, version);
+          assert.equal(image.dockerImageName, `mcr.microsoft.com/playwright:v${version}-noble`);
+          assert.ok(['chromium', 'webkit'].includes(process.env.BROWSER));
+          const executable = fs.realpathSync(require('playwright')[process.env.BROWSER].executablePath());
+          assert.ok(executable.startsWith('/ms-playwright/'), executable);
+          fs.accessSync(executable, fs.constants.X_OK);
+          console.log(`Preinstalled Playwright ${version}: ${process.env.BROWSER} ${executable}`);
+          NODE
       - name: Dreamloop against the published game (Safari engine)
         if: github.event_name != 'workflow_run'
         env:

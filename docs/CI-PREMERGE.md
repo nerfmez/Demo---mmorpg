@@ -31,6 +31,10 @@ pin together, otherwise setup fails closed. Node/npm setup and all assertions
 remain. Container Node processes prefer IPv4 so Vite and readiness fetches agree
 on localhost. Containers use init and a 1 GiB shared-memory limit, without extra
 capabilities or host IPC sharing. No account limits or billing are changed.
+Checkout's temporary Git config is separate from the container shell's config.
+The shell verifies its physical current directory equals `GITHUB_WORKSPACE`
+before trusting that exact checkout for Git. No wildcard trust is added; the
+runner still verifies the exact planned SHA and rejects tracked dirty changes.
 
 Equipment narrowing is defined in `scripts/ci-equipment-impact.mjs`. Shared
 character/crafting/panel/progression modules require before/after AST evidence

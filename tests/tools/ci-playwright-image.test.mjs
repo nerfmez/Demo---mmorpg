@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { runInNewContext } from 'node:vm';
 
 const read = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
@@ -57,4 +60,38 @@ test('actual workflow guard accepts only matching installed image/client and sel
     { imageName: `untrusted.example/playwright:v${locked}-noble` }, { browser: 'firefox' }, { browser: '' },
     { executable: '/tmp/browser' }, { missingMetadata: true }, { missingBrowser: true }, { notExecutable: true }])
     assert.throws(() => verify(invalid), JSON.stringify(invalid));
+});
+
+test('container shell trusts only its verified exact workspace; SHA and dirty checks stay mandatory', t => {
+  const trust = job => job.split('      - name: Trust exact checked-out container workspace\n')[1]
+    .split('      - uses:')[0].split('        run: |\n')[1].split('\n').map(line => line.trimStart()).join('\n');
+  assert.equal(trust(ci), trust(live));
+  for (const job of [ci, live]) {
+    assert.ok(job.indexOf('uses: actions/checkout@') < job.indexOf('name: Trust exact checked-out'));
+    assert.ok(job.indexOf('name: Trust exact checked-out') < job.indexOf('uses: actions/setup-node@'));
+  }
+  assert.doesNotMatch(trust(ci), /\*|chown|sudo/);
+  const dir = mkdtempSync(join(tmpdir(), 'ci-container-git-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const repository = join(dir, 'workspace'), other = join(dir, 'other');
+  const env = { ...process.env, GIT_CONFIG_GLOBAL: join(dir, 'global.gitconfig'), GIT_CONFIG_NOSYSTEM: '1' };
+  for (const path of [repository, other]) {
+    mkdirSync(path); execFileSync('git', ['init', '-q', path], { env });
+    writeFileSync(join(path, 'README.md'), 'fixture');
+    execFileSync('git', ['-C', path, 'add', '.'], { env });
+    execFileSync('git', ['-C', path, '-c', 'user.name=fixture', '-c', 'user.email=ci@example.invalid', 'commit', '-qm', 'fixture'], { env });
+  }
+  const differentOwner = { ...env, GIT_TEST_ASSUME_DIFFERENT_OWNER: '1' };
+  const inspect = path => spawnSync('git', ['-C', path, 'rev-parse', 'HEAD'], { env: differentOwner });
+  assert.notEqual(inspect(repository).status, 0);
+  const wrong = spawnSync('bash', ['-e', '-c', trust(ci)], { cwd: repository, env: { ...differentOwner, GITHUB_WORKSPACE: other } });
+  assert.notEqual(wrong.status, 0);
+  const trusted = spawnSync('bash', ['-e', '-c', trust(ci)], { cwd: repository, env: { ...differentOwner, GITHUB_WORKSPACE: repository } });
+  assert.equal(trusted.status, 0);
+  assert.equal(inspect(repository).status, 0);
+  assert.notEqual(inspect(other).status, 0, 'unrelated checkout remains untrusted');
+  assert.equal(execFileSync('git', ['config', '--global', '--get-all', 'safe.directory'], { env, encoding: 'utf8' }).trim(), repository);
+  const runner = read('scripts/ci-browser-run.mjs');
+  assert.match(runner, /source !== process\.env\.CI_SOURCE_SHA/);
+  assert.match(runner, /process\.env\.CI_SOURCE_SHA && sourceDirty/);
 });

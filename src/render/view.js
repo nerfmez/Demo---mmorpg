@@ -1059,34 +1059,47 @@ export class View {
 
   /** Render a portrait of a hero face to a data URL for the HUD. */
   portrait(look, gear = {}, size = 128) {
+    const previousTarget = this.renderer.getRenderTarget();
+    const previousFace = this.renderer.getActiveCubeFace();
+    const previousLevel = this.renderer.getActiveMipmapLevel();
     const rt = new THREE.WebGLRenderTarget(size, size, { colorSpace: THREE.SRGBColorSpace });
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#2c3a5c');
-    const hero = buildHumanoid(look, gear);
-    scene.add(hero.root);
-    scene.add(new THREE.HemisphereLight('#ffffff', '#445566', 2.2));
-    const l = new THREE.DirectionalLight('#ffffff', 1.5);
-    l.position.set(1, 2, 3);
-    scene.add(l);
-    const cam = new THREE.PerspectiveCamera(22, 1, 0.1, 10);
-    cam.position.set(0.25, 1.72, 1.1);
-    cam.lookAt(0, 1.64, 0);
-    hero.root.rotation.y = 0.35;
-    hero.root.updateMatrixWorld(true);
-    this.renderer.setRenderTarget(rt);
-    this.renderer.render(scene, cam);
-    const px = new Uint8Array(size * size * 4);
-    this.renderer.readRenderTargetPixels(rt, 0, 0, size, size, px);
-    this.renderer.setRenderTarget(null);
-    const c = document.createElement('canvas');
-    c.width = c.height = size;
-    const ctx = c.getContext('2d');
-    const img = ctx.createImageData(size, size);
-    for (let yy = 0; yy < size; yy++) img.data.set(px.subarray((size - 1 - yy) * size * 4, (size - yy) * size * 4), yy * size * 4);
-    ctx.putImageData(img, 0, 0);
-    rt.dispose();
-    disposeObject(hero.root);
-    disposeObject(hero.scarf?.mesh);
-    return c.toDataURL();
+    let hero;
+    try {
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color('#2c3a5c');
+      hero = buildHumanoid(look, gear);
+      scene.add(hero.root);
+      scene.add(new THREE.HemisphereLight('#ffffff', '#445566', 2.2));
+      const l = new THREE.DirectionalLight('#ffffff', 1.5);
+      l.position.set(1, 2, 3);
+      scene.add(l);
+      const cam = new THREE.PerspectiveCamera(22, 1, 0.1, 10);
+      cam.position.set(0.25, 1.72, 1.1);
+      cam.lookAt(0, 1.64, 0);
+      hero.root.rotation.y = 0.35;
+      hero.root.updateMatrixWorld(true);
+      this.renderer.setRenderTarget(rt);
+      this.renderer.render(scene, cam);
+      const px = new Uint8Array(size * size * 4);
+      this.renderer.readRenderTargetPixels(rt, 0, 0, size, size, px);
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      const img = ctx.createImageData(size, size);
+      for (let yy = 0; yy < size; yy++) img.data.set(px.subarray((size - 1 - yy) * size * 4, (size - yy) * size * 4), yy * size * 4);
+      ctx.putImageData(img, 0, 0);
+      return c.toDataURL();
+    } finally {
+      // Portrait errors are caught by the HUD; keep its borrowed renderer usable.
+      try {
+        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
+      } finally {
+        rt.dispose();
+        if (hero) {
+          disposeObject(hero.root);
+          disposeObject(hero.scarf?.mesh);
+        }
+      }
+    }
   }
 }

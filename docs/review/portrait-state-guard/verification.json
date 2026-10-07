@@ -1,0 +1,136 @@
+{
+  "base_commit": "24ff2b43c2be0413a6679077f0edd7698ba501cd",
+  "source_sha256": {
+    "src/render/view.js": "d74840fb31d1d906bf204ab49f785f1f3fa045f8b4538c3f82e07ee8bfccde64",
+    "tests/core/portrait-lifetime.test.js": "cc92b4aff3e5390372d42be6dccfc31041f35f2d1d0f552ede1bb3ec1e7bca2f"
+  },
+  "kind": "Controlled failure validation; original device incident not reproduced",
+  "tests": {
+    "command": "node --test tests/core/portrait-lifetime.test.js",
+    "passed": 5,
+    "failed": 0,
+    "baseline_control": "PORTRAIT_SOURCE=/workspace/render-bug-baseline/src/render/view.js: five failures",
+    "cases": [
+      "build failure before a hero is returned",
+      "render failure",
+      "readback failure",
+      "PNG encoding failure",
+      "successful pixel row flip and borrowed-target restoration"
+    ]
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "advisory": "Existing chunk-size advisory"
+  },
+  "browser": {
+    "engine": "Linux WebKit 26 software renderer",
+    "viewport": [
+      1180,
+      820
+    ],
+    "quality": "medium",
+    "clock": "Natural requestAnimationFrame; fixture raises HP/maxHp, retains native damage; no accelerated game updates",
+    "wall_elapsed_ms": 45096,
+    "simulated_seconds": 0.5500000000000004,
+    "controlled_readback_failure": {
+      "injected": true,
+      "caught": {
+        "same": true,
+        "message": "controlled portrait readback failure",
+        "stack": "@\nevaluate@\n@"
+      },
+      "targetRestored": true,
+      "contextLost": false,
+      "glError": 0,
+      "normalEqual": true,
+      "targets": [
+        {
+          "target": "d79c61d9-3cda-48b6-b7ab-df8a22db3d73",
+          "bound": true,
+          "width": 128,
+          "height": 128,
+          "wall": 36416.00000000001,
+          "game": 0.7860000000000001
+        },
+        {
+          "target": null,
+          "bound": false,
+          "wall": 38062,
+          "game": 0.7860000000000001
+        },
+        {
+          "target": "75f8c28e-3b78-4be5-8c13-d2b56c5b736f",
+          "bound": true,
+          "width": 128,
+          "height": 128,
+          "wall": 38076,
+          "game": 0.7860000000000001
+        },
+        {
+          "target": null,
+          "bound": false,
+          "wall": 39572,
+          "game": 0.7860000000000001
+        },
+        {
+          "target": "7e37f1b1-e18a-469a-95ef-a7e3a71d61d9",
+          "bound": true,
+          "width": 128,
+          "height": 128,
+          "wall": 39583,
+          "game": 0.7860000000000001
+        },
+        {
+          "target": null,
+          "bound": false,
+          "wall": 41164,
+          "game": 0.7860000000000001
+        }
+      ]
+    },
+    "native_page_errors": [],
+    "states": [
+      {
+        "stage": "before",
+        "target_bound": false,
+        "context_lost": false,
+        "gl_error": 0,
+        "mini_geographic_pixels": 75300,
+        "atlas_sample_rgba_hash": 3482138189,
+        "wolf_program": {
+          "id": 163,
+          "used": 4
+        }
+      },
+      {
+        "stage": "after-injected-readback",
+        "target_bound": false,
+        "context_lost": false,
+        "gl_error": 0,
+        "mini_geographic_pixels": 75300,
+        "atlas_sample_rgba_hash": 3482138189,
+        "wolf_program": {
+          "id": 163,
+          "used": 4
+        }
+      }
+    ]
+  },
+  "portrait_png_sha256": {
+    "portrait-after-normal.png": "36b4244adc436754961e5454064d1d134cbf33d90b6e67ef3047a32490e3b946",
+    "portrait-before-normal.png": "36b4244adc436754961e5454064d1d134cbf33d90b6e67ef3047a32490e3b946"
+  },
+  "raw_browser_report_sha256": "7867214a965f5da2cbbd6ccb506da24a6185aed7ceab809790bf16a3b07fcef0",
+  "limits": [
+    "Injected TypeError is not an observed Safari/iPad error",
+    "No physical iPad/Safari Metal review",
+    "Canvas2D minimap is a separate channel; original black-wolf/blank-minimap cause remains unproven",
+    "Automation skips the existing dynamic-resolution governor through navigator.webdriver"
+  ],
+  "review": {
+    "method": "Inspected original portrait PNG and post-failure full-game PNG pixels; sampled stills, not continuous video playback",
+    "acceptance": "Normal portrait pixels unchanged; borrowed target restored after the controlled failure; subsequent world and minimap frame remains colored",
+    "findings": "Normal PNGs byte-identical; live context, zero GL/page error, intact geography; reported device symptoms not reproduced"
+  }
+}

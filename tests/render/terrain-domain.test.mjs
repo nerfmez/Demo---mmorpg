@@ -53,6 +53,18 @@ test('closed skirt edges and finite grid end meet at the same rendered height',(
   assert.equal(north[0].id,F);assert.equal(south[0].id,A);
   assert.ok(Math.abs(north[0].y-south[0].y)<.001,`finite grid cap at X=${x}`);
  }
+ // The southern finite cap has the reverse handover, beyond Frontier's grid.
+ for(const x of[-195.25,-175.25,-165.25]){
+  const north=hits(x,155-1e-5),south=hits(x,155+1e-5);
+  assert.ok(north.length&&south.length,`uncovered southern cap at X=${x}`);
+  assert.equal(north[0].id,F);assert.equal(south[0].id,A);
+  assert.ok(Math.abs(north[0].y-south[0].y)<.001,`southern grid cap at X=${x}`);
+ }
+ for(const z of[115.25,130.25,145.25,154.75]){
+  const west=hits(-160.0001,z),east=hits(-159.9999,z);
+  assert.ok(west.length&&east.length,`uncovered southern shared edge at Z=${z}`);
+  assert.ok(Math.abs(west[0].y-east[0].y)<.003,`southern rendered cut face at Z=${z}`);
+ }
 });
 
 test('playable vertex heights, rule heightfields and coastal water classification are preserved',()=>{
@@ -77,6 +89,10 @@ test('retained decorative tree roots sample their actual terrain owner',()=>{
   if(!found.length)continue;
   const owner=found[0].id,expected=domains[owner].height(...local(owner,x,z),worlds[owner].groundY(...local(owner,x,z)));
   assert.ok(Math.abs(domains[id].groundHeight(tree.x,tree.z)-expected)<1e-6);borrowed++;
+  // Independent of the height helper: intersect the production terrain triangles.
+  // Native heightAt uses bilinear samples while the renderer triangulates cells.
+  const ground=domains[id].groundHeight(tree.x,tree.z);
+  assert.ok(Math.abs(ground-found[0].y)<.05,`tree root disagrees with actual triangles at ${x},${z}: ${ground} versus ${found[0].y}`);
  }
  assert.ok(borrowed>10,'exercise actual closed-end edge trees');
 });

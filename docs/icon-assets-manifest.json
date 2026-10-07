@@ -3868,6 +3868,226 @@
       "source_file": "exec-1dea9311-3f38-4155-90f5-99acb22ff386.png",
       "delivery_export": "ImageMagick Lanczos resize to 512x512 RGBA, source alpha retained",
       "integration_base_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac"
+    },
+    {
+      "key": "material/mantis_scythe",
+      "path": "assets/icons/material/mantis_scythe.png",
+      "sha256": "a921af67753bb4b3e8d1d1a4ffaa2f7ff5e2091d5e1511e75128230f3443fb7d",
+      "bytes": 126432,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/material/mantis_scythe.png"
+    },
+    {
+      "key": "material/viper_scale",
+      "path": "assets/icons/material/viper_scale.png",
+      "sha256": "7e2d3b21b6ace9bff56c7beec2987aaa1b8435041852fa8ed428addfe82a7a2a",
+      "bytes": 150223,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/material/viper_scale.png"
+    },
+    {
+      "key": "material/ram_horn",
+      "path": "assets/icons/material/ram_horn.png",
+      "sha256": "413d960702157115927de50bca7655d1d0daced03f2a0077c5e144629f48f0aa",
+      "bytes": 237240,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/material/ram_horn.png"
+    },
+    {
+      "key": "material/dusk_pelt",
+      "path": "assets/icons/material/dusk_pelt.png",
+      "sha256": "4f409338179b5dcef85056b883322c040d95ded72ab63a54963bccee68c5d30f",
+      "bytes": 187189,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/material/dusk_pelt.png"
+    },
+    {
+      "key": "material/rune_core",
+      "path": "assets/icons/material/rune_core.png",
+      "sha256": "2967de0fb455871ec8e28a6fc2ac9573ab401e6e7f6c633258c6ae68b041730b",
+      "bytes": 125154,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/material/rune_core.png"
+    },
+    {
+      "key": "consumable/hp_potion_s",
+      "path": "assets/icons/consumable/hp_potion_s.png",
+      "sha256": "a678a916301cf2e63b5d902877db37d07483c7a902b9dbde085e2fe4adf70ce9",
+      "bytes": 114549,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/consumable/hp_potion_s.png"
+    },
+    {
+      "key": "consumable/hp_potion_m",
+      "path": "assets/icons/consumable/hp_potion_m.png",
+      "sha256": "56089643c97acc46e64cba0f8a169182509ca522205223902e64d9df1416a9b9",
+      "bytes": 149558,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/consumable/hp_potion_m.png"
+    },
+    {
+      "key": "consumable/hp_potion_l",
+      "path": "assets/icons/consumable/hp_potion_l.png",
+      "sha256": "9ce9844199677235c01d27dbe4c79efa45b8cf02ea3f4ae1082c05f1b7ad8ba3",
+      "bytes": 197223,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/consumable/hp_potion_l.png"
+    },
+    {
+      "key": "consumable/mp_potion_s",
+      "path": "assets/icons/consumable/mp_potion_s.png",
+      "sha256": "fa0c30cd177c01c67ab1cb0a472f62a9c67fcbc31da08cf8c24f3faa5b06be67",
+      "bytes": 113350,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/consumable/mp_potion_s.png"
+    },
+    {
+      "key": "consumable/mp_potion_m",
+      "path": "assets/icons/consumable/mp_potion_m.png",
+      "sha256": "5eb89283847de6dc4d1678a53acb2839165684efa0bfae9bfec46fa9c013978f",
+      "bytes": 148519,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/consumable/mp_potion_m.png"
+    },
+    {
+      "key": "consumable/mp_potion_l",
+      "path": "assets/icons/consumable/mp_potion_l.png",
+      "sha256": "1872c6c754fafe814e3f45b5c2c0965f22d1c1e578d23233651c8887544d87d9",
+      "bytes": 196749,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "source_archive": "new-item-art-20261007.zip",
+      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+      "source_archive_path": "final/consumable/mp_potion_l.png"
     }
   ],
   "pending_count": 0,
@@ -3875,5 +4095,6 @@
   "integration_base_commit": "8778cebd9c526e3f4f629c255411a8dea4bfd533",
   "transparency_edit_base_commit": "5b321e051458aafddbef1cd01bc5c7f339c603e7",
   "skill_delivery": "512px transparent delivery PNGs; unchanged 1254px approved masters retained outside public/ in assets-source/skills/",
-  "expanded_items_source_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac"
+  "expanded_items_source_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac",
+  "new_items_source_commit": "380e3b077d422e968e0d8558e0cbdf255f9a8211"
 }

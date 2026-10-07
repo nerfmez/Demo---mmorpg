@@ -1,11 +1,14 @@
-// Potion bottles drawn as inline SVG: red (HP) or blue (MP); the round flask grows with its size.
+import { RASTER_ICONS, rasterIconMarkup } from './raster-icons.js';
+// Supplied bottles use the same group/size identity as the authored SVG fallback.
 const LIQUID = { hp: ['#ff7a7a', '#c8243a'], mp: ['#86ccff', '#2a5fd0'] };
 const RADIUS = { s: 5.2, m: 6.6, l: 8 };
 // every bottle gets its own gradient id: a hidden copy (a closed panel) would otherwise blank it
 let serial = 0;
 
-export function potionArt(def) {
+export function potionArt(def, registry = RASTER_ICONS) {
   if (!def) return '';
+  const raster = rasterIconMarkup('consumable', `${def.group}_potion_${def.size}`, 'potion-art', registry);
+  if (raster) return raster;
   const [light, dark] = LIQUID[def.group] || LIQUID.hp, r = RADIUS[def.size] || RADIUS.m;
   const cx = 12, cy = 22.5 - r, neckW = 2.6 + r * 0.2, neckTop = cy - r - 3.2, id = `${def.group}-${def.size}-${++serial}`;
   return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="potion-art"><defs><linearGradient id="pl-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>`

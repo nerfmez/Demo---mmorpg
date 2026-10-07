@@ -6,6 +6,7 @@ lines. Only detached specks and near-zero alpha background noise are removed.
 """
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +19,18 @@ manifest = json.loads(MANIFEST.read_text())
 portraits = []
 for sheet in manifest['sheets']:
     source = ROOT / sheet['path']
+    if sheet.get('split_mode') == 'verified-export':
+        # Owner-reviewed individual exports are authoritative. Rebuild their
+        # runtime copies byte-for-byte; historical batch cells stay retained.
+        image = Image.open(source)
+        assert image.mode == 'RGBA' and image.size == (256, 256), source
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == sheet['sha256']
+        for cell in sheet['cells']:
+            dest = ROOT / cell['path']
+            shutil.copyfile(source, dest)
+            assert hashlib.sha256(dest.read_bytes()).hexdigest() == cell['sha256']
+            portraits.append((cell['id'], image.copy()))
+        continue
     image = Image.open(source).convert('RGBA')
     pixels = np.array(image)
     alpha = pixels[:, :, 3]
@@ -98,6 +111,17 @@ for kind,folder in [('monster','atlas-monsters'),('region','atlas-regions')]:
   x=n%3*360;y=n//3*230;im=Image.open(r/c['path']).convert('RGBA');big=im.resize((150,150),Image.Resampling.LANCZOS);out.paste(big,(x+12,y+8),big);small=im.resize((50,50),Image.Resampling.LANCZOS);out.paste(small,(x+190,y+55),small);dark=Image.new('RGB',(74,74),'#142322');dark.paste(small,(12,12),small);out.paste(dark,(x+263,y+43));d.text((x+12,y+174),c.get('map',''),fill='#322d25');d.text((x+12,y+194),c['id'],fill='#322d25')
  out.save(r/f'assets/atlas-journal/{kind}-review.png')
  p=r/f'assets/{folder}/manifest.json'
- a={k:v for k,v in m.items()if k!='sheets'};a['splitter']='scripts/split-atlas-journal.py';a['sheets']=[{**s,'cells':[c for c in s['cells']if c['kind']==kind]}for s in m['sheets']if any(c['kind']==kind for c in s['cells'])];p.write_text(json.dumps(a,indent=2)+'\n')
+ a={k:v for k,v in m.items()if k!='sheets'}
+ a['splitter']='scripts/split-atlas-journal.py'
+ a['sheets']=[]
+ for sheet in m['sheets']:
+  if not any(c['kind']==kind for c in sheet['cells']):continue
+  entry={**sheet,'cells':[c for c in sheet['cells']if c['kind']==kind]}
+  if 'superseded_cells' in entry:
+   retained=[c for c in entry['superseded_cells']if c['kind']==kind]
+   if retained:entry['superseded_cells']=retained
+   else:del entry['superseded_cells']
+  a['sheets'].append(entry)
+ p.write_text(json.dumps(a,indent=2)+'\n')
 
 print('Exported', len(portraits), '256px RGBA Atlas icons and labelled previews.')

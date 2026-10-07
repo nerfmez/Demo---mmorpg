@@ -1,7 +1,7 @@
 // Only list PNGs that have actually been supplied, verified and included.
 // Unregistered IDs retain their existing authored SVG; never invent placeholders.
-// Atlas list portraits opt in separately: shared monster art still renders the
-// original SVG on map boss pins and any other consumer.
+// Atlas list portraits opt in separately. The six approved replacement
+// identities below also opt in for map pins, quest cards and material sources.
 export const MONSTER_PORTRAITS = Object.freeze({
  "monster/tusk_boar": "assets/icons/monster/tusk_boar.png",
  "monster/moss_beetle": "assets/icons/monster/moss_beetle.png",
@@ -22,6 +22,10 @@ export const MONSTER_PORTRAITS = Object.freeze({
  "monster/duskmane_stalker": "assets/icons/monster/duskmane_stalker.png",
  "monster/rune_sentinel": "assets/icons/monster/rune_sentinel.png"
 });
+export const SHARED_MONSTER_PORTRAITS = Object.freeze(Object.fromEntries(
+ ['salt_slime','tusk_boar','thornback_wolf','greyfang','reed_viper','marsh_wisp']
+   .map(id=>['monster/'+id,MONSTER_PORTRAITS['monster/'+id]])
+));
 export const REGION_PORTRAITS = Object.freeze({
  "region/azure-harbor-v1/landing": "assets/icons/region/azure-harbor-v1/landing.png",
  "region/azure-harbor-v1/settlement": "assets/icons/region/azure-harbor-v1/settlement.png",

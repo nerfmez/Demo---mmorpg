@@ -30,3 +30,27 @@ registered in `data/models.json` → `monsters` and skinned onto the procedural 
 The salt slime concept was redrawn for a level-1 monster (the first design looked too fierce); the 3D model
 is Meshy 6 image-to-3d with `should_remesh` and `target_polycount` 3000, then
 `python3 scripts/shrink-glb-texture.py raw.glb public/models/monsters/salt_slime.glb 512` shrinks the texture.
+
+## Replacements, 2026-10-07 (owner-supplied models)
+
+Six monsters were redesigned (concept sheets `*_concept_v2.jpg`, viper `_v4`; the two wolf sheets are phone
+screenshots, so the viewer buttons show on them). The owner supplied the Meshy GLBs; they replace the models above
+for the same monster ids. Source file names and how each was prepared (`scripts/prep-monster-glb.py`: bake the
+rest pose, drop the skin, keep the main piece, straighten, normalise to 1.9 m, decimate with meshoptimizer, base
+colour map at 512 px):
+
+| Type (new look) | Source GLB | Prepared with | Tris |
+|---|---|---|---|
+| salt_slime (Tidal Slime) | `Meshy_AI_Tidal_Slime_1007121839_texture.glb` | `--tris 4900` | 4,899 |
+| tusk_boar (Boarbull) | `Meshy_AI_Character_output.glb` (rigged) | `--tris 4900` | 4,899 |
+| thornback_wolf (Maskfang Wolf) | `Meshy_AI_Character_output_2.glb` (rigged) | `--yaw 18.5 --tris 4500` | 4,499 |
+| greyfang (Greyfang Alpha, boss) | `Meshy_AI_Character_output_3.glb` (rigged) | `--keep 1 --yaw 19 --tris 5900` | 5,899 |
+| reed_viper (Reedblade Viper, coiled) | `Meshy_AI_Reedblade_Viper_1007122637_texture.glb` | `--keep 1 --yaw 15 --tris 4900` | 4,899 |
+| marsh_wisp (Lostlight Wisp) | `Meshy_AI_Lostlight_Wisp_1007124252_texture.glb` | `--tris 4900` | 4,900 |
+
+The viper sheet carried a second small snake and the drop pictures in the same file; `--keep 1` keeps the large
+coiled snake only. The three quadrupeds came with a Meshy auto-rig: its joint positions placed the rig bones and
+skin lines in `data/models.json` (the wolves stood turned about 19 degrees, hence `--yaw`). The wolf and Greyfang are
+decimated a little harder so that Greyfang plus the two wolves it summons stay inside the encounter budget
+(`tests/core/presentation.test.js`). The viper's bone chain follows the traced centreline of the coil, and its
+`wave` value (data/models.json) damps the slither of the long-body animator for the coiled model.

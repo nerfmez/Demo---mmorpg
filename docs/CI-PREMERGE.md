@@ -15,6 +15,10 @@ different merge tree receives a separate build and affected UI/HUD execution,
 including changed consumers brought in from the base. Source, engine, selected
 scripts, run attempt and completion must match before a gate passes. Missing,
 cancelled, failing, partial and stale reports fail closed.
+Legacy bounded UI paths still select all of their former UI/HUD scripts unless
+they have explicit focused dependency proof. Equipment avatars also retain
+their loadout workspace consumer. The shared gates verify these central shards
+at the required source, including a separate merge tree when needed.
 
 Scheduling uses the existing hosted account capacity, without the previous
 six-job cap. Long suites are placed first and engines are interleaved. Playwright
@@ -24,11 +28,15 @@ installation still runs on every job. No account limits or billing are changed.
 Equipment narrowing is defined in `scripts/ci-equipment-impact.mjs`. Shared
 character/crafting/panel/progression modules require before/after AST evidence
 that changes stay within recognized equipment functions/actions. The equipment
-notice block can change independently; the rest of save migration must remain
-identical. Creation, derived stats, unrelated actions, imports, unknown exports,
+notice block can change independently only within a finite statement/expression
+grammar and at its original migration position. Exits, control flow, side effects
+and the rest of save migration remain checked. Shared art CSS requires exact,
+complete equipment selectors; substrings and nested/global selectors fail closed.
+Creation, derived stats, unrelated actions, imports, unknown exports,
 new shared modules, dependencies and infrastructure retain full fallback. The
 bounded equipment and loadout components retain their equipment, skill/mod
-workspace, combat, item, menu, save, wearable and HUD consumers.
+workspace, combat, item, menu, save, wearable and HUD consumers, plus both weapon
+loading/model scripts for exact IDs, geometry and async attachments.
 
 The focused `equipment-focused.mjs` check exercises actual rendered desktop,
 iPad and phone equipment thresholds, combined-hand deficits, touch details,
@@ -42,6 +50,10 @@ uses engine-specific launch options and writes separate browser artifacts.
 All original assertions and viewports remain. Its former single-engine launcher
 is rejected rather than reported as WebKit success. CI also rejects device-only
 and offline-harness shortcuts.
+Browser process diagnostics are retained without retries or timeout changes.
+Release evidence reads all artifact pages and rejects duplicate identities,
+ambiguous exact build names, truncation, changing totals and API errors. The
+source/run/attempt checks and normal validation fallback remain mandatory.
 
 Branch-protection settings could not be read with the available integration
 (HTTP 403). Actual check-run names were inspected; no protections were changed.

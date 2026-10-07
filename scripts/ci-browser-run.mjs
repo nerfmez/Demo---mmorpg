@@ -26,7 +26,10 @@ for (const script of SUITES[suite]) {
   let result;
   try {
     validateEngineOwnership(script, readFileSync(`tests/browser/${script}`, 'utf8'));
-    result = spawnSync(process.execPath, [`tests/browser/${script}`], { stdio: 'inherit', env: process.env });
+    // Preserve browser stderr and process-exit diagnostics for real crashes.
+    // This adds evidence, never retries or changes assertions/timeouts.
+    const env = { ...process.env, DEBUG: [process.env.DEBUG, 'pw:browser'].filter(Boolean).join(',') };
+    result = spawnSync(process.execPath, [`tests/browser/${script}`], { stdio: 'inherit', env });
   } catch (error) {
     console.error(error.message);
     result = { status: 1, signal: null, error };

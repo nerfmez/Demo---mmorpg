@@ -34,6 +34,8 @@ export const SUITES = {
   hud: ['fieldhud.mjs'],
 };
 export const FULL_SUITES = Object.keys(SUITES);
+export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];
+const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 
 // Only explicit, bounded dependencies may select a subset. Core/data, shared
 // renderer/UI, assets outside this allowlist and new paths always fall back full.
@@ -42,7 +44,7 @@ const LOCAL_PATHS = {
   'src/ui/menu.js': ['menu'],
   'src/ui/menu-map.js': ['world', 'menu', 'ux', 'capture'],
   'src/ui/mapimage.js': ['world', 'menu', 'ux', 'capture'],
-  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux'],
+  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux', 'workspaces'],
   'src/ui/quest-journal.js': ['quests', 'hud'],
   'src/ui/fieldhud.css': ['hud'],
 };
@@ -66,6 +68,17 @@ export function focusedReviewCovered(file) {
   // Older allowlists retain their legacy review owners until every consumer is
   // explicitly represented. These three bounded components have focused proof.
   return ITEM_IMAGES.has(file) || ['src/ui/menu.js', 'src/ui/quest-journal.js', 'src/ui/fieldhud.css'].includes(file);
+}
+
+export function legacyReviewRequirements(file) {
+  const browserTest = /^tests\/browser\/([^/]+)\.mjs$/.exec(file)?.[1];
+  const sharedUi = !focusedReviewCovered(file) && file.startsWith('src/ui/');
+  return {
+    ui: sharedUi || file === 'index.html' ||
+      ['src/core/skills.js', 'src/core/character.js', 'src/save.js', 'data/jobtree.json', 'data/skills.json', 'data/mods.json'].includes(file) ||
+      UI_TESTS.has(browserTest) || /^tests\/core\/(workspaces|journal|skills|save|progression)\.test\.js$/.test(file),
+    hud: sharedUi || file === 'index.html' || browserTest === 'fieldhud' || file === 'tests/core/fieldhud.test.js',
+  };
 }
 
 // Hash the policy/runner/action as well as its version; forgetting to bump the
@@ -110,6 +123,14 @@ export function browserPlan(files, { full = false, impacts = {} } = {}) {
     if (!affected) affected = Object.entries(SUITES).filter(([, scripts]) => scripts.some(name => file === `tests/browser/${name}`)).map(([suite]) => suite);
     if (!affected.length) return { suites: [...FULL_SUITES], reason: `conservative full fallback: ${file}` };
     affected.forEach(suite => selected.add(suite));
+    // Preserve the old review ownership unless before/after proof explicitly
+    // establishes the new equipment boundary. These scripts now execute once
+    // in the central matrix and still certify the stable review/HUD gates.
+    if (!impacts[file]) {
+      const legacy = legacyReviewRequirements(file);
+      if (legacy.ui) LEGACY_UI_SUITES.forEach(suite => selected.add(suite));
+      if (legacy.hud) selected.add('hud');
+    }
   }
   if (game) selected.add('boot');
   return { suites: FULL_SUITES.filter(suite => selected.has(suite)), reason: game ? 'boot + explicitly affected functionality' : 'documentation/tool checks only' };

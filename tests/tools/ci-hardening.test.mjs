@@ -47,7 +47,8 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).tools, true);
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).game, false);
   assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
-  assert.deepEqual(browserPlan(['src/ui/equipment-avatar.js']).suites, ['boot', 'equipment', 'weapons', 'menu', 'ux']);
+  for (const suite of ['boot', 'equipment', 'weapons', 'menu', 'ux', 'workspaces', 'hud'])
+    assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes(suite));
   for (const path of ['src/ui/menu.js', 'src/ui/skill-journal/journal.js']) {
     assert.ok(browserPlan([path]).suites.includes('boot'), path);
   }

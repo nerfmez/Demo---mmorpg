@@ -135,6 +135,44 @@ test('resolver enables reuse only after successful download, digest, source and 
   assert.equal(JSON.parse(readFileSync(join(options.directory, 'ci-evidence.json'))).target, target);
 });
 
+function paginatedArtifacts(f, responses) {
+  // 50 browser jobs each publish report + capture artifacts, plus one build.
+  const reports = Array.from({ length: 100 }, (_, index) => ({ id: 1000 + index, name: `browser-${index}` }));
+  const first = `repos/${repository}/actions/runs/99/artifacts?per_page=100`;
+  const second = `${first}&page=2`;
+  responses[first] = { total_count: 101, artifacts: reports };
+  responses[second] = { total_count: 101, artifacts: [f.artifact] };
+  return { first, second };
+}
+test('full 50-job CI evidence with 101 artifacts reuses the exact build on page two', async t => {
+  const { f, responses, options } = resolverFixture(t);
+  assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, 50);
+  paginatedArtifacts(f, responses);
+  const evidence = await resolveRelease(options);
+  assert.equal(evidence?.artifactId, 456);
+  assert.equal(evidence?.source, source);
+  assert.equal(evidence?.runId, 99);
+  assert.equal(evidence?.attempt, 2);
+});
+for (const kind of ['duplicate ID', 'duplicate exact build', 'short first page', 'short final page',
+  'changing total', 'missing page', 'page API error', 'invalid total', 'wrong source', 'wrong attempt', 'wrong run'])
+  test(`paginated artifact evidence rejects ${kind}`, async t => {
+    const { f, responses, options } = resolverFixture(t);
+    const { first, second } = paginatedArtifacts(f, responses);
+    if (kind === 'duplicate ID') responses[first].artifacts[0].id = f.artifact.id;
+    if (kind === 'duplicate exact build') responses[first].artifacts[0] = { ...f.artifact, id: 1234 };
+    if (kind === 'short first page') responses[first].artifacts.pop();
+    if (kind === 'short final page') responses[second].artifacts = [];
+    if (kind === 'changing total') responses[second].total_count++;
+    if (kind === 'missing page') delete responses[second];
+    if (kind === 'page API error') { const api = options.api; options.api = path => path === second ? Promise.reject(Error('unavailable')) : api(path); }
+    if (kind === 'invalid total') responses[first].total_count = 10001;
+    if (kind === 'wrong source') f.artifact.workflow_run.head_sha = target;
+    if (kind === 'wrong attempt') f.artifact.name = `ci-dist-${source}-99-1`;
+    if (kind === 'wrong run') f.artifact.workflow_run.id = 98;
+    assert.equal(await resolveRelease(options), null);
+  });
+
 for (const files of [
   ['public/assets/icons/gear/wisp_staff.png'], ['src/ui/fieldhud.css'], ['src/ui/quest-journal.js'],
   ['docs/icon-assets-manifest.json'],

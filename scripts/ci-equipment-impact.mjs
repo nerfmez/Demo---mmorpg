@@ -2,7 +2,9 @@
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 
-export const EQUIPMENT_SUITES = ['boot', 'smoke', 'combat', 'equipment', 'equipment-focus', 'equipment-inactive', 'items', 'menu', 'save', 'workspaces', 'wearable', 'hud'];
+// Equipped-state changes also feed exact weapon IDs, geometry and async model
+// attachment. The two weapon scripts remain owners of that dependency.
+export const EQUIPMENT_SUITES = ['boot', 'smoke', 'combat', 'equipment', 'equipment-focus', 'equipment-inactive', 'weapons', 'items', 'menu', 'save', 'workspaces', 'wearable', 'hud'];
 export const EQUIPMENT_PATHS = ['src/core/character.js', 'src/core/crafting.js', 'src/ui/progressionview.js',
   'src/ui/panels.js', 'src/ui/inventory.js', 'src/ui/loadout-workspace.js', 'src/ui/loadout-workspace.css', 'src/ui/art.css'];
 const functions = {
@@ -14,34 +16,83 @@ const functions = {
 };
 const clean = node => JSON.parse(JSON.stringify(node, (key, value) => ['start', 'end', 'raw'].includes(key) ? undefined : value));
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const calls = node => JSON.stringify(node).match(/"name":"(?:enforceEquipment|equipmentNotice)"/);
+const identifier = (node, name) => node?.type === 'Identifier' && node.name === name;
+const property = (node, object, name) => node?.type === 'MemberExpression' && !node.computed && !node.optional &&
+  identifier(node.object, object) && identifier(node.property, name);
+const noticeTarget = node => node?.type === 'MemberExpression' && !node.computed && !node.optional &&
+  property(node.object, 'ch', 'progress') && identifier(node.property, 'equipmentNotice');
+
+function noticeValue(node) {
+  // A finite expression grammar: no nested statements, writes, arbitrary calls,
+  // callbacks with block bodies, or constructs that can exit/suspend migration.
+  if (!node) return false;
+  if (node.type === 'Identifier') return ['ch', 'data', 'moved', 'notice', 'it'].includes(node.name);
+  if (node.type === 'Literal') return typeof node.value === 'string';
+  if (node.type === 'BinaryExpression') return node.operator === '+' && noticeValue(node.left) && noticeValue(node.right);
+  if (node.type === 'TemplateLiteral') return node.expressions.every(noticeValue);
+  if (node.type === 'MemberExpression') return !node.optional && noticeValue(node.object) &&
+    (node.computed ? noticeValue(node.property) : node.property.type === 'Identifier');
+  if (node.type !== 'CallExpression' || node.optional) return false;
+  if (identifier(node.callee, 'gearItem')) return node.arguments.length === 2 &&
+    identifier(node.arguments[0], 'ch') && property(node.arguments[1], 'it', 'uid');
+  if (property(node.callee, 'moved', 'map')) {
+    const callback = node.arguments[0];
+    return node.arguments.length === 1 && callback?.type === 'ArrowFunctionExpression' && !callback.async &&
+      callback.expression && callback.params.length === 1 && identifier(callback.params[0], 'it') && noticeValue(callback.body);
+  }
+  return node.callee.type === 'MemberExpression' && !node.callee.computed && !node.callee.optional &&
+    identifier(node.callee.property, 'join') && node.callee.object.type === 'CallExpression' &&
+    property(node.callee.object.callee, 'moved', 'map') && noticeValue(node.callee.object) &&
+    node.arguments.length === 1 && node.arguments[0].type === 'Literal' && typeof node.arguments[0].value === 'string';
+}
+
+function noticeBranch(node, deleting = false) {
+  if (node?.type === 'BlockStatement') return node.body.length === 1 && noticeBranch(node.body[0], deleting);
+  if (node?.type !== 'ExpressionStatement') return false;
+  const expression = node.expression;
+  return deleting
+    ? expression.type === 'UnaryExpression' && expression.operator === 'delete' && noticeTarget(expression.argument)
+    : expression.type === 'AssignmentExpression' && expression.operator === '=' && noticeTarget(expression.left) && noticeValue(expression.right);
+}
+
 function equipmentMigrationStatement(node) {
-  // Only the notice/repair block can move independently of save migration.
-  if (node.type === 'VariableDeclaration') return node.declarations.every(d =>
-    ['moved', 'notice'].includes(d.id.name) && d.init?.type === 'CallExpression' &&
-    ['enforceEquipment', 'equipmentNotice'].includes(d.init.callee.name) &&
+  // Only the notice/repair content can change independently of save migration.
+  if (node.type === 'VariableDeclaration') return node.kind === 'const' && node.declarations.length === 1 && node.declarations.every(d =>
+    ['moved', 'notice'].includes(d.id.name) && d.init?.type === 'CallExpression' && !d.init.optional &&
+    identifier(d.init.callee, d.id.name === 'moved' ? 'enforceEquipment' : 'equipmentNotice') &&
     equal(d.init.arguments.map(a => a.name), ['ch', 'data']));
-  if (node.type === 'ExpressionStatement') return node.expression.type === 'CallExpression' && calls(node) &&
-    node.expression.callee.name === 'enforceEquipment' && equal(node.expression.arguments.map(a => a.name), ['ch', 'data']);
-  // Identify the exact equipment notice writes, including the old named-item message.
-  if (node.type !== 'IfStatement') return false;
-  const code = JSON.stringify(node);
-  if (!code.includes('"name":"equipmentNotice"') || !/"name":"(?:moved|notice)"/.test(code)) return false;
-  const writes = [];
-  const walk = n => {
-    if (!n || typeof n !== 'object') return;
-    if (n.type === 'AssignmentExpression' || (n.type === 'UnaryExpression' && n.operator === 'delete')) writes.push(n.left || n.argument);
-    for (const v of Object.values(n)) if (Array.isArray(v)) v.forEach(walk); else walk(v);
-  };
-  walk(node);
-  return writes.length > 0 && writes.every(n => n.type === 'MemberExpression' && n.property.name === 'equipmentNotice' &&
-    n.object?.type === 'MemberExpression' && n.object.object.name === 'ch' && n.object.property.name === 'progress') &&
-    // No new calls/side effects may hide behind a notice write.
-    !code.includes('"type":"UpdateExpression"') && !code.includes('"type":"NewExpression"') &&
-    (() => { const found = []; const visit = n => { if (!n || typeof n !== 'object') return;
-      if (n.type === 'CallExpression') found.push(n.callee.type === 'Identifier' ? n.callee.name : n.callee.property?.name);
-      Object.values(n).forEach(v => Array.isArray(v) ? v.forEach(visit) : visit(v)); }; visit(node);
-      return found.every(name => ['map', 'join', 'gearItem'].includes(name)); })();
+  if (node.type === 'ExpressionStatement') return node.expression.type === 'CallExpression' && !node.expression.optional &&
+    identifier(node.expression.callee, 'enforceEquipment') && equal(node.expression.arguments.map(a => a.name), ['ch', 'data']);
+  // Only these two complete if/else shapes may be normalized. Return/throw,
+  // loops, nested conditionals, labels and other statements remain in the AST.
+  return node.type === 'IfStatement' && (identifier(node.test, 'notice') || property(node.test, 'moved', 'length')) &&
+    noticeBranch(node.consequent) && (!node.alternate || noticeBranch(node.alternate, true));
+}
+
+function normalizedMigration(body) {
+  const result = [];
+  for (const statement of body) {
+    if (equipmentMigrationStatement(statement)) {
+      // Preserve the block's position relative to all other migration work.
+      if (result.at(-1)?.type !== 'EquipmentNoticeBlock') result.push({ type: 'EquipmentNoticeBlock' });
+    } else result.push(statement);
+  }
+  return result;
+}
+
+const EQUIPMENT_ART_SELECTORS = new Set(['.equipment-slot.equipment-inactive', '.equipment-slot .inactive-badge']);
+function scopedEquipmentArt(suffix) {
+  // Exact complete selectors form a structural boundary. Substring matches can
+  // select unrelated UI through :not(), :has(), attributes or combinators.
+  const rules = suffix.matchAll(/([^{}]+)\{([^{}]*)\}/g);
+  let end = 0, count = 0;
+  for (const rule of rules) {
+    if (suffix.slice(end, rule.index).trim() || !rule[1].split(',').every(selector =>
+      EQUIPMENT_ART_SELECTORS.has(selector.trim().replace(/\s+/g, ' ')))) return false;
+    end = rule.index + rule[0].length;
+    count++;
+  }
+  return count > 0 && !suffix.slice(end).trim();
 }
 
 function normalized(file, source) {
@@ -59,7 +110,7 @@ function normalized(file, source) {
       top.equipmentOnly = true;
     }
     if (file === 'src/core/character.js' && node.type === 'FunctionDeclaration' && node.id.name === 'migrateCharacter')
-      node.body.body = node.body.body.filter(n => !equipmentMigrationStatement(n));
+      node.body.body = normalizedMigration(node.body.body);
     if (file === 'src/ui/panels.js' && node.type === 'ClassDeclaration' && node.id.name === 'Panels') {
       node.body.body = node.body.body.filter(m => !['gearLine', 'render_bag'].includes(m.key.name));
       // Shared event dispatch remains checked outside these three equipment actions.
@@ -80,10 +131,7 @@ export function equipmentImpact(file, before, after) {
   if (file === 'src/ui/art.css') {
     // Shared art may narrow only for appended inactive-equipment rules.
     const suffix = after.startsWith(before) ? after.slice(before.length).replace(/\/\*[\s\S]*?\*\//g, '').trim() : '';
-    return suffix && suffix.split('}').filter(s => s.trim()).every(rule =>
-      rule.split('{').length === 2 && rule.split('{')[0].split(',').every(selector => selector.includes('.equipment-inactive') ||
-        selector.trim() === '.equipment-slot .inactive-badge'))
-      ? EQUIPMENT_SUITES : null;
+    return suffix && scopedEquipmentArt(suffix) ? EQUIPMENT_SUITES : null;
   }
   if (!functions[file] && file !== 'src/ui/panels.js') return null;
   try { return equal(normalized(file, before), normalized(file, after)) ? EQUIPMENT_SUITES : null; }

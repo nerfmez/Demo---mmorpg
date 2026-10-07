@@ -4,7 +4,8 @@ import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'nod
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { browserPlan, FULL_SUITES } from '../../scripts/ci-browser-plan.mjs';
+import { parse } from 'acorn';
+import { browserPlan, FULL_SUITES, LEGACY_UI_SUITES, legacyReviewRequirements } from '../../scripts/ci-browser-plan.mjs';
 import { equipmentImpact, EQUIPMENT_SUITES } from '../../scripts/ci-equipment-impact.mjs';
 import { reviewPlan, SCHEDULE } from '../../scripts/ci-review-plan.mjs';
 import { validateEngineOwnership } from '../../scripts/ci-browser-engine.mjs';
@@ -39,6 +40,26 @@ test('different merge tree receives its own UI/HUD evidence, including base drif
   assert.throws(() => reviewPlan({ source: 'wrong', sourceTree: tree, mode: 'quick', suites: [] }));
   assert.throws(() => reviewPlan({ source, sourceTree: tree, mode: 'quick', suites: ['unknown'] }));
 });
+test('every older bounded route retains its legacy UI/HUD owners in both source plans', () => {
+  for (const file of ['src/ui/equipment-avatar.js', 'src/ui/menu-map.js', 'src/ui/mapimage.js',
+    'src/ui/skill-journal/journal.js', 'src/ui/skill-journal/fonts/noto-thai-400.ttf',
+    'tests/browser/ux.mjs', 'tests/browser/journal.mjs', 'tests/browser/workspaces.mjs']) {
+    const suites = browserPlan([file]).suites, legacy = legacyReviewRequirements(file);
+    assert.ok(legacy.ui, file);
+    for (const suite of LEGACY_UI_SUITES) assert.ok(suites.includes(suite), `${file}: ${suite}`);
+    for (const mergeTree of [tree, 'd'.repeat(40)]) {
+      const plan = reviewPlan({ source, merge, sourceTree: tree, mergeTree, suites, mode: 'quick' });
+      for (const suite of LEGACY_UI_SUITES) assert.ok(plan.ui.includes(suite), `${file}: ${suite}`);
+      if (legacy.hud) assert.deepEqual(plan.hud, ['hud'], file);
+      const required = mergeTree === tree ? suites : plan.mergeSuites;
+      for (const suite of required) assert.equal(plan.matrix.include.filter(job =>
+        job.source === (mergeTree === tree ? source : merge) && job.suite === suite).length, 2, `${file}: ${suite}`);
+    }
+  }
+  assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes('workspaces'), 'loadout imports equipment avatar');
+  for (const file of ['src/ui/menu.js', 'src/ui/quest-journal.js', 'src/ui/fieldhud.css', 'public/assets/icons/gear/wisp_staff.png'])
+    assert.ok(browserPlan([file]).suites.length < LEGACY_UI_SUITES.length, `existing focused proof: ${file}`);
+});
 test('recognized equipment functions narrow; derive, creation, migrations and unknown exports fail closed', () => {
   const original = `import { enterMap } from './maps.js'; export const VERSION=8;
     export function gearEquipState(ch,data,item){ return {ok:true}; }
@@ -64,6 +85,44 @@ test('equipment notice changes cannot hide save migration or additional side eff
     after.replace('equipmentNotice=notice', 'equipmentNotice=mutateSave(ch)'), after.replace('equipmentNotice=notice', 'equipmentNotice=(ch.gold=0)')])
     assert.equal(equipmentImpact('src/core/character.js', before, changed), null);
 });
+test('equipment notice branches cannot hide migration exits or other control flow', () => {
+  const prefix = 'export function migrateCharacter(ch,data){ch.version=8;const notice=equipmentNotice(ch,data);';
+  const before = prefix + 'if(notice)ch.progress.equipmentNotice=notice;else delete ch.progress.equipmentNotice;ch.movementSkills=[];return ch;}';
+  const failures = [
+    '{ch.progress.equipmentNotice=notice;return ch;}',
+    '{ch.progress.equipmentNotice=notice;throw new Error("stop");}',
+    '{ch.progress.equipmentNotice=notice;while(notice)break;}',
+    '{ch.progress.equipmentNotice=notice;for(;;)break;}',
+    '{ch.progress.equipmentNotice=notice;do{}while(false);}',
+    '{ch.progress.equipmentNotice=notice;switch(notice){case "x":break;}}',
+    '{ch.progress.equipmentNotice=notice;try{}finally{return ch;}}',
+    '{ch.progress.equipmentNotice=notice;label:while(notice)continue label;}',
+    '{ch.progress.equipmentNotice=notice;if(notice)return ch;}',
+    'ch.progress.equipmentNotice=moved.map(it=>{return ch;}).join(",")',
+    'ch.progress.equipmentNotice=moved.map(it=>{throw "stop";}).join(",")',
+  ];
+  for (const branch of failures) {
+    const after = prefix + `if(notice)${branch}${branch.startsWith('{') ? '' : ';'}else delete ch.progress.equipmentNotice;ch.movementSkills=[];return ch;}`;
+    assert.doesNotThrow(() => parse(after, { ecmaVersion: 'latest', sourceType: 'module' }), branch);
+    const impact = equipmentImpact('src/core/character.js', before, after);
+    assert.equal(impact, null, branch);
+    assert.deepEqual(browserPlan(['src/core/character.js'], { impacts: impact ? { 'src/core/character.js': impact } : {} }).suites, FULL_SUITES);
+  }
+  // A return in the alternate branch is equally unsafe.
+  assert.equal(equipmentImpact('src/core/character.js', before,
+    before.replace('else delete ch.progress.equipmentNotice;', 'else {delete ch.progress.equipmentNotice;return ch;}')), null);
+  // Even pure equipment repair cannot move across other migration statements.
+  assert.equal(equipmentImpact('src/core/character.js', before,
+    before.replace('const notice=equipmentNotice(ch,data);', '').replace('return ch;', 'const notice=equipmentNotice(ch,data);return ch;')), null);
+});
+test('equipment visual state retains both exact weapon model checks in both engines', () => {
+  const before = 'export function gearLook(ch,data){return {bases:["sword"]};}';
+  const after = before.replace('"sword"', '"axe"');
+  const suites = equipmentImpact('src/core/character.js', before, after);
+  assert.ok(suites.includes('weapons'));
+  const plan = reviewPlan({ source, sourceTree: tree, mergeTree: tree, suites, mode: 'quick' });
+  assert.deepEqual(plan.matrix.include.filter(job => job.suite === 'weapons').map(job => job.browser), ['chromium', 'webkit']);
+});
 test('shared panel dispatch and progression remain full except identified equipment units', () => {
   const before = `export class Panels { gearLine(it){return it;} render_bag(){return '';} onClick(t){switch(t){case 'respec-stats': repair();break;case 'respec-job':respec();break;}} }`;
   assert.deepEqual(equipmentImpact('src/ui/panels.js', before, before.replace('repair()', 'retain()')), EQUIPMENT_SUITES);
@@ -74,9 +133,30 @@ test('shared panel dispatch and progression remain full except identified equipm
 });
 test('shared CSS can narrow only appended inactive-equipment selectors', () => {
   const before = '.art{display:block}\n';
-  assert.deepEqual(equipmentImpact('src/ui/art.css', before, before + '.equipment-inactive{color:red}'), EQUIPMENT_SUITES);
+  assert.deepEqual(equipmentImpact('src/ui/art.css', before, before + '.equipment-slot.equipment-inactive{color:red}'), EQUIPMENT_SUITES);
+  assert.deepEqual(equipmentImpact('src/ui/art.css', before, before + '.equipment-slot .inactive-badge{color:red}'), EQUIPMENT_SUITES);
   for (const after of [before + '.art{color:red}', before + '.equipment-inactive,.hud{color:red}', before.replace('block', 'none')])
     assert.equal(equipmentImpact('src/ui/art.css', before, after), null);
+});
+test('inactive-equipment text does not certify unrelated selectors or malformed rules', () => {
+  const before = '.art{display:block}\n';
+  for (const suffix of [
+    '.skill-line-hub:not(.equipment-inactive){display:none}',
+    '.skill-line-hub:has(.equipment-inactive){display:none}',
+    '.equipment-inactive{display:none}',
+    '.equipment-slot.equipment-inactive .skill-line-hub{display:none}',
+    '.equipment-slot.equipment-inactive + .skill-line-hub{display:none}',
+    '[data-class=".equipment-inactive"]{display:none}',
+    '.equipment-slot.equipment-inactive-fake{display:none}',
+    '.equipment-slot.equipment-inactive,.skill-line-hub{display:none}',
+    '@media screen{.equipment-slot.equipment-inactive{display:none}}',
+    '.equipment-slot.equipment-inactive{display:none',
+    '.equipment-slot.equipment-inactive{display:none}}',
+  ]) {
+    const impact = equipmentImpact('src/ui/art.css', before, before + suffix);
+    assert.equal(impact, null, suffix);
+    assert.deepEqual(browserPlan(['src/ui/art.css'], { impacts: impact ? { 'src/ui/art.css': impact } : {} }).suites, FULL_SUITES);
+  }
 });
 test('PR101 legacy Chromium-only test cannot produce a passing both-engine report', () => {
   assert.throws(() => validateEngineOwnership('equipment-inactive.mjs', "import {chromium} from 'playwright'; chromium.launch();"), /WebKit/);

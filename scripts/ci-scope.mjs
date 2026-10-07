@@ -3,10 +3,9 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { focusedReviewCovered, validationPlan } from './ci-browser-plan.mjs';
+import { legacyReviewRequirements, validationPlan } from './ci-browser-plan.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
-const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 const LIGHT_FILES = new Set(['view', 'toon', 'patch', 'settings', 'painted', 'ground', 'ground-color', 'grass', 'environment', 'surfaceart', 'anime-study', 'art-study', 'leafpaint', 'nature']);
 const MAP_FILES = new Set(['ground', 'ground-color', 'grass', 'environment', 'harbor', 'nature', 'anime-study', 'art-study']);
 const all = () => ({ game: true, tools: true, ui: true, hud: true, render: true, map: true });
@@ -29,11 +28,9 @@ export function classifyFiles(files) {
     const renderFile = /^src\/render\/([^/]+)\.js$/.exec(file)?.[1];
     // Explicit bounded consumers run in CI's selected shards. Broad review still
     // runs for shared/unknown UI, and CI owns every broad script after merge.
-    const bounded = focusedReviewCovered(file);
-    if ((!bounded && file.startsWith('src/ui/')) || file === 'index.html' ||
-        ['src/core/skills.js', 'src/core/character.js', 'src/save.js', 'data/jobtree.json', 'data/skills.json', 'data/mods.json'].includes(file) ||
-        UI_TESTS.has(browserTest) || /^tests\/core\/(workspaces|journal|skills|save|progression)\.test\.js$/.test(file)) scope.ui = true;
-    if ((!bounded && file.startsWith('src/ui/')) || file === 'index.html' || browserTest === 'fieldhud' || file === 'tests/core/fieldhud.test.js') scope.hud = true;
+    const legacy = legacyReviewRequirements(file);
+    if (legacy.ui) scope.ui = true;
+    if (legacy.hud) scope.hud = true;
     if (LIGHT_FILES.has(renderFile) || ['data/rendering.json', 'data/art.json', 'data/world.json', 'tests/core/rendering.test.js'].includes(file) || browserTest === 'render-light') scope.render = true;
     if (MAP_FILES.has(renderFile) || ['data/world.json', 'data/art.json', 'src/core/world.js', 'src/core/terrain.js'].includes(file) || ['capture', 'harbor-capture', 'dreamloop'].includes(browserTest)) scope.map = true;
     // Dependency/build changes and unknown infrastructure may affect every browser path.

@@ -13,6 +13,27 @@ const SHA = /^[a-f0-9]{40}$/;
 const requireThat = (ok, message) => { if (!ok) throw Error(message); };
 const successfulSteps = (job, names) => names.every(name => job.steps?.some(step => step.name === name && step.conclusion === 'success'));
 
+// A full run publishes more than 100 artifacts. Read every page while proving
+// completeness; duplicates, changing totals, short pages and API errors fail
+// closed through the resolver's normal-gate fallback.
+export async function runArtifacts(api, path) {
+  const artifacts = [], ids = new Set();
+  let total;
+  for (let page = 1; ; page++) {
+    const result = await api(`${path}?per_page=100${page === 1 ? '' : `&page=${page}`}`);
+    requireThat(Number.isSafeInteger(result?.total_count) && result.total_count >= 0 && result.total_count <= 10000 &&
+      Array.isArray(result.artifacts), 'Invalid artifact page');
+    if (total === undefined) total = result.total_count;
+    requireThat(result.total_count === total && result.artifacts.length === Math.min(100, total - artifacts.length),
+      'Truncated or changing build artifact pages');
+    for (const artifact of result.artifacts) {
+      requireThat(Number.isSafeInteger(artifact.id) && artifact.id > 0 && !ids.has(artifact.id), 'Duplicate or invalid artifact identity');
+      ids.add(artifact.id); artifacts.push(artifact);
+    }
+    if (artifacts.length === total) return artifacts;
+  }
+}
+
 function validateIdentity({ repository, repositoryId, target, targetTree, pr, sourceTree, workflow, run, artifact }) {
   requireThat(SHA.test(target) && SHA.test(targetTree), 'Invalid release identity');
   requireThat(pr.merged_at && pr.merge_commit_sha === target && pr.base?.ref === 'main' &&
@@ -140,9 +161,8 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     verifyPrAssociation(run, pr, branchPrs, timeline, repo.id);
     const jobs = await api(`${prefix}/actions/runs/${run.id}/attempts/${run.run_attempt}/jobs?per_page=100`);
     requireThat(jobs.total_count === jobs.jobs.length, 'Truncated CI jobs');
-    const artifacts = await api(`${prefix}/actions/runs/${run.id}/artifacts?per_page=100`);
-    requireThat(artifacts.total_count === artifacts.artifacts.length, 'Truncated build artifacts');
-    const matching = artifacts.artifacts.filter(artifact => artifact.name === `ci-dist-${pr.head.sha}-${run.id}-${run.run_attempt}`);
+    const artifacts = await runArtifacts(api, `${prefix}/actions/runs/${run.id}/artifacts`);
+    const matching = artifacts.filter(artifact => artifact.name === `ci-dist-${pr.head.sha}-${run.id}-${run.run_attempt}`);
     requireThat(matching.length === 1, 'Missing or ambiguous build artifact');
     const identity = { repository, repositoryId: repo.id, target, targetTree: targetCommit.tree.sha,
       pr, sourceTree: sourceCommit.tree.sha, workflow, run, jobs: jobs.jobs, artifact: matching[0] };

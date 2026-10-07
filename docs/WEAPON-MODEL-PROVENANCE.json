@@ -342,6 +342,482 @@
       ],
       "scale": 1,
       "orientation": "length +Z"
+    },
+    "ranger_axe": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/ranger_axe.glb",
+      "sha256": "e11776677a594cdfe033b3c49abead2e2a28fb29b8dee182df209fee1e0305ab",
+      "bytes": 7698792,
+      "tris": 8426,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1ODL56Pd7vacCPP2pcKuZnL6buZEyRfx_",
+      "sourceTransform": {
+        "grip": [
+          0.62,
+          -0.65,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.43
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "knight_greatsword": {
+      "revision": "approved 2026-10-07 replacement",
+      "file": "models/weapons/knight_greatsword.glb",
+      "sha256": "978c873ea6e25244a77df178669fd53855127fdbe2ea3d5c56dd75f548c66fcf",
+      "bytes": 8077804,
+      "tris": 8425,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1SORr7i44_GUVIOPIX9ytIcS8ZfFe9OPM",
+      "sourceTransform": {
+        "grip": [
+          0,
+          -0.3,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.55
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "tidecaller_staff": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/tidecaller_staff.glb",
+      "sha256": "0c7a8020d4283464c678261c0ada5d532eac358c0ce702df247371966dab4ed1",
+      "bytes": 10225972,
+      "tris": 8622,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1-vpZAviZRa78sr4WJ-gI2ASYpYzdVr7I",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "scale": 0.82
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "dusk_longbow": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/dusk_longbow.glb",
+      "sha256": "de87b45c534c91f06c825d06702624d65d698137636ff951779967800875966a",
+      "bytes": 8182592,
+      "tris": 8114,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1WBWZ52u0Zcc1fXck6sZ0L6_uHJOwvqdA",
+      "sourceTransform": {
+        "grip": [
+          0.38,
+          -0.38,
+          0
+        ],
+        "rotation": [
+          0,
+          -1.5707963267948966,
+          0.7853981633974483
+        ],
+        "scale": 0.48
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "greyfang_sabre": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/greyfang_sabre.glb",
+      "sha256": "a78d2df93046c898f39bb7d46e3b2639daed010ae934b17a04052c4b5a928117",
+      "bytes": 7917944,
+      "tris": 8691,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1LUEr_kmIZYvelYvBwNakNlke77CxX05J",
+      "sourceTransform": {
+        "grip": [
+          -0.62,
+          -0.65,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0.7853981633974483
+        ],
+        "scale": 0.44
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "wisp_staff": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/wisp_staff.glb",
+      "sha256": "f94f3a5bd9a77651d016171eacbfe2e66810105ed239e317a80c406ffcbbdaa9",
+      "bytes": 8680148,
+      "tris": 8229,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1AsG8QwcrZ4NOx_3kNqzvkjLG9tYOV7ZR",
+      "sourceTransform": {
+        "grip": [
+          0.12,
+          -0.1,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.61
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "storm_bow": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/storm_bow.glb",
+      "sha256": "ea2a730f71ee4d292744b847bace7166f9e17fc618ba43134d4af4a7a84111e7",
+      "bytes": 10529532,
+      "tris": 7003,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1dTBcWHwZ30kvYw2x7VwbFZqyaKQ6aVWh",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          -1.5707963267948966,
+          0.7853981633974483
+        ],
+        "scale": 0.48
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "stormglass_blade": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/stormglass_blade.glb",
+      "sha256": "afb5708ec921b674cfc9716ee095ad57c425fd864b63211af78361e5c05819b3",
+      "bytes": 10689960,
+      "tris": 8587,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1V6ARi3JP9xWy2CkYyWPyr6aRatZ6Q8Lm",
+      "sourceTransform": {
+        "grip": [
+          0.6,
+          -0.55,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.43
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "wisp_stiletto": {
+      "revision": "approved 2026-10-07 replacement",
+      "file": "models/weapons/wisp_stiletto.glb",
+      "sha256": "3ec0ff77e7ec9bad9a2a63538e95526e05889084d48c7d24e1a5d91331b15f56",
+      "bytes": 8682252,
+      "tris": 8224,
+      "materials": 1,
+      "embeddedTextures": 3,
+      "sourceDriveId": "15LHSs4LGi24mVifC6eeH4QbP-3JM-XyH",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0.32,
+          0
+        ],
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 0.75
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "lantern_wand": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/lantern_wand.glb",
+      "sha256": "0c91cd2e36ec90fd388dcf08ab02258c622f3e1602aaa926e2d825e35add0d9c",
+      "bytes": 9442860,
+      "tris": 7380,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1Th1WpUW2eDmmBVdfe5E9R7mou2TLH0Ul",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0.56
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "scale": 0.38
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "thunder_maul": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/thunder_maul.glb",
+      "sha256": "dd514230f9b2b9ef0fe16eb919ede7f6af8aefb85d89f61c06ea08b410944e16",
+      "bytes": 7863232,
+      "tris": 8096,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "19h8Jvt5FV05_SsKbavxIoYNpN_0SEEFC",
+      "sourceTransform": {
+        "grip": [
+          0.56,
+          -0.6,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.46
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "galebreaker": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/galebreaker.glb",
+      "sha256": "ca7e783b49b634529b0f3628610e687b94db9e678621f65e6b1e1a84bb9b4739",
+      "bytes": 9136672,
+      "tris": 8539,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1nzbQbKESnt3_36N2j8DGiQDUqwostoBP",
+      "sourceTransform": {
+        "grip": [
+          -0.57,
+          -0.5,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0.7853981633974483
+        ],
+        "scale": 0.47
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "crag_axe": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/crag_axe.glb",
+      "sha256": "58e831ca1e373fc962148c5fdc279b548b5f8f4f6447eeb65703ffe816ae75db",
+      "bytes": 7304764,
+      "tris": 8324,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1IwntadvA6OKkL0xF8NaWoeFCH41bertC",
+      "sourceTransform": {
+        "grip": [
+          0.48,
+          -0.48,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.46
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "horn_greatblade": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/horn_greatblade.glb",
+      "sha256": "8b46553fe92725d00c1c68d555cabd60e2b00d6520139c44af6d10c82de007b9",
+      "bytes": 8280604,
+      "tris": 8042,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1djNkkyz9sRJTqcvdr0giqEYFJU3iOS89",
+      "sourceTransform": {
+        "grip": [
+          0.55,
+          -0.54,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.55
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "ancient_staff": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/ancient_staff.glb",
+      "sha256": "86df01ed16b2f2ea8e4ab22b60eba2c7610e606940d92c59bed385995d00ce10",
+      "bytes": 9929492,
+      "tris": 8138,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1Vuc7IgwcitLe9tkea8NRdWtD1j0_RyBr",
+      "sourceTransform": {
+        "grip": [
+          0.1,
+          -0.12,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.62
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "oathblade": {
+      "revision": "approved 2026-10-07 replacement",
+      "file": "models/weapons/oathblade.glb",
+      "sha256": "8e30f1067fd272d3bad49571acc7b9b019a2b67662417f3b6cdd3f704a454ec2",
+      "bytes": 7459904,
+      "tris": 7301,
+      "materials": 1,
+      "embeddedTextures": 3,
+      "sourceDriveId": "1hKXorvxzib2KcAocQdr6XFrk05IuwNGg",
+      "sourceTransform": {
+        "grip": [
+          0,
+          -0.31,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.16
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "ruin_fang": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/ruin_fang.glb",
+      "sha256": "f07013c17f10e4d8d2fd1c7623f9c3f875da0fb1f256e35969399bbc38b8736e",
+      "bytes": 8321480,
+      "tris": 8695,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1UHpTkic4rBXVO31tRdxUfNKJMBR6Mv7W",
+      "sourceTransform": {
+        "grip": [
+          0.62,
+          -0.44,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.32
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "relic_wand": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/relic_wand.glb",
+      "sha256": "3794ac66ab1acac96cfd585100a62f9f1535b1213fe3e83c5e5ac7295c7f529e",
+      "bytes": 8154132,
+      "tris": 8559,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1VWs9GN8SfIhN1tXhDeTsbKX1_vaCwx7i",
+      "sourceTransform": {
+        "grip": [
+          0.47,
+          -0.58,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.33
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
+    },
+    "moonleaf_wand": {
+      "revision": "approved 2026-10-07",
+      "file": "models/weapons/moonleaf_wand.glb",
+      "sha256": "5923f2b9aee4aa2451edba7d36ccedf39b14171daf1b7756ae3256cf480e4476",
+      "bytes": 8794108,
+      "tris": 8788,
+      "materials": 1,
+      "embeddedTextures": 4,
+      "sourceDriveId": "1JzE5TDRb5pqLPXLmSE6WluioRkHTRhz5",
+      "sourceTransform": {
+        "grip": [
+          0.39,
+          -0.37,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.34
+      },
+      "orientation": "game grip origin; length +Z; bow limbs Y, belly +Z",
+      "approval": "Owner approved integration 2026-10-07 12:17 UTC; Moonleaf previously approved"
     }
-  }
+  },
+  "batchSourceMain": "f19aee9f6625188cef1c89adf82d28a4a25b0cc5"
 }

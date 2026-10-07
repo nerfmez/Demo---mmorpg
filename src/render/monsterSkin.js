@@ -146,5 +146,6 @@ export function attachMonsterModel(rig, T) {
   rig.modelMaterial = mat;
   rig.modelHull = mats[1] || null;
   rig.model = true;
+  rig.modelCfg = cfg; // animators read per-model tuning (e.g. the viper's wave)
   return rig;
 }

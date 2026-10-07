@@ -329,6 +329,13 @@ rig bone, `body`, so every vertex follows it and the squash/stretch comes from s
 The shore gull and hermit crab models follow the same scheme: the gull skins to `body`, `head`,
 `wingL/R` and `legL/R`; the hermit crab reuses the reef crab rig (`shell`, `head`, `mandL/R`, six legs),
 so its shell tuck scales those bones.
+The slime, wisp, boar, thornback wolf, Greyfang and viper models were replaced on 2026-10-07 (the Tidal Slime,
+Lostlight Wisp, Boarbull, Maskfang Wolf, Greyfang Alpha and a coiled Reedblade Viper); `scripts/prep-monster-glb.py`
+makes a monster GLB from a Meshy export (bake the rest pose, drop skin, keep the main piece, normalise, decimate,
+512 px colour map) and `assets/meshy/monsters/README.md` lists the sources. The boar, wolves and Greyfang bones are
+placed from the Meshy rig joints. The wisp's own floating flames replace the procedural motes (no `keep`), and
+the coiled viper's `wave` in `data/models.json` scales the animator's slither (`rig.modelCfg`; in Godot, a
+per-model amplitude on the body-wave track).
 The five mid/high monsters (mantis, viper, ram, stalker, sentinel) have models on their
 `monsters-midhigh.js` rigs. The mantis model is bound with its scythes raised, so its animator
 remaps the arm/blade angles when `rig.model` is set; the viper model rears its head on an S-shaped

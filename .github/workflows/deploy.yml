@@ -38,6 +38,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      - name: Install release evidence dependencies
+        run: npm ci --include=dev
       - id: resolve
         name: Verify already-tested release evidence
         env:

@@ -287,9 +287,14 @@ or passive-tree rule changes accompany this presentation.
 `gearLook()` includes a `bases` map of equipped item IDs (derived presentation metadata,
 not saved state). `render/equipment.js` uses it for distinct weapon/boot/charm silhouettes.
 Imported models are listed in `data/models.json` (GLB files in `public/models/`, currently
-Meshy weapons). Each GLB is already in the weapon-bone convention (grip at the origin, blade
-along +Z, metres), so in Godot attach it to a `BoneAttachment3D` on the right hand. The
-procedural shape in `equipment.js` is only a fallback.
+Meshy weapons). Older GLBs already use the weapon-bone convention (grip at the origin,
+blade along +Z, metres). Approved unmodified sources with `sourceTransform` first translate
+by negative `grip`, rotate with Euler XYZ radians, then uniformly scale into that convention.
+Apply the same fit in Godot before attaching to a `BoneAttachment3D` on either hand;
+bow limbs run along Y and the belly points +Z. Staff grips seat on the shaft midpoint.
+The cached fitted geometry and textures are shared; each rig owns its toon materials.
+All 38 weapon bases are registered, and only current equipped/portrait weapons load on demand.
+The procedural shape in `equipment.js` remains the pending/failed-load fallback.
 The hero body is `public/models/hero_base.glb` (Meshy, auto-rigged, 24 Mixamo-like bones),
 registered as `characters.hero_base`. `render/skinned.js` keeps the procedural bones of
 `hero.js` as the animation source and copies their root-space rotations onto the skin bones

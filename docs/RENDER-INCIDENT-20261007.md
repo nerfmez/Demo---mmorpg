@@ -31,6 +31,8 @@ only for this bake. Runtime terrain/deck shaders retain implicit footprint
 sampling; texture resolution, anisotropy, grass density, shadows, post-processing,
 fog and scenery are unchanged. The full WebKit scene subsequently baked zero
 black roots among the same 54,859 clumps.
+All 74 Chromium chunks have identical root and lawn source-buffer hashes before
+and after this change; no chunk changed.
 
 This is a reproduced scenery defect, not proof of the cause of every scenery
 fault in the supplied photos or of physical Safari/Metal behavior.
@@ -72,12 +74,34 @@ The production build passed. The existing pooling probe ran two rounds; its
 different coast/headland views use different visible resources, so those two
 samples alone are not a geometry plateau or hardware FPS measurement.
 
+The final two-cycle route passed in both engines. Each cycle released all 110
+private materials and all three depth materials. All 172,553 sampled grass roots
+retained color; minimap geography remained present; page errors, GL errors,
+context loss and leftover render targets were absent. At the same end position,
+geometry counts were 208 then 206 and texture counts stayed at 58. These are
+approximately 68 seconds of accelerated simulation, not hours of device play.
+
 Screenshots and JSON/log evidence are saved outside the repository under
 `/workspace/render-bug-evidence/`. Inspect final Chromium and WebKit captures
 from the exact built patch separately from baseline captures. The images show
 grass/root color, wolf materials, surrounding terrain and geographic minimap
 coverage. They do not show a reproduced black-wolf/blank-minimap event. Review
 uses sampled stills, not continuous normal-speed playback.
+
+Visual review on 7 October 2026 inspected the actual medium-quality 1180×820
+paired WebKit captures at fixed camera/time: `grass-roots-before-webkit.png`
+(SHA-256 `f06b97e590662123f9be8314fdfe2a1fea845bc67b5b43a06d294a697c9962ff`)
+and `grass-roots-after-webkit.png`
+(`49baaa5cae0730f5d16ea420611e92cfd835c1aee0a02e9222d93a5b4c639d22`).
+The before image shows black stalk roots across the forest floor; the after
+image shows green roots with the same density, leaf silhouettes, dithered canopy,
+terrain and HUD. The isolated placement does not establish correct HUD location
+labels or continuous gameplay. The final integrated route captures
+`final-webkit/wolves-after-cycle-0.png` and
+`final-chromium/wolves-after-cycle-0.png` were also inspected. They show colored
+wolf surfaces and geographic minimap coverage; the player's white combat hit
+flash is authored state, not a changed outfit. Root color passes for the observed
+views. The original photo symptoms and skirt/slab faults remain unresolved.
 
 The three supplied Library JPEG transfers each failed once with the complete
 error `library file transfer failed: download failed with HTTP status 403`.

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
+import { initialUiReady } from './startup-ready.mjs';
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
 const out = new URL(`./out/menu-hub-${engine.name()}/`, import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
@@ -24,7 +25,7 @@ try {
     page.on('pageerror', (e) => errors.push(name + ': ' + String(e)));
     page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) errors.push(name + ': ' + m.text()); });
     await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0');
-    await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
+    await page.waitForFunction(initialUiReady);
     // This suite tests menu layout/navigation with gameplay already paused. Hold
     // the completed world frame instead of spending software-GL time redrawing
     // the same backdrop on every UI event. RAF, HUD and equipment previews stay

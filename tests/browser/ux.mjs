@@ -40,6 +40,10 @@ try {
     });
     const activate = async (selector) => {
       const tab=selector.match(/^\[data-tab="([^"\]]+)"\]$/)?.[1];
+      // Workshop replaces the group sidebar; use its visible back/menu route.
+      if(tab&&await page.locator('.overlay.is-workshop.on').count()){
+        await activate('.panel-back');return activate(`.hub-tile[data-go="${tab}"]`);
+      }
       // a page outside the open page's group is reached through the main menu (covered by menu-hub.mjs)
       if(tab&&(await page.locator('#atelier').isVisible()||!await page.locator(`[data-tab="${tab}"]`).count()))return page.evaluate(tab=>__frontier.panels.open(tab),tab);
       if(selector==='.panel-close'&&await page.locator('#atelier').isVisible())selector='#atelier [data-action="close"]';
@@ -63,7 +67,7 @@ try {
 
     await activate('.menu-toggle');
     assert.equal(await page.locator('#panel-title').textContent(), 'เมนูหลัก');
-    assert.equal(await page.locator('.hub-tile[data-go]').count(), 12, 'every page has one tile in the main menu');
+    assert.equal(await page.locator('.hub-tile[data-go]').count(), 13, 'every page has one tile in the main menu');
     await activate('.hub-tile[data-go="journal"]');
     assert.equal(await page.locator('#panel-title').textContent(), 'ภารกิจ');
     assert.equal(await page.locator('[data-tab]').count(), 2, 'the sidebar lists only the open page\'s group');
@@ -115,7 +119,7 @@ try {
     await activate('[data-act="craft-ready"]');
     assert.ok(await page.locator('.recipe-card').count() > 0);
     assert.equal(await page.locator('.recipe-card [data-act="craft-open"]:disabled').count(), 0);
-    await activate('.recipe-pick[data-act="craft-open"][data-id="hide_vest"]');
+    await activate('[data-act="craft-open"][data-id="hide_vest"]');
     await activate('[data-act="craft"][data-id="hide_vest"]');
     const made = await page.evaluate(() => window.__frontier.game.ch.gear.at(-1).uid);
     await activate('[data-tab="bag"]');
@@ -129,7 +133,7 @@ try {
     await activate('[data-tab="craft"]');
     await activate('[data-act="craft-back"]');
     await activate('[data-act="craft-filter"][data-id="mod"]');
-    await activate('.recipe-pick[data-act="craft-open"][data-id="mod_wide_arc"]');
+    await activate('[data-act="craft-open"][data-id="mod_wide_arc"]');
     await activate('[data-act="craft"][data-id="mod_wide_arc"]');
     const mod = await page.evaluate(() => window.__frontier.game.ch.mods.at(-1).uid);
     await activate('[data-tab="skills"]');

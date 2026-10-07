@@ -83,7 +83,7 @@ Executed checks:
 - `tests/browser/workshop-motion.mjs`: passed iPad-sized 1180×820, phone landscape 844×390 and reduced-motion 1180×820 using real Game/Panels without the 3D renderer. Repeated taps, close/back/reopen, no craft reroll, receipt preservation, no horizontal overflow, no page errors or missing assets.
 - `tests/browser/workshop-game.mjs`: passed the same three views in the built game. The WebGL world and imported region initialized and were captured; the existing `freezeScene` helper then held the completed frame for paused UI review. Simulation stays paused, repeated taps pay once and finish/close/reopen retains state. No page errors or horizontal overflow. This is Chromium SwiftShader viewport emulation, not physical iPad testing or a performance result.
 - Syntax checks for the two changed production JS files and two new browser scripts, and `git diff --check`: passed.
-- **Failed:** `tests/browser/menu-hub.mjs` stops at “five groups fit the iPad screen without scrolling”, before workshop navigation. Menu layout/map/test files are unchanged by the strike revision. No criterion, timeout or CI workaround was changed.
+- `tests/browser/menu-hub.mjs`: passed iPad-sized, phone landscape and phone portrait after the integration follow-up below. The five-group iPad fit assertion remains unchanged.
 - **Blocked:** WebKit launch: browser executable `webkit-2215/pw_run.sh` is absent. Physical iPad/Safari and broad full-game regression were not run.
 
 The two focused capture scripts accept `EVIDENCE_DIR`. The motion script also
@@ -124,8 +124,46 @@ simulation time, and the final run passes.
 Continuous normal-speed playback inspection is unavailable in this execution
 environment. Original-speed video is delivered for owner playback; sampled frames
 cannot certify smooth motion by themselves. No physical iPad, Safari/WebKit or
-hardware FPS claim is made. Owner motion approval and the failing menu check remain
+hardware FPS claim is made. Owner motion approval and outstanding CI results remain
 premerge review items. No merge or deployment was performed.
+
+## Workshop integration follow-up (2026-10-07)
+
+Inspected the original PR run `37569141512` and the motion-head boot log rather
+than assuming test failures. Workshop adds the thirteenth tile; boot and UX had
+still expected twelve. Their counts now match the real hub. Arrow and UX recipes
+use the existing action/id selectors instead of the removed `.recipe-pick` class.
+UX goes back through the visible hub when leaving the workshop, whose dedicated
+navigation intentionally hides the old sidebar. Quest journal assertions remain.
+
+The actual tablet hub had 627 px of content in a 611 px body. Reducing only the
+items-group header/bottom/gap spacing by 20 px fits its fourth tile while keeping
+58 px touch targets, full-width labels and all five groups. The final screenshot
+was inspected after the real startup-ready gate; no fit assertion was relaxed.
+
+Equipment details now link to the workshop rather than embedding upgrade costs.
+Both touch suites follow that real link and assert the selected UID, unchanged
+character on opening, the same stone/gold costs, one upgrade/payment, and disabled
+actions away from the workbench. A valid five-option S item preserves native touch
+overflow coverage; the >50 px swipe and reachable-close assertions remain. Closing
+the loadout workspace now removes its old details dialog, preventing a hidden
+backdrop from surviving the workshop transition.
+
+Follow-up checks on Chromium `/usr/bin/chromium`:
+
+- `details-touch.mjs`: passed 1180×820 and 844×390, native swipe plus repeated bag/equipped/crafted entry, costs/payment and away-from-bench checks.
+- `details-game-touch.mjs`: passed both sizes with the real document touch guard, native swipe, clean dialog transfer and exact payment. The initialized WebGL background was held with the existing UI capture helper.
+- `menu-hub.mjs`: passed all three touch layouts, thirteen tiles, five-group iPad fit, group navigation and workshop modes. No timeout changes.
+- `QUICK=1 ux.mjs`: passed iPad-sized; includes current Quest journal artwork/state assertions, real craft/equip/mod actions, service checks and interrupted input. Other UX viewports are left to CI; this is not a full UX-suite pass.
+- `gear-hands.mjs`: every equipment/arrow-craft/drop assertion reached completion; the final console-error assertion failed with one 404. A separate resource probe identified the missing `/favicon.ico` URL. This unrelated baseline asset was not changed or ignored; the full suite is reported failed.
+- `boot.mjs`: local run timed out clicking the title-screen start button before reaching the tile assertion. The motion-head CI log independently confirmed the 13-versus-12 failure; the expectation is repaired, but local boot is not claimed passed.
+- Build, changed JS syntax and whitespace checks passed. No workflow, bypass, timeout or unrelated gameplay feature was changed.
+
+Motion evidence was captured at `bf1929153d533859f26bca0823105c3cec735109`;
+the follow-up does not change the hammer, effects or controller. The delivery
+manifest records the final integration head separately. Library confirms the
+before/after images, original-speed clips, reduced-motion sample and built-game
+viewport images; exact file identities are in the delivery receipt.
 
 ## Reproduction / Godot handoff
 

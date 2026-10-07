@@ -58,8 +58,10 @@ PR106 merged at 14:31 UTC on 2026-10-07, satisfying the requested merge dependen
 The focused checks and actual UI captures are repeated on the recovered patch
 with those models present. Only the port guide overlaps the intervening changes;
 Git retained both the PR106 model notes and this patch's UI notes automatically.
-All model, weapon, core/render, recipe and CI files remain byte-identical to
-post-PR106 main. Release CI owns the required premerge checks, including WebKit;
+All model, weapon, core/render, recipe and CI workflow files remain byte-identical
+to post-PR106 main. The CI follow-up registers the existing identity test in both
+engines; its ownership/routing checks are recorded in `REVIEW.md`.
+Release CI owns the required premerge checks, including WebKit;
 PR106's deployment setup failure and PR109's separate fix are outside this patch.
 Do not merge or deploy this draft. No physical iPad, Safari or FPS claim is made
 by the local Chromium/SwiftShader review.

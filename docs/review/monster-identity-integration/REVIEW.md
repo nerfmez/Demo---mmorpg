@@ -14,9 +14,9 @@ based on post-PR106 main `3225b3cdc8bff2909b4ce6297f683f4e01f899b1`.
 Capture run began at 15:57:31 UTC on 2026-10-07; each of the 18 final screenshots
 was opened as pixels after capture, through 16:02 UTC. Model definitions hash:
 `be8feacb2a2de43bce8db61dda271bbce615b030f146772a94a2ad6c74c8fb5d`.
-Recovery follow-up `4a76d2f` updates evidence and capture metadata only; the later
-CI assertion follow-up changes tests and this record. Runtime data, UI, approved
-assets and all main models remain the tested bytes.
+Recovery follow-up `4a76d2f` updates evidence and capture metadata only; later
+follow-ups change tests, CI registration and this record. Runtime data, UI,
+approved assets and all main models remain the tested bytes.
 
 Acceptance criteria: recognize the approved six concepts at their existing
 footprints; retain the journal's subdued painted style and inventory's isolated
@@ -98,3 +98,24 @@ Before the single follow-up push, full `npm test` passed: **395 tests, 0 failure
 0 skipped**, in about 70 seconds. The prior build and 18 visually inspected
 captures remain applicable to the identical runtime bytes. New CI is pending;
 the draft remains unmerged and undeployed.
+
+## Focused CI registration follow-up
+
+`monster-identity.mjs` now has one dedicated `monster-identity` owner in the CI
+inventory and scheduler. Its affected test-file route selects boot plus this
+suite; full/manual plans and this PR's data/shared-art changes include it.
+The UI owner also requires both-engine evidence on a distinct merge tree.
+The existing desktop/iPad touch checks, approved hashes, label checks, captures
+and failure assertions remain byte-identical to `6c87141`.
+
+Engine ownership rejects a Chromium-only launch as WebKit evidence. Contracts
+verify both Chromium/WebKit jobs, runner engine forwarding, exact-source reports
+and one execution owner. Full evidence pagination now derives the 52 browser
+jobs' 105 artifacts from the inventory and still tests second-page build reuse
+and malformed-page rejection. No workflow or browser setup changes.
+
+`npm run test:tools` passes: **154 tests, 0 failures, 0 skipped**. These are CI
+planner/runner contracts; the actual focused WebKit UI run remains pending new
+CI. The existing local Chromium visual evidence and 395-core-test pass are
+retained for the unchanged runtime. PR111 remains draft; PR112 stays closed.
+No merge or deployment was performed.

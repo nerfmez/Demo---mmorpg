@@ -20,6 +20,7 @@ export const SUITES = {
   capture: ['capture.mjs'],
   save: ['journal-route-save.mjs'],
   icons: ['icon-consumers.mjs'],
+  'monster-identity': ['monster-identity.mjs'],
   quests: ['quest-journal.mjs'],
   // Full postmerge/manual CI owns ALL of the existing broad UI/HUD review.
   // Keep separate shards: moving ownership must not create a 9-script timeout.

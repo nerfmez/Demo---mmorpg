@@ -123,21 +123,24 @@ Grade, enhancement and affixes never raise a wearable's required level.
 The 38 `weapon` and 5 `offhand` shield bases retain weighted base/grade/enhancement/affix
 requirements from `items.requirements`, checked against raw `character.stats`. Dual-wield
 requirements, skill/mod gates and all stats, costs, rolls and options are unchanged.
-`gearEquipState` is authoritative for equip, derived stats and appearance. A wearable
-failure returns `reason:'level'`, `need`, `current` and a Thai `missing` description.
+`gearEquipState` is authoritative for equip eligibility and active combat stats. It returns
+`rows: [{stat,need,current,deficit}]`, `requires`, and Thai `missing` descriptions.
+Dual-wield gates sum both light weapons' requirements for each hand. UI shows current
+trained stats against the combined requirement; combat bonuses do not satisfy these gates.
 
-`enforceEquipment` clears invalid slot references after upgrades, respec and migration
-(after level-cap adjustment). All items already live in `character.gear`; there is no
-gear capacity limit, only UI pagination. Never delete items, duplicate UIDs, or reject a
-funded craft/upgrade because of wear requirements. Legal worn items stay worn. This rule
-adds no save fields or version bump: standalone wearable PR70 keeps v6; with the potion
-and quick-slot migration from PR71, the combined build keeps v7. Migration reports
-returned items and preserves their level/grade/options/+N. Existing v6 saves can load
-directly in PR70. After a v7 build is released, deploy wearable changes from combined
-main retaining v7; an older v6 build rewrites a loaded v7 save to v6, so a later v7 load
-can grant starter potions again. This rollback hazard does not prevent a v6-only release.
-UI shows required/current character level in craft, bag and equipment details, including
-fixed-level upgrade/grade previews. Weapon/shield previews retain exact stat ranges.
+`enforceEquipment` repairs structurally impossible hand combinations only. Stat/level loss,
+respec, enhancement, promotion and migration retain unmet items in `character.equipped`.
+`inactiveEquipment` derives status without saved flags; stat/level recovery reactivates items
+immediately. `derive` excludes their stats, affixes, implicits and ammo bonuses; inactive
+weapons cannot satisfy weapon-required skills. `gearLook` retains their visual identity.
+UI shows red slot/tile borders, text status and current/required/deficit numbers.
+`equipmentNotice` preserves the existing level-cap stat-reset explanation and appends
+current inactivity. Repeat migration does not duplicate it; recovered stats remove only
+the inactivity text, so the reason for the refunded build stays visible. Upgrades
+and promotions return `inactive` alongside `unequipped` (structural repairs only). Initial
+equip still refuses unmet gates. No save fields or version bump are added; migration keeps
+ownership, rolls and slots and reports inactivity after level-cap adjustment.
+
 
 ### Hands, gloves, shields and arrows (save v6)
 

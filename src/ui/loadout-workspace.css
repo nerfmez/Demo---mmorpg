@@ -152,3 +152,26 @@ body.loadout-open .fullscreen-control{z-index:39}
 
 /* Loaded equipment notices may name several returned items; keep the complete message reachable. */
 #atelier .atelier-notice{max-width:calc(100% - 24px);white-space:normal;max-height:18vh;overflow:auto}
+
+/* Wear gates: raw trained stats, explicit current/required/shortfall, retained inactive slots. */
+#atelier .wear-stat-totals{display:flex;justify-content:space-evenly;gap:5px;padding:7px 10px;background:#ede8d6;border-top:1px solid #b9ad8e;color:#536759;font-size:11px;flex:none}
+#atelier .wear-stat-totals b{font-size:16px;color:#294e43;margin-left:3px}
+#atelier .gear-shelf .gear-requires{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;margin:7px 0;font-size:11px}
+#atelier .gear-shelf .gear-requires>b{color:#70654e;font-weight:400}
+#atelier .gear-shelf .gear-requires span{white-space:nowrap}
+#atelier .gear-requires .no{color:#ad302b}
+#atelier .gear-requires .ok{color:#35684b}
+#atelier .gear-requires strong{font-size:14px;font-variant-numeric:tabular-nums}
+#atelier .wear-slot.equipment-inactive,#atelier .bag-grid .inventory-cell.equipment-inactive{border:2px solid #c83b35;box-shadow:inset 0 0 0 1px #f3c2b1,0 0 0 1px #9c2925;background:linear-gradient(145deg,#f4dbcb,#d8b6a6)}
+#atelier .inactive-badge{position:absolute;bottom:3px;right:3px;background:#a32b27;color:#fff8ed;padding:1px 5px;border-radius:3px;font-size:9px;line-height:1.4;font-weight:500}
+#atelier .bag-grid .worn.inactive-badge{top:2px;bottom:auto;background:#a32b27}
+@media(max-height:480px){
+ #atelier .wear-stat-totals{font-size:9px;padding:3px 5px}#atelier .wear-stat-totals b{font-size:12px}
+ #atelier .equipment .gear-shelf{height:auto;min-height:106px}
+ #atelier .gear-shelf .gear-requires{font-size:9px;gap:2px 7px;margin:3px 0}
+ #atelier .gear-requires strong{font-size:11px}
+ #atelier .inactive-badge{font-size:7px;padding:0 3px}
+}
+#atelier .bag-grid .inventory-cell[data-grade].equipment-inactive{border:2px solid #c83b35;box-shadow:inset 0 0 0 1px #f3c2b1,0 0 0 1px #9c2925;background:linear-gradient(145deg,#f4dbcb,#d8b6a6)}
+#atelier .bag-grid .inventory-cell.equipment-inactive b{color:#623c33;text-shadow:none}
+#atelier .equipped-label.no{color:#ad302b;font-weight:500}

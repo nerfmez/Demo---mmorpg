@@ -116,6 +116,9 @@ export function* bakeGrassSteps(renderer,root,world) {
       void main(){vRoot=vec3(aRoot.x,aGrassY,aRoot.z);vLight=aGrassLight;vDark=aGrassDark;vSplat=aGrassSplat;vCoast=aGrassCoast;vUp=aGrassNormal.y;vTown=aGrassTown;
         gl_PointSize=1.0;gl_Position=projectionMatrix*viewMatrix*vec4(position,1.0);}`,
     fragmentShader:`#define GROUND_AA(x) (0.0)
+      // Keep the full brush detail at each root. Implicit mip/anisotropic
+      // sampling of isolated points produces invalid colours on WebKit.
+      #define GROUND_BRUSH_SAMPLE(uv) textureLod(uGroundBrush,uv,0.0)
       uniform float uMode,uWater;varying vec3 vRoot,vLight,vDark;varying vec4 vSplat;varying vec2 vCoast;varying float vUp,vTown;
       ${GROUND_COLOR_GLSL}
       void main(){vec3 c=uMode<.5?groundColor(vRoot.xz,vRoot.y,vLight,vDark,vSplat,vCoast,vUp,uWater,vTown):lawnTone(vRoot.xz,vLight,vDark,vTown);

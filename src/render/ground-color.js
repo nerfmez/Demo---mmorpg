@@ -17,7 +17,12 @@ export const SURFACE_PAINT_GLSL=NOISE_GLSL+/* glsl */ `
 #define GROUND_AA(x) fwidth(x)
 #endif
 uniform sampler2D uGroundBrush;
-vec3 groundBrush(vec2 w){return texture2D(uGroundBrush,w/12.0).rgb;}
+// Surface pixels use their footprint; point bakes supply an explicit level because
+// one disconnected point per clump has no useful surface derivatives.
+#ifndef GROUND_BRUSH_SAMPLE
+#define GROUND_BRUSH_SAMPLE(uv) texture2D(uGroundBrush,uv)
+#endif
+vec3 groundBrush(vec2 w){return GROUND_BRUSH_SAMPLE(w/12.0).rgb;}
 float paintDaubs(vec2 w,float scale){
   vec2 cell=floor(w*scale),q=fract(w*scale)-.5;
   q-=(vec2(hash12(cell+13.2),hash12(cell+37.7))-.5)*.60;

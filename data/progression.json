@@ -197,7 +197,8 @@
           null
         ],
         "movement": "dash",
-        "icon": "slash"
+        "icon": "slash",
+        "basic": "slash"
       },
       "bow": {
         "name": "Hunter",
@@ -211,7 +212,8 @@
           null
         ],
         "movement": "roll",
-        "icon": "arrow"
+        "icon": "arrow",
+        "basic": "hunter_shot"
       },
       "staff": {
         "name": "Arcane",
@@ -225,8 +227,30 @@
           null
         ],
         "movement": "dash",
-        "icon": "fire"
+        "icon": "fire",
+        "basic": "arcane_bolt"
       }
+    },
+    "opening": {
+      "_doc": "New characters wake at the wreck unconscious, pick one of three weapon kits (it comes with its basic attack), one starter skill and one movement skill. Firebolt and Ward come from quests (h_slimes, h_crabs) or the workbench. createCharacter() without opening:true is the legacy full kit used by tests (?fresh=1).",
+      "weapons": [
+        "sword",
+        "bow",
+        "staff"
+      ],
+      "skillPool": [
+        "whirl_blade",
+        "war_cry",
+        "frost_nova",
+        "healing_spring",
+        "spirit_wolf"
+      ],
+      "movementPool": [
+        "dash",
+        "roll",
+        "leap"
+      ],
+      "gold": 30
     }
   },
   "slotCount": 4,

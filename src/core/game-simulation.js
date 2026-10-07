@@ -715,6 +715,13 @@ export class Game {
       const r = q.reward || {};
       if (r.gold) this.ch.gold += r.gold;
       for (const [item, n] of Object.entries(r.items || {})) addItem(this.ch, item, n);
+      for (const skill of r.skills || []) {
+        // a quest-taught skill goes into the first empty slot so it is seen at once
+        if (this.ch.skills[skill] || !this.data.skills.combat[skill]) continue;
+        this.ch.skills[skill] = 1;
+        const empty = this.ch.slots.find((s) => !s.skill);
+        if (empty) empty.skill = skill;
+      }
       const gained = addExp(this.ch, this.data, r.exp || 0, r.jobExp || 0);
       this.emit({ type: 'questDone', id, reward: r });
       if (gained.levels) this.onLevelUp();

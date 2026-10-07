@@ -21,6 +21,7 @@ import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
+import { buildWreck, weaponProps } from './wreck.js';
 import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
@@ -227,6 +228,21 @@ export class View {
   }
 
   /** Attach (or replace) the running game. */
+  /** The wreck on Arrival Beach, and (until the opening ends) the three weapons stuck in the sand. */
+  placeWreck(game) {
+    const cfg = this.world.data.wreck;
+    if (!cfg) return;
+    if (!this.wreck) {
+      const at = (o, [x, z], rot) => { o.position.set(x, this.world.groundY(x, z), z); o.rotation.y = rot; this.scene.add(o); return o; };
+      this.wreck = at(buildWreck(), cfg.at, cfg.rot);
+      this.weaponProps = {};
+      for (const [kit, o] of Object.entries(weaponProps())) this.weaponProps[kit] = at(o, cfg.weapons[kit], 0.2);
+    }
+    const stage = game.ch.opening?.stage;
+    for (const o of Object.values(this.weaponProps)) o.visible = stage !== 'done';
+    this.heroDown = this.heroDownTarget = stage === 'wake' ? 1 : 0;
+  }
+
   attachGame(game) {
     this.vfx.clearFireballs();
     this.game = game;
@@ -237,6 +253,7 @@ export class View {
     for (const v of this.dropViews.values()) disposeObject(v);
     this.dropViews.clear();
     this.setHeroLook(game.ch.appearance || DEFAULT_LOOK, game.gearLook());
+    this.placeWreck(game);
     const p = game.player;
     this.heroY = this.world.groundY(p.x, p.z);
     this.camTarget.set(p.x, this.heroY, p.z);
@@ -312,13 +329,16 @@ export class View {
       disposeObject(this.hero.scarf?.mesh);
     }
     this.hero = buildHumanoid(look, gear);
+    this.hero.root.rotation.order = 'YXZ'; // yaw first, so a fall (death, unconscious) goes backwards relative to the facing
     if (animator) {
       // A cached model arrived for unchanged gear: keep current swing, gait and IK blend state.
       animator.rig = this.hero;
       animator.b = this.hero.bones;
       this.heroAnim = animator;
       this.hero.root.position.copy(previousRoot.position);
-      this.hero.root.quaternion.copy(previousRoot.quaternion);
+      // Copy the facing as a yaw: a plain quaternion copy decomposes a yaw past 90 degrees into
+      // (180, y, 180) Euler angles, and the animator then resets only x, leaving the hero upside down.
+      this.hero.root.rotation.set(0, new THREE.Euler().setFromQuaternion(previousRoot.quaternion, 'YXZ').y, 0);
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
@@ -832,11 +852,13 @@ export class View {
     if (p.dash && p.dash.kind === 'leap') y += Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5;
     const speed = dt > 0 && this.lastHeroPos ? Math.hypot(p.x - this.lastHeroPos.x, p.z - this.lastHeroPos.z) / dt : 0;
     this.lastHeroPos = { x: p.x, z: p.z };
-    r.root.position.set(p.x, y, p.z);
+    this.heroDown = damp(this.heroDown || 0, this.heroDownTarget || 0, this.heroDownTarget ? 8 : 2.4, dt);
+    if (this.heroDown < 0.002 && !this.heroDownTarget) this.heroDown = 0;
+    r.root.position.set(p.x, y + this.heroDown * 0.2, p.z); // lying: the back rests on the sand
     let d = p.facing - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
-    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
+    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, down: this.heroDown, time });
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');

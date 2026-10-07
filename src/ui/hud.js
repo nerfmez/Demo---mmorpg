@@ -23,6 +23,7 @@ export function rewardText(data, r = {}) {
   if (r.exp) parts.push(`${r.exp} EXP`);
   if (r.jobExp) parts.push(`${r.jobExp} Job EXP`);
   if (r.gold) parts.push(`${r.gold} G`);
+  for (const id of r.skills || []) parts.push(`สกิลใหม่: ${data.skills.combat[id]?.nameTh || id}`);
   for (const [id, n] of Object.entries(r.items || {})) parts.push(`${data.items.materials[id]?.nameTh || id} ×${n}`);
   return parts.join(' · ');
 }

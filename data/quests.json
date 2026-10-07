@@ -555,7 +555,10 @@
       "reward": {
         "gold": 50,
         "exp": 8,
-        "jobExp": 6
+        "jobExp": 6,
+        "skills": [
+          "firebolt"
+        ]
       },
       "level": 1,
       "requires": [],
@@ -587,7 +590,10 @@
         "items": {
           "crab_shell": 2,
           "salt_gel": 4
-        }
+        },
+        "skills": [
+          "ward"
+        ]
       },
       "level": 2,
       "requires": [

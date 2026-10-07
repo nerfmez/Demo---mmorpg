@@ -1,4 +1,5 @@
 // Short real title/create/save/Continue gate. Full smoke remains a separate suite.
+import { completeOpeningUi } from './opening-helper.mjs';
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -32,11 +33,11 @@ try {
     await page.screenshot({ path: `tests/browser/out/boot/${engine.name()}-${device}-title.png` });
     await activate('[data-act="new"]');
     await page.locator('#heroName').fill('CI Boot');
-    await activate('[data-act="kit"][data-kit="bow"]');
     await activate('[data-act="look"][data-key="hairStyle"][data-val="ponytail"]');
     await page.screenshot({ path: `tests/browser/out/boot/${engine.name()}-${device}-create.png` });
     await activate('[data-act="start"]');
     await ready();
+    await completeOpeningUi(page, activate, { kit: 'bow' });
     const created = await page.evaluate(() => ({ name: __frontier.game.ch.name, weapon: __frontier.game.derived.weaponType, hair: __frontier.game.ch.appearance?.hairStyle, saved: !!localStorage.getItem('frontier.slot.1'), frame: __frontier.view.renderer.info.render.frame }));
     assert.equal(created.name, 'CI Boot'); assert.equal(created.weapon, 'bow'); assert.equal(created.hair, 'ponytail'); assert.ok(created.saved); assert.ok(created.frame > 0, 'world really renders');
     await page.evaluate(() => { __frontier.game.ch.gold = 777; __frontier.save(); });

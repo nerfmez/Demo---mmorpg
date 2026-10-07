@@ -222,7 +222,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
 export function movementSkill(ch, data, derived) {
   const def = movementDef(data, ch.movement) || movementDef(data, 'dash');
   const out = {
-    id: ch.movement,
+    id: ch.movement || 'dash', // none yet during the opening: the button shows the default
     def,
     kind: def.kind,
     distance: def.distance,

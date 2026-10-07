@@ -3,6 +3,7 @@
 // game's own API and saves screenshots to tests/browser/out/.
 // Screenshot waits allow slow software-GL shader compilation on CI; all gameplay assertions stay unchanged.
 // Usage: npm run build && npm run test:browser  (BROWSER=webkit to use WebKit if installed)
+import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -59,13 +60,13 @@ async function run(name, contextOpts) {
   await page.click('[data-act="new"]');
   await page.waitForSelector('.create-panel');
   await page.fill('#heroName', 'Aki');
-  await page.click('[data-act="kit"][data-kit="bow"]');
   await page.click('[data-act="look"][data-key="hairStyle"][data-val="ponytail"]');
   await page.waitForTimeout(500);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-0-create.png` });
   console.log(`${name}: creator ready; starting character`);
   await page.click('[data-act="start"]', { noWaitAfter: true });
   await page.waitForFunction(() => window.__frontier.game && window.__frontier.game.time > 0.3, null, { timeout: 30000 });
+  await completeOpeningUi(page, (sel) => page.click(sel), { kit: 'bow' });
   const started = await page.evaluate(() => {
     const g = window.__frontier.game;
     return { name: g.ch.name, weapon: g.derived.weaponType, hair: g.ch.appearance?.hairStyle, saved: !!localStorage.getItem('frontier.slot.1') };

@@ -93,6 +93,37 @@
         "bow"
       ]
     },
+    "arcane_bolt": {
+      "name": "Arcane Bolt",
+      "nameTh": "ลูกเวทพื้นฐาน",
+      "desc": "ร่ายลูกพลังเวทเล็ก ๆ จากปลายคทา ไม่เปลืองมานา เป็นการโจมตีพื้นฐานของสายคทา",
+      "tags": [
+        "Attack",
+        "Spell",
+        "Projectile",
+        "Damage"
+      ],
+      "kind": "projectile",
+      "power": "spell",
+      "damage": {
+        "base": 8,
+        "scale": 0.9
+      },
+      "range": 13,
+      "speed": 16,
+      "projectileRadius": 0.3,
+      "cooldown": 0.5,
+      "castTime": 0.2,
+      "cost": 0,
+      "element": "arcane",
+      "requires": {},
+      "upgradeMaterial": "glow_dust",
+      "icon": "fire",
+      "upgradeStat": "INT",
+      "requiresWeapon": [
+        "staff"
+      ]
+    },
     "firebolt": {
       "name": "Firebolt",
       "nameTh": "ลูกไฟ",

@@ -34,7 +34,8 @@ try{
  else report.touch=await page.evaluate(()=>{const f=__frontier,r=f.input.joyZone.getBoundingClientRect();for(const[type,x]of[['pointerdown',r.x+r.width/2],['pointermove',r.x+r.width*.9]])f.input.joyZone.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId:7,pointerType:'touch',clientX:x,clientY:r.y+r.height/2}));f.input.update();const v=f.game.input.moveX;f.input.joyZone.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:7,pointerType:'touch'}));return v;});
  assert.ok(report.touch>.8);await page.evaluate(()=>__frontier.input.disabled=true);
  await walk('original-safe-arrival',data.world.roads.find(r=>r.id==='arrival').points);
- const wp=world.waypoints.find(p=>p.id==='town');const arrived=await walk('town-waypoint',nav.path(wp.x,wp.z+2.2));assert.ok(arrived.townUnlocked&&arrived.arrival==='done');
+ const wp=world.waypoints.find(p=>p.id==='town');const arrived=await walk('town-waypoint',nav.path(wp.x,wp.z+2.2));assert.ok(arrived.townUnlocked);assert.equal(arrived.arrival,'locked','an early town visit cannot skip the shore lessons');
+ const remembered=await page.evaluate(()=>{const g=__frontier.game,discovered=g.ch.progress.waypoints.includes('town');for(const target of ['salt_slime','reef_crab'])for(let i=0;i<3;i++)g.notify({type:'kill',target});return{discovered,arrival:g.ch.progress.quests.h_arrival?.status};});assert.ok(remembered.discovered);assert.equal(remembered.arrival,'done','the remembered town visit completes arrival once the shore lessons finish');
  for(const id of['trainer','workbench']){
   await page.evaluate(p=>Object.assign(__frontier.game.player,{x:p[0],z:p[1]}),data.world.town.respawn);
   await walk(id,nav.path(...data.world.town[id]));assert.ok(await page.evaluate(id=>__frontier.game.nearby()[id],id));

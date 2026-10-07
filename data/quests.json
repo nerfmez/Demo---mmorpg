@@ -1,38 +1,38 @@
 {
-  "_doc": "Quest journal. Main quests unlock one after another; side quests are open from the start. type: kill (target monster, count), collect (item picked up, count), craft (any gear/skill/mod crafted, count), waypoint (activate a waypoint), zone (discover a zone), socket (socket mods, count), job (choose a Job). Rewards: gold, exp, jobExp, items. world (optional): a waypoint/zone quest counts only on that map id. level: the character level a quest is meant for; rewards scale with it (exp = a share of that level, tests/core/balance-model.test.js).",
+  "_doc": "Continuous journey, schema 2. Chapters and explicit prerequisites describe a story, never the current loaded region. Objective world/worlds scopes evidence, not visibility. level is a recommendation, not an unlock. Existing quest ids, primary counts and numeric rewards are retained for v7 saves. Completed historical records never pay again. Unlisted historical definitions are archived, not activated.",
   "main": [
-    "h_arrival",
     "h_slimes",
     "h_crabs",
+    "h_arrival",
     "h_craft",
     "h_fields",
     "h_grove",
-    "h_lighthouse",
     "f_road",
     "m_forest",
     "m_greyfang",
+    "s_coast",
     "m_wetland",
     "m_highlands",
     "m_warden"
   ],
   "side": [
     "h_birds",
-    "h_hermits",
-    "m_boars",
     "s_mods",
     "s_job",
+    "h_lighthouse",
+    "h_hermits",
+    "m_boars",
     "s_spores",
     "s_wolves",
-    "s_golems",
     "s_feathers",
-    "s_collector",
-    "s_coast"
+    "s_golems",
+    "s_collector"
   ],
   "quests": {
     "m_boars": {
       "name": "Trouble in the Meadow",
-      "nameTh": "ความวุ่นวายในทุ่งหญ้า",
-      "descTh": "หมูป่างาแหลมรบกวนนิคม ล่ามัน 5 ตัว แล้วเก็บหนังกับเขี้ยวไว้คราฟต์",
+      "nameTh": "เสบียงจากสองฟากทาง",
+      "descTh": "หมูป่างาแหลมออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขี้ยวไว้เตรียมของ",
       "type": "kill",
       "target": "tusk_boar",
       "count": 5,
@@ -44,7 +44,26 @@
           "boar_hide": 2
         }
       },
-      "level": 9
+      "level": 9,
+      "requires": [
+        "f_road"
+      ],
+      "objectiveTextTh": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+      "chapter": "forest-traces",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 5,
+          "labelTh": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+          "target": "tusk_boar",
+          "worlds": [
+            "azure-harbor-v1",
+            "frontier-wilds-v1"
+          ]
+        }
+      ]
     },
     "m_craft": {
       "name": "Tools of the Trade",
@@ -62,8 +81,8 @@
     },
     "m_forest": {
       "name": "Into the Mossroot",
-      "nameTh": "เข้าป่ารากตะไคร่",
-      "descTh": "เดินทางขึ้นเหนือเข้าป่า แล้วเปิดใช้หินวาร์ปที่ลานกลางป่า",
+      "nameTh": "ร่องรอยบนทางร่วม",
+      "descTh": "หลังเชื่อมทางเสบียงแล้ว สำรวจป่ารากตะไคร่ของกรีนฮอลโลว์ หินวาร์ปกลางป่าจะเป็นจุดพักก่อนติดตามฝูงหมาป่า",
       "type": "waypoint",
       "target": "forest",
       "count": 1,
@@ -73,12 +92,28 @@
         "jobExp": 637
       },
       "world": "frontier-wilds-v1",
-      "level": 10
+      "level": 10,
+      "requires": [
+        "f_road"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปป่ารากตะไคร่",
+      "chapter": "forest-traces",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปป่ารากตะไคร่",
+          "target": "forest",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "m_greyfang": {
       "name": "The Alpha of the Pack",
-      "nameTh": "จ่าฝูงแห่งป่า",
-      "descTh": "หมาป่าหลังหนามถูกนำโดยเกรย์แฟง ตามทางแยกไปถ้ำทางตะวันออกเฉียงเหนือแล้วปราบมัน",
+      "nameTh": "ต้นทางของฝูง",
+      "descTh": "ตามรอยเข้าสู่ถ้ำหมาป่าแล้วปราบเกรย์แฟง เตรียมอุปกรณ์และจังหวะหลบก่อนเข้าสู้ หลังจัดการจ่าฝูงจึงเดินทางต่อไปตามสายน้ำ",
       "type": "kill",
       "target": "greyfang",
       "count": 1,
@@ -87,12 +122,36 @@
         "exp": 2559,
         "jobExp": 1145
       },
-      "level": 14
+      "level": 14,
+      "requires": [
+        "m_forest"
+      ],
+      "objectiveTextTh": "ปราบเกรย์แฟง 1 ครั้ง",
+      "chapter": "forest-traces",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "approach",
+          "type": "zone",
+          "target": "wolf_den",
+          "world": "frontier-wilds-v1",
+          "count": 1,
+          "labelTh": "สำรวจถ้ำหมาป่า"
+        },
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 1,
+          "labelTh": "ปราบเกรย์แฟง 1 ครั้ง",
+          "target": "greyfang",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "m_wetland": {
       "name": "Across the River",
-      "nameTh": "ข้ามแม่น้ำ",
-      "descTh": "ข้ามสะพานใหญ่ไปทางตะวันตก แล้วเปิดใช้หินวาร์ปที่ชุ่มน้ำ",
+      "nameTh": "เสบียงข้ามสายน้ำ",
+      "descTh": "เส้นทางชายฝั่งเชื่อมไปถึงพื้นที่ชุ่มน้ำ เปิดหลักหมายฝั่งนั้น แล้วเตรียมตัวสำหรับเส้นทางหินที่สูงขึ้น",
       "type": "waypoint",
       "target": "wetland",
       "count": 1,
@@ -102,12 +161,28 @@
         "jobExp": 1511
       },
       "world": "frontier-wilds-v1",
-      "level": 16
+      "level": 16,
+      "requires": [
+        "s_coast"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปพื้นที่ชุ่มน้ำ",
+      "chapter": "river-to-stone",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปพื้นที่ชุ่มน้ำ",
+          "target": "wetland",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "m_highlands": {
       "name": "Highland Scouts",
-      "nameTh": "สอดแนมที่ราบสูง",
-      "descTh": "ขึ้นไปยังแคมป์บนที่ราบสูงผาหินทางตะวันตกเฉียงเหนือ (ข้ามสะพานเหนือ)",
+      "nameTh": "ร่องรอยในหิน",
+      "descTh": "จากพื้นที่ชุ่มน้ำขึ้นสู่ที่ราบสูงผาหิน เปิดจุดพักและตรวจของที่ต้องใช้ ก่อนเดินเข้าไปหาคำตอบในซากโบราณ",
       "type": "waypoint",
       "target": "highlands",
       "count": 1,
@@ -120,12 +195,28 @@
         }
       },
       "world": "frontier-wilds-v1",
-      "level": 19
+      "level": 19,
+      "requires": [
+        "m_wetland"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปที่ราบสูงผาหิน",
+      "chapter": "river-to-stone",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปที่ราบสูงผาหิน",
+          "target": "highlands",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "m_warden": {
       "name": "The Ancient Warden",
-      "nameTh": "ผู้พิทักษ์โบราณ",
-      "descTh": "ขึ้นทางลาดสู่ซากโบราณบนที่ราบสูงตะวันตก แล้วปราบ Horned Warden",
+      "nameTh": "ผู้เฝ้าปลายทาง",
+      "descTh": "ร่องรอยตลอดเส้นทางนำมาถึงซากโบราณ สำรวจลานด้านในแล้วเผชิญ Horned Warden ผู้เฝ้าที่แห่งนี้ ใช้หลักหมายที่เปิดไว้กลับไปเตรียมตัวได้ก่อนเริ่มศึก",
       "type": "kill",
       "target": "horned_warden",
       "count": 1,
@@ -134,12 +225,36 @@
         "exp": 9161,
         "jobExp": 3409
       },
-      "level": 25
+      "level": 25,
+      "requires": [
+        "m_highlands"
+      ],
+      "objectiveTextTh": "ปราบ Horned Warden 1 ครั้ง",
+      "chapter": "old-answer",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "approach",
+          "type": "zone",
+          "target": "ruins",
+          "world": "frontier-wilds-v1",
+          "count": 1,
+          "labelTh": "สำรวจซากโบราณ"
+        },
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 1,
+          "labelTh": "ปราบ Horned Warden 1 ครั้ง",
+          "target": "horned_warden",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "s_spores": {
       "name": "Mushroom Menace",
-      "nameTh": "เห็ดป่วนทุ่ง",
-      "descTh": "กำจัดเห็ดสปอร์ 8 ตัว ระวังหมอกพิษที่มันพ่น",
+      "nameTh": "ทางที่ปกคลุมด้วยสปอร์",
+      "descTh": "จัดการเห็ดสปอร์ระหว่างสำรวจป่า นับต่อได้ทั้งสองฝั่งของทางเสบียง ระวังหมอกพิษและเก็บชิ้นส่วนไว้ทดลองคราฟต์",
       "type": "kill",
       "target": "sporecap",
       "count": 8,
@@ -150,12 +265,31 @@
           "spore_sac": 2
         }
       },
-      "level": 10
+      "level": 10,
+      "requires": [
+        "f_road"
+      ],
+      "objectiveTextTh": "กำจัดเห็ดสปอร์รวม 8 ตัว",
+      "chapter": "forest-traces",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 8,
+          "labelTh": "กำจัดเห็ดสปอร์รวม 8 ตัว",
+          "target": "sporecap",
+          "worlds": [
+            "azure-harbor-v1",
+            "frontier-wilds-v1"
+          ]
+        }
+      ]
     },
     "s_wolves": {
       "name": "Thinning the Pack",
-      "nameTh": "ลดจำนวนฝูง",
-      "descTh": "ล่าหมาป่าหลังหนาม 10 ตัว",
+      "nameTh": "เส้นทางของฝูง",
+      "descTh": "หมาป่าหลังหนามยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
       "type": "kill",
       "target": "thornback_wolf",
       "count": 10,
@@ -166,12 +300,31 @@
           "wolf_fang": 2
         }
       },
-      "level": 12
+      "level": 12,
+      "requires": [
+        "m_forest"
+      ],
+      "objectiveTextTh": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+      "chapter": "forest-traces",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 10,
+          "labelTh": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+          "target": "thornback_wolf",
+          "worlds": [
+            "azure-harbor-v1",
+            "frontier-wilds-v1"
+          ]
+        }
+      ]
     },
     "s_golems": {
       "name": "Stone Hearts",
       "nameTh": "หัวใจศิลา",
-      "descTh": "ทุบโกเลมผาหิน 5 ตัวบนที่ราบสูง",
+      "descTh": "ระหว่างสำรวจที่สูงและซากโบราณ เก็บชิ้นส่วนจากโกเลมผาหิน งานนี้เป็นทางเลือกสำหรับพัฒนาอุปกรณ์",
       "type": "kill",
       "target": "crag_golem",
       "count": 5,
@@ -182,12 +335,28 @@
           "golem_heart": 1
         }
       },
-      "level": 19
+      "level": 19,
+      "requires": [
+        "m_wetland"
+      ],
+      "objectiveTextTh": "กำจัดโกเลมผาหิน 5 ตัว",
+      "chapter": "river-to-stone",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 5,
+          "labelTh": "กำจัดโกเลมผาหิน 5 ตัว",
+          "target": "crag_golem",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "s_feathers": {
       "name": "Feather Trade",
-      "nameTh": "ค้าขนนก",
-      "descTh": "เก็บขนเหยี่ยว 6 ชิ้น (พ่อค้านิคมอยากได้)",
+      "nameTh": "สิ่งที่ลมพัดผ่าน",
+      "descTh": "ขนเหยี่ยวที่พบในกรีนฮอลโลว์เหมาะกับอุปกรณ์เดินทาง เก็บตัวอย่างไว้ระหว่างสำรวจ วัตถุดิบทั้งหมดจะยังอยู่กับคุณหลังบันทึกภารกิจสำเร็จ",
       "type": "collect",
       "target": "hawk_feather",
       "count": 6,
@@ -195,12 +364,28 @@
         "gold": 235,
         "exp": 3177
       },
-      "level": 18
+      "level": 18,
+      "requires": [
+        "s_coast"
+      ],
+      "objectiveTextTh": "เก็บขนเหยี่ยว 6 ชิ้น",
+      "chapter": "river-to-stone",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "collect",
+          "count": 6,
+          "labelTh": "เก็บขนเหยี่ยว 6 ชิ้น",
+          "target": "hawk_feather",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "s_collector": {
       "name": "Frontier Collector",
-      "nameTh": "นักสะสมชายแดน",
-      "descTh": "เก็บหินผา 8 ชิ้น ใช้สร้างรั้วนิคม",
+      "nameTh": "บันทึกจากที่ราบหิน",
+      "descTh": "หินผาในที่สูงและซากโบราณเป็นวัสดุสำคัญสำหรับผู้เดินทาง เก็บตัวอย่างให้ครบเพื่อบันทึกแหล่งวัตถุดิบ โดยยังเก็บหินทั้งหมดไว้ใช้คราฟต์ได้",
       "type": "collect",
       "target": "crag_stone",
       "count": 8,
@@ -211,36 +396,82 @@
           "ruin_shard": 1
         }
       },
-      "level": 20
+      "level": 20,
+      "requires": [
+        "m_wetland"
+      ],
+      "objectiveTextTh": "เก็บหินผา 8 ชิ้น",
+      "chapter": "river-to-stone",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "collect",
+          "count": 8,
+          "labelTh": "เก็บหินผา 8 ชิ้น",
+          "target": "crag_stone",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "s_mods": {
       "name": "Build Experiment",
-      "nameTh": "ทดลอง Build",
-      "descTh": "ใส่ Mod ให้สกิลรวม 2 ครั้ง (เมนูสกิล)",
+      "nameTh": "ทดลองก่อนเดินทางไกล",
+      "descTh": "ติดตั้งม็อดให้สกิลรวมสองครั้งเพื่อทดลองรูปแบบเล่น ใช้เมนูสกิลได้จากทุกพื้นที่ งานนี้ไม่บังคับเลือกบิลใดบิลหนึ่ง",
       "type": "socket",
       "count": 2,
       "reward": {
         "gold": 90,
         "exp": 283
       },
-      "level": 6
+      "level": 6,
+      "requires": [
+        "h_craft"
+      ],
+      "objectiveTextTh": "ติดตั้งม็อดรวม 2 ครั้ง",
+      "chapter": "shared-road",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "socket",
+          "count": 2,
+          "labelTh": "ติดตั้งม็อดรวม 2 ครั้ง",
+          "menu": "skills"
+        }
+      ]
     },
     "s_job": {
       "name": "Choose Your Path",
-      "nameTh": "เลือกเส้นทาง",
-      "descTh": "เมื่อถึง Job Lv.5 ให้เลือก Job ใน Job Tree",
+      "nameTh": "เลือกทางของตัวเอง",
+      "descTh": "ลงทุนแต้มในต้นไม้อาชีพไปถึงโหนดอาชีพตามเงื่อนไขที่แสดงในเมนู ไม่บังคับให้ทุกคนเลือกทางเดียวกัน",
       "type": "job",
       "count": 1,
       "reward": {
         "gold": 90,
         "exp": 283
       },
-      "level": 6
+      "level": 6,
+      "requires": [
+        "h_craft"
+      ],
+      "objectiveTextTh": "ปลดโหนดอาชีพ 1 โหนด",
+      "chapter": "shared-road",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "job",
+          "count": 1,
+          "labelTh": "ปลดโหนดอาชีพ 1 โหนด",
+          "menu": "job"
+        }
+      ]
     },
     "s_coast": {
       "name": "Where the River Meets the Sea",
-      "nameTh": "ปากแม่น้ำสู่ทะเล",
-      "descTh": "เดินลงใต้ตามทางชายฝั่ง แล้วเปิดใช้หินวาร์ปที่ชายหาดตะวันรอน",
+      "nameTh": "ตามน้ำไปถึงทะเล",
+      "descTh": "จากป่าตามเส้นทางลงสู่ชายฝั่งตะวันรอน เปิดจุดพักริมทะเลไว้ ก่อนสำรวจย้อนตามสายน้ำเข้าไปในพื้นที่ชุ่มน้ำ",
       "type": "waypoint",
       "target": "coast",
       "count": 1,
@@ -250,7 +481,23 @@
         "jobExp": 989
       },
       "world": "frontier-wilds-v1",
-      "level": 15
+      "level": 15,
+      "requires": [
+        "m_greyfang"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปชายฝั่งตะวันรอน",
+      "chapter": "river-to-stone",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปชายฝั่งตะวันรอน",
+          "target": "coast",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     },
     "s_crabs": {
       "name": "Crab Season",
@@ -269,8 +516,8 @@
     },
     "h_arrival": {
       "name": "แสงนำทางสู่เมืองท่า",
-      "nameTh": "แสงนำทางสู่เมืองท่า",
-      "descTh": "จากหาดผู้มาเยือน ตามถนนเลียบฝั่งไปเปิดใช้หินวาร์ปที่ลานเมืองท่า",
+      "nameTh": "จุดพักแห่งแรก",
+      "descTh": "นำสิ่งที่หาได้ริมฝั่งไปยังลานเมืองท่า เปิดหินวาร์ปเป็นหลักหมายสำหรับกลับมาพัก แล้วมองหาโต๊ะคราฟต์เพื่อเตรียมของใช้ในเส้นทางถัดไป",
       "type": "waypoint",
       "target": "town",
       "count": 1,
@@ -280,12 +527,28 @@
         "jobExp": 6
       },
       "world": "azure-harbor-v1",
-      "level": 1
+      "level": 1,
+      "requires": [
+        "h_crabs"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปลานเมืองท่า",
+      "chapter": "first-footsteps",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปลานเมืองท่า",
+          "target": "town",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_slimes": {
       "name": "เจลเกลือริมฝั่ง",
-      "nameTh": "เจลเกลือริมฝั่ง",
-      "descTh": "ออกจากทางปลอดภัยไปกำจัดสไลม์น้ำเค็ม 3 ตัว สังเกตจังหวะย่อตัวก่อนกระโดด",
+      "nameTh": "ก้าวแรกบนหาด",
+      "descTh": "เริ่มจากสไลม์น้ำเค็มใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
       "type": "kill",
       "target": "salt_slime",
       "count": 3,
@@ -294,12 +557,26 @@
         "exp": 8,
         "jobExp": 6
       },
-      "level": 1
+      "level": 1,
+      "requires": [],
+      "objectiveTextTh": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+      "chapter": "first-footsteps",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 3,
+          "labelTh": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+          "target": "salt_slime",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_crabs": {
       "name": "ก้ามปูและจังหวะหลบ",
-      "nameTh": "ก้ามปูและจังหวะหลบ",
-      "descTh": "กำจัดปูชายหาด 3 ตัว รอจังหวะยกก้าม แล้วหลบออกด้านข้าง เก็บกระดองไว้คราฟต์",
+      "nameTh": "วัตถุดิบก่อนออกเดินทาง",
+      "descTh": "ปูริมฝั่งให้ชิ้นส่วนที่ใช้เตรียมของเดินทาง รอจังหวะมันยกก้ามแล้วหลบ เมื่อพร้อมให้นำสิ่งที่หาได้เข้าเมืองท่า",
       "type": "kill",
       "target": "reef_crab",
       "count": 3,
@@ -312,12 +589,28 @@
           "salt_gel": 4
         }
       },
-      "level": 2
+      "level": 2,
+      "requires": [
+        "h_slimes"
+      ],
+      "objectiveTextTh": "กำจัดปูแนวปะการังริมฝั่ง 3 ตัว",
+      "chapter": "first-footsteps",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 3,
+          "labelTh": "กำจัดปูแนวปะการังริมฝั่ง 3 ตัว",
+          "target": "reef_crab",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_craft": {
       "name": "รองเท้าสำหรับการเดินทาง",
-      "nameTh": "รองเท้าสำหรับการเดินทาง",
-      "descTh": "กลับโต๊ะคราฟต์ในเมือง คราฟต์อุปกรณ์ 1 ชิ้น รองเท้าจากเจลเกลือเป็นตัวเลือกที่ใช้ของริมฝั่ง",
+      "nameTh": "เตรียมของสำหรับทางไกล",
+      "descTh": "ใช้โต๊ะคราฟต์สร้างอุปกรณ์ สกิล หรือม็อดหนึ่งอย่างจากสิ่งที่หาได้ เลือกให้เข้ากับแนวเล่นของตัวเอง แล้วออกสำรวจเส้นทางหลังเมือง",
       "type": "craft",
       "count": 1,
       "reward": {
@@ -325,12 +618,27 @@
         "exp": 35,
         "jobExp": 46
       },
-      "level": 2
+      "level": 2,
+      "requires": [
+        "h_arrival"
+      ],
+      "objectiveTextTh": "คราฟต์อุปกรณ์ สกิล หรือม็อด 1 ครั้ง",
+      "chapter": "first-footsteps",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "craft",
+          "count": 1,
+          "labelTh": "คราฟต์อุปกรณ์ สกิล หรือม็อด 1 ครั้ง",
+          "menu": "craft"
+        }
+      ]
     },
     "h_fields": {
       "name": "เส้นทางหลังเมือง",
-      "nameTh": "เส้นทางหลังเมือง",
-      "descTh": "ตามถนนเหนือไปเปิดใช้หินวาร์ปทุ่งรอบเมือง",
+      "nameTh": "ตามทางเสบียง",
+      "descTh": "ทางเสบียงจากเมืองเริ่มที่ทุ่งรอบเมือง เปิดหินวาร์ปไว้เป็นจุดพัก ก่อนตามถนนต่อไปยังป่าฝั่งตะวันตก",
       "type": "waypoint",
       "target": "meadow",
       "count": 1,
@@ -340,12 +648,28 @@
         "jobExp": 76
       },
       "world": "azure-harbor-v1",
-      "level": 3
+      "level": 3,
+      "requires": [
+        "h_craft"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปทุ่งรอบเมือง",
+      "chapter": "shared-road",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปทุ่งรอบเมือง",
+          "target": "meadow",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_grove": {
       "name": "สำรวจป่าโปร่ง",
-      "nameTh": "สำรวจป่าโปร่ง",
-      "descTh": "ตามทางวงรอบไปเปิดใช้หินวาร์ปป่าโปร่งริมฝั่ง",
+      "nameTh": "หลักหมายก่อนชายแดน",
+      "descTh": "จากทุ่งตามเส้นทางเข้าป่าฝั่งตะวันตก เปิดหลักหมายในป่าชายฝั่งสีคราม จุดนี้จะเชื่อมทางเดินของเมืองท่าเข้ากับนิคมกรีนฮอลโลว์",
       "type": "waypoint",
       "target": "forest",
       "count": 1,
@@ -355,12 +679,28 @@
         "jobExp": 209
       },
       "world": "azure-harbor-v1",
-      "level": 6
+      "level": 6,
+      "requires": [
+        "h_fields"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปป่าฝั่งชายฝั่งสีคราม",
+      "chapter": "shared-road",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปป่าฝั่งชายฝั่งสีคราม",
+          "target": "forest",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_lighthouse": {
       "name": "แสงแห่งชายฝั่ง",
-      "nameTh": "แสงแห่งชายฝั่ง",
-      "descTh": "ตามถนนเหนือเมืองไปยังแหลมทางตะวันออกเฉียงเหนือ ระวังเสฉวน แล้วเปิดใช้หินวาร์ปบนแหลม",
+      "nameTh": "ทางเลือกบนแหลมหิน",
+      "descTh": "แยกจากทางเสบียงไปสำรวจแหลมทางตะวันออกเฉียงเหนือ เปิดหินวาร์ปเป็นจุดพักเสริม แล้วกลับเข้าการเดินทางหลักได้ทุกเมื่อ",
       "type": "waypoint",
       "target": "headland",
       "count": 1,
@@ -370,12 +710,28 @@
         "jobExp": 329
       },
       "world": "azure-harbor-v1",
-      "level": 7
+      "level": 7,
+      "requires": [
+        "h_fields"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปบนแหลม",
+      "chapter": "shared-road",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปบนแหลม",
+          "target": "headland",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_birds": {
       "name": "นกจอมขโมย",
-      "nameTh": "นกจอมขโมย",
-      "descTh": "กำจัดนกชายฝั่ง 5 ตัว มันลงพื้นเพื่อจิกและพุ่งระยะสั้น จึงโจมตีประชิดได้",
+      "nameTh": "ช่วยคนเดินทางริมฝั่ง",
+      "descTh": "นกชายฝั่งบินลงรบกวนคนขนของตามแนวหาด ช่วยจัดการพวกมันระหว่างเตรียมเสบียง และเก็บขนไว้ใช้กับอุปกรณ์เดินทาง",
       "type": "kill",
       "target": "shore_gull",
       "count": 5,
@@ -386,12 +742,28 @@
           "shore_feather": 2
         }
       },
-      "level": 2
+      "level": 2,
+      "requires": [
+        "h_slimes"
+      ],
+      "objectiveTextTh": "กำจัดนกชายฝั่ง 5 ตัว",
+      "chapter": "first-footsteps",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 5,
+          "labelTh": "กำจัดนกชายฝั่ง 5 ตัว",
+          "target": "shore_gull",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "h_hermits": {
       "name": "เสฉวนบนแหลม",
-      "nameTh": "เสฉวนบนแหลม",
-      "descTh": "กำจัดเสฉวน 4 ตัวบนแหลมเหนือเมือง ใช้ช่วงพักหลังฟาดก้าม",
+      "nameTh": "ชิ้นส่วนจากแหลมหิน",
+      "descTh": "สำรวจแนวฝั่งหินบนแหลม ล่าเสฉวนในช่วงพักหลังฟาดก้าม เก็บชิ้นส่วนสำหรับของทางเลือกโดยไม่ต้องหยุดเนื้อเรื่องหลัก",
       "type": "kill",
       "target": "hermit_crab",
       "count": 4,
@@ -402,12 +774,28 @@
           "hermit_fragment": 2
         }
       },
-      "level": 7
+      "level": 7,
+      "requires": [
+        "h_grove"
+      ],
+      "objectiveTextTh": "กำจัดเสฉวน 4 ตัว",
+      "chapter": "shared-road",
+      "category": "optional",
+      "objectives": [
+        {
+          "id": "primary",
+          "type": "kill",
+          "count": 4,
+          "labelTh": "กำจัดเสฉวน 4 ตัว",
+          "target": "hermit_crab",
+          "world": "azure-harbor-v1"
+        }
+      ]
     },
     "f_road": {
       "name": "The North Road",
-      "nameTh": "ถนนสู่ชายแดน",
-      "descTh": "ตามถนนป่าทางตะวันตกของชายฝั่งสีครามข้ามเขตแดน ไปเปิดใช้หินวาร์ปที่ประตูนิคมชายแดนกรีนฮอลโลว์",
+      "nameTh": "เส้นทางเดียวกันอีกฝั่งหนึ่ง",
+      "descTh": "หลักหมายในป่าฝั่งเมืองท่าเปิดแล้ว เดินต่อไปยังนิคมกรีนฮอลโลว์และเปิดหินวาร์ปอีกฝั่ง เพื่อเชื่อมเส้นทางเสบียงที่เคยขาดช่วง",
       "type": "waypoint",
       "target": "town",
       "world": "frontier-wilds-v1",
@@ -417,7 +805,88 @@
         "exp": 747,
         "jobExp": 398
       },
-      "level": 8
+      "level": 8,
+      "requires": [
+        "h_grove"
+      ],
+      "objectiveTextTh": "เปิดหินวาร์ปนิคมกรีนฮอลโลว์",
+      "chapter": "shared-road",
+      "category": "story",
+      "objectives": [
+        {
+          "id": "origin-road",
+          "type": "waypoint",
+          "target": "forest",
+          "world": "azure-harbor-v1",
+          "count": 1,
+          "labelTh": "บันทึกหลักหมายป่าฝั่งเมืองท่า"
+        },
+        {
+          "id": "primary",
+          "type": "waypoint",
+          "count": 1,
+          "labelTh": "เปิดหินวาร์ปนิคมกรีนฮอลโลว์",
+          "target": "town",
+          "world": "frontier-wilds-v1"
+        }
+      ]
     }
-  }
+  },
+  "schema": 2,
+  "titleTh": "เส้นทางที่เราเชื่อมถึงกัน",
+  "introTh": "ทางเสบียงระหว่างชายฝั่งสีครามกับกรีนฮอลโลว์ไม่ปลอดภัยเหมือนก่อน เริ่มจากเตรียมตัวริมทะเล เชื่อมหลักหมายตลอดเส้นทาง แล้วตามร่องรอยจากฝูงหมาป่าไปสู่ซากโบราณ",
+  "archived": [
+    "m_craft",
+    "s_crabs"
+  ],
+  "chapters": [
+    {
+      "id": "first-footsteps",
+      "nameTh": "ก้าวแรกของผู้เดินทาง",
+      "summaryTh": "เก็บวัตถุดิบริมฝั่ง แล้วใช้เมืองท่าเป็นจุดพักเตรียมของก่อนออกเดินทาง",
+      "quests": [
+        "h_slimes",
+        "h_crabs",
+        "h_arrival",
+        "h_craft"
+      ]
+    },
+    {
+      "id": "shared-road",
+      "nameTh": "ถนนที่เชื่อมผู้คน",
+      "summaryTh": "เปิดหลักหมายผ่านทุ่งและป่าฝั่งเมืองท่า เพื่อให้ทางเสบียงเชื่อมถึงนิคมชายแดนอีกครั้ง",
+      "quests": [
+        "h_fields",
+        "h_grove",
+        "f_road"
+      ]
+    },
+    {
+      "id": "forest-traces",
+      "nameTh": "รอยเท้าที่ขวางเส้นทาง",
+      "summaryTh": "ติดตามปัญหาของเส้นทางร่วมเข้าไปในป่าและถ้ำของจ่าฝูง",
+      "quests": [
+        "m_forest",
+        "m_greyfang"
+      ]
+    },
+    {
+      "id": "river-to-stone",
+      "nameTh": "ตามสายน้ำสู่ที่สูง",
+      "summaryTh": "จากป่าไปยังปากน้ำ ก่อนย้อนตามสายน้ำเข้าสู่หนองและทางขึ้นที่ราบหิน",
+      "quests": [
+        "s_coast",
+        "m_wetland",
+        "m_highlands"
+      ]
+    },
+    {
+      "id": "old-answer",
+      "nameTh": "คำตอบใต้ซากหิน",
+      "summaryTh": "สำรวจซากโบราณ เตรียมตัว แล้วเผชิญผู้พิทักษ์ที่ปลายทาง",
+      "quests": [
+        "m_warden"
+      ]
+    }
+  ]
 }

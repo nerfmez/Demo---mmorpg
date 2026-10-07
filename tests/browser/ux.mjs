@@ -69,7 +69,14 @@ try {
     assert.equal(await page.locator('[data-tab]').count(), 2, 'the sidebar lists only the open page\'s group');
     assert.ok(await onscreen('.panel-back'), name + ': back to the main menu is reachable');
     if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['journal','map']) { assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
-    assert.ok(await page.locator('.qrow [data-art="monster/tusk_boar"]').count());
+    const beforeJournalTabs = await page.evaluate(() => JSON.stringify(__frontier.game.snapshot()));
+    assert.ok(await page.locator('.qj-card[data-quest-id="h_slimes"][data-quest-status="active"] [data-art="monster/salt_slime"]').count(), 'the current shore mission uses its authored artwork');
+    await activate('[data-act="quest-mode"][data-id="optional"]');
+    await activate('.quest-journey details:has([data-quest-id="m_boars"]) > summary');
+    assert.ok(await page.locator('.qj-card[data-quest-id="m_boars"] [data-art="monster/tusk_boar"]').count(), 'the boar mission keeps its authored artwork in optional missions');
+    assert.equal(await page.locator('.qj-card[data-quest-id="m_boars"]').getAttribute('data-quest-status'), 'locked', 'future optional work waits for the shared-road prerequisites');
+    await activate('[data-act="quest-mode"][data-id="story"]');
+    assert.equal(await page.evaluate(() => JSON.stringify(__frontier.game.snapshot())), beforeJournalTabs, 'browsing quest tabs never changes or pays character progress');
     await shot('journal');
     await page.locator('.pbody').evaluate((el) => el.scrollTop = el.scrollHeight);
     assert.ok(await onscreen('.panel-close'), 'close must remain reachable after scrolling');

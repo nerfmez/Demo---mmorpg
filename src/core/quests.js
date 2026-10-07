@@ -1,67 +1,142 @@
-// Quest journal: a main chain that walks the map's journey, plus side quests.
-// State lives in character.progress.quests so it saves with the character.
-
+// One persistent journey; a map is an objective's address, never a journal scope.
+// No DOM/renderer dependencies. v8 migration preserves v7 ids, credit and paid rewards.
+const validStatuses = new Set(['locked', 'active', 'done']);
+const number = value => Number.isFinite(value) && value > 0 ? value : 0;
+export const questIds = data => [...new Set([...(data.quests.main || []), ...(data.quests.side || [])])];
+export function questObjectives(def) {
+  return def.objectives || [{ id: 'primary', type: def.type, target: def.target, count: def.count, world: def.world, labelTh: def.objectiveTextTh || def.descTh }];
+}
 export function questState(ch, id) {
-  const q = ch.progress.quests;
-  if (!q[id]) q[id] = { status: 'locked', progress: 0 };
-  return q[id];
+  ch.progress ||= {};
+  ch.progress.quests ||= {};
+  return ch.progress.quests[id] ||= { status: 'locked', progress: 0 };
 }
 
-/** Make sure the right quests are active; completes quests already satisfied. Returns finished ids. */
-export function refreshQuests(ch, data) {
-  const Q = data.quests;
-  let prevDone = true;
-  for (const id of Q.main) {
-    const st = questState(ch, id);
-    if (st.status === 'locked' && prevDone) st.status = 'active';
-    prevDone = st.status === 'done';
-  }
-  for (const id of Q.side) {
-    const st = questState(ch, id);
-    if (st.status === 'locked') st.status = 'active';
-  }
-  const finished = [];
-  for (const id of [...Q.main, ...Q.side]) {
-    const st = questState(ch, id);
-    if (st.status !== 'active') continue;
-    const def = Q.quests[id];
-    const p = ch.progress;
-    // Discovery lists hold the current map only; ids can repeat on another map.
-    const here = !def.world || def.world === data.world.id;
-    if (here && def.type === 'waypoint' && p.waypoints.includes(def.target)) st.progress = def.count;
-    if (here && def.type === 'zone' && p.zones.includes(def.target)) st.progress = def.count;
-    if (def.type === 'job' && ch.jobNodes.some((n) => data.jobtree.nodes[n].type === 'job')) st.progress = def.count;
-    if (def.type === 'socket') st.progress = Math.min(def.count, p.socketed || 0);
-    if (st.progress >= def.count) {
-      st.status = 'done';
-      finished.push(id);
+/** Explicit save migration. No rewards, discovery, inventory or narrative completion are invented. */
+export function migrateQuestJournal(ch, data, { legacy = false } = {}) {
+  ch.progress ||= {};
+  const p = ch.progress;
+  const previous = p.questJournal;
+  const upgrading = legacy || previous?.version !== 1;
+  p.quests ||= {};
+  p.questJournal = { ...(previous || {}), version: 1, trackedId: previous?.trackedId || null };
+  for (const [id, st] of Object.entries(p.quests)) {
+    const def = data.quests.quests[id];
+    if (!def) continue; // Unknown historical records are opaque; preserve every field unchanged.
+    if (!st || typeof st !== 'object') { delete p.quests[id]; continue; }
+    if (!validStatuses.has(st.status)) st.status = 'locked';
+    st.progress = number(st.progress);
+    if (upgrading && st.status === 'done') st.rewardClaimed = true;
+    const objectives = questObjectives(def);
+    st.objectives ||= {};
+    for (const o of objectives) {
+      const credited = st.objectives[o.id] ?? (o.id === 'primary' ? st.progress : 0);
+      st.objectives[o.id] = st.status === 'done' ? o.count : Math.min(o.count, number(credited));
     }
   }
-  // A discovery can finish a main quest without a later kill/craft event. Unlock
-  // the next step immediately, including already-discovered waypoint steps.
-  return finished.length ? finished.concat(refreshQuests(ch, data)) : finished;
+  if (p.questJournal.trackedId && (!questIds(data).includes(p.questJournal.trackedId) || p.quests[p.questJournal.trackedId]?.status !== 'active')) p.questJournal.trackedId = null;
+  return p.questJournal;
+}
+function journal(ch, data) {
+  return ch.progress?.questJournal?.version === 1 ? ch.progress.questJournal : migrateQuestJournal(ch, data);
+}
+function stateFor(ch, def, id) {
+  const st = questState(ch, id);
+  st.objectives ||= {};
+  for (const o of questObjectives(def)) if (!(o.id in st.objectives)) st.objectives[o.id] = st.status === 'done' ? o.count : o.id === 'primary' ? Math.min(o.count, number(st.progress)) : 0;
+  return st;
+}
+function requirements(data, id) {
+  const def = data.quests.quests[id];
+  if (def.requires) return def.requires;
+  const i = data.quests.main.indexOf(id);
+  return i > 0 ? [data.quests.main[i - 1]] : [];
+}
+export function questPrerequisites(data, id) { return requirements(data, id); }
+export function objectiveWorlds(data, objective) {
+  if (objective.worlds) return objective.worlds;
+  if (objective.world) return [objective.world];
+  return [...new Set([data.world.id, ...Object.keys(data.maps || {})])].sort();
+}
+function discoveryAt(ch, data, worldId) {
+  return worldId === (ch.worldId || data.world.id) ? ch.progress : ch.progress.maps?.[worldId] || {};
+}
+function persistentCredit(ch, data, o) {
+  if (o.type === 'waypoint' || o.type === 'zone') {
+    const field = o.type === 'waypoint' ? 'waypoints' : 'zones';
+    return objectiveWorlds(data, o).some(id => discoveryAt(ch, data, id)[field]?.includes(o.target)) ? o.count : 0;
+  }
+  if (o.type === 'socket') return number(ch.progress.socketed);
+  if (o.type === 'job') return ch.jobNodes?.some(n => data.jobtree.nodes[n]?.type === 'job') ? o.count : 0;
+  return 0; // scoped kill/collect credit is never inferred from unscoped lifetime totals
 }
 
-/** Feed a game event into the journal. Returns quest ids completed by it. */
+/** Unlock to a fixed point, preserving previously active missions even after reordered prerequisites. */
+export function refreshQuests(ch, data) {
+  const j = journal(ch, data), ids = questIds(data), pending = new Set();
+  let changed;
+  do {
+    changed = false;
+    for (const id of ids) {
+      const def = data.quests.quests[id], st = stateFor(ch, def, id);
+      if (st.status === 'locked' && requirements(data, id).every(prereq => questState(ch, prereq).status === 'done')) { st.status = 'active'; changed = true; }
+      if (st.status === 'active') {
+        const objectives = questObjectives(def);
+        for (const o of objectives) st.objectives[o.id] = Math.min(o.count, Math.max(number(st.objectives[o.id]), persistentCredit(ch, data, o)));
+        st.progress = st.objectives.primary || 0; // legacy consumer compatibility; UI uses questProgress
+        if (objectives.every(o => st.objectives[o.id] >= o.count)) { st.status = 'done'; st.rewardClaimed = false; changed = true; }
+      }
+      if (st.status === 'done' && !st.rewardClaimed) pending.add(id);
+    }
+  } while (changed);
+  if (j.trackedId && ch.progress.quests[j.trackedId]?.status !== 'active') j.trackedId = null;
+  return [...pending];
+}
+
+/** Evidence is scoped at the objective. One event cannot count twice in a newly unlocked successor. */
 export function questEvent(ch, data, ev) {
-  const Q = data.quests;
-  for (const id of [...Q.main, ...Q.side]) {
+  const before = refreshQuests(ch, data);
+  const eventWorld = ev.world || data.world.id;
+  for (const id of questIds(data)) {
     const st = questState(ch, id);
     if (st.status !== 'active') continue;
-    const def = Q.quests[id];
-    if (def.type === 'kill' && ev.type === 'kill' && ev.target === def.target) st.progress++;
-    if (def.type === 'collect' && ev.type === 'collect' && ev.item === def.target) st.progress += ev.qty || 1;
-    if (def.type === 'craft' && ev.type === 'craft') st.progress++;
+    const def = data.quests.quests[id];
+    for (const o of questObjectives(def)) {
+      if ((o.world || o.worlds) && !objectiveWorlds(data, o).includes(eventWorld)) continue;
+      let amount = 0;
+      if (o.type === 'kill' && ev.type === 'kill' && ev.target === o.target) amount = 1;
+      if (o.type === 'collect' && ev.type === 'collect' && ev.item === o.target) amount = ev.qty === undefined ? 1 : number(ev.qty);
+      if (o.type === 'craft' && ev.type === 'craft') amount = 1;
+      st.objectives[o.id] = Math.min(o.count, number(st.objectives[o.id]) + amount);
+    }
   }
-  const finished = refreshQuests(ch, data);
-  // a finished main quest may unlock the next one that is already satisfied
-  return finished.concat(refreshQuests(ch, data));
+  return [...new Set([...before, ...refreshQuests(ch, data)])];
 }
 
-/** The quest to show in the HUD tracker: the active main quest, else any active side quest. */
+/** The Game consumes each earned reward once, before any level-up callbacks can re-enter. */
+export function claimQuestReward(ch, data, id) {
+  journal(ch, data);
+  const st = ch.progress.quests[id], def = data.quests.quests[id];
+  if (!def || st?.status !== 'done' || st.rewardClaimed || !questIds(data).includes(id)) return null;
+  st.rewardClaimed = true;
+  return def.reward || {};
+}
+export function trackQuest(ch, data, id = null) {
+  const j = journal(ch, data);
+  if (id !== null && (!questIds(data).includes(id) || ch.progress.quests[id]?.status !== 'active')) return false;
+  j.trackedId = id;
+  return true;
+}
 export function trackedQuest(ch, data) {
-  const Q = data.quests;
-  for (const id of Q.main) if (questState(ch, id).status === 'active') return id;
-  for (const id of Q.side) if (questState(ch, id).status === 'active') return id;
-  return null;
+  const pinned = ch.progress?.questJournal?.trackedId;
+  if (pinned && questIds(data).includes(pinned) && ch.progress.quests[pinned]?.status === 'active') return pinned;
+  return [...data.quests.main, ...data.quests.side].find(id => ch.progress?.quests?.[id]?.status === 'active') || null;
+}
+/** Read-only view model: opening the journal never activates, completes or pays a mission. */
+export function questProgress(ch, data, id) {
+  const def = data.quests.quests[id];
+  if (!def) return null;
+  const st = ch.progress?.quests?.[id] || { status: 'locked', progress: 0 };
+  const objectives = questObjectives(def).map(o => ({ ...o, progress: st.status === 'done' ? o.count : Math.min(o.count, number(st.objectives?.[o.id] ?? (o.id === 'primary' ? st.progress : 0))) }));
+  return { status: st.status, rewardClaimed: !!st.rewardClaimed, objectives, current: objectives.reduce((n, o) => n + o.progress, 0), total: objectives.reduce((n, o) => n + o.count, 0), next: objectives.find(o => o.progress < o.count) || null };
 }

@@ -1,0 +1,12 @@
+{
+  "samples": [
+    {
+      "id": "oathblade-wisp",
+      "label": "dual",
+      "right": 4.440892098500626e-16,
+      "left": 1.60921073228599e-14
+    }
+  ],
+  "errors": [],
+  "method": "Exact candidate in runtime; front/side/game camera and selected action frames. No normal-speed playback or hardware iPad performance claim."
+}

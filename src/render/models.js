@@ -141,6 +141,14 @@ export function modelInstance(group, id, flash) {
 /** Cache all exported parts in the authored grip frame; no recentering or simplification. */
 export function prepareWeaponModel(scene, metadata = {}) {
   scene.updateMatrixWorld(true);
+  // Approved sources stay byte-for-byte intact. Fit their authored handle and axes
+  // once in the cached template; all rigs/portraits share the same fitted geometry.
+  const fit = new THREE.Matrix4();
+  if (metadata.sourceTransform) {
+    const { grip, rotation, scale } = metadata.sourceTransform;
+    fit.compose(new THREE.Vector3(), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(scale, scale, scale));
+    fit.multiply(new THREE.Matrix4().makeTranslation(-grip[0], -grip[1], -grip[2]));
+  }
   const parts = [], materials = new Map(), geometries = new Set(), sourceMaterials = new Set(), keptTextures = new Set(), sourceTextures = new Set();
   const materialFor = (source) => {
     if (materials.has(source)) return materials.get(source);
@@ -162,7 +170,7 @@ export function prepareWeaponModel(scene, metadata = {}) {
   };
   scene.traverse((mesh) => {
     if (!mesh.isMesh) return;
-    const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+    const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld).applyMatrix4(fit);
     geometry.userData.shared = true;
     const material = Array.isArray(mesh.material) ? mesh.material.map(materialFor) : materialFor(mesh.material);
     parts.push({ geometry, material }); geometries.add(mesh.geometry);

@@ -44,8 +44,10 @@ try{
  assert.deepEqual(await page.evaluate(()=>{const f=window.__frontier;return {sameAnimator:f.view.heroAnim===window.__weaponLoadAnimator,sameAction:f.view.heroAnim.action===window.__weaponLoadAction,t:f.view.heroAnim.action.t,weight:f.view.heroAnim.actionW};}),{sameAnimator:true,sameAction:true,t:.2,weight:.7});
  await page.screenshot({path:`${out}/staff-load-preserves-active-cast.png`});
  await page.evaluate(()=>{delete window.__weaponLoadAnimator.update;delete window.__weaponLoadAnimator;delete window.__weaponLoadAction;window.__frontier.paused=false;});
- // An absent registry model still uses its established procedural fallback.
- const before=requests.length;await select('wisp_staff');await current('wisp_staff');assert.ok(await triangles()>0);assert.equal(requests.length,before);
+ // Wisp Staff is now an approved registered model; it must replace its fallback.
+ await select('wisp_staff');await current('wisp_staff');
+ await page.waitForFunction(()=>{let n=0;window.__frontier.view.hero.bones.weapon.traverse(o=>{if(o.isMesh&&o.material.isMeshToonMaterial)n+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;});return n===8229;});
+ assert.equal(requests.filter(r=>r.endsWith('/wisp_staff.glb')).length,1);
  // A failed GLB URL falls back once and never reloads on subsequent equips.
  await page.route('**/tide_staff.glb',r=>r.abort());await select('tide_staff');await current('tide_staff');await page.waitForTimeout(300);assert.ok(await triangles()>0);
  await select('rusty_sword');await current('rusty_sword');await select('tide_staff');await current('tide_staff');assert.equal(requests.filter(r=>r.endsWith('/tide_staff.glb')).length,1);
@@ -67,6 +69,6 @@ try{
  assert.ok(grip.right<1e-5&&grip.left<1e-5,'imported grips meet both palms');
  await page.screenshot({path:`${out}/largest-completed-light-pair.png`});
  assert.deepEqual(errors,[]);
- writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,peakPair,grip,bowGrip,weaponRequests:requests.map(r=>r.split('/').at(-1)),staleCompletion:'current rig UUID unchanged',currentCompletion:'active animator/action/progress retained',missingFallback:'passed',failedFallback:'passed; no repeated request',errors},null,2));
+ writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,peakPair,grip,bowGrip,weaponRequests:requests.map(r=>r.split('/').at(-1)),staleCompletion:'current rig UUID unchanged',currentCompletion:'active animator/action/progress retained',newWispStaff:'approved geometry replaces fallback',failedFallback:'passed; no repeated request',errors},null,2));
  console.log('PASS weapon loading',JSON.stringify(coldStart));
 }finally{await browser?.close();try{process.kill(-server.pid);}catch(e){if(e.code!=='ESRCH')throw e;}}

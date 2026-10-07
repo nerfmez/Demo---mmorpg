@@ -19,8 +19,8 @@ export function upgradeTrack(notes, completed, prefix='Lv.',first=1) {
  return `<ol class="upgrade-track">${notes.map((note,i)=>`<li class="${i<completed?'done':i===completed?'next':''}"><b>${prefix}${i+first}</b><small>${esc(note)}</small></li>`).join('')}</ol>`;
 }
 export function wearRequirements(ch, requires, label='เงื่อนไขสวมใส่') {
- if(requires.level!==undefined)return `<div class="gear-requires"><b>${label}</b><span class="${ch.level>=requires.level?'ok':'no'}" data-required-level="${requires.level}">ต้อง Lv.${requires.level} · ปัจจุบัน Lv.${ch.level}</span></div>`;
- return `<div class="gear-requires"><b>${label}</b>${Object.entries(requires).map(([stat,need])=>`<span class="${ch.stats[stat]>=need?'ok':'no'}" data-required-stat="${stat}" data-need="${need}">${stat} ${ch.stats[stat]}/${need}</span>`).join('')}</div>`;
+ if(requires.level!==undefined){const gap=Math.max(0,requires.level-ch.level);return `<div class="gear-requires"><b>${label}</b><span class="${gap?'no':'ok'}" data-required-level="${requires.level}">ต้อง Lv.${requires.level} · ปัจจุบัน Lv.${ch.level}${gap?` · ขาด ${gap} เลเวล`:''}</span></div>`;}
+ return `<div class="gear-requires"><b>${label}</b>${Object.entries(requires).map(([stat,need])=>{const current=ch.stats[stat]||0,gap=Math.max(0,need-current);return `<span class="${gap?'no':'ok'}" data-required-stat="${stat}" data-need="${need}">${stat} มี <strong>${current}</strong> / ต้องใช้ <strong>${need}</strong>${gap?` · ขาด <strong>${gap}</strong>`:''}</span>`;}).join('')}</div>`;
 }
 export function wearRequirementRange(ch, preview) {
  if(preview.maxRequires.level!==undefined)return wearRequirements(ch,preview.maxRequires,'หลังเลื่อนเกรด')+'<small>เลเวลที่ต้องการคงเดิม · เกรด ตีบวก และออฟชั่นไม่เพิ่มเลเวลสวมใส่</small>';

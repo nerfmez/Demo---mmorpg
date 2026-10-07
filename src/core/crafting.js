@@ -1,5 +1,5 @@
 // Crafting, upgrades and drops: the Monster -> Material -> Craft/Upgrade/Trade loop.
-import { gearStats, gearRequirements, gearPower, enforceEquipment, meetsRequires, arrowTotal, wornSlot } from './character.js';
+import { gearStats, gearRequirements, gearPower, enforceEquipment, inactiveEquipment, meetsRequires, arrowTotal, wornSlot } from './character.js';
 import { equipmentItemLevel, validModGrade } from './item-metadata.js';
 import { modRequires } from './skills.js';
 
@@ -115,7 +115,7 @@ export function upgradeGear(ch, data, uid) {
   if (!state.ok) return state;
   pay(ch, state.cost);
   item.upgrade++;
-  return { ok: true, item, unequipped:enforceEquipment(ch,data) };
+  return { ok: true, item, unequipped:enforceEquipment(ch,data), inactive:inactiveEquipment(ch,data) };
 }
 
 export function skillUpgradeCost(data, skillId, level) {
@@ -206,7 +206,7 @@ export function promoteGear(ch, data, uid, rng) {
     item.options.push({ id, value: rng.int(def.min, def.max) });
   }
   item.grade = state.grade;
-  return { ok: true, item, unequipped:enforceEquipment(ch,data) };
+  return { ok: true, item, unequipped:enforceEquipment(ch,data), inactive:inactiveEquipment(ch,data) };
 }
 
 /** At most ten independent crafts. Keep every result; stop at target or first unpaid attempt. */

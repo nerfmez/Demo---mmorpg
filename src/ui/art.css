@@ -584,3 +584,5 @@ body.touch .sbtn:not(.attack) .slabel { font-size: 8px; bottom: 6px; }
 
 /* Supplied raster icons retain the existing art wrapper and icon geometry. */
 .art > img { object-fit:contain; user-select:none; -webkit-user-drag:none; }
+
+.equipment-slot.equipment-inactive{border:2px solid #c83b35;position:relative}.equipment-slot .inactive-badge{background:#a32b27;color:#fff8ed;font-size:10px;padding:1px 4px}

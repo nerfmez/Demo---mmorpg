@@ -92,7 +92,7 @@ try{
    assert.equal(await page.locator('.atelier-dialog .upgrade-cost').count(),0);
    await shot(`grade-${grade}-max-upgrade`);gradeCases.push({grade,seed,uid,upgradedTo:data.items.upgrade.max,requiredLevel:6});
   }
-  await page.evaluate(()=>{const f=__frontier;f.panels.close();f.game.ch.progress.equipmentNotice='เงื่อนไขสวมใส่ไม่ถึง: เก็บอุปกรณ์ไว้ในกระเป๋าครบ · เสื้อกลสปอร์';f.panels.lastResult=null;f.panels.open('bag');});assert.match(await page.locator('.atelier-notice').innerText(),/กระเป๋าครบ/);await shot('returned-items-notice');
+  await page.evaluate(()=>{const f=__frontier;f.panels.close();f.game.ch.level=1;f.game.refresh();f.panels.lastResult=null;f.panels.open('bag');});assert.match(await page.locator('.atelier-notice').innerText(),/สถานะไม่ได้ใช้/);await shot('inactive-items-notice');
   assert.deepEqual(errors,[]);report.push({name,width,height,ok:true,pageErrors:errors,gradeCases,bagViewport:name==='phone'?[844,390]:[width,height]});writeFileSync(out+'report.json',JSON.stringify(report,null,2));await ctx.close();console.log('PASS wearable level',name);
  }
 }finally{await browser?.close();try{process.kill(-server.pid,'SIGTERM');}catch{}}

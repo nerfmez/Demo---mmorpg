@@ -5,14 +5,15 @@ import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
+import { initialUiReady } from './startup-ready.mjs';
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
 const out = new URL(`./out/menu-hub-${engine.name()}/`, import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
 const port = 4223, base = `http://localhost:${port}/`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 const errors = [];
-const GROUPS = { hero: ['char', 'job'], build: ['skills', 'mods', 'movement', 'growth'], items: ['bag', 'craft', 'shop'], world: ['journal', 'map'], system: ['settings'] };
-const TITLE = { char: 'ตัวละคร', job: null, skills: 'ชุดสกิล', mods: 'ชุดสกิล', movement: 'ชุดสกิล', growth: 'อัปเลเวล', bag: 'อุปกรณ์', craft: 'โต๊ะคราฟต์', shop: 'ร้านค้า · ยา', journal: 'ภารกิจ', map: 'แผนที่', settings: 'ตั้งค่า' };
+const GROUPS = { hero: ['char', 'job'], build: ['skills', 'mods', 'movement', 'growth'], items: ['bag', 'craft', 'forge', 'shop'], world: ['journal', 'map'], system: ['settings'] };
+const TITLE = { char: 'ตัวละคร', job: null, skills: 'ชุดสกิล', mods: 'ชุดสกิล', movement: 'ชุดสกิล', growth: 'อัปเลเวล', bag: 'อุปกรณ์', craft: 'คราฟต์', forge: 'ตีบวก / เลื่อนเกรด', shop: 'ร้านค้า · ยา', journal: 'ภารกิจ', map: 'แผนที่', settings: 'ตั้งค่า' };
 let browser;
 try {
   for (let i = 0; ; i++) { try { if ((await fetch(base)).ok) break; } catch {} if (i > 80) throw Error('server'); await new Promise((r) => setTimeout(r, 250)); }
@@ -24,7 +25,7 @@ try {
     page.on('pageerror', (e) => errors.push(name + ': ' + String(e)));
     page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) errors.push(name + ': ' + m.text()); });
     await page.goto(base + '?fresh=1&seed=9&quality=low&stream=0');
-    await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
+    await page.waitForFunction(initialUiReady);
     // This suite tests menu layout/navigation with gameplay already paused. Hold
     // the completed world frame instead of spending software-GL time redrawing
     // the same backdrop on every UI event. RAF, HUD and equipment previews stay
@@ -55,7 +56,7 @@ try {
     assert.equal(await open(), true);
     assert.equal(await page.locator('#panel-title').textContent(), 'เมนูหลัก');
     assert.equal(await page.locator('.hub-group').count(), 5);
-    assert.equal(await page.locator('.hub-tile[data-go]').count(), 12, 'one tile per page');
+    assert.equal(await page.locator('.hub-tile[data-go]').count(), 13, 'one tile per page');
     for (const [g, pages] of Object.entries(GROUPS)) {
       const got = await page.locator(`.hub-group[data-group=${g}] .hub-tile`).evaluateAll((els) => els.map((e) => e.dataset.go));
       assert.deepEqual(got, pages, g + ' group pages');
@@ -85,6 +86,11 @@ try {
       } else {
         const tabs = await page.locator('[data-tab]').evaluateAll((els) => els.map((e) => e.dataset.tab));
         if (pages.length > 1) assert.deepEqual(tabs, pages, id + ' sidebar lists its group only'); else assert.equal(await page.locator('.tabs').isVisible(), false, id + ' has no sidebar');
+        if (id === 'craft' || id === 'forge') {
+          assert.ok(await page.locator('.workshop').isVisible());
+          assert.deepEqual(await page.locator('[data-act="workshop-page"]').evaluateAll(els=>els.map(e=>e.dataset.id)),['craft','upgrade','grade']);
+          assert.equal(await page.locator('.tabs').isVisible(),false,'dedicated workshop navigation, not a second sidebar');
+        }
         assert.ok(await page.locator('.panel-back').isVisible(), id + ': back button');
         if (id === 'char' || id === 'craft') await page.screenshot({ path: `${out}${name}-2-${id}.png` });
         await tap('.panel-back');

@@ -45,7 +45,7 @@ try {
     const loaded = await page.evaluate(() => __frontier.game.snapshot());
     for (const key of ['version', 'name', 'gold', 'gear', 'equipped', 'mods', 'materials', 'stats', 'skills', 'slots', 'appearance', 'kit']) assert.deepEqual(loaded[key], saved[key], `${key} survives Continue`);
     await activate('.menu-toggle');
-    assert.equal(await page.locator('.hub-tile[data-go]').count(), 12);
+    assert.equal(await page.locator('.hub-tile[data-go]').count(), 13);
     await page.keyboard.press('Escape');
     assert.equal(await page.evaluate(() => __frontier.panels.isOpen), false);
     await page.screenshot({ path: `tests/browser/out/boot/${engine.name()}-${device}.png` });

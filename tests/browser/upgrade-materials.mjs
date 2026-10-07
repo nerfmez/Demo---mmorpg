@@ -1,6 +1,7 @@
 // Focused real Game/Panels test: no WebGL dependency; routes real public PNG bytes.
 import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
+import {verifyWorkshop} from './workshop-checks.mjs';
 import {verifyUpgradeServices} from './upgrade-service-checks.mjs';
 import {build} from 'vite';
 import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
@@ -8,7 +9,7 @@ const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const out=new URL('./out/upgrade-materials-'+engine.name()+'/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
 const result=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'UpgradeIntegration',formats:['iife']}}});
 const code=result[0].output.find(f=>f.type==='chunk').code;
-let css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal','loadout-workspace'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+let css=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','skill-journal/journal','loadout-workspace','workshop'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
 for(const w of [400,600])css+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${w}.ttf`,import.meta.url)).toString('base64')});font-weight:${w}}`;
 const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox']:[]});
 const reports=[];
@@ -24,11 +25,15 @@ try{for(const [label,width,height,touch] of [['desktop',1440,900,false],['ipad',
  await page.screenshot({path:out+label+'-bag.png'});await tap('[data-action="details"]');assert.match(await page.locator('.atelier-dialog').innerText(),/3%/);assert.match(await page.locator('.atelier-dialog').innerText(),/ไม่เปลี่ยนเกรด/);await page.screenshot({path:out+label+'-source.png'});
  // Reopen the bag to clear its material detail and select existing equipment.
  await page.evaluate(()=>{__frontier.panels.close();__frontier.panels.open('bag');});await tap('[data-action="bag-category"][data-id="gear"]');await tap('[data-action="details"]');
- const cost=page.locator('.upgrade-cost');assert.match(await cost.innerText(),/หินเสริมอุปกรณ์/);assert.doesNotMatch(await cost.innerText(),/หนังหมูป่า|ผงเรืองแสง/);await cost.locator('.cost').scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-equipment.png'});
+ const beforeOpen=await page.evaluate(()=>JSON.stringify(__frontier.game.ch));
+ await tap('[data-act="forge-open"][data-mode="upgrade"]');
+ assert.equal(await page.evaluate(()=>JSON.stringify(__frontier.game.ch)),beforeOpen,'opening workshop spends nothing');
+ const cost=page.locator('.ws-order');assert.match(await cost.innerText(),/หินเสริมอุปกรณ์/);assert.doesNotMatch(await cost.innerText(),/หนังหมูป่า|ผงเรืองแสง/);await cost.locator('.ws-costs').scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-equipment.png'});
  await tap('[data-act="gear-up"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.gear[0].upgrade),1);assert.equal(await page.evaluate(()=>__frontier.game.ch.materials.enhancement_stone),15);
  await page.evaluate(()=>{__frontier.panels.close();__frontier.panels.open('growth');});await page.locator('[data-act="skill-up"][data-skill="slash"]').scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-skill.png'});await tap('[data-act="skill-up"][data-skill="slash"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.skills.slash),2);assert.equal(await page.evaluate(()=>__frontier.game.ch.materials.skill_crystal),14);
  await tap('[data-act="growth-filter"][data-id="mod"]');await page.locator('[data-act="mod-up"]').first().scrollIntoViewIfNeeded();await ready();await page.screenshot({path:out+label+'-mod.png'});await tap('[data-act="mod-up"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.mods.find(m=>m.id==='split').level),2);assert.equal(await page.evaluate(()=>__frontier.game.ch.materials.skill_crystal),12);
  await page.evaluate(()=>{__frontier.game.ch.materials.skill_crystal=0;__frontier.panels.render(true);});assert.ok(await page.locator('[data-act="mod-up"]').first().isDisabled());
+ await verifyWorkshop(page,{activate:tap,touch,capture:stage=>page.screenshot({path:out+label+'-workshop-'+stage+'.png'})});
  await verifyUpgradeServices(page,{activate:tap,touch,capture:service=>page.screenshot({path:out+label+'-'+service+'-services.png'}),reload:async()=>{
   await page.reload();await page.addStyleTag({content:css});await page.addScriptTag({content:code});
   await page.evaluate(()=>{const f=__frontier,saved=JSON.parse(localStorage.getItem('frontier.slot.3'));const g=new f.game.constructor(f.game.data,{character:saved.character,seed:7});f.game=g;f.panels.game=g;});

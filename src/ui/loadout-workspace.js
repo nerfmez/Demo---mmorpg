@@ -237,7 +237,7 @@ return {
   else if(tab==='skills'){category='skill';skillId=ch.slots[slot]?.skill||skillId;}
   pending=null;notice='';render();makeAvatar();root.focus({preventScroll:true});
  },
- close(){cancelMotion();pending=null;root.hidden=true;clearTimeout(avatarTimer);},
+ close(){cancelMotion();pending=null;$('.dialog-backdrop')?.remove();root.hidden=true;clearTimeout(avatarTimer);},
  render,cancelMotion,
  refresh(){if(modelKey()!==renderedModel||JSON.stringify([notice,ui.lastResult])!==renderedNotice)render();},
  destroy(){this.close();window.removeEventListener('keydown',onKey,{capture:true});window.removeEventListener('resize',cancelMotion);shortLandscape.removeEventListener('change',onBagCapacityChange);reducedMotion.removeEventListener('change',cancelMotion);root.remove();}

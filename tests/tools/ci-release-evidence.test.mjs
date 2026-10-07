@@ -38,6 +38,7 @@ function fixture(files = ['src/save.js']) {
       base: { ref: 'main', repo: { id, full_name: repository } }, head: { sha: source, ref: 'feature', repo: { id, full_name: repository } } },
     workflow: { id: 7, path: run.path }, run,
     jobs: [job('Build, core and CI tools', ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']),
+      ...['chromium', 'webkit'].flatMap(browser => [job(`review (${browser})`, ['Verify shared UI evidence at head or merge tree']), job(`field-hud (${browser})`, ['Verify shared HUD evidence at head or merge tree'])]),
       ...['chromium', 'webkit'].map(browser => job(`test (${browser})`, ['Verify complete selected browser evidence', 'Report gate outcome at exact source'])),
       ...['chromium', 'webkit'].flatMap(browser => validationPlan(files).suites.map(suite => job(`Quick affected (${browser}, ${suite})`,
         ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'])))],
@@ -87,7 +88,7 @@ for (const [name, mutate] of [
   ['duplicate name', f => f.jobs[3].name = f.jobs[4].name],
   ['old-attempt job', f => f.jobs[3].run_attempt = 1],
   ['failed source check', f => f.jobs[3].steps[0].conclusion = 'failure'],
-  ['incomplete runner', f => f.jobs[3].steps[1].conclusion = 'cancelled'],
+  ['incomplete runner', f => f.jobs.find(j => j.name.startsWith('Quick affected')).steps[1].conclusion = 'cancelled'],
   ['missing core', f => f.jobs[0].steps = f.jobs[0].steps.filter(s => s.name !== 'Run npm test')],
   ['expired artifact', f => f.artifact.expired = true],
   ['old-attempt artifact', f => f.artifact.name = `ci-dist-${source}-99-1`],
@@ -133,6 +134,44 @@ test('resolver enables reuse only after successful download, digest, source and 
   assert.equal(evidence.source, source);
   assert.equal(JSON.parse(readFileSync(join(options.directory, 'ci-evidence.json'))).target, target);
 });
+
+function paginatedArtifacts(f, responses) {
+  // 50 browser jobs each publish report + capture artifacts, plus one build.
+  const reports = Array.from({ length: 100 }, (_, index) => ({ id: 1000 + index, name: `browser-${index}` }));
+  const first = `repos/${repository}/actions/runs/99/artifacts?per_page=100`;
+  const second = `${first}&page=2`;
+  responses[first] = { total_count: 101, artifacts: reports };
+  responses[second] = { total_count: 101, artifacts: [f.artifact] };
+  return { first, second };
+}
+test('full 50-job CI evidence with 101 artifacts reuses the exact build on page two', async t => {
+  const { f, responses, options } = resolverFixture(t);
+  assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, 50);
+  paginatedArtifacts(f, responses);
+  const evidence = await resolveRelease(options);
+  assert.equal(evidence?.artifactId, 456);
+  assert.equal(evidence?.source, source);
+  assert.equal(evidence?.runId, 99);
+  assert.equal(evidence?.attempt, 2);
+});
+for (const kind of ['duplicate ID', 'duplicate exact build', 'short first page', 'short final page',
+  'changing total', 'missing page', 'page API error', 'invalid total', 'wrong source', 'wrong attempt', 'wrong run'])
+  test(`paginated artifact evidence rejects ${kind}`, async t => {
+    const { f, responses, options } = resolverFixture(t);
+    const { first, second } = paginatedArtifacts(f, responses);
+    if (kind === 'duplicate ID') responses[first].artifacts[0].id = f.artifact.id;
+    if (kind === 'duplicate exact build') responses[first].artifacts[0] = { ...f.artifact, id: 1234 };
+    if (kind === 'short first page') responses[first].artifacts.pop();
+    if (kind === 'short final page') responses[second].artifacts = [];
+    if (kind === 'changing total') responses[second].total_count++;
+    if (kind === 'missing page') delete responses[second];
+    if (kind === 'page API error') { const api = options.api; options.api = path => path === second ? Promise.reject(Error('unavailable')) : api(path); }
+    if (kind === 'invalid total') responses[first].total_count = 10001;
+    if (kind === 'wrong source') f.artifact.workflow_run.head_sha = target;
+    if (kind === 'wrong attempt') f.artifact.name = `ci-dist-${source}-99-1`;
+    if (kind === 'wrong run') f.artifact.workflow_run.id = 98;
+    assert.equal(await resolveRelease(options), null);
+  });
 
 for (const files of [
   ['public/assets/icons/gear/wisp_staff.png'], ['src/ui/fieldhud.css'], ['src/ui/quest-journal.js'],

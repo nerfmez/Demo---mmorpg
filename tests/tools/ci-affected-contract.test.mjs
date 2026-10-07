@@ -111,7 +111,8 @@ test('changed routing bytes invalidate old plans even if the version was not bum
   const directory = mkdtempSync(join(tmpdir(), 'affected-policy-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const paths = ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-browser-run.mjs',
-    'scripts/ci-browser-gate.mjs', '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js'];
+    'scripts/ci-browser-gate.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-equipment-impact.mjs', 'scripts/ci-review-plan.mjs',
+    '.github/workflows/ci.yml', '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js'];
   for (const path of paths) {
     const destination = join(directory, path);
     mkdirSync(join(destination, '..'), { recursive: true });

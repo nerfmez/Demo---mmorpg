@@ -49,7 +49,7 @@ const world = coreWorld(data.world.id);
 for (const id of Object.keys(worlds)) coreWorld(id);
 const canvas = document.getElementById('game');
 const hudRoot = document.getElementById('hud');
-const view = new View(canvas, world, { quality });
+const view = new View(canvas, world, { quality, worlds });
 const releaseStartupScheduling = useStartupTaskScheduling(view.buildQueue);
 if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legacy';
 // ?stream=0 turns open-world streaming off (seams then cross with a reload, as in tests).

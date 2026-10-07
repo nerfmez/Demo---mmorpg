@@ -56,7 +56,8 @@ function fadeRig(mat, hull, see, fade) {
 }
 
 export class View {
-  constructor(canvas, world, { quality = 'high' } = {}) {
+  constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
+    this.ruleWorlds = worlds; // existing rule worlds also bound finite terrain margins
     this.game = null;
     this.quality = qualitySettings(quality).name;
     this.mode = 'title';

@@ -35,7 +35,7 @@ export function createWorkshopController(ui, { schedule = setTimeout, cancel = c
           if (token !== sequence) return;
           timer = null; busy = false;
           if (['craft', 'forge'].includes(ui.tab)) ui.render();
-        }, reducedMotion() ? 80 : DURATION);
+        }, reducedMotion() ? 300 : DURATION);
         return result;
       } catch (err) {
         finish();

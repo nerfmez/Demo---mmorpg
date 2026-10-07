@@ -69,7 +69,7 @@
 .workshop .ws-item-art { width: 125px; height: 130px; z-index: 2; filter: drop-shadow(0 8px 9px #08181b55); }
 .workshop .ws-ring { position: absolute; width: 119px; height: 119px; border-radius: 50%; border: 1px solid #c3ad7266; top: 10px; left: calc(50% - 59.5px); }
 .workshop .ring-two { transform: rotate(45deg); width: 100px; height: 100px; border-radius: 22px; left: calc(50% - 50px); top: 20px; border-color: #c3ad7233; }
-.workshop .ws-hammer { position: absolute; z-index: 4; width: 47px; height: 47px; top: 14px; right: 21px; color: #dec28c; transform-origin: 90% 90%; opacity: 0; }
+.workshop .ws-hammer { position: absolute; z-index: 4; width: 52px; height: 52px; top: 30px; left: calc(50% - 12px); transform-origin: 44px 8px; opacity: 0; pointer-events: none; }
 .workshop .ws-hammer svg { width: 100%; height: 100%; }
 .workshop .ws-stage h2 { position: relative; font-size: 18px; line-height: 1.55; color: #fbf4dd; }
 .workshop .ws-ranks { display: flex; justify-content: center; align-items: center; gap: 20px; margin: 5px 0; min-height: 28px; }
@@ -183,20 +183,40 @@
 .workshop .affix-list { font-size: 11px; }
 .workshop .affix-row { padding: 6px 0; }
 .workshop .ok { color: #487653; } .workshop .no { color: #a95840; }
-/* One gentle anticipation/strike/reveal, no perpetual animation or gameplay timer. */
-.workshop .ws-stage.is-working .ws-hammer { animation: ws-strike .85s ease-in-out 1 both; }
-.workshop .ws-stage.is-working .ws-item-art { animation: ws-temper .85s ease-in-out 1 both; }
-.workshop .ws-stage.is-working .ring-one { animation: ws-ring .85s ease-out 1 both; }
-.workshop .ws-spark { opacity: 0; position: absolute; width: 28px; height: 28px; border: 2px solid #e6c389; transform: rotate(45deg); z-index: 3; }
-.workshop .ws-stage.is-working .ws-spark { animation: ws-spark .85s ease-out 1 both; }
-.workshop .ws-wave { position: absolute; width: 100px; height: 100px; border: 1px solid #d8bc7e; border-radius: 50%; opacity: 0; }
-.workshop .ws-stage.is-working .ws-wave { animation: ws-wave .85s ease-out 1 both; }
-@keyframes ws-strike { 0% { opacity: 0; transform: rotate(32deg) translate(6px,-8px); } 18%,38% { opacity: .9; transform: rotate(38deg); } 54% { opacity: 1; transform: rotate(-22deg) translate(-12px,14px); } 76%,100% { opacity: 0; transform: rotate(12deg); } }
-@keyframes ws-temper { 0%,43% { transform: scale(.98); } 56% { transform: translateY(3px) scale(.95); } 75% { transform: translateY(-3px) scale(1.035); } 100% { transform: none; } }
-@keyframes ws-ring { 0% { transform: rotate(0); opacity: .6; } 55% { transform: rotate(80deg); opacity: 1; } 100% { transform: rotate(100deg); opacity: .6; } }
-@keyframes ws-spark { 0%,48% { opacity: 0; transform: rotate(45deg) scale(.3); } 56% { opacity: .75; } 80%,100% { opacity: 0; transform: rotate(45deg) scale(2.2); } }
-@keyframes ws-wave { 0%,53% { opacity: 0; transform: scale(.7); } 58% { opacity: .55; } 100% { opacity: 0; transform: scale(1.8); } }
-@media (prefers-reduced-motion: reduce) { .workshop .ws-stage.is-working * { animation: none !important; } .workshop .ws-button { transition: none; } }
+/* One downward strike. Face and impact share (50%,78px); never swing through contact.
+   323ms slow lift, 119ms accelerating downswing, 51ms stop, 102ms light recoil.
+   All effects begin at contact (442ms), remain inside the item stage and then disappear. */
+.workshop .ws-stage.is-working .ws-hammer { animation: ws-strike .85s linear 1 both; }
+.workshop .ws-stage.is-working .ws-item-art { animation: ws-temper .85s linear 1 both; }
+.workshop .ws-impact { position: absolute; left: 50%; top: 78px; width: 0; height: 0; z-index: 5; pointer-events: none; }
+.workshop .ws-spark { position: absolute; left: -12px; top: -9px; width: 24px; height: 18px; background: radial-gradient(ellipse,#fffbe8 0 20%,#ffcf87 38%,#e89c3b00 72%); opacity: 0; }
+.workshop .ws-wave { position: absolute; left: -16px; top: -8px; width: 32px; height: 16px; border: 1px solid #f6c580; border-radius: 50%; opacity: 0; }
+.workshop .ws-metal-spark { position: absolute; left: -2px; top: -1px; width: 5px; height: 2px; border-radius: 1px; background: #ffdc9b; opacity: 0; transform: rotate(var(--spark-angle)); }
+.workshop .ws-metal-spark:nth-of-type(2n) { width: 3px; background: #fff2cb; }
+.workshop .ws-stage.is-working .ws-spark { animation: ws-flash .85s linear 1 both; }
+.workshop .ws-stage.is-working .ws-wave { animation: ws-impact-ring .85s linear 1 both; }
+.workshop .ws-stage.is-working .ws-metal-spark { animation: ws-metal-spark .85s linear 1 both; }
+@keyframes ws-strike {
+  0% { opacity: .9; transform: translate(28px,-9px) rotate(25deg); animation-timing-function: cubic-bezier(.2,.6,.35,1); }
+  38% { opacity: 1; transform: translate(54px,-20px) rotate(50deg); animation-timing-function: cubic-bezier(.55,0,.85,.4); }
+  52%,58% { opacity: 1; transform: translate(0,0) rotate(0); animation-timing-function: ease-out; }
+  70% { opacity: 1; transform: translate(3px,-5px) rotate(6deg); }
+  84% { opacity: .9; transform: translate(2px,-3px) rotate(3deg); }
+  100% { opacity: 0; transform: translate(2px,-3px) rotate(3deg); }
+}
+@keyframes ws-temper { 0%,52% { transform: none; } 58% { transform: translateY(2px); } 72%,100% { transform: none; } }
+@keyframes ws-flash { 0%,51.9% { opacity: 0; } 52% { opacity: .95; } 60%,100% { opacity: 0; } }
+@keyframes ws-impact-ring { 0%,51.9% { opacity: 0; transform: scale(.6); } 52% { opacity: .6; transform: scale(.6); animation-timing-function: ease-out; } 69%,100% { opacity: 0; transform: scale(1.8); } }
+@keyframes ws-metal-spark { 0%,51.9% { opacity: 0; transform: translate(0,0) rotate(var(--spark-angle)); } 52% { opacity: 1; transform: translate(0,0) rotate(var(--spark-angle)); animation-timing-function: ease-out; } 73%,100% { opacity: 0; transform: translate(var(--spark-x),var(--spark-y)) rotate(var(--spark-angle)) scale(.4); } }
+@media (prefers-reduced-motion: reduce) {
+ .workshop .ws-stage.is-working .ws-item-art { animation: none; }
+ .workshop .ws-stage.is-working .ws-hammer { animation: ws-strike-reduced .24s linear 1 both; }
+ .workshop .ws-stage.is-working .ws-spark { animation: ws-flash-reduced .24s linear 1 both; width: 16px; height: 12px; left: -8px; top: -6px; }
+ .workshop .ws-stage.is-working .ws-wave, .workshop .ws-stage.is-working .ws-metal-spark { display: none; animation: none; }
+ .workshop .ws-button { transition: none; }
+}
+@keyframes ws-strike-reduced { 0% { opacity: .9; transform: translateY(-14px); animation-timing-function: ease-in; } 40%,50% { opacity: 1; transform: translateY(0); } 75% { opacity: .8; transform: translateY(-3px); } 100% { opacity: 0; transform: translateY(-3px); } }
+@keyframes ws-flash-reduced { 0%,39.9% { opacity: 0; } 40% { opacity: .6; } 62%,100% { opacity: 0; } }
 @media (max-width: 1050px) {
  .workshop { padding: 18px 20px 30px; }
  .workshop .ws-layout { grid-template-columns: 210px minmax(260px,1.3fr) minmax(210px,1fr); gap: 14px; }

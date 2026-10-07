@@ -117,8 +117,26 @@ test('closing, replaying stale callbacks and reopening cannot roll, refund or sp
 test('reduced motion shortens only cosmetic feedback, not rules or RNG', () => {
   const a=fixture(),b=fixture(),fast=controlled(a,true),normal=controlled(b,false);
   fast.ui.workshop.run('craft',{id:'tusk_blade'});normal.ui.workshop.run('craft',{id:'tusk_blade'});
-  assert.deepEqual(a.ch,b.ch);assert.deepEqual(fast.waits,[80]);assert.deepEqual(normal.waits,[900]);
+  assert.deepEqual(a.ch,b.ch);assert.deepEqual(fast.waits,[300]);assert.deepEqual(normal.waits,[900]);
   fast.finish();normal.finish();assert.deepEqual(a.ch,b.ch);
+});
+for (const reduced of [false, true]) test(`cancel/skip and stale timers preserve one roll and the next busy guard (reduced=${reduced})`, () => {
+  const g=fixture(),expected=fixture(),t=controlled(g,reduced);
+  const first=t.ui.workshop.run('craft',{id:'tusk_blade'});
+  executeWorkshop(expected,'craft',{id:'tusk_blade'});
+  const late=[...t.callbacks.values()][0],paid=JSON.stringify(g.ch);
+  assert.equal(t.ui.workshop.run('craft',{id:'tusk_blade'}).reason,'busy');
+  t.ui.workshop.finish();late();t.ui.open('craft');
+  assert.equal(JSON.stringify(g.ch),paid);assert.equal(t.ui.workshop.receipt,first);
+  assert.equal(t.ui.saves.length,1);assert.deepEqual(g.events,expected.events);
+  const second=t.ui.workshop.run('craft',{id:'tusk_blade'});
+  executeWorkshop(expected,'craft',{id:'tusk_blade'});late();
+  assert.equal(t.ui.workshop.busy,true,'old completion cannot unlock a new operation');
+  assert.equal(t.ui.workshop.run('craft',{id:'tusk_blade'}).reason,'busy');
+  t.ui.workshop.close();t.ui.open('craft');t.finish();
+  assert.equal(t.ui.workshop.receipt,second);assert.equal(t.ui.saves.length,2);
+  assert.deepEqual(g.ch,expected.ch);assert.deepEqual(g.events,expected.events);
+  assert.equal(g.rng.next(),expected.rng.next(),'cosmetic callbacks never consume RNG');
 });
 test('a failed request shows no success animation or save', () => {
   const g=fixture(),t=controlled(g);g.near=false;

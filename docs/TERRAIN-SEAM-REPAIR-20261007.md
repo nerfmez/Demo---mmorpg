@@ -1,6 +1,8 @@
 # Finite terrain seam repair — 7 October 2026
 
 Baseline: `380e3b077d422e968e0d8558e0cbdf255f9a8211`.
+Current draft base: `24ff2b43c2be0413a6679077f0edd7698ba501cd` (upstream item
+icons). Its renderer, terrain, rule-world inputs and minimap code are unchanged.
 Branch: `fix/live-seam-ownership-20261007`. This repair is separate from draft PR98.
 
 ## Actual reproduction and cause
@@ -62,6 +64,9 @@ UI and CI are unchanged.
   All 60 terrain ray locations have coverage after the repair; eleven sampled
   holes existed before. No page/GL/context error or leftover render target was
   recorded. The gate and coast were included as unchanged control views.
+  The final browser regression samples off grid edges: an exact shared cap has
+  zero-area hits from both adjoining meshes at the same height, not overlapping
+  surface area. Its initial assertion counted those hits and was corrected.
 
 Evidence is saved under `/workspace/render-bug-evidence/`: `seam-before-close/`,
 `seam-after-close/`, `seam-before-webkit/`, `seam-after-webkit/`,

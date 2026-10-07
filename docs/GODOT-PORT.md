@@ -581,6 +581,16 @@ Skill and mod ranks are no longer gated by character level: only materials, gold
 
 ## Screen grade (post-process)
 
+Finite terrain joins: the two linked maps' decorative heightfields have different
+extents. Use the neighbour's actual grid footprint when deciding which native
+terrain cells it can replace; water aprons retain the separate full-edge clipping
+rule. In the closed-end decorative strip, construct private render height samples
+that meet the adjacent playable map and finite grid cap. Preserve all playable
+vertex heights and the rule/collision heightfield. Seat retained edge-tree
+instances on their actual rendered owner's surface. See
+`TERRAIN-SEAM-REPAIR-20261007.md` and `render/terrain-domain.js`; this is tested for
+the current aligned one-metre map grids, not arbitrary irregular tessellation.
+
 `render/post.js` (`PostFX`, settings `rendering.json` → `post`, on per preset with `quality.<name>.post`, off on `low`) draws the scene into a 4x multisampled sRGB target, makes a quarter-size bright pass for a soft glow, then one full-screen composite: glow, display-space saturation and contrast, split toning (cool `shadowTint`, warm `lightTint`; 50% grey is neutral), a haze toward the top of the screen in the zone's fog colour lifted by `hazeLift`, a warm screen-blend sun wash centred at `sunWashPos` (screen UV, top-left, the sun's side), a vignette and a 1/255 dither. Models and materials are unchanged; `?post=0` turns it off for comparisons. In Godot, use a `WorldEnvironment` (glow with the same threshold, adjustments for contrast/saturation) plus a screen-space `ColorRect` shader for the toning, haze, sun wash and vignette.
 
 ## Local city cohesion presentation

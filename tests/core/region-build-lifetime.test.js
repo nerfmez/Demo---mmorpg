@@ -8,6 +8,7 @@ import {FrameBuildQueue,cancelledBuild} from '../../src/render/build-queue.js';
 import {importJob} from '../../src/render/import-job.js';
 import {beginRegion,useRegion,regionShift} from '../../src/render/region-shift.js';
 import {disposeObject} from '../../src/render/dispose.js';
+import {terrainDomain} from '../../src/render/terrain-domain.js';
 const source=readFileSync(new URL('../../src/render/region.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'').replace(/\bexport /g,'');
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 function harness(){
@@ -18,7 +19,7 @@ function harness(){
  const environmentSteps=function*(w,{adopt}){const root=new THREE.Group();adopt(root);now++;yield;return {root,waypoints:new Map()};};
  const waterSteps=function*(w,contacts,{owner,adopt}){const root=new THREE.Group();const mesh=new THREE.Mesh(owner.geometry(new THREE.PlaneGeometry()),owner.material(new THREE.MeshBasicMaterial()));root.add(mesh);adopt(root);now++;yield;return root;};
  const stub=function*(){now++;yield;return {};};
- const deps={THREE,importJob,cancelledBuild,terrainSteps,environmentSteps,waterSteps,releaseGroundCaches:w=>cacheReleased.push(w),batchStaticSteps:stub,bakeGrassSteps:stub,attachWindShadow:()=>{},buildHumanoid:()=>({root:new THREE.Group()}),HumanoidAnimator:class{},residentTool:()=>new THREE.Group(),loadCity:()=>city.promise,loadTownKit:()=>kit.promise,disposeObject,beginRegion,useRegion,regionShift,toon:()=>{const m=new THREE.MeshToonMaterial();m.userData.shared=true;return m;},glowTexture:()=>new THREE.Texture()};
+ const deps={THREE,importJob,cancelledBuild,terrainDomain,terrainSteps,environmentSteps,waterSteps,releaseGroundCaches:w=>cacheReleased.push(w),batchStaticSteps:stub,bakeGrassSteps:stub,attachWindShadow:()=>{},buildHumanoid:()=>({root:new THREE.Group()}),HumanoidAnimator:class{},residentTool:()=>new THREE.Group(),loadCity:()=>city.promise,loadTownKit:()=>kit.promise,disposeObject,beginRegion,useRegion,regionShift,toon:()=>{const m=new THREE.MeshToonMaterial();m.userData.shared=true;return m;},glowTexture:()=>new THREE.Texture()};
  const api=Function(...Object.keys(deps),source+'\nreturn {startRegion,regionSteps,placeRegion,disposeRegion,waitForRegionImports};')(...Object.values(deps));
  const view={buildQueue:queue,renderer:{},vfx:{}};
  const pump=async()=>{for(let i=0;i<100;i++){while(pending.length)pending.shift()();await Promise.resolve();if(!pending.length){await Promise.resolve();if(!pending.length)return;}}throw Error('queue did not settle');};

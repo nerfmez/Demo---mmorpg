@@ -123,10 +123,10 @@ export function createEnvironment(world) {
 }
 
 /** The scenery in sections; yields between them so a neighbouring map can stream in. */
-export function* environmentSteps(world, {adopt} = {}) {
+export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const root = new THREE.Group();adopt?.(root);
   const rng = createRng(99);
-  const gy = (x, z) => world.groundY(x, z);
+  const gy = groundHeight || ((x, z) => world.groundY(x, z));
   const sy = (x, z) => world.surfaceY(x, z);
   const zid = (x, z) => world.zoneAt(x, z).id;
 

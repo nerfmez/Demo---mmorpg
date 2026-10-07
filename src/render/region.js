@@ -20,6 +20,7 @@ import { disposeObject } from './dispose.js';
 import { beginRegion, useRegion, regionShift } from './region-shift.js';
 import { toon } from './toon.js';
 import { glowTexture } from './vfx.js';
+import { terrainDomain } from './terrain-domain.js';
 
 // Rule worlds/cached fields can be borrowed by an old and a replacement build.
 const groundOwners=new WeakMap();
@@ -69,11 +70,12 @@ export function* regionSteps(view, world, region) {
 
 function* assembleRegion(view,world,region){
   const {root,shift}=region;
-  region.terrain = yield* inRegion(shift, terrainSteps(world,{adopt:group=>root.add(group)}));
+  const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
+  region.terrain = yield* inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)}));
   root.add(region.terrain.group);
   yield;
   useRegion(shift); // another build may have run in between
-  const env = yield* inRegion(shift, environmentSteps(world,{adopt:group=>root.add(group)}));
+  const env = yield* inRegion(shift, environmentSteps(world,{groundHeight:domain.groundHeight,adopt:group=>root.add(group)}));
   yield;
   useRegion(shift); // another build may have run in between
   // Keep only authored native hull/pile contact roots before batching moves

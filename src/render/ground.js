@@ -4,7 +4,8 @@
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
 import * as THREE from 'three';
 import {finishSteps} from './build-queue.js';
-import {ownsRegionPoint,clipRegionGeometrySteps} from './region-ownership.js';
+import {clipRegionGeometrySteps} from './region-ownership.js';
+import {terrainDomain} from './terrain-domain.js';
 import { toBoxLocal, pointInPolygon, distToPolyline } from '../core/math.js';
 import { valueNoise } from '../core/terrain.js';
 import {rasterPolylineSteps,boxBlurSteps} from './ground-work.js';
@@ -269,9 +270,15 @@ export function createTerrain(world) {
 }
 
 /** Terrain tiles, yielding every few tiles so a neighbouring map can stream in. */
-export function* terrainSteps(world, {adopt} = {}) {
+export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {}) {
   const hf = world.heightfield;
-  const { w, h, ox, oz, res, data } = hf;
+  const { w, h, ox, oz, res } = hf;
+  // Private render samples only. The rule-world heightfield is never modified.
+  const data = new Float32Array(hf.data.length);
+  for (let j = 0; j < h; j++) {
+    if (j % 4 === 0) yield;
+    for (let i = 0; i < w; i++) data[j*w+i] = domain.height(ox+i*res,oz+j*res,hf.data[j*w+i]);
+  }
   const surf = yield* surfaceSteps(world);
   yield* groundFieldUniformSteps(world); // baked now, not at the first draw
   const mat = new THREE.MeshLambertMaterial({color:0xffffff});
@@ -338,7 +345,7 @@ export function* terrainSteps(world, {adopt} = {}) {
           // omit only hidden render indices, never source-city geometry.
           const x=pos[a*3]+res/2,z=pos[a*3+2]+res/2;
           if(coveredTerrainCell(world.data.city,x,z,Math.max(pos[a*3+1],pos[(a+1)*3+1],pos[b2*3+1],pos[(b2+1)*3+1]),res)){coveredTriangles+=2;continue;}
-          if(!ownsRegionPoint(world,x,z))continue;
+          if(!domain.owns(x,z))continue;
           idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
         }
       const geo = new THREE.BufferGeometry();

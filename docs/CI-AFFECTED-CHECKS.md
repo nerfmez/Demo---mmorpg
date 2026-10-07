@@ -34,7 +34,12 @@ hidden pages is not claimed as portrait hit-testing coverage.
 Quest checks retain the existing UX assertions about story/optional artwork,
 locked work and read-only browsing, then verify real tracking, normal saves,
 HUD state, reload/Continue, auto-tracking and close/escape. They capture desktop,
-iPad, both phone orientations and reduced motion. HUD CSS uses the complete
+iPad, both phone orientations and reduced motion. Escape in native fullscreen
+may exit fullscreen before the panel receives keydown: that branch must preserve
+the journal/character, retain the paused-game gate, resume, and dismiss normally.
+A separate real windowed fixture proves keyboard dismissal for intercepted
+cases without changing the saved character; other layouts retain their direct
+Escape dismissal assertion. HUD CSS uses the complete
 existing `fieldhud.mjs`, including all four layouts and hit checks.
 
 Shared UI/styles, core/data/save, dependency/build/routing changes and unknown

@@ -87,7 +87,7 @@ test('melee strikes (mantis scythe, stalker claw) land once at the authored time
     const { m, hits, step, until, place } = arena(type);
     const atk = m.def.attacks[name];
     place(0.4);
-    m.cd.lunge = m.cd.pounce = 99;
+    m.cd.whirl = m.cd.pounce = 99;
     step(0.01);
     assert.equal(m.windup?.name, name);
     until(() => m.state === 'act');
@@ -100,7 +100,7 @@ test('melee strikes (mantis scythe, stalker claw) land once at the authored time
     assert.equal(hits.length, 1, `${type}: never twice`);
     // a late step behind the monster dodges the locked arc
     const b = arena(type);
-    b.place(0.4); b.m.cd.lunge = b.m.cd.pounce = 99;
+    b.place(0.4); b.m.cd.whirl = b.m.cd.pounce = 99;
     b.step(0.01); b.step(b.m.windup.total * 0.7);
     Object.assign(b.g.player, { x: 0, z: -(b.m.r + b.g.player.r + 0.3) });
     b.until(() => b.m.state !== 'act' && b.m.state !== 'windup');
@@ -108,31 +108,34 @@ test('melee strikes (mantis scythe, stalker claw) land once at the authored time
   }
 });
 
-test('viper strike and ram charge are lanes; a ram that hits nothing is left off balance', () => {
+test('viper lash is an instant short line; the ram shoves in a cone and knocks back', () => {
   const v = arena('reed_viper');
   v.place(3); v.m.cd.venom = 99;
   v.step(0.01);
-  assert.equal(v.m.windup?.name, 'strike');
-  v.until(() => v.m.state === 'act');
-  assert.equal(v.hits.length, 0, 'no damage during the coil');
+  assert.equal(v.m.windup?.name, 'lash');
+  v.step(v.m.windup.total * 0.7);
   v.until(() => v.m.state === 'recover');
-  assert.equal(v.hits.length, 1, 'the strike lands once');
+  assert.equal(v.hits.length, 1, 'the lash lands once');
+  const w = arena('reed_viper');
+  w.place(3); w.m.cd.venom = 99;
+  w.step(0.01);
+  w.step(w.m.windup.total * 0.7);
+  w.g.player.x = 2.5; // a late side-step leaves the locked line
+  w.until(() => w.m.state === 'recover');
+  assert.equal(w.hits.length, 0, 'dodged');
 
   const r = arena('ironhorn_ram');
-  r.place(6); r.m.cd.stomp = 99;
+  r.place(2); r.m.cd.stomp = 99;
   r.step(0.01);
-  assert.equal(r.m.windup?.name, 'ram');
-  r.step(r.m.windup.total * 0.7); // the lane is locked: a late side-step dodges it
-  Object.assign(r.g.player, { x: 3, z: r.g.player.z });
-  r.until(() => r.m.state === 'stunned');
-  assert.equal(r.hits.length, 0, 'dodged');
-  assert.ok(Math.abs(r.m.stateDur - r.m.def.attacks.ram.missStun) < 1e-9, 'a punish window after a miss');
-  assert.equal(r.m.charge, null);
+  assert.equal(r.m.windup?.name, 'shove');
+  r.until(() => r.m.state === 'recover');
+  assert.equal(r.hits.length, 1, 'one shove');
+  assert.equal(r.m.charge, null, 'a shove is not a rush');
 });
 
 test('marked areas (venom pool, pounce, stomp, shards) hurt only when they land, inside their circle', () => {
   const v = arena('reed_viper');
-  v.place(6); v.m.cd.strike = 99;
+  v.place(6); v.m.cd.lash = 99;
   v.step(0.01);
   assert.equal(v.m.windup?.name, 'venom');
   const pool = v.g.areas.find((a) => a.kind === 'venom_pool');
@@ -153,7 +156,7 @@ test('marked areas (venom pool, pounce, stomp, shards) hurt only when they land,
   for (const [type, name] of [['ironhorn_ram', 'stomp'], ['rune_sentinel', 'shards']]) {
     const a = arena(type);
     a.place(0.3);
-    a.m.cd.ram = a.m.cd.beam = 99;
+    a.m.cd.shove = a.m.cd.beam = 99;
     a.step(0.01);
     assert.equal(a.m.windup?.name, name);
     a.step(a.m.windup.total - 0.03);
@@ -184,7 +187,7 @@ test('sentinel beam hits along its line once and misses beside it; the stalker s
 });
 
 test('killing a monster during its wind-up cancels the area it marked; a launched attack still lands', () => {
-  for (const [type, gap, block] of [['reed_viper', 6, 'strike'], ['duskmane_stalker', 5, 'claw']]) {
+  for (const [type, gap, block] of [['reed_viper', 6, 'lash'], ['duskmane_stalker', 5, 'claw']]) {
     const a = arena(type);
     a.place(gap); a.m.cd[block] = 99;
     a.step(0.01);
@@ -196,9 +199,34 @@ test('killing a monster during its wind-up cancels the area it marked; a launche
     assert.equal(a.hits.length, 0);
   }
   const v = arena('reed_viper');
-  v.place(6); v.m.cd.strike = 99;
+  v.place(6); v.m.cd.lash = 99;
   v.step(0.01);
   v.until(() => v.m.state === 'recover');
   v.g.killMonster(v.m);
   assert.equal(v.g.areas.length, 1, 'venom already in the air still lands');
+});
+
+test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a line of delayed eruptions', () => {
+  for (const [type, name, n] of [['thornback_wolf', 'rend', 2], ['greyfang', 'rake', 3]]) {
+    const a = arena(type);
+    const atk = a.m.def.attacks[name];
+    a.place(1.2); a.m.cd.bite = 99;
+    if (type === 'greyfang') a.m.hp = a.m.maxHp; // no howl
+    a.step(0.01);
+    assert.equal(a.m.windup?.name, name, type);
+    a.until(() => a.m.state === 'act');
+    assert.equal(a.hits.length, 0, `${name}: nothing during the wind-up`);
+    a.until(() => a.m.state !== 'act');
+    assert.ok(a.hits.length >= 1 && a.hits.length <= n, `${name}: at most ${n} hits (${a.hits.length})`);
+    assert.equal(a.m.charge, null, `${name} is not a rush`);
+    assert.ok(atk.hits.length === n);
+  }
+  const w = arena('horned_warden');
+  w.place(7); w.m.cd.slam = w.m.cd.sweep = 99;
+  w.step(0.01);
+  assert.equal(w.m.windup?.name, 'quake');
+  const quakes = w.g.areas.filter((x) => x.kind === 'quake');
+  assert.equal(quakes.length, w.m.def.attacks.quake.steps, 'marked along the line at wind-up start');
+  assert.ok(quakes.every((x, i) => i === 0 || x.delay > quakes[i - 1].delay), 'they go off one after another');
+  assert.equal(w.hits.length, 0);
 });

@@ -126,7 +126,13 @@ function animQuad(r, s, dt, time, cfg) {
   let jaw = 0;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   const wu = s.windup;
-  if (wu === 'charge' || wu === 'lunge' || wu === 'triple') {
+  if (wu === 'rend' || wu === 'rake') {
+    // rears back on the hind legs, head up, then claws down from alternating sides
+    headX = -0.35 * k;
+    bodyX = -0.2 * k;
+    bodyY += 0.1 * k;
+    jaw = 0.4 * k;
+  } else if (wu === 'charge') {
     // crouch, head low, hind legs coiled; front paw scrapes on the boar
     headX = 0.35 * k;
     bodyX = 0.12 * k;
@@ -632,11 +638,13 @@ function animWarden(r, s, dt, time) {
     armX = [-0.6, -1.2 * k];
     armZ = [0.3, -1.3 * k];
     torsoY = 0.8 * k;
-  } else if (s.windup === 'gore') {
-    headX = 0.55 * k;
-    torsoX = 0.2 + 0.5 * k;
-    armX = [0.5, 0.5];
-    hipsY -= 0.2 * k;
+  } else if (s.windup === 'quake') {
+    // one fist raised high, the other braced; the ground splits ahead
+    armX = [-2.9 * k, 0.3];
+    armZ = [0.2, -0.1];
+    torsoX = -0.35 * k;
+    hipsY += 0.2 * k;
+    headX = -0.2 * k;
   } else if (s.state === 'act') {
     headX = 0.55;
     torsoX = 0.7;

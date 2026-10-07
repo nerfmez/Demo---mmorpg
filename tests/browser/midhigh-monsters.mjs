@@ -12,8 +12,8 @@ mkdirSync(out, { recursive: true });
 const port = 4215, base = `http://localhost:${port}/`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 const CASES = [
-  ['thicket_mantis', 'scythe', 0.6], ['reed_viper', 'strike', 2.5], ['reed_viper', 'venom', 6],
-  ['ironhorn_ram', 'ram', 6], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
+  ['thicket_mantis', 'scythe', 0.6], ['reed_viper', 'lash', 2.5], ['reed_viper', 'venom', 6],
+  ['ironhorn_ram', 'shove', 1.5], ['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.5], ['horned_warden', 'quake', 7], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
   ['duskmane_stalker', 'claw', 0.4], ['rune_sentinel', 'beam', 6], ['rune_sentinel', 'shards', 0.3],
 ];
 const report = { engine: engine.name(), sizes: {}, errors: [] };
@@ -58,8 +58,8 @@ try {
   for (const [type, attack, gap] of CASES) {
     const ok = await page.evaluate(([type, attack, gap]) => {
       const f = window.__frontier, g = f.game, p = g.player;
-      const m = f.roster.find((x) => x.type === type);
-      if (!m) return 'no spawn';
+      let m = f.roster.find((x) => x.type === type);
+      if (!m) { m = g.spawnMinion(type, 14, p.x, p.z); f.roster.push(m); } // not native to this map: borrow one
       g.monsters = [m];
       // a clear spot in the monster's own zone, facing it from the south-east (camera side)
       let spot = null;

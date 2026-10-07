@@ -81,11 +81,13 @@ function animMantis(r, s, dt, time) {
     blade = -0.25 - 2.1 * k;
     spread = 0.1 + 0.4 * k;
     head = -0.15 * k;
-  } else if (s.windup === 'lunge') {
-    rear = 0.3 * k;
-    bodyY -= 0.12 * k;
-    arm = 0.95 - 0.4 * k;
-    blade = -0.25 - 1.3 * k;
+  } else if (s.windup === 'whirl') {
+    // both scythes spread wide to the sides, the body winds up for a full turn
+    rear = 0.1 * k;
+    bodyY -= 0.08 * k;
+    arm = 0.6 - 0.5 * k;
+    blade = -0.25 - 1.6 * k;
+    spread = 0.1 + 1.0 * k;
   } else if (s.state === 'act' && s.lastAttack === 'scythe') {
     const c = clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1));
     rear = -0.3 + 0.6 * c;
@@ -166,7 +168,7 @@ function animViper(r, s, dt, time) {
   r.phase = (r.phase || 0) + dt * speed;
   const k = windK(s);
   let amp = s.moving ? 0.38 : 0.22, lift = 0, jaw = 0.05, coil = 0;
-  if (s.windup === 'strike') {
+  if (s.windup === 'lash') {
     // coil: the S tightens, the head rises and draws back
     amp = 0.22 + 0.35 * k;
     coil = k;
@@ -258,7 +260,7 @@ function buildRam() {
 
 function animRam(r, s, dt, time) {
   const b = r.bones, legs = r.legs, k = windK(s);
-  const moving = s.moving || (s.state === 'act' && s.lastAttack === 'ram');
+  const moving = s.moving;
   r.phase = (r.phase || 0) + dt * (moving ? (s.state === 'act' ? 18 : 6 + s.speedFactor * 5) : 0);
   const ph = r.phase, w = (r.runW = damp(r.runW || 0, moving ? 1 : 0, 10, dt));
   const gallop = s.state === 'act';
@@ -268,11 +270,11 @@ function animRam(r, s, dt, time) {
     b[n].rotation.x = Math.sin(ph + off) * (gallop ? 0.8 : 0.5) * w;
     b[`${n}k`].rotation.x = Math.max(0, Math.cos(ph + off)) * 0.6 * w;
   });
-  if (s.windup === 'ram') {
-    // head down, horns forward, a hoof scrapes the ground
-    headX = 0.55 * k;
-    bodyX = 0.1 * k;
-    bodyY -= 0.12 * k;
+  if (s.windup === 'shove') {
+    // head low and swung to one side, a hoof scrapes the ground before the horn sweep
+    headX = 0.5 * k;
+    bodyX = 0.08 * k;
+    bodyY -= 0.1 * k;
     b[legs[0]].rotation.x = Math.sin(time * 16) * 0.55 * k;
   } else if (s.windup === 'stomp') {
     // rears on its hind legs

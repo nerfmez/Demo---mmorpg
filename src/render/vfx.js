@@ -38,8 +38,8 @@ const ELEMENT = {
   none: { core: 0xeafff4, glow: 0x6fe0b0, dots: 0xb4ffe0 },
 };
 export const el = (e) => ELEMENT[e] || ELEMENT.physical;
-const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch', 'scythe', 'claw']);
-const RING_TELLS = new Set(['slam', 'stomp', 'shards']);
+const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch', 'scythe', 'claw', 'rend', 'rake', 'shove']);
+const RING_TELLS = new Set(['slam', 'stomp', 'shards', 'whirl']);
 
 let glowTex = null;
 export function glowTexture() {
@@ -669,7 +669,7 @@ export class Vfx {
 
   genericSwing(e) {
     const g = sectorGeometry(e.range * 0.4, e.range, (e.arc * Math.PI) / 180);
-    const m = new THREE.Mesh(g, slashMaterial(0xff8a5a));
+    const m = new THREE.Mesh(g, slashMaterial(this.config.swingColors?.[e.name] || 0xff8a5a));
     m.position.set(e.x, this.gy(e.x, e.z) + 0.7, e.z);
     m.rotation.y = e.angle;
     this.spawn(m, 0.3, (t) => (m.material.uniforms.uT.value = t));
@@ -720,6 +720,7 @@ export class Vfx {
     if (e.kind === 'stone_burst') return this.stoneBurst(e);
     if (e.kind === 'slam' || e.kind === 'pound' || e.kind === 'stomp') return this.slam(e);
     if (e.kind === 'shards') return this.shardBurst(e);
+    if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
@@ -752,6 +753,15 @@ export class Vfx {
     this.chips.burst(e, cold ? { ...cfg, colors: { ...cfg.colors, debris: '#dff4ff' } } : cfg, this.gy(e.x, e.z));
     this.dust.burst(e.x, this.gy(e.x, e.z) + .15, e.z, f.dust, { color: cold ? '#e6f6ff' : cfg.colors.debris, size: f.dustSize, sizeEnd: f.dustSize * 1.4, speed: 1.6, life: f.dustLife, up: .3, drag: 5 });
     this.shake = Math.max(this.shake, cfg.impact.shake);
+  }
+
+  /** One eruption of the warden's quake line: a short column of rubble and dust. */
+  quakeBurst(e) {
+    const y = this.gy(e.x, e.z);
+    this.dust.burst(e.x, y + 0.2, e.z, 12, { color: 0xb49a78, size: 0.8, sizeEnd: 1.5, speed: e.radius * 1.4, life: 0.7, up: 0.9, drag: 3 });
+    this.fx.burst(e.x, y + 0.4, e.z, 8, { color: 0xffb070, size: 0.25, speed: e.radius * 1.8, life: 0.4, up: 2.2 });
+    this.ring(e.x, e.z, e.radius, 0xffb070, 0.3);
+    this.shake = Math.max(this.shake, 0.12);
   }
 
   slam(e) {
@@ -894,6 +904,7 @@ export class Vfx {
 
   /** Rune sentinel beam: a bright line along the locked aim that fades fast. */
   beam(e) {
+    if (e.kind === 'lash') return this.lash(e);
     // a thin bright core inside a soft cyan sheath, read as a beam from the high camera
     const core = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.14, e.width * 0.14, e.length, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0xd8fbff, 0.95));
     const glow = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.42, e.width * 0.42, e.length, 10, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0x3fc6dc, 0.35));
@@ -911,6 +922,22 @@ export class Vfx {
     for (let i = 0; i < 10; i++) {
       const d = (i / 9) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
       this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 1.2, 0, { color: 0x9ff0ff, size: 0.28, sizeEnd: 0.05, life: 0.4, drag: 2 });
+    }
+  }
+
+  /** Viper fang lash: a quick pale-green streak with a few venom drops. */
+  lash(e) {
+    const streak = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 0.5, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0xc8ff8a, 0.85));
+    streak.position.set(e.x, this.gy(e.x, e.z) + 0.5, e.z);
+    streak.rotation.y = e.angle;
+    streak.renderOrder = 6;
+    this.spawn(streak, 0.22, (t) => {
+      streak.material.opacity = 0.85 * (1 - t);
+      streak.scale.x = 1 - t * 0.8;
+    });
+    for (let i = 0; i < 6; i++) {
+      const d = e.length * (0.4 + 0.6 * (i / 5)), x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
+      this.fx.add(x, this.gy(x, z) + 0.5, z, 0, 1.4, 0, { color: 0x9be04a, size: 0.22, sizeEnd: 0.05, life: 0.35, gravity: 6, drag: 1 });
     }
   }
 
@@ -1296,7 +1323,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
@@ -1341,7 +1368,7 @@ export class Vfx {
       let kind = null;
       if (RING_TELLS.has(w.name)) kind = 'slam';
       else if (COASTAL_CONTACTS.has(w.name)) kind = 'melee';
-      else if (w.name === 'gore' || w.name === 'charge' || w.name === 'lunge' || w.name === 'triple' || w.name === 'strike' || w.name === 'ram' || w.name === 'beam') kind = 'lane';
+      else if (w.name === 'charge' || w.name === 'lash' || w.name === 'quake' || w.name === 'beam') kind = 'lane';
       if (!kind) continue;
       const key = `${m.id}:${w.name}`;
       seen.add(key);
@@ -1360,8 +1387,9 @@ export class Vfx {
         } else {
           const atk = m.def.attacks[w.name];
           // a beam is a fixed line; a charge covers its speed over its duration
-          const len = w.name === 'beam' ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
-          const geo = new THREE.PlaneGeometry(w.name === 'beam' ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
+          const fixed = w.name === 'beam' || w.name === 'lash' || w.name === 'quake';
+          const len = w.name === 'quake' ? atk.length : fixed ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
+          const geo = new THREE.PlaneGeometry(fixed ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
           const mesh = makeDecal(geo, new THREE.MeshBasicMaterial({ color: 0xff7a4a, transparent: true, opacity: 0.25, depthWrite: false }), this.world, 0.07);
           v = { mesh, kind };
         }

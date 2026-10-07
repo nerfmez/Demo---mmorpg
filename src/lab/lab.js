@@ -3,9 +3,11 @@ import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from '../
 // It replays skills from data/skills.json + data/combat-fx.json the way the game's events drive
 // src/render/vfx.js (castStart, projectiles, impact), so the owner can judge an effect live on the
 // iPad: slow motion, pause and frame step, backgrounds, element/weapon/projectile count.
-// It is a viewing tool only; no game rule runs here. ★ marks skills with a look in combat-fx.json
+// Existing skills replay presentation; prototype skills use an isolated rule preview. ★ marks skills with a look in combat-fx.json
 // 'skills'. lab-source.json (written by the deploy workflow) names the branch/commit shown.
 import * as THREE from 'three';
+import '@fontsource/mitr/thai-400.css';
+import '@fontsource/mitr/latin-400.css';
 import { Vfx } from '../render/vfx.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
 import { buildMonster } from '../render/monsters.js';
@@ -15,6 +17,9 @@ import { disposeObject } from '../render/dispose.js';
 import SKILLS from '../../data/skills.json';
 import FX from '../../data/combat-fx.json';
 import MODELS from '../../data/models.json';
+import { FrontierFx } from '../render/frontier-fx.js';
+import {createRulesPreview,previewMods} from './rules-preview.js';
+import {data} from '../data.js';
 import { LabTuning } from './tuning.js';
 import { mountTuningPanel } from './editor.js';
 
@@ -26,7 +31,7 @@ const GROUNDS = {
 };
 const ELEMENTS = ['fire', 'cold', 'lightning', 'poison', 'arcane', 'physical'];
 // skills the lab can replay; the rest appear disabled until their beats are wired here
-const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon', 'nova','chain','buff','heal_zone','dash','blink','leap']);
+const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon', 'nova','chain','buff','heal_zone','dash','blink','leap','counter_stance','melee_line','channel_cone','wall','heal_target','aura']);
 const LAB_SKILLS={...SKILLS,combat:{...SKILLS.combat,...SKILLS.movement}};
 
 const flat = { surfaceY: () => 0, groundY: () => 0 };
@@ -48,6 +53,7 @@ const state = {
   tuningAuto: true,
   tuningSections: {},
   tuningStatus: '',
+  mods: [],
   comboMode: null,
   comboStep: 0,
 };
@@ -56,6 +62,7 @@ if (!PLAYABLE.has(LAB_SKILLS.combat[state.skill]?.kind)) state.skill = 'firebolt
 const isMelee = (s) => s?.kind === 'melee_arc' || s?.kind === 'melee_nova';
 if (isMelee(LAB_SKILLS.combat[state.skill])) { state.weapon = 'sword'; state.distance = 2; }
 else if (state.skill === 'hunter_shot') state.weapon = 'bow';
+if(LAB_SKILLS.combat[state.skill]?.prototype){state.weapon=LAB_SKILLS.combat[state.skill].requiresWeapon?.[0]||(LAB_SKILLS.combat[state.skill].requiresOffhand?'sword':'staff');state.distance=['melee_arc','melee_line','counter_stance','channel_cone'].includes(LAB_SKILLS.combat[state.skill].kind)?2:6;}
 let storage = null;
 try { storage = window.localStorage; } catch {}
 const tuning = new LabTuning(LAB_SKILLS, FX, storage);
@@ -85,6 +92,10 @@ scene.add(grid);
 
 const vfx = new Vfx(scene, flat, { config: tuning.fx });
 const fakeGame = { projectiles: [], areas: [] };
+const frontierFx=new FrontierFx(scene,flat);
+let rulesGame=null;
+const previewAllies=new Map();
+const isPrototype=()=>!!LAB_SKILLS.combat[state.skill]?.prototype;
 // Keep one real summon rig across replays; changing sliders does not rebuild it.
 let wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible = false;
 let wolfReveal=installSpiritReveal(wolf);
@@ -107,9 +118,11 @@ let dummyHit = 0;
 let hero = null;
 let heroAnim = null;
 function buildHero() {
+  const action=heroAnim?.action||null;
   if (hero) disposeObject(hero.root);
-  hero = buildHumanoid(DEFAULT_LOOK, { weapon: state.weapon === 'none' ? null : state.weapon, armor: 'tunic', helm: null, bases: {} });
+  hero = buildHumanoid(DEFAULT_LOOK, { weapon: state.weapon === 'none' ? null : state.weapon, armor: 'tunic', helm: null, offhand:state.skill==='shield_bash'?'shield':null, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
+  heroAnim.action=action; // Late model arrivals must not cancel a held preview pose.
   scene.add(hero.root);
   hero.root.rotation.y = -Math.PI / 2; // facing the dummy to the west
 }
@@ -148,6 +161,12 @@ function cast() {
   const s = skillDef();
   if (!s || !PLAYABLE.has(s.kind)) return;
   const element = elementOf();
+  if(isPrototype()){
+    if(!rulesGame)rulesGame=createRulesPreview(state.skill,state.weapon,state.distance,state.mods);
+    rulesGame.player.cooldowns[0]=0;rulesGame.player.mp=rulesGame.player.maxMp;
+    rulesGame.castSlot(0,{x:dummy.position.x+(s.kind==='wall'?2:0),z:0});
+    ruleEvents();return;
+  }
   if (isMelee(s)) return castMelee(s, element);
   if (s.kind === 'ground_area') return castGround(s, element);
   if (s.kind === 'summon') return castSummon(s, element);
@@ -275,6 +294,8 @@ function stepWolf(dt) {
   if (r.age >= 2) { wolf.root.visible = false; wolfReplay = null; }
 }
 function clearReplay() {
+  frontierFx.clear();rulesGame=null;
+  for(const r of previewAllies.values())disposeObject(r.root);previewAllies.clear();
   timers.length = 0; fakeGame.projectiles.length = 0;
   movementReplay=null;hero.root.position.set(0,0,0);hero.root.visible=true;vfx.movementSource=null;
   vfx.endCast();
@@ -314,10 +335,10 @@ function selectSkill(id) {
   if (!PLAYABLE.has(LAB_SKILLS.combat[id]?.kind)) return;
   clearTimeout(editTimer); editTimer = null; clearReplay();
   const wasMelee=isMelee(LAB_SKILLS.combat[state.skill]), nowMelee=isMelee(LAB_SKILLS.combat[id]);
-  state.skill = id; state.element = null; state.reviewPhase = 'full';state.comboStep=0;
-  const weapon=nowMelee?'sword':id==='hunter_shot'?'bow':'staff';
+  state.skill = id; state.mods=[]; if(isPrototype())state.editorOpen=false; state.element = null; state.reviewPhase = 'full';state.comboStep=0;
+  const weapon=LAB_SKILLS.combat[id].requiresWeapon?.[0]||(nowMelee?'sword':id==='hunter_shot'?'bow':'staff');
   if(state.weapon!==weapon){state.weapon=weapon;buildHero();}
-  if(wasMelee!==nowMelee){state.distance=nowMelee?2:6;placeDummy();}
+  if(wasMelee!==nowMelee||isPrototype()){state.distance=nowMelee||['melee_line','counter_stance','channel_cone'].includes(LAB_SKILLS.combat[id].kind)?2:6;placeDummy();}
   tuning.get(id); vfx.refreshFlames();
   state.tuningStatus = 'พร้อมทดลอง';
   render();
@@ -360,6 +381,31 @@ function stepProjectiles(dt) {
   fakeGame.projectiles = keep;
 }
 
+function ruleEvents(){
+ if(!rulesGame)return;
+ for(const e of rulesGame.drainEvents()){
+  frontierFx.event(e);
+  if(e.type==='chargeStart'||e.type==='channelStart')heroAnim.play(e.skill,e.total+.28,e.weapon,0,e.total,e.type==='chargeStart'?'projectile':'channel_cone');
+  if(e.type==='chargeEnd'||e.type==='channelEnd')heroAnim.action=null;
+  if(e.type==='castStart'){heroAnim.play(e.skill,e.total+.28,e.weapon,e.step,e.total,e.kind);vfx.beginCast(e,rulesGame.skills[0]?.element);if(isMelee(rulesGame.skills[0]))vfx.beginSwing(e,rulesGame.skills[0].element);}
+  if(e.type==='slash')vfx.slash(e,state.weapon);
+  if(e.type==='impact')impact(e);
+  if(e.type==='nova')vfx.nova(e);
+  if(e.type==='burst')vfx.burst(e);
+  if(e.type==='chain')vfx.chain(e);
+  if(e.type==='summon')vfx.summon(e);
+  if(e.type==='hit')dummyHit=1;
+ }
+}
+function release(){if(!rulesGame)return;rulesGame.releaseCharge(0);rulesGame.cancelChannel();ruleEvents();}
+function stepRules(dt){
+ rulesGame.previewStep(dt);ruleEvents();
+ fakeGame.projectiles=rulesGame.projectiles;fakeGame.areas=rulesGame.areas;
+ hero.root.position.set(rulesGame.player.x,0,rulesGame.player.z);hero.root.rotation.y=rulesGame.player.facing;
+ frontierFx.sync(rulesGame,dt,time);
+ const seen=new Set();for(const a of rulesGame.allies){seen.add(a.id);let r=previewAllies.get(a.id);if(!r){r=buildMonster(a.type==='stone_guardian'?'crag_golem':a.type);scene.add(r.root);previewAllies.set(a.id,r);}r.root.position.set(a.x,0,a.z);r.root.rotation.y=a.facing;r.animate(r,a,dt,time);}
+ for(const [id,r]of previewAllies)if(!seen.has(id)){disposeObject(r.root);previewAllies.delete(id);}
+}
 function step(dt) {
   time += dt;
   for (let i = timers.length - 1; i >= 0; i--) {
@@ -373,17 +419,19 @@ function step(dt) {
       autoT = 2.2;
     }
   }
-  stepProjectiles(dt);
+  if(rulesGame)stepRules(dt);
+  else{stepProjectiles(dt);
   for (let i = fakeGame.areas.length - 1; i >= 0; i--) {
     const area = fakeGame.areas[i]; area.t += dt;
     if (area.t >= area.delay + area.duration) fakeGame.areas.splice(i, 1);
   }
-  stepWolf(dt);
+  stepWolf(dt);}
+
   if(movementReplay){const p=movementReplay,d=p.dash;
     if(d){d.t=Math.min(d.dur,d.t+dt);const k=d.t/d.dur;p.x=-p.distance*(d.kind==='blink'?1:k);hero.root.position.set(p.x,d.kind==='leap'?Math.sin(Math.PI*k)*2:0,0);hero.root.visible=d.kind!=='blink'||k>=1;
       if(k>=1){if(d.kind==='leap')vfx.leapLand({x:p.x,z:0,radius:skillDef().radius});p.dash=null;}}
   }
-  heroAnim.update(dt, { speed: 0, facing: hero.root.rotation.y, moving: false, dash: movementReplay?.dash||null, dead: false, time });
+  heroAnim.update(dt, { speed: 0, facing: hero.root.rotation.y, moving: false, dash: movementReplay?.dash||null, charging:rulesGame?.player.charging,channeling:rulesGame?.player.channeling, dead: false, time });
   if(movementReplay)vfx.syncMovement(movementReplay,0,dt,hero);
   vfx.updateTrail(dt, hero);
   vfx.updateCast?.(dt, hero);
@@ -490,7 +538,16 @@ function render() {
   const top = document.createElement('div');
   top.className = 'row';
   panel.append(top);
-  button(top, 'ใช้สกิล', 'go', cast);
+  if(isPrototype()&&(skillDef().charge||skillDef().channel)){
+    const b=document.createElement('button');b.className='go';b.textContent=skillDef().charge?'กดค้างชาร์จ · ปล่อยยิง':'กดค้างพ่นไฟ';top.append(b);
+    b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);cast();});
+    b.addEventListener('pointerup',e=>{e.preventDefault();release();});
+    b.addEventListener('pointercancel',()=>{rulesGame?.cancelCharge();rulesGame?.cancelChannel();});
+    b.addEventListener('click',e=>{if(e.detail===0){cast();release();}});
+  }else button(top, 'ใช้สกิล', 'go', cast);
+  if(isPrototype()){
+    const link=document.createElement('a');link.href='./?fresh=1&skillSandbox=1&quality=low';link.textContent='ทดลองในเกม · ไม่บันทึก';top.append(link);
+  }
   button(top, 'วนอัตโนมัติ', state.auto ? 'on' : '', () => {
     state.auto = !state.auto;
     autoT = 0;
@@ -499,18 +556,27 @@ function render() {
   button(top, '+1 เฟรม', '', () => step(1 / 60), !state.paused).id = 'lab-step';
   for (const [v, t] of [[1, '1×'], [0.5, '½×'], [0.25, '¼×'], [0.1, '⅒×']]) button(top, t, v === state.speed ? 'on' : '', () => (state.speed = v));
   button(top, state.open ? '▾ ซ่อน' : '⚙ ตั้งค่า', '', () => (state.open = !state.open));
-  button(top, state.editorOpen ? 'ปิดตัวปรับ' : 'ปรับเอฟเฟกต์', state.editorOpen ? 'on' : '', () => {
+  if(!isPrototype())button(top, state.editorOpen ? 'ปิดตัวปรับ' : 'ปรับเอฟเฟกต์', state.editorOpen ? 'on' : '', () => {
     state.editorOpen = !state.editorOpen;
     state.reviewPhase = 'full'; clearReplay();
     if (state.editorOpen) state.element = null;
   });
+  if(isPrototype()){
+    const r=document.createElement('div');r.className='row';panel.append(r);
+    const label=document.createElement('span');label.textContent='ม็อด (ไม่เกิน 2)';r.append(label);
+    const pick=document.createElement('select');pick.setAttribute('aria-label','เพิ่มม็อดทดลอง');pick.innerHTML='<option value="">เลือกม็อด</option>';
+    for(const id of previewMods(state.skill,state.mods).filter(id=>!state.mods.includes(id))){const o=document.createElement('option');o.value=id;o.textContent=data.mods.mods[id].nameTh;pick.append(o);}
+    pick.disabled=state.mods.length>=2;pick.addEventListener('change',()=>{if(pick.value){state.mods.push(pick.value);clearReplay();render();}});r.append(pick);
+    for(const id of state.mods)button(r,data.mods.mods[id].nameTh+' ×','on',()=>{state.mods=state.mods.filter(k=>k!==id);clearReplay();});
+    if(skillDef().kind==='counter_stance')button(r,'จำลองรับการโจมตี','',()=>{if(rulesGame)rulesGame.damagePlayer(20,rulesGame.monsters[0]);ruleEvents();});
+  }
   if (state.open) {
     row('สกิล', Object.entries(LAB_SKILLS.combat).map(([id, s]) => [id, `${FX.skills?.[id] ? '★ ' : ''}${s.nameTh || s.name}`, !PLAYABLE.has(s.kind)]), (v) => v === state.skill, (v) => {
       selectSkill(v);
     });
-    row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
-    if (skillDef().kind === 'projectile') row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
-    row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
+    if(!isPrototype())row('ธาตุ', [[null, 'ตามสกิล'], ...ELEMENTS.map((e) => [e, e])], (v) => v === state.element, (v) => { state.element = v; state.editorOpen = false; state.reviewPhase = 'full'; clearReplay(); });
+    if (!isPrototype()&&skillDef().kind === 'projectile') row('จำนวนลูก', [[1, '1'], [3, '3'], [5, '5']], (v) => v === state.count, (v) => (state.count = v));
+    if(!isPrototype())row('อาวุธ', [['sword', 'ดาบ'], ['dagger', 'มีด'], ['axe', 'ขวาน'], ['greatblade', 'ดาบใหญ่'], ['mace','ค้อน'], ['staff', 'ไม้เท้า'], ['wand', 'คทา'], ['bow', 'ธนู'], ['none', 'มือเปล่า']], (v) => v === state.weapon, (v) => {
       clearReplay();
       state.weapon = v;
       buildHero();
@@ -540,7 +606,7 @@ fetch('./lab-source.json')
   .catch(() => {});
 scene.background = new THREE.Color(GROUNDS.sand.sky);
 render();
-window.__lab = { state, cast, step, vfx, tuning, setWeapon: (w) => { state.weapon = w; buildHero(); }, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, get wolf(){return wolf.root;}, dummy }, stats: () => ({ ...renderer.info.memory }) };
+window.__lab = { state, cast, release, selectSkill, get rulesGame(){return rulesGame;}, step, vfx, tuning, setWeapon: (w) => { state.weapon = w; buildHero(); }, preview: replayPhase, clear: clearReplay, view: { camera, get hero(){ return hero.root; }, get wolf(){return wolf.root;}, dummy }, stats: () => ({ ...renderer.info.memory }) };
 requestAnimationFrame(frame);
 
 

@@ -333,7 +333,7 @@ export class Vfx {
       const mesh=frostMesh(4.2,true);mesh.visible=false;this.scene.add(mesh);
       this.castFrost={mesh,t:0,dur:e.total};return;
     }
-    if (e.skill === 'hunter_shot') {
+    if ((e.skill === 'hunter_shot' || e.skill === 'charged_shot')) {
       const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
       mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
       mesh.material.uniforms.uOpacity.value = f.opacity; mesh.visible = false; this.scene.add(mesh);
@@ -677,7 +677,7 @@ export class Vfx {
 
   impact(e) {
     if (e.kind === 'firebolt' && e.element === 'fire') return this.fireImpact(e);
-    if (e.kind === 'hunter_shot') {
+    if ((e.kind === 'hunter_shot' || e.kind === 'charged_shot')) {
       const cfg = this.contactLook(e.kind, e.element);
       this.contacts.burst({ ...e, fromX: e.x - (e.vx ?? 1), fromZ: e.z - (e.vz ?? 0) }, cfg, this.gy(e.x, e.z) + (e.y ?? 1));
       this.shake = Math.max(this.shake, cfg.impact.shake);
@@ -703,7 +703,7 @@ export class Vfx {
       return;
     }
     // The arrow's impact event draws its contact once, including obstacle hits.
-    if (e.skill === 'hunter_shot') {
+    if ((e.skill === 'hunter_shot' || e.skill === 'charged_shot')) {
       if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
       return;
     }
@@ -1079,7 +1079,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = pr.kind === 'hunter_shot';
+      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot');
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {

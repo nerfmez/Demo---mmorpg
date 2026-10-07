@@ -157,12 +157,13 @@ export const ACTIONS = {
 
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', firebolt: 'bolt', chain_spark: 'zap',
+  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', charged_shot: 'shoot', firebolt: 'bolt', chain_spark: 'zap',
   stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'sow', hex: 'hex', ward: 'ward',
   war_cry: 'warcry', healing_spring: 'heal', spirit_wolf: 'summon',
 };
 // skill kind -> action, for skills without their own entry
 const BY_KIND = {
+  counter_stance:'ward',melee_line:'heavyC',channel_cone:'staffBolt',wall:'sow',heal_target:'heal',aura:'warcry',
   melee_arc: 'combo', melee_nova: 'whirl', chain: 'zap', ground_area: 'slam', nova: 'nova', dot_zone: 'sow',
   curse_zone: 'hex', self_barrier: 'ward', buff: 'warcry', heal_zone: 'heal', summon: 'summon',
 };

@@ -61,10 +61,10 @@ test('journal chapter labels reflect current section minima, not new eligibility
  assert.equal(jobNodeState(fresh,data,gated[0]).reason,'tier_points');
  assert.equal(journalProgress(fresh,data).stages[0].unlocked,true);
 });
-test('all fifteen mod items use distinct engravings on coins, not gems',()=>{
- assert.equal(Object.keys(MOD_ART).length,15);
+test('all mod items use distinct engravings on coins, not gems',()=>{
+ assert.equal(Object.keys(MOD_ART).length,Object.keys(data.mods.mods).length);
  assert.deepEqual(Object.keys(MOD_ART).sort(),Object.keys(data.mods.mods).sort());
- assert.equal(new Set(Object.keys(MOD_ART).map(k=>SIGILS[k])).size,15);
+ assert.equal(new Set(Object.keys(MOD_ART).map(k=>SIGILS[k])).size,Object.keys(data.mods.mods).length);
  for(const id of Object.keys(data.mods.mods)){
   assert.ok(hasArt('mod',id));const svg=art('mod',id);
   assert.ok(svg.includes(`data-mod-symbol="${id}"`));

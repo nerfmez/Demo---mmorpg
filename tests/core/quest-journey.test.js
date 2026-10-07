@@ -89,7 +89,7 @@ test('v7 migration preserves paid quests, partial counters, inventory, discovery
  const g=fresh(),old=copy(g.snapshot());old.version=7;delete old.progress.questJournal;
  old.progress.quests={h_slimes:{status:'done',progress:3},h_crabs:{status:'active',progress:2},m_craft:{status:'done',progress:1},custom_old:{status:'done',progress:7}};
  old.progress.maps[F]={waypoints:['forest'],zones:['forest']};const owned=copy({gear:old.gear,materials:old.materials,gold:old.gold,level:old.level,maps:old.progress.maps});
- const ch=migrateCharacter(old,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.version,8);assert.equal(ch.progress.quests.h_crabs.objectives.primary,2);assert.equal(ch.progress.quests.custom_old.progress,7);
+ const ch=migrateCharacter(old,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.version,9);assert.equal(ch.progress.quests.h_crabs.objectives.primary,2);assert.equal(ch.progress.quests.custom_old.progress,7);
  const loaded=new Game(data,{world:worlds[A],character:copy(ch),seed:11});assert.deepEqual({gear:loaded.ch.gear,materials:loaded.ch.materials,gold:loaded.ch.gold,level:loaded.ch.level,maps:loaded.ch.progress.maps},owned);assert.equal(loaded.ch.progress.quests.h_slimes.rewardClaimed,true);
  const once=JSON.stringify(loaded.snapshot());migrateCharacter(loaded.ch,data);assert.equal(JSON.stringify(loaded.snapshot()),once);
 });

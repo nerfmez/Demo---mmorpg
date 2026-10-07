@@ -271,8 +271,8 @@ Port the new derived fields along with their Node tests:
   Preserve older invalid loadouts as inactive entries and show the reason.
 
 The additions do not alter Character Stat Point requirements: flat HP/MP/attack/magic/
-defense nodes use Job Points and do not add STR/INT. Active skill counts remain 13 combat
-and four movement. No channeling executor is added. Run `tests/core/workspaces.test.js`
+defense nodes use Job Points and do not add STR/INT. That earlier batch kept 13 combat and four movement; the prototype expansion below
+adds the new delivery executors and retains four movement skills. Run `tests/core/workspaces.test.js`
 assertions in the port and reproduce the separate-page flows in
 `tests/browser/workspaces.mjs`. See `UI-WORKSPACES.md` for reference and verification scope.
 
@@ -739,3 +739,58 @@ action handlers use this service predicate; blocked cards show the location
 reason beside the button. Stat/material/gold requirements are unchanged.
 Equipment enhancement/promotion and crafting still use the original workbench
 gate. Port the service anchors and `tests/core/upgrade-services.test.js`.
+
+
+### Skill/mod prototype expansion (character v9)
+
+Data defines 27 combat skills (14 new prototypes), four movement skills and 34 mods
+(19 new). `prototype:true` marks content awaiting crafting/balance design, not an
+alternate combat executor. No recipes, material drops or normal starter grants change.
+Only `?fresh=1&skillSandbox=1` grants trial ownership in a character with no save slot.
+Skill Lab replays old effects and uses `lab/rules-preview.js` for the new skills.
+
+Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
+
+- `charging` is transient. Hold advances to a capped ratio; cancel, death, movement,
+  refresh or input loss discards it. Release rechecks weapon/stats, MP and arrows,
+  pays once, then launches after the authored contact time. Movement slows while held.
+- `channeling` pays initial MP once and per tick after wind-up. Release, knockback,
+  movement, death, refresh or insufficient MP ends it and starts its cooldown.
+- `counter_stance` accepts one frontal direct hit in a short window; the next press
+  spends no extra MP and bypasses only its own cooldown once. Rear/DoT hits do not parry.
+- `melee_line` tests forward projection and half width plus target radius; live aim
+  during preparation. Positional hits, non-stacking exposure and explicitly permitted
+  interruption remain independent. Boss poise expires and never overrides immunity.
+- Rain pays all three arrows once and schedules three separate delayed areas. Walls
+  require free placement/endpoints, have three destructible segments and finite life.
+  Walkers use swept XZ rectangles; flyers pass. Chasing monsters break nearby segments
+  after a visible wind-up interval; other authored attack patterns remain intact.
+- Target healing chooses the most injured eligible living unit, cleanses one allowed
+  status, chains to unvisited injured units, and converts a fraction to a capped,
+  non-stacking barrier. Auras reserve maximum available MP and stop when unslotted,
+  their requirements fail, or their providing mod is removed. Current summons have
+  no MP, so Battle Aura's MP regen currently applies only to the player.
+- Returning projectiles reset their per-leg hit set once, reverse toward their stored
+  origin and cannot loop. Terminal bursts fire at final expiry, including after return.
+  Secondary bursts never apply mod effects recursively. Bleed ticks do not crit or
+  trigger. Chill/burn consumption happens once; curse spread preserves remaining time.
+- Following fields stay one per slot, and sustained slow has an authored cap. Summons
+  support attack/follow/guard commands; explicit attack overrides automatic focus.
+  Guard sharing selects one living summon in range, so multiple summons do not multiply
+  the reduction. Barrier destruction procs once. Guard triggers pay resources, check
+  active gear/requirements and use their own cooldown; nested triggers are suppressed.
+
+`movementMods: UID[]` is the only new persistent field. v8 -> v9 initializes it empty,
+keeps inventory, rolls and combat sockets, removes invalid/duplicate UIDs and respects
+one movement socket. A coin never occupies combat and movement simultaneously. Inactive
+movement mods stay stored; trained stats reactivate them. `short_stride` halves all
+four movement distances and adds one max charge without altering duration, recharge,
+invulnerability or landing damage. Its maximum rank is 1. Existing slot envelope is 2.
+
+UI uses hold/release and drag-aim on independent pointers, with menu/blur/cancel cleanup.
+`render/frontier-fx.js` owns original interim line, wall, aura, healing and flame visuals;
+shared geometry belongs to the view, per-effect materials/geometry are disposed on clear.
+Stone Guardian reuses `crag_golem` as an interim silhouette. Numbers, compatibility
+kinds, symmetric conflicts, conversion dependencies and visual tuning live in data.
+Before porting, run `tests/core/frontier-content.test.js` and the focused touch capture
+`tests/browser/frontier-content.mjs`. See `FRONTIER-CONTENT.md` and the review record.

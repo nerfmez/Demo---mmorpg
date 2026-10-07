@@ -1,3 +1,4 @@
+import { FrontierFx } from './frontier-fx.js';
 import {FrameBuildQueue} from './build-queue.js';
 import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './spirit-reveal.js';
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
@@ -99,6 +100,7 @@ export class View {
     syncPaintedLighting(this.hemisphere, this.sun);
 
     this.vfx = new Vfx(this.scene, world);
+    this.frontierFx=new FrontierFx(this.scene,world);
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
@@ -216,6 +218,7 @@ export class View {
     for (const v of this.dropViews.values()) disposeObject(v);
     this.dropViews.clear();
     this.vfx.world = next.world;
+    this.frontierFx.clear();this.frontierFx.ground=next.world;
     for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = next.world;
     this.refreshGrass();
     return true;
@@ -229,6 +232,7 @@ export class View {
   /** Attach (or replace) the running game. */
   attachGame(game) {
     this.vfx.clearFireballs();
+    this.frontierFx.clear();
     this.game = game;
     for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
     this.monsterViews.clear();
@@ -431,7 +435,20 @@ export class View {
   handleEvent(e) {
     const g = this.game;
     const v = this.vfx;
+    this.frontierFx.event(e);
     switch (e.type) {
+      case 'channelStart':
+        this.heroAnim.play(e.skill, e.total + .28, e.weapon, 0, e.total, 'channel_cone');
+        break;
+      case 'channelEnd':
+        this.heroAnim.action = null;
+        break;
+      case 'chargeStart':
+        this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, 0, e.total, 'projectile');
+        break;
+      case 'chargeEnd':
+        this.heroAnim.action = null;
+        break;
       case 'castStart':
         this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
         v.beginCast(e, g.skills.find((s) => s && s.id === e.skill)?.element);
@@ -708,7 +725,7 @@ export class View {
       seen.add(a.id);
       let av = this.allyViews.get(a.id);
       if (!av) {
-        const rig = this.takeRig(a.type, 1, false);
+        const rig = this.takeRig(a.type==='stone_guardian'?'crag_golem':a.type, 1, false);
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
@@ -836,7 +853,7 @@ export class View {
     let d = p.facing - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
-    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, time });
+    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, charging: p.charging, channeling: p.channeling, dead: p.dead, time });
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
@@ -910,6 +927,7 @@ export class View {
       this.syncDrops(dt, time);
       this.vfx.syncProjectiles(g, dt, time);
       this.vfx.syncAreas(g, dt, time);
+      this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);
       // waypoint stones glow once discovered
       for (const [id, stone] of this.waypointStones) {

@@ -102,6 +102,19 @@ function travelTo(character, slot, name) {
 
 function startGame(character, slot) {
   if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
+  if(fresh&&params.has('skillSandbox')){
+    character.skills=Object.fromEntries(Object.keys(data.skills.combat).map(id=>[id,1]));
+    character.movementSkills=Object.keys(data.skills.movement);
+    character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35};
+    character.mods=Object.keys(data.mods.mods).map(id=>({id,uid:character.nextUid++,level:1,grade:'C'}));
+  }
+  const sandbox=fresh&&params.has('skillSandbox');
+  if(sandbox){
+    const types=new Set(character.gear.map(i=>(data.items.gearBases[i.base].weaponType||data.items.gearBases[i.base].offhandType)));
+    for(const [base,d]of Object.entries(data.items.gearBases))if((d.weaponType||d.offhandType)&&!types.has(d.weaponType||d.offhandType)){
+      types.add(d.weaponType||d.offhandType);character.gear.push({uid:character.nextUid++,base,itemLevel:1,grade:'C',upgrade:0,options:[]});
+    }
+  }
   const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
   game.worlds = worlds; // every map's rules world: the HUD and atlas show one world
   game.canCrossSeam = id => !view.coreWorld || view.neighbourReady(id);
@@ -183,9 +196,25 @@ function startGame(character, slot) {
   session = { game, hud, panels, input, ui, save, slot, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
   Object.assign(F, { game, hud, panels, input, save });
   save();
+  if(sandbox){
+    const bar=document.createElement('div');bar.className='skill-sandbox';
+    const title=document.createElement('b');title.textContent='ทดลอง · ไม่บันทึก';bar.append(title);
+    const pick=document.createElement('select');pick.setAttribute('aria-label','สกิลทดลอง');
+    for(const [id,d]of Object.entries(data.skills.combat).filter(([,d])=>d.prototype)){const o=document.createElement('option');o.value=id;o.textContent=d.nameTh;pick.append(o);}bar.append(pick);
+    const choose=()=>{
+      input.reset();const d=data.skills.combat[pick.value];game.ch.slots[0]={skill:pick.value,mods:[]};
+      game.ch.equipped.weapon=game.ch.equipped.offhand=null;
+      for(const type of [d.requiresWeapon?.[0]||(d.requiresOffhand?'sword':'staff'),...(d.requiresOffhand?['shield']:[])]){
+        const it=game.ch.gear.find(i=>(data.items.gearBases[i.base].weaponType||data.items.gearBases[i.base].offhandType)===type);if(it)equip(game.ch,data,it.uid);
+      }
+      game.refresh();game.player.hp=game.player.maxHp;game.player.mp=game.player.maxMp;
+    };
+    pick.addEventListener('change',choose);hudRoot.append(bar);session.sandboxBar=bar;choose();
+  }
 
   const ch = game.ch;
-  if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
+  if(sandbox)hud.toast('เปิดสมุดสกิลเพื่อใส่ม็อด · สูตรคราฟต์จะออกแบบภายหลัง','#8fd0ff');
+  else if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
   else hud.toast(`โหลดเซฟแล้ว · ${ch.name} Lv.${ch.level}`, '#8fd0ff');
 }
 
@@ -254,6 +283,7 @@ function frame(now) {
   const s = session;
   if (s) {
     if (!fullscreen.blocked) s.input.update();
+    if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||fullscreen.blocked;
     const paused = !view.region.staticReady || s.panels.isOpen || F.paused || fullscreen.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;

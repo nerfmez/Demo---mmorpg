@@ -42,3 +42,24 @@ All five physical-element skills have data profiles and shared generated control
 Stone Burst uses the existing cast time plus area delay. Its terrain-conformed warning reveals radial cracks within the real radius; the impact pops solid faceted stones, then bounded reused chips and a little short dust. The Lab's ground adapter keeps the marker and cosmetic burst separate from contact. Spirit Wolf reuses one real monster rig in Lab, previews summoning, pursuit, the existing .25 s bite wind-up, one bite and fade. It runs presentation only, with no damage or persistent summon AI. Clearing cancels the pending ground burst and hides/reset the summon. Core `allyStrike` is emitted only after an actual ally bite hit; optional hit metadata uses the ally's source position.
 
 `tests/browser/physical-lab.mjs` covers bow draw/flight/contact, area timing and footprint, generated stone controls, real summon contact, isolated phases, portrait layout and cleanup for each adapter. It records renderer screenshots/sequences; repeat with `BROWSER=webkit`. The physical Lab workflow runs this alongside melee and the shared editor checks. Slash's authored profile preserves every value from the owner's `skill-lab-slash.json`; other skills have their own profiles.
+
+
+## New skill/mod prototypes
+
+Open `lab.html?skill=charged_shot` for hold/release bow charging, or select any of the
+14 new skills under settings. New prototypes run the actual pure combat rules on an
+isolated flat floor; existing accepted skills retain their presentation adapters.
+Pick up to two compatible owned trial mods in the Lab, remove a chip to change it,
+and use pause/frame step as supporting inspection. Counter Stance also has a simulated
+incoming hit button. Wall preview places the wall in front of the dummy, never inside it.
+
+The **ทดลองในเกม · ไม่บันทึก** link opens `?fresh=1&skillSandbox=1&quality=low`.
+A trial-only selector changes skill slot 1 and its required weapon/shield; the skill
+book contains all skills, movement skills and 34 mod coins. Slot movement mods under
+**เคลื่อนที่**. This character has no save slot and does not grant permanent unlocks.
+Crafting recipes and normal progression acquisition are intentionally undecided.
+
+New visuals are interim authored prototypes. Their footprints, timing and cancellation
+are reviewable; they have not received owner approval as final animation/VFX.
+`tests/browser/frontier-content.mjs` uses the production build to capture Lab and the
+actual game at desktop, iPad-sized touch and landscape phone sizes. Run build first.

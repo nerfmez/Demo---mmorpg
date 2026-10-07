@@ -9,7 +9,7 @@ body {
   height: 100%;
   overflow: hidden;
   background: #1d2a44;
-  font: 15px/1.3 -apple-system, 'Segoe UI', sans-serif;
+  font: 15px/1.3 Mitr, -apple-system, 'Segoe UI', sans-serif;
   color: #f2f4f8;
   touch-action: manipulation;
   user-select: none;
@@ -118,3 +118,5 @@ select { min-height: 44px; max-width: 100%; padding: 0 34px 0 12px; border: 1px 
   #panel.editing button { padding-left: 10px; padding-right: 10px; font-size: 14px; }
   body:has(#panel.editing) #info { max-width: calc(100% - 464px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 }
+#panel select,#panel a{min-height:44px;padding:10px 12px;border:1px solid #526688;border-radius:8px;background:#26345a;color:#fff;font:inherit;max-width:100%;text-decoration:none}
+#panel select{touch-action:manipulation}

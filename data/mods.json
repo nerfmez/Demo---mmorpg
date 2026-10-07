@@ -26,7 +26,8 @@
       },
       "requires": {
         "DEX": 5
-      }
+      },
+      "id": "split"
     },
     "pierce": {
       "name": "Pierce",
@@ -45,7 +46,8 @@
           4
         ]
       },
-      "requires": {}
+      "requires": {},
+      "id": "pierce"
     },
     "bounce": {
       "name": "Ricochet",
@@ -73,7 +75,8 @@
       },
       "requires": {
         "DEX": 6
-      }
+      },
+      "id": "bounce"
     },
     "burning_ground": {
       "name": "Burning Ground",
@@ -105,7 +108,8 @@
       "requires": {},
       "excludes": [
         "DoT"
-      ]
+      ],
+      "id": "burning_ground"
     },
     "echo": {
       "name": "Echo",
@@ -131,7 +135,8 @@
       },
       "requires": {
         "INT": 8
-      }
+      },
+      "id": "echo"
     },
     "wide_arc": {
       "name": "Wide Arc",
@@ -157,7 +162,8 @@
       },
       "requires": {
         "STR": 6
-      }
+      },
+      "id": "wide_arc"
     },
     "multistrike": {
       "name": "Multistrike",
@@ -189,7 +195,8 @@
       },
       "requires": {
         "DEX": 6
-      }
+      },
+      "id": "multistrike"
     },
     "frost_shift": {
       "name": "Frost Shift",
@@ -213,7 +220,8 @@
       "requires": {},
       "excludes": [
         "DoT"
-      ]
+      ],
+      "id": "frost_shift"
     },
     "knockback": {
       "name": "Knockback",
@@ -242,7 +250,8 @@
       },
       "excludes": [
         "DoT"
-      ]
+      ],
+      "id": "knockback"
     },
     "concentrated": {
       "name": "Concentrated Effect",
@@ -263,7 +272,8 @@
           1.25
         ]
       },
-      "requires": {}
+      "requires": {},
+      "id": "concentrated"
     },
     "lingering": {
       "name": "Lingering",
@@ -280,7 +290,8 @@
         ]
       },
       "requires": {},
-      "requiresPersistent": true
+      "requiresPersistent": true,
+      "id": "lingering"
     },
     "life_leech": {
       "name": "Life Leech",
@@ -304,7 +315,8 @@
       },
       "excludes": [
         "DoT"
-      ]
+      ],
+      "id": "life_leech"
     },
     "spiked_ward": {
       "name": "Spiked Ward",
@@ -326,7 +338,8 @@
       },
       "requires": {
         "VIT": 6
-      }
+      },
+      "id": "spiked_ward"
     },
     "pack_leader": {
       "name": "Pack Leader",
@@ -350,7 +363,8 @@
           0.4
         ]
       },
-      "requires": {}
+      "requires": {},
+      "id": "pack_leader"
     },
     "cast_on_dodge": {
       "name": "Cast on Dodge",
@@ -386,8 +400,575 @@
       },
       "requires": {
         "AGI": 8
-      }
+      },
+      "id": "cast_on_dodge"
+    },
+    "short_stride": {
+      "name": "Short Stride",
+      "nameTh": "ก้าวสั้นถี่",
+      "desc": "ระยะเคลื่อนที่ลดลง 50% แลกกับชาร์จสูงสุด +1 คืนชาร์จต่อครั้งเท่าเดิม ไม่เพิ่มดาเมจหรือเวลาอมตะ ใส่ในช่องม็อดเคลื่อนที่แยก",
+      "tags": [
+        "Movement"
+      ],
+      "requiresAll": [
+        "Movement"
+      ],
+      "effect": {
+        "movementDistanceMult": 0.5,
+        "movementCharges": 1
+      },
+      "requires": {
+        "AGI": 5
+      },
+      "maxLevel": 1,
+      "prototype": true,
+      "id": "short_stride"
+    },
+    "returning_shot": {
+      "name": "Returning Shot",
+      "nameTh": "กระสุนย้อนกลับ",
+      "desc": "กระสุนกลับตามเส้นเดิม ขากลับแรง 40/45/50% โดนเป้าเดิมได้หนึ่งครั้งต่อขา ใช้ร่วมกับเด้งไม่ได้",
+      "tags": [
+        "Projectile"
+      ],
+      "requiresAll": [
+        "Projectile",
+        "Damage"
+      ],
+      "effect": {
+        "returnMult": [
+          0.4,
+          0.45,
+          0.5
+        ],
+        "damageMult": 0.85
+      },
+      "requires": {
+        "DEX": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "projectile"
+      ],
+      "conflicts": [
+        "bounce"
+      ],
+      "id": "returning_shot"
+    },
+    "terminal_burst": {
+      "name": "Terminal Burst",
+      "nameTh": "ระเบิดปลายทาง",
+      "desc": "ระเบิดรัศมี 1.6 ม. เมื่อกระสุนสิ้นสุด แรง 35/40/45% ลดดาเมจกระทบตรง 20%",
+      "tags": [
+        "Projectile"
+      ],
+      "requiresAll": [
+        "Projectile",
+        "Damage"
+      ],
+      "effect": {
+        "terminalBurst": [
+          0.35,
+          0.4,
+          0.45
+        ],
+        "burstRadius": 1.6,
+        "damageMult": 0.8
+      },
+      "requires": {
+        "INT": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "projectile"
+      ],
+      "id": "terminal_burst"
+    },
+    "chain_return": {
+      "name": "Chain Return",
+      "nameTh": "สายฟ้าหวนคืน",
+      "desc": "สายฟ้าเด้งครบแล้วกลับเป้าแรกอีกครั้ง แรง 40/45/50% ลดดาเมจทั้งหมด 15%",
+      "tags": [
+        "Chain"
+      ],
+      "requiresAll": [
+        "Chain",
+        "Damage"
+      ],
+      "effect": {
+        "chainReturn": [
+          0.4,
+          0.45,
+          0.5
+        ],
+        "damageMult": 0.85
+      },
+      "requires": {
+        "INT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "chain"
+      ],
+      "id": "chain_return"
+    },
+    "advancing_edge": {
+      "name": "Advancing Edge",
+      "nameTh": "ก้าวตามคม",
+      "desc": "ก้าวตามทิศเล็ง 0.8/1/1.2 ม. ก่อนฟัน ลดมุมฟัน 25% ไม่มีอมตะ",
+      "tags": [
+        "Melee"
+      ],
+      "requiresAll": [
+        "Melee",
+        "Damage"
+      ],
+      "effect": {
+        "advance": [
+          0.8,
+          1,
+          1.2
+        ],
+        "arcMult": 0.75
+      },
+      "requires": {
+        "AGI": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "melee_arc",
+        "melee_line"
+      ],
+      "conflicts": [
+        "cast_on_guard"
+      ],
+      "id": "advancing_edge"
+    },
+    "gathering_cut": {
+      "name": "Gathering Cut",
+      "nameTh": "กวาดรวมศัตรู",
+      "desc": "ดึงมอนทั่วไป 1/1.3/1.6 ม. เข้าศูนย์กลาง ลดดาเมจ 20% บอสไม่ถูกย้าย",
+      "tags": [
+        "Area"
+      ],
+      "requiresAll": [
+        "Area",
+        "Damage"
+      ],
+      "effect": {
+        "pull": [
+          1,
+          1.3,
+          1.6
+        ],
+        "damageMult": 0.8
+      },
+      "requires": {
+        "STR": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "melee_nova",
+        "ground_area",
+        "nova"
+      ],
+      "conflicts": [
+        "knockback"
+      ],
+      "id": "gathering_cut"
+    },
+    "laceration": {
+      "name": "Laceration",
+      "nameTh": "แผลฉีก",
+      "desc": "เปลี่ยนดาเมจตรง 25% เป็นเลือดไหล 3/3.5/4 วิ รวมดาเมจเท่าเดิม ดาเมจต่อเนื่องไม่มีคริหรือทริกเกอร์",
+      "tags": [
+        "Attack"
+      ],
+      "requiresAll": [
+        "Attack",
+        "Damage"
+      ],
+      "effect": {
+        "bleedFraction": 0.25,
+        "bleedDuration": [
+          3,
+          3.5,
+          4
+        ],
+        "damageMult": 0.75
+      },
+      "requires": {
+        "DEX": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "melee_arc",
+        "melee_line",
+        "melee_nova",
+        "projectile"
+      ],
+      "id": "laceration"
+    },
+    "ash_detonation": {
+      "name": "Ash Detonation",
+      "nameTh": "เถ้าระเบิด",
+      "desc": "กินเผาไหม้ที่ตนสร้างเพื่อระเบิดวง 1.8 ม. แรงตามดาเมจเผาที่เหลือสูงสุด 60/70/80% ของฮิต ลดฮิต 15%",
+      "tags": [
+        "Fire"
+      ],
+      "requiresAll": [
+        "Fire",
+        "Damage"
+      ],
+      "effect": {
+        "consumeBurn": [
+          0.6,
+          0.7,
+          0.8
+        ],
+        "statusBurstRadius": 1.8,
+        "damageMult": 0.85
+      },
+      "requires": {
+        "INT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "projectile",
+        "nova",
+        "ground_area"
+      ],
+      "id": "ash_detonation"
+    },
+    "shatter": {
+      "name": "Shatter",
+      "nameTh": "ผลึกแตก",
+      "desc": "โดนเป้าที่เย็นอย่างน้อย 30% แล้วแตกผลึกวง 1.5 ม. แรง 25/30/35% ลดความเย็นเป้าและลดฮิต 10%",
+      "tags": [
+        "Damage"
+      ],
+      "requiresAll": [
+        "Damage"
+      ],
+      "effect": {
+        "shatter": [
+          0.25,
+          0.3,
+          0.35
+        ],
+        "shatterThreshold": 0.3,
+        "shatterRadius": 1.5,
+        "damageMult": 0.9
+      },
+      "requires": {
+        "INT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "projectile",
+        "nova",
+        "ground_area"
+      ],
+      "requiresElement": "cold",
+      "id": "shatter"
+    },
+    "following_field": {
+      "name": "Following Field",
+      "nameTh": "พื้นที่เคลื่อนตาม",
+      "desc": "วงตามผู้ร่าย รัศมีลดลง 35% มีวงเดียวต่อช่องสกิล",
+      "tags": [
+        "Persistent"
+      ],
+      "requiresAll": [
+        "Persistent"
+      ],
+      "effect": {
+        "followField": true,
+        "radiusMult": 0.65
+      },
+      "requires": {
+        "VIT": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "heal_zone",
+        "dot_zone"
+      ],
+      "id": "following_field",
+      "maxLevel": 1
+    },
+    "binding_field": {
+      "name": "Binding Field",
+      "nameTh": "พื้นที่เหนี่ยวรั้ง",
+      "desc": "อยู่ในวงนานค่อยช้าลง สูงสุด 35/40/45% ลดดาเมจ 20% ออกจากวงผลหมดใน 0.6 วิ",
+      "tags": [
+        "DoT"
+      ],
+      "requiresAll": [
+        "DoT",
+        "Persistent"
+      ],
+      "effect": {
+        "rampSlow": [
+          0.35,
+          0.4,
+          0.45
+        ],
+        "rampTime": 2,
+        "damageMult": 0.8
+      },
+      "requires": {
+        "INT": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "dot_zone"
+      ],
+      "id": "binding_field"
+    },
+    "healing_chain": {
+      "name": "Mending Chain",
+      "nameTh": "ฮีลส่งต่อ",
+      "desc": "ฮีลเด้งไปพันธมิตรที่บาดเจ็บใกล้ ๆ อีก 1/2/2 ตัว ผลลดลง 30% ต่อครั้ง ไม่เด้งวน",
+      "tags": [
+        "Heal"
+      ],
+      "requiresAll": [
+        "Heal",
+        "Target"
+      ],
+      "effect": {
+        "healChain": [
+          1,
+          2,
+          2
+        ],
+        "healChainRange": 5,
+        "healChainFalloff": 0.7,
+        "healMult": 0.85
+      },
+      "requires": {
+        "INT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "heal_target"
+      ],
+      "id": "healing_chain"
+    },
+    "healing_barrier": {
+      "name": "Mending Barrier",
+      "nameTh": "ฮีลเป็นเกราะ",
+      "desc": "แบ่งฮีล 25/30/35% เป็นเกราะ 4 วิ เกราะสูงสุด 30% HP ไม่สะสมจากฮีลซ้ำ",
+      "tags": [
+        "Heal"
+      ],
+      "requiresAll": [
+        "Heal"
+      ],
+      "effect": {
+        "healBarrier": [
+          0.25,
+          0.3,
+          0.35
+        ],
+        "healBarrierDuration": 4,
+        "healBarrierCap": 0.3
+      },
+      "requires": {
+        "VIT": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "heal_target",
+        "heal_zone"
+      ],
+      "id": "healing_barrier"
+    },
+    "breaking_ward": {
+      "name": "Breaking Ward",
+      "nameTh": "เกราะแตกผลัก",
+      "desc": "เกราะที่ถูกทำลายผลักมอนรอบตัว 1.5/1.8/2.1 ม. ในรัศมี 3 ม. เกราะเริ่มต้นลด 20%",
+      "tags": [
+        "Guard"
+      ],
+      "requiresAll": [
+        "Guard"
+      ],
+      "effect": {
+        "barrierBreakKnock": [
+          1.5,
+          1.8,
+          2.1
+        ],
+        "barrierBreakRadius": 3,
+        "barrierMult": 0.8
+      },
+      "requires": {
+        "VIT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "self_barrier"
+      ],
+      "id": "breaking_ward"
+    },
+    "spreading_hex": {
+      "name": "Spreading Hex",
+      "nameTh": "คำสาปแพร่ต่อ",
+      "desc": "เป้าที่ตายส่งคำสาปเวลาที่เหลือให้เป้าใกล้หนึ่งตัว ระยะ 3/4/5 ม. ไม่เริ่มเวลาใหม่",
+      "tags": [
+        "Curse"
+      ],
+      "requiresAll": [
+        "Curse"
+      ],
+      "effect": {
+        "curseSpread": [
+          3,
+          4,
+          5
+        ]
+      },
+      "requires": {
+        "INT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "curse_zone"
+      ],
+      "id": "spreading_hex"
+    },
+    "focused_pack": {
+      "name": "Focused Pack",
+      "nameTh": "คำสั่งผูกเป้า",
+      "desc": "อัญเชิญเน้นเป้าที่ผู้เล่นโจมตีล่าสุด แรงขึ้น 15/20/25% ต่อเป้านั้น ต้องรอ 0.6 วิเมื่อเปลี่ยนเป้า",
+      "tags": [
+        "Summon"
+      ],
+      "requiresAll": [
+        "Summon"
+      ],
+      "effect": {
+        "focusTarget": [
+          0.15,
+          0.2,
+          0.25
+        ],
+        "focusSwitchDelay": 0.6
+      },
+      "requires": {
+        "DEX": 5
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "summon"
+      ],
+      "id": "focused_pack"
+    },
+    "guardian_bond": {
+      "name": "Guardian Bond",
+      "nameTh": "พันธะคุ้มกัน",
+      "desc": "อัญเชิญในระยะ 4 ม. แบ่งรับฮิตเจ้าของ 15/20/25% แลกกับดาเมจอัญเชิญลด 25% มีเพดานรวม ไม่แบ่งซ้ำหลายตัว",
+      "tags": [
+        "Summon"
+      ],
+      "requiresAll": [
+        "Summon"
+      ],
+      "effect": {
+        "guardShare": [
+          0.15,
+          0.2,
+          0.25
+        ],
+        "guardShareRange": 4,
+        "summonDamage": -0.25
+      },
+      "requires": {
+        "VIT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "summon"
+      ],
+      "id": "guardian_bond"
+    },
+    "following_aura": {
+      "name": "Following Aura",
+      "nameTh": "บัฟเป็นวงติดตาม",
+      "desc": "เปลี่ยนบัฟเป็น Aura สำรอง MP 25% ให้ผล 50/55/60% ของเดิม พันธมิตรต้องอยู่ในระยะ",
+      "tags": [
+        "Buff"
+      ],
+      "requiresAll": [
+        "Buff"
+      ],
+      "effect": {
+        "buffAura": [
+          0.5,
+          0.55,
+          0.6
+        ],
+        "auraReserve": 0.25
+      },
+      "requires": {
+        "INT": 6
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "buff"
+      ],
+      "conflicts": [
+        "cast_on_dodge"
+      ],
+      "id": "following_aura"
+    },
+    "cast_on_guard": {
+      "name": "Cast on Guard",
+      "nameTh": "ร่ายเมื่อรับสำเร็จ",
+      "desc": "เมื่อรับด้วยโล่หรือท่ารับสำเร็จ ร่ายสกิลนี้โดยใช้ MP คูลดาวน์ภายใน 3/2.7/2.4 วิ ผล 60/65/70% ไม่มีทริกเกอร์ต่อ",
+      "tags": [
+        "Spell"
+      ],
+      "requiresAll": [
+        "Spell"
+      ],
+      "effect": {
+        "trigger": "on_guard",
+        "internalCooldown": [
+          3,
+          2.7,
+          2.4
+        ],
+        "damageMult": [
+          0.6,
+          0.65,
+          0.7
+        ],
+        "triggerCost": true
+      },
+      "requires": {
+        "VIT": 8
+      },
+      "prototype": true,
+      "requiresKinds": [
+        "projectile",
+        "nova",
+        "heal_target",
+        "self_barrier"
+      ],
+      "excludes": [
+        "Channel",
+        "Aura",
+        "Summon"
+      ],
+      "conflicts": [
+        "cast_on_dodge"
+      ],
+      "id": "cast_on_guard"
     }
   },
-  "maxModsPerSkill": 2
+  "maxModsPerSkill": 2,
+  "maxMovementMods": 1
 }

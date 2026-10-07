@@ -41,7 +41,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
   });
   if (category === 'mods') list = ch.mods.map((it) => {
     const m = data.mods.mods[it.id];
-    return { id: String(it.uid), name: m.nameTh, graphic: art('mod',it.id), badge: `Lv.${it.level}`, color: '#c59bff', equipped: modSlotOf(ch, it.uid) >= 0, item: it };
+    return { id: String(it.uid), name: m.nameTh, graphic: art('mod',it.id), badge: `Lv.${it.level}`, color: '#c59bff', equipped: modSlotOf(ch, it.uid) !== -1, item: it };
   });
   const selected = list.find((it) => it.id === sel.item) || list[0];
   let detail = `<div class="inventory-empty">${icon(category === 'mods' ? 'hex' : 'bag')}<h3>ยังไม่มี${categories.find(([id]) => id === category)[1]}</h3><p>เก็บวัตถุดิบจากมอนสเตอร์ แล้วนำไปคราฟต์ที่นิคม</p></div>`;
@@ -91,7 +91,7 @@ export function inventoryView(ui, { costHtml, effectText }) {
       const md = data.mods.mods[it.id];
       const up = modUpgradeCost(data, it);
       const where = modSlotOf(ch, it.uid);
-      content = `<h3>${esc(md.nameTh)} · Lv.${it.level}</h3><div class="muted">${esc(md.name)}</div><p>${esc(md.desc)}</p>${rulesHtml(md)}<p class="equipped-label">${where >= 0 ? `ใส่ในสกิลช่อง ${where + 1}` : 'ยังไม่ได้ใส่'}</p>`;
+      content = `<h3>${esc(md.nameTh)} · Lv.${it.level}</h3><div class="muted">${esc(md.name)}</div><p>${esc(md.desc)}</p>${rulesHtml(md)}<p class="equipped-label">${where === -2 ? 'ใส่ในช่องเคลื่อนที่' : where >= 0 ? `ใส่ในสกิลช่อง ${where + 1}` : 'ยังไม่ได้ใส่'}</p>`;
       actions = '<button class="btn primary" data-act="workspace" data-page="mods">จัดม็อด</button>';
       if(up) actions += '<button class="btn" data-act="workspace" data-page="growth">ไปหน้าอัปเลเวล</button>';
     }

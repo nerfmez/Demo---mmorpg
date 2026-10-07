@@ -149,7 +149,7 @@ export function upgradeSkill(ch, data, skillId) {
 
 export function modUpgradeCost(data, inst) {
   const mu = data.progression.modUpgrade;
-  return inst.level >= mu.maxLevel ? null : mu.cost[inst.level - 1];
+  return inst.level >= Math.min(mu.maxLevel, data.mods.mods[inst.id]?.maxLevel || mu.maxLevel) ? null : mu.cost[inst.level - 1];
 }
 
 export function modUpgradeState(ch, data, inst) {

@@ -16,6 +16,7 @@ export function updateMonster(game, m, dt) {
   const tempo = m.enraged ? 1.25 : 1;
   for (const k in m.cd) m.cd[k] = Math.max(0, m.cd[k] - dt * tempo);
   m.stateT += dt;
+  m.tauntT=Math.max(0,(m.tauntT||0)-dt);
   if (def.flyer) m.alt = approach(m.alt ?? def.hover, m.state === 'act' ? 0.5 : m.state === 'recover' ? 0.9 : def.hover, (m.state === 'act' ? 12 : 3) * dt);
 
   const t = pickTarget(game, m);
@@ -86,6 +87,7 @@ export function updateMonster(game, m, dt) {
 
 /** Who this monster fights: the player, or a summon that is closer and bothering it. */
 function pickTarget(game, m) {
+  if(m.tauntT>0){const forced=game.units().find(u=>u.id===m.forcedTargetId);if(forced&&!game.isSafe(forced.x,forced.z)){m.targetUnit=forced;return forced;}}
   const p = game.player;
   const units = [];
   if (!p.dead && !game.isSafe(p.x, p.z)) units.push(p);

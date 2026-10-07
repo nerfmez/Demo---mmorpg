@@ -413,7 +413,7 @@ export class HumanoidAnimator {
     // ---- keyframed action over the upper body (legs partially) ----
     if (this.action) {
       const a = this.action;
-      a.t += dt;
+      a.t = (s.charging || s.channeling) ? Math.min(a.dur * a.hitAt * .92, a.t + dt) : a.t + dt;
       const act = ACTIONS[a.name];
       // stretch the keys so the hit key lands at hitAt
       const u = clamp01(a.t / a.dur), h = act.hit, ha = a.hitAt;

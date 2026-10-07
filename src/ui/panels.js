@@ -808,6 +808,7 @@ function describeSkill(s) {
   if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${number(s.summon.life)} วิ`);
   if (s.takenMult) parts.push(`รับดาเมจ +${Math.round((s.takenMult - 1) * 100)}% · ตีเบาลง ${Math.round((1 - s.dealtMult) * 100)}% · ${number(s.duration)} วิ`);
   if (s.damageBuff) parts.push(`ดาเมจ +${Math.round(s.damageBuff * 100)}% · เร็ว +${Math.round(s.speedBuff * 100)}% · ${number(s.duration)} วิ`);
+  if (s.charge) parts.push(`กดค้าง ${s.charge.duration} วิ · ดาเมจ ${Math.round(s.damage)}–${Math.round(s.damage * s.charge.maxDamageMult)}`);
   if (s.projectiles > 1) parts.push(`${s.projectiles} ลูก`);
   if (s.pierce) parts.push(`ทะลุ ${s.pierce}`);
   if (s.chain) parts.push(`เด้ง ${s.chain}`);

@@ -165,10 +165,15 @@ jobs:
           path: dist/
       - name: Verify downloaded build source
         run: test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
+      - id: browser-host
+        name: Identify browser cache platform
+        run: |
+          . /etc/os-release
+          echo "host=$ID-$VERSION_ID-${{ runner.arch }}" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ steps.browser-host.outputs.host }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run complete selected shard with timings
         run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}

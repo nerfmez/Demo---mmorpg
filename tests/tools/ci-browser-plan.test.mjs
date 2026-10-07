@@ -66,6 +66,8 @@ test('runner records exact checkout and timings, attempts all shard scripts, and
   assert.equal(run({ CI_SOURCE_SHA: 'wrong-head' }).status, 1);
   assert.equal(run({ SKIP_CAPTURES: '1' }).status, 1);
   assert.equal(run({ QUICK: '1' }).status, 1);
+  assert.equal(run({ OFFLINE_UI: '1' }).status, 1);
+  assert.equal(run({ UI_DEVICE: 'tablet' }).status, 1);
 });
 
 test('Pages upload depends on successful exact-source quick gate; lab publishing remains separate', () => {

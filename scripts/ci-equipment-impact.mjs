@@ -2,7 +2,7 @@
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 
-export const EQUIPMENT_SUITES = ['boot', 'smoke', 'combat', 'equipment', 'equipment-focus', 'items', 'menu', 'save', 'workspaces', 'wearable', 'hud'];
+export const EQUIPMENT_SUITES = ['boot', 'smoke', 'combat', 'equipment', 'equipment-focus', 'equipment-inactive', 'items', 'menu', 'save', 'workspaces', 'wearable', 'hud'];
 export const EQUIPMENT_PATHS = ['src/core/character.js', 'src/core/crafting.js', 'src/ui/progressionview.js',
   'src/ui/panels.js', 'src/ui/inventory.js', 'src/ui/loadout-workspace.js', 'src/ui/loadout-workspace.css', 'src/ui/art.css'];
 const functions = {

@@ -1,6 +1,6 @@
 // Single inventory: PR affected checks and full regression use the same scripts.
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 
 export const ROUTING_VERSION = 3;
@@ -11,10 +11,7 @@ export const SUITES = {
   combat: ['midhigh-monsters.mjs', 'coastal-attacks.mjs'],
   equipment: ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs'],
   'equipment-focus': ['equipment-focused.mjs'],
-  // PR101 owns this test until merge. Discover it at the tested source without
-  // copying the feature branch; the runner rejects its legacy single-engine form.
-  ...(existsSync(new URL('../tests/browser/equipment-inactive.mjs', import.meta.url))
-    ? { 'equipment-inactive': ['equipment-inactive.mjs'] } : {}),
+  'equipment-inactive': ['equipment-inactive.mjs'],
   weapons: ['weapon-loading.mjs', 'weapon-models.mjs'],
   items: ['shop-potions.mjs', 'potions-moving.mjs'],
   menu: ['menu-hub.mjs'],

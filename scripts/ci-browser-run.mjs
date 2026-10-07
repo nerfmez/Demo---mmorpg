@@ -6,7 +6,8 @@ import { validateEngineOwnership } from './ci-browser-engine.mjs';
 const suite = process.argv[2];
 if (!SUITES[suite]) throw Error(`Unknown browser suite: ${suite}`);
 if (!['chromium', 'webkit'].includes(process.env.BROWSER)) throw Error('Set BROWSER=chromium or webkit');
-if (process.env.QUICK || process.env.SKIP_CAPTURES) throw Error('CI must retain all viewport assertions and captures');
+if (process.env.QUICK || process.env.SKIP_CAPTURES || process.env.OFFLINE_UI || process.env.UI_DEVICE)
+  throw Error('CI must retain all real-game viewport assertions and captures');
 const source = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const sourceDirty = !!execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).trim();
 if (process.env.CI_SOURCE_SHA && source !== process.env.CI_SOURCE_SHA) throw Error('Checkout differs from the planned source SHA');

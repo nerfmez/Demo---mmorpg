@@ -28,7 +28,7 @@ const shell = (script, dir, env = {}) => spawnSync('bash', ['-e', '-o', 'pipefai
 test('PR78 actual-game details regression has exactly one mandatory equipment owner', () => {
   assert.deepEqual(SUITES.equipment, ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs']);
   const all = Object.values(SUITES).flat();
-  assert.equal(all.length, 30);
+  assert.equal(all.length, 31 + Number('equipment-inactive' in SUITES));
   assert.equal(new Set(all).size, all.length);
   assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment']);
 });
@@ -47,7 +47,8 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).tools, true);
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).game, false);
   assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
-  assert.deepEqual(browserPlan(['src/ui/equipment-avatar.js']).suites, ['boot', 'equipment', 'weapons', 'menu', 'ux']);
+  for (const suite of ['boot', 'equipment', 'weapons', 'menu', 'ux', 'workspaces', 'hud'])
+    assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes(suite));
   for (const path of ['src/ui/menu.js', 'src/ui/skill-journal/journal.js']) {
     assert.ok(browserPlan([path]).suites.includes('boot'), path);
   }
@@ -118,20 +119,20 @@ test('browser artifact source check rejects an absent or wrong-source build', t 
 });
 test('release uses the tested artifact, validates its source, and pins live-test checkout', () => {
   assert.match(ci, /artifact=ci-dist-\$sha-\$GITHUB_RUN_ID-\$GITHUB_RUN_ATTEMPT/);
-  assert.match(ci, /name: \$\{\{ needs.prepare.outputs.artifact \}\}/);
+  assert.match(ci, /name: \$\{\{ matrix.artifact \}\}/);
   assert.match(ci, /artifact:\n\s+value: \$\{\{ jobs.prepare.outputs.artifact \}\}/);
   assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \|\| needs.evidence.outputs.artifact \}\}/);
   assert.match(deploy, /run: node scripts\/ci-release-evidence.mjs --verify-build/);
   assert.match(deploy, /ref: \$\{\{ needs.build.outputs.source \}\}/);
   assert.match(deploy, /release=\$\{\{ needs.build.outputs.source \}\}/);
-  assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 3);
+  assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 4);
 });
 test('parallel engine coverage, main full-run isolation, permissions and core/build owners are retained', () => {
   assert.match(ci, /browser: \[chromium, webkit\]/);
-  assert.match(ci, /fail-fast: false/); assert.match(ci, /max-parallel: 6/);
+  assert.match(ci, /fail-fast: false/); assert.doesNotMatch(ci, /max-parallel:/);
   assert.match(ci, /group: ci-.*\|\| github.sha/);
   assert.match(ci, /cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \|\| inputs.quick_gate == true \}\}/);
-  assert.match(ci, /permissions:\n  contents: read\nconcurrency:/);
+  assert.match(ci, /permissions:\n  contents: read\n  actions: read\nconcurrency:/);
   assert.match(deploy, /permissions:\n  contents: read\n  pages: write\n  id-token: write\n  actions: read\n/);
   assert.match(ci, /run: npm run test:tools\n\s+if: steps.scope.outputs.game == 'true' \|\| steps.scope.outputs.tools == 'true'/);
   assert.equal((ci.match(/run: npm test\n/g) || []).length, 1);

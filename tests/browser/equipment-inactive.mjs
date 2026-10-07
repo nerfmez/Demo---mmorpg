@@ -1,20 +1,23 @@
 // Focused real-game review: retained invalid slots, deficits, recovery and touch details.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {freezeScene} from './freeze-scene.mjs';
-const out='tests/browser/out/equipment-inactive'+(process.env.OFFLINE_UI?'-harness':'');mkdirSync(out,{recursive:true});
-const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','4186','--strictPort'],{stdio:'ignore'});
-for(let n=0;;n++){try{if((await fetch('http://127.0.0.1:4186')).ok)break;}catch{}if(n>40)throw Error('local server unavailable');await new Promise(r=>setTimeout(r,150));}
-const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||chromium.executablePath(),args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+if(process.env.BROWSER&&!['chromium','webkit'].includes(process.env.BROWSER))throw Error('BROWSER must be chromium or webkit');
+const out=`tests/browser/out/equipment-inactive-${engine.name()}`+(process.env.OFFLINE_UI?'-harness':'');mkdirSync(out,{recursive:true});
+const port=engine===webkit?4187:4186,base=`http://127.0.0.1:${port}`;
+const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',String(port),'--strictPort'],{stdio:'ignore'});
+for(let n=0;;n++){if(server.exitCode!==null)throw Error('local server exited');try{if((await fetch(base)).ok)break;}catch{}if(n>40)throw Error('local server unavailable');await new Promise(r=>setTimeout(r,150));}
+const browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
 const report=[];
 try{
  for(const [name,width,height,touch] of (process.env.UI_DEVICE==='tablet'?[['ipad',1180,820,true]]:[['desktop',1440,900,false],['ipad',1180,820,true],['phone',844,390,true]])){
   const context=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,reducedMotion:'reduce'}),page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   if(process.env.OFFLINE_UI)await page.route('**/?fresh=*',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="th"><meta name="viewport" content="width=device-width, initial-scale=1"><head>${['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','skill-journal/journal'].map(n=>`<link rel="stylesheet" href="/src/ui/${n}.css">`).join('')}<style>@font-face{font-family:Mitr;src:url('/node_modules/@fontsource/mitr/files/mitr-thai-400-normal.woff2')}</style></head><body><div id="hud"></div><script type="module" src="/tests/browser/workspace-harness.js"></script></body></html>`}));
-  await page.goto('http://127.0.0.1:4186/?fresh=1&quality=low&stream=0',{waitUntil:'domcontentloaded'});
+  await page.goto(`${base}/?fresh=1&quality=low&stream=0`,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__frontier?.game?.time>=.3&&(!document.getElementById('loading')||document.getElementById('loading').classList.contains('done')),null,{timeout:90000});await freezeScene(page);
   const ids=await page.evaluate(async()=>{
    const {equip,gearRequirements}=await import('/src/core/character.js');const f=__frontier,g=f.game,ch=g.ch;
@@ -45,7 +48,7 @@ try{
   assert.match(await page.locator('.atelier-notice').innerText(),/คืนแต้มสเตตัสให้จัดใหม่ฟรี/);
   assert.match(await page.locator('.atelier-notice').innerText(),/สถานะไม่ได้ใช้/);
   await page.screenshot({path:`${out}/${name}-cap-reset.png`});
-  assert.deepEqual(errors,[]);report.push({name,width,height,retainedAndRecovered:true,pageErrors:errors});await context.close();console.log('PASS equipment inactive',name);
+  assert.deepEqual(errors,[]);report.push({browser:engine.name(),name,width,height,retainedAndRecovered:true,pageErrors:errors});await context.close();console.log('PASS equipment inactive',engine.name(),name);
  }
  writeFileSync(`${out}/report.json`,JSON.stringify(report,null,2));
 }finally{await browser.close();server.kill();}

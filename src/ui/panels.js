@@ -1,5 +1,6 @@
 import { gradeBadge, optionList, wearRequirements, stateText } from './progressionview.js';
-import { craftView } from './craftview.js';
+import { workshopView } from './workshop-view.js';
+import { createWorkshopController } from './workshop-controller.js';
 // Menu panels: Character, Skills (slots + mods), Job Tree, Bag (equipment), Workbench,
 // Journal (quests + progress), World Map (fast travel) and Settings (graphics + save).
 // The game is paused while a panel is open (single-player demo).
@@ -71,6 +72,7 @@ export class Panels {
     root.appendChild(this.overlay);
     this.tabsEl = this.overlay.querySelector('.tabs');
     this.body = this.overlay.querySelector('.pbody');
+    this.workshop = createWorkshopController(this);
     this.loadout = createLoadoutWorkspace(this, {
       getAvatarContext,
       inventoryDetails: (category, id) => {
@@ -185,6 +187,8 @@ export class Panels {
   }
 
   open(tab) {
+    this.workshop.close();
+    this.overlay.classList.toggle('is-workshop', tab === 'craft' || tab === 'forge');
     if (!this.isOpen) {
       const active = document.activeElement;
       this.returnFocus = active?.matches(':focus-visible')
@@ -213,6 +217,8 @@ export class Panels {
   }
 
   close() {
+    this.workshop.close();
+    this.overlay.classList.remove('is-workshop');
     this.loadout.close();
     this.cleanJobNetwork?.();
     this.cleanJobNetwork = null;
@@ -395,7 +401,11 @@ export class Panels {
 
   // ---------- Workbench ----------
   render_craft() {
-    return craftView(this, { costHtml, effectText, filters:CRAFT_FILTERS });
+    return workshopView(this, { costHtml, effectText, filters:CRAFT_FILTERS });
+  }
+
+  render_forge() {
+    return workshopView(this, { costHtml, effectText, filters:CRAFT_FILTERS });
   }
 
   // ---------- Journal ----------
@@ -483,6 +493,7 @@ export class Panels {
     const data = g.data;
     const act = t.dataset.act;
     if (act.startsWith('quest-') && handleQuestJournalAction(this, t)) return;
+    if (this.workshop.handle(t)) return;
     let r;
     switch (act) {
       case 'choose-skill':

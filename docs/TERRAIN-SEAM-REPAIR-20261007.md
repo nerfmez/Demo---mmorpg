@@ -73,6 +73,13 @@ Evidence is saved under `/workspace/render-bug-evidence/`: `seam-before-close/`,
 `seam-focused-tests.log`, `seam-domain-final.log`, `seam-baseline-regression.log`
 and `seam-build-after.log`.
 
+After rebasing onto current main `24ff2b4`, the build and five-view browser
+regressions were repeated. Both engines passed all 60 coverage/ownership samples
+at every view, with no errors, lost context or retained render target. These final
+reports and stills are in `seam-final-chromium/` and `seam-final-webkit/` and were
+captured from `e6eb266aa2bf8d5c6d7146075f7c6037c834c28f`. The only subsequent
+source commit records this evidence; it changes no executable code.
+
 ## Visual review record and remaining issues
 
 The actual 1180x820 medium-quality stills were inspected separately from tests:
@@ -82,6 +89,15 @@ The actual 1180x820 medium-quality stills were inspected separately from tests:
 | Chromium northern hole | `558f1e51a0acf87177d61422e0493e1639686b37043937f7517a9ba3af574371` | `e06cb3a7296fc3f799c64dacaba537fb726ef9c9462c9bb78f70d4ff6d77bcd6` |
 | Chromium skirt face | `7f4d45f3042fa39150482602333b5cb63254db26cfab4f2bab5afed003c2a51b` | `4624a7d658dc3834486668e2874eda82746dcb02c6c6f8fdf005699987558234` |
 | WebKit skirt face | `dee2852d38b31f955afaf0e1a6dce1de97477b75befe37b0712e0202a8c34247` | `72fe89b43e0472cee4d1d8ec702c7b486a70e8a7e50fe9ff822ee2a7cca8638b` |
+
+The final current-main stills were also inspected at their actual pixels:
+
+| Final view | PNG SHA-256 |
+| --- | --- |
+| Chromium northern hole | `84b12af75c9228aa1460dc1f478453c5287fce3021035e8e4e3fac9feb6bd23b` |
+| Chromium skirt face | `22c72484f9ddd531bf43c177ae25d0d86bd921df75ef2619cc6a29e3083b8bbc` |
+| WebKit northern hole | `022fcc987a775832be8959fe3cacd4a836c26cda963851a3899ea3b70ec44c10` |
+| WebKit skirt face | `9db04c5d6007fb4408638d45420d6ca8ca72fbea056542a57f4175f11d038822` |
 
 Criteria: actual ground must cover the cyan void; adjoining skirts must meet;
 trees must retain their density and stand on rendered terrain; the accepted

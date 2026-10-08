@@ -6,6 +6,7 @@ export function planJobRoute(ch,data,target,{groupId,tier}={}) {
   const tree=data.jobtree,node=tree.nodes[target];
   const result={target,nodes:[],cost:0,can:false,missing:[],requiresAllFork:false};
   if(!node)return {...result,reason:'unknown'};
+  if(node.retired)return {...result,reason:'retired'};
   if(ch.jobNodes.includes(target))return {...result,taken:true,reason:'taken'};
   const nodeTier=tree.sections[node.section]?.tier;
   const stage=tree.presentation?.stages.find(s=>s.id===nodeTier);
@@ -17,10 +18,11 @@ export function planJobRoute(ch,data,target,{groupId,tier}={}) {
   result.groupId=group.id;result.tier=nodeTier;
   const included=new Set(group.nodes),seen=new Set(),visiting=new Set();let invalid=null;
   function visit(id) {
-    if(ch.jobNodes.includes(id)||seen.has(id))return;
+    if(seen.has(id))return;
     const current=tree.nodes[id];
     if(!current){invalid='unknown';return;}
     if(!included.has(id)||tree.sections[current.section]?.tier!==nodeTier){result.missing.push(id);return;}
+    if(ch.jobNodes.includes(id))return;
     if(visiting.has(id)){invalid='invalid_graph';return;}
     if(!Array.isArray(current.links)||current.requires!==undefined&&!Array.isArray(current.requires)){invalid='invalid_graph';return;}
     visiting.add(id);
@@ -32,7 +34,7 @@ export function planJobRoute(ch,data,target,{groupId,tier}={}) {
       if(current.requires.filter(k=>!ch.jobNodes.includes(k)&&included.has(k)).length>1)result.requiresAllFork=true;
       for(const parent of current.requires)visit(parent);
       // A meeting point needs one parent: route through the cheapest one on this page.
-      const any=cheapestParent(ch,data,id,k=>included.has(k)&&tree.sections[tree.nodes[k]?.section]?.tier===nodeTier)??cheapestParent(ch,data,id);
+      const any=cheapestParent(ch,data,id,k=>included.has(k)&&tree.sections[tree.nodes[k]?.section]?.tier===nodeTier);
       if(any)visit(any);
     }
     visiting.delete(id);seen.add(id);result.nodes.push(id);
@@ -42,8 +44,6 @@ export function planJobRoute(ch,data,target,{groupId,tier}={}) {
   // derive their actual total by running the existing allocator on a scratch copy.
   result.cost=result.nodes.length;
   if(invalid)return {...result,reason:invalid};
-  const initial=jobNodeState(ch,data,target);
-  if(initial.reason==='tier_points')return {...result,...initial,can:false,failedNode:target};
   if(result.missing.length)return {...result,reason:'outside_group'};
   const trial={...ch,jobNodes:[...ch.jobNodes],jobPoints:Number.MAX_SAFE_INTEGER};
   for(const id of result.nodes){const state=allocateJobNode(trial,data,id);if(!state.done)return {...result,...state,can:false,failedNode:id};}

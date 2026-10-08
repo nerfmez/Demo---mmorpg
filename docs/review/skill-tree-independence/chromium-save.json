@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "url": "http://localhost:4195/?quality=low&seed=7",
+  "source": "actual full main game, atomic route upgrade",
+  "version": 12,
+  "bridgeMigrationOnce": true,
+  "purchase": [
+    "lesson.prepare",
+    "lesson.strike",
+    "lesson.rhythm"
+  ],
+  "persistedOnce": true,
+  "jobPoints": 13,
+  "legacyNodesPreserved": true,
+  "gearModsMaterialsStatsSkillsAppearanceGoldPreserved": true,
+  "reloadContinue": true,
+  "cancelAndConfirmedRespec": true,
+  "worldDrawingHeldAndResumed": true,
+  "prefs": {
+    "muted": true,
+    "volume": 0.23,
+    "noAutoplay": true
+  },
+  "pageErrors": []
+}

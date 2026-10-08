@@ -49,12 +49,12 @@ test('journal starts at real shared links and indexes every current node without
  }
  assert.equal(JSON.stringify({ch,tree:data.jobtree}),before);
 });
-test('journal chapter labels reflect current section minima, not new eligibility rules',()=>{
+test('all journal chapters are open while retained legacy eligibility remains compatible',()=>{
  const ch=createCharacter(data);ch.jobLevel=18;ch.jobPoints=17;
- assert.deepEqual(journalProgress(ch,data).stages.map(s=>s.requiresSpent),[0,3,7,17,25]);
- assert.equal(journalProgress(ch,data).current.tier,1);
+ assert.deepEqual(journalProgress(ch,data).stages.map(s=>s.requiresSpent),[0,0,0,0,0]);
+ assert.equal(journalProgress(ch,data).current.tier,5);
  for(const id of ['v1','a1','r1'])assert.ok(allocateJobNode(ch,data,id).done);
- assert.equal(journalProgress(ch,data).current.tier,2);
+ assert.equal(journalProgress(ch,data).current.tier,5);
  // Existing tier-I section gates remain independent from a chapter's minimum.
  const gated=Object.entries(data.jobtree.nodes).find(([,n])=>data.jobtree.sections[n.section].tier===1&&data.jobtree.sections[n.section].requiresSpent===3);
  const fresh=createCharacter(data);fresh.jobPoints=17;fresh.jobLevel=18;

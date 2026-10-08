@@ -23,13 +23,12 @@ try{for(const [label,width,height,touch,reduced] of cases){
  assert.equal((await snapshot()).audio.contextState,'not-created');assert.equal((await snapshot()).audio.plays,0);assert.equal(await page.locator('.journal-toast').evaluate(el=>getComputedStyle(el).opacity),'0','journal toast never inherits the live HUD toast animation');
  assert.equal(await page.locator('#plane > [data-node]').count(),6);assert.equal(await page.locator('.seeker-constellation').count(),0);
  await page.waitForFunction(()=>[...document.querySelectorAll('#plane > button')].every(n=>+getComputedStyle(n).opacity>.99));await page.screenshot({path:out+label+'-start.png'});
- const points=(await snapshot()).points;await stage(2);assert.equal((await snapshot()).tier,2);assert.equal((await snapshot()).points,points);assert.ok(await page.locator('[data-discipline]').count()>=4);assert.equal(await page.locator('[data-discipline="impact"],[data-discipline="support"]').count(),2,'reviewed paths lead the first page; build lines follow');assert.ok(await page.locator('.stage-gated').count());
+ const points=(await snapshot()).points;await stage(2);assert.equal((await snapshot()).tier,2);assert.equal((await snapshot()).points,points);assert.ok(await page.locator('[data-discipline]').count()>=4);assert.equal(await page.locator('[data-discipline="impact"],[data-discipline="support"]').count(),2,'reviewed paths lead the first page; build lines follow');assert.equal(await page.locator('.stage-gated').count(),0);
  if(reduced)assert.equal(await page.locator('.paper-turn-layer').count(),0);else{assert.equal((await snapshot()).pageTurn.direction,1);assert.ok(await page.locator('.paper-turn-layer').count()<=1);}
  let signal=0;for(let i=0;i<12;i++){signal=Math.max(signal,(await snapshot()).audio.peak);await page.waitForTimeout(25);}
  const audioAvailable=await page.evaluate(()=>Boolean(window.AudioContext||window.webkitAudioContext));if(audioAvailable)assert.ok(signal>.002,'audio after gesture');
- await tap('[data-discipline="impact"]');assert.equal((await snapshot()).view,'path');assert.equal(await page.locator('#plane > [data-node]').count(),7);
- await journalJump(page,'path.impact');assert.ok(await page.locator('[data-action="learn"]').isDisabled());
- const rejected=await snapshot();await page.evaluate(()=>__frontier.panels.jobJournal.learn('path.impact'));assert.equal((await snapshot()).points,rejected.points);assert.deepEqual((await snapshot()).routes.events,rejected.routes.events,'rejected allocations draw no routes');
+ await tap('[data-discipline="impact"]');assert.equal((await snapshot()).view,'path');assert.equal(await page.locator('#plane > [data-node]').count(),6);
+ await journalJump(page,'path.impact');assert.ok(await page.locator('[data-action="learn"]').isEnabled());assert.equal((await snapshot()).preview.cost,1);
  await tap('[data-action="close-detail"]');await tap('[data-action="junction"]');assert.equal((await snapshot()).view,'junction');
  await stage(1);assert.equal((await snapshot()).pageTurn.direction,-1);
  await tap('#sound-control summary');await tap('#sound-mute');assert.equal((await snapshot()).audio.muted,true);const plays=(await snapshot()).audio.plays;
@@ -39,13 +38,13 @@ try{for(const [label,width,height,touch,reduced] of cases){
  await page.waitForFunction(()=>__frontier.panels.jobJournal.snapshot().pageTurn.layers===0,null,{timeout:5000});await page.waitForTimeout(550);assert.equal((await snapshot()).audio.activeVoice,false);
  await stage(1);await journalJump(page,'lesson.rhythm');assert.ok(await page.locator('[data-action="learn"]').isEnabled(),'directed prerequisite route is explicitly priced');assert.equal((await snapshot()).preview.cost,3);assert.equal((await snapshot()).points,points,'inspection never allocates');
  for(const id of ['lesson.prepare','lesson.strike','lesson.rhythm']){await journalJump(page,id);await tap('[data-action="learn"]');}
- assert.equal((await snapshot()).points,points-3);assert.equal((await snapshot()).progress.current.tier,2);
+ assert.equal((await snapshot()).points,points-3);assert.equal((await snapshot()).progress.current.tier,5);
  const successful=await snapshot();assert.equal(successful.routes.events.length,3);await page.evaluate(()=>__frontier.panels.jobJournal.learn('lesson.rhythm'));assert.equal((await snapshot()).points,points-3);assert.equal((await snapshot()).routes.events.length,3,'duplicate purchase draws no route');
  await tap('[data-action="close-detail"]');await stage(2);await tap('[data-discipline="impact"]');await page.waitForFunction(()=>!document.querySelector('.paper-turn-layer')&&[...document.querySelectorAll('#plane > [data-node]')].every(n=>+getComputedStyle(n).opacity>.99));await page.waitForFunction(()=>+getComputedStyle(document.querySelector('#toast')).opacity===0);
  // The camera owns canvas movement. Native focus/scroll-into-view must not
  // scroll its clipped ancestors and leave a fitted map outside the screen.
  await page.waitForFunction(()=>!__frontier.panels.jobJournal.snapshot().camera.active);
- for(const id of ['lesson.rhythm','path.horizon'])await page.locator(`#plane > [data-node="${id}"]`).evaluate(el=>el.scrollIntoView({block:'center',inline:'center'}));
+ for(const id of ['path.impact','path.horizon'])await page.locator(`#plane > [data-node="${id}"]`).evaluate(el=>el.scrollIntoView({block:'center',inline:'center'}));
  const canvasScroll=await page.locator('.app-shell,.atlas-space,#map').evaluateAll(es=>es.map(el=>({id:el.id||el.className,left:el.scrollLeft,top:el.scrollTop})));
  assert.ok(canvasScroll.every(el=>el.left===0&&el.top===0),'native scrolling cannot offset the journal camera: '+JSON.stringify(canvasScroll));
  await page.screenshot({path:out+label+'-six-subnodes.png'});
@@ -53,10 +52,9 @@ try{for(const [label,width,height,touch,reduced] of cases){
  const captionOverlap=await page.locator('#plane > [data-node]').evaluateAll(es=>{const boxes=es.map(el=>{const range=document.createRange();range.selectNodeContents(el.querySelector('.node-caption b'));return range.getBoundingClientRect();});return boxes.some((a,i)=>boxes.some((b,j)=>j>i&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top));});assert.equal(captionOverlap,false,'node names remain separate at fit zoom');
  await tap('[data-action="junction"]');await stage(3);assert.ok(await page.locator('[data-discipline]').count()>=3);
  for(const id of ['lesson.care','lesson.shelter','path.impact','path.burst','path.support']){await journalJump(page,id);await tap('[data-action="learn"]');}
- await journalJump(page,'advanced.flow');assert.ok(await page.locator('[data-action="learn"]').isDisabled(),'one missing named parent still blocks mixed entrance');
- const eventsBefore=(await snapshot()).routes.events.length;await page.evaluate(()=>__frontier.panels.jobJournal.learn('advanced.flow'));assert.equal((await snapshot()).routes.events.length,eventsBefore);
- await journalJump(page,'path.step');await tap('[data-action="learn"]');await journalJump(page,'advanced.flow');await tap('[data-action="learn"]');
- const mixed=await snapshot();assert.deepEqual(mixed.routes.events.slice(-2).map(e=>e.source).sort(),['path.burst','path.step']);assert.equal(mixed.points,points-10,'mixed entrance costs ten including both prerequisites');
+ await journalJump(page,'advanced.flow');assert.ok(await page.locator('[data-action="learn"]').isEnabled(),'mixed group begins independently');
+ const eventsBefore=(await snapshot()).routes.events.length;await tap('[data-action="learn"]');
+ const mixed=await snapshot();assert.equal(mixed.routes.events.length,eventsBefore,'independent roots draw no external acquisition edges');assert.equal(mixed.points,points-9);
  await stage(2);assert.equal((await snapshot()).routes.active,0,'navigation interrupts route animation cleanly');await stage(1);
 
  await tap('[data-action="respec"]');const ownedBeforeCancel=(await snapshot()).owned;await tap('[data-action="cancel-respec"]');assert.deepEqual((await snapshot()).owned,ownedBeforeCancel);

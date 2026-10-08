@@ -5,12 +5,12 @@ import {CHARACTER_VERSION,createCharacter,migrateCharacter,derive} from '../../s
 import {computeSkill} from '../../src/core/skills.js';
 import {gearUpgradePreview} from '../../src/core/crafting.js';
 
-test('v2 migration refunds network points once, retains ownership and roll quality',()=>{
+test('v2 migration preserves surviving network ownership and roll quality',()=>{
  const ch=createCharacter(data);ch.version=2;delete ch.treeRevision;ch.jobLevel=12;ch.jobNodes=['origin','v1','v2','vj','v4'];ch.jobPoints=7;ch.skills.slash=5;
  ch.gear.push({uid:99,base:'tusk_blade',grade:'A',upgrade:4,options:[{id:'attack_flat',value:6}]});
  const before={gold:ch.gold,materials:structuredClone(ch.materials),equipped:structuredClone(ch.equipped),skills:structuredClone(ch.skills),stats:structuredClone(ch.stats),nextUid:ch.nextUid};
  const def=data.items.gearOptions.attack_flat;
- migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.jobPoints,11);assert.deepEqual(ch.jobNodes,['origin']);
+ migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.equal(ch.jobPoints,7);assert.deepEqual(ch.jobNodes,['origin','v1','v2','vj','v4']);
  assert.deepEqual({gold:ch.gold,materials:ch.materials,equipped:ch.equipped,skills:ch.skills,stats:ch.stats,nextUid:ch.nextUid},before);
  const item=ch.gear.find(g=>g.uid===99);assert.equal(item.upgrade,4);assert.equal(item.grade,'A');assert.equal(item.options[0].value,def.max);assert.ok(ch.progress.balanceMigration);
  const once=JSON.stringify(ch);migrateCharacter(ch,data);assert.equal(JSON.stringify(ch),once);

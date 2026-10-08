@@ -170,11 +170,13 @@ export function migrateCharacter(ch, data) {
     ch.progress.gearMigration = 'เกรดอุปกรณ์ใหม่ C/B/A/S มี 2/3/4/5 ออฟชั่น เติมช่องที่ขาดแล้ว · ตีบวกได้ตามวัตถุดิบ';
   }
   if (ch.treeRevision !== data.jobtree.revision) {
-    const spent = new Set((ch.jobNodes || []).filter(id => id !== data.jobtree.origin)).size;
-    ch.jobPoints = (ch.jobPoints || 0) + spent;
-    ch.jobNodes = [data.jobtree.origin];
+    const owned = [...new Set(ch.jobNodes || [])];
+    const retained = owned.filter(id => data.jobtree.nodes[id] && !data.jobtree.nodes[id].retired);
+    const refunded = owned.filter(id => id !== data.jobtree.origin && !retained.includes(id)).length;
+    ch.jobPoints = (ch.jobPoints || 0) + refunded;
+    ch.jobNodes = retained.includes(data.jobtree.origin) ? retained : [data.jobtree.origin, ...retained];
     ch.treeRevision = data.jobtree.revision;
-    ch.progress.balanceMigration = 'ปรับสมดุลใหม่: คืนแต้มต้นไม้ทั้งหมดฟรี เลือกเส้นทางและอาชีพใหม่ได้ อุปกรณ์ สกิล ม็อด และวัตถุดิบยังอยู่ครบ';
+    ch.progress.balanceMigration = `แยกกลุ่มอิสระ: เก็บโหนดเดิม คืนแต้มสะพานหรือโหนดที่ยกเลิก ${refunded} แต้ม`;
   }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
   if ((ch.version || 1) < 6 || !ch.arrows) {
@@ -272,15 +274,16 @@ export function meetsRequires(ch, requires = {}) {
 export function jobTierProgress(ch, data, nodeId) {
   const tree = data.jobtree, node = tree.nodes[nodeId];
   const section = tree.sections?.[node?.section];
-  const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin);
+  const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin && (!node?.allocationGroup || tree.nodes[id].allocationGroup === node.allocationGroup));
   const spent = new Set(ch.jobNodes.filter(id => scope.includes(id))).size;
-  return { tier: section?.tier || 0, requires: section?.requiresSpent || 0, spent, scope, section: node?.section };
+  return { tier: section?.tier || 0, requires: node?.allocationGroup ? (node.localInvestment || 0) : (section?.requiresSpent || 0), spent, scope, section: node?.section };
 }
 
 export function jobNodeState(ch, data, nodeId) {
   const tree = data.jobtree;
   const node = tree.nodes[nodeId];
   if (!node) return { can: false, reason: 'unknown' };
+  if (node.retired) return { can: false, reason: 'retired' };
   if (ch.jobNodes.includes(nodeId)) return { can: false, taken: true, reason: 'taken' };
 
   if (node.requiresJob && currentJob(ch, data)?.branch !== node.requiresJob)
@@ -293,21 +296,23 @@ export function jobNodeState(ch, data, nodeId) {
     if (other) return { can: false, reason: 'one_job', other };
   }
 
+  if (node.allocationGroup && jobParents(node).some(id => tree.nodes[id]?.allocationGroup !== node.allocationGroup))
+    return { can: false, reason: 'outside_group' };
   const tier = jobTierProgress(ch, data, nodeId);
   if (tier.tier && tier.spent < tier.requires)
     return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
 
-  // Directed reviewed skills require ALL named parents. Legacy adjacency rules
+  // Directed skills require ALL named local parents. Legacy adjacency rules
   // remain intact for existing content and retained saves.
   if (node.requires) {
     const missing = node.requires.filter(id => !ch.jobNodes.includes(id));
     if (missing.length) return { can: false, reason: 'prerequisite', missing };
   }
-  // Where paths meet (a fork rejoining, a bridge between lines) ANY ONE named parent is enough.
+  // Where local paths meet, ANY ONE named parent is enough.
   if (node.requiresAny?.length && !node.requiresAny.some(id => ch.jobNodes.includes(id)))
     return { can: false, reason: 'prerequisite', missing: [...node.requiresAny], any: true };
-  // Section unlock and network adjacency are independent requirements.
-  if (!node.links.some((l) => ch.jobNodes.includes(l)))
+  // Only legacy nodes use undirected adjacency; directed roots are independent.
+  if (!Array.isArray(node.requires) && !node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
 
   if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
@@ -350,7 +355,7 @@ export function cheapestParent(ch, data, id, allowed = null) {
   return best ?? (allowed ? null : any[0]);
 }
 
-/** Shortest connected route for inspection. Section gates still require total investment;
+/** Shortest connected route for inspection. Active prerequisites stay within their group;
  * this helper never invents unrelated filler purchases or mutates the character. */
 export function jobPath(ch, data, target) {
   const nodes = data.jobtree.nodes;

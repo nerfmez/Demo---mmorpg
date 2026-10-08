@@ -1,0 +1,71 @@
+[
+  {
+    "label": "desktop",
+    "width": 1440,
+    "height": 900,
+    "engine": "chromium",
+    "source": "real Game+Panels",
+    "ok": true,
+    "gateways": [
+      "power",
+      "guard",
+      "flow",
+      "view.physical.3",
+      "view.damage.3",
+      "view.crit.3",
+      "view.element.3",
+      "view.mana.3",
+      "view.speed.3",
+      "view.guardian.3",
+      "view.agility.3",
+      "view.treasure.3"
+    ],
+    "pageErrors": []
+  },
+  {
+    "label": "ipad",
+    "width": 1180,
+    "height": 820,
+    "engine": "chromium",
+    "source": "real Game+Panels",
+    "ok": true,
+    "gateways": [
+      "power",
+      "guard",
+      "flow",
+      "view.physical.3",
+      "view.damage.3",
+      "view.crit.3",
+      "view.element.3",
+      "view.mana.3",
+      "view.speed.3",
+      "view.guardian.3",
+      "view.agility.3",
+      "view.treasure.3"
+    ],
+    "pageErrors": []
+  },
+  {
+    "label": "phone",
+    "width": 390,
+    "height": 844,
+    "engine": "chromium",
+    "source": "real Game+Panels",
+    "ok": true,
+    "gateways": [
+      "power",
+      "guard",
+      "flow",
+      "view.physical.3",
+      "view.damage.3",
+      "view.crit.3",
+      "view.element.3",
+      "view.mana.3",
+      "view.speed.3",
+      "view.guardian.3",
+      "view.agility.3",
+      "view.treasure.3"
+    ],
+    "pageErrors": []
+  }
+]

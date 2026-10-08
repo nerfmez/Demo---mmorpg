@@ -34,13 +34,17 @@ test('every material is used by something (drops are never NPC junk only)', () =
   for (const id of matIds) assert.ok(used.has(id), `${id} has no use`);
 });
 
-test('job tree links are symmetric and reachable from the origin', () => {
-  const nodes = data.jobtree.nodes;
-  for (const [id, n] of Object.entries(nodes)) for (const l of n.links) assert.ok(nodes[l].links.includes(id), `${id} <-> ${l}`);
-  const seen = new Set([data.jobtree.origin]);
-  const queue = [data.jobtree.origin];
-  while (queue.length) for (const l of nodes[queue.shift()].links) if (!seen.has(l)) seen.add(l) && queue.push(l);
-  assert.equal(seen.size, Object.keys(nodes).length);
+test('active job groups have symmetric local links and are reachable from their own roots', () => {
+ const nodes=data.jobtree.nodes;
+ const groups=new Set(Object.values(nodes).map(n=>n.allocationGroup).filter(Boolean));
+ for(const group of groups){
+  const ids=Object.keys(nodes).filter(id=>nodes[id].allocationGroup===group);
+  const roots=ids.filter(id=>!nodes[id].requires?.length&&!nodes[id].requiresAny?.length);
+  assert.ok(roots.length,group);const seen=new Set(roots),queue=[...roots];
+  while(queue.length)for(const next of nodes[queue.shift()].links){assert.ok(ids.includes(next));if(!seen.has(next)){seen.add(next);queue.push(next);}}
+  assert.equal(seen.size,ids.length,group);
+  for(const id of ids)for(const next of nodes[id].links)assert.ok(nodes[next].links.includes(id));
+ }
 });
 
 test('start kits contain only their weapon normal attack and no movement grants', () => {

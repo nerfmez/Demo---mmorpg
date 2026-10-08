@@ -42,6 +42,7 @@ try {
     assert.equal(created.name, 'CI Boot'); assert.equal(created.weapon, 'bow'); assert.equal(created.hair, 'ponytail'); assert.ok(created.saved); assert.ok(created.frame > 0, 'world really renders');
     await page.evaluate(() => { __frontier.game.ch.gold = 777; __frontier.save(); });
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('frontier.slot.1')).character);
+    await page.waitForFunction(() => __frontier.weaponModelsReady());
     await page.reload();
     await enterFullscreenGate(page);
     await activate('[data-act="continue"]');
@@ -54,6 +55,7 @@ try {
     assert.equal(await page.evaluate(() => __frontier.panels.isOpen), false);
     await page.screenshot({ path: `tests/browser/out/boot/${engine.name()}-${device}.png` });
     assert.deepEqual(errors, []);
+    await page.waitForFunction(() => __frontier.weaponModelsReady());
     console.log(`PASS boot/create/save/Continue ${engine.name()} ${device}`);
     await context.close();
   }

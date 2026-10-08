@@ -8,7 +8,7 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 9;
+export const CHARACTER_VERSION = 10;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -132,11 +132,12 @@ export function migrateCharacter(ch, data) {
   for (const k of ['kills', 'collected', 'quests', 'bossKills', 'maps']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
-  if (!ch.opening) ch.opening = { stage: 'done' }; // v9: saves made before the opening already hold their kit
+  const legacyOpening = !ch.opening;
+  if (legacyOpening) ch.opening = { stage: 'done' }; // v10: includes the independent movement-mod v9 saves
   const pending = ch.opening.stage !== 'done';
   if (!ch.kit && !pending) ch.kit = 'sword';
   ch.skills = ch.skills || (pending ? {} : { ...data.progression.start.skills });
-  if (!pending && !ch.skills.hunter_shot) ch.skills.hunter_shot = 1;
+  if (legacyOpening && !ch.skills.hunter_shot) ch.skills.hunter_shot = 1;
   // drop references to things that no longer exist
   ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });

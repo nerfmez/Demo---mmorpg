@@ -75,11 +75,14 @@ test('Firebolt and Ward are taught by the first shore quests and can be crafted'
   for (let i = 0; i < 3; i++) g.notify({ type: 'kill', target: 'salt_slime' }); // never pays a second time
   assert.equal(g.ch.slots.filter((s) => s.skill === 'firebolt').length, 1);
 
-  // every skill the player lacks has a workbench recipe, movement skills included
+  // The released catalogue has recipes. Keep this explicit: PR102 prototypes
+  // remain sandbox-only and adding a definition must not demand a normal unlock.
   const c = createCharacter(data, { opening: true });
   completeOpening(c, data, { kit: 'sword', skill: 'war_cry', movement: 'dash' });
   const recipes = Object.values(data.recipes.recipes);
-  for (const id of Object.keys(data.skills.combat)) assert.ok(recipes.some((r) => r.type === 'skill' && r.result === id), `a recipe teaches ${id}`);
+  const released = ['slash', 'hunter_shot', 'arcane_bolt', 'whirl_blade', 'firebolt', 'chain_spark', 'stone_burst', 'frost_nova', 'venom_mire', 'hex', 'ward', 'war_cry', 'healing_spring', 'spirit_wolf'];
+  assert.deepEqual(recipes.filter(r => r.type === 'skill').map(r => r.result).sort(), [...released].sort(), 'only released skills have normal recipes');
+  for (const id of released) assert.ok(recipes.some((r) => r.type === 'skill' && r.result === id), `a recipe teaches ${id}`);
   for (const id of Object.keys(data.skills.movement)) assert.ok(recipes.some((r) => r.type === 'movement' && r.result === id), `a recipe teaches ${id}`);
   c.gold = 500; c.materials = { glow_dust: 5, beetle_shell: 5, boar_hide: 5 };
   assert.equal(recipeBlocker(c, data, 'learn_firebolt'), null);
@@ -90,7 +93,7 @@ test('Firebolt and Ward are taught by the first shore quests and can be crafted'
   assert.deepEqual(c.movementSkills, ['dash', 'roll']);
 });
 
-test('v9 migration: older saves keep every skill and are not sent back to the wreck', () => {
+test('v10 migration: older saves keep every skill and are not sent back to the wreck', () => {
   const old = createCharacter(data); // legacy full kit
   old.version = 8; delete old.opening;
   const before = JSON.stringify({ skills: old.skills, slots: old.slots, mv: old.movementSkills, kit: old.kit });
@@ -105,6 +108,41 @@ test('v9 migration: older saves keep every skill and are not sent back to the wr
   assert.equal(m2.kit, null);
   assert.deepEqual(m2.skills, {});
   assert.equal(m2.movement, null);
+});
+
+test('completed opening saves preserve the chosen kit without granting Hunter Shot on reload', () => {
+  for (const kit of O.weapons) {
+    const ch = createCharacter(data, { opening: true });
+    completeOpening(ch, data, { kit, skill: 'frost_nova', movement: 'roll' });
+    ch.skills.frost_nova = 3;
+    ch.gold = 777;
+    const migrated = migrateCharacter(structuredClone(ch), data);
+    assert.deepEqual(migrated.skills, ch.skills);
+    assert.deepEqual(migrated.slots, ch.slots);
+    assert.deepEqual(migrated.gear, ch.gear);
+    assert.deepEqual(migrated.equipped, ch.equipped);
+    assert.equal(migrated.gold, 777);
+    assert.equal(migrated.movement, 'roll');
+  }
+});
+
+test('independent v9 movement-mod saves and interrupted opening stages migrate additively', () => {
+  const old = createCharacter(data);
+  old.version = 9; delete old.opening;
+  old.movementMods = [501, 502];
+  const m = migrateCharacter(structuredClone(old), data);
+  assert.equal(m.version, 10);
+  assert.equal(m.opening.stage, 'done');
+  assert.deepEqual(m.movementMods, old.movementMods, 'opening migration does not own movement sockets');
+  for (const stage of ['wake', 'weapon', 'skills']) {
+    const pending = createCharacter(data, { opening: true });
+    pending.version = 9;
+    pending.opening = { stage, kit: 'staff', skill: 'frost_nova', movement: 'roll' };
+    const resumed = migrateCharacter(structuredClone(pending), data);
+    assert.deepEqual(resumed.opening, pending.opening);
+    assert.deepEqual(resumed.skills, {});
+    assert.equal(resumed.equipped.weapon, null);
+  }
 });
 
 test('the staff basic attack fires an arcane projectile without mana, and needs a staff', () => {

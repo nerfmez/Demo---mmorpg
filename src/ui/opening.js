@@ -33,7 +33,10 @@ export class Opening {
     const p = this.game.player;
     // wake facing the wreck
     if (wreck) p.facing = Math.atan2(wreck.at[0] - spawn[0], wreck.at[1] - spawn[1]);
+    const saved = this.game.ch.opening;
+    this.pick = { kit: saved.kit || null, skill: saved.skill || null, movement: saved.movement || null };
     if (stage === 'wake') this.showWake();
+    else if (stage === 'skills' && this.data.progression.start.opening.weapons.includes(this.pick.kit)) this.showSkills();
     else this.showWeapons();
     return true;
   }
@@ -46,7 +49,9 @@ export class Opening {
   }
 
   wake() {
+    if (this.game.ch.opening.stage !== 'wake') return;
     this.game.ch.opening.stage = 'weapon';
+    this.hooks.save();
     this.view.heroDownTarget = 0; // sits up and stands over a second or two
     this.el.classList.add('waking');
     // the weapons are offered once the hero is on their feet (or after a few seconds on a slow device)
@@ -65,6 +70,7 @@ export class Opening {
   showWeapons() {
     const { data } = this, kits = data.progression.start.kits, sk = data.skills.combat;
     this.step = 'weapon';
+    this.remember('weapon');
     this.el.className = 'opening-layer sheet';
     this.el.innerHTML = `<div class="osheet">
       <h2>ซากเรือที่เกยหาด</h2>
@@ -80,6 +86,7 @@ export class Opening {
   showSkills() {
     const { data } = this, sk = data.skills.combat, mv = data.skills.movement, kit = data.progression.start.kits[this.pick.kit];
     this.step = 'skills';
+    this.remember('skills');
     const pool = openingSkillChoices(data, this.pick.kit);
     this.el.className = 'opening-layer sheet';
     this.el.innerHTML = `<div class="osheet">
@@ -100,6 +107,11 @@ export class Opening {
     this.hooks.save();
     this.hooks.refresh?.();
     this.hooks.hud.banner('เริ่มผจญภัย', 'ล่าสไลม์ริมหาดเพื่อรับสกิลลูกไฟ แล้วตามดาวทองบนแผนที่ไปยังเมืองท่า', 'long');
+  }
+
+  remember(stage) {
+    this.game.ch.opening = { stage, ...this.pick };
+    this.hooks.save();
   }
 
   onClick(e) {

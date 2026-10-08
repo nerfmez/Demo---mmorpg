@@ -9,7 +9,7 @@ import { SUITES, FULL_SUITES, browserPlan } from '../../scripts/ci-browser-plan.
 test('full inventory retains every original CI browser check, boot/save and broad UI/HUD ownership', () => {
   const original = ['smoke', 'map-travel', 'open-world', 'open-world-city', 'midhigh-monsters', 'gear-hands', 'weapon-loading', 'weapon-models', 'shop-potions', 'potions-moving', 'details-touch', 'menu-hub', 'coastal-attacks', 'lab', 'ux', 'capture'];
   const scripts = Object.values(SUITES).flat();
-  for (const name of [...original, 'boot', 'journal-route-save', 'details-game-touch', 'journal', 'skill-journal',
+  for (const name of [...original, 'boot', 'opening', 'journal-route-save', 'details-game-touch', 'journal', 'skill-journal',
     'fullscreen-overlays', 'workspaces', 'journal-route-upgrade', 'journal-lines', 'skill-lines', 'wearable-level', 'fieldhud'])
     assert.ok(scripts.includes(`${name}.mjs`), name);
   assert.equal(new Set(scripts).size, scripts.length, 'each check has one shard owner');

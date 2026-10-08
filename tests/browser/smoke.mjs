@@ -73,6 +73,9 @@ async function run(name, contextOpts) {
   });
   check(started.name === 'Aki' && started.weapon === 'bow' && started.hair === 'ponytail', `${name}: character creation applies name, kit and look (${JSON.stringify(started)})`);
   check(started.saved, `${name}: new character is saved to slot 1`);
+  // Opening completion demands the selected lazy weapon. Finish decoding it
+  // before unloading this document; aborting its blob textures is a real loader error.
+  await page.waitForFunction(() => window.__frontier.weaponModelsReady());
   await page.evaluate(() => {
     const g = window.__frontier.game;
     g.ch.gold = 777;
@@ -86,6 +89,7 @@ async function run(name, contextOpts) {
   const cont = await page.evaluate(() => ({ name: window.__frontier.game.ch.name, gold: window.__frontier.game.ch.gold }));
   check(cont.name === 'Aki' && cont.gold === 777, `${name}: continue loads the saved character (${JSON.stringify(cont)})`);
   check(errors.length === 0, `${name}: menu flow has no page errors ${errors.slice(0, 3).join(' | ')}`);
+  await page.waitForFunction(() => window.__frontier.weaponModelsReady());
 
   // ---- a fresh, unsaved game for the rest ----
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=low`);

@@ -182,7 +182,7 @@ function startGame(character, slot) {
   };
 
   session = { game, hud, panels, input, ui, save, slot, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
-  Object.assign(F, { game, hud, panels, input, save });
+  Object.assign(F, { game, hud, panels, input, save, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
   save();
 
   const ch = game.ch;

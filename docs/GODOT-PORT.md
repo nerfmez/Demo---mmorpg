@@ -758,7 +758,7 @@ reason beside the button. Stat/material/gold requirements are unchanged.
 Equipment enhancement/promotion and crafting still use the original workbench
 gate. Port the service anchors and `tests/core/upgrade-services.test.js`.
 
-### The opening: wreck, weapon kit, starter skills (save v9)
+### The opening: wreck, weapon kit, starter skills (save v10)
 
 A new character is `createCharacter(data, { opening: true })`: no weapon, no skills, no movement
 skill, empty slots, `ch.opening = { stage: 'wake' }`, `ch.kit = null`. `core/character.js`
@@ -766,16 +766,20 @@ skill, empty slots, `ch.opening = { stage: 'wake' }`, `ch.kit = null`. `core/cha
 the kit's weapon is equipped, `kits[kit].basic` (slash / hunter_shot / the new `arcane_bolt`) and
 the one starter skill become skills and slots 1–2, and the movement skill becomes the only movement
 skill. `openingSkillChoices(data, kit)` filters `progression.start.opening.skillPool` by weapon
-(a staff is never offered Whirl Blade). Stages: `wake` (unconscious) → `weapon` → `done`.
+(a staff is never offered Whirl Blade). Stages: `wake` (unconscious) → `weapon` → `skills` → `done`.
 Firebolt and Ward are not part of the start: quests `h_slimes` / `h_crabs` carry
 `reward.skills`, which `Game.completeQuests` learns and slots into the first empty slot; the
-workbench has recipes for every skill and movement skill (`learn_*`), so a missing skill can always
+workbench has explicit recipes for every released skill and movement skill (`learn_*`), so a missing released skill can always
 be crafted. `arcane_bolt` is a free staff-only projectile (`element: 'arcane'`, `requiresWeapon:
 ['staff']`). `createCharacter` without `opening` is the legacy full kit that tests and `?fresh=1` use.
 
-Migration v8 → v9 sets `opening.stage = 'done'` on every existing save and touches nothing else:
+Migration to v10 sets `opening.stage = 'done'` only on saves without opening state, including
+the independent movement-mod v9 schema in draft PR102. It leaves `movementMods` intact and
+does not import that draft's prototypes or grant them crafting recipes. Existing opening
+characters keep their exact chosen skills on reload; Hunter's Shot is only a legacy grant.
 older characters keep every skill, slot and Firebolt/Ward. A save written mid-opening keeps
-`kit: null` and empty skills and resumes the opening.
+`kit: null` and empty skills and resumes the opening. Each UI transition and selection saves
+`opening = { stage, kit, skill, movement }`, so interruptions resume the same choice screen.
 
 Presentation: `data/world.json` → `wreck` places the ship (`render/wreck.js`: hull, mast, sail,
 cargo, merged per material) and three weapon stakes beside the spawn. While `stage` is `wake`

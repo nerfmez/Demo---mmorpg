@@ -81,5 +81,5 @@ test('the CI entrypoint writes main-push scope and handles first pushes conserva
   assert.match(release, /browser_suites=\["boot"\]/);
   const firstPush = run('0'.repeat(40));
   assert.doesNotMatch(firstPush, /=false/);
-  assert.match(firstPush, /browser_suites=\["boot","smoke"/);
+  assert.match(firstPush, /browser_suites=\["boot","opening","smoke"/);
 });

@@ -18,7 +18,7 @@ combat buttons usable. This is a draft experimental relay, not production author
 - 160 repository tooling tests pass after adding the network gate to CI.
 - Initial core run: 411/412 passed; startup harness lacked the optional presence
   adapter. Optional frame update fixed it. Focused startup/opening/save rerun: 16/16.
-  Full final rerun status will be recorded below.
+  Full final core rerun: **412/412 pass**.
 - Vite production build passes (existing large-chunk warning).
 - A clean production-only `npm ci --omit=dev` install in a temporary directory,
   followed by the exact `node server/index.mjs` command, returns 200 from `/healthz`.
@@ -30,8 +30,12 @@ Two independent real Chromium contexts joined the same map and received each
 other's presence. The first movement run was invalidated by a temporary diagnostic
 pause used while investigating slow second-window startup. The repeat uses explicit
 window focus and pauses rendering of the other window only during startup on the
-software GPU. Browser movement, reconnect, geometry stabilization and final screenshot
-review are still in progress; do not treat this draft as visually accepted yet.
+software GPU. Keyboard movement now passes after fixing the closed room drawer swallowing key events.
+Initial desktop/iPad screenshots show both matching humanoids and clear cyan peer rings;
+they also confirmed the HUD overlap, which has been moved above the player frame.
+The touch fixture initially put the second actor into blocked water and is corrected
+to use a core-valid nearby spot. Final touch/reconnect/geometry/screenshot verification
+is still in progress; do not treat this draft as visually accepted yet.
 
 Existing Chromium/WebKit CI boot, smoke and affected UX remain required before merge.
 No physical iPad, hosted Render latency/cold start, continuous animation playback,

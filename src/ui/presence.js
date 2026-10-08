@@ -37,7 +37,8 @@ export function createPresence(game, view, resetInput, modelsReady) {
     if (endpoint && saved?.endpoint === endpoint && /^[a-z0-9-]{1,24}$/.test(saved.room)) { room.value = saved.room; client.start(saved.room); }
   } catch { /* a malformed optional preference cannot block startup */ }
   // Prevent gameplay hotkeys while editing a room name.
-  for (const event of ['keydown', 'keyup', 'pointerdown', 'pointerup']) root.addEventListener(event, e => e.stopPropagation());
+  root.addEventListener('keydown', e => { if (root.open) e.stopPropagation(); });
+  for (const event of ['pointerdown', 'pointerup']) root.addEventListener(event, e => e.stopPropagation());
   const suspend = () => { if (document.hidden) { client.resumeRoom = client.enabled ? client.room : null; client.stop(); } else if (client.resumeRoom) { const r = client.resumeRoom; client.resumeRoom = null; client.start(r); } };
   document.addEventListener('visibilitychange', suspend);
   const hide = () => { client.stop(); actors.dispose(); };

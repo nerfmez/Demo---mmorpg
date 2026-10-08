@@ -44,16 +44,18 @@ try {
     console.log('JOIN online');
     await p.locator('.presence-panel summary').click();
   }
-  async function count(p, n) { await p.waitForFunction(n => __frontier.presence.actors.actors.size === n, n); }
+  async function count(p, n) { await p.waitForFunction(n => __frontier.presence.actors.actors.size === n, n, { polling: 100 }); }
   await boot(a); ok('desktop startup; only one basic starting skill');
   await join(a); await boot(b); ok('touch startup; only one basic starting skill'); await join(b);
   await count(a, 1); await count(b, 1); ok('two independent browser contexts join same map/room');
   // Move away from overlapping spawn, then use actual keyboard input.
-  await b.evaluate(() => { __frontier.game.player.z += 3; });
+  await b.evaluate(() => { const p = __frontier.game.player; const spot = __frontier.game.freeSpotNear(p.x + 3, p.z); p.x = spot.x; p.z = spot.z; });
   await a.waitForTimeout(700);
   await a.bringToFront();
   const before = await a.evaluate(() => ({ x: __frontier.game.player.x, z: __frontier.game.player.z }));
-  await a.keyboard.down('d'); await a.waitForTimeout(1500); await a.keyboard.up('d');
+  await a.keyboard.down('d');
+  await a.waitForFunction(p => Math.hypot(__frontier.game.player.x - p.x, __frontier.game.player.z - p.z) > .5, before, { timeout: 20000 });
+  await a.keyboard.up('d');
   const after = await a.evaluate(() => ({ x: __frontier.game.player.x, z: __frontier.game.player.z }));
   assert.ok(Math.hypot(after.x - before.x, after.z - before.z) > .2);
   await b.bringToFront();
@@ -67,7 +69,8 @@ try {
   const pos0 = await b.evaluate(() => ({ x: __frontier.game.player.x, z: __frontier.game.player.z }));
   await cd.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
   await cd.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + 45, y }] });
-  for (let i = 0; i < 3; i++) { await b.waitForTimeout(200); await a.screenshot({ path: `${OUT}movement-${i}.png`, timeout: 90000 }); }
+  await b.waitForFunction(p => Math.hypot(__frontier.game.player.x - p.x, __frontier.game.player.z - p.z) > .3, pos0, { timeout: 20000 });
+  await b.screenshot({ path: `${OUT}ipad-joystick.png`, timeout: 90000 });
   await cd.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   const pos1 = await b.evaluate(() => ({ x: __frontier.game.player.x, z: __frontier.game.player.z }));
   assert.ok(Math.hypot(pos1.x - pos0.x, pos1.z - pos0.z) > .2);

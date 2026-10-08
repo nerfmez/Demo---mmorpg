@@ -1,5 +1,5 @@
 /* Small opt-in drawer between the existing top HUD and bottom touch controls. */
-.presence-panel { position: fixed; z-index: 22; left: max(12px, env(safe-area-inset-left)); top: 125px; max-width: min(300px, calc(100vw - 24px)); color: #ebf5ff; font: 12px Mitr, sans-serif; background: #15283dea; border: 1px solid #668c9b; border-radius: 8px; }
+.presence-panel { position: fixed; z-index: 22; left: calc(22px + env(safe-area-inset-left)); top: calc(16px + env(safe-area-inset-top)); max-width: min(300px, calc(100vw - 24px)); color: #ebf5ff; font: 12px Mitr, sans-serif; background: #15283dea; border: 1px solid #668c9b; border-radius: 8px; }
 .presence-panel summary { cursor: pointer; padding: 7px 10px; min-height: 30px; display: list-item; margin-left: 14px; }
 .presence-content { padding: 0 12px 12px; }
 .presence-content p { margin: 6px 0; }
@@ -10,4 +10,12 @@
 .presence-actions button:disabled { opacity: .5; cursor: default; }
 .presence-content output { display: block; }
 body:has(.overlay.on, .menu-layer.on) .presence-panel { display: none; }
-@media (max-height: 600px) { .presence-panel { top: 85px; } }
+@media (max-height: 560px) and (orientation: landscape) {
+  .presence-panel { left: 50%; top: calc(58px + env(safe-area-inset-top)); transform: translateX(-50%); width: 140px; font-size: 10px; }
+  .presence-panel[open] { width: 300px; }
+  .presence-panel summary { margin-left: 10px; padding-inline: 4px; }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .presence-panel { left: calc(10px + env(safe-area-inset-left)); top: calc(4px + env(safe-area-inset-top)); font-size: 10px; }
+  .presence-panel summary { padding-block: 4px; min-height: 28px; }
+}

@@ -2,7 +2,7 @@
 // Steps the real view at a fixed 60 Hz so SwiftShader timing does not matter:
 //  - walk: each monster walks across an open field; frames become a strip and a short GIF
 //  - strikes: the real AI attacks the hero; frames right after contact show the mark
-// node tests/browser/monster-motion.mjs [type ...]   (BROWSER=webkit for WebKit)
+// node tests/browser/monster-motion.mjs [type ...]   (BROWSER=webkit for WebKit; CLIP=1 also writes MP4 clips)
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn, execFileSync } from 'node:child_process';
@@ -14,7 +14,7 @@ mkdirSync(out, { recursive: true });
 const ALL = ['tusk_boar', 'thornback_wolf', 'greyfang', 'salt_slime', 'reef_crab', 'hermit_crab', 'moss_beetle', 'sporecap', 'shore_gull', 'crag_golem', 'horned_warden', 'thicket_mantis', 'ironhorn_ram', 'duskmane_stalker', 'reed_viper'];
 const STRIKES = [['thornback_wolf', 'bite'], ['thornback_wolf', 'rend'], ['greyfang', 'rake'], ['tusk_boar', 'bite'], ['duskmane_stalker', 'claw'], ['reef_crab', 'pinch'], ['hermit_crab', 'pinch'], ['thicket_mantis', 'scythe'], ['salt_slime', 'slap']];
 const only = process.argv.slice(2);
-const walkers = only.length ? ALL.filter((t) => only.includes(t)) : ALL;
+const walkers = process.env.NOWALK ? [] : only.length ? ALL.filter((t) => only.includes(t)) : ALL;
 const strikes = only.length ? STRIKES.filter(([t]) => only.includes(t)) : STRIKES;
 const gifs = new Set(['tusk_boar', 'thornback_wolf', 'salt_slime', 'reef_crab', 'duskmane_stalker', 'crag_golem', 'shore_gull', 'sporecap']);
 const port = 4291, base = `http://localhost:${port}/`;
@@ -160,6 +160,40 @@ try {
     assert.ok(res.swung, `${type} ${attack}: the strike landed during the capture`);
     report.strikes.push({ type, attack, strip, ...res });
     console.log('STRIKE', type, attack);
+    // CLIP=1: a moving clip of the same strike from the start of its wind-up, played at real
+    // speed and then at a third of the speed (H.264 MP4, plays on iPad)
+    if (process.env.CLIP) {
+      const at = await page.evaluate((attack) => {
+        const f = __frontier, g = f.game, m = f.mmMonster, p = g.player;
+        f.mmStep(1.2, true);
+        const atk = m.def.attacks[attack], gap = Math.max(0.3, (atk.range || 1.5) * 0.6);
+        Object.assign(m, { x: f.mmSpot[0], z: f.mmSpot[1], facing: Math.PI / 2, state: 'chase', stateT: 0, windup: null, melee: null });
+        Object.assign(p, { x: m.x + m.r + p.r + gap, z: m.z, hp: p.maxHp });
+        for (const k in m.cd) m.cd[k] = k === attack ? 0 : 99;
+        f.view.snapCamera();
+        for (let t = 0; t < 8 && !(m.state === 'windup' && m.windup?.name === attack); t += 1 / 60) f.mmStep(1 / 60, true);
+        f.mmShow();
+        const a = f.view.project((p.x + m.x) / 2, f.view.groundAt(p.x, p.z) + 0.7, p.z);
+        return { x: a.x, y: a.y, total: m.windup?.total || 0.6 };
+      }, attack);
+      const dir = `clip-${type}-${attack}`;
+      rmSync(out + dir, { recursive: true, force: true });
+      mkdirSync(out + dir, { recursive: true });
+      const n = Math.min(75, Math.ceil((at.total + 0.9) * 30));
+      for (let i = 0; i < n; i++) {
+        if (i) await page.evaluate(() => __frontier.mmStep(1 / 30, true));
+        await shot(`${dir}/${String(i).padStart(3, '0')}.png`, clipAt(at, 480, 380));
+      }
+      const font = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+      const label = (text) => `drawtext=fontfile=${font}:text='${text}':x=12:y=12:fontsize=20:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=6`;
+      for (const [name, rate, text] of [['real', 30, `${type} ${attack} - real speed`], ['slow', 10, `${type} ${attack} - slow x1/3`]])
+        execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(rate), '-i', out + `${dir}/%03d.png`, '-vf', `${label(text)},fps=30,format=yuv420p`, '-c:v', 'libx264', '-crf', '20', out + `${dir}-${name}.mp4`]);
+      report.clips = [...(report.clips || []), `${dir}-real.mp4`, `${dir}-slow.mp4`];
+    }
+  }
+  if (process.env.CLIP && report.clips?.length) {
+    writeFileSync(out + 'clips.txt', report.clips.map((c) => `file '${out}${c}'`).join('\n'));
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', out + 'clips.txt', '-c', 'copy', '-movflags', '+faststart', out + 'strikes.mp4']);
   }
   // marks free their materials: geometry count returns to baseline after the effects expire
   report.geometriesAfter = await page.evaluate(() => { const f = __frontier; f.mmStep(1.5, false); f.mmShow(); return f.view.renderer.info.memory.geometries; });

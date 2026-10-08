@@ -23,6 +23,7 @@ export function rewardText(data, r = {}) {
   if (r.exp) parts.push(`${r.exp} EXP`);
   if (r.jobExp) parts.push(`${r.jobExp} Job EXP`);
   if (r.gold) parts.push(`${r.gold} G`);
+  for (const id of r.skills || []) parts.push(`สกิลใหม่: ${data.skills.combat[id]?.nameTh || id}`);
   for (const [id, n] of Object.entries(r.items || {})) parts.push(`${data.items.materials[id]?.nameTh || id} ×${n}`);
   return parts.join(' · ');
 }
@@ -557,6 +558,7 @@ export class Hud {
       b.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -100%)`;
       b.querySelector('.fill').style.width = pct(m.hp, m.maxHp);
       b.classList.toggle('target', m.id === p.targetId);
+      b.style.visibility = mv.hidden && mv.fade < 0.04 ? 'hidden' : '';
     }
     for (const [id, b] of this.mbars) {
       if (!seen.has(id)) {

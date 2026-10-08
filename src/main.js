@@ -17,6 +17,7 @@ import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
 import { Menu } from './ui/menu.js';
+import { Opening } from './ui/opening.js';
 import { createFullscreen } from './ui/fullscreen.js';
 import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
 import { characterMap, selectMap } from './core/maps.js';
@@ -181,10 +182,13 @@ function startGame(character, slot) {
   };
 
   session = { game, hud, panels, input, ui, save, slot, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
-  Object.assign(F, { game, hud, panels, input, save });
+  Object.assign(F, { game, hud, panels, input, save, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
   save();
 
   const ch = game.ch;
+  const opening = new Opening(hudRoot, game, view, { hud, input, save, refresh: () => { session.refreshPortrait(); session.refreshBadges(); } });
+  F.opening = opening;
+  if (opening.begin()) return; // the opening ends with its own banner
   if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
   else hud.toast(`โหลดเซฟแล้ว · ${ch.name} Lv.${ch.level}`, '#8fd0ff');
 }

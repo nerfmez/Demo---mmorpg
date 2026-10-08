@@ -8,7 +8,7 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 8;
+export const CHARACTER_VERSION = 10;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -22,12 +22,14 @@ export function emptyProgress(data) {
 export function createCharacter(data, opts = {}) {
   const p = data.progression;
   const st = p.start;
-  const kit = st.kits?.[opts.kit || st.defaultKit] || null;
+  const opening = !!opts.opening;
+  const kit = opening ? null : st.kits?.[opts.kit || st.defaultKit] || null;
   const ch = {
     version: CHARACTER_VERSION,
     name: opts.name || 'Wanderer',
     appearance: opts.appearance ? { ...opts.appearance } : null,
-    kit: opts.kit || st.defaultKit || 'sword',
+    kit: opening ? null : opts.kit || st.defaultKit || 'sword',
+    opening: { stage: opening ? 'wake' : 'done' },
     level: 1,
     exp: 0,
     statPoints: p.character.startingStatPoints,
@@ -41,13 +43,13 @@ export function createCharacter(data, opts = {}) {
     materials: {},
     gear: [],
     equipped: Object.fromEntries((data.items.slots || ['weapon', 'armor']).map((s) => [s, null])),
-    skills: { ...st.skills },
-    movementSkills: [...st.movementSkills],
-    movement: kit ? kit.movement : st.movement,
+    skills: opening ? {} : { ...st.skills },
+    movementSkills: opening ? [] : [...st.movementSkills],
+    movement: opening ? null : kit ? kit.movement : st.movement,
     mods: [],
     arrows: { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } },
     ...startingConsumables(data),
-    slots: (kit ? kit.slots : st.slots).map((s) => ({ skill: s, mods: [] })),
+    slots: (opening ? st.slots.map(() => null) : kit ? kit.slots : st.slots).map((s) => ({ skill: s, mods: [] })),
     nextUid: 1,
     bossKills: 0,
     progress: emptyProgress(data),
@@ -55,7 +57,8 @@ export function createCharacter(data, opts = {}) {
     worldLayoutRevision: data.world.layoutRevision || null,
     pos: null,
   };
-  const startGear = kit ? [kit.weapon, ...st.gear.filter((g) => data.items.gearBases[g]?.slot !== 'weapon')] : st.gear;
+  // an opening character wakes with clothes only; the weapon comes with the kit it picks
+  const startGear = opening ? st.gear.filter((g) => data.items.gearBases[g]?.slot !== 'weapon') : kit ? [kit.weapon, ...st.gear.filter((g) => data.items.gearBases[g]?.slot !== 'weapon')] : st.gear;
   for (const baseId of startGear) {
     const base = data.items.gearBases[baseId];
     if (!base) continue;
@@ -65,6 +68,48 @@ export function createCharacter(data, opts = {}) {
     ch.equipped[base.slot] = item.uid;
   }
   return ch;
+}
+
+/** Skills a character can take as its one starter skill with this kit (pool in progression.start.opening). */
+export function openingSkillChoices(data, kitId) {
+  const o = data.progression.start.opening, kit = data.progression.start.kits[kitId];
+  const weapon = kit && data.items.gearBases[kit.weapon]?.weaponType;
+  return (o?.skillPool || []).filter((id) => {
+    const need = data.skills.combat[id]?.requiresWeapon;
+    return data.skills.combat[id] && (!need || need.includes(weapon));
+  });
+}
+
+/** Advance the saved opening only when the character is still unconscious. */
+export function wakeOpening(ch) {
+  if (ch.opening?.stage !== 'wake') return { ok: false, reason: 'stage' };
+  ch.opening.stage = 'weapon';
+  return { ok: true };
+}
+
+/**
+ * The end of the opening: the chosen kit's weapon and basic attack, one starter skill, one movement skill.
+ * Firebolt and Ward are not part of it (quests / workbench).
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function completeOpening(ch, data, { kit: kitId, skill, movement }) {
+  const o = data.progression.start.opening, kit = data.progression.start.kits[kitId];
+  if (ch.opening?.stage === 'done') return { ok: false, reason: 'done' };
+  if (!kit || !o.weapons.includes(kitId)) return { ok: false, reason: 'kit' };
+  if (!openingSkillChoices(data, kitId).includes(skill)) return { ok: false, reason: 'skill' };
+  if (!o.movementPool.includes(movement) || !data.skills.movement[movement]) return { ok: false, reason: 'movement' };
+  const base = data.items.gearBases[kit.weapon];
+  const options = base.optionPool.slice(0, data.items.grades.optionCount.C).map((id) => ({ id, value: data.items.gearOptions[id].min }));
+  const item = { uid: ch.nextUid++, base: kit.weapon, itemLevel: equipmentItemLevel(data, { base: kit.weapon }), grade: 'C', upgrade: 0, options };
+  ch.gear.push(item);
+  ch.equipped[base.slot] = item.uid;
+  ch.kit = kitId;
+  ch.skills = { [kit.basic]: 1, [skill]: 1 };
+  ch.movementSkills = [movement];
+  ch.movement = movement;
+  ch.slots = ch.slots.map((s, i) => ({ skill: [kit.basic, skill][i] || null, mods: [] }));
+  ch.opening = { stage: 'done' };
+  return { ok: true };
 }
 
 /** Bring older saves up to date. Rebalance migration is one-time and preserves ownership. */
@@ -94,9 +139,12 @@ export function migrateCharacter(ch, data) {
   for (const k of ['kills', 'collected', 'quests', 'bossKills', 'maps']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
-  if (!ch.kit) ch.kit = 'sword';
-  ch.skills = ch.skills || { ...data.progression.start.skills };
-  if (!ch.skills.hunter_shot) ch.skills.hunter_shot = 1;
+  const legacyOpening = !ch.opening;
+  if (legacyOpening) ch.opening = { stage: 'done' }; // v10: includes the independent movement-mod v9 saves
+  const pending = ch.opening.stage !== 'done';
+  if (!ch.kit && !pending) ch.kit = 'sword';
+  ch.skills = ch.skills || (pending ? {} : { ...data.progression.start.skills });
+  if (legacyOpening && !ch.skills.hunter_shot) ch.skills.hunter_shot = 1;
   // drop references to things that no longer exist
   ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });
@@ -167,8 +215,8 @@ export function migrateCharacter(ch, data) {
   const notice = equipmentNotice(ch, data);
   if (notice) ch.progress.equipmentNotice = notice;
   else delete ch.progress.equipmentNotice;
-  ch.movementSkills = (ch.movementSkills || ['dash']).filter((m) => data.skills.movement[m]);
-  if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || 'dash';
+  ch.movementSkills = (ch.movementSkills || (pending ? [] : ['dash'])).filter((m) => data.skills.movement[m]);
+  if (!ch.movementSkills.includes(ch.movement)) ch.movement = ch.movementSkills[0] || (pending ? null : 'dash');
   migrateQuestJournal(ch, data, { legacy: (ch.version || 1) < 8 });
   ch.version = CHARACTER_VERSION;
   return ch;
@@ -591,6 +639,7 @@ export function gearLook(ch, data) {
   }
   const w = gearItem(ch, ch.equipped.weapon);
   if (w) out.weapon = data.items.gearBases[w.base].weaponType || 'sword';
+  else out.unarmed = true;
   const o = out.bases.offhand && data.items.gearBases[out.bases.offhand];
   // Left hand: a shield, a second light weapon, or the arrows in use with a bow.
   if (o) out.offhand = o.slot === 'offhand' ? o.offhandType || 'shield' : o.weaponType;

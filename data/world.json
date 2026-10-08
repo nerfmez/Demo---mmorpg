@@ -14,6 +14,16 @@
     -132,
     80
   ],
+  "wreck": {
+    "_doc": "Decoration on Arrival Beach for the opening: the broken ship (bow along +X before rot) and the three weapon stakes the new character chooses from (sword, bow, staff). No collider.",
+    "at": [-120, 76],
+    "rot": -0.35,
+    "weapons": {
+      "sword": [-127.5, 77.5],
+      "bow": [-127.5, 80],
+      "staff": [-127.5, 82.5]
+    }
+  },
   "waterLevel": -0.4,
   "terrain": {
     "res": 1,

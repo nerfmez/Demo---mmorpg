@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../../src/ui/raster-icons.js';
+import { ART } from '../../src/ui/art.js';
 import { withAffectedRuntime } from './affected-runtime.mjs';
 
 const expected = Object.keys(RASTER_ICONS).filter(key => /^(gear|material|arrow|skill)\//.test(key));
@@ -72,7 +73,7 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
     await page.evaluate(view => __frontier.panels.open(view), view);
     await decode(view); await shot(view);
   }
-  const hud = await page.evaluate(async () => {
+  const hud = await page.evaluate(async ({ raster, vector }) => {
     const f = __frontier, g = f.game, keys = [];
     f.panels.close();
     for (const [kind, defs] of [['combat', g.data.skills.combat], ['movement', g.data.skills.movement]]) {
@@ -80,9 +81,12 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
         if (kind === 'combat') g.ch.slots[0] = { skill: id, mods: [] }; else g.ch.movement = id;
         g.refresh(); f.input.refreshButtons();
         const button = kind === 'combat' ? f.input.buttons[0] : f.input.moveBtn;
-        const image = button.querySelector('.art > img');
-        if (!image) throw Error(`HUD missing icon ${id}`);
-        await image.decode();
+        const key = `skill/${id}`;
+        const image = button.querySelector(raster.includes(key) ? '.art > img' : '.art > svg');
+        if (!image || image.parentElement.dataset.art !== key) throw Error(`HUD missing icon ${id}`);
+        if (raster.includes(key)) await image.decode();
+        else if (!vector.includes(id) || image.getAttribute('viewBox') !== '0 0 128 128' || !image.querySelector('path,circle,ellipse'))
+          throw Error(`HUD missing authored vector icon ${id}`);
         const r = image.getBoundingClientRect(), b = button.getBoundingClientRect();
         if (r.width < 16 || r.left < b.left - 1 || r.right > b.right + 1 || r.top < b.top - 1 || r.bottom > b.bottom + 1)
           throw Error(`HUD clipped icon ${id}`);
@@ -90,7 +94,7 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
       }
     }
     return keys;
-  });
+  }, { raster: Object.keys(RASTER_ICONS), vector: Object.keys(ART.skill) });
   hud.forEach(key => seen.add(key)); await shot('hud');
   const loot = await page.evaluate(async registered => {
     const f = __frontier, g = f.game;

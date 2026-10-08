@@ -157,7 +157,7 @@ export const ACTIONS = {
 
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', firebolt: 'bolt', chain_spark: 'zap',
+  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', arcane_bolt: 'bolt', firebolt: 'bolt', chain_spark: 'zap',
   stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'sow', hex: 'hex', ward: 'ward',
   war_cry: 'warcry', healing_spring: 'heal', spirit_wolf: 'summon',
 };
@@ -180,7 +180,7 @@ const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], dagger: ['stabA', '
 export function pickAction(skill, kind, weapon, step = 0) {
   if (ACTIONS[skill]) return skill;
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
-  if (skill === 'firebolt' && weapon === 'staff') a = 'staffBolt';
+  if ((skill === 'firebolt' || skill === 'arcane_bolt') && weapon === 'staff') a = 'staffBolt';
   if (a === 'combo') a = (COMBOS[weapon] || ['slashA', 'slashB', 'slashC'])[step % 3];
   if (a === 'shoot') a = weapon === 'bow' ? 'bow' : 'throw';
   return a;

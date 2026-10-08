@@ -765,3 +765,39 @@ action handlers use this service predicate; blocked cards show the location
 reason beside the button. Stat/material/gold requirements are unchanged.
 Equipment enhancement/promotion and crafting still use the original workbench
 gate. Port the service anchors and `tests/core/upgrade-services.test.js`.
+
+### The opening: wreck, weapon kit, starter skills (save v10)
+
+A new character is `createCharacter(data, { opening: true })`: no weapon, no skills, no movement
+skill, empty slots, `ch.opening = { stage: 'wake' }`, `ch.kit = null`. `core/character.js`
+`completeOpening(ch, data, { kit, skill, movement })` validates and applies the whole choice at once:
+the kit's weapon is equipped, `kits[kit].basic` (slash / hunter_shot / the new `arcane_bolt`) and
+the one starter skill become skills and slots 1–2, and the movement skill becomes the only movement
+skill. `openingSkillChoices(data, kit)` filters `progression.start.opening.skillPool` by weapon
+(a staff is never offered Whirl Blade). Stages: `wake` (unconscious) → `weapon` → `skills` → `done`.
+`wakeOpening(ch)` validates the saved wake transition in core. Until a movement skill is
+owned, its compiled charge limit is zero and `Game.useMovement` refuses it; applying the
+opening choice through `Game.refresh` fills the newly selected movement skill's charges.
+Firebolt and Ward are not part of the start: quests `h_slimes` / `h_crabs` carry
+`reward.skills`, which `Game.completeQuests` learns and slots into the first empty slot,
+then compiles immediately with `refreshSkills` so it can be cast without a level-up or reload; the
+workbench has explicit recipes for every released skill and movement skill (`learn_*`), so a missing released skill can always
+be crafted. `arcane_bolt` is a free staff-only projectile (`element: 'arcane'`, `requiresWeapon:
+['staff']`). `createCharacter` without `opening` is the legacy full kit that tests and `?fresh=1` use.
+
+Migration to v10 sets `opening.stage = 'done'` only on saves without opening state, including
+the independent movement-mod v9 schema in draft PR102. It leaves `movementMods` intact and
+does not import that draft's prototypes or grant them crafting recipes. Existing opening
+characters keep their exact chosen skills on reload; Hunter's Shot is only a legacy grant.
+older characters keep every skill, slot and Firebolt/Ward. A save written mid-opening keeps
+`kit: null` and empty skills and resumes the opening. Each UI transition and selection saves
+`opening = { stage, kit, skill, movement }`, so interruptions resume the same choice screen.
+
+Presentation: `data/world.json` → `wreck` places the ship (`render/wreck.js`: hull, mast, sail,
+cargo, merged per material) and three weapon stakes beside the spawn. These objects belong
+to Azure's region root, so atlas shifts move them with Azure and stream-out disposes them.
+Returning to Azure rebuilds them if needed. While `stage` is `wake`
+the hero lies down (`view.heroDown`, eased by `HumanoidAnimator` via `s.down`); `ui/opening.js`
+shows the wake line, the three weapon cards and the skill/movement cards, and locks input until
+the choice is applied. In Godot: an `AnimationPlayer` lying→standing clip, three interactable
+props, and one choice dialog that calls the same rule function.

@@ -6,6 +6,7 @@ import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 export const ROUTING_VERSION = 3;
 export const SUITES = {
   boot: ['boot.mjs'],
+  opening: ['opening.mjs'],
   smoke: ['smoke.mjs'],
   world: ['map-travel.mjs', 'open-world.mjs', 'open-world-city.mjs'],
   combat: ['midhigh-monsters.mjs', 'coastal-attacks.mjs'],

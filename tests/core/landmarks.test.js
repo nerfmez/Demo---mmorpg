@@ -77,3 +77,18 @@ test('zones in a map differ in their ground cover', () => {
     }
   }
 });
+
+test('the windmill sails keep turning after static batching freezes the scenery', async () => {
+  const { buildLandmark } = await import('../../src/render/landmarks.js');
+  const mill = buildLandmark('windmill');
+  const sails = mill.getObjectByName('landmark-spinner'), mesh = sails.children.find((o) => o.children.length)?.children[0];
+  mill.updateMatrixWorld(true);
+  mill.traverse((o) => { o.matrixAutoUpdate = false; o.matrixWorldAutoUpdate = false; }); // as batchStaticSteps does
+  const before = mesh.matrixWorld.clone();
+  const now = performance.now;
+  try {
+    performance.now = () => 2000;
+    mesh.onBeforeRender();
+    assert.ok(!mesh.matrixWorld.equals(before), 'the drawn sail moved');
+  } finally { performance.now = now; }
+});

@@ -183,11 +183,13 @@ function windmill(p, g) {
   g.add(sails);
 }
 
+// Batching sets matrixWorldAutoUpdate = false on scenery, which makes updateMatrixWorld skip it,
+// so the pivot and everything under it get their world matrices written here directly.
 function spin(pivot, speed) {
   return () => {
     pivot.rotation.z = 0.4 + (performance.now() / 1000) * speed;
     pivot.updateMatrix();
-    pivot.updateMatrixWorld(true);
+    pivot.traverse((o) => o.parent && o.matrixWorld.multiplyMatrices(o.parent.matrixWorld, o.matrix));
   };
 }
 

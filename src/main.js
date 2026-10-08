@@ -20,6 +20,7 @@ import { Menu } from './ui/menu.js';
 import { Opening } from './ui/opening.js';
 import { QuestCompletion } from './ui/quest-completion.js';
 import { QuestRoute } from './render/quest-route.js';
+import { Supplies } from './ui/supplies.js';
 import { createFullscreen } from './ui/fullscreen.js';
 import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
 import { characterMap, selectMap } from './core/maps.js';
@@ -87,7 +88,7 @@ const fullscreen = createFullscreen({
   onResize: () => view.resize(),
 });
 F.fullscreen = fullscreen;
-const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
+const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport', 'potion']);
 
 /** Reload into the character's map (saved slot, or the unsaved test character). */
 function travelTo(character, slot, name) {
@@ -164,6 +165,10 @@ function startGame(character, slot) {
     book: hud.addMenuButton('book', 'K', () => panels.toggle('skills'), 'สกิล'),
   };
   const questRoute = new QuestRoute(game, view.scene, hud);
+  const supplies = new Supplies(hudRoot,game,{
+    onArrows:()=>{if(!ui.panelOpen())panels.openArrowCraft();},
+    onPotions:()=>{if(!ui.panelOpen())panels.openAutoPotions();},
+  });
   hud.onTracker(() => { if (!ui.panelOpen()) questRoute.toggle(); });
 
   let portraitKey = '';
@@ -186,8 +191,8 @@ function startGame(character, slot) {
     hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 
-  session = { game, hud, panels, input, ui, save, slot, completion, questRoute, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
-  Object.assign(F, { game, hud, panels, input, save, completion, questRoute, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
+  session = { game, hud, panels, input, ui, save, slot, completion, questRoute, supplies, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
+  Object.assign(F, { game, hud, panels, input, save, completion, questRoute, supplies, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
   save();
 
   const ch = game.ch;
@@ -298,6 +303,7 @@ function frame(now) {
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
     if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
+    s.supplies.update();
     s.saveT += dt;
     if (s.saveT > 10) {
       s.saveT = 0;

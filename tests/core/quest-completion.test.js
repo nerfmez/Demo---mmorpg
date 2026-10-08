@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
-import {createCharacter,migrateCharacter,expToNext} from '../../src/core/character.js';
+import {createCharacter,migrateCharacter,expToNext,CHARACTER_VERSION} from '../../src/core/character.js';
 import {Game} from '../../src/core/game.js';
 import {dismissQuestCompletion,refreshQuests} from '../../src/core/quests.js';
 const finish=(g,target)=>{for(let i=0;i<3;i++)g.notify({type:'kill',target});};
@@ -29,7 +29,7 @@ test('receipt reflects capped EXP and already learned skills, not promised rewar
 });
 test('v10 paid history migrates without fabricated popup or payment, pending reward remains payable',()=>{
  const old=createCharacter(data);old.version=10;old.progress.questJournal={version:1,trackedId:null};old.progress.quests.h_slimes={status:'done',progress:3,rewardClaimed:true};
- const m=migrateCharacter(structuredClone(old),data);assert.equal(m.version,11);assert.deepEqual(m.progress.questJournal.completions,[]);
+ const m=migrateCharacter(structuredClone(old),data);assert.equal(m.version,CHARACTER_VERSION);assert.deepEqual(m.progress.questJournal.completions,[]);
  const g=new Game(data,{character:m,seed:2});assert.equal(g.ch.gold,old.gold);assert.equal(g.ch.skills.firebolt,undefined);
  old.progress.quests.h_slimes.rewardClaimed=false;
  const pending=new Game(data,{character:old,seed:2});assert.equal(pending.ch.progress.questJournal.completions.length,1);assert.equal(pending.ch.skills.firebolt,1);

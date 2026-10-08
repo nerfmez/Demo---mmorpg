@@ -5,10 +5,10 @@ import { enterMap } from './maps.js';
 import { migrateQuestJournal } from './quests.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
-import { startingConsumables, normalizeConsumables } from './consumables.js';
+import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 11;
+export const CHARACTER_VERSION = 12;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -68,6 +68,7 @@ export function createCharacter(data, opts = {}) {
     ch.gear.push(item);
     ch.equipped[base.slot] = item.uid;
   }
+  normalizeAutoPotions(ch, data);
   return ch;
 }
 
@@ -187,6 +188,7 @@ export function migrateCharacter(ch, data) {
     ch.quickItems = ch.quickItems || start.quickItems;
   }
   normalizeConsumables(ch, data);
+  normalizeAutoPotions(ch, data, { reset: (ch.version || 1) < 12 });
   ch.arrows.stock = Object.fromEntries(Object.entries(ch.arrows.stock || {}).filter(([id, n]) => data.items.arrows?.types[id] && n > 0));
   // The character cap fell from 40 to 30: bring higher saves down to the cap and take back the
   // stat points of the removed levels (from unspent points first, else by a free stat reset).

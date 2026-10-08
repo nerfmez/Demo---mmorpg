@@ -310,7 +310,14 @@
         "#98ad6e",
         "#7a9156"
       ],
-      "fog": "#d4d8e8"
+      "fog": "#d4d8e8",
+      "decor": {
+        "flowers": [
+          3,
+          6,
+          0
+        ]
+      }
     },
     {
       "id": "fern_rise",
@@ -336,7 +343,15 @@
         "#8fb35a",
         "#6e9548"
       ],
-      "fog": "#c8e6dc"
+      "fog": "#c8e6dc",
+      "decor": {
+        "flowers": [
+          0,
+          4,
+          1
+        ],
+        "ferns": true
+      }
     },
     {
       "id": "mirror_pond",
@@ -362,7 +377,15 @@
         "#7fb06a",
         "#5c8f55"
       ],
-      "fog": "#bfe3e6"
+      "fog": "#bfe3e6",
+      "decor": {
+        "flowers": [
+          6,
+          0,
+          3
+        ],
+        "mushrooms": true
+      }
     },
     {
       "id": "root_warren",
@@ -388,7 +411,15 @@
         "#7a9a52",
         "#5b7a42"
       ],
-      "fog": "#b7d0b8"
+      "fog": "#b7d0b8",
+      "decor": {
+        "flowers": [
+          3,
+          2
+        ],
+        "ferns": true,
+        "mushrooms": true
+      }
     }
   ],
   "spawns": [
@@ -608,7 +639,8 @@
     ],
     "ringRadius": 11,
     "scatter": 10,
-    "paving": false
+    "paving": false,
+    "altar": false
   },
   "camp": {
     "tents": [
@@ -628,6 +660,123 @@
       10
     ]
   },
+  "landmarks": [
+    {
+      "id": "moonstone",
+      "kind": "moonstone",
+      "zone": "settlement",
+      "at": [
+        -104,
+        7
+      ],
+      "rot": -2.84,
+      "name": "The Moonstone",
+      "nameTh": "หินจันทร์",
+      "colliders": [
+        [
+          0,
+          0,
+          1.0
+        ]
+      ],
+      "clear": 3
+    },
+    {
+      "id": "moon_altar",
+      "kind": "moon_altar",
+      "zone": "stone_ring",
+      "at": [
+        131,
+        -12
+      ],
+      "rot": 0,
+      "name": "Crescent Altar",
+      "nameTh": "แท่นบูชาจันทร์เสี้ยว",
+      "colliders": [
+        [
+          0,
+          0,
+          1.6
+        ]
+      ],
+      "clear": 3
+    },
+    {
+      "id": "fiddlehead_rise",
+      "kind": "fiddlehead_ferns",
+      "zone": "fern_rise",
+      "at": [
+        110,
+        24
+      ],
+      "rot": 1.78,
+      "name": "Giant Fiddleheads",
+      "nameTh": "เฟิร์นม้วนยักษ์",
+      "colliders": [
+        [
+          0,
+          0,
+          0.6
+        ],
+        [
+          1.7,
+          0.8,
+          0.5
+        ],
+        [
+          -1.5,
+          1.1,
+          0.5
+        ]
+      ],
+      "clear": 4.5
+    },
+    {
+      "id": "moon_mirror",
+      "kind": "moon_mirror",
+      "zone": "mirror_pond",
+      "at": [
+        9,
+        -23
+      ],
+      "rot": 3.11,
+      "name": "Moon Mirror",
+      "nameTh": "กระจกจันทร์",
+      "colliders": [
+        [
+          0,
+          0,
+          0.9
+        ]
+      ],
+      "clear": 4
+    },
+    {
+      "id": "root_arch",
+      "kind": "root_arch",
+      "zone": "root_warren",
+      "at": [
+        -146,
+        -4
+      ],
+      "rot": 0.31,
+      "name": "The Great Root Arch",
+      "nameTh": "ซุ้มรากยักษ์",
+      "colliders": [
+        [
+          -3.4,
+          0,
+          1.2
+        ],
+        [
+          3.4,
+          0,
+          1.2
+        ]
+      ],
+      "clear": 6
+    }
+  ],
   "atlas": {
     "_doc": "Place in the open world: global = local + offset. seams: see data/world.json.",
     "offset": [

@@ -7,12 +7,36 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { runInNewContext } from 'node:vm';
 import { payload, buildConfiguration, verifyBuild } from '../../scripts/ci-build-manifest.mjs';
-import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, consumedPagesArtifact, extractPagesTar } from '../../scripts/ci-published-site.mjs';
+import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, consumedPagesArtifact, extractPagesTar, readPublicationLog } from '../../scripts/ci-published-site.mjs';
 import { browserPlan, FULL_SUITES, SAFETY_SUITES } from '../../scripts/ci-browser-plan.mjs';
 import { proseOnly, resolveDocFollowup } from '../../scripts/ci-doc-followup.mjs';
 const sha = 'a'.repeat(40), tree = 'b'.repeat(40);
 const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 const ci = read('.github/workflows/ci.yml'), deploy = read('.github/workflows/deploy.yml');
+test('publication log reader captures ANSI bytes with modern and legacy gh', () => {
+  const path = 'repos/owner/demo/actions/jobs/3/logs';
+  const log = '\u001b[36;1mcheckout\u001b[0m\nraw authenticated log';
+  for (const modern of [true, false]) {
+    const calls = [];
+    const result = readPublicationLog(path, (command, args, options) => {
+      assert.equal(command, 'gh'); assert.equal(options.stdio, 'pipe');
+      calls.push(args);
+      if (args.includes('--help')) return modern ? '--allow-escape-sequences' : 'legacy help';
+      assert.deepEqual(args, ['api', path, ...(modern ? ['--allow-escape-sequences'] : [])]);
+      return log;
+    });
+    assert.equal(result, log); assert.equal(calls.length, 2);
+  }
+});
+test('publication log reader propagates authentication and transport failure', () => {
+  const failure = new Error('HTTP 403 \u001b]0;untrusted-title\u0007'); let calls = 0;
+  assert.throws(() => readPublicationLog('repos/owner/demo/actions/jobs/3/logs', (_command, args) => {
+    calls++;
+    if (args.includes('--help')) return '--allow-escape-sequences';
+    throw failure;
+  }), { message: 'Cannot read authenticated Pages deployment log' });
+  assert.equal(calls, 2, 'no retry or unverified receipt fallback');
+});
 function directory(t) { const dir = mkdtempSync(join(tmpdir(), 'publication-test-')); t.after(() => rmSync(dir, { recursive: true, force: true })); return dir; }
 function put(dir, path, data) { mkdirSync(dirname(join(dir, path)), { recursive: true }); writeFileSync(join(dir, path), typeof data === 'string' ? data : JSON.stringify(data)); }
 function site(dir, legacy = false) {
@@ -306,6 +330,12 @@ test('deploy-only retry consumes the prior-attempt artifact while rejecting late
 test('consumed artifact receipt is bound to the selected deploy step and workflow source', () => {
   const selected = selectPublishedRun([run()], () => jobs());
   assert.equal(consumedPagesArtifact(deploymentLog(), selected), 7);
+  const controls = '2026-10-08T10:04:00Z \u001b[36;1mRun deployment\u001b[0m\n' +
+    '2026-10-08T10:04:00Z \u001b]0;untrusted-title\u0007\n';
+  assert.equal(consumedPagesArtifact(controls + deploymentLog(), selected), 7);
+  assert.throws(() => consumedPagesArtifact(deploymentLog().replace('artifact_id', 'artifact_\u001b[0mid'), selected));
+  assert.throws(() => consumedPagesArtifact(deploymentLog().replace('{', '{\u001b]0;title\u0007'), selected),
+    { message: 'Invalid Pages artifact receipt JSON' });
   for (const text of ['', deploymentLog() + '\n' + deploymentLog(8), deploymentLog(7, '2026-10-08T10:06:00Z'),
     deploymentLog(7, '2026-10-08T10:03:00Z'), deploymentLog(7, '2026-10-08T10:04:01Z', tree), deploymentLog(-1)])
     assert.throws(() => consumedPagesArtifact(text, selected));

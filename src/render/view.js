@@ -10,7 +10,7 @@ import { installGrassCulling } from './grass-culling.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
-import { MonsterTrails } from './monster-trails.js';
+import { syncMonsterViews, measureMotion, fadeRig, VIEW_RADIUS } from './monster-views.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
@@ -26,17 +26,9 @@ import { buildWreck, weaponProps } from './wreck.js';
 import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
-const VIEW_RADIUS = 58;
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)
-// Monster models are skinned, so three.js cannot cull them (frustumCulled is off); the view tests a
-// sphere around each one against the camera instead. The margin keeps a monster just past the edge
-// drawn, so its shadow and wind-up do not pop in.
-const CULL_MARGIN = 2;
-const _frustum = new THREE.Frustum();
-const _viewProj = new THREE.Matrix4();
-const _sphere = new THREE.Sphere();
 
 const ZONE_FOG = {
   settlement: '#c4e4ee',
@@ -49,32 +41,6 @@ const ZONE_FOG = {
   ruins: '#d6d0e8',
   coast: '#c6e8f2',
 };
-
-// a stalking monster's half-seen look: the body fades, the outline hull fades less
-function fadeRig(mat, hull, see, fade) {
-  if (mat.transparent !== see) { mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true; if (hull) hull.needsUpdate = true; } // opaque/transparent are separate programs
-  mat.opacity = see ? fade : 1;
-  if (hull) { hull.transparent = see; hull.depthWrite = !see; hull.opacity = see ? fade * fade : 1; }
-}
-
-/**
- * Ground speed of a monster/ally view from its simulated position (m/s, with its forward and
- * sideways parts in the model's facing), so the gait cadence follows real movement. A jump of
- * several metres in one frame (respawn, teleport) is not movement.
- */
-function measureMotion(v, x, z, facing, dt) {
-  if (dt > 0 && v.px !== undefined) {
-    const dx = x - v.px, dz = z - v.pz;
-    const d = Math.hypot(dx, dz);
-    const vx = d > 3 ? 0 : dx / dt, vz = d > 3 ? 0 : dz / dt;
-    const sn = Math.sin(facing), cs = Math.cos(facing);
-    v.speed = Math.min(20, Math.hypot(vx, vz));
-    v.vFwd = vx * sn + vz * cs;
-    v.vSide = vx * cs - vz * sn;
-  } else if (v.speed === undefined) v.speed = v.vFwd = v.vSide = 0;
-  v.px = x;
-  v.pz = z;
-}
 
 export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
@@ -641,141 +607,7 @@ export class View {
   }
 
   syncMonsters(dt, time) {
-    const g = this.game;
-    const p = g.player;
-    const seen = new Set();
-    // render() has already moved the camera for this frame
-    this.camera.updateMatrixWorld();
-    _frustum.setFromProjectionMatrix(_viewProj.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
-    let drawn = 0;
-    for (const m of g.monsters) {
-      const far = Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS;
-      if (far && !this.monsterViews.has(m.id)) continue;
-      if (Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS + 10) continue;
-      seen.add(m.id);
-      let mv = this.monsterViews.get(m.id);
-      if (!mv) {
-        const rig = this.takeRig(m.type, m.level, m.boss);
-        rig.root.position.set(m.x, this.groundAt(m.x, m.z), m.z);
-        rig.root.rotation.y = m.facing;
-        this.scene.add(rig.root);
-        let halo = null;
-        if (rig.halo) {
-          halo = this.vfx.sprite(0x7fdcff, 1.9, 0.85);
-          this.scene.add(halo);
-        }
-        mv = { rig, flash: 0, hurt: 0, spawnT: 0, lastAttack: null, y: rig.root.position.y, halo, prevFacing: m.facing, turn: 0 };
-        this.monsterViews.set(m.id, mv);
-      }
-      const r = mv.rig;
-      mv.spawnT += dt || 1 / 60; // models seen while paused still grow in
-      if (m.windup) mv.lastAttack = m.windup.name;
-      let d = m.facing - r.root.rotation.y;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      r.root.rotation.y += d * Math.min(1, dt * 12);
-      mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
-      const gy = r.flyer || m.def.hover ? this.world.surfaceY(m.x, m.z) : this.world.groundY(m.x, m.z);
-      mv.y = gy > mv.y ? damp(mv.y, gy, 20, dt) : damp(mv.y, gy, 12, dt);
-      mv.kx = damp(mv.kx || 0, 0, 14, dt);
-      mv.kz = damp(mv.kz || 0, 0, 14, dt);
-      r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
-      measureMotion(mv, m.x, m.z, r.root.rotation.y, dt);
-      mv.hurt = Math.max(0, mv.hurt - dt * 5);
-      // off screen: not drawn and not posed (the simulation still moves it and lets it attack)
-      const h = (r.height || 1.5) * (r.baseScale || 1);
-      _sphere.center.set(r.root.position.x, r.root.position.y + h * 0.5, r.root.position.z);
-      _sphere.radius = Math.max(1.2, h) + CULL_MARGIN;
-      const onScreen = !this.cullMonsters || _frustum.intersectsSphere(_sphere);
-      r.root.visible = onScreen;
-      if (onScreen) drawn++;
-      const tgt = m.targetUnit || p;
-      if (onScreen) r.animate(
-        r,
-        {
-          moving: m.moving && ['chase', 'idle', 'return', 'circle', 'retreat'].includes(m.state),
-          speedFactor: m.aggro ? 1 : 0.4,
-          state: m.state,
-          windup: m.state === 'windup' && m.windup ? m.windup.name : null,
-          windupT: m.stateT,
-          windupTotal: m.windup?.total || 1,
-          actT: m.stateT,
-          actionTotal: m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur,
-          hitTime: m.melee ? m.def.attacks[m.melee.name].hitTime : 0,
-          attack: m.def.attacks[m.melee?.name || mv.lastAttack],
-          enraged: m.enraged,
-          lastAttack: mv.lastAttack,
-          hurt: mv.hurt,
-          lookYaw: m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? this.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
-          turn: mv.turn,
-          speed: mv.speed,
-          vFwd: mv.vFwd,
-          vSide: mv.vSide,
-          aggro: !!m.aggro,
-          alt: m.alt,
-        },
-        dt,
-        time
-      );
-      // claw/fang/pincer trails from the limb that strikes, open around the strike itself
-      const strike = m.windup?.name || m.melee?.name || mv.lastAttack;
-      const looks = r.looks || (r.looks = {}); // per rig (one type): no string keys per frame
-      if (strike && !(strike in looks)) looks[strike] = r.restInverse ? this.vfx.monsterLook(m.type, strike) : null;
-      const look = strike ? looks[strike] : null;
-      if (look?.limbs || r.trails) {
-        // the wind-up stays dark: only the strike itself (act, or the snap that follows an instant bite)
-        const open = !m.dead && (m.state === 'act' || (m.state === 'recover' && m.stateT < 0.3));
-        r.trails ||= new MonsterTrails(this.scene);
-        r.trails.update(dt, r, look?.limbs ? look : r.trails.look, open && !!look?.limbs);
-      }
-      let sc = r.baseScale * Math.min(1, 0.3 + mv.spawnT * 2.5);
-      if (m.dead) {
-        const k = Math.min(1, m.deathT / 1.4);
-        sc *= 1 - k * 0.35;
-        r.root.position.y = mv.y - k * k * 0.7;
-        r.root.rotation.z = Math.min(1, m.deathT / 0.4) * 1.2;
-      } else r.root.rotation.z = 0;
-      r.root.scale.setScalar(sc);
-      mv.flash = Math.max(0, mv.flash - dt);
-      if (mv.flash > 0) setFlash(r.material, 0.55, 0, 0);
-      else if (m.windup && m.state === 'windup') setFlash(r.material, 0, 0.12 + 0.12 * Math.max(0, Math.sin(time * 24)), 0);
-      else if (m.statuses?.chill) setFlash(r.material, 0, 0, 0.25);
-      else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
-      else setFlash(r.material, 0, 0, 0);
-      // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
-      if (m.def.behavior === 'stalker' || mv.fade < 1) {
-        const hidden = m.stealth && !m.dead;
-        if (mv.hidden !== undefined && mv.hidden !== hidden) {
-          // vanishing or appearing: a puff of grey smoke hides the change
-          const sy = mv.y + 0.7 * r.baseScale;
-          this.vfx.dust.burst(m.x, sy, m.z, 22, { color: 0x8d8a96, size: 0.9, sizeEnd: 2.0, speed: 2.2, life: 0.9, up: 0.5, drag: 2.5 });
-          this.vfx.dust.burst(m.x, sy + 0.3, m.z, 8, { color: 0x4a4656, size: 0.7, sizeEnd: 1.6, speed: 1.2, life: 1.1, up: 0.9, drag: 2 });
-        }
-        mv.hidden = hidden;
-        mv.fade = damp(mv.fade ?? 1, hidden ? 0 : 1, 9, dt);
-        const gone = hidden && mv.fade < 0.04; // truly gone, not a faint shape
-        r.root.visible = onScreen && !gone;
-        const see = mv.fade < 0.99;
-        fadeRig(r.material, r.hull, see, mv.fade);
-        if (r.modelMaterial) fadeRig(r.modelMaterial, r.modelHull, see, mv.fade);
-      }
-      if (mv.halo) {
-        mv.halo.visible = !m.dead && onScreen && !(mv.hidden && mv.fade < 0.04);
-        mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);
-        mv.halo.scale.setScalar((r.glowScale || 1.9) * r.baseScale);
-      }
-      // status sparkles
-      if (m.statuses?.burn && Math.random() < dt * 8) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 1.2, 0, { color: 0xff9a40, size: 0.22, life: 0.5 });
-      if (m.statuses?.poison && Math.random() < dt * 6) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 0.8, 0, { color: 0xa8e04a, size: 0.2, life: 0.6 });
-      if (m.statuses?.hex && Math.random() < dt * 5) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.6, mv.y + 1.4 * r.baseScale, m.z + (Math.random() - 0.5) * 0.6, 0, 0.5, 0, { color: 0xb88cff, size: 0.22, life: 0.6 });
-    }
-    this.monstersDrawn = drawn;
-    for (const [id, mv] of this.monsterViews) {
-      if (!seen.has(id)) {
-        this.releaseRig(mv.rig);
-        disposeObject(mv.halo);
-        this.monsterViews.delete(id);
-      }
-    }
+    syncMonsterViews(this, dt, time);
   }
 
   syncAllies(dt, time) {

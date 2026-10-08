@@ -17,9 +17,9 @@ export function migrateQuestJournal(ch, data, { legacy = false } = {}) {
   ch.progress ||= {};
   const p = ch.progress;
   const previous = p.questJournal;
-  const upgrading = legacy || previous?.version !== 1;
+  const upgrading = legacy || !previous;
   p.quests ||= {};
-  p.questJournal = { ...(previous || {}), version: 1, trackedId: previous?.trackedId || null };
+  p.questJournal = { ...(previous || {}), version: 2, trackedId: previous?.trackedId || null, completions: [] };
   for (const [id, st] of Object.entries(p.quests)) {
     const def = data.quests.quests[id];
     if (!def) continue; // Unknown historical records are opaque; preserve every field unchanged.
@@ -35,10 +35,39 @@ export function migrateQuestJournal(ch, data, { legacy = false } = {}) {
     }
   }
   if (p.questJournal.trackedId && (!questIds(data).includes(p.questJournal.trackedId) || p.quests[p.questJournal.trackedId]?.status !== 'active')) p.questJournal.trackedId = null;
+  // v1 paid missions have no receipt: never reconstruct one from today's reward table.
+  const seen = new Set();
+  for (const receipt of Array.isArray(previous?.completions) ? previous.completions : []) {
+    if (!receipt || typeof receipt.id !== 'string' || seen.has(receipt.id) || p.quests[receipt.id]?.status !== 'done' || !p.quests[receipt.id]?.rewardClaimed) continue;
+    if (typeof receipt.nameTh !== 'string' || !Array.isArray(receipt.objectives) || !receipt.reward || typeof receipt.reward !== 'object') continue;
+    const r = receipt.reward;
+    if (receipt.objectives.some(o => !o || typeof o.labelTh !== 'string' || !Number.isFinite(o.count) || o.count <= 0)) continue;
+    if (['gold', 'exp', 'jobExp'].some(k => r[k] !== undefined && (!Number.isFinite(r[k]) || r[k] < 0))) continue;
+    if (r.skills !== undefined && (!Array.isArray(r.skills) || r.skills.some(id => typeof id !== 'string'))) continue;
+    if (r.items !== undefined && (!r.items || typeof r.items !== 'object' || Array.isArray(r.items) || Object.values(r.items).some(n => !Number.isFinite(n) || n < 0))) continue;
+    p.questJournal.completions.push(receipt);
+    seen.add(receipt.id);
+  }
   return p.questJournal;
 }
 function journal(ch, data) {
-  return ch.progress?.questJournal?.version === 1 ? ch.progress.questJournal : migrateQuestJournal(ch, data);
+  return ch.progress?.questJournal?.version === 2 ? ch.progress.questJournal : migrateQuestJournal(ch, data);
+}
+
+/** Persist presentation evidence only after payment; no UI callback can claim a reward. */
+export function recordQuestCompletion(ch, data, id, reward) {
+  const j = journal(ch, data), def = data.quests.quests[id];
+  if (!ch.progress.quests[id]?.rewardClaimed || j.completions.some(r => r.id === id)) return;
+  j.completions.push({ id, nameTh: def.nameTh, descTh: def.descTh,
+    objectives: questObjectives(def).map(o => ({ labelTh: o.labelTh || def.objectiveTextTh || def.descTh, count: o.count })),
+    reward: JSON.parse(JSON.stringify(reward)) });
+}
+/** Dismiss only the currently presented receipt. Stale/double dismissals are harmless. */
+export function dismissQuestCompletion(ch, id) {
+  const queue = ch.progress?.questJournal?.completions;
+  if (!queue?.length || queue[0].id !== id) return false;
+  queue.shift();
+  return true;
 }
 function stateFor(ch, def, id) {
   const st = questState(ch, id);

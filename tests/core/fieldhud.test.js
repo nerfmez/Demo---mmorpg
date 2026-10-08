@@ -14,7 +14,7 @@ test('all combat and movement skills retain authored content-specific illustrati
 test('HUD uses content-specific skill art rather than generic glyphs',()=>{
  const input=readFileSync(new URL('../../src/ui/input.js',import.meta.url),'utf8');
  assert.ok(input.includes("s ? art('skill',s.id) : icon('plus')"));
- assert.ok(input.includes("innerHTML = art('skill',mv.id);"));
+ assert.ok(input.includes("ownsMovement ? art('skill',mv.id) : icon('plus')"));
  assert.ok(!input.includes('skillSymbol('));
 });
 test('field progress follows real EXP and independent Job EXP; caps show MAX',()=>{

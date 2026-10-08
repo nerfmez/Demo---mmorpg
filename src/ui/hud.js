@@ -55,9 +55,9 @@ export class Hud {
       topright: h(`<div class="topright">
         <div class="map-cluster"><div class="quick-actions"><button class="iconbtn menu-toggle" aria-label="เปิดเมนูหลัก" aria-haspopup="dialog" title="เมนู · Esc">${fieldIcon('menu')}<span class="menu-label">เมนู</span></button></div>
         <button class="minimap" aria-label="เปิดแผนที่โลก" title="แผนที่ · M"><canvas width="300" height="300"></canvas><span class="map-north" aria-hidden="true">N</span><span class="map-open">${fieldIcon('map')}</span></button></div>
-        <div class="location-chip passive"></div>
-        <div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><span class="quest-count"></span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
-        <button class="questtrack" id="quest-detail" aria-label="เปิดสมุดภารกิจ"></button></div></div>`),
+        <div class="location-chip passive"></div></div>`),
+      quest: h(`<div class="quest-widget"><div class="quest-heading"><span>ภารกิจติดตาม</span><span class="quest-count"></span><button class="quest-collapse" aria-label="ย่อภารกิจ" aria-expanded="true" aria-controls="quest-detail">−</button></div>
+        <button class="questtrack" id="quest-detail" aria-label="แสดงหรือซ่อนเส้นทางภารกิจ" aria-pressed="false"></button></div>`),
       zone: h(`<div class="zonebanner passive"><div class="zd"></div><div class="zn"></div><div class="zs"></div></div>`),
       boss: h(`<div class="bossbar passive"><div class="bn"></div><div class="bar"><i class="fill"></i><span></span></div></div>`),
       floats: h(`<div class="floats passive"></div>`),
@@ -69,6 +69,9 @@ export class Hud {
       hurt: h(`<div class="hurtveil passive"></div>`),
     };
     for (const k in this.el) root.appendChild(this.el[k]);
+    this.leftColumn = h('<div class="left-column"></div>');
+    this.leftColumn.append(this.el.frame, this.el.quest);
+    root.append(this.leftColumn);
     // EXP and Job EXP run along the very bottom edge of the screen (outside the HUD box)
     this.xp = h(xpMarkup());
     document.body.appendChild(this.xp);
@@ -96,11 +99,11 @@ export class Hud {
     this.menuToggle.addEventListener('click', () => this.onPanel?.('menu'));
     this.el.frame.addEventListener('click', () => this.onPanel?.('char'));
     this.el.topright.querySelector('.minimap').addEventListener('click', () => this.onPanel?.('map'));
-    this.questWidget = this.el.topright.querySelector('.quest-widget');
-    this.questToggle = this.el.topright.querySelector('.quest-collapse');
+    this.questWidget = this.el.quest;
+    this.questToggle = this.el.quest.querySelector('.quest-collapse');
     this.questToggle.addEventListener('click', () => this.setQuestCollapsed(!this.questCollapsed));
     this.setQuestCollapsed(loadPref('questCollapsed', 'false') === 'true');
-    this.tracker = this.el.topright.querySelector('.questtrack');
+    this.tracker = this.el.quest.querySelector('.questtrack');
     this.map = worldMapImage(game.worlds || { [game.data.world.id]: game.world });
   }
 
@@ -256,7 +259,7 @@ export class Hud {
     this.questPos = questTarget(g, id);
     const html = trackerMarkup(g, id, this.questPos);
     const active = [...d.quests.main, ...d.quests.side].filter(key => g.ch.progress.quests[key]?.status === 'active').length;
-    const counter = this.el.topright.querySelector('.quest-count');
+    const counter = this.el.quest.querySelector('.quest-count');
     const countText = active ? `1 / ${active}` : '✓';
     if (counter.textContent !== countText) counter.textContent = countText;
     if (html !== this.lastTracker) {
@@ -377,9 +380,6 @@ export class Hud {
         if (e.level === d.progression.job.jobChoiceLevel) this.banner('เลือก Job ได้แล้ว!', 'เปิด Job Tree (J) แล้วเลือกสายที่เข้ากับ Build');
         break;
       case 'questDone': {
-        const q = d.quests.quests[e.id];
-        this.banner(`ภารกิจสำเร็จ: ${q.nameTh}`, `รางวัล ${rewardText(d, e.reward)}`, 'quest');
-        this.toast(`✔ ${q.nameTh}`, '#ffd166');
         this.lastTracker = null;
         break;
       }

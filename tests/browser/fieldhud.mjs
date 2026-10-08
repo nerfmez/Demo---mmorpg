@@ -30,6 +30,7 @@ try {
    for(const s in g.ch.stats)g.ch.stats[s]=20;
    g.ch.slots=[{skill:'slash',mods:[]},{skill:'frost_nova',mods:[]},{skill:'whirl_blade',mods:[]},{skill:'ward',mods:[]}];
    for(const {skill}of g.ch.slots)g.ch.skills[skill]=1;
+   g.ch.movementSkills=['dash','roll'];g.ch.movement='dash';
    g.refresh(true);g.player.hp=Math.round(g.player.maxHp*.82);
    Object.assign(g.player,g.freeSpotNear(-79,4));g.player.facing=1.1;
    const wolves=g.monsters.filter(m=>m.type==='thornback_wolf').slice(0,3);
@@ -57,7 +58,7 @@ try {
   const expectedArt=Object.fromEntries([...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)].map(id=>[id,art('skill',id)]));
   const verifiedArt=await page.evaluate(async expected=>{
     const f=window.__frontier,g=f.game;
-    const saved={slots:g.ch.slots.map(s=>({...s,mods:[...s.mods]})),skills:{...g.ch.skills},movement:g.ch.movement};
+    const saved={slots:g.ch.slots.map(s=>({...s,mods:[...s.mods]})),skills:{...g.ch.skills},movement:g.ch.movement,movementSkills:[...g.ch.movementSkills]};
     let checked=0;
     const check=async(button,id)=>{
       const template=document.createElement('template');template.innerHTML=expected[id];
@@ -78,10 +79,10 @@ try {
         await check(f.input.buttons[0],id);
       }
       for(const id of Object.keys(g.data.skills.movement)){
-        g.ch.movement=id;g.refresh();f.input.refreshButtons();await check(f.input.moveBtn,id);
+        g.ch.movement=id;g.ch.movementSkills=[...new Set([...g.ch.movementSkills,id])];g.refresh();f.input.refreshButtons();await check(f.input.moveBtn,id);
       }
     } finally {
-      g.ch.slots=saved.slots;g.ch.skills=saved.skills;g.ch.movement=saved.movement;g.refresh();f.input.refreshButtons();
+      g.ch.slots=saved.slots;g.ch.skills=saved.skills;g.ch.movement=saved.movement;g.ch.movementSkills=saved.movementSkills;g.refresh();f.input.refreshButtons();
     }
     return checked;
   },expectedArt);

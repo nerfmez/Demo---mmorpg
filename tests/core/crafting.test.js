@@ -1,7 +1,7 @@
+import { createLearnedCharacter as createCharacter } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
-import { createCharacter } from '../../src/core/character.js';
 import { craft, rollDrops, upgradeGear, upgradeSkill, sellMaterial, craftBatch, promoteGear, gearUpgradeCost, skillUpgradeCost, gearGradeState } from '../../src/core/crafting.js';
 import { createRng } from '../../src/core/rng.js';
 

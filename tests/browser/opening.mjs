@@ -51,6 +51,19 @@ try {
   }
   if(!touch){await page.locator('.questtrack').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('.questtrack').getAttribute('aria-pressed'),'true');await page.keyboard.press('Enter');}
   await resume();await check();console.log('PASS create/reload',size,kit);
+  // The ordinary empty movement slot must also open every loadout view safely.
+  await page.evaluate(()=>__frontier.panels.open('skills'));
+  assert.equal(await page.locator('.movement-bar .empty-mark').count(),1);
+  assert.equal(await page.locator('.movement-bar b').textContent(),'ว่าง');
+  if(height<=width){
+    await activate('[data-action="category"][data-id="movement"]');
+    assert.equal(await page.locator('.skill-grid .inventory-cell.locked').count(),Object.keys(data.skills.movement).length);
+    await activate('[data-action="apply"]');await check();
+    await shot('unlearned-movement');
+  }
+  await page.evaluate(()=>__frontier.panels.open('mods'));await check();
+  await page.evaluate(()=>__frontier.panels.close());
+  await check();
   if(kit!=='staff'){assert.deepEqual(errors,[]);reports.push({size,kit,ordinaryCreation:true});writeFileSync(out+'report.json',JSON.stringify(reports,null,2));await ctx.close();continue;}
   // Pay two quests in one frame; UI cannot lose or replace either completion.
   const paid=await page.evaluate(()=>{const g=__frontier.game;for(const target of ['salt_slime','reef_crab'])for(let i=0;i<3;i++)g.notify({type:'kill',target});__frontier.save();return {gold:g.ch.gold,skills:{...g.ch.skills},materials:{...g.ch.materials},exp:g.ch.exp,jobExp:g.ch.jobExp,ids:g.ch.progress.questJournal.completions.map(r=>r.id)};});

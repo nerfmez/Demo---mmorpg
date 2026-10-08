@@ -12,7 +12,7 @@ test('Atlas portraits cover every live spawn, boss and map-qualified region',()=
   for(const spawn of [...map.spawns,...map.bosses])monsters.add('monster/'+spawn.monster);
   for(const zone of map.zones)regions.push('region/'+map.id+'/'+zone.id);
  }
- assert.equal(monsters.size,18);assert.equal(regions.length,17);
+ assert.equal(monsters.size,21);assert.equal(regions.length,22); // + Moonroot Grove: 3 monsters, 5 regions
  assert.deepEqual(Object.keys(MONSTER_PORTRAITS).sort(),[...monsters].sort());
  assert.deepEqual(Object.keys(REGION_PORTRAITS).sort(),regions.sort());
  assert.deepEqual(Object.keys(SHARED_MONSTER_PORTRAITS).sort(),['salt_slime','tusk_boar','thornback_wolf','greyfang','reed_viper','marsh_wisp'].map(id=>'monster/'+id).sort());

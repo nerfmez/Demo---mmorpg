@@ -16,7 +16,7 @@ try{
  await page.waitForFunction(()=>window.__frontier?.game,null,{timeout:60000});
  await page.evaluate(()=>{__frontier.paused=true;__frontier.panels.open('map');});
  const regions=await page.locator('.region-card').evaluateAll(es=>es.map(e=>e.dataset.id));
- assert.equal(regions.length,17);
+ assert.equal(regions.length,22); // Azure 8 + Frontier 9 + Moonroot Grove 5
  const seen=new Set();
  for(const region of regions){
   // Exercise the existing select-zone control, including same zone IDs on different maps.
@@ -35,7 +35,7 @@ try{
   assert.ok(result.bossPins,region+' approved Greyfang identity and retained other boss pins');
   result.actual.forEach(id=>seen.add(id));report.regions.push({region,monsters:result.actual});
  }
- assert.equal(seen.size,18);
+ assert.equal(seen.size,21); // + the three Moonroot Grove monsters
  for(const [name,width,height] of [['desktop',1440,960],['ipad',1180,820],['mobile-landscape',844,390],['mobile-portrait',390,844]]){
   await page.setViewportSize({width,height});
   // The live WebGL canvas handles resize on the next render frame.
@@ -54,5 +54,5 @@ try{
  assert.deepEqual(errors,[]);assert.deepEqual(badImages,[]);
  report.monsterCount=seen.size;report.engine='Chromium';report.webkit='Unavailable in this environment; no physical iPad claim';
  writeFileSync(out+'report.json',JSON.stringify(report,null,2)+'\n');
- console.log('PASS Atlas: 17 regions, 18 portraits, four viewports, zero page/image errors.');
+ console.log('PASS Atlas: 22 regions, 21 portraits, four viewports, zero page/image errors.');
 }finally{await browser.close();}

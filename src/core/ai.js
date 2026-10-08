@@ -217,14 +217,16 @@ function startWindup(game, m, name, t, extra = {}) {
 function windup(game, m, dt, t, gap) {
   const w = m.windup;
   const atk = m.def.attacks[w.name];
+  // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
+  const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake'].includes(w.name)) {
+  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
   if (m.stateT < w.total) return;
   const dmg = m.damage * (atk.damageMult || 1);
-  switch (w.name) {
+  switch (kind) {
     case 'slap':
     case 'peck':
     case 'pinch':
@@ -312,6 +314,18 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'erupt': {
+      // the mole dug toward the marked spot during the wind-up; it surfaces there as the ground bursts
+      // (the area was spawned at wind-up start and fires by itself)
+      const spot = game.freeSpotNear ? game.freeSpotNear(w.tx, w.tz) : { x: w.tx, z: w.tz };
+      if (!game.isSafe(spot.x, spot.z)) {
+        game.emit({ type: 'surface', id: m.id, fromX: m.x, fromZ: m.z, x: spot.x, z: spot.z });
+        m.x = spot.x;
+        m.z = spot.z;
+      }
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
+    }
     case 'quake':
       // the eruptions were marked along the line at wind-up start and go off one after another
       m.cd.quake = atk.cooldown;
@@ -327,10 +341,11 @@ function windup(game, m, dt, t, gap) {
       return setState(m, 'recover', atk.recover);
     }
     case 'puff': {
-      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'spore_cloud', x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: atk.duration, tick: 0.5, damage: atk.dps * 0.5 * (1 + (m.level - 1) * 0.14) });
-      m.cd.puff = atk.cooldown;
-      // hop away from the cloud
+      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: atk.areaKind || 'spore_cloud', x: m.x, z: m.z, radius: atk.radius, delay: 0, duration: atk.duration, tick: 0.5, damage: atk.dps * 0.5 * (1 + (m.level - 1) * 0.14) });
+      m.cd[w.name] = atk.cooldown;
+      // hop away from the cloud (a sporecap); a flyer simply drifts on
       const hop = m.def.attacks.hop;
+      if (!hop || hop.kind) return setState(m, 'recover', atk.recover || 0.4);
       const away = t ? angleTo(t.x, t.z, m.x, m.z) : m.facing + Math.PI;
       m.charge = { t: 0, dur: hop.duration, speed: hop.distance / hop.duration, angle: away + game.rng.range(-0.6, 0.6), hit: new Set(), dmg: 0, hop: true };
       setState(m, 'act');
@@ -422,7 +437,7 @@ function act(game, m, dt, t) {
     m.x = c.fromX + (c.toX - c.fromX) * k;
     m.z = c.fromZ + (c.toZ - c.fromZ) * k;
     if (k >= 1) {
-      const name = m.windup?.name === 'pounce' ? 'pounce' : 'dive', atk = m.def.attacks[name];
+      const name = m.windup?.name && m.def.attacks[m.windup.name] ? m.windup.name : 'dive', atk = m.def.attacks[name];
       m.charge = null;
       m.cd[name] = atk.cooldown;
       setState(m, 'recover', atk.recover);
@@ -692,4 +707,43 @@ function sentinel(game, m, dt, { t, gap, dToT, slowMult }) {
   }
 }
 
-const BEHAVIORS = { mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };
+/** Fern-ear Hare: bounds around the target, leaps onto a marked spot, kicks up close and springs back. */
+function hare(game, m, dt, { t, gap, dToT, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.kick.range && m.cd.kick <= 0) return startWindup(game, m, 'kick', t);
+  if (m.cd.hop <= 0 && gap >= a.hop.minRange && gap <= a.hop.range) {
+    startWindup(game, m, 'hop', t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pounce', x: t.x, z: t.z, radius: a.hop.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * a.hop.damageMult });
+    return;
+  }
+  const [near, far] = m.def.circle;
+  if (m.cd.kick > 0.6 && m.cd.hop > 0.8) return strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
+  walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+}
+
+/** Mirrorwing Moth: hovers at range, flashes a mirror glint along a line, sheds stinging scale dust up close. */
+function moth(game, m, dt, { t, gap, dToT, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.scale_dust.range && m.cd.scale_dust <= 0) return startWindup(game, m, 'scale_dust', t);
+  if (m.cd.glint <= 0 && dToT <= a.glint.maxRange) return startWindup(game, m, 'glint', t);
+  const [near, far] = m.def.keepDistance;
+  strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
+}
+
+/** Rootdigger Mole: claws up close; from range it digs under and bursts out of a marked spot. */
+function mole(game, m, dt, { t, gap, slowMult }) {
+  const a = m.def.attacks;
+  if (gap <= a.swipe.range && m.cd.swipe <= 0) return startWindup(game, m, 'swipe', t);
+  if (m.cd.erupt <= 0 && gap >= a.erupt.minRange && gap <= a.erupt.range && !game.isSafe(t.x, t.z)) {
+    startWindup(game, m, 'erupt', t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'erupt', x: t.x, z: t.z, radius: a.erupt.radius, delay: m.windup.total, duration: 0.3, damage: m.damage * a.erupt.damageMult });
+    return;
+  }
+  if (gap > a.swipe.range * 0.8) walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
+  else {
+    m.moving = false;
+    turnToward(m, angleTo(m.x, m.z, t.x, t.z), dt, 4);
+  }
+}
+
+const BEHAVIORS = { hare, moth, mole, mantis, viper, ram, stalker, sentinel, charger, coastal_melee: coastalMelee, coastal_slime: coastalSlime, coastal_skirmisher: coastalMelee, shell_spitter: shellSpitter, kiter, pack_wolf: packWolf, greyfang, spore, golem, hawk, warden_boss: wardenBoss };

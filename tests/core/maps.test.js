@@ -16,7 +16,7 @@ const step = (g, seconds) => { for (let i = 0; i < seconds * 60; i++) g.update(1
 const global = (id, x, z) => [x + data.maps[id].atlas.offset[0], z + data.maps[id].atlas.offset[1]];
 
 test('maps are registered by id and meet along open seams that agree in world space', () => {
-  assert.deepEqual(Object.keys(data.maps), [AZURE, FRONTIER]);
+  assert.deepEqual(Object.keys(data.maps), [AZURE, FRONTIER, 'moonroot-grove-v1']);
   assert.equal(data.world, data.maps[AZURE], 'the starting map is played by default');
   const view = { ...data };
   assert.equal(selectMap(view, FRONTIER), data.maps[FRONTIER]);
@@ -40,10 +40,12 @@ test('maps are registered by id and meet along open seams that agree in world sp
         const [px, pz] = seam.alongX ? [x, z + seam.outward * 12] : [x + seam.outward * 12, z];
         assert.ok(world.terrainY(px, pz) < world.terrainY(x, z) + 1.5, `${id} no wall past the seam at ${along}`);
       }
-      // The border road is walkable on both sides and its gates are one world point.
+      // The gate is walkable on both sides and one world point; a road reaches it from at least one
+      // side (Moonroot Grove's trails end at open grass on the Azure/Frontier side, whose layouts stay untouched).
       assert.deepEqual(global(id, ...seam.gate), global(seam.to, ...back.gate));
-      const [gx, gz] = seam.gate, step = seam.alongX ? [0, -seam.outward * 2] : [-seam.outward * 2, 0];
-      assert.ok(world.isFree(gx + step[0], gz + step[1], 0.45) && world.roadDist(gx + step[0], gz + step[1]) < 1, id + ' border road');
+      const inside = (w, s) => { const [gx, gz] = s.gate, step = s.alongX ? [0, -s.outward * 2] : [-s.outward * 2, 0]; return [gx + step[0], gz + step[1]]; };
+      assert.ok(world.isFree(...inside(world, seam), 0.45), id + ' border gate is walkable');
+      assert.ok(world.roadDist(...inside(world, seam)) < 1 || there.roadDist(...inside(there, back)) < 1, id + ' border road');
     }
   }
 });

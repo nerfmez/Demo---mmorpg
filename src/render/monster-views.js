@@ -166,6 +166,8 @@ export function syncMonsterViews(view, dt, time) {
       mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);
       mv.halo.scale.setScalar((r.glowScale || 1.9) * r.baseScale);
     }
+    // a mole digging in throws up earth for the whole wind-up
+    if (m.windup?.name === 'erupt' && m.state === 'windup' && Math.random() < dt * 14) view.vfx.digDust(m.x, m.z, 1);
     // status sparkles
     if (m.statuses?.burn && Math.random() < dt * 8) view.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 1.2, 0, { color: 0xff9a40, size: 0.22, life: 0.5 });
     if (m.statuses?.poison && Math.random() < dt * 6) view.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 0.8, 0, { color: 0xa8e04a, size: 0.2, life: 0.6 });

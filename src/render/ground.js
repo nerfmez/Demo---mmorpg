@@ -137,7 +137,7 @@ export function* surfaceSteps(world) {
         }
         else {dirt[k]=Math.max(dirt[k],patch*.72);road[k]=Math.max(road[k],patch*.38);}
       }
-      if (ruins) {
+      if (ruins && ruins.paving !== false) { // a grassy stone ring opts out of the paved floor
         const rd = Math.hypot(x - ruins.centre[0], z - ruins.centre[1]);
         stone[k] = Math.max(stone[k], 1 - smooth(ruins.ringRadius + 0.5, ruins.ringRadius + 2.5, rd));
       }

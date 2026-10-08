@@ -852,3 +852,33 @@ simulation; dead/travel/zero-dt/prohibited frames do not consume. Empty stock
 produces no failure notifications. Successful potion events save the real spend.
 The existing shop page owns separate touch controls for both rules; its shopping
 location restrictions remain intact. No free items or changed potion balance.
+
+### Moonroot Grove (third linked map, levels 6-10)
+
+`data/maps/moonroot-grove.json` (id `moonroot-grove-v1`) fills the strip north of Azure Coast and
+east of the Frontier's north: global x -160..210, z -237..-120 (`atlas.offset` [25, -178.5]). Seams:
+its `minX` meets the Frontier's `maxX` over Frontier local z -144..-27 (a second seam on that edge),
+its `maxZ` meets Azure's `minZ` over the whole Azure width. Profiles were written with
+`node scripts/atlas-seams.mjs --missing`, which fills only seams whose profile is empty and leaves the
+rest of each file byte-identical. Region ownership (`render/region-ownership.js`) is per seam plane,
+so the three maps partition the corner at global (-160, -120). The grove's trails reach both gates;
+the Azure/Frontier sides stay open grass (no layout change there).
+
+Layout data used here: `ruins.zone` (the zone strewn with fallen stones, default `ruins`),
+`ruins.scatter` (tries, default 90), `ruins.paving: false` (a grassy ring, no paved floor);
+`town.trees` for the elder tree in the ring; `town.surfaces` with a `dirt` polygon so the camp has no
+cobbled plaza. Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
+`rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`.
+
+Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
+planted `claw` strike, its `hop` a marked `pounce`; the moth's `glint` is a `beam`, its `scale_dust`
+a `puff` whose cloud is `areaKind: 'mirror_dust'`; the mole's `swipe` is a `sweep`). Names stay
+their own for cooldowns, telegraph lookups and looks. New mechanic `erupt` (mole): an `erupt` area is
+marked at the target for the whole wind-up; the mole sinks (render) and surfaces at that spot as it
+bursts (`surface` event); it never digs into a safe zone. In Godot: the same state machine, a dig/emerge
+`AnimationPlayer` clip and a teleport at the burst.
+
+Art: `scripts/split-moonroot-art.py` cuts the owner's concept sheets (`assets/moonroot/*.jpg`) into
+atlas portraits (`public/assets/icons/monster|region/...`, registered in `raster-icons.js` and the
+atlas manifests) and item pictures (`public/assets/moonroot/...`) drawn inside the authored SVG frame
+(`ui/art.js`), with every crop and hash in `assets/moonroot/manifest.json`.

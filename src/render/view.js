@@ -539,6 +539,10 @@ export class View {
       case 'blinkPlayer':
         v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
         break;
+      case 'surface':
+        v.digDust(e.fromX, e.fromZ, 10);
+        v.digDust(e.x, e.z, 14);
+        break;
       case 'blink':
         v.blink(e.fromX, e.fromZ, e.x, e.z, 0x8fe4ff);
         break;

@@ -20,7 +20,10 @@ export const MONSTER_PORTRAITS = Object.freeze({
  "monster/reed_viper": "assets/icons/monster/reed_viper.png",
  "monster/ironhorn_ram": "assets/icons/monster/ironhorn_ram.png",
  "monster/duskmane_stalker": "assets/icons/monster/duskmane_stalker.png",
- "monster/rune_sentinel": "assets/icons/monster/rune_sentinel.png"
+ "monster/rune_sentinel": "assets/icons/monster/rune_sentinel.png",
+ "monster/fern_ear_hare": "assets/icons/monster/fern_ear_hare.png",
+ "monster/mirrorwing_moth": "assets/icons/monster/mirrorwing_moth.png",
+ "monster/rootdigger_mole": "assets/icons/monster/rootdigger_mole.png"
 });
 export const SHARED_MONSTER_PORTRAITS = Object.freeze(Object.fromEntries(
  ['salt_slime','tusk_boar','thornback_wolf','greyfang','reed_viper','marsh_wisp']
@@ -43,7 +46,12 @@ export const REGION_PORTRAITS = Object.freeze({
  "region/frontier-wilds-v1/wetland": "assets/icons/region/frontier-wilds-v1/wetland.png",
  "region/frontier-wilds-v1/highlands": "assets/icons/region/frontier-wilds-v1/highlands.png",
  "region/frontier-wilds-v1/coast": "assets/icons/region/frontier-wilds-v1/coast.png",
- "region/frontier-wilds-v1/ruins": "assets/icons/region/frontier-wilds-v1/ruins.png"
+ "region/frontier-wilds-v1/ruins": "assets/icons/region/frontier-wilds-v1/ruins.png",
+ "region/moonroot-grove-v1/settlement": "assets/icons/region/moonroot-grove-v1/settlement.png",
+ "region/moonroot-grove-v1/stone_ring": "assets/icons/region/moonroot-grove-v1/stone_ring.png",
+ "region/moonroot-grove-v1/fern_rise": "assets/icons/region/moonroot-grove-v1/fern_rise.png",
+ "region/moonroot-grove-v1/mirror_pond": "assets/icons/region/moonroot-grove-v1/mirror_pond.png",
+ "region/moonroot-grove-v1/root_warren": "assets/icons/region/moonroot-grove-v1/root_warren.png"
 });
 export const RASTER_ICONS = Object.freeze({
  "material/mantis_scythe": "assets/icons/material/mantis_scythe.png",

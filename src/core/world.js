@@ -292,9 +292,10 @@ export function createWorld(worldData) {
       if (roadDist(x, z) < 1.5) continue; // keep entrances open
       addCircle({ x, z, r: 0.9, type: rng.chance(0.4) ? 'pillar_broken' : 'pillar', scale: rng.range(0.9, 1.15), rot: rng.range(0, 6.28) });
     }
-    const rz = zoneById('ruins');
+    // ruins.zone names the zone strewn with fallen stones (default 'ruins'); ruins.scatter how many tries
+    const rz = zoneById(ruins.zone || 'ruins');
     const rr = rz.rects[0];
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < (ruins.scatter ?? 90); i++) {
       const x = rng.range(rr[0] + 2, rr[1] - 2);
       const z = rng.range(rr[2] + 2, rr[3] - 2);
       const kind = rng.next();
@@ -321,7 +322,8 @@ export function createWorld(worldData) {
       const [bx, bz] = pts[s + 1];
       const za = zoneAt(ax, az).id;
       const zb = zoneAt(bx, bz).id;
-      if (za !== 'ruins' && zb === 'ruins') {
+      const ruinZone = ruins?.zone || 'ruins';
+      if (za !== ruinZone && zb === ruinZone) {
         // find where the segment enters the ruins rect, put an arch a little inside
         const t = 0.8;
         const x = ax + (bx - ax) * t;

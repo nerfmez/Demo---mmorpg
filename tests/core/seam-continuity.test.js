@@ -17,10 +17,12 @@ test('shared terrain profile aligns at the coast and through the whole open span
  const at=80,[bx,bz]=fromGlobal(FRONTIER,[-160,at]);assert.equal(a.terrainY(-160,at),b.terrainY(bx,bz));
 });
 
-test('both maps partition the entire shared edge: middle, closed ends and water apron',()=>{
- const a=worlds[AZURE],b=worlds[FRONTIER];
- for(const z of [-240,-120,-80,0,80,140,230])for(const x of [-200,-160.01,-159.99,-120]){
-  const [ax,az]=fromGlobal(AZURE,[x,z]),[bx,bz]=fromGlobal(FRONTIER,[x,z]);assert.notEqual(ownsRegionPoint(a,ax,az),ownsRegionPoint(b,bx,bz),`${x},${z}`);
+test('the linked maps partition every shared edge: middle, closed ends and water apron',()=>{
+ // Azure, the Frontier and Moonroot Grove (north of Azure, east of the Frontier) meet at one corner:
+ // every world point near the edges belongs to exactly one map's scene.
+ const ids=Object.keys(worlds);
+ for(const z of [-240,-180,-121,-119,-80,0,80,140,230])for(const x of [-200,-160.01,-159.99,-120,0,150]){
+  const owners=ids.filter(id=>ownsRegionPoint(worlds[id],...fromGlobal(id,[x,z])));assert.equal(owners.length,1,`${x},${z}: ${owners}`);
  }
 });
 

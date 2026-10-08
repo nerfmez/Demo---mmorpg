@@ -1,6 +1,6 @@
 // Data-accurate field guide and map of the whole world. Selections never travel immediately.
 // Habitat locations, population counts and level ranges come from the simulation's layout.
-import { art, atlasMonsterArt, atlasRegionArt } from './art.js';
+import { art, hasArt, atlasMonsterArt, atlasRegionArt } from './art.js';
 import { icon } from './icons.js';
 import { worldMapImage } from './mapimage.js';
 import { questTarget } from './hud.js';
@@ -79,7 +79,7 @@ export function atlasView(ui) {
    ${guide?`<p class="muted" style="overflow-wrap:anywhere">เส้นทางแนะนำ: ${esc(guide.routeText)}</p>`:''}
    <div class="section-heading"><h3>เลือกพื้นที่</h3><span>แตะดูมอนและวัตถุดิบ</span></div><div class="region-grid">${cards}</div>
  </div><aside class="region-detail">
-   <div class="region-cover">${art('zone',zone.id)}<div><span class="section-kicker">${zone.safe?'SETTLEMENT':'EXPLORATION'}</span><h3>${zone.nameTh}</h3><small>${zone.name}</small></div></div>
+   <div class="region-cover">${hasArt('zone',zone.id)?art('zone',zone.id):atlasRegionArt(zoneMap,zone.id)}<div><span class="section-kicker">${zone.safe?'SETTLEMENT':'EXPLORATION'}</span><h3>${zone.nameTh}</h3><small>${zone.name}</small></div></div>
    <div class="region-detail-body"><div class="section-heading"><span class="level-pill">${zone.safe?'เขตปลอดภัย':encounterLevelLabel(entries)}</span><small>${known?'สำรวจแล้ว':'ยังไม่สำรวจ'}</small></div>
    ${warning?`<p class="no" role="note">${esc(warning)}</p>`:''}${missing?`<p class="no" role="status">จุดเกิดไม่ครบ ${missing} จุด · รายชื่อด้านล่างแสดงเฉพาะที่เกิดได้จริง</p>`:''}
    ${wp?`<div class="travel-card"><b>${wp.nameTh}</b><small>${unlocked?'เปิดใช้แล้ว · เดินทางได้เมื่อพ้นการต่อสู้':'เดินไปแตะหินนี้เพื่อเปิดใช้'}</small><button class="btn primary" data-act="teleport" data-id="${wp.id}" data-map="${wpAt}" ${unlocked?'':'disabled'}>${icon('portal')} เดินทางไปที่นี่</button></div>`:'<p class="muted">พื้นที่นี้ไม่มีหินวาร์ป · เดินตามถนนเข้าไป</p>'}

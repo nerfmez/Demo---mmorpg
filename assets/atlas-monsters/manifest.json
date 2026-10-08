@@ -515,6 +515,84 @@
         1024
       ],
       "sha256": "fae21e8b2ca303be43a952ddb6c8e7a67d3e4a369f06b2ba6fd00e0cf6f97270"
+    },
+    {
+      "path": "assets/moonroot/rootdigger_mole_concept.jpg",
+      "sha256": "adf2e71b5dd8073df65b071b745fd9025299d085a85358864c815fe4ea4139b4",
+      "source": "owner concept (Moonroot Grove)",
+      "cells": [
+        {
+          "id": "rootdigger_mole",
+          "path": "public/assets/icons/monster/rootdigger_mole.png",
+          "source_bounds": [
+            10,
+            130,
+            1030,
+            950
+          ],
+          "sha256": "161a8ef4228113995c1c89382d03553653ff6985dc71679ab965e9f44fb44721",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "path": "assets/moonroot/fern_ear_hare_concept.jpg",
+      "sha256": "7a69f4f13c41d8e53fb846149641ecc1532f44d22d2cc5b9d05a106ed98968f1",
+      "source": "owner concept (Moonroot Grove)",
+      "cells": [
+        {
+          "id": "fern_ear_hare",
+          "path": "public/assets/icons/monster/fern_ear_hare.png",
+          "source_bounds": [
+            40,
+            64,
+            700,
+            720
+          ],
+          "sha256": "58f85a9dd6447406968cb201d19a851fe609f0de8ca75e82b901c9a5ec33f328",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "path": "assets/moonroot/mirrorwing_moth_concept.jpg",
+      "sha256": "02253830e7a62a23708d1551a7d28044f72f2bc6c67fd104009ece06610a3d8b",
+      "source": "owner concept (Moonroot Grove)",
+      "cells": [
+        {
+          "id": "mirrorwing_moth",
+          "path": "public/assets/icons/monster/mirrorwing_moth.png",
+          "source_bounds": [
+            20,
+            70,
+            1100,
+            900
+          ],
+          "sha256": "ec35c606c2e5a0094d07c241506571b20c42c5ba98024de2d8c48729a401d097",
+          "dimensions": [
+            256,
+            256
+          ],
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      ]
     }
   ]
 }

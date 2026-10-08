@@ -8,6 +8,7 @@ import { RigBuilder, damp, clamp01, Spring } from './rig.js';
 import { monsterModel } from './models.js';
 import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
+import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
@@ -747,9 +748,10 @@ const BUILDERS = {
   gale_hawk: [buildHawk, animHawk],
   horned_warden: [buildWarden, animWarden],
   ...MIDHIGH_BUILDERS,
+  ...GROVE_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;

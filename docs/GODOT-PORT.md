@@ -56,16 +56,13 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 ## What gets rebuilt (presentation)
 
-Graphics preferences are presentation-only (`data/rendering.json`). Economy draws
-35% of original grass clumps, 30% ambient particles, no real-time shadows/post,
-and a 0.85 pixel ratio with a 0.5 floor; Low can adapt below CSS resolution to 0.67.
-HUD and touch coordinates stay at native CSS size. Explicit preferences win over
-phone/low-memory defaults. Keep the original grass sources and wind envelope:
-reject whole off-camera chunks before per-clump compaction, preserve baked colours,
-and restore full density when changing tier. Streaming Economy uses one shared
-3 ms cooperative CPU budget (individual steps can overrun; later readiness is a
-tradeoff). Godot equivalents: 3D viewport scaling, MultiMesh visible subsets and
-background build budgeting, with an unscaled CanvasLayer for controls.
+High-quality performance keeps the authored graphics settings. Grass uses a
+conservative whole-chunk wind envelope before the existing clump tests, retaining
+all visible instances and baked colours. Pooled particles upload only their live
+prefix (no uploads when empty), including all spawn/swap changes before a draw.
+Camera and cloth use reusable scratch vectors with unchanged animation math.
+Godot equivalents: conservative MultiMesh chunk rejection, live-prefix buffer
+updates and reusable simulation state; do not substitute reduced visual density.
 
 The web HUD portrait is asynchronous: prepare shaders then queue a GPU pixel
 readback, restore the borrowed render target **before** awaiting, retain owned
@@ -627,7 +624,7 @@ Skill and mod ranks are no longer gated by character level: only materials, gold
 
 `render/static-batch.js` runs once after the scenery is built and the water contact is baked. Static meshes whose materials are the shared toon colours, their outline hulls or the shared feature-edge lines are merged per 24 m map cell: each part's colour (and outline colour) becomes a vertex colour, so one vertex-coloured toon material and one outline material draw a whole cell, and a surface and its hull share one merged geometry. Wind-patched, walk-surface, transparent, instanced, skinned and moving objects (waypoint crystals) are left alone. Emptied groups are pruned and the static subtree's matrices frozen (`matrixAutoUpdate`/`matrixWorldAutoUpdate` false). In Godot, use merged static meshes per cell or MultiMesh with vertex colours; the look is identical.
 
-`render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or the preset's `minPixelRatio` (default 1), and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
+`render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or 1 device pixel per CSS pixel, and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
 
 `tests/browser/gpu-bench.mjs` times fixed scenes through to GPU completion and the CPU submission separately (SwiftShader: relative before/after only, not iPad FPS); it fails if any shader errors are logged.
 

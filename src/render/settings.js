@@ -5,15 +5,6 @@ export function qualitySettings(name) {
   const quality = Object.hasOwn(config.quality, name) ? name : 'medium';
   return {name:quality, ...config.quality[quality]};
 }
-/** World buffer only; CSS HUD and input coordinates stay at native layout size. */
-export function renderPixelRatio(name, deviceRatio = 1, scale = 1) {
-  const q = qualitySettings(name), base = Math.min(deviceRatio || 1, q.pixelRatio);
-  return Math.max(Math.min(q.minPixelRatio ?? 1, base), base * scale);
-}
-export function defaultQuality({coarse = false, width = 0, height = 0, memory} = {}) {
-  if (!coarse) return 'high';
-  return memory <= 4 || Math.min(width, height) < 600 ? 'economy' : 'medium';
-}
 export function lightingSettings(name = config.lighting.active) {
   if (!Object.hasOwn(config.lighting.profiles, name)) throw new RangeError('Unknown lighting profile: '+name);
   return {name, ...config.lighting.profiles[name]};

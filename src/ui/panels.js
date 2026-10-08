@@ -426,8 +426,8 @@ export class Panels {
     return `${this.lastResult ? `<div class="result-pop" style="margin:0 0 10px">${this.lastResult}</div>` : ''}
       <div class="card"><h3>เซฟ</h3>${saveCard}</div>
       <div class="card" style="margin-top:12px"><h3>กราฟิก</h3><div class="switch">
-        ${['economy', 'low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ economy: 'ประหยัด', low: 'ต่ำ', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}
-      </div><div class="muted" style="margin-top:6px">มือถือสเปคต่ำเลือก "ประหยัด": ปิดเงา ลดความละเอียดภาพ 3D หญ้าและบรรยากาศ · ตัวหนังสือและปุ่มยังคมชัด</div></div>
+        ${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}
+      </div><div class="muted" style="margin-top:6px">ถ้า iPad กระตุก ให้ลด "ต่ำ" (ปิดเงา ลดความละเอียด)</div></div>
       <div class="card" style="margin-top:12px"><h3>วิธีเล่น</h3><div class="muted" style="line-height:1.7">
         มือถือ/iPad: จอยซ้ายเดิน · แตะปุ่มสกิลเพื่อใช้กับเป้าอัตโนมัติ · ลากปุ่มสกิลเพื่อเล็ง แล้วปล่อยเพื่อใช้ หรือปล่อยในช่อง ✕ เพื่อยกเลิก · ปุ่มเคลื่อนที่แยกจากสกิลต่อสู้ (ปัดเพื่อเลือกทิศ) · สองนิ้วซูม<br>
         PC: WASD เดิน · เมาส์เล็ง · คลิกซ้าย/ขวาใช้สกิล 1/2 · 3,4 (หรือ Q,R) สกิลที่เหลือ · Space หลบ · I/K/J/C/L/M เมนู · E ใช้โต๊ะคราฟต์/หินวาร์ป<br>

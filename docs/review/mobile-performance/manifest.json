@@ -1,34 +1,77 @@
 {
-  "base": "036e6bca897eb2c0318b96dc239f1bd60fcaa7fa",
-  "runtime": {
-    "data/rendering.json": "c13f0e47150c673f3f213e1c15087f4fa9e7d956c9072d4b67a9dadcdaf26050",
-    "src/main.js": "d4f51fc51f8da6d5f634ce1857f3aeba37b4be24f217521868dea219f52c4a85",
-    "src/render/grass-culling.js": "ac59a0e8c939a40409348a8e2c47d9578c82e9a17c26c1ecc06373b85f2006e7",
-    "src/render/settings.js": "504ad4f33ff39a38468e896fd5311e8cbef1aea25e8065cb326caf312d8ee3e7",
-    "src/render/view.js": "013ad45a48251d03df7f46b9ea94cf1b4bd9d18b6f86068ba711889ea224a03c",
-    "src/ui/menu.js": "7b1b2578c83f81a189ce8c5a3ccb743bc0ce97f083e1a5c2c816874c2eea7b8a",
-    "src/ui/panels.js": "680e423ccfebf96cc5141affacc249b99f35b6014a12e19acc03420e3ded3891"
-  },
-  "built": {
-    "dist/assets/latin-400-CEw6hPUE.js": "7ba1a01656f1cc457d2455db76f2261e94c5daa3f4ffdc4361baf4973f22bd5a",
-    "dist/assets/main-BSADcTVK.js": "e44f9f46810a72906787395f418f03ab0d052e83d894e2ca7008114eb633c156",
-    "dist/assets/lab-CdYX-ThO.js": "a051637ee37fdcb8141b9ac8a3a7d5a983be843ab1feadafa073b20939f70fab"
+  "baseline": "036e6bca897eb2c0318b96dc239f1bd60fcaa7fa",
+  "sourceFiles": {
+    "src/render/view.js": "21e0ec99817274cc7f7f593c4156536ad940f8c495aa4d8b22a840a5d3792cad",
+    "src/render/grass-culling.js": "9ffda4a6aa3787b151d2058879d4b77eaf52289a2ecd1efc4d4d4babb14b7ba0",
+    "src/render/particles.js": "f04f2ab2a3fc8fc97c4560ee0218d6ef60b2b9c17afcffb4de2bc2d593261eca",
+    "src/render/ribbon.js": "39156822d22b36420f3a4d6a99a4e8f63bd1bd32af48180fe88538fb4e4f6446",
+    "src/main.js": "ce08c4a51f90f35f094f5e82af6c4f83dcd628188d2310123c17d8f795419408",
+    "data/rendering.json": "16580491cfcd83aa95017e405d4edf9e06c50d11f675a90c2158b19a7e3dad87"
   },
   "artifacts": {
-    "after.json": "5db28d94d9dd98c51233f8ccd56adb65af9f4e5e5301b6ef522420b85bd60a1d",
-    "exploratory.json": "f8bec40f59ba23113a704492fbc2dc2090e38fcd27afc3de75571741c31eca14",
-    "checks.json": "20d76120ca190602176671628c52a6a2c53d65c45cf5e2a0b812835c98592373",
-    "phone-settings.png": "41df3d604762c11e2b0fb128a8dcafe07e5a33c45797ab0de983ef8c6e82c8dc",
-    "phone-field.png": "b93833d14fe4757debcbb9a63a532bc227d1de5199417bff93787e9ef90d6a49",
-    "before.json": "62decc37f0fcc593d9150535b8f5802831b826df55b40c082258e94d6ae64503",
-    "ipad-settings.png": "1ea39eab4fe8e13c30bcb4f78bcf3afd6243cbe5faaf9afbe5a2974ba3e7f465",
-    "ipad-walking.png": "098e2c8058a77c30a3f5fcf670f0fa6f89c9c5674fc52f206acf4b4aa7216ee1"
+    "phone-high.png": "9555d473381cc242d3e2bae73c920638678befb1674938f0ade171a0d7738a20",
+    "desktop-high.png": "4ba3b8b938c4a3f3d99756ca163c4a78c70d3ebb55c16903e61d278e40a38363",
+    "ipad-high.png": "213ad681c5610e972c5f86f6d58a3aefe3676067d0c6bebeb1561810de773d69",
+    "report.json": "f10eaa3bd619818f1fb53de488598834eddbb8ff994f26a6fbe871ee9eeed5d0"
   },
-  "focusedTests": 22,
-  "core": {
-    "passed": 478,
-    "total": 479,
-    "isolatedQuestRoutePassed": 8
+  "review": {
+    "intent": "Preserve original High quality while reducing redundant CPU work and upload bandwidth",
+    "method": "Inspected exact final phone, iPad-sized and desktop-sized touch stills. Compared matched framebuffer bytes at High; deterministic original scarf-motion trace for vertices/normals and state. No continuous playback or physical-device claim.",
+    "views": [
+      {
+        "name": "phone",
+        "css": [
+          844,
+          390
+        ],
+        "buffer": [
+          1688,
+          780
+        ],
+        "dpr": 2
+      },
+      {
+        "name": "ipad",
+        "css": [
+          1180,
+          820
+        ],
+        "buffer": [
+          2360,
+          1640
+        ],
+        "dpr": 2
+      },
+      {
+        "name": "desktop",
+        "css": [
+          1280,
+          720
+        ],
+        "buffer": [
+          2560,
+          1440
+        ],
+        "dpr": 2
+      }
+    ],
+    "faultsFixed": "Capture harness initially suppressed the fullscreen resize rAF; corrected the harness, confirmed CSS and drawing-buffer sizes and inspected replacement captures. No game UI or quality change was needed.",
+    "decision": "Final static visuals preserve detailed grass, shadows, outlines, colour grade, HUD and touch layout in sampled views. Ready as a focused performance draft, subject to exact-head CI and physical-device performance limits."
   },
-  "browser": "Chromium141 SwiftShader; no physical-device FPS"
+  "validation": {
+    "fullCore": {
+      "passed": 480,
+      "failed": 0
+    },
+    "focused": {
+      "passed": 23,
+      "failed": 0
+    },
+    "build": "passed",
+    "matchedHighPixels": "0 changed channels in three sampled scenes",
+    "touch": "passed",
+    "portraitResources": "stable across two actual readbacks",
+    "githubCI": "pending for new head"
+  },
+  "harnessSha256": "b39c8291328d41574dd190250f0dd94cc5728d319525cc214128e2fdfa2b60bb"
 }

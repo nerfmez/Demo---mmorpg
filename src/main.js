@@ -7,7 +7,7 @@ import { Game } from './core/game.js';
 import { View } from './render/view.js';
 import { waitForRegionImports } from './render/region.js';
 import { useStartupTaskScheduling } from './render/build-queue.js';
-import { renderConfig, defaultQuality } from './render/settings.js';
+import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
 import { contactReady } from './render/fireball-v5-contact.js';
 import { frostReady } from './render/frost-v2.js';
@@ -36,7 +36,7 @@ const params = new URLSearchParams(location.search);
 const fresh = params.has('fresh');
 const coarse = matchMedia('(pointer: coarse)').matches;
 document.body.classList.toggle('touch', coarse);
-let quality = params.get('quality') || loadPref('quality', defaultQuality({coarse, width:innerWidth, height:innerHeight, memory:navigator.deviceMemory}));
+let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
 migrateLegacy();
 // One map is built per page. A trip through an exit (or loading a save from another

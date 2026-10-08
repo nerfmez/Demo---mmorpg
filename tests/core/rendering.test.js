@@ -2,24 +2,10 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {readFileSync} from 'node:fs';
-import {renderConfig,qualitySettings,lightingSettings,applyShadowQuality,renderPixelRatio,defaultQuality} from '../../src/render/settings.js';
+import {renderConfig,qualitySettings,lightingSettings,applyShadowQuality} from '../../src/render/settings.js';
 import {patchMaterial,attachWindShadow,timeUniform} from '../../src/render/patch.js';
 import {receivePaintedShadow,syncPaintedLighting,paintedLight} from '../../src/render/painted.js';
 const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
-test('weak-device preset lowers world-buffer work without scaling the CSS interface; explicit choices remain valid',()=>{
- assert.equal(renderPixelRatio('economy',2),.85);
- assert.equal(renderPixelRatio('economy',2,.67),.85*.67);
- assert.equal(renderPixelRatio('economy',2,.1),.5);
- assert.equal(renderPixelRatio('low',2,.67),.67);
- assert.equal(renderPixelRatio('high',2,.1),1);
- assert.equal(renderPixelRatio('economy',.4,.1),.4,'never increase a small device ratio to the floor');
- assert.equal(defaultQuality({coarse:true,width:844,height:390}),'economy');
- assert.equal(defaultQuality({coarse:true,width:1180,height:820}),'medium');
- assert.equal(defaultQuality({coarse:true,width:1180,height:820,memory:4}),'economy');
- assert.equal(defaultQuality({coarse:false,width:844,height:390,memory:4}),'high');
- assert.equal(qualitySettings('economy').post,false);assert.equal(qualitySettings('economy').shadowMapSize,0);
- assert.ok(qualitySettings('economy').grassFraction>0);
-});
 test('lighting has one explicit authoritative source; art layout and world do not override it',()=>{
  assert.equal(lightingSettings().name,'daylight');assert.equal(lightingSettings('legacy').name,'legacy');
  assert.throws(()=>lightingSettings('unknown'),RangeError);

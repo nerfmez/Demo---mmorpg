@@ -16,7 +16,7 @@ import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
-import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality, renderPixelRatio } from './settings.js';
+import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
 import { PostFX } from './post.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
@@ -47,8 +47,7 @@ export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
     this.ruleWorlds = worlds; // existing rule worlds also bound finite terrain margins
     this.game = null;
-    this.renderSettings = qualitySettings(quality);
-    this.quality = this.renderSettings.name;
+    this.quality = qualitySettings(quality).name;
     this.mode = 'title';
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: renderConfig.nativeAntialias, powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -164,7 +163,7 @@ export class View {
         });
       }
     }
-    this.buildQueue.budgetMs=this.streamBudgetMs??this.renderSettings.streamBudgetMs??STREAM_BUDGET_MS;
+    this.buildQueue.budgetMs=this.streamBudgetMs??STREAM_BUDGET_MS;
     for (const [id,n] of this.neighbours) if(!wanted.has(id)) {
       n.controller?.abort();
       if(n.region)disposeRegion(n.region);else n.steps?.return();
@@ -218,8 +217,6 @@ export class View {
   refreshGrass() {
     this.grassList = [...this.region.grass];
     for (const n of this.neighbours.values()) if (n.region) this.grassList.push(...n.region.grass);
-    const fraction = this.renderSettings.grassFraction ?? 1;
-    for (const mesh of this.grassList) mesh.userData.grassCulling.fraction = fraction;
   }
 
   /** Attach (or replace) the running game. */
@@ -370,7 +367,9 @@ export class View {
     const c = this.renderer.domElement;
     const w = c.clientWidth || window.innerWidth;
     const h = c.clientHeight || window.innerHeight;
-    const dpr = renderPixelRatio(this.quality, window.devicePixelRatio || 1, this.renderScale ?? 1);
+    // dynamic resolution scales the preset's pixel ratio, never below 1 device pixel per CSS pixel
+    const base = Math.min(window.devicePixelRatio || 1, qualitySettings(this.quality).pixelRatio);
+    const dpr = Math.max(Math.min(1, base), base * (this.renderScale ?? 1));
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -405,8 +404,6 @@ export class View {
     if (next.name === this.quality) return;
     const wasEnabled = this.renderer.shadowMap.enabled;
     this.quality = next.name;
-    this.renderSettings = next;
-    this.refreshGrass();
     applyShadowQuality(this.renderer, this.sun, this.quality);
     if (wasEnabled !== this.renderer.shadowMap.enabled) {
       const materials = new Set();
@@ -724,7 +721,6 @@ export class View {
   }
 
   ambient(dt, x, z, zoneId) {
-    dt *= this.renderSettings.ambientRate ?? 1;
     this.ambientT += dt;
     const v = this.vfx;
     const spawn = (rate, fn) => {

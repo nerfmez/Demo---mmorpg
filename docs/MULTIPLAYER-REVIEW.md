@@ -1,53 +1,98 @@
 # Presence prototype review
 
-Base: `b31a2c7` (PR114). Branch: `codex/multiplayer-presence`.
+Base: `b31a2c7` (PR114). Implementation: `09ba408` on
+`codex/multiplayer-presence`. [Draft PR115](https://github.com/nerfmez/Demo---mmorpg/pull/115).
+Evidence captured 2026-10-08. Later evidence-only commits do not change the runtime.
 
-## Scope and reference
+## Scope and observable criteria
 
-Preserve the existing cel-style hero, starting basic attack, quest interface,
+Preserve the existing cel-style humanoid, starting basic attack, quest interface,
 local save version/slots, map layouts and touch HUD. Another connected character
-must stand on terrain, be distinguished by a cyan ring, and follow movement without
-entering local combat/collision/save state. Room controls must leave joystick and
-combat buttons usable. This is a draft experimental relay, not production authority.
+must stand on terrain, have a clear cyan peer ring, and follow movement without
+entering local combat/collision/save state. Closed room controls must clear the
+player/quest HUD and leave joystick/combat controls usable. Open controls must have
+readable labels and 44px Join/Solo buttons. This is an experimental cosmetic relay,
+not production MMO authority.
 
 ## Technical evidence
 
-- Five Node network tests pass: actual WebSockets for join/leave, map/room separation,
-  movement, reconnect, identity rejection, payload schema/size validation, origin
-  filtering, rates and room capacity. Client adapter preserves local state.
-- 160 repository tooling tests pass after adding the network gate to CI.
-- Initial core run: 411/412 passed; startup harness lacked the optional presence
-  adapter. Optional frame update fixed it. Focused startup/opening/save rerun: 16/16.
-  Full final core rerun: **412/412 pass**.
+- **412/412 core tests pass**, including opening/basic-only skills, startup, saves,
+  migrations and map safety. The initial run found an absent optional adapter in
+  the startup test harness; the frame call was fixed and the full suite rerun.
+- **160/160 repository tooling tests pass** after adding the network CI gate.
+- **5/5 Node network tests pass**, using real WebSockets: server-assigned identities,
+  join/leave, movement, map/room isolation, reconnect, exact schema/size/origin checks,
+  flood and room limits. The browser adapter test confirms local state is untouched.
+- Existing `tests/browser/boot.mjs` passes in Chromium on desktop and iPad-sized
+  touch: real title/create/opening/save/reload/Continue, with deep preservation of
+  character fields. This ran with the presence server unavailable and no active
+  membership. [Boot results](reviews/presence/boot-results.txt).
 - Vite production build passes (existing large-chunk warning).
-- A clean production-only `npm ci --omit=dev` install in a temporary directory,
-  followed by the exact `node server/index.mjs` command, returns 200 from `/healthz`.
-- No core rule, data, save schema, skill or quest files changed.
+- Clean production-only `npm ci --omit=dev`, exact `node server/index.mjs` start,
+  and `/healthz` HTTP 200 pass in an isolated temporary install. Render YAML parses
+  with Free/Singapore/manual deployment, expected commands and health path.
+- [Node 22 CI build/core/tooling gate](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37736722315/job/113178261162)
+  passed for implementation `09ba408`. Remaining browser CI gates are pending and
+  must pass before merge; this PR stays draft.
+- No core rules, world data, character save schema, skill or quest files changed.
 
-## Runtime/visual evidence status
+## Real two-client browser run
 
-Two independent real Chromium contexts joined the same map and received each
-other's presence. The first movement run was invalidated by a temporary diagnostic
-pause used while investigating slow second-window startup. The repeat uses explicit
-window focus and pauses rendering of the other window only during startup on the
-software GPU. Keyboard movement now passes after fixing the closed room drawer swallowing key events.
-Initial desktop/iPad screenshots show both matching humanoids and clear cyan peer rings;
-they also confirmed the HUD overlap, which has been moved above the player frame.
-The touch fixture initially put the second actor into blocked water and is corrected
-to use a core-valid nearby spot. Final touch/reconnect/geometry/screenshot verification
-is still in progress; do not treat this draft as visually accepted yet.
+`VITE_PRESENCE_URL=ws://127.0.0.1:3001/presence npm run build` followed by
+`CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:presence` passes.
+See [machine-readable results](reviews/presence/results.json).
 
-Existing Chromium/WebKit CI boot, smoke and affected UX remain required before merge.
-No physical iPad, hosted Render latency/cold start, continuous animation playback,
-or production deployment is claimed.
+Two independent Chromium contexts, a real local WebSocket server and built frontend:
+
+- Desktop and touch startup, each still granting exactly one starting basic skill.
+- Same room/map join, keyboard movement observed/converged on the other client.
+- CDP touch joystick input, observed/converged on the desktop remote actor.
+- Explicit Solo removes both remote actors; repeated joins clean up geometry.
+- Three post-leave geometry counts: **79, 79, 79** (focused resource ownership probe;
+  stable samples did not justify a broad long-session leak run).
+- Different rooms cannot see each other.
+- Real server shutdown clears ghosts while solo remains available; restart reconnects
+  both clients with new temporary IDs.
+- Azure and Frontier remain isolated even when both use `lobby`; page close leaves
+  no actor. No browser runtime errors.
+
+Software-GPU startup required bringing each browser window forward and parking the
+other window's rendering only during startup. Captures use 0.5 world render scale
+with full-size HUD/layout at 1280×800 desktop and 1024×768 touch. An early movement
+failure exposed the closed drawer swallowing keyboard input; this was fixed. An
+invalid touch fixture placed a player in blocked water; the final fixture uses
+`Game.freeSpotNear`. These failures are not counted as passes.
+
+## Final visual inspection
+
+Inspected the exact PNGs below separately from test assertions. Both normal-proportion
+characters and the cyan peer ring are visible on the beach; feet follow local ground.
+The final collapsed drawer is above, clear of, the player and quest HUD. Active
+joystick, action buttons and potions remain visible, and touch movement actually
+worked. The expanded room drawer is an intentional overlay over the upper-left HUD;
+close it to resume movement. No major visible defect remains in these sampled views.
+The initial drawer/HUD overlap was found in screenshots and fixed before these captures.
+
+| Artifact | Inspected view | SHA-256 |
+| --- | --- | --- |
+| [desktop-two-players.png](reviews/presence/desktop-two-players.png) | Desktop, peer ring and closed drawer | `d5f2e06afb68978403bfb91dd00b57f48a2fd3f52ee42786a10085a6ec104aee` |
+| [ipad-two-players.png](reviews/presence/ipad-two-players.png) | Touch layout, both actors and quest HUD | `e6068b2fb98aa1d98e57ca6c28ac4c18e8605bac9f4b5003ec72517c2544886b` |
+| [ipad-joystick.png](reviews/presence/ipad-joystick.png) | Actual touch drag, walking character and peer | `8c4fa62fc3594a8056ecb7d5d6e8df5964a2a0201dc9a1dd07e8a8322ac1f613` |
+| [ipad-room-controls.png](reviews/presence/ipad-room-controls.png) | Expanded room drawer and Join/Solo targets | `20002d17e533d3bf5183f109ecb1efa1ed2b1bf36789cc1399674f2ab1719c4d` |
+
+Review method: sampled screenshots and measured browser displacement/convergence,
+not continuous normal-speed animation playback. Existing hero animation is reused;
+Internet jitter, physical iPad performance, hosted Render cold starts and owner
+visual approval remain unverified. Verdict: ready for draft prototype review within
+these limits, not merged or deployed. The server is ready for parent-owned hosting.
 
 ## Retrieval and impact trace
 
-Direct reads/searches sufficed; no Jev request/cache used. Inspected `AGENTS.md`,
-visual workflow, `main.js`, `save.js` startup contracts, map registry/world bounds,
+Direct reads/searches sufficed; no Jev request or cached ranking was used. Inspected
+`AGENTS.md`, visual workflow, `main.js`, `save.js`, map registry/world bounds,
 `game.js`/simulation input, hero/animator/model ownership, `dispose.js`, `view.js`
-map switching and terrain placement, touch input/menu, startup/opening/browser
-helpers, CI workflow/scope, and Godot port notes. Added adapter only reads local
-pose/appearance; no unresolved remote-to-core/save consumer exists. Hosting origin,
-actual service URL, production frontend configuration, and owner visual acceptance
-remain parent-owned decisions.
+map switching/terrain placement, touch input/menu/HUD anchoring CSS, startup/opening/
+browser helpers, CI workflow/scope and Godot port notes. The adapter reads local
+pose/appearance only; remote data has no core/save consumer. Actual service URL,
+test frontend origin, production endpoint enablement, hosted cold-start/latency,
+physical-device testing and owner visual acceptance remain parent-owned decisions.

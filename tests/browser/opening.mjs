@@ -45,6 +45,7 @@ try {
   if(kit==='staff'&&!size.startsWith('phone')) {
     await page.evaluate(()=>{const g=__frontier.game;g.ch.progress.quests.f_road={status:'active',objectives:{'origin-road':1,primary:0},progress:0};g.ch.progress.questJournal.trackedId='f_road';});
     await activate('.questtrack');
+    await page.waitForFunction(()=>!__frontier.questRoute.work&&__frontier.questRoute.path.length>1);
     const endpoint=await page.evaluate(()=>{const f=__frontier,s=f.game.data.world.atlas.seams.find(s=>s.to==='frontier-wilds-v1');return {end:f.questRoute.path.at(-1),gate:{x:s.gate[0],z:s.gate[1]}};});
     assert.deepEqual(endpoint.end,endpoint.gate,'remote route terminates at the real crossing');await shot('remote-crossing-route');
     await activate('.questtrack');await page.evaluate(()=>{delete __frontier.game.ch.progress.quests.f_road;__frontier.game.ch.progress.questJournal.trackedId=null;});

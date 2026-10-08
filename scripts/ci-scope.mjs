@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { legacyReviewRequirements, validationPlan, SAFETY_SUITES } from './ci-browser-plan.mjs';
+import { prExecutionRange } from './ci-pr-source.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
 const LIGHT_FILES = new Set(['view', 'toon', 'patch', 'settings', 'painted', 'ground', 'ground-color', 'grass', 'environment', 'surfaceart', 'anime-study', 'art-study', 'leafpaint', 'nature']);
@@ -48,6 +49,8 @@ export function eventRange(eventName, event) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
   let { base, head } = eventRange(process.env.GITHUB_EVENT_NAME, event);
+  if (process.env.GITHUB_EVENT_NAME === 'pull_request' && process.env.GITHUB_SHA)
+    ({ base, head } = prExecutionRange(event, process.env.GITHUB_SHA));
   if (process.env.FORCE_BOOT === 'true') {
     if (!/^[a-f0-9]{40}$/.test(process.env.RELEASE_BASE_SHA || '')) throw Error('Missing verified published release baseline');
     base = process.env.RELEASE_BASE_SHA;

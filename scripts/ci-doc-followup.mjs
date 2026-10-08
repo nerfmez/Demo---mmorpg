@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { closeSync, mkdtempSync, openSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { prExecutionRange } from './ci-pr-source.mjs';
 import { verifyBuild } from './ci-build-manifest.mjs';
 import { extractBuildArchive, runArtifacts, validateCoverage, verifyCiContext } from './ci-release-evidence.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
@@ -22,7 +23,7 @@ export async function resolveDocFollowup({ event, environment, api, download, gi
     assert.equal(pr.head.repo.full_name, repository);
     assert.ok(proseOnly(paths(event.before, pr.head.sha)));
     const merge = environment.GITHUB_SHA;
-    assert.deepEqual(git('show', '-s', '--format=%P', merge).trim().split(' '), [pr.base.sha, pr.head.sha]);
+    prExecutionRange(event, merge, git);
     const workflow = await api(`repos/${repository}/actions/workflows/ci.yml`);
     const list = await api(`repos/${repository}/actions/workflows/${workflow.id}/runs?event=pull_request&branch=${encodeURIComponent(pr.head.ref)}&per_page=100`);
     for (const run of list.workflow_runs) {

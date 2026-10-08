@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { prExecutionRange } from './ci-pr-source.mjs';
 import { verifyBuild } from './ci-build-manifest.mjs';
 import { validationPlan } from './ci-browser-plan.mjs';
 import { EQUIPMENT_PATHS, equipmentImpact, gitEquipmentImpacts } from './ci-equipment-impact.mjs';
@@ -91,13 +92,14 @@ export function verifyExtractedBuild(directory, evidence) {
   requireThat(readFileSync(join(directory, 'index.html')).length > 0, 'Artifact has no built entrypoint');
 }
 
-export function ciContext({ environment, event, source, tree, files = [], impacts = {} }) {
+export function ciContext({ environment, event, source, tree, files = [], impacts = {}, executedBase }) {
   const pr = event.pull_request;
   return { version: 2, source, tree, plan: validationPlan(files, { full: environment.GITHUB_EVENT_NAME !== 'pull_request', impacts }), repository: environment.GITHUB_REPOSITORY,
     runId: Number(environment.GITHUB_RUN_ID), attempt: Number(environment.GITHUB_RUN_ATTEMPT),
     eventName: environment.GITHUB_EVENT_NAME, workflowRef: environment.GITHUB_WORKFLOW_REF,
     workflowSha: environment.GITHUB_WORKFLOW_SHA,
-    pr: pr ? { number: event.number, base: { ref: pr.base.ref, sha: pr.base.sha, repositoryId: pr.base.repo.id },
+    pr: pr ? { number: event.number, base: { ref: pr.base.ref, sha: executedBase || pr.base.sha, repositoryId: pr.base.repo.id,
+      ...(executedBase && executedBase !== pr.base.sha ? { eventSha: pr.base.sha } : {}) },
       head: { sha: pr.head.sha, repositoryId: pr.head.repo.id } } : null };
 }
 
@@ -262,10 +264,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const source = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
     requireThat(source === process.env.CI_SOURCE_SHA, 'Context source differs from CI checkout');
     const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-    const files = event.pull_request ? execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', event.pull_request.base.sha, source],
+    const executedBase = event.pull_request ? prExecutionRange(event, process.env.GITHUB_SHA).base : undefined;
+    const files = event.pull_request ? execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', executedBase, source],
       { encoding: 'utf8' }).split('\0').filter(Boolean) : [];
-    const impacts = event.pull_request ? gitEquipmentImpacts(files, event.pull_request.base.sha, source) : {};
-    const context = ciContext({ environment: process.env, event, files, impacts,
+    const impacts = event.pull_request ? gitEquipmentImpacts(files, executedBase, source) : {};
+    const context = ciContext({ environment: process.env, event, files, impacts, executedBase,
       source, tree: execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim() });
     writeFileSync('dist/ci-context.json', JSON.stringify(context, null, 2) + '\n');
     console.log(`CI context: ${context.eventName}; PR ${context.pr?.number || 'none'}; workflow ${context.workflowRef}; workflow source ${context.workflowSha}`);

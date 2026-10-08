@@ -164,7 +164,7 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   // Isolate the actual resolver and routing policy from checkout/global modules.
   for (const file of ['scripts/ci-build-manifest.mjs', 'scripts/ci-release-evidence.mjs', 'scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs',
-    'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs', 'scripts/ci-equipment-impact.mjs',
+    'scripts/ci-pr-source.mjs', 'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs', 'scripts/ci-equipment-impact.mjs',
     'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
     '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js', 'package.json', 'package-lock.json', 'vite.config.js']) {
     mkdirSync(dirname(join(dir, file)), { recursive: true });

@@ -110,7 +110,7 @@ test('plan identity is deterministic and binds files and current routing bytes',
 test('changed routing bytes invalidate old plans even if the version was not bumped', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'affected-policy-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const paths = ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-browser-run.mjs',
+  const paths = ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-pr-source.mjs', 'scripts/ci-browser-run.mjs',
     'scripts/ci-browser-gate.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-equipment-impact.mjs', 'scripts/ci-review-plan.mjs',
     '.github/workflows/ci.yml', '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js'];
   for (const path of paths) {

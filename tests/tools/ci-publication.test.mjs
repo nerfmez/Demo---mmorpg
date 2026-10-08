@@ -229,3 +229,15 @@ for (const kind of ['new base runtime drift', 'failed latest run', 'wrong PR', '
     if (kind === 'config revision') { const git = options.git; options.git = (...args) => args[0] === 'rev-parse' && args[1].startsWith('f'.repeat(40)) ? '0'.repeat(40) : git(...args); }
     assert.equal(await resolveDocFollowup(options), null);
   });
+
+test('stale PR base is resolved through executed merge parents and proven ancestry, never ignored', async () => {
+  const { prExecutionRange } = await import('../../scripts/ci-pr-source.mjs');
+  const event = { pull_request: { base: { sha }, head: { sha: tree } } }, merge = 'c'.repeat(40), actual = 'd'.repeat(40);
+  const calls = [];
+  const git = (...args) => { calls.push(args); return args[0] === 'show' ? `${actual} ${tree}` : ''; };
+  assert.deepEqual(prExecutionRange(event, merge, git), { base: actual, head: tree, declaredBase: sha });
+  assert.deepEqual(calls[1], ['merge-base', '--is-ancestor', sha, actual]);
+  assert.throws(() => prExecutionRange(event, merge, (...args) => args[0] === 'show' ? `${actual} ${sha}` : ''));
+  assert.throws(() => prExecutionRange(event, merge, (...args) => { if (args[0] === 'show') return `${actual} ${tree}`; throw Error('unrelated base'); }));
+  assert.throws(() => prExecutionRange(event, merge, () => tree));
+});

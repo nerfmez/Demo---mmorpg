@@ -16,7 +16,9 @@ credentials, hosting, billing or account settings are changed.
 2. Try authenticated reuse of the latest successful same-repository PR CI at the
    exact release tree. Require all selected jobs/steps, source and run/attempt
    identities, archive SHA-256, executed workflow, original base/head parents,
-   current routing digest and actual merge delta coverage. A retargeted PR is
+   current routing digest and actual merge delta coverage. Stale PR base metadata
+   is resolved from executed merge parents only after proving reported-base
+   ancestry and the exact event head; both bases remain recorded in provenance. A retargeted PR is
    allowed only after these proofs; its old base name alone is not disqualifying.
    Missing or mismatched evidence runs the bounded release gate; it never grants
    an exception. A missing previous-site checkpoint/baseline blocks publication.

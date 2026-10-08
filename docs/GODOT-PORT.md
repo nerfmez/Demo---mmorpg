@@ -56,6 +56,20 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 ## What gets rebuilt (presentation)
 
+High-quality performance keeps the authored graphics settings. Grass uses a
+conservative whole-chunk wind envelope before the existing clump tests, retaining
+all visible instances and baked colours. Pooled particles upload only their live
+prefix (no uploads when empty), including all spawn/swap changes before a draw.
+Camera and cloth use reusable scratch vectors with unchanged animation math.
+Godot equivalents: conservative MultiMesh chunk rejection, live-prefix buffer
+updates and reusable simulation state; do not substitute reduced visual density.
+
+The web HUD portrait is asynchronous: prepare shaders then queue a GPU pixel
+readback, restore the borrowed render target **before** awaiting, retain owned
+resources until completion and discard stale gear/model results. Only one request
+is in flight per session. Port to a SubViewport/readback without blocking the main
+frame, keeping cleanup on failure and the same 128 px image/row orientation.
+
 | Web | Godot |
 |---|---|
 | `render/toon.js` (3-step ramp and inverted-hull outline) | `ShaderMaterial` with a toon ramp, plus a second pass with `cull_front` and a vertex push for the outline |

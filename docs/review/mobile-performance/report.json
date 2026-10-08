@@ -1,0 +1,314 @@
+{
+  "baseline": "036e6bca897eb2c0318b96dc239f1bd60fcaa7fa",
+  "sourceFiles": {
+    "src/render/view.js": "21e0ec99817274cc7f7f593c4156536ad940f8c495aa4d8b22a840a5d3792cad",
+    "src/render/grass-culling.js": "9ffda4a6aa3787b151d2058879d4b77eaf52289a2ecd1efc4d4d4babb14b7ba0",
+    "src/render/particles.js": "f04f2ab2a3fc8fc97c4560ee0218d6ef60b2b9c17afcffb4de2bc2d593261eca",
+    "src/render/ribbon.js": "39156822d22b36420f3a4d6a99a4e8f63bd1bd32af48180fe88538fb4e4f6446",
+    "src/main.js": "ce08c4a51f90f35f094f5e82af6c4f83dcd628188d2310123c17d8f795419408",
+    "data/rendering.json": "16580491cfcd83aa95017e405d4edf9e06c50d11f675a90c2158b19a7e3dad87"
+  },
+  "samples": [
+    {
+      "point": "beach",
+      "quality": "high",
+      "dpr": 2,
+      "shadowMap": [
+        2048,
+        2048
+      ],
+      "postSamples": 4,
+      "grassCountsEqual": true,
+      "pixelDifference": {
+        "channels": 0,
+        "maxDifference": 0,
+        "total": 5266560
+      },
+      "uploads": {
+        "referenceBytes": 131200,
+        "finalBytes": 3680
+      },
+      "grassCPU": {
+        "reference": [
+          {
+            "n": 64,
+            "median": 0.7000000011175871,
+            "p95": 1.599999999627471
+          },
+          {
+            "n": 64,
+            "median": 0.6000000014901161,
+            "p95": 1.099999999627471
+          },
+          {
+            "n": 64,
+            "median": 0.6999999992549419,
+            "p95": 1.3999999985098839
+          },
+          {
+            "n": 64,
+            "median": 0.6000000014901161,
+            "p95": 1.1000000014901161
+          }
+        ],
+        "final": [
+          {
+            "n": 64,
+            "median": 0.19999999925494194,
+            "p95": 0.30000000074505806
+          },
+          {
+            "n": 64,
+            "median": 0.09999999962747097,
+            "p95": 0.2999999988824129
+          },
+          {
+            "n": 64,
+            "median": 0.09999999962747097,
+            "p95": 0.2999999988824129
+          },
+          {
+            "n": 64,
+            "median": 0.09999999962747097,
+            "p95": 0.30000000074505806
+          }
+        ]
+      },
+      "grassTested": 3685,
+      "grassTotal": 56543,
+      "particles": [
+        {
+          "live": 106,
+          "capacity": 3200
+        },
+        {
+          "live": 9,
+          "capacity": 900
+        }
+      ],
+      "memory": {
+        "geometries": 88,
+        "textures": 46
+      }
+    },
+    {
+      "point": "town",
+      "quality": "high",
+      "dpr": 2,
+      "shadowMap": [
+        2048,
+        2048
+      ],
+      "postSamples": 4,
+      "grassCountsEqual": true,
+      "pixelDifference": {
+        "channels": 0,
+        "maxDifference": 0,
+        "total": 5266560
+      },
+      "uploads": {
+        "referenceBytes": 131200,
+        "finalBytes": 3744
+      },
+      "grassCPU": {
+        "reference": [
+          {
+            "n": 64,
+            "median": 0.6999999992549419,
+            "p95": 2.300000000745058
+          },
+          {
+            "n": 64,
+            "median": 0.6999999992549419,
+            "p95": 2.300000000745058
+          },
+          {
+            "n": 64,
+            "median": 0.6000000014901161,
+            "p95": 1.900000000372529
+          },
+          {
+            "n": 64,
+            "median": 0.6999999992549419,
+            "p95": 2.299999998882413
+          }
+        ],
+        "final": [
+          {
+            "n": 64,
+            "median": 0,
+            "p95": 0.19999999925494194
+          },
+          {
+            "n": 64,
+            "median": 0,
+            "p95": 0.10000000149011612
+          },
+          {
+            "n": 64,
+            "median": 0,
+            "p95": 0.09999999962747097
+          },
+          {
+            "n": 64,
+            "median": 0,
+            "p95": 0.09999999962747097
+          }
+        ]
+      },
+      "grassTested": 0,
+      "grassTotal": 56543,
+      "particles": [
+        {
+          "live": 107,
+          "capacity": 3200
+        },
+        {
+          "live": 10,
+          "capacity": 900
+        }
+      ],
+      "memory": {
+        "geometries": 311,
+        "textures": 49
+      }
+    },
+    {
+      "point": "field",
+      "quality": "high",
+      "dpr": 2,
+      "shadowMap": [
+        2048,
+        2048
+      ],
+      "postSamples": 4,
+      "grassCountsEqual": true,
+      "pixelDifference": {
+        "channels": 0,
+        "maxDifference": 0,
+        "total": 5266560
+      },
+      "uploads": {
+        "referenceBytes": 131200,
+        "finalBytes": 3808
+      },
+      "grassCPU": {
+        "reference": [
+          {
+            "n": 64,
+            "median": 0.6000000014901161,
+            "p95": 2.799999998882413
+          },
+          {
+            "n": 64,
+            "median": 0.6999999992549419,
+            "p95": 3.099999999627471
+          },
+          {
+            "n": 64,
+            "median": 0.6000000014901161,
+            "p95": 2.799999998882413
+          },
+          {
+            "n": 64,
+            "median": 0.6999999992549419,
+            "p95": 2.700000001117587
+          }
+        ],
+        "final": [
+          {
+            "n": 64,
+            "median": 0.19999999925494194,
+            "p95": 1.799999998882413
+          },
+          {
+            "n": 64,
+            "median": 0.19999999925494194,
+            "p95": 0.7999999988824129
+          },
+          {
+            "n": 64,
+            "median": 0.19999999925494194,
+            "p95": 0.30000000074505806
+          },
+          {
+            "n": 64,
+            "median": 0.19999999925494194,
+            "p95": 1.1000000014901161
+          }
+        ]
+      },
+      "grassTested": 11114,
+      "grassTotal": 56543,
+      "particles": [
+        {
+          "live": 108,
+          "capacity": 3200
+        },
+        {
+          "live": 11,
+          "capacity": 900
+        }
+      ],
+      "memory": {
+        "geometries": 345,
+        "textures": 52
+      }
+    }
+  ],
+  "viewports": [
+    {
+      "name": "phone",
+      "css": [
+        844,
+        390
+      ],
+      "buffer": [
+        1688,
+        780
+      ],
+      "dpr": 2
+    },
+    {
+      "name": "ipad",
+      "css": [
+        1180,
+        820
+      ],
+      "buffer": [
+        2360,
+        1640
+      ],
+      "dpr": 2
+    },
+    {
+      "name": "desktop",
+      "css": [
+        1280,
+        720
+      ],
+      "buffer": [
+        2560,
+        1440
+      ],
+      "dpr": 2
+    }
+  ],
+  "portrait": {
+    "frames": 79,
+    "memory": [
+      {
+        "geometries": 345,
+        "textures": 52
+      },
+      {
+        "geometries": 345,
+        "textures": 52
+      }
+    ],
+    "glError": 0
+  },
+  "touch": true,
+  "errors": [],
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+}

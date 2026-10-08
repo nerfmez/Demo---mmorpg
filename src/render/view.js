@@ -785,9 +785,9 @@ export class View {
   }
 
   updateCamera(dt, focus) {
-    const look = new THREE.Vector3(focus.x, focus.y, focus.z);
+    const look = (this._cameraFocus ||= new THREE.Vector3()).set(focus.x, focus.y, focus.z);
     this.camTarget.lerp(look, 1 - Math.exp(-dt * 6));
-    const off = CAM_OFFSET.clone().multiplyScalar(this.zoom);
+    const off = (this._cameraOffset ||= new THREE.Vector3()).copy(CAM_OFFSET).multiplyScalar(this.zoom);
     this.camera.position.copy(this.camTarget).add(off);
     if (this.shake > 0) {
       const s = this.shake * 0.35;
@@ -995,10 +995,7 @@ export class View {
   }
 
   /** Render a portrait of a hero face to a data URL for the HUD. */
-  portrait(look, gear = {}, size = 128) {
-    const previousTarget = this.renderer.getRenderTarget();
-    const previousFace = this.renderer.getActiveCubeFace();
-    const previousLevel = this.renderer.getActiveMipmapLevel();
+  async portrait(look, gear = {}, size = 128) {
     const rt = new THREE.WebGLRenderTarget(size, size, { colorSpace: THREE.SRGBColorSpace });
     let hero;
     try {
@@ -1015,10 +1012,22 @@ export class View {
       cam.lookAt(0, 1.64, 0);
       hero.root.rotation.y = 0.35;
       hero.root.updateMatrixWorld(true);
-      this.renderer.setRenderTarget(rt);
-      this.renderer.render(scene, cam);
+      await this.renderer.compileAsync(scene, cam);
       const px = new Uint8Array(size * size * 4);
-      this.renderer.readRenderTargetPixels(rt, 0, 0, size, size, px);
+      const previousTarget = this.renderer.getRenderTarget();
+      const previousFace = this.renderer.getActiveCubeFace();
+      const previousLevel = this.renderer.getActiveMipmapLevel();
+      let reading;
+      try {
+        this.renderer.setRenderTarget(rt);
+        this.renderer.render(scene, cam);
+        reading = this.renderer.readRenderTargetPixelsAsync(rt, 0, 0, size, size, px);
+      } finally {
+        // Return the borrowed renderer before yielding. Never restore old state after
+        // an await: meanwhile the world/post pipeline may have selected a newer target.
+        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
+      }
+      await reading;
       const c = document.createElement('canvas');
       c.width = c.height = size;
       const ctx = c.getContext('2d');
@@ -1027,15 +1036,10 @@ export class View {
       ctx.putImageData(img, 0, 0);
       return c.toDataURL();
     } finally {
-      // Portrait errors are caught by the HUD; keep its borrowed renderer usable.
-      try {
-        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
-      } finally {
-        rt.dispose();
-        if (hero) {
-          disposeObject(hero.root);
-          disposeObject(hero.scarf?.mesh);
-        }
+      rt.dispose();
+      if (hero) {
+        disposeObject(hero.root);
+        disposeObject(hero.scarf?.mesh);
       }
     }
   }

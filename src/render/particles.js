@@ -25,6 +25,7 @@ export class Particles {
     geo.setAttribute('size', new THREE.BufferAttribute(this.size, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('alpha', new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setDrawRange(0, 0);
+    this.uploadAttributes = Object.values(geo.attributes);
     this.uniforms = { uScale: { value: 400 } };
     const mat = new THREE.ShaderMaterial({
       uniforms: this.uniforms,
@@ -113,10 +114,14 @@ export class Particles {
     this.count = n;
     const g = this.points.geometry;
     g.setDrawRange(0, n);
-    g.attributes.position.needsUpdate = true;
-    g.attributes.color.needsUpdate = true;
-    g.attributes.size.needsUpdate = true;
-    g.attributes.alpha.needsUpdate = true;
+    // Upload only the live prefix. Unused pooled slots cannot contribute to a draw.
+    // Mark the whole live prefix so spawn/swap removal and multiple simulation
+    // updates before a render cannot leave stale particle data on the GPU.
+    if (n > 0) for (const attribute of this.uploadAttributes) {
+      attribute.clearUpdateRanges();
+      attribute.addUpdateRange(0, n * attribute.itemSize);
+      attribute.needsUpdate = true;
+    }
   }
 
   copy(from, to) {

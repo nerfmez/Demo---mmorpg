@@ -2,8 +2,8 @@
   "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up.",
   "monsters": {
     "tusk_boar": {
-      "name": "Tusk Boar",
-      "nameTh": "หมูป่างาแหลม",
+      "name": "Boarbull",
+      "nameTh": "หมูกระทิง",
       "behavior": "charger",
       "hp": 55,
       "damage": 9,
@@ -155,8 +155,8 @@
       "primaryAttack": "pinch"
     },
     "marsh_wisp": {
-      "name": "Marsh Wisp",
-      "nameTh": "ภูตไฟหนองน้ำ",
+      "name": "Lostlight Wisp",
+      "nameTh": "ภูตแสงหลงทาง",
       "behavior": "kiter",
       "hp": 45,
       "damage": 11,
@@ -209,8 +209,8 @@
       ]
     },
     "thornback_wolf": {
-      "name": "Thornback Wolf",
-      "nameTh": "หมาป่าหลังหนาม",
+      "name": "Maskfang Wolf",
+      "nameTh": "หมาป่าหน้ากาก",
       "behavior": "pack_wolf",
       "hp": 70,
       "damage": 10,
@@ -430,7 +430,7 @@
       "flyer": true
     },
     "greyfang": {
-      "name": "Greyfang",
+      "name": "Greyfang Alpha",
       "nameTh": "เกรย์แฟง จ่าฝูง",
       "behavior": "greyfang",
       "boss": true,
@@ -570,8 +570,8 @@
       ]
     },
     "salt_slime": {
-      "name": "สไลม์น้ำเค็ม",
-      "nameTh": "สไลม์น้ำเค็ม",
+      "name": "Tidal Slime",
+      "nameTh": "สไลม์คลื่นทะเล",
       "behavior": "coastal_slime",
       "hp": 32,
       "damage": 5,
@@ -803,8 +803,8 @@
       ]
     },
     "reed_viper": {
-      "name": "Reed Viper",
-      "nameTh": "งูกกพิษ",
+      "name": "Reedblade Viper",
+      "nameTh": "งูใบกกพิษ",
       "behavior": "viper",
       "hp": 52,
       "damage": 10,

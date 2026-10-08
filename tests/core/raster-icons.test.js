@@ -84,7 +84,13 @@ test('new final PNGs have clear margins and soft transparent edges, with potion 
   const [left,top,right,bottom]=alpha.bounds;
   assert.ok(Math.min(left,top,512-right,512-bottom)>=16,key+' clear canvas margin');
   bounds.set(key,alpha.bounds);
-  assert.equal(assets.get(key).source_archive_path,'final/'+key+'.png',key+' uses final export');
+  const asset=assets.get(key);
+  if(asset.approved_master){
+   const master=readFileSync(new URL('../../'+asset.approved_master.path,import.meta.url));
+   assert.equal(createHash('sha256').update(master).digest('hex'),asset.sha256,key+' uses owner-reviewed replacement bytes');
+   assert.equal(asset.source_archive_path,'PR106-monster-identity-review/candidate-icons/'+key+'.png');
+   assert.ok(asset.superseded.source_library_file_id,key+' retains original provenance');
+  }else assert.equal(asset.source_archive_path,'final/'+key+'.png',key+' uses final export');
  }
  for(const group of ['hp','mp']){
   const sizes=['s','m','l'].map(size=>bounds.get(`consumable/${group}_potion_${size}`));

@@ -5,7 +5,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { parse } from 'acorn';
-import { browserPlan, FULL_SUITES, LEGACY_UI_SUITES, legacyReviewRequirements } from '../../scripts/ci-browser-plan.mjs';
+import { browserPlan, FULL_SUITES, LEGACY_UI_SUITES, SUITES, legacyReviewRequirements } from '../../scripts/ci-browser-plan.mjs';
 import { equipmentImpact, EQUIPMENT_SUITES } from '../../scripts/ci-equipment-impact.mjs';
 import { reviewPlan, SCHEDULE } from '../../scripts/ci-review-plan.mjs';
 import { validateEngineOwnership } from '../../scripts/ci-browser-engine.mjs';
@@ -39,6 +39,31 @@ test('different merge tree receives its own UI/HUD evidence, including base drif
   assert.equal(second.length, 4); assert.ok(second.every(j => j.mode === 'merge' && j.label === 'Merge affected'));
   assert.throws(() => reviewPlan({ source: 'wrong', sourceTree: tree, mode: 'quick', suites: [] }));
   assert.throws(() => reviewPlan({ source, sourceTree: tree, mode: 'quick', suites: ['unknown'] }));
+});
+test('monster identities have one owner in affected/full CI and both-engine head/merge UI evidence', () => {
+  const script = 'monster-identity.mjs', suite = 'monster-identity';
+  assert.deepEqual(SUITES[suite], [script]);
+  assert.equal(Object.values(SUITES).flat().filter(name => name === script).length, 1);
+  const focused = browserPlan([`tests/browser/${script}`]).suites;
+  assert.deepEqual(focused, ['boot', suite]);
+  const plans = [focused, browserPlan([], { full: true }).suites];
+  for (const file of ['data/monsters.json', 'data/items.json', 'data/quests.json', 'src/ui/art.js',
+    'src/ui/raster-icons.js', 'public/assets/icons/monster/salt_slime.png'])
+    plans.push(browserPlan([file]).suites);
+  for (const suites of plans) for (const mergeTree of [tree, 'd'.repeat(40)]) {
+    assert.ok(suites.includes(suite));
+    const plan = reviewPlan({ source, merge, sourceTree: tree, mergeTree, mode: 'quick', suites });
+    assert.ok(plan.ui.includes(suite));
+    const sources = mergeTree === tree ? [source] : [source, merge];
+    for (const sha of sources)
+      assert.deepEqual(plan.matrix.include.filter(job => job.source === sha && job.suite === suite)
+        .map(job => job.browser), ['chromium', 'webkit']);
+  }
+  const contents = readFileSync(new URL(`../browser/${script}`, import.meta.url), 'utf8');
+  assert.doesNotThrow(() => validateEngineOwnership(script, contents));
+  assert.throws(() => validateEngineOwnership(script, contents.replace('engine.launch(', 'chromium.launch(')), /WebKit/);
+  assert.throws(() => validateEngineOwnership(script,
+    contents.replace("process.env.BROWSER==='webkit'?webkit:chromium", 'chromium')), /WebKit/);
 });
 test('every older bounded route retains its legacy UI/HUD owners in both source plans', () => {
   for (const file of ['src/ui/equipment-avatar.js', 'src/ui/menu-map.js', 'src/ui/mapimage.js',

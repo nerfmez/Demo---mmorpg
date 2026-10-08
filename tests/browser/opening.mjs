@@ -41,6 +41,10 @@ try {
   const lying = await page.evaluate(() => { const f = window.__frontier; return { stage: f.game.ch.opening.stage, down: f.view.heroDown, rotX: f.view.hero.root.rotation.x, skills: Object.keys(f.game.ch.skills), weapon: f.game.derived.weaponType, wreck: !!f.view.wreck, props: Object.values(f.view.weaponProps).every((o) => o.visible), inputOff: f.input.disabled }; });
   assert.equal(lying.stage, 'wake'); assert.ok(lying.down > 0.95 && lying.rotX < -1.2, 'hero lies on the sand'); assert.deepEqual(lying.skills, []);
   assert.ok(lying.wreck && lying.props && lying.inputOff);
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Shift');
+  assert.equal(await page.evaluate(() => __frontier.game.player.dash), null, 'keyboard movement is unavailable before selection');
+  assert.equal(await page.evaluate(() => __frontier.game.player.movement.charges), 0);
   await resume('[data-act="wake"]');
   assert.equal(await page.evaluate(() => __frontier.game.ch.opening.stage), 'wake', 'unconscious save resumes unconscious');
   await tap('[data-act="wake"]');
@@ -81,6 +85,12 @@ try {
   await resume('.menu-toggle');
   assert.deepEqual(await page.evaluate(() => Object.keys(__frontier.game.ch.skills).sort()), [basic, 'frost_nova'].sort(), 'Continue keeps the selected skill set');
   await page.waitForFunction(() => __frontier.weaponModelsReady());
+  const shoreReward = await page.evaluate(() => {
+    const g = __frontier.game;
+    for (let i = 0; i < 3; i++) g.notify({ type: 'kill', target: 'salt_slime' });
+    return { learned: g.ch.skills.firebolt, compiled: g.skills[2]?.id, cast: g.castSlot(2) };
+  });
+  assert.deepEqual(shoreReward, { learned: 1, compiled: 'firebolt', cast: true });
   assert.deepEqual(errors, []);
   console.log(`PASS opening ${engine.name()} ${KIT}: wake/weapon/skills interruptions and completed Continue`);
 } finally {

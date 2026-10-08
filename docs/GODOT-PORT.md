@@ -775,8 +775,12 @@ the kit's weapon is equipped, `kits[kit].basic` (slash / hunter_shot / the new `
 the one starter skill become skills and slots 1–2, and the movement skill becomes the only movement
 skill. `openingSkillChoices(data, kit)` filters `progression.start.opening.skillPool` by weapon
 (a staff is never offered Whirl Blade). Stages: `wake` (unconscious) → `weapon` → `skills` → `done`.
+`wakeOpening(ch)` validates the saved wake transition in core. Until a movement skill is
+owned, its compiled charge limit is zero and `Game.useMovement` refuses it; applying the
+opening choice through `Game.refresh` fills the newly selected movement skill's charges.
 Firebolt and Ward are not part of the start: quests `h_slimes` / `h_crabs` carry
-`reward.skills`, which `Game.completeQuests` learns and slots into the first empty slot; the
+`reward.skills`, which `Game.completeQuests` learns and slots into the first empty slot,
+then compiles immediately with `refreshSkills` so it can be cast without a level-up or reload; the
 workbench has explicit recipes for every released skill and movement skill (`learn_*`), so a missing released skill can always
 be crafted. `arcane_bolt` is a free staff-only projectile (`element: 'arcane'`, `requiresWeapon:
 ['staff']`). `createCharacter` without `opening` is the legacy full kit that tests and `?fresh=1` use.
@@ -790,7 +794,9 @@ older characters keep every skill, slot and Firebolt/Ward. A save written mid-op
 `opening = { stage, kit, skill, movement }`, so interruptions resume the same choice screen.
 
 Presentation: `data/world.json` → `wreck` places the ship (`render/wreck.js`: hull, mast, sail,
-cargo, merged per material) and three weapon stakes beside the spawn. While `stage` is `wake`
+cargo, merged per material) and three weapon stakes beside the spawn. These objects belong
+to Azure's region root, so atlas shifts move them with Azure and stream-out disposes them.
+Returning to Azure rebuilds them if needed. While `stage` is `wake`
 the hero lies down (`view.heroDown`, eased by `HumanoidAnimator` via `s.down`); `ui/opening.js`
 shows the wake line, the three weapon cards and the skill/movement cards, and locks input until
 the choice is applied. In Godot: an `AnimationPlayer` lying→standing clip, three interactable

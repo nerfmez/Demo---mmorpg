@@ -80,6 +80,13 @@ export function openingSkillChoices(data, kitId) {
   });
 }
 
+/** Advance the saved opening only when the character is still unconscious. */
+export function wakeOpening(ch) {
+  if (ch.opening?.stage !== 'wake') return { ok: false, reason: 'stage' };
+  ch.opening.stage = 'weapon';
+  return { ok: true };
+}
+
 /**
  * The end of the opening: the chosen kit's weapon and basic attack, one starter skill, one movement skill.
  * Firebolt and Ward are not part of it (quests / workbench).

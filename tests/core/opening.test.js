@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
 import { Game } from '../../src/core/game.js';
-import { createCharacter, completeOpening, openingSkillChoices, migrateCharacter, CHARACTER_VERSION } from '../../src/core/character.js';
+import { createCharacter, completeOpening, openingSkillChoices, wakeOpening, migrateCharacter, CHARACTER_VERSION } from '../../src/core/character.js';
 import { craft, recipeBlocker } from '../../src/core/crafting.js';
 import { createRng } from '../../src/core/rng.js';
 
@@ -41,6 +41,37 @@ test('each of the three weapons brings its own basic attack, plus one skill and 
   }
 });
 
+test('pending openings cannot use movement; the selected skill starts charged when finished', () => {
+  for (const stage of ['wake', 'weapon', 'skills']) {
+    const ch = createCharacter(data, { opening: true });
+    ch.opening = { stage, kit: 'staff', skill: 'frost_nova', movement: 'roll' };
+    const g = new Game(data, { character: ch, seed: 4 });
+    assert.equal(g.player.movement.charges, 0);
+    assert.equal(g.useMovement(), false, `${stage} has no learned movement skill`);
+    for (let i = 0; i < 180; i++) g.update(1 / 60);
+    assert.equal(g.player.movement.charges, 0, 'waiting cannot recharge an unowned Dash');
+    assert.equal(g.player.dash, null);
+    assert.ok(completeOpening(g.ch, data, { kit: 'staff', skill: 'frost_nova', movement: 'roll' }).ok);
+    g.refresh();
+    assert.equal(g.player.movement.charges, data.skills.movement.roll.charges);
+    assert.equal(g.useMovement(), true);
+    assert.equal(g.player.dash.kind, 'roll');
+  }
+});
+
+test('the core wake transition is saved and cannot repeat or restart a completed opening', () => {
+  const ch = createCharacter(data, { opening: true });
+  assert.deepEqual(wakeOpening(ch), { ok: true });
+  const resumed = migrateCharacter(structuredClone(ch), data);
+  assert.equal(resumed.opening.stage, 'weapon');
+  assert.equal(wakeOpening(resumed).ok, false);
+  completeOpening(resumed, data, { kit: 'sword', skill: 'war_cry', movement: 'dash' });
+  assert.equal(wakeOpening(resumed).ok, false);
+  assert.equal(resumed.opening.stage, 'done');
+  const legacy = createCharacter(data);
+  assert.equal(wakeOpening(legacy).ok, false);
+});
+
 test('starter skill choices respect the weapon; bad or repeated choices are refused', () => {
   assert.ok(openingSkillChoices(data, 'sword').includes('whirl_blade'));
   assert.ok(!openingSkillChoices(data, 'staff').includes('whirl_blade'), 'a blade skill is not offered to a staff');
@@ -70,8 +101,12 @@ test('Firebolt and Ward are taught by the first shore quests and can be crafted'
   for (let i = 0; i < 3; i++) g.notify({ type: 'kill', target: 'salt_slime' });
   assert.equal(g.ch.skills.firebolt, 1);
   assert.ok(g.ch.slots.some((s) => s.skill === 'firebolt'), 'it lands in an empty slot');
+  assert.equal(g.ch.level, 1, 'the first shore quest does not rely on a level-up refresh');
+  assert.equal(g.castSlot(2), true, 'the taught Firebolt can be cast immediately');
+  g.player.cast = null;
   for (let i = 0; i < 3; i++) g.notify({ type: 'kill', target: 'reef_crab' });
   assert.equal(g.ch.skills.ward, 1);
+  assert.equal(g.castSlot(3), true, 'the taught Ward can be cast immediately');
   for (let i = 0; i < 3; i++) g.notify({ type: 'kill', target: 'salt_slime' }); // never pays a second time
   assert.equal(g.ch.slots.filter((s) => s.skill === 'firebolt').length, 1);
 

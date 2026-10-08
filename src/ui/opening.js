@@ -3,7 +3,7 @@
 // Rules live in core/character.js (completeOpening); this only asks and shows.
 import './opening.css';
 import { art } from './art.js';
-import { completeOpening, openingSkillChoices } from '../core/character.js';
+import { completeOpening, openingSkillChoices, wakeOpening } from '../core/character.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -49,8 +49,7 @@ export class Opening {
   }
 
   wake() {
-    if (this.game.ch.opening.stage !== 'wake') return;
-    this.game.ch.opening.stage = 'weapon';
+    if (!wakeOpening(this.game.ch).ok) return;
     this.hooks.save();
     this.view.heroDownTarget = 0; // sits up and stands over a second or two
     this.el.classList.add('waking');

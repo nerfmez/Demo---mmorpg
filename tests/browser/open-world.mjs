@@ -31,6 +31,17 @@ try {
   await page.waitForFunction(() => window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
   console.log('loaded');
   await page.evaluate(() => { window.__sameDocument = true; document.querySelector('.banner')?.remove(); });
+  report.wreckBefore = await page.evaluate(() => {
+    const v = __frontier.view, geometries = new Set();
+    window.__oldWreck = v.wreck;
+    window.__wreckDisposals = 0;
+    for (const o of [v.wreck, ...Object.values(v.weaponProps)]) o.traverse(child => {
+      if (child.geometry && !child.geometry.userData.shared) geometries.add(child.geometry);
+    });
+    for (const geometry of geometries) geometry.addEventListener('dispose', () => window.__wreckDisposals++);
+    return { owned: v.wreck.parent === v.region.root, geometries: geometries.size };
+  });
+  assert.ok(report.wreckBefore.owned, 'the wreck belongs to Azure');
   const seam = data.maps[AZURE].atlas.seams[0];
   // Walk-in distance: 100 m inside the seam on the border road's line.
   const place = (x, z) => page.evaluate(([x, z]) => { const F = window.__frontier, g = F.game; Object.assign(g.player, g.freeSpotNear(x, z)); g.player.hp = 1e9; g.monsters = g.monsters.filter((m) => Math.hypot(m.x - g.player.x, m.z - g.player.z) > 40); F.view.snapCamera(); }, [x, z]); // crossing is refused in combat
@@ -69,12 +80,35 @@ try {
   await page.screenshot({ path: out + '02-frontier-after-crossing.png' });
   // Azure is still loaded behind, now the neighbour.
   assert.equal(await page.evaluate((id) => window.__frontier.view.neighbourReady(id), AZURE), true);
+  const wreckShift = await page.evaluate(id => {
+    const v = __frontier.view, azure = v.neighbours.get(id).region, wreck = window.__oldWreck;
+    wreck.updateWorldMatrix(true, false);
+    return { owned: wreck.parent === azure.root, x: wreck.matrixWorld.elements[12], z: wreck.matrixWorld.elements[14], active: !!v.wreck };
+  }, AZURE);
+  assert.ok(wreckShift.owned && !wreckShift.active);
+  assert.equal(wreckShift.x, data.maps[AZURE].wreck.at[0] + ax - fx);
+  assert.equal(wreckShift.z, data.maps[AZURE].wreck.at[1] + az - fz);
+  // Evict Azure before returning: its owned wreck buffers must be released, then rebuilt once.
+  await place(data.maps[FRONTIER].bounds.minX + 30, seam.gate[1] - fz);
+  await page.waitForFunction(id => !__frontier.view.neighbours.has(id), AZURE, { timeout: 240000 });
+  report.wreckDisposed = await page.evaluate(() => window.__wreckDisposals);
+  assert.equal(report.wreckDisposed, report.wreckBefore.geometries, 'all owned wreck/weapon geometries are disposed');
   // And back.
   await place(data.maps[FRONTIER].bounds.maxX - 1.2, seam.gate[1] - fz);
+  await page.waitForFunction(id => __frontier.view.neighbourReady(id), AZURE, { timeout: 420000 });
   await page.keyboard.down('ArrowRight');
   await page.waitForFunction((id) => window.__frontier.world.data.id === id, AZURE, { timeout: 240000 });
   await page.keyboard.up('ArrowRight');
   assert.equal(await page.evaluate(() => window.__sameDocument), true, 'no reload on the way back');
+  report.wreckAfter = await page.evaluate(() => {
+    const v = __frontier.view, geometries = new Set();
+    for (const o of [v.wreck, ...Object.values(v.weaponProps)]) o.traverse(child => {
+      if (child.geometry && !child.geometry.userData.shared) geometries.add(child.geometry);
+    });
+    return { owned: v.wreck.parent === v.region.root, geometries: geometries.size, replaced: v.wreck !== window.__oldWreck, propsHidden: Object.values(v.weaponProps).every(o => !o.visible) };
+  });
+  assert.ok(report.wreckAfter.owned && report.wreckAfter.replaced && report.wreckAfter.propsHidden);
+  assert.equal(report.wreckAfter.geometries, report.wreckBefore.geometries, 'owned geometry count is stable after rebuilding Azure');
   // Far from the seam the neighbour is dropped again.
   await place(60, 20);
   await page.waitForFunction((id) => !window.__frontier.view.neighbours.has(id), FRONTIER, { timeout: 240000 });

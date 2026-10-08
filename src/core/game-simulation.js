@@ -146,7 +146,8 @@ export class Game {
     const p = this.player;
     const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1 };
     this.derived = derive(this.ch, this.data);
-    this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
+    this.refreshSkills();
+    const oldMovementCharges = this.move?.charges || 0;
     this.move = movementSkill(this.ch, this.data, this.derived);
     p.maxHp = this.derived.maxHp;
     p.maxMp = this.derived.maxMp;
@@ -157,11 +158,16 @@ export class Game {
       p.hp = Math.min(p.maxHp, Math.max(1, (p.hp / oldMax.hp) * p.maxHp));
       p.mp = Math.min(p.maxMp, (p.mp / oldMax.mp) * p.maxMp);
     }
-    p.movement.charges = Math.min(p.movement.charges, this.move.charges);
+    p.movement.charges = oldMovementCharges ? Math.min(p.movement.charges, this.move.charges) : this.move.charges;
+    if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
+  }
+
+  /** Compile loadout changes without re-entering quest rewards or restoring resources. */
+  refreshSkills() {
+    this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
     const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.range);
     const ground = this.skills.filter((s) => s && ['ground_area', 'dot_zone', 'curse_zone'].includes(s.kind)).map((s) => s.range);
     this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 6;
-    if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
   }
 
   /** Move an entity with collision. Monsters stay out of the safe settlement. */
@@ -456,6 +462,7 @@ export class Game {
 
   useMovement(point = null) {
     const p = this.player;
+    if (!this.ch.movement || !this.ch.movementSkills.includes(this.ch.movement)) return false;
     if (p.dead || p.dash) return false;
     if (p.movement.charges < 1) return false;
     const mv = this.move;
@@ -710,6 +717,7 @@ export class Game {
   }
 
   completeQuests(ids) {
+    let learnedSkill = false;
     for (const id of ids) {
       const q = this.data.quests.quests[id];
       const r = q.reward || {};
@@ -719,6 +727,7 @@ export class Game {
         // a quest-taught skill goes into the first empty slot so it is seen at once
         if (this.ch.skills[skill] || !this.data.skills.combat[skill]) continue;
         this.ch.skills[skill] = 1;
+        learnedSkill = true;
         const empty = this.ch.slots.find((s) => !s.skill);
         if (empty) empty.skill = skill;
       }
@@ -727,6 +736,7 @@ export class Game {
       if (gained.levels) this.onLevelUp();
       if (gained.jobLevels) this.emit({ type: 'joblevelup', level: this.ch.jobLevel });
     }
+    if (learnedSkill) this.refreshSkills();
   }
 
   onLevelUp() {

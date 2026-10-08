@@ -145,6 +145,8 @@ export class View {
   get cityStats() { return this.region.stats.city; }
   get townKitRoot() { return this.region.townKitRoot; }
   get townKitStats() { return this.region.stats.townKit; }
+  get wreck() { return this.region.wreck; }
+  get weaponProps() { return this.region.weaponProps || {}; }
 
   // ---------- open world streaming ----------
   // Near an open seam the neighbouring map is built a few milliseconds per frame and
@@ -218,6 +220,7 @@ export class View {
     this.dropViews.clear();
     this.vfx.world = next.world;
     for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = next.world;
+    if (this.game) this.placeWreck(this.game);
     this.refreshGrass();
     return true;
   }
@@ -231,12 +234,12 @@ export class View {
   /** The wreck on Arrival Beach, and (until the opening ends) the three weapons stuck in the sand. */
   placeWreck(game) {
     const cfg = this.world.data.wreck;
-    if (!cfg) return;
+    if (!cfg) { this.heroDown = this.heroDownTarget = 0; return; }
     if (!this.wreck) {
-      const at = (o, [x, z], rot) => { o.position.set(x, this.world.groundY(x, z), z); o.rotation.y = rot; this.scene.add(o); return o; };
-      this.wreck = at(buildWreck(), cfg.at, cfg.rot);
-      this.weaponProps = {};
-      for (const [kit, o] of Object.entries(weaponProps())) this.weaponProps[kit] = at(o, cfg.weapons[kit], 0.2);
+      const at = (o, [x, z], rot) => { o.position.set(x, this.world.groundY(x, z), z); o.rotation.y = rot; this.region.root.add(o); return o; };
+      this.region.wreck = at(buildWreck(), cfg.at, cfg.rot);
+      this.region.weaponProps = {};
+      for (const [kit, o] of Object.entries(weaponProps())) this.region.weaponProps[kit] = at(o, cfg.weapons[kit], 0.2);
     }
     const stage = game.ch.opening?.stage;
     for (const o of Object.values(this.weaponProps)) o.visible = stage !== 'done';

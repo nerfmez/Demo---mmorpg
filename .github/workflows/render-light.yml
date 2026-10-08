@@ -45,6 +45,10 @@ jobs:
           force-render: ${{ inputs.review_ref != '' }}
       - name: Gameplay regression ownership
         run: echo 'Smoke and UX belong to CI / test; this job retains its check name without repeating them.'
+      - name: Keep the baseline file server outside the workspace
+        # a requested review_ref may predate scripts/static-serve.mjs; the next checkout replaces it
+        if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        run: cp scripts/static-serve.mjs "$RUNNER_TEMP/static-serve.mjs"
       - name: Checkout requested render source
         if: matrix.suite == 'visual' && inputs.review_ref != ''
         uses: actions/checkout@v4
@@ -83,7 +87,7 @@ jobs:
           git archive 58bc3db4f929eb699b2e5d40fac43638b0151ccb | tar -x -C "$RUNNER_TEMP/render-baseline"
           ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/render-baseline/node_modules"
           (cd "$RUNNER_TEMP/render-baseline" && npm run build)
-          node scripts/static-serve.mjs "$RUNNER_TEMP/render-baseline/dist" 4194 > /tmp/render-http.log 2>&1 &
+          node "$RUNNER_TEMP/static-serve.mjs" "$RUNNER_TEMP/render-baseline/dist" 4194 > /tmp/render-http.log 2>&1 &
           SERVER=$!
           trap 'kill $SERVER' EXIT
           BASELINE=1 RENDER_URL=http://127.0.0.1:4194/ node tests/browser/render-light.mjs

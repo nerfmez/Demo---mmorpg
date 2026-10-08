@@ -19,7 +19,10 @@ test('renderer light/shadow review runs in the same preinstalled image (no brows
   assert.match(light, /NODE_OPTIONS: --dns-result-order=ipv4first/);
   assert.doesNotMatch(light, /install --with-deps|apt-get|python3/);
   assert.match(light, /git config --global --add safe\.directory "\$GITHUB_WORKSPACE"/);
-  assert.match(light, /node scripts\/static-serve\.mjs /);
+  // the file server is copied out before a review_ref checkout (which may predate it) replaces the workspace
+  assert.match(light, /cp scripts\/static-serve\.mjs "\$RUNNER_TEMP\/static-serve\.mjs"/);
+  assert.match(light, /node "\$RUNNER_TEMP\/static-serve\.mjs" /);
+  assert.ok(light.indexOf('cp scripts/static-serve.mjs') < light.indexOf('name: Checkout requested render source'));
   assert.ok(light.indexOf('npm ci && npm run build') < light.indexOf('name: Verify preinstalled Playwright'));
   assert.ok(light.indexOf('name: Verify preinstalled Playwright') < light.indexOf('name: Pinned unmodified baseline screenshots'));
   assert.deepEqual(guard(light), guard(ci));

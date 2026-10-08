@@ -17,6 +17,11 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    container:
+      # The same pinned image as CI / browser: browsers and their OS libraries are preinstalled,
+      # so no run waits on (or times out in) apt mirrors installing WebKit/Chromium dependencies.
+      image: mcr.microsoft.com/playwright:v1.56.1-noble@sha256:f1e7e01021efd65dd1a2c56064be399f3e4de00fd021ac561325f2bfbb2b837a
+      options: --init --shm-size=1g
     strategy:
       fail-fast: false
       matrix:
@@ -24,10 +29,16 @@ jobs:
         suite: [visual, regression]
     env:
       BROWSER: ${{ matrix.browser }}
+      # Vite and Node fetch must select the same loopback address in containers.
+      NODE_OPTIONS: --dns-result-order=ipv4first
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Trust exact checked-out container workspace
+        run: |
+          test "$GITHUB_WORKSPACE" = "$(pwd -P)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - id: scope
         uses: ./.github/actions/change-scope
         with:
@@ -47,8 +58,24 @@ jobs:
           cache: npm
       - run: npm ci && npm run build
         if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Verify preinstalled Playwright matches locked dependencies
         if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const version = require('./package-lock.json').packages['node_modules/playwright'].version;
+          const image = JSON.parse(fs.readFileSync('/ms-playwright/.docker-info', 'utf8'));
+          assert.equal(require('playwright/package.json').version, version);
+          assert.equal(require('playwright-core/package.json').version, version);
+          assert.equal(image.driverVersion, version);
+          assert.equal(image.dockerImageName, `mcr.microsoft.com/playwright:v${version}-noble`);
+          assert.ok(['chromium', 'webkit'].includes(process.env.BROWSER));
+          const executable = fs.realpathSync(require('playwright')[process.env.BROWSER].executablePath());
+          assert.ok(executable.startsWith('/ms-playwright/'), executable);
+          fs.accessSync(executable, fs.constants.X_OK);
+          console.log(`Preinstalled Playwright ${version}: ${process.env.BROWSER} ${executable}`);
+          NODE
       - name: Pinned unmodified baseline screenshots
         if: matrix.suite == 'visual' && steps.scope.outputs.render == 'true'
         run: |
@@ -56,7 +83,7 @@ jobs:
           git archive 58bc3db4f929eb699b2e5d40fac43638b0151ccb | tar -x -C "$RUNNER_TEMP/render-baseline"
           ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/render-baseline/node_modules"
           (cd "$RUNNER_TEMP/render-baseline" && npm run build)
-          python3 -m http.server 4194 --bind 127.0.0.1 --directory "$RUNNER_TEMP/render-baseline/dist" > /tmp/render-http.log 2>&1 &
+          node scripts/static-serve.mjs "$RUNNER_TEMP/render-baseline/dist" 4194 > /tmp/render-http.log 2>&1 &
           SERVER=$!
           trap 'kill $SERVER' EXIT
           BASELINE=1 RENDER_URL=http://127.0.0.1:4194/ node tests/browser/render-light.mjs

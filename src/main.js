@@ -1,5 +1,6 @@
 // Boot: data -> world -> view (the live map behind the title screen) -> menu -> a game session
 // (simulation + HUD + input + panels), then one frame loop for everything.
+import { createPresence } from './ui/presence.js';
 import { data } from './data.js';
 import { createWorld } from './core/world.js';
 import { createCharacter, equip } from './core/character.js';
@@ -138,7 +139,7 @@ function startGame(character, slot) {
   F.panels = panels; // browser tests open a page directly
   const ui = {
     blocked: () => fullscreen.blocked || !!completion?.isOpen,
-    panelOpen: () => panels.isOpen || fullscreen.blocked || !!completion?.isOpen,
+    panelOpen: () => panels.isOpen || !!session?.presence?.open || fullscreen.blocked || !!completion?.isOpen,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
     configureSkill: (i) => {
@@ -188,6 +189,8 @@ function startGame(character, slot) {
 
   session = { game, hud, panels, input, ui, save, slot, completion, questRoute, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
   Object.assign(F, { game, hud, panels, input, save, completion, questRoute, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
+  session.presence = createPresence(game, view, () => input.reset(), () => F.modelsReady);
+  F.presence = session.presence;
   save();
 
   const ch = game.ch;
@@ -282,6 +285,7 @@ function frame(now) {
         }
         // A far map (stone travel) or a seam reached before it finished streaming: reload.
         s.questRoute.dispose();
+        s.presence.dispose();
         session = null;
         travelTo(s.game.ch, s.slot, e.name);
         break;
@@ -294,6 +298,7 @@ function frame(now) {
     }
     s.completion.update(fullscreen.blocked || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.region.staticReady);
     s.questRoute.update(dt);
+    s.presence?.update(dt, time);
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
     if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });

@@ -812,3 +812,13 @@ a bounded refresh (no stationary per-frame pathfinding). One merged translucent
 terrain-sampled dashed ribbon owns its geometry/material; hide, handover, travel or
 page disposal releases it with `disposeObject`. Port as a navigation aid mesh with
 the same clearance and goal contracts, never auto-walk.
+
+## Experimental shared-map presence
+
+`src/network/presence.js` and `server/presence.mjs` implement an optional anonymous
+WebSocket relay; `src/render/remote-players.js` draws cosmetic remote humanoids.
+The adapter reads local position/appearance only. No remote state enters core rules
+or saves. Port it as a separate connection manager and non-colliding actor scene,
+with map/room scoping, reconnect, interpolation and explicit resource teardown.
+It is not authoritative multiplayer: see `MULTIPLAYER-PRESENCE.md` for limits,
+protocol, free hosting configuration and deferred authentication/combat authority.

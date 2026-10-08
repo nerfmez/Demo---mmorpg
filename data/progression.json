@@ -159,24 +159,16 @@
     "expPerLevel": 0.15
   },
   "start": {
-    "_doc": "Every new character learns these skills. The starting kit only picks the first weapon, how the skill slots are filled and the movement skill; all of it can be changed later (no Job at creation).",
-    "skills": {
-      "slash": 1,
-      "firebolt": 1,
-      "ward": 1,
-      "hunter_shot": 1
-    },
-    "movementSkills": [
-      "dash",
-      "roll"
-    ],
+    "_doc": "New characters learn only the normal attack from their selected weapon. Other combat and movement skills are acquired later from quests or crafting.",
+    "skills": {},
+    "movementSkills": [],
     "slots": [
       "slash",
-      "firebolt",
-      "ward",
+      null,
+      null,
       null
     ],
-    "movement": "dash",
+    "movement": null,
     "gear": [
       "rusty_sword",
       "travel_tunic",
@@ -188,45 +180,57 @@
       "sword": {
         "name": "Blade",
         "nameTh": "สายดาบ",
-        "descTh": "ดาบในมือ ฟันกวาดเป็นคอมโบ มีลูกไฟกับโล่เวทไว้ช่วย",
+        "descTh": "ดาบในมือ ฟันกวาดเป็นคอมโบ เริ่มด้วยท่าตีพื้นฐาน",
         "weapon": "rusty_sword",
         "slots": [
           "slash",
-          "ward",
-          "firebolt",
+          null,
+          null,
           null
         ],
-        "movement": "dash",
-        "icon": "slash"
+        "movement": null,
+        "icon": "slash",
+        "basic": "slash"
       },
       "bow": {
         "name": "Hunter",
         "nameTh": "สายธนู",
-        "descTh": "ธนูเก่ายิงไกล กลิ้งหลบได้ อยู่ห่างศัตรูไว้",
+        "descTh": "ธนูเก่ายิงไกล เริ่มด้วยท่ายิงพื้นฐาน อยู่ห่างศัตรูไว้",
         "weapon": "old_bow",
         "slots": [
           "hunter_shot",
-          "slash",
-          "ward",
+          null,
+          null,
           null
         ],
-        "movement": "roll",
-        "icon": "arrow"
+        "movement": null,
+        "icon": "arrow",
+        "basic": "hunter_shot"
       },
       "staff": {
         "name": "Arcane",
         "nameTh": "สายเวท",
-        "descTh": "คทาฝึกหัด ลูกไฟเป็นหลัก โล่เวทกันตัว",
+        "descTh": "คทาฝึกหัด เริ่มด้วยท่ายิงเวทพื้นฐาน ไม่ใช้มานา",
         "weapon": "apprentice_staff",
         "slots": [
-          "firebolt",
-          "ward",
-          "slash",
+          "arcane_bolt",
+          null,
+          null,
           null
         ],
-        "movement": "dash",
-        "icon": "fire"
+        "movement": null,
+        "icon": "fire",
+        "basic": "arcane_bolt"
       }
+    },
+    "opening": {
+      "_doc": "Wake beside the wreck and choose one weapon. Only its normal attack is learned. No combat or movement skill selection. Firebolt and Ward remain quest/workbench rewards.",
+      "weapons": [
+        "sword",
+        "bow",
+        "staff"
+      ],
+      "gold": 30
     }
   },
   "slotCount": 4,

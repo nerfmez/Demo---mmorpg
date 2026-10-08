@@ -1,7 +1,8 @@
+import {createLearnedCharacter as createCharacter} from './helpers.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data} from './helpers.js';
-import {createCharacter,migrateCharacter,gearStats,gearRequirements,gearEquipState,derive} from '../../src/core/character.js';
+import {migrateCharacter,gearStats,gearRequirements,gearEquipState,derive} from '../../src/core/character.js';
 import {craft,upgradeGear,upgradeMod} from '../../src/core/crafting.js';
 import {computeSkill,socketMod} from '../../src/core/skills.js';
 import {createRng} from '../../src/core/rng.js';

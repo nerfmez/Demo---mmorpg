@@ -28,7 +28,7 @@ const shell = (script, dir, env = {}) => spawnSync('bash', ['-e', '-o', 'pipefai
 test('PR78 actual-game details regression has exactly one mandatory equipment owner', () => {
   assert.deepEqual(SUITES.equipment, ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs']);
   const all = Object.values(SUITES).flat();
-  assert.equal(all.length, 31 + Number('equipment-inactive' in SUITES));
+  assert.equal(all.length, 34 + Number('equipment-inactive' in SUITES));
   assert.equal(new Set(all).size, all.length);
   assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment']);
 });
@@ -157,6 +157,29 @@ for (const browser of ['chromium', 'webkit']) test(`runner ${browser} records a 
   assert.notEqual(run({ CI_SOURCE_SHA: 'd'.repeat(40) }).status, 0);
   assert.notEqual(run({ QUICK: '1' }).status, 0); assert.notEqual(run({ SKIP_CAPTURES: '1' }).status, 0);
   put('README.md', 'dirty'); assert.notEqual(run({}).status, 0);
+});
+for (const browser of ['chromium', 'webkit']) test(`monster-identity runner uses the requested ${browser} engine and records its exact owner`, t => {
+  const { dir, git, put } = fixture(t);
+  put('tests/browser/monster-identity.mjs', `
+    const chromium={launch(){console.log('ENGINE chromium')}};
+    const webkit={launch(){console.log('ENGINE webkit')}};
+    const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+    engine.launch();
+  `);
+  git('add', '.'); git('commit', '-qm', 'identity engine fixture');
+  const source = git('rev-parse', 'HEAD');
+  const result = spawnSync(process.execPath, [join(root, 'scripts/ci-browser-run.mjs'), 'monster-identity'], {
+    cwd: dir, encoding: 'utf8', env: { ...process.env, BROWSER: browser, CI_MODE: 'quick',
+      CI_SOURCE_SHA: source, QUICK: '', SKIP_CAPTURES: '', OFFLINE_UI: '', UI_DEVICE: '' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.includes(`ENGINE ${browser}`));
+  assert.ok(!result.stdout.includes(`ENGINE ${browser === 'webkit' ? 'chromium' : 'webkit'}`));
+  const report = JSON.parse(readFileSync(join(dir, `tests/browser/out/ci/quick-${browser}-monster-identity.json`)));
+  assert.equal(report.source, source); assert.equal(report.sourceDirty, false);
+  assert.equal(report.browser, browser); assert.equal(report.suite, 'monster-identity');
+  assert.equal(report.ok, true); assert.equal(report.complete, true);
+  assert.deepEqual(report.checks.map(check => [check.script, check.exitCode]), [['monster-identity.mjs', 0]]);
 });
 test('a signalled child remains failed and the next script is still attempted', t => {
   const { dir, git, put } = fixture(t);

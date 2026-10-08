@@ -176,7 +176,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
   const outfit = T || X ? buildOutfit(rb, T || X, gear, { leather: LEATHER, boots: bootColor }) : null;
-  const weaponModel = buildWeapon(rb, gear.weapon || (o.npc ? null : 'sword'), gear.bases?.weapon);
+  const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
   const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
   buildGloves(rb, gear.gloves);
@@ -466,6 +466,13 @@ export class HumanoidAnimator {
       this.rig.root.rotation.x = -(k * k) * Math.PI * 0.48 + bounce;
       b.armL.rotation.z = 0.9 * k;
       b.armR.rotation.z = -0.9 * k;
+    } else if (s.down > 0.001) {
+      // unconscious on the sand (the opening): lying on the back, arms loose; waking eases it back up
+      const k = s.down, e = k * k * (3 - 2 * k);
+      this.deadT = 0;
+      this.rig.root.rotation.x = -e * Math.PI * 0.48;
+      b.armL.rotation.z = 0.7 * e;
+      b.armR.rotation.z = -0.7 * e;
     } else {
       this.deadT = 0;
       this.rig.root.rotation.x = 0;

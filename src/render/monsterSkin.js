@@ -127,6 +127,8 @@ export function attachMonsterModel(rig, T) {
   rig.root.updateMatrixWorld(true);
   const bones = T.bones.map((n) => rig.bones[n]);
   const skeleton = new THREE.Skeleton(bones, bones.map((b) => b.matrixWorld.clone().invert()));
+  // rest space -> bone space, so effects can find a limb's tip on the posed rig (monster-trails.js)
+  rig.restInverse = Object.fromEntries(T.bones.map((n, i) => [n, skeleton.boneInverses[i]]));
   const mat = modelMaterial(T.map, rig.material.userData.flash, cfg.rim ?? 0.3, cfg.glow ?? 0);
   const mats = [mat];
   if (cfg.outline !== false) {

@@ -5,17 +5,18 @@
 import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
-import { createCharacter, migrateCharacter, derive, addExp, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
+import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
-import { refreshQuests, questEvent } from './quests.js';
+import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
-import { buyConsumable, restoreAmount, consumableCount } from './consumables.js';
+import { buyConsumable, restoreAmount, consumableCount, automaticPotion } from './consumables.js';
 
 const PLAYER_RADIUS = 0.45;
+const POTION_GROUPS = ['hp', 'mp'];
 const PICKUP_RADIUS = 1.4;
 const MAGNET_RADIUS = 3.2;
 const INTERACT_RADIUS = 3.6;
@@ -146,7 +147,8 @@ export class Game {
     const p = this.player;
     const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1 };
     this.derived = derive(this.ch, this.data);
-    this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
+    this.refreshSkills();
+    const oldMovementCharges = this.move?.charges || 0;
     this.move = movementSkill(this.ch, this.data, this.derived);
     p.maxHp = this.derived.maxHp;
     p.maxMp = this.derived.maxMp;
@@ -157,11 +159,16 @@ export class Game {
       p.hp = Math.min(p.maxHp, Math.max(1, (p.hp / oldMax.hp) * p.maxHp));
       p.mp = Math.min(p.maxMp, (p.mp / oldMax.mp) * p.maxMp);
     }
-    p.movement.charges = Math.min(p.movement.charges, this.move.charges);
+    p.movement.charges = oldMovementCharges ? Math.min(p.movement.charges, this.move.charges) : this.move.charges;
+    if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
+  }
+
+  /** Compile loadout changes without re-entering quest rewards or restoring resources. */
+  refreshSkills() {
+    this.skills = this.ch.slots.map((_, i) => computeSkill(this.ch, this.data, this.derived, i));
     const ranges = this.skills.filter((s) => s && ['melee_arc', 'melee_nova', 'projectile', 'chain'].includes(s.kind)).map((s) => s.range);
     const ground = this.skills.filter((s) => s && ['ground_area', 'dot_zone', 'curse_zone'].includes(s.kind)).map((s) => s.range);
     this.acquireRange = ranges.length ? Math.max(...ranges) : ground.length ? Math.max(...ground) : 6;
-    if (this.monsters) this.completeQuests(refreshQuests(this.ch, this.data));
   }
 
   /** Move an entity with collision. Monsters stay out of the safe settlement. */
@@ -456,6 +463,7 @@ export class Game {
 
   useMovement(point = null) {
     const p = this.player;
+    if (!this.ch.movement || !this.ch.movementSkills.includes(this.ch.movement)) return false;
     if (p.dead || p.dash) return false;
     if (p.movement.charges < 1) return false;
     const mv = this.move;
@@ -539,10 +547,15 @@ export class Game {
 
   /** Drink the potion in quick slot `slot`: restores at once, then its group cools down. */
   useQuickItem(slot) {
-    const p = this.player, id = this.ch.quickItems?.[slot];
+    return this.useConsumable(this.ch.quickItems?.[slot]);
+  }
+
+  /** Manual and automatic use share stock, restore, group cooldown and death rules. */
+  useConsumable(id, { automatic = false } = {}) {
+    const p = this.player;
     const def = id && this.data.items.consumables.types[id];
     const fail = (reason) => {
-      if (reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
+      if (!automatic && reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
       return { ok: false, reason };
     };
     if (!def) return fail('empty');
@@ -557,8 +570,20 @@ export class Game {
     this.ch.consumables[id]--;
     if (this.ch.consumables[id] <= 0) delete this.ch.consumables[id];
     p.itemCooldowns[def.group] = this.data.items.consumables.groupCooldown[def.group] || 0;
-    this.emit({ type: 'potion', id, group: def.group, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
+    this.emit({ type: 'potion', id, group: def.group, automatic, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
     return { ok: true, hp, mp };
+  }
+
+  useAutomaticPotions() {
+    const p = this.player;
+    if (p.dead || this.travelled || this.autoPotionTime === this.time) return;
+    this.autoPotionTime = this.time;
+    for (const group of POTION_GROUPS) {
+      const choice = this.ch.autoPotions[group], max = group === 'hp' ? p.maxHp : p.maxMp;
+      if (!choice.enabled || !(max > 0) || p[group] >= max || p[group] * 100 > max * choice.threshold || (p.itemCooldowns[group] || 0) > 0) continue;
+      const id = automaticPotion(this.ch, this.data, group);
+      if (id) this.useConsumable(id, { automatic: true });
+    }
   }
 
   inCombat() {
@@ -710,16 +735,34 @@ export class Game {
   }
 
   completeQuests(ids) {
+    let learnedSkill = false;
     for (const id of ids) {
       const q = this.data.quests.quests[id];
       const r = q.reward || {};
+      const received = { gold: r.gold || 0, items: { ...(r.items || {}) }, skills: [] };
       if (r.gold) this.ch.gold += r.gold;
       for (const [item, n] of Object.entries(r.items || {})) addItem(this.ch, item, n);
+      for (const skill of r.skills || []) {
+        // a quest-taught skill goes into the first empty slot so it is seen at once
+        if (this.ch.skills[skill] || !this.data.skills.combat[skill]) continue;
+        this.ch.skills[skill] = 1;
+        received.skills.push(skill);
+        learnedSkill = true;
+        const empty = this.ch.slots.find((s) => !s.skill);
+        if (empty) empty.skill = skill;
+      }
+      const before = { level: this.ch.level, exp: this.ch.exp, jobLevel: this.ch.jobLevel, jobExp: this.ch.jobExp };
       const gained = addExp(this.ch, this.data, r.exp || 0, r.jobExp || 0);
-      this.emit({ type: 'questDone', id, reward: r });
+      received.exp = this.ch.exp - before.exp;
+      for (let lv = before.level; lv < this.ch.level; lv++) received.exp += expToNext(this.data, lv);
+      received.jobExp = this.ch.jobExp - before.jobExp;
+      for (let lv = before.jobLevel; lv < this.ch.jobLevel; lv++) received.jobExp += jobExpToNext(this.data, lv);
+      recordQuestCompletion(this.ch, this.data, id, received);
+      this.emit({ type: 'questDone', id, reward: received });
       if (gained.levels) this.onLevelUp();
       if (gained.jobLevels) this.emit({ type: 'joblevelup', level: this.ch.jobLevel });
     }
+    if (learnedSkill) this.refreshSkills();
   }
 
   onLevelUp() {
@@ -1124,7 +1167,8 @@ export class Game {
 
   // ---------- update ----------
 
-  update(dt) {
+  update(dt, { paused = false, allowAutoPotions = true } = {}) {
+    if (paused) return;
     dt = Math.min(dt, 0.05);
     this.time += dt;
     this.ch.progress.playTime = (this.ch.progress.playTime || 0) + dt;
@@ -1160,6 +1204,7 @@ export class Game {
     this.updateAreas(dt);
     this.updateDrops(dt);
     this.updateRespawns();
+    if (dt > 0 && allowAutoPotions) this.useAutomaticPotions();
     this.checkT -= dt;
     if (this.checkT <= 0) {
       this.checkT = 0.25;

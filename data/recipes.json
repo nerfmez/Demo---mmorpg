@@ -1819,6 +1819,59 @@
       ],
       "itemLevel": 21
     },
+    "learn_slash": {
+      "type": "skill",
+      "result": "slash",
+      "cost": {
+        "gold": 20
+      }
+    },
+    "learn_hunter_shot": {
+      "type": "skill",
+      "result": "hunter_shot",
+      "cost": {
+        "gold": 20
+      }
+    },
+    "learn_arcane_bolt": {
+      "type": "skill",
+      "result": "arcane_bolt",
+      "cost": {
+        "gold": 20
+      }
+    },
+    "learn_firebolt": {
+      "type": "skill",
+      "result": "firebolt",
+      "cost": {
+        "glow_dust": 2,
+        "gold": 25
+      }
+    },
+    "learn_ward": {
+      "type": "skill",
+      "result": "ward",
+      "cost": {
+        "beetle_shell": 2,
+        "gold": 25
+      }
+    },
+    "learn_dash": {
+      "type": "movement",
+      "result": "dash",
+      "cost": {
+        "boar_hide": 1,
+        "gold": 15
+      }
+    },
+    "learn_roll": {
+      "type": "movement",
+      "result": "roll",
+      "cost": {
+        "boar_hide": 1,
+        "gold": 15
+      }
+    },
     "fernstep_charm": {
       "type": "gear",
       "result": "fernstep_charm",

@@ -64,12 +64,19 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
 | `render/firebolt.js`, `combat-fx.json.skills.firebolt` | Fire-element Firebolt uses an animated flame distance field and additive corona on shared velocity-aligned camera billboards and a fixed-capacity instanced pool of wisps and embers. Charge follows the posed weapon tip and clears on release/cancel; the cast corona is padded to avoid quad clipping. The tapered wake uses advected noise-cut curling tongues with staggered pointed ends; drift-aligned wisps do not widen it into a slab. Impact is a compact white contact flash that peels into asymmetric flame tongues and drift-aligned sparks, with no expanding ring or smoke, driven once by the existing event. Impact direction comes from the nearest last-rendered Firebolt, with no core event change; the compact contact layer draws over the struck surface. Port to `QuadMesh`/spatial shaders and bounded `GPUParticles3D`, retaining the same source/velocity and expiry contracts. Particle billboard bases must remain right-handed (right = (direction.y, -direction.x)) for front-face rendering. Embers retain a bright core and configured width/shrink over their 0.42 s lifetime so they remain legible after the 0.18 s flash. The oval visual head uses configured along/across radii (0.29/0.19 m), with an animated hot pocket inside orange/gold layers rather than a uniformly white disk; head heat/turbulence are data settings. Base projectile speed is 9 m/s, leaving room for projectile-speed modifiers; damage, range and collision radius remain unchanged. Element conversions use the existing element renderer. |
 | `lab/tuning.js`, `lab/editor.js`, `lab/lab.js` | Data-generated phase controls, per-skill Lab-only overrides, safe import/export and browser storage. Vfx accepts an isolated config; preview restart clears timers and disposes owned meshes while retaining shared geometry/pools. In Godot, build one inspector from exported effect data/resources and inject a preview copy rather than changing combat rules; see `SKILL-LAB.md`. Generic projectile scale/glow/trail and impact parameters now live in `combat-fx.json.projectileDefaults`. |
-| `render/view.js` `syncMonsters` | Monster models only exist within `VIEW_RADIUS` (58 m) of the hero, and of those only the ones whose bounding sphere (rig height, plus a 2 m margin) touches the camera frustum are drawn and posed; skinned models have `frustumCulled` off, so this test does the culling. In Godot, `VisibleOnScreenNotifier3D` (or a `VisibilityRange`) on each monster gives the same. |
-| `render/trail.js`, `data/combat-fx.json` | Melee looks. A player's swing draws a ribbon between two points on the real weapon (grip + `base`/`tip` metres along the blade, per weapon type) while the strike moves, which in Godot is a trail on a `BoneAttachment3D` of the weapon; the hit area (the skill's `range` and `arc`) is a separate flat wedge that flashes on the ground. Each monster melee attack name (`slap`, `peck`, `pinch`, `bite`, `sweep`) has its own look (water splash, beak needle, closing claws, fangs, heavy band), tweakable per monster in `overrides`. |
+| `render/monster-views.js` `syncMonsterViews` (called by `View.syncMonsters`) | Monster models only exist within `VIEW_RADIUS` (58 m) of the hero, and of those only the ones whose bounding sphere (rig height, plus a 2 m margin) touches the camera frustum are drawn and posed; skinned models have `frustumCulled` off, so this test does the culling. In Godot, `VisibleOnScreenNotifier3D` (or a `VisibilityRange`) on each monster gives the same. |
+| `render/trail.js`, `data/combat-fx.json` | Melee looks. A player's swing draws a ribbon between two points on the real weapon (grip + `base`/`tip` metres along the blade, per weapon type) while the strike moves, which in Godot is a trail on a `BoneAttachment3D` of the weapon; the hit area (the skill's `range` and `arc`) is a separate flat wedge that flashes on the ground. Each monster melee attack name has a look that shows what the creature hits with, tweakable per monster in `overrides`: `slap` water splash, `peck` beak needle, `sweep`/`shove` a heavy band, and for `rend`/`rake`/`claw` (claws), `bite` (fangs/tusks), `pinch` (crab claws) and `scythe` (mantis blades) a trail that comes out of the monster's own limb (`render/monster-trails.js`): short ribbons recorded from the real tip of the bones named in `limbs` (the far end of that bone's model segment), three or four side by side for claws, only bright while the tip moves fast, and only during the strike itself (never the wind-up). The strike animations sweep across the body (a hooking bite, a raking swipe) so the trail reads from the top-down camera; where it lands there is a small contact burst. In Godot: a `BoneAttachment3D` at each limb tip driving a trail mesh, exactly like the hero's weapon trail |
+| `render/monster-motion.js`, `data/monster-motion.json` | Monster locomotion feel. `view.js` measures each monster's ground speed (and its forward/sideways parts) from the simulated position; the gait cycle advances by speed so a planted foot sweeps back exactly as fast as the body moves (`rate = speed * 2π * duty / (2 * legLength * swing)`), legs have a planted stance and an eased, lifted swing, gaits blend walk → trot/gallop by speed, the body sinks while legs are spread, and bob/rock/roll/spine sway, head stabilisation, breathing, idle look-around and springy tails/ears/caps sit on top. Crabs sidle side-on while travelling. In Godot: an `AnimationTree` blend space driven by the same measured speed (or root-motion clips authored to these stride lengths) plus the same additive idle layers. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css`, `ui/art.css` and `ui/workspaces.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. `ui/menu-map.js` defines the menu structure: one **main menu (hub)** opened by the HUD menu button or Esc lists five groups (adventurer, skills and mods, items and shop, journey, system), each page opens only when pressed, shows just its own group's pages in the sidebar and has a back-to-hub button (also in the bag/skills workspace). The HUD keeps only bag and skills shortcuts beside the menu button; C/J/K/I/L/M still open their page directly. Port as a hub scene with group panels and a page stack. |
 
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
 Reuse the same image for grade/enhancement variants; display the grade and +N separately.
+The approved PR106 identities for `salt_slime`, `tusk_boar`, `thornback_wolf`,
+`greyfang`, `reed_viper` and `marsh_wisp` use the same transparent 256px PNGs
+in the field guide, boss pins, material-source details and quest pictures through
+`SHARED_MONSTER_PORTRAITS` in `ui/raster-icons.js`. Preserve their stable IDs.
+`viper_scale` and `wisp_core` use the approved 512px inventory PNG replacements;
+material names resolve centrally in `data/items.json` for costs, rewards and loot.
 `ui/atlas.js` selects a destination before an explicit travel action. Map symbols in
 `ui/mapimage.js` use the generated world's real positions. `ui/jobview.js` mounts the worn journal in `ui/skill-journal/`. Its read-only model
 places current foundation nodes and actual origin neighbours on one starting spread,
@@ -235,7 +242,15 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
 
 - **`scythe`, `claw`:** planted strikes on the `m.melee` path. They hit once at `hitTime`
   inside `arc`.
-- **`strike`, `ram`:** lanes on the charge path. `missStun` stuns a charge that hit nobody.
+- **`whirl`:** a 360° planted strike on the `m.melee` path (mantis).
+- **`rend`, `rake`:** planted combos on the `m.melee` path. `atk.hits` lists each contact
+  (`at` time, `off` angle offset, `step` forward, optional `knock`); each hit tests the arc once.
+  Wolves use `rend` (2 hits), Greyfang `rake` (3 hits). They replace the old repeated lunges.
+- **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event).
+- **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
+  besides the hawk `dive` and stalker `pounce` leaps.
+- **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
+  each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.
 - **`venom`:** a `venom_pool` area marked at the target for the whole wind-up plus flight, then
   ticking.
@@ -324,6 +339,11 @@ model onto the procedural monster rig at load: `bones` moves rig joints onto the
 distance (`sharpness`, `minWeight`), `pitch`/`yaw`/`scale`/`offset` align the model, and
 `keep` leaves procedural parts on some bones (the wisp's motes). In Godot, rig the GLBs with
 the same bone names and weights (or paint them) and keep the animation from `monsters.js`.
+The Tidal Slime is a body of water rather than a single rigid bone: `body` (base), `mid`, the
+curling `crest`, a `front` lip and three base `rim` points, with soft weights (`sharpness` 3).
+Springs on them (`data/monster-motion.json` → `slime`) make it travel in pulses, lag behind its
+own movement, slosh when it stops and wobble when hit; in Godot use the same bones with
+`SpringBoneSimulator3D` or a jiggle script.
 The salt slime model (a level-1 redesign: dome jelly with a shell, salt crust and seaweed) has one
 rig bone, `body`, so every vertex follows it and the squash/stretch comes from scaling that bone.
 The shore gull and hermit crab models follow the same scheme: the gull skins to `body`, `head`,
@@ -751,6 +771,87 @@ action handlers use this service predicate; blocked cards show the location
 reason beside the button. Stat/material/gold requirements are unchanged.
 Equipment enhancement/promotion and crafting still use the original workbench
 gate. Port the service anchors and `tests/core/upgrade-services.test.js`.
+
+### The opening and completion receipts (save v11)
+
+`createCharacter(data, { opening: true })` wakes unarmed with empty skills and slots.
+`wakeOpening` advances `wake` → `weapon`; `completeOpening(ch, data, { kit })`
+equips the chosen weapon and teaches only its normal attack (`slash`, `hunter_shot`,
+`arcane_bolt`). There is no skill or movement selection. Direct creation (including
+`?fresh=1`) also starts with only that weapon's basic attack. Movement remains
+unowned, its HUD slot empty and charge limit zero, until acquired later. Firebolt
+and Ward still come from shore quests or crafting; quest skills compile immediately.
+No combat/movement numbers or later recipes change.
+
+v11 migration preserves existing skills, ranks, slots, movement ownership and
+movement-mod fields. It never fills missing ownership with a legacy starter kit,
+Hunter Shot or Dash. An interrupted v10 `skills` screen returns to `weapon` with
+its weapon selection remembered; unapplied starter picks grant nothing. Already
+completed openings keep every learned skill. The wreck and lying/standing presentation
+remain owned by Azure's existing region root.
+
+The quest journal is version 2 with `completions: []`. The core marks a quest's
+`rewardClaimed` before payment and reentrant level-up callbacks, pays once, and
+records an immutable receipt before callbacks: quest name/description/objectives,
+actual gold/items, newly learned skills (no duplicate grants), and actual base/job
+EXP credited up to the caps. `questDone` carries that received reward. A v1 paid
+quest gets no invented receipt or new payment. Unpaid v1 rewards retain their guard
+and may pay once; malformed/duplicate presentation receipts are discarded.
+
+`ui/quest-completion.js` reads the first receipt in a native modal dialog. It pauses
+simulation/input, queues all receipts, and only calls `dismissQuestCompletion` plus
+the ordinary save callback. Dismissal cannot pay a reward. Escape and the touch
+button dismiss one receipt; failed persistence restores it. Unseen receipts survive
+Continue/export/import; acknowledged receipts stay dismissed. Port as a modal Control
+reading the same paid queue, with a separate dismiss/save action.
+
+The HUD tracker sits below the player frame in the left column. Its scroll budget
+reserves mobile safe insets and the movement area. Tapping it (or Enter/Space on its
+button) toggles a subtle dashed ground route; the journal stays available through the
+main menu/L. `core/quest-route.js` uses bounded A* with the existing `World.isFree`
+and sampled `World.move` checks for radius, water, obstacles and slopes. It never
+falls back to drawing through a wall. Occupied interactable anchors get a nearby
+walkable approach. Remote goals use `questNavigation`'s actual authored crossing,
+then replan on map handover. Nonspatial tasks show their instruction without a line.
+The route clears when tracking changes/completes. Cached search and ribbon work
+advance cooperatively; target changes or leaving the safe cached route trigger
+a bounded refresh. A static tail and short dynamic near ribbon each own their
+geometry/material; hide, handover, travel or page disposal releases both with
+`disposeObject`. The near endpoint follows the hero every rendered frame. Port as a navigation aid mesh with
+the same clearance and goal contracts, never auto-walk.
+
+
+### Cached route, supplies and automatic potions (save v12)
+
+Quest navigation still resolves the actual active objective/gate. `searchQuestRoute`
+is a cooperative pure generator with directed walking-clearance edge caches;
+`findQuestRoute` retains the blocking contract. The presentation advances search
+and terrain ribbon assembly in small task/frame slices, caches at most four CPU paths and
+disposes both owned GPU ribbons on hide, replacement, completion and map change.
+Each rendered frame projects the hero onto the safe cached polyline and redraws
+only its short near section. An obstructed/off-route connection hides the line
+and requests a bounded replan; it never draws a shortcut through an obstacle.
+Godot should mirror the cached path plus near ribbon in its process loop.
+
+The bow HUD reads the same `arrowInUse`/`arrowTotal` as shooting, including fallback
+stock and zero arrows. Its labeled crafting action opens the existing arrow
+category and relevant recipe; it grants nothing and retains `Game.craftArrows`
+costs, capacity and combat restrictions.
+
+`ch.autoPotions` stores separate `hp` and `mp` objects with `enabled`, integer
+`threshold` (1–100 percent) and `potion` (matching item ID or null). New characters
+and pre-v12 migration default both OFF, preserving inventory and learned skills.
+V12 reload preserves intentional choices. Default thresholds live in
+`items.consumables.autoUse`. Null selects the first stocked matching quick slot
+from left to right; an explicit size uses that inventory item with no substitution.
+`Game.useAutomaticPotions` runs at the end of an eligible positive-dt simulation
+frame, at most once per group/frame, when resource percent is at/below threshold
+and below full. It shares `useConsumable` with manual use, real stock, restore
+amount and group cooldown. Paused/menu/receipt/fullscreen frames do not advance
+simulation; dead/travel/zero-dt/prohibited frames do not consume. Empty stock
+produces no failure notifications. Successful potion events save the real spend.
+The existing shop page owns separate touch controls for both rules; its shopping
+location restrictions remain intact. No free items or changed potion balance.
 
 ### Moonroot Grove (third linked map, levels 6-10)
 

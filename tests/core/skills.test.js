@@ -1,7 +1,8 @@
+import { createLearnedCharacter as createCharacter } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
-import { createCharacter, derive } from '../../src/core/character.js';
+import { derive } from '../../src/core/character.js';
 import { computeSkill, modFits, socketMod, equipSkill } from '../../src/core/skills.js';
 
 const slotOf = (ch, id) => ch.slots.findIndex((s) => s.skill === id);

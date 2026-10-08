@@ -32,7 +32,7 @@
     "m_boars": {
       "name": "Trouble in the Meadow",
       "nameTh": "เสบียงจากสองฟากทาง",
-      "descTh": "หมูป่างาแหลมออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขี้ยวไว้เตรียมของ",
+      "descTh": "หมูกระทิงออกหากินตามทุ่งทั้งฝั่งเมืองท่าและชายแดน ช่วยลดจำนวนที่รบกวนทางเสบียง แล้วเก็บหนังกับเขาไว้เตรียมของ",
       "type": "kill",
       "target": "tusk_boar",
       "count": 5,
@@ -48,7 +48,7 @@
       "requires": [
         "f_road"
       ],
-      "objectiveTextTh": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+      "objectiveTextTh": "กำจัดหมูกระทิงรวม 5 ตัว",
       "chapter": "forest-traces",
       "category": "optional",
       "objectives": [
@@ -56,7 +56,7 @@
           "id": "primary",
           "type": "kill",
           "count": 5,
-          "labelTh": "กำจัดหมูป่างาแหลมรวม 5 ตัว",
+          "labelTh": "กำจัดหมูกระทิงรวม 5 ตัว",
           "target": "tusk_boar",
           "worlds": [
             "azure-harbor-v1",
@@ -289,7 +289,7 @@
     "s_wolves": {
       "name": "Thinning the Pack",
       "nameTh": "เส้นทางของฝูง",
-      "descTh": "หมาป่าหลังหนามยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
+      "descTh": "หมาป่าหน้ากากยังคงออกล่าตามป่าทั้งสองฝั่งของเส้นทาง ลดจำนวนฝูงที่รบกวนผู้เดินทาง และเก็บเขี้ยวไว้เตรียมตัวสำหรับศึกครั้งต่อไป",
       "type": "kill",
       "target": "thornback_wolf",
       "count": 10,
@@ -304,7 +304,7 @@
       "requires": [
         "m_forest"
       ],
-      "objectiveTextTh": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+      "objectiveTextTh": "กำจัดหมาป่าหน้ากากรวม 10 ตัว",
       "chapter": "forest-traces",
       "category": "optional",
       "objectives": [
@@ -312,7 +312,7 @@
           "id": "primary",
           "type": "kill",
           "count": 10,
-          "labelTh": "กำจัดหมาป่าหลังหนามรวม 10 ตัว",
+          "labelTh": "กำจัดหมาป่าหน้ากากรวม 10 ตัว",
           "target": "thornback_wolf",
           "worlds": [
             "azure-harbor-v1",
@@ -548,18 +548,21 @@
     "h_slimes": {
       "name": "เจลเกลือริมฝั่ง",
       "nameTh": "ก้าวแรกบนหาด",
-      "descTh": "เริ่มจากสไลม์น้ำเค็มใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
+      "descTh": "เริ่มจากสไลม์คลื่นทะเลใกล้หาดผู้มาเยือน เรียนรู้จังหวะกระโดดของมันและเก็บวัตถุดิบระหว่างทาง ก่อนเดินต่อไปหาแหล่งกระดองปู",
       "type": "kill",
       "target": "salt_slime",
       "count": 3,
       "reward": {
         "gold": 50,
         "exp": 8,
-        "jobExp": 6
+        "jobExp": 6,
+        "skills": [
+          "firebolt"
+        ]
       },
       "level": 1,
       "requires": [],
-      "objectiveTextTh": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+      "objectiveTextTh": "กำจัดสไลม์คลื่นทะเลริมฝั่ง 3 ตัว",
       "chapter": "first-footsteps",
       "category": "story",
       "objectives": [
@@ -567,7 +570,7 @@
           "id": "primary",
           "type": "kill",
           "count": 3,
-          "labelTh": "กำจัดสไลม์น้ำเค็มริมฝั่ง 3 ตัว",
+          "labelTh": "กำจัดสไลม์คลื่นทะเลริมฝั่ง 3 ตัว",
           "target": "salt_slime",
           "world": "azure-harbor-v1"
         }
@@ -587,7 +590,10 @@
         "items": {
           "crab_shell": 2,
           "salt_gel": 4
-        }
+        },
+        "skills": [
+          "ward"
+        ]
       },
       "level": 2,
       "requires": [

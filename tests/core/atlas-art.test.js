@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {data} from './helpers.js';
 import {art,atlasMonsterArt,atlasRegionArt} from '../../src/ui/art.js';
-import {MONSTER_PORTRAITS,REGION_PORTRAITS,rasterIconUrl} from '../../src/ui/raster-icons.js';
+import {MONSTER_PORTRAITS,SHARED_MONSTER_PORTRAITS,REGION_PORTRAITS,rasterIconUrl} from '../../src/ui/raster-icons.js';
 
 test('Atlas portraits cover every live spawn, boss and map-qualified region',()=>{
  const monsters=new Set(),regions=[];
@@ -15,12 +15,14 @@ test('Atlas portraits cover every live spawn, boss and map-qualified region',()=
  assert.equal(monsters.size,21);assert.equal(regions.length,22); // + Moonroot Grove: 3 monsters, 5 regions
  assert.deepEqual(Object.keys(MONSTER_PORTRAITS).sort(),[...monsters].sort());
  assert.deepEqual(Object.keys(REGION_PORTRAITS).sort(),regions.sort());
- for(const key of monsters){const id=key.slice(8);assert.match(atlasMonsterArt(id),/<img /);assert.match(art('monster',id),/<svg/,'shared boss-marker artwork preserved');}
+ assert.deepEqual(Object.keys(SHARED_MONSTER_PORTRAITS).sort(),['salt_slime','tusk_boar','thornback_wolf','greyfang','reed_viper','marsh_wisp'].map(id=>'monster/'+id).sort());
+ for(const key of monsters){const id=key.slice(8);assert.match(atlasMonsterArt(id),/<img /);assert.match(art('monster',id),SHARED_MONSTER_PORTRAITS[key]?/<img /:/<svg/,'shared art follows approved identity scope');}
  for(const key of regions){const[,map,id]=key.split('/');assert.match(atlasRegionArt(map,id),/<img /);}
  assert.notEqual(atlasRegionArt('azure-harbor-v1','forest'),atlasRegionArt('frontier-wilds-v1','forest'));
 });
 test('Atlas opt-in paths support hosting prefixes and authored fallback',()=>{
- assert.match(atlasMonsterArt('tusk_boar',{}),/<svg/);
+ assert.match(atlasMonsterArt('moss_beetle',{}),/<svg/);
+ assert.match(atlasMonsterArt('tusk_boar',{}),/<img /,'approved shared identity remains consistent when Atlas registry falls back');
  assert.match(atlasRegionArt('azure-harbor-v1','forest',{}),/<svg/);
  assert.equal(rasterIconUrl('monster','tusk_boar',MONSTER_PORTRAITS,'/demo/'),'/demo/assets/icons/monster/tusk_boar.png');
  assert.equal(rasterIconUrl('region','azure-harbor-v1/forest',REGION_PORTRAITS,'/demo/'),'/demo/assets/icons/region/azure-harbor-v1/forest.png');

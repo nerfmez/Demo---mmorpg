@@ -204,17 +204,20 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
 });
 
 function paginatedArtifacts(f, responses) {
-  // 50 browser jobs each publish report + capture artifacts, plus one build.
-  const reports = Array.from({ length: 100 }, (_, index) => ({ id: 1000 + index, name: `browser-${index}` }));
+  // Each browser job publishes report + capture artifacts, plus one shared build.
+  const jobs = f.jobs.filter(job => job.name.startsWith('Quick affected')).length;
+  const reports = Array.from({ length: jobs * 2 }, (_, index) => ({ id: 1000 + index, name: `browser-${index}` }));
+  const artifacts = [...reports, f.artifact];
   const first = `repos/${repository}/actions/runs/99/artifacts?per_page=100`;
   const second = `${first}&page=2`;
-  responses[first] = { total_count: 101, artifacts: reports };
-  responses[second] = { total_count: 101, artifacts: [f.artifact] };
+  responses[first] = { total_count: artifacts.length, artifacts: artifacts.slice(0, 100) };
+  responses[second] = { total_count: artifacts.length, artifacts: artifacts.slice(100) };
   return { first, second };
 }
-test('full 50-job CI evidence with 101 artifacts reuses the exact build on page two', async t => {
+test('full browser inventory evidence reuses the exact build on page two', async t => {
   const { f, responses, options } = resolverFixture(t);
-  assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, 50);
+  assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, FULL_SUITES.length * 2);
+  assert.ok(FULL_SUITES.length * 2 > 50, 'report/capture artifacts require a second page');
   paginatedArtifacts(f, responses);
   const evidence = await resolveRelease(options);
   assert.equal(evidence?.artifactId, 456);

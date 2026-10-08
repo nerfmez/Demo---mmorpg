@@ -2,15 +2,15 @@
   "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) uses enhancement_stone and stays separate from Grade. Skill/mod ranks use skill_crystal. Per-base upgradeMaterial is retained only as the legacy salvage fallback for base crafting parts. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam. Equipment itemLevel is persistent progression metadata, independent of grade, +N and stat wear requirements.",
   "materials": {
     "boar_hide": {
-      "name": "Boar Hide",
-      "nameTh": "หนังหมูป่า",
+      "name": "Boarbull Hide",
+      "nameTh": "หนังหมูกระทิง",
       "color": "#8a5a3a",
       "value": 3,
       "shape": "box"
     },
     "boar_tusk": {
-      "name": "Boar Tusk",
-      "nameTh": "เขี้ยวหมูป่า",
+      "name": "Boarbull Horn",
+      "nameTh": "เขาหมูกระทิง",
       "color": "#efe3c4",
       "value": 5,
       "shape": "horn"
@@ -30,8 +30,8 @@
       "shape": "ball"
     },
     "wisp_core": {
-      "name": "Wisp Core",
-      "nameTh": "แกนภูตไฟ",
+      "name": "Lostlight Core",
+      "nameTh": "แกนภูตแสงหลงทาง",
       "color": "#6fd7ff",
       "value": 10,
       "shape": "gem"
@@ -51,8 +51,8 @@
       "shape": "gem"
     },
     "wolf_pelt": {
-      "name": "Thorn Pelt",
-      "nameTh": "หนังหมาป่าหนาม",
+      "name": "Maskfang Pelt",
+      "nameTh": "หนังหมาป่าหน้ากาก",
       "color": "#8a7f70",
       "value": 5,
       "shape": "box"
@@ -182,8 +182,8 @@
       "shape": "horn"
     },
     "viper_scale": {
-      "name": "Reed Viper Scale",
-      "nameTh": "เกล็ดงูกก",
+      "name": "Reedblade Scale",
+      "nameTh": "เกล็ดใบกก",
       "color": "#6f9a5c",
       "value": 12,
       "shape": "box"
@@ -2676,6 +2676,7 @@
     "_doc": "Potions bought at the town shop (town.shop) and used from the quick item slots. A potion restores flat + pct of the maximum, at once. Each group (hp, mp) has its own cooldown so one potion of each kind can be drunk back to back but not spammed. Stacks hold at most stackMax. New characters start with the start set; v7 saves receive it once.",
     "quickSlots": 4,
     "stackMax": 99,
+    "autoUse": {"hp": {"threshold": 35}, "mp": {"threshold": 30}},
     "groupCooldown": {
       "hp": 5,
       "mp": 5

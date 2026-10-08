@@ -104,9 +104,7 @@ export class Menu {
 
   showCreate(slot) {
     this.slot = slot;
-    const kits = this.data.progression.start.kits;
     this.look = { ...DEFAULT_LOOK };
-    this.kit = this.data.progression.start.defaultKit;
     this.name = '';
     this.view.mode = 'create';
     this.refreshPreview();
@@ -115,10 +113,6 @@ export class Menu {
     this.show(`<div class="create-panel scrolly">
       <h2>สร้างตัวละคร <small>ช่อง ${slot}</small></h2>
       <label class="field">ชื่อ<input id="heroName" maxlength="14" placeholder="นักเดินทาง" value="${esc(this.name)}" autocomplete="off"></label>
-      <div class="field">แนวเริ่มต้น <span class="muted">(เปลี่ยนสกิลและอาวุธทีหลังได้ทั้งหมด · ยังไม่ต้องเลือก Job)</span>
-        <div class="kits">${Object.entries(kits)
-          .map(([id, k]) => `<button class="kit ${this.kit === id ? 'on' : ''}" data-act="kit" data-kit="${id}">${art('gear',k.weapon)}<b>${k.nameTh}</b><small>${esc(k.descTh)}</small></button>`)
-          .join('')}</div></div>
       <div class="field">ทรงผม<div class="switch">${LOOK_OPTIONS.hairStyle.map((h) => `<button class="btn ${this.look.hairStyle === h ? 'on' : ''}" data-act="look" data-key="hairStyle" data-val="${h}">${HAIR_NAMES[h]}</button>`).join('')}</div></div>
       <div class="field">สีผม${sw('hair')}</div>
       <div class="field">สีผิว${sw('skin')}</div>
@@ -133,9 +127,8 @@ export class Menu {
   }
 
   refreshPreview() {
-    const kit = this.data.progression.start.kits[this.kit];
-    const weapon = this.data.items.gearBases[kit.weapon]?.weaponType || 'sword';
-    this.view.showPreview(this.look, { weapon, bases: { weapon: kit.weapon } });
+    // no weapon yet: the character picks one at the wreck
+    this.view.showPreview(this.look, { weapon: null, unarmed: true, offhand: null, armor: 'tunic', helm: null, gloves: null, bases: {} });
   }
 
   rerenderCreate() {
@@ -143,15 +136,12 @@ export class Menu {
     const scroll = this.el.querySelector('.create-panel')?.scrollTop || 0;
     const slot = this.slot;
     const look = this.look;
-    const kit = this.kit;
     this.showCreate(slot);
     this.look = look;
-    this.kit = kit;
     this.name = name;
     // re-apply state to the freshly drawn controls
     this.el.querySelector('#heroName').value = name;
     this.el.querySelectorAll('[data-act="look"]').forEach((b) => b.classList.toggle('on', this.look[b.dataset.key] === b.dataset.val));
-    this.el.querySelectorAll('[data-act="kit"]').forEach((b) => b.classList.toggle('on', b.dataset.kit === this.kit));
     this.el.querySelector('.create-panel').scrollTop = scroll;
     this.refreshPreview();
   }
@@ -222,9 +212,6 @@ export class Menu {
         else msg('โค้ดไม่ถูกต้อง');
         return;
       }
-      case 'kit':
-        this.kit = t.dataset.kit;
-        return this.rerenderCreate();
       case 'look':
         this.look[t.dataset.key] = t.dataset.val;
         return this.rerenderCreate();
@@ -235,7 +222,7 @@ export class Menu {
         return this.showTitle();
       case 'start': {
         const name = (this.el.querySelector('#heroName')?.value || '').trim().slice(0, 14) || 'นักเดินทาง';
-        const ch = createCharacter(this.data, { kit: this.kit, name, appearance: { ...this.look } });
+        const ch = createCharacter(this.data, { opening: true, name, appearance: { ...this.look } });
         writeSlot(this.slot, ch);
         this.hide();
         this.onStart(ch, this.slot, true);

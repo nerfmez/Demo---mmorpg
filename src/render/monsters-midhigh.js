@@ -3,12 +3,15 @@
 // read from the game camera: scythes raised, a coiled neck, a pawing crouch, a low stalk, a
 // spinning shard ring. Same rig/cel rules as monsters.js; no per-frame allocations.
 import * as THREE from 'three';
+import { advanceGait, poseLegs, wander, breath } from './monster-motion.js';
 import { RigBuilder, damp, clamp01, Spring } from './rig.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 const cone = (r, h, seg = 5) => new THREE.ConeGeometry(r, h, seg);
 const clampAbs = (v, m) => (v > m ? m : v < -m ? -m : v);
+const EARS = ['earL', 'earR'];
+const ARMS = [['L', 1], ['R', -1]];
 const windK = (s) => (s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0);
 
 // ---------- thicket mantis: upright, two scythe arms ----------
@@ -66,14 +69,14 @@ function buildMantis() {
 }
 
 function animMantis(r, s, dt, time) {
-  const b = r.bones;
-  r.phase = (r.phase || 0) + dt * (s.moving ? 11 + s.speedFactor * 4 : 0);
-  const ph = r.phase, w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 10, dt));
-  r.legs.forEach((n, i) => { b[n].rotation.x = Math.sin(ph + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * 0.45 * w; });
+  const b = r.bones, c = r.motion;
+  const w = advanceGait(r, s, dt, c);
+  const ph = r.phase;
+  const drop = poseLegs(r, c, r.legs);
   // Arms extend +Y from the shoulder: rotation.x > 0 swings them forward/down. The blade hangs
   // back along the arm (folded) at 0 and opens forward as its rotation.x goes negative.
-  let rear = Math.sin(time * 1.6 + r.seed) * 0.05, bodyY = 0.6 + Math.abs(Math.sin(ph)) * 0.03 * w;
-  let arm = 0.95, blade = -0.25, spread = 0.1, head = 0; // rest: praying, scythes folded in front
+  let rear = Math.sin(time * 1.6 + r.seed) * 0.05, bodyY = 0.6;
+  let arm = 0.95, blade = -0.25, spread = 0.1, head = 0, spin = 0; // rest: praying, scythes folded in front
   const k = windK(s);
   if (s.windup === 'scythe') {
     rear = -0.3 * k; // rears up, both scythes high and open
@@ -81,11 +84,24 @@ function animMantis(r, s, dt, time) {
     blade = -0.25 - 2.1 * k;
     spread = 0.1 + 0.4 * k;
     head = -0.15 * k;
-  } else if (s.windup === 'lunge') {
-    rear = 0.3 * k;
-    bodyY -= 0.12 * k;
-    arm = 0.95 - 0.4 * k;
-    blade = -0.25 - 1.3 * k;
+  } else if (s.windup === 'whirl') {
+    // both scythes spread wide to the sides, the body winds up for a full turn
+    rear = 0.1 * k;
+    bodyY -= 0.08 * k;
+    arm = 0.6 - 0.5 * k;
+    blade = -0.25 - 1.6 * k;
+    spread = 0.1 + 1.0 * k;
+    spin = -0.25 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'whirl') {
+    const t = clamp01(s.actT / Math.max(0.01, s.actionTotal));
+    spin = -0.25 + (Math.PI * 2 + 0.25) * t * t * (3 - 2 * t);
+    rear = 0.1;
+    arm = 0.1;
+    blade = -1.85;
+    spread = 1.1;
+    bodyY -= 0.08;
+  } else if (s.state === 'recover' && s.lastAttack === 'whirl') {
+    spin = Math.PI * 2; // equivalent to rest; no reverse spin on recovery
   } else if (s.state === 'act' && s.lastAttack === 'scythe') {
     const c = clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1));
     rear = -0.3 + 0.6 * c;
@@ -112,12 +128,21 @@ function animMantis(r, s, dt, time) {
     blade = 0.5 + (blade + 0.25) * 0.4;
     spread *= 0.5;
   }
+  // a careful, swaying walk; the raised thorax sways like a twig in the wind and the head tilts
+  // to watch (mantis curiosity), steady while the body bobs
+  const P = r.pose || (r.pose = { y: 0.6, z: 0 });
+  P.y = damp(P.y, bodyY, 16, dt);
+  P.z = damp(P.z, clampAbs(-s.turn * 0.05, 0.2), 10, dt);
+  const calm = s.windup || s.state === 'act' ? 0 : 1;
   b.thorax.rotation.x = damp(b.thorax.rotation.x, rear, 14, dt);
-  b.body.position.y = damp(b.body.position.y, bodyY, 16, dt);
-  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.05, 0.2), 10, dt);
+  b.thorax.rotation.z = (Math.sin(time * 0.9 + r.seed) * 0.05 * (1 - w) + Math.sin(ph) * c.roll * w) * calm;
+  b.body.position.y = P.y - drop + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph)) + breath(time, r.seed, c) * 0.5 * (1 - w);
+  b.body.rotation.z = P.z + Math.sin(ph) * c.roll * w;
+  b.body.rotation.y = spin;
   b.head.rotation.x = damp(b.head.rotation.x, head, 12, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.9, 8, dt);
-  for (const [n, side] of [['L', 1], ['R', -1]]) {
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.9 + (s.aggro ? 0 : c.look * wander(time * 0.5, r.seed)) * calm, 8, dt);
+  b.head.rotation.z = damp(b.head.rotation.z, Math.round(wander(time * 0.4, r.seed + 3) * 2) * 0.22 * calm, 10, dt);
+  for (const [n, side] of ARMS) {
     b[`arm${n}`].rotation.x = damp(b[`arm${n}`].rotation.x, arm, 18, dt);
     b[`arm${n}`].rotation.z = damp(b[`arm${n}`].rotation.z, -side * spread, 18, dt);
     b[`blade${n}`].rotation.x = damp(b[`blade${n}`].rotation.x, blade, 18, dt);
@@ -162,12 +187,15 @@ function buildViper() {
 
 function animViper(r, s, dt, time) {
   const b = r.bones;
-  const speed = s.moving ? 5 + s.speedFactor * 4 : s.state === 'act' ? 14 : 1.6;
-  r.phase = (r.phase || 0) + dt * speed;
+  // the S-wave travels down the body as fast as the snake moves over the ground (each curve
+  // pushes against the same spot), plus a slow idle sway
+  const w = advanceGait(r, s, dt, r.motion);
+  const speed = s.state === 'act' ? 14 : 1.6 + (r.speed || 0) * 5.5;
+  r.wavePh = (r.wavePh || 0) + dt * speed;
   const k = windK(s);
-  let amp = s.moving ? 0.38 : 0.22, lift = 0, jaw = 0.05, coil = 0;
+  let amp = 0.22 + 0.16 * w, lift = 0, jaw = 0.05 + Math.max(0, Math.sin(time * 1.3 + r.seed)) ** 30 * 0.25, coil = 0;
   const wave = r.modelCfg?.wave ?? 1; // a coiled model wriggles less than a long straight one (data/models.json wave)
-  if (s.windup === 'strike') {
+  if (s.windup === 'lash') {
     // coil: the S tightens, the head rises and draws back
     amp = 0.22 + 0.35 * k;
     coil = k;
@@ -181,6 +209,11 @@ function animViper(r, s, dt, time) {
     amp = 0.06;
     lift = -0.15;
     jaw = 0.8;
+  } else if (s.state === 'recover' && s.lastAttack === 'lash') {
+    const hit = 1 - clamp01(s.actT / 0.25);
+    lift = -0.25 * hit;
+    jaw = 0.8 * hit;
+    amp = 0.06;
   } else if (s.state === 'recover' && s.lastAttack === 'venom') {
     lift = 0.3;
     jaw = 0.2;
@@ -194,12 +227,12 @@ function animViper(r, s, dt, time) {
   b.head.rotation.x = damp(b.head.rotation.x, -r.lift * (model ? 0.6 : 0.8), 12, dt);
   b.head.position.y = damp(b.head.position.y, model ? rest.y : 0.3 + r.lift * 0.75, 12, dt);
   b.head.position.z = damp(b.head.position.z, (model ? rest.z : 0.55) - coil * 0.35, 12, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + Math.sin(r.phase) * amp * 0.4, 10, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + Math.sin(r.wavePh) * amp * 0.4, 10, dt);
   b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
   for (let i = 0; i < VIPER_SEGS; i++) {
     const seg = b[`seg${i}`];
     // the wave travels down the body
-    seg.rotation.y = damp(seg.rotation.y, Math.sin(r.phase - i * 0.85) * amp * wave * (i === 0 ? 0.5 : 1), 14, dt);
+    seg.rotation.y = damp(seg.rotation.y, Math.sin(r.wavePh - i * 0.85) * amp * wave * (i === 0 ? 0.5 : 1), 14, dt);
     // procedural: the neck slopes down from the raised head and the body levels out again at
     // seg2, so only the front rears up; model: seg0 undoes the head tilt for the body
     const x = model ? (i === 0 ? r.lift * 0.6 : 0) : i === 0 ? -r.lift * 0.4 : i === 2 ? r.lift * 1.2 : 0;
@@ -258,22 +291,21 @@ function buildRam() {
 }
 
 function animRam(r, s, dt, time) {
-  const b = r.bones, legs = r.legs, k = windK(s);
-  const moving = s.moving || (s.state === 'act' && s.lastAttack === 'ram');
-  r.phase = (r.phase || 0) + dt * (moving ? (s.state === 'act' ? 18 : 6 + s.speedFactor * 5) : 0);
-  const ph = r.phase, w = (r.runW = damp(r.runW || 0, moving ? 1 : 0, 10, dt));
-  const gallop = s.state === 'act';
-  let front = 0, bodyX = 0, bodyY = 0.85 + Math.abs(Math.sin(ph)) * 0.05 * w, headX = 0.05;
-  legs.forEach((n, i) => {
-    const off = gallop ? (i < 2 ? 0 : Math.PI * 0.6) : i === 0 || i === 3 ? 0 : Math.PI;
-    b[n].rotation.x = Math.sin(ph + off) * (gallop ? 0.8 : 0.5) * w;
-    b[`${n}k`].rotation.x = Math.max(0, Math.cos(ph + off)) * 0.6 * w;
-  });
-  if (s.windup === 'ram') {
-    // head down, horns forward, a hoof scrapes the ground
-    headX = 0.55 * k;
-    bodyX = 0.1 * k;
-    bodyY -= 0.12 * k;
+  const b = r.bones, legs = r.legs, k = windK(s), c = r.motion;
+  const w = advanceGait(r, s, dt, c);
+  const moving = w > 0.3;
+  const ph = r.phase, run = r.runK;
+  const drop = poseLegs(r, c, legs);
+  const calm = s.windup || s.state === 'act' || s.aggro ? 0 : 1 - w;
+  // grazing: the head dips to the ground now and then while it stands
+  const graze = Math.max(0, wander(time * 0.27, r.seed + 2)) ** 2 * 0.6 * calm;
+  let front = 0, bodyX = 0, bodyY = 0.85, headX = 0.05 + graze, headY = s.lookYaw * 0.6 + c.look * wander(time * 0.4, r.seed) * calm;
+  if (s.windup === 'shove') {
+    // head low and swung to one side, a hoof scrapes the ground before the horn sweep
+    headX = 0.5 * k;
+    bodyX = 0.08 * k;
+    bodyY -= 0.1 * k;
+    headY = -0.45 * k;
     b[legs[0]].rotation.x = Math.sin(time * 16) * 0.55 * k;
   } else if (s.windup === 'stomp') {
     // rears on its hind legs
@@ -284,6 +316,11 @@ function animRam(r, s, dt, time) {
   } else if (s.state === 'act') {
     headX = 0.55;
     bodyX = 0.12;
+  } else if (s.state === 'recover' && s.lastAttack === 'shove') {
+    const hit = 1 - clamp01(s.actT / 0.35);
+    headX = 0.5 * hit;
+    headY = 0.5 * hit;
+    bodyX = 0.12 * hit;
   } else if (s.state === 'recover' && s.lastAttack === 'stomp') {
     bodyX = 0.18;
     headX = 0.3;
@@ -293,14 +330,25 @@ function animRam(r, s, dt, time) {
   }
   if (front) { b[legs[0]].rotation.x = front; b[legs[1]].rotation.x = front * 0.9; }
   if (s.hurt > 0) bodyX -= 0.18 * s.hurt;
-  if (s.state !== 'stunned') b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.05, 0.15), 10, dt);
-  b.body.rotation.x = damp(b.body.rotation.x, bodyX, 12, dt);
-  b.body.position.y = damp(b.body.position.y, bodyY, 16, dt);
-  b.head.rotation.x = damp(b.head.rotation.x, headX, 14, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6, 5, dt);
+  const P = r.pose || (r.pose = { x: 0, y: 0.85, z: 0, headX: 0 });
+  if (s.state !== 'stunned') P.z = damp(P.z, clampAbs(-s.turn * 0.05 - (s.vSide || 0) * 0.02, 0.15), 10, dt);
+  else P.z = b.body.rotation.z;
+  P.x = damp(P.x, bodyX + c.lean * clampAbs(r.accel || 0, 5), 12, dt);
+  P.y = damp(P.y, bodyY, 16, dt);
+  P.headX = damp(P.headX, headX, 14, dt);
+  const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
+  const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);
+  b.body.rotation.x = P.x + rock;
+  b.body.position.y = P.y - drop + c.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
+  if (s.state !== 'stunned') b.body.rotation.z = P.z + roll;
+  b.chest.rotation.y = -c.sway * w * Math.sin(ph);
+  const br = breath(time, r.seed, c) * (1 - 0.6 * w);
+  b.body.scale.set(1 + br, 1, 1 + br * 0.4);
+  b.head.rotation.x = P.headX - rock * c.headSteady;
+  b.head.rotation.y = damp(b.head.rotation.y, headY, s.lastAttack === 'shove' ? 18 : 5, dt);
   r.tailSpring = r.tailSpring || new Spring(60, 8);
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * (moving ? 12 : 3)) * 0.2, dt);
-  for (const e of ['earL', 'earR']) b[e].rotation.z = damp(b[e].rotation.z, (e === 'earL' ? 1 : -1) * (s.windup ? 0.5 : 0.1 + Math.sin(time * 2 + r.seed) * 0.05), 10, dt);
+  for (const e of EARS) b[e].rotation.z = damp(b[e].rotation.z, (e === 'earL' ? 1 : -1) * (s.windup ? 0.5 : 0.1 + Math.sin(time * 2 + r.seed) * 0.05), 10, dt);
 }
 
 // ---------- duskmane stalker: a long cat with a pale mane ----------
@@ -360,17 +408,14 @@ function buildStalker() {
 }
 
 function animStalker(r, s, dt, time) {
-  const b = r.bones, legs = r.legs, k = windK(s);
+  const b = r.bones, legs = r.legs, k = windK(s), cfg = r.motion;
   const leaping = s.state === 'act' && s.lastAttack === 'pounce';
-  r.phase = (r.phase || 0) + dt * (s.moving ? 8 + s.speedFactor * 5 : 0);
-  const ph = r.phase, w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 10, dt));
-  legs.forEach((n, i) => {
-    const off = i === 0 || i === 3 ? 0 : Math.PI;
-    b[n].rotation.x = Math.sin(ph + off) * 0.5 * w;
-    b[`${n}k`].rotation.x = Math.max(0, Math.cos(ph + off)) * 0.7 * w;
-  });
+  // a cat's walk: long smooth strides, shoulder blades rolling, the head gliding level
+  const w = advanceGait(r, s, dt, cfg);
+  const ph = r.phase, run = r.runK;
+  const drop = poseLegs(r, cfg, legs);
   // a stalker walks low
-  let bodyY = 0.62 + Math.abs(Math.sin(ph)) * 0.03 * w, bodyX = 0, headX = 0.08, jaw = 0, paw = null, tailLash = 0;
+  let bodyY = 0.62, bodyX = 0, headX = 0.08, jaw = 0, paw = null, tailLash = 0;
   if (s.windup === 'pounce') {
     bodyY = 0.62 - 0.24 * k; // belly to the ground, hind legs coiled
     bodyX = 0.1 * k;
@@ -395,16 +440,29 @@ function animStalker(r, s, dt, time) {
     bodyX = 0.05;
   }
   if (paw !== null) b[legs[0]].rotation.x = paw;
+  // the swipe also comes across the body (seen from above, the claws carve a crescent)
+  b[legs[0]].rotation.z = s.windup === 'claw' ? 0.55 * k : s.state === 'act' && s.lastAttack === 'claw' ? 0.55 - 1.1 * clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1)) : damp(b[legs[0]].rotation.z, 0, 14, dt);
   if (s.hurt > 0) bodyX -= 0.2 * s.hurt;
-  b.body.position.y = damp(b.body.position.y, bodyY, 14, dt);
-  b.body.rotation.x = damp(b.body.rotation.x, bodyX, 12, dt);
-  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.07, 0.25), 10, dt);
-  b.head.rotation.x = damp(b.head.rotation.x, headX, 14, dt);
+  const P = r.pose || (r.pose = { x: 0, y: 0.62, z: 0, headX: 0 });
+  P.y = damp(P.y, bodyY, 14, dt);
+  P.x = damp(P.x, bodyX + cfg.lean * clampAbs(r.accel || 0, 5), 12, dt);
+  P.z = damp(P.z, clampAbs(-s.turn * 0.07 - (s.vSide || 0) * 0.03, 0.25), 10, dt);
+  P.headX = damp(P.headX, headX, 14, dt);
+  const rock = cfg.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
+  const roll = cfg.roll * w * Math.sin(ph) * (1 - 0.6 * run);
+  b.body.position.y = P.y - drop + cfg.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
+  b.body.rotation.x = P.x + rock;
+  b.body.rotation.z = P.z + roll;
+  b.chest.rotation.y = -cfg.sway * w * Math.sin(ph);
+  b.chest.rotation.z = -roll * 1.4; // shoulder blades roll over each planted forepaw
+  const br = breath(time, r.seed, cfg) * (1 - 0.6 * w);
+  b.body.scale.set(1 + br, 1, 1 + br * 0.4);
+  b.head.rotation.x = P.headX - rock * cfg.headSteady;
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.9, 7, dt);
   b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
   r.tailSpring = r.tailSpring || new Spring(50, 6);
   b.tail.rotation.y = r.tailSpring.update(Math.sin(time * (2 + tailLash * 10) + r.seed) * (0.35 + tailLash * 0.4), dt);
-  for (const e of ['earL', 'earR']) b[e].rotation.x = damp(b[e].rotation.x, s.windup ? 0.5 : -0.1, 10, dt);
+  for (const e of EARS) b[e].rotation.x = damp(b[e].rotation.x, s.windup ? 0.5 : -0.1, 10, dt);
 }
 
 // ---------- rune sentinel: a floating carved stone with a shard ring ----------
@@ -473,8 +531,11 @@ function animSentinel(r, s, dt, time) {
     const a = (i / SHARDS) * Math.PI * 2, sh = b[`shard${i}`];
     sh.position.set(Math.sin(a) * 0.85 * r.radius, Math.sin(time * 2 + i) * 0.08 + rise, Math.cos(a) * 0.85 * r.radius);
   }
-  b.body.position.y = damp(b.body.position.y, 1.45 + Math.sin(time * 1.8 + r.seed) * 0.08 + (s.moving ? 0.05 : 0), 8, dt);
-  b.body.rotation.x = damp(b.body.rotation.x, lean + (s.moving ? 0.12 : 0), 8, dt);
+  // a floating stone: it tips into its drift and rocks back when it stops
+  advanceGait(r, s, dt, r.motion);
+  b.body.position.y = damp(b.body.position.y, 1.45 + Math.sin(time * 1.8 + r.seed) * 0.08 + Math.min(0.05, (r.speed || 0) * 0.03), 8, dt);
+  b.body.rotation.x = damp(b.body.rotation.x, lean + Math.min(0.16, (r.speed || 0) * 0.08) + clampAbs(r.accel || 0, 3) * 0.03, 5, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.vSide || 0) * 0.06 - s.turn * 0.04, 0.15) + Math.sin(time * 1.1 + r.seed) * 0.03, 5, dt);
   b.head.rotation.x = damp(b.head.rotation.x, headX, 10, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.8, 4, dt);
 }

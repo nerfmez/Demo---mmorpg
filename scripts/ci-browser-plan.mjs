@@ -6,6 +6,7 @@ import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 export const ROUTING_VERSION = 3;
 export const SUITES = {
   boot: ['boot.mjs'],
+  opening: ['opening.mjs'],
   smoke: ['smoke.mjs'],
   world: ['map-travel.mjs', 'open-world.mjs', 'open-world-city.mjs'],
   combat: ['midhigh-monsters.mjs', 'coastal-attacks.mjs'],
@@ -20,6 +21,7 @@ export const SUITES = {
   capture: ['capture.mjs'],
   save: ['journal-route-save.mjs'],
   icons: ['icon-consumers.mjs'],
+  'monster-identity': ['monster-identity.mjs'],
   quests: ['quest-journal.mjs'],
   // Full postmerge/manual CI owns ALL of the existing broad UI/HUD review.
   // Keep separate shards: moving ownership must not create a 9-script timeout.
@@ -31,7 +33,7 @@ export const SUITES = {
   'journal-lines': ['journal-lines.mjs'],
   'skill-lines': ['skill-lines.mjs'],
   wearable: ['wearable-level.mjs'],
-  hud: ['fieldhud.mjs'],
+  hud: ['fieldhud.mjs', 'gameplay-qol.mjs'],
 };
 export const FULL_SUITES = Object.keys(SUITES);
 export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];

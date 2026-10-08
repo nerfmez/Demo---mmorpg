@@ -589,11 +589,14 @@ export class Input {
       b.style.setProperty('--cd', `${(cd / total) * 100}%`);
     });
     const mv = g.move;
-    if (this.moveBtn.dataset.skill !== mv.id) {
-      this.moveBtn.dataset.skill = mv.id;
-      this.moveBtn.querySelector('.ic').innerHTML = art('skill',mv.id);
-      this.moveBtn.querySelector('.slabel').textContent = mv.def.nameTh;
-      this.moveBtn.setAttribute('aria-label', `${mv.def.nameTh} · สกิลเคลื่อนที่`);
+    const ownsMovement = !!g.ch.movement && g.ch.movementSkills.includes(g.ch.movement);
+    const movementKey = ownsMovement ? mv.id : 'empty';
+    if (this.moveBtn.dataset.skill !== movementKey) {
+      this.moveBtn.dataset.skill = movementKey;
+      this.moveBtn.classList.toggle('empty', !ownsMovement);
+      this.moveBtn.querySelector('.ic').innerHTML = ownsMovement ? art('skill',mv.id) : icon('plus');
+      this.moveBtn.querySelector('.slabel').textContent = ownsMovement ? mv.def.nameTh : 'ยังไม่มีสกิล';
+      this.moveBtn.setAttribute('aria-label', ownsMovement ? `${mv.def.nameTh} · สกิลเคลื่อนที่` : 'ยังไม่มีสกิลเคลื่อนที่');
     }
     const ch = this.moveBtn.querySelector('.charges');
     const want = `${p.movement.charges}/${mv.charges}`;
@@ -603,6 +606,6 @@ export class Input {
     }
     const cdk = p.movement.charges < mv.charges ? 1 - p.movement.rechargeT / mv.recharge : 0;
     this.moveBtn.style.setProperty('--cd', `${p.movement.charges === 0 ? cdk * 100 : 0}%`);
-    this.moveBtn.querySelector('.cdt').textContent = p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '';
+    this.moveBtn.querySelector('.cdt').textContent = mv.charges > 0 && p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '';
   }
 }

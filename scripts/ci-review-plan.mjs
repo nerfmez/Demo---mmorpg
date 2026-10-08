@@ -5,13 +5,13 @@ import { pathToFileURL } from 'node:url';
 import { browserPlan, FULL_SUITES } from './ci-browser-plan.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
-export const UI_SUITES = ['save', 'journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'equipment-focus', 'equipment-inactive'];
+export const UI_SUITES = ['save', 'opening', 'journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'equipment-focus', 'equipment-inactive', 'monster-identity'];
 export const HUD_SUITES = ['hud'];
 const SHA = /^[a-f0-9]{40}$/;
 // Longest jobs first; interleave engines instead of queueing all WebKit after Chromium.
 export const SCHEDULE = ['ux', 'weapons', 'capture', 'world', 'wearable', 'equipment', 'combat', 'smoke',
   'workspaces', 'journal-motion', 'skill-lines', 'journal-lines', 'journal-upgrade', 'journal',
-  'overlays', 'save', 'items', 'menu', 'quests', 'icons', 'lab', 'hud', 'equipment-focus', 'equipment-inactive', 'boot'];
+  'overlays', 'save', 'opening', 'items', 'menu', 'quests', 'icons', 'monster-identity', 'lab', 'hud', 'equipment-focus', 'equipment-inactive', 'boot'];
 export function reviewPlan({ source, sourceTree, merge = source, mergeTree = sourceTree, suites, mode, driftSuites = [] }) {
   if (![source, sourceTree, merge, mergeTree].every(sha => SHA.test(sha)) ||
       !['quick', 'full'].includes(mode) || !Array.isArray(suites) ||

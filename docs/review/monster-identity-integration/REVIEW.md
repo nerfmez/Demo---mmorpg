@@ -119,3 +119,22 @@ planner/runner contracts; the actual focused WebKit UI run remains pending new
 CI. The existing local Chromium visual evidence and 395-core-test pass are
 retained for the unchanged runtime. PR111 remains draft; PR112 stays closed.
 No merge or deployment was performed.
+
+## Post-PR109 refresh
+
+PR111's existing head `c6e0bbba72d7b929fb9e7705221f2113ba7aede6` incorporates
+main `11e1f3020500a8236de215fa342a96e49f8fbd6e` without conflicts. PR109's pinned
+Playwright container setup and weapon GPU completion checks are retained exactly.
+The six portraits, two material images, all 30 approved label fields, runtime
+sources and dedicated identity suite/registration remain byte-identical to the
+previous PR111 head. Preservation was rechecked against the new main: all 168
+other icons, models, recipes, gameplay sources and workflow files match it.
+
+The prior pixel captures remain historical evidence at their recorded source;
+they have not been relabelled as a new browser attempt. Before pushing, all 54
+focused core/data/quest/save/presentation tests and all 160 tooling tests passed
+with no failures or skips. The production build passed with its existing bundle
+size warning. CI owns the complete new Chromium/WebKit
+attempt, including identity UI evidence. No partial browser rerun is requested.
+PR111 stays draft and unmerged; PR112 stays closed. Pages release `37711788822`
+remains under parent coordination.

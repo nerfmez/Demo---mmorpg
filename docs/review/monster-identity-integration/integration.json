@@ -1,6 +1,6 @@
 {
-  "status": "approved identity patch recovered onto post-PR106 main; draft review and release CI remain",
-  "source_main_sha": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "status": "approved identity patch refreshed onto post-PR109 main; PR111 remains draft pending complete CI",
+  "source_main_sha": "11e1f3020500a8236de215fa342a96e49f8fbd6e",
   "prepared_against_main_sha": "0e2d9fd58b7e6e10b6226158130e642d366c301a",
   "recovered_from_commit": "7f58c19efcb3f38ed6f6b5196196c547ba5f9095",
   "reviewed_pr106_sha": "867147209c520c05c8f32b7b5dfb5710ec1a899d",

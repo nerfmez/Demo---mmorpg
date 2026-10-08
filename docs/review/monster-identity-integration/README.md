@@ -2,8 +2,9 @@
 
 The owner approved the displayed PR106 portrait/material/name batch on
 2026-10-07 and requested integration after PR106 merges. This independent
-recovery branch is based on actual post-PR106 main
-`3225b3cdc8bff2909b4ce6297f683f4e01f899b1`. It cherry-picks the existing approved
+recovery branch was based on actual post-PR106 main
+`3225b3cdc8bff2909b4ce6297f683f4e01f899b1` and now includes post-PR109 main
+`11e1f3020500a8236de215fa342a96e49f8fbd6e`. It cherry-picks the existing approved
 patch `7f58c19efcb3f38ed6f6b5196196c547ba5f9095` without conflicts, retaining
 PR106's model/concept dependency `867147209c520c05c8f32b7b5dfb5710ec1a899d`.
 The original integration branch remains untouched. Its remote head was still
@@ -59,9 +60,9 @@ The focused checks and actual UI captures are repeated on the recovered patch
 with those models present. Only the port guide overlaps the intervening changes;
 Git retained both the PR106 model notes and this patch's UI notes automatically.
 All model, weapon, core/render, recipe and CI workflow files remain byte-identical
-to post-PR106 main. The CI follow-up registers the existing identity test in both
+to post-PR109 main. The CI follow-up registers the existing identity test in both
 engines; its ownership/routing checks are recorded in `REVIEW.md`.
 Release CI owns the required premerge checks, including WebKit;
-PR106's deployment setup failure and PR109's separate fix are outside this patch.
+PR109's merged browser setup and GPU checks are retained without modification.
 Do not merge or deploy this draft. No physical iPad, Safari or FPS claim is made
 by the local Chromium/SwiftShader review.

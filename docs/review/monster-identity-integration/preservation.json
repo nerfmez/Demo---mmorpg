@@ -1,5 +1,5 @@
 {
-  "baseline": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "baseline": "11e1f3020500a8236de215fa342a96e49f8fbd6e",
   "recovered_from_commit": "7f58c19efcb3f38ed6f6b5196196c547ba5f9095",
   "pass": true,
   "approved_label_fields": 30,
@@ -22,5 +22,7 @@
   "recipes_and_models_unchanged": true,
   "core_render_and_layout_sources_unchanged": true,
   "all_model_and_ci_files_unchanged": true,
-  "existing_patch_runtime_bytes_preserved": true
+  "existing_patch_runtime_bytes_preserved": true,
+  "refreshed_from_commit": "c6e0bbba72d7b929fb9e7705221f2113ba7aede6",
+  "identity_suite_and_registration_preserved": true
 }

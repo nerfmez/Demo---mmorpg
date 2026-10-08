@@ -56,6 +56,25 @@ function fadeRig(mat, hull, see, fade) {
   if (hull) { hull.transparent = see; hull.depthWrite = !see; hull.opacity = see ? fade * fade : 1; }
 }
 
+/**
+ * Ground speed of a monster/ally view from its simulated position (m/s, with its forward and
+ * sideways parts in the model's facing), so the gait cadence follows real movement. A jump of
+ * several metres in one frame (respawn, teleport) is not movement.
+ */
+function measureMotion(v, x, z, facing, dt) {
+  if (dt > 0 && v.px !== undefined) {
+    const dx = x - v.px, dz = z - v.pz;
+    const d = Math.hypot(dx, dz);
+    const vx = d > 3 ? 0 : dx / dt, vz = d > 3 ? 0 : dz / dt;
+    const sn = Math.sin(facing), cs = Math.cos(facing);
+    v.speed = Math.min(20, Math.hypot(vx, vz));
+    v.vFwd = vx * sn + vz * cs;
+    v.vSide = vx * cs - vz * sn;
+  } else if (v.speed === undefined) v.speed = v.vFwd = v.vSide = 0;
+  v.px = x;
+  v.pz = z;
+}
+
 export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
     this.ruleWorlds = worlds; // existing rule worlds also bound finite terrain margins
@@ -535,9 +554,14 @@ export class View {
         if (e.kind === 'slam') this.addShake(0.45);
         else if (e.kind === 'stone_burst') this.addShake(0.12);
         break;
-      case 'monsterSwing':
-        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type });
+      case 'monsterSwing': {
+        // a strike that reaches the hero is drawn on the hero (the claw marks land on the body)
+        const p = g.player, dx = p.x - e.x, dz = p.z - e.z, d = Math.hypot(dx, dz);
+        const off = Math.atan2(Math.sin(Math.atan2(dx, dz) - e.angle), Math.cos(Math.atan2(dx, dz) - e.angle));
+        const at = !p.dead && d <= e.range + 0.6 && Math.abs(off) <= ((e.arc || 120) * Math.PI) / 360 ? [p.x - (dx / (d || 1)) * 0.25, p.z - (dz / (d || 1)) * 0.25] : null;
+        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type, at });
         break;
+      }
       case 'ward':
         v.ward(e, this.hero.root);
         break;
@@ -652,6 +676,7 @@ export class View {
       mv.kx = damp(mv.kx || 0, 0, 14, dt);
       mv.kz = damp(mv.kz || 0, 0, 14, dt);
       r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
+      measureMotion(mv, m.x, m.z, r.root.rotation.y, dt);
       mv.hurt = Math.max(0, mv.hurt - dt * 5);
       // off screen: not drawn and not posed (the simulation still moves it and lets it attack)
       const h = (r.height || 1.5) * (r.baseScale || 1);
@@ -679,6 +704,10 @@ export class View {
           hurt: mv.hurt,
           lookYaw: m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? this.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
           turn: mv.turn,
+          speed: mv.speed,
+          vFwd: mv.vFwd,
+          vSide: mv.vSide,
+          aggro: !!m.aggro,
           alt: m.alt,
         },
         dt,
@@ -757,8 +786,9 @@ export class View {
       const gy = this.world.groundY(a.x, a.z);
       av.y = damp(av.y, gy, 16, dt);
       r.root.position.set(a.x, av.y, a.z);
+      measureMotion(av, a.x, a.z, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
+      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);

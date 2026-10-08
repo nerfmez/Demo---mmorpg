@@ -56,3 +56,7 @@ Inspected the primary Cartoon FX Remaster gallery previews for `CFXR4 Sword Trai
 ### Other physical skills — 2026-10-01
 
 Also inspected `CFXR2 Ground Hit (Alt) + Debris (Lit)`, `CFXR2 Debris Hit (Lit)`, `CFXR Impact Contrast` and `CFXR Magic Poof` in the same primary gallery. Ground contact is immediate while solid debris has a separate gravity/decay phase; compact high-contrast contacts read before their small fragments. Summoning separates reveal from upward disappearing accents. Frontier adapts these timing principles into original faceted earth geometry, restrained chips, thin arrow strokes and inward spirit marks, without reference media/assets in the game. The broad poof/cloud and colourful star silhouettes are not reproduced.
+
+### Monster strike marks — 2026-10-08
+
+The gallery host was blocked by this session's network policy, so no gallery clip was inspected for this pass. The claw rake, fang bite and crab pincer marks were designed from the general principles recorded above (a fast travelling head with a tapered stroke, a compact high-contrast contact before small secondary particles, short eased fades) and from the creatures' own anatomy, with no reference media copied. Re-check them against relevant gallery hit/claw/impact clips when the host is reachable.

@@ -20,6 +20,7 @@ import { poseEcho, echoOpacity } from './pose-echo.js';
 import { artSurface, healingMaterial, plusGeometry, keys, faceGameCamera } from './authored-surfaces.js';
 import { cutRibbon, approvedCut, ContactShards } from './melee.js';
 import { arrowStreak, rockGeometry, RockChips } from './physical.js';
+import { strikeQuad, strikeMaterial, STRIKE_KINDS } from './monster-strikes.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -621,38 +622,9 @@ export class Vfx {
         const a = e.angle + Math.PI + (Math.random() - 0.5) * 2.2;
         this.dust.add(e.x + dx * L * 0.5, y, e.z + dz * L * 0.5, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: 0xf4efe0, size: 0.2, life: 0.8, gravity: 1.6, drag: 1.4 });
       }
-    } else if (f.kind === 'snap' || f.kind === 'fangs') {
-      // two jaws close on the spot that was hit (claws, or fangs above and below)
-      const fangs = f.kind === 'fangs';
-      const rj = (fangs ? 0.52 : 0.58) * S;
-      const th = (fangs ? 0.1 : 0.15) * S;
-      const jawArc = ((fangs ? 150 : 115) * Math.PI) / 180;
-      const rx = Math.cos(e.angle);
-      const rz = -Math.sin(e.angle);
-      const jaws = [1, -1].map((side) => {
-        const m = new THREE.Mesh(sectorGeometry(rj - th, rj, jawArc, 16), slashMaterial(f.color, side < 0));
-        m.rotation.y = e.angle - (side * Math.PI) / 2;
-        m.renderOrder = 6;
-        return { m, side };
-      });
-      const group = new THREE.Group();
-      for (const j of jaws) group.add(j.m);
-      group.position.set(px, y, pz);
-      this.spawn(group, f.dur, (t) => {
-        const d = (0.7 - 0.58 * Math.min(1, t / 0.45)) * S;
-        for (const j of jaws) {
-          j.m.position.set(rx * d * j.side, fangs ? j.side * 0.14 * S : 0, rz * d * j.side);
-          j.m.material.uniforms.uT.value = t;
-        }
-      });
-      this.fx.burst(px, y, pz, f.sparks, { color: f.color, size: 0.22, speed: 3.2, life: 0.3, up: 0.4 });
-      const flash = this.sprite(f.core, 0.45, 0.7);
-      flash.position.set(px, y, pz);
-      this.spawn(flash, 0.14, (t) => {
-        flash.material.opacity = 0.7 * (1 - t);
-        flash.scale.setScalar(0.4 + t * 0.4);
-      });
-      if (!fangs) this.ring(px, pz, 0.55 * S, f.color, 0.2);
+    } else if (STRIKE_KINDS.includes(f.kind)) {
+      const [sx, sz] = e.at || [px, pz];
+      this.strikeMark(e, f, S, sx, sz, this.gy(sx, sz) + f.height);
     } else {
       // a heavy sweep: one wide dark-red band with dust kicked along the edge of the area
       const m = new THREE.Mesh(sectorGeometry(e.range * 0.74, e.range, arc, 32), slashMaterial(f.color));
@@ -664,6 +636,33 @@ export class Vfx {
         const a = e.angle + (i / Math.max(1, f.dust - 1) - 0.5) * arc;
         this.dust.add(e.x + Math.sin(a) * e.range * 0.9, this.gy(e.x, e.z) + 0.15, e.z + Math.cos(a) * e.range * 0.9, Math.sin(a) * 1.5, 0.5, Math.cos(a) * 1.5, { color: 0xb8a58a, size: 0.55, sizeEnd: 1.2, life: 0.5, drag: 3 });
       }
+    }
+  }
+
+  /**
+   * What the creature hits with, drawn facing the camera where the hit lands: claw rakes (a combo
+   * alternates sides), a fanged bite snapping shut, a crab's pincer closing. Small chips and
+   * droplets carry the hit outward; the shape itself stays the main read.
+   */
+  strikeMark(e, f, S, px, pz, y) {
+    const toward = Math.sin(e.angle) < 0 ? -1 : 1; // rake/point the way the strike travels on screen
+    const mirror = f.kind === 'fangs' ? 1 : f.kind === 'pincer' ? toward : toward * ((e.hit ?? 1) % 2 ? 1 : -1);
+    const m = new THREE.Mesh(strikeQuad, strikeMaterial(f.kind, f, mirror));
+    faceGameCamera(m);
+    const size = f.size * S;
+    m.scale.setScalar(size);
+    m.position.set(px, y, pz);
+    m.renderOrder = 7;
+    this.spawn(m, f.dur, (t) => {
+      m.material.uniforms.uT.value = t;
+      if (f.kind !== 'claw') m.scale.setScalar(size * (1 + f.grow * t));
+    });
+    if (f.sparks) this.fx.burst(px, y, pz, f.sparks, { color: f.core, size: 0.2, speed: 3, life: 0.28, up: 0.5 });
+    if (f.chips) this.dust.burst(px, y - 0.2, pz, f.chips, { color: f.chipColor ?? f.color, size: 0.18, speed: 2.6, life: 0.45, up: 1.2, gravity: 8, drag: 1 });
+    for (let i = 0; i < (f.droplets || 0); i++) {
+      const a = e.angle + (Math.random() - 0.5) * 2.2;
+      const sp = 1.6 + Math.random() * 2.2;
+      this.fx.add(px, y - 0.1, pz, Math.sin(a) * sp, 1.4 + Math.random() * 2, Math.cos(a) * sp, { color: i % 2 ? 0x8fdcff : 0xf0fffb, size: 0.16 + Math.random() * 0.1, life: 0.45, gravity: 9, drag: 0.6 });
     }
   }
 

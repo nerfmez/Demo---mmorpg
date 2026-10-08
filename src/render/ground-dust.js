@@ -4,7 +4,7 @@ const box=new THREE.BoxGeometry(1,1,1);box.userData.shared=true;
 const cameraLocal=new THREE.Vector3();
 const noise=`float hash(vec3 p){p=fract(p*.3183099+vec3(.1,.2,.3));p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
 float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}`;
-function volume(cfg,seed){
+export function groundDustVolume(cfg,seed){
  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.FrontSide,
  uniforms:{uCamera:{value:new THREE.Vector3()},uAge:{value:0},uAlpha:{value:0},uSeed:{value:seed},uLight:{value:new THREE.Color(cfg.color)},uDark:{value:new THREE.Color(cfg.shadow)}},
  vertexShader:'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
@@ -17,13 +17,14 @@ function volume(cfg,seed){
  const mesh=new THREE.Mesh(box,mat);mesh.frustumCulled=false;
  mesh.onBeforeRender=(_r,_s,camera)=>{cameraLocal.setFromMatrixPosition(camera.matrixWorld);mesh.worldToLocal(cameraLocal);mat.uniforms.uCamera.value.copy(cameraLocal);};return mesh;
 }
-export function groundDust(vfx,e,cfg){
+export function groundDust(vfx,e,cfg,pooled=false){
  for(let i=0;i<cfg.count;i++){
   const angle=i*2.399963,dx=Math.cos(angle),dz=Math.sin(angle),variation=.78+.22*Math.sin(i*7.13),life=cfg.life*(.86+.14*Math.cos(i*3.1));
-  const mesh=volume(cfg,i*4.37),reach=cfg.radius*(.7+.3*variation);mesh.rotation.y=angle;
+  const pool=pooled?vfx.movementPool('leap-dust:'+i,()=>groundDustVolume(cfg,i*4.37)):null;
+  const mesh=pool?pool.take():groundDustVolume(cfg,i*4.37),reach=cfg.radius*(.7+.3*variation);mesh.rotation.y=angle;
   vfx.spawn(mesh,life,t=>{const travel=reach*(.18+.82*(1-Math.pow(1-t,2))),x=e.x+dx*travel,z=e.z+dz*travel,height=cfg.height*(.28+.72*t)*variation;
    mesh.position.set(x,vfx.gy(x,z)+height*.42+.02,z);mesh.scale.set((.7+1.05*t)*variation,height,(.55+.9*t)*variation);
    const u=mesh.material.uniforms;u.uAge.value=t;u.uAlpha.value=cfg.opacity*Math.min(1,t/.075)*Math.pow(1-t,1.65);
-  });
+  },pool?object=>pool.release(object):null);
  }
 }

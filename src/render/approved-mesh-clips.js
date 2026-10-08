@@ -29,5 +29,5 @@ export function approvedMesh(name,radius){
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`});
- const mesh=new THREE.Mesh(c.geometry,material);mesh.frustumCulled=false;mesh.userData.clipFrames=c.frames;mesh.userData.clipLife=(c.frames-1)/c.fps;return mesh;
+ const mesh=new THREE.Mesh(c.geometry,material);mesh.frustumCulled=false;mesh.userData.clipRadius=c.radius;mesh.userData.clipFrames=c.frames;mesh.userData.clipLife=(c.frames-1)/c.fps;return mesh;
 }

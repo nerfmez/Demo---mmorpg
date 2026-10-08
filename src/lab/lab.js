@@ -119,7 +119,7 @@ let hero = null;
 let heroAnim = null;
 function buildHero() {
   const action=heroAnim?.action||null;
-  if (hero) disposeObject(hero.root);
+  if (hero) { vfx.clearMovementEchoes(); disposeObject(hero.root); }
   hero = buildHumanoid(DEFAULT_LOOK, { weapon: state.weapon === 'none' ? null : state.weapon, armor: 'tunic', helm: null, offhand:state.skill==='shield_bash'?'shield':null, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action=action; // Late model arrivals must not cancel a held preview pose.
@@ -307,7 +307,10 @@ function clearReplay() {
   if(heroAnim)heroAnim.action=null;
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
-  for (const a of vfx.active) disposeObject(a.obj, vfx.sharedGeo);
+  for (const a of vfx.active) {
+    if (a.release) a.release(a.obj);
+    else disposeObject(a.obj, vfx.sharedGeo);
+  }
   vfx.active.length = 0;
   vfx.flames.count = 0; vfx.flames.mesh.geometry.instanceCount = 0;
   for (const p of [vfx.fx, vfx.dust]) { p.count = 0; p.points.geometry.setDrawRange(0, 0); }
@@ -344,6 +347,7 @@ function selectSkill(id) {
   render();
 }
 function tuningChanged() {
+  vfx.disposeMovement(); // Recreate pooled dust/materials from the edited config.
   // Restart once the touch slider settles; avoid rebuilding meshes on every input tick.
   vfx.refreshFlames();
   const saved = tuning.save(state.skill);

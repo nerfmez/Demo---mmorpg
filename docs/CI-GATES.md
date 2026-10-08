@@ -97,7 +97,11 @@ that run, also set `rollback_previous` true. This is useful for the first releas
 under this policy: it checkpoints the pre-policy successful main site before
 replacing it. Select a retained artifact; an expired/missing archive fails with
 no rebuild fallback. GitHub archive digests, original successful publication,
-source receipt and all site file hashes are verified. Legacy sites keep their
+source receipt and all site file hashes are verified. Selection uses the successful
+deployment step timestamp across complete run history and every attempt, not run
+creation order. A later failed retry cannot hide an earlier publication. The
+selected archive must have been created during that published attempt, before
+publication; a newer unpublished replacement is rejected. Legacy sites keep their
 original bytes without adding or changing metadata. Player storage is untouched;
 code rollback does not promise compatibility with saves created by later code.
 
@@ -152,3 +156,24 @@ YAML parsing and actionlint. Archive tests exercise real ZIP/TAR extraction and
 positive/negative identity, routing, failure, concurrency, checkpoint, rollback,
 retarget and prose-followup cases. No production workflow is dispatched to test
 this policy. Activation remains a separate review/merge decision.
+
+## First activation and rollback rehearsal
+
+Wait for the already-running pre-policy publication to reach a terminal result
+before merging the reviewed PR. This avoids overlapping old and new workflow
+definitions; do not cancel or rerun that publication to activate this policy.
+If it fails, inspect whether its Pages step already published, resolve that
+status explicitly, and keep the last successful artifact as rollback baseline.
+Then merge only after the reviewed head's required checks pass. The first new
+release captures its successful predecessor before replacing the site.
+
+Rollback rehearsal does not require a production dispatch: download the chosen
+retained archive, verify its API digest and successful run/attempt, restore into
+a temporary directory with `restoreSite`, and serve that directory locally. Run
+`tests/browser/boot.mjs` with `BOOT_URL` pointing at the local server and
+`EXPECTED_RELEASE` set to its original source. Do not run a build. Hash the
+restored files before/after. This exercises archive selection and real
+startup/save/Continue in an isolated browser context without changing the live
+site or player saves. The deployment action itself remains a separately reviewed
+production operation; a local rehearsal does not certify CDN propagation or
+hardware iPad performance.

@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { runInNewContext } from 'node:vm';
 import { payload, buildConfiguration, verifyBuild } from '../../scripts/ci-build-manifest.mjs';
-import { sealSite, verifySite, restoreSite, selectPublishedRun, extractPagesTar } from '../../scripts/ci-published-site.mjs';
+import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, extractPagesTar } from '../../scripts/ci-published-site.mjs';
 import { browserPlan, FULL_SUITES, SAFETY_SUITES } from '../../scripts/ci-browser-plan.mjs';
 import { proseOnly, resolveDocFollowup } from '../../scripts/ci-doc-followup.mjs';
 const sha = 'a'.repeat(40), tree = 'b'.repeat(40);
@@ -23,9 +23,9 @@ function site(dir, legacy = false) {
   if (!legacy) sealSite(dir);
 }
 const run = (id = 4) => ({ id, path: '.github/workflows/deploy.yml', event: 'push', head_branch: 'main', head_sha: sha,
-  run_attempt: 1, status: 'completed', conclusion: 'success', repository: { id: 1 }, head_repository: { id: 1 } });
+  run_attempt: 1, run_started_at: '2026-10-08T10:00:00Z', status: 'completed', conclusion: 'success', repository: { id: 1 }, head_repository: { id: 1 } });
 const jobs = (state = 'success', published = 'success') => [{ name: 'deploy', run_attempt: 1, conclusion: state,
-  steps: [{ name: 'Run actions/deploy-pages@v4', conclusion: published }] }];
+  steps: [{ name: 'Run actions/deploy-pages@v4', conclusion: published, completed_at: '2026-10-08T10:05:00Z' }] }];
 
 test('bounded routing covers explicit high-risk families and never expands every shared file to full', () => {
   const cases = [
@@ -81,11 +81,12 @@ function restoreFixture(t, { legacy = false } = {}) {
   execFileSync('tar', ['-cf', join(dir, 'artifact.tar'), '-C', input, '.']);
   execFileSync('python3', ['-c', 'import sys,zipfile\nwith zipfile.ZipFile(sys.argv[1],"w") as z:z.write(sys.argv[2],"artifact.tar")', zipped, join(dir, 'artifact.tar')]);
   const bytes = readFileSync(zipped), candidate = run();
-  const artifact = { id: 7, name: 'github-pages', expired: false, digest: 'sha256:' + createHash('sha256').update(bytes).digest('hex'),
+  const artifact = { id: 7, name: 'github-pages', expired: false, created_at: '2026-10-08T10:03:00Z', digest: 'sha256:' + createHash('sha256').update(bytes).digest('hex'),
     workflow_run: { id: 4, head_sha: sha, repository_id: 1, head_repository_id: 1 } };
   const responses = {
     'repos/owner/demo': { id: 1 }, 'repos/owner/demo/actions/runs/4': candidate,
-    'repos/owner/demo/actions/workflows/deploy.yml/runs?per_page=100': { workflow_runs: [candidate] },
+    'repos/owner/demo/actions/runs/4/attempts/1': candidate,
+    'repos/owner/demo/actions/workflows/deploy.yml/runs?per_page=100': { total_count: 1, workflow_runs: [candidate] },
     'repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=100': { total_count: 1, jobs: jobs() },
     'repos/owner/demo/actions/runs/4/artifacts?per_page=100': { total_count: 1, artifacts: [artifact] },
   };
@@ -240,4 +241,36 @@ test('stale PR base is resolved through executed merge parents and proven ancest
   assert.throws(() => prExecutionRange(event, merge, (...args) => args[0] === 'show' ? `${actual} ${sha}` : ''));
   assert.throws(() => prExecutionRange(event, merge, (...args) => { if (args[0] === 'show') return `${actual} ${tree}`; throw Error('unrelated base'); }));
   assert.throws(() => prExecutionRange(event, merge, () => tree));
+});
+
+test('older run deployed later wins over creation order for Lab preservation and checkpoint baseline', () => {
+  const newer = run(5), olderRollback = { ...run(4), event: 'workflow_dispatch', run_attempt: 2 };
+  const olderJobs = jobs(); olderJobs[0].run_attempt = 2; olderJobs[0].steps[0].completed_at = '2026-10-08T11:00:00Z';
+  for (const rollback of [false, true]) {
+    const selected = selectPublishedRun([newer, olderRollback], r => r.id === 4 ? olderJobs : jobs(), { rollback });
+    assert.equal(selected.id, 4); assert.equal(selected.run_attempt, 2);
+  }
+  olderJobs[0].steps[0].completed_at = '2026-10-08T10:05:00Z';
+  assert.throws(() => selectPublishedRun([newer, olderRollback], r => r.id === 4 ? olderJobs : jobs()), /Ambiguous/);
+});
+
+test('publication history follows pagination so an older rerun cannot disappear beyond page one', async () => {
+  const first = Array.from({ length: 100 }, (_, n) => run(200 - n)), older = run(4);
+  const reads = [];
+  const found = await publicationRuns(async path => { reads.push(path); return { total_count: 101, workflow_runs: path.includes('page=2') ? [older] : first }; }, 'repos/owner/demo');
+  assert.equal(found.length, 101); assert.equal(found.at(-1).id, 4); assert.equal(reads.length, 2);
+  await assert.rejects(publicationRuns(async () => ({ total_count: 101, workflow_runs: first.slice(0, 99) }), 'repos/owner/demo'));
+});
+
+test('later failed retry cannot hide a published earlier attempt or substitute its untested archive', async t => {
+  const { options, responses, artifact, candidate, dir } = restoreFixture(t);
+  const successful = structuredClone(candidate);
+  responses['repos/owner/demo/actions/runs/4/attempts/1'] = successful;
+  candidate.run_attempt = 2; candidate.conclusion = 'failure'; candidate.run_started_at = '2026-10-08T11:00:00Z';
+  responses['repos/owner/demo/actions/runs/4/attempts/2/jobs?per_page=100'] = { total_count: 1, jobs: [{ name: 'build', run_attempt: 2, conclusion: 'failure', steps: [] }] };
+  const restored = await restoreSite(options);
+  assert.equal(restored.attempt, 1);
+  artifact.created_at = '2026-10-08T11:02:00Z';
+  await assert.rejects(restoreSite({ ...options, directory: join(dir, 'untested') }), /selected published attempt/);
+  t.after(() => rmSync('restored-site.json', { force: true }));
 });

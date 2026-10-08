@@ -10,16 +10,37 @@ import { payload } from './ci-build-manifest.mjs';
 import { extractBuildArchive, runArtifacts } from './ci-release-evidence.mjs';
 const sha = /^[a-f0-9]{40}$/;
 export function selectPublishedRun(runs, jobsByRun, { rollback = false, skipId } = {}) {
+  const candidates = [];
   for (const run of runs) {
     if (String(run.id) === String(skipId) || run.path !== '.github/workflows/deploy.yml' ||
         run.head_branch !== 'main' || !['push', 'workflow_dispatch', 'workflow_run'].includes(run.event)) continue;
-    const job = jobsByRun(run).find(job => job.name === 'deploy' && job.run_attempt === run.run_attempt &&
-      job.steps?.some(step => step.name === 'Run actions/deploy-pages@v4' && step.conclusion === 'success'));
-    // The live check is part of deploy. A red postrelease run is visible and is
-    // not a successful rollback candidate, though it is the site to preserve.
-    if (job && (!rollback || (run.conclusion === 'success' && job.conclusion === 'success'))) return run;
+    for (const job of jobsByRun(run)) {
+      if (job.name !== 'deploy' || job.run_attempt !== run.run_attempt) continue;
+      const publication = job.steps?.find(step => step.name === 'Run actions/deploy-pages@v4' && step.conclusion === 'success');
+      if (!publication || (rollback && (run.status !== 'completed' || run.conclusion !== 'success' || job.conclusion !== 'success'))) continue;
+      const publishedAt = Date.parse(publication.completed_at);
+      assert.ok(Number.isFinite(publishedAt), 'Missing authoritative publication timestamp');
+      candidates.push({ ...run, publishedAt });
+    }
   }
-  throw Error('No eligible retained Pages publication; select a successful main release run.');
+  candidates.sort((a, b) => b.publishedAt - a.publishedAt);
+  assert.ok(candidates.length, 'No eligible retained Pages publication; select a successful main release run.');
+  assert.ok(candidates.length === 1 || candidates[0].publishedAt !== candidates[1].publishedAt,
+    'Ambiguous simultaneous publications; refusing to guess the live site');
+  return candidates[0];
+}
+export async function publicationRuns(api, prefix) {
+  const runs = [], ids = new Set();
+  let total;
+  for (let page = 1; ; page++) {
+    const result = await api(`${prefix}/actions/workflows/deploy.yml/runs?per_page=100${page === 1 ? '' : `&page=${page}`}`);
+    assert.ok(Number.isSafeInteger(result.total_count) && result.total_count >= 0 && result.total_count <= 10000);
+    if (total === undefined) total = result.total_count;
+    assert.equal(result.total_count, total, 'Publication history changed during lookup');
+    assert.equal(result.workflow_runs.length, Math.min(100, total - runs.length), 'Truncated publication history');
+    for (const run of result.workflow_runs) { assert.ok(!ids.has(run.id)); ids.add(run.id); runs.push(run); }
+    if (runs.length === total) return runs;
+  }
 }
 export function sealSite(directory = 'dist') {
   const release = JSON.parse(readFileSync(join(directory, 'ci-release.json')));
@@ -59,21 +80,27 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
   } else {
     // Include in-progress runs: publication may have succeeded before a cancelled
     // postcheck. Serialization ensures this run is the only writer now.
-    runs = (await api(`${prefix}/actions/workflows/deploy.yml/runs?per_page=100`)).workflow_runs;
+    runs = await publicationRuns(api, prefix);
   }
   assert.ok(Array.isArray(runs));
-  const jobs = new Map();
-  for (const run of runs) {
-    if (String(run.id) === String(skipId)) continue;
-    assert.equal(run.repository.id, repo.id);
-    assert.equal(run.head_repository.id, repo.id);
-    const response = await api(`${prefix}/actions/runs/${run.id}/attempts/${run.run_attempt}/jobs?per_page=100`);
-    assert.equal(response.total_count, response.jobs.length, 'Truncated publication jobs');
-    jobs.set(run.id, response.jobs);
-    // API lists newest first; do not accidentally fall back past a deployed site.
-    try { selectPublishedRun([run], r => jobs.get(r.id), { rollback: ['rollback', 'checkpoint'].includes(mode), skipId }); break; } catch {}
+  const jobs = new Map(), attempts = [];
+  const key = run => `${run.id}/${run.run_attempt}`;
+  for (const listed of runs) {
+    if (String(listed.id) === String(skipId) || listed.path !== '.github/workflows/deploy.yml' || listed.head_branch !== 'main') continue;
+    assert.equal(listed.repository.id, repo.id);
+    assert.equal(listed.head_repository.id, repo.id);
+    assert.ok(Number.isSafeInteger(listed.run_attempt) && listed.run_attempt > 0 && listed.run_attempt <= 100);
+    // Inspect every attempt: a later failed retry must not hide an earlier
+    // successful deployment, and an old run may have published most recently.
+    for (let attempt = 1; attempt <= listed.run_attempt; attempt++) {
+      const run = attempt === listed.run_attempt ? listed : await api(`${prefix}/actions/runs/${listed.id}/attempts/${attempt}`);
+      assert.equal(run.id, listed.id); assert.equal(run.run_attempt, attempt); assert.equal(run.head_sha, listed.head_sha);
+      const response = await api(`${prefix}/actions/runs/${run.id}/attempts/${attempt}/jobs?per_page=100`);
+      assert.equal(response.total_count, response.jobs.length, 'Truncated publication jobs');
+      attempts.push(run); jobs.set(key(run), response.jobs);
+    }
   }
-  const run = selectPublishedRun(runs.filter(r => jobs.has(r.id)), r => jobs.get(r.id), { rollback: ['rollback', 'checkpoint'].includes(mode), skipId });
+  const run = selectPublishedRun(attempts, r => jobs.get(key(r)), { rollback: ['rollback', 'checkpoint'].includes(mode), skipId });
   const artifacts = await runArtifacts(api, `${prefix}/actions/runs/${run.id}/artifacts`);
   const matches = artifacts.filter(a => a.name === (previous ? 'previous-site' : 'github-pages') && !a.expired);
   assert.equal(matches.length, 1, 'Missing/ambiguous retained Pages archive; no rebuild fallback');
@@ -83,19 +110,24 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
   assert.equal(artifact.workflow_run.repository_id, repo.id);
   assert.equal(artifact.workflow_run.head_repository_id, repo.id);
   assert.match(artifact.digest, /^sha256:[a-f0-9]{64}$/);
+  const created = Date.parse(artifact.created_at), started = Date.parse(run.run_started_at);
+  assert.ok(Number.isFinite(created) && Number.isFinite(started) && created >= started && created <= run.publishedAt,
+    'Archive was not produced by the selected published attempt; no newer unpublished replacement is allowed');
   const scratch = mkdtempSync(join(tmpdir(), 'pages-restore-'));
   try {
     const zip = join(scratch, 'pages.zip'), unpacked = join(scratch, 'archive'), site = join(scratch, 'site');
     await download(`${prefix}/actions/artifacts/${artifact.id}/zip`, zip);
     assert.equal('sha256:' + createHash('sha256').update(readFileSync(zip)).digest('hex'), artifact.digest);
     extractBuildArchive(zip, unpacked);
-    let manifest, origin;
+    let manifest, origin, originalRun;
     if (previous) {
       assert.equal(mode, 'rollback');
       origin = JSON.parse(readFileSync(join(unpacked, 'origin.json')));
       assert.equal(origin.repository, repository);
       assert.match(String(origin.run), /^[1-9][0-9]*$/);
-      const originalRun = await api(`${prefix}/actions/runs/${origin.run}`);
+      assert.ok(Number.isSafeInteger(origin.attempt) && origin.attempt > 0);
+      originalRun = await api(`${prefix}/actions/runs/${origin.run}/attempts/${origin.attempt}`);
+      assert.equal(originalRun.run_attempt, origin.attempt);
       assert.equal(originalRun.repository.id, repo.id);
       assert.equal(originalRun.head_repository.id, repo.id);
       const originalJobs = await api(`${prefix}/actions/runs/${origin.run}/attempts/${originalRun.run_attempt}/jobs?per_page=100`);
@@ -115,7 +147,7 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
       assert.match(release.releaseTarget.sha, sha);
       assert.match(release.buildOrigin.sha, sha);
       assert.equal(readFileSync(join(site, 'ci-source.txt'), 'utf8').trim(), release.buildOrigin.sha);
-      const owner = previous ? await api(`${prefix}/actions/runs/${origin.run}`) : run;
+      const owner = previous ? originalRun : run;
       assert.equal(owner.event, 'push', 'Legacy Lab archive has no authenticated game source');
       assert.equal(release.releaseTarget.sha, owner.head_sha);
       manifest = { source: release.releaseTarget.sha };
@@ -126,13 +158,13 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
     assert.ok(!existsSync(directory), 'Destination already exists');
     if (mode === 'checkpoint') {
       cpSync(site, join(directory, 'site'), { recursive: true });
-      writeFileSync(join(directory, 'origin.json'), JSON.stringify({ repository, run: run.id, source: manifest.source,
+      writeFileSync(join(directory, 'origin.json'), JSON.stringify({ repository, run: run.id, attempt: run.run_attempt, source: manifest.source,
         digest: artifact.digest, files: payload(site, []) }, null, 2));
     } else cpSync(mode === 'preserve-lab' ? lab : site, directory, { recursive: true });
     // External receipt lets a legacy rollback retain every original site byte,
     // including the absence of new metadata. Never relabel or reseal a rollback.
     if (mode === 'rollback' || mode === 'lab') writeFileSync('restored-site.json', JSON.stringify({ source: manifest.source, files: payload(site, []) }));
-    return { source: manifest?.source, run: run.id, artifact: artifact.id, digest: artifact.digest, previous };
+    return { source: manifest?.source, run: run.id, attempt: run.run_attempt, artifact: artifact.id, digest: artifact.digest, previous };
 
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }

@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { runInNewContext } from 'node:vm';
 import { payload, buildConfiguration, verifyBuild } from '../../scripts/ci-build-manifest.mjs';
-import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, extractPagesTar } from '../../scripts/ci-published-site.mjs';
+import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, consumedPagesArtifact, extractPagesTar } from '../../scripts/ci-published-site.mjs';
 import { browserPlan, FULL_SUITES, SAFETY_SUITES } from '../../scripts/ci-browser-plan.mjs';
 import { proseOnly, resolveDocFollowup } from '../../scripts/ci-doc-followup.mjs';
 const sha = 'a'.repeat(40), tree = 'b'.repeat(40);
@@ -23,9 +23,9 @@ function site(dir, legacy = false) {
   if (!legacy) sealSite(dir);
 }
 const run = (id = 4) => ({ id, path: '.github/workflows/deploy.yml', event: 'push', head_branch: 'main', head_sha: sha,
-  run_attempt: 1, run_started_at: '2026-10-08T10:00:00Z', status: 'completed', conclusion: 'success', repository: { id: 1 }, head_repository: { id: 1 } });
-const jobs = (state = 'success', published = 'success') => [{ name: 'deploy', run_attempt: 1, conclusion: state,
-  steps: [{ name: 'Run actions/deploy-pages@v4', conclusion: published, completed_at: '2026-10-08T10:05:00Z' }] }];
+  run_attempt: 1, created_at: '2026-10-08T10:00:00Z', run_started_at: '2026-10-08T10:00:00Z', status: 'completed', conclusion: 'success', repository: { id: 1 }, head_repository: { id: 1 } });
+const jobs = (state = 'success', published = 'success') => [{ id: 42, name: 'deploy', run_attempt: 1, conclusion: state,
+  steps: [{ name: 'Run actions/deploy-pages@v4', conclusion: published, started_at: '2026-10-08T10:04:00Z', completed_at: '2026-10-08T10:05:00Z' }] }];
 
 test('bounded routing covers explicit high-risk families and never expands every shared file to full', () => {
   const cases = [
@@ -91,6 +91,7 @@ function restoreFixture(t, { legacy = false } = {}) {
     'repos/owner/demo/actions/runs/4/artifacts?per_page=100': { total_count: 1, artifacts: [artifact] },
   };
   const options = { repository: 'owner/demo', directory: join(dir, 'restored'), runId: '4', mode: 'rollback',
+    readLog: async path => { assert.equal(path, 'repos/owner/demo/actions/jobs/42/logs'); return deploymentLog(); },
     api: async path => { assert.ok(path in responses, path); return responses[path]; },
     download: async (path, destination) => { assert.equal(path, 'repos/owner/demo/actions/artifacts/7/zip'); writeFileSync(destination, bytes); } };
   return { dir, input, options, responses, artifact, candidate };
@@ -273,4 +274,39 @@ test('later failed retry cannot hide a published earlier attempt or substitute i
   artifact.created_at = '2026-10-08T11:02:00Z';
   await assert.rejects(restoreSite({ ...options, directory: join(dir, 'untested') }), /selected published attempt/);
   t.after(() => rmSync('restored-site.json', { force: true }));
+});
+
+function deploymentLog(id = 7, at = '2026-10-08T10:04:01.1234567Z', source = sha) {
+  return [`Creating Pages deployment with payload:`, '{', `"artifact_id": ${id},`, `"pages_build_version": "${source}"`, '}']
+    .map(line => `${at} ${line}`).join('\n');
+}
+
+test('deploy-only retry consumes the prior-attempt artifact while rejecting later or different archives', async t => {
+  const { options, responses, candidate, artifact, dir } = restoreFixture(t);
+  const failed = structuredClone(candidate); failed.conclusion = 'failure';
+  responses['repos/owner/demo/actions/runs/4/attempts/1'] = failed;
+  responses['repos/owner/demo/actions/runs/4/attempts/1/jobs?per_page=100'].jobs = jobs('failure', 'failure');
+  candidate.run_attempt = 2; candidate.run_started_at = '2026-10-08T11:00:00Z';
+  const retried = jobs(); retried[0].run_attempt = 2;
+  Object.assign(retried[0].steps[0], { started_at: '2026-10-08T11:01:00Z', completed_at: '2026-10-08T11:02:00Z' });
+  responses['repos/owner/demo/actions/runs/4/attempts/2/jobs?per_page=100'] = { total_count: 1, jobs: retried };
+  options.readLog = async () => deploymentLog(7, '2026-10-08T11:01:01.1234567Z');
+  // Artifact 7 was uploaded at 10:03 in attempt 1; attempt 2 successfully consumes it.
+  const restored = await restoreSite(options); assert.equal(restored.attempt, 2); assert.equal(restored.artifact, 7);
+  assert.ok(Date.parse(artifact.created_at) < Date.parse(candidate.run_started_at));
+  const another = { ...options, directory: join(dir, 'other') };
+  artifact.id = 8; await assert.rejects(restoreSite(another), /actually published/); artifact.id = 7;
+  artifact.created_at = '2026-10-08T11:01:30Z';
+  await assert.rejects(restoreSite(another), /selected published attempt/);
+  artifact.created_at = '2026-10-08T11:03:00Z';
+  await assert.rejects(restoreSite(another), /selected published attempt/);
+  t.after(() => rmSync('restored-site.json', { force: true }));
+});
+
+test('consumed artifact receipt is bound to the selected deploy step and workflow source', () => {
+  const selected = selectPublishedRun([run()], () => jobs());
+  assert.equal(consumedPagesArtifact(deploymentLog(), selected), 7);
+  for (const text of ['', deploymentLog() + '\n' + deploymentLog(8), deploymentLog(7, '2026-10-08T10:06:00Z'),
+    deploymentLog(7, '2026-10-08T10:03:00Z'), deploymentLog(7, '2026-10-08T10:04:01Z', tree), deploymentLog(-1)])
+    assert.throws(() => consumedPagesArtifact(text, selected));
 });

@@ -20,7 +20,9 @@ export function selectPublishedRun(runs, jobsByRun, { rollback = false, skipId }
       if (!publication || (rollback && (run.status !== 'completed' || run.conclusion !== 'success' || job.conclusion !== 'success'))) continue;
       const publishedAt = Date.parse(publication.completed_at);
       assert.ok(Number.isFinite(publishedAt), 'Missing authoritative publication timestamp');
-      candidates.push({ ...run, publishedAt });
+      const publicationStartedAt = Date.parse(publication.started_at);
+      assert.ok(Number.isFinite(publicationStartedAt) && publicationStartedAt <= publishedAt, 'Missing publication start');
+      candidates.push({ ...run, publishedAt, publicationStartedAt, publicationJob: job.id });
     }
   }
   candidates.sort((a, b) => b.publishedAt - a.publishedAt);
@@ -28,6 +30,26 @@ export function selectPublishedRun(runs, jobsByRun, { rollback = false, skipId }
   assert.ok(candidates.length === 1 || candidates[0].publishedAt !== candidates[1].publishedAt,
     'Ambiguous simultaneous publications; refusing to guess the live site');
   return candidates[0];
+}
+// Read only the authenticated successful deploy step's log interval. The action
+// records the immutable artifact ID sent to Pages, including deploy-only retries.
+export function consumedPagesArtifact(log, run) {
+  assert.equal(typeof log, 'string');
+  const lines = log.split('\n').flatMap(line => {
+    const match = /^\uFEFF?(\d{4}-\d{2}-\d{2}T\S+Z) (.*)$/.exec(line);
+    if (!match) return [];
+    const time = Date.parse(match[1]);
+    // Jobs API times have second precision; log timestamps have subsecond precision.
+    return time >= run.publicationStartedAt && time < run.publishedAt + 1000 ? [match[2]] : [];
+  }).join('\n');
+  const matches = [...lines.matchAll(/Creating Pages deployment with payload:\s*(\{[\s\S]*?\})/g)];
+  assert.equal(matches.length, 1, 'Missing or ambiguous successful Pages artifact receipt');
+  const receipt = JSON.parse(matches[0][1]);
+  assert.equal(receipt.pages_build_version, run.head_sha, 'Published workflow source differs');
+  assert.notEqual(receipt.preview, true, 'Preview is not a production publication');
+  const id = Number(receipt.artifact_id);
+  assert.ok(Number.isSafeInteger(id) && id > 0, 'Invalid consumed artifact ID');
+  return id;
 }
 export async function publicationRuns(api, prefix) {
   const runs = [], ids = new Set();
@@ -69,7 +91,8 @@ with tarfile.open(sys.argv[1]) as t:
   assert p.is_relative_to(root) and (e.isfile() or e.isdir()), 'Unsafe Pages entry'
  t.extractall(root,filter='data')`, archive, destination]);
 }
-export async function restoreSite({ repository, directory, runId, skipId, mode, previous = false, api, download }) {
+export async function restoreSite({ repository, directory, runId, skipId, mode, previous = false, api, download,
+  readLog = path => execFileSync('gh', ['api', path], { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }) }) {
   assert.match(repository, /^[\w.-]+\/[\w.-]+$/);
   assert.ok(['rollback', 'lab', 'preserve-lab', 'checkpoint'].includes(mode));
   const prefix = `repos/${repository}`, repo = await api(prefix);
@@ -110,9 +133,14 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
   assert.equal(artifact.workflow_run.repository_id, repo.id);
   assert.equal(artifact.workflow_run.head_repository_id, repo.id);
   assert.match(artifact.digest, /^sha256:[a-f0-9]{64}$/);
-  const created = Date.parse(artifact.created_at), started = Date.parse(run.run_started_at);
-  assert.ok(Number.isFinite(created) && Number.isFinite(started) && created >= started && created <= run.publishedAt,
-    'Archive was not produced by the selected published attempt; no newer unpublished replacement is allowed');
+  const created = Date.parse(artifact.created_at), runCreated = Date.parse(run.created_at);
+  assert.ok(Number.isFinite(created) && Number.isFinite(runCreated) && created >= runCreated && created <= run.publicationStartedAt,
+    'Archive was not available to the selected published attempt; no newer unpublished replacement is allowed');
+  if (!previous) {
+    assert.ok(Number.isSafeInteger(run.publicationJob) && run.publicationJob > 0);
+    const consumed = consumedPagesArtifact(await readLog(`${prefix}/actions/jobs/${run.publicationJob}/logs`), run);
+    assert.equal(artifact.id, consumed, 'Retained archive differs from the artifact actually published');
+  }
   const scratch = mkdtempSync(join(tmpdir(), 'pages-restore-'));
   try {
     const zip = join(scratch, 'pages.zip'), unpacked = join(scratch, 'archive'), site = join(scratch, 'site');

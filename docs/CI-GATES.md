@@ -100,8 +100,10 @@ no rebuild fallback. GitHub archive digests, original successful publication,
 source receipt and all site file hashes are verified. Selection uses the successful
 deployment step timestamp across complete run history and every attempt, not run
 creation order. A later failed retry cannot hide an earlier publication. The
-selected archive must have been created during that published attempt, before
-publication; a newer unpublished replacement is rejected. Legacy sites keep their
+selected Pages archive must match the immutable artifact ID in the successful
+deploy step’s authenticated log receipt. It may have been built by an earlier
+attempt of the same run (a deploy-only retry), but must predate that deploy step;
+a newer unpublished replacement or missing receipt is rejected. Legacy sites keep their
 original bytes without adding or changing metadata. Player storage is untouched;
 code rollback does not promise compatibility with saves created by later code.
 

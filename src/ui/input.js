@@ -603,6 +603,6 @@ export class Input {
     }
     const cdk = p.movement.charges < mv.charges ? 1 - p.movement.rechargeT / mv.recharge : 0;
     this.moveBtn.style.setProperty('--cd', `${p.movement.charges === 0 ? cdk * 100 : 0}%`);
-    this.moveBtn.querySelector('.cdt').textContent = p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '';
+    this.moveBtn.querySelector('.cdt').textContent = mv.charges > 0 && p.movement.charges === 0 ? Math.ceil(mv.recharge - p.movement.rechargeT) : '';
   }
 }

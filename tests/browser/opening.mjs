@@ -45,6 +45,7 @@ try {
   await page.keyboard.press('Shift');
   assert.equal(await page.evaluate(() => __frontier.game.player.dash), null, 'keyboard movement is unavailable before selection');
   assert.equal(await page.evaluate(() => __frontier.game.player.movement.charges), 0);
+  assert.equal(await page.locator('.sbtn.move .cdt').textContent(), '', 'an unowned movement skill has no recharge countdown');
   await resume('[data-act="wake"]');
   assert.equal(await page.evaluate(() => __frontier.game.ch.opening.stage), 'wake', 'unconscious save resumes unconscious');
   await tap('[data-act="wake"]');

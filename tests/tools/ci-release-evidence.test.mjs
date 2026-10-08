@@ -192,7 +192,7 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
   };
   const missing = probe();
   assert.equal(missing.evidence, null);
-  assert.match(missing.logs.join('\n'), /Incomplete or ambiguous CI coverage/);
+  assert.match(missing.logs.join('\n'), /Incomplete or ambiguous CI coverage|Unexpected non-gating CI job/);
   const acorn = dirname(createRequire(import.meta.url).resolve('acorn/package.json'));
   const lock = JSON.parse(readFileSync(new URL('../../package-lock.json', import.meta.url)));
   assert.equal(JSON.parse(readFileSync(join(acorn, 'package.json'))).version, lock.packages['node_modules/acorn'].version);
@@ -404,4 +404,18 @@ test('retargeted PR reuses only authenticated original base/head/config with suf
   responses[`repos/${repository}/git/trees/${'8'.repeat(40)}?recursive=1`] = { truncated: false,
     tree: [{ path: 'data/world.json', sha: '9'.repeat(40), type: 'blob', mode: '100644' }] };
   assert.equal(await resolveRelease({ ...options, releaseBase: '7'.repeat(40) }), null, 'unpublished/coalesced changes require their affected checks');
+});
+
+test('known skipped postrelease job is not mistaken for missing or extra affected coverage', () => {
+  const f = fixture();
+  const extra = { name: 'Full exploration and crafting (webkit)', status: 'completed', conclusion: 'skipped', run_id: f.run.id, run_attempt: f.run.run_attempt, steps: [] };
+  f.jobs.push(extra);
+  assert.equal(validateEvidence(f).source, source);
+  for (const patch of [{ conclusion: 'success' }, { conclusion: 'failure' }, { conclusion: 'cancelled' }, { name: 'Unknown skipped job' }, { run_attempt: 99 }]) {
+    Object.assign(extra, patch); assert.throws(() => validateEvidence(f));
+    Object.assign(extra, { name: 'Full exploration and crafting (webkit)', status: 'completed', conclusion: 'skipped', run_id: f.run.id, run_attempt: f.run.run_attempt });
+  }
+  f.jobs.push({ ...extra }); assert.throws(() => validateEvidence(f)); f.jobs.pop();
+  f.jobs = f.jobs.filter(j => j.name !== 'Quick affected (webkit, boot)');
+  assert.throws(() => validateEvidence(f), 'known skipped job never substitutes for real safety evidence');
 });

@@ -71,7 +71,14 @@ export function validateCoverage(input, evidence) {
   const expected = ['Build, core and CI tools', 'test (chromium)', 'test (webkit)',
     'review (chromium)', 'review (webkit)', 'field-hud (chromium)', 'field-hud (webkit)',
     ...['chromium', 'webkit'].flatMap(browser => plan.suites.map(suite => `Quick affected (${browser}, ${suite})`))];
-  requireThat(jobs.length === expected.length && new Set(jobs.map(job => job.name)).size === expected.length, 'Incomplete or ambiguous CI coverage');
+  // GitHub includes the intentionally skipped postrelease-only job in PR runs.
+  // It is not affected evidence and cannot replace any mandatory successful job.
+  const extra = jobs.filter(job => !expected.includes(job.name));
+  requireThat(extra.length <= 1 && extra.every(job => job.name === 'Full exploration and crafting (webkit)' &&
+    job.status === 'completed' && job.conclusion === 'skipped' && job.run_id === run.id && job.run_attempt === run.run_attempt),
+  'Unexpected non-gating CI job');
+  requireThat(jobs.length === expected.length + extra.length && new Set(jobs.map(job => job.name)).size === jobs.length,
+    'Incomplete or ambiguous CI coverage');
   for (const name of expected) {
     const job = jobs.find(job => job.name === name);
     requireThat(job?.conclusion === 'success' && job.status === 'completed' && job.run_id === run.id &&

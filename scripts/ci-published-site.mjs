@@ -44,7 +44,9 @@ export function consumedPagesArtifact(log, run) {
   }).join('\n');
   const matches = [...lines.matchAll(/Creating Pages deployment with payload:\s*(\{[\s\S]*?\})/g)];
   assert.equal(matches.length, 1, 'Missing or ambiguous successful Pages artifact receipt');
-  const receipt = JSON.parse(matches[0][1]);
+  let receipt;
+  try { receipt = JSON.parse(matches[0][1]); }
+  catch { throw new Error('Invalid Pages artifact receipt JSON'); }
   assert.equal(receipt.pages_build_version, run.head_sha, 'Published workflow source differs');
   assert.notEqual(receipt.preview, true, 'Preview is not a production publication');
   const id = Number(receipt.artifact_id);
@@ -91,8 +93,22 @@ with tarfile.open(sys.argv[1]) as t:
   assert p.is_relative_to(root) and (e.isfile() or e.isdir()), 'Unsafe Pages entry'
  t.extractall(root,filter='data')`, archive, destination]);
 }
+export function readPublicationLog(path, execute = execFileSync) {
+  const options = { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024, stdio: 'pipe' };
+  const help = execute('gh', ['api', '--help'], options);
+  const args = ['api', path];
+  // New gh versions guard ANSI even on a pipe. Capture authenticated log bytes
+  // for receipt parsing only; never print or execute them. Older gh needs no flag.
+  if (help.includes('--allow-escape-sequences')) args.push('--allow-escape-sequences');
+  try { return execute('gh', args, options); }
+  catch {
+    // Child-process errors can contain partial stdout; keep raw log bytes out
+    // of the terminal even on a failed download. Failure still stops release.
+    throw new Error('Cannot read authenticated Pages deployment log');
+  }
+}
 export async function restoreSite({ repository, directory, runId, skipId, mode, previous = false, api, download,
-  readLog = path => execFileSync('gh', ['api', path], { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }) }) {
+  readLog = readPublicationLog }) {
   assert.match(repository, /^[\w.-]+\/[\w.-]+$/);
   assert.ok(['rollback', 'lab', 'preserve-lab', 'checkpoint'].includes(mode));
   const prefix = `repos/${repository}`, repo = await api(prefix);

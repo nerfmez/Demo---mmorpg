@@ -42,7 +42,7 @@ test('browser shards and live WebKit use the same official immutable image match
   assert.doesNotMatch(ci, /actions\/cache@|ms-playwright\s*\n\s*key:/);
   assert.ok(ci.indexOf('name: Verify downloaded build source') < ci.indexOf('name: Verify preinstalled Playwright'));
   assert.ok(ci.indexOf('name: Verify preinstalled Playwright') < ci.indexOf('name: Run complete selected shard'));
-  assert.ok(live.indexOf('name: Verify preinstalled Playwright') < live.indexOf('name: Dreamloop'));
+  assert.ok(live.indexOf('name: Verify preinstalled Playwright') < live.indexOf('name: Published startup save'));
   assert.deepEqual(guard(ci), guard(live));
 });
 

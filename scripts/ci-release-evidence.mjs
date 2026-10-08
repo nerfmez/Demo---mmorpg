@@ -6,6 +6,8 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { prExecutionRange } from './ci-pr-source.mjs';
+import { verifyBuild } from './ci-build-manifest.mjs';
 import { validationPlan } from './ci-browser-plan.mjs';
 import { EQUIPMENT_PATHS, equipmentImpact, gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
@@ -59,14 +61,24 @@ function validateIdentity({ repository, repositoryId, target, targetTree, pr, so
 // `files` comes from GitHub-owned base/head trees, NEVER from the downloaded
 // artifact's claims. Recompute with the exact release tree's routing policy.
 export function validateEvidence(input) {
-  const evidence = validateIdentity(input), { jobs, run, files } = input;
+  return validateCoverage(input, validateIdentity(input));
+}
+export function validateCoverage(input, evidence) {
+  const { jobs, run, files } = input;
   requireThat(Array.isArray(files) && files.every(file => typeof file === 'string'), 'Missing authoritative changed paths');
   const plan = validationPlan(files, { impacts: input.impacts || {} });
   requireThat(plan.suites.includes('boot'), 'Release reuse requires real boot/save/reload/Continue');
   const expected = ['Build, core and CI tools', 'test (chromium)', 'test (webkit)',
     'review (chromium)', 'review (webkit)', 'field-hud (chromium)', 'field-hud (webkit)',
     ...['chromium', 'webkit'].flatMap(browser => plan.suites.map(suite => `Quick affected (${browser}, ${suite})`))];
-  requireThat(jobs.length === expected.length && new Set(jobs.map(job => job.name)).size === expected.length, 'Incomplete or ambiguous CI coverage');
+  // GitHub includes the intentionally skipped postrelease-only job in PR runs.
+  // It is not affected evidence and cannot replace any mandatory successful job.
+  const extra = jobs.filter(job => !expected.includes(job.name));
+  requireThat(extra.length <= 1 && extra.every(job => job.name === 'Full exploration and crafting (webkit)' &&
+    job.status === 'completed' && job.conclusion === 'skipped' && job.run_id === run.id && job.run_attempt === run.run_attempt),
+  'Unexpected non-gating CI job');
+  requireThat(jobs.length === expected.length + extra.length && new Set(jobs.map(job => job.name)).size === jobs.length,
+    'Incomplete or ambiguous CI coverage');
   for (const name of expected) {
     const job = jobs.find(job => job.name === name);
     requireThat(job?.conclusion === 'success' && job.status === 'completed' && job.run_id === run.id &&
@@ -87,20 +99,21 @@ export function verifyExtractedBuild(directory, evidence) {
   requireThat(readFileSync(join(directory, 'index.html')).length > 0, 'Artifact has no built entrypoint');
 }
 
-export function ciContext({ environment, event, source, tree, files = [], impacts = {} }) {
+export function ciContext({ environment, event, source, tree, files = [], impacts = {}, executedBase }) {
   const pr = event.pull_request;
   return { version: 2, source, tree, plan: validationPlan(files, { full: environment.GITHUB_EVENT_NAME !== 'pull_request', impacts }), repository: environment.GITHUB_REPOSITORY,
     runId: Number(environment.GITHUB_RUN_ID), attempt: Number(environment.GITHUB_RUN_ATTEMPT),
     eventName: environment.GITHUB_EVENT_NAME, workflowRef: environment.GITHUB_WORKFLOW_REF,
     workflowSha: environment.GITHUB_WORKFLOW_SHA,
-    pr: pr ? { number: event.number, base: { ref: pr.base.ref, sha: pr.base.sha, repositoryId: pr.base.repo.id },
+    pr: pr ? { number: event.number, base: { ref: pr.base.ref, sha: executedBase || pr.base.sha, repositoryId: pr.base.repo.id,
+      ...(executedBase && executedBase !== pr.base.sha ? { eventSha: pr.base.sha } : {}) },
       head: { sha: pr.head.sha, repositoryId: pr.head.repo.id } } : null };
 }
 
 export function verifyCiContext(context, evidence, pr, repository, repositoryId) {
   requireThat(context.version === 2 && context.source === evidence.source && context.tree === evidence.tree &&
     context.runId === evidence.runId && context.attempt === evidence.attempt && context.repository === repository &&
-    context.eventName === 'pull_request' && context.pr?.number === pr.number && context.pr.base.ref === 'main' &&
+    context.eventName === 'pull_request' && context.pr?.number === pr.number && typeof context.pr.base.ref === 'string' && context.pr.base.ref.length > 0 &&
     context.pr.base.repositoryId === repositoryId && context.pr.head.repositoryId === repositoryId &&
     context.pr.head.sha === evidence.source && SHA.test(context.pr.base.sha) && SHA.test(context.workflowSha) &&
     context.workflowRef === `${repository}/.github/workflows/ci.yml@refs/pull/${pr.number}/merge`,
@@ -127,15 +140,16 @@ export function verifyPrAssociation(run, pr, branchPrs, timeline, repositoryId) 
   requireThat(Array.isArray(branchPrs) && branchPrs.length === 1 && branchPrs[0].number === pr.number &&
     branchPrs[0].base?.ref === 'main' && branchPrs[0].head?.repo?.id === repositoryId,
   'Branch has ambiguous originating PRs');
-  requireThat(Array.isArray(timeline) && timeline.length < 100 && !timeline.some(event => ['base_ref_changed', 'automatic_base_change_succeeded'].includes(event.event)),
-    'Missing/truncated or retargeted PR history');
+  requireThat(Array.isArray(timeline) && timeline.length < 100 && timeline.every(event => typeof event.event === 'string'),
+    'Missing/truncated PR history');
   // GitHub may omit closed PRs from run.pull_requests. Unique all-state branch
-  // history plus a never-retargeted main PR provides the authoritative fallback.
+  // history identifies the PR; executed base/head, workflow, source tree and
+  // required release suites below prove coverage even after retargeting.
   requireThat(!run.pull_requests?.length || run.pull_requests.some(item => item.number === pr.number),
     'CI belongs to another PR');
 }
 
-export async function resolveRelease({ repository, target, eventName, ref, api, download, extract, directory, log = console.log }) {
+export async function resolveRelease({ repository, target, eventName, ref, releaseBase = '', api, download, extract, directory, log = console.log }) {
   if (eventName !== 'push' || ref !== 'refs/heads/main') return null;
   const scratch = mkdtempSync(join(tmpdir(), 'ci-release-evidence-'));
   try {
@@ -200,6 +214,15 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
       if (selected) impacts[path] = selected;
     }
     evidence = validateEvidence({ ...identity, files, impacts });
+    // A retargeted PR may have validated a smaller delta against another base.
+    // Recompute the actual merge delta and require every selected release suite.
+    const parent = releaseBase || targetCommit.parents?.[0]?.sha;
+    requireThat(SHA.test(parent), 'Missing authoritative release parent');
+    const releaseBaseCommit = await api(`${prefix}/git/commits/${parent}`);
+    const releaseBaseTree = await api(`${prefix}/git/trees/${releaseBaseCommit.tree.sha}?recursive=1`);
+    const releaseFiles = changedTreePaths(releaseBaseTree, headTree);
+    const required = validationPlan(releaseFiles, { impacts: releaseBaseCommit.tree.sha === baseCommit.tree.sha ? impacts : {} }).suites;
+    requireThat(required.every(suite => evidence.plan.suites.includes(suite)), 'Retargeted release delta lacks affected evidence');
     verifyCiContext(context, evidence, pr, repository, repo.id);
     // PR workflows execute their event-ref configuration, while checkout tests
     // the explicit head. Both workflow blobs must match before reusing the build.
@@ -207,6 +230,7 @@ export async function resolveRelease({ repository, target, eventName, ref, api, 
     const executedWorkflow = await api(`${prefix}/contents/.github/workflows/ci.yml?ref=${context.workflowSha}`);
     requireThat(SHA.test(sourceWorkflow.sha) && sourceWorkflow.sha === executedWorkflow.sha,
       'Executed PR workflow configuration differs from release source');
+    verifyBuild(extracted, { source: evidence.source, tree: evidence.tree });
     evidence.workflowSha = context.workflowSha;
     evidence.workflowBlob = sourceWorkflow.sha;
     evidence.prNumber = pr.number;
@@ -227,6 +251,7 @@ export function verifyReleaseBuild({ directory, source, target, tree = '', evide
   requireThat(execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() === target, 'Release checkout differs');
   const actualTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim();
   verifyExtractedBuild(directory, { source });
+  verifyBuild(directory, { source, tree: actualTree });
   let receipt = null;
   if (evidenceRun) {
     receipt = JSON.parse(readFileSync(join(directory, 'ci-evidence.json'), 'utf8'));
@@ -246,10 +271,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const source = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
     requireThat(source === process.env.CI_SOURCE_SHA, 'Context source differs from CI checkout');
     const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-    const files = event.pull_request ? execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', event.pull_request.base.sha, source],
+    const executedBase = event.pull_request ? prExecutionRange(event, process.env.GITHUB_SHA).base : undefined;
+    const files = event.pull_request ? execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', executedBase, source],
       { encoding: 'utf8' }).split('\0').filter(Boolean) : [];
-    const impacts = event.pull_request ? gitEquipmentImpacts(files, event.pull_request.base.sha, source) : {};
-    const context = ciContext({ environment: process.env, event, files, impacts,
+    const impacts = event.pull_request ? gitEquipmentImpacts(files, executedBase, source) : {};
+    const context = ciContext({ environment: process.env, event, files, impacts, executedBase,
       source, tree: execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim() });
     writeFileSync('dist/ci-context.json', JSON.stringify(context, null, 2) + '\n');
     console.log(`CI context: ${context.eventName}; PR ${context.pr?.number || 'none'}; workflow ${context.workflowRef}; workflow source ${context.workflowSha}`);
@@ -266,7 +292,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       } finally { closeSync(fd); }
     };
     const evidence = await resolveRelease({ repository: process.env.GITHUB_REPOSITORY, target: process.env.GITHUB_SHA,
-      eventName: process.env.GITHUB_EVENT_NAME, ref: process.env.GITHUB_REF, api, download, extract: extractBuildArchive, directory: 'release-dist' });
+      eventName: process.env.GITHUB_EVENT_NAME, ref: process.env.GITHUB_REF, releaseBase: process.env.RELEASE_BASE_SHA, api, download, extract: extractBuildArchive, directory: 'release-dist' });
     const artifact = evidence ? `release-ci-dist-${evidence.target}-${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT}` : '';
     const outputs = { reuse: !!evidence, source: evidence?.source || '', target: evidence?.target || '', tree: evidence?.tree || '',
       run: evidence?.runId || '', artifact };

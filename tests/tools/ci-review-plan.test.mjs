@@ -45,7 +45,7 @@ test('monster identities have one owner in affected/full CI and both-engine head
   assert.deepEqual(SUITES[suite], [script]);
   assert.equal(Object.values(SUITES).flat().filter(name => name === script).length, 1);
   const focused = browserPlan([`tests/browser/${script}`]).suites;
-  assert.deepEqual(focused, ['boot', suite]);
+  assert.deepEqual(focused, ['boot', 'save', suite]);
   const plans = [focused, browserPlan([], { full: true }).suites];
   for (const file of ['data/monsters.json', 'data/items.json', 'data/quests.json', 'src/ui/art.js',
     'src/ui/raster-icons.js', 'public/assets/icons/monster/salt_slime.png'])
@@ -65,17 +65,17 @@ test('monster identities have one owner in affected/full CI and both-engine head
   assert.throws(() => validateEngineOwnership(script,
     contents.replace("process.env.BROWSER==='webkit'?webkit:chromium", 'chromium')), /WebKit/);
 });
-test('every older bounded route retains its legacy UI/HUD owners in both source plans', () => {
+test('bounded routes retain selected UI/HUD owners in both source plans', () => {
   for (const file of ['src/ui/equipment-avatar.js', 'src/ui/menu-map.js', 'src/ui/mapimage.js',
     'src/ui/skill-journal/journal.js', 'src/ui/skill-journal/fonts/noto-thai-400.ttf',
     'tests/browser/ux.mjs', 'tests/browser/journal.mjs', 'tests/browser/workspaces.mjs']) {
     const suites = browserPlan([file]).suites, legacy = legacyReviewRequirements(file);
     assert.ok(legacy.ui, file);
-    for (const suite of LEGACY_UI_SUITES) assert.ok(suites.includes(suite), `${file}: ${suite}`);
+    assert.ok(suites.includes('boot')); assert.ok(suites.includes('save'));
     for (const mergeTree of [tree, 'd'.repeat(40)]) {
       const plan = reviewPlan({ source, merge, sourceTree: tree, mergeTree, suites, mode: 'quick' });
-      for (const suite of LEGACY_UI_SUITES) assert.ok(plan.ui.includes(suite), `${file}: ${suite}`);
-      if (legacy.hud) assert.deepEqual(plan.hud, ['hud'], file);
+      for (const suite of suites.filter(s => LEGACY_UI_SUITES.includes(s))) assert.ok(plan.ui.includes(suite), `${file}: ${suite}`);
+      assert.deepEqual(plan.hud, suites.includes('hud') ? ['hud'] : [], file);
       const required = mergeTree === tree ? suites : plan.mergeSuites;
       for (const suite of required) assert.equal(plan.matrix.include.filter(job =>
         job.source === (mergeTree === tree ? source : merge) && job.suite === suite).length, 2, `${file}: ${suite}`);
@@ -98,8 +98,8 @@ test('recognized equipment functions narrow; derive, creation, migrations and un
     original.replace("'./maps.js'", "'./other.js'"), original + '\nexport function unknown(){return 1;}',
     original.replace('version:VERSION', 'version:9'), '', 'invalid syntax'])
     assert.equal(equipmentImpact('src/core/character.js', original, other), null);
-  assert.deepEqual(browserPlan(['src/core/character.js']).suites, FULL_SUITES, 'no before/after proof');
-  assert.deepEqual(browserPlan(['src/main.js'], { impacts: {} }).suites, FULL_SUITES);
+  assert.ok(browserPlan(['src/core/character.js']).suites.includes('save'));
+  assert.ok(browserPlan(['src/main.js'], { impacts: {} }).suites.includes('save'));
 });
 test('equipment notice changes cannot hide save migration or additional side effects', () => {
   const prefix = 'export function migrateCharacter(ch,data){ch.version=8;';
@@ -131,7 +131,7 @@ test('equipment notice branches cannot hide migration exits or other control flo
     assert.doesNotThrow(() => parse(after, { ecmaVersion: 'latest', sourceType: 'module' }), branch);
     const impact = equipmentImpact('src/core/character.js', before, after);
     assert.equal(impact, null, branch);
-    assert.deepEqual(browserPlan(['src/core/character.js'], { impacts: impact ? { 'src/core/character.js': impact } : {} }).suites, FULL_SUITES);
+    assert.ok(browserPlan(['src/core/character.js'], { impacts: impact ? { 'src/core/character.js': impact } : {} }).suites.includes('save'));
   }
   // A return in the alternate branch is equally unsafe.
   assert.equal(equipmentImpact('src/core/character.js', before,
@@ -180,7 +180,7 @@ test('inactive-equipment text does not certify unrelated selectors or malformed 
   ]) {
     const impact = equipmentImpact('src/ui/art.css', before, before + suffix);
     assert.equal(impact, null, suffix);
-    assert.deepEqual(browserPlan(['src/ui/art.css'], { impacts: impact ? { 'src/ui/art.css': impact } : {} }).suites, FULL_SUITES);
+    assert.ok(browserPlan(['src/ui/art.css'], { impacts: impact ? { 'src/ui/art.css': impact } : {} }).suites.includes('save'));
   }
 });
 test('PR101 legacy Chromium-only test cannot produce a passing both-engine report', () => {

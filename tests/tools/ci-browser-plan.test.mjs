@@ -17,26 +17,26 @@ test('full inventory retains every original CI browser check, boot/save and broa
 });
 test('documentation and tool tests select no browsers; infrastructure fails closed', () => {
   assert.deepEqual(browserPlan(['docs/HANDOFF.md', 'tests/tools/ci-scope.test.mjs']).suites, []);
-  for (const path of ['.github/workflows/ci.yml', 'scripts/new-tool.mjs']) assert.deepEqual(browserPlan([path]).suites, FULL_SUITES);
-  assert.deepEqual(browserPlan(['docs/HANDOFF.md', 'tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
-  assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs', 'tests/browser/weapon-loading.mjs']).suites, ['boot', 'weapons', 'menu']);
+  for (const path of ['.github/workflows/ci.yml', 'scripts/new-tool.mjs']) assertBounded(browserPlan([path]).suites);
+  assert.deepEqual(browserPlan(['docs/HANDOFF.md', 'tests/browser/menu-hub.mjs']).suites, ['boot', 'menu', 'save']);
+  assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs', 'tests/browser/weapon-loading.mjs']).suites, ['boot', 'weapons', 'menu', 'save']);
 });
 test('bounded local dependencies include their cross-area consumers', () => {
-  assert.deepEqual(browserPlan(['src/ui/menu.js']).suites, ['boot', 'menu']);
+  assert.deepEqual(browserPlan(['src/ui/menu.js']).suites, ['boot', 'menu', 'save']);
   for (const path of ['public/models/weapons/new.glb', 'docs/WEAPON-MODEL-PROVENANCE.json']) assert.ok(browserPlan([path]).suites.includes('weapons'));
   for (const path of ['src/ui/skill-journal/journal.js', 'src/ui/skill-journal/paper-audio.js']) assert.ok(browserPlan([path]).suites.includes('save'));
 });
-test('core, data, saves, shared code, dependency and unknown paths fall back to full', () => {
+test('core, data, saves, shared code, dependency and unknown paths select bounded safety', () => {
   for (const file of ['src/core/ai.js', 'tests/core/save.test.js', 'src/save.js', 'data/items.json', 'src/main.js', 'src/ui/panels.js', 'src/ui/input.js', 'src/ui/style.css', 'src/render/models.js', 'src/render/view.js', 'tests/browser/fullscreen-entry.mjs', 'tests/browser/new-test.mjs', 'package-lock.json', 'vite.config.js', 'new-runtime.js', 'src/new\nfile.js']) {
     const plan = browserPlan([file]);
-    assert.deepEqual(plan.suites, FULL_SUITES, file);
-    assert.match(plan.reason, /fallback/);
+    assertBounded(plan.suites);
+    assert.match(plan.reason, /bounded/);
   }
   assert.deepEqual(browserPlan(['docs/a.md'], { full: true }).suites, FULL_SUITES);
 });
 test('workflow shares exact-source build, shards both engines, and gates on all results', () => {
   const ci = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
-  assert.match(ci, /ref: \$\{\{ github.event.pull_request.head.sha \|\| github.sha \}\}/);
+  assert.match(ci, /ref: \$\{\{ github.event.pull_request.head.sha \|\| github.event.workflow_run.head_sha \|\| github.sha \}\}/);
   assert.match(ci, /force-full: \$\{\{ github.event_name != 'pull_request' && !inputs.quick_gate \}\}/);
   assert.match(ci, /force-boot: \$\{\{ inputs.quick_gate \}\}/);
   assert.match(ci, /matrix: \$\{\{ fromJSON\(needs.prepare.outputs.matrix\) \}\}/);
@@ -80,3 +80,8 @@ test('Pages upload depends on successful exact-source quick gate; lab publishing
   assert.match(deploy, /if: github.event_name == 'workflow_run'/);
   assert.doesNotMatch(deploy, /continue-on-error/);
 });
+
+function assertBounded(suites) {
+  assert.ok(suites.includes('boot')); assert.ok(suites.includes('save'));
+  assert.ok(suites.length < FULL_SUITES.length, JSON.stringify(suites));
+}

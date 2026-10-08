@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { browserPlan, FULL_SUITES } from './ci-browser-plan.mjs';
+import { prExecutionRange } from './ci-pr-source.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
 export const UI_SUITES = ['save', 'opening', 'journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'equipment-focus', 'equipment-inactive', 'monster-identity'];
@@ -35,11 +36,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH));
   const source = git('rev-parse', 'HEAD'), sourceTree = git('rev-parse', 'HEAD^{tree}');
   const merge = event.pull_request ? process.env.GITHUB_SHA : source;
-  if (event.pull_request) {
-    const parents = git('show', '-s', '--format=%P', merge).split(' ');
-    if (parents.length !== 2 || parents[0] !== event.pull_request.base.sha || parents[1] !== source)
-      throw Error('PR merge revision does not bind the planned base and head');
-  }
+  if (event.pull_request) prExecutionRange(event, merge);
   const mergeTree = git('rev-parse', `${merge}^{tree}`);
   let driftSuites = [];
   if (sourceTree !== mergeTree) {

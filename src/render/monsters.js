@@ -15,6 +15,12 @@ const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, se
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 const cone = (r, h, seg = 5) => new THREE.ConeGeometry(r, h, seg);
 const CRAB_CLAWS = [[1, 'mandL'], [-1, 'mandR']];
+// animators run every frame: iterate fixed tables instead of building arrays per call
+const EARS = ['earL', 'earR'];
+const BIPED_LEGS = ['legL', 'legR'];
+const SPORE_FEET = [['footL', 0], ['footR', 0.5]];
+const GULL_LEGS = [['legL', 0], ['legR', 0.5]];
+const GULL_WINGS = [[1, 'L'], [-1, 'R']];
 
 // ---------- quadrupeds (boar, wolves) ----------
 
@@ -248,7 +254,7 @@ function animQuad(r, s, dt, time, cfg) {
   const flop = r.earSpring.update(-bob * 6, dt);
   const flick = Math.max(0, Math.sin(time * 0.9 + r.seed * 3)) ** 24 * 0.5;
   P.ear = damp(P.ear || 0, wu ? -0.4 : -0.15 * w + Math.sin(time * 3 + r.seed) * 0.05, 10, dt);
-  for (const e of ['earL', 'earR']) {
+  for (const e of EARS) {
     if (!b[e]) continue;
     b[e].rotation.x = P.ear + flop * 0.1;
     b[e].rotation.z = (e === 'earL' ? 1 : -1) * flick * (e === 'earL' ? 1 : 0.3);
@@ -525,7 +531,7 @@ function animSporecap(r, s, dt, time) {
   // waddle: rocks from foot to foot, squashes as each foot lands and springs up between steps
   const land = (0.5 + 0.5 * Math.cos(2 * ph)) * w;
   sq *= 1 - 0.07 * land + 0.04 * w + breath(time, r.seed, c) * (1 - w);
-  for (const [n, off] of [['footL', 0], ['footR', 0.5]]) {
+  for (const [n, off] of SPORE_FEET) {
     legCycle(ph, off, r.duty, _foot);
     b[n].rotation.x = _foot.angle * r.swingA * w;
     b[n].position.y = b[n].userData.rest.pos.y + _foot.lift * 0.06 * w;
@@ -586,7 +592,7 @@ function animGolem(r, s, dt, time) {
   const ph = r.phase;
   // heavy biped: each footfall lands hard (the hips drop sharply), the torso rolls over the planted
   // leg and twists against the stride, the arms swing behind with weight
-  const drop = poseLegs(r, c, ['legL', 'legR']);
+  const drop = poseLegs(r, c, BIPED_LEGS);
   const thud = (0.5 + 0.5 * Math.cos(2 * ph)) ** 3 * w;
   let armL = [-Math.sin(ph) * 0.35 * w, 0, 0.12 + 0.06 * thud];
   let armR = [Math.sin(ph) * 0.35 * w, 0, -0.12 - 0.06 * thud];
@@ -773,7 +779,7 @@ function animWarden(r, s, dt, time) {
   const ph = r.phase;
   // a heavy upright stride: knees bend through the swing, the hips drop on each footfall and
   // roll over the planted leg, the shoulders counter-twist and the arms swing against the legs
-  const drop = poseLegs(r, c, ['legL', 'legR'], WARDEN_KNEE);
+  const drop = poseLegs(r, c, BIPED_LEGS, WARDEN_KNEE);
   const thud = (0.5 + 0.5 * Math.cos(2 * ph)) ** 2 * w;
   let torsoX = 0.2 + Math.sin(time * 1.6) * 0.03 + 0.05 * w;
   let headX = 0;
@@ -950,12 +956,12 @@ function animShoreGull(r, s, dt, time) {
   const stroke = coastalStrike(s, 'peck'), ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
   // a waddle: rocks over each foot, and the head thrusts forward and holds still while the body
   // catches up (the bird-walk head bob)
-  for (const [n, off] of [['legL', 0], ['legR', 0.5]]) {
+  for (const [n, off] of GULL_LEGS) {
     legCycle(ph, off, r.duty, _foot);
     b[n].rotation.x = _foot.angle * r.swingA * w;
     b[n].position.y = b[n].userData.rest.pos.y + _foot.lift * 0.05 * w;
   }
-  for (const [side, n] of [[1, 'L'], [-1, 'R']]) {
+  for (const [side, n] of GULL_WINGS) {
     const ruffle = Math.max(0, Math.sin(time * 0.8 + r.seed * 2)) ** 20 * 0.35;
     b['wing' + n].rotation.z = damp(b['wing' + n].rotation.z, side * (s.state === 'retreat' ? .25 + Math.sin(time * 14) * .15 : .05 + .25 * ready + ruffle + 0.06 * w), 12, dt);
   }

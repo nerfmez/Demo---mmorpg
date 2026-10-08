@@ -10,6 +10,8 @@ const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, se
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 const cone = (r, h, seg = 5) => new THREE.ConeGeometry(r, h, seg);
 const clampAbs = (v, m) => (v > m ? m : v < -m ? -m : v);
+const EARS = ['earL', 'earR'];
+const ARMS = [['L', 1], ['R', -1]];
 const windK = (s) => (s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0);
 
 // ---------- thicket mantis: upright, two scythe arms ----------
@@ -140,7 +142,7 @@ function animMantis(r, s, dt, time) {
   b.head.rotation.x = damp(b.head.rotation.x, head, 12, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.9 + (s.aggro ? 0 : c.look * wander(time * 0.5, r.seed)) * calm, 8, dt);
   b.head.rotation.z = damp(b.head.rotation.z, Math.round(wander(time * 0.4, r.seed + 3) * 2) * 0.22 * calm, 10, dt);
-  for (const [n, side] of [['L', 1], ['R', -1]]) {
+  for (const [n, side] of ARMS) {
     b[`arm${n}`].rotation.x = damp(b[`arm${n}`].rotation.x, arm, 18, dt);
     b[`arm${n}`].rotation.z = damp(b[`arm${n}`].rotation.z, -side * spread, 18, dt);
     b[`blade${n}`].rotation.x = damp(b[`blade${n}`].rotation.x, blade, 18, dt);
@@ -346,7 +348,7 @@ function animRam(r, s, dt, time) {
   b.head.rotation.y = damp(b.head.rotation.y, headY, s.lastAttack === 'shove' ? 18 : 5, dt);
   r.tailSpring = r.tailSpring || new Spring(60, 8);
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * (moving ? 12 : 3)) * 0.2, dt);
-  for (const e of ['earL', 'earR']) b[e].rotation.z = damp(b[e].rotation.z, (e === 'earL' ? 1 : -1) * (s.windup ? 0.5 : 0.1 + Math.sin(time * 2 + r.seed) * 0.05), 10, dt);
+  for (const e of EARS) b[e].rotation.z = damp(b[e].rotation.z, (e === 'earL' ? 1 : -1) * (s.windup ? 0.5 : 0.1 + Math.sin(time * 2 + r.seed) * 0.05), 10, dt);
 }
 
 // ---------- duskmane stalker: a long cat with a pale mane ----------
@@ -460,7 +462,7 @@ function animStalker(r, s, dt, time) {
   b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
   r.tailSpring = r.tailSpring || new Spring(50, 6);
   b.tail.rotation.y = r.tailSpring.update(Math.sin(time * (2 + tailLash * 10) + r.seed) * (0.35 + tailLash * 0.4), dt);
-  for (const e of ['earL', 'earR']) b[e].rotation.x = damp(b[e].rotation.x, s.windup ? 0.5 : -0.1, 10, dt);
+  for (const e of EARS) b[e].rotation.x = damp(b[e].rotation.x, s.windup ? 0.5 : -0.1, 10, dt);
 }
 
 // ---------- rune sentinel: a floating carved stone with a shard ring ----------

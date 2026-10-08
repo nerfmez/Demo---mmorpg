@@ -12,7 +12,7 @@ mkdirSync(out, { recursive: true });
 const port = 4215, base = `http://localhost:${port}/`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 const CASES = [
-  ['thicket_mantis', 'scythe', 0.6], ['reed_viper', 'lash', 2.5], ['reed_viper', 'venom', 6],
+  ['thicket_mantis', 'scythe', 0.6], ['thicket_mantis', 'whirl', 0.6], ['reed_viper', 'lash', 2.5], ['reed_viper', 'venom', 6],
   ['ironhorn_ram', 'shove', 1.5], ['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.5], ['horned_warden', 'quake', 7], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
   ['duskmane_stalker', 'claw', 0.4], ['rune_sentinel', 'beam', 6], ['rune_sentinel', 'shards', 0.3],
 ];
@@ -103,11 +103,18 @@ try {
     await page.evaluate(() => window.__frontier.closeUp(true));
     await shot(`${type}-${attack}-1-windup-close`);
     await page.evaluate(() => window.__frontier.closeUp(false));
-    await page.evaluate(() => { const f = window.__frontier, m = f.current; f.until(() => m.state !== 'windup', 3); f.step(m.melee ? m.def.attacks[m.melee.name].hitTime + 0.02 : 0.08); });
+    await page.evaluate(() => { const f = window.__frontier, m = f.current; f.until(() => m.state !== 'windup', 3); const atk = m.melee && m.def.attacks[m.melee.name]; f.step(atk ? (atk.hits?.[0].at ?? atk.hitTime) + 0.02 : 0.08); });
     await shot(`${type}-${attack}-2-contact`);
     await page.evaluate(() => window.__frontier.closeUp(true));
     await shot(`${type}-${attack}-2-contact-close`);
     await page.evaluate(() => window.__frontier.closeUp(false));
+    const contacts = await page.evaluate(() => window.__frontier.current.melee && window.__frontier.current.def.attacks[window.__frontier.current.melee.name].hits?.map(h => h.at) || []);
+    for (let i = 1; i < contacts.length; i++) {
+      await page.evaluate(at => { const f = window.__frontier; f.step(Math.max(0, at + 0.02 - f.current.stateT)); }, contacts[i]);
+      await page.evaluate(() => window.__frontier.closeUp(true));
+      await shot(`${type}-${attack}-2-contact-${i + 1}-close`);
+      await page.evaluate(() => window.__frontier.closeUp(false));
+    }
     await page.evaluate(() => { const f = window.__frontier, m = f.current; f.until(() => m.state === 'recover' || m.state === 'stunned', 4); f.step(0.15); });
     await shot(`${type}-${attack}-3-recover`);
     if (type === 'duskmane_stalker' && attack === 'claw') {
@@ -151,5 +158,5 @@ try {
   console.log('PASS midhigh monsters', engine.name());
 } finally {
   await browser?.close();
-  process.kill(-server.pid);
+  try { process.kill(-server.pid); } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }

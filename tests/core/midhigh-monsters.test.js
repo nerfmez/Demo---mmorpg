@@ -22,7 +22,7 @@ function arena(type, level = 15) {
   for (const key in m.cd) m.cd[key] = 0;
   const hits = [];
   g.damageUnit = (u, amount) => hits.push({ id: u.id, amount, t: g.time });
-  const step = (seconds) => { for (let t = 0; t < seconds - 1e-8; t += 0.01) { g.time += 0.01; g.updateAreas(0.01); updateMonster(g, m, 0.01); } };
+  const step = (seconds) => { for (let t = 0; t < seconds - 1e-8; t += 0.01) { g.time += 0.01; g.updateAreas(0.01); if (!m.dead) updateMonster(g, m, 0.01); } };
   const until = (cond, seconds = 20) => { for (let t = 0; t < seconds && !cond(); t += 0.01) step(0.01); assert.ok(cond(), `${type}: stuck in ${m.state}`); };
   const place = (gap, side = 0) => Object.assign(g.player, { x: side, z: m.r + g.player.r + gap });
   return { g, m, hits, step, until, place };
@@ -216,8 +216,15 @@ test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a li
     assert.equal(a.m.windup?.name, name, type);
     a.until(() => a.m.state === 'act');
     assert.equal(a.hits.length, 0, `${name}: nothing during the wind-up`);
+    for (let i = 0; i < atk.hits.length; i++) {
+      a.until(() => a.m.stateT >= atk.hits[i].at - 0.015);
+      assert.equal(a.hits.length, i, `${name}: no damage before hit ${i + 1}`);
+      a.step(0.02);
+      assert.equal(a.hits.length, i + 1, `${name}: hit ${i + 1} lands once`);
+    }
     a.until(() => a.m.state !== 'act');
-    assert.ok(a.hits.length >= 1 && a.hits.length <= n, `${name}: at most ${n} hits (${a.hits.length})`);
+    assert.equal(a.hits.length, n, `${name}: exactly ${n} contacts`);
+    assert.equal(a.m.melee, null, `${name}: strike state clears after recovery`);
     assert.equal(a.m.charge, null, `${name} is not a rush`);
     assert.ok(atk.hits.length === n);
   }
@@ -229,4 +236,27 @@ test('wolf rend and Greyfang rake are multi-hit combos; the warden quake is a li
   assert.equal(quakes.length, w.m.def.attacks.quake.steps, 'marked along the line at wind-up start');
   assert.ok(quakes.every((x, i) => i === 0 || x.delay > quakes[i - 1].delay), 'they go off one after another');
   assert.equal(w.hits.length, 0);
+});
+
+test('new contact attacks miss out of range/arc and death cancels remaining combo contacts', () => {
+  for (const [type, name, gap] of [['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.2], ['thicket_mantis', 'whirl', 0.6], ['ironhorn_ram', 'shove', 1.5]]) {
+    for (const miss of ['range', 'arc']) {
+      if (name === 'whirl' && miss === 'arc') continue; // authored 360 degree ring
+      const a = arena(type);
+      a.place(gap);
+      for (const key in a.m.cd) a.m.cd[key] = key === name ? 0 : 99;
+      a.step(0.01); a.step(a.m.windup.total * 0.7);
+      Object.assign(a.g.player, { x: 0, z: miss === 'range' ? 30 : -(a.m.r + a.g.player.r + gap) });
+      a.until(() => a.m.state === 'recover');
+      assert.equal(a.hits.length, 0, `${name}: ${miss} miss`);
+    }
+    if (!['rend', 'rake'].includes(name)) continue;
+    const a = arena(type);
+    a.place(gap); a.m.cd.bite = 99;
+    a.step(0.01); a.until(() => a.m.state === 'act');
+    a.until(() => a.hits.length === 1);
+    a.g.killMonster(a.m); a.step(2);
+    assert.equal(a.hits.length, 1, `${name}: no post-death contact`);
+    assert.equal(a.m.melee, null);
+  }
 });

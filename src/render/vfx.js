@@ -1375,7 +1375,9 @@ export class Vfx {
       let v = this.telegraphs.get(key);
       if (!v) {
         if (kind === 'slam') {
-          const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, w.radius || m.def.attacks[w.name].radius, 0, 0.07);
+          const atk = m.def.attacks[w.name];
+          const radius = w.radius ?? atk.radius ?? (m.r + atk.range);
+          const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, radius, 0, 0.07);
           mesh.material.uniforms.uColor.value.set(0xff6a3a);
           mesh.material.uniforms.uColor2.value.set(0xff9a5a);
           v = { mesh, kind };
@@ -1399,7 +1401,8 @@ export class Vfx {
       const k = Math.min(1, m.stateT / w.total);
       v.mesh.position.set(m.x, 0, m.z);
       if (v.kind === 'slam') {
-        const r = w.radius || m.def.attacks[w.name].radius;
+        const atk = m.def.attacks[w.name];
+        const r = w.radius ?? atk.radius ?? (m.r + atk.range);
         v.mesh.scale.set(r, 1, r);
         v.mesh.material.uniforms.uFill.value = k;
         v.mesh.material.uniforms.uA.value = 0.9;

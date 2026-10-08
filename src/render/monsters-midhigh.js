@@ -73,7 +73,7 @@ function animMantis(r, s, dt, time) {
   // Arms extend +Y from the shoulder: rotation.x > 0 swings them forward/down. The blade hangs
   // back along the arm (folded) at 0 and opens forward as its rotation.x goes negative.
   let rear = Math.sin(time * 1.6 + r.seed) * 0.05, bodyY = 0.6 + Math.abs(Math.sin(ph)) * 0.03 * w;
-  let arm = 0.95, blade = -0.25, spread = 0.1, head = 0; // rest: praying, scythes folded in front
+  let arm = 0.95, blade = -0.25, spread = 0.1, head = 0, spin = 0; // rest: praying, scythes folded in front
   const k = windK(s);
   if (s.windup === 'scythe') {
     rear = -0.3 * k; // rears up, both scythes high and open
@@ -88,6 +88,17 @@ function animMantis(r, s, dt, time) {
     arm = 0.6 - 0.5 * k;
     blade = -0.25 - 1.6 * k;
     spread = 0.1 + 1.0 * k;
+    spin = -0.25 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'whirl') {
+    const t = clamp01(s.actT / Math.max(0.01, s.actionTotal));
+    spin = -0.25 + (Math.PI * 2 + 0.25) * t * t * (3 - 2 * t);
+    rear = 0.1;
+    arm = 0.1;
+    blade = -1.85;
+    spread = 1.1;
+    bodyY -= 0.08;
+  } else if (s.state === 'recover' && s.lastAttack === 'whirl') {
+    spin = Math.PI * 2; // equivalent to rest; no reverse spin on recovery
   } else if (s.state === 'act' && s.lastAttack === 'scythe') {
     const c = clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1));
     rear = -0.3 + 0.6 * c;
@@ -117,6 +128,7 @@ function animMantis(r, s, dt, time) {
   b.thorax.rotation.x = damp(b.thorax.rotation.x, rear, 14, dt);
   b.body.position.y = damp(b.body.position.y, bodyY, 16, dt);
   b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.05, 0.2), 10, dt);
+  b.body.rotation.y = spin;
   b.head.rotation.x = damp(b.head.rotation.x, head, 12, dt);
   b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.9, 8, dt);
   for (const [n, side] of [['L', 1], ['R', -1]]) {
@@ -183,6 +195,11 @@ function animViper(r, s, dt, time) {
     amp = 0.06;
     lift = -0.15;
     jaw = 0.8;
+  } else if (s.state === 'recover' && s.lastAttack === 'lash') {
+    const hit = 1 - clamp01(s.actT / 0.25);
+    lift = -0.25 * hit;
+    jaw = 0.8 * hit;
+    amp = 0.06;
   } else if (s.state === 'recover' && s.lastAttack === 'venom') {
     lift = 0.3;
     jaw = 0.2;
@@ -265,7 +282,7 @@ function animRam(r, s, dt, time) {
   r.phase = (r.phase || 0) + dt * (moving ? (s.state === 'act' ? 18 : 6 + s.speedFactor * 5) : 0);
   const ph = r.phase, w = (r.runW = damp(r.runW || 0, moving ? 1 : 0, 10, dt));
   const gallop = s.state === 'act';
-  let front = 0, bodyX = 0, bodyY = 0.85 + Math.abs(Math.sin(ph)) * 0.05 * w, headX = 0.05;
+  let front = 0, bodyX = 0, bodyY = 0.85 + Math.abs(Math.sin(ph)) * 0.05 * w, headX = 0.05, headY = s.lookYaw * 0.6;
   legs.forEach((n, i) => {
     const off = gallop ? (i < 2 ? 0 : Math.PI * 0.6) : i === 0 || i === 3 ? 0 : Math.PI;
     b[n].rotation.x = Math.sin(ph + off) * (gallop ? 0.8 : 0.5) * w;
@@ -276,6 +293,7 @@ function animRam(r, s, dt, time) {
     headX = 0.5 * k;
     bodyX = 0.08 * k;
     bodyY -= 0.1 * k;
+    headY = -0.45 * k;
     b[legs[0]].rotation.x = Math.sin(time * 16) * 0.55 * k;
   } else if (s.windup === 'stomp') {
     // rears on its hind legs
@@ -286,6 +304,11 @@ function animRam(r, s, dt, time) {
   } else if (s.state === 'act') {
     headX = 0.55;
     bodyX = 0.12;
+  } else if (s.state === 'recover' && s.lastAttack === 'shove') {
+    const hit = 1 - clamp01(s.actT / 0.35);
+    headX = 0.5 * hit;
+    headY = 0.5 * hit;
+    bodyX = 0.12 * hit;
   } else if (s.state === 'recover' && s.lastAttack === 'stomp') {
     bodyX = 0.18;
     headX = 0.3;
@@ -299,7 +322,7 @@ function animRam(r, s, dt, time) {
   b.body.rotation.x = damp(b.body.rotation.x, bodyX, 12, dt);
   b.body.position.y = damp(b.body.position.y, bodyY, 16, dt);
   b.head.rotation.x = damp(b.head.rotation.x, headX, 14, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6, 5, dt);
+  b.head.rotation.y = damp(b.head.rotation.y, headY, s.lastAttack === 'shove' ? 18 : 5, dt);
   r.tailSpring = r.tailSpring || new Spring(60, 8);
   b.tail.rotation.z = r.tailSpring.update(Math.sin(time * (moving ? 12 : 3)) * 0.2, dt);
   for (const e of ['earL', 'earR']) b[e].rotation.z = damp(b[e].rotation.z, (e === 'earL' ? 1 : -1) * (s.windup ? 0.5 : 0.1 + Math.sin(time * 2 + r.seed) * 0.05), 10, dt);

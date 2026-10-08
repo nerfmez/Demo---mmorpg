@@ -197,6 +197,14 @@ export function mapImage(world) {
     const f=world.data.city.fountain;
     g.beginPath();g.arc(tx(f.x),tz(f.z),f.r*PX,0,Math.PI*2);g.fillStyle='#80babb';g.fill();g.lineWidth=2;g.strokeStyle='#e5dcc6';g.stroke();
   }
+  // Zone landmarks: a gold diamond badge where each set piece stands (data: landmarks).
+  for(const lm of world.landmarks||[]){
+    g.save();g.translate(tx(lm.x),tz(lm.z));g.scale(PX,PX);
+    g.beginPath();g.arc(0,0,2.3,0,Math.PI*2);g.fillStyle='#fff6dc';g.fill();g.lineWidth=.45;g.strokeStyle='#8a6a2e';g.stroke();
+    shape([[0,-1.6],[1.15,0],[0,1.6],[-1.15,0]],'#e7b545','#8a6a2e',.22);
+    shape([[0,-1.6],[1.15,0],[0,0],[-1.15,0]],'#f6d77e',null);
+    g.restore();
+  }
   // Short water strokes communicate current without obscuring river crossings.
   g.strokeStyle='#def0d877';g.lineWidth=.9;
   for(let z=b.minZ+3;z<b.maxZ;z+=7)for(let x=b.minX+3;x<b.maxX;x+=8){

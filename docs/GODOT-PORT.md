@@ -882,3 +882,23 @@ Art: `scripts/split-moonroot-art.py` cuts the owner's concept sheets (`assets/mo
 atlas portraits (`public/assets/icons/monster|region/...`, registered in `raster-icons.js` and the
 atlas manifests) and item pictures (`public/assets/moonroot/...`) drawn inside the authored SVG frame
 (`ui/art.js`), with every crop and hash in `assets/moonroot/manifest.json`.
+
+### Zone landmarks and ground cover
+
+Every zone of every map has one landmark of its own (`landmarks` in each map's data; kinds are
+unique across the world). An entry has `id`, `kind`, `zone`, `at` [x, z], `rot` (local +Z faces it,
+the same facing rule as everything else), `name`/`nameTh`, and either `builtin: true` (an existing
+set piece drawn elsewhere: wreck, lighthouse, wolf den, ruin ring; named for the map only) or
+`colliders` (local `[x, z, r]` circles) plus `clear` (radius). `core/world.js` places them after all
+random scatter: scattered trees/rocks/stumps/logs and small decoration within `clear` are removed
+(nothing else moves, so the seeded layout is unchanged), then the collider circles are added with
+`type: 'landmark'`. `world.landmarks` lists them with world-space `parts`. Models are procedural
+(`render/landmarks.js`, one builder per kind, merged per colour); the windmill's sails turn in
+`onBeforeRender` because static batching freezes scenery matrices. In Godot: one scene per kind
+placed at `at`/`rot`, static bodies from `parts`, the windmill sails on an `AnimationPlayer`.
+
+Ground cover per zone comes from `zoneDecor(zone)` (exported by `core/world.js`): flower colours
+(indices into `art.ground.flowerColors`), ferns, mushrooms and berry bushes. A zone's own `decor`
+overrides the defaults kept from the first maps; zones of a map differ in their cover (tested).
+`ruins.altar: false` drops the generic altar from a ruin ring (the grove's ring has the crescent
+altar landmark instead).

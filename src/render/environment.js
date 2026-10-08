@@ -19,6 +19,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createHarbor } from './harbor.js';
 import { marketBuilding, marketStall, marketQuay } from './market.js';
 import { districtBuilding } from './districts.js';
+import { createLandmarks } from './landmarks.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -326,7 +327,7 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
     root.add(lintel);
   }
   const ruinsData = world.data.ruins;
-  if (ruinsData) {
+  if (ruinsData && ruinsData.altar !== false) {
     const [rx, rz] = ruinsData.centre;
     const altar = outlined(new THREE.CylinderGeometry(1.6, 1.9, 0.5, 8), toon('#a79fbd'), { outline: '#4e4760', width: 0.04 });
     altar.position.set(rx + 6, gy(rx + 6, rz - 6) + 0.25, rz - 6);
@@ -339,6 +340,10 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   root.add(createTown(world, rng));
   if (world.data.harbor) root.add(createHarbor(world));
   if (world.data.camp) root.add(createCamp(world));
+
+  yield;
+  // ----- zone landmarks (data: landmarks) -----
+  root.add(createLandmarks(world, gy));
 
   yield;
   // ----- small decoration -----

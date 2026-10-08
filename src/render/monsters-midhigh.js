@@ -168,6 +168,7 @@ function animViper(r, s, dt, time) {
   r.phase = (r.phase || 0) + dt * speed;
   const k = windK(s);
   let amp = s.moving ? 0.38 : 0.22, lift = 0, jaw = 0.05, coil = 0;
+  const wave = r.modelCfg?.wave ?? 1; // a coiled model wriggles less than a long straight one (data/models.json wave)
   if (s.windup === 'lash') {
     // coil: the S tightens, the head rises and draws back
     amp = 0.22 + 0.35 * k;
@@ -200,7 +201,7 @@ function animViper(r, s, dt, time) {
   for (let i = 0; i < VIPER_SEGS; i++) {
     const seg = b[`seg${i}`];
     // the wave travels down the body
-    seg.rotation.y = damp(seg.rotation.y, Math.sin(r.phase - i * 0.85) * amp * (i === 0 ? 0.5 : 1), 14, dt);
+    seg.rotation.y = damp(seg.rotation.y, Math.sin(r.phase - i * 0.85) * amp * wave * (i === 0 ? 0.5 : 1), 14, dt);
     // procedural: the neck slopes down from the raised head and the body levels out again at
     // seg2, so only the front rears up; model: seg0 undoes the head tilt for the body
     const x = model ? (i === 0 ? r.lift * 0.6 : 0) : i === 0 ? -r.lift * 0.4 : i === 2 ? r.lift * 1.2 : 0;

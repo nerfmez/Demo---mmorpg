@@ -4,6 +4,7 @@ import { chromium, webkit } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
+import { waitForWeaponGpu } from './weapon-resource-gpu.mjs';
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
 const out = `tests/browser/out/weapon-models-${engine.name()}`;
 mkdirSync(out, { recursive: true });
@@ -81,19 +82,23 @@ try {
  // Walking/stop samples from actual keyboard movement.
  await equip('rusty_sword');await page.keyboard.down('w');await page.waitForTimeout(650);await shot({path:`${out}/walking.png`});await page.keyboard.up('w');await page.waitForTimeout(500);await shot({path:`${out}/stopped.png`});
  console.log('viewport, action, walk and stop captures complete');
- const resource=[];
+ const resource=[],gpuCompletionMs=[];
  for(let round=0;round<3;round++){
   // All assets are already warm: exercise real equip plus the same view rebuild synchronously.
   await page.evaluate(ids=>{const f=window.__frontier,g=f.game;for(const id of ids){g.ch.equipped.offhand=null;const item=g.ch.gear.find(i=>i.base===id);if(!f.equip(g.ch,g.data,item.uid,'weapon').ok)throw Error('switch');g.refresh();f.view.setHeroLook(g.ch.appearance,g.gearLook());f.view.updateHero(0,g.time);f.weaponReviewDraw(f.view.scene,f.view.camera);}},ids);
-  console.log('resource round',round);
+  // Renderer.info counts submitted work. Complete the whole batch before
+  // sampling or replacing this context during the saved-game navigation.
+  gpuCompletionMs.push(await waitForWeaponGpu(page));
+  console.log('resource round',round,'GPU completion ms',gpuCompletionMs.at(-1));
   resource.push(await page.evaluate(()=>{const i=window.__frontier.view.renderer.info;return {...i.memory,programs:i.programs.length,drawCalls:i.render.calls,activeTriangles:i.render.triangles};}));
  }
  assert.equal(resource[2].geometries,resource[1].geometries,'geometry stabilizes');assert.equal(resource[2].textures,resource[1].textures,'textures stabilize');
  assert.equal(requests.length,ids.length,'no reload per equip');
  const loading=await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.includes('/models/weapons/')).map(r=>({file:r.name.split('/').at(-1),bytes:r.decodedBodySize,durationMs:r.duration})));
- writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,bowGrip,samples,resource,loading,stage:'before save reload'},null,2));
+ writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,bowGrip,samples,resource,gpuCompletionMs,loading,stage:'before save reload'},null,2));
  // Persist the fixture in a real slot and reload through the menu.
  const equipped=await page.evaluate(async()=>{const f=window.__frontier;f.game.ch.level=f.game.data.progression.character.maxLevel;f.game.ch.stats={...f.game.data.progression.character.startingStats,STR:30,DEX:30,INT:30};f.game.ch.statPoints=10;localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,savedAt:Date.now(),character:f.game.ch}));localStorage.setItem('frontier.lastSlot','1');return f.game.ch.equipped;});
+ const reloadStart=Date.now();
  await page.goto('http://localhost:4237/?quality=low&seed=5&stream=0');
  await page.waitForFunction(()=>window.__frontier.modelsReady);
  await enterFullscreenGate(page);
@@ -101,7 +106,9 @@ try {
  if(await continueButton.count())await continueButton.first().click();else await page.locator('[data-act="continue"], [data-action="continue"]').first().click();
  await page.waitForFunction(()=>window.__frontier.game?.time>.3);
  assert.deepEqual(await page.evaluate(()=>window.__frontier.game.ch.equipped),equipped,'save equip compatibility');
- writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,bowGrip,samples,resource,loading,requestsBeforeReload:ids.length,errors},null,2));
+ const reloadMs=Date.now()-reloadStart;
+ console.log('saved-game reload and Continue complete',reloadMs,'ms');
+ writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,bowGrip,samples,resource,gpuCompletionMs,reloadMs,loading,requestsBeforeReload:ids.length,errors},null,2));
  assert.deepEqual(errors,[]);
  console.log('PASS weapon models',engine.name(),JSON.stringify(resource));
 } finally {await browser?.close();try { process.kill(-server.pid); } catch (e) { if(e.code!=='ESRCH')throw e; }}

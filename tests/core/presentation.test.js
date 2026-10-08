@@ -54,6 +54,7 @@ test('imported models name real gear bases and respect measured asset budgets',a
    const isSeg=(s)=>s.length===2&&s.every((p)=>p.length===3&&p.every(Number.isFinite));
    for(const [b,seg] of Object.entries(m.segments))assert.ok(isSeg(seg)||(seg.length>0&&seg.every(isSeg)),id+'/'+b+' segment');
    if(m.keep)for(const b of m.keep)assert.ok(!(b in m.segments),id+'/'+b+' is kept procedural, not skinned');
+   if(m.wave!==undefined)assert.ok(m.wave>0&&m.wave<=1,id+' wave scales the body-wave animator down');
   }
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');

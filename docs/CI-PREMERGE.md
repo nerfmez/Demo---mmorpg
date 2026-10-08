@@ -21,9 +21,20 @@ their loadout workspace consumer. The shared gates verify these central shards
 at the required source, including a separate merge tree when needed.
 
 Scheduling uses the existing hosted account capacity, without the previous
-six-job cap. Long suites are placed first and engines are interleaved. Playwright
-downloads are cached by distribution/version, architecture, engine and dependency lock; browser/dependency
-installation still runs on every job. No account limits or billing are changed.
+six-job cap. Long suites are placed first and engines are interleaved. Browser
+shards and live WebKit checks use the official Playwright Noble image pinned to
+the locked SDK version and immutable image digest. Browser binaries and OS
+libraries are preinstalled; no per-job apt/browser installation or stale browser
+cache is used. A mandatory guard matches the lockfile, installed client/core,
+image metadata and selected executable. An SDK upgrade must update the image
+pin together, otherwise setup fails closed. Node/npm setup and all assertions
+remain. Container Node processes prefer IPv4 so Vite and readiness fetches agree
+on localhost. Containers use init and a 1 GiB shared-memory limit, without extra
+capabilities or host IPC sharing. No account limits or billing are changed.
+Checkout's temporary Git config is separate from the container shell's config.
+The shell verifies its physical current directory equals `GITHUB_WORKSPACE`
+before trusting that exact checkout for Git. No wildcard trust is added; the
+runner still verifies the exact planned SHA and rejects tracked dirty changes.
 
 Equipment narrowing is defined in `scripts/ci-equipment-impact.mjs`. Shared
 character/crafting/panel/progression modules require before/after AST evidence
@@ -51,6 +62,13 @@ All original assertions and viewports remain. Its former single-engine launcher
 is rejected rather than reported as WebKit success. CI also rejects device-only
 and offline-harness shortcuts.
 Browser process diagnostics are retained without retries or timeout changes.
+The weapon-model resource probe waits for each existing draw batch to complete
+on the GPU before sampling counts or navigating to the saved-game menu. Its
+WebGL fence is polled without blocking the page and inherits the existing
+90-second test timeout. Pending work, context loss and fence errors fail the
+check; fences are released on success or failure. Draws, captures, resource
+stabilization and saved-equipment/Continue assertions remain intact. Artifacts
+record GPU completion and reload timings so this boundary can be measured.
 Release evidence reads all artifact pages and rejects duplicate identities,
 ambiguous exact build names, truncation, changing totals and API errors. The
 source/run/attempt checks and normal validation fallback remain mandatory.

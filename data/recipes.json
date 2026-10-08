@@ -1871,6 +1871,79 @@
         "boar_hide": 1,
         "gold": 15
       }
+    },
+    "fernstep_charm": {
+      "type": "gear",
+      "result": "fernstep_charm",
+      "cost": {
+        "fern_ear_tuft": 6,
+        "glow_dust": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "move_pct",
+        "crit_pct",
+        "cdr_pct",
+        "attack_flat",
+        "projectile_pct"
+      ],
+      "itemLevel": 6
+    },
+    "mirrorwing_pendant": {
+      "type": "gear",
+      "result": "mirrorwing_pendant",
+      "cost": {
+        "mirror_scale": 6,
+        "fern_ear_tuft": 3,
+        "spore_sac": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "barrier_pct"
+      ],
+      "itemLevel": 6
+    },
+    "burrowguard_brooch": {
+      "type": "gear",
+      "result": "burrowguard_brooch",
+      "cost": {
+        "rootdigger_claw": 6,
+        "fern_ear_tuft": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "itemLevel": 6
+    },
+    "grove_union_ring": {
+      "type": "gear",
+      "result": "grove_union_ring",
+      "cost": {
+        "rootdigger_claw": 8,
+        "mirror_scale": 4,
+        "fern_ear_tuft": 10,
+        "boar_tusk": 20,
+        "gold": 150
+      },
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "hp_flat",
+        "move_pct",
+        "crit_pct"
+      ],
+      "itemLevel": 11
     }
   }
 }

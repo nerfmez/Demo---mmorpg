@@ -208,6 +208,27 @@
       "color": "#7fd0d8",
       "value": 22,
       "shape": "gem"
+    },
+    "fern_ear_tuft": {
+      "name": "Fern-ear Tuft",
+      "nameTh": "ขนหูเฟิร์น",
+      "color": "#7c9a64",
+      "value": 6,
+      "shape": "feather"
+    },
+    "mirror_scale": {
+      "name": "Mirrorwing Scale",
+      "nameTh": "เกล็ดปีกกระจก",
+      "color": "#a8dcef",
+      "value": 8,
+      "shape": "gem"
+    },
+    "rootdigger_claw": {
+      "name": "Rootdigger Claw",
+      "nameTh": "กรงเล็บตุ่นขุดราก",
+      "color": "#e7dcc4",
+      "value": 9,
+      "shape": "horn"
     }
   },
   "slots": [
@@ -2157,6 +2178,92 @@
       "upgradeMaterial": "greyfang_mane",
       "itemLevel": 21,
       "look": "pelt"
+    },
+    "fernstep_charm": {
+      "name": "Fernstep Charm",
+      "nameTh": "เครื่องรางก้าวเฟิร์น",
+      "slot": "charm",
+      "stats": {
+        "moveSpeedPct": 2,
+        "critChancePct": 2.2
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "move_pct",
+        "crit_pct",
+        "cdr_pct",
+        "attack_flat",
+        "projectile_pct"
+      ],
+      "upgradeMaterial": "fern_ear_tuft",
+      "requirementStat": "AGI",
+      "itemLevel": 6
+    },
+    "mirrorwing_pendant": {
+      "name": "Mirrorwing Pendant",
+      "nameTh": "จี้ปีกกระจก",
+      "slot": "charm",
+      "stats": {
+        "maxMp": 10,
+        "magic": 1.5
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "mirror_scale",
+      "requirementStat": "INT",
+      "itemLevel": 6
+    },
+    "burrowguard_brooch": {
+      "name": "Burrowguard Brooch",
+      "nameTh": "เข็มกลัดผู้พิทักษ์โพรง",
+      "slot": "charm",
+      "stats": {
+        "defense": 1.3,
+        "maxHp": 15
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "rootdigger_claw",
+      "requirementStat": "VIT",
+      "itemLevel": 6
+    },
+    "grove_union_ring": {
+      "name": "Grove Union Ring",
+      "nameTh": "แหวนพันธะแห่งป่า",
+      "slot": "charm",
+      "stats": {
+        "attack": 1,
+        "magic": 1,
+        "maxHp": 10,
+        "moveSpeedPct": 1
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "hp_flat",
+        "move_pct",
+        "crit_pct"
+      ],
+      "upgradeMaterial": "rootdigger_claw",
+      "requirementStat": "DEX",
+      "itemLevel": 11
     }
   },
   "gearOptions": {

@@ -241,7 +241,15 @@ Five behaviours in `core/ai.js`: `mantis`, `viper`, `ram`, `stalker`, `sentinel`
 
 - **`scythe`, `claw`:** planted strikes on the `m.melee` path. They hit once at `hitTime`
   inside `arc`.
-- **`strike`, `ram`:** lanes on the charge path. `missStun` stuns a charge that hit nobody.
+- **`whirl`:** a 360° planted strike on the `m.melee` path (mantis).
+- **`rend`, `rake`:** planted combos on the `m.melee` path. `atk.hits` lists each contact
+  (`at` time, `off` angle offset, `step` forward, optional `knock`); each hit tests the arc once.
+  Wolves use `rend` (2 hits), Greyfang `rake` (3 hits). They replace the old repeated lunges.
+- **`lash`:** an instant short line (like the sentinel `beam`, `kind: 'lash'` on the event).
+- **`shove`:** an instant cone with `knock` (ram). `charge` (boar) is the only straight rush left,
+  besides the hawk `dive` and stalker `pounce` leaps.
+- **`quake`:** the warden marks `steps` `quake` areas along the locked line at wind-up start;
+  each erupts `stepDelay` after the previous one.
 - **`stomp`, `shards`:** a ring around the monster at the end of the wind-up.
 - **`venom`:** a `venom_pool` area marked at the target for the whole wind-up plus flight, then
   ticking.

@@ -268,7 +268,7 @@ addEventListener('orientationchange', () => setTimeout(() => view.resize(), 200)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) session?.save();
 });
-addEventListener('pagehide', () => { session?.save(); session?.questRoute.dispose(); });
+addEventListener('pagehide', () => { session?.save(); session?.questRoute.dispose(); view.vfx.disposeMovement(); });
 
 try {
   view.warmup();

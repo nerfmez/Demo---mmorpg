@@ -2,7 +2,7 @@
 // Shapes follow the gameplay hit areas (arc, radius, path), so what you see is what hits.
 // Everything is placed on the terrain; flat shapes are ground-hugging decals.
 import * as THREE from 'three';
-import { groundDust } from './ground-dust.js';
+import { groundDust, groundDustVolume } from './ground-dust.js';
 import { soundPulse } from './sound-pulse.js';
 import { disposeObject } from './dispose.js';
 import { Particles } from './particles.js';
@@ -16,7 +16,8 @@ import { flameMesh as legacyFlameMesh, FlameParticles } from './firebolt.js';
 import { v5FlameMesh } from './fireball-v5.js';
 import { frostMesh } from './frost-v2.js';
 import { approvedMesh } from './approved-mesh-clips.js';
-import { poseEcho, echoOpacity } from './pose-echo.js';
+import { PoseEchoPool, echoOpacity } from './pose-echo.js';
+import { EffectPool } from './effect-pool.js';
 import { artSurface, healingMaterial, plusGeometry, keys, faceGameCamera } from './authored-surfaces.js';
 import { cutRibbon, approvedCut, ContactShards } from './melee.js';
 import { arrowStreak, rockGeometry, RockChips } from './physical.js';
@@ -217,6 +218,7 @@ export class Vfx {
     this.fx = new Particles(3200, { additive: true });
     this.dust = new Particles(900, { additive: false });
     scene.add(this.fx.points, this.dust.points);
+    this.movementPools = new Map();
     this.active = []; // {obj, t, dur, update(k), keep?}
     this.projectiles = new Map();
     this.areas = new Map();
@@ -304,9 +306,9 @@ export class Vfx {
     this.dust.uniforms.uScale.value = h * 0.9;
   }
 
-  spawn(obj, dur, update) {
+  spawn(obj, dur, update, release = null) {
     this.scene.add(obj);
-    this.active.push({ obj, t: 0, dur, update });
+    this.active.push({ obj, t: 0, dur, update, release });
   }
 
   sprite(color, size, opacity = 1) {
@@ -793,12 +795,15 @@ export class Vfx {
   }
 
   playApproved(name,e) {
-    const mesh=approvedMesh(name,e.radius);mesh.position.set(e.x,this.gy(e.x,e.z),e.z);
-    this.spawn(mesh,mesh.userData.clipLife,t=>{mesh.material.uniforms.uFrame.value=t*(mesh.userData.clipFrames-1);});
+    const pool=name==='leap'?this.movementPool('leap',()=>approvedMesh('leap')):null;
+    const mesh=pool?pool.take():approvedMesh(name,e.radius);
+    if(pool){mesh.material.uniforms.uFrame.value=0;mesh.material.uniforms.uScale.value=e.radius?e.radius/mesh.userData.clipRadius:1;}
+    mesh.position.set(e.x,this.gy(e.x,e.z),e.z);
+    this.spawn(mesh,mesh.userData.clipLife,t=>{mesh.material.uniforms.uFrame.value=t*(mesh.userData.clipFrames-1);},pool?object=>pool.release(object):null);
   }
 
   leapLand(e) {
-    this.playApproved('leap',e);groundDust(this,e,this.config.skills.leap.dust);this.shake=Math.max(this.shake,.15);
+    this.playApproved('leap',e);groundDust(this,e,this.config.skills.leap.dust,true);this.shake=Math.max(this.shake,.15);
   }
 
   dive(e) {
@@ -1076,14 +1081,71 @@ export class Vfx {
     this.ring(x, z, 1.8, 0x8fe8ff, 0.6);
   }
 
+  movementPool(key, create) {
+    let pool = this.movementPools.get(key);
+    if (!pool) { pool = new EffectPool(create, object => disposeObject(object, this.sharedGeo), 3); this.movementPools.set(key, pool); }
+    return pool;
+  }
+
+  movementSurface(crop, energy = 1.15) {
+    const pool = this.movementPool('surface:' + crop.join(','), () => artSurface('movement', crop, energy));
+    const mesh = pool.take();
+    mesh.visible = true;mesh.position.set(0,0,0);mesh.rotation.set(0,0,0);mesh.scale.set(1,1,1);
+    const u = mesh.material.uniforms;
+    u.uTime.value=0;u.uAlpha.value=1;u.uDissolve.value=0;u.uEnergy.value=energy;
+    return { mesh, pool };
+  }
+
+  prepareMovement(root, renderer, camera, lightingScene = this.scene) {
+    if (this.echoPool?.root === root) return;
+    // A new appearance owns a new source rig. Retire any old snapshots before
+    // the caller disposes that rig's geometry.
+    this.clearMovementEchoes();
+    this.echoPool = new PoseEchoPool(root);
+    const group = new THREE.Group(), held = [];
+    for (let i=0;i<3;i++) { const mesh=this.echoPool.capture(0x83bdde);group.add(mesh);held.push([mesh,this.echoPool]); }
+    for (const crop of [[0,.5,.5,.5],[.5,.5,.5,.5],[0,0,.5,.5],[.5,0,.5,.5]]) {
+      const {mesh,pool}=this.movementSurface(crop);group.add(mesh);held.push([mesh,pool]);
+    }
+    const pool=this.movementPool('leap',()=>approvedMesh('leap'));
+    const mesh=pool.take();group.add(mesh);held.push([mesh,pool]);
+    const dust=this.config.skills.leap.dust;
+    for(let i=0;i<dust.count;i++){const owner=this.movementPool('leap-dust:'+i,()=>groundDustVolume(dust,i*4.37));const object=owner.take();group.add(object);held.push([object,owner]);}
+    // Compile off the input stack and keep the material references alive, so
+    // Three does not delete/relink the program after each effect expires.
+    try { renderer.compile(group,camera,lightingScene); }
+    finally { for (const [object,owner] of held) owner.release(object); }
+  }
+
+  clearMovementEchoes() {
+    const owner=this.echoPool;
+    if (!owner) return;
+    this.active=this.active.filter(a=>!owner.live.has(a.obj));
+    owner.clear();this.echoPool=null;
+  }
+
+  disposeMovement() {
+    this.clearMovementEchoes();
+    for (const pool of this.movementPools.values()) {
+      this.active=this.active.filter(a=>!pool.live.has(a.obj));pool.clear();
+    }
+    this.movementPools.clear();this.movementSource=null;
+  }
+
+  movementEchoAt(rig,color) {
+    if(this.echoPool?.root!==rig.root){this.clearMovementEchoes();this.echoPool=new PoseEchoPool(rig.root);}
+    const pool=this.echoPool;
+    return {ghost:pool.capture(color),release:object=>pool.release(object)};
+  }
+
   blink(fromX, fromZ, x, z, color = 0xb4a2ff, rig = null) {
     if(!rig){this.fx.burst(fromX,this.gy(fromX,fromZ)+1,fromZ,16,{color,size:.3,speed:3,life:.4,up:1});this.fx.burst(x,this.gy(x,z)+1,z,16,{color,size:.3,speed:3,life:.4,up:1});return;}
     for(let i=0;i<2;i++){
-      const m=artSurface('movement',[i*.5,0,.5,.5]);m.position.set(i?x:fromX,this.gy(i?x:fromX,i?z:fromZ)+.9,i?z:fromZ);faceGameCamera(m);
-      this.spawn(m,21/60,t=>{const age=t*21-i;m.visible=age>=0;m.scale.set(2.1*(.35+.55*Math.min(1,age/20)),2.1*(.8+.32*Math.min(1,age/20)),1);m.material.uniforms.uAlpha.value=1-Math.max(0,(age-4)/16);m.material.uniforms.uDissolve.value=Math.max(0,(age-3)/17)*.95;m.material.uniforms.uTime.value=age/60;});
+      const {mesh:m,pool}=this.movementSurface([i*.5,0,.5,.5]);m.position.set(i?x:fromX,this.gy(i?x:fromX,i?z:fromZ)+.9,i?z:fromZ);faceGameCamera(m);
+      this.spawn(m,21/60,t=>{const age=t*21-i;m.visible=age>=0;m.scale.set(2.1*(.35+.55*Math.min(1,age/20)),2.1*(.8+.32*Math.min(1,age/20)),1);m.material.uniforms.uAlpha.value=1-Math.max(0,(age-4)/16);m.material.uniforms.uDissolve.value=Math.max(0,(age-3)/17)*.95;m.material.uniforms.uTime.value=age/60;},object=>pool.release(object));
     }
-    const ghost=poseEcho(rig.root,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
-    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)));
+    const {ghost,release}=this.movementEchoAt(rig,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
+    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
   syncMovement(player,y,dt,rig) {
@@ -1093,18 +1155,18 @@ export class Vfx {
     if(this.movementSource!==d){
       this.movementSource=d;this.movementEcho=0;this.movementDust=0;
       if(d.kind==='dash'){
-        const m=artSurface('movement',[0,.5,.5,.5]);faceGameCamera(m);const speed=Math.hypot(d.vx,d.vz)||1,dx=d.vx/speed,dz=d.vz/speed;
+        const {mesh:m,pool}=this.movementSurface([0,.5,.5,.5]);faceGameCamera(m);const speed=Math.hypot(d.vx,d.vz)||1,dx=d.vx/speed,dz=d.vz/speed;
         // Resolve screen direction without rotating the camera-facing plane away.
         m.rotation.z=-Math.atan2(dz*.815,dx);const life=d.dur+13/60;
-        this.spawn(m,life,t=>{const age=t*life,k=Math.max(0,(age-d.dur)/(13/60));if(age<=d.dur||t===0)m.position.set(player.x-dx*.9,y+.67,player.z-dz*.9);m.scale.set(2.8*(1-.6*k),2.8*(.3-.12*k),1);m.material.uniforms.uAlpha.value=Math.min(1,age/(2/60))*.7*(1-k);m.material.uniforms.uDissolve.value=k*.9;m.material.uniforms.uTime.value=age;});
+        this.spawn(m,life,t=>{const age=t*life,k=Math.max(0,(age-d.dur)/(13/60));if(age<=d.dur||t===0)m.position.set(player.x-dx*.9,y+.67,player.z-dz*.9);m.scale.set(2.8*(1-.6*k),2.8*(.3-.12*k),1);m.material.uniforms.uAlpha.value=Math.min(1,age/(2/60))*.7*(1-k);m.material.uniforms.uDissolve.value=k*.9;m.material.uniforms.uTime.value=age;},object=>pool.release(object));
       }
     }
     if(d.kind==='dash'){
-      while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const ghost=poseEcho(rig.root,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)));this.movementEcho++;}
+      while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const {ghost,release}=this.movementEchoAt(rig,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)),release);this.movementEcho++;}
     }else if(d.kind==='roll'){
       while(this.movementDust<3&&d.t>=d.dur*(this.movementDust===0?.18:this.movementDust===1?.5:.78)){
-        const m=artSurface('movement',[.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
-        this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;});
+        const {mesh:m,pool}=this.movementSurface([.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
+        this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;},object=>pool.release(object));
       }
     }
   }
@@ -1477,7 +1539,8 @@ export class Vfx {
       const k = Math.min(1, a.t / a.dur);
       a.update?.(k, a);
       if (a.t >= a.dur) {
-        disposeObject(a.obj, this.sharedGeo);
+        if (a.release) a.release(a.obj);
+        else disposeObject(a.obj, this.sharedGeo);
       } else this.active[live++] = a;
     }
     this.active.length = live;

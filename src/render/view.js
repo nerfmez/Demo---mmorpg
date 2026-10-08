@@ -319,6 +319,7 @@ export class View {
     const previousRoot = preserveAnimation ? this.hero?.root : null;
     const animator = preserveAnimation ? this.heroAnim : null;
     if (this.hero) {
+      this.vfx.clearMovementEchoes();
       if (this.vfx.wardMesh) this.vfx.wardMesh.removeFromParent();
       disposeObject(this.hero.root);
       disposeObject(this.hero.scarf?.mesh);
@@ -337,6 +338,7 @@ export class View {
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
+    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera);
     if (this.hero.scarf) this.scene.add(this.hero.scarf.mesh);
     this.heroLookKey = JSON.stringify([look, gear]);
     if (this.vfx.wardMesh) this.hero.root.add(this.vfx.wardMesh);

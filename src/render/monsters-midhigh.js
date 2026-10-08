@@ -438,6 +438,8 @@ function animStalker(r, s, dt, time) {
     bodyX = 0.05;
   }
   if (paw !== null) b[legs[0]].rotation.x = paw;
+  // the swipe also comes across the body (seen from above, the claws carve a crescent)
+  b[legs[0]].rotation.z = s.windup === 'claw' ? 0.55 * k : s.state === 'act' && s.lastAttack === 'claw' ? 0.55 - 1.1 * clamp01(s.actT / Math.max(0.01, s.hitTime || 0.1)) : damp(b[legs[0]].rotation.z, 0, 14, dt);
   if (s.hurt > 0) bodyX -= 0.2 * s.hurt;
   const P = r.pose || (r.pose = { x: 0, y: 0.62, z: 0, headX: 0 });
   P.y = damp(P.y, bodyY, 14, dt);

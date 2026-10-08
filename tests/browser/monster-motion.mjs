@@ -141,12 +141,14 @@ try {
       f.view.zoom = 0.5; f.view.snapCamera();
       f.mmSwing = 0;
       let t = 0;
-      while (t < 8 && !f.mmSwing) { f.mmStep(1 / 60, true); t += 1 / 60; for (const k in m.cd) if (k !== attack) m.cd[k] = 99; }
-      return { swung: f.mmSwing, state: m.state, windup: m.windup?.name, t };
+      // stop just before the strike moves: late in the wind-up (or as the act begins)
+      const near = () => m.state === 'act' || (m.state === 'windup' && m.windup?.name === attack && m.stateT >= m.windup.total - 0.1);
+      while (t < 8 && !near()) { f.mmStep(1 / 60, true); t += 1 / 60; for (const k in m.cd) if (k !== attack) m.cd[k] = 99; }
+      return { reached: near(), state: m.state, windup: m.windup?.name, t };
     }, [type, attack]);
-    assert.ok(res.swung, `${type} ${attack}: strike landed (${JSON.stringify(res)})`);
+    assert.ok(res.reached, `${type} ${attack}: strike began (${JSON.stringify(res)})`);
     const frames = [];
-    for (const [i, dt] of [0.02, 0.06, 0.06, 0.08].entries()) {
+    for (const [i, dt] of [0.04, 0.04, 0.04, 0.05, 0.05, 0.08].entries()) {
       const c = await page.evaluate((dt) => { const f = __frontier; f.mmStep(dt, true); f.mmShow(); const p = f.game.player; const a = f.view.project((p.x + f.mmMonster.x) / 2, f.view.groundAt(p.x, p.z) + 0.8, p.z); return { x: a.x, y: a.y }; }, dt);
       const file = `strike-${type}-${attack}-${i}.png`;
       await shot(file, clipAt(c, 340, 300));
@@ -154,6 +156,8 @@ try {
     }
     const strip = `strike-${type}-${attack}.png`;
     execFileSync('montage', [...frames.map((f) => out + f), '-tile', `${frames.length}x1`, '-geometry', '+2+2', out + strip]);
+    res.swung = await page.evaluate(() => __frontier.mmSwing);
+    assert.ok(res.swung, `${type} ${attack}: the strike landed during the capture`);
     report.strikes.push({ type, attack, strip, ...res });
     console.log('STRIKE', type, attack);
   }

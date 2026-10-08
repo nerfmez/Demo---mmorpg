@@ -126,29 +126,34 @@ function animQuad(r, s, dt, time, cfg) {
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   const wu = s.windup;
   for (let i = 0; i < 2; i++) b[legs[i]].rotation.z = damp(b[legs[i]].rotation.z, 0, 18, dt);
+  let lunge = 0;
+  let hook = 0;
   if (wu === 'rend' || wu === 'rake') {
     // rears back on the hind legs, head up, then claws down from alternating sides
     headX = -0.35 * k;
-    bodyX = -0.2 * k;
-    bodyY += 0.1 * k;
+    bodyX = -0.28 * k;
+    bodyY += 0.14 * k;
     jaw = 0.4 * k;
-    b[legs[0]].rotation.x = -0.95 * k;
-    b[`${legs[0]}k`].rotation.x = 0.65 * k;
+    lunge = -0.12 * k;
+    b[legs[0]].rotation.x = -1.25 * k;
+    b[`${legs[0]}k`].rotation.x = 0.75 * k;
   } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake')) {
     // The imported PR106 wolves use the same front-leg joints. Alternate paws
-    // at the data's contact times, with a lift, downstroke and return for each.
+    // at the data's contact times: a high lift, a fast raking downstroke across
+    // the body (its claws leave the trail) and a return, the body surging in.
     const hits = s.attack?.hits || [];
-    bodyX = -0.12;
-    bodyY += 0.08;
+    bodyX = -0.16;
+    bodyY += 0.1;
     jaw = 0.4;
+    lunge = 0.12;
     for (let i = 0; i < hits.length; i++) {
       const t = s.actT - hits[i].at, leg = legs[i % 2];
       if (t < -0.15 || t > 0.18) continue;
-      const stroke = clamp01((t + 0.15) / 0.15);
+      const stroke = clamp01((t + 0.12) / 0.12);
       const release = 1 - clamp01(t / 0.18);
-      b[leg].rotation.x = (-0.95 + 1.25 * stroke) * release;
-      b[leg].rotation.z = (i % 2 ? -1 : 1) * (0.4 - 0.7 * stroke) * release;
-      b[`${leg}k`].rotation.x = 0.65 * (1 - stroke) * release;
+      b[leg].rotation.x = (-1.3 + 1.75 * stroke * stroke) * release;
+      b[leg].rotation.z = (i % 2 ? -1 : 1) * (0.55 - 1.0 * stroke) * release;
+      b[`${leg}k`].rotation.x = 0.75 * (1 - stroke) * release;
     }
   } else if (wu === 'charge') {
     // crouch, head low, hind legs coiled; front paw scrapes on the boar
@@ -159,11 +164,15 @@ function animQuad(r, s, dt, time, cfg) {
     if (cfg.paw) b[legs[0]].rotation.x = Math.sin(time * 18) * 0.6 * k;
     jaw = 0.25 * k;
   } else if (wu === 'bite') {
-    // draws the head back with the jaw open, weight on the hind legs, then snaps forward
-    headX = -0.3 * k;
-    bodyX = -0.08 * k;
-    bodyY -= 0.04 * k;
-    jaw = 0.6 * k;
+    // draws the head back and cocks it to one side with the jaw wide, weight on the hind legs,
+    // then lunges and snaps across (a hooking bite, so the fangs carve a crescent)
+    if (k < 0.1) r.biteSide = -(r.biteSide || 1);
+    hook = 0.5 * k * (r.biteSide || 1);
+    headX = -0.65 * k;
+    bodyX = -0.14 * k;
+    bodyY += 0.03 * k;
+    jaw = 0.8 * k;
+    lunge = -0.16 * k;
   } else if (wu === 'howl') {
     headX = -0.9 * k;
     jaw = 0.7 * k;
@@ -174,11 +183,15 @@ function animQuad(r, s, dt, time, cfg) {
     squash = 1.06;
     jaw = 0.4;
   } else if (s.state === 'recover' && s.lastAttack === 'bite') {
-    // the snap: head thrust down and forward, jaw shut, then it eases back
-    const t = clamp01((s.actT || 0) / 0.35);
-    headX = 0.3 * (1 - t);
-    bodyX = 0.1 * (1 - t);
-    jaw = 0.05;
+    // the snap: the body surges in, the head thrusts down and forward and the jaw slams
+    // shut (its fangs leave the trail), then it eases back
+    const t = clamp01((s.actT || 0) / 0.45);
+    headX = 0.55 * (1 - t);
+    bodyX = 0.16 * (1 - t);
+    bodyY -= 0.06 * (1 - t);
+    lunge = 0.36 * (1 - t) * (1 - t);
+    hook = -0.4 * (1 - t) * (r.biteSide || 1);
+    jaw = t < 0.12 ? 0.5 : 0; // the jaw stays open through the thrust and slams shut at its end
   } else if (s.state === 'stunned') {
     headX = 0.2 + Math.sin(time * 12) * 0.1;
     bodyZ = Math.sin(time * 8) * 0.15;
@@ -196,11 +209,12 @@ function animQuad(r, s, dt, time, cfg) {
   }
   // a lunge/charge leans in, braking sits back
   bodyX += c.lean * clampAbs(r.accel || 0, 5);
-  P.headX = damp(P.headX, headX, 14, dt);
+  P.headX = damp(P.headX, headX, s.state === 'recover' && s.lastAttack === 'bite' ? 16 : 14, dt);
   P.bodyX = damp(P.bodyX, bodyX, 12, dt);
   P.bodyY = damp(P.bodyY, bodyY, 18, dt);
   P.bodyZ = damp(P.bodyZ, bodyZ, zK, dt);
-  P.jaw = damp(P.jaw, jaw, 18, dt);
+  P.jaw = damp(P.jaw, jaw, jaw < P.jaw ? 40 : 18, dt);
+  P.lunge = damp(P.lunge || 0, lunge, lunge > (P.lunge || 0) ? 20 : 10, dt);
   // per-step body motion on top: two bounces per stride, a fore-aft rock (a big one when
   // galloping), weight shifting from side to side and the spine flexing; the head stays level
   const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
@@ -208,6 +222,7 @@ function animQuad(r, s, dt, time, cfg) {
   const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);
   b.body.rotation.x = P.bodyX + rock;
   b.body.position.y = P.bodyY + bob - drop;
+  b.body.position.z = b.body.userData.rest.pos.z + P.lunge;
   b.body.rotation.z = P.bodyZ + roll;
   if (b.chest) {
     b.chest.rotation.y = -c.sway * w * Math.sin(ph);
@@ -215,7 +230,10 @@ function animQuad(r, s, dt, time, cfg) {
   }
   b.head.rotation.x = P.headX - rock * c.headSteady;
   const look = s.lookYaw ? 0 : c.look * wander(time * 0.45, r.seed) * idle;
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.8 + look + clampAbs(s.turn * 0.12, 0.3), 6, dt);
+  P.headY = damp(P.headY || 0, s.lookYaw * 0.8 + look + clampAbs(s.turn * 0.12, 0.3), 6, dt);
+  P.hook = damp(P.hook || 0, hook, 18, dt);
+  b.head.rotation.y = P.headY + P.hook;
+  if (b.neck) b.neck.rotation.y = P.hook * 0.6;
   const br = breath(time, r.seed, c) * (1 - 0.6 * w);
   b.body.scale.set((1 + br) / Math.sqrt(squash), squash, (1 + br * 0.4) / Math.sqrt(squash));
   if (b.jaw) b.jaw.rotation.x = P.jaw;

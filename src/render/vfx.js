@@ -20,7 +20,6 @@ import { poseEcho, echoOpacity } from './pose-echo.js';
 import { artSurface, healingMaterial, plusGeometry, keys, faceGameCamera } from './authored-surfaces.js';
 import { cutRibbon, approvedCut, ContactShards } from './melee.js';
 import { arrowStreak, rockGeometry, RockChips } from './physical.js';
-import { strikeQuad, strikeMaterial, STRIKE_KINDS } from './monster-strikes.js';
 
 const _p0 = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -577,9 +576,8 @@ export class Vfx {
 
   /** A monster's melee strike lands. Each attack has its own look (data/combat-fx.json 'monsters'). */
   monsterSwing(e) {
-    const base = this.config.monsters[e.name];
-    if (!base) return this.genericSwing(e);
-    const f = { ...base, ...(this.config.overrides[`${e.type}.${e.name}`] || {}) };
+    const f = this.monsterLook(e.type, e.name);
+    if (!f) return this.genericSwing(e);
     const S = f.scale ?? 1;
     const dx = Math.sin(e.angle);
     const dz = Math.cos(e.angle);
@@ -622,9 +620,11 @@ export class Vfx {
         const a = e.angle + Math.PI + (Math.random() - 0.5) * 2.2;
         this.dust.add(e.x + dx * L * 0.5, y, e.z + dz * L * 0.5, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: 0xf4efe0, size: 0.2, life: 0.8, gravity: 1.6, drag: 1.4 });
       }
-    } else if (STRIKE_KINDS.includes(f.kind)) {
+    } else if (f.kind === 'claw' || f.kind === 'fangs' || f.kind === 'pincer') {
+      // the strike itself is the trail from the monster's own claws/jaws (monster-trails.js);
+      // where it lands, a small contact burst on the body that was hit
       const [sx, sz] = e.at || [px, pz];
-      this.strikeMark(e, f, S, sx, sz, this.gy(sx, sz) + f.height);
+      this.strikeContact(e, f, sx, sz, this.gy(sx, sz) + f.height);
     } else {
       // a heavy sweep: one wide dark-red band with dust kicked along the edge of the area
       const m = new THREE.Mesh(sectorGeometry(e.range * 0.74, e.range, arc, 32), slashMaterial(f.color));
@@ -639,30 +639,30 @@ export class Vfx {
     }
   }
 
-  /**
-   * What the creature hits with, drawn facing the camera where the hit lands: claw rakes (a combo
-   * alternates sides), a fanged bite snapping shut, a crab's pincer closing. Small chips and
-   * droplets carry the hit outward; the shape itself stays the main read.
-   */
-  strikeMark(e, f, S, px, pz, y) {
-    const toward = Math.sin(e.angle) < 0 ? -1 : 1; // rake/point the way the strike travels on screen
-    const mirror = f.kind === 'fangs' ? 1 : f.kind === 'pincer' ? toward : toward * ((e.hit ?? 1) % 2 ? 1 : -1);
-    const m = new THREE.Mesh(strikeQuad, strikeMaterial(f.kind, f, mirror));
-    faceGameCamera(m);
-    const size = f.size * S;
-    m.scale.setScalar(size);
-    m.position.set(px, y, pz);
-    m.renderOrder = 7;
-    this.spawn(m, f.dur, (t) => {
-      m.material.uniforms.uT.value = t;
-      if (f.kind !== 'claw') m.scale.setScalar(size * (1 + f.grow * t));
+  /** Merged look of a monster attack (data + per-monster override); one object per pair. */
+  monsterLook(type, name) {
+    const key = `${type}.${name}`;
+    this.looks ??= new Map();
+    if (!this.looks.has(key)) {
+      const base = this.config.monsters[name];
+      this.looks.set(key, base ? { ...base, ...(this.config.overrides[key] || {}) } : null);
+    }
+    return this.looks.get(key);
+  }
+
+  /** Contact of a claw/fang/pincer strike: a quick bright burst and a few chips or droplets. */
+  strikeContact(e, f, x, z, y) {
+    const flash = this.sprite(f.coreColor ?? 0xffffff, 0.5 * (f.scale ?? 1), 0.85);
+    flash.position.set(x, y, z);
+    this.spawn(flash, 0.12, (t) => {
+      flash.material.opacity = 0.85 * (1 - t);
+      flash.scale.setScalar((0.35 + t * 0.5) * (f.scale ?? 1));
     });
-    if (f.sparks) this.fx.burst(px, y, pz, f.sparks, { color: f.core, size: 0.2, speed: 3, life: 0.28, up: 0.5 });
-    if (f.chips) this.dust.burst(px, y - 0.2, pz, f.chips, { color: f.chipColor ?? f.color, size: 0.18, speed: 2.6, life: 0.45, up: 1.2, gravity: 8, drag: 1 });
+    if (f.sparks) this.fx.burst(x, y, z, f.sparks, { color: f.color, size: 0.2, speed: 3.2, life: 0.26, up: 0.5 });
     for (let i = 0; i < (f.droplets || 0); i++) {
       const a = e.angle + (Math.random() - 0.5) * 2.2;
       const sp = 1.6 + Math.random() * 2.2;
-      this.fx.add(px, y - 0.1, pz, Math.sin(a) * sp, 1.4 + Math.random() * 2, Math.cos(a) * sp, { color: i % 2 ? 0x8fdcff : 0xf0fffb, size: 0.16 + Math.random() * 0.1, life: 0.45, gravity: 9, drag: 0.6 });
+      this.fx.add(x, y - 0.1, z, Math.sin(a) * sp, 1.4 + Math.random() * 2, Math.cos(a) * sp, { color: i % 2 ? 0x8fdcff : 0xf0fffb, size: 0.16 + Math.random() * 0.1, life: 0.45, gravity: 9, drag: 0.6 });
     }
   }
 

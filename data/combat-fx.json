@@ -1,5 +1,5 @@
 {
-  "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json, showing what the creature hits with: claw (raking streaks: count, spacing, width, bend, cross for two crossed blades), fangs (teeth snapping shut; color is the gums, tip the teeth), pincer (a crab claw closing; tip is the dark claw tip), splash, thrust and smear. size is the half-width of the mark in metres, grow how much it swells as it fades, ink its dark edge. 'overrides' tweaks it for one monster (type.attack).",
+  "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json, showing what the creature hits with. claw, fangs and pincer strikes are trails that come out of the monster's own limbs (src/render/monster-trails.js): 'trail' gives streaks (parallel claw/fang lines per limb), spread (m between them), width/reach (how far the stroke runs inside/past the limb tip), life, minSpeed/fullSpeed (m/s of the tip: bright only while the limb really strikes) and opacity; 'limbs' (set per monster in overrides) names the rig bones that strike, the tip being the far end of that bone's model segment, or {bone, at} for a point in rest space. Where the strike lands there is a small contact burst (sparks, droplets). splash, thrust and smear are ground/area looks. 'overrides' tweaks a look for one monster (type.attack).",
   "weapons": {
     "sword": {
       "tip": 0.95,
@@ -103,27 +103,42 @@
     },
     "pinch": {
       "kind": "pincer",
-      "color": "#ff7a3d",
-      "tip": "#3a2a22",
-      "ink": "#3a1a12",
-      "core": "#fff6e0",
+      "color": "#ff9a5a",
+      "coreColor": "#fff6e0",
       "height": 0.6,
-      "size": 0.55,
-      "grow": 0.1,
+      "sparks": 5,
       "droplets": 8,
-      "dur": 0.4
+      "dur": 0.3,
+      "trail": {
+        "streaks": 2,
+        "spread": 0.1,
+        "width": 0.12,
+        "reach": 0.04,
+        "life": 0.28,
+        "minSpeed": 1.2,
+        "fullSpeed": 4,
+        "opacity": 1,
+        "core": 0.4
+      }
     },
     "bite": {
       "kind": "fangs",
-      "color": "#c0392f",
-      "tip": "#fff8ec",
-      "ink": "#2a1414",
-      "core": "#ffffff",
+      "color": "#ff4a3a",
+      "coreColor": "#ffffff",
       "height": 0.8,
-      "size": 0.72,
-      "grow": 0.12,
       "sparks": 6,
-      "dur": 0.5
+      "dur": 0.3,
+      "trail": {
+        "streaks": 2,
+        "spread": 0.1,
+        "width": 0.06,
+        "reach": 0.2,
+        "life": 0.36,
+        "minSpeed": 0.8,
+        "fullSpeed": 3,
+        "opacity": 1,
+        "core": 0.55
+      }
     },
     "sweep": {
       "kind": "smear",
@@ -135,60 +150,79 @@
     },
     "rend": {
       "kind": "claw",
-      "count": 3,
-      "spacing": 0.26,
-      "width": 0.075,
-      "bend": 0.14,
       "color": "#ff6a3a",
-      "core": "#fff6e8",
-      "ink": "#3a1010",
+      "coreColor": "#fff6e8",
       "height": 0.9,
-      "size": 0.7,
       "sparks": 6,
-      "dur": 0.42
+      "dur": 0.3,
+      "trail": {
+        "streaks": 3,
+        "spread": 0.07,
+        "width": 0.14,
+        "reach": 0.05,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 1,
+        "core": 0.5
+      }
     },
     "rake": {
       "kind": "claw",
-      "count": 4,
-      "spacing": 0.22,
-      "width": 0.07,
-      "bend": 0.16,
       "color": "#b8c4ff",
-      "core": "#ffffff",
-      "ink": "#1a1830",
+      "coreColor": "#ffffff",
       "height": 1.0,
-      "size": 0.85,
       "sparks": 8,
-      "dur": 0.45
+      "dur": 0.3,
+      "trail": {
+        "streaks": 4,
+        "spread": 0.075,
+        "width": 0.16,
+        "reach": 0.06,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 1,
+        "core": 0.4
+      }
     },
     "claw": {
       "kind": "claw",
-      "count": 3,
-      "spacing": 0.24,
-      "width": 0.065,
-      "bend": 0.12,
-      "color": "#c09cff",
-      "core": "#fbf6ff",
-      "ink": "#1d1a2a",
+      "color": "#9a5cff",
+      "coreColor": "#fbf6ff",
       "height": 0.85,
-      "size": 0.65,
       "sparks": 5,
-      "dur": 0.4
+      "dur": 0.3,
+      "trail": {
+        "streaks": 3,
+        "spread": 0.065,
+        "width": 0.17,
+        "reach": 0.05,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 1,
+        "core": 0.5
+      }
     },
     "scythe": {
       "kind": "claw",
-      "count": 1,
-      "cross": true,
-      "spacing": 0,
-      "width": 0.1,
-      "bend": 0.22,
       "color": "#a8e05a",
-      "core": "#f4ffe0",
-      "ink": "#1f2c14",
+      "coreColor": "#f4ffe0",
       "height": 1.0,
-      "size": 0.85,
       "sparks": 4,
-      "dur": 0.4
+      "dur": 0.3,
+      "trail": {
+        "streaks": 1,
+        "spread": 0,
+        "width": 0.22,
+        "reach": 0.04,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 0.9,
+        "core": 0.35
+      }
     },
     "shove": {
       "kind": "smear",
@@ -202,23 +236,81 @@
   "overrides": {
     "hermit_crab.pinch": {
       "scale": 1.25,
-      "color": "#ffb05e"
+      "color": "#ffb05e",
+      "limbs": [
+        "mandL",
+        "mandR"
+      ]
     },
     "greyfang.bite": {
       "scale": 1.3,
-      "color": "#7a3a4a"
+      "color": "#9a7cff",
+      "limbs": [
+        "head",
+        "jaw"
+      ]
     },
     "thornback_wolf.bite": {
-      "color": "#a83c3c"
+      "limbs": [
+        "head",
+        "jaw"
+      ]
     },
     "tusk_boar.bite": {
       "scale": 1.1,
-      "color": "#8a4a32",
-      "tip": "#f3ead2",
-      "height": 0.55
+      "color": "#ff7a3a",
+      "height": 0.55,
+      "limbs": [
+        {
+          "bone": "head",
+          "at": [
+            0.02,
+            0.5,
+            0.92
+          ]
+        }
+      ],
+      "trail": {
+        "streaks": 2,
+        "spread": 0.24,
+        "width": 0.06,
+        "reach": 0.22,
+        "life": 0.36,
+        "minSpeed": 0.8,
+        "fullSpeed": 3,
+        "opacity": 1,
+        "core": 0.55
+      }
     },
     "greyfang.rake": {
-      "scale": 1.2
+      "scale": 1.2,
+      "limbs": [
+        "leg0k",
+        "leg1k"
+      ]
+    },
+    "reef_crab.pinch": {
+      "limbs": [
+        "mandL",
+        "mandR"
+      ]
+    },
+    "thornback_wolf.rend": {
+      "limbs": [
+        "leg0k",
+        "leg1k"
+      ]
+    },
+    "duskmane_stalker.claw": {
+      "limbs": [
+        "leg0k"
+      ]
+    },
+    "thicket_mantis.scythe": {
+      "limbs": [
+        "bladeL",
+        "bladeR"
+      ]
     }
   },
   "skills": {

@@ -10,6 +10,7 @@ import { installGrassCulling } from './grass-culling.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
+import { MonsterTrails } from './monster-trails.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
@@ -330,6 +331,8 @@ export class View {
 
   releaseRig(rig) {
     rig.root.removeFromParent();
+    rig.trails?.dispose();
+    rig.trails = null;
     fadeRig(rig.material, rig.hull, false, 1);
     if (rig.modelMaterial) fadeRig(rig.modelMaterial, rig.modelHull, false, 1);
     this.rigPool = this.rigPool || new Map();
@@ -713,6 +716,17 @@ export class View {
         dt,
         time
       );
+      // claw/fang/pincer trails from the limb that strikes, open around the strike itself
+      const strike = m.windup?.name || m.melee?.name || mv.lastAttack;
+      const looks = r.looks || (r.looks = {}); // per rig (one type): no string keys per frame
+      if (strike && !(strike in looks)) looks[strike] = r.restInverse ? this.vfx.monsterLook(m.type, strike) : null;
+      const look = strike ? looks[strike] : null;
+      if (look?.limbs || r.trails) {
+        // the wind-up stays dark: only the strike itself (act, or the snap that follows an instant bite)
+        const open = !m.dead && (m.state === 'act' || (m.state === 'recover' && m.stateT < 0.3));
+        r.trails ||= new MonsterTrails(this.scene);
+        r.trails.update(dt, r, look?.limbs ? look : r.trails.look, open && !!look?.limbs);
+      }
       let sc = r.baseScale * Math.min(1, 0.3 + mv.spawnT * 2.5);
       if (m.dead) {
         const k = Math.min(1, m.deathT / 1.4);

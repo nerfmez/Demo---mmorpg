@@ -31,6 +31,7 @@ try {
   await page.screenshot({path:out+size+'-bow-hud.png'});
   for(const b of boxes)assert.ok(b.x>=0&&b.y>=0&&b.right<=width+1&&b.bottom<=height+1&&b.hit,`${size}: ${JSON.stringify(b)}`);
   for(const b of boxes.filter(b=>b.s.includes('hud')))assert.ok(b.w>=44&&b.h>=44,'supply touch target');
+  assert.ok(await page.evaluate(()=>{const a=document.querySelector('.ammo-hud').getBoundingClientRect(),f=document.querySelector('.fullscreen-control')?.getBoundingClientRect();return !f||!f.width||!f.height||a.right<=f.left||a.left>=f.right||a.bottom<=f.top||a.top>=f.bottom;}),'ammo crafting action does not overlap fullscreen control');
   assert.equal(await page.evaluate(()=>__frontier.game.castSlot(0)),true);
   await page.waitForFunction(()=>document.querySelector('.ammo-count').textContent==='199');
   await page.evaluate(()=>{const g=__frontier.game;g.player.cast=null;g.player.cooldowns[0]=0;g.ch.arrows.stock={};g.refresh();});

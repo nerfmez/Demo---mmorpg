@@ -20,15 +20,12 @@ test('every active choice remains reachable, with nine independent line hubs rat
  for(const id of active)if(p.tierOf(id)>1){const g=p.groups(p.tierOf(id)).find(g=>g.id===p.groupOf(id));assert.ok(g&&(g.ids.includes(id)||g.bridges?.includes(id)),id);}
  assert.equal(JSON.stringify(tree),before,'display indexing never rewrites canonical data or saves');
 });
-test('bridges are visible from both linked lines, but retain their original purchase owner',()=>{
- for(const id of active.filter(id=>tree.nodes[id].bridge)){
-  const n=tree.nodes[id],tier=p.tierOf(id),pages=p.groups(tier).filter(g=>g.bridges?.includes(id));
-  assert.deepEqual(pages.map(g=>g.lineId).sort(),[...n.bridge].sort(),id);
-  const owner=tree.presentation.stages.find(s=>s.id===tier).paths.find(g=>g.nodes.includes(id)).id;
-  for(const page of pages)assert.equal(p.routeScope(id,page.id),owner,id+' from '+page.id);
- }
+test('no active display or purchase scope contains a retired bridge',()=>{
+ assert.ok(Object.values(tree.nodes).some(n=>n.retired));
+ for(const tier of p.tiers)for(const g of p.groups(tier))assert.deepEqual(g.bridges||[],[]);
+ assert.ok(active.every(id=>!tree.nodes[id].retired));
 });
-test('split pages retain exact canonical plans/costs across gates, partial builds, bridges, mastery and no points',()=>{
+test('display scopes retain exact canonical plans/costs across partial builds, mastery and no points',()=>{
  const states=[fresh(),prepared()],working=prepared();
  // Grow a legitimate character through the full catalog; capture each chapter boundary.
  for(const tier of [1,2,3,4,5]){
@@ -44,16 +41,16 @@ test('split pages retain exact canonical plans/costs across gates, partial build
   for(const ch of states){const before=structuredClone(ch),old=planJobRoute(ch,data,id,{tier,groupId:owner.id}),next=planJobRoute(ch,data,id,{tier,groupId:p.routeScope(id,display.id)});assert.deepEqual(next,old,id+' via '+display.id);assert.deepEqual(ch,before);}
  }
 });
-test('cross-line auto route spends the same points and round-trips existing saved IDs',()=>{
+test('local auto route spends only its own group and round-trips existing saved IDs',()=>{
  const a=prepared(),b=structuredClone(a),id='line.physical.2.join';
- const old=planJobRoute(a,data,id,{tier:2,groupId:'fam.weapon.2'}),next=planJobRoute(b,data,id,{tier:2,groupId:p.routeScope(id,'view.physical.2')});
- assert.equal(next.can,true);assert.equal(next.cost,3);assert.ok(next.nodes.includes('bridge.physical-damage.2'));
+ const old=planJobRoute(a,data,id,{tier:2,groupId:'view.physical.2'}),next=planJobRoute(b,data,id,{tier:2,groupId:p.routeScope(id,'view.physical.2')});
+ assert.equal(next.can,true);assert.equal(next.cost,4);assert.ok(next.nodes.every(id=>tree.nodes[id].line==='line.physical'));
  const opts=plan=>({tier:2,groupId:plan.groupId,expectedNodes:plan.nodes,expectedCost:plan.cost});
  assert.deepEqual(allocateJobRoute(b,data,id,opts(next)),allocateJobRoute(a,data,id,opts(old)));assert.deepEqual(b,a);
  assert.deepEqual(migrateCharacter(JSON.parse(JSON.stringify(b)),data),a);
- assert.deepEqual(planJobRoute(b,data,id,{tier:2,groupId:p.routeScope(id,'view.physical.2')}),planJobRoute(a,data,id,{tier:2,groupId:'fam.weapon.2'}));
+ assert.deepEqual(planJobRoute(b,data,id,{tier:2,groupId:p.routeScope(id,'view.physical.2')}),planJobRoute(a,data,id,{tier:2,groupId:'view.physical.2'}));
 });
-test('every split line fits readable phone columns, including three bridges and mastery',()=>{
+test('every independent line fits readable phone columns, including mastery',()=>{
  const layout=createLayout(tree);
  for(const tier of [2,3,4,5])for(const g of p.groups(tier).filter(g=>g.lineId)){
   const parents=g.ids.flatMap(id=>tree.nodes[id].requires||[]).filter(id=>!g.ids.includes(id)&&!tree.nodes[id].bridge);

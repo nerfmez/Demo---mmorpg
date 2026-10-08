@@ -47,18 +47,18 @@ try {
       const f = window.__frontier, g = f.game, d = g.data, N = d.jobtree.nodes;
       const path = [], seen = new Set();
       const visit = (id) => { if (seen.has(id) || id === d.jobtree.origin || g.ch.jobNodes.includes(id)) return; seen.add(id); for (const p of N[id].requires || []) visit(p); path.push(id); };
-      ['line.physical.2.a2', 'line.physical.2.b1', 'bridge.physical-damage.2', 'line.damage.2.join'].forEach(visit);
+      ['line.physical.2.a2', 'line.physical.2.b1', 'line.damage.2.a2', 'line.damage.2.join'].forEach(visit);
       Object.keys(N).filter((id) => N[id].line === 'line.damage' && N[id].stage > 2).forEach(visit);
       let n = 0;
       for (const id of path) { if (!g.ch.jobPoints) break; f.panels.jobJournal.learn(id); n++; }
       return { n, left: g.ch.jobPoints, damage: g.ch.jobNodes.filter((id) => N[id]?.line === 'line.damage').length, bridge: g.ch.jobNodes.includes('bridge.physical-damage.2') };
     });
     assert.equal(bought.left, 0, JSON.stringify(bought));
-    assert.ok(bought.bridge, 'crossed into the damage line');
+    assert.equal(bought.bridge,false,'no cross-group purchases');
     // A main line page: one fork plus its bridges; mastery stays within the same line.
     const nodesClear = async (label) => {
       const boxes = await page.locator('#plane > [data-node]').evaluateAll((els) => els.map((e) => { const r = e.querySelector('.node-disc').getBoundingClientRect(), t = document.createRange(); t.selectNodeContents(e.querySelector('.node-caption b')); const c = t.getBoundingClientRect(); return [Math.min(r.x, c.x), r.y, Math.max(r.right, c.right) - Math.min(r.x, c.x), c.bottom - r.y]; }));
-      assert.ok(boxes.length >= 8 && boxes.length <= 12, label);
+      assert.ok(boxes.length >= 6 && boxes.length <= 10, label);
       for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) assert.ok(a[0] + a[2] <= b[0] || b[0] + b[2] <= a[0] || a[1] + a[3] <= b[1] || b[1] + b[3] <= a[1], `${name} ${label}: nodes overlap`);
     };
     for (const [stage, gate] of [[3, 'view.physical.3'], [5, 'view.physical.5'], [5, 'view.physical.mastery']]) {

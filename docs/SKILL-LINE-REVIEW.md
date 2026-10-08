@@ -1,5 +1,7 @@
 # Independent skill-line hubs — owner review
 
+Historical review: dependency rules below are superseded by [tree revision 3](SKILL-TREE-INDEPENDENCE.md).
+
 Final base: `5cc2cfa9bd4c528cdfe72305c6e06da0232dcafa` (main, including PR66 models and PR67 approved VFX fixes).
 Implementation started at 102ae6c and was rebased without conflicts after those releases.
 Branch: `codex/skilltree-main-lines`. PR67's VFX fixes are retained unchanged.

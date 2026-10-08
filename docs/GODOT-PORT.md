@@ -636,9 +636,9 @@ The local city review uses original native timber for all city piers, with `city
 
 ## Reviewed directed journal graph
 
-`jobtree.presentation.stages/groups` indexes the shared first page and free later gateways. New skill `requires` lists are ALL-parent directed prerequisites in `Character.gd`; legacy nodes keep adjacency and profession rules. Keep the existing tree revision and ownership IDs when adding this graph so old saves retain points, bonuses and choices. Layout, paper motion and success-only dashed ink are presentation; they never allocate points. See `REVIEWED-SKILL-TREE.md`.
+`jobtree.presentation.stages/groups` indexes the shared first page and free later gateways. New skill `requires` lists are ALL-parent directed prerequisites in `Character.gd`; legacy nodes keep adjacency and profession rules. Keep ownership IDs; revision 3 uses the preservation/refund rules below. Layout, paper motion and success-only dashed ink are presentation; they never allocate points. See `REVIEWED-SKILL-TREE.md`.
 
-`core/job-route.js` adds a read-only route plan and atomic `allocateJobRoute` transaction. In Godot, collect ALL missing named ancestors only inside the selected presentation group and stage; require outside ancestors to be owned already. Run canonical `allocateJobNode` on a scratch ownership/points dictionary, reject gates, invalid or ambiguous graphs, insufficient points and stale preview signatures, then commit ownership and points together. Notify/persist once after success. Current costs remain one point per node and saves retain version4; no rank or reward model is added. The journal previews pending nodes with solid outlines and draws finite dashed ink only for confirmed acquisitions.
+`core/job-route.js` adds a read-only route plan and atomic `allocateJobRoute` transaction. In Godot, collect ALL missing named ancestors only inside the selected presentation group and stage; reject outside ancestors even when owned. Run canonical `allocateJobNode` on a scratch ownership/points dictionary, reject gates, invalid or ambiguous graphs, insufficient points and stale preview signatures, then commit ownership and points together. Notify/persist once after success. Current costs remain one point per node and saves retain version 12; no rank or reward model is added. The journal previews pending nodes with solid outlines and draws finite dashed ink only for confirmed acquisitions.
 
 Cape integration: `city.capeTransition` grades only dry exterior source-floor edges to the existing heightfield via `cityFloorHeight`; native-water causeways and interior city heights stay authored. The renderer subdivides only cape surface triangles at load and uses this same height function. A narrow data road joins the existing cape dirt path. Native cape cobble paint is removed locally and sea film stays below raised source land; native coast/heightfield data are unchanged.
 
@@ -743,22 +743,31 @@ The existing sparse `character.materials` dictionary already persists both IDs;
 no schema/version change or conversion of old parts is needed. Missing keys are zero.
 The two RGBA PNGs are mapped in `raster-icons.js` for inventory/costs and ground loot.
 
-### Independent skill-line display hubs
+### Independent skill groups (tree revision 3)
 
-`ui/skill-journal/line-groups.js` splits each family into its existing named lines for
-presentation only. Chapters 2–5 have 11/12/9/9 overview hubs; chapter 5's nine line
-hubs each open their regular and mastery pages. Keep `jobtree.presentation.stages[].paths`
-as the canonical purchase scopes: a display ID such as `view.physical.3` resolves to
-`fam.weapon.3` for its line nodes. Resolve bridge proxies to the bridge's original
-scope even when inspecting them from the other line. Do not restrict route planning
-to visible nodes; previews list every charged node, including other lines. Preserve
-ALL `requires`, ANY `requiresAny`, links, chapter gates, point costs and saved node IDs.
-The 30 bridge nodes appear on both endpoint pages but are owned/charged only once.
-Search, prerequisite navigation and chapter navigation use display groups without
-rewriting game data. Captions and touch targets set a readable minimum camera zoom;
-long forks/mastery pages pan vertically instead of squeezing three lines together.
+Chapters are navigation only (`presentation.stages[].gate = 0`), not group tiers.
+Every visible page group is its own canonical purchase scope, including each
+`view.*.<chapter>` and `view.*.mastery` page. `allocationGroup` owns eligibility;
+`localInvestment` counts distinct paid IDs only in that group. Roots need no
+other group, prior chapter, profession or global investment. `requires` is ALL,
+`requiresAny` is ANY; all active edges and auto-purchases must remain local.
+Directed roots bypass legacy adjacency. Reject malformed external parents even
+if they are owned. Simulate an entire route before committing points/ownership.
 
+Keep character version 12 and stable node IDs. Tree revision 3 preserves known
+non-retired allocations, including legacy IDs and allocations missing a newly
+rewired internal parent; it refunds each retired bridge or missing ID once and
+then stamps the revision. No whole-tree reset. Gear, skills, quests and other
+character fields use their existing migrations. The 30 historical bridges remain
+in data marked `retired` for traceable refunds, never offered or purchased.
 
+There are 378 active nodes across 51 page groups (origin included), plus 206
+legacy compatibility nodes. Nine line hubs on chapter 5 provide regular/mastery
+page navigation, with no shared unlock requirement. Mastery now has two local
+specializations rather than alternating required bonuses. UI edges, locks,
+search, route preview and prose read this same graph; no external bridge proxies.
+Keep the journal theme and readable minimum zoom/panning. See
+[the complete audit](SKILL-TREE-INDEPENDENCE.md).
 
 ### Skill and mod upgrade services (2026-10-06)
 

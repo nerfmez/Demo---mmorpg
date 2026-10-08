@@ -1,5 +1,7 @@
 # Reviewed skill tree in the main game
 
+Historical review: dependency rules below are superseded by [tree revision 3](SKILL-TREE-INDEPENDENCE.md).
+
 Source: local graph commit `0171f34de70fdd5021ec4504a639587eddb09c24`.
 The main journal has one shared six-node first page (free origin), two later
 paths with six paid skills each, then three paths with six paid skills each.

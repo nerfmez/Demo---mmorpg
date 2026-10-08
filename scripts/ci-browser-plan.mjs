@@ -33,7 +33,7 @@ export const SUITES = {
   'journal-lines': ['journal-lines.mjs'],
   'skill-lines': ['skill-lines.mjs'],
   wearable: ['wearable-level.mjs'],
-  hud: ['fieldhud.mjs'],
+  hud: ['fieldhud.mjs', 'gameplay-qol.mjs'],
 };
 export const FULL_SUITES = Object.keys(SUITES);
 export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];

@@ -813,8 +813,42 @@ and sampled `World.move` checks for radius, water, obstacles and slopes. It neve
 falls back to drawing through a wall. Occupied interactable anchors get a nearby
 walkable approach. Remote goals use `questNavigation`'s actual authored crossing,
 then replan on map handover. Nonspatial tasks show their instruction without a line.
-The route clears when tracking changes/completes, and target/player movement triggers
-a bounded refresh (no stationary per-frame pathfinding). One merged translucent
-terrain-sampled dashed ribbon owns its geometry/material; hide, handover, travel or
-page disposal releases it with `disposeObject`. Port as a navigation aid mesh with
+The route clears when tracking changes/completes. Cached search and ribbon work
+advance cooperatively; target changes or leaving the safe cached route trigger
+a bounded refresh. A static tail and short dynamic near ribbon each own their
+geometry/material; hide, handover, travel or page disposal releases both with
+`disposeObject`. The near endpoint follows the hero every rendered frame. Port as a navigation aid mesh with
 the same clearance and goal contracts, never auto-walk.
+
+
+### Cached route, supplies and automatic potions (save v12)
+
+Quest navigation still resolves the actual active objective/gate. `searchQuestRoute`
+is a cooperative pure generator with directed walking-clearance edge caches;
+`findQuestRoute` retains the blocking contract. The presentation advances search
+and terrain ribbon assembly in small task/frame slices, caches at most four CPU paths and
+disposes both owned GPU ribbons on hide, replacement, completion and map change.
+Each rendered frame projects the hero onto the safe cached polyline and redraws
+only its short near section. An obstructed/off-route connection hides the line
+and requests a bounded replan; it never draws a shortcut through an obstacle.
+Godot should mirror the cached path plus near ribbon in its process loop.
+
+The bow HUD reads the same `arrowInUse`/`arrowTotal` as shooting, including fallback
+stock and zero arrows. Its labeled crafting action opens the existing arrow
+category and relevant recipe; it grants nothing and retains `Game.craftArrows`
+costs, capacity and combat restrictions.
+
+`ch.autoPotions` stores separate `hp` and `mp` objects with `enabled`, integer
+`threshold` (1–100 percent) and `potion` (matching item ID or null). New characters
+and pre-v12 migration default both OFF, preserving inventory and learned skills.
+V12 reload preserves intentional choices. Default thresholds live in
+`items.consumables.autoUse`. Null selects the first stocked matching quick slot
+from left to right; an explicit size uses that inventory item with no substitution.
+`Game.useAutomaticPotions` runs at the end of an eligible positive-dt simulation
+frame, at most once per group/frame, when resource percent is at/below threshold
+and below full. It shares `useConsumable` with manual use, real stock, restore
+amount and group cooldown. Paused/menu/receipt/fullscreen frames do not advance
+simulation; dead/travel/zero-dt/prohibited frames do not consume. Empty stock
+produces no failure notifications. Successful potion events save the real spend.
+The existing shop page owns separate touch controls for both rules; its shopping
+location restrictions remain intact. No free items or changed potion balance.

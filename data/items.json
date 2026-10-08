@@ -2569,6 +2569,7 @@
     "_doc": "Potions bought at the town shop (town.shop) and used from the quick item slots. A potion restores flat + pct of the maximum, at once. Each group (hp, mp) has its own cooldown so one potion of each kind can be drunk back to back but not spammed. Stacks hold at most stackMax. New characters start with the start set; v7 saves receive it once.",
     "quickSlots": 4,
     "stackMax": 99,
+    "autoUse": {"hp": {"threshold": 35}, "mp": {"threshold": 30}},
     "groupCooldown": {
       "hp": 5,
       "mp": 5

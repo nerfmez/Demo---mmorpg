@@ -13,9 +13,10 @@ import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
-import { buyConsumable, restoreAmount, consumableCount } from './consumables.js';
+import { buyConsumable, restoreAmount, consumableCount, automaticPotion } from './consumables.js';
 
 const PLAYER_RADIUS = 0.45;
+const POTION_GROUPS = ['hp', 'mp'];
 const PICKUP_RADIUS = 1.4;
 const MAGNET_RADIUS = 3.2;
 const INTERACT_RADIUS = 3.6;
@@ -546,10 +547,15 @@ export class Game {
 
   /** Drink the potion in quick slot `slot`: restores at once, then its group cools down. */
   useQuickItem(slot) {
-    const p = this.player, id = this.ch.quickItems?.[slot];
+    return this.useConsumable(this.ch.quickItems?.[slot]);
+  }
+
+  /** Manual and automatic use share stock, restore, group cooldown and death rules. */
+  useConsumable(id, { automatic = false } = {}) {
+    const p = this.player;
     const def = id && this.data.items.consumables.types[id];
     const fail = (reason) => {
-      if (reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
+      if (!automatic && reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
       return { ok: false, reason };
     };
     if (!def) return fail('empty');
@@ -564,8 +570,20 @@ export class Game {
     this.ch.consumables[id]--;
     if (this.ch.consumables[id] <= 0) delete this.ch.consumables[id];
     p.itemCooldowns[def.group] = this.data.items.consumables.groupCooldown[def.group] || 0;
-    this.emit({ type: 'potion', id, group: def.group, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
+    this.emit({ type: 'potion', id, group: def.group, automatic, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
     return { ok: true, hp, mp };
+  }
+
+  useAutomaticPotions() {
+    const p = this.player;
+    if (p.dead || this.travelled || this.autoPotionTime === this.time) return;
+    this.autoPotionTime = this.time;
+    for (const group of POTION_GROUPS) {
+      const choice = this.ch.autoPotions[group], max = group === 'hp' ? p.maxHp : p.maxMp;
+      if (!choice.enabled || !(max > 0) || p[group] >= max || p[group] * 100 > max * choice.threshold || (p.itemCooldowns[group] || 0) > 0) continue;
+      const id = automaticPotion(this.ch, this.data, group);
+      if (id) this.useConsumable(id, { automatic: true });
+    }
   }
 
   inCombat() {
@@ -1149,7 +1167,8 @@ export class Game {
 
   // ---------- update ----------
 
-  update(dt) {
+  update(dt, { paused = false, allowAutoPotions = true } = {}) {
+    if (paused) return;
     dt = Math.min(dt, 0.05);
     this.time += dt;
     this.ch.progress.playTime = (this.ch.progress.playTime || 0) + dt;
@@ -1185,6 +1204,7 @@ export class Game {
     this.updateAreas(dt);
     this.updateDrops(dt);
     this.updateRespawns();
+    if (dt > 0 && allowAutoPotions) this.useAutomaticPotions();
     this.checkT -= dt;
     if (this.checkT <= 0) {
       this.checkT = 0.25;

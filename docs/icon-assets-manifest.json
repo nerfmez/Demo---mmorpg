@@ -704,8 +704,8 @@
     {
       "key": "material/wisp_core",
       "path": "assets/icons/material/wisp_core.png",
-      "sha256": "5c20b5711c9067eec348667101e91f6be51a4d8768bc8c252b99b9a8755777b4",
-      "bytes": 202186,
+      "sha256": "16820050f786a6afeb801cf7cc9fc4e772b39884f69e74e50488c2d516e22e7f",
+      "bytes": 173468,
       "dimensions": [
         512,
         512
@@ -715,10 +715,38 @@
         0,
         255
       ],
-      "source_archive": "materials-deploy512-part01.zip",
-      "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
-      "source_library_file_id": "libfile_d47a73f6b88c8191b030bb1d85e89bc5",
-      "raw_source_sha256": "80c6a24d599035757ea7c8fc74143be9e30fdada1f2d3e1cc2755a0680f24c17"
+      "source_archive": "PR106-monster-identity-review-20261007.zip",
+      "source_archive_sha256": "b0c2f6adb918f73d7316103cb3a5d67ec9b5a2485beaaf992e38891dabd7a34f",
+      "source_archive_library_file_id": "libfile_0e93e09fcb9c81918251205699783280",
+      "source_archive_path": "PR106-monster-identity-review/candidate-icons/material/wisp_core.png",
+      "approved_master": {
+        "path": "assets-source/materials/identity-20261007/wisp_core.png",
+        "sha256": "16820050f786a6afeb801cf7cc9fc4e772b39884f69e74e50488c2d516e22e7f",
+        "dimensions": [
+          512,
+          512
+        ]
+      },
+      "owner_approval": "Displayed identity preview approved 2026-10-07; release after PR106 merge",
+      "superseded": {
+        "key": "material/wisp_core",
+        "path": "assets/icons/material/wisp_core.png",
+        "sha256": "5c20b5711c9067eec348667101e91f6be51a4d8768bc8c252b99b9a8755777b4",
+        "bytes": 202186,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "materials-deploy512-part01.zip",
+        "source_archive_sha256": "57e428d9bd8d2ef7e74cb75c4ff98ea70e06ff5ab69beeeb7c2a09c478bc77eb",
+        "source_library_file_id": "libfile_d47a73f6b88c8191b030bb1d85e89bc5",
+        "raw_source_sha256": "80c6a24d599035757ea7c8fc74143be9e30fdada1f2d3e1cc2755a0680f24c17"
+      }
     },
     {
       "key": "material/glow_dust",
@@ -3892,8 +3920,8 @@
     {
       "key": "material/viper_scale",
       "path": "assets/icons/material/viper_scale.png",
-      "sha256": "7e2d3b21b6ace9bff56c7beec2987aaa1b8435041852fa8ed428addfe82a7a2a",
-      "bytes": 150223,
+      "sha256": "47b71f0b39b60620243ea59f5d48b4a64e07083da76054fa78e5f60c2740ea13",
+      "bytes": 111582,
       "dimensions": [
         512,
         512
@@ -3903,11 +3931,39 @@
         0,
         255
       ],
-      "source_archive": "new-item-art-20261007.zip",
-      "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
-      "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
-      "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
-      "source_archive_path": "final/material/viper_scale.png"
+      "source_archive": "PR106-monster-identity-review-20261007.zip",
+      "source_archive_sha256": "b0c2f6adb918f73d7316103cb3a5d67ec9b5a2485beaaf992e38891dabd7a34f",
+      "source_archive_library_file_id": "libfile_0e93e09fcb9c81918251205699783280",
+      "source_archive_path": "PR106-monster-identity-review/candidate-icons/material/viper_scale.png",
+      "approved_master": {
+        "path": "assets-source/materials/identity-20261007/viper_scale.png",
+        "sha256": "47b71f0b39b60620243ea59f5d48b4a64e07083da76054fa78e5f60c2740ea13",
+        "dimensions": [
+          512,
+          512
+        ]
+      },
+      "owner_approval": "Displayed identity preview approved 2026-10-07; release after PR106 merge",
+      "superseded": {
+        "key": "material/viper_scale",
+        "path": "assets/icons/material/viper_scale.png",
+        "sha256": "7e2d3b21b6ace9bff56c7beec2987aaa1b8435041852fa8ed428addfe82a7a2a",
+        "bytes": 150223,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "new-item-art-20261007.zip",
+        "source_archive_sha256": "ce8cccd0f44e4888e143129d347d660e572cb8f99ec83281bcd9a5cefe09a5fe",
+        "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
+        "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
+        "source_archive_path": "final/material/viper_scale.png"
+      }
     },
     {
       "key": "material/ram_horn",

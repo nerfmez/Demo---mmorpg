@@ -50,6 +50,11 @@ beyond the already existing sun shadow pass. Non-shadow-casting grass is unchang
   seed/time/positions, shader errors, actual model receiving flags, shared wind
   shadow setup, repeated High/Medium/Low target sizes and GPU texture plateau.
 - `.github/workflows/render-light.yml`: compares the pinned unmodified baseline
-  with current code in Chromium and WebKit, plus smoke/UX checks.
+  with current code in Chromium and WebKit, plus smoke/UX checks. It runs in the
+  same pinned Playwright container as CI (browsers preinstalled, no per-run apt
+  download) and serves the baseline build with `scripts/static-serve.mjs`. It is
+  selected only when a light/scene file changes (`LIGHT_FILES` in
+  `scripts/ci-scope.mjs`); monster rigs, animation and strike effects live in
+  their own modules (`monsters*.js`, `monster-*.js`) and do not select it.
 - Screenshots and draw counts are review evidence, not device FPS. Software GL
   timings must never be advertised as iPad performance or a 60-FPS guarantee.

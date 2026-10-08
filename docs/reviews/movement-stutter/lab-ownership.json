@@ -1,0 +1,110 @@
+[
+  {
+    "skill": "dash",
+    "samples": [
+      {
+        "hadActive": 0,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 2,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 2,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      }
+    ],
+    "errors": []
+  },
+  {
+    "skill": "roll",
+    "samples": [
+      {
+        "hadActive": 1,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 1,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 1,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      }
+    ],
+    "errors": []
+  },
+  {
+    "skill": "blink",
+    "samples": [
+      {
+        "hadActive": 0,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 3,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 3,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      }
+    ],
+    "errors": []
+  },
+  {
+    "skill": "leap",
+    "samples": [
+      {
+        "hadActive": 8,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 0,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      },
+      {
+        "hadActive": 0,
+        "sourceFreed": 0,
+        "active": 0,
+        "echoLive": 0,
+        "poolLive": 0
+      }
+    ],
+    "errors": []
+  }
+]

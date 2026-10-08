@@ -1,0 +1,3263 @@
+{
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "errors": [],
+  "resources": {
+    "geometries": 88,
+    "textures": 47
+  },
+  "route": {
+    "enabled": true,
+    "builds": 1,
+    "maxSliceMs": 1.5
+  },
+  "phases": {
+    "dash-normal-route0-0": {
+      "frameMs": {
+        "count": 11,
+        "p50": 383.3,
+        "p95": 1433.3,
+        "max": 1433.3
+      },
+      "longTasks": [
+        {
+          "phase": "dash-normal-route0-0",
+          "start": 26763.099999999977,
+          "duration": 1420
+        },
+        {
+          "phase": "dash-normal-route0-0",
+          "start": 28229.899999999907,
+          "duration": 852
+        },
+        {
+          "phase": "dash-normal-route0-0",
+          "start": 29089.29999999993,
+          "duration": 374
+        },
+        {
+          "phase": "dash-normal-route0-0",
+          "start": 29473.599999999977,
+          "duration": 73
+        }
+      ],
+      "inputToNextFrameMs": 1.7,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 11,
+          "p50": 0.1,
+          "p95": 1,
+          "max": 1
+        },
+        "game.moveEntity": {
+          "count": 216,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 11,
+          "p50": 0.5,
+          "p95": 1.4,
+          "max": 1.4
+        },
+        "route.update": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 11,
+          "p50": 0,
+          "p95": 12.7,
+          "max": 12.7
+        },
+        "view.updateHero": {
+          "count": 11,
+          "p50": 0.6,
+          "p95": 36.6,
+          "max": 36.6
+        },
+        "view.updateCamera": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 11,
+          "p50": 0.1,
+          "p95": 1.1,
+          "max": 1.1
+        },
+        "gpuSubmit.render": {
+          "count": 12,
+          "p50": 12.6,
+          "p95": 1007.7,
+          "max": 1007.7
+        },
+        "view.render": {
+          "count": 11,
+          "p50": 13.9,
+          "p95": 849.1,
+          "max": 849.1
+        },
+        "hud.update": {
+          "count": 11,
+          "p50": 0.3,
+          "p95": 1.1,
+          "max": 1.1
+        },
+        "gl.bufferData": {
+          "count": 380,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 1.1
+        },
+        "gl.compileShader": {
+          "count": 32,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 16,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "dash-normal-route0-1": {
+      "frameMs": {
+        "count": 10,
+        "p50": 449.9,
+        "p95": 1000.1,
+        "max": 1000.1
+      },
+      "longTasks": [
+        {
+          "phase": "dash-normal-route0-1",
+          "start": 30911.5,
+          "duration": 1012
+        },
+        {
+          "phase": "dash-normal-route0-1",
+          "start": 32444.699999999953,
+          "duration": 939
+        },
+        {
+          "phase": "dash-normal-route0-1",
+          "start": 33387.89999999991,
+          "duration": 313
+        }
+      ],
+      "inputToNextFrameMs": 932.3,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 10,
+          "p50": 0.2,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "game.moveEntity": {
+          "count": 180,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 10,
+          "p50": 0.5,
+          "p95": 2.8,
+          "max": 2.8
+        },
+        "route.update": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 10,
+          "p50": 0,
+          "p95": 14.6,
+          "max": 14.6
+        },
+        "view.updateHero": {
+          "count": 10,
+          "p50": 0.6,
+          "p95": 15,
+          "max": 15
+        },
+        "view.updateCamera": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 1,
+          "max": 1
+        },
+        "gl.bufferData": {
+          "count": 358,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 2.2
+        },
+        "gpuSubmit.render": {
+          "count": 10,
+          "p50": 25.4,
+          "p95": 1004.5,
+          "max": 1004.5
+        },
+        "view.render": {
+          "count": 10,
+          "p50": 31,
+          "p95": 1007.8,
+          "max": 1007.8
+        },
+        "hud.update": {
+          "count": 10,
+          "p50": 0.5,
+          "p95": 2.3,
+          "max": 2.3
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "dash-normal-route0-2": {
+      "frameMs": {
+        "count": 10,
+        "p50": 450.1,
+        "p95": 983.3,
+        "max": 983.3
+      },
+      "longTasks": [
+        {
+          "phase": "dash-normal-route0-2",
+          "start": 37039.19999999995,
+          "duration": 979
+        },
+        {
+          "phase": "dash-normal-route0-2",
+          "start": 38365.69999999995,
+          "duration": 68
+        }
+      ],
+      "inputToNextFrameMs": 254.6,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 10,
+          "p50": 0.2,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 144,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 10,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "route.update": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 10,
+          "p50": 0,
+          "p95": 9.7,
+          "max": 9.7
+        },
+        "view.updateHero": {
+          "count": 10,
+          "p50": 0.6,
+          "p95": 10.3,
+          "max": 10.3
+        },
+        "view.updateCamera": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 1.2,
+          "max": 1.2
+        },
+        "gpuSubmit.render": {
+          "count": 10,
+          "p50": 9.6,
+          "p95": 964.9,
+          "max": 964.9
+        },
+        "view.render": {
+          "count": 10,
+          "p50": 11.1,
+          "p95": 975,
+          "max": 975
+        },
+        "hud.update": {
+          "count": 10,
+          "p50": 0.5,
+          "p95": 4.4,
+          "max": 4.4
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.bufferData": {
+          "count": 352,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 4.1
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "roll-normal-route0-0": {
+      "frameMs": {
+        "count": 13,
+        "p50": 283.3,
+        "p95": 716.7,
+        "max": 716.7
+      },
+      "longTasks": [
+        {
+          "phase": "roll-normal-route0-0",
+          "start": 41377.5,
+          "duration": 726
+        }
+      ],
+      "inputToNextFrameMs": 275.2,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 13,
+          "p50": 0.2,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "game.moveEntity": {
+          "count": 168,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 13,
+          "p50": 0.4,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "route.update": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "view.updateHero": {
+          "count": 13,
+          "p50": 0.5,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "view.updateCamera": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateStreaming": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 13,
+          "p50": 0,
+          "p95": 1.3,
+          "max": 1.3
+        },
+        "gpuSubmit.render": {
+          "count": 13,
+          "p50": 7,
+          "p95": 700.8,
+          "max": 700.8
+        },
+        "view.render": {
+          "count": 13,
+          "p50": 8.7,
+          "p95": 723.4,
+          "max": 723.4
+        },
+        "hud.update": {
+          "count": 13,
+          "p50": 0.3,
+          "p95": 4.9,
+          "max": 4.9
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "roll-normal-route0-1": {
+      "frameMs": {
+        "count": 13,
+        "p50": 300,
+        "p95": 850,
+        "max": 850
+      },
+      "longTasks": [
+        {
+          "phase": "roll-normal-route0-1",
+          "start": 45068.89999999991,
+          "duration": 839
+        }
+      ],
+      "inputToNextFrameMs": 239.5,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 13,
+          "p50": 0.2,
+          "p95": 1.8,
+          "max": 1.8
+        },
+        "game.moveEntity": {
+          "count": 166,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 13,
+          "p50": 0.4,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "route.update": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.syncMovement": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "view.updateHero": {
+          "count": 13,
+          "p50": 0.4,
+          "p95": 1.2,
+          "max": 1.2
+        },
+        "view.updateCamera": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gpuSubmit.render": {
+          "count": 13,
+          "p50": 7,
+          "p95": 834,
+          "max": 834
+        },
+        "view.render": {
+          "count": 13,
+          "p50": 9.1,
+          "p95": 835.8,
+          "max": 835.8
+        },
+        "hud.update": {
+          "count": 13,
+          "p50": 0.2,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "gl.deleteProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        }
+      }
+    },
+    "roll-normal-route0-2": {
+      "frameMs": {
+        "count": 14,
+        "p50": 283.2,
+        "p95": 700,
+        "max": 700
+      },
+      "longTasks": [
+        {
+          "phase": "roll-normal-route0-2",
+          "start": 49183.5,
+          "duration": 693
+        }
+      ],
+      "inputToNextFrameMs": 252.1,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 14,
+          "p50": 0.2,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "game.moveEntity": {
+          "count": 176,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 14,
+          "p50": 0.4,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "route.update": {
+          "count": 14,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 14,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "view.updateHero": {
+          "count": 14,
+          "p50": 0.5,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "view.updateCamera": {
+          "count": 14,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 14,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 14,
+          "p50": 0,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "gpuSubmit.render": {
+          "count": 14,
+          "p50": 7.3,
+          "p95": 688.3,
+          "max": 688.3
+        },
+        "view.render": {
+          "count": 14,
+          "p50": 9.2,
+          "p95": 690.5,
+          "max": 690.5
+        },
+        "hud.update": {
+          "count": 14,
+          "p50": 0.3,
+          "p95": 1,
+          "max": 1
+        },
+        "gl.deleteProgram": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        }
+      }
+    },
+    "blink-normal-route0-0": {
+      "frameMs": {
+        "count": 8,
+        "p50": 333.3,
+        "p95": 750,
+        "max": 750
+      },
+      "longTasks": [
+        {
+          "phase": "blink-normal-route0-0",
+          "start": 52963.5,
+          "duration": 747
+        }
+      ],
+      "inputToNextFrameMs": 240.9,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 8,
+          "p50": 0.2,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "game.moveEntity": {
+          "count": 127,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 8,
+          "p50": 0.4,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "route.update": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 8,
+          "p50": 0.5,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "view.updateCamera": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "view.updateStreaming": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 8,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gpuSubmit.render": {
+          "count": 8,
+          "p50": 9.6,
+          "p95": 732.5,
+          "max": 732.5
+        },
+        "view.render": {
+          "count": 8,
+          "p50": 10.7,
+          "p95": 735.1,
+          "max": 735.1
+        },
+        "hud.update": {
+          "count": 8,
+          "p50": 0.3,
+          "p95": 0.9,
+          "max": 0.9
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.blink": {
+          "count": 1,
+          "p50": 9,
+          "p95": 9,
+          "max": 9
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 9.1,
+          "p95": 9.1,
+          "max": 9.1
+        },
+        "gl.bufferData": {
+          "count": 176,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "blink-normal-route0-1": {
+      "frameMs": {
+        "count": 7,
+        "p50": 383.3,
+        "p95": 816.7,
+        "max": 816.7
+      },
+      "longTasks": [
+        {
+          "phase": "blink-normal-route0-1",
+          "start": 55649.59999999998,
+          "duration": 811
+        }
+      ],
+      "inputToNextFrameMs": 808.6,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 7,
+          "p50": 0.2,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 106,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 7,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "route.update": {
+          "count": 7,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 7,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 7,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "view.updateCamera": {
+          "count": 7,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateStreaming": {
+          "count": 7,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 7,
+          "p50": 0,
+          "p95": 1.2,
+          "max": 1.2
+        },
+        "gl.bufferData": {
+          "count": 182,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "gpuSubmit.render": {
+          "count": 7,
+          "p50": 12,
+          "p95": 795.2,
+          "max": 795.2
+        },
+        "view.render": {
+          "count": 7,
+          "p50": 14.3,
+          "p95": 797.8,
+          "max": 797.8
+        },
+        "hud.update": {
+          "count": 7,
+          "p50": 0.3,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.blink": {
+          "count": 1,
+          "p50": 7.7,
+          "p95": 7.7,
+          "max": 7.7
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 7.7,
+          "p95": 7.7,
+          "max": 7.7
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "blink-normal-route0-2": {
+      "frameMs": {
+        "count": 8,
+        "p50": 383.4,
+        "p95": 849.9,
+        "max": 849.9
+      },
+      "longTasks": [
+        {
+          "phase": "blink-normal-route0-2",
+          "start": 58894.79999999993,
+          "duration": 857
+        }
+      ],
+      "inputToNextFrameMs": 310.4,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 8,
+          "p50": 0.3,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 101,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 8,
+          "p50": 0.4,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "route.update": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 8,
+          "p50": 0.4,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "view.updateCamera": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 8,
+          "p50": 0,
+          "p95": 1,
+          "max": 1
+        },
+        "gpuSubmit.render": {
+          "count": 8,
+          "p50": 7.9,
+          "p95": 841.4,
+          "max": 841.4
+        },
+        "view.render": {
+          "count": 8,
+          "p50": 9.5,
+          "p95": 843.7,
+          "max": 843.7
+        },
+        "hud.update": {
+          "count": 8,
+          "p50": 0.3,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.3,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "vfx.blink": {
+          "count": 1,
+          "p50": 9.7,
+          "p95": 9.7,
+          "max": 9.7
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 9.7,
+          "p95": 9.7,
+          "max": 9.7
+        },
+        "gl.bufferData": {
+          "count": 176,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "leap-normal-route0-0": {
+      "frameMs": {
+        "count": 18,
+        "p50": 316.7,
+        "p95": 733.3,
+        "max": 733.3
+      },
+      "longTasks": [
+        {
+          "phase": "leap-normal-route0-0",
+          "start": 60851.29999999993,
+          "duration": 75
+        },
+        {
+          "phase": "leap-normal-route0-0",
+          "start": 61462.09999999998,
+          "duration": 72
+        },
+        {
+          "phase": "leap-normal-route0-0",
+          "start": 65035.09999999998,
+          "duration": 735
+        }
+      ],
+      "inputToNextFrameMs": 327.4,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 18,
+          "p50": 0.3,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "game.moveEntity": {
+          "count": 228,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 18,
+          "p50": 0.4,
+          "p95": 1.9,
+          "max": 1.9
+        },
+        "route.update": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 18,
+          "p50": 0.5,
+          "p95": 12.5,
+          "max": 12.5
+        },
+        "view.updateCamera": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 18,
+          "p50": 0.1,
+          "p95": 5.4,
+          "max": 5.4
+        },
+        "gpuSubmit.render": {
+          "count": 18,
+          "p50": 7.3,
+          "p95": 725.3,
+          "max": 725.3
+        },
+        "view.render": {
+          "count": 18,
+          "p50": 9.5,
+          "p95": 727.6,
+          "max": 727.6
+        },
+        "hud.update": {
+          "count": 18,
+          "p50": 0.3,
+          "p95": 8.7,
+          "max": 8.7
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 0.9,
+          "p95": 0.9,
+          "max": 0.9
+        },
+        "gl.bufferData": {
+          "count": 6,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 4,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 2,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        }
+      }
+    },
+    "leap-normal-route0-1": {
+      "frameMs": {
+        "count": 18,
+        "p50": 283.3,
+        "p95": 800,
+        "max": 800
+      },
+      "longTasks": [
+        {
+          "phase": "leap-normal-route0-1",
+          "start": 70450.8999999999,
+          "duration": 793
+        }
+      ],
+      "inputToNextFrameMs": 355.6,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 18,
+          "p50": 0.2,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 271,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 18,
+          "p50": 0.4,
+          "p95": 1.2,
+          "max": 1.2
+        },
+        "route.update": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 18,
+          "p50": 0.5,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "view.updateCamera": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gpuSubmit.render": {
+          "count": 18,
+          "p50": 7.6,
+          "p95": 788.1,
+          "max": 788.1
+        },
+        "view.render": {
+          "count": 18,
+          "p50": 9.5,
+          "p95": 789.9,
+          "max": 789.9
+        },
+        "hud.update": {
+          "count": 18,
+          "p50": 0.3,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 0.3,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "gl.deleteProgram": {
+          "count": 2,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.compileShader": {
+          "count": 4,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "leap-normal-route0-2": {
+      "frameMs": {
+        "count": 20,
+        "p50": 283.4,
+        "p95": 866.6,
+        "max": 866.6
+      },
+      "longTasks": [
+        {
+          "phase": "leap-normal-route0-2",
+          "start": 75820.09999999998,
+          "duration": 861
+        }
+      ],
+      "inputToNextFrameMs": 325.9,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 20,
+          "p50": 0.2,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 303,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 20,
+          "p50": 0.4,
+          "p95": 1.4,
+          "max": 1.4
+        },
+        "route.update": {
+          "count": 20,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.syncMovement": {
+          "count": 20,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 20,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "view.updateCamera": {
+          "count": 20,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 20,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 20,
+          "p50": 0.1,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "gpuSubmit.render": {
+          "count": 20,
+          "p50": 7.4,
+          "p95": 856.1,
+          "max": 856.1
+        },
+        "view.render": {
+          "count": 20,
+          "p50": 9.7,
+          "p95": 857.9,
+          "max": 857.9
+        },
+        "hud.update": {
+          "count": 20,
+          "p50": 0.3,
+          "p95": 0.9,
+          "max": 0.9
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 0.2,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gl.deleteProgram": {
+          "count": 2,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.compileShader": {
+          "count": 4,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "dash-normal-route1-0": {
+      "frameMs": {
+        "count": 11,
+        "p50": 383.3,
+        "p95": 983.3,
+        "max": 983.3
+      },
+      "longTasks": [
+        {
+          "phase": "dash-normal-route1-0",
+          "start": 130199.29999999993,
+          "duration": 962
+        },
+        {
+          "phase": "dash-normal-route1-0",
+          "start": 132272.8999999999,
+          "duration": 923
+        },
+        {
+          "phase": "dash-normal-route1-0",
+          "start": 133591.5,
+          "duration": 54
+        },
+        {
+          "phase": "dash-normal-route1-0",
+          "start": 134156.79999999993,
+          "duration": 124
+        }
+      ],
+      "inputToNextFrameMs": 322.3,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 11,
+          "p50": 0.2,
+          "p95": 1.9,
+          "max": 1.9
+        },
+        "game.moveEntity": {
+          "count": 189,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 11,
+          "p50": 0.4,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "route.follow": {
+          "count": 11,
+          "p50": 0.1,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "route.advance": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 11,
+          "p50": 0.1,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "vfx.syncMovement": {
+          "count": 11,
+          "p50": 0,
+          "p95": 9.3,
+          "max": 9.3
+        },
+        "view.updateHero": {
+          "count": 11,
+          "p50": 0.5,
+          "p95": 9.7,
+          "max": 9.7
+        },
+        "view.updateCamera": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 11,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 11,
+          "p50": 0,
+          "p95": 1.5,
+          "max": 1.5
+        },
+        "gl.bufferData": {
+          "count": 354,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gpuSubmit.render": {
+          "count": 11,
+          "p50": 9.4,
+          "p95": 953.8,
+          "max": 953.8
+        },
+        "view.render": {
+          "count": 11,
+          "p50": 10.7,
+          "p95": 956.3,
+          "max": 956.3
+        },
+        "hud.update": {
+          "count": 11,
+          "p50": 0.3,
+          "p95": 7.5,
+          "max": 7.5
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "dash-normal-route1-1": {
+      "frameMs": {
+        "count": 10,
+        "p50": 366.7,
+        "p95": 833.3,
+        "max": 833.3
+      },
+      "longTasks": [
+        {
+          "phase": "dash-normal-route1-1",
+          "start": 136442.8999999999,
+          "duration": 832
+        }
+      ],
+      "inputToNextFrameMs": 262.4,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 10,
+          "p50": 0.2,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "game.moveEntity": {
+          "count": 179,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 10,
+          "p50": 0.4,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "route.follow": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "route.advance": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "vfx.syncMovement": {
+          "count": 10,
+          "p50": 0,
+          "p95": 15.2,
+          "max": 15.2
+        },
+        "view.updateHero": {
+          "count": 10,
+          "p50": 0.5,
+          "p95": 15.7,
+          "max": 15.7
+        },
+        "view.updateCamera": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 1.1,
+          "max": 1.1
+        },
+        "gpuSubmit.render": {
+          "count": 10,
+          "p50": 13.7,
+          "p95": 795.6,
+          "max": 795.6
+        },
+        "view.render": {
+          "count": 10,
+          "p50": 15.3,
+          "p95": 812.4,
+          "max": 812.4
+        },
+        "hud.update": {
+          "count": 10,
+          "p50": 0.3,
+          "p95": 5.1,
+          "max": 5.1
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.bufferData": {
+          "count": 352,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 4.1
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        }
+      }
+    },
+    "dash-normal-route1-2": {
+      "frameMs": {
+        "count": 12,
+        "p50": 416.7,
+        "p95": 883.3,
+        "max": 883.3
+      },
+      "longTasks": [
+        {
+          "phase": "dash-normal-route1-2",
+          "start": 140172.69999999995,
+          "duration": 881
+        },
+        {
+          "phase": "dash-normal-route1-2",
+          "start": 141463.79999999993,
+          "duration": 101
+        }
+      ],
+      "inputToNextFrameMs": 257.8,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 12,
+          "p50": 0.3,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "game.moveEntity": {
+          "count": 236,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 1.4
+        },
+        "game.update": {
+          "count": 12,
+          "p50": 0.5,
+          "p95": 1.8,
+          "max": 1.8
+        },
+        "route.follow": {
+          "count": 12,
+          "p50": 0.1,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "route.advance": {
+          "count": 12,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 12,
+          "p50": 0.1,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "vfx.syncMovement": {
+          "count": 12,
+          "p50": 0,
+          "p95": 28.7,
+          "max": 28.7
+        },
+        "view.updateHero": {
+          "count": 12,
+          "p50": 0.5,
+          "p95": 29.4,
+          "max": 29.4
+        },
+        "view.updateCamera": {
+          "count": 12,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 12,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 9,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 12,
+          "p50": 0,
+          "p95": 1.6,
+          "max": 1.6
+        },
+        "gpuSubmit.render": {
+          "count": 12,
+          "p50": 11.2,
+          "p95": 846.7,
+          "max": 846.7
+        },
+        "view.render": {
+          "count": 12,
+          "p50": 14,
+          "p95": 877.8,
+          "max": 877.8
+        },
+        "hud.update": {
+          "count": 12,
+          "p50": 0.3,
+          "p95": 0.9,
+          "max": 0.9
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.bufferData": {
+          "count": 352,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 4.7
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "roll-normal-route1-0": {
+      "frameMs": {
+        "count": 13,
+        "p50": 266.7,
+        "p95": 716.7,
+        "max": 716.7
+      },
+      "longTasks": [
+        {
+          "phase": "roll-normal-route1-0",
+          "start": 145148.3999999999,
+          "duration": 714
+        }
+      ],
+      "inputToNextFrameMs": 243.3,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 13,
+          "p50": 0.2,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "game.moveEntity": {
+          "count": 248,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 13,
+          "p50": 0.5,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "route.follow": {
+          "count": 13,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "route.advance": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 13,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.syncMovement": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateHero": {
+          "count": 13,
+          "p50": 0.5,
+          "p95": 1,
+          "max": 1
+        },
+        "view.updateCamera": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.deleteProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gl.bufferData": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gpuSubmit.render": {
+          "count": 13,
+          "p50": 7.2,
+          "p95": 708.5,
+          "max": 708.5
+        },
+        "view.render": {
+          "count": 13,
+          "p50": 9.3,
+          "p95": 710.7,
+          "max": 710.7
+        },
+        "hud.update": {
+          "count": 13,
+          "p50": 0.3,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "roll-normal-route1-1": {
+      "frameMs": {
+        "count": 13,
+        "p50": 266.7,
+        "p95": 699.9,
+        "max": 699.9
+      },
+      "longTasks": [
+        {
+          "phase": "roll-normal-route1-1",
+          "start": 148805.5,
+          "duration": 709
+        }
+      ],
+      "inputToNextFrameMs": 263.9,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 13,
+          "p50": 0.2,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "game.moveEntity": {
+          "count": 224,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 13,
+          "p50": 0.5,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "route.follow": {
+          "count": 13,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "route.advance": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 13,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "vfx.syncMovement": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateHero": {
+          "count": 13,
+          "p50": 0.4,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "view.updateCamera": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 13,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gpuSubmit.render": {
+          "count": 13,
+          "p50": 7.2,
+          "p95": 703,
+          "max": 703
+        },
+        "view.render": {
+          "count": 13,
+          "p50": 9.4,
+          "p95": 704.3,
+          "max": 704.3
+        },
+        "hud.update": {
+          "count": 13,
+          "p50": 0.3,
+          "p95": 1.1,
+          "max": 1.1
+        },
+        "gl.deleteProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "roll-normal-route1-2": {
+      "frameMs": {
+        "count": 19,
+        "p50": 299.9,
+        "p95": 1033.3,
+        "max": 1033.3
+      },
+      "longTasks": [
+        {
+          "phase": "roll-normal-route1-2",
+          "start": 153044.3999999999,
+          "duration": 1008
+        }
+      ],
+      "inputToNextFrameMs": 363.4,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 19,
+          "p50": 0.2,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "game.moveEntity": {
+          "count": 316,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 19,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "route.follow": {
+          "count": 19,
+          "p50": 0.1,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "route.advance": {
+          "count": 19,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 19,
+          "p50": 0.1,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "vfx.syncMovement": {
+          "count": 19,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateHero": {
+          "count": 19,
+          "p50": 0.5,
+          "p95": 1.1,
+          "max": 1.1
+        },
+        "view.updateCamera": {
+          "count": 19,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 19,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 19,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gpuSubmit.render": {
+          "count": 19,
+          "p50": 8,
+          "p95": 1002.7,
+          "max": 1002.7
+        },
+        "view.render": {
+          "count": 19,
+          "p50": 10,
+          "p95": 1005.1,
+          "max": 1005.1
+        },
+        "hud.update": {
+          "count": 19,
+          "p50": 0.3,
+          "p95": 1,
+          "max": 1
+        },
+        "gl.deleteProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "blink-normal-route1-0": {
+      "frameMs": {
+        "count": 8,
+        "p50": 283.3,
+        "p95": 750,
+        "max": 750
+      },
+      "longTasks": [
+        {
+          "phase": "blink-normal-route1-0",
+          "start": 158525.09999999998,
+          "duration": 745
+        }
+      ],
+      "inputToNextFrameMs": 254.4,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 8,
+          "p50": 0.2,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 124,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 8,
+          "p50": 0.3,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "route.follow": {
+          "count": 8,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "route.advance": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 8,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "vfx.syncMovement": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 8,
+          "p50": 0.4,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "view.updateCamera": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateStreaming": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.bufferData": {
+          "count": 178,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 4.1
+        },
+        "gpuSubmit.render": {
+          "count": 8,
+          "p50": 8.6,
+          "p95": 730.7,
+          "max": 730.7
+        },
+        "view.render": {
+          "count": 8,
+          "p50": 9.9,
+          "p95": 732.8,
+          "max": 732.8
+        },
+        "hud.update": {
+          "count": 8,
+          "p50": 0.4,
+          "p95": 0.9,
+          "max": 0.9
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.blink": {
+          "count": 1,
+          "p50": 9.1,
+          "p95": 9.1,
+          "max": 9.1
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 9.1,
+          "p95": 9.1,
+          "max": 9.1
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        }
+      }
+    },
+    "blink-normal-route1-1": {
+      "frameMs": {
+        "count": 8,
+        "p50": 333.2,
+        "p95": 750,
+        "max": 750
+      },
+      "longTasks": [
+        {
+          "phase": "blink-normal-route1-1",
+          "start": 161434.79999999993,
+          "duration": 751
+        }
+      ],
+      "inputToNextFrameMs": 247.5,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 8,
+          "p50": 0.2,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "game.moveEntity": {
+          "count": 109,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "game.update": {
+          "count": 8,
+          "p50": 0.3,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "route.follow": {
+          "count": 8,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "route.advance": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 8,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "vfx.syncMovement": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 8,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "view.updateCamera": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 8,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 8,
+          "p50": 0,
+          "p95": 1.1,
+          "max": 1.1
+        },
+        "gpuSubmit.render": {
+          "count": 8,
+          "p50": 7.7,
+          "p95": 733.6,
+          "max": 733.6
+        },
+        "view.render": {
+          "count": 8,
+          "p50": 9.9,
+          "p95": 735.6,
+          "max": 735.6
+        },
+        "hud.update": {
+          "count": 8,
+          "p50": 0.3,
+          "p95": 0.9,
+          "max": 0.9
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.blink": {
+          "count": 1,
+          "p50": 9.7,
+          "p95": 9.7,
+          "max": 9.7
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 9.7,
+          "p95": 9.7,
+          "max": 9.7
+        },
+        "gl.bufferData": {
+          "count": 176,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "blink-normal-route1-2": {
+      "frameMs": {
+        "count": 10,
+        "p50": 366.7,
+        "p95": 783.3,
+        "max": 783.3
+      },
+      "longTasks": [
+        {
+          "phase": "blink-normal-route1-2",
+          "start": 164273.3999999999,
+          "duration": 780
+        }
+      ],
+      "inputToNextFrameMs": 251.3,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 10,
+          "p50": 0.3,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "game.moveEntity": {
+          "count": 132,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 10,
+          "p50": 0.4,
+          "p95": 1.7,
+          "max": 1.7
+        },
+        "route.follow": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "route.advance": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 10,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "vfx.syncMovement": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 10,
+          "p50": 0.4,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "view.updateCamera": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.deleteProgram": {
+          "count": 9,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 10,
+          "p50": 0,
+          "p95": 1,
+          "max": 1
+        },
+        "gpuSubmit.render": {
+          "count": 10,
+          "p50": 8.5,
+          "p95": 749,
+          "max": 749
+        },
+        "view.render": {
+          "count": 10,
+          "p50": 9.9,
+          "p95": 751.3,
+          "max": 751.3
+        },
+        "hud.update": {
+          "count": 10,
+          "p50": 0.3,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.blink": {
+          "count": 1,
+          "p50": 25,
+          "p95": 25,
+          "max": 25
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 25,
+          "p95": 25,
+          "max": 25
+        },
+        "gl.bufferData": {
+          "count": 176,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 4.5
+        },
+        "gl.compileShader": {
+          "count": 10,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 5,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "leap-normal-route1-0": {
+      "frameMs": {
+        "count": 18,
+        "p50": 300,
+        "p95": 783.3,
+        "max": 783.3
+      },
+      "longTasks": [
+        {
+          "phase": "leap-normal-route1-0",
+          "start": 170905.8999999999,
+          "duration": 763
+        }
+      ],
+      "inputToNextFrameMs": 286,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 18,
+          "p50": 0.3,
+          "p95": 1.4,
+          "max": 1.4
+        },
+        "game.moveEntity": {
+          "count": 277,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 18,
+          "p50": 0.4,
+          "p95": 0.8,
+          "max": 0.8
+        },
+        "route.follow": {
+          "count": 18,
+          "p50": 0.1,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "route.advance": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "route.update": {
+          "count": 18,
+          "p50": 0.2,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "vfx.syncMovement": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "view.updateHero": {
+          "count": 18,
+          "p50": 0.5,
+          "p95": 1.2,
+          "max": 1.2
+        },
+        "view.updateCamera": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "vfx.update": {
+          "count": 18,
+          "p50": 0,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "gl.bufferData": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gpuSubmit.render": {
+          "count": 18,
+          "p50": 7.3,
+          "p95": 755.9,
+          "max": 755.9
+        },
+        "view.render": {
+          "count": 18,
+          "p50": 9.2,
+          "p95": 758,
+          "max": 758
+        },
+        "hud.update": {
+          "count": 18,
+          "p50": 0.3,
+          "p95": 1.5,
+          "max": 1.5
+        },
+        "gl.deleteProgram": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 0.3,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "gl.compileShader": {
+          "count": 4,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "leap-normal-route1-1": {
+      "frameMs": {
+        "count": 17,
+        "p50": 283.3,
+        "p95": 749.9,
+        "max": 749.9
+      },
+      "longTasks": [
+        {
+          "phase": "leap-normal-route1-1",
+          "start": 176221.09999999998,
+          "duration": 755
+        }
+      ],
+      "inputToNextFrameMs": 287.2,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 17,
+          "p50": 0.2,
+          "p95": 0.7,
+          "max": 0.7
+        },
+        "game.moveEntity": {
+          "count": 231,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.2
+        },
+        "game.update": {
+          "count": 17,
+          "p50": 0.3,
+          "p95": 0.6,
+          "max": 0.6
+        },
+        "route.follow": {
+          "count": 17,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "route.advance": {
+          "count": 17,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 17,
+          "p50": 0.1,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "vfx.syncMovement": {
+          "count": 17,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 17,
+          "p50": 0.5,
+          "p95": 1.3,
+          "max": 1.3
+        },
+        "view.updateCamera": {
+          "count": 17,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 17,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 17,
+          "p50": 0,
+          "p95": 0.3,
+          "max": 0.3
+        },
+        "gpuSubmit.render": {
+          "count": 17,
+          "p50": 7.9,
+          "p95": 744.2,
+          "max": 744.2
+        },
+        "view.render": {
+          "count": 17,
+          "p50": 10,
+          "p95": 748.3,
+          "max": 748.3
+        },
+        "hud.update": {
+          "count": 17,
+          "p50": 0.3,
+          "p95": 4.4,
+          "max": 4.4
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 0.5,
+          "p95": 0.5,
+          "max": 0.5
+        },
+        "gl.deleteProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 4,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    },
+    "leap-normal-route1-2": {
+      "frameMs": {
+        "count": 22,
+        "p50": 333.3,
+        "p95": 550,
+        "max": 799.9
+      },
+      "longTasks": [
+        {
+          "phase": "leap-normal-route1-2",
+          "start": 178938.69999999995,
+          "duration": 113
+        },
+        {
+          "phase": "leap-normal-route1-2",
+          "start": 179255.19999999995,
+          "duration": 112
+        },
+        {
+          "phase": "leap-normal-route1-2",
+          "start": 181755.09999999998,
+          "duration": 797
+        },
+        {
+          "phase": "leap-normal-route1-2",
+          "start": 182553.09999999998,
+          "duration": 166
+        },
+        {
+          "phase": "leap-normal-route1-2",
+          "start": 183593.79999999993,
+          "duration": 69
+        }
+      ],
+      "inputToNextFrameMs": 275.3,
+      "geometries": null,
+      "cpu": {
+        "input.update": {
+          "count": 22,
+          "p50": 0.3,
+          "p95": 0.7,
+          "max": 7.5
+        },
+        "game.moveEntity": {
+          "count": 262,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.9
+        },
+        "game.update": {
+          "count": 22,
+          "p50": 0.4,
+          "p95": 1.2,
+          "max": 1.2
+        },
+        "route.follow": {
+          "count": 22,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "route.advance": {
+          "count": 22,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "route.update": {
+          "count": 22,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.2
+        },
+        "vfx.syncMovement": {
+          "count": 22,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "view.updateHero": {
+          "count": 22,
+          "p50": 0.5,
+          "p95": 0.7,
+          "max": 0.9
+        },
+        "view.updateCamera": {
+          "count": 22,
+          "p50": 0,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.updateStreaming": {
+          "count": 22,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "vfx.update": {
+          "count": 22,
+          "p50": 0.1,
+          "p95": 0.2,
+          "max": 0.3
+        },
+        "gpuSubmit.render": {
+          "count": 22,
+          "p50": 8.2,
+          "p95": 77.9,
+          "max": 788
+        },
+        "view.render": {
+          "count": 22,
+          "p50": 10.5,
+          "p95": 88,
+          "max": 790.7
+        },
+        "hud.update": {
+          "count": 22,
+          "p50": 0.3,
+          "p95": 1,
+          "max": 4.3
+        },
+        "game.useMovement": {
+          "count": 1,
+          "p50": 0.1,
+          "p95": 0.1,
+          "max": 0.1
+        },
+        "view.handleEvent": {
+          "count": 2,
+          "p50": 0.4,
+          "p95": 0.4,
+          "max": 0.4
+        },
+        "gl.deleteProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.compileShader": {
+          "count": 4,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "gl.linkProgram": {
+          "count": 2,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        }
+      }
+    }
+  }
+}

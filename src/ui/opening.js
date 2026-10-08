@@ -1,9 +1,9 @@
 // The opening: the new character lies unconscious on Arrival Beach, wakes beside the wreck, takes one
-// of three weapons (it brings its basic attack), then one starter skill and one movement skill.
+// of three weapons (it brings its basic attack), with only its normal attack.
 // Rules live in core/character.js (completeOpening); this only asks and shows.
 import './opening.css';
 import { art } from './art.js';
-import { completeOpening, openingSkillChoices, wakeOpening } from '../core/character.js';
+import { completeOpening, wakeOpening } from '../core/character.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -14,7 +14,7 @@ export class Opening {
     this.data = game.data;
     this.view = view;
     this.hooks = hooks;
-    this.pick = { kit: null, skill: null, movement: null };
+    this.pick = { kit: null };
     this.root = root;
     this.el = document.createElement('div');
     this.el.className = 'opening-layer';
@@ -34,9 +34,8 @@ export class Opening {
     // wake facing the wreck
     if (wreck) p.facing = Math.atan2(wreck.at[0] - spawn[0], wreck.at[1] - spawn[1]);
     const saved = this.game.ch.opening;
-    this.pick = { kit: saved.kit || null, skill: saved.skill || null, movement: saved.movement || null };
+    this.pick = { kit: saved.kit || null };
     if (stage === 'wake') this.showWake();
-    else if (stage === 'skills' && this.data.progression.start.opening.weapons.includes(this.pick.kit)) this.showSkills();
     else this.showWeapons();
     return true;
   }
@@ -78,26 +77,12 @@ export class Opening {
         const k = kits[id], b = sk[k.basic];
         return this.card(k.weapon, 'gear', k.nameTh, `ติดมากับท่าตีพื้นฐาน: ${b.nameTh}`, k.descTh, this.pick.kit === id, `data-act="kit" data-kit="${id}"`);
       }).join('')}</div>
-      <div class="orow"><button class="obtn primary" data-act="to-skills" ${this.pick.kit ? '' : 'disabled'}>ต่อไป ▶</button></div></div>`;
+      <div class="orow"><button class="obtn primary" data-act="finish" ${this.pick.kit ? '' : 'disabled'}>ออกเดินทาง ▶</button></div></div>`;
     for (const [id, o] of Object.entries(this.view.weaponProps || {})) o.scale.setScalar(this.pick.kit === id ? 1.18 : 1);
   }
 
-  showSkills() {
-    const { data } = this, sk = data.skills.combat, mv = data.skills.movement, kit = data.progression.start.kits[this.pick.kit];
-    this.step = 'skills';
-    this.remember('skills');
-    const pool = openingSkillChoices(data, this.pick.kit);
-    this.el.className = 'opening-layer sheet';
-    this.el.innerHTML = `<div class="osheet">
-      <h2>วิชาที่ติดตัวมา</h2>
-      <p class="odesc">${esc(sk[kit.basic].nameTh)} มากับ${esc(kit.nameTh)}แล้ว เลือกเพิ่ม <b>สกิล 1 อย่าง</b> และ <b>สกิลเคลื่อนที่ 1 อย่าง</b> <span>ลูกไฟและโล่เวทไม่ได้ติดตัวมา แต่ได้จากภารกิจริมหาดหรือสร้างที่โต๊ะคราฟต์ สกิลอื่นสร้างที่โต๊ะคราฟต์ได้ทั้งหมด</span></p>
-      <h3>สกิล</h3><div class="ocards small">${pool.map((id) => this.card(id, 'skill', sk[id].nameTh, '', sk[id].desc, this.pick.skill === id, `data-act="skill" data-id="${id}"`)).join('')}</div>
-      <h3>สกิลเคลื่อนที่</h3><div class="ocards small">${data.progression.start.opening.movementPool.map((id) => this.card(id, 'skill', mv[id].nameTh, '', mv[id].desc, this.pick.movement === id, `data-act="move" data-id="${id}"`)).join('')}</div>
-      <div class="orow"><button class="obtn" data-act="back">◀ กลับ</button><button class="obtn primary" data-act="finish" ${this.pick.skill && this.pick.movement ? '' : 'disabled'}>ออกเดินทาง ▶</button></div></div>`;
-  }
-
   finish() {
-    const r = completeOpening(this.game.ch, this.data, { kit: this.pick.kit, skill: this.pick.skill, movement: this.pick.movement });
+    const r = completeOpening(this.game.ch, this.data, { kit: this.pick.kit });
     if (!r.ok) return;
     this.game.refresh();
     this.view.placeWreck(this.game); // the weapon stakes go away
@@ -119,13 +104,8 @@ export class Opening {
     switch (t.dataset.act) {
       case 'wake': return this.wake();
       case 'kit':
-        if (this.pick.kit !== t.dataset.kit) this.pick.skill = null; // the pool depends on the weapon
         this.pick.kit = t.dataset.kit;
         return this.showWeapons();
-      case 'to-skills': return this.showSkills();
-      case 'back': return this.showWeapons();
-      case 'skill': this.pick.skill = t.dataset.id; return this.showSkills();
-      case 'move': this.pick.movement = t.dataset.id; return this.showSkills();
       case 'finish': return this.finish();
     }
   }

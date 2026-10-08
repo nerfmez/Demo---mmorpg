@@ -4,6 +4,7 @@ import {createCharacter, equip} from '../../src/core/character.js';
 import {equipSkill, socketMod} from '../../src/core/skills.js';
 export function loadoutCharacter() {
   const data=loadData(),ch=createCharacter(data,{name:'Aerin',kit:'sword'});
+  ch.skills={slash:1,hunter_shot:1,firebolt:1,ward:1};ch.slots=['slash','ward','firebolt',null].map(skill=>({skill,mods:[]}));ch.movementSkills=['dash','roll'];ch.movement='dash';
   Object.assign(ch,{level:12,gold:1280,stats:{STR:8,AGI:7,VIT:7,INT:6,DEX:6}});
   for(const base of ['tusk_blade','hunter_bow','wisp_staff','hide_vest','shell_guard','wolfpelt_coat','leather_cap','beetle_helm','spore_hood','wolf_boots','wisp_slippers','crag_axe','storm_bow','spore_wand','fang_dagger','tusk_charm','wisp_pendant','spore_amulet'])ch.gear.push({uid:ch.nextUid++,base,itemLevel:data.items.gearBases[base].itemLevel,grade:base==='tusk_blade'?'A':'B',upgrade:base==='tusk_blade'?2:0,options:[]});
   for(const base of ['leather_cap','hide_vest','tusk_charm'])equip(ch,data,ch.gear.find(i=>i.base===base).uid);

@@ -10,8 +10,8 @@ monsters, saved character and gameplay rules are unchanged.
 - Upper left: small SEEKER wordmark above the live character portrait, name, HP/MP,
   level and gold/status row. HP/barrier/MP still read the real player values.
 - Upper right: real minimap with north marker and location, narrow inventory/skills/menu
-  shortcuts, and a compact tracked quest plus one other active quest when room permits.
-  Quest text/progress comes from actual state. Opening the tracker opens the quest journal.
+  shortcuts, and the location chip. The quest tracker flows below the left player frame and reserves touch movement space.
+  Quest text/progress comes from actual state. Tapping the tracker toggles a faint dashed ground route. The journal is available from the menu or L.
 - Lower left: quiet translucent floating joystick. Input zone, drag and cancellation stay
   the same; the decorative arrows are non-interactive.
 - Lower right on both mouse and touch: large basic attack, THREE other real combat slots,
@@ -22,7 +22,7 @@ monsters, saved character and gameplay rules are unchanged.
 - Bottom edge: independent thin EXP (blue) and Job EXP (gold) tracks with readable labels
   outside the fills. At each level cap the relevant track reads MAX, not misleading 0%.
 
-Short landscape moves the compact quest under the player card and reduces controls;
+The quest tracker follows the actual player-card height in every viewport. Short landscape compacts it and reduces controls;
 portrait also uses a single compact quest row. Menus and the full-screen travel-journal
 passive tree retain their existing behavior and remain above the EXP strip.
 

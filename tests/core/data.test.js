@@ -43,11 +43,12 @@ test('job tree links are symmetric and reachable from the origin', () => {
   assert.equal(seen.size, Object.keys(nodes).length);
 });
 
-test('start loadout is valid', () => {
+test('start kits contain only their weapon normal attack and no movement grants', () => {
   const st = data.progression.start;
-  for (const s of st.slots) if (s) assert.ok(st.skills[s], `slot skill ${s} is learned`);
-  assert.ok(st.movementSkills.includes(st.movement));
-  assert.equal(st.slots.length, data.progression.slotCount);
+  assert.deepEqual(st.skills, {}); assert.deepEqual(st.movementSkills, []); assert.equal(st.movement, null);
+  for (const k of Object.values(st.kits)) {
+    assert.ok(data.skills.combat[k.basic]); assert.deepEqual(k.slots, [k.basic, null, null, null]); assert.equal(k.movement, null);
+  }
 });
 
 test('every material has a sell value', () => {

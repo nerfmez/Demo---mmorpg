@@ -1,8 +1,8 @@
+import { LearnedGame as Game } from './helpers.js';
 // Combat feel rules: 1-2-3 melee combo with a finisher, and short flinches that never cancel a wind-up.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { legacyData as data } from './helpers.js';
-import { Game } from '../../src/core/game.js';
 import { computeSkill } from '../../src/core/skills.js';
 
 test('starter Firebolt travels at the lower base speed and speed bonuses preserve reach', () => {

@@ -1,3 +1,4 @@
+import {installLearnedLoadout} from './learned-loadout.mjs';
 // Real menu actions and interrupted touch gestures, including narrow phone layouts.
 // Run after building: npm run test:ux (BROWSER=webkit for Safari's engine).
 import assert from 'node:assert/strict';
@@ -32,6 +33,7 @@ try {
     await page.addInitScript(() => localStorage.setItem('frontier-demo.questCollapsed', 'false'));
     await page.goto(`http://localhost:${PORT}/?fresh=1&quality=low&seed=7`);
     await page.waitForFunction(() => window.__frontier?.game?.time > 0.3, null, { timeout: 30000 });
+    await installLearnedLoadout(page);
     await page.evaluate(() => {
       const f = window.__frontier;
       f.paused = true;

@@ -766,38 +766,49 @@ reason beside the button. Stat/material/gold requirements are unchanged.
 Equipment enhancement/promotion and crafting still use the original workbench
 gate. Port the service anchors and `tests/core/upgrade-services.test.js`.
 
-### The opening: wreck, weapon kit, starter skills (save v10)
+### The opening and completion receipts (save v11)
 
-A new character is `createCharacter(data, { opening: true })`: no weapon, no skills, no movement
-skill, empty slots, `ch.opening = { stage: 'wake' }`, `ch.kit = null`. `core/character.js`
-`completeOpening(ch, data, { kit, skill, movement })` validates and applies the whole choice at once:
-the kit's weapon is equipped, `kits[kit].basic` (slash / hunter_shot / the new `arcane_bolt`) and
-the one starter skill become skills and slots 1–2, and the movement skill becomes the only movement
-skill. `openingSkillChoices(data, kit)` filters `progression.start.opening.skillPool` by weapon
-(a staff is never offered Whirl Blade). Stages: `wake` (unconscious) → `weapon` → `skills` → `done`.
-`wakeOpening(ch)` validates the saved wake transition in core. Until a movement skill is
-owned, its compiled charge limit is zero and `Game.useMovement` refuses it; applying the
-opening choice through `Game.refresh` fills the newly selected movement skill's charges.
-Firebolt and Ward are not part of the start: quests `h_slimes` / `h_crabs` carry
-`reward.skills`, which `Game.completeQuests` learns and slots into the first empty slot,
-then compiles immediately with `refreshSkills` so it can be cast without a level-up or reload; the
-workbench has explicit recipes for every released skill and movement skill (`learn_*`), so a missing released skill can always
-be crafted. `arcane_bolt` is a free staff-only projectile (`element: 'arcane'`, `requiresWeapon:
-['staff']`). `createCharacter` without `opening` is the legacy full kit that tests and `?fresh=1` use.
+`createCharacter(data, { opening: true })` wakes unarmed with empty skills and slots.
+`wakeOpening` advances `wake` → `weapon`; `completeOpening(ch, data, { kit })`
+equips the chosen weapon and teaches only its normal attack (`slash`, `hunter_shot`,
+`arcane_bolt`). There is no skill or movement selection. Direct creation (including
+`?fresh=1`) also starts with only that weapon's basic attack. Movement remains
+unowned, its HUD slot empty and charge limit zero, until acquired later. Firebolt
+and Ward still come from shore quests or crafting; quest skills compile immediately.
+No combat/movement numbers or later recipes change.
 
-Migration to v10 sets `opening.stage = 'done'` only on saves without opening state, including
-the independent movement-mod v9 schema in draft PR102. It leaves `movementMods` intact and
-does not import that draft's prototypes or grant them crafting recipes. Existing opening
-characters keep their exact chosen skills on reload; Hunter's Shot is only a legacy grant.
-older characters keep every skill, slot and Firebolt/Ward. A save written mid-opening keeps
-`kit: null` and empty skills and resumes the opening. Each UI transition and selection saves
-`opening = { stage, kit, skill, movement }`, so interruptions resume the same choice screen.
+v11 migration preserves existing skills, ranks, slots, movement ownership and
+movement-mod fields. It never fills missing ownership with a legacy starter kit,
+Hunter Shot or Dash. An interrupted v10 `skills` screen returns to `weapon` with
+its weapon selection remembered; unapplied starter picks grant nothing. Already
+completed openings keep every learned skill. The wreck and lying/standing presentation
+remain owned by Azure's existing region root.
 
-Presentation: `data/world.json` → `wreck` places the ship (`render/wreck.js`: hull, mast, sail,
-cargo, merged per material) and three weapon stakes beside the spawn. These objects belong
-to Azure's region root, so atlas shifts move them with Azure and stream-out disposes them.
-Returning to Azure rebuilds them if needed. While `stage` is `wake`
-the hero lies down (`view.heroDown`, eased by `HumanoidAnimator` via `s.down`); `ui/opening.js`
-shows the wake line, the three weapon cards and the skill/movement cards, and locks input until
-the choice is applied. In Godot: an `AnimationPlayer` lying→standing clip, three interactable
-props, and one choice dialog that calls the same rule function.
+The quest journal is version 2 with `completions: []`. The core marks a quest's
+`rewardClaimed` before payment and reentrant level-up callbacks, pays once, and
+records an immutable receipt before callbacks: quest name/description/objectives,
+actual gold/items, newly learned skills (no duplicate grants), and actual base/job
+EXP credited up to the caps. `questDone` carries that received reward. A v1 paid
+quest gets no invented receipt or new payment. Unpaid v1 rewards retain their guard
+and may pay once; malformed/duplicate presentation receipts are discarded.
+
+`ui/quest-completion.js` reads the first receipt in a native modal dialog. It pauses
+simulation/input, queues all receipts, and only calls `dismissQuestCompletion` plus
+the ordinary save callback. Dismissal cannot pay a reward. Escape and the touch
+button dismiss one receipt; failed persistence restores it. Unseen receipts survive
+Continue/export/import; acknowledged receipts stay dismissed. Port as a modal Control
+reading the same paid queue, with a separate dismiss/save action.
+
+The HUD tracker sits below the player frame in the left column. Its scroll budget
+reserves mobile safe insets and the movement area. Tapping it (or Enter/Space on its
+button) toggles a subtle dashed ground route; the journal stays available through the
+main menu/L. `core/quest-route.js` uses bounded A* with the existing `World.isFree`
+and sampled `World.move` checks for radius, water, obstacles and slopes. It never
+falls back to drawing through a wall. Occupied interactable anchors get a nearby
+walkable approach. Remote goals use `questNavigation`'s actual authored crossing,
+then replan on map handover. Nonspatial tasks show their instruction without a line.
+The route clears when tracking changes/completes, and target/player movement triggers
+a bounded refresh (no stationary per-frame pathfinding). One merged translucent
+terrain-sampled dashed ribbon owns its geometry/material; hide, handover, travel or
+page disposal releases it with `disposeObject`. Port as a navigation aid mesh with
+the same clearance and goal contracts, never auto-walk.

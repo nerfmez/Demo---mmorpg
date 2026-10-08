@@ -41,3 +41,16 @@ body.ingame #hud {height:calc(var(--viewport-h,100dvh) - var(--xp-h))}
  #hud .quest-heading {height:44px}
  #hud .quest-collapse {width:44px;height:44px}
 }
+/* The left column flows after the real player-frame height, reserving movement space. */
+#hud .left-column {position:absolute;left:calc(22px + var(--safe-l));top:calc(70px + var(--safe-t));display:flex;flex-direction:column;align-items:flex-start;gap:14px;width:376px;max-width:calc(100% - 44px - var(--safe-l) - var(--safe-r));height:calc(var(--viewport-h,100dvh) * .6 - 70px - var(--safe-t) - var(--safe-b));pointer-events:none;z-index:3}
+#hud .left-column .pframe {position:relative;left:auto;top:auto;flex:none;pointer-events:auto}
+#hud .left-column .quest-widget {position:relative;left:auto;top:auto;width:286px;display:flex;flex-direction:column;flex:0 1 auto;min-height:88px;overflow:hidden;pointer-events:auto}
+#hud .left-column .quest-heading {height:44px;flex:none}
+#hud .left-column .questtrack {width:100%;max-height:none;min-height:44px;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain}
+#hud .questtrack * {touch-action:pan-y}
+#hud .questtrack[aria-pressed=true] {box-shadow:inset 2px 0 #ecd69c}
+#hud .quest-collapse {width:44px;height:44px}
+#hud .toasts {left:50%;top:calc(132px + var(--safe-t));transform:translateX(-50%);max-width:260px}
+@media(min-width:601px) and (min-height:561px){body.touch #hud .left-column {height:calc(var(--viewport-h,100dvh) * .51 - 70px - var(--safe-t) - var(--safe-b))}}
+@media(max-height:560px) and (orientation:landscape){#hud .left-column{left:calc(12px + var(--safe-l));top:calc(9px + var(--safe-t));height:calc(var(--viewport-h,100dvh) * .58 - 9px - var(--safe-t) - var(--safe-b));gap:12px}#hud .left-column .quest-widget{width:235px}#hud .questtrack .field-quest-row{padding-block:4px}#hud .toasts{top:calc(84px + var(--safe-t));max-width:220px}}
+@media(max-width:600px) and (orientation:portrait){#hud .left-column{left:calc(10px + var(--safe-l));top:calc(48px + var(--safe-t));height:calc(var(--viewport-h,100dvh) * .6 - 48px - var(--safe-t) - var(--safe-b))}#hud .left-column .quest-widget{width:210px}#hud .toasts{top:calc(350px + var(--safe-t));max-width:210px}}

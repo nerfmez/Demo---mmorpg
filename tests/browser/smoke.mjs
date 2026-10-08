@@ -163,6 +163,7 @@ async function run(name, contextOpts) {
   const res = await page.evaluate(async () => {
     const { game, input } = window.__frontier;
     input.disabled = true;
+    Object.assign(game.ch.skills,{slash:1,firebolt:1,ward:1});game.ch.slots=['slash','firebolt','ward',null].map(skill=>({skill,mods:[]}));game.ch.movementSkills=['dash','roll'];game.ch.movement='dash';
     // This combat/loot fixture starts after the boar mission's authored story
     // prerequisites; mark their rewards already paid, then use the real refresh.
     const completePrerequisite = id => {

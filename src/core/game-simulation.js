@@ -5,12 +5,12 @@
 import { createWorld } from './world.js';
 import { createRng } from './rng.js';
 import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
-import { createCharacter, migrateCharacter, derive, addExp, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
+import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
-import { refreshQuests, questEvent } from './quests.js';
+import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
 import { buyConsumable, restoreAmount, consumableCount } from './consumables.js';
@@ -721,18 +721,26 @@ export class Game {
     for (const id of ids) {
       const q = this.data.quests.quests[id];
       const r = q.reward || {};
+      const received = { gold: r.gold || 0, items: { ...(r.items || {}) }, skills: [] };
       if (r.gold) this.ch.gold += r.gold;
       for (const [item, n] of Object.entries(r.items || {})) addItem(this.ch, item, n);
       for (const skill of r.skills || []) {
         // a quest-taught skill goes into the first empty slot so it is seen at once
         if (this.ch.skills[skill] || !this.data.skills.combat[skill]) continue;
         this.ch.skills[skill] = 1;
+        received.skills.push(skill);
         learnedSkill = true;
         const empty = this.ch.slots.find((s) => !s.skill);
         if (empty) empty.skill = skill;
       }
+      const before = { level: this.ch.level, exp: this.ch.exp, jobLevel: this.ch.jobLevel, jobExp: this.ch.jobExp };
       const gained = addExp(this.ch, this.data, r.exp || 0, r.jobExp || 0);
-      this.emit({ type: 'questDone', id, reward: r });
+      received.exp = this.ch.exp - before.exp;
+      for (let lv = before.level; lv < this.ch.level; lv++) received.exp += expToNext(this.data, lv);
+      received.jobExp = this.ch.jobExp - before.jobExp;
+      for (let lv = before.jobLevel; lv < this.ch.jobLevel; lv++) received.jobExp += jobExpToNext(this.data, lv);
+      recordQuestCompletion(this.ch, this.data, id, received);
+      this.emit({ type: 'questDone', id, reward: received });
       if (gained.levels) this.onLevelUp();
       if (gained.jobLevels) this.emit({ type: 'joblevelup', level: this.ch.jobLevel });
     }

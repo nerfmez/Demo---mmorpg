@@ -1,3 +1,4 @@
+import {independentJobGroups} from './independent-job-groups.mjs';
 // Journal lines (owner brief, October 2026): every build line can be followed alone to the
 // character cap, and lines that suit each other can be mixed. Three related lines share a page
 // in each stage. Inside a line the path forks (two focuses) and meets again; bridge nodes join
@@ -134,6 +135,7 @@ for (const f of FAMILIES) {
   J.presentation.groups.push({ ...path, color: f.color });
 }
 J.presentation.stages = stages;
+independentJobGroups(J);
 let out = JSON.stringify(J, null, 2) + '\n';
 if (/\\u[0-9a-f]{4}/.test(raw)) out = out.replace(/[\u0080-￿]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 fs.writeFileSync(file, out);

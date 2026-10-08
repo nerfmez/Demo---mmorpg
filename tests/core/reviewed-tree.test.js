@@ -5,10 +5,10 @@ import {createCharacter,allocateJobNode,jobNodeState,jobPath,migrateCharacter,de
 const funded=()=>Object.assign(createCharacter(data),{jobLevel:20,jobPoints:39,gold:10000});
 const first=['lesson.prepare','lesson.strike','lesson.rhythm'];
 const buy=(ch,ids)=>{for(const id of ids)assert.equal(allocateJobNode(ch,data,id).done,true,id);};
-test('reviewed path counts, directed reachability, 15/17 point plans and no trial points',()=>{
+test('reviewed path counts, optional 15/17 point selections and no trial points',()=>{
  assert.equal(createCharacter(data).jobPoints,0);
  const stages=data.jobtree.presentation.stages;
- assert.deepEqual(stages.map(s=>s.gate),[0,3,7,17,25]);
+ assert.deepEqual(stages.map(s=>s.gate),[0,0,0,0,0]);
  // The reviewed paths are unchanged; the build lines (scripts/journal-lines.mjs) follow them.
  const reviewed=s=>s.nodes?.length||s.paths.filter(p=>!p.line).map(p=>p.nodes.length);
  assert.deepEqual(stages.slice(0,3).map(reviewed),[6,[6,6],[6,6,6]]);
@@ -18,15 +18,15 @@ test('reviewed path counts, directed reachability, 15/17 point plans and no tria
   buy(ch,i===0?['lesson.care','lesson.shelter']:['lesson.strike','lesson.rhythm']);assert.equal(39-ch.jobPoints,17);
  }
 });
-test('named prerequisites cannot be reversed or replaced by adjacency, BOTH parents are required',()=>{
+test('local prerequisites cannot be reversed or replaced by adjacency; groups start independently',()=>{
  const ch=funded();buy(ch,first);buy(ch,['path.impact','path.reach','path.precision','path.horizon']);
  assert.equal(jobNodeState(ch,data,'advanced.power').can,true);
  assert.equal(39-ch.jobPoints,7);assert.equal(allocateJobNode(ch,data,'advanced.power').done,true);assert.equal(39-ch.jobPoints,8);
  ch.jobNodes.push('advanced.flow');
  const before=structuredClone(ch);assert.equal(allocateJobNode(ch,data,'path.step').reason,'prerequisite');assert.deepEqual(ch,before);
  const mix=funded();buy(mix,[...first,'lesson.care','lesson.shelter','path.impact','path.burst','path.support']);
- assert.deepEqual(jobNodeState(mix,data,'advanced.flow').missing,['path.step']);
- assert.ok(jobPath(mix,data,'advanced.flow').includes('path.step'));
+ assert.equal(jobNodeState(mix,data,'advanced.flow').can,true);
+ assert.deepEqual(jobPath(mix,data,'advanced.flow'),['advanced.flow']);
  buy(mix,['path.step','advanced.flow']);assert.equal(39-mix.jobPoints,10);
  const owned=structuredClone(mix);assert.equal(allocateJobNode(mix,data,'advanced.flow').done,undefined);assert.deepEqual(mix,owned);
  const empty=funded();empty.jobPoints=0;assert.equal(allocateJobNode(empty,data,'lesson.prepare').reason,'no_points');assert.deepEqual(empty.jobNodes,['origin']);

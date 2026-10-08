@@ -588,5 +588,11 @@
       "shake": 0.018,
       "hitStop": 0.025
     }
+  },
+  "swingColors": {
+    "rend": "#e8d9b4",
+    "rake": "#9aa7b8",
+    "whirl": "#9be04a",
+    "shove": "#d9b070"
   }
 }

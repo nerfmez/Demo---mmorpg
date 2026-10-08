@@ -126,7 +126,32 @@ function animQuad(r, s, dt, time, cfg) {
   let jaw = 0;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   const wu = s.windup;
-  if (wu === 'charge' || wu === 'lunge' || wu === 'triple') {
+  for (let i = 0; i < 2; i++) b[legs[i]].rotation.z = damp(b[legs[i]].rotation.z, 0, 18, dt);
+  if (wu === 'rend' || wu === 'rake') {
+    // rears back on the hind legs, head up, then claws down from alternating sides
+    headX = -0.35 * k;
+    bodyX = -0.2 * k;
+    bodyY += 0.1 * k;
+    jaw = 0.4 * k;
+    b[legs[0]].rotation.x = -0.95 * k;
+    b[`${legs[0]}k`].rotation.x = 0.65 * k;
+  } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake')) {
+    // The imported PR106 wolves use the same front-leg joints. Alternate paws
+    // at the data's contact times, with a lift, downstroke and return for each.
+    const hits = s.attack?.hits || [];
+    bodyX = -0.12;
+    bodyY += 0.08;
+    jaw = 0.4;
+    for (let i = 0; i < hits.length; i++) {
+      const t = s.actT - hits[i].at, leg = legs[i % 2];
+      if (t < -0.15 || t > 0.18) continue;
+      const stroke = clamp01((t + 0.15) / 0.15);
+      const release = 1 - clamp01(t / 0.18);
+      b[leg].rotation.x = (-0.95 + 1.25 * stroke) * release;
+      b[leg].rotation.z = (i % 2 ? -1 : 1) * (0.4 - 0.7 * stroke) * release;
+      b[`${leg}k`].rotation.x = 0.65 * (1 - stroke) * release;
+    }
+  } else if (wu === 'charge') {
     // crouch, head low, hind legs coiled; front paw scrapes on the boar
     headX = 0.35 * k;
     bodyX = 0.12 * k;
@@ -632,11 +657,21 @@ function animWarden(r, s, dt, time) {
     armX = [-0.6, -1.2 * k];
     armZ = [0.3, -1.3 * k];
     torsoY = 0.8 * k;
-  } else if (s.windup === 'gore') {
-    headX = 0.55 * k;
-    torsoX = 0.2 + 0.5 * k;
-    armX = [0.5, 0.5];
-    hipsY -= 0.2 * k;
+  } else if (s.windup === 'quake') {
+    // one fist raised high, the other braced; the ground splits ahead
+    armX = [-2.9 * k, 0.3];
+    armZ = [0.2, -0.1];
+    torsoX = -0.35 * k;
+    hipsY += 0.2 * k;
+    headX = -0.2 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'quake') {
+    // Quake enters recovery when the fist lands; hold the planted fist while
+    // the four marked eruptions travel out, then straighten up.
+    const hold = 1 - clamp01((s.actT - 0.4) / 0.6);
+    armX = [-0.95 * hold, 0.3 * hold];
+    torsoX = 0.55 * hold;
+    hipsY -= 0.2 * hold;
+    headX = 0.2 * hold;
   } else if (s.state === 'act') {
     headX = 0.55;
     torsoX = 0.7;

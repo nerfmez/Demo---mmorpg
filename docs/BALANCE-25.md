@@ -87,9 +87,9 @@ or repeated boss kills. Each has its own body, attack pattern and part. No new b
 
 | Monster | Levels, zone | Pattern | Drops | Main use |
 |---|---|---|---|---|
-| ตั๊กแตนพงหนาม `thicket_mantis` | 11–14 forest, wolf den | Rears with both scythes, X-slash in a 150° cone, hops back; lunge from 3–7 m | mantis_scythe 55%, beetle_shell 30% | IL11 blades, axe, gloves, talisman |
-| งูกกพิษ `reed_viper` | 14–18 Frontier coast, wetland | Coils, then a fast straight strike; lobs venom onto a marked pool (3 s); keeps 3–6 m | viper_scale 60% ×1–2, venom_gland 35% | IL16 wisp/storm gear, armour, boots |
-| แพะผาเขาเหล็ก `ironhorn_ram` | 18–21 highlands | Paws the ground, then a long charge (lane); a miss leaves it stunned 1.4 s; rears and stomps a 2.6 m ring | ram_horn 50%, crag_stone 30% | IL16 maul/shield, IL21 horn and crag gear |
+| ตั๊กแตนพงหนาม `thicket_mantis` | 11–14 forest, wolf den | Rears with both scythes, X-slash in a 150° cone, hops back; whirl: a 360° scythe ring (2.4 m, 0.7 s wind-up) | mantis_scythe 55%, beetle_shell 30% | IL11 blades, axe, gloves, talisman |
+| งูกกพิษ `reed_viper` | 14–18 Frontier coast, wetland | Coils, then an instant fang lash along a short line (5.5 m); lobs venom onto a marked pool (3 s); keeps 3–6 m | viper_scale 60% ×1–2, venom_gland 35% | IL16 wisp/storm gear, armour, boots |
+| แพะผาเขาเหล็ก `ironhorn_ram` | 18–21 highlands | Paws the ground, then a horn shove in a 110° cone with strong knockback; rears and stomps a 2.6 m ring | ram_horn 50%, crag_stone 30% | IL16 maul/shield, IL21 horn and crag gear |
 | เสือเงาแผงคอเทา `duskmane_stalker` | 20–23 highlands, ruins | Circles half-seen; crouches and pounces onto a marked spot; claw swipe; backs off. A hit or any wind-up reveals it | dusk_pelt 55% ×1–2 | Wardenstalker set, IL21 bow and dagger, greaves, gauntlets |
 | ทหารยามศิลารูน `rune_sentinel` | 21–24 ruins | Charges a 12 m beam (locked after 55% of a 1.2 s wind-up); shard ring around itself up close; slow, does not chase far | rune_core 40%, ruin_shard 12% | Ancient staff/ring, relic wand, oathblade |
 

@@ -650,6 +650,7 @@ export class View {
           actT: m.stateT,
           actionTotal: m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur,
           hitTime: m.melee ? m.def.attacks[m.melee.name].hitTime : 0,
+          attack: m.def.attacks[m.melee?.name || mv.lastAttack],
           enraged: m.enraged,
           lastAttack: mv.lastAttack,
           hurt: mv.hurt,

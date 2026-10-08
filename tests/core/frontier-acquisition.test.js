@@ -62,3 +62,17 @@ test('v9 prototype and v12 main saves retain IDs, loadouts and auto-potion setti
  const main=createCharacter(data);main.version=12;delete main.movementMods;assert.deepEqual(migrateCharacter(main,data).movementMods,[]);
  }finally{delete globalThis.localStorage;}
 });
+test('tree revision 3 selective refund and v13 movement migration coexist exactly once',()=>{
+ for(const version of [9,12,13])for(const hasSocket of [false,true]){
+  const ch=createCharacter(data);ch.version=version;ch.treeRevision=2;ch.jobPoints=7;
+  ch.jobNodes=['origin','v1','vj','path.precision','advanced.flow','line.damage.mastery.10','bridge.physical-damage.2','removed-node','bridge.physical-damage.2'];
+  ch.skills.charged_shot=2;ch.slots[0]={skill:'charged_shot',mods:[800]};ch.mods=[{uid:800,id:'returning_shot',level:2,grade:'B'},{uid:801,id:'short_stride',level:1,grade:'C'}];ch.nextUid=802;ch.movementSkills=['roll'];ch.movement='roll';
+  if(hasSocket)ch.movementMods=[801];else delete ch.movementMods;
+  ch.autoPotions.hp={enabled:true,threshold:37,potion:'hp_potion_s'};
+  const before=structuredClone(ch),m=migrateCharacter(ch,data);
+  assert.equal(m.version,13);assert.equal(m.treeRevision,3);assert.equal(m.jobPoints,9);assert.deepEqual(m.jobNodes,before.jobNodes.slice(0,6));assert.deepEqual(m.movementMods,hasSocket?[801]:[]);
+  for(const key of ['skills','slots','mods','nextUid','movementSkills','movement','gear','equipped','gold','materials'])assert.deepEqual(m[key],before[key],version+'/'+key);
+  if(version>=12)assert.deepEqual(m.autoPotions,before.autoPotions);
+  const once=structuredClone(m);assert.deepEqual(migrateCharacter(JSON.parse(JSON.stringify(m)),data),once);
+ }
+});

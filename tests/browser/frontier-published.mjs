@@ -6,6 +6,7 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {enterFullscreenGate} from './fullscreen-entry.mjs';
 import {completeOpeningUi} from './opening-helper.mjs';
 import {freezeScene} from './freeze-scene.mjs';
+import {CHARACTER_VERSION} from '../../src/core/character.js';
 const base=process.env.FRONTIER_URL,sha=process.env.FRONTIER_RELEASE_SHA;
 assert(base&&/^https?:\/\//.test(base),'FRONTIER_URL is required');
 assert(/^[a-f0-9]{40}$/.test(sha||''),'Exact FRONTIER_RELEASE_SHA is required');
@@ -20,6 +21,7 @@ const ready=()=>page.waitForFunction(()=>window.__frontier?.modelsReady&&__front
 try{
  const response=await ctx.request.get(new URL('ci-release.json?verify='+sha,base).href);assert(response.ok(),'release receipt');
  const receipt=await response.json();assert.equal(receipt.releaseTarget.sha,sha,'published target');
+ if(base.startsWith('https:')){assert.equal(receipt.testFixtureOnly,undefined);assert.match(receipt.releaseTarget.tree,/^[a-f0-9]{40}$/);assert.equal(receipt.releaseTarget.tree,receipt.buildOrigin.tree);}
  const source=await ctx.request.get(new URL('ci-source.txt?verify='+sha,base).href);assert(source.ok());assert.equal((await source.text()).trim(),receipt.buildOrigin.sha,'build origin marker');
  const url=new URL(base);url.searchParams.set('quality','low');url.searchParams.set('stream','0');url.searchParams.set('release',sha);
  await page.goto(url.href);await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);
@@ -61,5 +63,14 @@ try{
  });
  assert(charge.began&&charge.released&&!charge.again);assert.deepEqual(charge.held,charge.before);assert.equal(charge.after.mp,charge.before.mp-charge.cost);assert.equal(charge.after.arrows,charge.before.arrows-1);
  await page.screenshot({path:out+'/ipad-reloaded.png'});assert.deepEqual(errors,[]);
- const report={url:url.href,receipt,engine:engine.name(),isolatedContext:true,normalStart:true,crafted,insufficientResources:true,exactPayment:true,loadout:state,reload:true,charge,pageErrors:errors};writeFileSync(out+'/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+ // Only this isolated context's save is changed for the combined legacy migration case.
+ const legacy=await page.evaluate(()=>{const g=__frontier.game,ch=g.snapshot();ch.version=12;ch.treeRevision=2;ch.jobPoints=7;ch.jobNodes=['origin','v1','vj','path.precision','advanced.flow','line.damage.mastery.10','bridge.physical-damage.2','removed-node'];localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,savedAt:Date.now(),character:ch}));return ch;});
+ for(let pass=0;pass<2;pass++){
+  await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
+  const migrated=await page.evaluate(()=>{__frontier.paused=true;__frontier.save();return __frontier.game.snapshot();});
+  assert.equal(migrated.version,CHARACTER_VERSION);assert.equal(migrated.treeRevision,state.treeRevision);assert.equal(migrated.jobPoints,9);assert.deepEqual(migrated.jobNodes,legacy.jobNodes.slice(0,6));
+  for(const key of ['skills','mods','slots','movement','movementMods','nextUid','autoPotions','gear','equipped'])assert.deepEqual(migrated[key],legacy[key],'combined migration '+key);
+ }
+ assert.deepEqual(errors,[]);
+ const report={url:url.href,receipt,engine:engine.name(),isolatedContext:true,normalStart:true,crafted,insufficientResources:true,exactPayment:true,loadout:state,reload:true,charge,selectiveRefundExactlyOnce:true,movementIdsPreserved:true,pageErrors:errors};writeFileSync(out+'/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 }finally{await ctx.close();await browser.close();}

@@ -1,6 +1,6 @@
 # PR102 acquisition and compatibility
 
-Source base: main `5f210396786429c2743c8142c7d7309fd31719da` (Moonroot merged). Existing PR102 head: `fdd0cce93df675de8da7be6205c3566af2867b90`. No PR119 code imported.
+Current source base: main `63d734df69458255f896b26d03a104a38d116da9` (PR119 merged after Moonroot `5f210396786429c2743c8142c7d7309fd31719da`). Existing PR102 head: `fdd0cce93df675de8da7be6205c3566af2867b90`. Only the merged PR119 code is integrated.
 
 28 combat skills / 4 movement / 34 mods: main added `arcane_bolt` while PR102 waited. Both it and the prototype `arcane_shot` retain their IDs and different staff/wand identities. No free grants; fresh characters own only their kit basic. All 14 additions + 19 mods use normal workbench recipes and inventory. `prototype:true` remains solely an authoring/Lab routing marker, not an acquisition gate.
 
@@ -84,3 +84,5 @@ Prototype line/wall/aura/flame/healing effects remain interim original effects. 
 - Arrow Rain now executes Echo as a second set of three delayed waves, without a second MP/arrow charge.
 - Shield Bash keeps the socketed Knockback distance instead of overwriting it with the base distance during compilation.
 - Guard-triggered Ward respects its 60/65/70% effect; one trigger pays MP once and respects cooldown/insufficient MP.
+
+PR119 integration preserves its independent allocation groups and treeRevision 3 selective refund unchanged. Combined v9/v12/v13 tests retain active nodes and movement/combat UIDs, refund each retired/missing node once, and remain idempotent on repeated load.

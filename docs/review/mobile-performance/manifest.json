@@ -1,0 +1,34 @@
+{
+  "base": "036e6bca897eb2c0318b96dc239f1bd60fcaa7fa",
+  "runtime": {
+    "data/rendering.json": "c13f0e47150c673f3f213e1c15087f4fa9e7d956c9072d4b67a9dadcdaf26050",
+    "src/main.js": "d4f51fc51f8da6d5f634ce1857f3aeba37b4be24f217521868dea219f52c4a85",
+    "src/render/grass-culling.js": "ac59a0e8c939a40409348a8e2c47d9578c82e9a17c26c1ecc06373b85f2006e7",
+    "src/render/settings.js": "504ad4f33ff39a38468e896fd5311e8cbef1aea25e8065cb326caf312d8ee3e7",
+    "src/render/view.js": "013ad45a48251d03df7f46b9ea94cf1b4bd9d18b6f86068ba711889ea224a03c",
+    "src/ui/menu.js": "7b1b2578c83f81a189ce8c5a3ccb743bc0ce97f083e1a5c2c816874c2eea7b8a",
+    "src/ui/panels.js": "680e423ccfebf96cc5141affacc249b99f35b6014a12e19acc03420e3ded3891"
+  },
+  "built": {
+    "dist/assets/latin-400-CEw6hPUE.js": "7ba1a01656f1cc457d2455db76f2261e94c5daa3f4ffdc4361baf4973f22bd5a",
+    "dist/assets/main-BSADcTVK.js": "e44f9f46810a72906787395f418f03ab0d052e83d894e2ca7008114eb633c156",
+    "dist/assets/lab-CdYX-ThO.js": "a051637ee37fdcb8141b9ac8a3a7d5a983be843ab1feadafa073b20939f70fab"
+  },
+  "artifacts": {
+    "after.json": "5db28d94d9dd98c51233f8ccd56adb65af9f4e5e5301b6ef522420b85bd60a1d",
+    "exploratory.json": "f8bec40f59ba23113a704492fbc2dc2090e38fcd27afc3de75571741c31eca14",
+    "checks.json": "20d76120ca190602176671628c52a6a2c53d65c45cf5e2a0b812835c98592373",
+    "phone-settings.png": "41df3d604762c11e2b0fb128a8dcafe07e5a33c45797ab0de983ef8c6e82c8dc",
+    "phone-field.png": "b93833d14fe4757debcbb9a63a532bc227d1de5199417bff93787e9ef90d6a49",
+    "before.json": "62decc37f0fcc593d9150535b8f5802831b826df55b40c082258e94d6ae64503",
+    "ipad-settings.png": "1ea39eab4fe8e13c30bcb4f78bcf3afd6243cbe5faaf9afbe5a2974ba3e7f465",
+    "ipad-walking.png": "098e2c8058a77c30a3f5fcf670f0fa6f89c9c5674fc52f206acf4b4aa7216ee1"
+  },
+  "focusedTests": 22,
+  "core": {
+    "passed": 478,
+    "total": 479,
+    "isolatedQuestRoutePassed": 8
+  },
+  "browser": "Chromium141 SwiftShader; no physical-device FPS"
+}

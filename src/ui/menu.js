@@ -64,7 +64,7 @@ export class Menu {
     const q = this.getQuality();
     this.show(`<div class="menu-card">
       <h2>ตั้งค่ากราฟิก</h2>
-      <div class="switch">${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}</div>
+      <div class="switch">${['economy', 'low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ economy: 'ประหยัด', low: 'ต่ำ', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}</div>
       <p class="muted">ถ้า iPad กระตุก ให้เลือก "ต่ำ" (ปิดเงา ลดความละเอียด)</p>
       <button class="mbtn" data-act="title">← กลับ</button></div>`);
   }

@@ -16,7 +16,7 @@ import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
-import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
+import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality, renderPixelRatio } from './settings.js';
 import { PostFX } from './post.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
@@ -47,7 +47,8 @@ export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
     this.ruleWorlds = worlds; // existing rule worlds also bound finite terrain margins
     this.game = null;
-    this.quality = qualitySettings(quality).name;
+    this.renderSettings = qualitySettings(quality);
+    this.quality = this.renderSettings.name;
     this.mode = 'title';
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: renderConfig.nativeAntialias, powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -163,7 +164,7 @@ export class View {
         });
       }
     }
-    this.buildQueue.budgetMs=this.streamBudgetMs??STREAM_BUDGET_MS;
+    this.buildQueue.budgetMs=this.streamBudgetMs??this.renderSettings.streamBudgetMs??STREAM_BUDGET_MS;
     for (const [id,n] of this.neighbours) if(!wanted.has(id)) {
       n.controller?.abort();
       if(n.region)disposeRegion(n.region);else n.steps?.return();
@@ -217,6 +218,8 @@ export class View {
   refreshGrass() {
     this.grassList = [...this.region.grass];
     for (const n of this.neighbours.values()) if (n.region) this.grassList.push(...n.region.grass);
+    const fraction = this.renderSettings.grassFraction ?? 1;
+    for (const mesh of this.grassList) mesh.userData.grassCulling.fraction = fraction;
   }
 
   /** Attach (or replace) the running game. */
@@ -367,9 +370,7 @@ export class View {
     const c = this.renderer.domElement;
     const w = c.clientWidth || window.innerWidth;
     const h = c.clientHeight || window.innerHeight;
-    // dynamic resolution scales the preset's pixel ratio, never below 1 device pixel per CSS pixel
-    const base = Math.min(window.devicePixelRatio || 1, qualitySettings(this.quality).pixelRatio);
-    const dpr = Math.max(Math.min(1, base), base * (this.renderScale ?? 1));
+    const dpr = renderPixelRatio(this.quality, window.devicePixelRatio || 1, this.renderScale ?? 1);
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -404,6 +405,8 @@ export class View {
     if (next.name === this.quality) return;
     const wasEnabled = this.renderer.shadowMap.enabled;
     this.quality = next.name;
+    this.renderSettings = next;
+    this.refreshGrass();
     applyShadowQuality(this.renderer, this.sun, this.quality);
     if (wasEnabled !== this.renderer.shadowMap.enabled) {
       const materials = new Set();
@@ -721,6 +724,7 @@ export class View {
   }
 
   ambient(dt, x, z, zoneId) {
+    dt *= this.renderSettings.ambientRate ?? 1;
     this.ambientT += dt;
     const v = this.vfx;
     const spawn = (rate, fn) => {
@@ -785,9 +789,9 @@ export class View {
   }
 
   updateCamera(dt, focus) {
-    const look = new THREE.Vector3(focus.x, focus.y, focus.z);
+    const look = (this._cameraFocus ||= new THREE.Vector3()).set(focus.x, focus.y, focus.z);
     this.camTarget.lerp(look, 1 - Math.exp(-dt * 6));
-    const off = CAM_OFFSET.clone().multiplyScalar(this.zoom);
+    const off = (this._cameraOffset ||= new THREE.Vector3()).copy(CAM_OFFSET).multiplyScalar(this.zoom);
     this.camera.position.copy(this.camTarget).add(off);
     if (this.shake > 0) {
       const s = this.shake * 0.35;
@@ -995,10 +999,7 @@ export class View {
   }
 
   /** Render a portrait of a hero face to a data URL for the HUD. */
-  portrait(look, gear = {}, size = 128) {
-    const previousTarget = this.renderer.getRenderTarget();
-    const previousFace = this.renderer.getActiveCubeFace();
-    const previousLevel = this.renderer.getActiveMipmapLevel();
+  async portrait(look, gear = {}, size = 128) {
     const rt = new THREE.WebGLRenderTarget(size, size, { colorSpace: THREE.SRGBColorSpace });
     let hero;
     try {
@@ -1015,10 +1016,22 @@ export class View {
       cam.lookAt(0, 1.64, 0);
       hero.root.rotation.y = 0.35;
       hero.root.updateMatrixWorld(true);
-      this.renderer.setRenderTarget(rt);
-      this.renderer.render(scene, cam);
+      await this.renderer.compileAsync(scene, cam);
       const px = new Uint8Array(size * size * 4);
-      this.renderer.readRenderTargetPixels(rt, 0, 0, size, size, px);
+      const previousTarget = this.renderer.getRenderTarget();
+      const previousFace = this.renderer.getActiveCubeFace();
+      const previousLevel = this.renderer.getActiveMipmapLevel();
+      let reading;
+      try {
+        this.renderer.setRenderTarget(rt);
+        this.renderer.render(scene, cam);
+        reading = this.renderer.readRenderTargetPixelsAsync(rt, 0, 0, size, size, px);
+      } finally {
+        // Return the borrowed renderer before yielding. Never restore old state after
+        // an await: meanwhile the world/post pipeline may have selected a newer target.
+        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
+      }
+      await reading;
       const c = document.createElement('canvas');
       c.width = c.height = size;
       const ctx = c.getContext('2d');
@@ -1027,15 +1040,10 @@ export class View {
       ctx.putImageData(img, 0, 0);
       return c.toDataURL();
     } finally {
-      // Portrait errors are caught by the HUD; keep its borrowed renderer usable.
-      try {
-        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
-      } finally {
-        rt.dispose();
-        if (hero) {
-          disposeObject(hero.root);
-          disposeObject(hero.scarf?.mesh);
-        }
+      rt.dispose();
+      if (hero) {
+        disposeObject(hero.root);
+        disposeObject(hero.scarf?.mesh);
       }
     }
   }

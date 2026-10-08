@@ -24,7 +24,8 @@
   "nativeAntialias": true,
   "dynamicResolution": {"enabled": true, "minScale": 0.67, "slowMs": 19.5, "vsyncSlack": 1.12, "stepDown": 0.125, "stepUp": 0.0625, "settle": 1.5, "recover": 4},
   "quality": {
-    "low": {"pixelRatio": 1, "shadowMapSize": 0, "post": false},
+    "economy": {"pixelRatio": 0.85, "minPixelRatio": 0.5, "shadowMapSize": 0, "post": false, "grassFraction": 0.35, "ambientRate": 0.3, "streamBudgetMs": 3},
+    "low": {"pixelRatio": 1, "minPixelRatio": 0.67, "shadowMapSize": 0, "post": false},
     "medium": {"pixelRatio": 1.5, "shadowMapSize": 1024, "post": true},
     "high": {"pixelRatio": 2, "shadowMapSize": 2048, "post": true}
   },

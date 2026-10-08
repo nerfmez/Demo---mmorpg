@@ -35,3 +35,16 @@ test('scene pre-render updates current-camera instance data before draw uploads'
  assert.equal(chained,3);assert.equal(mesh.onBeforeRender,THREE.Object3D.prototype.onBeforeRender,'draw does not modify instance buffers');
  mesh.geometry.dispose();mesh.material.dispose();
 });
+test('off-camera chunks skip individual tests and reenter with correct sources; density is reversible',()=>{
+ const g=new THREE.PlaneGeometry(.4,.8),mesh=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial(),20),m=new THREE.Matrix4();
+ const colors=new Uint8Array(60);for(let i=0;i<20;i++){mesh.setMatrixAt(i,m.makeTranslation(i*.1,0,0));colors.set([i,10,20],i*3);}
+ g.setAttribute('aGrassBase',new THREE.InstancedBufferAttribute(colors,3,true));mesh.userData.grassRadii=new Float32Array(20).fill(.5);prepareGrassCulling(mesh);mesh.updateMatrixWorld(true);
+ const camera=new THREE.PerspectiveCamera(90,1,.1,100),s=mesh.userData.grassCulling;
+ const move=x=>{camera.position.set(x,0,10);camera.lookAt(x,0,0);camera.updateMatrixWorld(true);updateGrassVisibility(mesh,camera);};
+ move(500);assert.equal(mesh.count,0);assert.equal(s.lastTested,0);const version=mesh.instanceMatrix.version;
+ move(501);assert.equal(mesh.instanceMatrix.version,version,'invisible chunk has no upload');
+ s.fraction=.35;move(0);assert.equal(mesh.count,7);assert.equal(s.lastTested,7);
+ for(let j=0;j<mesh.count;j++)assert.equal(colors[j*3],s.indices[j],'baked attributes follow their original clump');
+ s.fraction=1;move(0);assert.equal(mesh.count,20);assert.deepEqual([...colors.filter((_,i)=>i%3===0)],Array.from({length:20},(_,i)=>i));
+ g.dispose();mesh.material.dispose();
+});

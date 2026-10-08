@@ -27,7 +27,7 @@ function harness({game=false,fail=false}={}){
   const loading={textContent:'building',done:false,classList:{add(name){if(name==='done')loading.done=true;}}};
   const fullscreen={blocked:false},F={paused:false,modelsReady:false};
   const view={region:{staticReady:false,importedState:'building'},hitStop:0,render(){draws++;},setRenderScale(){}};
-  const session=game?{panels:{tab:null,isOpen:false},input:{aim:null,update(){}},game:{update(){updates++;},drainEvents:()=>[]},hud:{update(){}},saveT:0,badgeT:0,refreshBadges(){},refreshPortrait(){}}:null;
+  const session=game?{panels:{tab:null,isOpen:false},input:{aim:null,update(){}},completion:{isOpen:false,update(){}},questRoute:{update(){}},supplies:{update(){}},game:{ch:{opening:{stage:'done'}},update(){updates++;},drainEvents:()=>[]},hud:{update(){}},saveT:0,badgeT:0,refreshBadges(){},refreshPortrait(){}}:null;
   const queue=new FrameBuildQueue({budgetMs:1,now:()=>clock});
   view.buildQueue=queue;
   const job=queue.enqueue((function*(){

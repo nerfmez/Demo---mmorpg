@@ -2,8 +2,8 @@
   "_doc": "Monsters. Each shape shows what it drops. Stats are for level 1; scaled by level via progression.json monsterScaling. behavior picks the AI in src/core/ai.js. Every attack has a visible wind-up.",
   "monsters": {
     "tusk_boar": {
-      "name": "Tusk Boar",
-      "nameTh": "หมูป่างาแหลม",
+      "name": "Boarbull",
+      "nameTh": "หมูกระทิง",
       "behavior": "charger",
       "hp": 55,
       "damage": 9,
@@ -155,8 +155,8 @@
       "primaryAttack": "pinch"
     },
     "marsh_wisp": {
-      "name": "Marsh Wisp",
-      "nameTh": "ภูตไฟหนองน้ำ",
+      "name": "Lostlight Wisp",
+      "nameTh": "ภูตแสงหลงทาง",
       "behavior": "kiter",
       "hp": 45,
       "damage": 11,
@@ -209,8 +209,8 @@
       ]
     },
     "thornback_wolf": {
-      "name": "Thornback Wolf",
-      "nameTh": "หมาป่าหลังหนาม",
+      "name": "Maskfang Wolf",
+      "nameTh": "หมาป่าหน้ากาก",
       "behavior": "pack_wolf",
       "hp": 70,
       "damage": 10,
@@ -229,16 +229,6 @@
           "cooldown": 1.3,
           "damageMult": 1
         },
-        "lunge": {
-          "minRange": 2.5,
-          "maxRange": 7.5,
-          "windup": 0.55,
-          "speed": 15,
-          "duration": 0.38,
-          "recover": 0.8,
-          "cooldown": 4.5,
-          "damageMult": 1.4
-        },
         "howl": {
           "windup": 0.8,
           "recover": 0.4,
@@ -246,6 +236,27 @@
           "radius": 12,
           "speedBuff": 0.25,
           "duration": 6
+        },
+        "rend": {
+          "range": 2.3,
+          "arc": 110,
+          "windup": 0.4,
+          "duration": 0.62,
+          "hits": [
+            {
+              "at": 0.12,
+              "off": -0.35,
+              "step": 0.45
+            },
+            {
+              "at": 0.42,
+              "off": 0.35,
+              "step": 0.35
+            }
+          ],
+          "recover": 0.7,
+          "cooldown": 3.6,
+          "damageMult": 0.8
         }
       },
       "circle": [
@@ -430,7 +441,7 @@
       "flyer": true
     },
     "greyfang": {
-      "name": "Greyfang",
+      "name": "Greyfang Alpha",
       "nameTh": "เกรย์แฟง จ่าฝูง",
       "behavior": "greyfang",
       "boss": true,
@@ -452,22 +463,38 @@
           "cooldown": 1.6,
           "damageMult": 1.1
         },
-        "triple": {
-          "minRange": 3,
-          "maxRange": 11,
-          "windup": 0.45,
-          "speed": 16,
-          "duration": 0.32,
-          "recover": 0.3,
-          "cooldown": 8,
-          "damageMult": 1.3,
-          "count": 3
-        },
         "howl": {
           "windup": 1,
           "recover": 0.5,
           "cooldown": 20,
           "summon": 2
+        },
+        "rake": {
+          "range": 3.1,
+          "arc": 130,
+          "windup": 0.55,
+          "duration": 0.9,
+          "hits": [
+            {
+              "at": 0.15,
+              "off": -0.7,
+              "step": 0.3
+            },
+            {
+              "at": 0.4,
+              "off": 0,
+              "step": 0.3
+            },
+            {
+              "at": 0.65,
+              "off": 0.7,
+              "step": 0.3,
+              "knock": 5
+            }
+          ],
+          "recover": 0.5,
+          "cooldown": 6.5,
+          "damageMult": 0.85
         }
       },
       "enrageAt": 0.4,
@@ -521,16 +548,6 @@
           "cooldown": 2.2,
           "damageMult": 1
         },
-        "gore": {
-          "minRange": 4,
-          "maxRange": 13,
-          "windup": 0.95,
-          "speed": 15,
-          "duration": 0.8,
-          "recover": 1.2,
-          "cooldown": 7,
-          "damageMult": 1.8
-        },
         "slam": {
           "radius": 4.8,
           "windup": 1.1,
@@ -539,6 +556,18 @@
           "damageMult": 2,
           "shockwaveSpeed": 7,
           "shockwaveMax": 11
+        },
+        "quake": {
+          "minRange": 3,
+          "maxRange": 13,
+          "length": 10,
+          "width": 2.4,
+          "steps": 4,
+          "stepDelay": 0.14,
+          "windup": 0.95,
+          "recover": 1.2,
+          "cooldown": 7.5,
+          "damageMult": 1.5
         }
       },
       "enrageAt": 0.5,
@@ -570,8 +599,8 @@
       ]
     },
     "salt_slime": {
-      "name": "สไลม์น้ำเค็ม",
-      "nameTh": "สไลม์น้ำเค็ม",
+      "name": "Tidal Slime",
+      "nameTh": "สไลม์คลื่นทะเล",
       "behavior": "coastal_slime",
       "hp": 32,
       "damage": 5,
@@ -765,15 +794,15 @@
           "cooldown": 2.2,
           "damageMult": 1.15
         },
-        "lunge": {
-          "minRange": 3,
-          "maxRange": 7,
-          "windup": 0.5,
-          "speed": 13,
-          "duration": 0.36,
-          "recover": 0.7,
-          "cooldown": 5,
-          "damageMult": 1.2
+        "whirl": {
+          "range": 2.4,
+          "arc": 360,
+          "windup": 0.7,
+          "hitTime": 0.25,
+          "duration": 0.55,
+          "recover": 0.8,
+          "cooldown": 5.5,
+          "damageMult": 1.25
         }
       },
       "retreat": {
@@ -803,8 +832,8 @@
       ]
     },
     "reed_viper": {
-      "name": "Reed Viper",
-      "nameTh": "งูกกพิษ",
+      "name": "Reedblade Viper",
+      "nameTh": "งูใบกกพิษ",
       "behavior": "viper",
       "hp": 52,
       "damage": 10,
@@ -820,16 +849,6 @@
         6
       ],
       "attacks": {
-        "strike": {
-          "minRange": 0,
-          "maxRange": 5,
-          "windup": 0.55,
-          "speed": 16,
-          "duration": 0.28,
-          "recover": 0.75,
-          "cooldown": 3,
-          "damageMult": 1.25
-        },
         "venom": {
           "minRange": 2.5,
           "range": 9,
@@ -842,6 +861,16 @@
           "cooldown": 6,
           "recover": 0.6,
           "damageMult": 0.4
+        },
+        "lash": {
+          "minRange": 0,
+          "maxRange": 5.5,
+          "range": 5.5,
+          "width": 0.9,
+          "windup": 0.5,
+          "recover": 0.8,
+          "cooldown": 3,
+          "damageMult": 1.25
         }
       },
       "drops": [
@@ -879,17 +908,6 @@
       "exp": 30,
       "jobExp": 20,
       "attacks": {
-        "ram": {
-          "minRange": 3.5,
-          "maxRange": 11,
-          "windup": 0.9,
-          "speed": 17,
-          "duration": 0.6,
-          "recover": 0.9,
-          "cooldown": 5.5,
-          "damageMult": 1.5,
-          "missStun": 1.4
-        },
         "stomp": {
           "range": 1.4,
           "radius": 2.6,
@@ -897,6 +915,15 @@
           "recover": 0.8,
           "cooldown": 3.5,
           "damageMult": 1.1
+        },
+        "shove": {
+          "range": 2.6,
+          "arc": 110,
+          "windup": 0.8,
+          "recover": 0.9,
+          "cooldown": 4.5,
+          "damageMult": 1.5,
+          "knock": 9
         }
       },
       "drops": [
@@ -1027,6 +1054,184 @@
           "chance": 1,
           "min": 6,
           "max": 12
+        }
+      ]
+    },
+    "fern_ear_hare": {
+      "name": "Fern-ear Hare",
+      "nameTh": "กระต่ายหูเฟิร์น",
+      "behavior": "hare",
+      "hp": 44,
+      "damage": 8,
+      "defense": 3,
+      "speed": 5.4,
+      "radius": 0.55,
+      "aggroRange": 8,
+      "leashRange": 18,
+      "exp": 14,
+      "jobExp": 10,
+      "circle": [
+        3.5,
+        6
+      ],
+      "attacks": {
+        "hop": {
+          "kind": "pounce",
+          "minRange": 3,
+          "range": 8,
+          "windup": 0.6,
+          "radius": 1.3,
+          "recover": 0.6,
+          "cooldown": 4.5,
+          "damageMult": 1.2
+        },
+        "kick": {
+          "kind": "claw",
+          "range": 1.5,
+          "arc": 120,
+          "windup": 0.45,
+          "hitTime": 0.12,
+          "duration": 0.34,
+          "recover": 0.4,
+          "cooldown": 1.8,
+          "damageMult": 1
+        }
+      },
+      "retreat": {
+        "distance": 4,
+        "duration": 0.5,
+        "pause": 0.3
+      },
+      "drops": [
+        {
+          "item": "fern_ear_tuft",
+          "chance": 0.6,
+          "min": 1,
+          "max": 2
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 3,
+          "max": 7
+        }
+      ]
+    },
+    "mirrorwing_moth": {
+      "name": "Mirrorwing Moth",
+      "nameTh": "ผีเสื้อราตรีปีกกระจก",
+      "behavior": "moth",
+      "hp": 40,
+      "damage": 9,
+      "defense": 2,
+      "speed": 3.4,
+      "radius": 0.6,
+      "hover": 1.6,
+      "aggroRange": 9,
+      "leashRange": 18,
+      "exp": 17,
+      "jobExp": 12,
+      "flyer": true,
+      "keepDistance": [
+        5,
+        8
+      ],
+      "attacks": {
+        "glint": {
+          "kind": "beam",
+          "minRange": 0,
+          "maxRange": 8,
+          "range": 8,
+          "width": 0.9,
+          "windup": 0.75,
+          "recover": 0.6,
+          "cooldown": 3.6,
+          "damageMult": 1.3
+        },
+        "scale_dust": {
+          "kind": "puff",
+          "areaKind": "mirror_dust",
+          "range": 3.2,
+          "radius": 3,
+          "windup": 0.6,
+          "duration": 3,
+          "dps": 3,
+          "recover": 0.5,
+          "cooldown": 7
+        }
+      },
+      "drops": [
+        {
+          "item": "mirror_scale",
+          "chance": 0.5,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "glow_dust",
+          "chance": 0.35,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 4,
+          "max": 8
+        }
+      ]
+    },
+    "rootdigger_mole": {
+      "name": "Rootdigger Mole",
+      "nameTh": "ตุ่นขุดราก",
+      "behavior": "mole",
+      "hp": 95,
+      "damage": 11,
+      "defense": 9,
+      "speed": 2.6,
+      "radius": 0.85,
+      "aggroRange": 8,
+      "leashRange": 18,
+      "exp": 22,
+      "jobExp": 15,
+      "attacks": {
+        "swipe": {
+          "kind": "sweep",
+          "range": 1.9,
+          "arc": 140,
+          "windup": 0.55,
+          "recover": 0.6,
+          "cooldown": 2,
+          "damageMult": 1.1
+        },
+        "erupt": {
+          "minRange": 4,
+          "range": 10,
+          "windup": 1.1,
+          "radius": 1.8,
+          "recover": 0.8,
+          "cooldown": 7,
+          "damageMult": 1.5
+        }
+      },
+      "drops": [
+        {
+          "item": "rootdigger_claw",
+          "chance": 0.45,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "boar_hide",
+          "chance": 0.3,
+          "min": 1,
+          "max": 1
+        },
+        {
+          "item": "gold",
+          "chance": 1,
+          "min": 5,
+          "max": 9
         }
       ]
     }

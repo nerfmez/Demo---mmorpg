@@ -9,7 +9,7 @@ import { SUITES, FULL_SUITES, browserPlan } from '../../scripts/ci-browser-plan.
 test('full inventory retains every original CI browser check, boot/save and broad UI/HUD ownership', () => {
   const original = ['smoke', 'map-travel', 'open-world', 'open-world-city', 'midhigh-monsters', 'gear-hands', 'weapon-loading', 'weapon-models', 'shop-potions', 'potions-moving', 'details-touch', 'menu-hub', 'coastal-attacks', 'lab', 'ux', 'capture'];
   const scripts = Object.values(SUITES).flat();
-  for (const name of [...original, 'boot', 'journal-route-save', 'details-game-touch', 'journal', 'skill-journal',
+  for (const name of [...original, 'boot', 'opening', 'journal-route-save', 'details-game-touch', 'journal', 'skill-journal',
     'fullscreen-overlays', 'workspaces', 'journal-route-upgrade', 'journal-lines', 'skill-lines', 'wearable-level', 'fieldhud'])
     assert.ok(scripts.includes(`${name}.mjs`), name);
   assert.equal(new Set(scripts).size, scripts.length, 'each check has one shard owner');
@@ -39,7 +39,7 @@ test('workflow shares exact-source build, shards both engines, and gates on all 
   assert.match(ci, /ref: \$\{\{ github.event.pull_request.head.sha \|\| github.sha \}\}/);
   assert.match(ci, /force-full: \$\{\{ github.event_name != 'pull_request' && !inputs.quick_gate \}\}/);
   assert.match(ci, /force-boot: \$\{\{ inputs.quick_gate \}\}/);
-  assert.match(ci, /suite: \$\{\{ fromJSON\(needs.prepare.outputs.suites\) \}\}/);
+  assert.match(ci, /matrix: \$\{\{ fromJSON\(needs.prepare.outputs.matrix\) \}\}/);
   assert.match(ci, /needs: \[prepare, browser\]/);
   assert.match(ci, /test "\$BROWSER_RESULT" = success/);
   assert.match(ci, /test "\$PREPARE" = success/);
@@ -66,6 +66,8 @@ test('runner records exact checkout and timings, attempts all shard scripts, and
   assert.equal(run({ CI_SOURCE_SHA: 'wrong-head' }).status, 1);
   assert.equal(run({ SKIP_CAPTURES: '1' }).status, 1);
   assert.equal(run({ QUICK: '1' }).status, 1);
+  assert.equal(run({ OFFLINE_UI: '1' }).status, 1);
+  assert.equal(run({ UI_DEVICE: 'tablet' }).status, 1);
 });
 
 test('Pages upload depends on successful exact-source quick gate; lab publishing remains separate', () => {

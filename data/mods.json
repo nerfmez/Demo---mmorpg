@@ -109,7 +109,15 @@
       "excludes": [
         "DoT"
       ],
-      "id": "burning_ground"
+      "id": "burning_ground",
+      "requiresKinds": [
+        "melee_arc",
+        "melee_nova",
+        "projectile",
+        "chain",
+        "ground_area",
+        "nova"
+      ]
     },
     "echo": {
       "name": "Echo",
@@ -136,7 +144,15 @@
       "requires": {
         "INT": 8
       },
-      "id": "echo"
+      "id": "echo",
+      "requiresKinds": [
+        "melee_nova",
+        "ground_area",
+        "nova",
+        "dot_zone",
+        "curse_zone",
+        "heal_zone"
+      ]
     },
     "wide_arc": {
       "name": "Wide Arc",
@@ -163,7 +179,11 @@
       "requires": {
         "STR": 6
       },
-      "id": "wide_arc"
+      "id": "wide_arc",
+      "requiresKinds": [
+        "melee_arc",
+        "counter_stance"
+      ]
     },
     "multistrike": {
       "name": "Multistrike",
@@ -196,7 +216,11 @@
       "requires": {
         "DEX": 6
       },
-      "id": "multistrike"
+      "id": "multistrike",
+      "requiresKinds": [
+        "melee_arc",
+        "melee_nova"
+      ]
     },
     "frost_shift": {
       "name": "Frost Shift",
@@ -339,7 +363,10 @@
       "requires": {
         "VIT": 6
       },
-      "id": "spiked_ward"
+      "id": "spiked_ward",
+      "requiresKinds": [
+        "self_barrier"
+      ]
     },
     "pack_leader": {
       "name": "Pack Leader",
@@ -401,7 +428,16 @@
       "requires": {
         "AGI": 8
       },
-      "id": "cast_on_dodge"
+      "id": "cast_on_dodge",
+      "requiresKinds": [
+        "projectile",
+        "chain",
+        "ground_area",
+        "nova",
+        "dot_zone",
+        "curse_zone",
+        "heal_zone"
+      ]
     },
     "short_stride": {
       "name": "Short Stride",
@@ -427,7 +463,7 @@
     "returning_shot": {
       "name": "Returning Shot",
       "nameTh": "กระสุนย้อนกลับ",
-      "desc": "กระสุนกลับตามเส้นเดิม ขากลับแรง 40/45/50% โดนเป้าเดิมได้หนึ่งครั้งต่อขา ใช้ร่วมกับเด้งไม่ได้",
+      "desc": "กระสุนกลับตามเส้นเดิม ขากลับแรง 40/45/50% โดนเป้าเดิมได้หนึ่งครั้งต่อขา ใช้ร่วมกับเด้งไม่ได้ ดาเมจพื้นฐานลดลง 15%",
       "tags": [
         "Projectile"
       ],
@@ -536,8 +572,7 @@
       },
       "prototype": true,
       "requiresKinds": [
-        "melee_arc",
-        "melee_line"
+        "melee_arc"
       ],
       "conflicts": [
         "cast_on_guard"
@@ -729,7 +764,7 @@
     "healing_chain": {
       "name": "Mending Chain",
       "nameTh": "ฮีลส่งต่อ",
-      "desc": "ฮีลเด้งไปพันธมิตรที่บาดเจ็บใกล้ ๆ อีก 1/2/2 ตัว ผลลดลง 30% ต่อครั้ง ไม่เด้งวน",
+      "desc": "ฮีลเด้งไปพันธมิตรที่บาดเจ็บใกล้ ๆ อีก 1/2/2 ตัว ผลลดลง 30% ต่อครั้ง ไม่เด้งวน ฮีลเริ่มต้นลดลง 15%",
       "tags": [
         "Heal"
       ],

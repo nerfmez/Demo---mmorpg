@@ -7,7 +7,7 @@ import {computeSkill,movementSkill,socketMod,socketMovementMod,unsocketMod,modSl
 import {tickFrontier,manaLimit,executeFrontier,wallBlocked} from '../../src/core/frontier-content.js';
 import {modUpgradeState} from '../../src/core/crafting.js';
 const fixture=(id='charged_shot',mods=[])=>{
- const ch=createCharacter(data,{kit:'bow'});ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
+ const ch=createCharacter(data,{kit:'bow'});ch.movementSkills=Object.keys(data.skills.movement);ch.movement='roll';ch.stats={STR:50,DEX:50,INT:50,AGI:50,VIT:50};ch.skills[id]=1;ch.slots=[{skill:id,mods:[]},...ch.slots.slice(1).map(()=>({skill:null,mods:[]}))];
  ch.mods=mods.map((id,i)=>({id,uid:900+i,level:1,grade:'C'}));ch.slots[0].mods=ch.mods.map(m=>m.uid);
  const g=new Game(data,{seed:71,character:ch});g.player.x=0;g.player.z=0;g.player.facing=Math.PI/2;g.derived.weaponType=data.skills.combat[id].requiresWeapon?.[0]||'sword';g.derived.offhand='shield';g.skills=ch.slots.map((_,i)=>computeSkill(ch,data,g.derived,i));
  const m=g.monsters[0];m.x=2;m.z=0;m.hp=m.maxHp=100000;m.defense=0;m.facing=Math.PI;m.boss=false;m.state='chase';m.aggro=true;m.statuses={};g.monsters=[m];
@@ -91,4 +91,18 @@ test('guardian summon shares one bounded hit, focus and commands change targetin
 });
 test('guard trigger consumes mana, respects weapon/requirements and cannot recurse',()=>{
  const {g,s}=fixture('arcane_shot',['cast_on_guard']);const mp=g.player.mp;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);assert.equal(g.player.mp,mp-s.cost);g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.player.triggerCd[0]=0;g.skills[0].requirementsMet=false;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.skills[0].requirementsMet=true;g.triggering=true;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);
+});
+
+test('unsupported delivery mods cannot silently consume sockets; supported rain echo and bash knock work',()=>{
+ for(const [skill,mods]of Object.entries({riposte:['multistrike','burning_ground','spiked_ward'],frontline_split:['multistrike','burning_ground','wide_arc','advancing_edge'],shield_bash:['spiked_ward'],stone_guardian:['spiked_ward'],crystal_wall:['echo','cast_on_dodge'],battle_aura:['cast_on_dodge'],armor_cleave:['echo']}))
+  for(const id of mods)assert.equal(modFits(data.skills.combat[skill],data.mods.mods[id]).ok,false,skill+'/'+id);
+ const rain=fixture('arrow_rain',['echo']);rain.g.executeSkill(rain.s,aim);assert.equal(rain.g.areas.length,6);assert.equal(rain.g.areas.filter(a=>a.echo).length,3);
+ const base=fixture('shield_bash'),mod=fixture('shield_bash',['knockback']);assert(mod.s.knock>base.s.knock);assert.equal(mod.s.knock,data.mods.mods.knockback.effect.knock[0]);
+});
+
+test('guard-triggered Ward applies its advertised effect fraction and charges mana once',()=>{
+ const {g,s}=fixture('ward',['cast_on_guard']);const mp=g.player.mp;
+ g.fireTriggers('on_guard');assert.equal(g.player.mp,mp-s.cost);assert.equal(g.player.barrier,s.barrier*.6);
+ g.fireTriggers('on_guard');assert.equal(g.player.mp,mp-s.cost);
+ g.player.triggerCd[0]=0;g.player.mp=s.cost-1;g.player.barrier=0;g.fireTriggers('on_guard');assert.equal(g.player.barrier,0);assert.equal(g.player.mp,s.cost-1);
 });

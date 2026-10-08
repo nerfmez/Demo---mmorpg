@@ -17,6 +17,10 @@ import { Hud } from './ui/hud.js';
 import { Input } from './ui/input.js';
 import { Panels } from './ui/panels.js';
 import { Menu } from './ui/menu.js';
+import { Opening } from './ui/opening.js';
+import { QuestCompletion } from './ui/quest-completion.js';
+import { QuestRoute } from './render/quest-route.js';
+import { Supplies } from './ui/supplies.js';
 import { createFullscreen } from './ui/fullscreen.js';
 import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
 import { characterMap, selectMap } from './core/maps.js';
@@ -84,7 +88,7 @@ const fullscreen = createFullscreen({
   onResize: () => view.resize(),
 });
 F.fullscreen = fullscreen;
-const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
+const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport', 'potion']);
 
 /** Reload into the character's map (saved slot, or the unsaved test character). */
 function travelTo(character, slot, name) {
@@ -105,6 +109,7 @@ function startGame(character, slot) {
   if(fresh&&params.has('skillSandbox')){
     character.skills=Object.fromEntries(Object.keys(data.skills.combat).map(id=>[id,1]));
     character.movementSkills=Object.keys(data.skills.movement);
+    character.movement ||= character.movementSkills[0];
     character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35};
     character.mods=Object.keys(data.mods.mods).map(id=>({id,uid:character.nextUid++,level:1,grade:'C'}));
   }
@@ -123,8 +128,9 @@ function startGame(character, slot) {
   view.snapCamera();
   const hud = new Hud(hudRoot, game, view);
   const save = () => {
-    if (slot) writeSlot(slot, game.snapshot());
+    return slot ? writeSlot(slot, game.snapshot()) : true;
   };
+  let completion;
   const panels = new Panels(hudRoot, game, {
     onChange: save,
     onQuality: setQuality,
@@ -146,8 +152,8 @@ function startGame(character, slot) {
   hud.onPanel = (tab) => panels.open(tab);
   F.panels = panels; // browser tests open a page directly
   const ui = {
-    blocked: () => fullscreen.blocked,
-    panelOpen: () => panels.isOpen || fullscreen.blocked,
+    blocked: () => fullscreen.blocked || !!completion?.isOpen,
+    panelOpen: () => panels.isOpen || fullscreen.blocked || !!completion?.isOpen,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
     configureSkill: (i) => {
@@ -167,11 +173,17 @@ function startGame(character, slot) {
     },
   };
   const input = new Input(hudRoot, canvas, game, view, ui);
+  completion = new QuestCompletion(game, { save, reset: () => input.reset() });
   const buttons = {
     bag: hud.addMenuButton('bag', 'I', () => panels.toggle('bag'), 'กระเป๋า'),
     book: hud.addMenuButton('book', 'K', () => panels.toggle('skills'), 'สกิล'),
   };
-  hud.onTracker(() => panels.open('journal'));
+  const questRoute = new QuestRoute(game, view.scene, hud);
+  const supplies = new Supplies(hudRoot,game,{
+    onArrows:()=>{if(!ui.panelOpen())panels.openArrowCraft();},
+    onPotions:()=>{if(!ui.panelOpen())panels.openAutoPotions();},
+  });
+  hud.onTracker(() => { if (!ui.panelOpen()) questRoute.toggle(); });
 
   let portraitKey = '';
   const refreshPortrait = () => {
@@ -193,8 +205,8 @@ function startGame(character, slot) {
     hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 
-  session = { game, hud, panels, input, ui, save, slot, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
-  Object.assign(F, { game, hud, panels, input, save });
+  session = { game, hud, panels, input, ui, save, slot, completion, questRoute, supplies, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
+  Object.assign(F, { game, hud, panels, input, save, completion, questRoute, supplies, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
   save();
   if(sandbox){
     const bar=document.createElement('div');bar.className='skill-sandbox';
@@ -213,7 +225,10 @@ function startGame(character, slot) {
   }
 
   const ch = game.ch;
-  if(sandbox)hud.toast('เปิดสมุดสกิลเพื่อใส่ม็อด · สูตรคราฟต์จะออกแบบภายหลัง','#8fd0ff');
+  const opening = new Opening(hudRoot, game, view, { hud, input, save, refresh: () => { session.refreshPortrait(); session.refreshBadges(); } });
+  F.opening = opening;
+  if (opening.begin()) return; // the opening ends with its own banner
+  if(sandbox)hud.toast('เปิดสมุดสกิลเพื่อใส่ม็อด · ตัวละครทดลองไม่บันทึกเซฟ','#8fd0ff');
   else if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
   else hud.toast(`โหลดเซฟแล้ว · ${ch.name} Lv.${ch.level}`, '#8fd0ff');
 }
@@ -253,7 +268,7 @@ addEventListener('orientationchange', () => setTimeout(() => view.resize(), 200)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) session?.save();
 });
-addEventListener('pagehide', () => session?.save());
+addEventListener('pagehide', () => { session?.save(); session?.questRoute.dispose(); });
 
 try {
   view.warmup();
@@ -284,7 +299,7 @@ function frame(now) {
   if (s) {
     if (!fullscreen.blocked) s.input.update();
     if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||fullscreen.blocked;
-    const paused = !view.region.staticReady || s.panels.isOpen || F.paused || fullscreen.blocked;
+    const paused = !view.region.staticReady || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
@@ -302,6 +317,7 @@ function frame(now) {
           continue;
         }
         // A far map (stone travel) or a seam reached before it finished streaming: reload.
+        s.questRoute.dispose();
         session = null;
         travelTo(s.game.ch, s.slot, e.name);
         break;
@@ -312,10 +328,13 @@ function frame(now) {
       if (SAVE_ON.has(e.type)) s.save();
       if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
     }
+    s.completion.update(fullscreen.blocked || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.region.staticReady);
+    s.questRoute.update(dt);
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
     if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
+    s.supplies.update();
     s.saveT += dt;
     if (s.saveT > 10) {
       s.saveT = 0;

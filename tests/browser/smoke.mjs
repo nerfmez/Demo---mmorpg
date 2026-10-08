@@ -3,6 +3,7 @@
 // game's own API and saves screenshots to tests/browser/out/.
 // Screenshot waits allow slow software-GL shader compilation on CI; all gameplay assertions stay unchanged.
 // Usage: npm run build && npm run test:browser  (BROWSER=webkit to use WebKit if installed)
+import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -59,19 +60,22 @@ async function run(name, contextOpts) {
   await page.click('[data-act="new"]');
   await page.waitForSelector('.create-panel');
   await page.fill('#heroName', 'Aki');
-  await page.click('[data-act="kit"][data-kit="bow"]');
   await page.click('[data-act="look"][data-key="hairStyle"][data-val="ponytail"]');
   await page.waitForTimeout(500);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-0-create.png` });
   console.log(`${name}: creator ready; starting character`);
   await page.click('[data-act="start"]', { noWaitAfter: true });
   await page.waitForFunction(() => window.__frontier.game && window.__frontier.game.time > 0.3, null, { timeout: 30000 });
+  await completeOpeningUi(page, (sel) => page.click(sel), { kit: 'bow' });
   const started = await page.evaluate(() => {
     const g = window.__frontier.game;
     return { name: g.ch.name, weapon: g.derived.weaponType, hair: g.ch.appearance?.hairStyle, saved: !!localStorage.getItem('frontier.slot.1') };
   });
   check(started.name === 'Aki' && started.weapon === 'bow' && started.hair === 'ponytail', `${name}: character creation applies name, kit and look (${JSON.stringify(started)})`);
   check(started.saved, `${name}: new character is saved to slot 1`);
+  // Opening completion demands the selected lazy weapon. Finish decoding it
+  // before unloading this document; aborting its blob textures is a real loader error.
+  await page.waitForFunction(() => window.__frontier.weaponModelsReady());
   await page.evaluate(() => {
     const g = window.__frontier.game;
     g.ch.gold = 777;
@@ -85,6 +89,7 @@ async function run(name, contextOpts) {
   const cont = await page.evaluate(() => ({ name: window.__frontier.game.ch.name, gold: window.__frontier.game.ch.gold }));
   check(cont.name === 'Aki' && cont.gold === 777, `${name}: continue loads the saved character (${JSON.stringify(cont)})`);
   check(errors.length === 0, `${name}: menu flow has no page errors ${errors.slice(0, 3).join(' | ')}`);
+  await page.waitForFunction(() => window.__frontier.weaponModelsReady());
 
   // ---- a fresh, unsaved game for the rest ----
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=low`);
@@ -158,6 +163,7 @@ async function run(name, contextOpts) {
   const res = await page.evaluate(async () => {
     const { game, input } = window.__frontier;
     input.disabled = true;
+    Object.assign(game.ch.skills,{slash:1,firebolt:1,ward:1});game.ch.slots=['slash','firebolt','ward',null].map(skill=>({skill,mods:[]}));game.ch.movementSkills=['dash','roll'];game.ch.movement='dash';
     // This combat/loot fixture starts after the boar mission's authored story
     // prerequisites; mark their rewards already paid, then use the real refresh.
     const completePrerequisite = id => {

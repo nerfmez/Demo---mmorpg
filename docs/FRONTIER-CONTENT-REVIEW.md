@@ -1,3 +1,5 @@
+> Historical prototype review below (old PR102 head). For the current crafting integration and validation, see [PR102 integration review](FRONTIER-INTEGRATION-REVIEW.md) and [acquisition table](FRONTIER-ACQUISITION.md).
+
 # Skill/mod prototype delivery review — 2026-10-07
 
 Status: playable prototype for owner review; crafting recipes and final balance are deferred.

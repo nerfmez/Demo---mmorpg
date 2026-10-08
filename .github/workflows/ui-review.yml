@@ -1,6 +1,7 @@
 name: Seeker UI Review
 on:
-  pull_request:
+  # PR execution and the stable check names now belong to CI.
+  workflow_dispatch:
 permissions:
   contents: read
   actions: read

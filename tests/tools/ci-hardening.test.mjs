@@ -28,7 +28,7 @@ const shell = (script, dir, env = {}) => spawnSync('bash', ['-e', '-o', 'pipefai
 test('PR78 actual-game details regression has exactly one mandatory equipment owner', () => {
   assert.deepEqual(SUITES.equipment, ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs']);
   const all = Object.values(SUITES).flat();
-  assert.equal(all.length, 30);
+  assert.equal(all.length, 34 + Number('equipment-inactive' in SUITES));
   assert.equal(new Set(all).size, all.length);
   assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment']);
 });
@@ -47,7 +47,8 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).tools, true);
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).game, false);
   assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
-  assert.deepEqual(browserPlan(['src/ui/equipment-avatar.js']).suites, ['boot', 'equipment', 'weapons', 'menu', 'ux']);
+  for (const suite of ['boot', 'equipment', 'weapons', 'menu', 'ux', 'workspaces', 'hud'])
+    assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes(suite));
   for (const path of ['src/ui/menu.js', 'src/ui/skill-journal/journal.js']) {
     assert.ok(browserPlan([path]).suites.includes('boot'), path);
   }
@@ -118,20 +119,20 @@ test('browser artifact source check rejects an absent or wrong-source build', t 
 });
 test('release uses the tested artifact, validates its source, and pins live-test checkout', () => {
   assert.match(ci, /artifact=ci-dist-\$sha-\$GITHUB_RUN_ID-\$GITHUB_RUN_ATTEMPT/);
-  assert.match(ci, /name: \$\{\{ needs.prepare.outputs.artifact \}\}/);
+  assert.match(ci, /name: \$\{\{ matrix.artifact \}\}/);
   assert.match(ci, /artifact:\n\s+value: \$\{\{ jobs.prepare.outputs.artifact \}\}/);
   assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \|\| needs.evidence.outputs.artifact \}\}/);
   assert.match(deploy, /run: node scripts\/ci-release-evidence.mjs --verify-build/);
   assert.match(deploy, /ref: \$\{\{ needs.build.outputs.source \}\}/);
   assert.match(deploy, /release=\$\{\{ needs.build.outputs.source \}\}/);
-  assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 3);
+  assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 4);
 });
 test('parallel engine coverage, main full-run isolation, permissions and core/build owners are retained', () => {
   assert.match(ci, /browser: \[chromium, webkit\]/);
-  assert.match(ci, /fail-fast: false/); assert.match(ci, /max-parallel: 6/);
+  assert.match(ci, /fail-fast: false/); assert.doesNotMatch(ci, /max-parallel:/);
   assert.match(ci, /group: ci-.*\|\| github.sha/);
   assert.match(ci, /cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \|\| inputs.quick_gate == true \}\}/);
-  assert.match(ci, /permissions:\n  contents: read\nconcurrency:/);
+  assert.match(ci, /permissions:\n  contents: read\n  actions: read\nconcurrency:/);
   assert.match(deploy, /permissions:\n  contents: read\n  pages: write\n  id-token: write\n  actions: read\n/);
   assert.match(ci, /run: npm run test:tools\n\s+if: steps.scope.outputs.game == 'true' \|\| steps.scope.outputs.tools == 'true'/);
   assert.equal((ci.match(/run: npm test\n/g) || []).length, 1);
@@ -156,6 +157,29 @@ for (const browser of ['chromium', 'webkit']) test(`runner ${browser} records a 
   assert.notEqual(run({ CI_SOURCE_SHA: 'd'.repeat(40) }).status, 0);
   assert.notEqual(run({ QUICK: '1' }).status, 0); assert.notEqual(run({ SKIP_CAPTURES: '1' }).status, 0);
   put('README.md', 'dirty'); assert.notEqual(run({}).status, 0);
+});
+for (const browser of ['chromium', 'webkit']) test(`monster-identity runner uses the requested ${browser} engine and records its exact owner`, t => {
+  const { dir, git, put } = fixture(t);
+  put('tests/browser/monster-identity.mjs', `
+    const chromium={launch(){console.log('ENGINE chromium')}};
+    const webkit={launch(){console.log('ENGINE webkit')}};
+    const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+    engine.launch();
+  `);
+  git('add', '.'); git('commit', '-qm', 'identity engine fixture');
+  const source = git('rev-parse', 'HEAD');
+  const result = spawnSync(process.execPath, [join(root, 'scripts/ci-browser-run.mjs'), 'monster-identity'], {
+    cwd: dir, encoding: 'utf8', env: { ...process.env, BROWSER: browser, CI_MODE: 'quick',
+      CI_SOURCE_SHA: source, QUICK: '', SKIP_CAPTURES: '', OFFLINE_UI: '', UI_DEVICE: '' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.includes(`ENGINE ${browser}`));
+  assert.ok(!result.stdout.includes(`ENGINE ${browser === 'webkit' ? 'chromium' : 'webkit'}`));
+  const report = JSON.parse(readFileSync(join(dir, `tests/browser/out/ci/quick-${browser}-monster-identity.json`)));
+  assert.equal(report.source, source); assert.equal(report.sourceDirty, false);
+  assert.equal(report.browser, browser); assert.equal(report.suite, 'monster-identity');
+  assert.equal(report.ok, true); assert.equal(report.complete, true);
+  assert.deepEqual(report.checks.map(check => [check.script, check.exitCode]), [['monster-identity.mjs', 0]]);
 });
 test('a signalled child remains failed and the next script is still attempted', t => {
   const { dir, git, put } = fixture(t);

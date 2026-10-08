@@ -4,7 +4,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {data,legacyData} from './helpers.js';
 import {ART,art,hasArt} from '../../src/ui/art.js';
-import {rasterIconUrl,RASTER_ICONS} from '../../src/ui/raster-icons.js';
+import {rasterIconUrl,RASTER_ICONS,SHARED_MONSTER_PORTRAITS} from '../../src/ui/raster-icons.js';
 import {CHARACTER_VERSION,createCharacter,gearLook} from '../../src/core/character.js';
 
 test('every named content entry has distinct authored artwork within its category',()=>{
@@ -14,16 +14,25 @@ test('every named content entry has distinct authored artwork within its categor
   mod:Object.keys(data.mods.mods),monster:Object.keys(data.monsters.monsters),
   zone:[...new Set([...data.world.zones,...legacyData.world.zones].map(z=>z.id))],job:Object.entries(data.jobtree.nodes).filter(([,n])=>!n.stage).map(([id])=>id)
  };
+ assert.deepEqual(Object.keys(SHARED_MONSTER_PORTRAITS).sort(),
+  ['salt_slime','tusk_boar','thornback_wolf','greyfang','reed_viper','marsh_wisp'].map(id=>'monster/'+id).sort(),
+  'only the six approved monster identities use shared raster portraits');
  for(const [kind,ids] of Object.entries(catalogs)){
-  const rasterIds=Object.keys(RASTER_ICONS).filter(k=>k.startsWith(kind+'/')).map(k=>k.slice(kind.length+1));
+  const registry=kind==='monster'?SHARED_MONSTER_PORTRAITS:RASTER_ICONS;
+  const rasterIds=Object.keys(registry).filter(k=>k.startsWith(kind+'/')).map(k=>k.slice(kind.length+1));
   assert.deepEqual([...new Set([...Object.keys(ART[kind]),...rasterIds])].sort(),[...ids].sort(),kind+' artwork coverage');
-  const seen=new Map();
+  const seen=new Map(),monsterFallbacks=new Set();
   for(const id of ids){
    assert.ok(hasArt(kind,id),kind+'/'+id);
-   const identity=rasterIconUrl(kind,id)||ART[kind][id];
+   const raster=rasterIconUrl(kind,id,registry);
+   const identity=raster||ART[kind][id];
    assert.ok(!seen.has(identity),kind+'/'+id+' duplicates '+seen.get(identity));
    seen.set(identity,id);
-   const raster=rasterIconUrl(kind,id);
+   if(kind==='monster'){
+    assert.ok(ART.monster[id],id+' retains its authored SVG fallback');
+    assert.ok(!monsterFallbacks.has(ART.monster[id]),id+' has distinct fallback artwork');
+    monsterFallbacks.add(ART.monster[id]);
+   }
    if(raster){assert.ok(art(kind,id).includes(`src="${raster}"`));assert.match(art(kind,id),/<img /);}else assert.match(art(kind,id),/viewBox="0 0 128 128"/);
   }
  }
@@ -54,6 +63,7 @@ test('imported models name real gear bases and respect measured asset budgets',a
    const isSeg=(s)=>s.length===2&&s.every((p)=>p.length===3&&p.every(Number.isFinite));
    for(const [b,seg] of Object.entries(m.segments))assert.ok(isSeg(seg)||(seg.length>0&&seg.every(isSeg)),id+'/'+b+' segment');
    if(m.keep)for(const b of m.keep)assert.ok(!(b in m.segments),id+'/'+b+' is kept procedural, not skinned');
+   if(m.wave!==undefined)assert.ok(m.wave>0&&m.wave<=1,id+' wave scales the body-wave animator down');
   }
   const buf=readFileSync(new URL('../../public/'+m.file,import.meta.url));
   assert.equal(buf.toString('latin1',0,4),'glTF',m.file+' is a binary glTF');
@@ -94,4 +104,3 @@ test('baked gait tables are complete cycles for every driver bone',async()=>{
  }
  assert.ok(gait.run.speed>gait.walk.speed);
 });
-

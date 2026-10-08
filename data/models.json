@@ -157,6 +157,405 @@
       "outlineWidth": 0.003,
       "revision": "blade_detail_r4",
       "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+    },
+    "ranger_axe": {
+      "file": "models/weapons/ranger_axe.glb",
+      "tris": 8426,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.62,
+          -0.65,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.43
+      }
+    },
+    "knight_greatsword": {
+      "file": "models/weapons/knight_greatsword.glb",
+      "tris": 8425,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07 replacement",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          -0.3,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.55
+      }
+    },
+    "tidecaller_staff": {
+      "file": "models/weapons/tidecaller_staff.glb",
+      "tris": 8622,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "scale": 0.82
+      }
+    },
+    "dusk_longbow": {
+      "file": "models/weapons/dusk_longbow.glb",
+      "tris": 8114,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.38,
+          -0.38,
+          0
+        ],
+        "rotation": [
+          0,
+          -1.5707963267948966,
+          0.7853981633974483
+        ],
+        "scale": 0.48
+      }
+    },
+    "greyfang_sabre": {
+      "file": "models/weapons/greyfang_sabre.glb",
+      "tris": 8691,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          -0.62,
+          -0.65,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0.7853981633974483
+        ],
+        "scale": 0.44
+      }
+    },
+    "wisp_staff": {
+      "file": "models/weapons/wisp_staff.glb",
+      "tris": 8229,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.12,
+          -0.1,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.61
+      }
+    },
+    "storm_bow": {
+      "file": "models/weapons/storm_bow.glb",
+      "tris": 7003,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          -1.5707963267948966,
+          0.7853981633974483
+        ],
+        "scale": 0.48
+      }
+    },
+    "stormglass_blade": {
+      "file": "models/weapons/stormglass_blade.glb",
+      "tris": 8587,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.6,
+          -0.55,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.43
+      }
+    },
+    "wisp_stiletto": {
+      "file": "models/weapons/wisp_stiletto.glb",
+      "tris": 8224,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07 replacement",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0.32,
+          0
+        ],
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 0.75
+      }
+    },
+    "lantern_wand": {
+      "file": "models/weapons/lantern_wand.glb",
+      "tris": 7380,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0.56
+        ],
+        "rotation": [
+          0,
+          3.141592653589793,
+          0
+        ],
+        "scale": 0.38
+      }
+    },
+    "thunder_maul": {
+      "file": "models/weapons/thunder_maul.glb",
+      "tris": 8096,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.56,
+          -0.6,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.46
+      }
+    },
+    "galebreaker": {
+      "file": "models/weapons/galebreaker.glb",
+      "tris": 8539,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          -0.57,
+          -0.5,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0.7853981633974483
+        ],
+        "scale": 0.47
+      }
+    },
+    "crag_axe": {
+      "file": "models/weapons/crag_axe.glb",
+      "tris": 8324,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.48,
+          -0.48,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.46
+      }
+    },
+    "horn_greatblade": {
+      "file": "models/weapons/horn_greatblade.glb",
+      "tris": 8042,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.55,
+          -0.54,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.55
+      }
+    },
+    "ancient_staff": {
+      "file": "models/weapons/ancient_staff.glb",
+      "tris": 8138,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.1,
+          -0.12,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.62
+      }
+    },
+    "oathblade": {
+      "file": "models/weapons/oathblade.glb",
+      "tris": 7301,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07 replacement",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          -0.31,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.16
+      }
+    },
+    "ruin_fang": {
+      "file": "models/weapons/ruin_fang.glb",
+      "tris": 8695,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.62,
+          -0.44,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.32
+      }
+    },
+    "relic_wand": {
+      "file": "models/weapons/relic_wand.glb",
+      "tris": 8559,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.47,
+          -0.58,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.33
+      }
+    },
+    "moonleaf_wand": {
+      "file": "models/weapons/moonleaf_wand.glb",
+      "tris": 8788,
+      "outline": "#4a3a30",
+      "outlineWidth": 0.003,
+      "revision": "approved 2026-10-07",
+      "source": "Approved original; exact source and attachment transform in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0.39,
+          -0.37,
+          0
+        ],
+        "rotation": [
+          1.5707963267948966,
+          0,
+          -0.7853981633974483
+        ],
+        "scale": 0.34
+      }
     }
   },
   "characters": {
@@ -217,185 +616,463 @@
   "monsters": {
     "salt_slime": {
       "file": "models/monsters/salt_slime.glb",
-      "tris": 3112,
-      "scale": 0.6,
+      "tris": 4899,
+      "scale": 0.58,
       "yaw": 0,
-      "sharpness": 4,
+      "sharpness": 3,
       "outline": "#2a5a60",
-      "source": "Meshy 6 image-to-3d (task 01a0f57a-c37d-7182-97bf-8f6083cee753) from concept A of the level-1 redesign (image-to-image tasks 01a0f578-4d4a-777f-9e8a-9fb905e719f1); see assets/meshy/monsters",
+      "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/salt_slime_concept_v2.jpg); prepared with scripts/prep-monster-glb.py --tris 4900 (Tidal Slime)",
       "bones": {},
       "segments": {
         "body": [
           [
-            0,
-            0.1,
+            -0.25,
+            0.06,
             0
           ],
           [
-            0,
+            0.3,
+            0.06,
+            0
+          ]
+        ],
+        "mid": [
+          [
+            -0.15,
             0.4,
             0
+          ],
+          [
+            0.25,
+            0.3,
+            0
+          ]
+        ],
+        "crest": [
+          [
+            -0.42,
+            0.66,
+            -0.05
+          ],
+          [
+            -0.05,
+            0.8,
+            -0.05
+          ]
+        ],
+        "front": [
+          [
+            -0.25,
+            0.25,
+            0.3
+          ],
+          [
+            0.25,
+            0.2,
+            0.28
+          ]
+        ],
+        "rimL": [
+          [
+            0.52,
+            0.06,
+            -0.15
+          ],
+          [
+            0.52,
+            0.06,
+            0.15
+          ]
+        ],
+        "rimR": [
+          [
+            -0.55,
+            0.08,
+            -0.15
+          ],
+          [
+            -0.55,
+            0.08,
+            0.15
+          ]
+        ],
+        "rimB": [
+          [
+            -0.25,
+            0.08,
+            -0.36
+          ],
+          [
+            0.25,
+            0.08,
+            -0.36
           ]
         ]
       }
     },
     "tusk_boar": {
       "file": "models/monsters/tusk_boar.glb",
-      "tris": 4156,
+      "tris": 4899,
       "scale": 1,
       "yaw": 0,
       "sharpness": 4,
       "outline": "#2e2019",
-      "source": "Meshy 6 image-to-3d (task 01a0e828-bb25-708e-b38a-0bdd0e8e5bfb) from concept 01a0e81d-10d2-7248-8f6e-db39c7ea6879; see assets/meshy/monsters",
+      "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/tusk_boar_concept_v2.jpg); prepared with scripts/prep-monster-glb.py --tris 4900 (Boarbull; Meshy rig joints placed the bones)",
       "bones": {
-        "leg0": [
-          0.21,
-          -0.24,
-          0.19
-        ],
-        "leg1": [
-          -0.21,
-          -0.24,
-          0.19
-        ],
-        "leg2": [
-          0.19,
-          -0.24,
-          -0.36
-        ],
-        "leg3": [
-          -0.19,
-          -0.24,
-          -0.36
-        ],
         "head": [
-          0,
-          0.04,
-          0.45
+          -0.02,
+          -0.02,
+          0.56
         ],
         "tail": [
-          0,
-          0.04,
-          -0.55
+          0.01,
+          0.03,
+          -0.64
         ],
-        "earL": [
-          0.12,
-          0.26,
-          -0.03
-        ],
-        "earR": [
+        "leg0": [
+          0.28,
           -0.12,
-          0.26,
-          -0.03
+          0.34
+        ],
+        "leg1": [
+          -0.35,
+          -0.11,
+          0.32
+        ],
+        "leg2": [
+          0.21,
+          -0.17,
+          -0.52
+        ],
+        "leg3": [
+          -0.2,
+          -0.17,
+          -0.42
         ]
       },
       "segments": {
         "body": [
           [
-            0,
-            0.62,
-            -0.5
+            0.0,
+            0.6,
+            -0.52
           ],
           [
-            0,
+            0.0,
             0.62,
-            0.35
+            0.3
           ]
         ],
         "head": [
           [
-            0,
-            0.68,
-            0.5
+            [
+              -0.02,
+              0.6,
+              0.56
+            ],
+            [
+              0.01,
+              0.68,
+              0.69
+            ]
           ],
           [
-            0,
-            0.6,
-            0.92
+            [
+              0.01,
+              0.68,
+              0.69
+            ],
+            [
+              0.02,
+              0.55,
+              0.82
+            ]
+          ],
+          [
+            [
+              0.02,
+              0.55,
+              0.82
+            ],
+            [
+              0.02,
+              0.5,
+              0.9
+            ]
+          ],
+          [
+            [
+              0.25,
+              0.66,
+              0.56
+            ],
+            [
+              0.45,
+              0.75,
+              0.5
+            ]
+          ],
+          [
+            [
+              0.45,
+              0.75,
+              0.5
+            ],
+            [
+              0.54,
+              0.92,
+              0.48
+            ]
+          ],
+          [
+            [
+              -0.25,
+              0.66,
+              0.56
+            ],
+            [
+              -0.45,
+              0.75,
+              0.5
+            ]
+          ],
+          [
+            [
+              -0.45,
+              0.75,
+              0.5
+            ],
+            [
+              -0.54,
+              0.92,
+              0.48
+            ]
           ]
         ],
         "leg0": [
           [
-            0.21,
-            0.38,
-            0.19
+            [
+              0.28,
+              0.5,
+              0.34
+            ],
+            [
+              0.29,
+              0.23,
+              0.29
+            ]
           ],
           [
-            0.2205,
-            0.02,
-            0.19
+            [
+              0.29,
+              0.23,
+              0.29
+            ],
+            [
+              0.29,
+              0.09,
+              0.35
+            ]
+          ],
+          [
+            [
+              0.29,
+              0.09,
+              0.35
+            ],
+            [
+              0.29,
+              0.02,
+              0.38
+            ]
           ]
         ],
         "leg1": [
           [
-            -0.21,
-            0.38,
-            0.19
+            [
+              -0.35,
+              0.51,
+              0.32
+            ],
+            [
+              -0.39,
+              0.24,
+              0.24
+            ]
           ],
           [
-            -0.2205,
-            0.02,
-            0.19
+            [
+              -0.39,
+              0.24,
+              0.24
+            ],
+            [
+              -0.42,
+              0.09,
+              0.26
+            ]
+          ],
+          [
+            [
+              -0.42,
+              0.09,
+              0.26
+            ],
+            [
+              -0.43,
+              0.02,
+              0.29
+            ]
           ]
         ],
         "leg2": [
           [
-            0.19,
-            0.38,
-            -0.36
+            [
+              0.21,
+              0.45,
+              -0.52
+            ],
+            [
+              0.21,
+              0.27,
+              -0.54
+            ]
           ],
           [
-            0.1995,
-            0.02,
-            -0.36
+            [
+              0.21,
+              0.27,
+              -0.54
+            ],
+            [
+              0.21,
+              0.22,
+              -0.69
+            ]
+          ],
+          [
+            [
+              0.21,
+              0.22,
+              -0.69
+            ],
+            [
+              0.23,
+              0.08,
+              -0.69
+            ]
+          ],
+          [
+            [
+              0.23,
+              0.08,
+              -0.69
+            ],
+            [
+              0.24,
+              0.02,
+              -0.66
+            ]
           ]
         ],
         "leg3": [
           [
-            -0.19,
-            0.38,
-            -0.36
+            [
+              -0.2,
+              0.45,
+              -0.42
+            ],
+            [
+              -0.2,
+              0.28,
+              -0.35
+            ]
           ],
           [
-            -0.1995,
-            0.02,
-            -0.36
+            [
+              -0.2,
+              0.28,
+              -0.35
+            ],
+            [
+              -0.19,
+              0.22,
+              -0.49
+            ]
+          ],
+          [
+            [
+              -0.19,
+              0.22,
+              -0.49
+            ],
+            [
+              -0.2,
+              0.08,
+              -0.45
+            ]
+          ],
+          [
+            [
+              -0.2,
+              0.08,
+              -0.45
+            ],
+            [
+              -0.21,
+              0.02,
+              -0.4
+            ]
           ]
         ],
         "tail": [
           [
-            0,
-            0.66,
-            -0.6
+            [
+              0.01,
+              0.65,
+              -0.64
+            ],
+            [
+              0.03,
+              0.59,
+              -0.71
+            ]
           ],
           [
-            0,
-            0.6,
-            -0.95
-          ]
-        ],
-        "earL": [
-          [
-            0.12,
-            0.9,
-            0.44
+            [
+              0.03,
+              0.59,
+              -0.71
+            ],
+            [
+              0.07,
+              0.56,
+              -0.79
+            ]
           ],
           [
-            0.14,
-            1,
-            0.42
-          ]
-        ],
-        "earR": [
-          [
-            -0.12,
-            0.9,
-            0.44
+            [
+              0.07,
+              0.56,
+              -0.79
+            ],
+            [
+              0.14,
+              0.57,
+              -0.86
+            ]
           ],
           [
-            -0.14,
-            1,
-            0.42
+            [
+              0.14,
+              0.57,
+              -0.86
+            ],
+            [
+              0.17,
+              0.63,
+              -0.89
+            ]
           ]
         ]
       },
@@ -820,46 +1497,41 @@
     },
     "marsh_wisp": {
       "file": "models/monsters/marsh_wisp.glb",
-      "tris": 2088,
-      "scale": 0.5,
+      "tris": 4900,
+      "scale": 0.62,
       "yaw": 0,
       "offset": [
         0,
-        0.66,
+        0.5,
         0
       ],
       "sharpness": 6,
       "outline": false,
       "glow": 0.6,
       "rim": 0.6,
-      "keep": [
-        "mote0",
-        "mote1",
-        "mote2"
-      ],
-      "source": "Meshy 6 image-to-3d (task 01a0e84a-5e4a-7491-9e72-2e0ac6d5f08e) from concept 01a0e840-d1b4-766c-b615-916f557a846e; see assets/meshy/monsters",
+      "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/marsh_wisp_concept_v2.jpg); prepared with scripts/prep-monster-glb.py --tris 4900 (Lostlight Wisp)",
       "segments": {
         "body": [
           [
             0,
-            0.75,
+            0.7,
             0
           ],
           [
             0,
-            1.3,
+            1.15,
             0
           ]
         ],
         "petals": [
           [
             0,
-            1.5,
+            1.4,
             0
           ],
           [
             0,
-            1.62,
+            1.58,
             0
           ]
         ]
@@ -868,252 +1540,395 @@
     },
     "thornback_wolf": {
       "file": "models/monsters/thornback_wolf.glb",
-      "tris": 4180,
-      "scale": 1.1,
+      "tris": 4499,
+      "scale": 1,
       "yaw": 0,
       "sharpness": 5,
       "outline": "#2a2622",
       "outlineWidth": 0.012,
-      "source": "Meshy 6 image-to-3d (task 01a0e84a-68c3-73ab-b36f-c3f9d53ba7bd) from concept 01a0e840-db2f-75a5-b3ee-961bd5d948ab; see assets/meshy/monsters",
+      "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/thornback_wolf_concept_v2.jpg); prepared with scripts/prep-monster-glb.py --yaw 18.5 --tris 4500 (Maskfang Wolf; Meshy rig joints placed the bones)",
       "bones": {
-        "neck": [
-          0,
+        "chest": [
+          -0.06,
           -0.12,
-          0.3
+          0.11
+        ],
+        "neck": [
+          -0.0,
+          0.07,
+          0.22
         ],
         "head": [
-          0,
-          0.04,
-          0.18
+          0.03,
+          0.12,
+          0.32
         ],
         "jaw": [
-          0,
-          -0.12,
-          0.04
-        ],
-        "earL": [
-          0.06,
-          0.12,
-          -0.02
-        ],
-        "earR": [
-          -0.06,
-          0.12,
-          -0.02
-        ],
-        "leg0": [
-          0.17,
-          -0.19,
-          -0.02
-        ],
-        "leg0k": [
-          0,
-          -0.28,
-          0
-        ],
-        "leg2": [
-          0.17,
-          -0.17,
-          -0.44
-        ],
-        "leg2k": [
-          0,
-          -0.28,
-          0
+          0.02,
+          -0.09,
+          0.06
         ],
         "tail": [
-          0,
-          -0.17,
-          -0.5
+          0.02,
+          -0.05,
+          -0.46
+        ],
+        "leg0": [
+          0.16,
+          -0.04,
+          0.29
         ],
         "leg1": [
           -0.17,
-          -0.19,
-          -0.02
+          -0.04,
+          0.32
         ],
-        "leg1k": [
-          0,
-          -0.28,
-          0
+        "leg2": [
+          0.13,
+          -0.12,
+          -0.31
         ],
         "leg3": [
-          -0.17,
-          -0.17,
-          -0.44
+          -0.13,
+          -0.11,
+          -0.39
+        ],
+        "leg0k": [
+          0.02,
+          -0.26,
+          -0.1
+        ],
+        "leg1k": [
+          -0.02,
+          -0.26,
+          -0.09
+        ],
+        "leg2k": [
+          0.1,
+          -0.38,
+          -0.18
         ],
         "leg3k": [
-          0,
-          -0.28,
-          0
+          -0.0,
+          -0.41,
+          -0.19
         ]
       },
       "segments": {
         "body": [
           [
-            0,
-            0.6,
-            -0.5
+            [
+              -0.01,
+              0.58,
+              -0.33
+            ],
+            [
+              -0.03,
+              0.58,
+              -0.2
+            ]
           ],
           [
-            0,
-            0.6,
-            0.05
+            [
+              -0.03,
+              0.58,
+              -0.2
+            ],
+            [
+              -0.06,
+              0.56,
+              -0.0
+            ]
           ]
         ],
         "chest": [
           [
-            0,
-            0.6,
-            0.05
+            -0.06,
+            0.56,
+            -0.0
           ],
           [
-            0,
-            0.62,
-            0.45
+            -0.06,
+            0.6,
+            0.11
           ]
         ],
         "neck": [
           [
-            0,
-            0.62,
-            0.5
+            [
+              -0.06,
+              0.6,
+              0.11
+            ],
+            [
+              -0.07,
+              0.67,
+              0.33
+            ]
           ],
           [
-            0,
-            0.66,
-            0.7
+            [
+              -0.07,
+              0.67,
+              0.33
+            ],
+            [
+              -0.06,
+              0.75,
+              0.49
+            ]
           ]
         ],
         "head": [
           [
-            0,
-            0.66,
-            0.75
+            [
+              -0.03,
+              0.79,
+              0.65
+            ],
+            [
+              -0.01,
+              0.83,
+              0.75
+            ]
           ],
           [
-            0,
-            0.6,
-            1
+            [
+              -0.01,
+              0.83,
+              0.75
+            ],
+            [
+              0.03,
+              0.69,
+              0.83
+            ]
+          ],
+          [
+            [
+              0.03,
+              0.69,
+              0.83
+            ],
+            [
+              0.05,
+              0.65,
+              0.91
+            ]
+          ]
+        ],
+        "jaw": [
+          [
+            -0.01,
+            0.7,
+            0.72
+          ],
+          [
+            0.03,
+            0.61,
+            0.81
+          ]
+        ],
+        "tail": [
+          [
+            [
+              0.02,
+              0.67,
+              -0.46
+            ],
+            [
+              0.08,
+              0.54,
+              -0.59
+            ]
+          ],
+          [
+            [
+              0.08,
+              0.54,
+              -0.59
+            ],
+            [
+              0.15,
+              0.41,
+              -0.7
+            ]
+          ],
+          [
+            [
+              0.15,
+              0.41,
+              -0.7
+            ],
+            [
+              0.25,
+              0.3,
+              -0.82
+            ]
+          ],
+          [
+            [
+              0.25,
+              0.3,
+              -0.82
+            ],
+            [
+              0.27,
+              0.26,
+              -0.84
+            ]
           ]
         ],
         "leg0": [
           [
-            0.17,
-            0.5,
-            0.3
+            0.09,
+            0.56,
+            0.4
           ],
           [
-            0.17,
-            0.27,
+            0.11,
+            0.3,
             0.3
           ]
         ],
         "leg0k": [
           [
-            0.17,
-            0.27,
-            0.3
+            [
+              0.11,
+              0.3,
+              0.3
+            ],
+            [
+              0.13,
+              0.07,
+              0.42
+            ]
           ],
           [
-            0.17,
-            0,
-            0.34
-          ]
-        ],
-        "leg2": [
-          [
-            0.17,
-            0.5,
-            -0.44
-          ],
-          [
-            0.17,
-            0.27,
-            -0.44
-          ]
-        ],
-        "leg2k": [
-          [
-            0.17,
-            0.27,
-            -0.44
-          ],
-          [
-            0.17,
-            0,
-            -0.4
-          ]
-        ],
-        "tail": [
-          [
-            0,
-            0.5,
-            -0.6
-          ],
-          [
-            0,
-            0.42,
-            -1
+            [
+              0.13,
+              0.07,
+              0.42
+            ],
+            [
+              0.13,
+              0.03,
+              0.5
+            ]
           ]
         ],
         "leg1": [
           [
-            -0.17,
-            0.5,
-            0.3
+            -0.24,
+            0.56,
+            0.43
           ],
           [
-            -0.17,
-            0.27,
-            0.3
+            -0.26,
+            0.3,
+            0.33
           ]
         ],
         "leg1k": [
           [
-            -0.17,
-            0.27,
-            0.3
+            [
+              -0.26,
+              0.3,
+              0.33
+            ],
+            [
+              -0.28,
+              0.07,
+              0.44
+            ]
           ],
           [
-            -0.17,
-            0,
-            0.34
+            [
+              -0.28,
+              0.07,
+              0.44
+            ],
+            [
+              -0.29,
+              0.03,
+              0.52
+            ]
+          ]
+        ],
+        "leg2": [
+          [
+            0.13,
+            0.6,
+            -0.31
+          ],
+          [
+            0.23,
+            0.22,
+            -0.49
+          ]
+        ],
+        "leg2k": [
+          [
+            [
+              0.23,
+              0.22,
+              -0.49
+            ],
+            [
+              0.25,
+              0.07,
+              -0.48
+            ]
+          ],
+          [
+            [
+              0.25,
+              0.07,
+              -0.48
+            ],
+            [
+              0.27,
+              0.02,
+              -0.4
+            ]
           ]
         ],
         "leg3": [
           [
-            -0.17,
-            0.5,
-            -0.44
+            -0.13,
+            0.61,
+            -0.39
           ],
           [
-            -0.17,
-            0.27,
-            -0.44
+            -0.13,
+            0.2,
+            -0.59
           ]
         ],
         "leg3k": [
           [
-            -0.17,
-            0.27,
-            -0.44
+            [
+              -0.13,
+              0.2,
+              -0.59
+            ],
+            [
+              -0.16,
+              0.07,
+              -0.54
+            ]
           ],
           [
-            -0.17,
-            0,
-            -0.4
-          ]
-        ],
-        "jaw": [
-          [
-            0,
-            0.49,
-            0.86
-          ],
-          [
-            0,
-            0.49,
-            0.95
+            [
+              -0.16,
+              0.07,
+              -0.54
+            ],
+            [
+              -0.19,
+              0.02,
+              -0.47
+            ]
           ]
         ]
       }
@@ -1514,253 +2329,456 @@
     },
     "greyfang": {
       "file": "models/monsters/greyfang.glb",
-      "tris": 5019,
-      "scale": 1.2,
+      "tris": 5899,
+      "scale": 1.1,
       "yaw": 0,
       "sharpness": 5,
       "minWeight": 0.1,
       "outline": "#1e1e24",
       "outlineWidth": 0.012,
-      "source": "Meshy 6 image-to-3d (task 01a0e877-9a24-76d6-abcb-a9aa8179dd1d) from concept 01a0e875-1ed7-7166-be3e-dd55e10b8555; see assets/meshy/monsters",
+      "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/greyfang_concept_v2.jpg); prepared with scripts/prep-monster-glb.py --keep 1 --yaw 19 --tris 5900 (Greyfang Alpha; Meshy rig joints placed the bones)",
       "bones": {
+        "chest": [
+          -0.13,
+          -0.01,
+          0.12
+        ],
         "neck": [
-          0,
-          0.06,
-          0.28
+          -0.01,
+          0.13,
+          0.21
         ],
         "head": [
-          0,
-          0.06,
-          0.3
+          0.03,
+          0.1,
+          0.35
         ],
         "jaw": [
-          0,
-          -0.03,
-          0.02
-        ],
-        "earL": [
-          0.08,
-          0.18,
-          0
-        ],
-        "earR": [
+          0.09,
           -0.08,
-          0.18,
-          0
-        ],
-        "leg0": [
-          0.17,
-          -0.08,
-          -0.08
-        ],
-        "leg0k": [
-          0,
-          -0.36,
-          0
-        ],
-        "leg2": [
-          0.17,
-          -0.12,
-          -0.43
-        ],
-        "leg2k": [
-          0,
-          -0.3,
-          0
+          0.18
         ],
         "tail": [
-          0,
-          -0.12,
-          -0.66
+          0.01,
+          0.03,
+          -0.45
+        ],
+        "leg0": [
+          0.21,
+          0.02,
+          0.4
         ],
         "leg1": [
-          -0.17,
-          -0.08,
-          -0.08
+          -0.24,
+          -0.0,
+          0.44
         ],
-        "leg1k": [
-          0,
-          -0.36,
-          0
+        "leg2": [
+          0.13,
+          0.03,
+          -0.26
         ],
         "leg3": [
-          -0.17,
-          -0.12,
-          -0.43
+          -0.2,
+          0.03,
+          -0.34
+        ],
+        "leg0k": [
+          0.03,
+          -0.26,
+          -0.11
+        ],
+        "leg1k": [
+          -0.04,
+          -0.24,
+          -0.16
+        ],
+        "leg2k": [
+          0.09,
+          -0.46,
+          -0.2
         ],
         "leg3k": [
-          0,
-          -0.3,
-          0
+          0.02,
+          -0.47,
+          -0.2
         ]
       },
       "segments": {
         "body": [
           [
-            0,
-            0.75,
-            -0.55
+            [
+              -0.04,
+              0.82,
+              -0.29
+            ],
+            [
+              -0.07,
+              0.71,
+              -0.14
+            ]
           ],
           [
-            0,
-            0.8,
-            0.05
+            [
+              -0.07,
+              0.71,
+              -0.14
+            ],
+            [
+              -0.13,
+              0.71,
+              0.12
+            ]
           ]
         ],
         "chest": [
           [
-            0,
-            0.8,
-            0.05
+            -0.13,
+            0.71,
+            0.12
           ],
           [
-            0,
-            0.85,
-            0.5
+            -0.14,
+            0.84,
+            0.33
           ]
         ],
         "neck": [
           [
-            0,
-            0.85,
-            0.55
+            [
+              -0.13,
+              0.71,
+              0.12
+            ],
+            [
+              -0.14,
+              0.84,
+              0.33
+            ]
           ],
           [
-            0,
-            0.88,
-            0.8
+            [
+              -0.14,
+              0.84,
+              0.33
+            ],
+            [
+              -0.13,
+              0.87,
+              0.57
+            ]
           ]
         ],
         "head": [
           [
-            0,
-            0.93,
-            0.82
+            [
+              -0.11,
+              0.94,
+              0.68
+            ],
+            [
+              -0.07,
+              0.91,
+              0.8
+            ]
           ],
           [
-            0,
-            0.88,
-            1.12
-          ]
-        ],
-        "leg0": [
-          [
-            0.17,
-            0.6,
-            0.24
+            [
+              -0.07,
+              0.91,
+              0.8
+            ],
+            [
+              -0.05,
+              1.01,
+              0.86
+            ]
           ],
           [
-            0.17,
-            0.3,
-            0.24
-          ]
-        ],
-        "leg0k": [
-          [
-            0.17,
-            0.3,
-            0.24
-          ],
-          [
-            0.17,
-            0,
-            0.27
-          ]
-        ],
-        "leg2": [
-          [
-            0.17,
-            0.55,
-            -0.43
-          ],
-          [
-            0.17,
-            0.3,
-            -0.43
-          ]
-        ],
-        "leg2k": [
-          [
-            0.17,
-            0.3,
-            -0.43
-          ],
-          [
-            0.17,
-            0,
-            -0.4
-          ]
-        ],
-        "tail": [
-          [
-            0,
-            0.55,
-            -0.7
-          ],
-          [
-            0,
-            0.45,
-            -1.14
-          ]
-        ],
-        "leg1": [
-          [
-            -0.17,
-            0.6,
-            0.24
-          ],
-          [
-            -0.17,
-            0.3,
-            0.24
-          ]
-        ],
-        "leg1k": [
-          [
-            -0.17,
-            0.3,
-            0.24
-          ],
-          [
-            -0.17,
-            0,
-            0.27
-          ]
-        ],
-        "leg3": [
-          [
-            -0.17,
-            0.55,
-            -0.43
-          ],
-          [
-            -0.17,
-            0.3,
-            -0.43
-          ]
-        ],
-        "leg3k": [
-          [
-            -0.17,
-            0.3,
-            -0.43
-          ],
-          [
-            -0.17,
-            0,
-            -0.4
+            [
+              -0.05,
+              1.01,
+              0.86
+            ],
+            [
+              -0.01,
+              0.86,
+              0.94
+            ]
           ]
         ],
         "jaw": [
           [
-            0,
-            0.8,
-            0.95
+            -0.02,
+            0.86,
+            0.86
           ],
           [
-            0,
-            0.78,
-            1.08
+            0.01,
+            0.85,
+            0.94
+          ]
+        ],
+        "tail": [
+          [
+            [
+              0.01,
+              0.75,
+              -0.45
+            ],
+            [
+              0.05,
+              0.65,
+              -0.6
+            ]
+          ],
+          [
+            [
+              0.05,
+              0.65,
+              -0.6
+            ],
+            [
+              0.1,
+              0.54,
+              -0.73
+            ]
+          ],
+          [
+            [
+              0.1,
+              0.54,
+              -0.73
+            ],
+            [
+              0.19,
+              0.43,
+              -0.83
+            ]
+          ],
+          [
+            [
+              0.19,
+              0.43,
+              -0.83
+            ],
+            [
+              0.32,
+              0.34,
+              -0.85
+            ]
+          ],
+          [
+            [
+              0.32,
+              0.34,
+              -0.85
+            ],
+            [
+              0.45,
+              0.25,
+              -0.81
+            ]
+          ],
+          [
+            [
+              0.45,
+              0.25,
+              -0.81
+            ],
+            [
+              0.54,
+              0.15,
+              -0.75
+            ]
+          ],
+          [
+            [
+              0.54,
+              0.15,
+              -0.75
+            ],
+            [
+              0.55,
+              0.12,
+              -0.75
+            ]
+          ]
+        ],
+        "leg0": [
+          [
+            0.08,
+            0.73,
+            0.52
+          ],
+          [
+            0.11,
+            0.46,
+            0.42
+          ]
+        ],
+        "leg0k": [
+          [
+            [
+              0.11,
+              0.46,
+              0.42
+            ],
+            [
+              0.07,
+              0.21,
+              0.42
+            ]
+          ],
+          [
+            [
+              0.07,
+              0.21,
+              0.42
+            ],
+            [
+              0.09,
+              0.1,
+              0.49
+            ]
+          ],
+          [
+            [
+              0.09,
+              0.1,
+              0.49
+            ],
+            [
+              0.11,
+              0.07,
+              0.55
+            ]
+          ]
+        ],
+        "leg1": [
+          [
+            -0.37,
+            0.71,
+            0.56
+          ],
+          [
+            -0.41,
+            0.46,
+            0.39
+          ]
+        ],
+        "leg1k": [
+          [
+            [
+              -0.41,
+              0.46,
+              0.39
+            ],
+            [
+              -0.37,
+              0.21,
+              0.42
+            ]
+          ],
+          [
+            [
+              -0.37,
+              0.21,
+              0.42
+            ],
+            [
+              -0.39,
+              0.1,
+              0.5
+            ]
+          ],
+          [
+            [
+              -0.39,
+              0.1,
+              0.5
+            ],
+            [
+              -0.41,
+              0.07,
+              0.56
+            ]
+          ]
+        ],
+        "leg2": [
+          [
+            0.13,
+            0.75,
+            -0.26
+          ],
+          [
+            0.22,
+            0.29,
+            -0.46
+          ]
+        ],
+        "leg2k": [
+          [
+            [
+              0.22,
+              0.29,
+              -0.46
+            ],
+            [
+              0.25,
+              0.13,
+              -0.46
+            ]
+          ],
+          [
+            [
+              0.25,
+              0.13,
+              -0.46
+            ],
+            [
+              0.29,
+              0.07,
+              -0.4
+            ]
+          ]
+        ],
+        "leg3": [
+          [
+            -0.2,
+            0.75,
+            -0.34
+          ],
+          [
+            -0.18,
+            0.28,
+            -0.54
+          ]
+        ],
+        "leg3k": [
+          [
+            [
+              -0.18,
+              0.28,
+              -0.54
+            ],
+            [
+              -0.21,
+              0.13,
+              -0.52
+            ]
+          ],
+          [
+            [
+              -0.21,
+              0.13,
+              -0.52
+            ],
+            [
+              -0.26,
+              0.07,
+              -0.47
+            ]
           ]
         ]
       },
@@ -2683,237 +3701,274 @@
     },
     "reed_viper": {
       "file": "models/monsters/reed_viper.glb",
-      "tris": 3978,
-      "scale": 1.55,
+      "tris": 4899,
+      "scale": 0.85,
       "yaw": 0,
-      "offset": [
-        0,
-        0,
-        -0.65
-      ],
       "sharpness": 5,
       "outline": "#1f2c1a",
       "outlineWidth": 0.01,
-      "source": "Meshy 6 image-to-3d (task 01a10aab-c6b0-7569-be84-513b22b86158) from concept 01a10aa5-8e04-7274-afb8-6a883cfaf5ec (caption erased); see assets/meshy/monsters",
+      "source": "Meshy (owner-supplied GLB, 2026-10-07; concept: assets/meshy/monsters/reed_viper_concept_v4.jpg); prepared with scripts/prep-monster-glb.py --keep 1 --yaw 15 --tris 4900 (Reedblade Viper, coiled; bones follow the traced centreline)",
       "bones": {
         "head": [
-          0,
-          1.1,
-          0.25
+          0.05,
+          0.53,
+          0.44
         ],
         "jaw": [
-          0,
-          0.03,
-          0.2
+          -0.02,
+          0.14,
+          0.14
         ],
         "seg0": [
-          0,
-          -0.15,
-          -0.01
+          0.0,
+          -0.05,
+          -0.02
         ],
         "seg1": [
-          0,
-          -0.25,
-          0.02
+          -0.05,
+          -0.08,
+          -0.03
         ],
         "seg2": [
-          0,
-          -0.26,
-          0.04
+          -0.12,
+          -0.07,
+          -0.02
         ],
         "seg3": [
-          0,
-          -0.26,
+          -0.03,
+          -0.02,
           -0.15
         ],
         "seg4": [
-          0,
-          0.01,
-          -0.31
+          0.05,
+          -0.02,
+          -0.11
         ],
         "seg5": [
-          0,
-          0.13,
-          -0.46
+          0.15,
+          0.02,
+          -0.17
         ],
         "seg6": [
-          0,
-          -0.05,
-          -0.53
+          0.06,
+          -0.03,
+          -0.22
         ],
         "seg7": [
-          0,
-          -0.09,
-          -0.45
+          0.19,
+          -0.17,
+          -0.16
         ],
         "seg8": [
-          0,
-          -0.05,
-          -0.32
+          0.14,
+          0.05,
+          -0.19
         ]
       },
       "segments": {
         "head": [
           [
             [
-              0,
-              1.15,
-              0.2
+              0.05,
+              0.53,
+              0.44
             ],
             [
-              0,
-              1.22,
-              0.75
+              0.09,
+              0.75,
+              0.49
             ]
           ],
           [
             [
-              0,
-              1.3,
-              0.1
+              0.09,
+              0.75,
+              0.49
             ],
             [
-              0,
-              1.3,
-              0.3
+              0.03,
+              0.71,
+              0.65
+            ]
+          ],
+          [
+            [
+              0.14,
+              0.85,
+              0.43
+            ],
+            [
+              0.33,
+              1.17,
+              0.25
             ]
           ]
         ],
         "jaw": [
           [
-            0,
-            1.12,
-            0.5
+            0.03,
+            0.66,
+            0.58
           ],
           [
-            0,
-            1.12,
-            0.75
+            0.03,
+            0.65,
+            0.73
           ]
         ],
         "seg0": [
           [
-            0,
-            0.95,
-            0.24
+            0.05,
+            0.48,
+            0.42
           ],
           [
-            0,
-            0.7,
-            0.26
+            0.0,
+            0.4,
+            0.39
           ]
         ],
         "seg1": [
           [
-            0,
-            0.7,
-            0.26
+            0.0,
+            0.4,
+            0.39
           ],
           [
-            0,
-            0.44,
-            0.3
+            -0.12,
+            0.33,
+            0.37
           ]
         ],
         "seg2": [
           [
-            0,
-            0.44,
-            0.3
+            -0.12,
+            0.33,
+            0.37
           ],
           [
-            0,
-            0.18,
-            0.15
+            -0.15,
+            0.31,
+            0.22
           ]
         ],
         "seg3": [
           [
-            0,
-            0.18,
-            0.15
+            -0.15,
+            0.31,
+            0.22
           ],
           [
-            0,
-            0.19,
-            -0.16
+            -0.1,
+            0.3,
+            0.11
           ]
         ],
         "seg4": [
           [
-            0,
-            0.19,
-            -0.16
+            -0.1,
+            0.3,
+            0.11
           ],
           [
-            0,
-            0.32,
-            -0.62
+            0.05,
+            0.31,
+            -0.06
           ]
         ],
         "seg5": [
           [
-            0,
-            0.32,
-            -0.62
+            0.05,
+            0.31,
+            -0.06
           ],
           [
-            0,
-            0.27,
-            -1.15
+            0.11,
+            0.29,
+            -0.28
           ]
         ],
         "seg6": [
           [
-            0,
-            0.27,
-            -1.15
+            0.11,
+            0.29,
+            -0.28
           ],
           [
-            0,
-            0.18,
-            -1.6
+            0.3,
+            0.12,
+            -0.44
           ]
         ],
         "seg7": [
           [
-            0,
-            0.18,
-            -1.6
+            0.3,
+            0.12,
+            -0.44
           ],
           [
-            0,
-            0.13,
-            -1.92
+            0.44,
+            0.17,
+            -0.63
           ]
         ],
         "seg8": [
           [
             [
-              0,
-              0.13,
-              -1.92
+              0.44,
+              0.17,
+              -0.63
             ],
             [
-              0,
-              0.13,
-              -2.12
+              0.43,
+              0.24,
+              -0.69
             ]
           ],
           [
             [
-              -0.1,
-              0.13,
-              -2.14
+              0.43,
+              0.24,
+              -0.69
             ],
             [
-              -0.25,
-              0.13,
-              -1.85
+              0.31,
+              0.36,
+              -0.72
+            ]
+          ],
+          [
+            [
+              0.31,
+              0.36,
+              -0.72
+            ],
+            [
+              0.2,
+              0.46,
+              -0.77
+            ]
+          ],
+          [
+            [
+              0.2,
+              0.46,
+              -0.77
+            ],
+            [
+              0.11,
+              0.52,
+              -0.75
             ]
           ]
         ]
-      }
+      },
+      "wave": 0.3,
+      "offset": [
+        0,
+        0,
+        0
+      ]
     },
     "ironhorn_ram": {
       "file": "models/monsters/ironhorn_ram.glb",

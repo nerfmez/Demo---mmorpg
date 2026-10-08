@@ -1,4 +1,5 @@
 // Shared setup for focused cases against the exact downloaded/built root game.
+import { completeOpeningUi } from './opening-helper.mjs';
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
@@ -46,10 +47,10 @@ export async function withAffectedRuntime(suite, inspect, { saved = false, reduc
           await enterFullscreenGate(page);
           await activate('[data-act="new"]');
           await page.locator('#heroName').fill('Affected quest check');
-          await activate('[data-act="kit"][data-kit="bow"]');
           await activate('[data-act="start"]');
         }
         await ready();
+        if (saved) await completeOpeningUi(page, activate, { kit: 'bow' });
         await page.evaluate(() => { __frontier.paused = true; __frontier.input.reset(); });
         // Hold the completed backdrop while testing paused UI. RAF, input and
         // preview rendering stay live; the separate boot gate proves real draws.

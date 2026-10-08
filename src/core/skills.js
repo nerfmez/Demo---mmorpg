@@ -93,7 +93,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     repeats: 0,
     repeatMult: 0,
     repeatDelay: 0,
-    knock: 0,
+    knock: def.knock || 0,
     leech: derived.leechPct || 0,
     // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
     weaponOk: (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)) && (!def.requiresOffhand || derived.offhand === def.requiresOffhand),
@@ -231,13 +231,13 @@ export function computeSkill(ch, data, derived, slotIndex) {
 export function movementSkill(ch, data, derived) {
   const def = movementDef(data, ch.movement) || movementDef(data, 'dash');
   const out = {
-    id: ch.movement,
+    id: ch.movement || 'dash', // none yet during the opening: the button shows the default
     def,
     charge: def.charge ? { ...def.charge } : null,
     kind: def.kind,
     distance: def.distance,
     duration: def.duration,
-    charges: def.charges + derived.extraMovementCharges,
+    charges: ch.movement && ch.movementSkills.includes(ch.movement) ? def.charges + derived.extraMovementCharges : 0,
     recharge: def.recharge * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
     invulnerable: def.invulnerable,
   };

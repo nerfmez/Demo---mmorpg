@@ -2,15 +2,15 @@
   "_doc": "Materials drop from monsters and feed crafting, skill/mod upgrades and trade. Gear bases are what recipes produce; the craft roll adds a Grade and options. Upgrade (+N) uses enhancement_stone and stays separate from Grade. Skill/mod ranks use skill_crystal. Per-base upgradeMaterial is retained only as the legacy salvage fallback for base crafting parts. shape = legacy shape hint; ground loot now uses authored art keyed by material ID; rare = light beam. Equipment itemLevel is persistent progression metadata, independent of grade, +N and stat wear requirements.",
   "materials": {
     "boar_hide": {
-      "name": "Boar Hide",
-      "nameTh": "หนังหมูป่า",
+      "name": "Boarbull Hide",
+      "nameTh": "หนังหมูกระทิง",
       "color": "#8a5a3a",
       "value": 3,
       "shape": "box"
     },
     "boar_tusk": {
-      "name": "Boar Tusk",
-      "nameTh": "เขี้ยวหมูป่า",
+      "name": "Boarbull Horn",
+      "nameTh": "เขาหมูกระทิง",
       "color": "#efe3c4",
       "value": 5,
       "shape": "horn"
@@ -30,8 +30,8 @@
       "shape": "ball"
     },
     "wisp_core": {
-      "name": "Wisp Core",
-      "nameTh": "แกนภูตไฟ",
+      "name": "Lostlight Core",
+      "nameTh": "แกนภูตแสงหลงทาง",
       "color": "#6fd7ff",
       "value": 10,
       "shape": "gem"
@@ -51,8 +51,8 @@
       "shape": "gem"
     },
     "wolf_pelt": {
-      "name": "Thorn Pelt",
-      "nameTh": "หนังหมาป่าหนาม",
+      "name": "Maskfang Pelt",
+      "nameTh": "หนังหมาป่าหน้ากาก",
       "color": "#8a7f70",
       "value": 5,
       "shape": "box"
@@ -182,8 +182,8 @@
       "shape": "horn"
     },
     "viper_scale": {
-      "name": "Reed Viper Scale",
-      "nameTh": "เกล็ดงูกก",
+      "name": "Reedblade Scale",
+      "nameTh": "เกล็ดใบกก",
       "color": "#6f9a5c",
       "value": 12,
       "shape": "box"
@@ -208,6 +208,27 @@
       "color": "#7fd0d8",
       "value": 22,
       "shape": "gem"
+    },
+    "fern_ear_tuft": {
+      "name": "Fern-ear Tuft",
+      "nameTh": "ขนหูเฟิร์น",
+      "color": "#7c9a64",
+      "value": 6,
+      "shape": "feather"
+    },
+    "mirror_scale": {
+      "name": "Mirrorwing Scale",
+      "nameTh": "เกล็ดปีกกระจก",
+      "color": "#a8dcef",
+      "value": 8,
+      "shape": "gem"
+    },
+    "rootdigger_claw": {
+      "name": "Rootdigger Claw",
+      "nameTh": "กรงเล็บตุ่นขุดราก",
+      "color": "#e7dcc4",
+      "value": 9,
+      "shape": "horn"
     }
   },
   "slots": [
@@ -2157,6 +2178,92 @@
       "upgradeMaterial": "greyfang_mane",
       "itemLevel": 21,
       "look": "pelt"
+    },
+    "fernstep_charm": {
+      "name": "Fernstep Charm",
+      "nameTh": "เครื่องรางก้าวเฟิร์น",
+      "slot": "charm",
+      "stats": {
+        "moveSpeedPct": 2,
+        "critChancePct": 2.2
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "move_pct",
+        "crit_pct",
+        "cdr_pct",
+        "attack_flat",
+        "projectile_pct"
+      ],
+      "upgradeMaterial": "fern_ear_tuft",
+      "requirementStat": "AGI",
+      "itemLevel": 6
+    },
+    "mirrorwing_pendant": {
+      "name": "Mirrorwing Pendant",
+      "nameTh": "จี้ปีกกระจก",
+      "slot": "charm",
+      "stats": {
+        "maxMp": 10,
+        "magic": 1.5
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "mirror_scale",
+      "requirementStat": "INT",
+      "itemLevel": 6
+    },
+    "burrowguard_brooch": {
+      "name": "Burrowguard Brooch",
+      "nameTh": "เข็มกลัดผู้พิทักษ์โพรง",
+      "slot": "charm",
+      "stats": {
+        "defense": 1.3,
+        "maxHp": 15
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "upgradeMaterial": "rootdigger_claw",
+      "requirementStat": "VIT",
+      "itemLevel": 6
+    },
+    "grove_union_ring": {
+      "name": "Grove Union Ring",
+      "nameTh": "แหวนพันธะแห่งป่า",
+      "slot": "charm",
+      "stats": {
+        "attack": 1,
+        "magic": 1,
+        "maxHp": 10,
+        "moveSpeedPct": 1
+      },
+      "requires": {},
+      "starter": false,
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "hp_flat",
+        "move_pct",
+        "crit_pct"
+      ],
+      "upgradeMaterial": "rootdigger_claw",
+      "requirementStat": "DEX",
+      "itemLevel": 11
     }
   },
   "gearOptions": {
@@ -2569,6 +2676,7 @@
     "_doc": "Potions bought at the town shop (town.shop) and used from the quick item slots. A potion restores flat + pct of the maximum, at once. Each group (hp, mp) has its own cooldown so one potion of each kind can be drunk back to back but not spammed. Stacks hold at most stackMax. New characters start with the start set; v7 saves receive it once.",
     "quickSlots": 4,
     "stackMax": 99,
+    "autoUse": {"hp": {"threshold": 35}, "mp": {"threshold": 30}},
     "groupCooldown": {
       "hp": 5,
       "mp": 5

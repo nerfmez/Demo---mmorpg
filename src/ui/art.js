@@ -1,4 +1,4 @@
-import {rasterIconMarkup,rasterIconUrl,MONSTER_PORTRAITS,REGION_PORTRAITS} from './raster-icons.js';
+import {rasterIconMarkup,rasterIconUrl,MONSTER_PORTRAITS,SHARED_MONSTER_PORTRAITS,REGION_PORTRAITS} from './raster-icons.js';
 import { SKILL_ART } from './skillart.js';
 import {MOD_ART} from './gemart.js';
 import { JOB_ART } from './jobart.js';
@@ -286,6 +286,13 @@ for (const [id, [kind, palette, tier]] of Object.entries(FORGED)) gear[id] = siz
 // Raster-only materials keep authored coverage for shared ground-loot consumers.
 for (const id of ['enhancement_stone', 'skill_crystal']) material[id] = `<image href="${rasterIconUrl('material',id)}" width="128" height="128"/>`;
 
+// Moonroot Grove content is drawn from the owner's concept sheets (scripts/split-moonroot-art.py):
+// the cut-out picture sits inside the authored 128 frame, so every consumer keeps the SVG contract.
+const supplied = (path) => `<image href="${(import.meta.env?.BASE_URL || '/') + path}" width="128" height="128"/>`;
+for (const id of ['fern_ear_hare', 'mirrorwing_moth', 'rootdigger_mole']) monster[id] = supplied(`assets/icons/monster/${id}.png`);
+for (const id of ['fern_ear_tuft', 'mirror_scale', 'rootdigger_claw']) material[id] = supplied(`assets/moonroot/material/${id}.png`);
+for (const id of ['fernstep_charm', 'mirrorwing_pendant', 'burrowguard_brooch', 'grove_union_ring']) gear[id] = supplied(`assets/moonroot/gear/${id}.png`);
+
 export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles use supplied raster art; retain the authored SVG fallback.
@@ -298,8 +305,8 @@ export function arrowArt(id) {
   return '<span class="art art-arrow" data-art="arrow/' + id + '" aria-hidden="true"><svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">' + shadow + one(-12) + one(0) + one(12) + '</svg></span>';
 }
 export function hasArt(kind, id) { return !!rasterIconUrl(kind,id) || !!ART[kind]?.[id]; }
-// The region's monster/drop list owns these portraits. Keep the authored SVG
-// fallback for future content; art('monster', id) keeps world boss pins intact.
+// The region's monster/drop list uses the full portrait set. Shared consumers
+// use the six approved replacements and retain authored SVGs for other IDs.
 export function atlasMonsterArt(id, registry = MONSTER_PORTRAITS) {
   return rasterIconMarkup('monster', id, '', registry) || art('monster', id);
 }
@@ -307,7 +314,7 @@ export function atlasRegionArt(mapId, id, registry = REGION_PORTRAITS) {
   return rasterIconMarkup('region', mapId + '/' + id, '', registry) || art('zone', id);
 }
 export function art(kind, id, className = '') {
-  const raster = rasterIconMarkup(kind, id, className);
+  const raster = rasterIconMarkup(kind, id, className, kind === 'monster' ? SHARED_MONSTER_PORTRAITS : undefined);
   if (raster) return raster;
   const body = ART[kind]?.[id];
   if (!body) throw new Error('Missing authored artwork: ' + kind + '/' + id);

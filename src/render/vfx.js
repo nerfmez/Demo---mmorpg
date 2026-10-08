@@ -38,8 +38,8 @@ const ELEMENT = {
   none: { core: 0xeafff4, glow: 0x6fe0b0, dots: 0xb4ffe0 },
 };
 export const el = (e) => ELEMENT[e] || ELEMENT.physical;
-const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch', 'scythe', 'claw']);
-const RING_TELLS = new Set(['slam', 'stomp', 'shards']);
+const COASTAL_CONTACTS = new Set(['slap', 'peck', 'pinch', 'scythe', 'claw', 'rend', 'rake', 'shove']);
+const RING_TELLS = new Set(['slam', 'stomp', 'shards', 'whirl']);
 
 let glowTex = null;
 export function glowTexture() {
@@ -576,9 +576,8 @@ export class Vfx {
 
   /** A monster's melee strike lands. Each attack has its own look (data/combat-fx.json 'monsters'). */
   monsterSwing(e) {
-    const base = this.config.monsters[e.name];
-    if (!base) return this.genericSwing(e);
-    const f = { ...base, ...(this.config.overrides[`${e.type}.${e.name}`] || {}) };
+    const f = this.monsterLook(e.type, e.name);
+    if (!f) return this.genericSwing(e);
     const S = f.scale ?? 1;
     const dx = Math.sin(e.angle);
     const dz = Math.cos(e.angle);
@@ -621,38 +620,11 @@ export class Vfx {
         const a = e.angle + Math.PI + (Math.random() - 0.5) * 2.2;
         this.dust.add(e.x + dx * L * 0.5, y, e.z + dz * L * 0.5, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: 0xf4efe0, size: 0.2, life: 0.8, gravity: 1.6, drag: 1.4 });
       }
-    } else if (f.kind === 'snap' || f.kind === 'fangs') {
-      // two jaws close on the spot that was hit (claws, or fangs above and below)
-      const fangs = f.kind === 'fangs';
-      const rj = (fangs ? 0.52 : 0.58) * S;
-      const th = (fangs ? 0.1 : 0.15) * S;
-      const jawArc = ((fangs ? 150 : 115) * Math.PI) / 180;
-      const rx = Math.cos(e.angle);
-      const rz = -Math.sin(e.angle);
-      const jaws = [1, -1].map((side) => {
-        const m = new THREE.Mesh(sectorGeometry(rj - th, rj, jawArc, 16), slashMaterial(f.color, side < 0));
-        m.rotation.y = e.angle - (side * Math.PI) / 2;
-        m.renderOrder = 6;
-        return { m, side };
-      });
-      const group = new THREE.Group();
-      for (const j of jaws) group.add(j.m);
-      group.position.set(px, y, pz);
-      this.spawn(group, f.dur, (t) => {
-        const d = (0.7 - 0.58 * Math.min(1, t / 0.45)) * S;
-        for (const j of jaws) {
-          j.m.position.set(rx * d * j.side, fangs ? j.side * 0.14 * S : 0, rz * d * j.side);
-          j.m.material.uniforms.uT.value = t;
-        }
-      });
-      this.fx.burst(px, y, pz, f.sparks, { color: f.color, size: 0.22, speed: 3.2, life: 0.3, up: 0.4 });
-      const flash = this.sprite(f.core, 0.45, 0.7);
-      flash.position.set(px, y, pz);
-      this.spawn(flash, 0.14, (t) => {
-        flash.material.opacity = 0.7 * (1 - t);
-        flash.scale.setScalar(0.4 + t * 0.4);
-      });
-      if (!fangs) this.ring(px, pz, 0.55 * S, f.color, 0.2);
+    } else if (f.kind === 'claw' || f.kind === 'fangs' || f.kind === 'pincer') {
+      // the strike itself is the trail from the monster's own claws/jaws (monster-trails.js);
+      // where it lands, a small contact burst on the body that was hit
+      const [sx, sz] = e.at || [px, pz];
+      this.strikeContact(e, f, sx, sz, this.gy(sx, sz) + f.height);
     } else {
       // a heavy sweep: one wide dark-red band with dust kicked along the edge of the area
       const m = new THREE.Mesh(sectorGeometry(e.range * 0.74, e.range, arc, 32), slashMaterial(f.color));
@@ -667,9 +639,36 @@ export class Vfx {
     }
   }
 
+  /** Merged look of a monster attack (data + per-monster override); one object per pair. */
+  monsterLook(type, name) {
+    const key = `${type}.${name}`;
+    this.looks ??= new Map();
+    if (!this.looks.has(key)) {
+      const base = this.config.monsters[name];
+      this.looks.set(key, base ? { ...base, ...(this.config.overrides[key] || {}) } : null);
+    }
+    return this.looks.get(key);
+  }
+
+  /** Contact of a claw/fang/pincer strike: a quick bright burst and a few chips or droplets. */
+  strikeContact(e, f, x, z, y) {
+    const flash = this.sprite(f.coreColor ?? 0xffffff, 0.5 * (f.scale ?? 1), 0.85);
+    flash.position.set(x, y, z);
+    this.spawn(flash, 0.12, (t) => {
+      flash.material.opacity = 0.85 * (1 - t);
+      flash.scale.setScalar((0.35 + t * 0.5) * (f.scale ?? 1));
+    });
+    if (f.sparks) this.fx.burst(x, y, z, f.sparks, { color: f.color, size: 0.2, speed: 3.2, life: 0.26, up: 0.5 });
+    for (let i = 0; i < (f.droplets || 0); i++) {
+      const a = e.angle + (Math.random() - 0.5) * 2.2;
+      const sp = 1.6 + Math.random() * 2.2;
+      this.fx.add(x, y - 0.1, z, Math.sin(a) * sp, 1.4 + Math.random() * 2, Math.cos(a) * sp, { color: i % 2 ? 0x8fdcff : 0xf0fffb, size: 0.16 + Math.random() * 0.1, life: 0.45, gravity: 9, drag: 0.6 });
+    }
+  }
+
   genericSwing(e) {
     const g = sectorGeometry(e.range * 0.4, e.range, (e.arc * Math.PI) / 180);
-    const m = new THREE.Mesh(g, slashMaterial(0xff8a5a));
+    const m = new THREE.Mesh(g, slashMaterial(this.config.swingColors?.[e.name] || 0xff8a5a));
     m.position.set(e.x, this.gy(e.x, e.z) + 0.7, e.z);
     m.rotation.y = e.angle;
     this.spawn(m, 0.3, (t) => (m.material.uniforms.uT.value = t));
@@ -720,10 +719,12 @@ export class Vfx {
     if (e.kind === 'stone_burst') return this.stoneBurst(e);
     if (e.kind === 'slam' || e.kind === 'pound' || e.kind === 'stomp') return this.slam(e);
     if (e.kind === 'shards') return this.shardBurst(e);
+    if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
+    if (e.kind === 'erupt') return this.erupt(e);
     const c = el(e.element);
     this.fx.burst(e.x, this.gy(e.x, e.z) + 0.3, e.z, 18, { color: c.dots, size: 0.35, speed: e.radius * 2.5, life: 0.5, up: 0.4 });
   }
@@ -752,6 +753,36 @@ export class Vfx {
     this.chips.burst(e, cold ? { ...cfg, colors: { ...cfg.colors, debris: '#dff4ff' } } : cfg, this.gy(e.x, e.z));
     this.dust.burst(e.x, this.gy(e.x, e.z) + .15, e.z, f.dust, { color: cold ? '#e6f6ff' : cfg.colors.debris, size: f.dustSize, sizeEnd: f.dustSize * 1.4, speed: 1.6, life: f.dustLife, up: .3, drag: 5 });
     this.shake = Math.max(this.shake, cfg.impact.shake);
+  }
+
+  /** Rootdigger Mole bursting out of the ground: clods thrown up, a dust ring, a short shake. */
+  erupt(e) {
+    const y = this.gy(e.x, e.z);
+    this.dust.burst(e.x, y + 0.2, e.z, 18, { color: 0x8a6a4a, size: 0.9, sizeEnd: 1.7, speed: e.radius * 1.8, life: 0.8, up: 0.6, drag: 3 });
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2 + Math.random() * 0.3, sp = 1.5 + Math.random() * 2.5;
+      this.fx.add(e.x, y + 0.3, e.z, Math.sin(a) * sp, 4 + Math.random() * 3, Math.cos(a) * sp, { color: i % 3 ? 0x6b4e33 : 0x9a7a52, size: 0.26, sizeEnd: 0.2, life: 0.9, gravity: 14, drag: 0.4 });
+    }
+    this.ring(e.x, e.z, e.radius, 0xc9a26a, 0.35);
+    this.shake = Math.max(this.shake, 0.22);
+  }
+
+  /** The mole's dig: loose earth kicked up where it went under and where it comes out. */
+  digDust(x, z, n = 3) {
+    const y = this.gy(x, z);
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      this.dust.add(x + Math.sin(a) * 0.5, y + 0.15, z + Math.cos(a) * 0.5, Math.sin(a) * 1.2, 1 + Math.random(), Math.cos(a) * 1.2, { color: 0x8a6a4a, size: 0.5, sizeEnd: 1, life: 0.6, gravity: 3, drag: 2 });
+    }
+  }
+
+  /** One eruption of the warden's quake line: a short column of rubble and dust. */
+  quakeBurst(e) {
+    const y = this.gy(e.x, e.z);
+    this.dust.burst(e.x, y + 0.2, e.z, 12, { color: 0xb49a78, size: 0.8, sizeEnd: 1.5, speed: e.radius * 1.4, life: 0.7, up: 0.9, drag: 3 });
+    this.fx.burst(e.x, y + 0.4, e.z, 8, { color: 0xffb070, size: 0.25, speed: e.radius * 1.8, life: 0.4, up: 2.2 });
+    this.ring(e.x, e.z, e.radius, 0xffb070, 0.3);
+    this.shake = Math.max(this.shake, 0.12);
   }
 
   slam(e) {
@@ -894,6 +925,8 @@ export class Vfx {
 
   /** Rune sentinel beam: a bright line along the locked aim that fades fast. */
   beam(e) {
+    if (e.kind === 'glint') return this.glint(e);
+    if (e.kind === 'lash') return this.lash(e);
     // a thin bright core inside a soft cyan sheath, read as a beam from the high camera
     const core = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.14, e.width * 0.14, e.length, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0xd8fbff, 0.95));
     const glow = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.42, e.width * 0.42, e.length, 10, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0x3fc6dc, 0.35));
@@ -911,6 +944,42 @@ export class Vfx {
     for (let i = 0; i < 10; i++) {
       const d = (i / 9) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
       this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 1.2, 0, { color: 0x9ff0ff, size: 0.28, sizeEnd: 0.05, life: 0.4, drag: 2 });
+    }
+  }
+
+  /** Mirrorwing glint: a thin white flash along the locked line, prism-coloured sparks. */
+  glint(e) {
+    const blade = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 0.35, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0xf4fdff, 0.95));
+    const sheen = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 1.1, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0x9fdcf0, 0.35));
+    const group = new THREE.Group();
+    group.add(sheen, blade);
+    group.position.set(e.x, this.gy(e.x, e.z) + 1.2, e.z);
+    group.rotation.y = e.angle;
+    this.spawn(group, 0.3, (t) => {
+      blade.material.opacity = 0.95 * (1 - t);
+      sheen.material.opacity = 0.35 * (1 - t);
+      blade.scale.x = 1 - t * 0.7;
+    });
+    const prism = [0xffd6f0, 0xd6f0ff, 0xfff4c2, 0xd9ffe6];
+    for (let i = 0; i < 12; i++) {
+      const d = (i / 11) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
+      this.fx.add(x, this.gy(x, z) + 1.2, z, (Math.random() - 0.5) * 1.2, 0.6, (Math.random() - 0.5) * 1.2, { color: prism[i % 4], size: 0.2, sizeEnd: 0.03, life: 0.45, drag: 2 });
+    }
+  }
+
+  /** Viper fang lash: a quick pale-green streak with a few venom drops. */
+  lash(e) {
+    const streak = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 0.5, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0xc8ff8a, 0.85));
+    streak.position.set(e.x, this.gy(e.x, e.z) + 0.5, e.z);
+    streak.rotation.y = e.angle;
+    streak.renderOrder = 6;
+    this.spawn(streak, 0.22, (t) => {
+      streak.material.opacity = 0.85 * (1 - t);
+      streak.scale.x = 1 - t * 0.8;
+    });
+    for (let i = 0; i < 6; i++) {
+      const d = e.length * (0.4 + 0.6 * (i / 5)), x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
+      this.fx.add(x, this.gy(x, z) + 0.5, z, 0, 1.4, 0, { color: 0x9be04a, size: 0.22, sizeEnd: 0.05, life: 0.35, gravity: 6, drag: 1 });
     }
   }
 
@@ -1217,11 +1286,12 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
-      const spore = a.kind === 'spore_cloud';
+    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud' || a.kind === 'mirror_dust') {
+      // mirror_dust (the moth's wing scales): a spore-like cloud, pale blue with bright glints
+      const mirror = a.kind === 'mirror_dust', spore = a.kind === 'spore_cloud' || mirror;
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);
-      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : 0x5a8a2a);
-      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : 0xa8e04a);
+      m.material.uniforms.uColor.value.set(mirror ? 0x5a7aa0 : spore ? 0x9a8a4a : 0x5a8a2a);
+      m.material.uniforms.uColor2.value.set(mirror ? 0xbfe9f5 : spore ? 0xd8d070 : 0xa8e04a);
       return {
         obj: m,
         update: (ar, t, dt) => {
@@ -1232,8 +1302,9 @@ export class Vfx {
             const r = Math.random() * ar.radius;
             const x = ar.x + Math.sin(ang) * r;
             const z = ar.z + Math.cos(ang) * r;
+            if (mirror && Math.random() < 0.4) this.fx.add(x, this.gy(x, z) + 0.4 + Math.random() * 1.2, z, 0, 0.3, 0, { color: 0xf2fdff, size: 0.18, sizeEnd: 0.02, life: 0.5, drag: 1 });
             (spore ? this.dust : this.fx).add(x, this.gy(x, z) + 0.2 + Math.random() * (spore ? 1.2 : 0.2), z, (Math.random() - 0.5) * 0.4, spore ? 0.5 : 0.9, (Math.random() - 0.5) * 0.4, {
-              color: spore ? 0xcfc47a : 0xa8e04a,
+              color: mirror ? 0xa9d8ea : spore ? 0xcfc47a : 0xa8e04a,
               size: spore ? 0.9 : 0.24,
               sizeEnd: spore ? 1.5 : 0.05,
               life: spore ? 1.2 : 0.7,
@@ -1296,7 +1367,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
@@ -1339,16 +1410,19 @@ export class Vfx {
       const w = m.windup;
       if (m.dead || !w || m.state !== 'windup') continue;
       let kind = null;
-      if (RING_TELLS.has(w.name)) kind = 'slam';
-      else if (COASTAL_CONTACTS.has(w.name)) kind = 'melee';
-      else if (w.name === 'gore' || w.name === 'charge' || w.name === 'lunge' || w.name === 'triple' || w.name === 'strike' || w.name === 'ram' || w.name === 'beam') kind = 'lane';
+      const mech = m.def.attacks[w.name]?.kind || w.name; // an attack can borrow another's mechanics
+      if (RING_TELLS.has(mech)) kind = 'slam';
+      else if (COASTAL_CONTACTS.has(mech)) kind = 'melee';
+      else if (mech === 'charge' || mech === 'lash' || mech === 'quake' || mech === 'beam') kind = 'lane';
       if (!kind) continue;
       const key = `${m.id}:${w.name}`;
       seen.add(key);
       let v = this.telegraphs.get(key);
       if (!v) {
         if (kind === 'slam') {
-          const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, w.radius || m.def.attacks[w.name].radius, 0, 0.07);
+          const atk = m.def.attacks[w.name];
+          const radius = w.radius ?? atk.radius ?? (m.r + atk.range);
+          const mesh = this.decal(this.discGeo, discMaterial('telegraph'), m.x, m.z, radius, 0, 0.07);
           mesh.material.uniforms.uColor.value.set(0xff6a3a);
           mesh.material.uniforms.uColor2.value.set(0xff9a5a);
           v = { mesh, kind };
@@ -1360,8 +1434,9 @@ export class Vfx {
         } else {
           const atk = m.def.attacks[w.name];
           // a beam is a fixed line; a charge covers its speed over its duration
-          const len = w.name === 'beam' ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
-          const geo = new THREE.PlaneGeometry(w.name === 'beam' ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
+          const mech = atk.kind || w.name, fixed = mech === 'beam' || mech === 'lash' || mech === 'quake';
+          const len = mech === 'quake' ? atk.length : fixed ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
+          const geo = new THREE.PlaneGeometry(fixed ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
           const mesh = makeDecal(geo, new THREE.MeshBasicMaterial({ color: 0xff7a4a, transparent: true, opacity: 0.25, depthWrite: false }), this.world, 0.07);
           v = { mesh, kind };
         }
@@ -1371,7 +1446,8 @@ export class Vfx {
       const k = Math.min(1, m.stateT / w.total);
       v.mesh.position.set(m.x, 0, m.z);
       if (v.kind === 'slam') {
-        const r = w.radius || m.def.attacks[w.name].radius;
+        const atk = m.def.attacks[w.name];
+        const r = w.radius ?? atk.radius ?? (m.r + atk.range);
         v.mesh.scale.set(r, 1, r);
         v.mesh.material.uniforms.uFill.value = k;
         v.mesh.material.uniforms.uA.value = 0.9;

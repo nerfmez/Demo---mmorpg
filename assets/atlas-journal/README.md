@@ -1,5 +1,26 @@
 # Approved Atlas journal illustrations
 
+## Approved PR106 identity replacement, 2026-10-07
+
+The owner-approved six-monster preview replaces the active portraits for
+`salt_slime`, `tusk_boar`, `thornback_wolf`, `greyfang`, `reed_viper` and
+`marsh_wisp`. The exact reviewed 256px RGBA exports are retained under
+`identity-20261007/`; the splitter copies their bytes and validates their hashes
+using `split_mode: verified-export`. Their master records point to the immutable
+approved preview commit, original batch hash and cell bounds. Old cells remain
+in `superseded_cells`; their original source sheets are retained unchanged.
+
+The six portraits now also serve shared boss-pin, material-source and quest
+consumers. The new Maskfang portrait has grey fur and a cream facial mask; the
+Reedblade reference is PR106 concept v4. The two approved inventory replacements
+are `viper_scale` and `wisp_core`, with masters in
+`assets-source/materials/identity-20261007/`. All other item and region art stays
+unchanged. Integration evidence and precise label changes are in
+`docs/review/monster-identity-integration/`. Release waits for PR106 to merge;
+this patch imports none of its models.
+
+## Historical journal batch and release record
+
 18 monster heads/leading parts and 17 map-qualified region vignettes. Generated
 in six-subject sheets with the built-in image_gen tool, following the owner-approved
 fresh journal drawing direction: irregular umber marks, broad watercolor washes,

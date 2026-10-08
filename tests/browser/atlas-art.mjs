@@ -16,7 +16,7 @@ try{
  await page.waitForFunction(()=>window.__frontier?.game,null,{timeout:60000});
  await page.evaluate(()=>{__frontier.paused=true;__frontier.panels.open('map');});
  const regions=await page.locator('.region-card').evaluateAll(es=>es.map(e=>e.dataset.id));
- assert.equal(regions.length,17);
+ assert.equal(regions.length,22); // Azure 8 + Frontier 9 + Moonroot Grove 5
  const seen=new Set();
  for(const region of regions){
   // Exercise the existing select-zone control, including same zone IDs on different maps.
@@ -28,14 +28,14 @@ try{
    for(const card of cards){const img=card.querySelector('.art>img');if(!img)throw Error('missing location '+card.dataset.id);await img.decode();if(img.naturalWidth!==256)throw Error('location native dimensions');}
    const entries=[...document.querySelectorAll('.creature-entry')];
    for(const entry of entries){const img=entry.querySelector(':scope>.art>img');if(!img)throw Error('missing monster portrait');await img.decode();const key=img.parentElement.dataset.art.split('/')[1];if(entry.querySelector(':scope>div>b').textContent!==data.monsters.monsters[key].nameTh)throw Error('monster name mismatch');if(img.naturalWidth!==256)throw Error('portrait native dimensions');}
-   return {expected,actual:entries.map(e=>e.querySelector(':scope>.art').dataset.art.split('/')[1]),drops:entries.flatMap(e=>[...e.querySelectorAll('.drop-pictures .art')].map(a=>a.dataset.art)),bossPins:[...document.querySelectorAll('.bossmark .art')].every(e=>!!e.querySelector('svg'))};
+   return {expected,actual:entries.map(e=>e.querySelector(':scope>.art').dataset.art.split('/')[1]),drops:entries.flatMap(e=>[...e.querySelectorAll('.drop-pictures .art')].map(a=>a.dataset.art)),bossPins:[...document.querySelectorAll('.bossmark .art')].every(e=>e.dataset.art==='monster/greyfang'?!!e.querySelector('img'):!!e.querySelector('svg'))};
   });
   assert.deepEqual(result.actual,result.expected,region);
   assert.ok(result.drops.every(key=>key.startsWith('material/')),region+' existing material art');
-  assert.ok(result.bossPins,region+' authored boss pins');
+  assert.ok(result.bossPins,region+' approved Greyfang identity and retained other boss pins');
   result.actual.forEach(id=>seen.add(id));report.regions.push({region,monsters:result.actual});
  }
- assert.equal(seen.size,18);
+ assert.equal(seen.size,21); // + the three Moonroot Grove monsters
  for(const [name,width,height] of [['desktop',1440,960],['ipad',1180,820],['mobile-landscape',844,390],['mobile-portrait',390,844]]){
   await page.setViewportSize({width,height});
   // The live WebGL canvas handles resize on the next render frame.
@@ -54,5 +54,5 @@ try{
  assert.deepEqual(errors,[]);assert.deepEqual(badImages,[]);
  report.monsterCount=seen.size;report.engine='Chromium';report.webkit='Unavailable in this environment; no physical iPad claim';
  writeFileSync(out+'report.json',JSON.stringify(report,null,2)+'\n');
- console.log('PASS Atlas: 17 regions, 18 portraits, four viewports, zero page/image errors.');
+ console.log('PASS Atlas: 22 regions, 21 portraits, four viewports, zero page/image errors.');
 }finally{await browser.close();}

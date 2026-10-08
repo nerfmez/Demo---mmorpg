@@ -9,8 +9,8 @@ const bases=Object.entries(data.items.gearBases).filter(([,b])=>slots.includes(b
 const item=(ch,base,extra={})=>{const it={uid:ch.nextUid++,base,grade:'C',upgrade:0,options:[],...extra};ch.gear.push(it);return it;};
 const fund=ch=>{ch.gold=100000;for(const id in data.items.materials)ch.materials[id]=10000;return ch;};
 
-test('all 41 wearable bases block below level and allow exact/above level without trained stats',()=>{
- assert.equal(bases.length,41);
+test('all 45 wearable bases block below level and allow exact/above level without trained stats',()=>{
+ assert.equal(bases.length,45);
  for(const [id,b] of bases){
   const ch=createCharacter(data),it=item(ch,id,{itemLevel:b.itemLevel});
   assert.deepEqual(gearRequirements(it,data),{level:b.itemLevel},id);

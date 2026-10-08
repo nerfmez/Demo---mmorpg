@@ -1,0 +1,77 @@
+# CI ownership and premerge coverage
+
+CI runs all core/save safety tests and the build once at the exact PR head. Every
+selected browser script runs in Chromium and WebKit without assertion/capture
+shortcuts. Pushes to main and manual CI retain the complete browser inventory.
+
+The `test (chromium/webkit)`, `review (chromium/webkit)` and
+`field-hud (chromium/webkit)` check names remain unchanged. The latter four are
+now evidence gates in CI. The former UI/HUD workflows remain available for an
+explicit manual full review; they no longer repeat scripts on every PR.
+
+Head evidence can certify the merge review only when both complete Git trees are
+identical. CI validates the event merge commit's exact base/head parents. A
+different merge tree receives a separate build and affected UI/HUD execution,
+including changed consumers brought in from the base. Source, engine, selected
+scripts, run attempt and completion must match before a gate passes. Missing,
+cancelled, failing, partial and stale reports fail closed.
+Legacy bounded UI paths still select all of their former UI/HUD scripts unless
+they have explicit focused dependency proof. Equipment avatars also retain
+their loadout workspace consumer. The shared gates verify these central shards
+at the required source, including a separate merge tree when needed.
+
+Scheduling uses the existing hosted account capacity, without the previous
+six-job cap. Long suites are placed first and engines are interleaved. Browser
+shards and live WebKit checks use the official Playwright Noble image pinned to
+the locked SDK version and immutable image digest. Browser binaries and OS
+libraries are preinstalled; no per-job apt/browser installation or stale browser
+cache is used. A mandatory guard matches the lockfile, installed client/core,
+image metadata and selected executable. An SDK upgrade must update the image
+pin together, otherwise setup fails closed. Node/npm setup and all assertions
+remain. Container Node processes prefer IPv4 so Vite and readiness fetches agree
+on localhost. Containers use init and a 1 GiB shared-memory limit, without extra
+capabilities or host IPC sharing. No account limits or billing are changed.
+Checkout's temporary Git config is separate from the container shell's config.
+The shell verifies its physical current directory equals `GITHUB_WORKSPACE`
+before trusting that exact checkout for Git. No wildcard trust is added; the
+runner still verifies the exact planned SHA and rejects tracked dirty changes.
+
+Equipment narrowing is defined in `scripts/ci-equipment-impact.mjs`. Shared
+character/crafting/panel/progression modules require before/after AST evidence
+that changes stay within recognized equipment functions/actions. The equipment
+notice block can change independently only within a finite statement/expression
+grammar and at its original migration position. Exits, control flow, side effects
+and the rest of save migration remain checked. Shared art CSS requires exact,
+complete equipment selectors; substrings and nested/global selectors fail closed.
+Creation, derived stats, unrelated actions, imports, unknown exports,
+new shared modules, dependencies and infrastructure retain full fallback. The
+bounded equipment and loadout components retain their equipment, skill/mod
+workspace, combat, item, menu, save, wearable and HUD consumers, plus both weapon
+loading/model scripts for exact IDs, geometry and async attachments.
+
+The focused `equipment-focused.mjs` check exercises actual rendered desktop,
+iPad and phone equipment thresholds, combined-hand deficits, touch details,
+recovery, model bindings and migration preservation in both engines. Existing
+broad equipment/crafting/model tests keep their owners and assertions.
+
+PR101 landed at `f19aee9f6625188cef1c89adf82d28a4a25b0cc5`. This branch was
+refreshed from that main revision before adapting `equipment-inactive.mjs`.
+It now has an explicit CI suite, selects Chromium/WebKit through `BROWSER`,
+uses engine-specific launch options and writes separate browser artifacts.
+All original assertions and viewports remain. Its former single-engine launcher
+is rejected rather than reported as WebKit success. CI also rejects device-only
+and offline-harness shortcuts.
+Browser process diagnostics are retained without retries or timeout changes.
+The weapon-model resource probe waits for each existing draw batch to complete
+on the GPU before sampling counts or navigating to the saved-game menu. Its
+WebGL fence is polled without blocking the page and inherits the existing
+90-second test timeout. Pending work, context loss and fence errors fail the
+check; fences are released on success or failure. Draws, captures, resource
+stabilization and saved-equipment/Continue assertions remain intact. Artifacts
+record GPU completion and reload timings so this boundary can be measured.
+Release evidence reads all artifact pages and rejects duplicate identities,
+ambiguous exact build names, truncation, changing totals and API errors. The
+source/run/attempt checks and normal validation fallback remain mandatory.
+
+Branch-protection settings could not be read with the available integration
+(HTTP 403). Actual check-run names were inspected; no protections were changed.

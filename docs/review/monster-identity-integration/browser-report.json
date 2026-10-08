@@ -1,0 +1,3291 @@
+{
+  "engine": "chromium",
+  "basis": "3225b3cdc8bff2909b4ce6297f683f4e01f899b1",
+  "sourceCommit": "340fc17363f1ad1a5dc96b3887f95791c31a792b",
+  "capturedAt": "2026-10-07T15:57:31.847Z",
+  "modelDefinitionsSha256": "be8feacb2a2de43bce8db61dda271bbce615b030f146772a94a2ad6c74c8fb5d",
+  "views": [
+    {
+      "size": "desktop",
+      "width": 1440,
+      "height": 960,
+      "regions": [
+        {
+          "region": "azure-harbor-v1:landing",
+          "entries": []
+        },
+        {
+          "region": "azure-harbor-v1:settlement",
+          "entries": []
+        },
+        {
+          "region": "frontier-wilds-v1:settlement",
+          "entries": []
+        },
+        {
+          "region": "azure-harbor-v1:coast",
+          "entries": [
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "salt_gel",
+                  "name": "เจลเกลือทะเล"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reef_crab",
+              "name": "ปูแนวปะการัง",
+              "src": "./assets/icons/monster/reef_crab.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crab_shell",
+                  "name": "กระดองปู"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "shore_gull",
+              "name": "นกชายฝั่ง",
+              "src": "./assets/icons/monster/shore_gull.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "shore_feather",
+                  "name": "ขนนกชายฝั่ง"
+                },
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:meadow",
+          "entries": [
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "salt_gel",
+                  "name": "เจลเกลือทะเล"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:glade",
+          "entries": [
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:highlands",
+          "entries": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:forest",
+          "entries": [
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:headland",
+          "entries": [
+            {
+              "id": "shore_gull",
+              "name": "นกชายฝั่ง",
+              "src": "./assets/icons/monster/shore_gull.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "shore_feather",
+                  "name": "ขนนกชายฝั่ง"
+                },
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "hermit_crab",
+              "name": "เสฉวนหินปะการัง",
+              "src": "./assets/icons/monster/hermit_crab.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hermit_fragment",
+                  "name": "เศษเปลือกเสฉวน"
+                },
+                {
+                  "id": "crab_shell",
+                  "name": "กระดองปู"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:meadow",
+          "entries": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:glade",
+          "entries": [
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:forest",
+          "entries": [
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thicket_mantis",
+              "name": "ตั๊กแตนพงหนาม",
+              "src": "./assets/icons/monster/thicket_mantis.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "mantis_scythe",
+                  "name": "เคียวตั๊กแตน"
+                },
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:wolf_den",
+          "entries": [
+            {
+              "id": "thicket_mantis",
+              "name": "ตั๊กแตนพงหนาม",
+              "src": "./assets/icons/monster/thicket_mantis.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "mantis_scythe",
+                  "name": "เคียวตั๊กแตน"
+                },
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "greyfang_mane",
+                  "name": "แผงคอเกรย์แฟง"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:coast",
+          "entries": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "viper_scale",
+                  "name": "เกล็ดใบกก"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reef_crab",
+              "name": "ปูแนวปะการัง",
+              "src": "./assets/icons/monster/reef_crab.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crab_shell",
+                  "name": "กระดองปู"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "gale_hawk",
+              "name": "เหยี่ยวพายุ",
+              "src": "./assets/icons/monster/gale_hawk.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "storm_quill",
+                  "name": "ขนพายุ"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:wetland",
+          "entries": [
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wisp_core",
+                  "name": "แกนภูตแสงหลงทาง"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "viper_scale",
+                  "name": "เกล็ดใบกก"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:highlands",
+          "entries": [
+            {
+              "id": "crag_golem",
+              "name": "โกเลมผาหิน",
+              "src": "./assets/icons/monster/crag_golem.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crag_stone",
+                  "name": "หินผา"
+                },
+                {
+                  "id": "golem_heart",
+                  "name": "หัวใจโกเลม"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "gale_hawk",
+              "name": "เหยี่ยวพายุ",
+              "src": "./assets/icons/monster/gale_hawk.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "storm_quill",
+                  "name": "ขนพายุ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "ironhorn_ram",
+              "name": "แพะผาเขาเหล็ก",
+              "src": "./assets/icons/monster/ironhorn_ram.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "ram_horn",
+                  "name": "เขาแพะผา"
+                },
+                {
+                  "id": "crag_stone",
+                  "name": "หินผา"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wisp_core",
+                  "name": "แกนภูตแสงหลงทาง"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "duskmane_stalker",
+              "name": "เสือเงาแผงคอเทา",
+              "src": "./assets/icons/monster/duskmane_stalker.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "dusk_pelt",
+                  "name": "ขนเสือเงา"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:ruins",
+          "entries": [
+            {
+              "id": "duskmane_stalker",
+              "name": "เสือเงาแผงคอเทา",
+              "src": "./assets/icons/monster/duskmane_stalker.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "dusk_pelt",
+                  "name": "ขนเสือเงา"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "crag_golem",
+              "name": "โกเลมผาหิน",
+              "src": "./assets/icons/monster/crag_golem.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crag_stone",
+                  "name": "หินผา"
+                },
+                {
+                  "id": "golem_heart",
+                  "name": "หัวใจโกเลม"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "gale_hawk",
+              "name": "เหยี่ยวพายุ",
+              "src": "./assets/icons/monster/gale_hawk.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "storm_quill",
+                  "name": "ขนพายุ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wisp_core",
+                  "name": "แกนภูตแสงหลงทาง"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "rune_sentinel",
+              "name": "ทหารยามศิลารูน",
+              "src": "./assets/icons/monster/rune_sentinel.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "rune_core",
+                  "name": "แกนรูน"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "horned_warden",
+              "name": "ผู้พิทักษ์เขาเหล็ก",
+              "src": "./assets/icons/monster/horned_warden.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "warden_horn",
+                  "name": "เขาผู้พิทักษ์"
+                },
+                {
+                  "id": "ancient_core",
+                  "name": "แกนโบราณ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "materialSources": [
+        {
+          "id": "salt_gel",
+          "name": "เจลเกลือทะเล",
+          "sources": [
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "glow_dust",
+          "name": "ผงเรืองแสง",
+          "sources": [
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "size": 30
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "size": 30
+            },
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "boar_hide",
+          "name": "หนังหมูกระทิง",
+          "sources": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "boar_tusk",
+          "name": "เขาหมูกระทิง",
+          "sources": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "wolf_pelt",
+          "name": "หนังหมาป่าหน้ากาก",
+          "sources": [
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "size": 30
+            },
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "wolf_fang",
+          "name": "เขี้ยวหมาป่า",
+          "sources": [
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "size": 30
+            },
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "greyfang_mane",
+          "name": "แผงคอเกรย์แฟง",
+          "sources": [
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "venom_gland",
+          "name": "ต่อมพิษ",
+          "sources": [
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "size": 30
+            },
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "viper_scale",
+          "name": "เกล็ดใบกก",
+          "sources": [
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "wisp_core",
+          "name": "แกนภูตแสงหลงทาง",
+          "sources": [
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "size": 30
+            }
+          ]
+        }
+      ],
+      "craft": [
+        {
+          "id": "boar_hide",
+          "recipe": "tusk_blade",
+          "ingredients": [
+            {
+              "text": "หนังหมูกระทิง30 / 2",
+              "size": 32
+            },
+            {
+              "text": "หนังหมูกระทิง30 / 10",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "boar_tusk",
+          "recipe": "tusk_blade",
+          "ingredients": [
+            {
+              "text": "เขาหมูกระทิง30 / 5",
+              "size": 32
+            },
+            {
+              "text": "เขาหมูกระทิง30 / 25",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "wolf_pelt",
+          "recipe": "fang_dagger",
+          "ingredients": [
+            {
+              "text": "หนังหมาป่าหน้ากาก30 / 3",
+              "size": 32
+            },
+            {
+              "text": "หนังหมาป่าหน้ากาก30 / 15",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "viper_scale",
+          "recipe": "wisp_staff",
+          "ingredients": [
+            {
+              "text": "เกล็ดใบกก30 / 5",
+              "size": 32
+            },
+            {
+              "text": "เกล็ดใบกก30 / 25",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "wisp_core",
+          "recipe": "wisp_staff",
+          "ingredients": [
+            {
+              "text": "แกนภูตแสงหลงทาง30 / 13",
+              "size": 32
+            },
+            {
+              "text": "แกนภูตแสงหลงทาง30 / 65",
+              "size": 32
+            }
+          ]
+        }
+      ],
+      "quests": [
+        "h_slimes",
+        "m_boars",
+        "s_wolves"
+      ],
+      "artifacts": [
+        "desktop-atlas-boss.png",
+        "desktop-atlas-meadow.png",
+        "desktop-atlas-wolves.png",
+        "desktop-atlas-wetland.png",
+        "desktop-bag.png",
+        "desktop-material-source.png",
+        "desktop-craft.png",
+        "desktop-quest-slime.png",
+        "desktop-quest-optional.png"
+      ],
+      "bossPin": {
+        "src": "./assets/icons/monster/greyfang.png",
+        "size": 24
+      }
+    },
+    {
+      "size": "ipad",
+      "width": 1180,
+      "height": 820,
+      "regions": [
+        {
+          "region": "azure-harbor-v1:landing",
+          "entries": []
+        },
+        {
+          "region": "azure-harbor-v1:settlement",
+          "entries": []
+        },
+        {
+          "region": "frontier-wilds-v1:settlement",
+          "entries": []
+        },
+        {
+          "region": "azure-harbor-v1:coast",
+          "entries": [
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "salt_gel",
+                  "name": "เจลเกลือทะเล"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reef_crab",
+              "name": "ปูแนวปะการัง",
+              "src": "./assets/icons/monster/reef_crab.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crab_shell",
+                  "name": "กระดองปู"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "shore_gull",
+              "name": "นกชายฝั่ง",
+              "src": "./assets/icons/monster/shore_gull.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "shore_feather",
+                  "name": "ขนนกชายฝั่ง"
+                },
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:meadow",
+          "entries": [
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "salt_gel",
+                  "name": "เจลเกลือทะเล"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:glade",
+          "entries": [
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:highlands",
+          "entries": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:forest",
+          "entries": [
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "azure-harbor-v1:headland",
+          "entries": [
+            {
+              "id": "shore_gull",
+              "name": "นกชายฝั่ง",
+              "src": "./assets/icons/monster/shore_gull.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "shore_feather",
+                  "name": "ขนนกชายฝั่ง"
+                },
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "hermit_crab",
+              "name": "เสฉวนหินปะการัง",
+              "src": "./assets/icons/monster/hermit_crab.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hermit_fragment",
+                  "name": "เศษเปลือกเสฉวน"
+                },
+                {
+                  "id": "crab_shell",
+                  "name": "กระดองปู"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:meadow",
+          "entries": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:glade",
+          "entries": [
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:forest",
+          "entries": [
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thicket_mantis",
+              "name": "ตั๊กแตนพงหนาม",
+              "src": "./assets/icons/monster/thicket_mantis.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "mantis_scythe",
+                  "name": "เคียวตั๊กแตน"
+                },
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:wolf_den",
+          "entries": [
+            {
+              "id": "thicket_mantis",
+              "name": "ตั๊กแตนพงหนาม",
+              "src": "./assets/icons/monster/thicket_mantis.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "mantis_scythe",
+                  "name": "เคียวตั๊กแตน"
+                },
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "greyfang_mane",
+                  "name": "แผงคอเกรย์แฟง"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:coast",
+          "entries": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "boar_hide",
+                  "name": "หนังหมูกระทิง"
+                },
+                {
+                  "id": "boar_tusk",
+                  "name": "เขาหมูกระทิง"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "viper_scale",
+                  "name": "เกล็ดใบกก"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reef_crab",
+              "name": "ปูแนวปะการัง",
+              "src": "./assets/icons/monster/reef_crab.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crab_shell",
+                  "name": "กระดองปู"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "gale_hawk",
+              "name": "เหยี่ยวพายุ",
+              "src": "./assets/icons/monster/gale_hawk.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "storm_quill",
+                  "name": "ขนพายุ"
+                },
+                {
+                  "id": "sea_pearl",
+                  "name": "ไข่มุกทะเล"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:wetland",
+          "entries": [
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wisp_core",
+                  "name": "แกนภูตแสงหลงทาง"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "viper_scale",
+                  "name": "เกล็ดใบกก"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "src": "./assets/icons/monster/sporecap.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "spore_sac",
+                  "name": "ถุงสปอร์"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:highlands",
+          "entries": [
+            {
+              "id": "crag_golem",
+              "name": "โกเลมผาหิน",
+              "src": "./assets/icons/monster/crag_golem.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crag_stone",
+                  "name": "หินผา"
+                },
+                {
+                  "id": "golem_heart",
+                  "name": "หัวใจโกเลม"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "gale_hawk",
+              "name": "เหยี่ยวพายุ",
+              "src": "./assets/icons/monster/gale_hawk.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "storm_quill",
+                  "name": "ขนพายุ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "ironhorn_ram",
+              "name": "แพะผาเขาเหล็ก",
+              "src": "./assets/icons/monster/ironhorn_ram.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "ram_horn",
+                  "name": "เขาแพะผา"
+                },
+                {
+                  "id": "crag_stone",
+                  "name": "หินผา"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wisp_core",
+                  "name": "แกนภูตแสงหลงทาง"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wolf_pelt",
+                  "name": "หนังหมาป่าหน้ากาก"
+                },
+                {
+                  "id": "wolf_fang",
+                  "name": "เขี้ยวหมาป่า"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "duskmane_stalker",
+              "name": "เสือเงาแผงคอเทา",
+              "src": "./assets/icons/monster/duskmane_stalker.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "dusk_pelt",
+                  "name": "ขนเสือเงา"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "region": "frontier-wilds-v1:ruins",
+          "entries": [
+            {
+              "id": "duskmane_stalker",
+              "name": "เสือเงาแผงคอเทา",
+              "src": "./assets/icons/monster/duskmane_stalker.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "dusk_pelt",
+                  "name": "ขนเสือเงา"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "crag_golem",
+              "name": "โกเลมผาหิน",
+              "src": "./assets/icons/monster/crag_golem.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "crag_stone",
+                  "name": "หินผา"
+                },
+                {
+                  "id": "golem_heart",
+                  "name": "หัวใจโกเลม"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "gale_hawk",
+              "name": "เหยี่ยวพายุ",
+              "src": "./assets/icons/monster/gale_hawk.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "hawk_feather",
+                  "name": "ขนเหยี่ยว"
+                },
+                {
+                  "id": "storm_quill",
+                  "name": "ขนพายุ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "wisp_core",
+                  "name": "แกนภูตแสงหลงทาง"
+                },
+                {
+                  "id": "glow_dust",
+                  "name": "ผงเรืองแสง"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "src": "./assets/icons/monster/moss_beetle.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "beetle_shell",
+                  "name": "กระดองด้วง"
+                },
+                {
+                  "id": "venom_gland",
+                  "name": "ต่อมพิษ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "rune_sentinel",
+              "name": "ทหารยามศิลารูน",
+              "src": "./assets/icons/monster/rune_sentinel.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "rune_core",
+                  "name": "แกนรูน"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            },
+            {
+              "id": "horned_warden",
+              "name": "ผู้พิทักษ์เขาเหล็ก",
+              "src": "./assets/icons/monster/horned_warden.png",
+              "native": 256,
+              "size": 50,
+              "drops": [
+                {
+                  "id": "warden_horn",
+                  "name": "เขาผู้พิทักษ์"
+                },
+                {
+                  "id": "ancient_core",
+                  "name": "แกนโบราณ"
+                },
+                {
+                  "id": "ruin_shard",
+                  "name": "เศษซากโบราณ"
+                },
+                {
+                  "id": "enhancement_stone",
+                  "name": "หินเสริมอุปกรณ์"
+                },
+                {
+                  "id": "skill_crystal",
+                  "name": "ผลึกทักษะ"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "materialSources": [
+        {
+          "id": "salt_gel",
+          "name": "เจลเกลือทะเล",
+          "sources": [
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "glow_dust",
+          "name": "ผงเรืองแสง",
+          "sources": [
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "size": 30
+            },
+            {
+              "id": "sporecap",
+              "name": "เห็ดสปอร์",
+              "size": 30
+            },
+            {
+              "id": "salt_slime",
+              "name": "สไลม์คลื่นทะเล",
+              "src": "./assets/icons/monster/salt_slime.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "boar_hide",
+          "name": "หนังหมูกระทิง",
+          "sources": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "boar_tusk",
+          "name": "เขาหมูกระทิง",
+          "sources": [
+            {
+              "id": "tusk_boar",
+              "name": "หมูกระทิง",
+              "src": "./assets/icons/monster/tusk_boar.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "wolf_pelt",
+          "name": "หนังหมาป่าหน้ากาก",
+          "sources": [
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "size": 30
+            },
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "wolf_fang",
+          "name": "เขี้ยวหมาป่า",
+          "sources": [
+            {
+              "id": "thornback_wolf",
+              "name": "หมาป่าหน้ากาก",
+              "src": "./assets/icons/monster/thornback_wolf.png",
+              "size": 30
+            },
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "greyfang_mane",
+          "name": "แผงคอเกรย์แฟง",
+          "sources": [
+            {
+              "id": "greyfang",
+              "name": "เกรย์แฟง จ่าฝูง",
+              "src": "./assets/icons/monster/greyfang.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "venom_gland",
+          "name": "ต่อมพิษ",
+          "sources": [
+            {
+              "id": "moss_beetle",
+              "name": "ด้วงกระดองตะไคร่",
+              "size": 30
+            },
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "viper_scale",
+          "name": "เกล็ดใบกก",
+          "sources": [
+            {
+              "id": "reed_viper",
+              "name": "งูใบกกพิษ",
+              "src": "./assets/icons/monster/reed_viper.png",
+              "size": 30
+            }
+          ]
+        },
+        {
+          "id": "wisp_core",
+          "name": "แกนภูตแสงหลงทาง",
+          "sources": [
+            {
+              "id": "marsh_wisp",
+              "name": "ภูตแสงหลงทาง",
+              "src": "./assets/icons/monster/marsh_wisp.png",
+              "size": 30
+            }
+          ]
+        }
+      ],
+      "craft": [
+        {
+          "id": "boar_hide",
+          "recipe": "tusk_blade",
+          "ingredients": [
+            {
+              "text": "หนังหมูกระทิง30 / 2",
+              "size": 32
+            },
+            {
+              "text": "หนังหมูกระทิง30 / 10",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "boar_tusk",
+          "recipe": "tusk_blade",
+          "ingredients": [
+            {
+              "text": "เขาหมูกระทิง30 / 5",
+              "size": 32
+            },
+            {
+              "text": "เขาหมูกระทิง30 / 25",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "wolf_pelt",
+          "recipe": "fang_dagger",
+          "ingredients": [
+            {
+              "text": "หนังหมาป่าหน้ากาก30 / 3",
+              "size": 32
+            },
+            {
+              "text": "หนังหมาป่าหน้ากาก30 / 15",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "viper_scale",
+          "recipe": "wisp_staff",
+          "ingredients": [
+            {
+              "text": "เกล็ดใบกก30 / 5",
+              "size": 32
+            },
+            {
+              "text": "เกล็ดใบกก30 / 25",
+              "size": 32
+            }
+          ]
+        },
+        {
+          "id": "wisp_core",
+          "recipe": "wisp_staff",
+          "ingredients": [
+            {
+              "text": "แกนภูตแสงหลงทาง30 / 13",
+              "size": 32
+            },
+            {
+              "text": "แกนภูตแสงหลงทาง30 / 65",
+              "size": 32
+            }
+          ]
+        }
+      ],
+      "quests": [
+        "h_slimes",
+        "m_boars",
+        "s_wolves"
+      ],
+      "artifacts": [
+        "ipad-atlas-boss.png",
+        "ipad-atlas-meadow.png",
+        "ipad-atlas-wolves.png",
+        "ipad-atlas-wetland.png",
+        "ipad-bag.png",
+        "ipad-material-source.png",
+        "ipad-craft.png",
+        "ipad-quest-slime.png",
+        "ipad-quest-optional.png"
+      ],
+      "bossPin": {
+        "src": "./assets/icons/monster/greyfang.png",
+        "size": 24
+      }
+    }
+  ],
+  "assetHashes": [
+    {
+      "id": "salt_slime",
+      "sha256": "eed14c0063c33bdf02773eeb1ec57d7fa51977d8c84f8146e5376ea8db0c3368"
+    },
+    {
+      "id": "tusk_boar",
+      "sha256": "842da18a33e77e421a2846f86883f87f58c60dd535e8f80ec18c02d889dc20fc"
+    },
+    {
+      "id": "thornback_wolf",
+      "sha256": "6d357f9f6e8f72b74160ca068ab43b663accee214a011995236399d63a3e06fd"
+    },
+    {
+      "id": "greyfang",
+      "sha256": "346157e1686329d5924de7c1ee02a53ee3cc88385db59044f1d93072519ff930"
+    },
+    {
+      "id": "reed_viper",
+      "sha256": "3356a4b4905a2cc7fede6aa6446ac6055d16ce5d0b9245d2ea82e16b0a6f2c38"
+    },
+    {
+      "id": "viper_scale",
+      "sha256": "47b71f0b39b60620243ea59f5d48b4a64e07083da76054fa78e5f60c2740ea13"
+    },
+    {
+      "id": "wisp_core",
+      "sha256": "16820050f786a6afeb801cf7cc9fc4e772b39884f69e74e50488c2d516e22e7f"
+    },
+    {
+      "id": "marsh_wisp",
+      "sha256": "9bde849dd0c89ad9860eadafd31d66acf1da9e375662ea112dacb6b5450c55e8"
+    }
+  ],
+  "errors": [],
+  "badResponses": [],
+  "ok": true,
+  "limitations": [
+    "UI identity review on post-PR106 main; no 3D animation review is claimed.",
+    "Viewport emulation and SwiftShader; no physical iPad or Safari/performance claim."
+  ],
+  "captureHashes": [
+    {
+      "file": "desktop-atlas-boss.png",
+      "sha256": "656b2aa263ef253abf5e783c224ba62d45fd537487b11f9637f4dc693579664a",
+      "retained": true
+    },
+    {
+      "file": "desktop-atlas-meadow.png",
+      "sha256": "b219586f69efa9fa8425a5704812cab3a828457a00aaefa72a5bc777a5192316",
+      "retained": false
+    },
+    {
+      "file": "desktop-atlas-wolves.png",
+      "sha256": "d4c77ce2b4fef45f683e89747b12a7bce67453dcc102054b5e010c32e8c38076",
+      "retained": false
+    },
+    {
+      "file": "desktop-atlas-wetland.png",
+      "sha256": "0204ed2d4100affc19e7c7110c111d2d1fba969a8ac27add7ee0514b936ee1e7",
+      "retained": false
+    },
+    {
+      "file": "desktop-bag.png",
+      "sha256": "41526de7f42b86719540fcc81d8a0c77f6568863c26f2407291d18adfd671103",
+      "retained": false
+    },
+    {
+      "file": "desktop-material-source.png",
+      "sha256": "54a4bb307e63ed241b355f30be3520d5f140da51fd9bb51cbddfca2401968713",
+      "retained": false
+    },
+    {
+      "file": "desktop-craft.png",
+      "sha256": "2fec09cf0c5f452575ec8ec80893b1b7e89579f64fbbf7a4bbde4a67a121de81",
+      "retained": false
+    },
+    {
+      "file": "desktop-quest-slime.png",
+      "sha256": "5e50b9ce610f62efe6f5821245f0f52dae2d7e9e903a0518e3255d999482bfc6",
+      "retained": false
+    },
+    {
+      "file": "desktop-quest-optional.png",
+      "sha256": "31130b58e94d2485c3e142c5efb9b8706c54d9b8f750f18d9f30b700ddbed2d6",
+      "retained": true
+    },
+    {
+      "file": "ipad-atlas-boss.png",
+      "sha256": "10cb70df52ee95fec3c3da16a96a44c1bdef36d738b473b8b59dd1b5a3a2a2e3",
+      "retained": false
+    },
+    {
+      "file": "ipad-atlas-meadow.png",
+      "sha256": "d97db4f95a253e4bc2e451876a9c544688eddb1acb07e73e70b033ff67b44dca",
+      "retained": false
+    },
+    {
+      "file": "ipad-atlas-wolves.png",
+      "sha256": "13be760851c5d5ab9eb49f74942031aa9b7257f7b0296f4511e73f50386cf3b3",
+      "retained": true
+    },
+    {
+      "file": "ipad-atlas-wetland.png",
+      "sha256": "4d1590504440ce8706a52efe2325f095aaa88cdd5b23e248058709226840f49b",
+      "retained": true
+    },
+    {
+      "file": "ipad-bag.png",
+      "sha256": "102ddf73bac5ea227c4a798067e95cb96323747ee9dcaae7e6cda7f201acb206",
+      "retained": true
+    },
+    {
+      "file": "ipad-material-source.png",
+      "sha256": "4252efe95b1ab811d4674cb3a21a0d6c09df843fe7bfa4d0902002c2ef58fa9f",
+      "retained": true
+    },
+    {
+      "file": "ipad-craft.png",
+      "sha256": "119d368ead4ec6787ed1ea3833744b99476f0b8aca7116070e0e5e35e9f53cec",
+      "retained": true
+    },
+    {
+      "file": "ipad-quest-slime.png",
+      "sha256": "4ac178af6b8dae1959c5cb4f80d5df862109bc12f5cae789d8ce32f287f28a38",
+      "retained": true
+    },
+    {
+      "file": "ipad-quest-optional.png",
+      "sha256": "1622e53b1b84103d0c9d551b0ebae78d0eedda1f46dd47c6bbe57f183d2e6442",
+      "retained": false
+    }
+  ],
+  "visuallyReviewedAt": "2026-10-07T16:02:26.356577+00:00",
+  "visualReviewMethod": "All 18 final desktop/iPad screenshots opened as pixels; static UI only.",
+  "finalChangesAfterCapture": "Review evidence and capture metadata only; no runtime data/UI/assets/model changes."
+}

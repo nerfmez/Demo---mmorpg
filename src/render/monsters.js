@@ -8,11 +8,20 @@ import { RigBuilder, damp, clamp01, Spring } from './rig.js';
 import { monsterModel } from './models.js';
 import { attachMonsterModel } from './monsterSkin.js';
 import { MIDHIGH_BUILDERS, MIDHIGH_SCALE } from './monsters-midhigh.js';
+import { GROVE_BUILDERS, GROVE_SCALE } from './monsters-grove.js';
+import MOTION from '../../data/monster-motion.json';
+import { motionConfig, advanceGait, poseLegs, poseSplayedLegs, legCycle, wander, breath } from './monster-motion.js';
 
 const cylDown = (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg).translate(0, -h / 2, 0);
 const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 const cone = (r, h, seg = 5) => new THREE.ConeGeometry(r, h, seg);
 const CRAB_CLAWS = [[1, 'mandL'], [-1, 'mandR']];
+// animators run every frame: iterate fixed tables instead of building arrays per call
+const EARS = ['earL', 'earR'];
+const BIPED_LEGS = ['legL', 'legR'];
+const SPORE_FEET = [['footL', 0], ['footR', 0.5]];
+const GULL_LEGS = [['legL', 0], ['legR', 0.5]];
+const GULL_WINGS = [[1, 'L'], [-1, 'R']];
 
 // ---------- quadrupeds (boar, wolves) ----------
 
@@ -106,27 +115,54 @@ function buildWolf(kind = 'wolf') {
 
 function animQuad(r, s, dt, time, cfg) {
   const b = r.bones;
-  const moving = s.moving || s.state === 'act';
-  const run = s.state === 'act' ? 2.2 : s.speedFactor;
-  r.phase = (r.phase || 0) + dt * (moving ? 7 + run * 7 : 0);
-  const ph = r.phase;
-  r.runW = damp(r.runW || 0, moving ? 1 : 0, 10, dt);
-  const w = r.runW;
+  const c = r.motion;
   const legs = r.legs;
-  const stride = (s.state === 'act' ? 0.85 : 0.55) * w;
-  legs.forEach((n, i) => {
-    const off = cfg.gallop && s.state === 'act' ? (i < 2 ? 0 : Math.PI * 0.6) : i === 0 || i === 3 ? 0 : Math.PI;
-    b[n].rotation.x = Math.sin(ph + off) * stride;
-    if (b[`${n}k`]) b[`${n}k`].rotation.x = Math.max(0, Math.cos(ph + off)) * 0.7 * w;
-  });
+  // legs: a cycle locked to ground speed (walk -> trot/gallop), see monster-motion.js
+  const w = advanceGait(r, s, dt, c);
+  const ph = r.phase;
+  const run = r.runK;
+  const drop = poseLegs(r, c, legs);
+  const P = r.pose || (r.pose = { bodyX: 0, bodyY: cfg.bodyY, bodyZ: 0, headX: 0, jaw: 0 });
   let bodyX = 0;
-  let bodyY = cfg.bodyY + Math.abs(Math.sin(ph)) * 0.05 * w;
+  let bodyY = cfg.bodyY;
   let headX = Math.sin(time * 2 + r.seed) * 0.03 - 0.05 * w;
   let squash = 1;
   let jaw = 0;
+  let bodyZ = clampAbs(-s.turn * 0.06 - (s.vSide || 0) * 0.025, 0.2);
+  let zK = 10;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   const wu = s.windup;
-  if (wu === 'charge' || wu === 'lunge' || wu === 'triple') {
+  for (let i = 0; i < 2; i++) b[legs[i]].rotation.z = damp(b[legs[i]].rotation.z, 0, 18, dt);
+  let lunge = 0;
+  let hook = 0;
+  if (wu === 'rend' || wu === 'rake') {
+    // rears back on the hind legs, head up, then claws down from alternating sides
+    headX = -0.35 * k;
+    bodyX = -0.28 * k;
+    bodyY += 0.14 * k;
+    jaw = 0.4 * k;
+    lunge = -0.12 * k;
+    b[legs[0]].rotation.x = -1.25 * k;
+    b[`${legs[0]}k`].rotation.x = 0.75 * k;
+  } else if (s.state === 'act' && (s.lastAttack === 'rend' || s.lastAttack === 'rake')) {
+    // The imported PR106 wolves use the same front-leg joints. Alternate paws
+    // at the data's contact times: a high lift, a fast raking downstroke across
+    // the body (its claws leave the trail) and a return, the body surging in.
+    const hits = s.attack?.hits || [];
+    bodyX = -0.16;
+    bodyY += 0.1;
+    jaw = 0.4;
+    lunge = 0.12;
+    for (let i = 0; i < hits.length; i++) {
+      const t = s.actT - hits[i].at, leg = legs[i % 2];
+      if (t < -0.15 || t > 0.18) continue;
+      const stroke = clamp01((t + 0.12) / 0.12);
+      const release = 1 - clamp01(t / 0.18);
+      b[leg].rotation.x = (-1.3 + 1.75 * stroke * stroke) * release;
+      b[leg].rotation.z = (i % 2 ? -1 : 1) * (0.55 - 1.0 * stroke) * release;
+      b[`${leg}k`].rotation.x = 0.75 * (1 - stroke) * release;
+    }
+  } else if (wu === 'charge') {
     // crouch, head low, hind legs coiled; front paw scrapes on the boar
     headX = 0.35 * k;
     bodyX = 0.12 * k;
@@ -135,8 +171,15 @@ function animQuad(r, s, dt, time, cfg) {
     if (cfg.paw) b[legs[0]].rotation.x = Math.sin(time * 18) * 0.6 * k;
     jaw = 0.25 * k;
   } else if (wu === 'bite') {
-    headX = -0.3 * k;
-    jaw = 0.6 * k;
+    // draws the head back and cocks it to one side with the jaw wide, weight on the hind legs,
+    // then lunges and snaps across (a hooking bite, so the fangs carve a crescent)
+    if (k < 0.1) r.biteSide = -(r.biteSide || 1);
+    hook = 0.5 * k * (r.biteSide || 1);
+    headX = -0.65 * k;
+    bodyX = -0.14 * k;
+    bodyY += 0.03 * k;
+    jaw = 0.8 * k;
+    lunge = -0.16 * k;
   } else if (wu === 'howl') {
     headX = -0.9 * k;
     jaw = 0.7 * k;
@@ -147,27 +190,76 @@ function animQuad(r, s, dt, time, cfg) {
     squash = 1.06;
     jaw = 0.4;
   } else if (s.state === 'recover' && s.lastAttack === 'bite') {
-    jaw = 0.15;
+    // the snap: the body surges in, the head thrusts down and forward and the jaw slams
+    // shut (its fangs leave the trail), then it eases back
+    const t = clamp01((s.actT || 0) / 0.45);
+    headX = 0.55 * (1 - t);
+    bodyX = 0.16 * (1 - t);
+    bodyY -= 0.06 * (1 - t);
+    lunge = 0.36 * (1 - t) * (1 - t);
+    hook = -0.4 * (1 - t) * (r.biteSide || 1);
+    jaw = t < 0.12 ? 0.5 : 0; // the jaw stays open through the thrust and slams shut at its end
   } else if (s.state === 'stunned') {
     headX = 0.2 + Math.sin(time * 12) * 0.1;
-    b.body.rotation.z = Math.sin(time * 8) * 0.15;
+    bodyZ = Math.sin(time * 8) * 0.15;
+    zK = 30;
   }
-  if (s.state !== 'stunned') b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.06, 0.2), 10, dt);
+  // idle life: breathing, looking around, a sniff at the ground (the boar roots about)
+  const calm = wu || s.state === 'act' || s.state === 'stunned' ? 0 : 1 - w;
+  const idle = s.aggro ? 0 : calm;
+  const sniff = Math.max(0, wander(time * 0.31, r.seed + 4)) ** 2 * (cfg.paw ? 0.55 : 0.3) * idle;
+  headX += sniff;
   // hit reaction: knocked back a little and squashed
   if (s.hurt > 0) {
     bodyX -= 0.25 * s.hurt;
     squash *= 1 - 0.12 * s.hurt;
   }
-  b.head.rotation.x = damp(b.head.rotation.x, headX, 14, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.8, 6, dt);
-  b.body.rotation.x = damp(b.body.rotation.x, bodyX, 12, dt);
-  b.body.position.y = damp(b.body.position.y, bodyY, 18, dt);
-  b.body.scale.set(1 / Math.sqrt(squash), squash, 1 / Math.sqrt(squash));
-  if (b.jaw) b.jaw.rotation.x = damp(b.jaw.rotation.x, jaw, 18, dt);
+  // a lunge/charge leans in, braking sits back
+  bodyX += c.lean * clampAbs(r.accel || 0, 5);
+  P.headX = damp(P.headX, headX, s.state === 'recover' && s.lastAttack === 'bite' ? 16 : 14, dt);
+  P.bodyX = damp(P.bodyX, bodyX, 12, dt);
+  P.bodyY = damp(P.bodyY, bodyY, 18, dt);
+  P.bodyZ = damp(P.bodyZ, bodyZ, zK, dt);
+  P.jaw = damp(P.jaw, jaw, jaw < P.jaw ? 40 : 18, dt);
+  P.lunge = damp(P.lunge || 0, lunge, lunge > (P.lunge || 0) ? 20 : 10, dt);
+  // per-step body motion on top: two bounces per stride, a fore-aft rock (a big one when
+  // galloping), weight shifting from side to side and the spine flexing; the head stays level
+  const rock = c.pitch * w * ((1 - run) * Math.sin(2 * ph) + run * 2.5 * Math.sin(ph + 0.8));
+  const bob = c.bob * w * (1 + run) * (0.5 + 0.5 * Math.cos(2 * ph));
+  const roll = c.roll * w * Math.sin(ph) * (1 - 0.6 * run);
+  b.body.rotation.x = P.bodyX + rock;
+  b.body.position.y = P.bodyY + bob - drop;
+  b.body.position.z = b.body.userData.rest.pos.z + P.lunge;
+  b.body.rotation.z = P.bodyZ + roll;
+  if (b.chest) {
+    b.chest.rotation.y = -c.sway * w * Math.sin(ph);
+    b.chest.rotation.z = -roll * 0.6;
+  }
+  b.head.rotation.x = P.headX - rock * c.headSteady;
+  const look = s.lookYaw ? 0 : c.look * wander(time * 0.45, r.seed) * idle;
+  P.headY = damp(P.headY || 0, s.lookYaw * 0.8 + look + clampAbs(s.turn * 0.12, 0.3), 6, dt);
+  P.hook = damp(P.hook || 0, hook, 18, dt);
+  b.head.rotation.y = P.headY + P.hook;
+  if (b.neck) b.neck.rotation.y = P.hook * 0.6;
+  const br = breath(time, r.seed, c) * (1 - 0.6 * w);
+  b.body.scale.set((1 + br) / Math.sqrt(squash), squash, (1 + br * 0.4) / Math.sqrt(squash));
+  if (b.jaw) b.jaw.rotation.x = P.jaw;
+  // tail: a springy wag that streams out when running and swings out of turns
   r.tailSpring = r.tailSpring || new Spring(70, 7);
-  const tailTarget = (wu ? 0.5 : 0) + Math.sin(time * (moving ? 10 : 4) + r.seed) * (moving ? 0.25 : 0.12);
+  r.tailLift = r.tailLift || new Spring(60, 6);
+  const tailTarget = (wu ? 0.5 : 0) + Math.sin(time * (w > 0.5 ? 9 : 3.5) + r.seed) * (0.12 + 0.12 * w) + clampAbs(s.turn * 0.25, 0.4);
   b.tail.rotation.z = r.tailSpring.update(tailTarget, dt);
-  for (const e of ['earL', 'earR']) if (b[e]) b[e].rotation.x = damp(b[e].rotation.x, wu ? -0.4 : Math.sin(time * 3 + r.seed) * 0.05 - 0.15 * w, 10, dt);
+  b.tail.rotation.x = r.tailLift.update(-0.35 * run + bob * 4 - (wu ? 0.2 : 0), dt);
+  // ears flop with each bounce, pin back on a wind-up, and flick now and then
+  r.earSpring = r.earSpring || new Spring(90, 6);
+  const flop = r.earSpring.update(-bob * 6, dt);
+  const flick = Math.max(0, Math.sin(time * 0.9 + r.seed * 3)) ** 24 * 0.5;
+  P.ear = damp(P.ear || 0, wu ? -0.4 : -0.15 * w + Math.sin(time * 3 + r.seed) * 0.05, 10, dt);
+  for (const e of EARS) {
+    if (!b[e]) continue;
+    b[e].rotation.x = P.ear + flop * 0.1;
+    b[e].rotation.z = (e === 'earL' ? 1 : -1) * flick * (e === 'earL' ? 1 : 0.3);
+  }
 }
 
 // ---------- beetle ----------
@@ -254,17 +346,17 @@ function buildCrab(hermit = false) {
   return rig;
 }
 
+const SIDES6 = [1, -1, 1, -1, 1, -1];
+
 function animBeetle(r, s, dt, time) {
   const b = r.bones;
-  r.phase = (r.phase || 0) + dt * (s.moving ? 14 : 0);
+  const c = r.motion;
+  const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
   const shellK = (r.shellK = damp(r.shellK || 0, s.state === 'shell' ? 1 : 0, 12, dt));
-  r.legs.forEach((n, i) => {
-    const tripod = (i % 2 === 0) === (Math.floor(i / 2) % 2 === 0) ? 0 : Math.PI;
-    b[n].rotation.y = s.moving ? Math.sin(ph + tripod) * 0.35 : 0;
-    b[n].rotation.x = s.moving ? Math.max(0, Math.cos(ph + tripod)) * -0.25 : 0;
-    b[n].scale.setScalar(1 - shellK * 0.7);
-  });
+  // alternating tripods, speed-locked; legs pull in under the shell when it shuts
+  poseSplayedLegs(r, c, r.legs, SIDES6);
+  for (const n of r.legs) b[n].scale.setScalar(1 - shellK * 0.7);
   let headX = 0;
   let mand = Math.sin(time * 5 + r.seed) * 0.08;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
@@ -272,17 +364,24 @@ function animBeetle(r, s, dt, time) {
     headX = -0.45 * k;
     mand = 0.4 * k;
   } else if (s.state === 'recover' && s.lastAttack === 'spit') headX = 0.25;
-  b.body.position.y = damp(b.body.position.y, (r.bodyY ?? 0.45) - shellK * 0.3 + (s.moving ? Math.abs(Math.sin(ph)) * 0.02 : 0), 16, dt);
-  b.shell.scale.set(1 + shellK * 0.12, 1 + shellK * 0.1 + (s.hurt || 0) * -0.08, 1 + shellK * 0.12);
-  b.shell.rotation.x = s.moving ? Math.sin(ph * 0.5) * 0.03 : 0;
+  const P = r.pose || (r.pose = { y: r.bodyY ?? 0.45 });
+  P.y = damp(P.y, (r.bodyY ?? 0.45) - shellK * 0.3, 16, dt);
+  // each tripod plants with a small bounce; the shell rocks a little behind the body
+  const bob = c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
+  b.body.position.y = P.y + bob;
+  const br = breath(time, r.seed, c) * (1 - w);
+  b.shell.scale.set(1 + shellK * 0.12 + br, 1 + shellK * 0.1 + (s.hurt || 0) * -0.08 + br, 1 + shellK * 0.12);
+  r.shellSpring = r.shellSpring || new Spring(80, 7);
+  b.shell.rotation.x = r.shellSpring.update(Math.sin(2 * ph) * 0.03 * w - clampAbs(r.accel || 0, 4) * 0.02, dt);
   b.head.scale.setScalar(1 - shellK * 0.6);
   b.head.rotation.x = damp(b.head.rotation.x, headX, 14, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.5, 6, dt);
+  const look = s.lookYaw ? 0 : c.look * wander(time * 0.6, r.seed) * (1 - w) * (s.aggro ? 0 : 1);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.5 + look, 6, dt);
   b.mandL.rotation.y = damp(b.mandL.rotation.y, -mand, 16, dt);
   b.mandR.rotation.y = damp(b.mandR.rotation.y, mand, 16, dt);
   b.mandL.rotation.x = damp(b.mandL.rotation.x, s.windup === 'bite' ? -.65 * k : 0, 14, dt);
   b.mandR.rotation.x = damp(b.mandR.rotation.x, s.windup === 'bite' ? -.65 * k : 0, 14, dt);
-  b.body.rotation.z = s.moving ? Math.sin(ph * 0.5) * 0.04 : Math.sin(time * 1.5) * 0.015;
+  b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5 + r.seed) * 0.015 * (1 - w) + clampAbs(-s.turn * 0.04, 0.12);
 }
 
 // -1 is the fully drawn-back pose; +1 is contact. Timing comes from the same
@@ -296,28 +395,43 @@ function coastalStrike(s, name) {
 
 function animCrab(r, s, dt, time) {
   const b = r.bones;
+  const c = r.motion;
   const stroke = coastalStrike(s, 'pinch');
   const ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
-  r.phase = (r.phase || 0) + dt * (s.moving ? 11 : 0);
+  const w = advanceGait(r, s, dt, c);
+  const ph = r.phase;
   const tucked = r.shellK = damp(r.shellK || 0, s.state === 'shell' ? 1 : 0, 12, dt);
-  for (let i = 0; i < r.legs.length; i++) {
-    const leg = b[r.legs[i]];
-    leg.rotation.y = s.moving ? Math.sin(r.phase + i * Math.PI) * .3 : 0;
-    leg.rotation.x = s.moving ? Math.max(0, Math.cos(r.phase + i * Math.PI)) * -.2 : 0;
-    leg.scale.setScalar(1 - tucked * .8);
-  }
-  b.body.position.y = damp(b.body.position.y, .32 - tucked * .08, 16, dt);
-  b.shell.scale.set(1, 1 - (s.hurt || 0) * .035, 1);
+  poseSplayedLegs(r, c, r.legs, SIDES6, 'z');
+  for (const n of r.legs) b[n].scale.setScalar(1 - tucked * .8);
+  // a crab scuttles sideways: the body turns side-on while it travels and squares up to strike
+  const busy = s.windup || s.state === 'act' || s.state === 'shell' || s.state === 'stunned';
+  r.sidleSide = r.sidleSide || (r.seed % 2 < 1 ? 1 : -1);
+  if (w < 0.05 && !busy) r.sidleSide = (s.vSide || 0) > 0.3 ? -1 : (s.vSide || 0) < -0.3 ? 1 : r.sidleSide;
+  r.sidle = damp(r.sidle || 0, busy ? 0 : r.sidleSide * c.sidle * w, 6, dt);
+  b.body.rotation.y = r.sidle;
+  const P = r.pose || (r.pose = { y: .32 });
+  P.y = damp(P.y, .32 - tucked * .08 - ready * .05, 16, dt);
+  b.body.position.y = P.y + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
+  const br = breath(time, r.seed, c) * (1 - w);
+  b.shell.scale.set(1 + br, 1 - (s.hurt || 0) * .035 + br, 1);
   b.head.scale.setScalar(1 - tucked * .88);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * .35, 8, dt);
+  // eye stalks twitch and look around
+  const look = s.lookYaw ? 0 : c.look * wander(time * 0.8, r.seed) * (s.aggro ? 0 : 1);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * .35 + look * .5, 8, dt);
+  b.head.rotation.z = Math.max(0, Math.sin(time * 1.1 + r.seed * 2)) ** 18 * 0.12;
+  // claws held up, bobbing with the steps, with an idle click now and then
+  const click = busy ? 0 : Math.max(0, Math.sin(time * 1.4 + r.seed)) ** 16;
+  P.clawX = damp(P.clawX || 0, -.85 * ready + .25 * hit, 20, dt);
+  P.clawY = damp(P.clawY || 0, -.55 * ready + .35 * hit, 20, dt);
   for (const [side, name] of CRAB_CLAWS) {
     const claw = b[name];
-    claw.rotation.x = damp(claw.rotation.x, -.85 * ready + .25 * hit, 20, dt);
-    claw.rotation.y = damp(claw.rotation.y, side * (-.55 * ready + .35 * hit), 20, dt);
+    claw.rotation.x = P.clawX + Math.sin(2 * ph + side) * 0.06 * w;
+    claw.rotation.y = side * (P.clawY + 0.18 * click);
     claw.position.z = claw.userData.rest.pos.z + .32 * hit;
     claw.scale.setScalar(1 - tucked * .85);
   }
-  b.body.rotation.z = s.moving ? Math.sin(r.phase) * .025 : Math.sin(time * 1.5) * .008;
+  b.body.rotation.z = c.roll * w * Math.sin(ph) + Math.sin(time * 1.5) * .008;
+  b.body.rotation.x = damp(b.body.rotation.x, -0.08 * ready + 0.1 * hit, 18, dt);
 }
 
 // ---------- wisp ----------
@@ -346,7 +460,11 @@ function buildWisp() {
 
 function animWisp(r, s, dt, time) {
   const b = r.bones;
+  // drifts like a lantern on the wind: tips into its travel, sways and bobs
+  advanceGait(r, s, dt, r.motion);
   b.body.position.y = 1.2 + Math.sin(time * 2.4 + r.seed) * 0.12;
+  b.body.rotation.x = damp(b.body.rotation.x, Math.min(0.3, (r.speed || 0) * 0.08) + Math.sin(time * 1.3 + r.seed) * 0.05, 4, dt);
+  b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-(s.vSide || 0) * 0.08, 0.25) + Math.sin(time * 0.9 + r.seed) * 0.06, 4, dt);
   b.petals.rotation.y += dt * (s.windup ? 5 : 1.5);
   b.ring.rotation.z += dt * 2;
   r.motes.forEach((m, i) => {
@@ -390,9 +508,12 @@ function buildSporecap() {
   return rig;
 }
 
+const _foot = { angle: 0, lift: 0, planted: true };
+
 function animSporecap(r, s, dt, time) {
   const b = r.bones;
-  r.phase = (r.phase || 0) + dt * (s.moving ? 9 : 0);
+  const c = r.motion;
+  const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   let capS = 1 + Math.sin(time * 2 + r.seed) * 0.02;
@@ -408,14 +529,30 @@ function animSporecap(r, s, dt, time) {
     sq = 1 + Math.sin(t * Math.PI) * 0.15;
   } else if (s.state === 'recover' && s.lastAttack === 'puff') capS = 0.92;
   if (s.hurt > 0) sq *= 1 - 0.15 * s.hurt;
+  // waddle: rocks from foot to foot, squashes as each foot lands and springs up between steps
+  const land = (0.5 + 0.5 * Math.cos(2 * ph)) * w;
+  sq *= 1 - 0.07 * land + 0.04 * w + breath(time, r.seed, c) * (1 - w);
+  for (const [n, off] of SPORE_FEET) {
+    legCycle(ph, off, r.duty, _foot);
+    b[n].rotation.x = _foot.angle * r.swingA * w;
+    b[n].position.y = b[n].userData.rest.pos.y + _foot.lift * 0.06 * w;
+  }
+  // the heavy cap lags behind: it nods on each step, tips back when setting off and wobbles when hit
+  r.capX = r.capX || new Spring(70, 6);
+  r.capZ = r.capZ || new Spring(70, 6);
+  if ((s.hurt || 0) > (r.lastHurt || 0) + 0.5) r.capX.kick(-3);
+  r.lastHurt = s.hurt || 0;
+  b.cap.rotation.x = r.capX.update(-clampAbs(r.accel || 0, 4) * 0.04 + land * 0.05, dt);
+  b.cap.rotation.z = r.capZ.update(-Math.sin(ph) * c.roll * 0.6 * w, dt);
   b.cap.scale.set(capS, capS * 0.95, capS);
   b.body.scale.set(1 / Math.sqrt(sq), sq, 1 / Math.sqrt(sq));
-  b.body.position.y = 0.35 + hop + (s.moving ? Math.abs(Math.sin(ph)) * 0.06 : 0);
-  b.body.rotation.z = s.moving ? Math.sin(ph) * 0.1 : Math.sin(time * 1.3 + r.seed) * 0.03;
-  b.footL.rotation.x = s.moving ? Math.sin(ph) * 0.6 : 0;
-  b.footR.rotation.x = s.moving ? -Math.sin(ph) * 0.6 : 0;
-  b.armL.rotation.x = s.moving ? -Math.sin(ph) * 0.5 : Math.sin(time * 1.7) * 0.1;
-  b.armR.rotation.x = s.moving ? Math.sin(ph) * 0.5 : -Math.sin(time * 1.7) * 0.1;
+  b.body.position.y = 0.35 + hop + c.bob * w * (0.5 - 0.5 * Math.cos(2 * ph));
+  b.body.rotation.z = Math.sin(ph) * c.roll * w + Math.sin(time * 1.3 + r.seed) * 0.03 * (1 - w);
+  b.body.rotation.x = damp(b.body.rotation.x, clampAbs(r.accel || 0, 4) * 0.03 + 0.06 * w, 8, dt);
+  b.armL.rotation.x = -Math.sin(ph) * 0.5 * w + Math.sin(time * 1.7) * 0.1 * (1 - w);
+  b.armR.rotation.x = Math.sin(ph) * 0.5 * w - Math.sin(time * 1.7) * 0.1 * (1 - w);
+  b.armL.rotation.z = 0.15 * w + Math.sin(ph) * 0.12 * w;
+  b.armR.rotation.z = -0.15 * w + Math.sin(ph) * 0.12 * w;
 }
 
 // ---------- crag golem ----------
@@ -451,16 +588,17 @@ function buildGolem() {
 
 function animGolem(r, s, dt, time) {
   const b = r.bones;
-  r.phase = (r.phase || 0) + dt * (s.moving ? 4.5 : 0);
+  const c = r.motion;
+  const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
-  const w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 6, dt));
-  b.legL.rotation.x = Math.sin(ph) * 0.4 * w;
-  b.legR.rotation.x = -Math.sin(ph) * 0.4 * w;
-  let armL = [-Math.sin(ph) * 0.3 * w, 0, 0.12];
-  let armR = [Math.sin(ph) * 0.3 * w, 0, -0.12];
-  let torsoX = 0.1 + Math.sin(time * 1.1 + r.seed) * 0.02;
-  let torsoZ = Math.sin(ph) * 0.08 * w;
-  let hipsY = 1.05 + Math.abs(Math.sin(ph)) * 0.06 * w;
+  // heavy biped: each footfall lands hard (the hips drop sharply), the torso rolls over the planted
+  // leg and twists against the stride, the arms swing behind with weight
+  const drop = poseLegs(r, c, BIPED_LEGS);
+  const thud = (0.5 + 0.5 * Math.cos(2 * ph)) ** 3 * w;
+  let armL = [-Math.sin(ph) * 0.35 * w, 0, 0.12 + 0.06 * thud];
+  let armR = [Math.sin(ph) * 0.35 * w, 0, -0.12 - 0.06 * thud];
+  let torsoX = 0.1 + Math.sin(time * 1.1 + r.seed) * 0.02 + 0.06 * w;
+  let hipsY = 1.05 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   if (s.windup === 'throw') {
     armL = [-2.8 * k, 0, 0.3];
@@ -478,12 +616,20 @@ function animGolem(r, s, dt, time) {
     hipsY -= s.lastAttack === 'pound' ? 0.2 : 0;
   }
   if (s.hurt > 0) torsoX -= 0.15 * s.hurt;
-  b.armL.rotation.set(damp(b.armL.rotation.x, armL[0], 10, dt), 0, damp(b.armL.rotation.z, armL[2], 10, dt));
-  b.armR.rotation.set(damp(b.armR.rotation.x, armR[0], 10, dt), 0, damp(b.armR.rotation.z, armR[2], 10, dt));
-  b.torso.rotation.x = damp(b.torso.rotation.x, torsoX, 8, dt);
-  b.torso.rotation.z = torsoZ;
-  b.hips.position.y = damp(b.hips.position.y, hipsY, 12, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6, 4, dt);
+  b.armL.rotation.set(damp(b.armL.rotation.x, armL[0], 7, dt), 0, damp(b.armL.rotation.z, armL[2], 10, dt));
+  b.armR.rotation.set(damp(b.armR.rotation.x, armR[0], 7, dt), 0, damp(b.armR.rotation.z, armR[2], 10, dt));
+  const P = r.pose || (r.pose = { torsoX: 0.1, hipsY: 1.05 });
+  P.torsoX = damp(P.torsoX, torsoX, 8, dt);
+  P.hipsY = damp(P.hipsY, hipsY + drop + c.bob * thud, 12, dt);
+  b.torso.rotation.x = P.torsoX + thud * 0.04;
+  b.torso.rotation.z = Math.sin(ph) * c.roll * w;
+  b.torso.rotation.y = -Math.sin(ph) * c.sway * w;
+  const br = breath(time, r.seed, c) * (1 - w);
+  b.torso.scale.set(1 + br, 1 + br * 0.5, 1 + br);
+  b.hips.position.y = P.hipsY - drop - c.bob * thud;
+  b.hips.rotation.z = -Math.sin(ph) * c.roll * 0.5 * w;
+  const look = s.lookYaw ? 0 : c.look * wander(time * 0.3, r.seed) * (s.aggro ? 0 : 1) * (1 - w);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.6 + look + Math.sin(ph) * c.sway * w, 4, dt);
 }
 
 // ---------- gale hawk ----------
@@ -517,28 +663,46 @@ function buildHawk() {
 
 function animHawk(r, s, dt, time) {
   const b = r.bones;
+  const c = r.motion;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
-  let flap = Math.sin(time * 9 + r.seed);
-  let wingOpen = 0.2 + flap * 0.55;
-  let pitch = 0;
+  // flaps in bouts and glides between them; the wing tips trail the arm of the wing, so each beat
+  // rolls out along the wing instead of the whole wing hinging like a board
+  const effort = clamp01(0.55 + wander(time * 0.5, r.seed) * 0.9 + (s.speed || 0) * 0.04);
+  r.flapAmt = damp(r.flapAmt || 1, effort > c.glide ? 1 : 0.15, 3, dt);
+  r.flapPh = (r.flapPh || 0) + dt * c.flap * (0.6 + 0.4 * r.flapAmt);
+  const f = r.flapPh;
+  let wingOpen = 0.12 + Math.sin(f) * 0.6 * r.flapAmt;
+  let tip = Math.sin(f - 0.9) * 0.45 * r.flapAmt + 0.1 * (1 - r.flapAmt);
+  let pitch = clampAbs(r.accel || 0, 3) * 0.04;
+  let lift = -Math.cos(f) * 0.07 * r.flapAmt;
+  let kk = 30;
   if (s.windup === 'dive') {
     wingOpen = 0.9 - 1.3 * k; // wings fold back
+    tip = wingOpen * 0.5;
     pitch = 0.5 * k;
+    kk = 20;
   } else if (s.state === 'act') {
     wingOpen = -0.6;
+    tip = -0.3;
     pitch = 0.9;
+    kk = 20;
   } else if (s.state === 'recover') {
     wingOpen = 0.3 + Math.sin(time * 14) * 0.7;
+    tip = Math.sin(time * 14 - 0.9) * 0.4;
     pitch = -0.3;
+    kk = 20;
   }
-  b.wingL.rotation.z = damp(b.wingL.rotation.z, wingOpen, 20, dt);
-  b.wingR.rotation.z = damp(b.wingR.rotation.z, -wingOpen, 20, dt);
-  b.wingLt.rotation.z = damp(b.wingLt.rotation.z, wingOpen * 0.5, 20, dt);
-  b.wingRt.rotation.z = damp(b.wingRt.rotation.z, -wingOpen * 0.5, 20, dt);
+  advanceGait(r, s, dt, c);
+  b.wingL.rotation.z = damp(b.wingL.rotation.z, wingOpen, kk, dt);
+  b.wingR.rotation.z = damp(b.wingR.rotation.z, -wingOpen, kk, dt);
+  b.wingLt.rotation.z = damp(b.wingLt.rotation.z, tip, kk, dt);
+  b.wingRt.rotation.z = damp(b.wingRt.rotation.z, -tip, kk, dt);
   b.body.rotation.x = damp(b.body.rotation.x, pitch, 10, dt);
   b.body.rotation.z = damp(b.body.rotation.z, clampAbs(-s.turn * 0.12, 0.6), 6, dt);
-  b.body.position.y = damp(b.body.position.y, 0.4 + (s.alt ?? 2.6) + Math.sin(time * 2 + r.seed) * 0.08, 10, dt);
-  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7, 6, dt);
+  b.body.position.y = damp(b.body.position.y, 0.4 + (s.alt ?? 2.6) + Math.sin(time * 2 + r.seed) * 0.08 + lift, 10, dt);
+  // the head holds still against the bob, then darts to look
+  b.head.rotation.x = -b.body.rotation.x * 0.6;
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * 0.7 + Math.round(wander(time * 0.7, r.seed) * 3) * 0.12 * (s.aggro ? 0 : 1), 12, dt);
 }
 
 // ---------- horned warden (boss) ----------
@@ -607,21 +771,23 @@ function buildWarden() {
   return rig;
 }
 
+const WARDEN_KNEE = (n) => n.replace('leg', 'knee');
+
 function animWarden(r, s, dt, time) {
   const b = r.bones;
-  r.phase = (r.phase || 0) + dt * (s.moving ? 5.5 * (s.enraged ? 1.25 : 1) : 0);
+  const c = r.motion;
+  const w = advanceGait(r, s, dt, c);
   const ph = r.phase;
-  const w = (r.runW = damp(r.runW || 0, s.moving ? 1 : 0, 8, dt));
-  b.legL.rotation.x = Math.sin(ph) * 0.55 * w;
-  b.legR.rotation.x = -Math.sin(ph) * 0.55 * w;
-  b.kneeL.rotation.x = Math.max(0, Math.sin(ph + 1.2)) * 0.5 * w;
-  b.kneeR.rotation.x = Math.max(0, Math.sin(ph + Math.PI + 1.2)) * 0.5 * w;
-  let torsoX = 0.2 + Math.sin(time * 1.6) * 0.03;
+  // a heavy upright stride: knees bend through the swing, the hips drop on each footfall and
+  // roll over the planted leg, the shoulders counter-twist and the arms swing against the legs
+  const drop = poseLegs(r, c, BIPED_LEGS, WARDEN_KNEE);
+  const thud = (0.5 + 0.5 * Math.cos(2 * ph)) ** 2 * w;
+  let torsoX = 0.2 + Math.sin(time * 1.6) * 0.03 + 0.05 * w;
   let headX = 0;
   let armX = [Math.sin(ph) * 0.4 * w, -Math.sin(ph) * 0.4 * w];
   let armZ = [0.25, -0.25];
-  let torsoY = 0;
-  let hipsY = 1.45 + Math.abs(Math.sin(ph)) * 0.07 * w;
+  let torsoY = -Math.sin(ph) * c.sway * w;
+  let hipsY = 1.45 - drop - c.bob * thud;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   if (s.windup === 'slam') {
     armX = [-2.6 * k, -2.6 * k];
@@ -632,11 +798,21 @@ function animWarden(r, s, dt, time) {
     armX = [-0.6, -1.2 * k];
     armZ = [0.3, -1.3 * k];
     torsoY = 0.8 * k;
-  } else if (s.windup === 'gore') {
-    headX = 0.55 * k;
-    torsoX = 0.2 + 0.5 * k;
-    armX = [0.5, 0.5];
-    hipsY -= 0.2 * k;
+  } else if (s.windup === 'quake') {
+    // one fist raised high, the other braced; the ground splits ahead
+    armX = [-2.9 * k, 0.3];
+    armZ = [0.2, -0.1];
+    torsoX = -0.35 * k;
+    hipsY += 0.2 * k;
+    headX = -0.2 * k;
+  } else if (s.state === 'recover' && s.lastAttack === 'quake') {
+    // Quake enters recovery when the fist lands; hold the planted fist while
+    // the four marked eruptions travel out, then straighten up.
+    const hold = 1 - clamp01((s.actT - 0.4) / 0.6);
+    armX = [-0.95 * hold, 0.3 * hold];
+    torsoX = 0.55 * hold;
+    hipsY -= 0.2 * hold;
+    headX = 0.2 * hold;
   } else if (s.state === 'act') {
     headX = 0.55;
     torsoX = 0.7;
@@ -666,37 +842,92 @@ function animWarden(r, s, dt, time) {
   });
   b.elbowL.rotation.x = damp(b.elbowL.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
   b.elbowR.rotation.x = damp(b.elbowR.rotation.x, s.windup === 'slam' ? -0.4 : -0.35, 10, dt);
-  b.hips.position.y = damp(b.hips.position.y, hipsY, 14, dt);
+  r.hipsY = damp(r.hipsY ?? 1.45, hipsY + drop + c.bob * thud, 14, dt);
+  b.hips.position.y = r.hipsY - drop - c.bob * thud;
+  b.hips.rotation.z = Math.sin(ph) * c.roll * w;
+  b.torso.rotation.z = -Math.sin(ph) * c.roll * 0.6 * w;
+  const br = breath(time, r.seed, c) * (1 - w);
+  b.torso.scale.set(1 + br, 1 + br * 0.5, 1 + br);
   r.tailSpring = r.tailSpring || new Spring(40, 5);
-  b.tail.rotation.z = r.tailSpring.update(Math.sin(time * 3) * 0.3, dt);
+  b.tail.rotation.z = r.tailSpring.update(Math.sin(time * 3) * 0.3 + Math.sin(ph) * 0.3 * w + clampAbs(s.turn * 0.3, 0.5), dt);
   const glow = s.enraged ? 1.4 + Math.sin(time * 8) * 0.4 : 0.6;
   b.rune.scale.setScalar(glow);
 }
 
 // ---------- registry ----------
 
+// The Tidal Slime is a body of water: a base on the ground, a middle mass, the curling crest
+// on top, a front lip (its face) and three rim points round the base. Springs on those bones
+// make it slosh, lag behind its own movement and wobble when hit (data/monster-motion.json slime).
+const SLIME_RIMS = [['rimL', 1, 0], ['rimR', -1, 0], ['rimB', 0, -1]];
+
 function buildSaltSlime() {
   const rb = new RigBuilder({ outline: .022, darkness: .3 });
-  rb.bone('body', 'root', [0, .35, 0]);
-  rb.add('body', sph(.65, 16, 12).scale(1, .66, 1), '#56aeb4');
-  rb.add('body', sph(.47, 12, 8).scale(1, .6, 1), '#8dd4ca', { pos: [0, .08, .13], plain: true });
-  for (const x of [-.2, .2]) rb.add('body', sph(.045, 8, 5).scale(.8, 1.5, .6), '#233e48', { pos: [x, .12, .55], plain: true });
+  rb.bone('body', 'root', [0, 0, 0]);
+  rb.bone('mid', 'body', [0, .32, 0]);
+  rb.bone('crest', 'mid', [-.25, .42, -.05]);
+  rb.bone('front', 'body', [0, .2, .3]);
+  rb.bone('rimL', 'body', [.45, .08, 0]);
+  rb.bone('rimR', 'body', [-.5, .08, 0]);
+  rb.bone('rimB', 'body', [0, .08, -.33]);
+  rb.add('mid', sph(.65, 16, 12).scale(1, .66, 1), '#56aeb4', { pos: [0, .03, 0] });
+  rb.add('mid', sph(.47, 12, 8).scale(1, .6, 1), '#8dd4ca', { pos: [0, .11, .13], plain: true });
+  for (const x of [-.2, .2]) rb.add('front', sph(.045, 8, 5).scale(.8, 1.5, .6), '#233e48', { pos: [x, .27, .25], plain: true });
   // Salt crystals give this creature a coastal silhouette and show its material.
-  for (const [x, y, z] of [[-.26,.37,-.18],[0,.43,-.23],[.24,.34,-.16]]) rb.add('body', new THREE.OctahedronGeometry(.14), '#e3f1dc', { pos: [x,y,z], rot: [0,.3,.2] });
+  for (const [x, y, z] of [[-.26, .4, -.18], [0, .46, -.23], [.24, .37, -.16]]) rb.add('mid', new THREE.OctahedronGeometry(.14), '#e3f1dc', { pos: [x, y, z], rot: [0, .3, .2] });
   const rig = rb.build(); rig.height = 1.15; return rig;
 }
 
 function animSaltSlime(r, s, dt, time) {
+  const b = r.bones;
+  const c = r.motion;
+  const J = MOTION.slime;
   const k = s.windupTotal ? clamp01(s.windupT / s.windupTotal) : 0;
   const stroke = coastalStrike(s, 'slap');
   const ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
   const spit = s.windup === 'salt_spit' ? k : 0;
-  const squash = 1 - .25 * ready - .2 * hit + .15 * spit + Math.sin(time * 3 + r.seed) * .025;
-  const body = r.bones.body;
-  body.scale.set(1 / Math.sqrt(squash), squash, (1 + .4 * hit) / Math.sqrt(squash));
-  body.position.z = .2 * hit;
-  body.position.y = damp(body.position.y, .35 - .06 * ready, 18, dt);
-  body.rotation.x = damp(body.rotation.x, -.16 * spit + .15 * hit, 18, dt);
+  const spat = s.state === 'recover' && s.lastAttack === 'salt_spit' ? 1 - clamp01((s.actT || 0) / 0.4) : 0;
+  // it travels in pulses, locked to its ground speed: gather (low and wide), then surge (tall,
+  // reaching forward); the crest lags behind and sloshes over when it stops
+  const w = advanceGait(r, s, dt, c);
+  const ph = r.phase;
+  const surge = 0.5 + 0.5 * Math.sin(ph);
+  if (!r.jx) {
+    r.jx = new Spring(J.stiffness, J.damping);
+    r.jz = new Spring(J.stiffness, J.damping);
+    r.jy = new Spring(J.stiffness * 1.4, J.damping);
+    r.jy.x = 1;
+  }
+  if ((s.hurt || 0) > (r.lastHurt || 0) + 0.5) {
+    r.jy.kick(-J.hitKick);
+    r.jx.kick(J.hitKick * 0.8);
+  }
+  r.lastHurt = s.hurt || 0;
+  const slosh = J.slosh * (Math.sin(time * 1.7 + r.seed) + 0.5 * Math.sin(time * 2.9 + r.seed * 2)) * (1 - 0.5 * w);
+  const sq = 1 - .25 * ready - .2 * hit + .15 * spit - .1 * spat + J.hop * w * (surge - 0.55) + Math.sin(time * 3 + r.seed) * .025;
+  const sy = r.jy.update(sq, dt);
+  const lagX = r.jx.update(-J.drag * (r.speed || 0) - J.inertia * clampAbs(r.accel || 0, 6) + slosh - .45 * ready + .9 * hit - .3 * spit + .2 * spat, dt);
+  const lagZ = r.jz.update(J.drag * 0.8 * (s.vSide || 0) - clampAbs(s.turn * 0.15, 0.3) + slosh * 0.6 * Math.cos(time * 1.3 + r.seed), dt);
+  const body = b.body;
+  const flat = 1 / Math.sqrt(Math.max(0.4, sy));
+  body.scale.set(flat, sy, flat * (1 + .12 * hit + .06 * w * surge));
+  body.position.z = .12 * hit;
+  b.mid.rotation.x = lagX * 0.55;
+  b.mid.rotation.z = -lagZ * 0.55;
+  const swell = 1 + .14 * spit + .05 * w * surge;
+  b.mid.scale.set(swell, 1 + .08 * spit, swell);
+  // the crest curls: back on a wind-up, whipping over the front on the slap
+  b.crest.rotation.x = lagX;
+  b.crest.rotation.z = -lagZ;
+  b.front.position.z = b.front.userData.rest.pos.z + .06 * w * surge + .22 * hit - .05 * ready;
+  b.front.position.y = b.front.userData.rest.pos.y - .04 * ready;
+  // ripples run round the base; the back edge drags while it moves
+  for (let i = 0; i < SLIME_RIMS.length; i++) {
+    const [n, ox, oz] = SLIME_RIMS[i];
+    const rim = b[n], rest = rim.userData.rest.pos;
+    const wave = Math.sin(time * 4.2 - i * 2.1 + r.seed) * J.ripple + (surge - 0.5) * 0.08 * w;
+    rim.position.set(rest.x + ox * wave, rest.y + Math.abs(wave) * 0.4, rest.z + oz * wave - (oz < 0 ? 0.06 * w * (1 - surge) : 0));
+  }
 }
 
 function buildShoreGull() {
@@ -718,17 +949,34 @@ function buildShoreGull() {
   const rig = rb.build(); rig.height=1.4; return rig;
 }
 
-function animShoreGull(r,s,dt,time) {
-  r.phase=(r.phase||0)+dt*(s.moving?12:0);
-  const stroke=coastalStrike(s,'peck'),ready=Math.max(0,-stroke),hit=Math.max(0,stroke);
-  for (const [side,n] of [[1,'L'],[-1,'R']]) {
-    r.bones['leg'+n].rotation.x=s.moving?Math.sin(r.phase+(side>0?0:Math.PI))*.5:0;
-    r.bones['wing'+n].rotation.z=damp(r.bones['wing'+n].rotation.z,side*(s.state==='retreat'?.25+Math.sin(time*14)*.15:.05+.25*ready),12,dt);
+function animShoreGull(r, s, dt, time) {
+  const b = r.bones;
+  const c = r.motion;
+  const w = advanceGait(r, s, dt, c);
+  const ph = r.phase;
+  const stroke = coastalStrike(s, 'peck'), ready = Math.max(0, -stroke), hit = Math.max(0, stroke);
+  // a waddle: rocks over each foot, and the head thrusts forward and holds still while the body
+  // catches up (the bird-walk head bob)
+  for (const [n, off] of GULL_LEGS) {
+    legCycle(ph, off, r.duty, _foot);
+    b[n].rotation.x = _foot.angle * r.swingA * w;
+    b[n].position.y = b[n].userData.rest.pos.y + _foot.lift * 0.05 * w;
   }
-  r.bones.body.rotation.x=damp(r.bones.body.rotation.x,-.15*ready+.3*hit,20,dt);
-  r.bones.body.position.y=.65+Math.sin(time*2+r.seed)*.02;
-  r.bones.head.rotation.y=damp(r.bones.head.rotation.y,s.lookYaw*.6,8,dt);
-  r.bones.head.rotation.x=damp(r.bones.head.rotation.x,-.55*ready+1.1*hit,24,dt);
+  for (const [side, n] of GULL_WINGS) {
+    const ruffle = Math.max(0, Math.sin(time * 0.8 + r.seed * 2)) ** 20 * 0.35;
+    b['wing' + n].rotation.z = damp(b['wing' + n].rotation.z, side * (s.state === 'retreat' ? .25 + Math.sin(time * 14) * .15 : .05 + .25 * ready + ruffle + 0.06 * w), 12, dt);
+  }
+  const P = r.pose || (r.pose = { x: 0, headX: 0 });
+  P.x = damp(P.x, -.15 * ready + .3 * hit + clampAbs(r.accel || 0, 4) * 0.03, 20, dt);
+  P.headX = damp(P.headX, -.55 * ready + 1.1 * hit, 24, dt);
+  b.body.rotation.x = P.x + 0.08 * w;
+  b.body.rotation.z = Math.sin(ph) * c.roll * w;
+  b.body.position.y = .65 + Math.sin(time * 2 + r.seed) * .02 * (1 - w) + c.bob * w * (0.5 + 0.5 * Math.cos(2 * ph));
+  const thrust = ((2 * ph) / (Math.PI * 2)) % 1;
+  b.head.position.z = b.head.userData.rest.pos.z + (thrust < 0.35 ? thrust / 0.35 : 1 - (thrust - 0.35) / 0.65) * 0.08 * w - 0.03 * w;
+  b.head.rotation.x = P.headX - b.body.rotation.x;
+  const look = s.aggro ? 0 : Math.round(wander(time * 0.9, r.seed) * 3) * 0.18 * (1 - w);
+  b.head.rotation.y = damp(b.head.rotation.y, s.lookYaw * .6 + look, 16, dt);
 }
 
 const BUILDERS = {
@@ -747,9 +995,10 @@ const BUILDERS = {
   gale_hawk: [buildHawk, animHawk],
   horned_warden: [buildWarden, animWarden],
   ...MIDHIGH_BUILDERS,
+  ...GROVE_BUILDERS,
 };
 
-export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE };
+export const MONSTER_SCALE = { thornback_wolf: 1.2, greyfang: 1.9, spirit_wolf: 1.1, crag_golem: 0.85, horned_warden: 1.6, ...MIDHIGH_SCALE, ...GROVE_SCALE };
 
 export function buildMonster(type, level = 1, boss = false) {
   const [build, anim] = BUILDERS[type] || BUILDERS.tusk_boar;
@@ -758,6 +1007,7 @@ export function buildMonster(type, level = 1, boss = false) {
   const model = monsterModel(type === 'spirit_wolf' ? 'thornback_wolf' : type);
   if (model) { attachMonsterModel(rig, model); rig.modelSource = type === 'spirit_wolf' ? 'thornback_wolf' : type; if(type === 'spirit_wolf') rig.material.userData.flash.value.z = .08; }
   rig.animate = anim;
+  rig.motion = motionConfig(MOTION, type);
   rig.seed = Math.random() * 10;
   const s = monsterScale(type, level, boss);
   rig.root.scale.setScalar(s);

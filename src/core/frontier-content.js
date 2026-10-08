@@ -1,7 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 
-export const EXTRA_FIELDS = ['guard','positionalMult','exposure','interrupt','width','aimDuringCast','knock','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
+export const EXTRA_FIELDS = ['guard','positionalMult','exposure','interrupt','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -110,7 +110,11 @@ export function executeFrontier(g,s,aim,mult,triggered) {
     return true;
   }
   if(s.waves){
-    for(let i=0;i<s.waves;i++)g.spawnArea({owner:'player',kind:s.id,skill:s,x:aim.x,z:aim.z,radius:s.radius,delay:s.delay+i*s.waveInterval,duration:.35,damage:s.damage*mult,element:s.element});return true;
+    for(let i=0;i<s.waves;i++){
+      const wave={owner:'player',kind:s.id,skill:s,x:aim.x,z:aim.z,radius:s.radius,delay:s.delay+i*s.waveInterval,duration:.35,damage:s.damage*mult,element:s.element};
+      g.spawnArea(wave);
+      if(s.echo)g.spawnArea({...wave,echo:true,delay:wave.delay+s.echo.delay,damage:wave.damage*s.echo.mult});
+    }return true;
   }
   return false;
 }

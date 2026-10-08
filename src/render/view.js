@@ -11,6 +11,7 @@ import { installGrassCulling } from './grass-culling.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
+import { syncMonsterViews, measureMotion, fadeRig, VIEW_RADIUS } from './monster-views.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
@@ -22,20 +23,13 @@ import { makeDecal, conform } from './decal.js';
 import { setFlash, damp } from './rig.js';
 import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
+import { buildWreck, weaponProps } from './wreck.js';
 import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
-const VIEW_RADIUS = 58;
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)
-// Monster models are skinned, so three.js cannot cull them (frustumCulled is off); the view tests a
-// sphere around each one against the camera instead. The margin keeps a monster just past the edge
-// drawn, so its shadow and wind-up do not pop in.
-const CULL_MARGIN = 2;
-const _frustum = new THREE.Frustum();
-const _viewProj = new THREE.Matrix4();
-const _sphere = new THREE.Sphere();
 
 const ZONE_FOG = {
   settlement: '#c4e4ee',
@@ -48,13 +42,6 @@ const ZONE_FOG = {
   ruins: '#d6d0e8',
   coast: '#c6e8f2',
 };
-
-// a stalking monster's half-seen look: the body fades, the outline hull fades less
-function fadeRig(mat, hull, see, fade) {
-  if (mat.transparent !== see) { mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true; if (hull) hull.needsUpdate = true; } // opaque/transparent are separate programs
-  mat.opacity = see ? fade : 1;
-  if (hull) { hull.transparent = see; hull.depthWrite = !see; hull.opacity = see ? fade * fade : 1; }
-}
 
 export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
@@ -146,6 +133,8 @@ export class View {
   get cityStats() { return this.region.stats.city; }
   get townKitRoot() { return this.region.townKitRoot; }
   get townKitStats() { return this.region.stats.townKit; }
+  get wreck() { return this.region.wreck; }
+  get weaponProps() { return this.region.weaponProps || {}; }
 
   // ---------- open world streaming ----------
   // Near an open seam the neighbouring map is built a few milliseconds per frame and
@@ -220,6 +209,7 @@ export class View {
     this.vfx.world = next.world;
     this.frontierFx.clear();this.frontierFx.ground=next.world;
     for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = next.world;
+    if (this.game) this.placeWreck(this.game);
     this.refreshGrass();
     return true;
   }
@@ -230,6 +220,21 @@ export class View {
   }
 
   /** Attach (or replace) the running game. */
+  /** The wreck on Arrival Beach, and (until the opening ends) the three weapons stuck in the sand. */
+  placeWreck(game) {
+    const cfg = this.world.data.wreck;
+    if (!cfg) { this.heroDown = this.heroDownTarget = 0; return; }
+    if (!this.wreck) {
+      const at = (o, [x, z], rot) => { o.position.set(x, this.world.groundY(x, z), z); o.rotation.y = rot; this.region.root.add(o); return o; };
+      this.region.wreck = at(buildWreck(), cfg.at, cfg.rot);
+      this.region.weaponProps = {};
+      for (const [kit, o] of Object.entries(weaponProps())) this.region.weaponProps[kit] = at(o, cfg.weapons[kit], 0.2);
+    }
+    const stage = game.ch.opening?.stage;
+    for (const o of Object.values(this.weaponProps)) o.visible = stage !== 'done';
+    this.heroDown = this.heroDownTarget = stage === 'wake' ? 1 : 0;
+  }
+
   attachGame(game) {
     this.vfx.clearFireballs();
     this.frontierFx.clear();
@@ -241,6 +246,7 @@ export class View {
     for (const v of this.dropViews.values()) disposeObject(v);
     this.dropViews.clear();
     this.setHeroLook(game.ch.appearance || DEFAULT_LOOK, game.gearLook());
+    this.placeWreck(game);
     const p = game.player;
     this.heroY = this.world.groundY(p.x, p.z);
     this.camTarget.set(p.x, this.heroY, p.z);
@@ -295,6 +301,8 @@ export class View {
 
   releaseRig(rig) {
     rig.root.removeFromParent();
+    rig.trails?.dispose();
+    rig.trails = null;
     fadeRig(rig.material, rig.hull, false, 1);
     if (rig.modelMaterial) fadeRig(rig.modelMaterial, rig.modelHull, false, 1);
     this.rigPool = this.rigPool || new Map();
@@ -316,13 +324,16 @@ export class View {
       disposeObject(this.hero.scarf?.mesh);
     }
     this.hero = buildHumanoid(look, gear);
+    this.hero.root.rotation.order = 'YXZ'; // yaw first, so a fall (death, unconscious) goes backwards relative to the facing
     if (animator) {
       // A cached model arrived for unchanged gear: keep current swing, gait and IK blend state.
       animator.rig = this.hero;
       animator.b = this.hero.bones;
       this.heroAnim = animator;
       this.hero.root.position.copy(previousRoot.position);
-      this.hero.root.quaternion.copy(previousRoot.quaternion);
+      // Copy the facing as a yaw: a plain quaternion copy decomposes a yaw past 90 degrees into
+      // (180, y, 180) Euler angles, and the animator then resets only x, leaving the hero upside down.
+      this.hero.root.rotation.set(0, new THREE.Euler().setFromQuaternion(previousRoot.quaternion, 'YXZ').y, 0);
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
@@ -529,9 +540,14 @@ export class View {
         if (e.kind === 'slam') this.addShake(0.45);
         else if (e.kind === 'stone_burst') this.addShake(0.12);
         break;
-      case 'monsterSwing':
-        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type });
+      case 'monsterSwing': {
+        // a strike that reaches the hero is drawn on the hero (the claw marks land on the body)
+        const p = g.player, dx = p.x - e.x, dz = p.z - e.z, d = Math.hypot(dx, dz);
+        const off = Math.atan2(Math.sin(Math.atan2(dx, dz) - e.angle), Math.cos(Math.atan2(dx, dz) - e.angle));
+        const at = !p.dead && d <= e.range + 0.6 && Math.abs(off) <= ((e.arc || 120) * Math.PI) / 360 ? [p.x - (dx / (d || 1)) * 0.25, p.z - (dz / (d || 1)) * 0.25] : null;
+        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type, at });
         break;
+      }
       case 'ward':
         v.ward(e, this.hero.root);
         break;
@@ -539,6 +555,10 @@ export class View {
         break;
       case 'blinkPlayer':
         v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
+        break;
+      case 'surface':
+        v.digDust(e.fromX, e.fromZ, 10);
+        v.digDust(e.x, e.z, 14);
         break;
       case 'blink':
         v.blink(e.fromX, e.fromZ, e.x, e.z, 0x8fe4ff);
@@ -608,114 +628,7 @@ export class View {
   }
 
   syncMonsters(dt, time) {
-    const g = this.game;
-    const p = g.player;
-    const seen = new Set();
-    // render() has already moved the camera for this frame
-    this.camera.updateMatrixWorld();
-    _frustum.setFromProjectionMatrix(_viewProj.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
-    let drawn = 0;
-    for (const m of g.monsters) {
-      const far = Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS;
-      if (far && !this.monsterViews.has(m.id)) continue;
-      if (Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS + 10) continue;
-      seen.add(m.id);
-      let mv = this.monsterViews.get(m.id);
-      if (!mv) {
-        const rig = this.takeRig(m.type, m.level, m.boss);
-        rig.root.position.set(m.x, this.groundAt(m.x, m.z), m.z);
-        rig.root.rotation.y = m.facing;
-        this.scene.add(rig.root);
-        let halo = null;
-        if (rig.halo) {
-          halo = this.vfx.sprite(0x7fdcff, 1.9, 0.85);
-          this.scene.add(halo);
-        }
-        mv = { rig, flash: 0, hurt: 0, spawnT: 0, lastAttack: null, y: rig.root.position.y, halo, prevFacing: m.facing, turn: 0 };
-        this.monsterViews.set(m.id, mv);
-      }
-      const r = mv.rig;
-      mv.spawnT += dt || 1 / 60; // models seen while paused still grow in
-      if (m.windup) mv.lastAttack = m.windup.name;
-      let d = m.facing - r.root.rotation.y;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      r.root.rotation.y += d * Math.min(1, dt * 12);
-      mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
-      const gy = r.flyer || m.def.hover ? this.world.surfaceY(m.x, m.z) : this.world.groundY(m.x, m.z);
-      mv.y = gy > mv.y ? damp(mv.y, gy, 20, dt) : damp(mv.y, gy, 12, dt);
-      mv.kx = damp(mv.kx || 0, 0, 14, dt);
-      mv.kz = damp(mv.kz || 0, 0, 14, dt);
-      r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
-      mv.hurt = Math.max(0, mv.hurt - dt * 5);
-      // off screen: not drawn and not posed (the simulation still moves it and lets it attack)
-      const h = (r.height || 1.5) * (r.baseScale || 1);
-      _sphere.center.set(r.root.position.x, r.root.position.y + h * 0.5, r.root.position.z);
-      _sphere.radius = Math.max(1.2, h) + CULL_MARGIN;
-      const onScreen = !this.cullMonsters || _frustum.intersectsSphere(_sphere);
-      r.root.visible = onScreen;
-      if (onScreen) drawn++;
-      const tgt = m.targetUnit || p;
-      if (onScreen) r.animate(
-        r,
-        {
-          moving: m.moving && ['chase', 'idle', 'return', 'circle', 'retreat'].includes(m.state),
-          speedFactor: m.aggro ? 1 : 0.4,
-          state: m.state,
-          windup: m.state === 'windup' && m.windup ? m.windup.name : null,
-          windupT: m.stateT,
-          windupTotal: m.windup?.total || 1,
-          actT: m.stateT,
-          actionTotal: m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur,
-          hitTime: m.melee ? m.def.attacks[m.melee.name].hitTime : 0,
-          enraged: m.enraged,
-          lastAttack: mv.lastAttack,
-          hurt: mv.hurt,
-          lookYaw: m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? this.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
-          turn: mv.turn,
-          alt: m.alt,
-        },
-        dt,
-        time
-      );
-      let sc = r.baseScale * Math.min(1, 0.3 + mv.spawnT * 2.5);
-      if (m.dead) {
-        const k = Math.min(1, m.deathT / 1.4);
-        sc *= 1 - k * 0.35;
-        r.root.position.y = mv.y - k * k * 0.7;
-        r.root.rotation.z = Math.min(1, m.deathT / 0.4) * 1.2;
-      } else r.root.rotation.z = 0;
-      r.root.scale.setScalar(sc);
-      mv.flash = Math.max(0, mv.flash - dt);
-      if (mv.flash > 0) setFlash(r.material, 0.55, 0, 0);
-      else if (m.windup && m.state === 'windup') setFlash(r.material, 0, 0.12 + 0.12 * Math.max(0, Math.sin(time * 24)), 0);
-      else if (m.statuses?.chill) setFlash(r.material, 0, 0, 0.25);
-      else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
-      else setFlash(r.material, 0, 0, 0);
-      // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
-      if (m.def.behavior === 'stalker' || mv.fade < 1) {
-        mv.fade = damp(mv.fade ?? 1, m.stealth && !m.dead ? 0.38 : 1, 6, dt);
-        const see = mv.fade < 0.99;
-        fadeRig(r.material, r.hull, see, mv.fade);
-        if (r.modelMaterial) fadeRig(r.modelMaterial, r.modelHull, see, mv.fade);
-      }
-      if (mv.halo) {
-        mv.halo.visible = !m.dead && onScreen;
-        mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);
-        mv.halo.scale.setScalar((r.glowScale || 1.9) * r.baseScale);
-      }
-      // status sparkles
-      if (m.statuses?.burn && Math.random() < dt * 8) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 1.2, 0, { color: 0xff9a40, size: 0.22, life: 0.5 });
-      if (m.statuses?.poison && Math.random() < dt * 6) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 0.8, 0, { color: 0xa8e04a, size: 0.2, life: 0.6 });
-      if (m.statuses?.hex && Math.random() < dt * 5) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.6, mv.y + 1.4 * r.baseScale, m.z + (Math.random() - 0.5) * 0.6, 0, 0.5, 0, { color: 0xb88cff, size: 0.22, life: 0.6 });
-    }
-    this.monstersDrawn = drawn;
-    for (const [id, mv] of this.monsterViews) {
-      if (!seen.has(id)) {
-        this.releaseRig(mv.rig);
-        disposeObject(mv.halo);
-        this.monsterViews.delete(id);
-      }
-    }
+    syncMonsterViews(this, dt, time);
   }
 
   syncAllies(dt, time) {
@@ -740,8 +653,9 @@ export class View {
       const gy = this.world.groundY(a.x, a.z);
       av.y = damp(av.y, gy, 16, dt);
       r.root.position.set(a.x, av.y, a.z);
+      measureMotion(av, a.x, a.z, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
+      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
@@ -849,11 +763,13 @@ export class View {
     if (p.dash && p.dash.kind === 'leap') y += Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5;
     const speed = dt > 0 && this.lastHeroPos ? Math.hypot(p.x - this.lastHeroPos.x, p.z - this.lastHeroPos.z) / dt : 0;
     this.lastHeroPos = { x: p.x, z: p.z };
-    r.root.position.set(p.x, y, p.z);
+    this.heroDown = damp(this.heroDown || 0, this.heroDownTarget || 0, this.heroDownTarget ? 8 : 2.4, dt);
+    if (this.heroDown < 0.002 && !this.heroDownTarget) this.heroDown = 0;
+    r.root.position.set(p.x, y + this.heroDown * 0.2, p.z); // lying: the back rests on the sand
     let d = p.facing - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
-    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, charging: p.charging, channeling: p.channeling, dead: p.dead, time });
+    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, charging: p.charging, channeling: p.channeling, dead: p.dead, down: this.heroDown, time });
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');

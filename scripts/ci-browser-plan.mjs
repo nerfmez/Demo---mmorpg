@@ -3,13 +3,16 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 
-export const ROUTING_VERSION = 2;
+export const ROUTING_VERSION = 3;
 export const SUITES = {
   boot: ['boot.mjs'],
+  opening: ['opening.mjs'],
   smoke: ['smoke.mjs'],
   world: ['map-travel.mjs', 'open-world.mjs', 'open-world-city.mjs'],
   combat: ['midhigh-monsters.mjs', 'coastal-attacks.mjs'],
   equipment: ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs'],
+  'equipment-focus': ['equipment-focused.mjs'],
+  'equipment-inactive': ['equipment-inactive.mjs'],
   weapons: ['weapon-loading.mjs', 'weapon-models.mjs'],
   items: ['shop-potions.mjs', 'potions-moving.mjs'],
   menu: ['menu-hub.mjs'],
@@ -18,6 +21,7 @@ export const SUITES = {
   capture: ['capture.mjs'],
   save: ['journal-route-save.mjs'],
   icons: ['icon-consumers.mjs'],
+  'monster-identity': ['monster-identity.mjs'],
   quests: ['quest-journal.mjs'],
   // Full postmerge/manual CI owns ALL of the existing broad UI/HUD review.
   // Keep separate shards: moving ownership must not create a 9-script timeout.
@@ -29,9 +33,11 @@ export const SUITES = {
   'journal-lines': ['journal-lines.mjs'],
   'skill-lines': ['skill-lines.mjs'],
   wearable: ['wearable-level.mjs'],
-  hud: ['fieldhud.mjs'],
+  hud: ['fieldhud.mjs', 'gameplay-qol.mjs'],
 };
 export const FULL_SUITES = Object.keys(SUITES);
+export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];
+const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 
 // Only explicit, bounded dependencies may select a subset. Core/data, shared
 // renderer/UI, assets outside this allowlist and new paths always fall back full.
@@ -40,7 +46,7 @@ const LOCAL_PATHS = {
   'src/ui/menu.js': ['menu'],
   'src/ui/menu-map.js': ['world', 'menu', 'ux', 'capture'],
   'src/ui/mapimage.js': ['world', 'menu', 'ux', 'capture'],
-  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux'],
+  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux', 'workspaces'],
   'src/ui/quest-journal.js': ['quests', 'hud'],
   'src/ui/fieldhud.css': ['hud'],
 };
@@ -66,11 +72,23 @@ export function focusedReviewCovered(file) {
   return ITEM_IMAGES.has(file) || ['src/ui/menu.js', 'src/ui/quest-journal.js', 'src/ui/fieldhud.css'].includes(file);
 }
 
+export function legacyReviewRequirements(file) {
+  const browserTest = /^tests\/browser\/([^/]+)\.mjs$/.exec(file)?.[1];
+  const sharedUi = !focusedReviewCovered(file) && file.startsWith('src/ui/');
+  return {
+    ui: sharedUi || file === 'index.html' ||
+      ['src/core/skills.js', 'src/core/character.js', 'src/save.js', 'data/jobtree.json', 'data/skills.json', 'data/mods.json'].includes(file) ||
+      UI_TESTS.has(browserTest) || /^tests\/core\/(workspaces|journal|skills|save|progression)\.test\.js$/.test(file),
+    hud: sharedUi || file === 'index.html' || browserTest === 'fieldhud' || file === 'tests/core/fieldhud.test.js',
+  };
+}
+
 // Hash the policy/runner/action as well as its version; forgetting to bump the
 // version cannot make an older artifact certify a changed routing contract.
 export function routingDigest() {
   const hash = createHash('sha256');
   for (const path of ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs',
+    'scripts/ci-equipment-impact.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
     '.github/actions/change-scope/action.yml']) {
     hash.update(path + '\0'); hash.update(readFileSync(new URL(`../${path}`, import.meta.url))); hash.update('\0');
   }
@@ -81,7 +99,7 @@ export function validationPlan(files, options) {
   const paths = [...new Set(files)].sort();
   return { version: ROUTING_VERSION, routingDigest: routingDigest(), files: paths, ...browserPlan(paths, options) };
 }
-export function browserPlan(files, { full = false } = {}) {
+export function browserPlan(files, { full = false, impacts = {} } = {}) {
   if (full) return { suites: [...FULL_SUITES], reason: 'postmerge/manual full regression' };
   const selected = new Set();
   let game = false;
@@ -99,11 +117,22 @@ export function browserPlan(files, { full = false } = {}) {
     // CI/build scripts change execution and artifact contracts, not just tooling.
     // Unclassified infrastructure must exercise the full inventory before review.
     game = true;
-    let affected = boundedSuites(file);
+    // Diff-aware shared functions require independently inspected before/after source.
+    let affected = impacts[file] || boundedSuites(file);
+    if (/^tests\/core\/(equipment-inactive|gear-hands|wearable-level|crafting)\.test\.js$/.test(file))
+      affected = ['equipment', 'equipment-focus', 'wearable', 'save'];
     if (file.startsWith('public/models/weapons/')) affected = ['smoke', 'equipment', 'weapons', 'combat', 'ux'];
     if (!affected) affected = Object.entries(SUITES).filter(([, scripts]) => scripts.some(name => file === `tests/browser/${name}`)).map(([suite]) => suite);
     if (!affected.length) return { suites: [...FULL_SUITES], reason: `conservative full fallback: ${file}` };
     affected.forEach(suite => selected.add(suite));
+    // Preserve the old review ownership unless before/after proof explicitly
+    // establishes the new equipment boundary. These scripts now execute once
+    // in the central matrix and still certify the stable review/HUD gates.
+    if (!impacts[file]) {
+      const legacy = legacyReviewRequirements(file);
+      if (legacy.ui) LEGACY_UI_SUITES.forEach(suite => selected.add(suite));
+      if (legacy.hud) selected.add('hud');
+    }
   }
   if (game) selected.add('boot');
   return { suites: FULL_SUITES.filter(suite => selected.has(suite)), reason: game ? 'boot + explicitly affected functionality' : 'documentation/tool checks only' };

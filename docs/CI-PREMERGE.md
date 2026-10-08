@@ -1,5 +1,11 @@
 # CI ownership and premerge coverage
 
+> Historical rollout record. The owner-approved 2026-10-08 publication policy in
+> [CI-GATES.md](CI-GATES.md) supersedes the full-fallback, trigger, broad-review
+> and release-path descriptions below. Retained implementation details are
+> historical evidence, not current gating requirements.
+
+
 CI runs all core/save safety tests and the build once at the exact PR head. Every
 selected browser script runs in Chromium and WebKit without assertion/capture
 shortcuts. Pushes to main and manual CI retain the complete browser inventory.

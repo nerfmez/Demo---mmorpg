@@ -1,5 +1,11 @@
 # Affected checks and release evidence
 
+> Historical rollout record. The owner-approved 2026-10-08 publication policy in
+> [CI-GATES.md](CI-GATES.md) supersedes the full-fallback, trigger, broad-review
+> and release-path descriptions below. Retained implementation details are
+> historical evidence, not current gating requirements.
+
+
 PR checks certify the affected plan at an exact head SHA. Main pushes and manual
 CI runs execute the full inventory. An affected pass is not a full-regression pass.
 No branch protection, account settings or release triggers are changed.

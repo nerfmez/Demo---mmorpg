@@ -38,7 +38,8 @@ test('PR and main push compare the event source revisions; other events require 
 test('workflow routing preserves check matrices and a single owner of smoke/UX', () => {
   const read = name => readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8');
   const ci = read('ci'), light = read('render-light'), ui = read('ui-review'), hud = read('field-hud');
-  assert.match(ci, /push:\s*\n\s*branches: \[main\]/);
+  assert.match(ci, /workflows: \['Deploy to GitHub Pages'\]/);
+  assert.doesNotMatch(ci, /\n  push:/);
   assert.match(ci, /pull_request:/);
   for (const text of [ci, light, ui, hud]) {
     assert.doesNotMatch(text, /paths(?:-ignore)?:/);
@@ -70,7 +71,7 @@ test('the CI entrypoint writes main-push scope and handles first pushes conserva
     writeFileSync(event, JSON.stringify({ before, after: head, ref: 'refs/heads/main' }));
     writeFileSync(output, '');
     execFileSync(process.execPath, [fileURLToPath(new URL('../../scripts/ci-scope.mjs', import.meta.url))], {
-      cwd: dir, env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_EVENT_NAME: 'push', GITHUB_OUTPUT: output, FORCE_RENDER: force, FORCE_BOOT: boot },
+      cwd: dir, env: { ...process.env, GITHUB_EVENT_PATH: event, GITHUB_EVENT_NAME: 'push', GITHUB_OUTPUT: output, FORCE_RENDER: force, FORCE_BOOT: boot, RELEASE_BASE_SHA: base },
     });
     return readFileSync(output, 'utf8');
   };
@@ -78,8 +79,8 @@ test('the CI entrypoint writes main-push scope and handles first pushes conserva
   assert.match(run(base, 'true'), /render=true/);
   const release = run(base, 'false', 'true');
   assert.match(release, /game=true/);
-  assert.match(release, /browser_suites=\["boot"\]/);
+  assert.match(release, /browser_suites=\["boot","save"\]/);
   const firstPush = run('0'.repeat(40));
   assert.doesNotMatch(firstPush, /=false/);
-  assert.match(firstPush, /browser_suites=\["boot","opening","smoke"/);
+  assert.match(firstPush, /browser_suites=\["boot","smoke"/);
 });

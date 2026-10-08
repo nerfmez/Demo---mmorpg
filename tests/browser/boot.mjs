@@ -7,14 +7,20 @@ import { mkdirSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
 
 const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
-const base = 'http://localhost:4240/';
-const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', '4240', '--strictPort'], { stdio: 'ignore', detached: true });
+const base = process.env.BOOT_URL || 'http://localhost:4240/';
+const server = process.env.BOOT_URL ? null : spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', '4240', '--strictPort'], { stdio: 'ignore', detached: true });
 let browser;
 try {
   for (let i = 0; ; i++) {
     try { if ((await fetch(base)).ok) break; } catch {}
     if (i > 60) throw Error('boot preview server startup');
     await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  if (process.env.BOOT_URL) {
+    assert.match(process.env.EXPECTED_RELEASE || '', /^[a-f0-9]{40}$/);
+    const provenance = await fetch(new URL(`ci-release.json?verify=${Date.now()}`, base), { cache: 'no-store' });
+    assert.ok(provenance.ok);
+    assert.equal((await provenance.json()).releaseTarget.sha, process.env.EXPECTED_RELEASE, 'Live release identity');
   }
   browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
   const devices = engine === chromium ? [['desktop', 1280, 720, false], ['ipad', 1180, 820, true]] : [['ipad', 1180, 820, true]];
@@ -61,5 +67,5 @@ try {
   }
 } finally {
   await browser?.close();
-  try { process.kill(-server.pid); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+  try { if (server) process.kill(-server.pid); } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }

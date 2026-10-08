@@ -11,7 +11,7 @@ const ci = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.ur
 const expression = ci.match(/^  cancel-in-progress: \$\{\{ (.+) \}\}$/m)?.[1];
 assert.ok(expression, 'workflow-level cancellation expression is required');
 // Only evaluate the reviewed grammar below, never arbitrary repository code.
-assert.match(expression, /^github\.event_name == 'pull_request' \|\| inputs\.quick_gate(?: == true)?$/);
+assert.match(expression, /^github\.event_name == 'pull_request'$/);
 
 function cancelFor(eventName, supplied = {}) {
   const inputs = new Proxy(supplied, {
@@ -24,7 +24,7 @@ for (const [name, event, inputs, expected] of [
   ['main push with absent inputs', 'push', {}, false],
   ['manual full run with absent inputs', 'workflow_dispatch', {}, false],
   ['PR quick gate with absent inputs', 'pull_request', {}, true],
-  ['release quick gate called from push', 'push', { quick_gate: true }, true],
+  ['release quick gate called from push', 'push', { quick_gate: true }, false],
   ['reusable full gate with typed false', 'push', { quick_gate: false }, false],
   ['manual full gate with typed false', 'workflow_dispatch', { quick_gate: false }, false],
 ]) {
@@ -39,5 +39,5 @@ test('missing input regression cannot be hidden by PR-only coverage', () => {
   assert.equal(cancelFor('pull_request'), true);
   assert.equal(cancelFor('push'), false);
   assert.equal(cancelFor('workflow_dispatch'), false);
-  assert.match(expression, /inputs\.quick_gate == true$/);
+  assert.equal(cancelFor('push', { quick_gate: true }), false);
 });

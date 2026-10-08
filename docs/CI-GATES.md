@@ -1,117 +1,152 @@
-# CI gates and browser regression
+# Demo publication and regression
 
-## Before review, merge and Pages upload
+This is the owner's approved simpler demo policy (2026-10-08). It replaces the
+universal full-browser fallback described in earlier CI rollout notes. It changes
+workflows, verification tools and tests only: the Pages URL, game, Lab, character
+format, renderer and monster implementation remain unchanged. No protection,
+credentials, hosting, billing or account settings are changed.
 
-CI on a PR checks its exact head SHA. `Build, core and CI tools` runs the build
-and **all** core tests once for game changes (including migration, character/save
-preservation, combat contact timing and world safety). Tool checks also run on every
-game gate, so missing inventory entries cannot silently pass. Changes limited to
-`tests/tools/` run tooling only; documentation-only changes do not boot the game.
+## Before publication
 
-The reused change-scope action emits a browser plan. Every game change gets a real
-boot/create/save/reload/Continue check in Chromium desktop + touch and WebKit touch.
-Explicit local paths add their affected functional suites. Core, data, saves,
-shared renderer/UI, dependency changes, `.github/`, `scripts/`, and unknown paths fall back to
-the **entire** inventory. Deleted/renamed paths are considered on both sides of the
-diff. Missing history errors out; missing event ranges fall back full.
+1. Retain the previous **successful** Pages site as `previous-site` for 90 days,
+   including its original release receipt, Lab, hidden files and every game byte.
+   Its game source is the release comparison baseline. This covers accumulated
+   unpublished changes when GitHub replaces pending runs. A stale main commit
+   behind this baseline fails instead of publishing over a newer successful game.
+2. Try authenticated reuse of the latest successful same-repository PR CI at the
+   exact release tree. Require all selected jobs/steps, source and run/attempt
+   identities, archive SHA-256, executed workflow, original base/head parents,
+   current routing digest and actual merge delta coverage. A retargeted PR is
+   allowed only after these proofs; its old base name alone is not disqualifying.
+   Missing or mismatched evidence runs the bounded release gate; it never grants
+   an exception. A missing previous-site checkpoint/baseline blocks publication.
+3. Otherwise build once with locked dependencies and Node 22; run all core tests
+   (including migrations, save preservation, contact timing and world safety),
+   tool tests and the affected browser plan below. Both browser engines consume
+   this build. `ci-build.json` binds its source/tree, Node version, package/lock/
+   Vite/workflow configuration and file hashes. Browser jobs verify these bytes
+   and exact checkout; required summaries reject any missing, skipped, cancelled,
+   partial, stale or failed selected result.
+4. Download **that artifact**, verify its manifest, keep build origin distinct
+   from release target, preserve the currently published `/lab`, seal the combined
+   site and upload it to Pages. There is no second game build in `deploy.yml`.
+   `ci-source.txt` is never rewritten to disguise a reused build's origin.
 
-Browser suites run independently, at most six jobs concurrently, with the same
-built artifact and exact checkout SHA. Neither `QUICK` viewport omission nor
-`SKIP_CAPTURES` is accepted by the CI runner. Each shard emits per-script timestamps,
-durations, exit codes and source SHA; artifact names include mode/source/engine/suite
-and run attempt. Reports are checkpointed with `complete: false` until the shard ends.
-Every assertion, viewport and capture in each selected script is retained. Menu-hub
-alone holds its already-rendered world backdrop while checking paused UI; it keeps
-RAF/input/UI previews live and asserts zero additional world-scene draws, while
-separately recording preview draws and held frame updates.
+Every runtime plan includes `boot` and `save`: real title/create/appearance/kit,
+rendered startup, save/reload/Continue, plus atomic journal purchase and reload.
+Each selected suite runs its existing assertions/viewports in Chromium and WebKit.
+A release always runs these safeguards even for documentation-only changes.
 
-`test (chromium)` and `test (webkit)` retain the old check names. They now summarize
-**the quick affected gate**, not a claim that every browser test ran. Both summaries
-wait for and fail on any selected shard failure, cancellation or unexpected skip.
-They deliberately share the combined result, so one engine's failure blocks both
-summaries. Docs/tool-test-only runs explicitly report that no browser suite was selected.
-An empty/missing game plan or source also fails the gate.
-There is no failure waiver. No branch protection/ruleset settings are changed.
+| Changed area | Additional browser checks |
+| --- | --- |
+| AI/combat/monsters/damage/projectiles/VFX | combat, monster identity, smoke |
+| World/terrain/map/harbor/environment | world travel, smoke |
+| Character/save/progression/skills/job tree/mods | opening, journal upgrade, skill lines |
+| Equipment/crafting/items/weapons/loot/shop/potions | equipment focus, weapons, items |
+| Unknown UI component | menu, HUD, overlays |
+| Shared/unknown runtime, build, dependencies, CI infrastructure | smoke, combat, menu, HUD |
+| Known local files/registered assets | explicit consumers in `ci-browser-plan.mjs` |
 
-Pages game publishing calls the same workflow in quick-gate mode and depends on its
-success. Release calls always build/test core/boot, including documentation-only
-pushes, so there is always a validated artifact to upload. It downloads that exact
-build instead of rebuilding before upload. The build records `dist/ci-source.txt`,
-which browser shards and Pages upload verify against the planned SHA. Artifact names
-include the producing run ID/attempt and are passed as outputs, including on retries.
-Published verification checks out that same source rather than a moving branch.
-Skill Lab-only publishing keeps its existing path, lab preservation and live checks.
-The deployment environment and permissions remain unchanged. A conservative full
-fallback can still make a broad game release slower than a bounded local edit.
+Plans union these families, including deleted/renamed paths. A single shared file
+selects six suites / 12 engine jobs, **not all 27 suites / 54 engine jobs**. Large
+cross-area changes can legitimately union more suites. AST-proven equipment
+narrowing retains its existing consumers. Unknown paths select the shared risk
+set, not zero checks. This is a deliberate demo risk tradeoff, not proof of full
+regression or a computed dependency graph. All core tests remain mandatory.
 
-## Full regression
+## PR followups and evidence
 
-CI on every main push and `workflow_dispatch` requests all suites in both engines,
-including UX and map captures regardless of affected flags. This full postmerge run
-is independent of the deployment quick gate; it is not a deployment dependency.
-Use the Actions CI workflow's **Run workflow** on the requested ref for an explicit
-full run once this workflow definition exists on main. Distinct main SHAs have
-separate concurrency groups; a later push does not cancel their full regression.
-PR CI/build-infrastructure changes select all suites even before manual dispatch
-is available. The PR job label remains `Quick affected`; inspect its actual plan
-and all results rather than inferring coverage from that label.
+Required `test`, `review` and `field-hud` status names remain. Separate head/merge
+UI/HUD evidence remains when trees differ. Selected checks have one execution
+owner; no passing checkbox substitutes for machine evidence.
 
-`scripts/ci-browser-plan.mjs` is the single inventory for affected and full checks.
-It retains all 16 original CI browser scripts and adds boot, atomic journal-save,
-and PR78 actual-game details regression: 19 scripts across 12 suites / 24 engine
-shards. `details-game-touch.mjs` is mandatory in `equipment`, not an optional file.
-Do not remove the original isolated `details-touch.mjs` check. Renderer/UI/HUD review workflows, focused tests not previously in CI,
-and published Dreamloop/save checks retain their existing owners. Full regression
-is not an instruction to run every one-off capture/stress script in the repository.
+A synchronize event changing **only** root README/AGENTS/CLAUDE or `docs/*.md`
+(including nested markdown) can reuse a prior successful same-PR run. The resolver
+verifies unchanged runtime/tests/configuration at both the new head and merge,
+commit ancestry, original workflow/base/head, complete jobs, build digest and
+manifest. A newer incomplete/failed run, new runtime base drift, policy/test/asset
+edit, missing receipt or expired artifact selects normal affected validation.
+The summary names the original run/source and says no new browser run is claimed.
+No build is relabelled. Consecutive prose followups can trace back to the original
+successful build. If a prose followup has no fresh reusable build, main performs
+its own bounded startup/save gate once against the published baseline.
 
-Sharding reduces serial waiting, not test work. Every shard installs its engine and
-npm dependencies; full runs have more runner/setup overhead. The release quick gate
-and independent postmerge full run intentionally overlap affected checks. Build/core
-are shared within each run rather than repeated for both browsers. There is no new
-paid service, schedule or automation.
+## Publication, queueing and rollback
 
-## Measurement and protection review
+The `pages` concurrency group uses `cancel-in-progress: false` for main, Lab and
+manual rollback. A newer merge cannot cancel the active release or its reusable
+validation: release-validation groups are run-unique, PR groups alone cancel
+obsolete revisions, and regression has separate groups. With GitHub's default
+single pending slot, newer arrivals **replace pending runs**; this is not a
+promise that every merge/dispatch runs, or FIFO by dispatch time. See
+[GitHub concurrency semantics](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
 
-Baseline: PR #75 head `df55a11a9f4ccddef8a6da0d44b15ed069cc660f`,
-[CI run 37335791786](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37335791786).
-The jobs API reports Chromium 60m27s and WebKit 18m04s. Chromium smoke 10m03s,
-weapon-loading/models 15m27s, menu 6m35s, UX 10m30s; WebKit weapons 1m40s.
-Chromium core 68s and build 1s. Browser execution, rather than build/queue time,
-dominates this sample. Both engines use software rendering on CI, so this does not
-measure iPad hardware performance.
+After Pages accepts the artifact, bounded WebKit startup/save/Continue verifies
+the live release receipt in an isolated browser context. The deployment job has
+a 12-minute ceiling. A postrelease failure leaves the run red and site published;
+there is no automatic rollback, source revert, save deletion or data migration.
+The live checker uses the reviewed workflow harness, including for legacy rollback.
+It is not a hardware iPad performance certification.
 
-The menu suite paused simulation but `main.js` still called `view.render()` on every
-frame. A completed-world-frame hold removes this repeated rendering only in the UI
-fixture. At original PR77 head `c0488351063f65501abd24e86d5208ba982bdc9f`,
-[CI run 37345797990](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37345797990)
-ran only boot and menu in both engines. Its Chromium menu script took 107.564 s
-(job 111884953191), retaining all three viewports. This is an observed run, not a
-controlled benchmark or proof of full regression. No total speedup is claimed.
+To restore bytes explicitly, open **Deploy to GitHub Pages → Run workflow** on
+`main`, set `rollback_run` to a successful main Pages run ID, and leave
+`rollback_previous` false. To restore the previous successful site retained by
+that run, also set `rollback_previous` true. This is useful for the first release
+under this policy: it checkpoints the pre-policy successful main site before
+replacing it. Select a retained artifact; an expired/missing archive fails with
+no rebuild fallback. GitHub archive digests, original successful publication,
+source receipt and all site file hashes are verified. Legacy sites keep their
+original bytes without adding or changing metadata. Player storage is untouched;
+code rollback does not promise compatibility with saves created by later code.
 
-Before approval, confirm the retained status names and changed quick/full semantics
-against protection requirements. Rulesets list was readable (empty), but this token
-cannot read main branch protection (403). If the owner wants full regression as an
-additional required premerge check, that is a separate explicit settings decision;
-this PR neither bypasses nor edits protection. Existing other required workflows
-may still delay merge when they select their relevant checks.
+`github-pages` and `previous-site` request 90-day retention, subject to repository
+retention limits and artifact deletion. This is retained-artifact rollback, not a
+permanent archive. No paid storage is added. An explicit pending rollback can also
+be replaced by a new arrival; inspect its actual run status and redispatch after
+the active release if needed.
 
-## PR77 / PR78 integration and acceptance
+Lab-only publication restores the current published game artifact, replaces only
+`/lab` with the successful same-repository Lab artifact, and reseals the combined
+site. It does not rebuild the game or change its source identity.
 
-PR77 depends on PR78 head `530e410ee543c63671781006d14d7e2a859d6c39`. Carry PR78's
-main entry-point fix, actual-game test and review note unchanged; retain PR77's
-sharded CI and register the new test in equipment. Both PRs remain drafts until
-the owner reviews measured results. Do not merge either into main for testing.
-After owner approval and passing required checks, merge PR78 first, retarget PR77
-to current main, reconcile any new changes, and validate the final source again.
+## Full regression and visible failures
 
-Full acceptance requires all 24 selected engine/suite jobs and 38 script executions
-to finish successfully at the final source, with complete timing reports and the
-same built artifact. Preserve both engines, core/save/migration checks, assertions
-and captures. A partial green run, missing script/report, cancellation or timeout
-is not full-suite certification.
+`CI` starts a separate full run after the Pages workflow completes, and remains
+manually dispatchable. It is never a dependency of publication. It tests the exact
+upstream workflow SHA (a rollback's CI run therefore checks the current workflow
+source, while bounded live verification checks the restored game). The complete
+27-suite / 54-engine inventory is retained. Full WebKit exploration/Dreamloop and
+crafting/loadout/reload moved from the publication path into an additional full
+regression job. Their failures remain red with retained reports and screenshots;
+there is no failure waiver or automatic revert. Full runs can compete for hosted
+runner capacity; they are separated logically, not given reserved capacity.
 
-The follow-up's isolated `ci-hardening.test.mjs` checks routing, actual shell gate
-outcomes, wrong/missing build identity, durable reports and injected child failures.
-Its browser names are runner fixtures, not real browser launches. Local fixture
-results do not substitute for full Actions/build/browser or published-game evidence.
-No new gameplay or open-world optimization is included in this CI follow-up.
+## Timing evidence and limits
+
+Observed successful [CI run 37782090006](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37782090006)
+at `c70cae592b403b9196b89de9a1f495ee18952f86`, obtained from job start/end timestamps:
+
+| Job | Seconds |
+| --- | ---: |
+| Build/core/tools | 168 |
+| Boot Chromium / WebKit | 346 / 153 |
+| Save Chromium / WebKit | 119 / 140 |
+| Smoke Chromium / WebKit | 392 / 314 |
+| Combat Chromium / WebKit | 395 / 251 |
+| Menu Chromium / WebKit | 156 / 196 |
+| HUD Chromium / WebKit | 726 / 490 |
+
+Using those existing jobs as a proxy, fresh startup/save validation has
+168 + max(346,153,119,140) = **514 seconds** of dependency-path work; the shared
+six-suite plan has **894 seconds** (168 + 726). These exclude baseline lookup,
+artifact transfer, queueing, gate summaries, Pages and the live check, and are
+**not measured new end-to-end durations or delivery promises**. Verified PR reuse
+removes the build/browser segment from the publication path. No new measured
+speedup is claimed until the approved workflow runs. Core/build and browser setup
+costs may change; Actions summaries and JSON reports retain actual timings.
+
+Local contract validation: `npm run test:tools`, JavaScript syntax checks,
+YAML parsing and actionlint. Archive tests exercise real ZIP/TAR extraction and
+positive/negative identity, routing, failure, concurrency, checkpoint, rollback,
+retarget and prose-followup cases. No production workflow is dispatched to test
+this policy. Activation remains a separate review/merge decision.

@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 
-export const ROUTING_VERSION = 3;
+export const ROUTING_VERSION = 4;
 export const SUITES = {
   boot: ['boot.mjs'],
   opening: ['opening.mjs'],
@@ -39,14 +39,30 @@ export const FULL_SUITES = Object.keys(SUITES);
 export const LEGACY_UI_SUITES = ['journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'save'];
 const UI_TESTS = new Set(['ux', 'journal', 'workspaces', 'passive-checks']);
 
-// Only explicit, bounded dependencies may select a subset. Core/data, shared
-// renderer/UI, assets outside this allowlist and new paths always fall back full.
+// Demo release policy: bounded risk checks, not full-regression certification.
+// Every runtime build gets real startup/create/save/Continue + route-save checks.
+// Unknown/shared inputs get the bounded integration set; full inventory is separate.
+export const SAFETY_SUITES = ['boot', 'save'];
+export const SHARED_SUITES = ['boot', 'smoke', 'combat', 'menu', 'save', 'hud'];
+export function riskSuites(file) {
+  const name = file.split('/').at(-1).split('.')[0];
+  if (file === 'src/save.js' || /^(?:character|progression|skills|jobtree|mods|journal)(?:-|$)/.test(name))
+    return ['save', 'opening', 'journal-upgrade', 'skill-lines'];
+  if (/^(?:world|terrain|map|harbor|city|ground|environment)(?:-|$)/.test(name)) return ['world', 'smoke'];
+  if (/^(?:ai|combat|monsters?|damage|projectiles?|physical|vfx|status|boss)(?:-|$)/.test(name))
+    return ['combat', 'monster-identity', 'smoke'];
+  if (/^(?:equipment|gear|crafting|items?|weapons?|loot|shop|potions?)(?:-|$)/.test(name))
+    return ['equipment-focus', 'weapons', 'items'];
+  if (file.startsWith('src/lab/')) return ['lab'];
+  if (file.startsWith('src/ui/')) return ['menu', 'hud', 'overlays'];
+  return SHARED_SUITES;
+}
 const LOCAL_PATHS = {
   // Title creation and Continue are exercised by boot; hub navigation by menu.
   'src/ui/menu.js': ['menu'],
   'src/ui/menu-map.js': ['world', 'menu', 'ux', 'capture'],
   'src/ui/mapimage.js': ['world', 'menu', 'ux', 'capture'],
-  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux', 'workspaces'],
+  'src/ui/equipment-avatar.js': ['equipment', 'weapons', 'menu', 'ux', 'workspaces', 'hud'],
   'src/ui/quest-journal.js': ['quests', 'hud'],
   'src/ui/fieldhud.css': ['hud'],
 };
@@ -61,6 +77,7 @@ export const ITEM_IMAGES = new Set(Object.entries(RASTER_ICONS)
   .map(([, path]) => `public/${path}`));
 
 export function boundedSuites(file) {
+  if (['data/items.json', 'data/quests.json', 'src/ui/art.js', 'src/ui/raster-icons.js'].includes(file) || file.startsWith('public/assets/icons/monster/')) return [...riskSuites(file), 'monster-identity'];
   if (ITEM_IMAGES.has(file)) return ['icons'];
   if (JOURNAL_FILES.has(file)) return JOURNAL_SUITES;
   return LOCAL_PATHS[file];
@@ -115,7 +132,7 @@ export function browserPlan(files, { full = false, impacts = {} } = {}) {
     if (file.startsWith('docs/') || /^(AGENTS|CLAUDE|README)\.md$/.test(file) || /^(LICENSE|\.gitignore)$/.test(file) ||
         file.startsWith('tests/tools/')) continue;
     // CI/build scripts change execution and artifact contracts, not just tooling.
-    // Unclassified infrastructure must exercise the full inventory before review.
+    // Unclassified infrastructure exercises the bounded shared integration checks.
     game = true;
     // Diff-aware shared functions require independently inspected before/after source.
     let affected = impacts[file] || boundedSuites(file);
@@ -123,17 +140,10 @@ export function browserPlan(files, { full = false, impacts = {} } = {}) {
       affected = ['equipment', 'equipment-focus', 'wearable', 'save'];
     if (file.startsWith('public/models/weapons/')) affected = ['smoke', 'equipment', 'weapons', 'combat', 'ux'];
     if (!affected) affected = Object.entries(SUITES).filter(([, scripts]) => scripts.some(name => file === `tests/browser/${name}`)).map(([suite]) => suite);
-    if (!affected.length) return { suites: [...FULL_SUITES], reason: `conservative full fallback: ${file}` };
+    if (!affected.length) affected = riskSuites(file);
     affected.forEach(suite => selected.add(suite));
-    // Preserve the old review ownership unless before/after proof explicitly
-    // establishes the new equipment boundary. These scripts now execute once
-    // in the central matrix and still certify the stable review/HUD gates.
-    if (!impacts[file]) {
-      const legacy = legacyReviewRequirements(file);
-      if (legacy.ui) LEGACY_UI_SUITES.forEach(suite => selected.add(suite));
-      if (legacy.hud) selected.add('hud');
-    }
+
   }
-  if (game) selected.add('boot');
-  return { suites: FULL_SUITES.filter(suite => selected.has(suite)), reason: game ? 'boot + explicitly affected functionality' : 'documentation/tool checks only' };
+  if (game) SAFETY_SUITES.forEach(suite => selected.add(suite));
+  return { suites: FULL_SUITES.filter(suite => selected.has(suite)), reason: game ? 'startup/save safety + bounded affected demo checks (full regression separate)' : 'documentation/tool checks only' };
 }

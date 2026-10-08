@@ -2,17 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { FULL_SUITES, validationPlan } from '../../scripts/ci-browser-plan.mjs';
+import { EQUIPMENT_SUITES } from '../../scripts/ci-equipment-impact.mjs';
 import { changedTreePaths, ciContext, extractBuildArchive, resolveRelease, validateEvidence, verifyCiContext, verifyPrAssociation } from '../../scripts/ci-release-evidence.mjs';
 
 const source = 'a'.repeat(40), target = 'b'.repeat(40), tree = 'c'.repeat(40);
 const repository = 'owner/demo', id = 123;
 const steps = names => names.map(name => ({ name, conclusion: 'success' }));
-function contextFixture(files = ['src/save.js']) {
-  return { version: 2, source, tree, plan: validationPlan(files), repository, runId: 99, attempt: 2, eventName: 'pull_request',
+function contextFixture(files = ['src/save.js'], impacts = {}) {
+  return { version: 2, source, tree, plan: validationPlan(files, { impacts }), repository, runId: 99, attempt: 2, eventName: 'pull_request',
     workflowRef: `${repository}/.github/workflows/ci.yml@refs/pull/82/merge`, workflowSha: 'f'.repeat(40),
     pr: { number: 82, base: { ref: 'main', sha: '0'.repeat(40), repositoryId: id }, head: { sha: source, repositoryId: id } } };
 }
@@ -29,7 +31,7 @@ test('CI context receipt binds GitHub event PR/main and executed workflow identi
     event: { number: 82, pull_request: { base: { ref: 'main', sha: '0'.repeat(40), repo: { id } }, head: { sha: source, ref: 'feature', repo: { id } } } }, source, tree, files: f.files });
   assert.deepEqual(context, contextFixture());
 });
-function fixture(files = ['src/save.js']) {
+function fixture(files = ['src/save.js'], impacts = {}) {
   const run = { id: 99, run_attempt: 2, workflow_id: 7, path: '.github/workflows/ci.yml',
     event: 'pull_request', head_sha: source, head_branch: 'feature', created_at: '2026-10-06T08:02:03Z', pull_requests: [], repository: { id }, head_repository: { id }, status: 'completed', conclusion: 'success' };
   const job = (name, names) => ({ name, status: 'completed', conclusion: 'success', run_id: run.id, run_attempt: 2, steps: steps(names) });
@@ -40,7 +42,7 @@ function fixture(files = ['src/save.js']) {
     jobs: [job('Build, core and CI tools', ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']),
       ...['chromium', 'webkit'].flatMap(browser => [job(`review (${browser})`, ['Verify shared UI evidence at head or merge tree']), job(`field-hud (${browser})`, ['Verify shared HUD evidence at head or merge tree'])]),
       ...['chromium', 'webkit'].map(browser => job(`test (${browser})`, ['Verify complete selected browser evidence', 'Report gate outcome at exact source'])),
-      ...['chromium', 'webkit'].flatMap(browser => validationPlan(files).suites.map(suite => job(`Quick affected (${browser}, ${suite})`,
+      ...['chromium', 'webkit'].flatMap(browser => validationPlan(files, { impacts }).suites.map(suite => job(`Quick affected (${browser}, ${suite})`,
         ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'])))],
     artifact: { id: 456, name: `ci-dist-${source}-99-2`, expired: false, size_in_bytes: 100, digest: `sha256:${'d'.repeat(64)}`,
       workflow_run: { id: 99, head_sha: source, repository_id: id, head_repository_id: id } } };
@@ -98,8 +100,8 @@ for (const [name, mutate] of [
   ['missing artifact', f => f.artifact = null],
 ]) test(`reuse rejects ${name}`, () => { const f = fixture(); mutate(f); assert.throws(() => validateEvidence(f)); });
 
-function resolverFixture(t, files = ['src/save.js']) {
-  const f = fixture(files), directory = mkdtempSync(join(tmpdir(), 'release-resolver-test-'));
+function resolverFixture(t, files = ['src/save.js'], impacts = {}) {
+  const f = fixture(files, impacts), directory = mkdtempSync(join(tmpdir(), 'release-resolver-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const bytes = Buffer.from('immutable fixture archive');
   f.artifact.digest = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -125,7 +127,7 @@ function resolverFixture(t, files = ['src/save.js']) {
   const options = { repository, target, eventName: 'push', ref: 'refs/heads/main', directory: join(directory, 'dist'), log: () => {},
     api: async path => { assert.ok(path in responses, path); return responses[path]; },
     download: async (path, destination) => { assert.equal(path, `${prefix}/actions/artifacts/456/zip`); writeFileSync(destination, bytes); },
-    extract: async (_, destination) => { mkdirSync(destination); writeFileSync(join(destination, 'ci-source.txt'), source + '\n'); writeFileSync(join(destination, 'index.html'), '<html>tested</html>'); writeFileSync(join(destination, 'ci-context.json'), JSON.stringify(contextFixture(files))); } };
+    extract: async (_, destination) => { mkdirSync(destination); writeFileSync(join(destination, 'ci-source.txt'), source + '\n'); writeFileSync(join(destination, 'index.html'), '<html>tested</html>'); writeFileSync(join(destination, 'ci-context.json'), JSON.stringify(contextFixture(files, impacts))); } };
   return { f, responses, options };
 }
 test('resolver enables reuse only after successful download, digest, source and entrypoint checks', async t => {
@@ -133,6 +135,72 @@ test('resolver enables reuse only after successful download, digest, source and 
   const evidence = await resolveRelease(options);
   assert.equal(evidence.source, source);
   assert.equal(JSON.parse(readFileSync(join(options.directory, 'ci-evidence.json'))).target, target);
+});
+
+test('deploy evidence installs locked dev dependencies before resolving equipment evidence', () => {
+  const deploy = readFileSync(new URL('../../.github/workflows/deploy.yml', import.meta.url), 'utf8');
+  const evidence = deploy.split('\n  evidence:\n')[1].split('\n  validate:\n')[0];
+  const setup = evidence.indexOf('uses: actions/setup-node@v4');
+  const install = evidence.indexOf('run: npm ci --include=dev');
+  const resolve = evidence.indexOf('run: node scripts/ci-release-evidence.mjs');
+  assert.ok(setup >= 0 && install > setup && resolve > install);
+  assert.doesNotMatch(evidence.slice(install, resolve), /if:|continue-on-error/);
+});
+
+test('clean equipment evidence fails closed without Acorn and reuses only after locked parser setup', t => {
+  const files = ['src/core/character.js'], impacts = { [files[0]]: EQUIPMENT_SUITES };
+  const { responses } = resolverFixture(t, files, impacts);
+  const prefix = `repos/${repository}`;
+  const before = 'export function gearLook(ch,data){return {bases:["sword"]};}';
+  const after = before.replace('"sword"', '"axe"');
+  responses[`${prefix}/git/trees/${'1'.repeat(40)}?recursive=1`].tree = [{ path: files[0], sha: '3'.repeat(40), type: 'blob', mode: '100644' }];
+  for (const [sha, code] of [['3'.repeat(40), before], ['2'.repeat(40), after]])
+    responses[`${prefix}/git/blobs/${sha}`] = { sha, size: Buffer.byteLength(code), encoding: 'base64', content: Buffer.from(code).toString('base64') };
+  const dir = mkdtempSync(join(tmpdir(), 'release-clean-equipment-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  // Isolate the actual resolver and routing policy from checkout/global modules.
+  for (const file of ['scripts/ci-release-evidence.mjs', 'scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs',
+    'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs', 'scripts/ci-equipment-impact.mjs',
+    'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
+    '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js']) {
+    mkdirSync(dirname(join(dir, file)), { recursive: true });
+    copyFileSync(new URL(`../../${file}`, import.meta.url), join(dir, file));
+  }
+  writeFileSync(join(dir, 'package.json'), '{"type":"module"}');
+  writeFileSync(join(dir, 'fixture.json'), JSON.stringify({ repository, target, source, responses, context: contextFixture(files, impacts) }));
+  writeFileSync(join(dir, 'probe.mjs'), `
+    import {resolveRelease} from './scripts/ci-release-evidence.mjs';
+    import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+    import {join} from 'node:path';
+    const f=JSON.parse(readFileSync('fixture.json','utf8')), logs=[];
+    const evidence=await resolveRelease({repository:f.repository,target:f.target,eventName:'push',ref:'refs/heads/main',directory:'dist',
+      api:async path=>{if(!(path in f.responses))throw Error('Unexpected API: '+path);return f.responses[path];},
+      download:async (path,dest)=>{if(path!=='repos/'+f.repository+'/actions/artifacts/456/zip')throw Error('Wrong artifact');writeFileSync(dest,'immutable fixture archive');},
+      extract:async (_,dest)=>{mkdirSync(dest);writeFileSync(join(dest,'ci-source.txt'),f.source);writeFileSync(join(dest,'index.html'),'<html>tested</html>');writeFileSync(join(dest,'ci-context.json'),JSON.stringify(f.context));},
+      log:message=>logs.push(message)});
+    console.log(JSON.stringify({evidence,logs}));
+  `);
+  const probe = () => {
+    const run = spawnSync(process.execPath, ['--no-global-search-paths', 'probe.mjs'], {
+      cwd: dir, env: { ...process.env, NODE_PATH: '', NODE_OPTIONS: '' }, encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stderr);
+    return JSON.parse(run.stdout);
+  };
+  const missing = probe();
+  assert.equal(missing.evidence, null);
+  assert.match(missing.logs.join('\n'), /Incomplete or ambiguous CI coverage/);
+  const acorn = dirname(createRequire(import.meta.url).resolve('acorn/package.json'));
+  const lock = JSON.parse(readFileSync(new URL('../../package-lock.json', import.meta.url)));
+  assert.equal(JSON.parse(readFileSync(join(acorn, 'package.json'))).version, lock.packages['node_modules/acorn'].version);
+  // Supply the same locked parser that workflow npm ci installs; no network or
+  // inherited node_modules is used by the subprocess regression.
+  cpSync(acorn, join(dir, 'node_modules/acorn'), { recursive: true });
+  const installed = probe();
+  assert.deepEqual(installed.evidence?.plan, validationPlan(files, { impacts }));
+  assert.equal(installed.evidence?.source, source);
+  assert.equal(installed.evidence?.runId, 99);
+  assert.equal(installed.evidence?.attempt, 2);
+  assert.ok(installed.logs.some(message => message.startsWith('Verified same-tree affected CI')));
 });
 
 function paginatedArtifacts(f, responses) {

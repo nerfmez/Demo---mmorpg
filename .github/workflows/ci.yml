@@ -142,18 +142,28 @@ jobs:
     if: needs.prepare.outputs.game == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    container:
+      # Official browsers + OS libraries, pinned to the locked SDK and immutable image.
+      image: mcr.microsoft.com/playwright:v1.56.1-noble@sha256:f1e7e01021efd65dd1a2c56064be399f3e4de00fd021ac561325f2bfbb2b837a
+      options: --init --shm-size=1g
     strategy:
       fail-fast: false
       # Use available hosted capacity; the account scheduler still enforces its limit.
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     env:
       BROWSER: ${{ matrix.browser }}
+      # Vite and Node fetch must select the same loopback address in containers.
+      NODE_OPTIONS: --dns-result-order=ipv4first
       CI_SOURCE_SHA: ${{ matrix.source }}
       CI_MODE: ${{ matrix.mode }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ matrix.source }}
+      - name: Trust exact checked-out container workspace
+        run: |
+          test "$GITHUB_WORKSPACE" = "$(pwd -P)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -165,16 +175,23 @@ jobs:
           path: dist/
       - name: Verify downloaded build source
         run: test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
-      - id: browser-host
-        name: Identify browser cache platform
+      - name: Verify preinstalled Playwright matches locked dependencies
         run: |
-          . /etc/os-release
-          echo "host=$ID-$VERSION_ID-${{ runner.arch }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ steps.browser-host.outputs.host }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const version = require('./package-lock.json').packages['node_modules/playwright'].version;
+          const image = JSON.parse(fs.readFileSync('/ms-playwright/.docker-info', 'utf8'));
+          assert.equal(require('playwright/package.json').version, version);
+          assert.equal(require('playwright-core/package.json').version, version);
+          assert.equal(image.driverVersion, version);
+          assert.equal(image.dockerImageName, `mcr.microsoft.com/playwright:v${version}-noble`);
+          assert.ok(['chromium', 'webkit'].includes(process.env.BROWSER));
+          const executable = fs.realpathSync(require('playwright')[process.env.BROWSER].executablePath());
+          assert.ok(executable.startsWith('/ms-playwright/'), executable);
+          fs.accessSync(executable, fs.constants.X_OK);
+          console.log(`Preinstalled Playwright ${version}: ${process.env.BROWSER} ${executable}`);
+          NODE
       - name: Run complete selected shard with timings
         run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
       - name: Upload selected browser report

@@ -1,0 +1,56 @@
+[
+  {
+    "name": "desktop",
+    "width": 1440,
+    "height": 900,
+    "touch": false,
+    "skills": 14,
+    "geometries": [
+      40,
+      40,
+      40
+    ],
+    "movementState": {
+      "distance": 3,
+      "charges": 3,
+      "mods": 1
+    },
+    "pageErrors": []
+  },
+  {
+    "name": "ipad",
+    "width": 1180,
+    "height": 820,
+    "touch": true,
+    "skills": 14,
+    "geometries": [
+      35,
+      35,
+      35
+    ],
+    "movementState": {
+      "distance": 3,
+      "charges": 3,
+      "mods": 1
+    },
+    "pageErrors": []
+  },
+  {
+    "name": "phone",
+    "width": 844,
+    "height": 390,
+    "touch": true,
+    "skills": 14,
+    "geometries": [
+      35,
+      35,
+      35
+    ],
+    "movementState": {
+      "distance": 3,
+      "charges": 3,
+      "mods": 1
+    },
+    "pageErrors": []
+  }
+]

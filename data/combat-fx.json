@@ -688,6 +688,280 @@
         "color": "#b1a087",
         "shadow": "#6f6859"
       }
+    },
+    "riposte": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "weakpoint": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "armor_cleave": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "interrupt_slam": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "shield_bash": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "charged_shot": {
+      "renderer": "arrow",
+      "projectile": {
+        "scale": 1,
+        "trailLength": 1.35,
+        "trailWidth": 0.075,
+        "trailOpacity": 0.7,
+        "flowSpeed": 32
+      },
+      "impact": {
+        "flashSize": 0.36,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 5,
+        "sparkLength": 0.13,
+        "sparkWidth": 0.028,
+        "sparkLife": 0.22,
+        "speed": 4.7,
+        "spread": 2.1,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.025,
+        "hitStop": 0.018
+      },
+      "_labPhases": {
+        "cast": "ง้างธนู",
+        "projectile": "ลูกธนู",
+        "impact": "ปักกระทบ"
+      },
+      "colors": {
+        "shaft": "#8a5c3a",
+        "tip": "#dde6ec",
+        "fletch": "#f3eedc",
+        "trail": "#86adc1",
+        "core": "#fff7df",
+        "sparks": "#e9c89a"
+      },
+      "cast": {
+        "length": 0.5,
+        "width": 0.025,
+        "opacity": 0.55
+      }
     }
   },
   "projectileDefaults": {
@@ -757,6 +1031,27 @@
       "shake": 0.018,
       "hitStop": 0.025
     }
+  },
+  "frontier": {
+    "lineColor": "#ffe3a5",
+    "lineLife": 0.24,
+    "guardColor": "#bfe9ff",
+    "wallColor": "#8fc8e5",
+    "wallEdge": "#213b58",
+    "wallHeight": 0.9,
+    "wallRise": 0.15,
+    "auraColor": "#b1dcc9",
+    "auraOpacity": 0.42,
+    "flameColor": "#f16b22",
+    "flameCore": "#ffe3a0",
+    "flameHeight": 0.55,
+    "flameOpacity": 0.72,
+    "healColor": "#a0ffc5",
+    "healLife": 0.5,
+    "rainColor": "#ffe1a4",
+    "rainArrows": 7,
+    "rainHeight": 4,
+    "rainFall": 0.3
   },
   "swingColors": {
     "whirl": "#9be04a"

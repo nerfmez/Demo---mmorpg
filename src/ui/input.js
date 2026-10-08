@@ -12,7 +12,7 @@ import { joystickMarks } from './fieldhud.js';
 import { potionArt } from './potionart.js';
 
 // skills aimed at a point on the ground (drag places a circle)
-const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'];
+const AREA_KINDS = ['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'];
 
 /** Pointer capture keeps a drag on its control; it can fail (synthetic or already-ended pointers). */
 const capture = (el, id) => {
@@ -35,6 +35,7 @@ export class Input {
     this.view = view;
     this.ui = ui;
     this.keys = new Set();
+    this.keySlots = new Map();
     this.mouseDown = [false, false, false];
     this.touchMode = false;
     this.aim = null; // drag-aim preview for the view
@@ -52,6 +53,9 @@ export class Input {
       this.bindSkillButton(b, i);
       return b;
     });
+    this.summonCommands=h(`<div class="summon-commands" hidden><button data-command="attack">โจมตีเป้า</button><button data-command="follow">กลับมา</button><button data-command="guard">คุ้มกัน</button></div>`);
+    this.summonCommands.addEventListener('click',e=>{const cmd=e.target.dataset.command;if(cmd&&!this.ui.panelOpen())this.game.commandAllies(cmd,this.game.player.targetId);});
+    root.appendChild(this.summonCommands);
     this.moveBtn = h(`<button class="sbtn move" aria-label="สกิลเคลื่อนที่"><span class="ic"></span><i class="cd"></i><span class="cdt"></span><span class="charges"></span><span class="slabel"></span><span class="key">Space</span></button>`);
     this.combat.appendChild(this.moveBtn);
     this.bindMoveButton(this.moveBtn);
@@ -131,7 +135,10 @@ export class Input {
       if (e.button === 2) this.castSlot(1, true);
     });
     window.addEventListener('pointerup', (e) => {
-      if (e.pointerType === 'mouse') this.mouseDown[e.button] = false;
+      if (e.pointerType === 'mouse') {
+        this.mouseDown[e.button] = false;
+        if (e.button === 0 || e.button === 2) this.releaseHeldSkill(e.button === 0 ? 0 : 1);
+      }
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     canvas.addEventListener(
@@ -166,6 +173,9 @@ export class Input {
   }
 
   reset() {
+    this.game.cancelCharge();
+    this.game.cancelChannel?.();
+    this.keySlots.clear();
     this.keys.clear();
     this.mouseDown = [false, false, false];
     this.held.clear();
@@ -199,7 +209,12 @@ export class Input {
 
   onKey(e, down) {
     // Key releases still count when focus moved into a menu input.
-    if (!down) this.keys.delete(e.key.toLowerCase());
+    if (!down) {
+      const key = e.key.toLowerCase(), slot = this.keySlots.get(key);
+      this.keys.delete(key);
+      this.keySlots.delete(key);
+      if (slot !== undefined) this.releaseHeldSkill(slot);
+    }
     if (this.ui.blocked?.()) return;
     if (e.target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
     const k = e.key.toLowerCase();
@@ -216,12 +231,12 @@ export class Input {
         else if (k === 'm') this.ui.togglePanel('map');
         return;
       }
-      if (k === '1') this.castSlot(0, true);
-      if (k === '2') this.castSlot(1, true);
-      if (k === '3') this.castSlot(2, true);
-      if (k === '4') this.castSlot(3, true);
-      if (k === 'q') this.castSlot(2, true);
-      if (k === 'r') this.castSlot(3, true);
+      if (k === '1') { this.keySlots.set(k, 0); this.castSlot(0, true); }
+      if (k === '2') { this.keySlots.set(k, 1); this.castSlot(1, true); }
+      if (k === '3') { this.keySlots.set(k, 2); this.castSlot(2, true); }
+      if (k === '4') { this.keySlots.set(k, 3); this.castSlot(3, true); }
+      if (k === 'q') { this.keySlots.set(k, 2); this.castSlot(2, true); }
+      if (k === 'r') { this.keySlots.set(k, 3); this.castSlot(3, true); }
       if (k >= '5' && k <= '8') this.useItem(Number(k) - 5);
       if (k === ' ' || k === 'shift') this.useMovement();
       if (k === 'e') this.ui.interact();
@@ -263,6 +278,12 @@ export class Input {
     return ok;
   }
 
+  releaseHeldSkill(i, point = null) {
+    if (this.ui.panelOpen()) { this.game.cancelCharge(); this.game.cancelChannel?.(); return false; }
+    if (this.game.player.channeling?.slot === i) { this.game.cancelChannel(); return true; }
+    return this.game.releaseCharge(i, point || (!this.touchMode ? this.pointerGround() : null));
+  }
+
   useMovement(point = null) {
     if (this.ui.panelOpen()) return;
     const pt = point || (!this.touchMode ? this.pointerGround() : null);
@@ -282,6 +303,8 @@ export class Input {
     const clear = () => {
       configureOnClick = false;
       const id = start?.id;
+      if (start?.holding && this.game.player.charging?.slot === i) this.game.cancelCharge();
+      if (start?.holding && this.game.player.channeling?.slot === i) this.game.cancelChannel();
       start = null;
       this.held.delete(0);
       this.repeatStart = null;
@@ -298,7 +321,9 @@ export class Input {
       if (e.pointerType !== 'mouse') this.setTouch(true);
       capture(b, e.pointerId);
       start = { x: e.clientX, y: e.clientY, id: e.pointerId, t: performance.now(), dragging: false };
-      if (i === 0) this.repeatStart = performance.now();
+      start.holding = !!(this.game.skills[i]?.charge || this.game.skills[i]?.channel);
+      if (start.holding) this.castSlot(i, true);
+      else if (i === 0) this.repeatStart = performance.now();
     });
     b.addEventListener('pointermove', (e) => {
       if (!start || e.pointerId !== start.id) return;
@@ -314,12 +339,21 @@ export class Input {
         const cancel = this.isCancelled(e.clientX, e.clientY);
         this.cancelEl.classList.toggle('cancelled', cancel);
         this.aim = cancel ? null : this.dragAim(i, dx, dy);
+        if (start.holding && this.aim) {
+          this.game.setAimAngle(this.aim.angle, true);
+          this.game.player.targetId = this.targetInDirection(this.aim.angle, this.aim.length);
+        }
       }
     });
     const end = (e) => {
       if (!start || e.pointerId !== start.id) return;
       this.held.delete(0);
       if (e.type !== 'pointerup' || this.ui.panelOpen() || (start.dragging && this.isCancelled(e.clientX, e.clientY))) return clear();
+      if (start.holding) {
+        this.releaseHeldSkill(i);
+        clear();
+        return;
+      }
       if (start.dragging && this.aim) {
         const a = this.aim;
         if (a.radius) this.game.castSlot(i, { x: a.x, z: a.z });
@@ -353,7 +387,7 @@ export class Input {
       e.preventDefault();
       e.stopPropagation();
       if (!this.game.skills[i]) this.ui.configureSkill?.(i);
-      else if (e.detail === 0) this.castSlot(i, true);
+      else if (e.detail === 0) { this.castSlot(i, true); this.releaseHeldSkill(i); }
     });
   }
 
@@ -368,7 +402,7 @@ export class Input {
     const maxDrag = 110;
     if (AREA_KINDS.includes(s.kind)) {
       const r = Math.min(1, len / maxDrag) * s.range;
-      return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.radius };
+      return { x: p.x + Math.sin(angle) * r, z: p.z + Math.cos(angle) * r, radius: s.wall?.length/2 || s.radius };
     }
     return { angle, length: s.range };
   }
@@ -534,6 +568,7 @@ export class Input {
   refreshButtons() {
     const g = this.game;
     const p = g.player;
+    this.summonCommands.hidden=!g.allies.some(a=>!a.dead&&a.life>0);
     g.skills.forEach((s, i) => {
       const b = this.buttons[i];
       const key = s ? `${s.id}:${s.cost}:${s.requirementsMet}` : 'empty';
@@ -553,12 +588,16 @@ export class Input {
       if (!s) {
         b.style.setProperty('--cd', '0%');
         b.querySelector('.cdt').textContent = '';
-        b.classList.remove('nomp', 'locked');
+        b.classList.remove('nomp', 'locked', 'charging', 'noammo', 'lowammo');
+        b.style.setProperty('--charge','0%');
         return;
       }
+      const charge = p.charging?.slot === i ? p.charging : null;
+      b.classList.toggle('charging', !!charge);
+      b.style.setProperty('--charge', `${charge ? 100 * charge.t / charge.skill.charge.duration : 0}%`);
       const cd = p.cooldowns[i];
       b.style.setProperty('--cd', `${(cd / s.cooldown) * 100}%`);
-      b.querySelector('.cdt').textContent = cd > 0.1 ? cd < 1 ? cd.toFixed(1) : Math.ceil(cd) : '';
+      b.querySelector('.cdt').textContent = charge ? `${Math.round(100 * charge.t / charge.skill.charge.duration)}%` : p.channeling?.slot === i ? 'ร่าย' : cd > 0.1 ? cd < 1 ? cd.toFixed(1) : Math.ceil(cd) : '';
       b.classList.toggle('nomp', p.mp < s.cost);
       b.classList.toggle('locked', !s.requirementsMet);
       // Arrow skills show what is left in the quiver; orange when low, dim when empty.

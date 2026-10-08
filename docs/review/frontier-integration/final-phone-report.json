@@ -1,0 +1,20 @@
+[
+  {
+    "name": "phone",
+    "width": 844,
+    "height": 390,
+    "touch": true,
+    "skills": 14,
+    "geometries": [
+      34,
+      34,
+      34
+    ],
+    "movementState": {
+      "distance": 3,
+      "charges": 3,
+      "mods": 1
+    },
+    "pageErrors": []
+  }
+]

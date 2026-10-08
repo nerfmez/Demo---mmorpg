@@ -1,9 +1,9 @@
 import {SIGILS} from './sigils.js';
-// Fifteen physical mod coins. Engravings identify effects; these are not currency.
+// Physical mod coins. Engravings identify effects; these are not currency.
 // Keep the GEM_TINTS export name for existing consumers; no gem is rendered.
 // Presentation only; never consulted for eligibility or gameplay.
 export const MOD_GROUPS=Object.freeze({
- split:'mechanics',pierce:'mechanics',bounce:'mechanics',burning_ground:'mechanics',echo:'mechanics',wide_arc:'mechanics',multistrike:'mechanics',frost_shift:'mechanics',knockback:'mechanics',concentrated:'attack',lingering:'mechanics',life_leech:'support',spiked_ward:'support',pack_leader:'support',cast_on_dodge:'mechanics'
+ split:'mechanics',pierce:'mechanics',bounce:'mechanics',burning_ground:'mechanics',echo:'mechanics',wide_arc:'mechanics',multistrike:'mechanics',frost_shift:'mechanics',knockback:'mechanics',concentrated:'attack',lingering:'mechanics',life_leech:'support',spiked_ward:'support',pack_leader:'support',cast_on_dodge:'mechanics',short_stride:'mechanics',returning_shot:'mechanics',terminal_burst:'mechanics',chain_return:'mechanics',advancing_edge:'mechanics',gathering_cut:'mechanics',laceration:'mechanics',ash_detonation:'mechanics',shatter:'mechanics',following_field:'mechanics',binding_field:'mechanics',healing_chain:'support',healing_barrier:'support',breaking_ward:'support',spreading_hex:'support',focused_pack:'support',guardian_bond:'support',following_aura:'support',cast_on_guard:'support'
 });
 export const MOD_GROUP_COLORS=Object.freeze({attack:'#a83c35',mechanics:'#326e9e',support:'#37754b'});
 // Backward-compatible export name; these are coin engraving colors, not gems.

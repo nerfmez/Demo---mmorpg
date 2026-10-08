@@ -404,6 +404,7 @@ export class Hud {
       case 'fail':
         if (e.reason === 'mp') this.toast('MP ไม่พอ', '#3f8cff');
         if (e.reason === 'requires') this.toast('Stat ยังไม่ถึงเงื่อนไขของสกิลนี้', '#ff6b5a');
+        if (e.reason === 'offhand') this.toast('สกิลนี้ต้องมีโล่ที่ใช้งานได้', '#ff6b5a');
         if (e.reason === 'weapon') this.toast('สกิลนี้ต้องถือ ' + (e.need || []).map((w) => d.items.weaponTypes[w]?.nameTh || w).join(' / '), '#ff6b5a');
         if (e.reason === 'potion_none') this.toast((d.items.consumables.types[e.item]?.nameTh || 'ยา') + 'หมดแล้ว · ซื้อได้ที่ร้านค้าในเมือง', '#ff9a6a');
         if (e.reason === 'potion_cooldown') this.toast('ยังดื่มยาชนิดนี้ซ้ำไม่ได้ รอสักครู่', '#c8b8a0');

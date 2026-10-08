@@ -36,6 +36,18 @@ export function skillCraftGuide(data, recipe) {
       stage = 0; condition = 'เข้าระยะประชิดแล้วกดใช้'; break;
     case 'projectile':
       stage = 0; condition = 'เล็งทิศทางแล้วปล่อยกระสุน'; break;
+    case 'counter_stance':
+      stage = 2; role = 'guard'; condition = 'หันรับการโจมตีด้านหน้า แล้วกดซ้ำเพื่อสวนกลับ'; break;
+    case 'melee_line':
+      stage = 2; condition = 'เตรียมฟันแนวตรง · เล็งแนวศัตรูก่อนปล่อย'; break;
+    case 'channel_cone':
+      stage = 2; condition = 'กดค้างร่ายกรวยไฟ · ใช้ MP ต่อเนื่อง ปล่อยเพื่อหยุด'; break;
+    case 'wall':
+      stage = 2; role = 'control'; condition = 'วางแนวกั้นชั่วคราว · ต้องมีทางอ้อมและไม่ทับตัวละคร'; break;
+    case 'heal_target':
+      stage = 0; role = 'heal'; condition = 'ฮีลเพื่อนที่บาดเจ็บหรือตนเอง · ล้างพิษหรือความเย็นหนึ่งอย่าง'; break;
+    case 'aura':
+      stage = 1; role = 'support'; condition = 'เปิด/ปิดวงฟื้น MP · สำรอง MP สูงสุด 20% ขณะเปิด'; break;
     case 'self_barrier':
       stage = 0; role = 'guard'; condition = `กดใช้ก่อนรับการโจมตี · เพื่อนต้องอยู่ในรัศมี ${def.radius} ม.`; break;
     case 'heal_zone':
@@ -61,6 +73,8 @@ export function skillCraftGuide(data, recipe) {
     case 'leap':
       stage = 1; role = 'movement'; condition = 'เล็งจุดลง · กระแทกศัตรูรอบจุดลง'; break;
   }
+  if (def.charge) { stage = 2; condition = 'กดค้างเพื่อชาร์จ แล้วปล่อยยิง · ใช้ MP/ลูกธนูเมื่อปล่อย'; }
+  if (def.requiresOffhand) { role = 'guard'; condition += ' · ต้องมีโล่ที่ใช้งานได้'; }
   const types = def.requiresWeapon || [];
   const playstyle = types.length ? types.map(t => label(data, t)).join(' / ')
     : tags.includes('Spell') ? 'เวท · ไม่บังคับประเภทอาวุธ' : 'ไม่บังคับประเภทอาวุธ';

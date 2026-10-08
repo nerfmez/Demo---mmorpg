@@ -8,7 +8,7 @@ import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
 import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 12;
+export const CHARACTER_VERSION = 13;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -47,6 +47,7 @@ export function createCharacter(data, opts = {}) {
     skills: opening ? {} : { [kit.basic]: 1 },
     movementSkills: [],
     movement: null,
+    movementMods: [],
     mods: [],
     arrows: { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } },
     ...startingConsumables(data),
@@ -142,6 +143,10 @@ export function migrateCharacter(ch, data) {
   ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });
   ch.mods = (ch.mods || []).filter((m) => data.mods.mods[m.id]);
+  // v9: separate movement socket. Never steal a coin already assigned to combat.
+  ch.movementMods = [...new Set(Array.isArray(ch.movementMods) ? ch.movementMods : [])]
+    .filter(uid => ch.mods.some(m => m.uid === uid && data.mods.mods[m.id].requiresAll?.includes('Movement'))
+      && !ch.slots.some(s => s.mods.includes(uid))).slice(0, data.mods.maxMovementMods);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
   normalizeItemMetadata(ch, data);
   if ((ch.version || 1) < 3) {
@@ -603,11 +608,11 @@ export function arrowTotal(ch) {
   return Object.values(ch.arrows?.stock || {}).reduce((a, n) => a + n, 0);
 }
 
-/** Arrows one cast of skill `s` (computed) needs; 0 for anything but Attack+Projectile. */
+/** Arrows one cast of skill `s` (computed) needs; 0 except Attack projectiles/rain; rain pays each authored wave. */
 export function arrowsPerCast(data, s) {
   const rules = data.items.arrows;
-  if (!rules || !s?.tags?.has?.('Attack') || !s.tags.has('Projectile')) return 0;
-  return rules.perCast + (s.projectiles > 1 ? rules.multiShotExtra : 0);
+  if (!rules || !s?.tags?.has?.('Attack') || (!s.tags.has('Projectile')&&!s.tags.has('Rain'))) return 0;
+  return (rules.perCast + (s.projectiles > 1 ? rules.multiShotExtra : 0)) * (s.waves || 1);
 }
 
 /** Take `n` arrows, from the type in use first. Returns false (and takes none) if short. */

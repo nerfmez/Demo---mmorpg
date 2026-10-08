@@ -51,7 +51,7 @@ export function movementWorkspace(ui) {
  return heading('สกิลเคลื่อนที่','หนึ่งช่องแยก · ไม่แย่งช่องต่อสู้ · ม็อดต่อสู้ใช้กับช่องนี้ไม่ได้')+`<div class="seeker-movement-grid">${Object.entries(data.skills.movement).map(([id,d])=>{
   const learned=ch.movementSkills.includes(id), req=meetsRequires(ch,d.requires);
   return `<section class="card"><div class="seeker-hero">${art('skill',id)}<div><h3>${d.nameTh}</h3><small>${d.name}</small></div></div><p>${d.desc}</p>${skillMeta(d)}<p>ระยะ ${d.distance} ม. · ${d.charges} ชาร์จพื้นฐาน · คืนชาร์จ ${d.recharge} วิ</p><p>หลบดาเมจระหว่างใช้: ${d.invulnerable?'ได้':'ไม่ได้'}</p><button class="btn ${ch.movement===id?'on':'primary'}" data-act="movement" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${ch.movement===id?'ใช้อยู่':learned?'เลือกใช้':'ยังไม่เรียน'}</button></section>`;
- }).join('')}</div><div class="seeker-result">สกิลที่ใช้อยู่: ${ui.game.move.def.nameTh} · ชาร์จสูงสุด ${ui.game.move.def.charges+ui.game.derived.extraMovementCharges} · คืนชาร์จจริง ${ui.game.move.recharge.toFixed(1)} วิ</div>`;
+ }).join('')}</div><div class="seeker-result">สกิลที่ใช้อยู่: ${ui.game.move.def.nameTh} · ชาร์จสูงสุด ${ui.game.move.charges} · คืนชาร์จจริง ${ui.game.move.recharge.toFixed(1)} วิ</div>`;
 }
 
 export function growthWorkspace(ui,{costHtml,describeSkill}) {

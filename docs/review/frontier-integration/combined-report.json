@@ -1,0 +1,109 @@
+{
+  "url": "http://127.0.0.1:4286/?quality=low&stream=0&release=0e8d05265910b389dc9b27f58a4e5ce902cba72e",
+  "receipt": {
+    "version": 1,
+    "buildOrigin": {
+      "sha": "0e8d05265910b389dc9b27f58a4e5ce902cba72e"
+    },
+    "releaseTarget": {
+      "sha": "0e8d05265910b389dc9b27f58a4e5ce902cba72e"
+    },
+    "testFixtureOnly": true
+  },
+  "engine": "chromium",
+  "isolatedContext": true,
+  "normalStart": true,
+  "crafted": [
+    "learn_charged_shot",
+    "learn_roll",
+    "mod_short_stride",
+    "mod_returning_shot"
+  ],
+  "insufficientResources": true,
+  "exactPayment": true,
+  "loadout": {
+    "skills": {
+      "hunter_shot": 1,
+      "charged_shot": 1
+    },
+    "mods": [
+      {
+        "uid": 4,
+        "id": "short_stride",
+        "level": 1,
+        "grade": "C"
+      },
+      {
+        "uid": 5,
+        "id": "returning_shot",
+        "level": 1,
+        "grade": "B"
+      }
+    ],
+    "slots": [
+      {
+        "skill": "charged_shot",
+        "mods": [
+          5
+        ]
+      },
+      {
+        "skill": null,
+        "mods": []
+      },
+      {
+        "skill": null,
+        "mods": []
+      },
+      {
+        "skill": null,
+        "mods": []
+      }
+    ],
+    "movement": "roll",
+    "movementMods": [
+      4
+    ],
+    "nextUid": 6,
+    "autoPotions": {
+      "hp": {
+        "enabled": false,
+        "threshold": 35,
+        "potion": null
+      },
+      "mp": {
+        "enabled": false,
+        "threshold": 30,
+        "potion": null
+      }
+    },
+    "jobNodes": [
+      "origin"
+    ],
+    "jobPoints": 0,
+    "treeRevision": 3,
+    "version": 13
+  },
+  "reload": true,
+  "charge": {
+    "began": true,
+    "released": true,
+    "again": false,
+    "before": {
+      "mp": 130,
+      "arrows": 200
+    },
+    "held": {
+      "mp": 130,
+      "arrows": 200
+    },
+    "after": {
+      "mp": 122,
+      "arrows": 199
+    },
+    "cost": 8
+  },
+  "selectiveRefundExactlyOnce": true,
+  "movementIdsPreserved": true,
+  "pageErrors": []
+}

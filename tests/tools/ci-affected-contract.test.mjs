@@ -61,7 +61,7 @@ test('the actual scope CLI enables core/tools/build and boot/icons for a manifes
   const event = join(directory, 'event.json'), output = join(directory, 'outputs');
   writeFileSync(event, JSON.stringify({ pull_request: { base: { sha: base }, head: { sha: git('rev-parse', 'HEAD') } } }));
   execFileSync(process.execPath, [new URL('../../scripts/ci-scope.mjs', import.meta.url).pathname], { cwd: directory, env: {
-    ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: event, GITHUB_OUTPUT: output,
+    ...process.env, GITHUB_SHA: '', GH_TOKEN: '', GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: event, GITHUB_OUTPUT: output,
     FORCE_FULL: 'false', FORCE_BOOT: 'false', FORCE_RENDER: 'false',
   } });
   const outputs = readFileSync(output, 'utf8');

@@ -68,7 +68,7 @@ test('scope CLI routes a real CI-only PR diff to bounded safety and keeps its ga
   put('scripts/new-build.mjs', '// affects build'); git('add', '.'); git('commit', '-qm', 'infra');
   put('event.json', JSON.stringify({ pull_request: { base: { sha: base }, head: { sha: git('rev-parse', 'HEAD') } } }));
   const run = spawnSync(process.execPath, [join(root, 'scripts/ci-scope.mjs')], { cwd: dir, encoding: 'utf8', env: {
-    ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: join(dir, 'event.json'),
+    ...process.env, GITHUB_SHA: '', GH_TOKEN: '', GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: join(dir, 'event.json'),
     GITHUB_OUTPUT: join(dir, 'outputs'), FORCE_FULL: 'false', FORCE_BOOT: 'false', FORCE_RENDER: 'false',
   } });
   assert.equal(run.status, 0, run.stderr);

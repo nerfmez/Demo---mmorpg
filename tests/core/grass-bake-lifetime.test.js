@@ -25,7 +25,7 @@ function fixture(extraMeshes=0,count=9){
   readRenderTargetPixelsAsync(t,x,y,w,h,pixels){asyncCalls++;const value=mode?151:83;if(asyncCalls%2===1)t.addEventListener('dispose',()=>disposed.target++);return new Promise((resolve,reject)=>pending.push({resolve:()=>{pixels.fill(value);resolve(pixels);},reject}));},
  };
  const state=()=>({target,face,mip,color:color.getHex(),alpha});
- return {root,mesh,renderer,pending,disposed,state,original,calls:()=>({asyncCalls,syncCalls})};
+ return {root,mesh,renderer,pending,disposed,state,original,calls:()=>({asyncCalls,syncCalls}),mode:()=>mode};
 }
 function queue(){const tasks=[];return {tasks,q:new FrameBuildQueue({schedule:fn=>{tasks.push(fn);return ()=>{};}}),drain(){while(tasks.length)tasks.shift()();}};}
 async function settleMicrotasks(){await Promise.resolve();await Promise.resolve();}
@@ -93,4 +93,34 @@ test('a readback fence that never settles falls back to a synchronous read with 
   f.pending.shift().reject(new Error('late'));f.pending.shift().resolve();await new Promise(r=>setTimeout(r,5));
   assert.deepEqual(unhandled,[]);assert.deepEqual(f.mesh.geometry.attributes.aGrassBase.array,late);
  }finally{console.warn=warn;process.off('unhandledRejection',onUnhandled);}
+});
+
+// A WebGL2 double for the bake's own cancellable readback: fences report `status()`.
+function fakeGL(f,status){
+ const gl={PIXEL_PACK_BUFFER:1,STREAM_READ:2,RGBA:3,UNSIGNED_BYTE:4,SYNC_GPU_COMMANDS_COMPLETE:5,SYNC_FLUSH_COMMANDS_BIT:6,ALREADY_SIGNALED:0x911a,TIMEOUT_EXPIRED:0x911b,WAIT_FAILED:0x911d,
+  live:{buffers:0,syncs:0},polls:0,
+  createBuffer(){gl.live.buffers++;return {value:0};},deleteBuffer(){gl.live.buffers--;},bindBuffer(t,b){gl.bound=b;},bufferData(){},
+  readPixels(){gl.bound.value=f.mode()?151:83;},fenceSync(){gl.live.syncs++;return {};},deleteSync(){gl.live.syncs--;},flush(){},
+  clientWaitSync(){gl.polls++;return status();},getBufferSubData(t,o,out){out.fill(gl.bound.value);}};
+ f.renderer.getContext=()=>gl;return gl;
+}
+async function run(f,c,options){
+ const j=c.q.enqueue(bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true,...options}));
+ for(let i=0;i<40&&j.state!=='success';i++){c.drain();await new Promise(r=>setTimeout(r,10));}
+ c.drain();return j.promise;
+}
+
+test('the cancellable readback reads the bound target, then frees its buffer and fence',async()=>{
+ const sync=fixture();bakeGrassColours(sync.renderer,sync.root,{waterLevel:0});
+ const f=fixture(),gl=fakeGL(f,()=>gl.ALREADY_SIGNALED);
+ assert.equal(await run(f,queue()),1);
+ for(const name of ['aGrassBase','aGrassLawn'])assert.deepEqual(f.mesh.geometry.attributes[name].array,sync.mesh.geometry.attributes[name].array);
+ assert.deepEqual(gl.live,{buffers:0,syncs:0});assert.deepEqual(f.calls(),{asyncCalls:0,syncCalls:0});
+});
+
+test('a timed-out readback stops polling and frees its buffer and fence',async()=>{
+ const f=fixture(),gl=fakeGL(f,()=>gl.TIMEOUT_EXPIRED),warn=console.warn;console.warn=()=>{};
+ try{assert.equal(await run(f,queue(),{readbackTimeoutMs:5}),1);}finally{console.warn=warn;}
+ assert.deepEqual(gl.live,{buffers:0,syncs:0});assert.equal(f.calls().syncCalls,2);
+ const polls=gl.polls;await new Promise(r=>setTimeout(r,30));assert.equal(gl.polls,polls,'no polling after cancel');
 });

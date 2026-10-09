@@ -1,0 +1,20 @@
+{
+  "phase": "after-mobile",
+  "quality": "high",
+  "cameraZoom": 1.25,
+  "cameraDistance": 1.6,
+  "cameraSide": 1,
+  "engine": "Chromium / ANGLE SwiftShader",
+  "shots": [
+    "gull_shrine-game",
+    "gull_shrine-844x390",
+    "gull_shrine-390x844",
+    "hill_windmill-game",
+    "hill_windmill-motion-1",
+    "hill_windmill-motion-2",
+    "hill_windmill-motion-3",
+    "hill_windmill-844x390",
+    "hill_windmill-390x844"
+  ],
+  "errors": []
+}

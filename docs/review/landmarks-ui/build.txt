@@ -1,0 +1,50 @@
+
+> frontier-demo@1.0.0 build
+> vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 234 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/lab.html                                         0.77 kB │ gzip:   0.39 kB
+dist/index.html                                       1.06 kB │ gzip:   0.49 kB
+dist/assets/mitr-thai-500-normal-CW_B5D-i.woff       10.01 kB
+dist/assets/mitr-thai-600-normal-DvC8ywyI.woff       10.04 kB
+dist/assets/mitr-thai-400-normal-CS4Do6aM.woff       10.11 kB
+dist/assets/mitr-thai-500-normal-CVdBrEVH.woff2      14.14 kB
+dist/assets/mitr-thai-600-normal-DFYMNGrH.woff2      14.18 kB
+dist/assets/mitr-thai-400-normal-CXWaAdVj.woff2      14.45 kB
+dist/assets/mitr-latin-500-normal-B4JOhzAi.woff      17.84 kB
+dist/assets/mitr-latin-600-normal-CCDPiDpK.woff      17.92 kB
+dist/assets/mitr-latin-400-normal-Cb18vPmZ.woff      18.30 kB
+dist/assets/mitr-latin-500-normal-BmClOow2.woff2     22.24 kB
+dist/assets/mitr-latin-400-normal-CwbkLQ4a.woff2     22.54 kB
+dist/assets/mitr-latin-600-normal-kSdUWQ3Q.woff2     22.68 kB
+dist/assets/noto-thai-400-B8nGVs7j.ttf               45.66 kB
+dist/assets/noto-thai-600-C6gV1leG.ttf               45.75 kB
+dist/assets/colors-CxS9jD3l.bin                     223.20 kB
+dist/assets/positions-BlHXvJEA.bin                  223.20 kB
+dist/assets/colors-CSmg6OlM.bin                     359.56 kB
+dist/assets/positions-BtRT913z.bin                  359.56 kB
+dist/assets/fireball-v5-colors-Db7dgSDU.bin         382.40 kB
+dist/assets/fireball-v5-positions-DU8eCsO_.bin      382.40 kB
+dist/assets/colors-BVtMmepR.bin                     383.61 kB
+dist/assets/positions-gpsD_2pv.bin                  383.61 kB
+dist/assets/warcry-pressure-C39pfnA9.png          1,051.16 kB
+dist/assets/movement-atlas-DqTBaLNV.png           1,189.75 kB
+dist/assets/colors-Cinp1GZ4.bin                   2,408.44 kB
+dist/assets/positions-CSks7k9Y.bin                2,408.44 kB
+dist/assets/latin-400-CaggZBoK.css                    0.39 kB │ gzip:   0.18 kB
+dist/assets/lab-dXytwlaw.css                          4.27 kB │ gzip:   1.46 kB
+dist/assets/main-fgQ-gmGG.css                       339.42 kB │ gzip:  68.38 kB
+dist/assets/lab-DjNcLdf0.js                          35.04 kB │ gzip:  12.90 kB
+dist/assets/main-cP51sgdO.js                        666.95 kB │ gzip: 232.52 kB
+dist/assets/latin-400-DRAb60iA.js                 2,185.03 kB │ gzip: 563.90 kB
+
+✓ built in 1.77s
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 1200 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

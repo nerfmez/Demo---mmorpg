@@ -19,7 +19,6 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createHarbor } from './harbor.js';
 import { marketBuilding, marketStall, marketQuay } from './market.js';
 import { districtBuilding } from './districts.js';
-import { createLandmarks } from './landmarks.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -343,7 +342,7 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
 
   yield;
   // ----- zone landmarks (data: landmarks) -----
-  root.add(createLandmarks(world, gy));
+  // Editable Blender landmarks are loaded and owned by this region's import job.
 
   yield;
   // ----- small decoration -----

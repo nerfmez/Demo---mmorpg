@@ -79,9 +79,14 @@ test('zones in a map differ in their ground cover', () => {
 });
 
 test('the windmill sails keep turning after static batching freezes the scenery', async () => {
-  const { buildLandmark } = await import('../../src/render/landmarks.js');
-  const mill = buildLandmark('windmill');
-  const sails = mill.getObjectByName('landmark-spinner'), mesh = sails.children.find((o) => o.children.length)?.children[0];
+  const { readFileSync } = await import('node:fs');
+  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+  const { animateLandmarkSpinner } = await import('../../src/render/landmark-assets.js');
+  const { disposeObject } = await import('../../src/render/dispose.js');
+  const bytes=readFileSync(new URL('../../public/models/landmarks/windmill.glb',import.meta.url));
+  const {scene:mill}=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
+  const sails = mill.getObjectByName('landmark-spinner'), mesh = sails.children.find(o=>o.isMesh);
+  animateLandmarkSpinner(sails);
   mill.updateMatrixWorld(true);
   mill.traverse((o) => { o.matrixAutoUpdate = false; o.matrixWorldAutoUpdate = false; }); // as batchStaticSteps does
   const before = mesh.matrixWorld.clone();
@@ -90,5 +95,5 @@ test('the windmill sails keep turning after static batching freezes the scenery'
     performance.now = () => 2000;
     mesh.onBeforeRender();
     assert.ok(!mesh.matrixWorld.equals(before), 'the drawn sail moved');
-  } finally { performance.now = now; }
+  } finally { performance.now = now; disposeObject(mill); }
 });

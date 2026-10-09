@@ -1,0 +1,19 @@
+{
+  "phase": "after-ui",
+  "quality": "high",
+  "cameraZoom": 1,
+  "cameraDistance": 1.6,
+  "cameraSide": 1,
+  "engine": "Chromium / ANGLE SwiftShader",
+  "shots": [
+    "menu-1440x900",
+    "bag-1440x900",
+    "menu-1180x820",
+    "bag-1180x820",
+    "menu-844x390",
+    "bag-844x390",
+    "menu-390x844",
+    "bag-390x844"
+  ],
+  "errors": []
+}

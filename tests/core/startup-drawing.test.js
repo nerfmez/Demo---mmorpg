@@ -40,7 +40,7 @@ function harness({game=false,fail=false}={}){
   const deps={view,F,fullscreen,session,document:{getElementById:()=>loading},console:{error:(...args)=>errors.push(args)},
     requestAnimationFrame:fn=>raf(t=>{uiFrames++;fn(t);}),waitForRegionImports:target=>target.region.ready,useStartupTaskScheduling,performance:{now:()=>0}};
   const api=Function('deps',`const {view,F,fullscreen,document,console,requestAnimationFrame,waitForRegionImports,useStartupTaskScheduling,performance}=deps;
-    let session=deps.session;const governor=null,SAVE_ON=new Set();let last=0,time=0,fpsAcc=0,fpsN=0;
+    let session=deps.session;const onlineRuntime=null;const governor=null,SAVE_ON=new Set();let last=0,time=0,fpsAcc=0,fpsN=0;
     ${initialDrawState}\n${schedulingSource}\n${frameSource}\n${startupSource}\nreturn {setSession(value){session=value;}};`)(deps);
   const tasks=async()=>{
     const pending=[...timers].filter(([,t])=>t.at<=timerTime).sort((a,b)=>a[1].at-b[1].at);

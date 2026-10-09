@@ -3,25 +3,18 @@ import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { WebSocketServer, WebSocket } from 'ws';
+import { PROTOCOL, exact as keys, roomOK, createProtocol } from '../src/network/protocol.js';
 const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url)));
 const maps = [read('../data/world.json'), ...readdirSync(new URL('../data/maps/', import.meta.url)).filter(n => n.endsWith('.json')).map(n => read(`../data/maps/${n}`))];
-const bounds = new Map(maps.map(m => [m.id, m.bounds]));
-const keys = (o, names) => o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === names.length && names.every(n => Object.hasOwn(o, n));
-const finite = n => typeof n === 'number' && Number.isFinite(n);
-const roomOK = room => typeof room === 'string' && /^[a-z0-9-]{1,24}$/.test(room);
-const lookKeys = ['hairStyle', 'hair', 'skin', 'eyes', 'scarf', 'tunic'];
-const lookOK = look => keys(look, lookKeys) && ['messy', 'swept', 'ponytail', 'short'].includes(look.hairStyle) && lookKeys.slice(1).every(k => typeof look[k] === 'string' && /^#[0-9a-f]{6}$/i.test(look[k]));
-const poseOK = (p, map) => {
-  const b = bounds.get(map);
-  return keys(p, ['x', 'z', 'facing', 'moving']) && b && finite(p.x) && finite(p.z) && finite(p.facing) && Math.abs(p.facing) <= Math.PI && typeof p.moving === 'boolean' && p.x >= b.minX && p.x <= b.maxX && p.z >= b.minZ && p.z <= b.maxZ;
-};
+const registry = Object.fromEntries(maps.map(m => [m.id, m]));
+const { lookOK, gearOK, poseOK, actionOK } = createProtocol({ maps: registry, items: read('../data/items.json'), skills: read('../data/skills.json') });
 export function createPresenceServer({ origins = [], maxClients = 32, roomCapacity = 8 } = {}) {
   if (!origins.length || origins.some(o => { try { return new URL(o).origin !== o || !/^https?:/.test(o); } catch { return true; } })) throw new Error('ALLOWED_ORIGINS requires exact http(s) origins');
   const allowed = new Set(origins);
   const server = createServer((req, res) => {
     const healthy = req.url === '/healthz' && req.method === 'GET';
     res.writeHead(healthy ? 200 : 404, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v1' } : { error: 'not found' }));
+    res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v2', protocol: PROTOCOL } : { error: 'not found' }));
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 1024, perMessageDeflate: false });
   const clients = new Map();
@@ -31,7 +24,7 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
     ws.send(JSON.stringify(msg));
   };
   const peers = c => [...clients.values()].filter(p => p.joined && p.map === c.map && p.room === c.room);
-  const publicPlayer = c => ({ id: c.id, look: c.look, pose: c.pose });
+  const publicPlayer = c => ({ id: c.id, look: c.look, gear: c.gear, pose: c.pose });
   const leave = c => {
     if (!c.joined) return;
     c.joined = false;
@@ -44,28 +37,42 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
     wss.handleUpgrade(req, socket, head, ws => wss.emit('connection', ws));
   });
   wss.on('connection', ws => {
-    const c = { ws, id: randomUUID(), joined: false, alive: true, tokens: 30, at: Date.now(), joinAt: 0, created: Date.now() };
+    const c = { ws, id: randomUUID(), joined: false, alive: true, tokens: 30, actionTokens: 8, appearanceTokens: 2, at: Date.now(), joinAt: 0, seq: 0 };
     clients.set(ws, c);
+    // Connection admission precedes map/world construction; title screens also heartbeat.
+    send(ws, { type: 'hello', protocol: PROTOCOL, id: c.id });
     ws.on('error', () => ws.terminate());
     ws.on('pong', () => { c.alive = true; });
     ws.on('close', () => { leave(c); clients.delete(ws); });
     ws.on('message', (buffer, binary) => {
       const now = Date.now();
-      c.tokens = Math.min(30, c.tokens + (now - c.at) * .02); c.at = now;
+      const elapsed = Math.max(0, now - c.at) / 1000;
+      c.tokens = Math.min(30, c.tokens + elapsed * 20);
+      c.actionTokens = Math.min(8, c.actionTokens + elapsed * 6);
+      c.appearanceTokens = Math.min(2, c.appearanceTokens + elapsed * 2); c.at = now;
       if (--c.tokens < 0) return ws.close(1008, 'message rate');
       let m;
       try { if (binary) throw Error(); m = JSON.parse(buffer.toString()); } catch { return ws.close(1008, 'invalid JSON'); }
-      if (m?.type === 'join' && keys(m, ['type', 'map', 'room', 'pose', 'look']) && bounds.has(m.map) && roomOK(m.room) && poseOK(m.pose, m.map) && lookOK(m.look)) {
+      if (m?.type === 'join' && keys(m, ['type', 'map', 'room', 'pose', 'look', 'gear']) && Object.hasOwn(registry, m.map) && roomOK(m.room) && poseOK(m.pose, m.map) && lookOK(m.look) && gearOK(m.gear)) {
         if (now - c.joinAt < 500) return ws.close(1008, 'join rate');
         c.joinAt = now;
         const group = peers({ map: m.map, room: m.room }).filter(p => p !== c);
         if (group.length >= roomCapacity) return ws.close(1013, 'room full');
         leave(c);
-        Object.assign(c, { joined: true, map: m.map, room: m.room, pose: m.pose, look: m.look });
+        Object.assign(c, { joined: true, map: m.map, room: m.room, pose: m.pose, look: m.look, gear: m.gear, seq: 0, dirty: false });
         send(ws, { type: 'welcome', id: c.id, map: c.map, room: c.room, players: group.map(publicPlayer) });
         for (const p of group) send(p.ws, { type: 'join', player: publicPlayer(c) });
       } else if (m?.type === 'move' && keys(m, ['type', 'pose']) && c.joined && poseOK(m.pose, c.map)) {
         c.pose = m.pose; c.dirty = true; // batch at 10Hz; no flood amplification
+      } else if (m?.type === 'appearance' && keys(m, ['type', 'look', 'gear']) && c.joined && lookOK(m.look) && gearOK(m.gear)) {
+        if (--c.appearanceTokens < 0) return ws.close(1008, 'appearance rate');
+        c.look = m.look; c.gear = m.gear;
+        for (const p of peers(c)) if (p !== c) send(p.ws, { type: 'appearance', id: c.id, look: c.look, gear: c.gear });
+      } else if (m?.type === 'action' && keys(m, ['type', 'action']) && c.joined && actionOK(m.action)) {
+        if (--c.actionTokens < 0) return ws.close(1008, 'action rate');
+        if (m.action.seq <= c.seq) return; // duplicate/out-of-order events are never replayed
+        c.seq = m.action.seq;
+        for (const p of peers(c)) if (p !== c) send(p.ws, { type: 'action', id: c.id, action: m.action });
       } else ws.close(1008, 'invalid message');
     });
   });
@@ -77,7 +84,7 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
   }, 100);
   const heartbeat = setInterval(() => {
     for (const c of clients.values()) {
-      if (!c.alive || (!c.joined && Date.now() - c.created > 10000)) { c.ws.terminate(); continue; }
+      if (!c.alive) { c.ws.terminate(); continue; }
       c.alive = false; c.ws.ping(); send(c.ws, { type: 'pulse' });
     }
   }, 15000);

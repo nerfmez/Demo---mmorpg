@@ -15,7 +15,11 @@
     "jev:context": "node scripts/jev-context.mjs",
     "start:presence": "node server/index.mjs",
     "test:network": "node --test tests/network/*.test.mjs",
-    "test:presence": "node tests/browser/presence.mjs"
+    "test:presence": "node tests/browser/presence.mjs",
+    "build:player": "vite build --mode player",
+    "build:offline": "vite build --mode offline",
+    "dev:player": "vite --host --mode player",
+    "test:online": "node tests/browser/online.mjs"
   },
   "repository": {
     "type": "git",

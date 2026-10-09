@@ -8,8 +8,9 @@ import { loadData } from '../../src/core/data-node.js';
 const data = loadData();
 const origin = 'http://localhost:4173';
 const look = { hairStyle: 'messy', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
+const gear = { weapon: 'rusty_sword', offhand: null, armor: 'travel_tunic', helm: null, gloves: null, boots: 'travel_boots' };
 const pose = { x: -132, z: 80, facing: 0, moving: false };
-const join = (map = 'azure-harbor-v1', room = 'lobby') => ({ type: 'join', map, room, pose, look });
+const join = (map = 'azure-harbor-v1', room = 'lobby') => ({ type: 'join', map, room, pose, look, gear });
 async function fixture(t, options = {}) {
   const app = createPresenceServer({ origins: [origin], ...options });
   app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
@@ -96,10 +97,10 @@ test('browser adapter reconnects, clears peers and follows streamed map changes 
   const original = globalThis.WebSocket;
   globalThis.WebSocket = class extends WebSocket { constructor(url) { super(url, { origin }); } };
   t.after(() => { globalThis.WebSocket = original; });
-  const sa = { ready: true, map: 'azure-harbor-v1', look, pose: { ...pose } };
+  const sa = { ready: true, map: 'azure-harbor-v1', look, gear, pose: { ...pose } };
   const sb = structuredClone(sa);
   const endpoint = `ws://127.0.0.1:${port}/presence`;
-  const a = new Presence({ endpoint, state: () => sa }), b = new Presence({ endpoint, state: () => sb });
+  const a = new Presence({ endpoint, data, state: () => sa }), b = new Presence({ endpoint, data, state: () => sb });
   t.after(() => { a.stop(); b.stop(); });
   const until = async pred => { for (let i = 0; i < 600; i++) { if (pred()) return; await new Promise(r => setTimeout(r, 10)); } throw Error('adapter timeout'); };
   a.start(); b.start(); await until(() => a.players.size === 1 && b.players.size === 1);
@@ -116,4 +117,55 @@ test('browser adapter reconnects, clears peers and follows streamed map changes 
   for (const c of app.clients.values()) if (c.id === previous) c.ws.terminate();
   await until(() => b.id && b.id !== previous);
   b.stop(); assert.equal(b.status, 'solo'); assert.equal(b.enabled, false);
+});
+
+test('appearance/actions are bounded, deduplicated and isolated; identity belongs to the server', async t => {
+  const { connect } = await fixture(t);
+  const a = await connect(), b = await connect(), other = await connect();
+  a.sendJSON(join()); const aw = await a.take('welcome'); b.sendJSON(join()); await b.take('welcome'); await a.take('join');
+  const [mx, mz] = data.maps['moonroot-grove-v1'].playerSpawn;
+  other.sendJSON({ ...join('moonroot-grove-v1', 'private'), pose: { ...pose, x: mx, z: mz } }); await other.take('welcome');
+  const coat = { ...gear, armor: 'ranger_coat', boots: 'trail_boots', helm: 'ranger_hood', weapon: 'hunter_bow' };
+  b.sendJSON({ type: 'appearance', look, gear: coat });
+  const appearance = await a.take('appearance'); assert.deepEqual(appearance.gear, coat);
+  const action = { seq: 1, skill: 'hunter_shot', phase: 'cast', angle: .2, duration: .2, step: 0 };
+  b.sendJSON({ type: 'action', action }); const received = await a.take('action'); assert.equal(received.id, appearance.id); assert.notEqual(received.id, aw.id); assert.deepEqual(received.action, action);
+  b.sendJSON({ type: 'action', action }); await new Promise(r => setTimeout(r, 150));
+  assert.equal(a.messages.filter(m => m.type === 'action').length, 0, 'duplicate action is not relayed');
+  assert.equal(other.messages.filter(m => ['appearance', 'action'].includes(m.type)).length, 0, 'other map/room sees no action or outfit');
+  const c = await connect(); c.sendJSON(join()); const welcome = await c.take('welcome'); assert.deepEqual(welcome.players.find(p => p.id === received.id).gear, coat, 'late join sees current outfit');
+});
+test('rejects arbitrary assets, unknown skills, unbounded events and appearance/action floods', async t => {
+  const { connect } = await fixture(t);
+  const action = { seq: 1, skill: 'slash', phase: 'cast', angle: 0, duration: .18, step: 0 };
+  const bad = [
+    { type: 'appearance', look, gear: { ...gear, weapon: 'https://evil.test/model.glb' } },
+    { type: 'appearance', look, gear: { ...gear, armor: 'rusty_sword' } },
+    { type: 'action', id: 'spoof', action },
+    ...[{ skill: '__proto__' }, { skill: 'unknown' }, { phase: 'charge' }, { duration: 100 }, { duration: null }, { angle: 4 }, { seq: -1 }, { step: 99 }, { url: 'https://evil.test' }].map(p => ({ type: 'action', action: { ...action, ...p } })),
+  ];
+  for (const m of bad) { const ws = await connect(); ws.sendJSON(join()); await ws.take('welcome'); const close = once(ws, 'close'); ws.sendJSON(m); assert.equal((await close)[0], 1008); }
+  for (const kind of ['action', 'appearance']) {
+    const ws = await connect(); ws.sendJSON(join()); await ws.take('welcome'); const close = once(ws, 'close');
+    for (let i = 1; i <= 12; i++) ws.sendJSON(kind === 'action' ? { type: kind, action: { ...action, seq: i } } : { type: kind, look, gear });
+    assert.equal((await close)[0], 1008);
+  }
+});
+test('handshake readiness precedes world state; failure stays failed and retry/reconnect clears action state', async t => {
+  const { Presence } = await import('../../src/network/presence.js');
+  const { app, port } = await fixture(t);
+  const original = globalThis.WebSocket; globalThis.WebSocket = class extends WebSocket { constructor(url) { super(url, { origin }); } };
+  t.after(() => { globalThis.WebSocket = original; });
+  const until = async fn => { for (let i = 0; i < 500; i++) { if (fn()) return; await new Promise(r => setTimeout(r, 10)); } throw Error('timeout'); };
+  const states = [], client = new Presence({ endpoint: `ws://127.0.0.1:${port}/presence`, data, onStatus: s => states.push(s) });
+  t.after(() => client.stop()); client.start(); await until(() => client.connected);
+  assert.equal(client.status, 'connected'); assert.equal(client.id, null); assert.equal(app.clients.size, 1, 'admitted without building/joining a map');
+  const state = { ready: true, map: 'azure-harbor-v1', look, gear, pose };
+  client.state = () => state; await until(() => client.id);
+  client.action({ skill: 'slash', phase: 'cast', angle: 0, duration: .18, step: 0 }); assert.equal(client.seq, 1);
+  const id = client.id; app.clients.values().next().value.ws.terminate(); await until(() => client.id && client.id !== id);
+  assert.ok(states.includes('reconnecting')); assert.equal(client.seq, 0); assert.equal(client.seen.size, 0);
+  const failed = new Presence({ endpoint: `ws://127.0.0.1:${port}/wrong`, data }); t.after(() => failed.stop()); failed.start();
+  await until(() => failed.status === 'failed'); assert.equal(failed.connected, false); assert.notEqual(failed.status, 'solo');
+  failed.endpoint = `ws://127.0.0.1:${port}/presence`; failed.retryNow(); await until(() => failed.connected);
 });

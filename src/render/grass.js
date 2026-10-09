@@ -173,7 +173,7 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
     for(const k of names)points.setAttribute(k,new THREE.BufferAttribute(fields[k],batch[0].geometry.attributes[k].itemSize));
     const cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
     const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false}),pixels=new Uint8Array(width*height*4);
-    let read;
+    let read,waitTimer,retryTimer;
     try {
     if(asyncReadback&&!compiled&&renderer.compileAsync){
       // Compile the off-screen variant, which has a different output colour
@@ -199,21 +199,16 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
         renderer.setRenderTarget(previous,face,mip);renderer.setClearColor(clear,alpha);
       }
       if(asyncReadback){
-        // A readback fence normally settles within a few frames. Software GL has been seen to
-        // never settle one after a reload, which left the region build waiting forever; past
-        // the timeout, read the same target synchronously (one stall) and carry on.
+        // Renew one stale fence over the same submitted pixel buffer, without a blocking read.
+        // A genuinely stalled GPU still fails within the bound; streaming can retry the build.
         const settled=yield new Promise((resolve,reject)=>{
-          const timer=setTimeout(resolve,readbackTimeoutMs,null);
-          read.promise.then(result=>{clearTimeout(timer);resolve(result);},error=>{clearTimeout(timer);reject(error);});
+          const activeRead=read;
+          waitTimer=setTimeout(()=>reject(Object.assign(new Error(`grass bake: GPU readback did not settle in ${readbackTimeoutMs} ms`),{name:'GrassReadbackTimeoutError'})),readbackTimeoutMs);
+          retryTimer=setTimeout(()=>{try{activeRead.retry?.();}catch(error){reject(error);}},Math.min(250,readbackTimeoutMs/2));
+          const clear=()=>{clearTimeout(waitTimer);clearTimeout(retryTimer);};
+          activeRead.promise.then(result=>{clear();resolve(result);},error=>{clear();reject(error);});
         });
-        if(settled)pixels.set(settled);
-        else{
-          read.cancel(); // stop polling the fence and free its buffer
-          console.warn(`grass bake: GPU readback did not settle in ${readbackTimeoutMs} ms; reading synchronously`);
-          const previous=renderer.getRenderTarget(),face=renderer.getActiveCubeFace?.(),mip=renderer.getActiveMipmapLevel?.();
-          try{renderer.readRenderTargetPixels(target,0,0,width,height,pixels);}
-          finally{renderer.setRenderTarget(previous,face,mip);}
-        }
+        pixels.set(settled);
       }
       let offset=0;
       for(const mesh of batch){
@@ -229,7 +224,8 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
       }
     }
     }finally{
-      read?.cancel(); // return() skips the timeout fallback after the yielded wait.
+      clearTimeout(waitTimer);clearTimeout(retryTimer);
+      read?.cancel(); // return() must also free an unsettled read.
       scene.remove(cloud);points.dispose();target.dispose();
     }
     // only what the blade shader still reads stays on the GPU
@@ -255,7 +251,7 @@ function readbackAsync(renderer,target,width,height,out){
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER,buffer);gl.bufferData(gl.PIXEL_PACK_BUFFER,out.byteLength,gl.STREAM_READ);
   gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,0);
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
-  const sync=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
+  let sync=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
   let timer=0,done=false;
   const free=()=>{done=true;clearTimeout(timer);gl.deleteSync(sync);gl.deleteBuffer(buffer);};
   const promise=new Promise((resolve,reject)=>{
@@ -269,5 +265,10 @@ function readbackAsync(renderer,target,width,height,out){
     };
     timer=setTimeout(poll,4);
   });
-  return {promise,cancel(){if(!done)free();}};
+  return {promise,cancel(){if(!done)free();},retry(){
+    if(done)return;
+    const next=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);
+    if(!next)throw new Error('grass bake: could not renew GPU readback fence');
+    gl.deleteSync(sync);sync=next;gl.flush();
+  }};
 }

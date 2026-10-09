@@ -28,7 +28,7 @@ const groundOwners=new WeakMap();
 function createRegion(world){
   const previous=regionShift(),shift=beginRegion();useRegion(previous);
   const root=new THREE.Group();root.name='region-'+world.data.id;
-  const region={world,shift,root,npcs:[],npcMarkers:[],fires:[],chimneys:[],grass:[],waypointStones:new Map(),disposed:false,ready:null,stats:{},controller:new AbortController(),importedState:'building',staticReady:false,importDisposers:[]};
+  const region={world,shift,root,npcs:[],npcMarkers:[],fires:[],chimneys:[],grass:[],waypointStones:new Map(),disposed:false,ready:null,stats:{},controller:new AbortController(),importedState:'building',staticReady:false,grassReady:false,importDisposers:[]};
   groundOwners.set(world,(groundOwners.get(world)||0)+1);
   return region;
 }
@@ -59,12 +59,12 @@ export async function waitForRegionImports(view) {
   }
 }
 
-export function* regionSteps(view, world, region, {asyncGPU = true} = {}) {
+export function* regionSteps(view, world, region, {asyncGPU = true,onTerrainReady} = {}) {
   region ||= createRegion(world); // lazy: return() before the first next() owns nothing
   const {shift}=region;
   let completed=false;
   try {
-    yield* inRegion(shift,assembleRegion(view,world,region,{asyncGPU}));
+    yield* inRegion(shift,assembleRegion(view,world,region,{asyncGPU,onTerrainReady}));
     // Prepare the region's material variants with the live game's lighting
     // before exposing the neighbour. Fence waiting leaves other jobs runnable.
     if(asyncGPU)yield* inRegion(shift,compileRegionSteps(view,region.root));
@@ -72,12 +72,16 @@ export function* regionSteps(view, world, region, {asyncGPU = true} = {}) {
   } catch(error){if(error.name!=='AbortError')region.error=error;throw error;} finally {if(!completed)disposeRegion(region);}
 }
 
-function* assembleRegion(view,world,region,{asyncGPU}){
+function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   const {root,shift}=region;
   const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
   region.terrain = yield* inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)}));
   root.add(region.terrain.group);
   yield;
+  if(onTerrainReady){
+    if(asyncGPU)yield* inRegion(shift,compileRegionSteps(view,region.terrain.group));
+    onTerrainReady(region); // completed geometry only; the rest remains private to its owner
+  }
   useRegion(shift); // another build may have run in between
   const env = yield* inRegion(shift, environmentSteps(world,{groundHeight:domain.groundHeight,adopt:group=>root.add(group)}));
   yield;
@@ -99,7 +103,15 @@ function* assembleRegion(view,world,region,{asyncGPU}){
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
-  yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world,{asyncReadback:asyncGPU}));
+  try{yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world,{asyncReadback:asyncGPU}));region.grassReady=true;}
+  catch(error){
+    if(!asyncGPU||error.name!=='GrassReadbackTimeoutError')throw error;
+    // Keep valid terrain/scenery available if the GPU cannot finish the colour bake.
+    // Completed batches keep their High colours; never draw an unfinished grass shader.
+    region.grassError=error;
+    env.root.traverse(o=>{if(o.name==='ground-blended-grass'&&!o.userData.grassCulling)o.visible=false;});
+    console.warn('Grass colour bake incomplete: '+world.data.id,error);
+  }
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
@@ -309,6 +321,7 @@ export function disposeRegion(region) {
   region.disposed = true;
   region.importedState=region.error?'error':'cancelled';
   region.controller?.abort();
+  region.previewRoot?.removeFromParent();region.previewRoot=null; // borrows the owner's geometry/materials
   const handled=new Set();
   for(const dispose of region.importDisposers||[])for(const resource of dispose?.()||[])handled.add(resource);
   region.root.removeFromParent();

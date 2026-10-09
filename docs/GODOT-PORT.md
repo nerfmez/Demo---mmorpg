@@ -71,11 +71,21 @@ is in flight per session. Port to a SubViewport/readback without blocking the ma
 frame, keeping cleanup on failure and the same 128 px image/row orientation.
 
 The grass colour bake (`bakeGrassSteps`) also reads back asynchronously while a
-region streams in. A readback that has not settled after `readbackTimeoutMs`
-(default 5000) is abandoned into its own buffer and the same target is read
-synchronously, so a stuck fence costs one stall instead of a region that never
-finishes building. In Godot, give the SubViewport readback the same timeout and
-fallback.
+region streams in. A slow fence is renewed once after 250 ms (or half the configured
+bound), over the same submitted pixel buffer; successful colour output is unchanged.
+If it has not settled after `readbackTimeoutMs` (default 5000), that bake frees its
+GPU owners without a synchronous read. The region completes with valid terrain
+and scenery, hiding unfinished grass. A nearby neighbour gets one fresh build
+attempt after a 1000 ms backoff, retaining the completed scene during replacement.
+Persistent failure leaves that scene visible with `grassReady: false`; leaving
+the retained area resets the retry limit. Successful builds retain all grass.
+
+Streamed construction uses the existing six-ms task slices. Completed terrain is
+shader-prepared and shown through a clone borrowing its owner's buffers, while
+the owner remains map-local for grass baking. The preview cannot enable crossing:
+`neighbourReady()` still requires the completed region's `staticReady`. Eviction
+detaches the preview immediately and frees the owner after its bounded GPU wait.
+In Godot, preserve the same budget, readiness, bounded readback and ownership rules.
 
 | Web | Godot |
 |---|---|

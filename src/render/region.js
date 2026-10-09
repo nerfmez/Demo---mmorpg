@@ -58,17 +58,20 @@ export async function waitForRegionImports(view) {
   }
 }
 
-export function* regionSteps(view, world, region) {
+export function* regionSteps(view, world, region, {asyncGPU = true} = {}) {
   region ||= createRegion(world); // lazy: return() before the first next() owns nothing
   const {shift}=region;
   let completed=false;
   try {
-    yield* inRegion(shift,assembleRegion(view,world,region));
+    yield* inRegion(shift,assembleRegion(view,world,region,{asyncGPU}));
+    // Prepare the region's material variants with the live game's lighting
+    // before exposing the neighbour. Fence waiting leaves other jobs runnable.
+    if(asyncGPU)yield* inRegion(shift,compileRegionSteps(view,region.root));
     completed=true;return region;
   } catch(error){if(error.name!=='AbortError')region.error=error;throw error;} finally {if(!completed)disposeRegion(region);}
 }
 
-function* assembleRegion(view,world,region){
+function* assembleRegion(view,world,region,{asyncGPU}){
   const {root,shift}=region;
   const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
   region.terrain = yield* inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)}));
@@ -95,7 +98,7 @@ function* assembleRegion(view,world,region){
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
-  yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world)); // GPU passes per chunk; blades then just read colours
+  yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world,{asyncReadback:asyncGPU}));
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
@@ -108,15 +111,23 @@ function* assembleRegion(view,world,region){
 
   // Town NPCs
   const t = world.data.town;
+  const addNpc=n=>{
+    n.anim = new HumanoidAnimator(n);
+    n.idleState = { speed: 0, facing: n.root.rotation.y, moving: false, dash: null, dead: false, time: 0 };
+    root.add(n.root);
+    if (n.scarf) root.add(n.scarf.mesh);
+    region.npcs.push(n);
+  };
   const smith = buildHumanoid({ skin: '#e8b890', hair: '#8a4a2a', tunic: '#d9c7a8', hairStyle: 'short' }, {}, { npc: true, apron: '#5b3a22', beard: '#8a4a2a' });
   smith.root.position.set(t.workbench[0] + 1.6, world.groundY(t.workbench[0] + 1.6, t.workbench[1] + 0.2), t.workbench[1] + 0.2);
   smith.root.rotation.y = -Math.PI / 2 - 0.4;
   smith.job = 'smith';
+  addNpc(smith);yield;useRegion(shift);
   const trainer = buildHumanoid({ skin: '#f6d2b5', hair: '#f0d48a', tunic: '#fbf6ee', scarf: '#3b6ad0', eyes: '#3a6ad0' }, {}, { npc: true, longHair: true, straps: true, scarf: true });
   trainer.root.position.set(t.trainer[0] + 1.2, world.groundY(t.trainer[0] + 1.2, t.trainer[1] - 0.2), t.trainer[1] - 0.2);
   trainer.root.rotation.y = -Math.PI / 2 + 0.3;
   trainer.job = 'trainer';
-  const townNpcs = [smith, trainer];
+  addNpc(trainer);yield;useRegion(shift);
   if (t.shopkeeper) {
     // the potion seller (town.shop is where the player stands; town.shopkeeper is x, z, facing)
     const [kx, kz, ka] = t.shopkeeper;
@@ -124,7 +135,7 @@ function* assembleRegion(view,world,region){
     merchant.root.position.set(kx, world.groundY(kx, kz), kz);
     merchant.root.rotation.y = ka;
     merchant.job = 'shop';
-    townNpcs.push(merchant);
+    addNpc(merchant);yield;useRegion(shift);
   }
   for (const resident of t.residents || []) {
     const n = buildHumanoid(resident.look, {}, { npc: true, ...(resident.outfit || {}) });
@@ -134,14 +145,7 @@ function* assembleRegion(view,world,region){
     n.scenery = true;
     n.activity = resident.activity;
     if (resident.tool) n.bones.handR.add(residentTool(resident.tool));
-    townNpcs.push(n);
-  }
-  for (const n of townNpcs) {
-    n.anim = new HumanoidAnimator(n);
-    n.idleState = { speed: 0, facing: n.root.rotation.y, moving: false, dash: null, dead: false, time: 0 };
-    root.add(n.root);
-    if (n.scarf) root.add(n.scarf.mesh);
-    region.npcs.push(n);
+    addNpc(n);yield;useRegion(shift);
   }
   region.npcMarkers = [marker(root, world, t.workbench[0], t.workbench[1], '#ffd166'), marker(root, world, t.trainer[0], t.trainer[1], '#8fd0ff')];
   if (t.shop) region.npcMarkers.push(marker(root, world, ...(t.shopkeeper || t.shop).slice(0, 2), '#ff8fa8'));
@@ -191,12 +195,20 @@ function* assembleRegion(view,world,region){
           const disposeWater=waterOwner.commit(water);region.importDisposers.push(disposeWater);
         } catch(error){waterOwner.abort(water);throw error;}
         finally {nativeContacts.remove(city.root);}
+        if(asyncGPU){
+          await view.buildQueue.enqueue(inRegion(shift,compileRegionSteps(view,city.root)),{signal:region.controller.signal,label:'city.shaders'}).promise;
+          await view.buildQueue.enqueue(inRegion(shift,compileRegionSteps(view,water)),{signal:region.controller.signal,label:'water.shaders'}).promise;
+        }
         live();keep(city.root);region.cityRoot=city.root;keep(water);installed.push(city.root,water);
         city.stats.waterContactMs=performance.now()-start;
         city.stats.waterAssembly={...waterOwner.stats};city.stats.waterContactSections=water.userData.contactSections;
       }
       live();kit=await loadTownKit(world,options);live();
-      if(kit){region.importDisposers.push(kit.dispose);keep(kit.root);installed.push(kit.root);region.townKitRoot=kit.root;region.stats.townKit=kit.stats;}
+      if(kit){
+        region.importDisposers.push(kit.dispose);
+        if(asyncGPU)await view.buildQueue.enqueue(inRegion(shift,compileRegionSteps(view,kit.root)),{signal:region.controller.signal,label:'town-kit.shaders'}).promise;
+        live();keep(kit.root);installed.push(kit.root);region.townKitRoot=kit.root;region.stats.townKit=kit.stats;
+      }
       live();region.importedState='imported-ready';return {status:'imported-ready'};
     } catch(error){
       city?.dispose?.();kit?.dispose?.();
@@ -219,14 +231,46 @@ function* assembleRegion(view,world,region){
 // Materials made inside a nested build take this region's shift on every resume.
 export function* inRegion(shift, steps) {
   const resume=fn=>{const previous=regionShift();useRegion(shift);try{return fn();}finally{useRegion(previous);}};
-  let completed=false;
-  try {for(;;){const step=resume(()=>steps.next());if(step.done){completed=true;return step.value;}yield;}}
+  let completed=false,input,failed=false;
+  try {for(;;){
+    const step=resume(()=>failed?steps.throw(input):steps.next(input));
+    if(step.done){completed=true;return step.value;}
+    try {input=yield step.value;failed=false;}catch(error){input=error;failed=true;}
+  }}
   finally {if(!completed)resume(()=>steps.return?.());}
+}
+
+// compileAsync still submits all shader variants synchronously. A whole region
+// can overrun the queue just submitting them, so prepare bounded batches too.
+export function* compileRegionSteps(view,root){
+  if(!view.renderer.compileAsync)return;
+  const objects=[];
+  root.traverse(o=>{if(o.isMesh||o.isPoints||o.isLine||o.isSprite)objects.push(o);});
+  if(view.renderer.initTexture){
+    const textures=new Set();
+    for(const object of objects)for(const material of Array.isArray(object.material)?object.material:[object.material]){
+      if(!material)continue;
+      for(const value of Object.values(material))if(value?.isTexture)textures.add(value);
+      for(const uniform of Object.values(material.uniforms||{}))if(uniform.value?.isTexture)textures.add(uniform.value);
+    }
+    // Decode/upload with the normal renderer API before first visibility, one
+    // texture per step, instead of combining all uploads with a walking frame.
+    for(const texture of textures){view.renderer.initTexture(texture);yield;}
+  }
+  const batch=new THREE.Group();
+  try{
+    for(let i=0;i<objects.length;i+=16){
+      // Borrow actual objects so instancing/skinning/geometry variants are exact.
+      // No reparenting, disposal, or world-matrix changes through this container.
+      batch.children=objects.slice(i,i+16);
+      yield view.renderer.compileAsync(batch,view.camera,view.scene);
+    }
+  }finally{batch.children.length=0;}
 }
 
 /** Synchronous compatibility entry; normal startup and streaming use the shared queue. */
 export function buildRegion(view, world) {
-  const steps = regionSteps(view, world);
+  const steps = regionSteps(view, world, undefined, {asyncGPU:false});
   for (;;) {
     const r = steps.next();
     if (r.done) return r.value;

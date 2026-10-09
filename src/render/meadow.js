@@ -32,8 +32,10 @@ export function* meadowPlantSteps(world, extraPatches=[]) {
   };
   const patches=[...world.decor.grass,...extraPatches],flowerPatches=[...world.decor.flowers];
   // Fill actual unpaved town lawns/courtyards; no global "safe zone = no grass" shortcut.
+  let candidates=0;
   const spacing=art.ground.townPatchSpacing,b=world.bounds;
   for(let z=b.minZ+spacing/2;z<b.maxZ;z+=spacing)for(let x=b.minX+spacing/2;x<b.maxX;x+=spacing){
+    if(candidates++%16===0)yield;
     if(!world.zoneAt(x,z).safe)continue;
     const px=x+rng.range(-1.7,1.7),pz=z+rng.range(-1.7,1.7);
     if(!clear(px,pz))continue;
@@ -41,9 +43,10 @@ export function* meadowPlantSteps(world, extraPatches=[]) {
     if(rng.next()<.21)flowerPatches.push({x:px+.25,z:pz+.4,s:rng.range(.85,1.15),color:rng.pick([0,0,1,2])});
   }
   // One patch: loose elongated islands; centres carry taller blades, edges taper into ground paint.
-  const plant=(patch,r0,restored=false)=>{
+  const plant=function*(patch,r0,restored=false){
     const density=meadowDensity(patch.x,patch.z),axis=r0.range(0,Math.PI*2);
     for(let k=0;k<art.ground.grassPerPatch;k++){
+      if(k&&k%8===0)yield;
       if(r0.next()>.48+density*.72)continue;
       const a=r0.range(0,Math.PI*2),r=k===0?0:Math.sqrt(r0.next())*1.7;
       const lx=Math.sin(a)*r,lz=Math.cos(a)*r*.65;
@@ -57,8 +60,9 @@ export function* meadowPlantSteps(world, extraPatches=[]) {
     }
   };
   let done=0;
-  for(const patch of patches){plant(patch,rng);if(++done%120===0)yield;}
+  for(const patch of patches){yield* plant(patch,rng);if(++done%4===0)yield;}
   for(const patch of flowerPatches){
+    if(++done%4===0)yield;
     if(meadowDensity(patch.x,patch.z)<.18)continue;
     const count=patch.color<=1?7:4,axis=rng.range(0,6.28);
     for(let k=0;k<count;k++){
@@ -71,10 +75,11 @@ export function* meadowPlantSteps(world, extraPatches=[]) {
   // generator, run last, keeps every map/town patch and flower exactly where it was.
   const wild=createRng(1931),wildSpacing=art.ground.wildPatchSpacing;
   for(let z=b.minZ+wildSpacing/2;z<b.maxZ;z+=wildSpacing){yield;for(let x=b.minX+wildSpacing/2;x<b.maxX;x+=wildSpacing){
+    if(candidates++%4===0)yield;
     if(world.zoneAt(x,z).safe)continue;
     const px=x+wild.range(-2.2,2.2),pz=z+wild.range(-2.2,2.2);
     if(!clear(px,pz)||meadowDensity(px,pz)<art.ground.wildMinDensity)continue;
-    plant({x:px,z:pz,s:wild.range(.7,1.05)},wild);
+    yield* plant({x:px,z:pz,s:wild.range(.7,1.05)},wild);
   }}
   // Newly exposed ground gets its own restrained native lawn patches, after
   // the unchanged map passes. Existing meadow/flower instances keep their RNG.
@@ -82,9 +87,10 @@ export function* meadowPlantSteps(world, extraPatches=[]) {
   if(repair){
     const local=createRng(20261004),spacing=repair.restoredLawnSpacing,bb=repair.previousPaving.bounds;
     for(let z=bb[2]+spacing/2;z<bb[3];z+=spacing)for(let x=bb[0]+spacing/2;x<bb[1];x+=spacing){
+      if(candidates++%4===0)yield;
       const px=x+local.range(-1,1),pz=z+local.range(-1,1);
       if(!cityPlantingFloorAt(world.data.city,px,pz)||!clear(px,pz,true))continue;
-      plant({x:px,z:pz,s:local.range(.62,.91)},local,true);
+      yield* plant({x:px,z:pz,s:local.range(.62,.91)},local,true);
     }
   }
   return {grass,flowers};

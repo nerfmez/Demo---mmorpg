@@ -166,7 +166,8 @@ export class View {
     this.buildQueue.budgetMs=this.streamBudgetMs??STREAM_BUDGET_MS;
     for (const [id,n] of this.neighbours) if(!wanted.has(id)) {
       n.controller?.abort();
-      if(n.region)disposeRegion(n.region);else n.steps?.return();
+      // The queue closes unfinished generators after any in-flight GPU read.
+      if(n.region)disposeRegion(n.region);
       this.neighbours.delete(id);this.refreshGrass();
     }
   }

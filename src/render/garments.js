@@ -18,9 +18,9 @@ export function garmentFrame(mesh) {
     m.copy(sk.boneInverses[i]).invert();
     return p.setFromMatrixPosition(m).applyMatrix4(mesh.bindMatrixInverse).clone();
   };
-  const sh = at('J_Bip_L_UpperArm'), wr = at('J_Bip_L_Hand'), foot = at('J_Bip_L_Foot'), toe = at('J_Bip_L_ToeBase');
+  const sh = at('J_Bip_L_UpperArm'), el = at('J_Bip_L_LowerArm'), wr = at('J_Bip_L_Hand'), foot = at('J_Bip_L_Foot'), toe = at('J_Bip_L_ToeBase');
   return {
-    shoulder: Math.abs(sh.x), shoulderY: sh.y, armZ: sh.z, wrist: Math.abs(wr.x), wristY: wr.y,
+    shoulder: Math.abs(sh.x), shoulderY: sh.y, armZ: sh.z, elbow: Math.abs(el.x), wrist: Math.abs(wr.x), wristY: wr.y,
     neck: at('J_Bip_C_Neck').y, chest: at('J_Bip_C_UpperChest').y, hips: at('J_Bip_C_Hips').y,
     knee: at('J_Bip_L_LowerLeg').y, ankle: foot.y, front: Math.sign(toe.z - foot.z) || -1, leftSign: Math.sign(sh.x) || -1,
   };
@@ -36,6 +36,26 @@ varying vec3 vBind;
 vec3 garmentColor(vec3 p) {
   float x = abs(p.x), y = p.y, fr = p.z * ${f(F.front)}, trim = uCutA.w;
 `;
+  if (kind === 'gloves') return head + `
+  float len = ${f(F.wrist - F.elbow)}, t = (x - ${f(F.elbow)}) / len, top = 1.0 - uCutD.x;
+  if (t < top + 0.07) return uPal[2];
+  if (uCutC.z > 2.5 && (t < 1.0 ? fract(t * 4.0) < 0.12 : fract((x - ${f(F.wrist)}) / 0.032) < 0.2)) return uPal[2];
+  if (uCutC.z > 1.5 && uCutC.z < 2.5 && t < top + 0.32) return length(fract(vec2(x, y) * 45.0) - 0.5) < 0.2 ? uPal[3] : uPal[2];
+  if (uCutC.z > 0.5 && uCutC.z < 1.5) {
+    if (t > 1.05 && t < 1.2 && y > ${f(F.wristY)} && abs(p.z - ${f(F.armZ)}) < 0.016) return uPal[3];
+    if (fract(x / 0.026) < 0.2) return uPal[2];
+  }
+  return uPal[0];
+}
+`;
+  if (kind === 'boots') return head + `
+  float t = (y - ${f(F.ankle)}) / ${f(F.knee - F.ankle)};
+  if (t > uCutD.x - 0.09) return uPal[2];
+  if (uCutC.z > 2.5 && fract(t * 5.0) < 0.12) return uPal[2];
+  if (uCutC.z > 0.5 && uCutC.z < 1.5 && fr > 0.035 && fract(y / 0.035) < 0.3) return uPal[3];
+  return uPal[0];
+}
+`;
   if (kind === 'skirt') return head + `
   float hemY = ${f(F.hips - 0.02)} - uCutD.x, a = atan(p.x, fr);
   if (y < hemY + trim * 1.4) return uPal[2];
@@ -47,7 +67,7 @@ vec3 garmentColor(vec3 p) {
   return uPal[0];
 }
 `;
-  if (kind === 'hoodie') return head + `
+  if (kind === 'top') return head + `
   if (x > ${f(F.shoulder + 0.03)} && y > ${f(F.chest - 0.12)}) {
     float len = ${f(F.wrist - F.shoulder)}, t = (x - ${f(F.shoulder)}) / len;
     if (t > uCutA.x) discard;
@@ -99,8 +119,21 @@ export function garmentUniforms(outfit) {
     uPal: { value: PALETTE.map((k) => new THREE.Color(P[k] || '#ff00ff')) },
     uCutA: { value: new THREE.Vector4(c.sleeve, c.cuff, c.hem, c.trim) },
     uCutB: { value: new THREE.Vector4(c.panel, c.yoke, c.stripe, c.neck) },
-    uCutC: { value: new THREE.Vector4(c.pants, c.boot, c.pattern, 0) },
+    uCutC: { value: new THREE.Vector4(c.pants, 5, c.pattern, 0) },
     uCutD: { value: new THREE.Vector4(outfit.skirt?.length || 0, outfit.skirt?.opening || 0, 0, 0) },
+  };
+}
+
+/** Uniforms for a boots or gloves piece (resolveOutfit boots/gloves): main, trim, accent, sole. */
+export function pieceUniforms(piece) {
+  const P = piece.palette, pal = PALETTE.map(() => new THREE.Color(P.main));
+  pal[2].set(P.trim); pal[3].set(P.accent || P.trim); pal[9].set(P.sole || P.trim);
+  return {
+    uPal: { value: pal },
+    uCutA: { value: new THREE.Vector4(1, 2, 0, 0.012) },
+    uCutB: { value: new THREE.Vector4(0, 0, 0, 0) },
+    uCutC: { value: new THREE.Vector4(1, 5, piece.pattern || 0, 0) },
+    uCutD: { value: new THREE.Vector4(piece.len, 0, 0, 0) },
   };
 }
 

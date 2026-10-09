@@ -1,9 +1,9 @@
-// Base garments by category (docs/OUTFIT-BASE.md). The cloth base is the HairSample hoodie; the
-// coat, robe and armour bases are built here from the body itself, the way VRoid-style garments
-// start: a top "shell" is the body's torso and arms pushed out along the normals (it keeps the
-// body's skin weights, so it moves exactly with it), and a skirt is a flared ring hung from the
-// waist whose weights blend from the hips into each thigh (anime skirt weighting), so coat skirts,
-// robes and armour skirts follow the legs. Built once per body and size, shared by every rig.
+// Base garments by category (docs/OUTFIT-BASE.md), built from the body itself the way VRoid-style
+// garments start: a "shell" is a body region (torso and arms, hands, lower legs) pushed out along
+// the normals, so it keeps the body's skin weights and moves exactly with it; a skirt is a flared
+// ring hung from the waist whose weights blend from the hips into each thigh (anime skirt
+// weighting), so tunic hems, coat skirts, robes and armour skirts follow the legs. Built once per
+// body and size, shared by every rig.
 import * as THREE from 'three';
 
 const cache = new WeakMap();
@@ -26,19 +26,25 @@ function bodySkin(T) {
 }
 
 /**
- * The body's torso and arms (to the wrist, hands excluded) offset `off` metres along the normals.
- * @param {object} F garmentFrame() landmarks (bind space)
+ * A body region pushed out `off` metres along the normals, keeping the body's skin weights.
+ * Regions (bind space, metres):
+ *  - top: torso and arms to the wrist (hands excluded)
+ *  - gloves: the hands and the forearm down to `len` (0..1 of the elbow-to-wrist span above the wrist)
+ *  - boots: the leg from just above the ankle up to `len` (0..1 of the ankle-to-knee span, >1 above the knee)
+ * @param {object} F garmentFrame() landmarks
  */
-export function shellTop(T, F, off) {
-  return cached(T, 'shell:' + off, () => {
+export function bodyShell(T, F, region, off, len = 0) {
+  return cached(T, `${region}:${off}:${len}`, () => {
     const src = bodySkin(T).geometry, P = src.attributes.position, N = src.attributes.normal;
     const SI = src.attributes.skinIndex, SW = src.attributes.skinWeight, ix = src.index.array;
-    const keep = (i) => {
-      const x = Math.abs(P.getX(i)), y = P.getY(i);
-      if (x > F.shoulder + 0.03) return x < F.wrist - 0.015 && y > F.chest - 0.2; // arms, not hands
-      return y > F.hips - 0.17 && y < F.neck + 0.015;
-    };
+    const elbow = F.elbow ?? F.shoulder + (F.wrist - F.shoulder) * 0.47;
+    const keep = {
+      top: (x, y) => (x > F.shoulder + 0.03 ? x < F.wrist - 0.015 && y > F.chest - 0.2 : y > F.hips - 0.17 && y < F.neck + 0.015),
+      gloves: (x, y) => x > F.wrist - len * (F.wrist - elbow) - 0.02 && y > F.chest - 0.25,
+      boots: (x, y) => x < 0.3 && y > F.ankle + 0.035 && y < F.ankle + len * (F.knee - F.ankle),
+    }[region];
     const map = new Map(), pos = [], nor = [], si = [], sw = [], tri = [];
+    const inside = (i) => keep(Math.abs(P.getX(i)), P.getY(i));
     const at = (i) => {
       if (map.has(i)) return map.get(i);
       const n = new THREE.Vector3(N.getX(i), N.getY(i), N.getZ(i)).normalize();
@@ -50,7 +56,7 @@ export function shellTop(T, F, off) {
     };
     for (let t = 0; t < ix.length; t += 3) {
       const a = ix[t], b = ix[t + 1], c = ix[t + 2];
-      if (keep(a) && keep(b) && keep(c)) tri.push(at(a), at(b), at(c));
+      if (inside(a) && inside(b) && inside(c)) tri.push(at(a), at(b), at(c));
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

@@ -34,69 +34,72 @@ an entry in `data/outfits.json`, not a new model.
 
 ## Bases by category
 
-Not every outfit can come from a hoodie. Each style names a **base category**
-(`bases` in `data/outfits.json`), and the category decides which garments are worn:
+There is no shared hoodie. Each armour style names a **base category** (`bases` in
+`data/outfits.json`):
 
-| Category | Base garments | Styles / items |
+| Category | Base | Armour |
 |---|---|---|
-| `cloth` | the HairSample hoodie, trousers, shoes | tunic, vest: travel tunic, hide vest, sporeweave vest |
-| `coat` | a body-fitted top shell (no hood) + a knee-length skirt open at the front | coat: wolfpelt, ranger, wardenstalker coats |
-| `robe` | top shell + an ankle-length closed skirt | mantle: storm mantle |
-| `armor` | a thicker top shell + a short split skirt (plate segments) | plate and shell: crag plate, shell guard |
+| `cloth` | thin top shell; a tunic adds a closed knee-high hem (skirt) | travel tunic, storm mantle (a feather cloak over it) |
+| `vest` | thicker top shell, sleeveless, deep open front | hide vest, sporeweave vest |
+| `coat` | top shell + a knee-length skirt open at the front | wolfpelt, ranger, wardenstalker coats |
+| `armor` | the thickest top shell + a short split skirt, plate segments | crag plate, shell guard |
 
-`src/render/base-garments.js` builds the coat, robe and armour bases from the body itself:
-- **Top shell:** the body's torso and arms pushed out along the normals by `offset`. It keeps
-  the body's skin weights, so it moves exactly with the body.
-- **Skirt:** a flared ring hung from the measured waist. Its weights blend from the hips into
-  the thigh on each side (anime skirt weighting), so coats and robes part and swing with the
-  legs.
+Every garment is built from the body itself (`src/render/base-garments.js`):
+- **Shells:** a body region pushed out along the normals, keeping the body's skin weights, so
+  it moves exactly with the body. The regions are the torso and arms (tops), the hands and
+  forearms (gloves), and the shins (boot shafts).
+- **Skirts:** a flared ring hung from the measured waist. Its weights blend from the hips into
+  each thigh (anime skirt weighting), so hems part and swing with the legs.
 
-The bases are built once per body and size and shared by every rig. A style or item may
-override the skirt (`length`, `flare`, `opening`).
+The HairSample trousers and shoes stay as the base legwear. Each armour item sets its trousers'
+colour and how they are cut; the shoes take the boots' colours.
 
-Accessories (charms, pendants, rings) are not drawn on the character.
+**Boots, gloves and helms** are their own items, each shaped after its icon:
+- **Boots** (`boots`): shaft height `len` (ankle to knee, >1 above it), colours
+  main / trim (top band) / accent / sole, a `pattern` (laces, plate bands) and parts (cuffs,
+  fur, fins, wings, leaf tips, shin guards).
+- **Gloves** (`gloves`): a hand-and-forearm shell of length `len`, with a cuff band, wraps or
+  plates, and parts (fur cuffs, claws, studs, a glowing gem).
+- **Helms** (`helms`): a `kind` built in `src/render/headwear.js` (`cap`, `shell` with
+  optional `spikes`, `pointedHood`, `circlet`, `horned`, `furHood`) and its palette.
+
+**Accessories** (charms, pendants, rings) are not drawn on the character.
 
 ## How a look is built
 
-`resolveOutfit(gearLook, outfits, appearance)` (`src/core/outfit-look.js`) merges, in order:
+`resolveOutfit(gearLook, outfits, appearance)` (`src/core/outfit-look.js`) merges:
 
-1. `base`: the adventurer's defaults (hoodie in the chosen tunic colour, dark trousers, tucked-in
-   travel boots, bandolier, belt, pouch, thigh strap, bracers).
-2. `styles[item.style]`: the archetype (`tunic`, `vest`, `coat`, `mantle`, `plate` or `shell`), which also picks the base category.
-3. `armor[equipped armour]`: this item's palette, cut and parts (`drop` removes inherited parts).
-4. `boots[equipped boots]`: boot colours, where the shaft starts, and boot parts.
+1. `base`: defaults (palette, cut, a belt);
+2. `styles[armour.style]`, which also picks the base category;
+3. `armor[equipped armour]`: palette, cut, skirt and parts (`drop` removes inherited parts).
+
+It also returns the equipped `boots` (travel boots by default), `gloves` and `helm` pieces.
 
 | Field | Meaning |
 |---|---|
-| `palette` | `main sleeve trim accent cuff pattern pants pantsTrim shoes sole` for the garments, plus `leather strap metal fur gem` for parts. `"$tunic"` is the character's chosen colour. |
-| `cut.sleeve`, `cut.cuff` | 0..1 from shoulder to wrist: where the sleeve ends (shows the arm) and where the cuff band starts. |
-| `cut.hem` | Metres below the hips where the top ends (0.16 is the base hoodie, the longest). |
-| `cut.trim`, `panel`, `yoke`, `stripe`, `neck` | Piping width, placket half width, yoke depth, sleeve stripe half width, V-neck depth (m). |
-| `cut.pants`, `cut.boot` | 0..1 from hips to ankle: where the trousers end and where the boot shaft starts (>1 = slippers, no shaft). |
-| `cut.pattern` | 0 none, 1 hem bands, 2 dots, 3 plate segments. |
-| `skirt` | `length` below the waist and `flare` at the hem (m), `opening` (radians either side of the front, 0 = closed). |
+| `palette` | `main sleeve trim accent cuff pattern pants pantsTrim` for the top, skirt and trousers, plus `leather strap metal fur gem` for parts. `"$tunic"` is the character's chosen colour. |
+| `cut.sleeve`, `cut.cuff` | 0..1 from shoulder to wrist (0 = sleeveless). |
+| `cut.hem` | Metres below the hips where the top ends (≤ 0.16). |
+| `cut.trim`, `panel`, `yoke`, `stripe`, `neck` | Piping width, placket half width, yoke depth, sleeve stripe, V-neck depth (m). |
+| `cut.pants` | 0..1 from hips to ankle where the trousers end. |
+| `cut.pattern` | 0 none, 1 bands, 2 dots, 3 plate segments. |
+| `skirt` | `length` and `flare` (m), `opening` (radians either side of the front, 0 = closed). |
 | `parts` | Names in `PARTS` (`src/render/outfit.js`). |
 
-`src/render/garments.js` cuts and paints the three garments in the shader from the bind-pose
-position (one program per garment kind, colours and cuts as per-rig uniforms), with an outline
-hull that follows the same cut. `src/render/outfit.js` `PARTS` holds the raised pieces:
-
-- straps: `bandolier belt hipPouch thighStrap bracers`
-- boots: `bootCuffs bootStraps furCuffs toeClaws ankleRibbons ankleWings shinGuards`
-- neck and shoulders: `furCollar highCollar capelet halfCape`
-- waist and below: `tabard sash tassets`
-- armour: `chestPlate shellPlate gem pauldronL pauldronR`
-
-The hero wears no scarf and no fixed shoulder guard: shoulders change only with the outfit.
+`src/render/garments.js` cuts and paints every garment in the shader from the bind-pose
+position, and adds a same-cut outline hull. There is one program per garment kind (top, skirt,
+trousers, shoes, boots, gloves); colours and cuts are per-rig uniforms.
 
 ## Adding an outfit
 
 1. Pick a style and three colours (main / sleeve / accent) plus a trim colour.
 2. Change at least one silhouette point (shoulders, hem or boots) with `cut` or `parts`.
-3. Add it under `armor` (or `boots`) with the item id. `tests/core/outfits.test.js` checks that
+3. Add it under `armor`, `boots`, `gloves` or `helms` with the item id, colours sampled from
+   the item icon. `tests/core/outfits.test.js` checks that
    every item has an entry, colours and cuts are valid, parts exist, and no two items look the
    same.
-4. Review it with `node tests/browser/outfits.mjs` (front and back stills of every armour).
+4. Review it with `node tests/browser/outfits.mjs` (front and back stills of full sets, plus
+   walk frames).
 
 A new kind of piece is a new function in `PARTS`, built in rest world space (metres, the driver
 bones' rest positions `W`) and added to the bone it should follow.

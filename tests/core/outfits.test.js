@@ -1,6 +1,6 @@
-// Outfit base (data/outfits.json): every armour and boots item resolves to its own look built
-// from the shared base, the cut stays within what the base garments can show, and every part
-// named in the data exists in the parts library.
+// Outfits by category (data/outfits.json): every armour, boots, gloves and helm item has its own
+// look built on its category base, the cuts stay within what the base garments can show, and
+// every part or headwear kind named in the data exists.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,68 +8,76 @@ import { data } from './helpers.js';
 import { resolveOutfit } from '../../src/core/outfit-look.js';
 import { PARTS } from '../../src/render/outfit.js';
 import { PALETTE } from '../../src/render/garments.js';
+import { HELM_KINDS } from '../../src/render/headwear.js';
 
 const OUT = JSON.parse(readFileSync(new URL('../../data/outfits.json', import.meta.url)));
 const G = data.items.gearBases;
 const ids = (slot) => Object.keys(G).filter((id) => G[id].slot === slot);
-const look = (armor, boots) => resolveOutfit({ bases: { armor, boots } }, OUT, { tunic: '#f1e3cc' });
+const look = (bases) => resolveOutfit({ bases }, OUT, { tunic: '#f1e3cc' });
+const HEX = /^#[0-9a-f]{6}$/i;
+const TABLE = { armor: 'armor', boots: 'boots', gloves: 'gloves', helm: 'helms' };
 
-test('every armour and boots item has an outfit entry built on the base', () => {
-  for (const id of ids('armor')) assert.ok(OUT.armor[id], `armor ${id}`);
-  for (const id of ids('boots')) assert.ok(OUT.boots[id], `boots ${id}`);
-  for (const id of Object.keys(OUT.armor)) assert.equal(G[id]?.slot, 'armor', id);
-  for (const id of Object.keys(OUT.boots)) assert.equal(G[id]?.slot, 'boots', id);
-  for (const [id, e] of Object.entries(OUT.armor)) assert.ok(OUT.styles[e.style], `${id}: style ${e.style}`);
+test('every armour, boots, gloves and helm item has an outfit entry; accessories have none', () => {
+  for (const [slot, table] of Object.entries(TABLE)) {
+    for (const id of ids(slot)) assert.ok(OUT[table][id], `${slot} ${id}`);
+    for (const id of Object.keys(OUT[table])) assert.equal(G[id]?.slot, slot, id);
+  }
+  for (const id of ids('charm')) for (const table of Object.values(TABLE)) assert.ok(!OUT[table][id], `${id} is not drawn`);
+  for (const [id, e] of Object.entries(OUT.armor)) assert.ok(OUT.styles[e.style] && OUT.bases[OUT.styles[e.style].base], `${id}: style and base`);
+  for (const [id, e] of Object.entries(OUT.helms)) assert.ok(HELM_KINDS.includes(e.kind), `${id}: headwear ${e.kind}`);
 });
 
-test('a resolved look has every colour and cut the garments need, inside the base', () => {
-  for (const a of [undefined, ...ids('armor')]) for (const b of [undefined, ...ids('boots')]) {
-    const o = look(a, b);
-    for (const k of PALETTE) assert.match(o.palette[k], /^#[0-9a-f]{6}$/i, `${a}/${b} ${k}`);
+test('a resolved look has every colour, cut and part it needs, inside the base', () => {
+  for (const armor of ids('armor')) for (const boots of [undefined, ...ids('boots')]) {
+    const o = look({ armor, boots });
+    for (const k of PALETTE) assert.match(o.palette[k], HEX, `${armor}/${boots} ${k}`);
     const c = o.cut;
-    assert.ok(c.sleeve > 0.2 && c.sleeve <= 1.05, 'sleeve');
-    assert.ok(c.hem >= 0 && c.hem <= 0.16, 'the base top ends 0.16 below the hips');
-    assert.ok(c.pants > 0.3 && c.pants <= 1, 'pants');
-    assert.ok(c.boot > 0.4, 'boot shaft below the hips');
+    assert.ok(c.sleeve >= 0 && c.sleeve <= 1.05, 'sleeve');
+    assert.ok(c.hem >= 0 && c.hem <= 0.16, 'hem');
     assert.ok([0, 1, 2, 3].includes(c.pattern), 'pattern');
-    for (const p of o.parts) assert.ok(PARTS[p], `${a}/${b}: part ${p}`);
+    assert.ok(!o.skirt || (o.skirt.length > 0.1 && o.skirt.length < 0.9), `${armor}: skirt within the leg`);
+    for (const p of [...o.parts, ...o.boots.parts]) assert.ok(PARTS[p], `${armor}/${boots}: part ${p}`);
+    assert.ok(o.boots.len > 0 && o.boots.len < 1.3, 'boot height');
   }
-});
-
-test('the base garment set depends on the category: cloth, coat, robe and armour', () => {
-  const kinds = (id) => { const o = look(id); return [o.base.name, o.base.top, o.skirt && o.skirt.length]; };
-  assert.deepEqual(kinds('travel_tunic'), ['cloth', 'hoodie', null]);
-  assert.deepEqual(kinds('hide_vest').slice(0, 2), ['cloth', 'hoodie']);
-  assert.equal(kinds('ranger_coat')[0], 'coat');
-  assert.ok(look('ranger_coat').skirt.opening > 0, 'a coat opens at the front');
-  assert.equal(kinds('storm_mantle')[0], 'robe');
-  assert.equal(look('storm_mantle').skirt.opening, 0, 'a robe is closed');
-  assert.ok(look('storm_mantle').skirt.length > look('ranger_coat').skirt.length);
-  assert.equal(kinds('crag_plate')[0], 'armor');
-  for (const id of ids('armor')) {
-    const o = look(id);
-    assert.ok(OUT.bases[o.base.name], id);
-    if (o.base.top === 'shell') assert.ok(o.skirt && o.skirt.length > 0.1 && o.skirt.length < 0.9, `${id}: skirt within the leg`);
+  for (const gloves of ids('gloves')) {
+    const g = look({ gloves }).gloves;
+    for (const k of ['main', 'trim', 'accent']) assert.match(g.palette[k], HEX, `${gloves} ${k}`);
+    assert.ok(g.len > 0.2 && g.len <= 0.7, `${gloves}: glove length`);
+    for (const p of g.parts) assert.ok(PARTS[p], `${gloves}: part ${p}`);
   }
+  for (const helm of ids('helm')) for (const v of Object.values(look({ helm }).helm.palette)) assert.match(v, HEX, helm);
 });
 
-test('each armour and each boots item looks different from the others', () => {
-  const sig = (o) => JSON.stringify([o.base.name, o.skirt, o.palette.main, o.palette.sleeve, o.palette.trim, o.cut, o.parts]);
-  const armours = ids('armor').map((id) => sig(look(id)));
-  assert.equal(new Set(armours).size, armours.length, 'no two armours share a look');
-  const boots = ids('boots').map((id) => { const o = look(undefined, id); return JSON.stringify([o.palette.shoes, o.palette.sole, o.cut.boot, o.parts]); });
-  assert.equal(new Set(boots).size, boots.length, 'no two boots share a look');
+test('the base is chosen by category, not one shared hoodie', () => {
+  const base = (armor) => look({ armor }).base.name;
+  assert.equal(base('travel_tunic'), 'cloth');
+  assert.equal(base('hide_vest'), 'vest');
+  assert.equal(base('ranger_coat'), 'coat');
+  assert.equal(base('crag_plate'), 'armor');
+  assert.equal(base('shell_guard'), 'armor');
+  assert.equal(look({ armor: 'hide_vest' }).cut.sleeve, 0, 'a vest is sleeveless');
+  assert.ok(look({ armor: 'ranger_coat' }).skirt.opening > 0, 'a coat opens at the front');
+  assert.equal(look({ armor: 'travel_tunic' }).skirt.opening, 0, 'a tunic hem is closed');
+  assert.ok(look({ armor: 'crag_plate' }).base.offset > look({ armor: 'travel_tunic' }).base.offset, 'armour stands off the body more than cloth');
 });
 
-test('layers merge in order: base, style, item, boots; "$tunic" follows the chosen colour', () => {
+test('no two items of a slot look alike', () => {
+  const sigs = {
+    armor: ids('armor').map((id) => { const o = look({ armor: id }); return JSON.stringify([o.base.name, o.skirt, o.palette.main, o.palette.trim, o.cut, o.parts]); }),
+    boots: ids('boots').map((id) => JSON.stringify(look({ boots: id }).boots)),
+    gloves: ids('gloves').map((id) => JSON.stringify({ ...look({ gloves: id }).gloves, id: 0 })),
+    helm: ids('helm').map((id) => JSON.stringify({ ...look({ helm: id }).helm, id: 0 })),
+  };
+  for (const [slot, list] of Object.entries(sigs)) assert.equal(new Set(list).size, list.length, slot);
+});
+
+test('layers merge in order; "$tunic" follows the chosen colour; shoes follow the boots', () => {
   const plain = resolveOutfit({}, OUT, { tunic: '#123456' });
-  assert.equal(plain.palette.main, '#123456');
-  assert.deepEqual(plain.parts.slice(0, 5), OUT.base.parts);
-  assert.ok(plain.parts.includes('bootCuffs'), 'no boots: the travel boots');
-  const plate = look('crag_plate', 'crag_greaves');
-  assert.ok(!plate.parts.includes('bandolier'), 'an item can drop a base part');
-  assert.ok(plate.parts.includes('chestPlate') && plate.parts.includes('gem') && plate.parts.includes('shinGuards'));
-  assert.equal(plate.cut.boot, OUT.boots.crag_greaves.cut.boot);
-  assert.equal(look('wardenstalker_coat').skirt.length, OUT.armor.wardenstalker_coat.skirt.length, 'the item overrides its base skirt');
-  assert.equal(look('ranger_coat').skirt.length, OUT.bases.coat.skirt.length, 'otherwise the base category decides');
+  assert.equal(plain.boots.id, 'travel_boots', 'no boots: the travel boots');
+  assert.equal(plain.gloves, null);
+  assert.equal(plain.helm, null);
+  const o = look({ armor: 'crag_plate', boots: 'gale_boots' });
+  assert.ok(o.parts.includes('chestPlate') && o.parts.includes('belt'));
+  assert.equal(o.palette.shoes, OUT.boots.gale_boots.palette.main);
+  assert.equal(look({ armor: 'wardenstalker_coat' }).skirt.length, OUT.armor.wardenstalker_coat.skirt.length, 'the item overrides its base skirt');
 });

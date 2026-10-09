@@ -983,23 +983,28 @@ overrides the defaults kept from the first maps; zones of a map differ in their 
 `ruins.altar: false` drops the generic altar from a ruin ring (the grove's ring has the crescent
 altar landmark instead).
 
-### Outfit base (armour and boots looks)
+### Outfits by category (armour, boots, gloves, helms)
 
-Worn looks are data: `data/outfits.json` holds a `base` outfit, `styles` (tunic, vest, coat,
-mantle, plate, shell), and one entry per armour and boots item. `resolveOutfit(gearLook,
-outfits, appearance)` in `src/core/outfit-look.js` (pure, tested) merges base → style → armour
-→ boots into `{style, palette, cut, parts}`. The renderer cuts and paints the HairSample
-wardrobe's three garments (top, trousers, shoes) from bind-pose position in
-`src/render/garments.js`:
-- sleeve and hem lengths are discarded fragments (the complete base skin is underneath);
-- piping, placket, cuffs, yoke, sleeve stripe, patterns, tucked-in boot shafts and soles are
-  colour zones;
-- an outline hull follows the same cut.
+Worn looks are data: `data/outfits.json` holds `bases` by category (cloth, vest, coat, armor),
+`styles` (each names its base), and one entry per armour, boots, gloves and helm item.
+`resolveOutfit(gearLook, outfits, appearance)` in `src/core/outfit-look.js` (pure, tested)
+returns the top (style, base, skirt, palette, cut, parts) plus `boots`, `gloves` and `helm`
+pieces.
 
-Each style names a base category (`bases`): `cloth` is the hoodie; `coat`, `robe` and `armor`
-wear a top shell (the body's torso and arms offset along the normals, with the body's skin
-weights) plus a skirt (a flared ring from the waist, weights blended from the hips into each
-thigh). Both are built in `src/render/base-garments.js`. Raised pieces come from `PARTS` in
-`src/render/outfit.js`, rigid on the driver bone they follow. Accessories are not drawn. In Godot: one ShaderMaterial per garment kind with the same
-uniforms (`uPal[10]`, `uCutA/B/C`) reading a bind-position varying, and a scene per part
-attached to a `BoneAttachment3D`; the shell and skirt can be baked once as skinned meshes. See `docs/OUTFIT-BASE.md`.
+`src/render/base-garments.js` builds every garment from the HairSample body:
+- tops, gloves and boot shafts are body regions offset along the normals, keeping the body's
+  skin weights;
+- skirts are flared rings from the waist, weighted from the hips into the thighs;
+- the HairSample trousers and shoes stay as base legwear.
+
+`src/render/garments.js` cuts (discard) and paints them from the bind-pose position, with a
+same-cut outline hull. Raised pieces are `PARTS` in `src/render/outfit.js`; helms are kinds in
+`src/render/headwear.js`. Accessories are not drawn.
+
+In Godot:
+- bake each base garment once as a skinned mesh;
+- use a ShaderMaterial per garment kind with the same uniforms (`uPal[10]`, `uCutA..D`)
+  reading a bind-position varying;
+- make a scene per part or helm on a `BoneAttachment3D`.
+
+See `docs/OUTFIT-BASE.md`.

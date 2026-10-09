@@ -14,6 +14,7 @@ import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
+import { buildHeadwear } from './headwear.js';
 import OUTFITS from '../../data/outfits.json';
 import { resolveOutfit } from '../core/outfit-look.js';
 import { modelInstance, characterBase } from './models.js';
@@ -173,12 +174,12 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
-  helm(rb, gear.helm, L);
+  buildHeadwear(rb, wear.helm);
   const outfit = T || X ? buildOutfit(rb, T || X, wear) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
   const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
-  buildGloves(rb, gear.gloves);
+  if (!X) buildGloves(rb, gear.gloves); // the HairSample hero wears glove shells (hairsample.js)
   // accessories (charms, pendants, rings) are not drawn on the character
 
   const rig = rb.build();
@@ -221,30 +222,6 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   return rig;
 }
 
-function helm(rb, kind, L) {
-  if (!kind) return;
-  if (kind === 'cap') {
-    rb.add('head', new THREE.SphereGeometry(0.145, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.45).translate(0, 0.16, -0.01), '#8a5a3a');
-    rb.add('head', new THREE.CylinderGeometry(0.15, 0.15, 0.02, 14, 1, false, -Math.PI / 2, Math.PI).translate(0, 0.19, 0.05), '#6f4a30');
-  } else if (kind === 'beetle') {
-    rb.add('head', new THREE.SphereGeometry(0.15, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).translate(0, 0.16, -0.01), '#5d8a3a');
-    rb.add('head', new THREE.ConeGeometry(0.03, 0.12, 5), '#d9c9a0', { pos: [0, 0.32, 0.03], rot: [0.3, 0, 0] });
-  } else if (kind === 'circlet') {
-    rb.add('head', new THREE.TorusGeometry(0.138, 0.012, 5, 18).rotateX(Math.PI / 2), '#e0c060', { pos: [0, 0.2, 0] });
-    for (const s of [1, -1]) rb.add('head', new THREE.ConeGeometry(0.03, 0.16, 4), '#f4f0e8', { pos: [s * 0.13, 0.25, -0.02], rot: [0, 0, -s * 0.6] });
-  } else if (kind === 'horned') {
-    rb.add('head', new THREE.SphereGeometry(0.15, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).translate(0, 0.15, -0.01), '#6d6f78');
-    for (const s of [1, -1]) {
-      rb.add('head', new THREE.ConeGeometry(0.035, 0.22, 6).translate(0, 0.11, 0), '#e7dcc0', { pos: [s * 0.12, 0.24, 0], rot: [0.2, 0, -s * 0.9] });
-    }
-  } else if (kind === 'hood') {
-    // a closed crown, then sides and back with the face left open
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, 0, Math.PI * 2, 0, Math.PI * 0.34).translate(0, 0.14, -0.02), '#a58384');
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5, Math.PI * 0.34, Math.PI * 0.36).translate(0, 0.14, -0.02), '#a58384');
-    for(const [x,y] of [[-.07,.24],[.075,.18]]) rb.add('head',new THREE.SphereGeometry(.02,6,4),'#e2caa1',{pos:[x,y,.10],plain:true});
-  }
-  void L;
-}
 
 // ---------- animation (actions: actions.js) ----------
 

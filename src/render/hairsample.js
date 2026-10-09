@@ -3,8 +3,8 @@
 import * as THREE from 'three';
 import {attachVrmBody} from './vrm-body.js';
 import {bindSkinSync} from './skinned.js';
-import {garmentFrame,garmentUniforms,garmentMaterial,garmentHull} from './garments.js';
-import {shellTop,skirt} from './base-garments.js';
+import {garmentFrame,garmentUniforms,pieceUniforms,garmentMaterial,garmentHull} from './garments.js';
+import {bodyShell,skirt} from './base-garments.js';
 const v=new THREE.Vector3(),q=new THREE.Quaternion(),p=new THREE.Quaternion();
 export function attachHairSampleBody(rig,T,gear,colors){
  attachVrmBody(rig,T);
@@ -16,32 +16,35 @@ export function attachHairSampleBody(rig,T,gear,colors){
  body.traverse(o=>{if(o.isSkinnedMesh&&o.name==='BodySkin')skeleton=o.skeleton;});
  if(!skeleton)throw Error('HairSample: complete base skin missing');
  const armor=gear.armor||'tunic';
- // The outfit base by category (base-garments.js): cloth wears the hoodie; coat, robe and armour
- // wear a body-fitted top shell and a skirt. Trousers and shoes are shared by every category.
- const outfit=colors.outfit,uniforms=garmentUniforms(outfit),flash=rig.material.userData.flash;
+ // Outfits by category (base-garments.js): every top, glove and boot shaft is a shell of the
+ // body itself, a skirt hangs from the waist; the HairSample trousers and shoes stay as the base
+ // legwear. Each garment is cut and painted from its item's data (garments.js).
+ const outfit=colors.outfit,flash=rig.material.userData.flash;
+ const top=garmentUniforms(outfit);
  let bind=null,frameSource=null;
- const dress=(kind,geometry,source)=>{
+ const dress=(kind,geometry,uniforms,source=frameSource)=>{
   const frame=T.garmentFrame;
   const make=material=>{
    const m=new THREE.SkinnedMesh(geometry,material);
-   if(source){m.position.copy(source.position);m.quaternion.copy(source.quaternion);m.scale.copy(source.scale);}
+   m.position.copy(source.position);m.quaternion.copy(source.quaternion);m.scale.copy(source.scale);
    m.bind(skeleton,bind);m.frustumCulled=false;return m;
   };
-  const part=make(garmentMaterial(kind==='shell'?'hoodie':kind,frame,uniforms,flash));
+  const part=make(garmentMaterial(kind,frame,uniforms,flash));
   part.name='Garment-'+kind;part.userData={bodyPart:kind};part.castShadow=true;part.receiveShadow=true;
-  const hull=make(garmentHull(kind==='shell'?'hoodie':kind,frame,uniforms));hull.name=part.name+'-outline';
+  const hull=make(garmentHull(kind,frame,uniforms,kind==='gloves'?.006:.01));hull.name=part.name+'-outline';
   wardrobe.add(part,hull);
  };
  T.wardrobe.traverse(source=>{
   if(!source.isSkinnedMesh)return;
-  const kind=source.userData.bodyPart;T.garmentFrame||=garmentFrame(source);bind||=source.bindMatrix;frameSource||=source;
-  if(kind==='hoodie'&&outfit.base.top!=='hoodie')return;
-  dress(kind,source.geometry,source);
+  T.garmentFrame||=garmentFrame(source);bind||=source.bindMatrix;frameSource||=source;
+  const kind=source.userData.bodyPart;
+  if(kind==='pants'||kind==='shoes')dress(kind,source.geometry,top,source);
  });
- if(outfit.base.top==='shell'){
-  dress('shell',shellTop(T,T.garmentFrame,outfit.base.offset||.014),frameSource);
-  if(outfit.skirt)dress('skirt',skirt(T,T.garmentFrame,outfit.skirt),frameSource);
- }
+ const F=T.garmentFrame;
+ dress('top',bodyShell(T,F,'top',outfit.base.offset||.012),top);
+ if(outfit.skirt)dress('skirt',skirt(T,F,outfit.skirt),top);
+ if(outfit.boots.len>0.15)dress('boots',bodyShell(T,F,'boots',.026,outfit.boots.len),pieceUniforms(outfit.boots));
+ if(outfit.gloves)dress('gloves',bodyShell(T,F,'gloves',.006,outfit.gloves.len),pieceUniforms(outfit.gloves));
  rig.outfit=colors.outfit;
  rig.hairsample=true;rig.wardrobe=wardrobe;rig.armorKind=armor;
  // Static attachment grip, not new animation keys. The legacy weapon +Z socket

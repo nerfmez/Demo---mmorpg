@@ -58,17 +58,20 @@ export async function waitForRegionImports(view) {
   }
 }
 
-export function* regionSteps(view, world, region) {
+export function* regionSteps(view, world, region, {asyncGPU = true} = {}) {
   region ||= createRegion(world); // lazy: return() before the first next() owns nothing
   const {shift}=region;
   let completed=false;
   try {
-    yield* inRegion(shift,assembleRegion(view,world,region));
+    yield* inRegion(shift,assembleRegion(view,world,region,{asyncGPU}));
+    // Prepare the region's material variants with the live game's lighting
+    // before exposing the neighbour. Fence waiting leaves other jobs runnable.
+    if(asyncGPU&&view.renderer.compileAsync)yield view.renderer.compileAsync(region.root,view.camera,view.scene);
     completed=true;return region;
   } catch(error){if(error.name!=='AbortError')region.error=error;throw error;} finally {if(!completed)disposeRegion(region);}
 }
 
-function* assembleRegion(view,world,region){
+function* assembleRegion(view,world,region,{asyncGPU}){
   const {root,shift}=region;
   const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
   region.terrain = yield* inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)}));
@@ -95,7 +98,7 @@ function* assembleRegion(view,world,region){
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
-  yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world)); // GPU passes per chunk; blades then just read colours
+  yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world,{asyncReadback:asyncGPU}));
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
@@ -219,14 +222,18 @@ function* assembleRegion(view,world,region){
 // Materials made inside a nested build take this region's shift on every resume.
 export function* inRegion(shift, steps) {
   const resume=fn=>{const previous=regionShift();useRegion(shift);try{return fn();}finally{useRegion(previous);}};
-  let completed=false;
-  try {for(;;){const step=resume(()=>steps.next());if(step.done){completed=true;return step.value;}yield;}}
+  let completed=false,input,failed=false;
+  try {for(;;){
+    const step=resume(()=>failed?steps.throw(input):steps.next(input));
+    if(step.done){completed=true;return step.value;}
+    try {input=yield step.value;failed=false;}catch(error){input=error;failed=true;}
+  }}
   finally {if(!completed)resume(()=>steps.return?.());}
 }
 
 /** Synchronous compatibility entry; normal startup and streaming use the shared queue. */
 export function buildRegion(view, world) {
-  const steps = regionSteps(view, world);
+  const steps = regionSteps(view, world, undefined, {asyncGPU:false});
   for (;;) {
     const r = steps.next();
     if (r.done) return r.value;

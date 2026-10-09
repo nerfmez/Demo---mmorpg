@@ -32,6 +32,11 @@ export function sampleGround(world,x,z) {
 }
 
 export function attachGrassSurface(mesh,items,world) {
+  const steps=attachGrassSurfaceSteps(mesh,items,world);
+  for(;;)if(steps.next().done)return;
+}
+
+export function* attachGrassSurfaceSteps(mesh,items,world) {
   // Per-chunk attributes must belong to that chunk, not the shared blade geometry.
   mesh.geometry=mesh.geometry.clone();
   const fields={aGrassLight:3,aGrassDark:3,aGrassSplat:4,aGrassCoast:2,aGrassNormal:3,aGrassY:1,aGrassTown:1};
@@ -43,12 +48,14 @@ export function attachGrassSurface(mesh,items,world) {
     radius=Math.max(radius,Math.hypot(x,y,z)+Math.max(0,y)*.15*Math.hypot(1,.6));
   }
   mesh.userData.grassRadii=radii;
-  items.forEach((it,i)=>{
+  for(let i=0;i<items.length;i++){
+    const it=items[i];
     const scale=it.s??1;
     radii[i]=radius*Math.max(it.sx??scale,it.sy??scale,it.sz??scale)+.02;
     const p=sampleGround(world,it.x,it.z);
     for(const [k,v] of Object.entries({aGrassLight:p.light,aGrassDark:p.dark,aGrassSplat:p.splat,aGrassCoast:p.coast,aGrassNormal:p.normal,aGrassY:[p.height],aGrassTown:[p.town]})) arrays[k].set(v,i*fields[k]);
-  });
+    if((i+1)%64===0)yield;
+  }
   for(const [k,n] of Object.entries(fields))mesh.geometry.setAttribute(k,new THREE.InstancedBufferAttribute(arrays[k],n));
   mesh.name='ground-blended-grass';
 }
@@ -104,7 +111,7 @@ export function bakeGrassColours(renderer,root,world) {
 }
 
 /** The same bake one grass chunk at a time; the render target is restored between. */
-export function* bakeGrassSteps(renderer,root,world) {
+export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false}={}) {
   const meshes=[];root.traverse(o=>{if(o.name==='ground-blended-grass')meshes.push(o);});
   if(!meshes.length)return 0;
   root.updateMatrixWorld(true);
@@ -124,6 +131,7 @@ export function* bakeGrassSteps(renderer,root,world) {
       void main(){vec3 c=uMode<.5?groundColor(vRoot.xz,vRoot.y,vLight,vDark,vSplat,vCoast,vUp,uWater,vTown):lawnTone(vRoot.xz,vLight,vDark,vTown);
         gl_FragColor=vec4(clamp(c*.5,0.0,1.0),1.0);}`,
     depthTest:false,depthWrite:false,toneMapped:false});
+  let compiled=false;
   try {
   for(const mesh of meshes){
     const n=mesh.count,height=Math.ceil(n/width),g=mesh.geometry,positions=new Float32Array(n*3),roots=new Float32Array(n*3);
@@ -136,18 +144,36 @@ export function* bakeGrassSteps(renderer,root,world) {
     for(const k of ['aGrassLight','aGrassDark','aGrassNormal','aGrassSplat','aGrassCoast','aGrassY','aGrassTown'])points.setAttribute(k,new THREE.BufferAttribute(g.attributes[k].array,g.attributes[k].itemSize));
     const cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
     const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false}),pixels=new Uint8Array(width*height*4);
-    const previous=renderer.getRenderTarget(),clear=renderer.getClearColor(new THREE.Color()).clone(),alpha=renderer.getClearAlpha();
     try {
+    if(asyncReadback&&!compiled&&renderer.compileAsync){
+      // Compile the off-screen variant, which has a different output colour
+      // space from the game's canvas. Restore the target before awaiting it.
+      const previous=renderer.getRenderTarget(),face=renderer.getActiveCubeFace?.(),mip=renderer.getActiveMipmapLevel?.();
+      let pending;
+      try{renderer.setRenderTarget(target);pending=renderer.compileAsync(scene,camera);}
+      finally{renderer.setRenderTarget(previous,face,mip);}
+      yield pending;compiled=true;
+    }
     for(const [mode,name] of [[0,'aGrassBase'],[1,'aGrassLawn']]){
       material.uniforms.uMode.value=mode;
-      renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
-      renderer.readRenderTargetPixels(target,0,0,width,height,pixels);
+      const previous=renderer.getRenderTarget(),face=renderer.getActiveCubeFace?.(),mip=renderer.getActiveMipmapLevel?.();
+      const clear=renderer.getClearColor(new THREE.Color()).clone(),alpha=renderer.getClearAlpha();
+      let pending;
+      try{
+        renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
+        if(asyncReadback)pending=renderer.readRenderTargetPixelsAsync(target,0,0,width,height,pixels);
+        else renderer.readRenderTargetPixels(target,0,0,width,height,pixels);
+      }finally{
+        // The game may draw while the fence is pending. Restore borrowed renderer
+        // state before yielding, rather than restoring stale state on completion.
+        renderer.setRenderTarget(previous,face,mip);renderer.setClearColor(clear,alpha);
+      }
+      if(asyncReadback)yield pending;
       const out=new Uint8Array(n*3);
       for(let i=0;i<n;i++)out.set(pixels.subarray(i*4,i*4+3),i*3);
       g.setAttribute(name,new THREE.InstancedBufferAttribute(out,3,true));
     }
     }finally{
-      renderer.setRenderTarget(previous);renderer.setClearColor(clear,alpha);
       scene.remove(cloud);points.dispose();target.dispose();
     }
     // only what the blade shader still reads stays on the GPU

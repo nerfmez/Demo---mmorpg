@@ -11,7 +11,7 @@ import {leafTexture,needleTexture,palmFrondTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
 import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
-import { attachGrassSurface, grassMaterial } from './grass.js';
+import { attachGrassSurfaceSteps, grassMaterial } from './grass.js';
 import { meadowPlantSteps } from './meadow.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
@@ -44,8 +44,14 @@ function mat(color, o = {}) {
   return m;
 }
 
-function instanced(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false, setup = null } = {}) {
+function instanced(geo,material,list,options){
+  const steps=instancedSteps(geo,material,list,options);
+  for(;;){const step=steps.next();if(step.done)return step.value;}
+}
+
+function* instancedSteps(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false, setup = null, setupSteps = null, adopt = null } = {}) {
   const group = new THREE.Group();
+  adopt?.(group);
   if (!list.length) return group;
   const chunks = new Map();
   for (const it of list) {
@@ -57,7 +63,9 @@ function instanced(geo, material, list, { shadow = true, receiveShadow = true, o
   const hull = outline ? hullMaterial(outline, outlineWidth, { wind, windBase, see }) : null;
   for (const items of chunks.values()) {
     const mesh = new THREE.InstancedMesh(geo, material, items.length);
-    items.forEach((it, i) => {
+    group.add(mesh); // adopt before the first yield, including partial surface attributes
+    for(let i=0;i<items.length;i++) {
+      const it=items[i];
       tmpE.set(it.rx || 0, it.ry || 0, it.rz || 0);
       tmpQ.setFromEuler(tmpE);
       tmpP.set(it.x, it.y || 0, it.z);
@@ -66,14 +74,15 @@ function instanced(geo, material, list, { shadow = true, receiveShadow = true, o
       tmpM.compose(tmpP, tmpQ, tmpS);
       mesh.setMatrixAt(i, tmpM);
       if (colors) mesh.setColorAt(i, tmpC.set(it.color ?? '#ffffff'));
-    });
+      if((i+1)%128===0)yield;
+    }
     if(setup)setup(mesh,items);
+    if(setupSteps)yield* setupSteps(mesh,items);
     mesh.castShadow = shadow;
     mesh.receiveShadow = receiveShadow;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-    group.add(mesh);
     if (hull) {
       const h = new THREE.InstancedMesh(geo, hull, items.length);
       h.instanceMatrix.copy(mesh.instanceMatrix);
@@ -81,6 +90,7 @@ function instanced(geo, material, list, { shadow = true, receiveShadow = true, o
       h.computeBoundingSphere();
       group.add(h);
     }
+    yield;
   }
   return group;
 }
@@ -372,7 +382,7 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const bladeGeo=meadowGrass(),bladeMat=grassMaterial(world),strips=new Map();
   for(const it of grass){const k=Math.floor(it.x/(CHUNK*2));if(!strips.has(k))strips.set(k,[]);strips.get(k).push(it);}
   for(const strip of [...strips.keys()].sort((a,b)=>a-b)){
-    root.add(instanced(bladeGeo,bladeMat,strips.get(strip),{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
+    yield* instancedSteps(bladeGeo,bladeMat,strips.get(strip),{shadow:false,adopt:group=>root.add(group),setupSteps:(mesh,items)=>attachGrassSurfaceSteps(mesh,items,world)});
     yield;
   }
   yield;

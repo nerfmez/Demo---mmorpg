@@ -995,3 +995,29 @@ Ground cover per zone comes from `zoneDecor(zone)` (exported by `core/world.js`)
 overrides the defaults kept from the first maps; zones of a map differ in their cover (tested).
 `ruins.altar: false` drops the generic altar from a ruin ring (the grove's ring has the crescent
 altar landmark instead).
+
+### Outfits by category (armour, boots, gloves, helms)
+
+Worn looks are data: `data/outfits.json` holds `bases` by category (cloth, vest, coat, armor),
+`styles` (each names its base), and one entry per armour, boots, gloves and helm item.
+`resolveOutfit(gearLook, outfits, appearance)` in `src/core/outfit-look.js` (pure, tested)
+returns the top (style, base, skirt, palette, cut, parts) plus `boots`, `gloves` and `helm`
+pieces.
+
+`src/render/base-garments.js` builds every garment from the HairSample body:
+- tops, gloves and boot shafts are body regions offset along the normals, keeping the body's
+  skin weights;
+- skirts are flared rings from the waist, weighted from the hips into the thighs;
+- the HairSample trousers and shoes stay as base legwear.
+
+`src/render/garments.js` cuts (discard) and paints them from the bind-pose position, with a
+same-cut outline hull. Raised pieces are `PARTS` in `src/render/outfit.js`; helms are kinds in
+`src/render/headwear.js`. Accessories are not drawn.
+
+In Godot:
+- bake each base garment once as a skinned mesh;
+- use a ShaderMaterial per garment kind with the same uniforms (`uPal[10]`, `uCutA..D`)
+  reading a bind-position varying;
+- make a scene per part or helm on a `BoneAttachment3D`.
+
+See `docs/OUTFIT-BASE.md`.

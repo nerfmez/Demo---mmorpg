@@ -4,7 +4,7 @@
 // lean into turns), idle breathing and weight shift, keyframed actions with anticipation and
 // follow-through, hit reactions, and secondary motion (scarf, ponytail).
 import * as THREE from 'three';
-import { buildWeapon, buildOffhand, buildGloves, equipmentDetails } from './equipment.js';
+import { buildWeapon, buildOffhand, buildGloves } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
@@ -14,6 +14,9 @@ import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
+import { buildHeadwear } from './headwear.js';
+import OUTFITS from '../../data/outfits.json';
+import { resolveOutfit } from '../core/outfit-look.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
@@ -76,9 +79,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     B(`hand${n}`, `elbow${n}`, [0, -0.25, 0]);
   }
   const boots = gear.bases?.boots || 'travel_boots';
-  const bootColor = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
+  // the outfit base: this look's cut, palette and raised parts (data/outfits.json)
+  const wear = resolveOutfit(gear, OUTFITS, L);
+  const bootColor = wear.palette.shoes || BOOTS;
   const armor = gear.armor || 'tunic';
-  const tunic = armor === 'pelt' ? '#6f6a64' : armor === 'mantle' ? '#3a5a8a' : armor === 'plate' ? '#8f96a3' : L.tunic;
+  const tunic = wear.palette.main;
 
   if (!T && !V && !X) {
     // legs
@@ -137,11 +142,6 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       void s;
     }
   } // end of the procedural body
-  // shoulder guard (left)
-  if (!o.npc && !V) {
-    rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), armor === 'plate' ? '#9aa0ad' : LEATHER, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
-    rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
-  }
   // neck, head, face
   if (!T && !V && !X) {
     rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
@@ -168,19 +168,19 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (!paintedFace) rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
   const hairStyle = o.longHair ? 'ponytail' : L.hairStyle;
   if (hairStyle === 'ponytail') rb.bone('tail', 'head', [0, 0.2, -0.12]);
-  // scarf wrap (hero only; the VRM hero has none yet)
-  if ((!o.npc || o.scarf) && !V) {
+  // scarf wrap: town NPCs that ask for one (the hero wears none; its outfit is data/outfits.json)
+  if (o.scarf && !V) {
     rb.add('chest', new THREE.TorusGeometry(0.1, 0.05, 8, 16).rotateX(Math.PI / 2).scale(1.05, 1.2, 0.95), L.scarf, { pos: [0, 0.35, -0.005] });
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
-  helm(rb, gear.helm, L);
-  const outfit = T || X ? buildOutfit(rb, T || X, gear, { leather: LEATHER, boots: bootColor }) : null;
+  buildHeadwear(rb, wear.helm);
+  const outfit = T || X ? buildOutfit(rb, T || X, wear) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
   const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
-  buildGloves(rb, gear.gloves);
-  equipmentDetails(rb, gear.bases);
+  if (!X) buildGloves(rb, gear.gloves); // the HairSample hero wears glove shells (hairsample.js)
+  // accessories (charms, pendants, rings) are not drawn on the character
 
   const rig = rb.build();
   rig.importedWeapon = !!weaponModel;
@@ -196,12 +196,12 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     neckParts = fitParts(rig.bones.chest, T.neckFit, { skip: ['chestWear'] });
     fitParts(rig.bones.armL, T.armFit);
     // sleeves keep the chosen tunic colour; armour colours the body through `vest`
-    attachSkinnedBody(rig, T, { skin: L.skin, tunic: L.tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic: wear.palette.sleeve, pants: wear.palette.pants, boots: bootColor, leather: wear.palette.leather, vest: wear.palette.main }, L);
   }
   if (X) {
     fitParts(rig.bones.head, X.headFit);
     neckParts = fitParts(rig.bones.chest, X.neckFit, { skip: ['chestWear'] });
-    attachHairSampleBody(rig, X, gear, {tunic, pants:PANTS, boots:bootColor, vest:outfit?.vest});
+    attachHairSampleBody(rig, X, gear, { outfit: wear });
   }
   if (V) {
     fitParts(rig.bones.head, V.headFit);
@@ -209,7 +209,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
-  if ((!o.npc || o.scarf) && !V) {
+  if (o.scarf && !V) {
     rig.scarfAnchor = new THREE.Group();
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
     neckParts.add(rig.scarfAnchor);
@@ -222,30 +222,6 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   return rig;
 }
 
-function helm(rb, kind, L) {
-  if (!kind) return;
-  if (kind === 'cap') {
-    rb.add('head', new THREE.SphereGeometry(0.145, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.45).translate(0, 0.16, -0.01), '#8a5a3a');
-    rb.add('head', new THREE.CylinderGeometry(0.15, 0.15, 0.02, 14, 1, false, -Math.PI / 2, Math.PI).translate(0, 0.19, 0.05), '#6f4a30');
-  } else if (kind === 'beetle') {
-    rb.add('head', new THREE.SphereGeometry(0.15, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).translate(0, 0.16, -0.01), '#5d8a3a');
-    rb.add('head', new THREE.ConeGeometry(0.03, 0.12, 5), '#d9c9a0', { pos: [0, 0.32, 0.03], rot: [0.3, 0, 0] });
-  } else if (kind === 'circlet') {
-    rb.add('head', new THREE.TorusGeometry(0.138, 0.012, 5, 18).rotateX(Math.PI / 2), '#e0c060', { pos: [0, 0.2, 0] });
-    for (const s of [1, -1]) rb.add('head', new THREE.ConeGeometry(0.03, 0.16, 4), '#f4f0e8', { pos: [s * 0.13, 0.25, -0.02], rot: [0, 0, -s * 0.6] });
-  } else if (kind === 'horned') {
-    rb.add('head', new THREE.SphereGeometry(0.15, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).translate(0, 0.15, -0.01), '#6d6f78');
-    for (const s of [1, -1]) {
-      rb.add('head', new THREE.ConeGeometry(0.035, 0.22, 6).translate(0, 0.11, 0), '#e7dcc0', { pos: [s * 0.12, 0.24, 0], rot: [0.2, 0, -s * 0.9] });
-    }
-  } else if (kind === 'hood') {
-    // a closed crown, then sides and back with the face left open
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, 0, Math.PI * 2, 0, Math.PI * 0.34).translate(0, 0.14, -0.02), '#a58384');
-    rb.add('head', new THREE.SphereGeometry(0.16, 14, 6, Math.PI / 2 + 0.75, Math.PI * 2 - 1.5, Math.PI * 0.34, Math.PI * 0.36).translate(0, 0.14, -0.02), '#a58384');
-    for(const [x,y] of [[-.07,.24],[.075,.18]]) rb.add('head',new THREE.SphereGeometry(.02,6,4),'#e2caa1',{pos:[x,y,.10],plain:true});
-  }
-  void L;
-}
 
 // ---------- animation (actions: actions.js) ----------
 

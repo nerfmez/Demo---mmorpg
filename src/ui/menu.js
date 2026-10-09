@@ -117,7 +117,6 @@ export class Menu {
       <div class="field">สีผม${sw('hair')}</div>
       <div class="field">สีผิว${sw('skin')}</div>
       <div class="field">สีตา${sw('eyes')}</div>
-      <div class="field">ผ้าพันคอ${sw('scarf')}</div>
       <div class="field">เสื้อ${sw('tunic')}</div>
       <div class="row-btns sticky">
         <button class="btn" data-act="random">🎲 สุ่ม</button>

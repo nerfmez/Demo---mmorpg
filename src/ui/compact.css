@@ -159,6 +159,15 @@
 .overlay.is-journal .skill-journal .discipline-caption b{font-size:13px}
 .overlay.is-journal .skill-journal .map-controls .icon-button{width:44px;height:44px;min-width:44px;min-height:44px}
 .overlay.is-journal .skill-journal .rail{position:absolute;inset:0 auto 0 0;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+/* Short paper uses whole branch cards, with captions beside the icon. The
+   camera scales their positions; inverse units keep text and targets readable. */
+.overlay.is-journal .skill-journal .compact-junction .map-viewport{top:44px;bottom:16px}
+.overlay.is-journal .skill-journal .compact-junction .discipline-node{width:calc(220px * var(--inverse));height:calc(88px * var(--inverse));display:flex;align-items:center;gap:calc(10px * var(--inverse));padding:calc(8px * var(--inverse));border:1px solid #b6a98966;border-radius:calc(6px * var(--inverse));background:#fff9e866;text-align:left}
+.overlay.is-journal .skill-journal .compact-junction .discipline-number{left:calc(6px * var(--inverse));top:calc(2px * var(--inverse));font-size:calc(10px * var(--inverse))}
+.overlay.is-journal .skill-journal .compact-junction .discipline-disc{flex:none;width:calc(44px * var(--inverse));height:calc(44px * var(--inverse))}
+.overlay.is-journal .skill-journal .compact-junction .discipline-caption{position:static;flex:1;min-width:0;width:auto;transform:none;text-align:left;line-height:1.35}
+.overlay.is-journal .skill-journal .compact-junction .discipline-caption b{display:block;font-size:calc(14px * var(--inverse))}
+.overlay.is-journal .skill-journal .compact-junction .discipline-caption>span,.overlay.is-journal .skill-journal .compact-junction .discipline-caption small{display:block;font-size:calc(12px * var(--inverse));line-height:1.35;margin-top:calc(2px * var(--inverse));color:#665943}
 /* A compact field frame and minimap leave the centre to the game. Combat and
    item buttons retain their original hit regions and real handlers. */
 body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
@@ -184,6 +193,18 @@ body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
  #hud .left-column .pframe,#hud .left-column .quest-widget{width:222px}
  #hud .pframe .statusline{font-size:10px}
  #hud .minimap{width:96px;height:96px}
+}
+@media(max-width:760px) and (max-height:520px) and (orientation:landscape){
+ .overlay.is-journal .skill-journal .journal-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto 44px;gap:8px;padding-inline:10px}
+ .overlay.is-journal .skill-journal .journal-toolbar #mobile-stages{display:flex;flex:none;height:44px;min-height:44px;padding:0;gap:3px;border:0}
+ .overlay.is-journal .skill-journal .journal-toolbar #mobile-stages button{width:44px;min-width:44px;height:44px;min-height:44px;font-size:12px}
+ .overlay.is-journal .skill-journal .atlas-space.has-detail .map-viewport{bottom:16px}
+ .overlay.is-journal .skill-journal .inspector{left:auto;right:12px;top:8px;bottom:auto;width:min(365px,60%);height:auto;max-height:calc(100% - 16px);padding:8px 14px;transform:translateX(calc(100% + 30px))}
+ .overlay.is-journal .skill-journal .inspector.open{transform:translateX(0)}
+ .overlay.is-journal .skill-journal #detail-content{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+ .overlay.is-journal .skill-journal .detail-essential{flex:1 1 auto;min-height:44px;overflow-y:auto;overscroll-behavior:contain}
+ .overlay.is-journal .skill-journal .detail-header{margin-bottom:3px}
+ .overlay.is-journal .skill-journal .detail-action{flex:0 1 auto;min-height:44px;margin:4px 0 0;padding:0;overflow-y:auto;overscroll-behavior:contain}
 }
 @media(max-width:600px) and (orientation:portrait){
  .overlay.is-journal .skill-journal .statusbar{height:auto;min-height:104px;display:grid;grid-template-columns:1fr auto;gap:0 6px;padding:2px 12px}

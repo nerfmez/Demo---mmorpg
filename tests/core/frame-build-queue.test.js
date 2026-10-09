@@ -87,3 +87,28 @@ test('success transfers only live resources, keeps shader-only dependencies, dis
   assert.deepEqual(counts.map(f=>f()),[0,1,0,0]);assert.throws(()=>job.raw(root),{name:'AbortError'});
   assert.deepEqual(counts.map(f=>f()),[0,1,0,0]);dispose();dispose();assert.deepEqual(counts.map(f=>f()),[1,1,1,1]);
 });
+
+const deferredGPU=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+test('waiting GPU work leaves the shared queue and resumes only in a later task',async()=>{
+ const c=clockQueue(),gpu=deferredGPU(),order=[];
+ const a=c.queue.enqueue((function*(){order.push('submit');c.tick();const result=yield gpu.promise;order.push(result);c.tick();return result;})());
+ const b=c.queue.enqueue((function*(){order.push('other-map');c.tick();return 9;})());
+ c.drain();assert.equal(a.state,'waiting');assert.equal(await b.promise,9);assert.equal(c.pending.length,0);assert.deepEqual(order,['submit','other-map']);
+ c.tick(200);gpu.resolve('pixels');await Promise.resolve();assert.deepEqual(order,['submit','other-map']);assert.equal(c.pending.length,1);
+ c.drain();assert.equal(await a.promise,'pixels');assert.equal(a.stats.cpuMs,2);assert.equal(c.queue.stats.maxSliceMs,2);
+});
+test('abort during a GPU read keeps its target alive until the read settles',async()=>{
+ for(const fail of [false,true]){
+  const c=clockQueue(),gpu=deferredGPU(),signal=new AbortController();let disposed=0,published=0;
+  const a=c.queue.enqueue((function*(){try{yield gpu.promise;published++;}finally{disposed++;}})(),{signal:signal.signal});
+  const rejected=assert.rejects(a.promise,{name:'AbortError'});c.drain();signal.abort();assert.equal(a.state,'waiting');assert.equal(disposed,0);
+  if(fail)gpu.reject(new Error('readback'));else gpu.resolve();await Promise.resolve();assert.equal(disposed,0);
+  c.drain();await rejected;assert.equal(disposed,1);assert.equal(published,0);assert.equal(a.state,'cancelled');
+ }
+});
+test('GPU errors enter the generator and run its finally instead of publishing success',async()=>{
+ const c=clockQueue(),gpu=deferredGPU(),error=new Error('GPU read failed');let disposed=0,caught;
+ const a=c.queue.enqueue((function*(){try{yield gpu.promise;}catch(e){caught=e;throw e;}finally{disposed++;}})());
+ const rejected=assert.rejects(a.promise,e=>e===error);c.drain();gpu.reject(error);await Promise.resolve();assert.equal(disposed,0);
+ c.drain();await rejected;assert.equal(caught,error);assert.equal(disposed,1);assert.equal(a.state,'error');
+});

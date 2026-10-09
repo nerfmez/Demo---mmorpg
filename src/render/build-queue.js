@@ -108,7 +108,9 @@ export class FrameBuildQueue {
       if (['success', 'cancelled', 'error'].includes(job.state)) return;
       // JavaScript cannot abort a synchronous next() halfway through. Check again
       // before publishing its return value and close suspended generators in scope.
-      if (job.state === 'running') { job.cancelRequested = true; return; }
+      // A GPU read still owns its target until its fence completes. Defer closing
+      // a waiting generator too; disposing the target now races that readback.
+      if (job.state === 'running' || job.state === 'waiting') { job.cancelRequested = true; return; }
       try { resume(() => steps.return?.()); settle('cancelled', cancelledBuild()); }
       catch (error) { settle('error', error); }
     };
@@ -129,17 +131,31 @@ export class FrameBuildQueue {
       while (this.jobs.length && this.now() - start < budget) {
         const job = this.jobs.shift();
         if (!['queued', 'suspended'].includes(job.state)) continue;
-        if (job.signal?.aborted) { job.cancel(); continue; }
+        if (job.cancelRequested || job.signal?.aborted) { job.cancel(); continue; }
         const t = this.now(); job.state = 'running';
         try {
-          const step = job.resume(() => job.steps.next());
+          const step = job.resume(() => {
+            const value = job.input; job.input = undefined;
+            if (job.failedWait) { job.failedWait = false; return job.steps.throw(value); }
+            return job.steps.next(value);
+          });
           const elapsed = this.now() - t;
           job.stats.steps++; job.stats.cpuMs += elapsed;
           job.stats.maxStepMs = Math.max(job.stats.maxStepMs, elapsed);
           this.stats.steps++; this.stats.maxStepMs = Math.max(this.stats.maxStepMs, elapsed);
           job.onStep?.(elapsed);
           job.state = 'suspended';
-          if (job.cancelRequested || job.signal?.aborted) job.cancel();
+          if (!step.done && step.value && typeof step.value.then === 'function') {
+            job.state = 'waiting';
+            const ready = (value, failed) => {
+              job.input = value; job.failedWait = failed; job.state = 'suspended';
+              this.jobs.push(job); this.wake();
+            };
+            // Resolution only queues another budgeted task, never advances a
+            // generator (or frees GPU resources) in the promise microtask.
+            Promise.resolve(step.value).then(value => ready(value, false), error => ready(error, true));
+          }
+          else if (job.cancelRequested || job.signal?.aborted) job.cancel();
           else if (step.done) job.settle('success', step.value);
           else this.jobs.push(job); // round-robin: a newly resumed city cannot monopolise the queue
         } catch (error) {

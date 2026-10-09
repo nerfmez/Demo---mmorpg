@@ -1,5 +1,7 @@
 # PR #125 design revision
 
+Follow-up: [main integration and short-landscape caption fix](INTEGRATION-REVIEW.md) supersedes the deferred PR 124 integration and caption limitation below. This preceding record describes the design revision at `0015c0fc7da9b68ed6de43c20cee67df7d97b6d2`; its WebKit results remain historical.
+
 Revision base: `6c480c749d88c40f97f35c559f9eb279a6ea9c71`; original game base: `152eb744d242a9260cff5e3479e5f08000a5de54`.
 PR #124 streaming fixes at `cde062bb5251066703dcb007359dfe4e5f33a15f` are coordination context. They have not been merged or rebased during this design iteration.
 

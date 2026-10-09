@@ -12,12 +12,12 @@ export const animeStudy = typeof location === 'undefined' || new URLSearchParams
 export const artReviewLayout = typeof location !== 'undefined' && ['anime','baseline'].includes(new URLSearchParams(location.search).get('art'));
 export const animeConfig = art.anime;
 
-function foliageColor(point, normal, shrub) {
-  const prefix=shrub?'shrub':'leaf',palette=animeConfig.palette;
-  const dark=new THREE.Color(palette[prefix+'Shadow']),mid=new THREE.Color(palette[prefix+'Mid']),light=new THREE.Color(palette[prefix+'Light']);
+const foliageLightDirection=new THREE.Vector3(-.5,1,.25).normalize();
+function foliageColor(point, normal, shrub, colors, result) {
+  const [dark,mid,light]=colors;
   const height=shrub?THREE.MathUtils.smoothstep(point.y,.08,1.1):THREE.MathUtils.smoothstep(point.y,-.45,.85);
-  const lit=THREE.MathUtils.clamp(normal.dot(new THREE.Vector3(-.5,1,.25).normalize())*.26+height*.50+.10,0,1);
-  return dark.lerp(mid,Math.min(1,lit*1.9)).lerp(light,Math.max(0,(lit-.53)*1.9));
+  const lit=THREE.MathUtils.clamp(normal.dot(foliageLightDirection)*.26+height*.50+.10,0,1);
+  return result.copy(dark).lerp(mid,Math.min(1,lit*1.9)).lerp(light,Math.max(0,(lit-.53)*1.9));
 }
 
 // Four connected, jagged paint silhouettes shared by all instances.
@@ -57,11 +57,17 @@ export function branchletTexture(shrub = false) {
 }
 
 export function animeFoliage(seed=3,shrub=false) {
+  const steps=animeFoliageSteps(seed,shrub);
+  for(;;){const step=steps.next();if(step.done)return step.value;}
+}
+
+export function* animeFoliageSteps(seed=3,shrub=false) {
   const rng=createRng(seed),p=[],n=[],c=[],uv=[];
   const cfg=animeConfig,clusters=shrub?cfg.shrubSprays:cfg.treeSprays;
   const count=shrub?cfg.shrubCardsPerSpray:cfg.treeCardsPerSpray;
   const sizes=shrub?cfg.shrubCardSize:cfg.treeCardSize;
-  const shade=new THREE.Color();
+  const shade=new THREE.Color(),vertexShade=new THREE.Color();
+  const prefix=shrub?'shrub':'leaf',colors=['Shadow','Mid','Light'].map(s=>new THREE.Color(cfg.palette[prefix+s]));
   const append=(center,normal,size,roll,tile,col)=>{
     const across=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),normal);
     if(across.lengthSq()<.001)across.set(1,0,0);else across.normalize();
@@ -75,7 +81,7 @@ export function animeFoliage(seed=3,shrub=false) {
       const v=center.clone().addScaledVector(x,a*size*.56).addScaledVector(y,b*size*.56).addScaledVector(normal,bulge);
       const curvedNormal=normal.clone().addScaledVector(x,a*.28*(1-b*b)).addScaledVector(y,b*.28*(1-a*a)).normalize();
       p.push(v.x,v.y,v.z);n.push(curvedNormal.x,curvedNormal.y,curvedNormal.z);
-      const tone=foliageColor(v,curvedNormal,shrub).lerp(col,.22);
+      const tone=foliageColor(v,curvedNormal,shrub,colors,vertexShade).lerp(col,.22);
       c.push(tone.r,tone.g,tone.b);
       uv.push(((tile%2)+(a+1)*.5)*.5,(Math.floor(tile/2)+(b+1)*.5)*.5);
     };
@@ -87,7 +93,8 @@ export function animeFoliage(seed=3,shrub=false) {
   };
   // Sparse, unequal overlapping painted patches along each authored branch.
   // They fill the volume itself, rather than tile the surface of a sphere.
-  clusters.forEach(([cx,cy,cz,rx,ry,rz],ci)=>{
+  for(let ci=0;ci<clusters.length;ci++){
+    const [cx,cy,cz,rx,ry,rz]=clusters[ci];
     for(let i=0;i<count;i++) {
       // Interlocking branch surfaces cross through a volume; they do not form
       // an enclosing spherical shell or share one camera-facing orientation.
@@ -97,11 +104,12 @@ export function animeFoliage(seed=3,shrub=false) {
       const slope=i%3===0?.38:.80;
       const normal=new THREE.Vector3(Math.cos(angle)*slope,.65,Math.sin(angle)*slope).normalize();
       const size=rng.range(...sizes)*(i===0?1.1:1);
-      shade.copy(foliageColor(centre,normal,shrub));
+      foliageColor(centre,normal,shrub,colors,shade);
       shade.multiplyScalar(.99+(ci%3)*.018);
       append(centre,normal,size,rng.range(-1.4,1.4),ci%2===0?i%4:(i+1)%4,shade);
+      yield;
     }
-  });
+  }
   const g=new THREE.BufferGeometry();
   for(const [key,array,size] of [['position',p,3],['normal',n,3],['color',c,3],['uv',uv,2]])g.setAttribute(key,new THREE.Float32BufferAttribute(array,size));
   g.computeBoundingSphere();return g;

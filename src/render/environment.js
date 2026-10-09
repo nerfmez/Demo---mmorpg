@@ -10,13 +10,13 @@ import { createRng } from '../core/rng.js';
 import {leafTexture,needleTexture,palmFrondTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
 import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
-import { inArtStudy, cloudCrown, studyLeafTexture, lowShrub, studyShrubTexture } from './art-study.js';
-import { attachGrassSurface, grassMaterial } from './grass.js';
+import { inArtStudy, cloudCrownSteps, studyLeafTexture, lowShrubSteps, studyShrubTexture } from './art-study.js';
+import { attachGrassSurfaceSteps, grassMaterial } from './grass.js';
 import { meadowPlantSteps } from './meadow.js';
 import { walkSurfaceMaterial } from './walk-surface.js';
 import { animeStudy, animeConfig, animeFoliageMaterial, artReviewLayout, animeTrunk, animeTrunkMaterial, shrubStems } from './anime-study.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { createHarbor } from './harbor.js';
+import { createHarborSteps } from './harbor.js';
 import { marketBuilding, marketStall, marketQuay } from './market.js';
 import { districtBuilding } from './districts.js';
 
@@ -43,8 +43,9 @@ function mat(color, o = {}) {
   return m;
 }
 
-function instanced(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false, setup = null } = {}) {
+function* instancedSteps(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false, setup = null, setupSteps = null, adopt = null } = {}) {
   const group = new THREE.Group();
+  adopt?.(group);
   if (!list.length) return group;
   const chunks = new Map();
   for (const it of list) {
@@ -56,7 +57,9 @@ function instanced(geo, material, list, { shadow = true, receiveShadow = true, o
   const hull = outline ? hullMaterial(outline, outlineWidth, { wind, windBase, see }) : null;
   for (const items of chunks.values()) {
     const mesh = new THREE.InstancedMesh(geo, material, items.length);
-    items.forEach((it, i) => {
+    group.add(mesh); // adopt before the first yield, including partial surface attributes
+    for(let i=0;i<items.length;i++) {
+      const it=items[i];
       tmpE.set(it.rx || 0, it.ry || 0, it.rz || 0);
       tmpQ.setFromEuler(tmpE);
       tmpP.set(it.x, it.y || 0, it.z);
@@ -65,14 +68,15 @@ function instanced(geo, material, list, { shadow = true, receiveShadow = true, o
       tmpM.compose(tmpP, tmpQ, tmpS);
       mesh.setMatrixAt(i, tmpM);
       if (colors) mesh.setColorAt(i, tmpC.set(it.color ?? '#ffffff'));
-    });
+      if((i+1)%128===0)yield;
+    }
     if(setup)setup(mesh,items);
+    if(setupSteps)yield* setupSteps(mesh,items);
     mesh.castShadow = shadow;
     mesh.receiveShadow = receiveShadow;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-    group.add(mesh);
     if (hull) {
       const h = new THREE.InstancedMesh(geo, hull, items.length);
       h.instanceMatrix.copy(mesh.instanceMatrix);
@@ -80,6 +84,7 @@ function instanced(geo, material, list, { shadow = true, receiveShadow = true, o
       h.computeBoundingSphere();
       group.add(h);
     }
+    yield;
   }
   return group;
 }
@@ -125,6 +130,15 @@ export function createEnvironment(world) {
 /** The scenery in sections; yields between them so a neighbouring map can stream in. */
 export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const root = new THREE.Group();adopt?.(root);
+  function* buildInstances(geo,material,list,options={}){
+    return yield* instancedSteps(geo,material,list,{...options,adopt:group=>root.add(group)});
+  }
+  function* mapItems(items,project){
+    const list=[];
+    for(let i=0;i<items.length;i++){list.push(project(items[i]));if((i+1)%16===0)yield;}
+    return list;
+  }
+  let visited=0;
   const rng = createRng(99);
   const gy = groundHeight || ((x, z) => world.groundY(x, z));
   const sy = (x, z) => world.surfaceY(x, z);
@@ -143,6 +157,7 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const palmFronds = [];
   const palmShape = palmTrunk(), palmCoconuts = [], fallenCoconuts = [];
   for (const c of world.circles.filter((q) => q.type === 'palm')) {
+    if(visited++%8===0)yield;
     const s = c.scale * 0.95;
     const y = gy(c.x, c.z) - 0.1;
     palmTrunks.push({ x: c.x, z: c.z, y, s, ry: c.rot });
@@ -170,6 +185,7 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   // enter world collision/save data; they are for owner art review, not release layout.
   if(artReviewLayout){const [x,z,scale]=animeConfig.sample.tree;trees.push({x,z,scale,rot:.35,type:'tree'});}
   for (const c of trees) {
+    if(visited++%8===0)yield;
     const s = c.scale * 0.85;
     const y = gy(c.x, c.z) - 0.2;
     const zone = zid(Math.max(world.bounds.minX, Math.min(world.bounds.maxX - 0.1, c.x)), Math.max(world.bounds.minZ, Math.min(world.bounds.maxZ - 0.1, c.z)));
@@ -220,43 +236,43 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
     if (c.type === 'willow') willowLeaves.push({ x: c.x, z: c.z, y: y + 2.2 * s, s: 1.7 * s, sy: 1.35 * s, ry: c.rot, color: '#ceddc4' });
   }
   const trunkGeo = branchTrunk();
-  root.add(instanced(trunkGeo, paintSurface(mat('#85613f', {vertexColors:true}), 'bark'), trunks, { outline: '#564132', outlineWidth: 0.027 }));
+  root.add(yield* buildInstances(trunkGeo, paintSurface(mat('#85613f', {vertexColors:true}), 'bark'), trunks, { outline: '#564132', outlineWidth: 0.027 }));
   const birchGeo = new THREE.CylinderGeometry(0.13, 0.2, 3.6, 7);
   birchGeo.translate(0, 1.8, 0);
-  root.add(instanced(birchGeo, mat('#ece8dc'), birchTrunks, { outline: '#4a4640', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(birchGeo, mat('#ece8dc'), birchTrunks, { outline: '#4a4640', outlineWidth: 0.04 }));
   const pineTrunkGeo = new THREE.CylinderGeometry(0.16, 0.26, 1.6, 6);
   pineTrunkGeo.translate(0, 0.8, 0);
-  root.add(instanced(pineTrunkGeo, mat('#6b4630'), pineTrunks, { outline: '#2e1f14', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(pineTrunkGeo, mat('#6b4630'), pineTrunks, { outline: '#2e1f14', outlineWidth: 0.04 }));
   // Only the town/meadow study changes canopy geometry; other biomes remain a comparison.
   const cloudMat=animeStudy?animeFoliageMaterial():mat('#ffffff',{vertexColors:true,double:true,wind:.025,windBase:1.2,see:true});
   cloudMat.map=studyLeafTexture();cloudMat.alphaTest=.4;cloudMat.forceSinglePass=true;
-  const cloudGroup=instanced(cloudCrown(3),cloudMat,cloudTrees,{receiveShadow:true});
+  const cloudGroup=yield* buildInstances(yield* cloudCrownSteps(3),cloudMat,cloudTrees,{receiveShadow:true});
   cloudGroup.name='art-study-crowns';root.add(cloudGroup);
-  root.add(instanced(cloudCrown(7),cloudMat,cloudBirches,{receiveShadow:true}));
+  root.add(yield* buildInstances(yield* cloudCrownSteps(7),cloudMat,cloudBirches,{receiveShadow:true}));
   // Jagged patches supply the entire crown; no spherical filler underneath.
-  if(animeStudy)root.add(instanced(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
+  if(animeStudy)root.add(yield* buildInstances(animeTrunk(),animeTrunkMaterial(),animeTrunks,{outline:animeConfig.palette.trunkLine,outlineWidth:animeConfig.trunk.outlineWidth,see:true}));
   const canopyGeo = leafCrown(3);
   const canopyMat = mat('#ffffff', { double:true, wind: 0.025, windBase: 1.2, see: true });
   canopyMat.map=leafTexture();canopyMat.alphaTest=.45;canopyMat.forceSinglePass=true;
-  root.add(instanced(canopyGeo, canopyMat, canopy.filter(it=>!it.study).map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
-  root.add(instanced(leafCrown(5), canopyMat, birchLeaves.filter(it=>!it.study).map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
+  root.add(yield* buildInstances(canopyGeo, canopyMat, canopy.filter(it=>!it.study).map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
+  root.add(yield* buildInstances(leafCrown(5), canopyMat, birchLeaves.filter(it=>!it.study).map(it=>({...it,ry:0})), { wind: 0.025, windBase: 1.2, see: true }));
   const tierGeo = pineBough();
   const pineMat=mat('#ffffff',{double:true,wind:.02,see:true});pineMat.map=needleTexture();pineMat.alphaTest=.45;pineMat.forceSinglePass=true;
-  root.add(instanced(tierGeo,pineMat,pineTiers.map(it=>({...it,ry:0})),{wind:.02,see:true}));
+  root.add(yield* buildInstances(tierGeo,pineMat,pineTiers.map(it=>({...it,ry:0})),{wind:.02,see:true}));
   const willowGeo = leafCrown(23);
   const willowMat=mat('#ffffff',{double:true,wind:.045,windBase:1.2,see:true});willowMat.map=leafTexture();willowMat.alphaTest=.45;willowMat.forceSinglePass=true;
-  root.add(instanced(willowGeo,willowMat,willowLeaves.map(it=>({...it,ry:0})),{shadow:true}));
+  root.add(yield* buildInstances(willowGeo,willowMat,willowLeaves.map(it=>({...it,ry:0})),{shadow:true}));
   // palms: a curved, ringed trunk, arching leaflet fronds with young ones standing up, coconuts
-  root.add(instanced(palmShape.geometry, mat('#ffffff', { vertexColors: true }), palmTrunks, { outline: '#4f3d2e', outlineWidth: 0.024 }));
+  root.add(yield* buildInstances(palmShape.geometry, mat('#ffffff', { vertexColors: true }), palmTrunks, { outline: '#4f3d2e', outlineWidth: 0.024 }));
   // painted leaflet cards, alpha-tested like the willow and pine foliage; no outline hull
   const frondMat = mat('#ffffff', { double: true, wind: 0.05, windBase: 0 });
   frondMat.map = palmFrondTexture(); frondMat.alphaTest = 0.45; frondMat.forceSinglePass = true;
   const P = art.architecture.palm;
-  root.add(instanced(palmFrond(P.frondLength, P.frondLift, P.frondDroop, P.frondWidth), frondMat, palmFronds.filter((f) => !f.young), { wind: 0.05 }));
-  root.add(instanced(palmFrond(P.frondLength * .7, 1.4, .45, P.frondWidth * .7), frondMat, palmFronds.filter((f) => f.young), { wind: 0.05 }));
+  root.add(yield* buildInstances(palmFrond(P.frondLength, P.frondLift, P.frondDroop, P.frondWidth), frondMat, palmFronds.filter((f) => !f.young), { wind: 0.05 }));
+  root.add(yield* buildInstances(palmFrond(P.frondLength * .7, 1.4, .45, P.frondWidth * .7), frondMat, palmFronds.filter((f) => f.young), { wind: 0.05 }));
   // fallen coconuts scattered on the sand under each crown
-  root.add(instanced(new THREE.SphereGeometry(.17, 9, 7).scale(1, .86, 1.12), mat('#ffffff'), fallenCoconuts, { outline: '#3d3524', outlineWidth: 0.01 }));
-  root.add(instanced(new THREE.SphereGeometry(.17, 8, 6), mat('#ffffff'), palmCoconuts, { outline: '#3d3524', outlineWidth: 0.012 }));
+  root.add(yield* buildInstances(new THREE.SphereGeometry(.17, 9, 7).scale(1, .86, 1.12), mat('#ffffff'), fallenCoconuts, { outline: '#3d3524', outlineWidth: 0.01 }));
+  root.add(yield* buildInstances(new THREE.SphereGeometry(.17, 8, 6), mat('#ffffff'), palmCoconuts, { outline: '#3d3524', outlineWidth: 0.012 }));
 
   yield;
   // ----- rocks, boulders, crystals, stumps, logs -----
@@ -265,6 +281,8 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const stumps = [];
   const logs = [];
   for (const c of world.circles) {
+    if(!['rock','boulder','crystal','stump'].includes(c.type))continue;
+    if(visited++%16===0)yield;
     const y = gy(c.x, c.z);
     if (c.type === 'rock' || c.type === 'boulder') {
       const big = c.type === 'boulder';
@@ -279,19 +297,19 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   for (const bx of world.boxes) if (bx.type === 'log') logs.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) + 0.35, sx: 1, sy: 1, sz: bx.hz * 2, ry: bx.angle });
   if(artReviewLayout)for(const [x,z,s] of animeConfig.sample.rocks)rocks.push({x,z,y:gy(x,z)+s*.36,s,sy:s*.75,ry:s*2,color:animeConfig.palette.rock});
   for (const l of world.decor.logsDecor) logs.push({ x: l.x, z: l.z, y: gy(l.x, l.z) + 0.3, sx: 0.8, sy: 0.8, sz: 1.6, ry: l.angle });
-  const shoreRocks=instanced(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 });
+  const shoreRocks=yield* buildInstances(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 });
   shoreRocks.userData.waterContact=true;root.add(shoreRocks);
-  root.add(instanced(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
+  root.add(yield* buildInstances(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
   const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
   crystalGeo.scale(0.55, 1.9, 0.55);
   crystalGeo.translate(0, 0.75, 0);
-  root.add(instanced(crystalGeo, mat('#ffffff', { emissive: '#3a6f9a', emissiveIntensity: 0.9 }), crystals, { outline: '#2a3f6a', outlineWidth: 0.03 }));
+  root.add(yield* buildInstances(crystalGeo, mat('#ffffff', { emissive: '#3a6f9a', emissiveIntensity: 0.9 }), crystals, { outline: '#2a3f6a', outlineWidth: 0.03 }));
   const stumpGeo = new THREE.CylinderGeometry(0.42, 0.55, 0.6, 9);
   stumpGeo.translate(0, 0.25, 0);
-  root.add(instanced(stumpGeo, mat('#7a5236'), stumps, { outline: '#3b2618', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(stumpGeo, mat('#7a5236'), stumps, { outline: '#3b2618', outlineWidth: 0.04 }));
   const logGeo = new THREE.CylinderGeometry(0.34, 0.38, 1, 9);
   logGeo.rotateX(Math.PI / 2);
-  root.add(instanced(logGeo, mat('#7f5638'), logs, { outline: '#3b2618', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(logGeo, mat('#7f5638'), logs, { outline: '#3b2618', outlineWidth: 0.04 }));
 
   yield;
   // ----- ruins -----
@@ -302,6 +320,8 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const walls = [];
   const archPillars = [];
   for (const c of world.circles) {
+    if(!['pillar','pillar_broken','ruin_block','statue','arch_pillar'].includes(c.type))continue;
+    if(visited++%16===0)yield;
     const y = gy(c.x, c.z);
     if (c.type === 'pillar') pillars.push({ x: c.x, z: c.z, y, s: c.scale, ry: c.rot });
     if (c.type === 'pillar_broken') broken.push({ x: c.x, z: c.z, y, s: c.scale, ry: c.rot, rz: 0.08 });
@@ -311,14 +331,14 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   }
   for (const bx of world.boxes) if (bx.type === 'ruin_wall') walls.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) - 0.2, sx: 0.9, sy: bx.height + 0.2, sz: bx.hz * 2, ry: bx.angle });
   const ruinMat = paintSurface(mat('#c4c0c6'),'masonry');
-  root.add(instanced(pillarGeometry(4.6), ruinMat, pillars, { outline: '#4e4760', outlineWidth: 0.04 }));
-  root.add(instanced(pillarGeometry(2.1, true), ruinMat, broken, { outline: '#4e4760', outlineWidth: 0.04 }));
-  root.add(instanced(new THREE.BoxGeometry(1.6, 1.1, 1.3), paintSurface(mat('#b9b2c6'),'masonry'), blocks, { outline: '#4e4760', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(pillarGeometry(4.6), ruinMat, pillars, { outline: '#4e4760', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(pillarGeometry(2.1, true), ruinMat, broken, { outline: '#4e4760', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(new THREE.BoxGeometry(1.6, 1.1, 1.3), paintSurface(mat('#b9b2c6'),'masonry'), blocks, { outline: '#4e4760', outlineWidth: 0.04 }));
   const wallGeo = new THREE.BoxGeometry(1, 1, 1);
   wallGeo.translate(0, 0.5, 0);
-  root.add(instanced(wallGeo, paintSurface(mat('#bdb5ca'),'masonry'), walls, { outline: '#4e4760', outlineWidth: 0.03 }));
-  root.add(instanced(statueGeometry(), mat('#b7b0c6'), statues, { outline: '#4e4760', outlineWidth: 0.035 }));
-  root.add(instanced(pillarGeometry(4.2), ruinMat, archPillars, { outline: '#4e4760', outlineWidth: 0.04 }));
+  root.add(yield* buildInstances(wallGeo, paintSurface(mat('#bdb5ca'),'masonry'), walls, { outline: '#4e4760', outlineWidth: 0.03 }));
+  root.add(yield* buildInstances(statueGeometry(), mat('#b7b0c6'), statues, { outline: '#4e4760', outlineWidth: 0.035 }));
+  root.add(yield* buildInstances(pillarGeometry(4.2), ruinMat, archPillars, { outline: '#4e4760', outlineWidth: 0.04 }));
   for (const a of world.decor.arches) {
     const lintel = outlined(new THREE.BoxGeometry(a.span * 2 + 1.6, 0.7, 1.3), ruinMat, { outline: '#4e4760', width: 0.04 });
     lintel.position.set(a.x, gy(a.x, a.z) + 4.35, a.z);
@@ -335,9 +355,9 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
 
   yield;
   // ----- bridges, town, camp -----
-  for (const br of world.bridges) root.add(createBridge(world, br));
-  root.add(createTown(world, rng));
-  if (world.data.harbor) root.add(createHarbor(world));
+  for (const br of world.bridges){root.add(createBridge(world, br));yield;}
+  yield* townSteps(world,rng,{adopt:group=>root.add(group)});
+  if (world.data.harbor)yield* createHarborSteps(world,{adopt:group=>root.add(group)});
   if (world.data.camp) root.add(createCamp(world));
 
   yield;
@@ -352,7 +372,7 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   // Low relief shells have distinct fan/spiral silhouettes and raised ribs. Chunked like plants.
   for (const kind of ['fan', 'spiral']) {
     const shells = (d.shells || []).filter(s => s.kind === kind).map(s => ({ x:s.x, z:s.z, y:gy(s.x,s.z)+.025, s:s.s, ry:s.rot, color:kind==='fan'?'#f2decd':'#dfc5a9' }));
-    const shoreProps = instanced(beachShell(kind), mat('#ffffff',{vertexColors:true,double:true}), shells, {shadow:false});
+    const shoreProps = yield* buildInstances(beachShell(kind), mat('#ffffff',{vertexColors:true,double:true}), shells, {shadow:false});
     shoreProps.name = `beach-shell-${kind}`;
     root.add(shoreProps);
   }
@@ -371,17 +391,18 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   const bladeGeo=meadowGrass(),bladeMat=grassMaterial(world),strips=new Map();
   for(const it of grass){const k=Math.floor(it.x/(CHUNK*2));if(!strips.has(k))strips.set(k,[]);strips.get(k).push(it);}
   for(const strip of [...strips.keys()].sort((a,b)=>a-b)){
-    root.add(instanced(bladeGeo,bladeMat,strips.get(strip),{shadow:false,setup:(mesh,items)=>attachGrassSurface(mesh,items,world)}));
+    yield* instancedSteps(bladeGeo,bladeMat,strips.get(strip),{shadow:false,adopt:group=>root.add(group),setupSteps:(mesh,items)=>attachGrassSurfaceSteps(mesh,items,world)});
     yield;
   }
   yield;
-  root.add(instanced(wildflowers(),patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12}),flowers,{shadow:false}));
+  root.add(yield* buildInstances(wildflowers(),patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12}),flowers,{shadow:false}));
   const bushGeo=leafCrown(11);
   const bushes = [],studyBushes=[];
   const berries = [];
   const allBushes=artReviewLayout?[...d.bushes,...animeConfig.sample.bushes.map(([x,z,s])=>({x,z,s}))]:d.bushes;
   yield;
   for (const bsh of allBushes) {
+    if(visited++%16===0)yield;
     const y = gy(bsh.x, bsh.z);
     if(inArtStudy(bsh.x,bsh.z))studyBushes.push({x:bsh.x,z:bsh.z,y:y-.015,sx:1.25*bsh.s,sy:1.05*bsh.s,sz:1.1*bsh.s,ry:bsh.x*.27+bsh.z*.13});
     bushes.push({ x: bsh.x, z: bsh.z, y: y + 0.35 * bsh.s, s: 0.75 * bsh.s, sy: 0.55 * bsh.s, color: '#dfe8c9' });
@@ -389,36 +410,38 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
     if (bsh.berries) for (let k = 0; k < 5; k++) berries.push({ x: bsh.x + Math.sin(k * 1.3) * 0.5 * bsh.s, z: bsh.z + Math.cos(k * 1.3) * 0.45 * bsh.s, y: y + 0.45 * bsh.s + (k % 2) * 0.12, s: 0.09 });
   }
   const bushMat=mat('#ffffff',{double:true,wind:.03,windBase:.5});bushMat.map=leafTexture();bushMat.alphaTest=.45;bushMat.forceSinglePass=true;
-  root.add(instanced(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
+  root.add(yield* buildInstances(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
   const studyBushMat=animeStudy?animeFoliageMaterial(true):mat('#ffffff',{vertexColors:true,double:true,wind:.025});
   studyBushMat.map=studyShrubTexture();studyBushMat.alphaTest=.4;studyBushMat.forceSinglePass=true;
-  root.add(instanced(lowShrub(),studyBushMat,studyBushes,{receiveShadow:true}));
+  root.add(yield* buildInstances(yield* lowShrubSteps(),studyBushMat,studyBushes,{receiveShadow:true}));
   if(animeStudy){
 
-    root.add(instanced(shrubStems(),new THREE.MeshLambertMaterial({color:'#78654c'}),studyBushes,{shadow:false}));
+    root.add(yield* buildInstances(shrubStems(),new THREE.MeshLambertMaterial({color:'#78654c'}),studyBushes,{shadow:false}));
   }
-  root.add(instanced(new THREE.SphereGeometry(1, 6, 4), mat('#d8334a'), berries, { shadow: false }));
+  root.add(yield* buildInstances(new THREE.SphereGeometry(1, 6, 4), mat('#d8334a'), berries, { shadow: false }));
   const reedGeo = new THREE.ConeGeometry(0.05, 1.2, 4);
   reedGeo.translate(0, 0.6, 0);
   const reeds = [];
   yield;
   for (const r of d.reeds) {
+    if(visited++%16===0)yield;
     const y = sy(r.x, r.z) - 0.1;
     for (let k = 0; k < 3; k++) reeds.push({ x: r.x + Math.sin(k * 2.1) * 0.2, z: r.z + Math.cos(k * 2.1) * 0.2, y, s: r.s, rz: Math.sin(k + r.rot) * 0.15, color: k === 1 ? '#7a9b3c' : '#5f8a35' });
   }
-  root.add(instanced(reedGeo, mat('#ffffff', { wind: 0.16 }), reeds, { shadow: false }));
+  root.add(yield* buildInstances(reedGeo, mat('#ffffff', { wind: 0.16 }), reeds, { shadow: false }));
   const lilyGeo = new THREE.CircleGeometry(0.4, 10, 0.3, Math.PI * 1.8);
   lilyGeo.rotateX(-Math.PI / 2);
-  root.add(instanced(lilyGeo, toon('#5aa640'), d.lilies.map((l) => ({ x: l.x, z: l.z, y: world.waterLevel + 0.03, s: l.s, ry: l.rot })), { shadow: false }));
+  root.add(yield* buildInstances(lilyGeo, toon('#5aa640'), d.lilies.map((l) => ({ x: l.x, z: l.z, y: world.waterLevel + 0.03, s: l.s, ry: l.rot })), { shadow: false }));
   const fernMat=patchMaterial(new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,side:THREE.DoubleSide}),{wind:.12});
   const fernCompile=fernMat.onBeforeCompile;
   fernMat.onBeforeCompile=(s,r)=>{fernCompile.call(fernMat,s,r);s.fragmentShader=s.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\nnormal=normalize(vNormal);');};
   fernMat.customProgramCacheKey=()=> 'ground-ferns-v1';
-  root.add(instanced(fernGeometry(),fernMat,d.ferns.map((f)=>({x:f.x,z:f.z,y:gy(f.x,f.z)-.015,s:f.s,ry:f.rot})),{shadow:false}));
+  root.add(yield* buildInstances(fernGeometry(),fernMat,yield* mapItems(d.ferns,(f)=>({x:f.x,z:f.z,y:gy(f.x,f.z)-.015,s:f.s,ry:f.rot})),{shadow:false}));
   const stems = [];
   const caps = [];
   yield;
   for (const m of d.mushrooms) {
+    if(visited++%16===0)yield;
     const y = gy(m.x, m.z);
     for (let k = 0; k < 3; k++) {
       const a = m.rot + k * 2.3;
@@ -430,28 +453,29 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   }
   const stemGeo = new THREE.CylinderGeometry(0.035, 0.05, 0.26, 6);
   stemGeo.translate(0, 0.13, 0);
-  root.add(instanced(stemGeo, mat('#f0e6d0'), stems, { shadow: false }));
+  root.add(yield* buildInstances(stemGeo, mat('#f0e6d0'), stems, { shadow: false }));
   const capGeo = new THREE.SphereGeometry(0.12, 8, 5, 0, Math.PI * 2, 0, Math.PI * 0.55);
-  root.add(instanced(capGeo, mat('#ffffff'), caps, { shadow: false, outline: '#5a2a20', outlineWidth: 0.012 }));
+  root.add(yield* buildInstances(capGeo, mat('#ffffff'), caps, { shadow: false, outline: '#5a2a20', outlineWidth: 0.012 }));
   const pebbleGeo = blobGeometry(0, 13, 0.2);
-  root.add(instanced(pebbleGeo, mat('#b7b3ac'), d.pebbles.map((p) => ({ x: p.x, z: p.z, y: gy(p.x, p.z), s: 0.1 * p.s, sy: 0.06 * p.s, ry: p.rot })), { shadow: false }));
+  root.add(yield* buildInstances(pebbleGeo, mat('#b7b3ac'), yield* mapItems(d.pebbles,(p) => ({ x: p.x, z: p.z, y: gy(p.x, p.z), s: 0.1 * p.s, sy: 0.06 * p.s, ry: p.rot })), { shadow: false }));
   const boneGeo = new THREE.CapsuleGeometry(0.05, 0.45, 2, 6);
   boneGeo.rotateZ(Math.PI / 2);
-  root.add(instanced(boneGeo, mat('#efe8d8'), d.bones.map((b2) => ({ x: b2.x, z: b2.z, y: gy(b2.x, b2.z) + 0.05, s: b2.s, ry: b2.rot })), { shadow: false }));
+  root.add(yield* buildInstances(boneGeo, mat('#efe8d8'), yield* mapItems(d.bones,(b2) => ({ x: b2.x, z: b2.z, y: gy(b2.x, b2.z) + 0.05, s: b2.s, ry: b2.rot })), { shadow: false }));
   const crates = d.crates.filter((c) => c.kind === 'crate');
   const barrels = d.crates.filter((c) => c.kind === 'barrel');
   const crateGeo = new THREE.BoxGeometry(1, 1, 1);
   crateGeo.translate(0, 0.5, 0);
-  root.add(instanced(crateGeo, mat('#b7885a'), crates.map((c) => ({ x: c.x, z: c.z, y: gy(c.x, c.z), s: c.s, ry: c.rot })), { outline: '#3b2618', outlineWidth: 0.03 }));
+  root.add(yield* buildInstances(crateGeo, mat('#b7885a'), yield* mapItems(crates,(c) => ({ x: c.x, z: c.z, y: gy(c.x, c.z), s: c.s, ry: c.rot })), { outline: '#3b2618', outlineWidth: 0.03 }));
   const barrelGeo = new THREE.CylinderGeometry(0.42, 0.42, 1, 10);
   barrelGeo.translate(0, 0.5, 0);
-  root.add(instanced(barrelGeo, mat('#9a6a42'), barrels.map((c) => ({ x: c.x, z: c.z, y: gy(c.x, c.z), s: c.s, ry: c.rot })), { outline: '#3b2618', outlineWidth: 0.03 }));
+  root.add(yield* buildInstances(barrelGeo, mat('#9a6a42'), yield* mapItems(barrels,(c) => ({ x: c.x, z: c.z, y: gy(c.x, c.z), s: c.s, ry: c.rot })), { outline: '#3b2618', outlineWidth: 0.03 }));
 
   yield;
   // fences, lanterns, banners
   const posts = [];
   const rails = [];
   for (const f of d.fences) {
+    if(visited++%16===0)yield;
     const dx = Math.sin(f.angle);
     const dz = Math.cos(f.angle);
     for (const k of [-0.5, 0.5]) {
@@ -463,8 +487,8 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
   }
   const postGeo = new THREE.BoxGeometry(0.22, 1.35, 0.22);
   postGeo.translate(0, 0.67, 0);
-  root.add(instanced(postGeo, mat('#8a5c3a'), posts, { outline: '#3b2618', outlineWidth: 0.03 }));
-  root.add(instanced(new THREE.BoxGeometry(0.1, 0.12, 1), mat('#9b6a44'), rails, { outline: '#3b2618', outlineWidth: 0.02 }));
+  root.add(yield* buildInstances(postGeo, mat('#8a5c3a'), posts, { outline: '#3b2618', outlineWidth: 0.03 }));
+  root.add(yield* buildInstances(new THREE.BoxGeometry(0.1, 0.12, 1), mat('#9b6a44'), rails, { outline: '#3b2618', outlineWidth: 0.02 }));
   for (const l of d.lanterns) root.add(lantern(l.x, gy(l.x, l.z), l.z));
   for (const bn of d.banners) root.add(banner(bn.x, gy(bn.x, bn.z), bn.z, bn.color));
 
@@ -685,8 +709,8 @@ function waypointStone() {
   return outlineStructure(g);
 }
 
-function createTown(world, rng) {
-  const g = new THREE.Group();
+function* townSteps(world,rng,{adopt}={}) {
+  const g = new THREE.Group();adopt?.(g);
   if (world.data.city?.enabled) return g;
   const gy = (x, z) => world.groundY(x, z);
   const roofCols = ['#b8543f', '#4f6fa8', '#8f5a3c', '#5e8a4a'];
@@ -699,13 +723,14 @@ function createTown(world, rng) {
       const model=slice?.buildingIds.includes(bx.id) ? marketBuilding(bx,y)
         : t.districtStyle?.buildingIds.includes(bx.id) ? districtBuilding(bx,y)
         : t.blockout ? blockoutBuilding(bx,y) : house(bx,bx.roofColor || rng.pick(roofCols),y);
-      g.add(model);
+      g.add(model);yield;
     }
     if (bx.type === 'stall') {
       const i=stallIndex++;
       g.add(slice ? marketStall(bx,bx.awningColor||slice.awningColors[i % slice.awningColors.length],gy(bx.x,bx.z),slice.stallGoods[i]==='fish')
         : stall(bx,rng.pick(['#d8483a','#3b6ad0','#e0a030']),gy(bx.x,bx.z)));
     }
+    yield;
   }
   if(slice)g.add(marketQuay(world));
   // workbench: table + anvil + tools
@@ -729,7 +754,7 @@ function createTown(world, rng) {
   hammer.position.set(0.3, 1.12, 0.1);
   hammer.rotation.y = 0.6;
   wb.add(hammer);
-  g.add(wb);
+  g.add(wb);yield;
   // notice board by the trainer
   const by = gy(t.trainer[0], t.trainer[1]);
   const board = outlined(new THREE.BoxGeometry(1.8, 1.2, 0.12), toon('#a8744a'), { outline: '#3b2618', width: 0.02 });
@@ -757,7 +782,7 @@ function createTown(world, rng) {
   roof.position.set(wx, wy + 2.2, wz);
   roof.rotation.y = Math.PI / 4;
   g.add(roof);
-  for(const structure of g.children)outlineStructure(structure);
+  for(const structure of g.children){outlineStructure(structure);yield;}
   return g;
 }
 

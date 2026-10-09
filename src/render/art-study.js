@@ -3,12 +3,17 @@
 import * as THREE from 'three';
 import art from '../../data/art.json';
 import { createRng } from '../core/rng.js';
-import { animeStudy, animeConfig, animeFoliage, branchletTexture } from './anime-study.js';
+import { animeStudy, animeConfig, animeFoliage, animeFoliageSteps, branchletTexture } from './anime-study.js';
 
 export function inArtStudy(x,z) {
   if(animeStudy)return true; // art=anime covers the whole map
   const b=art.study.bounds;
   return x>=b.minX&&x<=b.maxX&&z>=b.minZ&&z<=b.maxZ;
+}
+
+export function* cloudCrownSteps(seed=3,shrub=false){
+  if(animeStudy)return yield* animeFoliageSteps(seed,shrub);
+  return cloudCrown(seed,shrub);
 }
 
 export function cloudCrown(seed=3,shrub=false) {
@@ -89,6 +94,11 @@ export function studyLeafTexture() {
 
 // A separate low shrub: broad, round leaves form shallow interlocking mounds.
 // Its origin is soil level. It is deliberately not a scaled tree canopy.
+export function* lowShrubSteps(seed=11){
+  if(animeStudy)return yield* animeFoliageSteps(seed,true);
+  return lowShrub(seed);
+}
+
 export function lowShrub(seed=11) {
   if(animeStudy)return animeFoliage(seed,true);
   const rng=createRng(seed),positions=[],normals=[],colors=[],uv=[];

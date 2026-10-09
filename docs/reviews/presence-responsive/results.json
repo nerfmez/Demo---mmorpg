@@ -1,0 +1,472 @@
+{
+  "sourceBase": "907190ea253e18e2df688ee137094302173d121c",
+  "cssSha256": "642028ed68558dd105ca61419f4d5059b8826ef6b0231cf95f487a3347a05095",
+  "rendererOmitted": true,
+  "networkStubbed": true,
+  "reports": [
+    {
+      "name": "tablet",
+      "width": 1024,
+      "height": 768,
+      "closed": {
+        ".presence-panel": {
+          "x": 328,
+          "y": 64,
+          "w": 173.90625,
+          "h": 46,
+          "right": 501.90625,
+          "bottom": 110
+        },
+        ".presence-panel summary": {
+          "x": 343,
+          "y": 65,
+          "w": 157.90625,
+          "h": 44,
+          "right": 500.90625,
+          "bottom": 109
+        },
+        ".pframe": {
+          "x": 22,
+          "y": 22,
+          "w": 286,
+          "h": 112.390625,
+          "right": 308,
+          "bottom": 134.390625
+        },
+        ".quest-widget": {
+          "x": 22,
+          "y": 144.390625,
+          "w": 258,
+          "h": 131.1875,
+          "right": 280,
+          "bottom": 275.578125
+        },
+        ".ammo-hud": {
+          "x": 792,
+          "y": 329,
+          "w": 204,
+          "h": 62,
+          "right": 996,
+          "bottom": 391
+        },
+        ".auto-potions-hud": {
+          "x": 780,
+          "y": 462,
+          "w": 216,
+          "h": 44,
+          "right": 996,
+          "bottom": 506
+        },
+        ".joyzone": {
+          "x": 0,
+          "y": 373.6875,
+          "w": 409.59375,
+          "h": 376.3125,
+          "right": 409.59375,
+          "bottom": 750
+        },
+        ".joy": {
+          "x": 38,
+          "y": 562,
+          "w": 148,
+          "h": 148,
+          "right": 186,
+          "bottom": 710
+        },
+        ".quick-actions": {
+          "x": 813.453125,
+          "y": 50,
+          "w": 44,
+          "h": 152,
+          "right": 857.453125,
+          "bottom": 202
+        },
+        ".minimap": {
+          "x": 871.453125,
+          "y": 60.71875,
+          "w": 130.546875,
+          "h": 130.546875,
+          "right": 1002,
+          "bottom": 191.265625
+        },
+        ".fullscreen-control": {
+          "x": 490,
+          "y": 8,
+          "w": 44,
+          "h": 44,
+          "right": 534,
+          "bottom": 52
+        },
+        "[data-join]": null,
+        "[data-leave]": null
+      },
+      "open": {
+        ".presence-panel": {
+          "x": 328,
+          "y": 64,
+          "w": 300,
+          "h": 243,
+          "right": 628,
+          "bottom": 307
+        },
+        ".presence-panel summary": {
+          "x": 343,
+          "y": 65,
+          "w": 284,
+          "h": 44,
+          "right": 627,
+          "bottom": 109
+        },
+        ".pframe": {
+          "x": 22,
+          "y": 22,
+          "w": 286,
+          "h": 112.390625,
+          "right": 308,
+          "bottom": 134.390625
+        },
+        ".quest-widget": {
+          "x": 22,
+          "y": 144.390625,
+          "w": 258,
+          "h": 131.1875,
+          "right": 280,
+          "bottom": 275.578125
+        },
+        ".ammo-hud": {
+          "x": 792,
+          "y": 329,
+          "w": 204,
+          "h": 62,
+          "right": 996,
+          "bottom": 391
+        },
+        ".auto-potions-hud": {
+          "x": 780,
+          "y": 462,
+          "w": 216,
+          "h": 44,
+          "right": 996,
+          "bottom": 506
+        },
+        ".joyzone": {
+          "x": 0,
+          "y": 373.6875,
+          "w": 409.59375,
+          "h": 376.3125,
+          "right": 409.59375,
+          "bottom": 750
+        },
+        ".joy": {
+          "x": 38,
+          "y": 562,
+          "w": 148,
+          "h": 148,
+          "right": 186,
+          "bottom": 710
+        },
+        ".quick-actions": {
+          "x": 813.453125,
+          "y": 50,
+          "w": 44,
+          "h": 152,
+          "right": 857.453125,
+          "bottom": 202
+        },
+        ".minimap": {
+          "x": 871.453125,
+          "y": 60.71875,
+          "w": 130.546875,
+          "h": 130.546875,
+          "right": 1002,
+          "bottom": 191.265625
+        },
+        ".fullscreen-control": {
+          "x": 490,
+          "y": 8,
+          "w": 44,
+          "h": 44,
+          "right": 534,
+          "bottom": 52
+        },
+        "[data-join]": {
+          "x": 341,
+          "y": 223,
+          "w": 97.765625,
+          "h": 44,
+          "right": 438.765625,
+          "bottom": 267
+        },
+        "[data-leave]": {
+          "x": 444.765625,
+          "y": 223,
+          "w": 120.1875,
+          "h": 44,
+          "right": 564.953125,
+          "bottom": 267
+        }
+      },
+      "craftClose": {
+        "x": 901.546875,
+        "y": 86.484375,
+        "width": 44,
+        "height": 44
+      },
+      "potionClose": {
+        "x": 901.546875,
+        "y": 86.484375,
+        "width": 44,
+        "height": 44
+      },
+      "keyboardDisplacement": 0.30885000000002094,
+      "joystickDisplacement": 0.6177000000000135,
+      "assertions": "bounds, no HUD/Supplies overlap, center hit tests, native close, Join/Solo, real keyboard/joystick movement, room hotkey isolation, real Supplies navigation and panel Close"
+    },
+    {
+      "name": "landscape",
+      "width": 760,
+      "height": 430,
+      "closed": {
+        ".presence-panel": {
+          "x": 246,
+          "y": 4,
+          "w": 100,
+          "h": 48,
+          "right": 346,
+          "bottom": 52
+        },
+        ".presence-panel summary": {
+          "x": 257,
+          "y": 5,
+          "w": 88,
+          "h": 46,
+          "right": 345,
+          "bottom": 51
+        },
+        ".pframe": {
+          "x": 12,
+          "y": 10,
+          "w": 222,
+          "h": 93,
+          "right": 234,
+          "bottom": 103
+        },
+        ".quest-widget": {
+          "x": 12,
+          "y": 111,
+          "w": 222,
+          "h": 90,
+          "right": 234,
+          "bottom": 201
+        },
+        ".ammo-hud": {
+          "x": 254,
+          "y": 64,
+          "w": 196,
+          "h": 54.6875,
+          "right": 450,
+          "bottom": 118.6875
+        },
+        ".auto-potions-hud": {
+          "x": 566,
+          "y": 214,
+          "w": 178,
+          "h": 44,
+          "right": 744,
+          "bottom": 258
+        },
+        ".joyzone": {
+          "x": 0,
+          "y": 233.40625,
+          "w": 304,
+          "h": 180.59375,
+          "right": 304,
+          "bottom": 414
+        },
+        ".joy": {
+          "x": 56,
+          "y": 278.53125,
+          "w": 112,
+          "h": 112,
+          "right": 168,
+          "bottom": 390.53125
+        },
+        ".quick-actions": {
+          "x": 520,
+          "y": 12,
+          "w": 124,
+          "h": 50,
+          "right": 644,
+          "bottom": 62
+        },
+        ".minimap": {
+          "x": 652,
+          "y": 12,
+          "w": 96,
+          "h": 96,
+          "right": 748,
+          "bottom": 108
+        },
+        ".fullscreen-control": {
+          "x": 358,
+          "y": 8,
+          "w": 44,
+          "h": 44,
+          "right": 402,
+          "bottom": 52
+        },
+        "[data-join]": null,
+        "[data-leave]": null
+      },
+      "open": {
+        ".presence-panel": {
+          "x": 244,
+          "y": 132,
+          "w": 300,
+          "h": 212,
+          "right": 544,
+          "bottom": 344
+        },
+        ".presence-panel summary": {
+          "x": 255,
+          "y": 133,
+          "w": 288,
+          "h": 44,
+          "right": 543,
+          "bottom": 177
+        },
+        ".pframe": {
+          "x": 12,
+          "y": 10,
+          "w": 222,
+          "h": 93,
+          "right": 234,
+          "bottom": 103
+        },
+        ".quest-widget": {
+          "x": 12,
+          "y": 111,
+          "w": 222,
+          "h": 90,
+          "right": 234,
+          "bottom": 201
+        },
+        ".ammo-hud": {
+          "x": 254,
+          "y": 64,
+          "w": 196,
+          "h": 54.6875,
+          "right": 450,
+          "bottom": 118.6875
+        },
+        ".auto-potions-hud": {
+          "x": 566,
+          "y": 214,
+          "w": 178,
+          "h": 44,
+          "right": 744,
+          "bottom": 258
+        },
+        ".joyzone": {
+          "x": 0,
+          "y": 233.40625,
+          "w": 304,
+          "h": 180.59375,
+          "right": 304,
+          "bottom": 414
+        },
+        ".joy": {
+          "x": 56,
+          "y": 278.53125,
+          "w": 112,
+          "h": 112,
+          "right": 168,
+          "bottom": 390.53125
+        },
+        ".quick-actions": {
+          "x": 520,
+          "y": 12,
+          "w": 124,
+          "h": 50,
+          "right": 644,
+          "bottom": 62
+        },
+        ".minimap": {
+          "x": 652,
+          "y": 12,
+          "w": 96,
+          "h": 96,
+          "right": 748,
+          "bottom": 108
+        },
+        ".fullscreen-control": {
+          "x": 358,
+          "y": 8,
+          "w": 44,
+          "h": 44,
+          "right": 402,
+          "bottom": 52
+        },
+        "[data-join]": {
+          "x": 257,
+          "y": 263,
+          "w": 85.140625,
+          "h": 44,
+          "right": 342.140625,
+          "bottom": 307
+        },
+        "[data-leave]": {
+          "x": 348.140625,
+          "y": 263,
+          "w": 103.828125,
+          "h": 44,
+          "right": 451.96875,
+          "bottom": 307
+        }
+      },
+      "craftClose": {
+        "x": 687,
+        "y": 19,
+        "width": 44,
+        "height": 44
+      },
+      "potionClose": {
+        "x": 687,
+        "y": 19,
+        "width": 44,
+        "height": 44
+      },
+      "keyboardDisplacement": 0.4118000000000279,
+      "joystickDisplacement": 0.5404875000000118,
+      "assertions": "bounds, no HUD/Supplies overlap, center hit tests, native close, Join/Solo, real keyboard/joystick movement, room hotkey isolation, real Supplies navigation and panel Close"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "tablet-closed",
+      "sha256": "19cac48f566d4b4319372ec9a7576d528451c491eb2c7e5a8a126026c40f651d"
+    },
+    {
+      "name": "tablet-open",
+      "sha256": "befbc57cbfce2536a7ff5d3987506ebcb16dd5a5b48dd8ca2bd364833186b24c"
+    },
+    {
+      "name": "tablet-supplies-close",
+      "sha256": "bd362d20c9ee8bc67e37e8e4bfa4db7e37921ee3957129ce6632dee2bc0b81ad"
+    },
+    {
+      "name": "landscape-closed",
+      "sha256": "36079d7f9f8decc7c0005d2e0fe5f5756dc4e34a55e278924dfcd2e4be36496d"
+    },
+    {
+      "name": "landscape-open",
+      "sha256": "cfaf8a5515fa42035b151b2094a5b91e3c34cfea459762a84b972e9e08c03d11"
+    },
+    {
+      "name": "landscape-supplies-close",
+      "sha256": "19c3f88353fec6e7c6becbc84d18244ee628f61089aecc87c1a96a8166c9896e"
+    }
+  ],
+  "errors": [],
+  "external": []
+}

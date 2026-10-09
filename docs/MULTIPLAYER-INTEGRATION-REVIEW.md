@@ -60,3 +60,12 @@ server/client/remote renderer and previous evidence; focused test harnesses, Vit
 configuration, CI integration and Godot appendix. Unresolved: hosted matching-head
 readiness, final hosted two-client evidence, physical iPad and continuous visual
 motion review.
+
+## Focused responsive follow-up
+
+The later tablet drawer/player-frame overlap is fixed by the presence-only CSS
+change. [Focused review and screenshots](PRESENCE-RESPONSIVE-REVIEW.md) record
+1024×768 and 760×430 bounds, real keyboard/joystick input, Supplies actions and
+reachable Close controls using the production-style UI harness with rendering
+and external networking omitted. This does not resolve touch-world startup
+timeouts or the restricted hosted-browser verification.

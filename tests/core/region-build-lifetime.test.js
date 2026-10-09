@@ -20,6 +20,7 @@ function harness(){
  const waterSteps=function*(w,contacts,{owner,adopt}){const root=new THREE.Group();const mesh=new THREE.Mesh(owner.geometry(new THREE.PlaneGeometry()),owner.material(new THREE.MeshBasicMaterial()));root.add(mesh);adopt(root);now++;yield;return root;};
  const stub=function*(){now++;yield;return {};};
  const deps={THREE,importJob,cancelledBuild,terrainDomain,terrainSteps,environmentSteps,waterSteps,releaseGroundCaches:w=>cacheReleased.push(w),batchStaticSteps:stub,bakeGrassSteps:stub,attachWindShadow:()=>{},buildHumanoid:()=>({root:new THREE.Group()}),HumanoidAnimator:class{},residentTool:()=>new THREE.Group(),loadCity:()=>city.promise,loadTownKit:()=>kit.promise,disposeObject,beginRegion,useRegion,regionShift,toon:()=>{const m=new THREE.MeshToonMaterial();m.userData.shared=true;return m;},glowTexture:()=>new THREE.Texture()};
+ deps.loadLandmarkAssets=async()=>null; // this lifetime fixture has no authored landmarks
  const api=Function(...Object.keys(deps),source+'\nreturn {startRegion,regionSteps,placeRegion,disposeRegion,waitForRegionImports};')(...Object.values(deps));
  const view={buildQueue:queue,renderer:{},vfx:{}};
  const pump=async()=>{for(let i=0;i<100;i++){while(pending.length)pending.shift()();await Promise.resolve();if(!pending.length){await Promise.resolve();if(!pending.length)return;}}throw Error('queue did not settle');};

@@ -1,0 +1,290 @@
+[
+  {
+    "file": "assets/blender/landmarks/bell_tower.blend",
+    "objects": 25,
+    "curves": 1,
+    "modifiers": 43,
+    "namedParts": [
+      "Bell clapper",
+      "Bell frame collar",
+      "Bell frame collar.001",
+      "Bell frame collar.002",
+      "Bell frame collar.003",
+      "Bell frame collar.004",
+      "Bell frame collar.005",
+      "Bell frame collar.006"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/bramble_arch.blend",
+    "objects": 40,
+    "curves": 4,
+    "modifiers": 0,
+    "namedParts": [
+      "Bramble berry",
+      "Bramble berry.001",
+      "Bramble berry.002",
+      "Bramble berry.003",
+      "Bramble berry.004",
+      "Bramble root",
+      "Bramble root.001",
+      "Bramble spear foliage"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/cliff_shrine.blend",
+    "objects": 41,
+    "curves": 4,
+    "modifiers": 66,
+    "namedParts": [
+      "Column brass collar",
+      "Column brass collar.001",
+      "Column capital",
+      "Column capital.001",
+      "Curved crown",
+      "Folded paper streamer",
+      "Folded paper streamer.001",
+      "Folded paper streamer.002"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/crag_beacon.blend",
+    "objects": 15,
+    "curves": 6,
+    "modifiers": 14,
+    "namedParts": [
+      "Beacon flame core",
+      "Beacon iron fire bowl",
+      "Beacon masonry course",
+      "Beacon masonry course.001",
+      "Beacon masonry course.002",
+      "Beacon masonry course.003",
+      "Beacon masonry course.004",
+      "Beacon masonry course.005"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/elder_mosstree.blend",
+    "objects": 34,
+    "curves": 19,
+    "modifiers": 4,
+    "namedParts": [
+      "Elder buttress root",
+      "Elder buttress root.001",
+      "Elder buttress root.002",
+      "Elder buttress root.003",
+      "Elder central crown",
+      "Elder crown branch",
+      "Elder crown branch.001",
+      "Elder crown branch.002"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/farm_well.blend",
+    "objects": 42,
+    "curves": 12,
+    "modifiers": 54,
+    "namedParts": [
+      "Harvest haystack",
+      "Harvest haystack.001",
+      "Hat brim",
+      "Hay binding",
+      "Hay binding.001",
+      "Hay binding.002",
+      "Hay binding.003",
+      "Hay binding.004"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/fiddlehead_ferns.blend",
+    "objects": 118,
+    "curves": 13,
+    "modifiers": 0,
+    "namedParts": [
+      "Crozier young leaflet",
+      "Crozier young leaflet.001",
+      "Crozier young leaflet.002",
+      "Crozier young leaflet.003",
+      "Crozier young leaflet.004",
+      "Crozier young leaflet.005",
+      "Crozier young leaflet.006",
+      "Crozier young leaflet.007"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/garden_gazebo.blend",
+    "objects": 102,
+    "curves": 7,
+    "modifiers": 42,
+    "namedParts": [
+      "Bench foot",
+      "Bench foot.001",
+      "Climbing rose vine",
+      "Climbing rose vine.001",
+      "Climbing rose vine.002",
+      "Climbing rose vine.003",
+      "Climbing rose vine.004",
+      "Climbing rose vine.005"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/giant_conch.blend",
+    "objects": 25,
+    "curves": 8,
+    "modifiers": 0,
+    "namedParts": [
+      "Inner shell rim",
+      "Recessed aperture",
+      "Rosy rolled aperture",
+      "Shell shoulder spine",
+      "Shell shoulder spine.001",
+      "Shell shoulder spine.002",
+      "Shell shoulder spine.003",
+      "Shell shoulder spine.004"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/glimmer_spire.blend",
+    "objects": 11,
+    "curves": 4,
+    "modifiers": 2,
+    "namedParts": [
+      "Crystal bedrock",
+      "Crystal grounding seam",
+      "Crystal grounding seam.001",
+      "Crystal grounding seam.002",
+      "Glimmer crystal point",
+      "Glimmer crystal point.001",
+      "Glimmer crystal point.002",
+      "Glimmer crystal shaft"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/moon_altar.blend",
+    "objects": 8,
+    "curves": 2,
+    "modifiers": 10,
+    "namedParts": [
+      "Altar engraved circular band",
+      "Altar foundation",
+      "Altar front step",
+      "Altar front step.001",
+      "Altar second tier",
+      "Carved rising crescent",
+      "Crescent plinth",
+      "Moon altar floating pearl"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/moon_mirror.blend",
+    "objects": 13,
+    "curves": 3,
+    "modifiers": 8,
+    "namedParts": [
+      "Carved lunar moth lower wing",
+      "Carved lunar moth lower wing.001",
+      "Carved lunar moth upper wing",
+      "Carved lunar moth upper wing.001",
+      "Mirror diagonal glint",
+      "Mirror diagonal glint.001",
+      "Mirror slender support",
+      "Mirror slender support.001"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/moonstone.blend",
+    "objects": 13,
+    "curves": 4,
+    "modifiers": 6,
+    "namedParts": [
+      "Monolith narrow incision",
+      "Monolith narrow incision.001",
+      "Moonstone bedrock",
+      "Moonstone broken crest",
+      "Moonstone crescent inlay",
+      "Moonstone crescent inlay.001",
+      "Moonstone monolith",
+      "Moonstone votive"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/root_arch.blend",
+    "objects": 29,
+    "curves": 10,
+    "modifiers": 0,
+    "namedParts": [
+      "Burrow earth mound",
+      "Burrow earth mound.001",
+      "Burrow earth mound.002",
+      "Burrow recessed mouth",
+      "Burrow recessed mouth.001",
+      "Burrow recessed mouth.002",
+      "Gnarled moonroot arch",
+      "Gnarled moonroot arch.001"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/sea_arch.blend",
+    "objects": 10,
+    "curves": 6,
+    "modifiers": 0,
+    "namedParts": [
+      "Arch sea grass",
+      "Arch sea grass.001",
+      "Coastal arch foot",
+      "Coastal arch foot.001",
+      "Coastal strata seam",
+      "Coastal strata seam.001",
+      "Coastal strata seam.002",
+      "Coastal strata seam.003"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/sundial.blend",
+    "objects": 17,
+    "curves": 1,
+    "modifiers": 30,
+    "namedParts": [
+      "Bronze triangular gnomon",
+      "Gnomon sun ornament",
+      "Hour chapter ring",
+      "Hour marker",
+      "Hour marker.001",
+      "Hour marker.002",
+      "Hour marker.003",
+      "Hour marker.004"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/watchtower.blend",
+    "objects": 35,
+    "curves": 0,
+    "modifiers": 62,
+    "namedParts": [
+      "Gold forked ranger pennant",
+      "Ladder rung",
+      "Ladder rung.001",
+      "Ladder rung.002",
+      "Ladder rung.003",
+      "Ladder rung.004",
+      "Ladder rung.005",
+      "Ladder rung.006"
+    ]
+  },
+  {
+    "file": "assets/blender/landmarks/windmill.blend",
+    "objects": 39,
+    "curves": 0,
+    "modifiers": 30,
+    "namedParts": [
+      "Deep blue mill window",
+      "Deep blue mill window.001",
+      "Door lintel",
+      "landmark-spinner",
+      "Linen sail",
+      "Linen sail.001",
+      "Linen sail.002",
+      "Linen sail.003"
+    ]
+  }
+]

@@ -1,0 +1,788 @@
+{
+  "base": "152eb744d242a9260cff5e3479e5f08000a5de54",
+  "quality": "high",
+  "blender": "4.3.2",
+  "engine": "Chromium / ANGLE SwiftShader",
+  "landmarkCamera": {
+    "main": {
+      "viewport": [
+        1180,
+        820
+      ],
+      "zoom": 1,
+      "freeGroundDistance": "largest collider footprint + 1.6m"
+    },
+    "wide": {
+      "viewport": [
+        1180,
+        820
+      ],
+      "zoom": 1.25
+    },
+    "full": {
+      "viewport": [
+        1180,
+        820
+      ],
+      "zoom": 1.35,
+      "side": "north of landmark",
+      "distance": "largest collider footprint + 4m"
+    },
+    "mobile": [
+      {
+        "viewport": [
+          844,
+          390
+        ],
+        "zoom": 1.25
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "zoom": 1.25
+      }
+    ]
+  },
+  "UIViews": [
+    [
+      1440,
+      900
+    ],
+    [
+      1180,
+      820
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "files": [
+    {
+      "file": "assets/blender/landmarks/bell_tower.blend",
+      "bytes": 108549,
+      "sha256": "2438030c6fa54d93d57c6a48b907ee5cc6d388514a9a2a0754562171a2fbb013"
+    },
+    {
+      "file": "assets/blender/landmarks/bramble_arch.blend",
+      "bytes": 109672,
+      "sha256": "81ee125bf9496447d39d79735320af5238b20888654886e0c21e493270a64ed0"
+    },
+    {
+      "file": "assets/blender/landmarks/cliff_shrine.blend",
+      "bytes": 116484,
+      "sha256": "25ac1a88faef7833aca4d9213541843cb001d06cdf29e3adc3118f5a2fadc0ae"
+    },
+    {
+      "file": "assets/blender/landmarks/crag_beacon.blend",
+      "bytes": 102162,
+      "sha256": "35311ce7de3feb6479baeb19c839994cec1d2dfe33d1c976690d65c73a69f810"
+    },
+    {
+      "file": "assets/blender/landmarks/elder_mosstree.blend",
+      "bytes": 115517,
+      "sha256": "b0fd8a1e27c0b2296fc1873fa93813b73e2325b2e7d7f85a0ee4d66509ddf5d5"
+    },
+    {
+      "file": "assets/blender/landmarks/farm_well.blend",
+      "bytes": 120085,
+      "sha256": "9e9ce14b05985e17fa72797e0a11d3bcd2452454eadb46020f146f6755ec10d3"
+    },
+    {
+      "file": "assets/blender/landmarks/fiddlehead_ferns.blend",
+      "bytes": 117354,
+      "sha256": "8281f430171d426b48f83317c906e474ed9e1aa58885332f41daf5449f978ba7"
+    },
+    {
+      "file": "assets/blender/landmarks/garden_gazebo.blend",
+      "bytes": 129305,
+      "sha256": "5a771d01ed6261ceef88d839fab5bd3e7489eda0c74687274f2a760b39f2bac7"
+    },
+    {
+      "file": "assets/blender/landmarks/giant_conch.blend",
+      "bytes": 116772,
+      "sha256": "720b34e0c2a05e17da38dad4a2e625cad5b5afc8595aaf8c6104dcdfa356dddb"
+    },
+    {
+      "file": "assets/blender/landmarks/glimmer_spire.blend",
+      "bytes": 96953,
+      "sha256": "66dd4f036874839db3de04dd32262903282367cc87cf3e3f58e92da2e30badb0"
+    },
+    {
+      "file": "assets/blender/landmarks/moon_altar.blend",
+      "bytes": 101855,
+      "sha256": "7430c3ae48d696d1e964e539795aaad258da6c74289adec4dd232b594d92ce58"
+    },
+    {
+      "file": "assets/blender/landmarks/moon_mirror.blend",
+      "bytes": 104474,
+      "sha256": "9af5603b9c204dc1d00dc623910c1f1cbdd907e895e88be432eaf932e5fd4723"
+    },
+    {
+      "file": "assets/blender/landmarks/moonstone.blend",
+      "bytes": 108104,
+      "sha256": "8f4a671ef798734db1656912ee2a1dd2f5f050eee5ed7bad0e3bafade2fa0849"
+    },
+    {
+      "file": "assets/blender/landmarks/root_arch.blend",
+      "bytes": 125860,
+      "sha256": "b5af05f236058e17722c32ed2789a5458473103c544bc81a4ac343a70b590ee7"
+    },
+    {
+      "file": "assets/blender/landmarks/sea_arch.blend",
+      "bytes": 99132,
+      "sha256": "126dccaa4c14f57931d5646f13a01debc5c4016fb20d8ceaf56d07ef2a7f20eb"
+    },
+    {
+      "file": "assets/blender/landmarks/sundial.blend",
+      "bytes": 103873,
+      "sha256": "0d822a8503a59b44c1cb0aec7139a1b29ff1b3960fad7cfbe42725a49dd012a3"
+    },
+    {
+      "file": "assets/blender/landmarks/watchtower.blend",
+      "bytes": 106128,
+      "sha256": "8226a74938cd6f520789666ee2a8f42afe7a6d93eec81844e432a1ed5e9560eb"
+    },
+    {
+      "file": "assets/blender/landmarks/windmill.blend",
+      "bytes": 115835,
+      "sha256": "307906a7f8f310c2111bcf45dd1c39c6dfeaf43a097f8d71eb67112a21054391"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/bramble_arch-game.png",
+      "bytes": 1103601,
+      "sha256": "e9bc835e1580f4e8a09c09a446c75dec82f81c53b306dfbfc1f2d1205585614c"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/crag_beacon-game.png",
+      "bytes": 1081266,
+      "sha256": "0b5b547354d6ae8b074cbf94970aac0cda6d1092b84c5da89ac8448829e9e603"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/elder_mosstree-game.png",
+      "bytes": 1042760,
+      "sha256": "76bd8fe069b79a278c9f862fe9d7a15cf998b4acd5a72133a9d70f9a422d6a39"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/fiddlehead_rise-game.png",
+      "bytes": 1084749,
+      "sha256": "d081af3d94081fdf1234e1f6ab6c964bc138b1130297114ed631762aefebef5b"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/frontier_bell-game.png",
+      "bytes": 1093930,
+      "sha256": "60fe88c8b194cc8751b2866cdd8b8ce8390f46a8e67f061ce086391ac10c0b59"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/giant_conch-game.png",
+      "bytes": 903124,
+      "sha256": "1fb12e1f7ecfc1e08588372a3cc0a4517ef214ebd6a5b7d2302f14e412b2a62e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/glimmer_spire-game.png",
+      "bytes": 1058665,
+      "sha256": "1633099efd3e7624c302e9ab68990deeae9c15b4b099c7a367ca331dc8f92e47"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/gull_shrine-game.png",
+      "bytes": 1125324,
+      "sha256": "fe0dceeaab78afeba5d7da62a414af4f6823c826bf557bf584bc12a2358c432d"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/hill_windmill-game.png",
+      "bytes": 1134063,
+      "sha256": "ec8802ab0b9e05281ad8adf9ca62c36673f6e704a8260e0ee2af7e2c1e25cac0"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/meadow_sundial-game.png",
+      "bytes": 1042087,
+      "sha256": "1dd8ca765097cca636f16a90702b72eb034172441f0dbc92f9ab4311ba48107a"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/meadow_well-game.png",
+      "bytes": 1087138,
+      "sha256": "032f30d8ea981ebfd2abb2662bea3eae861f970bbc12534f30fc2028dc791055"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/moon_altar-game.png",
+      "bytes": 1086530,
+      "sha256": "b2f592ab14026b2ce93ed915d8138ea9758246a0d6acf107ab7f75fc2116bc68"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/moon_mirror-game.png",
+      "bytes": 1077112,
+      "sha256": "51429d8b00b39d43835356653fbfc4d8bf4baee1fe10035660c4c2fdc7438445"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/moonstone-game.png",
+      "bytes": 1143493,
+      "sha256": "c3a355b375ef2a8b0b70013709c7a451c0476a5a6187829a16344c60826d78c9"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/ranger_lookout-game.png",
+      "bytes": 1111653,
+      "sha256": "c86d7ba8740babbdb9920be0dc090179ec2d7f1191be4b26c8327738e45ceb7e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/root_arch-game.png",
+      "bytes": 1077430,
+      "sha256": "8dfed29bd74f9aca17084fb2aae5654f3669618736ce6488fab15c79637e9861"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/rose_gazebo-game.png",
+      "bytes": 1074798,
+      "sha256": "b531d52b7f2bd268065bb80083c7ae93852f2a50d973d990a2a9f3561440aed4"
+    },
+    {
+      "file": "docs/review/landmarks-ui/after/sunfall_arch-game.png",
+      "bytes": 785470,
+      "sha256": "91f477a395351e4643a5d013dad521529e564138c740902d0649009543d65657"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/bramble_arch-game.png",
+      "bytes": 1123187,
+      "sha256": "b33e5de1ec177322d757bd3161e6b400a5ae94e31e43dcbe9ebe4fc5d3903a5e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/crag_beacon-game.png",
+      "bytes": 1098449,
+      "sha256": "55fcf427f975084c66bb30e39b99394532a712aa1b3c8b6290d633477d02dc1b"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/elder_mosstree-game.png",
+      "bytes": 1059639,
+      "sha256": "8cb2c1aad894d281c6e3a9617edfdcbbe7a563705e1fa0f870f5f474b8c2bde7"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/fiddlehead_rise-game.png",
+      "bytes": 1102048,
+      "sha256": "fe91ba6d1bbf1145201b36a7ea8f24b0f140680a663098a25cecd3518c4edc41"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/frontier_bell-game.png",
+      "bytes": 1115069,
+      "sha256": "0c4fc4972a9ee1c59481bb31cdcb894bf5903b32fb6b78e80f7b3713003130de"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/giant_conch-game.png",
+      "bytes": 925081,
+      "sha256": "e9e58d12b4485c35ecb29c0ba9e3b9a4ab8eca404eaa5500037b2422274d6bb8"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/glimmer_spire-game.png",
+      "bytes": 1080398,
+      "sha256": "f88c9e2be18dcf69c767882ebc0e388a4a930cf0025eb121a945a20c1aee7e99"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/gull_shrine-game.png",
+      "bytes": 1142661,
+      "sha256": "9a4f7e4436186a8fff0e439710b9066419e80fe820a71d39bf658343dfd2d2d9"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/hill_windmill-game.png",
+      "bytes": 1153743,
+      "sha256": "44b6de9af19a23d8b43dbf5e5f67bdab8e2cad80ae3fc75481df061cb03fd7ca"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/meadow_sundial-game.png",
+      "bytes": 1064252,
+      "sha256": "d905bc80c223a1ae73d27e572e538a5c3011c57d86a5dce4682e5448965fa9d7"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/meadow_well-game.png",
+      "bytes": 1104403,
+      "sha256": "d434ce95c2b8707da7250aa94da1834ebc61f513a9e1c097946e02a51ee2122f"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/moon_altar-game.png",
+      "bytes": 1101923,
+      "sha256": "3bd2d83db487b9665e4d3b87e7f6369ac114c5b25c7a0fdb097159af7876f9c0"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/moon_mirror-game.png",
+      "bytes": 1096771,
+      "sha256": "48c0a5feaf1634be91f4b33acf1cee7c0d7df9a867400ff8be886ea86c48ae2a"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/moonstone-game.png",
+      "bytes": 1161246,
+      "sha256": "318209890cb98ff7a0b54436e8689d6537e47e5e54a3a9a919a2c92839c5cb77"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/ranger_lookout-game.png",
+      "bytes": 1131641,
+      "sha256": "2e0f2314111754e161b0f713459ea62ad45fb106143e99f0bcaddfe92c29c657"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/root_arch-game.png",
+      "bytes": 1094102,
+      "sha256": "489c6e5a8312cea7b49a32fba69c2dfb42a42ef993a4b1d04012716a856499e6"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/rose_gazebo-game.png",
+      "bytes": 1110319,
+      "sha256": "0abd361f71dd42175f953dd2e5216529b61d83291d93db64fdbaf4df3efe0483"
+    },
+    {
+      "file": "docs/review/landmarks-ui/before/sunfall_arch-game.png",
+      "bytes": 813403,
+      "sha256": "7175b1b728f31db37ee2feef2336421b2d7c11a3ee6c23ee7d64fa2cbf46be7f"
+    },
+    {
+      "file": "docs/review/landmarks-ui/full-after/elder_mosstree-game.png",
+      "bytes": 1100482,
+      "sha256": "7cc85776b51c4e993809b8d7cd3c29e8a30e78776c5c09a9e134e2dade6e9e05"
+    },
+    {
+      "file": "docs/review/landmarks-ui/full-after/ranger_lookout-game.png",
+      "bytes": 1141610,
+      "sha256": "b553d17829ace82f12fc4e919d262a26f5033d328248c03daa8697476d40f181"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/equipment-desktop.png",
+      "bytes": 312588,
+      "sha256": "8e8292d28338dfff5e3b46437f0e2a753ea126c15cfcc16a481812786e75f2af"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/equipment-phone.png",
+      "bytes": 216143,
+      "sha256": "880c8f912fa8b9e224844bba77b906ea0e3f8783159c19eeb2409316e2cb8c33"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/equipment-tablet.png",
+      "bytes": 636776,
+      "sha256": "fb9160a3c189e5834b48973f9f07fe43c606c13d220e82e4b42cced4b80c905f"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/materials-desktop.png",
+      "bytes": 296519,
+      "sha256": "caa70e98691ace2b56ebf5726d2c8f5f13ff5d1b8d96b0580eb34cb805261d97"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/materials-phone.png",
+      "bytes": 220661,
+      "sha256": "c967cc8a8a5455355ea92dd77d0817eab1661b5fa2ff54048d8305ee3fc94eeb"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/materials-tablet.png",
+      "bytes": 634594,
+      "sha256": "2f811020a9d0ffafa4168fed4e4b53c4ce773359cddcf30939dc8ad9952c1a3e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/mods-desktop.png",
+      "bytes": 227263,
+      "sha256": "94eb7f19c238027b5247bdf6877d974024fec5a143a551df51fbac2721b25dbc"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/mods-phone.png",
+      "bytes": 201605,
+      "sha256": "6f9a27ea53d07b26cf68cac6b1ad4ae9a199d4537114a2954a7face30737a88e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/mods-tablet.png",
+      "bytes": 589170,
+      "sha256": "26e442e8de546baf17e7401a67300b5e9b4500ef5dfd55da21bb036b8e42fd96"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/skills-desktop.png",
+      "bytes": 243398,
+      "sha256": "10fa6d2749e602e25c0e6ee580bd86e37faf6a457fa0f077d90eb5a12977ba6f"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/skills-phone.png",
+      "bytes": 199183,
+      "sha256": "e2d8112d5ac8274278f3f28f391ec4281a010b253d232ec638c53d070e5bea75"
+    },
+    {
+      "file": "docs/review/landmarks-ui/loadout-after/skills-tablet.png",
+      "bytes": 609412,
+      "sha256": "04380ff98fa3f3210cd343e8a103bdb3eb646d9ccf8f0a9157c91c5109791bce"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/gull_shrine-390x844.png",
+      "bytes": 380623,
+      "sha256": "e657958751a3a8ce49b3ed5eaee4bae408a009932cdcd09c4db1cb29d608c49a"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/gull_shrine-844x390.png",
+      "bytes": 453886,
+      "sha256": "6c41c27062e9ba248cf51030e53c0cca1d4a0c0ad8a038ecdebadd483028126d"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/gull_shrine-game.png",
+      "bytes": 1155955,
+      "sha256": "a2cc5b6af165bab5523f33563c1d6e67d2d54db19cee79b961f100b249ea56f0"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/hill_windmill-390x844.png",
+      "bytes": 411547,
+      "sha256": "9ca51198c7c5943c68229b98727953698fb7d443aae56c1b58f80e5117889de6"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/hill_windmill-844x390.png",
+      "bytes": 436083,
+      "sha256": "8c4fa7bc021ff45cdbbc86aa261b222a06d4d675aa73de9a75520d703c1cf7fa"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/hill_windmill-game.png",
+      "bytes": 1156131,
+      "sha256": "0fa89310ce56571ceb2efe251cca8590b6a8be276c8cb3b7a408d7028bc1e3c5"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/hill_windmill-motion-1.png",
+      "bytes": 1152726,
+      "sha256": "c27a4dcede44e7e4243f5f4a464f87d019e4b3563e8ad5756d07f63b55ba03f1"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/hill_windmill-motion-2.png",
+      "bytes": 1151868,
+      "sha256": "9b6b55c96adca34e185c610cab6efd302dc51de1bf2fc3de7afbdb2383cb8904"
+    },
+    {
+      "file": "docs/review/landmarks-ui/mobile-after/hill_windmill-motion-3.png",
+      "bytes": 1155708,
+      "sha256": "9307b82e59477cd70d0f79b868e5639df70dd25fede81b75eeb81fa1af701dc9"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/craft-1180x820.png",
+      "bytes": 359956,
+      "sha256": "a457a1af0501dda67977400c85f1dec93d8633dbf985b829fb949515b00d41a5"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/craft-1440x900.png",
+      "bytes": 602169,
+      "sha256": "ab7eb62a9c56ee7e01e455cae23aa52dbdd666f4d966bf605ae7fea647440c5c"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/craft-390x844.png",
+      "bytes": 147346,
+      "sha256": "443765a56ec446cc5927e263f778be86af949f5265a71cd3f672b0e4a82021d3"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/craft-844x390.png",
+      "bytes": 148626,
+      "sha256": "ca14fb93744236a590bd74be0a4b8c7ad526f064d074d11a0dc3a3cae6f96d8b"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/job-1180x820.png",
+      "bytes": 862520,
+      "sha256": "e55d4afea0f15e25bc849fdd7a72d6292210d57f02f81bc3f4e04bc56228698e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/job-1440x900.png",
+      "bytes": 1134733,
+      "sha256": "916521114d6c98c648a555e172b9693ed244fe95fbfd01fa8d1225ea7444ec61"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/job-390x844.png",
+      "bytes": 325185,
+      "sha256": "4811860cee1a9fac511db7d39367379f2a1cbb43f20f77ce83bbe67a72a07a48"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/job-844x390.png",
+      "bytes": 307839,
+      "sha256": "2d4e9cde2283cef8cc00d260b3b5f04c4031d3b814200066f03aed3d38868e1d"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/menu-1180x820.png",
+      "bytes": 419329,
+      "sha256": "142e5ebbcb694e3289e8c8f9586905e17ac97a01c1b2a0817a46d4cad89b7f40"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/menu-1440x900.png",
+      "bytes": 661586,
+      "sha256": "972016768789048efe7fc8cd08cabf86ce18d0ce838817ec1fc32d2a10a4fe73"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/menu-390x844.png",
+      "bytes": 162057,
+      "sha256": "bebb2857bc893e239cdd5c5be61e5d5967af8651c19f8dfc02b70222b0cab117"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/menu-844x390.png",
+      "bytes": 143413,
+      "sha256": "10598aa0d70ffb1a7148869835e0cc1c5c9c5d033ab5ce75f6ec780e02926a8b"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/settings-1180x820.png",
+      "bytes": 351515,
+      "sha256": "05b98e4bd11d8be3604a41426436febe02cb7b04ae112dbb538a1d6205fdf3e5"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/settings-1440x900.png",
+      "bytes": 585414,
+      "sha256": "6903517d13ecc3d4141eb54febbf71efa2b731a508e4406472b1ac5933fec869"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/settings-390x844.png",
+      "bytes": 145816,
+      "sha256": "f74ed004012928e5181de2fb0641a5afd337cafbca359d1b7081bd37e7c6ac6f"
+    },
+    {
+      "file": "docs/review/landmarks-ui/panels-after/settings-844x390.png",
+      "bytes": 131043,
+      "sha256": "548e8ecae2e3201d93d9425e55befa5b5280d405a306f86b6aa70436b0f9ffd9"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/bag-1180x820.png",
+      "bytes": 524320,
+      "sha256": "8532020ebaa9b63dc1ccefa377970273991a39e024c6aa5ba7f39a6eee43d761"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/bag-1440x900.png",
+      "bytes": 742804,
+      "sha256": "c45e3540525952b705431e00a16ce9c8209c401dad6111acb89029552a79452e"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/bag-390x844.png",
+      "bytes": 135787,
+      "sha256": "85cdc1966155f7e77ddd98fa693850f8ca0b4cb2749bdaec17c66e8ad5d1ecb1"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/bag-844x390.png",
+      "bytes": 185928,
+      "sha256": "a0d56b094019d3abf136e249525e8b3c2f99f7ada8615b2e2c05629730daee16"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/menu-1180x820.png",
+      "bytes": 419215,
+      "sha256": "9eddb57df4f682a497544bf396d76b939d96630584fb24647732a776b6fe7e42"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/menu-1440x900.png",
+      "bytes": 660055,
+      "sha256": "46fee39f44ba5d72c674237ff1786a2b3e0d89a2c34da36cc4a96b380753a9ce"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/menu-390x844.png",
+      "bytes": 161805,
+      "sha256": "6163bbfcf30e4944073fcccc93366dd5aa8e70214675c77919f772663f723d94"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-after/menu-844x390.png",
+      "bytes": 143425,
+      "sha256": "bc9c553664e6a4b99533d11e2d83a0aca9fee2c429a7664c62f6326a1c59b695"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/bag-1180x820.png",
+      "bytes": 577916,
+      "sha256": "766f49155cf95e74a6221a74d79e765f7c000016979091a40f8891652728a440"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/bag-1440x900.png",
+      "bytes": 996892,
+      "sha256": "0093ccdfd50a8a14a5a9706936bfc0950f3c60c17aefd5c9ff4b8d27e9f72e84"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/bag-390x844.png",
+      "bytes": 6168,
+      "sha256": "7e66d453fbea78f1b614f97260eb9a1b00af46565a69355d44040101ba3e73b6"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/bag-844x390.png",
+      "bytes": 276467,
+      "sha256": "ab8224c6f0b132b4c998dd4b90054e5f7b655f09df656e179b0716b0f596717b"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/menu-1180x820.png",
+      "bytes": 109392,
+      "sha256": "f58ba43b1ee2cff46f44e2543dcbf48585b83fdedafb022b4d596d4522c3295d"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/menu-1440x900.png",
+      "bytes": 282686,
+      "sha256": "ed5b85653ef3d79da25a21bdfdb2f835fa20b8512b55210ca1e6749f700fb891"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/menu-390x844.png",
+      "bytes": 75515,
+      "sha256": "d9e99077cfce1346a221b957a88502618a84f6dbe82f262b8306a47aa09a266a"
+    },
+    {
+      "file": "docs/review/landmarks-ui/ui-before/menu-844x390.png",
+      "bytes": 88557,
+      "sha256": "6707c5d95a5aff820a1871947d39b3e4b96838157cdb398c17cbe0060834ba67"
+    },
+    {
+      "file": "docs/review/landmarks-ui/wide-after/elder_mosstree-game.png",
+      "bytes": 1085717,
+      "sha256": "cf21e132f332ff77122a203eb7ca49975418f924abeb628763422ebbb7856de0"
+    },
+    {
+      "file": "docs/review/landmarks-ui/wide-after/frontier_bell-game.png",
+      "bytes": 1137359,
+      "sha256": "4cb46464cee87337d183e38b33471571a282e273afcda06ada583d0473d62d89"
+    },
+    {
+      "file": "docs/review/landmarks-ui/wide-after/hill_windmill-game.png",
+      "bytes": 1151732,
+      "sha256": "0805d346c9a16fc69d34efc5b4b291efaaf4406200c1299f83e3d0155598e4dd"
+    },
+    {
+      "file": "docs/review/landmarks-ui/wide-after/ranger_lookout-game.png",
+      "bytes": 1128872,
+      "sha256": "ecdd229d4530ecc70ab1f8a16d4998d6d724380094aeb7b7067c6df9540c0089"
+    },
+    {
+      "file": "docs/review/landmarks-ui/windmill-final/hill_windmill-game.png",
+      "bytes": 1157079,
+      "sha256": "ec4cae693a7f2da23b34c212abd8ce5da870deed03c03c9c538e8c02d205dbf5"
+    },
+    {
+      "file": "docs/review/landmarks-ui/windmill-final/hill_windmill-motion-1.png",
+      "bytes": 1155011,
+      "sha256": "691cdd90390709a5b62c02d1fa8c646eeb571a97f57a038ff492035d77806f7d"
+    },
+    {
+      "file": "docs/review/landmarks-ui/windmill-final/hill_windmill-motion-2.png",
+      "bytes": 1156359,
+      "sha256": "858053e1c581c46ad66498205e5087d4236999445cf1a5d58c63fef15c2fea24"
+    },
+    {
+      "file": "docs/review/landmarks-ui/windmill-final/hill_windmill-motion-3.png",
+      "bytes": 1152180,
+      "sha256": "93d306e71309d52ec54927694b6f4bdcdb89aaa23988cfe438e3e7c43474db36"
+    },
+    {
+      "file": "index.html",
+      "bytes": 1552,
+      "sha256": "30a5afb51a06888d39ae64bb32281502ba404ed60cab455557e9cb8f8beff0a9"
+    },
+    {
+      "file": "public/models/landmarks/bell_tower.glb",
+      "bytes": 97920,
+      "sha256": "ae8fbe4819445004e7eb5bf7ab68d702973f49b9db840f4fd9558d224781e593"
+    },
+    {
+      "file": "public/models/landmarks/bramble_arch.glb",
+      "bytes": 45672,
+      "sha256": "defbae4042921f69ddb95f5234d122d4760df1dc89350078350a6fb2792dcefd"
+    },
+    {
+      "file": "public/models/landmarks/cliff_shrine.glb",
+      "bytes": 146416,
+      "sha256": "8ef20c4b9a1b51205b343bbe94198ed9dee718dcaa78266453fc90a0fdafcdd2"
+    },
+    {
+      "file": "public/models/landmarks/crag_beacon.glb",
+      "bytes": 59700,
+      "sha256": "25bcff7b2ff4c72c993acb1c34d8c69d5bfbeb61670517ec86bb1b2bf665203c"
+    },
+    {
+      "file": "public/models/landmarks/elder_mosstree.glb",
+      "bytes": 89360,
+      "sha256": "0c780d99d8ebbf271a2c04f7cf2add087fec21c5d0c4a140573f69d22f7db6e1"
+    },
+    {
+      "file": "public/models/landmarks/farm_well.glb",
+      "bytes": 125660,
+      "sha256": "2043d6f3767839ef191a798436592762475550e8977bd404be2f1329043dd3e0"
+    },
+    {
+      "file": "public/models/landmarks/fiddlehead_ferns.glb",
+      "bytes": 110636,
+      "sha256": "59c8e4f0cbd427a3fef94b7a5b8a114aad28492a37ea99a766ae0c4103c415db"
+    },
+    {
+      "file": "public/models/landmarks/garden_gazebo.glb",
+      "bytes": 168436,
+      "sha256": "354bb361e71ed30dd73d6150553482ad9b1f852e6ee516155f36d3f0a9594769"
+    },
+    {
+      "file": "public/models/landmarks/giant_conch.glb",
+      "bytes": 83496,
+      "sha256": "1d0a1c80ad4faefe193d665b0996fbb25e7666b1cf77aaaed2e514ebd45f57ef"
+    },
+    {
+      "file": "public/models/landmarks/glimmer_spire.glb",
+      "bytes": 31744,
+      "sha256": "327ea3462f417f9ff25c370d994ba8ba5fe82aeeda8bc65a54e0c2cbd6eb698f"
+    },
+    {
+      "file": "public/models/landmarks/manifest.json",
+      "bytes": 4265,
+      "sha256": "35bd49bb9768f6cc74c94ffca5da617e7c4afb52873d61822cd782ac9ceb2a08"
+    },
+    {
+      "file": "public/models/landmarks/moon_altar.glb",
+      "bytes": 43720,
+      "sha256": "2e9219190ef8127a0be6080d246815db3d3521e097fd0ec1829a0140e39d75aa"
+    },
+    {
+      "file": "public/models/landmarks/moon_mirror.glb",
+      "bytes": 39932,
+      "sha256": "eeb14d9142e3b4826678ba0efaf6c7aa5a2600730d3239ac6f0c11d350aa0477"
+    },
+    {
+      "file": "public/models/landmarks/moonstone.glb",
+      "bytes": 55380,
+      "sha256": "ea5408bf10cd89cd3e87ebad6ca8bd9277035331c3e5cbac1a91ca17c1d287f9"
+    },
+    {
+      "file": "public/models/landmarks/root_arch.glb",
+      "bytes": 100232,
+      "sha256": "4693403486543a12844915eb8019f94f317ccbce3f4d53e9d94b5949b89e6dea"
+    },
+    {
+      "file": "public/models/landmarks/sea_arch.glb",
+      "bytes": 27208,
+      "sha256": "7749bbed6c01c628a9cf055930ed4a613944739e97d555392bd94001f0dbbf75"
+    },
+    {
+      "file": "public/models/landmarks/sundial.glb",
+      "bytes": 70728,
+      "sha256": "b63f9ec526ca5bed12815e5e9a668f766b3131be5468017e236ab4cb50b6bc37"
+    },
+    {
+      "file": "public/models/landmarks/watchtower.glb",
+      "bytes": 84228,
+      "sha256": "bf648df59bc57dc784262c365cc61ba3f59f6d941816433216e7bc0c392bae63"
+    },
+    {
+      "file": "public/models/landmarks/windmill.glb",
+      "bytes": 102400,
+      "sha256": "378addcd09aa7228c6940859112acff5d0682700789b8dec0003d6d324b90d79"
+    },
+    {
+      "file": "scripts/build-landmarks.py",
+      "bytes": 29294,
+      "sha256": "e4cbd93ae5791d3008d2f17da807518d2bd5601a4727c49e0f268470d0b72d01"
+    },
+    {
+      "file": "scripts/capture-landmarks.mjs",
+      "bytes": 5248,
+      "sha256": "2f98431fb9ae6e43df05bb95fe16bf6fa205ef77b44c64857a7774a1dcb233f2"
+    },
+    {
+      "file": "src/render/environment.js",
+      "bytes": 49304,
+      "sha256": "84e01f8ecdb5538a29947ecc6818610ba797b5979fe166ec44ea1f1ffa1d8582"
+    },
+    {
+      "file": "src/render/landmark-assets.js",
+      "bytes": 3178,
+      "sha256": "3d49d43e8644cccc134955cff65e4beba3ec4943edd54d72689418ef446b52ca"
+    },
+    {
+      "file": "src/render/region.js",
+      "bytes": 14360,
+      "sha256": "2c91e9f48833254cbf31c6fd0f9e11a8c2ae3e9966939d337f221d643237a29b"
+    },
+    {
+      "file": "src/ui/compact.css",
+      "bytes": 20848,
+      "sha256": "d5a5ba08814350547b7ceead6e7ebcd9897ecf769f6980d4c8a69dfadb7a380b"
+    },
+    {
+      "file": "src/ui/loadout-workspace.js",
+      "bytes": 47652,
+      "sha256": "a53225956cc4b9507087347ce6ee2431479729d6381d71279505c9c6796ab5c7"
+    }
+  ]
+}

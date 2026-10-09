@@ -972,10 +972,16 @@ set piece drawn elsewhere: wreck, lighthouse, wolf den, ruin ring; named for the
 `colliders` (local `[x, z, r]` circles) plus `clear` (radius). `core/world.js` places them after all
 random scatter: scattered trees/rocks/stumps/logs and small decoration within `clear` are removed
 (nothing else moves, so the seeded layout is unchanged), then the collider circles are added with
-`type: 'landmark'`. `world.landmarks` lists them with world-space `parts`. Models are procedural
-(`render/landmarks.js`, one builder per kind, merged per colour); the windmill's sails turn in
-`onBeforeRender` because static batching freezes scenery matrices. In Godot: one scene per kind
-placed at `at`/`rot`, static bodies from `parts`, the windmill sails on an `AnimationPlayer`.
+`type: 'landmark'`. `world.landmarks` lists them with world-space `parts`. The 18 non-builtin
+models are editable Blender sources in `assets/blender/landmarks/`, exported to
+`public/models/landmarks/*.glb` by `scripts/build-landmarks.py`. `render/landmark-assets.js`
+loads only the active region's kinds, applies the native three-step toon ramp and
+same-hue outlines, then cooperatively batches static meshes by material. Region import
+jobs own and release raw and merged buffers on cancellation or disposal. The windmill's
+named `landmark-spinner` sails turn in `onBeforeRender` because batching freezes matrices;
+moving meshes are excluded from static merging. Placement, ground support and collider
+data are unchanged. In Godot: import one GLB scene per kind at `at`/`rot`, static bodies
+from `parts`, and the windmill sails on an `AnimationPlayer`.
 
 Ground cover per zone comes from `zoneDecor(zone)` (exported by `core/world.js`): flower colours
 (indices into `art.ground.flowerColors`), ferns, mushrooms and berry bushes. A zone's own `decor`

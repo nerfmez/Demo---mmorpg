@@ -1,0 +1,331 @@
+{
+  "previousHead": "4be54c543e94cfe9353340d521311996b8707af5",
+  "integratedMain": "fc776206092c7399f8b1f49c6e11440da1078bed",
+  "mergeConflicts": [],
+  "preservedLandmarkFiles": {
+    "assets/blender/landmarks/glimmer_spire.blend": "8bded5b06fc5fb75d90058e1b3f24aeeee926b54f430c378b5cc732d2adcb05c",
+    "assets/blender/landmarks/bramble_arch.blend": "4ffb5b10639103c457a13da74cfdde72da4b72c15d50366b21853251af1286a2",
+    "assets/blender/landmarks/moonstone.blend": "aa56e1bc0f1de5d695995db3bffc10252bd1997e13d37776c092de6c63e6f8aa",
+    "assets/blender/landmarks/bell_tower.blend": "00e799c2ee81c56a7170346518492b7cac2eaa62192abc61862aac6705a7588a",
+    "assets/blender/landmarks/cliff_shrine.blend": "25ac1a88faef7833aca4d9213541843cb001d06cdf29e3adc3118f5a2fadc0ae",
+    "assets/blender/landmarks/garden_gazebo.blend": "2db6ce7372f71fc1f878b083409749bb98577d2b6dc79ecbb5b968bd1efb09e9",
+    "assets/blender/landmarks/windmill.blend": "307906a7f8f310c2111bcf45dd1c39c6dfeaf43a097f8d71eb67112a21054391",
+    "assets/blender/landmarks/giant_conch.blend": "e8bca763e88f123f224c6fbfa46c2e03d28c6ee8fba069a4f6e0f1491126f158",
+    "assets/blender/landmarks/sea_arch.blend": "da4848dd72c86e1ce198d5fe4f243ab29a29d5cb1ddd591a0c54559484d02d00",
+    "assets/blender/landmarks/README.md": "2c5e99253917ecf33fa7b942110e41cc8b610b550ca268d751e52f96d619d45b",
+    "assets/blender/landmarks/crag_beacon.blend": "50ba0deef3b1e46593ccd7d0ade1b65169f1c8d76a09bd49e519a0a4b9148de3",
+    "assets/blender/landmarks/moon_altar.blend": "ad2cd5ee0098d3bd937f16f4d7738ff1173ffb74865d971c753d04163d42c8ff",
+    "assets/blender/landmarks/farm_well.blend": "9e9ce14b05985e17fa72797e0a11d3bcd2452454eadb46020f146f6755ec10d3",
+    "assets/blender/landmarks/moon_mirror.blend": "81073f508db5ade755d34ed74aa1a5b9ab1817639e9b951c7e3b0d19e926f791",
+    "assets/blender/landmarks/fiddlehead_ferns.blend": "fae47c89a0f28700572f8a765ae4ba3337f87f1a3330ad665755fa44a7a38383",
+    "assets/blender/landmarks/sundial.blend": "0d822a8503a59b44c1cb0aec7139a1b29ff1b3960fad7cfbe42725a49dd012a3",
+    "assets/blender/landmarks/watchtower.blend": "91a3fd4aee9474d7200005de9817dc92beb9175aeded27aab65f22581c1d4f25",
+    "assets/blender/landmarks/elder_mosstree.blend": "eafcf2dced2a357d040f5ec6f556f2e4927ce9757e083f9b795039f749b6168c",
+    "assets/blender/landmarks/root_arch.blend": "38ae86ad2203e16af96e2bcf6494fe5a42bd7abc814621d8095d03ecae8faca2",
+    "assets/blender/landmarks/textures/elder-accepted-leaf.png": "cdc35040b776ae0c6c171d2d63245253a582c47ea7a8e1c2a957da9d5a724b4b",
+    "public/models/landmarks/glimmer_spire.glb": "4211fd85a5e55bea2b775935d56f401e10ffd425dcfa82b91a54ab6e35193f55",
+    "public/models/landmarks/farm_well.glb": "2043d6f3767839ef191a798436592762475550e8977bd404be2f1329043dd3e0",
+    "public/models/landmarks/crag_beacon.glb": "493c6bac5a8c8d471c1473c6d249ed84cc932ef74e83c592b3f95545b164b57c",
+    "public/models/landmarks/windmill.glb": "378addcd09aa7228c6940859112acff5d0682700789b8dec0003d6d324b90d79",
+    "public/models/landmarks/bell_tower.glb": "d9f216a585c5eddf98ace3cc95c3a997caaeaa4640f7681919610ffa129e9841",
+    "public/models/landmarks/giant_conch.glb": "95be71d907f9640f4f9f4e865c4ef412862f4bb5796d393eaa1c8df01dc93d70",
+    "public/models/landmarks/fiddlehead_ferns.glb": "1ce62a5d7ee55d76e9e7b7c2c497c39ff610a039330824bedec209a0e90ac624",
+    "public/models/landmarks/cliff_shrine.glb": "8ef20c4b9a1b51205b343bbe94198ed9dee718dcaa78266453fc90a0fdafcdd2",
+    "public/models/landmarks/sea_arch.glb": "d0cf1da0795116214b4868c9067f80578287cebcf36d1b5f3963e434b928ac7f",
+    "public/models/landmarks/root_arch.glb": "ff803199b480cbc8f595d4f4a449980fb5526946e152aab9b721a5baaee3f0a6",
+    "public/models/landmarks/garden_gazebo.glb": "2933ce6e9a51884795417e7a505886dd5175085d4816d93339c9109444e03b55",
+    "public/models/landmarks/sundial.glb": "b63f9ec526ca5bed12815e5e9a668f766b3131be5468017e236ab4cb50b6bc37",
+    "public/models/landmarks/manifest.json": "7efffb1c2de7c87edaceced985fa9d7d9579db67d55285162dda611d66b0be2a",
+    "public/models/landmarks/moon_altar.glb": "f89063040824eda79a8a2be5d558bece020a5a21a0f42c238798d54ba5d156fb",
+    "public/models/landmarks/moonstone.glb": "ce76567cc9a5618ff17db9bb34e3373b03adb6ba1828dfaa8c5c2767ec1ec1e7",
+    "public/models/landmarks/watchtower.glb": "ffa0537b35015aa7e4fca91d9b4c15a7c24a012daabd9e8c89d57702572ed1db",
+    "public/models/landmarks/moon_mirror.glb": "bb81605a3e8162374ceabd5200d3c3e236cc58fb8ea3490ff24c8b7c4f046cf3",
+    "public/models/landmarks/bramble_arch.glb": "980a46107e66b3a1530ae7e8a5fd0ed38f3c310a802a699a4fd8dbc5c6274b07",
+    "public/models/landmarks/elder_mosstree.glb": "521d61d00cd3436b48c16931383409a4578ac9be16e318905dadae5b92af3cf7"
+  },
+  "uiCoreDataChangesAgainstPreviousHead": [],
+  "exactMainFiles": [
+    "src/render/build-queue.js",
+    "src/render/ground.js",
+    "src/render/terrain-domain.js",
+    "tests/browser/open-world.mjs"
+  ],
+  "sourceSha256": {
+    "src/render/build-queue.js": "87cf002173bcce58c52c0e2bb67bc29c51ceebd3c5b2db9b67bfdcf4d710dff2",
+    "src/render/ground.js": "a68531c7d2482d8c02318aa9aba10844114fd3ccf3379c70cf12fb88557bd7d4",
+    "src/render/terrain-domain.js": "5240a228e45810f7baf703d0712c50bcd323e139c661b532686e17992190b25e",
+    "src/render/region.js": "45254e28af1b6349752c7d00e0f0c813168bf2d2dff1a0cf7aada084161f196d",
+    "tests/browser/open-world.mjs": "b87572a7c081016251227f569e76354f9ce9921caf4c953e70fa9d68be9db983",
+    "tests/browser/journal.mjs": "817f43258a6cfb6ec7d68358cc127345fb7e76d28d87c5a7d3584c45f41df262",
+    "tests/browser/journal-lines.mjs": "5f0d9d6d2739d1a3a054cb455b3c2904d31f141e2e233fc6a98e94e3e4c6697d",
+    "tests/browser/skill-journal.mjs": "75ba691f7b56895b5ff467c7111ef24e8b11a582718f598416512e205d9dd405",
+    "tests/browser/inventory-scroll-checks.mjs": "9f5f36eba1d0ad03086b17f78ccfa2f51e620cb9b4787919cf841ba9120f6938",
+    "tests/browser/weapon-models.mjs": "e4a101838023a05fd0113acb8e6b2e7feb0c1e5392624fc4a287b646fc181a7a",
+    "tests/browser/workspaces.mjs": "4757629efd04224a344ed8719386be06acdf9701c1511aef49a82801e0ad502a",
+    "tests/browser/game-ui-ready.mjs": "5fcf0cd69f4f3e85296ad274f95df7a8ceb060d578ea3ff2482efd8dbbdaba9d",
+    "tests/browser/journal-controls.mjs": "94e96b11a554eba16d615172c02b72eb0284c17835663c8d66e66d6dee1c36e6"
+  },
+  "buildArtifacts": {
+    "dist/assets/main-BukqDVVf.js": "77861b728fdc13cbf2262ac86996bb2bd6ad46b8406339fd0d24417fd9eff815",
+    "dist/assets/main-D4oOXd4z.css": "8f4c48270fbcdd3e2a85f2e7868140175a9a92cc94a9be11cb29d1e09f9408de"
+  },
+  "focusedCore": {
+    "passed": 78,
+    "failed": 0,
+    "skipped": 0,
+    "files": 11,
+    "isolation": "none"
+  },
+  "skillJournalPositiveCases": {
+    "chromium": {
+      "desktop": "system 151; skill-chromium.log",
+      "ipad": "system 151; skill-chromium.log",
+      "phone": "system 151; skill-chromium-final.log",
+      "phone-landscape": "Playwright 141; skill-chromium-final3.log",
+      "phone-reduced": "Playwright 141; skill-chromium-final3.log"
+    },
+    "webkit": {
+      "desktop": "skill-webkit.log",
+      "ipad": "skill-webkit.log",
+      "phone": "skill-webkit-final.log",
+      "phone-landscape": "skill-webkit-final2.log",
+      "phone-reduced": "skill-webkit-final2.log"
+    },
+    "scope": "production-style real Game/Panels harness without renderer; positive cases reused across focused corrections, not a single final-source whole-suite run"
+  },
+  "journalLive": {
+    "chromium": "startup timeout before UI assertions; frontier/view not exposed at deadline",
+    "webkit": "startup timeout before UI assertions; static ready, city.preload-assembly suspended, imports loading, no context loss"
+  },
+  "journalUiFallback": {
+    "chromium": "four sizes passed across corrected focused runs; renderer omitted",
+    "webkit": "four sizes passed; renderer omitted"
+  },
+  "journalLinesLive": {
+    "chromium": {
+      "ipad": {
+        "purchases": 39,
+        "pointsLeft": 0,
+        "damage": 35,
+        "bridge": false
+      },
+      "phoneLandscape": "startup timeout before UI assertions"
+    },
+    "webkit": "first iPad startup timeout before UI assertions"
+  },
+  "workspacesWebkitLive": "first desktop startup timeout before encounter/workspace assertions",
+  "inventoryWebkitUiFallback": [
+    {
+      "size": "desktop",
+      "width": 1440,
+      "height": 960,
+      "input": "native mouse wheel and clicks",
+      "renderer": false,
+      "passed": true
+    },
+    {
+      "size": "ipad",
+      "width": 1180,
+      "height": 820,
+      "input": "native keyboard PageDown/End then touchscreen taps",
+      "renderer": false,
+      "passed": true
+    },
+    {
+      "size": "phone-landscape",
+      "width": 844,
+      "height": 390,
+      "input": "native keyboard PageDown/End then touchscreen taps",
+      "renderer": false,
+      "passed": true
+    },
+    {
+      "size": "phone-portrait",
+      "width": 390,
+      "height": 844,
+      "input": "native keyboard PageDown/End then touchscreen taps",
+      "renderer": false,
+      "passed": true
+    }
+  ],
+  "inventoryInputLimit": "Mobile WebKit uses native PageDown/End plus touch taps; not physical Safari swipe proof. No scrollTop assignment by the test.",
+  "openWorldChromium141": {
+    "wreckBefore": {
+      "owned": true,
+      "geometries": 16
+    },
+    "failure": {
+      "world": "azure-harbor-v1",
+      "position": [
+        -60,
+        -92
+      ],
+      "mode": "game",
+      "queue": {
+        "slices": 2233,
+        "steps": 992140,
+        "maxStepMs": 430.70000000298023,
+        "maxSliceMs": 620.5
+      },
+      "neighbours": [
+        {
+          "id": "frontier-wilds-v1",
+          "ready": false,
+          "state": "waiting",
+          "cancelled": false,
+          "stats": {
+            "steps": 456603,
+            "cpuMs": 7900.700000029057,
+            "maxStepMs": 145.30000000074506
+          }
+        },
+        {
+          "id": "moonroot-grove-v1",
+          "ready": true,
+          "state": "success",
+          "cancelled": false,
+          "stats": {
+            "steps": 177164,
+            "cpuMs": 3944.299999959767,
+            "maxStepMs": 58.899999998509884
+          }
+        }
+      ]
+    },
+    "errors": [],
+    "error": "page.waitForFunction: Timeout 420000ms exceeded."
+  },
+  "openWorldSystem151": "route/atlas/disposal/rebuild completed; overall failed on one HTTP 404 console error whose URL was not recorded",
+  "weaponModelsChromium141": {
+    "passed": true,
+    "geometryItems": 38,
+    "resource": [
+      {
+        "geometries": 122,
+        "textures": 116,
+        "programs": 83,
+        "drawCalls": 76,
+        "activeTriangles": 172093
+      },
+      {
+        "geometries": 122,
+        "textures": 116,
+        "programs": 83,
+        "drawCalls": 76,
+        "activeTriangles": 172093
+      },
+      {
+        "geometries": 122,
+        "textures": 116,
+        "programs": 83,
+        "drawCalls": 76,
+        "activeTriangles": 172093
+      }
+    ],
+    "gpuCompletionMs": [
+      38531,
+      37742,
+      33170
+    ],
+    "modelsReadyBeforeContinueMs": 82457,
+    "waitTimeoutMs": 90000,
+    "reloadContinueTotalMs": 100331,
+    "errors": [],
+    "measurementsSha256": "db360bb33b582032b80d0619a6150332d89b5717dc542fb726a9546ea7422936"
+  },
+  "loadingComparisonWebkit": [
+    {
+      "source": "main-fc776206",
+      "ready": true,
+      "elapsedMs": 61043,
+      "state": {
+        "modelsReady": true,
+        "time": 15.428000000000024,
+        "loadingDone": true,
+        "staticReady": true,
+        "importedState": "imported-ready",
+        "queue": [
+          {
+            "label": "region.frontier-wilds-v1",
+            "state": "queued",
+            "steps": 0
+          }
+        ],
+        "queueStats": {
+          "slices": 2630,
+          "steps": 357768,
+          "maxStepMs": 746.0000000000073,
+          "maxSliceMs": 746.0000000000073
+        },
+        "contextLost": false
+      },
+      "errors": [],
+      "failed": []
+    },
+    {
+      "source": "integrated-pr125",
+      "ready": true,
+      "elapsedMs": 60272,
+      "state": {
+        "modelsReady": true,
+        "time": 18.365,
+        "loadingDone": true,
+        "staticReady": true,
+        "importedState": "imported-ready",
+        "queue": [
+          {
+            "label": "region.frontier-wilds-v1",
+            "state": "queued",
+            "steps": 0
+          }
+        ],
+        "queueStats": {
+          "slices": 2459,
+          "steps": 358010,
+          "maxStepMs": 576,
+          "maxSliceMs": 576
+        },
+        "contextLost": false
+      },
+      "errors": [],
+      "failed": []
+    }
+  ],
+  "browserVersions": {
+    "playwright": "1.56.1",
+    "pinnedChromium": "141.0.7390.37 (headless shell 1194)",
+    "systemChromium": "151.0.7922.173",
+    "webkit": "2215"
+  },
+  "limits": [
+    "Startup failures occurred with concurrent software-rendered checks; one comparison without another full-game test passed both main and branch, so branch-specific cause is unconfirmed.",
+    "Open-world Chromium141 yielded Promise remains pending; existing diagnostics do not identify the exact GPU/shader wait.",
+    "Harness passes are not full-game passes. No new High visual acceptance or hardware FPS claim."
+  ],
+  "logSha256": {
+    "work/ci-correction/build.log": "e7954804e38e155be55d938b9c2ce4bdc0958201687a10fc118073839b9c6538",
+    "work/ci-correction/core.log": "7f3cc845d7b54f2df8d946decdc95d446c5fb7ec5b7402da33ea96e0aa813623",
+    "work/ci-correction/skill-chromium.log": "1e7424da95de066eb7787d9c3c0496e3d2a22203de5873fce5c8507ebdb4b168",
+    "work/ci-correction/skill-chromium-final.log": "4115541c6d25333c2ca39e05be1ac21e43600cfbf3f2421a94450c9e9aa33711",
+    "work/ci-correction/skill-chromium-final3.log": "738542247a909e6e1bfa389f4c7363c7e9f2c965bbd8466192a8b4c0a703b343",
+    "work/ci-correction/skill-webkit.log": "646b310c917bac665cb3606f61da6e2b7c4a2226cc9888fcd90f963023f80d79",
+    "work/ci-correction/skill-webkit-final.log": "bacf9cc0ee355023e7f757308e71e05b325de9028e8a9c779524b08500e3ddf0",
+    "work/ci-correction/skill-webkit-final2.log": "6b9af67ac240d5012a4e2cb6bcaabf2570d0ace69fe4f2a5f7b07f177451358d",
+    "work/ci-correction/journal-chromium.log": "0285c5074f15d4689c61668cf33957c683d1f6866a316c5e9d1fe90f196da070",
+    "work/ci-correction/journal-webkit.log": "723c21bae2adc25acef267bbdbc88ce4836c2230525b3194054a426b12cd33b8",
+    "work/ci-correction/journal-chromium-ui-final.log": "b94ea1a9a41dea191a58f244cffed8491b52de6cdf8e4cb70e350cd473b94956",
+    "work/ci-correction/journal-chromium-ui-portrait-final.log": "111bbef89319fb0bb44e734b0dec76b0bcde894f7adee6a05822fe8ea45174b9",
+    "work/ci-correction/journal-webkit-ui.log": "c757a89a7ed510b476897cbc82c5df3e2b514f6b914532f49fc1bc36f73baee3",
+    "work/ci-correction/lines-chromium.log": "726b442c1fe5bd4f8e5a239e17ea5b5c2d698f6648859f971551051c3615a2e8",
+    "work/ci-correction/lines-webkit.log": "fe5f5cb62241543dca3bd9ca3b17751ef6750d646615cfdfd35910b5d1fbefe9",
+    "work/ci-correction/workspaces-webkit.log": "23d38f03978a1d52016ea7afbe697d23275255de12d1baec5addae89511bc439",
+    "work/ci-correction/inventory-webkit-final.log": "6797c1e736173fe38b1626fbae9fdecb5e4ad34157ef0649d2d7899a3d36b9c1",
+    "work/ci-correction/open-world.log": "0087e232fab8754d783e934d3debee9cf402be1a3966dfee2e0d015bf74d877b",
+    "work/ci-correction/open-world-ci.log": "2898fe5c85611dd3f61cdb4048cc488ec0736d0cde3b3e4aebe405c981e83840",
+    "work/ci-correction/weapon-models.log": "8aab446c120343123217c59a266c7068a14069186a5ef1eb69d727ce25177204",
+    "work/ci-correction/loading-comparison.log": "2c7f4a8fac90e156555762a67fb2cbabf9c053838d0896cd029c6c6f86a18351"
+  },
+  "ciPolled": false,
+  "mergedPr": false,
+  "deployed": false
+}

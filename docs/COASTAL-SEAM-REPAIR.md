@@ -125,4 +125,3 @@ node --test --test-isolation=none tests/render/coastal-seam.test.mjs
 Use `COAST_WALK=0` for baseline still captures. The browser test does not save the
 fresh fixture. Its capture/queue-only stages pause gameplay; crossing stages use
 the normal main frame loop. Eviction uses fixture placement after both walks.
-

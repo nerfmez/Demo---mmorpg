@@ -59,7 +59,12 @@ try{
  const previewCtx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true,deviceScaleFactor:1});
  const previewPage=await previewCtx.newPage();previewPage.setDefaultTimeout(90000);previewPage.on('pageerror',e=>report.errors.push(e.message));
  await previewPage.addInitScript(()=>{const raf=requestAnimationFrame.bind(window);window.requestAnimationFrame=cb=>raf(t=>{if(!window.__cityFreeze)cb(t);});});
- await previewPage.goto(base+'?quality=low&seed=9');await previewPage.waitForFunction(()=>__frontier?.modelsReady&&__frontier.menu);await enterFullscreenGate(previewPage);
+ await previewPage.goto(base+'?quality=low&seed=9');
+ // On a title-page timeout, keep what the page was waiting on (boot state, build jobs, errors) in the report.
+ try{await previewPage.waitForFunction(()=>__frontier?.modelsReady&&__frontier.menu);}
+ catch(error){report.previewTimeout=await previewPage.evaluate(()=>{const f=window.__frontier,v=f?.view,q=v?.buildQueue;return{modelsReady:!!f?.modelsReady,menu:!!f?.menu,region:v?.region&&{id:v.region.world?.data?.id,importedState:v.region.importedState,staticReady:v.region.staticReady,disposed:v.region.disposed,error:String(v.region.error||'')},jobs:q?.jobs?.map(j=>j.label+':'+j.state),queueStats:q?.stats,running:q?.running};}).catch(e=>({evaluateFailed:e.message}));
+  report.firstPageQueue=await page.evaluate(()=>{const q=__frontier.view.buildQueue;return{jobs:q.jobs.map(j=>j.label+':'+j.state),stats:q.stats};}).catch(e=>({evaluateFailed:e.message}));
+  writeFileSync(out+'report.json',JSON.stringify(report,null,2));await previewPage.screenshot({path:out+'10-character-creation-timeout.png'}).catch(()=>{});console.error('preview timeout',JSON.stringify(report.previewTimeout),JSON.stringify(report.firstPageQueue),JSON.stringify(report.errors));throw error;}await enterFullscreenGate(previewPage);
  await previewPage.locator('[data-act="new"]').tap();await previewPage.waitForSelector('.create-panel');
  report.creationPreview=await previewPage.evaluate(()=>{__cityFreeze=true;const f=__frontier,p=f.view.previewHero.root.position;f.view.render(0,1,{});return{position:[p.x,p.z],free:f.world.isFree(p.x,p.z,.45),spawn:f.world.data.playerSpawn};});
  assert.ok(report.creationPreview.free);assert.deepEqual(report.creationPreview.position,data.world.town.respawn);assert.deepEqual(report.creationPreview.spawn,data.world.playerSpawn);

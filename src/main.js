@@ -263,7 +263,7 @@ document.addEventListener(
 document.addEventListener(
   'touchmove',
   (e) => {
-    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs, .questtrack, .fullscreen-gate, .atelier-dialog')) e.preventDefault();
+    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs, .questtrack, .fullscreen-gate, #atelier .window, .atelier-dialog')) e.preventDefault();
   },
   { passive: false }
 );

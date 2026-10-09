@@ -1,0 +1,11 @@
+{
+  "before": {
+    "geometries": 264,
+    "textures": 47
+  },
+  "after": {
+    "geometries": 264,
+    "textures": 47
+  },
+  "cycles": 6
+}

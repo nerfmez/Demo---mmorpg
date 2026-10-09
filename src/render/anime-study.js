@@ -1,7 +1,7 @@
 // Default anime art; ?art=baseline retains the legacy style comparison.
 // Lighting is configured separately in data/rendering.json.
 import * as THREE from 'three';
-import art from '../../data/art.json';
+import art from '../../data/art.json' with {type:'json'};
 import { createRng } from '../core/rng.js';
 import { patchMaterial } from './patch.js';
 import { receivePaintedShadow } from './painted.js';

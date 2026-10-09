@@ -1,0 +1,89 @@
+{
+  "page": "https://chatgpt.com/space/page_558ff553da108191b4a28b72e5bac454",
+  "files": [
+    {
+      "key": "libraryShrineBefore",
+      "page_id": "page_558ff553da108191b4a28b72e5bac454",
+      "reference": "library-file:fde1_bGliZmlsZV9tRGNyQzc0R2VpNWMwRFhPMHgwanB3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "file_name": "gull_shrine-game-f056a6d6517b42d49fe17ee5117d08bf.png",
+      "mime_type": "image/png",
+      "byte_size": 1142661,
+      "sha256": "9a4f7e4436186a8fff0e439710b9066419e80fe820a71d39bf658343dfd2d2d9",
+      "file_access_confirmed": true,
+      "is_image": true,
+      "markdown": "![ศาลาริมผา ก่อนปรับ จาก main](library-file:fde1_bGliZmlsZV9tRGNyQzc0R2VpNWMwRFhPMHgwanB3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8)",
+      "inserted": false,
+      "next_step": "Read the Page and use edit_page with its fresh guards to insert markdown."
+    },
+    {
+      "key": "libraryShrineAfter",
+      "page_id": "page_558ff553da108191b4a28b72e5bac454",
+      "reference": "library-file:fde1_bGliZmlsZV9ObUxfb3VOQlpYYURwT0FlMzEtWWh3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "file_name": "gull_shrine-game-5a8a662c22b64d3ab4187fb662610f9a.png",
+      "mime_type": "image/png",
+      "byte_size": 1125324,
+      "sha256": "fe0dceeaab78afeba5d7da62a414af4f6823c826bf557bf584bc12a2358c432d",
+      "file_access_confirmed": true,
+      "is_image": true,
+      "markdown": "![ศาลาริมผา หลังปรับด้วย Blender ในเกมจริง High](library-file:fde1_bGliZmlsZV9ObUxfb3VOQlpYYURwT0FlMzEtWWh3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8)",
+      "inserted": false,
+      "next_step": "Read the Page and use edit_page with its fresh guards to insert markdown."
+    },
+    {
+      "key": "libraryMenuBefore",
+      "page_id": "page_558ff553da108191b4a28b72e5bac454",
+      "reference": "library-file:fde1_bGliZmlsZV9ZV05tQV9sNmRpekdOWjZhc3R2dkxB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "file_name": "menu-844x390-61651fcc6870479283132158ab965065.png",
+      "mime_type": "image/png",
+      "byte_size": 88557,
+      "sha256": "6707c5d95a5aff820a1871947d39b3e4b96838157cdb398c17cbe0060834ba67",
+      "file_access_confirmed": true,
+      "is_image": true,
+      "markdown": "![เมนูเดิม มือถือแนวนอน](library-file:fde1_bGliZmlsZV9ZV05tQV9sNmRpekdOWjZhc3R2dkxB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8)",
+      "inserted": false,
+      "next_step": "Read the Page and use edit_page with its fresh guards to insert markdown."
+    },
+    {
+      "key": "libraryMenuAfter",
+      "page_id": "page_558ff553da108191b4a28b72e5bac454",
+      "reference": "library-file:fde1_bGliZmlsZV9qUzFfVkdyejR5bGdIMTNBdEhsUlV3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "file_name": "menu-844x390-aa52f5b1aa8f4effb79c55b0b4b923f9.png",
+      "mime_type": "image/png",
+      "byte_size": 143413,
+      "sha256": "10598aa0d70ffb1a7148869835e0cc1c5c9c5d033ab5ce75f6ec780e02926a8b",
+      "file_access_confirmed": true,
+      "is_image": true,
+      "markdown": "![เมนูมินิมอล มือถือแนวนอน High](library-file:fde1_bGliZmlsZV9qUzFfVkdyejR5bGdIMTNBdEhsUlV3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8)",
+      "inserted": false,
+      "next_step": "Read the Page and use edit_page with its fresh guards to insert markdown."
+    },
+    {
+      "key": "libraryLoadoutTablet",
+      "page_id": "page_558ff553da108191b4a28b72e5bac454",
+      "reference": "library-file:fde1_bGliZmlsZV95bjU0STVhVnhJNWREd0VxZk5SVW5R_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "file_name": "skills-tablet-3f285d2f66394501a2d5f893dce9fbb3.png",
+      "mime_type": "image/png",
+      "byte_size": 609412,
+      "sha256": "04380ff98fa3f3210cd343e8a103bdb3eb646d9ccf8f0a9157c91c5109791bce",
+      "file_access_confirmed": true,
+      "is_image": true,
+      "markdown": "![ชุดสกิลและคลัง แท็บเล็ต](library-file:fde1_bGliZmlsZV95bjU0STVhVnhJNWREd0VxZk5SVW5R_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8)",
+      "inserted": false,
+      "next_step": "Read the Page and use edit_page with its fresh guards to insert markdown."
+    },
+    {
+      "key": "libraryPortraitFinal",
+      "page_id": "page_558ff553da108191b4a28b72e5bac454",
+      "reference": "library-file:fde1_bGliZmlsZV8xTk9OazJqMEk0enJScTBHOTFxR21n_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "file_name": "bag-390x844-75f919ff4e914cc190c49391497e02b1.png",
+      "mime_type": "image/png",
+      "byte_size": 135787,
+      "sha256": "85cdc1966155f7e77ddd98fa693850f8ca0b4cb2749bdaec17c66e8ad5d1ecb1",
+      "file_access_confirmed": true,
+      "is_image": true,
+      "markdown": "![กระเป๋ามือถือแนวตั้ง หลังปรับ ในฉากเกม High](library-file:fde1_bGliZmlsZV8xTk9OazJqMEk0enJScTBHOTFxR21n_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8)",
+      "inserted": false,
+      "next_step": "Read the Page and use edit_page with its fresh guards to insert markdown."
+    }
+  ]
+}

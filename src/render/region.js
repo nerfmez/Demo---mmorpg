@@ -16,6 +16,7 @@ import { buildHumanoid, HumanoidAnimator } from './hero.js';
 import { residentTool } from './districts.js';
 import { loadCity } from './city.js';
 import { loadTownKit } from './town-kit.js';
+import { loadLandmarkAssets } from './landmark-assets.js';
 import { disposeObject } from './dispose.js';
 import { beginRegion, useRegion, regionShift } from './region-shift.js';
 import { toon } from './toon.js';
@@ -176,7 +177,7 @@ function* assembleRegion(view,world,region,{asyncGPU}){
   region.importedState='loading';
   region.staticReady=true;
   region.importsReady=(async()=>{
-    let city=null,kit=null,waterOwner=null;const installed=[];
+    let city=null,kit=null,landmarks=null,waterOwner=null;const installed=[];
     const live=()=>{if(region.disposed)throw cancelledBuild();};
     try {
       city=await loadCity(world,options);live();
@@ -209,9 +210,15 @@ function* assembleRegion(view,world,region,{asyncGPU}){
         if(asyncGPU)await view.buildQueue.enqueue(inRegion(shift,compileRegionSteps(view,kit.root)),{signal:region.controller.signal,label:'town-kit.shaders'}).promise;
         live();keep(kit.root);installed.push(kit.root);region.townKitRoot=kit.root;region.stats.townKit=kit.stats;
       }
+      live();landmarks=await loadLandmarkAssets(world,{...options,groundHeight:domain.groundHeight});live();
+      if(landmarks){
+        region.importDisposers.push(landmarks.dispose);
+        if(asyncGPU)await view.buildQueue.enqueue(inRegion(shift,compileRegionSteps(view,landmarks.root)),{signal:region.controller.signal,label:'landmarks.shaders'}).promise;
+        live();keep(landmarks.root);installed.push(landmarks.root);region.stats.landmarks=landmarks.stats;
+      }
       live();region.importedState='imported-ready';return {status:'imported-ready'};
     } catch(error){
-      city?.dispose?.();kit?.dispose?.();
+      city?.dispose?.();kit?.dispose?.();landmarks?.dispose?.();
       for(const dispose of region.importDisposers)dispose?.();
       for(const obj of installed)obj.removeFromParent();
       city?.root.removeFromParent();kit?.root.removeFromParent();

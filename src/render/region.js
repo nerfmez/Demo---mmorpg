@@ -95,7 +95,7 @@ function* assembleRegion(view,world,region,{asyncGPU}){
       }
     });
   }
-  if (!world.data.city?.enabled) root.add(yield* inRegion(shift,waterSteps(world,env.root,{adopt:group=>root.add(group)})));
+  if (!world.data.city?.enabled) root.add(yield* inRegion(shift,waterSteps(world,env.root,{domain,adopt:group=>root.add(group)})));
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
@@ -191,7 +191,7 @@ function* assembleRegion(view,world,region,{asyncGPU}){
         waterOwner=importJob(options);
         let water;
         try {
-          water=await waterOwner.run(waterSteps(world,nativeContacts,{owner:waterOwner,adopt:g=>{water=g;}}),'city.water-contact-and-install');
+          water=await waterOwner.run(waterSteps(world,nativeContacts,{domain,owner:waterOwner,adopt:g=>{water=g;}}),'city.water-contact-and-install');
           live();
           const disposeWater=waterOwner.commit(water);region.importDisposers.push(disposeWater);
         } catch(error){waterOwner.abort(water);throw error;}

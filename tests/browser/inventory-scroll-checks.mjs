@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 
 // Exercise the whole list through native input, not by assigning scrollTop.
-// Chromium exposes touch swipes; WebKit exposes wheel scrolling and touch taps.
+// Chromium exposes touch swipes. Mobile WebKit's supported public input uses
+// the focusable region's native keyboard scrolling, then native touch taps.
+// Keyboard coverage is not represented as physical Safari swipe coverage.
 export async function verifyInventoryScroll(page,{context,engineName,width,height,touch,capture}){
  const click=async selector=>touch?page.locator(selector).first().tap():page.locator(selector).first().click();
  const fixture=await page.evaluate(()=>{
@@ -26,7 +28,22 @@ export async function verifyInventoryScroll(page,{context,engineName,width,heigh
    if(await scroller.evaluate(e=>e.scrollTop>=e.scrollHeight-e.clientHeight-2))break;
   }
   await cdp.detach();
- }else{await page.mouse.move(x,Math.min(box.y+60,height-30));await page.mouse.wheel(0,5000);}
+ }else if(touch&&engineName==='webkit'){
+  await scroller.focus();assert.ok(await scroller.evaluate(e=>document.activeElement===e),'inventory region receives native keyboard input');
+  const before=await scroller.evaluate(e=>e.scrollTop);
+  await page.keyboard.press('PageDown');
+  await page.waitForFunction(before=>document.querySelector('.inventory-scroll').scrollTop>before,before);
+  await page.keyboard.press('End');
+  await page.waitForFunction(()=>{const e=document.querySelector('.inventory-scroll');return e.scrollTop>=e.scrollHeight-e.clientHeight-2;});
+ }else{
+  await page.mouse.move(x,Math.min(box.y+60,height-30));
+  // Real wheel steps also work in desktop WebKit; one huge delta may be
+  // ignored by its scrolling implementation. Observe the resulting position.
+  for(let n=0;n<40;n++){
+   if(await scroller.evaluate(e=>e.scrollTop>=e.scrollHeight-e.clientHeight-2))break;
+   await page.mouse.wheel(0,200);await page.waitForTimeout(80);
+  }
+ }
  await page.waitForTimeout(300);
  const end=await scroller.evaluate(e=>({top:e.scrollTop,max:e.scrollHeight-e.clientHeight}));
  assert.ok(end.max>0&&end.top>=end.max-2,'native scrolling reaches the last row '+JSON.stringify(end));

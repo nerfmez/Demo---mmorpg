@@ -25,6 +25,68 @@ function tasks(){
 }
 const flush=async()=>{for(let i=0;i<5;i++)await Promise.resolve();};
 
+test('settled GPU work resumes in a budgeted task without another game paint',async()=>{
+  const c=tasks();let resolve;const gpu=new Promise(r=>{resolve=r;});let resumed=0;
+  try{
+    const queue=new FrameBuildQueue({now:c.now});
+    const job=queue.enqueue((function*(){yield gpu;for(let i=0;i<3;i++){resumed++;c.tick(3);yield;}return 'ready';})());
+    c.frame();c.task();assert.equal(job.state,'waiting');
+    resolve();await flush();assert.equal(resumed,0,'GPU microtasks cannot advance construction');
+    assert.equal(c.frames.size,0,'a completed fence does not request a paint');
+    c.task();assert.equal(resumed,2);assert.equal(queue.stats.maxSliceMs,6);
+    assert.equal(c.frames.size,1,'remaining CPU work still waits for paint');
+    c.task();assert.equal(resumed,2);
+    c.frame();c.task();assert.equal(await job.promise,'ready');
+  }finally{c.close();}
+});
+
+test('GPU continuation replaces pending paint once and preserves round robin',async()=>{
+  const c=tasks();let resolveA,resolveB;const a=new Promise(r=>{resolveA=r;}),b=new Promise(r=>{resolveB=r;}),order=[];
+  try{
+    const queue=new FrameBuildQueue({budgetMs:1,now:c.now});
+    const first=queue.enqueue((function*(){yield a;order.push('A');c.tick();return 'A';})());
+    const second=queue.enqueue((function*(){yield b;order.push('B');c.tick();return 'B';})());
+    c.frame();c.task();assert.equal(first.state,'waiting');assert.equal(second.state,'waiting');
+    const cpu=queue.enqueue((function*(){order.push('CPU');c.tick();return 'CPU';})());
+    const stale=[...c.frames.values()][0];
+    resolveA();resolveB();await flush();assert.equal(c.frames.size,0);assert.equal(c.timers.size,1);
+    stale();assert.equal(c.timers.size,1,'cancelled paint cannot schedule a stale drain');
+    c.task();assert.deepEqual(order,['CPU']);assert.equal(queue.stats.maxSliceMs,1);
+    c.frame();c.task();c.frame();c.task();
+    assert.deepEqual(await Promise.all([first.promise,second.promise,cpu.promise]),['A','B','CPU']);
+    assert.deepEqual(order,['CPU','A','B']);
+  }finally{c.close();}
+});
+
+test('evicted GPU work retains its owner until settlement then closes without paint',async()=>{
+  for(const fail of [false,true]){
+    const c=tasks(),controller=new AbortController();let resolve,reject,disposed=0,published=0;
+    const gpu=new Promise((a,b)=>{resolve=a;reject=b;});
+    try{
+      const queue=new FrameBuildQueue();
+      const job=queue.enqueue((function*(){try{yield gpu;published++;}finally{disposed++;}})(),{signal:controller.signal});
+      const rejected=assert.rejects(job.promise,{name:'AbortError'});
+      c.frame();c.task();controller.abort();assert.equal(disposed,0);
+      if(fail)reject(new Error('GPU read failed'));else resolve();
+      await flush();assert.equal(disposed,0);assert.equal(c.frames.size,0);
+      c.task();await rejected;assert.equal(disposed,1);assert.equal(published,0);
+    }finally{c.close();}
+  }
+});
+
+test('a GPU wait survives startup scheduler release and resumes through its restored task scheduler',async()=>{
+  const c=tasks();let resolve;const gpu=new Promise(r=>{resolve=r;});
+  try{
+    const queue=new FrameBuildQueue(),release=useStartupTaskScheduling(queue);
+    const job=queue.enqueue((function*(){yield gpu;return 'ready';})());
+    c.task();assert.equal(job.state,'waiting');release();
+    assert.equal(queue.schedule,afterPaint);assert.equal(queue.resumeSchedule,afterTask);
+    resolve();await flush();assert.equal(c.frames.size,0);
+    c.task();assert.equal(await job.promise,'ready');
+    assert.equal(c.channels[0].port1.closed,1);assert.equal(c.channels[0].port2.closed,1);
+  }finally{c.close();}
+});
+
 test('afterTask yields a future task and suppresses a cancelled stale callback',async()=>{
   const c=tasks();let steps=0;
   try{
@@ -76,16 +138,18 @@ test('nested startup owners are queue local, release once, and restore the exact
   const c=tasks();
   try{
     const original=run=>afterPaint(run),a=new FrameBuildQueue({schedule:original}),b=new FrameBuildQueue();
+    const resumeA=a.resumeSchedule,resumeB=b.resumeSchedule;
     const first=useStartupTaskScheduling(a),second=useStartupTaskScheduling(a);
     const owned=a.schedule;
+    assert.equal(a.resumeSchedule,owned);
     const other=useStartupTaskScheduling(b);
     assert.equal(c.channels.length,2,'one channel per queue, not per owner');
     assert.equal(c.timers.size,0,'empty queues need no first-frame fallback');
     first();first();assert.equal(a.schedule,owned);assert.notEqual(b.schedule,afterPaint);
     assert.equal(c.channels[0].port1.closed,0);
-    second();assert.equal(a.schedule,original);assert.notEqual(b.schedule,afterPaint);
+    second();assert.equal(a.schedule,original);assert.equal(a.resumeSchedule,resumeA);assert.notEqual(b.schedule,afterPaint);
     assert.equal(c.channels[0].port1.closed,1);assert.equal(c.channels[0].port2.closed,1);
-    other();assert.equal(b.schedule,afterPaint);
+    other();assert.equal(b.schedule,afterPaint);assert.equal(b.resumeSchedule,resumeB);
     const again=useStartupTaskScheduling(a);assert.notEqual(a.schedule,original);
     assert.equal(c.channels.length,3,'a new lease owns a fresh channel');
     again();assert.equal(a.schedule,original);

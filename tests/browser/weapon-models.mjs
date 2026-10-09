@@ -100,7 +100,13 @@ try {
  const equipped=await page.evaluate(async()=>{const f=window.__frontier;f.game.ch.level=f.game.data.progression.character.maxLevel;f.game.ch.stats={...f.game.data.progression.character.startingStats,STR:30,DEX:30,INT:30};f.game.ch.statPoints=10;localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,savedAt:Date.now(),character:f.game.ch}));localStorage.setItem('frontier.lastSlot','1');return f.game.ch.equipped;});
  const reloadStart=Date.now();
  await page.goto('http://localhost:4237/?quality=low&seed=5&stream=0');
- await page.waitForFunction(()=>window.__frontier.modelsReady);
+ try{await page.waitForFunction(()=>window.__frontier.modelsReady);}
+ catch(error){
+  const state=await page.evaluate(()=>{const f=window.__frontier,v=f?.view,q=v?.buildQueue;return {modelsReady:!!f?.modelsReady,gameTime:f?.game?.time??null,mode:v?.mode,fullscreen:f?.fullscreen?.snapshot(),loadingDone:document.querySelector('#loading')?.classList.contains('done'),loadingText:document.querySelector('#loading')?.textContent,region:{staticReady:v?.region?.staticReady,importedState:v?.region?.importedState,error:v?.region?.error?.message},queue:{running:q?.running,scheduled:!!q?.scheduled,stats:q?.stats,jobs:q?.jobs.map(j=>({label:j.label,state:j.state,steps:j.stats.steps}))},contextLost:v?.renderer.getContext().isContextLost(),resources:performance.getEntriesByType('resource').map(r=>({file:r.name.split('/').at(-1),durationMs:r.duration,bytes:r.decodedBodySize}))};}).catch(e=>({diagnosticError:e.message}));
+  writeFileSync(`${out}/reload-failure.json`,JSON.stringify({stage:'saved-slot reload before Continue',elapsedMs:Date.now()-reloadStart,state,errors,error:error.message},null,2));
+  throw error;
+ }
+ console.log('saved-slot models ready before Continue',Date.now()-reloadStart,'ms');
  await enterFullscreenGate(page);
  const continueButton=page.getByRole('button',{name:/continue|เล่นต่อ|ดำเนินต่อ/i});
  if(await continueButton.count())await continueButton.first().click();else await page.locator('[data-act="continue"], [data-action="continue"]').first().click();

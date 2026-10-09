@@ -1,7 +1,7 @@
-// Clothes and armour pieces for the skinned hero body (skinned.js). The body itself paints
-// the tunic, pants, boots and leather zones; these are the raised parts that give the
-// silhouette: the bandolier and belt with its pouch, a thigh strap, folded boot cuffs,
-// bracer bands, and each armour's own pieces. Parts are authored in rest world space (metres,
+// The outfit base's raised parts (docs/OUTFIT-BASE.md, data/outfits.json). The base garments
+// are cut and painted by garments.js (or the skinned body's zones); these parts give each look
+// its own silhouette: straps, belts, collars, coat tails, capes, plates and boot pieces. A
+// resolved outfit (core/outfit-look.js) lists which parts it wears and their palette. Parts are authored in rest world space (metres,
 // the Meshy body's measurements) and placed on the driver bones, so they move rigidly with
 // the bone they sit on and merge into the rig's per-bone meshes (one draw call per bone).
 import * as THREE from 'three';
@@ -82,91 +82,195 @@ function cuff(a, b, f, r, width, thick, flare = 0) {
   return g;
 }
 
+/** A slim panel hanging from `top` (world) down `len` metres, flared and bulged outward. */
+function panel(top, len, w, out, flare = 0.3, bulge = 0.02, thick = 0.009) {
+  const g = new THREE.BoxGeometry(w, len, thick, 2, 6, 1).translate(0, -len / 2, 0);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const t = -p.getY(i) / len; // 0 top .. 1 bottom
+    p.setX(i, p.getX(i) * (1 + flare * t));
+    p.setZ(i, p.getZ(i) + bulge * Math.sin(t * Math.PI * 0.8) + t * 0.03);
+  }
+  g.computeVertexNormals();
+  return g.rotateY(out).translate(top.x, top.y, top.z);
+}
+
+/** Where a boot of `len` (0..1 ankle to knee, >1 above it) ends, as a fraction from knee to foot. */
+const bootTop = (len) => Math.min(0.92, Math.max(0.02, 1 - len));
+/** Where a glove of `len` (0..1 of the forearm above the wrist) ends, from elbow to hand. */
+const gloveTop = (len) => Math.min(0.95, Math.max(0.05, 1 - len));
+
+const tint = (hex, k) => new THREE.Color(hex).multiplyScalar(k).getStyle();
+
+function pauldron({ add, T, P }, s) {
+  const a = T.world['arm' + s], side = s === 'L' ? 1 : -1;
+  add('arm' + s, new THREE.SphereGeometry(0.075, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.1, 0.8, 1.05).rotateZ(-side * 0.35).translate(a[0] + side * 0.02, a[1] + 0.01, a[2] - 0.01), P.metal);
+  add('arm' + s, new THREE.TorusGeometry(0.08, 0.008, 4, 16).rotateX(Math.PI / 2).rotateZ(-side * 0.35).translate(a[0] + side * 0.02, a[1] - 0.005, a[2] - 0.01), P.trim, { plain: true });
+}
+
+/** A blade-shaped feather pointing down from `top`, turned to face `a` around the body. */
+const feather = (top, a, l, w, tilt) => new THREE.ConeGeometry(w, l, 4).scale(1, 1, 0.22).rotateX(Math.PI).translate(0, -l / 2, 0)
+  .rotateX(-tilt).rotateY(a).translate(top.x, top.y, top.z);
+
 /**
- * Add the outfit to a RigBuilder whose driver bones sit at T.world.
- * @param {object} gear gearLook() output (armor kind, bases)
- * @returns {{vest?: string}} colour overrides for the body zones
+ * The parts library. Each takes {add, W, T, P, cut, len}: W the rest world positions of the driver
+ * bones, P the palette of the piece it belongs to (armour; or boots / gloves: main, trim, accent,
+ * sole), cut the armour's cut, len the boots' or gloves' length. Keys are the names
+ * data/outfits.json may list.
  */
-export function buildOutfit(rb, T, gear, colors) {
+export const PARTS = {
+  // ---- armour ----
+  belt({ add, P }) {
+    const beltC = new THREE.Vector3(0, 1.005, -0.012);
+    add('hips', hoop(beltC, TORSO.hips.rx + 0.012, TORSO.hips.zf + 0.01, TORSO.hips.zb + 0.01, 0.006, 0.045, 0.01), P.leather);
+    add('hips', new THREE.BoxGeometry(0.05, 0.045, 0.014).translate(0, 1.005, 0.11), P.metal, { plain: true });
+  },
+  furCollar({ add, P }) {
+    add('chestWear', new THREE.TorusGeometry(0.105, 0.042, 7, 16).rotateX(Math.PI / 2).scale(1.2, 0.8, 1.0).translate(0, 1.425, -0.012), P.fur);
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      add('chestWear', new THREE.ConeGeometry(0.03, 0.07, 5).rotateX(Math.PI / 2).rotateY(a).translate(Math.sin(a) * 0.14, 1.41, -0.012 + Math.cos(a) * 0.12), tint(P.fur, 1.06));
+    }
+  },
+  // a cloak of layered, striped feathers over the shoulders and back, a blue feather at the front
+  featherMantle({ add, W, P }) {
+    const y = (W.neck ? W.neck[1] : 1.45) - 0.02;
+    for (let k = 0; k < 3; k++) {
+      const n = 14 + k * 3, r = 0.17 + k * 0.03, yy = y - k * 0.08;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + k * 0.2, front = Math.cos(a);
+        if (front > 0.35) continue; // the front stays open
+        const top = new THREE.Vector3(Math.sin(a) * r * 1.2, yy, -0.012 + Math.cos(a) * r);
+        const back = front < -0.3, l = 0.15 + k * 0.04 + (back ? 0.16 : 0);
+        add('chestWear', feather(top, a, l, 0.05, 0.12 + k * 0.05), (i + k) % 2 ? P.trim : P.accent);
+      }
+    }
+    add('chestWear', feather(new THREE.Vector3(-0.09, y - 0.02, 0.12), 0.3, 0.2, 0.025, -0.15), P.gem, { glow: true });
+  },
+  chestPlate({ add, P }) {
+    add('chestWear', new THREE.SphereGeometry(0.16, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).rotateX(Math.PI / 2).scale(0.98, 1.05, 0.5).translate(0, 1.26, 0.075), P.metal);
+    add('chestWear', new THREE.BoxGeometry(0.2, 0.014, 0.02).translate(0, 1.37, 0.13), P.trim);
+  },
+  shellPlate({ add, P }) {
+    add('chestWear', new THREE.SphereGeometry(0.14, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).rotateX(Math.PI / 2).scale(0.95, 0.95, 0.42).translate(0, 1.27, 0.08), tint(P.main, 1.12));
+    for (const y of [1.2, 1.26, 1.32]) add('chestWear', new THREE.BoxGeometry(0.22, 0.01, 0.012).translate(0, y, 0.13), P.trim);
+  },
+  gem({ add, P }) {
+    add('chestWear', new THREE.OctahedronGeometry(0.03).translate(0, 1.27, 0.16), P.gem, { glow: true });
+  },
+  pauldronL: (ctx) => pauldron(ctx, 'L'),
+  pauldronR: (ctx) => pauldron(ctx, 'R'),
+  tassets({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const side = s === 'L' ? 1 : -1, leg = W['leg' + s];
+      const top = new THREE.Vector3(leg[0] + side * 0.05, W.hips[1] - 0.04, 0.08);
+      add('leg' + s, panel(top, 0.17, 0.11, side * 0.35, 0.2, 0.01, 0.014), P.metal);
+      add('leg' + s, new THREE.BoxGeometry(0.13, 0.012, 0.016).rotateY(side * 0.35).translate(top.x + side * 0.01, top.y - 0.165, top.z + 0.03), P.trim);
+    }
+  },
+  // ---- boots (P: main, trim, accent, sole) ----
+  bootCuffs({ add, W, P, len }) {
+    for (const s of ['L', 'R']) add('knee' + s, cuff(W['knee' + s], W['foot' + s], bootTop(len), 0.066, 0.07, 0.012, 0.016), P.trim);
+  },
+  bootStraps({ add, W, P }) {
+    for (const s of ['L', 'R']) for (const f of [0.55, 0.78]) add('knee' + s, cuff(W['knee' + s], W['foot' + s], f, 0.058, 0.02, 0.008), P.accent);
+  },
+  furCuffs({ add, W, P, len }) {
+    for (const s of ['L', 'R']) {
+      const c = V(W['knee' + s]).lerp(V(W['foot' + s]), bootTop(len));
+      add('knee' + s, new THREE.TorusGeometry(0.066, 0.03, 6, 14).rotateX(Math.PI / 2).translate(c.x, c.y, c.z), P.trim);
+    }
+  },
+  furAnkles({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const c = V(W['knee' + s]).lerp(V(W['foot' + s]), 0.86);
+      add('knee' + s, new THREE.TorusGeometry(0.058, 0.022, 6, 14).rotateX(Math.PI / 2).translate(c.x, c.y, c.z), P.trim);
+    }
+  },
+  shinGuards({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const k = V(W['knee' + s]), f = V(W['foot' + s]), c = k.clone().lerp(f, 0.42);
+      add('knee' + s, new THREE.BoxGeometry(0.1, 0.24, 0.03).translate(c.x, c.y, c.z + 0.065), tint(P.main, 1.12));
+      add('knee' + s, new THREE.SphereGeometry(0.06, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).rotateX(Math.PI / 2).scale(1, 1, 0.55).translate(k.x, k.y, k.z + 0.055), tint(P.main, 1.12));
+      add('knee' + s, new THREE.BoxGeometry(0.1, 0.012, 0.034).translate(c.x, c.y + 0.06, c.z + 0.07), P.trim);
+    }
+  },
+  // the fin flaps of the tide boots, standing out at both sides of each shaft
+  finFlaps({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const c = V(W['knee' + s]).lerp(V(W['foot' + s]), 0.4);
+      for (const side of [1, -1]) {
+        add('knee' + s, new THREE.ConeGeometry(0.035, 0.16, 3).scale(1, 1, 0.25).rotateZ(side * 0.35).translate(c.x + side * 0.07, c.y + 0.02, c.z), P.main);
+        add('knee' + s, new THREE.ConeGeometry(0.02, 0.1, 3).scale(1, 1, 0.25).rotateZ(side * 0.4).translate(c.x + side * 0.07, c.y - 0.08, c.z), P.trim);
+      }
+    }
+  },
+  ankleWings({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const c = V(W['knee' + s]).lerp(V(W['foot' + s]), 0.62), side = s === 'L' ? 1 : -1;
+      for (const [dy, l, col] of [[0.03, 0.13, P.accent], [-0.01, 0.1, P.trim], [-0.045, 0.08, P.accent]]) {
+        add('knee' + s, new THREE.ConeGeometry(0.022, l, 4).scale(0.35, 1, 1).rotateZ(side * 1.95).rotateY(-side * 0.45).translate(c.x + side * (0.06 + l * 0.35), c.y + dy, c.z - 0.03), col);
+      }
+    }
+  },
+  leafTips({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const f = W['foot' + s];
+      add('foot' + s, new THREE.ConeGeometry(0.03, 0.11, 4).scale(1, 1, 0.2).rotateX(Math.PI / 2 - 0.5).translate(f[0], f[1] - 0.03, f[2] + 0.1), P.accent);
+    }
+  },
+  // ---- gloves (P: main, trim, accent) ----
+  gloveStraps({ add, W, P, len }) {
+    for (const s of ['L', 'R']) add('elbow' + s, cuff(W['elbow' + s], W['hand' + s], Math.min(0.95, gloveTop(len) + 0.12), 0.043, 0.018, 0.007), P.trim);
+  },
+  gloveFur({ add, W, P, len }) {
+    for (const s of ['L', 'R']) {
+      const c = V(W['elbow' + s]).lerp(V(W['hand' + s]), gloveTop(len));
+      add('elbow' + s, new THREE.TorusGeometry(0.05, 0.024, 6, 14).rotateX(Math.PI / 2).translate(c.x, c.y, c.z), P.trim);
+    }
+  },
+  claws({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const e = V(W['elbow' + s]), h = V(W['hand' + s]), d = h.clone().sub(e).normalize(), side = s === 'L' ? 1 : -1;
+      for (const z of [-0.02, 0.005, 0.03]) {
+        const p = h.clone().addScaledVector(d, 0.1).add(new THREE.Vector3(side * 0.012, 0, z));
+        add('hand' + s, new THREE.ConeGeometry(0.008, 0.035, 4).rotateX(Math.PI).translate(p.x, p.y, p.z), '#efe6d2', { plain: true });
+      }
+    }
+  },
+  studs({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const e = V(W['elbow' + s]), h = V(W['hand' + s]), d = h.clone().sub(e).normalize(), side = s === 'L' ? 1 : -1;
+      for (const [k, z] of [[0.04, -0.012], [0.04, 0.012], [0.06, 0]]) {
+        const p = h.clone().addScaledVector(d, k).add(new THREE.Vector3(side * 0.03, 0, z));
+        add('hand' + s, new THREE.OctahedronGeometry(0.008).translate(p.x, p.y, p.z), P.accent, { plain: true });
+      }
+    }
+  },
+  gloveGem({ add, W, P }) {
+    for (const s of ['L', 'R']) {
+      const e = V(W['elbow' + s]), h = V(W['hand' + s]), side = s === 'L' ? 1 : -1;
+      const p = e.clone().lerp(h, 0.85).add(new THREE.Vector3(side * 0.045, 0, 0));
+      add('elbow' + s, new THREE.OctahedronGeometry(0.018).translate(p.x, p.y, p.z), P.accent, { glow: true });
+    }
+  },
+};
+
+/**
+ * Add a resolved outfit's parts (armour, boots and gloves pieces) to a RigBuilder whose driver bones sit at T.world.
+ * @param {object} look resolveOutfit() output
+ */
+export function buildOutfit(rb, T, look) {
   const W = { ...T.world, chestWear: T.world.chest };
-  // chest armour hangs on its own bone so the neck fit (scarf) does not move it
+  // chest pieces hang on their own bone so the neck fit (scarf) does not move them
   rb.bone('chestWear', 'chest', [0, 0, 0]);
   const add = (bone, geo, color, o = {}) => {
     geo.translate(-W[bone][0], -W[bone][1], -W[bone][2]);
     rb.add(bone, geo, color, o);
   };
-  const LEATHER = colors.leather, STRAP = '#5b371f', METAL = '#b9bcc4';
-  const armor = gear.armor || 'tunic';
-
-  // bandolier: over the left shoulder, across the chest to the right hip, and round the back
-  {
-    const S = new THREE.Vector3(0.1, 1.455, -0.012), H = new THREE.Vector3(-0.15, 0.99, -0.01);
-    const c = S.clone().add(H).multiplyScalar(0.5), u = S.clone().sub(H).multiplyScalar(0.5);
-    const pts = [];
-    for (let i = 0; i < 28; i++) {
-      const t = (i / 28) * Math.PI * 2;
-      const depth = Math.sin(t) > 0 ? 0.1 : 0.126;
-      pts.push(c.clone().addScaledVector(u, Math.cos(t)).add(new THREE.Vector3(0, 0, Math.sin(t) * depth)));
-    }
-    add('torso', band(pts, 0.036, 0.008, (p) => new THREE.Vector3(p.x - c.x, 0, p.z - c.z).add(new THREE.Vector3(0, 0.001, 0))), STRAP);
-    // buckle on the chest
-    add('torso', new THREE.BoxGeometry(0.032, 0.036, 0.012).rotateZ(-0.62).translate(-0.02, 1.25, 0.1), METAL, { plain: true });
-  }
-  // belt with a buckle, and a pouch on the right hip
-  const beltC = new THREE.Vector3(0, 1.005, -0.012);
-  add('hips', hoop(beltC, TORSO.hips.rx, TORSO.hips.zf, TORSO.hips.zb, 0.006, 0.05, 0.01), LEATHER);
-  add('hips', new THREE.BoxGeometry(0.05, 0.045, 0.014).translate(0, 1.005, 0.094), METAL, { plain: true });
-  add('hips', new THREE.BoxGeometry(0.08, 0.1, 0.05).translate(-0.12, 0.95, 0.05).rotateY(0), LEATHER);
-  add('hips', new THREE.BoxGeometry(0.084, 0.03, 0.054).translate(-0.12, 0.99, 0.05), STRAP);
-  // right thigh strap and its pouch
-  {
-    const a = T.world.legR, b = T.world.kneeR;
-    add('legR', cuff(a, b, 0.42, 0.072, 0.03, 0.008), STRAP);
-    const p = V(a).lerp(V(b), 0.42).add(new THREE.Vector3(-0.07, 0, 0.0));
-    add('legR', new THREE.BoxGeometry(0.03, 0.1, 0.07).translate(p.x, p.y, p.z), LEATHER);
-  }
-  // boots: folded cuffs below the knee, a strap over the foot
-  const bootCol = colors.boots;
-  const bootCuff = new THREE.Color(bootCol).multiplyScalar(1.12).getStyle();
-  for (const s of ['L', 'R']) {
-    const k = T.world['knee' + s], f = T.world['foot' + s];
-    if (gear.bases?.boots !== 'wisp_slippers') add('knee' + s, cuff(k, f, 0.14, 0.058, 0.07, 0.012, 0.012), bootCuff);
-    add('knee' + s, cuff(k, f, 0.7, 0.05, 0.02, 0.006), STRAP);
-    if (gear.bases?.boots === 'crag_greaves') add('knee' + s, new THREE.BoxGeometry(0.1, 0.2, 0.03).translate(V(k).lerp(V(f), 0.45).x, V(k).lerp(V(f), 0.45).y, V(k).z + 0.05), '#b9c4b3');
-  }
-  // bracers: a raised band at each end
-  for (const s of ['L', 'R']) {
-    const e = T.world['elbow' + s], h = T.world['hand' + s];
-    add('elbow' + s, cuff(e, h, 0.52, 0.042, 0.022, 0.008), STRAP);
-    add('elbow' + s, cuff(e, h, 0.86, 0.036, 0.022, 0.008), STRAP);
-  }
-
-  // armour: the body zone colour plus its own pieces
-  const out = {};
-  if (armor === 'hide') out.vest = '#8a5a3a';
-  else if (armor === 'pelt') {
-    out.vest = '#7f776c';
-    // fur collar
-    add('chestWear', new THREE.TorusGeometry(0.105, 0.038, 7, 16).rotateX(Math.PI / 2).scale(1.15, 0.8, 0.95).translate(0, 1.425, -0.012), '#b8b0a4');
-    for (let i = 0; i < 8; i++) {
-      // tufts
-      const a = (i / 8) * Math.PI * 2;
-      add('chestWear', new THREE.ConeGeometry(0.03, 0.07, 5).rotateX(Math.PI / 2).rotateY(a).translate(Math.sin(a) * 0.13, 1.41, -0.012 + Math.cos(a) * 0.11), '#c9c1b4');
-    }
-  } else if (armor === 'shell') {
-    out.vest = '#4f7a34';
-    add('chestWear', new THREE.SphereGeometry(0.14, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).rotateX(Math.PI / 2).scale(0.95, 0.95, 0.4).translate(0, 1.27, 0.075), '#5d8a3a');
-  } else if (armor === 'plate') {
-    out.vest = '#8f96a3';
-    add('chestWear', new THREE.SphereGeometry(0.16, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).rotateX(Math.PI / 2).scale(0.95, 1.05, 0.5).translate(0, 1.26, 0.07), '#9aa0ad');
-    add('chestWear', new THREE.OctahedronGeometry(0.028).translate(0, 1.28, 0.155), '#8fe0ff', { glow: true });
-    for (const s of ['R']) {
-      // the left shoulder already wears the hero's guard
-      const sx = s === 'L' ? 1 : -1;
-      add('arm' + s, new THREE.SphereGeometry(0.075, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.1, 0.8, 1.05).rotateZ(-sx * 0.35).translate(T.world['arm' + s][0] + sx * 0.02, T.world['arm' + s][1] + 0.01, T.world['arm' + s][2] - 0.01), '#9aa0ad');
-    }
-  } else if (armor === 'mantle') {
-    out.vest = '#3a5a8a';
-  }
-  return out;
+  const wear = (parts, P, len = 0) => { for (const name of parts) PARTS[name]?.({ add, W, T, P, cut: look.cut, len }); };
+  wear(look.parts, look.palette);
+  if (look.boots) wear(look.boots.parts, look.boots.palette, look.boots.len);
+  if (look.gloves) wear(look.gloves.parts, look.gloves.palette, look.gloves.len);
+  return look;
 }

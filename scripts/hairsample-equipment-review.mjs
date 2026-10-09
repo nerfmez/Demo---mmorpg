@@ -25,5 +25,5 @@ try{
  await page.evaluate(()=>{const v=__frontier.view;v.hero.root.rotation.y=Math.PI/2;v.renderer.render(v.scene,v.camera);});await page.screenshot({path:out+'/base-side.png'});
  writeFileSync(out+'/report.json',JSON.stringify({checks,errors,reviewZoom:.25,normalGameplayCameraUnchanged:true},null,2));
  console.log(JSON.stringify({out,checks,errors}));
- if(errors.length||checks.some(c=>c.skinTriangles!==7112||c.garments!==3||c.clothInBase||!c.finite))throw Error('Model/equipment contract failed');
+ if(errors.length||checks.some(c=>c.skinTriangles!==7112||c.garments<6||c.clothInBase||!c.finite))throw Error('Model/equipment contract failed');
 }finally{await browser.close();}

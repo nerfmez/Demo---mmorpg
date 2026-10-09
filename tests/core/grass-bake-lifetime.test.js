@@ -25,7 +25,7 @@ function fixture(extraMeshes=0,count=9){
   readRenderTargetPixelsAsync(t,x,y,w,h,pixels){asyncCalls++;const value=mode?151:83;if(asyncCalls%2===1)t.addEventListener('dispose',()=>disposed.target++);return new Promise((resolve,reject)=>pending.push({resolve:()=>{pixels.fill(value);resolve(pixels);},reject}));},
  };
  const state=()=>({target,face,mip,color:color.getHex(),alpha});
- return {root,mesh,renderer,pending,disposed,state,original,calls:()=>({asyncCalls,syncCalls})};
+ return {root,mesh,renderer,pending,disposed,state,original,calls:()=>({asyncCalls,syncCalls}),mode:()=>mode};
 }
 function queue(){const tasks=[];return {tasks,q:new FrameBuildQueue({schedule:fn=>{tasks.push(fn);return ()=>{};}}),drain(){while(tasks.length)tasks.shift()();}};}
 async function settleMicrotasks(){await Promise.resolve();await Promise.resolve();}
@@ -75,4 +75,89 @@ test('large grass input uses bounded atlases instead of retaining a whole-map ta
   c.drain();await settleMicrotasks();for(const pending of f.pending.splice(0))pending.resolve();await settleMicrotasks();
  }
  c.drain();assert.equal(await j.promise,3);assert.equal(f.calls().asyncCalls,4);assert.ok(sizes.every(n=>n<=8192));
+});
+
+test('a readback fence that never settles falls back to a synchronous read with identical attributes',async()=>{
+ const sync=fixture();bakeGrassColours(sync.renderer,sync.root,{waterLevel:0});
+ const f=fixture(),c=queue(),prior=f.state(),unhandled=[],onUnhandled=e=>unhandled.push(e);process.on('unhandledRejection',onUnhandled);
+ const warn=console.warn,warnings=[];console.warn=m=>warnings.push(m);
+ try{
+  const j=c.q.enqueue(bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true,readbackTimeoutMs:5}));
+  for(let i=0;i<20&&j.state!=='success';i++){c.drain();await new Promise(r=>setTimeout(r,15));}
+  c.drain();assert.equal(await j.promise,1);
+  for(const name of ['aGrassBase','aGrassLawn'])assert.deepEqual(f.mesh.geometry.attributes[name].array,sync.mesh.geometry.attributes[name].array);
+  assert.deepEqual(f.calls(),{asyncCalls:2,syncCalls:2});assert.equal(warnings.length,2);
+  assert.deepEqual(f.state(),prior);assert.deepEqual(f.disposed,{points:1,target:1,material:1});
+  // The abandoned reads settle late: a failure is ignored and a success cannot change the result.
+  const late=f.mesh.geometry.attributes.aGrassBase.array.slice();
+  f.pending.shift().reject(new Error('late'));f.pending.shift().resolve();await new Promise(r=>setTimeout(r,5));
+  assert.deepEqual(unhandled,[]);assert.deepEqual(f.mesh.geometry.attributes.aGrassBase.array,late);
+ }finally{console.warn=warn;process.off('unhandledRejection',onUnhandled);}
+});
+
+// A WebGL2 double for the bake's own cancellable readback: fences report `status()`.
+function fakeGL(f,status){
+ const gl={PIXEL_PACK_BUFFER:1,STREAM_READ:2,RGBA:3,UNSIGNED_BYTE:4,SYNC_GPU_COMMANDS_COMPLETE:5,SYNC_FLUSH_COMMANDS_BIT:6,ALREADY_SIGNALED:0x911a,TIMEOUT_EXPIRED:0x911b,WAIT_FAILED:0x911d,
+  live:{buffers:0,syncs:0},polls:0,
+  createBuffer(){gl.live.buffers++;return {value:0};},deleteBuffer(){gl.live.buffers--;},bindBuffer(t,b){gl.bound=b;},bufferData(){},
+  readPixels(){gl.bound.value=f.mode()?151:83;},fenceSync(){gl.live.syncs++;return {};},deleteSync(){gl.live.syncs--;},flush(){},
+  clientWaitSync(){gl.polls++;return status();},getBufferSubData(t,o,out){out.fill(gl.bound.value);}};
+ f.renderer.getContext=()=>gl;return gl;
+}
+async function run(f,c,options){
+ const j=c.q.enqueue(bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true,...options}));
+ for(let i=0;i<40&&j.state!=='success';i++){c.drain();await new Promise(r=>setTimeout(r,10));}
+ c.drain();return j.promise;
+}
+
+test('the cancellable readback reads the bound target, then frees its buffer and fence',async()=>{
+ const sync=fixture();bakeGrassColours(sync.renderer,sync.root,{waterLevel:0});
+ const f=fixture(),gl=fakeGL(f,()=>gl.ALREADY_SIGNALED);
+ assert.equal(await run(f,queue()),1);
+ for(const name of ['aGrassBase','aGrassLawn'])assert.deepEqual(f.mesh.geometry.attributes[name].array,sync.mesh.geometry.attributes[name].array);
+ assert.deepEqual(gl.live,{buffers:0,syncs:0});assert.deepEqual(f.calls(),{asyncCalls:0,syncCalls:0});
+});
+
+test('a timed-out readback stops polling and frees its buffer and fence',async()=>{
+ const f=fixture(),gl=fakeGL(f,()=>gl.TIMEOUT_EXPIRED),warn=console.warn;console.warn=()=>{};
+ try{assert.equal(await run(f,queue(),{readbackTimeoutMs:5}),1);}finally{console.warn=warn;}
+ assert.deepEqual(gl.live,{buffers:0,syncs:0});assert.equal(f.calls().syncCalls,2);
+ const polls=gl.polls;await new Promise(r=>setTimeout(r,30));assert.equal(gl.polls,polls,'no polling after cancel');
+});
+
+test('aborted queued grass cancels a never-settling readback when the wait times out',async()=>{
+ const f=fixture(),c=queue(),gl=fakeGL(f,()=>gl.TIMEOUT_EXPIRED),signal=new AbortController(),outside=regionShift(),prior=f.state();
+ const render=f.renderer.render;f.renderer.render=scene=>{render(scene);f.renderer.getRenderTarget().addEventListener('dispose',()=>f.disposed.target++);};
+ const timers=new Map(),oldSet=globalThis.setTimeout,oldClear=globalThis.clearTimeout;let id=0;
+ globalThis.setTimeout=(fn,delay,...args)=>{timers.set(++id,{delay,run:()=>fn(...args)});return id;};
+ globalThis.clearTimeout=id=>timers.delete(id);
+ const fire=delay=>{const entry=[...timers].find(([,timer])=>timer.delay===delay);assert.ok(entry,`pending ${delay} ms timer`);timers.delete(entry[0]);entry[1].run();};
+ try{
+  const j=c.q.enqueue(inRegion({value:new THREE.Vector3(100,0,200)},bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true})),{signal:signal.signal});
+  const rejected=assert.rejects(j.promise,{name:'AbortError'});
+  c.drain();await settleMicrotasks();c.drain();assert.equal(j.state,'waiting');assert.deepEqual(gl.live,{buffers:1,syncs:1});
+  fire(4);assert.equal(gl.polls,1);const stalePoll=[...timers.values()].find(timer=>timer.delay===4).run;
+  signal.abort();assert.equal(j.state,'waiting');assert.deepEqual(f.disposed,{points:0,target:0,material:0});
+  // The queue retains owners until the bounded wait settles, then calls return(), not next().
+  fire(5000);await settleMicrotasks();c.drain();await rejected;
+  assert.equal(j.state,'cancelled');assert.deepEqual(f.disposed,{points:1,target:1,material:1});
+  assert.deepEqual(gl.live,{buffers:0,syncs:0});assert.equal(timers.size,0,'all readback timers cleared');
+  const polls=gl.polls;stalePoll();j.cancel();assert.equal(gl.polls,polls,'a stale poll cannot touch freed GPU owners');
+  assert.deepEqual(gl.live,{buffers:0,syncs:0});assert.deepEqual(f.disposed,{points:1,target:1,material:1});
+  assert.deepEqual(f.calls(),{asyncCalls:0,syncCalls:0});assert.equal(f.mesh.geometry.attributes.aGrassBase,undefined);
+  assert.deepEqual(f.state(),prior);assert.equal(regionShift(),outside);
+ }finally{globalThis.setTimeout=oldSet;globalThis.clearTimeout=oldClear;}
+});
+
+for(const failure of [false,true])test(`cancelled grass ignores a late readback ${failure?'rejection':'resolution'}`,async()=>{
+ const f=fixture(),c=queue(),signal=new AbortController(),outside=regionShift();
+ const j=c.q.enqueue(inRegion(outside,bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true,readbackTimeoutMs:5})),{signal:signal.signal});
+ const rejected=assert.rejects(j.promise,{name:'AbortError'});
+ c.drain();await settleMicrotasks();c.drain();assert.equal(j.state,'waiting');signal.abort();
+ await new Promise(resolve=>setTimeout(resolve,15));c.drain();await rejected;
+ if(failure)f.pending.shift().reject(new Error('late cancelled read'));else f.pending.shift().resolve();
+ await new Promise(resolve=>setTimeout(resolve,0));c.drain();j.cancel();
+ assert.equal(j.state,'cancelled');assert.deepEqual(f.disposed,{points:1,target:1,material:1});
+ assert.equal(f.mesh.geometry.attributes.aGrassBase,undefined);assert.equal(f.mesh.geometry.attributes.aGrassLawn,undefined);
+ assert.deepEqual(f.calls(),{asyncCalls:1,syncCalls:0});assert.equal(regionShift(),outside);
 });

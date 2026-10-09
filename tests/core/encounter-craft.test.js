@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { loadData } from '../../src/core/data-node.js';
 import { createWorld } from '../../src/core/world.js';
 import { Game } from '../../src/core/game.js';
+import { setAggro } from '../../src/core/ai.js';
 import { encounterLayout, encounterPointAllowed, zoneEncounters, encounterLevelLabel, habitatKey } from '../../src/core/encounters.js';
 import { encounterCraftAudit } from '../../src/core/encounter-audit.js';
 import { compareCraftRecipes, recipeEquipmentLevel, skillCraftGuide, craftDescription, recipeSearchText, craftQueryMatches } from '../../src/core/craft-order.js';
@@ -25,7 +26,13 @@ for (const [mapId, world] of Object.entries(worlds)) {
       assert.equal(point.monster, source.monster);
       assert.equal(point.zone, world.zoneAt(point.x, point.z).id);
       assert.deepEqual(point.level, source.level);
-      assert.ok(encounterPointAllowed(world, data, source, point.x, point.z, seen), JSON.stringify(point));
+      // packmates stand closer than the spacing rule, inside the pack radius around its leader
+      const mates = point.pack ? seen.filter(p => p.pack === point.pack) : [];
+      assert.ok(encounterPointAllowed(world, data, source, point.x, point.z, seen.filter(p => !mates.includes(p))), JSON.stringify(point));
+      if (mates.length) {
+        assert.ok(Math.hypot(point.x - mates[0].x, point.z - mates[0].z) <= source.pack.radius + 1e-9, 'within the pack radius');
+        for (const m of mates) assert.ok(Math.hypot(point.x - m.x, point.z - m.z) >= source.pack.spacing, 'pack spacing');
+      }
       seen.push(point);
     }
     wd.spawns.forEach((s, index) => assert.equal(layout.points.filter(p => p.group === index).length, s.count, habitatKey(s)));
@@ -123,4 +130,21 @@ test('all recipe materials have an actual monster source; later sources are repo
 
 test('placement, listing and audit never mutate content, wear requirements or progression', () => {
   assert.equal(JSON.stringify({ maps: data.maps, monsters: data.monsters, items: data.items, recipes: data.recipes, skills: data.skills, progression: data.progression }), original);
+});
+
+test('a pack spawns together and wakes together', () => {
+  const world = worlds['moonroot-grove-v1'], wd = world.data, layout = encounterLayout(world, data);
+  wd.spawns.forEach((s, index) => {
+    if (!s.pack) return;
+    const packs = Map.groupBy(layout.points.filter(p => p.group === index), p => p.pack);
+    assert.equal(packs.size, Math.ceil(s.count / s.pack.size), `${s.zone}: packs`);
+    for (const members of packs.values()) assert.ok(members.length <= s.pack.size);
+  });
+  const g = new Game({ ...data, world: wd }, { world, seed: 7 });
+  const pack = layout.points.find(p => p.pack).pack;
+  const members = g.monsters.filter(m => m.spawn?.pack === pack);
+  assert.ok(members.length > 2, 'the pack is spawned');
+  setAggro(g, members[0], g.player);
+  for (const m of members) assert.ok(m.aggro, 'every packmate in range joins in');
+  assert.ok(g.monsters.filter(m => m.spawn?.pack && m.spawn.pack !== pack).every(m => !m.aggro), 'other packs stay calm');
 });

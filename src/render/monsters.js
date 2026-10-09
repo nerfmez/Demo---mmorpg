@@ -180,6 +180,26 @@ function animQuad(r, s, dt, time, cfg) {
     bodyY += 0.03 * k;
     jaw = 0.8 * k;
     lunge = -0.16 * k;
+  } else if (wu === 'leap') {
+    // greyfang's leap: belly low, hind legs coiled, eyes on the marked spot
+    headX = 0.3 * k;
+    bodyX = 0.14 * k;
+    bodyY -= 0.22 * k;
+    squash = 1 - 0.1 * k;
+    jaw = 0.3 * k;
+    b[legs[2]].rotation.x = 0.6 * k;
+    b[legs[3]].rotation.x = 0.6 * k;
+  } else if (s.state === 'act' && s.lastAttack === 'leap') {
+    // in the air: stretched out, forepaws reaching, jaws open, an arc over the 0.35 s flight
+    const f = clamp01(s.actT / 0.35);
+    bodyX = -0.2;
+    bodyY += Math.sin(Math.PI * f) * 0.9;
+    headX = -0.2;
+    jaw = 0.8;
+    b[legs[0]].rotation.x = -1.1;
+    b[legs[1]].rotation.x = -1.1;
+    b[legs[2]].rotation.x = 0.9;
+    b[legs[3]].rotation.x = 0.9;
   } else if (wu === 'howl') {
     headX = -0.9 * k;
     jaw = 0.7 * k;

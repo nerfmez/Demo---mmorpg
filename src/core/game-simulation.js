@@ -311,7 +311,7 @@ export class Game {
   spawnArea(o) {
     const a = { id: this.newId(), t: 0, delay: 0, fired: false, hit: new Set(), nextTick: 0, ...o };
     this.areas.push(a);
-    this.emit({ type: 'area', id: a.id, kind: a.kind, owner: a.owner, x: a.x, z: a.z, radius: a.radius, delay: a.delay, duration: a.duration });
+    this.emit({ type: 'area', id: a.id, kind: a.kind, owner: a.owner, x: a.x, z: a.z, radius: a.radius, inner: a.inner, delay: a.delay, duration: a.duration });
     return a;
   }
 
@@ -1763,8 +1763,12 @@ export class Game {
           if (s?.ground) this.spawnGround(s, a.x, a.z, a.echo ? s.echo.mult : 1);
         } else if (a.owner === 'monster' && a.damage) {
           const src = this.monsterById(a.sourceId);
-          for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, src);
-          this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius });
+          // a ring (a.inner) leaves its middle safe
+          for (const u of this.units()) {
+            const d = dist(a.x, a.z, u.x, u.z);
+            if (d <= a.radius + u.r && !(a.inner && d < a.inner)) this.damageUnit(u, a.damage, src);
+          }
+          this.emit({ type: 'burst', kind: a.kind, element: 'earth', x: a.x, z: a.z, radius: a.radius, inner: a.inner });
         }
       }
       if (live < (a.duration || 0)) keep.push(a);

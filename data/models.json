@@ -4955,6 +4955,409 @@
           ]
         ]
       }
+    },
+    "fern_ear_hare": {
+      "file": "models/monsters/fern_ear_hare.glb",
+      "tris": 3857,
+      "scale": 0.62,
+      "rootScale": 0.8,
+      "yaw": 0,
+      "sharpness": 5,
+      "outline": "#3f4a33",
+      "outlineWidth": 0.014,
+      "source": "Meshy 6 image-to-3d (task 01a1210e-4702-739b-8eab-42ad526b5a07) from the Moonroot concept sheet assets/moonroot/fern_ear_hare_concept.jpg (main pose only); prepared with scripts/prep-monster-glb.py --tris 2400 (3,857 kept: a lighter model, hares come in packs of 8) --tex 512",
+      "bones": {
+        "head": [
+          0,
+          0.01,
+          0.36
+        ],
+        "earL": [
+          0.08,
+          0.21,
+          0.06
+        ],
+        "earR": [
+          -0.08,
+          0.21,
+          0.06
+        ],
+        "tail": [
+          0,
+          0.11,
+          -0.5
+        ],
+        "leg0": [
+          0.13,
+          -0.14,
+          0.28
+        ],
+        "leg1": [
+          -0.13,
+          -0.14,
+          0.28
+        ],
+        "leg2": [
+          0.2,
+          -0.12,
+          -0.3
+        ],
+        "leg3": [
+          -0.2,
+          -0.12,
+          -0.3
+        ]
+      },
+      "segments": {
+        "body": [
+          [
+            0,
+            0.45,
+            -0.35
+          ],
+          [
+            0,
+            0.42,
+            0.25
+          ]
+        ],
+        "head": [
+          [
+            0,
+            0.45,
+            0.4
+          ],
+          [
+            0,
+            0.5,
+            0.58
+          ]
+        ],
+        "earL": [
+          [
+            0.08,
+            0.62,
+            0.42
+          ],
+          [
+            0.26,
+            0.84,
+            0.38
+          ]
+        ],
+        "earR": [
+          [
+            -0.08,
+            0.62,
+            0.42
+          ],
+          [
+            -0.26,
+            0.84,
+            0.38
+          ]
+        ],
+        "tail": [
+          [
+            0,
+            0.55,
+            -0.45
+          ],
+          [
+            0,
+            0.6,
+            -0.59
+          ]
+        ],
+        "leg0": [
+          [
+            0.13,
+            0.28,
+            0.28
+          ],
+          [
+            0.13,
+            0.02,
+            0.32
+          ]
+        ],
+        "leg1": [
+          [
+            -0.13,
+            0.28,
+            0.28
+          ],
+          [
+            -0.13,
+            0.02,
+            0.32
+          ]
+        ],
+        "leg2": [
+          [
+            0.21,
+            0.3,
+            -0.28
+          ],
+          [
+            0.23,
+            0.03,
+            -0.33
+          ]
+        ],
+        "leg3": [
+          [
+            -0.21,
+            0.3,
+            -0.28
+          ],
+          [
+            -0.23,
+            0.03,
+            -0.33
+          ]
+        ]
+      }
+    },
+    "mirrorwing_moth": {
+      "file": "models/monsters/mirrorwing_moth.glb",
+      "tris": 4250,
+      "scale": 1,
+      "rootScale": 0.85,
+      "yaw": 0,
+      "offset": [
+        0,
+        1.1,
+        0
+      ],
+      "sharpness": 6,
+      "outline": "#22264d",
+      "outlineWidth": 0.012,
+      "rim": 0.5,
+      "source": "Meshy 6 image-to-3d (task 01a1210e-4d27-768d-8da9-de0d5efad737) from the Moonroot concept sheet assets/moonroot/mirrorwing_moth_concept.jpg (main pose only), the long tail Meshy added behind the wings cut off; prepared with scripts/prep-monster-glb.py --tris 4900 --tex 512",
+      "bones": {
+        "head": [
+          0,
+          -0.08,
+          0.3
+        ],
+        "wingL": [
+          0.18,
+          0,
+          0
+        ],
+        "wingR": [
+          -0.18,
+          0,
+          0
+        ]
+      },
+      "segments": {
+        "body": [
+          [
+            0,
+            1.25,
+            0
+          ],
+          [
+            0,
+            1.85,
+            0.1
+          ]
+        ],
+        "head": [
+          [
+            0,
+            1.5,
+            0.35
+          ],
+          [
+            0,
+            1.5,
+            0.62
+          ]
+        ],
+        "wingL": [
+          [
+            [
+              0.2,
+              1.65,
+              0
+            ],
+            [
+              0.95,
+              2.4,
+              0
+            ]
+          ],
+          [
+            [
+              0.2,
+              1.45,
+              0.05
+            ],
+            [
+              0.7,
+              1.25,
+              0.1
+            ]
+          ]
+        ],
+        "wingR": [
+          [
+            [
+              -0.2,
+              1.65,
+              0
+            ],
+            [
+              -0.95,
+              2.4,
+              0
+            ]
+          ],
+          [
+            [
+              -0.2,
+              1.45,
+              0.05
+            ],
+            [
+              -0.7,
+              1.25,
+              0.1
+            ]
+          ]
+        ]
+      }
+    },
+    "rootdigger_mole": {
+      "file": "models/monsters/rootdigger_mole.glb",
+      "tris": 4899,
+      "scale": 1.15,
+      "yaw": 0,
+      "sharpness": 5,
+      "outline": "#2e2638",
+      "outlineWidth": 0.016,
+      "source": "Meshy 6 image-to-3d (task 01a1210e-555a-7624-9892-315472014dfd) from the Moonroot concept sheet assets/moonroot/rootdigger_mole_concept.jpg (main pose only); prepared with scripts/prep-monster-glb.py --tris 4900 --tex 512",
+      "bones": {
+        "head": [
+          0,
+          -0.02,
+          0.6
+        ],
+        "tail": [
+          0,
+          -0.22,
+          -0.6
+        ],
+        "armL": [
+          0.35,
+          -0.1,
+          0.55
+        ],
+        "armR": [
+          -0.35,
+          -0.1,
+          0.55
+        ],
+        "handL": [
+          0.07,
+          -0.27,
+          0.2
+        ],
+        "handR": [
+          -0.07,
+          -0.27,
+          0.2
+        ]
+      },
+      "segments": {
+        "body": [
+          [
+            0,
+            0.45,
+            -0.55
+          ],
+          [
+            0,
+            0.45,
+            0.45
+          ]
+        ],
+        "head": [
+          [
+            0,
+            0.5,
+            0.6
+          ],
+          [
+            0,
+            0.45,
+            1.02
+          ]
+        ],
+        "tail": [
+          [
+            0,
+            0.28,
+            -0.6
+          ],
+          [
+            0,
+            0.24,
+            -1.09
+          ]
+        ],
+        "armL": [
+          [
+            0.35,
+            0.42,
+            0.5
+          ],
+          [
+            0.42,
+            0.25,
+            0.68
+          ]
+        ],
+        "armR": [
+          [
+            -0.35,
+            0.42,
+            0.5
+          ],
+          [
+            -0.42,
+            0.25,
+            0.68
+          ]
+        ],
+        "handL": [
+          [
+            0.42,
+            0.18,
+            0.72
+          ],
+          [
+            0.45,
+            0.05,
+            1.0
+          ]
+        ],
+        "handR": [
+          [
+            -0.42,
+            0.18,
+            0.72
+          ],
+          [
+            -0.45,
+            0.05,
+            1.0
+          ]
+        ]
+      }
     }
   }
 }

@@ -11,10 +11,11 @@ const bakeSource=source.slice(source.indexOf('export function bakeGrassColours')
 const {bakeGrassColours,bakeGrassSteps}=Function('THREE','groundFieldUniforms','GROUND_COLOR_GLSL','prepareGrassCulling',bakeSource+'\nreturn {bakeGrassColours,bakeGrassSteps};')(THREE,()=>({}),'',()=>{});
 const regionSource=readFileSync(new URL('../../src/render/region.js',import.meta.url),'utf8');
 const inRegion=Function('regionShift','useRegion',regionSource.slice(regionSource.indexOf('export function* inRegion'),regionSource.indexOf('/** Synchronous compatibility')).replace(/\bexport /g,'')+'\nreturn inRegion;')(regionShift,useRegion);
-function fixture(){
+function fixture(extraMeshes=0,count=9){
  const root=new THREE.Group(),g=new THREE.BufferGeometry(),material=new THREE.MeshBasicMaterial();material.userData.groundBrush={value:null};
- for(const [k,n] of Object.entries({aGrassLight:3,aGrassDark:3,aGrassNormal:3,aGrassSplat:4,aGrassCoast:2,aGrassY:1,aGrassTown:1}))g.setAttribute(k,new THREE.InstancedBufferAttribute(new Float32Array(9*n),n));
- const mesh=new THREE.InstancedMesh(g,material,9);mesh.name='ground-blended-grass';for(let i=0;i<9;i++)mesh.setMatrixAt(i,new THREE.Matrix4().makeTranslation(i,0,i));root.add(mesh);
+ for(const [k,n] of Object.entries({aGrassLight:3,aGrassDark:3,aGrassNormal:3,aGrassSplat:4,aGrassCoast:2,aGrassY:1,aGrassTown:1}))g.setAttribute(k,new THREE.InstancedBufferAttribute(new Float32Array(count*n),n));
+ const mesh=new THREE.InstancedMesh(g,material,count);mesh.name='ground-blended-grass';for(let i=0;i<count;i++)mesh.setMatrixAt(i,new THREE.Matrix4().makeTranslation(i,0,i));root.add(mesh);
+ for(let i=0;i<extraMeshes;i++){const extra=mesh.clone();extra.geometry=g.clone();extra.position.set(i+1,0,-i-1);root.add(extra);}
  const pending=[],disposed={points:0,target:0,material:0},original=new THREE.WebGLRenderTarget(4,4);let target=original,face=3,mip=2,color=new THREE.Color('#123456'),alpha=.7,mode=0,asyncCalls=0,syncCalls=0;
  const renderer={getRenderTarget:()=>target,getActiveCubeFace:()=>face,getActiveMipmapLevel:()=>mip,getClearColor:c=>c.copy(color),getClearAlpha:()=>alpha,
   setRenderTarget:(t,f=0,m=0)=>{target=t;face=f;mip=m;},setClearColor:(c,a)=>{color.set(c);alpha=a;},clear(){},
@@ -52,4 +53,26 @@ test('readback failure propagates through nested region scopes and frees all bak
  const j=c.q.enqueue(inRegion(outside,bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true})));const rejected=assert.rejects(j.promise,e=>e===error);
  c.drain();await settleMicrotasks();c.drain();f.pending.shift().reject(error);await settleMicrotasks();c.drain();await rejected;
  assert.deepEqual(f.disposed,{points:1,target:1,material:1});assert.equal(regionShift(),outside);
+});
+
+test('async atlas batches multiple chunks into two reads with exact per-mesh attributes',async()=>{
+ const sync=fixture(2);bakeGrassColours(sync.renderer,sync.root,{waterLevel:0});
+ const f=fixture(2),c=queue(),prior=f.state();
+ const j=c.q.enqueue(bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true}));
+ for(let i=0;i<20&&j.state!=='success';i++){
+  c.drain();await settleMicrotasks();for(const pending of f.pending.splice(0))pending.resolve();await settleMicrotasks();
+ }
+ c.drain();assert.equal(await j.promise,3);assert.deepEqual(f.calls(),{asyncCalls:2,syncCalls:0});assert.equal(sync.calls().syncCalls,6);
+ for(let i=0;i<3;i++)for(const name of ['aGrassBase','aGrassLawn'])assert.deepEqual(f.root.children[i].geometry.attributes[name].array,sync.root.children[i].geometry.attributes[name].array);
+ assert.deepEqual(f.state(),prior);assert.deepEqual(f.disposed,{points:1,target:1,material:1});
+});
+
+test('large grass input uses bounded atlases instead of retaining a whole-map target',async()=>{
+ const f=fixture(2,4000),c=queue(),sizes=[];
+ const read=f.renderer.readRenderTargetPixelsAsync;f.renderer.readRenderTargetPixelsAsync=(target,x,y,w,h,pixels)=>{sizes.push(w*h);return read(target,x,y,w,h,pixels);};
+ const j=c.q.enqueue(bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true}));
+ for(let i=0;i<30&&j.state!=='success';i++){
+  c.drain();await settleMicrotasks();for(const pending of f.pending.splice(0))pending.resolve();await settleMicrotasks();
+ }
+ c.drain();assert.equal(await j.promise,3);assert.equal(f.calls().asyncCalls,4);assert.ok(sizes.every(n=>n<=8192));
 });

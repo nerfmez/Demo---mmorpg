@@ -1,0 +1,15 @@
+{
+  "phase": "after-windmill-final",
+  "quality": "high",
+  "cameraZoom": 1.25,
+  "cameraDistance": 1.6,
+  "cameraSide": 1,
+  "engine": "Chromium / ANGLE SwiftShader",
+  "shots": [
+    "hill_windmill-game",
+    "hill_windmill-motion-1",
+    "hill_windmill-motion-2",
+    "hill_windmill-motion-3"
+  ],
+  "errors": []
+}

@@ -1,0 +1,402 @@
+{
+  "quality": "high",
+  "checks": [
+    {
+      "id": "menu",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 280,
+        "y": 141,
+        "width": 880,
+        "height": 600
+      }
+    },
+    {
+      "id": "char",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "craft",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "shop",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "journal",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "map",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "growth",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "settings",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 200,
+        "y": 111,
+        "width": 1040,
+        "height": 660
+      }
+    },
+    {
+      "id": "job",
+      "width": 1440,
+      "height": 900,
+      "box": {
+        "x": 160,
+        "y": 99,
+        "width": 1120,
+        "height": 702
+      }
+    },
+    {
+      "id": "menu",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 150,
+        "y": 101,
+        "width": 880,
+        "height": 600
+      }
+    },
+    {
+      "id": "char",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "craft",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "shop",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "journal",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "map",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "growth",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "settings",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 81.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "job",
+      "width": 1180,
+      "height": 820,
+      "box": {
+        "x": 70.796875,
+        "y": 90.203125,
+        "width": 1038.390625,
+        "height": 639.59375
+      }
+    },
+    {
+      "id": "menu",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "char",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "craft",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "shop",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "journal",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "map",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "growth",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "settings",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 203.453125,
+        "y": 12,
+        "width": 624.546875,
+        "height": 350
+      }
+    },
+    {
+      "id": "job",
+      "width": 844,
+      "height": 390,
+      "box": {
+        "x": 135.921875,
+        "y": 18,
+        "width": 692.078125,
+        "height": 354
+      }
+    },
+    {
+      "id": "menu",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 31.203125,
+        "y": 208,
+        "width": 327.59375,
+        "height": 600
+      }
+    },
+    {
+      "id": "char",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "craft",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "shop",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "journal",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "map",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "growth",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "settings",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 200.328125,
+        "width": 366,
+        "height": 607.671875
+      }
+    },
+    {
+      "id": "job",
+      "width": 390,
+      "height": 844,
+      "box": {
+        "x": 12,
+        "y": 186.5625,
+        "width": 366,
+        "height": 641.4375
+      }
+    }
+  ],
+  "errors": []
+}

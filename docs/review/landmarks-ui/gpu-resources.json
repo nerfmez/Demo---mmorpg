@@ -1,0 +1,38 @@
+{
+  "quality": "high",
+  "model": "cliff_shrine.glb",
+  "warmup": 1,
+  "cycles": 2,
+  "samples": [
+    {
+      "loaded": {
+        "geometries": 94,
+        "textures": 62
+      },
+      "disposed": {
+        "geometries": 93,
+        "textures": 62
+      }
+    },
+    {
+      "loaded": {
+        "geometries": 89,
+        "textures": 49
+      },
+      "disposed": {
+        "geometries": 88,
+        "textures": 49
+      }
+    },
+    {
+      "loaded": {
+        "geometries": 89,
+        "textures": 49
+      },
+      "disposed": {
+        "geometries": 88,
+        "textures": 49
+      }
+    }
+  ]
+}

@@ -2,15 +2,15 @@
 
 ## Current travel-journal build UI
 
-The fullscreen travel-journal passive UI and engraved modifier gems are part of the
-current game UI. Subsequent gameplay changes should preserve the same full-viewport
-paper/ink presentation and touch-first interaction rules.
+The game uses bounded windows that leave the live scene visible. `compact.css`
+provides the shared dark, quiet panel presentation while preserving painted icons,
+mod engravings and the native passive chart. Controls retain touch-sized targets;
+long content scrolls inside its own window rather than shrinking text.
 
-The passive screen is a full-viewport paper/ink **travel journal**, not a book
-object or floating menu. Its normal sidebar, header/footer frame and persistent
-inspector are hidden. The chart owns the screen between a small search/points
-bar and pan/zoom controls. Details appear only after selecting a node and have
-an explicit close button. The initial overview never opens a details panel.
+The passive travel journal remains a paper/ink chart inside a bounded panel.
+Search, Job Points, stages, pan/zoom and node details keep their native handlers.
+Details appear only after selecting a node and have an explicit close button.
+The initial overview never opens a details panel.
 
 Equipment/inventory and skill/mod management now use the reviewed two-window
 landscape layout. The left equipment window owns the full-body equipped avatar;
@@ -22,8 +22,11 @@ support; these colors never identify damage elements.
 
 Details open on tap. Existing upgrade, grade and sale handlers remain available
 in inventory details; skill/mod upgrades and crafting keep their existing pages.
-The accepted passive travel journal is unchanged. Portrait shows a rotate prompt
-for these two workspaces; their essential landscape actions never require scroll.
+Portrait supports the same two workspaces using explicit equipment/loadout and
+inventory/library pane buttons. Landscape shows both panes with scene space between
+them. Bag pages contain 12 objects, or 10 on short landscape screens; skill/mod
+pages contain 12, or 6 on narrow/short screens. Page capacity changes retain the
+selected object, an open dialog and its focus. Each pane contains its scrolling.
 
 The controller is `src/ui/loadout-workspace.js`, owned by the normal `Panels`
 lifecycle. It reads the actual character and calls the existing equip/socket core

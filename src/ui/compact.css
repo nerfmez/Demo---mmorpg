@@ -1,0 +1,270 @@
+/* Quiet, bounded windows. Keep scene margins at every supported viewport;
+   scroll content rather than shrinking text or touch targets. */
+.overlay:not(.is-atelier):not(.is-journal){padding:0;background:#07111a1a;backdrop-filter:none;-webkit-backdrop-filter:none}
+.overlay:not(.is-atelier):not(.is-journal) .panel{width:min(1040px,88vw);height:min(660px,78dvh);max-height:none;border-radius:10px;background:#182633f7;box-shadow:0 12px 32px #07121c55;grid-template-columns:128px minmax(0,1fr)}
+.overlay.single-page:not(.is-atelier):not(.is-journal) .panel{grid-template-columns:minmax(0,1fr)}
+.overlay.is-hub:not(.is-atelier):not(.is-journal) .panel{width:min(880px,84vw);height:min(600px,74dvh);grid-template-columns:minmax(0,1fr)}
+.overlay:not(.is-atelier):not(.is-journal) .panel-header{padding:10px 16px;gap:10px;background:#162330;border-bottom:1px solid #91aabd30}
+.overlay:not(.is-atelier):not(.is-journal) .panel-header h2{font-size:18px}
+.overlay:not(.is-atelier):not(.is-journal) .panel-eyebrow{display:none}
+.overlay:not(.is-atelier):not(.is-journal) .pbody{padding:16px;overflow:auto;overscroll-behavior:contain;min-height:0}
+.panel-close,.panel-back,.panel-footer .btn{min-width:44px;min-height:44px}
+.overlay:not(.is-atelier):not(.is-journal) :is(.tab,.btn,select,input){min-height:44px;font-size:13px}
+.overlay:not(.is-atelier):not(.is-journal) .pbody{font-size:13px;line-height:1.6}
+.overlay:not(.is-atelier):not(.is-journal) .panel-footer{padding:8px 16px;background:#162330;border-top:1px solid #91aabd30}
+.hub{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.hub-group{padding:0;background:none;border:0;border-radius:0}
+.hub-group>header{gap:8px;padding:0 0 8px;margin-bottom:6px;border-color:#91aabd30}
+.hub-group>header svg{width:28px;height:28px;padding:5px;border:0;border-radius:0;background:none;color:#adc6d5}
+.hub-group>header h3{font-size:14px}
+.hub-group>header small{display:none}
+.hub-tiles{gap:4px}
+.hub-tile{grid-template-columns:28px minmax(0,1fr) auto;gap:8px;min-height:52px;padding:8px;border:1px solid transparent;border-radius:5px;background:#aec8dc08;box-shadow:none}
+.hub-tile>svg{width:25px;height:25px;color:#b6cedb}
+.hub-name b{font-size:13px}.hub-name small{display:none}.hub-state{font-size:11px;padding:3px 5px;background:none;color:#ccb789}
+.hub-tile:hover,.hub-tile:focus-visible{background:#8caecb21;border-color:#9bc4da66}
+.panel-back{border-radius:5px;background:none;font-size:13px}
+@media(max-width:700px){
+ .overlay:not(.is-atelier):not(.is-journal){align-items:flex-end;padding-bottom:16px}
+ .overlay:not(.is-atelier):not(.is-journal) .panel{width:calc(100vw - 24px);height:72dvh;grid-template-columns:minmax(0,1fr);border-radius:10px}
+ .overlay:not(.is-atelier):not(.is-journal) .pbody{padding:12px}
+ .hub{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;gap:14px 10px}
+ .hub-group{grid-area:auto!important}.hub-name b{font-size:13px}.hub-tile{padding:6px;grid-template-columns:24px minmax(0,1fr);min-height:48px}
+ .hub-state{display:none}.panel-meta .pause-label,.overlay.is-hub .panel-footer>span{display:none}
+}
+/* Equipment and skills keep independent windows and original painted icons.
+   A portrait device switches between the same two panes with explicit tabs. */
+#atelier:is(#atelier){--ink:#e5edf1;--muted:#a5b7c1;--gold:#cdb27d;--cream:#182633;--teal:#8bc0c8;--workspace-height:min(620px,70dvh);background:none;color:var(--ink);font-size:13px;line-height:1.5}
+#atelier:is(#atelier) button{min-height:44px;min-width:44px;font-size:13px;border:1px solid #a1bbcb40;border-radius:5px;background:#accbda0a;color:#dfeaf0;padding:8px 10px;box-shadow:none}
+#atelier:is(#atelier) button:focus-visible{outline:2px solid #9ed9ed;outline-offset:2px}
+#atelier:is(#atelier) :is(h1,h2){font:500 17px/1.4 Mitr,sans-serif;color:#edf4f7}
+#atelier:is(#atelier) small{font-size:12px!important;color:#a7bbc7}
+#atelier:is(#atelier) .workspace-nav{top:calc(50% - var(--workspace-height)/2 - 54px);max-width:calc(100vw - 24px);background:#172531;border:1px solid #a0b9c64a;border-radius:7px;box-shadow:0 6px 18px #07141b33;padding:3px;gap:3px}
+#atelier:is(#atelier) .workspace-nav button{padding:8px 12px;font-size:12px;border:0;background:none;color:#bbccd4;min-height:44px}
+#atelier:is(#atelier) .workspace-nav button.active{background:#3c61743b;color:#edf7fa;box-shadow:none}
+#atelier:is(#atelier) .workspace-nav button:last-child{font-size:20px;min-width:44px}
+#atelier:is(#atelier) .two-windows{top:50%;bottom:auto;height:var(--workspace-height);max-height:none;width:min(1080px,88vw);grid-template-columns:42% 52%;gap:6%;transform:translate(-50%,-50%)}
+#atelier:is(#atelier) .window{border:1px solid #a0b9c64a;border-radius:8px;box-shadow:0 8px 24px #07141b55;background:#182633f7;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8aabb34d transparent;touch-action:pan-y}
+#atelier:is(#atelier) .window:after,#atelier:is(#atelier) .window-head:before,#atelier:is(#atelier) .window-head:after{display:none}
+#atelier:is(#atelier) .window-head{position:sticky;top:0;z-index:6;height:48px;min-height:48px;padding:8px 14px;background:#172531;color:#e7eef1;border-bottom:1px solid #a0b9c633;box-shadow:none}
+#atelier:is(#atelier) .window-head>div{padding:0}
+#atelier:is(#atelier) .window-head>div>small,#atelier:is(#atelier) .seal{display:none}
+#atelier:is(#atelier) .currency{font:16px Mitr,sans-serif;color:#d7bd8a;text-shadow:none}
+#atelier:is(#atelier) .character-level{font-size:13px;color:#b0c9d6}
+#atelier:is(#atelier) .quiet{font-size:12px;color:#b1c4ce}
+#atelier:is(#atelier) .character-stage{min-height:280px;background:radial-gradient(ellipse at 50% 50%,#47637340,#152430 75%)}
+#atelier:is(#atelier) .character-caption{top:12px}
+#atelier:is(#atelier) .character-caption h2{font:500 18px Mitr,sans-serif;color:#d6e4ec}
+#atelier:is(#atelier) :is(.stage-ring,.pedestal,.stage-inscription,.character-caption small){display:none}
+#atelier:is(#atelier) .hero-art{height:92%;width:68%;left:16%;bottom:0;filter:none}
+#atelier:is(#atelier) .wear-slot{width:76px;height:96px;padding:5px 3px;background:#203441d9;border:1px solid #a0b9c64a;border-radius:5px;box-shadow:none}
+#atelier:is(#atelier) .wear-slot small{font-size:11px!important;color:#bacad3}
+#atelier:is(#atelier) .wear-slot b{font-size:11px;color:#cddae1}
+#atelier:is(#atelier) .wear-slot .object-art{width:48px;height:48px;filter:none}
+#atelier:is(#atelier) .wear-slot.target{border-color:#d8bf82;background:#38525c;box-shadow:none}
+#atelier:is(#atelier) .character-stats{height:62px;min-height:62px;background:#162633;border-top:1px solid #a0b9c633;box-shadow:none;color:#dce8ef}
+#atelier:is(#atelier) .character-stats b{font:20px Mitr,sans-serif}
+#atelier:is(#atelier) :is(.category-tabs,.filters,.library-note){height:auto;min-height:44px;padding:5px 10px;flex-wrap:wrap;background:none;color:#a8bfca;border-color:#a0b9c633}
+#atelier:is(#atelier) :is(.category-tabs,.filters) button{min-height:44px;padding:6px 8px;border:0;font-size:12px;background:none;color:#a8bfca}
+#atelier:is(#atelier) :is(.category-tabs,.filters) .active{color:#e0f2f7;background:#527b8d33;border-radius:5px;box-shadow:none}
+#atelier:is(#atelier) .category-tabs>span{font-size:12px}
+#atelier:is(#atelier) .inventory-grid{flex:none;min-height:0;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto);gap:6px;padding:8px 12px}
+#atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
+#atelier:is(#atelier) .inventory-filter{display:flex;align-items:center;gap:8px;font-size:12px;color:#bacbd3}
+#atelier:is(#atelier) .inventory-filter select{font:13px Mitr,sans-serif;min-height:44px;color:#e2edf2;background:#1b2e3a;border:1px solid #819dad55;border-radius:5px;padding:6px 10px}
+#atelier:is(#atelier) :is(.inventory-cell,.wear-slot)[data-grade]{border-color:var(--grade-color)}
+#atelier:is(#atelier) .inventory-cell[data-grade] .cell-corner{color:var(--grade-color)}
+#atelier:is(#atelier) .wear-stat-totals{background:#172936;color:#bed0da;border-color:#809ba63d;font-size:12px;min-height:32px}
+#atelier:is(#atelier) :is(.inventory-cell,.inventory-empty){min-height:80px;padding:17px 3px 5px;background:#22384588;border:1px solid #7896a644;border-radius:5px;box-shadow:none;overflow:hidden}
+#atelier:is(#atelier) .inventory-cell.selected{border:1px solid #d9be87;background:#415c6644;box-shadow:inset 0 0 0 1px #d9be8780}
+#atelier:is(#atelier) .inventory-cell.selected:after{display:none}
+#atelier:is(#atelier) :is(.inventory-cell,.wear-slot).equipment-inactive{border:2px solid #c83b35;box-shadow:inset 0 0 0 1px #c83b3580;background:#432c2c}
+#atelier:is(#atelier) .inventory-cell.equipment-inactive b{color:#f0c7bb}
+#atelier:is(#atelier) .worn.inactive-badge{background:#a32b27;color:#fff0de}
+#atelier:is(#atelier) .inventory-cell .object-art{width:48px;height:48px;max-height:48px;filter:none}
+#atelier:is(#atelier) .inventory-cell b{display:block;font-size:11px;line-height:1.4;color:#c6d6df;margin-top:4px}
+#atelier:is(#atelier) :is(.cell-corner,.stack-count,.worn){font:11px Mitr,sans-serif;text-shadow:none}
+#atelier:is(#atelier) .cell-corner{color:#bacfdb;top:2px}
+#atelier:is(#atelier) .stack-count{right:4px;bottom:3px;color:#fff0c6;background:#162632c9;padding:0 3px;border-radius:3px}
+#atelier:is(#atelier) .worn{background:#8cbcab;color:#183d35;border:0;right:2px;top:2px}
+#atelier:is(#atelier) .grid-footer{height:48px;min-height:48px;color:#b6c9d3;font-size:12px;padding:2px 12px}
+#atelier:is(#atelier) .grid-footer button{font:23px Mitr,sans-serif;min-height:44px;min-width:44px;padding:0;background:none}
+#atelier:is(#atelier) .selection-shelf{height:auto;min-height:138px;margin:0 12px 12px;padding:12px;background:#13232fc9;border:1px solid #9eb8c23d;border-radius:5px;box-shadow:none}
+#atelier:is(#atelier) .selected-summary{gap:10px}
+#atelier:is(#atelier) .selected-summary>.object-art{width:48px;height:48px;filter:none}
+#atelier:is(#atelier) .selected-summary h2{font-size:15px}
+#atelier:is(#atelier) :is(.compact-meta,.comparison,.comparison em){font-size:12px;color:#bdd0d8}
+#atelier:is(#atelier) .comparison b{font-size:14px;color:#dbe9ee}
+#atelier:is(#atelier) .tags span{font-size:11px;color:#b8d2dd;border:1px solid #809ba63d;background:#648b9c18}
+#atelier:is(#atelier) .shelf-actions{flex-wrap:wrap;gap:8px;margin-top:10px}
+#atelier:is(#atelier) .shelf-actions>span{font-size:12px;max-width:100%;color:#b9cbd4}
+#atelier:is(#atelier) .shelf-actions>div{margin-left:auto;flex-wrap:wrap}
+#atelier:is(#atelier) .shelf-actions button{font-size:12px;min-height:44px;padding:8px 10px}
+#atelier:is(#atelier) .primary{background:#365f75;color:#eff6f8;border-color:#9bc1d066;box-shadow:none}
+#atelier:is(#atelier) .secondary{background:#a5c4d00a;color:#d9e7ec;border-color:#809ca64a;box-shadow:none}
+#atelier:is(#atelier) .good{color:#93d3b2}#atelier:is(#atelier) .bad{color:#efa995!important}
+#atelier:is(#atelier) .loadout-intro{height:auto;min-height:44px;padding:8px 12px;color:#bad1da;font-size:12px;gap:8px;flex-wrap:wrap}
+#atelier:is(#atelier) .loadout-intro span{font-size:12px;color:#a6bdc7}
+#atelier:is(#atelier) .equipped-skills{flex:none;grid-template-rows:repeat(2,minmax(160px,auto));gap:10px;padding:8px 12px}
+#atelier:is(#atelier) .skill-card{min-height:160px;padding:24px 6px 28px;background:#233b4a88;border:1px solid #809ca64a;border-radius:5px;box-shadow:none}
+#atelier:is(#atelier) .skill-card:before{display:none}
+#atelier:is(#atelier) .skill-card.selected{border-color:#d0b982;box-shadow:inset 0 0 0 1px #d0b98277;background:#3a586644}
+#atelier:is(#atelier) .skill-anchor{border:0;background:none;min-width:44px;padding:2px}
+#atelier:is(#atelier) .skill-anchor>.object-art{height:60px;width:60px;max-width:60px;max-height:60px;filter:none;flex-shrink:0}
+#atelier:is(#atelier) .skill-anchor b{font-size:12px;color:#d7e5ed}
+#atelier:is(#atelier) .skill-anchor small{font-size:11px!important}
+#atelier:is(#atelier) .card-foot{font-size:11px;bottom:6px}
+#atelier:is(#atelier) .card-foot span{font-size:11px}
+#atelier:is(#atelier) .coin-links{width:48px;gap:0}
+#atelier:is(#atelier) .socket{min-height:44px;width:44px;padding:3px 0;border:0;background:none}
+#atelier:is(#atelier) .socket .coin{width:34px;height:34px}
+#atelier:is(#atelier) .socket small{display:none}
+#atelier:is(#atelier) .socket-empty{width:32px;height:32px;font-size:22px}
+#atelier:is(#atelier) .movement-bar{height:auto;min-height:60px;padding:6px;margin:4px 12px 10px;gap:8px;border-color:#809ca64a}
+#atelier:is(#atelier) .movement-bar>.object-art{width:40px;height:40px}
+#atelier:is(#atelier) .movement-bar b{font-size:13px;color:#d7e7ed}
+#atelier:is(#atelier) .movement-bar button{min-height:44px;font-size:12px}
+#atelier:is(#atelier) .coin-cell .coin{width:44px;height:44px;margin:0}
+#atelier:is(#atelier) .coin-cell b{font-size:11px}
+#atelier:is(#atelier) .fit-dot{bottom:4px;right:4px;font-size:11px}
+#atelier:is(#atelier) .selected-summary>.coin{width:44px;height:44px}
+#atelier:is(#atelier) .atelier-notice{bottom:calc(50% - var(--workspace-height)/2 - 38px);max-width:80vw;white-space:normal;font-size:12px;padding:5px 12px;background:#13232fdd;color:#c2d5dd;border-radius:5px}
+#atelier:is(#atelier) .rotate-message,#atelier:is(#atelier) .workspace-side{display:none}
+#atelier:is(#atelier) .dialog-backdrop{background:#07131c30;backdrop-filter:none}
+#atelier:is(#atelier) .atelier-dialog{width:min(540px,calc(100vw - 40px));max-height:72dvh;padding:18px!important;background:#182b38;color:#d9e7ef;border:1px solid #92b1c54a;border-radius:8px;box-shadow:0 10px 30px #06111b66;overscroll-behavior:contain}
+#atelier:is(#atelier) .atelier-dialog :is(h2,p){font-size:13px!important;color:#d6e6ee}
+#atelier:is(#atelier) .atelier-dialog h2{font-size:18px!important}
+#atelier:is(#atelier) .detail-heading{background:#182b38}
+#atelier:is(#atelier) .atelier-dialog :is(.upgrade-cost,.grade-promotion,.detail-upgrade-summary){border-color:#89a8ba40}
+#atelier:is(#atelier) .atelier-dialog .cost .ok{color:#9dd4b4}
+#atelier:is(#atelier) .atelier-dialog .cost .no{color:#efa995}
+#atelier:is(#atelier) .atelier-dialog .replace-coins button{min-height:44px;font-size:12px}
+/* Preserve the native passive chart, search, stages and pan/zoom in a bounded
+   window. Its ResizeObserver measures the actual chart, not the viewport. */
+.overlay.is-journal{display:none;align-items:center;justify-content:center;padding:0;background:#07111a1a}
+.overlay.is-journal.on{display:flex}
+.overlay.is-journal .panel{position:relative;inset:auto;width:min(1120px,88vw);height:min(740px,78dvh);border:1px solid #91a69c66;border-radius:10px;box-shadow:0 10px 30px #07131a55;background:#eee8d9}
+.overlay.is-journal .skill-journal{height:100%;background:#edf0e7}
+.overlay.is-journal .skill-journal .journal-toolbar{height:56px;min-height:56px;padding:6px 18px}
+.overlay.is-journal .skill-journal .notebook{height:calc(100% - 70px);margin:0 16px 14px}
+.overlay.is-journal .skill-journal :is(.book-cover,.notebook:before,.chapter-tabs,.paper-wear,.page-ink,.old-ink-note){display:none}
+.overlay.is-journal .skill-journal .app-shell{border-radius:6px;box-shadow:none}
+.overlay.is-journal .skill-journal .journal-series,.overlay.is-journal .skill-journal .journal-edition{display:none}
+.overlay.is-journal .skill-journal .journal-toolbar button{min-width:44px;min-height:44px}
+.overlay.is-journal .skill-journal .map-controls{right:12px;bottom:4px;max-width:calc(100% - 24px);transform:none;gap:4px;padding:4px}
+.overlay.is-journal .skill-journal .statusbar{height:56px;min-height:56px;padding-inline:14px;gap:8px}
+.overlay.is-journal .skill-journal .statusbar .map-controls{position:static;flex:none;margin:0;max-width:none}
+.overlay.is-journal .skill-journal .statusbar .gesture-hint{display:none}
+.overlay.is-journal .skill-journal .page-pagination button{min-width:44px;min-height:44px}
+.overlay.is-journal .skill-journal .discipline-caption b{font-size:13px}
+.overlay.is-journal .skill-journal .map-controls .icon-button{width:44px;height:44px;min-width:44px;min-height:44px}
+.overlay.is-journal .skill-journal .rail{position:absolute;inset:0 auto 0 0;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+/* Short paper uses whole branch cards, with captions beside the icon. The
+   camera scales their positions; inverse units keep text and targets readable. */
+.overlay.is-journal .skill-journal .compact-junction .map-viewport{top:44px;bottom:16px}
+.overlay.is-journal .skill-journal .compact-junction .discipline-node{width:calc(220px * var(--inverse));height:calc(88px * var(--inverse));display:flex;align-items:center;gap:calc(10px * var(--inverse));padding:calc(8px * var(--inverse));border:1px solid #b6a98966;border-radius:calc(6px * var(--inverse));background:#fff9e866;text-align:left}
+.overlay.is-journal .skill-journal .compact-junction .discipline-number{left:calc(6px * var(--inverse));top:calc(2px * var(--inverse));font-size:calc(10px * var(--inverse))}
+.overlay.is-journal .skill-journal .compact-junction .discipline-disc{flex:none;width:calc(44px * var(--inverse));height:calc(44px * var(--inverse))}
+.overlay.is-journal .skill-journal .compact-junction .discipline-caption{position:static;flex:1;min-width:0;width:auto;transform:none;text-align:left;line-height:1.35}
+.overlay.is-journal .skill-journal .compact-junction .discipline-caption b{display:block;font-size:calc(14px * var(--inverse))}
+.overlay.is-journal .skill-journal .compact-junction .discipline-caption>span,.overlay.is-journal .skill-journal .compact-junction .discipline-caption small{display:block;font-size:calc(12px * var(--inverse));line-height:1.35;margin-top:calc(2px * var(--inverse));color:#665943}
+/* A compact field frame and minimap leave the centre to the game. Combat and
+   item buttons retain their original hit regions and real handlers. */
+body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
+#hud .left-column{top:calc(22px + var(--safe-t));gap:10px;max-height:44vh}
+#hud .left-column .pframe{width:258px;min-height:80px;padding:9px;gap:10px;border-radius:7px;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+#hud .pframe .portrait{width:48px;height:48px;box-shadow:none}
+#hud .pframe .lvl-badge{left:46px;top:54px;width:22px;height:22px}
+#hud .pframe .statusline{font-size:11px}
+#hud .left-column .quest-widget{width:258px;border-radius:7px;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+#hud .quest-collapse,#hud .quest-heading{min-height:44px;height:44px}
+#hud .quest-collapse{min-width:44px;width:44px}
+#hud .field-quest-row b{font-size:12px}
+#hud .field-quest-row small{font-size:11px}
+#hud .minimap{width:132px;height:132px;box-shadow:none;border-width:1px}
+#hud .map-open{width:44px;height:44px;min-width:44px;min-height:44px}
+#hud .quick-actions .iconbtn{border-radius:6px;box-shadow:none;background:#1a2e3de8}
+#hud .quick-actions .menu-toggle{background:#1a2e3de8;border-color:#c2aa7766}
+@media(max-height:520px) and (orientation:landscape){
+ .overlay.is-journal{justify-content:flex-end;padding-right:16px}
+ .overlay.is-journal .panel{width:82vw;height:calc(100dvh - 36px)}
+ .overlay.is-journal .skill-journal .notebook{margin:0 8px 8px;height:calc(100% - 64px)}
+ #hud .left-column{top:10px;left:12px;gap:8px;max-height:51vh}
+ #hud .left-column .pframe,#hud .left-column .quest-widget{width:222px}
+ #hud .pframe .statusline{font-size:10px}
+ #hud .minimap{width:96px;height:96px}
+}
+@media(max-width:760px) and (max-height:520px) and (orientation:landscape){
+ .overlay.is-journal .skill-journal .journal-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto 44px;gap:8px;padding-inline:10px}
+ .overlay.is-journal .skill-journal .journal-toolbar #mobile-stages{display:flex;flex:none;height:44px;min-height:44px;padding:0;gap:3px;border:0}
+ .overlay.is-journal .skill-journal .journal-toolbar #mobile-stages button{width:44px;min-width:44px;height:44px;min-height:44px;font-size:12px}
+ .overlay.is-journal .skill-journal .atlas-space.has-detail .map-viewport{bottom:16px}
+ .overlay.is-journal .skill-journal .inspector{left:auto;right:12px;top:8px;bottom:auto;width:min(365px,60%);height:auto;max-height:calc(100% - 16px);padding:8px 14px;transform:translateX(calc(100% + 30px))}
+ .overlay.is-journal .skill-journal .inspector.open{transform:translateX(0)}
+ .overlay.is-journal .skill-journal #detail-content{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+ .overlay.is-journal .skill-journal .detail-essential{flex:1 1 auto;min-height:44px;overflow-y:auto;overscroll-behavior:contain}
+ .overlay.is-journal .skill-journal .detail-header{margin-bottom:3px}
+ .overlay.is-journal .skill-journal .detail-action{flex:0 1 auto;min-height:44px;margin:4px 0 0;padding:0;overflow-y:auto;overscroll-behavior:contain}
+}
+@media(max-width:600px) and (orientation:portrait){
+ .overlay.is-journal .skill-journal .statusbar{height:auto;min-height:104px;display:grid;grid-template-columns:1fr auto;gap:0 6px;padding:2px 12px}
+ .overlay.is-journal .skill-journal .statusbar .map-controls{grid-column:1/-1;grid-row:1;justify-self:center}
+ .overlay.is-journal .skill-journal .statusbar>div:first-child{grid-row:2;min-width:0}
+ .overlay.is-journal .skill-journal .statusbar .page-pagination{grid-column:2;grid-row:2}
+ .overlay.is-journal{align-items:flex-end;padding-bottom:16px}
+ .overlay.is-journal .panel{width:calc(100vw - 24px);height:76dvh}
+ .overlay.is-journal .skill-journal .notebook{margin:0 8px 8px;height:calc(100% - 64px)}
+ .overlay.is-journal .skill-journal .journal-toolbar{padding:6px 10px}
+ #hud .left-column{top:calc(48px + var(--safe-t));left:10px;max-height:36vh}
+ #hud .left-column .pframe,#hud .left-column .quest-widget{width:214px}
+ #hud .minimap{width:98px;height:98px}
+}
+@media(max-height:520px) and (orientation:landscape){
+ #atelier:is(#atelier){--workspace-height:calc(100dvh - 88px)}
+ #atelier:is(#atelier) .two-windows{top:calc(50% + 16px);width:calc(100vw - 64px)}
+ #atelier:is(#atelier) .workspace-nav{top:8px}
+ #atelier:is(#atelier) .inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
+ #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
+ #atelier:is(#atelier) .atelier-notice{bottom:2px;max-height:24px;overflow:auto}
+ #atelier:is(#atelier) .character-stage{min-height:260px}
+}
+@media(orientation:portrait){
+ #atelier:is(#atelier){--workspace-height:64dvh}
+ #atelier:is(#atelier) .two-windows{display:block;top:auto;bottom:24px;width:calc(100vw - 24px);height:var(--workspace-height);transform:translateX(-50%);pointer-events:auto}
+ #atelier:is(#atelier) .two-windows .window{height:100%;display:flex}
+ #atelier:is(#atelier) .two-windows[data-side=left] .window:nth-child(2),#atelier:is(#atelier) .two-windows[data-side=right] .window:first-child{display:none}
+ #atelier:is(#atelier) .workspace-nav{display:grid;grid-template-columns:1fr 1fr;top:calc(36dvh - 154px);width:calc(100vw - 24px)}
+ #atelier:is(#atelier) .workspace-nav .hub-back{border:0;margin:0}
+ #atelier:is(#atelier) .workspace-nav button{padding:6px;font-size:12px}
+ #atelier:is(#atelier) .workspace-side{display:flex;position:absolute;top:calc(36dvh - 72px);left:12px;right:12px;gap:6px;pointer-events:auto}
+ #atelier:is(#atelier) .workspace-side button{flex:1;background:#1a2d39;color:#b5cbd7}
+ #atelier:is(#atelier) .workspace-side button.active{background:#345d73;border-color:#a7d0df;color:#eff5f7}
+ #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
+ #atelier:is(#atelier) .atelier-notice{bottom:0;max-height:24px;overflow:auto;max-width:94vw}
+}
+@media(max-width:600px) and (orientation:portrait){
+ #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
+ #atelier:is(#atelier) .inventory-grid:not(.bag-grid){grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(80px,auto))}
+}
+@media(max-height:520px) and (orientation:landscape){
+ .overlay:not(.is-atelier):not(.is-journal){justify-content:flex-end;padding-right:max(16px,var(--safe-r))}
+ .overlay:not(.is-atelier):not(.is-journal) .panel{width:74vw;height:calc(100dvh - 40px);grid-template-columns:110px minmax(0,1fr)}
+ .overlay.is-hub:not(.is-atelier):not(.is-journal) .panel{width:74vw;height:calc(100dvh - 40px)}
+ .overlay.single-page:not(.is-atelier):not(.is-journal) .panel{grid-template-columns:minmax(0,1fr)}
+ .overlay:not(.is-atelier):not(.is-journal) .panel-header{padding:6px 12px}
+ .overlay:not(.is-atelier):not(.is-journal) .pbody{padding:12px}
+ .hub{gap:12px}.hub-tile{min-height:44px;padding:6px}.hub-state{display:none}
+ .panel-footer>span{display:none}.panel-footer{justify-content:flex-end}
+}
+
+/* The entire collection is one real grid. Its scrollport is independent of
+   the panel, so long collections do not push item actions out of reach. */
+#atelier:is(#atelier) .inventory-scroll{flex:none;height:clamp(180px,24dvh,260px);min-height:180px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-gutter:stable;scroll-padding-block:8px;background:#12253166;margin:4px 10px 10px;border:1px solid #7896a630;border-radius:5px}
+#atelier:is(#atelier) .inventory-scroll:focus-visible{outline:2px solid #70d3de;outline-offset:-2px}
+#atelier:is(#atelier) :is(.window,.atelier-dialog) *{touch-action:pan-y}
+#atelier:is(#atelier) .inventory-scroll .inventory-grid{grid-template-rows:none;grid-auto-rows:minmax(90px,auto);align-content:start;padding:8px}
+#atelier:is(#atelier) .inventory-cell{min-height:90px}
+#atelier:is(#atelier) .library-window .selection-shelf{margin-top:0}
+@media(max-height:520px) and (orientation:landscape){
+ #atelier:is(#atelier) .inventory-scroll{height:180px}
+}

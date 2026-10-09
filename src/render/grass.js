@@ -173,6 +173,7 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
     for(const k of names)points.setAttribute(k,new THREE.BufferAttribute(fields[k],batch[0].geometry.attributes[k].itemSize));
     const cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
     const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false}),pixels=new Uint8Array(width*height*4);
+    let read;
     try {
     if(asyncReadback&&!compiled&&renderer.compileAsync){
       // Compile the off-screen variant, which has a different output colour
@@ -187,7 +188,6 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
       material.uniforms.uMode.value=mode;
       const previous=renderer.getRenderTarget(),face=renderer.getActiveCubeFace?.(),mip=renderer.getActiveMipmapLevel?.();
       const clear=renderer.getClearColor(new THREE.Color()).clone(),alpha=renderer.getClearAlpha();
-      let read;
       try{
         renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
         // Each read owns its buffer: a timed-out read of one mode can never fill another's.
@@ -229,6 +229,7 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
       }
     }
     }finally{
+      read?.cancel(); // return() skips the timeout fallback after the yielded wait.
       scene.remove(cloud);points.dispose();target.dispose();
     }
     // only what the blade shader still reads stays on the GPU

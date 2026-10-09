@@ -1,0 +1,454 @@
+{
+  "version": 1,
+  "generator": "scripts/split-moonroot-art.py",
+  "source": "owner-supplied concept sheets",
+  "sheets": {
+    "mole": {
+      "path": "assets/moonroot/rootdigger_mole_concept.jpg",
+      "sha256": "adf2e71b5dd8073df65b071b745fd9025299d085a85358864c815fe4ea4139b4",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    "hare": {
+      "path": "assets/moonroot/fern_ear_hare_concept.jpg",
+      "sha256": "7a69f4f13c41d8e53fb846149641ecc1532f44d22d2cc5b9d05a106ed98968f1",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    "moth": {
+      "path": "assets/moonroot/mirrorwing_moth_concept.jpg",
+      "sha256": "02253830e7a62a23708d1551a7d28044f72f2bc6c67fd104009ece06610a3d8b",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    "grove": {
+      "path": "assets/moonroot/moonroot_grove_concept.jpg",
+      "sha256": "473c4534e45d37229fe90cca1ed2b1993d6c3a447c6148b3ef0f885e1f05923e",
+      "dimensions": [
+        2172,
+        724
+      ]
+    },
+    "accessories": {
+      "path": "assets/moonroot/moonroot_accessories_concept.jpg",
+      "sha256": "4257a2af0097acf7a36a1750fba3c4cef2b3a5b4cc6babf51cae4a335e62b1fe",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    }
+  },
+  "cuts": [
+    {
+      "kind": "monster",
+      "id": "rootdigger_mole",
+      "sheet": "mole",
+      "crop": [
+        10,
+        130,
+        1030,
+        950
+      ],
+      "content_bounds": [
+        12,
+        0,
+        1020,
+        779
+      ],
+      "path": "public/assets/icons/monster/rootdigger_mole.png",
+      "sha256": "161a8ef4228113995c1c89382d03553653ff6985dc71679ab965e9f44fb44721",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "monster",
+      "id": "fern_ear_hare",
+      "sheet": "hare",
+      "crop": [
+        40,
+        64,
+        700,
+        720
+      ],
+      "content_bounds": [
+        13,
+        3,
+        657,
+        653
+      ],
+      "path": "public/assets/icons/monster/fern_ear_hare.png",
+      "sha256": "58f85a9dd6447406968cb201d19a851fe609f0de8ca75e82b901c9a5ec33f328",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "monster",
+      "id": "mirrorwing_moth",
+      "sheet": "moth",
+      "crop": [
+        20,
+        70,
+        1100,
+        900
+      ],
+      "content_bounds": [
+        6,
+        18,
+        1069,
+        750
+      ],
+      "path": "public/assets/icons/monster/mirrorwing_moth.png",
+      "sha256": "ec35c606c2e5a0094d07c241506571b20c42c5ba98024de2d8c48729a401d097",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "rootdigger_claw",
+      "sheet": "mole",
+      "crop": [
+        1030,
+        590,
+        1490,
+        1000
+      ],
+      "content_bounds": [
+        18,
+        0,
+        449,
+        376
+      ],
+      "path": "public/assets/moonroot/material/rootdigger_claw.png",
+      "sha256": "8009fcaadee9d67d996113efa7247629ec64a43e66e8ee326a40803b58d1d90b",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "fern_ear_tuft",
+      "sheet": "hare",
+      "crop": [
+        1100,
+        690,
+        1340,
+        1000
+      ],
+      "content_bounds": [
+        17,
+        0,
+        240,
+        279
+      ],
+      "path": "public/assets/moonroot/material/fern_ear_tuft.png",
+      "sha256": "55b77bbb339806546f2230e06a863aa771643f00319cb659b4737be4ed5e71e6",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "material",
+      "id": "mirror_scale",
+      "sheet": "moth",
+      "crop": [
+        1230,
+        700,
+        1410,
+        990
+      ],
+      "content_bounds": [
+        22,
+        19,
+        157,
+        238
+      ],
+      "path": "public/assets/moonroot/material/mirror_scale.png",
+      "sha256": "7f76509804c6f85ba9011f1d622f86cad1aef7a060dbd467bf20015bb39b7773",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "gear",
+      "id": "fernstep_charm",
+      "sheet": "accessories",
+      "crop": [
+        280,
+        62,
+        700,
+        570
+      ],
+      "content_bounds": [
+        11,
+        18,
+        396,
+        502
+      ],
+      "path": "public/assets/moonroot/gear/fernstep_charm.png",
+      "sha256": "48d5723502e29a09c64a25084ffea3bbe954444153815239e23456363d3b2f79",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "gear",
+      "id": "mirrorwing_pendant",
+      "sheet": "accessories",
+      "crop": [
+        960,
+        58,
+        1230,
+        560
+      ],
+      "content_bounds": [
+        17,
+        24,
+        210,
+        489
+      ],
+      "path": "public/assets/moonroot/gear/mirrorwing_pendant.png",
+      "sha256": "55a65f8b924df2170b90e98430c53cde7ee48ebf366b6032136ce6ec1ac19080",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "gear",
+      "id": "burrowguard_brooch",
+      "sheet": "accessories",
+      "crop": [
+        270,
+        560,
+        730,
+        970
+      ],
+      "content_bounds": [
+        11,
+        0,
+        416,
+        377
+      ],
+      "path": "public/assets/moonroot/gear/burrowguard_brooch.png",
+      "sha256": "fd6fbe4047d8f2153ed72483a1503335dbbfac4b6b2a9e33cb9a7db1185303ca",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "gear",
+      "id": "grove_union_ring",
+      "sheet": "accessories",
+      "crop": [
+        890,
+        560,
+        1250,
+        990
+      ],
+      "content_bounds": [
+        5,
+        29,
+        327,
+        383
+      ],
+      "path": "public/assets/moonroot/gear/grove_union_ring.png",
+      "sha256": "fd03a532ee7c015daed9b09d9d62ae7d95725a33f6a9eb46c6b80ceb4fbeb7ef",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "region",
+      "id": "settlement",
+      "sheet": "grove",
+      "crop": [
+        395,
+        150,
+        715,
+        470
+      ],
+      "content_bounds": [
+        5,
+        10,
+        299,
+        312
+      ],
+      "path": "public/assets/icons/region/moonroot-grove-v1/settlement.png",
+      "sha256": "7e1e75ff08b0bc1cc12207f278ec4c46abb221a9ed9ec435a3b4e0ffeaba0bcd",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "region",
+      "id": "mirror_pond",
+      "sheet": "grove",
+      "crop": [
+        850,
+        120,
+        1350,
+        620
+      ],
+      "content_bounds": [
+        17,
+        19,
+        497,
+        498
+      ],
+      "path": "public/assets/icons/region/moonroot-grove-v1/mirror_pond.png",
+      "sha256": "9b223581e171c62c8231db2bf2e4090c52fda57ce13e593f262c0b8b7c7f203c",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "region",
+      "id": "stone_ring",
+      "sheet": "grove",
+      "crop": [
+        1690,
+        70,
+        2160,
+        540
+      ],
+      "content_bounds": [
+        25,
+        13,
+        465,
+        458
+      ],
+      "path": "public/assets/icons/region/moonroot-grove-v1/stone_ring.png",
+      "sha256": "2c9e143f56db5d6bf45759ebfe4fddb51dc817cf24f74d377d3570f5be4b92fe",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "region",
+      "id": "fern_rise",
+      "sheet": "grove",
+      "crop": [
+        1400,
+        300,
+        1810,
+        710
+      ],
+      "content_bounds": [
+        7,
+        4,
+        399,
+        388
+      ],
+      "path": "public/assets/icons/region/moonroot-grove-v1/fern_rise.png",
+      "sha256": "a1ad871c53b6ef5a4aff581f2229d9f269dcd6610b85cd4289aa2633ef08d9dd",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "kind": "region",
+      "id": "root_warren",
+      "sheet": "grove",
+      "crop": [
+        40,
+        300,
+        460,
+        720
+      ],
+      "content_bounds": [
+        1,
+        15,
+        411,
+        420
+      ],
+      "path": "public/assets/icons/region/moonroot-grove-v1/root_warren.png",
+      "sha256": "c473758f6b94674a749fe5c701619babd2a0f118f73f032a48bd8fe89846cecf",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ]
+    }
+  ]
+}

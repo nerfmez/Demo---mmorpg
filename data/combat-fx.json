@@ -1,5 +1,5 @@
 {
-  "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json; 'overrides' tweaks it for one monster (type.attack).",
+  "_doc": "Look of combat effects; skills holds element-specific cast, projectile and impact presentation. Melee attacks: read only by src/render/vfx.js (no game rule reads it). 'weapons' sets the blade trail that follows the real weapon tip while a melee skill swings: tip/base are distances along the weapon (m, grip at 0, blade along +Z), life is how long a trail segment glows, minSpeed/fullSpeed (m/s of the tip) fade the trail in only while the blade is really moving, zone is the strength of the ground wedge that flashes where the hit area is (its size is the skill's range and arc), dust is the puff kicked up on contact. 'monsters' gives one look per melee attack name from data/monsters.json, showing what the creature hits with. claw, fangs and pincer strikes are trails that come out of the monster's own limbs (src/render/monster-trails.js): 'trail' gives streaks (parallel claw/fang lines per limb), spread (m between them), width/reach (how far the stroke runs inside/past the limb tip), life, minSpeed/fullSpeed (m/s of the tip: bright only while the limb really strikes) and opacity; 'limbs' (set per monster in overrides) names the rig bones that strike, the tip being the far end of that bone's model segment, or {bone, at} for a point in rest space. Where the strike lands there is a small contact burst (sparks, droplets). splash, thrust and smear are ground/area looks. 'overrides' tweaks a look for one monster (type.attack).",
   "weapons": {
     "sword": {
       "tip": 0.95,
@@ -102,20 +102,43 @@
       "dur": 0.16
     },
     "pinch": {
-      "kind": "snap",
-      "color": "#ff8a3d",
-      "core": "#fff1d2",
-      "height": 0.45,
-      "sparks": 10,
-      "dur": 0.22
+      "kind": "pincer",
+      "color": "#ff9a5a",
+      "coreColor": "#fff6e0",
+      "height": 0.6,
+      "sparks": 5,
+      "droplets": 8,
+      "dur": 0.3,
+      "trail": {
+        "streaks": 2,
+        "spread": 0.1,
+        "width": 0.12,
+        "reach": 0.04,
+        "life": 0.28,
+        "minSpeed": 1.2,
+        "fullSpeed": 4,
+        "opacity": 1,
+        "core": 0.4
+      }
     },
     "bite": {
       "kind": "fangs",
-      "color": "#efe9d6",
-      "core": "#ffffff",
-      "height": 0.5,
-      "sparks": 7,
-      "dur": 0.22
+      "color": "#ff4a3a",
+      "coreColor": "#ffffff",
+      "height": 0.8,
+      "sparks": 6,
+      "dur": 0.3,
+      "trail": {
+        "streaks": 2,
+        "spread": 0.1,
+        "width": 0.06,
+        "reach": 0.2,
+        "life": 0.36,
+        "minSpeed": 0.8,
+        "fullSpeed": 3,
+        "opacity": 1,
+        "core": 0.55
+      }
     },
     "sweep": {
       "kind": "smear",
@@ -124,24 +147,170 @@
       "height": 0.8,
       "dust": 12,
       "dur": 0.38
+    },
+    "rend": {
+      "kind": "claw",
+      "color": "#ff6a3a",
+      "coreColor": "#fff6e8",
+      "height": 0.9,
+      "sparks": 6,
+      "dur": 0.3,
+      "trail": {
+        "streaks": 3,
+        "spread": 0.07,
+        "width": 0.14,
+        "reach": 0.05,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 1,
+        "core": 0.5
+      }
+    },
+    "rake": {
+      "kind": "claw",
+      "color": "#b8c4ff",
+      "coreColor": "#ffffff",
+      "height": 1.0,
+      "sparks": 8,
+      "dur": 0.3,
+      "trail": {
+        "streaks": 4,
+        "spread": 0.075,
+        "width": 0.16,
+        "reach": 0.06,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 1,
+        "core": 0.4
+      }
+    },
+    "claw": {
+      "kind": "claw",
+      "color": "#9a5cff",
+      "coreColor": "#fbf6ff",
+      "height": 0.85,
+      "sparks": 5,
+      "dur": 0.3,
+      "trail": {
+        "streaks": 3,
+        "spread": 0.065,
+        "width": 0.17,
+        "reach": 0.05,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 1,
+        "core": 0.5
+      }
+    },
+    "scythe": {
+      "kind": "claw",
+      "color": "#a8e05a",
+      "coreColor": "#f4ffe0",
+      "height": 1.0,
+      "sparks": 4,
+      "dur": 0.3,
+      "trail": {
+        "streaks": 1,
+        "spread": 0,
+        "width": 0.22,
+        "reach": 0.04,
+        "life": 0.3,
+        "minSpeed": 1.5,
+        "fullSpeed": 6,
+        "opacity": 0.9,
+        "core": 0.35
+      }
+    },
+    "shove": {
+      "kind": "smear",
+      "color": "#c9a06a",
+      "core": "#fff0d0",
+      "height": 0.6,
+      "dust": 10,
+      "dur": 0.36
     }
   },
   "overrides": {
     "hermit_crab.pinch": {
       "scale": 1.25,
-      "color": "#ffb05e"
+      "color": "#ffb05e",
+      "limbs": [
+        "mandL",
+        "mandR"
+      ]
     },
     "greyfang.bite": {
       "scale": 1.3,
-      "color": "#d8d4e6"
+      "color": "#9a7cff",
+      "limbs": [
+        "head",
+        "jaw"
+      ]
     },
     "thornback_wolf.bite": {
-      "color": "#e4dfcf"
+      "limbs": [
+        "head",
+        "jaw"
+      ]
     },
     "tusk_boar.bite": {
       "scale": 1.1,
-      "color": "#f1e4c0",
-      "height": 0.35
+      "color": "#ff7a3a",
+      "height": 0.55,
+      "limbs": [
+        {
+          "bone": "head",
+          "at": [
+            0.02,
+            0.5,
+            0.92
+          ]
+        }
+      ],
+      "trail": {
+        "streaks": 2,
+        "spread": 0.24,
+        "width": 0.06,
+        "reach": 0.22,
+        "life": 0.36,
+        "minSpeed": 0.8,
+        "fullSpeed": 3,
+        "opacity": 1,
+        "core": 0.55
+      }
+    },
+    "greyfang.rake": {
+      "scale": 1.2,
+      "limbs": [
+        "leg0k",
+        "leg1k"
+      ]
+    },
+    "reef_crab.pinch": {
+      "limbs": [
+        "mandL",
+        "mandR"
+      ]
+    },
+    "thornback_wolf.rend": {
+      "limbs": [
+        "leg0k",
+        "leg1k"
+      ]
+    },
+    "duskmane_stalker.claw": {
+      "limbs": [
+        "leg0k"
+      ]
+    },
+    "thicket_mantis.scythe": {
+      "limbs": [
+        "bladeL",
+        "bladeR"
+      ]
     }
   },
   "skills": {
@@ -211,9 +380,9 @@
     "slash": {
       "renderer": "melee",
       "_labPhases": {
-        "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1f\u0e31\u0e19",
-        "swing": "\u0e1f\u0e31\u0e19",
-        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
       },
       "colors": {
         "rim": "#668fa7",
@@ -257,9 +426,9 @@
     "whirl_blade": {
       "renderer": "melee",
       "_labPhases": {
-        "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1f\u0e31\u0e19",
-        "swing": "\u0e1f\u0e31\u0e19",
-        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
       },
       "colors": {
         "rim": "#ff602c",
@@ -332,9 +501,9 @@
         "hitStop": 0.018
       },
       "_labPhases": {
-        "cast": "\u0e07\u0e49\u0e32\u0e07\u0e18\u0e19\u0e39",
-        "projectile": "\u0e25\u0e39\u0e01\u0e18\u0e19\u0e39",
-        "impact": "\u0e1b\u0e31\u0e01\u0e01\u0e23\u0e30\u0e17\u0e1a"
+        "cast": "ง้างธนู",
+        "projectile": "ลูกธนู",
+        "impact": "ปักกระทบ"
       },
       "colors": {
         "shaft": "#8a5c3a",
@@ -353,9 +522,9 @@
     "stone_burst": {
       "renderer": "stone",
       "_labPhases": {
-        "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1b\u0e30\u0e17\u0e38",
-        "burst": "\u0e2b\u0e34\u0e19\u0e1b\u0e30\u0e17\u0e38",
-        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+        "cast": "เตรียมปะทุ",
+        "burst": "หินปะทุ",
+        "impact": "ปะทะ"
       },
       "colors": {
         "rock": "#aa9070",
@@ -411,9 +580,9 @@
     "spirit_wolf": {
       "renderer": "spirit",
       "_labPhases": {
-        "cast": "\u0e2d\u0e31\u0e0d\u0e40\u0e0a\u0e34\u0e0d",
-        "attack": "\u0e01\u0e31\u0e14",
-        "impact": "\u0e1b\u0e30\u0e17\u0e30"
+        "cast": "อัญเชิญ",
+        "attack": "กัด",
+        "impact": "ปะทะ"
       },
       "colors": {
         "rim": "#5795c5",
@@ -471,8 +640,8 @@
       "version": "approved-v2",
       "element": "cold",
       "_labPhases": {
-        "cast": "\u0e0a\u0e32\u0e23\u0e4c\u0e08",
-        "burst": "\u0e19\u0e49\u0e33\u0e41\u0e02\u0e47\u0e07\u0e1e\u0e38\u0e48\u0e07\u0e2d\u0e2d\u0e01"
+        "cast": "ชาร์จ",
+        "burst": "น้ำแข็งพุ่งออก"
       }
     },
     "chain_spark": {
@@ -519,6 +688,280 @@
         "color": "#b1a087",
         "shadow": "#6f6859"
       }
+    },
+    "riposte": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "weakpoint": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "armor_cleave": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "interrupt_slam": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "shield_bash": {
+      "renderer": "melee",
+      "_labPhases": {
+        "cast": "เตรียมฟัน",
+        "swing": "ฟัน",
+        "impact": "ปะทะ"
+      },
+      "colors": {
+        "rim": "#547b96",
+        "body": "#dcecf5",
+        "core": "#fff8df",
+        "sparks": "#ffc879"
+      },
+      "cast": {
+        "trailStart": 0.42,
+        "trailEnd": 0.11
+      },
+      "swing": {
+        "life": 0.21,
+        "width": 0.22,
+        "height": 0.95,
+        "tilt": 0.22,
+        "opacity": 0.92,
+        "finisherWidth": 1.35,
+        "trailLife": 1,
+        "trailOpacity": 0.85,
+        "trailCoreWidth": 0.22,
+        "zoneOpacity": 0
+      },
+      "impact": {
+        "flashSize": 0.72,
+        "flashWidth": 0.1,
+        "flashLife": 0.09,
+        "sparks": 9,
+        "sparkLength": 0.2,
+        "sparkWidth": 0.045,
+        "sparkLife": 0.27,
+        "speed": 3.9,
+        "spread": 3.5,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.018,
+        "hitStop": 0.025
+      }
+    },
+    "charged_shot": {
+      "renderer": "arrow",
+      "projectile": {
+        "scale": 1,
+        "trailLength": 1.35,
+        "trailWidth": 0.075,
+        "trailOpacity": 0.7,
+        "flowSpeed": 32
+      },
+      "impact": {
+        "flashSize": 0.36,
+        "flashWidth": 0.055,
+        "flashLife": 0.06,
+        "sparks": 5,
+        "sparkLength": 0.13,
+        "sparkWidth": 0.028,
+        "sparkLife": 0.22,
+        "speed": 4.7,
+        "spread": 2.1,
+        "up": 0.75,
+        "critScale": 1.4,
+        "heavyScale": 1.22,
+        "shake": 0.025,
+        "hitStop": 0.018
+      },
+      "_labPhases": {
+        "cast": "ง้างธนู",
+        "projectile": "ลูกธนู",
+        "impact": "ปักกระทบ"
+      },
+      "colors": {
+        "shaft": "#8a5c3a",
+        "tip": "#dde6ec",
+        "fletch": "#f3eedc",
+        "trail": "#86adc1",
+        "core": "#fff7df",
+        "sparks": "#e9c89a"
+      },
+      "cast": {
+        "length": 0.5,
+        "width": 0.025,
+        "opacity": 0.55
+      }
     }
   },
   "projectileDefaults": {
@@ -546,9 +989,9 @@
   "meleeDefaults": {
     "renderer": "melee",
     "_labPhases": {
-      "cast": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1f\u0e31\u0e19",
-      "swing": "\u0e1f\u0e31\u0e19",
-      "impact": "\u0e1b\u0e30\u0e17\u0e30"
+      "cast": "เตรียมฟัน",
+      "swing": "ฟัน",
+      "impact": "ปะทะ"
     },
     "colors": {
       "rim": "#547b96",
@@ -589,10 +1032,28 @@
       "hitStop": 0.025
     }
   },
+  "frontier": {
+    "lineColor": "#ffe3a5",
+    "lineLife": 0.24,
+    "guardColor": "#bfe9ff",
+    "wallColor": "#8fc8e5",
+    "wallEdge": "#213b58",
+    "wallHeight": 0.9,
+    "wallRise": 0.15,
+    "auraColor": "#b1dcc9",
+    "auraOpacity": 0.42,
+    "flameColor": "#f16b22",
+    "flameCore": "#ffe3a0",
+    "flameHeight": 0.55,
+    "flameOpacity": 0.72,
+    "healColor": "#a0ffc5",
+    "healLife": 0.5,
+    "rainColor": "#ffe1a4",
+    "rainArrows": 7,
+    "rainHeight": 4,
+    "rainFall": 0.3
+  },
   "swingColors": {
-    "rend": "#e8d9b4",
-    "rake": "#9aa7b8",
-    "whirl": "#9be04a",
-    "shove": "#d9b070"
+    "whirl": "#9be04a"
   }
 }

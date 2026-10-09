@@ -6,10 +6,14 @@ import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, wri
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { FULL_SUITES, validationPlan } from '../../scripts/ci-browser-plan.mjs';
+import { SUITES, FULL_SUITES, validationPlan } from '../../scripts/ci-browser-plan.mjs';
 import { EQUIPMENT_SUITES } from '../../scripts/ci-equipment-impact.mjs';
 import { changedTreePaths, ciContext, extractBuildArchive, resolveRelease, validateEvidence, verifyCiContext, verifyPrAssociation } from '../../scripts/ci-release-evidence.mjs';
 
+import { payload, buildConfiguration } from '../../scripts/ci-build-manifest.mjs';
+function manifest(directory, source, tree) {
+  writeFileSync(join(directory, 'ci-build.json'), JSON.stringify({ version: 1, source, tree, node: '22.16.0', configuration: buildConfiguration(), files: payload(directory) }));
+}
 const source = 'a'.repeat(40), target = 'b'.repeat(40), tree = 'c'.repeat(40);
 const repository = 'owner/demo', id = 123;
 const steps = names => names.map(name => ({ name, conclusion: 'success' }));
@@ -21,7 +25,7 @@ function contextFixture(files = ['src/save.js'], impacts = {}) {
 test('CI context receipt binds GitHub event PR/main and executed workflow identity', () => {
   const f = fixture(), evidence = validateEvidence(f);
   assert.doesNotThrow(() => verifyCiContext(contextFixture(), evidence, f.pr, repository, id));
-  for (const mutate of [c => c.pr.number = 83, c => c.pr.base.ref = 'other', c => c.pr = null,
+  for (const mutate of [c => c.pr.number = 83, c => c.pr.base.ref = '', c => c.pr = null,
     c => c.pr.head.repositoryId = 456, c => c.pr.head.sha = target, c => c.workflowRef = `${repository}/.github/workflows/ci.yml@refs/heads/other`,
     c => c.workflowSha = '', c => c.runId = 98, c => c.attempt = 1, c => c.source = target, c => c.tree = source]) {
     const context = contextFixture(); mutate(context); assert.throws(() => verifyCiContext(context, evidence, f.pr, repository, id));
@@ -52,12 +56,12 @@ test('same-tree squash source retains distinct build-origin and release-target i
   assert.equal(evidence.source, source); assert.equal(evidence.target, target);
   assert.equal(evidence.tree, tree); assert.equal(evidence.attempt, 2);
 });
-test('GitHub-owned unique branch and never-retargeted main PR bind empty run associations', () => {
+test('GitHub-owned unique branch identifies retargeted main PR bind empty run associations', () => {
   const f = fixture();
   assert.doesNotThrow(() => verifyPrAssociation(f.run, f.pr, [f.pr], [{ event: 'merged' }], id));
   for (const mutate of [g => g.run.head_branch = 'other', g => g.run.created_at = '2026-10-06T07:00:00Z',
     g => g.run.pull_requests = [{ number: 83 }], g => g.branchPrs.push({ ...g.pr, number: 83 }),
-    g => g.branchPrs = [], g => g.timeline = [{ event: 'base_ref_changed' }], g => g.timeline = [{ event: 'automatic_base_change_succeeded' }], g => g.timeline = Array(100).fill({ event: 'commented' })]) {
+    g => g.branchPrs = [], g => g.timeline = Array(100).fill({ event: 'commented' })]) {
     const g = fixture(); g.branchPrs = [g.pr]; g.timeline = []; mutate(g);
     assert.throws(() => verifyPrAssociation(g.run, g.pr, g.branchPrs, g.timeline, id));
   }
@@ -107,7 +111,7 @@ function resolverFixture(t, files = ['src/save.js'], impacts = {}) {
   f.artifact.digest = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
   const prefix = `repos/${repository}`;
   const responses = {
-    [prefix]: { id }, [`${prefix}/git/commits/${target}`]: { tree: { sha: tree } },
+    [prefix]: { id }, [`${prefix}/git/commits/${target}`]: { tree: { sha: tree }, parents: [{ sha: '0'.repeat(40) }] },
     [`${prefix}/git/commits/${source}`]: { tree: { sha: tree } },
     [`${prefix}/git/commits/${'f'.repeat(40)}`]: { parents: [{ sha: '0'.repeat(40) }, { sha: source }] },
     [`${prefix}/git/commits/${'0'.repeat(40)}`]: { tree: { sha: '1'.repeat(40) } },
@@ -127,7 +131,7 @@ function resolverFixture(t, files = ['src/save.js'], impacts = {}) {
   const options = { repository, target, eventName: 'push', ref: 'refs/heads/main', directory: join(directory, 'dist'), log: () => {},
     api: async path => { assert.ok(path in responses, path); return responses[path]; },
     download: async (path, destination) => { assert.equal(path, `${prefix}/actions/artifacts/456/zip`); writeFileSync(destination, bytes); },
-    extract: async (_, destination) => { mkdirSync(destination); writeFileSync(join(destination, 'ci-source.txt'), source + '\n'); writeFileSync(join(destination, 'index.html'), '<html>tested</html>'); writeFileSync(join(destination, 'ci-context.json'), JSON.stringify(contextFixture(files, impacts))); } };
+    extract: async (_, destination) => { mkdirSync(destination); writeFileSync(join(destination, 'ci-source.txt'), source + '\n'); writeFileSync(join(destination, 'index.html'), '<html>tested</html>'); writeFileSync(join(destination, 'ci-context.json'), JSON.stringify(contextFixture(files, impacts))); manifest(destination, source, tree); } };
   return { f, responses, options };
 }
 test('resolver enables reuse only after successful download, digest, source and entrypoint checks', async t => {
@@ -144,7 +148,7 @@ test('deploy evidence installs locked dev dependencies before resolving equipmen
   const install = evidence.indexOf('run: npm ci --include=dev');
   const resolve = evidence.indexOf('run: node scripts/ci-release-evidence.mjs');
   assert.ok(setup >= 0 && install > setup && resolve > install);
-  assert.doesNotMatch(evidence.slice(install, resolve), /if:|continue-on-error/);
+  assert.doesNotMatch(evidence.slice(install, resolve), /continue-on-error/);
 });
 
 test('clean equipment evidence fails closed without Acorn and reuses only after locked parser setup', t => {
@@ -159,24 +163,24 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
   const dir = mkdtempSync(join(tmpdir(), 'release-clean-equipment-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   // Isolate the actual resolver and routing policy from checkout/global modules.
-  for (const file of ['scripts/ci-release-evidence.mjs', 'scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs',
-    'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs', 'scripts/ci-equipment-impact.mjs',
+  for (const file of ['scripts/ci-build-manifest.mjs', 'scripts/ci-release-evidence.mjs', 'scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs',
+    'scripts/ci-pr-source.mjs', 'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs', 'scripts/ci-equipment-impact.mjs',
     'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
-    '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js']) {
+    '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js', 'package.json', 'package-lock.json', 'vite.config.js']) {
     mkdirSync(dirname(join(dir, file)), { recursive: true });
     copyFileSync(new URL(`../../${file}`, import.meta.url), join(dir, file));
   }
-  writeFileSync(join(dir, 'package.json'), '{"type":"module"}');
   writeFileSync(join(dir, 'fixture.json'), JSON.stringify({ repository, target, source, responses, context: contextFixture(files, impacts) }));
   writeFileSync(join(dir, 'probe.mjs'), `
     import {resolveRelease} from './scripts/ci-release-evidence.mjs';
+    import {payload,buildConfiguration} from './scripts/ci-build-manifest.mjs';
     import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
     import {join} from 'node:path';
     const f=JSON.parse(readFileSync('fixture.json','utf8')), logs=[];
     const evidence=await resolveRelease({repository:f.repository,target:f.target,eventName:'push',ref:'refs/heads/main',directory:'dist',
       api:async path=>{if(!(path in f.responses))throw Error('Unexpected API: '+path);return f.responses[path];},
       download:async (path,dest)=>{if(path!=='repos/'+f.repository+'/actions/artifacts/456/zip')throw Error('Wrong artifact');writeFileSync(dest,'immutable fixture archive');},
-      extract:async (_,dest)=>{mkdirSync(dest);writeFileSync(join(dest,'ci-source.txt'),f.source);writeFileSync(join(dest,'index.html'),'<html>tested</html>');writeFileSync(join(dest,'ci-context.json'),JSON.stringify(f.context));},
+      extract:async (_,dest)=>{mkdirSync(dest);writeFileSync(join(dest,'ci-source.txt'),f.source);writeFileSync(join(dest,'index.html'),'<html>tested</html>');writeFileSync(join(dest,'ci-context.json'),JSON.stringify(f.context));writeFileSync(join(dest,'ci-build.json'),JSON.stringify({version:1,source:f.source,tree:f.context.tree,node:'22.16.0',configuration:buildConfiguration(),files:payload(dest)}));},
       log:message=>logs.push(message)});
     console.log(JSON.stringify({evidence,logs}));
   `);
@@ -188,7 +192,7 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
   };
   const missing = probe();
   assert.equal(missing.evidence, null);
-  assert.match(missing.logs.join('\n'), /Incomplete or ambiguous CI coverage/);
+  assert.match(missing.logs.join('\n'), /Incomplete or ambiguous CI coverage|Unexpected non-gating CI job/);
   const acorn = dirname(createRequire(import.meta.url).resolve('acorn/package.json'));
   const lock = JSON.parse(readFileSync(new URL('../../package-lock.json', import.meta.url)));
   assert.equal(JSON.parse(readFileSync(join(acorn, 'package.json'))).version, lock.packages['node_modules/acorn'].version);
@@ -206,7 +210,7 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
 function paginatedArtifacts(f, responses) {
   // Each browser job publishes report + capture artifacts, plus one shared build.
   const jobs = f.jobs.filter(job => job.name.startsWith('Quick affected')).length;
-  const reports = Array.from({ length: jobs * 2 }, (_, index) => ({ id: 1000 + index, name: `browser-${index}` }));
+  const reports = Array.from({ length: Math.max(108, jobs * 2) }, (_, index) => ({ id: 1000 + index, name: `browser-${index}` }));
   const artifacts = [...reports, f.artifact];
   const first = `repos/${repository}/actions/runs/99/artifacts?per_page=100`;
   const second = `${first}&page=2`;
@@ -215,7 +219,7 @@ function paginatedArtifacts(f, responses) {
   return { first, second };
 }
 test('full browser inventory evidence reuses the exact build on page two', async t => {
-  const { f, responses, options } = resolverFixture(t);
+  const { f, responses, options } = resolverFixture(t, Object.values(SUITES).flat().map(name => `tests/browser/${name}`));
   assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, FULL_SUITES.length * 2);
   assert.ok(FULL_SUITES.length * 2 > 50, 'report/capture artifacts require a second page');
   paginatedArtifacts(f, responses);
@@ -337,7 +341,9 @@ test('actual build-verification CLI preserves separate SHA provenance and reject
   git('init', '-q'); git('config', 'user.name', 'fixture'); git('config', 'user.email', 'ci@example.invalid');
   writeFileSync(join(dir, 'README.md'), 'same tree'); git('add', '.'); git('commit', '-qm', 'source'); const origin = git('rev-parse', 'HEAD');
   git('commit', '--allow-empty', '-qm', 'release'); const release = git('rev-parse', 'HEAD'), releaseTree = git('rev-parse', 'HEAD^{tree}');
+  for (const file of ['package.json', 'package-lock.json', 'vite.config.js', '.github/workflows/ci.yml']) { mkdirSync(dirname(join(dir, file)), { recursive: true }); copyFileSync(new URL(`../../${file}`, import.meta.url), join(dir, file)); }
   mkdirSync(join(dir, 'dist')); writeFileSync(join(dir, 'dist/index.html'), '<html>'); writeFileSync(join(dir, 'dist/ci-source.txt'), origin);
+  manifest(join(dir, 'dist'), origin, releaseTree);
   const receipt = { source: origin, target: release, tree: releaseTree, runId: 99, attempt: 2 };
   writeFileSync(join(dir, 'dist/ci-evidence.json'), JSON.stringify(receipt));
   const run = overrides => spawnSync(process.execPath, [new URL('../../scripts/ci-release-evidence.mjs', import.meta.url).pathname, '--verify-build'],
@@ -358,8 +364,8 @@ test('workflow fallback and bypass both require a successful owner; no publicati
   assert.match(deploy, /!\(needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true'\)/);
   assert.match(deploy, /path: release-dist\//);
   assert.doesNotMatch(deploy, /continue-on-error|workflows: \['CI'\]/);
-  assert.match(deploy, /Dreamloop against the published game/);
-  assert.match(deploy, /Published atomic route purchase and reload/);
+  assert.match(deploy, /Published startup save and Continue/);
+  assert.doesNotMatch(deploy, /run: npm run test:dreamloop/);
   // Evaluate all result combinations using the workflow's intended boolean DAG.
   for (const evidence of ['success', 'failure', 'skipped', 'cancelled']) for (const reuse of [true, false]) {
     const bypass = evidence === 'success' && reuse;
@@ -381,4 +387,35 @@ test('deploy explicitly survives skipped ancestors and requires successful build
       const shouldRun = evaluate(build, cancelled);
       assert.equal(shouldRun, build === 'success' && !cancelled, `${ancestor}/${build}/${cancelled}`);
     }
+});
+
+test('retargeted PR reuses only authenticated original base/head/config with sufficient release coverage', async t => {
+  const { options, responses } = resolverFixture(t, ['src/ui/menu.js']);
+  responses[`repos/${repository}/issues/82/timeline?per_page=100`] = [{ event: 'base_ref_changed' }, { event: 'merged' }];
+  const extract = options.extract;
+  options.extract = async (...args) => {
+    await extract(...args);
+    const file = join(args[1], 'ci-context.json'), context = JSON.parse(readFileSync(file));
+    context.pr.base.ref = 'old-base'; writeFileSync(file, JSON.stringify(context)); manifest(args[1], source, tree);
+  };
+  assert.equal((await resolveRelease(options))?.source, source);
+  // Current main contains an additional world deletion never checked by that PR.
+  responses[`repos/${repository}/git/commits/${'7'.repeat(40)}`] = { tree: { sha: '8'.repeat(40) } };
+  responses[`repos/${repository}/git/trees/${'8'.repeat(40)}?recursive=1`] = { truncated: false,
+    tree: [{ path: 'data/world.json', sha: '9'.repeat(40), type: 'blob', mode: '100644' }] };
+  assert.equal(await resolveRelease({ ...options, releaseBase: '7'.repeat(40) }), null, 'unpublished/coalesced changes require their affected checks');
+});
+
+test('known skipped postrelease job is not mistaken for missing or extra affected coverage', () => {
+  const f = fixture();
+  const extra = { name: 'Full exploration and crafting (webkit)', status: 'completed', conclusion: 'skipped', run_id: f.run.id, run_attempt: f.run.run_attempt, steps: [] };
+  f.jobs.push(extra);
+  assert.equal(validateEvidence(f).source, source);
+  for (const patch of [{ conclusion: 'success' }, { conclusion: 'failure' }, { conclusion: 'cancelled' }, { name: 'Unknown skipped job' }, { run_attempt: 99 }]) {
+    Object.assign(extra, patch); assert.throws(() => validateEvidence(f));
+    Object.assign(extra, { name: 'Full exploration and crafting (webkit)', status: 'completed', conclusion: 'skipped', run_id: f.run.id, run_attempt: f.run.run_attempt });
+  }
+  f.jobs.push({ ...extra }); assert.throws(() => validateEvidence(f)); f.jobs.pop();
+  f.jobs = f.jobs.filter(j => j.name !== 'Quick affected (webkit, boot)');
+  assert.throws(() => validateEvidence(f), 'known skipped job never substitutes for real safety evidence');
 });

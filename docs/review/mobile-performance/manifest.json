@@ -1,0 +1,77 @@
+{
+  "baseline": "036e6bca897eb2c0318b96dc239f1bd60fcaa7fa",
+  "sourceFiles": {
+    "src/render/view.js": "21e0ec99817274cc7f7f593c4156536ad940f8c495aa4d8b22a840a5d3792cad",
+    "src/render/grass-culling.js": "9ffda4a6aa3787b151d2058879d4b77eaf52289a2ecd1efc4d4d4babb14b7ba0",
+    "src/render/particles.js": "f04f2ab2a3fc8fc97c4560ee0218d6ef60b2b9c17afcffb4de2bc2d593261eca",
+    "src/render/ribbon.js": "39156822d22b36420f3a4d6a99a4e8f63bd1bd32af48180fe88538fb4e4f6446",
+    "src/main.js": "ce08c4a51f90f35f094f5e82af6c4f83dcd628188d2310123c17d8f795419408",
+    "data/rendering.json": "16580491cfcd83aa95017e405d4edf9e06c50d11f675a90c2158b19a7e3dad87"
+  },
+  "artifacts": {
+    "phone-high.png": "9555d473381cc242d3e2bae73c920638678befb1674938f0ade171a0d7738a20",
+    "desktop-high.png": "4ba3b8b938c4a3f3d99756ca163c4a78c70d3ebb55c16903e61d278e40a38363",
+    "ipad-high.png": "213ad681c5610e972c5f86f6d58a3aefe3676067d0c6bebeb1561810de773d69",
+    "report.json": "f10eaa3bd619818f1fb53de488598834eddbb8ff994f26a6fbe871ee9eeed5d0"
+  },
+  "review": {
+    "intent": "Preserve original High quality while reducing redundant CPU work and upload bandwidth",
+    "method": "Inspected exact final phone, iPad-sized and desktop-sized touch stills. Compared matched framebuffer bytes at High; deterministic original scarf-motion trace for vertices/normals and state. No continuous playback or physical-device claim.",
+    "views": [
+      {
+        "name": "phone",
+        "css": [
+          844,
+          390
+        ],
+        "buffer": [
+          1688,
+          780
+        ],
+        "dpr": 2
+      },
+      {
+        "name": "ipad",
+        "css": [
+          1180,
+          820
+        ],
+        "buffer": [
+          2360,
+          1640
+        ],
+        "dpr": 2
+      },
+      {
+        "name": "desktop",
+        "css": [
+          1280,
+          720
+        ],
+        "buffer": [
+          2560,
+          1440
+        ],
+        "dpr": 2
+      }
+    ],
+    "faultsFixed": "Capture harness initially suppressed the fullscreen resize rAF; corrected the harness, confirmed CSS and drawing-buffer sizes and inspected replacement captures. No game UI or quality change was needed.",
+    "decision": "Final static visuals preserve detailed grass, shadows, outlines, colour grade, HUD and touch layout in sampled views. Ready as a focused performance draft, subject to exact-head CI and physical-device performance limits."
+  },
+  "validation": {
+    "fullCore": {
+      "passed": 480,
+      "failed": 0
+    },
+    "focused": {
+      "passed": 23,
+      "failed": 0
+    },
+    "build": "passed",
+    "matchedHighPixels": "0 changed channels in three sampled scenes",
+    "touch": "passed",
+    "portraitResources": "stable across two actual readbacks",
+    "githubCI": "pending for new head"
+  },
+  "harnessSha256": "b39c8291328d41574dd190250f0dd94cc5728d319525cc214128e2fdfa2b60bb"
+}

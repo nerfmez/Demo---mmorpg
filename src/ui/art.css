@@ -221,6 +221,7 @@
 .map-legend > span { display: inline-flex; align-items: center; gap: 5px; }
 .map-legend svg { width: 18px; height: 18px; }
 .legend-player { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid #557c62; }
+.legend-landmark { font-style: normal; color: #d9a531; text-shadow: 0 0 1px #8a6a2e; margin-right: 2px; }
 .region-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
 .region-card { display: flex; align-items: center; gap: 8px; padding: 8px; min-height: 76px; color: #45583e; border: 1px solid #bfc7ad; border-radius: 8px; background: #faf7ec; text-align: left; }
 .region-card .art { width: 66px; height: 60px; background: #e8ead7; border-radius: 5px; }
@@ -236,7 +237,9 @@
 .region-detail-body .section-heading { gap: 4px; }
 .region-detail-body .section-heading small { font-size: 10px; }
 .travel-card { display: grid; gap: 6px; background: #e8eada; padding: 12px; border-radius: 7px; margin: 14px 0; }
-.travel-card b { font-size: 13px; font-weight: 500; }
+.travel-card b { font-size: 13px; font-weight: 500; color: #3e4a33; }
+.landmark-card { background: #f3ead2; border: 1px solid #e0c98e; }
+.landmark-card b { color: #5a4318; }
 .travel-card small { font-size: 10px; color: #778364; line-height: 1.6; }
 .travel-card .btn { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .travel-card .btn svg { width: 20px; height: 20px; }

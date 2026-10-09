@@ -277,3 +277,13 @@ body.ingame .field-xp .xpseg span {position:static;font-size:9px;line-height:1.2
 body.ingame #hud .sbtn .ic .art > svg {filter:none}
 body.ingame #hud .sbtn.noammo {filter:saturate(.25) brightness(.85);border-color:#e08a3a90}
 body.ingame #hud .sbtn.lowammo .skill-cost {color:#ffb36b}
+
+.sbtn.charging{outline:2px solid #ffe3a0}.sbtn.charging .cd{background:linear-gradient(to top,#f4bc4299 var(--charge),transparent var(--charge));clip-path:none}.sbtn.charging .cdt{color:#fff3c8;font-weight:700}
+
+.summon-commands{position:absolute;bottom:185px;right:20px;display:flex;gap:5px}.summon-commands[hidden]{display:none}.summon-commands button{min-height:44px;background:#243244ee;border:1px solid #c2a572;border-radius:6px;color:#fff1d2;padding:6px 10px;font:inherit}@media(max-height:480px){.summon-commands{bottom:138px;right:12px}}
+.skill-sandbox{position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:8px;padding:5px 9px;border:1px solid #efb454;border-radius:8px;background:#203043ee;font-size:12px;color:#fff;pointer-events:auto;max-width:calc(100vw - 400px)}
+.skill-sandbox select{min-height:44px;max-width:220px;background:#203043;color:#fff;border:1px solid #617384;border-radius:5px;font:inherit}
+.skill-sandbox b{white-space:nowrap}
+@media(max-width:900px){.skill-sandbox{top:auto;bottom:28px;max-width:calc(100vw - 350px);font-size:10px;gap:4px;padding:3px 5px}.skill-sandbox select{max-width:150px;min-height:44px}}
+
+.skill-sandbox[hidden]{display:none}

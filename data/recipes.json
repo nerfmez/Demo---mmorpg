@@ -1871,6 +1871,394 @@
         "boar_hide": 1,
         "gold": 15
       }
+    },
+    "fernstep_charm": {
+      "type": "gear",
+      "result": "fernstep_charm",
+      "cost": {
+        "fern_ear_tuft": 6,
+        "glow_dust": 3,
+        "boar_hide": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "move_pct",
+        "crit_pct",
+        "cdr_pct",
+        "attack_flat",
+        "projectile_pct"
+      ],
+      "itemLevel": 6
+    },
+    "mirrorwing_pendant": {
+      "type": "gear",
+      "result": "mirrorwing_pendant",
+      "cost": {
+        "mirror_scale": 6,
+        "fern_ear_tuft": 3,
+        "spore_sac": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "magic_flat",
+        "mp_flat",
+        "spell_pct",
+        "cdr_pct",
+        "barrier_pct"
+      ],
+      "itemLevel": 6
+    },
+    "burrowguard_brooch": {
+      "type": "gear",
+      "result": "burrowguard_brooch",
+      "cost": {
+        "rootdigger_claw": 6,
+        "fern_ear_tuft": 3,
+        "boar_tusk": 10,
+        "gold": 60
+      },
+      "optionPool": [
+        "hp_flat",
+        "defense_flat",
+        "block_pct",
+        "regen_flat",
+        "barrier_pct"
+      ],
+      "itemLevel": 6
+    },
+    "grove_union_ring": {
+      "type": "gear",
+      "result": "grove_union_ring",
+      "cost": {
+        "rootdigger_claw": 8,
+        "mirror_scale": 4,
+        "fern_ear_tuft": 10,
+        "boar_tusk": 20,
+        "gold": 150
+      },
+      "optionPool": [
+        "attack_flat",
+        "magic_flat",
+        "hp_flat",
+        "move_pct",
+        "crit_pct"
+      ],
+      "itemLevel": 11
+    },
+    "learn_charged_shot": {
+      "type": "skill",
+      "result": "charged_shot",
+      "cost": {
+        "shore_feather": 3,
+        "boar_tusk": 2,
+        "gold": 25
+      }
+    },
+    "learn_riposte": {
+      "type": "skill",
+      "result": "riposte",
+      "cost": {
+        "crab_shell": 3,
+        "boar_tusk": 2,
+        "gold": 25
+      }
+    },
+    "learn_weakpoint": {
+      "type": "skill",
+      "result": "weakpoint",
+      "cost": {
+        "boar_tusk": 3,
+        "shore_feather": 2,
+        "gold": 25
+      }
+    },
+    "learn_armor_cleave": {
+      "type": "skill",
+      "result": "armor_cleave",
+      "cost": {
+        "boar_tusk": 4,
+        "beetle_shell": 2,
+        "gold": 30
+      }
+    },
+    "learn_interrupt_slam": {
+      "type": "skill",
+      "result": "interrupt_slam",
+      "cost": {
+        "rootdigger_claw": 3,
+        "boar_tusk": 2,
+        "gold": 30
+      }
+    },
+    "learn_frontline_split": {
+      "type": "skill",
+      "result": "frontline_split",
+      "cost": {
+        "rootdigger_claw": 3,
+        "wolf_fang": 2,
+        "gold": 35
+      }
+    },
+    "learn_shield_bash": {
+      "type": "skill",
+      "result": "shield_bash",
+      "cost": {
+        "crab_shell": 4,
+        "boar_hide": 2,
+        "gold": 25
+      }
+    },
+    "learn_arrow_rain": {
+      "type": "skill",
+      "result": "arrow_rain",
+      "cost": {
+        "fern_ear_tuft": 3,
+        "shore_feather": 3,
+        "gold": 30
+      }
+    },
+    "learn_arcane_shot": {
+      "type": "skill",
+      "result": "arcane_shot",
+      "cost": {
+        "glow_dust": 2,
+        "gold": 20
+      }
+    },
+    "learn_flame_stream": {
+      "type": "skill",
+      "result": "flame_stream",
+      "cost": {
+        "glow_dust": 3,
+        "spore_sac": 2,
+        "gold": 30
+      }
+    },
+    "learn_crystal_wall": {
+      "type": "skill",
+      "result": "crystal_wall",
+      "cost": {
+        "mirror_scale": 3,
+        "rootdigger_claw": 2,
+        "gold": 35
+      }
+    },
+    "learn_cleanse": {
+      "type": "skill",
+      "result": "cleanse",
+      "cost": {
+        "salt_gel": 3,
+        "glow_dust": 2,
+        "gold": 25
+      }
+    },
+    "learn_battle_aura": {
+      "type": "skill",
+      "result": "battle_aura",
+      "cost": {
+        "mirror_scale": 3,
+        "fern_ear_tuft": 2,
+        "gold": 35
+      }
+    },
+    "learn_stone_guardian": {
+      "type": "skill",
+      "result": "stone_guardian",
+      "cost": {
+        "crag_stone": 3,
+        "rootdigger_claw": 2,
+        "gold": 40
+      }
+    },
+    "mod_short_stride": {
+      "type": "mod",
+      "result": "short_stride",
+      "cost": {
+        "fern_ear_tuft": 2,
+        "boar_hide": 2,
+        "gold": 20
+      },
+      "grade": "C"
+    },
+    "mod_returning_shot": {
+      "type": "mod",
+      "result": "returning_shot",
+      "cost": {
+        "mirror_scale": 2,
+        "shore_feather": 2,
+        "gold": 25
+      },
+      "grade": "B"
+    },
+    "mod_terminal_burst": {
+      "type": "mod",
+      "result": "terminal_burst",
+      "cost": {
+        "glow_dust": 3,
+        "crab_shell": 2,
+        "gold": 20
+      },
+      "grade": "C"
+    },
+    "mod_chain_return": {
+      "type": "mod",
+      "result": "chain_return",
+      "cost": {
+        "wisp_core": 2,
+        "mirror_scale": 1,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_advancing_edge": {
+      "type": "mod",
+      "result": "advancing_edge",
+      "cost": {
+        "fern_ear_tuft": 2,
+        "boar_tusk": 2,
+        "gold": 20
+      },
+      "grade": "C"
+    },
+    "mod_gathering_cut": {
+      "type": "mod",
+      "result": "gathering_cut",
+      "cost": {
+        "rootdigger_claw": 3,
+        "boar_hide": 1,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_laceration": {
+      "type": "mod",
+      "result": "laceration",
+      "cost": {
+        "boar_tusk": 3,
+        "crab_shell": 1,
+        "gold": 20
+      },
+      "grade": "C"
+    },
+    "mod_ash_detonation": {
+      "type": "mod",
+      "result": "ash_detonation",
+      "cost": {
+        "glow_dust": 3,
+        "spore_sac": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_shatter": {
+      "type": "mod",
+      "result": "shatter",
+      "cost": {
+        "mirror_scale": 2,
+        "glow_dust": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_following_field": {
+      "type": "mod",
+      "result": "following_field",
+      "cost": {
+        "fern_ear_tuft": 2,
+        "spore_sac": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_binding_field": {
+      "type": "mod",
+      "result": "binding_field",
+      "cost": {
+        "rootdigger_claw": 2,
+        "spore_sac": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_healing_chain": {
+      "type": "mod",
+      "result": "healing_chain",
+      "cost": {
+        "mirror_scale": 2,
+        "glow_dust": 2,
+        "gold": 25
+      },
+      "grade": "B"
+    },
+    "mod_healing_barrier": {
+      "type": "mod",
+      "result": "healing_barrier",
+      "cost": {
+        "beetle_shell": 2,
+        "glow_dust": 2,
+        "gold": 20
+      },
+      "grade": "C"
+    },
+    "mod_breaking_ward": {
+      "type": "mod",
+      "result": "breaking_ward",
+      "cost": {
+        "rootdigger_claw": 2,
+        "beetle_shell": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_spreading_hex": {
+      "type": "mod",
+      "result": "spreading_hex",
+      "cost": {
+        "spore_sac": 3,
+        "mirror_scale": 1,
+        "gold": 25
+      },
+      "grade": "B"
+    },
+    "mod_focused_pack": {
+      "type": "mod",
+      "result": "focused_pack",
+      "cost": {
+        "wolf_fang": 2,
+        "fern_ear_tuft": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_guardian_bond": {
+      "type": "mod",
+      "result": "guardian_bond",
+      "cost": {
+        "rootdigger_claw": 3,
+        "wolf_pelt": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_following_aura": {
+      "type": "mod",
+      "result": "following_aura",
+      "cost": {
+        "mirror_scale": 2,
+        "wolf_pelt": 2,
+        "gold": 30
+      },
+      "grade": "B"
+    },
+    "mod_cast_on_guard": {
+      "type": "mod",
+      "result": "cast_on_guard",
+      "cost": {
+        "wisp_core": 2,
+        "rootdigger_claw": 2,
+        "gold": 40
+      },
+      "grade": "B"
     }
   }
 }

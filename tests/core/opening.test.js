@@ -32,7 +32,7 @@ test('legacy learned ranks, slots, movement, inventory and gold survive v11',()=
  for(const version of [7,8,9,10]) {
   const ch=createCharacter(data,{kit:'staff'});ch.version=version;delete ch.opening;
   ch.skills={arcane_bolt:2,firebolt:3,ward:4,frost_nova:2};ch.slots=[{skill:'ward',mods:[]},{skill:'firebolt',mods:[]},{skill:null,mods:[]},{skill:'frost_nova',mods:[]}];
-  ch.movementSkills=['dash','roll'];ch.movement='roll';ch.movementMods=[501];ch.gold=777;ch.materials={glow_dust:8};
+  ch.movementSkills=['dash','roll'];ch.movement='roll';ch.mods=[{id:'short_stride',uid:501,level:1,grade:'C'}];ch.nextUid=502;ch.movementMods=[501];ch.gold=777;ch.materials={glow_dust:8};
   const m=migrateCharacter(structuredClone(ch),data);
   for(const key of ['skills','slots','movementSkills','movement','movementMods','gear','equipped','gold','materials'])assert.deepEqual(m[key],ch[key],`${version} ${key}`);
   assert.equal(m.version,CHARACTER_VERSION);assert.equal(m.opening.stage,'done');assert.equal(m.skills.hunter_shot,undefined);

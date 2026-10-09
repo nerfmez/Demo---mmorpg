@@ -21,6 +21,7 @@ import { Menu } from './ui/menu.js';
 import { Opening } from './ui/opening.js';
 import { QuestCompletion } from './ui/quest-completion.js';
 import { QuestRoute } from './render/quest-route.js';
+import { Supplies } from './ui/supplies.js';
 import { createFullscreen } from './ui/fullscreen.js';
 import { migrateLegacy, writeSlot, loadSlot, exportCode, loadPref, savePref, stashTravel, takeTravel } from './save.js';
 import { characterMap, selectMap } from './core/maps.js';
@@ -88,7 +89,7 @@ const fullscreen = createFullscreen({
   onResize: () => view.resize(),
 });
 F.fullscreen = fullscreen;
-const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport']);
+const SAVE_ON = new Set(['levelup', 'joblevelup', 'bossDefeated', 'questDone', 'waypoint', 'zoneDiscovered', 'teleport', 'potion']);
 
 /** Reload into the character's map (saved slot, or the unsaved test character). */
 function travelTo(character, slot, name) {
@@ -106,6 +107,20 @@ function travelTo(character, slot, name) {
 
 function startGame(character, slot) {
   if (characterMap(data, character) !== data.world.id) return travelTo(character, slot, data.maps[characterMap(data, character)]?.nameTh);
+  if(fresh&&params.has('skillSandbox')){
+    character.skills=Object.fromEntries(Object.keys(data.skills.combat).map(id=>[id,1]));
+    character.movementSkills=Object.keys(data.skills.movement);
+    character.movement ||= character.movementSkills[0];
+    character.stats={STR:35,AGI:35,VIT:35,INT:35,DEX:35};
+    character.mods=Object.keys(data.mods.mods).map(id=>({id,uid:character.nextUid++,level:1,grade:'C'}));
+  }
+  const sandbox=fresh&&params.has('skillSandbox');
+  if(sandbox){
+    const types=new Set(character.gear.map(i=>(data.items.gearBases[i.base].weaponType||data.items.gearBases[i.base].offhandType)));
+    for(const [base,d]of Object.entries(data.items.gearBases))if((d.weaponType||d.offhandType)&&!types.has(d.weaponType||d.offhandType)){
+      types.add(d.weaponType||d.offhandType);character.gear.push({uid:character.nextUid++,base,itemLevel:1,grade:'C',upgrade:0,options:[]});
+    }
+  }
   const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
   game.worlds = worlds; // every map's rules world: the HUD and atlas show one world
   game.canCrossSeam = id => !view.coreWorld || view.neighbourReady(id);
@@ -165,20 +180,29 @@ function startGame(character, slot) {
     book: hud.addMenuButton('book', 'K', () => panels.toggle('skills'), 'สกิล'),
   };
   const questRoute = new QuestRoute(game, view.scene, hud);
+  const supplies = new Supplies(hudRoot,game,{
+    onArrows:()=>{if(!ui.panelOpen())panels.openArrowCraft();},
+    onPotions:()=>{if(!ui.panelOpen())panels.openAutoPotions();},
+  });
   hud.onTracker(() => { if (!ui.panelOpen()) questRoute.toggle(); });
 
   let portraitKey = '';
+  let portraitPending = false;
+  const currentPortraitKey = () => {
+    const gear = game.gearLook();
+    return JSON.stringify([game.ch.appearance, gear.helm, gear.weapon, !!F.modelsReady, weaponModelKey(gear.bases)]);
+  };
   const refreshPortrait = () => {
     const look = game.ch.appearance;
     const gear = game.gearLook();
     const key = JSON.stringify([look, gear.helm, gear.weapon, !!F.modelsReady, weaponModelKey(gear.bases)]);
-    if (key === portraitKey) return;
+    if (key === portraitKey || portraitPending) return;
     portraitKey = key;
-    try {
-      hud.setPortrait(view.portrait(look || undefined, gear, 128));
-    } catch {
-      /* the portrait is cosmetic */
-    }
+    portraitPending = true;
+    view.portrait(look || undefined, gear, 128).then(url => {
+      // A later gear/model choice must not receive an obsolete asynchronous portrait.
+      if (key === currentPortraitKey() && F.game === game) hud.setPortrait(url);
+    }).catch(() => { /* the portrait is cosmetic */ }).finally(() => { portraitPending = false; });
   };
   refreshPortrait();
 
@@ -187,17 +211,33 @@ function startGame(character, slot) {
     hud.menuToggle.classList.toggle('has-points', b.char + b.job > 0);
   };
 
-  session = { game, hud, panels, input, ui, save, slot, completion, questRoute, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
-  Object.assign(F, { game, hud, panels, input, save, completion, questRoute, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
+  session = { game, hud, panels, input, ui, save, slot, completion, questRoute, supplies, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
+  Object.assign(F, { game, hud, panels, input, save, completion, questRoute, supplies, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
   session.presence = createPresence(game, view, () => input.reset(), () => F.modelsReady);
   F.presence = session.presence;
   save();
+  if(sandbox){
+    const bar=document.createElement('div');bar.className='skill-sandbox';
+    const title=document.createElement('b');title.textContent='ทดลอง · ไม่บันทึก';bar.append(title);
+    const pick=document.createElement('select');pick.setAttribute('aria-label','สกิลทดลอง');
+    for(const [id,d]of Object.entries(data.skills.combat).filter(([,d])=>d.prototype)){const o=document.createElement('option');o.value=id;o.textContent=d.nameTh;pick.append(o);}bar.append(pick);
+    const choose=()=>{
+      input.reset();const d=data.skills.combat[pick.value];game.ch.slots[0]={skill:pick.value,mods:[]};
+      game.ch.equipped.weapon=game.ch.equipped.offhand=null;
+      for(const type of [d.requiresWeapon?.[0]||(d.requiresOffhand?'sword':'staff'),...(d.requiresOffhand?['shield']:[])]){
+        const it=game.ch.gear.find(i=>(data.items.gearBases[i.base].weaponType||data.items.gearBases[i.base].offhandType)===type);if(it)equip(game.ch,data,it.uid);
+      }
+      game.refresh();game.player.hp=game.player.maxHp;game.player.mp=game.player.maxMp;
+    };
+    pick.addEventListener('change',choose);hudRoot.append(bar);session.sandboxBar=bar;choose();
+  }
 
   const ch = game.ch;
   const opening = new Opening(hudRoot, game, view, { hud, input, save, refresh: () => { session.refreshPortrait(); session.refreshBadges(); } });
   F.opening = opening;
   if (opening.begin()) return; // the opening ends with its own banner
-  if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
+  if(sandbox)hud.toast('เปิดสมุดสกิลเพื่อใส่ม็อด · ตัวละครทดลองไม่บันทึกเซฟ','#8fd0ff');
+  else if (ch.progress.playTime < 1) hud.banner(`ยินดีต้อนรับ ${ch.name}`, 'ตามดาวทองบนแผนที่เพื่อเริ่มภารกิจ · ล่ามอน เก็บวัตถุดิบ แล้วกลับมาคราฟต์', 'long');
   else hud.toast(`โหลดเซฟแล้ว · ${ch.name} Lv.${ch.level}`, '#8fd0ff');
 }
 
@@ -226,7 +266,7 @@ document.addEventListener(
 document.addEventListener(
   'touchmove',
   (e) => {
-    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs, .questtrack, .fullscreen-gate, .atelier-dialog')) e.preventDefault();
+    if (e.touches.length > 1 || !e.target.closest?.('.pbody, .scrolly, .tabs, .questtrack, .fullscreen-gate, #atelier .window, .atelier-dialog')) e.preventDefault();
   },
   { passive: false }
 );
@@ -236,7 +276,7 @@ addEventListener('orientationchange', () => setTimeout(() => view.resize(), 200)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) session?.save();
 });
-addEventListener('pagehide', () => { session?.save(); session?.questRoute.dispose(); });
+addEventListener('pagehide', () => { session?.save(); session?.questRoute.dispose(); view.vfx.disposeMovement(); });
 
 try {
   view.warmup();
@@ -266,6 +306,7 @@ function frame(now) {
   const s = session;
   if (s) {
     if (!fullscreen.blocked) s.input.update();
+    if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||fullscreen.blocked;
     const paused = !view.region.staticReady || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
@@ -303,6 +344,7 @@ function frame(now) {
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
     if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });
     s.hud.update(paused ? 0 : dt, s.ui);
+    s.supplies.update();
     s.saveT += dt;
     if (s.saveT > 10) {
       s.saveT = 0;

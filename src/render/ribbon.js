@@ -38,6 +38,7 @@ export class Ribbon {
     this.mesh.castShadow = true;
     this.initialized = false;
     this.side = new THREE.Vector3(1, 0, 0);
+    this.delta = new THREE.Vector3();
   }
 
   /** anchor: world-space attach point; back: world direction the tail trails toward at rest; side: world-space ribbon width axis */
@@ -47,7 +48,8 @@ export class Ribbon {
     if (this.initialized && pts[0].distanceTo(anchor) > 1.2) this.initialized = false;
     if (!this.initialized) {
       for (let i = 0; i < this.n; i++) {
-        pts[i].copy(anchor).addScaledVector(back, i * this.segLen * 0.7).add(new THREE.Vector3(0, -i * this.segLen * 0.7, 0));
+        pts[i].copy(anchor).addScaledVector(back, i * this.segLen * 0.7);
+        pts[i].y -= i * this.segLen * 0.7;
         this.prev[i].copy(pts[i]);
       }
       this.initialized = true;
@@ -56,7 +58,7 @@ export class Ribbon {
     const drag = 0.9;
     for (let i = 1; i < this.n; i++) {
       const p = pts[i];
-      const v = p.clone().sub(this.prev[i]).multiplyScalar(drag);
+      const v = this.delta.copy(p).sub(this.prev[i]).multiplyScalar(drag);
       this.prev[i].copy(p);
       p.add(v);
       p.y -= 5.5 * h * h;
@@ -68,7 +70,7 @@ export class Ribbon {
       for (let i = 1; i < this.n; i++) {
         const a = pts[i - 1];
         const b = pts[i];
-        const d = b.clone().sub(a);
+        const d = this.delta.copy(b).sub(a);
         const len = d.length() || 1e-4;
         b.copy(a).addScaledVector(d, this.segLen / len);
       }

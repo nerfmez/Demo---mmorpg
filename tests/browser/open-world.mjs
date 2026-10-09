@@ -116,6 +116,18 @@ try {
   writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
   assert.deepEqual(errors, []);
   console.log('PASS open world', engine.name(), JSON.stringify(report.stream));
+} catch (error) {
+  report.failure = await page.evaluate(() => {
+    const f = window.__frontier, v = f?.view;
+    return { world: f?.world?.data.id, position: f?.game && [f.game.player.x, f.game.player.z],
+      mode: v?.mode, queue: v?.buildQueue.stats,
+      neighbours: v && [...v.neighbours].map(([id, n]) => ({ id, ready: !!n.region,
+        state: n.job?.state, cancelled: n.controller?.signal.aborted, stats: n.job?.stats, error: n.error?.message })) };
+  }).catch(() => ({ unavailable: 'page closed or renderer unresponsive' }));
+  report.errors = errors;
+  report.error = error.message;
+  writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
+  throw error;
 } finally {
   await browser.close();
   process.kill(-server.pid);

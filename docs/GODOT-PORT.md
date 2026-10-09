@@ -56,6 +56,20 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 ## What gets rebuilt (presentation)
 
+High-quality performance keeps the authored graphics settings. Grass uses a
+conservative whole-chunk wind envelope before the existing clump tests, retaining
+all visible instances and baked colours. Pooled particles upload only their live
+prefix (no uploads when empty), including all spawn/swap changes before a draw.
+Camera and cloth use reusable scratch vectors with unchanged animation math.
+Godot equivalents: conservative MultiMesh chunk rejection, live-prefix buffer
+updates and reusable simulation state; do not substitute reduced visual density.
+
+The web HUD portrait is asynchronous: prepare shaders then queue a GPU pixel
+readback, restore the borrowed render target **before** awaiting, retain owned
+resources until completion and discard stale gear/model results. Only one request
+is in flight per session. Port to a SubViewport/readback without blocking the main
+frame, keeping cleanup on failure and the same 128 px image/row orientation.
+
 | Web | Godot |
 |---|---|
 | `render/toon.js` (3-step ramp and inverted-hull outline) | `ShaderMaterial` with a toon ramp, plus a second pass with `cull_front` and a vertex push for the outline |
@@ -64,8 +78,9 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | `render/vfx.js` | `GPUParticles3D` and shader meshes. Keep the rule that effect shapes match the hit areas. |
 | `render/firebolt.js`, `combat-fx.json.skills.firebolt` | Fire-element Firebolt uses an animated flame distance field and additive corona on shared velocity-aligned camera billboards and a fixed-capacity instanced pool of wisps and embers. Charge follows the posed weapon tip and clears on release/cancel; the cast corona is padded to avoid quad clipping. The tapered wake uses advected noise-cut curling tongues with staggered pointed ends; drift-aligned wisps do not widen it into a slab. Impact is a compact white contact flash that peels into asymmetric flame tongues and drift-aligned sparks, with no expanding ring or smoke, driven once by the existing event. Impact direction comes from the nearest last-rendered Firebolt, with no core event change; the compact contact layer draws over the struck surface. Port to `QuadMesh`/spatial shaders and bounded `GPUParticles3D`, retaining the same source/velocity and expiry contracts. Particle billboard bases must remain right-handed (right = (direction.y, -direction.x)) for front-face rendering. Embers retain a bright core and configured width/shrink over their 0.42 s lifetime so they remain legible after the 0.18 s flash. The oval visual head uses configured along/across radii (0.29/0.19 m), with an animated hot pocket inside orange/gold layers rather than a uniformly white disk; head heat/turbulence are data settings. Base projectile speed is 9 m/s, leaving room for projectile-speed modifiers; damage, range and collision radius remain unchanged. Element conversions use the existing element renderer. |
 | `lab/tuning.js`, `lab/editor.js`, `lab/lab.js` | Data-generated phase controls, per-skill Lab-only overrides, safe import/export and browser storage. Vfx accepts an isolated config; preview restart clears timers and disposes owned meshes while retaining shared geometry/pools. In Godot, build one inspector from exported effect data/resources and inject a preview copy rather than changing combat rules; see `SKILL-LAB.md`. Generic projectile scale/glow/trail and impact parameters now live in `combat-fx.json.projectileDefaults`. |
-| `render/view.js` `syncMonsters` | Monster models only exist within `VIEW_RADIUS` (58 m) of the hero, and of those only the ones whose bounding sphere (rig height, plus a 2 m margin) touches the camera frustum are drawn and posed; skinned models have `frustumCulled` off, so this test does the culling. In Godot, `VisibleOnScreenNotifier3D` (or a `VisibilityRange`) on each monster gives the same. |
-| `render/trail.js`, `data/combat-fx.json` | Melee looks. A player's swing draws a ribbon between two points on the real weapon (grip + `base`/`tip` metres along the blade, per weapon type) while the strike moves, which in Godot is a trail on a `BoneAttachment3D` of the weapon; the hit area (the skill's `range` and `arc`) is a separate flat wedge that flashes on the ground. Each monster melee attack name (`slap`, `peck`, `pinch`, `bite`, `sweep`) has its own look (water splash, beak needle, closing claws, fangs, heavy band), tweakable per monster in `overrides`. |
+| `render/monster-views.js` `syncMonsterViews` (called by `View.syncMonsters`) | Monster models only exist within `VIEW_RADIUS` (58 m) of the hero, and of those only the ones whose bounding sphere (rig height, plus a 2 m margin) touches the camera frustum are drawn and posed; skinned models have `frustumCulled` off, so this test does the culling. In Godot, `VisibleOnScreenNotifier3D` (or a `VisibilityRange`) on each monster gives the same. |
+| `render/trail.js`, `data/combat-fx.json` | Melee looks. A player's swing draws a ribbon between two points on the real weapon (grip + `base`/`tip` metres along the blade, per weapon type) while the strike moves, which in Godot is a trail on a `BoneAttachment3D` of the weapon; the hit area (the skill's `range` and `arc`) is a separate flat wedge that flashes on the ground. Each monster melee attack name has a look that shows what the creature hits with, tweakable per monster in `overrides`: `slap` water splash, `peck` beak needle, `sweep`/`shove` a heavy band, and for `rend`/`rake`/`claw` (claws), `bite` (fangs/tusks), `pinch` (crab claws) and `scythe` (mantis blades) a trail that comes out of the monster's own limb (`render/monster-trails.js`): short ribbons recorded from the real tip of the bones named in `limbs` (the far end of that bone's model segment), three or four side by side for claws, only bright while the tip moves fast, and only during the strike itself (never the wind-up). The strike animations sweep across the body (a hooking bite, a raking swipe) so the trail reads from the top-down camera; where it lands there is a small contact burst. In Godot: a `BoneAttachment3D` at each limb tip driving a trail mesh, exactly like the hero's weapon trail |
+| `render/monster-motion.js`, `data/monster-motion.json` | Monster locomotion feel. `view.js` measures each monster's ground speed (and its forward/sideways parts) from the simulated position; the gait cycle advances by speed so a planted foot sweeps back exactly as fast as the body moves (`rate = speed * 2π * duty / (2 * legLength * swing)`), legs have a planted stance and an eased, lifted swing, gaits blend walk → trot/gallop by speed, the body sinks while legs are spread, and bob/rock/roll/spine sway, head stabilisation, breathing, idle look-around and springy tails/ears/caps sit on top. Crabs sidle side-on while travelling. In Godot: an `AnimationTree` blend space driven by the same measured speed (or root-motion clips authored to these stride lengths) plus the same additive idle layers. |
 | `ui/*` (HUD, panels, title menu, character creator) | Godot `Control` scenes. `ui/ux.css`, `ui/art.css` and `ui/workspaces.css` define desktop, tablet and phone layouts; `ui/inventory.js` presents gear comparisons and item categories. Keep a persistent modal close/return button and a separate movement slot. `ui/menu-map.js` defines the menu structure: one **main menu (hub)** opened by the HUD menu button or Esc lists five groups (adventurer, skills and mods, items and shop, journey, system), each page opens only when pressed, shows just its own group's pages in the sidebar and has a back-to-hub button (also in the bag/skills workspace). The HUD keeps only bag and skills shortcuts beside the menu button; C/J/K/I/L/M still open their page directly. Port as a hub scene with group panels and a page stack. |
 
 `ui/art.js` and `ui/jobart.js` contain individually authored SVG illustrations keyed by base content ID.
@@ -285,8 +300,8 @@ Port the new derived fields along with their Node tests:
   Preserve older invalid loadouts as inactive entries and show the reason.
 
 The additions do not alter Character Stat Point requirements: flat HP/MP/attack/magic/
-defense nodes use Job Points and do not add STR/INT. Active skill counts remain 13 combat
-and four movement. No channeling executor is added. Run `tests/core/workspaces.test.js`
+defense nodes use Job Points and do not add STR/INT. That earlier batch kept 13 combat and four movement; the prototype expansion below
+adds the new delivery executors and retains four movement skills. Run `tests/core/workspaces.test.js`
 assertions in the port and reproduce the separate-page flows in
 `tests/browser/workspaces.mjs`. See `UI-WORKSPACES.md` for reference and verification scope.
 
@@ -338,6 +353,11 @@ model onto the procedural monster rig at load: `bones` moves rig joints onto the
 distance (`sharpness`, `minWeight`), `pitch`/`yaw`/`scale`/`offset` align the model, and
 `keep` leaves procedural parts on some bones (the wisp's motes). In Godot, rig the GLBs with
 the same bone names and weights (or paint them) and keep the animation from `monsters.js`.
+The Tidal Slime is a body of water rather than a single rigid bone: `body` (base), `mid`, the
+curling `crest`, a `front` lip and three base `rim` points, with soft weights (`sharpness` 3).
+Springs on them (`data/monster-motion.json` → `slime`) make it travel in pulses, lag behind its
+own movement, slosh when it stops and wobble when hit; in Godot use the same bones with
+`SpringBoneSimulator3D` or a jiggle script.
 The salt slime model (a level-1 redesign: dome jelly with a shell, salt crust and seaweed) has one
 rig bone, `body`, so every vertex follows it and the squash/stretch comes from scaling that bone.
 The shore gull and hermit crab models follow the same scheme: the gull skins to `body`, `head`,
@@ -630,9 +650,9 @@ The local city review uses original native timber for all city piers, with `city
 
 ## Reviewed directed journal graph
 
-`jobtree.presentation.stages/groups` indexes the shared first page and free later gateways. New skill `requires` lists are ALL-parent directed prerequisites in `Character.gd`; legacy nodes keep adjacency and profession rules. Keep the existing tree revision and ownership IDs when adding this graph so old saves retain points, bonuses and choices. Layout, paper motion and success-only dashed ink are presentation; they never allocate points. See `REVIEWED-SKILL-TREE.md`.
+`jobtree.presentation.stages/groups` indexes the shared first page and free later gateways. New skill `requires` lists are ALL-parent directed prerequisites in `Character.gd`; legacy nodes keep adjacency and profession rules. Keep ownership IDs; revision 3 uses the preservation/refund rules below. Layout, paper motion and success-only dashed ink are presentation; they never allocate points. See `REVIEWED-SKILL-TREE.md`.
 
-`core/job-route.js` adds a read-only route plan and atomic `allocateJobRoute` transaction. In Godot, collect ALL missing named ancestors only inside the selected presentation group and stage; require outside ancestors to be owned already. Run canonical `allocateJobNode` on a scratch ownership/points dictionary, reject gates, invalid or ambiguous graphs, insufficient points and stale preview signatures, then commit ownership and points together. Notify/persist once after success. Current costs remain one point per node and saves retain version4; no rank or reward model is added. The journal previews pending nodes with solid outlines and draws finite dashed ink only for confirmed acquisitions.
+`core/job-route.js` adds a read-only route plan and atomic `allocateJobRoute` transaction. In Godot, collect ALL missing named ancestors only inside the selected presentation group and stage; reject outside ancestors even when owned. Run canonical `allocateJobNode` on a scratch ownership/points dictionary, reject gates, invalid or ambiguous graphs, insufficient points and stale preview signatures, then commit ownership and points together. Notify/persist once after success. Current costs remain one point per node and saves retain version 12; no rank or reward model is added. The journal previews pending nodes with solid outlines and draws finite dashed ink only for confirmed acquisitions.
 
 Cape integration: `city.capeTransition` grades only dry exterior source-floor edges to the existing heightfield via `cityFloorHeight`; native-water causeways and interior city heights stay authored. The renderer subdivides only cape surface triangles at load and uses this same height function. A narrow data road joins the existing cape dirt path. Native cape cobble paint is removed locally and sea film stays below raised source land; native coast/heightfield data are unchanged.
 
@@ -737,22 +757,31 @@ The existing sparse `character.materials` dictionary already persists both IDs;
 no schema/version change or conversion of old parts is needed. Missing keys are zero.
 The two RGBA PNGs are mapped in `raster-icons.js` for inventory/costs and ground loot.
 
-### Independent skill-line display hubs
+### Independent skill groups (tree revision 3)
 
-`ui/skill-journal/line-groups.js` splits each family into its existing named lines for
-presentation only. Chapters 2–5 have 11/12/9/9 overview hubs; chapter 5's nine line
-hubs each open their regular and mastery pages. Keep `jobtree.presentation.stages[].paths`
-as the canonical purchase scopes: a display ID such as `view.physical.3` resolves to
-`fam.weapon.3` for its line nodes. Resolve bridge proxies to the bridge's original
-scope even when inspecting them from the other line. Do not restrict route planning
-to visible nodes; previews list every charged node, including other lines. Preserve
-ALL `requires`, ANY `requiresAny`, links, chapter gates, point costs and saved node IDs.
-The 30 bridge nodes appear on both endpoint pages but are owned/charged only once.
-Search, prerequisite navigation and chapter navigation use display groups without
-rewriting game data. Captions and touch targets set a readable minimum camera zoom;
-long forks/mastery pages pan vertically instead of squeezing three lines together.
+Chapters are navigation only (`presentation.stages[].gate = 0`), not group tiers.
+Every visible page group is its own canonical purchase scope, including each
+`view.*.<chapter>` and `view.*.mastery` page. `allocationGroup` owns eligibility;
+`localInvestment` counts distinct paid IDs only in that group. Roots need no
+other group, prior chapter, profession or global investment. `requires` is ALL,
+`requiresAny` is ANY; all active edges and auto-purchases must remain local.
+Directed roots bypass legacy adjacency. Reject malformed external parents even
+if they are owned. Simulate an entire route before committing points/ownership.
 
+Keep character version 12 and stable node IDs. Tree revision 3 preserves known
+non-retired allocations, including legacy IDs and allocations missing a newly
+rewired internal parent; it refunds each retired bridge or missing ID once and
+then stamps the revision. No whole-tree reset. Gear, skills, quests and other
+character fields use their existing migrations. The 30 historical bridges remain
+in data marked `retired` for traceable refunds, never offered or purchased.
 
+There are 378 active nodes across 51 page groups (origin included), plus 206
+legacy compatibility nodes. Nine line hubs on chapter 5 provide regular/mastery
+page navigation, with no shared unlock requirement. Mastery now has two local
+specializations rather than alternating required bonuses. UI edges, locks,
+search, route preview and prose read this same graph; no external bridge proxies.
+Keep the journal theme and readable minimum zoom/panning. See
+[the complete audit](SKILL-TREE-INDEPENDENCE.md).
 
 ### Skill and mod upgrade services (2026-10-06)
 
@@ -766,6 +795,63 @@ reason beside the button. Stat/material/gold requirements are unchanged.
 Equipment enhancement/promotion and crafting still use the original workbench
 gate. Port the service anchors and `tests/core/upgrade-services.test.js`.
 
+
+### Skill/mod expansion (character v13; preserves prototype v9)
+
+Data defines 28 combat skills (14 new prototypes), four movement skills and 34 mods
+(19 new). `prototype:true` selects the authoring/Lab preview path, not an acquisition gate.
+All 14/19 have normal workbench recipes using existing materials, including Moonroot.
+See `FRONTIER-ACQUISITION.md` for costs and compatibility. Normal starters remain basic-only.
+Character v13 adds the movement socket to v12 saves while retaining v9 sockets and UIDs;
+main’s autoPotion migration/settings and equipment inactivity rules are unchanged.
+Only `?fresh=1&skillSandbox=1` grants trial ownership in a character with no save slot.
+Skill Lab replays old effects and uses `lab/rules-preview.js` for the new skills.
+
+Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
+
+- `charging` is transient. Hold advances to a capped ratio; cancel, death, movement,
+  refresh or input loss discards it. Release rechecks weapon/stats, MP and arrows,
+  pays once, then launches after the authored contact time. Movement slows while held.
+- `channeling` pays initial MP once and per tick after wind-up. Release, knockback,
+  movement, death, refresh or insufficient MP ends it and starts its cooldown.
+- `counter_stance` accepts one frontal direct hit in a short window; the next press
+  spends no extra MP and bypasses only its own cooldown once. Rear/DoT hits do not parry.
+- `melee_line` tests forward projection and half width plus target radius; live aim
+  during preparation. Positional hits, non-stacking exposure and explicitly permitted
+  interruption remain independent. Boss poise expires and never overrides immunity.
+- Rain pays all three arrows once and schedules three separate delayed areas. Walls
+  require free placement/endpoints, have three destructible segments and finite life.
+  Walkers use swept XZ rectangles; flyers pass. Chasing monsters break nearby segments
+  after a visible wind-up interval; other authored attack patterns remain intact.
+- Target healing chooses the most injured eligible living unit, cleanses one allowed
+  status, chains to unvisited injured units, and converts a fraction to a capped,
+  non-stacking barrier. Auras reserve maximum available MP and stop when unslotted,
+  their requirements fail, or their providing mod is removed. Current summons have
+  no MP, so Battle Aura's MP regen currently applies only to the player.
+- Returning projectiles reset their per-leg hit set once, reverse toward their stored
+  origin and cannot loop. Terminal bursts fire at final expiry, including after return.
+  Secondary bursts never apply mod effects recursively. Bleed ticks do not crit or
+  trigger. Chill/burn consumption happens once; curse spread preserves remaining time.
+- Following fields stay one per slot, and sustained slow has an authored cap. Summons
+  support attack/follow/guard commands; explicit attack overrides automatic focus.
+  Guard sharing selects one living summon in range, so multiple summons do not multiply
+  the reduction. Barrier destruction procs once. Guard triggers pay resources, check
+  active gear/requirements and use their own cooldown; nested triggers are suppressed.
+
+`movementMods: UID[]` is the only new persistent field. v8 -> v9 initializes it empty,
+keeps inventory, rolls and combat sockets, removes invalid/duplicate UIDs and respects
+one movement socket. A coin never occupies combat and movement simultaneously. Inactive
+movement mods stay stored; trained stats reactivate them. `short_stride` halves all
+four movement distances and adds one max charge without altering duration, recharge,
+invulnerability or landing damage. Its maximum rank is 1. Existing slot envelope is 2.
+
+UI uses hold/release and drag-aim on independent pointers, with menu/blur/cancel cleanup.
+`render/frontier-fx.js` owns original interim line, wall, aura, healing and flame visuals;
+shared geometry belongs to the view, per-effect materials/geometry are disposed on clear.
+Stone Guardian reuses `crag_golem` as an interim silhouette. Numbers, compatibility
+kinds, symmetric conflicts, conversion dependencies and visual tuning live in data.
+Before porting, run `tests/core/frontier-content.test.js` and the focused touch capture
+`tests/browser/frontier-content.mjs`. See `FRONTIER-CONTENT.md` and the review record.
 ### The opening and completion receipts (save v11)
 
 `createCharacter(data, { opening: true })` wakes unarmed with empty skills and slots.
@@ -807,11 +893,101 @@ and sampled `World.move` checks for radius, water, obstacles and slopes. It neve
 falls back to drawing through a wall. Occupied interactable anchors get a nearby
 walkable approach. Remote goals use `questNavigation`'s actual authored crossing,
 then replan on map handover. Nonspatial tasks show their instruction without a line.
-The route clears when tracking changes/completes, and target/player movement triggers
-a bounded refresh (no stationary per-frame pathfinding). One merged translucent
-terrain-sampled dashed ribbon owns its geometry/material; hide, handover, travel or
-page disposal releases it with `disposeObject`. Port as a navigation aid mesh with
+The route clears when tracking changes/completes. Cached search and ribbon work
+advance cooperatively; target changes or leaving the safe cached route trigger
+a bounded refresh. A static tail and short dynamic near ribbon each own their
+geometry/material; hide, handover, travel or page disposal releases both with
+`disposeObject`. The near endpoint follows the hero every rendered frame. Port as a navigation aid mesh with
 the same clearance and goal contracts, never auto-walk.
+
+
+### Cached route, supplies and automatic potions (save v12)
+
+Quest navigation still resolves the actual active objective/gate. `searchQuestRoute`
+is a cooperative pure generator with directed walking-clearance edge caches;
+`findQuestRoute` retains the blocking contract. The presentation advances search
+and terrain ribbon assembly in small task/frame slices, caches at most four CPU paths and
+disposes both owned GPU ribbons on hide, replacement, completion and map change.
+Each rendered frame projects the hero onto the safe cached polyline and redraws
+only its short near section. An obstructed/off-route connection hides the line
+and requests a bounded replan; it never draws a shortcut through an obstacle.
+Godot should mirror the cached path plus near ribbon in its process loop.
+
+The bow HUD reads the same `arrowInUse`/`arrowTotal` as shooting, including fallback
+stock and zero arrows. Its labeled crafting action opens the existing arrow
+category and relevant recipe; it grants nothing and retains `Game.craftArrows`
+costs, capacity and combat restrictions.
+
+`ch.autoPotions` stores separate `hp` and `mp` objects with `enabled`, integer
+`threshold` (1–100 percent) and `potion` (matching item ID or null). New characters
+and pre-v12 migration default both OFF, preserving inventory and learned skills.
+V12 reload preserves intentional choices. Default thresholds live in
+`items.consumables.autoUse`. Null selects the first stocked matching quick slot
+from left to right; an explicit size uses that inventory item with no substitution.
+`Game.useAutomaticPotions` runs at the end of an eligible positive-dt simulation
+frame, at most once per group/frame, when resource percent is at/below threshold
+and below full. It shares `useConsumable` with manual use, real stock, restore
+amount and group cooldown. Paused/menu/receipt/fullscreen frames do not advance
+simulation; dead/travel/zero-dt/prohibited frames do not consume. Empty stock
+produces no failure notifications. Successful potion events save the real spend.
+The existing shop page owns separate touch controls for both rules; its shopping
+location restrictions remain intact. No free items or changed potion balance.
+
+### Moonroot Grove (third linked map, levels 6-10)
+
+`data/maps/moonroot-grove.json` (id `moonroot-grove-v1`) fills the strip north of Azure Coast and
+east of the Frontier's north: global x -160..210, z -237..-120 (`atlas.offset` [25, -178.5]). Seams:
+its `minX` meets the Frontier's `maxX` over Frontier local z -144..-27 (a second seam on that edge),
+its `maxZ` meets Azure's `minZ` over the whole Azure width. Profiles were written with
+`node scripts/atlas-seams.mjs --missing`, which fills only seams whose profile is empty and leaves the
+rest of each file byte-identical. Region ownership (`render/region-ownership.js`) is per seam plane,
+so the three maps partition the corner at global (-160, -120). The grove's trails reach both gates;
+the Azure/Frontier sides stay open grass (no layout change there).
+
+Layout data used here: `ruins.zone` (the zone strewn with fallen stones, default `ruins`),
+`ruins.scatter` (tries, default 90), `ruins.paving: false` (a grassy ring, no paved floor);
+`town.trees` for the elder tree in the ring; `town.surfaces` with a `dirt` polygon so the camp has no
+cobbled plaza. Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
+`rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`.
+
+Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
+planted `claw` strike, its `hop` a marked `pounce`; the moth's `glint` is a `beam`, its `scale_dust`
+a `puff` whose cloud is `areaKind: 'mirror_dust'`; the mole's `swipe` is a `sweep`). Names stay
+their own for cooldowns, telegraph lookups and looks. New mechanic `erupt` (mole): an `erupt` area is
+marked at the target for the whole wind-up; the mole sinks (render) and surfaces at that spot as it
+bursts (`surface` event); it never digs into a safe zone. In Godot: the same state machine, a dig/emerge
+`AnimationPlayer` clip and a teleport at the burst.
+
+Art: `scripts/split-moonroot-art.py` cuts the owner's concept sheets (`assets/moonroot/*.jpg`) into
+atlas portraits (`public/assets/icons/monster|region/...`, registered in `raster-icons.js` and the
+atlas manifests) and item pictures (`public/assets/moonroot/...`) drawn inside the authored SVG frame
+(`ui/art.js`), with every crop and hash in `assets/moonroot/manifest.json`.
+
+### Zone landmarks and ground cover
+
+Every zone of every map has one landmark of its own (`landmarks` in each map's data; kinds are
+unique across the world). An entry has `id`, `kind`, `zone`, `at` [x, z], `rot` (local +Z faces it,
+the same facing rule as everything else), `name`/`nameTh`, and either `builtin: true` (an existing
+set piece drawn elsewhere: wreck, lighthouse, wolf den, ruin ring; named for the map only) or
+`colliders` (local `[x, z, r]` circles) plus `clear` (radius). `core/world.js` places them after all
+random scatter: scattered trees/rocks/stumps/logs and small decoration within `clear` are removed
+(nothing else moves, so the seeded layout is unchanged), then the collider circles are added with
+`type: 'landmark'`. `world.landmarks` lists them with world-space `parts`. The 18 non-builtin
+models are editable Blender sources in `assets/blender/landmarks/`, exported to
+`public/models/landmarks/*.glb` by `scripts/build-landmarks.py`. `render/landmark-assets.js`
+loads only the active region's kinds, applies the native three-step toon ramp and
+same-hue outlines, then cooperatively batches static meshes by material. Region import
+jobs own and release raw and merged buffers on cancellation or disposal. The windmill's
+named `landmark-spinner` sails turn in `onBeforeRender` because batching freezes matrices;
+moving meshes are excluded from static merging. Placement, ground support and collider
+data are unchanged. In Godot: import one GLB scene per kind at `at`/`rot`, static bodies
+from `parts`, and the windmill sails on an `AnimationPlayer`.
+
+Ground cover per zone comes from `zoneDecor(zone)` (exported by `core/world.js`): flower colours
+(indices into `art.ground.flowerColors`), ferns, mushrooms and berry bushes. A zone's own `decor`
+overrides the defaults kept from the first maps; zones of a map differ in their cover (tested).
+`ruins.altar: false` drops the generic altar from a ruin ring (the grove's ring has the crescent
+altar landmark instead).
 
 ## Experimental shared-map presence
 

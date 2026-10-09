@@ -1,3 +1,4 @@
+import { FrontierFx } from './frontier-fx.js';
 import {FrameBuildQueue} from './build-queue.js';
 import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './spirit-reveal.js';
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
@@ -10,6 +11,7 @@ import { installGrassCulling } from './grass-culling.js';
 import { buildHumanoid, HumanoidAnimator, updateScarf, DEFAULT_LOOK } from './hero.js';
 import { buildMonster, monsterScale } from './monsters.js';
 import { monsterModel } from './models.js';
+import { syncMonsterViews, measureMotion, fadeRig, VIEW_RADIUS } from './monster-views.js';
 import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
@@ -25,17 +27,9 @@ import { buildWreck, weaponProps } from './wreck.js';
 import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
-const VIEW_RADIUS = 58;
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)
-// Monster models are skinned, so three.js cannot cull them (frustumCulled is off); the view tests a
-// sphere around each one against the camera instead. The margin keeps a monster just past the edge
-// drawn, so its shadow and wind-up do not pop in.
-const CULL_MARGIN = 2;
-const _frustum = new THREE.Frustum();
-const _viewProj = new THREE.Matrix4();
-const _sphere = new THREE.Sphere();
 
 const ZONE_FOG = {
   settlement: '#c4e4ee',
@@ -48,13 +42,6 @@ const ZONE_FOG = {
   ruins: '#d6d0e8',
   coast: '#c6e8f2',
 };
-
-// a stalking monster's half-seen look: the body fades, the outline hull fades less
-function fadeRig(mat, hull, see, fade) {
-  if (mat.transparent !== see) { mat.transparent = see; mat.depthWrite = !see; mat.needsUpdate = true; if (hull) hull.needsUpdate = true; } // opaque/transparent are separate programs
-  mat.opacity = see ? fade : 1;
-  if (hull) { hull.transparent = see; hull.depthWrite = !see; hull.opacity = see ? fade * fade : 1; }
-}
 
 export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
@@ -100,6 +87,7 @@ export class View {
     syncPaintedLighting(this.hemisphere, this.sun);
 
     this.vfx = new Vfx(this.scene, world);
+    this.frontierFx=new FrontierFx(this.scene,world);
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
@@ -178,7 +166,8 @@ export class View {
     this.buildQueue.budgetMs=this.streamBudgetMs??STREAM_BUDGET_MS;
     for (const [id,n] of this.neighbours) if(!wanted.has(id)) {
       n.controller?.abort();
-      if(n.region)disposeRegion(n.region);else n.steps?.return();
+      // The queue closes unfinished generators after any in-flight GPU read.
+      if(n.region)disposeRegion(n.region);
       this.neighbours.delete(id);this.refreshGrass();
     }
   }
@@ -219,6 +208,7 @@ export class View {
     for (const v of this.dropViews.values()) disposeObject(v);
     this.dropViews.clear();
     this.vfx.world = next.world;
+    this.frontierFx.clear();this.frontierFx.ground=next.world;
     for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = next.world;
     if (this.game) this.placeWreck(this.game);
     this.refreshGrass();
@@ -248,6 +238,7 @@ export class View {
 
   attachGame(game) {
     this.vfx.clearFireballs();
+    this.frontierFx.clear();
     this.game = game;
     for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
     this.monsterViews.clear();
@@ -311,6 +302,8 @@ export class View {
 
   releaseRig(rig) {
     rig.root.removeFromParent();
+    rig.trails?.dispose();
+    rig.trails = null;
     fadeRig(rig.material, rig.hull, false, 1);
     if (rig.modelMaterial) fadeRig(rig.modelMaterial, rig.modelHull, false, 1);
     this.rigPool = this.rigPool || new Map();
@@ -327,6 +320,7 @@ export class View {
     const previousRoot = preserveAnimation ? this.hero?.root : null;
     const animator = preserveAnimation ? this.heroAnim : null;
     if (this.hero) {
+      this.vfx.clearMovementEchoes();
       if (this.vfx.wardMesh) this.vfx.wardMesh.removeFromParent();
       disposeObject(this.hero.root);
       disposeObject(this.hero.scarf?.mesh);
@@ -345,6 +339,7 @@ export class View {
       this.hero.root.scale.copy(previousRoot.scale);
     } else this.heroAnim = new HumanoidAnimator(this.hero);
     this.scene.add(this.hero.root);
+    this.vfx.prepareMovement(this.hero.root, this.renderer, this.camera);
     if (this.hero.scarf) this.scene.add(this.hero.scarf.mesh);
     this.heroLookKey = JSON.stringify([look, gear]);
     if (this.vfx.wardMesh) this.hero.root.add(this.vfx.wardMesh);
@@ -454,7 +449,20 @@ export class View {
   handleEvent(e) {
     const g = this.game;
     const v = this.vfx;
+    this.frontierFx.event(e);
     switch (e.type) {
+      case 'channelStart':
+        this.heroAnim.play(e.skill, e.total + .28, e.weapon, 0, e.total, 'channel_cone');
+        break;
+      case 'channelEnd':
+        this.heroAnim.action = null;
+        break;
+      case 'chargeStart':
+        this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, 0, e.total, 'projectile');
+        break;
+      case 'chargeEnd':
+        this.heroAnim.action = null;
+        break;
       case 'castStart':
         this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
         v.beginCast(e, g.skills.find((s) => s && s.id === e.skill)?.element);
@@ -535,9 +543,14 @@ export class View {
         if (e.kind === 'slam') this.addShake(0.45);
         else if (e.kind === 'stone_burst') this.addShake(0.12);
         break;
-      case 'monsterSwing':
-        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type });
+      case 'monsterSwing': {
+        // a strike that reaches the hero is drawn on the hero (the claw marks land on the body)
+        const p = g.player, dx = p.x - e.x, dz = p.z - e.z, d = Math.hypot(dx, dz);
+        const off = Math.atan2(Math.sin(Math.atan2(dx, dz) - e.angle), Math.cos(Math.atan2(dx, dz) - e.angle));
+        const at = !p.dead && d <= e.range + 0.6 && Math.abs(off) <= ((e.arc || 120) * Math.PI) / 360 ? [p.x - (dx / (d || 1)) * 0.25, p.z - (dz / (d || 1)) * 0.25] : null;
+        v.monsterSwing({ ...e, type: g.monsterById(e.id)?.type, at });
         break;
+      }
       case 'ward':
         v.ward(e, this.hero.root);
         break;
@@ -545,6 +558,10 @@ export class View {
         break;
       case 'blinkPlayer':
         v.blink(e.fromX, e.fromZ, e.x, e.z,0xb4a2ff,this.hero);
+        break;
+      case 'surface':
+        v.digDust(e.fromX, e.fromZ, 10);
+        v.digDust(e.x, e.z, 14);
         break;
       case 'blink':
         v.blink(e.fromX, e.fromZ, e.x, e.z, 0x8fe4ff);
@@ -614,125 +631,7 @@ export class View {
   }
 
   syncMonsters(dt, time) {
-    const g = this.game;
-    const p = g.player;
-    const seen = new Set();
-    // render() has already moved the camera for this frame
-    this.camera.updateMatrixWorld();
-    _frustum.setFromProjectionMatrix(_viewProj.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
-    let drawn = 0;
-    for (const m of g.monsters) {
-      const far = Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS;
-      if (far && !this.monsterViews.has(m.id)) continue;
-      if (Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS + 10) continue;
-      seen.add(m.id);
-      let mv = this.monsterViews.get(m.id);
-      if (!mv) {
-        const rig = this.takeRig(m.type, m.level, m.boss);
-        rig.root.position.set(m.x, this.groundAt(m.x, m.z), m.z);
-        rig.root.rotation.y = m.facing;
-        this.scene.add(rig.root);
-        let halo = null;
-        if (rig.halo) {
-          halo = this.vfx.sprite(0x7fdcff, 1.9, 0.85);
-          this.scene.add(halo);
-        }
-        mv = { rig, flash: 0, hurt: 0, spawnT: 0, lastAttack: null, y: rig.root.position.y, halo, prevFacing: m.facing, turn: 0 };
-        this.monsterViews.set(m.id, mv);
-      }
-      const r = mv.rig;
-      mv.spawnT += dt || 1 / 60; // models seen while paused still grow in
-      if (m.windup) mv.lastAttack = m.windup.name;
-      let d = m.facing - r.root.rotation.y;
-      d = Math.atan2(Math.sin(d), Math.cos(d));
-      r.root.rotation.y += d * Math.min(1, dt * 12);
-      mv.turn = damp(mv.turn, dt > 0 ? (d * Math.min(1, dt * 12)) / dt : 0, 6, dt);
-      const gy = r.flyer || m.def.hover ? this.world.surfaceY(m.x, m.z) : this.world.groundY(m.x, m.z);
-      mv.y = gy > mv.y ? damp(mv.y, gy, 20, dt) : damp(mv.y, gy, 12, dt);
-      mv.kx = damp(mv.kx || 0, 0, 14, dt);
-      mv.kz = damp(mv.kz || 0, 0, 14, dt);
-      r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
-      mv.hurt = Math.max(0, mv.hurt - dt * 5);
-      // off screen: not drawn and not posed (the simulation still moves it and lets it attack)
-      const h = (r.height || 1.5) * (r.baseScale || 1);
-      _sphere.center.set(r.root.position.x, r.root.position.y + h * 0.5, r.root.position.z);
-      _sphere.radius = Math.max(1.2, h) + CULL_MARGIN;
-      const onScreen = !this.cullMonsters || _frustum.intersectsSphere(_sphere);
-      r.root.visible = onScreen;
-      if (onScreen) drawn++;
-      const tgt = m.targetUnit || p;
-      if (onScreen) r.animate(
-        r,
-        {
-          moving: m.moving && ['chase', 'idle', 'return', 'circle', 'retreat'].includes(m.state),
-          speedFactor: m.aggro ? 1 : 0.4,
-          state: m.state,
-          windup: m.state === 'windup' && m.windup ? m.windup.name : null,
-          windupT: m.stateT,
-          windupTotal: m.windup?.total || 1,
-          actT: m.stateT,
-          actionTotal: m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur,
-          hitTime: m.melee ? m.def.attacks[m.melee.name].hitTime : 0,
-          attack: m.def.attacks[m.melee?.name || mv.lastAttack],
-          enraged: m.enraged,
-          lastAttack: mv.lastAttack,
-          hurt: mv.hurt,
-          lookYaw: m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? this.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
-          turn: mv.turn,
-          alt: m.alt,
-        },
-        dt,
-        time
-      );
-      let sc = r.baseScale * Math.min(1, 0.3 + mv.spawnT * 2.5);
-      if (m.dead) {
-        const k = Math.min(1, m.deathT / 1.4);
-        sc *= 1 - k * 0.35;
-        r.root.position.y = mv.y - k * k * 0.7;
-        r.root.rotation.z = Math.min(1, m.deathT / 0.4) * 1.2;
-      } else r.root.rotation.z = 0;
-      r.root.scale.setScalar(sc);
-      mv.flash = Math.max(0, mv.flash - dt);
-      if (mv.flash > 0) setFlash(r.material, 0.55, 0, 0);
-      else if (m.windup && m.state === 'windup') setFlash(r.material, 0, 0.12 + 0.12 * Math.max(0, Math.sin(time * 24)), 0);
-      else if (m.statuses?.chill) setFlash(r.material, 0, 0, 0.25);
-      else if (m.statuses?.hex) setFlash(r.material, 0, 0, 0.12);
-      else setFlash(r.material, 0, 0, 0);
-      // a stalking monster is half-seen: the body fades, its eyes and outline stay readable
-      if (m.def.behavior === 'stalker' || mv.fade < 1) {
-        const hidden = m.stealth && !m.dead;
-        if (mv.hidden !== undefined && mv.hidden !== hidden) {
-          // vanishing or appearing: a puff of grey smoke hides the change
-          const sy = mv.y + 0.7 * r.baseScale;
-          this.vfx.dust.burst(m.x, sy, m.z, 22, { color: 0x8d8a96, size: 0.9, sizeEnd: 2.0, speed: 2.2, life: 0.9, up: 0.5, drag: 2.5 });
-          this.vfx.dust.burst(m.x, sy + 0.3, m.z, 8, { color: 0x4a4656, size: 0.7, sizeEnd: 1.6, speed: 1.2, life: 1.1, up: 0.9, drag: 2 });
-        }
-        mv.hidden = hidden;
-        mv.fade = damp(mv.fade ?? 1, hidden ? 0 : 1, 9, dt);
-        const gone = hidden && mv.fade < 0.04; // truly gone, not a faint shape
-        r.root.visible = onScreen && !gone;
-        const see = mv.fade < 0.99;
-        fadeRig(r.material, r.hull, see, mv.fade);
-        if (r.modelMaterial) fadeRig(r.modelMaterial, r.modelHull, see, mv.fade);
-      }
-      if (mv.halo) {
-        mv.halo.visible = !m.dead && onScreen && !(mv.hidden && mv.fade < 0.04);
-        mv.halo.position.set(m.x, mv.y + 1.25 * r.baseScale, m.z);
-        mv.halo.scale.setScalar((r.glowScale || 1.9) * r.baseScale);
-      }
-      // status sparkles
-      if (m.statuses?.burn && Math.random() < dt * 8) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 1.2, 0, { color: 0xff9a40, size: 0.22, life: 0.5 });
-      if (m.statuses?.poison && Math.random() < dt * 6) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.8, mv.y + 0.6 + Math.random() * 0.6, m.z + (Math.random() - 0.5) * 0.8, 0, 0.8, 0, { color: 0xa8e04a, size: 0.2, life: 0.6 });
-      if (m.statuses?.hex && Math.random() < dt * 5) this.vfx.fx.add(m.x + (Math.random() - 0.5) * 0.6, mv.y + 1.4 * r.baseScale, m.z + (Math.random() - 0.5) * 0.6, 0, 0.5, 0, { color: 0xb88cff, size: 0.22, life: 0.6 });
-    }
-    this.monstersDrawn = drawn;
-    for (const [id, mv] of this.monsterViews) {
-      if (!seen.has(id)) {
-        this.releaseRig(mv.rig);
-        disposeObject(mv.halo);
-        this.monsterViews.delete(id);
-      }
-    }
+    syncMonsterViews(this, dt, time);
   }
 
   syncAllies(dt, time) {
@@ -742,7 +641,7 @@ export class View {
       seen.add(a.id);
       let av = this.allyViews.get(a.id);
       if (!av) {
-        const rig = this.takeRig(a.type, 1, false);
+        const rig = this.takeRig(a.type==='stone_guardian'?'crag_golem':a.type, 1, false);
         rig.root.position.set(a.x, this.groundAt(a.x, a.z), a.z);
         rig.root.rotation.y = a.facing;
         this.scene.add(rig.root);
@@ -757,8 +656,9 @@ export class View {
       const gy = this.world.groundY(a.x, a.z);
       av.y = damp(av.y, gy, 16, dt);
       r.root.position.set(a.x, av.y, a.z);
+      measureMotion(av, a.x, a.z, r.root.rotation.y, dt);
       av.hurt = Math.max(0, av.hurt - dt * 5);
-      r.animate(r, { moving: a.moving, speedFactor: 1.2, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
+      r.animate(r, { moving: a.moving, speedFactor: 1.2, speed: av.speed, vFwd: av.vFwd, vSide: av.vSide, aggro: true, state: a.state === 'lunge' || a.state === 'recover' && a.stateT < .12 ? 'act' : a.state, lastAttack: 'bite', windup: a.state === 'windup' ? 'bite' : null, windupT: a.stateT, windupTotal: 0.25, hurt: av.hurt, lookYaw: 0, turn: 0 }, dt, time);
       const fade = a.life < 1.2 ? Math.max(0.05, a.life / 1.2) : Math.min(1, av.spawnT * 3);
       r.root.scale.setScalar(r.baseScale * (av.reveal?1:(0.4 + 0.6 * fade)));
       if(av.reveal)updateSpiritReveal(av.reveal,av.spawnT,a.life,av.y);
@@ -872,7 +772,7 @@ export class View {
     let d = p.facing - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
-    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, dead: p.dead, down: this.heroDown, time });
+    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, charging: p.charging, channeling: p.channeling, dead: p.dead, down: this.heroDown, time });
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
@@ -886,9 +786,9 @@ export class View {
   }
 
   updateCamera(dt, focus) {
-    const look = new THREE.Vector3(focus.x, focus.y, focus.z);
+    const look = (this._cameraFocus ||= new THREE.Vector3()).set(focus.x, focus.y, focus.z);
     this.camTarget.lerp(look, 1 - Math.exp(-dt * 6));
-    const off = CAM_OFFSET.clone().multiplyScalar(this.zoom);
+    const off = (this._cameraOffset ||= new THREE.Vector3()).copy(CAM_OFFSET).multiplyScalar(this.zoom);
     this.camera.position.copy(this.camTarget).add(off);
     if (this.shake > 0) {
       const s = this.shake * 0.35;
@@ -946,6 +846,7 @@ export class View {
       this.syncDrops(dt, time);
       this.vfx.syncProjectiles(g, dt, time);
       this.vfx.syncAreas(g, dt, time);
+      this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);
       // waypoint stones glow once discovered
       for (const [id, stone] of this.waypointStones) {
@@ -1095,10 +996,7 @@ export class View {
   }
 
   /** Render a portrait of a hero face to a data URL for the HUD. */
-  portrait(look, gear = {}, size = 128) {
-    const previousTarget = this.renderer.getRenderTarget();
-    const previousFace = this.renderer.getActiveCubeFace();
-    const previousLevel = this.renderer.getActiveMipmapLevel();
+  async portrait(look, gear = {}, size = 128) {
     const rt = new THREE.WebGLRenderTarget(size, size, { colorSpace: THREE.SRGBColorSpace });
     let hero;
     try {
@@ -1115,10 +1013,22 @@ export class View {
       cam.lookAt(0, 1.64, 0);
       hero.root.rotation.y = 0.35;
       hero.root.updateMatrixWorld(true);
-      this.renderer.setRenderTarget(rt);
-      this.renderer.render(scene, cam);
+      await this.renderer.compileAsync(scene, cam);
       const px = new Uint8Array(size * size * 4);
-      this.renderer.readRenderTargetPixels(rt, 0, 0, size, size, px);
+      const previousTarget = this.renderer.getRenderTarget();
+      const previousFace = this.renderer.getActiveCubeFace();
+      const previousLevel = this.renderer.getActiveMipmapLevel();
+      let reading;
+      try {
+        this.renderer.setRenderTarget(rt);
+        this.renderer.render(scene, cam);
+        reading = this.renderer.readRenderTargetPixelsAsync(rt, 0, 0, size, size, px);
+      } finally {
+        // Return the borrowed renderer before yielding. Never restore old state after
+        // an await: meanwhile the world/post pipeline may have selected a newer target.
+        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
+      }
+      await reading;
       const c = document.createElement('canvas');
       c.width = c.height = size;
       const ctx = c.getContext('2d');
@@ -1127,15 +1037,10 @@ export class View {
       ctx.putImageData(img, 0, 0);
       return c.toDataURL();
     } finally {
-      // Portrait errors are caught by the HUD; keep its borrowed renderer usable.
-      try {
-        this.renderer.setRenderTarget(previousTarget, previousFace, previousLevel);
-      } finally {
-        rt.dispose();
-        if (hero) {
-          disposeObject(hero.root);
-          disposeObject(hero.scarf?.mesh);
-        }
+      rt.dispose();
+      if (hero) {
+        disposeObject(hero.root);
+        disposeObject(hero.scarf?.mesh);
       }
     }
   }

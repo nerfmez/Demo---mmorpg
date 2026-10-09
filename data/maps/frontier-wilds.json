@@ -2,7 +2,7 @@
   "_doc": "Greenhollow Frontier: the original demo map, mirrored east-west so its outpost meets Azure Coast at the border. Same schema as data/world.json; Demo map 'Greenhollow Frontier'. World is the XZ plane in metres, Y up (same axes as Godot); north is -Z (up on screen). src/core/world.js + src/core/terrain.js turn this into a deterministic layout and heightfield that both the simulation and the renderer use. Zones are rectangles [minX, maxX, minZ, maxZ]; the first zone whose rect contains a point wins. exits[] are travel points (pos, r) to another map (to = map id) arriving at that map's arrive [x, z]. Zone and waypoint discovery is kept per map (character.progress.maps).",
   "id": "frontier-wilds-v1",
   "name": "Greenhollow Frontier",
-  "nameTh": "ชายแดนกรีนฮอลโลว์",
+  "nameTh": "\u0e0a\u0e32\u0e22\u0e41\u0e14\u0e19\u0e01\u0e23\u0e35\u0e19\u0e2e\u0e2d\u0e25\u0e42\u0e25\u0e27\u0e4c",
   "layoutRevision": "frontier-wilds-2",
   "seed": 7331,
   "bounds": {
@@ -591,7 +591,7 @@
     {
       "id": "settlement",
       "name": "Frontier Settlement",
-      "nameTh": "นิคมชายแดน",
+      "nameTh": "\u0e19\u0e34\u0e04\u0e21\u0e0a\u0e32\u0e22\u0e41\u0e14\u0e19",
       "rects": [
         [
           184,
@@ -613,7 +613,7 @@
     {
       "id": "wolf_den",
       "name": "Greyfang Den",
-      "nameTh": "ถ้ำหมาป่าเกรย์แฟง",
+      "nameTh": "\u0e16\u0e49\u0e33\u0e2b\u0e21\u0e32\u0e1b\u0e48\u0e32\u0e40\u0e01\u0e23\u0e22\u0e4c\u0e41\u0e1f\u0e07",
       "rects": [
         [
           67.2,
@@ -633,12 +633,18 @@
         "#799650",
         "#567941"
       ],
-      "fog": "#a4c4b2"
+      "fog": "#a4c4b2",
+      "decor": {
+        "flowers": [
+          3,
+          0
+        ]
+      }
     },
     {
       "id": "ruins",
       "name": "Ancient Ruins",
-      "nameTh": "ซากโบราณ",
+      "nameTh": "\u0e0b\u0e32\u0e01\u0e42\u0e1a\u0e23\u0e32\u0e13",
       "rects": [
         [
           -224,
@@ -662,7 +668,7 @@
     {
       "id": "highlands",
       "name": "Crag Highlands",
-      "nameTh": "ที่ราบสูงผาหิน",
+      "nameTh": "\u0e17\u0e35\u0e48\u0e23\u0e32\u0e1a\u0e2a\u0e39\u0e07\u0e1c\u0e32\u0e2b\u0e34\u0e19",
       "rects": [
         [
           -224,
@@ -688,7 +694,7 @@
     {
       "id": "forest",
       "name": "Mossroot Forest",
-      "nameTh": "ป่ารากตะไคร่",
+      "nameTh": "\u0e1b\u0e48\u0e32\u0e23\u0e32\u0e01\u0e15\u0e30\u0e44\u0e04\u0e23\u0e48",
       "rects": [
         [
           -32,
@@ -715,7 +721,7 @@
     {
       "id": "glade",
       "name": "Bramble Glade",
-      "nameTh": "ทุ่งพุ่มหนาม",
+      "nameTh": "\u0e17\u0e38\u0e48\u0e07\u0e1e\u0e38\u0e48\u0e21\u0e2b\u0e19\u0e32\u0e21",
       "rects": [
         [
           16,
@@ -746,7 +752,7 @@
     {
       "id": "wetland",
       "name": "Glimmer Wetland",
-      "nameTh": "ที่ชุ่มน้ำประกายแสง",
+      "nameTh": "\u0e17\u0e35\u0e48\u0e0a\u0e38\u0e48\u0e21\u0e19\u0e49\u0e33\u0e1b\u0e23\u0e30\u0e01\u0e32\u0e22\u0e41\u0e2a\u0e07",
       "rects": [
         [
           -144,
@@ -777,7 +783,7 @@
     {
       "id": "coast",
       "name": "Sunfall Coast",
-      "nameTh": "ชายฝั่งตะวันรอน",
+      "nameTh": "\u0e0a\u0e32\u0e22\u0e1d\u0e31\u0e48\u0e07\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
       "rects": [
         [
           -224,
@@ -798,12 +804,18 @@
         "#a8b77c",
         "#92a66a"
       ],
-      "fog": "#c6e8f2"
+      "fog": "#c6e8f2",
+      "decor": {
+        "flowers": [
+          0,
+          5
+        ]
+      }
     },
     {
       "id": "meadow",
       "name": "Sunny Meadow",
-      "nameTh": "ทุ่งหญ้าแดดอุ่น",
+      "nameTh": "\u0e17\u0e38\u0e48\u0e07\u0e2b\u0e0d\u0e49\u0e32\u0e41\u0e14\u0e14\u0e2d\u0e38\u0e48\u0e19",
       "rects": [
         [
           16,
@@ -828,7 +840,15 @@
         "#95b456",
         "#78994a"
       ],
-      "fog": "#c4e6ef"
+      "fog": "#c4e6ef",
+      "decor": {
+        "flowers": [
+          1,
+          5,
+          1,
+          0
+        ]
+      }
     }
   ],
   "spawns": [
@@ -1193,7 +1213,7 @@
     {
       "id": "town",
       "name": "Settlement Gate",
-      "nameTh": "ประตูนิคม",
+      "nameTh": "\u0e1b\u0e23\u0e30\u0e15\u0e39\u0e19\u0e34\u0e04\u0e21",
       "pos": [
         189,
         -12
@@ -1203,7 +1223,7 @@
     {
       "id": "meadow",
       "name": "Meadow Stone",
-      "nameTh": "หินทุ่งหญ้า",
+      "nameTh": "\u0e2b\u0e34\u0e19\u0e17\u0e38\u0e48\u0e07\u0e2b\u0e0d\u0e49\u0e32",
       "pos": [
         99.2,
         25.6
@@ -1212,7 +1232,7 @@
     {
       "id": "glade",
       "name": "Glade Stone",
-      "nameTh": "หินทุ่งพุ่มหนาม",
+      "nameTh": "\u0e2b\u0e34\u0e19\u0e17\u0e38\u0e48\u0e07\u0e1e\u0e38\u0e48\u0e21\u0e2b\u0e19\u0e32\u0e21",
       "pos": [
         64,
         99.2
@@ -1221,7 +1241,7 @@
     {
       "id": "forest",
       "name": "Forest Clearing",
-      "nameTh": "ลานกลางป่า",
+      "nameTh": "\u0e25\u0e32\u0e19\u0e01\u0e25\u0e32\u0e07\u0e1b\u0e48\u0e32",
       "pos": [
         57.6,
         -64
@@ -1230,7 +1250,7 @@
     {
       "id": "wetland",
       "name": "Wetland Stone",
-      "nameTh": "หินที่ชุ่มน้ำ",
+      "nameTh": "\u0e2b\u0e34\u0e19\u0e17\u0e35\u0e48\u0e0a\u0e38\u0e48\u0e21\u0e19\u0e49\u0e33",
       "pos": [
         -70.4,
         24
@@ -1239,7 +1259,7 @@
     {
       "id": "highlands",
       "name": "Highland Camp",
-      "nameTh": "แคมป์ที่ราบสูง",
+      "nameTh": "\u0e41\u0e04\u0e21\u0e1b\u0e4c\u0e17\u0e35\u0e48\u0e23\u0e32\u0e1a\u0e2a\u0e39\u0e07",
       "pos": [
         -73.6,
         -76.8
@@ -1248,7 +1268,7 @@
     {
       "id": "ruins",
       "name": "Ruins Approach",
-      "nameTh": "ทางขึ้นซากโบราณ",
+      "nameTh": "\u0e17\u0e32\u0e07\u0e02\u0e36\u0e49\u0e19\u0e0b\u0e32\u0e01\u0e42\u0e1a\u0e23\u0e32\u0e13",
       "pos": [
         -134.4,
         14.4
@@ -1257,7 +1277,7 @@
     {
       "id": "coast",
       "name": "Sunfall Beach Stone",
-      "nameTh": "หินชายหาดตะวันรอน",
+      "nameTh": "\u0e2b\u0e34\u0e19\u0e0a\u0e32\u0e22\u0e2b\u0e32\u0e14\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
       "pos": [
         9.6,
         153.6
@@ -1431,8 +1451,8 @@
       },
       "materialColors": {
         "03_Indigo_timber": "#7a5537",
-        "03 • weathered indigo timber": "#7a5537",
-        "04 • dark joinery": "#5a3e2a"
+        "03 \u2022 weathered indigo timber": "#7a5537",
+        "04 \u2022 dark joinery": "#5a3e2a"
       }
     }
   },
@@ -1530,6 +1550,209 @@
       "foamWidth": 0.075
     }
   },
+  "landmarks": [
+    {
+      "id": "frontier_bell",
+      "kind": "bell_tower",
+      "zone": "settlement",
+      "at": [
+        190,
+        14
+      ],
+      "rot": 1.57,
+      "name": "Frontier Bell Tower",
+      "nameTh": "\u0e2b\u0e2d\u0e23\u0e30\u0e06\u0e31\u0e07\u0e0a\u0e32\u0e22\u0e41\u0e14\u0e19",
+      "colliders": [
+        [
+          0,
+          0,
+          1.6
+        ]
+      ],
+      "clear": 3.5
+    },
+    {
+      "id": "greyfang_den",
+      "kind": "wolf_den",
+      "zone": "wolf_den",
+      "at": [
+        99.2,
+        -124.8
+      ],
+      "rot": 0,
+      "name": "Greyfang Den",
+      "nameTh": "\u0e16\u0e49\u0e33\u0e40\u0e01\u0e23\u0e22\u0e4c\u0e41\u0e1f\u0e07",
+      "builtin": true
+    },
+    {
+      "id": "warden_ring",
+      "kind": "ruin_ring",
+      "zone": "ruins",
+      "at": [
+        -195.2,
+        9.6
+      ],
+      "rot": 0,
+      "name": "Ring of the Warden",
+      "nameTh": "\u0e27\u0e07\u0e40\u0e2a\u0e32\u0e1c\u0e39\u0e49\u0e1e\u0e34\u0e17\u0e31\u0e01\u0e29\u0e4c",
+      "builtin": true
+    },
+    {
+      "id": "crag_beacon",
+      "kind": "crag_beacon",
+      "zone": "highlands",
+      "at": [
+        -144,
+        -88
+      ],
+      "rot": 0.71,
+      "name": "Crag Beacon",
+      "nameTh": "\u0e2b\u0e2d\u0e44\u0e1f\u0e1c\u0e32\u0e2b\u0e34\u0e19",
+      "colliders": [
+        [
+          0,
+          0,
+          1.8
+        ]
+      ],
+      "clear": 4.5
+    },
+    {
+      "id": "elder_mosstree",
+      "kind": "elder_mosstree",
+      "zone": "forest",
+      "at": [
+        60,
+        -94
+      ],
+      "rot": 0.21,
+      "name": "The Elder Mosstree",
+      "nameTh": "\u0e15\u0e49\u0e19\u0e44\u0e21\u0e49\u0e15\u0e30\u0e44\u0e04\u0e23\u0e48\u0e1c\u0e39\u0e49\u0e40\u0e12\u0e48\u0e32",
+      "colliders": [
+        [
+          0,
+          0,
+          2.2
+        ],
+        [
+          2.9,
+          1.2,
+          0.5
+        ],
+        [
+          -2.6,
+          1.8,
+          0.5
+        ],
+        [
+          0.6,
+          -3,
+          0.5
+        ]
+      ],
+      "clear": 7
+    },
+    {
+      "id": "bramble_arch",
+      "kind": "bramble_arch",
+      "zone": "glade",
+      "at": [
+        97,
+        102
+      ],
+      "rot": 0,
+      "name": "Bramble Rose Arch",
+      "nameTh": "\u0e0b\u0e38\u0e49\u0e21\u0e2b\u0e19\u0e32\u0e21\u0e01\u0e38\u0e2b\u0e25\u0e32\u0e1a\u0e1b\u0e48\u0e32",
+      "colliders": [
+        [
+          -2.6,
+          0,
+          0.9
+        ],
+        [
+          2.6,
+          0,
+          0.9
+        ]
+      ],
+      "clear": 5
+    },
+    {
+      "id": "glimmer_spire",
+      "kind": "glimmer_spire",
+      "zone": "wetland",
+      "at": [
+        -63,
+        41
+      ],
+      "rot": 1.61,
+      "name": "Glimmer Spire",
+      "nameTh": "\u0e22\u0e2d\u0e14\u0e1c\u0e25\u0e36\u0e01\u0e1b\u0e23\u0e30\u0e01\u0e32\u0e22\u0e41\u0e2a\u0e07",
+      "colliders": [
+        [
+          0,
+          0,
+          1.6
+        ],
+        [
+          2.1,
+          1,
+          0.5
+        ],
+        [
+          -1.9,
+          1.4,
+          0.5
+        ]
+      ],
+      "clear": 5
+    },
+    {
+      "id": "sunfall_arch",
+      "kind": "sea_arch",
+      "zone": "coast",
+      "at": [
+        0,
+        169
+      ],
+      "rot": -3.09,
+      "name": "Sunfall Sea Arch",
+      "nameTh": "\u0e0b\u0e38\u0e49\u0e21\u0e2b\u0e34\u0e19\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
+      "colliders": [
+        [
+          -3.3,
+          0,
+          1.4
+        ],
+        [
+          3.3,
+          0,
+          1.4
+        ]
+      ],
+      "clear": 6
+    },
+    {
+      "id": "meadow_sundial",
+      "kind": "sundial",
+      "zone": "meadow",
+      "at": [
+        89,
+        3
+      ],
+      "rot": 0.26,
+      "name": "Great Sundial",
+      "nameTh": "\u0e19\u0e32\u0e2c\u0e34\u0e01\u0e32\u0e41\u0e14\u0e14\u0e22\u0e31\u0e01\u0e29\u0e4c",
+      "colliders": [
+        [
+          0,
+          0,
+          2.2
+        ]
+      ],
+      "clear": 5
+    }
+  ],
   "atlas": {
     "_doc": "Place in the open world: global = local + offset. seams: edges shared with a neighbouring map (edge of bounds, span along that edge in local metres, the road gate where a path crosses, blend band and the common height profile [[along, h]] written by scripts/atlas-seams.mjs).",
     "offset": [
@@ -1906,6 +2129,202 @@
           ]
         ],
         "quiet": 45
+      },
+      {
+        "edge": "maxX",
+        "to": "moonroot-grove-v1",
+        "span": [
+          -144,
+          -27
+        ],
+        "gate": [
+          224,
+          -67.5
+        ],
+        "band": 24,
+        "quiet": 10,
+        "profile": [
+          [
+            -144,
+            0.83,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -140,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -136,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -132,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -128,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -124,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -120,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -116,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -112,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -108,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -104,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -100,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -96,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -92,
+            -0.05,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -88,
+            0.03,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -84,
+            0.11,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -80,
+            0.12,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -76,
+            0.23,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -72,
+            0.47,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -68,
+            0.54,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -64,
+            0.48,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -60,
+            0.37,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -56,
+            0.49,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -52,
+            0.56,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -48,
+            0.6,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -44,
+            0.59,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -40,
+            0.49,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -36,
+            0.42,
+            "#88a754",
+            "#6a8a46"
+          ],
+          [
+            -32,
+            0.43,
+            "#86a755",
+            "#668744"
+          ],
+          [
+            -28,
+            0.41,
+            "#86a755",
+            "#668744"
+          ]
+        ]
       }
     ]
   }

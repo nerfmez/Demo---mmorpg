@@ -1,0 +1,235 @@
+{
+  "scope": "Existing draft PR125 integration follow-up; no art redesign",
+  "parents": [
+    "0015c0fc7da9b68ed6de43c20cee67df7d97b6d2",
+    "cde062bb5251066703dcb007359dfe4e5f33a15f"
+  ],
+  "resolved_conflicts": [
+    "src/render/environment.js",
+    "src/render/landmarks.js",
+    "src/render/region.js"
+  ],
+  "preserved_asset_count": 39,
+  "preserved_assets_sha256": {
+    "assets/blender/landmarks/glimmer_spire.blend": "8bded5b06fc5fb75d90058e1b3f24aeeee926b54f430c378b5cc732d2adcb05c",
+    "assets/blender/landmarks/bramble_arch.blend": "4ffb5b10639103c457a13da74cfdde72da4b72c15d50366b21853251af1286a2",
+    "assets/blender/landmarks/moonstone.blend": "aa56e1bc0f1de5d695995db3bffc10252bd1997e13d37776c092de6c63e6f8aa",
+    "assets/blender/landmarks/bell_tower.blend": "00e799c2ee81c56a7170346518492b7cac2eaa62192abc61862aac6705a7588a",
+    "assets/blender/landmarks/cliff_shrine.blend": "25ac1a88faef7833aca4d9213541843cb001d06cdf29e3adc3118f5a2fadc0ae",
+    "assets/blender/landmarks/garden_gazebo.blend": "2db6ce7372f71fc1f878b083409749bb98577d2b6dc79ecbb5b968bd1efb09e9",
+    "assets/blender/landmarks/windmill.blend": "307906a7f8f310c2111bcf45dd1c39c6dfeaf43a097f8d71eb67112a21054391",
+    "assets/blender/landmarks/giant_conch.blend": "e8bca763e88f123f224c6fbfa46c2e03d28c6ee8fba069a4f6e0f1491126f158",
+    "assets/blender/landmarks/sea_arch.blend": "da4848dd72c86e1ce198d5fe4f243ab29a29d5cb1ddd591a0c54559484d02d00",
+    "assets/blender/landmarks/README.md": "2c5e99253917ecf33fa7b942110e41cc8b610b550ca268d751e52f96d619d45b",
+    "assets/blender/landmarks/crag_beacon.blend": "50ba0deef3b1e46593ccd7d0ade1b65169f1c8d76a09bd49e519a0a4b9148de3",
+    "assets/blender/landmarks/moon_altar.blend": "ad2cd5ee0098d3bd937f16f4d7738ff1173ffb74865d971c753d04163d42c8ff",
+    "assets/blender/landmarks/farm_well.blend": "9e9ce14b05985e17fa72797e0a11d3bcd2452454eadb46020f146f6755ec10d3",
+    "assets/blender/landmarks/moon_mirror.blend": "81073f508db5ade755d34ed74aa1a5b9ab1817639e9b951c7e3b0d19e926f791",
+    "assets/blender/landmarks/fiddlehead_ferns.blend": "fae47c89a0f28700572f8a765ae4ba3337f87f1a3330ad665755fa44a7a38383",
+    "assets/blender/landmarks/sundial.blend": "0d822a8503a59b44c1cb0aec7139a1b29ff1b3960fad7cfbe42725a49dd012a3",
+    "assets/blender/landmarks/watchtower.blend": "91a3fd4aee9474d7200005de9817dc92beb9175aeded27aab65f22581c1d4f25",
+    "assets/blender/landmarks/elder_mosstree.blend": "eafcf2dced2a357d040f5ec6f556f2e4927ce9757e083f9b795039f749b6168c",
+    "assets/blender/landmarks/root_arch.blend": "38ae86ad2203e16af96e2bcf6494fe5a42bd7abc814621d8095d03ecae8faca2",
+    "assets/blender/landmarks/textures/elder-accepted-leaf.png": "cdc35040b776ae0c6c171d2d63245253a582c47ea7a8e1c2a957da9d5a724b4b",
+    "public/models/landmarks/glimmer_spire.glb": "4211fd85a5e55bea2b775935d56f401e10ffd425dcfa82b91a54ab6e35193f55",
+    "public/models/landmarks/farm_well.glb": "2043d6f3767839ef191a798436592762475550e8977bd404be2f1329043dd3e0",
+    "public/models/landmarks/crag_beacon.glb": "493c6bac5a8c8d471c1473c6d249ed84cc932ef74e83c592b3f95545b164b57c",
+    "public/models/landmarks/windmill.glb": "378addcd09aa7228c6940859112acff5d0682700789b8dec0003d6d324b90d79",
+    "public/models/landmarks/bell_tower.glb": "d9f216a585c5eddf98ace3cc95c3a997caaeaa4640f7681919610ffa129e9841",
+    "public/models/landmarks/giant_conch.glb": "95be71d907f9640f4f9f4e865c4ef412862f4bb5796d393eaa1c8df01dc93d70",
+    "public/models/landmarks/fiddlehead_ferns.glb": "1ce62a5d7ee55d76e9e7b7c2c497c39ff610a039330824bedec209a0e90ac624",
+    "public/models/landmarks/cliff_shrine.glb": "8ef20c4b9a1b51205b343bbe94198ed9dee718dcaa78266453fc90a0fdafcdd2",
+    "public/models/landmarks/sea_arch.glb": "d0cf1da0795116214b4868c9067f80578287cebcf36d1b5f3963e434b928ac7f",
+    "public/models/landmarks/root_arch.glb": "ff803199b480cbc8f595d4f4a449980fb5526946e152aab9b721a5baaee3f0a6",
+    "public/models/landmarks/garden_gazebo.glb": "2933ce6e9a51884795417e7a505886dd5175085d4816d93339c9109444e03b55",
+    "public/models/landmarks/sundial.glb": "b63f9ec526ca5bed12815e5e9a668f766b3131be5468017e236ab4cb50b6bc37",
+    "public/models/landmarks/manifest.json": "7efffb1c2de7c87edaceced985fa9d7d9579db67d55285162dda611d66b0be2a",
+    "public/models/landmarks/moon_altar.glb": "f89063040824eda79a8a2be5d558bece020a5a21a0f42c238798d54ba5d156fb",
+    "public/models/landmarks/moonstone.glb": "ce76567cc9a5618ff17db9bb34e3373b03adb6ba1828dfaa8c5c2767ec1ec1e7",
+    "public/models/landmarks/watchtower.glb": "ffa0537b35015aa7e4fca91d9b4c15a7c24a012daabd9e8c89d57702572ed1db",
+    "public/models/landmarks/moon_mirror.glb": "bb81605a3e8162374ceabd5200d3c3e236cc58fb8ea3490ff24c8b7c4f046cf3",
+    "public/models/landmarks/bramble_arch.glb": "980a46107e66b3a1530ae7e8a5fd0ed38f3c310a802a699a4fd8dbc5c6274b07",
+    "public/models/landmarks/elder_mosstree.glb": "521d61d00cd3436b48c16931383409a4578ac9be16e318905dadae5b92af3cf7"
+  },
+  "streaming_paths_identical_to_main": [
+    "src/render/art-study.js",
+    "src/render/build-queue.js",
+    "src/render/grass.js",
+    "src/render/harbor.js",
+    "src/render/meadow.js",
+    "src/render/view.js"
+  ],
+  "reviewed_source_sha256": {
+    "src/render/region.js": "dc9f281a685640229bac5d12bb4a42164905f43ebf33d1eec43b3b9fd553c634",
+    "src/render/environment.js": "cef8223f0b3604fdc25fb1f526ed32ddc0992966c3216a7f0f057732ce1451b6",
+    "src/render/anime-study.js": "c148eeb45c6b29699bde09a9337bf858d5d2a784b1469108b4ec2648579e75b2",
+    "src/ui/compact.css": "ba765b7f195af0ed0d96f8ac8d08fd15b26b43de0f112cfcb13ff90935356c69",
+    "src/ui/skill-journal/journal.js": "fd69faf300ad298d7fdc630bcd1d4ed509c4d8cb3921b86bd87c6970a91425f9",
+    "tests/browser/passive-checks.mjs": "7da055cba453a9bd8e02f42bd8c8c7b74456218af988707cb8c21295c6482850"
+  },
+  "build": {
+    "result": "pass",
+    "artifacts": {
+      "dist/assets/main-BR0NfZku.js": "79ab369588f215473fb8f9072d3cc5b147ba949fac48f005e782f296c442524a",
+      "dist/assets/main-D4oOXd4z.css": "8f4c48270fbcdd3e2a85f2e7868140175a9a92cc94a9be11cb29d1e09f9408de"
+    },
+    "log_sha256": "ce96b2143da787e097eba47cfa3cdee8a17cbd764dfb2c0281deaf65d3e3e7c5",
+    "warning": "existing chunk exceeds 1200 kB"
+  },
+  "core_and_assets": {
+    "result": "pass",
+    "files": [
+      "tests/core/frame-build-queue.test.js",
+      "tests/core/grass-bake-lifetime.test.js",
+      "tests/core/region-shader-preparation.test.js",
+      "tests/core/foliage-streaming-equivalence.test.js",
+      "tests/core/meadow-streaming-equivalence.test.js",
+      "tests/core/landmarks.test.js",
+      "tests/core/equipment-inactive.test.js",
+      "tests/core/workspaces.test.js",
+      "tests/core/save.test.js",
+      "tests/core/journal.test.js",
+      "tests/render/landmark-assets.test.mjs"
+    ],
+    "passed_files": 11,
+    "failed_files": 0,
+    "log_sha256": "a5a413ab669af62551a988d497721e70f3a29f10b7146ff74746b7cc36bb24fa"
+  },
+  "high_chromium_scopes": [
+    {
+      "review": "final",
+      "report_sha256": "13fb43966c02896953bb1ce513c32c641ff1719dea3bf064af50518fe76e7327",
+      "views": [
+        {
+          "size": [
+            844,
+            390
+          ],
+          "branches": 12,
+          "native_gestures": true,
+          "panel": {
+            "x": 135.921875,
+            "y": 18,
+            "width": 692.078125,
+            "height": 354
+          },
+          "all_caption_lines_readable_reachable": true
+        },
+        {
+          "size": [
+            740,
+            360
+          ],
+          "branches": 12,
+          "native_gestures": true,
+          "panel": {
+            "x": 117.203125,
+            "y": 18,
+            "width": 606.796875,
+            "height": 324
+          },
+          "all_caption_lines_readable_reachable": true
+        },
+        {
+          "size": [
+            776,
+            540
+          ],
+          "branches": 12,
+          "native_gestures": true,
+          "panel": {
+            "x": 46.5625,
+            "y": 59.40625,
+            "width": 682.875,
+            "height": 421.1875
+          },
+          "all_caption_lines_readable_reachable": true
+        },
+        {
+          "size": [
+            1180,
+            820
+          ],
+          "branches": 12,
+          "native_gestures": true,
+          "panel": {
+            "x": 70.796875,
+            "y": 90.203125,
+            "width": 1038.390625,
+            "height": 639.59375
+          },
+          "all_caption_lines_readable_reachable": true
+        }
+      ],
+      "orientation": "native portrait/landscape transition passed",
+      "continuous_inventory": "native touch last row/equip/filters/materials/reopen passed",
+      "inactive_selected_border": "red",
+      "page_errors": []
+    },
+    {
+      "review": "narrow-final",
+      "report_sha256": "969b7bd9c1b1e672f491b95bd2de353bba8aff56f9e5503816fabc92a8df0576",
+      "views": [
+        {
+          "size": [
+            740,
+            360
+          ],
+          "branches": 12,
+          "native_gestures": true,
+          "panel": {
+            "x": 117.203125,
+            "y": 18,
+            "width": 606.796875,
+            "height": 324
+          },
+          "all_caption_lines_readable_reachable": true
+        }
+      ],
+      "orientation": "native portrait/landscape transition passed",
+      "continuous_inventory": null,
+      "inactive_selected_border": null,
+      "page_errors": []
+    }
+  ],
+  "final_narrow_correction_scope": "Final build; all12 branches, all5 stage tabs, portrait/landscape transition and node details. Inventory/red smoke belongs to earlier integrated run, unchanged by final narrow-only correction.",
+  "webkit_current_head": "Not run; no new baseline diagnosis or claim of resolved loading. Prior results are historical.",
+  "full_affected_browser_suites_this_followup": "Not repeated; parent monitors CI after push.",
+  "visual_inspection": "Opened exact final740 overview/detail and saved844/776/1180 overview. UI stable after imports; renderer paused for screenshots, no FPS claim.",
+  "page": {
+    "url": "https://chatgpt.com/space/page_558ff553da108191b4a28b72e5bac454",
+    "verified_sequence": 18,
+    "added_originals": 2,
+    "native_library_file_ids_available": false
+  },
+  "screenshots": [
+    {
+      "view": "overview",
+      "size": [
+        740,
+        360
+      ],
+      "quality": "high",
+      "orientation": "landscape",
+      "sha256": "73d2421668c0245dff07ede41b77ce24eafc6448ed29e520a0f41c0f7f802744",
+      "byte_size": 210769,
+      "captured_at_utc": "2026-10-09T07:10:49.283633+00:00",
+      "page_reference": "library-file:fde1_bGliZmlsZV9pNFZGQnlDSEFHOTVPNmlzQk10VktB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "page_open_verified": true
+    },
+    {
+      "view": "detail",
+      "size": [
+        740,
+        360
+      ],
+      "quality": "high",
+      "orientation": "landscape",
+      "sha256": "d7ad1f636bc66692995c01a5f2ed809e0c81d2f317a71932b1ba4cb5b417b41b",
+      "byte_size": 181076,
+      "captured_at_utc": "2026-10-09T07:10:41.703629+00:00",
+      "page_reference": "library-file:fde1_bGliZmlsZV85UHJadG4tc3B3SldYZ3huVWZzTVJB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+      "page_open_verified": true
+    }
+  ]
+}

@@ -8,14 +8,16 @@ import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
+import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
 import { enterMap, selectMap } from './maps.js';
 import { waypointUnlocked } from './atlas.js';
-import { buyConsumable, restoreAmount, consumableCount } from './consumables.js';
+import { buyConsumable, restoreAmount, consumableCount, automaticPotion } from './consumables.js';
 
 const PLAYER_RADIUS = 0.45;
+const POTION_GROUPS = ['hp', 'mp'];
 const PICKUP_RADIUS = 1.4;
 const MAGNET_RADIUS = 3.2;
 const INTERACT_RADIUS = 3.6;
@@ -144,6 +146,8 @@ export class Game {
   /** Re-derive stats after any character change (level, gear, skills, job tree). */
   refresh(full = false) {
     const p = this.player;
+    this.cancelCharge();
+    this.cancelChannel();
     const oldMax = { hp: p.maxHp || 1, mp: p.maxMp || 1 };
     this.derived = derive(this.ch, this.data);
     this.refreshSkills();
@@ -189,6 +193,8 @@ export class Game {
       nx = e.x;
       nz = e.z;
     }
+    const wall = wallBlocked(this, e, nx, nz);
+    if (wall) { nx=e.x; nz=e.z; res.blocked=true; if(e.kind==='monster'&&e.state==='chase'){e.wallTarget=wall.id;} }
     const wanted = Math.hypot(dx, dz);
     const got = Math.hypot(nx - e.x, nz - e.z);
     e.x = nx;
@@ -295,6 +301,7 @@ export class Game {
       vx: dir.x * o.speed,
       vz: dir.z * o.speed,
     };
+    pr.startX=pr.x; pr.startZ=pr.z;
     pr.ground = this.world.surfaceY(pr.x, pr.z);
     this.projectiles.push(pr);
     this.emit({ type: 'projectile', id: pr.id, kind: pr.kind, owner: pr.owner });
@@ -328,6 +335,7 @@ export class Game {
         kind: 'ally',
         team: 'player',
         type: sm.type,
+        effects: sm.effects, skill: s.id, tauntRadius:sm.tauntRadius, tauntInterval:sm.tauntInterval, tauntDuration:sm.tauntDuration,
         x: ax,
         z: az,
         r: 0.6,
@@ -378,9 +386,30 @@ export class Game {
   }
 
   /** Cast the skill in a slot. point: optional explicit ground point for area skills. */
-  castSlot(i, point = null) {
+  cancelCharge() {
+    if (!this.player?.charging) return;
+    this.player.charging = null;
+    this.emit({ type: 'chargeEnd' });
+  }
+
+  cancelChannel() { cancelChannel(this); }
+
+  commandAllies(command, targetId = null) { return commandAllies(this, command, targetId); }
+
+  releaseCharge(i, point = null) {
+    const c = this.player.charging;
+    if (!c || c.slot !== i) return false;
+    const ratio = Math.min(1, c.t / c.skill.charge.duration);
+    this.cancelCharge();
+    return this.castSlot(i, point, ratio);
+  }
+
+  castSlot(i, point = null, chargeRatio = null) {
     const p = this.player;
     if (p.dead) return false;
+    if (p.charging || p.channeling) return false;
+    const requested = this.skills[i];
+    if ((p.cast || p.dash) && (requested?.charge || requested?.channel || chargeRatio !== null)) return false;
     if (p.cast || p.dash) {
       p.queued = { slot: i, point, t: 0.35, manualAngle: this.input.manualAim && !this.input.aimFromPointer ? this.input.aimAngle : null };
       return false;
@@ -388,11 +417,12 @@ export class Game {
     const s = this.skills[i];
     if (!s) return false;
     if (!s.requirementsMet) {
-      this.emit({ type: 'fail', reason: s.weaponOk ? 'requires' : 'weapon', slot: i, need: s.def.requiresWeapon });
+      this.emit({ type: 'fail', reason: s.def.requiresOffhand&&this.derived.offhand!==s.def.requiresOffhand ? 'offhand' : s.weaponOk ? 'requires' : 'weapon', slot: i, need: s.def.requiresWeapon });
       return false;
     }
-    if (p.cooldowns[i] > 0) return false;
-    if (p.mp < s.cost) {
+    const counter = s.kind === 'counter_stance' && p.riposte?.skill.id === s.id && p.riposte.readyUntil > this.time;
+    if (p.cooldowns[i] > 0 && !counter) return false;
+    if (p.mp < (counter ? 0 : s.cost)) {
       this.emit({ type: 'fail', reason: 'mp', slot: i });
       return false;
     }
@@ -401,7 +431,14 @@ export class Game {
       this.emit({ type: 'fail', reason: 'arrows', slot: i });
       return false;
     }
-    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova'].includes(s.kind);
+    if (s.channel) { startChannel(this,s); return true; }
+    if (s.charge && chargeRatio === null) {
+      p.queued = null;
+      p.charging = { slot: i, t: 0, skill: s };
+      this.emit({ type: 'chargeStart', slot: i, skill: s.id, weapon: this.derived.weaponType, total: s.charge.duration });
+      return true;
+    }
+    const directional = ['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind);
     // Quick/tap attacks ignore facing and pick the closest enemy the skill can actually reach.
     // Pointer aim and touch drag are explicit overrides.
     if (!point && directional && !this.input.manualAim) {
@@ -413,7 +450,7 @@ export class Game {
     const aim = this.resolveAim(s, point);
     const clearOneShotManualAim = this.input.manualAim && !this.input.aimFromPointer;
     if (clearOneShotManualAim) this.input.manualAim = false;
-    p.mp -= s.cost;
+    p.mp -= counter ? 0 : s.cost;
     p.cooldowns[i] = s.cooldown;
     if (arrows) {
       const before = arrowInUse(this.ch, this.data);
@@ -425,7 +462,8 @@ export class Game {
     // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
     // so the announced animation and the swing always agree
     const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + s.castTime) : 0;
-    p.cast = { slot: i, t: 0, total: s.castTime, aim, skill: s, step };
+    const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
+    p.cast = { slot: i, t: 0, total: s.castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
     this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime, weapon: this.derived.weaponType, step });
     return true;
@@ -435,11 +473,11 @@ export class Game {
     const p = this.player;
     const t = this.target;
     let angle = this.input.aimFromPointer ? this.input.aimAngle : p.facing;
-    if (['melee_arc', 'projectile', 'chain', 'melee_nova'].includes(s.kind)) {
+    if (['melee_arc', 'projectile', 'chain', 'melee_nova', 'melee_line', 'channel_cone', 'counter_stance'].includes(s.kind)) {
       if (t && dist(p.x, p.z, t.x, t.z) - t.r <= s.range + 0.5) angle = angleTo(p.x, p.z, t.x, t.z);
       return { angle, x: p.x, z: p.z };
     }
-    if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'].includes(s.kind)) {
+    if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'].includes(s.kind)) {
       let pt = point || (this.input.aimFromPointer ? this.input.aimPoint : null);
       if (!pt) {
         if (s.kind === 'heal_zone') pt = { x: p.x, z: p.z };
@@ -466,6 +504,9 @@ export class Game {
     if (p.dead || p.dash) return false;
     if (p.movement.charges < 1) return false;
     const mv = this.move;
+    this.cancelCharge();
+    this.cancelChannel();
+    p.queued = null;
     p.cast = null;
     p.movement.charges -= 1;
     let angle;
@@ -546,10 +587,15 @@ export class Game {
 
   /** Drink the potion in quick slot `slot`: restores at once, then its group cools down. */
   useQuickItem(slot) {
-    const p = this.player, id = this.ch.quickItems?.[slot];
+    return this.useConsumable(this.ch.quickItems?.[slot]);
+  }
+
+  /** Manual and automatic use share stock, restore, group cooldown and death rules. */
+  useConsumable(id, { automatic = false } = {}) {
+    const p = this.player;
     const def = id && this.data.items.consumables.types[id];
     const fail = (reason) => {
-      if (reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
+      if (!automatic && reason !== 'empty' && reason !== 'dead') this.emit({ type: 'fail', reason: 'potion_' + reason, item: id });
       return { ok: false, reason };
     };
     if (!def) return fail('empty');
@@ -564,8 +610,20 @@ export class Game {
     this.ch.consumables[id]--;
     if (this.ch.consumables[id] <= 0) delete this.ch.consumables[id];
     p.itemCooldowns[def.group] = this.data.items.consumables.groupCooldown[def.group] || 0;
-    this.emit({ type: 'potion', id, group: def.group, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
+    this.emit({ type: 'potion', id, group: def.group, automatic, hp: Math.max(0, Math.round(hp)), mp: Math.max(0, Math.round(mp)), x: p.x, z: p.z });
     return { ok: true, hp, mp };
+  }
+
+  useAutomaticPotions() {
+    const p = this.player;
+    if (p.dead || this.travelled || this.autoPotionTime === this.time) return;
+    this.autoPotionTime = this.time;
+    for (const group of POTION_GROUPS) {
+      const choice = this.ch.autoPotions[group], max = group === 'hp' ? p.maxHp : p.maxMp;
+      if (!choice.enabled || !(max > 0) || p[group] >= max || p[group] * 100 > max * choice.threshold || (p.itemCooldowns[group] || 0) > 0) continue;
+      const id = automaticPotion(this.ch, this.data, group);
+      if (id) this.useConsumable(id, { automatic: true });
+    }
   }
 
   inCombat() {
@@ -770,11 +828,12 @@ export class Game {
   hitMonster(m, amount, opts = {}) {
     if (m.dead) return 0;
     const hpBefore = Math.max(0, m.hp);
-    let dmg = amount;
+    let dmg = adjustFrontierHit(this,m,amount,opts);
+    if(m.dead)return 0;
     const crit = opts.crit ?? false;
     if (crit) dmg *= this.derived.critMult;
     // Penetration ignores a share of the monster's defense.
-    const def = m.defense * (1 - (this.derived.penetrationPct || 0) / 100);
+    const def = m.defense * (1 - (m.statuses.exposure?.fraction || 0)) * (1 - (this.derived.penetrationPct || 0) / 100);
     if (!opts.dot) dmg *= 1 - def / (def + 60);
     if (m.shell) dmg *= m.def.attacks.shell.damageTaken;
     if (m.state === 'emerge') dmg *= m.def.attacks.shell.emergeDamageTaken;
@@ -788,8 +847,9 @@ export class Game {
     this.emit({ type: 'hit', id: m.id, amount: dmg, crit, heavy: !!opts.stagger, skill: opts.skill, attackKind: opts.attackKind, fromX: opts.fromX ?? this.player.x, fromZ: opts.fromZ ?? this.player.z, element: opts.element || 'physical', dot: !!opts.dot, shell: m.shell, byAlly: !!opts.byAlly, x: m.x, z: m.z });
     if (!opts.dot) {
       onMonsterHit(this, m, opts.by);
-      if (opts.chill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
-      if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0 };
+      if(!opts.byAlly&&!opts.secondary)this.player.lastHitTarget=m.id;
+      if (opts.chill&&!opts.consumedChill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
+      if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0, owner:'player' };
       const pc = this.derived.poisonChancePct / 100;
       if (pc > 0 && !opts.byAlly && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
       if (opts.knock && m.hp > 0) {
@@ -806,6 +866,8 @@ export class Game {
   }
 
   killMonster(m) {
+    if(m.dead)return;
+    spreadCurse(this,m);
     // Killed during a wind-up: the attack it was marking never comes, so its pending areas go too
     // (an attack already launched, like a boulder in flight, still lands).
     if (m.state === 'windup') {
@@ -868,7 +930,8 @@ export class Game {
 
   damageAlly(a, amount, source) {
     if (a.dead) return 0;
-    const dmg = Math.max(1, Math.round(amount * 0.85));
+    let dmg = Math.max(1, Math.round(amount * 0.85));
+    if(a.barrier>0){const absorbed=Math.min(a.barrier,dmg);a.barrier-=absorbed;dmg-=absorbed;if(a.barrier<=0)breakBarrier(this,a);}
     a.hp -= dmg;
     this.emit({ type: 'allyHit', id: a.id, amount: dmg, x: a.x, z: a.z });
     if (source && !source.dead && source.kind === 'monster') a.targetId = source.id;
@@ -884,8 +947,9 @@ export class Game {
       this.emit({ type: 'dodge', x: p.x, z: p.z });
       return 0;
     }
-    let dmg = amount * (1 - this.derived.defense / (this.derived.defense + 60)) * (1 + this.derived.damageTakenPct / 100);
-    let blocked = false;
+    const guard=applyGuard(this,amount,source,opts);
+    let dmg = (opts.dot?guard.amount:shareGuardDamage(this,guard.amount)) * (1 - this.derived.defense / (this.derived.defense + 60)) * (1 + this.derived.damageTakenPct / 100);
+    let blocked = guard.guarded;
     // A shield blocks hits from in front only; ground hazards (no source) are never blocked.
     if (this.derived.blockChance > 0 && source && source.x !== undefined && !opts.unblockable) {
       const rules = this.data.progression.combat.block;
@@ -903,11 +967,15 @@ export class Game {
       dmg -= absorbed;
       if (p.reflect > 0 && source && source.kind === 'monster' && !source.dead) this.hitMonster(source, absorbed * p.reflect + 4, { element: 'physical' });
     }
+    if(absorbed>0&&p.barrier<=0)breakBarrier(this,p);
     p.hp -= dmg;
+    if(blocked&&p.hp>0)this.fireTriggers('on_guard');
     p.hurtT = 0.25;
     this.emit({ type: 'playerHit', amount: dmg, absorbed, blocked, x: p.x, z: p.z });
     if (opts.poison) p.statuses.poison = { dps: opts.poison.dps, t: opts.poison.duration, acc: 0 };
     if (opts.knock && dmg > 0) {
+      this.cancelCharge();
+      this.cancelChannel();
       const d = dirFromAngle(opts.knock.angle);
       this.moveEntity(p, d.x * opts.knock.force * 0.3, d.z * opts.knock.force * 0.3);
     }
@@ -915,6 +983,9 @@ export class Game {
       p.hp = 0;
       p.dead = true;
       p.respawnT = 4;
+      this.cancelCharge();
+      this.cancelChannel();
+      p.auras={}; p.riposte=null;
       p.cast = null;
       p.dash = null;
       p.targetId = null;
@@ -939,7 +1010,7 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, exposure:s.exposure, interrupt:s.interrupt, taunt:s.taunt, modEffects:s.modEffects, ...extra };
   }
 
   /** The combo step (0, 1, 2 = finisher) a melee swing landing at time t would be. */
@@ -954,6 +1025,9 @@ export class Game {
     const p = this.player;
     mult *= this.playerDamageMult();
     const crit = () => this.rollCrit();
+    const effects=s.modEffects || {};
+    if(effects.advance && !triggered && repeat===0)this.moveEntity(p,Math.sin(aim.angle)*effects.advance,Math.cos(aim.angle)*effects.advance);
+    if(executeFrontier(this,s,aim,mult,triggered))return;
     switch (s.kind) {
       case 'melee_arc': {
         const arc = s.arc * DEG;
@@ -1053,6 +1127,7 @@ export class Game {
           this.emit({ type: 'chain', points, element: s.element });
           return;
         }
+        const first=cur;
         let dmg = s.damage * mult;
         for (let i = 0; i <= s.chain && cur; i++) {
           points.push([cur.x, cur.z]);
@@ -1073,6 +1148,7 @@ export class Game {
           }
           cur = next;
         }
+        if(effects.chainReturn && first && !first.dead){this.hitMonster(first,s.damage*mult*effects.chainReturn,this.hitOpts(s,{crit:crit()}));points.push([first.x,first.z]);}
         this.emit({ type: 'chain', points, element: s.element });
         return;
       }
@@ -1095,8 +1171,9 @@ export class Game {
         return;
       }
       case 'dot_zone': {
+        if(effects.followField)this.areas=this.areas.filter(a=>a.skill?.slot!==s.slot||!a.follow);
         const make = (delay, k) =>
-          this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay, duration: s.duration, tick: s.tick, damage: s.damage * mult * s.tick * k, element: s.element, slow: s.slow, dot: true });
+          this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay, duration: s.duration, tick: s.tick, damage: s.damage * mult * s.tick * k, element: s.element, slow: s.slow, dot: true, follow:!!effects.followField, dwell:new Map() });
         make(0, 1);
         if (s.echo) make(s.echo.delay, s.echo.mult);
         return;
@@ -1105,7 +1182,7 @@ export class Game {
         const curse = () => {
           for (const m of this.monsters) {
             if (m.dead || dist(aim.x, aim.z, m.x, m.z) - m.r > s.radius) continue;
-            m.statuses.hex = { t: s.duration, taken: s.takenMult, dealt: s.dealtMult };
+            m.statuses.hex = { t: Math.max(m.statuses.hex?.t||0,s.duration), taken: Math.max(m.statuses.hex?.taken||1,s.takenMult), dealt: Math.min(m.statuses.hex?.dealt||1,s.dealtMult), spread:effects.curseSpread||0 };
             setAggro(this, m, p);
           }
           this.emit({ type: 'curse', x: aim.x, z: aim.z, radius: s.radius });
@@ -1115,15 +1192,18 @@ export class Game {
         return;
       }
       case 'heal_zone': {
-        this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay: 0, duration: s.duration, tick: s.tick, heal: s.heal * mult * s.tick, element: 'none' });
+        if(effects.followField)this.areas=this.areas.filter(a=>a.skill?.slot!==s.slot||!a.follow);
+        this.spawnArea({ owner: 'player', kind: s.id, skill: s, x: aim.x, z: aim.z, radius: s.radius, delay: 0, duration: s.duration, tick: s.tick, heal: s.heal * mult * s.tick, element: 'none', follow:!!effects.followField });
         if (s.echo) this.spawnArea({ owner: 'player', kind: s.id, skill: s, echo: true, x: aim.x, z: aim.z, radius: s.radius, delay: s.echo.delay + s.duration * 0.5, duration: s.duration, tick: s.tick, heal: s.heal * mult * s.tick * s.echo.mult, element: 'none' });
         return;
       }
       case 'self_barrier': {
-        p.barrier = Math.max(p.barrier, s.barrier);
+        const barrier = s.barrier * (triggered ? s.trigger?.damageMult ?? 1 : 1);
+        p.barrier = Math.max(p.barrier, barrier);
         p.barrierT = s.duration;
         p.reflect = s.reflect;
-        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.hp = Math.min(a.maxHp, a.hp + s.barrier * 0.5);
+        p.barrierBreak=effects.barrierBreakKnock?{knock:effects.barrierBreakKnock,radius:effects.barrierBreakRadius}:null;
+        for (const a of this.allies) if (!a.dead && dist(a.x, a.z, p.x, p.z) < s.radius) a.hp = Math.min(a.maxHp, a.hp + barrier * 0.5);
         if (s.tauntRadius) for (const m of this.monsters) if (!m.dead && dist(p.x, p.z, m.x, m.z) < s.tauntRadius) setAggro(this, m, p, true);
         this.emit({ type: 'ward', x: p.x, z: p.z, amount: Math.round(p.barrier), reflect: s.reflect > 0, radius: s.radius });
         return;
@@ -1149,7 +1229,8 @@ export class Game {
 
   // ---------- update ----------
 
-  update(dt) {
+  update(dt, { paused = false, allowAutoPotions = true } = {}) {
+    if (paused) return;
     dt = Math.min(dt, 0.05);
     this.time += dt;
     this.ch.progress.playTime = (this.ch.progress.playTime || 0) + dt;
@@ -1164,6 +1245,7 @@ export class Game {
     });
     for (const fn of due) fn();
     if (this.travelled) return; // the character belongs to the next map: the old one stops
+    tickFrontier(this,dt);
     this.updatePlayer(dt);
     if (this.travelled) return; // crossed this frame: no world checks against the old map
     const p = this.player;
@@ -1185,6 +1267,7 @@ export class Game {
     this.updateAreas(dt);
     this.updateDrops(dt);
     this.updateRespawns();
+    if (dt > 0 && allowAutoPotions) this.useAutomaticPotions();
     this.checkT -= dt;
     if (this.checkT <= 0) {
       this.checkT = 0.25;
@@ -1256,7 +1339,7 @@ export class Game {
     p.hurtT = Math.max(0, p.hurtT - dt);
     const inTown = this.isSafe(p.x, p.z);
     p.hp = Math.min(p.maxHp, p.hp + (this.derived.hpRegen + (inTown ? p.maxHp * 0.08 : 0)) * dt);
-    p.mp = Math.min(p.maxMp, p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
+    p.mp = Math.min(manaLimit(this), p.mp + (this.derived.mpRegen + (inTown ? p.maxMp * 0.08 : 0)) * dt);
     for (const k in p.itemCooldowns) p.itemCooldowns[k] = Math.max(0, p.itemCooldowns[k] - dt);
     for (let i = 0; i < p.cooldowns.length; i++) {
       p.cooldowns[i] = Math.max(0, p.cooldowns[i] - dt);
@@ -1309,7 +1392,7 @@ export class Game {
     const mlen = Math.hypot(mx, mz);
     const chill = p.statuses.chill ? 1 - p.statuses.chill.slow : 1;
     const haste = p.buffs.war_cry ? 1 + p.buffs.war_cry.speed : 1;
-    const speed = this.derived.moveSpeed * (p.cast ? 0.4 : 1) * chill * haste;
+    const speed = this.derived.moveSpeed * (p.charging ? p.charging.skill.charge.moveMult : p.channeling ? p.channeling.skill.channel.moveMult : p.cast ? 0.4 : 1) * chill * haste;
     p.moving = mlen > 0.08;
     if (p.moving) {
       this.moveEntity(p, mx * speed * dt, mz * speed * dt, {allowSeams:true});
@@ -1323,7 +1406,7 @@ export class Game {
         }
         if (crossed.ok) return;
       }
-      if (!p.cast) {
+      if (!p.cast && !p.charging && !p.channeling) {
         const a = Math.atan2(mx, mz);
         p.facing += clamp(angleDiff(p.facing, a), -14 * dt, 14 * dt);
       }
@@ -1335,7 +1418,16 @@ export class Game {
     p.targetId = softTarget(p, this.monsters, aimAngle, this.acquireRange, { preferNearest: !this.input.manualAim });
     if (prev !== p.targetId) this.emit({ type: 'target', id: p.targetId });
 
+    if (p.charging) {
+      const c = p.charging;
+      if (!this.skills[c.slot]?.requirementsMet || this.skills[c.slot].id !== c.skill.id) this.cancelCharge();
+      else {
+        c.t = Math.min(c.skill.charge.duration, c.t + dt);
+        p.facing = this.resolveAim(c.skill, null).angle;
+      }
+    }
     if (p.cast) {
+      if(p.cast.skill.aimDuringCast)p.cast.aim=this.resolveAim(p.cast.skill,null);
       p.cast.t += dt;
       p.facing = p.cast.aim.angle;
       if (p.cast.t >= p.cast.total) {
@@ -1357,18 +1449,21 @@ export class Game {
   fireTriggers(on) {
     const p = this.player;
     this.skills.forEach((s, i) => {
-      if (!s || !s.trigger || s.trigger.on !== on || p.triggerCd[i] > 0) return;
+      if (!s || !s.requirementsMet || !s.trigger || s.trigger.on !== on || p.triggerCd[i] > 0 || this.triggering) return;
+      if(s.trigger.cost&&p.mp<s.cost)return;
       p.triggerCd[i] = s.trigger.icd;
       let aim;
-      if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone'].includes(s.kind)) aim = { angle: p.facing, x: p.x, z: p.z };
+      if (['ground_area', 'heal_zone', 'dot_zone', 'curse_zone', 'wall'].includes(s.kind)) aim = { angle: p.facing, x: p.x, z: p.z };
       else aim = this.resolveAim(s, null);
       this.emit({ type: 'trigger', slot: i, skill: s.id });
-      this.executeSkill(s, aim, { mult: s.trigger.damageMult, triggered: true });
+      if(s.trigger.cost)p.mp-=s.cost;
+      this.triggering=true;
+      try {this.executeSkill(s, aim, { mult: s.trigger.damageMult, triggered: true });} finally {this.triggering=false;}
     });
   }
 
   tickStatuses(m, dt) {
-    for (const k of ['burn', 'poison']) {
+    for (const k of ['burn', 'poison','bleed']) {
       const st = m.statuses[k];
       if (!st) continue;
       st.t -= dt;
@@ -1376,7 +1471,7 @@ export class Game {
       if (st.acc >= 3 || (st.t <= 0 && st.acc >= 1)) {
         const n = Math.floor(st.acc);
         st.acc -= n;
-        this.hitMonster(m, n, { dot: true, element: k === 'burn' ? 'fire' : 'poison' });
+        this.hitMonster(m, n, { dot: true, element: k === 'burn' ? 'fire' : k === 'bleed' ? 'physical' : 'poison' });
       }
       if (st.t <= 0) delete m.statuses[k];
     }
@@ -1429,15 +1524,20 @@ export class Game {
       }
       keep.push(a);
       // pick a target: what we are fighting, else the player's target, else something threatening the player
+      if(a.command==='follow'){a.targetId=null;}
+      if(a.command!=='attack'&&a.effects?.focusTarget&&p.lastHitTarget!==a.focusId){a.focusId=p.lastHitTarget;a.focusReady=this.time+a.effects.focusSwitchDelay;a.targetId=null;}
       let t = a.targetId ? this.monsterById(a.targetId) : null;
+      if(a.command!=='attack'&&a.effects?.focusTarget){const focused=this.monsterById(a.focusId);t=this.time>=a.focusReady&&focused&&!focused.dead?focused:null;}
+      const commandFollow=a.command==='follow'||a.command!=='attack'&&a.effects?.focusTarget&&this.time<a.focusReady;
+      if(commandFollow)t=null;else if(t)a.targetId=t.id;
       if (!t || t.dead || dist(t.x, t.z, p.x, p.z) > 16) {
         t = null;
-        const pt = this.target;
+        const pt = commandFollow ? null : this.target;
         if (pt && dist(pt.x, pt.z, a.x, a.z) < 12) t = pt;
         else {
           let bd = 9;
           for (const m of this.monsters) {
-            if (m.dead || !m.aggro) continue;
+            if (commandFollow || m.dead || !m.aggro) continue;
             const d = dist(m.x, m.z, a.x, a.z);
             if (d < bd && dist(m.x, m.z, p.x, p.z) < 14) {
               bd = d;
@@ -1453,8 +1553,8 @@ export class Game {
           const tt = this.monsterById(a.targetId);
           if (tt && !tt.dead && dist(a.x, a.z, tt.x, tt.z) - tt.r - a.r < a.range + 0.5) {
             const k = a.buffs.war_cry ? 1 + a.buffs.war_cry.damage : 1;
-            this.hitMonster(tt, a.damage * k, { element: 'physical', by: a, byAlly: true, skill: 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
-            this.emit({ type: 'allyStrike', skill: 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
+            this.hitMonster(tt, a.damage * k * (a.focusId===tt.id ? 1+(a.effects?.focusTarget||0):1), { element: 'physical', by: a, byAlly: true, skill: a.skill || 'spirit_wolf', attackKind: 'summon', fromX: a.x, fromZ: a.z });
+            this.emit({ type: 'allyStrike', skill: a.skill || 'spirit_wolf', x: tt.x, z: tt.z, fromX: a.x, fromZ: a.z });
           }
           a.cd = a.attackCooldown;
           a.state = 'recover';
@@ -1599,6 +1699,7 @@ export class Game {
           }
         }
       }
+      if(dead && pr.owner==='player' && endProjectile(this,pr))dead=false;
       if (dead) this.emit({ type: 'projectileEnd', id: pr.id });
       else keep.push(pr);
     }
@@ -1613,6 +1714,8 @@ export class Game {
   updateAreas(dt) {
     const keep = [];
     for (const a of this.areas) {
+      if(a.wallHp!==undefined){a.t+=dt;if(a.wallHp>0&&a.t<a.duration)keep.push(a);else this.emit({type:'areaEnd',id:a.id});continue;}
+      if(a.follow){if(this.player.dead)continue;a.x=this.player.x;a.z=this.player.z;}
       a.t += dt;
       if (a.t < a.delay) {
         keep.push(a);
@@ -1635,11 +1738,14 @@ export class Game {
             for (const u of this.units()) if (dist(a.x, a.z, u.x, u.z) <= a.radius + u.r) this.damageUnit(u, a.damage, this.monsterById(a.sourceId), { dot: true });
           } else if (a.heal) {
             const p = this.player;
-            if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) this.healPlayer(a.heal);
-            for (const al of this.allies) if (dist(a.x, a.z, al.x, al.z) <= a.radius + al.r) al.hp = Math.min(al.maxHp, al.hp + a.heal);
+            if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) healUnit(this,this.player,a.heal,a.skill);
+            for (const al of this.allies) if (dist(a.x, a.z, al.x, al.z) <= a.radius + al.r) healUnit(this,al,a.heal,a.skill);
           } else if (a.damage) {
+            if(a.dwell)for(const id of a.dwell.keys()){const q=this.monsterById(id);if(!q||q.dead||dist(a.x,a.z,q.x,q.z)>a.radius+q.r)a.dwell.delete(id);}
             for (const m of this.monsters) {
               if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
+              const ramp=a.skill?.modEffects?.rampSlow;
+              if(ramp){const dwell=(a.dwell.get(m.id)||0)+a.tick;a.dwell.set(m.id,dwell);m.statuses.chill={slow:Math.max(m.statuses.chill?.slow||0,(a.slow||0)+(ramp-(a.slow||0))*Math.min(1,dwell/a.skill.modEffects.rampTime)),t:.6};}
               if (a.slow) m.statuses.chill = { slow: Math.max(a.slow, m.statuses.chill?.slow || 0), t: Math.max(0.6, m.statuses.chill?.t || 0) };
               this.hitMonster(m, a.damage, { dot: true, element: a.element });
             }

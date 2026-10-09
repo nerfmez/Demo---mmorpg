@@ -7,13 +7,13 @@ import * as THREE from 'three';
 import {disposeObject} from '../../src/render/dispose.js';
 
 const source = readFileSync(process.env.PORTRAIT_SOURCE || new URL('../../src/render/view.js', import.meta.url), 'utf8');
-const method = source.slice(source.indexOf('  portrait('), source.lastIndexOf('\n}')).trim();
+const method = source.slice(source.indexOf('  async portrait('), source.lastIndexOf('\n}')).trim();
 
-function harness(fault) {
+function harness(fault, deferred = false) {
   const freed = {target: 0, geometry: 0, material: 0, scarf: 0};
   const previous = new THREE.WebGLRenderTarget(64, 64);
   const primary = new TypeError(`controlled ${fault} failure`);
-  let image, createdTarget;
+  let image, createdTarget, finishRead;
   const dependencies = {...THREE, WebGLRenderTarget: class extends THREE.WebGLRenderTarget {
     constructor(...args) {
       super(...args); createdTarget = this;
@@ -37,9 +37,11 @@ function harness(fault) {
     getActiveCubeFace() { return this.face; },
     getActiveMipmapLevel() { return this.mip; },
     setRenderTarget(target, face = 0, mip = 0) { this.target = target; this.face = face; this.mip = mip; },
+    async compileAsync() { if (fault === 'compile') throw primary; },
     render() { if (fault === 'render') throw primary; },
-    readRenderTargetPixels(target, x, y, width, height, pixels) {
+    async readRenderTargetPixelsAsync(target, x, y, width, height, pixels) {
       if (fault === 'readback') throw primary;
+      if (deferred) await new Promise(r => finishRead = r);
       for (let i = 0; i < pixels.length; i++) pixels[i] = i;
     }
   };
@@ -50,7 +52,7 @@ function harness(fault) {
     }; },
     toDataURL() { if (fault === 'encode') throw primary; return 'data:image/png;stub'; }
   };
-  const portrait = Function('THREE', 'buildHumanoid', 'disposeObject', 'document', `return function ${method};`)(dependencies, buildHumanoid, disposeObject, {createElement: () => canvas});
+  const portrait = Function('THREE', 'buildHumanoid', 'disposeObject', 'document', `return class { ${method} }.prototype.portrait;`)(dependencies, buildHumanoid, disposeObject, {createElement: () => canvas});
   const run = () => portrait.call({renderer}, {}, {}, 2);
   const assertRestored = () => {
     assert.equal(renderer.target, previous, 'return the borrowed renderer to its caller');
@@ -61,20 +63,29 @@ function harness(fault) {
     assert.equal(createdTarget.texture.colorSpace, THREE.SRGBColorSpace);
     previous.dispose();
   };
-  return {run, assertRestored, primary, image: () => image};
+  return {run, assertRestored, primary, renderer, previous, freed, finish:()=>finishRead(), image: () => image};
 }
 
-for (const fault of ['build', 'render', 'readback', 'encode']) {
-  test(`portrait restores its borrowed target and frees owned resources after ${fault} failure`, () => {
+for (const fault of ['build', 'compile', 'render', 'readback', 'encode']) {
+  test(`portrait restores its borrowed target and frees owned resources after ${fault} failure`, async () => {
     const h = harness(fault);
-    assert.throws(h.run, error => error === h.primary, 'keep the original failure visible to the caller');
+    await assert.rejects(h.run, error => error === h.primary, 'keep the original failure visible to the caller');
     h.assertRestored();
   });
 }
 
-test('successful portrait preserves pixel row flipping and target ownership', () => {
+test('successful portrait preserves pixel row flipping and target ownership', async () => {
   const h = harness();
-  assert.equal(h.run(), 'data:image/png;stub');
+  assert.equal(await h.run(), 'data:image/png;stub');
   assert.deepEqual(Array.from(h.image()), [8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7]);
   h.assertRestored();
+});
+test('pending GPU readback gives the renderer back immediately and never overwrites later frame state',async()=>{
+ const h=harness(null,true),pending=h.run();await Promise.resolve();
+ assert.equal(h.renderer.target,h.previous);assert.equal(h.freed.target,0,'readback still owns target');
+ const newer=new THREE.WebGLRenderTarget(32,32);h.renderer.setRenderTarget(newer,3,2);
+ h.finish();await pending;
+ assert.equal(h.renderer.target,newer);assert.equal(h.renderer.face,3);assert.equal(h.renderer.mip,2);
+ assert.equal(h.freed.target,1);assert.deepEqual([h.freed.geometry,h.freed.material,h.freed.scarf],[1,1,1]);
+ newer.dispose();h.previous.dispose();
 });

@@ -1,12 +1,13 @@
 // One vocabulary for native skill tags and the rules enforced by core/skills.js.
 import { modFits, modSlotOf, modRequires } from '../core/skills.js';
+import MODS from '../../data/mods.json' with {type:'json'};
 import { meetsRequires } from '../core/character.js';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const TAGS = {
   Attack:'โจมตี',Spell:'เวท',Melee:'ประชิด',Projectile:'กระสุน',Area:'วงกว้าง',Damage:'ทำดาเมจ',
   DoT:'ดาเมจต่อเนื่อง',Persistent:'พื้นที่คงอยู่',Chain:'เด้งต่อ',Control:'ควบคุม',Debuff:'ดีบัฟ',
   Curse:'คำสาป',Guard:'เกราะ/การ์ด',Buff:'บัฟ',Warcry:'คำราม',Heal:'ฟื้นฟู',Summon:'อัญเชิญ',
-  Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
+  Physical:'กายภาพ',Counter:'สวนกลับ',Line:'แนวตรง',Rain:'ยิงระลอก',Channel:'ร่ายต่อเนื่อง',Cone:'กรวย',Construct:'สิ่งสร้าง',Target:'เป้าหมาย',Cleanse:'ล้างสถานะ',Aura:'ออร่า',Charge:'ชาร์จ',Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
   Fire:'ไฟ',Earth:'ดิน',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',
 };
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};
@@ -23,6 +24,9 @@ export function modRules(mod) {
   if(mod.requiresAll?.length) rules.push('ต้องมีครบ: '+mod.requiresAll.map(name).join(' + '));
   if(mod.requiresAny?.length) rules.push('และมีอย่างน้อยหนึ่ง: '+mod.requiresAny.map(name).join(' / '));
   if(mod.excludes?.length) rules.push('ใช้ไม่ได้กับ: '+mod.excludes.map(name).join(' / '));
+  if(mod.requiresKinds)rules.push('รูปแบบที่รองรับ: '+mod.requiresKinds.map(k=>({projectile:'กระสุน',chain:'เด้ง',melee_arc:'ฟันวง',melee_line:'ฟันแนว',melee_nova:'หมุนฟัน',nova:'ระเบิดรอบตัว',ground_area:'พื้นที่กระแทก',heal_zone:'พื้นที่ฮีล',dot_zone:'พื้นที่ดาเมจต่อเนื่อง',heal_target:'ฮีลเป้าหมาย',self_barrier:'เกราะ',curse_zone:'คำสาป',summon:'อัญเชิญ',buff:'บัฟ'}[k]||k)).join(' / '));
+  if(mod.requiresElement)rules.push('ต้องเป็นธาตุ '+ELEMENTS[mod.requiresElement]+' หรือมีม็อดเปลี่ยนธาตุที่ใช้งานได้');
+  if(mod.conflicts)rules.push('ใช้ร่วมกับม็อดนี้ไม่ได้: '+mod.conflicts.map(id=>MODS.mods[id]?.nameTh||id).join(' / '));
   if(mod.requiresPersistent) rules.push('ต้องมีพื้นที่คงอยู่: บึงพิษ / น้ำพุฟื้นฟู หรือใส่ทิ้งไฟบนพื้นก่อน');
   return rules.length?rules:['ไม่จำกัดประเภทสกิล'];
 }
@@ -31,6 +35,9 @@ export function rulesHtml(mod) {
 }
 export function fitReason(fit) {
   if(fit.ok)return 'ประเภทตรงกัน';
+  if(fit.reason==='delivery')return 'รูปแบบการร่ายไม่รองรับม็อดนี้';
+  if(fit.reason==='conflict')return 'มีม็อดที่ใช้ร่วมกันไม่ได้ · ถอดม็อดนั้นก่อน';
+  if(fit.reason==='element')return 'ต้องเป็นธาตุน้ำแข็ง หรือใส่เปลี่ยนเป็นน้ำแข็งร่วมกัน';
   if(fit.reason==='needs_persistent')return 'ต้องมีพื้นที่คงอยู่ หรือใส่ทิ้งไฟบนพื้นก่อน';
   const [prefix,raw='']=fit.reason.split(' for ').length>1?['not',fit.reason.slice(8)]:['needs',fit.reason.replace(/^needs /,'')];
   return (prefix==='not'?'ห้ามใช้กับ ':'ขาดประเภท ')+raw.split(/([+/])/).map(x=>x==='+'?' + ':x==='/'?' หรือ ':TAGS[x]||x).join('');

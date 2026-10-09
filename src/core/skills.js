@@ -2,6 +2,7 @@
 // character's derived stats into one flat description that the simulation executes.
 
 import { meetsRequires } from './character.js';
+import { compileFrontier } from './frontier-content.js';
 
 export function skillDef(data, id) {
   return data.skills.combat[id] || null;
@@ -12,7 +13,8 @@ export function movementDef(data, id) {
 }
 
 export function modDef(data, id) {
-  return data.mods.mods[id] || null;
+  const def = data.mods.mods[id];
+  return def ? { ...def, id } : null;
 }
 
 /** Does this mod fit this skill? Returns {ok, reason}. */
@@ -27,6 +29,9 @@ const ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison'];
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
   const tags = skill.tags || [];
+  if (mod.requiresKinds && !mod.requiresKinds.includes(skill.kind)) return { ok:false, reason:'delivery' };
+  if (companions.some(c => c !== mod && ((mod.conflicts || []).includes(c.id) || (c.conflicts || []).includes(mod.id)))) return { ok:false, reason:'conflict' };
+  if (mod.requiresElement && skill.element !== mod.requiresElement && !companions.some(c => c.effect?.element === mod.requiresElement && modFits(skill,c).ok)) return {ok:false,reason:'element'};
   if (mod.requiresPersistent && !['dot_zone', 'heal_zone'].includes(skill.kind) && !companions.some(m => m?.effect?.groundDps && modFits(skill, m).ok))
     return { ok: false, reason: 'needs_persistent' };
   if (mod.requiresAll && !mod.requiresAll.every((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAll.join('+')}` };
@@ -53,6 +58,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     id: slot.skill,
     slot: slotIndex,
     def,
+    charge: def.charge ? { ...def.charge } : null,
     kind: def.kind,
     tags,
     level,
@@ -87,11 +93,11 @@ export function computeSkill(ch, data, derived, slotIndex) {
     repeats: 0,
     repeatMult: 0,
     repeatDelay: 0,
-    knock: 0,
+    knock: def.knock || 0,
     leech: derived.leechPct || 0,
     // Some skills need a weapon type in the right hand (requiresWeapon); stats and weapon both gate the cast.
-    weaponOk: !def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType),
-    requirementsMet: meetsRequires(ch, def.requires).ok && (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)),
+    weaponOk: (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)) && (!def.requiresOffhand || derived.offhand === def.requiresOffhand),
+    requirementsMet: meetsRequires(ch, def.requires).ok && (!def.requiresWeapon || def.requiresWeapon.includes(derived.weaponType)) && (!def.requiresOffhand || derived.offhand === def.requiresOffhand),
     mods: [],
   };
 
@@ -138,6 +144,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   const companionMods = slot.mods.map(uid => ch.mods.find(m => m.uid === uid)).filter(i => i && modDef(data, i.id))
     .filter(i => meetsRequires(ch, modRequires(data, modDef(data, i.id), i.level || 1)).ok).map(i => modDef(data, i.id));
   let radiusMult = 1;
+  const activeMods = [];
   for (const uid of slot.mods) {
     const inst = ch.mods.find((m) => m.uid === uid);
     if (!inst) continue;
@@ -149,6 +156,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
     const active = fit.ok && meetsRequires(ch, modRequires(data, m, L)).ok;
     s.mods.push({ id: inst.id, level: L, active, reason: fit.ok ? (active ? null : 'requires') : fit.reason });
     if (!active) continue; // socketed but inactive until stats are met
+    activeMods.push({mod:m,level:L});
     for (const t of m.tags) tags.add(t);
     if (e.extraProjectiles) {
       s.projectiles += lv(e.extraProjectiles, L);
@@ -215,6 +223,7 @@ export function computeSkill(ch, data, derived, slotIndex) {
   if (s.kind === 'curse_zone') s.duration *= control;
   s.arc = Math.min(s.arc, 360);
   s.leech = Math.min(s.leech, data.progression.character.caps.leechPct);
+  compileFrontier(s, def, activeMods);
   if (s.damage !== undefined) s.damage *= s.damageMult;
   return s;
 }
@@ -224,6 +233,7 @@ export function movementSkill(ch, data, derived) {
   const out = {
     id: ch.movement || 'dash', // none yet during the opening: the button shows the default
     def,
+    charge: def.charge ? { ...def.charge } : null,
     kind: def.kind,
     distance: def.distance,
     duration: def.duration,
@@ -231,6 +241,16 @@ export function movementSkill(ch, data, derived) {
     recharge: def.recharge * (1 - (derived.cooldownPct + (derived.movementRechargePct || 0)) / 100),
     invulnerable: def.invulnerable,
   };
+  out.mods = [];
+  for (const uid of ch.movementMods || []) {
+    const inst = ch.mods.find(m => m.uid === uid), mod = inst && modDef(data, inst.id);
+    if (!mod) continue;
+    const active = modFits(def, mod).ok && meetsRequires(ch, modRequires(data, mod, inst.level || 1)).ok;
+    out.mods.push({ id: inst.id, uid, active });
+    if (!active) continue;
+    out.distance *= mod.effect.movementDistanceMult || 1;
+    out.charges += mod.effect.movementCharges || 0;
+  }
   if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };
   return out;
 }
@@ -257,8 +277,23 @@ export function equipSkill(ch, data, slotIndex, skillId) {
   return { ok: true };
 }
 
+// -1 = unassigned, -2 = the dedicated movement slot.
+export const MOVEMENT_SLOT = -2;
 export function modSlotOf(ch, uid) {
-  return ch.slots.findIndex((s) => s.mods.includes(uid));
+  return (ch.movementMods || []).includes(uid) ? MOVEMENT_SLOT : ch.slots.findIndex((s) => s.mods.includes(uid));
+}
+
+export function socketMovementMod(ch, data, uid) {
+  const inst = ch.mods.find(m => m.uid === uid);
+  if (!inst) return { ok: false, reason: 'no_mod' };
+  const fit = modFits(movementDef(data, ch.movement), modDef(data, inst.id));
+  if (!fit.ok) return { ok: false, reason: fit.reason };
+  if ((ch.movementMods || []).includes(uid)) return { ok: false, reason: 'duplicate' };
+  if ((ch.movementMods || []).length >= data.mods.maxMovementMods) return { ok: false, reason: 'full' };
+  unsocketMod(ch, uid);
+  (ch.movementMods ||= []).push(uid);
+  if (ch.progress) ch.progress.socketed = (ch.progress.socketed || 0) + 1;
+  return { ok: true };
 }
 
 export function socketMod(ch, data, slotIndex, uid) {
@@ -271,13 +306,14 @@ export function socketMod(ch, data, slotIndex, uid) {
   if (slot.mods.some((u) => ch.mods.find((m) => m.uid === u)?.id === inst.id)) return { ok: false, reason: 'duplicate' };
   if (slot.mods.length >= data.mods.maxModsPerSkill) return { ok: false, reason: 'full' };
   const from = modSlotOf(ch, uid);
-  if (from >= 0) ch.slots[from].mods = ch.slots[from].mods.filter((u) => u !== uid);
+  if (from !== -1) unsocketMod(ch, uid);
   slot.mods.push(uid);
   if (ch.progress) ch.progress.socketed = (ch.progress.socketed || 0) + 1;
   return { ok: true };
 }
 
 export function unsocketMod(ch, uid) {
+  ch.movementMods = (ch.movementMods || []).filter(u => u !== uid);
   for (const s of ch.slots) s.mods = s.mods.filter((u) => u !== uid);
 }
 

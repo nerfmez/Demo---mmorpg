@@ -2,7 +2,7 @@
 // Shapes follow the gameplay hit areas (arc, radius, path), so what you see is what hits.
 // Everything is placed on the terrain; flat shapes are ground-hugging decals.
 import * as THREE from 'three';
-import { groundDust } from './ground-dust.js';
+import { groundDust, groundDustVolume } from './ground-dust.js';
 import { soundPulse } from './sound-pulse.js';
 import { disposeObject } from './dispose.js';
 import { Particles } from './particles.js';
@@ -16,7 +16,8 @@ import { flameMesh as legacyFlameMesh, FlameParticles } from './firebolt.js';
 import { v5FlameMesh } from './fireball-v5.js';
 import { frostMesh } from './frost-v2.js';
 import { approvedMesh } from './approved-mesh-clips.js';
-import { poseEcho, echoOpacity } from './pose-echo.js';
+import { PoseEchoPool, echoOpacity } from './pose-echo.js';
+import { EffectPool } from './effect-pool.js';
 import { artSurface, healingMaterial, plusGeometry, keys, faceGameCamera } from './authored-surfaces.js';
 import { cutRibbon, approvedCut, ContactShards } from './melee.js';
 import { arrowStreak, rockGeometry, RockChips } from './physical.js';
@@ -217,6 +218,7 @@ export class Vfx {
     this.fx = new Particles(3200, { additive: true });
     this.dust = new Particles(900, { additive: false });
     scene.add(this.fx.points, this.dust.points);
+    this.movementPools = new Map();
     this.active = []; // {obj, t, dur, update(k), keep?}
     this.projectiles = new Map();
     this.areas = new Map();
@@ -304,9 +306,9 @@ export class Vfx {
     this.dust.uniforms.uScale.value = h * 0.9;
   }
 
-  spawn(obj, dur, update) {
+  spawn(obj, dur, update, release = null) {
     this.scene.add(obj);
-    this.active.push({ obj, t: 0, dur, update });
+    this.active.push({ obj, t: 0, dur, update, release });
   }
 
   sprite(color, size, opacity = 1) {
@@ -333,7 +335,7 @@ export class Vfx {
       const mesh=frostMesh(4.2,true);mesh.visible=false;this.scene.add(mesh);
       this.castFrost={mesh,t:0,dur:e.total};return;
     }
-    if (e.skill === 'hunter_shot') {
+    if ((e.skill === 'hunter_shot' || e.skill === 'charged_shot')) {
       const cfg = this.config.skills.hunter_shot, f = cfg.cast, mesh = arrowStreak(cfg);
       mesh.material.uniforms.uLength.value = f.length; mesh.material.uniforms.uWidth.value = f.width;
       mesh.material.uniforms.uOpacity.value = f.opacity; mesh.visible = false; this.scene.add(mesh);
@@ -576,9 +578,8 @@ export class Vfx {
 
   /** A monster's melee strike lands. Each attack has its own look (data/combat-fx.json 'monsters'). */
   monsterSwing(e) {
-    const base = this.config.monsters[e.name];
-    if (!base) return this.genericSwing(e);
-    const f = { ...base, ...(this.config.overrides[`${e.type}.${e.name}`] || {}) };
+    const f = this.monsterLook(e.type, e.name);
+    if (!f) return this.genericSwing(e);
     const S = f.scale ?? 1;
     const dx = Math.sin(e.angle);
     const dz = Math.cos(e.angle);
@@ -621,38 +622,11 @@ export class Vfx {
         const a = e.angle + Math.PI + (Math.random() - 0.5) * 2.2;
         this.dust.add(e.x + dx * L * 0.5, y, e.z + dz * L * 0.5, Math.sin(a) * 1.2, 0.8 + Math.random() * 0.8, Math.cos(a) * 1.2, { color: 0xf4efe0, size: 0.2, life: 0.8, gravity: 1.6, drag: 1.4 });
       }
-    } else if (f.kind === 'snap' || f.kind === 'fangs') {
-      // two jaws close on the spot that was hit (claws, or fangs above and below)
-      const fangs = f.kind === 'fangs';
-      const rj = (fangs ? 0.52 : 0.58) * S;
-      const th = (fangs ? 0.1 : 0.15) * S;
-      const jawArc = ((fangs ? 150 : 115) * Math.PI) / 180;
-      const rx = Math.cos(e.angle);
-      const rz = -Math.sin(e.angle);
-      const jaws = [1, -1].map((side) => {
-        const m = new THREE.Mesh(sectorGeometry(rj - th, rj, jawArc, 16), slashMaterial(f.color, side < 0));
-        m.rotation.y = e.angle - (side * Math.PI) / 2;
-        m.renderOrder = 6;
-        return { m, side };
-      });
-      const group = new THREE.Group();
-      for (const j of jaws) group.add(j.m);
-      group.position.set(px, y, pz);
-      this.spawn(group, f.dur, (t) => {
-        const d = (0.7 - 0.58 * Math.min(1, t / 0.45)) * S;
-        for (const j of jaws) {
-          j.m.position.set(rx * d * j.side, fangs ? j.side * 0.14 * S : 0, rz * d * j.side);
-          j.m.material.uniforms.uT.value = t;
-        }
-      });
-      this.fx.burst(px, y, pz, f.sparks, { color: f.color, size: 0.22, speed: 3.2, life: 0.3, up: 0.4 });
-      const flash = this.sprite(f.core, 0.45, 0.7);
-      flash.position.set(px, y, pz);
-      this.spawn(flash, 0.14, (t) => {
-        flash.material.opacity = 0.7 * (1 - t);
-        flash.scale.setScalar(0.4 + t * 0.4);
-      });
-      if (!fangs) this.ring(px, pz, 0.55 * S, f.color, 0.2);
+    } else if (f.kind === 'claw' || f.kind === 'fangs' || f.kind === 'pincer') {
+      // the strike itself is the trail from the monster's own claws/jaws (monster-trails.js);
+      // where it lands, a small contact burst on the body that was hit
+      const [sx, sz] = e.at || [px, pz];
+      this.strikeContact(e, f, sx, sz, this.gy(sx, sz) + f.height);
     } else {
       // a heavy sweep: one wide dark-red band with dust kicked along the edge of the area
       const m = new THREE.Mesh(sectorGeometry(e.range * 0.74, e.range, arc, 32), slashMaterial(f.color));
@@ -667,6 +641,33 @@ export class Vfx {
     }
   }
 
+  /** Merged look of a monster attack (data + per-monster override); one object per pair. */
+  monsterLook(type, name) {
+    const key = `${type}.${name}`;
+    this.looks ??= new Map();
+    if (!this.looks.has(key)) {
+      const base = this.config.monsters[name];
+      this.looks.set(key, base ? { ...base, ...(this.config.overrides[key] || {}) } : null);
+    }
+    return this.looks.get(key);
+  }
+
+  /** Contact of a claw/fang/pincer strike: a quick bright burst and a few chips or droplets. */
+  strikeContact(e, f, x, z, y) {
+    const flash = this.sprite(f.coreColor ?? 0xffffff, 0.5 * (f.scale ?? 1), 0.85);
+    flash.position.set(x, y, z);
+    this.spawn(flash, 0.12, (t) => {
+      flash.material.opacity = 0.85 * (1 - t);
+      flash.scale.setScalar((0.35 + t * 0.5) * (f.scale ?? 1));
+    });
+    if (f.sparks) this.fx.burst(x, y, z, f.sparks, { color: f.color, size: 0.2, speed: 3.2, life: 0.26, up: 0.5 });
+    for (let i = 0; i < (f.droplets || 0); i++) {
+      const a = e.angle + (Math.random() - 0.5) * 2.2;
+      const sp = 1.6 + Math.random() * 2.2;
+      this.fx.add(x, y - 0.1, z, Math.sin(a) * sp, 1.4 + Math.random() * 2, Math.cos(a) * sp, { color: i % 2 ? 0x8fdcff : 0xf0fffb, size: 0.16 + Math.random() * 0.1, life: 0.45, gravity: 9, drag: 0.6 });
+    }
+  }
+
   genericSwing(e) {
     const g = sectorGeometry(e.range * 0.4, e.range, (e.arc * Math.PI) / 180);
     const m = new THREE.Mesh(g, slashMaterial(this.config.swingColors?.[e.name] || 0xff8a5a));
@@ -677,7 +678,7 @@ export class Vfx {
 
   impact(e) {
     if (e.kind === 'firebolt' && e.element === 'fire') return this.fireImpact(e);
-    if (e.kind === 'hunter_shot') {
+    if ((e.kind === 'hunter_shot' || e.kind === 'charged_shot')) {
       const cfg = this.contactLook(e.kind, e.element);
       this.contacts.burst({ ...e, fromX: e.x - (e.vx ?? 1), fromZ: e.z - (e.vz ?? 0) }, cfg, this.gy(e.x, e.z) + (e.y ?? 1));
       this.shake = Math.max(this.shake, cfg.impact.shake);
@@ -703,7 +704,7 @@ export class Vfx {
       return;
     }
     // The arrow's impact event draws its contact once, including obstacle hits.
-    if (e.skill === 'hunter_shot') {
+    if ((e.skill === 'hunter_shot' || e.skill === 'charged_shot')) {
       if (e.shell) this.fx.burst(e.x, y + 1, e.z, 4, { color: 0xd8f0a0, size: .16, speed: 2, life: .2 });
       return;
     }
@@ -725,6 +726,7 @@ export class Vfx {
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
+    if (e.kind === 'erupt') return this.erupt(e);
     const c = el(e.element);
     this.fx.burst(e.x, this.gy(e.x, e.z) + 0.3, e.z, 18, { color: c.dots, size: 0.35, speed: e.radius * 2.5, life: 0.5, up: 0.4 });
   }
@@ -755,6 +757,27 @@ export class Vfx {
     this.shake = Math.max(this.shake, cfg.impact.shake);
   }
 
+  /** Rootdigger Mole bursting out of the ground: clods thrown up, a dust ring, a short shake. */
+  erupt(e) {
+    const y = this.gy(e.x, e.z);
+    this.dust.burst(e.x, y + 0.2, e.z, 18, { color: 0x8a6a4a, size: 0.9, sizeEnd: 1.7, speed: e.radius * 1.8, life: 0.8, up: 0.6, drag: 3 });
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2 + Math.random() * 0.3, sp = 1.5 + Math.random() * 2.5;
+      this.fx.add(e.x, y + 0.3, e.z, Math.sin(a) * sp, 4 + Math.random() * 3, Math.cos(a) * sp, { color: i % 3 ? 0x6b4e33 : 0x9a7a52, size: 0.26, sizeEnd: 0.2, life: 0.9, gravity: 14, drag: 0.4 });
+    }
+    this.ring(e.x, e.z, e.radius, 0xc9a26a, 0.35);
+    this.shake = Math.max(this.shake, 0.22);
+  }
+
+  /** The mole's dig: loose earth kicked up where it went under and where it comes out. */
+  digDust(x, z, n = 3) {
+    const y = this.gy(x, z);
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      this.dust.add(x + Math.sin(a) * 0.5, y + 0.15, z + Math.cos(a) * 0.5, Math.sin(a) * 1.2, 1 + Math.random(), Math.cos(a) * 1.2, { color: 0x8a6a4a, size: 0.5, sizeEnd: 1, life: 0.6, gravity: 3, drag: 2 });
+    }
+  }
+
   /** One eruption of the warden's quake line: a short column of rubble and dust. */
   quakeBurst(e) {
     const y = this.gy(e.x, e.z);
@@ -772,12 +795,15 @@ export class Vfx {
   }
 
   playApproved(name,e) {
-    const mesh=approvedMesh(name,e.radius);mesh.position.set(e.x,this.gy(e.x,e.z),e.z);
-    this.spawn(mesh,mesh.userData.clipLife,t=>{mesh.material.uniforms.uFrame.value=t*(mesh.userData.clipFrames-1);});
+    const pool=name==='leap'?this.movementPool('leap',()=>approvedMesh('leap')):null;
+    const mesh=pool?pool.take():approvedMesh(name,e.radius);
+    if(pool){mesh.material.uniforms.uFrame.value=0;mesh.material.uniforms.uScale.value=e.radius?e.radius/mesh.userData.clipRadius:1;}
+    mesh.position.set(e.x,this.gy(e.x,e.z),e.z);
+    this.spawn(mesh,mesh.userData.clipLife,t=>{mesh.material.uniforms.uFrame.value=t*(mesh.userData.clipFrames-1);},pool?object=>pool.release(object):null);
   }
 
   leapLand(e) {
-    this.playApproved('leap',e);groundDust(this,e,this.config.skills.leap.dust);this.shake=Math.max(this.shake,.15);
+    this.playApproved('leap',e);groundDust(this,e,this.config.skills.leap.dust,true);this.shake=Math.max(this.shake,.15);
   }
 
   dive(e) {
@@ -904,6 +930,7 @@ export class Vfx {
 
   /** Rune sentinel beam: a bright line along the locked aim that fades fast. */
   beam(e) {
+    if (e.kind === 'glint') return this.glint(e);
     if (e.kind === 'lash') return this.lash(e);
     // a thin bright core inside a soft cyan sheath, read as a beam from the high camera
     const core = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.14, e.width * 0.14, e.length, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0xd8fbff, 0.95));
@@ -922,6 +949,26 @@ export class Vfx {
     for (let i = 0; i < 10; i++) {
       const d = (i / 9) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
       this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 1.2, 0, { color: 0x9ff0ff, size: 0.28, sizeEnd: 0.05, life: 0.4, drag: 2 });
+    }
+  }
+
+  /** Mirrorwing glint: a thin white flash along the locked line, prism-coloured sparks. */
+  glint(e) {
+    const blade = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 0.35, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0xf4fdff, 0.95));
+    const sheen = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 1.1, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0x9fdcf0, 0.35));
+    const group = new THREE.Group();
+    group.add(sheen, blade);
+    group.position.set(e.x, this.gy(e.x, e.z) + 1.2, e.z);
+    group.rotation.y = e.angle;
+    this.spawn(group, 0.3, (t) => {
+      blade.material.opacity = 0.95 * (1 - t);
+      sheen.material.opacity = 0.35 * (1 - t);
+      blade.scale.x = 1 - t * 0.7;
+    });
+    const prism = [0xffd6f0, 0xd6f0ff, 0xfff4c2, 0xd9ffe6];
+    for (let i = 0; i < 12; i++) {
+      const d = (i / 11) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
+      this.fx.add(x, this.gy(x, z) + 1.2, z, (Math.random() - 0.5) * 1.2, 0.6, (Math.random() - 0.5) * 1.2, { color: prism[i % 4], size: 0.2, sizeEnd: 0.03, life: 0.45, drag: 2 });
     }
   }
 
@@ -1034,14 +1081,71 @@ export class Vfx {
     this.ring(x, z, 1.8, 0x8fe8ff, 0.6);
   }
 
+  movementPool(key, create) {
+    let pool = this.movementPools.get(key);
+    if (!pool) { pool = new EffectPool(create, object => disposeObject(object, this.sharedGeo), 3); this.movementPools.set(key, pool); }
+    return pool;
+  }
+
+  movementSurface(crop, energy = 1.15) {
+    const pool = this.movementPool('surface:' + crop.join(','), () => artSurface('movement', crop, energy));
+    const mesh = pool.take();
+    mesh.visible = true;mesh.position.set(0,0,0);mesh.rotation.set(0,0,0);mesh.scale.set(1,1,1);
+    const u = mesh.material.uniforms;
+    u.uTime.value=0;u.uAlpha.value=1;u.uDissolve.value=0;u.uEnergy.value=energy;
+    return { mesh, pool };
+  }
+
+  prepareMovement(root, renderer, camera, lightingScene = this.scene) {
+    if (this.echoPool?.root === root) return;
+    // A new appearance owns a new source rig. Retire any old snapshots before
+    // the caller disposes that rig's geometry.
+    this.clearMovementEchoes();
+    this.echoPool = new PoseEchoPool(root);
+    const group = new THREE.Group(), held = [];
+    for (let i=0;i<3;i++) { const mesh=this.echoPool.capture(0x83bdde);group.add(mesh);held.push([mesh,this.echoPool]); }
+    for (const crop of [[0,.5,.5,.5],[.5,.5,.5,.5],[0,0,.5,.5],[.5,0,.5,.5]]) {
+      const {mesh,pool}=this.movementSurface(crop);group.add(mesh);held.push([mesh,pool]);
+    }
+    const pool=this.movementPool('leap',()=>approvedMesh('leap'));
+    const mesh=pool.take();group.add(mesh);held.push([mesh,pool]);
+    const dust=this.config.skills.leap.dust;
+    for(let i=0;i<dust.count;i++){const owner=this.movementPool('leap-dust:'+i,()=>groundDustVolume(dust,i*4.37));const object=owner.take();group.add(object);held.push([object,owner]);}
+    // Compile off the input stack and keep the material references alive, so
+    // Three does not delete/relink the program after each effect expires.
+    try { renderer.compile(group,camera,lightingScene); }
+    finally { for (const [object,owner] of held) owner.release(object); }
+  }
+
+  clearMovementEchoes() {
+    const owner=this.echoPool;
+    if (!owner) return;
+    this.active=this.active.filter(a=>!owner.live.has(a.obj));
+    owner.clear();this.echoPool=null;
+  }
+
+  disposeMovement() {
+    this.clearMovementEchoes();
+    for (const pool of this.movementPools.values()) {
+      this.active=this.active.filter(a=>!pool.live.has(a.obj));pool.clear();
+    }
+    this.movementPools.clear();this.movementSource=null;
+  }
+
+  movementEchoAt(rig,color) {
+    if(this.echoPool?.root!==rig.root){this.clearMovementEchoes();this.echoPool=new PoseEchoPool(rig.root);}
+    const pool=this.echoPool;
+    return {ghost:pool.capture(color),release:object=>pool.release(object)};
+  }
+
   blink(fromX, fromZ, x, z, color = 0xb4a2ff, rig = null) {
     if(!rig){this.fx.burst(fromX,this.gy(fromX,fromZ)+1,fromZ,16,{color,size:.3,speed:3,life:.4,up:1});this.fx.burst(x,this.gy(x,z)+1,z,16,{color,size:.3,speed:3,life:.4,up:1});return;}
     for(let i=0;i<2;i++){
-      const m=artSurface('movement',[i*.5,0,.5,.5]);m.position.set(i?x:fromX,this.gy(i?x:fromX,i?z:fromZ)+.9,i?z:fromZ);faceGameCamera(m);
-      this.spawn(m,21/60,t=>{const age=t*21-i;m.visible=age>=0;m.scale.set(2.1*(.35+.55*Math.min(1,age/20)),2.1*(.8+.32*Math.min(1,age/20)),1);m.material.uniforms.uAlpha.value=1-Math.max(0,(age-4)/16);m.material.uniforms.uDissolve.value=Math.max(0,(age-3)/17)*.95;m.material.uniforms.uTime.value=age/60;});
+      const {mesh:m,pool}=this.movementSurface([i*.5,0,.5,.5]);m.position.set(i?x:fromX,this.gy(i?x:fromX,i?z:fromZ)+.9,i?z:fromZ);faceGameCamera(m);
+      this.spawn(m,21/60,t=>{const age=t*21-i;m.visible=age>=0;m.scale.set(2.1*(.35+.55*Math.min(1,age/20)),2.1*(.8+.32*Math.min(1,age/20)),1);m.material.uniforms.uAlpha.value=1-Math.max(0,(age-4)/16);m.material.uniforms.uDissolve.value=Math.max(0,(age-3)/17)*.95;m.material.uniforms.uTime.value=age/60;},object=>pool.release(object));
     }
-    const ghost=poseEcho(rig.root,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
-    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)));
+    const {ghost,release}=this.movementEchoAt(rig,0x9152ca);ghost.position.set(fromX,this.gy(fromX,fromZ),fromZ);
+    this.spawn(ghost,.2,t=>echoOpacity(ghost,.28*(1-t)),release);
   }
 
   syncMovement(player,y,dt,rig) {
@@ -1051,18 +1155,18 @@ export class Vfx {
     if(this.movementSource!==d){
       this.movementSource=d;this.movementEcho=0;this.movementDust=0;
       if(d.kind==='dash'){
-        const m=artSurface('movement',[0,.5,.5,.5]);faceGameCamera(m);const speed=Math.hypot(d.vx,d.vz)||1,dx=d.vx/speed,dz=d.vz/speed;
+        const {mesh:m,pool}=this.movementSurface([0,.5,.5,.5]);faceGameCamera(m);const speed=Math.hypot(d.vx,d.vz)||1,dx=d.vx/speed,dz=d.vz/speed;
         // Resolve screen direction without rotating the camera-facing plane away.
         m.rotation.z=-Math.atan2(dz*.815,dx);const life=d.dur+13/60;
-        this.spawn(m,life,t=>{const age=t*life,k=Math.max(0,(age-d.dur)/(13/60));if(age<=d.dur||t===0)m.position.set(player.x-dx*.9,y+.67,player.z-dz*.9);m.scale.set(2.8*(1-.6*k),2.8*(.3-.12*k),1);m.material.uniforms.uAlpha.value=Math.min(1,age/(2/60))*.7*(1-k);m.material.uniforms.uDissolve.value=k*.9;m.material.uniforms.uTime.value=age;});
+        this.spawn(m,life,t=>{const age=t*life,k=Math.max(0,(age-d.dur)/(13/60));if(age<=d.dur||t===0)m.position.set(player.x-dx*.9,y+.67,player.z-dz*.9);m.scale.set(2.8*(1-.6*k),2.8*(.3-.12*k),1);m.material.uniforms.uAlpha.value=Math.min(1,age/(2/60))*.7*(1-k);m.material.uniforms.uDissolve.value=k*.9;m.material.uniforms.uTime.value=age;},object=>pool.release(object));
       }
     }
     if(d.kind==='dash'){
-      while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const ghost=poseEcho(rig.root,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)));this.movementEcho++;}
+      while(this.movementEcho<2&&d.t>=(this.movementEcho===0?3/60:7/60)){const {ghost,release}=this.movementEchoAt(rig,0x83bdde);this.spawn(ghost,.2,t=>echoOpacity(ghost,.15*(1-t)),release);this.movementEcho++;}
     }else if(d.kind==='roll'){
       while(this.movementDust<3&&d.t>=d.dur*(this.movementDust===0?.18:this.movementDust===1?.5:.78)){
-        const m=artSurface('movement',[.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
-        this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;});
+        const {mesh:m,pool}=this.movementSurface([.5,.5,.5,.5],.45);faceGameCamera(m);m.position.set(player.x,y+.16,player.z);this.movementDust++;
+        this.spawn(m,.25,t=>{m.scale.set(1.2*(.2+.95*t),1.2*(.15+.31*t),1);m.position.y=y+.12+.15*t;m.material.uniforms.uAlpha.value=.36*Math.sin(Math.PI*t);m.material.uniforms.uDissolve.value=t*.9;m.material.uniforms.uTime.value=t*.25;},object=>pool.release(object));
       }
     }
   }
@@ -1106,7 +1210,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = pr.kind === 'hunter_shot';
+      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot');
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {
@@ -1244,11 +1348,12 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
-      const spore = a.kind === 'spore_cloud';
+    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud' || a.kind === 'mirror_dust') {
+      // mirror_dust (the moth's wing scales): a spore-like cloud, pale blue with bright glints
+      const mirror = a.kind === 'mirror_dust', spore = a.kind === 'spore_cloud' || mirror;
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);
-      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : 0x5a8a2a);
-      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : 0xa8e04a);
+      m.material.uniforms.uColor.value.set(mirror ? 0x5a7aa0 : spore ? 0x9a8a4a : 0x5a8a2a);
+      m.material.uniforms.uColor2.value.set(mirror ? 0xbfe9f5 : spore ? 0xd8d070 : 0xa8e04a);
       return {
         obj: m,
         update: (ar, t, dt) => {
@@ -1259,8 +1364,9 @@ export class Vfx {
             const r = Math.random() * ar.radius;
             const x = ar.x + Math.sin(ang) * r;
             const z = ar.z + Math.cos(ang) * r;
+            if (mirror && Math.random() < 0.4) this.fx.add(x, this.gy(x, z) + 0.4 + Math.random() * 1.2, z, 0, 0.3, 0, { color: 0xf2fdff, size: 0.18, sizeEnd: 0.02, life: 0.5, drag: 1 });
             (spore ? this.dust : this.fx).add(x, this.gy(x, z) + 0.2 + Math.random() * (spore ? 1.2 : 0.2), z, (Math.random() - 0.5) * 0.4, spore ? 0.5 : 0.9, (Math.random() - 0.5) * 0.4, {
-              color: spore ? 0xcfc47a : 0xa8e04a,
+              color: mirror ? 0xa9d8ea : spore ? 0xcfc47a : 0xa8e04a,
               size: spore ? 0.9 : 0.24,
               sizeEnd: spore ? 1.5 : 0.05,
               life: spore ? 1.2 : 0.7,
@@ -1323,7 +1429,7 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake') {
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);
@@ -1366,9 +1472,10 @@ export class Vfx {
       const w = m.windup;
       if (m.dead || !w || m.state !== 'windup') continue;
       let kind = null;
-      if (RING_TELLS.has(w.name)) kind = 'slam';
-      else if (COASTAL_CONTACTS.has(w.name)) kind = 'melee';
-      else if (w.name === 'charge' || w.name === 'lash' || w.name === 'quake' || w.name === 'beam') kind = 'lane';
+      const mech = m.def.attacks[w.name]?.kind || w.name; // an attack can borrow another's mechanics
+      if (RING_TELLS.has(mech)) kind = 'slam';
+      else if (COASTAL_CONTACTS.has(mech)) kind = 'melee';
+      else if (mech === 'charge' || mech === 'lash' || mech === 'quake' || mech === 'beam') kind = 'lane';
       if (!kind) continue;
       const key = `${m.id}:${w.name}`;
       seen.add(key);
@@ -1389,8 +1496,8 @@ export class Vfx {
         } else {
           const atk = m.def.attacks[w.name];
           // a beam is a fixed line; a charge covers its speed over its duration
-          const fixed = w.name === 'beam' || w.name === 'lash' || w.name === 'quake';
-          const len = w.name === 'quake' ? atk.length : fixed ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
+          const mech = atk.kind || w.name, fixed = mech === 'beam' || mech === 'lash' || mech === 'quake';
+          const len = mech === 'quake' ? atk.length : fixed ? atk.range : (atk.speed || 12) * (atk.duration || 0.4);
           const geo = new THREE.PlaneGeometry(fixed ? atk.width : m.r * 1.6, len, 1, 14).rotateX(-Math.PI / 2).translate(0, 0, len / 2);
           const mesh = makeDecal(geo, new THREE.MeshBasicMaterial({ color: 0xff7a4a, transparent: true, opacity: 0.25, depthWrite: false }), this.world, 0.07);
           v = { mesh, kind };
@@ -1432,7 +1539,8 @@ export class Vfx {
       const k = Math.min(1, a.t / a.dur);
       a.update?.(k, a);
       if (a.t >= a.dur) {
-        disposeObject(a.obj, this.sharedGeo);
+        if (a.release) a.release(a.obj);
+        else disposeObject(a.obj, this.sharedGeo);
       } else this.active[live++] = a;
     }
     this.active.length = live;

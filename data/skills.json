@@ -433,6 +433,504 @@
       "upgradeMaterial": "wolf_pelt",
       "icon": "wolf",
       "upgradeStat": "INT"
+    },
+    "charged_shot": {
+      "name": "Power Draw",
+      "nameTh": "ชาร์จยิงรุนแรง",
+      "desc": "กดค้างเพื่อชาร์จจนเต็มใน 1.2 วินาที ปล่อยเพื่อยิง ความแรง 100–250% ระหว่างชาร์จเดินได้ 40% ใช้ 8 MP และลูกธนูเมื่อปล่อยยิง ยกเลิกได้โดยไม่เสียทรัพยากร",
+      "tags": [
+        "Attack",
+        "Projectile",
+        "Damage",
+        "Charge"
+      ],
+      "kind": "projectile",
+      "power": "attack",
+      "damage": {
+        "base": 14,
+        "scale": 1.1
+      },
+      "range": 17,
+      "speed": 30,
+      "projectileRadius": 0.3,
+      "cooldown": 2.4,
+      "castTime": 0.2,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "DEX": 5
+      },
+      "requiresWeapon": [
+        "bow"
+      ],
+      "upgradeMaterial": "hawk_feather",
+      "upgradeStat": "DEX",
+      "icon": "arrow",
+      "charge": {
+        "duration": 1.2,
+        "maxDamageMult": 2.5,
+        "moveMult": 0.4
+      },
+      "prototype": true
+    },
+    "riposte": {
+      "name": "Measured Riposte",
+      "nameTh": "ตั้งรับสวนกลับ",
+      "desc": "ตั้งรับด้านหน้า 0.8 วิ รับสำเร็จลดดาเมจและเปิดจังหวะกดซ้ำสวนกลับใน 1.5 วิ ต้องถือดาบ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Guard",
+        "Counter",
+        "Damage"
+      ],
+      "kind": "counter_stance",
+      "power": "attack",
+      "range": 3,
+      "cooldown": 6,
+      "castTime": 0.15,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "STR": 5
+      },
+      "upgradeStat": "STR",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "sword"
+      ],
+      "damage": {
+        "base": 12,
+        "scale": 1.15
+      },
+      "arc": 100,
+      "guard": {
+        "duration": 0.8,
+        "readyDuration": 1.5,
+        "arc": 110,
+        "taken": 0.3
+      }
+    },
+    "weakpoint": {
+      "name": "Flank Thrust",
+      "nameTh": "แทงจุดอ่อน",
+      "desc": "แทงเป้าในวงแคบจากด้านข้างหรือด้านหลังแรงขึ้น 60% ไม่วาร์ปเข้าหาเป้า",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Damage"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "range": 2.5,
+      "cooldown": 2.5,
+      "castTime": 0.22,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "DEX": 5
+      },
+      "upgradeStat": "DEX",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "dagger"
+      ],
+      "damage": {
+        "base": 10,
+        "scale": 1.1
+      },
+      "arc": 45,
+      "positionalMult": 1.6
+    },
+    "armor_cleave": {
+      "name": "Sunder Cut",
+      "nameTh": "ฟันเปิดเกราะ",
+      "desc": "ฟันวงแคบและเปิดเกราะ 18% นาน 5 วิ ใช้ค่าที่แรงที่สุด ไม่ซ้อนลดเกราะ",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Area",
+        "Damage",
+        "Debuff"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "range": 2.8,
+      "cooldown": 5,
+      "castTime": 0.5,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "STR": 5
+      },
+      "upgradeStat": "STR",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "axe"
+      ],
+      "damage": {
+        "base": 14,
+        "scale": 1.2
+      },
+      "arc": 80,
+      "exposure": {
+        "fraction": 0.18,
+        "duration": 5
+      }
+    },
+    "interrupt_slam": {
+      "name": "Breakbeat Slam",
+      "nameTh": "ทุบขัดจังหวะ",
+      "desc": "ทุบขัดท่าที่ขัดได้ของมอนทั่วไป บอสสะสมค่าการเสียหลักเฉพาะท่าที่กำหนด",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Damage",
+        "Control"
+      ],
+      "kind": "melee_arc",
+      "power": "attack",
+      "range": 2.7,
+      "cooldown": 7,
+      "castTime": 0.4,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "STR": 5
+      },
+      "upgradeStat": "STR",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "mace"
+      ],
+      "damage": {
+        "base": 12,
+        "scale": 1.1
+      },
+      "arc": 65,
+      "interrupt": {
+        "duration": 0.6,
+        "bossPoise": 0.35,
+        "poiseDuration": 2,
+        "poiseThreshold": 1
+      }
+    },
+    "frontline_split": {
+      "name": "Frontline Split",
+      "nameTh": "ผ่าแนวหน้า",
+      "desc": "เตรียมฟันหนัก 0.65 วิ แล้วฟันแนวตรงกว้าง 1.4 ม. หันทิศระหว่างเตรียมได้และเดินช้า",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Line",
+        "Damage"
+      ],
+      "kind": "melee_line",
+      "power": "attack",
+      "range": 5,
+      "cooldown": 4,
+      "castTime": 0.65,
+      "cost": 12,
+      "element": "physical",
+      "requires": {
+        "STR": 5
+      },
+      "upgradeStat": "STR",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "greatblade"
+      ],
+      "damage": {
+        "base": 20,
+        "scale": 1.7
+      },
+      "width": 1.4,
+      "aimDuringCast": true
+    },
+    "shield_bash": {
+      "name": "Shield Bash",
+      "nameTh": "กระแทกโล่",
+      "desc": "กระแทกวงแคบด้านหน้า ผลักและเรียกความสนใจ ต้องมีโล่ที่ใช้งานได้",
+      "tags": [
+        "Attack",
+        "Melee",
+        "Guard",
+        "Damage",
+        "Control"
+      ],
+      "kind": "melee_arc",
+      "power": "vit",
+      "range": 2.2,
+      "cooldown": 5,
+      "castTime": 0.2,
+      "cost": 8,
+      "element": "physical",
+      "requires": {
+        "VIT": 5
+      },
+      "upgradeStat": "VIT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "damage": {
+        "base": 8,
+        "scale": 0.8
+      },
+      "arc": 90,
+      "requiresOffhand": "shield",
+      "knock": 1.5,
+      "taunt": {
+        "duration": 3
+      }
+    },
+    "arrow_rain": {
+      "name": "Arrow Rain",
+      "nameTh": "ฝนลูกธนู",
+      "desc": "วางวง 3 ม. ลูกธนูตก 3 ระลอก เว้น 0.4 วิ ใช้ลูกธนู 3 ลูกพื้นฐาน เป้าหมายเดินออกได้",
+      "tags": [
+        "Attack",
+        "Area",
+        "Damage",
+        "Rain"
+      ],
+      "kind": "ground_area",
+      "power": "attack",
+      "range": 14,
+      "cooldown": 6,
+      "castTime": 0.3,
+      "cost": 12,
+      "element": "physical",
+      "requires": {
+        "DEX": 5
+      },
+      "upgradeStat": "DEX",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "bow"
+      ],
+      "damage": {
+        "base": 6,
+        "scale": 0.45
+      },
+      "radius": 3,
+      "delay": 0.45,
+      "waves": 3,
+      "waveInterval": 0.4
+    },
+    "arcane_shot": {
+      "name": "Arcane Dart",
+      "nameTh": "กระสุนเวทพื้นฐาน",
+      "desc": "ยิงกระสุนเวทเบาโดยไม่ใช้ MP ไม่มีสถานะติดตัว ต้องถือไม้กายสิทธิ์ ถอดออกจากช่องได้",
+      "tags": [
+        "Spell",
+        "Projectile",
+        "Damage"
+      ],
+      "kind": "projectile",
+      "power": "spell",
+      "range": 12,
+      "cooldown": 0.65,
+      "castTime": 0.18,
+      "cost": 0,
+      "element": "arcane",
+      "requires": {},
+      "upgradeStat": "INT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "wand"
+      ],
+      "damage": {
+        "base": 5,
+        "scale": 0.65
+      },
+      "speed": 15,
+      "projectileRadius": 0.25
+    },
+    "flame_stream": {
+      "name": "Flame Stream",
+      "nameTh": "ธารเพลิง",
+      "desc": "กดค้างร่ายไฟกรวย 5 ม. หลังเตรียม 0.2 วิ เดินได้ 40% ใช้ MP ต่อเนื่อง ปล่อยเพื่อหยุด",
+      "tags": [
+        "Spell",
+        "Channel",
+        "Cone",
+        "Fire",
+        "Damage"
+      ],
+      "kind": "channel_cone",
+      "power": "spell",
+      "range": 5,
+      "cooldown": 1,
+      "castTime": 0.2,
+      "cost": 2,
+      "element": "fire",
+      "requires": {
+        "INT": 5
+      },
+      "upgradeStat": "INT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "requiresWeapon": [
+        "staff"
+      ],
+      "damage": {
+        "base": 7,
+        "scale": 0.65
+      },
+      "arc": 55,
+      "channel": {
+        "tick": 0.25,
+        "manaPerSecond": 8,
+        "moveMult": 0.4
+      }
+    },
+    "crystal_wall": {
+      "name": "Crystal Wall",
+      "nameTh": "กำแพงผลึก",
+      "desc": "วางแนวผลึกชั่วคราวยาว 4 ม. แบ่งเป็นท่อนที่มอนทำลายได้ ต้องมีทางอ้อมและไม่ทับตัวละคร",
+      "tags": [
+        "Spell",
+        "Area",
+        "Control",
+        "Construct"
+      ],
+      "kind": "wall",
+      "power": "spell",
+      "range": 9,
+      "cooldown": 10,
+      "castTime": 0.3,
+      "cost": 16,
+      "element": "cold",
+      "requires": {
+        "INT": 5
+      },
+      "upgradeStat": "INT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "radius": 2,
+      "duration": 5,
+      "wall": {
+        "length": 4,
+        "thickness": 0.45,
+        "hp": {
+          "base": 35,
+          "scale": 1.1
+        },
+        "minGap": 1.4,
+        "breakWindup": 0.7
+      }
+    },
+    "cleanse": {
+      "name": "Mend and Cleanse",
+      "nameTh": "ชำระบาดแผล",
+      "desc": "ฮีลเป้าพันธมิตรที่บาดเจ็บในระยะ หรือฮีลตนเอง ล้างพิษหรือความเย็นหนึ่งอย่าง ไม่ล้างกลไกบอส",
+      "tags": [
+        "Spell",
+        "Heal",
+        "Target",
+        "Cleanse"
+      ],
+      "kind": "heal_target",
+      "power": "spell",
+      "range": 8,
+      "cooldown": 7,
+      "castTime": 0.3,
+      "cost": 12,
+      "element": "none",
+      "requires": {
+        "INT": 5
+      },
+      "upgradeStat": "INT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "heal": {
+        "base": 12,
+        "scale": 0.65
+      },
+      "cleanse": [
+        "poison",
+        "chill"
+      ]
+    },
+    "battle_aura": {
+      "name": "Battle Rhythm",
+      "nameTh": "วงจังหวะรบ",
+      "desc": "เปิด/ปิดวงฟื้น MP รอบตัว 5 ม. สำรอง MP สูงสุด 20% พันธมิตรต้องอยู่ในระยะ",
+      "tags": [
+        "Spell",
+        "Buff",
+        "Area",
+        "Aura"
+      ],
+      "kind": "aura",
+      "power": "spell",
+      "range": 0,
+      "cooldown": 0.5,
+      "castTime": 0.3,
+      "cost": 0,
+      "element": "none",
+      "requires": {
+        "INT": 5
+      },
+      "upgradeStat": "INT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "radius": 5,
+      "aura": {
+        "reserve": 0.2,
+        "mpRegen": 1.5,
+        "tick": 0.5
+      }
+    },
+    "stone_guardian": {
+      "name": "Stone Guardian",
+      "nameTh": "ผู้พิทักษ์ศิลา",
+      "desc": "อัญเชิญผู้พิทักษ์รับการโจมตี 25 วิ เดินช้า โจมตีเบา ล่อมอนใกล้ ๆ ให้โจมตีตนเอง",
+      "tags": [
+        "Spell",
+        "Summon",
+        "Minion",
+        "Guard"
+      ],
+      "kind": "summon",
+      "power": "spell",
+      "range": 0,
+      "cooldown": 14,
+      "castTime": 0.4,
+      "cost": 20,
+      "element": "physical",
+      "requires": {
+        "INT": 5
+      },
+      "upgradeStat": "INT",
+      "upgradeMaterial": "boar_tusk",
+      "prototype": true,
+      "summon": {
+        "type": "stone_guardian",
+        "count": 1,
+        "life": 25,
+        "hp": {
+          "base": 100,
+          "vit": 5,
+          "level": 4
+        },
+        "damage": {
+          "base": 3,
+          "scale": 0.25
+        },
+        "speed": 3,
+        "range": 1.7,
+        "attackCooldown": 1.4,
+        "tauntRadius": 4,
+        "tauntInterval": 3,
+        "tauntDuration": 2
+      }
     }
   },
   "movement": {

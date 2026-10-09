@@ -11,13 +11,14 @@ import { atlasView } from './atlas.js';
 import { worldTotals } from '../core/atlas.js';
 import { jobView, mountJobNetwork } from './jobview.js';
 import { questTarget, rewardText } from './hud.js';
-import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal } from '../core/character.js';
+import { STATS, allocateStat, allocateJobNode, currentJob, respecCost, respecStats, respecJob, gearStats, gearRequirements, gearEquipState, inactiveEquipment, equipmentNotice, weaponImplicit, equip, unequip, meetsRequires, expToNext, jobExpToNext, arrowTotal, arrowInUse } from '../core/character.js';
 import { equipSkill, socketMod, unsocketMod, setMovement } from '../core/skills.js';
 import { canAfford, craft, craftBatch, promoteGear, recipeBlocker, gearUpgradeState, upgradeGear, upgradeSkill, skillUpgradeCost, upgradeMod, sellMaterial } from '../core/crafting.js';
 import { questJournalView, handleQuestJournalAction } from './quest-journal.js';
 import { inventoryView } from './inventory.js';
 import { potionArt } from './potionart.js';
 import { buyState, assignQuickItem, restoreAmount } from '../core/consumables.js';
+import { autoPotionsView, changeAutoPotionControl } from './auto-potions.js';
 import { createLoadoutWorkspace } from './loadout-workspace.js';
 import { MENU_GROUPS, MENU_PAGES, groupOf } from './menu-map.js';
 
@@ -109,6 +110,7 @@ export class Panels {
       }
     },true);
     this.overlay.addEventListener('change', e => {
+      if(changeAutoPotionControl(this,e.target,true)) return;
       if(e.target.matches('[data-page-select]')) return this.open(e.target.value);
       if(e.target.matches('[data-batch-select]')) {
         const id=e.target.dataset.batchSelect,field=e.target.dataset.field;
@@ -124,6 +126,9 @@ export class Panels {
         this.sel[e.target.dataset.workspaceSelect] = e.target.value;
         this.render();
       }
+    });
+    this.body.addEventListener('input', e => {
+      if(e.target.matches('[data-auto-field="threshold"]'))changeAutoPotionControl(this,e.target);
     });
     this.body.addEventListener('submit', e => {
       if(!e.target.matches('.seeker-node-search')) return;
@@ -166,6 +171,21 @@ export class Panels {
 
   get isOpen() {
     return this.tab !== null;
+  }
+
+  openArrowCraft() {
+    const {ch,data}=this.game,type=arrowInUse(ch,data)||ch.arrows.use;
+    const recipes=Object.entries(data.recipes.recipes).filter(([,r])=>r.type==='arrow');
+    this.sel.craft='arrow';this.sel.craftSearch='';
+    this.sel.craftRecipe=(recipes.find(([,r])=>r.result===type)||recipes[0])?.[0]||null;
+    this.lastResult=null;this.open('craft');
+    this.body.querySelector('.craft-detail-title')?.focus({preventScroll:true});
+  }
+
+  openAutoPotions() {
+    this.open('shop');
+    const heading=this.body.querySelector('#auto-potions-title');
+    heading?.scrollIntoView({block:'start'});heading?.focus({preventScroll:true});
   }
 
   open(tab) {
@@ -441,7 +461,7 @@ export class Panels {
     return `<div class="card shop-head"><h3>ร้านค้า</h3><p class="${near ? 'ok' : 'muted'}">${near ? 'คุยกับพ่อค้าอยู่ · ซื้อยาได้เลย' : 'ซื้อได้เมื่อยืนอยู่ที่ร้านค้าในเมือง (จุดสีชมพูบนแผนที่) · จัดช่องไอเทมได้ทุกที่'}</p>
       <h3>ช่องไอเทมกดใช้</h3><p class="muted">เลือกช่อง แล้วกด "ใส่ช่อง" ที่ยาที่ต้องการ · ในเกมแตะปุ่มยาข้างปุ่มสกิล หรือกด 5–8</p>
       <div class="quick-slots">${slots}</div>${ch.quickItems[pick] ? `<button class="btn" data-act="quick-clear">เอายาออกจากช่อง ${pick + 1}</button>` : ''}</div>
-      <div class="shop-grid">${cards}</div>`;
+      ${autoPotionsView(g)}<div class="shop-grid">${cards}</div>`;
   }
 
   // ---------- actions ----------
@@ -808,6 +828,7 @@ function describeSkill(s) {
   if (s.summon) parts.push(`${s.summon.count} ตัว · กัด ${Math.round(s.summon.damage)} · HP ${number(s.summon.hp)} · ${number(s.summon.life)} วิ`);
   if (s.takenMult) parts.push(`รับดาเมจ +${Math.round((s.takenMult - 1) * 100)}% · ตีเบาลง ${Math.round((1 - s.dealtMult) * 100)}% · ${number(s.duration)} วิ`);
   if (s.damageBuff) parts.push(`ดาเมจ +${Math.round(s.damageBuff * 100)}% · เร็ว +${Math.round(s.speedBuff * 100)}% · ${number(s.duration)} วิ`);
+  if (s.charge) parts.push(`กดค้าง ${s.charge.duration} วิ · ดาเมจ ${Math.round(s.damage)}–${Math.round(s.damage * s.charge.maxDamageMult)}`);
   if (s.projectiles > 1) parts.push(`${s.projectiles} ลูก`);
   if (s.pierce) parts.push(`ทะลุ ${s.pierce}`);
   if (s.chain) parts.push(`เด้ง ${s.chain}`);

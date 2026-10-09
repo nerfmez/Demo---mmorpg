@@ -1,0 +1,8 @@
+d0596b52d8f777c703475fc2f28ba8a9dc65b6f054909a078790eedfe8782a76  docs/review/skill-tree-independence/desktop-neutral-impact.png
+e807d253c34e0672aaac4cd5969bb891395f037e2f9c767011b0a40ea102becf  docs/review/skill-tree-independence/ipad-local-purchase.png
+d9f31b626835b1316911cae4b6ca08fe6596e861756cc1dc425fd8a894f291a4  docs/review/skill-tree-independence/phone-neutral-flow.png
+34bffdd8fdde44bc061eec85d6421b4854b6fb1e1407df3a812a2cab1839f1c9  data/jobtree.json
+425ad52140c47a24a3d14cb16fb755f60d9cf06f3d47f447d07e94a19fc84bc1  src/core/character.js
+766fee8d03ff0b3362ba839558046145f91ed7a90e399af96e4b2833e40094e1  src/core/job-route.js
+0a7b4289046dfad0e3b51aae99b9a0cf4a09fed8345f90c51b828bf92fed1b96  src/ui/skill-journal/journal.js
+9716a06dead230e64fa8d565ab27a94a270b02707098847db7bc86cc259bf64f  src/ui/skill-journal/layout.js

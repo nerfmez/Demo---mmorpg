@@ -10,7 +10,23 @@ const read = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'ut
 const locked = JSON.parse(read('package-lock.json')).packages['node_modules/playwright'].version;
 const ci = read('.github/workflows/ci.yml').split('\n  browser:\n')[1].split('\n  review:\n')[0];
 const live = read('.github/workflows/deploy.yml').split('\n  deploy:\n')[1];
+const light = read('.github/workflows/render-light.yml').split('\n  verify:\n')[1];
 const guard = job => job.match(/node <<'NODE'\n([\s\S]*?)\n\s+NODE/)[1].split('\n').map(line => line.trimStart()).join('\n');
+
+test('renderer light/shadow review runs in the same preinstalled image (no browser download per run)', () => {
+  assert.equal(light.match(/image: (\S+)/)[1], ci.match(/image: (\S+)/)[1]);
+  assert.match(light, /options: --init --shm-size=1g/);
+  assert.match(light, /NODE_OPTIONS: --dns-result-order=ipv4first/);
+  assert.doesNotMatch(light, /install --with-deps|apt-get|python3/);
+  assert.match(light, /git config --global --add safe\.directory "\$GITHUB_WORKSPACE"/);
+  // the file server is copied out before a review_ref checkout (which may predate it) replaces the workspace
+  assert.match(light, /cp scripts\/static-serve\.mjs "\$RUNNER_TEMP\/static-serve\.mjs"/);
+  assert.match(light, /node "\$RUNNER_TEMP\/static-serve\.mjs" /);
+  assert.ok(light.indexOf('cp scripts/static-serve.mjs') < light.indexOf('name: Checkout requested render source'));
+  assert.ok(light.indexOf('npm ci && npm run build') < light.indexOf('name: Verify preinstalled Playwright'));
+  assert.ok(light.indexOf('name: Verify preinstalled Playwright') < light.indexOf('name: Pinned unmodified baseline screenshots'));
+  assert.deepEqual(guard(light), guard(ci));
+});
 
 test('browser shards and live WebKit use the same official immutable image matching the lock', () => {
   const images = [ci, live].map(job => job.match(/image: (\S+)/)[1]);
@@ -26,7 +42,7 @@ test('browser shards and live WebKit use the same official immutable image match
   assert.doesNotMatch(ci, /actions\/cache@|ms-playwright\s*\n\s*key:/);
   assert.ok(ci.indexOf('name: Verify downloaded build source') < ci.indexOf('name: Verify preinstalled Playwright'));
   assert.ok(ci.indexOf('name: Verify preinstalled Playwright') < ci.indexOf('name: Run complete selected shard'));
-  assert.ok(live.indexOf('name: Verify preinstalled Playwright') < live.indexOf('name: Dreamloop'));
+  assert.ok(live.indexOf('name: Verify preinstalled Playwright') < live.indexOf('name: Published startup save'));
   assert.deepEqual(guard(ci), guard(live));
 });
 

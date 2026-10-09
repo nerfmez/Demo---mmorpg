@@ -3,7 +3,8 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { legacyReviewRequirements, validationPlan } from './ci-browser-plan.mjs';
+import { legacyReviewRequirements, validationPlan, SAFETY_SUITES } from './ci-browser-plan.mjs';
+import { prExecutionRange } from './ci-pr-source.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
 
 const LIGHT_FILES = new Set(['view', 'toon', 'patch', 'settings', 'painted', 'ground', 'ground-color', 'grass', 'environment', 'surfaceart', 'anime-study', 'art-study', 'leafpaint', 'nature']);
@@ -47,9 +48,16 @@ export function eventRange(eventName, event) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-  const { base, head } = eventRange(process.env.GITHUB_EVENT_NAME, event);
+  let { base, head } = eventRange(process.env.GITHUB_EVENT_NAME, event);
+  if (process.env.GITHUB_EVENT_NAME === 'pull_request' && process.env.GITHUB_SHA)
+    ({ base, head } = prExecutionRange(event, process.env.GITHUB_SHA));
+  if (process.env.FORCE_BOOT === 'true') {
+    if (!/^[a-f0-9]{40}$/.test(process.env.RELEASE_BASE_SHA || '')) throw Error('Missing verified published release baseline');
+    base = process.env.RELEASE_BASE_SHA;
+    head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  }
   let scope, files = [], forceFull = process.env.FORCE_FULL === 'true';
-  if (!base || !head || /^0+$/.test(base)) { scope = all(); forceFull = true; }
+  if (!base || !head || /^0+$/.test(base)) { scope = all(); files = ['unknown-release-input']; }
   else {
     // NUL delimiters preserve spaces/newlines in filenames. Missing commits are an
     // error, never an excuse to silently omit checks; checkout must fetch history.
@@ -57,14 +65,24 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     scope = classifyFiles(files);
     console.log(`Changed files: ${files.length}; scope: ${JSON.stringify(scope)}`);
   }
+  if (!forceFull && process.env.GITHUB_EVENT_NAME === 'pull_request' && process.env.GH_TOKEN) {
+    const { docFollowup } = await import('./ci-doc-followup.mjs');
+    const reused = await docFollowup(event);
+    if (reused) {
+      files = [];
+      scope = classifyFiles(files);
+      if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+        `Prose-only followup: runtime/tests/config unchanged. Reused real affected evidence ${JSON.stringify(reused)}. No new game build or browser run claimed.\n`);
+    }
+  }
   if (process.env.FORCE_RENDER === 'true') scope.render = true;
   if (forceFull) scope = all();
   const impacts = !forceFull && base && head ? gitEquipmentImpacts(files, base, head) : {};
   const plan = validationPlan(files, { full: forceFull, impacts });
   if (process.env.FORCE_BOOT === 'true') {
     scope.game = true;
-    if (!plan.suites.includes('boot')) plan.suites.unshift('boot');
-    if (plan.suites.length === 1) plan.reason = 'release build/core/boot required even for documentation/tool changes';
+    for (const suite of SAFETY_SUITES) if (!plan.suites.includes(suite)) plan.suites.push(suite);
+    if (plan.suites.length === 2) plan.reason = 'release build/core/startup/save required even for documentation/tool changes';
   }
   // JSON encodes filenames safely, including embedded newlines. Actions outputs
   // remain single-line and are never interpolated into shell code.

@@ -21,15 +21,17 @@ test('already owned nodes are excluded from the price; repeated calls cannot spe
  const ch=prepared(4);buy(ch,['path.impact']);const plan=planJobRoute(ch,data,'path.precision');assert.deepEqual(plan.nodes,['path.reach','path.precision']);assert.equal(plan.cost,2);
  assert.equal(allocateJobRoute(ch,data,'path.precision').done,true);const before=structuredClone(ch);assert.equal(allocateJobRoute(ch,data,'path.precision').reason,'taken');assert.deepEqual(ch,before);
 });
-test('stage gates cannot be funded by the batch itself and missing parents never cross groups/stages',()=>{
- const gated=funded(30);buy(gated,['lesson.prepare','lesson.strike']);const before=structuredClone(gated),locked=allocateJobRoute(gated,data,'path.precision');assert.equal(locked.reason,'tier_points');assert.deepEqual(gated,before);
- const cross=prepared(20);buy(cross,['lesson.care','lesson.shelter','path.support','path.ward']);const crossBefore=structuredClone(cross);const p=allocateJobRoute(cross,data,'advanced.power');assert.equal(p.reason,'outside_group');assert.deepEqual(p.missing,['path.horizon']);assert.deepEqual(cross,crossBefore);
- assert.equal(allocateJobRoute(cross,data,'path.precision',{groupId:'support',tier:2}).reason,'outside_group');assert.deepEqual(cross,crossBefore);
+test('every group starts independently and a wrong purchase scope cannot spend',()=>{
+ const ch=funded(30);assert.equal(allocateJobRoute(ch,data,'path.precision').done,true);
+ assert.equal(allocateJobRoute(ch,data,'advanced.power').done,true);
+ const before=structuredClone(ch);
+ assert.equal(allocateJobRoute(ch,data,'path.burst',{groupId:'support',tier:2}).reason,'outside_group');assert.deepEqual(ch,before);
 });
-test('both-parent join has one explicit ALL route, not an arbitrary branch choice',()=>{
- const ch=prepared(25);buy(ch,['lesson.care','lesson.shelter','path.impact','path.burst','path.support','path.step']);
- const p=planJobRoute(ch,data,'advanced.continuum');assert.equal(p.requiresAllFork,true);assert.deepEqual(p.nodes,['advanced.flow','advanced.echo','advanced.resonance','advanced.dash','advanced.momentum','advanced.continuum']);assert.equal(p.cost,6);
- assert.equal(allocateJobRoute(ch,data,'advanced.continuum').done,true);assert.ok(p.nodes.every(id=>ch.jobNodes.includes(id)));assert.ok(!ch.jobNodes.includes('advanced.power'));
+test('flow join chooses one complete internal branch without forcing the other',()=>{
+ const ch=funded(4),p=planJobRoute(ch,data,'advanced.continuum');
+ assert.equal(p.requiresAllFork,false);assert.equal(p.cost,4);
+ assert.deepEqual(p.nodes,['advanced.flow','advanced.echo','advanced.resonance','advanced.continuum']);
+ assert.equal(allocateJobRoute(ch,data,'advanced.continuum').done,true);assert.equal(ch.jobPoints,0);assert.ok(!ch.jobNodes.includes('advanced.dash'));
 });
 test('invalid late prerequisite leaves no partial allocation, and profession/Job requirements stay canonical',()=>{
  const d=structuredClone(data);d.jobtree.nodes['path.precision'].requiresJob='warden';const ch=prepared(10),before=structuredClone(ch);
@@ -39,7 +41,7 @@ test('invalid late prerequisite leaves no partial allocation, and profession/Job
 });
 test('cycles and genuinely ambiguous legacy adjacency require explicit selection instead of invented routes',()=>{
  const d=structuredClone(data),ch=prepared(10),before=structuredClone(ch);d.jobtree.nodes['path.impact'].requires=['path.precision'];assert.equal(allocateJobRoute(ch,d,'path.precision').reason,'invalid_graph');assert.deepEqual(ch,before);
- d.jobtree.nodes['path.impact'].requires=['lesson.rhythm'];delete d.jobtree.nodes['path.precision'].requires;
+ d.jobtree.nodes['path.impact'].requires=[];delete d.jobtree.nodes['path.precision'].requires;
  assert.equal(allocateJobRoute(ch,d,'path.precision').reason,'ambiguous_route');assert.deepEqual(ch,before);
  d.jobtree.presentation.stages[1].paths.push({...d.jobtree.presentation.stages[1].paths[0],id:'alternate'});
  assert.equal(allocateJobRoute(ch,d,'path.impact').reason,'ambiguous_group');assert.deepEqual(ch,before);

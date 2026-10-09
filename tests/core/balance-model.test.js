@@ -113,7 +113,7 @@ test('the Ranger farming line out-earns a sword hero after paying for its arrows
   }
 });
 
-test('every build line can be followed alone to the character cap, through the stage gates', async () => {
+test('every build line can be followed independently with no mandatory filler', async () => {
   const { createCharacter, jobNodeState, allocateJobNode } = await import('../../src/core/character.js');
   const { linePath } = await import('../../src/core/balance.js');
   const lines = [...new Set(Object.values(data.jobtree.nodes).filter((n) => n.line).map((n) => n.line))];
@@ -129,9 +129,9 @@ test('every build line can be followed alone to the character cap, through the s
       assert.ok(st.can, `${id}: ${node} ${st.reason}`);
       allocateJobNode(ch, data, node);
     }
-    assert.equal(ch.jobPoints, 0, `${id} absorbs every job point on its own`);
+    assert.equal(ch.jobPoints, 1, `${id} has 38 meaningful investments; the spare point is freely placed`);
     const left = linePath(data, id).filter((n) => !ch.jobNodes.includes(n)).length;
-    assert.ok(left >= 1 && left <= 4, `${id} has a little room past the cap (${left})`);
+    assert.equal(left, 0, `${id} has a little room past the cap (${left})`);
   }
 });
 
@@ -147,8 +147,9 @@ test('build lines only give, stay inside the caps alone, and pure lines are abou
   for (const [kit, list] of Object.entries(fits)) {
     const base = balanceAt(data, kit, cap).dps;
     const gains = list.map((l) => balanceAt(data, kit, cap, linePath(data, 'line.' + l).slice(0, 39)).dps / base);
-    for (const [i, g] of gains.entries()) assert.ok(g >= 1.45 && g <= 2.0, `${kit} ${list[i]} line ${g.toFixed(2)}x`);
-    assert.ok(Math.max(...gains) / Math.min(...gains) <= 1.35, `${kit}: no line dwarfs another (${gains.map((g) => g.toFixed(2))})`);
+    // Independent lines no longer include free-standing melee prerequisites.
+    for (const [i, g] of gains.entries()) assert.ok(g >= 1.4 && g <= 2.05, `${kit} ${list[i]} line ${g.toFixed(2)}x`);
+    assert.ok(Math.max(...gains) / Math.min(...gains) <= 1.45, `${kit}: no line dwarfs another (${gains.map((g) => g.toFixed(2))})`);
   }
   const guard = balanceAt(data, 'sword', cap, linePath(data, 'line.guardian').slice(0, 39)).ttd / balanceAt(data, 'sword', cap).ttd;
   assert.ok(guard >= 1.4, `the guardian line survives longer (${guard.toFixed(2)}x)`);
@@ -163,42 +164,14 @@ test('fast casting runs out of MP in a long fight unless MP is taken too', async
   assert.ok(mixed.dps > pure.dps * 1.2, `speed with MP (${mixed.dps}) beats speed alone (${pure.dps}) in a long fight`);
 });
 
-test('each journal page holds three related lines that fork inside and meet their neighbours', () => {
-  const N = data.jobtree.nodes;
-  for (const stage of data.jobtree.presentation.stages.filter((s) => s.id >= 2)) for (const page of stage.paths.filter((p) => p.line)) {
-    const lines = new Set(page.nodes.map((id) => N[id].line).filter(Boolean));
-    assert.equal(lines.size, 3, `${page.id} shows three lines`);
-    for (const id of page.nodes) assert.ok(page.grid[id], `${id} has a place on ${page.id}`);
-    if (page.id.endsWith('.mastery')) continue;
-    for (const line of lines) {
-      const entry = `${line}.${stage.id}.entry`, join = `${line}.${stage.id}.join`;
-      assert.equal(page.nodes.filter((id) => N[id].requires?.includes(entry)).length, 2, `${entry} forks into two focuses`);
-      assert.ok(N[join].requiresAny.length >= 3 && N[join].requiresAny.some((id) => N[id].bridge), `${join} is reached from either focus or a bridge`);
-    }
-    assert.ok(page.nodes.filter((id) => N[id].bridge).length >= 2, `${page.id} joins its lines`);
-  }
-  const cross = Object.values(N).filter((n) => n.bridge && n.cross);
-  assert.ok(cross.length >= 3 && cross.every((n) => new Set(n.bridge.map((l) => data.jobtree.presentation.stages[2].paths.find((p) => p.nodes.some((id) => N[id].line === l))?.id)).size === 2), 'some bridges cross to another page');
+test('each displayed line forks locally, with no bridge shortcut',()=>{
+ const N=data.jobtree.nodes;
+ for(const stage of data.jobtree.presentation.stages)for(const page of stage.paths.filter(p=>p.line)){
+  assert.equal(new Set(page.nodes.map(id=>N[id].line)).size,1);
+  for(const id of page.nodes){assert.ok(page.grid[id]);assert.ok([...N[id].requires,...N[id].requiresAny||[]].every(p=>page.nodes.includes(p)));}
+  if(!page.id.endsWith('mastery'))assert.equal(N[page.nodes.find(id=>id.endsWith('.join'))].requiresAny.length,2);
+ }
 });
-
-test('a player can change line through a bridge and keep going in the new line', async () => {
-  const { createCharacter } = await import('../../src/core/character.js');
-  const { allocateJobRoute, planJobRoute } = await import('../../src/core/job-route.js');
-  const ch = createCharacter(data);
-  ch.jobLevel = data.progression.job.maxLevel; ch.jobPoints = 39;
-  const take = (id) => { const r = allocateJobRoute(ch, data, id); assert.ok(r.done, `${id} ${r.reason}`); return r; };
-  take('lesson.rhythm'); // the first page's three steps open stage 2
-  take('line.physical.2.a2');
-  take('bridge.physical-damage.2');
-  assert.deepEqual(planJobRoute(ch, data, 'line.damage.2.join').nodes, ['line.damage.2.join'], 'the bridge opens the other line\'s meeting point');
-  take('line.damage.2.join');
-  take('line.damage.3.a1');
-  assert.ok(ch.jobNodes.includes('line.damage.3.entry'));
-  assert.ok(!ch.jobNodes.includes('line.damage.2.entry'), 'the other line\'s start was never needed');
-  // A one-of meeting point routes through the cheapest owned side.
-  assert.deepEqual(planJobRoute(ch, data, 'line.physical.2.join').nodes, ['line.physical.2.join']);
-});
-
 test('mixing lines that suit each other is as viable as staying pure', async () => {
   const { linePath, balanceAt } = await import('../../src/core/balance.js');
   const P = (l) => linePath(data, 'line.' + l);

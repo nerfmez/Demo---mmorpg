@@ -1,7 +1,10 @@
 name: CI
 
 on:
-  push:
+  # Broad regression starts after the publication attempt, never on its critical path.
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
     branches: [main]
   pull_request:
   workflow_dispatch:
@@ -10,6 +13,9 @@ on:
       quick_gate:
         type: boolean
         default: false
+      release_base:
+        type: string
+        default: ''
     outputs:
       source:
         value: ${{ jobs.prepare.outputs.source }}
@@ -19,9 +25,9 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  # New PR revisions may cancel stale quick gates; each main SHA keeps its full run.
-  group: ci-${{ github.workflow }}-${{ (github.event_name == 'pull_request' || inputs.quick_gate) && github.ref || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' || inputs.quick_gate == true }}
+  # Only PR revisions cancel each other. Reusable release validation is run-unique.
+  group: ci-${{ inputs.quick_gate && 'release' || github.event_name }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   prepare:
     name: Build, core and CI tools
@@ -43,7 +49,7 @@ jobs:
         with:
           fetch-depth: 0
           # PR reports and artifacts refer to its exact head, not a synthetic merge.
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha || github.sha }}
       - id: source
         run: |
           sha=$(git rev-parse HEAD)
@@ -59,6 +65,9 @@ jobs:
       - run: npm ci
       - id: scope
         uses: ./.github/actions/change-scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BASE_SHA: ${{ inputs.release_base }}
         with:
           force-full: ${{ github.event_name != 'pull_request' && !inputs.quick_gate }}
           force-boot: ${{ inputs.quick_gate }}
@@ -109,6 +118,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$SOURCE"
           test -s dist/index.html
           printf '%s\n' "$SOURCE" > dist/ci-source.txt
+          node scripts/ci-build-manifest.mjs write
       - uses: actions/upload-artifact@v4
         if: steps.scope.outputs.game == 'true'
         with:
@@ -129,6 +139,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$MERGE_SOURCE"
           test -s dist/index.html
           printf '%s\n' "$MERGE_SOURCE" > dist/ci-source.txt
+          node scripts/ci-build-manifest.mjs write
       - uses: actions/upload-artifact@v4
         if: steps.reviews.outputs.merge_suites != '[]'
         with:
@@ -175,7 +186,9 @@ jobs:
           name: ${{ matrix.artifact }}
           path: dist/
       - name: Verify downloaded build source
-        run: test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
+        run: |
+          test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
+          node scripts/ci-build-manifest.mjs verify
       - name: Verify preinstalled Playwright matches locked dependencies
         run: |
           node <<'NODE'
@@ -352,3 +365,80 @@ jobs:
           else
             exit 1
           fi
+
+  extended-regression:
+    name: Full exploration and crafting (webkit)
+    needs: prepare
+    if: github.event_name != 'pull_request' && !inputs.quick_gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      # Official browsers + OS libraries, pinned to the locked SDK and immutable image.
+      image: mcr.microsoft.com/playwright:v1.56.1-noble@sha256:f1e7e01021efd65dd1a2c56064be399f3e4de00fd021ac561325f2bfbb2b837a
+      options: --init --shm-size=1g
+    env:
+      BROWSER: webkit
+      # Vite and Node fetch must select the same loopback address in containers.
+      NODE_OPTIONS: --dns-result-order=ipv4first
+      CI_SOURCE_SHA: ${{ needs.prepare.outputs.source }}
+      CI_MODE: full
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+      - name: Trust exact checked-out container workspace
+        run: |
+          test "$GITHUB_WORKSPACE" = "$(pwd -P)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.prepare.outputs.artifact }}
+          path: dist/
+      - name: Verify downloaded build source
+        run: |
+          test "$(cat dist/ci-source.txt)" = "$CI_SOURCE_SHA"
+          node scripts/ci-build-manifest.mjs verify
+      - name: Verify preinstalled Playwright matches locked dependencies
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const version = require('./package-lock.json').packages['node_modules/playwright'].version;
+          const image = JSON.parse(fs.readFileSync('/ms-playwright/.docker-info', 'utf8'));
+          assert.equal(require('playwright/package.json').version, version);
+          assert.equal(require('playwright-core/package.json').version, version);
+          assert.equal(image.driverVersion, version);
+          assert.equal(image.dockerImageName, `mcr.microsoft.com/playwright:v${version}-noble`);
+          assert.ok(['chromium', 'webkit'].includes(process.env.BROWSER));
+          const executable = fs.realpathSync(require('playwright')[process.env.BROWSER].executablePath());
+          assert.ok(executable.startsWith('/ms-playwright/'), executable);
+          fs.accessSync(executable, fs.constants.X_OK);
+          console.log(`Preinstalled Playwright ${version}: ${process.env.BROWSER} ${executable}`);
+          NODE
+      - name: Full exploration regression
+        run: npm run test:dreamloop
+      - name: Crafting loadout and reload regression
+        if: success() || failure()
+        env:
+          BUILD_ORIGIN: ${{ needs.prepare.outputs.source }}
+          RELEASE_TARGET: ${{ needs.prepare.outputs.source }}
+          FRONTIER_RELEASE_SHA: ${{ needs.prepare.outputs.source }}
+          FRONTIER_URL: http://127.0.0.1:4240/
+        run: |
+          node scripts/ci-release-evidence.mjs --verify-build
+          node scripts/static-serve.mjs dist 4240 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          node -e 'const u=process.env.FRONTIER_URL; for(let i=0;;i++){try{if((await fetch(u)).ok)break;}catch{} if(i===60)throw Error("preview startup");await new Promise(r=>setTimeout(r,250));}'
+          node tests/browser/frontier-published.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extended-regression
+          path: tests/browser/out/
+          retention-days: 7

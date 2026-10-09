@@ -43,7 +43,7 @@
     "roadEdgeTufts": 0.3,
     "roadWidthWobble": 0.36, "pavingEdgeWobble": 0.5, "pavingSunken": 0.08, "pavingMissing": 0.035, "townZones": ["settlement"], "backBeach": 11, "fieldTexels": 2, "duneGrassLimit": 0.55, "townKerb": 0.7,
     "grassPerPatch": 20,
-    "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4"]
+    "flowerColors": ["#fff5d5", "#ead064", "#ecc6c7", "#c6bace", "#b8d0c4", "#f2b27a", "#a9c0ef", "#ee9aa8"]
   },
   "anime": {
     "bounds": {

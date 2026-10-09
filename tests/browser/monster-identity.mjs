@@ -51,7 +51,8 @@ try{
   };
   await page.evaluate(()=>__frontier.panels.open('map'));
   const regions=await page.locator('.region-card').evaluateAll(es=>es.map(e=>e.dataset.id));
-  assert.equal(regions.length,17);const seen=new Set();
+  const zoneCount=await page.evaluate(()=>Object.values(__frontier.game.data.maps).reduce((n,m)=>n+m.zones.length,0));
+  assert.equal(zoneCount,22,'Azure 8 + Frontier 9 + Moonroot Grove 5');assert.equal(regions.length,zoneCount);const seen=new Set();
   for(const region of regions){
    await page.locator(`.region-card[data-id="${region}"]`).tap();
    const entries=await page.locator('.creature-entry').evaluateAll(async es=>{
@@ -66,7 +67,7 @@ try{
    view.regions.push({region,entries});
   }
   assert.deepEqual([...seen].sort(),[...monsters].sort());
-  console.log(size+': 17 region controls and six approved portraits checked');
+  console.log(size+': '+regions.length+' region controls and six approved portraits checked');
   const pin=page.locator('.bossmark [data-art="monster/greyfang"]>img');assert.equal(await pin.count(),1);
   await pin.evaluate(i=>i.decode());assert.equal(await pin.locator('..').locator('..').getAttribute('title'),expectedMonsters.greyfang);
   view.bossPin=await pin.evaluate(i=>({src:i.getAttribute('src'),size:i.getBoundingClientRect().width}));

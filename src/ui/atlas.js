@@ -1,6 +1,6 @@
 // Data-accurate field guide and map of the whole world. Selections never travel immediately.
 // Habitat locations, population counts and level ranges come from the simulation's layout.
-import { art, atlasMonsterArt, atlasRegionArt } from './art.js';
+import { art, hasArt, atlasMonsterArt, atlasRegionArt } from './art.js';
 import { icon } from './icons.js';
 import { worldMapImage } from './mapimage.js';
 import { questTarget } from './hud.js';
@@ -55,6 +55,7 @@ export function atlasView(ui) {
      pins+=`<button class="wpt ${on?'on':''} ${picked?'selected':''}" style="left:${L(mapId,p.x,p.z)};top:${T(mapId,p.x,p.z)}" data-act="select-waypoint" data-id="${atlasKey(mapId,p.id)}" data-zone="${atlasKey(mapId,w.zoneAt(p.x,p.z).id)}" aria-label="${esc(p.nameTh)} · ${on?'เดินทางได้':'ยังไม่เปิดใช้'}">${icon('portal')}</button>`;
    }
    bosses+=(map.bosses||[]).filter(bs=>known.includes(w.zoneAt(...bs.pos).id)).map(bs=>`<span class="bossmark" style="left:${L(mapId,...bs.pos)};top:${T(mapId,...bs.pos)}" title="${data.monsters.monsters[bs.monster].nameTh}">${art('monster',bs.monster)}</span>`).join('');
+   bosses+=(map.landmarks||[]).filter(l=>known.includes(l.zone)).map(l=>`<span class="landmark-pin" data-landmark-pin="${esc(l.id)}" style="left:${L(mapId,...l.at)};top:${T(mapId,...l.at)}" title="${esc(l.nameTh)}">◆</span>`).join('');
    bosses+=`<span class="townmark" style="left:${L(mapId,...map.town.workbench)};top:${T(mapId,...map.town.workbench)}">${icon('hammer')}</span>`;
  }
  const target=questTarget(g,trackedQuest(g.ch,data)), totals=worldTotals(g.ch,data);
@@ -65,6 +66,7 @@ export function atlasView(ui) {
    return `<article class="creature-entry" data-encounter-entry="${id}" data-encounter-count="${entry.count}" data-level-min="${entry.min}" data-level-max="${entry.max}">${atlasMonsterArt(id)}<div><b><span style="display:inline-block;width:.65em;height:.65em;border-radius:50%;background:${monsterColor(id)};margin-right:.35em"></span>${esc(m.nameTh)}</b><small style="display:block;margin-top:.25em">${encounterLevelLabel([entry])} · ${kindName[entry.kind]} · ${entry.count} จุดเกิด</small><p class="muted">${esc(entry.habitats.join(' · '))}</p><div class="drop-pictures">${drops.map(d=>`<span title="${esc(data.items.materials[d.item]?.nameTh||d.item)}">${art('material',d.item)}<small>${esc(data.items.materials[d.item]?.nameTh||d.item)}</small></span>`).join('')}</div></div></article>`;
  }).join('');
  const services=zone.safe&&zdata.town?`<div class="town-services"><div>${icon('hammer')}<span><b>โต๊ะคราฟต์</b><small>คราฟต์ · ตีบวก · อัปเกรดสกิล</small></span></div><div>${icon('person')}<span><b>ครูฝึก</b><small>ตรวจแต้มและพัฒนาตัวละคร</small></span></div></div>`:'';
+ const landmark=(zdata.landmarks||[]).find(l=>l.zone===zone.id);
  const known=found[zoneMap].zones.includes(zone.id),guide=data.encounters?.maps?.[zoneMap],warning=guide?.warnings?.[zone.id];
  const missing=encounterLayout(zw,data)?.failures.filter(f=>f.zone===zone.id).reduce((sum,f)=>sum+f.missing,0)||0;
  return `<div class="atlas-heading"><div><span class="section-kicker">WORLD MAP / FIELD GUIDE</span><h3>แผนที่โลก</h3></div><span class="level-pill">สำรวจ ${totals.zones[0]} / ${totals.zones[1]}</span></div>
@@ -75,13 +77,14 @@ export function atlasView(ui) {
    ${bosses}${pins}${target?`<span class="questmark" style="left:${L(here,target.x,target.z)};top:${T(here,target.x,target.z)}">★</span>`:''}
    <span class="youmark" style="left:${L(here,g.player.x,g.player.z)};top:${T(here,g.player.x,g.player.z)};transform:translate(-50%,-50%) rotate(${Math.PI-g.player.facing}rad)"></span>
    <span class="map-north">N<br>↑</span></div>
-   <div class="map-legend"><span><i class="legend-player"></i>คุณ</span><span>${icon('portal')}หินวาร์ป</span><span>★ เป้าหมาย</span><span>${icon('hammer')}โต๊ะคราฟต์</span><span>● จุดเกิดตั้งต้น · สีตรงกับรายชื่อมอน</span></div>
+   <div class="map-legend"><span><i class="legend-player"></i>คุณ</span><span>${icon('portal')}หินวาร์ป</span><span>★ เป้าหมาย</span><span>${icon('hammer')}โต๊ะคราฟต์</span><span><i class="legend-landmark">◆</i>แลนด์มาร์ค</span><span>● จุดเกิดตั้งต้น · สีตรงกับรายชื่อมอน</span></div>
    ${guide?`<p class="muted" style="overflow-wrap:anywhere">เส้นทางแนะนำ: ${esc(guide.routeText)}</p>`:''}
    <div class="section-heading"><h3>เลือกพื้นที่</h3><span>แตะดูมอนและวัตถุดิบ</span></div><div class="region-grid">${cards}</div>
  </div><aside class="region-detail">
-   <div class="region-cover">${art('zone',zone.id)}<div><span class="section-kicker">${zone.safe?'SETTLEMENT':'EXPLORATION'}</span><h3>${zone.nameTh}</h3><small>${zone.name}</small></div></div>
+   <div class="region-cover">${hasArt('zone',zone.id)?art('zone',zone.id):atlasRegionArt(zoneMap,zone.id)}<div><span class="section-kicker">${zone.safe?'SETTLEMENT':'EXPLORATION'}</span><h3>${zone.nameTh}</h3><small>${zone.name}</small></div></div>
    <div class="region-detail-body"><div class="section-heading"><span class="level-pill">${zone.safe?'เขตปลอดภัย':encounterLevelLabel(entries)}</span><small>${known?'สำรวจแล้ว':'ยังไม่สำรวจ'}</small></div>
    ${warning?`<p class="no" role="note">${esc(warning)}</p>`:''}${missing?`<p class="no" role="status">จุดเกิดไม่ครบ ${missing} จุด · รายชื่อด้านล่างแสดงเฉพาะที่เกิดได้จริง</p>`:''}
+   ${landmark?`<div class="travel-card landmark-card" data-landmark="${esc(landmark.id)}"><b><i class="legend-landmark">◆</i> ${esc(landmark.nameTh)}</b><small>แลนด์มาร์คประจำพื้นที่ · ${esc(landmark.name)}</small></div>`:''}
    ${wp?`<div class="travel-card"><b>${wp.nameTh}</b><small>${unlocked?'เปิดใช้แล้ว · เดินทางได้เมื่อพ้นการต่อสู้':'เดินไปแตะหินนี้เพื่อเปิดใช้'}</small><button class="btn primary" data-act="teleport" data-id="${wp.id}" data-map="${wpAt}" ${unlocked?'':'disabled'}>${icon('portal')} เดินทางไปที่นี่</button></div>`:'<p class="muted">พื้นที่นี้ไม่มีหินวาร์ป · เดินตามถนนเข้าไป</p>'}
    ${services}${creatures?`<h3 class="creature-heading">มอนสเตอร์และของดรอป</h3><p class="muted">แสดงจุดเกิดตั้งต้น ไม่ใช่ตำแหน่งเดินปัจจุบัน</p>${creatures}`:''}</div>
  </aside></div>`;

@@ -28,17 +28,17 @@ const shell = (script, dir, env = {}) => spawnSync('bash', ['-e', '-o', 'pipefai
 test('PR78 actual-game details regression has exactly one mandatory equipment owner', () => {
   assert.deepEqual(SUITES.equipment, ['gear-hands.mjs', 'details-touch.mjs', 'details-game-touch.mjs']);
   const all = Object.values(SUITES).flat();
-  assert.equal(all.length, 33 + Number('equipment-inactive' in SUITES));
+  assert.equal(all.length, 34 + Number('equipment-inactive' in SUITES));
   assert.equal(new Set(all).size, all.length);
-  assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment']);
+  assert.deepEqual(browserPlan(['tests/browser/details-game-touch.mjs']).suites, ['boot', 'equipment', 'save']);
 });
-test('CI/build infrastructure cannot receive a tooling-only or partial browser pass', () => {
+test('CI/build infrastructure cannot receive a tooling-only without real startup/save checks', () => {
   for (const path of ['.github/workflows/ci.yml', '.github/workflows/deploy.yml', '.github/actions/change-scope/action.yml',
     '.github/actions/new/action.yml', 'scripts/ci-browser-plan.mjs', 'scripts/ci-browser-run.mjs',
     'scripts/ci-scope.mjs', 'scripts/build-new.mjs', 'scripts/preserve-published-lab.mjs']) {
     assert.equal(classifyFiles([path]).game, true, path);
     assert.equal(classifyFiles([path]).tools, true, path);
-    assert.deepEqual(browserPlan([path]).suites, FULL_SUITES, path);
+    assertBounded(browserPlan([path]).suites);
   }
 });
 test('bounded edits retain quick routing, boot, saves and the equipment menu consumer', () => {
@@ -46,7 +46,7 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   assert.deepEqual(browserPlan(['tests/tools/ci-scope.test.mjs']).suites, []);
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).tools, true);
   assert.equal(classifyFiles(['tests/tools/ci-scope.test.mjs']).game, false);
-  assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu']);
+  assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs']).suites, ['boot', 'menu', 'save']);
   for (const suite of ['boot', 'equipment', 'weapons', 'menu', 'ux', 'workspaces', 'hud'])
     assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes(suite));
   for (const path of ['src/ui/menu.js', 'src/ui/skill-journal/journal.js']) {
@@ -54,27 +54,27 @@ test('bounded edits retain quick routing, boot, saves and the equipment menu con
   }
   assert.ok(browserPlan(['src/ui/skill-journal/journal.js']).suites.includes('save'));
 });
-test('shared, save, unknown and mixed/renamed runtime paths fail closed', () => {
+test('shared, save, unknown and mixed/renamed runtime paths select bounded safety', () => {
   for (const path of ['src/main.js', 'src/save.js', 'data/items.json', 'src/ui/panels.js', 'src/render/view.js',
     'tests/browser/helpers/new.mjs', 'package-lock.json', 'vite.config.js', 'src/a\nb.js']) {
-    assert.deepEqual(browserPlan(['tests/browser/menu-hub.mjs', path]).suites, FULL_SUITES, path);
+    assertBounded(browserPlan(['tests/browser/menu-hub.mjs', path]).suites);
   }
-  assert.deepEqual(browserPlan(['docs/new-name.md', 'src/old-name.js']).suites, FULL_SUITES);
+  assertBounded(browserPlan(['docs/new-name.md', 'src/old-name.js']).suites);
   assert.deepEqual(browserPlan([], { full: true }).suites, FULL_SUITES);
 });
 
-test('scope CLI routes a real CI-only PR diff to full and keeps its gate enabled', t => {
+test('scope CLI routes a real CI-only PR diff to bounded safety and keeps its gate enabled', t => {
   const { dir, git, put } = fixture(t), base = git('rev-parse', 'HEAD');
   put('scripts/new-build.mjs', '// affects build'); git('add', '.'); git('commit', '-qm', 'infra');
   put('event.json', JSON.stringify({ pull_request: { base: { sha: base }, head: { sha: git('rev-parse', 'HEAD') } } }));
   const run = spawnSync(process.execPath, [join(root, 'scripts/ci-scope.mjs')], { cwd: dir, encoding: 'utf8', env: {
-    ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: join(dir, 'event.json'),
+    ...process.env, GITHUB_SHA: '', GH_TOKEN: '', GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: join(dir, 'event.json'),
     GITHUB_OUTPUT: join(dir, 'outputs'), FORCE_FULL: 'false', FORCE_BOOT: 'false', FORCE_RENDER: 'false',
   } });
   assert.equal(run.status, 0, run.stderr);
   const out = readFileSync(join(dir, 'outputs'), 'utf8');
   assert.match(out, /^game=true$/m); assert.match(out, /^tools=true$/m);
-  assert.deepEqual(JSON.parse(out.match(/^browser_suites=(.*)$/m)[1]), FULL_SUITES);
+  assert.deepEqual(JSON.parse(out.match(/^browser_suites=(.*)$/m)[1]), ['boot', 'smoke', 'combat', 'menu', 'save', 'hud']);
 });
 test('renames keep the removed runtime path even when the destination is documentation', t => {
   const { dir, git, put } = fixture(t);
@@ -82,7 +82,7 @@ test('renames keep the removed runtime path even when the destination is documen
   const base = git('rev-parse', 'HEAD'); mkdirSync(join(dir, 'docs')); git('mv', 'runtime.js', 'docs/renamed.md'); git('commit', '-qm', 'move');
   const files = execFileSync('git', ['diff', '--name-only', '-z', '--no-renames', base, 'HEAD'], { cwd: dir, encoding: 'utf8' }).split('\0').filter(Boolean);
   assert.ok(files.includes('runtime.js')); assert.ok(files.includes('docs/renamed.md'));
-  assert.deepEqual(browserPlan(files).suites, FULL_SUITES);
+  assertBounded(browserPlan(files).suites);
 });
 test('missing git history is an error, not a successful skipped gate', t => {
   const { dir, git, put } = fixture(t);
@@ -96,7 +96,7 @@ test('missing git history is an error, not a successful skipped gate', t => {
 
 test('the actual summary shell rejects every failed/cancelled/unexpected-skip combination', t => {
   const { dir } = fixture(t);
-  const tail = ci.slice(ci.indexOf('      - name: Report gate outcome at exact source'));
+  const tail = ci.slice(ci.indexOf('      - name: Report gate outcome at exact source')).split('\n  extended-regression:')[0];
   const gate = tail.slice(tail.indexOf('        run: |\n') + '        run: |\n'.length).split('\n').map(line => line.replace(/^          /, '')).join('\n');
   assert.ok(gate.includes('test "$PREPARE" = success'));
   const statuses = ['success', 'failure', 'cancelled', 'skipped'];
@@ -110,7 +110,8 @@ test('the actual summary shell rejects every failed/cancelled/unexpected-skip co
 });
 test('browser artifact source check rejects an absent or wrong-source build', t => {
   const { dir, put } = fixture(t);
-  const block = ci.match(/- name: Verify downloaded build source\n\s+run: (.*)/)?.[1];
+  const block = ci.match(/- name: Verify downloaded build source\n\s+run: \|\n\s+(.*)/)?.[1];
+  assert.match(ci, /node scripts\/ci-build-manifest.mjs verify/);
   assert.ok(block, 'workflow must execute the marker check');
   const env = { CI_SOURCE_SHA: 'c'.repeat(40) };
   assert.notEqual(shell(block, dir, env).status, 0);
@@ -123,15 +124,15 @@ test('release uses the tested artifact, validates its source, and pins live-test
   assert.match(ci, /artifact:\n\s+value: \$\{\{ jobs.prepare.outputs.artifact \}\}/);
   assert.match(deploy, /name: \$\{\{ needs.validate.outputs.artifact \|\| needs.evidence.outputs.artifact \}\}/);
   assert.match(deploy, /run: node scripts\/ci-release-evidence.mjs --verify-build/);
-  assert.match(deploy, /ref: \$\{\{ needs.build.outputs.source \}\}/);
-  assert.match(deploy, /release=\$\{\{ needs.build.outputs.source \}\}/);
+  assert.match(deploy, /ref: \$\{\{ github.sha \}\}/);
+  assert.match(deploy, /EXPECTED_RELEASE: \$\{\{ needs.build.outputs.source \}\}/);
   assert.equal((ci.match(/if-no-files-found: error/g) || []).length, 4);
 });
 test('parallel engine coverage, main full-run isolation, permissions and core/build owners are retained', () => {
   assert.match(ci, /browser: \[chromium, webkit\]/);
   assert.match(ci, /fail-fast: false/); assert.doesNotMatch(ci, /max-parallel:/);
-  assert.match(ci, /group: ci-.*\|\| github.sha/);
-  assert.match(ci, /cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \|\| inputs.quick_gate == true \}\}/);
+  assert.match(ci, /group: ci-.*\|\| github.run_id/);
+  assert.match(ci, /cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \}\}/);
   assert.match(ci, /permissions:\n  contents: read\n  actions: read\nconcurrency:/);
   assert.match(deploy, /permissions:\n  contents: read\n  pages: write\n  id-token: write\n  actions: read\n/);
   assert.match(ci, /run: npm run test:tools\n\s+if: steps.scope.outputs.game == 'true' \|\| steps.scope.outputs.tools == 'true'/);
@@ -192,3 +193,8 @@ test('a signalled child remains failed and the next script is still attempted', 
   const report = JSON.parse(readFileSync(join(dir, 'tests/browser/out/ci/full-chromium-weapons.json')));
   assert.equal(report.ok, false); assert.equal(report.checks[0].signal, 'SIGTERM'); assert.equal(report.checks[1].exitCode, 0);
 });
+
+function assertBounded(suites) {
+  assert.ok(suites.includes('boot')); assert.ok(suites.includes('save'));
+  assert.ok(suites.length < FULL_SUITES.length, JSON.stringify(suites));
+}

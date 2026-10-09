@@ -1,0 +1,14 @@
+✔ tests/core/particle-upload.test.js (265.372168ms)
+✔ tests/core/portrait-lifetime.test.js (692.168524ms)
+✔ tests/core/rendering.test.js (1283.966876ms)
+✔ tests/core/ribbon-motion.test.js (268.177382ms)
+✔ tests/render/grass-culling.test.mjs (622.106349ms)
+✔ tests/render/resolution.test.mjs (513.016867ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1338.833044

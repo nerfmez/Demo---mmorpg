@@ -269,8 +269,9 @@ test('Azure Coast overlays the original beach town while the western world stays
   assert.deepEqual(data.world.playerSpawn,originalBeach.playerSpawn);
   assert.deepEqual(data.world.waypoints.find(w=>w.id==='landing'),originalBeach.waypoints.find(w=>w.id==='landing'));
   assert.deepEqual(data.world.ponds,originalBeach.ponds);
-  // Place is preserved; monster level is a balance value (progression.balance) and may change.
-  const place=z=>{const {level,...rest}=z;return rest;};
+  // Place is preserved; monster level is a balance value (progression.balance) and ground cover
+  // (decor) is the zone's look, so both may change.
+  const place=z=>{const {level,decor,...rest}=z;return rest;};
   for(const id of ['forest','glade'])assert.deepEqual(place(world.zoneById(id)),place(originalBeach.zones.find(z=>z.id===id)));
   for(const p of [[-132,80],[-100,70],[-38,62]]){
     assert.ok(world.isBeach(...p),'original western beach remains beach');

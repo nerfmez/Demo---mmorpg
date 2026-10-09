@@ -1,0 +1,13 @@
+✔ tests/core/landmarks.test.js (13388.938669ms)
+✔ tests/core/region-build-lifetime.test.js (388.170565ms)
+✔ tests/core/save.test.js (399.167671ms)
+✔ tests/core/world.test.js (6244.85085ms)
+✔ tests/render/landmark-assets.test.mjs (12500.693932ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13401.326703

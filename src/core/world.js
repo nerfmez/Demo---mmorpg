@@ -10,6 +10,20 @@ import { cityFloorAt, cityRoadDistance, cityFloorHeight, cityPlantingFloorAt } f
 
 const CELL = 8;
 
+// Ground cover by zone: flower colours (art.ground.flowerColors indices), ferns, mushrooms and
+// berry bushes. A zone's own data `decor` overrides these defaults (kept from the first maps).
+const DECOR_DEFAULTS = {
+  glade: { flowers: [2, 2, 3, 0], ferns: true, mushrooms: true, berries: true },
+  ruins: { flowers: [3, 2] },
+  highlands: { flowers: [1, 0, 4] },
+  wetland: { flowers: [0, 3, 4], mushrooms: true },
+  forest: { ferns: true, mushrooms: true },
+  wolf_den: { ferns: true, mushrooms: true },
+};
+export function zoneDecor(zone) {
+  return { flowers: [0, 0, 1, 2], ferns: false, mushrooms: false, berries: false, ...DECOR_DEFAULTS[zone.id], ...zone.decor };
+}
+
 export function createWorld(worldData) {
   const rng = createRng(worldData.seed);
   const b = worldData.bounds;
@@ -292,9 +306,10 @@ export function createWorld(worldData) {
       if (roadDist(x, z) < 1.5) continue; // keep entrances open
       addCircle({ x, z, r: 0.9, type: rng.chance(0.4) ? 'pillar_broken' : 'pillar', scale: rng.range(0.9, 1.15), rot: rng.range(0, 6.28) });
     }
-    const rz = zoneById('ruins');
+    // ruins.zone names the zone strewn with fallen stones (default 'ruins'); ruins.scatter how many tries
+    const rz = zoneById(ruins.zone || 'ruins');
     const rr = rz.rects[0];
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < (ruins.scatter ?? 90); i++) {
       const x = rng.range(rr[0] + 2, rr[1] - 2);
       const z = rng.range(rr[2] + 2, rr[3] - 2);
       const kind = rng.next();
@@ -321,7 +336,8 @@ export function createWorld(worldData) {
       const [bx, bz] = pts[s + 1];
       const za = zoneAt(ax, az).id;
       const zb = zoneAt(bx, bz).id;
-      if (za !== 'ruins' && zb === 'ruins') {
+      const ruinZone = ruins?.zone || 'ruins';
+      if (za !== ruinZone && zb === ruinZone) {
         // find where the segment enters the ruins rect, put an arch a little inside
         const t = 0.8;
         const x = ax + (bx - ax) * t;
@@ -475,15 +491,36 @@ export function createWorld(worldData) {
     }
     if (zn.safe && dist(x, z, town.centre[0], town.centre[1]) < town.plazaRadius) continue;
     const r = rng.next();
-    const flowerSet = zn.id === 'glade' ? [2, 2, 3, 0] : zn.id === 'ruins' ? [3, 2] : zn.id === 'highlands' ? [1, 0, 4] : zn.id === 'wetland' ? [0, 3, 4] : [0, 0, 1, 2];
-    if (r < 0.3) decor.flowers.push({ x, z, color: rng.pick(flowerSet), s: rng.range(0.7, 1.2) });
+    const look = zoneDecor(zn);
+    if (r < 0.3) decor.flowers.push({ x, z, color: rng.pick(look.flowers), s: rng.range(0.7, 1.2) });
     else if (r < 0.82) decor.grass.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.7, 1.4) });
     else if (r < 0.88) {
-      if ((zn.id === 'forest' || zn.id === 'wolf_den' || zn.id === 'glade') && !nearCollider(x, z, 0.5)) decor.ferns.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.7, 1.3) });
-      else if (!zn.safe && !nearCollider(x, z, 1)) decor.bushes.push({ x, z, s: rng.range(0.6, 1.1), berries: zn.id === 'glade' && rng.chance(0.5) });
+      if (look.ferns && !nearCollider(x, z, 0.5)) decor.ferns.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.7, 1.3) });
+      else if (!zn.safe && !nearCollider(x, z, 1)) decor.bushes.push({ x, z, s: rng.range(0.6, 1.1), berries: look.berries && rng.chance(0.5) });
     } else if (r < 0.91) {
-      if (zn.id === 'forest' || zn.id === 'wetland' || zn.id === 'glade' || zn.id === 'wolf_den') decor.mushrooms.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.3), red: rng.chance(0.4) });
+      if (look.mushrooms) decor.mushrooms.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.6, 1.3), red: rng.chance(0.4) });
     } else if (r < 0.93 && !zn.safe) decor.pebbles.push({ x, z, rot: rng.range(0, 6.28), s: rng.range(0.8, 1.6) });
+  }
+
+  // ---------- landmarks ----------
+  // One set piece per zone (data: landmarks). Placed after the scatter so the random layout
+  // stays as it was: scattered props and decoration inside its clearing are lifted out, then
+  // its own colliders (local [x, z, r], +z facing rot) go in. Built-in set pieces (wreck,
+  // lighthouse, den, ruin ring) are listed for names and the map only.
+  const landmarks = [];
+  const CARVED = new Set(['tree', 'birch', 'pine', 'willow', 'palm', 'rock', 'boulder', 'crystal', 'stump', 'log']);
+  const SCATTER = ['flowers', 'grass', 'bushes', 'ferns', 'mushrooms', 'reeds', 'lilies', 'pebbles', 'shells', 'bones', 'logsDecor']; // authored lanterns, fences, banners stay
+  for (const lm of worldData.landmarks || []) {
+    const [lx, lz] = lm.at, rot = lm.rot || 0, s = Math.sin(rot), c = Math.cos(rot);
+    const parts = (lm.colliders || []).map(([px, pz, r]) => ({ x: lx + px * c + pz * s, z: lz - px * s + pz * c, r }));
+    landmarks.push({ ...lm, x: lx, z: lz, parts });
+    if (lm.builtin) continue;
+    const clear = lm.clear || 0, inside = (o, pad = 0) => dist(o.x, o.z, lx, lz) < clear + pad;
+    for (const list of [circles, boxes]) {
+      for (let i = list.length - 1; i >= 0; i--) if (CARVED.has(list[i].type) && inside(list[i], list[i].r ?? list[i].hz)) list.splice(i, 1);
+    }
+    for (const key of SCATTER) decor[key] = decor[key].filter((o) => !inside(o, 0.4));
+    for (const p of parts) circles.push({ ...p, type: 'landmark', landmark: lm.id, scale: 1, rot });
   }
 
   // ---------- collision grid ----------
@@ -641,6 +678,7 @@ export function createWorld(worldData) {
     circles,
     boxes,
     decor,
+    landmarks,
     waypoints,
     exits,
     seams,

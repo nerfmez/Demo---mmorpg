@@ -42,7 +42,7 @@ export function surfaceData(world) {
 }
 
 /** Per-cell ground surfaces, yielding every few rows (open-world streaming). */
-export function* surfaceSteps(world) {
+export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
   if(surfaceCache.has(world)) return surfaceCache.get(world);
   const hf = world.heightfield;
   const { w, h, ox, oz, res } = hf;
@@ -102,8 +102,8 @@ export function* surfaceSteps(world) {
       }
       if (wd.sea) {
         // sandy beach along the sea
-        const c = world.coastAt(x, z), d = c.distance;
-        const beach = wd.sea.beach || 14;
+        const c = domain.coastAt(x, z), d = c.distance;
+        const beach = c.beach;
         // 1 on open sand, easing through a sandy-soil back-beach band to 0 at the meadow
         coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + (art.ground.backBeach ?? 3.5), d) : 0;
         // Remove only the obsolete coarse cobble paint beside the source cape;
@@ -137,7 +137,7 @@ export function* surfaceSteps(world) {
         }
         else {dirt[k]=Math.max(dirt[k],patch*.72);road[k]=Math.max(road[k],patch*.38);}
       }
-      if (ruins) {
+      if (ruins && ruins.paving !== false) { // a grassy stone ring opts out of the paved floor
         const rd = Math.hypot(x - ruins.centre[0], z - ruins.centre[1]);
         stone[k] = Math.max(stone[k], 1 - smooth(ruins.ringRadius + 0.5, ruins.ringRadius + 2.5, rd));
       }
@@ -279,7 +279,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
     if (j % 4 === 0) yield;
     for (let i = 0; i < w; i++) data[j*w+i] = domain.height(ox+i*res,oz+j*res,hf.data[j*w+i]);
   }
-  const surf = yield* surfaceSteps(world);
+  const surf = yield* surfaceSteps(world, {domain});
   yield* groundFieldUniformSteps(world); // baked now, not at the first draw
   const mat = new THREE.MeshLambertMaterial({color:0xffffff});
   let completed=false;
@@ -428,20 +428,23 @@ ${GROUND_COLOR_GLSL}`
 // ---------- water ----------
 
 /** Broad swash advances over the sand and drains back; one shared GPU clock, no CPU mesh churn. */
-function seaMaterial(world, contacts) {
+function seaMaterial(world, contacts, domain) {
   const surf = world.data.sea.surf || {};
+  const join = domain.neighbourSea?.surf || surf;
+  const atlasOffset = new THREE.Vector2(...(world.data.atlas?.offset || [0, 0]));
   const material=new THREE.ShaderMaterial({
     uniforms: { uRegionShift: regionShift(), uCrest:{value:new THREE.Vector4(surf.crestBend ?? 1.0,surf.crestWidth ?? .13,surf.crestLength ?? 12,surf.crestOpacity ?? .24)},uContacts:{value:contacts.texture},uContactBounds:{value:contacts.bounds},uContact:{value:new THREE.Vector4(contacts.range,surf.contactWidth??.42,surf.contactIntensity??.85,contacts.texel)},uTime: timeUniform, uSurf: {value:new THREE.Vector4(surf.runup ?? 2.6, surf.retreat ?? 1.6, surf.period ?? 7.5, surf.foamWidth ?? .2)}, uFoam:{value:new THREE.Vector3(surf.foamScale ?? 2.0,surf.foamIntensity ?? .95,surf.portFoam ?? .68)}, uFoamColor:{value:new THREE.Color(surf.foamColor ?? '#edf7f2')}, uMotion:{value:new THREE.Vector4(surf.foamDrift ?? .45,surf.foamLifetime ?? 2.4,surf.causticSpeed ?? .35,surf.waveSpacing ?? 9)}, uSparkle:{value:new THREE.Vector4(surf.sparkleDensity ?? .03,surf.sparkleSize ?? .09,surf.sparkleScale ?? 1.4,surf.reflectionPatches ?? .06)} },
     transparent:true, depthWrite:false, side:THREE.DoubleSide,
     vertexShader: /* glsl */ `
-      attribute float depth; attribute float shore; attribute float beachWash;
-      varying float vDepth; varying float vShore; varying vec2 vW;
-      varying float vBeachWash;
-      uniform vec3 uRegionShift;
-      void main(){vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xz-uRegionShift.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
+      attribute float depth; attribute float shore; attribute float beachWash; attribute float coastJoin;
+      varying float vDepth; varying float vShore; varying vec2 vW; varying vec2 vLocal;
+      varying float vBeachWash; varying float vCoastJoin;
+      uniform vec3 uRegionShift; uniform vec2 uAtlasOffset;
+      void main(){vCoastJoin=coastJoin;vBeachWash=beachWash;vDepth=depth;vShore=shore;vec4 wp=modelMatrix*vec4(position,1.0);vLocal=wp.xz-uRegionShift.xz;vW=vLocal+uAtlasOffset;gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader: /* glsl */ `
       uniform float uTime; uniform vec4 uSurf; uniform vec3 uFoam; uniform vec3 uFoamColor; uniform vec4 uMotion; uniform sampler2D uContacts; uniform vec4 uContactBounds; uniform vec4 uContact; uniform vec4 uCrest; uniform vec4 uSparkle;
-      varying float vDepth; varying float vShore; varying vec2 vW; varying float vBeachWash;
+      varying float vDepth; varying float vShore; varying vec2 vW; varying vec2 vLocal; varying float vBeachWash;
+      uniform vec3 uJoinCoast; varying float vCoastJoin;
       ${NOISE_GLSL}
       // Graphic anime water: a curved crest with finite rounded strokes.
       // The row changes halfway between invisible crests, so reseeding cannot pop.
@@ -508,6 +511,9 @@ function seaMaterial(world, contacts) {
         return vec2(white,mist);
       }
       void main(){
+        // Only the coastal seam band reconciles the two authored foam styles.
+        float foamWidth=mix(uSurf.w,uJoinCoast.y,vCoastJoin);
+        float sparkleDensity=mix(uSparkle.x,uJoinCoast.z,vCoastJoin);
         // Recover the waterward normal from the existing signed coast distance.
         // This advects foam perpendicular to both side coasts of the U-shaped bay.
         vec2 dx=dFdx(vW),dy=dFdy(vW);
@@ -520,7 +526,7 @@ function seaMaterial(world, contacts) {
         }
         vec2 coast=vW-normal*vShore;
         float spacing=uMotion.w,speed=spacing/uSurf.z;
-        vec2 contactUV=(vW-uContactBounds.xy)/uContactBounds.zw;
+        vec2 contactUV=(vLocal-uContactBounds.xy)/uContactBounds.zw;
         float contactValid=step(0.0,contactUV.x)*step(0.0,contactUV.y)*step(contactUV.x,1.0)*step(contactUV.y,1.0);
         vec4 contactData=texture2D(uContacts,contactUV);
         float contactD=mix(uContact.x,(contactData.r-.5)*uContact.x*2.0,contactValid);
@@ -561,10 +567,10 @@ function seaMaterial(world, contacts) {
         vec2 gq=gl-(vec2(hash12(gc+3.7),hash12(gc+9.1))-.5)*.6;
         float twinkle=sin(fract(uTime*.7+hash12(gc)*7.0)*3.14159);
         float star=max(1.0-smoothstep(.0,uSparkle.y,abs(gq.x)*.25+abs(gq.y)),1.0-smoothstep(.0,uSparkle.y,abs(gq.y)*.25+abs(gq.x)));
-        float glint=star*step(1.0-uSparkle.x,gseed)*twinkle*smoothstep(.8,2.5,d);
+        float glint=star*step(1.0-sparkleDensity,gseed)*twinkle*smoothstep(.8,2.5,d);
         col=mix(col,vec3(1.0,.98,.90),clamp(glint,0.0,1.0)*.9);
         float jag=(vnoise(coast*1.6+vec2(uTime*.28,-uTime*.19))-.5)*.16;
-        float rim=1.0-smoothstep(uSurf.w,uSurf.w+.07,abs(behind+jag));
+        float rim=1.0-smoothstep(foamWidth,foamWidth+.07,abs(behind+jag));
         float foam=0.0,softFoam=0.0;
         if(vShore<65.0){
           float turns=cycle/6.2831853,swashAge=fract(turns),generation=floor(turns);
@@ -575,12 +581,19 @@ function seaMaterial(world, contacts) {
           // during drainage. The next patch is reseeded only while it is invisible.
           vec2 swashP=(vW-normal*edge)*uFoam.x;
           swashP+=normal*swashAge*uMotion.x;
+          vec2 joinSwashP=(vW-normal*edge)*uJoinCoast.x+normal*swashAge*uMotion.x;
           float trail=smoothstep(.04,.22,behind)*(1.0-smoothstep(sheetWidth*.5,sheetWidth,behind));
           // the foam sheet and broken rim only exist in a narrow band at the waterline; open
           // water skips them (same result, they would be multiplied by zero)
           vec2 sheet=vec2(0.0);
-          if(trail*build*drain>.001)sheet=foamSheet(swashP,swashAge*uSurf.z,generation,uSurf.z*.88);
+          if(trail*build*drain>.001){
+            sheet=foamSheet(swashP,swashAge*uSurf.z,generation,uSurf.z*.88);
+            // Blend fixed-scale samples, not their coordinates: interpolating
+            // a world-space scale would stretch the foam into long stripes.
+            if(vCoastJoin>.001)sheet=mix(sheet,foamSheet(joinSwashP,swashAge*uSurf.z,generation,uSurf.z*.88),vCoastJoin);
+          }
           float broken=rim>.001?smoothstep(.17,.55,vnoise(swashP*.7+generation*8.3)):0.0;
+          if(rim>.001&&vCoastJoin>.001)broken=mix(broken,smoothstep(.17,.55,vnoise(joinSwashP*.7+generation*8.3)),vCoastJoin);
           float wash=rim*(.50+.45*build*drain)*mix(.40,1.0,broken)
                      +sheet.x*trail*build*drain;
           float washMist=sheet.y*trail*build*drain;
@@ -616,6 +629,7 @@ function seaMaterial(world, contacts) {
             float band=1.0-smoothstep(spread*.20,spread,max(0.0,contactD));
             float incidence=.20+.80*max(0.0,contactNormal.y);
             vec2 collisionFoam=foamSheet((hit+contactNormal*contactD*.5)*uFoam.x,impactAge,floor(hitCoord),uMotion.y);
+            if(vCoastJoin>.001)collisionFoam=mix(collisionFoam,foamSheet((hit+contactNormal*contactD*.5)*uJoinCoast.x,impactAge,floor(hitCoord),uMotion.y),vCoastJoin);
             float contactRim=(1.0-smoothstep(.025,.11,max(0.0,contactD)))*.42;
             // A short return ripple travels outward from the struck contour;
             // the exposed face reflects more strongly than the sheltered side.
@@ -639,6 +653,9 @@ function seaMaterial(world, contacts) {
       }`,
   });
   material.userData.waterStyle='anime-curved-port-crest';
+  // Wave/paint phase is global; contact UVs above retain this map's coordinates.
+  material.uniforms.uAtlasOffset = {value: atlasOffset};
+  material.uniforms.uJoinCoast = {value: new THREE.Vector3(join.foamScale ?? 2, join.foamWidth ?? .2, join.sparkleDensity ?? .03)};
   material.userData.waterContact={sections:contacts.sections,segments:contacts.segments,texel:contacts.texel};
   ownContactTexture(material,contacts.texture);
   return material;
@@ -686,7 +703,7 @@ function waterMaterial() {
 
 /** River strip + ponds at the water level; depth comes from the heightfield. */
 export const createWater=(...args)=>finishSteps(waterSteps(...args));
-export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
+export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrainDomain(world)} = {}) {
   const group = new THREE.Group();
   adopt?.(group);
   const mat = waterMaterial();owner?.material(mat);
@@ -766,7 +783,7 @@ export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
   if (sea) {
     const contact=yield* waterContactSteps(world,scenery);
     group.userData.contactSections=contact.sections;
-    const seaMat = seaMaterial(world,contact);owner?.material(seaMat);
+    const seaMat = seaMaterial(world,contact,domain);owner?.material(seaMat);
     // Match the terrain grid so the thin film cannot cut through sand at coarse triangle edges.
     // Cull in tiles; only the few swash tiles in the camera view reach the GPU.
     const hf = world.heightfield;
@@ -781,12 +798,12 @@ export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
     for(let tj=0;tj<nz;tj+=TILE) for(let ti=0;ti<nx;ti+=TILE) {
     yield;
     const cw=Math.min(TILE,nx-ti),ch=Math.min(TILE,nz-tj);
-    const pos = [], depth = [], along = [], shore = [], washMask = [], idx = [];
+    const pos = [], depth = [], along = [], shore = [], washMask = [], coastJoin = [], idx = [];
     for (let j = 0; j <= ch; j++)
       for (let i = 0; i <= cw; i++) {
         const x = x0 + (ti+i) * step;
         const z = zMin + (tj+j) * step;
-        const c = world.coastAt(x, z);
+        const c = domain.coastAt(x, z);
         const shoreD = -c.distance;
         // Only beaches carry the thin film over terrain. Port water stays flat.
         // Source city slabs are raised solid land, not beach film. A raised
@@ -795,7 +812,7 @@ export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
         pos.push(x, beachFilm ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
-        shore.push(shoreD); washMask.push(beachFilm ? 1 : 0);
+        shore.push(shoreD); washMask.push(beachFilm ? 1 : 0); coastJoin.push(c.blend);
       }
     for (let j = 0; j < ch; j++)
       for (let i = 0; i < cw; i++) {
@@ -803,7 +820,7 @@ export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
         const b2 = a + cw + 1;
         idx.push(a, b2, a + 1, a + 1, b2, b2 + 1);
       }
-    const wash = waterMesh(pos, depth, along, idx, seaMat, shore, washMask);
+    const wash = waterMesh(pos, depth, along, idx, seaMat, shore, washMask, coastJoin);
     wash.name = 'sea-swash';
     group.add(wash);
     }
@@ -825,12 +842,12 @@ export function* waterSteps(world, scenery = null, {adopt,owner} = {}) {
   return group;
 }
 
-function waterMesh(pos, depth, along, idx, mat, shore = null, washMask = null) {
+function waterMesh(pos, depth, along, idx, mat, shore = null, washMask = null, coastJoin = null) {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('depth', new THREE.Float32BufferAttribute(depth, 1));
   g.setAttribute('along', new THREE.Float32BufferAttribute(along, 1));
-  if(shore) { g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1)); g.setAttribute('beachWash',new THREE.Float32BufferAttribute(washMask || shore.map(() => 1),1)); }
+  if(shore) { g.setAttribute('shore',new THREE.Float32BufferAttribute(shore,1)); g.setAttribute('beachWash',new THREE.Float32BufferAttribute(washMask || shore.map(() => 1),1)); g.setAttribute('coastJoin',new THREE.Float32BufferAttribute(coastJoin || shore.map(() => 0),1)); }
   g.setIndex(idx);
   g.computeBoundingSphere();
   const m = new THREE.Mesh(g, mat);

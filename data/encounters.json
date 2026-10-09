@@ -615,6 +615,117 @@
         "wetland_trail",
         "coast_trail"
       ]
+    },
+    "moonroot-grove-v1": {
+      "route": [
+        "fern_rise",
+        "stone_ring",
+        "mirror_pond",
+        "root_warren"
+      ],
+      "routeText": "เนินเฟิร์น 6–7 → วงหิน 7–8 → สระกระจก 8–9 → โพรงราก 9–10 → ป่ารากตะไคร่ (ชายแดน) 10–12",
+      "warnings": {
+        "root_warren": "โพรงรากตุ่น Lv.9–10 ติดป่าชายแดน Lv.10–12 · ตุ่นมุดดินโผล่ใต้เท้า เดินออกจากวงที่ขึ้นบนพื้น"
+      },
+      "habitats": {
+        "fern_rise:fern_ear_hare": {
+          "label": "ดงเฟิร์นรอบวงหินและเนินตะวันออก",
+          "rects": [
+            [
+              60,
+              104,
+              -52,
+              45
+            ],
+            [
+              148,
+              180,
+              -52,
+              45
+            ],
+            [
+              104,
+              148,
+              18,
+              45
+            ],
+            [
+              104,
+              148,
+              -52,
+              -30
+            ]
+          ]
+        },
+        "stone_ring:fern_ear_hare": {
+          "label": "หญ้าในวงหินรากโบราณ",
+          "rects": [
+            [
+              108,
+              144,
+              -26,
+              14
+            ]
+          ]
+        },
+        "mirror_pond:fern_ear_hare": {
+          "label": "ชายพุ่มด้านตะวันออกของสระ",
+          "rects": [
+            [
+              20,
+              52,
+              -52,
+              45
+            ]
+          ]
+        },
+        "mirror_pond:mirrorwing_moth": {
+          "label": "เหนือผิวน้ำและรากไม้รอบสระกระจก",
+          "rects": [
+            [
+              -55,
+              50,
+              -52,
+              45
+            ]
+          ]
+        },
+        "stone_ring:mirrorwing_moth": {
+          "label": "แสงจันทร์ระหว่างเสาหิน",
+          "rects": [
+            [
+              108,
+              144,
+              -26,
+              14
+            ]
+          ]
+        },
+        "root_warren:rootdigger_mole": {
+          "label": "ดินร่วนใต้รากไม้ใหญ่ฝั่งตะวันตก",
+          "rects": [
+            [
+              -180,
+              -65,
+              -52,
+              45
+            ]
+          ]
+        },
+        "root_warren:mirrorwing_moth": {
+          "label": "ชายป่าระหว่างโพรงกับสระ",
+          "rects": [
+            [
+              -92,
+              -62,
+              -52,
+              45
+            ]
+          ]
+        }
+      },
+      "transitions": [],
+      "quietRoads": []
     }
   }
 }

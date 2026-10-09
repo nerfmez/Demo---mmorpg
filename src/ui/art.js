@@ -286,6 +286,13 @@ for (const [id, [kind, palette, tier]] of Object.entries(FORGED)) gear[id] = siz
 // Raster-only materials keep authored coverage for shared ground-loot consumers.
 for (const id of ['enhancement_stone', 'skill_crystal']) material[id] = `<image href="${rasterIconUrl('material',id)}" width="128" height="128"/>`;
 
+// Moonroot Grove content is drawn from the owner's concept sheets (scripts/split-moonroot-art.py):
+// the cut-out picture sits inside the authored 128 frame, so every consumer keeps the SVG contract.
+const supplied = (path) => `<image href="${(import.meta.env?.BASE_URL || '/') + path}" width="128" height="128"/>`;
+for (const id of ['fern_ear_hare', 'mirrorwing_moth', 'rootdigger_mole']) monster[id] = supplied(`assets/icons/monster/${id}.png`);
+for (const id of ['fern_ear_tuft', 'mirror_scale', 'rootdigger_claw']) material[id] = supplied(`assets/moonroot/material/${id}.png`);
+for (const id of ['fernstep_charm', 'mirrorwing_pendant', 'burrowguard_brooch', 'grove_union_ring']) gear[id] = supplied(`assets/moonroot/gear/${id}.png`);
+
 export const ART = { gear, material, skill, mod, monster, zone, job };
 
 // Arrow bundles use supplied raster art; retain the authored SVG fallback.

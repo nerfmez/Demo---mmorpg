@@ -2,12 +2,21 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/shared-conversation-s1yquy]
+    branches: [main]
   # an effects branch built the Skill Lab: publish the game from main and that lab under /lab/
   workflow_run:
     workflows: ['Skill Lab preview']
     types: [completed]
   workflow_dispatch:
+    inputs:
+      rollback_run:
+        description: 'Explicit successful Pages run ID to restore exactly (blank = release main)'
+        type: string
+        default: ''
+      rollback_previous:
+        description: 'Restore the previous-site checkpoint saved by rollback_run (requires that run ID)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -17,14 +26,17 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Active publication finishes. GitHub keeps at most one pending run; a newer
+  # arrival replaces that pending run, and ordering is not guaranteed (not FIFO).
+  cancel-in-progress: false
 
 jobs:
   evidence:
     timeout-minutes: 10
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && !inputs.rollback_run
     runs-on: ubuntu-latest
     outputs:
+      base: ${{ steps.previous.outputs.sha }}
       reuse: ${{ steps.resolve.outputs.reuse }}
       source: ${{ steps.resolve.outputs.source }}
       target: ${{ steps.resolve.outputs.target }}
@@ -35,15 +47,34 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - name: Install release evidence dependencies
         run: npm ci --include=dev
+      - id: previous
+        name: Retain previous successful site and release baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci-published-site.mjs checkpoint
+      - uses: actions/upload-artifact@v4
+        with:
+          name: previous-site
+          path: previous-site/
+          include-hidden-files: true
+          retention-days: 90
+          if-no-files-found: error
+      - name: Reject stale release before validation
+        if: github.event_name != 'workflow_run'
+        env:
+          RELEASE_BASE_SHA: ${{ steps.previous.outputs.sha }}
+        run: git merge-base --is-ancestor "$RELEASE_BASE_SHA" HEAD
       - id: resolve
         name: Verify already-tested release evidence
         env:
+          RELEASE_BASE_SHA: ${{ steps.previous.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
         run: node scripts/ci-release-evidence.mjs
       - uses: actions/upload-artifact@v4
@@ -55,16 +86,17 @@ jobs:
           if-no-files-found: error
   validate:
     needs: evidence
-    if: always() && !cancelled() && github.event_name != 'workflow_run' && !(needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true')
+    if: always() && !cancelled() && needs.evidence.result == 'success' && github.ref == 'refs/heads/main' && !inputs.rollback_run && github.event_name != 'workflow_run' && !(needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true')
     uses: ./.github/workflows/ci.yml
     with:
       quick_gate: true
+      release_base: ${{ needs.evidence.outputs.base }}
   build:
     needs: [evidence, validate]
-    if: always() && !cancelled() && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || needs.validate.result == 'success' || (needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true' && needs.validate.result == 'skipped'))
+    if: always() && !cancelled() && github.ref == 'refs/heads/main' && (needs.evidence.result == 'success' || inputs.rollback_run != '') && ((github.event_name == 'workflow_dispatch' && inputs.rollback_run != '') || (github.event_name == 'workflow_run' && needs.evidence.result == 'success' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.id == github.repository_id) || needs.validate.result == 'success' || (needs.evidence.result == 'success' && needs.evidence.outputs.reuse == 'true' && needs.validate.result == 'skipped'))
     runs-on: ubuntu-latest
     outputs:
-      source: ${{ steps.release.outputs.sha }}
+      source: ${{ steps.restore.outputs.sha || steps.release.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,27 +110,34 @@ jobs:
       - run: npm ci
       # Download either the verified prior CI build or the normal fallback build.
       - uses: actions/download-artifact@v4
-        if: github.event_name != 'workflow_run'
+        if: github.event_name != 'workflow_run' && !inputs.rollback_run
         with:
           name: ${{ needs.validate.outputs.artifact || needs.evidence.outputs.artifact }}
           path: dist/
       - name: Verify the build before Pages upload
-        if: github.event_name != 'workflow_run'
+        if: github.event_name != 'workflow_run' && !inputs.rollback_run
         env:
           BUILD_ORIGIN: ${{ needs.validate.outputs.source || needs.evidence.outputs.source }}
           RELEASE_TARGET: ${{ needs.validate.outputs.source || needs.evidence.outputs.target }}
           RELEASE_TREE: ${{ needs.evidence.outputs.tree }}
           EVIDENCE_RUN: ${{ needs.validate.result == 'skipped' && needs.evidence.outputs.run || '' }}
         run: node scripts/ci-release-evidence.mjs --verify-build
-      # Lab-only publishing retains the existing main-game build path.
-      - run: npm test && npm run build
-        if: github.event_name == 'workflow_run'
-      # Preserve the exact already-published /lab preview on main releases.
-      - name: Preserve published Skill Lab
-        if: github.event_name != 'workflow_run'
+      # A Lab event changes only /lab. Rollback restores the complete prior site.
+      - id: restore
+        name: Restore exact published site
+        if: github.event_name == 'workflow_run' || inputs.rollback_run != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/preserve-published-lab.mjs lab-out
+          ROLLBACK_RUN: ${{ inputs.rollback_run }}
+          ROLLBACK_PREVIOUS: ${{ inputs.rollback_previous }}
+          RESTORE_MODE: ${{ inputs.rollback_run != '' && 'rollback' || 'lab' }}
+        run: node scripts/ci-published-site.mjs "$RESTORE_MODE"
+      # Preserve the exact already-published /lab preview on main releases.
+      - name: Preserve published Skill Lab
+        if: github.event_name != 'workflow_run' && !inputs.rollback_run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci-published-site.mjs preserve-lab
       - name: Skill Lab from the effects branch
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@v4
@@ -107,14 +146,22 @@ jobs:
           path: lab-out
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
-      - run: mv lab-out dist/lab
+      - name: Attach separately validated Skill Lab
+        if: inputs.rollback_run == ''
+        run: |
+          rm -rf dist/lab
+          mv lab-out dist/lab
+          node scripts/ci-published-site.mjs seal
+      - run: node scripts/ci-published-site.mjs verify
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          retention-days: 90
   deploy:
     needs: build
     if: always() && !cancelled() && needs.build.result == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     container:
       image: mcr.microsoft.com/playwright:v1.56.1-noble@sha256:f1e7e01021efd65dd1a2c56064be399f3e4de00fd021ac561325f2bfbb2b837a
       options: --init --shm-size=1g
@@ -129,7 +176,8 @@ jobs:
         uses: actions/deploy-pages@v4
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.build.outputs.source }}
+          # Use the reviewed live-check harness, including for pre-policy rollbacks.
+          ref: ${{ github.sha }}
       - name: Trust exact checked-out container workspace
         run: |
           test "$GITHUB_WORKSPACE" = "$(pwd -P)"
@@ -139,9 +187,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-        if: github.event_name != 'workflow_run'
       - name: Verify preinstalled Playwright matches locked dependencies
-        if: github.event_name != 'workflow_run'
         run: |
           node <<'NODE'
           const assert = require('node:assert/strict');
@@ -158,24 +204,14 @@ jobs:
           fs.accessSync(executable, fs.constants.X_OK);
           console.log(`Preinstalled Playwright ${version}: ${process.env.BROWSER} ${executable}`);
           NODE
-      - name: Dreamloop against the published game (Safari engine)
-        if: github.event_name != 'workflow_run'
+      - name: Published startup save and Continue (Safari engine)
         env:
-          DREAMLOOP_URL: ${{ steps.deployment.outputs.page_url }}
-          DREAMLOOP_PASS: live-webkit
+          BOOT_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_RELEASE: ${{ needs.build.outputs.source }}
           BROWSER: webkit
-        run: npm run test:dreamloop
-      - name: Published atomic route purchase and reload (Safari engine)
-        if: github.event_name != 'workflow_run'
-        env:
-          JOURNAL_SAVE_URL: ${{ steps.deployment.outputs.page_url }}?quality=low&release=${{ needs.build.outputs.source }}
-          JOURNAL_OUT: tests/browser/out/journal-live-webkit/
-          BROWSER: webkit
-        run: node tests/browser/journal-route-save.mjs
+        run: node tests/browser/boot.mjs
       - uses: actions/upload-artifact@v4
-        if: always() && github.event_name != 'workflow_run'
+        if: always()
         with:
-          name: live-dreamloop
-          path: |
-            tests/browser/out/dreamloop-live-webkit/
-            tests/browser/out/journal-live-webkit/
+          name: live-startup-save
+          path: tests/browser/out/boot/

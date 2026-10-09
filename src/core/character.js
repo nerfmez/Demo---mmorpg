@@ -5,10 +5,10 @@ import { enterMap } from './maps.js';
 import { migrateQuestJournal } from './quests.js';
 
 import { equipmentItemLevel, normalizeItemMetadata } from './item-metadata.js';
-import { startingConsumables, normalizeConsumables } from './consumables.js';
+import { startingConsumables, normalizeConsumables, normalizeAutoPotions } from './consumables.js';
 
 export const STATS = ['STR', 'AGI', 'VIT', 'INT', 'DEX'];
-export const CHARACTER_VERSION = 11;
+export const CHARACTER_VERSION = 13;
 
 export function emptyProgress(data) {
   const starter = data?.world.id ? data.world : null;
@@ -47,6 +47,7 @@ export function createCharacter(data, opts = {}) {
     skills: opening ? {} : { [kit.basic]: 1 },
     movementSkills: [],
     movement: null,
+    movementMods: [],
     mods: [],
     arrows: { use: Object.keys(data.items.arrows?.start || {})[0] || null, stock: { ...(data.items.arrows?.start || {}) } },
     ...startingConsumables(data),
@@ -68,6 +69,7 @@ export function createCharacter(data, opts = {}) {
     ch.gear.push(item);
     ch.equipped[base.slot] = item.uid;
   }
+  normalizeAutoPotions(ch, data);
   return ch;
 }
 
@@ -141,6 +143,10 @@ export function migrateCharacter(ch, data) {
   ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });
   ch.mods = (ch.mods || []).filter((m) => data.mods.mods[m.id]);
+  // v9: separate movement socket. Never steal a coin already assigned to combat.
+  ch.movementMods = [...new Set(Array.isArray(ch.movementMods) ? ch.movementMods : [])]
+    .filter(uid => ch.mods.some(m => m.uid === uid && data.mods.mods[m.id].requiresAll?.includes('Movement'))
+      && !ch.slots.some(s => s.mods.includes(uid))).slice(0, data.mods.maxMovementMods);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
   normalizeItemMetadata(ch, data);
   if ((ch.version || 1) < 3) {
@@ -169,11 +175,13 @@ export function migrateCharacter(ch, data) {
     ch.progress.gearMigration = 'เกรดอุปกรณ์ใหม่ C/B/A/S มี 2/3/4/5 ออฟชั่น เติมช่องที่ขาดแล้ว · ตีบวกได้ตามวัตถุดิบ';
   }
   if (ch.treeRevision !== data.jobtree.revision) {
-    const spent = new Set((ch.jobNodes || []).filter(id => id !== data.jobtree.origin)).size;
-    ch.jobPoints = (ch.jobPoints || 0) + spent;
-    ch.jobNodes = [data.jobtree.origin];
+    const owned = [...new Set(ch.jobNodes || [])];
+    const retained = owned.filter(id => data.jobtree.nodes[id] && !data.jobtree.nodes[id].retired);
+    const refunded = owned.filter(id => id !== data.jobtree.origin && !retained.includes(id)).length;
+    ch.jobPoints = (ch.jobPoints || 0) + refunded;
+    ch.jobNodes = retained.includes(data.jobtree.origin) ? retained : [data.jobtree.origin, ...retained];
     ch.treeRevision = data.jobtree.revision;
-    ch.progress.balanceMigration = 'ปรับสมดุลใหม่: คืนแต้มต้นไม้ทั้งหมดฟรี เลือกเส้นทางและอาชีพใหม่ได้ อุปกรณ์ สกิล ม็อด และวัตถุดิบยังอยู่ครบ';
+    ch.progress.balanceMigration = `แยกกลุ่มอิสระ: เก็บโหนดเดิม คืนแต้มสะพานหรือโหนดที่ยกเลิก ${refunded} แต้ม`;
   }
   for (const s of slots) if (ch.equipped[s] && !ch.gear.some((g) => g.uid === ch.equipped[s])) ch.equipped[s] = null;
   if ((ch.version || 1) < 6 || !ch.arrows) {
@@ -187,6 +195,7 @@ export function migrateCharacter(ch, data) {
     ch.quickItems = ch.quickItems || start.quickItems;
   }
   normalizeConsumables(ch, data);
+  normalizeAutoPotions(ch, data, { reset: (ch.version || 1) < 12 });
   ch.arrows.stock = Object.fromEntries(Object.entries(ch.arrows.stock || {}).filter(([id, n]) => data.items.arrows?.types[id] && n > 0));
   // The character cap fell from 40 to 30: bring higher saves down to the cap and take back the
   // stat points of the removed levels (from unspent points first, else by a free stat reset).
@@ -270,15 +279,16 @@ export function meetsRequires(ch, requires = {}) {
 export function jobTierProgress(ch, data, nodeId) {
   const tree = data.jobtree, node = tree.nodes[nodeId];
   const section = tree.sections?.[node?.section];
-  const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin);
+  const scope = Object.keys(tree.nodes).filter(id => id !== tree.origin && (!node?.allocationGroup || tree.nodes[id].allocationGroup === node.allocationGroup));
   const spent = new Set(ch.jobNodes.filter(id => scope.includes(id))).size;
-  return { tier: section?.tier || 0, requires: section?.requiresSpent || 0, spent, scope, section: node?.section };
+  return { tier: section?.tier || 0, requires: node?.allocationGroup ? (node.localInvestment || 0) : (section?.requiresSpent || 0), spent, scope, section: node?.section };
 }
 
 export function jobNodeState(ch, data, nodeId) {
   const tree = data.jobtree;
   const node = tree.nodes[nodeId];
   if (!node) return { can: false, reason: 'unknown' };
+  if (node.retired) return { can: false, reason: 'retired' };
   if (ch.jobNodes.includes(nodeId)) return { can: false, taken: true, reason: 'taken' };
 
   if (node.requiresJob && currentJob(ch, data)?.branch !== node.requiresJob)
@@ -291,21 +301,23 @@ export function jobNodeState(ch, data, nodeId) {
     if (other) return { can: false, reason: 'one_job', other };
   }
 
+  if (node.allocationGroup && jobParents(node).some(id => tree.nodes[id]?.allocationGroup !== node.allocationGroup))
+    return { can: false, reason: 'outside_group' };
   const tier = jobTierProgress(ch, data, nodeId);
   if (tier.tier && tier.spent < tier.requires)
     return { can: false, reason: 'tier_points', tier: tier.tier, have: tier.spent, need: tier.requires };
 
-  // Directed reviewed skills require ALL named parents. Legacy adjacency rules
+  // Directed skills require ALL named local parents. Legacy adjacency rules
   // remain intact for existing content and retained saves.
   if (node.requires) {
     const missing = node.requires.filter(id => !ch.jobNodes.includes(id));
     if (missing.length) return { can: false, reason: 'prerequisite', missing };
   }
-  // Where paths meet (a fork rejoining, a bridge between lines) ANY ONE named parent is enough.
+  // Where local paths meet, ANY ONE named parent is enough.
   if (node.requiresAny?.length && !node.requiresAny.some(id => ch.jobNodes.includes(id)))
     return { can: false, reason: 'prerequisite', missing: [...node.requiresAny], any: true };
-  // Section unlock and network adjacency are independent requirements.
-  if (!node.links.some((l) => ch.jobNodes.includes(l)))
+  // Only legacy nodes use undirected adjacency; directed roots are independent.
+  if (!Array.isArray(node.requires) && !node.links.some((l) => ch.jobNodes.includes(l)))
     return { can: false, reason: 'not_linked' };
 
   if (ch.jobPoints < 1) return { can: false, reason: 'no_points' };
@@ -348,7 +360,7 @@ export function cheapestParent(ch, data, id, allowed = null) {
   return best ?? (allowed ? null : any[0]);
 }
 
-/** Shortest connected route for inspection. Section gates still require total investment;
+/** Shortest connected route for inspection. Active prerequisites stay within their group;
  * this helper never invents unrelated filler purchases or mutates the character. */
 export function jobPath(ch, data, target) {
   const nodes = data.jobtree.nodes;
@@ -596,11 +608,11 @@ export function arrowTotal(ch) {
   return Object.values(ch.arrows?.stock || {}).reduce((a, n) => a + n, 0);
 }
 
-/** Arrows one cast of skill `s` (computed) needs; 0 for anything but Attack+Projectile. */
+/** Arrows one cast of skill `s` (computed) needs; 0 except Attack projectiles/rain; rain pays each authored wave. */
 export function arrowsPerCast(data, s) {
   const rules = data.items.arrows;
-  if (!rules || !s?.tags?.has?.('Attack') || !s.tags.has('Projectile')) return 0;
-  return rules.perCast + (s.projectiles > 1 ? rules.multiShotExtra : 0);
+  if (!rules || !s?.tags?.has?.('Attack') || (!s.tags.has('Projectile')&&!s.tags.has('Rain'))) return 0;
+  return (rules.perCast + (s.projectiles > 1 ? rules.multiShotExtra : 0)) * (s.waves || 1);
 }
 
 /** Take `n` arrows, from the type in use first. Returns false (and takes none) if short. */

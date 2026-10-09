@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import {attachVrmBody} from './vrm-body.js';
 import {bindSkinSync} from './skinned.js';
 import {garmentFrame,garmentUniforms,garmentMaterial,garmentHull} from './garments.js';
+import {shellTop,skirt} from './base-garments.js';
 const v=new THREE.Vector3(),q=new THREE.Quaternion(),p=new THREE.Quaternion();
 export function attachHairSampleBody(rig,T,gear,colors){
  attachVrmBody(rig,T);
@@ -15,21 +16,32 @@ export function attachHairSampleBody(rig,T,gear,colors){
  body.traverse(o=>{if(o.isSkinnedMesh&&o.name==='BodySkin')skeleton=o.skeleton;});
  if(!skeleton)throw Error('HairSample: complete base skin missing');
  const armor=gear.armor||'tunic';
- // The outfit base: one shared set of garments, cut and painted per look (garments.js).
- const uniforms=garmentUniforms(colors.outfit),flash=rig.material.userData.flash;
+ // The outfit base by category (base-garments.js): cloth wears the hoodie; coat, robe and armour
+ // wear a body-fitted top shell and a skirt. Trousers and shoes are shared by every category.
+ const outfit=colors.outfit,uniforms=garmentUniforms(outfit),flash=rig.material.userData.flash;
+ let bind=null,frameSource=null;
+ const dress=(kind,geometry,source)=>{
+  const frame=T.garmentFrame;
+  const make=material=>{
+   const m=new THREE.SkinnedMesh(geometry,material);
+   if(source){m.position.copy(source.position);m.quaternion.copy(source.quaternion);m.scale.copy(source.scale);}
+   m.bind(skeleton,bind);m.frustumCulled=false;return m;
+  };
+  const part=make(garmentMaterial(kind==='shell'?'hoodie':kind,frame,uniforms,flash));
+  part.name='Garment-'+kind;part.userData={bodyPart:kind};part.castShadow=true;part.receiveShadow=true;
+  const hull=make(garmentHull(kind==='shell'?'hoodie':kind,frame,uniforms));hull.name=part.name+'-outline';
+  wardrobe.add(part,hull);
+ };
  T.wardrobe.traverse(source=>{
   if(!source.isSkinnedMesh)return;
-  const kind=source.userData.bodyPart,frame=T.garmentFrame||=garmentFrame(source);
-  const make=material=>{
-   const m=new THREE.SkinnedMesh(source.geometry,material);
-   m.position.copy(source.position);m.quaternion.copy(source.quaternion);m.scale.copy(source.scale);
-   m.bind(skeleton,source.bindMatrix);m.frustumCulled=false;return m;
-  };
-  const part=make(garmentMaterial(kind,frame,uniforms,flash));
-  part.name=source.name;part.userData={...source.userData};part.castShadow=true;part.receiveShadow=true;
-  const hull=make(garmentHull(kind,frame,uniforms));hull.name=source.name+'-outline';
-  wardrobe.add(part,hull);
+  const kind=source.userData.bodyPart;T.garmentFrame||=garmentFrame(source);bind||=source.bindMatrix;frameSource||=source;
+  if(kind==='hoodie'&&outfit.base.top!=='hoodie')return;
+  dress(kind,source.geometry,source);
  });
+ if(outfit.base.top==='shell'){
+  dress('shell',shellTop(T,T.garmentFrame,outfit.base.offset||.014),frameSource);
+  if(outfit.skirt)dress('skirt',skirt(T,T.garmentFrame,outfit.skirt),frameSource);
+ }
  rig.outfit=colors.outfit;
  rig.hairsample=true;rig.wardrobe=wardrobe;rig.armorKind=armor;
  // Static attachment grip, not new animation keys. The legacy weapon +Z socket

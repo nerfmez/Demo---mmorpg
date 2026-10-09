@@ -996,7 +996,10 @@ wardrobe's three garments (top, trousers, shoes) from bind-pose position in
   colour zones;
 - an outline hull follows the same cut.
 
-Raised pieces come from `PARTS` in `src/render/outfit.js`, rigid on the driver bone they
-follow; coat tails ride the thighs. In Godot: one ShaderMaterial per garment kind with the same
+Each style names a base category (`bases`): `cloth` is the hoodie; `coat`, `robe` and `armor`
+wear a top shell (the body's torso and arms offset along the normals, with the body's skin
+weights) plus a skirt (a flared ring from the waist, weights blended from the hips into each
+thigh). Both are built in `src/render/base-garments.js`. Raised pieces come from `PARTS` in
+`src/render/outfit.js`, rigid on the driver bone they follow. Accessories are not drawn. In Godot: one ShaderMaterial per garment kind with the same
 uniforms (`uPal[10]`, `uCutA/B/C`) reading a bind-position varying, and a scene per part
-attached to a `BoneAttachment3D`. See `docs/OUTFIT-BASE.md`.
+attached to a `BoneAttachment3D`; the shell and skirt can be baked once as skinned meshes. See `docs/OUTFIT-BASE.md`.

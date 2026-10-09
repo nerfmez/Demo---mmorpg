@@ -208,14 +208,14 @@ export const PARTS = {
   // a short shoulder cape with a piped edge and a clasp
   capelet({ add, W, P }) {
     const y = (W.neck ? W.neck[1] : 1.45) + 0.005;
-    add('chestWear', new THREE.SphereGeometry(0.2, 18, 8, 0, Math.PI * 2, 0, Math.PI * 0.42).scale(1.32, 0.9, 1.08).translate(0, y - 0.18, -0.012), P.main);
-    add('chestWear', new THREE.TorusGeometry(0.2, 0.01, 4, 28).rotateX(Math.PI / 2).scale(1.32 * 0.975, 1, 1.08 * 0.975).translate(0, y - 0.18 + 0.2 * 0.9 * Math.cos(Math.PI * 0.42) - 0.004, -0.012), P.trim);
+    add('chestWear', new THREE.SphereGeometry(0.2, 18, 8, 0, Math.PI * 2, 0, Math.PI * 0.42).scale(1.2, 0.9, 1.04).translate(0, y - 0.18, -0.012), P.main);
+    add('chestWear', new THREE.TorusGeometry(0.2, 0.007, 4, 28).rotateX(Math.PI / 2).scale(1.2 * 0.975, 1, 1.04 * 0.975).translate(0, y - 0.18 + 0.2 * 0.9 * Math.cos(Math.PI * 0.42) - 0.004, -0.012), P.trim);
     add('chestWear', new THREE.OctahedronGeometry(0.022).translate(0, y - 0.03, 0.105), P.gem, { glow: true });
   },
   // one-sided cape over the left shoulder, falling down the back
   halfCape({ add, W, P }) {
     const y = (W.neck ? W.neck[1] : 1.45) + 0.005;
-    add('chestWear', new THREE.SphereGeometry(0.2, 12, 8, Math.PI * 0.1, Math.PI * 0.85, 0, Math.PI * 0.46).scale(1.35, 0.95, 1.1).translate(0, y - 0.18, -0.012), P.accent);
+    add('chestWear', new THREE.SphereGeometry(0.2, 12, 8, Math.PI * 0.95, Math.PI * 0.62, 0, Math.PI * 0.46).scale(1.35, 0.95, 1.1).translate(0, y - 0.18, -0.012), P.accent);
     add('chestWear', panel(new THREE.Vector3(0.08, y - 0.12, -0.14), 0.42, 0.2, Math.PI, 0.25, -0.02), P.accent);
     add('chestWear', new THREE.BoxGeometry(0.22, 0.014, 0.012).translate(0.08, y - 0.55, -0.175), P.trim);
   },
@@ -230,18 +230,6 @@ export const PARTS = {
     const c = new THREE.Vector3(0, W.hips[1] + 0.06, -0.012);
     add('hips', hoop(c, TORSO.waist.rx + 0.01, TORSO.waist.zf, TORSO.waist.zb, 0.008, 0.06, 0.012), P.accent);
     add('hips', panel(new THREE.Vector3(0.11, W.hips[1] + 0.04, 0.06), 0.26, 0.05, 0.6, 0.4, 0.01), P.accent);
-  },
-  // coat tails: four flared panels on the thighs (they swing with the legs), split front and back
-  coatTails({ add, W, P, cut }) {
-    const len = cut.tails || 0.3;
-    for (const s of ['L', 'R']) {
-      const side = s === 'L' ? 1 : -1, leg = W['leg' + s];
-      for (const [z, out, w] of [[0.1, 0, 0.14], [-0.13, Math.PI, 0.17]]) {
-        const top = new THREE.Vector3(leg[0] + side * 0.035, W.hips[1] - 0.06, z);
-        add('leg' + s, panel(top, len, w, out + side * 0.12, 0.35, 0.02), P.main);
-        add('leg' + s, new THREE.BoxGeometry(w * 1.3, 0.016, 0.012).rotateY(out + side * 0.12).translate(top.x, top.y - len + 0.005, top.z + (z > 0 ? 1 : -1) * 0.035), P.trim);
-      }
-    }
   },
   chestPlate({ add, P }) {
     add('chestWear', new THREE.SphereGeometry(0.16, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).rotateX(Math.PI / 2).scale(0.95, 1.05, 0.5).translate(0, 1.26, 0.07), P.metal);

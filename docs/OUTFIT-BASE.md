@@ -28,17 +28,41 @@ an entry in `data/outfits.json`, not a new model.
   - IL6: leather and shell.
   - IL11: coats with piping.
   - IL16–21: mantles and plate with gold trim and a glowing gem.
-- **No cloth simulation (iPad).** Hanging pieces sit on the bone they follow. Coat tails hang
-  from the thighs and swing with the legs, and capes ride the chest. This is the cheap version
-  of the skirt-bone chains anime games use.
+- **No cloth simulation (iPad).** Skirts are skinned with weights blended between the hips and
+  the thighs, so they swing with the legs. Capes ride the chest. This is the cheap version of
+  the skirt-bone chains anime games use.
+
+## Bases by category
+
+Not every outfit can come from a hoodie. Each style names a **base category**
+(`bases` in `data/outfits.json`), and the category decides which garments are worn:
+
+| Category | Base garments | Styles / items |
+|---|---|---|
+| `cloth` | the HairSample hoodie, trousers, shoes | tunic, vest: travel tunic, hide vest, sporeweave vest |
+| `coat` | a body-fitted top shell (no hood) + a knee-length skirt open at the front | coat: wolfpelt, ranger, wardenstalker coats |
+| `robe` | top shell + an ankle-length closed skirt | mantle: storm mantle |
+| `armor` | a thicker top shell + a short split skirt (plate segments) | plate and shell: crag plate, shell guard |
+
+`src/render/base-garments.js` builds the coat, robe and armour bases from the body itself:
+- **Top shell:** the body's torso and arms pushed out along the normals by `offset`. It keeps
+  the body's skin weights, so it moves exactly with the body.
+- **Skirt:** a flared ring hung from the measured waist. Its weights blend from the hips into
+  the thigh on each side (anime skirt weighting), so coats and robes part and swing with the
+  legs.
+
+The bases are built once per body and size and shared by every rig. A style or item may
+override the skirt (`length`, `flare`, `opening`).
+
+Accessories (charms, pendants, rings) are not drawn on the character.
 
 ## How a look is built
 
 `resolveOutfit(gearLook, outfits, appearance)` (`src/core/outfit-look.js`) merges, in order:
 
-1. `base`: the adventurer's base (hoodie in the chosen tunic colour, dark trousers, tucked-in
+1. `base`: the adventurer's defaults (hoodie in the chosen tunic colour, dark trousers, tucked-in
    travel boots, bandolier, belt, pouch, thigh strap, bracers).
-2. `styles[item.style]`: the archetype, one of `tunic`, `vest`, `coat`, `mantle`, `plate` or `shell`.
+2. `styles[item.style]`: the archetype (`tunic`, `vest`, `coat`, `mantle`, `plate` or `shell`), which also picks the base category.
 3. `armor[equipped armour]`: this item's palette, cut and parts (`drop` removes inherited parts).
 4. `boots[equipped boots]`: boot colours, where the shaft starts, and boot parts.
 
@@ -49,8 +73,8 @@ an entry in `data/outfits.json`, not a new model.
 | `cut.hem` | Metres below the hips where the top ends (0.16 is the base hoodie, the longest). |
 | `cut.trim`, `panel`, `yoke`, `stripe`, `neck` | Piping width, placket half width, yoke depth, sleeve stripe half width, V-neck depth (m). |
 | `cut.pants`, `cut.boot` | 0..1 from hips to ankle: where the trousers end and where the boot shaft starts (>1 = slippers, no shaft). |
-| `cut.pattern` | 0 none, 1 hem bands, 2 dots. |
-| `cut.tails` | Coat-tail length below the hips (m). |
+| `cut.pattern` | 0 none, 1 hem bands, 2 dots, 3 plate segments. |
+| `skirt` | `length` below the waist and `flare` at the hem (m), `opening` (radians either side of the front, 0 = closed). |
 | `parts` | Names in `PARTS` (`src/render/outfit.js`). |
 
 `src/render/garments.js` cuts and paints the three garments in the shader from the bind-pose
@@ -60,7 +84,7 @@ hull that follows the same cut. `src/render/outfit.js` `PARTS` holds the raised 
 - straps: `bandolier belt hipPouch thighStrap bracers`
 - boots: `bootCuffs bootStraps furCuffs toeClaws ankleRibbons ankleWings shinGuards`
 - neck and shoulders: `furCollar highCollar capelet halfCape`
-- waist and below: `tabard sash coatTails tassets`
+- waist and below: `tabard sash tassets`
 - armour: `chestPlate shellPlate gem pauldronL pauldronR`
 
 The hero wears no scarf and no fixed shoulder guard: shoulders change only with the outfit.

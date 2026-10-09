@@ -22,18 +22,30 @@ export function garmentFrame(mesh) {
   return {
     shoulder: Math.abs(sh.x), shoulderY: sh.y, armZ: sh.z, wrist: Math.abs(wr.x), wristY: wr.y,
     neck: at('J_Bip_C_Neck').y, chest: at('J_Bip_C_UpperChest').y, hips: at('J_Bip_C_Hips').y,
-    knee: at('J_Bip_L_LowerLeg').y, ankle: foot.y, front: Math.sign(toe.z - foot.z) || -1,
+    knee: at('J_Bip_L_LowerLeg').y, ankle: foot.y, front: Math.sign(toe.z - foot.z) || -1, leftSign: Math.sign(sh.x) || -1,
   };
 }
 
 function glsl(kind, F) {
   const f = (v) => v.toFixed(4);
   const head = `
-uniform vec3 uPal[10]; uniform vec4 uCutA; uniform vec4 uCutB; uniform vec4 uCutC;
+uniform vec3 uPal[10]; uniform vec4 uCutA; uniform vec4 uCutB; uniform vec4 uCutC; uniform vec4 uCutD;
 varying vec3 vBind;
 // uCutA: sleeve, cuff, hem, trim · uCutB: panel, yoke, stripe, neck · uCutC: pants, boot, pattern
+// uCutD: skirt length, skirt opening (radians either side of the front)
 vec3 garmentColor(vec3 p) {
   float x = abs(p.x), y = p.y, fr = p.z * ${f(F.front)}, trim = uCutA.w;
+`;
+  if (kind === 'skirt') return head + `
+  float hemY = ${f(F.hips - 0.02)} - uCutD.x, a = atan(p.x, fr);
+  if (y < hemY + trim * 1.4) return uPal[2];
+  if (uCutD.y > 0.0 && abs(a) < uCutD.y + 0.1) return uPal[2];
+  if (uCutB.x > 0.0 && fr > 0.0 && x < uCutB.x * 1.4) return x < uCutB.x * 1.4 - trim ? uPal[3] : uPal[2];
+  if (uCutC.z > 0.5 && uCutC.z < 1.5 && (abs(y - hemY - 0.05) < 0.012 || abs(y - hemY - 0.085) < 0.006)) return uPal[5];
+  if (uCutC.z > 2.5 && fract((y - hemY) / 0.07) < 0.12) return uPal[2];
+  if (uCutC.z > 2.5 && abs(fract(a / 0.42) - 0.5) < 0.03) return uPal[2];
+  return uPal[0];
+}
 `;
   if (kind === 'hoodie') return head + `
   if (x > ${f(F.shoulder + 0.03)} && y > ${f(F.chest - 0.12)}) {
@@ -57,7 +69,9 @@ vec3 garmentColor(vec3 p) {
   if (uCutB.x > 0.0 && fr > 0.0 && x < uCutB.x + trim * 0.6) return uPal[2];
   if (uCutB.y > 0.0 && y > ${f(F.neck)} - uCutB.y) return y < ${f(F.neck)} - uCutB.y + trim * 0.7 ? uPal[2] : uPal[1];
   if (uCutC.z > 0.5 && uCutC.z < 1.5 && (abs(y - hemY - 0.05) < 0.012 || abs(y - hemY - 0.085) < 0.006)) return uPal[5];
-  if (uCutC.z > 1.5) {
+  if (uCutC.z > 2.5) {
+    if (fract((y - hemY) / 0.075) < 0.1 && y < ${f(F.chest + 0.02)}) return uPal[2];
+  } else if (uCutC.z > 1.5) {
     vec2 c = vec2(p.x * 22.0 + floor(y * 22.0) * 0.5, y * 22.0);
     if (length(fract(c) - 0.5) < 0.17) return uPal[5];
   }
@@ -86,6 +100,7 @@ export function garmentUniforms(outfit) {
     uCutA: { value: new THREE.Vector4(c.sleeve, c.cuff, c.hem, c.trim) },
     uCutB: { value: new THREE.Vector4(c.panel, c.yoke, c.stripe, c.neck) },
     uCutC: { value: new THREE.Vector4(c.pants, c.boot, c.pattern, 0) },
+    uCutD: { value: new THREE.Vector4(outfit.skirt?.length || 0, outfit.skirt?.opening || 0, 0, 0) },
   };
 }
 

@@ -49,9 +49,19 @@ try {
       await page.screenshot({ path: `${out}${armor}-${side}.png` });
     }
   }
+  // walking: the skirt of each base category follows the legs
+  for (const armor of ['ranger_coat', 'storm_mantle', 'crag_plate']) {
+    await page.evaluate(([armor]) => {
+      const f = window.__frontier, v = f.view, g = f.game;
+      f.show({ weapon: 'sword', armor: 'tunic', bases: { armor, boots: 'trail_boots', weapon: 'iron_sword' } }, Math.PI / 2);
+      for (let i = 0; i < 12; i++) v.heroAnim.update(0.05, { speed: 5, moving: true, facing: Math.PI / 2, dead: false, time: g.time + i * 0.05 });
+      v.hero.syncSkin?.(); v.renderer.render(v.scene, v.camera);
+    }, [armor]);
+    await page.screenshot({ path: `${out}${armor}-walk.png` });
+  }
   writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
   assert.deepEqual(report.errors, []);
-  for (const l of report.looks) assert.equal(l.garments, 6, `${l.armor}: top, trousers and shoes with their outlines`);
+  for (const l of report.looks) assert.ok(l.garments >= 6, `${l.armor}: top, trousers and shoes (and a skirt) with their outlines`);
   console.log('PASS outfits', engine.name(), report.looks.length);
 } finally {
   await browser?.close();

@@ -4,7 +4,7 @@
 // lean into turns), idle breathing and weight shift, keyframed actions with anticipation and
 // follow-through, hit reactions, and secondary motion (scarf, ponytail).
 import * as THREE from 'three';
-import { buildWeapon, buildOffhand, buildGloves, equipmentDetails } from './equipment.js';
+import { buildWeapon, buildOffhand, buildGloves } from './equipment.js';
 import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
@@ -179,7 +179,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
   const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
   buildGloves(rb, gear.gloves);
-  equipmentDetails(rb, gear.bases);
+  // accessories (charms, pendants, rings) are not drawn on the character
 
   const rig = rb.build();
   rig.importedWeapon = !!weaponModel;

@@ -86,40 +86,6 @@ export function buildWeapon(rb,kind,id,bone='weapon',hand='handR') {
  }
 }
 
-export function equipmentDetails(rb,bases={}) {
- if(bases.armor==='storm_mantle'){
-  const s=new THREE.Shape();s.moveTo(-.18,.25);s.lineTo(.18,.25);s.lineTo(.32,-.55);s.lineTo(.12,-.46);s.lineTo(0,-.67);s.lineTo(-.13,-.46);s.lineTo(-.32,-.55);s.closePath();
-  rb.add('chest',new THREE.ShapeGeometry(s),'#5a879f',{pos:[0,0,-.17],rot:[.15,0,0]});
-  for(const side of [-1,1])rb.add('chest',new THREE.BoxGeometry(.02,.44,.008),'#d5cea0',{pos:[side*.19,-.22,-.24],rot:[.15,0,side*.15],plain:true});
- }
- const charm=bases.charm;
- if(!charm)return;
- // Pendants sit below the scarf; the ring is worn on the right hand.
- if(charm==='ancient_ring'){
-  rb.add('handR',new THREE.TorusGeometry(.025,.008,5,10).rotateY(Math.PI/2),'#d9b970',{pos:[-.03,-.03,.01],plain:true});
-  rb.add('handR',new THREE.OctahedronGeometry(.025),'#86bdb8',{pos:[-.05,-.025,.01],glow:true});return;
- }
- rb.add('chest',new THREE.TorusGeometry(.082,.005,3,12).scale(1,1.55,1),'#c3ae77',{pos:[0,.07,.15],plain:true});
- const opts={pos:[0,-.055,.158],plain:true};
- if(charm==='tusk_charm'){
-  for(const side of [-1,1])rb.add('chest',new THREE.ConeGeometry(.017,.074,5),'#e9d4a5',{pos:[side*.026,-.068,.166],rot:[0,0,side*.6],plain:true});
- }else if(charm==='wisp_pendant'){
-  rb.add('chest',new THREE.TorusGeometry(.038,.008,4,10),'#c9b783',opts);
-  rb.add('chest',new THREE.OctahedronGeometry(.027),'#9bddcf',{...opts,glow:true});
- }else if(charm==='spore_amulet'){
-  rb.add('chest',new THREE.SphereGeometry(.037,7,4,0,Math.PI*2,0,Math.PI/2).scale(1,.6,.5),'#b88378',opts);
-  rb.add('chest',new THREE.CylinderGeometry(.013,.019,.045,5),'#decc9b',{pos:[0,-.08,.157],plain:true});
- }else if(charm==='feather_charm'){
-  rb.add('chest',new THREE.ConeGeometry(.025,.11,4).scale(1,1,.24),'#d7bb7b',{...opts,rot:[0,0,-.45]});
- }else if(charm==='golem_amulet'){
-  rb.add('chest',new THREE.DodecahedronGeometry(.044),'#84968c',opts);
-  rb.add('chest',new THREE.OctahedronGeometry(.02),'#e8b867',{pos:[0,-.055,.19],glow:true});
- }else if(charm==='pearl_pendant'){
-  rb.add('chest',new THREE.SphereGeometry(.03,8,6),'#f2eefc',{...opts,glow:true});
- }
-}
-
-
 /** Left hand: a shield on the forearm, a quiver on the back for a bow. Light weapons use buildWeapon. */
 export function buildOffhand(rb,kind,id) {
  if(kind==='shield'){

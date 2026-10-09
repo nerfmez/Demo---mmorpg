@@ -31,13 +31,30 @@ test('a resolved look has every colour and cut the garments need, inside the bas
     assert.ok(c.hem >= 0 && c.hem <= 0.16, 'the base top ends 0.16 below the hips');
     assert.ok(c.pants > 0.3 && c.pants <= 1, 'pants');
     assert.ok(c.boot > 0.4, 'boot shaft below the hips');
-    assert.ok([0, 1, 2].includes(c.pattern), 'pattern');
+    assert.ok([0, 1, 2, 3].includes(c.pattern), 'pattern');
     for (const p of o.parts) assert.ok(PARTS[p], `${a}/${b}: part ${p}`);
   }
 });
 
+test('the base garment set depends on the category: cloth, coat, robe and armour', () => {
+  const kinds = (id) => { const o = look(id); return [o.base.name, o.base.top, o.skirt && o.skirt.length]; };
+  assert.deepEqual(kinds('travel_tunic'), ['cloth', 'hoodie', null]);
+  assert.deepEqual(kinds('hide_vest').slice(0, 2), ['cloth', 'hoodie']);
+  assert.equal(kinds('ranger_coat')[0], 'coat');
+  assert.ok(look('ranger_coat').skirt.opening > 0, 'a coat opens at the front');
+  assert.equal(kinds('storm_mantle')[0], 'robe');
+  assert.equal(look('storm_mantle').skirt.opening, 0, 'a robe is closed');
+  assert.ok(look('storm_mantle').skirt.length > look('ranger_coat').skirt.length);
+  assert.equal(kinds('crag_plate')[0], 'armor');
+  for (const id of ids('armor')) {
+    const o = look(id);
+    assert.ok(OUT.bases[o.base.name], id);
+    if (o.base.top === 'shell') assert.ok(o.skirt && o.skirt.length > 0.1 && o.skirt.length < 0.9, `${id}: skirt within the leg`);
+  }
+});
+
 test('each armour and each boots item looks different from the others', () => {
-  const sig = (o) => JSON.stringify([o.palette.main, o.palette.sleeve, o.palette.trim, o.cut, o.parts]);
+  const sig = (o) => JSON.stringify([o.base.name, o.skirt, o.palette.main, o.palette.sleeve, o.palette.trim, o.cut, o.parts]);
   const armours = ids('armor').map((id) => sig(look(id)));
   assert.equal(new Set(armours).size, armours.length, 'no two armours share a look');
   const boots = ids('boots').map((id) => { const o = look(undefined, id); return JSON.stringify([o.palette.shoes, o.palette.sole, o.cut.boot, o.parts]); });
@@ -53,5 +70,6 @@ test('layers merge in order: base, style, item, boots; "$tunic" follows the chos
   assert.ok(!plate.parts.includes('bandolier'), 'an item can drop a base part');
   assert.ok(plate.parts.includes('chestPlate') && plate.parts.includes('gem') && plate.parts.includes('shinGuards'));
   assert.equal(plate.cut.boot, OUT.boots.crag_greaves.cut.boot);
-  assert.equal(look('ranger_coat').cut.tails, OUT.armor.ranger_coat.cut.tails, 'the item overrides its style');
+  assert.equal(look('wardenstalker_coat').skirt.length, OUT.armor.wardenstalker_coat.skirt.length, 'the item overrides its base skirt');
+  assert.equal(look('ranger_coat').skirt.length, OUT.bases.coat.skirt.length, 'otherwise the base category decides');
 });

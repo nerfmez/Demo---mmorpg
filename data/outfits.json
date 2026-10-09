@@ -1,5 +1,37 @@
 {
-  "_doc": "Outfit base (docs/OUTFIT-BASE.md). Every look is the base, then a style (archetype), then the equipped armour item, then the boots item, merged in that order (src/core/outfit-look.js resolveOutfit). palette: hex colours or \"$tunic\" (the character's chosen tunic colour). cut: how the base garments are cut and painted (src/render/garments.js): sleeve/cuff are 0..1 from shoulder to wrist (sleeve > 1 is full length, a shorter sleeve shows the arm), hem is metres below the hips where the top ends (max 0.16 = the base hoodie), trim is the piping width at hems and openings (m), panel the half width of the front placket (m), yoke the depth of a two-tone shoulder yoke below the neck (m, 0 = none), stripe the half width of a stripe along the top of each sleeve (m), neck the depth of a V neck (m, 0 = closed), pants 0..1 from hips to ankle where the trousers end, boot 0..1 from hips to ankle where the boot shaft starts (painted in the shoes colours), pattern 0 none / 1 hem bands / 2 dots on the main colour, tails the coat-tail length below the hips (m). parts: raised pieces from src/render/outfit.js PARTS; an item's `drop` removes base/style parts.",
+  "_doc": "Outfit base (docs/OUTFIT-BASE.md). Every look starts from a base garment set by category (`bases`: cloth = the hoodie, coat / robe / armor = a body-fitted top shell plus a skinned skirt; src/render/base-garments.js), chosen by its style, then the style (archetype), then the equipped armour item, then the boots item, merged in that order (src/core/outfit-look.js resolveOutfit). palette: hex colours or \"$tunic\" (the character's chosen tunic colour). cut: how the base garments are cut and painted (src/render/garments.js): sleeve/cuff are 0..1 from shoulder to wrist (sleeve > 1 is full length, a shorter sleeve shows the arm), hem is metres below the hips where the top ends (max 0.16 = the base hoodie), trim is the piping width at hems and openings (m), panel the half width of the front placket (m), yoke the depth of a two-tone shoulder yoke below the neck (m, 0 = none), stripe the half width of a stripe along the top of each sleeve (m), neck the depth of a V neck (m, 0 = closed), pants 0..1 from hips to ankle where the trousers end, boot 0..1 from hips to ankle where the boot shaft starts (painted in the shoes colours), pattern 0 none / 1 hem bands / 2 dots / 3 plate segments. parts: raised pieces from src/render/outfit.js PARTS; an item's `drop` removes base/style parts. skirt: length (m below the waist), flare (m at the hem), opening (radians either side of the front, 0 = closed); a style or item may override its base's skirt.",
+  "bases": {
+    "cloth": {
+      "top": "hoodie"
+    },
+    "coat": {
+      "top": "shell",
+      "offset": 0.014,
+      "skirt": {
+        "length": 0.52,
+        "flare": 0.13,
+        "opening": 0.32
+      }
+    },
+    "robe": {
+      "top": "shell",
+      "offset": 0.014,
+      "skirt": {
+        "length": 0.84,
+        "flare": 0.2,
+        "opening": 0
+      }
+    },
+    "armor": {
+      "top": "shell",
+      "offset": 0.022,
+      "skirt": {
+        "length": 0.22,
+        "flare": 0.07,
+        "opening": 0.28
+      }
+    }
+  },
   "base": {
     "palette": {
       "main": "$tunic",
@@ -18,75 +50,325 @@
       "fur": "#c9c1b4",
       "gem": "#8fe0ff"
     },
-    "cut": { "sleeve": 1.05, "cuff": 0.86, "hem": 0.16, "trim": 0.012, "panel": 0, "yoke": 0, "stripe": 0, "neck": 0, "pants": 1, "boot": 0.78, "pattern": 0, "tails": 0 },
-    "parts": ["bandolier", "belt", "hipPouch", "thighStrap", "bracers"]
+    "cut": {
+      "sleeve": 1.05,
+      "cuff": 0.86,
+      "hem": 0.16,
+      "trim": 0.012,
+      "panel": 0,
+      "yoke": 0,
+      "stripe": 0,
+      "neck": 0,
+      "pants": 1,
+      "boot": 0.78,
+      "pattern": 0
+    },
+    "parts": [
+      "bandolier",
+      "belt",
+      "hipPouch",
+      "thighStrap",
+      "bracers"
+    ]
   },
   "styles": {
-    "tunic": {},
-    "vest": { "cut": { "panel": 0.012, "neck": 0.07 } },
-    "coat": { "cut": { "panel": 0.02, "tails": 0.36, "yoke": 0.1 }, "parts": ["coatTails"] },
-    "mantle": { "cut": { "panel": 0.05 }, "parts": ["capelet", "tabard"] },
-    "plate": { "cut": { "yoke": 0.12 }, "parts": ["chestPlate", "pauldronL", "pauldronR", "tassets"] },
-    "shell": { "parts": ["shellPlate"] }
+    "tunic": {
+      "base": "cloth"
+    },
+    "vest": {
+      "base": "cloth",
+      "cut": {
+        "panel": 0.012,
+        "neck": 0.07
+      }
+    },
+    "coat": {
+      "base": "coat",
+      "cut": {
+        "panel": 0.02,
+        "yoke": 0.1,
+        "hem": 0.16
+      },
+      "parts": [
+        "highCollar"
+      ]
+    },
+    "mantle": {
+      "base": "robe",
+      "cut": {
+        "panel": 0.05,
+        "hem": 0.16
+      },
+      "parts": [
+        "capelet"
+      ]
+    },
+    "plate": {
+      "base": "armor",
+      "cut": {
+        "yoke": 0.12,
+        "hem": 0.16,
+        "pattern": 3
+      },
+      "parts": [
+        "chestPlate",
+        "pauldronL",
+        "pauldronR"
+      ]
+    },
+    "shell": {
+      "base": "armor",
+      "cut": {
+        "hem": 0.16
+      },
+      "skirt": {
+        "length": 0.16,
+        "flare": 0.05,
+        "opening": 0.28
+      },
+      "parts": [
+        "shellPlate"
+      ]
+    }
   },
   "armor": {
-    "travel_tunic": { "style": "tunic" },
+    "travel_tunic": {
+      "style": "tunic"
+    },
     "hide_vest": {
       "style": "vest",
-      "palette": { "main": "#8a5a3a", "trim": "#5b371f", "accent": "#e0c79a" },
-      "cut": { "sleeve": 0.62, "cuff": 2 }
+      "palette": {
+        "main": "#8a5a3a",
+        "trim": "#5b371f",
+        "accent": "#e0c79a"
+      },
+      "cut": {
+        "sleeve": 0.62,
+        "cuff": 2
+      }
     },
     "sporeweave_vest": {
       "style": "vest",
-      "palette": { "main": "#6f8f52", "sleeve": "#efe6d0", "trim": "#d9c27a", "accent": "#d9c27a", "pattern": "#cfe0a6" },
-      "cut": { "sleeve": 0.42, "cuff": 2, "pattern": 2 },
-      "parts": ["sash"]
+      "palette": {
+        "main": "#6f8f52",
+        "sleeve": "#efe6d0",
+        "trim": "#d9c27a",
+        "accent": "#d9c27a",
+        "pattern": "#cfe0a6"
+      },
+      "cut": {
+        "sleeve": 0.42,
+        "cuff": 2,
+        "pattern": 2
+      },
+      "parts": [
+        "sash"
+      ]
     },
     "shell_guard": {
       "style": "shell",
-      "palette": { "main": "#3f7f86", "sleeve": "#d9e4dc", "trim": "#efe2b8", "accent": "#efe2b8", "pants": "#2f4650" },
-      "cut": { "yoke": 0.08, "stripe": 0.01 }
+      "palette": {
+        "main": "#3f7f86",
+        "sleeve": "#d9e4dc",
+        "trim": "#efe2b8",
+        "accent": "#efe2b8",
+        "pants": "#2f4650"
+      },
+      "cut": {
+        "yoke": 0.08,
+        "stripe": 0.01
+      }
     },
     "wolfpelt_coat": {
       "style": "coat",
-      "palette": { "main": "#7f776c", "sleeve": "#7f776c", "trim": "#c9c1b4", "accent": "#5e574e" },
-      "cut": { "tails": 0.28 },
-      "parts": ["furCollar"]
+      "palette": {
+        "main": "#7f776c",
+        "sleeve": "#7f776c",
+        "trim": "#c9c1b4",
+        "accent": "#5e574e"
+      },
+      "parts": [
+        "furCollar"
+      ],
+      "skirt": {
+        "length": 0.38,
+        "flare": 0.11,
+        "opening": 0.3
+      }
     },
     "ranger_coat": {
       "style": "coat",
-      "palette": { "main": "#3f6a4a", "sleeve": "#3f6a4a", "trim": "#d8b46a", "accent": "#2c4a35", "cuff": "#2c4a35", "pants": "#3b3a34" },
-      "cut": { "tails": 0.4, "stripe": 0.012 },
-      "parts": ["highCollar"]
+      "palette": {
+        "main": "#3f6a4a",
+        "sleeve": "#3f6a4a",
+        "trim": "#d8b46a",
+        "accent": "#2c4a35",
+        "cuff": "#2c4a35",
+        "pants": "#3b3a34"
+      },
+      "cut": {
+        "stripe": 0.012
+      },
+      "parts": []
     },
     "wardenstalker_coat": {
       "style": "coat",
-      "palette": { "main": "#3a4152", "sleeve": "#3a4152", "trim": "#9a7ae0", "accent": "#1c2029", "cuff": "#1c2029", "pants": "#22252e", "gem": "#b9a0ff" },
-      "cut": { "tails": 0.46, "stripe": 0.008, "pattern": 1 },
-      "parts": ["highCollar", "halfCape", "gem"]
+      "palette": {
+        "main": "#3a4152",
+        "sleeve": "#3a4152",
+        "trim": "#9a7ae0",
+        "accent": "#1c2029",
+        "cuff": "#1c2029",
+        "pants": "#22252e",
+        "gem": "#b9a0ff"
+      },
+      "cut": {
+        "stripe": 0.008,
+        "pattern": 1
+      },
+      "parts": [
+        "halfCape",
+        "gem"
+      ],
+      "skirt": {
+        "length": 0.62,
+        "flare": 0.15,
+        "opening": 0.36
+      }
     },
     "storm_mantle": {
       "style": "mantle",
-      "palette": { "main": "#3a5a8a", "sleeve": "#e8ecf4", "trim": "#e8c35a", "accent": "#e8ecf4", "cuff": "#3a5a8a", "gem": "#9fd8ff" },
-      "cut": { "yoke": 0.08 },
-      "parts": ["gem"]
+      "palette": {
+        "main": "#3a5a8a",
+        "sleeve": "#e8ecf4",
+        "trim": "#e8c35a",
+        "accent": "#e8ecf4",
+        "cuff": "#3a5a8a",
+        "gem": "#9fd8ff"
+      },
+      "cut": {
+        "yoke": 0.08
+      },
+      "parts": [
+        "gem"
+      ]
     },
     "crag_plate": {
       "style": "plate",
-      "palette": { "main": "#4f5664", "sleeve": "#4a505c", "trim": "#d0b26a", "accent": "#d0b26a", "cuff": "#8f96a3", "metal": "#a3aab7" },
-      "cut": { "cuff": 0.62 },
-      "parts": ["gem"],
-      "drop": ["bandolier"]
+      "palette": {
+        "main": "#4f5664",
+        "sleeve": "#4a505c",
+        "trim": "#d0b26a",
+        "accent": "#d0b26a",
+        "cuff": "#8f96a3",
+        "metal": "#a3aab7"
+      },
+      "cut": {
+        "cuff": 0.62
+      },
+      "parts": [
+        "gem"
+      ],
+      "drop": [
+        "bandolier"
+      ]
     }
   },
   "boots": {
-    "travel_boots": { "palette": { "shoes": "#8a5634" }, "parts": ["bootCuffs", "bootStraps"] },
-    "tide_boots": { "palette": { "shoes": "#3f6f7a", "sole": "#e8dcc0" }, "cut": { "boot": 0.74 }, "parts": ["bootStraps"] },
-    "wisp_slippers": { "palette": { "shoes": "#80b4b4", "sole": "#e8f4f0" }, "cut": { "boot": 1.2 }, "parts": ["ankleRibbons"] },
-    "wolf_boots": { "palette": { "shoes": "#8b9183", "sole": "#5a5f55" }, "cut": { "boot": 0.7 }, "parts": ["furCuffs", "toeClaws"] },
-    "moonleaf_slippers": { "palette": { "shoes": "#b9c9e6", "sole": "#7f93b8" }, "cut": { "boot": 1.2 }, "parts": ["ankleRibbons"] },
-    "trail_boots": { "palette": { "shoes": "#6a4a30", "sole": "#3a2a1c" }, "cut": { "boot": 0.66 }, "parts": ["bootCuffs", "bootStraps"] },
-    "gale_boots": { "palette": { "shoes": "#e8ecf4", "sole": "#7f9ab8" }, "cut": { "boot": 0.7 }, "parts": ["ankleWings"] },
-    "crag_greaves": { "palette": { "shoes": "#7f8a7d", "sole": "#4a5048" }, "cut": { "boot": 0.6 }, "parts": ["shinGuards"] }
+    "travel_boots": {
+      "palette": {
+        "shoes": "#8a5634"
+      },
+      "parts": [
+        "bootCuffs",
+        "bootStraps"
+      ]
+    },
+    "tide_boots": {
+      "palette": {
+        "shoes": "#3f6f7a",
+        "sole": "#e8dcc0"
+      },
+      "cut": {
+        "boot": 0.74
+      },
+      "parts": [
+        "bootStraps"
+      ]
+    },
+    "wisp_slippers": {
+      "palette": {
+        "shoes": "#80b4b4",
+        "sole": "#e8f4f0"
+      },
+      "cut": {
+        "boot": 1.2
+      },
+      "parts": [
+        "ankleRibbons"
+      ]
+    },
+    "wolf_boots": {
+      "palette": {
+        "shoes": "#8b9183",
+        "sole": "#5a5f55"
+      },
+      "cut": {
+        "boot": 0.7
+      },
+      "parts": [
+        "furCuffs",
+        "toeClaws"
+      ]
+    },
+    "moonleaf_slippers": {
+      "palette": {
+        "shoes": "#b9c9e6",
+        "sole": "#7f93b8"
+      },
+      "cut": {
+        "boot": 1.2
+      },
+      "parts": [
+        "ankleRibbons"
+      ]
+    },
+    "trail_boots": {
+      "palette": {
+        "shoes": "#6a4a30",
+        "sole": "#3a2a1c"
+      },
+      "cut": {
+        "boot": 0.66
+      },
+      "parts": [
+        "bootCuffs",
+        "bootStraps"
+      ]
+    },
+    "gale_boots": {
+      "palette": {
+        "shoes": "#e8ecf4",
+        "sole": "#7f9ab8"
+      },
+      "cut": {
+        "boot": 0.7
+      },
+      "parts": [
+        "ankleWings"
+      ]
+    },
+    "crag_greaves": {
+      "palette": {
+        "shoes": "#7f8a7d",
+        "sole": "#4a5048"
+      },
+      "cut": {
+        "boot": 0.6
+      },
+      "parts": [
+        "shinGuards"
+      ]
+    }
   }
 }

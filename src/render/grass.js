@@ -111,7 +111,7 @@ export function bakeGrassColours(renderer,root,world) {
 }
 
 /** Preserve per-clump colours; async batches share a bounded colour atlas. */
-export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false}={}) {
+export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbackTimeoutMs=5000}={}) {
   const meshes=[];root.traverse(o=>{if(o.name==='ground-blended-grass')meshes.push(o);});
   if(!meshes.length)return 0;
   root.updateMatrixWorld(true);
@@ -173,6 +173,9 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false}={}) {
     for(const k of names)points.setAttribute(k,new THREE.BufferAttribute(fields[k],batch[0].geometry.attributes[k].itemSize));
     const cloud=new THREE.Points(points,material);cloud.frustumCulled=false;scene.add(cloud);
     const target=new THREE.WebGLRenderTarget(width,height,{depthBuffer:false}),pixels=new Uint8Array(width*height*4);
+    // The async read lands in its own buffer, so a fence that settles after a timeout cannot
+    // overwrite colours already taken from the synchronous fallback below.
+    const readback=asyncReadback?new Uint8Array(pixels.length):null;
     try {
     if(asyncReadback&&!compiled&&renderer.compileAsync){
       // Compile the off-screen variant, which has a different output colour
@@ -190,14 +193,29 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false}={}) {
       let pending;
       try{
         renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
-        if(asyncReadback)pending=renderer.readRenderTargetPixelsAsync(target,0,0,width,height,pixels);
+        if(asyncReadback)pending=renderer.readRenderTargetPixelsAsync(target,0,0,width,height,readback);
         else renderer.readRenderTargetPixels(target,0,0,width,height,pixels);
       }finally{
         // The game may draw while the fence is pending. Restore borrowed renderer
         // state before yielding, rather than restoring stale state on completion.
         renderer.setRenderTarget(previous,face,mip);renderer.setClearColor(clear,alpha);
       }
-      if(asyncReadback)yield pending;
+      if(asyncReadback){
+        // A readback fence normally settles within a few frames. Software GL has been seen to
+        // never settle one after a reload, which left the region build waiting forever; past
+        // the timeout, read the same target synchronously (one stall) and carry on.
+        const settled=yield new Promise((resolve,reject)=>{
+          const timer=setTimeout(resolve,readbackTimeoutMs,false);
+          pending.then(()=>{clearTimeout(timer);resolve(true);},error=>{clearTimeout(timer);reject(error);});
+        });
+        if(settled)pixels.set(readback);
+        else{
+          console.warn(`grass bake: GPU readback did not settle in ${readbackTimeoutMs} ms; reading synchronously`);
+          const previous=renderer.getRenderTarget(),face=renderer.getActiveCubeFace?.(),mip=renderer.getActiveMipmapLevel?.();
+          try{renderer.readRenderTargetPixels(target,0,0,width,height,pixels);}
+          finally{renderer.setRenderTarget(previous,face,mip);}
+        }
+      }
       let offset=0;
       for(const mesh of batch){
         const out=new Uint8Array(mesh.count*3);

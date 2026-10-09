@@ -76,3 +76,21 @@ test('large grass input uses bounded atlases instead of retaining a whole-map ta
  }
  c.drain();assert.equal(await j.promise,3);assert.equal(f.calls().asyncCalls,4);assert.ok(sizes.every(n=>n<=8192));
 });
+
+test('a readback fence that never settles falls back to a synchronous read with identical attributes',async()=>{
+ const sync=fixture();bakeGrassColours(sync.renderer,sync.root,{waterLevel:0});
+ const f=fixture(),c=queue(),prior=f.state(),unhandled=[],onUnhandled=e=>unhandled.push(e);process.on('unhandledRejection',onUnhandled);
+ const warn=console.warn,warnings=[];console.warn=m=>warnings.push(m);
+ try{
+  const j=c.q.enqueue(bakeGrassSteps(f.renderer,f.root,{waterLevel:0},{asyncReadback:true,readbackTimeoutMs:5}));
+  for(let i=0;i<20&&j.state!=='success';i++){c.drain();await new Promise(r=>setTimeout(r,15));}
+  c.drain();assert.equal(await j.promise,1);
+  for(const name of ['aGrassBase','aGrassLawn'])assert.deepEqual(f.mesh.geometry.attributes[name].array,sync.mesh.geometry.attributes[name].array);
+  assert.deepEqual(f.calls(),{asyncCalls:2,syncCalls:2});assert.equal(warnings.length,2);
+  assert.deepEqual(f.state(),prior);assert.deepEqual(f.disposed,{points:1,target:1,material:1});
+  // The abandoned reads settle late: a failure is ignored and a success cannot change the result.
+  const late=f.mesh.geometry.attributes.aGrassBase.array.slice();
+  f.pending.shift().reject(new Error('late'));f.pending.shift().resolve();await new Promise(r=>setTimeout(r,5));
+  assert.deepEqual(unhandled,[]);assert.deepEqual(f.mesh.geometry.attributes.aGrassBase.array,late);
+ }finally{console.warn=warn;process.off('unhandledRejection',onUnhandled);}
+});

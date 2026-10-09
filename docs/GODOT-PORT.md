@@ -70,6 +70,13 @@ resources until completion and discard stale gear/model results. Only one reques
 is in flight per session. Port to a SubViewport/readback without blocking the main
 frame, keeping cleanup on failure and the same 128 px image/row orientation.
 
+The grass colour bake (`bakeGrassSteps`) also reads back asynchronously while a
+region streams in. A readback that has not settled after `readbackTimeoutMs`
+(default 5000) is abandoned into its own buffer and the same target is read
+synchronously, so a stuck fence costs one stall instead of a region that never
+finishes building. In Godot, give the SubViewport readback the same timeout and
+fallback.
+
 | Web | Godot |
 |---|---|
 | `render/toon.js` (3-step ramp and inverted-hull outline) | `ShaderMaterial` with a toon ramp, plus a second pass with `cull_front` and a vertex push for the outline |

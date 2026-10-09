@@ -11,26 +11,65 @@ import {disposeObject} from '../../src/render/dispose.js';
 import {terrainDomain} from '../../src/render/terrain-domain.js';
 const source=readFileSync(new URL('../../src/render/region.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'').replace(/\bexport /g,'');
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
-function harness(){
+function harness({grassError,terrainMesh,grassWait}={}){
  const pending=[],city=deferred(),kit=deferred(),cacheReleased=[],parts=[];let now=0;
  const queue=new FrameBuildQueue({budgetMs:1,now:()=>now,schedule:fn=>{pending.push(fn);return ()=>{};}});
  const world={data:{id:'test-region',city:{enabled:true},town:{workbench:[3,4],trainer:[8,9]}},boxes:[],groundY:()=>0};
- const terrainSteps=function*(w,{adopt}){const group=new THREE.Group();parts.push(group);adopt(group);now++;yield;return {group};};
- const environmentSteps=function*(w,{adopt}){const root=new THREE.Group();adopt(root);now++;yield;return {root,waypoints:new Map()};};
+ const terrainSteps=function*(w,{adopt}){const group=new THREE.Group();if(terrainMesh)group.add(terrainMesh);parts.push(group);adopt(group);now++;yield;return {group};};
+ const grass=grassError?new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.MeshBasicMaterial()):null;if(grass)grass.name='ground-blended-grass';
+ const environmentSteps=function*(w,{adopt}){const root=new THREE.Group();if(grass)root.add(grass);adopt(root);now++;yield;return {root,waypoints:new Map()};};
  const waterSteps=function*(w,contacts,{owner,adopt}){const root=new THREE.Group();const mesh=new THREE.Mesh(owner.geometry(new THREE.PlaneGeometry()),owner.material(new THREE.MeshBasicMaterial()));root.add(mesh);adopt(root);now++;yield;return root;};
  const stub=function*(){now++;yield;return {};};
  const deps={THREE,importJob,cancelledBuild,terrainDomain,terrainSteps,environmentSteps,waterSteps,releaseGroundCaches:w=>cacheReleased.push(w),batchStaticSteps:stub,bakeGrassSteps:stub,attachWindShadow:()=>{},buildHumanoid:()=>({root:new THREE.Group()}),HumanoidAnimator:class{},residentTool:()=>new THREE.Group(),loadCity:()=>city.promise,loadTownKit:()=>kit.promise,disposeObject,beginRegion,useRegion,regionShift,toon:()=>{const m=new THREE.MeshToonMaterial();m.userData.shared=true;return m;},glowTexture:()=>new THREE.Texture()};
  deps.loadLandmarkAssets=async()=>null; // this lifetime fixture has no authored landmarks
+ if(grassError)deps.bakeGrassSteps=function*(){yield;throw grassError;};
+ if(grassWait)deps.bakeGrassSteps=function*(){yield grassWait.promise;return 1;};
  const api=Function(...Object.keys(deps),source+'\nreturn {startRegion,regionSteps,placeRegion,disposeRegion,waitForRegionImports};')(...Object.values(deps));
  const view={buildQueue:queue,renderer:{},vfx:{}};
  const pump=async()=>{for(let i=0;i<100;i++){while(pending.length)pending.shift()();await Promise.resolve();if(!pending.length){await Promise.resolve();if(!pending.length)return;}}throw Error('queue did not settle');};
- return {api,view,world,city,kit,pending,cacheReleased,parts,pump};
+ return {api,view,world,city,kit,pending,cacheReleased,parts,pump,grass};
 }
 function imported(){const root=new THREE.Group(),geometry=new THREE.BoxGeometry(),material=new THREE.MeshBasicMaterial();root.add(new THREE.Mesh(geometry,material));let calls=0;return {root,stats:{},dispose(){if(!calls++){disposeObject(root);}return new Set([geometry,material]);},calls:()=>calls};}
 
 test('cancellation before first region step releases the eagerly-created startup owner',async()=>{
  const h=harness(),r=h.api.startRegion(h.view,h.world),rejected=assert.rejects(r.ready,{name:'AbortError'});
  r.controller.abort();await h.pump();await rejected;assert.equal(r.disposed,true);assert.equal(r.staticReady,false);assert.equal(h.cacheReleased.length,1);assert.equal(h.parts.length,0);
+});
+
+test('bounded grass timeout finishes terrain and scenery with unfinished grass hidden and owned',async()=>{
+ const error=Object.assign(Error('readback timed out'),{name:'GrassReadbackTimeoutError'}),h=harness({grassError:error});
+ let geometryDisposals=0;h.grass.geometry.addEventListener('dispose',()=>geometryDisposals++);
+ const warn=console.warn;console.warn=()=>{};
+ try{
+  const r=h.api.startRegion(h.view,h.world);await h.pump();await r.staticReadyPromise;
+  assert.equal(r.disposed,false);assert.equal(r.staticReady,true);assert.equal(r.grassError,error);
+  assert.equal(r.grassReady,false);
+  assert.equal(h.grass.visible,false);assert.ok(h.grass.parent?.parent===r.root);assert.equal(r.grass.length,0);assert.equal(geometryDisposals,0);
+  h.city.resolve(null);h.kit.resolve(null);await h.pump();assert.deepEqual(await r.ready,{status:'imported-ready'});
+  h.api.disposeRegion(r);h.api.disposeRegion(r);assert.equal(geometryDisposals,1);assert.equal(h.cacheReleased.length,1);
+ }finally{console.warn=warn;}
+});
+
+test('terrain publication waits for shader preparation, keeps the owner local, and closes on interrupted grass',async()=>{
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(),new THREE.MeshBasicMaterial()),compile=deferred(),grassWait=deferred(),h=harness({terrainMesh:mesh,grassWait});
+ const scene=new THREE.Scene(),signal=new AbortController();let published,geometryDisposals=0,materialDisposals=0;
+ mesh.geometry.addEventListener('dispose',()=>geometryDisposals++);mesh.material.addEventListener('dispose',()=>materialDisposals++);
+ h.view.renderer.compileAsync=()=>compile.promise;
+ const job=h.view.buildQueue.enqueue(h.api.regionSteps(h.view,h.world,undefined,{onTerrainReady:region=>{
+  published=region;const preview=new THREE.Group();preview.add(region.terrain.group.clone(true));region.previewRoot=preview;scene.add(preview);
+ }}),{signal:signal.signal});const rejected=assert.rejects(job.promise,{name:'AbortError'});
+ await h.pump();assert.equal(job.state,'waiting');assert.equal(published,undefined,'no partial or unprepared terrain is visible');
+ compile.resolve();await h.pump();assert.equal(job.state,'waiting');assert.equal(published.staticReady,false);assert.equal(published.grassReady,false);
+ assert.equal(published.previewRoot.parent,scene);assert.deepEqual(published.root.position.toArray(),[0,0,0]);
+ signal.abort();assert.equal(geometryDisposals,0);grassWait.resolve();await h.pump();await rejected;
+ assert.equal(published.disposed,true);assert.equal(published.previewRoot,null);assert.equal(scene.children.length,0);
+ assert.equal(geometryDisposals,1);assert.equal(materialDisposals,1);assert.equal(h.cacheReleased.length,1);
+});
+
+test('non-timeout grass errors still fail construction and dispose partial owners',async()=>{
+ const error=Error('GPU read failed'),h=harness({grassError:error}),r=h.api.startRegion(h.view,h.world);
+ const rejected=assert.rejects(r.ready,e=>e===error);await h.pump();await rejected;
+ assert.equal(r.disposed,true);assert.equal(r.staticReady,false);assert.equal(r.grassError,undefined);assert.equal(h.cacheReleased.length,1);
 });
 
 test('lazy neighbour generator owns no region before its first next',()=>{

@@ -1,5 +1,5 @@
 import { FrontierFx } from './frontier-fx.js';
-import {FrameBuildQueue} from './build-queue.js';
+import {FrameBuildQueue,useStartupTaskScheduling} from './build-queue.js';
 import { installSpiritReveal, removeSpiritReveal, updateSpiritReveal } from './spirit-reveal.js';
 // Scene assembly: renderer, 3/4 top-down camera, light, and syncing game entities to models.
 // "Change the camera, not the style": high ARPG camera, same anime cel look.
@@ -137,7 +137,7 @@ export class View {
   get weaponProps() { return this.region.weaponProps || {}; }
 
   // ---------- open world streaming ----------
-  // Near an open seam the neighbouring map is built a few milliseconds per frame and
+  // Near an open seam the neighbouring map is built in budgeted task slices and
   // placed at its atlas delta, so it is in view before the border and walking across
   // needs no reload. Far from every seam it is dropped again (memory returns to one map).
   updateStreaming(px, pz) {
@@ -149,23 +149,39 @@ export class View {
       const near = along > seam.span[0] - STREAM_IN && along < seam.span[1] + STREAM_IN;
       const retained = along > seam.span[0] - STREAM_OUT && along < seam.span[1] + STREAM_OUT;
       if (retained && inside < STREAM_OUT) wanted.add(seam.to);
-      if (near && inside < STREAM_IN && !this.neighbours.has(seam.to)) {
-        const n={steps:regionSteps(this,this.coreWorld(seam.to)),region:null,buildMs:0,stepMs:[],controller:new AbortController(),error:null};
+      const previous=this.neighbours.get(seam.to);
+      // Waiting jobs leave the runnable queue but remain owned here. Retry a failed build once.
+      if (near && inside < STREAM_IN && (!previous || (previous.error && previous.attempt<2 && performance.now()>=previous.retryAt))) {
+        const n={steps:null,region:previous?.region??null,preview:null,buildMs:0,stepMs:[],controller:new AbortController(),error:null,attempt:(previous?.attempt??0)+1};
+        n.steps=regionSteps(this,this.coreWorld(seam.to),undefined,{onTerrainReady:region=>{
+          if(n.region||n.controller.signal.aborted||this.neighbours.get(seam.to)!==n)return;
+          // Borrow completed terrain buffers. The unplaced owner stays map-local for grass baking.
+          const preview=new THREE.Group();preview.add(region.terrain.group.clone(true));
+          region.previewRoot=preview;n.preview=region;this.placeTerrainPreview(region);this.scene.add(preview);
+        }});
         this.neighbours.set(seam.to,n);
         n.job=this.buildQueue.enqueue(n.steps,{signal:n.controller.signal,label:'region.'+seam.to,onStep:ms=>n.stepMs.push(Math.round(ms))});
+        // Use the existing six-ms task slices instead of one construction slice per paint.
+        const releaseScheduling=useStartupTaskScheduling(this.buildQueue);
+        n.job.promise.then(releaseScheduling,releaseScheduling);
         n.job.promise.then(region=>{
           if(n.controller.signal.aborted||this.neighbours.get(seam.to)!==n){disposeRegion(region);return;}
+          const old=n.region;
+          region.previewRoot?.removeFromParent();region.previewRoot=null;n.preview=null;
           n.region=region;n.steps=null;n.buildMs=n.job.stats.cpuMs;
           this.placeNeighbour(region);this.scene.add(region.root);this.refreshGrass();
+          if(old&&old!==region)disposeRegion(old);
+          n.error=region.grassError??null;if(n.error)n.retryAt=performance.now()+1000;
         }).catch(error=>{
-          n.steps=null;
-          if(error.name!=='AbortError'){n.error=error;console.error('Region construction failed: '+seam.to,error);}
+          n.steps=null;n.preview=null;
+          if(error.name!=='AbortError'){n.error=error;n.retryAt=performance.now()+1000;console.error('Region construction failed: '+seam.to,error);}
         });
       }
     }
     this.buildQueue.budgetMs=this.streamBudgetMs??STREAM_BUDGET_MS;
     for (const [id,n] of this.neighbours) if(!wanted.has(id)) {
       n.controller?.abort();
+      n.preview?.previewRoot?.removeFromParent(); // detach immediately; the generator still owns its buffers
       // The queue closes unfinished generators after any in-flight GPU read.
       if(n.region)disposeRegion(n.region);
       this.neighbours.delete(id);this.refreshGrass();
@@ -178,8 +194,14 @@ export class View {
     placeRegion(region, nx - ax, nz - az);
   }
 
+  placeTerrainPreview(region) {
+    const [ax,az]=this.world.data.atlas.offset,[nx,nz]=region.world.data.atlas.offset;
+    placeRegion({root:region.previewRoot,shift:region.shift},nx-ax,nz-az);
+  }
+
   neighbourReady(id) {
-    return !!this.neighbours.get(id)?.region;
+    const region=this.neighbours.get(id)?.region;
+    return !!region?.staticReady&&!region.disposed;
   }
 
   /**
@@ -197,6 +219,7 @@ export class View {
     placeRegion(next, 0, 0);
     this.neighbours.set(prev.world.data.id, { steps: null, region: prev, buildMs: 0 });
     for (const n of this.neighbours.values()) if (n.region) this.placeNeighbour(n.region);
+    for (const n of this.neighbours.values()) if (n.preview) this.placeTerrainPreview(n.preview);
     this.camTarget.x += dx;
     this.camTarget.z += dz;
     this.camera.position.x += dx;

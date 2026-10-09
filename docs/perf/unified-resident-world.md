@@ -4,7 +4,9 @@ Azure Coast, Greenhollow Frontier and Moonroot Grove share one fixed coordinate 
 
 ## Preparation and frame work
 
-- All three native scenes, imported landmarks, grass and static GPU buffers are prepared behind the initial loading screen. Preparation includes the gameplay shadow/output shader variant. A failed import or grass job keeps that screen opaque.
+- All three native scenes, imported landmarks, grass and static GPU buffers are prepared behind the initial loading screen. Preparation includes gameplay shadow-receiving/output shader variants. A failed import or grass job keeps that screen opaque.
+- GPU preparation uploads complete buffers with one primitive per material group and one instance per draw. Original draw ranges, material groups, instance counts and renderer state restore before each yield, so gameplay geometry is unchanged. An empty private draw advances Three's frame cache after packing, and sorting stays disabled during shortened draws to preserve full-instance bounds. This does not establish that every custom shadow-caster variant is precompiled.
+- Private uploads retain gameplay shadow receivers while freezing shadow updates; missing light maps use the safe shadow-off upload fallback. Paint blur retains the original arithmetic and color bytes with bounded row/column slices. GPU color reads retain their original fence plus at most one recovery fence, preserving the earlier completion point and the 5-second bound. The fullscreen backdrop stops sampling the animated opaque loading card until world readiness restores its existing 12 px blur.
 - Static renderables occupy conservative cells. Only camera cells and shadow-casting cells required by the directional light attach to the scene. Hidden cells keep prepared buffers but leave both drawing and recursive matrix traversal.
 - NPCs, monster poses, trails, markers, drops and ambient emitters skip off-camera visual work. Idle monster simulation uses a conservative 58 m envelope; active combat continues so visibility never changes combat outcomes.
 - Static unit colors/masks and normals use normalized 16-bit storage. Positions, UVs, topology, textures and scenery density remain unchanged. Grass snapshot buffers and dynamic/non-unit attributes are excluded.
@@ -15,7 +17,7 @@ Azure Coast, Greenhollow Frontier and Moonroot Grove share one fixed coordinate 
 
 Snapshots retain v13 `worldId` and map-local `pos`; loading can choose a different scene origin without changing the absolute atlas position. Native worlds remain immutable renderer/layout sources. Discovery stays map-qualified. Kills, collected totals and boss kills keep their existing global lifetime meaning; quest notifications and drop tables carry the originating region. Actors, summons, areas, projectiles, drops and spawn homes persist across boundaries.
 
-Waypoint, minimap, atlas and quest destinations convert between native, scene and atlas coordinates explicitly. Zone, bridge and dock queries return stable objects in scene coordinates.
+Waypoint, minimap, atlas and quest destinations convert between native, scene and atlas coordinates explicitly. A remote quest route continues into its destination region and ends at a clear standing point within interaction reach, rather than stopping at the old gate. Zone, bridge and dock queries return stable objects in scene coordinates. Both native navigation and unified gameplay query every collider grid cell touched by the actor radius.
 
 ## Verification and limits
 

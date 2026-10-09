@@ -68,7 +68,7 @@ export function* regionSteps(view, world, region, {asyncGPU = true,onTerrainRead
     yield* inRegion(shift,assembleRegion(view,world,region,{asyncGPU,onTerrainReady}));
     // Prepare the region's material variants with the live game's lighting
     // before exposing the neighbour. Fence waiting leaves other jobs runnable.
-    if(asyncGPU)yield* inRegion(shift,compileRegionSteps(view,region.root));
+    if(asyncGPU)yield* timedRegionSteps(region,'compile',inRegion(shift,compileRegionSteps(view,region.root)));
     completed=true;return region;
   } catch(error){if(error.name!=='AbortError')region.error=error;throw error;} finally {if(!completed)disposeRegion(region);}
 }
@@ -76,15 +76,15 @@ export function* regionSteps(view, world, region, {asyncGPU = true,onTerrainRead
 function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   const {root,shift}=region;
   const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
-  region.terrain = yield* inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)}));
+  region.terrain = yield* timedRegionSteps(region,'terrain',inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)})));
   root.add(region.terrain.group);
   yield;
   if(onTerrainReady){
-    if(asyncGPU)yield* inRegion(shift,compileRegionSteps(view,region.terrain.group));
+    if(asyncGPU)yield* timedRegionSteps(region,'terrainCompile',inRegion(shift,compileRegionSteps(view,region.terrain.group)));
     onTerrainReady(region); // completed geometry only; the rest remains private to its owner
   }
   useRegion(shift); // another build may have run in between
-  const env = yield* inRegion(shift, environmentSteps(world,{groundHeight:domain.groundHeight,adopt:group=>root.add(group)}));
+  const env = yield* timedRegionSteps(region,'environment',inRegion(shift, environmentSteps(world,{groundHeight:domain.groundHeight,adopt:group=>root.add(group)})));
   yield;
   useRegion(shift); // another build may have run in between
   // Keep only authored native hull/pile contact roots before batching moves
@@ -100,11 +100,11 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
       }
     });
   }
-  if (!world.data.city?.enabled) root.add(yield* inRegion(shift,waterSteps(world,env.root,{domain,adopt:group=>root.add(group)})));
+  if (!world.data.city?.enabled) root.add(yield* timedRegionSteps(region,'water',inRegion(shift,waterSteps(world,env.root,{domain,adopt:group=>root.add(group)}))));
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
-  try{yield* inRegion(shift, bakeGrassSteps(view.renderer, env.root, world,{asyncReadback:asyncGPU}));region.grassReady=true;}
+  try{yield* timedRegionSteps(region,'grass',inRegion(shift, bakeGrassSteps(view.renderer, env.root, world,{asyncReadback:asyncGPU})));region.grassReady=true;}
   catch(error){
     if(!asyncGPU||error.name!=='GrassReadbackTimeoutError')throw error;
     // Keep valid terrain/scenery available if the GPU cannot finish the colour bake.
@@ -116,7 +116,7 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
-  region.staticBatch = yield* inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || [])] }));
+  region.staticBatch = yield* timedRegionSteps(region,'staticBatch',inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || [])] })));
   root.add(env.root);
   env.root.traverse((o) => o.userData.grassCulling && region.grass.push(o));
   region.waypointStones = env.waypoints;
@@ -246,6 +246,28 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   region.importsReady.catch(error=>console.error('Region import failed: '+world.data.id,error));
 
   return region;
+}
+
+// Bounded diagnostics keep one entry per native construction stage, including
+// stages waiting on promises that are absent from the runnable build queue.
+export function* timedRegionSteps(region,name,steps,now=()=>performance.now()) {
+  const stages=region.stats.construction??={};
+  const started=now(),entry=stages[name]={state:'running',startedMs:started,pausedAtMs:null,steps:0,cpuMs:0,maxStepMs:0,waitingMs:0,scheduleMs:0};
+  let completed=false,input,failed=false;
+  try {for(;;){
+    let step;const start=now();entry.state='running';
+    try{step=failed?steps.throw(input):steps.next(input);}
+    finally{const ms=now()-start;entry.steps++;entry.cpuMs+=ms;entry.maxStepMs=Math.max(entry.maxStepMs,ms);}
+    if(step.done){completed=true;entry.state='ready';return step.value;}
+    const waiting=!!step.value&&typeof step.value.then==='function',pause=now();
+    entry.state=waiting?'waiting':'suspended';entry.pausedAtMs=pause;
+    try{input=yield step.value;failed=false;}catch(error){input=error;failed=true;}
+    finally{entry[waiting?'waitingMs':'scheduleMs']+=now()-pause;entry.pausedAtMs=null;}
+  }}catch(error){entry.state='failed';entry.error=error?.message??String(error);throw error;}
+  finally{
+    try{if(!completed){if(entry.state!=='failed')entry.state='cancelled';steps.return?.();}}
+    finally{entry.elapsedMs=now()-started;}
+  }
 }
 
 // Materials made inside a nested build take this region's shift on every resume.

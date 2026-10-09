@@ -1,5 +1,7 @@
 # Unified world delivery review
 
+The initial review below is retained with its original artifact identity. See the [PR #131 follow-up](pr131-followup.md) for the subsequent city-navigation, quest-route and saved-startup fixes and their exact validation evidence.
+
 The captured production build is `main-CR9Mp2xF.js` with `main-D4oOXd4z.css`, based on main `2c377ab86f4a22327d6ddc33902993eca5be4071`. SHA-256 identities for the build and exact screenshots are in [identity.json](identity.json); measured runtime state is in [report.json](report.json). Source implementation and tradeoffs: [unified resident world](../../perf/unified-resident-world.md).
 
 ## Measured scope

@@ -15,7 +15,7 @@ try {
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
  const cases=[['desktop',1280,800,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
  for(const [size,width,height,touch] of cases.filter(c=>!process.env.OPENING_VIEW||c[0]===process.env.OPENING_VIEW))for(const kit of process.env.KIT?[process.env.KIT]:size.startsWith('phone')?['staff']:['sword','bow','staff']) {
-  const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1}),page=await ctx.newPage(),errors=[];
+  const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1}),page=await ctx.newPage(),errors=[];let verifiedRemoteRoute=null;
   page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error'&&!m.location().url.endsWith('/favicon.ico'))errors.push(m.text());});
   const activate=s=>touch?page.locator(s).first().tap():page.locator(s).first().click();
   const ready=()=>page.waitForFunction(()=>__frontier.game&&__frontier.modelsReady&&document.querySelector('#loading').classList.contains('done'));
@@ -46,8 +46,34 @@ try {
     await page.evaluate(()=>{const g=__frontier.game;g.ch.progress.quests.f_road={status:'active',objectives:{'origin-road':1,primary:0},progress:0};g.ch.progress.questJournal.trackedId='f_road';});
     await activate('.questtrack');
     await page.waitForFunction(()=>!__frontier.questRoute.work&&__frontier.questRoute.path.length>1);
-    const endpoint=await page.evaluate(()=>{const f=__frontier,s=f.game.data.world.atlas.seams.find(s=>s.to==='frontier-wilds-v1');return {end:f.questRoute.path.at(-1),gate:{x:s.gate[0],z:s.gate[1]}};});
-    assert.deepEqual(endpoint.end,endpoint.gate,'remote route terminates at the real crossing');await shot('remote-crossing-route');
+    const remoteRoute=await page.evaluate(()=>{
+      const f=__frontier,g=f.game,r=f.questRoute,map='frontier-wilds-v1',stone=g.worlds[map].waypoints.find(w=>w.id==='town');
+      const expected=g.scenePoint(map,stone.x,stone.z),end=r.path.at(-1),regions=new Set();let failure=null;
+      // The rendered ribbon must be physically walkable through both native
+      // regions, including between compressed vertices and across the old edge.
+      for(let i=1;i<r.path.length&&!failure;i++){
+        const a=r.path[i-1],b=r.path[i],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.4));let x=a.x,z=a.z;
+        regions.add(g.world.regionAt(x,z)?.id);
+        for(let j=1;j<=steps;j++){
+          const nx=a.x+(b.x-a.x)*j/steps,nz=a.z+(b.z-a.z)*j/steps;
+          const moved=g.world.move(x,z,.48,nx-x,nz-z,{allowSeams:true});
+          if(!g.world.isFree(nx,nz,.48)||Math.hypot(moved.x-nx,moved.z-nz)>.01){failure={x:nx,z:nz};break;}
+          regions.add(g.world.regionAt(nx,nz)?.id);x=nx;z=nz;
+        }
+      }
+      return {target:{world:r.target.world,x:r.target.x,z:r.target.z},goal:r.target.goal,native:[stone.x,stone.z],expected,end,
+        reach:Math.hypot(end.x-expected[0],end.z-expected[1]),endRegion:g.world.regionAt(end.x,end.z)?.id,
+        endFree:g.world.isFree(end.x,end.z,.48),regions:[...regions],failure};
+    });
+    verifiedRemoteRoute=remoteRoute;
+    assert.equal(remoteRoute.target.world,'frontier-wilds-v1');
+    assert.deepEqual([remoteRoute.target.x,remoteRoute.target.z],remoteRoute.expected,'remote target is the exact fixed-scene waypoint anchor');
+    assert.deepEqual([remoteRoute.goal.x,remoteRoute.goal.z],remoteRoute.native,'quest metadata retains the native map-qualified anchor');
+    assert.ok(remoteRoute.reach<3.8&&remoteRoute.endFree,'route ends in walking clearance within real waypoint interaction reach');
+    assert.equal(remoteRoute.endRegion,'frontier-wilds-v1','the route continues into the destination region');
+    assert.equal(remoteRoute.failure,null,JSON.stringify(remoteRoute.failure));
+    assert.deepEqual(new Set(remoteRoute.regions),new Set(['azure-harbor-v1','frontier-wilds-v1']),'the actual ground ribbon crosses both regions');
+    await shot('remote-waypoint-route');
     await activate('.questtrack');await page.evaluate(()=>{delete __frontier.game.ch.progress.quests.f_road;__frontier.game.ch.progress.questJournal.trackedId=null;});
   }
   if(!touch){await page.locator('.questtrack').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('.questtrack').getAttribute('aria-pressed'),'true');await page.keyboard.press('Enter');}
@@ -89,7 +115,7 @@ try {
   await page.evaluate(()=>{const g=__frontier.game;g.ch.progress.quests.s_job={status:'active',objectives:{primary:0},progress:0};g.ch.progress.questJournal.trackedId='s_job';});
   await activate('.questtrack');assert.equal(await page.evaluate(()=>!!__frontier.questRoute.mesh),false,'nonspatial job task invents no ground destination');
   assert.equal(await page.evaluate(()=>__frontier.game.ch.movement),null);assert.deepEqual(errors,[]);
-  reports.push({size,kit,touch,ordinaryCreation:true,receiptReload:true,queue:true,route:true,safeAreas:touch,errors});writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS ordinary opening/rewards/route',engine.name(),size,kit);await ctx.close();
+  reports.push({size,kit,touch,ordinaryCreation:true,receiptReload:true,queue:true,route:true,remoteRoute:verifiedRemoteRoute,safeAreas:touch,errors});writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS ordinary opening/rewards/route',engine.name(),size,kit);await ctx.close();
  }
  // Owner-save migration uses a separate synthetic context, never an owner's browser data.
  const old=createCharacter(data,{kit:'staff'});old.version=10;old.opening={stage:'done'};old.skills={arcane_bolt:1,firebolt:3,ward:2};old.slots=[{skill:'firebolt',mods:[]},{skill:'ward',mods:[]},{skill:'arcane_bolt',mods:[]},{skill:null,mods:[]}];old.movementSkills=['roll'];old.movement='roll';old.gold=777;old.progress.questJournal={version:1,trackedId:null};old.progress.quests.h_slimes={status:'done',progress:3,rewardClaimed:true};

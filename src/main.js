@@ -6,6 +6,7 @@ import { createCharacter, equip } from './core/character.js';
 import { OpenWorldGame as Game } from './core/open-world-game.js';
 import { View } from './render/view.js';
 import { useStartupTaskScheduling } from './render/build-queue.js';
+import { trackStartupReadiness } from './render/startup-readiness.js';
 import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
 import { contactReady } from './render/fireball-v5-contact.js';
@@ -60,12 +61,13 @@ view.coreWorld = coreWorld;
 if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
 // Character/monster models load at boot. Current weapons load on demand; procedural shapes stand in,
 // current hero, creation preview and portraits refresh when their requested templates arrive.
-Promise.all([loadModels(data.models, { onWeaponReady: (id) => {
+view.startupDependencies={};
+trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
   if (id === bases?.weapon || id === bases?.offhand) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
   // Refresh only the currently selected creation kit, not an obsolete async selection.
   if (view.previewHero && data.progression.start.kits[F.menu?.kit]?.weapon === id) F.menu.refreshPreview();
-} }), view.worldReady, contactReady, frostReady, approvedClipsReady]).then(() => {
+} }), world:view.worldReady, contact:contactReady, frost:frostReady, approvedClips:approvedClipsReady},view.startupDependencies).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();

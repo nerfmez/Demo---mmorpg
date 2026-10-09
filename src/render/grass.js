@@ -199,8 +199,9 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false,readbac
         renderer.setRenderTarget(previous,face,mip);renderer.setClearColor(clear,alpha);
       }
       if(asyncReadback){
-        // Renew one stale fence over the same submitted pixel buffer, without a blocking read.
-        // A genuinely stalled GPU still fails within the bound; streaming can retry the build.
+        // Add one recovery fence over the same pixel buffer, keeping its original
+        // completion point before unrelated submissions from concurrent builds.
+        // A genuinely stalled GPU still fails within the same bound.
         const settled=yield new Promise((resolve,reject)=>{
           const activeRead=read;
           waitTimer=setTimeout(()=>reject(Object.assign(new Error(`grass bake: GPU readback did not settle in ${readbackTimeoutMs} ms`),{name:'GrassReadbackTimeoutError'})),readbackTimeoutMs);
@@ -251,24 +252,35 @@ function readbackAsync(renderer,target,width,height,out){
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER,buffer);gl.bufferData(gl.PIXEL_PACK_BUFFER,out.byteLength,gl.STREAM_READ);
   gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,0);
   gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
-  let sync=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
-  let timer=0,done=false;
-  const free=()=>{done=true;clearTimeout(timer);gl.deleteSync(sync);gl.deleteBuffer(buffer);};
+  const syncs=[gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0)];
+  if(!syncs[0]){gl.deleteBuffer(buffer);throw new Error('grass bake: could not create GPU readback fence');}
+  gl.flush();
+  let timer=0,done=false,renewed=false;
+  const free=()=>{done=true;clearTimeout(timer);for(const sync of syncs)if(sync)gl.deleteSync(sync);gl.deleteBuffer(buffer);};
   const promise=new Promise((resolve,reject)=>{
     const poll=()=>{
       if(done)return;
-      const status=gl.clientWaitSync(sync,gl.SYNC_FLUSH_COMMANDS_BIT,0);
-      if(status===gl.TIMEOUT_EXPIRED){timer=setTimeout(poll,4);return;}
-      if(status===gl.WAIT_FAILED){free();reject(new Error('grass bake: GPU readback failed'));return;}
-      gl.bindBuffer(gl.PIXEL_PACK_BUFFER,buffer);gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,0,out);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
-      free();resolve(out);
+      let pending=false;
+      for(let i=0;i<syncs.length;i++){
+        const sync=syncs[i];if(!sync)continue;
+        const status=gl.clientWaitSync(sync,gl.SYNC_FLUSH_COMMANDS_BIT,0);
+        if(status===gl.TIMEOUT_EXPIRED){pending=true;continue;}
+        if(status===gl.ALREADY_SIGNALED||status===gl.CONDITION_SATISFIED){
+          gl.bindBuffer(gl.PIXEL_PACK_BUFFER,buffer);gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,0,out);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
+          free();resolve(out);return;
+        }
+        // A failed handle must not discard another valid completion marker.
+        gl.deleteSync(sync);syncs[i]=null;
+      }
+      if(pending){timer=setTimeout(poll,4);return;}
+      free();reject(new Error('grass bake: GPU readback failed'));
     };
     timer=setTimeout(poll,4);
   });
   return {promise,cancel(){if(!done)free();},retry(){
-    if(done)return;
+    if(done||renewed)return;
     const next=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);
     if(!next)throw new Error('grass bake: could not renew GPU readback fence');
-    gl.deleteSync(sync);sync=next;gl.flush();
+    syncs.push(next);renewed=true;gl.flush();
   }};
 }

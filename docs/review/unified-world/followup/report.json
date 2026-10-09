@@ -1,0 +1,947 @@
+{
+  "browser": "chromium",
+  "base": "http://localhost:4194/",
+  "errors": [],
+  "captures": [
+    {
+      "name": "01-fountain",
+      "position": [
+        62,
+        30
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "02-east-facing-house",
+      "position": [
+        28.8,
+        16.24
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "03-guild",
+      "position": [
+        55.50398742826325,
+        1.9036949979511135
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "04-forge",
+      "position": [
+        80.75309386064123,
+        39.02628710953454
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "05-waterfront",
+      "position": [
+        87,
+        74
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "06-shipyard",
+      "position": [
+        126,
+        102
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "07-city-arpg",
+      "position": [
+        71.56698729810778,
+        19.75
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    },
+    {
+      "name": "08-city-top-down",
+      "position": [
+        71.56698729810778,
+        19.75
+      ],
+      "calls": 1577,
+      "triangles": 3113440,
+      "geometries": 1860
+    },
+    {
+      "name": "09-original-beach",
+      "position": [
+        -132,
+        80
+      ],
+      "calls": 1,
+      "triangles": 1,
+      "geometries": 1860
+    }
+  ],
+  "routes": [
+    {
+      "id": "original-safe-arrival",
+      "ticks": 2296,
+      "position": [
+        61.75,
+        29.75
+      ],
+      "townUnlocked": false,
+      "arrival": "locked"
+    },
+    {
+      "id": "town-waypoint",
+      "ticks": 408,
+      "position": [
+        88.06,
+        15.7
+      ],
+      "townUnlocked": true,
+      "arrival": "locked"
+    },
+    {
+      "id": "trainer",
+      "ticks": 363,
+      "position": [
+        55.50398742826325,
+        1.9036949979511135
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "workbench",
+      "ticks": 275,
+      "position": [
+        80.75309386064123,
+        39.02628710953454
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-0",
+      "ticks": 558,
+      "position": [
+        21.091692054683303,
+        44.39875412327754
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-1",
+      "ticks": 548,
+      "position": [
+        25.89919180252902,
+        48.699759575814454
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-2",
+      "ticks": 334,
+      "position": [
+        40.650259744969105,
+        42.21739593834963
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-3",
+      "ticks": 248,
+      "position": [
+        62.206665734139705,
+        50.536232905089186
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-4",
+      "ticks": 391,
+      "position": [
+        72.5447782394628,
+        55.758690010322724
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-5",
+      "ticks": 529,
+      "position": [
+        80.5667599373917,
+        61.535633690723735
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-6",
+      "ticks": 784,
+      "position": [
+        86.93461368621116,
+        72.96856770653764
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-7",
+      "ticks": 1105,
+      "position": [
+        82.70687973582744,
+        101
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-8",
+      "ticks": 1171,
+      "position": [
+        86.24529162877796,
+        111
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-9",
+      "ticks": 1352,
+      "position": [
+        27.33507226476188,
+        81.22517238166073
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    },
+    {
+      "id": "approved-pier-10",
+      "ticks": 1429,
+      "position": [
+        35.68694112546246,
+        87.08137739761173
+      ],
+      "townUnlocked": true,
+      "arrival": "done"
+    }
+  ],
+  "physicalDeviceFPS": "not measured",
+  "startup": {
+    "elapsedMs": 62849,
+    "modelsReady": true,
+    "dependencies": {
+      "models": {
+        "state": "ready",
+        "startedMs": 2315.7999999970198,
+        "elapsedMs": 10671.60000000894
+      },
+      "world": {
+        "state": "ready",
+        "startedMs": 2315.9000000059605,
+        "elapsedMs": 56716.79999999702
+      },
+      "contact": {
+        "state": "ready",
+        "startedMs": 2315.9000000059605,
+        "elapsedMs": 9342.29999999702
+      },
+      "frost": {
+        "state": "ready",
+        "startedMs": 2315.9000000059605,
+        "elapsedMs": 9342.5
+      },
+      "approvedClips": {
+        "state": "ready",
+        "startedMs": 2315.9000000059605,
+        "elapsedMs": 9556.89999999106
+      }
+    },
+    "jobs": [],
+    "queueStats": {
+      "slices": 3450,
+      "steps": 131561,
+      "maxStepMs": 716.7999999970198,
+      "maxSliceMs": 720.9000000059605
+    },
+    "regions": [
+      {
+        "id": "azure-harbor-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "warm": {
+          "stage": "ready",
+          "phase": "done",
+          "drawables": 1818,
+          "batches": 152,
+          "sourceVertices": 15368324,
+          "submittedVertices": 5405,
+          "submittedTriangles": 1766,
+          "submittedCalls": 1820,
+          "compileMs": 235.0999999344349,
+          "submitMs": 4379.9000000059605,
+          "maxBatchMs": 645.5,
+          "elapsedMs": 4803.5
+        },
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 11651.29999999702,
+            "pausedAtMs": null,
+            "steps": 2739,
+            "cpuMs": 3045.999999642372,
+            "maxStepMs": 158.70000000298023,
+            "waitingMs": 0,
+            "scheduleMs": 5828.60000038147,
+            "elapsedMs": 8878.60000000894
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 20530,
+            "pausedAtMs": null,
+            "steps": 15092,
+            "cpuMs": 2181.5000003129244,
+            "maxStepMs": 23,
+            "waitingMs": 0,
+            "scheduleMs": 3826.4999995678663,
+            "elapsedMs": 6026
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 26722.5,
+            "pausedAtMs": null,
+            "steps": 1539,
+            "cpuMs": 102.90000003576279,
+            "maxStepMs": 6.200000002980232,
+            "waitingMs": 6380.199999973178,
+            "scheduleMs": 255.90000002086163,
+            "elapsedMs": 6740.4000000059605
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 33464.40000000596,
+            "pausedAtMs": null,
+            "steps": 3723,
+            "cpuMs": 174.50000005960464,
+            "maxStepMs": 13.600000008940697,
+            "waitingMs": 0,
+            "scheduleMs": 60.09999996423721,
+            "elapsedMs": 241.59999999403954
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 33858.79999999702,
+            "pausedAtMs": null,
+            "steps": 94,
+            "cpuMs": 154.20000013709068,
+            "maxStepMs": 10.799999997019768,
+            "waitingMs": 2742.9999998658895,
+            "scheduleMs": 30.400000005960464,
+            "elapsedMs": 2927.9000000059605
+          }
+        }
+      },
+      {
+        "id": "frontier-wilds-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "warm": {
+          "stage": "ready",
+          "phase": "done",
+          "drawables": 2595,
+          "batches": 217,
+          "sourceVertices": 54407995,
+          "submittedVertices": 7767,
+          "submittedTriangles": 2577,
+          "submittedCalls": 2595,
+          "compileMs": 242.00000004470348,
+          "submitMs": 986.299999922514,
+          "maxBatchMs": 241.20000000298023,
+          "elapsedMs": 1285.7999999970198
+        },
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 11651.5,
+            "pausedAtMs": null,
+            "steps": 3259,
+            "cpuMs": 2493.500000089407,
+            "maxStepMs": 39.29999999701977,
+            "waitingMs": 0,
+            "scheduleMs": 8007.19999986887,
+            "elapsedMs": 10504.70000000298
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 22156.40000000596,
+            "pausedAtMs": null,
+            "steps": 43221,
+            "cpuMs": 3739.6999992728233,
+            "maxStepMs": 94.40000000596046,
+            "waitingMs": 0,
+            "scheduleMs": 4665.400000676513,
+            "elapsedMs": 8452.59999999404
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 30610.20000000298,
+            "pausedAtMs": null,
+            "steps": 402,
+            "cpuMs": 126.99999998509884,
+            "maxStepMs": 10.400000005960464,
+            "waitingMs": 0,
+            "scheduleMs": 11.5,
+            "elapsedMs": 138.8999999910593
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 30750.20000000298,
+            "pausedAtMs": null,
+            "steps": 4443,
+            "cpuMs": 223.60000002384186,
+            "maxStepMs": 12.200000002980232,
+            "waitingMs": 13343.100000053644,
+            "scheduleMs": 4863.899999886751,
+            "elapsedMs": 18437
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 49187.20000000298,
+            "pausedAtMs": null,
+            "steps": 3239,
+            "cpuMs": 31.099999964237213,
+            "maxStepMs": 10.300000011920929,
+            "waitingMs": 0,
+            "scheduleMs": 12.400000035762787,
+            "elapsedMs": 49.599999994039536
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 49262.70000000298,
+            "pausedAtMs": null,
+            "steps": 166,
+            "cpuMs": 227.6000000089407,
+            "maxStepMs": 17.599999994039536,
+            "waitingMs": 2073.699999988079,
+            "scheduleMs": 2.7999999970197678,
+            "elapsedMs": 2304.0999999940395
+          }
+        }
+      },
+      {
+        "id": "moonroot-grove-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "warm": {
+          "stage": "ready",
+          "phase": "done",
+          "drawables": 922,
+          "batches": 77,
+          "sourceVertices": 27892240,
+          "submittedVertices": 2760,
+          "submittedTriangles": 916,
+          "submittedCalls": 922,
+          "compileMs": 96.90000009536743,
+          "submitMs": 50.999999955296516,
+          "maxBatchMs": 1.7000000029802322,
+          "elapsedMs": 161.5
+        },
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 11651.59999999404,
+            "pausedAtMs": null,
+            "steps": 2484,
+            "cpuMs": 1233.900000333786,
+            "maxStepMs": 51.20000000298023,
+            "waitingMs": 0,
+            "scheduleMs": 6286.899999663234,
+            "elapsedMs": 7523.5
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 19183.40000000596,
+            "pausedAtMs": null,
+            "steps": 14634,
+            "cpuMs": 2153.2999995350838,
+            "maxStepMs": 716.7999999970198,
+            "waitingMs": 0,
+            "scheduleMs": 4900.000000491738,
+            "elapsedMs": 7068.5
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 26252.70000000298,
+            "pausedAtMs": null,
+            "steps": 3,
+            "cpuMs": 1.199999988079071,
+            "maxStepMs": 1.0999999940395355,
+            "waitingMs": 0,
+            "scheduleMs": 0.30000001192092896,
+            "elapsedMs": 1.5
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 26257.20000000298,
+            "pausedAtMs": null,
+            "steps": 1644,
+            "cpuMs": 216.49999989569187,
+            "maxStepMs": 85.09999999403954,
+            "waitingMs": 7095.600000008941,
+            "scheduleMs": 1071.500000089407,
+            "elapsedMs": 8387.89999999106
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 34651.90000000596,
+            "pausedAtMs": null,
+            "steps": 1200,
+            "cpuMs": 20.400000020861626,
+            "maxStepMs": 7.5999999940395355,
+            "waitingMs": 0,
+            "scheduleMs": 2320.599999949336,
+            "elapsedMs": 2342.199999988079
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 37021.09999999404,
+            "pausedAtMs": null,
+            "steps": 63,
+            "cpuMs": 68.29999999701977,
+            "maxStepMs": 10.900000005960464,
+            "waitingMs": 1393.9000000059605,
+            "scheduleMs": 23.5,
+            "elapsedMs": 1485.9000000059605
+          }
+        }
+      }
+    ]
+  },
+  "touch": 0.9866666158040365,
+  "routeChecks": "passed",
+  "progression": {
+    "level": 2,
+    "jobLevel": 2,
+    "exp": 29,
+    "jobExp": 40,
+    "jobNodes": [
+      "origin"
+    ],
+    "treeRevision": 3
+  },
+  "resourceProbe": {
+    "before": {
+      "geometries": 0,
+      "materials": 0,
+      "objects": 11
+    },
+    "after": {
+      "geometries": 0,
+      "materials": 0,
+      "objects": 11
+    }
+  },
+  "city": {
+    "assembly": {
+      "steps": 25015,
+      "cpuMs": 6910.699999898672,
+      "maxStepMs": 25.899999991059303,
+      "stages": [
+        {
+          "label": "city.preload-assembly",
+          "state": "success",
+          "wallMs": 3108.5999999940395,
+          "steps": 616,
+          "cpuMs": 2625.799999833107,
+          "maxStepMs": 15.5
+        },
+        {
+          "label": "city.postload-assembly",
+          "state": "success",
+          "wallMs": 3939.1000000089407,
+          "steps": 9162,
+          "cpuMs": 3424.300000011921,
+          "maxStepMs": 19
+        },
+        {
+          "label": "city.dressing-assembly",
+          "state": "success",
+          "wallMs": 108.30000001192093,
+          "steps": 525,
+          "cpuMs": 97.00000004470348,
+          "maxStepMs": 5.4000000059604645
+        },
+        {
+          "label": "city.batch",
+          "state": "success",
+          "wallMs": 861.8999999910593,
+          "steps": 14712,
+          "cpuMs": 763.6000000089407,
+          "maxStepMs": 25.899999991059303
+        }
+      ]
+    },
+    "readyMs": 8343.39999999106,
+    "sourceMeshDraws": 955,
+    "batch": {
+      "before": 2173,
+      "after": 213,
+      "objects": 263
+    },
+    "treeBeds": 10,
+    "bank": {
+      "segments": 252,
+      "triangles": 1008,
+      "loops": 3
+    },
+    "dressing": {
+      "instances": 248,
+      "uniqueTypes": 17,
+      "assetBytes": 646968,
+      "placedTriangles": 98652
+    },
+    "assetBytes": 5360896,
+    "sourceTriangles": 255881,
+    "waterContactMs": 2670.2999999970198,
+    "waterAssembly": {
+      "steps": 5220,
+      "cpuMs": 2134.599999934435,
+      "maxStepMs": 56.900000005960464,
+      "stages": [
+        {
+          "label": "city.water-contact-and-install",
+          "state": "success",
+          "wallMs": 2320.7000000029802,
+          "steps": 5220,
+          "cpuMs": 2134.599999934435,
+          "maxStepMs": 56.900000005960464
+        }
+      ]
+    },
+    "waterContactSections": 156
+  },
+  "previewLoadingBackdrop": "none",
+  "previewStartup": {
+    "elapsedMs": 34899,
+    "modelsReady": true,
+    "dependencies": {
+      "models": {
+        "state": "ready",
+        "startedMs": 2416.699999988079,
+        "elapsedMs": 1979
+      },
+      "world": {
+        "state": "ready",
+        "startedMs": 2416.699999988079,
+        "elapsedMs": 32346.20000000298
+      },
+      "contact": {
+        "state": "ready",
+        "startedMs": 2416.699999988079,
+        "elapsedMs": 435.1000000089407
+      },
+      "frost": {
+        "state": "ready",
+        "startedMs": 2416.699999988079,
+        "elapsedMs": 435.5
+      },
+      "approvedClips": {
+        "state": "ready",
+        "startedMs": 2416.699999988079,
+        "elapsedMs": 590.1000000089407
+      }
+    },
+    "jobs": [],
+    "queueStats": {
+      "slices": 3185,
+      "steps": 131559,
+      "maxStepMs": 314.6000000089407,
+      "maxSliceMs": 317.40000000596046
+    },
+    "regions": [
+      {
+        "id": "azure-harbor-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "warm": {
+          "stage": "ready",
+          "phase": "done",
+          "drawables": 1818,
+          "batches": 152,
+          "sourceVertices": 15368324,
+          "submittedVertices": 5405,
+          "submittedTriangles": 1766,
+          "submittedCalls": 1820,
+          "compileMs": 87.89999996125698,
+          "submitMs": 1981.5999999791384,
+          "maxBatchMs": 314.1000000089407,
+          "elapsedMs": 2106.0999999940395
+        },
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 2845.199999988079,
+            "pausedAtMs": null,
+            "steps": 2739,
+            "cpuMs": 2542.599999949336,
+            "maxStepMs": 43.80000001192093,
+            "waitingMs": 0,
+            "scheduleMs": 3801.900000035763,
+            "elapsedMs": 6346.4000000059605
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 9191.699999988079,
+            "pausedAtMs": null,
+            "steps": 15092,
+            "cpuMs": 2637.4999989420176,
+            "maxStepMs": 211.1000000089407,
+            "waitingMs": 0,
+            "scheduleMs": 3014.0000008940697,
+            "elapsedMs": 5672.5
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 14983.79999999702,
+            "pausedAtMs": null,
+            "steps": 1539,
+            "cpuMs": 85.20000010728836,
+            "maxStepMs": 5.299999997019768,
+            "waitingMs": 483.4000000208616,
+            "scheduleMs": 113.49999985098839,
+            "elapsedMs": 683.5
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 15669.29999999702,
+            "pausedAtMs": null,
+            "steps": 3723,
+            "cpuMs": 110.29999968409538,
+            "maxStepMs": 12.299999997019768,
+            "waitingMs": 0,
+            "scheduleMs": 505.30000026524067,
+            "elapsedMs": 619.2999999970198
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 16359,
+            "pausedAtMs": null,
+            "steps": 92,
+            "cpuMs": 106.29999995231628,
+            "maxStepMs": 7.200000002980232,
+            "waitingMs": 2630.100000053644,
+            "scheduleMs": 60.19999998807907,
+            "elapsedMs": 2796.8999999910593
+          }
+        }
+      },
+      {
+        "id": "frontier-wilds-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "warm": {
+          "stage": "ready",
+          "phase": "done",
+          "drawables": 2595,
+          "batches": 217,
+          "sourceVertices": 54407995,
+          "submittedVertices": 7767,
+          "submittedTriangles": 2577,
+          "submittedCalls": 2595,
+          "compileMs": 140.40000005066395,
+          "submitMs": 549.999999910593,
+          "maxBatchMs": 228.90000000596046,
+          "elapsedMs": 707.5
+        },
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 2845.2999999970198,
+            "pausedAtMs": null,
+            "steps": 3259,
+            "cpuMs": 2150.2999999821186,
+            "maxStepMs": 18.599999994039536,
+            "waitingMs": 0,
+            "scheduleMs": 5715.200000047684,
+            "elapsedMs": 7871.399999991059
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 10716.89999999106,
+            "pausedAtMs": null,
+            "steps": 43221,
+            "cpuMs": 3521.299999937415,
+            "maxStepMs": 161,
+            "waitingMs": 0,
+            "scheduleMs": 11060.300000086427,
+            "elapsedMs": 14620.29999999702
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 25337.29999999702,
+            "pausedAtMs": null,
+            "steps": 402,
+            "cpuMs": 234.09999999403954,
+            "maxStepMs": 90,
+            "waitingMs": 0,
+            "scheduleMs": 10.099999994039536,
+            "elapsedMs": 244.70000000298023
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 25584.39999999106,
+            "pausedAtMs": null,
+            "steps": 4443,
+            "cpuMs": 175.40000005066395,
+            "maxStepMs": 17.399999991059303,
+            "waitingMs": 2231.500000074506,
+            "scheduleMs": 964.1999998986721,
+            "elapsedMs": 3399.5
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 28984,
+            "pausedAtMs": null,
+            "steps": 3239,
+            "cpuMs": 14.499999955296516,
+            "maxStepMs": 2.0999999940395355,
+            "waitingMs": 0,
+            "scheduleMs": 7.900000020861626,
+            "elapsedMs": 24.099999994039536
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 29093.89999999106,
+            "pausedAtMs": null,
+            "steps": 166,
+            "cpuMs": 122.40000000596046,
+            "maxStepMs": 13.700000002980232,
+            "waitingMs": 1757.5999999791384,
+            "scheduleMs": 1.4000000059604645,
+            "elapsedMs": 1882
+          }
+        }
+      },
+      {
+        "id": "moonroot-grove-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "warm": {
+          "stage": "ready",
+          "phase": "done",
+          "drawables": 922,
+          "batches": 77,
+          "sourceVertices": 27892240,
+          "submittedVertices": 2760,
+          "submittedTriangles": 916,
+          "submittedCalls": 922,
+          "compileMs": 61.3999999910593,
+          "submitMs": 44.00000001490116,
+          "maxBatchMs": 7.299999997019768,
+          "elapsedMs": 111.3999999910593
+        },
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 2845.3999999910593,
+            "pausedAtMs": null,
+            "steps": 2484,
+            "cpuMs": 1034.4999998509884,
+            "maxStepMs": 18.599999994039536,
+            "waitingMs": 0,
+            "scheduleMs": 4587.000000163913,
+            "elapsedMs": 5623.100000008941
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 8473.699999988079,
+            "pausedAtMs": null,
+            "steps": 14634,
+            "cpuMs": 1037.8000008016825,
+            "maxStepMs": 121.09999999403954,
+            "waitingMs": 0,
+            "scheduleMs": 5147.299999147654,
+            "elapsedMs": 6205.800000011921
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 14685.09999999404,
+            "pausedAtMs": null,
+            "steps": 3,
+            "cpuMs": 6.300000011920929,
+            "maxStepMs": 6.200000002980232,
+            "waitingMs": 0,
+            "scheduleMs": 4.399999991059303,
+            "elapsedMs": 10.700000002980232
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 14698.699999988079,
+            "pausedAtMs": null,
+            "steps": 1644,
+            "cpuMs": 110.09999988973141,
+            "maxStepMs": 12.200000002980232,
+            "waitingMs": 783.7999999821186,
+            "scheduleMs": 126.70000013709068,
+            "elapsedMs": 1021.8000000119209
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 15720.59999999404,
+            "pausedAtMs": null,
+            "steps": 1200,
+            "cpuMs": 15.200000032782555,
+            "maxStepMs": 2.300000011920929,
+            "waitingMs": 0,
+            "scheduleMs": 135.59999997913837,
+            "elapsedMs": 151.70000000298023
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 15923.09999999404,
+            "pausedAtMs": null,
+            "steps": 63,
+            "cpuMs": 111.8999999910593,
+            "maxStepMs": 9.900000005960464,
+            "waitingMs": 1583.5000000149012,
+            "scheduleMs": 13.400000005960464,
+            "elapsedMs": 1708.9000000059605
+          }
+        }
+      }
+    ]
+  },
+  "previewReadyBackdrop": "blur(12px)",
+  "creationPreview": {
+    "position": [
+      62,
+      30
+    ],
+    "free": true,
+    "spawn": [
+      -132,
+      80
+    ]
+  },
+  "status": "passed"
+}

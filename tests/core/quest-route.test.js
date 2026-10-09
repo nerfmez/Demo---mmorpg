@@ -5,6 +5,7 @@ import {questNavigation} from '../../src/core/quest-navigation.js';
 import {data} from './helpers.js';
 import {Game} from '../../src/core/game.js';
 import {createWorld} from '../../src/core/world.js';
+import {OpenWorldGame} from '../../src/core/open-world-game.js';
 const wallWorld=closed=>({bounds:{minX:-12,maxX:12,minZ:-12,maxZ:12},isFree(x,z,r){return !(Math.abs(x)<1+r&&Math.abs(z)<(closed?20:4)+r);},move(x,z,r,dx,dz){return {x:x+dx,z:z+dz};}});
 test('route detours around blocked walking space; all compressed segments retain clearance',()=>{
  const world=wallWorld(false),start={x:-8,z:0},target={spatial:true,x:8,z:0},path=findQuestRoute(world,start,target);
@@ -26,6 +27,23 @@ test('real shore target is walkable; remote quest uses actual crossing rather th
  assert.ok(data.world.atlas.seams.some(s=>s.to===remote.world&&s.gate[0]===remote.x&&s.gate[1]===remote.z));
  const route=findQuestRoute(g.world,{x:g.player.x,z:g.player.z},remote);
  assert.ok(route.length>1);assert.deepEqual(route.at(-1),{x:remote.x,z:remote.z});
+});
+
+test('unified remote waypoint route reaches the fixed destination through collision-safe regional ground',()=>{
+ const g=new OpenWorldGame({...data},{seed:5}),destination='frontier-wilds-v1';
+ g.ch.progress.quests.f_road={status:'active',objectives:{'origin-road':1,primary:0},progress:0};
+ const target=questNavigation(g,'f_road'),stone=g.worlds[destination].waypoints.find(w=>w.id==='town');
+ assert.equal(target.world,destination);assert.deepEqual([target.x,target.z],g.scenePoint(destination,stone.x,stone.z));
+ assert.deepEqual([target.goal.x,target.goal.z],[stone.x,stone.z]);
+ const path=findQuestRoute(g.world,{x:g.player.x,z:g.player.z},target),regions=new Set();assert.ok(path.length>1);
+ const end=path.at(-1);assert.ok(Math.hypot(end.x-target.x,end.z-target.z)<3.8);
+ assert.ok(g.world.isFree(end.x,end.z,.48));assert.equal(g.world.regionAt(end.x,end.z).id,destination);
+ for(let i=1;i<path.length;i++){
+  assert.ok(routeSegmentClear(g.world,path[i-1],path[i]));
+  const a=path[i-1],b=path[i],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.4));
+  for(let j=0;j<=steps;j++)regions.add(g.world.regionAt(a.x+(b.x-a.x)*j/steps,a.z+(b.z-a.z)*j/steps)?.id);
+ }
+ assert.deepEqual(regions,new Set(['azure-harbor-v1',destination]));
 });
 
 test('route presentation plans cooperatively, reuses its path and frees both ribbons',async()=>{

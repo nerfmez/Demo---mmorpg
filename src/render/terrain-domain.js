@@ -16,6 +16,33 @@ export function terrainDomain(world, lookup) {
   });
   const adjacentDomains = new Map();
   const domain = {
+    neighbourSea: joins.find(({neighbour: n}) => world.data.sea && n?.data.sea)?.neighbour.data.sea,
+    // Presentation only: both shores contribute equally at their shared edge,
+    // then recover their authored beach inside the existing seam band. Rule
+    // coastAt/isWater and the heightfield remain map-local and unchanged.
+    coastAt(x, z) {
+      const native = world.coastAt(x, z), beach = world.data.sea?.beach || 14;
+      if (!world.data.sea || native.kind !== 'beach') return {...native, beach, blend: 0};
+      for (const {seam: s, neighbour: n, dx, dz} of joins) {
+        if (!n?.data.sea || !world.data.sea) continue;
+        const inward = ((s.alongX ? z : x) - world.bounds[s.edge]) * -s.outward;
+        const band = s.band ?? 24, along = s.alongX ? x : z;
+        const past = Math.max(s.span[0] - along, along - s.span[1], 0);
+        if (inward >= band || past >= band) continue;
+        const otherBeach = n.data.sea.beach || 14;
+        const back = Math.max(beach, otherBeach);
+        if (native.distance >= back + band) continue;
+        const other = n.coastAt(x + dx, z + dz);
+        if (other.kind !== 'beach') continue;
+        const weight = .5 * (1 - smooth(0, band, Math.max(0, inward))) *
+          (1 - smooth(0, band, past)) *
+          (1 - smooth(back, back + band, Math.max(native.distance, other.distance)));
+        if (!weight) continue;
+        return {kind: 'beach', distance: native.distance + (other.distance - native.distance) * weight,
+          beach: beach + (otherBeach - beach) * weight, blend: weight};
+      }
+      return {...native, beach, blend: 0};
+    },
     owns(x, z) {
       return joins.every(({seam: s, neighbour: n, dx, dz}) => {
         if (((s.alongX ? z : x) - world.bounds[s.edge]) * s.outward <= 1e-7) return true;

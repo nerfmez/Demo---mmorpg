@@ -982,3 +982,21 @@ Ground cover per zone comes from `zoneDecor(zone)` (exported by `core/world.js`)
 overrides the defaults kept from the first maps; zones of a map differ in their cover (tested).
 `ruins.altar: false` drops the generic altar from a ruin ring (the grove's ring has the crescent
 altar landmark instead).
+
+### Outfit base (armour and boots looks)
+
+Worn looks are data: `data/outfits.json` holds a `base` outfit, `styles` (tunic, vest, coat,
+mantle, plate, shell), and one entry per armour and boots item. `resolveOutfit(gearLook,
+outfits, appearance)` in `src/core/outfit-look.js` (pure, tested) merges base → style → armour
+→ boots into `{style, palette, cut, parts}`. The renderer cuts and paints the HairSample
+wardrobe's three garments (top, trousers, shoes) from bind-pose position in
+`src/render/garments.js`:
+- sleeve and hem lengths are discarded fragments (the complete base skin is underneath);
+- piping, placket, cuffs, yoke, sleeve stripe, patterns, tucked-in boot shafts and soles are
+  colour zones;
+- an outline hull follows the same cut.
+
+Raised pieces come from `PARTS` in `src/render/outfit.js`, rigid on the driver bone they
+follow; coat tails ride the thighs. In Godot: one ShaderMaterial per garment kind with the same
+uniforms (`uPal[10]`, `uCutA/B/C`) reading a bind-position varying, and a scene per part
+attached to a `BoneAttachment3D`. See `docs/OUTFIT-BASE.md`.

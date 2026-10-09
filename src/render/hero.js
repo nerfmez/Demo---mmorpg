@@ -14,6 +14,8 @@ import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
+import OUTFITS from '../../data/outfits.json';
+import { resolveOutfit } from '../core/outfit-look.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
@@ -76,9 +78,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     B(`hand${n}`, `elbow${n}`, [0, -0.25, 0]);
   }
   const boots = gear.bases?.boots || 'travel_boots';
-  const bootColor = boots==='wolf_boots' ? '#8b9183' : boots==='wisp_slippers' ? '#80b4b4' : boots==='crag_greaves' ? '#9fa99d' : BOOTS;
+  // the outfit base: this look's cut, palette and raised parts (data/outfits.json)
+  const wear = resolveOutfit(gear, OUTFITS, L);
+  const bootColor = wear.palette.shoes || BOOTS;
   const armor = gear.armor || 'tunic';
-  const tunic = armor === 'pelt' ? '#6f6a64' : armor === 'mantle' ? '#3a5a8a' : armor === 'plate' ? '#8f96a3' : L.tunic;
+  const tunic = wear.palette.main;
 
   if (!T && !V && !X) {
     // legs
@@ -139,7 +143,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   } // end of the procedural body
   // shoulder guard (left)
   if (!o.npc && !V) {
-    rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), armor === 'plate' ? '#9aa0ad' : LEATHER, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
+    rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), wear.style === 'plate' ? wear.palette.metal : wear.palette.leather, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
     rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
   }
   // neck, head, face
@@ -175,7 +179,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
   helm(rb, gear.helm, L);
-  const outfit = T || X ? buildOutfit(rb, T || X, gear, { leather: LEATHER, boots: bootColor }) : null;
+  const outfit = T || X ? buildOutfit(rb, T || X, wear) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
   const offhandModel = gear.offhand && !['shield', 'quiver'].includes(gear.offhand) ? buildWeapon(rb, gear.offhand, gear.bases?.offhand, 'offhand', 'handL') : buildOffhand(rb, gear.offhand, gear.bases?.offhand);
@@ -196,12 +200,12 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     neckParts = fitParts(rig.bones.chest, T.neckFit, { skip: ['chestWear'] });
     fitParts(rig.bones.armL, T.armFit);
     // sleeves keep the chosen tunic colour; armour colours the body through `vest`
-    attachSkinnedBody(rig, T, { skin: L.skin, tunic: L.tunic, pants: PANTS, boots: bootColor, leather: LEATHER, vest: outfit.vest }, L);
+    attachSkinnedBody(rig, T, { skin: L.skin, tunic: wear.palette.sleeve, pants: wear.palette.pants, boots: bootColor, leather: wear.palette.leather, vest: wear.palette.main }, L);
   }
   if (X) {
     fitParts(rig.bones.head, X.headFit);
     neckParts = fitParts(rig.bones.chest, X.neckFit, { skip: ['chestWear'] });
-    attachHairSampleBody(rig, X, gear, {tunic, pants:PANTS, boots:bootColor, vest:outfit?.vest});
+    attachHairSampleBody(rig, X, gear, { outfit: wear });
   }
   if (V) {
     fitParts(rig.bones.head, V.headFit);

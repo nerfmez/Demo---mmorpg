@@ -1,8 +1,9 @@
 // The live customizer's complete base body and independent, gear-controlled clothes.
 // The existing HumanoidAnimator remains the only motion source.
 import * as THREE from 'three';
-import {attachVrmBody,toonCopy} from './vrm-body.js';
+import {attachVrmBody} from './vrm-body.js';
 import {bindSkinSync} from './skinned.js';
+import {garmentFrame,garmentUniforms,garmentMaterial,garmentHull} from './garments.js';
 const v=new THREE.Vector3(),q=new THREE.Quaternion(),p=new THREE.Quaternion();
 export function attachHairSampleBody(rig,T,gear,colors){
  attachVrmBody(rig,T);
@@ -14,18 +15,22 @@ export function attachHairSampleBody(rig,T,gear,colors){
  body.traverse(o=>{if(o.isSkinnedMesh&&o.name==='BodySkin')skeleton=o.skeleton;});
  if(!skeleton)throw Error('HairSample: complete base skin missing');
  const armor=gear.armor||'tunic';
- const color={hoodie:colors.vest||colors.tunic,pants:colors.pants,shoes:colors.boots};
+ // The outfit base: one shared set of garments, cut and painted per look (garments.js).
+ const uniforms=garmentUniforms(colors.outfit),flash=rig.material.userData.flash;
  T.wardrobe.traverse(source=>{
   if(!source.isSkinnedMesh)return;
-  const material=toonCopy(source.material,rig.material.userData.flash,.3,false);
-  const part=new THREE.SkinnedMesh(source.geometry,material);
-  part.name=source.name;part.userData={...source.userData};
-  part.position.copy(source.position);part.quaternion.copy(source.quaternion);part.scale.copy(source.scale);
-  part.bind(skeleton,source.bindMatrix);part.frustumCulled=false;part.castShadow=true;part.receiveShadow=true;
-  wardrobe.add(part);
-   // Game palettes, independently of the immutable body/face/hair textures.
-  material.map=null;material.color.set(color[part.userData.bodyPart]);
+  const kind=source.userData.bodyPart,frame=T.garmentFrame||=garmentFrame(source);
+  const make=material=>{
+   const m=new THREE.SkinnedMesh(source.geometry,material);
+   m.position.copy(source.position);m.quaternion.copy(source.quaternion);m.scale.copy(source.scale);
+   m.bind(skeleton,source.bindMatrix);m.frustumCulled=false;return m;
+  };
+  const part=make(garmentMaterial(kind,frame,uniforms,flash));
+  part.name=source.name;part.userData={...source.userData};part.castShadow=true;part.receiveShadow=true;
+  const hull=make(garmentHull(kind,frame,uniforms));hull.name=source.name+'-outline';
+  wardrobe.add(part,hull);
  });
+ rig.outfit=colors.outfit;
  rig.hairsample=true;rig.wardrobe=wardrobe;rig.armorKind=armor;
  // Static attachment grip, not new animation keys. The legacy weapon +Z socket
  // remains the aiming/trail source, while the actual hand encloses its handle.

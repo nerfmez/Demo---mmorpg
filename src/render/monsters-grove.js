@@ -268,4 +268,4 @@ export const GROVE_BUILDERS = {
   mirrorwing_moth: [buildMoth, animMoth],
   rootdigger_mole: [buildMole, animMole],
 };
-export const GROVE_SCALE = { fern_ear_hare: 1, mirrorwing_moth: 1, rootdigger_mole: 0.95 };
+export const GROVE_SCALE = { fern_ear_hare: 0.7, mirrorwing_moth: 1, rootdigger_mole: 0.95 };

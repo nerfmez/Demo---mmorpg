@@ -112,13 +112,21 @@ function pickTarget(game, m) {
 
 export function setAggro(game, m, unit = null, force = false) {
   if (m.dead) return;
-  if (!m.aggro) {
+  const fresh = !m.aggro;
+  if (fresh) {
     game.emit({ type: 'aggro', id: m.id });
     if (m.def.attacks.howl && m.cd.howl <= 0.01 && m.state !== 'windup') m.wantsHowl = true;
   }
   m.aggro = true;
   if (unit && (force || !m.targetUnit)) m.targetUnit = unit;
   if (m.state === 'idle' || m.state === 'return') setState(m, 'chase');
+  // a pack animal brings its packmates in range with it (def.packAssist metres)
+  const assist = m.def.packAssist, pack = m.spawn?.pack;
+  if (fresh && assist && pack) {
+    for (const o of game.monsters) {
+      if (o !== m && !o.dead && !o.aggro && o.spawn?.pack === pack && dist(m.x, m.z, o.x, o.z) <= assist) setAggro(game, o, unit || m.targetUnit);
+    }
+  }
 }
 
 export function onMonsterHit(game, m, by = null) {

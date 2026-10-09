@@ -4960,7 +4960,7 @@
       "file": "models/monsters/fern_ear_hare.glb",
       "tris": 4900,
       "scale": 0.62,
-      "rootScale": 1.15,
+      "rootScale": 0.8,
       "yaw": 0,
       "sharpness": 5,
       "outline": "#3f4a33",

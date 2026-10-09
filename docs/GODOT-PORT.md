@@ -960,6 +960,13 @@ Meshy model (`data/models.json` → `monsters`, skinned to the same bones by `re
 the procedural parts remain the fallback until the model loads). The moth's model keeps the concept's
 raised wings, which the rig flaps about the body axis; its extra tail from Meshy was cut off.
 
+Packs: a spawn entry may carry `pack: {size, radius, spacing}` (the hare: packs of 6 or 4, small
+and weak). `encounterLayout()` places each pack's leader under the normal rules, then its mates
+within `radius` of the leader at their own `spacing` (other monsters still keep `placement.spacing`
+clear); points and spawn points carry a `pack` id (`group:index`). A monster whose def has
+`packAssist` (metres) pulls every calm packmate within that range into the fight the moment it
+aggroes (`setAggro()` in `core/ai.js`). Packmates respawn at their own points.
+
 Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
 planted `claw` strike, its `hop` a marked `pounce`; the moth's `glint` is a `beam`, its `scale_dust`
 a `puff` whose cloud is `areaKind: 'mirror_dust'`; the mole's `swipe` is a `sweep`). Names stay

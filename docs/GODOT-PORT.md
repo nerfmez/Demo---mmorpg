@@ -955,7 +955,10 @@ Layout data used here: `ruins.zone` (the zone strewn with fallen stones, default
 `ruins.scatter` (tries, default 90), `ruins.paving: false` (a grassy ring, no paved floor);
 `town.trees` for the elder tree in the ring; `town.surfaces` with a `dirt` polygon so the camp has no
 cobbled plaza. Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
-`rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`.
+`rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`. Each rig now wears a
+Meshy model (`data/models.json` → `monsters`, skinned to the same bones by `render/monsterSkin.js`;
+the procedural parts remain the fallback until the model loads). The moth's model keeps the concept's
+raised wings, which the rig flaps about the body axis; its extra tail from Meshy was cut off.
 
 Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
 planted `claw` strike, its `hop` a marked `pounce`; the moth's `glint` is a `beam`, its `scale_dust`

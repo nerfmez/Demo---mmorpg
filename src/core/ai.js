@@ -230,7 +230,7 @@ function windup(game, m, dt, t, gap) {
   // an attack may borrow the mechanics of another (data: attacks.<name>.kind), keeping its own name and look
   const kind = atk.kind || w.name;
   // track the target during the first part of the wind-up, then lock (dodgeable)
-  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt'].includes(kind)) {
+  if (t && m.stateT < w.total * 0.55 && !['slam', 'pound', 'dive', 'throw', 'puff', 'howl', 'venom', 'pounce', 'stomp', 'shards', 'quake', 'erupt', 'shard_rain', 'mirror_ring'].includes(kind)) {
     w.angle = angleTo(m.x, m.z, t.x, t.z);
     m.facing = w.angle;
   }
@@ -336,6 +336,12 @@ function windup(game, m, dt, t, gap) {
       m.cd[w.name] = atk.cooldown;
       return setState(m, 'recover', atk.recover);
     }
+    case 'shard_rain':
+    case 'mirror_ring':
+      // the moth's marks (falling glass shards; a ring of light around itself) were spawned at
+      // wind-up start and go off by themselves
+      m.cd[w.name] = atk.cooldown;
+      return setState(m, 'recover', atk.recover);
     case 'quake':
       // the eruptions were marked along the line at wind-up start and go off one after another
       m.cd.quake = atk.cooldown;
@@ -578,6 +584,13 @@ function packWolf(game, m, dt, { t, gap, dToT, slowMult }) {
 function greyfang(game, m, dt, { t, gap, slowMult }) {
   const a = m.def.attacks;
   if (a.howl && m.cd.howl <= 0 && m.hp < m.maxHp * 0.85) return startWindup(game, m, 'howl', t);
+  // below half health it leaps at the player: a crouch, then it lands on the marked spot
+  const leap = a.leap;
+  if (leap && m.cd.leap <= 0 && m.hp <= m.maxHp * leap.hpBelow && gap >= leap.minRange && gap <= leap.range) {
+    startWindup(game, m, 'leap', t, { tx: t.x, tz: t.z });
+    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'pounce', x: t.x, z: t.z, radius: leap.radius, delay: m.windup.total + 0.35, duration: 0.3, damage: m.damage * leap.damageMult });
+    return;
+  }
   if (gap <= a.bite.range && m.cd.bite <= 0) return startWindup(game, m, 'bite', t);
   if (m.cd.rake <= 0 && gap <= a.rake.range) return startWindup(game, m, 'rake', t);
   if (gap > a.bite.range * 0.7) walkTo(game, m, t.x, t.z, m.def.speed * slowMult * (m.enraged ? 1.2 : 1), dt);
@@ -731,11 +744,29 @@ function hare(game, m, dt, { t, gap, dToT, slowMult }) {
   walkTo(game, m, t.x, t.z, m.def.speed * slowMult, dt);
 }
 
-/** Mirrorwing Moth: hovers at range, flashes a mirror glint along a line, sheds stinging scale dust up close. */
+/**
+ * Mirrorwing Moth: from range it rains glass shards on a few marked circles around the player, one
+ * after another; up close a ring of moonlight goes off around it, safe only right under it.
+ */
 function moth(game, m, dt, { t, gap, dToT, slowMult }) {
   const a = m.def.attacks;
-  if (gap <= a.scale_dust.range && m.cd.scale_dust <= 0) return startWindup(game, m, 'scale_dust', t);
-  if (m.cd.glint <= 0 && dToT <= a.glint.maxRange) return startWindup(game, m, 'glint', t);
+  const ring = a.mirror_ring, rain = a.shard_rain;
+  if (gap <= ring.range && m.cd.mirror_ring <= 0) {
+    startWindup(game, m, 'mirror_ring', t);
+    game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'mirror_ring', x: m.x, z: m.z, radius: ring.radius, inner: ring.inner, delay: m.windup.total, duration: 0.3, damage: m.damage * ring.damageMult });
+    return;
+  }
+  if (m.cd.shard_rain <= 0 && dToT <= rain.range) {
+    startWindup(game, m, 'shard_rain', t);
+    for (let i = 0; i < rain.count; i++) {
+      // the first shard on the player, the rest scattered around (seeded)
+      const ang = i * 2.4 + game.rng.range(-0.4, 0.4), d = i ? rain.spread * (0.6 + 0.4 * game.rng.next()) : 0;
+      const x = t.x + Math.sin(ang) * d, z = t.z + Math.cos(ang) * d;
+      if (game.isSafe(x, z)) continue;
+      game.spawnArea({ owner: 'monster', sourceId: m.id, kind: 'glass_shard', x, z, radius: rain.radius, delay: m.windup.total + i * rain.step, duration: 0.3, damage: m.damage * rain.damageMult });
+    }
+    return;
+  }
   const [near, far] = m.def.keepDistance;
   strafe(game, m, dt, t, dToT, near, far, m.def.speed * slowMult);
 }

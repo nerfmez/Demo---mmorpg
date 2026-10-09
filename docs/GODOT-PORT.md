@@ -968,9 +968,16 @@ clear); points and spawn points carry a `pack` id (`group:index`). A monster who
 aggroes (`setAggro()` in `core/ai.js`). Packmates respawn at their own points.
 
 Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
-planted `claw` strike, its `hop` a marked `pounce`; the moth's `glint` is a `beam`, its `scale_dust`
-a `puff` whose cloud is `areaKind: 'mirror_dust'`; the mole's `swipe` is a `sweep`). Names stay
-their own for cooldowns, telegraph lookups and looks. New mechanic `erupt` (mole): an `erupt` area is
+planted `claw` strike, its `hop` a marked `pounce`; the mole's `swipe` is a `sweep`; Greyfang's
+`leap` is a `pounce`). Names stay their own for cooldowns, telegraph lookups and looks. An attack's
+`hpBelow` (Greyfang's `leap`: 0.5) means it is only used at or under that share of health.
+
+The moth has two mechanics of its own (no other monster uses them): `shard_rain` marks `count`
+`glass_shard` circles at wind-up start, the first on the player and the rest scattered within
+`spread` (seeded `game.rng`, never in a safe zone), landing `step` seconds apart after the wind-up;
+`mirror_ring` marks a ring around the moth (`radius`, with a safe middle of radius `inner`) that
+goes off at the end of the wind-up. A monster area with `inner` hits only units outside it (core
+`updateAreas`); the render draws the band red and the safe middle with a pale rim. New mechanic `erupt` (mole): an `erupt` area is
 marked at the target for the whole wind-up; the mole sinks (render) and surfaces at that spot as it
 bursts (`surface` event); it never digs into a safe zone. In Godot: the same state machine, a dig/emerge
 `AnimationPlayer` clip and a teleport at the burst.

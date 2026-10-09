@@ -162,19 +162,22 @@ function buildMoth() {
 function animMoth(r, s, dt, time) {
   const b = r.bones, k = windK(s);
   let flap = 9, amp = 0.55, open = 0.15, bob = Math.sin(time * 2.6 + r.seed) * 0.12, lean = s.moving ? 0.15 : 0;
-  if (s.windup === 'glint') {
-    // the wings spread flat and still: the mirror catches the light
+  if (s.windup === 'shard_rain') {
+    // rises, wings raised high and held still while the glass shards gather overhead
     flap = 2;
-    amp = 0.15 * (1 - k);
-    open = 0.15 - 0.35 * k;
-    lean = -0.2 * k;
-  } else if (s.windup === 'scale_dust') {
-    // fast shallow beats shake dust loose
-    flap = 22;
-    amp = 0.3 + 0.2 * k;
+    amp = 0.12 * (1 - k);
+    open = 0.15 + 0.45 * k;
+    lean = -0.25 * k;
+    bob += 0.35 * k;
+  } else if (s.windup === 'mirror_ring') {
+    // wings opened flat and wide, beating faster and faster as the moonlight ring gathers
+    flap = 6 + 20 * k;
+    amp = 0.2 + 0.15 * k;
+    open = 0.15 - 0.4 * k;
     bob *= 0.3;
-  } else if (s.state === 'recover' && s.lastAttack === 'glint') {
-    open = -0.1;
+  } else if (s.state === 'recover' && s.lastAttack === 'shard_rain') {
+    // wings swept down: the shards are thrown
+    open = -0.35;
     flap = 4;
   }
   r.phase = (r.phase || 0) + dt * flap;

@@ -4958,14 +4958,14 @@
     },
     "fern_ear_hare": {
       "file": "models/monsters/fern_ear_hare.glb",
-      "tris": 4900,
+      "tris": 3857,
       "scale": 0.62,
       "rootScale": 0.8,
       "yaw": 0,
       "sharpness": 5,
       "outline": "#3f4a33",
       "outlineWidth": 0.014,
-      "source": "Meshy 6 image-to-3d (task 01a1210e-4702-739b-8eab-42ad526b5a07) from the Moonroot concept sheet assets/moonroot/fern_ear_hare_concept.jpg (main pose only); prepared with scripts/prep-monster-glb.py --tris 4900 --tex 512",
+      "source": "Meshy 6 image-to-3d (task 01a1210e-4702-739b-8eab-42ad526b5a07) from the Moonroot concept sheet assets/moonroot/fern_ear_hare_concept.jpg (main pose only); prepared with scripts/prep-monster-glb.py --tris 2400 (3,857 kept: a lighter model, hares come in packs of 8) --tex 512",
       "bones": {
         "head": [
           0,

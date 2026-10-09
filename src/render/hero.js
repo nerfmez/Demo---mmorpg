@@ -141,11 +141,6 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       void s;
     }
   } // end of the procedural body
-  // shoulder guard (left)
-  if (!o.npc && !V) {
-    rb.add('armL', new THREE.SphereGeometry(0.1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1.15, 0.8, 1.1), wear.style === 'plate' ? wear.palette.metal : wear.palette.leather, { pos: [0.02, 0.01, 0], rot: [0, 0, -0.35] });
-    rb.add('armL', new THREE.TorusGeometry(0.105, 0.012, 5, 16).rotateX(Math.PI / 2).scale(1.1, 1, 1.05), METAL, { pos: [0.02, -0.005, 0], rot: [0, 0, -0.35], plain: true });
-  }
   // neck, head, face
   if (!T && !V && !X) {
     rb.add('chest', cyl(0.05, 0.056, 0.1), L.skin, { pos: [0, 0.37, 0] });
@@ -172,8 +167,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (!paintedFace) rb.add('head', new THREE.BoxGeometry(0.03, 0.006, 0.004), '#9a5a4a', { pos: [0, 0.055, 0.122], plain: true }); // mouth
   const hairStyle = o.longHair ? 'ponytail' : L.hairStyle;
   if (hairStyle === 'ponytail') rb.bone('tail', 'head', [0, 0.2, -0.12]);
-  // scarf wrap (hero only; the VRM hero has none yet)
-  if ((!o.npc || o.scarf) && !V) {
+  // scarf wrap: town NPCs that ask for one (the hero wears none; its outfit is data/outfits.json)
+  if (o.scarf && !V) {
     rb.add('chest', new THREE.TorusGeometry(0.1, 0.05, 8, 16).rotateX(Math.PI / 2).scale(1.05, 1.2, 0.95), L.scarf, { pos: [0, 0.35, -0.005] });
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
@@ -213,7 +208,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
-  if ((!o.npc || o.scarf) && !V) {
+  if (o.scarf && !V) {
     rig.scarfAnchor = new THREE.Group();
     rig.scarfAnchor.position.set(0.06, 0.31, -0.1);
     neckParts.add(rig.scarfAnchor);

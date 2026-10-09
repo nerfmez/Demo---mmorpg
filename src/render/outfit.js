@@ -103,6 +103,12 @@ const shinAt = (W, s, f) => {
 
 const tint = (hex, k) => new THREE.Color(hex).multiplyScalar(k).getStyle();
 
+function pauldron({ add, T, P }, s) {
+  const a = T.world['arm' + s], side = s === 'L' ? 1 : -1;
+  add('arm' + s, new THREE.SphereGeometry(0.075, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.1, 0.8, 1.05).rotateZ(-side * 0.35).translate(a[0] + side * 0.02, a[1] + 0.01, a[2] - 0.01), P.metal);
+  add('arm' + s, new THREE.TorusGeometry(0.08, 0.008, 4, 16).rotateX(Math.PI / 2).rotateZ(-side * 0.35).translate(a[0] + side * 0.02, a[1] - 0.005, a[2] - 0.01), P.trim, { plain: true });
+}
+
 /**
  * The parts library. Each takes {add, W, T, P, cut}: W the rest world positions of the driver
  * bones, P the palette, cut the outfit's cut. Keys are the names data/outfits.json may list.
@@ -248,12 +254,9 @@ export const PARTS = {
   gem({ add, P }) {
     add('chestWear', new THREE.OctahedronGeometry(0.028).translate(0, 1.28, 0.155), P.gem, { glow: true });
   },
-  // the right shoulder plate (the left shoulder always wears the hero's guard)
-  pauldronR({ add, T, P }) {
-    const a = T.world.armR;
-    add('armR', new THREE.SphereGeometry(0.075, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.1, 0.8, 1.05).rotateZ(0.35).translate(a[0] - 0.02, a[1] + 0.01, a[2] - 0.01), P.metal);
-    add('armR', new THREE.TorusGeometry(0.08, 0.008, 4, 16).rotateX(Math.PI / 2).rotateZ(0.35).translate(a[0] - 0.02, a[1] - 0.005, a[2] - 0.01), P.trim, { plain: true });
-  },
+  // shoulder plates with a piped rim
+  pauldronL: (ctx) => pauldron(ctx, 'L'),
+  pauldronR: (ctx) => pauldron(ctx, 'R'),
   tassets({ add, W, P }) {
     for (const s of ['L', 'R']) {
       const side = s === 'L' ? 1 : -1, leg = W['leg' + s];

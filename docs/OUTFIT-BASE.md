@@ -61,9 +61,9 @@ hull that follows the same cut. `src/render/outfit.js` `PARTS` holds the raised 
 - boots: `bootCuffs bootStraps furCuffs toeClaws ankleRibbons ankleWings shinGuards`
 - neck and shoulders: `furCollar highCollar capelet halfCape`
 - waist and below: `tabard sash coatTails tassets`
-- armour: `chestPlate shellPlate gem pauldronR`
+- armour: `chestPlate shellPlate gem pauldronL pauldronR`
 
-The left shoulder always wears the hero's guard.
+The hero wears no scarf and no fixed shoulder guard: shoulders change only with the outfit.
 
 ## Adding an outfit
 

@@ -22,6 +22,7 @@ import { beginRegion, useRegion, regionShift } from './region-shift.js';
 import { toon } from './toon.js';
 import { glowTexture } from './vfx.js';
 import { terrainDomain } from './terrain-domain.js';
+import { restoreSpatialRegion } from './spatial-region.js';
 
 // Rule worlds/cached fields can be borrowed by an old and a replacement build.
 const groundOwners=new WeakMap();
@@ -318,6 +319,7 @@ function recompose(obj) {
 
 export function disposeRegion(region) {
   if(!region||region.disposed)return;
+  if (region.spatial) restoreSpatialRegion(region);
   region.disposed = true;
   region.importedState=region.error?'error':'cancelled';
   region.controller?.abort();

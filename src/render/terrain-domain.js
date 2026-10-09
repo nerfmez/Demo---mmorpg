@@ -2,6 +2,8 @@
 // A neighbouring heightfield can replace a margin only where it has vertices.
 // Join its decorative skirt to the adjacent playable map without changing rules,
 // heightfields, colliders or any rendered height inside this map's playable bounds.
+import {distToPolyline} from '../core/math.js';
+
 const contains = (hf, x, z) => x >= hf.ox && x <= hf.ox + (hf.w - 1) * hf.res &&
   z >= hf.oz && z <= hf.oz + (hf.h - 1) * hf.res;
 const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -15,7 +17,38 @@ export function terrainDomain(world, lookup) {
     return {seam, neighbour, dx: offset[0] - otherOffset[0], dz: offset[1] - otherOffset[1]};
   });
   const adjacentDomains = new Map();
+  // A neighbouring road can cross a gate whose native layout has no road. Its
+  // owner's terrain stops at the boundary, so borrow only its painted approach
+  // into this existing seam band, with a soft end in the native meadow.
+  const roadExtensions = [];
+  for (const {seam: s, neighbour: n, dx, dz} of joins) {
+    if (!n || world.roadDist(...s.gate) <= 1) continue;
+    const back = n.seams.find(seam => seam.to === world.data.id);
+    if (!back) continue;
+    const axis = back.alongX ? 1 : 0, band = s.band ?? 24;
+    for (const road of n.roads) {
+      if (distToPolyline(...back.gate, road.points) > road.width / 2 + 1.5) continue;
+      const points = road.points.map(p => p.slice());
+      for (const end of [0, points.length - 1]) {
+        const p = points[end], q = points[end ? end - 1 : 1];
+        const outward = (p[axis] - n.bounds[back.edge]) * back.outward;
+        const direction = p[axis] - q[axis];
+        if (outward < 0 || outward >= band || direction * back.outward <= 0) continue;
+        const t = (n.bounds[back.edge] + back.outward * band - p[axis]) / direction;
+        points[end] = [p[0] + (p[0] - q[0]) * t, p[1] + (p[1] - q[1]) * t];
+      }
+      roadExtensions.push({id:road.id,width:road.width,points:points.map(([x,z])=>[x-dx,z-dz]),
+        noiseShift:[dx,dz],sourceCity:n.data.city,seam:s,band});
+    }
+  }
   const domain = {
+    roadExtensions,
+    roadWeight(road,x,z) {
+      const {seam:s,band} = road;
+      const inward = ((s.alongX ? z : x) - world.bounds[s.edge]) * -s.outward;
+      const along = s.alongX ? x : z, past = Math.max(s.span[0] - along, along - s.span[1], 0);
+      return (1-smooth(0,band,Math.max(0,inward))) * (1-smooth(0,band,past));
+    },
     neighbourSea: joins.find(({neighbour: n}) => world.data.sea && n?.data.sea)?.neighbour.data.sea,
     // Presentation only: both shores contribute equally at their shared edge,
     // then recover their authored beach inside the existing seam band. Rule

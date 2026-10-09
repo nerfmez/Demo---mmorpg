@@ -152,6 +152,10 @@
     "requiresStatPerLevel": 2,
     "_doc": "Each rank above the first raises the mod stat requirement by requiresStatPerLevel (core/skills.js modRequires); an upgrade is refused until the next rank can be met."
   },
+  "openWorldSimulation": {
+    "_doc": "Idle monsters sleep outside this conservative visible-area envelope. Combat/aggro actors remain active across every authored region; rendering may enlarge the pure-rule simulationRadius for an unusually wide view.",
+    "idleRadius": 58
+  },
   "monsterScaling": {
     "hpPerLevel": 0.3,
     "damagePerLevel": 0.5,

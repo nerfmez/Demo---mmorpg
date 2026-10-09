@@ -888,18 +888,18 @@ export class Game {
     const prog = this.ch.progress;
     if (p.targetId === m.id) p.targetId = null;
     this.emit({ type: 'death', id: m.id, x: m.x, z: m.z, boss: m.boss, monster: m.type });
-    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived);
+    const drops = m.minion ? rollDrops(this.data, m.type, m.zone, this.rng, {}, m.worldId).filter((d) => d.item === 'gold') : rollDrops(this.data, m.type, m.zone, this.rng, this.derived, m.worldId);
     drops.forEach((d, i) => {
       const a = (i / Math.max(1, drops.length)) * Math.PI * 2 + this.rng.range(0, 1);
       const r = this.rng.range(0.6, 1.4);
-      const drop = { id: this.newId(), item: d.item, qty: d.qty, x: m.x + Math.sin(a) * r, z: m.z + Math.cos(a) * r, t: 0 };
+      const drop = { id: this.newId(), item: d.item, qty: d.qty, x: m.x + Math.sin(a) * r, z: m.z + Math.cos(a) * r, t: 0, worldId: m.worldId };
       this.drops.push(drop);
       this.emit({ type: 'drop', id: drop.id, item: drop.item, fromX: m.x, fromZ: m.z });
     });
     // Gear from the monster's own parts, at its level's tier; rare except from bosses.
     const gear = m.minion ? null : rollGearDrop(this.data, m.type, m.level, m.boss, this.rng, this.derived.gearFindPct);
     if (gear) {
-      const drop = { id: this.newId(), item: 'gear', gear, qty: 1, x: m.x, z: m.z, t: 0 };
+      const drop = { id: this.newId(), item: 'gear', gear, qty: 1, x: m.x, z: m.z, t: 0, worldId: m.worldId };
       this.drops.push(drop);
       this.emit({ type: 'drop', id: drop.id, item: 'gear', base: gear.base, grade: gear.grade, fromX: m.x, fromZ: m.z });
     }
@@ -912,9 +912,9 @@ export class Game {
       const id = m.spawn.bossId || m.type;
       prog.bossKills[id] = (prog.bossKills[id] || 0) + 1;
       if (m.spawn.final) this.ch.bossKills++;
-      this.emit({ type: 'bossDefeated', boss: id, name: m.def.name, final: !!m.spawn.final, first: prog.bossKills[id] === 1 });
+      this.emit({ type: 'bossDefeated', boss: id, world: m.worldId || this.data.world.id, name: m.def.name, final: !!m.spawn.final, first: prog.bossKills[id] === 1 });
     }
-    this.notify({ type: 'kill', target: m.type });
+    this.notify({ type: 'kill', target: m.type, world: m.worldId });
     if (!m.minion) {
       m.spawn.respawnAt = this.time + m.spawn.respawn;
       m.spawn.entity = null;
@@ -1249,12 +1249,13 @@ export class Game {
     this.updatePlayer(dt);
     if (this.travelled) return; // crossed this frame: no world checks against the old map
     const p = this.player;
+    const idleRadius = this.simulationRadius ?? AI_RADIUS;
     for (const m of this.monsters) {
       if (m.dead) {
         m.deathT += dt;
         continue;
       }
-      if (!m.aggro && (Math.abs(m.x - p.x) > AI_RADIUS || Math.abs(m.z - p.z) > AI_RADIUS)) continue; // asleep far away
+      if (!m.aggro && (Math.abs(m.x - p.x) > idleRadius || Math.abs(m.z - p.z) > idleRadius)) continue; // asleep far away
       this.tickStatuses(m, dt);
       if (m.dead) continue;
       m.hurtT = Math.max(0, m.hurtT - dt);
@@ -1800,7 +1801,7 @@ export class Game {
           if (d.item !== 'gold') {
             const c = this.ch.progress.collected;
             c[d.item] = (c[d.item] || 0) + d.qty;
-            this.notify({ type: 'collect', item: d.item, qty: d.qty });
+            this.notify({ type: 'collect', item: d.item, qty: d.qty, world: d.worldId });
           }
           this.emit({ type: 'pickup', id: d.id, item: d.item, qty: d.qty });
           continue;

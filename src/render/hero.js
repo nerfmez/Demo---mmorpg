@@ -640,17 +640,18 @@ function clampAbs(v, m) {
   return v > m ? m : v < -m ? -m : v;
 }
 
-/** Update the scarf ribbon in world space. */
+const SCARF_ANCHOR = new THREE.Vector3(), SCARF_BACK = new THREE.Vector3(), SCARF_SIDE = new THREE.Vector3();
+const SCARF_ROTATION = new THREE.Quaternion(), SCARF_POSITION = new THREE.Vector3(), SCARF_SCALE = new THREE.Vector3();
+/** Update the scarf ribbon in world space without per-rig/frame scratch allocations. */
 export function updateScarf(rig, dt, speed) {
   if (!rig.scarf) return;
-  rig.root.updateMatrixWorld(true);
-  const anchor = new THREE.Vector3();
-  rig.scarfAnchor.getWorldPosition(anchor);
-  const q = new THREE.Quaternion();
-  rig.root.getWorldQuaternion(q);
-  const back = new THREE.Vector3(0, 0, -1).applyQuaternion(q);
-  const side = new THREE.Vector3(1, 0, 0).applyQuaternion(q);
-  rig.scarf.update(dt, anchor, back, side, Math.min(2, speed * 0.2));
+  rig.root.updateWorldMatrix(true, false);
+  rig.root.updateMatrixWorld(true); // preserve SkinnedMesh bind-matrix hooks
+  SCARF_ANCHOR.setFromMatrixPosition(rig.scarfAnchor.matrixWorld);
+  rig.root.matrixWorld.decompose(SCARF_POSITION, SCARF_ROTATION, SCARF_SCALE);
+  SCARF_BACK.set(0, 0, -1).applyQuaternion(SCARF_ROTATION);
+  SCARF_SIDE.set(1, 0, 0).applyQuaternion(SCARF_ROTATION);
+  rig.scarf.update(dt, SCARF_ANCHOR, SCARF_BACK, SCARF_SIDE, Math.min(2, speed * 0.2));
 }
 
 export { setFlash };

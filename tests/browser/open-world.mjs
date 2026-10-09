@@ -1,134 +1,78 @@
-// Open world: approaching the Azure/Frontier seam streams the neighbouring map in over
-// many frames (no long stall), it is drawn across the border, and walking over the
-// seam hands over in place (no page reload), then back again. Usage after a build:
-// node tests/browser/open-world.mjs   (BROWSER=webkit for the iPad engine)
+// Unified resident world: native input crosses every content boundary without
+// scene construction, travel gates, document changes or resident actor resets.
 import assert from 'node:assert/strict';
-import { chromium, webkit } from 'playwright';
-import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { loadData } from '../../src/core/data-node.js';
-
-const data = loadData(), AZURE = 'azure-harbor-v1', FRONTIER = 'frontier-wilds-v1';
-const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;
-const out = new URL(`./out/open-world-${engine.name()}/`, import.meta.url).pathname;
-mkdirSync(out, { recursive: true });
-const port = 4207, url = `http://localhost:${port}/?fresh=1&quality=low&seed=4&streamBudget=${process.env.STREAM_BUDGET || 600}`;
-const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
-for (let i = 0; ; i++) {
-  try { if ((await fetch(url)).ok) break; } catch {}
-  if (i > 60) throw Error('open-world server startup');
-  await new Promise((r) => setTimeout(r, 250));
-}
-const browser = await engine.launch({ executablePath: engine === chromium ? process.env.CHROMIUM_EXECUTABLE : undefined, args: engine === chromium ? ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [] });
-const page = await (await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true })).newPage();
-const errors = [];
-page.setDefaultTimeout(120000);
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-const report = {};
-try {
-  await page.goto(url);
-  await page.waitForFunction(() => window.__frontier?.game?.time > 0.3 && document.getElementById('loading').classList.contains('done'));
-  console.log('loaded');
-  await page.evaluate(() => { window.__sameDocument = true; document.querySelector('.banner')?.remove(); });
-  report.wreckBefore = await page.evaluate(() => {
-    const v = __frontier.view, geometries = new Set();
-    window.__oldWreck = v.wreck;
-    window.__wreckDisposals = 0;
-    for (const o of [v.wreck, ...Object.values(v.weaponProps)]) o.traverse(child => {
-      if (child.geometry && !child.geometry.userData.shared) geometries.add(child.geometry);
-    });
-    for (const geometry of geometries) geometry.addEventListener('dispose', () => window.__wreckDisposals++);
-    return { owned: v.wreck.parent === v.region.root, geometries: geometries.size };
-  });
-  assert.ok(report.wreckBefore.owned, 'the wreck belongs to Azure');
-  const seam = data.maps[AZURE].atlas.seams[0];
-  // Walk-in distance: 100 m inside the seam on the border road's line.
-  const place = (x, z) => page.evaluate(([x, z]) => { const F = window.__frontier, g = F.game; Object.assign(g.player, g.freeSpotNear(x, z)); g.player.hp = 1e9; g.monsters = g.monsters.filter((m) => Math.hypot(m.x - g.player.x, m.z - g.player.z) > 40); F.view.snapCamera(); }, [x, z]); // crossing is refused in combat
-  await place(seam.gate[0] + 100, seam.gate[1]);
-  // Record frame gaps while the neighbour streams in.
-  await page.evaluate(() => {
-    window.__gaps = []; let last = performance.now();
-    const tick = (t) => { window.__gaps.push(t - last); last = t; if (!window.__stopGaps) requestAnimationFrame(tick); };
-    requestAnimationFrame(tick);
-  });
-  console.log('placed', JSON.stringify(await page.evaluate(() => [window.__frontier.game.player.x, window.__frontier.view.mode])));
-  // Software-GPU CI renders a frame in ~1 s; the per-frame budget (?streamBudget) is large here
-  // and the wait long, while the slicing itself is what the stepMs report measures.
-  await page.waitForFunction((id) => window.__frontier.view.neighbourReady(id), FRONTIER, { timeout: 420000 });
-  const stream = await page.evaluate((id) => { window.__stopGaps = true; const g = window.__gaps.slice(1).sort((a, b) => a - b); const n = window.__frontier.view.neighbours.get(id); return { frames: g.length, worstFrameMs: Math.round(g[g.length - 1]), p95FrameMs: Math.round(g[Math.floor(g.length * 0.95)]), buildMs: Math.round(n.buildMs), stepMs: n.stepMs }; }, FRONTIER);
-  report.stream = stream; console.log('streamed', JSON.stringify(stream));
-  // The Frontier is drawn across the border, at its atlas delta.
-  await place(seam.gate[0] + 8, seam.gate[1]);
-  await page.evaluate(() => { window.__frontier.view.zoom = 1.6; });
-  await page.waitForTimeout(1500);
-  await page.screenshot({ path: out + '01-azure-looking-west.png' });
-  const placed = await page.evaluate((id) => window.__frontier.view.neighbours.get(id).region.root.position.toArray(), FRONTIER);
-  const [ax, az] = data.maps[AZURE].atlas.offset, [fx, fz] = data.maps[FRONTIER].atlas.offset;
-  assert.deepEqual(placed, [fx - ax, 0, fz - az]); console.log('placed ok');
-  // Walk across: same document, same session, now on the Frontier.
-  await place(seam.gate[0] + 1.2, seam.gate[1]);
-  await page.keyboard.down('ArrowLeft');
-  await page.waitForFunction((id) => window.__frontier.world.data.id === id, FRONTIER, { timeout: 240000 });
-  await page.keyboard.up('ArrowLeft');
-  const across = await page.evaluate(() => ({ same: window.__sameDocument, world: window.__frontier.world.data.id, game: window.__frontier.game.data.world.id, x: window.__frontier.game.player.x, z: window.__frontier.game.player.z, monsters: window.__frontier.game.monsters.length }));
-  assert.equal(across.same, true, 'no reload');
-  assert.equal(across.game, FRONTIER);
-  assert.ok(Math.abs(across.z - (seam.gate[1] - fz)) < 3, 'continued on the border road');
-  assert.ok(across.monsters > 0);
-  await page.waitForTimeout(800);
-  await page.screenshot({ path: out + '02-frontier-after-crossing.png' });
-  // Azure is still loaded behind, now the neighbour.
-  assert.equal(await page.evaluate((id) => window.__frontier.view.neighbourReady(id), AZURE), true);
-  const wreckShift = await page.evaluate(id => {
-    const v = __frontier.view, azure = v.neighbours.get(id).region, wreck = window.__oldWreck;
-    wreck.updateWorldMatrix(true, false);
-    return { owned: wreck.parent === azure.root, x: wreck.matrixWorld.elements[12], z: wreck.matrixWorld.elements[14], active: !!v.wreck };
-  }, AZURE);
-  assert.ok(wreckShift.owned && !wreckShift.active);
-  assert.equal(wreckShift.x, data.maps[AZURE].wreck.at[0] + ax - fx);
-  assert.equal(wreckShift.z, data.maps[AZURE].wreck.at[1] + az - fz);
-  // Evict Azure before returning: its owned wreck buffers must be released, then rebuilt once.
-  await place(data.maps[FRONTIER].bounds.minX + 30, seam.gate[1] - fz);
-  await page.waitForFunction(id => !__frontier.view.neighbours.has(id), AZURE, { timeout: 240000 });
-  report.wreckDisposed = await page.evaluate(() => window.__wreckDisposals);
-  assert.equal(report.wreckDisposed, report.wreckBefore.geometries, 'all owned wreck/weapon geometries are disposed');
-  // And back.
-  await place(data.maps[FRONTIER].bounds.maxX - 1.2, seam.gate[1] - fz);
-  await page.waitForFunction(id => __frontier.view.neighbourReady(id), AZURE, { timeout: 420000 });
-  await page.keyboard.down('ArrowRight');
-  await page.waitForFunction((id) => window.__frontier.world.data.id === id, AZURE, { timeout: 240000 });
-  await page.keyboard.up('ArrowRight');
-  assert.equal(await page.evaluate(() => window.__sameDocument), true, 'no reload on the way back');
-  report.wreckAfter = await page.evaluate(() => {
-    const v = __frontier.view, geometries = new Set();
-    for (const o of [v.wreck, ...Object.values(v.weaponProps)]) o.traverse(child => {
-      if (child.geometry && !child.geometry.userData.shared) geometries.add(child.geometry);
-    });
-    return { owned: v.wreck.parent === v.region.root, geometries: geometries.size, replaced: v.wreck !== window.__oldWreck, propsHidden: Object.values(v.weaponProps).every(o => !o.visible) };
-  });
-  assert.ok(report.wreckAfter.owned && report.wreckAfter.replaced && report.wreckAfter.propsHidden);
-  assert.equal(report.wreckAfter.geometries, report.wreckBefore.geometries, 'owned geometry count is stable after rebuilding Azure');
-  // Far from the seam the neighbour is dropped again.
-  await place(60, 20);
-  await page.waitForFunction((id) => !window.__frontier.view.neighbours.has(id), FRONTIER, { timeout: 240000 });
-  report.errors = errors;
-  writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
-  assert.deepEqual(errors, []);
-  console.log('PASS open world', engine.name(), JSON.stringify(report.stream));
-} catch (error) {
-  report.failure = await page.evaluate(() => {
-    const f = window.__frontier, v = f?.view;
-    return { world: f?.world?.data.id, position: f?.game && [f.game.player.x, f.game.player.z],
-      mode: v?.mode, queue: v?.buildQueue.stats,
-      neighbours: v && [...v.neighbours].map(([id, n]) => ({ id, ready: !!n.region,
-        state: n.job?.state, cancelled: n.controller?.signal.aborted, stats: n.job?.stats, error: n.error?.message })) };
-  }).catch(() => ({ unavailable: 'page closed or renderer unresponsive' }));
-  report.errors = errors;
-  report.error = error.message;
-  writeFileSync(out + 'report.json', JSON.stringify(report, null, 2));
-  throw error;
-} finally {
-  await browser.close();
-  process.kill(-server.pid);
-}
+import {chromium,webkit} from 'playwright';
+import {spawn} from 'node:child_process';
+import {mkdirSync,writeFileSync} from 'node:fs';
+const engine=process.env.BROWSER==='webkit'?webkit:chromium;
+const out=process.env.WORLD_OUT||new URL(`./out/open-world-${engine.name()}/`,import.meta.url).pathname;
+mkdirSync(out,{recursive:true});
+const port=4207,url=`http://127.0.0.1:${port}/?fresh=1&quality=${process.env.WORLD_QUALITY||'high'}&seed=4&dynres=0`;
+const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','preview','--host','127.0.0.1','--port',String(port),'--strictPort'],{stdio:'ignore'});
+let browser,page;const errors=[],warnings=[],report={};
+try{
+ for(let i=0;;i++){try{if((await fetch(url)).ok)break;}catch{}if(i>60)throw Error('preview startup');await new Promise(r=>setTimeout(r,100));}
+ browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
+ page=await browser.newPage({viewport:{width:844,height:390},hasTouch:true,isMobile:true,deviceScaleFactor:1});page.setDefaultTimeout(120000);
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());else if(m.type()==='warning')warnings.push(m.text());});
+ const started=Date.now();await page.goto(url);
+ await page.waitForFunction(()=>window.__frontier?.modelsReady&&__frontier.view.worldPrepared&&document.querySelector('#loading').classList.contains('done'));
+ report.startupMs=Date.now()-started;
+ report.runtime=await page.evaluate(()=>{const gl=__frontier.view.renderer.getContext(),debug=gl.getExtension('WEBGL_debug_renderer_info');return {userAgent:navigator.userAgent,gpu:debug?gl.getParameter(debug.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),scripts:[...document.scripts].map(s=>s.getAttribute('src')).filter(Boolean)};});
+ report.ready=await page.evaluate(()=>{
+  const f=__frontier,v=f.view,g=f.game;window.__unifiedDocument={};window.__actorIds=g.monsters.map(m=>m.id);window.__worldIdentity=g.world;window.__queueSteps=v.buildQueue.stats.steps;window.__crossingEvents=[];
+  const emit=g.emit.bind(g);g.emit=e=>{if(['worldChanged','travel','travelRefused'].includes(e.type))__crossingEvents.push(e);emit(e);};
+  g.ch.opening.stage='done';v.heroDown=v.heroDownTarget=0;f.questRoute.hide();document.querySelector('.banner')?.remove();g.player.hp=1e9;g.inCombat=()=>true;g.canCrossSeam=()=>false;
+  return {quality:v.quality,origin:g.coordinateOrigin,regions:[...v.regions].map(([id,r])=>({id,state:r.importedState,spatial:r.spatial.stats,buffers:r.bufferStats})),memory:{...v.renderer.info.memory},queue:{...v.buildQueue.stats},monsters:g.monsters.length};
+ });
+ assert.ok(report.ready.regions.every(r=>r.state==='imported-ready'&&r.spatial),'all regional content is ready before play');
+ await page.evaluate(()=>{const f=__frontier;f.paused=true;f.game.player.x=165;f.game.player.z=85;f.view.heroY=f.game.world.groundY(165,85);f.view.snapCamera();});
+ await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/01-high-ground.png'});
+ report.view=await page.evaluate(()=>{const v=__frontier.view;return {camera:v.camera.position.toArray(),regions:[...v.regions].map(([id,r])=>({id,spatial:{...r.spatial.stats},buffers:r.bufferStats})),objects:(()=>{let n=0;v.scene.traverse(()=>n++);return n;})()};});
+ const joins=[
+  {from:'azure-harbor-v1',to:'frontier-wilds-v1',at:[-159.7,-92],key:'ArrowLeft',name:'02-coastal-join'},
+  {from:'frontier-wilds-v1',to:'moonroot-grove-v1',at:[223.7,-67.5],key:'ArrowRight',name:'03-forest-join'},
+  {from:'moonroot-grove-v1',to:'azure-harbor-v1',at:[-12,58.2],key:'ArrowDown',name:'04-grove-coast-join'},
+ ];
+ report.crossings=[];
+ for(const join of joins){
+  await page.evaluate(({from,at})=>{const f=__frontier,g=f.game;f.input.reset();[g.player.x,g.player.z]=g.scenePoint(from,...at);g.activateRegion(from);f.view.switchRegion(from);f.view.heroY=g.world.groundY(g.player.x,g.player.z);f.view.snapCamera();f.paused=false;},{from:join.from,at:join.at});
+  await page.keyboard.down(join.key);
+  await page.waitForFunction(id=>__frontier.game.data.world.id===id,join.to,{timeout:15000});await page.keyboard.up(join.key);
+  const crossing=await page.evaluate(()=>{const f=__frontier,g=f.game,v=f.view;f.paused=true;return {sameWorld:g.world===__worldIdentity,sameActors:__actorIds.every(id=>g.monsters.some(m=>m.id===id)),world:g.data.world.id,position:g.worldPoint(g.player.x,g.player.z),queueSteps:v.buildQueue.stats.steps-__queueSteps,memory:{...v.renderer.info.memory}};});
+  assert.ok(crossing.sameWorld&&crossing.sameActors,'resident world and actors survive crossing');assert.equal(crossing.queueSteps,0,'walking performs no region build/GPU preparation');
+  report.crossings.push({...join,...crossing});await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/'+join.name+'.png'});
+ }
+ // Actual touch gesture in the same mobile session, using the production zone.
+ const client=engine===chromium?await page.context().newCDPSession(page):null;
+ if(client){
+  await page.evaluate(()=>{const f=__frontier;f.paused=false;f.game.inCombat=()=>false;[f.game.player.x,f.game.player.z]=f.game.scenePoint('azure-harbor-v1',165,85);f.game.activateRegion('azure-harbor-v1');f.view.switchRegion('azure-harbor-v1');f.view.snapCamera();});
+  // Keyboard crossings switch input to desktop mode. A real canvas touch restores
+  // touch mode before addressing the joystick (which is hidden in desktop mode).
+  await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:422,y:195,id:1}]});
+  await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  const box=await page.locator('.joyzone').boundingBox(),x=box.x+box.width*.4,y=box.y+box.height*.6;
+  const before=await page.evaluate(()=>__frontier.game.player.x);
+  await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+55,y,id:1}]});
+  await page.waitForFunction(x=>__frontier.game.player.x>x+.2,before,{timeout:10000});
+  await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.evaluate(()=>new Promise(requestAnimationFrame));
+  report.touch=await page.evaluate(()=>({released:__frontier.game.input.moveX===0,position:[__frontier.game.player.x,__frontier.game.player.z]}));assert.equal(report.touch.released,true);
+ }
+ await page.evaluate(()=>{__frontier.paused=true;__frontier.view.snapCamera();});
+ await page.setViewportSize({width:1194,height:834});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await page.evaluate(()=>{__frontier.input.reset();window.dispatchEvent(new Event('resize'));});
+ await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/05-ipad-high.png'});
+ report.ipad=await page.evaluate(()=>({viewport:[innerWidth,innerHeight],regions:[...__frontier.view.regions].map(([id,r])=>({id,spatial:{...r.spatial.stats}}))}));
+ await page.setViewportSize({width:1440,height:900});
+ await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/06-desktop-high.png'});
+ await page.setViewportSize({width:1194,height:834});
+ for(const [id,name] of [['frontier-wilds-v1','07-frontier-town'],['azure-harbor-v1','08-azure-town']]){
+  await page.evaluate(id=>{const f=__frontier,g=f.game;const at=g.worlds[id].data.town.workbench;f.input.reset();[g.player.x,g.player.z]=g.scenePoint(id,...at);g.activateRegion(id);f.view.switchRegion(id);f.view.heroY=g.world.groundY(g.player.x,g.player.z);f.view.snapCamera();},id);
+  await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/'+name+'.png'});
+ }
+ report.events=await page.evaluate(()=>__crossingEvents);assert.ok(!report.events.some(e=>e.type==='travel'||e.type==='travelRefused'),'no loading/combat seam notice or reload');
+ assert.deepEqual(errors,[]);report.errors=errors;report.warningCounts=Object.fromEntries([...new Set(warnings)].map(w=>[w,warnings.filter(s=>s===w).length]));
+ writeFileSync(out+'/report.json',JSON.stringify(report,null,2));console.log('PASS unified world',JSON.stringify({startupMs:report.startupMs,regions:report.ready.regions.length,crossings:report.crossings.map(c=>c.queueSteps),memory:report.ready.memory,touch:report.touch}));
+}catch(error){report.error=error.message;report.errors=errors;report.state=await page?.evaluate(()=>{const f=__frontier,v=f?.view;return {prepared:v?.worldPrepared,regions:v?.regions&&[...v.regions].map(([id,r])=>({id,state:r.importedState,error:r.error?.message})),queue:v?.buildQueue.stats};}).catch(()=>null);writeFileSync(out+'/report.json',JSON.stringify(report,null,2));throw error;
+}finally{await browser?.close();server.kill();}

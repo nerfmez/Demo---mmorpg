@@ -218,11 +218,26 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
     }
     yield;
   }
+  // Preserve native planting density/positions. Decorative join paint is
+  // applied after native surface masks and never clears existing meadow clumps.
+  const plantingRoad = domain.roadExtensions?.length ? road.slice() : null;
+  for (const r of domain.roadExtensions || []) {
+    if (!outsideRoadVisible(r.sourceCity,r.id)) continue;
+    const half = r.width / 2;
+    yield* rasterPolylineSteps(grid,r.points,half+1.5,(k,d)=>{
+      const x=ox+(k%w)*res,z=oz+Math.floor(k/w)*res;
+      // Keep the source's wear samples when only the region origin changes.
+      const nx=x+r.noiseShift[0],nz=z+r.noiseShift[1];
+      const worn=((valueNoise(nx*.22,nz*.22,71)-.5)*.7+(valueNoise(nx*.85,nz*.85,72)-.5)*.22)*(1-planned[k]*.65);
+      const mask=(1-smooth(half-.6+worn,half+1.05+worn,d))*domain.roadWeight(r,x,z);
+      road[k]=Math.max(road[k],mask);
+    });
+  }
   yield;
   const blur = function*(a){return yield* boxBlurSteps(yield* boxBlurSteps(a,w,h,6),w,h,4);};
   const blurred=[];for(const field of [lr,lg,lb,dr,dg,db])blurred.push(yield* blur(field));
   [lr,lg,lb,dr,dg,db]=blurred;
-  const result = { road, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: yield* blur(planned) };
+  const result = { road, plantingRoad, mud, stone, dirt, coast, lr, lg, lb, dr, dg, db, town: yield* blur(planned) };
   surfaceCache.set(world,result);
   return result;
 }

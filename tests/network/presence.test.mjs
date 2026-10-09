@@ -4,6 +4,8 @@ import { once } from 'node:events';
 import WebSocket from 'ws';
 import { createPresenceServer } from '../../server/presence.mjs';
 import { presenceEndpoint } from '../../src/network/presence.js';
+import { loadData } from '../../src/core/data-node.js';
+const data = loadData();
 const origin = 'http://localhost:4173';
 const look = { hairStyle: 'messy', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
 const pose = { x: -132, z: 80, facing: 0, moving: false };
@@ -39,6 +41,30 @@ test('health, anonymous identity, movement, room/map separation, leave, reconnec
   b.sendJSON(join('azure-harbor-v1', 'private')); assert.equal((await b.take('welcome')).players.length, 0);
   b.close(); await once(b, 'close');
   const c = await connect(); c.sendJSON(join()); assert.notEqual((await c.take('welcome')).id, bw.id); await a.take('join'); c.close(); await a.take('leave');
+});
+test('all three registered maps support bounded presence; Moonroot joins, moves and stays isolated', async t => {
+  assert.deepEqual(Object.keys(data.maps), ['azure-harbor-v1', 'frontier-wilds-v1', 'moonroot-grove-v1']);
+  const { connect } = await fixture(t);
+  const a = await connect(), b = await connect();
+  a.sendJSON(join()); await a.take('welcome');
+  for (const map of Object.keys(data.maps)) {
+    const [x, z] = data.maps[map].playerSpawn;
+    const m = { ...join(map), pose: { ...pose, x, z } };
+    b.sendJSON(m); const welcome = await b.take('welcome');
+    assert.equal(welcome.map, map);
+    assert.equal(welcome.players.length, map === 'azure-harbor-v1' ? 1 : 0);
+    if (map === 'azure-harbor-v1') await a.take('join');
+    if (map === 'frontier-wilds-v1') await a.take('leave');
+    await new Promise(r => setTimeout(r, 510));
+  }
+  const map = 'moonroot-grove-v1', [x, z] = data.maps[map].playerSpawn;
+  a.sendJSON({ ...join(map), pose: { ...pose, x, z } });
+  assert.equal((await a.take('welcome')).players.length, 1); await b.take('join');
+  b.sendJSON({ type: 'move', pose: { ...pose, x: x + 1, z, moving: true } });
+  assert.equal((await a.take('move')).pose.x, x + 1);
+  const closed = once(b, 'close');
+  b.sendJSON({ type: 'move', pose: { ...pose, x, z: data.maps[map].bounds.maxZ + 1 } });
+  assert.equal((await closed)[0], 1008); await a.take('leave');
 });
 test('rejects absent/foreign Origin, wrong path, unsafe endpoint configuration', async t => {
   const { port } = await fixture(t);
@@ -79,7 +105,14 @@ test('browser adapter reconnects, clears peers and follows streamed map changes 
   a.start(); b.start(); await until(() => a.players.size === 1 && b.players.size === 1);
   sb.pose.x = -128; await until(() => [...a.players.values()][0]?.pose.x === -128); assert.equal(sa.pose.x, -132);
   sb.map = 'frontier-wilds-v1'; await until(() => a.players.size === 0 && b.players.size === 0);
-  await until(() => b.id); const previous = b.id;
+  const [x, z] = data.maps['moonroot-grove-v1'].playerSpawn;
+  sb.map = 'moonroot-grove-v1'; sb.pose = { ...pose, x, z };
+  await until(() => b.joined === sb.map && b.id);
+  assert.equal(a.players.size, 0);
+  sa.map = sb.map; sa.pose = { ...pose, x: x + 1, z };
+  await until(() => a.players.size === 1 && b.players.size === 1);
+  assert.equal(sa.pose.x, x + 1, 'Moonroot remote pose never overwrites local pose');
+  const previous = b.id;
   for (const c of app.clients.values()) if (c.id === previous) c.ws.terminate();
   await until(() => b.id && b.id !== previous);
   b.stop(); assert.equal(b.status, 'solo'); assert.equal(b.enabled, false);

@@ -1,4 +1,4 @@
-# Configuration only: do not create/sync the service until owner approval.
+# Configuration reference only. The parent owns service setup and manual deployment.
 services:
   - type: web
     name: frontier-presence-prototype

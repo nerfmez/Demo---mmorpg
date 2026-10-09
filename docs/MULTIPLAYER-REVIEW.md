@@ -2,7 +2,8 @@
 
 Base: `b31a2c7` (PR114). Implementation: `09ba408` on
 `codex/multiplayer-presence`. [Draft PR115](https://github.com/nerfmez/Demo---mmorpg/pull/115).
-Evidence captured 2026-10-08. Later evidence-only commits do not change the runtime.
+Historical evidence captured 2026-10-08. The current-main integration is recorded
+separately in [MULTIPLAYER-INTEGRATION-REVIEW.md](MULTIPLAYER-INTEGRATION-REVIEW.md).
 
 ## Scope and observable criteria
 
@@ -32,8 +33,10 @@ not production MMO authority.
   and `/healthz` HTTP 200 pass in an isolated temporary install. Render YAML parses
   with Free/Singapore/manual deployment, expected commands and health path.
 - [Node 22 CI build/core/tooling gate](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37736722315/job/113178261162)
-  passed for implementation `09ba408`. Remaining browser CI gates are pending and
-  must pass before merge; this PR stays draft.
+  passed for implementation `09ba408`. The later [exact-head CI run
+  37737906296](https://github.com/nerfmez/Demo---mmorpg/actions/runs/37737906296)
+  completed successfully at `06c2cf63fd085abb984b2d8450b50f26010f20b0`. This is
+  historical evidence, not a CI claim for the merged head; the PR stays draft.
 - No core rules, world data, character save schema, skill or quest files changed.
 
 ## Real two-client browser run
@@ -93,6 +96,7 @@ Direct reads/searches sufficed; no Jev request or cached ranking was used. Inspe
 `game.js`/simulation input, hero/animator/model ownership, `dispose.js`, `view.js`
 map switching/terrain placement, touch input/menu/HUD anchoring CSS, startup/opening/
 browser helpers, CI workflow/scope and Godot port notes. The adapter reads local
-pose/appearance only; remote data has no core/save consumer. Actual service URL,
-test frontend origin, production endpoint enablement, hosted cold-start/latency,
-physical-device testing and owner visual acceptance remain parent-owned decisions.
+pose/appearance only; remote data has no core/save consumer. The actual service URL and focused-test origin are now documented in the deployment
+guide. Origin authorization, matching-head manual deployment, hosted cold-start/latency,
+frontend publication, physical-device testing and owner visual acceptance remain
+parent-owned decisions.

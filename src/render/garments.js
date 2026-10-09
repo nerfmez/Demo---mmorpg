@@ -26,13 +26,30 @@ export function garmentFrame(mesh) {
   };
 }
 
+const KINDS = ['top', 'skirt', 'pants', 'shoes', 'boots', 'gloves'];
+
+/**
+ * One shader for every garment kind (one program pair in all, so equipping or previewing an
+ * outfit compiles nothing new): each kind is its own function, uKind picks one.
+ */
+function glslAll(F) {
+  const fns = KINDS.map((k, i) => glsl(k, F).replace('vec3 garmentColor(vec3 p) {', `vec3 garment${i}(vec3 p) {`)).join('');
+  return `
+uniform vec3 uPal[10]; uniform vec4 uCutA; uniform vec4 uCutB; uniform vec4 uCutC; uniform vec4 uCutD; uniform float uKind;
+varying vec3 vBind;
+// uCutA: sleeve, cuff, hem, trim · uCutB: panel, yoke, stripe, neck · uCutC: pants, boot, pattern
+// uCutD: skirt length or boots/gloves length, skirt opening (radians either side of the front)
+${fns}
+vec3 garmentColor(vec3 p) {
+${KINDS.map((k, i) => `  ${i ? 'else ' : ''}if (uKind < ${i}.5) return garment${i}(p);`).join('\n')}
+  return garment${KINDS.length - 1}(p);
+}
+`;
+}
+
 function glsl(kind, F) {
   const f = (v) => v.toFixed(4);
   const head = `
-uniform vec3 uPal[10]; uniform vec4 uCutA; uniform vec4 uCutB; uniform vec4 uCutC; uniform vec4 uCutD;
-varying vec3 vBind;
-// uCutA: sleeve, cuff, hem, trim · uCutB: panel, yoke, stripe, neck · uCutC: pants, boot, pattern
-// uCutD: skirt length, skirt opening (radians either side of the front)
 vec3 garmentColor(vec3 p) {
   float x = abs(p.x), y = p.y, fr = p.z * ${f(F.front)}, trim = uCutA.w;
 `;
@@ -147,9 +164,9 @@ const bindVarying = (shader) => {
 export function garmentMaterial(kind, frame, uniforms, flash, rim = 0.3) {
   const m = new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp(), side: THREE.DoubleSide });
   m.userData.rig = true; // one per rig: freed with the rig
-  const code = glsl(kind, frame);
+  const code = glslAll(frame);
   m.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms, { uFlash: flash, uRim: { value: rim } });
+    Object.assign(shader.uniforms, uniforms, { uFlash: flash, uRim: { value: rim }, uKind: { value: KINDS.indexOf(kind) } });
     bindVarying(shader);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform vec3 uFlash; uniform float uRim;' + code)
@@ -166,7 +183,7 @@ export function garmentMaterial(kind, frame, uniforms, flash, rim = 0.3) {
 #include <opaque_fragment>`
       );
   };
-  m.customProgramCacheKey = () => 'garment-' + kind;
+  m.customProgramCacheKey = () => 'garment';
   return m;
 }
 
@@ -174,15 +191,15 @@ export function garmentMaterial(kind, frame, uniforms, flash, rim = 0.3) {
 export function garmentHull(kind, frame, uniforms, width = 0.01, darkness = 0.32) {
   const m = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
   m.userData.rig = true;
-  const code = glsl(kind, frame);
+  const code = glslAll(frame);
   m.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
+    Object.assign(shader.uniforms, uniforms, { uKind: { value: KINDS.indexOf(kind) } });
     bindVarying(shader);
     shader.vertexShader = shader.vertexShader.replace('vBind = position;', `vBind = position;\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + code)
       .replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = garmentColor(vBind) * ${darkness.toFixed(3)};`);
   };
-  m.customProgramCacheKey = () => 'garment-hull-' + kind;
+  m.customProgramCacheKey = () => `garment-hull-${width}`;
   return m;
 }

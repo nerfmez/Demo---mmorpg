@@ -54,9 +54,10 @@ const startupScheduling = new WeakMap();
 export function useStartupTaskScheduling(queue) {
   let state = startupScheduling.get(queue);
   if (!state) {
-    state = { owners: 0, schedule: queue.schedule, fallback: null, tasks: startupTasks() };
+    state = { owners: 0, schedule: queue.schedule, resumeSchedule: queue.resumeSchedule, fallback: null, tasks: startupTasks() };
     startupScheduling.set(queue, state);
     queue.schedule = state.tasks.schedule;
+    queue.resumeSchedule = state.tasks.schedule;
     // Keep the already-requested first paint opportunity. If rAF is withheld
     // (e.g. a background tab), this one-shot task can take over that exact handle.
     // The delay requests an opportunity, not a guaranteed paint or time limit.
@@ -80,6 +81,7 @@ export function useStartupTaskScheduling(queue) {
     pending?.();
     state.tasks.close();
     queue.schedule = state.schedule;
+    queue.resumeSchedule = state.resumeSchedule;
     queue.wake();
   };
 }
@@ -89,8 +91,9 @@ export function cancelledBuild() {
 }
 
 export class FrameBuildQueue {
-  constructor({ budgetMs = 6, now = () => performance.now(), schedule = afterPaint } = {}) {
-    this.budgetMs = budgetMs; this.now = now; this.schedule = schedule;
+  constructor({ budgetMs = 6, now = () => performance.now(), schedule = afterPaint,
+    resumeSchedule = schedule === afterPaint ? afterTask : schedule } = {}) {
+    this.budgetMs = budgetMs; this.now = now; this.schedule = schedule; this.resumeSchedule = resumeSchedule;
     this.jobs = []; this.scheduled = null; this.running = false;
     this.stats = { slices: 0, steps: 0, maxStepMs: 0, maxSliceMs: 0 };
   }
@@ -119,9 +122,17 @@ export class FrameBuildQueue {
     else { signal?.addEventListener('abort', job.cancel, { once: true }); this.jobs.push(job); this.wake(); }
     return job;
   }
-  wake() {
-    if (this.running || this.scheduled || !this.jobs.length) return;
-    this.scheduled = this.schedule(() => { this.scheduled = null; this.drain(); });
+  wake(gpuReady = false) {
+    if (this.running || !this.jobs.length) return;
+    if (this.scheduled) {
+      if (!gpuReady || this.scheduledForResume || this.resumeSchedule === this.schedule) return;
+      // A settled GPU wait must not sit behind another whole game frame. The
+      // continuation is still a future, budgeted task, never a microtask drain.
+      this.scheduled(); this.scheduled = null;
+    }
+    this.scheduledForResume = gpuReady;
+    const schedule = gpuReady ? this.resumeSchedule : this.schedule;
+    this.scheduled = schedule(() => { this.scheduled = null; this.scheduledForResume = false; this.drain(); });
   }
   drain() {
     if (this.running) return;
@@ -149,7 +160,7 @@ export class FrameBuildQueue {
             job.state = 'waiting';
             const ready = (value, failed) => {
               job.input = value; job.failedWait = failed; job.state = 'suspended';
-              this.jobs.push(job); this.wake();
+              this.jobs.push(job); this.wake(true);
             };
             // Resolution only queues another budgeted task, never advances a
             // generator (or frees GPU resources) in the promise microtask.

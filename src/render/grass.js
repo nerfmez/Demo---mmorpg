@@ -133,6 +133,12 @@ export function* bakeGrassSteps(renderer,root,world,{asyncReadback=false}={}) {
     depthTest:false,depthWrite:false,toneMapped:false});
   let compiled=false;
   try {
+  if(asyncReadback&&renderer.initTexture){
+    // First draw otherwise uploads the brush and every large ground field in
+    // one step. Submit one texture at a time, with identical sampler settings.
+    const textures=new Set(Object.values(material.uniforms).map(u=>u.value).filter(v=>v?.isTexture));
+    for(const texture of textures){renderer.initTexture(texture);yield;}
+  }
   for(const mesh of meshes){
     const n=mesh.count,height=Math.ceil(n/width),g=mesh.geometry,positions=new Float32Array(n*3),roots=new Float32Array(n*3);
     for(let i=0;i<n;i++){

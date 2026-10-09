@@ -473,8 +473,13 @@ export function buildLandmark(kind, seed = 1) {
 }
 
 /** Every drawn landmark of the map, standing on the ground (a slight sink hides the base seam). */
-export function createLandmarks(world, groundY = (x, z) => world.groundY(x, z)) {
-  const root = new THREE.Group();
+export function createLandmarks(world,groundY=(x,z)=>world.groundY(x,z)){
+  const steps=landmarkSteps(world,groundY);
+  for(;;){const step=steps.next();if(step.done)return step.value;}
+}
+
+export function* landmarkSteps(world, groundY = (x, z) => world.groundY(x, z), {adopt}={}) {
+  const root = new THREE.Group();adopt?.(root);
   root.name = 'landmarks';
   for (const [i, lm] of (world.landmarks || []).entries()) {
     if (lm.builtin) continue;
@@ -484,7 +489,7 @@ export function createLandmarks(world, groundY = (x, z) => world.groundY(x, z)) 
     for (const part of [{ x: lm.x, z: lm.z }, ...lm.parts]) low = Math.min(low, groundY(part.x, part.z));
     g.position.set(lm.x, low - 0.08, lm.z);
     g.rotation.y = lm.rot || 0;
-    root.add(g);
+    root.add(g);yield;
   }
   return root;
 }

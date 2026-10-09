@@ -40,8 +40,13 @@ function timberDeck(d,rng) {
   return geometry;
 }
 
-export function createHarbor(world) {
-  const root = new THREE.Group();
+export function createHarbor(world){
+  const steps=createHarborSteps(world);
+  for(;;){const step=steps.next();if(step.done)return step.value;}
+}
+
+export function* createHarborSteps(world,{adopt}={}) {
+  const root = new THREE.Group();adopt?.(root);
   const part = (geo, color, x, y, z, parent = root, material = null) => {
     const mesh = outlined(geo, material || toon(color), { outline: '#51483b', width: .025 });
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
@@ -93,7 +98,7 @@ export function createHarbor(world) {
       pile.rotation.set(rng.range(-1,1)*plank.pileLean,rng.range(0,Math.PI),rng.range(-1,1)*plank.pileLean);
       if(corner||rng.next()<.5)part(new THREE.TorusGeometry(.2,.045,5,10),'#d1ba82',x,.48+rise+slope*z,z,pier).rotation.set(Math.PI/2+rng.range(-.12,.12),0,rng.range(-.12,.12));
     }
-    root.add(pier);
+    root.add(pier);yield;
   }
   const h=world.data.harbor;
   const [lx,lz]=h.lighthouse, y=world.groundY(lx,lz);
@@ -112,13 +117,13 @@ export function createHarbor(world) {
   }
   if(world.data.town.districtStyle)root.add(districtScenery(world));
   for(const [index,[x,z,a]] of h.boats.entries()) {
-    if((world.data.city?.enabled ? world.data.city.nativeBoatIndices : world.data.town.styleSlice?.boatIndices)?.includes(index)){root.add(marketFishingBoat(x,z,a,world.waterLevel));continue;}
+    if((world.data.city?.enabled ? world.data.city.nativeBoatIndices : world.data.town.styleSlice?.boatIndices)?.includes(index)){root.add(marketFishingBoat(x,z,a,world.waterLevel));yield;continue;}
     const boat=new THREE.Group();boat.userData.waterContact=true;boat.position.set(x,world.waterLevel+.15,z);boat.rotation.y=a;
     part(new THREE.SphereGeometry(1,12,8).scale(1.25,.65,3.8),'#654c37',0,0,0,boat);
     part(new THREE.BoxGeometry(2.15,.15,5.8),'#c1a274',0,.3,0,boat);
     part(new THREE.CylinderGeometry(.08,.12,6,6),'#8a6945',0,3.2,0,boat);
     part(new THREE.BoxGeometry(2.6,3.9,.045),'#f0e5c6',.55,3.7,0,boat);
-    root.add(boat);
+    root.add(boat);yield;
   }
   for(const [x,z,kind] of h.signs) {
     const y=world.groundY(x,z);
@@ -128,13 +133,13 @@ export function createHarbor(world) {
     const symbol=new THREE.Group();symbol.position.set(x,y+1.9,z+.1);
     if(kind==='fields') part(new THREE.ConeGeometry(.23,.6,3),'#65844a',0,0,0,symbol);
     else {part(new THREE.BoxGeometry(.6,.3,.025),'#426c83',0,-.05,0,symbol);part(new THREE.ConeGeometry(.4,.35,3),'#426c83',0,.2,0,symbol);}
-    root.add(symbol);
+    root.add(symbol);yield;
   }
   for(const [x,z] of h.farmBeds) {
     part(new THREE.BoxGeometry(6,.12,10),'#8b7250',x,world.groundY(x,z)+.06,z,root,walkSurfaceMaterial('earth',.95,[x,z]));
     for(const offset of [-2,0,2]) part(new THREE.BoxGeometry(.35,.25,9),'#7c9551',x+offset,world.groundY(x,z)+.2,z);
   }
-  for(const structure of root.children)outlineStructure(structure);
+  for(const structure of root.children){outlineStructure(structure);yield;}
   // Two slim mooring lines per boat tie the actual hull to its adjacent deck.
   // These are static, merged together, and never create walking obstacles.
   if(world.data.city?.enabled){

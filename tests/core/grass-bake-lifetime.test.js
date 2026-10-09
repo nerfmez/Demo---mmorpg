@@ -10,7 +10,7 @@ const source=readFileSync(new URL('../../src/render/grass.js',import.meta.url),'
 const bakeSource=source.slice(source.indexOf('export function bakeGrassColours')).replace(/\bexport /g,'');
 const {bakeGrassColours,bakeGrassSteps}=Function('THREE','groundFieldUniforms','GROUND_COLOR_GLSL','prepareGrassCulling',bakeSource+'\nreturn {bakeGrassColours,bakeGrassSteps};')(THREE,()=>({}),'',()=>{});
 const regionSource=readFileSync(new URL('../../src/render/region.js',import.meta.url),'utf8');
-const inRegion=Function('regionShift','useRegion',regionSource.slice(regionSource.indexOf('export function* inRegion'),regionSource.indexOf('/** Synchronous compatibility')).replace('export ','')+'\nreturn inRegion;')(regionShift,useRegion);
+const inRegion=Function('regionShift','useRegion',regionSource.slice(regionSource.indexOf('export function* inRegion'),regionSource.indexOf('/** Synchronous compatibility')).replace(/\bexport /g,'')+'\nreturn inRegion;')(regionShift,useRegion);
 function fixture(){
  const root=new THREE.Group(),g=new THREE.BufferGeometry(),material=new THREE.MeshBasicMaterial();material.userData.groundBrush={value:null};
  for(const [k,n] of Object.entries({aGrassLight:3,aGrassDark:3,aGrassNormal:3,aGrassSplat:4,aGrassCoast:2,aGrassY:1,aGrassTown:1}))g.setAttribute(k,new THREE.InstancedBufferAttribute(new Float32Array(9*n),n));

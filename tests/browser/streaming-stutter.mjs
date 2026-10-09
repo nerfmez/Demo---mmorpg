@@ -43,5 +43,8 @@ try{
  for(let i=0;i<4;i++)await page.evaluate(()=>new Promise(requestAnimationFrame));
  await page.evaluate(()=>__frontier.game.setMove(0,0));
  await partial();await page.screenshot({path:out+'/high-walking.png'});assert.deepEqual(errors,[]);
- console.log('PASS High streaming probe');
+ for(const [name,viewport] of [['ipad',{width:1194,height:834}],['large',{width:1600,height:900}]]){
+  await page.setViewportSize(viewport);await page.evaluate(()=>new Promise(requestAnimationFrame));await page.screenshot({path:out+'/high-'+name+'.png'});
+ }
+ assert.deepEqual(errors,[]);console.log('PASS High streaming probe');
 }finally{await browser?.close();server.kill();}

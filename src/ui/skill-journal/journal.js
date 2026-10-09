@@ -43,10 +43,10 @@ root.innerHTML=`
    <div class="map-viewport" id="map" tabindex="0" aria-label="แผนผังสกิล ลากเพื่อเลื่อน บีบเพื่อซูม"><div class="map-plane" id="plane"></div></div>
    <div class="locked-region" id="locked-region" hidden></div>
    <div class="map-status" id="map-status"></div>
-   <div class="map-controls" aria-label="เครื่องมือแผนผัง"><button class="icon-button" data-action="fit" aria-label="ดูผังทั้งหมด">${icon('expand')}</button><i></i><button class="icon-button" data-action="zoom-out" aria-label="ซูมออก">${icon('minus')}</button><output id="zoom">100%</output><button class="icon-button" data-action="zoom-in" aria-label="ซูมเข้า">${icon('zoom')}</button></div>
+
    <aside class="inspector" id="inspector" aria-label="รายละเอียดโหนด" aria-hidden="true" inert><div class="sheet-handle"></div><button class="icon-button inspector-close" data-action="close-detail" aria-label="ปิดรายละเอียด">${icon('close')}</button><div id="detail-content"></div></aside>
   </section>
-  <footer class="statusbar"><div><span class="live-dot"></span><span id="allocation-summary"></span></div><span class="gesture-hint">ลากเพื่อเลื่อน · บีบหรือเลื่อนล้อเพื่อซูม</span><span class="page-pagination"><button data-page="-1" aria-label="บทก่อนหน้า">←</button><span id="page-folio">01 / 06</span><button data-page="1" aria-label="บทถัดไป">→</button></span></footer>
+  <footer class="statusbar"><div><span class="live-dot"></span><span id="allocation-summary"></span></div><div class="map-controls" aria-label="เครื่องมือแผนผัง"><button class="icon-button" data-action="fit" aria-label="ดูผังทั้งหมด">${icon('expand')}</button><i></i><button class="icon-button" data-action="zoom-out" aria-label="ซูมออก">${icon('minus')}</button><output id="zoom">100%</output><button class="icon-button" data-action="zoom-in" aria-label="ซูมเข้า">${icon('zoom')}</button></div><span class="gesture-hint">ลากเพื่อเลื่อน · บีบหรือเลื่อนล้อเพื่อซูม</span><span class="page-pagination"><button data-page="-1" aria-label="บทก่อนหน้า">←</button><span id="page-folio">01 / 06</span><button data-page="1" aria-label="บทถัดไป">→</button></span></footer>
  </main>
 </div></div>
 <div class="journal-toast" role="status" aria-live="polite" id="toast"></div>
@@ -95,7 +95,13 @@ function drawNodes(ids,primary){
  if(group?.lineId&&layout.compactRow){const next=ids.find(id=>primary.has(id)&&jobNodeState(ch,data,id).can)||ids.find(id=>primary.has(id)&&!ch.jobNodes.includes(id))||ids[0];camera.frame(state.coords[next][0],layout.height/2,layout.zoom);}
  else if(layout.zoom&&layout.height*layout.zoom>viewport.height){const next=ids.find(id=>primary.has(id)&&jobNodeState(ch,data,id).can)||ids.find(id=>primary.has(id)&&!ch.jobNodes.includes(id))||ids[ids.length-1],[x,y]=state.coords[next];camera.frame(layout.width/2,Math.max(viewport.height/2/layout.zoom,Math.min(layout.height-viewport.height/2/layout.zoom,y)),layout.zoom);}
 }
-function junctionPaging(){const compact=compactPaper(),columns=compact?4:innerWidth<=760?2:3,size=columns*(compact?1:2);return {compact,columns,size};}
+function junctionPaging(){
+ const compact=compactPaper(),available=camera.viewport().width-70;
+ // Fixed-size captions need room inside the bounded paper, including its rail.
+ // Window width overestimates that room on both portrait and short landscape.
+ const columns=Math.max(1,Math.min(compact?4:innerWidth<=760?2:3,Math.floor(available/190))),size=columns*(compact?1:2);
+ return {compact,columns,size};
+}
 function gatewayEntries(group){return group.lineId?presentation.groups(state.tier).filter(g=>g.lineId===group.lineId).flatMap(g=>g.ids):group.ids;}
 function renderJunction(){
  const all=presentation.hubs(state.tier),{compact,columns,size}=junctionPaging(),pages=Math.ceil(all.length/size);

@@ -88,42 +88,92 @@ def ring(name,col,at,r=.8,tube=.04,plane='ground',glow=None):
         a=2*PI*i/12;pts.append((at[0]+math.sin(a)*r,at[1]+(math.cos(a)*r if plane=='vertical' else 0),at[2]+(math.cos(a)*r if plane=='ground' else 0)))
     obj=curve(name,col,pts,tube,glow);obj.data.resolution_u=2;return obj
 def flower(name,at,r=.16,col='#dd6a7d'):
-    sphere(name+' centre','#e9bc66',at,r=r*.3,segments=8,rings=4)
+    rock(name+' centre','#e9bc66',at,(r*.3,r*.18,r*.3))
     for i in range(5):
-        a=i*2*PI/5;sphere(name+' petal',col,(at[0]+math.sin(a)*r*.5,at[1],at[2]+math.cos(a)*r*.5),size=(1,.35,1),r=r*.6,segments=8,rings=4)
+        a=i*2*PI/5;rock(name+' broad faceted petal',col,(at[0]+math.sin(a)*r*.5,at[1],at[2]+math.cos(a)*r*.5),(r*.6,r*.25,r*.6),a)
+
+def tapered_curve(name,col,points,radii,glow=None):
+    obj=curve(name,col,points,1,glow)
+    for p,r in zip(obj.data.splines[0].bezier_points,radii):p.radius=r
+    return obj
+
+def rock(name,col,at,size,turn=0,subdivisions=1):
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=subdivisions,radius=1,location=point(at))
+    obj=bpy.context.object;obj.scale=(size[0],size[2],size[1])
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    return finish(obj,name,col,rot=(0,turn,0))
+
+def orient_parts(parts,turn):
+    rotation=(C @ Euler((0,turn,0),'XYZ').to_matrix() @ C.transposed()).to_4x4()
+    bpy.context.view_layer.update()
+    for obj in parts:obj.matrix_world=rotation @ obj.matrix_world
+
+def crystal(name,base,height,radius,lean,turn=0):
+    # Continuous asymmetric prism: no disconnected cone perched on a shaft.
+    x,y,z=base;n=6;verts=[]
+    for t,rad in [(0,.78),(.22,1),(.73,.76)]:
+        for i in range(n):
+            a=turn+i*PI/3;verts.append((x+lean[0]*t+math.sin(a)*radius*rad,y+height*t,z+lean[1]*t+math.cos(a)*radius*rad))
+    verts.append((x+lean[0]+radius*.2,y+height,z+lean[1]-radius*.13))
+    faces=[tuple(reversed(range(n)))];colors=[0]
+    for k in range(2):
+        for i in range(n):a=k*n+i;b=k*n+(i+1)%n;faces.append((a,b,b+n,a+n));colors.append([0,1,2,1,0,2][i])
+    for i in range(n):faces.append((12+i,12+(i+1)%n,18));colors.append([1,3,2,1,0,3][i])
+    obj=mesh(name,'#197c9b',verts,faces)
+    for col in ['#309dbc','#67d9e4','#a1edf0']:obj.data.materials.append(material(col))
+    for face,index in zip(obj.data.polygons,colors):face.material_index=index
+    return obj
 
 def giant_conch():
-    shell='#e9d1ad';band='#d6a77f';lip='#ecaaa0';dark='#765750'
-    # Open shell, with a thick rosy aperture rather than a painted sphere.
-    profile=[(-2.9,.025),(-2.55,.22),(-2.0,.48),(-1.45,.77),(-.8,1.05),(-.15,1.32),(.45,1.5),(.9,1.38),(1.25,1.16)]
-    verts=[];n=24
+    shell='#f1ddb8';ridge='#bf966a';pink='#db7485';inner='#853c61'
+    start=set(bpy.data.objects)
+    # Rounded whorls swell towards the aperture, rather than linear cone rings.
+    profile=[(-2.5,.03),(-2.25,.28),(-1.96,.42),(-1.72,.39),(-1.48,.77),(-1.12,.96),(-.82,.92),(-.48,1.43),(.08,1.68),(.6,1.55),(1.0,1.18)]
+    n=24;verts=[]
     for z,r in profile:
-        for i in range(n):
-            a=2*PI*i/n;verts.append((math.sin(a)*r,1.5+math.cos(a)*r,z))
-    faces=[]
+        for i in range(n):a=2*PI*i/n;verts.append((math.sin(a)*r,1.5+math.cos(a)*r*.88,z))
+    faces=[tuple(reversed(range(n)))]
     for k in range(len(profile)-1):
-        for i in range(n):a=k*n+i;b=k*n+(i+1)%n;faces.append((a,a+n,b+n,b))
-    body=mesh('Sun bleached shell body',shell,verts,faces)
+        for i in range(n):a=k*n+i;b=k*n+(i+1)%n;faces.append((a,b,b+n,a+n))
+    body=mesh('Bulging cream shell whorls',shell,verts,faces)
     for f in body.data.polygons:f.use_smooth=True
-    for k,(z,r) in enumerate(profile[1:-2]):
-        pts=[(math.sin(i*2*PI/24)*r,1.5+math.cos(i*2*PI/24)*r,z+.12*math.sin(i*2*PI/24)) for i in range(25)]
-        obj=curve('Spiral growth ridge',band,pts,.055);obj.data.resolution_u=1
-    ring('Rosy rolled aperture',lip,(0,1.5,1.27),1.15,.16,'vertical')
-    ring('Inner shell rim',shell,(0,1.5,1.15),.96,.035,'vertical')
-    cylinder('Recessed aperture',dark,.96,.92,.055,(0,1.5,.75),24,rot=(PI/2,0,0),bevel=0)
-    for i in range(7):
-        a=2*PI*i/7;r=1.35;cylinder('Shell shoulder spine',shell,.01,.14,.55,(math.sin(a)*r,1.5+math.cos(a)*r,.35),8,rot=(PI/2-a,0,0),bevel=0)
-    for x,z in [(2.1,1.7),(-2.1,.6),(1.7,-1.8)]:sphere('Tide pebble','#c9bea3',(x,.07,z),size=(1.3,.3,1),r=.23)
-    for i in range(5):a=i*2*PI/5;leaf('Starfish arm','#ce805d',(2.5,.06,1.6),(2.5+math.sin(a)*.6,.08,1.6+math.cos(a)*.6),.16)
+    pts=[]
+    for i in range(65):
+        t=i/64;z=-2.36+t*3.28;a=t*PI*5.5;r=.2+1.46*math.sin(t*PI*.64)
+        pts.append((math.sin(a)*r,1.5+math.cos(a)*r*.88,z))
+    curve('Continuous spiral growth shoulder',ridge,pts,.095).data.resolution_u=1
+    # Mouth tilts upwards so its flared pink interior is legible from game height.
+    center=Vector((0,1.38,1.22));normal=Vector((0,.52,.854));up=Vector((0,.854,-.52));right=Vector((1,0,0))
+    verts=[]
+    for rx,ry,depth in [(1.46,1.46,.11),(1.19,1.22,.24),(.89,.94,-.32),(.45,.48,-.65)]:
+        for i in range(n):
+            a=i*2*PI/n;flare=1+.1*math.sin(a*3+.4)
+            verts.append(tuple(center+right*(math.sin(a)*rx*flare)+up*(math.cos(a)*ry)+normal*depth))
+    faces=[]
+    for k in range(3):
+        for i in range(n):a=k*n+i;b=k*n+(i+1)%n;faces.append((a,b,b+n,a+n))
+    faces.append(tuple(range(3*n,4*n)))
+    mouth=mesh('Flared rosy aperture and recessed throat',pink,verts,faces)
+    mouth.data.materials.append(material(inner));mouth.data.materials.append(material('#f2a3ab'))
+    for f in mouth.data.polygons:f.material_index=2 if f.index<n else 0 if f.index<2*n else 1;f.use_smooth=True
+    lip=[tuple(center+right*(math.sin(i*2*PI/n)*1.46*(1+.1*math.sin(i*2*PI/n*3+.4)))+up*(math.cos(i*2*PI/n)*1.46)+normal*.1) for i in range(n+1)]
+    curve('Thick cream rolled aperture edge',shell,lip,.14).data.resolution_u=1
+    for i,(x,y,z,tx,ty,tz) in enumerate([(-1.36,2.0,.12,-2.12,2.36,.01),(-.79,2.64,-.55,-1.17,3.46,-.69),(.52,2.84,-.35,.79,3.61,-.56),(1.4,1.84,-.02,2.16,2.12,-.3)]):
+        tapered_curve('Broad shoulder spine '+str(i),shell,[(x,y,z),((x+tx)/2,(y+ty)/2,(z+tz)/2),(tx,ty,tz)],[.22,.16,.012])
+    # Landmark placement/rotation remain data-owned; the artist-facing aperture
+    # counter-rotates inside this source to expose both mouth and spiral at the
+    # established south approach, rather than hiding the coil behind the mouth.
+    orient_parts(set(bpy.data.objects)-start,-1.5)
+    for x,z in [(1.9,.7),(-1.8,.8)]:rock('Tide-smoothed grounding stone','#b9b79b',(x,.1,z),(.5,.22,.43),x)
 
 def watchtower():
     wood='#9b7148';dark='#584631';roofcol='#476d4d'
     for x in [-1.2,1.2]:
         for z in [-1.2,1.2]:
-            beam('Ranger splayed leg',wood,[(x*1.13,0,z*1.13),(x,5.8,z)],.24,.24)
+            beam('Ranger splayed leg',wood,[(x*1.13,0,z*1.13),(x,5.8,z)],.34,.34)
             box('Lookout roof post',dark,(.15,1.7,.15),(x,6.75,z))
     for z in [-1.2,1.2]:
-        for s in [-1,1]:beam('Structural cross brace',dark,[(s*1.28,1.3,z),(-s*1.2,4.7,z)],.13,.13)
+        for s in [-1,1]:beam('Structural cross brace',dark,[(s*1.28,1.3,z),(-s*1.2,4.7,z)],.2,.2)
     box('Watch platform',wood,(3.3,.22,3.3),(0,5.75,0))
     for s in [-1,1]:
         box('Lookout railing',dark,(3.3,.12,.12),(0,6.6,s*1.56));box('Lookout railing',dark,(.12,.12,3.3),(s*1.56,6.6,0))
@@ -135,22 +185,40 @@ def watchtower():
     mesh('Gold forked ranger pennant','#d7b15c',[(0,9.95,0),(.9,9.83,.03),(.67,9.57,.02),(.9,9.33,.04),(0,9.47,0)],[(0,1,2,3,4)])
     box('Lookout lantern',dark,(.32,.48,.32),(-1.2,2,1.5));box('Lantern light','#edd49a',(.22,.3,.22),(-1.2,2,1.53),bevel=.015)
 
+    bpy.context.view_layer.update()
+    for obj in bpy.context.scene.objects:obj.matrix_world=Matrix.Diagonal((1,1,.68,1)) @ obj.matrix_world
+
 def garden_gazebo():
-    ivory='#e8e1cf';rose='#b96476';wood='#8c684c';leafcol='#476c42'
-    cylinder('Rose pavilion footing','#bfb8a3',2.94,3,.25,(0,.125,0),6,rot=(0,PI/6,0))
+    ivory='#eddfbc';rose='#b9516d';wood='#805132';leafcol='#375f39'
+    cylinder('Rose pavilion footing','#b5ae92',2.94,3,.28,(0,.14,0),6,rot=(0,PI/6,0))
+    cylinder('Pavilion inset cream floor',ivory,2.75,2.78,.08,(0,.32,0),6,rot=(0,PI/6,0))
     for i in range(6):
         a=i*PI/3;x=math.sin(a)*2.4;z=math.cos(a)*2.4
-        cylinder('Pavilion column',ivory,.13,.15,2.65,(x,1.56,z),12)
-        cylinder('Pavilion column capital',ivory,.21,.21,.16,(x,2.89,z),8)
-        if i!=0:
-            b=a+PI/6;box('Low garden rail',ivory,(2.26,.1,.1),(math.sin(b)*2.08,.98,math.cos(b)*2.08),rot=(0,b+PI/2,0))
-        curve('Climbing rose vine',leafcol,[(x,.35,z),(x+.12,1,z+.1),(x-.1,1.8,z+.15),(x,2.7,z)],.04)
-        for k in range(3):
-            y=.7+k*.75;leaf('Rose foliage',leafcol,(x,y,z),(x+.4,y+.12,z+.2),.14)
-            if i%2==0:flower('Garden rose',(x-.1,y+.28,z+.15),.16,rose)
-    roof('Rose pavilion swept canopy',rose,3.32,3,2.12,6)
-    cylinder('Pavilion gold finial','#cba65d',0,.14,.55,(0,5.38,0),10,bevel=0)
-    ring('Eaves bead',ivory,(0,3.0,0),3.2,.06)
+        cylinder('Substantial cream pavilion column',ivory,.2,.24,2.65,(x,1.68,z),8)
+        cylinder('Column stone foot',ivory,.32,.35,.23,(x,.49,z),8)
+        cylinder('Column carved capital',ivory,.35,.26,.24,(x,2.93,z),8)
+        # Two adjacent front bays remain open; substantial rose groups frame
+        # only three corners rather than fine noise around every column.
+        if i not in [0,5]:
+            b=a+PI/6;box('Low cream garden rail',ivory,(2.2,.16,.18),(math.sin(b)*2.08,1.04,math.cos(b)*2.08),rot=(0,b+PI/2,0))
+        if i in [1,3,5]:
+            tapered_curve('Broad climbing rose vine',leafcol,[(x,.4,z),(x+.2,1.3,z+.16),(x-.2,2.1,z+.18),(x,3.16,z)],[.11,.1,.08,.06])
+            for k in range(3):
+                y=1.1+k*.72;rock('Grouped rose foliage',leafcol,(x-.15,y,z+.13),(.47,.32,.39),k,2)
+                # A camera-facing rose spray remains visible below the eaves;
+                # the world placement itself keeps its authored rotation.
+                forward=Vector((-math.sin(2.32),0,math.cos(2.32)))
+                for dx,dy in [(-.23,0),(.23,.16)]:
+                    at=Vector((x+dx,y+dy,z))+forward*.55
+                    flower('Approach-visible broad rose spray',tuple(at),.36,'#d96b87')
+    # Six pitched panels and structural radial ribs share the same silhouette.
+    verts=[(math.sin(i*PI/3)*3.25,3.12,math.cos(i*PI/3)*3.25) for i in range(6)]+[(0,4.85,0)]
+    mesh('Six pitched rose roof facets',rose,verts,[(i,(i+1)%6,6) for i in range(6)])
+    for i in range(6):
+        a=i*PI/3;b=(i+1)*PI/3;p=(math.sin(a)*3.25,3.16,math.cos(a)*3.25);q=(math.sin(b)*3.25,3.16,math.cos(b)*3.25)
+        beam('Cream radial roof rib',ivory,[p,(p[0]*.5,4.05,p[2]*.5),(0,4.91,0)],.14,.17)
+        beam('Substantial cream eaves',ivory,[p,q],.2,.22)
+    cylinder('Pavilion gold finial','#cba65d',0,.16,.4,(0,5.06,0),10,bevel=0)
     box('Garden bench seat',wood,(1.65,.14,.46),(0,.73,-1.5))
     for x in [-.65,.65]:box('Bench foot',wood,(.13,.55,.4),(x,.38,-1.5))
 
@@ -201,72 +269,206 @@ def farm_well():
         for i in range(5):a=i*2*PI/5;curve('Hay binding','#94713d',[(x+math.sin(a)*r,.1,z+math.cos(a)*r),(x+math.sin(a)*r*.82,1.05*r,z+math.cos(a)*r*.82),(x,2.02*r,z)],.018)
 
 def bell_tower():
-    wood='#795b3e';stone='#aaa793';red='#a45542';brass='#c6a15b'
-    box('Bell tower stone foundation',stone,(2.55,.9,2.55),(0,.45,0),bevel=.1)
+    wood='#755033';stone='#a49f8b';red='#a7483d';brass='#c59143'
+    box('Frontier bell stone footing',stone,(2.55,.45,2.55),(0,.22,0),bevel=.1)
     for x in [-1,1]:
-        for z in [-1,1]:box('Bell frame post',wood,(.24,5.1,.24),(x,3.42,z))
-    for y in [1.45,4.25,5.96]:
-        for s in [-1,1]:box('Bell frame collar',wood,(2.34,.16,.2),(0,y,s));box('Bell frame collar',wood,(.2,.16,2.34),(s,y,0))
-    for s in [-1,1]:beam('Bell frame diagonal',wood,[(s*.9,1.45,1),(-s*.9,4.25,1)],.13,.13)
-    roof('Bell tower swept roof',red,2.05,6.02,1.65,4)
-    cylinder('Bronze finial',brass,0,.14,.58,(0,7.93,0),10)
-    # Open lathed bell with a visible lip and dark clapper.
-    rings=[(.6,4.55),(.49,4.7),(.35,5.12),(.3,5.5),(.17,5.67)];verts=[];n=24
+        for z in [-1,1]:
+            box('Substantial bell timber upright',wood,(.32,3.9,.32),(x,2.35,z))
+            box('Stone post shoe',stone,(.5,.5,.5),(x,.53,z),bevel=.06)
+    for y in [1.1,4.28]:
+        for side in [-1,1]:
+            box('Bell timber collar',wood,(2.5,.24,.26),(0,y,side));box('Bell timber collar',wood,(.26,.24,2.5),(side,y,0))
+    for side in [-1,1]:
+        for z in [-1,1]:beam('Bell frame knee brace',wood,[(side,3.25,z),(side*.42,4.25,z)],.24,.24)
+        box('Pitched red bell roof',red,(3.55,.15,1.82),(0,4.7,side*.7),rot=(side*.48,0,0),bevel=.04)
+    box('Bell roof ridge',wood,(3.65,.18,.2),(0,5.11,0))
+    n=20;rings=[(1.0,2.55),(.83,2.73),(.53,3.19),(.36,3.62),(.3,3.9)];verts=[]
     for r,y in rings:
         for i in range(n):a=i*2*PI/n;verts.append((math.sin(a)*r,y,math.cos(a)*r))
     faces=[]
     for k in range(4):
         for i in range(n):a=k*n+i;b=k*n+(i+1)%n;faces.append((a,b,b+n,a+n))
-    obj=mesh('Cast bronze open bell',brass,verts,faces);mod=obj.modifiers.new('Bell wall','SOLIDIFY');mod.thickness=.045
-    ring('Bell rolled lip',brass,(0,4.55,0),.6,.06);sphere('Bell clapper','#5b4c37',(0,4.46,0),r=.1)
-    box('Bell hanging crossbar',wood,(.2,.18,1.96),(0,5.87,0))
+    obj=mesh('Large flared bronze frontier bell',brass,verts,faces);mod=obj.modifiers.new('Cast bell wall','SOLIDIFY');mod.thickness=.08
+    ring('Broad bronze bell lip',brass,(0,2.57,0),.99,.085)
+    cylinder('Bell crown hanger',wood,.11,.11,.45,(0,4.02,0),8)
+    tapered_curve('Bell clapper stem','#3f3831',[(0,3.6,0),(0,2.8,0),(0,2.41,0)],[.055,.06,.07])
+    sphere('Heavy bronze clapper',brass,(0,2.4,0),r=.18,segments=12,rings=6)
+    curve('Bell ringing rope','#d6bc80',[(.16,3.7,.4),(.33,2.7,.6),(.42,.63,.72)],.055)
 
 def elder_mosstree():
-    bark='#70533b';moss='#4d7044';green='#557d46'
-    curve('Gnarled elder trunk',bark,[(0,-.2,0),(-.2,1.4,.1),(.18,3.3,0),(-.12,5.8,-.1)],.82)
-    for i,(x,z)in enumerate([(2.9,1.2),(-2.6,1.8),(.6,-3),(-1.8,-1.8)]):
-        curve('Elder buttress root',bark,[(0,1.4,0),(x*.5,.3,z*.5),(x,.03,z)],.32)
-        curve('Root moss ridge',moss,[(0,1.5,.12),(x*.5,.6,z*.5),(x,.3,z)],.065)
-    for i in range(6):
-        a=i*PI/3;tip=(math.sin(a)*3.2,6.3+(i%2)*.45,math.cos(a)*3.2)
-        curve('Elder crown branch',bark,[(0,3.1,0),(tip[0]*.46,4.8,tip[2]*.46),tip],.23)
-        for j in range(2):
-            sphere('Layered elder crown',green if j==0 else '#6e914d',(tip[0]*.8,tip[1]+j*.6,tip[2]*.8),(1.6,.56,1.35),r=1.25)
-    sphere('Elder central crown','#6e914d',(0,7.3,0),(1.7,.62,1.6),r=1.2)
-    for i in range(4):
-        a=i*PI/2;x=math.sin(a)*2.2;z=math.cos(a)*2.2;curve('Trailing elder moss','#7c9657',[(x,6.1,z),(x+.14,5.3,z),(x,4.35,z+.2)],.045)
-    for x,z in [(-.8,.65),(.55,.8)]:cylinder('Trunk shelf fungus','#c09168',0,.34,.16,(x,1.25,z),10)
+    bark='#79583d';shade='#513c2e';moss='#698b49'
+    # Restore the original ancient-tree scale: broad 2.3-unit trunk, a crown
+    # around 14 units high, and substantial buttresses spreading 5 units.
+    n=18;verts=[]
+    for y,r,cx,cz in [(-.2,2.38,0,0),(1.1,2.22,-.17,-.08),(2.8,2.0,.12,-.16),(4.7,1.81,-.24,-.15),(6.8,1.46,.08,-.23),(8.8,1.12,.38,-.12),(9.65,.83,.33,-.15)]:
+        for i in range(n):
+            a=i*2*PI/n;rr=r*(1+.075*math.sin(i*2.1+y*.55))
+            verts.append((cx+math.sin(a)*rr,y,cz+math.cos(a)*rr))
+    faces=[]
+    for k in range(6):
+        for i in range(n):
+            if k<2 and (i<2 or i>=16):continue
+            a=k*n+i;b=k*n+(i+1)%n;faces.append((a,b,b+n,a+n))
+    obj=mesh('Vast asymmetric ancient hollow trunk',bark,verts,faces)
+    obj.data.materials.append(material(shade))
+    for f in obj.data.polygons:f.material_index=1 if f.index%9==0 else 0
+    sphere('Deep ancient-tree hollow',shade,(0,1.32,.92),(1.04,1.47,.6),segments=12,rings=6)
+    for side in [-1,1]:
+        tapered_curve('Massive hollow jamb',bark,[(side*1.27,-.1,1.93),(side*1.17,1.65,1.81),(side*.79,2.85,1.6),(.05,3.3,1.42)],[.63,.54,.44,.42])
+    for i,(angle,length) in enumerate([(.3,5.35),(1.22,4.75),(2.02,5.0),(2.99,5.5),(3.82,4.85),(4.7,5.25),(5.52,5.1)]):
+        u=Vector((math.sin(angle),0,math.cos(angle)));side=Vector((math.cos(angle),0,-math.sin(angle)))
+        profile=[(1.27,2.75,.7),(2.32,1.4,.67),(3.65,.58,.48),(length,.025,.13)]
+        vs=[]
+        for d,y,w in profile:
+            for sign,top in [(-1,False),(-1,True),(1,True),(1,False)]:
+                vs.append(tuple(u*d+side*(sign*w)+Vector((0,y if top else -.04,0))))
+        fs=[(3,2,1,0)]
+        for k in range(3):
+            for j in range(4):a=k*4+j;b=k*4+(j+1)%4;fs.append((a,b,b+4,a+4))
+        fs.append((12,13,14,15));root=mesh('Broad grounded buttress root '+str(i),bark,vs,fs,bevel=.07)
+        root.data.materials.append(material(shade))
+        for f in root.data.polygons:f.material_index=1 if f.index%4==0 else 0
+        tapered_curve('Buttress rounded spine',bark,[tuple(u*1.33+Vector((0,2.66,0))),tuple(u*2.35+Vector((0,1.5,0))),tuple(u*3.8+Vector((0,.63,0))),tuple(u*length+Vector((0,.08,0)))],[.43,.34,.19,.035])
+        if i in [1,3,5]:tapered_curve('Broad root moss mantle',moss,[tuple(u*1.48+Vector((0,2.37,0))),tuple(u*2.7+Vector((0,1.15,0))),tuple(u*4.0+Vector((0,.42,0)))],[.22,.2,.05])
+    branches=[(-3.45,10.27,-.55),(3.4,10.63,-.74),(-1.67,11.9,-2.9),(1.73,11.88,1.01)]
+    for i,(x,y,z) in enumerate(branches):
+        tapered_curve('Ancient massive crown fork '+str(i),bark,[(.03,6.55,-.15),(x*.44,8.9,z*.45),(x,y,z)],[.91,.6,.19])
+    # Exact accepted forest leaf atlas, packed in the editable Blender source.
+    # The compact GLB uses authored UVs and a named surface; runtime borrows
+    # the existing game's cached atlas, without a second texture load.
+    image=bpy.data.images.load(os.path.join(SOURCE,'textures/elder-accepted-leaf.png'),check_existing=True);image.pack()
+    foliage=bpy.data.materials.new('Foliage_accepted_leaf_atlas');foliage.use_nodes=True
+    node=foliage.node_tree.nodes.get('Principled BSDF');node.inputs['Roughness'].default_value=.95
+    texture=foliage.node_tree.nodes.new('ShaderNodeTexImage');texture.image=image
+    paint=foliage.node_tree.nodes.new('ShaderNodeVertexColor');paint.layer_name='AcceptedFoliageColor'
+    foliage.node_tree.links.new(paint.outputs['Color'],node.inputs['Base Color']);foliage.node_tree.links.new(texture.outputs['Alpha'],node.inputs['Alpha'])
+    foliage.surface_render_method='DITHERED';foliage.use_transparency_overlap=False
+    clusters=[(-3.9,10.9,-.7,3.9), (3.5,11.2,-1.1,4.0),(-1.75,12.7,-2.45,3.7),(1.7,12.45,.45,3.7),(-4.55,10.05,.68,2.9),(4.38,10.03,.5,3.0),(-.6,11.7,2.4,3.5),(1.3,11.5,-3.4,3.2)]
+    rotation=Euler((0,-.21,0),'XYZ').to_matrix()
+    dark=Vector(tuple(linear(int('#315e45'[i:i+2],16)/255) for i in (1,3,5)))
+    mid=Vector(tuple(linear(int('#649347'[i:i+2],16)/255) for i in (1,3,5)))
+    light=Vector(tuple(linear(int('#a4bf65'[i:i+2],16)/255) for i in (1,3,5)))
+    sun=Vector((-.5,1,.25)).normalized()
+    def tone(height,normal):
+        t=max(0,min(1,(height+.45)/1.3));t=t*t*(3-2*t)
+        lit=max(0,min(1,normal.dot(sun)*.26+t*.5+.1))
+        return dark.lerp(mid,min(1,lit*1.9)).lerp(light,max(0,(lit-.53)*1.9))
+    for ci,(cx,cy,cz,size) in enumerate(clusters):
+        for i in range(8):
+            a=i*2.39996+ci*1.67;spread=math.sqrt(i/8)*size*.45
+            center=Vector((cx+math.cos(a)*spread,cy+math.sin(i*1.7)*.48,cz+math.sin(a)*spread*.72));width=size*(.78+.11*math.sin(i*1.3+ci));height=width*(.9+.08*math.cos(i))
+            normal=rotation@Vector((math.cos(a)*.6,.65,math.sin(a)*.6)).normalized()
+            right=Vector((0,1,0)).cross(normal).normalized();up=normal.cross(right).normalized()
+            roll=math.sin(i*1.9+ci)*.62;oldright=right.copy();right=right*math.cos(roll)+up*math.sin(roll);up=up*math.cos(roll)-oldright*math.sin(roll)
+            vs=[];uvs=[];colors=[];tile=(i+ci)%4
+            for v in range(3):
+                for u in range(3):
+                    x=u-1;y=v-1;vs.append(tuple(center+right*(x*width*.5)+up*(y*height*.5)+normal*(width*.12*(1-x*x)*(1-y*y))))
+                    uvs.append(((tile%2+u/2)/2,(tile//2+v/2)/2))
+                    localheight=(center.y-cy)/size+y*.45+(ci%3)*.1
+                    col=tone(localheight,normal).lerp(tone((center.y-cy)/size,normal),.22)
+                    colors.append((*col,1))
+            fs=[]
+            for v in range(2):
+                for u in range(2):a=v*3+u;fs.append((a,a+1,a+4,a+3))
+            obj=mesh('Editable anime crown spray '+str(ci)+'-'+str(i),'#ffffff',vs,fs);obj.data.materials.clear();obj.data.materials.append(foliage)
+            uv=obj.data.uv_layers.new(name='AcceptedLeafUV');paint=obj.data.color_attributes.new(name='AcceptedFoliageColor',type='FLOAT_COLOR',domain='CORNER')
+            for face in obj.data.polygons:
+                for loop in face.loop_indices:
+                    vi=obj.data.loops[loop].vertex_index
+                    obj.data.uv_layers['AcceptedLeafUV'].data[loop].uv=uvs[vi]
+                    obj.data.color_attributes['AcceptedFoliageColor'].data[loop].color=colors[vi]
+    # One cyan focal point sits in the readable hollow, not scattered sparks.
+    sphere('Cyan ancient heartwood','#65d3c8',(0,1.08,1.89),(.34,.61,.18),glow='#288c8c',segments=12,rings=6)
+    for x,y,z,r in [(-1.73,1.37,1.57,.54),(-1.85,1.92,1.15,.37),(1.92,.82,1.31,.47)]:sphere('Ancient broad shelf fungus','#ccaa70',(x,y,z),(1,.2,.76),r=r,segments=12,rings=4)
+
 
 def bramble_arch():
-    bark='#664d37';leafcol='#45623c';berry='#a95f69'
-    for s in [-1,1]:curve('Twisted bramble arch',bark,[(s*2.6,-.2,0),(s*2.5,1.7,.14),(s*1.7,3.5,.1),(0,4.24,.08)],.32)
-    for i in range(13):
-        a=i*PI/12;x=-math.cos(a)*2.6;y=math.sin(a)*4.1
-        for s in [-1,1]:leaf('Bramble spear foliage','#5b7d45',(x,y,s*.23),(x+.75*math.cos(a),y+.55,s*.75),.27)
-        if i%3==0:
-            cylinder('Bramble thorn','#ad9674',0,.065,.28,(x,y,.42),6,rot=(PI/2,0,0),bevel=0)
-            sphere('Bramble berry',berry,(x,y+.15,.28),r=.11)
-    for s in [-1,1]:curve('Bramble root',bark,[(s*2.6,.5,0),(s*3.1,.15,.6),(s*3.35,0,.9)],.12)
+    bark='#5d3d2d';leafcol='#315b37'
+    for side in [-1,1]:
+        tapered_curve('Wild twisting bramble bough',bark,[(side*2.6,-.1,0),(side*2.53,1.42,.23),(side*2.1,2.92,-.1),(side*1.2,3.65,.16),(0,4.06,.03)],[.53,.43,.35,.29,.18])
+        tapered_curve('Bramble wrapping branch','#805b37',[(side*2.85,.2,.3),(side*2.33,1.67,.36),(side*2.1,2.8,.17),(side*.7,3.97,.35)],[.28,.22,.17,.1])
+        for i in range(3):tapered_curve('Grounded bramble toe',bark,[(side*2.6,.66,0),(side*(2.8+i*.18),.23,.55),(side*(3+i*.2),.04,.85+i*.14)],[.22,.15,.03])
+    for i in range(11):
+        a=i*PI/10;x=-math.cos(a)*2.6;y=math.sin(a)*3.9
+        rock('Broad wild bramble foliage',leafcol if i%2 else '#5b853f',(x,y+.2,.03),(.62,.45,.52),a,2)
+        if i in [1,3,7,9]:
+            tapered_curve('Large silhouette thorn','#b49b6c',[(x,y,.32),(x+(-.36 if x<0 else .36),y+.45,.46)],[.16,.005])
+            for dx,dz in [(-.15,.24),(.17,.32)]:sphere('Wild rose hip','#b55860',(x+dx,y+.12,dz),r=.16,segments=8,rings=4)
+
+def luminous_shard(name,bottom,shoulder,tip,radius,turn=0):
+    # Fresh double-ended diamond topology restores the original crystal identity.
+    # Broad sloped facets run from the waist to the tip; no cylindrical shaft.
+    verts=[bottom]
+    for i in range(4):
+        a=turn+i*PI/2;verts.append((shoulder[0]+math.sin(a)*radius,shoulder[1],shoulder[2]+math.cos(a)*radius))
+    verts.append(tip)
+    faces=[(0,1+(i+1)%4,1+i) for i in range(4)]+[(1+i,1+(i+1)%4,5) for i in range(4)]
+    obj=mesh(name,'#7ee3ee',verts,faces,glow='#51cbdc')
+    obj.data.materials.append(material('#acf5f5','#60d7de'));obj.data.materials.append(material('#398eb6','#165771'))
+    for mat in list(obj.data.materials)[:2]:
+        mat.node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value=1;mat['landmarkEmission']=1
+    for i,f in enumerate(obj.data.polygons):f.material_index=[0,1,2,0,1,0,2,0][i]
+    if name=='Dominant luminous diamond heart':
+        # Broad inset luminous facets form the heart, surrounded by the blue
+        # crystal shell. They are geometry, not a light or a bloom dependency.
+        for i in range(4):
+            a=Vector(verts[1+i]);b=Vector(verts[1+(i+1)%4]);t=Vector(tip);center=(a+b+t)/3
+            normal=(b-a).cross(t-a).normalized()
+            pts=[tuple(center+(p-center)*.72+normal*.012) for p in [a,b,t]]
+            core=mesh('Broad luminous crystal heart facet '+str(i),'#91f9ef',pts,[(0,1,2)],glow='#5cddd5')
+            core.data.materials[0].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value=1
+            core.data.materials[0]['landmarkEmission']=1
+    return obj
 
 def glimmer_spire():
-    dark='#5c596b';stone='#928ba1';blue='#74afb6';light='#b8d7d7'
-    cylinder('Crystal bedrock',stone,.95,1.35,.45,(0,.22,0),7,rot=(0,.25,0))
-    for x,z,h,r,rot in [(0,0,5.5,.95,.12),(2.1,1,1.7,.38,-.24),(-1.9,1.4,2.2,.46,.25)]:
-        cylinder('Glimmer crystal shaft',blue,r*.78,r,h*.7,(x,h*.35+.2,z),6,rot=(0,.25,rot),bevel=0)
-        cylinder('Glimmer crystal point',light,0,r*.79,h*.35,(x+math.sin(-rot)*h*.47,h*.875+.18,z),6,rot=(0,.25,rot),bevel=0)
-        ring('Crystal grounding seam',dark,(x,.18,z),r*.9,.045)
-    curve('Inlaid spire rune',light,[(-.14,1.2,.89),(.2,1.7,.86),(-.15,2.2,.82),(.17,2.7,.8)],.028)
+    stone='#8c958a';moss='#658953'
+    rock('Wetland crystal stone mound',stone,(0,.25,0),(1.86,.7,1.73),.4,2)
+    rock('Moss-covered crystal socket',moss,(.3,.52,.1),(1.52,.38,1.39),.9,2)
+    # Author the cluster around a dominant double-ended heart crystal. Branches
+    # rise from the same socket; they no longer slash across it like long swords.
+    inv=Euler((0,-1.61,0),'XYZ').to_matrix()
+    def local(p):return tuple(inv@Vector(p))
+    luminous_shard('Dominant luminous diamond heart',local((0,.53,0)),local((-.03,3.29,0)),local((.16,6.62,-.09)),.92,.45)
+    for i,(base,middle,tip,radius) in enumerate([
+        ((-.55,.55,.05),(-1.03,1.9,.1),(-2.14,4.2,.15),.5),
+        ((.48,.51,-.1),(1.04,2.12,-.12),(2.0,4.75,-.05),.48),
+        ((.24,.62,-.62),(.44,1.53,-.91),(.82,3.55,-1.24),.34),
+        ((-.23,.57,.61),(-.48,1.46,.81),(-.89,2.94,1.1),.36)]):
+        luminous_shard('Unequal rising luminous cluster branch '+str(i),local(base),local(middle),local(tip),radius,.24+i*.38)
+    for i,(x,z) in enumerate([(2.1,1),(-1.9,1.4),(.6,-2.2)]):
+        rock('Satellite crystal grounding stone',stone,(x,.16,z),(.55,.32,.5),i,2)
+        luminous_shard('Small wetland satellite diamond '+str(i),(x,.22,z),(x,.85,z),(x+.12,1.53,z+.08),.26,i*.5)
+    for i in range(4):
+        a=i*PI/2+PI/4;x=math.sin(a)*2.6;z=math.cos(a)*2.6
+        box('Weathered crystal ward stone','#afb9aa',(.4,.82,.28),(x,.34,z),rot=(0,a,.04),bevel=.07)
+        for side in [-1,1]:
+            px=x+math.sin(a)*side*.155;pz=z+math.cos(a)*side*.155
+            box('Broad cyan ward inlay','#99e1eb',(.14,.36,.025),(px,.48,pz),rot=(0,a,0),bevel=.015)
+
 
 def sea_arch():
-    stone='#b7af98';shade='#8e998c'
-    pts=[]
-    for i in range(13):a=i*PI/12;pts.append((-math.cos(a)*3.3,math.sin(a)*4.55-.3,0))
-    obj=curve('Weathered coastal arch',stone,pts,1.05)
-    for i,p in enumerate(obj.data.splines[0].bezier_points):p.radius=[1.0,.98,.9,1.04,1.02,.88,1.02,1.09,.96,1.0,.88,1.04,1][i];p.tilt=.17*math.sin(i)
-    for s in [-1,1]:sphere('Coastal arch foot',shade,(s*3.3,.2,0),(1.1,.6,1),r=1.2)
-    for i in [1,3,6,9,11]:
-        x,y,z=pts[i];curve('Coastal strata seam',shade,[(x-.15,y-.12,.99),(x+.03,y+.08,1.03),(x+.2,y+.12,.97)],.045)
-    for x,z in [(-3.5,.6),(3.1,-.5)]:leaf('Arch sea grass','#658568',(x,.4,z),(x+.4,1.25,z+.2),.22)
+    # Uneven polygonal cross-sections form one eroded coastal rock window.
+    # Broad strata faces replace the rejected uniformly round stone tube.
+    n=13;m=8;verts=[]
+    for i in range(n):
+        a=i*PI/(n-1);x=-math.cos(a)*3.3;y=math.sin(a)*4.45-.24
+        normal=Vector((-math.cos(a),math.sin(a),0));width=1.02+.14*math.sin(i*1.9)
+        for j in range(m):
+            b=j*2*PI/m;at=Vector((x,y,0))+normal*(math.cos(b)*width)+Vector((0,0,math.sin(b)*(1.03+.12*math.sin(i))))
+            verts.append(tuple(at))
+    faces=[tuple(reversed(range(m)))];indices=[1]
+    for k in range(n-1):
+        for j in range(m):a=k*m+j;b=k*m+(j+1)%m;faces.append((a,b,b+m,a+m));indices.append(1 if j in [3,4,5] else 2 if k%4==0 else 0)
+    faces.append(tuple(range((n-1)*m,n*m)));indices.append(1)
+    obj=mesh('Eroded asymmetric coastal stone window','#c7b58d',verts,faces)
+    for col in ['#8c9486','#aa9777']:obj.data.materials.append(material(col))
+    for f,index in zip(obj.data.polygons,indices):f.material_index=index
+    for side in [-1,1]:
+        rock('Coastal weathered rock footing','#8c9486',(side*3.3,.18,0),(1.32,.64,1.3),side*.4,2)
+        rock('Broken coastal strata slab','#c7b58d',(side*3.61,.8,.7),(.78,.63,.46),side*.6)
+    for x,z in [(-3.7,.65),(3.6,.7)]:
+        for i in range(3):leaf('Broad coastal sea grass','#4d8065',(x,.4,z),(x+(i-1)*.3,1.28-i*.15,z+.18),.2)
 
 def sundial():
     stone='#c8bea3';edge='#969785';brass='#bc9750'
@@ -280,86 +482,126 @@ def sundial():
     sphere('Gnomon sun ornament','#dbc077',(0,2.2,-.75),r=.15)
 
 def crag_beacon():
-    stone='#a49d8b';dark='#787e76';iron='#45494d'
-    for k in range(6):
-        r=1.63-k*.155;cylinder('Beacon masonry course',stone if k%2==0 else dark,r*.93,r,.7,(0,.35+k*.7,0),10,rot=(0,k*.17,0),bevel=.07)
-    cylinder('Beacon iron fire bowl',iron,.84,.46,.6,(0,4.53,0),16)
-    for i in range(5):
-        a=i*2*PI/5;x=math.sin(a)*.32;z=math.cos(a)*.32
-        obj=curve('Sculpted amber flame','#dc903f',[(x,4.65,z),(x*.7,5.2,z+.04),(x+.16,5.65+(i%2)*.22,z)],.15,'#c17725')
-        for p,r in zip(obj.data.splines[0].bezier_points,[1,.8,.02]):p.radius=r
-    obj=curve('Beacon flame core','#f5ce78',[(0,4.7,0),(-.1,5.4,.05),(.06,5.96,0)],.19,'#dfa350')
-    for p,r in zip(obj.data.splines[0].bezier_points,[1,.8,.02]):p.radius=r
-    cylinder('Beacon pennant mast','#74573b',.045,.06,2.8,(1.4,1.4,.7),8,bevel=0)
-    mesh('Blue forked beacon pennant','#497488',[(1.4,2.7,.7),(1.4,2.63,1.55),(1.4,2.38,1.3),(1.4,2.13,1.55),(1.4,2.12,.7)],[(0,1,2,3,4)])
+    for i,(x,y,z,rx,ry,rz) in enumerate([(0,.65,0,1.65,.82,1.45),(-.12,1.66,.02,1.3,.83,1.15),(.12,2.57,-.06,1,.8,.94)]):
+        rock('Rugged beacon crag course '+str(i),['#767d77','#a49f88','#8d9485'][i%3],(x,y,z),(rx,ry,rz),i*.37,2)
+    iron='#424951';cylinder('Broad iron beacon brazier',iron,1.17,.74,.56,(0,3.28,0),12)
+    ring('Iron brazier rim',iron,(0,3.59,0),1.15,.13)
+    # Sculpted static tongues have broad planes, tapering tips and a warm core.
+    # No new particles, lights, postprocessing or per-frame animation.
+    for i,(x,z,h,r,lean,col,glow) in enumerate([(0,0,2.0,.72,(.4,-.1),'#e46e31','#b34a20'),(-.48,.08,1.34,.4,(-.28,.04),'#e46e31','#b34a20'),(.52,-.15,1.55,.37,(.24,.1),'#e46e31','#b34a20'),(0,.4,1.13,.39,(.17,.04),'#efc258','#c79137')]):
+        obj=tapered_curve('Broad swept flame tongue '+str(i),col,[(x,3.53,z),(x*.8,3.53+h*.43,z),(x+lean[0],3.53+h,z+lean[1])],[r,r*.75,.008],glow)
+        obj.data.bevel_resolution=0
+
+def solid_crescent(name,col,at,r=1,depth=.16,glow=None):
+    # An extruded, tapering lunar sculpture. The offset inner arc forms the
+    # silhouette; it is not a circular tube with the ends chopped off.
+    d=.38*r;inner=.85*r;x=(r*r-inner*inner+d*d)/(2*d);y=math.sqrt(r*r-x*x)
+    outer_angle=math.atan2(y,x);inner_angle=math.atan2(y,x-d);outline=[]
+    for i in range(25):
+        a=outer_angle+i/24*(2*PI-2*outer_angle);outline.append((math.cos(a)*r,math.sin(a)*r))
+    for i in range(1,24):
+        a=-inner_angle-i/24*(2*PI-2*inner_angle);outline.append((d+math.cos(a)*inner,math.sin(a)*inner))
+    n=len(outline);verts=[(at[0]+x,at[1]+y,at[2]+z) for z in [-depth/2,depth/2] for x,y in outline]
+    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    return mesh(name,col,verts,faces,glow=glow)
 
 def moonstone():
-    stone='#bccbd1';light='#d6e1dc';ink='#526f7d'
-    cylinder('Moonstone bedrock','#939b99',1.03,1.13,.23,(0,.11,0),12)
-    cylinder('Moonstone monolith',stone,.47,.72,3.25,(0,1.82,0),7,rot=(0,.18,-.04),bevel=.07)
-    cylinder('Moonstone broken crest',light,0,.47,.62,(.07,3.72,0),7,rot=(0,.18,-.04),bevel=.025)
-    for s in [-1,1]:crescent('Moonstone crescent inlay','#7faec4',(0,2.56,s*.61),.35,.055,PI,'#4c7387')
-    for s in [-1,1]:curve('Monolith narrow incision',ink,[(s*.16,.65,.7),(s*.16,1.15,.67)],.025)
-    for i in [0,2,4]:
-        a=i*PI/3;x=math.sin(a)*.85;z=math.cos(a)*.85
-        cylinder('Moonstone votive','#d5cba8',.055,.06,.18,(x,.32,z),8,bevel=0)
-        sphere('Votive flame','#e8c779',(x,.45,z),(.5,1,.5),r=.055)
+    rock('Moonstone weathered foundation','#727f83',(0,.18,0),(1.12,.37,1.04),.5,2)
+    outline=[(-.76,.2),(.72,.2),(.65,2.93),(.17,3.67),(-.14,3.42),(-.48,3.85),(-.74,2.91)]
+    n=len(outline);verts=[(x,y,z) for z in [-.42,.42] for x,y in outline]
+    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    obj=mesh('Broken lunar ritual tablet','#a8c1c5',verts,faces,bevel=.06);obj.data.materials.append(material('#627c8b'))
+    for f in obj.data.polygons:f.material_index=1 if f.index>1 else 0
+    for side in [-1,1]:
+        solid_crescent('Broad moonstone lunar inlay','#58bacb',(0,2.45,side*.49),.56,.025,glow='#3d8297')
+        mesh('Standing stone lower incised chevron','#627c8b',[(-.28,.63,side*.49),(0,.46,side*.5),(.28,.63,side*.49),(0,.79,side*.5)],[(0,1,2,3)])
+    for x,z in [(-.8,.74),(.8,.73)]:
+        cylinder('Moonstone votive basin','#bdc9c3',.22,.14,.19,(x,.24,z),8)
+        sphere('Quiet lunar votive','#7ed4dc',(x,.4,z),(.7,1,.7),r=.13,glow='#418997',segments=8,rings=4)
 
 def moon_altar():
-    stone='#c3c5cf';shadow='#888e9f';silver='#d6e1e7'
-    cylinder('Altar foundation',shadow,1.6,1.76,.3,(0,.15,0),16)
-    cylinder('Altar second tier',stone,1.3,1.42,.22,(0,.41,0),16)
-    ring('Altar engraved circular band',silver,(0,.54,0),1.11,.035)
-    box('Crescent plinth',stone,(.6,.66,.58),(0,.88,0),bevel=.06)
-    crescent('Carved rising crescent',silver,(0,2.31,0),.98,.2,PI,'#59647e')
-    sphere('Moon altar floating pearl','#d5e6ee',(-.22,2.3,.05),r=.23,glow='#7c9faf')
-    for s in [-1,1]:box('Altar front step',shadow,(.78,.1,.4),(s*.55,.05,1.8),rot=(0,s*.22,0))
+    shadow='#707d95';stone='#adbaca';silver='#d2dedb'
+    cylinder('Lunar ritual lower dais',shadow,1.6,1.76,.25,(0,.125,0),12)
+    cylinder('Lunar ritual second step',stone,1.35,1.45,.2,(0,.35,0),12)
+    cylinder('Lunar ritual upper platform',shadow,1.1,1.21,.16,(0,.53,0),12)
+    ring('Ritual engraved chapter circle','#62aabe',(0,.625,0),.96,.055)
+    for i in range(6):
+        a=i*PI/3;box('Broad altar chapter mark',silver,(.12,.055,.32),(math.sin(a)*1.13,.61,math.cos(a)*1.13),rot=(0,a,0),bevel=0)
+    box('Moon sculpture stone plinth',stone,(.62,.58,.63),(-.35,.85,0),bevel=.06)
+    solid_crescent('Solid tapering rising moon',silver,(-.1,2.15,0),1.16,.24)
+    sphere('Suspended lunar pearl','#80d4e0',(.38,2.16,.02),r=.29,glow='#458a9f',segments=16,rings=8)
+    for side in [-1,1]:box('Lunar approach step',stone,(.78,.1,.4),(side*.55,.05,1.8),rot=(0,side*.22,0))
 
 def fiddlehead_ferns():
-    stem='#527d46';young='#89ad5b';green='#668f4b'
-    for x,z,h in [(0,0,4.25),(1.7,.8,3.15),(-1.5,1.1,3.55)]:
-        pts=[(x,0,z),(x-.15,h*.4,z),(x+.05,h*.8,z)]
-        for i in range(25):
-            a=i/24*PI*2.7;r=.69*(1-i/28);pts.append((x+.69+math.sin(a)*r,h+math.cos(a)*r,z))
-        curve('Unfurling fern crozier',stem,pts[:7],.13)
-        curve('Young curl crown',young,pts[6:],.14)
-        for i in range(7):y=.5+i*h*.085;leaf('Crozier young leaflet',young,(x,y,z),(x+(-1 if i%2 else 1)*.27,y+.08,z+.16),.07)
-    for i in range(7):
-        a=i*2*PI/7;length=2.4;x=math.sin(a)*length;z=math.cos(a)*length
-        curve('Fern mature frond stem',stem,[(0,.12,0),(x*.5,.7,z*.5),(x,.5,z)],.035)
-        for k in range(6):
-            t=.2+k*.12;w=.85*(1-t*.5)
-            for s in [-1,1]:leaf('Pointed fern pinna',green,(x*t,.3+.4*math.sin(t*PI),z*t),(x*t+math.cos(a)*s*w,.5+.4*math.sin(t*PI),z*t-math.sin(a)*s*w),.19)
+    stem='#2c543d';young='#a5c76c';green='#4f8c45'
+    for i,(x,z,h,angle) in enumerate([(0,0,3.55,-1.78),(1.7,.8,2.25,-1.35),(-1.5,1.1,2.8,-2.15)]):
+        # Curl plane counter-rotates against world placement, with alternating
+        # angles so the open heads survive the approach and side views.
+        u=Vector((math.cos(angle),0,-math.sin(angle)));base=Vector((x,0,z));radius=.72 if i==0 else .58
+        neck=[tuple(base),tuple(base+u*.1+Vector((0,h*.42,0))),tuple(base+Vector((0,h-.7,0)))]
+        tapered_curve('Stout dark crozier stalk '+str(i),stem,neck,[.26,.24,.22])
+        center=base+u*radius+Vector((0,h-.7,0));pts=[]
+        for k in range(28):
+            t=k/27;a=PI-t*PI*1.72;r=radius*(1-t*.75)
+            pts.append(tuple(center+u*(math.cos(a)*r)+Vector((0,math.sin(a)*r,0))))
+        tapered_curve('Large open light fiddlehead '+str(i),young,pts,[.22-(k/27)*.07 for k in range(28)]).data.resolution_u=2
+        for j in range(3):
+            y=.6+j*.49;side=-1 if j%2 else 1
+            leaf('Grouped young crozier frond',green,tuple(base+Vector((0,y,0))),tuple(base+u*(side*.73)+Vector((0,y+.25,.18))),.28)
+    for i in range(6):
+        a=i*PI/3;u=Vector((math.sin(a),0,math.cos(a)));side=Vector((math.cos(a),0,-math.sin(a)));length=2.65
+        tapered_curve('Mature dark fern rachis',stem,[(0,.1,0),tuple(u*1.25+Vector((0,1.0,0))),tuple(u*length+Vector((0,.5,0)))],[.1,.085,.028])
+        for k in range(4):
+            t=.28+k*.16;at=u*(length*t)+Vector((0,.35+.56*math.sin(t*PI),0));w=.84*(1-t*.55)
+            for s in [-1,1]:leaf('Broad overlapping mature pinnae',green if i%2 else '#73a553',tuple(at),tuple(at+side*(s*w)+u*.25+Vector((0,.17,0))),.29)
+        leaf('Broad fern terminal leaflet',young,tuple(u*2.13+Vector((0,.74,0))),tuple(u*2.9+Vector((0,.57,0))),.3)
 
 def moon_mirror():
-    stone='#b7b8c7';dark='#747d90';glass='#91b9c9';silver='#d4dee1'
-    box('Moon mirror low foundation',dark,(1.75,.28,.83),(0,.14,0),bevel=.06)
-    box('Moon mirror pedestal',stone,(1.15,.43,.55),(0,.5,0),bevel=.04)
-    ring('Moon mirror carved surround',stone,(0,2.06,0),1.24,.135,'vertical')
-    cylinder('Opaque moon glass',glass,1.09,1.09,.06,(0,2.06,0),40,rot=(PI/2,0,0),bevel=0)
-    for s in [-1,1]:
-        cylinder('Mirror slender support',stone,.11,.14,1.56,(s*1.16,1.1,0),12)
-        leaf('Carved lunar moth upper wing',silver,(0,3.22,.04),(s*.9,3.78,.04),.25)
-        leaf('Carved lunar moth lower wing',silver,(0,3.22,.03),(s*.64,3.12,.03),.18)
-    for s in [-1,1]:curve('Mirror diagonal glint','#d2e6e8',[(-.59,1.42,s*.052),(-.12,2.17,s*.052),(.4,2.9,s*.052)],.035)
-    sphere('Moth body',dark,(0,3.37,.04),(.6,1.7,.5),r=.1)
+    stone='#8f9cae';silver='#ccd8d6';dark='#4e5974'
+    box('Moth mirror foundation',dark,(1.75,.28,.9),(0,.14,0),bevel=.08)
+    box('Moth mirror carved pedestal',stone,(1.15,.45,.6),(0,.51,0),bevel=.06)
+    ring('Substantial lunar mirror bezel',silver,(0,1.87,0),1.17,.18,'vertical')
+    cylinder('Deep lunar glass',dark,1.07,1.07,.09,(0,1.87,0),24,rot=(PI/2,0,0),bevel=0)
+    for side in [-1,1]:
+        # Static colored reflection planes are deliberately inexpensive.
+        z=side*.063
+        mesh('Blue reflected sky facet','#64a8bc',[(-.91,1.5,z),(-.7,2.4,z),(.2,2.9,z),(.83,2.4,z),(.37,1.96,z)],[(0,1,2,3,4)])
+        mesh('Pale reflected moon facet','#a6d3dc',[(-.91,1.5,z),(.37,1.96,z),(.83,2.4,z),(.91,1.6,z),(.18,.86,z),(-.58,1.02,z)],[(0,1,2,3,4,5)])
+        curve('Mirror broad lunar glint',silver,[(-.55,1.23,z*1.25),(-.18,1.9,z*1.25),(.29,2.5,z*1.25)],.065)
+    for side in [-1,1]:
+        cylinder('Moth mirror side support',stone,.15,.21,1.65,(side*1.09,1.13,0),8)
+        outline=[(0,3.04),(.35,3.73),(1.24,3.54),(1.56,3.09),(.95,2.93),(.39,3.22)]
+        n=len(outline);verts=[(side*x,y,z) for z in [-.13,.13] for x,y in outline]
+        faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+        mesh('Broad carved lunar moth wing',silver,verts,faces)
+        for z in [-.15,.15]:mesh('Blue moth wing inset','#64a8bc',[(side*.35,3.35,z),(side*.54,3.56,z),(side*1.11,3.39,z),(side*.83,3.13,z)],[(0,1,2,3)])
+    sphere('Lunar moth thorax',dark,(0,3.2,0),(.7,1.65,.6),r=.19,segments=12,rings=6)
+    for side in [-1,1]:curve('Moth curved antenna',stone,[(0,3.39,0),(side*.23,3.75,0),(side*.44,3.68,0)],.055)
 
 def root_arch():
-    bark='#78553a';dark='#4d3d2e';moss='#657d45'
-    for radius,h,z,r in [(3.4,4.3,0,.69),(2.75,3.35,.75,.31)]:
-        pts=[(-math.cos(i*PI/16)*radius,math.sin(i*PI/16)*h-.25,z+.19*math.sin(i*PI/5)) for i in range(17)]
-        curve('Gnarled moonroot arch',bark if r>.5 else dark,pts,r)
-        curve('Root arch longitudinal grain',dark,[(x,y+.2,zz+.55) for x,y,zz in pts],.045)
-    for s in [-1,1]:
-        for i in range(3):curve('Moonroot spreading toe',dark,[(s*3.4,.55,0),(s*(3.7+i*.18),.22,.3+i*.25),(s*(4+i*.28),0,.7+i*.4)],.12)
+    bark='#775036';dark='#49352c';moss='#42664a'
+    tapered_curve('Ancient sweeping root gateway',bark,[(-3.4,-.1,0),(-3.35,1.63,.2),(-2.21,3.36,-.15),(-.75,4.03,.04),(1.27,3.87,-.09),(2.64,2.6,.14),(3.4,.4,0)],[.94,.71,.61,.52,.55,.64,.93])
+    tapered_curve('Root gate ancient upper fork',dark,[(-3.45,1.9,-.24),(-2.85,3.18,-.36),(-1.73,4.21,-.4),(.3,4.41,-.19),(1.84,3.63,-.12)],[.39,.37,.31,.22,.035])
+    for side in [-1,1]:
+        rock('Massive root gate footing',bark,(side*3.4,.63,0),(1.04,1.0,1.02),side*.3,2)
+        for i in range(3):
+            tapered_curve('Grounded moonroot sweeping toe',dark,[(side*3.4,1.17,0),(side*(3.5+i*.16),.31,.5+i*.18),(side*(3.8+i*.25),.04,.95+i*.24)],[.3,.22,.04])
+        tapered_curve('Broad mossed vascular root',moss,[(side*3.38,.8,.72),(side*2.72,2.8,.55),(side*1.29,3.76,.37)],[.18,.15,.03])
     for x,z,r in [(-1.2,2.4,.8),(1.9,-2.1,.7),(-2.4,-2.5,.56)]:
-        sphere('Burrow earth mound','#8c7252',(x,0,z),(1.2,.5,1),r=r)
-        sphere('Burrow recessed mouth',dark,(x,.2,z+r*.76),(.6,.5,.14),r=r*.6)
-    for i in range(7):
-        a=i*PI/6;x=-math.cos(a)*3.4;y=math.sin(a)*4.3+.45;leaf('Root arch moss blade',moss,(x,y,0),(x+.2,y+.3,.3),.16)
-    for x,z in [(-1.7,.8),(1.8,.6),(.5,-1.7)]:
-        cylinder('Moonroot mushroom stalk','#d3c6bb',.04,.05,.23,(x,.12,z),8,bevel=0)
-        sphere('Moonroot mushroom cap','#9978a2',(x,.27,z),(1,.43,1),r=.17)
+        rock('Root warren earth mound','#8f7554',(x,.13,z),(r*1.2,r*.69,r),.3,2)
+        # Recess and rim tilt towards the game camera, rather than burying a
+        # tiny dark disc underneath the mound's front lip.
+        center=Vector((x,.41,z+r*.92));up=Vector((0,.84,-.54));normal=Vector((0,.54,.84));verts=[]
+        for i in range(20):
+            a=i*2*PI/20;verts.append(tuple(center+Vector((math.sin(a)*r*.52,0,0))+up*(math.cos(a)*r*.42)+normal*.04))
+        mesh('Deep readable root warren entrance',dark,verts,[tuple(range(20))])
+        pts=[]
+        for i in range(17):a=-PI/2+i*PI/16;pts.append(tuple(center+Vector((math.sin(a)*r*.57,0,0))+up*(math.cos(a)*r*.51)))
+        tapered_curve('Earthen burrow arch rim','#8f7554',pts,[r*.12]*17)
+    for x,z in [(-3.38,.94),(3.15,.78)]:
+        for i in range(2):
+            cylinder('Lunar mushroom stem','#b5cab5',.06,.075,.38,(x+i*.22,.33,z),8,bevel=0)
+            sphere('Broad lunar mushroom cap','#72bcb0',(x+i*.22,.54,z),(.38,.12,.3),glow='#396b67',segments=12,rings=4)
 
 def cliff_shrine():
     red='#bc4438';ink='#403438';gold='#d6a74f';stone='#b9b8ad'
@@ -398,7 +640,7 @@ def export(kind):
     for obj in list(bpy.data.objects):bpy.data.objects.remove(obj,do_unlink=True)
     bpy.data.orphans_purge(do_recursive=True)
     MATS.clear();BUILDERS[kind]()
-    scene=bpy.context.scene;scene['landmark_kind']=kind;scene['game_axes']='X right / Y up / Z forward';scene['export_notes']='No textures; evaluated meshes joined per material and animation pivot. Core colliders and placement remain authoritative.'
+    scene=bpy.context.scene;scene['landmark_kind']=kind;scene['game_axes']='X right / Y up / Z forward';scene['export_notes']='Evaluated meshes joined per material and animation pivot. Elder source packs the accepted leaf atlas; game export borrows its cached atlas. Core colliders and placement remain authoritative.'
     scene.world.color=(.18,.22,.26)
     # Keep the editable parts in the source; use evaluated copies in a disposable export collection.
     originals=list(scene.objects);bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SOURCE,kind+'.blend'),compress=True)
@@ -407,7 +649,14 @@ def export(kind):
         if obj.type not in {'MESH','CURVE'}:continue
         data=bpy.data.meshes.new_from_object(obj.evaluated_get(deps),depsgraph=deps)
         copy=bpy.data.objects.new(obj.name+'_export',data);scene.collection.objects.link(copy);copy.matrix_world=obj.matrix_world.copy()
-        groups[(obj.data.materials[0].name,obj.parent.name if obj.parent else '')].append(copy)
+        if obj.data.materials[0].name=='Foliage_accepted_leaf_atlas':
+            placeholder=material('#ffffff');placeholder.name='Foliage_accepted_leaf_atlas_export'
+            if not placeholder.node_tree.nodes.get('AcceptedFoliagePaint'):
+                paint=placeholder.node_tree.nodes.new('ShaderNodeVertexColor');paint.name='AcceptedFoliagePaint';paint.layer_name='AcceptedFoliageColor';placeholder.node_tree.links.new(paint.outputs['Color'],placeholder.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
+            data.materials.clear();data.materials.append(placeholder)
+        else:
+            for uv in list(data.uv_layers):data.uv_layers.remove(uv)
+        groups[(data.materials[0].name,obj.parent.name if obj.parent else '')].append(copy)
     for obj in originals:obj.hide_set(True);obj.hide_render=True
     joined=[];pivots={}
     for (mat,pivot),objects in groups.items():
@@ -423,8 +672,8 @@ def export(kind):
     bpy.ops.object.select_all(action='DESELECT')
     for obj in joined:obj.select_set(True)
     for obj in pivots.values():obj.select_set(True)
-    bpy.ops.export_scene.gltf(filepath=os.path.join(EXPORT,kind+'.glb'),export_format='GLB',use_selection=True,export_apply=True,export_yup=True,export_texcoords=False,export_animations=False,export_extras=True)
-    return {'kind':kind,'source':f'assets/blender/landmarks/{kind}.blend','file':f'public/models/landmarks/{kind}.glb','bytes':os.path.getsize(os.path.join(EXPORT,kind+'.glb')),'triangles':sum(len(o.data.loop_triangles) or sum(len(f.vertices)-2 for f in o.data.polygons) for o in joined),'materialGroups':len(joined)}
+    bpy.ops.export_scene.gltf(filepath=os.path.join(EXPORT,kind+'.glb'),export_format='GLB',use_selection=True,export_apply=True,export_yup=True,export_texcoords=True,export_animations=False,export_extras=True)
+    return {'kind':kind,'source':f'assets/blender/landmarks/{kind}.blend','file':f'public/models/landmarks/{kind}.glb','bytes':os.path.getsize(os.path.join(EXPORT,kind+'.glb')),'triangles':sum(len(o.data.loop_triangles) or sum(len(f.vertices)-2 for f in o.data.polygons) for o in joined),'materialGroups':sum(len({f.material_index for f in o.data.polygons}) for o in joined)}
 if __name__=='__main__':
     kinds=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else list(BUILDERS)
     results=[export(kind) for kind in kinds]

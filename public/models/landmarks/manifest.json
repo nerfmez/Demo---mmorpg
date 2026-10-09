@@ -14,15 +14,15 @@
       "kind": "giant_conch",
       "source": "assets/blender/landmarks/giant_conch.blend",
       "file": "public/models/landmarks/giant_conch.glb",
-      "bytes": 83496,
-      "triangles": 3678,
-      "materialGroups": 6
+      "bytes": 47432,
+      "triangles": 2052,
+      "materialGroups": 4
     },
     {
       "kind": "watchtower",
       "source": "assets/blender/landmarks/watchtower.blend",
       "file": "public/models/landmarks/watchtower.glb",
-      "bytes": 84228,
+      "bytes": 84452,
       "triangles": 1373,
       "materialGroups": 6
     },
@@ -30,9 +30,9 @@
       "kind": "garden_gazebo",
       "source": "assets/blender/landmarks/garden_gazebo.blend",
       "file": "public/models/landmarks/garden_gazebo.glb",
-      "bytes": 168436,
-      "triangles": 5234,
-      "materialGroups": 7
+      "bytes": 388000,
+      "triangles": 5888,
+      "materialGroups": 8
     },
     {
       "kind": "windmill",
@@ -54,41 +54,41 @@
       "kind": "bell_tower",
       "source": "assets/blender/landmarks/bell_tower.blend",
       "file": "public/models/landmarks/bell_tower.glb",
-      "bytes": 97920,
-      "triangles": 1984,
-      "materialGroups": 5
+      "bytes": 104128,
+      "triangles": 2100,
+      "materialGroups": 6
     },
     {
       "kind": "elder_mosstree",
       "source": "assets/blender/landmarks/elder_mosstree.blend",
       "file": "public/models/landmarks/elder_mosstree.glb",
-      "bytes": 89360,
-      "triangles": 4392,
-      "materialGroups": 6
+      "bytes": 132584,
+      "triangles": 3176,
+      "materialGroups": 7
     },
     {
       "kind": "bramble_arch",
       "source": "assets/blender/landmarks/bramble_arch.blend",
       "file": "public/models/landmarks/bramble_arch.glb",
-      "bytes": 45672,
-      "triangles": 1686,
-      "materialGroups": 4
+      "bytes": 103416,
+      "triangles": 2344,
+      "materialGroups": 6
     },
     {
       "kind": "glimmer_spire",
       "source": "assets/blender/landmarks/glimmer_spire.blend",
       "file": "public/models/landmarks/glimmer_spire.glb",
-      "bytes": 31744,
-      "triangles": 1142,
-      "materialGroups": 4
+      "bytes": 72920,
+      "triangles": 996,
+      "materialGroups": 8
     },
     {
       "kind": "sea_arch",
       "source": "assets/blender/landmarks/sea_arch.blend",
       "file": "public/models/landmarks/sea_arch.glb",
-      "bytes": 27208,
-      "triangles": 1252,
-      "materialGroups": 3
+      "bytes": 33532,
+      "triangles": 440,
+      "materialGroups": 5
     },
     {
       "kind": "sundial",
@@ -102,48 +102,48 @@
       "kind": "crag_beacon",
       "source": "assets/blender/landmarks/crag_beacon.blend",
       "file": "public/models/landmarks/crag_beacon.glb",
-      "bytes": 59700,
-      "triangles": 1283,
-      "materialGroups": 7
+      "bytes": 38076,
+      "triangles": 812,
+      "materialGroups": 6
     },
     {
       "kind": "moonstone",
       "source": "assets/blender/landmarks/moonstone.blend",
       "file": "public/models/landmarks/moonstone.glb",
-      "bytes": 55380,
-      "triangles": 2060,
+      "bytes": 45628,
+      "triangles": 816,
       "materialGroups": 7
     },
     {
       "kind": "moon_altar",
       "source": "assets/blender/landmarks/moon_altar.blend",
       "file": "public/models/landmarks/moon_altar.glb",
-      "bytes": 43720,
-      "triangles": 1396,
+      "bytes": 47884,
+      "triangles": 1180,
       "materialGroups": 5
     },
     {
       "kind": "fiddlehead_ferns",
       "source": "assets/blender/landmarks/fiddlehead_ferns.blend",
       "file": "public/models/landmarks/fiddlehead_ferns.glb",
-      "bytes": 110636,
-      "triangles": 4050,
-      "materialGroups": 3
+      "bytes": 78872,
+      "triangles": 2970,
+      "materialGroups": 4
     },
     {
       "kind": "moon_mirror",
       "source": "assets/blender/landmarks/moon_mirror.blend",
       "file": "public/models/landmarks/moon_mirror.glb",
-      "bytes": 39932,
-      "triangles": 1108,
+      "bytes": 40688,
+      "triangles": 1122,
       "materialGroups": 5
     },
     {
       "kind": "root_arch",
       "source": "assets/blender/landmarks/root_arch.blend",
       "file": "public/models/landmarks/root_arch.glb",
-      "bytes": 100232,
-      "triangles": 4878,
+      "bytes": 99616,
+      "triangles": 3518,
       "materialGroups": 6
     }
   ]

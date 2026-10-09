@@ -1,0 +1,1506 @@
+{
+  "pr": 125,
+  "url": "https://github.com/nerfmez/Demo---mmorpg/pull/125",
+  "revision_parent": "6c480c749d88c40f97f35c559f9eb279a6ea9c71",
+  "original_base": "152eb744d242a9260cff5e3479e5f08000a5de54",
+  "deferred_streaming_base": "cde062bb5251066703dcb007359dfe4e5f33a15f",
+  "base_integration_performed": false,
+  "owner_acceptance": {
+    "utc": "2026-10-09 05:49:56 UTC",
+    "quote": "เค",
+    "kinds": [
+      "elder_mosstree",
+      "glimmer_spire"
+    ],
+    "sources_and_exports_preserved": true
+  },
+  "inventory": [
+    {
+      "kind": "cliff_shrine",
+      "source": "assets/blender/landmarks/cliff_shrine.blend",
+      "file": "public/models/landmarks/cliff_shrine.glb",
+      "bytes": 146416,
+      "triangles": 3152,
+      "materialGroups": 7
+    },
+    {
+      "kind": "giant_conch",
+      "source": "assets/blender/landmarks/giant_conch.blend",
+      "file": "public/models/landmarks/giant_conch.glb",
+      "bytes": 47432,
+      "triangles": 2052,
+      "materialGroups": 4
+    },
+    {
+      "kind": "watchtower",
+      "source": "assets/blender/landmarks/watchtower.blend",
+      "file": "public/models/landmarks/watchtower.glb",
+      "bytes": 84452,
+      "triangles": 1373,
+      "materialGroups": 6
+    },
+    {
+      "kind": "garden_gazebo",
+      "source": "assets/blender/landmarks/garden_gazebo.blend",
+      "file": "public/models/landmarks/garden_gazebo.glb",
+      "bytes": 388000,
+      "triangles": 5888,
+      "materialGroups": 8
+    },
+    {
+      "kind": "windmill",
+      "source": "assets/blender/landmarks/windmill.blend",
+      "file": "public/models/landmarks/windmill.glb",
+      "bytes": 102400,
+      "triangles": 2096,
+      "materialGroups": 8
+    },
+    {
+      "kind": "farm_well",
+      "source": "assets/blender/landmarks/farm_well.blend",
+      "file": "public/models/landmarks/farm_well.glb",
+      "bytes": 125660,
+      "triangles": 2954,
+      "materialGroups": 11
+    },
+    {
+      "kind": "bell_tower",
+      "source": "assets/blender/landmarks/bell_tower.blend",
+      "file": "public/models/landmarks/bell_tower.glb",
+      "bytes": 104128,
+      "triangles": 2100,
+      "materialGroups": 6
+    },
+    {
+      "kind": "elder_mosstree",
+      "source": "assets/blender/landmarks/elder_mosstree.blend",
+      "file": "public/models/landmarks/elder_mosstree.glb",
+      "bytes": 132584,
+      "triangles": 3176,
+      "materialGroups": 7
+    },
+    {
+      "kind": "bramble_arch",
+      "source": "assets/blender/landmarks/bramble_arch.blend",
+      "file": "public/models/landmarks/bramble_arch.glb",
+      "bytes": 103416,
+      "triangles": 2344,
+      "materialGroups": 6
+    },
+    {
+      "kind": "glimmer_spire",
+      "source": "assets/blender/landmarks/glimmer_spire.blend",
+      "file": "public/models/landmarks/glimmer_spire.glb",
+      "bytes": 72920,
+      "triangles": 996,
+      "materialGroups": 8
+    },
+    {
+      "kind": "sea_arch",
+      "source": "assets/blender/landmarks/sea_arch.blend",
+      "file": "public/models/landmarks/sea_arch.glb",
+      "bytes": 33532,
+      "triangles": 440,
+      "materialGroups": 5
+    },
+    {
+      "kind": "sundial",
+      "source": "assets/blender/landmarks/sundial.blend",
+      "file": "public/models/landmarks/sundial.glb",
+      "bytes": 70728,
+      "triangles": 1576,
+      "materialGroups": 4
+    },
+    {
+      "kind": "crag_beacon",
+      "source": "assets/blender/landmarks/crag_beacon.blend",
+      "file": "public/models/landmarks/crag_beacon.glb",
+      "bytes": 38076,
+      "triangles": 812,
+      "materialGroups": 6
+    },
+    {
+      "kind": "moonstone",
+      "source": "assets/blender/landmarks/moonstone.blend",
+      "file": "public/models/landmarks/moonstone.glb",
+      "bytes": 45628,
+      "triangles": 816,
+      "materialGroups": 7
+    },
+    {
+      "kind": "moon_altar",
+      "source": "assets/blender/landmarks/moon_altar.blend",
+      "file": "public/models/landmarks/moon_altar.glb",
+      "bytes": 47884,
+      "triangles": 1180,
+      "materialGroups": 5
+    },
+    {
+      "kind": "fiddlehead_ferns",
+      "source": "assets/blender/landmarks/fiddlehead_ferns.blend",
+      "file": "public/models/landmarks/fiddlehead_ferns.glb",
+      "bytes": 78872,
+      "triangles": 2970,
+      "materialGroups": 4
+    },
+    {
+      "kind": "moon_mirror",
+      "source": "assets/blender/landmarks/moon_mirror.blend",
+      "file": "public/models/landmarks/moon_mirror.glb",
+      "bytes": 40688,
+      "triangles": 1122,
+      "materialGroups": 5
+    },
+    {
+      "kind": "root_arch",
+      "source": "assets/blender/landmarks/root_arch.blend",
+      "file": "public/models/landmarks/root_arch.glb",
+      "bytes": 99616,
+      "triangles": 3518,
+      "materialGroups": 6
+    }
+  ],
+  "rebuilt_count": 14,
+  "retained_kinds": [
+    "cliff_shrine",
+    "windmill",
+    "farm_well",
+    "sundial"
+  ],
+  "final_changed_artifacts": [
+    {
+      "path": "assets/blender/landmarks/bell_tower.blend",
+      "bytes": 108278,
+      "sha256": "00e799c2ee81c56a7170346518492b7cac2eaa62192abc61862aac6705a7588a"
+    },
+    {
+      "path": "assets/blender/landmarks/bramble_arch.blend",
+      "bytes": 105437,
+      "sha256": "4ffb5b10639103c457a13da74cfdde72da4b72c15d50366b21853251af1286a2"
+    },
+    {
+      "path": "assets/blender/landmarks/crag_beacon.blend",
+      "bytes": 100058,
+      "sha256": "50ba0deef3b1e46593ccd7d0ade1b65169f1c8d76a09bd49e519a0a4b9148de3"
+    },
+    {
+      "path": "assets/blender/landmarks/elder_mosstree.blend",
+      "bytes": 169507,
+      "sha256": "eafcf2dced2a357d040f5ec6f556f2e4927ce9757e083f9b795039f749b6168c"
+    },
+    {
+      "path": "assets/blender/landmarks/fiddlehead_ferns.blend",
+      "bytes": 110956,
+      "sha256": "fae47c89a0f28700572f8a765ae4ba3337f87f1a3330ad665755fa44a7a38383"
+    },
+    {
+      "path": "assets/blender/landmarks/garden_gazebo.blend",
+      "bytes": 139105,
+      "sha256": "2db6ce7372f71fc1f878b083409749bb98577d2b6dc79ecbb5b968bd1efb09e9"
+    },
+    {
+      "path": "assets/blender/landmarks/giant_conch.blend",
+      "bytes": 107950,
+      "sha256": "e8bca763e88f123f224c6fbfa46c2e03d28c6ee8fba069a4f6e0f1491126f158"
+    },
+    {
+      "path": "assets/blender/landmarks/glimmer_spire.blend",
+      "bytes": 107445,
+      "sha256": "8bded5b06fc5fb75d90058e1b3f24aeeee926b54f430c378b5cc732d2adcb05c"
+    },
+    {
+      "path": "assets/blender/landmarks/moon_altar.blend",
+      "bytes": 104485,
+      "sha256": "ad2cd5ee0098d3bd937f16f4d7738ff1173ffb74865d971c753d04163d42c8ff"
+    },
+    {
+      "path": "assets/blender/landmarks/moon_mirror.blend",
+      "bytes": 103588,
+      "sha256": "81073f508db5ade755d34ed74aa1a5b9ab1817639e9b951c7e3b0d19e926f791"
+    },
+    {
+      "path": "assets/blender/landmarks/moonstone.blend",
+      "bytes": 103485,
+      "sha256": "aa56e1bc0f1de5d695995db3bffc10252bd1997e13d37776c092de6c63e6f8aa"
+    },
+    {
+      "path": "assets/blender/landmarks/root_arch.blend",
+      "bytes": 109243,
+      "sha256": "38ae86ad2203e16af96e2bcf6494fe5a42bd7abc814621d8095d03ecae8faca2"
+    },
+    {
+      "path": "assets/blender/landmarks/sea_arch.blend",
+      "bytes": 100186,
+      "sha256": "da4848dd72c86e1ce198d5fe4f243ab29a29d5cb1ddd591a0c54559484d02d00"
+    },
+    {
+      "path": "assets/blender/landmarks/watchtower.blend",
+      "bytes": 105422,
+      "sha256": "91a3fd4aee9474d7200005de9817dc92beb9175aeded27aab65f22581c1d4f25"
+    },
+    {
+      "path": "public/models/landmarks/bell_tower.glb",
+      "bytes": 104128,
+      "sha256": "d9f216a585c5eddf98ace3cc95c3a997caaeaa4640f7681919610ffa129e9841"
+    },
+    {
+      "path": "public/models/landmarks/bramble_arch.glb",
+      "bytes": 103416,
+      "sha256": "980a46107e66b3a1530ae7e8a5fd0ed38f3c310a802a699a4fd8dbc5c6274b07"
+    },
+    {
+      "path": "public/models/landmarks/crag_beacon.glb",
+      "bytes": 38076,
+      "sha256": "493c6bac5a8c8d471c1473c6d249ed84cc932ef74e83c592b3f95545b164b57c"
+    },
+    {
+      "path": "public/models/landmarks/elder_mosstree.glb",
+      "bytes": 132584,
+      "sha256": "521d61d00cd3436b48c16931383409a4578ac9be16e318905dadae5b92af3cf7"
+    },
+    {
+      "path": "public/models/landmarks/fiddlehead_ferns.glb",
+      "bytes": 78872,
+      "sha256": "1ce62a5d7ee55d76e9e7b7c2c497c39ff610a039330824bedec209a0e90ac624"
+    },
+    {
+      "path": "public/models/landmarks/garden_gazebo.glb",
+      "bytes": 388000,
+      "sha256": "2933ce6e9a51884795417e7a505886dd5175085d4816d93339c9109444e03b55"
+    },
+    {
+      "path": "public/models/landmarks/giant_conch.glb",
+      "bytes": 47432,
+      "sha256": "95be71d907f9640f4f9f4e865c4ef412862f4bb5796d393eaa1c8df01dc93d70"
+    },
+    {
+      "path": "public/models/landmarks/glimmer_spire.glb",
+      "bytes": 72920,
+      "sha256": "4211fd85a5e55bea2b775935d56f401e10ffd425dcfa82b91a54ab6e35193f55"
+    },
+    {
+      "path": "public/models/landmarks/manifest.json",
+      "bytes": 4262,
+      "sha256": "7efffb1c2de7c87edaceced985fa9d7d9579db67d55285162dda611d66b0be2a"
+    },
+    {
+      "path": "public/models/landmarks/moon_altar.glb",
+      "bytes": 47884,
+      "sha256": "f89063040824eda79a8a2be5d558bece020a5a21a0f42c238798d54ba5d156fb"
+    },
+    {
+      "path": "public/models/landmarks/moon_mirror.glb",
+      "bytes": 40688,
+      "sha256": "bb81605a3e8162374ceabd5200d3c3e236cc58fb8ea3490ff24c8b7c4f046cf3"
+    },
+    {
+      "path": "public/models/landmarks/moonstone.glb",
+      "bytes": 45628,
+      "sha256": "ce76567cc9a5618ff17db9bb34e3373b03adb6ba1828dfaa8c5c2767ec1ec1e7"
+    },
+    {
+      "path": "public/models/landmarks/root_arch.glb",
+      "bytes": 99616,
+      "sha256": "ff803199b480cbc8f595d4f4a449980fb5526946e152aab9b721a5baaee3f0a6"
+    },
+    {
+      "path": "public/models/landmarks/sea_arch.glb",
+      "bytes": 33532,
+      "sha256": "d0cf1da0795116214b4868c9067f80578287cebcf36d1b5f3963e434b928ac7f"
+    },
+    {
+      "path": "public/models/landmarks/watchtower.glb",
+      "bytes": 84452,
+      "sha256": "ffa0537b35015aa7e4fca91d9b4c15a7c24a012daabd9e8c89d57702572ed1db"
+    },
+    {
+      "path": "scripts/build-landmarks.py",
+      "bytes": 48048,
+      "sha256": "46b61aa229e30f5393c17bac617f1e00de8770c375e0275eba4dcea447b46788"
+    },
+    {
+      "path": "scripts/capture-landmarks.mjs",
+      "bytes": 5408,
+      "sha256": "1a3221c1dc5d63acf5a57372609710782df683858478431d2bb428aeab71000b"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 19092,
+      "sha256": "ec58cfc44eaa219d5dd885af44142f4828b6ff61e02ac21c0cf2c7934e93e26c"
+    },
+    {
+      "path": "src/render/anime-study.js",
+      "bytes": 10753,
+      "sha256": "fe853fce7d4597d956f2e5c3180647ee5279464216f84bcf5207085d3c4b5dde"
+    },
+    {
+      "path": "src/render/landmark-assets.js",
+      "bytes": 3951,
+      "sha256": "b564b74fba9c7733db98674312703b98fd529942055006c4a164ccbf99e97ee3"
+    },
+    {
+      "path": "src/ui/compact.css",
+      "bytes": 23127,
+      "sha256": "d5678b6049b572fa08929faefc7584b059bc62599f8f6effdfe23cb03d0610c4"
+    },
+    {
+      "path": "src/ui/loadout-workspace.js",
+      "bytes": 46357,
+      "sha256": "80897154b072b7b13f3bb9dfcea674beb8165dd1374a649d15c2fc9747107fa1"
+    },
+    {
+      "path": "src/ui/skill-journal/journal.js",
+      "bytes": 46430,
+      "sha256": "9352f1298719e101000b6a53bb262097c0b70f7b7de7cfcd4f013e0ce5b92ab6"
+    },
+    {
+      "path": "tests/browser/equipment-inactive.mjs",
+      "bytes": 6411,
+      "sha256": "7f9547f73ac75d12bfd7243f19105ee698f4b9620777c39f223937fee378ae98"
+    },
+    {
+      "path": "tests/browser/fieldhud.mjs",
+      "bytes": 9871,
+      "sha256": "96b7ac2a48988ff0f4da65f4ef2652489cb737c9d0c1f7366fbed5d0a64a792b"
+    },
+    {
+      "path": "tests/browser/loadout-live.mjs",
+      "bytes": 24844,
+      "sha256": "6118886bd4e5bdffd0e1f400575e594645bbe46cc703d43e681db7ac04ba4658"
+    },
+    {
+      "path": "tests/browser/workspaces.mjs",
+      "bytes": 9951,
+      "sha256": "46f0eb0c4e7037d1c42194ac92664f089fc9e5aa2a58baf609f158e0e8d6371b"
+    },
+    {
+      "path": "tests/render/landmark-assets.test.mjs",
+      "bytes": 4333,
+      "sha256": "14087a526f3eea714ef2a0662abbdb727f8710ac59a6b0aed2ab7befc1a384cf"
+    },
+    {
+      "path": "assets/blender/landmarks/textures/elder-accepted-leaf.png",
+      "bytes": 31578,
+      "sha256": "cdc35040b776ae0c6c171d2d63245253a582c47ea7a8e1c2a957da9d5a724b4b"
+    },
+    {
+      "path": "tests/browser/inventory-scroll-checks.mjs",
+      "bytes": 4232,
+      "sha256": "371d093340b5df44fed16a15423509b303ab87f8546787f6d30139957e1bcf1c"
+    }
+  ],
+  "validation": [
+    {
+      "check": "Chromium equipment-inactive",
+      "result": "pass",
+      "scope": "Real game; 1440x900,1180x820,844x390,390x844; inactive selected red and active gold assertions.",
+      "log_identity": {
+        "path": "work/revision/equipment-chromium.log",
+        "bytes": 166,
+        "sha256": "a1a11b539cb8917cb9296a5f85fc7927887a45379845ba4ccd6b012eb0bcc476"
+      }
+    },
+    {
+      "check": "Chromium workspaces",
+      "result": "pass",
+      "scope": "Real game; 1440x960,1180x820,844x390,390x844; encounter and full workspace flows including continuous 67-item inventory, filters, last selection/equip, panes/reopen and career gestures.",
+      "log_identity": {
+        "path": "work/revision/workspaces-chromium-final.log",
+        "bytes": 240,
+        "sha256": "b77de29ca7fe2a10ed38fa715280bf50b67c75c1f7197cf8e7593fd097c19c7a"
+      }
+    },
+    {
+      "check": "Chromium fieldhud",
+      "result": "pass",
+      "scope": "Real game; 1600x900,1180x820,844x390,390x844; bounded panels, exposed scene, readable/reachable 44px close and existing HUD assertions.",
+      "log_identity": {
+        "path": "work/revision/fieldhud-chromium.log",
+        "bytes": 140,
+        "sha256": "3316489c6edc62c77588cd5245656476863a30379caa6fa6653b9e6a78a00443"
+      }
+    },
+    {
+      "check": "Real-game WebKit fieldhud",
+      "result": "pass",
+      "scope": "Real game; 1600x900,1180x820,844x390,390x844. Host validation bypassed for locally extracted runtime libraries; no UI assertions bypassed.",
+      "log_identity": {
+        "path": "work/revision/fieldhud-webkit.log",
+        "bytes": 250,
+        "sha256": "f34724a108d9d57fec085799cb7753685b149dc9c212800af3d98b2f21fbaada"
+      }
+    },
+    {
+      "check": "Real-game WebKit equipment-inactive",
+      "result": "failed-to-complete",
+      "scope": "90s game readiness timeout; diagnostics after timeout modelsReady=true/loading=done/no page errors. Earlier desktop pass then tablet loading failure does not establish full-suite pass. No further retries.",
+      "log_identity": {
+        "path": "work/revision/equipment-webkit-final.log",
+        "bytes": 476,
+        "sha256": "4df51e35fe4b297e0a23a1ccc695462fcb42277020d9324000023d814ffeb40d"
+      }
+    },
+    {
+      "check": "Real-game WebKit workspaces",
+      "result": "failed-to-complete",
+      "scope": "Loading overlay intercepts first encounter craft-filter click; workspace checks not reached.",
+      "log_identity": {
+        "path": "work/revision/workspaces-webkit.log",
+        "bytes": 1856,
+        "sha256": "f90e05e94e9e25122acecf7489ea2397ebbbe5f51813c303eec01b867b979868"
+      }
+    },
+    {
+      "check": "WebKit equipment-only supported offline harness",
+      "result": "pass",
+      "scope": "All four sizes; real core Game/Panels and native WebKit DOM; renderer omitted. Border assertions passed, not real-game loading.",
+      "log_identity": {
+        "path": "work/revision/equipment-webkit-ui.log",
+        "bytes": 276,
+        "sha256": "506d1910a8d7d771548cdf48c11562e45300897be13619ad236aef1746821d6c"
+      }
+    },
+    {
+      "check": "WebKit workspace supported offline harness",
+      "result": "failed",
+      "scope": "Encounter helper world.data unavailable; harness has no renderer world data. Full workspace/continuous-scroll checks not reached; assertions not skipped or weakened.",
+      "log_identity": {
+        "path": "work/revision/workspaces-webkit-ui.log",
+        "bytes": 468,
+        "sha256": "2f69ebc52b8f7fc769d6ce66c42797a95795f70b85a61002583982192d3a3aa5"
+      }
+    },
+    {
+      "check": "Final High Chromium career-only gestures",
+      "result": "pass",
+      "scope": "1440x900,1180x820,844x390,390x844; after final footer move; native branch/drag/zoom/search/learn/navigation; zero controls/caption intersections.",
+      "log_identity": {
+        "path": "work/revision/journal-review-final.log",
+        "bytes": 126,
+        "sha256": "e92a03ced66d21b8a7ace695404ebfe17b6f7a47410f035d159f1b8219787485"
+      }
+    },
+    {
+      "check": "Final stable-frame career recheck",
+      "result": "pass-with-visual-limit",
+      "scope": "844x390 and390x844, native gestures repeated only for current visual recheck, waited for page-turn layer removal and camera inactivity. Separate controls/details reachable. Short-landscape branch captions remain clipped/very small; not a complete-caption readability pass.",
+      "log_identity": {
+        "path": "work/revision/journal-review-stable.log",
+        "bytes": 62,
+        "sha256": "f26e7816698b88e5ef857a9f3c99492ada458e8a8fc59ea31b0503107b29b308"
+      }
+    },
+    {
+      "check": "Asset and ownership unit tests",
+      "result": "pass",
+      "scope": "node --test tests/render/landmark-assets.test.mjs; 3 cases.",
+      "log_identity": {
+        "path": "work/revision/assets-final.log",
+        "bytes": 395,
+        "sha256": "327d2af094fe3fe1e8b343ea00e11c9383ad30fa2840b33c1be8515d731f2798"
+      }
+    },
+    {
+      "check": "Affected core and save checks",
+      "result": "pass",
+      "scope": "node --test tests/core/landmarks.test.js tests/core/equipment-inactive.test.js tests/core/workspaces.test.js tests/core/save.test.js; four files passed.",
+      "log_identity": {
+        "path": "work/revision/core-save-final.log",
+        "bytes": 312,
+        "sha256": "9054523cc3d4347de9cb86f76a8a43c41a116d10f5b621e9ab93ea90b089faf7"
+      }
+    },
+    {
+      "check": "Build",
+      "result": "pass",
+      "scope": "npm run build after final footer move; existing large-chunk warning.",
+      "log_identity": {
+        "path": "work/revision/build-final.log",
+        "bytes": 3046,
+        "sha256": "cbea42931fb01fea35decfed83b95b70e1e4034a0de389fb34963a331f80c5f9"
+      }
+    },
+    {
+      "check": "Focused High GPU ownership probe",
+      "result": "pass",
+      "scope": "Actual loaded runtime asset/game camera in isolated fresh renderer;3 cycles peak3 geometries to0, borrowed cached textures1 to1; unrelated asynchronous world loading excluded.",
+      "log_identity": {
+        "path": "work/revision/resource-probe-final.log",
+        "bytes": 272,
+        "sha256": "3ade725c5ac3036be024a9d5cff688f8aced2444873a66a7f94b4a89abb415f0"
+      }
+    }
+  ],
+  "reuse_scope": "The three Chromium suites and real-game WebKit HUD passed before the final career footer move. Unaffected inventory/border/HUD/panel-bound assertions are reused. Four-size final High career-only gestures and two-size stable-frame review check the last career changes; full suites were not rerun afterward.",
+  "additional_checks": {
+    "syntax": "Passed node --check for changed JS/test files",
+    "diff": "Passed git diff --check",
+    "standalone_loadout_live": "Pagination expectations updated and syntax checked; long suite not run"
+  },
+  "high_gpu_probe": {
+    "quality": "High",
+    "scope": "actual loader and game camera; isolated GPU buffers after shared texture warmup",
+    "baseline": {
+      "geometries": 0,
+      "textures": 1
+    },
+    "samples": [
+      {
+        "round": 0,
+        "peak": {
+          "geometries": 3,
+          "textures": 1
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 1
+        },
+        "stats": {
+          "kinds": [
+            "elder_mosstree"
+          ],
+          "triangles": 3176,
+          "sourceDraws": 13,
+          "batch": {
+            "before": 12,
+            "after": 4,
+            "objects": 8
+          },
+          "assembly": {
+            "steps": 97,
+            "cpuMs": 19.500000001862645,
+            "maxStepMs": 7.300000000745058,
+            "stages": [
+              {
+                "label": "landmarks.toon",
+                "state": "success",
+                "wallMs": 1469.0999999996275,
+                "steps": 9,
+                "cpuMs": 9,
+                "maxStepMs": 7
+              },
+              {
+                "label": "landmarks.batch",
+                "state": "success",
+                "wallMs": 187.40000000037253,
+                "steps": 88,
+                "cpuMs": 10.500000001862645,
+                "maxStepMs": 7.300000000745058
+              }
+            ]
+          }
+        }
+      },
+      {
+        "round": 1,
+        "peak": {
+          "geometries": 3,
+          "textures": 1
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 1
+        },
+        "stats": {
+          "kinds": [
+            "elder_mosstree"
+          ],
+          "triangles": 3176,
+          "sourceDraws": 13,
+          "batch": {
+            "before": 12,
+            "after": 4,
+            "objects": 8
+          },
+          "assembly": {
+            "steps": 97,
+            "cpuMs": 292.09999999962747,
+            "maxStepMs": 218.5,
+            "stages": [
+              {
+                "label": "landmarks.toon",
+                "state": "success",
+                "wallMs": 3.400000000372529,
+                "steps": 9,
+                "cpuMs": 0.7000000011175871,
+                "maxStepMs": 0.2999999988824129
+              },
+              {
+                "label": "landmarks.batch",
+                "state": "success",
+                "wallMs": 1191.0999999996275,
+                "steps": 88,
+                "cpuMs": 291.3999999985099,
+                "maxStepMs": 218.5
+              }
+            ]
+          }
+        }
+      },
+      {
+        "round": 2,
+        "peak": {
+          "geometries": 3,
+          "textures": 1
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 1
+        },
+        "stats": {
+          "kinds": [
+            "elder_mosstree"
+          ],
+          "triangles": 3176,
+          "sourceDraws": 13,
+          "batch": {
+            "before": 12,
+            "after": 4,
+            "objects": 8
+          },
+          "assembly": {
+            "steps": 97,
+            "cpuMs": 4.5,
+            "maxStepMs": 1.099999999627471,
+            "stages": [
+              {
+                "label": "landmarks.toon",
+                "state": "success",
+                "wallMs": 323.30000000074506,
+                "steps": 9,
+                "cpuMs": 1.900000000372529,
+                "maxStepMs": 1.099999999627471
+              },
+              {
+                "label": "landmarks.batch",
+                "state": "success",
+                "wallMs": 69.30000000074506,
+                "steps": 88,
+                "cpuMs": 2.599999999627471,
+                "maxStepMs": 0.3999999985098839
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "high_continuous_inventory_probe": [
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "quality": "high",
+      "count": 67,
+      "nativeScroll": {
+        "top": 965,
+        "end": 965
+      },
+      "lastItem": 67,
+      "lastMaterial": "rootdigger_claw",
+      "filter": true,
+      "panes": true,
+      "reopen": true,
+      "details": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "quality": "high",
+      "count": 67,
+      "nativeScroll": {
+        "top": 1195,
+        "end": 1195
+      },
+      "lastItem": 67,
+      "lastMaterial": "rootdigger_claw",
+      "filter": true,
+      "panes": true,
+      "reopen": true,
+      "details": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "quality": "high",
+      "count": 67,
+      "nativeScroll": {
+        "top": 1465,
+        "end": 1465
+      },
+      "lastItem": 67,
+      "lastMaterial": "rootdigger_claw",
+      "filter": true,
+      "panes": true,
+      "reopen": true,
+      "details": true
+    }
+  ],
+  "final_high_career_probe": [
+    {
+      "width": 1440,
+      "height": 900,
+      "quality": "High",
+      "nativeCareerGestures": true,
+      "captionOverlap": 0
+    },
+    {
+      "width": 1180,
+      "height": 820,
+      "quality": "High",
+      "nativeCareerGestures": true,
+      "captionOverlap": 0
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "quality": "High",
+      "nativeCareerGestures": true,
+      "captionOverlap": 0
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "quality": "High",
+      "nativeCareerGestures": true,
+      "captionOverlap": 0
+    }
+  ],
+  "stable_career_stills": [
+    {
+      "path": "work/revision/journal-stable/390x844-job-detail.png",
+      "bytes": 229005,
+      "sha256": "156526d00faa81972f92f81a076efcbe9509b658cfe06956fd68da9cc8f4c6d1",
+      "size": [
+        390,
+        844
+      ],
+      "inspected_utc": "2026-10-09 06:10 UTC",
+      "delivered_as_new_page_image": false
+    },
+    {
+      "path": "work/revision/journal-stable/390x844-job-overview.png",
+      "bytes": 264473,
+      "sha256": "fb252203dae817857a933e671e005945aadd397d557343d258b2774d690e8b0d",
+      "size": [
+        390,
+        844
+      ],
+      "inspected_utc": "2026-10-09 06:10 UTC",
+      "delivered_as_new_page_image": false
+    },
+    {
+      "path": "work/revision/journal-stable/844x390-job-detail.png",
+      "bytes": 279463,
+      "sha256": "8aeca98992240b8a87c13f28b269266c63f99e907f2f3922de5e4f5c2acfedf5",
+      "size": [
+        844,
+        390
+      ],
+      "inspected_utc": "2026-10-09 06:10 UTC",
+      "delivered_as_new_page_image": false
+    },
+    {
+      "path": "work/revision/journal-stable/844x390-job-overview.png",
+      "bytes": 294572,
+      "sha256": "d4ca35ab48c15cec42acd5de871c28c0a915e7f7020cb5a8787b7f659c6b9c90",
+      "size": [
+        844,
+        390
+      ],
+      "inspected_utc": "2026-10-09 06:10 UTC",
+      "delivered_as_new_page_image": false
+    }
+  ],
+  "evidence_counts": {
+    "distinct_original_screenshots": 50,
+    "landmark_inventory_views": 18,
+    "inventory_ui_images": 15,
+    "representative_landmark_viewport_images": 15,
+    "original_tree_crystal_wide_images": 2,
+    "contact_sheets": 13,
+    "zip_archives": 6
+  },
+  "original_screenshots": [
+    {
+      "path": "work/revision/final/normal/gull_shrine-game.png",
+      "sha256": "a6b83c394f14ac4e6628ebabb6d703772f6d1764872c2df86c339256d4c18ff9",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1125092
+    },
+    {
+      "path": "work/revision/final/normal/giant_conch-game.png",
+      "sha256": "508d45e57f6c630d8019f214dbabd820a208a15420d1531398b135301dd7919e",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 908533
+    },
+    {
+      "path": "work/revision/final/normal/ranger_lookout-game.png",
+      "sha256": "e5322282091224c8fe4302bda52c8919cf003b2cb86ef9a3144259640af01470",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1103176
+    },
+    {
+      "path": "work/revision/final/normal/rose_gazebo-game.png",
+      "sha256": "b228d0da2ace93c23aba5c50ece53c43de0efa40b23caef8f0dfbd66215c5c9a",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1086292
+    },
+    {
+      "path": "work/revision/final/normal/hill_windmill-game.png",
+      "sha256": "8782214303ed3467fe53d4054dad45ce8678bdaa8ed116d285fa77b487b24157",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1131486
+    },
+    {
+      "path": "work/revision/final/normal/meadow_well-game.png",
+      "sha256": "50d6d28dda69f920808d5c39047f7da889d57228a07b4f256c5b75281d622049",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1087384
+    },
+    {
+      "path": "work/revision/final/normal/frontier_bell-game.png",
+      "sha256": "4e0ac8bdc8c3040757345180f0f47a80b52224c38f89328ebe02e0f0aa41e26f",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1094501
+    },
+    {
+      "path": "work/revision/final/normal/crag_beacon-game.png",
+      "sha256": "626db06dcab8a127025a0c483a7a07137be69958c9a89a4a7f37b8caefc9005f",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1079922
+    },
+    {
+      "path": "work/revision/final/full/elder_mosstree-game.png",
+      "sha256": "8b6a24c0ac3d249c69f058547c3664fa85895401466002c66fd410120f691b18",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1155845
+    },
+    {
+      "path": "work/revision/final/normal/bramble_arch-game.png",
+      "sha256": "a347495ede9af6f4dcfc5fb52fe9125b36b040288893e1880686bd6fa1f71994",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1102793
+    },
+    {
+      "path": "work/revision/final/normal/glimmer_spire-game.png",
+      "sha256": "d0122e397ab51cd1383892a4ed47209ad562e3b234ff86913306f67a51702584",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1064875
+    },
+    {
+      "path": "work/revision/final/normal/sunfall_arch-game.png",
+      "sha256": "88a03ed448e8df6ac79ca83556b2e75781c79bee8f8c608704eec0e077ee2411",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 784571
+    },
+    {
+      "path": "work/revision/final/normal/meadow_sundial-game.png",
+      "sha256": "1beba63d5ffb1a83e8ca87e27960300fa7707205188e3448afcbb468eebc3263",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1042441
+    },
+    {
+      "path": "work/revision/final/normal/moonstone-game.png",
+      "sha256": "8e108ca88213b1eb681b0514ac8e79d34458048975ab18e0a1b574c33e9c31aa",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1142949
+    },
+    {
+      "path": "work/revision/final/normal/moon_altar-game.png",
+      "sha256": "c8218e84995607cade1dc0add739be1f93a7926c2d008bea18bd1c007ca6acf9",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1088199
+    },
+    {
+      "path": "work/revision/final/normal/fiddlehead_rise-game.png",
+      "sha256": "970041dd62cf0e30e74e2bdf6786c1cfb04bd51e543017320b60b30726e46948",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1082505
+    },
+    {
+      "path": "work/revision/final/normal/moon_mirror-game.png",
+      "sha256": "bd48413776007cd9035ef83e0016289ba734ae3edf15c88cd2dd59ec2c45c608",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1079462
+    },
+    {
+      "path": "work/revision/final/normal/root_arch-game.png",
+      "sha256": "a4a0115ff825b8fa4375eb86ce5b8150e3fa3b876f4af4efe614afb117e4c01d",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1077084
+    },
+    {
+      "path": "work/revision/inventory-first/1180x820-details.png",
+      "sha256": "13077419be3ace84da70e0d04453a4d234369b0cc5cd07c586d46a38aec66159",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 408127
+    },
+    {
+      "path": "work/revision/inventory-first/1180x820-last.png",
+      "sha256": "f41002520e41de049267440e0b66dd5545803c31c83128a1b63f705c9b76648f",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 534711
+    },
+    {
+      "path": "work/revision/inventory-first/1180x820-top.png",
+      "sha256": "e2d1b6ab4d77b90eb362639512063fc489d19d5f5a256a64b52f80925537151c",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 539775
+    },
+    {
+      "path": "work/revision/inventory-first/1440x900-details.png",
+      "sha256": "c095c15fa99e6ee967e6425c836e5389fed5526ba62bf0e05345adab8c8d8b64",
+      "size": [
+        1440,
+        900
+      ],
+      "bytes": 620159
+    },
+    {
+      "path": "work/revision/inventory-first/1440x900-last-actions.png",
+      "sha256": "69b59fb7b43b6b52de87f3639cd79a98125fc16b7fe4d6f566901c55c4f02070",
+      "size": [
+        1440,
+        900
+      ],
+      "bytes": 763879
+    },
+    {
+      "path": "work/revision/inventory-first/1440x900-last.png",
+      "sha256": "1bb83cd3009af7cc94de913cc29a908c30b369d9171581a4f3fbb30b416a1beb",
+      "size": [
+        1440,
+        900
+      ],
+      "bytes": 763975
+    },
+    {
+      "path": "work/revision/inventory-first/1440x900-top.png",
+      "sha256": "684c0dc33715968cee86c96253bf19108500055be7751e67659e42f8d32909e1",
+      "size": [
+        1440,
+        900
+      ],
+      "bytes": 773589
+    },
+    {
+      "path": "work/revision/inventory-first/390x844-details.png",
+      "sha256": "17684d9c859fef945a08871406c462056dcd7b5923b3389dda95b177d1f23faf",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 116945
+    },
+    {
+      "path": "work/revision/inventory-first/390x844-last-actions.png",
+      "sha256": "0c15dab3b591fbf6d5da034cef65821a4018fdd6cdcdd67bca6aaeb151a51e08",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 148381
+    },
+    {
+      "path": "work/revision/inventory-first/390x844-last.png",
+      "sha256": "00bd2666c7a4e2b63dadc8e981a46786d574be52939a7e88b96adb38fececbf3",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 152229
+    },
+    {
+      "path": "work/revision/inventory-first/390x844-top.png",
+      "sha256": "ec81c92a3cf279f1d0bc10c4d5c6e24d620acda941fafa50c22cb7f2c670274a",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 149588
+    },
+    {
+      "path": "work/revision/inventory-first/844x390-details.png",
+      "sha256": "02c29e794b4fdacf513ba490f0d17fbebec31444499e5e53aa668fd5e5e61eea",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 119897
+    },
+    {
+      "path": "work/revision/inventory-first/844x390-last-actions.png",
+      "sha256": "019cbc6d95a12150b4a8f42de8e15bbc0ba2d7a831ca001198b8bf6fed195290",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 191781
+    },
+    {
+      "path": "work/revision/inventory-first/844x390-last.png",
+      "sha256": "f46094c722973c76037f10f2e69b4cc485feb2a046015c12b156882c8e361cf6",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 188992
+    },
+    {
+      "path": "work/revision/inventory-first/844x390-top.png",
+      "sha256": "da5ae220f88c77302023152477eb3434be5e237828c19b79d3155c91942e3029",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 187301
+    },
+    {
+      "path": "work/revision/final/mobile/fiddlehead_rise-390x844.png",
+      "sha256": "589406fe33cc70442dec6bb279f828142c6f3b17d84773d4e6cb3f049479fc67",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 405071
+    },
+    {
+      "path": "work/revision/final/mobile/fiddlehead_rise-844x390.png",
+      "sha256": "6a20b07f9e1b600358e7b5c9a4a1172648260b3d5fe6890eec2c205a1474aaeb",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 420339
+    },
+    {
+      "path": "work/revision/final/mobile/fiddlehead_rise-game.png",
+      "sha256": "a74436d97060e81627cab3c0f9e9e72c2e7c735bacf48d69038689f8b193a06f",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1136911
+    },
+    {
+      "path": "work/revision/final/mobile/giant_conch-390x844.png",
+      "sha256": "3f70dab4da513f19557d6b31ee4742484f4a90cedec2c048051e4e205455cea8",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 359205
+    },
+    {
+      "path": "work/revision/final/mobile/giant_conch-844x390.png",
+      "sha256": "a94f3e731f065c61b072a35b85cbcd608f05756f9f8881e1c183d20851965df8",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 370781
+    },
+    {
+      "path": "work/revision/final/mobile/giant_conch-game.png",
+      "sha256": "04a64c6f9dce9d8b319380648a83259c5e2f4982cb5ad030fd1489aea926a46f",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 954599
+    },
+    {
+      "path": "work/revision/final/mobile/glimmer_spire-390x844.png",
+      "sha256": "d0522f9619fb0ddc517483b5783c3613aeb9a3bdcd8732d881ed77511f8472b4",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 421999
+    },
+    {
+      "path": "work/revision/final/mobile/glimmer_spire-844x390.png",
+      "sha256": "2d7a95ec6578c89f6d31e524f544cd246cdeea7a2f86118297bdc68b279108cc",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 421142
+    },
+    {
+      "path": "work/revision/final/mobile/glimmer_spire-game.png",
+      "sha256": "a25c48b983f25eba84f0c64b1fc31c574e745979c507d438713781473392665c",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1117214
+    },
+    {
+      "path": "work/revision/final/mobile/root_arch-390x844.png",
+      "sha256": "13553eb10cc28633b3b2a19ac841bec6bffcfd267c3c630d222341f582bb3751",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 411053
+    },
+    {
+      "path": "work/revision/final/mobile/root_arch-844x390.png",
+      "sha256": "920971d76da13d054e84ee333fa53e7cee91c8da13d5664d5ff48153d1c11ecf",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 442809
+    },
+    {
+      "path": "work/revision/final/mobile/root_arch-game.png",
+      "sha256": "277d424e7380a4032d4da47d0423ff439c9ed2e05b61e260b2915b5daf85b31b",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1133101
+    },
+    {
+      "path": "work/revision/final/mobile/rose_gazebo-390x844.png",
+      "sha256": "fe00f5b64786a0b7020d5b2acbb38b4147e488d11d3856976a1ae7b7ffc9d15f",
+      "size": [
+        390,
+        844
+      ],
+      "bytes": 412710
+    },
+    {
+      "path": "work/revision/final/mobile/rose_gazebo-844x390.png",
+      "sha256": "45cd2bde14642498174f6438ca8898480985640e9db5f19eb2da99f966f7d21f",
+      "size": [
+        844,
+        390
+      ],
+      "bytes": 433597
+    },
+    {
+      "path": "work/revision/final/mobile/rose_gazebo-game.png",
+      "sha256": "266a6da0e13b7c08aa2ded89a3c8881d4c1adbac3a71e374041f25e6942b6322",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1158418
+    },
+    {
+      "path": "work/revision/original-whole/full/elder_mosstree-game.png",
+      "sha256": "6b7de0ec4165238ecb566ca2889c847bb34a2504a7e9421b3e245ab1e6f57355",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1139940
+    },
+    {
+      "path": "work/revision/original-whole/full/glimmer_spire-game.png",
+      "sha256": "681d1681ffdb7f95de55995b4c0332e002cd00c2a5decc235c0c8257face900d",
+      "size": [
+        1180,
+        820
+      ],
+      "bytes": 1150047
+    }
+  ],
+  "delivery": {
+    "page": "https://chatgpt.com/space/page_558ff553da108191b4a28b72e5bac454",
+    "native_library_file_ids_available": false,
+    "archives": [
+      {
+        "file_name": "inventory-originals-0996530e776d46cd8f1e781277aeebb1.zip",
+        "reference": "library-file:fde1_bGliZmlsZV9xYV9TWmMtZ1d6elJOREJiTVZadmRB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/zip",
+        "bytes": 5655845,
+        "sha256": "b3b29a64d73de12d5f3388d3c08e1118adcfc026d74c511d87f9b8539cc107b3",
+        "access_confirmed": true
+      },
+      {
+        "file_name": "azure-revised-originals-a0c4a30c9a944d5ea4095179952e7bb3.zip",
+        "reference": "library-file:fde1_bGliZmlsZV93S1ctV1FlV2t2d2N5eVFrM2l1djJR_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/zip",
+        "bytes": 6444671,
+        "sha256": "9748f8130fbcd4e5d737fdbf6c50f6feb120741eae72a6dadff417e5b70b92c7",
+        "access_confirmed": true
+      },
+      {
+        "file_name": "frontier-revised-originals-02fb4b1a4ae140b3a5bde1bec08180a3.zip",
+        "reference": "library-file:fde1_bGliZmlsZV9KbGwyNWZIMFJlcW15UUJCQnhvSHZ3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/zip",
+        "bytes": 7328051,
+        "sha256": "9d1409105c86fd5e545102f61a7635b1cee50dd2bd5e4bf45feca8b92a184f6f",
+        "access_confirmed": true
+      },
+      {
+        "file_name": "moonroot-revised-originals-9b20f81574024e8faab5837f3c908ba7.zip",
+        "reference": "library-file:fde1_bGliZmlsZV9YTzVPbFRZSkpMbnM1NW1Wa2tuM0Fn_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/zip",
+        "bytes": 5472474,
+        "sha256": "5b5b12d4eb98f34a533e0aed7c98e41ac338f12e6855d4084ec47a256ef2ab57",
+        "access_confirmed": true
+      },
+      {
+        "file_name": "whole-comparisons-originals-81fd931b1c064a4b8f08e97fe38e385d.zip",
+        "reference": "library-file:fde1_bGliZmlsZV9PVm5PbVVtcDZ0eDdiRjloTFBoTDVR_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/zip",
+        "bytes": 2291036,
+        "sha256": "bc930ef5b7aeb62ed3b2090ad3d1bfcee4fb573e8025aceda1d46b6761f93fd3",
+        "access_confirmed": true
+      },
+      {
+        "file_name": "mobile-originals-a6ddff5f2b304b85b220470a98be3637.zip",
+        "reference": "library-file:fde1_bGliZmlsZV9STnpUdW9RaDBwNVN1YTF1bWIyN2hn_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/zip",
+        "bytes": 9604145,
+        "sha256": "e7fde0207189bed230504d112bb2c77330fb1cb40e24036ea48ed5a6f68c1aca",
+        "access_confirmed": true
+      },
+      {
+        "file_name": "screenshot-manifest-59c571666967455f91e9771fc0b12006.json",
+        "reference": "library-file:fde1_bGliZmlsZV9VVnhua2xpN2dzeGRPaVRESVk4VVFR_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "application/json",
+        "bytes": 10956,
+        "sha256": "395580da42385f914e5960ea0ccf1d60f90bf72da3c4e1171e44af602b80541b",
+        "access_confirmed": true
+      }
+    ],
+    "contact_sheets": [
+      {
+        "file_name": "elder_mosstree-whole-comparison-562086bd631c4d8da2c233caab1664a2.png",
+        "reference": "library-file:fde1_bGliZmlsZV9QeU1mbHVUcmFDVFR5bWFVcFZ2OVhR_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1854475,
+        "sha256": "2327a9a0602310537ec80a0048b5e09f0f122cc42ea4aa4268f8ebb76942c7f5",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "glimmer_spire-whole-comparison-26ca6239e3194c6a8ffec58d49574458.png",
+        "reference": "library-file:fde1_bGliZmlsZV9jeGlEMDVVNVBuOEFIZGF0cnRMQTJ3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1905355,
+        "sha256": "ef0b23e3d204fc464c5b2935e0c95da159909a47cdfc74a1589b110098320d55",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "inventory-1440x900-pair-f80e74cff43547ad8473a8b7fa6ce339.png",
+        "reference": "library-file:fde1_bGliZmlsZV9FdVZ4OHZnS0FKWXNlVUZXQVowcTJn_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 903161,
+        "sha256": "6ddc16e5e528c46e817716d822ed70ae93847e36cb946d45acb21b59d234a109",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "inventory-1180x820-pair-4505a6296bf64dfe9f4e726841aaecc8.png",
+        "reference": "library-file:fde1_bGliZmlsZV93bkV4ajBMXzE4VldjbGFaV3hfTjR3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 646408,
+        "sha256": "36f9cd236bb375743234f3f569e970f1e28ee45974f83750bf14415168c359bc",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "inventory-844x390-pair-c17d44f531294f89aaeade4f31a466db.png",
+        "reference": "library-file:fde1_bGliZmlsZV9YOG4yODhBc0d2Ulh5MjI2c0dqcU9R_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 252142,
+        "sha256": "db2fdf3eff8191157d704442f249a7459975831c90d5933933776aa83507f53b",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "inventory-390x844-pair-1822161fd7824417ac3125cececb83e9.png",
+        "reference": "library-file:fde1_bGliZmlsZV9iOEtOVE1jRnRWMDNhMHh6T2VsdHVB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 216661,
+        "sha256": "09e595e9a2caef887aff42227e18da9ee265a52cec8c0effea41817156e1460f",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "azure-revised-1-9bfba190db594641b8c0c5ef4c63989b.png",
+        "reference": "library-file:fde1_bGliZmlsZV9veHZzT1ZEQmhzUExjUFJYWGJTaFNB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 3121981,
+        "sha256": "6b962915eee1da540d0ffea51fec98f4cfaacd56e30c4603098777842406c36a",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "azure-revised-2-d942c3ed69b94521bcf3bf6120c86d3f.png",
+        "reference": "library-file:fde1_bGliZmlsZV84aEhabWRBTlJORnVmYTduNHk4U0h3_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 3296980,
+        "sha256": "5cb66e87ee285ace61971d88ec42945e26932292980518cbd51fafa69c5a176c",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "frontier-revised-1-c54ca03ec6c740f3bda68732458ddca8.png",
+        "reference": "library-file:fde1_bGliZmlsZV9OdHkySVlZM3BEOEtDMUt6Z1UtVFhB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 3292791,
+        "sha256": "18c6cbb45d17c5dc09abdcc568b167cc19c2e4b1cfac34c7fc24eec9b273cebc",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "frontier-revised-2-5ac4e3d8d63a437eaefcb9e6b4de4e47.png",
+        "reference": "library-file:fde1_bGliZmlsZV9zTjg3YTFrUDVHVjFIbk1Mb2l5OTRB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 2925418,
+        "sha256": "445e12fba0999678001034bb2dda7a4288a6210ece3d2822e17de348d17055a7",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "frontier-revised-3-2d2e227711dc4cf0be5cf049ac964038.png",
+        "reference": "library-file:fde1_bGliZmlsZV9zZVBTcXNwdUxialU3VTkwd1hIN1Fn_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1024742,
+        "sha256": "5a0cc6d7bde424fc00fa1840d7706bde064d4a214fa5435ee16f94afc6b1cbd3",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "moonroot-revised-1-3df2ea3f8947482db35132b9df0ad5ff.png",
+        "reference": "library-file:fde1_bGliZmlsZV91R0JsRjdBcEJDY2p6aHJ3SGpDbnJR_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 3276517,
+        "sha256": "c7b0f5e8589a15383989ea9572e993b2b62fe97f931958f50e849fc148623baf",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "moonroot-revised-2-2788277a29f5464e99f0f8eb8c714178.png",
+        "reference": "library-file:fde1_bGliZmlsZV9ZZ1B0UHhEWXpqQ05xSldQeXFmU19B_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 2136696,
+        "sha256": "4fa1d9d9fb528dcf690486a0a0b9a88babc8f25eef224c1bf0c5f349836c4a6b",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      }
+    ],
+    "whole_object_originals": [
+      {
+        "file_name": "elder_mosstree-game-790d9eecbfcc465ab11fe066a2a7c158.png",
+        "reference": "library-file:fde1_bGliZmlsZV9OTXIxSFNjRU9VTG1NZEs1OWRrU1Nn_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1139940,
+        "sha256": "6b7de0ec4165238ecb566ca2889c847bb34a2504a7e9421b3e245ab1e6f57355",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "elder_mosstree-game-7cf97f7f09b84dd09eaa23575606ecf6.png",
+        "reference": "library-file:fde1_bGliZmlsZV9JanhLcmZjUklsTnE5eEhSQVdydDlR_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1155845,
+        "sha256": "8b6a24c0ac3d249c69f058547c3664fa85895401466002c66fd410120f691b18",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "glimmer_spire-game-581f67c8ce08404592875edae26cb63d.png",
+        "reference": "library-file:fde1_bGliZmlsZV9JTHhPR1J3QjNTTUtNOGlKZzV3X3dB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1150047,
+        "sha256": "681d1681ffdb7f95de55995b4c0332e002cd00c2a5decc235c0c8257face900d",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      },
+      {
+        "file_name": "glimmer_spire-game-2d99863fb44b4f1b9b5c43b589758570.png",
+        "reference": "library-file:fde1_bGliZmlsZV94c0FYRE8tbkN2ekxvbVM4SU1pY0FB_FileDrive_1c8fb9f467448191b0b6d4ffea0568d8",
+        "mime_type": "image/png",
+        "bytes": 1133694,
+        "sha256": "fe16a4334d7f52d9961f3aefe616e18fd3c77b662c838ce40be82c14f86d730e",
+        "access_confirmed": true,
+        "opened_and_inspected": true
+      }
+    ]
+  },
+  "limitations": [
+    "Real-game WebKit equipment/workspaces blocked by environment loading; not passed.",
+    "Workspace offline harness lacks renderer world.data; not passed.",
+    "Short 844x390 career overview branch captions are clipped/very small despite controls being reachable.",
+    "Close views may crop tall tree/sea arch/root arch silhouettes; accepted whole tree/crystal views are delivered.",
+    "No physical iPad FPS measurement; software-rendered browser proofs do not establish hardware frame rate.",
+    "No native library_file_ids through Page route; library-file references are not attachment IDs."
+  ],
+  "stopping_point": "No further packaging, unrelated checks, CI/review polling, merge or deployment; commit and push existing draft only."
+}

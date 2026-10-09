@@ -68,8 +68,8 @@
 #atelier:is(#atelier) :is(.category-tabs,.filters) button{min-height:44px;padding:6px 8px;border:0;font-size:12px;background:none;color:#a8bfca}
 #atelier:is(#atelier) :is(.category-tabs,.filters) .active{color:#e0f2f7;background:#527b8d33;border-radius:5px;box-shadow:none}
 #atelier:is(#atelier) .category-tabs>span{font-size:12px}
-#atelier:is(#atelier) .inventory-grid{flex:none;min-height:0;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(80px,auto));gap:6px;padding:8px 12px}
-#atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(2,minmax(80px,auto))}
+#atelier:is(#atelier) .inventory-grid{flex:none;min-height:0;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto);gap:6px;padding:8px 12px}
+#atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
 #atelier:is(#atelier) .inventory-filter{display:flex;align-items:center;gap:8px;font-size:12px;color:#bacbd3}
 #atelier:is(#atelier) .inventory-filter select{font:13px Mitr,sans-serif;min-height:44px;color:#e2edf2;background:#1b2e3a;border:1px solid #819dad55;border-radius:5px;padding:6px 10px}
 #atelier:is(#atelier) :is(.inventory-cell,.wear-slot)[data-grade]{border-color:var(--grade-color)}
@@ -78,6 +78,9 @@
 #atelier:is(#atelier) :is(.inventory-cell,.inventory-empty){min-height:80px;padding:17px 3px 5px;background:#22384588;border:1px solid #7896a644;border-radius:5px;box-shadow:none;overflow:hidden}
 #atelier:is(#atelier) .inventory-cell.selected{border:1px solid #d9be87;background:#415c6644;box-shadow:inset 0 0 0 1px #d9be8780}
 #atelier:is(#atelier) .inventory-cell.selected:after{display:none}
+#atelier:is(#atelier) :is(.inventory-cell,.wear-slot).equipment-inactive{border:2px solid #c83b35;box-shadow:inset 0 0 0 1px #c83b3580;background:#432c2c}
+#atelier:is(#atelier) .inventory-cell.equipment-inactive b{color:#f0c7bb}
+#atelier:is(#atelier) .worn.inactive-badge{background:#a32b27;color:#fff0de}
 #atelier:is(#atelier) .inventory-cell .object-art{width:48px;height:48px;max-height:48px;filter:none}
 #atelier:is(#atelier) .inventory-cell b{display:block;font-size:11px;line-height:1.4;color:#c6d6df;margin-top:4px}
 #atelier:is(#atelier) :is(.cell-corner,.stack-count,.worn){font:11px Mitr,sans-serif;text-shadow:none}
@@ -148,7 +151,12 @@
 .overlay.is-journal .skill-journal .app-shell{border-radius:6px;box-shadow:none}
 .overlay.is-journal .skill-journal .journal-series,.overlay.is-journal .skill-journal .journal-edition{display:none}
 .overlay.is-journal .skill-journal .journal-toolbar button{min-width:44px;min-height:44px}
-.overlay.is-journal .skill-journal .map-controls{right:12px;bottom:52px;max-width:calc(100% - 24px);transform:none;gap:4px;padding:4px}
+.overlay.is-journal .skill-journal .map-controls{right:12px;bottom:4px;max-width:calc(100% - 24px);transform:none;gap:4px;padding:4px}
+.overlay.is-journal .skill-journal .statusbar{height:56px;min-height:56px;padding-inline:14px;gap:8px}
+.overlay.is-journal .skill-journal .statusbar .map-controls{position:static;flex:none;margin:0;max-width:none}
+.overlay.is-journal .skill-journal .statusbar .gesture-hint{display:none}
+.overlay.is-journal .skill-journal .page-pagination button{min-width:44px;min-height:44px}
+.overlay.is-journal .skill-journal .discipline-caption b{font-size:13px}
 .overlay.is-journal .skill-journal .map-controls .icon-button{width:44px;height:44px;min-width:44px;min-height:44px}
 .overlay.is-journal .skill-journal .rail{position:absolute;inset:0 auto 0 0;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
 /* A compact field frame and minimap leave the centre to the game. Combat and
@@ -178,6 +186,10 @@ body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
  #hud .minimap{width:96px;height:96px}
 }
 @media(max-width:600px) and (orientation:portrait){
+ .overlay.is-journal .skill-journal .statusbar{height:auto;min-height:104px;display:grid;grid-template-columns:1fr auto;gap:0 6px;padding:2px 12px}
+ .overlay.is-journal .skill-journal .statusbar .map-controls{grid-column:1/-1;grid-row:1;justify-self:center}
+ .overlay.is-journal .skill-journal .statusbar>div:first-child{grid-row:2;min-width:0}
+ .overlay.is-journal .skill-journal .statusbar .page-pagination{grid-column:2;grid-row:2}
  .overlay.is-journal{align-items:flex-end;padding-bottom:16px}
  .overlay.is-journal .panel{width:calc(100vw - 24px);height:76dvh}
  .overlay.is-journal .skill-journal .notebook{margin:0 8px 8px;height:calc(100% - 64px)}
@@ -190,8 +202,8 @@ body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
  #atelier:is(#atelier){--workspace-height:calc(100dvh - 88px)}
  #atelier:is(#atelier) .two-windows{top:calc(50% + 16px);width:calc(100vw - 64px)}
  #atelier:is(#atelier) .workspace-nav{top:8px}
- #atelier:is(#atelier) .inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(80px,auto))}
- #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(80px,auto))}
+ #atelier:is(#atelier) .inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
+ #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
  #atelier:is(#atelier) .atelier-notice{bottom:2px;max-height:24px;overflow:auto}
  #atelier:is(#atelier) .character-stage{min-height:260px}
 }
@@ -206,11 +218,11 @@ body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
  #atelier:is(#atelier) .workspace-side{display:flex;position:absolute;top:calc(36dvh - 72px);left:12px;right:12px;gap:6px;pointer-events:auto}
  #atelier:is(#atelier) .workspace-side button{flex:1;background:#1a2d39;color:#b5cbd7}
  #atelier:is(#atelier) .workspace-side button.active{background:#345d73;border-color:#a7d0df;color:#eff5f7}
- #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(2,minmax(80px,auto))}
+ #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
  #atelier:is(#atelier) .atelier-notice{bottom:0;max-height:24px;overflow:auto;max-width:94vw}
 }
 @media(max-width:600px) and (orientation:portrait){
- #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(80px,auto))}
+ #atelier:is(#atelier) .bag-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(90px,auto)}
  #atelier:is(#atelier) .inventory-grid:not(.bag-grid){grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(80px,auto))}
 }
 @media(max-height:520px) and (orientation:landscape){
@@ -222,4 +234,16 @@ body.ingame{--field-glass:#1b2d3add;--field-line:#abc2d342}
  .overlay:not(.is-atelier):not(.is-journal) .pbody{padding:12px}
  .hub{gap:12px}.hub-tile{min-height:44px;padding:6px}.hub-state{display:none}
  .panel-footer>span{display:none}.panel-footer{justify-content:flex-end}
+}
+
+/* The entire collection is one real grid. Its scrollport is independent of
+   the panel, so long collections do not push item actions out of reach. */
+#atelier:is(#atelier) .inventory-scroll{flex:none;height:clamp(180px,24dvh,260px);min-height:180px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-gutter:stable;scroll-padding-block:8px;background:#12253166;margin:4px 10px 10px;border:1px solid #7896a630;border-radius:5px}
+#atelier:is(#atelier) .inventory-scroll:focus-visible{outline:2px solid #70d3de;outline-offset:-2px}
+#atelier:is(#atelier) :is(.window,.atelier-dialog) *{touch-action:pan-y}
+#atelier:is(#atelier) .inventory-scroll .inventory-grid{grid-template-rows:none;grid-auto-rows:minmax(90px,auto);align-content:start;padding:8px}
+#atelier:is(#atelier) .inventory-cell{min-height:90px}
+#atelier:is(#atelier) .library-window .selection-shelf{margin-top:0}
+@media(max-height:520px) and (orientation:landscape){
+ #atelier:is(#atelier) .inventory-scroll{height:180px}
 }

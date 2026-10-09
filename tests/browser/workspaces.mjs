@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {verifyPassiveGestures,journalJump} from './passive-checks.mjs';
 import {verifyEncounterCraft} from './encounter-craft-review.mjs';
 import {freezeScene} from './freeze-scene.mjs';
+import {verifyInventoryScroll} from './inventory-scroll-checks.mjs';
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
@@ -16,7 +17,7 @@ if(process.env.OFFLINE_UI){
  const {build}=await import('vite');
  const built=await build({configFile:false,logLevel:'error',build:{write:false,minify:false,lib:{entry:new URL('./workspace-harness.js',import.meta.url).pathname,name:'SeekerReview',formats:['iife']}}});
  offlineCode=built[0].output.find(o=>o.type==='chunk').code;
- offlineCss=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','skill-journal/journal'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
+ offlineCss=['style','ux','art','workspaces','minimal','journal','overlays','fieldhud','loadout-workspace','skill-journal/journal','compact'].map(n=>readFileSync(new URL('../../src/ui/'+n+'.css',import.meta.url),'utf8')).join('\n');
  for(const weight of [400,600]){const f=readFileSync(new URL(`../../src/ui/skill-journal/fonts/noto-thai-${weight}.ttf`,import.meta.url)).toString('base64');offlineCss+=`@font-face{font-family:AtlasThai;src:url(data:font/ttf;base64,${f});font-weight:${weight}}`;}
  for(const subset of ['thai','latin']){
   const font=readFileSync(new URL('../../node_modules/@fontsource/mitr/files/mitr-'+subset+'-400-normal.woff2',import.meta.url)).toString('base64');
@@ -60,8 +61,8 @@ try{
   if(touch){await page.locator('#map').evaluate(el=>{const r=el.getBoundingClientRect();el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:15,pointerType:'touch',clientX:r.x+100,clientY:r.y+100}));el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:15}));});}
   else{await page.mouse.move(rect.x+100,rect.y+150);await page.mouse.down();await page.mouse.move(rect.x+180,rect.y+190,{steps:5});await page.mouse.up();}
   assert.equal(await page.evaluate(()=>window.__frontier.game.ch.jobPoints),pts);
-  if(height>width){await nav('skills');assert.equal(await page.locator('#atelier .rotate-message').isVisible(),true);await page.keyboard.press('Escape');assert.deepEqual(errors,[]);await ctx.close();reports.push({size,width,height,touch,landscapeRequired:true});continue;}
   await nav('skills');assert.equal(await page.locator('#atelier .skill-card').count(),4);await noOverflow();await shot('skills');
+  if(height>width)await click('[data-action="view-side"][data-id="right"]');
   await click('[data-action="skill"][data-id="venom_mire"]');await click('#atelier [data-action="apply"]');await click('.atelier-dialog [data-action="confirm"]');
   await click('.category-tabs [data-action="category"][data-id="mod"]');
   const uid=await page.evaluate(()=>__frontier.game.ch.mods.find(m=>m.id==='split').uid);
@@ -70,6 +71,7 @@ try{
   await click(`[data-action="mod"][data-id="${lingering}"]`);await click('#atelier [data-action="apply"]');assert.ok(await page.evaluate(uid=>__frontier.game.ch.slots[0].mods.includes(uid),lingering));
   assert.ok(await page.evaluate(()=>__frontier.game.skills[0].duration>__frontier.game.data.skills.combat.venom_mire.duration));await noOverflow();await shot('mods');
   await nav('movement');assert.equal(await page.locator('#atelier .skill-grid .inventory-cell').count(),4);await click('[data-action="skill"][data-id="roll"]');await click('#atelier [data-action="apply"]');assert.equal(await page.evaluate(()=>__frontier.game.ch.movement),'roll');await noOverflow();await shot('movement');
+  await nav('bag');await verifyInventoryScroll(page,{context:ctx,engineName:name,width,height,touch,capture:label=>shot('inventory-'+label)});
   await nav('growth');assert.ok(await page.locator('[data-act="skill-up"]').count());await noOverflow();await shot('upgrades');
   // Open/close and panel navigation preserve combat selections; no unexpected mutations.
   await click('.panel-close');assert.equal(await page.evaluate(()=>window.__frontier.panels.isOpen),false);

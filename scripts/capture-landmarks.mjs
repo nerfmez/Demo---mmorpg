@@ -17,13 +17,13 @@ try{
   const list=map.landmarks.filter(l=>!l.builtin&&(!only.length||only.includes(l.id)));if(!list.length)continue;
   await page.setViewportSize({width:1180,height:820});
   await page.goto(`${process.env.CAPTURE_BASE||'http://127.0.0.1:4178'}/?fresh=1&seed=9&quality=high&stream=0&map=${mapId}`,{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier.game?.time>.3&&document.querySelector('#loading').classList.contains('done'));
+  await page.waitForFunction(()=>window.__frontier?.modelsReady&&__frontier.game?.time>.3&&document.querySelector('#loading').classList.contains('done'));
   await page.evaluate(()=>{const f=__frontier;f.paused=true;f.input.reset();f.input.disabled=true;f.game.monsters=[];f.game.spawnPoints=[];f.reviewRender=f.view.render.bind(f.view);f.view.render=()=>{};document.querySelector('.banner')?.remove();});
-  await page.evaluate(({zoom,distance,side})=>{__frontier.reviewZoom=zoom;__frontier.reviewDistance=distance;__frontier.reviewSide=side;},{zoom:report.cameraZoom,distance:report.cameraDistance,side:report.cameraSide});
+  await page.evaluate(({zoom,distance,side,angle})=>{__frontier.reviewZoom=zoom;__frontier.reviewDistance=distance;__frontier.reviewSide=side;__frontier.reviewAngle=angle;},{zoom:report.cameraZoom,distance:report.cameraDistance,side:report.cameraSide,angle:process.env.REVIEW_ANGLE===undefined?null:Number(process.env.REVIEW_ANGLE)});
   for(const lm of process.env.UI_ONLY?[]:list){
    const at=await page.evaluate(id=>{const f=__frontier,w=f.game.world,l=w.landmarks.find(l=>l.id===id);let at=null;
     const radius=Math.max(...l.parts.map(p=>Math.hypot(p.x-l.x,p.z-l.z)+p.r));
-    for(let d=radius+f.reviewDistance;d<l.clear+9&&!at;d+=.5)for(const a of [0,.6,-.6,1.1,-1.1,1.57,-1.57]){const x=l.x+Math.sin(a)*d,z=l.z+Math.cos(a)*d*f.reviewSide;if(w.isFree(x,z,.5)&&!w.isWater(x,z)){at=[x,z];break;}}
+    for(let d=radius+f.reviewDistance;d<l.clear+9&&!at;d+=.5)for(const a of f.reviewAngle===null?[0,.6,-.6,1.1,-1.1,1.57,-1.57]:[f.reviewAngle]){const x=l.x+Math.sin(a)*d,z=l.z+Math.cos(a)*d*f.reviewSide;if(w.isFree(x,z,.5)&&!w.isWater(x,z)){at=[x,z];break;}}
     if(!at)return null;Object.assign(f.game.player,{x:at[0],z:at[1],facing:Math.atan2(l.x-at[0],l.z-at[1])});f.view.zoom=f.reviewZoom;f.view.snapCamera();f.reviewRender(0,2,{});f.reviewRender(0,2,{});f.view.renderer.getContext().finish();return at;
    },lm.id);assert.ok(at);await shot(lm.id+'-game');if(process.env.MOTION_SHOTS&&lm.kind==='windmill'){for(let n=1;n<=3;n++){await page.waitForTimeout(500);await page.evaluate(()=>{__frontier.reviewRender(0,2,{});__frontier.view.renderer.getContext().finish();});await shot(lm.id+'-motion-'+n);}}if(process.env.MOBILE_SHOTS){for(const viewport of [{width:844,height:390},{width:390,height:844}]){await page.setViewportSize(viewport);await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));await page.evaluate(()=>{__frontier.view.resize();__frontier.view.snapCamera();__frontier.reviewRender(0,2,{});__frontier.view.renderer.getContext().finish();});await shot(lm.id+'-'+viewport.width+'x'+viewport.height);}await page.setViewportSize({width:1180,height:820});}
   }

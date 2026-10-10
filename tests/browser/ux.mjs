@@ -88,9 +88,11 @@ try {
 
     if(height>width){
       await activate('.quick-actions [aria-label="กระเป๋า"]');
-      assert.equal(await page.locator('#atelier .rotate-message').isVisible(),true);
-      assert.equal(await page.locator('#atelier .two-windows').isVisible(),false);
-      await shot('landscape-required');await page.keyboard.press('Escape');
+      // Portrait shows one window at a time with a side switcher, not a rotate gate (as loadout-live.mjs).
+      assert.equal(await page.locator('#atelier .rotate-message').isVisible(),false);
+      assert.equal(await page.locator('#atelier .two-windows').isVisible(),true);
+      assert.ok(await onscreen('#atelier [data-action="view-side"][data-id="right"]'),name+': portrait side switcher is reachable');
+      await shot('portrait-bag');await page.keyboard.press('Escape');
       assert.deepEqual(errors,[]);await ctx.close();continue;
     }
 

@@ -1,0 +1,22 @@
+{
+  "evidence": [
+    "desktop startup; only one basic starting skill",
+    "touch startup; only one basic starting skill",
+    "two independent browser contexts join same map/room",
+    "keyboard movement reaches the other browser and interpolated actor converges",
+    "real emulated touch joystick moves and synchronizes to desktop",
+    "explicit Solo removes remote actors on both clients",
+    "remote join/leave geometry stabilization: 79,79,79",
+    "different rooms cannot see one another",
+    "server shutdown clears ghosts; solo remains playable; restart reconnects with new identities",
+    "different game maps remain isolated in the same lobby",
+    "page close leaves no remote actor",
+    "no browser runtime errors"
+  ],
+  "errors": [],
+  "geometrySamples": [
+    79,
+    79,
+    79
+  ]
+}

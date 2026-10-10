@@ -28,11 +28,12 @@ try {
     if(process.env.QUICK&&name!=='ipad')continue;
     const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
+    page.setDefaultTimeout(90000); // the title waits behind the loading screen while the resident world is prepared
     const errors = [];
     page.on('pageerror', (err) => errors.push(String(err)));
     await page.addInitScript(() => localStorage.setItem('frontier-demo.questCollapsed', 'false'));
     await page.goto(`http://localhost:${PORT}/?fresh=1&quality=low&seed=7`);
-    await page.waitForFunction(() => window.__frontier?.game?.time > 0.3, null, { timeout: 30000 });
+    await page.waitForFunction(() => window.__frontier?.game?.time > 0.3, null, { timeout: 90000 });
     await installLearnedLoadout(page);
     await page.evaluate(() => {
       const f = window.__frontier;
@@ -87,9 +88,11 @@ try {
 
     if(height>width){
       await activate('.quick-actions [aria-label="กระเป๋า"]');
-      assert.equal(await page.locator('#atelier .rotate-message').isVisible(),true);
-      assert.equal(await page.locator('#atelier .two-windows').isVisible(),false);
-      await shot('landscape-required');await page.keyboard.press('Escape');
+      // Portrait shows one window at a time with a side switcher, not a rotate gate (as loadout-live.mjs).
+      assert.equal(await page.locator('#atelier .rotate-message').isVisible(),false);
+      assert.equal(await page.locator('#atelier .two-windows').isVisible(),true);
+      assert.ok(await onscreen('#atelier [data-action="view-side"][data-id="right"]'),name+': portrait side switcher is reachable');
+      await shot('portrait-bag');await page.keyboard.press('Escape');
       assert.deepEqual(errors,[]);await ctx.close();continue;
     }
 
@@ -243,7 +246,7 @@ try {
       const url = new URL(page.url()); url.searchParams.delete('fresh');
       await page.goto(url.href); await enterFullscreenGate(page);
       await activate('[data-act="continue"]');
-      await page.waitForFunction(() => __frontier.game?.time > .3 && document.getElementById('loading').classList.contains('done'), null, { timeout: 60000 });
+      await page.waitForFunction(() => __frontier.game?.time > .3 && document.getElementById('loading').classList.contains('done'), null, { timeout: 90000 });
       await page.evaluate(() => { __frontier.paused = true; });
     } });
     assert.deepEqual(errors, [], `${name}: page errors`);

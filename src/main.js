@@ -1,5 +1,7 @@
 // Boot: data -> world -> view (the live map behind the title screen) -> menu -> a game session
 // (simulation + HUD + input + panels), then one frame loop for everything.
+import { createPresence } from './ui/presence.js';
+import { onlineRuntime } from './network/online-runtime.js';
 import { data } from './data.js';
 import { createWorld } from './core/world.js';
 import { createCharacter, equip } from './core/character.js';
@@ -33,7 +35,7 @@ import '@fontsource/mitr/latin-600.css';
 
 const params = new URLSearchParams(location.search);
 // ?fresh=1 skips the menu with a new character that is never saved (tests); ?kit=bow|staff picks its kit
-const fresh = params.has('fresh');
+const fresh = !onlineRuntime && params.has('fresh');
 const coarse = matchMedia('(pointer: coarse)').matches;
 document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
@@ -151,8 +153,8 @@ function startGame(character, slot) {
   hud.onPanel = (tab) => panels.open(tab);
   F.panels = panels; // browser tests open a page directly
   const ui = {
-    blocked: () => fullscreen.blocked || !!completion?.isOpen,
-    panelOpen: () => panels.isOpen || fullscreen.blocked || !!completion?.isOpen,
+    blocked: () => fullscreen.blocked || !!completion?.isOpen || !!onlineRuntime?.gate.blocked,
+    panelOpen: () => panels.isOpen || !!session?.presence?.open || fullscreen.blocked || !!completion?.isOpen || !!onlineRuntime?.gate.blocked,
     closePanel: () => panels.close(),
     togglePanel: (t) => panels.toggle(t),
     configureSkill: (i) => {
@@ -211,6 +213,8 @@ function startGame(character, slot) {
 
   session = { game, hud, panels, input, ui, save, slot, completion, questRoute, supplies, refreshPortrait, refreshBadges, saveT: 0, badgeT: 0 };
   Object.assign(F, { game, hud, panels, input, save, completion, questRoute, supplies, weaponModelsReady: () => weaponModelsReady(game.gearLook().bases) });
+  session.presence = createPresence(game, view, () => input.reset(), () => F.modelsReady, onlineRuntime ? { client: onlineRuntime.client, required: true } : {});
+  F.presence = session.presence;
   save();
   if(sandbox){
     const bar=document.createElement('div');bar.className='skill-sandbox';
@@ -309,8 +313,9 @@ function frame(now) {
   const s = session;
   if (s) {
     if (!fullscreen.blocked) s.input.update();
+    if (onlineRuntime?.gate.blocked) s.input.reset();
     if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||fullscreen.blocked;
-    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked;
+    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked || !!onlineRuntime?.gate.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
@@ -330,18 +335,21 @@ function frame(now) {
         }
         // A far map (stone travel) or a seam reached before it finished streaming: reload.
         s.questRoute.dispose();
+        s.presence.dispose();
         session = null;
         travelTo(s.game.ch, s.slot, e.name);
         break;
       }
       if (e.type === 'travelRefused') s.hud.toast(e.reason === 'combat' ? 'ข้ามเขตแดนระหว่างต่อสู้ไม่ได้' : e.reason === 'loading' ? 'กำลังเตรียมพื้นที่ข้างหน้า' : 'ยังข้ามเขตแดนไม่ได้', '#ffb36b');
       view.handleEvent(e);
+      s.presence?.handleEvent(e);
       s.hud.handleEvent(e);
       if (SAVE_ON.has(e.type)) s.save();
       if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
     }
     s.completion.update(fullscreen.blocked || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.worldPrepared);
     s.questRoute.update(dt);
+    s.presence?.update(dt, time);
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
     if (initialWorldReady && s.panels.tab !== 'job' && !fullscreen.blocked) view.render(paused ? 0 : sdt, time, { aim: s.input.aim });

@@ -1,0 +1,160 @@
+{
+  "sourceBase": "7ef965faf2beaf010989c6b632e80a71c2a883fc",
+  "residentRendererOmitted": true,
+  "runtimeHashes": {
+    "src/network/protocol.js": "addf8bff93aed6030f67e8155c34be0fcf1cafcd08eac70aa3a749005735ad9f",
+    "src/network/presence.js": "5c3a159e57f3b664116b6564f8ab1f267837f1004323340e718b9a1f209106f0",
+    "src/ui/presence.js": "a4b15e47f485ad3ccdd1c0fd243679aba42e0e62097d93bf574abd84099d1941",
+    "src/ui/online-gate.js": "cc799271a1f074ee6568585a14a023a19fc539a84a110a17b75065a73c43832b",
+    "src/player.js": "848cab998f9abc44774069430e17218a7a7ac21cf29273c1adb9ad83516cba58",
+    "src/render/remote-players.js": "34df9e6730e780eedb94ea214803506b29652952babca4b00b61a5d443864ea7",
+    "src/render/remote-effects.js": "a060375b3d5c18d3163a52e177bd5c5be54f67e99e3d5b7342e1a12c4fe27341",
+    "src/render/spatial-region.js": "26ff88e66fdbf0061240ecdc5904507f4a8b2a514b5570efc453f8a25aef3329",
+    "src/render/terrain-domain.js": "6c6dc6f7f0d58b58dd6dfa0e2b1e263c91c3dc7260a2e2bb6be9e17e597495e2",
+    "src/main.js": "874b4ef363d280f5d34b97f63b3dabb8e4afadc5fa2bd5749f4ed7bbc230ea5c",
+    "server/presence.mjs": "d92b49a43a4ff88ef8e03da2db88d62205e4c84420b05f163bd598b7c71e6350",
+    "tests/browser/online-harness.js": "11aed5e2cc07718b6d1ed4fdc71574c1ad10067ea2b4e47b880768635794c6d2",
+    "tests/browser/online.mjs": "bf7b186fd9a7ee99a9802f93438c15f8f95ea10c23beb2858873565d0fefe117"
+  },
+  "checks": [
+    {
+      "name": "Connecting precedes world construction"
+    },
+    {
+      "name": "Failed/Retry keep world unconstructed and offline entry explicit"
+    },
+    {
+      "name": "Retry handshake admits player before constructing one fixture world"
+    },
+    {
+      "name": "BFCache lifecycle handlers stop the socket and resume without rebuilding"
+    },
+    {
+      "name": "Static camera/shadow cells detach and restore while peer rig/scarf and bounded arrow remain dynamic scene owners",
+      "evidence": {
+        "staticObjects": 2,
+        "staticOverrides": true,
+        "attached": 2,
+        "detached": 0,
+        "restored": 2,
+        "actorCaptured": false,
+        "actorOnScene": true,
+        "scarfOnScene": true,
+        "effectOnScene": true,
+        "effectCaptured": false,
+        "uuid": "0bc7d99d-49b1-45a4-be8f-048d4a68f44c"
+      }
+    },
+    {
+      "name": "Two browser origins agree across Moonroot touch and Frontier keyboard seams without replacing identity/rig",
+      "evidence": {
+        "keyboardShared": {
+          "wire": {
+            "x": 13,
+            "z": -119.96459999999999,
+            "facing": 0,
+            "moving": false,
+            "region": "azure-harbor-v1"
+          },
+          "target": {
+            "x": 13,
+            "z": -119.96459999999999
+          },
+          "origin": [
+            0,
+            0
+          ],
+          "global": [
+            13,
+            -119.96459999999999
+          ]
+        },
+        "touchShared": {
+          "wire": {
+            "x": 13,
+            "z": -121.11637500000003,
+            "facing": 3.141592653589793,
+            "moving": true,
+            "region": "moonroot-grove-v1"
+          },
+          "target": {
+            "x": -12,
+            "z": 57.38362499999997
+          },
+          "origin": [
+            25,
+            -178.5
+          ],
+          "global": [
+            13,
+            -121.11637500000003
+          ]
+        },
+        "frontierShared": {
+          "wire": {
+            "x": -160.03478230000005,
+            "z": -92,
+            "facing": -1.5707963267948966,
+            "moving": true,
+            "region": "frontier-wilds-v1"
+          },
+          "target": {
+            "x": -160.03478230000005,
+            "z": -92
+          },
+          "origin": [
+            0,
+            0
+          ],
+          "global": [
+            -160.03478230000005,
+            -92
+          ]
+        }
+      }
+    },
+    {
+      "name": "Real room controls isolate peers and rejoin the shared atlas"
+    },
+    {
+      "name": "Supplies HUD actions and Close stay reachable; room text does not trigger F",
+      "evidence": {
+        "x": 687,
+        "y": 19,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "Connection failures, movement, room changes and teardown never modify the existing offline save"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "static-culling-peer-idle.png",
+      "sha256": "6b2cb6c76e9bc1d178739f1618388023d8daebda93239f5ed43c5db3d6385df1"
+    },
+    {
+      "file": "static-culling-peer-shot.png",
+      "sha256": "bc73243e9e1da095cda1bd4bcc56f82a8103b9608d69a13014fb28e0aa9a3eec"
+    },
+    {
+      "file": "seam-two-client-moonroot.png",
+      "sha256": "7a859dc98a59a06e828c235120bec9901d333e5c92c7418a65c556109bf169b9"
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "integratedMain": "10b8f73072bf17c824c6e527baa25dcf10e101a1",
+  "onlineCheckpoint": "1414d4fcfefdbd56c4060e582b0c48a71a581131",
+  "builds": [
+    "npm run build:player",
+    "npm run build:offline"
+  ],
+  "command": "ONLINE_CULLING=1 ONLINE_SEAMS_ONLY=1 npm run test:online",
+  "limits": [
+    "Two tiny flat browser fixtures, not resident-world startup, hardware FPS or hosted readiness.",
+    "Sampled stills only; the shot frame is an early release cue, not a continuous arrow-flight review.",
+    "Main PR #132 checks and unaffected online/visual evidence reused; no CI or Pages polling."
+  ]
+}

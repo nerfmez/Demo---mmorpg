@@ -134,9 +134,10 @@ test('resident warmup preserves full aliased buffers while warming one primitive
   geometry.dispose();instances.geometry.dispose();materials.forEach(m=>m.dispose());
 });
 
-function harness({game=false,fail=false}={}){
+function harness({game=false,fail=false,online=false}={}){
   const old={raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame,st:globalThis.setTimeout,ct:globalThis.clearTimeout,mc:globalThis.MessageChannel};
-  const frames=new Map(),timers=new Map(),errors=[],uploads=[],compiled=[];let id=0,clock=0,paintTime=0,timerTime=0,draws=0,uiFrames=0,updates=0;
+  const frames=new Map(),timers=new Map(),errors=[],uploads=[],compiled=[];let id=0,clock=0,paintTime=0,timerTime=0,draws=0,uiFrames=0,updates=0,resets=0;
+  const onlineRuntime=online?{gate:{blocked:true}}:null;
   const calls={input:0,hud:0,minimap:0,supplies:0,completion:0,route:0,badges:0,portrait:0,drain:0,save:0,panelRender:0};
   const pendingEvents=[],viewEvents=[],hudEvents=[],updateDts=[];
   const raf=fn=>{const key=++id;frames.set(key,fn);return key;};
@@ -168,7 +169,7 @@ function harness({game=false,fail=false}={}){
       assert.equal(compiled.at(-1),mapId,'exact gameplay material variant compiles before its upload draw');
       uploads.push(mapId);clock++;}};
   const session=game?{
-    panels:{tab:null,isOpen:false,render(){calls.panelRender++;}},input:{aim:null,update(){calls.input++;}},
+    panels:{tab:null,isOpen:false,render(){calls.panelRender++;}},input:{aim:null,update(){calls.input++;},reset(){resets++;}},
     completion:{isOpen:false,update(){calls.completion++;}},questRoute:{update(){calls.route++;}},supplies:{update(){calls.supplies++;}},
     game:{ch:{opening:{stage:'done'}},update(dt){updates++;updateDts.push(dt);},drainEvents(){calls.drain++;return pendingEvents.splice(0);}},
     hud:{update(){calls.hud++;calls.minimap++;},handleEvent(e){hudEvents.push(e);}},saveT:0,badgeT:0,
@@ -198,17 +199,17 @@ function harness({game=false,fail=false}={}){
   // Exercise production readiness, including each region's real upload generator
   // and spatial preparation, instead of equating active imports to world-ready.
   view.worldReady=prepareResidentWorld(view,{});
-  const deps={view,F,fullscreen,session,document:{getElementById:()=>loading},console:{error:(...args)=>errors.push(args)},
+  const deps={view,F,fullscreen,session,onlineRuntime,document:{getElementById:()=>loading},console:{error:(...args)=>errors.push(args)},
     requestAnimationFrame:fn=>raf(t=>{uiFrames++;fn(t);}),useStartupTaskScheduling,performance:{now:()=>0}};
   const api=Function('deps',`const {view,F,fullscreen,document,console,requestAnimationFrame,useStartupTaskScheduling,performance}=deps;
-    let session=deps.session;const governor=null;${saveOnSource}let last=0,time=0,fpsAcc=0,fpsN=0;
+    let session=deps.session;const onlineRuntime=deps.onlineRuntime;const governor=null;${saveOnSource}let last=0,time=0,fpsAcc=0,fpsN=0;
     ${initialDrawState}\n${schedulingSource}\n${frameSource}\n${startupSource}\nreturn {setSession(value){session=value;}};`)(deps);
   const tasks=async()=>{
     const pending=[...timers].filter(([,t])=>t.at<=timerTime).sort((a,b)=>a[1].at-b[1].at);
     for(const[key,t]of pending){if(timers.delete(key))t.fn();}await flush();
   };
-  return {view,F,fullscreen,session,queue,loading,errors,uploads,compiled,api,calls,pendingEvents,viewEvents,hudEvents,updateDts,releaseImport(id){importControls.get(id)();},
-    get draws(){return draws;},get uiFrames(){return uiFrames;},get updates(){return updates;},
+  return {view,F,fullscreen,session,onlineRuntime,queue,loading,errors,uploads,compiled,api,calls,pendingEvents,viewEvents,hudEvents,updateDts,releaseImport(id){importControls.get(id)();},
+    get draws(){return draws;},get uiFrames(){return uiFrames;},get updates(){return updates;},get resets(){return resets;},
     async paint(delta=16){paintTime+=delta;const f=[...frames.values()];frames.clear();f.forEach(fn=>fn(paintTime));timerTime=paintTime;await tasks();},
     async task(delta=0){timerTime+=delta;await tasks();},
     close(){for(const release of importControls.values())release();
@@ -221,6 +222,20 @@ async function advance(h,ready,{paint=true}={}){
   for(let i=0;!ready()&&i<100;i++)await(paint?h.paint():h.task());
   assert.ok(ready(),'bounded startup construction reaches its checkpoint');
 }
+
+test('online gate freezes the actual main frame and resets held input until admission/rejoin is acknowledged',async()=>{
+  const h=harness({game:true,online:true});
+  try{
+    h.releaseImport('remote-one');h.releaseImport('remote-two');
+    await advance(h,()=>h.loading.done);
+    await h.paint();assert.equal(h.updates,0);assert.ok(h.resets>0);
+    h.onlineRuntime.gate.blocked=false;await h.paint();assert.ok(h.updates>0);
+    const updates=h.updates,resets=h.resets;
+    h.onlineRuntime.gate.blocked=true;await h.paint();
+    assert.equal(h.updates,updates);assert.equal(h.resets,resets+1);
+    assert.ok(h.calls.supplies>0,'the accepted Supplies UI remains attached during a paused frame');
+  }finally{h.close();}
+});
 
 for(const game of [false,true])test(`${game?'fresh game':'title'} keeps loading opaque and UI alive until all regional imports and uploads finish`,async()=>{
   const h=harness({game});

@@ -12,7 +12,14 @@
     "export:layout": "node scripts/export-layout.mjs",
     "test:dreamloop": "node tests/browser/dreamloop.mjs",
     "test:tools": "node --test tests/tools/*.test.mjs",
-    "jev:context": "node scripts/jev-context.mjs"
+    "jev:context": "node scripts/jev-context.mjs",
+    "start:presence": "node server/index.mjs",
+    "test:network": "node --test tests/network/*.test.mjs",
+    "test:presence": "node tests/browser/presence.mjs",
+    "build:player": "vite build --mode player",
+    "build:offline": "vite build --mode offline",
+    "dev:player": "vite --host --mode player",
+    "test:online": "node tests/browser/online.mjs"
   },
   "repository": {
     "type": "git",
@@ -27,7 +34,8 @@
   "homepage": "https://github.com/nerfmez/demo---mmorpg#readme",
   "dependencies": {
     "@fontsource/mitr": "^5.3.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "acorn": "^8.19.0",

@@ -87,6 +87,7 @@ jobs:
           echo "$MODE source: $SOURCE" >> "$GITHUB_STEP_SUMMARY"
           echo "Browser suites (each in Chromium and WebKit): $SUITES" >> "$GITHUB_STEP_SUMMARY"
           echo "Routing: $REASON" >> "$GITHUB_STEP_SUMMARY"
+      - run: npm run test:network
       - run: npm run test:tools
         if: steps.scope.outputs.game == 'true' || steps.scope.outputs.tools == 'true'
       # All core tests, including migrations, save preservation and contact timing.

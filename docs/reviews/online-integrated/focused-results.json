@@ -1,0 +1,598 @@
+{
+  "baseCheckpoint": "30cdc39cb10d2cfbaa18abe51297d2c134929066",
+  "integratedMain": "7beaf36a9e238f15d226ce457ccef271f498c233",
+  "runtimeHashes": {
+    "src/network/protocol.js": "addf8bff93aed6030f67e8155c34be0fcf1cafcd08eac70aa3a749005735ad9f",
+    "src/network/presence.js": "5c3a159e57f3b664116b6564f8ab1f267837f1004323340e718b9a1f209106f0",
+    "src/ui/presence.js": "a4b15e47f485ad3ccdd1c0fd243679aba42e0e62097d93bf574abd84099d1941",
+    "src/ui/online-gate.js": "cc799271a1f074ee6568585a14a023a19fc539a84a110a17b75065a73c43832b",
+    "src/player.js": "848cab998f9abc44774069430e17218a7a7ac21cf29273c1adb9ad83516cba58",
+    "src/render/remote-players.js": "34df9e6730e780eedb94ea214803506b29652952babca4b00b61a5d443864ea7",
+    "src/render/remote-effects.js": "a060375b3d5c18d3163a52e177bd5c5be54f67e99e3d5b7342e1a12c4fe27341",
+    "src/main.js": "874b4ef363d280f5d34b97f63b3dabb8e4afadc5fa2bd5749f4ed7bbc230ea5c",
+    "server/presence.mjs": "d92b49a43a4ff88ef8e03da2db88d62205e4c84420b05f163bd598b7c71e6350",
+    "tests/browser/online-harness.js": "5bbee27e10d70cb1c8b38f175177aa333483d6482ab6d40d40699efca143f811",
+    "tests/browser/online.mjs": "247e9144c487891ca0cc6ebcdb8a0c3cdc7d03fa131f5ef2b162fe72eb2dbee2",
+    "tests/core/startup-drawing.test.js": "43a7800480fc399073b426fdda8ac7f849f3a4f466513e2d8453a0ac2049efe8",
+    "tests/network/presence.test.mjs": "5887e0f3fb9469bd8acbca5af871e362c433a03d90a50f3d76ba79e885ce2c0a",
+    "tests/browser/player-entry.mjs": "8b8280426958739d1fab58619d75283f8212eff35a538c92fef86ef908c3713e",
+    "src/ui/presence.css": "642028ed68558dd105ca61419f4d5059b8826ef6b0231cf95f487a3347a05095",
+    "src/entry.js": "e485d9accc53678a2ff66d09c4517ed3b18ab344ad9ed97498afdbcc6be21283",
+    "src/offline.js": "426c9c1320ad35f3d7c5a9e857276480d6e7ead0dd5ff7ad6a027750113c51bb",
+    "offline.html": "059315fc1b1e73aad4d753f81045e4bb46bc8da64c2d9a34c832c4e5bfe531cf",
+    ".env.player": "c57c425fc83a6a2a5851d164f4dbe0b8933a59f1f4320a0495c2e61370319b95",
+    "vite.config.js": "424b43bcb4b81a1130df9512ad11216160a4298cab76bcd28898eaa75830a8de"
+  },
+  "screenshots": [
+    {
+      "file": "production-connecting.png",
+      "sha256": "85ea9e97e479e04f95dea42a6d908db844829485eb7d34ada800621190c9d8fb",
+      "origin": "tests/browser/out/player-entry/production-connecting.png"
+    },
+    {
+      "file": "production-failed.png",
+      "sha256": "a1fb5ec4567413033511074571010195fd2b594e4b0908828186db62c753d73d",
+      "origin": "tests/browser/out/player-entry/production-failed.png"
+    },
+    {
+      "file": "remote-ranger-sword.png",
+      "sha256": "2df6f5a2318d018330b63a424f65aa5f287890eac32ba3effd89cdb8a11046bd",
+      "origin": "tests/browser/out/online/remote-ranger-sword.png"
+    },
+    {
+      "file": "remote-slash-hit.png",
+      "sha256": "d3372fda552337ec9daf681d6393e7c1f9cf1fa619ffe3c35c7b06a568eddb06",
+      "origin": "tests/browser/out/online/remote-slash-hit.png"
+    },
+    {
+      "file": "remote-firebolt.png",
+      "sha256": "9dede8388620e21f4a1c6245abbdd994abf0bab89c08e62ed1c4bb759ca89f26",
+      "origin": "tests/browser/out/online/remote-firebolt.png"
+    },
+    {
+      "file": "remote-frost.png",
+      "sha256": "af4d801f40b9222eb806f5398336e679f3b877c47d507a5bdee53a3bc33269ca",
+      "origin": "tests/browser/out/online/remote-frost.png"
+    },
+    {
+      "file": "remote-fire-start.png",
+      "sha256": "d38712507c842086b0800ca6fcb3f6cd2e085a0a9923790898ef95e7c2668685",
+      "origin": "tests/browser/out/online/remote-fire-start.png"
+    },
+    {
+      "file": "remote-fire-hit.png",
+      "sha256": "09e49a2bba7ff3a704bf34dad8029650bb58e7414dcb4431f02e7d4fe46c29a8",
+      "origin": "tests/browser/out/online/remote-fire-hit.png"
+    },
+    {
+      "file": "remote-fire-release.png",
+      "sha256": "11cc3e2edbae644a6e3475b2d4ab8b86ab7be68631a5c81f634ce8f18c6f07eb",
+      "origin": "tests/browser/out/online/remote-fire-release.png"
+    },
+    {
+      "file": "online-controls-tablet.png",
+      "sha256": "595038d90afa96d80fd1de64a78be71641176da1174035c8428e895ed8015567",
+      "origin": "tests/browser/out/online/online-controls-tablet.png"
+    },
+    {
+      "file": "online-controls-landscape.png",
+      "sha256": "e5aabc4920ac7f1e89e7a314dab8b95768ff40b4879a58a3e1d8b5e5a2679d13",
+      "origin": "tests/browser/out/online/online-controls-landscape.png"
+    },
+    {
+      "file": "reconnecting-landscape.png",
+      "sha256": "00b82a85a18ba46101f4b431a658e4c976bbfd4906a888c8dd777c2e1071624c",
+      "origin": "tests/browser/out/online/reconnecting-landscape.png"
+    },
+    {
+      "file": "seam-two-client-moonroot.png",
+      "sha256": "200181e5bb7f52f97c9a289ae4437389fbcf5a2bd2100517ee3e84ef9536b29c",
+      "origin": "tests/browser/out/online-seams/seam-two-client-moonroot.png"
+    },
+    {
+      "file": "supplies-close-landscape.png",
+      "sha256": "fad6005ffe9e8246853a263d84532ae70d049fc88f65a212b90ae63c77796fa8",
+      "origin": "tests/browser/out/online-seams/supplies-close-landscape.png"
+    }
+  ],
+  "protocol": {
+    "command": "npm run test:network",
+    "passed": 11,
+    "addedAdmissionCase": {
+      "command": "node --test --test-name-pattern='version mismatch' tests/network/presence.test.mjs",
+      "passed": 1
+    }
+  },
+  "core": {
+    "command": "node --test tests/core/save.test.js tests/core/startup-drawing.test.js tests/core/startup-readiness.test.js",
+    "passed": 16,
+    "addedGateCase": {
+      "command": "node --test --test-name-pattern='online gate freezes' tests/core/startup-drawing.test.js",
+      "passed": 1
+    }
+  },
+  "builds": [
+    "VITE_PRESENCE_URL=ws://127.0.0.1:3001/presence npm run build:player",
+    "npm run build:offline"
+  ],
+  "visualAndResourceChecks": [
+    {
+      "name": "Connecting precedes world construction"
+    },
+    {
+      "name": "Failed/Retry keep world unconstructed and offline entry explicit"
+    },
+    {
+      "name": "Retry handshake admits player before constructing one fixture world"
+    },
+    {
+      "name": "Real relay peer renders current main outfit and imported sword"
+    },
+    {
+      "name": "Matching melee pose and authored cut at the bounded cast hit time",
+      "evidence": {
+        "pose": "slashA",
+        "effects": 1
+      }
+    },
+    {
+      "name": "Duplicate action creates no second effect"
+    },
+    {
+      "name": "Appearance replacement and staff fire/frost use current known assets and authored poses"
+    },
+    {
+      "name": "Cancel clears pending animation and live cosmetic effects"
+    },
+    {
+      "name": "Focused resource ownership stabilises after effects expire",
+      "evidence": [
+        {
+          "geometry": 35,
+          "textures": 39,
+          "effects": 0
+        },
+        {
+          "geometry": 35,
+          "textures": 39,
+          "effects": 0
+        },
+        {
+          "geometry": 35,
+          "textures": 39,
+          "effects": 0
+        }
+      ]
+    },
+    {
+      "name": "Responsive presence controls retain HUD clearance and reachability",
+      "evidence": [
+        {
+          "width": 1024,
+          "height": 768,
+          "bounds": {
+            ".presence-panel": {
+              "x": 328,
+              "y": 64,
+              "w": 300,
+              "h": 243,
+              "right": 628,
+              "bottom": 307
+            },
+            ".pframe": {
+              "x": 22,
+              "y": 22,
+              "w": 286,
+              "h": 112.390625,
+              "right": 308,
+              "bottom": 134.390625
+            },
+            "[data-join]": {
+              "x": 341,
+              "y": 223,
+              "w": 97.765625,
+              "h": 44,
+              "right": 438.765625,
+              "bottom": 267
+            },
+            "[data-leave]": {
+              "x": 444.765625,
+              "y": 223,
+              "w": 128.296875,
+              "h": 44,
+              "right": 573.0625,
+              "bottom": 267
+            },
+            ".ammo-hud": {
+              "x": 792,
+              "y": 329,
+              "w": 204,
+              "h": 62,
+              "right": 996,
+              "bottom": 391
+            },
+            ".auto-potions-hud": {
+              "x": 780,
+              "y": 462,
+              "w": 216,
+              "h": 44,
+              "right": 996,
+              "bottom": 506
+            }
+          }
+        },
+        {
+          "width": 760,
+          "height": 430,
+          "bounds": {
+            ".presence-panel": {
+              "x": 244,
+              "y": 132,
+              "w": 300,
+              "h": 228,
+              "right": 544,
+              "bottom": 360
+            },
+            ".pframe": {
+              "x": 12,
+              "y": 10,
+              "w": 222,
+              "h": 93,
+              "right": 234,
+              "bottom": 103
+            },
+            "[data-join]": {
+              "x": 257,
+              "y": 279,
+              "w": 85.140625,
+              "h": 44,
+              "right": 342.140625,
+              "bottom": 323
+            },
+            "[data-leave]": {
+              "x": 348.140625,
+              "y": 279,
+              "w": 110.59375,
+              "h": 44,
+              "right": 458.734375,
+              "bottom": 323
+            },
+            ".ammo-hud": {
+              "x": 254,
+              "y": 64,
+              "w": 196,
+              "h": 54.6875,
+              "right": 450,
+              "bottom": 118.6875
+            },
+            ".auto-potions-hud": {
+              "x": 566,
+              "y": 214,
+              "w": 178,
+              "h": 44,
+              "right": 744,
+              "bottom": 258
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reconnecting clears peers and resynchronises current outfit without rebuilding world"
+    },
+    {
+      "name": "Leave disposes actor and pending/live effects"
+    }
+  ],
+  "resourceSamples": [
+    {
+      "geometry": 35,
+      "textures": 39,
+      "effects": 0
+    },
+    {
+      "geometry": 35,
+      "textures": 39,
+      "effects": 0
+    },
+    {
+      "geometry": 35,
+      "textures": 39,
+      "effects": 0
+    }
+  ],
+  "bounds": [
+    {
+      "width": 1024,
+      "height": 768,
+      "bounds": {
+        ".presence-panel": {
+          "x": 328,
+          "y": 64,
+          "w": 300,
+          "h": 243,
+          "right": 628,
+          "bottom": 307
+        },
+        ".pframe": {
+          "x": 22,
+          "y": 22,
+          "w": 286,
+          "h": 112.390625,
+          "right": 308,
+          "bottom": 134.390625
+        },
+        "[data-join]": {
+          "x": 341,
+          "y": 223,
+          "w": 97.765625,
+          "h": 44,
+          "right": 438.765625,
+          "bottom": 267
+        },
+        "[data-leave]": {
+          "x": 444.765625,
+          "y": 223,
+          "w": 128.296875,
+          "h": 44,
+          "right": 573.0625,
+          "bottom": 267
+        },
+        ".ammo-hud": {
+          "x": 792,
+          "y": 329,
+          "w": 204,
+          "h": 62,
+          "right": 996,
+          "bottom": 391
+        },
+        ".auto-potions-hud": {
+          "x": 780,
+          "y": 462,
+          "w": 216,
+          "h": 44,
+          "right": 996,
+          "bottom": 506
+        }
+      }
+    },
+    {
+      "width": 760,
+      "height": 430,
+      "bounds": {
+        ".presence-panel": {
+          "x": 244,
+          "y": 132,
+          "w": 300,
+          "h": 228,
+          "right": 544,
+          "bottom": 360
+        },
+        ".pframe": {
+          "x": 12,
+          "y": 10,
+          "w": 222,
+          "h": 93,
+          "right": 234,
+          "bottom": 103
+        },
+        "[data-join]": {
+          "x": 257,
+          "y": 279,
+          "w": 85.140625,
+          "h": 44,
+          "right": 342.140625,
+          "bottom": 323
+        },
+        "[data-leave]": {
+          "x": 348.140625,
+          "y": 279,
+          "w": 110.59375,
+          "h": 44,
+          "right": 458.734375,
+          "bottom": 323
+        },
+        ".ammo-hud": {
+          "x": 254,
+          "y": 64,
+          "w": 196,
+          "h": 54.6875,
+          "right": 450,
+          "bottom": 118.6875
+        },
+        ".auto-potions-hud": {
+          "x": 566,
+          "y": 214,
+          "w": 178,
+          "h": 44,
+          "right": 744,
+          "bottom": 258
+        }
+      }
+    }
+  ],
+  "seamAndLifecycle": {
+    "sourceBase": "30cdc39cb10d2cfbaa18abe51297d2c134929066",
+    "residentRendererOmitted": true,
+    "runtimeHashes": {
+      "src/network/protocol.js": "addf8bff93aed6030f67e8155c34be0fcf1cafcd08eac70aa3a749005735ad9f",
+      "src/network/presence.js": "5c3a159e57f3b664116b6564f8ab1f267837f1004323340e718b9a1f209106f0",
+      "src/ui/presence.js": "a4b15e47f485ad3ccdd1c0fd243679aba42e0e62097d93bf574abd84099d1941",
+      "src/ui/online-gate.js": "cc799271a1f074ee6568585a14a023a19fc539a84a110a17b75065a73c43832b",
+      "src/player.js": "848cab998f9abc44774069430e17218a7a7ac21cf29273c1adb9ad83516cba58",
+      "src/render/remote-players.js": "34df9e6730e780eedb94ea214803506b29652952babca4b00b61a5d443864ea7",
+      "src/render/remote-effects.js": "a060375b3d5c18d3163a52e177bd5c5be54f67e99e3d5b7342e1a12c4fe27341",
+      "src/main.js": "874b4ef363d280f5d34b97f63b3dabb8e4afadc5fa2bd5749f4ed7bbc230ea5c",
+      "server/presence.mjs": "d92b49a43a4ff88ef8e03da2db88d62205e4c84420b05f163bd598b7c71e6350",
+      "tests/browser/online-harness.js": "5bbee27e10d70cb1c8b38f175177aa333483d6482ab6d40d40699efca143f811",
+      "tests/browser/online.mjs": "247e9144c487891ca0cc6ebcdb8a0c3cdc7d03fa131f5ef2b162fe72eb2dbee2",
+      "tests/core/startup-drawing.test.js": "43a7800480fc399073b426fdda8ac7f849f3a4f466513e2d8453a0ac2049efe8",
+      "tests/network/presence.test.mjs": "5887e0f3fb9469bd8acbca5af871e362c433a03d90a50f3d76ba79e885ce2c0a",
+      "tests/browser/player-entry.mjs": "8b8280426958739d1fab58619d75283f8212eff35a538c92fef86ef908c3713e",
+      "src/ui/presence.css": "642028ed68558dd105ca61419f4d5059b8826ef6b0231cf95f487a3347a05095",
+      "src/entry.js": "e485d9accc53678a2ff66d09c4517ed3b18ab344ad9ed97498afdbcc6be21283",
+      "src/offline.js": "426c9c1320ad35f3d7c5a9e857276480d6e7ead0dd5ff7ad6a027750113c51bb",
+      "offline.html": "059315fc1b1e73aad4d753f81045e4bb46bc8da64c2d9a34c832c4e5bfe531cf",
+      ".env.player": "c57c425fc83a6a2a5851d164f4dbe0b8933a59f1f4320a0495c2e61370319b95",
+      "vite.config.js": "424b43bcb4b81a1130df9512ad11216160a4298cab76bcd28898eaa75830a8de"
+    },
+    "checks": [
+      {
+        "name": "Connecting precedes world construction"
+      },
+      {
+        "name": "Failed/Retry keep world unconstructed and offline entry explicit"
+      },
+      {
+        "name": "Retry handshake admits player before constructing one fixture world"
+      },
+      {
+        "name": "BFCache lifecycle handlers stop the socket and resume without rebuilding"
+      },
+      {
+        "name": "Two browser origins agree across Moonroot touch and Frontier keyboard seams without replacing identity/rig",
+        "evidence": {
+          "keyboardShared": {
+            "wire": {
+              "x": 13,
+              "z": -119.86206179999999,
+              "facing": 0,
+              "moving": false,
+              "region": "azure-harbor-v1"
+            },
+            "target": {
+              "x": 13,
+              "z": -119.86206179999999
+            },
+            "origin": [
+              0,
+              0
+            ],
+            "global": [
+              13,
+              -119.86206179999999
+            ]
+          },
+          "touchShared": {
+            "wire": {
+              "x": 13,
+              "z": -120.88473750000004,
+              "facing": 3.141592653589793,
+              "moving": true,
+              "region": "moonroot-grove-v1"
+            },
+            "target": {
+              "x": -12,
+              "z": 57.61526249999996
+            },
+            "origin": [
+              25,
+              -178.5
+            ],
+            "global": [
+              13,
+              -120.88473750000004
+            ]
+          },
+          "frontierShared": {
+            "wire": {
+              "x": -160.03478230000005,
+              "z": -92,
+              "facing": -1.5707963267948966,
+              "moving": false,
+              "region": "frontier-wilds-v1"
+            },
+            "target": {
+              "x": -160.03478230000005,
+              "z": -92
+            },
+            "origin": [
+              0,
+              0
+            ],
+            "global": [
+              -160.03478230000005,
+              -92
+            ]
+          }
+        }
+      },
+      {
+        "name": "Real room controls isolate peers and rejoin the shared atlas"
+      },
+      {
+        "name": "Supplies HUD actions and Close stay reachable; room text does not trigger F",
+        "evidence": {
+          "x": 687,
+          "y": 19,
+          "width": 44,
+          "height": 44
+        }
+      },
+      {
+        "name": "Connection failures, movement, room changes and teardown never modify the existing offline save"
+      }
+    ],
+    "screenshots": [
+      {
+        "file": "connecting-tablet.png",
+        "sha256": "016c8883c2605e82d89063ea856221e10a14ee4bea76d62afb5bf8017252859f"
+      },
+      {
+        "file": "failed-tablet.png",
+        "sha256": "e3abe83ea6b8816f2cd8386c47807647714ef09b940cbf0c83536cf144478a78"
+      },
+      {
+        "file": "seam-two-client-moonroot.png",
+        "sha256": "200181e5bb7f52f97c9a289ae4437389fbcf5a2bd2100517ee3e84ef9536b29c"
+      },
+      {
+        "file": "supplies-close-landscape.png",
+        "sha256": "fad6005ffe9e8246853a263d84532ae70d049fc88f65a212b90ae63c77796fa8"
+      }
+    ],
+    "errors": [],
+    "external": []
+  },
+  "productionEntry": {
+    "endpoint": "ws://127.0.0.1:3001/presence",
+    "gameConstructed": false,
+    "mainChunkFetched": false,
+    "gameChunks": [
+      "main-CHocgZw5.js"
+    ],
+    "requests": [
+      "/",
+      "/assets/main-D346jdG7.js",
+      "/assets/modulepreload-polyfill-P2Xu9kJm.js",
+      "/assets/preload-helper-CTyyUu_9.js",
+      "/assets/preload-helper-DCYTpy35.css",
+      "/assets/player-ou0MAGnc.js",
+      "/assets/data-DuR7i1br.js",
+      "/assets/data-CaggZBoK.css",
+      "/assets/online-runtime-CYfNhKIY.js",
+      "/assets/player-CLZQBn0s.css",
+      "/assets/mitr-latin-400-normal-CwbkLQ4a.woff2",
+      "/assets/mitr-thai-400-normal-CXWaAdVj.woff2"
+    ],
+    "errors": [],
+    "assets": {
+      "data-DuR7i1br.js": "26060f21906a919f0de44cd1f5cf67caefcd9c0f998dccd80754b3788c22fa93",
+      "game-D4qeXxUG.js": "608275b11ade8603341dbe13d34d388d847c06370675f627b61cd313490b2e2f",
+      "lab-D3XFfcut.js": "06bec4ed3183e7874c206c27327352eacacae5e1de250052a21e52ece3a1dc25",
+      "main-CHocgZw5.js": "4e2dfe2147eb8bd5dc9eca128c0aa798046c0f46ce41ac8f89a9011487f04b9e",
+      "main-D346jdG7.js": "346cf82a88ab619b4503a334fa0258198cf97b116a61b74c1730be0c6e53758d",
+      "modulepreload-polyfill-P2Xu9kJm.js": "418c206484b89b68ef5f067277831e583fc9193a62aadf4de269acaaeb12a85f",
+      "offline-sfjAvYqe.js": "d3e02d4735c83c22d9b9cf539a12a25e58cf7a82976f15fc09eeb9f206000a50",
+      "online-runtime-CYfNhKIY.js": "3412f988f875a508b9b7222afb987f3e1af70d95b4f5a0c1ab5fe7d60b70a03b",
+      "player-ou0MAGnc.js": "14ad3402bf7bccafbc893a6ddbcb09109ee57838215bf8e962da66e49573fe66",
+      "preload-helper-CTyyUu_9.js": "e1a22f3f73566f21ff932e058d32243e4a118f3491b91e96893aa5ab7eb49a00"
+    }
+  },
+  "limitations": [
+    "Visual/runtime assertions passed before a later full-harness seam keyboard timeout; an isolated seam/lifecycle run subsequently passed. Focus/timing variance in the fixture remains disclosed.",
+    "Screenshots from the later visual run were inspected individually; their hashes here supersede the old successful report screenshot hashes.",
+    "Resident renderer, local hero and monsters omitted in the flat visual fixture. Normal-speed playback and real iPad FPS not inspected.",
+    "No Render contact, hosted readiness, CI polling, push or deployment."
+  ]
+}

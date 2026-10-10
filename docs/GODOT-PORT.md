@@ -1086,3 +1086,29 @@ In Godot:
 - make a scene per part or helm on a `BoneAttachment3D`.
 
 See `docs/OUTFIT-BASE.md`.
+
+## Experimental online visual presence (protocol 3)
+
+The explicit player entry (`src/player.js`) must receive protocol-3 admission before
+dynamically loading the world. Preserve Connecting/Failed/Retry/Reconnecting and an
+explicit developer/offline entry with compatible local v13 saves. After joining,
+pause player gameplay until reconnect has received room acknowledgement.
+
+`src/network/presence.js` and `server/presence.mjs` relay anonymous cosmetic state.
+The shared player space is `frontier-atlas-v1`; Azure, Frontier and Moonroot are region
+metadata within the same room. Pose x/z are global atlas coordinates, not native
+region coordinates. Add the session's fixed coordinateOrigin on send and subtract
+it on receipt. Validate region ownership against authored atlas rectangles with
+the same half-open boundary policy as unified-world. Crossing a seam preserves
+identity, membership, interpolation and rigs. Native map spaces remain isolated
+developer fixtures, not the player path. Saves remain map-local and unchanged.
+
+Port RemotePlayers as a non-colliding cosmetic actor layer, with allowlisted outfit/
+weapon IDs resolved through existing assets. Bounded skill/phase/angle/duration/step
+events play authored weapon actions and short visual cues only; never feed them to
+Game, damage, projectiles, monsters or loot rules. Retain exact-field validation,
+action/appearance/message limits, sequence deduplication, reconnect reset and
+explicit owned-resource disposal on cancel/leave/disconnect. Remote effects are
+capped at 24 with short lifetime; remote visibility is limited to 58 scene metres.
+See `MULTIPLAYER-PRESENCE.md` for protocol, commands and parent-owned free hosting.
+Authentication, shared combat and authoritative saves remain future milestones.

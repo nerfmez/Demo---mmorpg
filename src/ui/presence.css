@@ -1,0 +1,21 @@
+/* Keep the opt-in drawer beside main's compact player/quest column. */
+.presence-panel { position: fixed; z-index: 22; left: calc(328px + env(safe-area-inset-left)); top: calc(64px + env(safe-area-inset-top)); max-width: min(300px, calc(100vw - 24px)); max-height: calc(100dvh - 88px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; color: #ebf5ff; font: 12px Mitr, sans-serif; background: #15283dea; border: 1px solid #668c9b; border-radius: 8px; }
+.presence-panel summary { position: sticky; top: 0; z-index: 1; cursor: pointer; padding: 7px 10px; min-height: 44px; display: list-item; margin-left: 14px; background: #15283d; }
+.presence-content { padding: 0 12px 12px; }
+.presence-content p { margin: 6px 0; }
+.presence-content label { display: flex; gap: 8px; align-items: center; }
+.presence-content input { min-width: 0; width: 140px; padding: 8px; color: white; background: #0b1725; border: 1px solid #668c9b; border-radius: 4px; font: inherit; }
+.presence-actions { display: flex; gap: 6px; margin: 8px 0; }
+.presence-actions button { min-height: 44px; padding: 6px 10px; border: 1px solid #668c9b; border-radius: 4px; background: #28455c; color: white; font: inherit; cursor: pointer; }
+.presence-actions button:disabled { opacity: .5; cursor: default; }
+.presence-content output { display: block; }
+body:has(.overlay.on, .menu-layer.on) .presence-panel { display: none; }
+@media (max-height: 560px) and (orientation: landscape) {
+  .presence-panel { left: auto; right: calc(50% + 34px); top: calc(4px + env(safe-area-inset-top)); width: clamp(100px, calc(50vw - 280px), 140px); font-size: 10px; }
+  .presence-panel[open] { left: calc(244px + env(safe-area-inset-left)); right: auto; top: calc(132px + env(safe-area-inset-top)); width: 300px; max-height: calc(100dvh - 156px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .presence-panel summary { margin-left: 10px; padding-inline: 4px; }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .presence-panel { left: calc(10px + env(safe-area-inset-left)); top: calc(4px + env(safe-area-inset-top)); font-size: 10px; }
+  .presence-panel summary { padding-block: 4px; min-height: 28px; }
+}

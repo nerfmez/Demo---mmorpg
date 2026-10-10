@@ -1,6 +1,8 @@
 // Exercise the real entry gesture; unsupported/denied browsers use the visible
 // product fallback rather than silently bypassing the gate in a test fixture.
 export async function enterFullscreenGate(page) {
+  // The page entry imports main.js lazily, so the load event can precede the gate.
+  await page.waitForFunction(() => window.__frontier?.fullscreen, null, { timeout: 30000 });
   const before = await page.evaluate(() => window.__frontier?.fullscreen?.snapshot());
   if (!before?.blocked) return before;
   await page.locator(before.supported ? '.fullscreen-enter' : '.fullscreen-fallback').click();

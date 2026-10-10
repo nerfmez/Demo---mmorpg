@@ -94,6 +94,20 @@ spoof allowed cosmetics, guess rooms and forge Origin outside a browser. No
 anti-cheat/authentication/per-IP protection claim is made. Global caps bound routine
 prototype load but can be exhausted. Future server authority requires a separate design.
 
+## Shared monsters (friends test)
+
+For small trusted groups only; there is still no server authority or anti-cheat.
+The room member with the lowest id is the host. Its client keeps running its own
+monsters and, every 0.2 s, sends up to 24 rows near any peer as `monsters` messages
+(`[key, type, level, atlasX, atlasZ, facing, hp, maxHp, state]`, 12 per message,
+validated by `monstersOK`). Guests remove their local monsters, set
+`game.mirrorMonsters` (no local respawns) and mirror the host rows as monsters with
+`remote: true` (no local AI). A guest hit on a mirror is applied locally and forwarded
+as `monsterHit {key, amount}`; the host subtracts it. Kills are shared: each client
+that sees the death awards its own exp and drops locally. When the host leaves, the
+next lowest id becomes host and its spawn points refill. Host monsters do not attack
+guests yet. Code: `src/network/monster-sync.js`.
+
 ## Focused localhost verification
 
 Use Node 22 or newer. Never run the full-world legacy two-client harness merely to

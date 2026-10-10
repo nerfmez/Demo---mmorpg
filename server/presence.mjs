@@ -7,7 +7,7 @@ import { PROTOCOL, exact as keys, roomOK, createProtocol } from '../src/network/
 const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url)));
 const maps = [read('../data/world.json'), ...readdirSync(new URL('../data/maps/', import.meta.url)).filter(n => n.endsWith('.json')).map(n => read(`../data/maps/${n}`))];
 const registry = Object.fromEntries(maps.map(m => [m.id, m]));
-const { mapOK, lookOK, gearOK, poseOK, actionOK } = createProtocol({ maps: registry, items: read('../data/items.json'), skills: read('../data/skills.json') });
+const { mapOK, lookOK, gearOK, poseOK, actionOK, monstersOK, monsterHitOK } = createProtocol({ maps: registry, items: read('../data/items.json'), skills: read('../data/skills.json'), monsters: read('../data/monsters.json') });
 export function createPresenceServer({ origins = [], maxClients = 32, roomCapacity = 8 } = {}) {
   if (!origins.length || origins.some(o => { try { return new URL(o).origin !== o || !/^https?:/.test(o); } catch { return true; } })) throw new Error('ALLOWED_ORIGINS requires exact http(s) origins');
   const allowed = new Set(origins);
@@ -16,7 +16,7 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
     res.writeHead(healthy ? 200 : 404, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v3', protocol: PROTOCOL } : { error: 'not found' }));
   });
-  const wss = new WebSocketServer({ noServer: true, maxPayload: 1024, perMessageDeflate: false });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 2048, perMessageDeflate: false });
   const clients = new Map();
   const send = (ws, msg) => {
     if (ws.readyState !== WebSocket.OPEN) return;
@@ -37,7 +37,7 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
     wss.handleUpgrade(req, socket, head, ws => wss.emit('connection', ws));
   });
   wss.on('connection', ws => {
-    const c = { ws, id: randomUUID(), joined: false, alive: true, tokens: 30, actionTokens: 8, appearanceTokens: 2, at: Date.now(), joinAt: 0, seq: 0 };
+    const c = { ws, id: randomUUID(), joined: false, alive: true, tokens: 60, actionTokens: 8, appearanceTokens: 2, monsterTokens: 20, at: Date.now(), joinAt: 0, seq: 0 };
     clients.set(ws, c);
     // Connection admission precedes map/world construction; title screens also heartbeat.
     send(ws, { type: 'hello', protocol: PROTOCOL, id: c.id });
@@ -47,7 +47,8 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
     ws.on('message', (buffer, binary) => {
       const now = Date.now();
       const elapsed = Math.max(0, now - c.at) / 1000;
-      c.tokens = Math.min(30, c.tokens + elapsed * 20);
+      c.tokens = Math.min(60, c.tokens + elapsed * 40);
+      c.monsterTokens = Math.min(20, c.monsterTokens + elapsed * 20);
       c.actionTokens = Math.min(8, c.actionTokens + elapsed * 6);
       c.appearanceTokens = Math.min(2, c.appearanceTokens + elapsed * 2); c.at = now;
       if (--c.tokens < 0) return ws.close(1008, 'message rate');
@@ -73,6 +74,13 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
         if (m.action.seq <= c.seq) return; // duplicate/out-of-order events are never replayed
         c.seq = m.action.seq;
         for (const p of peers(c)) if (p !== c) send(p.ws, { type: 'action', id: c.id, action: m.action });
+      } else if (m?.type === 'monsters' && keys(m, ['type', 'list']) && c.joined && monstersOK(m.list)) {
+        // Relayed as-is; each client picks the room host (lowest id) and ignores everyone else's rows.
+        if (--c.monsterTokens < 0) return;
+        for (const p of peers(c)) if (p !== c) send(p.ws, { type: 'monsters', id: c.id, list: m.list });
+      } else if (m?.type === 'monsterHit' && keys(m, ['type', 'hit']) && c.joined && monsterHitOK(m.hit)) {
+        if (--c.monsterTokens < 0) return;
+        for (const p of peers(c)) if (p !== c) send(p.ws, { type: 'monsterHit', id: c.id, hit: m.hit });
       } else ws.close(1008, 'invalid message');
     });
   });

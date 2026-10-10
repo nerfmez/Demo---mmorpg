@@ -98,7 +98,7 @@ prototype load but can be exhausted. Future server authority requires a separate
 
 For small trusted groups only; there is still no server authority or anti-cheat.
 The room member with the lowest id is the host. Its client keeps running its own
-monsters and, every 0.2 s, sends up to 24 rows near any peer as `monsters` messages
+monsters and, every 0.2 s, sends up to 24 rows within 45 m of any peer as `monsters` messages
 (`[key, type, level, atlasX, atlasZ, facing, hp, maxHp, state]`, 12 per message,
 validated by `monstersOK`). Guests remove their local monsters, set
 `game.mirrorMonsters` (no local respawns) and mirror the host rows as monsters with

@@ -3,7 +3,7 @@
 // and mirrors the host's. Guest hits are forwarded to the host. Trusted-friends only: no authority.
 import { MONSTER_BATCH } from './protocol.js';
 
-const SEND_EVERY = 0.2, NEAR = 30, MAX_ROWS = MONSTER_BATCH * 2, STALE = 1.5;
+const SEND_EVERY = 0.2, NEAR = 45, MAX_ROWS = MONSTER_BATCH * 2, STALE = 1.5;
 const round = (n, d = 100) => Math.round(n * d) / d;
 
 export class MonsterSync {

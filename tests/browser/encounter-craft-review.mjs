@@ -69,10 +69,9 @@ export async function verifyEncounterCraft(page,{size,width,height,touch,out}) {
     const counts=await page.locator('[data-encounter-entry]').evaluateAll(nodes=>nodes.map(n=>({id:n.dataset.encounterEntry,count:Number(n.dataset.encounterCount)})));
     const normal=map.spawns.filter(s=>s.zone===z.id);
     for(const s of normal)assert.equal(counts.find(c=>c.id===s.monster)?.count,s.count,mapId+'/'+z.id+'/'+s.monster);
-    if(mapId===positions.map){
-     const actual=await page.evaluate(zone=>__frontier.game.spawnPoints.filter(p=>p.zone===zone).map(p=>p.monster),z.id);
-     assert.equal(counts.reduce((n,c)=>n+c.count,0),actual.length,'guide matches runtime population');
-    }
+    // Every region is resident and zone ids repeat across regions, so match both.
+    const actual=await page.evaluate(([map,zone])=>__frontier.game.spawnPoints.filter(p=>p.zone===zone&&(p.worldId||__frontier.game.data.world.id)===map).length,[mapId,z.id]);
+    assert.equal(counts.reduce((n,c)=>n+c.count,0),actual,mapId+'/'+z.id+' guide matches runtime population');
     if(z.safe)assert.equal(counts.length,0,'safe zones have no monsters');
    }
   }

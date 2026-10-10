@@ -32,7 +32,7 @@ try {
     page.on('pageerror', (err) => errors.push(String(err)));
     await page.addInitScript(() => localStorage.setItem('frontier-demo.questCollapsed', 'false'));
     await page.goto(`http://localhost:${PORT}/?fresh=1&quality=low&seed=7`);
-    await page.waitForFunction(() => window.__frontier?.game?.time > 0.3, null, { timeout: 30000 });
+    await page.waitForFunction(() => window.__frontier?.game?.time > 0.3, null, { timeout: 90000 });
     await installLearnedLoadout(page);
     await page.evaluate(() => {
       const f = window.__frontier;

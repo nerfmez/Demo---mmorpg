@@ -13,7 +13,8 @@ import { resolve, extname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 const origin = 'http://127.0.0.1:4173', root = new URL('../../', import.meta.url).pathname;
-const out = resolve(root, process.env.ONLINE_SEAMS_ONLY ? 'tests/browser/out/online-seams' : 'tests/browser/out/online'); mkdirSync(out, { recursive: true });
+const culling = !!process.env.ONLINE_CULLING;
+const out = resolve(root, culling ? 'tests/browser/out/online-culling' : process.env.ONLINE_SEAMS_ONLY ? 'tests/browser/out/online-seams' : 'tests/browser/out/online'); mkdirSync(out, { recursive: true });
 const data = loadData(), [x, z] = data.maps['moonroot-grove-v1'].playerSpawn;
 const compiled = await build({ configFile: false, logLevel: 'error', define: { 'import.meta.env.VITE_PLAYER_HARNESS': 'true', 'import.meta.env.VITE_PRESENCE_URL': '""' }, build: { write: false, minify: false, lib: { entry: resolve(root, 'tests/browser/online-harness.js'), name: 'OnlineReview', formats: ['iife'] } } });
 const files = compiled[0].output, code = files.find(o => o.type === 'chunk').code;
@@ -30,7 +31,7 @@ const web = createServer((req,res) => {
   try { const body=readFileSync(file); res.writeHead(200,{'Content-Type':({'.png':'image/png','.svg':'image/svg+xml','.glb':'model/gltf-binary'})[extname(file)]||'application/octet-stream'}); res.end(body); } catch { res.writeHead(404); res.end(); }
 });
 web.listen(4173,'127.0.0.1'); await once(web,'listening');
-const runtimeFiles=['src/network/protocol.js','src/network/presence.js','src/ui/presence.js','src/ui/online-gate.js','src/player.js','src/render/remote-players.js','src/render/remote-effects.js','src/main.js','server/presence.mjs','tests/browser/online-harness.js','tests/browser/online.mjs'];
+const runtimeFiles=['src/network/protocol.js','src/network/presence.js','src/ui/presence.js','src/ui/online-gate.js','src/player.js','src/render/remote-players.js','src/render/remote-effects.js','src/render/spatial-region.js','src/render/terrain-domain.js','src/main.js','server/presence.mjs','tests/browser/online-harness.js','tests/browser/online.mjs'];
 let app, peer, browser; const report = { sourceBase: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), residentRendererOmitted:true, runtimeHashes:Object.fromEntries(runtimeFiles.map(p=>[p,createHash('sha256').update(readFileSync(resolve(root,p))).digest('hex')])), checks: [], screenshots: [], errors: [], external: [] };
 const ok = (name, evidence) => { report.checks.push({ name, evidence }); console.log('PASS', name, JSON.stringify(evidence ?? '')); };
 try {
@@ -40,7 +41,7 @@ try {
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.error('console',m.text()); if (m.type() === 'error' && /THREE|shader|WebGL/.test(m.text())) report.errors.push(m.text()); });
   await page.route('**/*', route => { const u = new URL(route.request().url()); if (['http:','https:'].includes(u.protocol) && u.origin !== origin) { report.external.push(u.origin); return route.abort(); } return route.continue(); });
   await page.goto(origin + '/online-review.html'); await page.addStyleTag({ content: css });
-  await page.evaluate(port => { window.__onlineEndpoint = `ws://127.0.0.1:${port}/presence`; }, port);
+  await page.evaluate(({port,culling}) => { window.__onlineEndpoint = `ws://127.0.0.1:${port}/presence`; window.__onlineCulling=culling; }, {port,culling});
   await page.addScriptTag({ content: code });
   async function capture(name) { const file = resolve(out, name + '.png'); await page.screenshot({ path: file }); report.screenshots.push({ file: name + '.png', sha256: createHash('sha256').update(readFileSync(file)).digest('hex') }); }
   await page.evaluate(() => __online.seedSave());
@@ -141,11 +142,23 @@ try {
   b.on('pageerror', e => report.errors.push(String(e)));
   await b.route('**/*', route => { const u = new URL(route.request().url()); if (['http:','https:'].includes(u.protocol) && u.origin !== origin) { report.external.push(u.origin); return route.abort(); } return route.continue(); });
   await b.goto(origin + '/online-review.html'); await b.addStyleTag({ content: css });
-  await b.evaluate(port => { window.__onlineEndpoint = `ws://127.0.0.1:${port}/presence`; window.__onlineInitial = 'azure-harbor-v1'; }, port);
+  await b.evaluate(({port,culling}) => { window.__onlineEndpoint = `ws://127.0.0.1:${port}/presence`; window.__onlineInitial = 'azure-harbor-v1'; window.__onlineCulling=culling; }, {port,culling});
   await b.addScriptTag({ content: code }); await b.evaluate(() => __online.seedSave());
   await b.waitForFunction(() => __online.ready && __online.player.client.status === 'online');
   await page.waitForFunction(() => __online.presence.actors.actors.size === 1);
   await page.evaluate(() => __online.place(13, -121.2)); await b.evaluate(() => __online.place(14, -118.8));
+  if(culling) {
+    await page.waitForFunction(()=>{const a=[...__online.presence.actors.actors.values()][0];return a.rig.importedWeapon&&Math.hypot(a.target.x-__online.game.player.x,a.target.z-__online.game.player.z)<5;});
+    await page.evaluate(()=>{__online.freeze=true;});await capture('static-culling-peer-idle');
+    await b.bringToFront();await b.keyboard.press('1');
+    await page.waitForFunction(()=>[...__online.presence.actors.actors.values()][0].pending?.action.skill==='hunter_shot');
+    await page.evaluate(()=>{const a=[...__online.presence.actors.actors.values()][0],seconds=a.pending.action.duration+.025;for(let t=0;t<seconds;t+=1/60)__online.sampleAction(Math.min(1/60,seconds-t));});
+    const probe=await page.evaluate(()=>__online.cullingProbe());
+    assert.equal(probe.staticObjects,2);assert.equal(probe.staticOverrides,true);assert.ok(probe.attached>0);assert.equal(probe.detached,0);assert.equal(probe.restored,probe.attached);
+    assert.equal(probe.actorCaptured,false);assert.equal(probe.actorOnScene,true);assert.equal(probe.scarfOnScene,true);assert.equal(probe.effectOnScene,true);assert.equal(probe.effectCaptured,false);
+    await capture('static-culling-peer-shot');ok('Static camera/shadow cells detach and restore while peer rig/scarf and bounded arrow remain dynamic scene owners',probe);
+    await page.evaluate(()=>{__online.sampleAction(1.6);__online.freeze=false;});
+  }
   const beforeSeam = await page.evaluate(() => ({ id: __online.player.client.id, peer: [...__online.presence.actors.actors.keys()][0], rig: [...__online.presence.actors.actors.values()][0].rig.root.uuid }));
   const beforeB = await b.evaluate(() => ({ id: __online.player.client.id, rig: [...__online.presence.actors.actors.values()][0].rig.root.uuid }));
   await page.bringToFront(); await page.keyboard.down('s');

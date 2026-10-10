@@ -28,3 +28,10 @@ honest fixture limits and the prepared PR summary are in
 This supersedes the earlier unfinished status, not the preserved history. No push,
 remote PR mutation, merge, deployment, CI polling or restricted Render access is authorized
 for this follow-up; the parent owns publication and hosted review.
+
+Latest main #132 (`10b8f73072bf17c824c6e527baa25dcf10e101a1`) was normally merged
+without conflicts at `7ef965faf2beaf010989c6b632e80a71c2a883fc`, preserving online
+checkpoint `1414d4fcfefdbd56c4060e582b0c48a71a581131`. The subsequent local-only
+[culling integration review](reviews/online-main132/README.md) records builds,
+focused two-client results and inspected new stills. Publication remains pending
+explicit owner approval; no product feature changes were needed for this merge.

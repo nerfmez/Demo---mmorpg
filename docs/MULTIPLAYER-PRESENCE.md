@@ -105,6 +105,8 @@ node --test tests/core/save.test.js tests/core/startup-drawing.test.js tests/cor
 CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:online
 # If only seams/input/lifecycle are affected, reuse existing actor proof:
 ONLINE_SEAMS_ONLY=1 CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:online
+# Static camera/shadow integration only, without the resident world:
+ONLINE_CULLING=1 ONLINE_SEAMS_ONLY=1 CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:online
 VITE_PRESENCE_URL=ws://127.0.0.1:3001/presence npm run build:player
 CHROMIUM_EXECUTABLE=/usr/bin/chromium node tests/browser/player-entry.mjs
 npm run build:offline

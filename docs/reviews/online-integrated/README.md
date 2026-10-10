@@ -3,6 +3,10 @@
 Status: local implementation complete for parent/owner review within the limits
 below. No remote publication, hosted verification or release readiness is claimed.
 
+Subsequent main #132 integration is recorded separately in
+[the focused culling integration review](../online-main132/README.md). This record
+retains the original checkpoint evidence and limits.
+
 ## Source and preservation
 
 Base checkpoint `30cdc39cb10d2cfbaa18abe51297d2c134929066`; integrated main

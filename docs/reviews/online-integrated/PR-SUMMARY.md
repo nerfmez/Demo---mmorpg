@@ -20,6 +20,13 @@ This is an experimental visual prototype. Monsters, damage, loot, trading, accou
 and server save authority remain outside scope. Main `7beaf36a…` is preserved by a
 normal merge, including accepted UI/outfits/grass/resident startup and native v13 saves.
 
+Latest main `10b8f730…` (PR #132) was subsequently normally merged without conflicts.
+Its static camera/shadow box culling and cross-region exterior-tree fix remain
+unchanged. A focused two-browser integration fixture verifies static detach/restore
+while remote rigs, scarves and bounded visual cues remain dynamic scene objects;
+keyboard/touch seams, room controls and saves pass. Player/offline builds pass.
+New inspected stills and exact source hashes are in `docs/reviews/online-main132/`.
+
 Validation: 11 focused network cases plus the added admission case; 16 affected
 save/startup cases plus the actual-main-frame gate case; player/offline builds;
 actual compiled entry failure with no game/renderer import; real localhost relay,

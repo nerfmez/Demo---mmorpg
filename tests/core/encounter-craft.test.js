@@ -148,3 +148,16 @@ test('a pack spawns together and wakes together', () => {
   for (const m of members) assert.ok(m.aggro, 'every packmate in range joins in');
   assert.ok(g.monsters.filter(m => m.spawn?.pack && m.spawn.pack !== pack).every(m => !m.aggro), 'other packs stay calm');
 });
+
+test('the field guide matches each resident region, although zone ids repeat across regions', async () => {
+  const { OpenWorldGame } = await import('../../src/core/open-world-game.js');
+  const g = new OpenWorldGame({ ...data }, { seed: 5 });
+  let shared = 0;
+  for (const [mapId, map] of Object.entries(data.maps)) for (const z of map.zones) {
+    const guide = zoneEncounters(g.worlds[mapId], data, z.id).reduce((n, e) => n + e.count, 0);
+    const resident = g.spawnPoints.filter(p => p.zone === z.id && p.worldId === mapId).length;
+    assert.equal(resident, guide, `${mapId}/${z.id}`);
+    if (g.spawnPoints.some(p => p.zone === z.id && p.worldId !== mapId)) shared++;
+  }
+  assert.ok(shared > 0, 'fixture still covers a zone id shared by two regions');
+});

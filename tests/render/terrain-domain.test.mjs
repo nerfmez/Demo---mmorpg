@@ -112,6 +112,28 @@ test('retained decorative tree roots sample their actual terrain owner',()=>{
  assert.ok(borrowed>10,'exercise actual closed-end edge trees');
 });
 
+test('exterior forest cannot plant in an adjacent playable rectangle, including the Frontier camp corner',()=>{
+ let excluded = 0, retained = 0;
+ for (const [id, w] of Object.entries(worlds)) for (const tree of w.decor.edgeTrees) {
+  const [x,z] = [tree.x+w.data.atlas.offset[0],tree.z+w.data.atlas.offset[1]];
+  const neighbours = w.seams.map(s=>worlds[s.to]);
+  const intrudes = neighbours.some(n=>{
+   const nx=x-n.data.atlas.offset[0],nz=z-n.data.atlas.offset[1],b=n.bounds;
+   return nx>=b.minX&&nx<=b.maxX&&nz>=b.minZ&&nz<=b.maxZ;
+  });
+  assert.equal(domains[id].edgeTreeAllowed(tree.x,tree.z),!intrudes,`${id} tree at ${x},${z}`);
+  if (intrudes) excluded++; else retained++;
+ }
+ assert.ok(excluded>50,'exercise the actual overlapping border forest');
+ assert.ok(retained>50,'retain the exterior world backdrop');
+ const camp=worlds[G].decor.edgeTrees.filter(t=>{
+  const [x,z]=[t.x+worlds[G].data.atlas.offset[0],t.z+worlds[G].data.atlas.offset[1]];
+  return x>=-200&&x<=-160&&z>=-125&&z<=-61;
+ });
+ assert.ok(camp.length>20,'reproduce the supplied Frontier Settlement view');
+ for (const t of camp) assert.equal(domains[G].edgeTreeAllowed(t.x,t.z),false);
+});
+
 test('the Grove gate road crosses terrain ownership without a rectangular paint cutoff',()=>{
  const z=-160.5;
  const west=roadMask(F,-160.001,z),east=roadMask(G,-159.999,z);

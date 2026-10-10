@@ -84,7 +84,7 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
     onTerrainReady(region); // completed geometry only; the rest remains private to its owner
   }
   useRegion(shift); // another build may have run in between
-  const env = yield* timedRegionSteps(region,'environment',inRegion(shift, environmentSteps(world,{groundHeight:domain.groundHeight,adopt:group=>root.add(group)})));
+  const env = yield* timedRegionSteps(region,'environment',inRegion(shift, environmentSteps(world,{groundHeight:domain.groundHeight,edgeTreeAllowed:domain.edgeTreeAllowed,adopt:group=>root.add(group)})));
   yield;
   useRegion(shift); // another build may have run in between
   // Keep only authored native hull/pile contact roots before batching moves

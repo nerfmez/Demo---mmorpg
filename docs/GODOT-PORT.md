@@ -672,6 +672,14 @@ Skill and mod ranks are no longer gated by character level: only materials, gold
 
 `tests/browser/gpu-bench.mjs` times fixed scenes through to GPU completion and the CPU submission separately (SwiftShader: relative before/after only, not iPad FPS); it fails if any shader errors are logged.
 
+Resident static chunks also use each drawable's conservative world-space box for
+camera and shadow culling, rather than a loose enclosing sphere. Include shader
+wind, water and outline displacement in the AABB, update it when the region root
+moves, and preserve authored dynamic/culling branches. In Godot, use the equivalent
+conservative `custom_aabb` on the static geometry; do not shorten the bounds to a
+grass batch's current visible instance count. Medium keeps its existing shadow
+size, filtering and screen grade.
+
 ## Finite terrain joins
 
 Finite terrain joins: the two linked maps' decorative heightfields have different
@@ -680,7 +688,10 @@ terrain cells it can replace; water aprons retain the separate full-edge clippin
 rule. In the closed-end decorative strip, construct private render height samples
 that meet the adjacent playable map and finite grid cap. Preserve all playable
 vertex heights and the rule/collision heightfield. Seat retained edge-tree
-instances on their actual rendered owner's surface. See
+instances on their actual rendered owner's surface. Exterior backdrop trees must
+not stand inside an adjacent region's full playable rectangle, including corners
+outside a seam's span; omit only those render instances, preserving native trees
+and collider/layout data. See
 `TERRAIN-SEAM-REPAIR-20261007.md` and `render/terrain-domain.js`; this is tested for
 the current aligned one-metre map grids, not arbitrary irregular tessellation.
 

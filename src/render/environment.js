@@ -128,7 +128,7 @@ export function createEnvironment(world) {
 }
 
 /** The scenery in sections; yields between them so a neighbouring map can stream in. */
-export function* environmentSteps(world, {adopt,groundHeight} = {}) {
+export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = {}) {
   const root = new THREE.Group();adopt?.(root);
   function* buildInstances(geo,material,list,options={}){
     return yield* instancedSteps(geo,material,list,{...options,adopt:group=>root.add(group)});
@@ -180,7 +180,8 @@ export function* environmentSteps(world, {adopt,groundHeight} = {}) {
     }
   }
   const cloudTrees=[],cloudBirches=[];
-  const trees = [...world.circles.filter((c) => ['tree', 'birch', 'pine', 'willow'].includes(c.type)), ...world.decor.edgeTrees];
+  const edgeTrees = edgeTreeAllowed ? world.decor.edgeTrees.filter(c => edgeTreeAllowed(c.x, c.z)) : world.decor.edgeTrees;
+  const trees = [...world.circles.filter((c) => ['tree', 'birch', 'pine', 'willow'].includes(c.type)), ...edgeTrees];
   // Render-only preview specimens beside an existing cottage. These additions never
   // enter world collision/save data; they are for owner art review, not release layout.
   if(artReviewLayout){const [x,z,scale]=animeConfig.sample.tree;trees.push({x,z,scale,rot:.35,type:'tree'});}

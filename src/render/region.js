@@ -282,8 +282,10 @@ export function* inRegion(shift, steps) {
   finally {if(!completed)resume(()=>steps.return?.());}
 }
 
-// compileAsync still submits all shader variants synchronously. A whole region
-// can overrun the queue just submitting them, so prepare bounded batches too.
+// compileAsync submits synchronously, then polls program readiness. Without
+// parallel compilation, Three already marks each program ready but still adds
+// a timer to every call. Overlap only those redundant polling delays; keep the
+// original serial barrier for drivers actually compiling programs in parallel.
 export function* compileRegionSteps(view,root){
   if(!view.renderer.compileAsync)return;
   const objects=[];
@@ -299,14 +301,27 @@ export function* compileRegionSteps(view,root){
     // texture per step, instead of combining all uploads with a walking frame.
     for(const texture of textures){view.renderer.initTexture(texture);yield;}
   }
-  const batch=new THREE.Group();
+  // Parallel polls read a material's mutable currentProgram. Another object
+  // variant may replace it, so only overlap when Three has no parallel shader
+  // compiler and its programs are immediately marked ready. Unknown capability
+  // keeps the conservative original sequencing too.
+  const overlapPolling=view.renderer.extensions?.has?.('KHR_parallel_shader_compile')===false;
+  const batch=new THREE.Group(),pending=[];
   try{
     for(let i=0;i<objects.length;i+=16){
       // Borrow actual objects so instancing/skinning/geometry variants are exact.
       // No reparenting, disposal, or world-matrix changes through this container.
       batch.children=objects.slice(i,i+16);
-      yield view.renderer.compileAsync(batch,view.camera,view.scene);
+      const ready=Promise.resolve(view.renderer.compileAsync(batch,view.camera,view.scene));
+      if(!overlapPolling){yield ready;continue;}
+      // Three captures its material set during the synchronous compile call;
+      // its readiness poll does not revisit the borrowed scene's children.
+      // Observe a failure immediately while later submission slices run, but
+      // preserve its rejection for the final readiness barrier below.
+      ready.catch(()=>{});pending.push(ready);
+      yield;
     }
+    if(pending.length)yield Promise.all(pending);
   }finally{batch.children.length=0;}
 }
 

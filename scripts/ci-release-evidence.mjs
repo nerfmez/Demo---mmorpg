@@ -10,6 +10,7 @@ import { prExecutionRange } from './ci-pr-source.mjs';
 import { verifyBuild } from './ci-build-manifest.mjs';
 import { validationPlan } from './ci-browser-plan.mjs';
 import { EQUIPMENT_PATHS, equipmentImpact, gitEquipmentImpacts } from './ci-equipment-impact.mjs';
+import { browserShards } from './ci-browser-shards.mjs';
 
 const SHA = /^[a-f0-9]{40}$/;
 const requireThat = (ok, message) => { if (!ok) throw Error(message); };
@@ -70,7 +71,7 @@ export function validateCoverage(input, evidence) {
   requireThat(plan.suites.includes('boot'), 'Release reuse requires real boot/save/reload/Continue');
   const expected = ['Build, core and CI tools', 'test (chromium)', 'test (webkit)',
     'review (chromium)', 'review (webkit)', 'field-hud (chromium)', 'field-hud (webkit)',
-    ...['chromium', 'webkit'].flatMap(browser => plan.suites.map(suite => `Quick affected (${browser}, ${suite})`))];
+    ...['chromium', 'webkit'].flatMap(browser => plan.suites.flatMap(suite => browserShards(suite).map(({ shard }) => `Quick affected (${browser}, ${shard})`)))];
   // GitHub includes the intentionally skipped postrelease-only job in PR runs.
   // It is not affected evidence and cannot replace any mandatory successful job.
   const extra = jobs.filter(job => !expected.includes(job.name));

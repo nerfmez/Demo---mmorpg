@@ -27,6 +27,8 @@ const startupSource=source.slice(source.lastIndexOf('view.worldReady.then('));
 assert.ok(startupSource.startsWith('view.worldReady.then('),'execute the production all-world readiness callback');
 const schedulingSource=source.match(/^const releaseStartupScheduling = .*;$/m)?.[0] || 'const releaseStartupScheduling = () => {};';
 const initialDrawState=source.match(/^let initialWorldReady = .*;$/m)?.[0] || 'let initialWorldReady = false;';
+const saveOnSource=source.match(/^const SAVE_ON = .*;$/m)?.[0];
+assert.ok(saveOnSource,'execute the production event-save policy');
 const flush=async()=>{for(let i=0;i<5;i++)await Promise.resolve();};
 
 test('High post warmup compiles gameplay shadows in target output mode and restores borrowed renderer state on failures',()=>{
@@ -135,6 +137,8 @@ test('resident warmup preserves full aliased buffers while warming one primitive
 function harness({game=false,fail=false}={}){
   const old={raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame,st:globalThis.setTimeout,ct:globalThis.clearTimeout,mc:globalThis.MessageChannel};
   const frames=new Map(),timers=new Map(),errors=[],uploads=[],compiled=[];let id=0,clock=0,paintTime=0,timerTime=0,draws=0,uiFrames=0,updates=0;
+  const calls={input:0,hud:0,minimap:0,supplies:0,completion:0,route:0,badges:0,portrait:0,drain:0,save:0,panelRender:0};
+  const pendingEvents=[],viewEvents=[],hudEvents=[],updateDts=[];
   const raf=fn=>{const key=++id;frames.set(key,fn);return key;};
   globalThis.requestAnimationFrame=raf;globalThis.cancelAnimationFrame=key=>frames.delete(key);
   globalThis.setTimeout=(fn,delay=0)=>{const key=++id;timers.set(key,{fn,at:timerTime+delay});return key;};globalThis.clearTimeout=key=>timers.delete(key);
@@ -148,7 +152,7 @@ function harness({game=false,fail=false}={}){
   const fullscreen={blocked:false},F={paused:false,modelsReady:false};
   const view={worldPrepared:false,coordinateOrigin:[0,0],regions:new Map(),neighbours:new Map(),
     scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(),hemisphere:new THREE.HemisphereLight(),sun:new THREE.DirectionalLight(),
-    ensureWreck(){},hitStop:0,render(){draws++;},setRenderScale(){}};
+    ensureWreck(){},hitStop:0,render(){draws++;},handleEvent(e){viewEvents.push(e);},setRenderScale(){}};
   let renderTarget=null;
   view.renderer={shadowMap:{enabled:true,autoUpdate:true,needsUpdate:false},getRenderTarget:()=>renderTarget,setRenderTarget:t=>{renderTarget=t;},
     compile(batch,camera,targetScene){
@@ -163,7 +167,13 @@ function harness({game=false,fail=false}={}){
       assert.equal(this.shadowMap.enabled,true,'private upload draw retains the gameplay receiver shader');
       assert.equal(compiled.at(-1),mapId,'exact gameplay material variant compiles before its upload draw');
       uploads.push(mapId);clock++;}};
-  const session=game?{panels:{tab:null,isOpen:false},input:{aim:null,update(){}},completion:{isOpen:false,update(){}},questRoute:{update(){}},supplies:{update(){}},game:{ch:{opening:{stage:'done'}},update(){updates++;},drainEvents:()=>[]},hud:{update(){}},saveT:0,badgeT:0,refreshBadges(){},refreshPortrait(){}}:null;
+  const session=game?{
+    panels:{tab:null,isOpen:false,render(){calls.panelRender++;}},input:{aim:null,update(){calls.input++;}},
+    completion:{isOpen:false,update(){calls.completion++;}},questRoute:{update(){calls.route++;}},supplies:{update(){calls.supplies++;}},
+    game:{ch:{opening:{stage:'done'}},update(dt){updates++;updateDts.push(dt);},drainEvents(){calls.drain++;return pendingEvents.splice(0);}},
+    hud:{update(){calls.hud++;calls.minimap++;},handleEvent(e){hudEvents.push(e);}},saveT:0,badgeT:0,
+    save(){calls.save++;},refreshBadges(){calls.badges++;},refreshPortrait(){calls.portrait++;}
+  }:null;
   const queue=new FrameBuildQueue({budgetMs:1,now:()=>clock});
   view.buildQueue=queue;
   const importControls=new Map();
@@ -191,15 +201,15 @@ function harness({game=false,fail=false}={}){
   const deps={view,F,fullscreen,session,document:{getElementById:()=>loading},console:{error:(...args)=>errors.push(args)},
     requestAnimationFrame:fn=>raf(t=>{uiFrames++;fn(t);}),useStartupTaskScheduling,performance:{now:()=>0}};
   const api=Function('deps',`const {view,F,fullscreen,document,console,requestAnimationFrame,useStartupTaskScheduling,performance}=deps;
-    let session=deps.session;const governor=null,SAVE_ON=new Set();let last=0,time=0,fpsAcc=0,fpsN=0;
+    let session=deps.session;const governor=null;${saveOnSource}let last=0,time=0,fpsAcc=0,fpsN=0;
     ${initialDrawState}\n${schedulingSource}\n${frameSource}\n${startupSource}\nreturn {setSession(value){session=value;}};`)(deps);
   const tasks=async()=>{
     const pending=[...timers].filter(([,t])=>t.at<=timerTime).sort((a,b)=>a[1].at-b[1].at);
     for(const[key,t]of pending){if(timers.delete(key))t.fn();}await flush();
   };
-  return {view,F,fullscreen,session,queue,loading,errors,uploads,compiled,api,releaseImport(id){importControls.get(id)();},
+  return {view,F,fullscreen,session,queue,loading,errors,uploads,compiled,api,calls,pendingEvents,viewEvents,hudEvents,updateDts,releaseImport(id){importControls.get(id)();},
     get draws(){return draws;},get uiFrames(){return uiFrames;},get updates(){return updates;},
-    async paint(){paintTime+=16;const f=[...frames.values()];frames.clear();f.forEach(fn=>fn(paintTime));timerTime=paintTime;await tasks();},
+    async paint(delta=16){paintTime+=delta;const f=[...frames.values()];frames.clear();f.forEach(fn=>fn(paintTime));timerTime=paintTime;await tasks();},
     async task(delta=0){timerTime+=delta;await tasks();},
     close(){for(const release of importControls.values())release();
       for(const region of view.regions.values()){region.controller.abort();region.root.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}
@@ -244,6 +254,37 @@ for(const game of [false,true])test(`${game?'fresh game':'title'} keeps loading 
     await h.paint();assert.ok(h.draws>resumed,'selecting a prepared resident region does not reset the draw gate');
     assert.equal(h.uploads.length,3,'region selection does not start another buffer upload');
     if(game){h.api.setSession(null);const beforeTitle=h.draws;await h.paint();assert.ok(h.draws>beforeTitle,'returning to the title still draws after initial readiness');}
+  }finally{h.close();}
+});
+
+test('opaque startup skips gameplay UI and autosaves, then delivers retained events once on the first ready frame',async()=>{
+  const h=harness({game:true});
+  try{
+    const event={type:'questDone',id:'startup-receipt'};
+    h.pendingEvents.push(event);
+    h.session.saveT=9.99;h.session.badgeT=.49;
+    await advance(h,()=>h.view.region.importedState==='imported-ready');
+    // Keep giving the loading document paint opportunities while the remote
+    // regions wait. Gameplay timers must not expire behind the opaque card.
+    for(let i=0;i<4;i++)await h.paint(3000);
+    assert.ok(h.uiFrames>4,'loading keeps receiving animation-frame opportunities');
+    assert.equal(h.loading.done,false);assert.equal(h.updates,0);
+    assert.deepEqual(h.calls,{input:0,hud:0,minimap:0,supplies:0,completion:0,route:0,badges:0,portrait:0,drain:0,save:0,panelRender:0});
+    assert.equal(h.session.saveT,9.99);assert.equal(h.session.badgeT,.49);
+    assert.deepEqual(h.pendingEvents,[event],'initial events stay in the game queue while loading');
+    assert.deepEqual(h.viewEvents,[]);assert.deepEqual(h.hudEvents,[]);
+
+    h.releaseImport('remote-one');h.releaseImport('remote-two');
+    await advance(h,()=>h.loading.done,{paint:false});
+    assert.equal(h.calls.hud,0,'construction readiness does not run a hidden HUD update');
+    await h.paint();
+    assert.equal(h.updateDts[0],.016,'loading frames keep the clock current before simulation resumes');
+    assert.deepEqual(h.calls,{input:1,hud:1,minimap:1,supplies:1,completion:1,route:1,badges:1,portrait:1,drain:1,save:2,panelRender:1});
+    assert.deepEqual(h.pendingEvents,[]);assert.deepEqual(h.viewEvents,[event]);assert.deepEqual(h.hudEvents,[event]);
+    await h.paint();
+    assert.equal(h.calls.input,2);assert.equal(h.calls.hud,2);assert.equal(h.calls.supplies,2);
+    assert.equal(h.calls.drain,2);assert.equal(h.calls.save,2);
+    assert.deepEqual(h.viewEvents,[event]);assert.deepEqual(h.hudEvents,[event],'the initial receipt is not delivered twice');
   }finally{h.close();}
 });
 

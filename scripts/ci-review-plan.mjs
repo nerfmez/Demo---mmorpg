@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { browserPlan, FULL_SUITES } from './ci-browser-plan.mjs';
 import { prExecutionRange } from './ci-pr-source.mjs';
 import { gitEquipmentImpacts } from './ci-equipment-impact.mjs';
+import { browserShards } from './ci-browser-shards.mjs';
 
 export const UI_SUITES = ['save', 'opening', 'journal', 'journal-motion', 'overlays', 'workspaces', 'journal-upgrade', 'journal-lines', 'skill-lines', 'wearable', 'equipment-focus', 'equipment-inactive', 'monster-identity'];
 export const HUD_SUITES = ['hud'];
@@ -23,10 +24,10 @@ export function reviewPlan({ source, sourceTree, merge = source, mergeTree = sou
   const reviewSuites = [...ui, ...hud];
   const selectedSource = sameTree ? source : merge, selectedMode = sameTree ? mode : 'merge';
   const jobs = [];
-  for (const suite of SCHEDULE.filter(s => suites.includes(s))) for (const browser of ['chromium', 'webkit'])
-    jobs.push({ suite, browser, source, mode, artifact: `ci-dist-${source}`, label: mode === 'quick' ? 'Quick affected' : 'Full regression' });
-  if (!sameTree) for (const suite of SCHEDULE.filter(s => reviewSuites.includes(s))) for (const browser of ['chromium', 'webkit'])
-    jobs.push({ suite, browser, source: merge, mode: 'merge', artifact: `ci-dist-${merge}`, label: 'Merge affected' });
+  for (const suite of SCHEDULE.filter(s => suites.includes(s))) for (const { shard } of browserShards(suite)) for (const browser of ['chromium', 'webkit'])
+    jobs.push({ suite, shard, browser, source, mode, artifact: `ci-dist-${source}`, label: mode === 'quick' ? 'Quick affected' : 'Full regression' });
+  if (!sameTree) for (const suite of SCHEDULE.filter(s => reviewSuites.includes(s))) for (const { shard } of browserShards(suite)) for (const browser of ['chromium', 'webkit'])
+    jobs.push({ suite, shard, browser, source: merge, mode: 'merge', artifact: `ci-dist-${merge}`, label: 'Merge affected' });
   return { source: selectedSource, tree: sameTree ? sourceTree : mergeTree, mode: selectedMode, sameTree,
     ui, hud, mergeSuites: sameTree ? [] : reviewSuites, matrix: { include: jobs } };
 }

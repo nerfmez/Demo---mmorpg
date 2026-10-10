@@ -299,6 +299,13 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   time += dt;
+  // The loading card owns presentation while every resident region is prepared.
+  // Keep the clock/rAF alive, then process retained input/events and refresh the
+  // HUD on the first ready frame instead of updating hidden gameplay controls.
+  if (!initialWorldReady) {
+    requestAnimationFrame(frame);
+    return;
+  }
   const s = session;
   if (s) {
     if (!fullscreen.blocked) s.input.update();

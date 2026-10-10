@@ -1,0 +1,7 @@
+STARTUP_READY {"device":"vrm","phase":"initialUiReady","elapsedMs":25910.477032000003}
+STARTUP_READY {"device":"vrm","phase":"vrmHeroReady","elapsedMs":256.62641299999814}
+ok   vrm hero: skinned meshes load ({"skinned":15,"tris":36206,"h":0.5557449075608017,"face":"function"})
+ok   vrm hero: head stays above the hips while running (0.56 m)
+ok   vrm hero: has an expression switch
+ok   vrm hero: no page errors
+ALL OK

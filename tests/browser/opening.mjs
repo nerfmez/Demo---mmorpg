@@ -6,6 +6,8 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {enterFullscreenGate} from './fullscreen-entry.mjs';
 import {data} from '../core/helpers.js';
 import {createCharacter} from '../../src/core/character.js';
+import {openingSelection} from '../../scripts/ci-browser-shards.mjs';
+const selection=openingSelection(process.env);
 const engine=process.env.BROWSER==='webkit'?webkit:chromium,port=4251,base=`http://localhost:${port}/`,out=`tests/browser/out/opening/${engine.name()}/`;
 mkdirSync(out,{recursive:true});
 const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','preview','--port',String(port),'--strictPort'],{stdio:'ignore',detached:true});
@@ -13,8 +15,7 @@ const reports=[];let browser;
 try {
  for(let i=0;;i++){try{if((await fetch(base)).ok)break;}catch{}if(i>60)throw Error('server');await new Promise(r=>setTimeout(r,250));}
  browser=await engine.launch({executablePath:engine===chromium?process.env.CHROMIUM_EXECUTABLE:undefined,args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
- const cases=[['desktop',1280,800,false],['ipad',1180,820,true],['phone-landscape',844,390,true],['phone-portrait',390,844,true]];
- for(const [size,width,height,touch] of cases.filter(c=>!process.env.OPENING_VIEW||c[0]===process.env.OPENING_VIEW))for(const kit of process.env.KIT?[process.env.KIT]:size.startsWith('phone')?['staff']:['sword','bow','staff']) {
+ for(const {view:size,width,height,touch,kit} of selection.cases) {
   const ctx=await browser.newContext({viewport:{width,height},hasTouch:touch,isMobile:touch,deviceScaleFactor:1}),page=await ctx.newPage(),errors=[];let verifiedRemoteRoute=null;
   page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error'&&!m.location().url.endsWith('/favicon.ico'))errors.push(m.text());});
   const activate=s=>touch?page.locator(s).first().tap():page.locator(s).first().click();
@@ -118,6 +119,7 @@ try {
   reports.push({size,kit,touch,ordinaryCreation:true,receiptReload:true,queue:true,route:true,remoteRoute:verifiedRemoteRoute,safeAreas:touch,errors});writeFileSync(out+'report.json',JSON.stringify(reports,null,2));console.log('PASS ordinary opening/rewards/route',engine.name(),size,kit);await ctx.close();
  }
  // Owner-save migration uses a separate synthetic context, never an owner's browser data.
+ if(selection.migration) {
  const old=createCharacter(data,{kit:'staff'});old.version=10;old.opening={stage:'done'};old.skills={arcane_bolt:1,firebolt:3,ward:2};old.slots=[{skill:'firebolt',mods:[]},{skill:'ward',mods:[]},{skill:'arcane_bolt',mods:[]},{skill:null,mods:[]}];old.movementSkills=['roll'];old.movement='roll';old.gold=777;old.progress.questJournal={version:1,trackedId:null};old.progress.quests.h_slimes={status:'done',progress:3,rewardClaimed:true};
  const ctx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true}),p=await ctx.newPage();p.setDefaultTimeout(90000);
  await p.addInitScript(ch=>{if(!localStorage.getItem('frontier.slot.1')){localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,character:ch}));localStorage.setItem('frontier.lastSlot','1');}},old);
@@ -125,4 +127,5 @@ try {
  const migrated=await p.evaluate(()=>__frontier.game.ch);for(const key of ['skills','slots','movementSkills','movement','gold','gear','equipped'])assert.deepEqual(migrated[key],old[key],key);
  assert.deepEqual(migrated.progress.questJournal.completions,[]);assert.equal(await p.locator('.quest-completion[open]').count(),0);
  await p.screenshot({path:out+'old-save.png'});console.log('PASS v10 real Continue preservation',engine.name());await ctx.close();
+ }
 } finally {await browser?.close();try{process.kill(-server.pid);}catch(e){if(e.code!=='ESRCH')throw e;}}

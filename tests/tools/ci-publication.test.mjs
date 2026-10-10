@@ -9,6 +9,7 @@ import { runInNewContext } from 'node:vm';
 import { payload, buildConfiguration, verifyBuild } from '../../scripts/ci-build-manifest.mjs';
 import { sealSite, verifySite, restoreSite, selectPublishedRun, publicationRuns, consumedPagesArtifact, extractPagesTar, readPublicationLog } from '../../scripts/ci-published-site.mjs';
 import { browserPlan, FULL_SUITES, SAFETY_SUITES } from '../../scripts/ci-browser-plan.mjs';
+import { browserShards } from '../../scripts/ci-browser-shards.mjs';
 import { proseOnly, resolveDocFollowup } from '../../scripts/ci-doc-followup.mjs';
 const sha = 'a'.repeat(40), tree = 'b'.repeat(40);
 const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
@@ -214,7 +215,7 @@ async function proseFixture(t) {
       job(`test (${browser})`, ['Verify complete selected browser evidence', 'Report gate outcome at exact source']),
       job(`review (${browser})`, ['Verify shared UI evidence at head or merge tree']),
       job(`field-hud (${browser})`, ['Verify shared HUD evidence at head or merge tree']),
-      ...plan.suites.map(suite => job(`Quick affected (${browser}, ${suite})`, ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4']))])];
+      ...plan.suites.flatMap(browserShards).map(({ shard }) => job(`Quick affected (${browser}, ${shard})`, ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4']))])];
   const artifact = { id: 7, name: `ci-dist-${before}-4-1`, expired: false,
     digest: 'sha256:' + createHash('sha256').update(bytes).digest('hex'), workflow_run: { id: 4, head_sha: before, repository_id: 1, head_repository_id: 1 } };
   const responses = {

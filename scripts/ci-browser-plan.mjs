@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { RASTER_ICONS } from '../src/ui/raster-icons.js';
 
-export const ROUTING_VERSION = 4;
+export const ROUTING_VERSION = 5;
 export const SUITES = {
   boot: ['boot.mjs'],
   opening: ['opening.mjs'],
@@ -58,6 +58,8 @@ export function riskSuites(file) {
   return SHARED_SUITES;
 }
 const LOCAL_PATHS = {
+  // This infrastructure also defines the actual opening case inventory.
+  'scripts/ci-browser-shards.mjs': [...SHARED_SUITES, 'opening'],
   // Title creation and Continue are exercised by boot; hub navigation by menu.
   'src/ui/menu.js': ['menu'],
   'src/ui/menu-map.js': ['world', 'menu', 'ux', 'capture'],
@@ -105,7 +107,7 @@ export function legacyReviewRequirements(file) {
 export function routingDigest() {
   const hash = createHash('sha256');
   for (const path of ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs',
-    'scripts/ci-pr-source.mjs', 'scripts/ci-equipment-impact.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
+    'scripts/ci-pr-source.mjs', 'scripts/ci-equipment-impact.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-browser-shards.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
     '.github/actions/change-scope/action.yml']) {
     hash.update(path + '\0'); hash.update(readFileSync(new URL(`../${path}`, import.meta.url))); hash.update('\0');
   }

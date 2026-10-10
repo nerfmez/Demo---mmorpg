@@ -148,7 +148,7 @@ jobs:
           if-no-files-found: error
 
   browser:
-    name: ${{ matrix.label }} (${{ matrix.browser }}, ${{ matrix.suite }})
+    name: ${{ matrix.label }} (${{ matrix.browser }}, ${{ matrix.shard }})
     needs: prepare
     if: needs.prepare.outputs.game == 'true'
     runs-on: ubuntu-latest
@@ -206,19 +206,19 @@ jobs:
           console.log(`Preinstalled Playwright ${version}: ${process.env.BROWSER} ${executable}`);
           NODE
       - name: Run complete selected shard with timings
-        run: node scripts/ci-browser-run.mjs ${{ matrix.suite }}
+        run: node scripts/ci-browser-run.mjs ${{ matrix.suite }} ${{ matrix.shard }}
       - name: Upload selected browser report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ci-report-${{ env.CI_MODE }}-${{ matrix.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
-          path: tests/browser/out/ci/${{ env.CI_MODE }}-${{ matrix.browser }}-${{ matrix.suite }}.json
+          name: ci-report-${{ env.CI_MODE }}-${{ matrix.source }}-${{ matrix.browser }}-${{ matrix.shard }}-${{ github.run_attempt }}
+          path: tests/browser/out/ci/${{ env.CI_MODE }}-${{ matrix.browser }}-${{ matrix.shard }}.json
           retention-days: 7
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ci-${{ env.CI_MODE }}-${{ matrix.source }}-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_attempt }}
+          name: ci-${{ env.CI_MODE }}-${{ matrix.source }}-${{ matrix.browser }}-${{ matrix.shard }}-${{ github.run_attempt }}
           path: tests/browser/out/
           retention-days: 7
           if-no-files-found: error

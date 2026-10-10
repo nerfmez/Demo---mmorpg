@@ -97,7 +97,8 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
     assert.equal(await page.locator(repeatSelector).count(), 0, 'maximum-rank mod has no purchase button');
   } finally {
     await page.evaluate(baseline => {
-      const { game: g, panels: p } = __frontier;
+      const { game: g, panels: p } = window.__frontier || {};
+      if (!g || !p) return; // a failed reload has no session; keep the original error
       p.close(); g.ch = baseline.character; [g.player.x, g.player.z] = baseline.position;
       p.sel = baseline.selection; g.refresh();
     }, baseline);

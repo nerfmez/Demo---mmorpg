@@ -28,6 +28,7 @@ try {
     if(process.env.QUICK&&name!=='ipad')continue;
     const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: touch, isMobile: touch, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
+    page.setDefaultTimeout(90000); // the title waits behind the loading screen while the resident world is prepared
     const errors = [];
     page.on('pageerror', (err) => errors.push(String(err)));
     await page.addInitScript(() => localStorage.setItem('frontier-demo.questCollapsed', 'false'));

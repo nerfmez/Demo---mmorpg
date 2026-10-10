@@ -241,9 +241,10 @@ export function sellMaterial(ch, data, id, qty = 1) {
 }
 
 /** Roll drops for one kill. Returns [{item, qty}]. find: derived goldFindPct/materialFindPct. */
-export function rollDrops(data, monsterId, zoneId, rng, find = {}) {
+export function rollDrops(data, monsterId, zoneId, rng, find = {}, worldId = data.world.id) {
   const m = data.monsters.monsters[monsterId];
-  const table = [...m.drops, ...(data.world.zoneDrops[zoneId] || []), ...data.items.upgradeMaterialDrops];
+  const region = data.maps?.[worldId] || data.world;
+  const table = [...m.drops, ...(region.zoneDrops[zoneId] || []), ...data.items.upgradeMaterialDrops];
   const out = [];
   for (const d of table) {
     const gold = d.item === 'gold';

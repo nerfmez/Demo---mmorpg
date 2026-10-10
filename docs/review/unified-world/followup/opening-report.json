@@ -1,0 +1,47 @@
+[
+  {
+    "size": "desktop",
+    "kit": "staff",
+    "touch": false,
+    "ordinaryCreation": true,
+    "receiptReload": true,
+    "queue": true,
+    "route": true,
+    "remoteRoute": {
+      "target": {
+        "world": "frontier-wilds-v1",
+        "x": -195,
+        "z": -105
+      },
+      "goal": {
+        "world": "frontier-wilds-v1",
+        "x": 189,
+        "z": -12,
+        "worldX": -195,
+        "worldZ": -105
+      },
+      "native": [
+        189,
+        -12
+      ],
+      "expected": [
+        -195,
+        -105
+      ],
+      "end": {
+        "x": -195,
+        "z": -103.4
+      },
+      "reach": 1.5999999999999943,
+      "endRegion": "frontier-wilds-v1",
+      "endFree": true,
+      "regions": [
+        "azure-harbor-v1",
+        "frontier-wilds-v1"
+      ],
+      "failure": null
+    },
+    "safeAreas": false,
+    "errors": []
+  }
+]

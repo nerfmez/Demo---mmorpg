@@ -1,0 +1,26 @@
+{
+  "baselineCommit": "2c377ab86f4a22327d6ddc33902993eca5be4071",
+  "branch": "perf/unified-visible-world-20261010",
+  "assetsSha256": {
+    "main-CR9Mp2xF.js": "1313425eac784ee7e35a65517f16569456bcee46e943faa495c6348ebbaa5114",
+    "main-D4oOXd4z.css": "8f4c48270fbcdd3e2a85f2e7868140175a9a92cc94a9be11cb29d1e09f9408de"
+  },
+  "screenshotsSha256": {
+    "07-frontier-town.png": "326b7b5028d2aefe0a910fdbb72b314d941441a4a9f7558281ab3931363b9f4f",
+    "01-high-ground.png": "cddccb21338be3343dab8774fcb22add9dcc5086bdd692e6b08a39157ca3b866",
+    "02-coastal-join.png": "17c3f7dfff28b27a8da8e7a2a189f1cf438327123a4a8ffb9f8353222038f708",
+    "03-forest-join.png": "d44e5655583870df3ca89448ea60ee3a85af90b6d4ac269957fb5e6980e96093",
+    "04-grove-coast-join.png": "d25169c7ccb04a60157a4abf543e552af643649a423dd38084b81701b344e4c3",
+    "06-desktop-high.png": "7c39af524f5ef31c6e53b3244ef854c0ccdadbcddd5e71986dbd9b382ec490d0",
+    "05-ipad-high.png": "438bc87be8a46f4dbcb30ed0b581a2c4bb870ccee4e231b21ce8b44250997a79",
+    "08-azure-town.png": "e66772f089c31a44d6be6bdc822cedb9c48ffd422eacd1d1564d9781c2fe7a02",
+    "baseline-high-ground.png": "5cc51e41d896632f80e18167d440fb7629e5f01317dbbeb2b5af051e11686fb6"
+  },
+  "bytesBefore": 136238292,
+  "bytesAfter": 95772548,
+  "bytesSaved": 40465744,
+  "bufferReductionPct": 29.702180940436335,
+  "staticObjects": 4566,
+  "attachedObjects": 169,
+  "staticTraversalExcludedPct": 96.29872974156811
+}

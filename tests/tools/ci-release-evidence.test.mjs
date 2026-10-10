@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { SUITES, FULL_SUITES, validationPlan } from '../../scripts/ci-browser-plan.mjs';
+import { browserShards } from '../../scripts/ci-browser-shards.mjs';
 import { EQUIPMENT_SUITES } from '../../scripts/ci-equipment-impact.mjs';
 import { changedTreePaths, ciContext, extractBuildArchive, resolveRelease, validateEvidence, verifyCiContext, verifyPrAssociation } from '../../scripts/ci-release-evidence.mjs';
 
@@ -46,7 +47,7 @@ function fixture(files = ['src/save.js'], impacts = {}) {
     jobs: [job('Build, core and CI tools', ['Run npm run test:tools', 'Run npm test', 'Run npm run build', 'Bind CI event and workflow to build', 'Bind build to the tested source', 'Run actions/upload-artifact@v4']),
       ...['chromium', 'webkit'].flatMap(browser => [job(`review (${browser})`, ['Verify shared UI evidence at head or merge tree']), job(`field-hud (${browser})`, ['Verify shared HUD evidence at head or merge tree'])]),
       ...['chromium', 'webkit'].map(browser => job(`test (${browser})`, ['Verify complete selected browser evidence', 'Report gate outcome at exact source'])),
-      ...['chromium', 'webkit'].flatMap(browser => validationPlan(files, { impacts }).suites.map(suite => job(`Quick affected (${browser}, ${suite})`,
+      ...['chromium', 'webkit'].flatMap(browser => validationPlan(files, { impacts }).suites.flatMap(browserShards).map(({ shard }) => job(`Quick affected (${browser}, ${shard})`,
         ['Verify downloaded build source', 'Run complete selected shard with timings', 'Upload selected browser report', 'Run actions/upload-artifact@v4'])))],
     artifact: { id: 456, name: `ci-dist-${source}-99-2`, expired: false, size_in_bytes: 100, digest: `sha256:${'d'.repeat(64)}`,
       workflow_run: { id: 99, head_sha: source, repository_id: id, head_repository_id: id } } };
@@ -55,6 +56,20 @@ test('same-tree squash source retains distinct build-origin and release-target i
   const evidence = validateEvidence(fixture());
   assert.equal(evidence.source, source); assert.equal(evidence.target, target);
   assert.equal(evidence.tree, tree); assert.equal(evidence.attempt, 2);
+});
+test('release reuse rejects any missing, failed or stale opening case including migration', () => {
+  for (const browser of ['chromium', 'webkit']) for (const { shard } of browserShards('opening')) {
+    const name = `Quick affected (${browser}, ${shard})`;
+    for (const mutate of [f => f.jobs = f.jobs.filter(j => j.name !== name),
+      f => f.jobs.find(j => j.name === name).conclusion = 'failure',
+      f => f.jobs.find(j => j.name === name).run_attempt = 1]) {
+      const f = fixture(); mutate(f); assert.throws(() => validateEvidence(f), name);
+    }
+  }
+  const oldLogical = fixture();
+  oldLogical.jobs = oldLogical.jobs.filter(j => !j.name.includes(', opening-'));
+  oldLogical.jobs.push({ ...fixture().jobs.find(j => j.name.includes(', opening-')), name: 'Quick affected (chromium, opening)' });
+  assert.throws(() => validateEvidence(oldLogical), 'legacy partial suite success cannot stand in for case receipts');
 });
 test('GitHub-owned unique branch identifies retargeted main PR bind empty run associations', () => {
   const f = fixture();
@@ -165,7 +180,7 @@ test('clean equipment evidence fails closed without Acorn and reuses only after 
   // Isolate the actual resolver and routing policy from checkout/global modules.
   for (const file of ['scripts/ci-build-manifest.mjs', 'scripts/ci-release-evidence.mjs', 'scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs',
     'scripts/ci-pr-source.mjs', 'scripts/ci-browser-run.mjs', 'scripts/ci-browser-gate.mjs', 'scripts/ci-equipment-impact.mjs',
-    'scripts/ci-browser-engine.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
+    'scripts/ci-browser-engine.mjs', 'scripts/ci-browser-shards.mjs', 'scripts/ci-review-plan.mjs', '.github/workflows/ci.yml',
     '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js', 'package.json', 'package-lock.json', 'vite.config.js']) {
     mkdirSync(dirname(join(dir, file)), { recursive: true });
     copyFileSync(new URL(`../../${file}`, import.meta.url), join(dir, file));
@@ -220,8 +235,9 @@ function paginatedArtifacts(f, responses) {
 }
 test('full browser inventory evidence reuses the exact build on page two', async t => {
   const { f, responses, options } = resolverFixture(t, Object.values(SUITES).flat().map(name => `tests/browser/${name}`));
-  assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, FULL_SUITES.length * 2);
-  assert.ok(FULL_SUITES.length * 2 > 50, 'report/capture artifacts require a second page');
+  const executions = FULL_SUITES.flatMap(browserShards).length * 2;
+  assert.equal(f.jobs.filter(job => job.name.startsWith('Quick affected')).length, executions);
+  assert.ok(executions > 50, 'report/capture artifacts require a second page');
   paginatedArtifacts(f, responses);
   const evidence = await resolveRelease(options);
   assert.equal(evidence?.artifactId, 456);

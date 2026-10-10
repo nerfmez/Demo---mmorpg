@@ -426,29 +426,44 @@
     {
       "monster": "fern_ear_hare",
       "zone": "fern_rise",
-      "count": 16,
+      "count": 48,
       "level": [
         6,
         7
-      ]
+      ],
+      "pack": {
+        "size": 8,
+        "radius": 4.2,
+        "spacing": 1.2
+      }
     },
     {
       "monster": "fern_ear_hare",
       "zone": "stone_ring",
-      "count": 4,
+      "count": 16,
       "level": [
         7,
         8
-      ]
+      ],
+      "pack": {
+        "size": 8,
+        "radius": 4.2,
+        "spacing": 1.2
+      }
     },
     {
       "monster": "fern_ear_hare",
       "zone": "mirror_pond",
-      "count": 4,
+      "count": 16,
       "level": [
         8,
         8
-      ]
+      ],
+      "pack": {
+        "size": 8,
+        "radius": 4.2,
+        "spacing": 1.2
+      }
     },
     {
       "monster": "mirrorwing_moth",

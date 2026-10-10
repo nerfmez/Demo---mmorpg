@@ -2,19 +2,17 @@
 // game state (render only; the view never changes game rules). Lives apart from view.js so that
 // monster animation/effect work does not touch the shared scene, light and camera module (and its
 // renderer light/shadow review). View.syncMonsters() calls syncMonsterViews().
-import * as THREE from 'three';
 import { MonsterTrails } from './monster-trails.js';
 import { disposeObject } from './dispose.js';
 import { setFlash, damp } from './rig.js';
+import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 
 export const VIEW_RADIUS = 58;
 // Monster models are skinned, so three.js cannot cull them (frustumCulled is off); the view tests a
 // sphere around each one against the camera instead. The margin keeps a monster just past the edge
 // drawn, so its shadow and wind-up do not pop in.
 const CULL_MARGIN = 2;
-const _frustum = new THREE.Frustum();
-const _viewProj = new THREE.Matrix4();
-const _sphere = new THREE.Sphere();
+const MOVING_STATES = new Set(['chase', 'idle', 'return', 'circle', 'retreat']);
 
 // a stalking monster's half-seen look: the body fades, the outline hull fades less
 export function fadeRig(mat, hull, see, fade) {
@@ -46,19 +44,21 @@ export function measureMotion(v, x, z, facing, dt) {
 export function syncMonsterViews(view, dt, time) {
   const g = view.game;
   const p = g.player;
-  const seen = new Set();
+  const seen = view._monsterSeen || (view._monsterSeen = new Set());
+  seen.clear();
   // render() has already moved the camera for this frame
-  view.camera.updateMatrixWorld();
-  _frustum.setFromProjectionMatrix(_viewProj.multiplyMatrices(view.camera.projectionMatrix, view.camera.matrixWorldInverse));
+  const visibility = cameraVisibility(view.camera);
   let drawn = 0;
   for (const m of g.monsters) {
-    const far = Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS;
+    const dx = m.x - p.x, dz = m.z - p.z, distanceSq = dx * dx + dz * dz;
+    const far = distanceSq > VIEW_RADIUS * VIEW_RADIUS;
     if (far && !view.monsterViews.has(m.id)) continue;
-    if (Math.hypot(m.x - p.x, m.z - p.z) > VIEW_RADIUS + 10) continue;
+    if (distanceSq > (VIEW_RADIUS + 10) * (VIEW_RADIUS + 10)) continue;
     seen.add(m.id);
     let mv = view.monsterViews.get(m.id);
     if (!mv) {
       const rig = view.takeRig(m.type, m.level, m.boss);
+      sleepOffscreenMatrices(rig.root);
       rig.root.position.set(m.x, view.groundAt(m.x, m.z), m.z);
       rig.root.rotation.y = m.facing;
       view.scene.add(rig.root);
@@ -84,38 +84,50 @@ export function syncMonsterViews(view, dt, time) {
     r.root.position.set(m.x + mv.kx, mv.y, m.z + mv.kz);
     measureMotion(mv, m.x, m.z, r.root.rotation.y, dt);
     mv.hurt = Math.max(0, mv.hurt - dt * 5);
+    mv.flash = Math.max(0, mv.flash - dt);
     // off screen: not drawn and not posed (the simulation still moves it and lets it attack)
     const h = (r.height || 1.5) * (r.baseScale || 1);
-    _sphere.center.set(r.root.position.x, r.root.position.y + h * 0.5, r.root.position.z);
-    _sphere.radius = Math.max(1.2, h) + CULL_MARGIN;
-    const onScreen = !view.cullMonsters || _frustum.intersectsSphere(_sphere);
+    const onScreen = !view.cullMonsters || visibility.intersectsSphere(r.root.position.x, r.root.position.y + h * 0.5, r.root.position.z, Math.max(1.2, h) + CULL_MARGIN);
     r.root.visible = onScreen;
-    if (onScreen) drawn++;
+    if (!onScreen) {
+      if (mv.onScreen !== false) r.trails?.clear();
+      mv.onScreen = false;
+      if (mv.halo) mv.halo.visible = false;
+      // Keep hidden-state timers current, but do not emit off-camera transition
+      // smoke, status particles, trail geometry or material updates.
+      if (m.def.behavior === 'stalker' || mv.fade < 1) {
+        mv.hidden = m.stealth && !m.dead;
+        mv.fade = damp(mv.fade ?? 1, mv.hidden ? 0 : 1, 9, dt);
+      }
+      continue;
+    }
+    mv.onScreen = true;
+    drawn++;
     const tgt = m.targetUnit || p;
-    if (onScreen) r.animate(
+    const state = mv.animationState || (mv.animationState = {});
+    state.moving = m.moving && MOVING_STATES.has(m.state);
+    state.speedFactor = m.aggro ? 1 : 0.4;
+    state.state = m.state;
+    state.windup = m.state === 'windup' && m.windup ? m.windup.name : null;
+    state.windupT = m.stateT;
+    state.windupTotal = m.windup?.total || 1;
+    state.actT = m.stateT;
+    state.actionTotal = m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur;
+    state.hitTime = m.melee ? m.def.attacks[m.melee.name].hitTime : 0;
+    state.attack = m.def.attacks[m.melee?.name || mv.lastAttack];
+    state.enraged = m.enraged;
+    state.lastAttack = mv.lastAttack;
+    state.hurt = mv.hurt;
+    state.lookYaw = m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? view.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0;
+    state.turn = mv.turn;
+    state.speed = mv.speed;
+    state.vFwd = mv.vFwd;
+    state.vSide = mv.vSide;
+    state.aggro = !!m.aggro;
+    state.alt = m.alt;
+    r.animate(
       r,
-      {
-        moving: m.moving && ['chase', 'idle', 'return', 'circle', 'retreat'].includes(m.state),
-        speedFactor: m.aggro ? 1 : 0.4,
-        state: m.state,
-        windup: m.state === 'windup' && m.windup ? m.windup.name : null,
-        windupT: m.stateT,
-        windupTotal: m.windup?.total || 1,
-        actT: m.stateT,
-        actionTotal: m.melee ? m.def.attacks[m.melee.name].duration : m.stateDur,
-        hitTime: m.melee ? m.def.attacks[m.melee.name].hitTime : 0,
-        attack: m.def.attacks[m.melee?.name || mv.lastAttack],
-        enraged: m.enraged,
-        lastAttack: mv.lastAttack,
-        hurt: mv.hurt,
-        lookYaw: m.melee || (m.def.primaryAttack && m.windup && m.stateT >= m.windup.total * .55) ? 0 : m.aggro && !m.dead ? view.lookYaw(r.root.rotation.y, m.x, m.z, tgt.x, tgt.z) : 0,
-        turn: mv.turn,
-        speed: mv.speed,
-        vFwd: mv.vFwd,
-        vSide: mv.vSide,
-        aggro: !!m.aggro,
-        alt: m.alt,
-      },
+      state,
       dt,
       time
     );
@@ -138,7 +150,6 @@ export function syncMonsterViews(view, dt, time) {
       r.root.rotation.z = Math.min(1, m.deathT / 0.4) * 1.2;
     } else r.root.rotation.z = 0;
     r.root.scale.setScalar(sc);
-    mv.flash = Math.max(0, mv.flash - dt);
     if (mv.flash > 0) setFlash(r.material, 0.55, 0, 0);
     else if (m.windup && m.state === 'windup') setFlash(r.material, 0, 0.12 + 0.12 * Math.max(0, Math.sin(time * 24)), 0);
     else if (m.statuses?.chill) setFlash(r.material, 0, 0, 0.25);

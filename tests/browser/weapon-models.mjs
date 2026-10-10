@@ -36,7 +36,7 @@ try {
   await page.waitForFunction(({id,tris})=>{const f=window.__frontier;if(JSON.parse(f.view.heroLookKey || '[]')[1]?.bases?.weapon!==id)return false;let actual=0;f.view.hero.bones.weapon.traverse(o=>{if(o.isMesh&&o.material.isMeshToonMaterial)actual+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;});return actual===tris;},{id,tris:provenance[id]?.tris ?? 0});
   await page.waitForTimeout(180);return result;
  };
- const coldStart=await page.evaluate(()=>{const all=performance.getEntriesByType('resource');const weapons=all.filter(r=>r.name.includes('/models/weapons/'));return {weaponRequests:weapons.length,weaponBytes:weapons.reduce((n,r)=>n+r.decodedBodySize,0),allResourceRequests:all.length,allDecodedBytes:all.reduce((n,r)=>n+r.decodedBodySize,0)};});
+ const coldStart=await page.evaluate(()=>{const all=performance.getEntriesByType('resource');const weapons=all.filter(r=>r.name.includes('/models/weapons/')),v=window.__frontier.view;return {weaponRequests:weapons.length,weaponBytes:weapons.reduce((n,r)=>n+r.decodedBodySize,0),allResourceRequests:all.length,allDecodedBytes:all.reduce((n,r)=>n+r.decodedBodySize,0),dependencies:v.startupDependencies,residentWarm:[...v.regions].map(([id,r])=>({id,...r.warmStats,construction:r.stats.construction}))};});
  assert.equal(requests.length,1,'cold start only demands the starter weapon');
  const shot=async(options)=>{await page.evaluate(()=>{const f=window.__frontier;f.weaponReviewDraw(f.view.scene,f.view.camera);});return process.env.SKIP_CAPTURES==='1'?undefined:page.screenshot(options);};
  const samples=[];
@@ -102,11 +102,13 @@ try {
  await page.goto('http://localhost:4237/?quality=low&seed=5&stream=0');
  try{await page.waitForFunction(()=>window.__frontier.modelsReady);}
  catch(error){
-  const state=await page.evaluate(()=>{const f=window.__frontier,v=f?.view,q=v?.buildQueue;return {modelsReady:!!f?.modelsReady,gameTime:f?.game?.time??null,mode:v?.mode,fullscreen:f?.fullscreen?.snapshot(),loadingDone:document.querySelector('#loading')?.classList.contains('done'),loadingText:document.querySelector('#loading')?.textContent,region:{staticReady:v?.region?.staticReady,importedState:v?.region?.importedState,error:v?.region?.error?.message},queue:{running:q?.running,scheduled:!!q?.scheduled,stats:q?.stats,jobs:q?.jobs.map(j=>({label:j.label,state:j.state,steps:j.stats.steps}))},contextLost:v?.renderer.getContext().isContextLost(),resources:performance.getEntriesByType('resource').map(r=>({file:r.name.split('/').at(-1),durationMs:r.duration,bytes:r.decodedBodySize}))};}).catch(e=>({diagnosticError:e.message}));
+  const state=await page.evaluate(()=>{const f=window.__frontier,v=f?.view,q=v?.buildQueue;return {modelsReady:!!f?.modelsReady,gameTime:f?.game?.time??null,mode:v?.mode,fullscreen:f?.fullscreen?.snapshot(),loadingDone:document.querySelector('#loading')?.classList.contains('done'),loadingText:document.querySelector('#loading')?.textContent,worldPrepared:v?.worldPrepared,dependencies:v?.startupDependencies,regions:[...(v?.regions??[])].map(([id,r])=>({id,staticReady:r.staticReady,grassReady:r.grassReady,importedState:r.importedState,error:r.error?.message,grassError:r.grassError?.message,disposed:r.disposed,warm:r.warmStats,construction:r.stats.construction})),region:{staticReady:v?.region?.staticReady,importedState:v?.region?.importedState,error:v?.region?.error?.message},queue:{running:q?.running,scheduled:!!q?.scheduled,stats:q?.stats,jobs:q?.jobs.map(j=>({label:j.label,state:j.state,steps:j.stats.steps}))},contextLost:v?.renderer.getContext().isContextLost(),resources:performance.getEntriesByType('resource').map(r=>({file:r.name.split('/').at(-1),durationMs:r.duration,bytes:r.decodedBodySize}))};}).catch(e=>({diagnosticError:e.message}));
   writeFileSync(`${out}/reload-failure.json`,JSON.stringify({stage:'saved-slot reload before Continue',elapsedMs:Date.now()-reloadStart,state,errors,error:error.message},null,2));
   throw error;
  }
- console.log('saved-slot models ready before Continue',Date.now()-reloadStart,'ms');
+ const savedReadyMs=Date.now()-reloadStart;
+ const savedReadiness=await page.evaluate(()=>{const v=__frontier.view;return {dependencies:v.startupDependencies,residentWarm:[...v.regions].map(([id,r])=>({id,...r.warmStats,construction:r.stats.construction}))};});
+ console.log('saved-slot models ready before Continue',savedReadyMs,'ms');
  await enterFullscreenGate(page);
  const continueButton=page.getByRole('button',{name:/continue|เล่นต่อ|ดำเนินต่อ/i});
  if(await continueButton.count())await continueButton.first().click();else await page.locator('[data-act="continue"], [data-action="continue"]').first().click();
@@ -114,7 +116,7 @@ try {
  assert.deepEqual(await page.evaluate(()=>window.__frontier.game.ch.equipped),equipped,'save equip compatibility');
  const reloadMs=Date.now()-reloadStart;
  console.log('saved-game reload and Continue complete',reloadMs,'ms');
- writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,bowGrip,samples,resource,gpuCompletionMs,reloadMs,loading,requestsBeforeReload:ids.length,errors},null,2));
+ writeFileSync(`${out}/measurements.json`,JSON.stringify({engine:engine.name(),coldStart,bowGrip,samples,resource,gpuCompletionMs,savedReadyMs,savedReadiness,reloadMs,loading,requestsBeforeReload:ids.length,errors},null,2));
  assert.deepEqual(errors,[]);
  console.log('PASS weapon models',engine.name(),JSON.stringify(resource));
 } finally {await browser?.close();try { process.kill(-server.pid); } catch (e) { if(e.code!=='ESRCH')throw e; }}

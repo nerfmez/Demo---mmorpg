@@ -13,7 +13,7 @@ const port = 4215, base = `http://localhost:${port}/`;
 const server = spawn('node', ['node_modules/vite/bin/vite.js', 'preview', '--port', String(port), '--strictPort'], { stdio: 'ignore', detached: true });
 const CASES = [
   ['thicket_mantis', 'scythe', 0.6], ['thicket_mantis', 'whirl', 0.6], ['reed_viper', 'lash', 2.5], ['reed_viper', 'venom', 6],
-  ['ironhorn_ram', 'shove', 1.5], ['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.5], ['horned_warden', 'quake', 7], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
+  ['ironhorn_ram', 'shove', 1.5], ['thornback_wolf', 'rend', 1.2], ['greyfang', 'rake', 1.5], ['greyfang', 'leap', 6], ['horned_warden', 'quake', 7], ['ironhorn_ram', 'stomp', 0.3], ['duskmane_stalker', 'pounce', 5],
   ['duskmane_stalker', 'claw', 0.4], ['rune_sentinel', 'beam', 6], ['rune_sentinel', 'shards', 0.3],
 ];
 const report = { engine: engine.name(), sizes: {}, errors: [] };
@@ -71,7 +71,7 @@ try {
       }
       if (!spot) return 'no clear spot';
       const dist = m.r + p.r + gap;
-      Object.assign(m, { x: spot[0], z: spot[1], homeX: spot[0], homeZ: spot[1], hp: m.maxHp, dead: false, state: 'idle', stateT: 0, aggro: false, windup: null, charge: null, melee: null, stealth: false, revealT: 0 });
+      Object.assign(m, { x: spot[0], z: spot[1], homeX: spot[0], homeZ: spot[1], hp: attack === 'leap' ? m.maxHp * 0.45 : m.maxHp, dead: false, state: 'idle', stateT: 0, aggro: false, windup: null, charge: null, melee: null, stealth: false, revealT: 0 });
       for (const k in m.cd) m.cd[k] = k === attack ? 0 : 99;
       // first an unaware monster (the player out of its aggro range), then the player steps in
       const far = m.def.aggroRange + 3;

@@ -723,6 +723,8 @@ export class Vfx {
     if (e.kind === 'shards') return this.shardBurst(e);
     if (e.kind === 'quake') return this.quakeBurst(e);
     if (e.kind === 'pounce') return this.dive(e);
+    if (e.kind === 'glass_shard') return this.glassShard(e);
+    if (e.kind === 'mirror_ring') return this.mirrorRing(e);
     if (e.kind === 'leap') return this.leapLand(e);
     if (e.kind === 'dive') return this.dive(e);
     if (e.kind === 'rock') return this.rockLand(e);
@@ -930,7 +932,6 @@ export class Vfx {
 
   /** Rune sentinel beam: a bright line along the locked aim that fades fast. */
   beam(e) {
-    if (e.kind === 'glint') return this.glint(e);
     if (e.kind === 'lash') return this.lash(e);
     // a thin bright core inside a soft cyan sheath, read as a beam from the high camera
     const core = new THREE.Mesh(new THREE.CylinderGeometry(e.width * 0.14, e.width * 0.14, e.length, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, e.length / 2), additive(0xd8fbff, 0.95));
@@ -952,24 +953,26 @@ export class Vfx {
     }
   }
 
-  /** Mirrorwing glint: a thin white flash along the locked line, prism-coloured sparks. */
-  glint(e) {
-    const blade = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 0.35, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0xf4fdff, 0.95));
-    const sheen = new THREE.Mesh(new THREE.PlaneGeometry(e.width * 1.1, e.length, 1, 1).rotateX(-Math.PI / 2).translate(0, 0, e.length / 2), additive(0x9fdcf0, 0.35));
-    const group = new THREE.Group();
-    group.add(sheen, blade);
-    group.position.set(e.x, this.gy(e.x, e.z) + 1.2, e.z);
-    group.rotation.y = e.angle;
-    this.spawn(group, 0.3, (t) => {
-      blade.material.opacity = 0.95 * (1 - t);
-      sheen.material.opacity = 0.35 * (1 - t);
-      blade.scale.x = 1 - t * 0.7;
-    });
-    const prism = [0xffd6f0, 0xd6f0ff, 0xfff4c2, 0xd9ffe6];
+  /** A mirrorwing glass shard landing: a pale-blue shatter with prism sparks. */
+  glassShard(e) {
+    const y = this.gy(e.x, e.z), prism = [0xffd6f0, 0xd6f0ff, 0xfff4c2, 0xd9ffe6];
     for (let i = 0; i < 12; i++) {
-      const d = (i / 11) * e.length, x = e.x + Math.sin(e.angle) * d, z = e.z + Math.cos(e.angle) * d;
-      this.fx.add(x, this.gy(x, z) + 1.2, z, (Math.random() - 0.5) * 1.2, 0.6, (Math.random() - 0.5) * 1.2, { color: prism[i % 4], size: 0.2, sizeEnd: 0.03, life: 0.45, drag: 2 });
+      const a = (i / 12) * Math.PI * 2 + Math.random() * 0.4, sp = 1.5 + Math.random() * 2.5;
+      this.fx.add(e.x, y + 0.3, e.z, Math.sin(a) * sp, 2 + Math.random() * 2.5, Math.cos(a) * sp, { color: i % 3 ? 0xbfe9f5 : prism[i % 4], size: 0.22, sizeEnd: 0.04, life: 0.55, gravity: 10, drag: 0.6 });
     }
+    this.ring(e.x, e.z, e.radius, 0xbfe9f5, 0.3);
+  }
+
+  /** The mirrorwing's moonlight ring going off: light along the band, the middle left dark. */
+  mirrorRing(e) {
+    const inner = e.inner || 0;
+    for (let i = 0; i < 28; i++) {
+      const a = (i / 28) * Math.PI * 2, r = inner + (e.radius - inner) * (0.3 + 0.7 * Math.random());
+      const x = e.x + Math.sin(a) * r, z = e.z + Math.cos(a) * r;
+      this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 2.2 + Math.random(), 0, { color: i % 2 ? 0xe9fbff : 0x9fdcf0, size: 0.26, sizeEnd: 0.04, life: 0.5, drag: 2 });
+    }
+    this.ring(e.x, e.z, e.radius, 0xbfe9f5, 0.4);
+    if (inner) this.ring(e.x, e.z, inner, 0xe9fbff, 0.3);
   }
 
   /** Viper fang lash: a quick pale-green streak with a few venom drops. */
@@ -1348,12 +1351,11 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud' || a.kind === 'mirror_dust') {
-      // mirror_dust (the moth's wing scales): a spore-like cloud, pale blue with bright glints
-      const mirror = a.kind === 'mirror_dust', spore = a.kind === 'spore_cloud' || mirror;
+    if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
+      const spore = a.kind === 'spore_cloud';
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);
-      m.material.uniforms.uColor.value.set(mirror ? 0x5a7aa0 : spore ? 0x9a8a4a : 0x5a8a2a);
-      m.material.uniforms.uColor2.value.set(mirror ? 0xbfe9f5 : spore ? 0xd8d070 : 0xa8e04a);
+      m.material.uniforms.uColor.value.set(spore ? 0x9a8a4a : 0x5a8a2a);
+      m.material.uniforms.uColor2.value.set(spore ? 0xd8d070 : 0xa8e04a);
       return {
         obj: m,
         update: (ar, t, dt) => {
@@ -1364,9 +1366,8 @@ export class Vfx {
             const r = Math.random() * ar.radius;
             const x = ar.x + Math.sin(ang) * r;
             const z = ar.z + Math.cos(ang) * r;
-            if (mirror && Math.random() < 0.4) this.fx.add(x, this.gy(x, z) + 0.4 + Math.random() * 1.2, z, 0, 0.3, 0, { color: 0xf2fdff, size: 0.18, sizeEnd: 0.02, life: 0.5, drag: 1 });
             (spore ? this.dust : this.fx).add(x, this.gy(x, z) + 0.2 + Math.random() * (spore ? 1.2 : 0.2), z, (Math.random() - 0.5) * 0.4, spore ? 0.5 : 0.9, (Math.random() - 0.5) * 0.4, {
-              color: mirror ? 0xa9d8ea : spore ? 0xcfc47a : 0xa8e04a,
+              color: spore ? 0xcfc47a : 0xa8e04a,
               size: spore ? 0.9 : 0.24,
               sizeEnd: spore ? 1.5 : 0.05,
               life: spore ? 1.2 : 0.7,
@@ -1429,7 +1430,24 @@ export class Vfx {
         },
       };
     }
-    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt') {
+    if (a.kind === 'mirror_ring') {
+      // the moth's moonlight ring: the band that will hit fills in red, the safe middle under the
+      // moth stays clear with a pale rim
+      const inner = (a.inner || 0) / a.radius;
+      const band = this.decal(ringGeometry(inner, 1, 64), new THREE.MeshBasicMaterial({ color: 0xff6a3a, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }), a.x, a.z, a.radius, 0, 0.06);
+      const rim = this.decal(ringGeometry(Math.max(0, inner - 0.03), inner, 64), additive(0xe9fbff, 0.8), a.x, a.z, a.radius, 0, 0.065);
+      const group = new THREE.Group();
+      group.add(band, rim);
+      return {
+        obj: group,
+        update: (ar) => {
+          const k = Math.min(1, ar.t / Math.max(0.01, ar.delay)), live = ar.t < ar.delay;
+          band.material.opacity = live ? 0.15 + 0.45 * k : 0;
+          rim.material.opacity = live ? 0.5 + 0.4 * Math.sin(ar.t * 18) * 0.5 : 0;
+        },
+      };
+    }
+    if (a.kind === 'stone_burst' || a.kind === 'rock' || a.kind === 'dive' || a.kind === 'pound' || a.kind === 'pounce' || a.kind === 'quake' || a.kind === 'erupt' || a.kind === 'glass_shard') {
       // ground telegraph during the delay (player skills: soft yellow; monster attacks: red)
       const hostile = a.owner === 'monster';
       const m = this.decal(this.discGeo, discMaterial('telegraph'), a.x, a.z, a.radius, 0, 0.06);

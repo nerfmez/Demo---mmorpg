@@ -1,0 +1,29 @@
+{
+  "sourceBase": "0cfbb73c770a428195e44b8310fd46499689e160",
+  "sourceSHA256": {
+    "src/core/world.js": "74f0703e5d648db0a8c39496e7dd788cb7d7d365669115442029e1dce5c3c3ea",
+    "src/main.js": "2cbd1fa60b7bf140b8bee1deea704edd97af2c523004d6414ef6f98a6fb779e3",
+    "src/render/grass.js": "a876607bccf58145767b146fff13b4133c3d9bc593348d8ef452d20541076c11",
+    "src/render/ground-work.js": "046b6d449d5ee42a075e228d3af13d98d5b41bf0fd5191cca65e2565978f6072",
+    "src/render/region.js": "b98f1a77c42c5768c0771d135501237412c4e9217ba1a3e8c8440661c7e9c646",
+    "src/render/resident-world.js": "ec4f767db5e9b47b0303e0e4c66e63b019052a3ba182067c1ae1a1038edd4702",
+    "src/ui/fullscreen.css": "362dfc58a6e9480a9facc02154b534e583d7c0cdf10cf0f73cbb386ad8ac78be",
+    "src/render/startup-readiness.js": "ee1d07a5b23c225c5386e9b506bcb91293004b2ae17afee2dc04eec2d3410410"
+  },
+  "buildSHA256": {
+    "main-BgZxgAnY.js": "84f2cb0b2b8256d3545e7053dbee4c130ad2fc033e443d1ffb94ecec875d4a30",
+    "main-D51y7kao.css": "ae4f8273ee5b211873a17f32c7bf9835df3bfa4f8bdbf86da15e7ad7c00bc6ab"
+  },
+  "capturesSHA256": {
+    "03-guild.png": "f2168c4437585cc541c2ae7aa1f7c598dd8242935db4c35b75d6cd8c4e44d8ff",
+    "09-original-beach.png": "2e8673c91e25e728ab4a71d63526cebe18ab2b8151978336898d1af8b6120328",
+    "10-character-creation.png": "108f0e418c707a63fe9f31f28f35e2203b4df4d43e5672aa322070468352cffc",
+    "04-forge.png": "a876ba116c4cb529102dab77689a81dc690c5d94a876816ae5072cccc22b02de",
+    "11-remote-waypoint-route.png": "73e644a806cd1bd4a344ea3c4107bcfb338a069110f1d08de218f5206c263b4e"
+  },
+  "testScriptsSHA256": {
+    "tests/browser/city-review.mjs": "09de8dfb2b620b46c4a57e3843c40e6d000f8ff87f9d336f8e39334c86d7b535",
+    "tests/browser/opening.mjs": "6704808c87f91061989cd7765b490f2c23ca0fc1eb84dd64fa4e3417d9156462",
+    "tests/browser/weapon-models.mjs": "56b0020c8d1d494fa74ef8d80e5e176da570084d6fcd90f9300d1c6f6ff7efcd"
+  }
+}

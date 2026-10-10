@@ -12,7 +12,7 @@ function locations(game, objective) {
   for (const worldId of objectiveWorlds(data, objective)) {
     const map = maps[worldId];
     if (!map) continue;
-    const world = game.worlds?.[worldId] || (game.world?.data.id === worldId ? game.world : null);
+    const world = game.worlds?.[worldId] || (game.data.world.id === worldId ? game.regionWorld || game.world : null);
     const add = (pos, extra) => result.push(point(worldId, pos, extra));
     if (objective.type === 'waypoint') {
       const wp = map.waypoints.find(w => w.id === objective.target);
@@ -36,7 +36,7 @@ function locations(game, objective) {
       if (layout) {
         for (const p of layout.points) if (matches(p.monster, p.zone)) add([p.x, p.z], { label: p.habitat, level: p.level });
       } else if (worldId === data.world.id && game.spawnPoints) {
-        for (const p of game.spawnPoints) if (!p.boss && matches(p.monster, p.zone)) add([p.x, p.z], { label: data.monsters.monsters[p.monster]?.nameTh, level: p.level });
+        for (const p of game.spawnPoints) if (!p.boss && matches(p.monster, p.zone)) add(game.localPoint ? game.localPoint(worldId, p.x, p.z) : [p.x, p.z], { label: data.monsters.monsters[p.monster]?.nameTh, level: p.level });
       } else {
         // No render/rule world is constructed merely to open the journal.
         for (const s of map.spawns || []) if (matches(s.monster, s.zone)) {
@@ -85,7 +85,7 @@ export function questNavigation(game, id) {
   if (!progress || progress.status !== 'active' || !progress.next) return null;
   const objective = progress.next, { data, player } = game, maps = mapsFor(data);
   if (['socket', 'job'].includes(objective.type)) return { menu: objective.menu || (objective.type === 'job' ? 'job' : 'skills'), label: objective.labelTh, spatial: false };
-  const here = data.world.id, [px, pz] = coordinates(maps[here], player.x, player.z);
+  const here = data.world.id, [px, pz] = game.worldPoint ? game.worldPoint(player.x, player.z) : coordinates(maps[here], player.x, player.z);
   const routes = new Map(), recommended = Math.max(game.ch.level || 1, data.quests.quests[id].level || 1);
   let goal = null, bestRisk = Infinity, bestDistance = Infinity;
   for (const candidate of cachedLocations(game, id, objective)) {
@@ -99,8 +99,12 @@ export function questNavigation(game, id) {
   }
   if (!goal) return { spatial: false, unavailable: true, label: 'ยังไม่มีเส้นทางไปยังเป้าหมายนี้' };
   const gate = goal.route[0];
+  // A unified scene already has collision and terrain for the entire route. Keep
+  // its destination fixed across regional discovery changes instead of ending
+  // the ground ribbon at a map gate or reapplying the active map's origin.
+  const destination = game.scenePoint ? game.scenePoint(goal.world, goal.x, goal.z) : gate ? gate.pos : [goal.x, goal.z];
   return {
-    spatial: true, x: gate ? gate.pos[0] : goal.x, z: gate ? gate.pos[1] : goal.z,
+    spatial: true, x: destination[0], z: destination[1],
     world: goal.world, goal: { world: goal.world, x: goal.x, z: goal.z, worldX: goal.gx, worldZ: goal.gz },
     // Remaining distance is to the stable world-space goal, NOT a gate that changes at handover.
     distance: goal.distance, via: gate ? maps[gate.to].nameTh : null, remote: goal.world !== here,

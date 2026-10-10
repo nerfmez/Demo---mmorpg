@@ -3,12 +3,16 @@
 // game's own API and saves screenshots to tests/browser/out/.
 // Screenshot waits allow slow software-GL shader compilation on CI; all gameplay assertions stay unchanged.
 // Usage: npm run build && npm run test:browser  (BROWSER=webkit to use WebKit if installed)
+// SMOKE_CASE=vrm runs the unchanged Medium VRM case alone for focused startup diagnosis.
 import { completeOpeningUi } from './opening-helper.mjs';
 import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
 import { initialUiReady, vrmHeroReady } from './startup-ready.mjs';
+
+const smokeCase = process.env.SMOKE_CASE ?? 'all';
+if (!['all', 'vrm'].includes(smokeCase)) throw new Error('SMOKE_CASE must be all or vrm');
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
@@ -38,6 +42,60 @@ const check = (ok, msg) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${msg}`);
   if (!ok) failures++;
 };
+
+// A failed startup must identify every resident region and named dependency, not
+// merely the active static scene. Capture only after the original deadline and
+// always rethrow it; observation cannot promote an overdue startup to a pass.
+async function waitForStartupReady(page, predicate, { device, phase, errors }) {
+  const startedAt=performance.now();
+  try {
+    await page.waitForFunction(predicate, null, { timeout: 60000 });
+    console.log('STARTUP_READY',JSON.stringify({device,phase,elapsedMs:performance.now()-startedAt}));
+  } catch (error) {
+    const bounded = async task => {
+      let timer;
+      try { return await Promise.race([task, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('diagnostic snapshot deadline')), 2000); })]); }
+      finally { clearTimeout(timer); }
+    };
+    const snapshot = () => bounded(page.evaluate(() => {
+      const f=window.__frontier,v=f?.view,r=v?.region,q=v?.buildQueue,g=f?.game,loading=document.getElementById('loading'),now=performance.now();
+      const regionState=region=>({
+        staticReady:region?.staticReady,importedState:region?.importedState,disposed:region?.disposed,
+        grassReady:region?.grassReady,grassError:region?.grassError?.message,error:region?.error?.message,
+        construction:Object.fromEntries(Object.entries(region?.stats?.construction??{}).map(([name,stage])=>[name,{...stage,pausedAgeMs:stage.pausedAtMs==null?null:now-stage.pausedAtMs}])),
+        warm:region?.warmStats,
+        roots:region?.root?.children.map(o=>({name:o.name,children:o.children.length})).slice(0,10)
+      });
+      const hero=v?.hero,body=hero?.skin?.body;
+      return {
+        atMs:now,hidden:document.hidden,modelsReady:f?.modelsReady,worldPrepared:v?.worldPrepared,
+        dependencies:Object.fromEntries(Object.entries(v?.startupDependencies??{}).map(([name,entry])=>[name,{...entry,ageMs:now-entry.startedMs}])),
+        gameTime:g?.time,paused:f?.paused,panelOpen:f?.panels?.isOpen,panelTab:f?.panels?.tab,completionOpen:f?.completion?.isOpen,
+        simulationPaused:!v?.worldPrepared||!!f?.panels?.isOpen||!!f?.completion?.isOpen||!!f?.paused||!!f?.fullscreen?.blocked,
+        fullscreen:f?.fullscreen?.snapshot?.(),loadingDone:loading?.classList.contains('done'),loadingText:loading?.textContent,
+        region:regionState(r),regions:[...(v?.regions??[])].map(([id,region])=>({id,...regionState(region)})),
+        queue:{scheduled:!!q?.scheduled,running:q?.running,stats:q?.stats,
+          jobs:q?.jobs.map(j=>({label:j.label,state:j.state,stats:j.stats})).slice(0,12)},
+        hero:{body:body?.name,hairsample:hero?.hairsample,setFace:typeof hero?.setFace,
+          head:!!body?.getObjectByName('J_Bip_C_Head'),hips:!!body?.getObjectByName('J_Bip_C_Hips')},
+        contextLost:v?.renderer?.getContext?.().isContextLost?.(),rendererFrames:v?.renderer?.info?.render?.frame,
+        resources:v?.renderer?.info?.memory,rafHeartbeat:window.__startupReadinessRaf
+      };
+    })).catch(failure => ({probeError:String(failure)}));
+    const first=await snapshot();
+    try {
+      await bounded(page.evaluate(() => {
+        const heartbeat=window.__startupReadinessRaf={count:0,startedAt:performance.now(),lastAt:null};
+        const tick=time=>{heartbeat.count++;heartbeat.lastAt=time;if(performance.now()-heartbeat.startedAt<1100)requestAnimationFrame(tick);};
+        requestAnimationFrame(tick);
+      }));
+      await page.waitForTimeout(1000);
+    } catch (failure) { console.error('FRESH_STARTUP_DIAGNOSTIC_HEARTBEAT',String(failure)); }
+    const second=await snapshot();
+    console.error('FRESH_STARTUP_DIAGNOSTIC',JSON.stringify({device,phase,first,second,errors}));
+    throw error;
+  }
+}
 
 async function run(name, contextOpts) {
   const ctx = await browser.newContext(contextOpts);
@@ -93,43 +151,7 @@ async function run(name, contextOpts) {
 
   // ---- a fresh, unsaved game for the rest ----
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=low`);
-  try {
-    await page.waitForFunction(initialUiReady, null, { timeout: 60000 });
-  } catch (error) {
-    // Observe only after the readiness failure. Keep its deadline and rethrow
-    // it; diagnostics must never turn failed readiness into a pass.
-    const bounded = async task => {
-      let timer;
-      try { return await Promise.race([task, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('diagnostic snapshot deadline')), 2000); })]); }
-      finally { clearTimeout(timer); }
-    };
-    const snapshot = () => bounded(page.evaluate(() => {
-      const f=window.__frontier,v=f?.view,r=v?.region,q=v?.buildQueue,g=f?.game,loading=document.getElementById('loading');
-      return {
-        atMs:performance.now(),hidden:document.hidden,modelsReady:f?.modelsReady,
-        gameTime:g?.time,paused:f?.paused,panelOpen:f?.panels?.isOpen,panelTab:f?.panels?.tab,
-        simulationPaused:!r?.staticReady||!!f?.panels?.isOpen||!!f?.paused||!!f?.fullscreen?.blocked,
-        fullscreen:f?.fullscreen?.snapshot?.(),loadingDone:loading?.classList.contains('done'),loadingText:loading?.textContent,
-        region:{staticReady:r?.staticReady,importedState:r?.importedState,disposed:r?.disposed,error:r?.error?.message,
-          roots:r?.root?.children.map(o=>({name:o.name,children:o.children.length})).slice(0,10)},
-        queue:{scheduled:!!q?.scheduled,running:q?.running,stats:q?.stats,
-          jobs:q?.jobs.map(j=>({label:j.label,state:j.state,stats:j.stats})).slice(0,12)},
-        rendererFrames:v?.renderer?.info?.render?.frame,rafHeartbeat:window.__startupReadinessRaf
-      };
-    })).catch(failure => ({probeError:String(failure)}));
-    const first=await snapshot();
-    try {
-      await bounded(page.evaluate(() => {
-        const heartbeat=window.__startupReadinessRaf={count:0,startedAt:performance.now(),lastAt:null};
-        const tick=time=>{heartbeat.count++;heartbeat.lastAt=time;if(performance.now()-heartbeat.startedAt<1100)requestAnimationFrame(tick);};
-        requestAnimationFrame(tick);
-      }));
-      await page.waitForTimeout(1000);
-    } catch (failure) { console.error('FRESH_STARTUP_DIAGNOSTIC_HEARTBEAT',String(failure)); }
-    const second=await snapshot();
-    console.error('FRESH_STARTUP_DIAGNOSTIC',JSON.stringify({device:name,first,second,errors}));
-    throw error;
-  }
+  await waitForStartupReady(page, initialUiReady, { device: name, phase: 'initialUiReady', errors });
   check(errors.length === 0, `${name}: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.waitForTimeout(800);
   await page.screenshot({ timeout: 90000, path: `${OUT}${name}-1-beach.png` });
@@ -326,9 +348,9 @@ async function vrmHero() {
     if (m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) errors.push(m.text());
   });
   await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium&hero=vrm`);
-  await page.waitForFunction(initialUiReady, null, { timeout: 60000 });
+  await waitForStartupReady(page, initialUiReady, { device: 'vrm', phase: 'initialUiReady', errors });
   // models load in the background; the hero is rebuilt with the VRM body only once it has arrived
-  await page.waitForFunction(vrmHeroReady, null, { timeout: 60000 });
+  await waitForStartupReady(page, vrmHeroReady, { device: 'vrm', phase: 'vrmHeroReady', errors });
   const info = await page.evaluate(async () => {
     const { game, view } = window.__frontier;
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -357,8 +379,10 @@ async function vrmHero() {
 }
 
 try {
-  await run('desktop', { viewport: { width: 1600, height: 900 } });
-  await run('ipad', { viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  if (smokeCase === 'all') {
+    await run('desktop', { viewport: { width: 1600, height: 900 } });
+    await run('ipad', { viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  }
   await vrmHero();
 } finally {
   await browser.close();

@@ -43,6 +43,17 @@ test('incremental paint raster/blur preserve original visit order and bytes',()=
   assert.equal(actual,expected);assert.deepEqual(b,a);
 });
 
+test('resident paint blur avoids per-column row yields while retaining exact colours and bounded chunks',()=>{
+  for(const [w,h]of [[451,381],[513,2049]]){
+    const src=Float32Array.from({length:w*h},(_,i)=>Math.sin(i*.3)*.4+i%7),steps=boxBlurSteps(src,w,h,6);
+    let count=0,result;for(;;){const step=steps.next();if(step.done){result=step.value;break;}count++;}
+    assert.deepEqual(bytes(result),bytes(boxBlur(src,w,h,6)),'every Float32 paint sample stays identical');
+    assert.ok(count<=Math.ceil(h/Math.max(1,Math.min(8,Math.floor(4096/w))))+Math.ceil(w/Math.max(1,Math.min(8,Math.floor(4096/h)))),'only bounded row/column groups schedule construction');
+    if(w===451)assert.equal(count,105,'a native Azure blur pass no longer yields 21,753 times');
+    else assert.ok(count>h/8+w/8,'large columns retain a smaller construction chunk');
+  }
+});
+
 const region={bounds:{minX:0},seams:[{edge:'minX',alongX:false,outward:-1,span:[-2,2]}]};
 function area(g){const p=g.attributes.position,idx=g.index;let n=0;for(let i=0;i<(idx?idx.count:p.count);i+=3){const v=[0,1,2].map(k=>new THREE.Vector3().fromBufferAttribute(p,idx?idx.getX(i+k):i+k));n+=new THREE.Triangle(...v).getArea();}return n;}
 test('water/terrain ownership is the entire shared edge, including closed seam ends',()=>{

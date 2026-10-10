@@ -18,6 +18,8 @@ export function atlasView(ui) {
  const maps=data.maps||{[here]:data.world}, worlds=g.worlds||{[here]:g.world}, found=discovery(g.ch,data);
  const image=worldMapImage(worlds), W=image.width, H=image.height;
  const L=(m,x,z)=>((toWorld(data,m,x,z)[0]-image.minX)/W*100)+'%', T=(m,x,z)=>((toWorld(data,m,x,z)[1]-image.minZ)/H*100)+'%';
+ const scenePoint=(x,z)=>g.worldPoint?g.worldPoint(x,z):toWorld(data,here,x,z);
+ const sceneL=(x,z)=>((scenePoint(x,z)[0]-image.minX)/W*100)+'%', sceneT=(x,z)=>((scenePoint(x,z)[1]-image.minZ)/H*100)+'%';
  const populations=Object.fromEntries(Object.entries(maps).map(([mapId,map])=>[mapId,Object.fromEntries(map.zones.map(z=>[z.id,zoneEncounters(worlds[mapId],data,z.id)]))]));
  const [selMap,selId]=(sel.zone||'').split(':');
  const playerZone=g.world.zoneAt(g.player.x,g.player.z);
@@ -74,8 +76,8 @@ export function atlasView(ui) {
  <div class="atlas-layout"><div class="atlas-main"><div class="worldmap" style="aspect-ratio:${W}/${H}">
    <img src="${image.url()}" alt="แผนที่โลก: ชายฝั่งสีคราม เมืองท่า และชายแดนกรีนฮอลโลว์" draggable="false">${fog}
    <svg viewBox="0 0 ${W} ${H}" aria-label="จุดเกิดมอนตั้งต้นในพื้นที่ที่สำรวจแล้ว" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${dots}</svg>${labels}
-   ${bosses}${pins}${target?`<span class="questmark" style="left:${L(here,target.x,target.z)};top:${T(here,target.x,target.z)}">★</span>`:''}
-   <span class="youmark" style="left:${L(here,g.player.x,g.player.z)};top:${T(here,g.player.x,g.player.z)};transform:translate(-50%,-50%) rotate(${Math.PI-g.player.facing}rad)"></span>
+   ${bosses}${pins}${target?`<span class="questmark" style="left:${sceneL(target.x,target.z)};top:${sceneT(target.x,target.z)}">★</span>`:''}
+   <span class="youmark" style="left:${sceneL(g.player.x,g.player.z)};top:${sceneT(g.player.x,g.player.z)};transform:translate(-50%,-50%) rotate(${Math.PI-g.player.facing}rad)"></span>
    <span class="map-north">N<br>↑</span></div>
    <div class="map-legend"><span><i class="legend-player"></i>คุณ</span><span>${icon('portal')}หินวาร์ป</span><span>★ เป้าหมาย</span><span>${icon('hammer')}โต๊ะคราฟต์</span><span><i class="legend-landmark">◆</i>แลนด์มาร์ค</span><span>● จุดเกิดตั้งต้น · สีตรงกับรายชื่อมอน</span></div>
    ${guide?`<p class="muted" style="overflow-wrap:anywhere">เส้นทางแนะนำ: ${esc(guide.routeText)}</p>`:''}

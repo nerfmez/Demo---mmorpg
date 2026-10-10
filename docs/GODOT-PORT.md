@@ -5,13 +5,40 @@ rendering and UI must be rebuilt in Godot. This file maps each piece.
 
 ## What carries over unchanged
 
+The browser now runs `core/open-world-game.js` over `core/unified-world.js`:
+one fixed coordinate system rooted at the starting region's `atlas.offset`, one
+persistent actor population, and collision against the union of the authored
+regions. Native `createWorld` layouts remain immutable sources for terrain,
+colliders and content. `scenePoint`, `localPoint` and `worldPoint` convert only
+at content/save/UI boundaries. Walking, dashing, summons and projectiles cross
+the old regional edges without a scene change, readiness gate, combat refusal,
+actor replacement or camera-coordinate shift. Regional discovery and quest
+addresses remain scoped; `worldChanged` changes metadata with `shift: [0, 0]`.
+Save v13 remains region-local (`worldId`, `pos`) so existing slots keep their
+inventory, discovery and location without a new save migration. Monster and
+loot origin tags select the correct regional drop table and quest credit even
+after crossing. Idle AI uses `progression.openWorldSimulation.idleRadius`;
+aggro actors continue their real fight beyond that envelope.
+Collision candidates cover every grid cell touched by the actor radius, and
+water clearance checks every regional rectangle touched by the native movement
+footprint. Zone, bridge and dock query results use fixed world coordinates;
+native source objects remain available through `regionWorld`/`worlds`.
+Only zone/waypoint discovery is archived per region. Save v13 `kills`,
+`collected` and `bossKills` remain global lifetime totals; individually scoped
+quest objectives receive the monster/drop's source region instead.
+
+In Godot, mirror this as one persistent world node and spatially culled content
+chunks. Do not use `change_scene_to_file()` or clear combat state on an authored
+regional boundary. The old linked-map contracts below remain the native content
+and legacy `Game` reference; `OpenWorldGame` is the live browser simulation.
+
 | Web demo | Godot | How |
 |---|---|---|
 | `data/*.json` | `res://data/*.json` | Copy the files. Load with `JSON.parse_string(FileAccess.get_file_as_string(path))`. Field names stay the same. |
 | `data/generated/layout.json` (`npm run export:layout`) | Map scene builder | Instance trees, rocks, pillars, houses and fences at the listed positions. Colliders are listed as circles (`x, z, r`) and oriented boxes (`x, z, hx, hz, angle`). Also zones, waypoints, bridges, harbor docks and safeRoutes. |
 | `data/generated/heightmap.json` | `HeightMapShape3D` + terrain mesh | Heights on a 1 m grid. Walkability: uphill steps steeper than `terrain.maxWalkSlope` (`world.json`) are blocked, drops are allowed. |
 | Axes and units | Same | Both use Y up and metres. A facing angle `a` points along `(sin a, 0, cos a)`, which is `rotation.y = a` in both engines. |
-| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 4`, with `name`, `appearance`, `kit`, `progress`, `pos`). `migrateCharacter()` upgrades v1 and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
+| Save data (`character` object) | `Dictionary` or `Resource` | The same JSON shape (`version: 13`, with `name`, `appearance`, `kit`, `progress`, region-local `worldId`/`pos`). `migrateCharacter()` upgrades older versions and relocates characters once when `worldId` or `worldLayoutRevision` changes; levels, equipment and completed quest history are retained. Slots and export codes are in `src/save.js`. |
 
 ## Approved V3 city overlay
 
@@ -41,7 +68,7 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 | `targeting.js` | `SoftTarget.gd` | Pure rules. Automatic attack acquisition is nearest in actual skill range; explicit pointer/drag aim stays directional. Call soft acquisition every physics frame and re-evaluate nearest on quick cast. |
 | `ai.js` | Per-monster state machine on a `CharacterBody3D` | States: `idle, chase, windup, act, recover, retreat, emerge, stunned, shell, return, circle`. Keep the wind-up tell before every attack. |
 | `game.js` | Player, Projectile, Area and Drop scenes + a `World` node | See the node mapping below. |
-| `maps.js` | `Maps.gd` autoload + one scene per map | `data.maps` registers the start map (`data/world.json`) and linked maps (`data/maps/*.json`) by id. Maps meet along open seams (see "Linked Greenhollow Frontier map"); `exits[]` (`pos`, `r`, `to`, `arrive`) remain for point travel; `Game.travel()` refuses far/dead/combat and calls `enterMap()`, which stores the current map's `progress.zones`/`waypoints` under `progress.maps[id]` and restores the destination's (plus its free stones). Then `change_scene_to_file()` the destination with the saved character; the web build reloads the page. Quests with `world` count waypoint/zone targets only on that map. |
+| `maps.js`, `open-world-game.js`, `unified-world.js` | `Maps.gd` metadata registry + persistent world | `data.maps` registers content regions by id. `enterMap()` stores regional discovery under `progress.maps[id]` and restores the destination's (plus its free stones). `OpenWorldGame.activateRegion()` changes this metadata while one fixed world and every resident actor remain alive. Point exits and waypoint teleportation reposition within that world. Quests and loot retain their source `worldId`; no regional crossing changes scenes. |
 | `atlas.js` | `WorldAtlas.gd` | One world for the player: `toWorld`/`toLocal` (local + atlas.offset), discovery per map (`progress.maps`) read as one world (`worldTotals`), and stones on any map (`Game.teleportTo(id, mapId)` travels there). The minimap and world map draw every map's image at its offset (`ui/mapimage.js worldMapImage`); zone/stone selections are `mapId:id`. |
 | `world.js` | World queries / collision setup | Use `layout.json` + `heightmap.json` plus Godot collision shapes. `isWater()` is a visual/spawn mask; `blocksWater()` is the movement mask. The shallow river is walkable when `river.walkable` is true. Only deep ponds/sea block movement; bridges and docks provide walking surfaces. Dock clearance checks the actor footprint across the union of adjoining decks and dry shore; outer sea edges still block. `groundY()` interpolates from `startY` to `height` using dock-local Z after rotation. The render mesh shears in local Z so its XZ footprint matches collision exactly. Safe starting roads use distance to the `safeRoutes` polylines. |
 
@@ -71,11 +98,21 @@ is in flight per session. Port to a SubViewport/readback without blocking the ma
 frame, keeping cleanup on failure and the same 128 px image/row orientation.
 
 The grass colour bake (`bakeGrassSteps`) also reads back asynchronously while a
-region streams in. A readback that has not settled after `readbackTimeoutMs`
-(default 5000) is abandoned into its own buffer and the same target is read
-synchronously, so a stuck fence costs one stall instead of a region that never
-finishes building. In Godot, give the SubViewport readback the same timeout and
-fallback.
+region streams in. A slow fence is renewed once after 250 ms (or half the configured
+bound), over the same submitted pixel buffer; successful colour output is unchanged.
+If it has not settled after `readbackTimeoutMs` (default 5000), that bake frees its
+GPU owners without a synchronous read. The region completes with valid terrain
+and scenery, hiding unfinished grass. A nearby neighbour gets one fresh build
+attempt after a 1000 ms backoff, retaining the completed scene during replacement.
+Persistent failure leaves that scene visible with `grassReady: false`; leaving
+the retained area resets the retry limit. Successful builds retain all grass.
+
+Streamed construction uses the existing six-ms task slices. Completed terrain is
+shader-prepared and shown through a clone borrowing its owner's buffers, while
+the owner remains map-local for grass baking. The preview cannot enable crossing:
+`neighbourReady()` still requires the completed region's `staticReady`. Eviction
+detaches the preview immediately and frees the owner after its bounded GPU wait.
+In Godot, preserve the same budget, readiness, bounded readback and ownership rules.
 
 | Web | Godot |
 |---|---|
@@ -955,12 +992,29 @@ Layout data used here: `ruins.zone` (the zone strewn with fallen stones, default
 `ruins.scatter` (tries, default 90), `ruins.paving: false` (a grassy ring, no paved floor);
 `town.trees` for the elder tree in the ring; `town.surfaces` with a `dirt` polygon so the camp has no
 cobbled plaza. Monsters: `fern_ear_hare` (behaviour `hare`), `mirrorwing_moth` (`moth`, flyer),
-`rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`.
+`rootdigger_mole` (`mole`), procedural rigs in `render/monsters-grove.js`. Each rig now wears a
+Meshy model (`data/models.json` → `monsters`, skinned to the same bones by `render/monsterSkin.js`;
+the procedural parts remain the fallback until the model loads). The moth's model keeps the concept's
+raised wings, which the rig flaps about the body axis; its extra tail from Meshy was cut off.
+
+Packs: a spawn entry may carry `pack: {size, radius, spacing}` (the hare: packs of 6 or 4, small
+and weak). `encounterLayout()` places each pack's leader under the normal rules, then its mates
+within `radius` of the leader at their own `spacing` (other monsters still keep `placement.spacing`
+clear); points and spawn points carry a `pack` id (`group:index`). A monster whose def has
+`packAssist` (metres) pulls every calm packmate within that range into the fight the moment it
+aggroes (`setAggro()` in `core/ai.js`). Packmates respawn at their own points.
 
 Attacks may borrow another attack's mechanics with `attacks.<name>.kind` (e.g. the hare's `kick` is a
-planted `claw` strike, its `hop` a marked `pounce`; the moth's `glint` is a `beam`, its `scale_dust`
-a `puff` whose cloud is `areaKind: 'mirror_dust'`; the mole's `swipe` is a `sweep`). Names stay
-their own for cooldowns, telegraph lookups and looks. New mechanic `erupt` (mole): an `erupt` area is
+planted `claw` strike, its `hop` a marked `pounce`; the mole's `swipe` is a `sweep`; Greyfang's
+`leap` is a `pounce`). Names stay their own for cooldowns, telegraph lookups and looks. An attack's
+`hpBelow` (Greyfang's `leap`: 0.5) means it is only used at or under that share of health.
+
+The moth has two mechanics of its own (no other monster uses them): `shard_rain` marks `count`
+`glass_shard` circles at wind-up start, the first on the player and the rest scattered within
+`spread` (seeded `game.rng`, never in a safe zone), landing `step` seconds apart after the wind-up;
+`mirror_ring` marks a ring around the moth (`radius`, with a safe middle of radius `inner`) that
+goes off at the end of the wind-up. A monster area with `inner` hits only units outside it (core
+`updateAreas`); the render draws the band red and the safe middle with a pale rim. New mechanic `erupt` (mole): an `erupt` area is
 marked at the target for the whole wind-up; the mole sinks (render) and surfaces at that spot as it
 bursts (`surface` event); it never digs into a safe zone. In Godot: the same state machine, a dig/emerge
 `AnimationPlayer` clip and a teleport at the burst.

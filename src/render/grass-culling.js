@@ -29,7 +29,7 @@ export function installGrassCulling(scene,source){
   const previous=scene.onBeforeRender;
   scene.onBeforeRender=function(renderer,renderedScene,camera,target){
     previous.call(this,renderer,renderedScene,camera,target);
-    for(const mesh of list())updateGrassVisibility(mesh,camera);
+    for(const mesh of list())if(!mesh.userData.residentCell || mesh.userData.residentCell.attached)updateGrassVisibility(mesh,camera);
   };
 }
 export function updateGrassVisibility(mesh,camera){

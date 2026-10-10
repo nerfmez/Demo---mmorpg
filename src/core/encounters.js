@@ -89,18 +89,33 @@ export function encounterLayout(world, data) {
     const rng = createRng((wd.seed ^ configuration.seed ^ attempt) >>> 0);
     const occupied = [], byGroup = groups.map(() => []), failures = [];
     for (const g of ordered) {
+      // A pack (spawn.pack: {size, radius, spacing}) is a leader placed like any monster, then
+      // packmates within `radius` of it at their own closer `spacing`; other monsters keep clear.
+      const pack = g.spawn.pack, packSize = pack ? Math.max(1, pack.size) : 1;
+      let mates = [], leader = null, packIndex = -1;
       for (let i = 0; i < g.spawn.count; i++) {
         let point = null;
+        if (i % packSize === 0) { leader = null; mates = []; packIndex++; }
         for (let tries = 0; tries < rules.attemptsPerPoint; tries++) {
-          let pick = rng.next() * g.area;
-          const rect = g.rects.find(r => (pick -= (r[1] - r[0]) * (r[3] - r[2])) <= 0) || g.rects.at(-1);
-          const x = rng.range(rect[0], rect[1]), z = rng.range(rect[2], rect[3]);
-          if (encounterPointAllowed(world, data, g.spawn, x, z, occupied)) { point = { x, z }; break; }
+          let x, z;
+          if (leader) {
+            const a = rng.next() * Math.PI * 2, d = Math.sqrt(rng.next()) * pack.radius;
+            x = leader.x + Math.cos(a) * d; z = leader.z + Math.sin(a) * d;
+          } else {
+            let pick = rng.next() * g.area;
+            const rect = g.rects.find(r => (pick -= (r[1] - r[0]) * (r[3] - r[2])) <= 0) || g.rects.at(-1);
+            x = rng.range(rect[0], rect[1]); z = rng.range(rect[2], rect[3]);
+          }
+          if (leader && mates.some(p => Math.hypot(x - p.x, z - p.z) < pack.spacing)) continue;
+          const others = mates.length ? occupied.filter(p => !mates.includes(p)) : occupied;
+          if (encounterPointAllowed(world, data, g.spawn, x, z, others)) { point = { x, z }; break; }
         }
         if (!point) { failures.push({ group: g.index, monster: g.spawn.monster, zone: g.spawn.zone, missing: g.spawn.count - i }); break; }
         occupied.push(point);
+        if (pack) { mates.push(point); leader ||= point; }
         byGroup[g.index].push({ ...point, monster: g.spawn.monster, zone: g.spawn.zone,
-          level: [...g.spawn.level], group: g.index, habitat: g.habitat.label });
+          level: [...g.spawn.level], group: g.index, habitat: g.habitat.label,
+          ...(pack ? { pack: `${g.index}:${packIndex}` } : {}) });
       }
     }
     const result = { mapId: wd.id, revision: configuration.revision,
@@ -122,7 +137,7 @@ export function populateEncounters(game) {
   game.encounterAudit = layout;
   for (const p of layout.points) {
     const sp = { monster: p.monster, zone: p.zone, level: [...p.level], x: p.x, z: p.z,
-      respawnAt: 0, entity: null, respawn: w.respawnSeconds };
+      respawnAt: 0, entity: null, respawn: w.respawnSeconds, ...(p.pack ? { pack: p.pack } : {}) };
     game.spawnPoints.push(sp);
     game.spawnAt(sp);
   }

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { SUITES } from './ci-browser-plan.mjs';
+import { browserShards } from './ci-browser-shards.mjs';
 
 export function verifyBrowserReports({ directory, source, browser, suites, mode }) {
   if (!/^[a-f0-9]{40}$/.test(source) || !['chromium', 'webkit'].includes(browser) ||
@@ -10,13 +11,16 @@ export function verifyBrowserReports({ directory, source, browser, suites, mode 
     throw Error('Invalid selected browser gate identity');
   for (const suite of suites) {
     if (!SUITES[suite]) throw Error(`Unknown selected suite: ${suite}`);
-    const report = JSON.parse(readFileSync(join(directory, `${mode}-${browser}-${suite}.json`), 'utf8'));
-    if (report.source !== source || report.sourceDirty !== false || report.mode !== mode || report.browser !== browser ||
-        report.suite !== suite || report.ok !== true || report.complete !== true || report.running !== null ||
-        !report.startedAt || !report.finishedAt || !Array.isArray(report.checks) ||
-        JSON.stringify(report.checks.map(check => check.script)) !== JSON.stringify(SUITES[suite]) ||
-        report.checks.some(check => check.exitCode !== 0 || check.signal || check.error || !check.startedAt || !(check.durationMs >= 0)))
-      throw Error(`Incomplete/failed/wrong-source selected shard: ${browser}/${suite}`);
+    for (const selection of browserShards(suite)) {
+      const report = JSON.parse(readFileSync(join(directory, `${mode}-${browser}-${selection.shard}.json`), 'utf8'));
+      if (report.source !== source || report.sourceDirty !== false || report.mode !== mode || report.browser !== browser ||
+          report.shard !== selection.shard || JSON.stringify(report.selection) !== JSON.stringify(selection.env) ||
+          report.suite !== suite || report.ok !== true || report.complete !== true || report.running !== null ||
+          !report.startedAt || !report.finishedAt || !Array.isArray(report.checks) ||
+          JSON.stringify(report.checks.map(check => check.script)) !== JSON.stringify(SUITES[suite]) ||
+          report.checks.some(check => check.exitCode !== 0 || check.signal || check.error || !check.startedAt || !(check.durationMs >= 0)))
+        throw Error(`Incomplete/failed/wrong-source selected shard: ${browser}/${selection.shard}`);
+    }
   }
 }
 

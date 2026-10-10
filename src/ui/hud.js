@@ -142,7 +142,7 @@ export class Hud {
     // One world: the minimap reads the stitched world image in world metres, so it
     // runs on across the border between streamed maps.
     const mb = (this.map = worldMapImage(game.worlds || { [game.data.world.id]: game.world }));
-    const data = game.data, [pwx, pwz] = toWorld(data, data.world.id, p.x, p.z);
+    const data = game.data, [pwx, pwz] = game.worldPoint ? game.worldPoint(p.x, p.z) : toWorld(data, data.world.id, p.x, p.z);
     const range = 36; // metres from the centre to the edge
     const k = S / 2 / range; // canvas px per metre
     g.save();
@@ -415,7 +415,7 @@ export class Hud {
         this.el.death.classList.add('on');
         break;
       case 'bossDefeated': {
-        const boss = (d.world.bosses || []).find((b) => b.id === e.boss);
+        const boss = ((d.maps?.[e.world] || d.world).bosses || []).find((b) => b.id === e.boss);
         let sub = `บอสจะกลับมาใน ${boss?.respawnSeconds || 90} วินาที`;
         if (e.first && e.final) sub = 'จบเนื้อเรื่อง Demo แล้ว! ลองคราฟต์ Horn Greatblade หรือทดลอง Build ใหม่ได้';
         else if (e.first) sub = 'ได้วัตถุดิบบอสแล้ว — กลับไปคราฟต์อาวุธใหม่ที่นิคม';
@@ -545,7 +545,7 @@ export class Hud {
       if (!show) continue;
       if ((m.x - p.x) ** 2 + (m.z - p.z) ** 2 > 32 * 32) continue;
       const mv = this.view.monsterViews.get(m.id);
-      if (!mv) continue;
+      if (!mv || !mv.rig.root.visible) continue;
       seen.add(m.id);
       let b = this.mbars.get(m.id);
       if (!b) {

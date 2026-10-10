@@ -1,5 +1,6 @@
 // Bounded navigation aid. Uses the same actor clearance, water and slopes as walking.
-// No character mutation, auto-walk or collision bypass. A remote target ends at its real gate.
+// No character mutation, auto-walk or collision bypass. Coordinates follow the
+// owning rule world: a unified world can continue across regional boundaries.
 const WALK_OPTIONS={allowSeams:true};
 function* segmentChecks(world, a, b) {
   const distance = Math.hypot(b.x-a.x,b.z-a.z), steps = Math.max(1,Math.ceil(distance/.4));

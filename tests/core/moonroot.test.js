@@ -97,26 +97,67 @@ test('hare kick lands once at its authored time; its hop is marked before it lan
   assert.equal(h.hits.length, 0, 'leaving the mark dodges the hop');
 });
 
-test('moth glint hits along its line once and misses beside it; scale dust leaves a stinging cloud', () => {
-  for (const [side, expect] of [[0, 1], [2.4, 0]]) {
+test('moth shard rain marks circles around the player that land one after another, only on their marks', () => {
+  const rain = M.mirrorwing_moth.attacks.shard_rain;
+  const a = arena('mirrorwing_moth');
+  a.place(5); a.m.cd.mirror_ring = 99;
+  a.step(0.01);
+  assert.equal(a.m.windup?.name, 'shard_rain');
+  const marks = a.g.areas.filter((x) => x.kind === 'glass_shard');
+  assert.equal(marks.length, rain.count, 'one mark per shard');
+  assert.ok(marks.some((x) => Math.hypot(x.x - a.g.player.x, x.z - a.g.player.z) < 1e-9), 'the first lands on the player');
+  marks.forEach((x, i) => assert.ok(Math.abs(x.delay - (a.m.windup.total + i * rain.step)) < 1e-9, 'one after another'));
+  a.step(a.m.windup.total - 0.05);
+  assert.equal(a.hits.length, 0, 'nothing before the first shard lands');
+  a.step(0.1);
+  assert.equal(a.hits.length, 1, 'the shard on the player hits once');
+  // stepping clear of every mark dodges the rest
+  Object.assign(a.g.player, { x: 30, z: 30 });
+  a.step(1.5);
+  assert.equal(a.hits.length, 1);
+});
+
+test('moth moonlight ring hits the band around it once; right under it and outside are safe', () => {
+  const ring = M.mirrorwing_moth.attacks.mirror_ring;
+  for (const [d, expect] of [[2.8, 1], [0.6, 0], [ring.radius + 1.5, 0]]) {
     const a = arena('mirrorwing_moth');
-    a.place(5); a.m.cd.scale_dust = 99;
+    a.place(1); a.m.cd.shard_rain = 99;
     a.step(0.01);
-    assert.equal(a.m.windup?.name, 'glint');
-    a.step(a.m.windup.total * 0.7);
-    a.g.player.x = side;
+    assert.equal(a.m.windup?.name, 'mirror_ring');
+    const mark = a.g.areas.find((x) => x.kind === 'mirror_ring');
+    assert.ok(mark && mark.inner === ring.inner && Math.abs(mark.delay - a.m.windup.total) < 1e-9);
+    a.step(a.m.windup.total * 0.5);
+    Object.assign(a.g.player, { x: 0, z: d });
+    a.step(a.m.windup.total * 0.5 - 0.05);
+    assert.equal(a.hits.length, 0, 'nothing before the ring goes off');
     a.until(() => a.m.state === 'recover');
-    assert.equal(a.hits.length, expect, `glint at side ${side}`);
+    a.step(0.5);
+    assert.equal(a.hits.length, expect, `player at ${d} m`);
   }
-  const d = arena('mirrorwing_moth');
-  d.place(1); d.m.cd.glint = 99;
-  d.step(0.01);
-  assert.equal(d.m.windup?.name, 'scale_dust');
-  d.until(() => d.m.state === 'recover');
-  const cloud = d.g.areas.find((a) => a.kind === 'mirror_dust');
-  assert.ok(cloud, 'a mirror-dust cloud of its own look');
-  d.step(1.2);
-  assert.ok(d.hits.length >= 1, 'it stings while standing in it');
+});
+
+test('greyfang leaps at the player only below half health, landing on the marked spot', () => {
+  const leap = M.greyfang.attacks.leap;
+  const a = arena('greyfang', 10);
+  for (const k of ['bite', 'rake', 'howl']) a.m.cd[k] = 99;
+  a.place(6);
+  a.m.hp = a.m.maxHp * 0.8;
+  a.step(0.3);
+  assert.notEqual(a.m.windup?.name, 'leap', 'healthy: no leap');
+  Object.assign(a.m, { x: 0, z: 0, state: 'chase', windup: null });
+  a.place(6);
+  a.m.hp = a.m.maxHp * 0.45;
+  a.step(0.01);
+  assert.equal(a.m.windup?.name, 'leap');
+  const mark = a.g.areas.find((x) => x.kind === 'pounce');
+  assert.ok(mark && mark.radius === leap.radius);
+  const spot = { x: mark.x, z: mark.z };
+  a.step(a.m.windup.total + 0.3);
+  assert.equal(a.hits.length, 0, 'no damage before it lands');
+  a.until(() => a.m.state === 'recover', 3);
+  assert.ok(Math.hypot(a.m.x - spot.x, a.m.z - spot.z) < 0.05, 'it lands on the mark');
+  a.step(0.5);
+  assert.equal(a.hits.length, 1, 'the landing hits once');
 });
 
 test('mole digs toward a marked spot and bursts out of it; leaving the mark dodges, never into a town', () => {

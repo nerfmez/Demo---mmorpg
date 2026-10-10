@@ -5,6 +5,7 @@ import {createCharacter, expToNext, jobExpToNext} from '../../src/core/character
 import {xpPresentation, trackerMarkup} from '../../src/ui/fieldhud.js';
 import {art, hasArt} from '../../src/ui/art.js';
 import {readFileSync} from 'node:fs';
+import {Hud} from '../../src/ui/hud.js';
 test('all combat and movement skills retain authored content-specific illustrations',()=>{
  for(const id of [...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)]){
   assert.ok(hasArt('skill',id),id);
@@ -35,4 +36,11 @@ test('tracker shows only the selected active quest, escapes text, and never muta
  const copy=structuredClone(data);copy.quests.quests[id].nameTh='<img src=x onerror=1>';
  assert.ok(!trackerMarkup({...g,data:copy},id,null).includes('<img'));
  assert.ok(trackerMarkup(g,null,null).includes('เส้นทางนี้สำเร็จแล้ว'));
+});
+test('retained remote boss announcements use their origin map and legacy events use the active map',()=>{
+ const banners=[],world={bosses:[{id:'local',respawnSeconds:45}]},remote={bosses:[{id:'remote',respawnSeconds:120}]};
+ const hud={game:{data:{world,maps:{remote}}},banner:(...args)=>banners.push(args)};
+ Hud.prototype.handleEvent.call(hud,{type:'bossDefeated',boss:'remote',world:'remote',name:'Warden'});
+ Hud.prototype.handleEvent.call(hud,{type:'bossDefeated',boss:'local',name:'Local'});
+ assert.ok(banners[0][1].includes('120'));assert.ok(banners[1][1].includes('45'));
 });

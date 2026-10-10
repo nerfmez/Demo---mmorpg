@@ -2,6 +2,8 @@ import {test}from'node:test';import assert from'node:assert/strict';import{readF
 import{data}from'./helpers.js';import{createWorld}from'../../src/core/world.js';import{Game}from'../../src/core/game.js';import{createCharacter,migrateCharacter}from'../../src/core/character.js';import{fromBoxLocal}from'../../src/core/math.js';import{cityNavigation}from'./city-navigation.js';
 const world=createWorld(data.world),city=data.world.city;
 import{cityFloorAt}from'../../src/core/city.js';
+import{createUnifiedWorld}from'../../src/core/unified-world.js';
+import{OpenWorldGame}from'../../src/core/open-world-game.js';
 const before=JSON.parse(readFileSync(new URL('../fixtures/azure-pre-city/world.json',import.meta.url)));
 const provenance=JSON.parse(readFileSync(new URL('../../docs/city-v3-source-provenance.json',import.meta.url)));
 const navigation=cityNavigation(world);
@@ -44,4 +46,34 @@ test('city adoption preserves merged Job/EXP and save history, including formerl
  const ch=createCharacter(data);ch.level=8;ch.exp=123;ch.jobLevel=5;ch.jobExp=45;ch.jobPoints=8;ch.gold=321;ch.progress.waypoints.push('town');ch.pos=[62,22];
  const saved=structuredClone(ch),m=migrateCharacter(ch,data);for(const k of['level','exp','jobLevel','jobExp','jobPoints','jobNodes','treeRevision','gear','skills','slots','progress'])assert.deepEqual(m[k],saved[k],k);
  const g=new Game(data,{world,character:m,seed:9});assert.ok(world.isFree(g.player.x,g.player.z,.45));[g.player.x,g.player.z]=data.world.town.respawn;assert.ok(world.isFree(g.respawnPoint().x,g.respawnPoint().z,.45));
+});
+test('native city navigation respects cross-cell NPC footprints and walks the unified game at either origin',()=>{
+ const azure=data.world.id,frontier='frontier-wilds-v1';
+ const worlds=Object.fromEntries(Object.entries(data.maps).map(([id,map])=>[id,id===azure?world:createWorld(map)]));
+ const unified=createUnifiedWorld(worlds,azure),vendor=world.circles.find(o=>o.id==='fish_vendor');
+ assert.ok(Math.hypot(56-vendor.x,18-vendor.z)<vendor.r+.45,'the former route point overlaps the unchanged NPC');
+ assert.equal(world.isFree(56,18,.45),false,'native query must search across the x=56 gridline');
+ assert.equal(unified.isFree(56,18,.45),false);
+ assert.deepEqual([vendor.x,vendor.z,vendor.r],[55.4,17.5,.34]);
+ const targets=[...['trainer','workbench'].map(id=>({id,x:data.world.town[id][0],z:data.world.town[id][1]})),...world.docks.filter(d=>d.kind==='city_pier')];
+ for(const origin of[azure,frontier]){
+  const g=new OpenWorldGame({...data,world:data.maps[origin]},{world:worlds[origin],worlds,seed:9});g.monsters=[];
+  for(const t of targets){
+   [g.player.x,g.player.z]=g.scenePoint(azure,...data.maps[azure].town.respawn);g.activateRegion(azure);
+   const path=navigation.path(t.x,t.z);assert.ok(path,t.id+' independently reachable');
+   for(const point of path){
+    const [x,z]=g.scenePoint(azure,...point);let ticks=0;
+    for(;ticks<1600&&Math.hypot(x-g.player.x,z-g.player.z)>.04;ticks++){
+     const distance=Math.hypot(x-g.player.x,z-g.player.z);g.setMove((x-g.player.x)/distance,(z-g.player.z)/distance);
+     g.update(Math.min(1/60,distance/g.derived.moveSpeed));
+     assert.ok(g.world.isFree(g.player.x,g.player.z,g.player.r),t.id+' walking keeps actor clearance');
+    }
+    assert.ok(ticks<1600,t.id+' walks through '+point+' with origin '+origin);
+   }
+   g.setMove(0,0);
+   const[lx,lz]=g.localPoint(azure,g.player.x,g.player.z);
+   assert.ok(Math.hypot(lx-t.x,lz-t.z)<.04,t.id+' reached');
+   if(t.id==='trainer'||t.id==='workbench')assert.ok(g.nearby()[t.id],t.id+' interaction remains available');
+  }
+ }
 });

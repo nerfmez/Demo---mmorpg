@@ -1,3 +1,4 @@
 // Explicit build modes keep the public player and developer/offline entry separate.
-if (import.meta.env.MODE === 'player') import('./player.js');
-else import('./offline.js');
+// vite.config.js resolves this per mode: the player build waits for the relay before
+// importing the game; every other build loads the game in the page's own module graph.
+import '@frontier/entry';

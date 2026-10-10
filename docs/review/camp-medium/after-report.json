@@ -1,0 +1,300 @@
+{
+  "samples": [
+    {
+      "variant": "medium",
+      "dpr": 1.5,
+      "passes": {
+        "shadow": {
+          "calls": 540,
+          "triangles": 1029200
+        },
+        "scene": {
+          "calls": 740,
+          "triangles": 1006732
+        },
+        "glow": {
+          "calls": 4,
+          "triangles": 4
+        },
+        "canvas": {
+          "calls": 4,
+          "triangles": 4
+        }
+      },
+      "cpu": [
+        8.399999998509884,
+        7.4000000059604645,
+        7.299999997019768,
+        6.700000002980232
+      ],
+      "gpu": [
+        8.399999998509884,
+        7.4000000059604645,
+        7.299999997019768,
+        6.700000002980232
+      ],
+      "spatial": [
+        {
+          "id": "frontier-wilds-v1",
+          "cells": 395,
+          "objects": 2434,
+          "attachedCells": 20,
+          "attachedObjects": 154,
+          "testedCells": 0
+        },
+        {
+          "id": "azure-harbor-v1",
+          "cells": 234,
+          "objects": 1333,
+          "attachedCells": 6,
+          "attachedObjects": 48,
+          "testedCells": 0
+        },
+        {
+          "id": "moonroot-grove-v1",
+          "cells": 143,
+          "objects": 780,
+          "attachedCells": 4,
+          "attachedObjects": 31,
+          "testedCells": 0
+        }
+      ],
+      "grass": 492
+    },
+    {
+      "variant": "medium-no-shadow",
+      "dpr": 1.5,
+      "passes": {
+        "scene": {
+          "calls": 740,
+          "triangles": 1006732
+        },
+        "glow": {
+          "calls": 4,
+          "triangles": 4
+        },
+        "canvas": {
+          "calls": 4,
+          "triangles": 4
+        }
+      },
+      "cpu": [
+        17.899999998509884,
+        15.600000001490116,
+        16.399999998509884,
+        11.399999998509884
+      ],
+      "gpu": [
+        17.899999998509884,
+        15.600000001490116,
+        16.399999998509884,
+        11.399999998509884
+      ],
+      "spatial": [
+        {
+          "id": "frontier-wilds-v1",
+          "cells": 395,
+          "objects": 2434,
+          "attachedCells": 16,
+          "attachedObjects": 136,
+          "testedCells": 0
+        },
+        {
+          "id": "azure-harbor-v1",
+          "cells": 234,
+          "objects": 1333,
+          "attachedCells": 4,
+          "attachedObjects": 34,
+          "testedCells": 0
+        },
+        {
+          "id": "moonroot-grove-v1",
+          "cells": 143,
+          "objects": 780,
+          "attachedCells": 3,
+          "attachedObjects": 28,
+          "testedCells": 0
+        }
+      ],
+      "grass": 492
+    },
+    {
+      "variant": "medium-no-post",
+      "dpr": 1.5,
+      "passes": {
+        "shadow": {
+          "calls": 540,
+          "triangles": 1029200
+        },
+        "canvas": {
+          "calls": 740,
+          "triangles": 1006732
+        }
+      },
+      "cpu": [
+        7.700000002980232,
+        5.699999995529652,
+        4.300000004470348,
+        4.100000001490116
+      ],
+      "gpu": [
+        7.700000002980232,
+        5.699999995529652,
+        4.300000004470348,
+        4.100000001490116
+      ],
+      "spatial": [
+        {
+          "id": "frontier-wilds-v1",
+          "cells": 395,
+          "objects": 2434,
+          "attachedCells": 20,
+          "attachedObjects": 154,
+          "testedCells": 0
+        },
+        {
+          "id": "azure-harbor-v1",
+          "cells": 234,
+          "objects": 1333,
+          "attachedCells": 6,
+          "attachedObjects": 48,
+          "testedCells": 0
+        },
+        {
+          "id": "moonroot-grove-v1",
+          "cells": 143,
+          "objects": 780,
+          "attachedCells": 4,
+          "attachedObjects": 31,
+          "testedCells": 0
+        }
+      ],
+      "grass": 492
+    },
+    {
+      "variant": "low",
+      "dpr": 1,
+      "passes": {
+        "canvas": {
+          "calls": 740,
+          "triangles": 1006732
+        }
+      },
+      "cpu": [
+        5.799999997019768,
+        5.799999997019768,
+        6.300000004470348,
+        11.700000002980232
+      ],
+      "gpu": [
+        5.899999998509884,
+        5.799999997019768,
+        6.399999998509884,
+        11.700000002980232
+      ],
+      "spatial": [
+        {
+          "id": "frontier-wilds-v1",
+          "cells": 395,
+          "objects": 2434,
+          "attachedCells": 16,
+          "attachedObjects": 136,
+          "testedCells": 0
+        },
+        {
+          "id": "azure-harbor-v1",
+          "cells": 234,
+          "objects": 1333,
+          "attachedCells": 4,
+          "attachedObjects": 34,
+          "testedCells": 0
+        },
+        {
+          "id": "moonroot-grove-v1",
+          "cells": 143,
+          "objects": 780,
+          "attachedCells": 3,
+          "attachedObjects": 28,
+          "testedCells": 0
+        }
+      ],
+      "grass": 492
+    }
+  ],
+  "boxPixels": {
+    "channels": 0,
+    "maxDifference": 0,
+    "nonzero": 7858797,
+    "total": 7858800
+  },
+  "glError": 0,
+  "memory": {
+    "geometries": 1859,
+    "textures": 54
+  },
+  "views": [
+    {
+      "name": "grove-camp",
+      "id": "moonroot-grove-v1",
+      "at": [
+        -111,
+        -2
+      ],
+      "channels": 0,
+      "maxDifference": 0,
+      "nonzero": 7858800,
+      "total": 7858800,
+      "quality": "medium",
+      "glError": 0
+    },
+    {
+      "name": "azure-fountain",
+      "id": "azure-harbor-v1",
+      "at": [
+        62,
+        22
+      ],
+      "channels": 0,
+      "maxDifference": 0,
+      "nonzero": 7858800,
+      "total": 7858800,
+      "quality": "medium",
+      "glError": 0
+    },
+    {
+      "name": "azure-shore",
+      "id": "azure-harbor-v1",
+      "at": [
+        -132,
+        80
+      ],
+      "channels": 0,
+      "maxDifference": 0,
+      "nonzero": 7858800,
+      "total": 7858800,
+      "quality": "medium",
+      "glError": 0
+    },
+    {
+      "name": "frontier-camp",
+      "id": "frontier-wilds-v1",
+      "at": [
+        204,
+        0
+      ],
+      "channels": 0,
+      "maxDifference": 0,
+      "nonzero": 7858797,
+      "total": 7858800,
+      "quality": "medium",
+      "glError": 0
+    }
+  ],
+  "runtime": {
+    "scripts": [
+      "./assets/main-DCg5qziN.js"
+    ],
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36"
+  },
+  "errors": []
+}

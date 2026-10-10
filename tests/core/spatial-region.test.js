@@ -129,3 +129,20 @@ test('cell grouping preserves a nested group resetting ancestor render order',()
   restoreSpatialRegion(region);assert.equal(object.parent,inner);assert.equal(outer.renderOrder,7);
   disposeObject(region.root);
 });
+
+test('individual padded boxes reject offscreen batches retained by a shared cell and restore authored tests',()=>{
+  const region=makeRegion(),near=mesh(0,0),long=new THREE.Mesh(new THREE.BoxGeometry(80,1,1),new THREE.MeshBasicMaterial());
+  long.position.set(0,.5,50);long.castShadow=true;
+  const original=long.intersectsFrustum;
+  region.root.add(near,long);prepareSpatialRegion(region,{cellSize:128,margin:0});
+  const camera=cameraAt(),clip=new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse),frustum=new THREE.Frustum().setFromProjectionMatrix(clip);
+  assert.equal(frustum.intersectsObject(long),true,'the previous enclosing sphere draws this invisible batch');
+  assert.equal(long.intersectsFrustum(frustum),false,'the complete padded box is outside the camera');
+  region.root.position.z=-50;updateSpatialRegion(region,camera,null);
+  assert.equal(long.intersectsFrustum(frustum),true,'bounds follow a translated native region immediately');
+  restoreSpatialRegion(region);assert.equal(long.intersectsFrustum,original);assert.equal(Object.hasOwn(long,'intersectsFrustum'),false);
+  const authored=()=>false;near.intersectsFrustum=authored;
+  prepareSpatialRegion(region);assert.equal(near.intersectsFrustum,authored,'authored culling retains its behaviour while playing');restoreSpatialRegion(region);
+  assert.equal(near.intersectsFrustum,authored,'quality/disposal restoration preserves an authored override');
+  disposeObject(region.root);
+});

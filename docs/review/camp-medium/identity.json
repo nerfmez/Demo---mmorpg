@@ -1,0 +1,30 @@
+{
+  "baseCommit": "7beaf36a9e238f15d226ce457ccef271f498c233",
+  "reviewDate": "2026-10-10",
+  "runtimeBundle": "main-DCg5qziN.js",
+  "runtimeBundleSha256": "89158ca681dd2435c880bda818942d78fa8153cebcf87824d97ec5503e83fd5d",
+  "baselineBundle": "main-DAsFQ0nf.js",
+  "baselineBundleSha256": "985e3d31f6be7fb7bdc68c8db6bb4b2403ef2340939417c1edaa76d616b81826",
+  "sourceSha256": {
+    "src/render/environment.js": "4743507be7657f306a4b7fd560e81770dd4fadd593d4fa293aa0d1afff762e01",
+    "src/render/region.js": "d199a78d43ec2dea7211da079bb47d0baaf4ee65190a3ede57644469644fefa6",
+    "src/render/spatial-region.js": "26ff88e66fdbf0061240ecdc5904507f4a8b2a514b5570efc453f8a25aef3329",
+    "src/render/terrain-domain.js": "6c6dc6f7f0d58b58dd6dfa0e2b1e263c91c3dc7260a2e2bb6be9e17e597495e2",
+    "data/rendering.json": "19b54874acbd55ac3228741a24fba31d4c690ba57efbeedb48a41ebc9ab56758",
+    "tests/core/spatial-region.test.js": "c0e5c1399e28e72982743d4f98cf6ac6e1d9ca9fcf1eff20e41dc9f98a45714d",
+    "tests/render/terrain-domain.test.mjs": "1b5e78f1b6671cdc6adefd71707eea42934b735bee5176d1b51ce8bf8198a08c"
+  },
+  "artifactsSha256": {
+    "workbench.png": "f06dd37274a7ad0023e0a643194332c21e08a3a5320a08a03ec3377c31a607d2",
+    "grove-coast-join.png": "f277a7204eda90464fd3adbd78e925f13b924cae8058c7661962549b840a7ca4",
+    "walk-report.json": "9d6086a884c1a448e28595c51c015133231e0aa2fd1195e3b629575590dcec8b",
+    "after.png": "ac19157e2cc99705d0c256b945302768f211fec2ef85bd47d76b381789aa6cda",
+    "before.png": "8717f6c3fd90f66cd4391d9d8cb883aa82d6e17d81ad92af782768ad1999b040",
+    "before-report.json": "4ab62fa5bed7d69845df22e8f95166bb5e2b1391dd31f3b54b66ad0132fb777f",
+    "after-report.json": "a05410dd0b70c300c62b1470ae8a8cf73b1bf22d7aa5e8591d684b5fdcbb28dd",
+    "azure-shore.png": "e539244a9b31b43cc8595dc03a1d088aa93d482c5871023b339098b462d9f5c4",
+    "azure-fountain.png": "9cf67057c639a0fbb35f8226006e7df82746b5b7709421de7700052f21708535",
+    "forest-join.png": "1c7c8064a958e119b82b48ba24b8b3857e5bbe1c1a01ce38eee5686b6b877c3f",
+    "grove-camp.png": "61d4d50206b2e4c7df51496af88fa121cdf3b4f4e11930de82173ad8a2d67840"
+  }
+}

@@ -43,6 +43,16 @@ export function terrainDomain(world, lookup) {
   }
   const domain = {
     roadExtensions,
+    // A native map's exterior forest is backdrop, not planting in a neighbour.
+    // At a corner both seam-span checks can miss it; test the complete adjacent
+    // playable rectangles in atlas coordinates instead. Native layouts stay intact.
+    edgeTreeAllowed(x, z) {
+      return joins.every(({neighbour: n, dx, dz}) => {
+        if (!n) return true;
+        const b = n.bounds, nx = x + dx, nz = z + dz;
+        return nx < b.minX || nx > b.maxX || nz < b.minZ || nz > b.maxZ;
+      });
+    },
     roadWeight(road,x,z) {
       const {seam:s,band} = road;
       const inward = ((s.alongX ? z : x) - world.bounds[s.edge]) * -s.outward;
@@ -108,8 +118,8 @@ export function terrainDomain(world, lookup) {
     groundHeight(x, z) {
       const native = world.groundY(x, z);
       if (domain.owns(x, z)) return domain.height(x, z, native);
-      // Edge trees belong to the source layout but may stand over the neighbour's
-      // margin. Retain every instance and seat it on the actual rendered owner.
+      // Retained edge trees may stand over a neighbour's decorative margin;
+      // seat them on the rendered owner, outside its playable rectangle.
       for (const {seam: s, neighbour: n, dx, dz} of joins) {
         if (!n || ((s.alongX ? z : x) - world.bounds[s.edge]) * s.outward <= 0 || !contains(n.heightfield,x+dx,z+dz)) continue;
         if (!adjacentDomains.has(n)) adjacentDomains.set(n,terrainDomain(n,lookup));

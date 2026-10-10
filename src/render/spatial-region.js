@@ -5,6 +5,10 @@ import * as THREE from 'three';
 
 const renderable = o => o.isMesh || o.isLine || o.isPoints;
 const defaultBeforeRender = THREE.Object3D.prototype.onBeforeRender;
+const residentBounds = new WeakMap();
+function intersectsResidentFrustum(frustum) {
+  return frustum.intersectsBox(residentBounds.get(this));
+}
 
 function addExcluded(set, root) { root?.traverse?.(o => set.add(o)); }
 
@@ -19,7 +23,7 @@ function exclusions(region) {
   // Opening items are toggled through their authored group by placeWreck.
   for (const o of Object.values(region.weaponProps || {})) addExcluded(skip, o);
   region.root.traverse(o => {
-    if (o.isSkinnedMesh || o.isBone || o.isSprite || o.morphTargetInfluences ||
+    if (o.isSkinnedMesh || o.isBone || o.isSprite || o.morphTargetInfluences || Object.hasOwn(o, 'intersectsFrustum') ||
         o.userData.spatialDynamic || o.onBeforeRender !== defaultBeforeRender) addExcluded(skip, o);
   });
   // Animation callbacks can update their pivot or siblings. Keep the original
@@ -123,8 +127,11 @@ export function prepareSpatialRegion(region, { cellSize = 32, margin = .5 } = {}
     cell.bounds.union(bounds);
     const parent = object.parent;
     if (!parentOrders.has(parent)) parentOrders.set(parent, parent.children.slice());
+    const localBounds = bounds.clone(), worldBounds = localBounds.clone().applyMatrix4(root.matrixWorld);
     originals.push({ object, parent, matrix:object.matrix.clone(), matrixAutoUpdate:object.matrixAutoUpdate,
       matrixWorldAutoUpdate:object.matrixWorldAutoUpdate, boundingSphere:object.boundingSphere,
+      localBounds, worldBounds, intersectsFrustum:object.intersectsFrustum,
+      hasIntersectsFrustum:Object.hasOwn(object, 'intersectsFrustum'),
       hasBoundingSphere:Object.hasOwn(object, 'boundingSphere'), residentCell:object.userData.residentCell,
       hasResidentCell:Object.hasOwn(object.userData, 'residentCell') });
     cell.group.add(object);object.matrix.copy(localMatrix);
@@ -132,6 +139,11 @@ export function prepareSpatialRegion(region, { cellSize = 32, margin = .5 } = {}
     object.matrixAutoUpdate = false;object.matrixWorldAutoUpdate = false;
     // Three's per-object culling must use the same wind/water envelope as cells.
     object.boundingSphere = ownBounds.getBoundingSphere(new THREE.Sphere());
+    // The enclosing sphere of a long road/canopy batch can intersect a camera
+    // or shadow long after its complete box is outside. Reuse the same padded
+    // wind/water box for both passes; no geometry or pixels inside it change.
+    residentBounds.set(object, worldBounds);
+    object.intersectsFrustum = intersectsResidentFrustum;
     objects++;
   }
   // Remove empty source grouping trees too: imports can leave hundreds of
@@ -173,6 +185,7 @@ export function updateSpatialRegion(region, camera, sun) {
   const root = state.root;
   root.updateWorldMatrix(true, false);
   if (changed(state.lastRoot, root.matrixWorld.elements)) {
+    for (const record of state.originals) record.worldBounds.copy(record.localBounds).applyMatrix4(root.matrixWorld);
     for (const cell of state.cells) {
       cell.group.matrixWorld.copy(root.matrixWorld);
       for (const object of cell.group.children) object.matrixWorld.multiplyMatrices(root.matrixWorld, object.matrix);
@@ -219,6 +232,8 @@ export function restoreSpatialRegion(region) {
     const object = record.object;
     record.parent.add(object);object.matrix.copy(record.matrix);
     object.matrixAutoUpdate = record.matrixAutoUpdate;object.matrixWorldAutoUpdate = record.matrixWorldAutoUpdate;
+    if (record.hasIntersectsFrustum) object.intersectsFrustum = record.intersectsFrustum;else delete object.intersectsFrustum;
+    residentBounds.delete(object);
     if (record.hasBoundingSphere) object.boundingSphere = record.boundingSphere;else delete object.boundingSphere;
     if (record.hasResidentCell) object.userData.residentCell = record.residentCell;else delete object.userData.residentCell;
   }

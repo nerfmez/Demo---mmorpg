@@ -26,7 +26,7 @@ export class RemoteEffects {
     } else if (action.skill === 'stone_burst' || action.skill === 'chain_spark') {
       obj = approvedMesh(action.skill === 'stone_burst' ? 'stone-burst' : 'lightning', Math.min(4, s.radius || 1));
       obj.position.y = p.y; frame = 'uFrame'; duration = Math.min(1.5, obj.userData.clipLife);
-    } else if (['hunter_shot', 'charged_shot', 'arcane_shot'].includes(action.skill)) {
+    } else if (['hunter_shot', 'charged_shot'].includes(action.skill)) {
       obj = arrowStreak(FX.skills.hunter_shot); obj.position.y = p.y + .9; travel = true; frame = 'uT';
     } else {
       // Remaining skills show their existing icon + the authored cast pose, not persistent zones/summons.

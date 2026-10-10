@@ -6,12 +6,13 @@ export function createOnlineGate(client) {
   document.body.append(root);
   const texts = {
     connecting: ['Connecting · กำลังเชื่อมต่อ', 'เชื่อมต่อเซิร์ฟเวอร์ก่อนสร้างโลก · ครั้งแรกอาจใช้เวลาสักครู่'],
+    joining: ['Connecting · กำลังเข้าห้อง', 'รอเซิร์ฟเวอร์ยืนยันห้อง · การเล่นหยุดชั่วคราว'],
     reconnecting: ['Reconnecting · กำลังเชื่อมต่อใหม่', 'การเล่นหยุดชั่วคราว · กำลังกลับเข้าห้องเดิม'],
     failed: ['Failed · เชื่อมต่อไม่ได้', 'ตรวจสอบการเชื่อมต่อ แล้วกดลองใหม่เพื่อเข้าออนไลน์'],
     solo: ['Failed · ขาดการเชื่อมต่อ', 'กดลองใหม่เพื่อกลับเข้าออนไลน์'],
   };
   const update = status => {
-    root.hidden = client.connected;
+    root.hidden = client.connected && (!client.requiresRoomAck || !!client.id);
     document.body.classList.toggle('online-gated', !root.hidden);
     const [title, detail] = texts[status] || texts.reconnecting;
     root.querySelector('h1').textContent = title;
@@ -22,5 +23,5 @@ export function createOnlineGate(client) {
   const off = client.subscribe('status', update);
   root.querySelector('[data-retry]').onclick = () => client.retryNow();
   update(client.status);
-  return { get blocked() { return !client.connected; }, dispose() { off(); root.remove(); document.body.classList.remove('online-gated'); } };
+  return { get blocked() { return !client.connected || (!!client.requiresRoomAck && !client.id); }, dispose() { off(); root.remove(); document.body.classList.remove('online-gated'); } };
 }

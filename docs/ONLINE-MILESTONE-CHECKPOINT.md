@@ -11,3 +11,20 @@ Paused on the owner's instruction after a reported lag regression. This is unfin
 - Captures available at `tests/browser/out/online/`; copies below preserve partial diagnostics, not accepted final visual proof.
 - Unfinished: review the already-produced focused browser report and inspect actor/action sequences, validate reconnect and disposal resource samples, final responsive/input and offline save proof, final source build/diff review, current protocol/deployment/port/review documentation, and PR metadata update. Existing presence docs still describe the previous v1 milestone. No feature push, frontend deployment, PR merge, CI polling, new hosting resources, or restricted Render contact occurred.
 - Parent owns the read-only lag diagnosis and any subsequent resume/deployment decision. Do not resume edits or tests until instructed.
+
+## Subsequent local integration (October 10, 2026)
+
+The parent explicitly revoked the above historical pause and resumed this work.
+Checkpoint `2c4bbf8a8299cb74218aa9d7524fe70203929c2b` remains an ancestor. Main
+`7beaf36a9e238f15d226ce457ccef271f498c233` was normally merged at
+`d72af8fb60603363cf6230e3b3aec09485d89b73`; local pause marker
+`30cdc39cb10d2cfbaa18abe51297d2c134929066` changes no files.
+
+The current local follow-up finishes protocol-3 unified atlas coordinates, seam
+membership, online admission/rejoin gating and lifecycle cleanup. Final evidence,
+honest fixture limits and the prepared PR summary are in
+[the integration review](reviews/online-integrated/README.md) and
+[the prepared PR description](reviews/online-integrated/PR-SUMMARY.md).
+This supersedes the earlier unfinished status, not the preserved history. No push,
+remote PR mutation, merge, deployment, CI polling or restricted Render access is authorized
+for this follow-up; the parent owns publication and hosted review.

@@ -9,7 +9,7 @@ export function presenceEndpoint(value, pageProtocol = globalThis.location?.prot
   } catch { return ''; }
 }
 export class Presence {
-  constructor({ endpoint, data, state = () => null, onStatus = () => {}, onPlayers = () => {}, onAction = () => {}, timeoutMs = 12000 }) {
+  constructor({ endpoint, data, state = () => null, onStatus = () => {}, onPlayers = () => {}, onAction = () => {}, timeoutMs = 75000 }) {
     Object.assign(this, { endpoint, state, timeoutMs });
     this.wire = createProtocol(data);
     this.listeners = { status: new Set([onStatus]), players: new Set([onPlayers]), action: new Set([onAction]) };
@@ -58,6 +58,7 @@ export class Presence {
         if (Date.now() - this.joinSent < 600) return;
         this.clear(); this.joinSent = Date.now(); this.joined = s.map;
         this.appearanceKey = JSON.stringify([s.look, s.gear]); this.appearanceAt = Date.now();
+        this.requiresRoomAck = true; this.statusTo('joining');
         this.send({ type: 'join', map: s.map, room: this.room, look: s.look, gear: s.gear, pose: s.pose });
         clearTimeout(this.deadline); this.deadline = setTimeout(() => { if (this.ws === ws && !this.id) this.fail(); }, this.timeoutMs);
       } else if (this.id) {
@@ -71,6 +72,7 @@ export class Presence {
     ws.onmessage = event => {
       if (this.ws !== ws || typeof event.data !== 'string' || event.data.length > 16384) return;
       let m; try { m = JSON.parse(event.data); } catch { return; }
+      if (m?.type === 'hello' && !this.connected && (!exact(m, ['type', 'protocol', 'id']) || m.protocol !== PROTOCOL || !identityOK(m.id))) { this.fail(); return; }
       if (exact(m, ['type', 'protocol', 'id']) && m.type === 'hello' && m.protocol === PROTOCOL && identityOK(m.id) && !this.connected) {
         this.sessionId = m.id; this.connected = true; this.hadConnection = true; this.attempt = 0;
         clearTimeout(this.deadline); this.lastReceive = Date.now(); this.statusTo('connected'); return;

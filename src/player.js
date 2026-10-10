@@ -13,7 +13,7 @@ export function startPlayer({ endpoint = presenceEndpoint(import.meta.env.VITE_P
   const loading = document.getElementById('loading');
   if (loading) loading.hidden = true;
   let booted = false;
-  client.subscribe('status', () => {
+  const off = client.subscribe('status', () => {
     if (!client.connected || booted) return;
     booted = true;
     if (loading) { loading.hidden = false; loading.querySelector('.load-sub').textContent = 'กำลังสร้างโลก…'; }
@@ -25,8 +25,10 @@ export function startPlayer({ endpoint = presenceEndpoint(import.meta.env.VITE_P
       message.append('สร้างโลกไม่สำเร็จ / World could not load. ', reload); document.body.append(message);
     });
   });
-  addEventListener('pagehide', () => client.stop());
+  const hide = () => client.stop();
+  const show = e => { if (e.persisted) client.retryNow(); };
+  addEventListener('pagehide', hide); addEventListener('pageshow', show);
   client.start('lobby');
-  return { client, gate, get booted() { return booted; } };
+  return { client, gate, get booted() { return booted; }, dispose() { off(); hide(); gate.dispose(); removeEventListener('pagehide', hide); removeEventListener('pageshow', show); setOnlineRuntime(null); } };
 }
 if (!import.meta.env.VITE_PLAYER_HARNESS) startPlayer();

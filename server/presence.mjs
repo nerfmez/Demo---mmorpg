@@ -7,14 +7,14 @@ import { PROTOCOL, exact as keys, roomOK, createProtocol } from '../src/network/
 const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url)));
 const maps = [read('../data/world.json'), ...readdirSync(new URL('../data/maps/', import.meta.url)).filter(n => n.endsWith('.json')).map(n => read(`../data/maps/${n}`))];
 const registry = Object.fromEntries(maps.map(m => [m.id, m]));
-const { lookOK, gearOK, poseOK, actionOK } = createProtocol({ maps: registry, items: read('../data/items.json'), skills: read('../data/skills.json') });
+const { mapOK, lookOK, gearOK, poseOK, actionOK } = createProtocol({ maps: registry, items: read('../data/items.json'), skills: read('../data/skills.json') });
 export function createPresenceServer({ origins = [], maxClients = 32, roomCapacity = 8 } = {}) {
   if (!origins.length || origins.some(o => { try { return new URL(o).origin !== o || !/^https?:/.test(o); } catch { return true; } })) throw new Error('ALLOWED_ORIGINS requires exact http(s) origins');
   const allowed = new Set(origins);
   const server = createServer((req, res) => {
     const healthy = req.url === '/healthz' && req.method === 'GET';
     res.writeHead(healthy ? 200 : 404, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v2', protocol: PROTOCOL } : { error: 'not found' }));
+    res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v3', protocol: PROTOCOL } : { error: 'not found' }));
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 1024, perMessageDeflate: false });
   const clients = new Map();
@@ -53,7 +53,7 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
       if (--c.tokens < 0) return ws.close(1008, 'message rate');
       let m;
       try { if (binary) throw Error(); m = JSON.parse(buffer.toString()); } catch { return ws.close(1008, 'invalid JSON'); }
-      if (m?.type === 'join' && keys(m, ['type', 'map', 'room', 'pose', 'look', 'gear']) && Object.hasOwn(registry, m.map) && roomOK(m.room) && poseOK(m.pose, m.map) && lookOK(m.look) && gearOK(m.gear)) {
+      if (m?.type === 'join' && keys(m, ['type', 'map', 'room', 'pose', 'look', 'gear']) && mapOK(m.map) && roomOK(m.room) && poseOK(m.pose, m.map) && lookOK(m.look) && gearOK(m.gear)) {
         if (now - c.joinAt < 500) return ws.close(1008, 'join rate');
         c.joinAt = now;
         const group = peers({ map: m.map, room: m.room }).filter(p => p !== c);

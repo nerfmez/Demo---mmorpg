@@ -1,10 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
+import { createServer } from 'node:http';
 import { createPresenceServer } from '../../server/presence.mjs';
 import { presenceEndpoint } from '../../src/network/presence.js';
 import { loadData } from '../../src/core/data-node.js';
+import { createProtocol, PROTOCOL, WORLD_ID, presencePose } from '../../src/network/protocol.js';
+import { OpenWorldGame } from '../../src/core/open-world-game.js';
 const data = loadData();
 const origin = 'http://localhost:4173';
 const look = { hairStyle: 'messy', hair: '#262a44', skin: '#f6d2b5', eyes: '#2b2e44', scarf: '#cf3a30', tunic: '#f1e3cc' };
@@ -29,7 +32,8 @@ async function fixture(t, options = {}) {
 }
 test('health, anonymous identity, movement, room/map separation, leave, reconnect', async t => {
   const { connect, port } = await fixture(t);
-  assert.equal((await fetch(`http://127.0.0.1:${port}/healthz`)).status, 200);
+  const health = await fetch(`http://127.0.0.1:${port}/healthz`); assert.equal(health.status, 200);
+  assert.deepEqual(await health.json(), { ok: true, prototype: 'presence-v3', protocol: PROTOCOL });
   const a = await connect(), b = await connect();
   a.sendJSON(join()); const aw = await a.take('welcome');
   b.sendJSON(join()); const bw = await b.take('welcome');
@@ -42,6 +46,41 @@ test('health, anonymous identity, movement, room/map separation, leave, reconnec
   b.sendJSON(join('azure-harbor-v1', 'private')); assert.equal((await b.take('welcome')).players.length, 0);
   b.close(); await once(b, 'close');
   const c = await connect(); c.sendJSON(join()); assert.notEqual((await c.take('welcome')).id, bw.id); await a.take('join'); c.close(); await a.take('leave');
+});
+
+test('atlas poses agree across all starting origins; region metadata matches main boundary ownership and v13 saves stay local', () => {
+  const wire = createProtocol(data), points = [[-160, -92], [-161, -92], [13, -120], [13, -121], [-160, -160.5], [-161, -160.5]];
+  for (const initial of Object.keys(data.maps)) {
+    const g = new OpenWorldGame({ ...data, world: data.maps[initial] }, { seed: 7 });
+    const [ox, oz] = g.coordinateOrigin;
+    for (const [x, z] of points) {
+      g.player.x = x - ox; g.player.z = z - oz;
+      const p = presencePose(g); assert.deepEqual([p.x, p.z], [x, z]);
+      assert.equal(p.region, wire.regionAt(x, z)); assert.equal(wire.poseOK(p, WORLD_ID), true);
+      assert.equal(wire.poseOK({ ...p, region: 'wrong' }, WORLD_ID), false);
+      const saved = structuredClone(g.snapshot()), [rx, rz] = data.maps[saved.worldId].atlas.offset;
+      assert.equal(saved.version, 13); assert.deepEqual(saved.pos, [Math.round((x - rx) * 10) / 10, Math.round((z - rz) * 10) / 10]);
+    }
+  }
+  assert.equal(wire.poseOK({ ...pose, x: -600, z: 170, region: 'frontier-wilds-v1' }, WORLD_ID), false, 'exterior atlas notch is rejected');
+});
+
+test('one atlas membership crosses Azure/Frontier/Moonroot without leave or identity change; wrong region is rejected', async t => {
+  const { connect } = await fixture(t), wire = createProtocol(data);
+  const atlasJoin = (x, z, room = 'lobby') => ({ ...join(WORLD_ID, room), pose: { ...pose, x, z, region: wire.regionAt(x, z) } });
+  const a = await connect(), b = await connect(), other = await connect();
+  a.sendJSON(atlasJoin(-159, -92)); const aw = await a.take('welcome');
+  b.sendJSON(atlasJoin(-161, -92)); const bw = await b.take('welcome'); await a.take('join');
+  assert.equal(bw.players[0].id, aw.id);
+  other.sendJSON(atlasJoin(13, -121, 'private')); await other.take('welcome');
+  for (const [x, z] of [[-158, -92], [-162, -92], [13, -121]]) {
+    b.sendJSON({ type: 'move', pose: { ...pose, x, z, region: wire.regionAt(x, z), moving: true } });
+    const m = await a.take('move'); assert.equal(m.id, bw.id); assert.equal(m.pose.region, wire.regionAt(x, z));
+  }
+  assert.equal(a.messages.some(m => m.type === 'leave' || m.type === 'join'), false);
+  assert.equal(other.messages.some(m => m.type === 'move'), false);
+  const closed = once(b, 'close'); b.sendJSON({ type: 'move', pose: { ...pose, x: 13, z: -121, region: 'azure-harbor-v1' } });
+  assert.equal((await closed)[0], 1008); await a.take('leave');
 });
 test('all three registered maps support bounded presence; Moonroot joins, moves and stays isolated', async t => {
   assert.deepEqual(Object.keys(data.maps), ['azure-harbor-v1', 'frontier-wilds-v1', 'moonroot-grove-v1']);
@@ -168,4 +207,19 @@ test('handshake readiness precedes world state; failure stays failed and retry/r
   const failed = new Presence({ endpoint: `ws://127.0.0.1:${port}/wrong`, data }); t.after(() => failed.stop()); failed.start();
   await until(() => failed.status === 'failed'); assert.equal(failed.connected, false); assert.notEqual(failed.status, 'solo');
   failed.endpoint = `ws://127.0.0.1:${port}/presence`; failed.retryNow(); await until(() => failed.connected);
+});
+
+test('version mismatch fails immediately; missing admission has a bounded deadline and no offline fallback', async t => {
+  const { Presence } = await import('../../src/network/presence.js');
+  const server = createServer(), wss = new WebSocketServer({ server });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(async () => { for (const ws of wss.clients) ws.terminate(); await new Promise(r => wss.close(r)); await new Promise(r => server.close(r)); });
+  const endpoint = `ws://127.0.0.1:${server.address().port}/presence`, original = globalThis.WebSocket;
+  globalThis.WebSocket = WebSocket; t.after(() => { globalThis.WebSocket = original; });
+  wss.once('connection', ws => ws.send(JSON.stringify({type:'hello', protocol:2, id:'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'})));
+  const mismatch = new Presence({endpoint, data, timeoutMs:2000}); t.after(() => mismatch.stop());
+  const until = async fn => { for (let i=0;i<100;i++) { if(fn()) return; await new Promise(r=>setTimeout(r,10)); } throw Error('admission timeout'); };
+  mismatch.start(); await until(() => mismatch.status==='failed'); assert.equal(mismatch.connected,false);
+  const stalled = new Presence({endpoint, data, timeoutMs:80}); t.after(() => stalled.stop());
+  stalled.start(); await until(() => stalled.status==='failed'); assert.equal(stalled.connected,false); assert.notEqual(stalled.status,'solo');
 });

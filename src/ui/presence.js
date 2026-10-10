@@ -1,5 +1,5 @@
 import { Presence, presenceEndpoint } from '../network/presence.js';
-import { GEAR_SLOTS, roomOK } from '../network/protocol.js';
+import { GEAR_SLOTS, WORLD_ID, presencePose, roomOK } from '../network/protocol.js';
 import { RemotePlayers } from '../render/remote-players.js';
 import { DEFAULT_LOOK } from '../render/hero.js';
 import './presence.css';
@@ -13,13 +13,13 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   document.body.append(root);
   const output = root.querySelector('output'), join = root.querySelector('[data-join]'), room = root.querySelector('input');
   join.disabled = !endpoint;
-  const statuses = { solo: 'Solo · เล่นคนเดียว', connecting: 'Connecting · กำลังเชื่อมต่อ', connected: 'เชื่อมต่อแล้ว · กำลังเตรียมเข้าห้อง', online: 'เชื่อมต่อแล้ว', reconnecting: 'Reconnecting · กำลังเชื่อมต่อใหม่', failed: 'Failed · เชื่อมต่อไม่ได้ · กดลองใหม่' };
+  const statuses = { solo: 'Solo · เล่นคนเดียว', connecting: 'Connecting · กำลังเชื่อมต่อ', joining: 'Connecting · กำลังเข้าห้อง', connected: 'เชื่อมต่อแล้ว · กำลังเตรียมเข้าห้อง', online: 'เชื่อมต่อแล้ว', reconnecting: 'Reconnecting · กำลังเชื่อมต่อใหม่', failed: 'Failed · เชื่อมต่อไม่ได้ · กดลองใหม่' };
   const state = () => {
-    const p = game.player, bases = game.gearLook().bases;
+    const bases = game.gearLook().bases;
     const look = Object.fromEntries(Object.keys(DEFAULT_LOOK).map(k => [k, game.ch.appearance?.[k] || DEFAULT_LOOK[k]]));
     const gear = Object.fromEntries(GEAR_SLOTS.map(k => [k, bases[k] || null]));
-    return { map: game.world.data.id, ready: modelsReady() && view.region.staticReady && !!view.hero && game.ch.opening?.stage === 'done', look, gear,
-      pose: { x: p.x, z: p.z, facing: Math.atan2(Math.sin(p.facing), Math.cos(p.facing)), moving: !!p.moving } };
+    return { map: game.world.unified ? WORLD_ID : game.world.data.id,
+      ready: modelsReady() && (game.world.unified ? view.worldPrepared : view.region.staticReady) && !!view.hero && game.ch.opening?.stage === 'done', look, gear, pose: presencePose(game) };
   };
   const client = options.client || new Presence({ endpoint, data: game.data, state });
   client.state = state;
@@ -63,8 +63,8 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   };
   document.addEventListener('visibilitychange', suspend);
   const hide = () => { client.stop(); actors.dispose(); };
-  const show = e => { if (e.persisted && required) client.retryNow(); };
-  addEventListener('pagehide', hide); addEventListener('pageshow', show);
+  // The player entry owns online-first BFCache recovery, including pre-world failures.
+  addEventListener('pagehide', hide);
   let localAction = null;
   const handleEvent = e => {
     const phase = { castStart: 'cast', chargeStart: 'charge', channelStart: 'channel', chargeEnd: 'cancel', channelEnd: 'cancel' }[e.type];
@@ -78,5 +78,5 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
     if (localAction && game.time + .02 < localAction.until && !game.player[{ cast: 'cast', charge: 'charging', channel: 'channeling' }[localAction.phase]]) handleEvent({ type: 'channelEnd' });
     if (localAction && game.time >= localAction.until) localAction = null;
     actors.update(dt, time);
-  }, dispose: () => { hide(); offPlayers(); offAction(); offStatus(); client.state = () => null; root.remove(); document.removeEventListener('visibilitychange', suspend); removeEventListener('pagehide', hide); removeEventListener('pageshow', show); } };
+  }, dispose: () => { hide(); offPlayers(); offAction(); offStatus(); client.state = () => null; root.remove(); document.removeEventListener('visibilitychange', suspend); removeEventListener('pagehide', hide); } };
 }

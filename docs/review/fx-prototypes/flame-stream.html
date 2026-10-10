@@ -1,0 +1,460 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Chain Spark FX</title>
+<style>html,body{margin:0;background:#1d2a33;overflow:hidden}canvas{display:block}</style></head>
+<body>
+<script type="module">
+import * as THREE from './three.module.js';
+
+const W = 800, H = 500;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#9fc6d8');
+scene.fog = new THREE.Fog('#9fc6d8', 18, 34);
+const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
+camera.position.set(-0.4, 7.4, 8.6);
+camera.lookAt(-0.4, 0.5, 1.0);
+
+// ---------- seeded rng (cosmetic) ----------
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rnd = mulberry32(7);
+
+// ---------- toon setup ----------
+const ramp = new THREE.DataTexture(new Uint8Array([90, 90, 90, 255, 175, 175, 175, 255, 255, 255, 255, 255]), 3, 1);
+ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+const toon = (c, extra = {}) => new THREE.MeshToonMaterial({ color: c, gradientMap: ramp, ...extra });
+const outlineMat = (c) => new THREE.MeshBasicMaterial({ color: c, side: THREE.BackSide });
+function withOutline(mesh, c, s = 1.06) {
+  const o = new THREE.Mesh(mesh.geometry, outlineMat(c));
+  o.scale.setScalar(s); mesh.add(o); return mesh;
+}
+
+scene.add(new THREE.HemisphereLight('#dce9ff', '#4a6040', 0.9));
+const sun = new THREE.DirectionalLight('#fff0dc', 1.7);
+sun.position.set(-4, 10, 6); scene.add(sun);
+
+// ground with painted variation
+const gc = document.createElement('canvas'); gc.width = gc.height = 512;
+const g2 = gc.getContext('2d');
+g2.fillStyle = '#5f9c48'; g2.fillRect(0, 0, 512, 512);
+const gr = mulberry32(3);
+for (let i = 0; i < 260; i++) {
+  g2.fillStyle = gr() < 0.5 ? 'rgba(74,132,58,0.5)' : 'rgba(120,176,84,0.35)';
+  g2.beginPath(); g2.ellipse(gr() * 512, gr() * 512, 6 + gr() * 26, 4 + gr() * 14, gr() * 3, 0, 7); g2.fill();
+}
+// worn dirt patch where the targets stand
+for (let i = 0; i < 40; i++) { g2.fillStyle = 'rgba(150,128,86,0.12)'; g2.beginPath(); g2.ellipse(150 + gr() * 160, 230 + gr() * 80, 20 + gr() * 50, 12 + gr() * 30, gr() * 3, 0, 7); g2.fill(); }
+const gtex = new THREE.CanvasTexture(gc); gtex.colorSpace = THREE.SRGBColorSpace;
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), toon('#ffffff', { map: gtex }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(2.5, 2.5);
+
+// ---------- caster ----------
+const caster = new THREE.Group();
+caster.position.set(-3.4, 0, 0.9);
+{
+  const robe = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.42, 1.15, 14), toon('#3b4fa0')), '#1c2550');
+  robe.position.y = 0.58; caster.add(robe);
+  const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.27, 0.1, 14), toon('#e3b64b'));
+  sash.position.y = 0.95; caster.add(sash);
+  const head = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), toon('#f3d2b8')), '#8a5d48');
+  head.position.y = 1.36; caster.add(head);
+  const hair = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.215, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), toon('#3a2b5a')), '#1b1330');
+  hair.position.y = 1.39; hair.rotation.x = -0.25; caster.add(hair);
+  const staff = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 1.7, 8), toon('#7a5532')), '#3a2412', 1.3);
+  staff.position.set(0.36, 0.95, 0.1); staff.rotation.z = -0.18; caster.add(staff);
+}
+caster.rotation.y = Math.PI / 2 - 0.15;
+scene.add(caster);
+const orbPos = new THREE.Vector3();
+caster.updateMatrixWorld(true);
+orbPos.set(0.36 + Math.sin(0.18) * 0.85, 0.95 + Math.cos(0.18) * 0.85 + 0.06, 0.1).applyMatrix4(caster.matrixWorld);
+
+// ---------- training dummies ----------
+const targets = [];
+const tpos = [[-0.8, 1.2], [0.4, -0.3], [0.9, 2.0], [-1.0, 3.6]];
+for (const [x, z] of tpos) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const mats = [];
+  const post = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.7, 8), toon('#6e4a2c')), '#33200f', 1.15);
+  post.position.y = 0.35; g.add(post);
+  const bodyM = toon('#d9b56a'); mats.push(bodyM);
+  const body = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.8, 14), bodyM), '#6d5225');
+  body.position.y = 1.05; g.add(body);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.315, 0.335, 0.12, 14), toon('#b0403a'));
+  band.position.y = 1.0; g.add(band);
+  const headM = toon('#e2c47e'); mats.push(headM);
+  const head = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), headM), '#6d5225');
+  head.position.y = 1.66; g.add(head);
+  const arm = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), toon('#6e4a2c')), '#33200f', 1.15);
+  arm.rotation.z = Math.PI / 2; arm.position.y = 1.25; g.add(arm);
+  scene.add(g);
+  targets.push({ g, mats, center: new THREE.Vector3(x, 1.1, z), hitAt: -1, base: new THREE.Vector3(x, 0, z) });
+}
+
+// ---------- ribbon renderer (camera-facing strips) ----------
+class Ribbon {
+  constructor(max, frag, blending) {
+    this.max = max;
+    const geo = new THREE.BufferGeometry();
+    this.pos = new Float32Array(max * 2 * 3);
+    this.uv = new Float32Array(max * 2 * 2);
+    this.a = new Float32Array(max * 2);
+    this.col = new Float32Array(max * 2 * 3);
+    geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(this.uv, 2));
+    geo.setAttribute('alpha', new THREE.BufferAttribute(this.a, 1));
+    geo.setAttribute('tint', new THREE.BufferAttribute(this.col, 3));
+    this.index = new Uint32Array(max * 6);
+    geo.setIndex(new THREE.BufferAttribute(this.index, 1));
+    this.geo = geo;
+    this.mesh = new THREE.Mesh(geo, new THREE.ShaderMaterial({
+      vertexShader: `attribute float alpha; attribute vec3 tint; varying vec2 vUv; varying float vA; varying vec3 vT;
+        void main(){ vUv=uv; vA=alpha; vT=tint; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+      fragmentShader: frag, transparent: true, depthWrite: false, blending, side: THREE.DoubleSide,
+    }));
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = blending === THREE.AdditiveBlending ? 2 : 3;
+    scene.add(this.mesh);
+  }
+  begin() { this.v = 0; this.i = 0; }
+  // pts: Vector3[]; width(fn of t 0..1); alpha
+  strip(pts, widthFn, alpha, tint) {
+    const n = pts.length; if (n < 2 || this.v + n * 2 > this.max * 2) return;
+    const cam = camera.position, side = new THREE.Vector3(), tan = new THREE.Vector3(), view = new THREE.Vector3();
+    const start = this.v;
+    for (let k = 0; k < n; k++) {
+      const p = pts[k];
+      tan.subVectors(pts[Math.min(k + 1, n - 1)], pts[Math.max(k - 1, 0)]).normalize();
+      view.subVectors(cam, p).normalize();
+      side.crossVectors(tan, view).normalize();
+      const t = k / (n - 1), w = widthFn(t, k) * 0.5;
+      for (let s = 0; s < 2; s++) {
+        const sg = s ? 1 : -1, vi = this.v++;
+        this.pos[vi * 3] = p.x + side.x * w * sg; this.pos[vi * 3 + 1] = p.y + side.y * w * sg; this.pos[vi * 3 + 2] = p.z + side.z * w * sg;
+        this.uv[vi * 2] = t; this.uv[vi * 2 + 1] = sg;
+        this.a[vi] = alpha; this.col[vi * 3] = tint[0]; this.col[vi * 3 + 1] = tint[1]; this.col[vi * 3 + 2] = tint[2];
+      }
+      if (k < n - 1) {
+        const b = start + k * 2;
+        this.index.set([b, b + 1, b + 2, b + 1, b + 3, b + 2], this.i); this.i += 6;
+      }
+    }
+  }
+  end() {
+    for (const k of ['position', 'uv', 'alpha', 'tint']) this.geo.attributes[k].needsUpdate = true;
+    this.geo.index.needsUpdate = true;
+    this.geo.setDrawRange(0, this.i);
+  }
+}
+// ================= FLAME STREAM v5: dragon breath =================
+// Many soft blobs are summed into an offscreen density buffer, then ONE composite pass
+// thresholds the sum: the whole torrent is a single mass with a single outline and
+// colour ramp, billows merge instead of reading as separate pieces.
+const RANGE = 5, ARC = 55 * Math.PI / 180, T_WIND = 0.2, T_STOP = 1.75, LOOP = 2.9, TICK = 0.25;
+const origin = caster.position;
+const clamp01 = x => Math.min(1, Math.max(0, x));
+const NOISE = `
+  float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+  float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+    return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ return vn(p)*0.5 + vn(p*2.1)*0.28 + vn(p*4.3)*0.14 + vn(p*8.7)*0.08; }`;
+
+const RT_SCALE = 1;
+const rt = new THREE.WebGLRenderTarget(W * RT_SCALE, H * RT_SCALE, { type: THREE.HalfFloatType, depthBuffer: false });
+const fxScene = new THREE.Scene();
+// occluders (monsters/dummies) are drawn into this target on layer 1: colour = silhouette mask, depth = their depth
+const occRT = new THREE.WebGLRenderTarget(W, H);
+occRT.depthTexture = new THREE.DepthTexture(W, H);
+const SHARED = { tOccDepth: { value: occRT.depthTexture }, uScreen: { value: new THREE.Vector2(W, H) }, uNear: { value: camera.near }, uFar: { value: camera.far } };
+const blobMat = (u) => new THREE.ShaderMaterial({
+  uniforms: Object.assign(u, SHARED),
+  vertexShader: `varying vec2 vUv; varying float vViewZ; void main(){ vUv=uv*2.0-1.0; vec4 mv = modelViewMatrix*vec4(position,1.0); vViewZ = -mv.z; gl_Position=projectionMatrix*mv;} `,
+  fragmentShader: `#include <packing>
+    varying vec2 vUv; varying float vViewZ; uniform sampler2D tOccDepth; uniform vec2 uScreen; uniform float uNear; uniform float uFar;
+    uniform float uAge; uniform float uSeed; uniform float uBoil; uniform float uHeat; uniform float uAmt; ${NOISE}
+    void main(){
+      float r = length(vUv);
+      if (r > 1.0) discard;
+      float fall = pow(1.0 - r, 1.3);
+      // turbulent billow: noise carves lobes into each blob, boils at 12 fps
+      float n = fbm(vUv*1.8 + uSeed + vec2(uBoil*0.9, -uBoil*0.6));
+      float d = fall * (0.15 + 2.2*n*n) * uAmt;
+      float heat = uHeat * pow(1.0 - uAge, 0.9);
+      float smoke = smoothstep(0.6, 1.0, uAge);
+      // alpha carries density-weighted depth so the composite knows how far the fire is
+      gl_FragColor = vec4(d, d*heat, d*smoke, d*vViewZ); }`,
+  transparent: true, depthTest: false, depthWrite: false,
+  blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor,
+});
+const quad = new THREE.PlaneGeometry(1, 1);
+const POOL = 260;
+const pool = [];
+for (let i = 0; i < POOL; i++) {
+  const u = { uAge: { value: 0 }, uSeed: { value: 0 }, uBoil: { value: 0 }, uHeat: { value: 1 }, uAmt: { value: 0.5 } };
+  const m = new THREE.Mesh(quad, blobMat(u)); m.visible = false; m.frustumCulled = false;
+  fxScene.add(m); pool.push({ m, u });
+}
+
+// composite: one surface, one outline, flat anime colour layers, flow streaks along the torrent
+const compMat = new THREE.ShaderMaterial({
+  uniforms: { tOccDepth: SHARED.tOccDepth, uNear: SHARED.uNear, uFar: SHARED.uFar, tMask: { value: occRT.texture }, tD: { value: rt.texture }, uRes: { value: new THREE.Vector2(W, H) }, uFlow: { value: new THREE.Vector2(1, 0) }, uT: { value: 0 }, uMouth: { value: new THREE.Vector2(0.2, 0.7) }, uTs: { value: 0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy*2.0, 0.0, 1.0); }`,
+  fragmentShader: `#include <packing>
+    uniform sampler2D tOccDepth; uniform float uNear; uniform float uFar;
+    varying vec2 vUv; uniform sampler2D tMask; uniform sampler2D tD; uniform vec2 uRes; uniform vec2 uFlow; uniform float uT; uniform vec2 uMouth; uniform float uTs; ${NOISE}
+    void main(){
+      vec2 px0 = vUv * uRes / 45.0;
+      vec2 pf = vec2(dot(px0, uFlow), dot(px0, vec2(-uFlow.y, uFlow.x)));
+      vec2 perp = vec2(-uFlow.y, uFlow.x) / uRes * 45.0;
+      float w1 = fbm(vec2(pf.x*0.9 - uT*4.0, pf.y*0.6)) - 0.5;
+      float w2 = fbm(vec2(pf.x*2.2 - uT*6.5, pf.y*1.8 + 4.0)) - 0.5;
+      vec2 warp = (perp*(w1*0.9 + w2*0.4) + uFlow/uRes*45.0*(w2*0.5)) ;
+      warp += vec2(0.0, 1.0)/uRes*45.0 * max(w1, 0.0) * 0.8;   // tongues lick upward
+      float md = length((vUv - uMouth) * uRes) / uRes.x;
+      float turb = smoothstep(0.06, 0.32, md);
+      vec4 s = texture2D(tD, vUv + warp*1.6*turb);
+      float d = s.r;
+      float heat = s.g / max(d, 1e-3);
+      float smoke = s.b / max(d, 1e-3);
+      // depth-aware: where a monster is nearer than the fire here, the fire is behind it
+      float od = texture2D(tOccDepth, vUv).x;
+      if (od < 1.0 && d > 0.02) {
+        float occZ = -perspectiveDepthToViewZ(od, uNear, uFar);
+        float fireZ = s.a / d;
+        d *= smoothstep(-0.1, 0.2, occZ - fireZ);
+      }
+      float cool = 1.0 - smoothstep(0.28, 0.7, heat);
+      float er = fbm(vUv*uRes/38.0 + vec2(-uT*2.2, uT*1.4));
+      float thr = 0.3 + cool*(0.08 + 1.1*er*er);
+      if (d < thr) {
+        // what is eroded away leaves thin smoke wisps and a faint heat glow
+        float wisp = smoothstep(thr*0.45, thr*0.8, d) * cool * smoothstep(0.45, 0.7, fbm(vUv*uRes/22.0 + vec2(-uT*1.5, uT*2.5)));
+        float glowA = smoothstep(0.08, 0.3, d) * 0.22 * (1.0 - cool);
+        if (wisp > 0.02) { gl_FragColor = vec4(0.42,0.36,0.38, wisp*0.55); return; }
+        if (glowA < 0.01) discard; gl_FragColor = vec4(1.0, 0.55, 0.2, glowA); return; }
+      // streaks travelling along the flow direction
+      vec2 px = vUv * uRes / 60.0;
+      vec2 along = vec2(dot(px, uFlow), dot(px, vec2(-uFlow.y, uFlow.x)));
+      float st = fbm(vec2(along.x*0.6 - uT*9.0, along.y*3.5));
+      float dd = clamp((d - thr)/0.9, 0.0, 1.0);
+      float level = heat*0.55 + dd*0.55 + (st - 0.5)*0.18;
+      // inner billows: orange swirls and thin crease strokes rolling with the flow
+      float sw = fbm(vec2(along.x*0.35 - uT*5.0, along.y*0.9 + 2.0));
+      level -= smoothstep(0.55, 0.7, sw) * 0.3 * dd;
+      float cr = abs(fbm(vec2(along.x*0.5 - uT*6.0, along.y*1.3 + 9.0)) - 0.5);
+      float crease = (1.0 - smoothstep(0.012, 0.03, cr)) * smoothstep(0.1, 0.4, dd);
+      float turbC = 1.0;
+      float spd = fbm(vec2(along.x*0.1 - uTs*30.0, along.y*7.0));
+      float speedLine = smoothstep(0.71, 0.74, spd) * step(0.6, heat) * (1.0 - smoothstep(0.2, 0.6, turb));
+      vec3 line = vec3(0.45,0.06,0.05), red = vec3(0.85,0.19,0.08), org = vec3(1.0,0.48,0.11), yel = vec3(1.0,0.78,0.24), wht = vec3(1.0,0.97,0.82);
+      vec3 c = red;
+      c = mix(c, org, smoothstep(0.30, 0.34, level));
+      c = mix(c, yel, smoothstep(0.52, 0.56, level));
+      c = mix(c, wht, smoothstep(0.74, 0.78, level) * step(0.62, heat));
+
+      // cooled parts become dark smoke inside the same mass
+      vec3 sm = vec3(0.40,0.32,0.34);
+      c = mix(c, sm, smoothstep(0.62, 0.8, smoke) * (1.0 - smoothstep(0.6, 1.4, d)));
+      // single outline around the whole torrent
+      float edge = 1.0 - smoothstep(thr, thr + 0.06, d);
+      c = mix(c, mix(line, vec3(0.22,0.15,0.17), smoothstep(0.62, 0.8, smoke)), edge);
+      // silhouette of any monster under this fire: thin warm outline + the fire thins over its body
+      vec2 tx = 1.0 / uRes;
+      float m = texture2D(tMask, vUv).r;
+      float mn = min(min(texture2D(tMask, vUv + vec2(1.5,0.0)*tx).r, texture2D(tMask, vUv - vec2(1.5,0.0)*tx).r),
+                     min(texture2D(tMask, vUv + vec2(0.0,1.5)*tx).r, texture2D(tMask, vUv - vec2(0.0,1.5)*tx).r));
+      float mx = max(max(texture2D(tMask, vUv + vec2(1.5,0.0)*tx).r, texture2D(tMask, vUv - vec2(1.5,0.0)*tx).r),
+                     max(texture2D(tMask, vUv + vec2(0.0,1.5)*tx).r, texture2D(tMask, vUv - vec2(0.0,1.5)*tx).r));
+      float rim = step(0.5, mx) * (1.0 - step(0.5, mn)) * step(0.5, m + mx);
+      if (rim > 0.5) { gl_FragColor = vec4(1.0, 0.9, 0.66, 0.9); return; }
+      gl_FragColor = vec4(c, 1.0 - 0.35 * m); }`,
+  transparent: true, depthTest: false, depthWrite: false,
+});
+const comp = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), compMat);
+comp.frustumCulled = false; comp.renderOrder = 10; scene.add(comp);
+const heatMat = new THREE.ShaderMaterial({
+  uniforms: { uI: { value: 0 }, uT: { value: 0 }, uLen: { value: 0 }, uScorch: { value: 0 }, uO: { value: new THREE.Vector2(origin.x, origin.z) } },
+  vertexShader: `varying vec2 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.0); vW = w.xz; gl_Position=projectionMatrix*viewMatrix*w;} `,
+  fragmentShader: `varying vec2 vW; uniform float uI; uniform float uT; uniform float uLen; uniform float uScorch; uniform vec2 uO; ${NOISE}
+    void main(){
+      vec2 p = vW - uO;
+      float d = length(p); float ang = abs(atan(p.y, p.x));
+      float n = fbm(p*1.3 + vec2(-uT*2.5, 0.0));
+      float hw = 0.48*(0.6 + 0.6*n);
+      float cone = (1.0 - smoothstep(hw*0.6, hw, ang)) * smoothstep(uLen + 0.2, uLen - 0.8, d) * smoothstep(0.5, 1.2, d);
+      // patchy heat shimmer: only the hottest noise cells glow, flowing outward
+      float f = fbm(p*2.2 - vec2(uT*3.5, 0.0));
+      float glow = cone * uI * smoothstep(0.5, 0.62, f);
+      float burnt = smoothstep(0.55, 0.6, fbm(p*1.9 + 4.0)) * (1.0 - smoothstep(0.25, 0.42, ang)) * smoothstep(4.8, 3.6, d) * smoothstep(0.8, 1.4, d) * uScorch;
+      vec3 c = mix(vec3(0.96,0.42,0.10), vec3(1.0,0.78,0.35), smoothstep(0.66, 0.74, f));
+      if (glow < 0.02 && burnt < 0.02) discard;
+      gl_FragColor = glow > 0.02 ? vec4(c, glow*0.7) : vec4(0.22,0.16,0.13, burnt*0.4); }`,
+  transparent: true, depthWrite: false,
+});
+const heat = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), heatMat);
+heat.rotation.x = -Math.PI / 2;
+heat.position.set(origin.x + 3, 0.02, origin.z); heat.renderOrder = 0;
+scene.add(heat);
+
+const emberFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
+  void main(){ float d=abs(vUv.y); if(d>0.9) discard; vec3 c = d<0.45 ? vec3(1.0,0.95,0.7) : vT; gl_FragColor=vec4(c, vA); }`;
+const embers = new Ribbon(3000, emberFrag, THREE.NormalBlending);
+embers.mesh.renderOrder = 11;
+
+let parts = [], sparks = [], simT = 0, rnd2 = mulberry32(9), nextEmit = 0, lastEmber = 0, ticks = new Set();
+function resetSim() { parts = []; sparks = []; simT = 0; rnd2 = mulberry32(9); nextEmit = 0; lastEmber = 0; ticks = new Set(); }
+const tip = orbPos.clone();
+const AIM = new THREE.Vector3(1, -0.3, 0).normalize();   // breathed slightly down so it hits the ground and spreads
+function inCone(p) {
+  const dx = p.x - origin.x, dz = p.z - origin.z, d = Math.hypot(dx, dz);
+  return d <= RANGE && Math.abs(Math.atan2(dz, dx)) <= ARC / 2;
+}
+let surge = 1;
+function emitBlob(power) {
+  const r0 = rnd2();
+  const a = (rnd2() < 0.5 ? -1 : 1) * Math.pow(r0, 0.85) * ARC * 0.5;   // rays fill the cone, denser along the axis
+  const sp = 17 + rnd2() * 8;
+  const v = new THREE.Vector3(AIM.x * Math.cos(a), AIM.y + (rnd2() - 0.5) * 0.08, Math.sin(a)).multiplyScalar(sp);
+  parts.push({ p: tip.clone(), v, age: 0, life: 0.5 + rnd2() * 0.18, s0: 0.3 + rnd2() * 0.06, s1: (2.2 + rnd2() * 1.1) * power, seed: rnd2() * 50, heat: 1.0, amt: (0.2 + rnd2() * 0.14) * surge, kind: 0, drive: 0.06 + rnd2() * 0.04, burst: false });
+}
+function emitLick(c) {
+  for (let i = 0; i < 2; i++) parts.push({ p: c.clone().add(new THREE.Vector3((rnd2() - 0.5) * 0.4, 0.3, (rnd2() - 0.5) * 0.4)), v: new THREE.Vector3(0, 1.8, 0), age: 0, life: 0.4, s0: 0.4, s1: 0.9, seed: rnd2() * 50, heat: 0.8, amt: 0.6, kind: 1 });
+}
+function emitEmber(p, spread) {
+  const v = new THREE.Vector3((rnd2() - 0.3) * 2.5 * spread, 1.5 + rnd2() * 2.5, (rnd2() - 0.5) * 2.5 * spread);
+  sparks.push({ p: p.clone(), v, age: 0, life: 0.5 + rnd2() * 0.6, w: 0.025 + rnd2() * 0.02 });
+}
+function step(dt) {
+  simT += dt;
+  const channel = simT >= T_WIND && simT < T_STOP;
+  if (simT < T_WIND && simT - lastEmber > 0.025) { lastEmber = simT; emitEmber(tip, 0.3); }
+  if (channel) {
+    const ramp = clamp01((simT - T_WIND) / 0.15);
+    if (nextEmit === 0) nextEmit = simT;
+    surge = 0.92 + 0.18 * Math.max(0, Math.sin(simT * Math.PI * 2 * 7));
+    while (simT >= nextEmit) { emitBlob((0.75 + 0.25 * ramp) * (0.9 + 0.2 * surge)); nextEmit += (0.005 + rnd2() * 0.005) / surge; }
+    // muzzle flare: short-lived blobs fanning out right at the staff
+    if (rnd2() < dt * 60) { const sd = rnd2() < 0.5 ? -1 : 1; parts.push({ p: tip.clone(), v: new THREE.Vector3(3 + rnd2() * 3, (rnd2() - 0.3) * 3, sd * (3 + rnd2() * 3)), age: 0, life: 0.07 + rnd2() * 0.04, s0: 0.35, s1: 0.75, seed: rnd2() * 50, heat: 1, amt: 0.5, kind: 3 }); }
+    if (simT - lastEmber > 0.02) { lastEmber = simT; const d = 3 + rnd2() * 2.2, a = (rnd2() - 0.5) * ARC * 0.8; emitEmber(new THREE.Vector3(origin.x + Math.cos(a) * d, 0.3 + rnd2() * 0.6, origin.z + Math.sin(a) * d), 1.3); }
+    const k = Math.floor((simT - T_WIND) / TICK);
+    if (!ticks.has(k)) { ticks.add(k); targets.forEach(t => { if (inCone(t.base)) { t.lastHit = simT; emitLick(t.center); emitEmber(t.center, 1); } }); }
+  } else nextEmit = 0;
+  for (const q of parts) {
+    q.age += dt;
+    if (q.kind === 0) {
+      q.v.multiplyScalar(1 - (q.age < q.drive ? 0.4 : 3.2) * dt);   // driven hard out of the staff, then slows smoothly
+      if (q.p.distanceTo(tip) > 3.8) q.v.y += 5 * dt;              // spent fire curls upward as it burns out
+      // hitting the ground: splash sideways and roll forward along it
+      if (q.p.y < 0.45 && q.v.y < 0) {
+        const side = Math.sin(q.seed * 7.1) > 0 ? 1 : -1;
+        q.v.y = Math.abs(q.v.y) * 0.15;
+        q.v.z += side * (1.5 + (q.seed % 1) * 3.0);
+      }
+      const slow = 1 - clamp01(Math.hypot(q.v.x, q.v.z) / 5);
+      q.v.y += 3.8 * slow * dt;                       // slowed fire billows upward
+      // keep the spread inside the real 55-degree cone
+      const dx = q.p.x - origin.x, dz = q.p.z - origin.z, ang = Math.atan2(dz, dx);
+      if (Math.abs(ang) > ARC / 2) q.v.z -= Math.sign(ang) * 14 * dt;
+    }
+    q.p.addScaledVector(q.v, dt);
+  }
+  parts = parts.filter(q => q.age < q.life);
+  for (const s of sparks) { s.age += dt; s.v.y -= 2.0 * dt; s.v.multiplyScalar(1 - 1.2 * dt); s.p.addScaledVector(s.v, dt); }
+  sparks = sparks.filter(s => s.age < s.life);
+}
+
+const fireLight = new THREE.PointLight('#ffae5a', 0, 8, 1.6); scene.add(fireLight);
+const tipLight = new THREE.PointLight('#ffb766', 0, 3, 2); tipLight.position.copy(tip); scene.add(tipLight);
+targets.forEach(t => { t.lastHit = -9; t.orig = t.mats.map(m => m.color.clone()); t.g.traverse(o => { if (o.material && o.material.isMeshToonMaterial) o.layers.enable(1); }); });
+const occWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const charC = new THREE.Color('#5a3a2a');
+{
+  const a = tip.clone().project(camera), b = tip.clone().add(AIM).project(camera);
+  compMat.uniforms.uFlow.value.set((b.x - a.x) * W, (b.y - a.y) * H).normalize();
+}
+
+window.renderAt = function (tRaw) {
+  const t = tRaw % LOOP;
+  if (t < simT - 1e-6) resetSim();
+  while (simT + 1 / 240 <= t) step(1 / 240);
+  const boil = t * 2.2;
+
+  let i = 0;
+  for (const q of parts) {
+    if (i >= POOL) break;
+    const P = pool[i++];
+    const u = q.age / q.life;
+    const dist = q.kind === 0 ? q.p.distanceTo(tip) : 0;
+    const s = q.kind === 0 ? (q.s0 + dist * 0.62) * (1 - 0.25 * Math.max(0, u - 0.6) / 0.4) : q.s0 + (q.s1 - q.s0) * (1 - Math.pow(1 - u, 2.0));
+    P.m.visible = true;
+    P.m.position.copy(q.p);
+    P.m.quaternion.copy(camera.quaternion);
+    P.m.scale.setScalar(s);
+    const far = q.kind === 0 ? THREE.MathUtils.smoothstep(dist, 3.3, 5.6) : 0;
+    P.u.uAge.value = Math.max(u, far * 0.75); P.u.uSeed.value = q.seed; P.u.uBoil.value = boil; P.u.uHeat.value = q.heat * (1 - far * 0.8);
+    const driven = q.kind === 0 && q.age < (q.drive || 0) + 0.03;
+    P.u.uAmt.value = q.amt * Math.pow(1 - u, 1.4) * 1.5 * (1 - 0.6 * far) * (driven ? 2.6 : 1 + 1.2 * Math.max(0, 1 - u / 0.25));
+    if (driven) P.m.scale.set(s, s * 0.8, 1);
+  }
+  for (; i < POOL; i++) pool[i].m.visible = false;
+  compMat.uniforms.uT.value = t;
+
+  embers.begin();
+  for (const s of sparks) {
+    const u = s.age / s.life;
+    const tail = s.p.clone().addScaledVector(s.v, -0.04);
+    embers.strip([tail, s.p.clone().lerp(tail, 0.5), s.p], x => s.w * x * (1 - u * 0.5), 1 - u * u, [1.0, 0.55, 0.15]);
+  }
+  embers.end();
+
+  const on = t >= T_WIND && t < T_STOP;
+  const reach = on ? Math.min(RANGE, (t - T_WIND) * 12) : (t >= T_STOP ? Math.max(0, RANGE - (t - T_STOP) * 8) : 0);
+  heatMat.uniforms.uLen.value = reach;
+  heatMat.uniforms.uI.value = on ? clamp01((t - T_WIND) / 0.2) : (t >= T_STOP ? Math.max(0, 1 - (t - T_STOP) / 0.4) : 0);
+  heatMat.uniforms.uT.value = t;
+  heatMat.uniforms.uScorch.value = t < T_WIND + 0.3 ? 0 : (t < T_STOP + 0.4 ? clamp01((t - T_WIND - 0.3) / 0.6) : Math.max(0, 1 - (t - T_STOP - 0.4) / 0.6));
+
+  const fl = 0.8 + 0.2 * Math.sin(t * 37) * Math.sin(t * 23 + 1);
+  fireLight.position.set(origin.x + 3, 1.0, origin.z);
+  fireLight.intensity = on ? 7 * fl * clamp01((t - T_WIND) / 0.1) : (t >= T_STOP ? Math.max(0, 7 * (1 - (t - T_STOP) / 0.4)) : 0);
+  tipLight.intensity = t < T_WIND ? 3 * t / T_WIND : (on ? 5 * fl : 0);
+
+  for (const tg of targets) {
+    const since = simT - tg.lastHit;
+    const pop = since >= 0 && since < 0.06 ? 1 - since / 0.06 : 0;
+    const burning = since < 0.35 ? 1 : 0;
+    const char = inCone(tg.base) && t >= T_WIND ? clamp01((Math.min(t, T_STOP) - T_WIND) / 1.2) * (t > T_STOP ? Math.max(0, 1 - (t - T_STOP) / 0.9) : 1) : 0;
+    tg.mats.forEach((m, k) => m.color.copy(tg.orig[k]).lerp(charC, 0.45 * char));
+    tg.mats.forEach(m => m.emissive.setRGB(0.9 * pop + 0.18 * burning, 0.45 * pop + 0.06 * burning, 0.1 * pop));
+    const shake = pop > 0 ? Math.sin(since * 120) * 0.04 : 0;
+    tg.g.position.set(tg.base.x + shake, 0, tg.base.z);
+  }
+
+  const shakeOn = on ? 1 : 0;
+  const shx = (Math.sin(t * 41) * 0.6 + Math.sin(t * 67 + 1.3) * 0.4) * 0.022 * shakeOn;
+  const shy = (Math.sin(t * 53 + 0.7) * 0.6 + Math.sin(t * 29 + 2.1) * 0.4) * 0.018 * shakeOn;
+  camera.position.set(-0.4 + shx, 7.4 + shy, 8.6);
+  caster.position.x = -3.4 - (on ? 0.07 + 0.03 * Math.sin(t * 50) : 0);
+  { const m = tip.clone().project(camera); compMat.uniforms.uMouth.value.set(m.x * 0.5 + 0.5, m.y * 0.5 + 0.5); }
+  compMat.uniforms.uTs.value = t;
+  // occluder pass: dummies only (layer 1), flat white, into occRT (mask + depth)
+  camera.layers.set(1);
+  const bg = scene.background; scene.background = null; scene.overrideMaterial = occWhite;
+  renderer.setRenderTarget(occRT); renderer.setClearColor(0x000000, 0); renderer.clear();
+  renderer.render(scene, camera);
+  scene.overrideMaterial = null; scene.background = bg; camera.layers.set(0);
+  renderer.setRenderTarget(rt);
+  renderer.setClearColor(0x000000, 0); renderer.clear();
+  renderer.render(fxScene, camera);
+  renderer.setRenderTarget(null);
+  renderer.setClearColor(scene.background, 1);
+  renderer.render(scene, camera);
+};
+window.LOOP = LOOP;
+window.ready = true;
+</script>
+</body></html>

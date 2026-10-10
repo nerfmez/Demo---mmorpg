@@ -1,0 +1,391 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Chain Spark FX</title>
+<style>html,body{margin:0;background:#1d2a33;overflow:hidden}canvas{display:block}</style></head>
+<body>
+<script type="module">
+import * as THREE from './three.module.js';
+
+const W = 800, H = 500;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#9fc6d8');
+scene.fog = new THREE.Fog('#9fc6d8', 18, 34);
+const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
+camera.position.set(0.4, 9.6, 9.4);
+camera.lookAt(0.4, 0.3, 0.2);
+
+// ---------- seeded rng (cosmetic) ----------
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rnd = mulberry32(7);
+
+// ---------- toon setup ----------
+const ramp = new THREE.DataTexture(new Uint8Array([90, 90, 90, 255, 175, 175, 175, 255, 255, 255, 255, 255]), 3, 1);
+ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+const toon = (c, extra = {}) => new THREE.MeshToonMaterial({ color: c, gradientMap: ramp, ...extra });
+const outlineMat = (c) => new THREE.MeshBasicMaterial({ color: c, side: THREE.BackSide });
+function withOutline(mesh, c, s = 1.06) {
+  const o = new THREE.Mesh(mesh.geometry, outlineMat(c));
+  o.scale.setScalar(s); mesh.add(o); return mesh;
+}
+
+scene.add(new THREE.HemisphereLight('#dce9ff', '#4a6040', 0.9));
+const sun = new THREE.DirectionalLight('#fff0dc', 1.7);
+sun.position.set(-4, 10, 6); scene.add(sun);
+
+// ground with painted variation
+const gc = document.createElement('canvas'); gc.width = gc.height = 512;
+const g2 = gc.getContext('2d');
+g2.fillStyle = '#5f9c48'; g2.fillRect(0, 0, 512, 512);
+const gr = mulberry32(3);
+for (let i = 0; i < 260; i++) {
+  g2.fillStyle = gr() < 0.5 ? 'rgba(74,132,58,0.5)' : 'rgba(120,176,84,0.35)';
+  g2.beginPath(); g2.ellipse(gr() * 512, gr() * 512, 6 + gr() * 26, 4 + gr() * 14, gr() * 3, 0, 7); g2.fill();
+}
+// worn dirt patch where the targets stand
+for (let i = 0; i < 40; i++) { g2.fillStyle = 'rgba(150,128,86,0.12)'; g2.beginPath(); g2.ellipse(200 + gr() * 110, 200 + gr() * 110, 20 + gr() * 50, 12 + gr() * 30, gr() * 3, 0, 7); g2.fill(); }
+const gtex = new THREE.CanvasTexture(gc); gtex.colorSpace = THREE.SRGBColorSpace;
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), toon('#ffffff', { map: gtex }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(2.5, 2.5);
+
+// ---------- caster ----------
+const caster = new THREE.Group();
+caster.position.set(0, 0, 0);
+{
+  const robe = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.42, 1.15, 14), toon('#3b4fa0')), '#1c2550');
+  robe.position.y = 0.58; caster.add(robe);
+  const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.27, 0.1, 14), toon('#e3b64b'));
+  sash.position.y = 0.95; caster.add(sash);
+  const head = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), toon('#f3d2b8')), '#8a5d48');
+  head.position.y = 1.36; caster.add(head);
+  const hair = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.215, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), toon('#3a2b5a')), '#1b1330');
+  hair.position.y = 1.39; hair.rotation.x = -0.25; caster.add(hair);
+  const staff = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 1.7, 8), toon('#7a5532')), '#3a2412', 1.3);
+  staff.position.set(0.36, 0.95, 0.1); staff.rotation.z = -0.18; caster.add(staff);
+}
+caster.rotation.y = 0.5;
+scene.add(caster);
+const orbPos = new THREE.Vector3();
+caster.updateMatrixWorld(true);
+orbPos.set(0.36 + Math.sin(0.18) * 0.85, 0.95 + Math.cos(0.18) * 0.85 + 0.06, 0.1).applyMatrix4(caster.matrixWorld);
+
+// ---------- training dummies ----------
+const targets = [];
+const tpos = [[2.4, 1.1], [-2.1, 1.8], [0.9, -2.7], [-2.9, -1.2], [3.3, -1.4], [5.6, 1.9]];
+for (const [x, z] of tpos) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const mats = [];
+  const post = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.7, 8), toon('#6e4a2c')), '#33200f', 1.15);
+  post.position.y = 0.35; g.add(post);
+  const bodyM = toon('#d9b56a'); mats.push(bodyM);
+  const body = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.8, 14), bodyM), '#6d5225');
+  body.position.y = 1.05; g.add(body);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.315, 0.335, 0.12, 14), toon('#b0403a'));
+  band.position.y = 1.0; g.add(band);
+  const headM = toon('#e2c47e'); mats.push(headM);
+  const head = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), headM), '#6d5225');
+  head.position.y = 1.66; g.add(head);
+  const arm = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), toon('#6e4a2c')), '#33200f', 1.15);
+  arm.rotation.z = Math.PI / 2; arm.position.y = 1.25; g.add(arm);
+  scene.add(g);
+  targets.push({ g, mats, center: new THREE.Vector3(x, 1.1, z), hitAt: -1, base: new THREE.Vector3(x, 0, z) });
+}
+
+
+// ================= FROST NOVA =================
+const RADIUS = 4.2, T0 = 0.3, SPREAD = 0.38, LOOP = 2.8;
+const MELT0 = 1.55, MELT1 = 2.45;
+const frontR = t => t < T0 ? 0 : RADIUS * (1 - Math.pow(1 - Math.min(1, (t - T0) / SPREAD), 3));
+const arrive = r => T0 + SPREAD * (1 - Math.cbrt(1 - Math.min(0.999, r / RADIUS)));
+const clamp01 = x => Math.min(1, Math.max(0, x));
+
+const NOISE = `
+  float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+  float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+    return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ return vn(p)*0.5 + vn(p*2.1)*0.28 + vn(p*4.3)*0.14 + vn(p*8.7)*0.08; }`;
+
+// ---- ground frost: torn noisy edge, radial feathers + crack ridges, 3 cel tones, melts in holes ----
+const frostMat = new THREE.ShaderMaterial({
+  uniforms: { uR: { value: 0 }, uMelt: { value: 0 }, uEdgeGlow: { value: 1 } },
+  vertexShader: `varying vec2 vP; void main(){ vP=(uv*2.0-1.0)*6.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+  fragmentShader: `varying vec2 vP; uniform float uR; uniform float uMelt; uniform float uEdgeGlow; ${NOISE}
+    void main(){
+      float r=length(vP); vec2 dir=vP/max(r,1e-3);
+      float en = fbm(dir*2.6 + 3.1) * 0.7 + fbm(vP*1.4) * 0.3;
+      float fing = pow(fbm(dir*5.5 + 1.7), 3.0) * 2.2;
+      float edge = uR*(0.64 + 0.26*en + fing*0.17) + 0.1*fbm(dir*13.0);
+      if (r > edge || uR < 0.01) discard;
+      float melt = fbm(vP*1.7 + 9.0);
+      if (melt < uMelt*1.25 - 0.2 + (1.0 - r/max(edge,0.01))*0.15*uMelt) discard;
+      // radial feathers: fast across angle, slow along radius
+      float feather = fbm(vec2(atan(vP.y,vP.x)*7.0, r*0.9));
+      float feather2 = fbm(dir*18.0 + r*0.35);
+      // crystal crack ridges
+      float cr = abs(vn(vP*3.2) - 0.5); float ridge = 1.0 - smoothstep(0.0, 0.05, cr);
+      float k = 0.25 + 0.45*feather*feather2*1.6 + 0.35*ridge;
+      float rim = smoothstep(edge-0.5, edge-0.05, r) * uEdgeGlow;
+      k += rim*0.6;
+      vec3 c = mix(vec3(0.62,0.82,0.95), vec3(0.78,0.92,0.99), smoothstep(0.38, 0.46, k));
+      c = mix(c, vec3(0.96,0.99,1.0), smoothstep(0.68, 0.76, k));
+      float a = mix(mix(0.38, 0.75, smoothstep(0.38, 0.46, k)), 0.95, smoothstep(0.68, 0.76, k));
+      a *= smoothstep(edge, edge - 0.3, r);
+      gl_FragColor = vec4(c, a); }`,
+  transparent: true, depthWrite: false,
+});
+const frost = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), frostMat);
+frost.rotation.x = -Math.PI / 2; frost.position.y = 0.012; frost.renderOrder = 1; scene.add(frost);
+
+// ---- ice crystals: hexagonal prisms with faceted points, painted ice shader ----
+function crystalGeo(seed) {
+  const r = mulberry32(seed), n = 6, pos = [], bar = [];
+  const shoulder = 0.62 + r() * 0.14;
+  const low = [], high = [];
+  for (let i = 0; i < n; i++) {
+    const a = i / n * 6.283 + (r() - 0.5) * 0.25, rr = 0.85 + r() * 0.3;
+    low.push([Math.cos(a) * rr, -0.25, Math.sin(a) * rr]);
+    const t = 0.82 + r() * 0.12; // slight taper
+    high.push([Math.cos(a) * rr * t, shoulder + (r() - 0.5) * 0.08, Math.sin(a) * rr * t]);
+  }
+  const tip = [(r() - 0.5) * 0.25, 1.0, (r() - 0.5) * 0.25];
+  // hide = which edge (opposite vertex index) to suppress, so quad diagonals are not drawn
+  const tri = (a, b, c, hide) => {
+    pos.push(...a, ...b, ...c);
+    const B = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    if (hide >= 0) for (const v of B) v[hide] += 1;
+    for (const v of B) bar.push(...v);
+  };
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    tri(low[i], high[i], low[j], 0);   // hide the quad diagonal high[i]-low[j]
+    tri(high[i], high[j], low[j], 1);
+    tri(high[i], tip, high[j], -1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('bary', new THREE.Float32BufferAttribute(bar, 3));
+  g.computeVertexNormals();
+  return g;
+}
+const crystalGeos = Array.from({ length: 8 }, (_, i) => crystalGeo(40 + i));
+const iceMat = new THREE.ShaderMaterial({
+  vertexShader: `attribute vec3 bary; varying vec3 vB; varying vec3 vN; varying vec3 vV; varying float vY; varying vec3 vP;
+    void main(){ vB=bary; vY=position.y; vP=position;
+      vec4 w = modelMatrix*vec4(position,1.0);
+      vN = normalize(mat3(modelMatrix)*normal); vV = normalize(cameraPosition - w.xyz);
+      gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `varying vec3 vB; varying vec3 vN; varying vec3 vV; varying float vY; varying vec3 vP;
+    void main(){
+      vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;
+      vec3 L = normalize(vec3(-0.35, 0.8, 0.5));
+      float ndl = dot(N, L);
+      vec3 deep = vec3(0.16,0.40,0.70), mid = vec3(0.42,0.75,0.95), lite = vec3(0.84,0.96,1.0);
+      vec3 c = mix(deep, mid, smoothstep(-0.2, 0.3, ndl));
+      c = mix(c, lite, smoothstep(0.35, 0.8, ndl));
+      // deeper colour sunk into the ground, brighter toward the point
+      c = mix(c, deep*0.85, (1.0 - smoothstep(-0.25, 0.25, vY)) * 0.7);
+      c = mix(c, vec3(1.0), smoothstep(0.75, 1.0, vY) * 0.35);
+      // inner fracture planes seen through the ice
+      float fr = abs(fract(dot(vP, vec3(2.3, 1.1, 1.7)) + 0.13) - 0.5);
+      c = mix(c, lite, (1.0 - smoothstep(0.0, 0.035, fr)) * 0.45 * step(0.0, ndl + 0.3));
+      // painted specular strip on lit facets
+      float strip = abs(fract(vY*1.6 + vP.x*0.8) - 0.5);
+      c = mix(c, vec3(1.0), (1.0 - smoothstep(0.05, 0.08, strip)) * step(0.4, ndl) * 0.6);
+      // crisp facet edges + rim light
+      float e = min(min(vB.x, vB.y), vB.z);
+      c = mix(c, vec3(0.93,0.99,1.0), (1.0 - smoothstep(0.0, 0.07, e)) * 0.45);
+      float rim = 1.0 - max(dot(N, normalize(vV)), 0.0);
+      c = mix(c, vec3(0.9,0.98,1.0), smoothstep(0.5, 0.95, rim) * 0.55);
+      gl_FragColor = vec4(c, 0.88); }`,
+  transparent: true,
+});
+const iceRimMat = new THREE.MeshBasicMaterial({ color: '#7dbde6', side: THREE.BackSide, transparent: true, opacity: 0.55, depthWrite: false });
+const shards = [];
+function addShard(x, z, tArr, size, height, tilt, breakAt, seed) {
+  const r = mulberry32(seed);
+  const piv = new THREE.Group(); piv.position.set(x, 0, z);
+  const m = new THREE.Group();
+  const out = Math.atan2(x, z);
+  piv.rotation.set(0, out + (r() - 0.5) * 0.6, 0);
+  // cluster: one main crystal plus 0-2 smaller ones leaning away from it
+  const count = height > 0.5 ? 1 + Math.floor(r() * 3) : 1 + Math.floor(r() * 2);
+  for (let i = 0; i < count; i++) {
+    const c = new THREE.Mesh(crystalGeos[(seed + i * 3) % 8], iceMat);
+    const o = new THREE.Mesh(c.geometry, iceRimMat); o.scale.setScalar(1.045); c.add(o);
+    const k = i === 0 ? 1 : 0.4 + r() * 0.3;
+    const w = size / height;
+    c.scale.set(w * (i ? 0.85 : 1), k, w * (i ? 0.85 : 1));
+    const sa = r() * 6.283;
+    c.position.set(i ? Math.cos(sa) * w * 1.2 : 0, 0, i ? Math.sin(sa) * w * 1.2 : 0);
+    c.rotation.set(i ? tilt * 0.4 + (r() - 0.5) * 0.9 : tilt, r() * 6.28, i ? (r() - 0.5) * 1.2 : (r() - 0.5) * 0.3);
+    m.add(c);
+  }
+  piv.add(m); scene.add(piv);
+  shards.push({ piv, m, tArr, size, height, breakAt, x, z, broke: false });
+}
+{
+  const r = mulberry32(11);
+  let placed = 0, guard = 0;
+  while (placed < 60 && guard++ < 2000) {
+    const a = r() * 6.283;
+    const rr = r() < 0.35 ? 3.5 + r() * 0.75 : 0.75 + Math.sqrt(r()) * 3.0;
+    const x = Math.sin(a) * rr, z = Math.cos(a) * rr;
+    if (targets.some(t => Math.hypot(t.base.x - x, t.base.z - z) < 0.6)) continue;
+    const near = rr > 3.4;
+    const size = near ? 0.06 + r() * 0.05 : 0.1 + r() * 0.12;
+    const height = near ? 0.35 + r() * 0.45 : 0.55 + r() * 1.1 * (1 - rr / 6);
+    addShard(x, z, arrive(rr) + r() * 0.03, size, height, 0.35 + r() * 0.55, 1.05 + r() * 0.5 + rr * 0.04, placed + 1);
+    placed++;
+  }
+  // small crystals budding at the caster's feet during the charge
+  for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283 + r(); const rr = 0.45 + r() * 0.25; addShard(Math.sin(a) * rr, Math.cos(a) * rr, 0.05 + i * 0.03, 0.05 + r() * 0.04, 0.18 + r() * 0.2, 0.7, 0.55 + r() * 0.15, 100 + i); }
+}
+
+// ---- frozen crust on targets: shards that climb the dummy base ----
+const hits = targets.map((t, k) => {
+  const d = Math.hypot(t.base.x, t.base.z);
+  t.hitAt = d <= RADIUS ? arrive(d) : -1;
+  t.orig = t.mats.map(m => m.color.clone());
+  if (t.hitAt > 0) {
+    const r = mulberry32(300 + k);
+    for (let i = 0; i < 5; i++) {
+      const a = r() * 6.283, rr = 0.28 + r() * 0.12;
+      addShard(t.base.x + Math.sin(a) * rr, t.base.z + Math.cos(a) * rr, t.hitAt + 0.02 + i * 0.015, 0.06 + r() * 0.05, 0.3 + r() * 0.35, -0.35 - r() * 0.3, 1.9 + r() * 0.3, 200 + k * 10 + i);
+    }
+  }
+  return t;
+});
+
+// ---- mist: noisy two-tone cloud billboards ----
+const mistFS = `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE}
+  void main(){ vec2 p=vUv; float r=length(p);
+    float n = fbm(p*1.6 + uSeed + vec2(uT*0.8, -uT*0.5));
+    float body = n*1.25 - r*0.95 - uT*0.55;
+    if (body < 0.05) discard;
+    vec3 c = body > 0.3 ? vec3(0.96,0.99,1.0) : vec3(0.72,0.88,0.98);
+    gl_FragColor = vec4(c, body > 0.3 ? 0.8 : 0.5); }`;
+const mists = [];
+{
+  const r = mulberry32(77);
+  for (let i = 0; i < 18; i++) {
+    const mat = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: r() * 50 } }, vertexShader: `varying vec2 vUv; void main(){ vUv=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `, fragmentShader: mistFS, transparent: true, depthWrite: false });
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); m.renderOrder = 4; m.visible = false; scene.add(m);
+    const a = i / 18 * 6.283 + (r() - 0.5) * 0.3;
+    mists.push({ m, a, reach: 0.75 + r() * 0.3, size: 0.9 + r() * 0.8, delay: r() * 0.06, life: 0.55 + r() * 0.3, lift: 0.2 + r() * 0.5 });
+  }
+}
+
+// ---- ice chips (instanced, deterministic sim) ----
+const CHIPS = 220;
+const chipMesh = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(0.06), toon('#d8f3ff', { emissive: '#25506f' }), CHIPS);
+chipMesh.frustumCulled = false; scene.add(chipMesh);
+let chips = [], simT = 0, done = new Set(), crng = mulberry32(5);
+function resetSim() { chips = []; simT = 0; done = new Set(); crng = mulberry32(5); }
+function burst(x, y, z, n, speed, up, s) {
+  for (let i = 0; i < n && chips.length < CHIPS; i++) {
+    const a = crng() * 6.283;
+    chips.push({ p: new THREE.Vector3(x, y, z), v: new THREE.Vector3(Math.sin(a) * speed * (0.4 + crng()), up * (0.5 + crng()), Math.cos(a) * speed * (0.4 + crng())),
+      rot: new THREE.Euler(crng() * 6, crng() * 6, crng() * 6), spin: 6 + crng() * 14, life: 0, max: 0.45 + crng() * 0.4, s: s * (0.5 + crng()) });
+  }
+}
+function step(dt) {
+  const prev = simT; simT += dt;
+  // charge motes spiralling in
+  if (simT < T0 && Math.floor(simT / 0.025) !== Math.floor(prev / 0.025)) {
+    const a = crng() * 6.283, rr = 1.6 + crng() * 0.8;
+    chips.push({ p: new THREE.Vector3(Math.sin(a) * rr, 0.3 + crng() * 1.2, Math.cos(a) * rr), v: new THREE.Vector3(-Math.sin(a + 0.6) * rr * 4.5, -0.6, -Math.cos(a + 0.6) * rr * 4.5),
+      rot: new THREE.Euler(), spin: 10, life: 0, max: 0.22, s: 0.6, inward: true });
+  }
+  if (simT >= T0 && !done.has('burst')) { done.add('burst'); burst(0, 0.4, 0, 26, 6.5, 4.5, 1.0); }
+  for (const s of shards) if (simT >= s.breakAt && !done.has(s)) { done.add(s); burst(s.x, s.height * 0.5, s.z, 3, 1.6, 2.5, s.size * 7); }
+  targets.forEach((t, k) => { if (t.hitAt > 0 && simT >= t.hitAt && !done.has(t)) { done.add(t); burst(t.base.x, 1.0, t.base.z, 10, 2.5, 3.5, 0.9); } });
+  for (const c of chips) {
+    c.life += dt;
+    if (!c.inward) { c.v.y -= 12 * dt; c.v.multiplyScalar(1 - 1.5 * dt); }
+    c.p.addScaledVector(c.v, dt);
+    if (c.p.y < 0.03) { c.p.y = 0.03; c.v.multiplyScalar(0.3); c.v.y = Math.abs(c.v.y) * 0.4; }
+    c.rot.x += c.spin * dt; c.rot.y += c.spin * 0.7 * dt;
+  }
+  chips = chips.filter(c => c.life < c.max);
+}
+const dummy = new THREE.Object3D();
+
+const coldLight = new THREE.PointLight('#bfe9ff', 0, 7, 1.6); coldLight.position.set(0, 1.2, 0); scene.add(coldLight);
+const casterMats = []; caster.traverse(o => { if (o.material && o.material.isMeshToonMaterial) casterMats.push(o.material); });
+const icy = new THREE.Color('#bfe6ff');
+
+window.renderAt = function (tRaw) {
+  const t = tRaw % LOOP;
+  if (t < simT - 1e-6) resetSim();
+  while (simT + 1 / 240 <= t) step(1 / 240);
+
+  // ground frost
+  const charge = clamp01(t / T0);
+  frostMat.uniforms.uR.value = t < T0 ? 0.25 + 0.55 * charge : Math.max(0.8, frontR(t));
+  frostMat.uniforms.uMelt.value = clamp01((t - MELT0) / (MELT1 - MELT0));
+  frostMat.uniforms.uEdgeGlow.value = t < T0 + SPREAD ? 1 : Math.max(0, 1 - (t - T0 - SPREAD) / 0.3);
+  frost.visible = t < MELT1;
+
+  // shards: pop with overshoot as the front passes, sink and shatter later
+  for (const s of shards) {
+    const age = t - s.tArr;
+    let k = 0;
+    if (age >= 0) {
+      const g = clamp01(age / 0.075);
+      k = g < 1 ? 1.2 * Math.sin(g * Math.PI * 0.62) / Math.sin(Math.PI * 0.62) : 1 + 0.2 * Math.exp(-(age - 0.075) * 30) * Math.cos((age - 0.075) * 50);
+      if (t > s.breakAt) k *= Math.max(0, 1 - (t - s.breakAt) / 0.12);
+    }
+    s.piv.visible = k > 0.01;
+    s.m.scale.set(s.height * Math.max(0.35, k), s.height * k, s.height * Math.max(0.35, k));
+  }
+
+  // mist puffs riding the front
+  for (const p of mists) {
+    const age = t - T0 - p.delay;
+    if (age < 0 || age > p.life) { p.m.visible = false; continue; }
+    const u = age / p.life;
+    const rr = frontR(T0 + age + p.delay) * p.reach;
+    p.m.visible = true;
+    p.m.position.set(Math.sin(p.a) * rr, 0.35 + p.lift * u, Math.cos(p.a) * rr);
+    p.m.scale.setScalar(p.size * (0.6 + 0.7 * u));
+    p.m.quaternion.copy(camera.quaternion);
+    p.m.material.uniforms.uT.value = u;
+  }
+
+  // chips
+  let n = 0;
+  for (const c of chips) {
+    const u = c.life / c.max;
+    dummy.position.copy(c.p); dummy.rotation.copy(c.rot); dummy.scale.setScalar(c.s * (u > 0.7 ? (1 - u) / 0.3 : 1));
+    dummy.updateMatrix(); chipMesh.setMatrixAt(n++, dummy.matrix);
+  }
+  chipMesh.count = n; chipMesh.instanceMatrix.needsUpdate = true;
+
+  // light + caster glow
+  coldLight.intensity = t < T0 ? 2 * charge : 9 * Math.exp(-(t - T0) * 7);
+  const cg = t < T0 ? 0.25 * charge : 0.25 * Math.exp(-(t - T0) * 6);
+  for (const m of casterMats) m.emissive.setRGB(cg * 0.6, cg * 0.9, cg * 1.2);
+
+  // targets: frozen tint (chilled for the rest of the loop), brief white pop, small recoil
+  for (const tg of targets) {
+    const age = tg.hitAt > 0 ? t - tg.hitAt : -1;
+    const chill = age >= 0 ? clamp01(age / 0.1) * (t > LOOP - 0.35 ? (LOOP - t) / 0.35 : 1) : 0;
+    tg.mats.forEach((m, i) => m.color.copy(tg.orig[i]).lerp(icy, 0.6 * chill));
+    const pop = age >= 0 && age < 0.05 ? 0.7 : 0;
+    tg.mats.forEach(m => m.emissive.setRGB(pop + 0.08 * chill, pop + 0.16 * chill, pop + 0.25 * chill));
+    const away = Math.atan2(tg.base.x, tg.base.z);
+    const push = age >= 0 && age < 0.25 ? Math.sin(age / 0.25 * Math.PI) * 0.12 : 0;
+    tg.g.position.set(tg.base.x + Math.sin(away) * push * 0.5, 0, tg.base.z + Math.cos(away) * push * 0.5);
+    tg.g.rotation.set(Math.cos(away) * push, 0, -Math.sin(away) * push);
+  }
+
+  renderer.render(scene, camera);
+};
+window.LOOP = LOOP;
+window.ready = true;
+</script>
+</body></html>

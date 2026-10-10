@@ -1,0 +1,393 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Chain Spark FX</title>
+<style>html,body{margin:0;background:#1d2a33;overflow:hidden}canvas{display:block}</style></head>
+<body>
+<script type="module">
+import * as THREE from './three.module.js';
+
+const W = 800, H = 500;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#9fc6d8');
+scene.fog = new THREE.Fog('#9fc6d8', 18, 34);
+const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
+camera.position.set(0.9, 8.0, 9.0);
+camera.lookAt(0.9, 0.5, 1.0);
+
+// ---------- seeded rng (cosmetic) ----------
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rnd = mulberry32(7);
+
+// ---------- toon setup ----------
+const ramp = new THREE.DataTexture(new Uint8Array([90, 90, 90, 255, 175, 175, 175, 255, 255, 255, 255, 255]), 3, 1);
+ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true;
+const toon = (c, extra = {}) => new THREE.MeshToonMaterial({ color: c, gradientMap: ramp, ...extra });
+const outlineMat = (c) => new THREE.MeshBasicMaterial({ color: c, side: THREE.BackSide });
+function withOutline(mesh, c, s = 1.06) {
+  const o = new THREE.Mesh(mesh.geometry, outlineMat(c));
+  o.scale.setScalar(s); mesh.add(o); return mesh;
+}
+
+scene.add(new THREE.HemisphereLight('#dce9ff', '#4a6040', 0.9));
+const sun = new THREE.DirectionalLight('#fff0dc', 1.7);
+sun.position.set(-4, 10, 6); scene.add(sun);
+
+// ground with painted variation
+const gc = document.createElement('canvas'); gc.width = gc.height = 512;
+const g2 = gc.getContext('2d');
+g2.fillStyle = '#5f9c48'; g2.fillRect(0, 0, 512, 512);
+const gr = mulberry32(3);
+for (let i = 0; i < 260; i++) {
+  g2.fillStyle = gr() < 0.5 ? 'rgba(74,132,58,0.5)' : 'rgba(120,176,84,0.35)';
+  g2.beginPath(); g2.ellipse(gr() * 512, gr() * 512, 6 + gr() * 26, 4 + gr() * 14, gr() * 3, 0, 7); g2.fill();
+}
+// worn dirt patch where the targets stand
+for (let i = 0; i < 40; i++) { g2.fillStyle = 'rgba(150,128,86,0.12)'; g2.beginPath(); g2.ellipse(240 + gr() * 120, 210 + gr() * 90, 20 + gr() * 50, 12 + gr() * 30, gr() * 3, 0, 7); g2.fill(); }
+const gtex = new THREE.CanvasTexture(gc); gtex.colorSpace = THREE.SRGBColorSpace;
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), toon('#ffffff', { map: gtex }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(2.5, 2.5);
+
+// ---------- caster ----------
+const caster = new THREE.Group();
+caster.position.set(-3.6, 0, 1.6);
+{
+  const robe = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.42, 1.15, 14), toon('#3b4fa0')), '#1c2550');
+  robe.position.y = 0.58; caster.add(robe);
+  const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.27, 0.1, 14), toon('#e3b64b'));
+  sash.position.y = 0.95; caster.add(sash);
+  const head = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), toon('#f3d2b8')), '#8a5d48');
+  head.position.y = 1.36; caster.add(head);
+  const hair = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.215, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), toon('#3a2b5a')), '#1b1330');
+  hair.position.y = 1.39; hair.rotation.x = -0.25; caster.add(hair);
+  const staff = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 1.7, 8), toon('#7a5532')), '#3a2412', 1.3);
+  staff.position.set(0.36, 0.95, 0.1); staff.rotation.z = -0.18; caster.add(staff);
+}
+caster.rotation.y = Math.PI / 2 - 0.15;
+scene.add(caster);
+const orbPos = new THREE.Vector3();
+caster.updateMatrixWorld(true);
+orbPos.set(0.36 + Math.sin(0.18) * 0.85, 0.95 + Math.cos(0.18) * 0.85 + 0.06, 0.1).applyMatrix4(caster.matrixWorld);
+
+// ---------- training dummies ----------
+const targets = [];
+const tpos = [[0.4, 0.6], [3.3, -1.3], [5.6, 1.2], [3.1, 3.0]];
+for (const [x, z] of tpos) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const mats = [];
+  const post = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.7, 8), toon('#6e4a2c')), '#33200f', 1.15);
+  post.position.y = 0.35; g.add(post);
+  const bodyM = toon('#d9b56a'); mats.push(bodyM);
+  const body = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.8, 14), bodyM), '#6d5225');
+  body.position.y = 1.05; g.add(body);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.315, 0.335, 0.12, 14), toon('#b0403a'));
+  band.position.y = 1.0; g.add(band);
+  const headM = toon('#e2c47e'); mats.push(headM);
+  const head = withOutline(new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), headM), '#6d5225');
+  head.position.y = 1.66; g.add(head);
+  const arm = withOutline(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8), toon('#6e4a2c')), '#33200f', 1.15);
+  arm.rotation.z = Math.PI / 2; arm.position.y = 1.25; g.add(arm);
+  scene.add(g);
+  targets.push({ g, mats, center: new THREE.Vector3(x, 1.1, z), hitAt: -1, base: new THREE.Vector3(x, 0, z) });
+}
+
+// ---------- ribbon renderer (camera-facing strips) ----------
+class Ribbon {
+  constructor(max, frag, blending) {
+    this.max = max;
+    const geo = new THREE.BufferGeometry();
+    this.pos = new Float32Array(max * 2 * 3);
+    this.uv = new Float32Array(max * 2 * 2);
+    this.a = new Float32Array(max * 2);
+    this.col = new Float32Array(max * 2 * 3);
+    geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(this.uv, 2));
+    geo.setAttribute('alpha', new THREE.BufferAttribute(this.a, 1));
+    geo.setAttribute('tint', new THREE.BufferAttribute(this.col, 3));
+    this.index = new Uint32Array(max * 6);
+    geo.setIndex(new THREE.BufferAttribute(this.index, 1));
+    this.geo = geo;
+    this.mesh = new THREE.Mesh(geo, new THREE.ShaderMaterial({
+      vertexShader: `attribute float alpha; attribute vec3 tint; varying vec2 vUv; varying float vA; varying vec3 vT;
+        void main(){ vUv=uv; vA=alpha; vT=tint; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+      fragmentShader: frag, transparent: true, depthWrite: false, blending, side: THREE.DoubleSide,
+    }));
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = blending === THREE.AdditiveBlending ? 2 : 3;
+    scene.add(this.mesh);
+  }
+  begin() { this.v = 0; this.i = 0; }
+  // pts: Vector3[]; width(fn of t 0..1); alpha
+  strip(pts, widthFn, alpha, tint) {
+    const n = pts.length; if (n < 2 || this.v + n * 2 > this.max * 2) return;
+    const cam = camera.position, side = new THREE.Vector3(), tan = new THREE.Vector3(), view = new THREE.Vector3();
+    const start = this.v;
+    for (let k = 0; k < n; k++) {
+      const p = pts[k];
+      tan.subVectors(pts[Math.min(k + 1, n - 1)], pts[Math.max(k - 1, 0)]).normalize();
+      view.subVectors(cam, p).normalize();
+      side.crossVectors(tan, view).normalize();
+      const t = k / (n - 1), w = widthFn(t, k) * 0.5;
+      for (let s = 0; s < 2; s++) {
+        const sg = s ? 1 : -1, vi = this.v++;
+        this.pos[vi * 3] = p.x + side.x * w * sg; this.pos[vi * 3 + 1] = p.y + side.y * w * sg; this.pos[vi * 3 + 2] = p.z + side.z * w * sg;
+        this.uv[vi * 2] = t; this.uv[vi * 2 + 1] = sg;
+        this.a[vi] = alpha; this.col[vi * 3] = tint[0]; this.col[vi * 3 + 1] = tint[1]; this.col[vi * 3 + 2] = tint[2];
+      }
+      if (k < n - 1) {
+        const b = start + k * 2;
+        this.index.set([b, b + 1, b + 2, b + 1, b + 3, b + 2], this.i); this.i += 6;
+      }
+    }
+  }
+  end() {
+    for (const k of ['position', 'uv', 'alpha', 'tint']) this.geo.attributes[k].needsUpdate = true;
+    this.geo.index.needsUpdate = true;
+    this.geo.setDrawRange(0, this.i);
+  }
+}
+// thin cel strokes: white core, coloured edge, ragged along the length
+const coreFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
+  float h(float x){ return fract(sin(x*127.1)*43758.5453); }
+  void main(){ float d=abs(vUv.y);
+    float n = h(floor(vUv.x*60.0)) * 0.25;
+    if(d > 0.92 - n) discard;
+    vec3 c = d < 0.42 - n*0.5 ? vec3(1.0) : vT;
+    gl_FragColor=vec4(c, vA); }`;
+const glowFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
+  void main(){ float d=abs(vUv.y); float a=pow(1.0-d,3.0)*0.5;
+    gl_FragColor=vec4(vT*a*vA, 1.0); }`;
+const glow = new Ribbon(12000, glowFrag, THREE.AdditiveBlending);
+const core = new Ribbon(12000, coreFrag, THREE.NormalBlending);
+const CYAN = [0.45, 0.82, 1.0], GLOWC = [0.3, 0.6, 1.0], WARM = [1.0, 0.95, 0.65];
+
+// ---------- ragged noise flash (contact pop / staff charge), no geometric silhouette ----------
+const flashVS = `varying vec2 vUv; void main(){ vUv=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `;
+const flashFS = `varying vec2 vUv; uniform float uT; uniform float uSeed; uniform float uSize;
+  float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+  float vn(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+    return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ return vn(p)*0.55 + vn(p*2.3)*0.3 + vn(p*5.1)*0.15; }
+  void main(){
+    float r=length(vUv); float th=atan(vUv.y,vUv.x);
+    // edge radius from wrapped angular noise -> torn, uneven lobes
+    vec2 q = vec2(cos(th), sin(th))*2.2 + uSeed;
+    float n = fbm(q + vec2(uT*3.0, 0.0));
+    float sharp = pow(n, 2.2);
+    float edge = uSize * (0.18 + 1.25*sharp);
+    // holes eat in from the outside as it dies
+    float eat = fbm(vUv*4.0 + uSeed*3.0);
+    if (r > edge || eat < uT*0.9 - 0.15 + r*0.4) discard;
+    float k = r/edge;
+    vec3 c = k < 0.5 ? vec3(1.0) : (k < 0.85 ? vec3(0.55,0.88,1.0) : vec3(0.25,0.5,1.0));
+    gl_FragColor = vec4(c, 1.0); }`;
+function flashMat(seed) {
+  return new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: seed }, uSize: { value: 1 } },
+    vertexShader: flashVS, fragmentShader: flashFS, transparent: true, depthWrite: false, depthTest: false });
+}
+const quad = new THREE.PlaneGeometry(1, 1);
+const orb = new THREE.Mesh(quad, flashMat(2.3)); orb.renderOrder = 5; scene.add(orb);
+const flashes = targets.map((_, k) => { const m = new THREE.Mesh(quad, flashMat(5.1 + k * 3.7)); m.renderOrder = 6; m.visible = false; scene.add(m); return m; });
+
+// flash lights
+const lights = targets.map(() => { const l = new THREE.PointLight('#c8e8ff', 0, 4, 2); scene.add(l); return l; });
+const orbLight = new THREE.PointLight('#c8e8ff', 0, 4, 2); orbLight.position.copy(orbPos); scene.add(orbLight);
+
+// ---------- timeline ----------
+const T_CAST = 0.30, HOP = 0.085, BOLT_HOLD = 0.2, BOLT_FADE = 0.1, LOOP = 2.2;
+const chain = [orbPos, ...targets.map(t => t.center)];
+const bolts = [];
+for (let k = 0; k < 4; k++) bolts.push({ a: chain[k], b: chain[k + 1], start: T_CAST + k * HOP, width: 0.17 * Math.pow(0.85, k), seed: k * 13 });
+targets.forEach((t, k) => t.hitAt = bolts[k].start + 0.035);
+
+// angular lightning: few straight segments, hard kinks, uneven spacing; returns points + per-point width factors
+function zig(a, b, seed, amp, segs, out, wout) {
+  const r = mulberry32(seed);
+  out.length = 0; if (wout) wout.length = 0;
+  const len = a.distanceTo(b);
+  const dir = new THREE.Vector3().subVectors(b, a).normalize();
+  const perp = new THREE.Vector3(-dir.z, 0, dir.x);
+  let side = r() < 0.5 ? -1 : 1, drift = 0;
+  const ts = [0];
+  for (let i = 1; i < segs; i++) ts.push((i + (r() - 0.5) * 0.8) / segs);
+  ts.push(1);
+  for (let i = 0; i < ts.length; i++) {
+    const t = ts[i], env = Math.sin(Math.PI * t);
+    const p = a.clone().lerp(b, t);
+    if (i > 0 && i < ts.length - 1) {
+      side = r() < 0.62 ? -side : side;              // mostly alternating -> zigzag
+      drift = drift * 0.6 + (r() - 0.5) * 0.6;       // slow wander
+      p.addScaledVector(perp, (side * (0.15 + r() * 0.95) + drift) * amp * len * (0.35 + 0.65 * env));
+      p.y += (r() - 0.5) * amp * len * 0.5 * env;
+    }
+    out.push(p);
+    if (wout) wout.push(0.55 + r() * 0.75);
+  }
+  return { r, dir, perp };
+}
+
+let sparks = [], simT = 0, spawned = new Set();
+function resetSim() { sparks = []; simT = 0; spawned = new Set(); rnd = mulberry32(7); }
+function spawnSparks(c, n, speed, tint, inward) {
+  for (let i = 0; i < n; i++) {
+    const th = rnd() * Math.PI * 2, el = rnd() * 0.9 + 0.1;
+    const v = new THREE.Vector3(Math.cos(th) * Math.cos(el), Math.sin(el) * 1.1, Math.sin(th) * Math.cos(el)).multiplyScalar(speed * (0.5 + rnd() * 0.8));
+    const p = c.clone();
+    if (inward) { p.addScaledVector(v, 0.11); v.multiplyScalar(-1.4); }
+    sparks.push({ p, v, life: 0, max: inward ? 0.1 : 0.2 + rnd() * 0.25, tint, w: 0.018 + rnd() * 0.018, inward });
+  }
+}
+function step(dt) {
+  simT += dt;
+  if (simT < T_CAST && Math.floor(simT / 0.03) !== Math.floor((simT - dt) / 0.03)) spawnSparks(orbPos, 2, 4, CYAN, true);
+  targets.forEach((t, k) => { if (simT >= t.hitAt && !spawned.has(k)) { spawned.add(k); spawnSparks(t.center, 14 - k * 2, 7.5, k % 2 ? WARM : CYAN, false); } });
+  for (const s of sparks) {
+    s.life += dt;
+    if (!s.inward) { s.v.y -= 14 * dt; s.v.multiplyScalar(1 - 3.2 * dt); }
+    s.p.addScaledVector(s.v, dt);
+    if (s.p.y < 0.03 && !s.inward) { s.p.y = 0.03; s.v.y *= -0.3; s.v.x *= 0.5; s.v.z *= 0.5; }
+  }
+  sparks = sparks.filter(s => s.life < s.max);
+}
+
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+// one lightning stroke = soft halo + thin hard core, with per-kink width and pointed ends
+function stroke(pts, ws, w, alpha, tint, haloMul = 2.4) {
+  const end = x => Math.min(1, x * 6, (1 - x) * 6);
+  glow.strip(pts, (x, k) => w * haloMul * (0.5 + 0.5 * ws[k]) * Math.max(0.3, end(x)), alpha, GLOWC);
+  core.strip(pts, (x, k) => w * ws[k] * end(x), alpha, tint);
+}
+// burst of short crooked tendrils radiating from a point (3D)
+function tendrils(c, seed, n, len, w, alpha, flat) {
+  const r = mulberry32(seed);
+  for (let i = 0; i < n; i++) {
+    const th = r() * 6.283, el = flat ? 0 : (r() - 0.3) * 1.4;
+    const L = len * (0.4 + r() * 0.8);
+    tmpA.set(c.x + Math.cos(th) * Math.cos(el) * L, flat ? c.y : c.y + Math.sin(el) * L, c.z + Math.sin(th) * Math.cos(el) * L);
+    const p = [], ws = [];
+    zig(c, tmpA, seed * 7 + i * 31, 0.28, 4 + Math.floor(r() * 3), p, ws);
+    ws[0] = 1.3; // thick at root, tapering
+    for (let j = 1; j < ws.length; j++) ws[j] *= 1 - j / ws.length;
+    glow.strip(p, (x, k) => w * 2.2 * (1 - x * 0.7), alpha * 0.7, GLOWC);
+    core.strip(p, (x, k) => w * ws[k] * Math.min(1, (1 - x) * 4), alpha, CYAN);
+  }
+}
+
+window.renderAt = function (tRaw) {
+  const t = tRaw % LOOP;
+  if (t < simT - 1e-6) resetSim();
+  while (simT + 1 / 240 <= t) step(1 / 240);
+  const flick = Math.floor(t * 30 / 2); // re-shape every 2 frames @30fps
+
+  glow.begin(); core.begin();
+
+  // ---- staff charge: ragged crackling pop + tendrils, no ball ----
+  const charge = THREE.MathUtils.clamp(t / T_CAST, 0, 1);
+  const afterCast = t - T_CAST;
+  let orbS = 0;
+  if (t < T_CAST) orbS = 0.15 + 0.4 * easeOut(charge);
+  else if (afterCast < 0.12) orbS = 0.6 * (1 - afterCast / 0.12);
+  orb.visible = orbS > 0.02;
+  orb.scale.setScalar(orbS * 1.2); orb.position.copy(orbPos); orb.quaternion.copy(camera.quaternion);
+  orb.material.uniforms.uT.value = t < T_CAST ? 0.1 + (flick % 3) * 0.08 : 0.2 + afterCast * 5;
+  orb.material.uniforms.uSeed.value = 2.3 + flick * 1.37;
+  orbLight.intensity = t < T_CAST ? 3 * charge : Math.max(0, 5 * (1 - afterCast / 0.2));
+  if (t < T_CAST + 0.04 && charge > 0.1) tendrils(orbPos, 900 + flick, 2 + Math.floor(charge * 3), 0.25 + charge * 0.3, 0.035, 1, false);
+
+  // ---- bolts ----
+  bolts.forEach((b, k) => {
+    const age = t - b.start;
+    if (age < 0 || age > BOLT_HOLD + BOLT_FADE) return;
+    const lead = THREE.MathUtils.clamp(age / 0.045, 0, 1);
+    const fade = age > BOLT_HOLD ? 1 - (age - BOLT_HOLD) / BOLT_FADE : 1;
+    const flare = age < 0.06 ? 1.4 : (flick % 2 ? 1.0 : 0.8);
+    const w = b.width * flare * (0.4 + 0.6 * fade);
+    const segs = Math.max(6, Math.round(b.a.distanceTo(b.b) * 2.6));
+    const pts = [], ws = [];
+    const { r, dir, perp } = zig(b.a, b.b, b.seed * 100 + flick, 0.1, segs, pts, ws);
+    // grow the leading tip
+    const cut = Math.max(2, Math.ceil(pts.length * lead));
+    const main = pts.slice(0, cut), mw = ws.slice(0, cut);
+    if (lead < 1) { main[cut - 1] = pts[cut - 2].clone().lerp(pts[cut - 1], (pts.length * lead) % 1 || 1); }
+    stroke(main, mw, w, fade, CYAN);
+    if (lead >= 1) {
+      // a second, thinner filament that wanders around the main path
+      const p2 = [], w2 = [];
+      zig(b.a, b.b, b.seed * 100 + flick + 777, 0.08, segs + 2, p2, w2);
+      stroke(p2, w2, w * 0.4, 0.85 * fade, CYAN, 3.0);
+      // forks: crooked branches leaving at kinks
+      const nf = 2 + Math.floor(r() * 3);
+      for (let f = 0; f < nf; f++) {
+        const at = 1 + Math.floor(r() * (pts.length - 2));
+        const base = pts[at];
+        const L = 0.4 + r() * 0.8;
+        tmpA.copy(base).addScaledVector(dir, L * 0.5).addScaledVector(perp, (r() < 0.5 ? -1 : 1) * L * (0.5 + r() * 0.5));
+        tmpA.y += (r() - 0.6) * 0.5;
+        const fp = [], fw = [];
+        zig(base, tmpA, b.seed * 333 + flick * 5 + f, 0.25, 3 + Math.floor(r() * 3), fp, fw);
+        for (let j = 0; j < fw.length; j++) fw[j] *= 1 - j / fw.length;
+        stroke(fp, fw, w * 0.55, fade, CYAN, 2.0);
+      }
+    }
+  });
+
+  // ---- impacts: ragged contact pop + radiating tendrils + ground-crawling arcs ----
+  targets.forEach((tg, k) => {
+    const age = t - tg.hitAt;
+    const fl = flashes[k], L = lights[k];
+    if (age >= 0 && age < 0.16) {
+      fl.visible = true;
+      const u = age / 0.16;
+      fl.material.uniforms.uT.value = u;
+      fl.material.uniforms.uSeed.value = 5.1 + k * 3.7 + Math.floor(age * 30) * 0.9;
+      fl.scale.setScalar((age < 0.03 ? 0.6 + 0.4 * age / 0.03 : 1) * 1.7 * Math.pow(0.9, k));
+      fl.position.copy(tg.center); fl.quaternion.copy(camera.quaternion);
+    } else fl.visible = false;
+    if (age >= 0 && age < 0.16) tendrils(tg.center, 3000 + k * 50 + flick, 6, 0.55 + age * 3, 0.05 * Math.pow(0.9, k), 1 - age / 0.16, false);
+    if (age >= 0.02 && age < 0.3) {
+      tmpB.set(tg.base.x, 0.05, tg.base.z);
+      tendrils(tmpB, 4000 + k * 50 + flick, 4, 0.6 + (age - 0.02) * 2.2, 0.035, 1 - (age - 0.02) / 0.28, true);
+    }
+    L.position.copy(tg.center).y += 0.4;
+    L.intensity = age >= 0 && age < 0.25 ? 6 * Math.pow(1 - age / 0.25, 2) : 0;
+    const em = age >= 0 && age < 0.034 ? 0.8 : age >= 0 && age < 0.25 ? 0.25 * (1 - (age - 0.035) / 0.215) : 0;
+    for (const m of tg.mats) { m.emissive.setRGB(em > 0.9 ? 1 : em, em > 0.9 ? 1 : em * 1.9, em > 0.9 ? 1 : em * 2.2); }
+    const shake = age >= 0 && age < 0.3 ? Math.sin(age * 90) * 0.06 * (1 - age / 0.3) : 0;
+    tg.g.position.set(tg.base.x + shake, 0, tg.base.z);
+    tg.g.rotation.z = shake * 1.2;
+    // shocked status: short crooked arcs hopping over the body
+    if (age > 0.08 && age < 0.7) {
+      const r = mulberry32(5000 + k * 97 + flick);
+      const n = age < 0.35 ? 2 : (r() < 0.5 ? 1 : 0);
+      for (let i = 0; i < n; i++) {
+        const a1 = r() * 6.28, a2 = a1 + 0.7 + r() * 1.2;
+        tmpA.set(tg.base.x + Math.cos(a1) * 0.4, 0.7 + r() * 1.0, tg.base.z + Math.sin(a1) * 0.4);
+        tmpB.set(tg.base.x + Math.cos(a2) * 0.4, 0.7 + r() * 1.0, tg.base.z + Math.sin(a2) * 0.4);
+        const cp = [], cw = [];
+        zig(tmpA, tmpB, 7000 + k * 31 + flick * 3 + i, 0.35, 4, cp, cw);
+        stroke(cp, cw, 0.035, 1, CYAN, 2.0);
+      }
+    }
+  });
+
+  // ---- sparks as thin velocity streaks ----
+  for (const s of sparks) {
+    const u = s.life / s.max;
+    const tail = s.p.clone().addScaledVector(s.v, -0.03);
+    const pts = [tail, s.p.clone().lerp(tail, 0.5), s.p];
+    glow.strip(pts, () => s.w * 2.2, 0.6 * (1 - u), GLOWC);
+    core.strip(pts, x => s.w * x * (1 - u * 0.6), 1 - u * u, s.tint);
+  }
+
+  glow.end(); core.end();
+  renderer.render(scene, camera);
+};
+window.LOOP = LOOP;
+window.ready = true;
+</script>
+</body></html>

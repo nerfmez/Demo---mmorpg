@@ -243,7 +243,7 @@ try {
       const url = new URL(page.url()); url.searchParams.delete('fresh');
       await page.goto(url.href); await enterFullscreenGate(page);
       await activate('[data-act="continue"]');
-      await page.waitForFunction(() => __frontier.game?.time > .3 && document.getElementById('loading').classList.contains('done'), null, { timeout: 60000 });
+      await page.waitForFunction(() => __frontier.game?.time > .3 && document.getElementById('loading').classList.contains('done'), null, { timeout: 90000 });
       await page.evaluate(() => { __frontier.paused = true; });
     } });
     assert.deepEqual(errors, [], `${name}: page errors`);

@@ -11,12 +11,13 @@ import {disposeObject} from '../../src/render/dispose.js';
 // A legacy renderer dependency omits its JSON import attribute. Adapt only this
 // Node test load; the production Vite loader and source modules stay unchanged.
 const jsonHook=registerHooks({load(url,context,next){return next(url,url.endsWith('.json')?{...context,importAttributes:{...context.importAttributes,type:'json'}}:context);}});
-const {terrainSteps,releaseGroundCaches}=await import(process.env.TERRAIN_SOURCE || '../../src/render/ground.js');
+const {terrainSteps,releaseGroundCaches,surfaceData}=await import(process.env.TERRAIN_SOURCE || '../../src/render/ground.js');
+const {meadowPlantSteps}=await import('../../src/render/meadow.js');
 jsonHook.deregister();
 
 const data=loadData(),worlds=Object.fromEntries(Object.entries(data.maps).map(([id,wd])=>[id,createWorld(wd)]));
 const domains=Object.fromEntries(Object.entries(worlds).map(([id,w])=>[id,terrainDomain(w,id=>worlds[id])]));
-const A='azure-harbor-v1',F='frontier-wilds-v1';
+const A='azure-harbor-v1',F='frontier-wilds-v1',G='moonroot-grove-v1';
 const local=(id,x,z)=>[x-worlds[id].data.atlas.offset[0],z-worlds[id].data.atlas.offset[1]];
 const hfBytes=Object.fromEntries(Object.entries(worlds).map(([id,w])=>[id,Buffer.from(w.heightfield.data.buffer).slice()]));
 const terrains=Object.fromEntries(Object.entries(worlds).map(([id,w])=>{
@@ -26,6 +27,16 @@ const hits=(x,z)=>{
  const ray=new THREE.Raycaster(new THREE.Vector3(x,200,z),new THREE.Vector3(0,-1,0));
  return Object.entries(terrains).flatMap(([id,g])=>ray.intersectObject(g,true).map(h=>({id,y:h.point.y})));
 };
+const roadMask=(id,x,z)=>{
+ const ray=new THREE.Raycaster(new THREE.Vector3(x,200,z),new THREE.Vector3(0,-1,0));
+ const hit=ray.intersectObject(terrains[id],true)[0];assert.ok(hit,`road terrain missing at ${x},${z}`);
+ const geometry=hit.object.geometry,p=geometry.attributes.position,weights=new THREE.Vector3();
+ const local=hit.object.worldToLocal(hit.point.clone());
+ const {a,b,c}=hit.face;
+ THREE.Triangle.getBarycoord(local,new THREE.Vector3().fromBufferAttribute(p,a),new THREE.Vector3().fromBufferAttribute(p,b),new THREE.Vector3().fromBufferAttribute(p,c),weights);
+ const splat=geometry.attributes.aSplat;
+ return splat.getX(a)*weights.x+splat.getX(b)*weights.y+splat.getX(c)*weights.z;
+};
 
 test('actual finite terrain covers the northern hole and never overlaps its neighbour',()=>{
  for(const z of[-200.25,-170.25,-160.01,-159.99,-150.25,-140.25,-130.25,-120.25,-92.25,0.25,80.25,114.25])
@@ -33,27 +44,31 @@ test('actual finite terrain covers the northern hole and never overlaps its neig
    const found=hits(x,z);assert.ok(found.length,`missing terrain at ${x},${z}`);
    assert.equal(new Set(found.map(h=>h.id)).size,1,`overlapping regions at ${x},${z}`);
   }
- assert.equal(hits(-150.25,-200.25)[0].id,F,'Frontier retains its margin where Azure has no grid');
- assert.equal(hits(-150.25,-150.25)[0].id,A,'the overlapping strip still has one owner');
+ assert.equal(hits(-150.25,-200.25)[0].id,G,'Grove owns the northern strip after expanding the former two-map world');
+ assert.equal(hits(-150.25,-150.25)[0].id,G,'Grove replaces Azure’s old northern decorative skirt');
+ assert.equal(hits(-150.25,-110.25)[0].id,A,'Azure still owns its native playable ground south of the Grove edge');
 });
 
 test('closed skirt edges and finite grid end meet at the same rendered height',()=>{
  for(let z=-160;z<=-120;z+=.25){
-  const a=domains[A].height(...local(A,-160,z)),f=domains[F].height(...local(F,-160,z));
-  assert.ok(Math.abs(a-f)<1e-6,`cut face at Z=${z}: ${a} versus ${f}`);
+  // Grove owns the east side north of Azure's playable edge. Comparing an
+  // unrendered Azure skirt there hid the actual F/G corner-profile mismatch.
+  const eastOwner=z<-120?G:A,east=domains[eastOwner].height(...local(eastOwner,-160,z)),f=domains[F].height(...local(F,-160,z));
+  assert.ok(Math.abs(east-f)<1e-6,`cut face ${F}/${eastOwner} at Z=${z}: ${f} versus ${east}`);
  }
  for(const z of[-159.75,-155.25,-150.25,-140.25,-130.25,-120.25]){
   const west=hits(-160.0001,z),east=hits(-159.9999,z);
   assert.ok(west.length&&east.length,`uncovered shared edge at Z=${z}`);
   assert.ok(Math.abs(west[0].y-east[0].y)<.003,`rendered cut face at Z=${z}`);
  }
+ // Grove covers the former Azure finite cap on both sides in the current atlas.
  for(const x of[-155.25,-150.25,-140.25,-130.25]){
   const north=hits(x,-160-1e-5),south=hits(x,-160+1e-5);
   assert.ok(north.length&&south.length,`uncovered finite cap at X=${x}`);
-  assert.equal(north[0].id,F);assert.equal(south[0].id,A);
+  assert.equal(north[0].id,G);assert.equal(south[0].id,G);
   assert.ok(Math.abs(north[0].y-south[0].y)<.001,`finite grid cap at X=${x}`);
  }
- // The southern finite cap has the reverse handover, beyond Frontier's grid.
+ // The southern finite cap still has the reverse handover, beyond Frontier's grid.
  for(const x of[-195.25,-175.25,-165.25]){
   const north=hits(x,155-1e-5),south=hits(x,155+1e-5);
   assert.ok(north.length&&south.length,`uncovered southern cap at X=${x}`);
@@ -95,6 +110,26 @@ test('retained decorative tree roots sample their actual terrain owner',()=>{
   assert.ok(Math.abs(ground-found[0].y)<.05,`tree root disagrees with actual triangles at ${x},${z}: ${ground} versus ${found[0].y}`);
  }
  assert.ok(borrowed>10,'exercise actual closed-end edge trees');
+});
+
+test('the Grove gate road crosses terrain ownership without a rectangular paint cutoff',()=>{
+ const z=-160.5;
+ const west=roadMask(F,-160.001,z),east=roadMask(G,-159.999,z);
+ assert.ok(west>.8&&east>.8,`road ends at the map boundary: ${west} / ${east}`);
+ assert.ok(Math.abs(west-east)<.04,`road splat jumps at the join: ${west} / ${east}`);
+ assert.ok(roadMask(F,-166,z)>.65,'the borrowed approach continues behind the boundary gate');
+ assert.ok(roadMask(F,-183,z)<.15,'borrowed paint returns to native meadow within the existing seam band');
+ assert.ok(worlds[F].roadDist(...local(F,-166,z))>20,'presentation approach leaves native gameplay roads unchanged');
+});
+
+test('decorative road continuation retains every native meadow clump and flower position',()=>{
+ const world=worlds[F],field=surfaceData(world),paint=field.road,native=field.plantingRoad;
+ assert.ok(native&&native!==paint,'retain the native planting mask separately from join paint');
+ let expected;
+ try {field.road=native;field.plantingRoad=null;expected=finishSteps(meadowPlantSteps(world,[]));}
+ finally {field.road=paint;field.plantingRoad=native;}
+ const actual=finishSteps(meadowPlantSteps(world,[]));
+ assert.deepEqual(actual,expected,'painting across the map boundary must not remove or shift any grass/flowers');
 });
 
 test.after(()=>{for(const[id,g]of Object.entries(terrains)){disposeObject(g);releaseGroundCaches(worlds[id]);}});

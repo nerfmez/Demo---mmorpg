@@ -9,7 +9,11 @@ export function importJob({ queue, signal, shift = regionShift(), loader, assetU
   const geometries = new Set(), materials = new Set(), textures = new Set(), disposed = new Set();
   let closed = false;
   const adopted = new Set(), privateMaterials = new Set(), watched = new WeakSet(), dependencies = new WeakMap();
-  const watch = resource => { if(resource && !watched.has(resource)){watched.add(resource);resource.addEventListener?.('dispose',()=>disposed.add(resource));} return resource; };
+  const watch = resource => { if(resource && !watched.has(resource)){watched.add(resource);resource.addEventListener?.('dispose',()=>{
+    // Resident compaction releases old GPU buffers before replacing attributes.
+    // That geometry stays owned and must still release its new buffers at exit.
+    if(!resource.isBufferGeometry || !resource.userData.residentBufferReset)disposed.add(resource);
+  });} return resource; };
   const release = resource => {
     if (!resource || (resource.userData?.shared && !privateMaterials.has(resource)) || adopted.has(resource) || disposed.has(resource)) return;
     disposed.add(resource); resource.dispose();

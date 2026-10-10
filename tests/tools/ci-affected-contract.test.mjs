@@ -111,7 +111,7 @@ test('changed routing bytes invalidate old plans even if the version was not bum
   const directory = mkdtempSync(join(tmpdir(), 'affected-policy-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const paths = ['scripts/ci-browser-plan.mjs', 'scripts/ci-scope.mjs', 'scripts/ci-pr-source.mjs', 'scripts/ci-browser-run.mjs',
-    'scripts/ci-browser-gate.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-equipment-impact.mjs', 'scripts/ci-review-plan.mjs',
+    'scripts/ci-browser-gate.mjs', 'scripts/ci-browser-engine.mjs', 'scripts/ci-browser-shards.mjs', 'scripts/ci-equipment-impact.mjs', 'scripts/ci-review-plan.mjs',
     '.github/workflows/ci.yml', '.github/actions/change-scope/action.yml', 'src/ui/raster-icons.js'];
   for (const path of paths) {
     const destination = join(directory, path);
@@ -132,7 +132,7 @@ test('selected report gate rejects missing/cancelled/incomplete/failing/partial/
   const directory = mkdtempSync(join(tmpdir(), 'affected-gate-test-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const source = 'a'.repeat(40), suites = ['boot', 'save', 'icons'];
-  const fixture = suite => ({ source, sourceDirty: false, browser: 'chromium', mode: 'quick', suite,
+  const fixture = suite => ({ source, sourceDirty: false, browser: 'chromium', mode: 'quick', suite, shard: suite, selection: {},
     ok: true, complete: true, running: null, startedAt: 'start', finishedAt: 'finish',
     checks: SUITES[suite].map(script => ({ script, startedAt: 'start', durationMs: 1, exitCode: 0, signal: null })) });
   const put = report => writeFileSync(join(directory, `quick-chromium-${report.suite}.json`), JSON.stringify(report));

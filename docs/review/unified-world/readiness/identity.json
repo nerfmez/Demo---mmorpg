@@ -1,0 +1,45 @@
+{
+  "baseCommit": "5a535a5c379269669a62f0c32b6de611e8d2a96d",
+  "files": {
+    "docs/review/unified-world/readiness/vrm-webkit.png": {
+      "sha256": "0a5227cb0d4361496895d93d0a8f7dc7b1eb42aec0f826803986816a4cd0a6aa",
+      "bytes": 982839
+    },
+    "docs/review/unified-world/readiness/vrm-chromium-initial.png": {
+      "sha256": "89357822d5a9571289e3ed9ef098b85068c8240904a6c7bac666079084f2c13a",
+      "bytes": 833037
+    },
+    "docs/review/unified-world/readiness/measurements.json": {
+      "sha256": "fae3b03d700a56214d02ef955525a7ba07e6915ba2c3966b0b771e8dfbed8dee",
+      "bytes": 83084
+    },
+    "docs/review/unified-world/readiness/smoke-webkit.txt": {
+      "sha256": "7230fc377d847e4a7d7e21e7ba5bab22f4c05bb6b4626016d32e52038b16f0a3",
+      "bytes": 419
+    },
+    "docs/review/unified-world/readiness/smoke-chromium.txt": {
+      "sha256": "2eb2d910cb101dac71f08d7957c597ac3fecafe5829485e676a424e622b69947",
+      "bytes": 417
+    },
+    "docs/review/unified-world/readiness/vrm-chromium-settled.png": {
+      "sha256": "c98143badfdd5080f14c713090c2fe78f5dd1065815d69be4f3f6d4e792c8cb5",
+      "bytes": 864220
+    },
+    "src/main.js": {
+      "sha256": "f997ced928328ecf38a70a486437c594734b030ad39f5c15ec188809ce6faba7",
+      "bytes": 19396
+    },
+    "src/render/region.js": {
+      "sha256": "95eb11331445df9c994ee1eda5a7108c79c407b09fd55b2cb617d4a4abc3043d",
+      "bytes": 20686
+    },
+    "dist/assets/main-DAsFQ0nf.js": {
+      "sha256": "985e3d31f6be7fb7bdc68c8db6bb4b2403ef2340939417c1edaa76d616b81826",
+      "bytes": 709215
+    },
+    "dist/assets/main-D51y7kao.css": {
+      "sha256": "ae4f8273ee5b211873a17f32c7bf9835df3bfa4f8bdbf86da15e7ad7c00bc6ab",
+      "bytes": 344477
+    }
+  }
+}

@@ -3,10 +3,10 @@
 import { data } from './data.js';
 import { createWorld } from './core/world.js';
 import { createCharacter, equip } from './core/character.js';
-import { Game } from './core/game.js';
+import { OpenWorldGame as Game } from './core/open-world-game.js';
 import { View } from './render/view.js';
-import { waitForRegionImports } from './render/region.js';
 import { useStartupTaskScheduling } from './render/build-queue.js';
+import { trackStartupReadiness } from './render/startup-readiness.js';
 import { renderConfig } from './render/settings.js';
 import { ResolutionGovernor } from './render/resolution.js';
 import { contactReady } from './render/fireball-v5-contact.js';
@@ -39,14 +39,14 @@ document.body.classList.toggle('touch', coarse);
 let quality = params.get('quality') || loadPref('quality', coarse ? 'medium' : 'high');
 
 migrateLegacy();
-// One map is built per page. A trip through an exit (or loading a save from another
-// map) reloads into that map; ?map=<id> opens one directly for tests and captures.
+// The selected saved region chooses the fixed atlas origin; all regions form one
+// resident world. Native region IDs remain content/discovery/save namespaces.
 const trip = takeTravel();
 const tripCharacter = trip ? (trip.slot ? loadSlot(trip.slot)?.character : trip.character) : null;
 selectMap(data, tripCharacter ? characterMap(data, tripCharacter) : params.get('map'));
 document.querySelector('#loading .load-title').textContent = data.world.name || '';
-// Every map's rules/collision are built up front (cheap next to rendering), so the
-// open world can stream a neighbouring map's scene and hand over without a reload.
+// All native collision/heightfields are built once; the unified simulation queries
+// them in fixed atlas coordinates without border handovers.
 const worlds = Object.fromEntries(Object.keys(data.maps).map((id) => [id, null]));
 const coreWorld = (id) => (worlds[id] ||= createWorld(data.maps[id]));
 const world = coreWorld(data.world.id);
@@ -56,18 +56,18 @@ const hudRoot = document.getElementById('hud');
 const view = new View(canvas, world, { quality, worlds });
 const releaseStartupScheduling = useStartupTaskScheduling(view.buildQueue);
 if (params.get('fireball') === 'legacy') view.vfx.fireballReviewVersion = 'legacy';
-// ?stream=0 turns open-world streaming off (seams then cross with a reload, as in tests).
-if (params.get('stream') !== '0') view.coreWorld = coreWorld;
+view.coreWorld = coreWorld;
 // ?streamBudget=<ms> lets software-GPU tests stream the neighbour in fewer (slow) frames.
 if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamBudget'));
 // Character/monster models load at boot. Current weapons load on demand; procedural shapes stand in,
 // current hero, creation preview and portraits refresh when their requested templates arrive.
-Promise.all([loadModels(data.models, { onWeaponReady: (id) => {
+view.startupDependencies={};
+trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
   if (id === bases?.weapon || id === bases?.offhand) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
   // Refresh only the currently selected creation kit, not an obsolete async selection.
   if (view.previewHero && data.progression.start.kits[F.menu?.kit]?.weapon === id) F.menu.refreshPreview();
-} }), waitForRegionImports(view), contactReady, frostReady, approvedClipsReady]).then(() => {
+} }), world:view.worldReady, contact:contactReady, frost:frostReady, approvedClips:approvedClipsReady},view.startupDependencies).then(() => {
   view.heroLookKey = null;
   view.refreshModelRigs(); // pooled monsters were built before their models arrived
   if (F.menu?.refreshPreview && view.previewHero) F.menu.refreshPreview();
@@ -120,9 +120,8 @@ function startGame(character, slot) {
       types.add(d.weaponType||d.offhandType);character.gear.push({uid:character.nextUid++,base,itemLevel:1,grade:'C',upgrade:0,options:[]});
     }
   }
-  const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world });
+  const game = new Game(data, { seed: Number(params.get('seed')) || Date.now() % 100000, character, world, worlds });
   game.worlds = worlds; // every map's rules world: the HUD and atlas show one world
-  game.canCrossSeam = id => !view.coreWorld || view.neighbourReady(id);
   view.attachGame(game);
   view.mode = 'game';
   view.snapCamera();
@@ -300,16 +299,24 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   time += dt;
+  // The loading card owns presentation while every resident region is prepared.
+  // Keep the clock/rAF alive, then process retained input/events and refresh the
+  // HUD on the first ready frame instead of updating hidden gameplay controls.
+  if (!initialWorldReady) {
+    requestAnimationFrame(frame);
+    return;
+  }
   const s = session;
   if (s) {
     if (!fullscreen.blocked) s.input.update();
     if(s.sandboxBar)s.sandboxBar.hidden=s.panels.isOpen||fullscreen.blocked;
-    const paused = !view.region.staticReady || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked;
+    const paused = !view.worldPrepared || s.panels.isOpen || s.completion.isOpen || F.paused || fullscreen.blocked;
     // hit-stop: heavy hits freeze the action for a few frames so they land with weight
     const sdt = view.hitStop > 0 ? dt * 0.08 : dt;
     view.hitStop = Math.max(0, (view.hitStop || 0) - dt);
     if (!paused) s.game.update(sdt);
     for (const e of s.game.drainEvents()) {
+      if (e.type === 'worldChanged' && e.seamless) { view.switchRegion(e.to); s.save(); }
       if (e.type === 'travel') {
         if (view.neighbourReady(e.to)) {
           // Open world: the neighbouring map is already streamed in; carry on in place
@@ -333,7 +340,7 @@ function frame(now) {
       if (SAVE_ON.has(e.type)) s.save();
       if (e.type === 'levelup' || e.type === 'joblevelup' || e.type === 'questDone') s.panels.render();
     }
-    s.completion.update(fullscreen.blocked || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.region.staticReady);
+    s.completion.update(fullscreen.blocked || s.panels.isOpen || s.game.ch.opening?.stage !== 'done' || !view.worldPrepared);
     s.questRoute.update(dt);
     // The job journal is opaque and already pauses the game. Keep the completed
     // world frame while its DOM camera/leaf animates; resume normal drawing on exit.
@@ -366,7 +373,7 @@ if (tripCharacter) startGame(tripCharacter, trip.slot || null);
 else if (fresh) startGame(createCharacter(data, { kit: params.get('kit') || undefined, name: 'Tester' }), null);
 else menu.showTitle();
 // Readiness and scheduler restoration must not depend on the first UI rAF.
-waitForRegionImports(view).then(() => {
+view.worldReady.then(() => {
   releaseStartupScheduling();
   initialWorldReady = true;
   document.getElementById('loading').classList.add('done');

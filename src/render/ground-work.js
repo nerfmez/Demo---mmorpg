@@ -6,8 +6,13 @@ export function* boxBlurSteps(src, w, h, radius) {
   const tmp = new Float32Array(src.length);
   const out = new Float32Array(src.length);
   const n = radius * 2 + 1;
+  // Yield between bounded row/column groups. Yielding every eight rows inside
+  // every column inflated the three resident maps to 872,578 blur steps while
+  // preserving the same small amount of arithmetic per pixel.
+  const rowsPerSlice=Math.max(1,Math.min(8,Math.floor(4096/w)));
+  const columnsPerSlice=Math.max(1,Math.min(8,Math.floor(4096/h)));
   for (let j = 0; j < h; j++) {
-    if(j%8===0)yield;
+    if(j%rowsPerSlice===0)yield;
     let acc = 0;
     const row = j * w;
     for (let i = -radius; i <= radius; i++) acc += src[row + clamp(i, 0, w - 1)];
@@ -17,11 +22,10 @@ export function* boxBlurSteps(src, w, h, radius) {
     }
   }
   for (let i = 0; i < w; i++) {
-    if(i%8===0)yield;
+    if(i%columnsPerSlice===0)yield;
     let acc = 0;
     for (let j = -radius; j <= radius; j++) acc += tmp[clamp(j, 0, h - 1) * w + i];
     for (let j = 0; j < h; j++) {
-    if(j%8===0)yield;
       out[j * w + i] = acc / n;
       acc += tmp[clamp(j + radius + 1, 0, h - 1) * w + i] - tmp[clamp(j - radius, 0, h - 1) * w + i];
     }

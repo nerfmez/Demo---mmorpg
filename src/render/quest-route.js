@@ -109,7 +109,7 @@ export class QuestRoute {
     if(force||this.targetClock>=.25){
       this.targetClock=0;const target=questNavigation(g,id);
       if(!target?.spatial){this.hide();this.hud.toast(target?.label||'เปิดสมุดภารกิจเพื่อดูขั้นตอนต่อไป','#ecd69c');return;}
-      const key=JSON.stringify([id,g.world.data.id,target.world,target.x,target.z]);this.target=target;
+      const key=JSON.stringify([id,g.scenePoint?null:g.world.data.id,target.world,target.x,target.z]);this.target=target;
       if(force||key!==this.key){
         this.key=key;this.cancel();this.clear();
         const cached=this.saved.get(key);if(cached)this.install(cached);

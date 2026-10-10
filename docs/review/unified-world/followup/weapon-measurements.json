@@ -1,0 +1,1685 @@
+{
+  "engine": "chromium",
+  "coldStart": {
+    "weaponRequests": 1,
+    "weaponBytes": 1335312,
+    "allResourceRequests": 96,
+    "allDecodedBytes": 44690072,
+    "dependencies": {
+      "models": {
+        "state": "ready",
+        "startedMs": 2237.7000000029802,
+        "elapsedMs": 11538.79999999702
+      },
+      "world": {
+        "state": "ready",
+        "startedMs": 2237.7000000029802,
+        "elapsedMs": 44097
+      },
+      "contact": {
+        "state": "ready",
+        "startedMs": 2237.7000000029802,
+        "elapsedMs": 9986.79999999702
+      },
+      "frost": {
+        "state": "ready",
+        "startedMs": 2237.7000000029802,
+        "elapsedMs": 9987.199999988079
+      },
+      "approvedClips": {
+        "state": "ready",
+        "startedMs": 2237.7000000029802,
+        "elapsedMs": 10221.5
+      }
+    },
+    "residentWarm": [
+      {
+        "id": "azure-harbor-v1",
+        "stage": "ready",
+        "phase": "done",
+        "drawables": 1818,
+        "batches": 152,
+        "sourceVertices": 15368324,
+        "submittedVertices": 5405,
+        "submittedTriangles": 1766,
+        "submittedCalls": 1820,
+        "compileMs": 118.29999989271164,
+        "submitMs": 3331.500000089407,
+        "maxBatchMs": 652.2999999970198,
+        "elapsedMs": 3602.300000011921,
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 12218.09999999404,
+            "pausedAtMs": null,
+            "steps": 2739,
+            "cpuMs": 2528.500000074506,
+            "maxStepMs": 25,
+            "waitingMs": 0,
+            "scheduleMs": 5089.699999928474,
+            "elapsedMs": 7621.600000008941
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 19839.89999999106,
+            "pausedAtMs": null,
+            "steps": 15092,
+            "cpuMs": 1915.4999984502792,
+            "maxStepMs": 14.199999988079071,
+            "waitingMs": 0,
+            "scheduleMs": 2855.100001499057,
+            "elapsedMs": 4786
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 24739.39999999106,
+            "pausedAtMs": null,
+            "steps": 1539,
+            "cpuMs": 75.89999976754189,
+            "maxStepMs": 4.700000002980232,
+            "waitingMs": 862.7999999672174,
+            "scheduleMs": 112.0000002682209,
+            "elapsedMs": 1052.300000011921
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 25792.79999999702,
+            "pausedAtMs": null,
+            "steps": 3723,
+            "cpuMs": 78.19999979436398,
+            "maxStepMs": 4.4000000059604645,
+            "waitingMs": 0,
+            "scheduleMs": 333.60000018775463,
+            "elapsedMs": 418.5
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 26287.39999999106,
+            "pausedAtMs": null,
+            "steps": 94,
+            "cpuMs": 70.09999993443489,
+            "maxStepMs": 3.9000000059604645,
+            "waitingMs": 2348.3000000715256,
+            "scheduleMs": 30,
+            "elapsedMs": 2448.5
+          }
+        }
+      },
+      {
+        "id": "frontier-wilds-v1",
+        "stage": "ready",
+        "phase": "done",
+        "drawables": 2595,
+        "batches": 217,
+        "sourceVertices": 54407995,
+        "submittedVertices": 7767,
+        "submittedTriangles": 2577,
+        "submittedCalls": 2595,
+        "compileMs": 243.2000000178814,
+        "submitMs": 1811.5000000298023,
+        "maxBatchMs": 431.30000001192093,
+        "elapsedMs": 2124.3999999910593,
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 12218.39999999106,
+            "pausedAtMs": null,
+            "steps": 3259,
+            "cpuMs": 2346.1999998390675,
+            "maxStepMs": 26,
+            "waitingMs": 0,
+            "scheduleMs": 6736.900000184774,
+            "elapsedMs": 9087.800000011921
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 21306.39999999106,
+            "pausedAtMs": null,
+            "steps": 43221,
+            "cpuMs": 2806.0000010579824,
+            "maxStepMs": 34.80000001192093,
+            "waitingMs": 0,
+            "scheduleMs": 8476.299999088049,
+            "elapsedMs": 11318.90000000596
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 32625.70000000298,
+            "pausedAtMs": null,
+            "steps": 402,
+            "cpuMs": 117.10000002384186,
+            "maxStepMs": 8.699999988079071,
+            "waitingMs": 0,
+            "scheduleMs": 84.29999996721745,
+            "elapsedMs": 201.59999999403954
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 32829,
+            "pausedAtMs": null,
+            "steps": 4443,
+            "cpuMs": 212.10000002384186,
+            "maxStepMs": 13.199999988079071,
+            "waitingMs": 2736.3000000566244,
+            "scheduleMs": 1475.4999998956919,
+            "elapsedMs": 4428.79999999702
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 37257.79999999702,
+            "pausedAtMs": null,
+            "steps": 3239,
+            "cpuMs": 33.60000003874302,
+            "maxStepMs": 11.900000005960464,
+            "waitingMs": 0,
+            "scheduleMs": 18.899999991059303,
+            "elapsedMs": 53.900000005960464
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 37393.39999999106,
+            "pausedAtMs": null,
+            "steps": 166,
+            "cpuMs": 155.99999982118607,
+            "maxStepMs": 23,
+            "waitingMs": 1867.200000166893,
+            "scheduleMs": 2.7000000029802322,
+            "elapsedMs": 2026
+          }
+        }
+      },
+      {
+        "id": "moonroot-grove-v1",
+        "stage": "ready",
+        "phase": "done",
+        "drawables": 922,
+        "batches": 77,
+        "sourceVertices": 27892240,
+        "submittedVertices": 2760,
+        "submittedTriangles": 916,
+        "submittedCalls": 922,
+        "compileMs": 126.49999998509884,
+        "submitMs": 117.10000003874302,
+        "maxBatchMs": 25.299999997019768,
+        "elapsedMs": 258.09999999403954,
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 12218.39999999106,
+            "pausedAtMs": null,
+            "steps": 2484,
+            "cpuMs": 1153.100000306964,
+            "maxStepMs": 16.599999994039536,
+            "waitingMs": 0,
+            "scheduleMs": 5844.999999701977,
+            "elapsedMs": 7002
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 19226.09999999404,
+            "pausedAtMs": null,
+            "steps": 14634,
+            "cpuMs": 811.3000006377697,
+            "maxStepMs": 64.19999998807907,
+            "waitingMs": 0,
+            "scheduleMs": 4428.199999347329,
+            "elapsedMs": 5250.100000008941
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 24478.29999999702,
+            "pausedAtMs": null,
+            "steps": 3,
+            "cpuMs": 2.5999999940395355,
+            "maxStepMs": 2.5,
+            "waitingMs": 0,
+            "scheduleMs": 0.5000000149011612,
+            "elapsedMs": 3.2000000029802322
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 24482.89999999106,
+            "pausedAtMs": null,
+            "steps": 1644,
+            "cpuMs": 101.79999995231628,
+            "maxStepMs": 13.700000002980232,
+            "waitingMs": 1143.100000038743,
+            "scheduleMs": 131.3000000268221,
+            "elapsedMs": 1378.2000000029802
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 25861.20000000298,
+            "pausedAtMs": null,
+            "steps": 1200,
+            "cpuMs": 11.399999991059303,
+            "maxStepMs": 2.2999999970197678,
+            "waitingMs": 0,
+            "scheduleMs": 87.30000001192093,
+            "elapsedMs": 99.59999999403954
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 26000.39999999106,
+            "pausedAtMs": null,
+            "steps": 63,
+            "cpuMs": 79.80000004172325,
+            "maxStepMs": 7.100000008940697,
+            "waitingMs": 1467.699999973178,
+            "scheduleMs": 2.9000000059604645,
+            "elapsedMs": 1550.7000000029802
+          }
+        }
+      }
+    ]
+  },
+  "bowGrip": 4.111664168794923e-14,
+  "samples": [
+    {
+      "id": "ranger_axe",
+      "parts": 1,
+      "tris": 8426,
+      "kind": "axe",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156868,
+        "drawCalls": 86
+      },
+      "look": {
+        "weapon": "axe",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "ranger_axe",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "knight_greatsword",
+      "parts": 1,
+      "tris": 8425,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156434,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "knight_greatsword",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tidecaller_staff",
+      "parts": 1,
+      "tris": 8622,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156828,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tidecaller_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "dusk_longbow",
+      "parts": 1,
+      "tris": 8114,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 155980,
+        "drawCalls": 87
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "dusk_longbow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "greyfang_sabre",
+      "parts": 1,
+      "tris": 8691,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156966,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "greyfang_sabre",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "wisp_staff",
+      "parts": 1,
+      "tris": 8229,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156042,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "wisp_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "storm_bow",
+      "parts": 1,
+      "tris": 7003,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 153758,
+        "drawCalls": 87
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "storm_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "stormglass_blade",
+      "parts": 1,
+      "tris": 8587,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156758,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "stormglass_blade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "wisp_stiletto",
+      "parts": 1,
+      "tris": 8224,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156032,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "wisp_stiletto",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "lantern_wand",
+      "parts": 1,
+      "tris": 7380,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 154344,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "lantern_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "thunder_maul",
+      "parts": 1,
+      "tris": 8096,
+      "kind": "mace",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 155776,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "mace",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "thunder_maul",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "galebreaker",
+      "parts": 1,
+      "tris": 8539,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156662,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "galebreaker",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "crag_axe",
+      "parts": 1,
+      "tris": 8324,
+      "kind": "axe",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156232,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "axe",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "crag_axe",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "horn_greatblade",
+      "parts": 1,
+      "tris": 8042,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 155668,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "horn_greatblade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "ancient_staff",
+      "parts": 1,
+      "tris": 8138,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 155860,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "ancient_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "oathblade",
+      "parts": 1,
+      "tris": 7301,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 154186,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "oathblade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "ruin_fang",
+      "parts": 1,
+      "tris": 8695,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156974,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "ruin_fang",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "relic_wand",
+      "parts": 1,
+      "tris": 8559,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 156702,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "relic_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "moonleaf_wand",
+      "parts": 1,
+      "tris": 8788,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 157160,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "moonleaf_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "rusty_sword",
+      "parts": 1,
+      "tris": 5052,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 149688,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "rusty_sword",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "fang_bow",
+      "parts": 1,
+      "tris": 20996,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 181744,
+        "drawCalls": 87
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "fang_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "frontier_kris",
+      "parts": 1,
+      "tris": 9646,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 158876,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "frontier_kris",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "fang_dagger",
+      "parts": 1,
+      "tris": 23610,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 186804,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "fang_dagger",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "hermit_cleaver",
+      "parts": 1,
+      "tris": 12904,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 165392,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "hermit_cleaver",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "spore_staff",
+      "parts": 1,
+      "tris": 26164,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 191912,
+        "drawCalls": 85
+      },
+      "grip": {
+        "sourceAnchor": [
+          0,
+          0,
+          0
+        ],
+        "localTranslation": [
+          0,
+          0,
+          0
+        ],
+        "palmDistance": 1.6304788408914756e-14
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "spore_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tide_staff",
+      "parts": 1,
+      "tris": 17740,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 175064,
+        "drawCalls": 85
+      },
+      "grip": {
+        "sourceAnchor": [
+          0,
+          0,
+          0
+        ],
+        "localTranslation": [
+          0,
+          0,
+          0
+        ],
+        "palmDistance": 3.774758283725532e-15
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tide_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tusk_greatblade",
+      "parts": 1,
+      "tris": 27206,
+      "kind": "greatblade",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 193996,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "greatblade",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tusk_greatblade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "venom_wand",
+      "parts": 1,
+      "tris": 16008,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 171600,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "venom_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "old_bow",
+      "parts": 1,
+      "tris": 9820,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 159392,
+        "drawCalls": 87
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "old_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "spore_wand",
+      "parts": 1,
+      "tris": 33168,
+      "kind": "wand",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 205920,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "wand",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "spore_wand",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tusk_blade",
+      "parts": 1,
+      "tris": 7376,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 154336,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tusk_blade",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "apprentice_staff",
+      "parts": 1,
+      "tris": 6156,
+      "kind": "staff",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 151896,
+        "drawCalls": 85
+      },
+      "grip": {
+        "sourceAnchor": [
+          0,
+          0,
+          0.585
+        ],
+        "localTranslation": [
+          0,
+          0,
+          -0.585
+        ],
+        "palmDistance": 1.6304788408914756e-14
+      },
+      "look": {
+        "weapon": "staff",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "apprentice_staff",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "hunter_bow",
+      "parts": 1,
+      "tris": 9784,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 159320,
+        "drawCalls": 87
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "hunter_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "tusk_club",
+      "parts": 1,
+      "tris": 22224,
+      "kind": "mace",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 184032,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "mace",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "tusk_club",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "shell_knife",
+      "parts": 1,
+      "tris": 15318,
+      "kind": "dagger",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 170220,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "dagger",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "shell_knife",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "beetle_maul",
+      "parts": 1,
+      "tris": 16332,
+      "kind": "mace",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 172248,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "mace",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "beetle_maul",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "skyrender_bow",
+      "parts": 1,
+      "tris": 12238,
+      "kind": "bow",
+      "offhand": "quiver",
+      "frame": {
+        "activeTriangles": 164228,
+        "drawCalls": 87
+      },
+      "look": {
+        "weapon": "bow",
+        "offhand": "quiver",
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "skyrender_bow",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    },
+    {
+      "id": "wolfbite_sword",
+      "parts": 1,
+      "tris": 34544,
+      "kind": "sword",
+      "offhand": null,
+      "frame": {
+        "activeTriangles": 208672,
+        "drawCalls": 85
+      },
+      "look": {
+        "weapon": "sword",
+        "offhand": null,
+        "armor": "tunic",
+        "helm": null,
+        "gloves": null,
+        "bases": {
+          "weapon": "wolfbite_sword",
+          "armor": "travel_tunic",
+          "boots": "travel_boots"
+        }
+      }
+    }
+  ],
+  "resource": [
+    {
+      "geometries": 1900,
+      "textures": 127,
+      "programs": 146,
+      "drawCalls": 83,
+      "activeTriangles": 205600
+    },
+    {
+      "geometries": 1900,
+      "textures": 127,
+      "programs": 146,
+      "drawCalls": 83,
+      "activeTriangles": 205600
+    },
+    {
+      "geometries": 1900,
+      "textures": 127,
+      "programs": 146,
+      "drawCalls": 83,
+      "activeTriangles": 205600
+    }
+  ],
+  "gpuCompletionMs": [
+    41482,
+    31278,
+    33599
+  ],
+  "savedReadyMs": 30593,
+  "savedReadiness": {
+    "dependencies": {
+      "models": {
+        "state": "ready",
+        "startedMs": 2819.5999999940395,
+        "elapsedMs": 2488
+      },
+      "world": {
+        "state": "ready",
+        "startedMs": 2819.699999988079,
+        "elapsedMs": 27658.10000000894
+      },
+      "contact": {
+        "state": "ready",
+        "startedMs": 2819.699999988079,
+        "elapsedMs": 500.30000001192093
+      },
+      "frost": {
+        "state": "ready",
+        "startedMs": 2819.699999988079,
+        "elapsedMs": 499.90000000596046
+      },
+      "approvedClips": {
+        "state": "ready",
+        "startedMs": 2819.699999988079,
+        "elapsedMs": 669.5
+      }
+    },
+    "residentWarm": [
+      {
+        "id": "azure-harbor-v1",
+        "stage": "ready",
+        "phase": "done",
+        "drawables": 1818,
+        "batches": 152,
+        "sourceVertices": 15368324,
+        "submittedVertices": 5405,
+        "submittedTriangles": 1766,
+        "submittedCalls": 1820,
+        "compileMs": 84.89999987185001,
+        "submitMs": 1348.1000000834465,
+        "maxBatchMs": 270.09999999403954,
+        "elapsedMs": 1458.7999999970198,
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 3276.199999988079,
+            "pausedAtMs": null,
+            "steps": 2739,
+            "cpuMs": 2328.899999767542,
+            "maxStepMs": 25.400000005960464,
+            "waitingMs": 0,
+            "scheduleMs": 4171.700000271201,
+            "elapsedMs": 6504.300000011921
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 9780.699999988079,
+            "pausedAtMs": null,
+            "steps": 15092,
+            "cpuMs": 1958.7999997287989,
+            "maxStepMs": 37.29999999701977,
+            "waitingMs": 0,
+            "scheduleMs": 2680.000000268221,
+            "elapsedMs": 4651.300000011921
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 14614,
+            "pausedAtMs": null,
+            "steps": 1539,
+            "cpuMs": 79.9999999254942,
+            "maxStepMs": 11.799999997019768,
+            "waitingMs": 342.79999999701977,
+            "scheduleMs": 103.8000001013279,
+            "elapsedMs": 527.6999999880791
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 15141.699999988079,
+            "pausedAtMs": null,
+            "steps": 3723,
+            "cpuMs": 92.2999999821186,
+            "maxStepMs": 5.700000002980232,
+            "waitingMs": 0,
+            "scheduleMs": 312.50000001490116,
+            "elapsedMs": 408.30000001192093
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 15627.29999999702,
+            "pausedAtMs": null,
+            "steps": 92,
+            "cpuMs": 79.09999990463257,
+            "maxStepMs": 5.5999999940395355,
+            "waitingMs": 2368.200000092387,
+            "scheduleMs": 20.80000001192093,
+            "elapsedMs": 2468.2999999970198
+          }
+        }
+      },
+      {
+        "id": "frontier-wilds-v1",
+        "stage": "ready",
+        "phase": "done",
+        "drawables": 2595,
+        "batches": 217,
+        "sourceVertices": 54407995,
+        "submittedVertices": 7767,
+        "submittedTriangles": 2577,
+        "submittedCalls": 2595,
+        "compileMs": 205.0999999344349,
+        "submitMs": 1059.9000000953674,
+        "maxBatchMs": 329.5,
+        "elapsedMs": 1294.4000000059605,
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 3276.2999999970198,
+            "pausedAtMs": null,
+            "steps": 3259,
+            "cpuMs": 2022.100000321865,
+            "maxStepMs": 15.699999988079071,
+            "waitingMs": 0,
+            "scheduleMs": 5882.099999696016,
+            "elapsedMs": 7907.899999991059
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 11184.29999999702,
+            "pausedAtMs": null,
+            "steps": 43221,
+            "cpuMs": 2522.2000000476837,
+            "maxStepMs": 30.799999997019768,
+            "waitingMs": 0,
+            "scheduleMs": 8647.299999639392,
+            "elapsedMs": 11209.20000000298
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 22393.69999998808,
+            "pausedAtMs": null,
+            "steps": 402,
+            "cpuMs": 139.80000013113022,
+            "maxStepMs": 11,
+            "waitingMs": 0,
+            "scheduleMs": 18.49999988079071,
+            "elapsedMs": 158.40000000596046
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 22553.19999998808,
+            "pausedAtMs": null,
+            "steps": 4443,
+            "cpuMs": 144.19999985396862,
+            "maxStepMs": 4.9000000059604645,
+            "waitingMs": 1120.699999973178,
+            "scheduleMs": 1121.4000001847744,
+            "elapsedMs": 2389.2000000029802
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 24942.5,
+            "pausedAtMs": null,
+            "steps": 3239,
+            "cpuMs": 17.900000005960464,
+            "maxStepMs": 2.7999999970197678,
+            "waitingMs": 0,
+            "scheduleMs": 5.39999994635582,
+            "elapsedMs": 24.899999991059303
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 24983,
+            "pausedAtMs": null,
+            "steps": 166,
+            "cpuMs": 102.09999994933605,
+            "maxStepMs": 9.699999988079071,
+            "waitingMs": 1711.1000000238419,
+            "scheduleMs": 1.2000000029802322,
+            "elapsedMs": 1815.699999988079
+          }
+        }
+      },
+      {
+        "id": "moonroot-grove-v1",
+        "stage": "ready",
+        "phase": "done",
+        "drawables": 922,
+        "batches": 77,
+        "sourceVertices": 27892240,
+        "submittedVertices": 2760,
+        "submittedTriangles": 916,
+        "submittedCalls": 922,
+        "compileMs": 72.80000001192093,
+        "submitMs": 56.59999996423721,
+        "maxBatchMs": 14.199999988079071,
+        "elapsedMs": 138.20000000298023,
+        "construction": {
+          "terrain": {
+            "state": "ready",
+            "startedMs": 3276.5999999940395,
+            "pausedAtMs": null,
+            "steps": 2484,
+            "cpuMs": 971.4000003039837,
+            "maxStepMs": 16.799999997019768,
+            "waitingMs": 0,
+            "scheduleMs": 4877.299999713898,
+            "elapsedMs": 5850.0999999940395
+          },
+          "environment": {
+            "state": "ready",
+            "startedMs": 9130,
+            "pausedAtMs": null,
+            "steps": 14634,
+            "cpuMs": 988.100000038743,
+            "maxStepMs": 158.09999999403954,
+            "waitingMs": 0,
+            "scheduleMs": 4083.2999999523163,
+            "elapsedMs": 5080.199999988079
+          },
+          "water": {
+            "state": "ready",
+            "startedMs": 14211.09999999404,
+            "pausedAtMs": null,
+            "steps": 3,
+            "cpuMs": 2.6000000089406967,
+            "maxStepMs": 2.5,
+            "waitingMs": 0,
+            "scheduleMs": 0.29999999701976776,
+            "elapsedMs": 2.9000000059604645
+          },
+          "grass": {
+            "state": "ready",
+            "startedMs": 14214.89999999106,
+            "pausedAtMs": null,
+            "steps": 1644,
+            "cpuMs": 122.89999994635582,
+            "maxStepMs": 14.799999997019768,
+            "waitingMs": 671.5999999791384,
+            "scheduleMs": 174.00000005960464,
+            "elapsedMs": 969.7000000029802
+          },
+          "staticBatch": {
+            "state": "ready",
+            "startedMs": 15184.699999988079,
+            "pausedAtMs": null,
+            "steps": 1200,
+            "cpuMs": 15.099999964237213,
+            "maxStepMs": 2.2000000029802322,
+            "waitingMs": 0,
+            "scheduleMs": 91.00000004470348,
+            "elapsedMs": 107.70000000298023
+          },
+          "compile": {
+            "state": "ready",
+            "startedMs": 15323.39999999106,
+            "pausedAtMs": null,
+            "steps": 63,
+            "cpuMs": 83.90000000596046,
+            "maxStepMs": 8.599999994039536,
+            "waitingMs": 1460.5999999791384,
+            "scheduleMs": 3.000000014901161,
+            "elapsedMs": 1547.5
+          }
+        }
+      }
+    ]
+  },
+  "reloadMs": 46270,
+  "loading": [
+    {
+      "file": "rusty_sword.glb",
+      "bytes": 1335312,
+      "durationMs": 53.20000000298023
+    },
+    {
+      "file": "ranger_axe.glb",
+      "bytes": 7698792,
+      "durationMs": 116.09999999403954
+    },
+    {
+      "file": "knight_greatsword.glb",
+      "bytes": 8077804,
+      "durationMs": 191.30000001192093
+    },
+    {
+      "file": "tidecaller_staff.glb",
+      "bytes": 10225972,
+      "durationMs": 242.59999999403954
+    },
+    {
+      "file": "dusk_longbow.glb",
+      "bytes": 8182592,
+      "durationMs": 143.30000001192093
+    },
+    {
+      "file": "greyfang_sabre.glb",
+      "bytes": 7917944,
+      "durationMs": 117.19999998807907
+    },
+    {
+      "file": "wisp_staff.glb",
+      "bytes": 8680148,
+      "durationMs": 132.20000000298023
+    },
+    {
+      "file": "storm_bow.glb",
+      "bytes": 10529532,
+      "durationMs": 1199.3999999910593
+    },
+    {
+      "file": "stormglass_blade.glb",
+      "bytes": 10689960,
+      "durationMs": 275
+    },
+    {
+      "file": "wisp_stiletto.glb",
+      "bytes": 8682252,
+      "durationMs": 74.90000000596046
+    },
+    {
+      "file": "lantern_wand.glb",
+      "bytes": 9442860,
+      "durationMs": 71.80000001192093
+    },
+    {
+      "file": "thunder_maul.glb",
+      "bytes": 7863232,
+      "durationMs": 579.6000000089407
+    },
+    {
+      "file": "galebreaker.glb",
+      "bytes": 9136672,
+      "durationMs": 92.79999999701977
+    },
+    {
+      "file": "crag_axe.glb",
+      "bytes": 7304764,
+      "durationMs": 553
+    },
+    {
+      "file": "horn_greatblade.glb",
+      "bytes": 8280604,
+      "durationMs": 445.40000000596046
+    },
+    {
+      "file": "ancient_staff.glb",
+      "bytes": 9929492,
+      "durationMs": 482.79999999701977
+    },
+    {
+      "file": "oathblade.glb",
+      "bytes": 7459904,
+      "durationMs": 41
+    },
+    {
+      "file": "ruin_fang.glb",
+      "bytes": 8321480,
+      "durationMs": 58.3999999910593
+    },
+    {
+      "file": "relic_wand.glb",
+      "bytes": 8154132,
+      "durationMs": 38.599999994039536
+    },
+    {
+      "file": "moonleaf_wand.glb",
+      "bytes": 8794108,
+      "durationMs": 87.90000000596046
+    },
+    {
+      "file": "fang_bow.glb",
+      "bytes": 1798328,
+      "durationMs": 21.400000005960464
+    },
+    {
+      "file": "frontier_kris.glb",
+      "bytes": 2122152,
+      "durationMs": 29
+    },
+    {
+      "file": "fang_dagger.glb",
+      "bytes": 1533856,
+      "durationMs": 53.5
+    },
+    {
+      "file": "hermit_cleaver.glb",
+      "bytes": 2244960,
+      "durationMs": 39.79999999701977
+    },
+    {
+      "file": "spore_staff.glb",
+      "bytes": 2451460,
+      "durationMs": 55.29999999701977
+    },
+    {
+      "file": "tide_staff.glb",
+      "bytes": 2340576,
+      "durationMs": 40.8999999910593
+    },
+    {
+      "file": "tusk_greatblade.glb",
+      "bytes": 1982672,
+      "durationMs": 50.599999994039536
+    },
+    {
+      "file": "venom_wand.glb",
+      "bytes": 1709180,
+      "durationMs": 49.3999999910593
+    },
+    {
+      "file": "old_bow.glb",
+      "bytes": 2231076,
+      "durationMs": 96.20000000298023
+    },
+    {
+      "file": "spore_wand.glb",
+      "bytes": 2637216,
+      "durationMs": 57.69999998807907
+    },
+    {
+      "file": "tusk_blade.glb",
+      "bytes": 1961488,
+      "durationMs": 39.599999994039536
+    },
+    {
+      "file": "apprentice_staff.glb",
+      "bytes": 2131268,
+      "durationMs": 25.80000001192093
+    },
+    {
+      "file": "hunter_bow.glb",
+      "bytes": 2167628,
+      "durationMs": 34
+    },
+    {
+      "file": "tusk_club.glb",
+      "bytes": 2856900,
+      "durationMs": 54.29999999701977
+    },
+    {
+      "file": "shell_knife.glb",
+      "bytes": 1195576,
+      "durationMs": 11.5
+    },
+    {
+      "file": "beetle_maul.glb",
+      "bytes": 547672,
+      "durationMs": 7.699999988079071
+    },
+    {
+      "file": "skyrender_bow.glb",
+      "bytes": 537032,
+      "durationMs": 12.699999988079071
+    },
+    {
+      "file": "wolfbite_sword.glb",
+      "bytes": 1714200,
+      "durationMs": 26.399999991059303
+    }
+  ],
+  "requestsBeforeReload": 38,
+  "errors": []
+}

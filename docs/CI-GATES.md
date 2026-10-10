@@ -50,7 +50,7 @@ A release always runs these safeguards even for documentation-only changes.
 | Known local files/registered assets | explicit consumers in `ci-browser-plan.mjs` |
 
 Plans union these families, including deleted/renamed paths. A single shared file
-selects six suites / 12 engine jobs, **not all 27 suites / 54 engine jobs**. Large
+selects six suites / 12 engine jobs, **not all 27 logical suites / 70 engine jobs**. Large
 cross-area changes can legitimately union more suites. AST-proven equipment
 narrowing retains its existing consumers. Unknown paths select the shared risk
 set, not zero checks. This is a deliberate demo risk tradeoff, not proof of full
@@ -123,7 +123,12 @@ site. It does not rebuild the game or change its source identity.
 manually dispatchable. It is never a dependency of publication. It tests the exact
 upstream workflow SHA (a rollback's CI run therefore checks the current workflow
 source, while bounded live verification checks the restored game). The complete
-27-suite / 54-engine inventory is retained. Full WebKit exploration/Dreamloop and
+27-suite inventory is retained in 70 engine jobs. Opening runs eight unchanged
+view/kit cases (desktop and iPad sword/bow/staff, both phone orientations staff)
+and one separate v10-save migration in each engine. These are independent jobs
+under the same 30-minute bound and existing 90-second assertion timeouts; the
+logical opening suite cannot pass or certify release reuse without all nine
+exact-source case reports/jobs. Full WebKit exploration/Dreamloop and
 crafting/loadout/reload moved from the publication path into an additional full
 regression job. Their failures remain red with retained reports and screenshots;
 there is no failure waiver or automatic revert. Full runs can compete for hosted

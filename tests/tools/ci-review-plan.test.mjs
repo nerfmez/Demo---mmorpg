@@ -9,6 +9,7 @@ import { browserPlan, FULL_SUITES, LEGACY_UI_SUITES, SUITES, legacyReviewRequire
 import { equipmentImpact, EQUIPMENT_SUITES } from '../../scripts/ci-equipment-impact.mjs';
 import { reviewPlan, SCHEDULE } from '../../scripts/ci-review-plan.mjs';
 import { validateEngineOwnership } from '../../scripts/ci-browser-engine.mjs';
+import { browserShards } from '../../scripts/ci-browser-shards.mjs';
 const source = 'a'.repeat(40), merge = 'b'.repeat(40), tree = 'c'.repeat(40);
 
 test('every tool-test workflow installs locked parser dependencies first', () => {
@@ -18,15 +19,17 @@ test('every tool-test workflow installs locked parser dependencies first', () =>
   assert.ok(validate.indexOf('run: npm ci') < validate.indexOf('run: node --test tests/tools/*.test.mjs'));
 });
 
-test('same-tree merge evidence has one execution per selected suite and engine', () => {
+test('same-tree merge evidence has one execution per selected case and engine', () => {
   const plan = reviewPlan({ source, merge, sourceTree: tree, mergeTree: tree, mode: 'quick', suites: FULL_SUITES });
   assert.equal(plan.source, source); assert.equal(plan.mode, 'quick'); assert.deepEqual(plan.mergeSuites, []);
-  assert.equal(plan.matrix.include.length, FULL_SUITES.length * 2);
+  const executions = FULL_SUITES.flatMap(browserShards).length * 2;
+  assert.equal(plan.matrix.include.length, executions);
   assert.deepEqual(new Set(SCHEDULE.filter(s => FULL_SUITES.includes(s))), new Set(FULL_SUITES));
-  assert.equal(new Set(plan.matrix.include.map(j => `${j.source}:${j.browser}:${j.suite}`)).size, FULL_SUITES.length * 2);
+  assert.equal(new Set(plan.matrix.include.map(j => `${j.source}:${j.browser}:${j.shard}`)).size, executions);
   for (let i = 0; i < plan.matrix.include.length; i += 2) {
     assert.equal(plan.matrix.include[i].browser, 'chromium'); assert.equal(plan.matrix.include[i + 1].browser, 'webkit');
     assert.equal(plan.matrix.include[i].suite, plan.matrix.include[i + 1].suite);
+    assert.equal(plan.matrix.include[i].shard, plan.matrix.include[i + 1].shard);
   }
   assert.equal(plan.matrix.include[0].suite, 'ux');
 });
@@ -78,7 +81,7 @@ test('bounded routes retain selected UI/HUD owners in both source plans', () => 
       assert.deepEqual(plan.hud, suites.includes('hud') ? ['hud'] : [], file);
       const required = mergeTree === tree ? suites : plan.mergeSuites;
       for (const suite of required) assert.equal(plan.matrix.include.filter(job =>
-        job.source === (mergeTree === tree ? source : merge) && job.suite === suite).length, 2, `${file}: ${suite}`);
+        job.source === (mergeTree === tree ? source : merge) && job.suite === suite).length, browserShards(suite).length * 2, `${file}: ${suite}`);
     }
   }
   assert.ok(browserPlan(['src/ui/equipment-avatar.js']).suites.includes('workspaces'), 'loadout imports equipment avatar');

@@ -89,6 +89,12 @@ export class MonsterTrails {
     }
   }
 
+  // Trails live directly in the scene. Stop them when the owning creature leaves
+  // the conservative view envelope so old tip samples cannot flash on reentry.
+  clear() {
+    for (const t of this.pool) t.clear();
+  }
+
   dispose() {
     for (const t of this.pool) t.dispose();
     this.pool.length = 0;

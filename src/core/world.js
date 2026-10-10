@@ -536,7 +536,6 @@ export function createWorld(worldData) {
   };
   for (const c of circles) addToGrid(c, c.x, c.z, c.r);
   for (const bx of boxes) addToGrid(bx, bx.x, bx.z, Math.hypot(bx.hx, bx.hz));
-  const nearby = (x, z) => grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) || [];
 
   // Only player walking / a saved seam arrival opts into these apertures.
   // Monster movement, spawning, teleports and ordinary free-space tests retain
@@ -555,11 +554,18 @@ export function createWorld(worldData) {
     if(!allowSeams){if(x<b.minX+r||x>b.maxX-r||z<b.minZ+r||z>b.maxZ-r)return false;}
     else {const limits=movementBounds(x,z,r,true);if(x<limits.minX||x>limits.maxX||z<limits.minZ||z>limits.maxZ)return false;}
     if (!ignoreWater && blocksWater(x, z, r * 0.3)) return false;
-    for (const o of nearby(x, z)) {
-      if (o.hx !== undefined) {
-        if (pointInBox(o, x, z, r)) return false;
-      } else if (dist(x, z, o.x, o.z) < o.r + r) return false;
-    }
+    // Search the actor footprint, not only its centre cell: an obstacle can
+    // end before a gridline while the actor on the far side still overlaps it.
+    for (let cx = Math.floor((x - r) / CELL); cx <= Math.floor((x + r) / CELL); cx++)
+      for (let cz = Math.floor((z - r) / CELL); cz <= Math.floor((z + r) / CELL); cz++) {
+        const list = grid.get(key(cx, cz));
+        if (!list) continue;
+        for (const o of list) {
+          if (o.hx !== undefined) {
+            if (pointInBox(o, x, z, r)) return false;
+          } else if (dist(x, z, o.x, o.z) < o.r + r) return false;
+        }
+      }
     return true;
   }
 
@@ -580,25 +586,31 @@ export function createWorld(worldData) {
     let nx = clamp(x + dx, limits?.minX??b.minX+r, limits?.maxX??b.maxX-r);
     let nz = clamp(z + dz, limits?.minZ??b.minZ+r, limits?.maxZ??b.maxZ-r);
     for (let iter = 0; iter < 2; iter++) {
-      for (const o of nearby(nx, nz)) {
-        if (o.hx !== undefined) {
-          const { lx, lz } = toBoxLocal(o, nx, nz);
-          const ox = o.hx + r - Math.abs(lx);
-          const oz = o.hz + r - Math.abs(lz);
-          if (ox > 0 && oz > 0) {
-            const p = ox < oz ? fromBoxLocal(o, lx + Math.sign(lx || 1) * ox, lz) : fromBoxLocal(o, lx, lz + Math.sign(lz || 1) * oz);
-            nx = p.x;
-            nz = p.z;
-          }
-        } else {
-          const d = dist(nx, nz, o.x, o.z);
-          const min = o.r + r;
-          if (d < min) {
-            if (d < 1e-4) nx = o.x + min;
-            else {
-              const k = (min - d) / d;
-              nx += (nx - o.x) * k;
-              nz += (nz - o.z) * k;
+      const minCX = Math.floor((nx - r) / CELL), maxCX = Math.floor((nx + r) / CELL);
+      const minCZ = Math.floor((nz - r) / CELL), maxCZ = Math.floor((nz + r) / CELL);
+      for (let cx = minCX; cx <= maxCX; cx++) for (let cz = minCZ; cz <= maxCZ; cz++) {
+        const list = grid.get(key(cx, cz));
+        if (!list) continue;
+        for (const o of list) {
+          if (o.hx !== undefined) {
+            const { lx, lz } = toBoxLocal(o, nx, nz);
+            const ox = o.hx + r - Math.abs(lx);
+            const oz = o.hz + r - Math.abs(lz);
+            if (ox > 0 && oz > 0) {
+              const p = ox < oz ? fromBoxLocal(o, lx + Math.sign(lx || 1) * ox, lz) : fromBoxLocal(o, lx, lz + Math.sign(lz || 1) * oz);
+              nx = p.x;
+              nz = p.z;
+            }
+          } else {
+            const d = dist(nx, nz, o.x, o.z);
+            const min = o.r + r;
+            if (d < min) {
+              if (d < 1e-4) nx = o.x + min;
+              else {
+                const k = (min - d) / d;
+                nx += (nx - o.x) * k;
+                nz += (nz - o.z) * k;
+              }
             }
           }
         }

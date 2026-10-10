@@ -36,6 +36,12 @@ export class Ribbon {
     );
     this.mesh.frustumCulled = false;
     this.mesh.castShadow = true;
+    // Physics points and vertices are world-space. A regional owner may be
+    // translated/rotated, so cancel that parent transform on the mesh while
+    // keeping it attached for visibility and resource disposal.
+    this.mesh.matrixAutoUpdate = false;
+    this.parentWorld = new THREE.Matrix4();
+    this.hasParentTransform = false;
     this.initialized = false;
     this.side = new THREE.Vector3(1, 0, 0);
     this.delta = new THREE.Vector3();
@@ -43,6 +49,21 @@ export class Ribbon {
 
   /** anchor: world-space attach point; back: world direction the tail trails toward at rest; side: world-space ribbon width axis */
   update(dt, anchor, back, side, wind = 0) {
+    const parent = this.mesh.parent;
+    if (parent) {
+      parent.updateWorldMatrix(true, false);
+      if (!this.parentWorld.equals(parent.matrixWorld)) {
+        this.parentWorld.copy(parent.matrixWorld);
+        this.mesh.matrix.copy(this.parentWorld).invert();
+        this.mesh.matrixWorldNeedsUpdate = true;
+      }
+      this.hasParentTransform = true;
+    } else if (this.hasParentTransform) {
+      this.parentWorld.identity();
+      this.mesh.matrix.identity();
+      this.mesh.matrixWorldNeedsUpdate = true;
+      this.hasParentTransform = false;
+    }
     const pts = this.pts;
     // a teleport (blink, respawn) would fling the cloth: start it hanging again
     if (this.initialized && pts[0].distanceTo(anchor) > 1.2) this.initialized = false;
@@ -56,6 +77,7 @@ export class Ribbon {
     }
     const h = Math.min(dt, 1 / 30);
     const drag = 0.9;
+    const windTime = performance.now() * 0.004;
     for (let i = 1; i < this.n; i++) {
       const p = pts[i];
       const v = this.delta.copy(p).sub(this.prev[i]).multiplyScalar(drag);
@@ -63,7 +85,7 @@ export class Ribbon {
       p.add(v);
       p.y -= 5.5 * h * h;
       p.addScaledVector(back, 2.2 * h * h * (1 + wind));
-      p.x += Math.sin(performance.now() * 0.004 + i) * 0.0009 * (1 + wind);
+      p.x += Math.sin(windTime + i) * 0.0009 * (1 + wind);
     }
     pts[0].copy(anchor);
     for (let k = 0; k < 3; k++) {

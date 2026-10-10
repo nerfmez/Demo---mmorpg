@@ -8,13 +8,19 @@ const out=process.env.CITY_OUT||`tests/browser/out/${reviewName}/`;mkdirSync(out
 const base=process.env.CITY_URL||process.env.DREAMLOOP_URL||'http://localhost:4194/';
 const server=process.env.CITY_URL||process.env.DREAMLOOP_URL?null:spawn('node',['node_modules/vite/bin/vite.js','preview','--port','4194','--strictPort'],{stdio:'ignore',detached:true});
 const report={browser:engine.name(),base,errors:[],captures:[],routes:[],physicalDeviceFPS:'not measured'};let browser;
+const startupSnapshot=()=>{const f=window.__frontier,v=f?.view,q=v?.buildQueue;return{
+ modelsReady:!!f?.modelsReady,dependencies:v?.startupDependencies,jobs:q?.jobs?.map(j=>j.label+':'+j.state),queueStats:q?.stats,
+ regions:[...(v?.regions??[])].map(([id,r])=>({id,imported:r.importedState,grassReady:r.grassReady,grassError:r.grassError?.message,warm:r.warmStats,construction:r.stats.construction}))};};
 try{
  for(let i=0;server;i++){try{if((await fetch(base)).ok)break;}catch{}if(i>60)throw Error('local server');await new Promise(r=>setTimeout(r,250));}
  browser=await engine.launch({...(engine===chromium&&process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}:{}),args:engine===chromium?['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
  const ctx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true,deviceScaleFactor:1}),page=await ctx.newPage();page.setDefaultTimeout(90000);
  await page.addInitScript(()=>{const raf=requestAnimationFrame.bind(window);window.requestAnimationFrame=cb=>raf(t=>{if(!window.__cityFreeze)cb(t);});});
  page.on('pageerror',e=>report.errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))report.errors.push('HTTP '+r.status()+' '+r.url());});
- await page.goto(base+'?fresh=1&seed=9&quality=medium&dynres=0');await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier.game?.time>.1);await enterFullscreenGate(page);
+ const started=Date.now();await page.goto(base+'?fresh=1&seed=9&quality=medium&dynres=0');
+ try{await page.waitForFunction(()=>__frontier?.modelsReady&&__frontier.game?.time>.1);}
+ catch(error){report.startupFailure=await page.evaluate(startupSnapshot);writeFileSync(out+'report.json',JSON.stringify(report,null,2));console.error('startup failure',JSON.stringify(report.startupFailure));throw error;}
+ report.startup={elapsedMs:Date.now()-started,...await page.evaluate(startupSnapshot)};await enterFullscreenGate(page);
  await page.evaluate(()=>{__cityFreeze=true;__frontier.paused=true;__frontier.input.disabled=true;});
  const shot=async(name,x,z,zoom=1.4,top=false)=>{
   await page.evaluate(([x,z,zoom,top])=>{const f=__frontier;Object.assign(f.game.player,f.game.freeSpotNear(x,z));f.view.zoom=zoom;f.view.scene.fog.near=zoom>2?1000:44;f.view.scene.fog.far=zoom>2?2000:84;f.view.camera.far=600;f.view.camera.updateProjectionMatrix();f.view.snapCamera();if(top){f.view.camera.position.set(x,330,z+.01);f.view.camera.lookAt(x,.76,z);f.view.camera.updateMatrixWorld();}f.view.render(0,1,{});if(top){f.view.camera.position.set(x,330,z+.01);f.view.camera.lookAt(x,.76,z);f.view.camera.updateMatrixWorld();f.view.renderer.render(f.view.scene,f.view.camera);}f.hud.update(.5,f.panels);document.querySelector('#hud').style.visibility=zoom>2?'hidden':'';},[x,z,zoom,top]);
@@ -59,12 +65,17 @@ try{
  const previewCtx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:true,isMobile:true,deviceScaleFactor:1});
  const previewPage=await previewCtx.newPage();previewPage.setDefaultTimeout(90000);previewPage.on('pageerror',e=>report.errors.push(e.message));
  await previewPage.addInitScript(()=>{const raf=requestAnimationFrame.bind(window);window.requestAnimationFrame=cb=>raf(t=>{if(!window.__cityFreeze)cb(t);});});
- await previewPage.goto(base+'?quality=low&seed=9');
+ const previewStarted=Date.now();await previewPage.goto(base+'?quality=low&seed=9');
+ report.previewLoadingBackdrop=await previewPage.locator('.fullscreen-gate').evaluate(el=>getComputedStyle(el).backdropFilter);
+ assert.equal(report.previewLoadingBackdrop,'none','opaque boot card leaves GPU preparation ahead of fullscreen backdrop work');
  // On a title-page timeout, keep what the page was waiting on (boot state, build jobs, errors) in the report.
  try{await previewPage.waitForFunction(()=>__frontier?.modelsReady&&__frontier.menu);}
  catch(error){report.previewTimeout=await previewPage.evaluate(()=>{const f=window.__frontier,v=f?.view,q=v?.buildQueue;return{modelsReady:!!f?.modelsReady,menu:!!f?.menu,region:v?.region&&{id:v.region.world?.data?.id,importedState:v.region.importedState,staticReady:v.region.staticReady,disposed:v.region.disposed,error:String(v.region.error||'')},jobs:q?.jobs?.map(j=>j.label+':'+j.state),queueStats:q?.stats,running:q?.running};}).catch(e=>({evaluateFailed:e.message}));
   report.firstPageQueue=await page.evaluate(()=>{const q=__frontier.view.buildQueue;return{jobs:q.jobs.map(j=>j.label+':'+j.state),stats:q.stats};}).catch(e=>({evaluateFailed:e.message}));
-  writeFileSync(out+'report.json',JSON.stringify(report,null,2));await previewPage.screenshot({path:out+'10-character-creation-timeout.png'}).catch(()=>{});console.error('preview timeout',JSON.stringify(report.previewTimeout),JSON.stringify(report.firstPageQueue),JSON.stringify(report.errors));throw error;}await enterFullscreenGate(previewPage);
+  report.previewStartup=await previewPage.evaluate(startupSnapshot);writeFileSync(out+'report.json',JSON.stringify(report,null,2));await previewPage.screenshot({path:out+'10-character-creation-timeout.png'}).catch(()=>{});console.error('preview timeout',JSON.stringify(report.previewTimeout),JSON.stringify(report.firstPageQueue),JSON.stringify(report.errors));throw error;}
+ report.previewStartup={elapsedMs:Date.now()-previewStarted,...await previewPage.evaluate(startupSnapshot)};
+ report.previewReadyBackdrop=await previewPage.locator('.fullscreen-gate').evaluate(el=>getComputedStyle(el).backdropFilter);
+ assert.equal(report.previewReadyBackdrop,'blur(12px)','ready title retains its authored fullscreen backdrop');await enterFullscreenGate(previewPage);
  await previewPage.locator('[data-act="new"]').tap();await previewPage.waitForSelector('.create-panel');
  report.creationPreview=await previewPage.evaluate(()=>{__cityFreeze=true;const f=__frontier,p=f.view.previewHero.root.position;f.view.render(0,1,{});return{position:[p.x,p.z],free:f.world.isFree(p.x,p.z,.45),spawn:f.world.data.playerSpawn};});
  assert.ok(report.creationPreview.free);assert.deepEqual(report.creationPreview.position,data.world.town.respawn);assert.deepEqual(report.creationPreview.spawn,data.world.playerSpawn);

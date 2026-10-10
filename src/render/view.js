@@ -25,6 +25,10 @@ import { dropSprite } from './dropart.js';
 import { animeStudy } from './anime-study.js';
 import { buildWreck, weaponProps } from './wreck.js';
 import { startRegion, regionSteps, placeRegion, disposeRegion } from './region.js';
+import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibility } from './resident-world.js';
+import { prepareSpatialRegion } from './spatial-region.js';
+import { cachedHeroLook } from './hero-look-cache.js';
+import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
@@ -45,6 +49,9 @@ const ZONE_FOG = {
 
 export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
+    this.unified = !!worlds;
+    this.coordinateOrigin = [...(world.data.atlas?.offset || [0, 0])];
+    this.worldPrepared = false;
     this.ruleWorlds = worlds; // existing rule worlds also bound finite terrain margins
     this.game = null;
     this.quality = qualitySettings(quality).name;
@@ -93,6 +100,7 @@ export class View {
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
     this.region = startRegion(this, world);
     this.scene.add(this.region.root);
+    this.regions = new Map([[world.data.id, this.region]]);
     this.neighbours = new Map();
     this.cityReady = this.region.ready;
     this.grassList = [...this.region.grass]; // rebuilt only when a region comes or goes
@@ -118,16 +126,18 @@ export class View {
 
     this.raycaster = new THREE.Raycaster();
     this.resize();
+    this.worldReady = this.unified ? prepareResidentWorld(this, worlds) : this.region.ready.then(() => { this.worldPrepared = true; });
+    this.cityReady = this.worldReady;
   }
 
   // The active map's region (region.js) owns its static scene and town NPCs.
-  get world() { return this.region.world; }
+  get world() { return this.game?.world || this.region.world; }
   get terrain() { return this.region.terrain; }
-  get waypointStones() { return this.region.waypointStones; }
-  get npcs() { return this.region.npcs; }
-  get npcMarkers() { return this.region.npcMarkers; }
-  get fires() { return this.region.fires; }
-  get chimneys() { return this.region.chimneys; }
+  get waypointStones() { return this.residentStones || this.region.waypointStones; }
+  get npcs() { return this.residentNpcs || this.region.npcs; }
+  get npcMarkers() { return this.residentMarkers || this.region.npcMarkers; }
+  get fires() { return this.residentFires || this.region.fires; }
+  get chimneys() { return this.residentChimneys || this.region.chimneys; }
   get staticBatch() { return this.region.staticBatch; }
   get cityRoot() { return this.region.cityRoot; }
   get cityStats() { return this.region.stats.city; }
@@ -141,6 +151,7 @@ export class View {
   // placed at its atlas delta, so it is in view before the border and walking across
   // needs no reload. Far from every seam it is dropped again (memory returns to one map).
   updateStreaming(px, pz) {
+    if (this.unified) return; // all resident cells were prepared before gameplay
     if (!this.coreWorld) return;
     const world = this.world, b = world.bounds;
     const wanted = new Set();
@@ -200,6 +211,7 @@ export class View {
   }
 
   neighbourReady(id) {
+    if (this.unified) { const r = this.regions.get(id); return !!r && !r.disposed && r.importedState === 'imported-ready'; }
     const region=this.neighbours.get(id)?.region;
     return !!region?.staticReady&&!region.disposed;
   }
@@ -210,6 +222,14 @@ export class View {
    * The camera and every view in game coordinates move by the same shift.
    */
   switchRegion(id) {
+    if (this.unified) {
+      const next = this.regions.get(id);
+      if (!next || next.disposed) return false;
+      this.region = next;
+      this.neighbours = new Map([...this.regions].filter(([key]) => key !== id).map(([key, region]) => [key, { region, steps: null, buildMs: 0 }]));
+      if (this.game) this.placeWreck(this.game);
+      return true;
+    }
     const next = this.neighbours.get(id)?.region;
     if (!next) return false;
     const prev = this.region, [ax, az] = prev.world.data.atlas.offset, [nx, nz] = next.world.data.atlas.offset;
@@ -239,30 +259,37 @@ export class View {
   }
 
   refreshGrass() {
+    if (this.unified) { this.grassList = [...this.regions.values()].flatMap(r => r.grass); return; }
     this.grassList = [...this.region.grass];
     for (const n of this.neighbours.values()) if (n.region) this.grassList.push(...n.region.grass);
   }
 
   /** Attach (or replace) the running game. */
   /** The wreck on Arrival Beach, and (until the opening ends) the three weapons stuck in the sand. */
+  ensureWreck(region) {
+    const cfg = region.world.data.wreck;
+    if (!cfg || region.wreck) return;
+    const at = (o, [x,z], rot) => { o.position.set(x, region.world.groundY(x,z), z); o.rotation.y=rot; region.root.add(o); return o; };
+    region.wreck=at(buildWreck(),cfg.at,cfg.rot);
+    region.weaponProps={};
+    for(const [kit,o] of Object.entries(weaponProps())) { region.weaponProps[kit]=at(o,cfg.weapons[kit],.2); o.visible=false; }
+  }
+
   placeWreck(game) {
-    const cfg = this.world.data.wreck;
-    if (!cfg) { this.heroDown = this.heroDownTarget = 0; return; }
-    if (!this.wreck) {
-      const at = (o, [x, z], rot) => { o.position.set(x, this.world.groundY(x, z), z); o.rotation.y = rot; this.region.root.add(o); return o; };
-      this.region.wreck = at(buildWreck(), cfg.at, cfg.rot);
-      this.region.weaponProps = {};
-      for (const [kit, o] of Object.entries(weaponProps())) this.region.weaponProps[kit] = at(o, cfg.weapons[kit], 0.2);
-    }
-    const stage = game.ch.opening?.stage;
-    for (const o of Object.values(this.weaponProps)) o.visible = stage !== 'done';
-    this.heroDown = this.heroDownTarget = stage === 'wake' ? 1 : 0;
+    if (!this.region.world.data.wreck) { this.heroDown = this.heroDownTarget = 0; return; }
+    this.ensureWreck(this.region);
+    const stage=game.ch.opening?.stage;
+    for(const o of Object.values(this.weaponProps))o.visible=stage!=='done';
+    this.heroDown=this.heroDownTarget=stage==='wake'?1:0;
   }
 
   attachGame(game) {
     this.vfx.clearFireballs();
     this.frontierFx.clear();
     this.game = game;
+    this.vfx.world = game.world;
+    this.frontierFx.ground = game.world;
+    for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = game.world;
     for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
     this.monsterViews.clear();
     for (const v of this.allyViews.values()) { removeSpiritReveal(v.reveal); this.releaseRig(v.rig); }
@@ -426,6 +453,7 @@ export class View {
   setQuality(q) {
     const next = qualitySettings(q);
     if (next.name === this.quality) return;
+    if (this.unified) restoreResidentVisibility(this);
     const wasEnabled = this.renderer.shadowMap.enabled;
     this.quality = next.name;
     applyShadowQuality(this.renderer, this.sun, this.quality);
@@ -437,6 +465,7 @@ export class View {
       for (const material of materials) material.needsUpdate = true;
     }
     this.resize();
+    if (this.unified && this.worldPrepared) for (const region of this.regions.values()) prepareSpatialRegion(region);
   }
 
   /** Screen point -> point on the terrain (ray marched against the heightfield). */
@@ -699,7 +728,9 @@ export class View {
 
   syncDrops(dt, time) {
     const g = this.game;
-    const seen = new Set();
+    const seen = this._dropSeen || (this._dropSeen = new Set());
+    seen.clear();
+    const visibility = cameraVisibility(this.camera);
     for (const d of g.drops) {
       seen.add(d.id);
       let v = this.dropViews.get(d.id);
@@ -708,10 +739,22 @@ export class View {
         v.userData.born = time;
         this.scene.add(v);
         this.dropViews.set(d.id, v);
+        sleepOffscreenMatrices(v);
       }
+      // Drops stay where they landed. Sampling the terrain every frame for every
+      // bag is wasted work; only a changed position needs a new ground height.
+      if (v.userData.dropX !== d.x || v.userData.dropZ !== d.z) {
+        v.userData.dropX = d.x;
+        v.userData.dropZ = d.z;
+        v.userData.groundY = this.groundAt(d.x, d.z);
+      }
+      const ground = v.userData.groundY;
+      // Includes the four-metre rare beam, landing hop and the glow envelope.
+      v.visible = visibility.intersectsSphere(d.x, ground + 2.1, d.z, 4.5);
+      if (!v.visible) continue;
       const age = time - v.userData.born;
       const hop = age < 0.45 ? Math.sin((age / 0.45) * Math.PI) * 1.2 : 0;
-      v.position.set(d.x, this.groundAt(d.x, d.z) + 0.35 + hop + Math.sin(time * 3 + d.id) * 0.06, d.z);
+      v.position.set(d.x, ground + 0.35 + hop + Math.sin(time * 3 + d.id) * 0.06, d.z);
       if (!v.children[0].isSprite) v.children[0].rotation.y = time * 2 + d.id;
     }
     for (const [id, v] of this.dropViews) {
@@ -747,13 +790,16 @@ export class View {
   ambient(dt, x, z, zoneId) {
     this.ambientT += dt;
     const v = this.vfx;
+    const visibility = cameraVisibility(this.camera);
     const spawn = (rate, fn) => {
       if (Math.random() < dt * rate) {
         const a = Math.random() * Math.PI * 2;
         const r = 3 + Math.random() * 16;
         const px = x + Math.sin(a) * r;
         const pz = z + Math.cos(a) * r;
-        fn(px, this.groundAt(px, pz), pz);
+        const py = this.groundAt(px, pz);
+        // Keep effects that can drift into the viewport during their lifetime.
+        if (visibility.intersectsSphere(px, py + 2, pz, 7)) fn(px, py, pz);
       }
     };
     if (zoneId === 'meadow' || zoneId === 'glade' || zoneId === 'settlement') spawn(5, (px, py, pz) => v.fx.add(px, py + 0.5 + Math.random() * 1.5, pz, 0.4, 0.15, 0.2, { color: 0xfff4c0, size: 0.1, sizeEnd: 0.1, life: 4, drag: 0, alpha: 0.7 }));
@@ -761,11 +807,13 @@ export class View {
     if (zoneId === 'wetland') spawn(7, (px, py, pz) => v.fx.add(px, py + 0.4 + Math.random() * 1.4, pz, (Math.random() - 0.5) * 0.3, 0.1, (Math.random() - 0.5) * 0.3, { color: 0xd8ff7a, size: 0.14, sizeEnd: 0.05, life: 3, drag: 0 }));
     if (zoneId === 'highlands') spawn(6, (px, py, pz) => v.fx.add(px, py + 0.3 + Math.random() * 2, pz, 2.5, 0, 0.6, { color: 0xffffff, size: 0.08, sizeEnd: 0.02, life: 2, drag: 0, alpha: 0.6 }));
     if (zoneId === 'ruins') spawn(5, (px, py, pz) => v.fx.add(px, py + 0.3, pz, 0, 0.5, 0, { color: 0xc6b4ff, size: 0.12, sizeEnd: 0.04, life: 3.5, drag: 0 }));
-    // chimney smoke and the camp fire, only when near
-    for (const c of this.chimneys) if (Math.abs(c.x - x) < 40 && Math.abs(c.z - z) < 40 && Math.random() < dt * 1.5) v.dust.add(c.x + 0.8, c.y, c.z - 0.4, 0.3, 0.9, 0.1, { color: 0xd8d8d8, size: 0.6, sizeEnd: 1.4, life: 3, drag: 0.3, alpha: 0.5 });
+    // Chimney envelopes cover the smoke's full lifetime and drift.
+    for (const c of this.chimneys) if (visibility.intersectsSphere(c.x + 1.3, c.y + 1.5, c.z, 4) && Math.random() < dt * 1.5) v.dust.add(c.x + 0.8, c.y, c.z - 0.4, 0.3, 0.9, 0.1, { color: 0xd8d8d8, size: 0.6, sizeEnd: 1.4, life: 3, drag: 0.3, alpha: 0.5 });
     for (const f of this.fires) {
+      f.sprite.visible = visibility.intersectsObject(f.sprite, 3, .5);
+      if (!f.sprite.visible) continue;
       f.sprite.scale.setScalar(1.4 + Math.sin(this.time * 17) * 0.15 + Math.sin(this.time * 7.3) * 0.1);
-      if (Math.abs(f.x - x) < 40 && Math.random() < dt * 14) v.fx.add(f.x + (Math.random() - 0.5) * 0.4, this.groundAt(f.x, f.z) + 0.3, f.z + (Math.random() - 0.5) * 0.4, 0, 1.4 + Math.random(), 0, { color: Math.random() < 0.5 ? 0xffa040 : 0xffe07a, size: 0.25, life: 0.7, drag: 1 });
+      if (Math.random() < dt * 14) v.fx.add(f.x + (Math.random() - 0.5) * 0.4, this.groundAt(f.x, f.z) + 0.3, f.z + (Math.random() - 0.5) * 0.4, 0, 1.4 + Math.random(), 0, { color: Math.random() < 0.5 ? 0xffa040 : 0xffe07a, size: 0.25, life: 0.7, drag: 1 });
     }
   }
 
@@ -773,8 +821,8 @@ export class View {
     const g = this.game;
     const p = g.player;
     const look = g.ch.appearance || DEFAULT_LOOK;
-    const key = JSON.stringify([look, g.gearLook()]);
-    if (key !== this.heroLookKey) this.setHeroLook(look, g.gearLook());
+    const appearance = cachedHeroLook(this, g, look);
+    if (appearance.key !== this.heroLookKey) this.setHeroLook(look, appearance.gear);
     const r = this.hero;
     const ground = this.world.groundY(p.x, p.z);
     // falling off ledges looks like a fall, stepping up is quick
@@ -788,14 +836,26 @@ export class View {
     let y = this.heroY;
     if (p.dash && p.dash.kind === 'leap') y += Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5;
     const speed = dt > 0 && this.lastHeroPos ? Math.hypot(p.x - this.lastHeroPos.x, p.z - this.lastHeroPos.z) / dt : 0;
-    this.lastHeroPos = { x: p.x, z: p.z };
+    this.lastHeroPos ||= { x: 0, z: 0 };
+    this.lastHeroPos.x = p.x;
+    this.lastHeroPos.z = p.z;
     this.heroDown = damp(this.heroDown || 0, this.heroDownTarget || 0, this.heroDownTarget ? 8 : 2.4, dt);
     if (this.heroDown < 0.002 && !this.heroDownTarget) this.heroDown = 0;
     r.root.position.set(p.x, y + this.heroDown * 0.2, p.z); // lying: the back rests on the sand
     let d = p.facing - r.root.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     r.root.rotation.y += d * Math.min(1, dt * (p.cast || p.dash ? 30 : 14));
-    this.heroAnim.update(dt, { speed: p.dash ? 0 : Math.min(speed, 12), facing: r.root.rotation.y, moving: p.moving && !p.dash, dash: p.dash, charging: p.charging, channeling: p.channeling, dead: p.dead, down: this.heroDown, time });
+    const state = this._heroAnimationState || (this._heroAnimationState = {});
+    state.speed = p.dash ? 0 : Math.min(speed, 12);
+    state.facing = r.root.rotation.y;
+    state.moving = p.moving && !p.dash;
+    state.dash = p.dash;
+    state.charging = p.charging;
+    state.channeling = p.channeling;
+    state.dead = p.dead;
+    state.down = this.heroDown;
+    state.time = time;
+    this.heroAnim.update(dt, state);
     this.vfx.updateTrail(dt, r, p.dead || !!p.dash);
     this.vfx.updateCast(dt, r, !p.cast || p.dead || !!p.dash, p);
     r.root.visible = !(p.dash && p.dash.kind === 'blink');
@@ -835,21 +895,28 @@ export class View {
       const p = g.player;
       this.updateHero(dt, time);
       // the camera moves first, so monsters are culled against this frame's view (also after a snap)
-      focus = { x: p.x + g.input.moveX * 1.2, y: this.heroY, z: p.z + g.input.moveZ * 1.2 };
+      focus = this._gameCameraFocus || (this._gameCameraFocus = { x: 0, y: 0, z: 0 });
+      focus.x = p.x + g.input.moveX * 1.2;
+      focus.y = this.heroY;
+      focus.z = p.z + g.input.moveZ * 1.2;
       zoneId = world.zoneAt(p.x, p.z).id;
       this.updateCamera(dt, focus);
       this.updateStreaming(p.x, p.z);
+      const visibility = cameraVisibility(this.camera);
       for (const n of this.npcs) {
-        if (n.scenery) {
-          const dx = n.root.position.x - p.x, dz = n.root.position.z - p.z;
-          const range = world.data.town.life?.drawDistance ?? VIEW_RADIUS;
-          n.root.visible = dx * dx + dz * dz < range * range;
-          if (!n.root.visible) continue;
-        }
+        sleepOffscreenMatrices(n.root);
+        // NPCs have no combat simulation to advance off screen. Keep the body,
+        // tool, scarf and shadow envelope together when crossing camera edges.
+        const wasVisible = n.root.visible;
+        n.root.visible = visibility.intersectsObject(n.root, 3.5, 1);
+        if (n.scarf) n.scarf.mesh.visible = n.root.visible;
+        if (!n.root.visible) continue;
+        if (!wasVisible) n.scarf?.reset();
         n.idleState.time = time + n.root.position.x;
         n.anim.update(dt, n.idleState);
         if (n.activity) {
-          const wave = Math.sin(n.idleState.time * Math.PI * 2 / world.data.town.life.gesturePeriod);
+          const life = (n.regionWorld || n.root.userData.regionWorld || world).data.town.life;
+          const wave = Math.sin(n.idleState.time * Math.PI * 2 / (life?.gesturePeriod || 8));
           const strength = n.activity === 'work' ? .22 : .06;
           n.bones.armL.rotation.x = -.58;
           n.bones.elbowL.rotation.x = -.82;
@@ -860,10 +927,14 @@ export class View {
         if (n.job === 'smith' && !n.anim.action && Math.random() < dt * 0.7) n.anim.play('slashA', 0.9);
         updateScarf(n, dt, 0);
       }
-      this.npcMarkers.forEach((m, i) => {
+      const markers = this.npcMarkers;
+      for (let i = 0; i < markers.length; i++) {
+        const m = markers[i];
+        m.visible = visibility.intersectsObject(m, 1);
+        if (!m.visible) continue;
         m.rotation.y = time * 1.5;
         m.position.y = m.userData.baseY + Math.sin(time * 2 + i) * 0.12;
-      });
+      }
       this.syncMonsters(dt, time);
       this.syncAllies(dt, time);
       this.syncDrops(dt, time);
@@ -872,8 +943,11 @@ export class View {
       this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);
       // waypoint stones glow once discovered
-      for (const [id, stone] of this.waypointStones) {
-        const on = g.isWaypointUnlocked?.(id);
+      for (const [key, stone] of this.waypointStones) {
+        stone.visible = visibility.intersectsObject(stone, 5, 1.5);
+        if (!stone.visible) continue;
+        const id = stone.userData.waypointId ?? key;
+        const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
         const c = stone.userData.crystal;
         c.material.emissive.set(on ? '#3fb8e8' : '#223344');
         c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
@@ -950,6 +1024,7 @@ export class View {
     const sunOffset = renderConfig.shadow.sunOffset;
     this.sun.position.set(focus.x + sunOffset[0], focus.y + sunOffset[1], focus.z + sunOffset[2]);
     this.sun.target.position.set(focus.x, focus.y, focus.z);
+    if (this.unified && this.worldPrepared) updateResidentVisibility(this);
     this.draw();
   }
 

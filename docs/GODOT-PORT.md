@@ -74,6 +74,8 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 ### `game.js` → scenes
 
+Experimental online friends test: a monster with `remote: true` skips local AI (its state arrives from the room host) and `mirrorMonsters` stops local respawns; see `docs/MULTIPLAYER-PRESENCE.md`.
+
 - `player` → `Player.tscn` (`CharacterBody3D`). `useMovement()` becomes a dash tween with an invulnerability flag. Skills run through `executeSkill()`.
 - `projectiles[]` → `Projectile.tscn` (`Area3D`, moved in `_physics_process`). It carries the `pierce`, `chain` and `ground` fields from the computed skill.
 - `areas[]` → `GroundArea.tscn` (`Area3D` with a delay, tick and duration). Used for stone burst, burning ground, healing spring, boss slam and shockwave.

@@ -5,9 +5,10 @@ export const GEAR_SLOTS = ['weapon', 'offhand', 'armor', 'helm', 'gloves', 'boot
 export const exact = (o, names) => !!o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === names.length && names.every(n => Object.hasOwn(o, n));
 export const roomOK = room => typeof room === 'string' && /^[a-z0-9-]{1,24}$/.test(room);
 export const identityOK = id => typeof id === 'string' && /^[a-f0-9-]{36}$/.test(id);
+export const MONSTER_BATCH = 12;
 export const angleOK = n => Number.isFinite(n) && Math.abs(n) <= Math.PI;
 const lookKeys = ['hairStyle', 'hair', 'skin', 'eyes', 'scarf', 'tunic'];
-export function createProtocol({ maps, items, skills }) {
+export function createProtocol({ maps, items, skills, monsters }) {
   const regions = Object.entries(maps).map(([id, m]) => {
     const [x, z] = m.atlas?.offset || [0, 0], b = m.bounds;
     return { id, minX: b.minX + x, maxX: b.maxX + x, minZ: b.minZ + z, maxZ: b.maxZ + z };
@@ -32,7 +33,15 @@ export function createProtocol({ maps, items, skills }) {
   };
   const actionOK = a => exact(a, ['seq', 'skill', 'phase', 'angle', 'duration', 'step']) && Number.isSafeInteger(a.seq) && a.seq > 0 && a.seq <= 2147483647 && typeof a.skill === 'string' && Object.hasOwn(skills.combat, a.skill) && ['cast', 'charge', 'channel', 'cancel'].includes(a.phase) && angleOK(a.angle) && Number.isFinite(a.duration) && a.duration >= 0 && a.duration <= 3 && Number.isInteger(a.step) && a.step >= 0 && a.step <= 2 && (a.phase !== 'charge' || !!skills.combat[a.skill].charge) && (a.phase !== 'channel' || skills.combat[a.skill].kind === 'channel_cone');
   const playerOK = (p, map) => exact(p, ['id', 'look', 'gear', 'pose']) && identityOK(p.id) && lookOK(p.look) && gearOK(p.gear) && poseOK(p.pose, map);
-  return { mapOK, regionAt, gearOK, lookOK, poseOK, actionOK, playerOK };
+  // Shared monsters: the room host sends compact rows [key, type, level, x, z, facing, hp, maxHp, state].
+  const num = (n, lo, hi) => Number.isFinite(n) && n >= lo && n <= hi;
+  const monsterRowOK = r => Array.isArray(r) && r.length === 9 && Number.isSafeInteger(r[0]) && r[0] > 0
+    && typeof r[1] === 'string' && !!monsters && Object.hasOwn(monsters.monsters, r[1]) && Number.isInteger(r[2]) && r[2] >= 1 && r[2] <= 99
+    && num(r[3], -1e5, 1e5) && num(r[4], -1e5, 1e5) && angleOK(r[5]) && num(r[6], 0, 1e7) && num(r[7], 1, 1e7) && r[6] <= r[7]
+    && typeof r[8] === 'string' && /^[a-z]{1,12}$/.test(r[8]);
+  const monstersOK = list => Array.isArray(list) && list.length <= MONSTER_BATCH && list.every(monsterRowOK) && new Set(list.map(r => r[0])).size === list.length;
+  const monsterHitOK = h => exact(h, ['key', 'amount']) && Number.isSafeInteger(h.key) && h.key > 0 && Number.isInteger(h.amount) && h.amount >= 1 && h.amount <= 1e6;
+  return { mapOK, regionAt, gearOK, lookOK, poseOK, actionOK, playerOK, monstersOK, monsterHitOK };
 }
 // Transport uses atlas coordinates, while the core and renderer keep their fixed session origin.
 export function presencePose(game) {

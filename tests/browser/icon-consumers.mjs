@@ -36,21 +36,17 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
       seen.add(image.key);
     }
   };
+  // The library is one continuous scroller (no pages): every cell is in the DOM,
+  // so decode them all, then capture both ends of the scroll.
   const workspacePages = async label => {
-    for (let n = 0; ; n++) {
-      assert.ok(n < 20, 'pagination must terminate');
-      await decode(`${label}-${n}`);
-      await shot(`${label}-${n}`);
-      const next = page.locator('#atelier [data-action="next"]');
-      if (await next.isDisabled()) break;
-      // Portrait has the authored rotation prompt. Exercise its hidden library
-      // decoding through the real handler; do not claim portrait hit coverage.
-      if (height > width) await next.evaluate(el => el.click());
-      else await activate('#atelier [data-action="next"]');
-    }
+    await decode(label);
+    await shot(`${label}-top`);
+    await page.locator('#atelier .inventory-scroll').evaluateAll(els => els.forEach(el => { el.scrollTop = el.scrollHeight; }));
+    await shot(`${label}-end`);
   };
   await page.evaluate(() => __frontier.panels.open('bag'));
-  if (height > width) assert.equal(await page.locator('#atelier .rotate-message').isVisible(), true);
+  // Portrait shows one window at a time with a side switcher, not a rotate gate.
+  if (height > width) assert.equal(await page.locator('#atelier .rotate-message').isVisible(), false);
   await workspacePages('bag-gear');
   const category = page.locator('#atelier [data-action="bag-category"][data-id="material"]');
   if (height > width) await category.evaluate(el => el.click());

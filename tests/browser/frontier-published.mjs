@@ -18,6 +18,7 @@ const ctx=await browser.newContext({viewport:{width:1180,height:820},hasTouch:tr
 const page=await ctx.newPage(),errors=[];page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(e.message));
 const activate=selector=>page.locator(selector).first().tap();
 const ready=()=>page.waitForFunction(()=>window.__frontier?.modelsReady&&__frontier.game&&document.querySelector('#loading')?.classList.contains('done'));
+// As smoke.mjs: finish decoding lazy weapon models before unloading; WebKit reports aborted blob textures as page errors.
 try{
  const response=await ctx.request.get(new URL('ci-release.json?verify='+sha,base).href);assert(response.ok(),'release receipt');
  const receipt=await response.json();assert.equal(receipt.releaseTarget.sha,sha,'published target');
@@ -50,7 +51,7 @@ try{
  const state=await page.evaluate(()=>{const f=__frontier,g=f.game;f.panels.close();f.save();return {skills:g.ch.skills,mods:g.ch.mods,slots:g.ch.slots,movement:g.ch.movement,movementMods:g.ch.movementMods,nextUid:g.ch.nextUid,autoPotions:g.ch.autoPotions,jobNodes:g.ch.jobNodes,jobPoints:g.ch.jobPoints,treeRevision:g.ch.treeRevision,version:g.ch.version};});
  assert.equal(state.movement,'roll');assert.equal(state.movementMods.length,1);assert(state.slots.some(s=>s.skill==='charged_shot'&&s.mods.includes(returning)));
  console.log('PASS loadout and movement sockets; reloading isolated save');
- await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
+ await page.waitForFunction(()=>__frontier.weaponModelsReady());await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
  await page.evaluate(()=>{__frontier.paused=true;__frontier.input.reset();});
  const loaded=await page.evaluate(keys=>Object.fromEntries(keys.map(k=>[k,__frontier.game.ch[k]])),Object.keys(state));assert.deepEqual(loaded,state,'save/reload preserves crafted loadout and tree');
  assert(await page.locator('.sbtn.attack [data-art="skill/charged_shot"] svg').count(),'charged icon');
@@ -66,7 +67,7 @@ try{
  // Only this isolated context's save is changed for the combined legacy migration case.
  const legacy=await page.evaluate(()=>{const g=__frontier.game,ch=g.snapshot();ch.version=12;ch.treeRevision=2;ch.jobPoints=7;ch.jobNodes=['origin','v1','vj','path.precision','advanced.flow','line.damage.mastery.10','bridge.physical-damage.2','removed-node'];localStorage.setItem('frontier.slot.1',JSON.stringify({version:2,savedAt:Date.now(),character:ch}));return ch;});
  for(let pass=0;pass<2;pass++){
-  await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
+  await page.waitForFunction(()=>__frontier.weaponModelsReady());await page.reload();await page.waitForFunction(()=>window.__frontier?.menu);await enterFullscreenGate(page);await activate('[data-act="continue"]');await ready();
   const migrated=await page.evaluate(()=>{__frontier.paused=true;__frontier.save();return __frontier.game.snapshot();});
   assert.equal(migrated.version,CHARACTER_VERSION);assert.equal(migrated.treeRevision,state.treeRevision);assert.equal(migrated.jobPoints,9);assert.deepEqual(migrated.jobNodes,legacy.jobNodes.slice(0,6));
   for(const key of ['skills','mods','slots','movement','movementMods','nextUid','autoPotions','gear','equipped'])assert.deepEqual(migrated[key],legacy[key],'combined migration '+key);

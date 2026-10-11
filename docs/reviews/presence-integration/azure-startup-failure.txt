@@ -1,0 +1,44 @@
+
+> frontier-demo@1.0.0 test:presence
+> node tests/browser/presence.mjs
+
+BOOT azure
+PASS desktop startup; only one basic starting skill; Supplies and presence on F
+BOOT azure
+STARTUP diagnostic {
+  time: 0,
+  modelsReady: undefined,
+  paused: false,
+  fullscreen: false,
+  staticReady: false,
+  importedState: 'building',
+  disposed: false,
+  loading: '',
+  build: {
+    slices: 863,
+    steps: 321722,
+    maxStepMs: 457.10000000009313,
+    maxSliceMs: 457.4000000000233
+  }
+} []
+page.waitForFunction: Timeout 180000ms exceeded.
+    at boot (/workspace/Demo---mmorpg/tests/browser/presence.mjs:38:19)
+    at async file:///workspace/Demo---mmorpg/tests/browser/presence.mjs:73:18 {
+  name: 'TimeoutError'
+}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForFunction: Timeout 180000ms exceeded.
+    at boot (/workspace/Demo---mmorpg/tests/browser/presence.mjs:38:19)
+    at async file:///workspace/Demo---mmorpg/tests/browser/presence.mjs:73:18 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.19.0
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

@@ -1,0 +1,40 @@
+{
+  "mainImportedFiles": [
+    "docs/GODOT-PORT.md",
+    "docs/perf/unified-resident-world.md",
+    "docs/review/camp-medium/README.md",
+    "docs/review/camp-medium/after-report.json",
+    "docs/review/camp-medium/after.png",
+    "docs/review/camp-medium/azure-fountain.png",
+    "docs/review/camp-medium/azure-shore.png",
+    "docs/review/camp-medium/before-report.json",
+    "docs/review/camp-medium/before.png",
+    "docs/review/camp-medium/forest-join.png",
+    "docs/review/camp-medium/grove-camp.png",
+    "docs/review/camp-medium/grove-coast-join.png",
+    "docs/review/camp-medium/identity.json",
+    "docs/review/camp-medium/walk-report.json",
+    "docs/review/camp-medium/workbench.png",
+    "scripts/capture-camp-medium.mjs",
+    "src/render/environment.js",
+    "src/render/region.js",
+    "src/render/spatial-region.js",
+    "src/render/terrain-domain.js",
+    "tests/core/spatial-region.test.js",
+    "tests/render/terrain-domain.test.mjs"
+  ],
+  "integrationFollowupFiles": [
+    "docs/MULTIPLAYER-PRESENCE.md",
+    "docs/ONLINE-MILESTONE-CHECKPOINT.md",
+    "docs/reviews/online-integrated/PR-SUMMARY.md",
+    "docs/reviews/online-integrated/README.md",
+    "docs/reviews/online-main132/README.md",
+    "docs/reviews/online-main132/changed-files.json",
+    "docs/reviews/online-main132/results.json",
+    "docs/reviews/online-main132/seam-two-client-moonroot.png",
+    "docs/reviews/online-main132/static-culling-peer-idle.png",
+    "docs/reviews/online-main132/static-culling-peer-shot.png",
+    "tests/browser/online-harness.js",
+    "tests/browser/online.mjs"
+  ]
+}

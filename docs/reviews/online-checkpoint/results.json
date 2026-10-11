@@ -1,0 +1,209 @@
+{
+  "sourceBase": "0f88ece3ee9690397778765fd5fc28047f953d4f",
+  "checks": [
+    {
+      "name": "Connecting precedes world construction"
+    },
+    {
+      "name": "Failed/Retry keep world unconstructed and offline entry explicit"
+    },
+    {
+      "name": "Retry handshake admits player before constructing one fixture world"
+    },
+    {
+      "name": "Real relay peer renders current main outfit and imported sword"
+    },
+    {
+      "name": "Matching melee pose and authored cut at the bounded cast hit time",
+      "evidence": {
+        "pose": "slashA",
+        "effects": 1
+      }
+    },
+    {
+      "name": "Duplicate action creates no second effect"
+    },
+    {
+      "name": "Appearance replacement and staff fire/frost use current known assets and authored poses"
+    },
+    {
+      "name": "Focused resource ownership stabilises after effects expire",
+      "evidence": [
+        {
+          "geometry": 35,
+          "textures": 39,
+          "effects": 0
+        },
+        {
+          "geometry": 35,
+          "textures": 39,
+          "effects": 0
+        },
+        {
+          "geometry": 35,
+          "textures": 39,
+          "effects": 0
+        }
+      ]
+    },
+    {
+      "name": "Responsive presence controls retain HUD clearance and reachability",
+      "evidence": [
+        {
+          "width": 1024,
+          "height": 768,
+          "bounds": {
+            ".presence-panel": {
+              "x": 328,
+              "y": 64,
+              "w": 300,
+              "h": 243,
+              "right": 628,
+              "bottom": 307
+            },
+            ".pframe": {
+              "x": 22,
+              "y": 22,
+              "w": 286,
+              "h": 112.390625,
+              "right": 308,
+              "bottom": 134.390625
+            },
+            "[data-join]": {
+              "x": 341,
+              "y": 223,
+              "w": 97.765625,
+              "h": 44,
+              "right": 438.765625,
+              "bottom": 267
+            },
+            "[data-leave]": {
+              "x": 444.765625,
+              "y": 223,
+              "w": 128.296875,
+              "h": 44,
+              "right": 573.0625,
+              "bottom": 267
+            },
+            ".ammo-hud": {
+              "x": 792,
+              "y": 329,
+              "w": 204,
+              "h": 62,
+              "right": 996,
+              "bottom": 391
+            },
+            ".auto-potions-hud": {
+              "x": 780,
+              "y": 462,
+              "w": 216,
+              "h": 44,
+              "right": 996,
+              "bottom": 506
+            }
+          }
+        },
+        {
+          "width": 760,
+          "height": 430,
+          "bounds": {
+            ".presence-panel": {
+              "x": 244,
+              "y": 132,
+              "w": 300,
+              "h": 228,
+              "right": 544,
+              "bottom": 360
+            },
+            ".pframe": {
+              "x": 12,
+              "y": 10,
+              "w": 222,
+              "h": 93,
+              "right": 234,
+              "bottom": 103
+            },
+            "[data-join]": {
+              "x": 257,
+              "y": 279,
+              "w": 85.140625,
+              "h": 44,
+              "right": 342.140625,
+              "bottom": 323
+            },
+            "[data-leave]": {
+              "x": 348.140625,
+              "y": 279,
+              "w": 110.59375,
+              "h": 44,
+              "right": 458.734375,
+              "bottom": 323
+            },
+            ".ammo-hud": {
+              "x": 254,
+              "y": 64,
+              "w": 196,
+              "h": 54.6875,
+              "right": 450,
+              "bottom": 118.6875
+            },
+            ".auto-potions-hud": {
+              "x": 566,
+              "y": 214,
+              "w": 178,
+              "h": 44,
+              "right": 744,
+              "bottom": 258
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reconnecting clears peers and resynchronises current outfit without rebuilding world"
+    },
+    {
+      "name": "Leave disposes actor and pending/live effects"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "connecting-tablet.png",
+      "sha256": "e3abe83ea6b8816f2cd8386c47807647714ef09b940cbf0c83536cf144478a78"
+    },
+    {
+      "file": "failed-tablet.png",
+      "sha256": "e3abe83ea6b8816f2cd8386c47807647714ef09b940cbf0c83536cf144478a78"
+    },
+    {
+      "file": "remote-ranger-sword.png",
+      "sha256": "4f2d6990243a57a4a57d5621fe7315e1c71d4f3db06ac56b004d826c8b767363"
+    },
+    {
+      "file": "remote-slash-hit.png",
+      "sha256": "09c0514644e7168910c5e0962e044ad720f2a29c95921b1c773d6cfb008c5bf1"
+    },
+    {
+      "file": "remote-firebolt.png",
+      "sha256": "2ecead60c6927915fd095da0f9ea87c741b0b4f8e84731a835b59ec337d3a841"
+    },
+    {
+      "file": "remote-frost.png",
+      "sha256": "e9ff6132e119cb62028ae7218b4b98299a76a5e1299e0bb3dfeeb2459fec66bd"
+    },
+    {
+      "file": "online-controls-tablet.png",
+      "sha256": "4062e20a3c9155075e2a6f72f116597e1c88fb8f525c4ed399cc0c4ebd482c7f"
+    },
+    {
+      "file": "online-controls-landscape.png",
+      "sha256": "98b8de906311a3a338ef653fa77c34499d5b6e54851a479806fe1b3c4b05a9d4"
+    },
+    {
+      "file": "reconnecting-landscape.png",
+      "sha256": "00b82a85a18ba46101f4b431a658e4c976bbfd4906a888c8dd777c2e1071624c"
+    }
+  ],
+  "errors": [],
+  "external": []
+}

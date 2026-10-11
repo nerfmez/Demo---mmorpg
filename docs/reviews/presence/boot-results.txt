@@ -1,0 +1,2 @@
+PASS boot/create/save/Continue chromium desktop
+PASS boot/create/save/Continue chromium ipad

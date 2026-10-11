@@ -1,0 +1,16 @@
+# Configuration reference only. The parent owns service setup and manual deployment.
+services:
+  - type: web
+    name: frontier-presence-prototype
+    runtime: node
+    region: singapore
+    plan: free
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --omit=dev
+    startCommand: node server/index.mjs
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: ALLOWED_ORIGINS
+        value: https://nerfmez.github.io

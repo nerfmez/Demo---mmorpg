@@ -66,6 +66,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.pending = g.pending.filter((q) => { q.t -= dt; if (q.t <= 0) { due.push(q.fn); return false; } return true; });
     for (const fn of due) fn();
     tickFrontier(g, dt);
+    g.updateFusion?.(dt);
     g.updatePlayer(dt);
     g.updateProjectiles(dt);
     g.updateAreas(dt);

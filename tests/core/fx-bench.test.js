@@ -59,9 +59,9 @@ test('fusion pairs: physical fast carriers with fast damage spells only', () => 
   assert.deepEqual(fusionPayloads(data, FUSION, 'armor_cleave'), [], 'long cooldown attacks are not carriers');
 });
 
-test('fused slash: longer cooldown, summed cost, payload fires on through the struck target at reduced damage', () => {
+test('generic fusion (no recipe for the pair): longer cooldown, summed cost, payload fires on through the struck target at reduced damage', () => {
   const plain = createBench(data, 'slash', []).skills[0];
-  const g = createBench(data, 'slash', [], { fusion: 'firebolt', fusionRules: FUSION });
+  const g = createBench(data, 'slash', [], { fusion: 'arcane_bolt', fusionRules: FUSION });
   const s = g.skills[0], bolt = g.skills[1];
   assert.equal(s.cooldown, Math.max(plain.cooldown, bolt.cooldown));
   assert.equal(s.cost, plain.cost + bolt.cost);
@@ -70,20 +70,20 @@ test('fused slash: longer cooldown, summed cost, payload fires on through the st
   let projectile = null;
   for (let i = 0; i < 60; i++) {
     g.benchStep(1 / 60); events.push(...g.drainEvents());
-    projectile ||= g.projectiles.find((p) => p.kind === 'firebolt');
+    projectile ||= g.projectiles.find((p) => p.kind === 'arcane_bolt');
   }
   const fusion = events.filter((e) => e.type === 'fusion');
   assert.equal(fusion.length, 1, 'once per cast');
   const struck = g.monsters.find((m) => m.x === fusion[0].x && m.z === fusion[0].z);
   assert.ok(projectile.hit.has(struck.id), 'the struck target is not hit twice');
   assert.ok(Math.abs(projectile.damage - bolt.damage * FUSION.payloadDamageMult * g.playerDamageMult()) < 1e-6);
-  const fireHits = events.filter((e) => e.type === 'hit' && e.element === 'fire' && !e.dot);
-  assert.equal(fireHits.length, 1);
-  assert.notEqual(fireHits[0].id, struck.id);
+  const boltHits = events.filter((e) => e.type === 'hit' && e.element === bolt.element && !e.dot);
+  assert.equal(boltHits.length, 1);
+  assert.notEqual(boltHits[0].id, struck.id);
 });
 
 test('a fused slash that misses does not fire its payload', () => {
-  const g = createBench(data, 'slash', [], { fusion: 'firebolt', fusionRules: FUSION });
+  const g = createBench(data, 'slash', [], { fusion: 'arcane_bolt', fusionRules: FUSION });
   g.aimAt(-Math.PI / 2);
   g.castSlot(0, { x: -5, z: 0 });
   const events = [];
@@ -113,4 +113,25 @@ test('Multistrike: one extra strike at levels 1-2, two at level 3, each landing 
     assert.equal(slashes.length, strikes, `level ${level}`);
     for (let k = 1; k < slashes.length; k++) assert.ok(slashes[k].t - slashes[k - 1].t >= g.skills[0].repeatDelay - 1e-6);
   }
+});
+
+test('Flame Wave Slash recipe: 1 s charge, then the slash and a piercing fire wave hitting each target once', () => {
+  const g = createBench(data, 'slash', [], { fusion: 'firebolt', fusionRules: FUSION });
+  const recipe = FUSION.recipes.find((r) => r.id === 'flame_wave_slash');
+  assert.equal(g.skills[0].recipe.id, recipe.id);
+  assert.equal(g.skills[0].cooldown, recipe.cooldown);
+  assert.ok(g.castSlot(0, { x: 5, z: 0 }));
+  assert.ok(!g.castSlot(0, { x: 5, z: 0 }), 'no second charge while charging');
+  const events = [];
+  for (let i = 0; i < Math.round(recipe.chargeTime * 60) - 3; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+  assert.equal(events.filter((e) => e.type === 'hit').length, 0, 'nothing lands during the charge');
+  for (let i = 0; i < 90; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); } // well inside the cooldown
+  assert.equal(events.filter((e) => e.type === 'fusionRelease').length, 1);
+  assert.equal(events.filter((e) => e.type === 'slash').length, 1);
+  const wave = events.filter((e) => e.type === 'hit' && e.element === 'fire' && !e.dot);
+  const ids = wave.map((e) => e.id);
+  assert.equal(new Set(ids).size, ids.length, 'each target is hit by the wave once');
+  const far = g.monsters.filter((m) => m.homeX > 4 && m.homeX < 0.6 + recipe.wave.range).map((m) => m.id);
+  assert.ok(far.length >= 2 && far.every((id) => ids.includes(id)), 'the wave pierces on to the targets behind');
+  assert.ok(g.player.cooldowns[0] > 0);
 });

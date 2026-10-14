@@ -37,6 +37,17 @@ skipping that target, with its full behaviour and only its main damage scaled by
 `payloadDamageMult`. The fused skill uses the longer cooldown and the summed MP cost. A miss
 fires nothing. `maxCooldown` stands in for the planned Core / Cooldown skill types.
 
+### Recipe: Flame Wave Slash (Slash + Firebolt)
+
+`data/fusion.json` `recipes` define authored fusions that replace the generic rule for their
+pair. Flame Wave Slash: casting starts a 1 s charge (no damage, the swing's wind-up stretched
+over it, aim still follows the pointer); at its end the carrier's Slash lands and a crescent
+fire wave (a real piercing projectile: 11 m/s, 8 m, radius 1.2, Firebolt's damage and burn)
+hits every target in its path once. Cooldown 1.6 s, MP = both skills. Visuals in
+`src/fxtest/flame-slash-fx.js`: wisps spiral onto the blade as it heats and sheds flame, then
+the slash crescent with a fire rim and a travelling crescent of fire that widens, sheds embers
+and burns away at the end of its range.
+
 ## Slash (bench look and rule trial)
 
 `src/fxtest/slash-fx.js` draws one clean crescent of light around the caster over the real range

@@ -12,7 +12,8 @@ import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
-import { fusionPayloads } from './fusion.js';
+import { fusionPayloads, fusionRecipe } from './fusion.js';
+import { FlameSlashFx } from './flame-slash-fx.js';
 import { SlashFx } from './slash-fx.js';
 import { FireExtras } from './fire-extras.js';
 import { mulberry32 } from './fx-common.js';
@@ -130,6 +131,16 @@ const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
 const slashFx = new SlashFx(scene, camera);
 const fireX = new FireExtras(scene, camera);
+const flameSlash = new FlameSlashFx(scene, camera);
+const bladeBase = new THREE.Vector3(), bladeTip = new THREE.Vector3(), bladeDir = new THREE.Vector3();
+// the sword's hilt-side and tip points this frame
+function bladePoints() {
+  const w = hero.bones?.weapon, p = game.player;
+  if (!w) { bladeBase.set(p.x, 1.1, p.z); bladeTip.set(p.x + Math.sin(p.facing), 1.1, p.z + Math.cos(p.facing)); return; }
+  w.updateWorldMatrix(true, false); w.getWorldPosition(bladeBase); w.getWorldDirection(bladeDir);
+  bladeTip.copy(bladeBase).addScaledVector(bladeDir, 1.0);
+  bladeBase.addScaledVector(bladeDir, 0.25);
+}
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
 let timers = [], primarySwing = false; // visual-only follow-ups (Multistrike swings)
@@ -169,7 +180,7 @@ const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); fireX.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -245,6 +256,15 @@ function drain() {
       }
       case 'burst': if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
+      case 'fusionCharge':
+        // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
+        heroAnim.play(e.skill, e.total + 0.3, heroWeapon, nextSwingStep(), e.total, 'melee_arc');
+        flameSlash.beginCharge(e.total);
+        slashFx.swing(e.total, slashOpts(s));
+        primarySwing = true;
+        break;
+      case 'fusionRelease': flameSlash.release(); break;
+      case 'fusionCancel': flameSlash.cancel(); heroAnim.action = null; break;
       case 'slash': {
         const primary = primarySwing; primarySwing = false;
         // Multistrike: each repeat is its own swing (alternating side) landing on the repeat's hit time
@@ -343,12 +363,12 @@ function renderPanel() {
     const fb = h('section', 'mods');
     fb.append(h('h2', '', 'ลิงก์สกิล (ฟิวชั่น · ใช้ช่องม็อด 1 ช่อง)'));
     for (const id of payloads) {
-      const def2 = data.skills.combat[id], on = state.fusion === id;
+      const def2 = data.skills.combat[id], on = state.fusion === id, recipe = fusionRecipe(FUSION, state.skill, id);
       const row = h('div', 'mod' + (on ? ' on' : ''));
-      const chip = h('button', 'chip', (on ? '✓ ' : '') + def2.nameTh);
+      const chip = h('button', 'chip', (on ? '✓ ' : '') + def2.nameTh + (recipe ? ` → ${recipe.nameTh}` : ''));
       chip.disabled = !on && state.mods.length >= MAX_MODS;
       chip.addEventListener('click', () => { state.fusion = on ? null : id; rebuild(); });
-      row.append(chip, h('div', 'mdesc', `ฟันโดนแล้ว${def2.nameTh}ออกจากเป้าที่โดน พุ่งต่อไปข้างหน้า ความสามารถเต็ม ดาเมจ ${Math.round(FUSION.payloadDamageMult * 100)}% · คูลดาวน์ใช้ตัวที่นานกว่า · MP รวมกัน`));
+      row.append(chip, h('div', 'mdesc', recipe ? recipe.desc : `ฟันโดนแล้ว${def2.nameTh}ออกจากเป้าที่โดน พุ่งต่อไปข้างหน้า ความสามารถเต็ม ดาเมจ ${Math.round(FUSION.payloadDamageMult * 100)}% · คูลดาวน์ใช้ตัวที่นานกว่า · MP รวมกัน`));
       fb.append(row);
     }
     panel.append(fb);
@@ -361,7 +381,8 @@ function renderPanel() {
   line('ธาตุ', ELEMENT_TH[s.element] || s.element);
   line('คูลดาวน์', `${s.cooldown.toFixed(2)} วิ`);
   line('MP', `${s.cost}`);
-  if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
+  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); line('ชาร์จ', `${s.recipe.chargeTime} วิ`); line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); }
+  else if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
   if (s.kind === 'melee_arc') line('ระยะ / มุม', `${s.range} ม. × ${s.arc}°`);
   if (s.kind === 'projectile') line('ระยะ / ความเร็ว', `${s.range} ม. · ${s.speed} ม./วิ`);
   line('ดาเมจต่อครั้ง', s.kind === 'channel_cone' ? `${(s.damage * s.channel.tick).toFixed(1)} / ${s.channel.tick} วิ` : s.damage.toFixed(1));
@@ -404,7 +425,7 @@ function renderPanel() {
   renderStats();
 
   const castLabel = document.getElementById('castLabel');
-  castLabel.textContent = s.kind === 'channel_cone' ? 'กดค้าง' : 'ร่าย';
+  castLabel.textContent = s.kind === 'channel_cone' ? 'กดค้าง' : s.recipe ? 'ชาร์จ' : 'ร่าย';
   document.getElementById('dodge').classList.toggle('hint', !!s.trigger);
 }
 function renderStats() {
@@ -494,10 +515,13 @@ function tick(real, draw = true) {
   modFx.update(dt);
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
+  const recipeKind = skillDef().recipe?.id;
   slashFx.update(dt);
   fireX.update(dt, staffTip());
+  bladePoints();
+  flameSlash.update(dt, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
-  vfx.syncProjectiles(game, dt, simTime);
+  vfx.syncProjectiles(recipeKind ? { projectiles: game.projectiles.filter((pr) => pr.kind !== recipeKind) } : game, dt, simTime);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;
   castBtn.classList.toggle('cooling', cd > 0.02);

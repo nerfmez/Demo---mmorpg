@@ -1255,6 +1255,8 @@ export class Game {
         m.deathT += dt;
         continue;
       }
+      // An online guest mirrors the host's monsters: position, HP and state arrive from the network.
+      if (m.remote) { m.hurtT = Math.max(0, m.hurtT - dt); continue; }
       if (!m.aggro && (Math.abs(m.x - p.x) > idleRadius || Math.abs(m.z - p.z) > idleRadius)) continue; // asleep far away
       this.tickStatuses(m, dt);
       if (m.dead) continue;
@@ -1817,6 +1819,7 @@ export class Game {
   }
 
   updateRespawns() {
+    if (this.mirrorMonsters) return; // the room host owns spawning while this client mirrors it
     const p = this.player;
     for (const sp of this.spawnPoints) {
       if (sp.entity || this.time < sp.respawnAt) continue;

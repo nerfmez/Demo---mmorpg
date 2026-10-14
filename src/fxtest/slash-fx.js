@@ -1,109 +1,123 @@
-// Slash (bench look, v2): a crescent drawn from the sword's real path. While a swing window is open
-// the blade's hilt and tip are sampled every frame; the swept surface between them is smoothed
-// into one ribbon: sharp bright leading edge, a white core along the tip path, a pale body that
-// thins toward the hilt and toward the tail, then a quick fade. No cut marks on targets.
-// Every strike (including Multistrike repeats) opens its own window, so each one reads as a swing.
+// Slash (bench look, v3): one clean crescent around the caster over the real range and arc.
+// Shape: the outer edge is the reach, the inner edge bows in so the crescent is thick in the
+// middle and pointed at both ends. Motion: a fast reveal from one end to the other that passes
+// the middle at the contact time, then the crescent thins from its inner edge and fades.
+// Three flat cel tones (white core along the outer edge, pale body, thin same-hue line), no noise.
+// Strikes in quick succession (spamming, Multistrike repeats) cycle through different tilts and
+// sides so consecutive slashes read as different cuts.
 import * as THREE from 'three';
 
-const TRAILS = 6, MAX = 48, SUB = 4, FADE = 0.16;
-const STEEL = { core: '#ffffff', body: '#cfe3f2', line: '#6f93b8' };
+const SWEEP = 0.075, HOLD = 0.04, FADE = 0.16, CUTS = 6, CHAIN = 1.2;
+const COLORS = { core: '#ffffff', body: '#d4e8f6', line: '#7d9fc2' };
 const FUSE = { fire: '#ff7a2a', arcane: '#b98cff', lightning: '#7fd8ff', cold: '#9fe0ff' };
+// consecutive strikes: tilt (roll around the facing axis, signed by the swing side), height, reach
+const PATTERN = [
+  { tilt: 0.38, y: 0.05, reach: 1.0 },
+  { tilt: 0.3, y: 0.15, reach: 0.96 },
+  { tilt: 0.08, y: -0.05, reach: 1.04 },
+  { tilt: 0.55, y: 0.1, reach: 0.98 },
+  { tilt: 0.2, y: 0.2, reach: 0.95 },
+];
 
-const VS = `attribute vec2 aSeg; varying vec2 vUv; void main(){ vUv = aSeg; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-const FS = `varying vec2 vUv; uniform float uFade; uniform vec3 uCore; uniform vec3 uBody; uniform vec3 uLine; uniform vec3 uRim; uniform float uRimK;
+const VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const FS = `varying vec2 vUv; uniform float uHead; uniform float uFade; uniform float uDir; uniform float uThick;
+  uniform vec3 uCore; uniform vec3 uBody; uniform vec3 uLine; uniform vec3 uRim; uniform float uRimK;
   void main(){
-    float along = vUv.x;            // 0 oldest sample .. 1 newest (the blade now)
-    float v = vUv.y;                // 0 hilt .. 1 tip
-    float age = 1.0 - along;
-    // the tail is eaten from behind as the trail fades
-    if (age > 1.0 - uFade * 1.1) discard;
-    // crescent: full width just behind the blade, thinning to a point at the tail
-    float width = mix(0.78, 0.0, pow(age, 0.75));
-    float inner = 1.0 - width;
-    if (v < inner) discard;
-    float b = (v - inner) / max(width, 1e-3);   // 0 inner edge .. 1 tip edge
+    float s = uDir > 0.0 ? vUv.x : 1.0 - vUv.x;     // 0 where the cut starts, 1 where it ends
+    if (s > uHead) discard;
+    float v = vUv.y;                                 // 0 near the caster .. 1 at the reach
+    // crescent: thick in the middle, pointed ends; the fade eats it from the inner edge
+    float w = uThick * pow(sin(3.14159265 * s), 0.85) * (1.0 - uFade);
+    // the freshest part, just behind the leading edge, is a little fuller
+    w *= 1.0 + 0.25 * smoothstep(0.25, 0.0, uHead - s) * (1.0 - uFade);
+    float inner = 1.0 - w;
+    float aa = fwidth(v) * 1.2;
+    float body = smoothstep(inner - aa, inner + aa, v);
+    if (body < 0.01) discard;
+    float b = (v - inner) / max(w, 1e-3);            // 0 inner edge .. 1 outer edge
     vec3 c = uBody;
-    float a = mix(0.35, 0.9, smoothstep(0.0, 0.35, b));
-    c = mix(c, uCore, step(0.62, b));
-    c = mix(c, mix(uLine, uRim, uRimK), step(0.93, b));
-    a *= 1.0 - uFade;
+    c = mix(c, uCore, smoothstep(0.52 - aa / max(w, 1e-3), 0.52 + aa / max(w, 1e-3), b));
+    float lineW = 0.09 / max(w / uThick, 0.25);
+    c = mix(c, mix(uLine, uRim, uRimK), smoothstep(1.0 - lineW - 0.02, 1.0 - lineW, b));
+    float a = mix(0.72, 1.0, smoothstep(0.3, 0.55, b)) * body * (1.0 - uFade * uFade);
     gl_FragColor = vec4(c, a); }`;
 
-function catmull(p0, p1, p2, p3, t, out) {
-  const t2 = t * t, t3 = t2 * t;
-  return out.set(
-    0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
-    0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
-    0.5 * (2 * p1.z + (-p0.z + p2.z) * t + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * t2 + (-p0.z + 3 * p1.z - 3 * p2.z + p3.z) * t3));
+function arcGeometry(arcRad, r0, r1, segs = 72, rings = 6) {
+  const pos = [], uv = [], idx = [];
+  for (let i = 0; i <= segs; i++) {
+    const u = i / segs, a = -arcRad / 2 + u * arcRad;
+    for (let j = 0; j <= rings; j++) {
+      const v = j / rings, r = r0 + (r1 - r0) * v;
+      pos.push(Math.sin(a) * r, 0, Math.cos(a) * r); uv.push(u, v);
+    }
+  }
+  const row = rings + 1;
+  for (let i = 0; i < segs; i++) for (let j = 0; j < rings; j++) {
+    const a = i * row + j, b = a + row;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  return g;
 }
 
 export class SlashFx {
   constructor(scene) {
     this.scene = scene;
-    const verts = MAX * SUB * 2;
-    this.trails = Array.from({ length: TRAILS }, () => {
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array(verts * 3), seg = new Float32Array(verts * 2), idx = [];
-      for (let i = 0; i < MAX * SUB - 1; i++) { const b = i * 2; idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2); }
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute('aSeg', new THREE.BufferAttribute(seg, 2));
-      geo.setIndex(idx);
+    this.geos = new Map();
+    this.cuts = Array.from({ length: CUTS }, () => {
       const mat = new THREE.ShaderMaterial({
-        uniforms: { uFade: { value: 0 }, uCore: { value: new THREE.Color(STEEL.core) }, uBody: { value: new THREE.Color(STEEL.body) }, uLine: { value: new THREE.Color(STEEL.line) }, uRim: { value: new THREE.Color('#ff7a2a') }, uRimK: { value: 0 } },
+        uniforms: { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.5 }, uCore: { value: new THREE.Color(COLORS.core) }, uBody: { value: new THREE.Color(COLORS.body) }, uLine: { value: new THREE.Color(COLORS.line) }, uRim: { value: new THREE.Color('#ff7a2a') }, uRimK: { value: 0 } },
         vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, side: THREE.DoubleSide,
       });
-      const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; mesh.renderOrder = 5; mesh.visible = false; scene.add(mesh);
-      return { mesh, geo, mat, tips: [], bases: [], state: 'idle', open: 0, fade: 0 };
+      const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat); mesh.frustumCulled = false; mesh.renderOrder = 5; mesh.visible = false;
+      const g = new THREE.Group(); g.add(mesh); scene.add(g);
+      return { g, mesh, mat, live: false, t: 0 };
     });
-    this.pending = []; this.t = 0;
-    this._a = new THREE.Vector3(); this._b = new THREE.Vector3();
+    this.pending = []; this.t = 0; this.lastAt = -9; this.index = 0;
   }
-  // open a swing window `delay` seconds from now that records the blade for `dur` seconds
-  swing(delay, dur, fusedElement = null) { this.pending.push({ at: this.t + Math.max(0, delay), dur, fusedElement }); }
+  geometry(arcDeg, range) {
+    const key = `${arcDeg}|${range.toFixed(2)}`;
+    if (!this.geos.has(key)) this.geos.set(key, arcGeometry((arcDeg * Math.PI) / 180, range * 0.25, range));
+    return this.geos.get(key);
+  }
+  // a strike whose contact lands `contactIn` seconds from now. where(): caster {x, z, angle} at reveal
+  // time; dir: +1 when the blade sweeps toward increasing facing angle (the first swing pose), -1 back
+  swing(contactIn, o) {
+    // the reveal passes the middle of the arc at contact
+    this.pending.push({ at: this.t + Math.max(0, contactIn - SWEEP * 0.5), ...o });
+  }
   start(p) {
-    const tr = this.trails.find((k) => k.state === 'idle') || this.trails.reduce((a, b) => (a.fade > b.fade ? a : b));
-    tr.state = 'record'; tr.open = p.dur; tr.fade = 0; tr.tips.length = 0; tr.bases.length = 0;
-    tr.mat.uniforms.uRimK.value = p.fusedElement ? 1 : 0;
-    if (p.fusedElement) tr.mat.uniforms.uRim.value.set(FUSE[p.fusedElement] || '#ff7a2a');
+    const k = this.t - this.lastAt < CHAIN ? (this.index + 1) % PATTERN.length : 0;
+    this.index = k; this.lastAt = this.t;
+    const pat = PATTERN[k], at = p.where(), dir = p.dir || 1;
+    const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
+    const reach = p.range * pat.reach;
+    c.mesh.geometry = this.geometry(p.arc, reach);
+    c.g.position.set(at.x, 1.0 + pat.y, at.z);
+    c.g.rotation.set(0, at.angle, 0);
+    c.mesh.rotation.set(0, 0, 0);
+    c.mesh.rotateZ(pat.tilt * dir); // the cut's plane rolls around the facing direction
+    c.mesh.rotateX(-0.06);
+    const u = c.mat.uniforms;
+    u.uDir.value = dir; u.uThick.value = 0.5; u.uHead.value = 0; u.uFade.value = 0;
+    u.uRimK.value = p.fusedElement ? 1 : 0;
+    if (p.fusedElement) u.uRim.value.set(FUSE[p.fusedElement] || '#ff7a2a');
+    c.live = true; c.t = 0; c.mesh.visible = true;
   }
-  // base/tip: the blade's hilt-side and tip points in world space this frame
-  update(dt, base, tip) {
+  update(dt) {
     this.t += dt;
-    for (let i = this.pending.length - 1; i >= 0; i--) if (this.t >= this.pending[i].at) { this.start(this.pending[i]); this.pending.splice(i, 1); }
-    for (const tr of this.trails) {
-      if (tr.state === 'idle') continue;
-      if (tr.state === 'record') {
-        if (tr.tips.length < MAX) { tr.tips.push(tip.clone()); tr.bases.push(base.clone()); }
-        tr.open -= dt;
-        if (tr.open <= 0) tr.state = 'fade';
-      } else {
-        tr.fade += dt / FADE;
-        if (tr.fade >= 1) { tr.state = 'idle'; tr.mesh.visible = false; continue; }
-      }
-      tr.mat.uniforms.uFade.value = Math.min(1, tr.fade);
-      this.build(tr);
+    for (let i = 0; i < this.pending.length; i++) if (this.t >= this.pending[i].at) { this.start(this.pending[i]); this.pending.splice(i--, 1); }
+    for (const c of this.cuts) {
+      if (!c.live) continue;
+      c.t += dt;
+      const r = Math.min(1, c.t / SWEEP);
+      c.mat.uniforms.uHead.value = 1 - (1 - r) * (1 - r); // fast in, eased at the end
+      c.mat.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - HOLD) / FADE);
+      if (c.t > SWEEP + HOLD + FADE) { c.live = false; c.mesh.visible = false; }
     }
   }
-  build(tr) {
-    const n = tr.tips.length;
-    if (n < 2) { tr.mesh.visible = false; return; }
-    const pos = tr.geo.attributes.position.array, seg = tr.geo.attributes.aSeg.array;
-    const total = (n - 1) * SUB + 1;
-    let v = 0;
-    for (let i = 0; i < n - 1; i++) {
-      for (let s = 0; s < (i === n - 2 ? SUB + 1 : SUB); s++) {
-        const t = s / SUB, along = (i * SUB + s) / (total - 1);
-        const P = (arr, k) => arr[Math.min(n - 1, Math.max(0, k))];
-        catmull(P(tr.bases, i - 1), P(tr.bases, i), P(tr.bases, i + 1), P(tr.bases, i + 2), t, this._a);
-        catmull(P(tr.tips, i - 1), P(tr.tips, i), P(tr.tips, i + 1), P(tr.tips, i + 2), t, this._b);
-        pos.set([this._a.x, this._a.y, this._a.z, this._b.x, this._b.y, this._b.z], v * 6);
-        seg.set([along, 0, along, 1], v * 4);
-        v++;
-      }
-    }
-    tr.geo.attributes.position.needsUpdate = true; tr.geo.attributes.aSeg.needsUpdate = true;
-    tr.geo.setDrawRange(0, (v - 1) * 6);
-    tr.mesh.visible = true;
-  }
-  clear() { this.pending = []; for (const tr of this.trails) { tr.state = 'idle'; tr.mesh.visible = false; } }
+  clear() { this.pending = []; for (const c of this.cuts) { c.live = false; c.mesh.visible = false; } }
 }

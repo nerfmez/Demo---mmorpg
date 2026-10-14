@@ -110,15 +110,6 @@ function buildHero(weapon = heroWeapon) {
 }
 buildHero();
 loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons }, { onWeaponReady: () => buildHero() }).then(() => buildHero()).catch(() => {});
-const bladeTip = new THREE.Vector3(), bladeBase = new THREE.Vector3(), bladeDir = new THREE.Vector3();
-// the blade's hilt-side and tip points this frame (the sword's own pose)
-function bladePoints() {
-  const w = hero.bones?.weapon, p = game.player;
-  if (!w) { bladeBase.set(p.x, 1.1, p.z); bladeTip.set(p.x + Math.sin(p.facing), 1.1, p.z + Math.cos(p.facing)); return; }
-  w.updateWorldMatrix(true, false); w.getWorldPosition(bladeBase); w.getWorldDirection(bladeDir);
-  bladeTip.copy(bladeBase).addScaledVector(bladeDir, 1.0);
-  bladeBase.addScaledVector(bladeDir, 0.3);
-}
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;
@@ -140,7 +131,7 @@ const slashFx = new SlashFx(scene);
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
 let timers = [], primarySwing = false; // visual-only follow-ups (Multistrike swings)
-const SWING_LEAD = 0.12, SWING_TAIL = 0.08;
+const SWING_LEAD = 0.12;
 
 // ---------- the bench (real rules) ----------
 let game = null, aimAngle = Math.PI / 2, lastNovaAt = -9, simTime = 0;
@@ -164,6 +155,10 @@ function rebuild() {
 }
 const skillDef = () => game.skills[0];
 const fusedElement = () => (game.fusion ? game.fusion.payload.element : null);
+const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1 : -1, fusedElement: fusedElement(), where: () => ({ x: game.player.x, z: game.player.z, angle: game.player.facing }) });
+// visual only: quick consecutive swings alternate the arm's side (the rules stay one plain strike)
+let swingStep = 0, lastSwingAt = -9;
+function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
   chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
@@ -213,9 +208,8 @@ function drain() {
     const s = skillDef();
     switch (e.type) {
       case 'castStart':
-        heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc') primarySwing = true;
-        if (e.kind === 'melee_arc') slashFx.swing(e.total - SWING_LEAD, SWING_LEAD + SWING_TAIL, fusedElement());
+        heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
+        if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
         if (e.kind === 'projectile') vfx.beginCast(e, s.element);
         if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
         if (e.kind === 'nova') frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius);
@@ -245,7 +239,7 @@ function drain() {
         if (primary && !e.triggered && s.repeats) {
           for (let k = 1; k <= s.repeats; k++) {
             const at = simTime + k * s.repeatDelay - SWING_LEAD;
-            timers.push({ at, fn: () => { heroAnim.play(e.skill, 0.3, heroWeapon, k % 2, SWING_LEAD, 'melee_arc'); slashFx.swing(0, SWING_LEAD + SWING_TAIL, fusedElement()); } });
+            timers.push({ at, fn: () => { heroAnim.play(e.skill, 0.3, heroWeapon, nextSwingStep(), SWING_LEAD, 'melee_arc'); slashFx.swing(SWING_LEAD, slashOpts(s)); } });
           }
         }
         break;
@@ -484,8 +478,7 @@ function tick(real, draw = true) {
   modFx.update(dt);
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
-  bladePoints();
-  slashFx.update(dt, bladeBase, bladeTip);
+  slashFx.update(dt);
   vfx.updateCast(dt, hero, !p.cast, p);
   vfx.syncProjectiles(game, dt, simTime);
   vfx.update(dt);
@@ -512,6 +505,6 @@ function tick(real, draw = true) {
 
 rebuild();
 requestAnimationFrame(frame);
-window.__fxtest = { state, get game() { return game; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, chainFx,
+window.__fxtest = { state, get game() { return game; }, get hero() { return hero; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, chainFx,
   // review hooks: freeze the clock and advance fixed 60 Hz steps, rendering only the last one
   freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, frostFx, flameFx, modFx, slashFx, vfx, staffTip };

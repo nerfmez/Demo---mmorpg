@@ -104,11 +104,13 @@ test('bench slash is one plain strike: no combo steps, no finisher knockback', (
   assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), 'nothing was knocked back');
 });
 
-test('Multistrike gives separate strikes the bench draws as separate swings', () => {
-  const g = createBench(data, 'slash', [{ id: 'multistrike', level: 1 }]);
-  g.castSlot(0, { x: 5, z: 0 });
-  const slashes = [];
-  for (let i = 0; i < 60; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash').map((e) => ({ ...e, t: g.time }))); }
-  assert.equal(slashes.length, 1 + g.skills[0].repeats);
-  assert.ok(slashes[1].t - slashes[0].t >= g.skills[0].repeatDelay - 1e-6, 'repeats land at their own time');
+test('Multistrike: one extra strike at levels 1-2, two at level 3, each landing on its own time', () => {
+  for (const [level, strikes] of [[1, 2], [2, 2], [3, 3]]) {
+    const g = createBench(data, 'slash', [{ id: 'multistrike', level }]);
+    g.castSlot(0, { x: 5, z: 0 });
+    const slashes = [];
+    for (let i = 0; i < 60; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash').map((e) => ({ ...e, t: g.time }))); }
+    assert.equal(slashes.length, strikes, `level ${level}`);
+    for (let k = 1; k < slashes.length; k++) assert.ok(slashes[k].t - slashes[k - 1].t >= g.skills[0].repeatDelay - 1e-6);
+  }
 });

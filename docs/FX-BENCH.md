@@ -39,12 +39,17 @@ fires nothing. `maxCooldown` stands in for the planned Core / Cooldown skill typ
 
 ## Slash (bench look and rule trial)
 
-`src/fxtest/slash-fx.js` draws each swing from the sword's real path: while a swing window is
-open (from 0.12 s before the authored contact to 0.08 s after) the hilt and tip are sampled
-every frame and the swept surface is smoothed into one crescent ribbon with a white core
-along the tip path, a pale body thinning toward the hilt and the tail, and a quick fade.
-There are no cut marks on targets. Multistrike repeats each open their own swing on their
-own hit time, so three strikes read as three swings. A linked payload tints the tip edge.
+`src/fxtest/slash-fx.js` draws one clean crescent around the caster over the real range
+and arc: the outer edge is the reach and the inner edge bows in, so it is thick in the middle
+and pointed at both ends, in three flat tones (white core, pale body, thin same-hue line). It
+reveals from one end to the other, passing the middle at the contact time, then thins from its
+inner edge and fades. Strikes in quick succession (within 1.2 s, including Multistrike repeats)
+cycle through different tilts, heights and reach, and alternate the arm's side; the arc sweeps
+the same way as the swing pose. There are no cut marks on targets. A linked payload tints the
+outer line.
+
+Multistrike (game data): one extra strike at levels 1-2, two at level 3. Each repeat is a
+separate strike on its own time, and the bench plays a swing for each.
 
 Rule trial (bench only, `SINGLE_STRIKE` in `src/fxtest/sandbox.js`): Slash is one plain
 strike, with no 1-2-3 combo and therefore no finisher knockback. The game is unchanged

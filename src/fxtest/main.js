@@ -259,7 +259,7 @@ function drain() {
       case 'fusionCharge':
         // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
         heroAnim.play(e.skill, e.total + 0.3, heroWeapon, nextSwingStep(), e.total, 'melee_arc');
-        flameSlash.beginCharge(e.total); // its own look: no Slash crescent, no Firebolt charge
+        flameSlash.beginCharge(e.total, game.fusion?.waveElement); // its own look: no Slash crescent, no Firebolt charge
         primarySwing = true;
         break;
       case 'fusionRelease': flameSlash.release(); break;
@@ -277,7 +277,8 @@ function drain() {
       }
       case 'impact': {
         // fire hits use the bench's round burst instead of the game's one-sided splash
-        if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
+        if (e.kind === skillDef().recipe?.id && e.element === 'cold') frostFx.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); // only sparks (ice chips) on a hit
+        else if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
         break;
       }
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;

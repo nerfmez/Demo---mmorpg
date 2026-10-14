@@ -43,13 +43,17 @@ fires nothing. `maxCooldown` stands in for the planned Core / Cooldown skill typ
 pair. Flame Wave Slash: casting starts a 1 s charge (no damage, the swing's wind-up stretched
 over it, aim still follows the pointer); at its end the carrier's Slash lands and a crescent
 fire wave (a real piercing projectile: 11 m/s, 8 m, radius 1.2, Firebolt's damage and burn)
-hits every target in its path once. Cooldown 1.6 s, MP = both skills. Visuals in
+hits every target in its path once. Cooldown 1.6 s, MP = both skills. The wave carries the
+carrier's mods: an element change (Frost Shift makes it a chilling ice wave), knockback, leech,
+chill, burning ground on each hit, status mods (Laceration), Wide Arc widens it in proportion,
+and Multistrike sends a weaker wave with each repeat swing. Visuals in
 `src/fxtest/flame-slash-fx.js` are its own: none of Slash's or Firebolt's effects are used
 except fire sparks on hits. During the charge the sword's own materials heat from dull red to
 glowing red-orange (restored once it cools after the cut) with heat embers and a few wisps;
 the wave is a clean half-moon of fire (smooth front and inner arcs meeting in sharp points,
 flowing cel bands, short tongues off the back edge, a soft glow) that widens and burns away
-from the back at the end of its range.
+from the back at the end of its range. With a cold element the blade frosts and the wave is
+an ice crescent, with ice chips on hits.
 
 ## Slash (bench look and rule trial)
 

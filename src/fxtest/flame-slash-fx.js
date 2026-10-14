@@ -17,7 +17,7 @@ const STRIP_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
 const GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,2.2)*0.65; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
 // s: 0..1 along the arc; v: 0 inner (toward the caster) .. 1 front edge
-const SHAPE = `uniform float uT; uniform float uLife; uniform float uSeed; ${NOISE}
+const SHAPE = `uniform float uT; uniform float uLife; uniform float uSeed; uniform vec3 uC0; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uLine; uniform vec3 uTongue; uniform vec3 uGlow; ${NOISE}
   float thick(float s){ return 0.62 * pow(sin(3.14159265 * clamp(s, 0.0, 1.0)), 0.75); }`;
 const WAVE_FS = `varying vec2 vUv; ${SHAPE}
   void main(){
@@ -35,15 +35,15 @@ const WAVE_FS = `varying vec2 vUv; ${SHAPE}
     // fire flowing inside: bands bent by noise that scrolls back from the front
     float flow = fbm(vec2(s * 5.0 + uSeed * 0.3, b * 2.0 + uT * 4.0)) - 0.5;
     float h = clamp(b, 0.0, 1.0) + flow * 0.35;
-    vec3 c = vec3(0.78, 0.16, 0.06);
-    c = mix(c, vec3(1.0, 0.42, 0.1), step(0.28, h));
-    c = mix(c, vec3(1.0, 0.72, 0.25), step(0.55, h));
-    c = mix(c, vec3(1.0, 0.95, 0.75), step(0.8, h));
-    if (b < 0.0) c = vec3(0.9, 0.3, 0.08);            // tongues: orange-red
+    vec3 c = uC0;
+    c = mix(c, uC1, step(0.28, h));
+    c = mix(c, uC2, step(0.55, h));
+    c = mix(c, uC3, step(0.8, h));
+    if (b < 0.0) c = uTongue;                        // tongues
     // thin dark-red line along the front arc and the inner arc
     float aa = fwidth(b) * 1.5;
-    c = mix(c, vec3(0.45, 0.06, 0.03), smoothstep(1.0 - 0.035 - aa, 1.0 - 0.035, b));
-    c = mix(c, vec3(0.55, 0.1, 0.04), (1.0 - smoothstep(0.0, 0.03 + aa, b)) * step(0.0, b) * 0.8);
+    c = mix(c, uLine, smoothstep(1.0 - 0.035 - aa, 1.0 - 0.035, b));
+    c = mix(c, uLine * 1.2, (1.0 - smoothstep(0.0, 0.03 + aa, b)) * step(0.0, b) * 0.8);
     float alpha = (b < 0.0 ? 0.85 : 1.0) * (1.0 - smoothstep(0.995 - aa, 1.0, b));
     gl_FragColor = vec4(c, alpha); }`;
 const WAVE_GLOW_FS = `varying vec2 vUv; ${SHAPE}
@@ -52,7 +52,7 @@ const WAVE_GLOW_FS = `varying vec2 vUv; ${SHAPE}
     float b = (v - (1.0 - t)) / max(t, 1e-3);
     if (b < 0.0) discard;
     float g = smoothstep(0.0, 0.7, b) * (1.0 - smoothstep(0.85, 1.0, b)) * (1.0 - uLife);
-    gl_FragColor = vec4(vec3(1.0, 0.45, 0.12) * g * 0.55, 1.0); }`;
+    gl_FragColor = vec4(uGlow * g * 0.55, 1.0); }`;
 
 // the crescent's surface: arc `arc` around the origin, from radius r0 (inner) to r1 (front)
 function crescent(arc, r0, r1, segs = 72, rings = 10) {
@@ -70,7 +70,14 @@ function crescent(arc, r0, r1, segs = 72, rings = 10) {
   return g;
 }
 const VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-const COOL = new THREE.Color('#2a0400'), DULL = new THREE.Color('#8a1a04'), GLOW = new THREE.Color('#ff5a14'), WHITE = new THREE.Color('#ffb060');
+// per element: wave bands (back to front), edge line, tongues, glow; blade heat (cool, dull, glow, peak); ember colours
+const LOOKS = {
+  fire: { bands: ['#c7290f', '#ff6b1a', '#ffb840', '#fff2c0'], line: '#731008', tongue: '#e64d14', glow: '#ff731f',
+    blade: ['#2a0400', '#8a1a04', '#ff5a14', '#ffb060'], hot: HOT, mid: MID, red: RED },
+  cold: { bands: ['#2f6fb8', '#6cb4ee', '#bfe6ff', '#ffffff'], line: '#163f73', tongue: '#7cc4f2', glow: '#6fbfff',
+    blade: ['#03101f', '#1d4f80', '#7cc8ff', '#e6f6ff'], hot: [0.9, 0.97, 1.0], mid: [0.6, 0.85, 1.0], red: [0.3, 0.55, 0.9] },
+};
+const look = (el) => LOOKS[el] || LOOKS.fire;
 
 export class FlameSlashFx {
   constructor(scene, camera) {
@@ -82,7 +89,8 @@ export class FlameSlashFx {
     this.R = 1.8; // the front edge sits on the projectile; the half-moon spans 150 degrees
     const geo = crescent((150 * Math.PI) / 180, this.R - 1.3, this.R);
     this.waves = Array.from({ length: 3 }, (_, k) => {
-      const uniforms = { uT: { value: 0 }, uLife: { value: 0 }, uSeed: { value: k * 9.1 } };
+      const L = LOOKS.fire, col = (c) => ({ value: new THREE.Color(c) });
+      const uniforms = { uT: { value: 0 }, uLife: { value: 0 }, uSeed: { value: k * 9.1 }, uC0: col(L.bands[0]), uC1: col(L.bands[1]), uC2: col(L.bands[2]), uC3: col(L.bands[3]), uLine: col(L.line), uTongue: col(L.tongue), uGlow: col(L.glow) };
       const fire = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms, vertexShader: VS, fragmentShader: WAVE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
       const halo = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms, vertexShader: VS, fragmentShader: WAVE_GLOW_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
       halo.scale.setScalar(1.06); halo.position.y = -0.01;
@@ -94,7 +102,18 @@ export class FlameSlashFx {
     this.wisps = []; this.embers = []; this.charge = null; this.heat = 0; this.blade = null; this.rnd = mulberry32(57); this.t = 0;
     this.col = [0, 0, 0]; this._a = new THREE.Vector3(); this._b = new THREE.Vector3(); this._c = new THREE.Color();
   }
-  beginCharge(total) {
+  setElement(element) {
+    const L = look(element);
+    this.look = L; this.bladeCols = L.blade.map((c) => new THREE.Color(c));
+    for (const w of this.waves) {
+      const u = w.uniforms;
+      L.bands.forEach((c, i) => u['uC' + i].value.set(c));
+      u.uLine.value.set(L.line); u.uTongue.value.set(L.tongue); u.uGlow.value.set(L.glow);
+    }
+    this.light.color.set(L.glow);
+  }
+  beginCharge(total, element = 'fire') {
+    this.setElement(element);
     this.charge = { t: 0, total };
     const r = this.rnd;
     for (let i = 0; i < 12; i++) {
@@ -116,6 +135,7 @@ export class FlameSlashFx {
       });
     }
     // dull red -> glowing red-orange -> a little brighter at full heat; the metal itself reddens too
+    const [COOL, DULL, GLOW, WHITE] = this.bladeCols || LOOKS.fire.blade.map((c) => new THREE.Color(c));
     if (heat < 0.5) this._c.copy(COOL).lerp(DULL, heat / 0.5); else this._c.copy(DULL).lerp(GLOW, (heat - 0.5) / 0.5).lerp(WHITE, Math.max(0, heat - 0.85) / 0.15 * 0.5);
     const flick = 0.92 + 0.08 * Math.sin(this.t * 31);
     for (const b of this.blade.mats) {
@@ -167,7 +187,7 @@ export class FlameSlashFx {
       if (n < 6) continue;
       const fade = Math.min(1, Math.max(0, (e - 0.12) / 0.25));
       const prof = (x) => Math.pow(Math.sin(Math.PI * (0.06 + 0.94 * x)), 0.8) * (1 - 0.35 * x);
-      mixc(RED, MID, e, this.col);
+      mixc((this.look || LOOKS.fire).red, (this.look || LOOKS.fire).mid, e, this.col);
       const seg = w.pts.slice(0, n);
       this.glow.strip(seg, (x) => w.w * 2.2 * prof(x), fade * 0.7, this.col);
       this.core.strip(seg, (x) => w.w * prof(x), fade, this.col);
@@ -181,7 +201,7 @@ export class FlameSlashFx {
       const w = this.waves.find((q) => q.id === pr.id) || this.waves.find((q) => q.id === null);
       if (!w) continue;
       w.id = pr.id;
-      const life = Math.min(1, pr.travelled / pr.range), grow = 1 + 0.35 * life;
+      const life = Math.min(1, pr.travelled / pr.range), grow = (1 + 0.35 * life) * (pr.waveScale || 1);
       const dx = Math.sin(pr.angle), dz = Math.cos(pr.angle);
       w.g.visible = true;
       w.g.scale.set(grow, 1, grow);
@@ -207,7 +227,8 @@ export class FlameSlashFx {
     for (const m of this.embers) {
       if (m.hist.length < 2) continue;
       const u = m.age / m.life;
-      mixc(u < 0.4 ? HOT : MID, u < 0.4 ? MID : RED, u < 0.4 ? u / 0.4 : (u - 0.4) / 0.6, this.col);
+      const L = this.look || LOOKS.fire;
+      mixc(u < 0.4 ? L.hot : L.mid, u < 0.4 ? L.mid : L.red, u < 0.4 ? u / 0.4 : (u - 0.4) / 0.6, this.col);
       const a = 1 - u * u;
       this.glow.strip(m.hist, (x) => m.w * 2.6 * (1 - x * 0.6), a * 0.6, this.col);
       this.core.strip(m.hist, (x) => m.w * (1 - x), a, this.col);

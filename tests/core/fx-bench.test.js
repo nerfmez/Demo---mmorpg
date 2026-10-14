@@ -135,3 +135,25 @@ test('Flame Wave Slash recipe: 1 s charge, then the slash and a piercing fire wa
   assert.ok(far.length >= 2 && far.every((id) => ids.includes(id)), 'the wave pierces on to the targets behind');
   assert.ok(g.player.cooldowns[0] > 0);
 });
+
+test('Flame Wave Slash: the carrier mods ride on the wave', () => {
+  const run = (mods) => {
+    const g = createBench(data, 'slash', mods, { fusion: 'firebolt', fusionRules: FUSION });
+    g.castSlot(0, { x: 5, z: 0 });
+    const events = [];
+    for (let i = 0; i < 150; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+    const waveHits = events.filter((e) => e.type === 'hit' && e.skill === 'flame_wave_slash' && !e.dot);
+    return { g, events, waveHits, far: g.monsters.filter((m) => m.homeX > 4) };
+  };
+  const frost = run([{ id: 'frost_shift', level: 1 }]);
+  assert.ok(frost.waveHits.length && frost.waveHits.every((e) => e.element === 'cold'), 'Frost Shift makes the wave cold');
+  assert.ok(frost.far.some((m) => m.statuses.chill), 'and it chills');
+  const multi = run([{ id: 'multistrike', level: 3 }]);
+  assert.ok(multi.waveHits.length >= 3 * run([]).waveHits.length - 1, 'Multistrike level 3 sends three waves');
+  const knock = run([{ id: 'knockback', level: 3 }]);
+  assert.ok(knock.far.some((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) > 0.5), 'Knockback pushes what the wave hits');
+  const ground = run([{ id: 'burning_ground', level: 1 }]);
+  assert.ok(ground.events.filter((e) => e.type === 'area' && e.kind === 'burning_ground').length > 1, 'Burning Ground is left where the wave hits');
+  const wide = run([{ id: 'wide_arc', level: 3 }]);
+  assert.ok(wide.waveHits.length > run([]).waveHits.length, 'Wide Arc widens the wave');
+});

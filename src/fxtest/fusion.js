@@ -79,12 +79,29 @@ function installRecipe(g, recipe, slot, carrier, payload) {
     p.mp -= carrier.cost;
     const angle = p.facing, aim = { angle, x: p.x + Math.sin(angle) * 5, z: p.z + Math.cos(angle) * 5 };
     this.executeSkill(carrier, aim, { mult: recipe.slashDamageMult, step: 0 });
-    const w = recipe.wave;
-    this.spawnProjectile({
-      owner: 'player', kind: recipe.id, skill: payload, x: p.x + Math.sin(angle) * 0.6, z: p.z + Math.cos(angle) * 0.6, y: 1.0, angle,
-      speed: w.speed, radius: w.radius, range: w.range, damage: payload.damage * w.damageMult * this.playerDamageMult(), element: payload.element, pierce: Infinity,
-    });
-    this.emit({ type: 'fusionRelease', recipe: recipe.id, x: p.x, z: p.z, angle, range: w.range, speed: w.speed });
+    spawnWave(this, 1);
+    // Multistrike: each repeat swing sends its own (weaker) wave
+    for (let k = 1; k <= (carrier.repeats || 0); k++) this.later(k * carrier.repeatDelay, () => !this.player.dead && spawnWave(this, carrier.repeatMult));
+    this.emit({ type: 'fusionRelease', recipe: recipe.id, x: p.x, z: p.z, angle, range: recipe.wave.range, speed: recipe.wave.speed });
   };
-  return { carrier, payload, recipe };
+  // The wave is the payload's delivery carrying the carrier's mods: an element change (Frost
+  // Shift), knockback, leech, chill, burning ground and status mods all ride on it, and Wide Arc
+  // widens it in proportion to the swing.
+  const base = g.data.skills.combat[carrier.id];
+  const element = carrier.element !== base.element ? carrier.element : payload.element;
+  const waveSkill = {
+    ...payload, id: recipe.id, element, burnChance: element === payload.element ? payload.burnChance : 0,
+    chill: carrier.chill || payload.chill, knock: carrier.knock || payload.knock, leech: Math.max(carrier.leech || 0, payload.leech || 0),
+    ground: carrier.ground || payload.ground, modEffects: { ...(payload.modEffects || {}), ...(carrier.modEffects || {}) },
+  };
+  const widen = carrier.arc / base.arc;
+  function spawnWave(game, mult) {
+    const p = game.player, angle = p.facing, w = recipe.wave;
+    game.spawnProjectile({
+      owner: 'player', kind: recipe.id, skill: waveSkill, x: p.x + Math.sin(angle) * 0.6, z: p.z + Math.cos(angle) * 0.6, y: 1.0, angle,
+      speed: w.speed, radius: w.radius * widen, range: w.range, damage: payload.damage * w.damageMult * mult * game.playerDamageMult(), element, pierce: Infinity,
+      waveScale: widen * (mult < 1 ? 0.8 : 1),
+    });
+  }
+  return { carrier, payload, recipe, waveElement: element };
 }

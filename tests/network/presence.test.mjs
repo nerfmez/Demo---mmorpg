@@ -33,7 +33,7 @@ async function fixture(t, options = {}) {
 test('health, anonymous identity, movement, room/map separation, leave, reconnect', async t => {
   const { connect, port } = await fixture(t);
   const health = await fetch(`http://127.0.0.1:${port}/healthz`); assert.equal(health.status, 200);
-  assert.deepEqual(await health.json(), { ok: true, prototype: 'presence-v3', protocol: PROTOCOL });
+  assert.deepEqual(await health.json(), { ok: true, prototype: 'presence-v4', protocol: PROTOCOL });
   const a = await connect(), b = await connect();
   a.sendJSON(join()); const aw = await a.take('welcome');
   b.sendJSON(join()); const bw = await b.take('welcome');
@@ -121,7 +121,7 @@ test('rejects spoofed identity, extra data, bad maps, poses and binary frames', 
   const bad = [{ ...join(), id: 'someone' }, { ...join(), save: {} }, { ...join(), map: '__proto__' }, { ...join(), room: '<script>' }, { ...join(), pose: { ...pose, x: 1e9 } }, { ...join(), pose: { ...pose, x: null } }, { ...join(), look: { ...look, hair: 'url(secret)' } }, { type: 'move', pose }];
   for (const m of bad) { const ws = await connect(); ws.sendJSON(m); assert.equal((await once(ws, 'close'))[0], 1008); }
   const binary = await connect(); binary.send(Buffer.from('{}')); assert.equal((await once(binary, 'close'))[0], 1008);
-  const oversize = await connect(); oversize.send('x'.repeat(1025)); assert.equal((await once(oversize, 'close'))[0], 1009);
+  const oversize = await connect(); oversize.send('x'.repeat(2049)); assert.equal((await once(oversize, 'close'))[0], 1009);
 });
 test('limits message floods and room capacity', async t => {
   const { connect } = await fixture(t, { roomCapacity: 1 });
@@ -222,4 +222,26 @@ test('version mismatch fails immediately; missing admission has a bounded deadli
   mismatch.start(); await until(() => mismatch.status==='failed'); assert.equal(mismatch.connected,false);
   const stalled = new Presence({endpoint, data, timeoutMs:80}); t.after(() => stalled.stop());
   stalled.start(); await until(() => stalled.status==='failed'); assert.equal(stalled.connected,false); assert.notEqual(stalled.status,'solo');
+});
+
+test('shared monsters: host rows and guest hits relay within the room; malformed rows close the socket', async t => {
+  const { connect } = await fixture(t);
+  const a = await connect(), b = await connect(), other = await connect();
+  a.sendJSON(join()); await a.take('welcome');
+  b.sendJSON(join()); const bw = await b.take('welcome'); await a.take('join');
+  other.sendJSON(join('azure-harbor-v1', 'private')); await other.take('welcome');
+  const type = Object.keys(data.monsters.monsters)[0];
+  const row = [7, type, 3, -130.5, 80.25, 1.2, 40, 60, 'chase'];
+  a.sendJSON({ type: 'monsters', list: [row] });
+  const got = await b.take('monsters');
+  assert.equal(got.id, bw.players[0].id); assert.deepEqual(got.list, [row]);
+  b.sendJSON({ type: 'monsterHit', hit: { key: 7, amount: 12 } });
+  assert.deepEqual((await a.take('monsterHit')).hit, { key: 7, amount: 12 });
+  await new Promise(r => setTimeout(r, 100));
+  assert.equal(other.messages.some(m => m.type === 'monsters' || m.type === 'monsterHit'), false, 'other rooms never see them');
+  const wire = createProtocol(data);
+  assert.equal(wire.monstersOK([[7, 'not_a_monster', 3, 0, 0, 0, 1, 1, 'idle']]), false);
+  assert.equal(wire.monstersOK([[7, type, 3, 0, 0, 0, 70, 60, 'idle']]), false, 'hp above max');
+  a.sendJSON({ type: 'monsters', list: [[7, type, 3, 0, 0, 0, 1, 1, 'Bad State']] });
+  await once(a, 'close');
 });

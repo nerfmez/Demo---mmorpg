@@ -12,7 +12,7 @@ export class Presence {
   constructor({ endpoint, data, state = () => null, onStatus = () => {}, onPlayers = () => {}, onAction = () => {}, timeoutMs = 75000 }) {
     Object.assign(this, { endpoint, state, timeoutMs });
     this.wire = createProtocol(data);
-    this.listeners = { status: new Set([onStatus]), players: new Set([onPlayers]), action: new Set([onAction]) };
+    this.listeners = { status: new Set([onStatus]), players: new Set([onPlayers]), action: new Set([onAction]), monsters: new Set(), monsterHit: new Set() };
     this.players = new Map(); this.seen = new Map(); this.enabled = false; this.connected = false; this.attempt = 0; this.status = 'solo';
   }
   subscribe(kind, fn) { this.listeners[kind].add(fn); return () => this.listeners[kind].delete(fn); }
@@ -91,6 +91,10 @@ export class Presence {
         else if (exact(m, ['type', 'id', 'look', 'gear']) && m.type === 'appearance' && wire.lookOK(m.look) && wire.gearOK(m.gear) && this.players.has(m.id)) Object.assign(this.players.get(m.id), { look: m.look, gear: m.gear });
         else if (exact(m, ['type', 'id', 'action']) && m.type === 'action' && this.players.has(m.id) && wire.actionOK(m.action) && m.action.seq > (this.seen.get(m.id) || 0)) {
           this.seen.set(m.id, m.action.seq); this.emit('action', m.id, m.action); this.lastReceive = Date.now(); return;
+        } else if (exact(m, ['type', 'id', 'list']) && m.type === 'monsters' && this.players.has(m.id) && wire.monstersOK(m.list)) {
+          this.emit('monsters', m.id, m.list); this.lastReceive = Date.now(); return;
+        } else if (exact(m, ['type', 'id', 'hit']) && m.type === 'monsterHit' && this.players.has(m.id) && wire.monsterHitOK(m.hit)) {
+          this.emit('monsterHit', m.id, m.hit); this.lastReceive = Date.now(); return;
         } else return;
       } else return;
       this.lastReceive = Date.now(); this.emit('players', this.players); this.emit('status', this.status, this.players.size);

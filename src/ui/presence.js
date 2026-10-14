@@ -2,6 +2,7 @@ import { Presence, presenceEndpoint } from '../network/presence.js';
 import { GEAR_SLOTS, WORLD_ID, presencePose, roomOK } from '../network/protocol.js';
 import { RemotePlayers } from '../render/remote-players.js';
 import { DEFAULT_LOOK } from '../render/hero.js';
+import { MonsterSync } from '../network/monster-sync.js';
 import './presence.css';
 
 export function createPresence(game, view, resetInput, modelsReady, options = {}) {
@@ -9,7 +10,7 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   const endpoint = options.client?.endpoint || presenceEndpoint(import.meta.env.VITE_PRESENCE_URL);
   const actors = new RemotePlayers(view, game.data);
   const root = document.createElement('details'); root.className = 'presence-panel';
-  root.innerHTML = `<summary>ผู้เล่นออนไลน์ · ทดลอง</summary><div class="presence-content"><strong>Experimental visual prototype</strong><p>เห็นผู้เล่น การเดินและท่าโจมตี · มอนสเตอร์ ไอเทมและเซฟยังแยกกัน</p><label>ห้อง / Room <input maxlength="24" value="lobby" aria-label="Room"></label><div class="presence-actions"><button type="button" data-join>เข้าห้อง / Join</button><button type="button" data-leave>${required ? 'เชื่อมต่อใหม่ / Retry' : 'เล่นคนเดียว / Solo'}</button></div><output role="status"></output></div>`;
+  root.innerHTML = `<summary>ผู้เล่นออนไลน์ · ทดลอง</summary><div class="presence-content"><strong>Experimental visual prototype</strong><p>เห็นผู้เล่น การเดิน ท่าโจมตี และมอนสเตอร์ชุดเดียวกัน (คนแรกในห้องเป็นโฮสต์) · ไอเทมและเซฟยังแยกกัน</p><label>ห้อง / Room <input maxlength="24" value="lobby" aria-label="Room"></label><div class="presence-actions"><button type="button" data-join>เข้าห้อง / Join</button><button type="button" data-leave>${required ? 'เชื่อมต่อใหม่ / Retry' : 'เล่นคนเดียว / Solo'}</button></div><output role="status"></output></div>`;
   document.body.append(root);
   const output = root.querySelector('output'), join = root.querySelector('[data-join]'), room = root.querySelector('input');
   join.disabled = !endpoint;
@@ -24,6 +25,7 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   const client = options.client || new Presence({ endpoint, data: game.data, state });
   client.state = state;
   const offPlayers = client.subscribe('players', players => actors.sync(players));
+  const monsters = new MonsterSync(game, client);
   const offAction = client.subscribe('action', (id, action) => actors.action(id, action));
   const status = (status, count) => {
     resetInput();
@@ -67,6 +69,7 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   addEventListener('pagehide', hide);
   let localAction = null;
   const handleEvent = e => {
+    monsters.handleEvent(e);
     const phase = { castStart: 'cast', chargeStart: 'charge', channelStart: 'channel', chargeEnd: 'cancel', channelEnd: 'cancel' }[e.type];
     if (!phase) return;
     const skill = e.skill || localAction?.skill;
@@ -77,6 +80,7 @@ export function createPresence(game, view, resetInput, modelsReady, options = {}
   return { client, actors, handleEvent, get open() { return root.open; }, update: (dt, time) => {
     if (localAction && game.time + .02 < localAction.until && !game.player[{ cast: 'cast', charge: 'charging', channel: 'channeling' }[localAction.phase]]) handleEvent({ type: 'channelEnd' });
     if (localAction && game.time >= localAction.until) localAction = null;
+    monsters.update(dt);
     actors.update(dt, time);
-  }, dispose: () => { hide(); offPlayers(); offAction(); offStatus(); client.state = () => null; root.remove(); document.removeEventListener('visibilitychange', suspend); removeEventListener('pagehide', hide); } };
+  }, dispose: () => { hide(); monsters.dispose(); offPlayers(); offAction(); offStatus(); client.state = () => null; root.remove(); document.removeEventListener('visibilitychange', suspend); removeEventListener('pagehide', hide); } };
 }

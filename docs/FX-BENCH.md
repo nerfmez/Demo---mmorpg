@@ -63,5 +63,8 @@ The game's Firebolt renderer is unchanged. `src/fxtest/fire-extras.js` adds two 
 flame wisps and embers that spiral in from around the staff head and arrive at release (the
 charge reads as fire being gathered within the real cast time), and impact embers that burst
 out, then sway, curl and drift upward while flickering and cooling, drawn as short curved
-trails from their own recent path. Porting them means moving them into `src/render/` with
+trails from their own recent path, scattering in every direction at varied speeds. The bench
+also shows only the smooth filled core of the game's charge (the core the flying ball shows),
+hiding its noisy flame layers and small gather wisps, with a warm halo growing around it, so
+the charge reads as one ball growing as the fire gathers. Porting them means moving them into `src/render/` with
 numbers in `data/combat-fx.json`.

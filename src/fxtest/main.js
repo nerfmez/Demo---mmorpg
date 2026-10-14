@@ -156,6 +156,13 @@ function rebuild() {
   renderPanel();
 }
 const skillDef = () => game.skills[0];
+// bench look for the Firebolt charge: keep only the smooth filled core (the same core the flying
+// ball shows) and hide the charge's noisy flame layers and the game's small gather wisps
+function smoothCharge(mesh) {
+  if (!mesh?.userData.v5) return;
+  mesh.material.visible = false;
+  for (const ch of mesh.children) if (ch.material?.uniforms?.uFilled?.value !== 1) ch.visible = false;
+}
 const fusedElement = () => (game.fusion ? game.fusion.payload.element : null);
 const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1 : -1, fusedElement: fusedElement(), where: () => ({ x: game.player.x, z: game.player.z, angle: game.player.facing }) });
 // visual only: quick consecutive swings alternate the arm's side (the rules stay one plain strike)
@@ -212,7 +219,10 @@ function drain() {
       case 'castStart':
         heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
-        if (e.kind === 'projectile') { vfx.beginCast(e, s.element); if (s.element === 'fire') fireX.gather(e.total); }
+        if (e.kind === 'projectile') {
+          vfx.beginCast(e, s.element);
+          if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
+        }
         if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
         if (e.kind === 'nova') frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius);
         break;
@@ -248,7 +258,7 @@ function drain() {
       }
       case 'impact': {
         vfx.impact(e);
-        if (e.element === 'fire') { const l = Math.hypot(e.vx || 0, e.vz || 0) || 1; fireX.impact(e.x, 1.0, e.z, (e.vx || 0) / l, (e.vz || 0) / l); }
+        if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z);
         break;
       }
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;

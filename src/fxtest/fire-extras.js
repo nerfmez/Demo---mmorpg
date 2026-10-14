@@ -20,12 +20,20 @@ export class FireExtras {
     this.core = new Ribbon(scene, camera, 4000, EMBER_FS, THREE.NormalBlending);
     this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,205,120,1)'); grad.addColorStop(0.35, 'rgba(255,130,40,0.5)'); grad.addColorStop(1, 'rgba(230,70,15,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+    this.halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    this.halo.visible = false; this.halo.renderOrder = 6; scene.add(this.halo);
+    this.charge = null;
     this.wisps = []; this.embers = []; this.rnd = mulberry32(31); this.t = 0;
     this.tmp = []; this.col = [0, 0, 0];
   }
   // castStart of a fire projectile: wisps converge on the staff head over `total` seconds
-  gather(total, tip) {
+  gather(total) {
     const r = this.rnd, T = Math.max(0.12, total);
+    this.charge = { t: 0, total: T };
     for (let i = 0; i < 18; i++) {
       const th = r() * Math.PI * 2, el = (r() - 0.35) * 1.1, rad = 0.5 + r() * 0.4;
       this.wisps.push({
@@ -33,8 +41,8 @@ export class FireExtras {
         t: 0, w: (i < 10 ? 0.12 : 0.04) * (0.7 + r() * 0.6), ember: i >= 10, pts: Array.from({ length: TRAIL }, () => new THREE.Vector3()),
       });
     }
-    this.tip = tip;
   }
+  release() { this.charge = null; this.halo.visible = false; }
   // a point on wisp w's spiral at progress e (0 start .. 1 at the staff head)
   spiral(w, tip, e, out) {
     const ease = e * e * (3 - 2 * e);
@@ -42,11 +50,12 @@ export class FireExtras {
     return out.set(tip.x + Math.cos(th) * Math.cos(el) * rad, tip.y + Math.sin(el) * rad * 0.8, tip.z + Math.sin(th) * Math.cos(el) * rad);
   }
   // a fire impact at (x, y, z): fluttering embers
-  impact(x, y, z, dx = 0, dz = 0) {
+  impact(x, y, z) {
     const r = this.rnd;
     for (let i = 0; i < 22; i++) {
-      const a = r() * Math.PI * 2, up = 0.4 + r() * 1.2, sp = 2.2 + r() * 2.6;
-      const v = new THREE.Vector3(Math.cos(a) * sp + dx * 1.5, up * sp * 0.8, Math.sin(a) * sp + dz * 1.5);
+      // a random direction over the whole sphere and a spread of speeds: some fly, some just float off
+      const zc = r() * 2 - 1, a = r() * Math.PI * 2, rr = Math.sqrt(1 - zc * zc), sp = 0.6 + Math.pow(r(), 1.6) * 4;
+      const v = new THREE.Vector3(Math.cos(a) * rr * sp, zc * sp * 0.8 + 0.5, Math.sin(a) * rr * sp);
       this.embers.push({ p: new THREE.Vector3(x, y, z), v, age: 0, life: 0.35 + r() * 0.3, w: 0.02 + r() * 0.014,
         freq: 4 + r() * 5, phase: r() * 6.28, amp: 4 + r() * 4, flick: 8 + r() * 10, hist: [] });
     }
@@ -55,6 +64,14 @@ export class FireExtras {
     this.t += dt;
     const r = this.rnd;
     this.core.begin(); this.glow.begin();
+    if (this.charge) {
+      const ch = this.charge; ch.t += dt;
+      const k = Math.min(1, ch.t / ch.total), grow = k * k * (3 - 2 * k);
+      this.halo.visible = true; this.halo.position.copy(tip);
+      this.halo.scale.setScalar(0.2 + 0.6 * grow);
+      this.halo.material.opacity = 0.3 + 0.35 * grow + 0.06 * Math.sin(ch.t * 40);
+      if (ch.t > ch.total + 0.05) this.release();
+    }
     // gather wisps: spiral in, ease into the staff head
     for (const w of this.wisps) {
       w.t += dt;
@@ -79,7 +96,7 @@ export class FireExtras {
     for (const m of this.embers) {
       m.age += dt;
       const u = m.age / m.life;
-      m.v.multiplyScalar(1 - 2.4 * dt);
+      m.v.multiplyScalar(1 - 4.5 * dt);
       m.v.y += (1.6 * u - 1.2) * dt * 3;               // falls a little, then rises as it cools
       const sway = Math.sin(m.age * m.freq + m.phase) * m.amp * dt;
       m.v.x += sway * Math.cos(m.phase); m.v.z += sway * Math.sin(m.phase);
@@ -98,5 +115,5 @@ export class FireExtras {
     }
     this.core.end(); this.glow.end();
   }
-  clear() { this.wisps = []; this.embers = []; }
+  clear() { this.wisps = []; this.embers = []; this.release(); }
 }

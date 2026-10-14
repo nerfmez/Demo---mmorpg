@@ -1,0 +1,7 @@
+{
+  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type.",
+  "carrier": { "requiresAll": ["Attack"], "excludes": ["Spell", "Summon", "Guard", "Charge", "Channel"], "maxCooldown": 2.5 },
+  "payload": { "requiresAll": ["Spell", "Damage"], "excludes": ["Summon", "Channel", "Heal", "Guard", "Buff"], "maxCooldown": 2.5, "kinds": ["projectile"] },
+  "payloadDamageMult": 0.5,
+  "socketsUsed": 1
+}

@@ -46,3 +46,47 @@ test('flame stream channels pulses until released and frost shift turns it cold'
   r.g.cancelChannel();
   assert.equal(r.g.drainEvents().filter((e) => e.type === 'channelEnd').length, 1);
 });
+
+// Prototype fusion (data/fusion.json): a physical carrier links one fast spell.
+import { readFileSync } from 'node:fs';
+import { fusionPayloads } from '../../src/fxtest/fusion.js';
+const FUSION = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
+
+test('fusion pairs: physical fast carriers with fast damage spells only', () => {
+  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'arcane_shot', 'firebolt']);
+  assert.deepEqual(fusionPayloads(data, FUSION, 'chain_spark'), [], 'a spell is not a carrier');
+  assert.ok(!fusionPayloads(data, FUSION, 'slash').includes('frost_nova'), 'long cooldown spells are not payloads');
+  assert.deepEqual(fusionPayloads(data, FUSION, 'armor_cleave'), [], 'long cooldown attacks are not carriers');
+});
+
+test('fused slash: longer cooldown, summed cost, payload fires on through the struck target at reduced damage', () => {
+  const plain = createBench(data, 'slash', []).skills[0];
+  const g = createBench(data, 'slash', [], { fusion: 'firebolt', fusionRules: FUSION });
+  const s = g.skills[0], bolt = g.skills[1];
+  assert.equal(s.cooldown, Math.max(plain.cooldown, bolt.cooldown));
+  assert.equal(s.cost, plain.cost + bolt.cost);
+  g.castSlot(0, { x: 5, z: 0 });
+  const events = [];
+  let projectile = null;
+  for (let i = 0; i < 60; i++) {
+    g.benchStep(1 / 60); events.push(...g.drainEvents());
+    projectile ||= g.projectiles.find((p) => p.kind === 'firebolt');
+  }
+  const fusion = events.filter((e) => e.type === 'fusion');
+  assert.equal(fusion.length, 1, 'once per cast');
+  const struck = g.monsters.find((m) => m.x === fusion[0].x && m.z === fusion[0].z);
+  assert.ok(projectile.hit.has(struck.id), 'the struck target is not hit twice');
+  assert.ok(Math.abs(projectile.damage - bolt.damage * FUSION.payloadDamageMult * g.playerDamageMult()) < 1e-6);
+  const fireHits = events.filter((e) => e.type === 'hit' && e.element === 'fire' && !e.dot);
+  assert.equal(fireHits.length, 1);
+  assert.notEqual(fireHits[0].id, struck.id);
+});
+
+test('a fused slash that misses does not fire its payload', () => {
+  const g = createBench(data, 'slash', [], { fusion: 'firebolt', fusionRules: FUSION });
+  g.aimAt(-Math.PI / 2);
+  g.castSlot(0, { x: -5, z: 0 });
+  const events = [];
+  for (let i = 0; i < 40; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+  assert.equal(events.filter((e) => e.type === 'fusion').length, 0);
+});

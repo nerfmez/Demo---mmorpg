@@ -1,5 +1,6 @@
-// Skill FX test bench (fx-test.html): Chain Spark, Frost Nova and Flame Stream prototype effects
-// driven by the real combat rules, with real skill mods. Separate from the game and the Skill Lab;
+// Skill FX test bench (fx-test.html): Slash (new look), Firebolt (the game's renderer), Chain Spark,
+// Frost Nova and Flame Stream prototype effects driven by the real combat rules, with real skill mods
+// and the prototype skill fusion (data/fusion.json). Separate from the game and the Skill Lab;
 // nothing is saved. Tap the floor to aim, hold the cast button to channel Flame Stream.
 import * as THREE from 'three';
 import { data } from '../data.js';
@@ -7,7 +8,12 @@ import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js
 import { loadModels } from '../render/models.js';
 import MODELS from '../../data/models.json';
 import STAFF_CAST from '../../data/staff-cast.json';
-import { createBench, benchMods, BENCH_SKILLS, LAYOUTS } from './sandbox.js';
+import FUSION from '../../data/fusion.json';
+import { Vfx } from '../render/vfx.js';
+import { disposeObject } from '../render/dispose.js';
+import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
+import { fusionPayloads } from './fusion.js';
+import { SlashFx } from './slash-fx.js';
 import { mulberry32 } from './fx-common.js';
 import { ChainFx } from './chain-fx.js';
 import { FrostFx } from './frost-fx.js';
@@ -16,8 +22,9 @@ import { ModFx } from './mod-fx.js';
 
 const params = new URLSearchParams(location.search);
 const state = {
-  skill: BENCH_SKILLS.includes(params.get('skill')) ? params.get('skill') : 'chain_spark',
+  skill: BENCH_SKILLS.includes(params.get('skill')) ? params.get('skill') : 'slash',
   mods: [], // [{id, level}]
+  fusion: null, // linked payload skill id
   speed: 1,
   cam: params.get('cam') === 'game' ? 'game' : 'close',
   auto: false,
@@ -26,7 +33,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -91,17 +98,25 @@ function makeDummy() {
 const dummies = Array.from({ length: 6 }, makeDummy);
 
 // ---------- hero ----------
-let hero = null, heroAnim = null;
-function buildHero() {
+let hero = null, heroAnim = null, heroWeapon = 'staff';
+function buildHero(weapon = heroWeapon) {
+  heroWeapon = weapon;
   const action = heroAnim?.action || null;
   if (hero) hero.root.removeFromParent();
-  hero = buildHumanoid(DEFAULT_LOOK, { weapon: 'staff', armor: 'tunic', helm: null, offhand: null, bases: {} });
+  hero = buildHumanoid(DEFAULT_LOOK, { weapon, armor: 'tunic', helm: null, offhand: null, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action = action;
   scene.add(hero.root);
 }
 buildHero();
 loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons }, { onWeaponReady: () => buildHero() }).then(() => buildHero()).catch(() => {});
+const bladeTip = new THREE.Vector3(), bladeDir = new THREE.Vector3();
+function weaponTip() {
+  const w = hero.bones?.weapon, p = game.player;
+  if (!w) return bladeTip.set(p.x + Math.sin(p.facing), 1.1, p.z + Math.cos(p.facing));
+  w.updateWorldMatrix(true, false); w.getWorldPosition(bladeTip); w.getWorldDirection(bladeDir);
+  return bladeTip.addScaledVector(bladeDir, 0.9);
+}
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;
@@ -119,14 +134,20 @@ const chainFx = new ChainFx(scene, camera);
 const frostFx = new FrostFx(scene, camera);
 const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
+const slashFx = new SlashFx(scene, camera);
+// the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
+const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
+let contactQueue = [];
 
 // ---------- the bench (real rules) ----------
 let game = null, aimAngle = Math.PI / 2, lastNovaAt = -9, simTime = 0;
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
-  game = createBench(data, state.skill, state.mods);
+  if (state.fusion && !fusionPayloads(data, FUSION, state.skill).includes(state.fusion)) state.fusion = null;
+  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION });
   game.aimAt(aimAngle);
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear();
+  if (BENCH_WEAPON[state.skill] !== heroWeapon) buildHero(BENCH_WEAPON[state.skill]);
+  clearFx();
   heroAnim.action = null;
   state.holding = false;
   const spots = LAYOUTS[state.skill];
@@ -139,16 +160,22 @@ function rebuild() {
   renderPanel();
 }
 const skillDef = () => game.skills[0];
+function clearFx() {
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); contactQueue = [];
+  vfx.endCast(); vfx.clearFireballs?.();
+  for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
+  vfx.projectiles.clear();
+}
 const dummyOf = (id) => { const i = game.monsters.findIndex((m) => m.id === id); return i >= 0 ? dummies[i] : null; };
 
 function aimPoint() { const p = game.player; return { x: p.x + Math.sin(aimAngle) * 5, z: p.z + Math.cos(aimAngle) * 5 }; }
 function castDown() {
   if (!game) return;
   const s = skillDef();
+  game.aimAt(aimAngle);
+  if (!game.castSlot(0, aimPoint())) return; // still cooling down
   stats.casts++;
   stats.last = { hits: 0, total: 0 };
-  game.aimAt(aimAngle);
-  game.castSlot(0, aimPoint());
   if (s.kind === 'channel_cone') state.holding = true;
   drain();
 }
@@ -157,7 +184,7 @@ function dodge() { if (!game) return; game.aimAt(aimAngle); stats.last = { hits:
 function resetBench() {
   game.cancelChannel(); state.holding = false;
   game.resetDummies(); Object.assign(game.player, { x: 0, z: 0 });
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear();
+  clearFx();
   Object.assign(stats, { casts: 0, hits: 0, total: 0, byElement: {}, last: null });
   renderStats();
 }
@@ -182,7 +209,9 @@ function drain() {
     const s = skillDef();
     switch (e.type) {
       case 'castStart':
-        heroAnim.play(e.skill, e.total + 0.28, 'staff', e.step, e.total, e.kind);
+        heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.step, e.total, e.kind);
+        if (e.kind === 'melee_arc') slashFx.begin({ ...e, x: game.player.x, z: game.player.z }, s, game.fusion ? game.fusion.payload.element : null);
+        if (e.kind === 'projectile') vfx.beginCast(e, s.element);
         if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
         if (e.kind === 'nova') frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius);
         break;
@@ -205,6 +234,12 @@ function drain() {
       }
       case 'burst': if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
+      case 'slash':
+        for (const d of contactQueue) slashFx.contact(d.x, d.z, slashFx.lastDir || 1, e.finisher);
+        contactQueue = [];
+        break;
+      case 'impact': vfx.impact(e); break;
+      case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;
       case 'hit': {
         const d = dummyOf(e.id); if (!d) break;
         const el = e.element || 'physical';
@@ -213,6 +248,7 @@ function drain() {
         stats.hits++; stats.total += e.amount; stats.byElement[el] = (stats.byElement[el] || 0) + e.amount;
         if (stats.last) { stats.last.hits++; stats.last.total += e.amount; }
         if (e.skill === 'flame_stream' && !e.dot) flameFx.lick(d.center);
+        if (e.attackKind === 'melee_arc') contactQueue.push(d);
         break;
       }
     }
@@ -245,7 +281,7 @@ function renderPanel() {
   const tabs = h('div', 'tabs');
   for (const id of BENCH_SKILLS) {
     const b = h('button', 'tab' + (id === state.skill ? ' on' : ''), data.skills.combat[id].nameTh);
-    b.addEventListener('click', () => { if (id === state.skill) return; state.skill = id; state.mods = []; aimAngle = Math.PI / 2; rebuild(); });
+    b.addEventListener('click', () => { if (id === state.skill) return; state.skill = id; state.mods = []; state.fusion = null; aimAngle = Math.PI / 2; rebuild(); });
     tabs.append(b);
   }
   panel.append(tabs);
@@ -254,12 +290,13 @@ function renderPanel() {
 
   const modBox = h('section', 'mods');
   modBox.append(h('h2', '', `ม็อด (ใส่ได้ ${MAX_MODS})`));
+  const sockets = MAX_MODS - (state.fusion ? FUSION.socketsUsed : 0);
   const fits = new Set(benchMods(data, state.skill, state.mods));
   for (const id of benchMods(data, state.skill)) {
     const mod = data.mods.mods[id], sel = state.mods.find((m) => m.id === id);
     const row = h('div', 'mod' + (sel ? ' on' : ''));
     const chip = h('button', 'chip', (sel ? '✓ ' : '') + mod.nameTh);
-    chip.disabled = !sel && (state.mods.length >= MAX_MODS || !fits.has(id));
+    chip.disabled = !sel && (state.mods.length >= sockets || !fits.has(id));
     chip.addEventListener('click', () => {
       state.mods = sel ? state.mods.filter((m) => m.id !== id) : [...state.mods, { id, level: 1 }];
       rebuild();
@@ -279,11 +316,33 @@ function renderPanel() {
   }
   panel.append(modBox);
 
+  // prototype fusion: link one fast spell into a socket of a physical skill
+  const payloads = fusionPayloads(data, FUSION, state.skill);
+  if (payloads.length) {
+    const fb = h('section', 'mods');
+    fb.append(h('h2', '', 'ลิงก์สกิล (ฟิวชั่น · ใช้ช่องม็อด 1 ช่อง)'));
+    for (const id of payloads) {
+      const def2 = data.skills.combat[id], on = state.fusion === id;
+      const row = h('div', 'mod' + (on ? ' on' : ''));
+      const chip = h('button', 'chip', (on ? '✓ ' : '') + def2.nameTh);
+      chip.disabled = !on && state.mods.length >= MAX_MODS;
+      chip.addEventListener('click', () => { state.fusion = on ? null : id; rebuild(); });
+      row.append(chip, h('div', 'mdesc', `ฟันโดนแล้ว${def2.nameTh}ออกจากเป้าที่โดน พุ่งต่อไปข้างหน้า ความสามารถเต็ม ดาเมจ ${Math.round(FUSION.payloadDamageMult * 100)}% · คูลดาวน์ใช้ตัวที่นานกว่า · MP รวมกัน`));
+      fb.append(row);
+    }
+    panel.append(fb);
+  }
+
   // what the rules actually resolved for this slot (after mods)
   const facts = h('section', 'facts');
   facts.append(h('h2', '', 'ค่าจริงหลังใส่ม็อด'));
   const line = (k, v) => { const r = h('div', 'fact'); r.append(h('span', '', k), h('b', '', v)); facts.append(r); };
   line('ธาตุ', ELEMENT_TH[s.element] || s.element);
+  line('คูลดาวน์', `${s.cooldown.toFixed(2)} วิ`);
+  line('MP', `${s.cost}`);
+  if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
+  if (s.kind === 'melee_arc') line('ระยะ / มุม', `${s.range} ม. × ${s.arc}°`);
+  if (s.kind === 'projectile') line('ระยะ / ความเร็ว', `${s.range} ม. · ${s.speed} ม./วิ`);
   line('ดาเมจต่อครั้ง', s.kind === 'channel_cone' ? `${(s.damage * s.channel.tick).toFixed(1)} / ${s.channel.tick} วิ` : s.damage.toFixed(1));
   if (s.kind === 'chain') { line('เด้งต่อ', `${s.chain} ตัว (ระยะ ${s.chainRange} ม.)`); if (s.modEffects?.chainReturn) line('หวนคืน', `${Math.round(s.modEffects.chainReturn * 100)}%`); }
   if (s.kind === 'nova') line('รัศมี', `${s.radius.toFixed(2)} ม.`);
@@ -353,6 +412,7 @@ function layout() {
   camera.updateProjectionMatrix();
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   flameFx.resize(size.x, size.y, w, hgt);
+  vfx.setPointScale(hgt * renderer.getPixelRatio());
 }
 window.addEventListener('resize', layout);
 new ResizeObserver(layout).observe(stage);
@@ -369,10 +429,10 @@ function frame() {
 function tick(real, draw = true) {
   const dt = real * state.speed;
   simTime += dt;
-  // auto cast: tap skills every 1.8 s, Flame Stream held 1.4 s
+  // auto cast: whenever the skill is ready (at most every 1.2 s); Flame Stream held 1.4 s
   if (state.auto) {
     autoT -= dt;
-    if (autoT <= 0) { castDown(); autoT = skillDef().kind === 'channel_cone' ? 2.4 : 1.8; }
+    if (autoT <= 0 && !(game.player.cooldowns[0] > 0)) { castDown(); autoT = skillDef().kind === 'channel_cone' ? 2.4 : 1.2; }
     if (state.holding && autoT < 1.0 && !castBtn.matches(':active')) castUp();
   }
   game.benchStep(dt);
@@ -411,6 +471,13 @@ function tick(real, draw = true) {
   flameFx.update(dt, mouth, p.x, p.z, p.facing);
   modFx.syncAreas(game.areas);
   modFx.update(dt);
+  slashFx.update(dt, weaponTip(), p.x, p.z);
+  vfx.updateCast(dt, hero, !p.cast, p);
+  vfx.syncProjectiles(game, dt, simTime);
+  vfx.update(dt);
+  const cd = p.cooldowns[0] || 0;
+  castBtn.classList.toggle('cooling', cd > 0.02);
+  castBtn.style.setProperty('--cd', String(Math.min(1, cd / Math.max(0.01, skillDef().cooldown))));
 
   // numbers
   const w = stage.clientWidth, hgt = stage.clientHeight;
@@ -431,6 +498,6 @@ function tick(real, draw = true) {
 
 rebuild();
 requestAnimationFrame(frame);
-window.__fxtest = { state, get game() { return game; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, chainFx,
+window.__fxtest = { state, get game() { return game; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, chainFx,
   // review hooks: freeze the clock and advance fixed 60 Hz steps, rendering only the last one
-  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, frostFx, flameFx, modFx, staffTip };
+  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, frostFx, flameFx, modFx, slashFx, vfx, staffTip };

@@ -44,9 +44,12 @@ pair. Flame Wave Slash: casting starts a 1 s charge (no damage, the swing's wind
 over it, aim still follows the pointer); at its end the carrier's Slash lands and a crescent
 fire wave (a real piercing projectile: 11 m/s, 8 m, radius 1.2, Firebolt's damage and burn)
 hits every target in its path once. Cooldown 1.6 s, MP = both skills. Visuals in
-`src/fxtest/flame-slash-fx.js`: wisps spiral onto the blade as it heats and sheds flame, then
-the slash crescent with a fire rim and a travelling crescent of fire that widens, sheds embers
-and burns away at the end of its range.
+`src/fxtest/flame-slash-fx.js` are its own: none of Slash's or Firebolt's effects are used
+except fire sparks on hits. During the charge the sword's own materials heat from dull red to
+glowing red-orange (restored once it cools after the cut) with heat embers and a few wisps;
+the wave is a clean half-moon of fire (smooth front and inner arcs meeting in sharp points,
+flowing cel bands, short tongues off the back edge, a soft glow) that widens and burns away
+from the back at the end of its range.
 
 ## Slash (bench look and rule trial)
 

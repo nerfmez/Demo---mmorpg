@@ -259,8 +259,7 @@ function drain() {
       case 'fusionCharge':
         // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
         heroAnim.play(e.skill, e.total + 0.3, heroWeapon, nextSwingStep(), e.total, 'melee_arc');
-        flameSlash.beginCharge(e.total);
-        slashFx.swing(e.total, slashOpts(s));
+        flameSlash.beginCharge(e.total); // its own look: no Slash crescent, no Firebolt charge
         primarySwing = true;
         break;
       case 'fusionRelease': flameSlash.release(); break;
@@ -271,14 +270,14 @@ function drain() {
         if (primary && !e.triggered && s.repeats) {
           for (let k = 1; k <= s.repeats; k++) {
             const at = simTime + k * s.repeatDelay - SWING_LEAD;
-            timers.push({ at, fn: () => { heroAnim.play(e.skill, 0.3, heroWeapon, nextSwingStep(), SWING_LEAD, 'melee_arc'); slashFx.swing(SWING_LEAD, slashOpts(s)); } });
+            timers.push({ at, fn: () => { heroAnim.play(e.skill, 0.3, heroWeapon, nextSwingStep(), SWING_LEAD, 'melee_arc'); if (!s.recipe) slashFx.swing(SWING_LEAD, slashOpts(s)); } });
           }
         }
         break;
       }
       case 'impact': {
         // fire hits use the bench's round burst instead of the game's one-sided splash
-        if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z); else vfx.impact(e);
+        if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
         break;
       }
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;
@@ -519,7 +518,7 @@ function tick(real, draw = true) {
   slashFx.update(dt);
   fireX.update(dt, staffTip());
   bladePoints();
-  flameSlash.update(dt, bladeBase, bladeTip, game.projectiles, recipeKind);
+  flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
   vfx.syncProjectiles(recipeKind ? { projectiles: game.projectiles.filter((pr) => pr.kind !== recipeKind) } : game, dt, simTime);
   vfx.update(dt);

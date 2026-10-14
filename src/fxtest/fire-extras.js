@@ -67,10 +67,13 @@ export class FireExtras {
     return out.set(tip.x + Math.cos(th) * Math.cos(el) * rad, tip.y + Math.sin(el) * rad * 0.8, tip.z + Math.sin(th) * Math.cos(el) * rad);
   }
   // a fire impact at (x, y, z): fluttering embers
-  impact(x, y, z) {
+  // embersOnly: just the sparks, no flash or puff (the fusion keeps only these from Firebolt)
+  impact(x, y, z, embersOnly = false) {
     const r = this.rnd;
-    const pop = this.pops.find((q) => q.t > 0.4) || this.pops[0];
-    pop.t = 0; pop.pos.set(x, y, z); pop.puff.material.uniforms.uSeed.value = r() * 40;
+    if (!embersOnly) {
+      const pop = this.pops.find((q) => q.t > 0.4) || this.pops[0];
+      pop.t = 0; pop.pos.set(x, y, z); pop.puff.material.uniforms.uSeed.value = r() * 40;
+    }
     for (let i = 0; i < 22; i++) {
       // a random direction over the whole sphere and a spread of speeds: some fly, some just float off
       const zc = r() * 2 - 1, a = r() * Math.PI * 2, rr = Math.sqrt(1 - zc * zc), sp = 0.6 + Math.pow(r(), 1.6) * 4;

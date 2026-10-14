@@ -1,9 +1,12 @@
-// Flame Wave Slash (bench): the fusion of Slash and Firebolt.
-// Charge: flame wisps spiral onto the blade, which heats from a faint orange line to a white-hot
-// edge wrapped in licking flame, with embers rising off it as the charge fills.
-// Release: (the slash crescent is drawn by SlashFx with a fire rim) a crescent of fire travels
-// with the rules' projectile: a hot front edge, an orange body and red tongues streaming back,
-// widening as it goes and burning away at the end of its range, shedding embers.
+// Flame Wave Slash (bench): its own look; none of Slash's or Firebolt's effects are reused except
+// fire sparks.
+// Charge: the sword itself heats, from dull red to glowing red-orange metal (its own materials
+// are tinted, then cool back after the cut), with heat embers rising off the blade and a few
+// flame wisps drawn onto it.
+// Release: a clean half-moon of fire travels with the rules' projectile: a smooth front arc and
+// a smooth inner arc meeting in two sharp points, fire flowing inside it in flat cel bands
+// (white-hot front rim, yellow, orange, red), short tongues flicking off its back edge, a soft
+// glow around it; it widens as it goes and burns away from the back at the end of its range.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, NOISE } from './fx-common.js';
 
@@ -13,26 +16,46 @@ const STRIP_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard; vec3 c = d < 0.42 ? mix(vT, vec3(1.0,0.97,0.85), 0.75) : vT; gl_FragColor=vec4(c, vA); }`;
 const GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,2.2)*0.65; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
-const WAVE_FS = `varying vec2 vUv; uniform float uT; uniform float uLife; uniform float uSeed; ${NOISE}
+// s: 0..1 along the arc; v: 0 inner (toward the caster) .. 1 front edge
+const SHAPE = `uniform float uT; uniform float uLife; uniform float uSeed; ${NOISE}
+  float thick(float s){ return 0.62 * pow(sin(3.14159265 * clamp(s, 0.0, 1.0)), 0.75); }`;
+const WAVE_FS = `varying vec2 vUv; ${SHAPE}
   void main(){
-    float s = vUv.x, v = vUv.y;                        // s along the crescent, v 0 back .. 1 front edge
-    float ends = pow(sin(3.14159265 * s), 0.7);
-    // tongues stream back from the front edge; noise scrolls backward as the wave moves
-    float n = fbm(vec2(s * 7.0 + uSeed, v * 2.2 + uT * 5.0));
-    float reach = ends * (0.7 + 0.5 * n) * (1.0 - uLife * 0.5);
-    float back = 1.0 - reach;
-    if (v < back) discard;
-    float b = (v - back) / max(reach, 1e-3);          // 0 tongue tips .. 1 front edge
-    // burn away at the end of the range
-    if (fbm(vec2(s * 5.0 - uSeed, v * 3.0)) < uLife * 1.15 - 0.25 + (1.0 - b) * 0.35 * uLife) discard;
-    vec3 c = vec3(0.85, 0.2, 0.07);
-    c = mix(c, vec3(1.0, 0.5, 0.13), step(0.3, b));
-    c = mix(c, vec3(1.0, 0.82, 0.38), step(0.62, b));
-    c = mix(c, vec3(1.0, 0.97, 0.85), step(0.86, b) * step(b, 0.97));
-    c = mix(c, vec3(0.5, 0.08, 0.04), step(0.97, b));  // thin same-hue edge line
-    gl_FragColor = vec4(c, 1.0); }`;
+    float s = vUv.x, v = vUv.y;
+    float t = thick(s);
+    float inner = 1.0 - t;                            // the clean inner arc
+    // short flame tongues flick off the back edge, flowing backward
+    float tn = fbm(vec2(s * 10.0 + uSeed, uT * 6.0));
+    float tongue = t * 0.45 * smoothstep(0.45, 0.8, tn);
+    if (v < inner - tongue) discard;
+    float b = (v - inner) / max(t, 1e-3);             // 0 inner arc .. 1 front arc (<0 in a tongue)
+    // burn away from the back at the end of the range
+    float burn = fbm(vec2(s * 6.0 - uSeed, v * 4.0));
+    if (burn < uLife * 1.2 - 0.2 + (1.0 - clamp(b, 0.0, 1.0)) * 0.5 * uLife) discard;
+    // fire flowing inside: bands bent by noise that scrolls back from the front
+    float flow = fbm(vec2(s * 5.0 + uSeed * 0.3, b * 2.0 + uT * 4.0)) - 0.5;
+    float h = clamp(b, 0.0, 1.0) + flow * 0.35;
+    vec3 c = vec3(0.78, 0.16, 0.06);
+    c = mix(c, vec3(1.0, 0.42, 0.1), step(0.28, h));
+    c = mix(c, vec3(1.0, 0.72, 0.25), step(0.55, h));
+    c = mix(c, vec3(1.0, 0.95, 0.75), step(0.8, h));
+    if (b < 0.0) c = vec3(0.9, 0.3, 0.08);            // tongues: orange-red
+    // thin dark-red line along the front arc and the inner arc
+    float aa = fwidth(b) * 1.5;
+    c = mix(c, vec3(0.45, 0.06, 0.03), smoothstep(1.0 - 0.035 - aa, 1.0 - 0.035, b));
+    c = mix(c, vec3(0.55, 0.1, 0.04), (1.0 - smoothstep(0.0, 0.03 + aa, b)) * step(0.0, b) * 0.8);
+    float alpha = (b < 0.0 ? 0.85 : 1.0) * (1.0 - smoothstep(0.995 - aa, 1.0, b));
+    gl_FragColor = vec4(c, alpha); }`;
+const WAVE_GLOW_FS = `varying vec2 vUv; ${SHAPE}
+  void main(){
+    float s = vUv.x, v = vUv.y, t = thick(s) * 1.35 + 0.05;
+    float b = (v - (1.0 - t)) / max(t, 1e-3);
+    if (b < 0.0) discard;
+    float g = smoothstep(0.0, 0.7, b) * (1.0 - smoothstep(0.85, 1.0, b)) * (1.0 - uLife);
+    gl_FragColor = vec4(vec3(1.0, 0.45, 0.12) * g * 0.55, 1.0); }`;
 
-function crescent(arc, r0, r1, segs = 64, rings = 8) {
+// the crescent's surface: arc `arc` around the origin, from radius r0 (inner) to r1 (front)
+function crescent(arc, r0, r1, segs = 72, rings = 10) {
   const pos = [], uv = [], idx = [];
   for (let i = 0; i <= segs; i++) {
     const u = i / segs, a = -arc / 2 + u * arc;
@@ -46,39 +69,68 @@ function crescent(arc, r0, r1, segs = 64, rings = 8) {
   g.setIndex(idx);
   return g;
 }
+const VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const COOL = new THREE.Color('#2a0400'), DULL = new THREE.Color('#8a1a04'), GLOW = new THREE.Color('#ff5a14'), WHITE = new THREE.Color('#ffb060');
 
 export class FlameSlashFx {
   constructor(scene, camera) {
     this.scene = scene;
-    this.core = new Ribbon(scene, camera, 5000, STRIP_FS, THREE.NormalBlending);
-    this.glow = new Ribbon(scene, camera, 5000, GLOW_FS, THREE.AdditiveBlending);
+    this.core = new Ribbon(scene, camera, 4000, STRIP_FS, THREE.NormalBlending);
+    this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
     this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
-    this.light = new THREE.PointLight('#ff8a3a', 0, 2.5, 2); scene.add(this.light);
-    // the travelling wave: radius R, the front edge sits on the projectile
-    this.R = 1.6;
-    this.waveGeo = crescent((105 * Math.PI) / 180, this.R - 1.5, this.R);
+    this.light = new THREE.PointLight('#ff6a2a', 0, 2.5, 2); scene.add(this.light);
+    this.R = 1.8; // the front edge sits on the projectile; the half-moon spans 150 degrees
+    const geo = crescent((150 * Math.PI) / 180, this.R - 1.3, this.R);
     this.waves = Array.from({ length: 3 }, (_, k) => {
-      const m = new THREE.Mesh(this.waveGeo, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uLife: { value: 0 }, uSeed: { value: k * 9.1 } },
-        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-        fragmentShader: WAVE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
-      m.visible = false; m.frustumCulled = false; m.renderOrder = 6; scene.add(m);
-      return { m, id: null };
+      const uniforms = { uT: { value: 0 }, uLife: { value: 0 }, uSeed: { value: k * 9.1 } };
+      const fire = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms, vertexShader: VS, fragmentShader: WAVE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+      const halo = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms, vertexShader: VS, fragmentShader: WAVE_GLOW_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+      halo.scale.setScalar(1.06); halo.position.y = -0.01;
+      fire.renderOrder = 6; halo.renderOrder = 5;
+      const g = new THREE.Group(); g.add(halo, fire); g.visible = false; scene.add(g);
+      for (const m of [fire, halo]) m.frustumCulled = false;
+      return { g, uniforms, id: null };
     });
-    this.wisps = []; this.embers = []; this.charge = null; this.rnd = mulberry32(57); this.t = 0;
-    this.col = [0, 0, 0]; this._a = new THREE.Vector3(); this._b = new THREE.Vector3();
+    this.wisps = []; this.embers = []; this.charge = null; this.heat = 0; this.blade = null; this.rnd = mulberry32(57); this.t = 0;
+    this.col = [0, 0, 0]; this._a = new THREE.Vector3(); this._b = new THREE.Vector3(); this._c = new THREE.Color();
   }
   beginCharge(total) {
     this.charge = { t: 0, total };
     const r = this.rnd;
-    for (let i = 0; i < 22; i++) {
-      this.wisps.push({ along: 0.15 + r() * 0.85, th: r() * 6.283, el: (r() - 0.3) * 1.2, rad: 0.6 + r() * 0.5, spin: (r() < 0.5 ? -1 : 1) * (1 + r() * 0.8),
-        delay: r() * total * 0.7, dur: 0.28 + r() * 0.2, t: 0, w: 0.09 * (0.7 + r() * 0.6), pts: Array.from({ length: 9 }, () => new THREE.Vector3()) });
+    for (let i = 0; i < 12; i++) {
+      this.wisps.push({ along: 0.2 + r() * 0.8, th: r() * 6.283, el: (r() - 0.3) * 1.2, rad: 0.55 + r() * 0.4, spin: (r() < 0.5 ? -1 : 1) * (1 + r() * 0.8),
+        delay: r() * total * 0.7, dur: 0.3 + r() * 0.2, t: 0, w: 0.07 * (0.7 + r() * 0.6), pts: Array.from({ length: 9 }, () => new THREE.Vector3()) });
     }
   }
   release() { this.charge = null; this.wisps = []; }
   cancel() { this.release(); }
-  // base/tip: the blade this frame. projectiles: the rules' live projectiles (the wave is kind waveKind)
-  update(dt, base, tip, projectiles, waveKind) {
+  // tint the sword's own materials (cloned once, restored when it has cooled)
+  heatBlade(weapon, heat) {
+    if (weapon !== this.blade?.weapon) { this.restoreBlade(); if (weapon && heat > 0) this.blade = { weapon, mats: [] }; }
+    if (!this.blade) return;
+    if (!this.blade.mats.length) {
+      this.blade.weapon.traverse((o) => {
+        if (!o.isMesh || !o.material?.emissive || o.material.side === THREE.BackSide) return;
+        const orig = o.material, m = orig.clone(); o.material = m;
+        this.blade.mats.push({ o, orig, m, color: orig.color.clone() });
+      });
+    }
+    // dull red -> glowing red-orange -> a little brighter at full heat; the metal itself reddens too
+    if (heat < 0.5) this._c.copy(COOL).lerp(DULL, heat / 0.5); else this._c.copy(DULL).lerp(GLOW, (heat - 0.5) / 0.5).lerp(WHITE, Math.max(0, heat - 0.85) / 0.15 * 0.5);
+    const flick = 0.92 + 0.08 * Math.sin(this.t * 31);
+    for (const b of this.blade.mats) {
+      b.m.emissive.copy(this._c).multiplyScalar(flick);
+      b.m.color.copy(b.color).lerp(GLOW, 0.5 * heat);
+    }
+    if (heat <= 0) this.restoreBlade();
+  }
+  restoreBlade() {
+    if (!this.blade) return;
+    for (const b of this.blade.mats) { b.o.material = b.orig; b.m.dispose(); }
+    this.blade = null;
+  }
+  // weapon: the sword object; base/tip: the blade this frame; projectiles: the rules' live projectiles
+  update(dt, weapon, base, tip, projectiles, waveKind) {
     this.t += dt;
     const r = this.rnd;
     this.core.begin(); this.glow.begin();
@@ -86,46 +138,42 @@ export class FlameSlashFx {
     const ch = this.charge;
     if (ch) {
       ch.t += dt;
-      const k = Math.min(1, ch.t / ch.total), heat = k * k * (3 - 2 * k);
-      // the blade heats: a strip along the sword that widens and whitens, flickering
-      const pts = [];
-      for (let i = 0; i <= 8; i++) pts.push(this._a.copy(base).lerp(tip, i / 8).clone());
-      const flick = 0.85 + 0.15 * Math.sin(this.t * 37) * Math.sin(this.t * 23);
-      mixc(RED, HOT, heat, this.col);
-      this.glow.strip(pts, (x) => (0.08 + 0.22 * heat) * Math.sin(Math.PI * (0.1 + 0.9 * x)) * flick, 0.25 + 0.4 * heat, RED);
-      this.core.strip(pts, (x) => (0.03 + 0.1 * heat) * Math.sin(Math.PI * (0.05 + 0.95 * x)), 0.3 + 0.7 * heat, this.col);
-      // flame tongues licking up off the blade once it is hot
-      if (heat > 0.35 && r() < dt * 40 * heat) {
-        const p = this._a.copy(base).lerp(tip, 0.2 + r() * 0.8);
-        this.embers.push({ p: p.clone(), v: new THREE.Vector3((r() - 0.5) * 0.6, 1.2 + r() * 1.2, (r() - 0.5) * 0.6), age: 0, life: 0.25 + r() * 0.2, w: 0.05 + r() * 0.05 * heat, hist: [], tongue: true });
-      }
-      light = 0.3 + 1.2 * heat;
-      this.light.position.copy(tip);
-      // wisps spiral onto points along the blade
-      for (const w of this.wisps) {
-        w.t += dt;
-        const e = (w.t - w.delay) / w.dur;
-        if (e < 0) continue;
-        if (e >= 1) { w.done = true; continue; }
-        const target = this._b.copy(base).lerp(tip, w.along);
-        const n = Math.max(2, Math.min(9, 1 + Math.ceil((e / 0.35) * 8)));
-        for (let j = 0; j < n; j++) {
-          const q = Math.max(0, e - (j / 8) * 0.35), ease = q * q * (3 - 2 * q);
-          const rad = w.rad * (1 - ease), th = w.th + w.spin * ease, el = w.el * (1 - ease * 0.6);
-          w.pts[j].set(target.x + Math.cos(th) * Math.cos(el) * rad, target.y + Math.sin(el) * rad * 0.8, target.z + Math.sin(th) * Math.cos(el) * rad);
-        }
-        if (n < 6) continue;
-        const fade = Math.min(1, Math.max(0, (e - 0.12) / 0.25));
-        const prof = (x) => Math.pow(Math.sin(Math.PI * (0.06 + 0.94 * x)), 0.8) * (1 - 0.35 * x);
-        mixc(MID, HOT, e, this.col);
-        const seg = w.pts.slice(0, n);
-        this.glow.strip(seg, (x) => w.w * 2.4 * prof(x), fade * 0.8, this.col);
-        this.core.strip(seg, (x) => w.w * prof(x), fade, this.col);
-      }
-      this.wisps = this.wisps.filter((w) => !w.done);
+      const k = Math.min(1, ch.t / ch.total);
+      this.heat = k * k * (3 - 2 * k);
       if (ch.t > ch.total + 0.1) this.release();
+    } else this.heat = Math.max(0, this.heat - dt / 0.8); // cools after the cut
+    this.heatBlade(weapon, this.heat);
+    if (this.heat > 0) {
+      light = 0.2 + 1.2 * this.heat; this.light.position.copy(tip);
+      // heat embers rising off the blade
+      if (r() < dt * 30 * this.heat) {
+        const p = this._a.copy(base).lerp(tip, 0.15 + r() * 0.85);
+        this.embers.push({ p: p.clone(), v: new THREE.Vector3((r() - 0.5) * 0.5, 0.8 + r() * 1.0, (r() - 0.5) * 0.5), age: 0, life: 0.35 + r() * 0.3, w: 0.016 + r() * 0.012, hist: [] });
+      }
     }
-    // the wave follows the rules' projectile
+    // a few wisps drawn onto the blade during the charge
+    for (const w of this.wisps) {
+      w.t += dt;
+      const e = (w.t - w.delay) / w.dur;
+      if (e < 0) continue;
+      if (e >= 1) { w.done = true; continue; }
+      const target = this._b.copy(base).lerp(tip, w.along);
+      const n = Math.max(2, Math.min(9, 1 + Math.ceil((e / 0.35) * 8)));
+      for (let j = 0; j < n; j++) {
+        const q = Math.max(0, e - (j / 8) * 0.35), ease = q * q * (3 - 2 * q);
+        const rad = w.rad * (1 - ease), th = w.th + w.spin * ease, el = w.el * (1 - ease * 0.6);
+        w.pts[j].set(target.x + Math.cos(th) * Math.cos(el) * rad, target.y + Math.sin(el) * rad * 0.8, target.z + Math.sin(th) * Math.cos(el) * rad);
+      }
+      if (n < 6) continue;
+      const fade = Math.min(1, Math.max(0, (e - 0.12) / 0.25));
+      const prof = (x) => Math.pow(Math.sin(Math.PI * (0.06 + 0.94 * x)), 0.8) * (1 - 0.35 * x);
+      mixc(RED, MID, e, this.col);
+      const seg = w.pts.slice(0, n);
+      this.glow.strip(seg, (x) => w.w * 2.2 * prof(x), fade * 0.7, this.col);
+      this.core.strip(seg, (x) => w.w * prof(x), fade, this.col);
+    }
+    this.wisps = this.wisps.filter((w) => !w.done);
+    // the half-moon follows the rules' projectile
     const live = new Set();
     for (const pr of projectiles) {
       if (pr.kind !== waveKind) continue;
@@ -133,28 +181,26 @@ export class FlameSlashFx {
       const w = this.waves.find((q) => q.id === pr.id) || this.waves.find((q) => q.id === null);
       if (!w) continue;
       w.id = pr.id;
-      const life = Math.min(1, pr.travelled / pr.range), grow = 1 + 0.45 * life;
+      const life = Math.min(1, pr.travelled / pr.range), grow = 1 + 0.35 * life;
       const dx = Math.sin(pr.angle), dz = Math.cos(pr.angle);
-      w.m.visible = true;
-      w.m.scale.set(grow, 1, 0.9 + 0.3 * life);
-      w.m.position.set(pr.x - dx * this.R, 0.85, pr.z - dz * this.R);
-      w.m.rotation.set(0, pr.angle, 0);
-      w.m.material.uniforms.uT.value = this.t; w.m.material.uniforms.uLife.value = Math.max(0, (life - 0.6) / 0.4);
+      w.g.visible = true;
+      w.g.scale.set(grow, 1, grow);
+      w.g.position.set(pr.x - dx * this.R * grow, 0.9, pr.z - dz * this.R * grow);
+      w.g.rotation.set(0, pr.angle, 0);
+      w.uniforms.uT.value = this.t; w.uniforms.uSeed.value = pr.id * 3.7 % 50; w.uniforms.uLife.value = Math.max(0, (life - 0.65) / 0.35);
       light = Math.max(light, 1.5 * (1 - life));
       if (light >= 1.5 * (1 - life)) this.light.position.set(pr.x, 1.2, pr.z);
       // embers shed off the back of the wave
       for (let i = 0; i < 2; i++) {
-        const a = (r() - 0.5) * 1.6 * grow * 0.8, rr = this.R - 0.2 - r() * 0.6;
-        const ca = Math.cos(a), sa = Math.sin(a);
-        this.embers.push({ p: new THREE.Vector3(w.m.position.x + (dx * ca + dz * sa) * rr, 0.85 + (r() - 0.3) * 0.3, w.m.position.z + (dz * ca - dx * sa) * rr),
-          v: new THREE.Vector3((r() - 0.5) * 1.2 - dx * 1.5, 0.6 + r() * 1.2, (r() - 0.5) * 1.2 - dz * 1.5), age: 0, life: 0.3 + r() * 0.3, w: 0.02 + r() * 0.015, hist: [] });
+        const a = (r() - 0.5) * 2.2, rr = (this.R - 0.4 - r() * 0.6) * grow, ca = Math.cos(a), sa = Math.sin(a);
+        this.embers.push({ p: new THREE.Vector3(w.g.position.x + (dx * ca + dz * sa) * rr, 0.9 + (r() - 0.3) * 0.3, w.g.position.z + (dz * ca - dx * sa) * rr),
+          v: new THREE.Vector3((r() - 0.5) * 1.2 - dx * 1.2, 0.5 + r() * 1.2, (r() - 0.5) * 1.2 - dz * 1.2), age: 0, life: 0.3 + r() * 0.3, w: 0.018 + r() * 0.012, hist: [] });
       }
     }
-    for (const w of this.waves) if (w.id !== null && !live.has(w.id)) { w.id = null; w.m.visible = false; }
+    for (const w of this.waves) if (w.id !== null && !live.has(w.id)) { w.id = null; w.g.visible = false; }
     this.light.intensity = light;
-    // embers and tongues
     for (const m of this.embers) {
-      m.age += dt; m.v.multiplyScalar(1 - 3 * dt); m.v.y += (m.tongue ? 1.5 : 0.8) * dt; m.p.addScaledVector(m.v, dt);
+      m.age += dt; m.v.multiplyScalar(1 - 3 * dt); m.v.y += 0.8 * dt; m.p.addScaledVector(m.v, dt);
       m.hist.unshift(m.p.clone()); if (m.hist.length > 6) m.hist.pop();
     }
     this.embers = this.embers.filter((m) => m.age < m.life);
@@ -164,9 +210,9 @@ export class FlameSlashFx {
       mixc(u < 0.4 ? HOT : MID, u < 0.4 ? MID : RED, u < 0.4 ? u / 0.4 : (u - 0.4) / 0.6, this.col);
       const a = 1 - u * u;
       this.glow.strip(m.hist, (x) => m.w * 2.6 * (1 - x * 0.6), a * 0.6, this.col);
-      this.core.strip(m.hist, (x) => m.w * (1 - x) * (m.tongue ? 1.4 : 1), a, this.col);
+      this.core.strip(m.hist, (x) => m.w * (1 - x), a, this.col);
     }
     this.core.end(); this.glow.end();
   }
-  clear() { this.release(); this.embers = []; for (const w of this.waves) { w.id = null; w.m.visible = false; } this.light.intensity = 0; }
+  clear() { this.release(); this.heat = 0; this.restoreBlade(); this.embers = []; for (const w of this.waves) { w.id = null; w.g.visible = false; } this.light.intensity = 0; }
 }

@@ -1089,9 +1089,9 @@ In Godot:
 
 See `docs/OUTFIT-BASE.md`.
 
-## Experimental online visual presence (protocol 3)
+## Experimental online visual presence (protocol 4)
 
-The explicit player entry (`src/player.js`) must receive protocol-3 admission before
+The explicit player entry (`src/player.js`) must receive protocol-4 admission before
 dynamically loading the world. Preserve Connecting/Failed/Retry/Reconnecting and an
 explicit developer/offline entry with compatible local v13 saves. After joining,
 pause player gameplay until reconnect has received room acknowledgement.

@@ -16,10 +16,11 @@ export class MonsterSync {
   }
   // Atlas <-> session coordinates: peers may have started in different regions.
   toAtlas(x, z) { return this.game.world.unified ? this.game.worldPoint(x, z) : [x, z]; }
+  // Exact inverse of worldPoint(): atlas minus this session's own origin.
   toLocal(x, z) {
     if (!this.game.world.unified) return [x, z];
-    const region = this.client.wire.regionAt(x, z);
-    return region ? this.game.localPoint(region, x, z) : null;
+    const [ox, oz] = this.game.coordinateOrigin;
+    return [x - ox, z - oz];
   }
   update(dt) {
     const c = this.client, online = c.status === 'online' && !!c.id;
@@ -35,6 +36,9 @@ export class MonsterSync {
     if (role === 'guest') {
       // Local monsters leave; the host's take their place.
       g.monsters = g.monsters.filter(m => m.remote);
+      // Attacks already in flight from removed local monsters must not hit the new guest.
+      g.projectiles = g.projectiles.filter(p => p.owner !== 'monster');
+      g.areas = g.areas.filter(a => a.owner !== 'monster');
       for (const sp of g.spawnPoints) sp.entity = null;
       g.mirrorMonsters = true;
     } else if (this.role === 'guest') {

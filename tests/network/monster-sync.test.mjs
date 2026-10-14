@@ -20,14 +20,17 @@ test('guest mirrors the host monsters at the same atlas positions and its hits r
   t.after(() => app.close());
   const endpoint = `ws://127.0.0.1:${app.server.address().port}/presence`;
   const OriginWS = class extends WebSocket { constructor(url) { super(url, { headers: { origin } }); } };
-  const make = seed => {
-    const g = new OpenWorldGame({ ...data, world: data.maps[Object.keys(data.maps)[0]] }, { seed });
+  // Different starting regions give the two sessions different coordinate origins.
+  const make = (seed, start) => {
+    const g = new OpenWorldGame({ ...data, world: data.maps[start] }, { seed });
     const c = new Presence({ endpoint, data, state: () => ({ map: WORLD_ID, ready: true, look, gear, pose: presencePose(g) }) });
     return { g, c, sync: new MonsterSync(g, c) };
   };
   const prev = globalThis.WebSocket; globalThis.WebSocket = OriginWS; t.after(() => { globalThis.WebSocket = prev; });
-  const a = make(11), b = make(51);
-  b.g.player.x = a.g.player.x + 2; b.g.player.z = a.g.player.z;
+  const a = make(11, 'azure-harbor-v1'), b = make(51, 'frontier-wilds-v1');
+  assert.notDeepEqual(a.g.coordinateOrigin, b.g.coordinateOrigin);
+  const [px, pz] = a.g.worldPoint(a.g.player.x, a.g.player.z), [bx, bz] = b.g.coordinateOrigin;
+  b.g.player.x = px + 2 - bx; b.g.player.z = pz - bz; // stand next to the other player in atlas space
   a.c.start('friends'); b.c.start('friends');
   t.after(() => { a.c.stop(); b.c.stop(); });
   for (let i = 0; i < 100 && !(a.c.players.size && b.c.players.size); i++) await wait(50);
@@ -51,4 +54,15 @@ test('guest mirrors the host monsters at the same atlas positions and its hits r
   for (let i = 0; i < 20 && hostTarget.hp === before; i++) await wait(25);
   assert.equal(hostTarget.hp, before - dmg, 'guest damage applied on the host');
   assert.ok(createProtocol(data).monstersOK([]));
+});
+
+test('becoming a guest drops in-flight attacks from removed local monsters', () => {
+  const g = new OpenWorldGame({ ...data, world: data.maps['azure-harbor-v1'] }, { seed: 3 });
+  const sync = new MonsterSync(g, { subscribe: () => () => {} });
+  g.projectiles.push({ owner: 'monster', id: -1 }, { owner: 'player', id: -2 });
+  g.areas.push({ owner: 'monster', id: -3 }, { owner: 'player', id: -4 });
+  sync.switchRole('guest');
+  assert.deepEqual(g.projectiles.map(p => p.id).filter(id => id < 0), [-2]);
+  assert.deepEqual(g.areas.map(a => a.id).filter(id => id < 0), [-4]);
+  assert.equal(g.monsters.filter(m => !m.remote).length, 0);
 });

@@ -1,5 +1,5 @@
 // Shared, data-driven wire contract. Content IDs only; never asset URLs or save data.
-export const PROTOCOL = 3;
+export const PROTOCOL = 4;
 export const WORLD_ID = 'frontier-atlas-v1';
 export const GEAR_SLOTS = ['weapon', 'offhand', 'armor', 'helm', 'gloves', 'boots'];
 export const exact = (o, names) => !!o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === names.length && names.every(n => Object.hasOwn(o, n));

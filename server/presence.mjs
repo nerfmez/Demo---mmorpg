@@ -14,7 +14,7 @@ export function createPresenceServer({ origins = [], maxClients = 32, roomCapaci
   const server = createServer((req, res) => {
     const healthy = req.url === '/healthz' && req.method === 'GET';
     res.writeHead(healthy ? 200 : 404, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v3', protocol: PROTOCOL } : { error: 'not found' }));
+    res.end(JSON.stringify(healthy ? { ok: true, prototype: 'presence-v4', protocol: PROTOCOL } : { error: 'not found' }));
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 2048, perMessageDeflate: false });
   const clients = new Map();

@@ -1,4 +1,4 @@
-# Experimental online visual prototype — protocol 3
+# Experimental online visual prototype — protocol 4
 
 The explicit player build connects before importing or constructing the game world.
 Its first screen shows Connecting, Failed and Retry. After admission the existing
@@ -96,6 +96,9 @@ prototype load but can be exhausted. Future server authority requires a separate
 
 ## Shared monsters (friends test)
 
+Protocol 4 adds the `monsters` and `monsterHit` messages; a protocol-3 client or
+server fails at admission instead of after joining a room.
+
 For small trusted groups only; there is still no server authority or anti-cheat.
 The room member with the lowest id is the host. Its client keeps running its own
 monsters and, every 0.2 s, sends up to 24 rows within 45 m of any peer as `monsters` messages
@@ -166,7 +169,7 @@ no payment card. `render.yaml` is a configuration reference, not an executed dep
 | Node environment | `NODE_VERSION=22` |
 | Listen | `0.0.0.0:$PORT`; local default 3001 |
 | Health path | `/healthz` |
-| Health result | HTTP 200 `{"ok":true,"prototype":"presence-v3","protocol":3}` |
+| Health result | HTTP 200 `{"ok":true,"prototype":"presence-v4","protocol":4}` |
 | WebSocket | `wss://frontier-presence-prototype.onrender.com/presence` |
 | Health URL | `https://frontier-presence-prototype.onrender.com/healthz` |
 | Existing authorized origins | `https://nerfmez.github.io,http://127.0.0.1:4173` |
@@ -188,7 +191,7 @@ Do not contact it from this task, proxy it, change network, use another hostname
 executor to bypass that denial. No hosted readiness is claimed. The parent/owner
 must review the local commit before any publication or manual Render deployment.
 
-After the parent deploys matching reviewed protocol-3 source, the owner can open
+After the parent deploys matching reviewed protocol-4 source, the owner can open
 the approved player frontend in two independent browser sessions. Confirm:
 
 1. Connecting is visible before the world; failed server access keeps Failed/Retry.

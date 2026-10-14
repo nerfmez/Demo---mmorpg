@@ -33,7 +33,7 @@ async function fixture(t, options = {}) {
 test('health, anonymous identity, movement, room/map separation, leave, reconnect', async t => {
   const { connect, port } = await fixture(t);
   const health = await fetch(`http://127.0.0.1:${port}/healthz`); assert.equal(health.status, 200);
-  assert.deepEqual(await health.json(), { ok: true, prototype: 'presence-v3', protocol: PROTOCOL });
+  assert.deepEqual(await health.json(), { ok: true, prototype: 'presence-v4', protocol: PROTOCOL });
   const a = await connect(), b = await connect();
   a.sendJSON(join()); const aw = await a.take('welcome');
   b.sendJSON(join()); const bw = await b.take('welcome');

@@ -56,3 +56,12 @@ separate strike on its own time, and the bench plays a swing for each.
 Rule trial (bench only, `SINGLE_STRIKE` in `src/fxtest/sandbox.js`): Slash is one plain
 strike, with no 1-2-3 combo and therefore no finisher knockback. The game is unchanged
 until this is approved and moved into `data/skills.json` with a core rule and test.
+
+## Firebolt additions
+
+The game's Firebolt renderer is unchanged. `src/fxtest/fire-extras.js` adds two bench layers:
+flame wisps and embers that spiral in from around the staff head and arrive at release (the
+charge reads as fire being gathered within the real cast time), and impact embers that burst
+out, then sway, curl and drift upward while flickering and cooling, drawn as short curved
+trails from their own recent path. Porting them means moving them into `src/render/` with
+numbers in `data/combat-fx.json`.

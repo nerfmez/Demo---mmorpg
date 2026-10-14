@@ -14,6 +14,7 @@ import { disposeObject } from '../render/dispose.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
 import { fusionPayloads } from './fusion.js';
 import { SlashFx } from './slash-fx.js';
+import { FireExtras } from './fire-extras.js';
 import { mulberry32 } from './fx-common.js';
 import { ChainFx } from './chain-fx.js';
 import { FrostFx } from './frost-fx.js';
@@ -128,6 +129,7 @@ const frostFx = new FrostFx(scene, camera);
 const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
 const slashFx = new SlashFx(scene, camera);
+const fireX = new FireExtras(scene, camera);
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
 let timers = [], primarySwing = false; // visual-only follow-ups (Multistrike swings)
@@ -160,7 +162,7 @@ const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); fireX.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -210,7 +212,7 @@ function drain() {
       case 'castStart':
         heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
-        if (e.kind === 'projectile') vfx.beginCast(e, s.element);
+        if (e.kind === 'projectile') { vfx.beginCast(e, s.element); if (s.element === 'fire') fireX.gather(e.total); }
         if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
         if (e.kind === 'nova') frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius);
         break;
@@ -244,7 +246,11 @@ function drain() {
         }
         break;
       }
-      case 'impact': vfx.impact(e); break;
+      case 'impact': {
+        vfx.impact(e);
+        if (e.element === 'fire') { const l = Math.hypot(e.vx || 0, e.vz || 0) || 1; fireX.impact(e.x, 1.0, e.z, (e.vx || 0) / l, (e.vz || 0) / l); }
+        break;
+      }
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;
       case 'hit': {
         const d = dummyOf(e.id); if (!d) break;
@@ -479,6 +485,7 @@ function tick(real, draw = true) {
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
   slashFx.update(dt);
+  fireX.update(dt, staffTip());
   vfx.updateCast(dt, hero, !p.cast, p);
   vfx.syncProjectiles(game, dt, simTime);
   vfx.update(dt);

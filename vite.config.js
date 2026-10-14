@@ -10,6 +10,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: 'es2020',
     chunkSizeWarningLimit: 1200,
-    rollupOptions: { input: { main: 'index.html', offline: 'offline.html', lab: 'lab.html' } },
+    rollupOptions: { input: { main: 'index.html', offline: 'offline.html', lab: 'lab.html', fxtest: 'fx-test.html' } },
   },
 }));

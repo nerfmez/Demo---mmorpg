@@ -37,12 +37,15 @@ skipping that target, with its full behaviour and only its main damage scaled by
 `payloadDamageMult`. The fused skill uses the longer cooldown and the summed MP cost. A miss
 fires nothing. `maxCooldown` stands in for the planned Core / Cooldown skill types.
 
-## Slash (new look)
+## Slash (bench look and rule trial)
 
-`src/fxtest/slash-fx.js`: a crescent smear across the real range and arc, started on
-`castStart` so its fast leading edge crosses the arc at the authored contact time; the
-direction follows the weapon tip, the tail thins and tears into strands. Each struck target
-gets a short steel cut (shorter than the smear), a small flash, sparks and dust; the third
-combo step is a wider double smear. A linked payload tints the smear's outer rim with its
-element. Reference principles: the 2026-10-01 physical study in `docs/VFX-REFERENCE.md`
-(the gallery was blocked from this container).
+`src/fxtest/slash-fx.js` draws each swing from the sword's real path: while a swing window is
+open (from 0.12 s before the authored contact to 0.08 s after) the hilt and tip are sampled
+every frame and the swept surface is smoothed into one crescent ribbon with a white core
+along the tip path, a pale body thinning toward the hilt and the tail, and a quick fade.
+There are no cut marks on targets. Multistrike repeats each open their own swing on their
+own hit time, so three strikes read as three swings. A linked payload tints the tip edge.
+
+Rule trial (bench only, `SINGLE_STRIKE` in `src/fxtest/sandbox.js`): Slash is one plain
+strike, with no 1-2-3 combo and therefore no finisher knockback. The game is unchanged
+until this is approved and moved into `data/skills.json` with a core rule and test.

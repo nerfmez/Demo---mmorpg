@@ -90,3 +90,25 @@ test('a fused slash that misses does not fire its payload', () => {
   for (let i = 0; i < 40; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
   assert.equal(events.filter((e) => e.type === 'fusion').length, 0);
 });
+
+test('bench slash is one plain strike: no combo steps, no finisher knockback', () => {
+  const g = createBench(data, 'slash', []);
+  const slashes = [];
+  for (let c = 0; c < 4; c++) {
+    g.player.cooldowns.fill(0);
+    g.castSlot(0, { x: 5, z: 0 });
+    for (let i = 0; i < 20; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash')); }
+  }
+  assert.equal(slashes.length, 4);
+  assert.ok(slashes.every((e) => e.step === 0 && !e.finisher));
+  assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), 'nothing was knocked back');
+});
+
+test('Multistrike gives separate strikes the bench draws as separate swings', () => {
+  const g = createBench(data, 'slash', [{ id: 'multistrike', level: 1 }]);
+  g.castSlot(0, { x: 5, z: 0 });
+  const slashes = [];
+  for (let i = 0; i < 60; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash').map((e) => ({ ...e, t: g.time }))); }
+  assert.equal(slashes.length, 1 + g.skills[0].repeats);
+  assert.ok(slashes[1].t - slashes[0].t >= g.skills[0].repeatDelay - 1e-6, 'repeats land at their own time');
+});

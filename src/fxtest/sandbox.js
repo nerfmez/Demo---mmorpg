@@ -8,6 +8,8 @@ import { installFusion } from './fusion.js';
 
 export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
+// Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
+export const SINGLE_STRIKE = new Set(['slash']);
 export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff' };
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
@@ -77,6 +79,10 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.player.cooldowns.fill(0);
     g.areas = g.areas.filter((a) => a.owner !== 'player');
   };
+  if (SINGLE_STRIKE.has(skill)) {
+    const cast = g.castSlot;
+    g.castSlot = function (...args) { this.player.lastSwingT = -1e9; return cast.apply(this, args); }; // combo step stays 0
+  }
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);
   g.aimAt(Math.PI / 2);
   return g;

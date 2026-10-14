@@ -110,12 +110,14 @@ function buildHero(weapon = heroWeapon) {
 }
 buildHero();
 loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons }, { onWeaponReady: () => buildHero() }).then(() => buildHero()).catch(() => {});
-const bladeTip = new THREE.Vector3(), bladeDir = new THREE.Vector3();
-function weaponTip() {
+const bladeTip = new THREE.Vector3(), bladeBase = new THREE.Vector3(), bladeDir = new THREE.Vector3();
+// the blade's hilt-side and tip points this frame (the sword's own pose)
+function bladePoints() {
   const w = hero.bones?.weapon, p = game.player;
-  if (!w) return bladeTip.set(p.x + Math.sin(p.facing), 1.1, p.z + Math.cos(p.facing));
-  w.updateWorldMatrix(true, false); w.getWorldPosition(bladeTip); w.getWorldDirection(bladeDir);
-  return bladeTip.addScaledVector(bladeDir, 0.9);
+  if (!w) { bladeBase.set(p.x, 1.1, p.z); bladeTip.set(p.x + Math.sin(p.facing), 1.1, p.z + Math.cos(p.facing)); return; }
+  w.updateWorldMatrix(true, false); w.getWorldPosition(bladeBase); w.getWorldDirection(bladeDir);
+  bladeTip.copy(bladeBase).addScaledVector(bladeDir, 1.0);
+  bladeBase.addScaledVector(bladeDir, 0.3);
 }
 const tip = new THREE.Vector3();
 function staffTip() {
@@ -134,10 +136,11 @@ const chainFx = new ChainFx(scene, camera);
 const frostFx = new FrostFx(scene, camera);
 const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
-const slashFx = new SlashFx(scene, camera);
+const slashFx = new SlashFx(scene);
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
-let contactQueue = [];
+let timers = [], primarySwing = false; // visual-only follow-ups (Multistrike swings)
+const SWING_LEAD = 0.12, SWING_TAIL = 0.08;
 
 // ---------- the bench (real rules) ----------
 let game = null, aimAngle = Math.PI / 2, lastNovaAt = -9, simTime = 0;
@@ -160,8 +163,9 @@ function rebuild() {
   renderPanel();
 }
 const skillDef = () => game.skills[0];
+const fusedElement = () => (game.fusion ? game.fusion.payload.element : null);
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); contactQueue = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -210,7 +214,8 @@ function drain() {
     switch (e.type) {
       case 'castStart':
         heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc') slashFx.begin({ ...e, x: game.player.x, z: game.player.z }, s, game.fusion ? game.fusion.payload.element : null);
+        if (e.kind === 'melee_arc') primarySwing = true;
+        if (e.kind === 'melee_arc') slashFx.swing(e.total - SWING_LEAD, SWING_LEAD + SWING_TAIL, fusedElement());
         if (e.kind === 'projectile') vfx.beginCast(e, s.element);
         if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
         if (e.kind === 'nova') frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius);
@@ -234,10 +239,17 @@ function drain() {
       }
       case 'burst': if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
-      case 'slash':
-        for (const d of contactQueue) slashFx.contact(d.x, d.z, slashFx.lastDir || 1, e.finisher);
-        contactQueue = [];
+      case 'slash': {
+        const primary = primarySwing; primarySwing = false;
+        // Multistrike: each repeat is its own swing (alternating side) landing on the repeat's hit time
+        if (primary && !e.triggered && s.repeats) {
+          for (let k = 1; k <= s.repeats; k++) {
+            const at = simTime + k * s.repeatDelay - SWING_LEAD;
+            timers.push({ at, fn: () => { heroAnim.play(e.skill, 0.3, heroWeapon, k % 2, SWING_LEAD, 'melee_arc'); slashFx.swing(0, SWING_LEAD + SWING_TAIL, fusedElement()); } });
+          }
+        }
         break;
+      }
       case 'impact': vfx.impact(e); break;
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;
       case 'hit': {
@@ -248,7 +260,6 @@ function drain() {
         stats.hits++; stats.total += e.amount; stats.byElement[el] = (stats.byElement[el] || 0) + e.amount;
         if (stats.last) { stats.last.hits++; stats.last.total += e.amount; }
         if (e.skill === 'flame_stream' && !e.dot) flameFx.lick(d.center);
-        if (e.attackKind === 'melee_arc') contactQueue.push(d);
         break;
       }
     }
@@ -471,7 +482,10 @@ function tick(real, draw = true) {
   flameFx.update(dt, mouth, p.x, p.z, p.facing);
   modFx.syncAreas(game.areas);
   modFx.update(dt);
-  slashFx.update(dt, weaponTip(), p.x, p.z);
+  for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
+  timers = timers.filter((t) => !t.done || simTime - t.at < 2);
+  bladePoints();
+  slashFx.update(dt, bladeBase, bladeTip);
   vfx.updateCast(dt, hero, !p.cast, p);
   vfx.syncProjectiles(game, dt, simTime);
   vfx.update(dt);

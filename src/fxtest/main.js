@@ -127,7 +127,7 @@ const chainFx = new ChainFx(scene, camera);
 const frostFx = new FrostFx(scene, camera);
 const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
-const slashFx = new SlashFx(scene);
+const slashFx = new SlashFx(scene, camera);
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
 let timers = [], primarySwing = false; // visual-only follow-ups (Multistrike swings)

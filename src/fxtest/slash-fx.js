@@ -1,15 +1,18 @@
-// Slash (bench look, v3): one clean crescent around the caster over the real range and arc.
-// Shape: the outer edge is the reach, the inner edge bows in so the crescent is thick in the
-// middle and pointed at both ends. Motion: a fast reveal from one end to the other that passes
-// the middle at the contact time, then the crescent thins from its inner edge and fades.
-// Three flat cel tones (white core along the outer edge, pale body, thin same-hue line), no noise.
+// Slash (bench look, v4): one clean crescent of light around the caster over the real range and arc.
+// Shape: the outer edge is the reach, the inner edge bows in so the crescent is thick in the middle
+// and pointed at both ends. It is energy, not paint: a white-hot outer edge that falls off to
+// transparent toward the caster, a soft additive glow around it, thin speed lines sliding along
+// the arc, a bright leading edge with the trail behind it already fading, sparks thrown off the
+// leading edge and a short flash of light. Motion: a fast reveal that passes the middle of the
+// arc at the contact time, then it thins from its inner edge and fades.
 // Strikes in quick succession (spamming, Multistrike repeats) cycle through different tilts and
 // sides so consecutive slashes read as different cuts.
 import * as THREE from 'three';
+import { Ribbon } from './fx-common.js';
 
-const SWEEP = 0.075, HOLD = 0.04, FADE = 0.16, CUTS = 6, CHAIN = 1.2;
-const COLORS = { core: '#ffffff', body: '#d4e8f6', line: '#7d9fc2' };
-const FUSE = { fire: '#ff7a2a', arcane: '#b98cff', lightning: '#7fd8ff', cold: '#9fe0ff' };
+const SWEEP = 0.075, HOLD = 0.03, FADE = 0.17, CUTS = 6, CHAIN = 1.2;
+const PALETTE = { hot: [1, 1, 1], body: [0.5, 0.78, 1.0], glow: [0.25, 0.5, 1.0], spark: [0.85, 0.95, 1.0] };
+const FUSE = { fire: [1.0, 0.5, 0.15], arcane: [0.75, 0.5, 1.0], lightning: [0.5, 0.85, 1.0], cold: [0.6, 0.9, 1.0] };
 // consecutive strikes: tilt (roll around the facing axis, signed by the swing side), height, reach
 const PATTERN = [
   { tilt: 0.38, y: 0.05, reach: 1.0 },
@@ -20,29 +23,57 @@ const PATTERN = [
 ];
 
 const VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-const FS = `varying vec2 vUv; uniform float uHead; uniform float uFade; uniform float uDir; uniform float uThick;
-  uniform vec3 uCore; uniform vec3 uBody; uniform vec3 uLine; uniform vec3 uRim; uniform float uRimK;
+// shared shape: s along the cut (0 start .. 1 end), v across (0 caster .. 1 reach)
+const SHAPE = `
+  uniform float uHead; uniform float uFade; uniform float uDir; uniform float uThick; uniform float uSeed;
+  uniform vec3 uHot; uniform vec3 uBody; uniform vec3 uGlow; uniform vec3 uRim; uniform float uRimK;
+  float hash(float x){ return fract(sin(x * 91.7 + uSeed) * 43758.5453); }
+  float widthAt(float s){ return uThick * pow(sin(3.14159265 * clamp(s, 0.0, 1.0)), 0.8) * (1.0 - uFade); }`;
+const CORE_FS = `varying vec2 vUv; ${SHAPE}
   void main(){
-    float s = uDir > 0.0 ? vUv.x : 1.0 - vUv.x;     // 0 where the cut starts, 1 where it ends
-    if (s > uHead) discard;
-    float v = vUv.y;                                 // 0 near the caster .. 1 at the reach
-    // crescent: thick in the middle, pointed ends; the fade eats it from the inner edge
-    float w = uThick * pow(sin(3.14159265 * s), 0.85) * (1.0 - uFade);
-    // the freshest part, just behind the leading edge, is a little fuller
-    w *= 1.0 + 0.25 * smoothstep(0.25, 0.0, uHead - s) * (1.0 - uFade);
+    float s = uDir > 0.0 ? vUv.x : 1.0 - vUv.x;
+    float trail = uHead - s;                         // 0 at the leading edge, grows behind it
+    if (trail < 0.0) discard;
+    float w = widthAt(s) * (1.0 + 0.3 * exp(-trail * 14.0) * (1.0 - uFade));
     float inner = 1.0 - w;
-    float aa = fwidth(v) * 1.2;
-    float body = smoothstep(inner - aa, inner + aa, v);
-    if (body < 0.01) discard;
+    float v = vUv.y;
+    if (v < inner) discard;
     float b = (v - inner) / max(w, 1e-3);            // 0 inner edge .. 1 outer edge
-    vec3 c = uBody;
-    c = mix(c, uCore, smoothstep(0.52 - aa / max(w, 1e-3), 0.52 + aa / max(w, 1e-3), b));
-    float lineW = 0.09 / max(w / uThick, 0.25);
-    c = mix(c, mix(uLine, uRim, uRimK), smoothstep(1.0 - lineW - 0.02, 1.0 - lineW, b));
-    float a = mix(0.72, 1.0, smoothstep(0.3, 0.55, b)) * body * (1.0 - uFade * uFade);
+    float life = exp(-trail * 2.6);                  // the trail behind the edge is already fading
+    // body falls off toward the caster; the outer edge is white-hot
+    float a = smoothstep(0.0, 0.65, b);
+    vec3 c = mix(uBody, uHot, smoothstep(0.42, 0.8, b));
+    // speed lines: thin lines along the arc, broken into dashes that slide with the cut
+    float lane = floor(b * 9.0);
+    float line = smoothstep(0.42, 0.5, abs(fract(b * 9.0) - 0.5)) * step(0.35, b);
+    float dash = step(0.45, fract(s * (3.0 + 4.0 * hash(lane)) - uHead * 2.0 + hash(lane + 7.0)));
+    c = mix(c, uHot, line * dash * 0.8);
+    a = max(a, line * dash * 0.55);
+    // a thin edge line in the payload's colour when a spell is linked
+    c = mix(c, uRim, uRimK * smoothstep(0.9, 0.97, b));
+    // leading edge flash
+    c = mix(c, uHot, exp(-trail * 30.0));
+    a *= mix(0.6, 1.0, life) * (1.0 - uFade * uFade);
+    // soft inner edge, crisp outer edge
+    a *= smoothstep(0.0, 0.12, b) * (1.0 - smoothstep(0.985, 1.0, b));
+    if (a < 0.01) discard;
     gl_FragColor = vec4(c, a); }`;
+const GLOW_FS = `varying vec2 vUv; ${SHAPE}
+  void main(){
+    float s = uDir > 0.0 ? vUv.x : 1.0 - vUv.x;
+    float trail = uHead - s;
+    if (trail < -0.04) discard;
+    float w = widthAt(s) * 1.5 + 0.08;
+    float v = vUv.y;
+    float b = (v - (1.0 - w)) / max(w, 1e-3);
+    if (b < 0.0) discard;
+    // a soft band peaking just inside the reach, with a little bloom past it
+    float g = smoothstep(0.0, 0.75, b) * (1.0 - smoothstep(0.86, 1.0, b));
+    g *= exp(-max(trail, 0.0) * 2.2) * (1.0 - uFade) * (trail < 0.0 ? 1.0 + trail * 25.0 : 1.0);
+    vec3 c = mix(uGlow, uRim, uRimK * 0.6);
+    gl_FragColor = vec4(c * g * 0.45, 1.0); }`;
 
-function arcGeometry(arcRad, r0, r1, segs = 72, rings = 6) {
+function arcGeometry(arcRad, r0, r1, segs = 72, rings = 8) {
   const pos = [], uv = [], idx = [];
   for (let i = 0; i <= segs; i++) {
     const u = i / segs, a = -arcRad / 2 + u * arcRad;
@@ -64,19 +95,28 @@ function arcGeometry(arcRad, r0, r1, segs = 72, rings = 6) {
 }
 
 export class SlashFx {
-  constructor(scene) {
+  constructor(scene, camera) {
     this.scene = scene;
     this.geos = new Map();
     this.cuts = Array.from({ length: CUTS }, () => {
-      const mat = new THREE.ShaderMaterial({
-        uniforms: { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.5 }, uCore: { value: new THREE.Color(COLORS.core) }, uBody: { value: new THREE.Color(COLORS.body) }, uLine: { value: new THREE.Color(COLORS.line) }, uRim: { value: new THREE.Color('#ff7a2a') }, uRimK: { value: 0 } },
-        vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-      });
-      const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat); mesh.frustumCulled = false; mesh.renderOrder = 5; mesh.visible = false;
-      const g = new THREE.Group(); g.add(mesh); scene.add(g);
-      return { g, mesh, mat, live: false, t: 0 };
+      const uniforms = { uHead: { value: 0 }, uFade: { value: 0 }, uDir: { value: 1 }, uThick: { value: 0.55 }, uSeed: { value: 0 },
+        uHot: { value: new THREE.Vector3(...PALETTE.hot) }, uBody: { value: new THREE.Vector3(...PALETTE.body) }, uGlow: { value: new THREE.Vector3(...PALETTE.glow) },
+        uRim: { value: new THREE.Vector3(1, 0.5, 0.15) }, uRimK: { value: 0 } };
+      const core = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.ShaderMaterial({ uniforms, vertexShader: VS, fragmentShader: CORE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+      const glow = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.ShaderMaterial({ uniforms, vertexShader: VS, fragmentShader: GLOW_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+      core.renderOrder = 6; glow.renderOrder = 5;
+      for (const m of [core, glow]) { m.frustumCulled = false; m.visible = false; }
+      const g = new THREE.Group(), tilt = new THREE.Group();
+      tilt.add(glow, core); g.add(tilt); scene.add(g);
+      return { g, tilt, core, glow, uniforms, live: false, t: 0, reach: 1, arc: 1, dir: 1, lastHead: 0 };
     });
-    this.pending = []; this.t = 0; this.lastAt = -9; this.index = 0;
+    this.sparks = new Ribbon(scene, camera, 1200, `varying vec2 vUv; varying float vA; varying vec3 vT;
+      void main(){ float d=abs(vUv.y); if(d>0.9) discard; gl_FragColor=vec4(d<0.45 ? vec3(1.0) : vT, vA); }`, THREE.NormalBlending);
+    this.sparks.mesh.renderOrder = 7;
+    this.sparkList = [];
+    this.light = new THREE.PointLight('#cfe8ff', 0, 3, 2); scene.add(this.light);
+    this.pending = []; this.t = 0; this.lastAt = -9; this.index = 0; this.seed = 1;
+    this._p = new THREE.Vector3(); this._q = new THREE.Vector3(); this._a = new THREE.Vector3();
   }
   geometry(arcDeg, range) {
     const key = `${arcDeg}|${range.toFixed(2)}`;
@@ -86,7 +126,6 @@ export class SlashFx {
   // a strike whose contact lands `contactIn` seconds from now. where(): caster {x, z, angle} at reveal
   // time; dir: +1 when the blade sweeps toward increasing facing angle (the first swing pose), -1 back
   swing(contactIn, o) {
-    // the reveal passes the middle of the arc at contact
     this.pending.push({ at: this.t + Math.max(0, contactIn - SWEEP * 0.5), ...o });
   }
   start(p) {
@@ -94,30 +133,61 @@ export class SlashFx {
     this.index = k; this.lastAt = this.t;
     const pat = PATTERN[k], at = p.where(), dir = p.dir || 1;
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
-    const reach = p.range * pat.reach;
-    c.mesh.geometry = this.geometry(p.arc, reach);
+    c.reach = p.range * pat.reach; c.arc = (p.arc * Math.PI) / 180; c.dir = dir; c.lastHead = 0;
+    c.core.geometry = c.glow.geometry = this.geometry(p.arc, c.reach);
     c.g.position.set(at.x, 1.0 + pat.y, at.z);
     c.g.rotation.set(0, at.angle, 0);
-    c.mesh.rotation.set(0, 0, 0);
-    c.mesh.rotateZ(pat.tilt * dir); // the cut's plane rolls around the facing direction
-    c.mesh.rotateX(-0.06);
-    const u = c.mat.uniforms;
-    u.uDir.value = dir; u.uThick.value = 0.5; u.uHead.value = 0; u.uFade.value = 0;
+    c.tilt.rotation.set(0, 0, 0);
+    c.tilt.rotateZ(pat.tilt * dir); // the cut's plane rolls around the facing direction
+    c.tilt.rotateX(-0.06);
+    const u = c.uniforms;
+    u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);
     u.uRimK.value = p.fusedElement ? 1 : 0;
-    if (p.fusedElement) u.uRim.value.set(FUSE[p.fusedElement] || '#ff7a2a');
-    c.live = true; c.t = 0; c.mesh.visible = true;
+    if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
+    c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
+  }
+  // world point on the reach edge at fraction s of the cut
+  edgePoint(c, s, out) {
+    const a = -c.arc / 2 + (c.dir > 0 ? s : 1 - s) * c.arc;
+    out.set(Math.sin(a) * c.reach, 0, Math.cos(a) * c.reach);
+    c.tilt.updateMatrixWorld(true);
+    return c.tilt.localToWorld(out);
   }
   update(dt) {
     this.t += dt;
     for (let i = 0; i < this.pending.length; i++) if (this.t >= this.pending[i].at) { this.start(this.pending[i]); this.pending.splice(i--, 1); }
+    let light = 0;
     for (const c of this.cuts) {
       if (!c.live) continue;
       c.t += dt;
-      const r = Math.min(1, c.t / SWEEP);
-      c.mat.uniforms.uHead.value = 1 - (1 - r) * (1 - r); // fast in, eased at the end
-      c.mat.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - HOLD) / FADE);
-      if (c.t > SWEEP + HOLD + FADE) { c.live = false; c.mesh.visible = false; }
+      const r = Math.min(1, c.t / SWEEP), head = 1 - (1 - r) * (1 - r);
+      c.uniforms.uHead.value = head;
+      c.uniforms.uFade.value = Math.max(0, (c.t - SWEEP - HOLD) / FADE);
+      // sparks thrown off the leading edge while it travels
+      if (head > c.lastHead + 0.02) {
+        const n = Math.ceil((head - c.lastHead) * 10);
+        for (let i = 0; i < n && this.sparkList.length < 160; i++) {
+          const s = c.lastHead + (head - c.lastHead) * Math.random();
+          this.edgePoint(c, s, this._p); this.edgePoint(c, Math.min(1, s + 0.03), this._q);
+          const v = this._q.sub(this._p).normalize().multiplyScalar(6 + Math.random() * 6);
+          v.x += (Math.random() - 0.5) * 2; v.y += Math.random() * 2; v.z += (Math.random() - 0.5) * 2;
+          this.sparkList.push({ p: this._p.clone(), v: v.clone(), age: 0, life: 0.12 + Math.random() * 0.14, w: 0.02 + Math.random() * 0.018 });
+        }
+        if (r < 1) { this.edgePoint(c, head, this.light.position); light = Math.max(light, 1.5); }
+        c.lastHead = head;
+      }
+      if (c.t > SWEEP + HOLD + FADE) { c.live = false; c.core.visible = c.glow.visible = false; }
     }
+    this.light.intensity = Math.max(light, this.light.intensity - dt * 40);
+    for (const s of this.sparkList) { s.age += dt; s.v.multiplyScalar(1 - 6 * dt); s.v.y -= 4 * dt; s.p.addScaledVector(s.v, dt); }
+    this.sparkList = this.sparkList.filter((s) => s.age < s.life);
+    this.sparks.begin();
+    for (const s of this.sparkList) {
+      const u = s.age / s.life;
+      this._a.copy(s.p).addScaledVector(s.v, -0.03);
+      this.sparks.strip([this._a.clone(), s.p.clone().lerp(this._a, 0.5), s.p.clone()], (x) => s.w * x * (1 - u * 0.5), 1 - u * u, PALETTE.spark);
+    }
+    this.sparks.end();
   }
-  clear() { this.pending = []; for (const c of this.cuts) { c.live = false; c.mesh.visible = false; } }
+  clear() { this.pending = []; this.sparkList = []; this.light.intensity = 0; for (const c of this.cuts) { c.live = false; c.core.visible = c.glow.visible = false; } }
 }

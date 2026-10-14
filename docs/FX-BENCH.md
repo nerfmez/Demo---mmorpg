@@ -39,9 +39,11 @@ fires nothing. `maxCooldown` stands in for the planned Core / Cooldown skill typ
 
 ## Slash (bench look and rule trial)
 
-`src/fxtest/slash-fx.js` draws one clean crescent around the caster over the real range
+`src/fxtest/slash-fx.js` draws one clean crescent of light around the caster over the real range
 and arc: the outer edge is the reach and the inner edge bows in, so it is thick in the middle
-and pointed at both ends, in three flat tones (white core, pale body, thin same-hue line). It
+and pointed at both ends: a white-hot outer edge falling off to transparent toward the caster,
+a soft additive glow, thin speed lines sliding along the arc, a bright leading edge with the
+trail behind it fading, sparks off the leading edge and a short light. It
 reveals from one end to the other, passing the middle at the contact time, then thins from its
 inner edge and fades. Strikes in quick succession (within 1.2 s, including Multistrike repeats)
 cycle through different tilts, heights and reach, and alternate the arm's side; the arc sweeps

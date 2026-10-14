@@ -4,7 +4,7 @@
 // - impact embers: sparks that burst out, then sway, curl and drift upward like real embers,
 //   drawn as short curved trails from their own recent path, flickering as they cool.
 import * as THREE from 'three';
-import { Ribbon, mulberry32 } from './fx-common.js';
+import { Ribbon, mulberry32, flashMaterial, tintFlash, BILLBOARD_VS, NOISE } from './fx-common.js';
 
 const HIST = 7, TRAIL = 9, TRAIL_SPAN = 0.32;
 const EMBER_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
@@ -27,6 +27,23 @@ export class FireExtras {
     this.halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
     this.halo.visible = false; this.halo.renderOrder = 6; scene.add(this.halo);
     this.charge = null;
+    // round impact: a ragged flash and a fire puff that swells and burns away, no direction
+    const quad = new THREE.PlaneGeometry(1, 1);
+    this.camera = camera;
+    this.pops = Array.from({ length: 4 }, (_, k) => {
+      const flash = new THREE.Mesh(quad, flashMaterial(3 + k * 5.1)); tintFlash(flash.material, 'fire');
+      const puff = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: k * 7.3 } }, vertexShader: BILLBOARD_VS,
+        fragmentShader: `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE}
+          void main(){ float r = length(vUv);
+            float n = fbm(vUv * 2.2 + uSeed + vec2(0.0, -uT * 1.5));
+            float body = n * 1.15 - r * 0.9 - uT * 0.75;
+            if (body < 0.04) discard;
+            vec3 c = body > 0.32 ? vec3(1.0, 0.86, 0.45) : body > 0.16 ? vec3(1.0, 0.5, 0.14) : vec3(0.82, 0.24, 0.08);
+            gl_FragColor = vec4(c, 0.95); }`, transparent: true, depthWrite: false }));
+      for (const m of [flash, puff]) { m.visible = false; m.frustumCulled = false; scene.add(m); }
+      flash.renderOrder = 8; puff.renderOrder = 7;
+      return { flash, puff, t: 9, pos: new THREE.Vector3() };
+    });
     this.wisps = []; this.embers = []; this.rnd = mulberry32(31); this.t = 0;
     this.tmp = []; this.col = [0, 0, 0];
   }
@@ -52,6 +69,8 @@ export class FireExtras {
   // a fire impact at (x, y, z): fluttering embers
   impact(x, y, z) {
     const r = this.rnd;
+    const pop = this.pops.find((q) => q.t > 0.4) || this.pops[0];
+    pop.t = 0; pop.pos.set(x, y, z); pop.puff.material.uniforms.uSeed.value = r() * 40;
     for (let i = 0; i < 22; i++) {
       // a random direction over the whole sphere and a spread of speeds: some fly, some just float off
       const zc = r() * 2 - 1, a = r() * Math.PI * 2, rr = Math.sqrt(1 - zc * zc), sp = 0.6 + Math.pow(r(), 1.6) * 4;
@@ -64,6 +83,15 @@ export class FireExtras {
     this.t += dt;
     const r = this.rnd;
     this.core.begin(); this.glow.begin();
+    for (const q of this.pops) {
+      if (q.t > 0.4) { q.flash.visible = q.puff.visible = false; continue; }
+      q.t += dt;
+      q.flash.visible = q.t < 0.12; q.flash.position.copy(q.pos); q.flash.quaternion.copy(this.camera.quaternion);
+      q.flash.scale.setScalar(1.35 * (q.t < 0.03 ? 0.5 + q.t / 0.06 : 1)); q.flash.material.uniforms.uT.value = q.t / 0.12;
+      const u = Math.min(1, q.t / 0.4);
+      q.puff.visible = true; q.puff.position.copy(q.pos); q.puff.quaternion.copy(this.camera.quaternion);
+      q.puff.scale.setScalar(0.8 + 1.1 * (1 - (1 - u) * (1 - u))); q.puff.material.uniforms.uT.value = u;
+    }
     if (this.charge) {
       const ch = this.charge; ch.t += dt;
       const k = Math.min(1, ch.t / ch.total), grow = k * k * (3 - 2 * k);
@@ -115,5 +143,5 @@ export class FireExtras {
     }
     this.core.end(); this.glow.end();
   }
-  clear() { this.wisps = []; this.embers = []; this.release(); }
+  clear() { this.wisps = []; this.embers = []; this.release(); for (const q of this.pops) q.t = 9; }
 }

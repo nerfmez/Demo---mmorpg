@@ -66,5 +66,7 @@ out, then sway, curl and drift upward while flickering and cooling, drawn as sho
 trails from their own recent path, scattering in every direction at varied speeds. The bench
 also shows only the smooth filled core of the game's charge (the core the flying ball shows),
 hiding its noisy flame layers and small gather wisps, with a warm halo growing around it, so
-the charge reads as one ball growing as the fire gathers. Porting them means moving them into `src/render/` with
+the charge reads as one ball growing as the fire gathers. Fire hits use a round burst (a
+ragged flash and a fire puff that swells and burns away) instead of the game's one-sided
+contact splash, so nothing flies off in one direction. Porting them means moving them into `src/render/` with
 numbers in `data/combat-fx.json`.

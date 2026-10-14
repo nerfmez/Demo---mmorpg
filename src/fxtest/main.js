@@ -257,8 +257,8 @@ function drain() {
         break;
       }
       case 'impact': {
-        vfx.impact(e);
-        if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z);
+        // fire hits use the bench's round burst instead of the game's one-sided splash
+        if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z); else vfx.impact(e);
         break;
       }
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;

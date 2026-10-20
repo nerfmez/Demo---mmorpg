@@ -26,19 +26,31 @@ export function modRequires(data, mod, level = 1) {
 
 const ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison'];
 
+/**
+ * One rule for every mod: the skill's visible tags, plus the `grants` of companion mods that
+ * fit the bare skill, must contain ALL of `needs`, ANY of `on` (when listed) and NONE of `not`.
+ * Two mods of the same `family` never share a skill. Returns {ok, reason, tags?}.
+ */
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
-  const tags = skill.tags || [];
-  if (mod.requiresKinds && !mod.requiresKinds.includes(skill.kind)) return { ok:false, reason:'delivery' };
-  if (companions.some(c => c !== mod && ((mod.conflicts || []).includes(c.id) || (c.conflicts || []).includes(mod.id)))) return { ok:false, reason:'conflict' };
-  if (mod.requiresElement && skill.element !== mod.requiresElement && !companions.some(c => c.effect?.element === mod.requiresElement && modFits(skill,c).ok)) return {ok:false,reason:'element'};
-  if (mod.requiresPersistent && !['dot_zone', 'heal_zone'].includes(skill.kind) && !companions.some(m => m?.effect?.groundDps && modFits(skill, m).ok))
-    return { ok: false, reason: 'needs_persistent' };
-  if (mod.requiresAll && !mod.requiresAll.every((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAll.join('+')}` };
-  if (mod.requiresAny && !mod.requiresAny.some((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAny.join('/')}` };
-  if (mod.excludes && mod.excludes.some((t) => tags.includes(t))) return { ok: false, reason: `not for ${mod.excludes.join('/')}` };
+  const others = companions.filter(c => c && c !== mod && (c.id === undefined || c.id !== mod.id));
+  if (mod.family && others.some(c => c.family === mod.family)) return { ok: false, reason: 'family', family: mod.family };
+  const tags = new Set(skill.tags || []);
+  for (const c of others) if (c.grants && modFits(skill, c).ok) for (const t of c.grants) tags.add(t);
+  const missing = (mod.needs || []).filter(t => !tags.has(t));
+  if (missing.length) return { ok: false, reason: 'needs', tags: missing };
+  if (mod.on?.length && !mod.on.some(t => tags.has(t))) return { ok: false, reason: 'on', tags: mod.on };
+  const blocked = (mod.not || []).filter(t => tags.has(t));
+  if (blocked.length) return { ok: false, reason: 'not', tags: blocked };
   return { ok: true };
 }
+
+/** Mod sockets a combat skill has at `rank` (mods.json slotsByRank, last entry = max). */
+export function modSlotsFor(data, rank = 1) {
+  const by = data.mods.slotsByRank;
+  return by[Math.min(Math.max(rank, 1), by.length) - 1];
+}
+export const maxModSlots = data => Math.max(...data.mods.slotsByRank);
 
 const lv = (v, level) => (Array.isArray(v) ? v[Math.min(level, v.length) - 1] : v);
 
@@ -304,7 +316,7 @@ export function socketMod(ch, data, slotIndex, uid) {
   const fit = modFits(skillDef(data, slot.skill), modDef(data, inst.id), slot.mods.map(u => modDef(data, ch.mods.find(m => m.uid === u)?.id)).filter(Boolean));
   if (!fit.ok) return { ok: false, reason: fit.reason };
   if (slot.mods.some((u) => ch.mods.find((m) => m.uid === u)?.id === inst.id)) return { ok: false, reason: 'duplicate' };
-  if (slot.mods.length >= data.mods.maxModsPerSkill) return { ok: false, reason: 'full' };
+  if (slot.mods.length >= modSlotsFor(data, ch.skills[slot.skill])) return { ok: false, reason: 'full' };
   const from = modSlotOf(ch, uid);
   if (from !== -1) unsocketMod(ch, uid);
   slot.mods.push(uid);

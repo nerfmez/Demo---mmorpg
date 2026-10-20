@@ -5,13 +5,13 @@ import { meetsRequires } from '../core/character.js';
 import { modFits, modRequires } from '../core/skills.js';
 import { skillUpgradeCost, modUpgradeCost, skillUpgradeState, modUpgradeState } from '../core/crafting.js';
 import { skillGrowthPreview, modGrowthPreview, upgradeTrack, stateText } from './progressionview.js';
-import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus } from './buildmeta.js';
+import { esc, FILTERS, tagsHtml, skillMeta, rulesHtml, modStatus, slotCapacity } from './buildmeta.js';
 
 function loadout(ui, modMode=false) {
   const {ch,data}=ui.game, selected=ui.sel.skill??0;
   return `<div class="loadout-bar seeker-loadout">${ch.slots.map((entry,i)=>{
     const s=data.skills.combat[entry.skill];
-    return `<button class="loadout-slot ${i===selected?'on':''}" data-act="skill-slot" data-slot="${i}" aria-pressed="${i===selected}"><span class="slot-number">${i+1}</span>${s?art('skill',entry.skill):icon('plus')}<b>${s?.nameTh||'ช่องว่าง'}</b><small>${modMode?entry.mods.length+' / '+data.mods.maxModsPerSkill+' ม็อด':'ช่องต่อสู้'}</small></button>`;
+    return `<button class="loadout-slot ${i===selected?'on':''}" data-act="skill-slot" data-slot="${i}" aria-pressed="${i===selected}"><span class="slot-number">${i+1}</span>${s?art('skill',entry.skill):icon('plus')}<b>${s?.nameTh||'ช่องว่าง'}</b><small>${modMode?entry.mods.length+' / '+slotCapacity(ch,data,i)+' ม็อด':'ช่องต่อสู้'}</small></button>`;
   }).join('')}</div>`;
 }
 const heading=(title,copy)=>`<div class="seeker-heading"><div><span class="section-kicker">SEEKER / BUILD</span><h3>${title}</h3><p>${copy}</p></div></div>`;
@@ -25,7 +25,7 @@ export function skillsView(ui, {describeSkill}) {
     return `<article class="seeker-library-item ${slot.skill===id?'selected':''}">${art('skill',id)}<div><b>${d.nameTh}</b>${tagsHtml(d.tags)}<small>${learned?'Lv.'+ch.skills[id]:'ยังไม่เรียน'}${req.ok?'':' · ต้อง '+req.missing.join(', ')}</small></div><button class="btn small" data-act="choose-skill" data-slot="${index}" data-id="${id}" ${learned&&req.ok?'':'disabled'}>${slot.skill===id?'ใส่อยู่':'ใส่ช่อง '+(index+1)}</button></article>`;
   }).join('');
   return heading('จัดชุดสกิล','เลือกช่องก่อน แล้วเลือกสกิล · การดูรายละเอียดไม่ใช้วัตถุดิบ')+loadout(ui)+`<div class="seeker-build-grid"><section class="card seeker-focus">
-    ${def?`<div class="seeker-hero">${art('skill',slot.skill)}<div><small>ช่อง ${index+1}</small><h3>${def.nameTh}</h3><span>${def.name} · Lv.${ch.skills[slot.skill]}</span></div></div><p>${esc(def.desc)}</p>${skillMeta(def,s)}<div class="seeker-result"><small>ผลสกิลปัจจุบัน รวมม็อดและพาสซีฟ</small><p>${describeSkill(s)}</p></div><div class="seeker-action-row"><button class="btn" data-act="choose-skill" data-slot="${index}" data-id="">ถอดสกิล</button><button class="btn primary" data-act="pick-socket" data-slot="${index}">จัดม็อด · ${slot.mods.length}/${data.mods.maxModsPerSkill}</button></div>`:`<h3>ช่อง ${index+1} ยังว่าง</h3><p>เลือกสกิลจากคลังด้านข้าง</p>`}
+    ${def?`<div class="seeker-hero">${art('skill',slot.skill)}<div><small>ช่อง ${index+1}</small><h3>${def.nameTh}</h3><span>${def.name} · Lv.${ch.skills[slot.skill]}</span></div></div><p>${esc(def.desc)}</p>${skillMeta(def,s)}<div class="seeker-result"><small>ผลสกิลปัจจุบัน รวมม็อดและพาสซีฟ</small><p>${describeSkill(s)}</p></div><div class="seeker-action-row"><button class="btn" data-act="choose-skill" data-slot="${index}" data-id="">ถอดสกิล</button><button class="btn primary" data-act="pick-socket" data-slot="${index}">จัดม็อด · ${slot.mods.length}/${slotCapacity(ch,data,index)}</button></div>`:`<h3>ช่อง ${index+1} ยังว่าง</h3><p>เลือกสกิลจากคลังด้านข้าง</p>`}
     <div class="seeker-links">${action('movement','สกิลเคลื่อนที่')}${action('growth','อัปเลเวลสกิล / ม็อด')}</div></section>
     <section class="seeker-library"><label class="seeker-filter">ประเภทสกิล <select data-workspace-select="skillFilter">${FILTERS.map(([id,n])=>`<option value="${id}" ${id===filter?'selected':''}>${n}</option>`).join('')}</select></label><div class="seeker-library-list">${choices||'<p>ยังไม่มีสกิลในประเภทนี้</p>'}</div><p class="muted">สกิลที่ยังไม่เรียนแสดงไว้เพื่อวางแผน · เรียนด้วยวัตถุดิบที่โต๊ะคราฟต์</p>${action('craft','ไปดูสูตร')}</section></div>`;
 }

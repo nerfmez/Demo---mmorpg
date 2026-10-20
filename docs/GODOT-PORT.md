@@ -290,9 +290,18 @@ upgrades and passive paths. A desktop/tablet navigation rail becomes a compact p
 selector on narrow phones. Keep inspection separate from allocating points, socketing,
 and spending materials. `ui/buildmeta.js` is presentation vocabulary shared by skill,
 modifier, crafting and inventory details: native tags, damage element, stat requirements,
-all/any/excluded tags and exact incompatibility reasons. Modifier-added tags are labeled
-separately and do not silently grant native-tag eligibility. Calls to core `modFits()`
-remain the authority for compatibility; do not duplicate the rules in Godot UI code.
+needs/on/not tags, mod family and exact incompatibility reasons. Modifier-added tags are
+labeled separately; only a fitting companion's `grants` add fit eligibility. Calls to core
+`modFits()` remain the authority for compatibility; do not duplicate the rules in Godot UI code.
+
+**One mod fit rule.** `modFits(skill, mod, companions)` reads only visible tags: the skill's
+`tags` plus the `grants` of each companion mod that fits the bare skill must contain ALL of
+`needs`, ANY of `on` (when listed) and NONE of `not`; two mods with the same `family`
+(`element`, `trigger`, `trajectory`, `displace`) never share a skill. Shape tags (`Arc`,
+`Nova`, `Ground`, `Zone`, `Barrier`) name the delivery the player sees, so no hidden `kind`
+filter is needed. Failures return `{reason: 'needs'|'on'|'not'|'family', tags|family}`.
+Mod sockets come from `mods.json` `slotsByRank` indexed by the skill's rank (`modSlotsFor`);
+changing a slot's skill already clears its mods, so a lower-rank skill never inherits extras.
 
 ### Mid/high monsters (attack kinds and presentation)
 
@@ -336,7 +345,7 @@ Port the new derived fields along with their Node tests:
   so socket order does not change the result.
 - `controlDurationPct` extends chilling hits and Hex; not slow strength, knockback or
   War Cry. Do not treat every duration as control duration.
-- Lingering needs a native lasting field, or an eligible Burning Ground modifier. Its
+- Lingering needs `Persistent`: a native lasting field, or an eligible Burning Ground (which grants it). Its
   provider must also meet stat requirements to activate the bonus. Keep a dependent
   modifier stored but inactive when the provider is removed or inactive; never delete it.
 - Burning Ground, Knockback, Life Leech and Frost Shift are on-hit modifiers. They exclude
@@ -898,13 +907,13 @@ keeps inventory, rolls and combat sockets, removes invalid/duplicate UIDs and re
 one movement socket. A coin never occupies combat and movement simultaneously. Inactive
 movement mods stay stored; trained stats reactivate them. `short_stride` halves all
 four movement distances and adds one max charge without altering duration, recharge,
-invulnerability or landing damage. Its maximum rank is 1. Existing slot envelope is 2.
+invulnerability or landing damage. Its maximum rank is 1. Combat mod sockets follow `slotsByRank`; the movement socket stays 1.
 
 UI uses hold/release and drag-aim on independent pointers, with menu/blur/cancel cleanup.
 `render/frontier-fx.js` owns original interim line, wall, aura, healing and flame visuals;
 shared geometry belongs to the view, per-effect materials/geometry are disposed on clear.
-Stone Guardian reuses `crag_golem` as an interim silhouette. Numbers, compatibility
-kinds, symmetric conflicts, conversion dependencies and visual tuning live in data.
+Stone Guardian reuses `crag_golem` as an interim silhouette. Numbers, fit tags,
+families, granted tags and visual tuning live in data.
 Before porting, run `tests/core/frontier-content.test.js` and the focused touch capture
 `tests/browser/frontier-content.mjs`. See `FRONTIER-CONTENT.md` and the review record.
 ### The opening and completion receipts (save v11)

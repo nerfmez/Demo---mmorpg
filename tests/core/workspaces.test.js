@@ -43,12 +43,13 @@ test('new small stat nodes spend Job Points only and retain old saved nodes',()=
  assert.deepEqual(old.jobNodes,['origin','a1','a2','aj']);assert.equal(old.version,CHARACTER_VERSION);
  assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].tier,4);assert.equal(data.jobtree.sections[data.jobtree.nodes.aoe_master.section].requiresSpent,17);assert.equal(jobNodeState(ch,data,'aoe_master').reason,'tier_points');
 });
-test('mod compatibility uses all/any/excludes and explanations expose each rule',()=>{
+test('mod compatibility uses needs/on/not/family and explanations expose each rule',()=>{
  const S=data.skills.combat,M=data.mods.mods;
  assert.ok(modFits(S.firebolt,M.split).ok);assert.ok(!modFits(S.slash,M.split).ok);
  assert.ok(modFits(S.chain_spark,M.bounce).ok);assert.ok(!modFits(S.slash,M.bounce).ok);
- assert.ok(!modFits(S.ward,M.echo).ok);assert.ok(modRules(M.echo).some(r=>r.includes('ใช้ไม่ได้')));
- assert.ok(modRules(M.cast_on_dodge).some(r=>r.includes('อย่างน้อยหนึ่ง')));
+ assert.ok(!modFits(S.ward,M.echo).ok);assert.ok(modRules(M.frost_shift).some(r=>r.includes('ใช้ไม่ได้')));
+ assert.ok(modRules(M.cast_on_dodge).some(r=>r.includes(' หรือ ')));assert.ok(modRules(M.cast_on_dodge).some(r=>r.includes('ตัวเดียว')));
+ assert.ok(modRules(M.burning_ground).some(r=>r.includes('ให้แท็กเพิ่ม')));
  assert.ok(!modFits(null,M.split).ok);
 });
 test('Lingering needs an actual lasting field, not just any damage or a curse',()=>{

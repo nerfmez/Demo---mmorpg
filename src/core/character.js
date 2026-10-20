@@ -145,7 +145,7 @@ export function migrateCharacter(ch, data) {
   ch.mods = (ch.mods || []).filter((m) => data.mods.mods[m.id]);
   // v9: separate movement socket. Never steal a coin already assigned to combat.
   ch.movementMods = [...new Set(Array.isArray(ch.movementMods) ? ch.movementMods : [])]
-    .filter(uid => ch.mods.some(m => m.uid === uid && data.mods.mods[m.id].requiresAll?.includes('Movement'))
+    .filter(uid => ch.mods.some(m => m.uid === uid && data.mods.mods[m.id].needs?.includes('Movement'))
       && !ch.slots.some(s => s.mods.includes(uid))).slice(0, data.mods.maxMovementMods);
   ch.gear = (ch.gear || []).filter((g) => data.items.gearBases[g.base]);
   normalizeItemMetadata(ch, data);

@@ -34,8 +34,8 @@ test('v8 migration adds a separate empty movement socket and preserves ownership
  const {ch}=fixture('firebolt',['split']);ch.version=8;delete ch.movementMods;const before=structuredClone(ch);migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.deepEqual(ch.movementMods,[]);assert.deepEqual(ch.mods,before.mods);assert.deepEqual(ch.slots,before.slots);assert.deepEqual(ch.gear,before.gear);const once=structuredClone(ch);migrateCharacter(ch,data);assert.deepEqual(ch,once);
  ch.movementMods=[900,900,1234];migrateCharacter(ch,data);assert.deepEqual(ch.movementMods,[]);assert.equal(socketMovementMod(ch,data,900).ok,false);assert.equal(socketMod(ch,data,0,900).reason,'duplicate');
 });
-test('new mod conflicts reject symmetrically; shatter requires a live cold conversion',()=>{
- for(const pair of [['returning_shot','bounce'],['gathering_cut','knockback'],['following_aura','cast_on_dodge'],['cast_on_guard','cast_on_dodge']])for(const [a,b] of [pair,[...pair].reverse()]){const s=a==='gathering_cut'||b==='gathering_cut'?data.skills.combat.frost_nova:a==='following_aura'||b==='following_aura'?data.skills.combat.war_cry:data.skills.combat.firebolt;assert.equal(modFits(s,data.mods.mods[a],[data.mods.mods[b]]).ok,false,a+' '+b);}
+test('mods of one family reject each other symmetrically; shatter requires a live cold conversion',()=>{
+ for(const pair of [['returning_shot','bounce'],['gathering_cut','knockback'],['cast_on_guard','cast_on_dodge']])for(const [a,b] of [pair,[...pair].reverse()]){const s=a==='gathering_cut'||b==='gathering_cut'?data.skills.combat.frost_nova:data.skills.combat.firebolt;const fit=modFits(s,data.mods.mods[a],[data.mods.mods[b]]);assert.equal(fit.ok,false,a+' '+b);assert.equal(fit.reason,'family');}
  const {g,ch}=fixture('firebolt',['shatter','frost_shift']);assert(g.skills[0].mods.every(m=>m.active));ch.stats.INT=1;g.refresh();assert.equal(g.skills[0].mods.find(m=>m.id==='shatter').active,false);
 });
 test('each new skill has a working executor and the weapon/offhand gates enforce actual gear',()=>{

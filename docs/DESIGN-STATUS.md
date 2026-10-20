@@ -30,6 +30,7 @@
 
 - ตัวเลขดาเมจ/HP/EXP, จำนวนแต้มต่อเลเวล และเลเวลสูงสุด อยู่ใน `progression.json`
 - จำนวนช่อง Mod ต่อสกิล (ตอนนี้ 2) อยู่ใน `mods.json` → `maxModsPerSkill`
+- ร่างจัดระเบียบม็อด/สกิล และระบบผสานสกิล (รอเจ้าของตรวจ): [`SKILL-MOD-FUSION-DESIGN-TH.md`](SKILL-MOD-FUSION-DESIGN-TH.md)
 - น้ำหนักการสุ่ม Grade และจำนวน Option อยู่ใน `items.json` → `grades`
 - ชื่อแมพ ชื่อ Job และชื่อมอน ทั้งหมดเป็นชื่อชั่วคราว
 

@@ -127,7 +127,7 @@ test('mod sockets grow with skill rank', () => {
   assert.equal(computeSkill(ch, data, derive(ch, data), fb).mods.filter((m) => m.active).length, 3);
   ch.skills.firebolt = 5;
   assert.ok(socketMod(ch, data, fb, give(ch, 'returning_shot')).ok, 'rank 5 opens a fourth socket');
-  assert.equal(socketMod(ch, data, fb, give(ch, 'ash_detonation')).reason, 'full');
+  assert.equal(socketMod(ch, data, fb, give(ch, 'status_burst')).reason, 'full');
 });
 
 test('every mod uses only the single visible-tag fit rule', () => {
@@ -148,9 +148,10 @@ test('every mod uses only the single visible-tag fit rule', () => {
 
 test('granted tags only count from a companion that fits the bare skill', () => {
   const S = data.skills.combat, M = data.mods.mods;
-  assert.ok(!modFits(S.firebolt, M.shatter).ok);
-  assert.ok(modFits(S.firebolt, M.shatter, [M.frost_shift]).ok, 'Frost Shift grants Cold');
-  assert.ok(!modFits(S.venom_mire, M.shatter, [M.frost_shift]).ok, 'Frost Shift cannot sit on a DoT field, so it grants nothing');
+  assert.ok(modFits(S.firebolt, M.status_burst).ok, 'a native Fire skill fits Status Burst on its own');
+  assert.ok(!modFits(S.hunter_shot, M.status_burst).ok);
+  assert.ok(modFits(S.hunter_shot, M.status_burst, [M.frost_shift]).ok, 'Frost Shift grants Cold');
+  assert.ok(!modFits(S.venom_mire, M.status_burst, [M.frost_shift]).ok, 'Frost Shift cannot sit on a DoT field, so it grants nothing');
   const fit = modFits(S.slash, M.lingering);
   assert.deepEqual([fit.reason, fit.tags], ['needs', ['Persistent']]);
 });

@@ -104,6 +104,37 @@ export function completeOpening(ch, data, { kit: kitId }) {
   return { ok: true };
 }
 
+/**
+ * Merged content keeps ownership: a retired skill's rank moves to its successor (highest wins)
+ * and a retired mod coin keeps its uid, level and grade under the successor id. A slot that
+ * would hold the same skill twice is emptied (its coins return to the bag), and a slot that
+ * would hold one mod id twice keeps the first coin. Idempotent; driven by data `renamed` maps.
+ */
+export function renameRetiredContent(ch, data) {
+  for (const [from, to] of Object.entries(data.skills.renamed || {})) {
+    if (ch.skills?.[from] !== undefined) {
+      ch.skills[to] = Math.max(ch.skills[to] || 0, ch.skills[from]);
+      delete ch.skills[from];
+    }
+    for (const slot of ch.slots || []) if (slot.skill === from) {
+      if ((ch.slots || []).some(s => s.skill === to)) { slot.skill = null; slot.mods = []; }
+      else slot.skill = to;
+    }
+  }
+  const renamed = data.mods.renamed || {};
+  for (const inst of ch.mods || []) if (renamed[inst.id]) inst.id = renamed[inst.id];
+  for (const slot of ch.slots || []) {
+    const seen = new Set();
+    slot.mods = (slot.mods || []).filter(uid => {
+      const id = ch.mods?.find(m => m.uid === uid)?.id;
+      if (id === undefined) return true;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }
+}
+
 /** Bring older saves up to date. Rebalance migration is one-time and preserves ownership. */
 export function migrateCharacter(ch, data) {
   if (!ch || typeof ch !== 'object') return null;
@@ -139,6 +170,7 @@ export function migrateCharacter(ch, data) {
   ch.skills ||= {};
   // v11 removes uncommitted starter picks, never already learned skills.
   if (ch.opening.stage === 'skills') ch.opening = { stage: 'weapon', kit: ch.opening.kit || null };
+  renameRetiredContent(ch, data);
   // drop references to things that no longer exist
   ch.slots = (ch.slots || []).map((s) => ({ skill: s.skill && data.skills.combat[s.skill] ? s.skill : null, mods: (s.mods || []).filter((u) => (ch.mods || []).some((m) => m.uid === u && data.mods.mods[m.id])) }));
   while (ch.slots.length < data.progression.slotCount) ch.slots.push({ skill: null, mods: [] });

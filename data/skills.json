@@ -1,5 +1,8 @@
 {
   "_doc": "Combat skills. Every attack, the basic one included, is a skill the player can equip or remove. Units: metres and seconds. damage = base + scale * power, where power is attackPower (Attack tag) or spellPower (Spell tag). kind picks how src/core/game.js executes it. requiresWeapon: the right-hand weapon types a skill can be cast with (absent = any).",
+  "renamed": {
+    "arcane_shot": "arcane_bolt"
+  },
   "combat": {
     "slash": {
       "name": "Slash",
@@ -98,7 +101,7 @@
     "arcane_bolt": {
       "name": "Arcane Bolt",
       "nameTh": "ลูกเวทพื้นฐาน",
-      "desc": "ร่ายลูกพลังเวทเล็ก ๆ จากปลายคทา ไม่เปลืองมานา เป็นการโจมตีพื้นฐานของสายคทา",
+      "desc": "ร่ายลูกพลังเวทเล็ก ๆ จากปลายคทาหรือไม้กายสิทธิ์ ไม่เปลืองมานา เป็นการโจมตีพื้นฐานของสายเวท",
       "tags": [
         "Attack",
         "Spell",
@@ -123,7 +126,8 @@
       "icon": "fire",
       "upgradeStat": "INT",
       "requiresWeapon": [
-        "staff"
+        "staff",
+        "wand"
       ]
     },
     "firebolt": {
@@ -733,36 +737,6 @@
       "delay": 0.45,
       "waves": 3,
       "waveInterval": 0.4
-    },
-    "arcane_shot": {
-      "name": "Arcane Dart",
-      "nameTh": "กระสุนเวทพื้นฐาน",
-      "desc": "ยิงกระสุนเวทเบาโดยไม่ใช้ MP ไม่มีสถานะติดตัว ต้องถือไม้กายสิทธิ์ ถอดออกจากช่องได้",
-      "tags": [
-        "Spell",
-        "Projectile",
-        "Damage"
-      ],
-      "kind": "projectile",
-      "power": "spell",
-      "range": 12,
-      "cooldown": 0.65,
-      "castTime": 0.18,
-      "cost": 0,
-      "element": "arcane",
-      "requires": {},
-      "upgradeStat": "INT",
-      "upgradeMaterial": "boar_tusk",
-      "prototype": true,
-      "requiresWeapon": [
-        "wand"
-      ],
-      "damage": {
-        "base": 5,
-        "scale": 0.65
-      },
-      "speed": 15,
-      "projectileRadius": 0.25
     },
     "flame_stream": {
       "name": "Flame Stream",

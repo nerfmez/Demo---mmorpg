@@ -866,6 +866,7 @@ Data defines 28 combat skills (14 new prototypes), four movement skills and 34 m
 (19 new). `prototype:true` selects the authoring/Lab preview path, not an acquisition gate.
 All 14/19 have normal workbench recipes using existing materials, including Moonroot.
 See `FRONTIER-ACQUISITION.md` for costs and compatibility. Normal starters remain basic-only.
+Retired content ids are renamed on load from data maps (`skills.renamed`, `mods.renamed`; `renameRetiredContent()`): the higher skill rank and each coin's uid/level/grade survive, a duplicate skill slot empties and a duplicate mod id in one slot returns its later coin to the bag. This needs no version bump.
 Character v13 adds the movement socket to v12 saves while retaining v9 sockets and UIDs;
 main’s autoPotion migration/settings and equipment inactivity rules are unchanged.
 Only `?fresh=1&skillSandbox=1` grants trial ownership in a character with no save slot.

@@ -1,5 +1,9 @@
 {
   "_doc": "Skill Mods change how a skill behaves. One fit rule (core/skills.js modFits): the skill's visible tags, plus the grants of companion mods that fit the bare skill, must contain ALL of needs, ANY of on (when listed) and NONE of not. Two mods of the same family never share a skill. Each mod has levels 1-3; values are per level. slotsByRank: mod sockets a combat skill has at rank 1..5.",
+  "renamed": {
+    "ash_detonation": "status_burst",
+    "shatter": "status_burst"
+  },
   "mods": {
     "split": {
       "name": "Split",
@@ -606,24 +610,24 @@
       "prototype": true,
       "id": "laceration"
     },
-    "ash_detonation": {
-      "name": "Ash Detonation",
-      "nameTh": "เถ้าระเบิด",
-      "desc": "กินเผาไหม้ที่ตนสร้างเพื่อระเบิดวง 1.8 ม. แรงตามดาเมจเผาที่เหลือสูงสุด 60/70/80% ของฮิต ลดฮิต 15%",
+    "status_burst": {
+      "name": "Status Burst",
+      "nameTh": "ระเบิดสถานะ",
+      "desc": "โดนเป้าที่ติดสถานะจากตัวเราแล้วระเบิดตามธาตุ: เผาไหม้ระเบิดเถ้าวง 1.8 ม. แรงตามดาเมจเผาที่เหลือสูงสุด 60/70/80% ของฮิต · เย็นอย่างน้อย 30% แตกผลึกวง 1.5 ม. แรง 25/30/35% ลดฮิต 15%",
       "tags": [
-        "Fire"
+        "Damage"
       ],
       "on": [
-        "Projectile",
-        "Nova",
-        "Ground"
+        "Fire",
+        "Cold"
       ],
       "needs": [
-        "Fire",
         "Damage"
       ],
       "not": [
-        "Melee"
+        "Melee",
+        "Chain",
+        "Channel"
       ],
       "effect": {
         "consumeBurn": [
@@ -632,34 +636,6 @@
           0.8
         ],
         "statusBurstRadius": 1.8,
-        "damageMult": 0.85
-      },
-      "requires": {
-        "INT": 6
-      },
-      "prototype": true,
-      "id": "ash_detonation"
-    },
-    "shatter": {
-      "name": "Shatter",
-      "nameTh": "ผลึกแตก",
-      "desc": "โดนเป้าที่เย็นอย่างน้อย 30% แล้วแตกผลึกวง 1.5 ม. แรง 25/30/35% ลดความเย็นเป้าและลดฮิต 10%",
-      "tags": [
-        "Damage"
-      ],
-      "on": [
-        "Projectile",
-        "Nova",
-        "Ground"
-      ],
-      "needs": [
-        "Cold",
-        "Damage"
-      ],
-      "not": [
-        "Melee"
-      ],
-      "effect": {
         "shatter": [
           0.25,
           0.3,
@@ -667,13 +643,13 @@
         ],
         "shatterThreshold": 0.3,
         "shatterRadius": 1.5,
-        "damageMult": 0.9
+        "damageMult": 0.85
       },
       "requires": {
         "INT": 6
       },
       "prototype": true,
-      "id": "shatter"
+      "id": "status_burst"
     },
     "following_field": {
       "name": "Following Field",

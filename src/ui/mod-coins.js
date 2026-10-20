@@ -9,8 +9,7 @@ const glyphs={
   advancing_edge:'M3 17h9M9 13l4 4-4 4M12 11L19 2l3 2-8 11ZM13 13l4 3',
   gathering_cut:'M2 12h7M5 8l4 4-4 4M22 12h-7M19 8l-4 4 4 4M10 19h4',
   laceration:'M5 3l-2 15M12 5l-2 15M19 3l-2 15M19 18c-4 4-4 6 0 6s4-2 0-6',
-  ash_detonation:'M12 2c4 7 7 8 7 13a7 7 0 0 1-14 0c0-5 6-7 7-13ZM6 21l-3 2M20 21l3 2M12 18v5',
-  shatter:'M12 2l6 8-6 7-6-7ZM12 7l2 3-2 3-2-3ZM3 19l4 3M20 18l-3 4',
+  status_burst:'M12 2l5 7-5 6-5-6ZM12 15v7M5 19l3-2M19 19l-3-2M3 9l3 1M21 9l-3 1',
   following_field:'M3 16a9 5 0 1 0 18 0 9 5 0 1 0-18 0M12 16V3M8 7l4-4 4 4',
   binding_field:'M3 8l5 4-5 4M21 8l-5 4 5 4M9 3l3 5 3-5M9 21l3-5 3 5',
   healing_chain:'M3 7h6M6 4v6M15 17h6M18 14v6M9 8l6 8M11 16l4 1-1-4',
@@ -39,4 +38,4 @@ const glyphs={
   pack_leader:'M14 14l5 5M34 14l-5 5M16 31l8 6 8-6-3-10H19ZM21 27h6M9 23l4 4M39 23l-4 4',
   cast_on_dodge:'M12 15a16 16 0 1 1-2 17M12 15H5M12 15V8M26 14l-8 13h9l-4 8 11-14h-9Z'
 };
-export function modCoin(inst){return `<span class="coin ${modRole(inst.id)}" data-coin="${inst.uid}" data-mod-id="${inst.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="${glyphs[inst.id]}" transform="${['returning_shot','terminal_burst','chain_return','advancing_edge','gathering_cut','laceration','ash_detonation','shatter','following_field','binding_field','healing_chain','healing_barrier','breaking_ward','spreading_hex','focused_pack','guardian_bond','following_aura','cast_on_guard'].includes(inst.id)?'translate(0 0) scale(2)':''}"/></svg><i></i></span>`;}
+export function modCoin(inst){return `<span class="coin ${modRole(inst.id)}" data-coin="${inst.uid}" data-mod-id="${inst.id}"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="${glyphs[inst.id]}" transform="${['returning_shot','terminal_burst','chain_return','advancing_edge','gathering_cut','laceration','status_burst','following_field','binding_field','healing_chain','healing_barrier','breaking_ward','spreading_hex','focused_pack','guardian_bond','following_aura','cast_on_guard'].includes(inst.id)?'translate(0 0) scale(2)':''}"/></svg><i></i></span>`;}

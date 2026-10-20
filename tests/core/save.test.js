@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { data } from './helpers.js';
-import { createCharacter } from '../../src/core/character.js';
+import { createCharacter, migrateCharacter } from '../../src/core/character.js';
 
 const store = new Map();
 globalThis.localStorage = {
@@ -58,4 +58,36 @@ test('published previews isolate all writes, deletes and legacy migration from m
  assert.ok(preview.importCode(save.exportCode(1),1));const copy=preview.loadSlot(1).character;copy.name='Preview';preview.writeSlot(1,copy);
  assert.equal(save.loadSlot(1).character.name,'Main');assert.equal(preview.loadSlot(1).character.name,'Preview');
  preview.deleteSlot(1);assert.equal(store.get('frontier.slot.1'),before);assert.equal(preview.migrateLegacy(),false);
+});
+
+test('merged skills and mods keep ownership, rank, coin identity and loadout', () => {
+  const ch = createCharacter(data, { kit: 'staff' });
+  ch.skills = { ...ch.skills, arcane_shot: 3, arcane_bolt: 1, firebolt: 1 };
+  ch.mods = [
+    { uid: 501, id: 'ash_detonation', level: 2, grade: 'C' },
+    { uid: 502, id: 'shatter', level: 3, grade: 'B' },
+    { uid: 503, id: 'split', level: 1, grade: 'C' },
+  ];
+  ch.slots = [
+    { skill: 'arcane_shot', mods: [503] },
+    { skill: 'firebolt', mods: [501, 502] },
+    { skill: null, mods: [] },
+    { skill: null, mods: [] },
+  ];
+  const out = migrateCharacter(JSON.parse(JSON.stringify(ch)), data);
+  assert.equal(out.skills.arcane_shot, undefined);
+  assert.equal(out.skills.arcane_bolt, 3, 'the higher rank survives');
+  assert.deepEqual(out.slots[0], { skill: 'arcane_bolt', mods: [503] }, 'slot and its coins move to the successor');
+  assert.deepEqual(out.mods.map(m => [m.uid, m.id, m.level, m.grade]), [[501, 'status_burst', 2, 'C'], [502, 'status_burst', 3, 'B'], [503, 'split', 1, 'C']]);
+  assert.deepEqual(out.slots[1].mods, [501], 'one slot never holds the same mod twice; the second coin returns to the bag');
+  assert.deepEqual(migrateCharacter(JSON.parse(JSON.stringify(out)), data), out, 'idempotent');
+
+  const both = createCharacter(data, { kit: 'staff' });
+  both.skills = { ...both.skills, arcane_shot: 1, arcane_bolt: 2 };
+  both.mods = [{ uid: 601, id: 'split', level: 1, grade: 'C' }];
+  both.slots = [{ skill: 'arcane_bolt', mods: [] }, { skill: 'arcane_shot', mods: [601] }, { skill: null, mods: [] }, { skill: null, mods: [] }];
+  const merged = migrateCharacter(both, data);
+  assert.equal(merged.skills.arcane_bolt, 2);
+  assert.deepEqual(merged.slots[1], { skill: null, mods: [] }, 'a duplicate slot empties and its coin stays owned');
+  assert.ok(merged.mods.some(m => m.uid === 601));
 });

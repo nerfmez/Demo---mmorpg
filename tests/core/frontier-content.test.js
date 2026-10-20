@@ -34,9 +34,10 @@ test('v8 migration adds a separate empty movement socket and preserves ownership
  const {ch}=fixture('firebolt',['split']);ch.version=8;delete ch.movementMods;const before=structuredClone(ch);migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.deepEqual(ch.movementMods,[]);assert.deepEqual(ch.mods,before.mods);assert.deepEqual(ch.slots,before.slots);assert.deepEqual(ch.gear,before.gear);const once=structuredClone(ch);migrateCharacter(ch,data);assert.deepEqual(ch,once);
  ch.movementMods=[900,900,1234];migrateCharacter(ch,data);assert.deepEqual(ch.movementMods,[]);assert.equal(socketMovementMod(ch,data,900).ok,false);assert.equal(socketMod(ch,data,0,900).reason,'duplicate');
 });
-test('mods of one family reject each other symmetrically; shatter requires a live cold conversion',()=>{
+test('mods of one family reject each other symmetrically; status burst on a non-fire skill needs a live cold conversion',()=>{
  for(const pair of [['returning_shot','bounce'],['gathering_cut','knockback'],['cast_on_guard','cast_on_dodge']])for(const [a,b] of [pair,[...pair].reverse()]){const s=a==='gathering_cut'||b==='gathering_cut'?data.skills.combat.frost_nova:data.skills.combat.firebolt;const fit=modFits(s,data.mods.mods[a],[data.mods.mods[b]]);assert.equal(fit.ok,false,a+' '+b);assert.equal(fit.reason,'family');}
- const {g,ch}=fixture('firebolt',['shatter','frost_shift']);assert(g.skills[0].mods.every(m=>m.active));ch.stats.INT=1;g.refresh();assert.equal(g.skills[0].mods.find(m=>m.id==='shatter').active,false);
+ assert.equal(modFits(data.skills.combat.hunter_shot,data.mods.mods.status_burst).ok,false);
+ const {g,ch}=fixture('hunter_shot',['status_burst','frost_shift']);assert(g.skills[0].mods.every(m=>m.active));ch.stats.INT=1;g.refresh();assert.equal(g.skills[0].mods.find(m=>m.id==='status_burst').active,false);
 });
 test('each new skill has a working executor and the weapon/offhand gates enforce actual gear',()=>{
  for(const [id,d] of Object.entries(data.skills.combat).filter(([,d])=>d.prototype)){const {g,m,s}=fixture(id);g.executeSkill(s,id==='crystal_wall'?{...aim,x:8}:aim);assert(g.drainEvents().length||g.areas.length||g.allies.length||g.player.auras||g.player.riposte||g.player.channeling,id);if(d.requiresWeapon){assert.equal(computeSkill(g.ch,data,{...g.derived,weaponType:'none'},0).requirementsMet,false,id);}}
@@ -71,15 +72,15 @@ test('wall refuses occupied/closed placements, blocks movement, and can be destr
  const b=fixture('crystal_wall');b.g.executeSkill(b.s,{angle:0,x:b.m.x,z:b.m.z});assert.equal(b.g.areas.length,0);b.g.world.isFree=()=>false;b.g.executeSkill(b.s,{angle:0,x:8,z:0});assert.equal(b.g.areas.length,0);
 });
 test('projectile return hits once per leg; terminal burst fires at final end without mod recursion',()=>{
- const {g,m,s}=fixture('arcane_shot',['returning_shot','terminal_burst']);g.executeSkill(s,aim);const pr=g.projectiles[0];pr.range=4;pr.speed=10;pr.vx=10;pr.vz=0;let hits=0;const original=g.hitMonster.bind(g);g.hitMonster=(m,a,o)=>{if(!o.secondary)hits++;return original(m,a,o);};for(let i=0;i<60;i++)g.updateProjectiles(.02);assert.equal(hits,2);assert.equal(g.projectiles.length,0);assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='mod_burst').length,1);
+ const {g,m,s}=fixture('arcane_bolt',['returning_shot','terminal_burst']);g.executeSkill(s,aim);const pr=g.projectiles[0];pr.range=4;pr.speed=10;pr.vx=10;pr.vz=0;let hits=0;const original=g.hitMonster.bind(g);g.hitMonster=(m,a,o)=>{if(!o.secondary)hits++;return original(m,a,o);};for(let i=0;i<60;i++)g.updateProjectiles(.02);assert.equal(hits,2);assert.equal(g.projectiles.length,0);assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='mod_burst').length,1);
 });
 test('chain return revisits only the first live target, and bleed does not crit or proc hits',()=>{
  const {g,m,s}=fixture('chain_spark',['chain_return']);g.player.targetId=m.id;g.executeSkill(s,aim);assert.equal(g.drainEvents().filter(e=>e.type==='hit').length,2);
  const a=fixture('slash',['laceration']);a.g.executeSkill(a.s,aim);assert(a.m.statuses.bleed);const t=a.m.statuses.bleed.t;a.g.tickStatuses(a.m,1.5);const events=a.g.drainEvents().filter(e=>e.type==='hit'&&e.dot);assert(events.length);assert(events.every(e=>!e.crit&&e.element==='physical'));assert(a.m.statuses.bleed.t<t);
 });
 test('status-consuming bursts consume once, and following fields remain one per slot with bounded slow',()=>{
- const a=fixture('firebolt',['ash_detonation']);a.m.statuses.burn={dps:5,t:3,owner:'player'};a.g.hitMonster(a.m,20,a.g.hitOpts(a.s));assert.equal(a.m.statuses.burn,undefined);assert.equal(a.g.drainEvents().filter(e=>e.type==='burst').length,1);
- const b=fixture('frost_nova',['shatter']);b.m.statuses.chill={slow:.55,t:3};b.g.hitMonster(b.m,20,b.g.hitOpts(b.s));assert.equal(b.g.drainEvents().filter(e=>e.type==='burst').length,1);
+ const a=fixture('firebolt',['status_burst']);a.m.statuses.burn={dps:5,t:3,owner:'player'};a.g.hitMonster(a.m,20,a.g.hitOpts(a.s));assert.equal(a.m.statuses.burn,undefined);assert.equal(a.g.drainEvents().filter(e=>e.type==='burst').length,1);
+ const b=fixture('frost_nova',['status_burst']);b.m.statuses.chill={slow:.55,t:3};b.g.hitMonster(b.m,20,b.g.hitOpts(b.s));assert.equal(b.g.drainEvents().filter(e=>e.type==='burst').length,1);
  const {g,s,m}=fixture('venom_mire',['following_field','binding_field']);g.executeSkill(s,aim);g.executeSkill(s,aim);assert.equal(g.areas.length,1);g.player.x=2;g.updateAreas(.5);assert.equal(g.areas[0].x,2);const slow=m.statuses.chill.slow;g.updateAreas(.5);assert(m.statuses.chill.slow>slow&&m.statuses.chill.slow<=.35);
 });
 test('curse spreads remaining time to one new target only; barrier break fires once',()=>{
@@ -90,7 +91,7 @@ test('guardian summon shares one bounded hit, focus and commands change targetin
  const {g,s,m}=fixture('stone_guardian',['guardian_bond','focused_pack']);g.spawnAllies(s,0,0);const a=g.allies[0],hp=a.hp;g.damagePlayer(40,null);assert(a.hp<hp);assert.equal(s.summon.damage,fixture('stone_guardian').s.summon.damage*.75);assert(g.commandAllies('attack',m.id));assert.equal(a.targetId,m.id);g.updateAllies(.02);assert.equal(a.targetId,m.id,'explicit command overrides automatic focus');assert.equal(g.commandAllies('attack',999),false);assert(g.commandAllies('follow'));assert.equal(a.targetId,null);assert(g.commandAllies('guard'));g.player.lastHitTarget=m.id;g.updateAllies(.1);assert.equal(a.targetId,null);g.time+=.7;g.updateAllies(.1);assert.equal(a.targetId,m.id);assert(g.commandAllies('guard'));assert.equal(g.ch.slots.length,4);
 });
 test('guard trigger consumes mana, respects weapon/requirements and cannot recurse',()=>{
- const {g,s}=fixture('arcane_shot',['cast_on_guard']);const mp=g.player.mp;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);assert.equal(g.player.mp,mp-s.cost);g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.player.triggerCd[0]=0;g.skills[0].requirementsMet=false;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.skills[0].requirementsMet=true;g.triggering=true;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);
+ const {g,s}=fixture('arcane_bolt',['cast_on_guard']);const mp=g.player.mp;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);assert.equal(g.player.mp,mp-s.cost);g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.player.triggerCd[0]=0;g.skills[0].requirementsMet=false;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.skills[0].requirementsMet=true;g.triggering=true;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);
 });
 
 test('unsupported delivery mods cannot silently consume sockets; supported rain echo and bash knock work',()=>{

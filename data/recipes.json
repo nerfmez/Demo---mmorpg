@@ -2017,14 +2017,6 @@
         "gold": 30
       }
     },
-    "learn_arcane_shot": {
-      "type": "skill",
-      "result": "arcane_shot",
-      "cost": {
-        "glow_dust": 2,
-        "gold": 20
-      }
-    },
     "learn_flame_stream": {
       "type": "skill",
       "result": "flame_stream",
@@ -2140,23 +2132,13 @@
       },
       "grade": "C"
     },
-    "mod_ash_detonation": {
+    "mod_status_burst": {
       "type": "mod",
-      "result": "ash_detonation",
+      "result": "status_burst",
       "cost": {
         "glow_dust": 3,
-        "spore_sac": 2,
-        "gold": 25
-      },
-      "grade": "C"
-    },
-    "mod_shatter": {
-      "type": "mod",
-      "result": "shatter",
-      "cost": {
         "mirror_scale": 2,
-        "glow_dust": 2,
-        "gold": 25
+        "gold": 30
       },
       "grade": "C"
     },

@@ -1,0 +1,177 @@
+/* Clean menus (owner-approved mockup, 2026-10): one light sheet per page, nothing else on screen.
+   Main menu: grouped rows. Equipment/skills workspace: its two windows become one sheet with a
+   shared header (back left, close right); the switcher to other pages is hidden.
+   Loaded last; presentation only. */
+:root {
+  --mc-sheet: rgba(250, 251, 250, .94);
+  --mc-solid: #fff;
+  --mc-ink: #1d2b36;
+  --mc-dim: #687784;
+  --mc-faint: #a7b1b9;
+  --mc-hair: rgba(29, 43, 54, .09);
+  --mc-fill: rgba(29, 43, 54, .055);
+  --mc-fill-2: rgba(29, 43, 54, .09);
+  --mc-accent: #2a8f9a;
+  --mc-accent-soft: rgba(42, 143, 154, .12);
+  --mc-good: #2e9a5e;
+  --mc-bad: #c4513e;
+}
+
+/* ===== main menu ===== */
+.overlay.is-hub:not(.is-atelier):not(.is-journal) { background: rgba(230, 238, 240, .22); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.overlay.is-hub:not(.is-atelier):not(.is-journal) .panel {
+  height: auto; max-height: min(560px, calc(100dvh - 32px)); border: 0; border-radius: 22px;
+  background: var(--mc-sheet); color: var(--mc-ink); box-shadow: 0 12px 40px rgba(10, 22, 32, .25);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.overlay.is-hub:not(.is-atelier):not(.is-journal) .panel-header { padding: 14px 18px 14px 28px; background: none; border-bottom: 1px solid var(--mc-hair); }
+.overlay.is-hub .panel-header h2 { font: 500 20px Kanit, Mitr, sans-serif; color: var(--mc-ink); }
+.overlay.is-hub .panel-gold { font: 500 15px Kanit, sans-serif; color: var(--mc-ink); }
+.overlay.is-hub .pause-label { color: var(--mc-dim); font-size: 11px; }
+.overlay.is-hub .panel-close { width: 40px; height: 40px; min-height: 40px; border: 0; border-radius: 50%; background: var(--mc-fill); color: var(--mc-dim); box-shadow: none; }
+.overlay.is-hub:not(.is-atelier):not(.is-journal) .panel-footer { display: none; }
+.overlay.is-hub:not(.is-atelier):not(.is-journal) .pbody { padding: 20px 28px 26px; }
+.overlay.is-hub .hub { gap: 20px 18px; }
+.overlay.is-hub .hub-group header { min-height: 0; margin: 0 0 8px 4px; padding: 0; border: 0; gap: 0; }
+.overlay.is-hub .hub-group header svg { display: none; }
+.overlay.is-hub .hub-group header :is(div, h3, b, span) { font: 400 12px Mitr, sans-serif; color: var(--mc-dim); letter-spacing: .06em; }
+.overlay.is-hub .hub-tiles { gap: 8px; }
+.overlay.is-hub .hub-tile {
+  min-height: 48px; padding: 10px 14px; gap: 12px; border: 0; border-radius: 14px;
+  background: var(--mc-fill); color: var(--mc-ink); box-shadow: none; font-size: 15px;
+}
+.overlay.is-hub .hub-tile:hover { background: var(--mc-fill-2); }
+.overlay.is-hub .hub-tile :is(svg, img) { filter: none; color: var(--mc-accent); }
+.overlay.is-hub .hub-tile :is(small, em, i, .meta) { color: var(--mc-dim); font-style: normal; }
+.overlay.is-hub .hub-tile :is(.badge, .count, mark) { background: #ff6b5a; color: #fff; border: 0; }
+
+/* ===== equipment / skill workspace: one light sheet ===== */
+#atelier:is(#atelier) {
+  --ink: var(--mc-ink); --muted: var(--mc-dim); --cream: var(--mc-solid); --teal: var(--mc-accent);
+  --mc-w: min(1132px, calc(100vw - 48px - var(--safe-l, 0px) - var(--safe-r, 0px)));
+  --workspace-height: min(760px, calc(100dvh - 48px - var(--safe-t, 0px) - var(--safe-b, 0px)));
+  background: rgba(230, 238, 240, .22); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: var(--mc-ink); pointer-events: auto;
+}
+#atelier:is(#atelier) :is(h1, h2) { color: var(--mc-ink); }
+#atelier:is(#atelier) small { color: var(--mc-dim); }
+#atelier:is(#atelier) button { border: 0; border-radius: 12px; background: var(--mc-fill); color: var(--mc-ink); }
+#atelier:is(#atelier) button:focus-visible { outline: 2px solid var(--mc-accent); }
+#atelier:is(#atelier) .two-windows {
+  z-index: 1; width: var(--mc-w); grid-template-columns: 42% 58%; gap: 0; overflow: hidden; pointer-events: auto;
+  border-radius: 22px; background: var(--mc-sheet); box-shadow: 0 12px 40px rgba(10, 22, 32, .25);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+#atelier:is(#atelier) .window { border: 0; border-radius: 0; background: none; box-shadow: none; scrollbar-color: rgba(29, 43, 54, .18) transparent; }
+#atelier:is(#atelier) .window:first-child { border-right: 1px solid var(--mc-hair); }
+#atelier:is(#atelier) .window-head { height: 64px; min-height: 64px; padding: 10px 18px; background: rgba(250, 251, 250, .96); color: var(--mc-ink); border-bottom: 1px solid var(--mc-hair); }
+#atelier:is(#atelier) .window:first-child .window-head { padding-left: 66px; }
+#atelier:is(#atelier) .window:last-child .window-head { padding-right: 70px; }
+#atelier:is(#atelier) .window-head h1 { font: 500 20px Kanit, Mitr, sans-serif; color: var(--mc-ink); }
+#atelier:is(#atelier) :is(.currency, .character-level) { font: 500 15px Kanit, sans-serif; color: var(--mc-ink); }
+#atelier:is(#atelier) .quiet { color: var(--mc-dim); }
+/* the page switcher becomes the sheet's own back (left) and close (right) buttons */
+#atelier:is(#atelier) .workspace-nav {
+  z-index: 10; top: calc(50% - var(--workspace-height) / 2); left: 50%; transform: translateX(-50%);
+  width: var(--mc-w); max-width: none; height: 64px; padding: 12px; display: flex; justify-content: space-between; align-items: center;
+  background: none; border: 0; box-shadow: none; pointer-events: none;
+}
+#atelier:is(#atelier) .workspace-nav button:not(.hub-back):not(:last-child) { display: none; }
+#atelier:is(#atelier) .workspace-nav :is(.hub-back, button:last-child) {
+  pointer-events: auto; width: 40px; min-width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%;
+  display: grid; place-items: center; overflow: hidden;
+}
+#atelier:is(#atelier) .workspace-nav .hub-back { font-size: 0; background: none; color: var(--mc-ink); }
+#atelier:is(#atelier) .workspace-nav .hub-back span { font-size: 26px; line-height: 1; margin-top: -3px; }
+#atelier:is(#atelier) .workspace-nav button:last-child { font-size: 22px; background: var(--mc-fill); color: var(--mc-dim); }
+
+/* character side */
+#atelier:is(#atelier) .character-stage { background: none; }
+#atelier:is(#atelier) .character-caption h2 { color: var(--mc-ink); }
+#atelier:is(#atelier) .hero-art { filter: drop-shadow(0 10px 12px rgba(10, 22, 32, .18)); }
+#atelier:is(#atelier) .wear-slot { border: 0; border-radius: 16px; background: var(--mc-fill); box-shadow: none; }
+#atelier:is(#atelier) .wear-slot small { color: var(--mc-dim); }
+#atelier:is(#atelier) .wear-slot b { color: var(--mc-ink); }
+#atelier:is(#atelier) .wear-slot .empty-mark { color: var(--mc-faint); opacity: .8; }
+#atelier:is(#atelier) .wear-slot.target { background: var(--mc-solid); box-shadow: 0 0 0 2px var(--mc-accent); }
+#atelier:is(#atelier) :is(.inventory-cell, .wear-slot)[data-grade] { border: 0; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--grade-color) 55%, transparent); }
+#atelier:is(#atelier) .wear-stat-totals { background: none; color: var(--mc-dim); border-color: var(--mc-hair); }
+#atelier:is(#atelier) .wear-stat-totals b { color: var(--mc-ink); }
+#atelier:is(#atelier) .character-stats { background: none; border-top: 1px solid var(--mc-hair); color: var(--mc-ink); }
+#atelier:is(#atelier) .character-stats small { color: var(--mc-dim); }
+#atelier:is(#atelier) .character-stats b { font: 500 20px Kanit, sans-serif; color: var(--mc-ink); }
+#atelier:is(#atelier) .character-stats .power b { color: var(--mc-accent); }
+
+/* bag side */
+#atelier:is(#atelier) :is(.category-tabs, .filters, .library-note) { color: var(--mc-dim); border-color: var(--mc-hair); }
+#atelier:is(#atelier) :is(.category-tabs, .filters) button { border-radius: 999px; background: none; color: var(--mc-dim); padding: 6px 14px; }
+#atelier:is(#atelier) :is(.category-tabs, .filters) .active { background: var(--mc-accent-soft); color: var(--mc-accent); border-radius: 999px; }
+#atelier:is(#atelier) :is(.category-tabs, .filters) button b { color: inherit; opacity: .7; }
+#atelier:is(#atelier) .inventory-filter { color: var(--mc-dim); }
+#atelier:is(#atelier) .inventory-filter select { color: var(--mc-ink); background: var(--mc-fill); border: 0; border-radius: 10px; }
+#atelier:is(#atelier) :is(.inventory-cell, .inventory-empty) { border: 0; border-radius: 16px; background: var(--mc-fill); box-shadow: none; }
+#atelier:is(#atelier) .inventory-scroll { margin: 4px 14px 12px; border: 0; border-radius: 0; background: none; }
+#atelier:is(#atelier) .bag-grid .inventory-cell[data-grade] { background: var(--mc-fill); border: 0; }
+#atelier:is(#atelier) .bag-grid .cell-corner { background: none; text-shadow: none; color: var(--grade-color, var(--mc-faint)); font-weight: 600; }
+#atelier:is(#atelier) .bag-grid .stack-count { background: none; border: 0; color: var(--mc-dim); }
+#atelier:is(#atelier) .bag-grid .inventory-cell[data-grade].selected,
+#atelier:is(#atelier) .inventory-cell.selected { background: var(--mc-solid); box-shadow: 0 0 0 2px var(--mc-accent), 0 4px 12px rgba(42, 143, 154, .18); }
+#atelier:is(#atelier) .inventory-cell b { color: var(--mc-ink); }
+#atelier:is(#atelier) .cell-corner { color: var(--mc-faint); }
+#atelier:is(#atelier) .stack-count { color: var(--mc-dim); background: none; }
+#atelier:is(#atelier) .worn { background: var(--mc-accent); color: #fff; }
+#atelier:is(#atelier) :is(.inventory-cell, .wear-slot).equipment-inactive { background: #fdecea; box-shadow: inset 0 0 0 2px var(--mc-bad); }
+#atelier:is(#atelier) .inventory-cell.equipment-inactive b { color: var(--mc-bad); }
+#atelier:is(#atelier) .grid-footer { color: var(--mc-dim); }
+#atelier:is(#atelier) .selection-shelf { margin: 0; border: 0; border-top: 1px solid var(--mc-hair); border-radius: 0; background: none; color: var(--mc-ink); }
+#atelier:is(#atelier) .selected-summary h2 { font: 500 17px Kanit, Mitr, sans-serif; color: var(--mc-ink); }
+#atelier:is(#atelier) :is(.compact-meta, .comparison, .comparison em, .shelf-actions > span) { color: var(--mc-dim); }
+#atelier:is(#atelier) .comparison b { color: var(--mc-ink); }
+#atelier:is(#atelier) .tags span { color: var(--mc-dim); border: 0; background: var(--mc-fill); }
+#atelier:is(#atelier) .primary { background: var(--mc-accent); color: #fff; font-weight: 500; }
+#atelier:is(#atelier) .secondary { background: var(--mc-fill); color: var(--mc-ink); }
+#atelier:is(#atelier) .good { color: var(--mc-good); }
+#atelier:is(#atelier) .bad { color: var(--mc-bad) !important; }
+
+/* skill loadout (same workspace) */
+#atelier:is(#atelier) :is(.loadout-intro, .loadout-intro span) { color: var(--mc-dim); }
+#atelier:is(#atelier) .skill-card { border: 0; border-radius: 16px; background: var(--mc-fill); }
+#atelier:is(#atelier) .skill-card.selected { background: var(--mc-solid); box-shadow: 0 0 0 2px var(--mc-accent); }
+#atelier:is(#atelier) .skill-anchor { background: none; }
+#atelier:is(#atelier) .skill-anchor b, #atelier:is(#atelier) .movement-bar b { color: var(--mc-ink); }
+#atelier:is(#atelier) :is(.card-foot, .card-foot span) { color: var(--mc-dim); }
+#atelier:is(#atelier) .socket { background: none; }
+#atelier:is(#atelier) .movement-bar { border-color: var(--mc-hair); }
+
+/* notices and dialogs on the light sheet */
+#atelier:is(#atelier) .atelier-notice { background: rgba(29, 43, 54, .82); color: #fff; border-radius: 999px; }
+#atelier:is(#atelier) .dialog-backdrop { background: rgba(230, 238, 240, .3); }
+#atelier:is(#atelier) .atelier-dialog { background: var(--mc-solid); color: var(--mc-ink); border: 0; border-radius: 20px; box-shadow: 0 12px 40px rgba(10, 22, 32, .25); }
+#atelier:is(#atelier) .atelier-dialog :is(h2, p) { color: var(--mc-ink); }
+#atelier:is(#atelier) .detail-heading { background: var(--mc-solid); }
+#atelier:is(#atelier) .atelier-dialog :is(.upgrade-cost, .grade-promotion, .detail-upgrade-summary) { border-color: var(--mc-hair); }
+#atelier:is(#atelier) .atelier-dialog .cost .ok { color: var(--mc-good); }
+#atelier:is(#atelier) .atelier-dialog .cost .no { color: var(--mc-bad); }
+
+/* short landscape (phone): the sheet fills the screen inside the safe area */
+@media (max-height: 520px) and (orientation: landscape) {
+  #atelier:is(#atelier) {
+    --mc-w: calc(100vw - 24px - var(--safe-l, 0px) - var(--safe-r, 0px));
+    --workspace-height: calc(100dvh - 24px - var(--safe-t, 0px) - var(--safe-b, 0px));
+  }
+  #atelier:is(#atelier) .two-windows { top: 50%; transform: translate(-50%, -50%); border-radius: 18px; }
+  #atelier:is(#atelier) .workspace-nav { top: calc(50% - var(--workspace-height) / 2); height: 52px; padding: 6px 8px; }
+  #atelier:is(#atelier) .window-head { height: 52px; min-height: 52px; }
+  #atelier:is(#atelier) .window-head h1 { font-size: 17px; }
+  #atelier:is(#atelier) .character-caption { display: none; }
+  #atelier:is(#atelier) .window:first-child .window-head { padding-left: 54px; }
+  #atelier:is(#atelier) .window:last-child .window-head { padding-right: 58px; }
+  .overlay.is-hub:not(.is-atelier):not(.is-journal) .pbody { padding: 12px 18px 16px; }
+  .overlay.is-hub .hub { gap: 12px 14px; }
+  .overlay.is-hub .hub-tile { min-height: 40px; padding: 8px 12px; font-size: 13px; }
+}
+/* phone portrait keeps its one-window-at-a-time layout; only the colours change there */
+@media (max-width: 600px) and (orientation: portrait) {
+  #atelier:is(#atelier) .two-windows { border-radius: 18px; }
+  #atelier:is(#atelier) .workspace-side button { background: var(--mc-sheet); color: var(--mc-dim); }
+  #atelier:is(#atelier) .workspace-side button.active { background: var(--mc-accent); color: #fff; }
+}

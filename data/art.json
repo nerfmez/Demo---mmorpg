@@ -16,6 +16,14 @@
     "groundStrokeLight": 0.8,
     "rootBlendHeight": 0.75
   },
+  "looks": {
+    "_doc": "Palette overrides for opt-in looks (?look=<name>, data/rendering.json looks). ground: art.ground.palette keys. anime: art.anime.palette keys (foliage and the meadow tint). groundMix: how much of the anime meadow tint replaces the zone tints outside the sample area (default 0.5).",
+    "frieren": {
+      "groundMix": 0.8,
+      "ground": {"grassOchre": "#b9c45e", "earthShadow": "#b4a488", "earthLight": "#d6c7a7", "dust": "#e6dac0", "mud": "#877f6c", "stoneShadow": "#a9aab2", "stoneLight": "#d2d1cc", "mortar": "#8a8c8e", "rockShadow": "#8d93a0", "rockLight": "#c4c6c4"},
+      "anime": {"leafShadow": "#285548", "leafMid": "#5f9e4a", "leafLight": "#c2db6a", "shrubShadow": "#2c5a4a", "shrubMid": "#68a64e", "shrubLight": "#c8de74", "groundLight": "#a6cf5a", "groundDark": "#5b9440", "rock": "#c2c4c8", "trunkLight": "#b9927a", "trunkMid": "#8a6a5e", "trunkShadow": "#5a4a52"}
+    }
+  },
   "ground": {
     "palette": {
       "grassOchre": "#a3af56",

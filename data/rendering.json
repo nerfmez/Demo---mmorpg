@@ -19,6 +19,14 @@
         "sunIntensity": 2.35,
         "shadowIntensity": 0.78
       },
+      "frieren": {
+        "ambientSky": "#c9d0ff",
+        "ambientGround": "#6f8a5e",
+        "ambientIntensity": 1.3,
+        "sunColor": "#fff0d2",
+        "sunIntensity": 1.95,
+        "shadowIntensity": 0.58
+      },
       "legacy": {
         "ambientSky": "#fff8e9",
         "ambientGround": "#8a947c",
@@ -59,10 +67,18 @@
   },
   "shadow": {"sunOffset": [-14, 26, 10], "normalBias": 0.03, "bias": -0.0008},
   "painted": {"shadowStrength": 0.28, "lightInfluence": 0.12, "referenceEnergy": 3.1},
-  "celLook": {
-    "_doc": "Opt-in prototype (?look=cel): a crisp cel read. Depth-edge outlines in the screen grade, a lower ambient and stronger sun so the 3-step toon ramp shows, and less haze/glow. Not the default until the owner approves it.",
-    "lighting": "cel",
-    "outline": {"width": 1.6, "strength": 0.8, "depthThreshold": 0.01, "color": "#2b2340"},
-    "post": {"glow": 0.18, "hazeAmount": 0.08, "sunWash": 0.1, "contrast": 1.16, "saturation": 1.22, "exposure": 1.08, "vignette": 0.2}
+  "looks": {
+    "_doc": "Opt-in look prototypes (?look=<name>): a lighting profile, screen-grade overrides and an optional depth outline. Art palette overrides for the same name live in data/art.json looks. None is the default until the owner approves it.",
+    "cel": {
+      "_doc": "Opt-in prototype (?look=cel): a crisp cel read. Depth-edge outlines in the screen grade, a lower ambient and stronger sun so the 3-step toon ramp shows, and less haze/glow. Not the default until the owner approves it.",
+      "lighting": "cel",
+      "outline": {"width": 1.6, "strength": 0.8, "depthThreshold": 0.01, "color": "#2b2340"},
+      "post": {"glow": 0.18, "hazeAmount": 0.08, "sunWash": 0.1, "contrast": 1.16, "saturation": 1.22, "exposure": 1.08, "vignette": 0.2}
+    },
+    "frieren": {
+      "_doc": "Hand-painted anime background look (the Frieren concept boards): lush yellow-green grass, pale cool paths, lavender-blue shadows, a warm sun and airy haze. No screen outline: painted backgrounds carry no lines, the characters keep their own.",
+      "lighting": "frieren",
+      "post": {"exposure": 1.03, "contrast": 1.09, "saturation": 1.14, "glow": 0.34, "glowThreshold": 0.68, "shadowTint": "#6a70c8", "shadowTintAmount": 0.38, "lightTint": "#e2c08c", "lightTintAmount": 0.2, "hazeAmount": 0.18, "hazeStart": 0.58, "hazeLift": 0.45, "sunWash": 0.2, "sunWashColor": "#fff0c8", "vignette": 0.12}
+    }
   }
 }

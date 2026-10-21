@@ -12,6 +12,7 @@ import {rasterPolylineSteps,boxBlurSteps} from './ground-work.js';
 import { timeUniform } from './patch.js';
 import { waterContactSteps, ownContactTexture } from './water-contact.js';
 import { animeStudy, animeConfig, artReviewLayout } from './anime-study.js';
+import { artLook } from './settings.js';
 import { groundBrushUniform,groundBrushUniformSteps } from './ground-brush.js';
 import { coveredTerrainCell } from './city-terrain.js';
 import { cityFloorAt } from '../core/city.js';
@@ -184,7 +185,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const k = j * w + i;
       const ab=animeConfig.bounds;
       const blend=animeStudy?smooth(ab.minX-4,ab.minX+4,x)*(1-smooth(ab.maxX-4,ab.maxX+4,x))*smooth(ab.minZ-4,ab.minZ+4,z)*(1-smooth(ab.maxZ-4,ab.maxZ+4,z)):0;
-      const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
+      const mix=animeStudy?Math.max(blend,artLook?.groundMix??.5):0; // zones keep half (or the look's share) of their own tint outside the sample area
       const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
       const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
       lr[k] = cl.r;

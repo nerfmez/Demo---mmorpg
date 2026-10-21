@@ -2,9 +2,10 @@
 import * as THREE from 'three';
 import art from '../../data/art.json' with {type:'json'};
 import { NOISE_GLSL, MEADOW_FIELD_GLSL, GROUND_FIELD_GLSL } from './ground-field.js';
+import { artLook } from './settings.js';
 export { NOISE_GLSL } from './ground-field.js';
 const rgb=hex=>{const c=new THREE.Color(hex);return `vec3(${[c.r,c.g,c.b].map(v=>v.toFixed(5)).join(',')})`;};
-const p=art.ground.palette;
+const p={...art.ground.palette,...artLook?.ground};
 // how strongly the brush atlas's leaf strokes darken/lighten the ground (kept low: the ground is
 // mottled lawn, the standing clumps in grass.js are the grass)
 const blade=art.grass;

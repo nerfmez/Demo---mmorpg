@@ -1,10 +1,16 @@
 // Rendering configuration only: no game rules, DOM, preferences or saved character data.
 import config from '../../data/rendering.json' with {type:'json'};
+import art from '../../data/art.json' with {type:'json'};
 export const renderConfig = config;
-/** Opt-in cel prototype (?look=cel): its lighting profile and screen-grade overrides, else null. */
-export const celLook = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'cel' ? config.celLook : null;
-/** The screen grade with the cel prototype's overrides and outline applied when it is on. */
-export const postConfig = () => celLook ? { ...config.post, ...celLook.post, outline: celLook.outline } : config.post;
+const requested = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('look') : null;
+/** Opt-in look prototype name (?look=<name>, a key of rendering.json looks), else null. */
+export const lookName = requested && typeof config.looks[requested] === 'object' ? requested : null;
+/** That look's lighting profile, screen-grade overrides and outline, else null. */
+export const look = lookName ? config.looks[lookName] : null;
+/** The look's art palette overrides (art.json looks), else null. */
+export const artLook = lookName ? art.looks[lookName] ?? null : null;
+/** The screen grade with the look's overrides and outline applied when one is on. */
+export const postConfig = () => look ? { ...config.post, ...look.post, outline: look.outline } : config.post;
 export function qualitySettings(name) {
   const quality = Object.hasOwn(config.quality, name) ? name : 'medium';
   return {name:quality, ...config.quality[quality]};

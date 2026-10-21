@@ -36,6 +36,7 @@
       "woodSilver": "#abb199",
       "woodSeam": "#75634c"
     },
+    "animePalette": {"_doc": "Opt-in anime look study (rendering.json lookVariants ground: anime): flat two-tone ground colours.", "earthLight": "#e8c88e", "earthShade": "#cfa46c", "sandLight": "#fde6ab", "sandShade": "#f1cb85", "rockLight": "#bfc4b6", "rockShade": "#8f978b", "grassLift": 1.14, "grassSaturation": 1.3},
     "townPatchSpacing": 4.8,
     "wildPatchSpacing": 4.2,
     "wildMinDensity": 0.08,

@@ -30,13 +30,12 @@ import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 
-const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
-// Camera experiment (?pitch=<degrees above the horizon>): same distance from the hero, a different tilt.
+// Camera tilt above the horizon, owner-chosen 40 degrees (was 54.6): the same distance from the hero
+// (?pitch=<degrees> overrides it for comparison), low enough that trees and buildings stand up as frames.
+const CAM_DISTANCE = 23.3, CAM_PITCH = 40;
 const pitchParam = typeof location !== 'undefined' ? parseFloat(new URLSearchParams(location.search).get('pitch')) : NaN;
-if (pitchParam >= 15 && pitchParam <= 80) {
-  const dist = CAM_OFFSET.length(), a = pitchParam * Math.PI / 180;
-  CAM_OFFSET.set(0, dist * Math.sin(a), dist * Math.cos(a));
-}
+const camAngle = (pitchParam >= 15 && pitchParam <= 80 ? pitchParam : CAM_PITCH) * Math.PI / 180;
+const CAM_OFFSET = new THREE.Vector3(0, CAM_DISTANCE * Math.sin(camAngle), CAM_DISTANCE * Math.cos(camAngle));
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)

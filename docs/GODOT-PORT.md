@@ -87,7 +87,7 @@ High-quality performance keeps the authored graphics settings. Grass uses a
 conservative whole-chunk wind envelope before the existing clump tests, retaining
 all visible instances and baked colours. Pooled particles upload only their live
 prefix (no uploads when empty), including all spawn/swap changes before a draw.
-Camera and cloth use reusable scratch vectors with unchanged animation math.
+Camera and cloth use reusable scratch vectors with unchanged animation math. The game camera is a perspective camera (FOV 36 landscape / 52 portrait) 23.3 m from the hero, tilted 40 degrees above the horizon, looking at the hero's chest; in Godot a `Camera3D` with the same offset `(0, 23.3·sin 40°, 23.3·cos 40°)`.
 Godot equivalents: conservative MultiMesh chunk rejection, live-prefix buffer
 updates and reusable simulation state; do not substitute reduced visual density.
 

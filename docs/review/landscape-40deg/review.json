@@ -1,0 +1,328 @@
+{
+  "status": "ready-for-owner-review; not merged or deployed",
+  "runtimeCommit": "b9190eb5511a179369e37f5b578e50300e7c9b40",
+  "runtimeTree": "05475e34b75b9e940c61b9afd32945c7d9a128fe",
+  "localEquivalent": "216d32e675a7889278c13997dd4fc6cc9f935535",
+  "baselineLocalCommit": "6f8a6d5",
+  "reference": "Approved concepts and coordinate plan in docs/design/landscape-40deg; owner-selected 40-degree camera only from PR137. Default game art retained.",
+  "reviewedAtUtc": "2026-10-21T13:10:01.915617+00:00",
+  "reviewMethod": "Full-size actual game screenshots, plus compiled-world route/collision checks and native Chromium touch. No continuous animation playback review claimed.",
+  "viewsInspected": [
+    {
+      "name": "beach-normal",
+      "sha256": "d9154a1f96f5d1600a3205333c913c5511b25bb317363c32d149148d477cb17a",
+      "capturedUtc": "2026-10-21T13:04:54.745589+00:00"
+    },
+    {
+      "name": "beach-wide",
+      "sha256": "95e9d779404c597970a859b0551422405f884116f4dc71527e961f7ac2fd780c",
+      "capturedUtc": "2026-10-21T13:04:57.741639+00:00"
+    },
+    {
+      "name": "forest-normal",
+      "sha256": "d7975aae904d5fac18a8db4a63eb15fc96c8f94bb0545b0d4bd50face55a0d7c",
+      "capturedUtc": "2026-10-21T13:04:59.913675+00:00"
+    },
+    {
+      "name": "forest-wide",
+      "sha256": "6382553c209533d1d7277848458f15ccf81f0ad72afe962a2b24dc94e3f26fbd",
+      "capturedUtc": "2026-10-21T13:05:01.929708+00:00"
+    },
+    {
+      "name": "ruins-normal",
+      "sha256": "a3a040119cf93b68229ba8e62315ee46fbc06e9d3fcdaac71fb625176ab45f38",
+      "capturedUtc": "2026-10-21T13:05:04.249746+00:00"
+    },
+    {
+      "name": "ruins-wide",
+      "sha256": "4512bcfc56a65336853ac677b3e40960f1451f0e6dfc40f7d6c49d75c9511aca",
+      "capturedUtc": "2026-10-21T13:05:06.541784+00:00"
+    },
+    {
+      "name": "highlands-normal",
+      "sha256": "b2f209cdabd22389cd85a7e99a740f86df5f7e6ce272aa6ddcc8a7a8aed9f7a5",
+      "capturedUtc": "2026-10-21T13:05:08.929823+00:00"
+    },
+    {
+      "name": "wetland-normal",
+      "sha256": "5417f92e63397a17794d48887c7b89271268d0d726b3ca547b1a98be521fca50",
+      "capturedUtc": "2026-10-21T13:05:11.237861+00:00"
+    },
+    {
+      "name": "moonroot-normal",
+      "sha256": "a1cd5429d0dfb56c3d9532a636bb00d59307dabff1d579b9bbe91ee59d3d0fa7",
+      "capturedUtc": "2026-10-21T13:05:13.609898+00:00"
+    },
+    {
+      "name": "fern-normal",
+      "sha256": "64655b8a73b6c49008c53f68e847e4da1741cb79b7652d3bad2af4bdf3fde953",
+      "capturedUtc": "2026-10-21T13:05:15.901936+00:00"
+    },
+    {
+      "name": "headland-normal",
+      "sha256": "e5767262447e59312ba65d2bd71d5a194da49ab399292fc1276fd957e9725f86",
+      "capturedUtc": "2026-10-21T13:05:18.093972+00:00"
+    },
+    {
+      "name": "forest-rear-visibility",
+      "sha256": "a821ce5cb3a7192dccb6db7f7160d7ff2f93b58293333c3221e680dac8292fa0",
+      "capturedUtc": "2026-10-21T13:05:20.418010+00:00"
+    },
+    {
+      "name": "forest-touch-start",
+      "sha256": "f4a847617ac1418af3f8ae931d2423128578051f2b94fbcb7a4b85d37b9ef380",
+      "capturedUtc": "2026-10-21T13:05:22.482044+00:00"
+    },
+    {
+      "name": "phone-forest",
+      "sha256": "32c2fa923815c2a0d74341f49b1b5804ba208b54c6c27edd090cc8fe097920bd",
+      "capturedUtc": "2026-10-21T13:05:23.758065+00:00"
+    },
+    {
+      "name": "portrait-forest",
+      "sha256": "08463142276238f4d67d783b4dc1522d83d469620f6d7451c551e2b93bc309ef",
+      "capturedUtc": "2026-10-21T13:05:25.946101+00:00"
+    },
+    {
+      "name": "desktop-forest",
+      "sha256": "146ecb961f604bd880c974022ed2df694bb15957435893a2b7ffc0bc00ac1410",
+      "capturedUtc": "2026-10-21T13:05:28.550144+00:00"
+    }
+  ],
+  "fixesVerified": [
+    "Removed the separate flat triangle cliff skin; native continuous slope paint now has an uninterrupted rim.",
+    "Outcrops have flattened lower facets and are buried at the lowest ground around their footprint.",
+    "Short, tapered ground-following roots replace long extra root tubes. Existing trunk root flares retain the source style.",
+    "Raised ground and foreground props share hero dither; inspected the rear approach and visible hero.",
+    "Capture waits for resize frames, eliminating the first blank canvas."
+  ],
+  "criteria": {
+    "heightAndTallFraming": "pass in sampled views",
+    "roadsAndServices": "pass in route/height/collision tests",
+    "groundedOutcrops": "pass in sampled locations",
+    "heroVisibility": "pass in rear approach sample",
+    "nativeTouchAndRelease": "pass",
+    "originalArtAndCity": "preserved; no optional cel/frieren activation"
+  },
+  "technical": {
+    "core": "593/593 passed",
+    "build": "passed; existing bundle-size advisory",
+    "resourceProbe": "two deterministic kit builds; each owned geometry/material disposes exactly once",
+    "browser": "focused Chromium passed; 16 captures, no page/HTTP/console errors",
+    "touch": {
+      "distance": 0.5145441000000801,
+      "released": true
+    },
+    "premerge": "CI Chromium/WebKit smoke pending; physical iPad review not performed"
+  },
+  "viewCounters": [
+    {
+      "view": "beach-wide",
+      "baseline": {
+        "name": "beach-wide",
+        "region": "azure-harbor-v1",
+        "native": [
+          -125,
+          60
+        ],
+        "zoom": 1.45,
+        "position": [
+          -125,
+          60
+        ],
+        "camera": [
+          -125,
+          21.62366029690906,
+          85.88081151077468
+        ],
+        "calls": 230,
+        "triangles": 580017,
+        "geometries": 1861,
+        "textures": 65
+      },
+      "current": {
+        "name": "beach-wide",
+        "region": "azure-harbor-v1",
+        "native": [
+          -125,
+          60
+        ],
+        "zoom": 1.45,
+        "position": [
+          -125,
+          60
+        ],
+        "camera": [
+          -125.00000014988466,
+          21.611859798868984,
+          85.88081151077468
+        ],
+        "calls": 231,
+        "triangles": 570541,
+        "geometries": 1939,
+        "textures": 65
+      }
+    },
+    {
+      "view": "forest-wide",
+      "baseline": {
+        "name": "forest-wide",
+        "region": "frontier-wilds-v1",
+        "native": [
+          89,
+          -65
+        ],
+        "zoom": 1.45,
+        "position": [
+          -295,
+          -157
+        ],
+        "camera": [
+          -295,
+          21.171691433302605,
+          -131.11918848922534
+        ],
+        "calls": 180,
+        "triangles": 712710,
+        "geometries": 1863,
+        "textures": 71
+      },
+      "current": {
+        "name": "forest-wide",
+        "region": "frontier-wilds-v1",
+        "native": [
+          89,
+          -65
+        ],
+        "zoom": 1.45,
+        "position": [
+          -295,
+          -157
+        ],
+        "camera": [
+          -294.998641373003,
+          21.160260433334496,
+          -131.11918848922534
+        ],
+        "calls": 196,
+        "triangles": 758660,
+        "geometries": 1941,
+        "textures": 72
+      }
+    },
+    {
+      "view": "ruins-wide",
+      "baseline": {
+        "name": "ruins-wide",
+        "region": "frontier-wilds-v1",
+        "native": [
+          -194,
+          -5
+        ],
+        "zoom": 1.45,
+        "position": [
+          -578,
+          -98
+        ],
+        "camera": [
+          -578,
+          24.914169029108727,
+          -72.11918848922532
+        ],
+        "calls": 268,
+        "triangles": 2137260,
+        "geometries": 1867,
+        "textures": 84
+      },
+      "current": {
+        "name": "ruins-wide",
+        "region": "frontier-wilds-v1",
+        "native": [
+          -194,
+          -5
+        ],
+        "zoom": 1.45,
+        "position": [
+          -578,
+          -98
+        ],
+        "camera": [
+          -578.003473418254,
+          24.9091008203966,
+          -72.11918848922532
+        ],
+        "calls": 273,
+        "triangles": 2141017,
+        "geometries": 1944,
+        "textures": 85
+      }
+    }
+  ],
+  "counterNotes": "One complete high-quality render, including postprocessing and shadows. Same requested native anchors/zoom; freeSpot may relocate the hero and ground height changes camera Y. These are scene-budget observations, not a strict performance benchmark or hardware FPS claim.",
+  "remainingLimits": [
+    "Software GL browser, no physical iPad/Safari FPS measurement.",
+    "Native terrain paint remains soft and the existing low-poly trunk root flares remain visible at close range.",
+    "Only the sampled viewpoints were visually inspected, not every metre of the world.",
+    "The first beach-normal capture precedes the asynchronous HUD portrait; later captures have the portrait. It is not used as a primary proof."
+  ],
+  "proofs": [
+    {
+      "path": "beach-wide.png",
+      "sha256": "95e9d779404c597970a859b0551422405f884116f4dc71527e961f7ac2fd780c"
+    },
+    {
+      "path": "desktop-forest.png",
+      "sha256": "146ecb961f604bd880c974022ed2df694bb15957435893a2b7ffc0bc00ac1410"
+    },
+    {
+      "path": "forest-before.png",
+      "sha256": "08751d936882c89b7b6db581c490861cbe1901af141afcc80e782b5b8259a6f6"
+    },
+    {
+      "path": "forest-rear-visibility.png",
+      "sha256": "a821ce5cb3a7192dccb6db7f7160d7ff2f93b58293333c3221e680dac8292fa0"
+    },
+    {
+      "path": "forest-wide.png",
+      "sha256": "6382553c209533d1d7277848458f15ccf81f0ad72afe962a2b24dc94e3f26fbd"
+    },
+    {
+      "path": "highlands-normal.png",
+      "sha256": "b2f209cdabd22389cd85a7e99a740f86df5f7e6ce272aa6ddcc8a7a8aed9f7a5"
+    },
+    {
+      "path": "moonroot-normal.png",
+      "sha256": "a1cd5429d0dfb56c3d9532a636bb00d59307dabff1d579b9bbe91ee59d3d0fa7"
+    },
+    {
+      "path": "phone-forest.png",
+      "sha256": "32c2fa923815c2a0d74341f49b1b5804ba208b54c6c27edd090cc8fe097920bd"
+    },
+    {
+      "path": "portrait-forest.png",
+      "sha256": "08463142276238f4d67d783b4dc1522d83d469620f6d7451c551e2b93bc309ef"
+    },
+    {
+      "path": "ruins-wide.png",
+      "sha256": "4512bcfc56a65336853ac677b3e40960f1451f0e6dfc40f7d6c49d75c9511aca"
+    },
+    {
+      "path": "scene-contact-sheet.jpg",
+      "sha256": "b3ce2f6a0ad632310cd60c90d9f7e0021074d1902f5cbf95ddff105f96592e4a"
+    }
+  ],
+  "buildBundles": [
+    {
+      "file": "assets/lab-Br9qjNF6.js",
+      "sha256": "03ae7791465401c2f04084a5d6e13fbca23d085d41a0396fdafd8a32a57f2d50"
+    },
+    {
+      "file": "assets/latin-400-CphGaVR4.js",
+      "sha256": "50ec6384d0ddb91b1b16a082fcecfd85410c45cd1770e4f767bc0b6ef198d4bf"
+    },
+    {
+      "file": "assets/offline-DA7RfHgL.js",
+      "sha256": "4070624cb471d640f0c5efac8194f20fc6a0dd1e9766fcc4f806e11332efe4f1"
+    }
+  ]
+}

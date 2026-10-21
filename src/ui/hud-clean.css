@@ -1,0 +1,242 @@
+/* Clean field HUD (owner-approved mockup, 2026-10): no boxes on the play screen.
+   Text and bars sit on the world with a soft shadow; every control uses one dark glass.
+   Touch: potions in one row above the skill buttons. PC: one hotbar at the bottom centre.
+   Loaded last; presentation only, the real buttons and handlers are unchanged. */
+body.ingame {
+  --hc-glass: rgba(16, 26, 36, .42);
+  --hc-edge: rgba(255, 255, 255, .55);
+  --hc-ring: rgba(255, 255, 255, .9);
+  --hc-track: rgba(10, 20, 30, .5);
+  --hc-text: #fff;
+  --hc-dim: rgba(255, 255, 255, .82);
+  --hc-shade: 0 1px 2px rgba(10, 22, 32, .55), 0 0 10px rgba(10, 22, 32, .28);
+  --hc-accent: #2a8f9a;
+  --hc-quest: #ffd166;
+  --xp-h: 0px;
+}
+body.ingame #hud { bottom: 0; }
+body.ingame #hud :is(.combat .sbtn, .qbtn, .quick-actions .iconbtn, .map-open) {
+  background: var(--hc-glass); border: 1.5px solid var(--hc-edge); color: #fff;
+  box-shadow: 0 3px 10px rgba(10, 22, 32, .18);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---- player: portrait, name, two thin bars with their numbers beside them ---- */
+body.ingame #hud .left-column { left: calc(24px + var(--safe-l)); top: calc(20px + var(--safe-t)); gap: 14px; }
+body.ingame #hud .left-column .pframe {
+  width: 300px; min-height: 0; padding: 4px 0; gap: 12px; align-items: center;
+  background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  color: var(--hc-text); text-shadow: var(--hc-shade);
+}
+body.ingame #hud .pframe .portrait { width: 56px; height: 56px; flex: none; border: 2px solid var(--hc-ring); box-shadow: 0 2px 8px rgba(10, 22, 32, .25); background-color: var(--hc-glass); }
+body.ingame #hud .pframe .lvl-badge {
+  left: 42px; top: auto; bottom: 0; min-width: 22px; width: auto; height: 22px; padding: 0 4px;
+  border: 0; border-radius: 11px; background: var(--hc-accent); color: #fff;
+  box-shadow: 0 0 0 2px var(--hc-ring); font: 600 11px/22px Kanit, sans-serif; text-shadow: none;
+}
+body.ingame #hud .pframe .bars { gap: 5px; }
+body.ingame #hud .pname { font: 500 15px/1.1 Kanit, Mitr, sans-serif; border: 0; padding: 0; margin: 0; color: var(--hc-text); }
+body.ingame #hud .pframe .bar { height: 8px; border: 0; border-radius: 4px; background: var(--hc-track); box-shadow: 0 1px 3px rgba(10, 22, 32, .25); overflow: visible; margin-right: 74px; }
+body.ingame #hud .pframe .bar.mp { height: 5px; }
+body.ingame #hud .pframe .bar > i { border-radius: inherit; }
+body.ingame #hud .pframe .hp > .fill { background: linear-gradient(90deg, #4fc779, #8ae6a6); }
+body.ingame #hud .pframe .mp > .fill { background: linear-gradient(90deg, #4a86f0, #7cc0ff); }
+body.ingame #hud .pframe .bar span {
+  position: absolute; left: calc(100% + 8px); right: auto; top: 50%; transform: translateY(-50%); width: max-content;
+  padding: 0; font: 400 10.5px/1 Kanit, sans-serif; color: var(--hc-dim); text-shadow: var(--hc-shade); text-align: left; white-space: nowrap;
+}
+body.ingame #hud .pframe .statusline { min-height: 0; gap: 10px; font-size: 11px; line-height: 1.3; color: var(--hc-dim); }
+body.ingame #hud .statusline b { color: var(--hc-dim); }
+body.ingame #hud .statusline .gold { color: #ffe08a; }
+body.ingame #hud .statusline .gold svg { width: 13px; height: 13px; }
+body.ingame #hud .statusline .st { background: rgba(10, 20, 30, .45); text-shadow: none; }
+
+/* ---- quest: text only, no card ---- */
+body.ingame #hud .left-column .quest-widget {
+  width: 270px; min-height: 0; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  color: var(--hc-text); text-shadow: var(--hc-shade);
+}
+body.ingame #hud .quest-heading { height: 32px; min-height: 32px; padding-left: 0; gap: 6px; font-size: 11px; color: var(--hc-dim); letter-spacing: .06em; }
+body.ingame #hud .quest-heading::before { content: ""; width: 7px; height: 7px; border-radius: 2px; transform: rotate(45deg); background: var(--hc-quest); box-shadow: 0 0 6px var(--hc-quest); flex: none; }
+body.ingame #hud .quest-count { color: var(--hc-dim); }
+body.ingame #hud .quest-collapse { width: 44px; height: 32px; min-height: 32px; color: var(--hc-dim); text-shadow: var(--hc-shade); }
+body.ingame #hud .questtrack { padding: 0; min-height: 0; background: none; }
+body.ingame #hud .questtrack[aria-pressed=true] { box-shadow: none; }
+body.ingame #hud .field-quest-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 0 0 8px; border: 0; color: var(--hc-text); }
+body.ingame #hud .field-quest-row.tracked { border: 0; padding-left: 0; background: none; }
+body.ingame #hud .field-quest-row .quest-diamond { display: none; }
+body.ingame #hud .field-quest-row b { font: 500 15px/1.3 Kanit, Mitr, sans-serif; color: var(--hc-text); }
+body.ingame #hud .field-quest-row small { font-size: 12.5px; line-height: 1.45; color: var(--hc-dim); margin-top: 1px; }
+body.ingame #hud .field-quest-row .quest-meta { font-size: 12px; color: var(--hc-text); }
+body.ingame #hud .field-quest-row .quest-meta strong { font-weight: 500; }
+body.ingame #hud .quest-meta i { color: var(--hc-dim); }
+body.ingame #hud .field-quest-row.secondary :is(b, small) { color: var(--hc-dim); }
+
+/* ---- top right: minimap, place name, three round shortcuts ---- */
+body.ingame #hud .minimap { width: 132px; height: 132px; border: 2px solid var(--hc-ring); box-shadow: 0 3px 12px rgba(10, 22, 32, .25); background: var(--hc-glass); }
+body.ingame #hud .map-north { top: -10px; width: 20px; height: 20px; left: calc(50% - 10px); font: 600 11px/20px Kanit, sans-serif; background: none; color: #fff; text-shadow: var(--hc-shade); }
+body.ingame #hud .map-open { width: 34px; height: 34px; min-width: 34px; min-height: 34px; right: -4px; bottom: -4px; border-radius: 50%; }
+body.ingame #hud .map-open svg { width: 18px; height: 18px; }
+body.ingame #hud .quick-actions { gap: 10px; }
+body.ingame #hud .quick-actions .iconbtn { width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+body.ingame #hud .quick-actions .iconbtn svg { width: 21px; height: 21px; filter: drop-shadow(0 1px 1px rgba(10, 22, 32, .45)); }
+body.ingame #hud .quick-actions .menu-toggle { background: var(--hc-glass); border-color: var(--hc-edge); }
+body.ingame #hud .menu-toggle.has-points::after { width: 8px; height: 8px; right: 1px; top: 1px; background: #ff6b5a; border: 0; box-shadow: 0 0 0 1.5px var(--hc-ring); }
+body.ingame #hud .location-chip { color: var(--hc-text); text-shadow: var(--hc-shade); font: 500 13px Kanit, Mitr, sans-serif; }
+body.ingame #hud .location-chip svg { width: 15px; height: 15px; }
+body.ingame #hud .location-chip small { color: var(--hc-dim); font: 400 10px Kanit, sans-serif; }
+
+/* ---- touch controls: one glass, no names or key captions on the buttons ---- */
+body.ingame #hud .combat .sbtn { overflow: visible; }
+body.ingame #hud .combat .sbtn::after { display: none; }
+body.ingame #hud .combat .sbtn.attack { border-width: 2px; box-shadow: 0 3px 12px rgba(10, 22, 32, .22); }
+body.ingame #hud .combat .sbtn.move { background: var(--hc-glass); }
+body.ingame #hud .sbtn .slabel, body.ingame #hud .sbtn .key, body.ingame #hud .qbtn .key { display: none; }
+body.ingame #hud .sbtn .ic, body.ingame #hud .sbtn.attack .ic, body.ingame #hud .sbtn.s3 .ic { inset: 12%; }
+body.ingame #hud .sbtn .ic svg, body.ingame #hud .sbtn.attack .ic svg { max-width: none; max-height: none; filter: none; }
+body.ingame #hud .sbtn .ic :is(img, .art) { border-radius: 50%; }
+body.ingame #hud .sbtn .cd { border-radius: 50%; background: conic-gradient(rgba(10, 20, 30, .55) var(--cd, 0%), transparent 0); }
+body.ingame #hud .sbtn .cdt { background: none; border: 0; font: 500 16px Kanit, sans-serif; text-shadow: 0 1px 2px #000; }
+body.ingame #hud .sbtn .skill-cost { top: -6px; right: -2px; padding: 0 4px; border-radius: 6px; background: rgba(10, 20, 30, .6); color: #cfe6ff; font: 500 9px/14px Kanit, sans-serif; }
+body.ingame #hud .sbtn .skill-cost:empty { display: none; }
+body.ingame #hud .sbtn.empty { opacity: 1; background: rgba(255, 255, 255, .08); border: 1.5px dashed var(--hc-edge); }
+body.ingame #hud .sbtn.pressed, body.ingame #hud .qbtn:active { transform: scale(.9); border-color: #fff; background: var(--hc-glass); box-shadow: 0 0 0 4px rgba(255, 255, 255, .35), 0 0 18px rgba(255, 255, 255, .45); }
+
+/* thumb arc, measured from the bottom-right corner of the controls box */
+body.ingame #hud .combat { right: calc(24px + var(--safe-r)); bottom: calc(24px + var(--safe-b)); width: 330px; height: 220px; }
+body.ingame #hud .combat .sbtn.attack { width: 110px; height: 110px; right: 35px; bottom: 19px; }
+body.ingame #hud .combat .sbtn.s1 { width: 64px; height: 64px; right: 178px; bottom: 12px; }
+body.ingame #hud .combat .sbtn.s2 { width: 64px; height: 64px; right: 162px; bottom: 96px; }
+body.ingame #hud .combat .sbtn.s3 { width: 64px; height: 64px; right: 84px; bottom: 148px; }
+body.ingame #hud .combat .sbtn.move { width: 56px; height: 56px; right: 262px; bottom: 0; }
+
+/* potions: one small row of round slots above the skills, auto-potion as one line of text */
+body.ingame #hud .quickbar { gap: 6px; bottom: calc(278px + var(--safe-b)); right: calc(16px + var(--safe-r)); }
+body.ingame #hud .qbtn { --q: 44px; border-radius: 50%; overflow: visible; }
+body.ingame #hud .qbtn .ic { inset: 9%; }
+body.ingame #hud .qbtn .cd { border-radius: 50%; }
+body.ingame #hud .qbtn .qn { right: -3px; bottom: -3px; font: 500 12px/1 Kanit, sans-serif; }
+body.ingame #hud .qbtn.empty { opacity: 1; background: rgba(255, 255, 255, .08); border-style: dashed; }
+body.ingame #hud .qbtn.empty .ic { inset: 30%; opacity: .75; }
+body.ingame #hud .auto-potions-hud {
+  top: calc(100% + 2px); right: 0; left: auto; width: max-content; min-height: 32px; padding: 0 2px; gap: 6px; justify-content: flex-end;
+  background: none; border: 0; box-shadow: none; color: var(--hc-dim); text-shadow: var(--hc-shade); white-space: nowrap; flex-wrap: nowrap; flex-direction: row;
+}
+body.ingame #hud .auto-potions-hud strong { font: 400 11px Kanit, Mitr, sans-serif; color: var(--hc-dim); }
+body.ingame #hud .auto-potions-hud small { font: 500 11px Kanit, sans-serif; color: var(--hc-text); }
+
+body.ingame #hud .ammo-hud { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); border-radius: 14px; box-shadow: 0 3px 10px rgba(10, 22, 32, .18); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-shadow: var(--hc-shade); }
+
+/* joystick: a thin ring and a glass knob */
+body.ingame #hud .joy { border: 1.5px solid rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .06); opacity: .85; }
+body.ingame #hud .joy i { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); box-shadow: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+body.ingame #hud .joy-marks { display: none; }
+
+/* the opt-in online drawer: a glass pill while closed, same glass when open */
+body.ingame .presence-panel:not([open]) { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); border-radius: 22px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+body.ingame .presence-panel:not([open]) summary { background: none; text-shadow: var(--hc-shade); }
+body.ingame .presence-panel[open] { background: rgba(16, 26, 36, .82); border: 1.5px solid var(--hc-edge); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+body.ingame .presence-panel[open] summary { background: none; }
+
+/* toasts and banners: words on the world, not cards */
+body.ingame #hud .toast { background: none; border: 0; box-shadow: none; color: var(--hc-text); text-shadow: var(--hc-shade); font-size: 13px; }
+body.ingame #hud .zonebanner { text-shadow: var(--hc-shade); }
+body.ingame #hud .zonebanner .zn { font: 500 22px Kanit, Mitr, sans-serif; letter-spacing: .06em; }
+
+/* ---- EXP (left) and Job (right) share the bottom edge: 3px lines, labels in the corners ---- */
+body.ingame .field-xp { height: 3px; padding: 0; gap: 3px; background: none; border: 0; overflow: visible; }
+body.ingame .field-xp .xpseg { position: relative; display: block; height: 3px; padding: 0; border: 0; border-radius: 0; overflow: visible; background: rgba(10, 22, 32, .3); }
+body.ingame .field-xp .xpseg.job { border: 0; padding: 0; }
+body.ingame .field-xp .xp-track { position: absolute; inset: 0; height: 3px; border: 0; border-radius: 0; background: none; }
+body.ingame .field-xp .xp-track > .fill { border-radius: 0; }
+body.ingame .field-xp .exp .fill { background: linear-gradient(90deg, #f2c75c, #ffe7a3); }
+body.ingame .field-xp .job .fill { background: linear-gradient(90deg, #a98bff, #d6c4ff); }
+body.ingame .field-xp :is(.xp-label, .xpseg span) { position: absolute; top: auto; right: auto; bottom: 6px; height: auto; font: 400 10px/1 Kanit, sans-serif; color: rgba(255, 255, 255, .9); text-shadow: 0 1px 2px rgba(10, 22, 32, .7); white-space: nowrap; }
+body.ingame .field-xp .xp-label { left: max(12px, var(--safe-l)); font-weight: 500; }
+body.ingame .field-xp .xpseg span { left: calc(max(12px, var(--safe-l)) + 44px); }
+body.ingame .field-xp .job .xp-label { left: 12px; }
+body.ingame .field-xp .job span { left: 56px; }
+
+/* ---- PC (mouse and keyboard): no joystick; skills, dash and potions in one hotbar ---- */
+body.ingame:not(.touch) #hud .combat {
+  left: calc(50% - 269px); right: auto; bottom: calc(26px + var(--safe-b)); width: auto; height: 54px;
+  display: flex; gap: 8px; align-items: flex-end;
+}
+body.ingame:not(.touch) #hud .combat .sbtn,
+body.ingame:not(.touch) #hud .combat .sbtn.attack,
+body.ingame:not(.touch) #hud .combat .sbtn:is(.s1, .s2, .s3, .move) {
+  position: relative; right: auto; bottom: auto; width: 54px; height: 54px; border-radius: 14px; border-width: 1.5px;
+}
+body.ingame:not(.touch) #hud .combat .sbtn.move { margin-left: 14px; order: 5; }
+body.ingame:not(.touch) #hud .sbtn .ic, body.ingame:not(.touch) #hud .sbtn .ic :is(img, .art) { border-radius: 10px; }
+body.ingame:not(.touch) #hud .sbtn .cd { border-radius: 12px; }
+body.ingame:not(.touch) #hud :is(.sbtn, .qbtn) .key {
+  display: grid; place-items: center; position: absolute; left: -5px; top: -7px; right: auto; bottom: auto; z-index: 4;
+  min-width: 18px; height: 18px; padding: 0 4px; border-radius: 5px; background: rgba(10, 20, 30, .78); color: #fff;
+  font: 500 10px/18px Kanit, sans-serif; letter-spacing: 0; box-shadow: 0 0 0 1px rgba(255, 255, 255, .35); text-align: center;
+}
+body.ingame:not(.touch) #hud .sbtn .skill-cost { top: auto; bottom: -5px; right: -3px; }
+body.ingame:not(.touch) #hud .quickbar { left: calc(50% + 69px); right: auto; bottom: calc(26px + var(--safe-b)); gap: 8px; }
+body.ingame:not(.touch) #hud .qbtn { --q: 44px; border-radius: 12px; }
+body.ingame:not(.touch) #hud .qbtn .ic, body.ingame:not(.touch) #hud .qbtn .cd { border-radius: 10px; }
+body.ingame:not(.touch) #hud .auto-potions-hud { top: auto; bottom: calc(100% + 8px); min-height: 24px; }
+body.ingame:not(.touch) #hud .joy, body.ingame:not(.touch) #hud .joyzone { display: none; }
+body.ingame:not(.touch) #hud .prompt { bottom: 112px; }
+body.ingame:not(.touch) #hud .hint { display: none; }
+
+/* ---- phone landscape: same layout, compact sizes, clear of the camera island and home bar ---- */
+@media (max-height: 560px) and (orientation: landscape) {
+  body.ingame #hud .left-column { left: calc(12px + var(--safe-l)); top: calc(8px + var(--safe-t)); gap: 8px; }
+  body.ingame #hud .left-column .pframe { width: 230px; gap: 9px; }
+  body.ingame #hud .pframe .portrait { width: 40px; height: 40px; border-width: 1.5px; }
+  body.ingame #hud .pframe .lvl-badge { left: 28px; min-width: 17px; height: 17px; font-size: 9px; line-height: 17px; border-radius: 9px; }
+  body.ingame #hud .pname { font-size: 12.5px; }
+  body.ingame #hud .pframe .bars { gap: 4px; }
+  body.ingame #hud .pframe .bar { height: 6px; margin-right: 64px; }
+  body.ingame #hud .pframe .bar.mp { height: 4px; }
+  body.ingame #hud .pframe .bar span { font-size: 9px; left: calc(100% + 6px); }
+  body.ingame #hud .left-column .quest-widget { width: 220px; }
+  body.ingame #hud .quest-heading { height: 32px; min-height: 32px; font-size: 9.5px; }
+  body.ingame #hud .quest-collapse { height: 32px; min-height: 32px; }
+  body.ingame #hud .questtrack { min-height: 34px; }
+  body.ingame #hud .field-quest-row b { font-size: 12.5px; }
+  body.ingame #hud .field-quest-row small { font-size: 11px; }
+  body.ingame #hud .minimap { width: 84px; height: 84px; }
+  body.ingame #hud .location-chip { font-size: 10.5px; }
+  body.ingame #hud .location-chip small { font-size: 8.5px; }
+  body.ingame #hud .map-open { width: 28px; height: 28px; min-width: 28px; min-height: 28px; }
+  body.ingame #hud .quick-actions { gap: 6px; padding-top: 0; }
+  body.ingame #hud .quick-actions .iconbtn { width: 34px; height: 34px; }
+  body.ingame #hud .quick-actions .iconbtn svg { width: 16px; height: 16px; }
+  body.ingame #hud .combat { right: calc(12px + var(--safe-r)); bottom: calc(10px + var(--safe-b)); width: 220px; height: 150px; }
+  body.ingame #hud .combat .sbtn.attack { width: 76px; height: 76px; right: 3px; bottom: 16px; }
+  body.ingame #hud .combat .sbtn.s1 { width: 46px; height: 46px; right: 106px; bottom: 5px; }
+  body.ingame #hud .combat .sbtn.s2 { width: 46px; height: 46px; right: 100px; bottom: 57px; }
+  body.ingame #hud .combat .sbtn.s3 { width: 46px; height: 46px; right: 50px; bottom: 98px; }
+  body.ingame #hud .combat .sbtn.move { width: 40px; height: 40px; right: 167px; bottom: 0; }
+  body.ingame #hud .quickbar { bottom: calc(180px + var(--safe-b)); right: calc(12px + var(--safe-r)); gap: 5px; }
+  body.ingame #hud .qbtn { --q: 36px; }
+  body.ingame #hud .qbtn .qn { font-size: 10px; }
+  body.ingame #hud .auto-potions-hud { min-height: 26px; }
+  body.ingame #hud .auto-potions-hud :is(strong, small) { font-size: 9.5px; }
+  body.ingame #hud .sbtn .cdt { font-size: 12px; }
+  body.ingame .field-xp :is(.xp-label, .xpseg span) { font-size: 9px; bottom: 5px; }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  body.ingame #hud .left-column { top: calc(48px + var(--safe-t)); left: calc(10px + var(--safe-l)); }
+  body.ingame #hud .left-column .pframe { width: 220px; gap: 9px; }
+  body.ingame #hud .left-column .quest-widget { width: 210px; }
+  body.ingame #hud .combat { right: calc(14px + var(--safe-r)); bottom: calc(16px + var(--safe-b)); width: 216px; height: 214px; }
+  body.ingame #hud .combat .sbtn.attack { width: 82px; height: 82px; right: 0; bottom: 0; }
+  body.ingame #hud .combat .sbtn.s1 { width: 62px; height: 62px; right: 94px; bottom: 84px; }
+  body.ingame #hud .combat .sbtn.s2 { width: 62px; height: 62px; right: 9px; bottom: 107px; }
+  body.ingame #hud .combat .sbtn.s3 { width: 54px; height: 54px; right: 152px; bottom: 152px; }
+  body.ingame #hud .combat .sbtn.move { width: 62px; height: 62px; right: 102px; bottom: 4px; }
+  body.ingame #hud .quickbar { right: calc(14px + var(--safe-r)); bottom: calc(318px + var(--safe-b)); gap: 6px; }
+  body.ingame #hud .pframe .portrait { width: 44px; height: 44px; }
+  body.ingame #hud .pframe .lvl-badge { left: 30px; }
+  body.ingame #hud .pframe .bar { margin-right: 64px; }
+  body.ingame #hud .pframe .bar span { font-size: 9px; }
+  body.ingame #hud .minimap { width: 96px; height: 96px; }
+  body.ingame #hud .qbtn { --q: 40px; }
+}

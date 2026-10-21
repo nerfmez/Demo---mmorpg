@@ -31,6 +31,12 @@ import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
+// Camera experiment (?pitch=<degrees above the horizon>): same distance from the hero, a different tilt.
+const pitchParam = typeof location !== 'undefined' ? parseFloat(new URLSearchParams(location.search).get('pitch')) : NaN;
+if (pitchParam >= 15 && pitchParam <= 80) {
+  const dist = CAM_OFFSET.length(), a = pitchParam * Math.PI / 180;
+  CAM_OFFSET.set(0, dist * Math.sin(a), dist * Math.cos(a));
+}
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)

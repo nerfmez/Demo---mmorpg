@@ -28,7 +28,7 @@ test('mods fit by tags only', () => {
   assert.ok(modFits(sk.stone_burst, md.echo).ok);
   assert.ok(!modFits(sk.ward, md.echo).ok, 'echo excludes Guard');
   assert.ok(modFits(sk.ward, md.spiked_ward).ok);
-  assert.ok(!modFits(sk.healing_spring, md.burning_ground).ok, 'burning ground needs Damage');
+  assert.ok(!modFits(sk.healing_spring, md.fire_shift).ok, 'fire shift needs Damage');
   assert.ok(modFits(sk.firebolt, md.cast_on_dodge).ok);
   assert.ok(!modFits(sk.slash, md.cast_on_dodge).ok);
 });

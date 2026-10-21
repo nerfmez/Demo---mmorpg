@@ -76,7 +76,7 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 - `player` → `Player.tscn` (`CharacterBody3D`). `useMovement()` becomes a dash tween with an invulnerability flag. Skills run through `executeSkill()`.
 - `projectiles[]` → `Projectile.tscn` (`Area3D`, moved in `_physics_process`). It carries the `pierce`, `chain` and `ground` fields from the computed skill.
-- `areas[]` → `GroundArea.tscn` (`Area3D` with a delay, tick and duration). Used for stone burst, burning ground, healing spring, boss slam and shockwave.
+- `areas[]` → `GroundArea.tscn` (`Area3D` with a delay, tick and duration). Used for stone burst, venom mire, healing spring, boss slam and shockwave. No mod leaves a field on the ground (Burning Ground was retired as `fire_shift`).
 - `drops[]` → `Loot.tscn` with magnet pickup.
 - `allies[]` → `Summon.tscn` (spirit wolves): the same chase/bite loop as monsters, on the player's team. Monsters pick targets with `pickTarget()` in `ai.js`.
 - `events[]` → Godot **signals** (`hit`, `death`, `drop`, `levelup`, ...). The renderer and HUD here only react to events, so the same split works as signal listeners.
@@ -338,18 +338,18 @@ Browser review: `tests/browser/midhigh-monsters.mjs`.
 
 Port the new derived fields along with their Node tests:
 
-- `dotDamagePct` increases Venom Mire and Burning Ground field damage, not burn/poison
+- `dotDamagePct` increases Venom Mire field damage, not burn/poison
   status damage. `DoT` is not the same as `Persistent`: Healing Spring has the latter only.
-- `persistentDurationPct` extends poison, healing and burning fields; not buffs, curses,
+- `persistentDurationPct` extends poison and healing fields; not buffs, curses,
   summons or cast time. Apply ground radius/duration scaling after collecting modifiers,
   so socket order does not change the result.
 - `controlDurationPct` extends chilling hits and Hex; not slow strength, knockback or
   War Cry. Do not treat every duration as control duration.
-- Lingering needs `Persistent`: a native lasting field, or an eligible Burning Ground (which grants it).
-- Widened mods keep one executor each: Binding Field ramps slow in Burning Ground fire too (`rampFx` on the area), Spreading Hex passes Hex and Armor Cleave exposure on death (`spreadCurse`), Mending Chain on Healing Spring heals injured units outside the field every tick (`chainFieldHeal`), and Spiked/Breaking Ward on a riposte stance taunt on stance, reflect the blocked part and push nearby monsters on a successful guard (`applyGuard`). Its
+- Lingering needs `Persistent`: a native lasting field (Venom Mire, Healing Spring).
+- Widened mods keep one executor each: Spreading Hex passes Hex and Armor Cleave exposure on death (`spreadCurse`), Mending Chain on Healing Spring heals injured units outside the field every tick (`chainFieldHeal`), and Spiked/Breaking Ward on a riposte stance taunt on stance, reflect the blocked part and push nearby monsters on a successful guard (`applyGuard`). Its
   provider must also meet stat requirements to activate the bonus. Keep a dependent
   modifier stored but inactive when the provider is removed or inactive; never delete it.
-- Burning Ground, Knockback, Life Leech and Frost Shift are on-hit modifiers. They exclude
+- Fire Shift, Knockback, Life Leech and Frost Shift are on-hit modifiers. Fire/Frost Shift share the `element` family; a shift replaces the skill's own status (fire burns, cold chills, never both). They exclude
   DoT skills because the current field executor does not apply those on-hit effects.
   Preserve older invalid loadouts as inactive entries and show the reason.
 

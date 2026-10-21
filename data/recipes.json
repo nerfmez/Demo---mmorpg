@@ -669,9 +669,9 @@
       },
       "grade": "B"
     },
-    "mod_burning_ground": {
+    "mod_fire_shift": {
       "type": "mod",
-      "result": "burning_ground",
+      "result": "fire_shift",
       "cost": {
         "venom_gland": 2,
         "boar_hide": 1,

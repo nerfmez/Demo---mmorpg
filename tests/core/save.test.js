@@ -91,3 +91,19 @@ test('merged skills and mods keep ownership, rank, coin identity and loadout', (
   assert.deepEqual(merged.slots[1], { skill: null, mods: [] }, 'a duplicate slot empties and its coin stays owned');
   assert.ok(merged.mods.some(m => m.uid === 601));
 });
+
+test('retired Burning Ground becomes Fire Shift without two element shifts sharing a slot', () => {
+  const ch = createCharacter(data, { kit: 'sword' });
+  ch.skills = { ...ch.skills, slash: 2, firebolt: 1 };
+  ch.mods = [
+    { uid: 701, id: 'burning_ground', level: 3, grade: 'B' },
+    { uid: 702, id: 'frost_shift', level: 1, grade: 'C' },
+    { uid: 703, id: 'burning_ground', level: 1, grade: 'C' },
+  ];
+  ch.slots = [{ skill: 'slash', mods: [701, 702] }, { skill: 'firebolt', mods: [703] }, { skill: null, mods: [] }, { skill: null, mods: [] }];
+  const out = migrateCharacter(JSON.parse(JSON.stringify(ch)), data);
+  assert.deepEqual(out.mods.map(m => [m.uid, m.id, m.level, m.grade]), [[701, 'fire_shift', 3, 'B'], [702, 'frost_shift', 1, 'C'], [703, 'fire_shift', 1, 'C']]);
+  assert.deepEqual(out.slots[0].mods, [702], 'the coin already in the slot keeps its place; the renamed one returns to the bag');
+  assert.deepEqual(out.slots[1].mods, [703]);
+  assert.deepEqual(migrateCharacter(JSON.parse(JSON.stringify(out)), data), out, 'idempotent');
+});

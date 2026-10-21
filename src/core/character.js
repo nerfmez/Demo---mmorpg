@@ -108,7 +108,7 @@ export function completeOpening(ch, data, { kit: kitId }) {
  * Merged content keeps ownership: a retired skill's rank moves to its successor (highest wins)
  * and a retired mod coin keeps its uid, level and grade under the successor id. A slot that
  * would hold the same skill twice is emptied (its coins return to the bag), and a slot that
- * would hold one mod id twice keeps the first coin. Idempotent; driven by data `renamed` maps.
+ * would hold one mod id (or two mods of one family) keeps the first coin. Idempotent; driven by data `renamed` maps.
  */
 export function renameRetiredContent(ch, data) {
   for (const [from, to] of Object.entries(data.skills.renamed || {})) {
@@ -122,14 +122,19 @@ export function renameRetiredContent(ch, data) {
     }
   }
   const renamed = data.mods.renamed || {};
-  for (const inst of ch.mods || []) if (renamed[inst.id]) inst.id = renamed[inst.id];
+  const moved = new Set();
+  for (const inst of ch.mods || []) if (renamed[inst.id]) { inst.id = renamed[inst.id]; moved.add(inst.uid); }
   for (const slot of ch.slots || []) {
-    const seen = new Set();
+    // A renamed coin yields to a coin already in the slot with its new id or family (two element
+    // shifts); older same-family pairs keep their stored, inactive state.
+    const id = uid => ch.mods?.find(m => m.uid === uid)?.id, family = uid => data.mods.mods[id(uid)]?.family;
+    const kept = (slot.mods || []).filter(uid => !moved.has(uid));
+    const taken = new Set(kept.flatMap(uid => [id(uid), family(uid) && 'family:' + family(uid)]).filter(Boolean));
     slot.mods = (slot.mods || []).filter(uid => {
-      const id = ch.mods?.find(m => m.uid === uid)?.id;
-      if (id === undefined) return true;
-      if (seen.has(id)) return false;
-      seen.add(id);
+      if (!moved.has(uid)) return true;
+      const keys = [id(uid), family(uid) && 'family:' + family(uid)].filter(Boolean);
+      if (keys.some(k => taken.has(k))) return false;
+      keys.forEach(k => taken.add(k));
       return true;
     });
   }

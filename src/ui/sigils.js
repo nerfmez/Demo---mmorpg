@@ -13,7 +13,7 @@ export const SIGILS = {
  split:'M12 21V12L4 4m8 8 8-8M3 10V3h7M14 3h7v7',
  pierce:'M4 19L20 3M14 3h6v6M9 4v6m0 5v5M15 4v2m0 5v9',
  bounce:'M3 18l7-13 7 13 4-9M16 10l5-1 1 5M3 21h18',
- burning_ground:'M3 21h18M5 18h14M12 3c1 3 5 5 5 9a5 5 0 0 1-10 0c0-2 1-4 3-5v4c2-2 2-5 2-8z',
+ fire_shift:'M12 2c3 4 6 6 6 11a6 6 0 0 1-12 0c0-4 4-5 3-9 3 2 4 5 3 7M6 20l12-4',
  echo:'M9 5a7 7 0 1 0 0 14M13 5a7 7 0 1 1 0 14M7 9a3 3 0 1 0 0 6m6-6a3 3 0 1 1 0 6',
  wide_arc:'M3 19A17 17 0 0 0 21 3M3 19A13 13 0 0 0 17 7M3 19l9-3m-9 3 3-9',
  multistrike:'M4 19L10 4M9 20L15 5M14 21L20 6',

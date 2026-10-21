@@ -95,7 +95,7 @@ test('guard trigger consumes mana, respects weapon/requirements and cannot recur
 });
 
 test('unsupported delivery mods cannot silently consume sockets; supported rain echo and bash knock work',()=>{
- for(const [skill,mods]of Object.entries({riposte:['multistrike','burning_ground'],frontline_split:['multistrike','burning_ground','wide_arc','advancing_edge'],shield_bash:['spiked_ward'],stone_guardian:['spiked_ward'],crystal_wall:['echo','cast_on_dodge'],battle_aura:['cast_on_dodge'],armor_cleave:['echo']}))
+ for(const [skill,mods]of Object.entries({riposte:['multistrike'],frontline_split:['multistrike','wide_arc','advancing_edge'],shield_bash:['spiked_ward'],stone_guardian:['spiked_ward'],crystal_wall:['echo','cast_on_dodge'],battle_aura:['cast_on_dodge'],armor_cleave:['echo']}))
   for(const id of mods)assert.equal(modFits(data.skills.combat[skill],data.mods.mods[id]).ok,false,skill+'/'+id);
  const rain=fixture('arrow_rain',['echo']);rain.g.executeSkill(rain.s,aim);assert.equal(rain.g.areas.length,6);assert.equal(rain.g.areas.filter(a=>a.echo).length,3);
  const base=fixture('shield_bash'),mod=fixture('shield_bash',['knockback']);assert(mod.s.knock>base.s.knock);assert.equal(mod.s.knock,data.mods.mods.knockback.effect.knock[0]);
@@ -114,11 +114,6 @@ test('widened single-skill mods work on their new skills, not just fit',()=>{
   g.executeSkill(s,aim);assert.equal(m.forcedTargetId,g.player.id,'stance taunts nearby');
   const hp=m.hp,ox=other.x;g.damagePlayer(40,m);assert.ok(m.hp<hp,'blocked damage is reflected');assert.ok(other.x>ox,'guard pushes nearby monsters');}
  {const {g,m,s}=fixture('riposte');g.executeSkill(s,aim);const hp=m.hp;g.damagePlayer(40,m);assert.equal(m.hp,hp,'no reflect without the mod');}
- // Binding Field ramps the slow inside fire left by Burning Ground on a non-field skill.
- {const {g,m,s}=fixture('slash',['burning_ground','binding_field']);assert(s.mods.every(x=>x.active));g.executeSkill(s,aim);
-  const fire=g.areas.find(a=>a.kind==='burning_ground');assert.ok(fire?.rampFx,'fire carries the ramp');fire.x=m.x;fire.z=m.z;
-  g.updateAreas(.5);const first=m.statuses.chill?.slow||0;g.updateAreas(1.5);assert.ok(m.statuses.chill.slow>first,'slow grows while the target stays');}
- {const {g,s}=fixture('slash',['burning_ground']);g.executeSkill(s,aim);assert.equal(g.areas.find(a=>a.kind==='burning_ground').rampFx,undefined);}
  // Spreading Hex passes Armor Cleave's exposure to the nearest monster when the target dies.
  {const {g,m,s}=fixture('armor_cleave',['spreading_hex']);const other=structuredClone(m);other.id=m.id+'c';other.x=3;other.z=0.5;other.statuses={};g.monsters.push(other);
   g.executeSkill(s,aim);advance(g,s.castTime+.1);assert.ok(m.statuses.exposure?.spread>0,'exposure remembers the spread');m.hp=1;g.hitMonster(m,50,{element:'physical'});
@@ -128,4 +123,12 @@ test('widened single-skill mods work on their new skills, not just fit',()=>{
   g.executeSkill(s,aim);const spring=g.areas.find(a=>a.heal);spring.x=g.player.x;spring.z=g.player.z;const before=ally.hp;g.updateAreas(s.tick+.01);assert.ok(ally.hp>before,'chain reaches outside the field');}
  {const {g,s}=fixture('healing_spring');g.spawnAllies(fixture('stone_guardian').s,0,0);const ally=g.allies[0];ally.x=s.radius+2;ally.z=0;ally.hp=ally.maxHp-80;
   g.executeSkill(s,aim);const spring=g.areas.find(a=>a.heal);spring.x=g.player.x;spring.z=g.player.z;const before=ally.hp;g.updateAreas(s.tick+.01);assert.equal(ally.hp,before,'no chain without the mod');}
+});
+
+test('Fire Shift burns the target and leaves nothing on the ground',()=>{
+ const {g,m,s}=fixture('hunter_shot',['fire_shift']);assert.equal(s.element,'fire');assert.ok(s.burnChance>0);assert.equal(s.chill,null);
+ g.rng.chance=()=>true;g.hitMonster(m,20,g.hitOpts(s));assert.equal(m.statuses.burn?.owner,'player');
+ g.executeSkill(s,aim);for(let i=0;i<40;i++)g.updateProjectiles(.02);assert.equal(g.areas.length,0,'no field is spawned');
+ const both=fixture('frost_nova',['fire_shift']);assert.equal(both.s.chill,null,'fire replaces the native chill');assert.equal(both.s.element,'fire');
+ assert.equal(modFits(data.skills.combat.slash,data.mods.mods.fire_shift,[data.mods.mods.frost_shift]).reason,'family');
 });

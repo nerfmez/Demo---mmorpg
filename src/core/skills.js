@@ -95,7 +95,6 @@ export function computeSkill(ch, data, derived, slotIndex) {
     chainRange: def.chainRange || 0,
     chainFalloff: def.chainFalloff || 1,
     echo: null,
-    ground: null,
     chill: def.chill ? { ...def.chill } : null,
     slow: def.slow || 0,
     reflect: 0,
@@ -180,7 +179,6 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.chainRange = Math.max(s.chainRange, e.chainRange);
     }
     if (e.damageMult && !e.trigger) s.damageMult *= lv(e.damageMult, L);
-    if (e.groundDps) s.ground = { dpsMult: lv(e.groundDps, L), duration: e.groundDuration, radius: e.groundRadius };
     if (e.echoDelay) s.echo = { delay: e.echoDelay, mult: lv(e.echoMult, L) * (1 + derived.echoDamagePct / 100) };
     if (e.arcAdd) {
       s.arc += lv(e.arcAdd, L);
@@ -188,9 +186,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
       if (s.kind === 'melee_nova') s.radius += lv(e.rangeAdd, L);
     }
     if (e.element) {
+      // An element shift replaces the skill's own status: cold chills, fire burns, never both.
       s.element = e.element;
-      s.chill = { slow: Math.max(s.chill?.slow || 0, lv(e.chillSlow, L)), duration: Math.max(s.chill?.duration || 0, e.chillDuration) };
-      s.burnChance = 0;
+      s.chill = e.chillSlow ? { slow: Math.max(s.chill?.slow || 0, lv(e.chillSlow, L)), duration: Math.max(s.chill?.duration || 0, e.chillDuration) } : null;
+      s.burnChance = e.burnChance ? Math.max(s.burnChance, lv(e.burnChance, L)) : 0;
     }
     if (e.reflect) {
       s.reflect = lv(e.reflect, L);
@@ -215,21 +214,13 @@ export function computeSkill(ch, data, derived, slotIndex) {
     const finalLineInc = lineInc(tags, s.element);
     if (finalLineInc !== baseLineInc) s.damage *= (1 + (inc - baseLineInc + finalLineInc) / 100) / (1 + inc / 100);
   }
-  if (s.durationMult) {
-    if (s.kind === 'dot_zone' || s.kind === 'heal_zone') s.duration *= s.durationMult;
-    if (s.ground) s.ground.duration *= s.durationMult;
-  }
+  if (s.durationMult && (s.kind === 'dot_zone' || s.kind === 'heal_zone')) s.duration *= s.durationMult;
   // Apply tag-specific passives after mods; socket order cannot change the result.
   s.radius *= radiusMult;
   const lasting = 1 + (derived.persistentDurationPct || 0) / 100;
   const dot = 1 + (derived.dotDamagePct || 0) / 100;
   if (s.kind === 'dot_zone') s.damage *= dot;
   if (['dot_zone', 'heal_zone'].includes(s.kind)) s.duration *= lasting;
-  if (s.ground) {
-    s.ground.duration *= lasting;
-    if(s.kind !== 'dot_zone') s.ground.dpsMult *= dot;
-    s.ground.radius *= radiusMult * (1 + derived.areaRadiusPct / 100);
-  }
   const control = 1 + (derived.controlDurationPct || 0) / 100;
   if (s.chill) s.chill.duration *= control;
   if (s.kind === 'curse_zone') s.duration *= control;

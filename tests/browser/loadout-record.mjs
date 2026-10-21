@@ -23,7 +23,7 @@ const steps=[],start=Date.now(),mark=label=>steps.push({label,milliseconds:Date.
 execFileSync(cli,['record','start',path.join(out,'equip-motion.mp4'),'--fps','30','--cursor','--contact-sheet'],{encoding:'utf8'});
 try{
  await page.waitForTimeout(600);
- await click('[data-action="slot"][data-id="0"]');await click(`[data-action="mod"][data-id="${await uid('burning_ground')}"]`);await page.waitForTimeout(500);mark('Insert library coin into actual Slash socket');await click('#atelier [data-action="apply"]');await page.waitForTimeout(1600);
+ await click('[data-action="slot"][data-id="0"]');await click(`[data-action="mod"][data-id="${await uid('fire_shift')}"]`);await page.waitForTimeout(500);mark('Insert library coin into actual Slash socket');await click('#atelier [data-action="apply"]');await page.waitForTimeout(1600);
  await click('[data-action="slot"][data-id="2"]');await click(`[data-action="mod"][data-id="${await uid('life_leech')}"]`);await page.waitForTimeout(500);await click('#atelier [data-action="apply"]');await page.waitForTimeout(750);mark('Replace: old coin ejects and new coin seats');await click('[data-action="replace-mod"][data-index="1"]');await page.waitForTimeout(1700);
  mark('Remove: attached coin returns to library');await click('#atelier [data-action="apply"]');await page.waitForTimeout(1500);
  await click(`[data-action="mod"][data-id="${await uid('spiked_ward')}"]`);mark('Incompatible type feedback');await click('#atelier [data-action="apply"]');await page.waitForTimeout(1300);

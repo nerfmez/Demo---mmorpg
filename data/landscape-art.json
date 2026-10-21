@@ -1,17 +1,14 @@
 {
   "cell": 24,
-  "faceNormalLimit": 0.83,
-  "faceOffset": 0.018,
-  "textureMetres": 4.5,
   "rock": {
-    "light": "#e0ded0",
-    "mid": "#c6c7bd",
-    "shadow": "#9baba9"
+    "light": "#cacbbd",
+    "mid": "#afb8b1",
+    "shadow": "#8c9c9d"
   },
   "coast": {
-    "light": "#e5dcc1",
-    "mid": "#c9c7b4",
-    "shadow": "#a4b2b0"
+    "light": "#d8d1b5",
+    "mid": "#babdaa",
+    "shadow": "#93a3a2"
   },
   "masonry": {
     "light": "#d6cfb7",

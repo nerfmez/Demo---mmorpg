@@ -30,13 +30,15 @@ test('five relocated whole trees have canopy, planter and walking clearance',()=
   }
 });
 test('boundary clipping does not reshuffle existing native trees or core decoration',()=>{
-  const before=structuredClone(data.world);before.city.floors[0]=repair.previousPaving;
+  // Isolate the original paving/scatter contract from the later authored landscape pass.
+  const nativeData=structuredClone(data.world);delete nativeData.landscape;
+  const native=createWorld(nativeData),before=structuredClone(nativeData);before.city.floors[0]=repair.previousPaving;
   for(const t of before.town.trees){const m=repair.treeRelocations.find(m=>m.id===t.id);if(m)[t.x,t.z]=m.old;}
   delete before.city.propertyBoundary;delete before.city.outsideClearings;
   const old=createWorld(before);
-  assert.deepEqual(world.decor,old.decor);
-  assert.deepEqual(world.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')),old.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')));
-  assert.deepEqual(world.heightfield.data,old.heightfield.data);
+  assert.deepEqual(native.decor,old.decor);
+  assert.deepEqual(native.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')),old.circles.filter(c=>!c.id?.startsWith('courtyard_tree_')));
+  assert.deepEqual(native.heightfield.data,old.heightfield.data);
 });
 test('organic clearing contains real walkable play pockets and retained islands',()=>{
   assert.equal(city.outsideClearings.length,5);

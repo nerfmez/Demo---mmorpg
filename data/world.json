@@ -7839,15 +7839,15 @@
       ]
     },
     "rock": {
-      "spacing": 4.2,
-      "chance": 0.78,
+      "spacing": 3.8,
+      "chance": 0.95,
       "radius": [
-        1,
-        1.65
+        1.45,
+        1.8
       ],
       "heightScale": [
-        0.65,
-        0.95
+        0.85,
+        1.15
       ]
     },
     "features": [
@@ -7890,7 +7890,7 @@
         "kit": "coastal-rock-and-broadleaf",
         "note": "Break the back wall into rooted scarp groups; keep west_pass and the existing lookout clear.",
         "height": 3.1,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -7998,7 +7998,7 @@
         "kit": "coastal-rock-and-broadleaf",
         "note": "Retain shrine and headland pad, authored road becomes the ramp approach. No new mountain range.",
         "height": 3.7,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -8056,7 +8056,7 @@
         "kit": "coastal-rock-and-broadleaf",
         "note": "Rock shoulders behind the sand, grass and palms on upper soil only; preserve wreck, landing and 5.5m arrival road.",
         "height": 2.6,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,

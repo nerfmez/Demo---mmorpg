@@ -69,6 +69,14 @@ test('new trees, rocks and masonry are solid and their complete footprints clear
 test('saved characters displaced by a new wall recover locally without losing progression',()=>{
   const p=pairs.find(p=>p.world.landscape.walls.length),wall=p.world.landscape.walls[0];
   const g=new Game({...data,world:p.data},{world:p.world,seed:9});g.ch.gold=734;g.ch.level=8;
+  for(const {world,data:region}of pairs){
+    const recovery=new Game({...data,world:region},{world,seed:9});
+    for(const obstacle of [...world.landscape.walls,...world.landscape.rocks,...world.landscape.trees]){
+      const at=recovery.freeSpotNear(obstacle.x,obstacle.z);
+      assert.ok(world.isFree(at.x,at.z,recovery.player.r),region.id+' saved position recovers');
+      assert.ok(Math.hypot(at.x-obstacle.x,at.z-obstacle.z)<=6);
+    }
+  }
   const spot=g.freeSpotNear(wall.x,wall.z);
   assert.ok(p.world.isFree(spot.x,spot.z,g.player.r));assert.ok(Math.hypot(spot.x-wall.x,spot.z-wall.z)<=6);
   assert.equal(g.ch.gold,734);assert.equal(g.ch.level,8);

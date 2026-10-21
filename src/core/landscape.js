@@ -85,7 +85,7 @@ export function raiseLandscape(grid,base,profile){
       const x=grid.ox+i*grid.res,z=grid.oz+j*grid.res,w=profile.weight(f,x,z);
       if(!w)continue;
       const arc=profile.nearest(f,x,z).arc;
-      const variation=1+(Math.sin(arc*.87)*.6+Math.sin(arc*1.73+1.1)*.4)*profile.config.heightWobble;
+      const variation=1+(Math.sin(arc*.21)*.6+Math.sin(arc*.39+1.1)*.4)*profile.config.heightWobble;
       const k=j*grid.w+i;delta[k]=Math.max(delta[k],w*f.height*variation);
     }
   }
@@ -125,7 +125,7 @@ export function dressLandscape(profile,hf,circles,boxes,decor){
     const rock=cfg.rock;
     for(let arc=f.taper;arc<f.total-f.taper;arc+=rock.spacing)for(const side of[-1,1]){
       if(!rng.chance(rock.chance))continue;
-      const at=profile.along(f,arc),r=rng.range(...rock.radius),offset=(f.width/2+r*.18)*side;
+      const at=profile.along(f,arc),r=rng.range(...rock.radius),offset=(f.width/2-r*.35)*side;
       const x=at.x+Math.cos(at.angle)*offset,z=at.z-Math.sin(at.angle)*offset;
       if(profile.clearance(x,z,r)<.99||occupied(x,z,r))continue;
       const item={x,z,r,height:Math.max(1.1,f.height*rng.range(...rock.heightScale)),rot:rng.range(0,Math.PI*2),type:'landscape_rock',landscape:f.id,seed:rng.int(1,65535)};

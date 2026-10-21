@@ -2368,15 +2368,15 @@
       ]
     },
     "rock": {
-      "spacing": 4.2,
-      "chance": 0.78,
+      "spacing": 3.8,
+      "chance": 0.95,
       "radius": [
-        1,
-        1.65
+        1.45,
+        1.8
       ],
       "heightScale": [
-        0.65,
-        0.95
+        0.85,
+        1.15
       ]
     },
     "features": [
@@ -2431,7 +2431,7 @@
         "kit": "forest-root-and-scarp",
         "note": "Rear scarp tracks 10-16m behind the existing forest trail where anchor masks permit. Maintain Elder Mosstree and Greyfang clearings; do not put all scenery beyond the 40-degree camera footprint.",
         "height": 3.5,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -2497,7 +2497,7 @@
         "kit": "highland-cliff-and-ruin",
         "note": "Staggered shelves with long walkable ramps to existing trails; no stairs-only chokepoint.",
         "height": 4.8,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -2605,7 +2605,7 @@
         "kit": "earth-bank-and-orchard",
         "note": "Short thorn banks and broadleaf groups surround open hunt courts, not solid enclosing fences.",
         "height": 2.1,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -2712,7 +2712,7 @@
         "kit": "coastal-rock-and-broadleaf",
         "note": "Interrupted weathered rock arms frame coves without sealing the coast routes.",
         "height": 2.9,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,

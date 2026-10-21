@@ -8,7 +8,7 @@ import {enterFullscreenGate} from './fullscreen-entry.mjs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const out=process.env.LANDSCAPE_OUT||'tests/browser/out/landscape';mkdirSync(out,{recursive:true});
 const base=process.env.LANDSCAPE_URL||'http://127.0.0.1:4310/';
-const server=process.env.LANDSCAPE_URL?null:spawn('node',['node_modules/vite/bin/vite.js','preview','--port','4310','--strictPort','--host','127.0.0.1'],{stdio:'ignore'});
+const server=process.env.LANDSCAPE_URL?null:spawn('node',['node_modules/vite/bin/vite.js','preview','--port','4310','--strictPort','--host','127.0.0.1'],{stdio:'ignore',cwd:process.env.LANDSCAPE_ROOT||process.cwd()});
 const report={browser:engine.name(),base,captures:[],errors:[],physicalDeviceFPS:'not measured; software GL'};
 const startup=()=>{const f=window.__frontier,v=f?.view;return {modelsReady:f?.modelsReady,worldPrepared:v?.worldPrepared,dependencies:v?.startupDependencies,jobs:v?.buildQueue.jobs.map(j=>[j.label,j.state]),regions:[...(v?.regions||[])].map(([id,r])=>({id,imported:r.importedState,grassReady:r.grassReady,error:String(r.error||r.grassError||'')}))};};
 let browser,page;
@@ -36,6 +36,9 @@ try{
     window.__landscapeFreeze=true;
   });
   const stage=async(name,id,x,z,zoom=1)=>{
+    await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+    await page.evaluate(()=>__frontier.__landscapeRender(0,1,{}));
+    await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
     const stats=await page.evaluate(([id,x,z,zoom])=>{
       const f=__frontier,g=f.game,v=f.view,[sx,sz]=g.scenePoint(id,x,z);
       Object.assign(g.player,g.freeSpotNear(sx,sz));g.player.hp=g.derived.maxHp;
@@ -57,6 +60,7 @@ try{
   await page.setViewportSize({width:1194,height:834});
   for(const[name,id,x,z]of locations){await stage(name+'-normal',id,x,z);if(['beach','forest','ruins'].includes(name))await stage(name+'-wide',id,x,z,1.45);}
   if(!process.env.LANDSCAPE_CAPTURE_ONLY){
+    await stage('forest-rear-visibility','frontier-wilds-v1',100,-84);
     await stage('forest-touch-start','frontier-wilds-v1',80,-70.4);
     const before=await page.evaluate(()=>{const f=__frontier;f.paused=false;f.input.disabled=false;return[f.game.player.x,f.game.player.z];});
     const rect=await page.locator('.joyzone').boundingBox().catch(()=>null)||await page.locator('.joy').boundingBox();

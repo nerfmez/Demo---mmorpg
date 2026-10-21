@@ -1611,15 +1611,15 @@
       ]
     },
     "rock": {
-      "spacing": 4.2,
-      "chance": 0.78,
+      "spacing": 3.8,
+      "chance": 0.95,
       "radius": [
-        1,
-        1.65
+        1.45,
+        1.8
       ],
       "heightScale": [
-        0.65,
-        0.95
+        0.85,
+        1.15
       ]
     },
     "features": [
@@ -1662,7 +1662,7 @@
         "kit": "forest-root-and-scarp",
         "note": "Roots interlock with cliff faces, camp and root arch remain exposed from south.",
         "height": 3.2,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -1716,7 +1716,7 @@
         "kit": "forest-root-and-scarp",
         "note": "Upright rear pond edge and root curtains; keep the whole pond loop and waypoint unobstructed.",
         "height": 2.8,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,
@@ -1770,7 +1770,7 @@
         "kit": "forest-root-and-scarp",
         "note": "Fern shelves lead toward the old stone ring; existing altar, tree and ring trail retain a clear foreground.",
         "height": 3.0,
-        "edge": 1.35,
+        "edge": 2.2,
         "taper": 10,
         "trees": {
           "spacing": 5.8,

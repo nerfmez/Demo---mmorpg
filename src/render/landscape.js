@@ -1,4 +1,4 @@
-// Startup-only landscape kit: metre-grid cliff skins, solid outcrops, rooted caps,
+// Startup-only landscape kit: solid outcrops, rooted caps,
 // and broken masonry. Each bounded cell is owned/disposed by its resident region.
 import * as THREE from 'three';
 import art from '../../data/landscape-art.json' with {type:'json'};
@@ -38,7 +38,7 @@ export function* landscapeSteps(world,{adopt,groundHeight}={}){
   const layout=world.landscape,profile=world.heightfield.landscape;
   const root=new THREE.Group();root.name='authored-landscape';adopt?.(root);
   if(!profile)return root;
-  const hf=world.heightfield,gy=groundHeight||world.groundY,groups=new Map(),materials=new Map();
+  const gy=groundHeight||world.groundY,groups=new Map(),materials=new Map();
   const palettes={rock:art.rock,coast:art.coast,wall:art.masonry,root:art.roots};
   const colors=Object.fromEntries(Object.entries(palettes).map(([key,p])=>[key,[p.light,p.mid,p.shadow].map(c=>new THREE.Color(c))]));
   const bucket=(kind,x,z)=>{
@@ -55,32 +55,18 @@ export function* landscapeSteps(world,{adopt,groundHeight}={}){
     }
     if(flat!==geometry)flat.dispose();geometry.dispose();
   };
-  const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),ab=new THREE.Vector3(),ac=new THREE.Vector3(),normal=new THREE.Vector3();
-  const addFace=(i0,i1,i2)=>{
-    if(Math.max(hf.landscapeDelta[i0],hf.landscapeDelta[i1],hf.landscapeDelta[i2])<.12)return;
-    const position=(v,k)=>v.set(hf.ox+(k%hf.w)*hf.res,hf.data[k],hf.oz+Math.floor(k/hf.w)*hf.res);
-    position(a,i0);position(b,i1);position(c,i2);ab.subVectors(b,a);ac.subVectors(c,a);normal.crossVectors(ab,ac).normalize();
-    if(normal.y>art.faceNormalLimit)return;
-    const x=(a.x+b.x+c.x)/3,z=(a.z+b.z+c.z)/3;
-    const kind=profile.features.some(f=>f.kit==='coastal-rock-and-broadleaf'&&profile.weight(f,x,z)>.05)?'coast':'rock';
-    const out=bucket(kind,x,z),color=colors[kind][normal.x<-.35?0:normal.z>.2?2:1];
-    for(const v of[a,b,c]){
-      out.p.push(v.x+normal.x*art.faceOffset,v.y+normal.y*art.faceOffset,v.z+normal.z*art.faceOffset);
-      out.n.push(normal.x,normal.y,normal.z);out.c.push(color.r,color.g,color.b);
-    }
-  };
-  for(let j=0;j<hf.h-1;j++){
-    for(let i=0;i<hf.w-1;i++){const k=j*hf.w+i;addFace(k,k+hf.w,k+1);addFace(k+1,k+hf.w,k+hf.w+1);}
-    if(j%8===0)yield;
-  }
+  // The terrain renderer already paints exposed slopes with the native rock palette.
+  // Keep that single continuous surface; a second triangle skin makes the rim look cut out.
   for(const rock of layout.rocks){
     const geometry=new THREE.IcosahedronGeometry(1,1),p=geometry.attributes.position;
     // Position-dependent dents keep duplicate vertices joined. Footprint stays inside the rule circle.
     for(let i=0;i<p.count;i++){
       const x=p.getX(i),y=p.getY(i),z=p.getZ(i),dent=.92+Math.sin(x*9+z*7+y*4)*.06;
-      p.setXYZ(i,x*rock.r*dent,(y+1)*rock.height/2,z*rock.r*dent);
+      p.setXYZ(i,x*rock.r*dent,Math.max(0,(y+.45)/1.45)*rock.height,z*rock.r*dent);
     }
-    geometry.rotateY(rock.rot);geometry.translate(rock.x,gy(rock.x,rock.z)-.25,rock.z);
+    let base=gy(rock.x,rock.z);
+    for(let i=0;i<12;i++){const a=i*Math.PI/6;base=Math.min(base,gy(rock.x+Math.cos(a)*rock.r,rock.z+Math.sin(a)*rock.r));}
+    geometry.rotateY(rock.rot);geometry.translate(rock.x,base-.2,rock.z);
     const feature=layout.features.find(f=>f.id===rock.landscape);
     addGeometry(feature.kit==='coastal-rock-and-broadleaf'?'coast':'rock',geometry,rock.x,rock.z);
     yield;

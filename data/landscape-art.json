@@ -1,0 +1,35 @@
+{
+  "cell": 24,
+  "faceNormalLimit": 0.83,
+  "faceOffset": 0.018,
+  "textureMetres": 4.5,
+  "rock": {
+    "light": "#e0ded0",
+    "mid": "#c6c7bd",
+    "shadow": "#9baba9"
+  },
+  "coast": {
+    "light": "#e5dcc1",
+    "mid": "#c9c7b4",
+    "shadow": "#a4b2b0"
+  },
+  "masonry": {
+    "light": "#d6cfb7",
+    "mid": "#bfbdaa",
+    "shadow": "#929998",
+    "courseHeight": 0.64,
+    "columns": 3,
+    "gap": 0.025,
+    "chip": 0.055
+  },
+  "roots": {
+    "light": "#9c8060",
+    "mid": "#7e664b",
+    "shadow": "#604c3d",
+    "radius": 0.16,
+    "length": 2.9,
+    "branches": 3,
+    "sides": 5,
+    "segments": 12
+  }
+}

@@ -7798,5 +7798,299 @@
         ]
       }
     ]
+  },
+  "landscape": {
+    "revision": "landscape-40deg-1",
+    "seed": 61473,
+    "edgeWobble": 0.28,
+    "heightWobble": 0.12,
+    "clearance": {
+      "road": 4.6,
+      "water": 3,
+      "spawn": 12,
+      "waypoint": 8,
+      "landmark": 4,
+      "seam": 24,
+      "city": 5,
+      "service": 8,
+      "border": 3,
+      "blend": 3
+    },
+    "wall": {
+      "length": 3.6,
+      "thickness": 1.25,
+      "height": [
+        3.4,
+        5.1
+      ],
+      "pattern": [
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1
+      ]
+    },
+    "rock": {
+      "spacing": 4.2,
+      "chance": 0.78,
+      "radius": [
+        1,
+        1.65
+      ],
+      "heightScale": [
+        0.65,
+        0.95
+      ]
+    },
+    "features": [
+      {
+        "id": "A1",
+        "region": "azure-harbor-v1",
+        "kind": "wooded_scarp",
+        "nameTh": "\u0e1c\u0e32\u0e1b\u0e48\u0e32\u0e42\u0e1b\u0e23\u0e48\u0e07\u0e23\u0e34\u0e21\u0e1d\u0e31\u0e48\u0e07",
+        "points": [
+          [
+            -146,
+            -108
+          ],
+          [
+            -130,
+            -101
+          ],
+          [
+            -117,
+            -88
+          ],
+          [
+            -113,
+            -66
+          ],
+          [
+            -120,
+            -40
+          ]
+        ],
+        "width": 13,
+        "terrainHeightMetres": [
+          2,
+          4
+        ],
+        "silhouetteHeightMetres": [
+          6,
+          10
+        ],
+        "kit": "coastal-rock-and-broadleaf",
+        "note": "Break the back wall into rooted scarp groups; keep west_pass and the existing lookout clear.",
+        "height": 3.1,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "A2",
+        "region": "azure-harbor-v1",
+        "kind": "meadow_bank",
+        "nameTh": "\u0e04\u0e31\u0e19\u0e14\u0e34\u0e19\u0e17\u0e38\u0e48\u0e07\u0e41\u0e25\u0e30\u0e41\u0e19\u0e27\u0e2a\u0e27\u0e19",
+        "points": [
+          [
+            -45,
+            -77
+          ],
+          [
+            -28,
+            -67
+          ],
+          [
+            -14,
+            -64
+          ],
+          [
+            7,
+            -68
+          ],
+          [
+            27,
+            -63
+          ]
+        ],
+        "width": 8,
+        "terrainHeightMetres": [
+          1,
+          2.5
+        ],
+        "silhouetteHeightMetres": [
+          2,
+          5
+        ],
+        "kit": "earth-bank-and-orchard",
+        "note": "Low retaining banks and orchard groups; broad open meadow courts between masses.",
+        "height": 1.8,
+        "edge": 1.8,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "A3",
+        "region": "azure-harbor-v1",
+        "kind": "coastal_cliff",
+        "nameTh": "\u0e1c\u0e32\u0e41\u0e2b\u0e25\u0e21\u0e40\u0e2b\u0e19\u0e37\u0e2d\u0e40\u0e21\u0e37\u0e2d\u0e07",
+        "points": [
+          [
+            147,
+            -76
+          ],
+          [
+            162,
+            -74
+          ],
+          [
+            177,
+            -77
+          ],
+          [
+            194,
+            -73
+          ],
+          [
+            201,
+            -66
+          ]
+        ],
+        "width": 12,
+        "terrainHeightMetres": [
+          3,
+          6
+        ],
+        "silhouetteHeightMetres": [
+          4,
+          8
+        ],
+        "kit": "coastal-rock-and-broadleaf",
+        "note": "Retain shrine and headland pad, authored road becomes the ramp approach. No new mountain range.",
+        "height": 3.7,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "A4",
+        "region": "azure-harbor-v1",
+        "kind": "beach_backbank",
+        "nameTh": "\u0e1c\u0e32\u0e2b\u0e25\u0e31\u0e07\u0e2b\u0e32\u0e14\u0e1c\u0e39\u0e49\u0e21\u0e32\u0e40\u0e22\u0e37\u0e2d\u0e19",
+        "points": [
+          [
+            -151,
+            43
+          ],
+          [
+            -139,
+            39
+          ],
+          [
+            -126,
+            42
+          ],
+          [
+            -109,
+            46
+          ],
+          [
+            -93,
+            40
+          ],
+          [
+            -79,
+            36
+          ]
+        ],
+        "width": 10,
+        "terrainHeightMetres": [
+          1.5,
+          3
+        ],
+        "silhouetteHeightMetres": [
+          3,
+          7
+        ],
+        "kit": "coastal-rock-and-broadleaf",
+        "note": "Rock shoulders behind the sand, grass and palms on upper soil only; preserve wreck, landing and 5.5m arrival road.",
+        "height": 2.6,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      }
+    ],
+    "openCourts": [
+      {
+        "id": "C1",
+        "region": "azure-harbor-v1",
+        "at": [
+          -24,
+          -36
+        ],
+        "diameter": 22
+      },
+      {
+        "id": "C2",
+        "region": "azure-harbor-v1",
+        "at": [
+          -112,
+          67
+        ],
+        "diameter": 20
+      }
+    ]
   }
 }

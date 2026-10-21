@@ -3,6 +3,7 @@
 // spawns; the renderer draws exactly the same layout.
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
+import { dressLandscape } from './landscape.js';
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
@@ -101,7 +102,7 @@ export function createWorld(worldData) {
   // ---------- terrain ----------
   // Preserve native terrain ramps outside the overlay. Obsolete street meshes
   // are removed from the town, but their original terrain grading stays intact.
-  const hf = buildHeightfield(worldData.city?.enabled ? {...worldData,roads:worldData.city.terrainRoads} : worldData, zoneAt);
+  const hf = buildHeightfield(worldData.city?.enabled ? {...worldData,roads:worldData.city.terrainRoads} : worldData, zoneAt, worldData);
   const terrainY = (x, z) => {const floor=cityFloorAt(worldData.city,x,z);return floor?cityFloorHeight(worldData.city,hf,x,z,floor):hf.heightAt(x,z);};
   for (const dock of docks) if (dock.rampFromTerrain) {
     const start = fromBoxLocal(dock, 0, -dock.hz);
@@ -203,7 +204,7 @@ export function createWorld(worldData) {
     onBridge(x, z, r + 2) ||
     roadDist(x, z) < r + roadPad ||
     clearAreas.some((c) => dist(x, z, c.x, c.z) < c.r + r) ||
-    hf.slopeAt(x, z) > slope ||
+    hf.placementSlopeAt(x, z) > slope ||
     overlaps(x, z, r);
 
   // ---------- town ----------
@@ -523,6 +524,9 @@ export function createWorld(worldData) {
     for (const p of parts) circles.push({ ...p, type: 'landmark', landmark: lm.id, scale: 1, rot });
   }
 
+  const landscape = dressLandscape(hf.landscape, hf, circles, boxes, decor);
+  hf.releasePlacementBasis();
+
   // ---------- collision grid ----------
   const grid = new Map();
   const key = (cx, cz) => cx * 4096 + cz;
@@ -691,6 +695,7 @@ export function createWorld(worldData) {
     boxes,
     decor,
     landmarks,
+    landscape,
     waypoints,
     exits,
     seams,

@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 
 const compacted = new WeakSet(), packed = new WeakMap();
-const unsignedFields = new Set(['color', 'hullColor', 'aSplat', 'aCoast', 'aTown',
+const unsignedFields = new Set(['color', 'hullColor', 'aSplat', 'aCoast', 'aTown', 'aLandscape',
   'aTintL', 'aTintD', 'beachWash', 'coastJoin']);
 export const RESIDENT_ATTRIBUTE_ERROR = Object.freeze({ normal: .5 / 32767, unit: .5 / 65535 });
 

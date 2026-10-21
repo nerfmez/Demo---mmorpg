@@ -2327,5 +2327,435 @@
         ]
       }
     ]
+  },
+  "landscape": {
+    "revision": "landscape-40deg-1",
+    "seed": 61473,
+    "edgeWobble": 0.28,
+    "heightWobble": 0.12,
+    "clearance": {
+      "road": 4.6,
+      "water": 3,
+      "spawn": 12,
+      "waypoint": 8,
+      "landmark": 4,
+      "seam": 24,
+      "city": 5,
+      "service": 8,
+      "border": 3,
+      "blend": 3
+    },
+    "wall": {
+      "length": 3.6,
+      "thickness": 1.25,
+      "height": [
+        3.4,
+        5.1
+      ],
+      "pattern": [
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        1
+      ]
+    },
+    "rock": {
+      "spacing": 4.2,
+      "chance": 0.78,
+      "radius": [
+        1,
+        1.65
+      ],
+      "heightScale": [
+        0.65,
+        0.95
+      ]
+    },
+    "features": [
+      {
+        "id": "F1",
+        "region": "frontier-wilds-v1",
+        "kind": "forest_rootwall",
+        "nameTh": "\u0e1c\u0e32\u0e23\u0e32\u0e01\u0e44\u0e21\u0e49\u0e1b\u0e48\u0e32\u0e23\u0e32\u0e01\u0e15\u0e30\u0e44\u0e04\u0e23\u0e48",
+        "points": [
+          [
+            142,
+            -76
+          ],
+          [
+            120,
+            -68
+          ],
+          [
+            100,
+            -75
+          ],
+          [
+            83,
+            -87
+          ],
+          [
+            65,
+            -94
+          ],
+          [
+            44,
+            -90
+          ],
+          [
+            20,
+            -86
+          ],
+          [
+            -10,
+            -90
+          ]
+        ],
+        "width": 11,
+        "terrainHeightMetres": [
+          2.5,
+          4.5
+        ],
+        "silhouetteHeightMetres": [
+          7,
+          11
+        ],
+        "kit": "forest-root-and-scarp",
+        "note": "Rear scarp tracks 10-16m behind the existing forest trail where anchor masks permit. Maintain Elder Mosstree and Greyfang clearings; do not put all scenery beyond the 40-degree camera footprint.",
+        "height": 3.5,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.15,
+            1.85
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": true
+        }
+      },
+      {
+        "id": "F2",
+        "region": "frontier-wilds-v1",
+        "kind": "highland_terrace",
+        "nameTh": "\u0e0a\u0e31\u0e49\u0e19\u0e1c\u0e32\u0e17\u0e35\u0e48\u0e23\u0e32\u0e1a\u0e2a\u0e39\u0e07",
+        "points": [
+          [
+            -211,
+            -103
+          ],
+          [
+            -192,
+            -115
+          ],
+          [
+            -173,
+            -100
+          ],
+          [
+            -151,
+            -112
+          ],
+          [
+            -132,
+            -109
+          ],
+          [
+            -110,
+            -114
+          ],
+          [
+            -88,
+            -120
+          ],
+          [
+            -65,
+            -113
+          ]
+        ],
+        "width": 17,
+        "terrainHeightMetres": [
+          4,
+          8
+        ],
+        "silhouetteHeightMetres": [
+          5,
+          10
+        ],
+        "kit": "highland-cliff-and-ruin",
+        "note": "Staggered shelves with long walkable ramps to existing trails; no stairs-only chokepoint.",
+        "height": 4.8,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "F3",
+        "region": "frontier-wilds-v1",
+        "kind": "ruin_wall",
+        "nameTh": "\u0e41\u0e19\u0e27\u0e01\u0e33\u0e41\u0e1e\u0e07\u0e42\u0e1a\u0e23\u0e32\u0e13\u0e41\u0e15\u0e01",
+        "points": [
+          [
+            -216,
+            -24
+          ],
+          [
+            -202,
+            -29
+          ],
+          [
+            -190,
+            -24
+          ],
+          [
+            -177,
+            -30
+          ],
+          [
+            -165,
+            -23
+          ]
+        ],
+        "width": 6,
+        "terrainHeightMetres": [
+          0,
+          0.5
+        ],
+        "silhouetteHeightMetres": [
+          3,
+          6
+        ],
+        "kit": "highland-cliff-and-ruin",
+        "note": "Broken masonry faces and buttresses on the existing plateau; multiple 8m openings, boss ring protected.",
+        "height": 0,
+        "edge": 1.8,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "F4",
+        "region": "frontier-wilds-v1",
+        "kind": "thorn_grove",
+        "nameTh": "\u0e2a\u0e31\u0e19\u0e14\u0e34\u0e19\u0e1b\u0e48\u0e32\u0e2b\u0e19\u0e32\u0e21",
+        "points": [
+          [
+            132,
+            84
+          ],
+          [
+            151,
+            94
+          ],
+          [
+            170,
+            93
+          ],
+          [
+            187,
+            108
+          ],
+          [
+            203,
+            121
+          ]
+        ],
+        "width": 12,
+        "terrainHeightMetres": [
+          1.5,
+          3
+        ],
+        "silhouetteHeightMetres": [
+          4,
+          7
+        ],
+        "kit": "earth-bank-and-orchard",
+        "note": "Short thorn banks and broadleaf groups surround open hunt courts, not solid enclosing fences.",
+        "height": 2.1,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "F5",
+        "region": "frontier-wilds-v1",
+        "kind": "wetland_bank",
+        "nameTh": "\u0e42\u0e04\u0e01\u0e14\u0e34\u0e19\u0e15\u0e49\u0e19\u0e2b\u0e25\u0e34\u0e27",
+        "points": [
+          [
+            -125,
+            3
+          ],
+          [
+            -112,
+            -9
+          ],
+          [
+            -98,
+            -14
+          ],
+          [
+            -84,
+            -21
+          ],
+          [
+            -64,
+            -25
+          ],
+          [
+            -40,
+            -23
+          ]
+        ],
+        "width": 10,
+        "terrainHeightMetres": [
+          0.8,
+          2
+        ],
+        "silhouetteHeightMetres": [
+          4,
+          8
+        ],
+        "kit": "wetland-bank-and-willow",
+        "note": "Low dry islands plus tall willow silhouettes at rear; water and causeway remain readable.",
+        "height": 1.3,
+        "edge": 1.8,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "willow"
+          ],
+          "roots": false
+        }
+      },
+      {
+        "id": "F6",
+        "region": "frontier-wilds-v1",
+        "kind": "coastal_cliff",
+        "nameTh": "\u0e1c\u0e32\u0e0a\u0e32\u0e22\u0e1d\u0e31\u0e48\u0e07\u0e15\u0e30\u0e27\u0e31\u0e19\u0e23\u0e2d\u0e19",
+        "points": [
+          [
+            -198,
+            134
+          ],
+          [
+            -177,
+            128
+          ],
+          [
+            -153,
+            131
+          ],
+          [
+            -129,
+            122
+          ]
+        ],
+        "width": 11,
+        "terrainHeightMetres": [
+          2,
+          4
+        ],
+        "silhouetteHeightMetres": [
+          3,
+          6
+        ],
+        "kit": "coastal-rock-and-broadleaf",
+        "note": "Interrupted weathered rock arms frame coves without sealing the coast routes.",
+        "height": 2.9,
+        "edge": 1.35,
+        "taper": 10,
+        "trees": {
+          "spacing": 5.8,
+          "scale": [
+            1.05,
+            1.5
+          ],
+          "species": [
+            "tree",
+            "birch"
+          ],
+          "roots": false
+        }
+      }
+    ],
+    "openCourts": [
+      {
+        "id": "C3",
+        "region": "frontier-wilds-v1",
+        "at": [
+          57.6,
+          -64
+        ],
+        "diameter": 22
+      },
+      {
+        "id": "C4",
+        "region": "frontier-wilds-v1",
+        "at": [
+          -73.6,
+          -76.8
+        ],
+        "diameter": 20
+      },
+      {
+        "id": "C5",
+        "region": "frontier-wilds-v1",
+        "at": [
+          -195.2,
+          9.6
+        ],
+        "diameter": 30
+      }
+    ]
   }
 }

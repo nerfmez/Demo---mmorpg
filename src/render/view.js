@@ -16,7 +16,7 @@ import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
-import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
+import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality, celLook, postConfig } from './settings.js';
 import { PostFX } from './post.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
@@ -73,7 +73,7 @@ export class View {
     this.shake = 0;
     this.time = 0;
 
-    const light = lightingSettings(animeStudy ? renderConfig.lighting.active : 'legacy');
+    const light = lightingSettings(celLook ? celLook.lighting : animeStudy ? renderConfig.lighting.active : 'legacy');
     this.lightingProfile = light.name;
     this.hemisphere = new THREE.HemisphereLight(light.ambientSky, light.ambientGround, light.ambientIntensity);
     this.scene.add(this.hemisphere);
@@ -438,7 +438,7 @@ export class View {
       this.post = null;
       return;
     }
-    this.post ||= new PostFX(this.renderer, renderConfig.post);
+    this.post ||= new PostFX(this.renderer, postConfig());
     const size = this.renderer.getDrawingBufferSize(this._postSize ||= new THREE.Vector2());
     this.post.setSize(size.x, size.y);
   }

@@ -11,6 +11,14 @@
         "sunIntensity": 1.65,
         "shadowIntensity": 0.62
       },
+      "cel": {
+        "ambientSky": "#dfeeff",
+        "ambientGround": "#5d6f62",
+        "ambientIntensity": 0.95,
+        "sunColor": "#fff3dc",
+        "sunIntensity": 2.35,
+        "shadowIntensity": 0.78
+      },
       "legacy": {
         "ambientSky": "#fff8e9",
         "ambientGround": "#8a947c",
@@ -50,5 +58,11 @@
     "vignette": 0.28
   },
   "shadow": {"sunOffset": [-14, 26, 10], "normalBias": 0.03, "bias": -0.0008},
-  "painted": {"shadowStrength": 0.28, "lightInfluence": 0.12, "referenceEnergy": 3.1}
+  "painted": {"shadowStrength": 0.28, "lightInfluence": 0.12, "referenceEnergy": 3.1},
+  "celLook": {
+    "_doc": "Opt-in prototype (?look=cel): a crisp cel read. Depth-edge outlines in the screen grade, a lower ambient and stronger sun so the 3-step toon ramp shows, and less haze/glow. Not the default until the owner approves it.",
+    "lighting": "cel",
+    "outline": {"width": 1.6, "strength": 0.8, "depthThreshold": 0.01, "color": "#2b2340"},
+    "post": {"glow": 0.18, "hazeAmount": 0.08, "sunWash": 0.1, "contrast": 1.16, "saturation": 1.22, "exposure": 1.08, "vignette": 0.2}
+  }
 }

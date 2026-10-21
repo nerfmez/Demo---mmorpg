@@ -1,6 +1,10 @@
 // Rendering configuration only: no game rules, DOM, preferences or saved character data.
 import config from '../../data/rendering.json' with {type:'json'};
 export const renderConfig = config;
+/** Opt-in cel prototype (?look=cel): its lighting profile and screen-grade overrides, else null. */
+export const celLook = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'cel' ? config.celLook : null;
+/** The screen grade with the cel prototype's overrides and outline applied when it is on. */
+export const postConfig = () => celLook ? { ...config.post, ...celLook.post, outline: celLook.outline } : config.post;
 export function qualitySettings(name) {
   const quality = Object.hasOwn(config.quality, name) ? name : 'medium';
   return {name:quality, ...config.quality[quality]};

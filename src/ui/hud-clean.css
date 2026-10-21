@@ -78,7 +78,8 @@ body.ingame #hud .map-north { top: -10px; width: 20px; height: 20px; left: calc(
 body.ingame #hud .map-open { width: 34px; height: 34px; min-width: 34px; min-height: 34px; right: -4px; bottom: -4px; border-radius: 50%; }
 body.ingame #hud .map-open svg { width: 18px; height: 18px; }
 body.ingame #hud .quick-actions { gap: 10px; }
-body.ingame #hud .quick-actions .iconbtn { width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+body.ingame #hud .quick-actions .iconbtn { width: 44px; height: 44px; padding: 0; border-radius: 50%; display: grid; grid-template-columns: 1fr; place-items: center; gap: 0; }
+body.ingame #hud .quick-actions .iconbtn :is(.menu-label, .key) { display: none; }
 body.ingame #hud .quick-actions .iconbtn svg { width: 21px; height: 21px; filter: drop-shadow(0 1px 1px rgba(10, 22, 32, .45)); }
 body.ingame #hud .quick-actions .menu-toggle { background: var(--hc-glass); border-color: var(--hc-edge); }
 body.ingame #hud .menu-toggle.has-points::after { width: 8px; height: 8px; right: 1px; top: 1px; background: #ff6b5a; border: 0; box-shadow: 0 0 0 1.5px var(--hc-ring); }

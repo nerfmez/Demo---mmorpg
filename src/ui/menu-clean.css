@@ -172,6 +172,7 @@
 /* phone portrait keeps its one-window-at-a-time layout; only the colours change there */
 @media (max-width: 600px) and (orientation: portrait) {
   #atelier:is(#atelier) .two-windows { border-radius: 18px; }
+  #atelier:is(#atelier) .workspace-side { z-index: 11; }
   #atelier:is(#atelier) .workspace-side button { background: var(--mc-sheet); color: var(--mc-dim); }
   #atelier:is(#atelier) .workspace-side button.active { background: var(--mc-accent); color: #fff; }
 }

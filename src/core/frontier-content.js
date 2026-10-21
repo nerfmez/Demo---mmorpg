@@ -84,7 +84,12 @@ export function executeFrontier(g,s,aim,mult,triggered) {
       p.riposte=null;
       for(const m of g.monsters)if(!m.dead&&inArc(p,m,aim,s))g.hitMonster(m,s.damage*mult,g.hitOpts(s,{crit:g.rollCrit()}));
       g.emit({type:'slash',skill:s.id,x:p.x,z:p.z,angle:aim.angle,arc:s.arc,range:s.range,element:s.element});
-    }else {p.riposte={skill:s,guardUntil:g.time+s.guard.duration,readyUntil:0};g.emit({type:'guardStance',x:p.x,z:p.z,duration:s.guard.duration});}
+    }else {
+      p.riposte={skill:s,guardUntil:g.time+s.guard.duration,readyUntil:0};
+      // Spiked Ward on a stance draws nearby monsters into the guard instead of taunting on a barrier.
+      if(s.tauntRadius)for(const m of g.monsters)if(!m.dead&&dist(p.x,p.z,m.x,m.z)<s.tauntRadius){m.forcedTargetId=p.id;m.tauntT=Math.max(m.tauntT||0,s.guard.duration);}
+      g.emit({type:'guardStance',x:p.x,z:p.z,duration:s.guard.duration});
+    }
     return true;
   }
   if(s.kind==='melee_line'){
@@ -123,7 +128,7 @@ export function adjustFrontierHit(g,m,amount,opts) {
   const s=opts.skill && g.skills.find(s=>s?.id===opts.skill),e=opts.modEffects || {};
   if(opts.dot||opts.secondary)return amount;
   if(s?.positionalMult&&Math.abs(angleDiff(m.facing,angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z)))>Math.PI/2)amount*=s.positionalMult;
-  if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration)};
+  if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0)};
   if(opts.interrupt&&m.state==='windup'){
     const attack=m.def.attacks?.[m.windup?.name];
     if(!m.boss&&attack?.interruptible!==false){m.state='stunned';m.stateT=0;m.stateDur=opts.interrupt.duration;m.windup=null;m.melee=null;cancelWindup(g,m);}
@@ -151,16 +156,23 @@ function secondaryBurst(g,x,z,radius,damage,element,skill){
   for(const q of g.monsters)if(!q.dead&&dist(x,z,q.x,q.z)<=radius+q.r)g.hitMonster(q,damage,{element,secondary:true,skill});
   g.emit({type:'burst',kind:'mod_burst',element,x,z,radius});
 }
+/** Spreading Hex: a dying target passes each spreadable debuff (Hex, armor exposure) with its remaining time to the nearest clean monster. */
 export function spreadCurse(g,m){
-  const h=m.statuses.hex;if(!h?.spread||h.t<=0)return;
-  const next=g.monsters.filter(q=>q!==m&&!q.dead&&!q.statuses.hex&&dist(m.x,m.z,q.x,q.z)<=h.spread).sort((a,b)=>dist(m.x,m.z,a.x,a.z)-dist(m.x,m.z,b.x,b.z))[0];
-  if(next)next.statuses.hex={...h};
+  for(const key of ['hex','exposure']){
+    const h=m.statuses[key];if(!h?.spread||h.t<=0)continue;
+    const next=g.monsters.filter(q=>q!==m&&!q.dead&&!q.statuses[key]&&dist(m.x,m.z,q.x,q.z)<=h.spread).sort((a,b)=>dist(m.x,m.z,a.x,a.z)-dist(m.x,m.z,b.x,b.z))[0];
+    if(next)next.statuses[key]={...h};
+  }
 }
 export function applyGuard(g,amount,source,opts){
   const p=g.player,r=p.riposte;
   if(!r||g.time>r.guardUntil||!source||opts.dot||opts.unblockable)return {amount,guarded:false};
   if(Math.abs(angleDiff(p.facing,angleTo(p.x,p.z,source.x,source.z)))>r.skill.guard.arc*DEG/2)return {amount,guarded:false};
   r.guardUntil=0;r.readyUntil=g.time+r.skill.guard.readyDuration;
+  // Spiked Ward returns the blocked part; Breaking Ward pushes the crowd back when the guard lands.
+  const e=r.skill.modEffects||{};
+  if(r.skill.reflect>0&&source.kind==='monster'&&!source.dead)g.hitMonster(source,amount*(1-r.skill.guard.taken)*r.skill.reflect+4,{element:'physical'});
+  if(e.barrierBreakKnock)pushAway(g,p,{knock:e.barrierBreakKnock,radius:e.barrierBreakRadius});
   return {amount:amount*r.skill.guard.taken,guarded:true};
 }
 export function shareGuardDamage(g,amount){
@@ -171,8 +183,21 @@ export function shareGuardDamage(g,amount){
 export function breakBarrier(g,unit){
   const effect=unit.barrierBreak;if(!effect)return;
   unit.barrierBreak=null;
+  pushAway(g,unit,effect);
+}
+function pushAway(g,unit,effect){
   for(const m of g.monsters)if(!m.dead&&dist(unit.x,unit.z,m.x,m.z)<=effect.radius+m.r){const a=angleTo(unit.x,unit.z,m.x,m.z);g.moveEntity(m,Math.sin(a)*effect.knock*(m.boss?.2:1),Math.cos(a)*effect.knock*(m.boss?.2:1));}
   g.emit({type:'nova',element:'arcane',x:unit.x,z:unit.z,radius:effect.radius});
+}
+/** Mending Chain on a healing field: each tick also mends injured allies just outside it, weakest first. */
+export function chainFieldHeal(g,a){
+  const e=a.skill?.modEffects;if(!e?.healChain)return;
+  let source={x:a.x,z:a.z,r:a.radius},heal=a.heal;const hit=new Set();
+  for(let i=0;i<e.healChain;i++){
+    const u=units(g).filter(q=>!hit.has(q.id)&&q.hp<q.maxHp&&dist(a.x,a.z,q.x,q.z)>a.radius+q.r&&dist(source.x,source.z,q.x,q.z)<=source.r+e.healChainRange).sort((x,y)=>x.hp/x.maxHp-y.hp/y.maxHp)[0];
+    if(!u)return;
+    heal*=e.healChainFalloff||1;hit.add(u.id);healUnit(g,u,heal,a.skill);source={x:u.x,z:u.z,r:0};
+  }
 }
 export function wallBlocked(g,e,x,z){
   if(e.def?.flyer)return null;

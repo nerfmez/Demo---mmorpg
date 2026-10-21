@@ -8,7 +8,7 @@ import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
-import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit } from './frontier-content.js';
+import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
@@ -1224,7 +1224,9 @@ export class Game {
 
   spawnGround(s, x, z, mult = 1) {
     if (!s.ground) return;
-    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.damage * mult * s.ground.dpsMult * 0.5, element: 'fire', dot: true });
+    // Binding Field also ramps the slow inside fire left by Burning Ground.
+    const ramp = s.modEffects?.rampSlow ? { rampFx: s.modEffects, dwell: new Map() } : {};
+    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.damage * mult * s.ground.dpsMult * 0.5, element: 'fire', dot: true, ...ramp });
   }
 
   // ---------- update ----------
@@ -1741,12 +1743,13 @@ export class Game {
             const p = this.player;
             if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) healUnit(this,this.player,a.heal,a.skill);
             for (const al of this.allies) if (dist(a.x, a.z, al.x, al.z) <= a.radius + al.r) healUnit(this,al,a.heal,a.skill);
+            chainFieldHeal(this, a);
           } else if (a.damage) {
             if(a.dwell)for(const id of a.dwell.keys()){const q=this.monsterById(id);if(!q||q.dead||dist(a.x,a.z,q.x,q.z)>a.radius+q.r)a.dwell.delete(id);}
             for (const m of this.monsters) {
               if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
-              const ramp=a.skill?.modEffects?.rampSlow;
-              if(ramp){const dwell=(a.dwell.get(m.id)||0)+a.tick;a.dwell.set(m.id,dwell);m.statuses.chill={slow:Math.max(m.statuses.chill?.slow||0,(a.slow||0)+(ramp-(a.slow||0))*Math.min(1,dwell/a.skill.modEffects.rampTime)),t:.6};}
+              const fx=a.rampFx||a.skill?.modEffects,ramp=fx?.rampSlow;
+              if(ramp){const dwell=(a.dwell.get(m.id)||0)+a.tick;a.dwell.set(m.id,dwell);m.statuses.chill={slow:Math.max(m.statuses.chill?.slow||0,(a.slow||0)+(ramp-(a.slow||0))*Math.min(1,dwell/fx.rampTime)),t:.6};}
               if (a.slow) m.statuses.chill = { slow: Math.max(a.slow, m.statuses.chill?.slow || 0), t: Math.max(0.6, m.statuses.chill?.t || 0) };
               this.hitMonster(m, a.damage, { dot: true, element: a.element });
             }

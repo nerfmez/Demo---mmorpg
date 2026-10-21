@@ -176,3 +176,75 @@
   #atelier:is(#atelier) .workspace-side button { background: var(--mc-sheet); color: var(--mc-dim); }
   #atelier:is(#atelier) .workspace-side button.active { background: var(--mc-accent); color: #fff; }
 }
+
+/* ===== every other menu page (character, growth, craft, shop, quests, map, settings) =====
+   Same light sheet. The side list of sibling pages and the footer are hidden: a page shows only itself.
+   Colour tokens are re-pointed inside the sheet so existing page markup turns light. */
+.overlay:not(.is-atelier):not(.is-journal) { background: rgba(230, 238, 240, .22); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.overlay:not(.is-atelier):not(.is-journal) .panel > * { grid-column: 1 / -1; }
+.overlay:not(.is-atelier):not(.is-journal) .panel {
+  --ink: var(--mc-ink); --ink-dim: var(--mc-dim); --panel: var(--mc-fill); --panel-2: var(--mc-fill-2); --line: var(--mc-hair);
+  --gold: #a8740f; --good: var(--mc-good); --bad: var(--mc-bad); color-scheme: light;
+  grid-template-columns: minmax(0, 1fr); border: 0; border-radius: 22px; color: var(--mc-ink);
+  background: var(--mc-sheet); box-shadow: 0 12px 40px rgba(10, 22, 32, .25);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.overlay:not(.is-atelier):not(.is-journal) .panel-header > div:not(.panel-meta) { flex: 1; min-width: 0; }
+.overlay:not(.is-atelier):not(.is-journal) .panel-meta { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.overlay:not(.is-atelier):not(.is-journal) .panel-header { display: flex; align-items: center; min-height: 64px; padding: 12px 16px; gap: 10px; background: none; border-bottom: 1px solid var(--mc-hair); color: var(--mc-ink); }
+.overlay:not(.is-atelier):not(.is-journal) .panel-header h2 { font: 500 20px Kanit, Mitr, sans-serif; color: var(--mc-ink); }
+.overlay:not(.is-atelier):not(.is-journal) .panel-back { width: 40px; min-width: 40px; height: 40px; min-height: 40px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--mc-ink); font-size: 0; box-shadow: none; display: grid; place-items: center; }
+.overlay:not(.is-atelier):not(.is-journal) .panel-back[hidden] { display: none; }
+.overlay:not(.is-atelier):not(.is-journal) .panel-back span { font-size: 26px; line-height: 1; margin-top: -3px; }
+.overlay:not(.is-atelier):not(.is-journal) .panel-gold { font: 500 15px Kanit, sans-serif; color: var(--mc-ink); }
+.overlay:not(.is-atelier):not(.is-journal) .pause-label { color: var(--mc-dim); font-size: 11px; }
+.overlay:not(.is-atelier):not(.is-journal) .panel-close { width: 40px; height: 40px; min-height: 40px; border: 0; border-radius: 50%; background: var(--mc-fill); color: var(--mc-dim); box-shadow: none; }
+.overlay:not(.is-atelier):not(.is-journal) :is(.tabs, .seeker-mobile-nav, .panel-footer) { display: none; }
+.overlay:not(.is-atelier):not(.is-journal) .pbody { color: var(--mc-ink); scrollbar-color: rgba(29, 43, 54, .18) transparent; }
+/* page contents: light counterparts of the dark panel skin in minimal.css */
+.overlay:not(.is-journal) .pbody { color: var(--mc-ink); }
+.overlay:not(.is-journal) .pbody h3 { color: var(--mc-ink); }
+.overlay:not(.is-journal) .pbody .muted, .overlay:not(.is-journal) .pbody small { color: var(--mc-dim); }
+.overlay:not(.is-journal):not(.is-atelier) .card { background: var(--mc-fill); border: 0; border-radius: 16px; box-shadow: none; }
+.overlay:not(.is-journal) .btn { background: var(--mc-fill-2); color: var(--mc-ink); border: 0; border-radius: 12px; }
+.overlay:not(.is-journal) .btn.primary { background: var(--mc-accent); color: #fff; }
+.overlay:not(.is-journal) .btn.on { background: var(--mc-accent-soft); color: var(--mc-accent); box-shadow: inset 0 0 0 1.5px var(--mc-accent); }
+.overlay:not(.is-journal) .btn:not(:disabled):hover { background: rgba(29, 43, 54, .13); color: var(--mc-ink); }
+.overlay:not(.is-journal) .btn.primary:not(:disabled):hover { background: #237e88; color: #fff; }
+.overlay:not(.is-journal) :is(select, input, textarea) { color: var(--mc-ink); background: var(--mc-solid); border-color: var(--mc-hair); border-radius: 10px; }
+.overlay:not(.is-journal) :is(.seeker-heading p, .seeker-heading .section-kicker, .section-heading > span) { color: var(--mc-dim); }
+.overlay:not(.is-journal) :is(.seeker-library-item, .seeker-mod-tile, .loadout-slot, .equipment-slot, .inventory-item, .recipe-card, .qrow) { background: var(--mc-fill); border: 0; color: var(--mc-ink); border-radius: 14px; }
+.overlay:not(.is-journal) :is(.seeker-library-item.selected, .seeker-mod-tile.selected, .loadout-slot.on, .inventory-item.selected, .equipment-slot.selected) { background: var(--mc-solid); box-shadow: 0 0 0 2px var(--mc-accent); }
+.overlay:not(.is-journal) :is(.seeker-result, .seeker-mod-status, .seeker-mod-status.no, .panel-tip, .result-pop, .seeker-skill-meta) { color: var(--mc-ink); background: var(--mc-fill); border-color: var(--mc-hair); }
+.overlay:not(.is-journal) :is(.seeker-tags .seeker-tag, .tag, .level-pill) { color: var(--mc-dim); background: var(--mc-fill); border-color: transparent; }
+.overlay:not(.is-journal) :is(.ok, .gear-compare .ok) { color: var(--mc-good); }
+.overlay:not(.is-journal) .no { color: var(--mc-bad); }
+.overlay:not(.is-journal) :is(.seeker-skill-meta, .seeker-links, .inventory-tabs, .row, .gear-compare, .inventory-filter) { border-color: var(--mc-hair); }
+.overlay:not(.is-journal) .stat-plus { background: var(--mc-accent); color: #fff; border: 0; }
+.overlay:not(.is-journal) .pbody :is(.inventory-filter, .item-detail, .inventory-list, .inventory-empty, .gear-compare, .gear-implicit, .gear-options, .craft-cost, .cost, .region-detail, .atlas-legend) { color: var(--mc-ink); }
+.overlay:not(.is-journal) .pbody :is(.seeker-target, .seeker-mod-rules, .item-detail, .item-tile, .item-detail-icon, .cost .ingredient, .source-creature, .gear-implicit, .gear-options, .region-detail, .region-mini, .atlas-legend, .inventory-empty) { background: var(--mc-fill); color: var(--mc-ink); border-color: transparent; }
+.overlay:not(.is-journal) .pbody .cost .ingredient.no { box-shadow: inset 0 0 0 1px rgba(196, 81, 62, .35); }
+.overlay:not(.is-journal) .pbody :is(.item-tile.on, .seeker-mod-tile.selected) { outline: 2px solid var(--mc-accent); background: var(--mc-solid); }
+.overlay:not(.is-journal) .pbody .item-tile b { color: var(--mc-ink); }
+.overlay:not(.is-journal) .equipped-label { color: var(--mc-good); }
+.overlay:not(.is-journal) .equipment-slot > span { color: var(--mc-dim); }
+.overlay:not(.is-journal) .pbody :is(.growth-preview, .craft-result, .grade-guide > div, .upgrade-track li) { background: var(--mc-fill); color: var(--mc-ink); border-color: transparent; }
+.overlay:not(.is-journal) .pbody .affix-row { background: var(--mc-accent-soft); border-color: var(--mc-accent); }
+.overlay:not(.is-journal) .pbody .grade-badge { background: var(--mc-solid); border-color: currentColor; }
+.overlay:not(.is-journal) .pbody .grade-C { color: #6f7f8c; } .overlay:not(.is-journal) .pbody .grade-B { color: #2e9a6e; }
+.overlay:not(.is-journal) .pbody .grade-A { color: #3f6fd6; } .overlay:not(.is-journal) .pbody .grade-S { color: #b8860b; }
+.overlay:not(.is-journal) .pbody .item-tile.grade-S, .overlay:not(.is-journal) .pbody .craft-result.grade-S { background: #fff6e0; }
+.overlay:not(.is-journal) .pbody .upgrade-track li.done { background: rgba(46, 154, 94, .12); border-color: var(--mc-good); }
+.overlay:not(.is-journal) .pbody .upgrade-track li.next { background: rgba(184, 134, 11, .12); border-color: #b8860b; color: #8a5f00; }
+.overlay:not(.is-journal) .pbody .craft-goals label { color: var(--mc-dim); }
+.overlay:not(.is-journal) .pbody :is(.craft-repeat, .upgrade-cost, .grade-promotion) { border-color: var(--mc-hair); }
+.overlay:not(.is-journal) .pbody :is(.craft-repeat summary, .recipe-affixes summary) { color: var(--mc-accent); }
+.overlay:not(.is-journal) button:focus-visible, .overlay:not(.is-journal) input:focus-visible { outline-color: var(--mc-accent); }
+.overlay:not(.is-journal):not(.is-atelier) .panel .pbody :is(h3, h4) { color: var(--mc-ink); }
+/* menus.css palette, re-pointed to the light sheet */
+.overlay:not(.is-journal):not(.is-atelier) {
+  --m-bg: var(--mc-solid); --m-card: var(--mc-fill); --m-card-2: var(--mc-fill-2); --m-line: var(--mc-hair); --m-line-2: rgba(29, 43, 54, .16);
+  --m-blue: var(--mc-accent); --m-gold: #a8740f; --m-text: var(--mc-ink); --m-dim: var(--mc-dim);
+}
+.overlay:not(.is-journal):not(.is-atelier) .pbody .card { background: var(--mc-fill); border: 0; border-radius: 16px; }
+.overlay.is-hub .hub-state { background: var(--mc-solid); color: var(--mc-dim); }

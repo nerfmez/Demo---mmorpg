@@ -43,10 +43,9 @@ try {
     });
     const activate = async (selector) => {
       const tab=selector.match(/^\[data-tab="([^"\]]+)"\]$/)?.[1];
-      // a page outside the open page's group is reached through the main menu (covered by menu-hub.mjs)
-      if(tab&&(await page.locator('#atelier').isVisible()||!await page.locator(`[data-tab="${tab}"]`).count()))return page.evaluate(tab=>__frontier.panels.open(tab),tab);
+      // pages have no sidebar; another page is reached through the main menu (covered by menu-hub.mjs)
+      if(tab)return page.evaluate(tab=>__frontier.panels.open(tab),tab);
       if(selector==='.panel-close'&&await page.locator('#atelier').isVisible())selector='#atelier [data-action="close"]';
-      if(tab&&width<=700)return page.locator('[data-page-select]').selectOption(tab);
       return touch ? page.locator(selector).tap() : page.locator(selector).click();
     };
     const shot = (label) => page.screenshot({ path: `${OUT}ux-${name}-${label}.png` });
@@ -69,9 +68,8 @@ try {
     assert.equal(await page.locator('.hub-tile[data-go]').count(), 12, 'every page has one tile in the main menu');
     await activate('.hub-tile[data-go="journal"]');
     assert.equal(await page.locator('#panel-title').textContent(), 'ภารกิจ');
-    assert.equal(await page.locator('[data-tab]').count(), 2, 'the sidebar lists only the open page\'s group');
+    assert.equal(await page.locator('.tabs').isVisible(), false, 'a page shows only itself: no sidebar of other menus');
     assert.ok(await onscreen('.panel-back'), name + ': back to the main menu is reachable');
-    if(width<=700)assert.ok(await onscreen('[data-page-select]'));else for(const tab of ['journal','map']) { assert.ok(await onscreen(`[data-tab="${tab}"]`),name+': navigation visible'); }
     const beforeJournalTabs = await page.evaluate(() => JSON.stringify(__frontier.game.snapshot()));
     assert.ok(await page.locator('.qj-card[data-quest-id="h_slimes"][data-quest-status="active"] [data-art="monster/salt_slime"]').count(), 'the current shore mission uses its authored artwork');
     await activate('[data-act="quest-mode"][data-id="optional"]');
@@ -83,7 +81,6 @@ try {
     await shot('journal');
     await page.locator('.pbody').evaluate((el) => el.scrollTop = el.scrollHeight);
     assert.ok(await onscreen('.panel-close'), 'close must remain reachable after scrolling');
-    assert.ok(await onscreen('.panel-footer [data-close]'), 'return must remain reachable after scrolling');
     await activate('.panel-close');
 
     if(height>width){

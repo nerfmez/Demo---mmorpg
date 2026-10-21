@@ -2,20 +2,16 @@
 import * as THREE from 'three';
 import art from '../../data/art.json' with {type:'json'};
 import { NOISE_GLSL, MEADOW_FIELD_GLSL, GROUND_FIELD_GLSL } from './ground-field.js';
-import { celLook } from './settings.js';
 export { NOISE_GLSL } from './ground-field.js';
 const rgb=hex=>{const c=new THREE.Color(hex);return `vec3(${[c.r,c.g,c.b].map(v=>v.toFixed(5)).join(',')})`;};
 const p=art.ground.palette;
-// Opt-in anime look study: flat two-tone ground with crisp borders and no paint noise.
-const ap=art.ground.animePalette;
-const ANIME_DEFINE=celLook?.ground==='anime'?'#define ANIME_GROUND\n':'';
 // how strongly the brush atlas's leaf strokes darken/lighten the ground (kept low: the ground is
 // mottled lawn, the standing clumps in grass.js are the grass)
 const blade=art.grass;
 const f=(n)=>Number(n).toFixed(3);
 // All ground types share the same brush scale and warm, restrained highlight colours.
 // A shared mipmapped brush atlas and analytic marks stay on real ground/deck surfaces.
-export const SURFACE_PAINT_GLSL=ANIME_DEFINE+NOISE_GLSL+/* glsl */ `
+export const SURFACE_PAINT_GLSL=NOISE_GLSL+/* glsl */ `
 // Anti-aliasing width; a vertex-stage include defines it as 0 (one colour per vertex).
 #ifndef GROUND_AA
 #define GROUND_AA(x) fwidth(x)
@@ -38,9 +34,6 @@ float paintDaubs(vec2 w,float scale){
 }
 vec3 paintedEarth(vec2 w,float wet){
   float broad=vnoise(w*.24+9.0),brush=vnoise(w*1.65);
-#ifdef ANIME_GROUND
-  return mix(mix(${rgb(ap.earthShade)},${rgb(ap.earthLight)},step(.5,broad)),${rgb(p.mud)},step(.5,wet)*wet);
-#endif
   vec3 earth=mix(${rgb(p.earthShadow)},${rgb(p.earthLight)},smoothstep(.20,.79,broad+(brush-.5)*.16));
   float strokes=paintDaubs(w,2.1);
   earth=mix(earth,earth*1.12+${rgb(p.dust)}*.07,strokes*.35);
@@ -64,9 +57,6 @@ float gravel(vec2 w,float scale,float keep,float size){
 // A trodden dirt road: dusty worn centre, darker trodden sides, gravel at two sizes, damp and dry
 // patches and fine grit, so it reads as real ground rather than one flat paint stroke.
 vec3 roadEarth(vec2 w,vec3 earth,float centreTone){
-#ifdef ANIME_GROUND
-  return mix(earth*.94,earth*1.07,step(.5,centreTone));
-#endif
   vec3 e=mix(earth*.92,earth*1.07+${rgb(p.dust)}*.05,centreTone);
   float patches=vnoise(w*.75+23.0);
   e=mix(e*.90,e,smoothstep(.25,.55,patches));
@@ -133,11 +123,6 @@ vec3 lawnTone(vec4 F0,vec4 F2,vec3 tintL,vec3 tintD,float town){
   float patchTone=smoothstep(.14,.86,F0.x*.70+F0.z*.30);
   patchTone=mix(patchTone,.58+(F2.x-.5)*.22,town*.8);
   vec3 grass=mix(tintD*.88,tintL*1.03,patchTone);
-#ifdef ANIME_GROUND
-  // two flat greens in broad blobs, brighter and more saturated than the painted lawn
-  grass=mix(tintD*.95,tintL*${Number(ap.grassLift).toFixed(3)},step(.5,patchTone));
-  return mix(vec3(dot(grass,vec3(.2126,.7152,.0722))),grass,${Number(ap.grassSaturation).toFixed(3)});
-#endif
   return mix(grass,${rgb(p.grassOchre)},smoothstep(.55,.78,F0.w)*.17*(1.0-town*.7));
 }
 vec3 lawnTone(vec2 w,vec3 tintL,vec3 tintD,float town){
@@ -151,13 +136,11 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   float mid=vnoise(w*1.30+3.0),fine=vnoise(w*5.2),broad=F0.z;
   vec3 grass=lawnTone(F0,F2,tintL,tintD,town);
   vec3 brush=groundBrush(w);
-#ifndef ANIME_GROUND
   grass*=.88+brush.r*.26;
   float planted=(.32+smoothstep(.12,.65,meadow.x)*.68)*(1.0-town*.45);
   grass=mix(grass,grass*.76,brush.g*planted*${f(blade.groundStrokeShade)});
   grass=mix(grass,grass*1.27+${rgb(p.grassOchre)}*.05,brush.b*planted*${f(blade.groundStrokeLight)});
   grass*=.99+(fine-.5)*.025;
-#endif
   // Irregular open soil islands are part of the painted terrain, not separate overlay quads.
   float soil=clamp(meadow.y*.30*(1.0-town)+smoothstep(.48,.90,splat.a)*.40,0.0,.68);
   // bare-soil patches get the same ragged, stubble-broken edge and dirt texture as the roads
@@ -171,11 +154,7 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   wob*=1.0-town*.7;
   float tufts=max(brush.g,brush.b)*smoothstep(.12,.55,splat.r)*(1.0-smoothstep(.75,1.0,splat.r))*(1.0-town);
   float roadEdge=splat.r+wob-tufts*${f(art.ground.roadEdgeTufts)};
-#ifdef ANIME_GROUND
-  float onRoad=smoothstep(.465,.485,roadEdge);bare=smoothstep(.605,.625,bare*.13+.55);
-#else
   float onRoad=smoothstep(.40,.54,roadEdge);
-#endif
   // earth and its textures are only painted where soil, bare ground or a road actually shows
   vec3 col=grass;
   if(soil+bare+onRoad>.002){
@@ -191,11 +170,7 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
     }
   }
   // darker soil just inside the border, under the grass overhang
-#ifdef ANIME_GROUND
-  col*=1.0-.13*onRoad*(1.0-step(.6,roadEdge));
-#else
   col*=1.0-.12*onRoad*(1.0-smoothstep(.54,.78,roadEdge));
-#endif
   if(splat.b>.05){
     float damp=1.0-smoothstep(water+.12,water+1.15,y);
     vec3 bank=paintedEarth(w,damp*.78);
@@ -216,11 +191,7 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   // Broad cut faces and restrained chips preserve the terrain's real slope silhouette.
   if(up<.85){
     float strata=vnoise(vec2(w.x*.21+w.y*.19,y*2.7));
-#ifdef ANIME_GROUND
-    vec3 rock=mix(${rgb(ap.rockShade)},${rgb(ap.rockLight)},step(.47,strata));
-#else
     vec3 rock=mix(${rgb(p.rockShadow)},${rgb(p.rockLight)},smoothstep(.30,.63,strata));
-#endif
     rock=mix(rock,rock*1.12,paintDaubs(w,2.7)*.20);
     col=mix(col,rock,1.0-smoothstep(.68,.82,up+(fine-.5)*.025));
   }
@@ -237,9 +208,6 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   // a warm pale band up the dry beach and a cool, glossy wet band at the water's edge
   sand=mix(sand,sand*1.05+vec3(.02,.015,0.0),smoothstep(3.0,8.0,-coast.y)*.5);
   sand=mix(sand,${rgb(p.sandWet)},smoothstep(-5.5,-.2,coast.y)*.46);
-#ifdef ANIME_GROUND
-  sand=mix(mix(${rgb(ap.sandShade)},${rgb(ap.sandLight)},step(.5,broad)),${rgb(p.sandWet)},step(-2.0,coast.y)*.6);
-#endif
   // back-beach: sandy soil with thin, sun-dried grass patches, then open sand; a wandering
   // edge so the meadow gives way gradually instead of stopping at a line
   float shoreNoise=(F2.z-.5)*.30+(fine-.5)*.10;
@@ -253,11 +221,7 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   }
   return col;
 }
-#ifdef ANIME_GROUND
-float groundCloud(vec2 w,float time){return 1.0;}
-#else
 float groundCloud(vec2 w,float time){return 1.0-.045*smoothstep(.55,.72,fbm3(w*.012+vec2(time*.012,time*.006)));}
-#endif
 `;
 // Just the drifting cloud shade, for shaders that do not need the whole ground painter.
 export const GROUND_CLOUD_GLSL=NOISE_GLSL+/* glsl */ `

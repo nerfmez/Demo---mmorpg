@@ -2,11 +2,9 @@
 import config from '../../data/rendering.json' with {type:'json'};
 export const renderConfig = config;
 /** Opt-in cel prototype (?look=cel): its lighting profile and screen-grade overrides, else null. */
-const lookName = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('look') : null;
-const looks = { cel: config.celLook, ...config.lookVariants };
-export const celLook = lookName && lookName !== '_doc' && Object.hasOwn(looks, lookName) ? looks[lookName] : null;
+export const celLook = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'cel' ? config.celLook : null;
 /** The screen grade with the cel prototype's overrides and outline applied when it is on. */
-export const postConfig = () => celLook ? { ...config.post, ...celLook.post, outline: celLook.outline, paint: celLook.paint, bands: celLook.bands } : config.post;
+export const postConfig = () => celLook ? { ...config.post, ...celLook.post, outline: celLook.outline } : config.post;
 export function qualitySettings(name) {
   const quality = Object.hasOwn(config.quality, name) ? name : 'medium';
   return {name:quality, ...config.quality[quality]};

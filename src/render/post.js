@@ -20,36 +20,7 @@ void main() {
   gl_FragColor = vec4(c * k * k, 1.0);
 }`;
 
-// Anime paint (look prototypes): a 4-sector Kuwahara filter flattens texture noise into clean
-// painted regions while keeping edges sharp.
-const PAINT_FRAG = `uniform sampler2D tScene; uniform vec2 uTexel;
-varying vec2 vUv;
-void main() {
-  vec3 m[4]; vec3 s[4];
-  for (int k = 0; k < 4; k++) { m[k] = vec3(0.0); s[k] = vec3(0.0); }
-  for (int j = -RADIUS; j <= RADIUS; j++) for (int i = -RADIUS; i <= RADIUS; i++) {
-    vec3 c = texture2D(tScene, vUv + vec2(float(i), float(j)) * uTexel).rgb;
-    vec3 c2 = c * c;
-    if (i <= 0 && j <= 0) { m[0] += c; s[0] += c2; }
-    if (i >= 0 && j <= 0) { m[1] += c; s[1] += c2; }
-    if (i <= 0 && j >= 0) { m[2] += c; s[2] += c2; }
-    if (i >= 0 && j >= 0) { m[3] += c; s[3] += c2; }
-  }
-  float n = float((RADIUS + 1) * (RADIUS + 1));
-  float best = 1e9; vec3 outc = vec3(0.0);
-  for (int k = 0; k < 4; k++) {
-    vec3 mean = m[k] / n; vec3 v = abs(s[k] / n - mean * mean);
-    float sigma = v.r + v.g + v.b;
-    if (sigma < best) { best = sigma; outc = mean; }
-  }
-  gl_FragColor = vec4(outc, 1.0);
-}`;
-
 const COMPOSITE_FRAG = `uniform sampler2D tScene, tGlow; uniform vec2 uGlowTexel;
-#ifdef BANDS
-// Anime shading bands: luminance snaps toward a few flat levels with a short soft edge.
-uniform float uBands, uBandAmt, uBandSoft;
-#endif
 #ifdef OUTLINE
 // Cel outline from depth: the second difference of linear depth is ~0 on any flat or sloped
 // surface and spikes where a nearer object ends against what is behind it.
@@ -69,12 +40,6 @@ void main() {
   float edge = smoothstep(uOutThreshold, uOutThreshold * 2.5, max(lx, ly) / d0);
   // a darker line of the same hue, cooled slightly toward the outline colour (never flat black)
   c = mix(c, c * 0.3 + uOutColor * 0.06, edge * uOutStrength);
-#endif
-#ifdef BANDS
-  float bl = max(dot(c, vec3(0.2126, 0.7152, 0.0722)), 1e-4);
-  float bx = bl * uBands, bf = fract(bx);
-  float bq = (floor(bx) + smoothstep(0.5 - uBandSoft, 0.5 + uBandSoft, bf)) / uBands;
-  c *= mix(1.0, max(bq, 0.5 / uBands) / bl, uBandAmt);
 #endif
   // glow: a 9-tap tent over the quarter-size bright pass (a wide, soft halo)
   vec3 g = texture2D(tGlow, vUv).rgb * 0.25;
@@ -124,11 +89,6 @@ export class PostFX {
     this.scene = new THREE.WebGLRenderTarget(1, 1, { samples: isGL2 ? cfg.samples ?? 4 : 0, colorSpace: THREE.SRGBColorSpace });
     // the cel outline reads the scene's depth; without it no depth texture is allocated
     if (cfg.outline) this.scene.depthTexture = new THREE.DepthTexture(1, 1);
-    if (cfg.paint) {
-      this.paint = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false, colorSpace: THREE.SRGBColorSpace });
-      this.paintMat = new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: PAINT_FRAG, depthTest: false, depthWrite: false,
-        defines: { RADIUS: String(cfg.paint.radius) }, uniforms: { tScene: { value: this.scene.texture }, uTexel: { value: new THREE.Vector2() } } });
-    }
     this.glow = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false }); // 8-bit: the bright pass never exceeds 1, and every iPad can render to it
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this.geometry = tri();
@@ -141,7 +101,7 @@ export class PostFX {
     this.compositeMat = new THREE.ShaderMaterial({
       vertexShader: VERT, fragmentShader: COMPOSITE_FRAG, depthTest: false, depthWrite: false,
       uniforms: {
-        tScene: { value: this.paint ? this.paint.texture : this.scene.texture }, tGlow: { value: this.glow.texture }, uGlowTexel: { value: new THREE.Vector2() },
+        tScene: { value: this.scene.texture }, tGlow: { value: this.glow.texture }, uGlowTexel: { value: new THREE.Vector2() },
         uExposure: { value: cfg.exposure }, uContrast: { value: cfg.contrast }, uSaturation: { value: cfg.saturation }, uGlow: { value: cfg.glow },
         uShadowTint: { value: col(cfg.shadowTint) }, uShadowAmt: { value: cfg.shadowTintAmount },
         uLightTint: { value: col(cfg.lightTint) }, uLightAmt: { value: cfg.lightTintAmount },
@@ -152,9 +112,8 @@ export class PostFX {
           tDepth: { value: this.scene.depthTexture }, uOutTexel: { value: new THREE.Vector2() }, uNear: { value: 0.5 }, uFar: { value: 220 },
           uOutStrength: { value: cfg.outline.strength }, uOutThreshold: { value: cfg.outline.depthThreshold }, uOutColor: { value: col(cfg.outline.color) },
         } : {}),
-        ...(cfg.bands ? { uBands: { value: cfg.bands.count }, uBandAmt: { value: cfg.bands.amount }, uBandSoft: { value: cfg.bands.soft } } : {}),
       },
-      defines: { ...(cfg.outline ? { OUTLINE: '' } : {}), ...(cfg.bands ? { BANDS: '' } : {}) },
+      defines: cfg.outline ? { OUTLINE: '' } : {},
     });
     this.quad = new THREE.Mesh(this.geometry, this.glowMat);
     this.quad.frustumCulled = false;
@@ -172,7 +131,6 @@ export class PostFX {
     this.scene.setSize(width, height);
     const gw = Math.max(1, Math.round(width / 4)), gh = Math.max(1, Math.round(height / 4));
     this.glow.setSize(gw, gh);
-    if (this.paint) { this.paint.setSize(width, height); this.paintMat.uniforms.uTexel.value.set(Math.max(1, height / 820) / width, Math.max(1, height / 820) / height); }
     this.glowMat.uniforms.uTexel.value.set(1 / width, 1 / height);
     this.compositeMat.uniforms.uGlowTexel.value.set(1 / gw, 1 / gh);
     this.compositeMat.uniforms.uAspect.value = width / height;
@@ -192,7 +150,6 @@ export class PostFX {
     const prev = r.getRenderTarget();
     r.setRenderTarget(this.scene);
     r.render(scene, camera);
-    if (this.paint) { this.quad.material = this.paintMat; r.setRenderTarget(this.paint); r.render(this.quadScene, this.camera); }
     this.quad.material = this.glowMat;
     r.setRenderTarget(this.glow);
     r.render(this.quadScene, this.camera);
@@ -208,8 +165,6 @@ export class PostFX {
     this.scene.dispose();
     this.glow.dispose();
     this.glowMat.dispose();
-    this.paint?.dispose();
-    this.paintMat?.dispose();
     this.compositeMat.dispose();
     this.geometry.dispose();
   }

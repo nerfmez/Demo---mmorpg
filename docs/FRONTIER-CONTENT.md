@@ -1,5 +1,7 @@
 # สกิลและม็อดชุดทดลอง
 
+> หมายเหตุ (ภายหลัง): `arcane_shot` ถูกรวมเข้า `arcane_bolt` และ `ash_detonation` + `shatter` ถูกรวมเป็น `status_burst` ดู `SKILL-MOD-FUSION-DESIGN-TH.md` ข้อ 11
+
 ชุดเดิมมีสูตรคราฟต์ในเกมปกติแล้ว ดู [วัตถุดิบและความเข้ากันได้](FRONTIER-ACQUISITION.md) รายการนี้เป็นค่าตั้งต้นทดลอง
 ไม่ใช่บาลานซ์สุดท้าย ข้อมูลตัวเลขที่ใช้จริงอยู่ใน `data/skills.json` และ `data/mods.json`
 

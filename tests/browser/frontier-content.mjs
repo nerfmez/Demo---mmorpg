@@ -17,14 +17,14 @@ try{
   await page.evaluate(()=>{__lab.state.paused=true;__lab.cast();for(let i=0;i<72;i++)__lab.step(1/60);});
   assert(await page.evaluate(()=>!!__lab.rulesGame.player.charging));await page.screenshot({path:`${out}/${name}-charge.png`});
   await page.evaluate(()=>{__lab.release();for(let i=0;i<24;i++)__lab.step(1/60);});assert(await page.evaluate(()=>!__lab.rulesGame.player.charging));
-  const skills=['charged_shot','riposte','weakpoint','armor_cleave','interrupt_slam','frontline_split','shield_bash','arrow_rain','arcane_shot','flame_stream','crystal_wall','cleanse','battle_aura','stone_guardian'];
+  const skills=['charged_shot','riposte','weakpoint','armor_cleave','interrupt_slam','frontline_split','shield_bash','arrow_rain','flame_stream','crystal_wall','cleanse','battle_aura','stone_guardian'];
   for(const id of skills){
    await page.evaluate(id=>{__lab.selectSkill(id);__lab.state.paused=true;__lab.cast();for(let i=0;i<36;i++)__lab.step(1/60);if(id==='charged_shot'){__lab.release();for(let i=0;i<30;i++)__lab.step(1/60);}},id);
    assert.equal(await page.evaluate(()=>__lab.state.skill),id);assert(await page.evaluate(()=>__lab.rulesGame.skills[0].requirementsMet),id+' requires active gear');
    if(name==='desktop'||['flame_stream','crystal_wall','stone_guardian'].includes(id))await page.screenshot({path:`${out}/${name}-${id}.png`});
    await page.evaluate(()=>__lab.release());
   }
-  console.log('PASS Lab 14 prototypes',name);
+  console.log('PASS Lab 13 prototypes',name);
   // Resource ownership probe: same content sequence, GPU allocations should stabilize.
   const geometries=await page.evaluate(async()=>{const counts=[];for(let round=0;round<3;round++){for(const id of ['crystal_wall','flame_stream','battle_aura']){__lab.selectSkill(id);__lab.cast();for(let i=0;i<36;i++)__lab.step(1/60);await new Promise(requestAnimationFrame);__lab.clear();}__lab.step(1/60);await new Promise(requestAnimationFrame);counts.push(__lab.stats().geometries);}return counts;});
   assert(geometries.at(-1)<=geometries[0]+2,`geometry growth ${geometries}`);
@@ -32,7 +32,7 @@ try{
   await page.waitForFunction(()=>window.__frontier?.game?.time>=.3&&document.getElementById('loading').classList.contains('done'),null,{timeout:90000});
   await page.waitForFunction(()=>parseFloat(getComputedStyle(document.getElementById('loading')).opacity)<.01);
   await page.evaluate(()=>{__frontier.paused=true;__frontier.game.monsters=[];});
-  assert.equal(await page.locator('.skill-sandbox select option').count(),14);
+  assert.equal(await page.locator('.skill-sandbox select option').count(),13);
   const b=page.locator('.sbtn.attack'),box=await b.boundingBox();
   // Real control handlers with touch pointer identity; a mouse press in desktop.
   if(touch)await b.dispatchEvent('pointerdown',{pointerId:31,pointerType:'touch',clientX:box.x+box.width/2,clientY:box.y+box.height/2,button:0,bubbles:true});

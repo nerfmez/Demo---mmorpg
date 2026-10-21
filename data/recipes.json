@@ -669,9 +669,9 @@
       },
       "grade": "B"
     },
-    "mod_burning_ground": {
+    "mod_fire_shift": {
       "type": "mod",
-      "result": "burning_ground",
+      "result": "fire_shift",
       "cost": {
         "venom_gland": 2,
         "boar_hide": 1,
@@ -2017,14 +2017,6 @@
         "gold": 30
       }
     },
-    "learn_arcane_shot": {
-      "type": "skill",
-      "result": "arcane_shot",
-      "cost": {
-        "glow_dust": 2,
-        "gold": 20
-      }
-    },
     "learn_flame_stream": {
       "type": "skill",
       "result": "flame_stream",
@@ -2140,22 +2132,52 @@
       },
       "grade": "C"
     },
-    "mod_ash_detonation": {
+    "mod_status_burst": {
       "type": "mod",
-      "result": "ash_detonation",
+      "result": "status_burst",
       "cost": {
         "glow_dust": 3,
-        "spore_sac": 2,
+        "mirror_scale": 2,
+        "gold": 30
+      },
+      "grade": "C"
+    },
+    "mod_poison_shift": {
+      "type": "mod",
+      "result": "poison_shift",
+      "cost": {
+        "venom_gland": 3,
+        "spore_sac": 1,
         "gold": 25
       },
       "grade": "C"
     },
-    "mod_shatter": {
+    "mod_wide_field": {
       "type": "mod",
-      "result": "shatter",
+      "result": "wide_field",
       "cost": {
         "mirror_scale": 2,
-        "glow_dust": 2,
+        "crab_shell": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_ramp_cast": {
+      "type": "mod",
+      "result": "ramp_cast",
+      "cost": {
+        "glow_dust": 3,
+        "shore_feather": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_momentum": {
+      "type": "mod",
+      "result": "momentum",
+      "cost": {
+        "fern_ear_tuft": 2,
+        "wolf_fang": 2,
         "gold": 25
       },
       "grade": "C"

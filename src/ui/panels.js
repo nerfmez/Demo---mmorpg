@@ -834,7 +834,7 @@ function describeSkill(s) {
   if (s.chain) parts.push(`เด้ง ${s.chain}`);
   if (s.repeats) parts.push(`ฟันซ้ำ ${s.repeats} ครั้ง`);
   if (s.echo) parts.push(`Echo ${Math.round(s.echo.mult * 100)}%`);
-  if (s.ground) parts.push('ทิ้งไฟ');
+  if (s.burnChance) parts.push(`ติดเผา ${Math.round(s.burnChance * 100)}%`);
   if (s.chill) parts.push(`ช้าลง ${Math.round(s.chill.slow * 100)}%`);
   if (s.slow) parts.push(`ช้าลง ${Math.round(s.slow * 100)}%`);
   if (s.knock) parts.push('กระแทกกระเด็น');

@@ -1334,23 +1334,6 @@ export class Vfx {
       const live = ar.t - ar.delay;
       return Math.max(0, Math.min(1, live * 5) * Math.min(1, (ar.duration - live) * 2));
     };
-    if (a.kind === 'burning_ground') {
-      const m = this.decal(this.discGeo, discMaterial('fire'), a.x, a.z, a.radius, 0, 0.07);
-      m.material.uniforms.uColor.value.set(0xff5a1a);
-      m.material.uniforms.uColor2.value.set(0xffd060);
-      return {
-        obj: m,
-        update: (ar, t, dt) => {
-          m.material.uniforms.uT.value = t;
-          m.material.uniforms.uA.value = fadeInOut(ar);
-          if (Math.random() < dt * 14) {
-            const x = ar.x + (Math.random() - 0.5) * ar.radius * 1.4;
-            const z = ar.z + (Math.random() - 0.5) * ar.radius * 1.4;
-            this.fx.add(x, this.gy(x, z) + 0.2, z, 0, 1.8, 0, { color: 0xff9a40, size: 0.28, life: 0.6, drag: 1 });
-          }
-        },
-      };
-    }
     if (a.kind === 'venom_mire' || a.kind === 'spore_cloud') {
       const spore = a.kind === 'spore_cloud';
       const m = this.decal(this.discGeo, discMaterial(spore ? 'spore' : 'mire'), a.x, a.z, a.radius, 0, 0.07);

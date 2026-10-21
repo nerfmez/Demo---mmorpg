@@ -1,5 +1,7 @@
 # PR102 acquisition and compatibility
 
+> หมายเหตุ (ภายหลัง): `arcane_shot` ถูกรวมเข้า `arcane_bolt` และ `ash_detonation` + `shatter` ถูกรวมเป็น `status_burst` ดู `SKILL-MOD-FUSION-DESIGN-TH.md` ข้อ 11
+
 Current source base: main `63d734df69458255f896b26d03a104a38d116da9` (PR119 merged after Moonroot `5f210396786429c2743c8142c7d7309fd31719da`). Existing PR102 head: `fdd0cce93df675de8da7be6205c3566af2867b90`. Only the merged PR119 code is integrated.
 
 28 combat skills / 4 movement / 34 mods: main added `arcane_bolt` while PR102 waited. Both it and the prototype `arcane_shot` retain their IDs and different staff/wand identities. No free grants; fresh characters own only their kit basic. All 14 additions + 19 mods use normal workbench recipes and inventory. `prototype:true` remains solely an authoring/Lab routing marker, not an acquisition gate.

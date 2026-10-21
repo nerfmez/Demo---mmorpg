@@ -78,7 +78,7 @@ test('mod coin classification is ability-based with exactly three colors',()=>{
  assert.deepEqual(Object.keys(MOD_GROUPS).sort(),Object.keys(data.mods.mods).sort());
  assert.deepEqual([...new Set(Object.values(MOD_GROUPS))].sort(),['attack','mechanics','support']);
  assert.equal(new Set(Object.values(GEM_TINTS)).size,3);
- assert.equal(MOD_GROUPS.frost_shift,'mechanics');assert.equal(MOD_GROUPS.burning_ground,'mechanics');
+ assert.equal(MOD_GROUPS.frost_shift,'mechanics');assert.equal(MOD_GROUPS.fire_shift,'mechanics');
  assert.equal(MOD_GROUPS.concentrated,'attack');assert.equal(MOD_GROUPS.life_leech,'support');
  for(const[id,group]of Object.entries(MOD_GROUPS)){assert.match(MOD_ART[id],new RegExp('data-mod-group="'+group+'"'));assert.ok(MOD_ART[id].includes(MOD_GROUP_COLORS[group]));}
 });

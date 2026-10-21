@@ -34,9 +34,10 @@ test('v8 migration adds a separate empty movement socket and preserves ownership
  const {ch}=fixture('firebolt',['split']);ch.version=8;delete ch.movementMods;const before=structuredClone(ch);migrateCharacter(ch,data);assert.equal(ch.version,CHARACTER_VERSION);assert.deepEqual(ch.movementMods,[]);assert.deepEqual(ch.mods,before.mods);assert.deepEqual(ch.slots,before.slots);assert.deepEqual(ch.gear,before.gear);const once=structuredClone(ch);migrateCharacter(ch,data);assert.deepEqual(ch,once);
  ch.movementMods=[900,900,1234];migrateCharacter(ch,data);assert.deepEqual(ch.movementMods,[]);assert.equal(socketMovementMod(ch,data,900).ok,false);assert.equal(socketMod(ch,data,0,900).reason,'duplicate');
 });
-test('new mod conflicts reject symmetrically; shatter requires a live cold conversion',()=>{
- for(const pair of [['returning_shot','bounce'],['gathering_cut','knockback'],['following_aura','cast_on_dodge'],['cast_on_guard','cast_on_dodge']])for(const [a,b] of [pair,[...pair].reverse()]){const s=a==='gathering_cut'||b==='gathering_cut'?data.skills.combat.frost_nova:a==='following_aura'||b==='following_aura'?data.skills.combat.war_cry:data.skills.combat.firebolt;assert.equal(modFits(s,data.mods.mods[a],[data.mods.mods[b]]).ok,false,a+' '+b);}
- const {g,ch}=fixture('firebolt',['shatter','frost_shift']);assert(g.skills[0].mods.every(m=>m.active));ch.stats.INT=1;g.refresh();assert.equal(g.skills[0].mods.find(m=>m.id==='shatter').active,false);
+test('mods of one family reject each other symmetrically; status burst on a non-fire skill needs a live cold conversion',()=>{
+ for(const pair of [['returning_shot','bounce'],['gathering_cut','knockback'],['cast_on_guard','cast_on_dodge']])for(const [a,b] of [pair,[...pair].reverse()]){const s=a==='gathering_cut'||b==='gathering_cut'?data.skills.combat.frost_nova:data.skills.combat.firebolt;const fit=modFits(s,data.mods.mods[a],[data.mods.mods[b]]);assert.equal(fit.ok,false,a+' '+b);assert.equal(fit.reason,'family');}
+ assert.equal(modFits(data.skills.combat.hunter_shot,data.mods.mods.status_burst).ok,false);
+ const {g,ch}=fixture('hunter_shot',['status_burst','frost_shift']);assert(g.skills[0].mods.every(m=>m.active));ch.stats.INT=1;g.refresh();assert.equal(g.skills[0].mods.find(m=>m.id==='status_burst').active,false);
 });
 test('each new skill has a working executor and the weapon/offhand gates enforce actual gear',()=>{
  for(const [id,d] of Object.entries(data.skills.combat).filter(([,d])=>d.prototype)){const {g,m,s}=fixture(id);g.executeSkill(s,id==='crystal_wall'?{...aim,x:8}:aim);assert(g.drainEvents().length||g.areas.length||g.allies.length||g.player.auras||g.player.riposte||g.player.channeling,id);if(d.requiresWeapon){assert.equal(computeSkill(g.ch,data,{...g.derived,weaponType:'none'},0).requirementsMet,false,id);}}
@@ -71,15 +72,15 @@ test('wall refuses occupied/closed placements, blocks movement, and can be destr
  const b=fixture('crystal_wall');b.g.executeSkill(b.s,{angle:0,x:b.m.x,z:b.m.z});assert.equal(b.g.areas.length,0);b.g.world.isFree=()=>false;b.g.executeSkill(b.s,{angle:0,x:8,z:0});assert.equal(b.g.areas.length,0);
 });
 test('projectile return hits once per leg; terminal burst fires at final end without mod recursion',()=>{
- const {g,m,s}=fixture('arcane_shot',['returning_shot','terminal_burst']);g.executeSkill(s,aim);const pr=g.projectiles[0];pr.range=4;pr.speed=10;pr.vx=10;pr.vz=0;let hits=0;const original=g.hitMonster.bind(g);g.hitMonster=(m,a,o)=>{if(!o.secondary)hits++;return original(m,a,o);};for(let i=0;i<60;i++)g.updateProjectiles(.02);assert.equal(hits,2);assert.equal(g.projectiles.length,0);assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='mod_burst').length,1);
+ const {g,m,s}=fixture('arcane_bolt',['returning_shot','terminal_burst']);g.executeSkill(s,aim);const pr=g.projectiles[0];pr.range=4;pr.speed=10;pr.vx=10;pr.vz=0;let hits=0;const original=g.hitMonster.bind(g);g.hitMonster=(m,a,o)=>{if(!o.secondary)hits++;return original(m,a,o);};for(let i=0;i<60;i++)g.updateProjectiles(.02);assert.equal(hits,2);assert.equal(g.projectiles.length,0);assert.equal(g.drainEvents().filter(e=>e.type==='burst'&&e.kind==='mod_burst').length,1);
 });
 test('chain return revisits only the first live target, and bleed does not crit or proc hits',()=>{
  const {g,m,s}=fixture('chain_spark',['chain_return']);g.player.targetId=m.id;g.executeSkill(s,aim);assert.equal(g.drainEvents().filter(e=>e.type==='hit').length,2);
  const a=fixture('slash',['laceration']);a.g.executeSkill(a.s,aim);assert(a.m.statuses.bleed);const t=a.m.statuses.bleed.t;a.g.tickStatuses(a.m,1.5);const events=a.g.drainEvents().filter(e=>e.type==='hit'&&e.dot);assert(events.length);assert(events.every(e=>!e.crit&&e.element==='physical'));assert(a.m.statuses.bleed.t<t);
 });
 test('status-consuming bursts consume once, and following fields remain one per slot with bounded slow',()=>{
- const a=fixture('firebolt',['ash_detonation']);a.m.statuses.burn={dps:5,t:3,owner:'player'};a.g.hitMonster(a.m,20,a.g.hitOpts(a.s));assert.equal(a.m.statuses.burn,undefined);assert.equal(a.g.drainEvents().filter(e=>e.type==='burst').length,1);
- const b=fixture('frost_nova',['shatter']);b.m.statuses.chill={slow:.55,t:3};b.g.hitMonster(b.m,20,b.g.hitOpts(b.s));assert.equal(b.g.drainEvents().filter(e=>e.type==='burst').length,1);
+ const a=fixture('firebolt',['status_burst']);a.m.statuses.burn={dps:5,t:3,owner:'player'};a.g.hitMonster(a.m,20,a.g.hitOpts(a.s));assert.equal(a.m.statuses.burn,undefined);assert.equal(a.g.drainEvents().filter(e=>e.type==='burst').length,1);
+ const b=fixture('frost_nova',['status_burst']);b.m.statuses.chill={slow:.55,t:3};b.g.hitMonster(b.m,20,b.g.hitOpts(b.s));assert.equal(b.g.drainEvents().filter(e=>e.type==='burst').length,1);
  const {g,s,m}=fixture('venom_mire',['following_field','binding_field']);g.executeSkill(s,aim);g.executeSkill(s,aim);assert.equal(g.areas.length,1);g.player.x=2;g.updateAreas(.5);assert.equal(g.areas[0].x,2);const slow=m.statuses.chill.slow;g.updateAreas(.5);assert(m.statuses.chill.slow>slow&&m.statuses.chill.slow<=.35);
 });
 test('curse spreads remaining time to one new target only; barrier break fires once',()=>{
@@ -90,11 +91,11 @@ test('guardian summon shares one bounded hit, focus and commands change targetin
  const {g,s,m}=fixture('stone_guardian',['guardian_bond','focused_pack']);g.spawnAllies(s,0,0);const a=g.allies[0],hp=a.hp;g.damagePlayer(40,null);assert(a.hp<hp);assert.equal(s.summon.damage,fixture('stone_guardian').s.summon.damage*.75);assert(g.commandAllies('attack',m.id));assert.equal(a.targetId,m.id);g.updateAllies(.02);assert.equal(a.targetId,m.id,'explicit command overrides automatic focus');assert.equal(g.commandAllies('attack',999),false);assert(g.commandAllies('follow'));assert.equal(a.targetId,null);assert(g.commandAllies('guard'));g.player.lastHitTarget=m.id;g.updateAllies(.1);assert.equal(a.targetId,null);g.time+=.7;g.updateAllies(.1);assert.equal(a.targetId,m.id);assert(g.commandAllies('guard'));assert.equal(g.ch.slots.length,4);
 });
 test('guard trigger consumes mana, respects weapon/requirements and cannot recurse',()=>{
- const {g,s}=fixture('arcane_shot',['cast_on_guard']);const mp=g.player.mp;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);assert.equal(g.player.mp,mp-s.cost);g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.player.triggerCd[0]=0;g.skills[0].requirementsMet=false;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.skills[0].requirementsMet=true;g.triggering=true;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);
+ const {g,s}=fixture('arcane_bolt',['cast_on_guard']);const mp=g.player.mp;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);assert.equal(g.player.mp,mp-s.cost);g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.player.triggerCd[0]=0;g.skills[0].requirementsMet=false;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);g.skills[0].requirementsMet=true;g.triggering=true;g.fireTriggers('on_guard');assert.equal(g.projectiles.length,1);
 });
 
 test('unsupported delivery mods cannot silently consume sockets; supported rain echo and bash knock work',()=>{
- for(const [skill,mods]of Object.entries({riposte:['multistrike','burning_ground','spiked_ward'],frontline_split:['multistrike','burning_ground','wide_arc','advancing_edge'],shield_bash:['spiked_ward'],stone_guardian:['spiked_ward'],crystal_wall:['echo','cast_on_dodge'],battle_aura:['cast_on_dodge'],armor_cleave:['echo']}))
+ for(const [skill,mods]of Object.entries({riposte:['multistrike'],frontline_split:['multistrike','wide_arc','advancing_edge'],shield_bash:['spiked_ward'],stone_guardian:['spiked_ward'],crystal_wall:['echo','cast_on_dodge'],battle_aura:['cast_on_dodge'],armor_cleave:['echo']}))
   for(const id of mods)assert.equal(modFits(data.skills.combat[skill],data.mods.mods[id]).ok,false,skill+'/'+id);
  const rain=fixture('arrow_rain',['echo']);rain.g.executeSkill(rain.s,aim);assert.equal(rain.g.areas.length,6);assert.equal(rain.g.areas.filter(a=>a.echo).length,3);
  const base=fixture('shield_bash'),mod=fixture('shield_bash',['knockback']);assert(mod.s.knock>base.s.knock);assert.equal(mod.s.knock,data.mods.mods.knockback.effect.knock[0]);
@@ -105,4 +106,53 @@ test('guard-triggered Ward applies its advertised effect fraction and charges ma
  g.fireTriggers('on_guard');assert.equal(g.player.mp,mp-s.cost);assert.equal(g.player.barrier,s.barrier*.6);
  g.fireTriggers('on_guard');assert.equal(g.player.mp,mp-s.cost);
  g.player.triggerCd[0]=0;g.player.mp=s.cost-1;g.player.barrier=0;g.fireTriggers('on_guard');assert.equal(g.player.barrier,0);assert.equal(g.player.mp,s.cost-1);
+});
+
+test('widened single-skill mods work on their new skills, not just fit',()=>{
+ // Spiked Ward + Breaking Ward on a riposte stance: taunt on stance, reflect the blocked part and push the crowd on a guard.
+ {const {g,m,s}=fixture('riposte',['spiked_ward','breaking_ward']);const other=structuredClone(m);other.id=m.id+'b';other.x=1.5;other.z=1;other.statuses={};g.monsters.push(other);
+  g.executeSkill(s,aim);assert.equal(m.forcedTargetId,g.player.id,'stance taunts nearby');
+  const hp=m.hp,ox=other.x;g.damagePlayer(40,m);assert.ok(m.hp<hp,'blocked damage is reflected');assert.ok(other.x>ox,'guard pushes nearby monsters');}
+ {const {g,m,s}=fixture('riposte');g.executeSkill(s,aim);const hp=m.hp;g.damagePlayer(40,m);assert.equal(m.hp,hp,'no reflect without the mod');}
+ // Spreading Hex passes Armor Cleave's exposure to the nearest monster when the target dies.
+ {const {g,m,s}=fixture('armor_cleave',['spreading_hex']);const other=structuredClone(m);other.id=m.id+'c';other.x=3;other.z=0.5;other.statuses={};g.monsters.push(other);
+  g.executeSkill(s,aim);advance(g,s.castTime+.1);assert.ok(m.statuses.exposure?.spread>0,'exposure remembers the spread');m.hp=1;g.hitMonster(m,50,{element:'physical'});
+  assert.ok(m.dead);assert.ok(other.statuses.exposure,'exposure spreads');assert.equal(other.statuses.exposure.t,m.statuses.exposure.t,'remaining time, not a refresh');}
+ // Mending Chain on Healing Spring heals an injured ally standing just outside the field.
+ {const {g,s}=fixture('healing_spring',['healing_chain']);g.spawnAllies(fixture('stone_guardian').s,0,0);const ally=g.allies[0];ally.x=s.radius+2;ally.z=0;ally.hp=ally.maxHp-80;
+  g.executeSkill(s,aim);const spring=g.areas.find(a=>a.heal);spring.x=g.player.x;spring.z=g.player.z;const before=ally.hp;g.updateAreas(s.tick+.01);assert.ok(ally.hp>before,'chain reaches outside the field');}
+ {const {g,s}=fixture('healing_spring');g.spawnAllies(fixture('stone_guardian').s,0,0);const ally=g.allies[0];ally.x=s.radius+2;ally.z=0;ally.hp=ally.maxHp-80;
+  g.executeSkill(s,aim);const spring=g.areas.find(a=>a.heal);spring.x=g.player.x;spring.z=g.player.z;const before=ally.hp;g.updateAreas(s.tick+.01);assert.equal(ally.hp,before,'no chain without the mod');}
+});
+
+test('Fire Shift burns the target and leaves nothing on the ground',()=>{
+ const {g,m,s}=fixture('hunter_shot',['fire_shift']);assert.equal(s.element,'fire');assert.ok(s.burnChance>0);assert.equal(s.chill,null);
+ g.rng.chance=()=>true;g.hitMonster(m,20,g.hitOpts(s));assert.equal(m.statuses.burn?.owner,'player');
+ g.executeSkill(s,aim);for(let i=0;i<40;i++)g.updateProjectiles(.02);assert.equal(g.areas.length,0,'no field is spawned');
+ const both=fixture('frost_nova',['fire_shift']);assert.equal(both.s.chill,null,'fire replaces the native chill');assert.equal(both.s.element,'fire');
+ assert.equal(modFits(data.skills.combat.slash,data.mods.mods.fire_shift,[data.mods.mods.frost_shift]).reason,'family');
+});
+
+test('phase 2c mods: poison shift, wide field, building power and momentum change behaviour',()=>{
+ const S=data.skills.combat,M=data.mods.mods;
+ // Poison Shift: element family, converts part of the hit to the target's poison and keeps the total.
+ {const {g,m,s}=fixture('hunter_shot',['poison_shift']);assert.equal(s.element,'poison');assert.equal(s.chill,null);assert.equal(s.burnChance,0);
+  const plain=fixture('hunter_shot').s;assert.ok(Math.abs(s.damage/plain.damage-0.8)<1e-9);
+  g.hitMonster(m,40,g.hitOpts(s));assert.equal(m.statuses.poison?.owner,'player');assert.ok(Math.abs(m.statuses.poison.dps*3-40/0.8*0.2)<1e-9,'converted part over 3 s');
+  assert.equal(modFits(S.slash,M.poison_shift,[M.frost_shift]).reason,'family');}
+ // Wide Field: wider circle, weaker effect, and never with Concentrated Effect.
+ {const base=fixture('frost_nova').s,wide=fixture('frost_nova',['wide_field']).s;assert.ok(Math.abs(wide.radius/base.radius-1.3)<1e-9);assert.ok(Math.abs(wide.damage/base.damage-0.9)<1e-9);
+  const cry=fixture('war_cry',['wide_field']).s,cry0=fixture('war_cry').s;assert.ok(Math.abs(cry.damageBuff/cry0.damageBuff-0.9)<1e-9);assert.ok(cry.radius>cry0.radius);
+  const aura=fixture('battle_aura',['wide_field']).s,aura0=fixture('battle_aura').s;assert.ok(aura.aura.mpRegen<aura0.aura.mpRegen);assert.equal(fixture('battle_aura').s.aura.mpRegen,S.battle_aura.aura.mpRegen,'data is not mutated');
+  assert.equal(modFits(S.frost_nova,M.wide_field,[M.concentrated]).reason,'family');assert.equal(modFits(S.slash,M.wide_field).ok,false);}
+ // Building Power: a stronger but slower full charge; a channel that grows while held.
+ {const {s}=fixture('charged_shot',['ramp_cast']),plain=fixture('charged_shot').s;assert.ok(s.charge.maxDamageMult>plain.charge.maxDamageMult);assert.ok(s.charge.duration>plain.charge.duration);
+  assert.equal(data.skills.combat.charged_shot.charge.duration,1.2,'data is not mutated');
+  const pulse=(mods,held)=>{const {g,m,s}=fixture('flame_stream',mods);g.executeSkill(s,aim);const c=g.player.channeling;c.t=held;c.next=held;const hp=m.hp;tickFrontier(g,0);return hp-m.hp;};
+  const early=pulse(['ramp_cast'],0),late=pulse(['ramp_cast'],3),plainHit=pulse([],0);assert.ok(early<plainHit,'starts weaker');assert.ok(late>plainHit,'grows past the plain channel');}
+ // Momentum: the next cast within the window is quicker, once.
+ {const {g,ch}=fixture('slash');ch.mods.push({id:'momentum',uid:950,level:1,grade:'C'});ch.movementMods=[950];g.refresh();g.player.movement.charges=2;
+  assert.ok(g.move.momentum);const normal=g.skills[0].castTime;assert.ok(g.useMovement());g.player.dash=null;
+  assert.ok(g.castSlot(0));assert.ok(Math.abs(g.player.cast.total-normal/1.2)<1e-9);g.player.cast=null;g.player.cooldowns[0]=0;
+  assert.ok(g.castSlot(0));assert.equal(g.player.cast.total,normal,'only the next cast');}
 });

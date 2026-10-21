@@ -8,7 +8,7 @@ import { DEG, angleDiff, angleTo, dist, dirFromAngle, clamp } from './math.js';
 import { createCharacter, migrateCharacter, derive, addExp, expToNext, jobExpToNext, gearLook, arrowsPerCast, arrowTotal, arrowInUse, spendArrows } from './character.js';
 import { computeSkill, movementSkill } from './skills.js';
 import { rollDrops, addItem, craft, rollGearDrop } from './crafting.js';
-import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit } from './frontier-content.js';
+import { executeFrontier, adjustFrontierHit, spreadCurse, applyGuard, shareGuardDamage, breakBarrier, wallBlocked, tickFrontier, endProjectile, manaLimit, cancelChannel, startChannel, commandAllies, healUnit, chainFieldHeal } from './frontier-content.js';
 import { nearestTarget, softTarget } from './targeting.js';
 import { updateMonster, onMonsterHit, setAggro } from './ai.js';
 import { refreshQuests, questEvent, recordQuestCompletion } from './quests.js';
@@ -461,11 +461,13 @@ export class Game {
     }
     // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
     // so the announced animation and the swing always agree
-    const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + s.castTime) : 0;
+    let castTime = s.castTime;
+    if (p.momentum) { if (this.time <= p.momentum.until) castTime /= 1 + p.momentum.speed; p.momentum = null; }
+    const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + castTime) : 0;
     const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
-    p.cast = { slot: i, t: 0, total: s.castTime, aim, skill: castSkill, step };
+    p.cast = { slot: i, t: 0, total: castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
-    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime, weapon: this.derived.weaponType, step });
+    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step });
     return true;
   }
 
@@ -547,6 +549,8 @@ export class Game {
       p.facing = angle;
       p.dash = { t: 0, dur: mv.duration, vx: dir.x * speed, vz: dir.z * speed, inv: mv.invulnerable, kind: mv.id };
     }
+    // Momentum: the next cast soon after moving is quicker.
+    if (mv.momentum) p.momentum = { until: this.time + mv.duration + mv.momentum.window, speed: mv.momentum.speed };
     this.emit({ type: 'movement', kind: mv.id, angle });
     return true;
   }
@@ -1055,10 +1059,6 @@ export class Game {
           p.barrierT = Math.max(p.barrierT, 3);
         }
         this.emit({ type: 'slash', skill: s.id, x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++, step: p.comboStep || 0, finisher, hits });
-        if (s.ground) {
-          const d = dirFromAngle(aim.angle);
-          this.spawnGround(s, p.x + d.x * s.range * 0.6, p.z + d.z * s.range * 0.6, mult);
-        }
         if (repeat < s.repeats) this.later(s.repeatDelay, () => !p.dead && this.executeSkill(s, { ...aim, angle: p.facing }, { mult: s.repeatMult, repeat: repeat + 1 }));
         return;
       }
@@ -1068,7 +1068,6 @@ export class Game {
           this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit() }));
         }
         this.emit({ type: 'whirl', skill: s.id, x: p.x, z: p.z, radius: s.radius, angle: p.facing, element: s.element });
-        if (s.ground) this.spawnGround(s, p.x, p.z, mult);
         if (repeat < s.repeats) this.later(s.repeatDelay + 0.1, () => !p.dead && this.executeSkill(s, aim, { mult: s.repeatMult, repeat: repeat + 1 }));
         if (s.echo && !repeat && !triggered) this.later(s.echo.delay, () => !p.dead && this.executeSkill(s, aim, { mult: s.echo.mult, repeat: 99 }));
         return;
@@ -1134,7 +1133,6 @@ export class Game {
           hit.add(cur.id);
           const target = cur;
           this.hitMonster(target, dmg, this.hitOpts(s, { crit: crit() }));
-          if (s.ground) this.spawnGround(s, target.x, target.z, mult);
           dmg *= s.chainFalloff;
           let next = null;
           let nd = s.chainRange || 6;
@@ -1164,7 +1162,6 @@ export class Game {
             this.hitMonster(m, s.damage * mult * k, this.hitOpts(s, { crit: crit(), fromX: p.x, fromZ: p.z }));
           }
           this.emit({ type: 'nova', x: p.x, z: p.z, radius: s.radius, element: s.element });
-          if (s.ground) this.spawnGround(s, p.x, p.z, mult * k);
         };
         blast(1);
         if (s.echo) this.later(s.echo.delay, () => !p.dead && blast(s.echo.mult));
@@ -1220,11 +1217,6 @@ export class Game {
         return;
       }
     }
-  }
-
-  spawnGround(s, x, z, mult = 1) {
-    if (!s.ground) return;
-    this.spawnArea({ owner: 'player', kind: 'burning_ground', x, z, radius: s.ground.radius, delay: 0, duration: s.ground.duration, tick: 0.5, damage: s.damage * mult * s.ground.dpsMult * 0.5, element: 'fire', dot: true });
   }
 
   // ---------- update ----------
@@ -1665,7 +1657,6 @@ export class Game {
           const s = pr.skill;
           this.hitMonster(m, pr.damage, this.hitOpts(s, { crit: this.rollCrit(), fromX: pr.x - pr.vx * 0.05, fromZ: pr.z - pr.vz * 0.05 }));
           this.emit({ type: 'impact', kind: pr.kind, element: pr.element, x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
-          if (s.ground) this.spawnGround(s, m.x, m.z, pr.triggered ? s.trigger?.damageMult || 1 : 1);
           if (pr.chain > 0) {
             const next = this.monsters
               .filter((o) => !o.dead && !pr.hit.has(o.id) && dist(o.x, o.z, m.x, m.z) < pr.chainRange)
@@ -1709,7 +1700,6 @@ export class Game {
 
   projectileImpact(pr) {
     this.emit({ type: 'impact', kind: pr.kind, element: pr.element || 'arcane', x: pr.x, z: pr.z, vx: pr.vx, vz: pr.vz });
-    if (pr.owner === 'player' && pr.skill?.ground) this.spawnGround(pr.skill, pr.x, pr.z);
   }
 
   updateAreas(dt) {
@@ -1741,12 +1731,13 @@ export class Game {
             const p = this.player;
             if (!p.dead && dist(a.x, a.z, p.x, p.z) <= a.radius + p.r) healUnit(this,this.player,a.heal,a.skill);
             for (const al of this.allies) if (dist(a.x, a.z, al.x, al.z) <= a.radius + al.r) healUnit(this,al,a.heal,a.skill);
+            chainFieldHeal(this, a);
           } else if (a.damage) {
             if(a.dwell)for(const id of a.dwell.keys()){const q=this.monsterById(id);if(!q||q.dead||dist(a.x,a.z,q.x,q.z)>a.radius+q.r)a.dwell.delete(id);}
             for (const m of this.monsters) {
               if (m.dead || dist(a.x, a.z, m.x, m.z) > a.radius + m.r) continue;
-              const ramp=a.skill?.modEffects?.rampSlow;
-              if(ramp){const dwell=(a.dwell.get(m.id)||0)+a.tick;a.dwell.set(m.id,dwell);m.statuses.chill={slow:Math.max(m.statuses.chill?.slow||0,(a.slow||0)+(ramp-(a.slow||0))*Math.min(1,dwell/a.skill.modEffects.rampTime)),t:.6};}
+              const fx=a.skill?.modEffects,ramp=fx?.rampSlow;
+              if(ramp){const dwell=(a.dwell.get(m.id)||0)+a.tick;a.dwell.set(m.id,dwell);m.statuses.chill={slow:Math.max(m.statuses.chill?.slow||0,(a.slow||0)+(ramp-(a.slow||0))*Math.min(1,dwell/fx.rampTime)),t:.6};}
               if (a.slow) m.statuses.chill = { slow: Math.max(a.slow, m.statuses.chill?.slow || 0), t: Math.max(0.6, m.statuses.chill?.t || 0) };
               this.hitMonster(m, a.damage, { dot: true, element: a.element });
             }
@@ -1761,7 +1752,6 @@ export class Game {
             this.hitMonster(m, a.damage, s ? this.hitOpts(s, { crit: this.rollCrit(), fromX: a.x, fromZ: a.z }) : { element: a.element });
           }
           this.emit({ type: 'burst', kind: a.kind, element: a.element, echo: !!a.echo, x: a.x, z: a.z, radius: a.radius });
-          if (s?.ground) this.spawnGround(s, a.x, a.z, a.echo ? s.echo.mult : 1);
         } else if (a.owner === 'monster' && a.damage) {
           const src = this.monsterById(a.sourceId);
           // a ring (a.inner) leaves its middle safe

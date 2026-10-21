@@ -1,13 +1,12 @@
 // One vocabulary for native skill tags and the rules enforced by core/skills.js.
-import { modFits, modSlotOf, modRequires } from '../core/skills.js';
-import MODS from '../../data/mods.json' with {type:'json'};
+import { modFits, modSlotOf, modRequires, modSlotsFor } from '../core/skills.js';
 import { meetsRequires } from '../core/character.js';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const TAGS = {
   Attack:'โจมตี',Spell:'เวท',Melee:'ประชิด',Projectile:'กระสุน',Area:'วงกว้าง',Damage:'ทำดาเมจ',
   DoT:'ดาเมจต่อเนื่อง',Persistent:'พื้นที่คงอยู่',Chain:'เด้งต่อ',Control:'ควบคุม',Debuff:'ดีบัฟ',
   Curse:'คำสาป',Guard:'เกราะ/การ์ด',Buff:'บัฟ',Warcry:'คำราม',Heal:'ฟื้นฟู',Summon:'อัญเชิญ',
-  Physical:'กายภาพ',Counter:'สวนกลับ',Line:'แนวตรง',Rain:'ยิงระลอก',Channel:'ร่ายต่อเนื่อง',Cone:'กรวย',Construct:'สิ่งสร้าง',Target:'เป้าหมาย',Cleanse:'ล้างสถานะ',Aura:'ออร่า',Charge:'ชาร์จ',Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
+  Physical:'กายภาพ',Arc:'ฟันโค้ง',Nova:'รอบตัว',Ground:'เล็งพื้น',Zone:'ค้างบนพื้น',Barrier:'โล่เกราะ',Counter:'สวนกลับ',Line:'แนวตรง',Rain:'ยิงระลอก',Channel:'ร่ายต่อเนื่อง',Cone:'กรวย',Construct:'สิ่งสร้าง',Target:'เป้าหมาย',Cleanse:'ล้างสถานะ',Aura:'ออร่า',Charge:'ชาร์จ',Minion:'ลูกสมุน',Movement:'เคลื่อนที่',Trigger:'ทริกเกอร์',Leech:'ดูดเลือด',
   Fire:'ไฟ',Earth:'ดิน',Cold:'น้ำแข็ง',Lightning:'สายฟ้า',Poison:'พิษ',
 };
 export const ELEMENTS = {physical:'กายภาพ',fire:'ไฟ',cold:'น้ำแข็ง',lightning:'สายฟ้า',poison:'พิษ',arcane:'อาร์เคน',none:'ไม่มีดาเมจธาตุ'};
@@ -19,29 +18,30 @@ export function requirementsHtml(def) {
   const req=Object.entries(def.requires||{});
   return `<p class="seeker-requires">ค่าสถานะที่ต้องมี: <b>${req.length?req.map(([s,v])=>`${esc(s)} ${v}`).join(' · '):'ไม่มีเงื่อนไข'}</b></p>`;
 }
+const FAMILIES = {element:'เปลี่ยนธาตุ',trigger:'ร่ายอัตโนมัติ',trajectory:'เปลี่ยนทางกระสุน',displace:'ย้ายตำแหน่งศัตรู'};
+const tagList = (tags, join) => tags.map(t=>TAGS[t]||t).join(join);
 export function modRules(mod) {
-  const name=t=>TAGS[t]||t, rules=[];
-  if(mod.requiresAll?.length) rules.push('ต้องมีครบ: '+mod.requiresAll.map(name).join(' + '));
-  if(mod.requiresAny?.length) rules.push('และมีอย่างน้อยหนึ่ง: '+mod.requiresAny.map(name).join(' / '));
-  if(mod.excludes?.length) rules.push('ใช้ไม่ได้กับ: '+mod.excludes.map(name).join(' / '));
-  if(mod.requiresKinds)rules.push('รูปแบบที่รองรับ: '+mod.requiresKinds.map(k=>({projectile:'กระสุน',chain:'เด้ง',melee_arc:'ฟันวง',melee_line:'ฟันแนว',melee_nova:'หมุนฟัน',nova:'ระเบิดรอบตัว',ground_area:'พื้นที่กระแทก',heal_zone:'พื้นที่ฮีล',dot_zone:'พื้นที่ดาเมจต่อเนื่อง',heal_target:'ฮีลเป้าหมาย',self_barrier:'เกราะ',curse_zone:'คำสาป',summon:'อัญเชิญ',buff:'บัฟ'}[k]||k)).join(' / '));
-  if(mod.requiresElement)rules.push('ต้องเป็นธาตุ '+ELEMENTS[mod.requiresElement]+' หรือมีม็อดเปลี่ยนธาตุที่ใช้งานได้');
-  if(mod.conflicts)rules.push('ใช้ร่วมกับม็อดนี้ไม่ได้: '+mod.conflicts.map(id=>MODS.mods[id]?.nameTh||id).join(' / '));
-  if(mod.requiresPersistent) rules.push('ต้องมีพื้นที่คงอยู่: บึงพิษ / น้ำพุฟื้นฟู หรือใส่ทิ้งไฟบนพื้นก่อน');
+  const rules=[];
+  if(mod.needs?.length) rules.push('ต้องเป็น: '+tagList(mod.needs,' + '));
+  if(mod.on?.length) rules.push('รูปแบบ: '+tagList(mod.on,' หรือ '));
+  if(mod.not?.length) rules.push('ใช้ไม่ได้กับ: '+tagList(mod.not,' / '));
+  if(mod.family) rules.push('กลุ่ม'+(FAMILIES[mod.family]||mod.family)+' · ใส่สกิลเดียวกันได้ตัวเดียว');
+  if(mod.grants?.length) rules.push('ให้แท็กเพิ่มกับม็อดอื่น: '+tagList(mod.grants,' / '));
   return rules.length?rules:['ไม่จำกัดประเภทสกิล'];
 }
 export function rulesHtml(mod) {
-  return `<div class="seeker-mod-rules"><b>ใช้ร่วมกับสกิล</b>${modRules(mod).map(r=>`<div>${esc(r)}</div>`).join('')}${requirementsHtml(mod)}<small>ตรวจจากแท็กพื้นฐานของสกิล · เงื่อนไขพื้นที่คงอยู่ตรวจม็อดร่วมด้วย</small></div>`;
+  return `<div class="seeker-mod-rules"><b>ใช้ร่วมกับสกิล</b>${modRules(mod).map(r=>`<div>${esc(r)}</div>`).join('')}${requirementsHtml(mod)}<small>ตรวจจากแท็กของสกิล รวมแท็กที่ม็อดอื่นในช่องเดียวกันให้เพิ่ม</small></div>`;
 }
 export function fitReason(fit) {
   if(fit.ok)return 'ประเภทตรงกัน';
-  if(fit.reason==='delivery')return 'รูปแบบการร่ายไม่รองรับม็อดนี้';
-  if(fit.reason==='conflict')return 'มีม็อดที่ใช้ร่วมกันไม่ได้ · ถอดม็อดนั้นก่อน';
-  if(fit.reason==='element')return 'ต้องเป็นธาตุน้ำแข็ง หรือใส่เปลี่ยนเป็นน้ำแข็งร่วมกัน';
-  if(fit.reason==='needs_persistent')return 'ต้องมีพื้นที่คงอยู่ หรือใส่ทิ้งไฟบนพื้นก่อน';
-  const [prefix,raw='']=fit.reason.split(' for ').length>1?['not',fit.reason.slice(8)]:['needs',fit.reason.replace(/^needs /,'')];
-  return (prefix==='not'?'ห้ามใช้กับ ':'ขาดประเภท ')+raw.split(/([+/])/).map(x=>x==='+'?' + ':x==='/'?' หรือ ':TAGS[x]||x).join('');
+  if(fit.reason==='needs')return 'ต้องเป็น '+tagList(fit.tags,' + ');
+  if(fit.reason==='on')return 'ต้องเป็น '+tagList(fit.tags,' หรือ ');
+  if(fit.reason==='not')return 'ใช้กับ '+tagList(fit.tags,' / ')+' ไม่ได้';
+  if(fit.reason==='family')return 'มีม็อดกลุ่ม'+(FAMILIES[fit.family]||fit.family)+'อยู่แล้ว · ถอดตัวนั้นก่อน';
+  return 'ใช้กับสกิลนี้ไม่ได้';
 }
+/** Mod sockets the skill in combat slot `index` currently has (rank-based). */
+export const slotCapacity = (ch, data, index) => modSlotsFor(data, ch.skills[ch.slots[index]?.skill] || 1);
 /** Separate type fit, activation, ownership and socket capacity. Browsing never mutates. */
 export function modStatus(ch,data,index,inst) {
   const slot=ch.slots[index], md=data.mods.mods[inst.id];
@@ -50,7 +50,7 @@ export function modStatus(ch,data,index,inst) {
   // Higher ranks ask for more stats (modRequires).
   const fit=modFits(data.skills.combat[slot?.skill],md,companions), req=meetsRequires(ch,modRequires(data,md,inst.level||1)), where=modSlotOf(ch,inst.uid);
   const duplicate=!!slot?.mods.some(u=>u!==inst.uid&&ch.mods.find(m=>m.uid===u)?.id===inst.id);
-  const full=(slot?.mods.length||0)>=data.mods.maxModsPerSkill;
+  const full=(slot?.mods.length||0)>=slotCapacity(ch,data,index);
   const own=where===index;
   const activeCompanions=companionInsts.filter(m=>meetsRequires(ch,modRequires(data,data.mods.mods[m.id],m.level||1)).ok).map(m=>data.mods.mods[m.id]);
   const activeFit=modFits(data.skills.combat[slot?.skill],md,activeCompanions);

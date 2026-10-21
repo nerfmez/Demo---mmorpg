@@ -26,19 +26,31 @@ export function modRequires(data, mod, level = 1) {
 
 const ELEMENTS = ['Fire', 'Cold', 'Lightning', 'Poison'];
 
+/**
+ * One rule for every mod: the skill's visible tags, plus the `grants` of companion mods that
+ * fit the bare skill, must contain ALL of `needs`, ANY of `on` (when listed) and NONE of `not`.
+ * Two mods of the same `family` never share a skill. Returns {ok, reason, tags?}.
+ */
 export function modFits(skill, mod, companions = []) {
   if (!skill || !mod) return { ok: false, reason: 'unknown' };
-  const tags = skill.tags || [];
-  if (mod.requiresKinds && !mod.requiresKinds.includes(skill.kind)) return { ok:false, reason:'delivery' };
-  if (companions.some(c => c !== mod && ((mod.conflicts || []).includes(c.id) || (c.conflicts || []).includes(mod.id)))) return { ok:false, reason:'conflict' };
-  if (mod.requiresElement && skill.element !== mod.requiresElement && !companions.some(c => c.effect?.element === mod.requiresElement && modFits(skill,c).ok)) return {ok:false,reason:'element'};
-  if (mod.requiresPersistent && !['dot_zone', 'heal_zone'].includes(skill.kind) && !companions.some(m => m?.effect?.groundDps && modFits(skill, m).ok))
-    return { ok: false, reason: 'needs_persistent' };
-  if (mod.requiresAll && !mod.requiresAll.every((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAll.join('+')}` };
-  if (mod.requiresAny && !mod.requiresAny.some((t) => tags.includes(t))) return { ok: false, reason: `needs ${mod.requiresAny.join('/')}` };
-  if (mod.excludes && mod.excludes.some((t) => tags.includes(t))) return { ok: false, reason: `not for ${mod.excludes.join('/')}` };
+  const others = companions.filter(c => c && c !== mod && (c.id === undefined || c.id !== mod.id));
+  if (mod.family && others.some(c => c.family === mod.family)) return { ok: false, reason: 'family', family: mod.family };
+  const tags = new Set(skill.tags || []);
+  for (const c of others) if (c.grants && modFits(skill, c).ok) for (const t of c.grants) tags.add(t);
+  const missing = (mod.needs || []).filter(t => !tags.has(t));
+  if (missing.length) return { ok: false, reason: 'needs', tags: missing };
+  if (mod.on?.length && !mod.on.some(t => tags.has(t))) return { ok: false, reason: 'on', tags: mod.on };
+  const blocked = (mod.not || []).filter(t => tags.has(t));
+  if (blocked.length) return { ok: false, reason: 'not', tags: blocked };
   return { ok: true };
 }
+
+/** Mod sockets a combat skill has at `rank` (mods.json slotsByRank, last entry = max). */
+export function modSlotsFor(data, rank = 1) {
+  const by = data.mods.slotsByRank;
+  return by[Math.min(Math.max(rank, 1), by.length) - 1];
+}
+export const maxModSlots = data => Math.max(...data.mods.slotsByRank);
 
 const lv = (v, level) => (Array.isArray(v) ? v[Math.min(level, v.length) - 1] : v);
 
@@ -83,7 +95,6 @@ export function computeSkill(ch, data, derived, slotIndex) {
     chainRange: def.chainRange || 0,
     chainFalloff: def.chainFalloff || 1,
     echo: null,
-    ground: null,
     chill: def.chill ? { ...def.chill } : null,
     slow: def.slow || 0,
     reflect: 0,
@@ -168,7 +179,6 @@ export function computeSkill(ch, data, derived, slotIndex) {
       s.chainRange = Math.max(s.chainRange, e.chainRange);
     }
     if (e.damageMult && !e.trigger) s.damageMult *= lv(e.damageMult, L);
-    if (e.groundDps) s.ground = { dpsMult: lv(e.groundDps, L), duration: e.groundDuration, radius: e.groundRadius };
     if (e.echoDelay) s.echo = { delay: e.echoDelay, mult: lv(e.echoMult, L) * (1 + derived.echoDamagePct / 100) };
     if (e.arcAdd) {
       s.arc += lv(e.arcAdd, L);
@@ -176,9 +186,10 @@ export function computeSkill(ch, data, derived, slotIndex) {
       if (s.kind === 'melee_nova') s.radius += lv(e.rangeAdd, L);
     }
     if (e.element) {
+      // An element shift replaces the skill's own status: cold chills, fire burns, never both.
       s.element = e.element;
-      s.chill = { slow: Math.max(s.chill?.slow || 0, lv(e.chillSlow, L)), duration: Math.max(s.chill?.duration || 0, e.chillDuration) };
-      s.burnChance = 0;
+      s.chill = e.chillSlow ? { slow: Math.max(s.chill?.slow || 0, lv(e.chillSlow, L)), duration: Math.max(s.chill?.duration || 0, e.chillDuration) } : null;
+      s.burnChance = e.burnChance ? Math.max(s.burnChance, lv(e.burnChance, L)) : 0;
     }
     if (e.reflect) {
       s.reflect = lv(e.reflect, L);
@@ -203,21 +214,13 @@ export function computeSkill(ch, data, derived, slotIndex) {
     const finalLineInc = lineInc(tags, s.element);
     if (finalLineInc !== baseLineInc) s.damage *= (1 + (inc - baseLineInc + finalLineInc) / 100) / (1 + inc / 100);
   }
-  if (s.durationMult) {
-    if (s.kind === 'dot_zone' || s.kind === 'heal_zone') s.duration *= s.durationMult;
-    if (s.ground) s.ground.duration *= s.durationMult;
-  }
+  if (s.durationMult && (s.kind === 'dot_zone' || s.kind === 'heal_zone')) s.duration *= s.durationMult;
   // Apply tag-specific passives after mods; socket order cannot change the result.
   s.radius *= radiusMult;
   const lasting = 1 + (derived.persistentDurationPct || 0) / 100;
   const dot = 1 + (derived.dotDamagePct || 0) / 100;
   if (s.kind === 'dot_zone') s.damage *= dot;
   if (['dot_zone', 'heal_zone'].includes(s.kind)) s.duration *= lasting;
-  if (s.ground) {
-    s.ground.duration *= lasting;
-    if(s.kind !== 'dot_zone') s.ground.dpsMult *= dot;
-    s.ground.radius *= radiusMult * (1 + derived.areaRadiusPct / 100);
-  }
   const control = 1 + (derived.controlDurationPct || 0) / 100;
   if (s.chill) s.chill.duration *= control;
   if (s.kind === 'curse_zone') s.duration *= control;
@@ -250,6 +253,7 @@ export function movementSkill(ch, data, derived) {
     if (!active) continue;
     out.distance *= mod.effect.movementDistanceMult || 1;
     out.charges += mod.effect.movementCharges || 0;
+    if (mod.effect.momentumCastSpeed) out.momentum = { speed: lv(mod.effect.momentumCastSpeed, inst.level || 1), window: mod.effect.momentumWindow };
   }
   if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };
   return out;
@@ -304,7 +308,7 @@ export function socketMod(ch, data, slotIndex, uid) {
   const fit = modFits(skillDef(data, slot.skill), modDef(data, inst.id), slot.mods.map(u => modDef(data, ch.mods.find(m => m.uid === u)?.id)).filter(Boolean));
   if (!fit.ok) return { ok: false, reason: fit.reason };
   if (slot.mods.some((u) => ch.mods.find((m) => m.uid === u)?.id === inst.id)) return { ok: false, reason: 'duplicate' };
-  if (slot.mods.length >= data.mods.maxModsPerSkill) return { ok: false, reason: 'full' };
+  if (slot.mods.length >= modSlotsFor(data, ch.skills[slot.skill])) return { ok: false, reason: 'full' };
   const from = modSlotOf(ch, uid);
   if (from !== -1) unsocketMod(ch, uid);
   slot.mods.push(uid);

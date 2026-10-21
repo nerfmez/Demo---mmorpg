@@ -1,5 +1,10 @@
 {
-  "_doc": "Skill Mods change how a skill behaves. A mod fits a skill only when the skill has ALL tags in requiresAll and at least one tag in requiresAny (when listed), and none of excludes. Each mod has levels 1-3; values are per level.",
+  "_doc": "Skill Mods change how a skill behaves. One fit rule (core/skills.js modFits): the skill's visible tags, plus the grants of companion mods that fit the bare skill, must contain ALL of needs, ANY of on (when listed) and NONE of not. Two mods of the same family never share a skill. Each mod has levels 1-3; values are per level. slotsByRank: mod sockets a combat skill has at rank 1..5.",
+  "renamed": {
+    "ash_detonation": "status_burst",
+    "burning_ground": "fire_shift",
+    "shatter": "status_burst"
+  },
   "mods": {
     "split": {
       "name": "Split",
@@ -8,7 +13,7 @@
       "tags": [
         "Projectile"
       ],
-      "requiresAll": [
+      "needs": [
         "Projectile"
       ],
       "effect": {
@@ -36,7 +41,7 @@
       "tags": [
         "Projectile"
       ],
-      "requiresAll": [
+      "needs": [
         "Projectile"
       ],
       "effect": {
@@ -56,10 +61,11 @@
       "tags": [
         "Chain"
       ],
-      "requiresAny": [
+      "on": [
         "Projectile",
         "Chain"
       ],
+      "family": "trajectory",
       "effect": {
         "chain": [
           1,
@@ -78,46 +84,33 @@
       },
       "id": "bounce"
     },
-    "burning_ground": {
-      "name": "Burning Ground",
-      "nameTh": "ทิ้งไฟบนพื้น",
-      "desc": "จุดที่โดนจะติดไฟชั่วคราว ศัตรูที่ยืนอยู่จะโดนดาเมจต่อเนื่อง",
+    "fire_shift": {
+      "name": "Fire Shift",
+      "nameTh": "เปลี่ยนเป็นไฟ",
+      "desc": "เปลี่ยนธาตุของสกิลเป็นไฟ ศัตรูที่โดนมีโอกาส 25/30/35% ติดเผาไหม้ที่ตัว 3 วิ ไม่ทิ้งอะไรไว้บนพื้น",
       "tags": [
-        "Area",
-        "Fire",
-        "Persistent",
-        "DoT"
+        "Fire"
       ],
-      "requiresAll": [
+      "needs": [
         "Damage"
       ],
-      "requiresAny": [
-        "Projectile",
-        "Area",
-        "Melee"
-      ],
-      "effect": {
-        "groundDps": [
-          0.18,
-          0.23,
-          0.28
-        ],
-        "groundDuration": 3,
-        "groundRadius": 1.6
-      },
-      "requires": {},
-      "excludes": [
+      "not": [
         "DoT"
       ],
-      "id": "burning_ground",
-      "requiresKinds": [
-        "melee_arc",
-        "melee_nova",
-        "projectile",
-        "chain",
-        "ground_area",
-        "nova"
-      ]
+      "family": "element",
+      "grants": [
+        "Fire"
+      ],
+      "effect": {
+        "element": "fire",
+        "burnChance": [
+          0.25,
+          0.3,
+          0.35
+        ]
+      },
+      "requires": {},
+      "id": "fire_shift"
     },
     "echo": {
       "name": "Echo",
@@ -126,12 +119,11 @@
       "tags": [
         "Area"
       ],
-      "requiresAll": [
-        "Area"
-      ],
-      "excludes": [
-        "Guard",
-        "Buff"
+      "on": [
+        "Nova",
+        "Ground",
+        "Zone",
+        "Curse"
       ],
       "effect": {
         "echoDelay": 0.6,
@@ -144,15 +136,7 @@
       "requires": {
         "INT": 8
       },
-      "id": "echo",
-      "requiresKinds": [
-        "melee_nova",
-        "ground_area",
-        "nova",
-        "dot_zone",
-        "curse_zone",
-        "heal_zone"
-      ]
+      "id": "echo"
     },
     "wide_arc": {
       "name": "Wide Arc",
@@ -161,7 +145,11 @@
       "tags": [
         "Melee"
       ],
-      "requiresAll": [
+      "on": [
+        "Arc",
+        "Counter"
+      ],
+      "needs": [
         "Melee"
       ],
       "effect": {
@@ -179,11 +167,7 @@
       "requires": {
         "STR": 6
       },
-      "id": "wide_arc",
-      "requiresKinds": [
-        "melee_arc",
-        "counter_stance"
-      ]
+      "id": "wide_arc"
     },
     "multistrike": {
       "name": "Multistrike",
@@ -192,7 +176,11 @@
       "tags": [
         "Melee"
       ],
-      "requiresAll": [
+      "on": [
+        "Arc",
+        "Nova"
+      ],
+      "needs": [
         "Melee"
       ],
       "effect": {
@@ -216,11 +204,7 @@
       "requires": {
         "DEX": 6
       },
-      "id": "multistrike",
-      "requiresKinds": [
-        "melee_arc",
-        "melee_nova"
-      ]
+      "id": "multistrike"
     },
     "frost_shift": {
       "name": "Frost Shift",
@@ -229,8 +213,15 @@
       "tags": [
         "Cold"
       ],
-      "requiresAll": [
+      "needs": [
         "Damage"
+      ],
+      "not": [
+        "DoT"
+      ],
+      "family": "element",
+      "grants": [
+        "Cold"
       ],
       "effect": {
         "element": "cold",
@@ -242,9 +233,6 @@
         "chillDuration": 2
       },
       "requires": {},
-      "excludes": [
-        "DoT"
-      ],
       "id": "frost_shift"
     },
     "knockback": {
@@ -254,14 +242,18 @@
       "tags": [
         "Control"
       ],
-      "requiresAll": [
-        "Damage"
-      ],
-      "requiresAny": [
+      "on": [
         "Melee",
         "Projectile",
         "Area"
       ],
+      "needs": [
+        "Damage"
+      ],
+      "not": [
+        "DoT"
+      ],
+      "family": "displace",
       "effect": {
         "knock": [
           2.2,
@@ -272,9 +264,6 @@
       "requires": {
         "STR": 5
       },
-      "excludes": [
-        "DoT"
-      ],
       "id": "knockback"
     },
     "concentrated": {
@@ -284,7 +273,8 @@
       "tags": [
         "Area"
       ],
-      "requiresAll": [
+      "family": "radius",
+      "needs": [
         "Area",
         "Damage"
       ],
@@ -302,8 +292,11 @@
     "lingering": {
       "name": "Lingering",
       "nameTh": "ค้างนาน",
-      "desc": "เพิ่มระยะเวลาพื้นที่คงอยู่ เช่น บึงพิษ น้ำพุ หรือพื้นที่จากม็อดทิ้งไฟบนพื้น ไม่เพิ่มเวลาคำสาป บัฟ หรือการร่าย",
+      "desc": "เพิ่มระยะเวลาพื้นที่คงอยู่ของบึงพิษหรือน้ำพุ ไม่เพิ่มเวลาคำสาป บัฟ หรือการร่าย",
       "tags": [
+        "Persistent"
+      ],
+      "needs": [
         "Persistent"
       ],
       "effect": {
@@ -314,7 +307,6 @@
         ]
       },
       "requires": {},
-      "requiresPersistent": true,
       "id": "lingering"
     },
     "life_leech": {
@@ -324,8 +316,11 @@
       "tags": [
         "Leech"
       ],
-      "requiresAll": [
+      "needs": [
         "Damage"
+      ],
+      "not": [
+        "DoT"
       ],
       "effect": {
         "leechPct": [
@@ -337,19 +332,20 @@
       "requires": {
         "VIT": 5
       },
-      "excludes": [
-        "DoT"
-      ],
       "id": "life_leech"
     },
     "spiked_ward": {
       "name": "Spiked Ward",
       "nameTh": "โล่หนาม",
-      "desc": "ศัตรูที่ตีโดนเกราะจะโดนสะท้อนดาเมจ แนวแท็งก์",
+      "desc": "ศัตรูที่ตีโดนเกราะหรือท่าตั้งรับจะโดนสะท้อนดาเมจที่กันไว้ และดึงความสนใจมอนรอบตัว แนวแท็งก์",
       "tags": [
         "Guard"
       ],
-      "requiresAll": [
+      "on": [
+        "Barrier",
+        "Counter"
+      ],
+      "needs": [
         "Guard"
       ],
       "effect": {
@@ -363,10 +359,7 @@
       "requires": {
         "VIT": 6
       },
-      "id": "spiked_ward",
-      "requiresKinds": [
-        "self_barrier"
-      ]
+      "id": "spiked_ward"
     },
     "pack_leader": {
       "name": "Pack Leader",
@@ -375,7 +368,7 @@
       "tags": [
         "Summon"
       ],
-      "requiresAll": [
+      "needs": [
         "Summon"
       ],
       "effect": {
@@ -400,18 +393,18 @@
       "tags": [
         "Trigger"
       ],
-      "requiresAll": [
+      "on": [
+        "Projectile",
+        "Chain",
+        "Ground",
+        "Nova",
+        "Zone",
+        "Curse"
+      ],
+      "needs": [
         "Spell"
       ],
-      "requiresAny": [
-        "Area",
-        "Projectile",
-        "Chain"
-      ],
-      "excludes": [
-        "Guard",
-        "Summon"
-      ],
+      "family": "trigger",
       "effect": {
         "trigger": "on_movement",
         "internalCooldown": [
@@ -428,16 +421,7 @@
       "requires": {
         "AGI": 8
       },
-      "id": "cast_on_dodge",
-      "requiresKinds": [
-        "projectile",
-        "chain",
-        "ground_area",
-        "nova",
-        "dot_zone",
-        "curse_zone",
-        "heal_zone"
-      ]
+      "id": "cast_on_dodge"
     },
     "short_stride": {
       "name": "Short Stride",
@@ -446,7 +430,7 @@
       "tags": [
         "Movement"
       ],
-      "requiresAll": [
+      "needs": [
         "Movement"
       ],
       "effect": {
@@ -467,10 +451,11 @@
       "tags": [
         "Projectile"
       ],
-      "requiresAll": [
+      "needs": [
         "Projectile",
         "Damage"
       ],
+      "family": "trajectory",
       "effect": {
         "returnMult": [
           0.4,
@@ -483,12 +468,6 @@
         "DEX": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "projectile"
-      ],
-      "conflicts": [
-        "bounce"
-      ],
       "id": "returning_shot"
     },
     "terminal_burst": {
@@ -498,7 +477,7 @@
       "tags": [
         "Projectile"
       ],
-      "requiresAll": [
+      "needs": [
         "Projectile",
         "Damage"
       ],
@@ -515,9 +494,6 @@
         "INT": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "projectile"
-      ],
       "id": "terminal_burst"
     },
     "chain_return": {
@@ -527,7 +503,7 @@
       "tags": [
         "Chain"
       ],
-      "requiresAll": [
+      "needs": [
         "Chain",
         "Damage"
       ],
@@ -543,9 +519,6 @@
         "INT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "chain"
-      ],
       "id": "chain_return"
     },
     "advancing_edge": {
@@ -555,8 +528,8 @@
       "tags": [
         "Melee"
       ],
-      "requiresAll": [
-        "Melee",
+      "needs": [
+        "Arc",
         "Damage"
       ],
       "effect": {
@@ -571,12 +544,6 @@
         "AGI": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "melee_arc"
-      ],
-      "conflicts": [
-        "cast_on_guard"
-      ],
       "id": "advancing_edge"
     },
     "gathering_cut": {
@@ -586,10 +553,14 @@
       "tags": [
         "Area"
       ],
-      "requiresAll": [
-        "Area",
+      "on": [
+        "Nova",
+        "Ground"
+      ],
+      "needs": [
         "Damage"
       ],
+      "family": "displace",
       "effect": {
         "pull": [
           1,
@@ -602,14 +573,6 @@
         "STR": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "melee_nova",
-        "ground_area",
-        "nova"
-      ],
-      "conflicts": [
-        "knockback"
-      ],
       "id": "gathering_cut"
     },
     "laceration": {
@@ -619,7 +582,13 @@
       "tags": [
         "Attack"
       ],
-      "requiresAll": [
+      "on": [
+        "Arc",
+        "Line",
+        "Nova",
+        "Projectile"
+      ],
+      "needs": [
         "Attack",
         "Damage"
       ],
@@ -636,24 +605,26 @@
         "DEX": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "melee_arc",
-        "melee_line",
-        "melee_nova",
-        "projectile"
-      ],
       "id": "laceration"
     },
-    "ash_detonation": {
-      "name": "Ash Detonation",
-      "nameTh": "เถ้าระเบิด",
-      "desc": "กินเผาไหม้ที่ตนสร้างเพื่อระเบิดวง 1.8 ม. แรงตามดาเมจเผาที่เหลือสูงสุด 60/70/80% ของฮิต ลดฮิต 15%",
+    "status_burst": {
+      "name": "Status Burst",
+      "nameTh": "ระเบิดสถานะ",
+      "desc": "โดนเป้าที่ติดสถานะจากตัวเราแล้วระเบิดตามธาตุ: เผาไหม้ระเบิดเถ้าวง 1.8 ม. แรงตามดาเมจเผาที่เหลือสูงสุด 60/70/80% ของฮิต · เย็นอย่างน้อย 30% แตกผลึกวง 1.5 ม. แรง 25/30/35% ลดฮิต 15%",
       "tags": [
-        "Fire"
-      ],
-      "requiresAll": [
-        "Fire",
         "Damage"
+      ],
+      "on": [
+        "Fire",
+        "Cold"
+      ],
+      "needs": [
+        "Damage"
+      ],
+      "not": [
+        "Melee",
+        "Chain",
+        "Channel"
       ],
       "effect": {
         "consumeBurn": [
@@ -662,30 +633,6 @@
           0.8
         ],
         "statusBurstRadius": 1.8,
-        "damageMult": 0.85
-      },
-      "requires": {
-        "INT": 6
-      },
-      "prototype": true,
-      "requiresKinds": [
-        "projectile",
-        "nova",
-        "ground_area"
-      ],
-      "id": "ash_detonation"
-    },
-    "shatter": {
-      "name": "Shatter",
-      "nameTh": "ผลึกแตก",
-      "desc": "โดนเป้าที่เย็นอย่างน้อย 30% แล้วแตกผลึกวง 1.5 ม. แรง 25/30/35% ลดความเย็นเป้าและลดฮิต 10%",
-      "tags": [
-        "Damage"
-      ],
-      "requiresAll": [
-        "Damage"
-      ],
-      "effect": {
         "shatter": [
           0.25,
           0.3,
@@ -693,19 +640,13 @@
         ],
         "shatterThreshold": 0.3,
         "shatterRadius": 1.5,
-        "damageMult": 0.9
+        "damageMult": 0.85
       },
       "requires": {
         "INT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "projectile",
-        "nova",
-        "ground_area"
-      ],
-      "requiresElement": "cold",
-      "id": "shatter"
+      "id": "status_burst"
     },
     "following_field": {
       "name": "Following Field",
@@ -714,8 +655,8 @@
       "tags": [
         "Persistent"
       ],
-      "requiresAll": [
-        "Persistent"
+      "needs": [
+        "Zone"
       ],
       "effect": {
         "followField": true,
@@ -725,10 +666,6 @@
         "VIT": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "heal_zone",
-        "dot_zone"
-      ],
       "id": "following_field",
       "maxLevel": 1
     },
@@ -739,9 +676,9 @@
       "tags": [
         "DoT"
       ],
-      "requiresAll": [
-        "DoT",
-        "Persistent"
+      "needs": [
+        "Zone",
+        "DoT"
       ],
       "effect": {
         "rampSlow": [
@@ -756,21 +693,21 @@
         "INT": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "dot_zone"
-      ],
       "id": "binding_field"
     },
     "healing_chain": {
       "name": "Mending Chain",
       "nameTh": "ฮีลส่งต่อ",
-      "desc": "ฮีลเด้งไปพันธมิตรที่บาดเจ็บใกล้ ๆ อีก 1/2/2 ตัว ผลลดลง 30% ต่อครั้ง ไม่เด้งวน ฮีลเริ่มต้นลดลง 15%",
+      "desc": "ฮีลเด้งไปพันธมิตรที่บาดเจ็บใกล้ ๆ อีก 1/2/2 ตัว ผลลดลง 30% ต่อครั้ง ไม่เด้งวน · น้ำพุ: ทุกจังหวะฮีลเด้งไปคนที่อยู่นอกวง · ฮีลเริ่มต้นลดลง 15%",
       "tags": [
         "Heal"
       ],
-      "requiresAll": [
-        "Heal",
-        "Target"
+      "on": [
+        "Target",
+        "Zone"
+      ],
+      "needs": [
+        "Heal"
       ],
       "effect": {
         "healChain": [
@@ -786,9 +723,6 @@
         "INT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "heal_target"
-      ],
       "id": "healing_chain"
     },
     "healing_barrier": {
@@ -798,7 +732,11 @@
       "tags": [
         "Heal"
       ],
-      "requiresAll": [
+      "on": [
+        "Target",
+        "Zone"
+      ],
+      "needs": [
         "Heal"
       ],
       "effect": {
@@ -814,20 +752,20 @@
         "VIT": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "heal_target",
-        "heal_zone"
-      ],
       "id": "healing_barrier"
     },
     "breaking_ward": {
       "name": "Breaking Ward",
       "nameTh": "เกราะแตกผลัก",
-      "desc": "เกราะที่ถูกทำลายผลักมอนรอบตัว 1.5/1.8/2.1 ม. ในรัศมี 3 ม. เกราะเริ่มต้นลด 20%",
+      "desc": "เกราะที่ถูกทำลาย หรือท่าตั้งรับที่รับสำเร็จ ผลักมอนรอบตัว 1.5/1.8/2.1 ม. ในรัศมี 3 ม. เกราะเริ่มต้นลด 20%",
       "tags": [
         "Guard"
       ],
-      "requiresAll": [
+      "on": [
+        "Barrier",
+        "Counter"
+      ],
+      "needs": [
         "Guard"
       ],
       "effect": {
@@ -843,20 +781,21 @@
         "VIT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "self_barrier"
-      ],
       "id": "breaking_ward"
     },
     "spreading_hex": {
       "name": "Spreading Hex",
-      "nameTh": "คำสาปแพร่ต่อ",
-      "desc": "เป้าที่ตายส่งคำสาปเวลาที่เหลือให้เป้าใกล้หนึ่งตัว ระยะ 3/4/5 ม. ไม่เริ่มเวลาใหม่",
+      "nameTh": "ผลเสียแพร่ต่อ",
+      "desc": "เป้าที่ตายส่งผลเสียเวลาที่เหลือ (คำสาป หรือเกราะแตกจากฟันเปิดเกราะ) ให้เป้าใกล้หนึ่งตัว ระยะ 3/4/5 ม. ไม่เริ่มเวลาใหม่",
       "tags": [
         "Curse"
       ],
-      "requiresAll": [
-        "Curse"
+      "on": [
+        "Curse",
+        "Arc"
+      ],
+      "needs": [
+        "Debuff"
       ],
       "effect": {
         "curseSpread": [
@@ -869,9 +808,6 @@
         "INT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "curse_zone"
-      ],
       "id": "spreading_hex"
     },
     "focused_pack": {
@@ -881,7 +817,7 @@
       "tags": [
         "Summon"
       ],
-      "requiresAll": [
+      "needs": [
         "Summon"
       ],
       "effect": {
@@ -896,9 +832,6 @@
         "DEX": 5
       },
       "prototype": true,
-      "requiresKinds": [
-        "summon"
-      ],
       "id": "focused_pack"
     },
     "guardian_bond": {
@@ -908,7 +841,7 @@
       "tags": [
         "Summon"
       ],
-      "requiresAll": [
+      "needs": [
         "Summon"
       ],
       "effect": {
@@ -924,9 +857,6 @@
         "VIT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "summon"
-      ],
       "id": "guardian_bond"
     },
     "following_aura": {
@@ -936,8 +866,8 @@
       "tags": [
         "Buff"
       ],
-      "requiresAll": [
-        "Buff"
+      "needs": [
+        "Warcry"
       ],
       "effect": {
         "buffAura": [
@@ -951,12 +881,6 @@
         "INT": 6
       },
       "prototype": true,
-      "requiresKinds": [
-        "buff"
-      ],
-      "conflicts": [
-        "cast_on_dodge"
-      ],
       "id": "following_aura"
     },
     "cast_on_guard": {
@@ -966,9 +890,16 @@
       "tags": [
         "Spell"
       ],
-      "requiresAll": [
+      "on": [
+        "Projectile",
+        "Nova",
+        "Target",
+        "Barrier"
+      ],
+      "needs": [
         "Spell"
       ],
+      "family": "trigger",
       "effect": {
         "trigger": "on_guard",
         "internalCooldown": [
@@ -987,23 +918,132 @@
         "VIT": 8
       },
       "prototype": true,
-      "requiresKinds": [
-        "projectile",
-        "nova",
-        "heal_target",
-        "self_barrier"
-      ],
-      "excludes": [
-        "Channel",
-        "Aura",
-        "Summon"
-      ],
-      "conflicts": [
-        "cast_on_dodge"
-      ],
       "id": "cast_on_guard"
+    },
+    "poison_shift": {
+      "name": "Poison Shift",
+      "nameTh": "เปลี่ยนเป็นพิษ",
+      "desc": "เปลี่ยนธาตุของสกิลเป็นพิษ แปลงดาเมจตรง 20/25/30% เป็นพิษที่ตัวศัตรู 3 วิ รวมดาเมจเท่าเดิม ไม่ทิ้งอะไรไว้บนพื้น",
+      "tags": [
+        "Poison"
+      ],
+      "needs": [
+        "Damage"
+      ],
+      "not": [
+        "DoT"
+      ],
+      "family": "element",
+      "grants": [
+        "Poison"
+      ],
+      "effect": {
+        "element": "poison",
+        "poisonFraction": [
+          0.2,
+          0.25,
+          0.3
+        ],
+        "poisonDuration": 3,
+        "damageMult": [
+          0.8,
+          0.75,
+          0.7
+        ]
+      },
+      "requires": {
+        "DEX": 5
+      },
+      "id": "poison_shift"
+    },
+    "wide_field": {
+      "name": "Wide Field",
+      "nameTh": "ขยายวง",
+      "desc": "วงของสกิลกว้างขึ้น 30% แต่ผลลดลง 10% (ดาเมจ ฮีล เกราะ หรือบัฟ) ใช้ร่วมกับรวมพลังไม่ได้",
+      "tags": [
+        "Area"
+      ],
+      "on": [
+        "Nova",
+        "Ground",
+        "Zone",
+        "Curse",
+        "Aura",
+        "Warcry",
+        "Barrier"
+      ],
+      "family": "radius",
+      "effect": {
+        "radiusMult": 1.3,
+        "damageMult": 0.9,
+        "healMult": 0.9,
+        "barrierMult": 0.9,
+        "buffMult": 0.9
+      },
+      "requires": {},
+      "id": "wide_field"
+    },
+    "ramp_cast": {
+      "name": "Building Power",
+      "nameTh": "เร่งร่าย",
+      "desc": "ยิ่งค้างนานยิ่งแรง: ธารเพลิงเริ่มที่ 85% แล้วแรงขึ้นถึง 130/135/140% ใน 2 วิ · ชาร์จยิงแรงสุดเพิ่ม +30/35/40% แต่ชาร์จนานขึ้น 25%",
+      "tags": [
+        "Charge"
+      ],
+      "on": [
+        "Channel",
+        "Charge"
+      ],
+      "effect": {
+        "rampStart": 0.85,
+        "rampMax": [
+          1.3,
+          1.35,
+          1.4
+        ],
+        "rampTime": 2,
+        "chargeMaxAdd": [
+          0.3,
+          0.35,
+          0.4
+        ],
+        "chargeDurationMult": 1.25
+      },
+      "requires": {
+        "INT": 5
+      },
+      "id": "ramp_cast"
+    },
+    "momentum": {
+      "name": "Momentum",
+      "nameTh": "ก้าวเร่ง",
+      "desc": "หลังใช้สกิลเคลื่อนที่ สกิลถัดไปภายใน 2 วิ ร่ายเร็วขึ้น 20/25/30% ใส่ในช่องม็อดเคลื่อนที่แยก",
+      "tags": [
+        "Movement"
+      ],
+      "needs": [
+        "Movement"
+      ],
+      "effect": {
+        "momentumCastSpeed": [
+          0.2,
+          0.25,
+          0.3
+        ],
+        "momentumWindow": 2
+      },
+      "requires": {
+        "AGI": 5
+      },
+      "id": "momentum"
     }
   },
-  "maxModsPerSkill": 2,
+  "slotsByRank": [
+    2,
+    2,
+    3,
+    3,
+    4
+  ],
   "maxMovementMods": 1
 }

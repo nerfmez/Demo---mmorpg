@@ -10,8 +10,8 @@ import {writeSlot,loadSlot} from '../../src/save.js';
 const skills=Object.entries(data.skills.combat).filter(([,d])=>d.prototype);
 const mods=Object.entries(data.mods.mods).filter(([,d])=>d.prototype);
 const recipes=Object.entries(data.recipes.recipes).filter(([,r])=>(r.type==='skill'?skills:r.type==='mod'?mods:[]).some(([id])=>id===r.result));
-test('all 14 skills and 19 mods are crafted from real drops with exact atomic costs and durable ownership',()=>{
- assert.equal(skills.length,14);assert.equal(mods.length,19);assert.equal(recipes.length,33);
+test('all 13 skills and 18 mods are crafted from real drops with exact atomic costs and durable ownership',()=>{
+ assert.equal(skills.length,13);assert.equal(mods.length,18);assert.equal(recipes.length,31);
  const drops=new Set(Object.values(data.monsters.monsters).flatMap(m=>m.drops.map(d=>d.item)));
  for(const [id,r]of recipes){
   const ch=createCharacter(data);ch.gold=0;ch.materials={};
@@ -28,7 +28,7 @@ test('all 14 skills and 19 mods are crafted from real drops with exact atomic co
 });
 test('early roles do not require Moonroot; all three Moonroot parts have specialist recipes',()=>{
  const moon=['fern_ear_tuft','mirror_scale','rootdigger_claw'];
- for(const id of ['charged_shot','riposte','weakpoint','shield_bash','cleanse','arcane_shot'])assert(!Object.keys(data.recipes.recipes['learn_'+id].cost).some(k=>moon.includes(k)),id);
+ for(const id of ['charged_shot','riposte','weakpoint','shield_bash','cleanse','arcane_bolt'])assert(!Object.keys(data.recipes.recipes['learn_'+id].cost).some(k=>moon.includes(k)),id);
  for(const material of moon)assert(recipes.some(([,r])=>r.cost[material]));
  assert.equal(skillCraftGuide(data,data.recipes.recipes.learn_cleanse).role,'heal');
  assert.equal(skillCraftGuide(data,data.recipes.recipes.learn_battle_aura).role,'support');

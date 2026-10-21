@@ -2142,6 +2142,46 @@
       },
       "grade": "C"
     },
+    "mod_poison_shift": {
+      "type": "mod",
+      "result": "poison_shift",
+      "cost": {
+        "venom_gland": 3,
+        "spore_sac": 1,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_wide_field": {
+      "type": "mod",
+      "result": "wide_field",
+      "cost": {
+        "mirror_scale": 2,
+        "crab_shell": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_ramp_cast": {
+      "type": "mod",
+      "result": "ramp_cast",
+      "cost": {
+        "glow_dust": 3,
+        "shore_feather": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
+    "mod_momentum": {
+      "type": "mod",
+      "result": "momentum",
+      "cost": {
+        "fern_ear_tuft": 2,
+        "wolf_fang": 2,
+        "gold": 25
+      },
+      "grade": "C"
+    },
     "mod_following_field": {
       "type": "mod",
       "result": "following_field",

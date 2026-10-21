@@ -349,6 +349,7 @@ Port the new derived fields along with their Node tests:
 - Widened mods keep one executor each: Spreading Hex passes Hex and Armor Cleave exposure on death (`spreadCurse`), Mending Chain on Healing Spring heals injured units outside the field every tick (`chainFieldHeal`), and Spiked/Breaking Ward on a riposte stance taunt on stance, reflect the blocked part and push nearby monsters on a successful guard (`applyGuard`). Its
   provider must also meet stat requirements to activate the bonus. Keep a dependent
   modifier stored but inactive when the provider is removed or inactive; never delete it.
+- Poison Shift converts part of a hit into the target's poison (total unchanged). Wide Field and Concentrated Effect share the `radius` family. Building Power ramps a channel's pulses with hold time and makes a charged shot's full charge stronger but slower. Momentum (movement socket) shortens the next cast within its window, once (`player.momentum`).
 - Fire Shift, Knockback, Life Leech and Frost Shift are on-hit modifiers. Fire/Frost Shift share the `element` family; a shift replaces the skill's own status (fire burns, cold chills, never both). They exclude
   DoT skills because the current field executor does not apply those on-hit effects.
   Preserve older invalid loadouts as inactive entries and show the reason.

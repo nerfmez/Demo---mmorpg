@@ -132,3 +132,27 @@ test('Fire Shift burns the target and leaves nothing on the ground',()=>{
  const both=fixture('frost_nova',['fire_shift']);assert.equal(both.s.chill,null,'fire replaces the native chill');assert.equal(both.s.element,'fire');
  assert.equal(modFits(data.skills.combat.slash,data.mods.mods.fire_shift,[data.mods.mods.frost_shift]).reason,'family');
 });
+
+test('phase 2c mods: poison shift, wide field, building power and momentum change behaviour',()=>{
+ const S=data.skills.combat,M=data.mods.mods;
+ // Poison Shift: element family, converts part of the hit to the target's poison and keeps the total.
+ {const {g,m,s}=fixture('hunter_shot',['poison_shift']);assert.equal(s.element,'poison');assert.equal(s.chill,null);assert.equal(s.burnChance,0);
+  const plain=fixture('hunter_shot').s;assert.ok(Math.abs(s.damage/plain.damage-0.8)<1e-9);
+  g.hitMonster(m,40,g.hitOpts(s));assert.equal(m.statuses.poison?.owner,'player');assert.ok(Math.abs(m.statuses.poison.dps*3-40/0.8*0.2)<1e-9,'converted part over 3 s');
+  assert.equal(modFits(S.slash,M.poison_shift,[M.frost_shift]).reason,'family');}
+ // Wide Field: wider circle, weaker effect, and never with Concentrated Effect.
+ {const base=fixture('frost_nova').s,wide=fixture('frost_nova',['wide_field']).s;assert.ok(Math.abs(wide.radius/base.radius-1.3)<1e-9);assert.ok(Math.abs(wide.damage/base.damage-0.9)<1e-9);
+  const cry=fixture('war_cry',['wide_field']).s,cry0=fixture('war_cry').s;assert.ok(Math.abs(cry.damageBuff/cry0.damageBuff-0.9)<1e-9);assert.ok(cry.radius>cry0.radius);
+  const aura=fixture('battle_aura',['wide_field']).s,aura0=fixture('battle_aura').s;assert.ok(aura.aura.mpRegen<aura0.aura.mpRegen);assert.equal(fixture('battle_aura').s.aura.mpRegen,S.battle_aura.aura.mpRegen,'data is not mutated');
+  assert.equal(modFits(S.frost_nova,M.wide_field,[M.concentrated]).reason,'family');assert.equal(modFits(S.slash,M.wide_field).ok,false);}
+ // Building Power: a stronger but slower full charge; a channel that grows while held.
+ {const {s}=fixture('charged_shot',['ramp_cast']),plain=fixture('charged_shot').s;assert.ok(s.charge.maxDamageMult>plain.charge.maxDamageMult);assert.ok(s.charge.duration>plain.charge.duration);
+  assert.equal(data.skills.combat.charged_shot.charge.duration,1.2,'data is not mutated');
+  const pulse=(mods,held)=>{const {g,m,s}=fixture('flame_stream',mods);g.executeSkill(s,aim);const c=g.player.channeling;c.t=held;c.next=held;const hp=m.hp;tickFrontier(g,0);return hp-m.hp;};
+  const early=pulse(['ramp_cast'],0),late=pulse(['ramp_cast'],3),plainHit=pulse([],0);assert.ok(early<plainHit,'starts weaker');assert.ok(late>plainHit,'grows past the plain channel');}
+ // Momentum: the next cast within the window is quicker, once.
+ {const {g,ch}=fixture('slash');ch.mods.push({id:'momentum',uid:950,level:1,grade:'C'});ch.movementMods=[950];g.refresh();g.player.movement.charges=2;
+  assert.ok(g.move.momentum);const normal=g.skills[0].castTime;assert.ok(g.useMovement());g.player.dash=null;
+  assert.ok(g.castSlot(0));assert.ok(Math.abs(g.player.cast.total-normal/1.2)<1e-9);g.player.cast=null;g.player.cooldowns[0]=0;
+  assert.ok(g.castSlot(0));assert.equal(g.player.cast.total,normal,'only the next cast');}
+});

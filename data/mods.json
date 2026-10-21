@@ -273,6 +273,7 @@
       "tags": [
         "Area"
       ],
+      "family": "radius",
       "needs": [
         "Area",
         "Damage"
@@ -918,6 +919,123 @@
       },
       "prototype": true,
       "id": "cast_on_guard"
+    },
+    "poison_shift": {
+      "name": "Poison Shift",
+      "nameTh": "เปลี่ยนเป็นพิษ",
+      "desc": "เปลี่ยนธาตุของสกิลเป็นพิษ แปลงดาเมจตรง 20/25/30% เป็นพิษที่ตัวศัตรู 3 วิ รวมดาเมจเท่าเดิม ไม่ทิ้งอะไรไว้บนพื้น",
+      "tags": [
+        "Poison"
+      ],
+      "needs": [
+        "Damage"
+      ],
+      "not": [
+        "DoT"
+      ],
+      "family": "element",
+      "grants": [
+        "Poison"
+      ],
+      "effect": {
+        "element": "poison",
+        "poisonFraction": [
+          0.2,
+          0.25,
+          0.3
+        ],
+        "poisonDuration": 3,
+        "damageMult": [
+          0.8,
+          0.75,
+          0.7
+        ]
+      },
+      "requires": {
+        "DEX": 5
+      },
+      "id": "poison_shift"
+    },
+    "wide_field": {
+      "name": "Wide Field",
+      "nameTh": "ขยายวง",
+      "desc": "วงของสกิลกว้างขึ้น 30% แต่ผลลดลง 10% (ดาเมจ ฮีล เกราะ หรือบัฟ) ใช้ร่วมกับรวมพลังไม่ได้",
+      "tags": [
+        "Area"
+      ],
+      "on": [
+        "Nova",
+        "Ground",
+        "Zone",
+        "Curse",
+        "Aura",
+        "Warcry",
+        "Barrier"
+      ],
+      "family": "radius",
+      "effect": {
+        "radiusMult": 1.3,
+        "damageMult": 0.9,
+        "healMult": 0.9,
+        "barrierMult": 0.9,
+        "buffMult": 0.9
+      },
+      "requires": {},
+      "id": "wide_field"
+    },
+    "ramp_cast": {
+      "name": "Building Power",
+      "nameTh": "เร่งร่าย",
+      "desc": "ยิ่งค้างนานยิ่งแรง: ธารเพลิงเริ่มที่ 85% แล้วแรงขึ้นถึง 130/135/140% ใน 2 วิ · ชาร์จยิงแรงสุดเพิ่ม +30/35/40% แต่ชาร์จนานขึ้น 25%",
+      "tags": [
+        "Charge"
+      ],
+      "on": [
+        "Channel",
+        "Charge"
+      ],
+      "effect": {
+        "rampStart": 0.85,
+        "rampMax": [
+          1.3,
+          1.35,
+          1.4
+        ],
+        "rampTime": 2,
+        "chargeMaxAdd": [
+          0.3,
+          0.35,
+          0.4
+        ],
+        "chargeDurationMult": 1.25
+      },
+      "requires": {
+        "INT": 5
+      },
+      "id": "ramp_cast"
+    },
+    "momentum": {
+      "name": "Momentum",
+      "nameTh": "ก้าวเร่ง",
+      "desc": "หลังใช้สกิลเคลื่อนที่ สกิลถัดไปภายใน 2 วิ ร่ายเร็วขึ้น 20/25/30% ใส่ในช่องม็อดเคลื่อนที่แยก",
+      "tags": [
+        "Movement"
+      ],
+      "needs": [
+        "Movement"
+      ],
+      "effect": {
+        "momentumCastSpeed": [
+          0.2,
+          0.25,
+          0.3
+        ],
+        "momentumWindow": 2
+      },
+      "requires": {
+        "AGI": 5
+      },
+      "id": "momentum"
     }
   },
   "slotsByRank": [

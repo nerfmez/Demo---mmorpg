@@ -461,11 +461,13 @@ export class Game {
     }
     // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
     // so the announced animation and the swing always agree
-    const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + s.castTime) : 0;
+    let castTime = s.castTime;
+    if (p.momentum) { if (this.time <= p.momentum.until) castTime /= 1 + p.momentum.speed; p.momentum = null; }
+    const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + castTime) : 0;
     const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
-    p.cast = { slot: i, t: 0, total: s.castTime, aim, skill: castSkill, step };
+    p.cast = { slot: i, t: 0, total: castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
-    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: s.castTime, weapon: this.derived.weaponType, step });
+    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step });
     return true;
   }
 
@@ -547,6 +549,8 @@ export class Game {
       p.facing = angle;
       p.dash = { t: 0, dur: mv.duration, vx: dir.x * speed, vz: dir.z * speed, inv: mv.invulnerable, kind: mv.id };
     }
+    // Momentum: the next cast soon after moving is quicker.
+    if (mv.momentum) p.momentum = { until: this.time + mv.duration + mv.momentum.window, speed: mv.momentum.speed };
     this.emit({ type: 'movement', kind: mv.id, angle });
     return true;
   }

@@ -12,6 +12,10 @@ export function compileFrontier(s, def, activeMods) {
   if(e.returnMult)s.pierce=Infinity;
   if (e.healMult && s.heal) s.heal *= e.healMult;
   if (e.barrierMult && s.barrier) s.barrier *= e.barrierMult;
+  // Wide Field trades a little of a buff's strength for its larger circle.
+  if (e.buffMult) { if (s.damageBuff) s.damageBuff *= e.buffMult; if (s.aura) s.aura.mpRegen *= e.buffMult; }
+  // Building Power on a charged shot: a stronger full charge that takes longer to reach.
+  if (e.chargeMaxAdd && s.charge) { s.charge.maxDamageMult += e.chargeMaxAdd; s.charge.duration *= e.chargeDurationMult; }
   if (e.triggerCost && s.trigger) s.trigger.cost = true;
   if(s.summon&&e.summonDamage&&!e.extraSummons)s.summon.damage*=1+e.summonDamage;
   if (s.summon) s.summon = { ...s.summon, tauntRadius:def.summon.tauntRadius, tauntInterval:def.summon.tauntInterval, tauntDuration:def.summon.tauntDuration, effects:e, skill:s.id };
@@ -140,6 +144,7 @@ export function adjustFrontierHit(g,m,amount,opts) {
   }
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}
+  if(e.poisonFraction){const source=amount/(1-e.poisonFraction),old=m.statuses.poison;const next={dps:source*e.poisonFraction/e.poisonDuration,t:e.poisonDuration,acc:0,owner:'player'};if(!old||next.dps>=old.dps)m.statuses.poison=next;}
   if(e.bleedFraction){const source=amount/(1-e.bleedFraction),old=m.statuses.bleed;const next={dps:source*e.bleedFraction/e.bleedDuration,t:e.bleedDuration,acc:0};if(!old||next.dps>=old.dps)m.statuses.bleed=next;}
   if(e.consumeBurn&&m.statuses.burn?.owner==='player'){
     const burn=m.statuses.burn;delete m.statuses.burn;
@@ -236,7 +241,9 @@ export function tickFrontier(g,dt){
       const cost=s.channel.manaPerSecond*s.channel.tick;
       if(p.mp<cost){cancelChannel(g);return;}
       p.mp-=cost;c.next+=s.channel.tick;
-      for(const m of g.monsters)if(!m.dead&&inArc(p,m,aim,s))g.hitMonster(m,s.damage*s.channel.tick*g.playerDamageMult(),g.hitOpts(s,{crit:g.rollCrit()}));
+      // Building Power: a channel starts weaker and grows while it is held.
+      const fx=s.modEffects||{},ramp=fx.rampMax?fx.rampStart+(fx.rampMax-fx.rampStart)*Math.min(1,c.t/fx.rampTime):1;
+      for(const m of g.monsters)if(!m.dead&&inArc(p,m,aim,s))g.hitMonster(m,s.damage*s.channel.tick*ramp*g.playerDamageMult(),g.hitOpts(s,{crit:g.rollCrit()}));
       g.emit({type:'channelPulse',skill:s.id,x:p.x,z:p.z,angle:aim.angle,range:s.range,arc:s.arc,element:s.element});
     }
   }

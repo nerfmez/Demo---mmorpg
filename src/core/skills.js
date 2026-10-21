@@ -253,6 +253,7 @@ export function movementSkill(ch, data, derived) {
     if (!active) continue;
     out.distance *= mod.effect.movementDistanceMult || 1;
     out.charges += mod.effect.movementCharges || 0;
+    if (mod.effect.momentumCastSpeed) out.momentum = { speed: lv(mod.effect.momentumCastSpeed, inst.level || 1), window: mod.effect.momentumWindow };
   }
   if (def.landing) out.landing = { radius: def.landing.radius, damage: def.landing.damage.base + def.landing.damage.scale * derived.attack };
   return out;

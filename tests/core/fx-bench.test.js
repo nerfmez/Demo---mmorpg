@@ -14,9 +14,10 @@ function run(skill, mods, act = (g) => g.castSlot(0, { x: 5, z: 0 }), seconds = 
 }
 
 test('bench offers only mods that fit and can be triggered there', () => {
-  assert.deepEqual(benchMods(data, 'flame_stream').sort(), ['fire_shift', 'frost_shift', 'life_leech', 'poison_shift', 'ramp_cast']);
+  assert.deepEqual(benchMods(data, 'flame_stream').sort(), ['life_leech', 'ramp_cast']);
   const nova = benchMods(data, 'frost_nova');
-  assert.ok(nova.includes('echo') && nova.includes('fire_shift') && nova.includes('cast_on_dodge'));
+  assert.ok(nova.includes('echo') && nova.includes('cast_on_dodge'));
+  for (const s of ['chain_spark', 'frost_nova', 'flame_stream']) assert.ok(!benchMods(data, s).some((id) => id.endsWith('_shift')), `spells keep their element: ${s}`);
   assert.ok(!nova.includes('cast_on_guard'), 'guard triggers need a guard skill the bench does not have');
 });
 
@@ -25,14 +26,13 @@ test('chain mods change the hops the effect draws', () => {
   const bounce = run('chain_spark', [{ id: 'bounce', level: 2 }]).of('chain')[0];
   assert.equal(base.points.length, 5); // caster + first target + 3 chain hops
   assert.equal(bounce.points.length, 7);
-  assert.equal(run('chain_spark', [{ id: 'frost_shift', level: 1 }]).of('chain')[0].element, 'cold');
+  assert.equal(base.element, 'lightning');
 });
 
-test('nova mods: echo repeats, concentrated shrinks, fire shift turns it to fire, dodge triggers', () => {
+test('nova mods: echo repeats, concentrated shrinks, dodge triggers', () => {
   assert.equal(run('frost_nova', [{ id: 'echo', level: 1 }]).of('nova').length, 2);
   assert.ok(run('frost_nova', [{ id: 'concentrated', level: 1 }]).of('nova')[0].radius < 4.2);
-  // no mod leaves a field on the ground any more (Burning Ground became Fire Shift)
-  assert.equal(run('frost_nova', [{ id: 'fire_shift', level: 1 }]).of('nova')[0].element, 'fire');
+  assert.equal(run('frost_nova', []).of('nova')[0].element, 'cold');
   const dodge = run('frost_nova', [{ id: 'cast_on_dodge', level: 1 }], (g) => g.useMovement());
   assert.equal(dodge.of('trigger').length, 1);
   assert.equal(dodge.of('nova').length, 1);
@@ -40,10 +40,10 @@ test('nova mods: echo repeats, concentrated shrinks, fire shift turns it to fire
   assert.ok(knock.g.monsters.some((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) > 1));
 });
 
-test('flame stream channels pulses until released and frost shift turns it cold', () => {
-  const r = run('flame_stream', [{ id: 'frost_shift', level: 1 }], undefined, 1);
+test('flame stream channels pulses until released', () => {
+  const r = run('flame_stream', [], undefined, 1);
   assert.ok(r.of('channelPulse').length >= 3);
-  assert.ok(r.of('channelPulse').every((e) => e.element === 'cold'));
+  assert.ok(r.of('channelPulse').every((e) => e.element === 'fire'));
   r.g.cancelChannel();
   assert.equal(r.g.drainEvents().filter((e) => e.type === 'channelEnd').length, 1);
 });

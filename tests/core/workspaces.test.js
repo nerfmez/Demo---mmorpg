@@ -75,7 +75,7 @@ test('mod UI distinguishes incompatible type, full sockets and stat-inactive sto
  const {ch}=fixture('firebolt',['split']);ch.stats.DEX=1;ch.slots[0].mods=[];
  let state=modStatus(ch,data,0,ch.mods[0]);assert.ok(state.can);assert.ok(!state.req.ok);
  assert.ok(socketMod(ch,data,0,100).ok);state=modStatus(ch,data,0,ch.mods[0]);assert.ok(state.own);assert.ok(!state.active);
- ch.mods.push({id:'pierce',uid:101,level:1},{id:'fire_shift',uid:102,level:1});socketMod(ch,data,0,101);
+ ch.mods.push({id:'pierce',uid:101,level:1},{id:'life_leech',uid:102,level:1});socketMod(ch,data,0,101);
  state=modStatus(ch,data,0,ch.mods[2]);assert.ok(state.fit.ok);assert.ok(!state.can);assert.match(state.reason,/เต็ม/);
 });
 

@@ -352,6 +352,8 @@ Port the new derived fields along with their Node tests:
 - Poison Shift converts part of a hit into the target's poison (total unchanged). Wide Field and Concentrated Effect share the `radius` family. Building Power ramps a channel's pulses with hold time and makes a charged shot's full charge stronger but slower. Momentum (movement socket) shortens the next cast within its window, once (`player.momentum`).
 - Fire Shift, Knockback, Life Leech and Frost Shift are on-hit modifiers. Fire/Frost Shift share the `element` family; a shift replaces the skill's own status (fire burns, cold chills, never both). They exclude
   DoT skills because the current field executor does not apply those on-hit effects.
+  The three Shift mods (Fire, Frost, Poison) also exclude `Spell`: spells keep their own
+  element, and only attacks can change theirs.
   Preserve older invalid loadouts as inactive entries and show the reason.
 
 The additions do not alter Character Stat Point requirements: flat HP/MP/attack/magic/

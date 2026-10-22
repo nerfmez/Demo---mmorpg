@@ -61,11 +61,32 @@ test('mod whose stat requirement is not met is socketed but inactive', () => {
 
 test('frost shift converts the element and adds a chill', () => {
   const ch = createCharacter(data);
-  const fb = slotOf(ch, 'firebolt');
-  socketMod(ch, data, fb, give(ch, 'frost_shift'));
-  const s = computeSkill(ch, data, derive(ch, data), fb);
+  const sl = slotOf(ch, 'slash');
+  assert.ok(socketMod(ch, data, sl, give(ch, 'frost_shift')).ok);
+  const s = computeSkill(ch, data, derive(ch, data), sl);
   assert.equal(s.element, 'cold');
   assert.ok(s.chill.slow > 0);
+});
+
+test('spells keep their own element: no Shift mod fits a Spell', () => {
+  const ch = createCharacter(data);
+  for (const id of ['fire_shift', 'frost_shift', 'poison_shift']) {
+    for (const sk of Object.values(data.skills.combat).filter((s) => s.tags?.includes('Spell'))) {
+      assert.ok(!modFits(sk, data.mods.mods[id]).ok, `${id} on ${sk.name}`);
+    }
+    assert.ok(!socketMod(ch, data, slotOf(ch, 'firebolt'), give(ch, id)).ok, `${id} cannot be socketed on Firebolt`);
+  }
+  assert.ok(modFits(data.skills.combat.slash, data.mods.mods.fire_shift).ok, 'attacks still take them');
+  // an older save that already has one on a spell keeps the coin, inactive, and the spell its element
+  const fb = slotOf(ch, 'firebolt'), uid = give(ch, 'fire_shift');
+  ch.slots[fb].mods = [uid];
+  const s = computeSkill(ch, data, derive(ch, data), fb);
+  assert.deepEqual(s.mods.map((m) => [m.id, m.active, m.reason]), [['fire_shift', false, 'not']]);
+  assert.equal(s.element, 'fire');
+  const old = createCharacter(data), cold = give(old, 'frost_shift');
+  old.slots[slotOf(old, 'firebolt')].mods = [cold];
+  assert.equal(computeSkill(old, data, derive(old, data), slotOf(old, 'firebolt')).element, 'fire', 'Frost Shift no longer turns Firebolt cold');
+  assert.ok(old.mods.some((m) => m.uid === cold), 'the coin is kept');
 });
 
 test('equipping a skill that is in another slot swaps them', () => {

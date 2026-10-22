@@ -12,22 +12,26 @@ const K = 2.4;   // the owner asked for more room in the same frame: the camera 
 const TS = K / 1.8 * 1.25;   // trees grow with the room, and a quarter bigger again (owner's ask)
 const HT = 1.45, H = v => v * HT;   // cliff heights: tall rock faces, as in the forest scene
 const RS = K * 0.65;   // ruin scale: the concept's proportions, grown with the room, so the frame matches the concept
-const UP = 2.9 * K;   // the upper level (the plaza and the ruins): the concept's cliff, a few times the hero's height, grown with the room
+const UP = 5.0 * K;   // the high plateau on the left (its ruins and the path off to the left)
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
 // ground mesh bounds (metres)
 const GX0 = -30 * K, GX1 = 30 * K, GZ0 = -44 * K, GZ1 = 10 * K;
 function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Math.sin(z * 0.9 + x * 0.21) * 0.5; }
 
-// Raised ground: one upper level (the plaza and the ruins) behind a rock cliff. The cliff runs in
-// from the right, and on the left it turns back toward the ruins; the far left stays low. 'b' points sit at the cliff foot on the low ground, 't' points on the
-// top off screen, 'n' points at the foot of the paved ramp (no cliff there: the ramp cuts the slope).
+// Raised ground in two tiers, as the concept layers it: a front rock tier along the hero's path,
+// a grassy ledge on it, and on the left a second rock tier stepping up to the plaza level. 'b'
+// points sit at a cliff foot (on the tier below), 't' points on the top off screen, 'n' points at
+// the foot of a grassy bank (no cliff: a soft slope `soft` metres wide).
+const H1 = UP * 0.5;   // the front tier's top: the plaza level, reached by the stair
 const TERRACES = [
-  { top: UP, ledge: true, pts: [[0.27, -0.5, 't'], [0.28, 0.05, 'b'], [0.28, 0.2, 'b'], [0.27, 0.3, 'b'], [0.25, 0.37, 'b'], [0.21, 0.43, 'b'], [0.17, 0.5, 'b'], [0.155, 0.58, 'b'],
-    [0.17, 0.66, 'b'], [0.215, 0.73, 'b'], [0.27, 0.78, 'b'], [0.36, 0.8, 'b'], [0.45, 0.79, 'b'], [0.52, 0.765, 'b'], [0.58, 0.73, 'b'], [0.63, 0.7, 'b'], [0.7, 0.69, 'b'], [0.77, 0.7, 'b'],
-    [0.8, 0.705, 'n'], [0.9, 0.69, 'n'],
-    [0.92, 0.68, 'b'], [0.97, 0.64, 'b'], [1.3, 0.62, 'b'], [1.3, -0.5, 't']] },
+  { top: H1, base: 0, ledge: true, soft: 9, pts: [[-0.3, 0.66, 'b'], [0.0, 0.665, 'b'], [0.07, 0.69, 'b'], [0.14, 0.73, 'b'], [0.2, 0.775, 'b'], [0.3, 0.795, 'b'], [0.42, 0.785, 'b'],
+    [0.5, 0.765, 'b'], [0.58, 0.735, 'b'], [0.65, 0.715, 'b'],
+    [0.72, 0.705, 'n'], [0.86, 0.69, 'n'], [0.95, 0.67, 'n'], [1.3, 0.64, 'n'], [1.3, -0.5, 't'], [-0.3, -0.5, 't']] },
+  // the high plateau: its rock face looks toward the hero; its side falls to the plaza as a grassy bank
+  { top: UP, base: H1, ledge: true, soft: 7, pts: [[-0.1, -0.5, 't'], [0.05, 0.3, 'b'], [0.09, 0.42, 'b'], [0.14, 0.52, 'b'], [0.22, 0.575, 'b'], [0.31, 0.59, 'b'], [0.39, 0.575, 'b'], [0.43, 0.545, 'b'],
+    [0.47, 0.49, 'n'], [0.45, 0.41, 'n'], [0.41, 0.34, 'n'], [0.37, 0.27, 'n'], [0.35, 0.2, 'n'], [0.33, 0.1, 't'], [0.33, -0.5, 't']] },
 ].map(T => {
-  let pts = T.pts.map(([u, v, k]) => { const [x, z] = P(u, v, k === 't' ? T.top : 0); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
+  let pts = T.pts.map(([u, v, k]) => { const [x, z] = P(u, v, k === 't' ? T.top : T.base || 0); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
   if (T.ledge) {
     // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
     // wall flag says whether the stretch from it to the next one is cliff
@@ -49,16 +53,16 @@ function polyAt(T, x, z) {
     const a = p[j], b = p[i];
     if ((b.z > z) !== (a.z > z) && x < (a.x - b.x) * (z - b.z) / (a.z - b.z) + b.x) inside = !inside;
     const dx = b.x - a.x, dz = b.z - a.z, t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
-    const ex = a.x + dx * t - x, ez = a.z + dz * t - z;
-    best = Math.min(best, ex * ex + ez * ez);
+    const ex = a.x + dx * t - x, ez = a.z + dz * t - z, e2 = ex * ex + ez * ez;
+    if (e2 < best) { best = e2; polyAt.wall = a.wall; }
   }
   return inside ? -Math.sqrt(best) : Math.sqrt(best);
 }
 // the paved ramp from the front trail up to the plaza
 const ST = (() => {
-  const [x0, z0] = P(0.85, 0.7, 0), [x1, z1] = P(0.64, 0.455, UP), dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz);
-  const [ax, az] = P(0.695, 0.56, UP * 0.5), [bx, bz] = P(0.795, 0.56, UP * 0.5);
-  return { x0, z0, x1, z1, ux: dx / len, uz: dz / len, len, half: Math.hypot(bx - ax, bz - az) * 0.38, bank: 8, n: Math.round(UP / 0.55), top: UP };
+  const [x0, z0] = P(0.85, 0.7, 0), [x1, z1] = P(0.64, 0.455, H1), dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz);
+  const [ax, az] = P(0.695, 0.56, H1 * 0.5), [bx, bz] = P(0.795, 0.56, H1 * 0.5);
+  return { x0, z0, x1, z1, ux: dx / len, uz: dz / len, len, half: Math.hypot(bx - ax, bz - az) * 0.38, bank: 8, n: Math.round(H1 / 0.55), top: H1 };
 })();
 function stairsAt(x, z) {
   const rx = x - ST.x0, rz = z - ST.z0, a = (rx * ST.ux + rz * ST.uz) / ST.len, s = Math.abs(-rx * ST.uz + rz * ST.ux);
@@ -67,14 +71,15 @@ function stairsAt(x, z) {
 // trails: polylines of [u, v, half width m, plane height]
 const TRAILS = [
   // the low ground: from the bottom of the frame to the ramp foot, a branch out to the right
-  [[0.47, 1.25, 1.9], [0.49, 0.95, 1.9], [0.57, 0.9, 1.8], [0.67, 0.855, 1.8], [0.76, 0.785, 1.8], [0.83, 0.725, 1.7], [0.85, 0.705, 1.6]],
-  [[0.33, 0.93, 1.0], [0.4, 0.91, 1.4], [0.48, 0.92, 1.8]],
+  [[0.46, 1.25, 1.7], [0.48, 0.97, 1.7], [0.54, 0.9, 1.6], [0.63, 0.845, 1.6], [0.73, 0.79, 1.6], [0.81, 0.735, 1.6], [0.85, 0.705, 1.5]],
   // up top: the plaza round the stone ring, out through the arch, to the left and to the right
-  [[0.42, 0.345, 2.6, UP], [0.53, 0.355, 3.1, UP], [0.63, 0.38, 2.4, UP], [0.645, 0.43, 2.0, UP], [0.645, 0.46, 2.0, UP]],
-  [[0.56, 0.33, 1.6, UP], [0.6, 0.25, 1.3, UP], [0.61, 0.16, 1.1, UP], [0.62, 0.0, 1.0, UP], [0.63, -0.3, 1.0, UP]],
-  [[0.45, 0.33, 1.6, UP], [0.36, 0.3, 1.3, UP], [0.315, 0.24, 1.2, UP], [0.31, 0.12, 1.1, UP], [0.31, -0.3, 1.0, UP]],
-  [[0.25, 0.25, 1.0], [0.15, 0.28, 1.0], [0.05, 0.32, 1.0], [-0.1, 0.37, 0.9]],
-  [[0.64, 0.29, 1.1, UP], [0.75, 0.295, 1.0, UP], [0.84, 0.325, 0.95, UP]],
+  // the plaza: a loop of dirt round the stone ring, out to the stair, through the arch and to the right
+  [[0.36, 0.3, 1.5, H1], [0.42, 0.25, 1.5, H1], [0.53, 0.23, 1.5, H1], [0.65, 0.25, 1.5, H1], [0.7, 0.3, 1.5, H1], [0.66, 0.35, 1.6, H1], [0.53, 0.37, 1.6, H1], [0.41, 0.35, 1.5, H1], [0.36, 0.3, 1.5, H1]],
+  [[0.64, 0.35, 1.8, H1], [0.645, 0.42, 1.6, H1], [0.645, 0.46, 1.6, H1]],
+  [[0.6, 0.24, 1.3, H1], [0.61, 0.16, 1.1, H1], [0.62, 0.0, 1.0, H1], [0.63, -0.3, 1.0, H1]],
+  [[0.69, 0.28, 1.1, H1], [0.78, 0.27, 1.0, H1], [0.88, 0.29, 0.95, H1], [1.1, 0.33, 0.9, H1]],
+  // up on the plateau, off to the left
+  [[0.3, 0.2, 0.9, UP], [0.2, 0.24, 0.9, UP], [0.1, 0.28, 0.9, UP], [-0.1, 0.33, 0.9, UP]],
 ].map(pl => pl.map(([u, v, w, h = 0]) => { const [x, z] = P(u, v, h); return new V3(x, w * K, z); }))
   // a smooth curve through the authored points (width rides along in y), sampled every 1.2 m
   .map(pl => { const c = new THREE.CatmullRomCurve3(pl, false, 'centripetal'); return c.getSpacedPoints(Math.ceil(c.getLength() / 1.2)).map(p => ({ x: p.x, z: p.z, w: p.y })); });
@@ -103,8 +108,10 @@ function field(x, z) {
   for (const T of TERRACES) {
     const d = polyAt(T, x, z);
     if (d === null) continue;
-    const w = T.ledge ? 1 - smooth(-0.35, 0.05, d) : 1 - smooth(-0.9, 0.25, d);   // cliffs drop sharply, banks roll
-    if (w > 0) { y = Math.max(y, T.top * w); if (T.ledge || T.top > 2) top = Math.max(top, w); }
+    // cliffs drop sharply; elsewhere the edge is a grassy bank `soft` metres wide
+    const w = T.ledge && polyAt.wall ? 1 - smooth(-0.35, 0.05, d) : 1 - smooth(-(T.soft || 0.9), 0.25, d);
+    const b = T.base || 0;
+    if (w > 0) { y = Math.max(y, b + (T.top - b) * w); if (T.ledge || T.top > 2) top = Math.max(top, w); }
   }
   const st = stairsAt(x, z);
   // the stair lies on a hillside: the ground either side slopes down with it, no cliff beside it
@@ -297,8 +304,10 @@ function buildCliffs() {
           const q = S[k], side = new V3(q.nz, 0, -q.nx).multiplyScalar(k === C.i0 ? -1 : 1);
           for (let r = 0; r < F.length - 1; r++) {
             const a0 = vtx(C, k, r), a1 = vtx(C, k, r + 1);
-            quad(a0, a1, new V3(q.x - q.nx * C.cap, a1.y, q.z - q.nz * C.cap), new V3(q.x - q.nx * C.cap, a0.y, q.z - q.nz * C.cap), side, shade.copy(C.c).multiplyScalar(0.75));
+            quad(a0, a1, new V3(q.x - q.nx * C.cap, a1.y, q.z - q.nz * C.cap), new V3(q.x - q.nx * C.cap, a0.y, q.z - q.nz * C.cap), side, shade.copy(C.c).multiplyScalar(0.9));
           }
+          // bushes heaped against the open end, so it does not read as a cut
+          for (let b = 0; b < 4; b++) addBush(q.x + side.x * R(0.4, 1.6) - q.nx * R(-0.5, 1.5), height(q.x + side.x * 1.2, q.z + side.z * 1.2) - 0.1 + b * 0.5, q.z + side.z * R(0.4, 1.6) - q.nz * R(-0.5, 1.5), R(0.8, 1.3), { sy: 0.8, tint: R(-0.8, 0) });
         }
         // the crack to the next column: a narrow face joining their two edges, in shadow
         const D = cols[ci + 1];
@@ -351,7 +360,10 @@ function buildLedges() {
 
 // ---------- the ruins: big worn blocks, some walls and pillars single slabs, broken and mossy ----------
 // where a ruin stands: on the upper level if it is there, else on the low ground
-function PG(u, v) { const q = P(u, v, UP); return height(q[0], q[1]) > 1 ? q : P(u, v, 0); }
+function PG(u, v) {
+  for (const h of [UP, H1]) { const q = P(u, v, h); if (Math.abs(height(q[0], q[1]) - h) < 0.6) return q; }
+  return P(u, v, 0);
+}
 const blockStyle = { chamfer: 0.1, jitter: 0.05, extra: 5 };
 function block(x, y, z, w, h, d, ry = 0, moss = 0.35, o = {}) {
   // never a sliver: a thin block's outline shell would be scaled up into a dark sheet
@@ -431,13 +443,13 @@ function archway(u, v, span, pierH, topH, pierW, depth, ry = 0) {
 }
 // the plaza: a ring of flat slabs round a standing stone, with broken uprights about it
 function plaza() {
-  const [cx, cz] = P(0.53, 0.335, UP), [ex] = P(0.43, 0.335, UP), r = Math.abs(cx - ex);
+  const [cx, cz] = P(0.53, 0.3, H1), [ex] = P(0.45, 0.3, H1), r = Math.abs(cx - ex);
   for (const [rr, n] of [[r * 0.92, 28], [r * 0.7, 20]]) for (let i = 0; i < n; i++) {
     if (rand() < 0.08) continue;
     const a = i / n * Math.PI * 2 + R(-0.03, 0.03), x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr * 0.92;
     block(x, height(x, z) - 0.14, z, Math.PI * 2 * rr / n * 0.9, 0.26, 0.95 * RS, Math.atan2(-Math.cos(a), -Math.sin(a)) + R(-0.05, 0.05), 0.12, { chamfer: 0.16, base: pick(['#d6cfbf', '#cbc3b2', '#ddd6c6']) });
   }
-  const [px, pz] = P(0.52, 0.3, UP), g = height(px, pz);
+  const [px, pz] = P(0.525, 0.275, H1), g = height(px, pz);
   block(px, g - 0.2, pz, 1.5 * RS, 2.5 * RS, 1.3 * RS, 0.15, 0.55);
   block(px + 0.1, g - 0.2 + 2.45 * RS, pz, 1.1 * RS, 0.5 * RS, 1.0 * RS, 0.5, 0.75);
   COLLIDERS.push({ x: px, z: pz, r: 1.1 * RS });
@@ -647,6 +659,8 @@ function build() {
   wallRun([[0.75, 0.255], [0.86, 0.285]], 2.2, 1.2, 6);
   wallRun([[0.94, 0.31], [1.06, 0.33]], 2.6, 1.2, 7);
   wallRun([[0.48, 0.55], [0.6, 0.54]], 1.8, 1.1, 8);
+  // the row of blocks on the slope right of the stair
+  wallRun([[0.77, 0.465], [0.84, 0.5], [0.9, 0.55], [0.95, 0.61]], 1.5, 1.1, 14);
   pillar(0.27, 0.32, 6.0, 1.3);
   pillar(0.795, 0.245, 7.0, 1.4);
   pillar(0.915, 0.34, 8.0, 2.2, { cap: false });

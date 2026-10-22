@@ -29,6 +29,12 @@ Done:
   - some ledge runs are one long slab instead of separate blocks;
   - trees are bigger (scale TS = K/1.8 x 1.25), and back-row trunks are lower so the crowns
     stay in frame.
+- Owner feedback round 3 ("the root arch isn't pretty; the trails are cut too sharp"):
+  - the arch is 8 strands braided round a core curve, loose at the feet and tight over the
+    trail; each strand carries on as a root leg into the ground, with leaves along the top;
+  - trails are Catmull-Rom curves through the authored points. Their edge wanders
+    (`edgeWob`), and the bake breaks it up further: a soft ragged border, grass islands on the
+    dirt and bare patches in the grass. Grass and bushes follow the same `trailEdge`.
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.

@@ -61,7 +61,9 @@ const TRAILS = [
   // the trail round the back of the island, from the foot of the stairs to the right trail
   [[0.3, 0.21, 1.05], [0.37, 0.15, 1.1], [0.44, 0.125, 1.15], [0.52, 0.115, 1.2], [0.6, 0.115, 1.2], [0.68, 0.13, 1.15], [0.745, 0.17, 1.1], [0.8, 0.22, 1.15], [0.838, 0.25, 1.35]],
   [[0.257, 0.1, 1.0, 3.3], [0.272, 0.03, 1.0, 3.3], [0.3, -0.25, 1.0, 3.3], [0.31, -0.5, 1.0, 3.3]],
-].map(pl => pl.map(([u, v, w, h = 0]) => { const [x, z] = P(u, v, h); return { x, z, w: w * K }; }));
+].map(pl => pl.map(([u, v, w, h = 0]) => { const [x, z] = P(u, v, h); return new V3(x, w * K, z); }))
+  // a smooth curve through the authored points (width rides along in y), sampled every 1.2 m
+  .map(pl => { const c = new THREE.CatmullRomCurve3(pl, false, 'centripetal'); return c.getSpacedPoints(Math.ceil(c.getLength() / 1.2)).map(p => ({ x: p.x, z: p.z, w: p.y })); });
 // distance from the trail edge: negative on the trail
 function trailAt(x, z) {
   let best = Infinity;
@@ -73,6 +75,9 @@ function trailAt(x, z) {
   }
   return best;
 }
+// the trail edge wanders: a slow swell and a shorter wobble on top of the authored width
+const edgeWob = (x, z) => 1.0 * noise2(x * 0.19 + 3.1, z * 0.23 - 1.7) + 0.45 * noise2(x * 0.51 - 2, z * 0.44 + 4);
+const trailEdge = (x, z) => trailAt(x, z) + edgeWob(x, z);
 // patches of leaf shade on the ground, where the concept's canopy darkens the trail
 const SHADE = [[0.27, 0.46, 4.2], [0.36, 0.37, 2.6], [0.44, 0.63, 2.6], [0.54, 0.93, 3.2], [0.63, 0.83, 2.6], [0.8, 0.47, 3.2], [0.85, 0.37, 2.6], [0.2, 0.6, 3.2], [0.74, 0.6, 2.2], [0.86, 0.24, 2.0], [0.33, 0.24, 2.0]]
   .map(([u, v, r]) => { const [x, z] = P(u, v); return { x, z, r: r * K }; });
@@ -102,15 +107,17 @@ function buildGround() {
   const W = GX1 - GX0, D = GZ1 - GZ0;
   const g = new THREE.PlaneGeometry(W, D, Math.round(W * 2.5), Math.round(D * 2.5));
   g.rotateX(-Math.PI / 2); g.translate((GX0 + GX1) / 2, 0, (GZ0 + GZ1) / 2);
-  const p = g.attributes.position, n = p.count, w = new Float32Array(n * 3);
+  const p = g.attributes.position, n = p.count, w = new Float32Array(n * 3), td = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const x = p.getX(i), z = p.getZ(i);
     p.setY(i, height(x, z));
     const st = stairsAt(x, z);
-    const trail = st.inside ? 1 : 1 - smooth(-0.35, 0.45, trailAt(x, z) + 0.35 * noise2(x * 1.3, z * 1.1));
+    const d = st.inside ? -3 : Math.max(-4, Math.min(4, trailEdge(x, z)));
+    td[i] = d;
+    const trail = 1 - smooth(-0.5, 0.5, d);
     w[i * 3] = 1 - trail; w[i * 3 + 1] = trail; w[i * 3 + 2] = shadeAt(x, z);
   }
-  g.setAttribute('color', new THREE.BufferAttribute(w, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(w, 3)); g.setAttribute('trailD', new THREE.BufferAttribute(td, 1));
   g.computeVertexNormals();
   const box = new THREE.Vector4(GX0, GZ0, W, D);
   const mat = paint({
@@ -128,18 +135,25 @@ function buildGround() {
   const bakeMat = new THREE.ShaderMaterial({
     depthTest: false, depthWrite: false, side: THREE.DoubleSide,
     uniforms: { uBox: { value: box } },
-    vertexShader: `attribute vec3 color; uniform vec4 uBox; varying vec3 vW, vWN, vColor;
-      void main(){ vW=(modelMatrix*vec4(position,1.)).xyz; vWN=normalize(mat3(modelMatrix)*normal); vColor=color;
+    vertexShader: `attribute vec3 color; attribute float trailD; uniform vec4 uBox; varying vec3 vW, vWN, vColor; varying float vD;
+      void main(){ vW=(modelMatrix*vec4(position,1.)).xyz; vWN=normalize(mat3(modelMatrix)*normal); vColor=color; vD=trailD;
         gl_Position=vec4((vW.xz-uBox.xy)/uBox.zw*2.-1.,0.,1.); }`,
-    fragmentShader: `varying vec3 vW, vWN, vColor;
+    fragmentShader: `varying vec3 vW, vWN, vColor; varying float vD;
       ${NOISE}
       void main(){
   vec3 wgt=vColor; vec2 q=vW.xz;
   float n1=fbm(q*.32), n2=vnoise(q*1.9+3.), n3=vnoise(q*6.5);
+  // the trail edge: the baked distance broken up at a metre and a hand's width, a soft ragged
+  // border; grass islands creep onto the dirt near the edge and bare patches into the grass
+  float dd=vD+(vnoise(q*1.3+7.)-.5)*.9+(vnoise(q*4.2)-.5)*.35;
+  float tr=1.-smoothstep(-.3,.3,dd);
+  tr=max(tr,step(.74,vnoise(q*1.1+21.))*(1.-smoothstep(.2,1.5,dd))*.9);
+  tr*=1.-step(.76,vnoise(q*1.6+11.))*smoothstep(-2.,-.5,dd);
+  wgt.x=1.-tr; wgt.y=tr;
   // the trail: packed orange dirt with darker trodden patches, worn paler middle and small pebbles
   vec3 trail=mix(${L('#dda461')},${L('#ecba72')},smoothstep(.3,.7,n1));
   trail=mix(trail,${L('#cc8f4c')},smoothstep(.6,.8,fbm(q*.8+5.))*.4);
-  trail=mix(trail,${L('#f2c886')},smoothstep(.55,.85,wgt.y)*smoothstep(.45,.7,fbm(q*.5+2.))*.35);
+  trail=mix(trail,${L('#f2c886')},(1.-smoothstep(-3.,-1.,vD))*smoothstep(.45,.7,fbm(q*.5+2.))*.35);
   trail*=.97+.05*n3;
   vec2 pc=fract(q*2.6)-.5; float peb=step(.9,hash12(floor(q*2.6)))*(1.-smoothstep(.1,.16,length(pc)));
   trail=mix(trail,mix(${L('#a99a86')},${L('#d8cfc0')},step(0.,pc.y)),peb*.85);
@@ -148,7 +162,7 @@ function buildGround() {
   grass=mix(grass,${L('#5a8536')},smoothstep(.56,.78,n2)*.55);
   grass=mix(grass,${L('#cdd65a')},step(.965,hash12(floor(q*9.)))*.7);
   // a ragged grass edge spilling over the dirt
-  float tuft=step(.55,vnoise(q*5.))*smoothstep(.15,.55,wgt.x)*(1.-smoothstep(.55,.9,wgt.x));
+  float tuft=step(.5,vnoise(q*5.))*(1.-smoothstep(-.9,-.1,dd))*smoothstep(-1.6,-.6,dd);
   vec3 col=mix(trail,grass,clamp(wgt.x+tuft*.6,0.,1.));
   // the steep faces behind the stones
   float steep=1.-smoothstep(.45,.75,normalize(vWN).y);
@@ -240,7 +254,7 @@ function buildRocks() {
 
 // ---------- roots and the arching trunk: tapered tubes along curves, bark-shaded, inked ----------
 const woodParts = [], woodInk = [];
-function tube(points, r0, r1, { sides = 8, seg = 3, ink = 0.04 } = {}) {
+function tube(points, r0, r1, { sides = 8, seg = 3, ink = 0.04, rf = null } = {}) {
   const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal');
   const N = Math.max(4, Math.ceil(curve.getLength() * seg)), frames = curve.computeFrenetFrames(N, false);
   const sun = new V3(-.6, .55, .55).normalize();
@@ -248,7 +262,7 @@ function tube(points, r0, r1, { sides = 8, seg = 3, ink = 0.04 } = {}) {
   const build = (extra) => {
     const pos = [], nor = [], col = [], idx = [];
     for (let i = 0; i <= N; i++) {
-      const t = i / N, c = curve.getPointAt(t), r = r0 + (r1 - r0) * Math.pow(t, 0.8) + extra;
+      const t = i / N, c = curve.getPointAt(t), r = (rf ? rf(t) : r0 + (r1 - r0) * Math.pow(t, 0.8)) + extra;
       for (let k = 0; k <= sides; k++) {
         const a = k / sides * Math.PI * 2, nv = frames.normals[i].clone().multiplyScalar(Math.cos(a)).addScaledVector(frames.binormals[i], Math.sin(a));
         pos.push(c.x + nv.x * r, c.y + nv.y * r, c.z + nv.z * r); nor.push(nv.x, nv.y, nv.z);
@@ -383,12 +397,42 @@ function build() {
   // rooting again on the island, with a crown above the arch
   {
     const [ax, az] = P(0.975, 0.335, 3.4), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.29, 0), [ex, ez] = P(0.715, 0.27, 3.7);
-    const a = TS, arch = [new V3(ax, 3.2, az), new V3(bx, 6.0 * a, bz), new V3(cx, 7.2 * a, cz), new V3(dx2, 6.6 * a, dz2), new V3(ex + 0.5, 4.8 * a, ez), new V3(ex, 3.55, ez)];
-    for (const [k, r0, r1, amp] of [[0, 0.7, 0.5, 0], [1, 0.48, 0.34, 0.9], [2, 0.38, 0.26, 0.85], [3, 0.24, 0.15, 1.1]])
-      tube(arch.map((p, i) => p.clone().add(new V3(Math.sin(i * 1.9 + k * 2.1) * amp, Math.cos(i * 1.3 + k) * amp * 0.5, Math.cos(i * 1.6 + k * 2.4) * amp))), r0 * a, r1 * a, { sides: 9 });
+    const a = TS, core = new THREE.CatmullRomCurve3([new V3(ax, 3.2, az), new V3(bx, 6.6, bz), new V3(cx, 8.0, cz), new V3(dx2, 7.4, dz2), new V3(ex + 0.5, 5.4, ez), new V3(ex, 3.55, ez)], false, 'centripetal');
+    const M = 32, fr = core.computeFrenetFrames(M, false);
+    // strands wound round the core, a turn and a half end to end, bunched tight over the trail and
+    // loosening toward the feet; thick ones and thin ones, each a little thinner at the crown
+    const STR = [0.36, 0.32, 0.28, 0.24, 0.2, 0.17, 0.14, 0.12];
+    STR.forEach((rb, k) => {
+      const th0 = k / STR.length * Math.PI * 2 + R(-0.3, 0.3), twist = R(8, 10.5), pts = [];
+      for (let i = 0; i <= 16; i++) {
+        const t = 0.05 + 0.9 * i / 16, f = Math.round(t * M), c = core.getPointAt(t);
+        const th = th0 + twist * t + Math.sin(t * 11 + k) * 0.3;
+        const off = (0.42 + 0.95 * Math.pow(Math.abs(2 * t - 1), 2)) * a * (0.8 + 0.35 * Math.sin(k * 1.7 + t * 7));
+        pts.push(c.clone().addScaledVector(fr.normals[f], Math.cos(th) * off).addScaledVector(fr.binormals[f], Math.sin(th) * off));
+      }
+      tube(pts, 0, 0, { sides: 8, rf: t => rb * a * 0.72 * (0.7 + 0.45 * Math.pow(Math.abs(2 * t - 1), 1.5)) });
+      // at each foot the strand carries on as a root leg, splaying out and down to the ground
+      for (const end of [0, 1]) {
+        const e = end ? pts.length - 1 : 0, p = pts[e], q = pts[end ? e - 1 : 1];
+        const out = p.clone().sub(core.getPointAt(end)).setY(0).normalize(), on = p.clone().sub(q).setY(0).normalize();
+        const dir = (out.lengthSq() > 0 ? out.add(on.multiplyScalar(0.6)).normalize() : on).applyAxisAngle(new V3(0, 1, 0), R(-0.5, 0.5)), reach = R(1.0, 2.2) * a;
+        const g = p.clone().addScaledVector(dir, reach); g.y = height(g.x, g.z) - 0.08;
+        // the legs bow outward on the way down and flare into the ground, like a banyan's
+        const m = p.clone().addScaledVector(dir, reach * 0.25); m.y = p.y - (p.y - g.y) * 0.3;
+        const n2 = p.clone().addScaledVector(dir, reach * 0.7); n2.y = g.y + (p.y - g.y) * 0.22;
+        tube([q, p, m, n2, g], 0, 0, { sides: 7, rf: t => rb * a * 0.85 * (1 - 0.6 * t) + 0.04 });
+      }
+    });
+    // a few thin shoots from the crown of the arch with leaves at their tips, and leaves along the top
+    for (const t of [0.3, 0.45, 0.58, 0.72]) {
+      const c = core.getPointAt(t), tip = c.clone().add(new V3(R(-1.6, 1.6), R(1.2, 2.2), R(-1.6, 0.6)).multiplyScalar(a));
+      tube([c, c.clone().lerp(tip, 0.5).add(new V3(0, 0.4 * a, 0)), tip], 0, 0, { sides: 6, rf: t => (0.13 - 0.09 * t) * a });
+      addBush(tip.x, tip.y - 0.6 * a, tip.z, R(0.7, 1.0) * a, { sy: 0.6, tint: R(-0.6, 0.2) });
+    }
+    for (let t = 0.2; t <= 0.82; t += 0.09) { const c = core.getPointAt(t); addBush(c.x + R(-0.4, 0.4), c.y + 0.25 * a, c.z + R(-0.6, 0.2), R(0.45, 0.75) * a, { sy: 0.5, tint: R(-0.8, 0.3) }); }
     drapeRoots(ax, az, 3.4, [[0.9, 0.36, 1.2], [0.935, 0.42], [0.995, 0.47, 0.9]], 1.2 * TS);
     drapeRoots(ex, ez, 3.7, [[0.74, 0.32, 0.9], [0.755, 0.24, 0.8]], 1.0 * TS);
-    for (const [px, py, pz, s] of [[cx + 0.6, 7.6 * a, cz - 1.0, 1.25 * a], [bx + 1.6, 6.8 * a, bz - 1.5, 1.15 * a]]) crownOnly.push({ x: px, y: py, z: pz, s, ry: R(0, 6.28), v: 1, k: R(0.94, 1.04) });
+    for (const [px, py, pz, s] of [[cx + 0.6, 8.4 * a, cz - 3.2 * a, 1.2 * a], [bx + 1.6, 7.6 * a, bz - 3.0 * a, 1.1 * a]]) crownOnly.push({ x: px, y: py, z: pz, s, ry: R(0, 6.28), v: 1, k: R(0.94, 1.04) });
     COLLIDERS.push({ x: ax, z: az, r: 1.0 }, { x: ex, z: ez, r: 0.9 });
   }
   // bush masses: [u, v, radius m, count, size range] on the low ground and the tops
@@ -401,7 +445,7 @@ function build() {
     const top = height(x0, z0); if (top > 1) [cx, cz] = P(u, v, top);
     for (let k = 0; k < n * K * K; k++) {
       const a = R(0, 6.28), r = Math.sqrt(rand()) * rad * K, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
-      if (trailAt(x, z) < 0.2 || trunkAt.some(([tx, tz, tr]) => Math.hypot(x - tx, z - tz) < tr)) continue;
+      if (trailEdge(x, z) < 0.2 || trunkAt.some(([tx, tz, tr]) => Math.hypot(x - tx, z - tz) < tr)) continue;
       addBush(x, height(x, z) - 0.1, z, R(s0, s1) * 0.78, { sy: 0.72, tint: R(-1.4, 0) });
     }
   }
@@ -413,7 +457,7 @@ function build() {
   // grass clumps and flowers, in patches, leaving the trails bare
   for (let i = 0; i < 11000 * Math.min(K * K, 4); i++) {
     const x = R(GX0 + 4, GX1 - 4), z = R(-30 * K, GZ1);
-    const tr = trailAt(x, z);
+    const tr = trailEdge(x, z);
     if (tr < -0.2 || stairsAt(x, z).inside) continue;
     const patch = 0.5 + 0.5 * Math.sin(x * 0.37 + Math.sin(z * 0.29) * 2.0) * Math.sin(z * 0.41 - x * 0.13);
     if (rand() > (tr < 0.6 ? 0.55 : 0.25 + patch * 0.75)) continue;

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#16202c" />
+    <title>Skill FX Bench</title>
+    <link rel="stylesheet" href="/src/fxtest/fxtest.css" />
+  </head>
+  <body>
+    <main class="bench">
+      <div id="stage">
+        <canvas id="view"></canvas>
+        <div id="numbers"></div>
+        <div id="banner"></div>
+        <div class="actions">
+          <button id="dodge" type="button">หลบ</button>
+          <button id="cast" type="button"><span id="castLabel">ร่าย</span></button>
+        </div>
+      </div>
+      <aside id="panel"></aside>
+    </main>
+    <script type="module" src="/src/fxtest/main.js"></script>
+  </body>
+</html>

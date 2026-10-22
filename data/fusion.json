@@ -1,0 +1,54 @@
+{
+  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery).",
+  "carrier": {
+    "requiresAll": [
+      "Attack"
+    ],
+    "excludes": [
+      "Spell",
+      "Summon",
+      "Guard",
+      "Charge",
+      "Channel"
+    ],
+    "maxCooldown": 2.5
+  },
+  "payload": {
+    "requiresAll": [
+      "Spell",
+      "Damage"
+    ],
+    "excludes": [
+      "Summon",
+      "Channel",
+      "Heal",
+      "Guard",
+      "Buff"
+    ],
+    "maxCooldown": 2.5,
+    "kinds": [
+      "projectile"
+    ]
+  },
+  "payloadDamageMult": 0.5,
+  "socketsUsed": 1,
+  "recipes": [
+    {
+      "carrier": "slash",
+      "payload": "firebolt",
+      "id": "flame_wave_slash",
+      "name": "Flame Wave Slash",
+      "nameTh": "ฟันคลื่นเพลิง",
+      "desc": "ตั้งท่ารวมไฟเข้าดาบ 1 วิ แล้วฟันปล่อยคลื่นไฟรูปจันทร์เสี้ยวพุ่งไปข้างหน้า ทะลุทุกตัว โดนตัวละครั้งเดียว ติดไฟได้",
+      "chargeTime": 1.0,
+      "cooldown": 1.6,
+      "slashDamageMult": 1.0,
+      "wave": {
+        "speed": 11,
+        "range": 8,
+        "radius": 1.2,
+        "damageMult": 1.0
+      }
+    }
+  ]
+}

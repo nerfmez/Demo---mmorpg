@@ -129,7 +129,8 @@ test('Fire Shift burns the target and leaves nothing on the ground',()=>{
  const {g,m,s}=fixture('hunter_shot',['fire_shift']);assert.equal(s.element,'fire');assert.ok(s.burnChance>0);assert.equal(s.chill,null);
  g.rng.chance=()=>true;g.hitMonster(m,20,g.hitOpts(s));assert.equal(m.statuses.burn?.owner,'player');
  g.executeSkill(s,aim);for(let i=0;i<40;i++)g.updateProjectiles(.02);assert.equal(g.areas.length,0,'no field is spawned');
- const both=fixture('frost_nova',['fire_shift']);assert.equal(both.s.chill,null,'fire replaces the native chill');assert.equal(both.s.element,'fire');
+ const both=fixture('slash',['frost_shift']);assert.ok(both.s.chill);const fire=fixture('slash',['fire_shift']);assert.equal(fire.s.chill,null,'fire brings no chill');assert.equal(fire.s.element,'fire');
+ assert.equal(modFits(data.skills.combat.frost_nova,data.mods.mods.fire_shift).reason,'not','spells keep their own element');
  assert.equal(modFits(data.skills.combat.slash,data.mods.mods.fire_shift,[data.mods.mods.frost_shift]).reason,'family');
 });
 

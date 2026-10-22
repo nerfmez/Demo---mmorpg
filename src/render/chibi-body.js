@@ -51,19 +51,31 @@ export function prepareChibiBody(gltf, cfg) {
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   const at = (n) => bones[n].getWorldPosition(new THREE.Vector3());
 
-  // head bounds in the bind (T-pose) shape: every vertex above the head joint
+  // in the bind (T-pose) shape: head bounds (every vertex above the head joint) and each palm's
+  // centre (vertices led by a hand bone, in that bone's space) for the weapon grip
   const headY = at('Head').y;
   const head = new THREE.Box3();
   const v = new THREE.Vector3();
-  const pos = mesh.geometry.attributes.position;
+  const geo = mesh.geometry, pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+  const palm = { RightHand: [new THREE.Vector3(), 0], LeftHand: [new THREE.Vector3(), 0] };
   for (let i = 0; i < pos.count; i++) {
     mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
     if (v.y > headY) head.expandByPoint(v);
+    let lead = 0;
+    for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
+    const p = palm[mesh.skeleton.bones[si.getComponent(i, lead)].name];
+    if (p) { p[0].add(bones[mesh.skeleton.bones[si.getComponent(i, lead)].name].worldToLocal(v)); p[1]++; }
+  }
+  // each hand's thumb direction in its own space: the model faces +Z, so in the bind pose both
+  // thumbs point +Z (palms down, fingers out along the arms)
+  const grip = {}, thumb = {};
+  for (const [n, [sum, count]] of Object.entries(palm)) {
+    grip[n] = count ? sum.divideScalar(count) : new THREE.Vector3();
+    thumb[n] = new THREE.Vector3(0, 0, 1).applyQuaternion(bones[n].getWorldQuaternion(new THREE.Quaternion()).invert());
   }
 
   // rest pose: arms hanging like the driver rig's (its rest is arms down, all rotations zero)
   const drop = cfg.armDrop ?? 1.3;
-  const Z = new THREE.Vector3(0, 0, 1);
   const turnWorld = (bone, angle) => {
     const p = bone.parent.getWorldQuaternion(new THREE.Quaternion());
     const r = new THREE.Quaternion().setFromAxisAngle(Z, angle);
@@ -92,11 +104,14 @@ export function prepareChibiBody(gltf, cfg) {
   const hc = head.isEmpty() ? J.Head.clone().add(new THREE.Vector3(0, 0.12, 0)) : head.getCenter(new THREE.Vector3());
   const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0)).toArray(), scale: hs };
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
-  return { scene, joints, world, headFit, neckFit, chibi: true, gearScale: cfg.gearScale ?? 1, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
+  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, gearScale: cfg.gearScale ?? 1, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
-/** Add the chibi body to a built driver rig and give the rig syncSkin(). */
-export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
+/**
+ * Add the chibi body to a built driver rig and give the rig syncSkin(). `weapon`/`offhand` are the
+ * held kinds (a bow's grip runs along its limbs, +Y; other weapons along +Z, the blade or shaft).
+ */
+export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null } = {}) {
   const body = SkeletonUtils.clone(T.scene);
   const flash = rig.material.userData.flash;
   const meshes = [];
@@ -117,5 +132,40 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   }
   rig.root.add(body);
   rig.skin = { body };
-  return bindSkinSync(rig, body, T);
+  bindSkinSync(rig, body, T);
+  // The hand has no finger bones, so it holds a weapon as an open grip: every frame the skin hand
+  // turns (the least it can) until its thumb runs along the weapon's grip axis, so the fingers
+  // cross the handle, and the weapon socket moves to the palm centre. The weapon's direction stays
+  // the driver's. A shield or quiver is only seated in the palm.
+  const axis = (kind) => (kind === 'bow' ? Y : kind && kind !== 'shield' && kind !== 'quiver' ? Z : null);
+  const seats = [['RightHand', rig.bones.weapon, axis(weapon)], ['LeftHand', rig.bones.offhand, axis(offhand)]]
+    .map(([n, socket, along]) => ({ hand: body.getObjectByName(n), socket, along, centre: T.grip[n], thumb: T.thumb[n] }))
+    .filter((e) => e.hand && e.socket);
+  rig.gripCenter = T.grip.RightHand;
+  const sync = rig.syncSkin;
+  rig.syncSkin = () => {
+    sync();
+    for (const { hand, socket, along, centre, thumb } of seats) {
+      hand.updateWorldMatrix(true, false);
+      if (along) {
+        hand.getWorldQuaternion(qh);
+        socket.getWorldQuaternion(qs);
+        qh.premultiply(qt.setFromUnitVectors(seat.copy(thumb).applyQuaternion(qh), dir.copy(along).applyQuaternion(qs)));
+        hand.quaternion.copy(hand.parent.getWorldQuaternion(qs).invert().multiply(qh));
+        hand.updateWorldMatrix(false, false);
+      }
+      socket.parent.updateWorldMatrix(true, false);
+      socket.position.copy(socket.parent.worldToLocal(hand.localToWorld(seat.copy(centre))));
+    }
+  };
+  rig.syncSkin();
+  return rig;
 }
+
+const Y = new THREE.Vector3(0, 1, 0);
+const Z = new THREE.Vector3(0, 0, 1);
+const seat = new THREE.Vector3();
+const dir = new THREE.Vector3();
+const qh = new THREE.Quaternion();
+const qs = new THREE.Quaternion();
+const qt = new THREE.Quaternion();

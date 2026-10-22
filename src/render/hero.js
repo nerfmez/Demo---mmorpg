@@ -210,7 +210,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     if (V.chibi) {
       // weapons and shields were made for the 1.75 m body: scale them to the small one
       for (const n of ['weapon', 'offhand']) rig.bones[n]?.scale.setScalar(V.gearScale);
-      attachChibiBody(rig, V);
+      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
     } else attachVrmBody(rig, V);
   }
   rig.look = L;

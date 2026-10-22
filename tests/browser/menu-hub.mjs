@@ -83,8 +83,9 @@ try {
         if (height > width) { await page.evaluate(() => window.__frontier.panels.open('menu')); continue; }
         await tap('#atelier [data-action=hub]');
       } else {
-        const tabs = await page.locator('[data-tab]').evaluateAll((els) => els.map((e) => e.dataset.tab));
-        if (pages.length > 1) assert.deepEqual(tabs, pages, id + ' sidebar lists its group only'); else assert.equal(await page.locator('.tabs').isVisible(), false, id + ' has no sidebar');
+        // a page shows only itself: no sidebar or page picker listing other menus
+        assert.equal(await page.locator('.tabs').isVisible(), false, id + ' has no sidebar');
+        assert.equal(await page.locator('[data-page-select]').isVisible(), false, id + ' has no page picker');
         assert.ok(await page.locator('.panel-back').isVisible(), id + ': back button');
         if (id === 'char' || id === 'craft') await page.screenshot({ path: `${out}${name}-2-${id}.png` });
         await tap('.panel-back');
@@ -93,10 +94,12 @@ try {
       assert.equal(await page.locator('#panel-title').textContent(), 'เมนูหลัก', id + ': back reaches the hub');
     }
 
-    // moving between pages of one group needs no trip through the hub
+    // other pages are reached through the hub: back, then the page's tile
     await page.locator('.hub-tile[data-go=journal]').scrollIntoViewIfNeeded();
     await tap('.hub-tile[data-go=journal]');
-    if (width > 700) await tap('[data-tab=map]'); else await page.locator('[data-page-select]').selectOption('map');
+    await tap('.panel-back');
+    await page.locator('.hub-tile[data-go=map]').scrollIntoViewIfNeeded();
+    await tap('.hub-tile[data-go=map]');
     assert.equal(await page.locator('#panel-title').textContent(), 'แผนที่');
     await tap('.panel-close');
     assert.equal(await open(), false);

@@ -156,473 +156,1009 @@
     {
       "key": "skill/ward",
       "path": "assets/icons/skill/ward.png",
-      "sha256": "508b25dab0e3e60b0f910a7a184b67b9e931df932eab8cfba9cf095b3f89cfcb",
-      "bytes": 365025,
+      "sha256": "d6bb4e89216f483d896e062daf26ac8c43f5b1431fe9102f0180a63dea4bbd02",
+      "bytes": 348360,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_dbce8f88fac08191817009337971438f",
-      "raw_source_sha256": "3dfe7a501133023293d766941feecbd1157ecdd2a0bd68de8d768f87ca324b56",
-      "pre_transparency_sha256": "b1397c00bcf9822b82c5138f95543150c7e1bcc9197d5548a0fc753230388f5d",
-      "pre_transparency_bytes": 339471,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "b1397c00bcf9822b82c5138f95543150c7e1bcc9197d5548a0fc753230388f5d",
-        "output_sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
-        "clear_pixels": 518795,
-        "partial_pixels": 1053716,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/ward.png",
-        "sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
-        "bytes": 1566574,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/ward.png",
+        "sha256": "d6bb4e89216f483d896e062daf26ac8c43f5b1431fe9102f0180a63dea4bbd02",
+        "bytes": 348360,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "d6bb4e89216f483d896e062daf26ac8c43f5b1431fe9102f0180a63dea4bbd02",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/ward.png",
+        "sha256": "aaac2510696ccd01946d8dbcfb6faa9839781f22b0fa09bdd967f82f67579954",
+        "bytes": 259148,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/ward.png",
+          "sha256": "aaac2510696ccd01946d8dbcfb6faa9839781f22b0fa09bdd967f82f67579954",
+          "bytes": 259148,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/ward",
+        "path": "assets/icons/skill/ward.png",
+        "sha256": "508b25dab0e3e60b0f910a7a184b67b9e931df932eab8cfba9cf095b3f89cfcb",
+        "bytes": 365025,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_dbce8f88fac08191817009337971438f",
+        "raw_source_sha256": "3dfe7a501133023293d766941feecbd1157ecdd2a0bd68de8d768f87ca324b56",
+        "pre_transparency_sha256": "b1397c00bcf9822b82c5138f95543150c7e1bcc9197d5548a0fc753230388f5d",
+        "pre_transparency_bytes": 339471,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "b1397c00bcf9822b82c5138f95543150c7e1bcc9197d5548a0fc753230388f5d",
+          "output_sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
+          "clear_pixels": 518795,
+          "partial_pixels": 1053716,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/ward.png",
+          "sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
+          "bytes": 1566574,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "06d1d5cfd1551856696e5b2044bbbabc49f7b56f18e725a630a53e003162c94d",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/war_cry",
       "path": "assets/icons/skill/war_cry.png",
-      "sha256": "c422c989f20e45fed7c01f61d8b40a22fe264fe79fde5e4854c0be57df4cfb42",
-      "bytes": 487327,
+      "sha256": "270e343d5337de9f58e1d1ef3db928653dad65a5eb2f2729179ea5e5cc8e14a3",
+      "bytes": 339439,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_4e4f5b6275c0819195f2110ed4771308",
-      "raw_source_sha256": "dbd6b485649fd71860274e2d2c75de4a35169eeda756eaf7fc13e16933097871",
-      "pre_transparency_sha256": "c5582ed8cc7e716d706bebf92b5e226938f41c638b08f360f6701782f3b108fc",
-      "pre_transparency_bytes": 415984,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "c5582ed8cc7e716d706bebf92b5e226938f41c638b08f360f6701782f3b108fc",
-        "output_sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
-        "clear_pixels": 314734,
-        "partial_pixels": 1257602,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/war_cry.png",
-        "sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
-        "bytes": 2121741,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/war_cry.png",
+        "sha256": "270e343d5337de9f58e1d1ef3db928653dad65a5eb2f2729179ea5e5cc8e14a3",
+        "bytes": 339439,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "270e343d5337de9f58e1d1ef3db928653dad65a5eb2f2729179ea5e5cc8e14a3",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/war_cry.png",
+        "sha256": "0e9de0ffb2ec72afac721a4dc04664e742d9a3e87894e93058c7e04082f9a5bf",
+        "bytes": 251435,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/war_cry.png",
+          "sha256": "0e9de0ffb2ec72afac721a4dc04664e742d9a3e87894e93058c7e04082f9a5bf",
+          "bytes": 251435,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/war_cry",
+        "path": "assets/icons/skill/war_cry.png",
+        "sha256": "c422c989f20e45fed7c01f61d8b40a22fe264fe79fde5e4854c0be57df4cfb42",
+        "bytes": 487327,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_4e4f5b6275c0819195f2110ed4771308",
+        "raw_source_sha256": "dbd6b485649fd71860274e2d2c75de4a35169eeda756eaf7fc13e16933097871",
+        "pre_transparency_sha256": "c5582ed8cc7e716d706bebf92b5e226938f41c638b08f360f6701782f3b108fc",
+        "pre_transparency_bytes": 415984,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "c5582ed8cc7e716d706bebf92b5e226938f41c638b08f360f6701782f3b108fc",
+          "output_sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
+          "clear_pixels": 314734,
+          "partial_pixels": 1257602,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/war_cry.png",
+          "sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
+          "bytes": 2121741,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "135c75ec16cac24adf1a98c29bdebdd99779870f2d2c622ded91668a1a2b44ab",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/healing_spring",
       "path": "assets/icons/skill/healing_spring.png",
-      "sha256": "7c86f93688fddc8107d9e914ee44e5de7c6db41ff0582d92d885a647498cf041",
-      "bytes": 407460,
+      "sha256": "3bac2ef1c54c418d00e5025791c43a43c15e1569097bf3a13d0b642a08f91646",
+      "bytes": 328910,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_e3ea88adc5d8819182b9fcc8d8cabae8",
-      "raw_source_sha256": "cfc44770b6ba057f9ec78419788c1fe862d7d1b6941ab024b461e3de1e8524e0",
-      "pre_transparency_sha256": "c76b425db098e59bd9c9bdb950c63db767a8c8feb6b3a47378408f61dd6dc963",
-      "pre_transparency_bytes": 394719,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "c76b425db098e59bd9c9bdb950c63db767a8c8feb6b3a47378408f61dd6dc963",
-        "output_sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
-        "clear_pixels": 612114,
-        "partial_pixels": 960145,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/healing_spring.png",
-        "sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
-        "bytes": 1731829,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/healing_spring.png",
+        "sha256": "3bac2ef1c54c418d00e5025791c43a43c15e1569097bf3a13d0b642a08f91646",
+        "bytes": 328910,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "3bac2ef1c54c418d00e5025791c43a43c15e1569097bf3a13d0b642a08f91646",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/healing_spring.png",
+        "sha256": "68f092551097f9f0eb0c9d1695cfa1f72220af6eccbb8b3d225579860b867544",
+        "bytes": 245333,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/healing_spring.png",
+          "sha256": "68f092551097f9f0eb0c9d1695cfa1f72220af6eccbb8b3d225579860b867544",
+          "bytes": 245333,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/healing_spring",
+        "path": "assets/icons/skill/healing_spring.png",
+        "sha256": "7c86f93688fddc8107d9e914ee44e5de7c6db41ff0582d92d885a647498cf041",
+        "bytes": 407460,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_e3ea88adc5d8819182b9fcc8d8cabae8",
+        "raw_source_sha256": "cfc44770b6ba057f9ec78419788c1fe862d7d1b6941ab024b461e3de1e8524e0",
+        "pre_transparency_sha256": "c76b425db098e59bd9c9bdb950c63db767a8c8feb6b3a47378408f61dd6dc963",
+        "pre_transparency_bytes": 394719,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "c76b425db098e59bd9c9bdb950c63db767a8c8feb6b3a47378408f61dd6dc963",
+          "output_sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
+          "clear_pixels": 612114,
+          "partial_pixels": 960145,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/healing_spring.png",
+          "sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
+          "bytes": 1731829,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "930240a8e7b090647fb68deac35d4f9e1f56171867a0ad1dee88cab6646b3910",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/spirit_wolf",
       "path": "assets/icons/skill/spirit_wolf.png",
-      "sha256": "c75a96b6ca8bd366bc5a78fca58861cb60dcc74874d2e57900e81b54abcc0ee9",
-      "bytes": 447159,
+      "sha256": "7b8bc1ebc80990d521b6b9acbd029c0178025133261532a5b77be87bd524c323",
+      "bytes": 334437,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_c70a63f061148191a978335a469206ad",
-      "raw_source_sha256": "194b09d809a08d4d4f816292d70b7f62dcddf321442b72fff017fbfcd73bbcbb",
-      "pre_transparency_sha256": "1d2fcd62d8b657d5912aa6cf6d851a98ebab62a617b692bac1757f05bcb3ab61",
-      "pre_transparency_bytes": 381295,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "1d2fcd62d8b657d5912aa6cf6d851a98ebab62a617b692bac1757f05bcb3ab61",
-        "output_sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
-        "clear_pixels": 439574,
-        "partial_pixels": 1132003,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/spirit_wolf.png",
-        "sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
-        "bytes": 1875372,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/spirit_wolf.png",
+        "sha256": "7b8bc1ebc80990d521b6b9acbd029c0178025133261532a5b77be87bd524c323",
+        "bytes": 334437,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "7b8bc1ebc80990d521b6b9acbd029c0178025133261532a5b77be87bd524c323",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/spirit_wolf.png",
+        "sha256": "c53922ca115eae6d4e0fcd567d586f58bbc7845d580d0d7c539b7b540b203ff3",
+        "bytes": 250360,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/spirit_wolf.png",
+          "sha256": "c53922ca115eae6d4e0fcd567d586f58bbc7845d580d0d7c539b7b540b203ff3",
+          "bytes": 250360,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/spirit_wolf",
+        "path": "assets/icons/skill/spirit_wolf.png",
+        "sha256": "c75a96b6ca8bd366bc5a78fca58861cb60dcc74874d2e57900e81b54abcc0ee9",
+        "bytes": 447159,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_c70a63f061148191a978335a469206ad",
+        "raw_source_sha256": "194b09d809a08d4d4f816292d70b7f62dcddf321442b72fff017fbfcd73bbcbb",
+        "pre_transparency_sha256": "1d2fcd62d8b657d5912aa6cf6d851a98ebab62a617b692bac1757f05bcb3ab61",
+        "pre_transparency_bytes": 381295,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "1d2fcd62d8b657d5912aa6cf6d851a98ebab62a617b692bac1757f05bcb3ab61",
+          "output_sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
+          "clear_pixels": 439574,
+          "partial_pixels": 1132003,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/spirit_wolf.png",
+          "sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
+          "bytes": 1875372,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "0bf981ee4d24796596b572a573cea1b487c1006859cc0940dfe05955ea9793c9",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/dash",
       "path": "assets/icons/skill/dash.png",
-      "sha256": "73d2cf1f17a04e347c50ec53491340e5d8c07f4d23d70e0102bb3ae194c31399",
-      "bytes": 278948,
+      "sha256": "9ea75bb9044697c01757206a219ea0a5f5cdbfa4d11cd569de2f7cd26f2c323e",
+      "bytes": 313102,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_952105ed850c8191bd51bcde359558a1",
-      "raw_source_sha256": "f7521d9c9d0dab19a51a6e0e4c2e64d8c2ae61d3818da2de6805d5bd06a9ab51",
-      "pre_transparency_sha256": "acfc8493d4194568a3ad9e92d2ae8a448107e367ee2923c39f08b5ce53abd2db",
-      "pre_transparency_bytes": 312265,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "acfc8493d4194568a3ad9e92d2ae8a448107e367ee2923c39f08b5ce53abd2db",
-        "output_sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
-        "clear_pixels": 776274,
-        "partial_pixels": 796137,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/dash.png",
-        "sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
-        "bytes": 1193838,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/dash.png",
+        "sha256": "9ea75bb9044697c01757206a219ea0a5f5cdbfa4d11cd569de2f7cd26f2c323e",
+        "bytes": 313102,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "9ea75bb9044697c01757206a219ea0a5f5cdbfa4d11cd569de2f7cd26f2c323e",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/dash.png",
+        "sha256": "f00e226695b10ce0c2e84f44691b0e045a03f7cec9efd49fa3eccf88e565a7d4",
+        "bytes": 232266,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/dash.png",
+          "sha256": "f00e226695b10ce0c2e84f44691b0e045a03f7cec9efd49fa3eccf88e565a7d4",
+          "bytes": 232266,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/dash",
+        "path": "assets/icons/skill/dash.png",
+        "sha256": "73d2cf1f17a04e347c50ec53491340e5d8c07f4d23d70e0102bb3ae194c31399",
+        "bytes": 278948,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_952105ed850c8191bd51bcde359558a1",
+        "raw_source_sha256": "f7521d9c9d0dab19a51a6e0e4c2e64d8c2ae61d3818da2de6805d5bd06a9ab51",
+        "pre_transparency_sha256": "acfc8493d4194568a3ad9e92d2ae8a448107e367ee2923c39f08b5ce53abd2db",
+        "pre_transparency_bytes": 312265,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "acfc8493d4194568a3ad9e92d2ae8a448107e367ee2923c39f08b5ce53abd2db",
+          "output_sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
+          "clear_pixels": 776274,
+          "partial_pixels": 796137,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/dash.png",
+          "sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
+          "bytes": 1193838,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "eed4dc0b7013e9af6aaf493c188b008f60f5e5640727e78ac53b364ef830c037",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/roll",
       "path": "assets/icons/skill/roll.png",
-      "sha256": "41c08af0ffa707a46608c91ea6110261de6340f5e5d46e5f2a533b41472b9af2",
-      "bytes": 465184,
+      "sha256": "14d02cabe05f2410ba2a3b320385da3ccc5bf80a7d8f29c76622bde65a264bc0",
+      "bytes": 335588,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_367dc8b5f2f88191898e8ba5edddaace",
-      "raw_source_sha256": "e0c4ed9181d4779bb12b2afb15316c9a344f4da7d0f5876f2bf2fdf88a966ff5",
-      "pre_transparency_sha256": "836f9e2f437094a06c91dd02f8c5873b78735c690a60f3bfe35df4d6a693e761",
-      "pre_transparency_bytes": 367827,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "836f9e2f437094a06c91dd02f8c5873b78735c690a60f3bfe35df4d6a693e761",
-        "output_sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
-        "clear_pixels": 472285,
-        "partial_pixels": 1099943,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/roll.png",
-        "sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
-        "bytes": 1884150,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/roll.png",
+        "sha256": "14d02cabe05f2410ba2a3b320385da3ccc5bf80a7d8f29c76622bde65a264bc0",
+        "bytes": 335588,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "14d02cabe05f2410ba2a3b320385da3ccc5bf80a7d8f29c76622bde65a264bc0",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/roll.png",
+        "sha256": "9ddfa4bdc281393bc8decd27697549f0c8bdd574cffee30e6d729dbd226e10ba",
+        "bytes": 250976,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/roll.png",
+          "sha256": "9ddfa4bdc281393bc8decd27697549f0c8bdd574cffee30e6d729dbd226e10ba",
+          "bytes": 250976,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/roll",
+        "path": "assets/icons/skill/roll.png",
+        "sha256": "41c08af0ffa707a46608c91ea6110261de6340f5e5d46e5f2a533b41472b9af2",
+        "bytes": 465184,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_367dc8b5f2f88191898e8ba5edddaace",
+        "raw_source_sha256": "e0c4ed9181d4779bb12b2afb15316c9a344f4da7d0f5876f2bf2fdf88a966ff5",
+        "pre_transparency_sha256": "836f9e2f437094a06c91dd02f8c5873b78735c690a60f3bfe35df4d6a693e761",
+        "pre_transparency_bytes": 367827,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "836f9e2f437094a06c91dd02f8c5873b78735c690a60f3bfe35df4d6a693e761",
+          "output_sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
+          "clear_pixels": 472285,
+          "partial_pixels": 1099943,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/roll.png",
+          "sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
+          "bytes": 1884150,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "a33950e6865c725ed6a0ec228a9b99ee28dde50c2c90283b9042be745153f29f",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/blink",
       "path": "assets/icons/skill/blink.png",
-      "sha256": "e58f31b2f2ee6bb8fb887e2f1310113c9edf170d0f3b36b241caf254af6a409f",
-      "bytes": 341364,
+      "sha256": "497e3f06c833402daad90e86bef1356a6d476bd5433ab47251a406cc1507aa85",
+      "bytes": 333696,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_75601502f438819186cebd144a8b568e",
-      "raw_source_sha256": "ceab290f69efe395e26158c0040333e65dfef88097a45a10c4875c7ed7330648",
-      "pre_transparency_sha256": "44de04451db8ea4b39e8e8d7a6ac96da36d0a32a8684074ee07afd2f50ada330",
-      "pre_transparency_bytes": 327750,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "44de04451db8ea4b39e8e8d7a6ac96da36d0a32a8684074ee07afd2f50ada330",
-        "output_sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
-        "clear_pixels": 903742,
-        "partial_pixels": 668096,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/blink.png",
-        "sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
-        "bytes": 1363968,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/blink.png",
+        "sha256": "497e3f06c833402daad90e86bef1356a6d476bd5433ab47251a406cc1507aa85",
+        "bytes": 333696,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "497e3f06c833402daad90e86bef1356a6d476bd5433ab47251a406cc1507aa85",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/blink.png",
+        "sha256": "a82d7bd89d63086ce244a93d058b59d77f4ead243869e3354f1fee9e42ada718",
+        "bytes": 252692,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/blink.png",
+          "sha256": "a82d7bd89d63086ce244a93d058b59d77f4ead243869e3354f1fee9e42ada718",
+          "bytes": 252692,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/blink",
+        "path": "assets/icons/skill/blink.png",
+        "sha256": "e58f31b2f2ee6bb8fb887e2f1310113c9edf170d0f3b36b241caf254af6a409f",
+        "bytes": 341364,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_75601502f438819186cebd144a8b568e",
+        "raw_source_sha256": "ceab290f69efe395e26158c0040333e65dfef88097a45a10c4875c7ed7330648",
+        "pre_transparency_sha256": "44de04451db8ea4b39e8e8d7a6ac96da36d0a32a8684074ee07afd2f50ada330",
+        "pre_transparency_bytes": 327750,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "44de04451db8ea4b39e8e8d7a6ac96da36d0a32a8684074ee07afd2f50ada330",
+          "output_sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
+          "clear_pixels": 903742,
+          "partial_pixels": 668096,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/blink.png",
+          "sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
+          "bytes": 1363968,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "26dccf6cbf386aeab06a3385edc6630bf59eb144a001cdbafee10f5965f5ea5b",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/leap",
       "path": "assets/icons/skill/leap.png",
-      "sha256": "c7a03f54af363101d80a4fd4eb1b37635a2fdfcc464a21ba6f1582667d790552",
-      "bytes": 548326,
+      "sha256": "b21f69d8a626de61e293d9de73423203c735cd2ea13c1618d6898b4a4832ef0e",
+      "bytes": 324922,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part02.zip",
-      "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
-      "source_library_file_id": "libfile_8f3c77a6f59081918d70967d18381b55",
-      "raw_source_sha256": "685583b851ebb24313ad0a10e75d9f084244c7b79b403e24e7cb4c29af6eaed5",
-      "pre_transparency_sha256": "b5bc7ee198e0a29fd14555df850f4f8613dcb790c147416e676f0db00683e338",
-      "pre_transparency_bytes": 480267,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "b5bc7ee198e0a29fd14555df850f4f8613dcb790c147416e676f0db00683e338",
-        "output_sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
-        "clear_pixels": 319137,
-        "partial_pixels": 1253006,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/leap.png",
-        "sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
-        "bytes": 2418212,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/leap.png",
+        "sha256": "b21f69d8a626de61e293d9de73423203c735cd2ea13c1618d6898b4a4832ef0e",
+        "bytes": 324922,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "b21f69d8a626de61e293d9de73423203c735cd2ea13c1618d6898b4a4832ef0e",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/leap.png",
+        "sha256": "650e1e940472782e8140f12fcc8a1abdba2e0f25f037213c48ca20bee3560f19",
+        "bytes": 245365,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/leap.png",
+          "sha256": "650e1e940472782e8140f12fcc8a1abdba2e0f25f037213c48ca20bee3560f19",
+          "bytes": 245365,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/leap",
+        "path": "assets/icons/skill/leap.png",
+        "sha256": "c7a03f54af363101d80a4fd4eb1b37635a2fdfcc464a21ba6f1582667d790552",
+        "bytes": 548326,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part02.zip",
+        "source_archive_sha256": "01addb02fbef4dfe3d3c6d4fdd4888df4cc1db5a1037cbb53838a413e769bc44",
+        "source_library_file_id": "libfile_8f3c77a6f59081918d70967d18381b55",
+        "raw_source_sha256": "685583b851ebb24313ad0a10e75d9f084244c7b79b403e24e7cb4c29af6eaed5",
+        "pre_transparency_sha256": "b5bc7ee198e0a29fd14555df850f4f8613dcb790c147416e676f0db00683e338",
+        "pre_transparency_bytes": 480267,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "b5bc7ee198e0a29fd14555df850f4f8613dcb790c147416e676f0db00683e338",
+          "output_sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
+          "clear_pixels": 319137,
+          "partial_pixels": 1253006,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/leap.png",
+          "sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
+          "bytes": 2418212,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "ff32c6fd0db2f2c3de8f100a01be6586f13c6943e34f68924eac32814f268701",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
@@ -1511,532 +2047,1135 @@
     {
       "key": "skill/slash",
       "path": "assets/icons/skill/slash.png",
-      "sha256": "224bb3868f77b5985a91ce3eca7459450a0533e55afb8252d27bbd91d2351f9b",
-      "bytes": 345296,
+      "sha256": "bfec8ac8d59958719d4db2bf563b1a4358615d4de09d67b63b0a08b384613374",
+      "bytes": 400649,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_b6cea6454a808191a253315406e602be",
-      "raw_source_sha256": "8a11dee31f04a7c3bcb75455ae5ff97fcc7c919d766a8cea7c0bf2d0b95dade5",
-      "pre_transparency_sha256": "40aa8ab4e8c8f92aa60765a8d32d1dcc40bf7e9e73ed8184e29188074971f6d7",
-      "pre_transparency_bytes": 300721,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "40aa8ab4e8c8f92aa60765a8d32d1dcc40bf7e9e73ed8184e29188074971f6d7",
-        "output_sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
-        "clear_pixels": 722844,
-        "partial_pixels": 848747,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/slash.png",
-        "sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
-        "bytes": 1393844,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/slash.png",
+        "sha256": "bfec8ac8d59958719d4db2bf563b1a4358615d4de09d67b63b0a08b384613374",
+        "bytes": 400649,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "bfec8ac8d59958719d4db2bf563b1a4358615d4de09d67b63b0a08b384613374",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/slash.png",
+        "sha256": "c5f74a4e6a45a64052e24eeda794a7930de3f9af0a8f3c93d228c1233ba67827",
+        "bytes": 272215,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          254
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/slash.png",
+          "sha256": "c5f74a4e6a45a64052e24eeda794a7930de3f9af0a8f3c93d228c1233ba67827",
+          "bytes": 272215,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            254
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/slash",
+        "path": "assets/icons/skill/slash.png",
+        "sha256": "224bb3868f77b5985a91ce3eca7459450a0533e55afb8252d27bbd91d2351f9b",
+        "bytes": 345296,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_b6cea6454a808191a253315406e602be",
+        "raw_source_sha256": "8a11dee31f04a7c3bcb75455ae5ff97fcc7c919d766a8cea7c0bf2d0b95dade5",
+        "pre_transparency_sha256": "40aa8ab4e8c8f92aa60765a8d32d1dcc40bf7e9e73ed8184e29188074971f6d7",
+        "pre_transparency_bytes": 300721,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "40aa8ab4e8c8f92aa60765a8d32d1dcc40bf7e9e73ed8184e29188074971f6d7",
+          "output_sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
+          "clear_pixels": 722844,
+          "partial_pixels": 848747,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/slash.png",
+          "sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
+          "bytes": 1393844,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "f77dc239e094ccc783a9c723d2a37ee9e8e8583556ff6b46af28b2e38408e058",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/whirl_blade",
       "path": "assets/icons/skill/whirl_blade.png",
-      "sha256": "17707e3ddb9cbb9597c0f1b817152bf776f07e7eae8bd2732420bb0196b32cee",
-      "bytes": 519962,
+      "sha256": "8a3dcebd7f2ff0a21daf9d6f25024dcb15dbfda1202856eecad8432bb35df990",
+      "bytes": 360173,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_6d549829590881919885f4ee487db81a",
-      "raw_source_sha256": "40245bddf68e90ba7e82f9ea638b0ecc1aa5b7413d9c5ac41ac08c18621788e5",
-      "pre_transparency_sha256": "a647a5949ed959740eafc7d2cf10baa89be9b20135384ff22b1f18cfdadcdf5b",
-      "pre_transparency_bytes": 389231,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "a647a5949ed959740eafc7d2cf10baa89be9b20135384ff22b1f18cfdadcdf5b",
-        "output_sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
-        "clear_pixels": 486822,
-        "partial_pixels": 1085269,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/whirl_blade.png",
-        "sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
-        "bytes": 2058999,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/whirl_blade.png",
+        "sha256": "8a3dcebd7f2ff0a21daf9d6f25024dcb15dbfda1202856eecad8432bb35df990",
+        "bytes": 360173,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "8a3dcebd7f2ff0a21daf9d6f25024dcb15dbfda1202856eecad8432bb35df990",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/whirl_blade.png",
+        "sha256": "596422227a18158860b33ea639e31a833ca863c7c19f6f78167022c4ad938d0c",
+        "bytes": 272747,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/whirl_blade.png",
+          "sha256": "596422227a18158860b33ea639e31a833ca863c7c19f6f78167022c4ad938d0c",
+          "bytes": 272747,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/whirl_blade",
+        "path": "assets/icons/skill/whirl_blade.png",
+        "sha256": "17707e3ddb9cbb9597c0f1b817152bf776f07e7eae8bd2732420bb0196b32cee",
+        "bytes": 519962,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_6d549829590881919885f4ee487db81a",
+        "raw_source_sha256": "40245bddf68e90ba7e82f9ea638b0ecc1aa5b7413d9c5ac41ac08c18621788e5",
+        "pre_transparency_sha256": "a647a5949ed959740eafc7d2cf10baa89be9b20135384ff22b1f18cfdadcdf5b",
+        "pre_transparency_bytes": 389231,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "a647a5949ed959740eafc7d2cf10baa89be9b20135384ff22b1f18cfdadcdf5b",
+          "output_sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
+          "clear_pixels": 486822,
+          "partial_pixels": 1085269,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/whirl_blade.png",
+          "sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
+          "bytes": 2058999,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "b7dcb3f690a7c194ff5ac8aaabaffef302a2d4547fbb9562e525d09546cfa35f",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/hunter_shot",
       "path": "assets/icons/skill/hunter_shot.png",
-      "sha256": "139dc537b7857dd4bf3a0d2271c7e054538ea97e1a49663bbf52d87d3783cefc",
-      "bytes": 301709,
+      "sha256": "69c30f9510384a29595fa53a5eaab96c21fa47cc231610e44f29c2b9a15ee59b",
+      "bytes": 348234,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_7e6468ed014c81918e1714c3f2161fa7",
-      "raw_source_sha256": "499eb22df775fddc29413b629e0af266b34befa9bf018cf160b325999ac3ab1e",
-      "pre_transparency_sha256": "d81a5c32a64590af5ee4d62a9f324d5abd85d5bec89c438c9fcfc09bfcc0743d",
-      "pre_transparency_bytes": 342314,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "d81a5c32a64590af5ee4d62a9f324d5abd85d5bec89c438c9fcfc09bfcc0743d",
-        "output_sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
-        "clear_pixels": 944850,
-        "partial_pixels": 627663,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/hunter_shot.png",
-        "sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
-        "bytes": 1323978,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/hunter_shot.png",
+        "sha256": "69c30f9510384a29595fa53a5eaab96c21fa47cc231610e44f29c2b9a15ee59b",
+        "bytes": 348234,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "69c30f9510384a29595fa53a5eaab96c21fa47cc231610e44f29c2b9a15ee59b",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/hunter_shot.png",
+        "sha256": "6700937dbe12a11e1d7ce772e4f6e4bdea1f6cbc828007b5b1aa5b05f2d9e721",
+        "bytes": 261830,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/hunter_shot.png",
+          "sha256": "6700937dbe12a11e1d7ce772e4f6e4bdea1f6cbc828007b5b1aa5b05f2d9e721",
+          "bytes": 261830,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/hunter_shot",
+        "path": "assets/icons/skill/hunter_shot.png",
+        "sha256": "139dc537b7857dd4bf3a0d2271c7e054538ea97e1a49663bbf52d87d3783cefc",
+        "bytes": 301709,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_7e6468ed014c81918e1714c3f2161fa7",
+        "raw_source_sha256": "499eb22df775fddc29413b629e0af266b34befa9bf018cf160b325999ac3ab1e",
+        "pre_transparency_sha256": "d81a5c32a64590af5ee4d62a9f324d5abd85d5bec89c438c9fcfc09bfcc0743d",
+        "pre_transparency_bytes": 342314,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "d81a5c32a64590af5ee4d62a9f324d5abd85d5bec89c438c9fcfc09bfcc0743d",
+          "output_sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
+          "clear_pixels": 944850,
+          "partial_pixels": 627663,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/hunter_shot.png",
+          "sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
+          "bytes": 1323978,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "afc5bb93ce5a8857691bc2972b895e7ad8a3a7f49d7f40ce9a1c08ada4af5414",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/firebolt",
       "path": "assets/icons/skill/firebolt.png",
-      "sha256": "577674e29a927caa78bab586ebe38d3c5076c9878b4c1125cd45d646691da036",
-      "bytes": 259122,
+      "sha256": "f5384f6d4379b72643f04796bc420c1e4872f9c2edd32019b75c4e4cda08cd4e",
+      "bytes": 357940,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_83f18088bfd4819192dfacc036dd822c",
-      "raw_source_sha256": "2100129d314047d9a5d88727f95d2d63a02aa7ce3194d4f1f1694ad59cc55e37",
-      "pre_transparency_sha256": "c2727c42874e22c6cfcb3f5817c15b0385c30ed7e227cebeeb62a1107cc91ae7",
-      "pre_transparency_bytes": 276688,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "c2727c42874e22c6cfcb3f5817c15b0385c30ed7e227cebeeb62a1107cc91ae7",
-        "output_sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
-        "clear_pixels": 895725,
-        "partial_pixels": 674360,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/firebolt.png",
-        "sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
-        "bytes": 1006381,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/firebolt.png",
+        "sha256": "f5384f6d4379b72643f04796bc420c1e4872f9c2edd32019b75c4e4cda08cd4e",
+        "bytes": 357940,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "f5384f6d4379b72643f04796bc420c1e4872f9c2edd32019b75c4e4cda08cd4e",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/firebolt.png",
+        "sha256": "9901e204f6ce73fd1a75d433222772959dbfd81c461fa915b7970b40813a4825",
+        "bytes": 247308,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/firebolt.png",
+          "sha256": "9901e204f6ce73fd1a75d433222772959dbfd81c461fa915b7970b40813a4825",
+          "bytes": 247308,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/firebolt",
+        "path": "assets/icons/skill/firebolt.png",
+        "sha256": "577674e29a927caa78bab586ebe38d3c5076c9878b4c1125cd45d646691da036",
+        "bytes": 259122,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_83f18088bfd4819192dfacc036dd822c",
+        "raw_source_sha256": "2100129d314047d9a5d88727f95d2d63a02aa7ce3194d4f1f1694ad59cc55e37",
+        "pre_transparency_sha256": "c2727c42874e22c6cfcb3f5817c15b0385c30ed7e227cebeeb62a1107cc91ae7",
+        "pre_transparency_bytes": 276688,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "c2727c42874e22c6cfcb3f5817c15b0385c30ed7e227cebeeb62a1107cc91ae7",
+          "output_sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
+          "clear_pixels": 895725,
+          "partial_pixels": 674360,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/firebolt.png",
+          "sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
+          "bytes": 1006381,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "b6ef4d56b9f16238abbea5199d501470960ad3450e3b46b660aff23fe4ff9f3f",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/chain_spark",
       "path": "assets/icons/skill/chain_spark.png",
-      "sha256": "8c064aee2f21f063a984146a2473247935d988214a994d15cf0b57b82f1ad7d7",
-      "bytes": 213288,
+      "sha256": "5d977743f34acc4b7ef3f11294bfb864537a91977c138dc0c3e586bf34f90794",
+      "bytes": 316927,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_f95d63295e308191bdcf01b1e85b15bd",
-      "raw_source_sha256": "107276345da47a4cbfd4bc74c4c2aea0e2d06a167dcc7607c58a2adb4e8901da",
-      "pre_transparency_sha256": "a208fd65abd37c819e4446d2eafb2d409c3d3d85a809eae15ff763dddc673949",
-      "pre_transparency_bytes": 276374,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "a208fd65abd37c819e4446d2eafb2d409c3d3d85a809eae15ff763dddc673949",
-        "output_sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
-        "clear_pixels": 1173144,
-        "partial_pixels": 397242,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/chain_spark.png",
-        "sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
-        "bytes": 810625,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/chain_spark.png",
+        "sha256": "5d977743f34acc4b7ef3f11294bfb864537a91977c138dc0c3e586bf34f90794",
+        "bytes": 316927,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "5d977743f34acc4b7ef3f11294bfb864537a91977c138dc0c3e586bf34f90794",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/chain_spark.png",
+        "sha256": "4a4948183abe381a1441fdc321744652ef2a6057faa8ee82cfe907d0aa967194",
+        "bytes": 237027,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/chain_spark.png",
+          "sha256": "4a4948183abe381a1441fdc321744652ef2a6057faa8ee82cfe907d0aa967194",
+          "bytes": 237027,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/chain_spark",
+        "path": "assets/icons/skill/chain_spark.png",
+        "sha256": "8c064aee2f21f063a984146a2473247935d988214a994d15cf0b57b82f1ad7d7",
+        "bytes": 213288,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_f95d63295e308191bdcf01b1e85b15bd",
+        "raw_source_sha256": "107276345da47a4cbfd4bc74c4c2aea0e2d06a167dcc7607c58a2adb4e8901da",
+        "pre_transparency_sha256": "a208fd65abd37c819e4446d2eafb2d409c3d3d85a809eae15ff763dddc673949",
+        "pre_transparency_bytes": 276374,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "a208fd65abd37c819e4446d2eafb2d409c3d3d85a809eae15ff763dddc673949",
+          "output_sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
+          "clear_pixels": 1173144,
+          "partial_pixels": 397242,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/chain_spark.png",
+          "sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
+          "bytes": 810625,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "b4c8504149e6380fc9fb1ff7ab15f08b2a3032ac15ede4ade84ee0a36e65e105",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/stone_burst",
       "path": "assets/icons/skill/stone_burst.png",
-      "sha256": "0ab4f942cf7705623612b34e43ad6577f373fdf5665a9b91411eff134c93d39e",
-      "bytes": 414423,
+      "sha256": "1270926328bac85d42c6004e0f5a25916239e5506b7ea5137876a96338101551",
+      "bytes": 322609,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_4fa73a475bb08191981b05d5f22ed830",
-      "raw_source_sha256": "439217d4c31eb23c0a38f1fdda714c851e8f0e9d73fb9cf3e097a4c5e304f8e3",
-      "pre_transparency_sha256": "014cc603d5588ba042cd058cd0c9d354237c90c682ef2d02df3147feef056e8c",
-      "pre_transparency_bytes": 394721,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "014cc603d5588ba042cd058cd0c9d354237c90c682ef2d02df3147feef056e8c",
-        "output_sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
-        "clear_pixels": 557946,
-        "partial_pixels": 1013656,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/stone_burst.png",
-        "sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
-        "bytes": 1792875,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/stone_burst.png",
+        "sha256": "1270926328bac85d42c6004e0f5a25916239e5506b7ea5137876a96338101551",
+        "bytes": 322609,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "1270926328bac85d42c6004e0f5a25916239e5506b7ea5137876a96338101551",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/stone_burst.png",
+        "sha256": "eaacef3a6dfdd92b6d2d40f88691acb315998afcdc94a9f26c3945607cac7f6c",
+        "bytes": 244017,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/stone_burst.png",
+          "sha256": "eaacef3a6dfdd92b6d2d40f88691acb315998afcdc94a9f26c3945607cac7f6c",
+          "bytes": 244017,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/stone_burst",
+        "path": "assets/icons/skill/stone_burst.png",
+        "sha256": "0ab4f942cf7705623612b34e43ad6577f373fdf5665a9b91411eff134c93d39e",
+        "bytes": 414423,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_4fa73a475bb08191981b05d5f22ed830",
+        "raw_source_sha256": "439217d4c31eb23c0a38f1fdda714c851e8f0e9d73fb9cf3e097a4c5e304f8e3",
+        "pre_transparency_sha256": "014cc603d5588ba042cd058cd0c9d354237c90c682ef2d02df3147feef056e8c",
+        "pre_transparency_bytes": 394721,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "014cc603d5588ba042cd058cd0c9d354237c90c682ef2d02df3147feef056e8c",
+          "output_sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
+          "clear_pixels": 557946,
+          "partial_pixels": 1013656,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/stone_burst.png",
+          "sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
+          "bytes": 1792875,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "04f142bc742b6e153a043b67c59fb4979f7e3e0a61b262539a39b18699d67ac9",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/frost_nova",
       "path": "assets/icons/skill/frost_nova.png",
-      "sha256": "c4deead04a199c725cd53b509311f946ac4d9710c6fe2475fcd0f463200119bf",
-      "bytes": 518933,
+      "sha256": "7b6370ae2d188cc78127ff9d6875d79dee9682e403566a7967c9d9a58861f2af",
+      "bytes": 336765,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_1defcda0b3988191bd07819dbb2b36df",
-      "raw_source_sha256": "808ccfec6a7548f6ed1bd6815a92271ca84ab914a0debb1dde37a9959f740065",
-      "pre_transparency_sha256": "03100df290996fa5aeac5cc89a9081957feeed66e2f78b958214f08c832a29ea",
-      "pre_transparency_bytes": 472622,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "03100df290996fa5aeac5cc89a9081957feeed66e2f78b958214f08c832a29ea",
-        "output_sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
-        "clear_pixels": 571151,
-        "partial_pixels": 999942,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/frost_nova.png",
-        "sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
-        "bytes": 2023121,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/frost_nova.png",
+        "sha256": "7b6370ae2d188cc78127ff9d6875d79dee9682e403566a7967c9d9a58861f2af",
+        "bytes": 336765,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "7b6370ae2d188cc78127ff9d6875d79dee9682e403566a7967c9d9a58861f2af",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/frost_nova.png",
+        "sha256": "52cc32128aa1beca1ad2e61185dc1b1981580496f6892267d3951e0d2e41cc29",
+        "bytes": 255357,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/frost_nova.png",
+          "sha256": "52cc32128aa1beca1ad2e61185dc1b1981580496f6892267d3951e0d2e41cc29",
+          "bytes": 255357,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/frost_nova",
+        "path": "assets/icons/skill/frost_nova.png",
+        "sha256": "c4deead04a199c725cd53b509311f946ac4d9710c6fe2475fcd0f463200119bf",
+        "bytes": 518933,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_1defcda0b3988191bd07819dbb2b36df",
+        "raw_source_sha256": "808ccfec6a7548f6ed1bd6815a92271ca84ab914a0debb1dde37a9959f740065",
+        "pre_transparency_sha256": "03100df290996fa5aeac5cc89a9081957feeed66e2f78b958214f08c832a29ea",
+        "pre_transparency_bytes": 472622,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "03100df290996fa5aeac5cc89a9081957feeed66e2f78b958214f08c832a29ea",
+          "output_sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
+          "clear_pixels": 571151,
+          "partial_pixels": 999942,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/frost_nova.png",
+          "sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
+          "bytes": 2023121,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "7162f8c6dd9dcda5c502357e2ef7327850ca63f854dd1928be97f4c39b97abd0",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/venom_mire",
       "path": "assets/icons/skill/venom_mire.png",
-      "sha256": "d60cc61a312925897b92a3d337c3b48fd645a792b4988957d083bbe8cc3046a2",
-      "bytes": 295975,
+      "sha256": "010b1d9b9f3a1570aef7eae8bcccf69681fc0e8936c811414b6f0abe05dd3591",
+      "bytes": 305686,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_9502c26532b08191891e808bbbc0dc12",
-      "raw_source_sha256": "06b7ba173011c3b1472856be051ee63104f52bffcf6b1e9a4f6d93b82a70983b",
-      "pre_transparency_sha256": "6e0f2890c4dd1ae33285502a107267656f7bef40969768dec49912a18a998e07",
-      "pre_transparency_bytes": 363417,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "6e0f2890c4dd1ae33285502a107267656f7bef40969768dec49912a18a998e07",
-        "output_sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
-        "clear_pixels": 877573,
-        "partial_pixels": 694478,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/venom_mire.png",
-        "sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
-        "bytes": 1226736,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/venom_mire.png",
+        "sha256": "010b1d9b9f3a1570aef7eae8bcccf69681fc0e8936c811414b6f0abe05dd3591",
+        "bytes": 305686,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "010b1d9b9f3a1570aef7eae8bcccf69681fc0e8936c811414b6f0abe05dd3591",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/venom_mire.png",
+        "sha256": "76c016404bba3a88807c25e3880460982908352458f4f3dea342e5c0b35a5859",
+        "bytes": 231678,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/venom_mire.png",
+          "sha256": "76c016404bba3a88807c25e3880460982908352458f4f3dea342e5c0b35a5859",
+          "bytes": 231678,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/venom_mire",
+        "path": "assets/icons/skill/venom_mire.png",
+        "sha256": "d60cc61a312925897b92a3d337c3b48fd645a792b4988957d083bbe8cc3046a2",
+        "bytes": 295975,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_9502c26532b08191891e808bbbc0dc12",
+        "raw_source_sha256": "06b7ba173011c3b1472856be051ee63104f52bffcf6b1e9a4f6d93b82a70983b",
+        "pre_transparency_sha256": "6e0f2890c4dd1ae33285502a107267656f7bef40969768dec49912a18a998e07",
+        "pre_transparency_bytes": 363417,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "6e0f2890c4dd1ae33285502a107267656f7bef40969768dec49912a18a998e07",
+          "output_sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
+          "clear_pixels": 877573,
+          "partial_pixels": 694478,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/venom_mire.png",
+          "sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
+          "bytes": 1226736,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "4ecda49c4d7c74d2823e4c64b57770145ca80a5795c696f95e203be58d3250b0",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
       "key": "skill/hex",
       "path": "assets/icons/skill/hex.png",
-      "sha256": "e26ddced7edeff09c9385e49d8072fb17f0c4c65572e93c82719361df4c7a577",
-      "bytes": 376831,
+      "sha256": "e8cc962bb3a87ef9a4ba8fba1fdbc22b0e31aeb27668d7f10232285ac271b5cb",
+      "bytes": 328923,
       "dimensions": [
         512,
         512
       ],
       "mode": "RGBA",
       "alpha_extrema": [
-        0,
+        255,
         255
       ],
-      "source_archive": "batch02-skills-512-part01.zip",
-      "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
-      "source_library_file_id": "libfile_f01138cda99481918bcf1f3860316374",
-      "raw_source_sha256": "308468ffc196b6f61e5aadcec41e04e1ee736a3bed3139c95723b0bb84a6b900",
-      "pre_transparency_sha256": "576a4742d507033824c3da03b78702bdf1d057da1b48a468ce4b0009928730ac",
-      "pre_transparency_bytes": 363396,
-      "pre_transparency_dimensions": [
-        512,
-        512
-      ],
-      "pre_transparency_mode": "RGB",
-      "local_edit": {
-        "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
-        "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
-        "date_utc": "2026-10-04",
-        "input_sha256": "576a4742d507033824c3da03b78702bdf1d057da1b48a468ce4b0009928730ac",
-        "output_sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
-        "clear_pixels": 752998,
-        "partial_pixels": 818970,
-        "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
-      },
-      "transparent_master": {
-        "path": "assets-source/skills/hex.png",
-        "sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
-        "bytes": 1566381,
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/hex.png",
+        "sha256": "e8cc962bb3a87ef9a4ba8fba1fdbc22b0e31aeb27668d7f10232285ac271b5cb",
+        "bytes": 328923,
         "dimensions": [
-          1254,
-          1254
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "e8cc962bb3a87ef9a4ba8fba1fdbc22b0e31aeb27668d7f10232285ac271b5cb",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/hex.png",
+        "sha256": "6ca6721a79a2813f1ef6fd34322da5c0508c96979896fb7dbafc119c97a63908",
+        "bytes": 251145,
+        "dimensions": [
+          512,
+          512
         ],
         "mode": "RGBA",
         "alpha_extrema": [
           0,
           255
-        ]
-      },
-      "delivery_export": {
-        "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
-        "source_sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
-        "source_dimensions": [
-          1254,
-          1254
         ],
-        "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/hex.png",
+          "sha256": "6ca6721a79a2813f1ef6fd34322da5c0508c96979896fb7dbafc119c97a63908",
+          "bytes": 251145,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      },
+      "previous_delivery": {
+        "key": "skill/hex",
+        "path": "assets/icons/skill/hex.png",
+        "sha256": "e26ddced7edeff09c9385e49d8072fb17f0c4c65572e93c82719361df4c7a577",
+        "bytes": 376831,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_archive": "batch02-skills-512-part01.zip",
+        "source_archive_sha256": "7ae3a0f61bcb09cdb1ab5b516993d6ae566aac7f822b1834948ea5ddc80fb6a9",
+        "source_library_file_id": "libfile_f01138cda99481918bcf1f3860316374",
+        "raw_source_sha256": "308468ffc196b6f61e5aadcec41e04e1ee736a3bed3139c95723b0bb84a6b900",
+        "pre_transparency_sha256": "576a4742d507033824c3da03b78702bdf1d057da1b48a468ce4b0009928730ac",
+        "pre_transparency_bytes": 363396,
+        "pre_transparency_dimensions": [
+          512,
+          512
+        ],
+        "pre_transparency_mode": "RGB",
+        "local_edit": {
+          "purpose": "Remove baked navy/purple background; preserve subject and intentional VFX",
+          "method": "Supported image_gen transparent-background reference edit, no scripted pixel removal",
+          "date_utc": "2026-10-04",
+          "input_sha256": "576a4742d507033824c3da03b78702bdf1d057da1b48a468ce4b0009928730ac",
+          "output_sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
+          "clear_pixels": 752998,
+          "partial_pixels": 818970,
+          "review": "SKILL-TRANSPARENCY-REVIEW-2026-10-04.md"
+        },
+        "transparent_master": {
+          "path": "assets-source/skills/hex.png",
+          "sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
+          "bytes": 1566381,
+          "dimensions": [
+            1254,
+            1254
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        },
+        "delivery_export": {
+          "method": "ImageMagick 7 Lanczos proportional 512px RGBA PNG export; no crop, matte, background removal or art regeneration",
+          "source_sha256": "299bf0e486b941dd2b9a3feeab0c9db0d3c5973e0db4db71f7caab6c13c95ed5",
+          "source_dimensions": [
+            1254,
+            1254
+          ],
+          "review": "PREMERGE-WEBKIT-REVIEW-2026-10-04.md"
+        }
       }
     },
     {
@@ -4144,13 +5283,960 @@
       "source_library_file_id": "libfile_b3694b07ba9c8191916c482828795bcb",
       "source_drive_file_id": "1UIvgGIKIPng0OJTP2Zy6HCK5qE5fFm9L",
       "source_archive_path": "final/consumable/mp_potion_l.png"
+    },
+    {
+      "key": "skill/arcane_bolt",
+      "path": "assets/icons/skill/arcane_bolt.png",
+      "sha256": "b56185072784964901c62eca085e49acd8889762378b17e3e00d4ba1c6163ed5",
+      "bytes": 335350,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/arcane_bolt.png",
+        "sha256": "b56185072784964901c62eca085e49acd8889762378b17e3e00d4ba1c6163ed5",
+        "bytes": 335350,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "b56185072784964901c62eca085e49acd8889762378b17e3e00d4ba1c6163ed5",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/arcane_bolt.png",
+        "sha256": "982241ba57709637b08092cb7d1fce46aa4b57bf2da3c0fd0fb86c548db50c31",
+        "bytes": 252470,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/arcane_bolt.png",
+          "sha256": "982241ba57709637b08092cb7d1fce46aa4b57bf2da3c0fd0fb86c548db50c31",
+          "bytes": 252470,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/charged_shot",
+      "path": "assets/icons/skill/charged_shot.png",
+      "sha256": "974676fddddd735aadce654e687bb5f749e6b133f6f937ea2ed6709727e5c070",
+      "bytes": 339493,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/charged_shot.png",
+        "sha256": "974676fddddd735aadce654e687bb5f749e6b133f6f937ea2ed6709727e5c070",
+        "bytes": 339493,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "974676fddddd735aadce654e687bb5f749e6b133f6f937ea2ed6709727e5c070",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/charged_shot.png",
+        "sha256": "9db7459d8b8bb6ecc81ee7051c686347073eb54837240d11ae734da8f4ce5f43",
+        "bytes": 254513,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/charged_shot.png",
+          "sha256": "9db7459d8b8bb6ecc81ee7051c686347073eb54837240d11ae734da8f4ce5f43",
+          "bytes": 254513,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/riposte",
+      "path": "assets/icons/skill/riposte.png",
+      "sha256": "cb3e905e76ffb5111dd85b01ab2d0cf513a83006f779c2f77069d7fcd017a786",
+      "bytes": 343068,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/riposte.png",
+        "sha256": "cb3e905e76ffb5111dd85b01ab2d0cf513a83006f779c2f77069d7fcd017a786",
+        "bytes": 343068,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "cb3e905e76ffb5111dd85b01ab2d0cf513a83006f779c2f77069d7fcd017a786",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/riposte.png",
+        "sha256": "87266a64596887832ff1045d4480cf10a6bae78dcd85ae00906d2b9e6f522f7d",
+        "bytes": 257902,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/riposte.png",
+          "sha256": "87266a64596887832ff1045d4480cf10a6bae78dcd85ae00906d2b9e6f522f7d",
+          "bytes": 257902,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/weakpoint",
+      "path": "assets/icons/skill/weakpoint.png",
+      "sha256": "862ecfa4f537d38901c857c29ad20e5b9af98dddf1db7e9e6238ad2de771dc13",
+      "bytes": 323854,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/weakpoint.png",
+        "sha256": "862ecfa4f537d38901c857c29ad20e5b9af98dddf1db7e9e6238ad2de771dc13",
+        "bytes": 323854,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "862ecfa4f537d38901c857c29ad20e5b9af98dddf1db7e9e6238ad2de771dc13",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/weakpoint.png",
+        "sha256": "6d7fb384e537e0371c50bb6a23c653937760c4abce4b8a67ba5cff99ff201896",
+        "bytes": 243991,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/weakpoint.png",
+          "sha256": "6d7fb384e537e0371c50bb6a23c653937760c4abce4b8a67ba5cff99ff201896",
+          "bytes": 243991,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/armor_cleave",
+      "path": "assets/icons/skill/armor_cleave.png",
+      "sha256": "216b558a75d8745453d8559e6f79ea904bd53390a60634b4d2d7db618f27cad0",
+      "bytes": 364274,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/armor_cleave.png",
+        "sha256": "216b558a75d8745453d8559e6f79ea904bd53390a60634b4d2d7db618f27cad0",
+        "bytes": 364274,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "216b558a75d8745453d8559e6f79ea904bd53390a60634b4d2d7db618f27cad0",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/armor_cleave.png",
+        "sha256": "51b1e3ce6d48fee7011ae227bafe0c9ff354356aa838745a3e4f776c3fa89e13",
+        "bytes": 276820,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/armor_cleave.png",
+          "sha256": "51b1e3ce6d48fee7011ae227bafe0c9ff354356aa838745a3e4f776c3fa89e13",
+          "bytes": 276820,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/interrupt_slam",
+      "path": "assets/icons/skill/interrupt_slam.png",
+      "sha256": "7345e702907254df00008ed3284ac220af058094842a13bf6b63d65950f4c87a",
+      "bytes": 337330,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/interrupt_slam.png",
+        "sha256": "7345e702907254df00008ed3284ac220af058094842a13bf6b63d65950f4c87a",
+        "bytes": 337330,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "7345e702907254df00008ed3284ac220af058094842a13bf6b63d65950f4c87a",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/interrupt_slam.png",
+        "sha256": "ca40cef1be24cc56ac4ca6c2661b3ea6ff7fb27c5eb873bca6dd73de047e8d31",
+        "bytes": 253390,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/interrupt_slam.png",
+          "sha256": "ca40cef1be24cc56ac4ca6c2661b3ea6ff7fb27c5eb873bca6dd73de047e8d31",
+          "bytes": 253390,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/frontline_split",
+      "path": "assets/icons/skill/frontline_split.png",
+      "sha256": "a7a19958a91645a3878effc9b45b2ce8056c54e3930b99dcc7e8568541516a9e",
+      "bytes": 326312,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/frontline_split.png",
+        "sha256": "a7a19958a91645a3878effc9b45b2ce8056c54e3930b99dcc7e8568541516a9e",
+        "bytes": 326312,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "a7a19958a91645a3878effc9b45b2ce8056c54e3930b99dcc7e8568541516a9e",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/frontline_split.png",
+        "sha256": "dbfe5ceaeff09bdb1a8bb95607e225399b5f08c24e15ef4f864fd41cb11abd6b",
+        "bytes": 245913,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/frontline_split.png",
+          "sha256": "dbfe5ceaeff09bdb1a8bb95607e225399b5f08c24e15ef4f864fd41cb11abd6b",
+          "bytes": 245913,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/shield_bash",
+      "path": "assets/icons/skill/shield_bash.png",
+      "sha256": "0dc243ab78fb5701235430130eae32a07dc2bc8cb6b9c865ebdffca5d2823745",
+      "bytes": 347608,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/shield_bash.png",
+        "sha256": "0dc243ab78fb5701235430130eae32a07dc2bc8cb6b9c865ebdffca5d2823745",
+        "bytes": 347608,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "0dc243ab78fb5701235430130eae32a07dc2bc8cb6b9c865ebdffca5d2823745",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/shield_bash.png",
+        "sha256": "7506a0d81edcfb2d8e5f9b8c6de6c581a53d0ebb4e74893287242047c9715e10",
+        "bytes": 262447,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/shield_bash.png",
+          "sha256": "7506a0d81edcfb2d8e5f9b8c6de6c581a53d0ebb4e74893287242047c9715e10",
+          "bytes": 262447,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/arrow_rain",
+      "path": "assets/icons/skill/arrow_rain.png",
+      "sha256": "8efa13d998a389f763be58d4418970737a00eb94f1934816e52a002dab9425bb",
+      "bytes": 330149,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/arrow_rain.png",
+        "sha256": "8efa13d998a389f763be58d4418970737a00eb94f1934816e52a002dab9425bb",
+        "bytes": 330149,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "8efa13d998a389f763be58d4418970737a00eb94f1934816e52a002dab9425bb",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/arrow_rain.png",
+        "sha256": "beb5356956935f20d139e05cfd009d9b1a3e287ad5215c3001037784ec5f478f",
+        "bytes": 245750,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/arrow_rain.png",
+          "sha256": "beb5356956935f20d139e05cfd009d9b1a3e287ad5215c3001037784ec5f478f",
+          "bytes": 245750,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/flame_stream",
+      "path": "assets/icons/skill/flame_stream.png",
+      "sha256": "b67e80c868a8c3fd23f57e037af1c998cf2713fddd192dd2846db99cbab29c5b",
+      "bytes": 319421,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/flame_stream.png",
+        "sha256": "b67e80c868a8c3fd23f57e037af1c998cf2713fddd192dd2846db99cbab29c5b",
+        "bytes": 319421,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "b67e80c868a8c3fd23f57e037af1c998cf2713fddd192dd2846db99cbab29c5b",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/flame_stream.png",
+        "sha256": "770744c38876082998d8e1be6618600c6d6f3fedd245a16c5a17465eed10ffe0",
+        "bytes": 234183,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/flame_stream.png",
+          "sha256": "770744c38876082998d8e1be6618600c6d6f3fedd245a16c5a17465eed10ffe0",
+          "bytes": 234183,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/crystal_wall",
+      "path": "assets/icons/skill/crystal_wall.png",
+      "sha256": "98a44e9e76928ec58df0fcba95f5faf741f8058ef9187d15aadcd4e06c791cc0",
+      "bytes": 321329,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/crystal_wall.png",
+        "sha256": "98a44e9e76928ec58df0fcba95f5faf741f8058ef9187d15aadcd4e06c791cc0",
+        "bytes": 321329,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "98a44e9e76928ec58df0fcba95f5faf741f8058ef9187d15aadcd4e06c791cc0",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/crystal_wall.png",
+        "sha256": "77a1ab3bc374a4b16b5eff1a606d7426011cdf9766b41eb88e66950c23231824",
+        "bytes": 243284,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/crystal_wall.png",
+          "sha256": "77a1ab3bc374a4b16b5eff1a606d7426011cdf9766b41eb88e66950c23231824",
+          "bytes": 243284,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/cleanse",
+      "path": "assets/icons/skill/cleanse.png",
+      "sha256": "6e261a6b29bb0957c6913490725532ed161fe9293d03f8800e0cb7083231eb9e",
+      "bytes": 320942,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/cleanse.png",
+        "sha256": "6e261a6b29bb0957c6913490725532ed161fe9293d03f8800e0cb7083231eb9e",
+        "bytes": 320942,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "6e261a6b29bb0957c6913490725532ed161fe9293d03f8800e0cb7083231eb9e",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/cleanse.png",
+        "sha256": "3bc77be13e49f4ccee3ebe1d8ec1c8d8e075204e5b9e16eff7f577ea4da225e7",
+        "bytes": 241131,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/cleanse.png",
+          "sha256": "3bc77be13e49f4ccee3ebe1d8ec1c8d8e075204e5b9e16eff7f577ea4da225e7",
+          "bytes": 241131,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/battle_aura",
+      "path": "assets/icons/skill/battle_aura.png",
+      "sha256": "e495b1270e227307517a64f6fb2535d1c9b3d53879d3004821dcee743e5c6625",
+      "bytes": 330709,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/battle_aura.png",
+        "sha256": "e495b1270e227307517a64f6fb2535d1c9b3d53879d3004821dcee743e5c6625",
+        "bytes": 330709,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "e495b1270e227307517a64f6fb2535d1c9b3d53879d3004821dcee743e5c6625",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/battle_aura.png",
+        "sha256": "7ed1138f72e4e9a2f42cecfaf6d402abf11a1738e77bdfa27e1e2bbffbed2e76",
+        "bytes": 247236,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/battle_aura.png",
+          "sha256": "7ed1138f72e4e9a2f42cecfaf6d402abf11a1738e77bdfa27e1e2bbffbed2e76",
+          "bytes": 247236,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "key": "skill/stone_guardian",
+      "path": "assets/icons/skill/stone_guardian.png",
+      "sha256": "144fa3d22ab7b7b0cc30979e1cae61ea5c1d6bc98b316f0bf988723f3c572fb6",
+      "bytes": 336487,
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        255,
+        255
+      ],
+      "source_master": {
+        "path": "assets-source/skills/classic-a/square/stone_guardian.png",
+        "sha256": "144fa3d22ab7b7b0cc30979e1cae61ea5c1d6bc98b316f0bf988723f3c572fb6",
+        "bytes": 336487,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          255,
+          255
+        ]
+      },
+      "style": "classic-a",
+      "review": "review/classic-skill-icons/REVIEW.md",
+      "delivery_export": {
+        "method": "Byte-preserving copy of the owner-approved 512px desktop square delivery",
+        "source_sha256": "144fa3d22ab7b7b0cc30979e1cae61ea5c1d6bc98b316f0bf988723f3c572fb6",
+        "source_dimensions": [
+          512,
+          512
+        ]
+      },
+      "round_variant": {
+        "path": "assets/icons/skill-round/stone_guardian.png",
+        "sha256": "f879de1486c7e8d71fdd7e46ba89c8d2130b269ce3378f8e1b9a6d88d0158698",
+        "bytes": 257299,
+        "dimensions": [
+          512,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "source_master": {
+          "path": "assets-source/skills/classic-a/round/stone_guardian.png",
+          "sha256": "f879de1486c7e8d71fdd7e46ba89c8d2130b269ce3378f8e1b9a6d88d0158698",
+          "bytes": 257299,
+          "dimensions": [
+            512,
+            512
+          ],
+          "mode": "RGBA",
+          "alpha_extrema": [
+            0,
+            255
+          ]
+        }
+      }
     }
   ],
   "pending_count": 0,
-  "preservation": "The 59 original gear/material PNG files remain unchanged at 512px. The 17 skill PNGs were replaced locally with reviewed 1254px transparent reference edits; original delivery provenance and pre-edit hashes are retained for reversal.",
+  "preservation": "Non-skill equipment, material, ammunition and consumable PNGs retain their previous bytes. Prior skill deliveries and original 1254px masters remain recorded for reversal.",
   "integration_base_commit": "8778cebd9c526e3f4f629c255411a8dea4bfd533",
   "transparency_edit_base_commit": "5b321e051458aafddbef1cd01bc5c7f339c603e7",
-  "skill_delivery": "512px transparent delivery PNGs; unchanged 1254px approved masters retained outside public/ in assets-source/skills/",
+  "skill_delivery": "31 Classic A skills: 512px desktop squares and 512px round touch variants. Both are copied byte-for-byte from retained reviewed delivery masters under assets-source/skills/classic-a/.",
   "expanded_items_source_commit": "1f575c49291bdc24820374e33a1fdc472ef18cac",
-  "new_items_source_commit": "380e3b077d422e968e0d8558e0cbdf255f9a8211"
+  "new_items_source_commit": "380e3b077d422e968e0d8558e0cbdf255f9a8211",
+  "classic_skill_source": {
+    "source_revision": "6f3a7c237dc5323c7b94b2bdb3d7cd647c04d281",
+    "bundle_sha256": "98b1777aeb0302161d8ad87a9e5b05fe3c209dfd1831dbe6f9d5ea8495a23b31",
+    "count": 31,
+    "approval": "Owner instruction to replace the in-game skill icons, 2026-10-22",
+    "approved_base": "Slash retained exactly; Firebolt retains its approved design with its decorative star removed.",
+    "ui_revision": "d055bfe8aa638c16af605e61c53948b9be96747b",
+    "slot_fit": "Artwork viewport fills the new clean HUD slot interior; transparent round delivery gutters are removed by clipped CSS scaling without modifying the PNGs."
+  }
 }

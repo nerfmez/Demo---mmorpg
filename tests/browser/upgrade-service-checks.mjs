@@ -35,9 +35,12 @@ export async function verifyUpgradeServices(page, { activate, touch, capture = a
       const repeat = page.locator(repeatSelector);
       assert.equal(await repeat.isEnabled(), true, name + ': funded Repeat Slash button is enabled');
       assert.match(await repeatCard().locator('[data-growth-status]').innerText(), /พร้อมอัปเกรด/);
+      // one mod is shown at a time: pick Life Leech from the list, check it, then return to Repeat Slash
+      await activate('[data-act="growth-pick"][data-id="9002"]');
       const leech = page.locator('[data-act="mod-up"][data-uid="9002"]');
       assert.equal(await leech.isDisabled(), true);
-      assert.match(await leech.locator('..').locator('[data-growth-status]').innerText(), /VIT 7/);
+      assert.match(await page.locator('.seeker-growth-grid [data-growth-status]').innerText(), /VIT 7/);
+      await activate('[data-act="growth-pick"][data-id="9001"]');
       await repeat.scrollIntoViewIfNeeded();
       await capture('upgrade-service-' + name);
       const bounds = await repeat.boundingBox();

@@ -17,7 +17,8 @@ function screenshotState() {
   game.ch.stats.VIT = 5;
   game.ch.mods = [{ uid: 901, id: 'multistrike', level: 1 }, { uid: 902, id: 'life_leech', level: 1 }];
 }
-const markup = () => growthWorkspace({ game, sel: { growthKind: 'mod' } }, { costHtml: () => '', describeSkill: () => '' });
+// the page shows the picked mod's card; the list picks the first mod by default
+const markup = (pick) => growthWorkspace({ game, sel: { growthKind: 'mod', growthPick: pick } }, { costHtml: () => '', describeSkill: () => '' });
 const card = (html, uid) => html.split('<section class="card">').find(part => part.includes(`data-uid="${uid}"`));
 const button = (html, uid) => card(html, uid)?.match(/<button[^>]*data-act="mod-up"[^>]*>/)?.[0];
 
@@ -51,8 +52,9 @@ test('Repeat Slash screenshot state has matching ready status and enabled button
     const html = markup();
     assert.match(card(html, 901), /class="ok" data-growth-status>พร้อมอัปเกรด/);
     assert.doesNotMatch(button(html, 901), /disabled/);
-    assert.match(card(html, 902), /ต้องมี VIT 7/);
-    assert.match(button(html, 902), /disabled/);
+    const leech = markup('902');
+    assert.match(card(leech, 902), /ต้องมี VIT 7/);
+    assert.match(button(leech, 902), /disabled/);
     assert.ok(upgradeMod(game.ch, data, 901).ok);
     assert.equal(game.ch.mods[0].level, 2);
     assert.equal(game.ch.materials.skill_crystal, 1);

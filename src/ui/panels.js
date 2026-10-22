@@ -317,6 +317,7 @@ export class Panels {
   }
 
   // ---------- Character ----------
+  // Three columns: who you are, where your stat points go, what they add up to.
   render_char() {
     const g = this.game;
     const ch = g.ch;
@@ -326,37 +327,36 @@ export class Panels {
     const cost = respecCost(ch, data);
     const job = currentJob(ch, data);
     const kit = data.progression.start.kits?.[ch.kit];
-    const rows = STATS.map(
-      (s) => `<div class="row"><div class="grow"><b>${s}</b> <span class="muted">${STAT_TH[s]}</span></div><b style="min-width:28px;text-align:right">${ch.stats[s]}</b>
-      <button class="stat-plus" data-act="stat" data-stat="${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button></div>`
-    ).join('');
-    const pct = (label, v) => (v ? `<span>${label}</span><b>+${v.toFixed(0)}%</b>` : '');
-    return `<div class="grid2">
-      <div class="card"><h3>Stat · เหลือ ${ch.statPoints} แต้ม</h3>
-        <div class="muted" style="margin-bottom:6px">ได้จาก Character Level (เลเวลละ ${data.progression.character.statPointsPerLevel} แต้ม) · ใช้เป็นเงื่อนไขของอาวุธ สกิล และ Mod</div>
-        ${rows}
-        <div class="row"><div class="grow muted">รีแต้ม Stat ด้วยเงินในเกม (ในนิคมเท่านั้น)</div>
+    const face = document.querySelector('#hud .pframe .portrait')?.style.backgroundImage || '';
+    const level = (label, now, need, cls) => `<div class="pg-level ${cls}"><div><span>${label}</span><b>${ch[cls === 'job' ? 'jobLevel' : 'level']}</b></div>
+      <i class="pg-bar"><i style="width:${Math.max(0, Math.min(100, now / Math.max(1, need) * 100))}%"></i></i><small>${now} / ${need}${cls === 'job' ? ' Job EXP' : ' EXP'}</small></div>`;
+    const rows = STATS.map((s) => {
+      const [name, eff] = STAT_TH[s].split(' · ');
+      return `<div class="pg-stat"><span class="pg-ab">${s}</span><span class="pg-nm"><b>${name}</b><small>${eff}</small></span><b class="pg-v">${ch.stats[s]}</b>
+      <button class="stat-plus" data-act="stat" data-stat="${s}" aria-label="เพิ่ม ${s}" ${ch.statPoints < 1 ? 'disabled' : ''}>+</button></div>`;
+    }).join('');
+    const kv = (rows) => `<div class="pg-kv">${rows.filter(Boolean).map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
+    const pct = (label, v) => (v ? [label, `+${v.toFixed(0)}%`] : null);
+    return `<div class="pg pg-char">
+      <section class="pg-col pg-who">
+        <span class="pg-face" style="${face ? `background-image:${esc(face)}` : ''}"></span>
+        <h3>${esc(ch.name || 'นักเดินทาง')}</h3><small>${kit ? `เริ่มจาก${kit.nameTh} · ` : ''}อาวุธ ${data.items.weaponTypes?.[d.weaponType]?.nameTh || '-'}</small>
+        ${level('Character Level', ch.exp, expToNext(data, ch.level), 'char')}
+        ${level('Job Level', ch.jobExp, jobExpToNext(data, ch.jobLevel), 'job')}
+        <div class="pg-note"><b>อาชีพ: ${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก'}</b>${job ? '' : `<br>เลือกอาชีพได้เมื่อ Job Level ${data.progression.job.jobChoiceLevel}`}</div>
+      </section>
+      <section class="pg-col">
+        <div class="pg-title"><h3>แต้มสเตตัส</h3><span class="pg-pill">เหลือ ${ch.statPoints} แต้ม</span></div>
+        <div class="muted">ได้เลเวลละ ${data.progression.character.statPointsPerLevel} แต้ม · ใช้เป็นเงื่อนไขของอาวุธ สกิล และม็อด</div>
+        <div class="pg-list">${rows}</div>
+        <div class="pg-foot"><span class="muted">รีแต้มด้วยเงินในเกม · ในนิคมเท่านั้น</span>
           <button class="btn" data-act="respec-stats" ${!near.inTown || ch.gold < cost.stats ? 'disabled' : ''}>รีแต้ม · ${cost.stats} G</button></div>
-      </div>
-      <div class="card"><h3>${esc(ch.name || 'นักเดินทาง')} <span class="muted">${kit ? `· เริ่มจาก${kit.nameTh}` : ''}</span></h3>
-        <div class="kv">
-          <span>Character Level</span><b>${ch.level} (${ch.exp}/${expToNext(data, ch.level)})</b>
-          <span>Job Level</span><b>${ch.jobLevel} (${ch.jobExp}/${jobExpToNext(data, ch.jobLevel)})</b>
-          <span>Job</span><b>${job ? `${job.name} · ${job.nameTh}` : 'ยังไม่เลือก (Job Lv.' + data.progression.job.jobChoiceLevel + ')'}</b>
-          <span>อาวุธ</span><b>${data.items.weaponTypes?.[d.weaponType]?.nameTh || '-'}</b>
-          <span>HP / MP</span><b>${g.player.maxHp} / ${g.player.maxMp}</b>
-          <span>พลังโจมตี (Attack)</span><b>${d.attack}</b>
-          <span>พลังเวท (Magic)</span><b>${d.magic}</b>
-          <span>ป้องกัน</span><b>${d.defense}</b>
-          <span>โอกาสคริ</span><b>${Math.round(d.critChance * 100)}%</b>
-          <span>ความเร็วเดิน</span><b>${d.moveSpeed.toFixed(1)} m/s</b>
-          <span>คูลดาวน์เร็วขึ้น</span><b>${d.cooldownPct.toFixed(0)}%</b>
-          ${pct('ดาเมจประชิด', d.meleeDamagePct)}${pct('ดาเมจกระสุน', d.projectileDamagePct)}${pct('ดาเมจเวท', d.spellDamagePct)}${pct('ดาเมจวงกว้าง', d.areaDamagePct)}
-          ${pct('ดาเมจอัญเชิญ', d.summonDamagePct)}${pct('เกราะเวท', d.barrierPct)}${pct('การฟื้นฟู', d.healPct)}
-          ${d.leechPct ? `<span>ดูดเลือด</span><b>${d.leechPct.toFixed(1)}%</b>` : ''}
-          ${d.poisonChancePct ? `<span>โอกาสติดพิษ</span><b>${d.poisonChancePct.toFixed(0)}%</b>` : ''}
-          <span>Gold</span><b>${ch.gold}</b>
-        </div></div></div>`;
+      </section>
+      <section class="pg-col">
+        <h4>การโจมตี</h4>${kv([['พลังโจมตี', d.attack], ['พลังเวท', d.magic], ['โอกาสคริ', `${Math.round(d.critChance * 100)}%`], pct('ดาเมจประชิด', d.meleeDamagePct), pct('ดาเมจกระสุน', d.projectileDamagePct), pct('ดาเมจเวท', d.spellDamagePct), pct('ดาเมจวงกว้าง', d.areaDamagePct), pct('ดาเมจอัญเชิญ', d.summonDamagePct), d.poisonChancePct ? ['โอกาสติดพิษ', `${d.poisonChancePct.toFixed(0)}%`] : null])}
+        <h4>การป้องกัน</h4>${kv([['HP', g.player.maxHp], ['MP', g.player.maxMp], ['ป้องกัน', d.defense], pct('เกราะเวท', d.barrierPct), pct('การฟื้นฟู', d.healPct), d.leechPct ? ['ดูดเลือด', `${d.leechPct.toFixed(1)}%`] : null])}
+        <h4>อื่น ๆ</h4>${kv([['ความเร็วเดิน', `${d.moveSpeed.toFixed(1)} m/s`], ['คูลดาวน์เร็วขึ้น', `${d.cooldownPct.toFixed(0)}%`], ['Gold', ch.gold.toLocaleString()]])}
+      </section></div>`;
   }
 
   // ---------- Skills ----------
@@ -413,31 +413,40 @@ export class Panels {
   }
 
   // ---------- Settings ----------
+  // Settings on the left, how to play on the right as short rows with real key caps.
   render_settings() {
     const q = this.getQuality();
     const saveCard = this.slot
       ? `<div class="muted">เซฟช่อง ${this.slot} · บันทึกอัตโนมัติทุก 10 วินาที และทุกครั้งที่เลเวลอัป ทำภารกิจ หรือเปลี่ยนของ</div>
-        <div class="row"><div class="grow"></div>
-          <button class="btn" data-act="save-now">บันทึกตอนนี้</button>
+        <div class="pg-actions"><button class="btn" data-act="save-now">บันทึกตอนนี้</button>
           <button class="btn" data-act="export">คัดลอกโค้ดเซฟ</button>
           <button class="btn primary" data-act="title">กลับหน้าแรก</button></div>
         ${this.exported ? `<textarea class="savecode" readonly>${esc(this.exported)}</textarea><div class="muted">โค้ดนี้ใช้ย้ายเซฟไปเครื่องอื่นได้ (หน้าแรก → เลือกเซฟ → นำเข้า)</div>` : ''}`
-      : `<div class="muted">โหมดทดสอบ: ไม่บันทึก</div><div class="row"><div class="grow"></div><button class="btn primary" data-act="title">กลับหน้าแรก</button></div>`;
-    return `${this.lastResult ? `<div class="result-pop" style="margin:0 0 10px">${this.lastResult}</div>` : ''}
-      <div class="card"><h3>เซฟ</h3>${saveCard}</div>
-      <div class="card" style="margin-top:12px"><h3>กราฟิก</h3><div class="switch">
-        ${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}
-      </div><div class="muted" style="margin-top:6px">ถ้า iPad กระตุก ให้ลด "ต่ำ" (ปิดเงา ลดความละเอียด)</div></div>
-      <div class="card" style="margin-top:12px"><h3>วิธีเล่น</h3><div class="muted" style="line-height:1.7">
-        มือถือ/iPad: จอยซ้ายเดิน · แตะปุ่มสกิลเพื่อใช้กับเป้าอัตโนมัติ · ลากปุ่มสกิลเพื่อเล็ง แล้วปล่อยเพื่อใช้ หรือปล่อยในช่อง ✕ เพื่อยกเลิก · ปุ่มเคลื่อนที่แยกจากสกิลต่อสู้ (ปัดเพื่อเลือกทิศ) · สองนิ้วซูม<br>
-        PC: WASD เดิน · เมาส์เล็ง · คลิกซ้าย/ขวาใช้สกิล 1/2 · 3,4 (หรือ Q,R) สกิลที่เหลือ · Space หลบ · I/K/J/C/L/M เมนู · E ใช้โต๊ะคราฟต์/หินวาร์ป<br>
-        ระบบเป้า: เมื่อมอนเข้าระยะ จะล็อกเป้าให้อัตโนมัติ หันไปหามอนตัวอื่นเพื่อเปลี่ยนเป้า ออกนอกระยะจะปล่อยเป้า ตัวละครไม่วิ่งตามเป้าเอง<br>
-        การเดินทาง: เดินแตะหินวาร์ปเพื่อปลดล็อก แล้ววาร์ปจากแผนที่ (M) · ภูมิประเทศมีเนินและหน้าผา ขึ้นหน้าผาชันไม่ได้ ให้หาทางลาดหรือถนน<br>
-        เป้าหมาย Demo: ทำภารกิจหลัก (L) → เก็บวัตถุดิบ → คราฟต์ที่นิคม → ปราบ Greyfang ในป่า → ข้ามแม่น้ำ → ปราบ Horned Warden บนซากโบราณ
-      </div></div>`;
+      : `<div class="muted">โหมดทดสอบ · ไม่บันทึก</div><div class="pg-actions"><button class="btn primary" data-act="title">กลับหน้าแรก</button></div>`;
+    const keys = (...k) => `<span class="pg-keys">${k.map((x) => `<kbd>${x}</kbd>`).join('')}</span>`;
+    const touch = [['◎', 'จอยซ้าย เดิน · สองนิ้ว ซูม'], ['●', 'แตะปุ่มสกิล ใช้กับเป้าที่ล็อกอัตโนมัติ'], ['↗', 'ลากปุ่มสกิลเพื่อเล็ง ปล่อยเพื่อใช้ · ปล่อยที่ ✕ เพื่อยกเลิก'], ['»', 'ปุ่มเคลื่อนที่แยกจากสกิลต่อสู้ (ปัดเพื่อเลือกทิศ)']];
+    const pc = [[keys('W', 'A', 'S', 'D'), 'เดิน · เมาส์เล็ง'], [keys('คลิกซ้าย', 'คลิกขวา'), 'สกิลช่อง 1 / 2'], [keys('Q', 'R'), 'สกิลช่อง 3 / 4 (กด 1–4 ก็ได้)'], [keys('Space'), 'หลบ / พุ่ง'], [keys('5', '6', '7', '8'), 'ใช้ยา'], [keys('I', 'K', 'J', 'C', 'L', 'M'), 'กระเป๋า · สกิล · อาชีพ · ตัวละคร · ภารกิจ · แผนที่'], [keys('E'), 'โต๊ะคราฟต์ / หินวาร์ป']];
+    return `<div class="pg pg-settings">
+      <section class="pg-col">
+        ${this.lastResult ? `<div class="result-pop">${this.lastResult}</div>` : ''}
+        <div class="pg-box"><h3>เซฟ</h3>${saveCard}</div>
+        <div class="pg-box"><h3>กราฟิก</h3><div class="switch pg-seg">
+          ${['low', 'medium', 'high'].map((k) => `<button class="btn ${q === k ? 'on' : ''}" data-act="quality" data-q="${k}">${{ low: 'ต่ำ (ลื่นสุด)', medium: 'กลาง', high: 'สูง' }[k]}</button>`).join('')}
+        </div><div class="muted">ถ้า iPad กระตุก ให้เลือก "ต่ำ" (ปิดเงา ลดความละเอียด)</div></div>
+      </section>
+      <section class="pg-col">
+        <h3>วิธีเล่น · มือถือ / iPad</h3>
+        <div class="pg-howto">${touch.map(([g, t]) => `<span class="pg-glyph">${g}</span><span>${t}</span>`).join('')}</div>
+        <h3>วิธีเล่น · PC</h3>
+        <div class="pg-howto">${pc.map(([k, t]) => `${k}<span>${t}</span>`).join('')}</div>
+        <h4>ระบบเป้า</h4><p class="muted">มอนเข้าระยะจะล็อกเป้าให้อัตโนมัติ หันไปหามอนตัวอื่นเพื่อเปลี่ยนเป้า ออกนอกระยะจะปล่อยเป้า ตัวละครไม่วิ่งตามเป้าเอง</p>
+        <h4>การเดินทาง</h4><p class="muted">เดินแตะหินวาร์ปเพื่อปลดล็อก แล้ววาร์ปจากแผนที่ (M) · ขึ้นหน้าผาชันไม่ได้ ให้หาทางลาดหรือถนน</p>
+        <h4>เป้าหมาย Demo</h4><p class="muted">ทำภารกิจหลัก (L) → เก็บวัตถุดิบ → คราฟต์ที่นิคม → ปราบ Greyfang ในป่า → ข้ามแม่น้ำ → ปราบ Horned Warden บนซากโบราณ</p>
+      </section></div>`;
   }
 
   // ---------- Shop + quick item slots ----------
+  // Goods on the left; the quick slots (same order as the HUD potion row) and auto-potions on the right.
   render_shop() {
     const g = this.game, ch = g.ch, data = g.data, cons = data.items.consumables, near = g.nearby().shop;
     const pick = this.sel.quickSlot ?? 0, p = g.player;
@@ -445,23 +454,28 @@ export class Panels {
       const def = id && cons.types[id];
       return `<button class="quick-slot ${i === pick ? 'on' : ''} ${def ? '' : 'empty'}" data-act="quick-select" data-slot="${i}" aria-pressed="${i === pick}" aria-label="ช่องไอเทม ${i + 1}${def ? ' · ' + def.nameTh : ' · ว่าง'}">${def ? potionArt(def) : icon('plus')}<b>${def ? ch.consumables[id] || 0 : ''}</b><small>ช่อง ${i + 1} · ปุ่ม ${i + 5}</small></button>`;
     }).join('');
-    const cards = data.items.shop.stock.map((id) => {
+    const rows = data.items.shop.stock.map((id) => {
       const def = cons.types[id], own = ch.consumables[id] || 0, amt = restoreAmount(data, id, p.maxHp, p.maxMp), r = def.restore;
-      const gives = def.group === 'hp' ? `ฟื้น HP ${r.hp} + ${r.hpPct}% <span class="muted">(ตอนนี้ ≈${amt.hp})</span>` : `ฟื้น MP ${r.mp} + ${r.mpPct}% <span class="muted">(ตอนนี้ ≈${amt.mp})</span>`;
+      const gives = def.group === 'hp' ? `ฟื้น HP ${r.hp} + ${r.hpPct}% (≈${amt.hp})` : `ฟื้น MP ${r.mp} + ${r.mpPct}% (≈${amt.mp})`;
       const buys = data.items.shop.buyAmounts.map((n) => {
         const st = buyState(ch, data, id, n);
-        return `<button class="btn ${n === 1 ? 'primary' : ''}" data-act="buy" data-id="${id}" data-n="${n}" ${near && st.ok ? '' : 'disabled'} title="${st.ok ? '' : st.reason === 'gold' ? 'Gold ไม่พอ' : st.reason === 'full' ? 'ถือได้สูงสุด ' + cons.stackMax : ''}">×${n} · ${def.price * n} G</button>`;
+        return `<button class="btn" data-act="buy" data-id="${id}" data-n="${n}" ${near && st.ok ? '' : 'disabled'} title="${st.ok ? '' : st.reason === 'gold' ? 'Gold ไม่พอ' : st.reason === 'full' ? 'ถือได้สูงสุด ' + cons.stackMax : ''}">×${n} · ${def.price * n} G</button>`;
       }).join('');
       const inSlot = ch.quickItems.indexOf(id);
-      return `<section class="card shop-item"><div class="seeker-hero">${potionArt(def)}<div><h3>${esc(def.nameTh)}</h3><small>${esc(def.name)} · มี ${own}</small></div></div>
-        <p>${gives}</p><p class="muted">ดื่มแล้วยาชนิด${def.group === 'hp' ? 'เลือด' : 'มานา'}ใช้ซ้ำได้อีกใน ${cons.groupCooldown[def.group]} วินาที</p>
-        <div class="shop-buy">${buys}</div>
-        <button class="btn" data-act="quick-assign" data-id="${id}" ${inSlot === pick ? 'disabled' : ''}>${inSlot === pick ? 'อยู่ในช่อง ' + (pick + 1) + ' แล้ว' : 'ใส่ช่อง ' + (pick + 1) + (inSlot >= 0 ? ' (ย้ายจากช่อง ' + (inSlot + 1) + ')' : '')}</button></section>`;
+      return `<section class="shop-item"><span class="pg-ic">${potionArt(def)}</span><span class="pg-tx"><b>${esc(def.nameTh)}</b><small>${gives} · มี ${own}</small></span>
+        <span class="shop-buy">${buys}<button class="btn" data-act="quick-assign" data-id="${id}" ${inSlot === pick ? 'disabled' : ''} title="${inSlot >= 0 && inSlot !== pick ? 'ย้ายจากช่อง ' + (inSlot + 1) : ''}">${inSlot === pick ? 'อยู่ในช่อง ' + (pick + 1) : 'ใส่ช่อง ' + (pick + 1)}</button></span></section>`;
     }).join('');
-    return `<div class="card shop-head"><h3>ร้านค้า</h3><p class="${near ? 'ok' : 'muted'}">${near ? 'คุยกับพ่อค้าอยู่ · ซื้อยาได้เลย' : 'ซื้อได้เมื่อยืนอยู่ที่ร้านค้าในเมือง (จุดสีชมพูบนแผนที่) · จัดช่องไอเทมได้ทุกที่'}</p>
-      <h3>ช่องไอเทมกดใช้</h3><p class="muted">เลือกช่อง แล้วกด "ใส่ช่อง" ที่ยาที่ต้องการ · ในเกมแตะปุ่มยาข้างปุ่มสกิล หรือกด 5–8</p>
-      <div class="quick-slots">${slots}</div>${ch.quickItems[pick] ? `<button class="btn" data-act="quick-clear">เอายาออกจากช่อง ${pick + 1}</button>` : ''}</div>
-      ${autoPotionsView(g)}<div class="shop-grid">${cards}</div>`;
+    return `<div class="pg pg-shop">
+      <section class="pg-col">
+        <p class="pg-banner ${near ? 'ok' : ''}">${near ? 'คุยกับพ่อค้าอยู่ · ซื้อยาได้เลย' : 'ซื้อได้เมื่อยืนอยู่ที่ร้านค้าในเมือง (จุดสีชมพูบนแผนที่) · จัดช่องยาได้ทุกที่'}</p>
+        <div class="pg-list">${rows}</div>
+        <p class="muted">ดื่มยาแล้ว ยาชนิดเดียวกันใช้ซ้ำได้อีกใน ${cons.groupCooldown.hp} วินาที</p>
+      </section>
+      <section class="pg-col shop-head">
+        <h3>ช่องยากดใช้</h3><p class="muted">ตรงกับแถวยาเหนือปุ่มสกิล · เลือกช่อง แล้วแตะ "ใส่ช่อง" ที่ยาทางซ้าย</p>
+        <div class="quick-slots">${slots}</div>${ch.quickItems[pick] ? `<button class="btn" data-act="quick-clear">เอายาออกจากช่อง ${pick + 1}</button>` : ''}
+        ${autoPotionsView(g)}
+      </section></div>`;
   }
 
   // ---------- actions ----------
@@ -520,7 +534,11 @@ export class Panels {
         return this.render();
       case 'growth-filter':
         this.sel.growthKind = t.dataset.id;
+        this.sel.growthPick = null;
         return this.render(true);
+      case 'growth-pick':
+        this.sel.growthPick = t.dataset.id;
+        return this.render();
       case 'close-journal': return this.close();
       case 'dismiss-node': this.sel.node = null; return this.render();
       case 'journal-reset': this.sel.journalReset = !this.sel.journalReset; return this.render();

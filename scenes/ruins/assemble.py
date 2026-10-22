@@ -13,11 +13,16 @@ style = style.replace("background: #9fd6e8;", "background: #5f8f43;")
 style = style.replace("rgba(255, 238, 196, .3), rgba(255, 238, 196, .08) 45%", "rgba(255, 238, 196, .12), rgba(255, 238, 196, .04) 45%")
 style = style.replace("rgba(255, 246, 214, .07) 70px 120px", "rgba(255, 246, 214, .045) 70px 120px")
 assert '.12), rgba' in style
+# the ruins' mood: warm golden afternoon light over everything, a stronger glow from the top left
+style = style.replace("rgba(255, 238, 196, .12), rgba(255, 238, 196, .04) 45%", "rgba(255, 228, 170, .26), rgba(255, 228, 170, .08) 45%")
+style += "  #warm { background: linear-gradient(170deg, rgba(255, 196, 110, .16), rgba(255, 214, 140, .06) 55%, rgba(120, 90, 40, .08)); mix-blend-mode: soft-light; }\n"
+
 head = '<title>ทางเข้าซากปรักหักพัง</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<style>' + style.split('\n', 1)[1] + '</style>\n'
 markup = '''<div id="stage">
   <canvas id="c" aria-label="ฉาก 3D ทางเข้าซากปรักหักพัง"></canvas>
   <div class="atmo" id="sunwash"></div>
   <div class="atmo" id="rays"></div>
+  <div class="atmo" id="warm"></div>
   <div class="atmo" id="vignette"></div>
   <img id="ref" alt="ภาพคอนเซปต์ทางเข้าซากปรักหักพัง" src="%%REF%%">
   <div id="divider"></div>
@@ -71,7 +76,7 @@ hero = hero.replace(blocked.group(0), '''function blocked(x, z) {
 ''')
 scene = open(S + 'ruins/scene.js').read()
 scene = scene.replace("const COLLIDERS = [];\n", "")
-scene = scene.replace("function build() {\n  scene.add(buildGround());", "function build() {\n  { const [x, z] = P(0.5, 0.9); HERO.x = x; HERO.z = z; HERO.face = Math.PI - 0.25; }\n  scene.add(buildGround());")
+scene = scene.replace("function build() {\n  scene.add(buildGround());", "function build() {\n  { const [x, z] = P(0.49, 0.92); HERO.x = x; HERO.z = z; HERO.face = Math.PI - 0.25; }\n  scene.add(buildGround());")
 foliage = foliage.replace("const root = new THREE.Color('#4f8f2f'), tip = new THREE.Color('#d2e865')", "const root = new THREE.Color('#47702f'), tip = new THREE.Color('#bcc94a')")
 assert '#bcc94a' in foliage
 js = '\n'.join([imports, page, renderer, glsl, stones, foliage, glow, hero, scene])

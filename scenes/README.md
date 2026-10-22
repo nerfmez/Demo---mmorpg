@@ -70,7 +70,18 @@ Done:
    - A paved ramp climbs to the plaza, with masonry along its sides.
    - The ruins are built from `pillar`, `wallRun`, `archway` and `plaza`, using big worn
      blocks. Some walls and pillars are single slabs (owner: not so clearly cut into blocks).
-   - Known gap: a small bare-earth face beside the ramp foot on the right.
+   - Owner round 2 ("not the reference's mood"): ivy down walls and pillars, more bushes and
+     yellow flowers, big trees among the ruins, warm golden grade (`#warm` overlay), darker
+     shade, foreground framing.
+   - Owner round 3 ("height, position, layers and leading lines are a different league"):
+     - the frame now matches the concept: upper level `UP = 2.9 * K`, ruins `RS = 0.65 * K`;
+     - the cliff foot is traced from the concept, close behind the hero, with stepped,
+       jagged column tops;
+     - the leading line runs from the hero, curving right into a long, narrow stair. The stair
+       lies on a grassy hillside (`ST.bank`), not in a cut;
+     - a low path leads away top-left.
+   - Known gaps: stair steps still read as separate blocks; the right side of the stair hill is
+     plain grass, where the concept has a row of blocks.
 
 Owner preferences learnt so far: everything must be portable into the game (reuse the game's
 foliage and models, only recolour); judge composition and layout first, never just tone; round grey

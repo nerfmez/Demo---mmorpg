@@ -20,14 +20,23 @@ rocks land where the concept has them. Terraces are closed outlines with stone l
 walls, trails are polylines with widths in metres, stairs climb from the left trail to the back.
 
 ## Next steps
-Done: space 3-4x larger (camera dist 54, layout metres x K = 1.8, terraces 3.3-3.7 m), root/arch
-winding fixed, sun-glow overlay reduced.
-1. Wait for the owner's feedback on the forest page.
-2. Known gaps: the canopy band at the top is thinner than the concept, crowns a little lime,
-   terrace tops sparser than the concept.
-3. Then the ruins scene the same way.
+Done:
+- Space enlarged twice. Now K = 2.4: camera dist 72, and every layout metre is x K.
+  `assemble.py` reads K from `scene.js` for the camera and the shadow box.
+- Owner feedback round 2 (the owner prefers the forest over the other attempts):
+  - the middle island is now a roundabout, walled all round, with a trail behind it from the
+    stairs foot to the right trail;
+  - some ledge runs are one long slab instead of separate blocks;
+  - trees are bigger (scale TS = K/1.8 x 1.25), and back-row trunks are lower so the crowns
+    stay in frame.
+1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
+2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
+   sparser than the concept, a hard dark shadow patch by the stairs.
+3. Then the ruins scene the same way. `ruins/assemble.py` and `ruins/buildpage.py` are copied
+   from the forest; `ruins/scene.js` is not written yet. The layout notes (plaza with a stone
+   ring, arch, pillars, a retaining wall with a paved ramp) are in the session handoff.
 
 Owner preferences learnt so far: judge composition and layout first, never just tone; round grey
-stones, curved (never rectangular) ledges; check against the concept side by side before showing.
+stones, curved (never rectangular) ledges, some ledge runs as one slab; more room to walk; big trees; check against the concept side by side before showing.
 The in-game restyle (palette, water, ledges, waypoint ruin, ambience) is on PR #137; the owner did
 not ask for it, it is not merged and its CI is red.

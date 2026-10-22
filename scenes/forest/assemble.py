@@ -41,11 +41,14 @@ imports = block('<script type="module">', '// ---------- page:')
 page = block('// ---------- page:', '// ---------- world layout')
 renderer = block('// ---------- renderer', '// ---------- shared GLSL')
 renderer = renderer.replace("scene.background = new THREE.Color('#9fd8e4');", "scene.background = new THREE.Color('#5f8f43');")
-renderer = re.sub(r"const CAM = \{[^}]*\};", "const CAM = { target: new V3(0, 0, -5.4), pitch: 40, dist: 54, yaw: 0 };", renderer)
+# the camera and the shadow box follow the scene's scale K (the concept's view is K = 1)
+K = float(re.search(r"const K = ([\d.]+);", open(S + 'forest/scene.js').read()).group(1))
+f = lambda v: f"{v * K:g}"
+renderer = re.sub(r"const CAM = \{[^}]*\};", f"const CAM = {{ target: new V3(0, 0, -{f(3)}), pitch: 40, dist: {f(30)}, yaw: 0 }};", renderer)
 renderer = renderer.replace("// fitted so the shoreline, the track mouth, the waypoint and the wreck land where the reference has them", "// the concept's view: 40 degrees down, close enough that the hero is about 85 px tall in the 941 px frame")
-renderer = renderer.replace("sun.position.copy(SUN).multiplyScalar(90);\nscene.add(sun, sun.target);", "sun.target.position.set(0, 0, -16); sun.position.copy(SUN).multiplyScalar(90).add(sun.target.position);\nscene.add(sun, sun.target);")
-renderer = renderer.replace("Object.assign(sun.shadow.camera, { left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220 });", "Object.assign(sun.shadow.camera, { left: -54, right: 54, top: 58, bottom: -58, near: 10, far: 260 });")
-assert 'pitch: 40, dist: 54' in renderer and 'add(sun.target.position)' in renderer and 'left: -54' in renderer
+renderer = renderer.replace("sun.position.copy(SUN).multiplyScalar(90);\nscene.add(sun, sun.target);", f"sun.target.position.set(0, 0, -{f(9)}); sun.position.copy(SUN).multiplyScalar(90).add(sun.target.position);\nscene.add(sun, sun.target);")
+renderer = renderer.replace("Object.assign(sun.shadow.camera, { left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220 });", f"Object.assign(sun.shadow.camera, {{ left: -{f(30)}, right: {f(30)}, top: {f(32)}, bottom: -{f(32)}, near: 10, far: {f(145)} }});")
+assert f'dist: {f(30)}' in renderer and 'add(sun.target.position)' in renderer and f'left: -{f(30)}' in renderer
 glsl = block('// ---------- shared GLSL', '// ---------- ground:')
 under = re.search(r"\n  // under the sea:.*?\n  \}\n", glsl, re.S)
 assert under, 'underwater block'

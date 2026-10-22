@@ -8,7 +8,8 @@ function P(u, v, y = 0) {
   const o = _ray.ray.origin, d = _ray.ray.direction, t = (y - o.y) / d.y;
   return [o.x + d.x * t, o.z + d.z * t];
 }
-const K = 1.8;   // the owner asked for 3-4x the space in the same frame: the camera stands K x farther back
+const K = 2.4;   // the owner asked for more room in the same frame: the camera stands K x farther back
+const TS = K / 1.8 * 1.25;   // trees grow with the room, and a quarter bigger again (owner's ask)
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
 // ground mesh bounds (metres)
 const GX0 = -30 * K, GX1 = 30 * K, GZ0 = -44 * K, GZ1 = 10 * K;
@@ -19,8 +20,9 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // stone walls. The two front banks are low grassy rises under the big rocks, without walls.
 const TERRACES = [
   { top: 3.3, ledge: true, pts: [[-0.3, 0.49, 'b'], [0.03, 0.49, 'b'], [0.09, 0.495, 'b'], [0.135, 0.47, 'b'], [0.165, 0.41, 'b'], [0.19, 0.35, 'b'], [0.215, 0.29, 'b'], [0.232, 0.225, 'b'], [0.24, 0.175, 'b'], [0.225, 0.1, 't'], [0.2, -0.5, 't'], [-0.5, -0.5, 't']] },
-  { top: 3.7, ledge: true, pts: [[0.305, 0.075, 'b'], [0.345, 0.125, 'b'], [0.39, 0.17, 'b'], [0.44, 0.22, 'b'], [0.47, 0.275, 'b'], [0.435, 0.33, 'b'], [0.405, 0.39, 'b'], [0.42, 0.455, 'b'], [0.47, 0.5, 'b'], [0.53, 0.505, 'b'], [0.585, 0.495, 'b'], [0.63, 0.47, 'b'], [0.665, 0.42, 'b'], [0.69, 0.36, 'b'], [0.705, 0.3, 'b'], [0.712, 0.23, 'b'], [0.705, 0.16, 'b'], [0.712, 0.09, 'b'], [0.73, 0.0, 't'], [0.75, -0.5, 't'], [0.28, -0.5, 't'], [0.29, 0.03, 't']] },
-  // the level the stairs climb to, joining the left terrace and the island at the back
+  // the island: a raised round in the middle with walls all round and the trail passing behind it
+  { top: 3.7, ledge: true, pts: [[0.45, 0.2, 'b'], [0.44, 0.235, 'b'], [0.47, 0.275, 'b'], [0.435, 0.33, 'b'], [0.405, 0.39, 'b'], [0.42, 0.455, 'b'], [0.47, 0.5, 'b'], [0.53, 0.505, 'b'], [0.585, 0.495, 'b'], [0.63, 0.47, 'b'], [0.665, 0.42, 'b'], [0.69, 0.36, 'b'], [0.705, 0.3, 'b'], [0.712, 0.23, 'b'], [0.7, 0.19, 'b'], [0.65, 0.17, 'b'], [0.58, 0.16, 'b'], [0.51, 0.17, 'b']] },
+  // the level the stairs climb to, behind the left terrace
   { top: 3.3, ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },
   { top: 3.4, ledge: true, pts: [[1.5, 0.5, 'b'], [0.985, 0.475, 'b'], [0.94, 0.43, 'b'], [0.92, 0.36, 'b'], [0.915, 0.29, 'b'], [0.925, 0.22, 'b'], [0.94, 0.15, 'b'], [0.955, 0.08, 'b'], [0.97, 0.0, 't'], [1.0, -0.5, 't'], [1.6, -0.5, 't']] },
   { top: 0.8, ledge: false, pts: [[-0.3, 0.6, 'b'], [0.05, 0.6, 'b'], [0.13, 0.645, 'b'], [0.2, 0.71, 'b'], [0.235, 0.8, 'b'], [0.25, 0.95, 'b'], [0.26, 1.3, 'b'], [-0.3, 1.3, 'b']] },
@@ -56,6 +58,8 @@ function stairsAt(x, z) {
 const TRAILS = [
   [[0.52, 1.25, 2.3], [0.515, 0.92, 2.2], [0.5, 0.76, 2.2], [0.455, 0.64, 1.9], [0.37, 0.555, 2.0], [0.295, 0.475, 2.2], [0.325, 0.385, 1.6], [0.385, 0.315, 1.3], [0.35, 0.245, 1.15], [0.3, 0.21, 1.05]],
   [[0.5, 0.76, 2.0], [0.6, 0.665, 1.9], [0.7, 0.585, 2.2], [0.785, 0.505, 2.4], [0.815, 0.42, 2.3], [0.82, 0.33, 1.6], [0.838, 0.25, 1.35], [0.865, 0.17, 1.15], [0.885, 0.08, 1.05], [0.9, -0.2, 1.0], [0.92, -0.5, 1.0]],
+  // the trail round the back of the island, from the foot of the stairs to the right trail
+  [[0.3, 0.21, 1.05], [0.37, 0.15, 1.1], [0.44, 0.125, 1.15], [0.52, 0.115, 1.2], [0.6, 0.115, 1.2], [0.68, 0.13, 1.15], [0.745, 0.17, 1.1], [0.8, 0.22, 1.15], [0.838, 0.25, 1.35]],
   [[0.257, 0.1, 1.0, 3.3], [0.272, 0.03, 1.0, 3.3], [0.3, -0.25, 1.0, 3.3], [0.31, -0.5, 1.0, 3.3]],
 ].map(pl => pl.map(([u, v, w, h = 0]) => { const [x, z] = P(u, v, h); return { x, z, w: w * K }; }));
 // distance from the trail edge: negative on the trail
@@ -96,7 +100,7 @@ function height(x, z) {
 const GROUND_BAKE = { value: null };
 function buildGround() {
   const W = GX1 - GX0, D = GZ1 - GZ0;
-  const g = new THREE.PlaneGeometry(W, D, Math.round(W * 3), Math.round(D * 3));
+  const g = new THREE.PlaneGeometry(W, D, Math.round(W * 2.5), Math.round(D * 2.5));
   g.rotateX(-Math.PI / 2); g.translate((GX0 + GX1) / 2, 0, (GZ0 + GZ1) / 2);
   const p = g.attributes.position, n = p.count, w = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
@@ -181,6 +185,16 @@ function buildLedges() {
       const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
       if (polyAt(T, mx + nx * 0.6, mz + nz * 0.6) < 0) { nx = -nx; nz = -nz; }   // n points off the terrace
       const ry = Math.atan2(-tz, tx);
+      if (len < 7 && rand() < 0.35) {
+        // a whole run as one slab: a single face of rock instead of separate blocks
+        const px = mx + nx * 0.3, pz = mz + nz * 0.3;
+        if (!(stairsAt(px, pz).s < ST.half + 0.5 && stairsAt(px, pz).a > -0.2 && stairsAt(px, pz).a < 1.2)) {
+          const base = height(px + nx * 1.2, pz + nz * 1.2), top = T.top + R(-0.3, 0.35);
+          addStone(px, base - 0.15, pz, len + 0.35, top - base + 0.15, R(1.5, 2.0), { chamfer: 0.08, jitter: 0.06, extra: 14, ry: ry + R(-0.05, 0.05), rx: R(-0.04, 0.04), moss: 0.55 });
+          if (rand() < 0.7) addBush(px - nx * R(0.6, 1.2), top - 0.3, pz - nz * R(0.6, 1.2), R(0.4, 0.7), { sy: 0.5, tint: 0.2 });
+          continue;
+        }
+      }
       let s = R(0, 0.4);
       while (s < len) {
         const w = R(1.2, 2.0), c = s + w / 2;
@@ -349,30 +363,32 @@ function build() {
   // trees: [u, v, scale, crown variant, trunk stretch]; tall trunks, so the crowns sit high and
   // the trunks and roots stay in view as in the concept
   // (crown heights measured against the concept: the island tree's crown reaches down to v = 0.2)
-  const TREES = [[0.075, 0.2, 1.5, 3, 0.7], [0.555, 0.3, 1.55, 9, 0.8], [0.02, 0.06, 1.35, 9, 0.75], [0.19, 0.06, 1.3, 5, 0.72], [0.4, 0.04, 1.3, 5, 0.75], [0.645, 0.07, 1.35, 3, 0.75],
+  const TREES = [[0.075, 0.2, 1.5, 3, 0.7], [0.565, 0.31, 1.55, 9, 0.62], [0.02, 0.06, 1.35, 9, 0.75], [0.19, 0.06, 1.3, 5, 0.72], [0.4, 0.04, 1.3, 5, 0.75], [0.645, 0.07, 1.35, 3, 0.75],
     [0.8, 0.03, 1.25, 9, 0.75], [0.975, 0.08, 1.45, 5, 0.75], [0.1, -0.04, 1.4, 3, 0.75], [0.3, -0.05, 1.3, 9, 0.75], [0.52, -0.06, 1.35, 5, 0.75], [0.72, -0.05, 1.35, 3, 0.75], [0.9, -0.05, 1.4, 9, 0.75], [0.0, -0.02, 1.4, 5, 0.75], [0.24, 0.02, 1.3, 3, 0.75], [0.48, 0.0, 1.35, 9, 0.75], [0.6, -0.02, 1.3, 5, 0.75], [0.86, 0.0, 1.3, 3, 0.75], [0.36, 0.06, 1.25, 3, 0.7], [0.12, 0.08, 1.3, 5, 0.7]];
   const trunkAt = [];
   for (let [u, v, s, seed, h] of TREES) {
-    s *= 1.35; h *= 1.3;   // forest giants: the farther camera shows them smaller
+    s *= 1.35 * TS; h *= 1.3;   // forest giants: the farther camera shows them smaller
+    if (v < 0.25) h *= 0.62;   // the back row: lower trunks keep the bigger crowns in the top of the frame
     let [x, z] = P(u, v, 0);
+    if (trailAt(x, z) < 1.2 * s) continue;   // keep the trails open
     const top = height(x, z) > 1 ? height(x, z) : 0;
     if (top > 1) [x, z] = P(u, v, top);
     broadleaf(x, z, s, seed); treeItems[treeItems.length - 1].h = h;
     COLLIDERS.push({ x, z, r: 0.6 * s }); trunkAt.push([x, z, 1.4 * s]);
   }
   // roots draped over the ledges: the left tree and the big tree on the island
-  { const [x, z] = P(0.075, 0.2, 3.3); drapeRoots(x, z, 3.3, [[0.03, 0.47, 1.1], [0.12, 0.47, 0.9], [0.17, 0.38], [0.205, 0.31, 0.8], [0.0, 0.35, 0.8]], 1.3); }
-  { const [x, z] = P(0.555, 0.3, 3.7); drapeRoots(x, z, 3.7, [[0.6, 0.5, 1.2], [0.645, 0.47, 1.1], [0.675, 0.43], [0.52, 0.52, 0.8], [0.48, 0.5, 0.7], [0.69, 0.38, 0.8]], 1.4); }
+  { const [x, z] = P(0.075, 0.2, 3.3); drapeRoots(x, z, 3.3, [[0.03, 0.47, 1.1], [0.12, 0.47, 0.9], [0.17, 0.38], [0.205, 0.31, 0.8], [0.0, 0.35, 0.8]], 1.3 * TS); }
+  { const [x, z] = P(0.565, 0.31, 3.7); drapeRoots(x, z, 3.7, [[0.6, 0.5, 1.2], [0.645, 0.47, 1.1], [0.675, 0.43], [0.52, 0.52, 0.8], [0.48, 0.5, 0.7], [0.69, 0.38, 0.8]], 1.4 * TS); }
   // the arching tree: a thick trunk rising from the right terrace, leaning over the trail and
   // rooting again on the island, with a crown above the arch
   {
     const [ax, az] = P(0.975, 0.335, 3.4), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.29, 0), [ex, ez] = P(0.715, 0.27, 3.7);
-    const arch = [new V3(ax, 3.2, az), new V3(bx, 6.0, bz), new V3(cx, 7.2, cz), new V3(dx2, 6.6, dz2), new V3(ex + 0.5, 4.8, ez), new V3(ex, 3.55, ez)];
+    const a = TS, arch = [new V3(ax, 3.2, az), new V3(bx, 6.0 * a, bz), new V3(cx, 7.2 * a, cz), new V3(dx2, 6.6 * a, dz2), new V3(ex + 0.5, 4.8 * a, ez), new V3(ex, 3.55, ez)];
     for (const [k, r0, r1, amp] of [[0, 0.7, 0.5, 0], [1, 0.48, 0.34, 0.9], [2, 0.38, 0.26, 0.85], [3, 0.24, 0.15, 1.1]])
-      tube(arch.map((p, i) => p.clone().add(new V3(Math.sin(i * 1.9 + k * 2.1) * amp, Math.cos(i * 1.3 + k) * amp * 0.5, Math.cos(i * 1.6 + k * 2.4) * amp))), r0, r1, { sides: 9 });
-    drapeRoots(ax, az, 3.4, [[0.9, 0.36, 1.2], [0.935, 0.42], [0.995, 0.47, 0.9]], 1.2);
-    drapeRoots(ex, ez, 3.7, [[0.74, 0.32, 0.9], [0.755, 0.24, 0.8]], 1.0);
-    for (const [px, py, pz, s] of [[cx + 0.6, 7.6, cz - 1.0, 1.25], [bx + 1.6, 6.8, bz - 1.5, 1.15]]) crownOnly.push({ x: px, y: py, z: pz, s, ry: R(0, 6.28), v: 1, k: R(0.94, 1.04) });
+      tube(arch.map((p, i) => p.clone().add(new V3(Math.sin(i * 1.9 + k * 2.1) * amp, Math.cos(i * 1.3 + k) * amp * 0.5, Math.cos(i * 1.6 + k * 2.4) * amp))), r0 * a, r1 * a, { sides: 9 });
+    drapeRoots(ax, az, 3.4, [[0.9, 0.36, 1.2], [0.935, 0.42], [0.995, 0.47, 0.9]], 1.2 * TS);
+    drapeRoots(ex, ez, 3.7, [[0.74, 0.32, 0.9], [0.755, 0.24, 0.8]], 1.0 * TS);
+    for (const [px, py, pz, s] of [[cx + 0.6, 7.6 * a, cz - 1.0, 1.25 * a], [bx + 1.6, 6.8 * a, bz - 1.5, 1.15 * a]]) crownOnly.push({ x: px, y: py, z: pz, s, ry: R(0, 6.28), v: 1, k: R(0.94, 1.04) });
     COLLIDERS.push({ x: ax, z: az, r: 1.0 }, { x: ex, z: ez, r: 0.9 });
   }
   // bush masses: [u, v, radius m, count, size range] on the low ground and the tops
@@ -395,7 +411,7 @@ function build() {
     addBush(x, y - 1.0, z, r * 0.85, { sy: 0.8, tint: -4.2 });
   }
   // grass clumps and flowers, in patches, leaving the trails bare
-  for (let i = 0; i < 11000 * K * K; i++) {
+  for (let i = 0; i < 11000 * Math.min(K * K, 4); i++) {
     const x = R(GX0 + 4, GX1 - 4), z = R(-30 * K, GZ1);
     const tr = trailAt(x, z);
     if (tr < -0.2 || stairsAt(x, z).inside) continue;

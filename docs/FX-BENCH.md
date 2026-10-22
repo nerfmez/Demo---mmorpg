@@ -13,8 +13,8 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
 - Effects only read core events: `castStart`, `chain`, `nova`, `channelStart/Pulse/End`,
   `hit`, `trigger` and `burst` (`mod_burst`). No mod leaves a field on the ground. Mods show
   through those events: Bounce adds hops, Chain Return draws the bolt back, Frost/Fire/Poison Shift
-  recolour the element, Echo plays a second nova, Concentrated shrinks it,
-  Burning Ground leaves a fire patch, Knockback/Gathering Cut move the dummies, Shatter
+  recolour the element (the nova's ice turns orange or green), Echo plays a second nova,
+  Concentrated shrinks it, Knockback/Gathering Cut move the dummies, Shatter
   bursts on chilled dummies, Life Leech shows green heal numbers, Cast on Dodge fires
   the skill from the dodge button. Guard triggers are hidden (no guard skill on the bench).
 - Controls: tap the floor to aim, **ร่าย** casts (hold for Flame Stream), **หลบ** dashes,

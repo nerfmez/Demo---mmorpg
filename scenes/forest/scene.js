@@ -283,6 +283,14 @@ function buildCliffs() {
           quad(e0, e1, b1, b0, new V3(0, 1, 0), shade);
           quad(b0, b1, new V3(b1.x, T.top - 0.3, b1.z), new V3(b0.x, T.top - 0.3, b0.z), new V3(-out.x, 0, -out.z), shade.copy(C.c).multiplyScalar(0.8));
         }
+        // the open ends of a run: a side face from the rock face back to the cap
+        if (!run.closed) for (const k of (ci === 0 ? [C.i0] : []).concat(ci === cols.length - 1 ? [C.i1] : [])) {
+          const q = S[k], side = new V3(q.nz, 0, -q.nx).multiplyScalar(k === C.i0 ? -1 : 1);
+          for (let r = 0; r < F.length - 1; r++) {
+            const a0 = vtx(C, k, r), a1 = vtx(C, k, r + 1);
+            quad(a0, a1, new V3(q.x - q.nx * C.cap, a1.y, q.z - q.nz * C.cap), new V3(q.x - q.nx * C.cap, a0.y, q.z - q.nz * C.cap), side, shade.copy(C.c).multiplyScalar(0.75));
+          }
+        }
         // the crack to the next column: a narrow face joining their two edges, in shadow
         const D = cols[ci + 1];
         if (D) {

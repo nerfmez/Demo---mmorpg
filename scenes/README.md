@@ -62,9 +62,15 @@ Done:
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.
-3. Then the ruins scene the same way. `ruins/assemble.py` and `ruins/buildpage.py` are copied
-   from the forest; `ruins/scene.js` is not written yet. The layout notes (plaza with a stone
-   ring, arch, pillars, a retaining wall with a paved ramp) are in the session handoff.
+3. Ruins scene: built (forest approved by the owner). Build it with
+   `python3 scenes/ruins/assemble.py && python3 scenes/ruins/buildpage.py`.
+   - `ruins/scene.js` is a copy of the forest scene with its own layout. The upper level
+     (plaza and ruins) sits behind a rock cliff; on the left the cliff turns back toward the
+     ruins along the owner's red line, so the far left stays low.
+   - A paved ramp climbs to the plaza, with masonry along its sides.
+   - The ruins are built from `pillar`, `wallRun`, `archway` and `plaza`, using big worn
+     blocks. Some walls and pillars are single slabs (owner: not so clearly cut into blocks).
+   - Known gap: a small bare-earth face beside the ramp foot on the right.
 
 Owner preferences learnt so far: everything must be portable into the game (reuse the game's
 foliage and models, only recolour); judge composition and layout first, never just tone; round grey

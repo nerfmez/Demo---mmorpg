@@ -11,9 +11,9 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
   dummies have 100 000 HP. Cooldowns run for real (the cast button shows them); MP is
   refilled every step. Nothing is saved.
 - Effects only read core events: `castStart`, `chain`, `nova`, `channelStart/Pulse/End`,
-  `hit`, `trigger`, `burst` (`mod_burst`) and the live `burning_ground` areas. Mods show
-  through those events: Bounce adds hops, Chain Return draws the bolt back, Frost Shift
-  recolours lightning/fire to cold, Echo plays a second nova, Concentrated shrinks it,
+  `hit`, `trigger` and `burst` (`mod_burst`). No mod leaves a field on the ground. Mods show
+  through those events: Bounce adds hops, Chain Return draws the bolt back, Frost/Fire/Poison Shift
+  recolour the element, Echo plays a second nova, Concentrated shrinks it,
   Burning Ground leaves a fire patch, Knockback/Gathering Cut move the dummies, Shatter
   bursts on chilled dummies, Life Leech shows green heal numbers, Cast on Dodge fires
   the skill from the dodge button. Guard triggers are hidden (no guard skill on the bench).
@@ -45,7 +45,7 @@ over it, aim still follows the pointer); at its end the carrier's Slash lands an
 fire wave (a real piercing projectile: 11 m/s, 8 m, radius 1.2, Firebolt's damage and burn)
 hits every target in its path once. Cooldown 1.6 s, MP = both skills. The wave carries the
 carrier's mods: an element change (Frost Shift makes it a chilling ice wave), knockback, leech,
-chill, burning ground on each hit, status mods (Laceration), Wide Arc widens it in proportion,
+chill, status mods (Laceration), Wide Arc widens it in proportion,
 and Multistrike sends a weaker wave with each repeat swing. Visuals in
 `src/fxtest/flame-slash-fx.js` are its own: none of Slash's or Firebolt's effects are used
 except fire sparks on hits. During the charge the sword's own materials heat from dull red to

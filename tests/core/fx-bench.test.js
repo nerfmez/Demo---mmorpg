@@ -14,9 +14,9 @@ function run(skill, mods, act = (g) => g.castSlot(0, { x: 5, z: 0 }), seconds = 
 }
 
 test('bench offers only mods that fit and can be triggered there', () => {
-  assert.deepEqual(benchMods(data, 'flame_stream').sort(), ['frost_shift', 'life_leech']);
+  assert.deepEqual(benchMods(data, 'flame_stream').sort(), ['fire_shift', 'frost_shift', 'life_leech', 'poison_shift', 'ramp_cast']);
   const nova = benchMods(data, 'frost_nova');
-  assert.ok(nova.includes('echo') && nova.includes('burning_ground') && nova.includes('cast_on_dodge'));
+  assert.ok(nova.includes('echo') && nova.includes('fire_shift') && nova.includes('cast_on_dodge'));
   assert.ok(!nova.includes('cast_on_guard'), 'guard triggers need a guard skill the bench does not have');
 });
 
@@ -28,10 +28,11 @@ test('chain mods change the hops the effect draws', () => {
   assert.equal(run('chain_spark', [{ id: 'frost_shift', level: 1 }]).of('chain')[0].element, 'cold');
 });
 
-test('nova mods: echo repeats, concentrated shrinks, burning ground leaves an area, dodge triggers', () => {
+test('nova mods: echo repeats, concentrated shrinks, fire shift turns it to fire, dodge triggers', () => {
   assert.equal(run('frost_nova', [{ id: 'echo', level: 1 }]).of('nova').length, 2);
   assert.ok(run('frost_nova', [{ id: 'concentrated', level: 1 }]).of('nova')[0].radius < 4.2);
-  assert.equal(run('frost_nova', [{ id: 'burning_ground', level: 1 }]).of('area').filter((a) => a.kind === 'burning_ground').length, 1);
+  // no mod leaves a field on the ground any more (Burning Ground became Fire Shift)
+  assert.equal(run('frost_nova', [{ id: 'fire_shift', level: 1 }]).of('nova')[0].element, 'fire');
   const dodge = run('frost_nova', [{ id: 'cast_on_dodge', level: 1 }], (g) => g.useMovement());
   assert.equal(dodge.of('trigger').length, 1);
   assert.equal(dodge.of('nova').length, 1);
@@ -53,7 +54,7 @@ import { fusionPayloads } from '../../src/fxtest/fusion.js';
 const FUSION = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
 
 test('fusion pairs: physical fast carriers with fast damage spells only', () => {
-  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'arcane_shot', 'firebolt']);
+  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'firebolt']);
   assert.deepEqual(fusionPayloads(data, FUSION, 'chain_spark'), [], 'a spell is not a carrier');
   assert.ok(!fusionPayloads(data, FUSION, 'slash').includes('frost_nova'), 'long cooldown spells are not payloads');
   assert.deepEqual(fusionPayloads(data, FUSION, 'armor_cleave'), [], 'long cooldown attacks are not carriers');
@@ -152,8 +153,8 @@ test('Flame Wave Slash: the carrier mods ride on the wave', () => {
   assert.ok(multi.waveHits.length >= 3 * run([]).waveHits.length - 1, 'Multistrike level 3 sends three waves');
   const knock = run([{ id: 'knockback', level: 3 }]);
   assert.ok(knock.far.some((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) > 0.5), 'Knockback pushes what the wave hits');
-  const ground = run([{ id: 'burning_ground', level: 1 }]);
-  assert.ok(ground.events.filter((e) => e.type === 'area' && e.kind === 'burning_ground').length > 1, 'Burning Ground is left where the wave hits');
+  const poison = run([{ id: 'poison_shift', level: 1 }]);
+  assert.ok(poison.waveHits.length && poison.waveHits.every((e) => e.element === 'poison'), 'Poison Shift makes the wave poison');
   const wide = run([{ id: 'wide_arc', level: 3 }]);
   assert.ok(wide.waveHits.length > run([]).waveHits.length, 'Wide Arc widens the wave');
 });

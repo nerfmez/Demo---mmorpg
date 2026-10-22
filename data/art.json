@@ -732,5 +732,17 @@
     "dust": "#f4e2b8",
     "motes": 40,
     "ringRadius": 2.1
+  },
+  "ambience": {
+    "_doc": "Gulls and butterflies (src/render/ambience.js), after the approved beach scene: how many of each, gull colour, its wingtip grey and its ground shadow colour (the shadow follows rendering.json shadow.sunOffset), gull height above the ground, and the zones where each appears.",
+    "gulls": 3,
+    "gullColor": "#f6f4ee",
+    "gullTip": "#8e949c",
+    "gullShadow": "#5a4a36",
+    "gullHeight": 4.5,
+    "gullZones": ["coast", "landing", "headland"],
+    "butterflies": 6,
+    "butterflyColors": ["#fff3a8", "#ffffff", "#ffd27a", "#bfe3ff", "#ffc2d6", "#fff3a8"],
+    "butterflyZones": ["meadow", "glade", "fern_rise", "mirror_pond", "stone_ring"]
   }
 }

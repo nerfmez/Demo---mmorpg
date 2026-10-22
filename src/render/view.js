@@ -30,6 +30,7 @@ import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
 import { updateWaypointRuin } from './waypoint-ruin.js';
+import { Ambience } from './ambience.js';
 
 // Camera tilt above the horizon, owner-chosen 40 degrees (was 54.6): the same distance from the hero
 // (?pitch=<degrees> overrides it for comparison), low enough that trees and buildings stand up as frames.
@@ -101,6 +102,7 @@ export class View {
 
     this.vfx = new Vfx(this.scene, world);
     this.frontierFx=new FrontierFx(this.scene,world);
+    this.ambience = new Ambience(this.scene); // gulls over the coast, butterflies over meadows
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
@@ -1008,6 +1010,8 @@ export class View {
       this.vfx.shake = 0;
     }
     this.ambient(dt, focus.x, focus.z, zoneId);
+    this.ambience.root.visible = this.mode === 'game';
+    if (this.mode === 'game') this.ambience.update(dt, time, focus.x, focus.z, this._ambienceGround ||= (x, z) => this.groundAt(x, z), zoneId);
     // zone-tinted fog/sky
     const target = (this._zoneFogTarget ||= new THREE.Color()).set(world.zoneById(zoneId)?.fog || ZONE_FOG[zoneId] || ZONE_FOG.meadow);
     this.fogColor.lerp(target, 1 - Math.exp(-dt * 1.5));

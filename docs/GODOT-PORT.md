@@ -510,6 +510,10 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   glowing seams/carvings, two ribbons, floating capstones and motes. A waypoint already unlocked
   when first seen is shown built. Presentation only: unlock rules, radius and collider (0.7 m)
   are unchanged. In Godot, an AnimationPlayer per waypoint (or a script tween) over the same poses.
+- `render/ambience.js` (`art.ambience`): three gulls circle the camera focus in coastal zones
+  with flat shadows on the ground offset along `rendering.shadow.sunOffset`, and six butterflies
+  flutter over meadow zones; fixed objects, no per-frame allocation. In Godot, a few animated
+  MeshInstance3D children of the camera rig.
 - Water (`render/ground.js` `seaMaterial`/`waterMaterial`): the beach scene's clear palette
   (pale green over sand, turquoise, bright blue; colour depth = max(water depth, 0.3 x shore
   distance)) and its rounded light web (`webGap`: nearest/(nearest + gap to the second nearest

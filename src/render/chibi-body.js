@@ -213,7 +213,7 @@ export function prepareChibiBody(gltf, cfg) {
   const hc = head.isEmpty() ? J.Head.clone().add(new THREE.Vector3(0, 0.12, 0)) : head.getCenter(new THREE.Vector3());
   const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0)).toArray(), scale: hs };
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
-  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
+  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, bodyScale: cfg.bodyScale ?? 1, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
 /**

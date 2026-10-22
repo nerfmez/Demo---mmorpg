@@ -9,7 +9,8 @@ import { patchMaterial, hullMaterial } from './patch.js';
 import { createRng } from '../core/rng.js';
 import {leafTexture,needleTexture,palmFrondTexture} from './leafpaint.js';
 import { paintSurface } from './surfaceart.js';
-import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,facetedStone,beachShell,palmTrunk,palmFrond} from './nature.js';
+import {leafCrown,pineBough,branchTrunk,meadowGrass,wildflowers,beachShell,palmTrunk,palmFrond} from './nature.js';
+import { stoneVariants, ledgeSteps } from './ledges.js';
 import { inArtStudy, cloudCrownSteps, studyLeafTexture, lowShrubSteps, studyShrubTexture } from './art-study.js';
 import { attachGrassSurfaceSteps, grassMaterial } from './grass.js';
 import { meadowPlantSteps } from './meadow.js';
@@ -43,7 +44,7 @@ function mat(color, o = {}) {
   return m;
 }
 
-function* instancedSteps(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, wind = 0, windBase = 0, see = false, setup = null, setupSteps = null, adopt = null } = {}) {
+function* instancedSteps(geo, material, list, { shadow = true, receiveShadow = true, outline = null, outlineWidth = 0.03, hullGeometry = null, wind = 0, windBase = 0, see = false, setup = null, setupSteps = null, adopt = null } = {}) {
   const group = new THREE.Group();
   adopt?.(group);
   if (!list.length) return group;
@@ -78,7 +79,7 @@ function* instancedSteps(geo, material, list, { shadow = true, receiveShadow = t
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
     if (hull) {
-      const h = new THREE.InstancedMesh(geo, hull, items.length);
+      const h = new THREE.InstancedMesh(hullGeometry || geo, hull, items.length);
       h.instanceMatrix.copy(mesh.instanceMatrix);
       h.instanceMatrix.needsUpdate = true;
       h.computeBoundingSphere();
@@ -287,7 +288,8 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
     const y = gy(c.x, c.z);
     if (c.type === 'rock' || c.type === 'boulder') {
       const big = c.type === 'boulder';
-      rocks.push({ x: c.x, z: c.z, y: y + c.scale * (big ? 0.45 : 0.3), s: c.scale * (big ? 1.1 : 1), sy: c.scale * (big ? 0.85 : 0.7), ry: c.rot, color: rng.pick(['#a6a8ad', '#9a9ca3', '#b3b4b8', '#a39f9a']) });
+      // the grey comes from the stone variant's faces (ledges.js); the instance only shades it a little
+      rocks.push({ x: c.x, z: c.z, y: y + c.scale * (big ? 0.45 : 0.3), s: c.scale * (big ? 1.1 : 1), sy: c.scale * (big ? 0.85 : 0.7), ry: c.rot, color: rng.pick(['#ffffff', '#f3f1ef', '#e9e6e4', '#faf6f0']) });
     } else if (c.type === 'crystal') {
       for (let k = 0; k < 3; k++) {
         const a = c.rot + k * 2.1;
@@ -298,9 +300,19 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   for (const bx of world.boxes) if (bx.type === 'log') logs.push({ x: bx.x, z: bx.z, y: gy(bx.x, bx.z) + 0.35, sx: 1, sy: 1, sz: bx.hz * 2, ry: bx.angle });
   if(artReviewLayout)for(const [x,z,s] of animeConfig.sample.rocks)rocks.push({x,z,y:gy(x,z)+s*.36,s,sy:s*.75,ry:s*2,color:animeConfig.palette.rock});
   for (const l of world.decor.logsDecor) logs.push({ x: l.x, z: l.z, y: gy(l.x, l.z) + 0.3, sx: 0.8, sy: 0.8, sz: 1.6, ry: l.angle });
-  const shoreRocks=yield* buildInstances(facetedStone(), paintSurface(mat('#ffffff'),'rock'), rocks.filter(it=>!inArtStudy(it.x,it.z)), { outline: '#676568', outlineWidth: 0.019 });
-  shoreRocks.userData.waterContact=true;root.add(shoreRocks);
-  root.add(yield* buildInstances(facetedStone(),paintSurface(mat('#ffffff'),'studyRock'),rocks.filter(it=>inArtStudy(it.x,it.z)),{outline:'#676568',outlineWidth:.015}));
+  // grey faceted stones (the beach scene's), one instanced group per shared variant; rocks at the
+  // shore keep their foam contact with the sea
+  const stones = stoneVariants(), stoneMat = mat('#ffffff', { vertexColors: true });
+  for (let v = 0; v < stones.boulders.length; v++) {
+    const group = yield* buildInstances(stones.boulders[v].geo, stoneMat, rocks.filter((it, i) => i % stones.boulders.length === v), { outline: art.stones.outline, outlineWidth: art.stones.boulderOutline, hullGeometry: stones.boulders[v].hull });
+    group.userData.waterContact = true;
+  }
+  // stone ledges along the cliffs (plateau edges, coastal drops)
+  const ledge = yield* ledgeSteps(world, gy);
+  for (let v = 0; v < stones.blocks.length; v++) {
+    const group = yield* buildInstances(stones.blocks[v].geo, stoneMat, ledge.stones.filter((it) => it.v === v), { outline: art.stones.outline, outlineWidth: art.stones.blockOutline, hullGeometry: stones.blocks[v].hull });
+    group.userData.waterContact = true;
+  }
   const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
   crystalGeo.scale(0.55, 1.9, 0.55);
   crystalGeo.translate(0, 0.75, 0);

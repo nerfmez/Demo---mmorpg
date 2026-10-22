@@ -493,6 +493,20 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   alpha scissor `StandardMaterial3D`/toon materials and MultiMesh chunks. These crown cards
   are authored for the fixed ARPG camera; keep that orientation when porting.
 - `render/surfaceart.js` composes bark/stone paint with existing wind and hero occlusion.
+- `render/ledges.js` (`art.stones`): grey faceted stones after the approved beach scene. Six
+  shared block variants (chamfered convex hulls, flat-shaded, per-face grey, moss on upward faces)
+  and six round boulder variants replace the old round rocks; outlines use a smooth-normal copy
+  so the hull stays closed. `ledgeSteps()` scans the heightfield at `ledge.step` m: where the
+  gradient passes `ledge.minSlope` it follows the slope up to the lip and down to the foot and,
+  for walls over `ledge.minWall` m, stands a block at the foot covering the face (two courses
+  over `ledge.twoCourses` m), skipping safe/town zones, docks, bridges and road margins. It is
+  render-only and deterministic (seeded by the map seed); collision is still the heightfield
+  slope. In Godot, run the same scan at import and fill MultiMesh instances per variant.
+- Water (`render/ground.js` `seaMaterial`/`waterMaterial`): the beach scene's clear palette
+  (pale green over sand, turquoise, bright blue; colour depth = max(water depth, 0.3 x shore
+  distance)) and its rounded light web (`webGap`: nearest/(nearest + gap to the second nearest
+  Voronoi point), faded in large patches by two slow noises). Swash, foam sheets, crests and
+  contact foam are unchanged.
 - Run `npm run test:dreamloop`, inspect the same ten locations and three surf phases, plus iPad/phone graph
   interactions. If full-page capture stalls, the test attempts the game canvas. A screenshot
   file alone is not visual approval: inspect it, correct issues and recapture.

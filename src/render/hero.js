@@ -20,6 +20,7 @@ import { resolveOutfit } from '../core/outfit-look.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
+import { attachChibiBody } from './chibi-body.js';
 import {attachHairSampleBody} from './hairsample.js';
 
 export const DEFAULT_LOOK = {
@@ -60,7 +61,8 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
-  const V = o.npc || o.procedural ? null : characterBase('hero_vrm'); // only loaded with ?hero=vrm
+  // only loaded with ?hero=vrm or ?hero=chibi; both keep their own painted face and hair
+  const V = o.npc || o.procedural ? null : characterBase('hero_vrm') || characterBase('hero_chibi');
   const X = o.npc || o.procedural || V ? null : characterBase('hairsample');
   const T = o.npc || o.procedural || V || X ? null : characterBase('hero_base');
   // driver bones sit on the skinned body's joints when there is one
@@ -205,7 +207,11 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (V) {
     fitParts(rig.bones.head, V.headFit);
-    attachVrmBody(rig, V);
+    if (V.chibi) {
+      // weapons and shields were made for the 1.75 m body: scale them to the small one
+      for (const n of ['weapon', 'offhand']) rig.bones[n]?.scale.setScalar(V.gearScale);
+      attachChibiBody(rig, V);
+    } else attachVrmBody(rig, V);
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';

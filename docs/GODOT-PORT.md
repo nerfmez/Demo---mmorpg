@@ -394,6 +394,13 @@ targets the game uses are kept). It reuses the same driver-bone retarget (`bindS
 and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
 through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
 the scarf and armour pieces are not used with this body yet.
+An opt-in chibi hero body (`?hero=chibi`, `public/models/hero_chibi.glb`, registered as
+`characters.hero_chibi`; `render/chibi-body.js`) is a Meshy smart-topology mesh with its own
+painted texture and the same Mixamo-like bone names as `hero_base`, so it uses the same driver
+retarget (`bindSkinSync` with `MAP`). Its split Meshy normals are welded and smoothed at load,
+and weapon/off-hand bones are scaled by `gearScale` for the 1.2 m body. In Godot, import the
+GLB with its `Skeleton3D`, recompute smooth normals on import and scale the hand attachments.
+It is a preview body only: the art rules keep the shipped hero at normal proportions.
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

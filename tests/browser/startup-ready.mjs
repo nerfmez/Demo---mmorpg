@@ -15,3 +15,10 @@ export function vrmHeroReady() {
     typeof hero?.setFace === 'function' && hero.hairsample !== true &&
     body?.getObjectByName('J_Bip_C_Head') && body.getObjectByName('J_Bip_C_Hips'));
 }
+
+export function chibiHeroReady() {
+  const f = window.__frontier, body = f?.view?.hero?.skin?.body;
+  // the chibi body is the only hero body with the Meshy bone names and its own texture
+  return !!(f?.modelsReady && document.getElementById('loading')?.classList.contains('done') &&
+    body?.getObjectByName('Hips') && body.getObjectByName('Head') && !f.view.hero.skin.zones);
+}

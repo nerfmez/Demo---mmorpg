@@ -408,11 +408,15 @@ async function chibiHero() {
     const palm = hand.localToWorld(view.hero.gripCenter.clone()), at = socket.getWorldPosition(palm.clone());
     const fingers = palm.clone().sub(hand.getWorldPosition(palm.clone())).normalize();
     const blade = palm.clone().set(0, 0, 1).applyQuaternion(socket.getWorldQuaternion(hand.quaternion.clone()));
-    return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)) };
+    // the sword hand closes into its fist; the empty left hand stays open
+    let fists = null;
+    body.traverse((o) => { if (o.isSkinnedMesh && o.morphTargetInfluences && !fists) fists = [...o.morphTargetInfluences]; });
+    return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)), fists };
   });
   check(info.skinned === 2 && info.textured === 2, `chibi hero: body and outline load with the texture (${JSON.stringify(info)})`);
   check(info.h > 0.15, `chibi hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
   check(info.grip < 0.001 && info.cross < 0.25, `chibi hero: sword held in the fist, fingers across the handle (${info.grip.toFixed(4)} m, ${info.cross.toFixed(2)})`);
+  check(info.fists?.join() === '1,0', `chibi hero: sword hand closed, empty left hand open (${info.fists})`);
   check(errors.length === 0, `chibi hero: no page errors ${errors.slice(0, 3).join(' | ')}`);
   await page.screenshot({ path: `${OUT}chibi-hero.png` });
   await ctx.close();

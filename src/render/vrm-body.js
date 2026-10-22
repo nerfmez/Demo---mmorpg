@@ -137,7 +137,7 @@ export function toonCopy(src, flash, rim, flat) {
 }
 
 /** The outline: the same texture darkened, pushed out along the normals, back faces only. */
-export function hullCopy(src, width, darkness) {
+function hullCopy(src, width, darkness) {
   const m = new THREE.MeshBasicMaterial({ map: src.map, color: new THREE.Color(darkness, darkness, darkness * 1.12), side: THREE.BackSide, alphaTest: src.alphaTest });
   m.userData.rig = true;
   m.onBeforeCompile = (shader) => {

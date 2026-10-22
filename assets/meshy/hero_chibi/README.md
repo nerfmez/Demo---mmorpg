@@ -15,4 +15,5 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - Meshy exports faceted (split) normals; `chibi-body.js` smooths them at load. A Meshy remesh to
   8,000 tris was tried and was lumpier than the 4,442-tri original, so it was not used.
 - The Meshy hands are open and have no finger bones; `curlFist` in `chibi-body.js` bends the
-  finger vertices into a fist at load, and held weapons are seated in the fist's hole.
+  finger vertices into a fist (thumb folded under) at load as one morph target per hand; a hand
+  closes only while it holds something, and held weapons are seated in the fist's hole.

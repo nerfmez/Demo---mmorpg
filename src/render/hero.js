@@ -208,8 +208,9 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   if (V) {
     fitParts(rig.bones.head, V.headFit);
     if (V.chibi) {
-      // weapons and shields were made for the 1.75 m body: scale them to the small one
+      // weapons, shields and the quiver on the back were made for the 1.75 m body: scale them to the small one
       for (const n of ['weapon', 'offhand']) rig.bones[n]?.scale.setScalar(V.gearScale);
+      fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
     } else attachVrmBody(rig, V);
   }

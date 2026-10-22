@@ -621,7 +621,18 @@
       "fist": {
         "knuckle": 0.55,
         "radius": 0.25,
-        "wrap": 1.25
+        "wrap": 1.25,
+        "thumbTurn": 100,
+        "thumbFrom": 0.35,
+        "thumbTo": 0.6,
+        "thumbReach": 0.75,
+        "leftFistWith": [
+          "axe",
+          "mace",
+          "greatblade",
+          "staff",
+          "bow"
+        ]
       },
       "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). Opt-in with ?hero=chibi; see assets/meshy/hero_chibi"
     }

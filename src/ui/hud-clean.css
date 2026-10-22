@@ -1,9 +1,10 @@
 /* Clean field HUD (owner-approved mockup, 2026-10): no boxes on the play screen.
+   No backdrop-filter here: blurring the live WebGL canvas every frame costs too much (iPad, CI).
    Text and bars sit on the world with a soft shadow; every control uses one dark glass.
    Touch: potions in one row above the skill buttons. PC: one hotbar at the bottom centre.
    Loaded last; presentation only, the real buttons and handlers are unchanged. */
 body.ingame {
-  --hc-glass: rgba(16, 26, 36, .42);
+  --hc-glass: rgba(16, 26, 36, .5);
   --hc-edge: rgba(255, 255, 255, .55);
   --hc-ring: rgba(255, 255, 255, .9);
   --hc-track: rgba(10, 20, 30, .5);
@@ -18,14 +19,13 @@ body.ingame #hud { bottom: 0; }
 body.ingame #hud :is(.combat .sbtn, .qbtn, .quick-actions .iconbtn, .map-open) {
   background: var(--hc-glass); border: 1.5px solid var(--hc-edge); color: #fff;
   box-shadow: 0 3px 10px rgba(10, 22, 32, .18);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
 
 /* ---- player: portrait, name, two thin bars with their numbers beside them ---- */
 body.ingame #hud .left-column { left: calc(24px + var(--safe-l)); top: calc(20px + var(--safe-t)); gap: 14px; }
 body.ingame #hud .left-column .pframe {
   width: 300px; min-height: 0; padding: 4px 0; gap: 12px; align-items: center;
-  background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  background: none; border: 0; box-shadow: none; 
   color: var(--hc-text); text-shadow: var(--hc-shade);
 }
 body.ingame #hud .pframe .portrait { width: 56px; height: 56px; flex: none; border: 2px solid var(--hc-ring); box-shadow: 0 2px 8px rgba(10, 22, 32, .25); background-color: var(--hc-glass); }
@@ -53,7 +53,7 @@ body.ingame #hud .statusline .st { background: rgba(10, 20, 30, .45); text-shado
 
 /* ---- quest: text only, no card ---- */
 body.ingame #hud .left-column .quest-widget {
-  width: 270px; min-height: 0; background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  width: 270px; min-height: 0; background: none; border: 0; box-shadow: none; 
   color: var(--hc-text); text-shadow: var(--hc-shade);
 }
 body.ingame #hud .quest-heading { height: 32px; min-height: 32px; padding-left: 0; gap: 6px; font-size: 11px; color: var(--hc-dim); letter-spacing: .06em; }
@@ -126,17 +126,17 @@ body.ingame #hud .auto-potions-hud {
 body.ingame #hud .auto-potions-hud strong { font: 400 11px Kanit, Mitr, sans-serif; color: var(--hc-dim); }
 body.ingame #hud .auto-potions-hud small { font: 500 11px Kanit, sans-serif; color: var(--hc-text); }
 
-body.ingame #hud .ammo-hud { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); border-radius: 14px; box-shadow: 0 3px 10px rgba(10, 22, 32, .18); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-shadow: var(--hc-shade); }
+body.ingame #hud .ammo-hud { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); border-radius: 14px; box-shadow: 0 3px 10px rgba(10, 22, 32, .18); text-shadow: var(--hc-shade); }
 
 /* joystick: a thin ring and a glass knob */
 body.ingame #hud .joy { border: 1.5px solid rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .06); opacity: .85; }
-body.ingame #hud .joy i { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); box-shadow: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+body.ingame #hud .joy i { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); box-shadow: none; }
 body.ingame #hud .joy-marks { display: none; }
 
 /* the opt-in online drawer: a glass pill while closed, same glass when open */
-body.ingame .presence-panel:not([open]) { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); border-radius: 22px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+body.ingame .presence-panel:not([open]) { background: var(--hc-glass); border: 1.5px solid var(--hc-edge); border-radius: 22px; }
 body.ingame .presence-panel:not([open]) summary { background: none; text-shadow: var(--hc-shade); }
-body.ingame .presence-panel[open] { background: rgba(16, 26, 36, .82); border: 1.5px solid var(--hc-edge); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+body.ingame .presence-panel[open] { background: rgba(16, 26, 36, .82); border: 1.5px solid var(--hc-edge); border-radius: 14px; }
 body.ingame .presence-panel[open] summary { background: none; }
 
 /* toasts and banners: words on the world, not cards */
@@ -240,3 +240,7 @@ body.ingame:not(.touch) #hud .hint { display: none; }
   body.ingame #hud .minimap { width: 96px; height: 96px; }
   body.ingame #hud .qbtn { --q: 40px; }
 }
+
+/* older HUD skins blur some of these; keep the play screen free of per-frame blur */
+body.ingame #hud :is(.pframe, .quest-widget, .combat .sbtn, .qbtn, .quick-actions .iconbtn, .map-open, .joy i, .ammo-hud, .toast),
+body.ingame .presence-panel { backdrop-filter: none; -webkit-backdrop-filter: none; }

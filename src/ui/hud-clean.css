@@ -93,9 +93,19 @@ body.ingame #hud .combat .sbtn::after { display: none; }
 body.ingame #hud .combat .sbtn.attack { border-width: 2px; box-shadow: 0 3px 12px rgba(10, 22, 32, .22); }
 body.ingame #hud .combat .sbtn.move { background: var(--hc-glass); }
 body.ingame #hud .sbtn .slabel, body.ingame #hud .sbtn .key, body.ingame #hud .qbtn .key { display: none; }
-body.ingame #hud .sbtn .ic, body.ingame #hud .sbtn.attack .ic, body.ingame #hud .sbtn.s3 .ic { inset: 12%; }
+/* The art fills the inside of its slot; only this viewport clips the artwork,
+   so cost/key chips outside the button remain readable and clickable. */
+body.ingame #hud .sbtn .ic, body.ingame #hud .sbtn.attack .ic, body.ingame #hud .sbtn.s3 .ic { inset: 0; overflow: hidden; border-radius: inherit; }
 body.ingame #hud .sbtn .ic svg, body.ingame #hud .sbtn.attack .ic svg { max-width: none; max-height: none; filter: none; }
-body.ingame #hud .sbtn .ic :is(img, .art) { border-radius: 50%; }
+body.ingame #hud .sbtn .ic .art { display: block; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; }
+body.ingame #hud .sbtn .ic img { border-radius: inherit; }
+/* Round approvals include transparent delivery gutters. Remove that empty
+   margin in the clipped viewport, keeping the approved PNG bytes and aspect. */
+@media (pointer: coarse) {
+  body.ingame #hud .sbtn .ic .art > img { transform: scale(1.09871245); }
+  body.ingame #hud .sbtn .ic .art[data-art="skill/slash"] > img,
+  body.ingame #hud .sbtn .ic .art[data-art="skill/firebolt"] > img { transform: scale(1.12527473); }
+}
 body.ingame #hud .sbtn .cd { border-radius: 50%; background: conic-gradient(rgba(10, 20, 30, .55) var(--cd, 0%), transparent 0); }
 body.ingame #hud .sbtn .cdt { background: none; border: 0; font: 500 16px Kanit, sans-serif; text-shadow: 0 1px 2px #000; }
 body.ingame #hud .sbtn .skill-cost { top: -6px; right: -2px; padding: 0 4px; border-radius: 6px; background: rgba(10, 20, 30, .6); color: #cfe6ff; font: 500 9px/14px Kanit, sans-serif; }
@@ -169,7 +179,7 @@ body.ingame:not(.touch) #hud .combat .sbtn:is(.s1, .s2, .s3, .move) {
   position: relative; right: auto; bottom: auto; width: 54px; height: 54px; border-radius: 14px; border-width: 1.5px;
 }
 body.ingame:not(.touch) #hud .combat .sbtn.move { margin-left: 14px; order: 5; }
-body.ingame:not(.touch) #hud .sbtn .ic, body.ingame:not(.touch) #hud .sbtn .ic :is(img, .art) { border-radius: 10px; }
+body.ingame:not(.touch) #hud .sbtn .ic { border-radius: 12.5px; }
 body.ingame:not(.touch) #hud .sbtn .cd { border-radius: 12px; }
 body.ingame:not(.touch) #hud :is(.sbtn, .qbtn) .key {
   display: grid; place-items: center; position: absolute; left: -5px; top: -7px; right: auto; bottom: auto; z-index: 4;

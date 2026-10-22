@@ -6235,6 +6235,8 @@
     "bundle_sha256": "98b1777aeb0302161d8ad87a9e5b05fe3c209dfd1831dbe6f9d5ea8495a23b31",
     "count": 31,
     "approval": "Owner instruction to replace the in-game skill icons, 2026-10-22",
-    "approved_base": "Slash retained exactly; Firebolt retains its approved design with its decorative star removed."
+    "approved_base": "Slash retained exactly; Firebolt retains its approved design with its decorative star removed.",
+    "ui_revision": "d055bfe8aa638c16af605e61c53948b9be96747b",
+    "slot_fit": "Artwork viewport fills the new clean HUD slot interior; transparent round delivery gutters are removed by clipped CSS scaling without modifying the PNGs."
   }
 }

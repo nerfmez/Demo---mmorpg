@@ -91,9 +91,15 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, touch, ac
         }
         else if (!vector.includes(id) || image.getAttribute('viewBox') !== '0 0 128 128' || !image.querySelector('path,circle,ellipse'))
           throw Error(`HUD missing authored vector icon ${id}`);
-        const r = image.getBoundingClientRect(), b = button.getBoundingClientRect();
+        const frame = image.parentElement, r = frame.getBoundingClientRect(), b = button.getBoundingClientRect();
         if (r.width < 16 || r.left < b.left - 1 || r.right > b.right + 1 || r.top < b.top - 1 || r.bottom > b.bottom + 1)
           throw Error(`HUD clipped icon ${id}`);
+        const style = getComputedStyle(button), left = parseFloat(style.borderLeftWidth), top = parseFloat(style.borderTopWidth);
+        if (Math.abs(r.left - b.left - left) > .6 || Math.abs(r.top - b.top - top) > .6 ||
+            Math.abs(r.width - (b.width - left - parseFloat(style.borderRightWidth))) > .6 ||
+            Math.abs(r.height - (b.height - top - parseFloat(style.borderBottomWidth))) > .6)
+          throw Error(`HUD icon does not fill its slot ${id}`);
+        if (getComputedStyle(frame).overflow !== 'hidden') throw Error(`HUD icon can escape its frame ${id}`);
         keys.push(image.parentElement.dataset.art);
       }
     }
@@ -107,7 +113,7 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, touch, ac
     f.game.ch.movement = 'dash'; f.game.refresh(); f.input.refreshButtons();
   });
   const radius = await page.locator('.combat .sbtn').first().evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
-  assert.ok(touch ? radius > 2 : radius === 2, `${name} keeps the matching HUD frame`);
+  assert.ok(touch ? radius > 14 : radius === 14, `${name} keeps the latest touch/desktop HUD frame`);
   await decode('hud'); await shot('hud');
   const loot = await page.evaluate(async registered => {
     const f = __frontier, g = f.game;

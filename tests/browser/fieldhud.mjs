@@ -64,13 +64,19 @@ try {
       const template=document.createElement('template');template.innerHTML=expected[id];
       const actual=document.createElement('template');actual.innerHTML=button.querySelector('.ic').innerHTML;
       // Node emits /assets while Vite Pages builds emit ./assets; compare their canonical URLs.
-      for(const fragment of [template.content,actual.content])for(const img of fragment.querySelectorAll('img'))img.setAttribute('src',new URL(img.getAttribute('src').replace(/^\.?\//,''),document.baseURI).href);
+      for(const fragment of [template.content,actual.content])for(const el of fragment.querySelectorAll('img, source')){
+        const attr=el.tagName==='SOURCE'?'srcset':'src';
+        el.setAttribute(attr,new URL(el.getAttribute(attr).replace(/^\.?\//,''),document.baseURI).href);
+      }
       if(actual.innerHTML!==template.innerHTML)throw Error('Artwork mismatch: '+id);
       const svg=button.querySelector('.art-skill>svg, .art-skill>img');
       if(svg?.tagName==='IMG')await svg.decode();
       if(!svg||getComputedStyle(svg).filter!=='none')throw Error('Artwork recoloured: '+id);
-      const r=svg.getBoundingClientRect(),b=button.getBoundingClientRect();
+      const frame=svg.parentElement,r=frame.getBoundingClientRect(),b=button.getBoundingClientRect();
       if(r.width<16||r.height<16||r.left<b.left||r.top<b.top||r.right>b.right||r.bottom>b.bottom)throw Error('Artwork clipped: '+id);
+      const style=getComputedStyle(button),left=parseFloat(style.borderLeftWidth),top=parseFloat(style.borderTopWidth);
+      if(Math.abs(r.left-b.left-left)>.6||Math.abs(r.top-b.top-top)>.6||Math.abs(r.width-b.width+left+parseFloat(style.borderRightWidth))>.6||Math.abs(r.height-b.height+top+parseFloat(style.borderBottomWidth))>.6)throw Error('Artwork does not fill slot: '+id);
+      if(getComputedStyle(frame).overflow!=='hidden')throw Error('Artwork escapes its frame: '+id);
       checked++;
     };
     try {

@@ -41,6 +41,13 @@ Done:
     over a dark core;
   - the arch is one thick trunk (`coreR`) with six ropy cords wound round it and buttress
     roots at both feet.
+- Owner feedback round 5 ("why black leaves"; "the concept's cliffs are rock faces with grass
+  growing, not stones set round a cliff"):
+  - the dark core is gone from the crowns, and the shade tone is a clearer blue-green;
+  - ledge terraces have smooth outlines and a sharp drop. `buildCliffs` builds one continuous
+    face along them, split by vertical cracks into columns; each column is two planes meeting
+    at a ridge. A grass lip rolls over the top, with grass on the lip and in the cracks;
+  - cliffs are 1.45x taller (`H()`).
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.
@@ -49,6 +56,6 @@ Done:
    ring, arch, pillars, a retaining wall with a paved ramp) are in the session handoff.
 
 Owner preferences learnt so far: judge composition and layout first, never just tone; round grey
-stones, curved (never rectangular) ledges, some ledge runs as one slab; more room to walk; big trees; check against the concept side by side before showing.
+stones; cliffs are rock faces with grass growing on them, never stones set in a row; more room to walk; big trees; check against the concept side by side before showing.
 The in-game restyle (palette, water, ledges, waypoint ruin, ambience) is on PR #137; the owner did
 not ask for it, it is not merged and its CI is red.

@@ -10,6 +10,7 @@ function P(u, v, y = 0) {
 }
 const K = 2.4;   // the owner asked for more room in the same frame: the camera stands K x farther back
 const TS = K / 1.8 * 1.25;   // trees grow with the room, and a quarter bigger again (owner's ask)
+const HT = 1.45, H = v => v * HT, LIFT = H(3.4) - 3.4;   // cliff heights: taller rock faces, as in the concept
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
 // ground mesh bounds (metres)
 const GX0 = -30 * K, GX1 = 30 * K, GZ0 = -44 * K, GZ1 = 10 * K;
@@ -19,16 +20,26 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // points on the top (back edges, off screen). Edges between two 'b' points in the frame are
 // stone walls. The two front banks are low grassy rises under the big rocks, without walls.
 const TERRACES = [
-  { top: 3.3, ledge: true, pts: [[-0.3, 0.49, 'b'], [0.03, 0.49, 'b'], [0.09, 0.495, 'b'], [0.135, 0.47, 'b'], [0.165, 0.41, 'b'], [0.19, 0.35, 'b'], [0.215, 0.29, 'b'], [0.232, 0.225, 'b'], [0.24, 0.175, 'b'], [0.225, 0.1, 't'], [0.2, -0.5, 't'], [-0.5, -0.5, 't']] },
+  { top: H(3.3), ledge: true, pts: [[-0.3, 0.49, 'b'], [0.03, 0.49, 'b'], [0.09, 0.495, 'b'], [0.135, 0.47, 'b'], [0.165, 0.41, 'b'], [0.19, 0.35, 'b'], [0.215, 0.29, 'b'], [0.232, 0.225, 'b'], [0.24, 0.175, 'b'], [0.225, 0.1, 't'], [0.2, -0.5, 't'], [-0.5, -0.5, 't']] },
   // the island: a raised round in the middle with walls all round and the trail passing behind it
-  { top: 3.7, ledge: true, pts: [[0.45, 0.2, 'b'], [0.44, 0.235, 'b'], [0.47, 0.275, 'b'], [0.435, 0.33, 'b'], [0.405, 0.39, 'b'], [0.42, 0.455, 'b'], [0.47, 0.5, 'b'], [0.53, 0.505, 'b'], [0.585, 0.495, 'b'], [0.63, 0.47, 'b'], [0.665, 0.42, 'b'], [0.69, 0.36, 'b'], [0.705, 0.3, 'b'], [0.712, 0.23, 'b'], [0.7, 0.19, 'b'], [0.65, 0.17, 'b'], [0.58, 0.16, 'b'], [0.51, 0.17, 'b']] },
+  { top: H(3.7), ledge: true, pts: [[0.45, 0.2, 'b'], [0.44, 0.235, 'b'], [0.47, 0.275, 'b'], [0.435, 0.33, 'b'], [0.405, 0.39, 'b'], [0.42, 0.455, 'b'], [0.47, 0.5, 'b'], [0.53, 0.505, 'b'], [0.585, 0.495, 'b'], [0.63, 0.47, 'b'], [0.665, 0.42, 'b'], [0.69, 0.36, 'b'], [0.705, 0.3, 'b'], [0.712, 0.23, 'b'], [0.7, 0.19, 'b'], [0.65, 0.17, 'b'], [0.58, 0.16, 'b'], [0.51, 0.17, 'b']] },
   // the level the stairs climb to, behind the left terrace
-  { top: 3.3, ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },
-  { top: 3.4, ledge: true, pts: [[1.5, 0.5, 'b'], [0.985, 0.475, 'b'], [0.94, 0.43, 'b'], [0.92, 0.36, 'b'], [0.915, 0.29, 'b'], [0.925, 0.22, 'b'], [0.94, 0.15, 'b'], [0.955, 0.08, 'b'], [0.97, 0.0, 't'], [1.0, -0.5, 't'], [1.6, -0.5, 't']] },
+  { top: H(3.3), ledge: false, pts: [[0.2, 0.1, 't'], [0.32, 0.1, 't'], [0.33, -0.5, 't'], [0.18, -0.5, 't']] },
+  { top: H(3.4), ledge: true, pts: [[1.5, 0.5, 'b'], [0.985, 0.475, 'b'], [0.94, 0.43, 'b'], [0.92, 0.36, 'b'], [0.915, 0.29, 'b'], [0.925, 0.22, 'b'], [0.94, 0.15, 'b'], [0.955, 0.08, 'b'], [0.97, 0.0, 't'], [1.0, -0.5, 't'], [1.6, -0.5, 't']] },
   { top: 0.8, ledge: false, pts: [[-0.3, 0.6, 'b'], [0.05, 0.6, 'b'], [0.13, 0.645, 'b'], [0.2, 0.71, 'b'], [0.235, 0.8, 'b'], [0.25, 0.95, 'b'], [0.26, 1.3, 'b'], [-0.3, 1.3, 'b']] },
   { top: 0.7, ledge: false, pts: [[1.3, 0.58, 'b'], [0.95, 0.6, 'b'], [0.885, 0.68, 'b'], [0.845, 0.8, 'b'], [0.77, 0.865, 'b'], [0.71, 0.95, 'b'], [0.69, 1.3, 'b'], [1.3, 1.3, 'b']] },
 ].map(T => {
-  const pts = T.pts.map(([u, v, k]) => { const [x, z] = P(u, v, k === 't' ? T.top : 0); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
+  let pts = T.pts.map(([u, v, k]) => { const [x, z] = P(u, v, k === 't' ? T.top : 0); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
+  if (T.ledge) {
+    // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
+    // wall flag says whether the stretch from it to the next one is cliff
+    const n = pts.length, curve = new THREE.CatmullRomCurve3(pts.map(q => new V3(q.x, 0, q.z)), true, 'centripetal'), out = [];
+    for (let j = 0; j < n; j++) {
+      const a = pts[j], b = pts[(j + 1) % n], steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 1.3));
+      for (let k = 0; k < steps; k++) { const q = curve.getPoint((j + k / steps) / n); out.push({ x: q.x, z: q.z, wall: a.wall && b.wall }); }
+    }
+    pts = out;
+  }
   const xs = pts.map(p => p.x), zs = pts.map(p => p.z);
   return { ...T, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
 });
@@ -47,8 +58,8 @@ function polyAt(T, x, z) {
 }
 // stone stairs from the left trail up to the back level
 const ST = (() => {
-  const [x0, z0] = P(0.297, 0.215, 0), [x1, z1] = P(0.257, 0.1, 3.3), dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz);
-  return { x0, z0, x1, z1, ux: dx / len, uz: dz / len, len, half: 1.7, n: Math.round(len / 0.8), top: 3.3 };
+  const [x0, z0] = P(0.297, 0.215, 0), [x1, z1] = P(0.257, 0.1, H(3.3)), dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz);
+  return { x0, z0, x1, z1, ux: dx / len, uz: dz / len, len, half: 1.7, n: Math.round(len / 0.8), top: H(3.3) };
 })();
 function stairsAt(x, z) {
   const rx = x - ST.x0, rz = z - ST.z0, a = (rx * ST.ux + rz * ST.uz) / ST.len, s = Math.abs(-rx * ST.uz + rz * ST.ux);
@@ -60,7 +71,7 @@ const TRAILS = [
   [[0.5, 0.76, 2.0], [0.6, 0.665, 1.9], [0.7, 0.585, 2.2], [0.785, 0.505, 2.4], [0.815, 0.42, 2.3], [0.82, 0.33, 1.6], [0.838, 0.25, 1.35], [0.865, 0.17, 1.15], [0.885, 0.08, 1.05], [0.9, -0.2, 1.0], [0.92, -0.5, 1.0]],
   // the trail round the back of the island, from the foot of the stairs to the right trail
   [[0.3, 0.21, 1.05], [0.37, 0.15, 1.1], [0.44, 0.125, 1.15], [0.52, 0.115, 1.2], [0.6, 0.115, 1.2], [0.68, 0.13, 1.15], [0.745, 0.17, 1.1], [0.8, 0.22, 1.15], [0.838, 0.25, 1.35]],
-  [[0.257, 0.1, 1.0, 3.3], [0.272, 0.03, 1.0, 3.3], [0.3, -0.25, 1.0, 3.3], [0.31, -0.5, 1.0, 3.3]],
+  [[0.257, 0.1, 1.0, H(3.3)], [0.272, 0.03, 1.0, H(3.3)], [0.3, -0.25, 1.0, H(3.3)], [0.31, -0.5, 1.0, H(3.3)]],
 ].map(pl => pl.map(([u, v, w, h = 0]) => { const [x, z] = P(u, v, h); return new V3(x, w * K, z); }))
   // a smooth curve through the authored points (width rides along in y), sampled every 1.2 m
   .map(pl => { const c = new THREE.CatmullRomCurve3(pl, false, 'centripetal'); return c.getSpacedPoints(Math.ceil(c.getLength() / 1.2)).map(p => ({ x: p.x, z: p.z, w: p.y })); });
@@ -89,7 +100,7 @@ function field(x, z) {
   for (const T of TERRACES) {
     const d = polyAt(T, x, z);
     if (d === null) continue;
-    const w = 1 - smooth(-0.9, 0.25, d);
+    const w = T.ledge ? 1 - smooth(-0.35, 0.05, d) : 1 - smooth(-0.9, 0.25, d);   // cliffs drop sharply, banks roll
     if (w > 0) { y = Math.max(y, T.top * w); if (T.ledge || T.top > 2) top = Math.max(top, w); }
   }
   const st = stairsAt(x, z);
@@ -184,51 +195,114 @@ function buildGround() {
   return mesh;
 }
 
-// ---------- stone ledges along the terrace walls: tall upright blocks with mossy tops ----------
+// ---------- the terrace cliffs: one continuous rock face, grass on its lip and in its cracks ----------
+// The face follows the outline. It is split into columns by vertical cracks; each column is a few
+// flat facets (its own lean, set and ragged top), so the cliff reads as one cracked rock wall, not
+// stones set in a row. A grassy lip rolls over the top.
 const COLLIDERS = [];
-function buildLedges() {
-  const blk = { chamfer: 0.12, jitter: 0.14, extra: 7 };
+function cliffRuns(T) {
+  const p = T.pts, n = p.length;
+  const onStairs = q => stairsAt(q.x, q.z).s < ST.half + 0.4 && stairsAt(q.x, q.z).a > -0.15 && stairsAt(q.x, q.z).a < 1.15;
+  const wall = i => p[i].wall && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);
+  const runs = [];
+  if (p.every((_, i) => wall(i))) return [{ pts: p.slice(), closed: true }];
+  let k = p.findIndex((_, i) => !wall(i));
+  for (let c = 0; c < n; c++) {
+    const i = (k + c) % n;
+    if (!wall(i)) continue;
+    if (!wall((i + n - 1) % n)) runs.push({ pts: [p[i]], closed: false });
+    runs[runs.length - 1].pts.push(p[(i + 1) % n]);
+  }
+  return runs;
+}
+function buildCliffs() {
+  const pos = [], col = [], tmpA = new V3(), tmpB = new V3(), nn = new V3();
+  const quad = (a, b, c, d, out, color) => {
+    tmpA.subVectors(b, a); tmpB.subVectors(c, a); nn.crossVectors(tmpA, tmpB);
+    const vs = nn.dot(out) >= 0 ? [a, b, c, a, c, d] : [a, c, b, a, d, c];
+    for (const v of vs) { pos.push(v.x, v.y, v.z); col.push(color.r, color.g, color.b); }
+  };
+  const stone = STONE.map(h => new THREE.Color(h)), moss = MOSS.map(h => new THREE.Color(h)), lipC = new THREE.Color('#7fa43a');
+  const F = [0, 0.32, 0.66, 1];   // the face's facet rows, as fractions of its height
   for (const T of TERRACES) {
     if (!T.ledge) continue;
-    const p = T.pts;
-    for (let e = 0; e < p.length; e++) {
-      const a = p[e], b = p[(e + 1) % p.length];
-      if (!a.wall || !b.wall) continue;
-      const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz), tx = dx / len, tz = dz / len;
-      let nx = tz, nz = -tx;
-      const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
-      if (polyAt(T, mx + nx * 0.6, mz + nz * 0.6) < 0) { nx = -nx; nz = -nz; }   // n points off the terrace
-      const ry = Math.atan2(-tz, tx);
-      if (len < 7 && rand() < 0.35) {
-        // a whole run as one slab: a single face of rock instead of separate blocks
-        const px = mx + nx * 0.3, pz = mz + nz * 0.3;
-        if (!(stairsAt(px, pz).s < ST.half + 0.5 && stairsAt(px, pz).a > -0.2 && stairsAt(px, pz).a < 1.2)) {
-          const base = height(px + nx * 1.2, pz + nz * 1.2), top = T.top + R(-0.3, 0.35);
-          addStone(px, base - 0.15, pz, len + 0.35, top - base + 0.15, R(1.5, 2.0), { chamfer: 0.08, jitter: 0.06, extra: 14, ry: ry + R(-0.05, 0.05), rx: R(-0.04, 0.04), moss: 0.55 });
-          if (rand() < 0.7) addBush(px - nx * R(0.6, 1.2), top - 0.3, pz - nz * R(0.6, 1.2), R(0.4, 0.7), { sy: 0.5, tint: 0.2 });
-          continue;
+    for (const run of cliffRuns(T)) {
+      const R0 = run.pts.map(q => ({ x: q.x, z: q.z }));
+      if (R0.length < 2) continue;
+      if (run.closed) R0.push(R0[0]);
+      // every 0.4 m along the run, so each column gets several facets
+      const S = [];
+      for (let i = 0; i < R0.length - 1; i++) {
+        const a = R0[i], b = R0[i + 1], k = Math.max(1, Math.round(Math.hypot(b.x - a.x, b.z - a.z) / 0.4));
+        for (let j = 0; j < k; j++) S.push({ x: a.x + (b.x - a.x) * j / k, z: a.z + (b.z - a.z) * j / k });
+      }
+      S.push({ ...R0[R0.length - 1] });
+      // outward normals and arc length
+      let acc = 0;
+      S.forEach((q, i) => {
+        const a = S[Math.max(0, i - 1)], b = S[Math.min(S.length - 1, i + 1)], tx = b.x - a.x, tz = b.z - a.z, l = Math.hypot(tx, tz) || 1;
+        q.nx = tz / l; q.nz = -tx / l;
+        if (polyAt(T, q.x + q.nx * 0.8, q.z + q.nz * 0.8) < 0) { q.nx = -q.nx; q.nz = -q.nz; }
+        if (i) acc += Math.hypot(q.x - S[i - 1].x, q.z - S[i - 1].z); q.s = acc;
+        q.base = Math.min(height(q.x + q.nx * 1.0, q.z + q.nz * 1.0), height(q.x + q.nx * 2.0, q.z + q.nz * 2.0)) - 0.35;
+      });
+      // columns between cracks
+      const cols = []; let i0 = 0;
+      while (i0 < S.length - 1) {
+        const w = rand() < 0.22 ? R(2.6, 4.2) : R(1.1, 2.2); let i1 = i0 + 1;
+        while (i1 < S.length - 1 && S[i1].s - S[i0].s < w) i1++;
+        cols.push({ i0, i1, s0: S[i0].s, s1: S[i1].s, off: R(-0.1, 0.55), slope: R(-0.12, 0.12), ridge: R(0.15, 0.5), peak: R(0.3, 0.7), top: T.top + R(-0.4, 0.25), rows: F.map(() => R(-0.25, 0.25)), lean: R(-0.2, 0.35), c: pick(stone).clone().multiplyScalar(R(0.95, 1.05)), mid: (S[i0].s + S[i1].s) / 2 });
+        i0 = i1;
+      }
+      const vtx = (C, i, r) => {
+        const q = S[i], f = F[r], u = (q.s - C.s0) / Math.max(0.01, C.s1 - C.s0);
+        // a ridge down each column: two flat planes meeting at an edge, one lit and one in shade
+        const ridge = C.ridge * (u < C.peak ? u / C.peak : (1 - u) / (1 - C.peak));
+        const o = 0.15 + C.off + C.slope * (q.s - C.mid) + ridge + C.rows[r] + (r === 0 ? 0.25 : 0) - C.lean * f;
+        return new V3(q.x + q.nx * o, q.base + (C.top - q.base) * f + (r === F.length - 1 ? 0.04 * noise2(q.x * 2.1, q.z * 2.1) : 0), q.z + q.nz * o);
+      };
+      const shade = new THREE.Color();
+      cols.forEach((C, ci) => {
+        for (let i = C.i0; i < C.i1; i++) {
+          const out = new V3((S[i].nx + S[i + 1].nx) / 2, 0, (S[i].nz + S[i + 1].nz) / 2);
+          for (let r = 0; r < F.length - 1; r++) {
+            shade.copy(C.c).multiplyScalar(r === 0 ? 0.9 : 1 + R(-0.03, 0.03));
+            if (r === F.length - 2 && (i - C.i0) % 3 !== 0 && rand() < 0.5) shade.lerp(pick(moss), R(0.35, 0.6));   // moss creeping down from the top
+            quad(vtx(C, i, r), vtx(C, i + 1, r), vtx(C, i + 1, r + 1), vtx(C, i, r + 1), out, shade);
+          }
+          // the lip: grass rolling over the top edge
+          const t0 = vtx(C, i, F.length - 1), t1 = vtx(C, i + 1, F.length - 1);
+          const l0 = new V3(S[i].x - S[i].nx * 0.5, T.top + 0.08, S[i].z - S[i].nz * 0.5), l1 = new V3(S[i + 1].x - S[i + 1].nx * 0.5, T.top + 0.08, S[i + 1].z - S[i + 1].nz * 0.5);
+          quad(t0, t1, l1, l0, new V3(0, 1, 0), lipC);
         }
-      }
-      let s = R(0, 0.4);
-      while (s < len) {
-        const w = R(1.2, 2.0), c = s + w / 2;
-        s += w * R(0.86, 1.0);
-        if (c > len + 0.3) break;
-        const jut = rand() < 0.15 ? R(0.25, 0.6) : R(-0.1, 0.15);
-        const px = a.x + tx * c + nx * (0.25 + jut), pz = a.z + tz * c + nz * (0.25 + jut);
-        if (stairsAt(px, pz).s < ST.half + 0.5 && stairsAt(px, pz).a > -0.2 && stairsAt(px, pz).a < 1.2) continue;
-        if (rand() < 0.07) continue;   // a gap, where a block has gone
-        const base = height(px + nx * 1.2, pz + nz * 1.2), top = T.top + R(-0.5, 0.42);
-        addStone(px, base - 0.15, pz, w, top - base + 0.15, R(1.4, 1.9), { ...blk, ry: ry + R(-0.16, 0.16), rx: R(-0.06, 0.06), rz: R(-0.07, 0.07), moss: 0.6 });
-        // a grassy lip and bushes over the top, some spilling across the stones
-        if (rand() < 0.5) addBush(px - nx * R(0.6, 1.2) + R(-0.3, 0.3), top - 0.3, pz - nz * R(0.6, 1.2), R(0.35, 0.6), { sy: 0.5, tint: 0.2 });
-        if (rand() < 0.18) addBush(px - nx * R(1.4, 2.8), top - 0.15, pz - nz * R(1.4, 2.8), R(0.6, 1.0), { sy: 0.7, tint: -1 });
-        // at the foot: bushes and stones that broke away
-        if (rand() < 0.16) addBush(px + nx * R(0.9, 1.6), base - 0.05, pz + nz * R(0.9, 1.6), R(0.5, 0.85), { sy: 0.75, tint: -1 });
-        if (rand() < 0.14) { const r = R(0.35, 0.75); addStone(px + nx * R(1.1, 2.2), base - 0.06, pz + nz * R(1.1, 2.2), r, r * R(0.6, 0.85), r, { ...blk, ry: R(-0.6, 0.6), moss: 0.3 }); }
-      }
+        // the crack to the next column: a narrow face joining their two edges, in shadow
+        const D = cols[ci + 1];
+        if (D) {
+          const out = new V3(S[C.i1].nz, 0, -S[C.i1].nx);
+          for (let r = 0; r < F.length - 1; r++) quad(vtx(C, C.i1, r), vtx(D, C.i1, r), vtx(D, C.i1, r + 1), vtx(C, C.i1, r + 1), out, shade.copy(C.c).multiplyScalar(0.55));
+        }
+        // life on the cliff: grass over the lip and hanging down, tufts in the crack, bushes on top and at the foot
+        const q = S[Math.round((C.i0 + C.i1) / 2)];
+        for (let g = C.i0; g <= C.i1; g++) {
+          const a = S[g];
+          for (let k = 0; k < 3; k++) { const b = R(-0.05, 0.9); grassItems.push({ x: a.x - a.nx * b + R(-0.3, 0.3), y: T.top + 0.02, z: a.z - a.nz * b + R(-0.3, 0.3), s: R(1.0, 1.5), ry: R(0, 6.28), k: R(0.9, 1.1) }); }
+        }
+        if (D) for (let k = 0; k < 2; k++) { const v = vtx(C, C.i1, 1 + k); grassItems.push({ x: v.x + S[C.i1].nx * 0.1, y: v.y - 0.2, z: v.z + S[C.i1].nz * 0.1, s: R(0.8, 1.2), ry: R(0, 6.28), k: 0.9 }); }
+        if (rand() < 0.45) addBush(q.x - q.nx * R(0.6, 1.4), T.top - 0.25, q.z - q.nz * R(0.6, 1.4), R(0.45, 0.8), { sy: 0.55, tint: R(-0.4, 0.3) });
+        if (rand() < 0.2) addBush(q.x + q.nx * R(1.0, 1.8), q.base + 0.3, q.z + q.nz * R(1.0, 1.8), R(0.5, 0.85), { sy: 0.75, tint: -0.6 });
+        if (rand() < 0.12) { const r = R(0.35, 0.75), x = q.x + q.nx * R(1.2, 2.4), z = q.z + q.nz * R(1.2, 2.4); addStone(x, height(x, z) - 0.06, z, r, r * R(0.6, 0.85), r, { chamfer: 0.12, jitter: 0.14, extra: 7, ry: R(-0.6, 0.6), moss: 0.3 }); }
+      });
     }
   }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  const mesh = new THREE.Mesh(g, paint({ vertexColors: true, shade: [0.36, 0.34, 0.44], mid: [0.64, 0.62, 0.67], band: [-0.34, 0.24] }));
+  mesh.castShadow = mesh.receiveShadow = true;
+  return mesh;
+}
+function buildLedges() {
+  const blk = { chamfer: 0.12, jitter: 0.14, extra: 7 };
   // the stairs: six worn slabs, and a block standing on each side at the top
   for (let i = 0; i < ST.n; i++) {
     const a = (i + 0.5) / ST.n, x = ST.x0 + ST.ux * ST.len * a, z = ST.z0 + ST.uz * ST.len * a, y = ST.top * i / ST.n;
@@ -327,8 +401,8 @@ function fernGeometry() {
 
 // ---------- crowns and shrubs as the concept paints them: many small leaf puffs ----------
 // Each puff is a cluster of cards carrying small lobed leaves; a puff is lit on its own (bright
-// upper-left, deep teal underneath) and a dark core fills the gaps, so a crown reads as a heap
-// of leaf clumps instead of one smooth blob.
+// upper-left, blue-green underneath), so a crown reads as a heap of leaf clumps instead of one
+// smooth blob.
 const clumpMaps = new Map();
 function clumpTexture(shrub = false) {
   if (clumpMaps.has(shrub)) return clumpMaps.get(shrub);
@@ -359,7 +433,7 @@ function clumpTexture(shrub = false) {
 function clumpFoliage(seed = 3, shrub = false) {
   const rng = mkRng(seed * 13 + (shrub ? 5 : 1)), p = [], n = [], c = [], uv = [];
   const [dark, mid, light] = (shrub ? FOL.shrub : FOL.leaf).map(h => new THREE.Color(h));
-  const deep = dark.clone().multiplyScalar(0.72), sunDir = new V3(-0.55, 0.8, 0.25).normalize();
+  const sunDir = new V3(-0.55, 0.8, 0.25).normalize();
   // the crown's envelope (unit space, as the game's crowns): a dome for trees, a mound for shrubs
   const E = shrub ? { x: 0.62, y: 0.45, z: 0.48, cy: 0.42, puffs: 8, r: [0.24, 0.34], cards: 8, lift: 0.16 } : { x: 0.9, y: 0.55, z: 0.75, cy: 0.3, puffs: 28, r: [0.24, 0.36], cards: 13, lift: -0.05 };
   const puffs = [];
@@ -379,11 +453,6 @@ function clumpFoliage(seed = 3, shrub = false) {
       uv.push(((tile % 2) + (a + 1) * 0.5) * 0.5, (Math.floor(tile / 2) + (b + 1) * 0.5) * 0.5);
     }
   };
-  // the dark core: big cards round the middle, so gaps between the puffs show shade, not sky
-  for (let i = 0; i < 10; i++) {
-    const a = i * 2.39996, nrm = new V3(Math.cos(a), rng.range(-0.2, 0.5), Math.sin(a)).normalize();
-    card(new V3(nrm.x * E.x * 0.45, E.cy + nrm.y * E.y * 0.35, nrm.z * E.z * 0.45), nrm, E.x * 0.85, rng.range(-1, 1), i % 4, deep);
-  }
   for (const P0 of puffs) {
     const ph = THREE.MathUtils.clamp((P0.c.y - E.cy + E.y) / (2 * E.y), 0, 1), jit = rng.range(-0.06, 0.06);
     for (let i = 0; i < E.cards; i++) {
@@ -440,7 +509,7 @@ function updateAmbience(t) {
 }
 
 // this scene's colours, measured from the concept: olive-yellow light, deep blue-green shade
-FOL.leaf = ['#1d4a3e', '#4d873d', '#a2bf45']; FOL.shrub = ['#1a4236', '#3b7338', '#8cae40'];
+FOL.leaf = ['#2f6a55', '#56913f', '#a6c247']; FOL.shrub = ['#2c6150', '#468040', '#94b545'];
 FOL.trunk = { light: '#c49c76', mid: '#9d7b5d', shadow: '#6f5749', line: '#4a372e' };
 STONE.splice(0, STONE.length, '#cdb9a6', '#c2b3a3', '#d2c2b0', '#b9ab9c', '#c8b8a6', '#bcae9f');
 MOSS.splice(0, MOSS.length, '#a7c63f', '#93b23a', '#b5c94c');
@@ -449,6 +518,7 @@ const crownOnly = [];   // crowns without a trunk (on the arching tree)
 function build() {
   scene.add(buildGround());
   buildLedges();
+  scene.add(buildCliffs());
   buildRocks();
   // trees: [u, v, scale, crown variant]; their base height comes from the ground
   // trees: [u, v, scale, crown variant, trunk stretch]; tall trunks, so the crowns sit high and
@@ -468,13 +538,13 @@ function build() {
     COLLIDERS.push({ x, z, r: 0.6 * s }); trunkAt.push([x, z, 1.4 * s]);
   }
   // roots draped over the ledges: the left tree and the big tree on the island
-  { const [x, z] = P(0.075, 0.2, 3.3); drapeRoots(x, z, 3.3, [[0.03, 0.47, 1.1], [0.12, 0.47, 0.9], [0.17, 0.38], [0.205, 0.31, 0.8], [0.0, 0.35, 0.8]], 1.3 * TS); }
-  { const [x, z] = P(0.565, 0.31, 3.7); drapeRoots(x, z, 3.7, [[0.6, 0.5, 1.2], [0.645, 0.47, 1.1], [0.675, 0.43], [0.52, 0.52, 0.8], [0.48, 0.5, 0.7], [0.69, 0.38, 0.8]], 1.4 * TS); }
+  { const [x, z] = P(0.075, 0.2, H(3.3)); drapeRoots(x, z, H(3.3), [[0.03, 0.47, 1.1], [0.12, 0.47, 0.9], [0.17, 0.38], [0.205, 0.31, 0.8], [0.0, 0.35, 0.8]], 1.3 * TS); }
+  { const [x, z] = P(0.565, 0.31, H(3.7)); drapeRoots(x, z, H(3.7), [[0.6, 0.5, 1.2], [0.645, 0.47, 1.1], [0.675, 0.43], [0.52, 0.52, 0.8], [0.48, 0.5, 0.7], [0.69, 0.38, 0.8]], 1.4 * TS); }
   // the arching tree: a thick trunk rising from the right terrace, leaning over the trail and
   // rooting again on the island, with a crown above the arch
   {
-    const [ax, az] = P(0.975, 0.335, 3.4), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.29, 0), [ex, ez] = P(0.715, 0.27, 3.7);
-    const a = TS, core = new THREE.CatmullRomCurve3([new V3(ax, 3.2, az), new V3(bx, 6.6, bz), new V3(cx, 8.0, cz), new V3(dx2, 7.4, dz2), new V3(ex + 0.5, 5.4, ez), new V3(ex, 3.55, ez)], false, 'centripetal');
+    const [ax, az] = P(0.975, 0.335, H(3.4)), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.29, 0), [ex, ez] = P(0.715, 0.27, H(3.7));
+    const a = TS, core = new THREE.CatmullRomCurve3([new V3(ax, H(3.2), az), new V3(bx, 6.6 + LIFT, bz), new V3(cx, 8.0 + LIFT, cz), new V3(dx2, 7.4 + LIFT, dz2), new V3(ex + 0.5, 5.4 + LIFT, ez), new V3(ex, H(3.55), ez)], false, 'centripetal');
     const M = 32, fr = core.computeFrenetFrames(M, false);
     // one thick trunk, swelling into buttresses at both feet, with ropy roots wound round it and half
     // sunk into it, so the bark reads as twisted cords rather than separate pipes

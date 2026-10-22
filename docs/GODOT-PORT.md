@@ -502,6 +502,14 @@ menu workflows and these interrupted gestures at desktop, tablet and phone sizes
   over `ledge.twoCourses` m), skipping safe/town zones, docks, bridges and road margins. It is
   render-only and deterministic (seeded by the map seed); collision is still the heightfield
   slope. In Godot, run the same scan at import and fill MultiMesh instances per variant.
+- `render/waypoint-ruin.js` (`art.waypointRuin`): a locked waypoint is a heap of carved blocks
+  (20 authored blocks with assembled poses; the main pieces have authored ruin poses, the rest
+  lie scattered, seeded by waypoint id) inside a broken stone ring. When the game reports the
+  waypoint unlocked, `View.render` advances its timeline over `assemble` seconds: rune circle,
+  shudder, each block flying in an arc to its slot bottom tier first (dust on landing), then
+  glowing seams/carvings, two ribbons, floating capstones and motes. A waypoint already unlocked
+  when first seen is shown built. Presentation only: unlock rules, radius and collider (0.7 m)
+  are unchanged. In Godot, an AnimationPlayer per waypoint (or a script tween) over the same poses.
 - Water (`render/ground.js` `seaMaterial`/`waterMaterial`): the beach scene's clear palette
   (pale green over sand, turquoise, bright blue; colour depth = max(water depth, 0.3 x shore
   distance)) and its rounded light web (`webGap`: nearest/(nearest + gap to the second nearest
@@ -691,7 +699,7 @@ Skill and mod ranks are no longer gated by character level: only materials, gold
 
 ## Rendering performance (static batching and dynamic resolution)
 
-`render/static-batch.js` runs once after the scenery is built and the water contact is baked. Static meshes whose materials are the shared toon colours, their outline hulls or the shared feature-edge lines are merged per 24 m map cell: each part's colour (and outline colour) becomes a vertex colour, so one vertex-coloured toon material and one outline material draw a whole cell, and a surface and its hull share one merged geometry. Wind-patched, walk-surface, transparent, instanced, skinned and moving objects (waypoint crystals) are left alone. Emptied groups are pruned and the static subtree's matrices frozen (`matrixAutoUpdate`/`matrixWorldAutoUpdate` false). In Godot, use merged static meshes per cell or MultiMesh with vertex colours; the look is identical.
+`render/static-batch.js` runs once after the scenery is built and the water contact is baked. Static meshes whose materials are the shared toon colours, their outline hulls or the shared feature-edge lines are merged per 24 m map cell: each part's colour (and outline colour) becomes a vertex colour, so one vertex-coloured toon material and one outline material draw a whole cell, and a surface and its hull share one merged geometry. Wind-patched, walk-surface, transparent, instanced, skinned and moving objects (waypoint stones) are left alone. Emptied groups are pruned and the static subtree's matrices frozen (`matrixAutoUpdate`/`matrixWorldAutoUpdate` false). In Godot, use merged static meshes per cell or MultiMesh with vertex colours; the look is identical.
 
 `render/resolution.js` (`ResolutionGovernor`, settings `rendering.json` → `dynamicResolution`) lowers the render scale step by step when the average frame time stays above `slowMs`, never below `minScale` or 1 device pixel per CSS pixel, and climbs back once frames run at the display's own rate (average within `vsyncSlack` of the shortest recent frame, since requestAnimationFrame never beats vsync) for `recover` seconds; a step up that is followed by a slowdown doubles that wait, up to `maxRecover`. A device that holds the target stays at scale 1. It is off under browser automation (`navigator.webdriver`) and with `?dynres=0`. In Godot, use the viewport's `scaling_3d_scale` with the same thresholds.
 

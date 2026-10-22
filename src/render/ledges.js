@@ -16,7 +16,7 @@ const S = art.stones;
  * the 26 points of a chamfered box, jittered, plus a few extra points on its faces; per-face
  * grey with moss on the faces that look up. Non-indexed (flat facets) with a vertex colour.
  */
-function stoneGeometry(rng, { w = 2, h = 2, d = 2, chamfer = 0.24, jitter = 0.09, extra = 8, moss = 0, centred = false } = {}) {
+export function stoneGeometry(rng, { w = 2, h = 2, d = 2, chamfer = 0.24, jitter = 0.09, extra = 8, moss = 0, centred = false } = {}) {
   const pts = [], r = () => rng.range(-jitter, jitter);
   for (let ix = -1; ix <= 1; ix++) for (let iy = -1; iy <= 1; iy++) for (let iz = -1; iz <= 1; iz++) {
     if (!ix && !iy && !iz) continue;

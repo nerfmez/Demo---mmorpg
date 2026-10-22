@@ -719,5 +719,18 @@
     "round": {"chamfer": 0.36, "jitter": 0.08, "extra": 12, "moss": [0.15, 0.2, 0.1, 0.25, 0.2, 0.3]},
     "bushes": {"_doc": "Bush masses (environment.js): chance of a big bush behind a ledge lip and of one at its foot, chance a tree or boulder gets bushes at its foot, clearance kept from roads (m).", "lipBig": 0.55, "foot": 0.2, "tree": 0.5, "rock": 0.4, "roadClear": 1.6},
     "ledge": {"step": 1.0, "minSlope": 0.95, "flat": 0.45, "minWall": 0.7, "maxUnderwater": 1.2, "twoCourses": 2.3, "width": [1.0, 1.7], "depth": [1.1, 2.2], "overlap": 0.6, "roadClear": 2.0, "fallen": 0.16}
+  },
+  "waypointRuin": {
+    "_doc": "Waypoints (src/render/waypoint-ruin.js), after the approved beach scene: a heap of carved blocks inside a broken stone ring until unlocked, then the blocks rebuild themselves into the pillar. assemble: seconds for the whole rebuild; colours of the light in the carvings/seams, the rune circle on the ground, the ribbons and motes; motes: how many drift up the pillar.",
+    "assemble": 4.0,
+    "glow": "#5fe6ff",
+    "carveGlow": "#86f2ff",
+    "carve": "#5d596a",
+    "rune": "#3cc9ff",
+    "ribbon": "#5fe3ff",
+    "mote": "#a6f6ff",
+    "dust": "#f4e2b8",
+    "motes": 40,
+    "ringRadius": 2.1
   }
 }

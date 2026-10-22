@@ -29,6 +29,7 @@ import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibili
 import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
+import { updateWaypointRuin } from './waypoint-ruin.js';
 
 // Camera tilt above the horizon, owner-chosen 40 degrees (was 54.6): the same distance from the hero
 // (?pitch=<degrees> overrides it for comparison), low enough that trees and buildings stand up as frames.
@@ -947,17 +948,13 @@ export class View {
       this.vfx.syncAreas(g, dt, time);
       this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);
-      // waypoint stones glow once discovered
+      // waypoint stones rebuild themselves once discovered
       for (const [key, stone] of this.waypointStones) {
         stone.visible = visibility.intersectsObject(stone, 5, 1.5);
         if (!stone.visible) continue;
         const id = stone.userData.waypointId ?? key;
-        const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
-        const c = stone.userData.crystal;
-        c.material.emissive.set(on ? '#3fb8e8' : '#223344');
-        c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
-        c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
-        c.rotation.y = on ? time : 0;
+        // a heap of carved blocks until unlocked; then it rebuilds itself into the pillar
+        updateWaypointRuin(stone, !!g.isWaypointUnlocked?.(id, stone.userData.worldId), dt, time);
       }
       // target ring
       const t = g.target;

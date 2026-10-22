@@ -399,8 +399,10 @@ An opt-in chibi hero body (`?hero=chibi`, `public/models/hero_chibi.glb`, regist
 painted texture and the same Mixamo-like bone names as `hero_base`, so it uses the same driver
 retarget (`bindSkinSync` with `MAP`). Its split Meshy normals are welded and smoothed at load,
 and weapon/off-hand bones and chest gear (the quiver) are scaled by `gearScale` for the 1.2 m body,
-and the animator's character-space hand targets (action IK, two-handed holds, the staff cast)
-by `bodyScale` (`rig.ikScale`). The hand has no finger
+and the animator's character-space hand targets (action IK, carries, the staff cast) are moved
+onto it by `bodyMap` (`rig.ikMap`: heights keep their offset from the hips, offsets scaled 0.45);
+`holds` replaces shared carries for this body (sword forward and down, staff low and upright,
+heavy weapons two-handed at the belly with the head forward). The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
 holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is

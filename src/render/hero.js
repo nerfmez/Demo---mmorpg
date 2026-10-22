@@ -211,7 +211,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       // weapons, shields and the quiver on the back were made for the 1.75 m body: scale them to the small one
       for (const n of ['weapon', 'offhand']) rig.bones[n]?.scale.setScalar(V.gearScale);
       fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
-      rig.ikScale = V.bodyScale; // the animator's character-space hand targets shrink with the body
+      rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
+      rig.holds = V.holds; // its own carries where the shared ones read wrong on it
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
     } else attachVrmBody(rig, V);
   }
@@ -472,7 +473,7 @@ export class HumanoidAnimator {
     // ---- the weapon hand: a per-weapon carry (data/weapon-holds.json) when not acting, the swing
     // arc of a melee action, and the left hand on the haft of a two-handed weapon ----
     const hold = this.holdFor();
-    const ik = this.rig.ikScale ?? 1; // hand targets in character space were authored for the 1.75 m body
+    const ik = this.rig.ikMap; // hand targets in character space were authored for the 1.75 m body
     const ikw = pose.ikw;
     const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
     // carry weight: full when idle or moving, handing over to the action's own arm keys
@@ -489,9 +490,9 @@ export class HumanoidAnimator {
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
       root.updateMatrixWorld(true);
-      if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(IK_T.fromArray(ikR).multiplyScalar(ik)), ikw[1]);
+      if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(ikMap(IK_T.fromArray(ikR), ik)), ikw[1]);
       if (gripW > 0.01 && b.weapon) reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)), gripW);
-      if (ikL && leftBusy > 0.01) reachArm(b, 'L', root.localToWorld(IK_T.fromArray(ikL).multiplyScalar(ik)), leftBusy);
+      if (ikL && leftBusy > 0.01) reachArm(b, 'L', root.localToWorld(ikMap(IK_T.fromArray(ikL), ik)), leftBusy);
     }
     // a drawn bow stands upright and faces the target whatever the hand's angle
     if (b.weapon) {
@@ -508,7 +509,7 @@ export class HumanoidAnimator {
     const staffSupport = b.weapon && this.rig.weaponKind === 'staff' && !s.dead && !s.dash && this.action?.name === 'staffBolt';
     if (staffSupport) {
       const root = this.rig.root, aim = pose.staffAim?.[0] ?? 0;
-      STAFF_TIP.fromArray(STAFF_CAST.readyTip).lerp(STAFF_TARGET.fromArray(STAFF_CAST.castTip), aim).multiplyScalar(ik);
+      ikMap(STAFF_TIP.fromArray(STAFF_CAST.readyTip).lerp(STAFF_TARGET.fromArray(STAFF_CAST.castTip), aim), ik);
       STAFF_DIR.fromArray(STAFF_CAST.shaftDirection).normalize();
       STAFF_GRIP.copy(STAFF_TIP).addScaledVector(STAFF_DIR, -STAFF_CAST.tip * b.weapon.scale.z);
       root.updateMatrixWorld(true);
@@ -535,7 +536,7 @@ export class HumanoidAnimator {
 
   /** This weapon's carry: two-handed when the type allows it and the left hand is free. */
   holdFor() {
-    const h = HOLDS.holds[this.rig.weaponKind];
+    const h = this.rig.holds?.[this.rig.weaponKind] ?? HOLDS.holds[this.rig.weaponKind];
     if (!h) return null;
     return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
   }
@@ -546,7 +547,7 @@ export class HumanoidAnimator {
    * blade points out along the arc with its edge leading, so it traces the slash crescent.
    */
   solveWeapon(hold, holdW, swingV, swingW, orientW = holdW) {
-    const ik = this.rig.ikScale ?? 1;
+    const ik = this.rig.ikMap;
     const b = this.b, body = b.body;
     this.rig.root.updateMatrixWorld(true);
     if (hold) {
@@ -570,7 +571,7 @@ export class HumanoidAnimator {
       }
     }
     const w = Math.max(holdW, swingW), wo = Math.max(orientW, swingW);
-    if (w > 0.01) reachArm(b, 'R', body.localToWorld(IK_T.copy(W_HAND).multiplyScalar(ik)), w);
+    if (w > 0.01) reachArm(b, 'R', body.localToWorld(ikMap(IK_T.copy(W_HAND), ik)), w);
     // weapon frame: +Z along the blade, +Y the flat's normal
     if (Math.abs(W_UP.dot(W_DIR)) > 0.97) W_UP.set(0, 0, 1);
     W_X.crossVectors(W_UP, W_DIR).normalize();
@@ -600,6 +601,14 @@ export class HumanoidAnimator {
 
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
 const IK_T = new THREE.Vector3();
+/**
+ * A character-space hand target authored for the 1.75 m body, moved onto a body of other
+ * proportions (`map`: rig.ikMap): heights keep their offset from the hips, and offsets from the
+ * hips and the body axis are scaled. No map leaves the target as it is.
+ */
+function ikMap(v, map) {
+  return map ? v.set(v.x * map.scale, map.to + (v.y - map.from) * map.scale, v.z * map.scale) : v;
+}
 const W_HAND = new THREE.Vector3(), W_DIR = new THREE.Vector3(), W_UP = new THREE.Vector3(), W_X = new THREE.Vector3();
 const W_A = new THREE.Vector3(), W_B = new THREE.Vector3(), W_T = new THREE.Vector3(), W_N = new THREE.Vector3();
 const W_M = new THREE.Matrix4(), W_Q = new THREE.Quaternion();

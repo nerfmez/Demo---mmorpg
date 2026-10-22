@@ -325,6 +325,83 @@ function fernGeometry() {
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nn, 3)); return g;
 }
 
+// ---------- crowns and shrubs as the concept paints them: many small leaf puffs ----------
+// Each puff is a cluster of cards carrying small lobed leaves; a puff is lit on its own (bright
+// upper-left, deep teal underneath) and a dark core fills the gaps, so a crown reads as a heap
+// of leaf clumps instead of one smooth blob.
+const clumpMaps = new Map();
+function clumpTexture(shrub = false) {
+  if (clumpMaps.has(shrub)) return clumpMaps.get(shrub);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 512;
+  const c = cv.getContext('2d'), rng = mkRng(shrub ? 77 : 41);
+  for (let tile = 0; tile < 4; tile++) {
+    const ox = (tile % 2) * 256 + 128, oy = Math.floor(tile / 2) * 256 + 128;
+    // a rosette of lobed leaves pointing out from the middle, the biggest at the back
+    const n = shrub ? 6 + (tile % 2) : 9 + tile;
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2 + rng.range(-0.25, 0.25), len = shrub ? rng.range(78, 104) : rng.range(52, 86), wid = len * rng.range(0.42, 0.55);
+      c.save(); c.translate(ox + Math.cos(a) * rng.range(14, 30), oy + Math.sin(a) * rng.range(14, 30)); c.rotate(a);
+      const g = c.createLinearGradient(0, 0, len, 0); g.addColorStop(0, '#b8b8b8'); g.addColorStop(0.55, '#f2f2f2'); g.addColorStop(1, '#ffffff');
+      c.fillStyle = g; c.beginPath(); c.moveTo(0, 0);
+      // three lobes a side with small notches between, a pointed tip
+      for (const side of [-1, 1]) {
+        const pts = [];
+        for (let k = 1; k <= 3; k++) { const t = k / 4; pts.push([len * (t - 0.06), side * wid * 0.5 * Math.sin(t * Math.PI) * 1.15], [len * (t + 0.04), side * wid * 0.5 * Math.sin(t * Math.PI) * 0.72]); }
+        if (side < 0) { for (const [x, y] of pts) c.lineTo(x, y); c.lineTo(len, 0); }
+        else for (const [x, y] of pts.reverse()) c.lineTo(x, y);
+      }
+      c.closePath(); c.fill(); c.restore();
+    }
+  }
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  clumpMaps.set(shrub, t); return t;
+}
+function clumpFoliage(seed = 3, shrub = false) {
+  const rng = mkRng(seed * 13 + (shrub ? 5 : 1)), p = [], n = [], c = [], uv = [];
+  const [dark, mid, light] = (shrub ? FOL.shrub : FOL.leaf).map(h => new THREE.Color(h));
+  const deep = dark.clone().multiplyScalar(0.72), sunDir = new V3(-0.55, 0.8, 0.25).normalize();
+  // the crown's envelope (unit space, as the game's crowns): a dome for trees, a mound for shrubs
+  const E = shrub ? { x: 0.62, y: 0.45, z: 0.48, cy: 0.42, puffs: 8, r: [0.24, 0.34], cards: 8, lift: 0.16 } : { x: 0.9, y: 0.55, z: 0.75, cy: 0.3, puffs: 28, r: [0.24, 0.36], cards: 13, lift: -0.05 };
+  const puffs = [];
+  for (let i = 0; i < E.puffs; i++) {
+    // spread over the envelope's surface, a few inside; none on the flat underside
+    const u = rng.range(0, Math.PI * 2), v = Math.acos(rng.range(-0.35, 1)), k = i < 3 ? 0.45 : rng.range(0.75, 1.0);
+    puffs.push({ c: new V3(Math.sin(v) * Math.cos(u) * E.x * k, E.cy + Math.cos(v) * E.y * k, Math.sin(v) * Math.sin(u) * E.z * k), r: rng.range(...E.r) });
+  }
+  const col = new THREE.Color(), tmp = new V3();
+  const card = (centre, normal, size, roll, tile, tone) => {
+    const across = new V3().crossVectors(new V3(0, 1, 0), normal); if (across.lengthSq() < 1e-3) across.set(1, 0, 0); else across.normalize();
+    const along = new V3().crossVectors(normal, across).normalize();
+    const x = across.clone().multiplyScalar(Math.cos(roll)).addScaledVector(along, Math.sin(roll)), y = along.clone().multiplyScalar(Math.cos(roll)).addScaledVector(across, -Math.sin(roll));
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]]) {
+      const v = centre.clone().addScaledVector(x, a * size * 0.5).addScaledVector(y, b * size * 0.5).addScaledVector(normal, size * 0.12 * (1 - Math.abs(a * b)));
+      p.push(v.x, v.y, v.z); n.push(normal.x, normal.y, normal.z); c.push(tone.r, tone.g, tone.b);
+      uv.push(((tile % 2) + (a + 1) * 0.5) * 0.5, (Math.floor(tile / 2) + (b + 1) * 0.5) * 0.5);
+    }
+  };
+  // the dark core: big cards round the middle, so gaps between the puffs show shade, not sky
+  for (let i = 0; i < 10; i++) {
+    const a = i * 2.39996, nrm = new V3(Math.cos(a), rng.range(-0.2, 0.5), Math.sin(a)).normalize();
+    card(new V3(nrm.x * E.x * 0.45, E.cy + nrm.y * E.y * 0.35, nrm.z * E.z * 0.45), nrm, E.x * 0.85, rng.range(-1, 1), i % 4, deep);
+  }
+  for (const P0 of puffs) {
+    const ph = THREE.MathUtils.clamp((P0.c.y - E.cy + E.y) / (2 * E.y), 0, 1), jit = rng.range(-0.06, 0.06);
+    for (let i = 0; i < E.cards; i++) {
+      const a = i * 2.39996 + rng.range(-0.3, 0.3), up = rng.range(-0.25, 1);
+      const nrm = new V3(Math.cos(a) * Math.sqrt(1 - up * up), up, Math.sin(a) * Math.sqrt(1 - up * up)).normalize();
+      const centre = P0.c.clone().addScaledVector(nrm, P0.r * rng.range(0.55, 0.95));
+      // lit by the puff's own roundness and its height in the crown: three hard steps
+      const lit = nrm.dot(sunDir) * 0.5 + ph * 0.45 + jit + 0.12 + E.lift;
+      if (lit > 0.62) col.copy(light); else if (lit > 0.3) col.copy(mid); else col.copy(dark);
+      col.multiplyScalar(rng.range(0.94, 1.05));
+      card(centre, tmp.copy(nrm).lerp(new V3(0, 1, 0), 0.35).normalize(), P0.r * rng.range(1.45, 1.9), rng.range(-3, 3), (i + puffs.indexOf(P0)) % 4, col);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  for (const [key, array, size] of [['position', p, 3], ['normal', n, 3], ['color', c, 3], ['uv', uv, 2]]) g.setAttribute(key, new THREE.Float32BufferAttribute(array, size));
+  g.computeBoundingSphere(); return g;
+}
+
 // ---------- ambience: motes in the light, butterflies over the flowers ----------
 const AMB = { flies: [], motes: null };
 function buildAmbience() {
@@ -363,7 +440,7 @@ function updateAmbience(t) {
 }
 
 // this scene's colours, measured from the concept: olive-yellow light, deep blue-green shade
-FOL.leaf = ['#1f493b', '#5a8a35', '#a9c13c']; FOL.shrub = ['#1c4437', '#3d6c31', '#7ea23a'];
+FOL.leaf = ['#1d4a3e', '#4d873d', '#a2bf45']; FOL.shrub = ['#1a4236', '#3b7338', '#8cae40'];
 FOL.trunk = { light: '#c49c76', mid: '#9d7b5d', shadow: '#6f5749', line: '#4a372e' };
 STONE.splice(0, STONE.length, '#cdb9a6', '#c2b3a3', '#d2c2b0', '#b9ab9c', '#c8b8a6', '#bcae9f');
 MOSS.splice(0, MOSS.length, '#a7c63f', '#93b23a', '#b5c94c');
@@ -399,30 +476,30 @@ function build() {
     const [ax, az] = P(0.975, 0.335, 3.4), [bx, bz] = P(0.93, 0.25, 0), [cx, cz] = P(0.86, 0.26, 0), [dx2, dz2] = P(0.78, 0.29, 0), [ex, ez] = P(0.715, 0.27, 3.7);
     const a = TS, core = new THREE.CatmullRomCurve3([new V3(ax, 3.2, az), new V3(bx, 6.6, bz), new V3(cx, 8.0, cz), new V3(dx2, 7.4, dz2), new V3(ex + 0.5, 5.4, ez), new V3(ex, 3.55, ez)], false, 'centripetal');
     const M = 32, fr = core.computeFrenetFrames(M, false);
-    // strands wound round the core, a turn and a half end to end, bunched tight over the trail and
-    // loosening toward the feet; thick ones and thin ones, each a little thinner at the crown
-    const STR = [0.36, 0.32, 0.28, 0.24, 0.2, 0.17, 0.14, 0.12];
-    STR.forEach((rb, k) => {
-      const th0 = k / STR.length * Math.PI * 2 + R(-0.3, 0.3), twist = R(8, 10.5), pts = [];
-      for (let i = 0; i <= 16; i++) {
-        const t = 0.05 + 0.9 * i / 16, f = Math.round(t * M), c = core.getPointAt(t);
-        const th = th0 + twist * t + Math.sin(t * 11 + k) * 0.3;
-        const off = (0.42 + 0.95 * Math.pow(Math.abs(2 * t - 1), 2)) * a * (0.8 + 0.35 * Math.sin(k * 1.7 + t * 7));
+    // one thick trunk, swelling into buttresses at both feet, with ropy roots wound round it and half
+    // sunk into it, so the bark reads as twisted cords rather than separate pipes
+    const coreR = t => a * (0.36 + 0.45 * Math.pow(Math.abs(2 * t - 1), 6));
+    tube(core.getSpacedPoints(24), 0, 0, { sides: 11, rf: coreR });
+    for (let k = 0; k < 6; k++) {
+      const th0 = k / 6 * Math.PI * 2, twist = 9 + k * 0.4, rb = [0.27, 0.22, 0.19, 0.25, 0.17, 0.21][k] * a, pts = [];
+      for (let i = 0; i <= 22; i++) {
+        const t = 0.02 + 0.96 * i / 22, f = Math.round(t * M), c = core.getPointAt(t), th = th0 + twist * t + Math.sin(t * 13 + k) * 0.2;
+        const off = coreR(t) * 0.95;
         pts.push(c.clone().addScaledVector(fr.normals[f], Math.cos(th) * off).addScaledVector(fr.binormals[f], Math.sin(th) * off));
       }
-      tube(pts, 0, 0, { sides: 8, rf: t => rb * a * 0.72 * (0.7 + 0.45 * Math.pow(Math.abs(2 * t - 1), 1.5)) });
-      // at each foot the strand carries on as a root leg, splaying out and down to the ground
-      for (const end of [0, 1]) {
-        const e = end ? pts.length - 1 : 0, p = pts[e], q = pts[end ? e - 1 : 1];
-        const out = p.clone().sub(core.getPointAt(end)).setY(0).normalize(), on = p.clone().sub(q).setY(0).normalize();
-        const dir = (out.lengthSq() > 0 ? out.add(on.multiplyScalar(0.6)).normalize() : on).applyAxisAngle(new V3(0, 1, 0), R(-0.5, 0.5)), reach = R(1.0, 2.2) * a;
-        const g = p.clone().addScaledVector(dir, reach); g.y = height(g.x, g.z) - 0.08;
-        // the legs bow outward on the way down and flare into the ground, like a banyan's
-        const m = p.clone().addScaledVector(dir, reach * 0.25); m.y = p.y - (p.y - g.y) * 0.3;
-        const n2 = p.clone().addScaledVector(dir, reach * 0.7); n2.y = g.y + (p.y - g.y) * 0.22;
-        tube([q, p, m, n2, g], 0, 0, { sides: 7, rf: t => rb * a * 0.85 * (1 - 0.6 * t) + 0.04 });
+      tube(pts, 0, 0, { sides: 7, rf: t => rb * (0.75 + 0.5 * Math.pow(Math.abs(2 * t - 1), 2)) });
+    }
+    // buttress roots at each foot: thick, bowing out and down, thinning into the ground
+    for (const end of [0, 1]) {
+      const foot = core.getPointAt(end), inner = core.getPointAt(end ? 0.9 : 0.1), back = foot.clone().sub(inner).setY(0).normalize();
+      for (let k = 0; k < 6; k++) {
+        const dir = back.clone().applyAxisAngle(new V3(0, 1, 0), -1.9 + k * 0.76 + R(-0.2, 0.2)), reach = R(1.6, 2.8) * a;
+        const s0 = foot.clone().addScaledVector(dir, coreR(end) * 0.6); s0.y += 0.15 * a;
+        const g = foot.clone().addScaledVector(dir, reach); g.y = height(g.x, g.z) - 0.1;
+        const m = foot.clone().addScaledVector(dir, reach * 0.4); m.y = foot.y * 0.6 + g.y * 0.4 + 0.25 * a;
+        tube([inner.clone().lerp(foot, 0.6), s0, m, g], 0, 0, { sides: 7, rf: t => a * (0.34 - 0.27 * t) });
       }
-    });
+    }
     // a few thin shoots from the crown of the arch with leaves at their tips, and leaves along the top
     for (const t of [0.3, 0.45, 0.58, 0.72]) {
       const c = core.getPointAt(t), tip = c.clone().add(new V3(R(-1.6, 1.6), R(1.2, 2.2), R(-1.6, 0.6)).multiplyScalar(a));
@@ -430,8 +507,6 @@ function build() {
       addBush(tip.x, tip.y - 0.6 * a, tip.z, R(0.7, 1.0) * a, { sy: 0.6, tint: R(-0.6, 0.2) });
     }
     for (let t = 0.2; t <= 0.82; t += 0.09) { const c = core.getPointAt(t); addBush(c.x + R(-0.4, 0.4), c.y + 0.25 * a, c.z + R(-0.6, 0.2), R(0.45, 0.75) * a, { sy: 0.5, tint: R(-0.8, 0.3) }); }
-    drapeRoots(ax, az, 3.4, [[0.9, 0.36, 1.2], [0.935, 0.42], [0.995, 0.47, 0.9]], 1.2 * TS);
-    drapeRoots(ex, ez, 3.7, [[0.74, 0.32, 0.9], [0.755, 0.24, 0.8]], 1.0 * TS);
     for (const [px, py, pz, s] of [[cx + 0.6, 8.4 * a, cz - 3.2 * a, 1.2 * a], [bx + 1.6, 7.6 * a, bz - 3.0 * a, 1.1 * a]]) crownOnly.push({ x: px, y: py, z: pz, s, ry: R(0, 6.28), v: 1, k: R(0.94, 1.04) });
     COLLIDERS.push({ x: ax, z: az, r: 1.0 }, { x: ex, z: ez, r: 0.9 });
   }
@@ -501,8 +576,8 @@ function build() {
     return mesh;
   };
   const sway = (amp, base) => ({ sway: [amp, base] });
-  const leafMat = shrub => paint({ vertexColors: true, map: branchletTexture(shrub), alphaTest: 0.45, side: THREE.DoubleSide, shade: [0.6, 0.7, 0.72], mid: [0.6, 0.7, 0.72], band: [-5, -5], ...sway(shrub ? 0.02 : 0.016, shrub ? 0 : 1.2) });
-  const leafDepth = shrub => new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: branchletTexture(shrub), alphaTest: 0.45 });
+  const leafMat = shrub => paint({ vertexColors: true, map: clumpTexture(shrub), alphaTest: 0.45, side: THREE.DoubleSide, shade: [0.6, 0.7, 0.72], mid: [0.6, 0.7, 0.72], band: [-5, -5], ...sway(shrub ? 0.02 : 0.016, shrub ? 0 : 1.2) });
+  const leafDepth = shrub => new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: clumpTexture(shrub), alphaTest: 0.45 });
   const trunkGeo = animeTrunk();
   const trunks = placeAll(new THREE.InstancedMesh(trunkGeo, paint({ vertexColors: true, side: THREE.DoubleSide, shade: [0.62, 0.62, 0.7], mid: [0.62, 0.62, 0.7], band: [-5, -5] }), treeItems.length), treeItems, it => new V3(it.s, it.s * (it.h || 1), it.s));
   trunks.castShadow = trunks.receiveShadow = true; scene.add(trunks);
@@ -510,13 +585,13 @@ function build() {
   [3, 5, 9].forEach((seed, v) => {
     const items = [...treeItems.filter(t => t.v === v).map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), ...crownOnly.filter(c => c.v === v)];
     if (!items.length) return;
-    const crown = placeAll(new THREE.InstancedMesh(animeFoliage(seed, false), leafMat(false), items.length), items, it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
+    const crown = placeAll(new THREE.InstancedMesh(clumpFoliage(seed, false), leafMat(false), items.length), items, it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
     crown.customDepthMaterial = leafDepth(false); crown.castShadow = crown.receiveShadow = true; scene.add(crown);
   });
   [11, 13, 19].forEach((seed, v) => {
     const items = shrubItems.filter(t => t.v === v);
     if (!items.length) return;
-    const mesh = placeAll(new THREE.InstancedMesh(animeFoliage(seed, true), leafMat(true), items.length), items, it => new V3(it.sx, it.sy, it.sz));
+    const mesh = placeAll(new THREE.InstancedMesh(clumpFoliage(seed, true), leafMat(true), items.length), items, it => new V3(it.sx, it.sy, it.sz));
     mesh.customDepthMaterial = leafDepth(true); mesh.castShadow = mesh.receiveShadow = true; scene.add(mesh);
   });
   const grass = placeAll(new THREE.InstancedMesh(meadowGrass(), paint({ vertexColors: true, side: THREE.DoubleSide, shade: [0.6, 0.72, 0.68], mid: [0.6, 0.72, 0.68], band: [-5, -5], ...sway(0.15, 0) }), grassItems.length), grassItems, it => new V3(it.s, it.s, it.s));

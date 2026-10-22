@@ -35,6 +35,12 @@ Done:
   - trails are Catmull-Rom curves through the authored points. Their edge wanders
     (`edgeWob`), and the bake breaks it up further: a soft ragged border, grass islands on the
     dirt and bare patches in the grass. Grass and bushes follow the same `trailEdge`.
+- Owner feedback round 4 ("not pretty": the root arch and the trees/bushes):
+  - crowns and shrubs use `clumpFoliage`/`clumpTexture` in place of the game's foliage. A crown
+    is many small puffs of lobed-leaf cards; each puff is lit on its own in three hard steps,
+    over a dark core;
+  - the arch is one thick trunk (`coreR`) with six ropy cords wound round it and buttress
+    roots at both feet.
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.

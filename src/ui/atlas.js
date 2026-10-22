@@ -71,9 +71,10 @@ export function atlasView(ui) {
  const landmark=(zdata.landmarks||[]).find(l=>l.zone===zone.id);
  const known=found[zoneMap].zones.includes(zone.id),guide=data.encounters?.maps?.[zoneMap],warning=guide?.warnings?.[zone.id];
  const missing=encounterLayout(zw,data)?.failures.filter(f=>f.zone===zone.id).reduce((sum,f)=>sum+f.missing,0)||0;
- return `<div class="atlas-heading"><div><span class="section-kicker">WORLD MAP / FIELD GUIDE</span><h3>แผนที่โลก</h3></div><span class="level-pill">สำรวจ ${totals.zones[0]} / ${totals.zones[1]}</span></div>
+ // Big map (and the region list under it) on the left; the chosen region on the right.
+ return `<div class="pg pg-map atlas-layout"><div class="pg-col atlas-main"><div class="atlas-heading"><span class="level-pill">สำรวจ ${totals.zones[0]} / ${totals.zones[1]}</span></div>
  ${ui.lastResult?`<div class="result-pop" role="status">${ui.lastResult}</div>`:''}
- <div class="atlas-layout"><div class="atlas-main"><div class="worldmap" style="aspect-ratio:${W}/${H}">
+ <div class="worldmap" style="aspect-ratio:${W}/${H}">
    <img src="${image.url()}" alt="แผนที่โลก: ชายฝั่งสีคราม เมืองท่า และชายแดนกรีนฮอลโลว์" draggable="false">${fog}
    <svg viewBox="0 0 ${W} ${H}" aria-label="จุดเกิดมอนตั้งต้นในพื้นที่ที่สำรวจแล้ว" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${dots}</svg>${labels}
    ${bosses}${pins}${target?`<span class="questmark" style="left:${sceneL(target.x,target.z)};top:${sceneT(target.x,target.z)}">★</span>`:''}
@@ -82,7 +83,7 @@ export function atlasView(ui) {
    <div class="map-legend"><span><i class="legend-player"></i>คุณ</span><span>${icon('portal')}หินวาร์ป</span><span>★ เป้าหมาย</span><span>${icon('hammer')}โต๊ะคราฟต์</span><span><i class="legend-landmark">◆</i>แลนด์มาร์ค</span><span>● จุดเกิดตั้งต้น · สีตรงกับรายชื่อมอน</span></div>
    ${guide?`<p class="muted" style="overflow-wrap:anywhere">เส้นทางแนะนำ: ${esc(guide.routeText)}</p>`:''}
    <div class="section-heading"><h3>เลือกพื้นที่</h3><span>แตะดูมอนและวัตถุดิบ</span></div><div class="region-grid">${cards}</div>
- </div><aside class="region-detail">
+ </div><aside class="pg-col region-detail">
    <div class="region-cover">${hasArt('zone',zone.id)?art('zone',zone.id):atlasRegionArt(zoneMap,zone.id)}<div><span class="section-kicker">${zone.safe?'SETTLEMENT':'EXPLORATION'}</span><h3>${zone.nameTh}</h3><small>${zone.name}</small></div></div>
    <div class="region-detail-body"><div class="section-heading"><span class="level-pill">${zone.safe?'เขตปลอดภัย':encounterLevelLabel(entries)}</span><small>${known?'สำรวจแล้ว':'ยังไม่สำรวจ'}</small></div>
    ${warning?`<p class="no" role="note">${esc(warning)}</p>`:''}${missing?`<p class="no" role="status">จุดเกิดไม่ครบ ${missing} จุด · รายชื่อด้านล่างแสดงเฉพาะที่เกิดได้จริง</p>`:''}

@@ -48,9 +48,9 @@ try{
   await capture('bag');
   for(const id of materials){
    const recipe=await page.evaluate(id=>{const p=__frontier.panels,r=Object.entries(__frontier.game.data.recipes.recipes).find(([,r])=>r.cost[id]);if(!r)throw Error('no recipe for '+id);p.sel.craftRecipe=r[0];p.open('craft');return r[0];},id);
-   await decode(`.pbody[data-panel=craft] [data-art="material/${id}"]>img`,'material/'+id);view.craft.push({id,recipe});
+   await decode(`.pbody[data-panel=craft] .pg-craft-detail [data-art="material/${id}"]>img`,'material/'+id);view.craft.push({id,recipe});
   }
-  await page.locator('.pbody[data-panel=craft] [data-art="material/rune_core"]').first().scrollIntoViewIfNeeded();
+  await page.locator('.pbody[data-panel=craft] .pg-craft-detail [data-art="material/rune_core"]').first().scrollIntoViewIfNeeded();
   await capture('craft');
   await page.evaluate(()=>__frontier.panels.open('shop'));
   const potionIds=await page.evaluate(()=>Object.keys(__frontier.game.data.items.consumables.types));

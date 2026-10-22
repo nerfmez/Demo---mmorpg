@@ -120,7 +120,7 @@ body.ingame #hud .qbtn .qn { right: -3px; bottom: -3px; font: 500 12px/1 Kanit, 
 body.ingame #hud .qbtn.empty { opacity: 1; background: rgba(255, 255, 255, .08); border-style: dashed; }
 body.ingame #hud .qbtn.empty .ic { inset: 30%; opacity: .75; }
 body.ingame #hud .auto-potions-hud {
-  top: calc(100% + 2px); right: 0; left: auto; width: max-content; min-height: 32px; padding: 0 2px; gap: 6px; justify-content: flex-end;
+  top: calc(100% + 2px); right: 0; left: auto; width: max-content; min-height: 44px; padding: 0 2px; gap: 6px; justify-content: flex-end;
   background: none; border: 0; box-shadow: none; color: var(--hc-dim); text-shadow: var(--hc-shade); white-space: nowrap; flex-wrap: nowrap; flex-direction: row;
 }
 body.ingame #hud .auto-potions-hud strong { font: 400 11px Kanit, Mitr, sans-serif; color: var(--hc-dim); }
@@ -180,7 +180,7 @@ body.ingame:not(.touch) #hud .sbtn .skill-cost { top: auto; bottom: -5px; right:
 body.ingame:not(.touch) #hud .quickbar { left: calc(50% + 69px); right: auto; bottom: calc(26px + var(--safe-b)); gap: 8px; }
 body.ingame:not(.touch) #hud .qbtn { --q: 44px; border-radius: 12px; }
 body.ingame:not(.touch) #hud .qbtn .ic, body.ingame:not(.touch) #hud .qbtn .cd { border-radius: 10px; }
-body.ingame:not(.touch) #hud .auto-potions-hud { top: auto; bottom: calc(100% + 8px); min-height: 24px; }
+body.ingame:not(.touch) #hud .auto-potions-hud { top: auto; bottom: calc(100% + 2px); min-height: 44px; }
 body.ingame:not(.touch) #hud .joy, body.ingame:not(.touch) #hud .joyzone { display: none; }
 body.ingame:not(.touch) #hud .prompt { bottom: 112px; }
 body.ingame:not(.touch) #hud .hint { display: none; }
@@ -215,10 +215,9 @@ body.ingame:not(.touch) #hud .hint { display: none; }
   body.ingame #hud .combat .sbtn.s2 { width: 46px; height: 46px; right: 100px; bottom: 57px; }
   body.ingame #hud .combat .sbtn.s3 { width: 46px; height: 46px; right: 50px; bottom: 98px; }
   body.ingame #hud .combat .sbtn.move { width: 40px; height: 40px; right: 167px; bottom: 0; }
-  body.ingame #hud .quickbar { bottom: calc(180px + var(--safe-b)); right: calc(12px + var(--safe-r)); gap: 5px; }
+  body.ingame #hud .quickbar { bottom: calc(192px + var(--safe-b)); right: calc(12px + var(--safe-r)); gap: 5px; }
   body.ingame #hud .qbtn { --q: 36px; }
   body.ingame #hud .qbtn .qn { font-size: 10px; }
-  body.ingame #hud .auto-potions-hud { min-height: 26px; }
   body.ingame #hud .auto-potions-hud :is(strong, small) { font-size: 9.5px; }
   body.ingame #hud .sbtn .cdt { font-size: 12px; }
   body.ingame .field-xp :is(.xp-label, .xpseg span) { font-size: 9px; bottom: 5px; }

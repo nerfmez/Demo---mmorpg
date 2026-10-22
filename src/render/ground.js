@@ -23,6 +23,41 @@ import { regionShift } from './region-shift.js';
 const TILE = 32;
 
 import { NOISE_GLSL, GROUND_COLOR_GLSL } from './ground-color.js';
+// display hex -> linear GLSL vec3, for the water palettes below
+const linGLSL=hex=>{const c=new THREE.Color(hex);return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`;};
+// The clear water of the approved beach scene: pale green over sand, turquoise, then bright blue.
+const WATER_SHALLOW=linGLSL('#93dfbf'),WATER_TURQUOISE=linGLSL('#45d0c4'),WATER_LAGOON=linGLSL('#2cbfd0'),WATER_BLUE=linGLSL('#1b97c3'),WATER_DEEP=linGLSL('#1679ad');
+const WEB_LINE=linGLSL('#e8ffd2'),WEB_GLOW=linGLSL('#d4ffc4'),WEB_CELL=linGLSL('#5a9583');
+// The light web: small rounded cells of sunlight on the bed, separated by soft pale-green gaps.
+// webGap is the ratio of the distances to the nearest and second-nearest cell point; its contours
+// are circles, so cells read as rounded blobs and the gaps widen into small pools where three meet.
+// Large stretches fade away (two slow noise masks), so it never reads as one even net.
+const WATER_WEB_GLSL=/* glsl */`
+vec2 webHash(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.xx+p3.yz)*p3.zy);}
+float webGap(vec2 x,float t){
+  vec2 n=floor(x),f=fract(x);float f1=8.0,f2=8.0;
+  for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){
+    vec2 g=vec2(float(i),float(j)),o=.5+.42*sin(t+6.2831*webHash(n+g)),r=g+o-f;float dd=dot(r,r);
+    if(dd<f1){f2=f1;f1=dd;}else if(dd<f2)f2=dd;
+  }
+  float a=sqrt(f1);return a/(a+sqrt(f2)-a+1e-4);
+}
+// colour and extra opacity of the web over water of depth d (metres); near: 1 in the shallows
+vec4 lightWeb(vec2 w,float d,float t,vec3 col){
+  float near=1.0-smoothstep(.3,1.5,d),fade=1.0-smoothstep(3.0,6.0,d);
+  vec2 p=w*mix(1.15,1.75,near);
+  p+=.36*vec2(vnoise(p*1.1+vec2(t*.18,0.0)),vnoise(p*1.1+vec2(5.0,-t*.15)))-.18;
+  float gap=webGap(p,t*.35);
+  float keep=smoothstep(.42,.74,vnoise(p*.45+vec2(t*.05,-t*.04)+17.0))*smoothstep(.25,.62,vnoise(w*.26+vec2(-t*.03,t*.02)+3.0));
+  float line=smoothstep(mix(.78,.74,near),mix(.9,.86,near),gap)*keep*fade;
+  float glow=smoothstep(mix(.55,.5,near),mix(.9,.86,near),gap)*mix(.35,1.0,keep)*fade;
+  float cell=(1.0-glow)*mix(.15,.5,near)*fade;
+  col=mix(col,col*${WEB_CELL}*1.15,cell*.5);
+  col=mix(col,${WEB_LINE},line*mix(.26,.36,near));
+  col+=${WEB_GLOW}*glow*keep*.08;
+  return vec4(col,cell*near*.12+line*.12);
+}
+`;
 import { groundFieldSteps } from './ground-field.js';
 export { NOISE_GLSL } from './ground-color.js';
 
@@ -430,14 +465,15 @@ ${GROUND_COLOR_GLSL}`
   float ring = (1.0-smoothstep(0.0,0.35,abs(ad-(uArena.z-3.0))))+(1.0-smoothstep(0.0,0.25,abs(ad-(uArena.z-4.2))));
   col = mix(col, vec3(0.55, 0.50, 0.66), clamp(ring, 0.0, 1.0) * 0.75);
   // under the water line: darker, bluish
-  col = mix(col, col * vec3(0.70, 0.81, 0.80), (1.0-smoothstep(uWater - 0.4, uWater + 0.05, y)));
+  col = mix(col, col * vec3(0.86, 0.90, 0.88), 1.0-smoothstep(uWater - 0.15, uWater + 0.05, y));
+  col *= mix(vec3(1.0), vec3(.36, .74, .76), smoothstep(0.0, 1.4, uWater - y));
   // drifting cloud shadows (world metres, so they drift on across a seam)
   col *= groundCloud(w+uNoiseOffset,uTime);
   diffuseColor.rgb = col;
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v12';
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v13';
   return mat;
 }
 
@@ -462,6 +498,7 @@ function seaMaterial(world, contacts, domain) {
       varying float vDepth; varying float vShore; varying vec2 vW; varying vec2 vLocal; varying float vBeachWash;
       uniform vec3 uJoinCoast; varying float vCoastJoin;
       ${NOISE_GLSL}
+      ${WATER_WEB_GLSL}
       // Graphic anime water: a curved crest with finite rounded strokes.
       // The row changes halfway between invisible crests, so reseeding cannot pop.
       vec3 portWave(vec2 p){
@@ -558,21 +595,18 @@ function seaMaterial(world, contacts, domain) {
         if(behind < -.14) discard;
         float cover=smoothstep(-.14,.12,behind);
         float d=max(0.0,vDepth);
-        // clear turquoise over the shallows, a saturated cobalt in deep water
-        vec3 col=mix(vec3(.20,.56,.50),vec3(.07,.36,.46),smoothstep(0.0,2.5,d));
-        col=mix(col,vec3(.03,.19,.36),smoothstep(2.0,8.0,d));
+        // clear water: pale green over the sand, turquoise, then bright blue. Like the beach
+        // scene it deepens with the distance from the shore too, so a long shallow shelf still
+        // turns from green to blue
+        float cd=max(d,max(vShore,0.0)*.3);
+        vec3 col=mix(${WATER_SHALLOW},${WATER_TURQUOISE},smoothstep(0.0,.8,cd));
+        col=mix(col,${WATER_LAGOON},smoothstep(.8,1.8,cd));
+        col=mix(col,${WATER_BLUE},smoothstep(1.8,3.2,cd));
+        col=mix(col,${WATER_DEEP},smoothstep(4.0,9.0,cd));
         float drift=vnoise(vW*.18+vec2(uTime*.025,-uTime*.07));
         col+=(drift-.5)*.035;
-        // Submerged light ripples deform independently and softly ebb in brightness.
-        // They never remain a crisp, world-fixed grid on top of the water.
-        if(d<3.0){
-          vec2 lightP=vW*.28+vec2(uTime*.035,-uTime*.06);
-          lightP+=vec2(sin(vW.y*.31+uTime*.47),cos(vW.x*.28-uTime*.39))*.65;
-          vec2 lightCell=foamCell(lightP,uTime*uMotion.z,0.0);
-          float caustic=1.0-smoothstep(.015,.13,abs(lightCell.x-.39));
-          float lightPulse=.5+.5*sin(uTime*.8+vW.x*.16+vW.y*.11);
-          col+=vec3(.022,.035,.028)*caustic*lightPulse*(1.0-smoothstep(.0,3.0,d));
-        }
+        vec4 web=cd<6.0?lightWeb(vW,cd,uTime,col):vec4(col,0.0);
+        col=web.rgb;
         // cel-shaded sky reflection: soft-edged pale patches drifting slowly over open water
         vec2 skyP=vW*.045+vec2(uTime*.010,uTime*.004);
         float sky=smoothstep(.56,.60,vnoise(skyP+vec2(vnoise(vW*.11+uTime*.02),0.0)*.6));
@@ -661,7 +695,10 @@ function seaMaterial(world, contacts, domain) {
         // cream-white membranes and broken leading crests rather than stripes.
         col=mix(col,vec3(.41,.67,.61),softFoam*.40);
         col=mix(col,uFoamColor,clamp(foam,0.0,1.0));
-        float alpha=mix(.22,.86,smoothstep(-1.0,5.0,vShore))*cover;
+        // see-through in the shallows (the sand shows), firmer offshore
+        float alpha=mix(.46,.58,smoothstep(0.0,1.0,cd));
+        alpha=mix(alpha,.84,smoothstep(1.2,4.0,cd));
+        alpha=(alpha*mix(.6,1.0,smoothstep(-1.0,1.0,vShore))+web.a)*cover;
         alpha=max(alpha,mix(.72,0.0,vBeachWash)*cover);
         alpha=max(alpha,foam*.94);
         gl_FragColor=vec4(col,alpha);
@@ -691,26 +728,31 @@ function waterMaterial() {
     fragmentShader: /* glsl */ `
       uniform float uTime; varying float vDepth; varying float vAlong; varying vec2 vW;
       ${NOISE_GLSL}
+      ${WATER_WEB_GLSL}
       void main(){
         float d = vDepth + (vnoise(vW * 1.3 + uTime * 0.4) - 0.5) * 0.06;
         if (d <= 0.0) discard;
-        vec3 deep = vec3(0.09, 0.27, 0.31);
-        vec3 mid = vec3(0.19, 0.43, 0.41);
-        vec3 shallow = vec3(0.37, 0.54, 0.43);
-        vec3 col = mix(shallow, mid, smoothstep(0.05, 0.45, d));
-        col = mix(col, deep, smoothstep(0.5, 1.2, d));
-        // flowing streaks (rivers) and ripples (ponds)
+        vec3 col = mix(${WATER_SHALLOW}, ${WATER_TURQUOISE}, smoothstep(0.05, 0.45, d));
+        col = mix(col, ${WATER_LAGOON}, smoothstep(0.5, 1.2, d));
+        vec4 web = lightWeb(vW, d, uTime, col);
+        col = web.rgb;
+        // a faint flow along rivers
         float s = vnoise(vec2(vW.x * 2.4 + vW.y*.2 - uTime * .7, vW.y * 0.55));
-        col = mix(col, vec3(0.80, 0.95, 1.0), step(0.83, s) * 0.30 * smoothstep(0.2, 0.6, d));
-        // sun glints
-        float g = vnoise(vW * 2.6 + vec2(uTime * 0.7, -uTime * 0.5));
-        col = mix(col, vec3(1.0), step(0.92, g) * 0.6);
+        col = mix(col, vec3(0.80, 0.95, 1.0), smoothstep(0.8, 0.9, s) * 0.10 * smoothstep(0.2, 0.6, d));
+        // sparkles: small stars of sunlight blinking on the web
+        vec2 sc = vW * vec2(1.0, 1.25) + vec2(uTime * .1, 0.0), cid = floor(sc), cf = fract(sc) - .5;
+        float hs = hash12(cid + 5.3);
+        vec2 dd = cf - (webHash(cid) - .5) * .6; float dl = length(dd);
+        float spark = (1.0 - smoothstep(.03, .075, dl)) + .9 * (1.0 - smoothstep(.0, .016, min(abs(dd.x), abs(dd.y)))) * (1.0 - smoothstep(.0, .24, dl));
+        spark *= pow(max(0.0, sin(uTime * 2.2 + hs * 40.0)), 6.0) * step(.74, hs) * smoothstep(.15, .5, d);
+        col = mix(col, vec3(1.0), clamp(spark, 0.0, 1.0));
         // foam along the shore
         float foam = 1.0 - smoothstep(0.015, 0.065 + 0.012 * sin(uTime * 1.4 + vW.x), d);
         float ribbon=(1.0-smoothstep(.016,.032,abs(d-(.27+.035*sin(vW.x*1.2+vW.y*.7-uTime*.8)))))*step(.40,vnoise(vW*.6));
         col=mix(col,vec3(.7,.88,.82),ribbon*.38);
         col = mix(col, vec3(0.97, 0.99, 1.0), foam * 0.9);
-        float a = mix(0.38, 0.87, smoothstep(0.0, 0.8, d));
+        float a = mix(0.40, 0.80, smoothstep(0.0, 0.8, d)) + web.a;
+        a = max(a, clamp(spark, 0.0, 1.0));
         gl_FragColor = vec4(col, a);
         #include <colorspace_fragment>
       }`,

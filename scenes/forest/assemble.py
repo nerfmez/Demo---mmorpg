@@ -48,6 +48,8 @@ renderer = re.sub(r"const CAM = \{[^}]*\};", f"const CAM = {{ target: new V3(0, 
 renderer = renderer.replace("// fitted so the shoreline, the track mouth, the waypoint and the wreck land where the reference has them", "// the concept's view: 40 degrees down, close enough that the hero is about 85 px tall in the 941 px frame")
 renderer = renderer.replace("sun.position.copy(SUN).multiplyScalar(90);\nscene.add(sun, sun.target);", f"sun.target.position.set(0, 0, -{f(9)}); sun.position.copy(SUN).multiplyScalar(90).add(sun.target.position);\nscene.add(sun, sun.target);")
 renderer = renderer.replace("Object.assign(sun.shadow.camera, { left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220 });", f"Object.assign(sun.shadow.camera, {{ left: -{f(30)}, right: {f(30)}, top: {f(32)}, bottom: -{f(32)}, near: 10, far: {f(145)} }});")
+# the shadow box grows with K, so its texels do too: push the bias with it (no acne stripes)
+renderer = renderer.replace("sun.shadow.normalBias = 0.04;", f"sun.shadow.normalBias = {0.04 * K:g};")
 assert f'dist: {f(30)}' in renderer and 'add(sun.target.position)' in renderer and f'left: -{f(30)}' in renderer
 glsl = block('// ---------- shared GLSL', '// ---------- ground:')
 under = re.search(r"\n  // under the sea:.*?\n  \}\n", glsl, re.S)

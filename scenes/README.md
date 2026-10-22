@@ -48,6 +48,17 @@ Done:
     face along them, split by vertical cracks into columns; each column is two planes meeting
     at a ridge. A grass lip rolls over the top, with grass on the lip and in the cracks;
   - cliffs are 1.45x taller (`H()`).
+- Owner feedback round 6 ("the cliff tops have no rock in them"; "the roots are still not
+  good"; "why did you change the leaf style again — it must go into the game"; "make the middle
+  tree a sakura"):
+  - foliage is back to the game's own `animeFoliage` (keep it; do not invent a new leaf style);
+  - each cliff column has a rounded edge and a flat stone cap, mossy in patches, with the grass
+    behind it;
+  - roots use `groundRoot`: they lie along the ground half sunk, and at a cliff they bend over
+    the lip and run down the face;
+  - the island tree is a cherry: the game's trunk and crown in `SAKURA` colours, with petals
+    on the ground and falling;
+  - shadow normal bias scales with K (removes acne stripes).
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.
@@ -55,7 +66,8 @@ Done:
    from the forest; `ruins/scene.js` is not written yet. The layout notes (plaza with a stone
    ring, arch, pillars, a retaining wall with a paved ramp) are in the session handoff.
 
-Owner preferences learnt so far: judge composition and layout first, never just tone; round grey
+Owner preferences learnt so far: everything must be portable into the game (reuse the game's
+foliage and models, only recolour); judge composition and layout first, never just tone; round grey
 stones; cliffs are rock faces with grass growing on them, never stones set in a row; more room to walk; big trees; check against the concept side by side before showing.
 The in-game restyle (palette, water, ledges, waypoint ruin, ambience) is on PR #137; the owner did
 not ask for it, it is not merged and its CI is red.

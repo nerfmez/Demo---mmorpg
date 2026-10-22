@@ -222,7 +222,7 @@ function buildCliffs() {
     const vs = nn.dot(out) >= 0 ? [a, b, c, a, c, d] : [a, c, b, a, d, c];
     for (const v of vs) { pos.push(v.x, v.y, v.z); col.push(color.r, color.g, color.b); }
   };
-  const stone = STONE.map(h => new THREE.Color(h)), moss = MOSS.map(h => new THREE.Color(h)), lipC = new THREE.Color('#7fa43a');
+  const stone = STONE.map(h => new THREE.Color(h)), moss = MOSS.map(h => new THREE.Color(h));
   const F = [0, 0.32, 0.66, 1];   // the face's facet rows, as fractions of its height
   for (const T of TERRACES) {
     if (!T.ledge) continue;
@@ -251,7 +251,7 @@ function buildCliffs() {
       while (i0 < S.length - 1) {
         const w = rand() < 0.22 ? R(2.6, 4.2) : R(1.1, 2.2); let i1 = i0 + 1;
         while (i1 < S.length - 1 && S[i1].s - S[i0].s < w) i1++;
-        cols.push({ i0, i1, s0: S[i0].s, s1: S[i1].s, off: R(-0.1, 0.55), slope: R(-0.12, 0.12), ridge: R(0.15, 0.5), peak: R(0.3, 0.7), top: T.top + R(-0.4, 0.25), rows: F.map(() => R(-0.25, 0.25)), lean: R(-0.2, 0.35), c: pick(stone).clone().multiplyScalar(R(0.95, 1.05)), mid: (S[i0].s + S[i1].s) / 2 });
+        cols.push({ i0, i1, s0: S[i0].s, s1: S[i1].s, off: R(-0.1, 0.55), slope: R(-0.12, 0.12), ridge: R(0.15, 0.5), peak: R(0.3, 0.7), top: T.top + R(0.05, 0.45), cap: R(0.9, 1.6), moss: R(0, 1), rows: F.map(() => R(-0.25, 0.25)), lean: R(-0.2, 0.35), c: pick(stone).clone().multiplyScalar(R(0.95, 1.05)), mid: (S[i0].s + S[i1].s) / 2 });
         i0 = i1;
       }
       const vtx = (C, i, r) => {
@@ -270,10 +270,18 @@ function buildCliffs() {
             if (r === F.length - 2 && (i - C.i0) % 3 !== 0 && rand() < 0.5) shade.lerp(pick(moss), R(0.35, 0.6));   // moss creeping down from the top
             quad(vtx(C, i, r), vtx(C, i + 1, r), vtx(C, i + 1, r + 1), vtx(C, i, r + 1), out, shade);
           }
-          // the lip: grass rolling over the top edge
+          // the top of the rock: a rounded edge, then a flat stone cap running back into the grass,
+          // mossy in patches, and an inner face down to the ground behind it
           const t0 = vtx(C, i, F.length - 1), t1 = vtx(C, i + 1, F.length - 1);
-          const l0 = new V3(S[i].x - S[i].nx * 0.5, T.top + 0.08, S[i].z - S[i].nz * 0.5), l1 = new V3(S[i + 1].x - S[i + 1].nx * 0.5, T.top + 0.08, S[i + 1].z - S[i + 1].nz * 0.5);
-          quad(t0, t1, l1, l0, new V3(0, 1, 0), lipC);
+          const edge = (k, inset, up) => { const q = S[k], o = vtx(C, k, F.length - 1); return new V3(o.x - q.nx * inset, o.y + up, o.z - q.nz * inset); };
+          const e0 = edge(i, 0.22, 0.14), e1 = edge(i + 1, 0.22, 0.14);
+          const back = (k, dy) => { const q = S[k]; return new V3(q.x - q.nx * C.cap, C.top + 0.14 + dy, q.z - q.nz * C.cap); };
+          const b0 = back(i, R(-0.04, 0.04)), b1 = back(i + 1, R(-0.04, 0.04));
+          const mossy = noise2(S[i].x * 0.9 + 4, S[i].z * 0.9) * 0.5 + 0.5 < 0.35 + C.moss * 0.4;
+          shade.copy(C.c).multiplyScalar(1.04); if (mossy) shade.lerp(pick(moss), R(0.5, 0.75));
+          quad(t0, t1, e1, e0, out, shade.clone().multiplyScalar(0.97));
+          quad(e0, e1, b1, b0, new V3(0, 1, 0), shade);
+          quad(b0, b1, new V3(b1.x, T.top - 0.3, b1.z), new V3(b0.x, T.top - 0.3, b0.z), new V3(-out.x, 0, -out.z), shade.copy(C.c).multiplyScalar(0.8));
         }
         // the crack to the next column: a narrow face joining their two edges, in shadow
         const D = cols[ci + 1];
@@ -285,10 +293,12 @@ function buildCliffs() {
         const q = S[Math.round((C.i0 + C.i1) / 2)];
         for (let g = C.i0; g <= C.i1; g++) {
           const a = S[g];
-          for (let k = 0; k < 3; k++) { const b = R(-0.05, 0.9); grassItems.push({ x: a.x - a.nx * b + R(-0.3, 0.3), y: T.top + 0.02, z: a.z - a.nz * b + R(-0.3, 0.3), s: R(1.0, 1.5), ry: R(0, 6.28), k: R(0.9, 1.1) }); }
+          // grass behind the cap, a few tufts on it
+          for (let k = 0; k < 3; k++) { const b = C.cap + R(0.05, 0.9); grassItems.push({ x: a.x - a.nx * b + R(-0.3, 0.3), y: T.top + 0.02, z: a.z - a.nz * b + R(-0.3, 0.3), s: R(1.0, 1.5), ry: R(0, 6.28), k: R(0.9, 1.1) }); }
+          if (rand() < 0.18) { const b = R(0.4, C.cap - 0.1); grassItems.push({ x: a.x - a.nx * b, y: C.top + 0.12, z: a.z - a.nz * b, s: R(0.7, 1.0), ry: R(0, 6.28), k: 1 }); }
         }
         if (D) for (let k = 0; k < 2; k++) { const v = vtx(C, C.i1, 1 + k); grassItems.push({ x: v.x + S[C.i1].nx * 0.1, y: v.y - 0.2, z: v.z + S[C.i1].nz * 0.1, s: R(0.8, 1.2), ry: R(0, 6.28), k: 0.9 }); }
-        if (rand() < 0.45) addBush(q.x - q.nx * R(0.6, 1.4), T.top - 0.25, q.z - q.nz * R(0.6, 1.4), R(0.45, 0.8), { sy: 0.55, tint: R(-0.4, 0.3) });
+        if (rand() < 0.4) addBush(q.x - q.nx * (C.cap + R(0.3, 1.0)), T.top - 0.25, q.z - q.nz * R(0.6, 1.4), R(0.45, 0.8), { sy: 0.55, tint: R(-0.4, 0.3) });
         if (rand() < 0.2) addBush(q.x + q.nx * R(1.0, 1.8), q.base + 0.3, q.z + q.nz * R(1.0, 1.8), R(0.5, 0.85), { sy: 0.75, tint: -0.6 });
         if (rand() < 0.12) { const r = R(0.35, 0.75), x = q.x + q.nx * R(1.2, 2.4), z = q.z + q.nz * R(1.2, 2.4); addStone(x, height(x, z) - 0.06, z, r, r * R(0.6, 0.85), r, { chamfer: 0.12, jitter: 0.14, extra: 7, ry: R(-0.6, 0.6), moss: 0.3 }); }
       });
@@ -351,21 +361,35 @@ function tube(points, r0, r1, { sides = 8, seg = 3, ink = 0.04, rf = null } = {}
   };
   woodParts.push(build(0)); woodInk.push(build(ink));
 }
-// roots from a tree on a raised top, over the lip of its ledge and down onto the low ground
+// a root that lies along the ground from (x, z): it rises out of the trunk's flare, then follows the
+// ground half sunk into it, wandering a little; at a cliff it bends over the lip and runs down the
+// rock face to the foot before carrying on. r0 is its radius at the trunk.
+function groundRoot(x, z, y0, ux, uz, len, r0, wig = 0.45) {
+  const nx = -uz, nz = ux, ph = R(0, 6.28), pts = [new V3(x, y0, z)];
+  let d = 0.5, prev = height(x, z), ox = 0, oz = 0;
+  while (d <= len) {
+    const w = Math.sin(d * 0.85 + ph) * wig * Math.min(1, d / 1.5);
+    const qx = x + ux * d + nx * w + ox, qz = z + uz * d + nz * w + oz, h = height(qx, qz), r = r0 * (1 - 0.8 * d / len);
+    if (prev - h > 0.8) {
+      // over the lip and down the face (the face stands up to about a metre out from its outline)
+      const lx = qx - ux * 0.5, lz = qz - uz * 0.5, foot = height(qx + ux * 2.2, qz + uz * 2.2);
+      pts.push(new V3(lx + ux * 0.3, prev + r * 0.5, lz + uz * 0.3), new V3(lx + ux * 1.15, prev - 0.35, lz + uz * 1.15),
+        new V3(lx + ux * 1.35, (prev + foot) / 2, lz + uz * 1.35), new V3(lx + ux * 1.6, foot + r * 0.8, lz + uz * 1.6));
+      ox += ux * 1.6; oz += uz * 1.6; prev = foot; d += 1.1; continue;
+    }
+    pts.push(new V3(qx, h + r * 0.35 + (d < 1.2 ? (1.2 - d) * 0.4 : 0), qz));
+    prev = h; d += 0.5;
+  }
+  if (pts.length < 3) return;
+  tube(pts, 0, 0, { sides: 7, seg: 4, rf: t => r0 * (1 - 0.82 * t) * (1 + 0.12 * Math.sin(t * 23 + ph)) + 0.03 });
+}
+// roots from a tree toward points on the low ground; they cross its top and drape its cliff
 function drapeRoots(tx, tz, top, targets, s = 1) {
   for (const [u, v, rr = 1] of targets) {
     const [fx, fz] = P(u, v, 0), dx = fx - tx, dz = fz - tz, d = Math.hypot(dx, dz), ux = dx / d, uz = dz / d;
-    let e = 0.6; while (e < d && height(tx + ux * e, tz + uz * e) > top - 0.35) e += 0.2;
-    if (e > 4.5 * s) continue;   // the ledge is too far: no root crawls across the whole terrace
-    const lip = e - 0.25, sway = R(-0.4, 0.4);
-    const pts = [
-      new V3(tx + ux * 0.2, top + 0.35, tz + uz * 0.2),
-      new V3(tx + ux * lip * 0.5 - uz * sway * 0.4, top + 0.2, tz + uz * lip * 0.5 + ux * sway * 0.4),
-      new V3(tx + ux * lip - uz * sway, top + 0.08, tz + uz * lip + ux * sway),
-      new V3(tx + ux * (lip + 0.55) - uz * sway, top * 0.55, tz + uz * (lip + 0.55) + ux * sway),
-      new V3(tx + ux * (lip + 1.2) - uz * sway * 0.6, height(tx + ux * (lip + 1.2), tz + uz * (lip + 1.2)) + 0.05, tz + uz * (lip + 1.2) + ux * sway * 0.6),
-    ];
-    tube(pts, 0.3 * s * rr, 0.05, { sides: 7 });
+    groundRoot(tx + ux * 0.25 * s, tz + uz * 0.25 * s, top + 0.7 * s, ux, uz, Math.min(d + 1.5, 9 * s), 0.3 * s * rr);
+    // a thinner root beside it
+    if (rr > 0.85) { const a = R(-0.5, 0.5), c = Math.cos(a), sn = Math.sin(a); groundRoot(tx + ux * 0.3 * s, tz + uz * 0.3 * s, top + 0.4 * s, ux * c - uz * sn, ux * sn + uz * c, Math.min(d * 0.6, 5 * s), 0.14 * s, 0.7); }
   }
 }
 
@@ -399,76 +423,37 @@ function fernGeometry() {
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nn, 3)); return g;
 }
 
-// ---------- crowns and shrubs as the concept paints them: many small leaf puffs ----------
-// Each puff is a cluster of cards carrying small lobed leaves; a puff is lit on its own (bright
-// upper-left, blue-green underneath), so a crown reads as a heap of leaf clumps instead of one
-// smooth blob.
-const clumpMaps = new Map();
-function clumpTexture(shrub = false) {
-  if (clumpMaps.has(shrub)) return clumpMaps.get(shrub);
-  const cv = document.createElement('canvas'); cv.width = cv.height = 512;
-  const c = cv.getContext('2d'), rng = mkRng(shrub ? 77 : 41);
-  for (let tile = 0; tile < 4; tile++) {
-    const ox = (tile % 2) * 256 + 128, oy = Math.floor(tile / 2) * 256 + 128;
-    // a rosette of lobed leaves pointing out from the middle, the biggest at the back
-    const n = shrub ? 6 + (tile % 2) : 9 + tile;
-    for (let i = 0; i < n; i++) {
-      const a = i / n * Math.PI * 2 + rng.range(-0.25, 0.25), len = shrub ? rng.range(78, 104) : rng.range(52, 86), wid = len * rng.range(0.42, 0.55);
-      c.save(); c.translate(ox + Math.cos(a) * rng.range(14, 30), oy + Math.sin(a) * rng.range(14, 30)); c.rotate(a);
-      const g = c.createLinearGradient(0, 0, len, 0); g.addColorStop(0, '#b8b8b8'); g.addColorStop(0.55, '#f2f2f2'); g.addColorStop(1, '#ffffff');
-      c.fillStyle = g; c.beginPath(); c.moveTo(0, 0);
-      // three lobes a side with small notches between, a pointed tip
-      for (const side of [-1, 1]) {
-        const pts = [];
-        for (let k = 1; k <= 3; k++) { const t = k / 4; pts.push([len * (t - 0.06), side * wid * 0.5 * Math.sin(t * Math.PI) * 1.15], [len * (t + 0.04), side * wid * 0.5 * Math.sin(t * Math.PI) * 0.72]); }
-        if (side < 0) { for (const [x, y] of pts) c.lineTo(x, y); c.lineTo(len, 0); }
-        else for (const [x, y] of pts.reverse()) c.lineTo(x, y);
-      }
-      c.closePath(); c.fill(); c.restore();
-    }
+// ---------- cherry petals: fallen on the island and the trails below it, and drifting down ----------
+const PETALS = { fall: null, n: 0, data: null, m: new THREE.Matrix4(), q: new THREE.Quaternion(), e: new THREE.Euler(), p: new V3(), sc: new V3(1, 1, 1) };
+function buildPetals(trees) {
+  const root = new THREE.Group();
+  if (!trees.length) return root;
+  const geo = new THREE.CircleGeometry(0.075, 5); geo.scale(1, 0.62, 1);
+  const mat = new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide });
+  const t = trees[0], R0 = 3.4 * t.s, ground = [];
+  for (let i = 0; i < 2600; i++) {
+    const a = R(0, 6.28), r = R0 * Math.sqrt(rand()) * 1.25, x = t.x + Math.cos(a) * r, z = t.z + Math.sin(a) * r * 0.9 + R0 * 0.15;
+    ground.push({ x, y: height(x, z) + 0.03, z, ry: R(0, 6.28), c: pick(SAKURA.petal) });
   }
-  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  clumpMaps.set(shrub, t); return t;
+  const g = new THREE.InstancedMesh(geo, mat, ground.length), m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
+  ground.forEach((p, i) => { q.setFromEuler(new THREE.Euler(-Math.PI / 2 + R(-0.3, 0.3), 0, p.ry)); m.compose(new V3(p.x, p.y, p.z), q, new V3(1, 1, 1)); g.setMatrixAt(i, m); g.setColorAt(i, c.set(p.c)); });
+  root.add(g);
+  // petals in the air: each falls from the crown with a flutter and starts again at the top
+  const n = 90, fall = new THREE.InstancedMesh(geo, mat, n), data = [];
+  for (let i = 0; i < n; i++) { data.push({ x: t.x + R(-R0, R0), z: t.z + R(-R0, R0) * 0.8, top: t.y + 3.2 * t.s * (t.h || 1), ph: R(0, 1), sp: R(0.06, 0.11), w: R(0.6, 1.4) }); fall.setColorAt(i, c.set(pick(SAKURA.petal))); }
+  Object.assign(PETALS, { fall, n, data }); root.add(fall);
+  return root;
 }
-function clumpFoliage(seed = 3, shrub = false) {
-  const rng = mkRng(seed * 13 + (shrub ? 5 : 1)), p = [], n = [], c = [], uv = [];
-  const [dark, mid, light] = (shrub ? FOL.shrub : FOL.leaf).map(h => new THREE.Color(h));
-  const sunDir = new V3(-0.55, 0.8, 0.25).normalize();
-  // the crown's envelope (unit space, as the game's crowns): a dome for trees, a mound for shrubs
-  const E = shrub ? { x: 0.62, y: 0.45, z: 0.48, cy: 0.42, puffs: 8, r: [0.24, 0.34], cards: 8, lift: 0.16 } : { x: 0.9, y: 0.55, z: 0.75, cy: 0.3, puffs: 28, r: [0.24, 0.36], cards: 13, lift: -0.05 };
-  const puffs = [];
-  for (let i = 0; i < E.puffs; i++) {
-    // spread over the envelope's surface, a few inside; none on the flat underside
-    const u = rng.range(0, Math.PI * 2), v = Math.acos(rng.range(-0.35, 1)), k = i < 3 ? 0.45 : rng.range(0.75, 1.0);
-    puffs.push({ c: new V3(Math.sin(v) * Math.cos(u) * E.x * k, E.cy + Math.cos(v) * E.y * k, Math.sin(v) * Math.sin(u) * E.z * k), r: rng.range(...E.r) });
+function updatePetals(time) {
+  if (!PETALS.fall) return;
+  const P0 = PETALS;
+  for (let i = 0; i < P0.n; i++) {
+    const d = P0.data[i], k = (time * d.sp + d.ph) % 1, ground = height(d.x, d.z);
+    P0.p.set(d.x + Math.sin(time * d.w + i) * 0.8 + k * 2.2, d.top + (ground - d.top) * k, d.z + Math.cos(time * d.w * 0.7 + i) * 0.6);
+    P0.q.setFromEuler(P0.e.set(time * d.w * 2 + i, time * d.w + i * 0.3, 0));
+    P0.m.compose(P0.p, P0.q, P0.sc); P0.fall.setMatrixAt(i, P0.m);
   }
-  const col = new THREE.Color(), tmp = new V3();
-  const card = (centre, normal, size, roll, tile, tone) => {
-    const across = new V3().crossVectors(new V3(0, 1, 0), normal); if (across.lengthSq() < 1e-3) across.set(1, 0, 0); else across.normalize();
-    const along = new V3().crossVectors(normal, across).normalize();
-    const x = across.clone().multiplyScalar(Math.cos(roll)).addScaledVector(along, Math.sin(roll)), y = along.clone().multiplyScalar(Math.cos(roll)).addScaledVector(across, -Math.sin(roll));
-    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]]) {
-      const v = centre.clone().addScaledVector(x, a * size * 0.5).addScaledVector(y, b * size * 0.5).addScaledVector(normal, size * 0.12 * (1 - Math.abs(a * b)));
-      p.push(v.x, v.y, v.z); n.push(normal.x, normal.y, normal.z); c.push(tone.r, tone.g, tone.b);
-      uv.push(((tile % 2) + (a + 1) * 0.5) * 0.5, (Math.floor(tile / 2) + (b + 1) * 0.5) * 0.5);
-    }
-  };
-  for (const P0 of puffs) {
-    const ph = THREE.MathUtils.clamp((P0.c.y - E.cy + E.y) / (2 * E.y), 0, 1), jit = rng.range(-0.06, 0.06);
-    for (let i = 0; i < E.cards; i++) {
-      const a = i * 2.39996 + rng.range(-0.3, 0.3), up = rng.range(-0.25, 1);
-      const nrm = new V3(Math.cos(a) * Math.sqrt(1 - up * up), up, Math.sin(a) * Math.sqrt(1 - up * up)).normalize();
-      const centre = P0.c.clone().addScaledVector(nrm, P0.r * rng.range(0.55, 0.95));
-      // lit by the puff's own roundness and its height in the crown: three hard steps
-      const lit = nrm.dot(sunDir) * 0.5 + ph * 0.45 + jit + 0.12 + E.lift;
-      if (lit > 0.62) col.copy(light); else if (lit > 0.3) col.copy(mid); else col.copy(dark);
-      col.multiplyScalar(rng.range(0.94, 1.05));
-      card(centre, tmp.copy(nrm).lerp(new V3(0, 1, 0), 0.35).normalize(), P0.r * rng.range(1.45, 1.9), rng.range(-3, 3), (i + puffs.indexOf(P0)) % 4, col);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  for (const [key, array, size] of [['position', p, 3], ['normal', n, 3], ['color', c, 3], ['uv', uv, 2]]) g.setAttribute(key, new THREE.Float32BufferAttribute(array, size));
-  g.computeBoundingSphere(); return g;
+  P0.fall.instanceMatrix.needsUpdate = true;
 }
 
 // ---------- ambience: motes in the light, butterflies over the flowers ----------
@@ -511,6 +496,8 @@ function updateAmbience(t) {
 // this scene's colours, measured from the concept: olive-yellow light, deep blue-green shade
 FOL.leaf = ['#2f6a55', '#56913f', '#a6c247']; FOL.shrub = ['#2c6150', '#468040', '#94b545'];
 FOL.trunk = { light: '#c49c76', mid: '#9d7b5d', shadow: '#6f5749', line: '#4a372e' };
+// the cherry in the middle: pale blossom with rose shade, dark grey-brown bark
+const SAKURA = { bloom: ['#b35583', '#ec92b4', '#ffd0df'], trunk: { light: '#9a7f78', mid: '#75605c', shadow: '#54443f', line: '#3d302d' }, petal: ['#ffc4d6', '#f7a9c2', '#ffe4ec'] };
 STONE.splice(0, STONE.length, '#cdb9a6', '#c2b3a3', '#d2c2b0', '#b9ab9c', '#c8b8a6', '#bcae9f');
 MOSS.splice(0, MOSS.length, '#a7c63f', '#93b23a', '#b5c94c');
 // ---------- assemble ----------
@@ -535,11 +522,12 @@ function build() {
     const top = height(x, z) > 1 ? height(x, z) : 0;
     if (top > 1) [x, z] = P(u, v, top);
     broadleaf(x, z, s, seed); treeItems[treeItems.length - 1].h = h;
+    if (u === 0.565) treeItems[treeItems.length - 1].sakura = true;   // the island tree is a cherry in bloom
     COLLIDERS.push({ x, z, r: 0.6 * s }); trunkAt.push([x, z, 1.4 * s]);
   }
   // roots draped over the ledges: the left tree and the big tree on the island
   { const [x, z] = P(0.075, 0.2, H(3.3)); drapeRoots(x, z, H(3.3), [[0.03, 0.47, 1.1], [0.12, 0.47, 0.9], [0.17, 0.38], [0.205, 0.31, 0.8], [0.0, 0.35, 0.8]], 1.3 * TS); }
-  { const [x, z] = P(0.565, 0.31, H(3.7)); drapeRoots(x, z, H(3.7), [[0.6, 0.5, 1.2], [0.645, 0.47, 1.1], [0.675, 0.43], [0.52, 0.52, 0.8], [0.48, 0.5, 0.7], [0.69, 0.38, 0.8]], 1.4 * TS); }
+  { const [x, z] = P(0.565, 0.31, H(3.7)), bark = FOL.trunk; FOL.trunk = SAKURA.trunk; drapeRoots(x, z, H(3.7), [[0.6, 0.5, 1.2], [0.645, 0.47, 1.1], [0.675, 0.43], [0.52, 0.52, 0.8], [0.48, 0.5, 0.7], [0.69, 0.38, 0.8]], 1.4 * TS); FOL.trunk = bark; }   // the cherry's roots in its own bark
   // the arching tree: a thick trunk rising from the right terrace, leaning over the trail and
   // rooting again on the island, with a crown above the arch
   {
@@ -559,15 +547,12 @@ function build() {
       }
       tube(pts, 0, 0, { sides: 7, rf: t => rb * (0.75 + 0.5 * Math.pow(Math.abs(2 * t - 1), 2)) });
     }
-    // buttress roots at each foot: thick, bowing out and down, thinning into the ground
+    // buttress roots at each foot, spreading over the ground and down the cliffs
     for (const end of [0, 1]) {
       const foot = core.getPointAt(end), inner = core.getPointAt(end ? 0.9 : 0.1), back = foot.clone().sub(inner).setY(0).normalize();
       for (let k = 0; k < 6; k++) {
-        const dir = back.clone().applyAxisAngle(new V3(0, 1, 0), -1.9 + k * 0.76 + R(-0.2, 0.2)), reach = R(1.6, 2.8) * a;
-        const s0 = foot.clone().addScaledVector(dir, coreR(end) * 0.6); s0.y += 0.15 * a;
-        const g = foot.clone().addScaledVector(dir, reach); g.y = height(g.x, g.z) - 0.1;
-        const m = foot.clone().addScaledVector(dir, reach * 0.4); m.y = foot.y * 0.6 + g.y * 0.4 + 0.25 * a;
-        tube([inner.clone().lerp(foot, 0.6), s0, m, g], 0, 0, { sides: 7, rf: t => a * (0.34 - 0.27 * t) });
+        const dir = back.clone().applyAxisAngle(new V3(0, 1, 0), -1.9 + k * 0.76 + R(-0.2, 0.2));
+        groundRoot(foot.x + dir.x * coreR(end) * 0.5, foot.z + dir.z * coreR(end) * 0.5, foot.y + 0.5 * a, dir.x, dir.z, R(2.2, 4.0) * a, 0.3 * a);
       }
     }
     // a few thin shoots from the crown of the arch with leaves at their tips, and leaves along the top
@@ -646,22 +631,37 @@ function build() {
     return mesh;
   };
   const sway = (amp, base) => ({ sway: [amp, base] });
-  const leafMat = shrub => paint({ vertexColors: true, map: clumpTexture(shrub), alphaTest: 0.45, side: THREE.DoubleSide, shade: [0.6, 0.7, 0.72], mid: [0.6, 0.7, 0.72], band: [-5, -5], ...sway(shrub ? 0.02 : 0.016, shrub ? 0 : 1.2) });
-  const leafDepth = shrub => new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: clumpTexture(shrub), alphaTest: 0.45 });
-  const trunkGeo = animeTrunk();
-  const trunks = placeAll(new THREE.InstancedMesh(trunkGeo, paint({ vertexColors: true, side: THREE.DoubleSide, shade: [0.62, 0.62, 0.7], mid: [0.62, 0.62, 0.7], band: [-5, -5] }), treeItems.length), treeItems, it => new V3(it.s, it.s * (it.h || 1), it.s));
-  trunks.castShadow = trunks.receiveShadow = true; scene.add(trunks);
-  scene.add(placeAll(new THREE.InstancedMesh(trunkGeo, outlineMat(FOL.trunk.line), treeItems.length), treeItems, it => new V3(it.s * 1.06, it.s * (it.h || 1) * 1.01, it.s * 1.06)));
-  [3, 5, 9].forEach((seed, v) => {
-    const items = [...treeItems.filter(t => t.v === v).map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), ...crownOnly.filter(c => c.v === v)];
+  const leafMat = shrub => paint({ vertexColors: true, map: branchletTexture(shrub), alphaTest: 0.45, side: THREE.DoubleSide, shade: [0.6, 0.7, 0.72], mid: [0.6, 0.7, 0.72], band: [-5, -5], ...sway(shrub ? 0.02 : 0.016, shrub ? 0 : 1.2) });
+  const leafDepth = shrub => new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: branchletTexture(shrub), alphaTest: 0.45 });
+  const trunkMat = paint({ vertexColors: true, side: THREE.DoubleSide, shade: [0.62, 0.62, 0.7], mid: [0.62, 0.62, 0.7], band: [-5, -5] });
+  const addTrunks = (geo, items, line) => {
     if (!items.length) return;
-    const crown = placeAll(new THREE.InstancedMesh(clumpFoliage(seed, false), leafMat(false), items.length), items, it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
+    const t = placeAll(new THREE.InstancedMesh(geo, trunkMat, items.length), items, it => new V3(it.s, it.s * (it.h || 1), it.s));
+    t.castShadow = t.receiveShadow = true; scene.add(t);
+    scene.add(placeAll(new THREE.InstancedMesh(geo, outlineMat(line), items.length), items, it => new V3(it.s * 1.06, it.s * (it.h || 1) * 1.01, it.s * 1.06)));
+  };
+  const green = treeItems.filter(t => !t.sakura), sakura = treeItems.filter(t => t.sakura);
+  addTrunks(animeTrunk(), green, FOL.trunk.line);
+  // the cherry: the game's own trunk and crown, in cherry bark and blossom colours
+  const keep = { leaf: FOL.leaf, trunk: FOL.trunk };
+  FOL.trunk = SAKURA.trunk; addTrunks(animeTrunk(), sakura, SAKURA.trunk.line);
+  FOL.leaf = SAKURA.bloom;
+  const bloom = animeFoliage(9, false);
+  Object.assign(FOL, keep);
+  if (sakura.length) {
+    const c = placeAll(new THREE.InstancedMesh(bloom, leafMat(false), sakura.length), sakura.map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
+    c.customDepthMaterial = leafDepth(false); c.castShadow = c.receiveShadow = true; scene.add(c);
+  }
+  [3, 5, 9].forEach((seed, v) => {
+    const items = [...green.filter(t => t.v === v).map(t => ({ ...t, y: t.y + 3.5 * t.s * (t.h || 1) })), ...crownOnly.filter(c => c.v === v)];
+    if (!items.length) return;
+    const crown = placeAll(new THREE.InstancedMesh(animeFoliage(seed, false), leafMat(false), items.length), items, it => new V3(3.0 * it.s, 2.0 * it.s, 2.7 * it.s));
     crown.customDepthMaterial = leafDepth(false); crown.castShadow = crown.receiveShadow = true; scene.add(crown);
   });
   [11, 13, 19].forEach((seed, v) => {
     const items = shrubItems.filter(t => t.v === v);
     if (!items.length) return;
-    const mesh = placeAll(new THREE.InstancedMesh(clumpFoliage(seed, true), leafMat(true), items.length), items, it => new V3(it.sx, it.sy, it.sz));
+    const mesh = placeAll(new THREE.InstancedMesh(animeFoliage(seed, true), leafMat(true), items.length), items, it => new V3(it.sx, it.sy, it.sz));
     mesh.customDepthMaterial = leafDepth(true); mesh.castShadow = mesh.receiveShadow = true; scene.add(mesh);
   });
   const grass = placeAll(new THREE.InstancedMesh(meadowGrass(), paint({ vertexColors: true, side: THREE.DoubleSide, shade: [0.6, 0.72, 0.68], mid: [0.6, 0.72, 0.68], band: [-5, -5], ...sway(0.15, 0) }), grassItems.length), grassItems, it => new V3(it.s, it.s, it.s));
@@ -673,6 +673,7 @@ function build() {
   scene.add(buildHero());
   loadHeroModel().catch(e => console.error('hero model', e));
   scene.add(buildAmbience());
+  scene.add(buildPetals(sakura));
   setStatus();
 }
 
@@ -730,6 +731,7 @@ function frame() {
   timeU.value = reduce ? 0 : t;
   updateHero(dt, t);
   updateAmbience(t);
+  updatePetals(timeU.value);
   placeCamera();
   renderer.render(scene, camera);
   requestAnimationFrame(frame);

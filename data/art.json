@@ -14,7 +14,9 @@
     "tipLightening": 0.6,
     "groundStrokeShade": 0.8,
     "groundStrokeLight": 0.8,
-    "rootBlendHeight": 0.75
+    "rootBlendHeight": 0.75,
+    "_groundMottle": "share of the darker green mottles painted into the lawn (the beach scene's grass); 0 keeps an even lawn",
+    "groundMottle": 0.5
   },
   "looks": {
     "_doc": "Palette overrides for opt-in looks (?look=<name>, data/rendering.json looks). ground: art.ground.palette keys. anime: art.anime.palette keys (foliage and the meadow tint). groundMix: how much of the anime meadow tint replaces the zone tints outside the sample area (default 0.5).",
@@ -67,8 +69,8 @@
       "shrubShadow": "#215640",
       "shrubMid": "#4a9739",
       "shrubLight": "#b0d952",
-      "groundLight": "#e2f466",
-      "groundDark": "#8fc846",
+      "groundLight": "#c6e658",
+      "groundDark": "#86c040",
       "rock": "#c7c1bc",
       "wood": "#8b6851",
       "plaster": "#f1e3c5",
@@ -715,6 +717,7 @@
     "variants": 6,
     "block": {"chamfer": 0.12, "jitter": 0.16, "extra": 7, "moss": [0.45, 0.6, 0.08, 0.45, 0.3, 0.6]},
     "round": {"chamfer": 0.36, "jitter": 0.08, "extra": 12, "moss": [0.15, 0.2, 0.1, 0.25, 0.2, 0.3]},
+    "bushes": {"_doc": "Bush masses (environment.js): chance of a big bush behind a ledge lip and of one at its foot, chance a tree or boulder gets bushes at its foot, clearance kept from roads (m).", "lipBig": 0.55, "foot": 0.2, "tree": 0.5, "rock": 0.4, "roadClear": 1.6},
     "ledge": {"step": 1.0, "minSlope": 0.95, "flat": 0.45, "minWall": 0.7, "maxUnderwater": 1.2, "twoCourses": 2.3, "width": [1.0, 1.7], "depth": [1.1, 2.2], "overlap": 0.6, "roadClear": 2.0, "fallen": 0.16}
   }
 }

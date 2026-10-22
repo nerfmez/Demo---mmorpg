@@ -422,6 +422,29 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
     bushes.push({ x: bsh.x + 0.5 * bsh.s, z: bsh.z + 0.2, y: y + 0.28 * bsh.s, s: 0.55 * bsh.s, sy: 0.45 * bsh.s, color: '#ecedce' });
     if (bsh.berries) for (let k = 0; k < 5; k++) berries.push({ x: bsh.x + Math.sin(k * 1.3) * 0.5 * bsh.s, z: bsh.z + Math.cos(k * 1.3) * 0.45 * bsh.s, y: y + 0.45 * bsh.s + (k % 2) * 0.12, s: 0.09 });
   }
+  // Bush masses after the beach scene: a grassy lip of bushes along the top of every stone
+  // ledge (some spilling over the stones), a few at its foot, and clumps at the foot of trees and
+  // boulders. Render-only and seeded on their own, so the map's other placement keeps its order.
+  {
+    const B = art.stones.bushes, brng = createRng((world.data.seed || 1) * 17 + 3);
+    const bushAt = (x, z, r, sy = .72) => {
+      if (world.isWater?.(x, z, .2) || world.isSafe?.(x, z) || world.dockAt?.(x, z) || world.onBridge?.(x, z) || (world.roadDist?.(x, z) ?? 99) < B.roadClear) return;
+      const k = r / .62;
+      studyBushes.push({ x, z, y: gy(x, z) - .05, sx: 1.25 * k, sy: 1.05 * k * (sy / .72), sz: 1.1 * k, ry: brng.range(0, 6.28) });
+    };
+    for (const l of ledge.lips) {
+      if (visited++ % 16 === 0) yield;
+      for (let k = 0; k < 2; k++) bushAt(l.x - l.nx * brng.range(.3, .9) + brng.range(-.4, .4), l.z - l.nz * brng.range(.3, .9) + brng.range(-.4, .4), brng.range(.45, .75), .55);
+      if (brng.next() < B.lipBig) { const back = brng.range(.2, 2.2); bushAt(l.x - l.nx * back, l.z - l.nz * back, brng.range(.8, 1.5), .75); }
+      if (brng.next() < B.foot) { const [fx, fz] = l.foot, out = brng.range(.9, 1.7); bushAt(fx + l.nx * out, fz + l.nz * out, brng.range(.7, 1.3), .8); }
+    }
+    for (const c of trees) {
+      if (c.type === 'pine' || brng.next() >= B.tree) continue;
+      if (visited++ % 16 === 0) yield;
+      for (let k = 0, n = brng.int(1, 2); k < n; k++) { const a = brng.range(0, 6.28), r = brng.range(1.2, 2.4) * c.scale; bushAt(c.x + Math.sin(a) * r, c.z + Math.cos(a) * r, brng.range(.6, 1.1), .72); }
+    }
+    for (const it of rocks) if (brng.next() < B.rock) { const a = brng.range(0, 6.28), r = it.s * 1.05 + .3; bushAt(it.x + Math.sin(a) * r, it.z + Math.cos(a) * r, brng.range(.45, .8), .6); }
+  }
   const bushMat=mat('#ffffff',{double:true,wind:.03,windBase:.5});bushMat.map=leafTexture();bushMat.alphaTest=.45;bushMat.forceSinglePass=true;
   root.add(yield* buildInstances(bushGeo,bushMat,bushes.filter(it=>!inArtStudy(it.x,it.z)).map(it=>({...it,ry:0})),{shadow:true}));
   const studyBushMat=animeStudy?animeFoliageMaterial(true):mat('#ffffff',{vertexColors:true,double:true,wind:.025});

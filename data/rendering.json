@@ -9,7 +9,7 @@
         "ambientIntensity": 1.5,
         "sunColor": "#fff1d7",
         "sunIntensity": 1.65,
-        "shadowIntensity": 0.62
+        "shadowIntensity": 0.72
       },
       "cel": {
         "ambientSky": "#dfeeff",
@@ -47,23 +47,23 @@
   "post": {
     "_doc": "Screen grade (src/render/post.js). Tints are display colours; 50% grey is neutral. hazeStart is the screen height (0 bottom, 1 top) where the fog-coloured haze begins.",
     "samples": 4,
-    "exposure": 1.02,
-    "contrast": 1.12,
-    "saturation": 1.18,
-    "glow": 0.4,
+    "exposure": 1.07,
+    "contrast": 1.14,
+    "saturation": 1.12,
+    "glow": 0.24,
     "glowThreshold": 0.72,
     "glowKnee": 0.2,
     "shadowTint": "#6278a8",
-    "shadowTintAmount": 0.3,
+    "shadowTintAmount": 0.22,
     "lightTint": "#cfa676",
-    "lightTintAmount": 0.26,
-    "hazeAmount": 0.2,
+    "lightTintAmount": 0.12,
+    "hazeAmount": 0.06,
     "hazeStart": 0.6,
     "hazeLift": 0.35,
-    "sunWash": 0.22,
+    "sunWash": 0.08,
     "sunWashColor": "#ffd9a0",
     "sunWashPos": [0.05, 1.05],
-    "vignette": 0.28
+    "vignette": 0.16
   },
   "shadow": {"sunOffset": [-14, 26, 10], "normalBias": 0.03, "bias": -0.0008},
   "painted": {"shadowStrength": 0.28, "lightInfluence": 0.12, "referenceEnergy": 3.1},

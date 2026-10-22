@@ -14,33 +14,23 @@
     "tipLightening": 0.6,
     "groundStrokeShade": 0.8,
     "groundStrokeLight": 0.8,
-    "rootBlendHeight": 0.75,
-    "_groundMottle": "share of the darker green mottles painted into the lawn (the beach scene's grass); 0 keeps an even lawn",
-    "groundMottle": 0.5
-  },
-  "looks": {
-    "_doc": "Palette overrides for opt-in looks (?look=<name>, data/rendering.json looks). ground: art.ground.palette keys. anime: art.anime.palette keys (foliage and the meadow tint). groundMix: how much of the anime meadow tint replaces the zone tints outside the sample area (default 0.5).",
-    "frieren": {
-      "groundMix": 0.8,
-      "ground": {"grassOchre": "#b9c45e", "earthShadow": "#b4a488", "earthLight": "#d6c7a7", "dust": "#e6dac0", "mud": "#877f6c", "stoneShadow": "#a9aab2", "stoneLight": "#d2d1cc", "mortar": "#8a8c8e", "rockShadow": "#8d93a0", "rockLight": "#c4c6c4"},
-      "anime": {"leafShadow": "#285548", "leafMid": "#5f9e4a", "leafLight": "#c2db6a", "shrubShadow": "#2c5a4a", "shrubMid": "#68a64e", "shrubLight": "#c8de74", "groundLight": "#a6cf5a", "groundDark": "#5b9440", "rock": "#c2c4c8", "trunkLight": "#b9927a", "trunkMid": "#8a6a5e", "trunkShadow": "#5a4a52"}
-    }
+    "rootBlendHeight": 0.75
   },
   "ground": {
     "palette": {
-      "grassOchre": "#d6e05a",
-      "earthShadow": "#d4ac74",
-      "earthLight": "#f0d090",
-      "dust": "#f2dca4",
-      "mud": "#7d7152",
-      "stoneShadow": "#a6a19f",
-      "stoneLight": "#d0cbc5",
-      "mortar": "#8a857a",
-      "sandShadow": "#dcbc7c",
-      "sandLight": "#f0d494",
-      "sandWet": "#c9a46a",
-      "rockShadow": "#8e8990",
-      "rockLight": "#c4beba",
+      "grassOchre": "#a3af56",
+      "earthShadow": "#ad9667",
+      "earthLight": "#c4ae80",
+      "dust": "#c9b68a",
+      "mud": "#6d7053",
+      "stoneShadow": "#9b9f8c",
+      "stoneLight": "#b8b8a0",
+      "mortar": "#7a8067",
+      "sandShadow": "#e9c785",
+      "sandLight": "#ffeab0",
+      "sandWet": "#c7ae80",
+      "rockShadow": "#7f897c",
+      "rockLight": "#a4ad99",
       "woodShadow": "#98754e",
       "woodLight": "#b69a6d",
       "woodSilver": "#abb199",
@@ -63,15 +53,15 @@
       "maxZ": 38
     },
     "palette": {
-      "leafShadow": "#1f513b",
-      "leafMid": "#3f8a37",
-      "leafLight": "#a3d04a",
-      "shrubShadow": "#215640",
-      "shrubMid": "#4a9739",
-      "shrubLight": "#b0d952",
-      "groundLight": "#c6e658",
-      "groundDark": "#86c040",
-      "rock": "#c7c1bc",
+      "leafShadow": "#315e45",
+      "leafMid": "#649347",
+      "leafLight": "#a4bf65",
+      "shrubShadow": "#345f48",
+      "shrubMid": "#6c9c51",
+      "shrubLight": "#afc875",
+      "groundLight": "#a1b861",
+      "groundDark": "#657f3f",
+      "rock": "#abb4b4",
       "wood": "#8b6851",
       "plaster": "#f1e3c5",
       "trunkLight": "#bf9677",
@@ -163,8 +153,6 @@
         0.18
       ]
     ],
-    "_groundMix": "How much of palette.groundLight/groundDark replaces each zone's own palette (0 keeps the zone tints, 1 is one shared green); a look may override it.",
-    "groundMix": 0.65,
     "treeCardsPerSpray": 18,
     "shrubCardsPerSpray": 13,
     "treeCardSize": [
@@ -706,43 +694,5 @@
       "plateTilt": 0.025, "ridgeLength": [0.9, 2.2] },
     "pier": { "plankDepth": 0.32, "plankThickness": 0.1, "plankGap": 0.03, "plankEndJitter": [-0.12, 0.09], "plankYaw": 0.014,
       "plankLift": 0.012, "plankTilt": 0.012, "pileLean": 0.045, "pileSpacing": 3.4 }
-  },
-  "stones": {
-    "_doc": "Grey faceted stones and the stone ledges laid along cliffs (src/render/ledges.js), after the approved beach scene. palette: stone greys per variant; moss: colours on upward faces. block/round: chamfer, jitter, extra face points and the moss share per variant. ledge: grid step and the steepness (gradient) that starts a ledge, the gradient counted as flat ground at the lip and foot, the shortest wall that gets stones, how far under the water level a foot may lie, the wall height that takes two courses, block width/depth ranges in metres, spacing as a share of the width, the clearance kept from roads and the chance of a fallen stone at the foot.",
-    "palette": ["#cbc6c2", "#bfbab8", "#d2ccc6", "#b6b1b2", "#c7c1bc", "#bcb7b0"],
-    "moss": ["#a2c64a", "#b4d152", "#8fb843"],
-    "outline": "#5f5a63",
-    "blockOutline": 0.022,
-    "boulderOutline": 0.019,
-    "variants": 6,
-    "block": {"chamfer": 0.12, "jitter": 0.16, "extra": 7, "moss": [0.45, 0.6, 0.08, 0.45, 0.3, 0.6]},
-    "round": {"chamfer": 0.36, "jitter": 0.08, "extra": 12, "moss": [0.15, 0.2, 0.1, 0.25, 0.2, 0.3]},
-    "bushes": {"_doc": "Bush masses (environment.js): chance of a big bush behind a ledge lip and of one at its foot, chance a tree or boulder gets bushes at its foot, clearance kept from roads (m).", "lipBig": 0.55, "foot": 0.2, "tree": 0.5, "rock": 0.4, "roadClear": 1.6},
-    "ledge": {"step": 1.0, "minSlope": 0.95, "flat": 0.45, "minWall": 0.7, "maxUnderwater": 1.2, "twoCourses": 2.3, "width": [1.0, 1.7], "depth": [1.1, 2.2], "overlap": 0.6, "roadClear": 2.0, "fallen": 0.16}
-  },
-  "waypointRuin": {
-    "_doc": "Waypoints (src/render/waypoint-ruin.js), after the approved beach scene: a heap of carved blocks inside a broken stone ring until unlocked, then the blocks rebuild themselves into the pillar. assemble: seconds for the whole rebuild; colours of the light in the carvings/seams, the rune circle on the ground, the ribbons and motes; motes: how many drift up the pillar.",
-    "assemble": 4.0,
-    "glow": "#5fe6ff",
-    "carveGlow": "#86f2ff",
-    "carve": "#5d596a",
-    "rune": "#3cc9ff",
-    "ribbon": "#5fe3ff",
-    "mote": "#a6f6ff",
-    "dust": "#f4e2b8",
-    "motes": 40,
-    "ringRadius": 2.1
-  },
-  "ambience": {
-    "_doc": "Gulls and butterflies (src/render/ambience.js), after the approved beach scene: how many of each, gull colour, its wingtip grey and its ground shadow colour (the shadow follows rendering.json shadow.sunOffset), gull height above the ground, and the zones where each appears.",
-    "gulls": 3,
-    "gullColor": "#f6f4ee",
-    "gullTip": "#8e949c",
-    "gullShadow": "#5a4a36",
-    "gullHeight": 4.5,
-    "gullZones": ["coast", "landing", "headland"],
-    "butterflies": 6,
-    "butterflyColors": ["#fff3a8", "#ffffff", "#ffd27a", "#bfe3ff", "#ffc2d6", "#fff3a8"],
-    "butterflyZones": ["meadow", "glade", "fern_rise", "mirror_pond", "stone_ring"]
   }
 }

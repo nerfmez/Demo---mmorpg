@@ -21,26 +21,12 @@ void main() {
 }`;
 
 const COMPOSITE_FRAG = `uniform sampler2D tScene, tGlow; uniform vec2 uGlowTexel;
-#ifdef OUTLINE
-// Cel outline from depth: the second difference of linear depth is ~0 on any flat or sloped
-// surface and spikes where a nearer object ends against what is behind it.
-uniform sampler2D tDepth; uniform vec2 uOutTexel; uniform float uNear, uFar, uOutStrength, uOutThreshold; uniform vec3 uOutColor;
-float linDepth(vec2 uv) { float ndc = texture2D(tDepth, uv).x * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - ndc * (uFar - uNear)); }
-#endif
 uniform float uExposure, uContrast, uSaturation, uGlow, uShadowAmt, uLightAmt, uHazeAmt, uHazeStart, uVignette, uTime;
 uniform vec3 uShadowTint, uLightTint, uHaze, uSun; uniform vec2 uSunPos; uniform float uSunAmt, uAspect;
 varying vec2 vUv;
 vec3 toSRGB(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
 void main() {
   vec3 c = texture2D(tScene, vUv).rgb * uExposure;
-#ifdef OUTLINE
-  float d0 = linDepth(vUv);
-  float lx = linDepth(vUv + vec2(uOutTexel.x, 0.0)) + linDepth(vUv - vec2(uOutTexel.x, 0.0)) - 2.0 * d0;
-  float ly = linDepth(vUv + vec2(0.0, uOutTexel.y)) + linDepth(vUv - vec2(0.0, uOutTexel.y)) - 2.0 * d0;
-  float edge = smoothstep(uOutThreshold, uOutThreshold * 2.5, max(lx, ly) / d0);
-  // a darker line of the same hue, cooled slightly toward the outline colour (never flat black)
-  c = mix(c, c * 0.3 + uOutColor * 0.06, edge * uOutStrength);
-#endif
   // glow: a 9-tap tent over the quarter-size bright pass (a wide, soft halo)
   vec3 g = texture2D(tGlow, vUv).rgb * 0.25;
   g += (texture2D(tGlow, vUv + uGlowTexel * vec2(1.5, 0.0)).rgb + texture2D(tGlow, vUv - uGlowTexel * vec2(1.5, 0.0)).rgb
@@ -87,8 +73,6 @@ export class PostFX {
     const isGL2 = renderer.capabilities?.isWebGL2 !== false;
     // the canvas's native AA does not apply inside a target: multisample it instead
     this.scene = new THREE.WebGLRenderTarget(1, 1, { samples: isGL2 ? cfg.samples ?? 4 : 0, colorSpace: THREE.SRGBColorSpace });
-    // the cel outline reads the scene's depth; without it no depth texture is allocated
-    if (cfg.outline) this.scene.depthTexture = new THREE.DepthTexture(1, 1);
     this.glow = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false }); // 8-bit: the bright pass never exceeds 1, and every iPad can render to it
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this.geometry = tri();
@@ -108,12 +92,7 @@ export class PostFX {
         uHaze: { value: new THREE.Color(1, 1, 1) }, uHazeAmt: { value: cfg.hazeAmount }, uHazeStart: { value: cfg.hazeStart },
         uSun: { value: col(cfg.sunWashColor) }, uSunAmt: { value: cfg.sunWash }, uSunPos: { value: new THREE.Vector2(...cfg.sunWashPos) }, uAspect: { value: 1 },
         uVignette: { value: cfg.vignette }, uTime: { value: 0 },
-        ...(cfg.outline ? {
-          tDepth: { value: this.scene.depthTexture }, uOutTexel: { value: new THREE.Vector2() }, uNear: { value: 0.5 }, uFar: { value: 220 },
-          uOutStrength: { value: cfg.outline.strength }, uOutThreshold: { value: cfg.outline.depthThreshold }, uOutColor: { value: col(cfg.outline.color) },
-        } : {}),
       },
-      defines: cfg.outline ? { OUTLINE: '' } : {},
     });
     this.quad = new THREE.Mesh(this.geometry, this.glowMat);
     this.quad.frustumCulled = false;
@@ -134,8 +113,6 @@ export class PostFX {
     this.glowMat.uniforms.uTexel.value.set(1 / width, 1 / height);
     this.compositeMat.uniforms.uGlowTexel.value.set(1 / gw, 1 / gh);
     this.compositeMat.uniforms.uAspect.value = width / height;
-    // outline width is authored for an 820 px tall view, so it keeps its weight on retina screens
-    if (this.cfg.outline) { const px = this.cfg.outline.width * Math.max(1, height / 820); this.compositeMat.uniforms.uOutTexel.value.set(px / width, px / height); }
     return true;
   }
 
@@ -154,14 +131,12 @@ export class PostFX {
     r.setRenderTarget(this.glow);
     r.render(this.quadScene, this.camera);
     this.compositeMat.uniforms.uTime.value = time % 100;
-    if (this.cfg.outline) { this.compositeMat.uniforms.uNear.value = camera.near; this.compositeMat.uniforms.uFar.value = camera.far; }
     this.quad.material = this.compositeMat;
     r.setRenderTarget(prev);
     r.render(this.quadScene, this.camera);
   }
 
   dispose() {
-    this.scene.depthTexture?.dispose();
     this.scene.dispose();
     this.glow.dispose();
     this.glowMat.dispose();

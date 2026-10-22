@@ -1061,9 +1061,13 @@ export class Vfx {
   }
 
   waypointUnlock(x, z) {
-    // the stone itself lights its rune circle and rebuilds (waypoint-ruin.js); a burst of sparks
-    // marks the moment it wakes
     const y = this.gy(x, z);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1.2, 8, 20, 1, true), additive(0x8fe8ff, 0.55));
+    m.position.set(x, y + 4, z);
+    this.spawn(m, 1.4, (t) => {
+      m.material.opacity = 0.55 * (1 - t);
+      m.scale.set(1 + t, 1, 1 + t);
+    });
     for (let i = 0; i < 36; i++) {
       const a = Math.random() * Math.PI * 2;
       this.fx.add(x + Math.sin(a) * 1.2, y + 0.3, z + Math.cos(a) * 1.2, 0, 3 + Math.random() * 3, 0, { color: 0xa8f0ff, size: 0.28, life: 1.1, drag: 1 });

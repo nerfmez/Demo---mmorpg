@@ -79,6 +79,15 @@ Done:
    between them), the back trees hide part of the ruins row, and the foreground rocks are too
    round.
 
+## Status (owner's verdict)
+- Beach (`beach/`): approved. Forest (`forest/`): approved ("ผ่าน").
+- Ruins (`ruins/`): rebuilt, waiting for the owner's verdict on the layout.
+- More concepts to build the same way: 19 zone concepts at the 40-degree camera on branch
+  `docs/landscape-concepts-40deg-20261022`, folder `docs/reference/landscapes-40deg-20261022/`.
+- The in-game restyle that was on this branch (palette, water, ledges, waypoint ruin, ambience)
+  was never requested. It was taken off this branch so that only the scenes go into the
+  project. It is still in history: the commits before `a65c073`, for example `5380c2a`.
+
 Owner preferences learnt so far: everything must be portable into the game (reuse the game's
 foliage and models, only recolour); judge composition and layout first, never just tone; round grey
 stones; cliffs are rock faces with grass growing on them, never stones set in a row; more room to walk; big trees; check against the concept side by side before showing.

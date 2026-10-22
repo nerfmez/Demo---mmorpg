@@ -16,7 +16,7 @@ import { disposeObject } from './dispose.js';
 import { Vfx, glowTexture } from './vfx.js';
 import { toon, seeUniforms } from './toon.js';
 import { timeUniform } from './patch.js';
-import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality, look, postConfig } from './settings.js';
+import { renderConfig, qualitySettings, lightingSettings, applyShadowQuality } from './settings.js';
 import { PostFX } from './post.js';
 import { syncPaintedLighting } from './painted.js';
 import { makeDecal, conform } from './decal.js';
@@ -29,15 +29,8 @@ import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibili
 import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
-import { updateWaypointRuin } from './waypoint-ruin.js';
-import { Ambience } from './ambience.js';
 
-// Camera tilt above the horizon, owner-chosen 40 degrees (was 54.6): the same distance from the hero
-// (?pitch=<degrees> overrides it for comparison), low enough that trees and buildings stand up as frames.
-const CAM_DISTANCE = 23.3, CAM_PITCH = 40;
-const pitchParam = typeof location !== 'undefined' ? parseFloat(new URLSearchParams(location.search).get('pitch')) : NaN;
-const camAngle = (pitchParam >= 15 && pitchParam <= 80 ? pitchParam : CAM_PITCH) * Math.PI / 180;
-const CAM_OFFSET = new THREE.Vector3(0, CAM_DISTANCE * Math.sin(camAngle), CAM_DISTANCE * Math.cos(camAngle));
+const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
 // past STREAM_OUT, and spend at most STREAM_BUDGET_MS of each frame on the build.
 const STREAM_IN = 140, STREAM_OUT = 200, STREAM_BUDGET_MS = 6; // monsters farther than this have no model (level of detail)
@@ -80,7 +73,7 @@ export class View {
     this.shake = 0;
     this.time = 0;
 
-    const light = lightingSettings(look ? look.lighting : animeStudy ? renderConfig.lighting.active : 'legacy');
+    const light = lightingSettings(animeStudy ? renderConfig.lighting.active : 'legacy');
     this.lightingProfile = light.name;
     this.hemisphere = new THREE.HemisphereLight(light.ambientSky, light.ambientGround, light.ambientIntensity);
     this.scene.add(this.hemisphere);
@@ -102,7 +95,6 @@ export class View {
 
     this.vfx = new Vfx(this.scene, world);
     this.frontierFx=new FrontierFx(this.scene,world);
-    this.ambience = new Ambience(this.scene); // gulls over the coast, butterflies over meadows
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
@@ -446,7 +438,7 @@ export class View {
       this.post = null;
       return;
     }
-    this.post ||= new PostFX(this.renderer, postConfig());
+    this.post ||= new PostFX(this.renderer, renderConfig.post);
     const size = this.renderer.getDrawingBufferSize(this._postSize ||= new THREE.Vector2());
     this.post.setSize(size.x, size.y);
   }
@@ -950,13 +942,17 @@ export class View {
       this.vfx.syncAreas(g, dt, time);
       this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);
-      // waypoint stones rebuild themselves once discovered
+      // waypoint stones glow once discovered
       for (const [key, stone] of this.waypointStones) {
         stone.visible = visibility.intersectsObject(stone, 5, 1.5);
         if (!stone.visible) continue;
         const id = stone.userData.waypointId ?? key;
-        // a heap of carved blocks until unlocked; then it rebuilds itself into the pillar
-        updateWaypointRuin(stone, !!g.isWaypointUnlocked?.(id, stone.userData.worldId), dt, time);
+        const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
+        const c = stone.userData.crystal;
+        c.material.emissive.set(on ? '#3fb8e8' : '#223344');
+        c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
+        c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
+        c.rotation.y = on ? time : 0;
       }
       // target ring
       const t = g.target;
@@ -1010,8 +1006,6 @@ export class View {
       this.vfx.shake = 0;
     }
     this.ambient(dt, focus.x, focus.z, zoneId);
-    this.ambience.root.visible = this.mode === 'game';
-    if (this.mode === 'game') this.ambience.update(dt, time, focus.x, focus.z, this._ambienceGround ||= (x, z) => this.groundAt(x, z), zoneId);
     // zone-tinted fog/sky
     const target = (this._zoneFogTarget ||= new THREE.Color()).set(world.zoneById(zoneId)?.fog || ZONE_FOG[zoneId] || ZONE_FOG.meadow);
     this.fogColor.lerp(target, 1 - Math.exp(-dt * 1.5));

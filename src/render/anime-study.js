@@ -6,12 +6,11 @@ import { createRng } from '../core/rng.js';
 import { patchMaterial } from './patch.js';
 import { receivePaintedShadow } from './painted.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { artLook } from './settings.js';
 
 // On by default; ?art=baseline restores the previous look for comparison.
 export const animeStudy = typeof location === 'undefined' || new URLSearchParams(location.search).get('art') !== 'baseline';
 export const artReviewLayout = typeof location !== 'undefined' && ['anime','baseline'].includes(new URLSearchParams(location.search).get('art'));
-export const animeConfig = artLook?.anime ? { ...art.anime, palette: { ...art.anime.palette, ...artLook.anime } } : art.anime;
+export const animeConfig = art.anime;
 
 const foliageLightDirection=new THREE.Vector3(-.5,1,.25).normalize();
 function foliageColor(point, normal, shrub, colors, result) {

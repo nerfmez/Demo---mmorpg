@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import {createRng} from '../../src/core/rng.js';
 const art=JSON.parse(readFileSync(new URL('../../data/art.json',import.meta.url),'utf8'));
 const source=readFileSync(new URL('../../src/render/anime-study.js',import.meta.url),'utf8');
-const make=s=>Function('THREE','art','createRng','artLook',s.replace(/^import[^\n]+\n/gm,'').replace(/\bexport /g,'')+'\nreturn animeFoliage;')(THREE,art,createRng,null);
+const make=s=>Function('THREE','art','createRng',s.replace(/^import[^\n]+\n/gm,'').replace(/\bexport /g,'')+'\nreturn animeFoliage;')(THREE,art,createRng);
 // The previous vertex colour calculation, with its original arithmetic/order.
 const oldColor=`function foliageColor(point,normal,shrub){const prefix=shrub?'shrub':'leaf',palette=animeConfig.palette;
  const dark=new THREE.Color(palette[prefix+'Shadow']),mid=new THREE.Color(palette[prefix+'Mid']),light=new THREE.Color(palette[prefix+'Light']);

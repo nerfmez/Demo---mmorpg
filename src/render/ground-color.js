@@ -2,10 +2,9 @@
 import * as THREE from 'three';
 import art from '../../data/art.json' with {type:'json'};
 import { NOISE_GLSL, MEADOW_FIELD_GLSL, GROUND_FIELD_GLSL } from './ground-field.js';
-import { artLook } from './settings.js';
 export { NOISE_GLSL } from './ground-field.js';
 const rgb=hex=>{const c=new THREE.Color(hex);return `vec3(${[c.r,c.g,c.b].map(v=>v.toFixed(5)).join(',')})`;};
-const p={...art.ground.palette,...artLook?.ground};
+const p=art.ground.palette;
 // how strongly the brush atlas's leaf strokes darken/lighten the ground (kept low: the ground is
 // mottled lawn, the standing clumps in grass.js are the grass)
 const blade=art.grass;
@@ -136,9 +135,6 @@ vec3 groundColor(vec2 w,float y,vec3 tintL,vec3 tintD,vec4 splat,vec2 coast,floa
   vec2 meadow=F0.xy;
   float mid=vnoise(w*1.30+3.0),fine=vnoise(w*5.2),broad=F0.z;
   vec3 grass=lawnTone(F0,F2,tintL,tintD,town);
-  // darker green mottles, as in the beach scene's painted grass (kept off mown town lawns)
-  float mottle=smoothstep(.56,.74,vnoise(w*.42+31.0)*.7+vnoise(w*1.3+7.0)*.3);
-  grass=mix(grass,grass*vec3(.70,.80,.66),mottle*(1.0-town)*${f(blade.groundMottle??0)});
   vec3 brush=groundBrush(w);
   grass*=.88+brush.r*.26;
   float planted=(.32+smoothstep(.12,.65,meadow.x)*.68)*(1.0-town*.45);

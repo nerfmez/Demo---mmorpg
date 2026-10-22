@@ -7,6 +7,7 @@ import { mulberry32, clamp01, NOISE, BILLBOARD_VS } from './fx-common.js';
 const SPREAD = 0.38, MELT0 = 1.25, MELT1 = 2.15, END = 2.4, CHIPS = 260;
 
 const frostFS = `varying vec2 vP; uniform float uR; uniform float uMelt; uniform float uEdgeGlow; uniform float uS; ${NOISE}
+  uniform float uElem; vec3 retint(vec3 c){ if(uElem<0.5) return c; float l=dot(c,vec3(0.3,0.59,0.11)); vec3 lo=uElem<1.5?vec3(0.72,0.16,0.04):vec3(0.2,0.42,0.08); vec3 hi=uElem<1.5?vec3(1.0,0.88,0.55):vec3(0.8,1.0,0.5); return mix(lo,hi,smoothstep(0.3,1.0,l)); }
   void main(){
     vec2 q = vP / uS;
     float r=length(q); vec2 dir=q/max(r,1e-3);
@@ -27,14 +28,15 @@ const frostFS = `varying vec2 vP; uniform float uR; uniform float uMelt; uniform
     c = mix(c, vec3(0.96,0.99,1.0), smoothstep(0.68, 0.76, k));
     float a = mix(mix(0.38, 0.75, smoothstep(0.38, 0.46, k)), 0.95, smoothstep(0.68, 0.76, k));
     a *= smoothstep(edge, edge - 0.3, r);
-    gl_FragColor = vec4(c, a); }`;
+    gl_FragColor = vec4(retint(c), a); }`;
 const mistFS = `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE}
+  uniform float uElem; vec3 retint(vec3 c){ if(uElem<0.5) return c; float l=dot(c,vec3(0.3,0.59,0.11)); vec3 lo=uElem<1.5?vec3(0.72,0.16,0.04):vec3(0.2,0.42,0.08); vec3 hi=uElem<1.5?vec3(1.0,0.88,0.55):vec3(0.8,1.0,0.5); return mix(lo,hi,smoothstep(0.3,1.0,l)); }
   void main(){ vec2 p=vUv; float r=length(p);
     float n = fbm(p*1.6 + uSeed + vec2(uT*0.8, -uT*0.5));
     float body = n*1.25 - r*0.95 - uT*0.55;
     if (body < 0.05) discard;
     vec3 c = body > 0.3 ? vec3(0.96,0.99,1.0) : vec3(0.72,0.88,0.98);
-    gl_FragColor = vec4(c, body > 0.3 ? 0.8 : 0.5); }`;
+    gl_FragColor = vec4(retint(c), body > 0.3 ? 0.8 : 0.5); }`;
 
 function crystalGeo(seed) {
   const r = mulberry32(seed), n = 6, pos = [], bar = [];
@@ -69,13 +71,17 @@ export class FrostFx {
   constructor(scene, camera) {
     this.scene = scene; this.camera = camera;
     this.geos = Array.from({ length: 8 }, (_, i) => crystalGeo(40 + i));
+    // Fire/Poison Shift keep the nova's shapes and recolour them (0 cold, 1 fire, 2 poison)
+    this.elem = { value: 0 };
     this.iceMat = new THREE.ShaderMaterial({
+      uniforms: { uElem: this.elem },
       vertexShader: `attribute vec3 bary; varying vec3 vB; varying vec3 vN; varying vec3 vV; varying float vY; varying vec3 vP;
         void main(){ vB=bary; vY=position.y; vP=position;
           vec4 w = modelMatrix*vec4(position,1.0);
           vN = normalize(mat3(modelMatrix)*normal); vV = normalize(cameraPosition - w.xyz);
           gl_Position = projectionMatrix*viewMatrix*w; }`,
       fragmentShader: `varying vec3 vB; varying vec3 vN; varying vec3 vV; varying float vY; varying vec3 vP;
+        uniform float uElem; vec3 retint(vec3 c){ if(uElem<0.5) return c; float l=dot(c,vec3(0.3,0.59,0.11)); vec3 lo=uElem<1.5?vec3(0.72,0.16,0.04):vec3(0.2,0.42,0.08); vec3 hi=uElem<1.5?vec3(1.0,0.88,0.55):vec3(0.8,1.0,0.5); return mix(lo,hi,smoothstep(0.3,1.0,l)); }
         void main(){
           vec3 N = normalize(vN); if(!gl_FrontFacing) N = -N;
           vec3 L = normalize(vec3(-0.35, 0.8, 0.5));
@@ -93,7 +99,7 @@ export class FrostFx {
           c = mix(c, vec3(0.93,0.99,1.0), (1.0 - smoothstep(0.0, 0.07, e)) * 0.45);
           float rim = 1.0 - max(dot(N, normalize(vV)), 0.0);
           c = mix(c, vec3(0.9,0.98,1.0), smoothstep(0.5, 0.95, rim) * 0.55);
-          gl_FragColor = vec4(c, 0.88); }`,
+          gl_FragColor = vec4(retint(c), 0.88); }`,
       transparent: true,
     });
     this.rimMat = new THREE.MeshBasicMaterial({ color: '#7dbde6', side: THREE.BackSide, transparent: true, opacity: 0.55, depthWrite: false });
@@ -103,18 +109,25 @@ export class FrostFx {
     this.light = new THREE.PointLight('#bfe9ff', 0, 7, 1.6); scene.add(this.light);
     this.novas = []; this.chips = []; this.rnd = mulberry32(5); this.time = 0; this.o = new THREE.Object3D();
   }
+  setElement(element) {
+    const k = element === 'fire' ? 1 : element === 'poison' ? 2 : 0;
+    if (k === this.elem.value) return;
+    this.elem.value = k;
+    const [rim, chip, glow, light] = [['#7dbde6', '#d8f3ff', '#25506f', '#bfe9ff'], ['#e8743a', '#ffd9a0', '#6f2a10', '#ffb070'], ['#7fbf4a', '#e2ffb8', '#2d5a14', '#c8ff9a']][k];
+    this.rimMat.color.set(rim); this.chipMesh.material.color.set(chip); this.chipMesh.material.emissive.set(glow); this.light.color.set(light);
+  }
   makeNova(x, z, radius, strength) {
     const r = this.rnd;
     const root = new THREE.Group(); root.position.set(x, 0, z); this.scene.add(root);
     const S = radius / 4.2;
-    const mat = new THREE.ShaderMaterial({ uniforms: { uR: { value: 0 }, uMelt: { value: 0 }, uEdgeGlow: { value: 1 }, uS: { value: S } },
+    const mat = new THREE.ShaderMaterial({ uniforms: { uR: { value: 0 }, uMelt: { value: 0 }, uEdgeGlow: { value: 1 }, uS: { value: S }, uElem: this.elem },
       vertexShader: `varying vec2 vP; uniform float uS; void main(){ vP=(uv*2.0-1.0)*6.0*uS; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
       fragmentShader: frostFS, transparent: true, depthWrite: false });
     const frost = new THREE.Mesh(new THREE.PlaneGeometry(12 * S, 12 * S), mat);
     frost.rotation.x = -Math.PI / 2; frost.position.y = 0.012 + this.novas.length * 0.002; frost.renderOrder = 1; root.add(frost);
     const mists = [];
     for (let i = 0; i < 18; i++) {
-      const m = new THREE.Mesh(this.quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: r() * 50 } }, vertexShader: BILLBOARD_VS, fragmentShader: mistFS, transparent: true, depthWrite: false }));
+      const m = new THREE.Mesh(this.quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: r() * 50 }, uElem: this.elem }, vertexShader: BILLBOARD_VS, fragmentShader: mistFS, transparent: true, depthWrite: false }));
       m.renderOrder = 4; m.visible = false; root.add(m);
       mists.push({ m, a: (i / 18) * 6.283 + (r() - 0.5) * 0.3, reach: 0.75 + r() * 0.3, size: (0.9 + r() * 0.8) * Math.max(0.7, S), delay: r() * 0.06, life: 0.55 + r() * 0.3, lift: 0.2 + r() * 0.5 });
     }

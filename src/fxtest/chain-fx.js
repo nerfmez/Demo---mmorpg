@@ -13,6 +13,10 @@ const coreFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
 const glowFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); float a=pow(1.0-d,3.0)*0.5; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
 const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+// spark streaks reuse these (Ribbon.strip copies the points at once)
+const sparkPts = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+let sparkW = 0, sparkU = 0;
+const sparkGlowW = () => sparkW * 2.2, sparkCoreW = (x) => sparkW * x * (1 - sparkU * 0.6);
 
 // angular lightning: few straight segments, hard kinks, uneven spacing
 function zig(a, b, seed, amp, segs, out, wout) {
@@ -186,10 +190,12 @@ export class ChainFx {
     const glowC = this.casts[0]?.look.glow || this.charge?.look.glow || [0.3, 0.6, 1];
     for (const s of this.sparks) {
       const u = s.life / s.max;
-      tmpA.copy(s.p).addScaledVector(s.v, -0.03);
-      const pts = [tmpA.clone(), s.p.clone().lerp(tmpA, 0.5), s.p.clone()];
-      this.glow.strip(pts, () => s.w * 2.2, 0.6 * (1 - u), glowC);
-      this.core.strip(pts, (x) => s.w * x * (1 - u * 0.6), 1 - u * u, s.tint);
+      sparkPts[0].copy(s.p).addScaledVector(s.v, -0.03);
+      sparkPts[1].copy(s.p).lerp(sparkPts[0], 0.5);
+      sparkPts[2].copy(s.p);
+      sparkW = s.w; sparkU = u;
+      this.glow.strip(sparkPts, sparkGlowW, 0.6 * (1 - u), glowC);
+      this.core.strip(sparkPts, sparkCoreW, 1 - u * u, s.tint);
     }
     for (let i = flashI; i < FLASHES; i++) this.flashes[i].visible = false;
     for (let i = lightI; i < LIGHTS; i++) this.lights[i].intensity = 0;

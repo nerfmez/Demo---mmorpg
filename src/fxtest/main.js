@@ -104,7 +104,7 @@ let hero = null, heroAnim = null, heroWeapon = 'staff';
 function buildHero(weapon = heroWeapon) {
   heroWeapon = weapon;
   const action = heroAnim?.action || null;
-  if (hero) hero.root.removeFromParent();
+  if (hero) disposeObject(hero.root); // frees the old rig's geometry, materials and skeleton
   hero = buildHumanoid(DEFAULT_LOOK, { weapon, armor: 'tunic', helm: null, offhand: null, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action = action;
@@ -235,7 +235,7 @@ function drain() {
           if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
         }
         if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
-        if (e.kind === 'nova') frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius);
+        if (e.kind === 'nova') { frostFx.setElement(s.element); frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius); }
         break;
       case 'channelStart': heroAnim.play(e.skill, e.total + 0.28, 'staff', 0, e.total, 'channel_cone'); flameFx.begin(s, s.element); break;
       case 'channelPulse': flameFx.pulse(e); break;
@@ -250,6 +250,7 @@ function drain() {
         const targets = game.monsters.filter((m) => Math.hypot(m.x - e.x, m.z - e.z) - m.r <= e.radius).map((m) => ({ x: m.x, z: m.z }));
         const echo = simTime - lastNovaAt < 1.2 && !frostFx.pendingCharge;
         lastNovaAt = simTime;
+        frostFx.setElement(e.element);
         frostFx.burst(e.x, e.z, e.radius, targets, echo ? 0.7 : 1);
         if (echo) showBanner('สะท้อนซ้ำ!');
         break;

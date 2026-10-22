@@ -65,12 +65,18 @@ These are browser simulations, not physical iPad or frame-rate measurements.
 - The prior CI HUD comparison failed because it normalized `img.src` but not
   the new responsive `source.srcset`. Both relative URLs are now normalized;
   image identity comparisons and fit assertions remain enforced.
+- The existing identity-image check selected a hidden ingredient in the new
+  recipe list. Its ingredient checks and capture now target the visible
+  `.pg-craft-detail` column, keeping the image/name checks against the actual UI.
+  The corrected check passed locally in Chromium for desktop and iPad, covering
+  map/boss portraits, material details, crafting costs and quest labels.
 - A local dedicated HUD run timed out during initial world startup (60s),
   before reaching its assertions. The focused actual-consumer capture above
   completed successfully; no host or unrelated game changes were made.
-- WebKit host libraries are unavailable locally. The previous artwork-only
-  head's Chromium/WebKit icon checks passed; the clean UI follow-up still
-  requires its own repository CI checks before publication.
+- WebKit host libraries are unavailable locally. The clean-UI artwork head
+  `17c5b01` passed the Chromium and WebKit icon checks, including all 31 full-slot
+  viewports. The identity-test compatibility follow-up still requires its own
+  complete repository CI result before publication.
 
 Direct source tracing covered the shared art resolver, combat/movement input,
 loadout workspace and crafting consumers, asset export, manifest and affected

@@ -1,0 +1,72 @@
+{
+  "source": "6f3a7c237dc5323c7b94b2bdb3d7cd647c04d281",
+  "sampleMetres": 2,
+  "runtimeNavigationTested": false,
+  "features": [
+    {
+      "id": "A1",
+      "sampledProposedAreaM2": 384,
+      "maskedAreaM2": 872
+    },
+    {
+      "id": "A2",
+      "sampledProposedAreaM2": 420,
+      "maskedAreaM2": 232
+    },
+    {
+      "id": "A3",
+      "sampledProposedAreaM2": 164,
+      "maskedAreaM2": 852
+    },
+    {
+      "id": "A4",
+      "sampledProposedAreaM2": 504,
+      "maskedAreaM2": 312
+    },
+    {
+      "id": "F1",
+      "sampledProposedAreaM2": 1376,
+      "maskedAreaM2": 496
+    },
+    {
+      "id": "F2",
+      "sampledProposedAreaM2": 2952,
+      "maskedAreaM2": 0
+    },
+    {
+      "id": "F3",
+      "sampledProposedAreaM2": 292,
+      "maskedAreaM2": 60
+    },
+    {
+      "id": "F4",
+      "sampledProposedAreaM2": 1016,
+      "maskedAreaM2": 96
+    },
+    {
+      "id": "F5",
+      "sampledProposedAreaM2": 860,
+      "maskedAreaM2": 152
+    },
+    {
+      "id": "F6",
+      "sampledProposedAreaM2": 892,
+      "maskedAreaM2": 0
+    },
+    {
+      "id": "M1",
+      "sampledProposedAreaM2": 884,
+      "maskedAreaM2": 116
+    },
+    {
+      "id": "M2",
+      "sampledProposedAreaM2": 968,
+      "maskedAreaM2": 40
+    },
+    {
+      "id": "M3",
+      "sampledProposedAreaM2": 1240,
+      "maskedAreaM2": 0
+    }
+  ]
+}

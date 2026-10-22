@@ -62,26 +62,22 @@ Done:
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.
-3. Ruins scene: built (forest approved by the owner). Build it with
-   `python3 scenes/ruins/assemble.py && python3 scenes/ruins/buildpage.py`.
-   - `ruins/scene.js` is a copy of the forest scene with its own layout. The upper level
-     (plaza and ruins) sits behind a rock cliff; on the left the cliff turns back toward the
-     ruins along the owner's red line, so the far left stays low.
-   - A paved ramp climbs to the plaza, with masonry along its sides.
-   - The ruins are built from `pillar`, `wallRun`, `archway` and `plaza`, using big worn
-     blocks. Some walls and pillars are single slabs (owner: not so clearly cut into blocks).
-   - Owner round 2 ("not the reference's mood"): ivy down walls and pillars, more bushes and
-     yellow flowers, big trees among the ruins, warm golden grade (`#warm` overlay), darker
-     shade, foreground framing.
-   - Owner round 3 ("height, position, layers and leading lines are a different league"):
-     - the frame now matches the concept: upper level `UP = 2.9 * K`, ruins `RS = 0.65 * K`;
-     - the cliff foot is traced from the concept, close behind the hero, with stepped,
-       jagged column tops;
-     - the leading line runs from the hero, curving right into a long, narrow stair. The stair
-       lies on a grassy hillside (`ST.bank`), not in a cut;
-     - a low path leads away top-left.
-   - Known gaps: stair steps still read as separate blocks; the right side of the stair hill is
-     plain grass, where the concept has a row of blocks.
+3. Ruins scene: REBUILT from scratch (the owner discarded the first attempt as not matching).
+   Method:
+   - Each element is authored as its screen box in the concept: [u0, u1] across, the foot at
+     vFoot, the top at vTop. Its real size comes from the camera (`wide()`, `tall()`), and
+     the whole world is then scaled by K. The frame matches the concept; only the hero is
+     smaller, which gives the extra room.
+   - The concept cheats its heights. Read in 3D it is: the path, a rock ridge (with a high
+     tier on its left), then a plaza only ~1 m up behind the ridge, reached by a gentle
+     paved ramp round the ridge's right end.
+   - Check: `python3 scenes/tools/diffmap.py <capture.png> <out.png>` segments the concept
+     and the render into dirt and stone, and prints a coarse overlap score.
+     - Current score: dirt 0.56, stone 0.44 (the old version scored 0.44 / 0.29).
+     - Target: 0.7 or better.
+   Known gaps: the ridge is one continuous face (the concept's is stacked blocks with greenery
+   between them), the back trees hide part of the ruins row, and the foreground rocks are too
+   round.
 
 Owner preferences learnt so far: everything must be portable into the game (reuse the game's
 foliage and models, only recolour); judge composition and layout first, never just tone; round grey

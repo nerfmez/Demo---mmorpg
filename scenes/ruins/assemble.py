@@ -76,7 +76,7 @@ hero = hero.replace(blocked.group(0), '''function blocked(x, z) {
 ''')
 scene = open(S + 'ruins/scene.js').read()
 scene = scene.replace("const COLLIDERS = [];\n", "")
-scene = scene.replace("function build() {\n  scene.add(buildGround());", "function build() {\n  { const [x, z] = P(0.49, 0.92); HERO.x = x; HERO.z = z; HERO.face = Math.PI - 0.25; }\n  scene.add(buildGround());")
+scene = scene.replace("function build() {\n  scene.add(buildGround());", "function build() {\n  { const [x, z] = P(0.5, 0.905); HERO.x = x; HERO.z = z; HERO.face = Math.PI - 0.25; }\n  scene.add(buildGround());")
 foliage = foliage.replace("const root = new THREE.Color('#4f8f2f'), tip = new THREE.Color('#d2e865')", "const root = new THREE.Color('#47702f'), tip = new THREE.Color('#bcc94a')")
 assert '#bcc94a' in foliage
 js = '\n'.join([imports, page, renderer, glsl, stones, foliage, glow, hero, scene])

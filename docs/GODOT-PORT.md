@@ -399,10 +399,12 @@ An opt-in chibi hero body (`?hero=chibi`, `public/models/hero_chibi.glb`, regist
 painted texture and the same Mixamo-like bone names as `hero_base`, so it uses the same driver
 retarget (`bindSkinSync` with `MAP`). Its split Meshy normals are welded and smoothed at load,
 and weapon/off-hand bones are scaled by `gearScale` for the 1.2 m body. The hand has no finger
-bones, so a held weapon is an open grip: each frame the skin hand turns until its thumb runs along
-the weapon's grip axis (+Z, or +Y for a bow) and the socket moves to the palm centre. In Godot,
+bones, so `curlFist` bends the finger vertices into a fist once at load (`fist` in the registry),
+and each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, scale the hand
-attachments and apply the same hand turn and palm seat after the retarget.
+attachments, bake the same fist into the mesh (or add finger bones) and apply the same hand turn
+and seat after the retarget.
 It is a preview body only: the art rules keep the shipped hero at normal proportions.
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is

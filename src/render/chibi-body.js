@@ -35,6 +35,60 @@ export function smoothNormals(geometry) {
   geometry.deleteAttribute('tangent'); // stale after the normals change; no normal map uses it
 }
 
+/**
+ * Close an open hand around a handle (the Meshy hand has no finger bones). In the bind (T-pose)
+ * shape, every vertex led by the hand bone past the knuckles (`knuckle` of the hand's length) is
+ * bent toward the palm around an axis across the fingers, `radius` × the hand's thickness beyond
+ * the fingers' palm side, by its distance past the knuckles (the tips reach at most `wrap`
+ * half-turns). Returns the
+ * axis centre in world space: the hole of the fist, where the handle goes.
+ */
+export function curlFist(mesh, hand, { knuckle = 0.55, radius = 0.25, wrap = 1.25 } = {}) {
+  const geo = mesh.geometry, pos = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+  const bonesList = mesh.skeleton.bones, index = bonesList.indexOf(hand);
+  // bind position -> world: the hand bone's skinning matrix, which every bone shares at bind
+  hand.updateWorldMatrix(true, false);
+  const toWorld = new THREE.Matrix4().copy(mesh.matrixWorld).multiply(mesh.bindMatrixInverse)
+    .multiply(new THREE.Matrix4().multiplyMatrices(hand.matrixWorld, mesh.skeleton.boneInverses[index])).multiply(mesh.bindMatrix);
+  const toLocal = toWorld.clone().invert();
+  const ids = [], pts = [], v = new THREE.Vector3(), origin = hand.getWorldPosition(new THREE.Vector3());
+  for (let i = 0; i < pos.count; i++) {
+    let lead = 0;
+    for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, lead)) lead = k;
+    if (si.getComponent(i, lead) !== index) continue;
+    ids.push(i);
+    pts.push(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld).sub(origin).clone());
+  }
+  if (!ids.length) return null;
+  // axes: fingers out along the arm, palm down (the bind pose is palms down), across = fingers × palm
+  const F = pts.reduce((a, p) => a.add(p), new THREE.Vector3()).normalize();
+  const P = new THREE.Vector3(0, -1, 0).addScaledVector(F, F.y).normalize();
+  const A = new THREE.Vector3().crossVectors(F, P);
+  let tMin = Infinity, tMax = -Infinity, hMin = Infinity, hMax = -Infinity;
+  for (const p of pts) {
+    const t = p.dot(F), h = p.dot(P);
+    tMin = Math.min(tMin, t); tMax = Math.max(tMax, t); hMin = Math.min(hMin, h); hMax = Math.max(hMax, h);
+  }
+  // the bend radius grows if needed so the fingertips end inside the turn (not through the palm)
+  const t0 = tMin + (tMax - tMin) * knuckle, r = Math.max((hMax - hMin) * radius, (tMax - t0) / (wrap * Math.PI));
+  let palmSide = -Infinity, aSum = 0, aN = 0;
+  for (const p of pts) if (p.dot(F) > t0) { palmSide = Math.max(palmSide, p.dot(P)); aSum += p.dot(A); aN++; }
+  const centre = new THREE.Vector3().addScaledVector(F, t0).addScaledVector(P, palmSide + r).addScaledVector(A, aN ? aSum / aN : 0);
+  const q = new THREE.Quaternion(), rel = new THREE.Vector3();
+  pts.forEach((p, k) => {
+    const s = p.dot(F) - t0;
+    if (s <= 0) return;
+    q.setFromAxisAngle(A, s / r);
+    // the point at the knuckle line with this height and width, turned about the centre
+    rel.copy(p).addScaledVector(F, -s).sub(centre).applyQuaternion(q).add(centre);
+    rel.add(origin).applyMatrix4(toLocal);
+    pos.setXYZ(ids[k], rel.x, rel.y, rel.z);
+  });
+  pos.needsUpdate = true;
+  geo.computeBoundingSphere();
+  return centre.add(origin);
+}
+
 /** Smooth the mesh, pose the loaded model once (arms down) and measure its joints. */
 export function prepareChibiBody(gltf, cfg) {
   const scene = gltf.scene;
@@ -46,6 +100,7 @@ export function prepareChibiBody(gltf, cfg) {
     if (o.isBone) bones[o.name] = o;
   });
   if (!mesh || !bones.Hips) throw new Error('hero_chibi: no skinned mesh or Hips bone');
+  const fists = cfg.fist ? { RightHand: curlFist(mesh, bones.RightHand, cfg.fist), LeftHand: curlFist(mesh, bones.LeftHand, cfg.fist) } : {};
   smoothNormals(mesh.geometry);
   mesh.geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
@@ -70,7 +125,7 @@ export function prepareChibiBody(gltf, cfg) {
   // thumbs point +Z (palms down, fingers out along the arms)
   const grip = {}, thumb = {};
   for (const [n, [sum, count]] of Object.entries(palm)) {
-    grip[n] = count ? sum.divideScalar(count) : new THREE.Vector3();
+    grip[n] = fists[n] ? bones[n].worldToLocal(fists[n]) : count ? sum.divideScalar(count) : new THREE.Vector3();
     thumb[n] = new THREE.Vector3(0, 0, 1).applyQuaternion(bones[n].getWorldQuaternion(new THREE.Quaternion()).invert());
   }
 

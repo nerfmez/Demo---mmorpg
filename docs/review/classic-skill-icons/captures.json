@@ -1,0 +1,22 @@
+{
+  "base_commit": "6f3a7c237dc5323c7b94b2bdb3d7cd647c04d281",
+  "engine": "Chromium /usr/bin/chromium, SwiftShader",
+  "captures": [
+    {
+      "path": "desktop-skills-top.png",
+      "sha256": "04e84b31e683e26eeca3429efed43ab204de1019433337cae2b5aa1fac201bda"
+    },
+    {
+      "path": "desktop-hud.png",
+      "sha256": "38481680de50fcffd39b95bd81ea4e1b6544c30ef4c956d4b7b0b8ca0c91b48f"
+    },
+    {
+      "path": "ipad-skills-top.png",
+      "sha256": "fe85b17822847cc6fbedb7242542bf46eecd9328afe1d945b967263ba7aa8175"
+    },
+    {
+      "path": "ipad-hud.png",
+      "sha256": "7847fbad87213681bd32349891fa4fe637a753699b83350febc1109bb07ef7db"
+    }
+  ]
+}

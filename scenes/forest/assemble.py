@@ -41,11 +41,11 @@ imports = block('<script type="module">', '// ---------- page:')
 page = block('// ---------- page:', '// ---------- world layout')
 renderer = block('// ---------- renderer', '// ---------- shared GLSL')
 renderer = renderer.replace("scene.background = new THREE.Color('#9fd8e4');", "scene.background = new THREE.Color('#5f8f43');")
-renderer = re.sub(r"const CAM = \{[^}]*\};", "const CAM = { target: new V3(0, 0, -3), pitch: 40, dist: 30, yaw: 0 };", renderer)
+renderer = re.sub(r"const CAM = \{[^}]*\};", "const CAM = { target: new V3(0, 0, -5.4), pitch: 40, dist: 54, yaw: 0 };", renderer)
 renderer = renderer.replace("// fitted so the shoreline, the track mouth, the waypoint and the wreck land where the reference has them", "// the concept's view: 40 degrees down, close enough that the hero is about 85 px tall in the 941 px frame")
-renderer = renderer.replace("sun.position.copy(SUN).multiplyScalar(90);\nscene.add(sun, sun.target);", "sun.target.position.set(0, 0, -9); sun.position.copy(SUN).multiplyScalar(90).add(sun.target.position);\nscene.add(sun, sun.target);")
-renderer = renderer.replace("Object.assign(sun.shadow.camera, { left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220 });", "Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 32, bottom: -32, near: 10, far: 220 });")
-assert 'pitch: 40, dist: 30' in renderer and 'add(sun.target.position)' in renderer and 'left: -30' in renderer
+renderer = renderer.replace("sun.position.copy(SUN).multiplyScalar(90);\nscene.add(sun, sun.target);", "sun.target.position.set(0, 0, -16); sun.position.copy(SUN).multiplyScalar(90).add(sun.target.position);\nscene.add(sun, sun.target);")
+renderer = renderer.replace("Object.assign(sun.shadow.camera, { left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220 });", "Object.assign(sun.shadow.camera, { left: -54, right: 54, top: 58, bottom: -58, near: 10, far: 260 });")
+assert 'pitch: 40, dist: 54' in renderer and 'add(sun.target.position)' in renderer and 'left: -54' in renderer
 glsl = block('// ---------- shared GLSL', '// ---------- ground:')
 under = re.search(r"\n  // under the sea:.*?\n  \}\n", glsl, re.S)
 assert under, 'underwater block'
@@ -57,7 +57,7 @@ hero = block('// ---------- the hero:', '// ---------- the waypoint:')
 blocked = re.search(r"function blocked\(x, z\) \{.*?\n\}\n", hero, re.S)
 assert blocked
 hero = hero.replace(blocked.group(0), '''function blocked(x, z) {
-  if (x < GX0 + 3 || x > GX1 - 3 || z < -26 || z > 6.5) return true;
+  if (x < GX0 + 3 || x > GX1 - 3 || z < -26 * K || z > 6.5 * K) return true;
   // ledges: too steep to walk (the stairs are fine)
   const y = height(x, z), g = Math.max(Math.abs(height(x + 0.3, z) - y), Math.abs(height(x, z + 0.3) - y)) / 0.3;
   if (g > 1.1 && !stairsAt(x, z).inside) return true;

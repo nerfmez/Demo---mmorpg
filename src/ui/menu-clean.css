@@ -352,7 +352,7 @@
 }
 
 /* every page sheet fills the screen inside the safe area, like the equipment page */
-.overlay:not(.is-atelier):not(.is-journal):not(.is-hub) { padding: 0; display: grid; place-items: center; }
+.overlay.on:not(.is-atelier):not(.is-journal):not(.is-hub) { padding: 0; display: grid; place-items: center; }
 .overlay:not(.is-atelier):not(.is-journal):not(.is-hub) .panel {
   width: min(1180px, calc(100vw - 48px - var(--safe-l) - var(--safe-r)));
   height: min(780px, calc(100dvh - 48px - var(--safe-t) - var(--safe-b))); max-height: none; margin: 0;

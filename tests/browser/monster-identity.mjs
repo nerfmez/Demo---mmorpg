@@ -95,13 +95,13 @@ try{
   console.log(size+': ten material details and six source portraits checked');
   for(const id of ['boar_hide','boar_tusk','wolf_pelt','viper_scale','wisp_core']){
    const recipe=await page.evaluate(id=>{const p=__frontier.panels,r=Object.entries(p.game.data.recipes.recipes).find(([,r])=>r.cost[id]);assertRecipe(r,id);p.sel.craftRecipe=r[0];p.open('craft');return r[0];function assertRecipe(r,id){if(!r)throw Error('no recipe for '+id);}},id);
-   const ingredient=page.locator(`.ingredient [data-art="material/${id}"]`).locator('..');
+   const ingredient=page.locator(`.pg-craft-detail .ingredient [data-art="material/${id}"]`).locator('..');
    const details=await ingredient.evaluateAll(async es=>Promise.all(es.map(async e=>{const i=e.querySelector('img');await i.decode();return {text:e.textContent,size:i.getBoundingClientRect().width};})));
    assert.ok(details.length>0);
    const expected=await page.evaluate(id=>__frontier.game.data.items.materials[id].nameTh,id);assert.ok(details.every(d=>d.text.startsWith(expected)));
    view.craft.push({id,recipe,ingredients:details});
   }
-  await page.locator('.ingredient [data-art="material/wisp_core"]').first().scrollIntoViewIfNeeded();await capture('craft');
+  await page.locator('.pg-craft-detail .ingredient [data-art="material/wisp_core"]').first().scrollIntoViewIfNeeded();await capture('craft');
   await page.evaluate(()=>{const p=__frontier.panels;p.sel.questMode='story';p.sel.questChapter='first-footsteps';p.open('journal');});
   assert.ok((await page.locator('[data-quest-id="h_slimes"]').textContent()).includes(expectedMonsters.salt_slime));
   await page.locator('[data-quest-id="h_slimes"] .qj-picture img').evaluate(i=>i.decode());await capture('quest-slime');view.quests.push('h_slimes');

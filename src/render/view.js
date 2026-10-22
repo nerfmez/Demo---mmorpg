@@ -1078,7 +1078,7 @@ export class View {
     v.curse(e);
     v.ring(x, z, 2, 0xffffff);
     v.levelUp(x, z);
-    for (const kind of ['burning_ground', 'healing_spring', 'stone_burst', 'shockwave', 'venom_mire', 'spore_cloud']) {
+    for (const kind of ['healing_spring', 'stone_burst', 'shockwave', 'venom_mire', 'spore_cloud']) {
       const a = v.makeArea({ kind, x, z, radius: 2, element: 'fire', t: 0, delay: 0, duration: 1 });
       if (a) tmp.add(a.obj);
     }

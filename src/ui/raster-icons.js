@@ -197,7 +197,21 @@ export const RASTER_ICONS = Object.freeze({
  "gear/apprentice_staff": "assets/icons/gear/apprentice_staff.png",
  "gear/travel_tunic": "assets/icons/gear/travel_tunic.png",
  "gear/travel_boots": "assets/icons/gear/travel_boots.png",
- "gear/wisp_staff": "assets/icons/gear/wisp_staff.png"
+ "gear/wisp_staff": "assets/icons/gear/wisp_staff.png",
+ "skill/arcane_bolt": "assets/icons/skill/arcane_bolt.png",
+ "skill/charged_shot": "assets/icons/skill/charged_shot.png",
+ "skill/riposte": "assets/icons/skill/riposte.png",
+ "skill/weakpoint": "assets/icons/skill/weakpoint.png",
+ "skill/armor_cleave": "assets/icons/skill/armor_cleave.png",
+ "skill/interrupt_slam": "assets/icons/skill/interrupt_slam.png",
+ "skill/frontline_split": "assets/icons/skill/frontline_split.png",
+ "skill/shield_bash": "assets/icons/skill/shield_bash.png",
+ "skill/arrow_rain": "assets/icons/skill/arrow_rain.png",
+ "skill/flame_stream": "assets/icons/skill/flame_stream.png",
+ "skill/crystal_wall": "assets/icons/skill/crystal_wall.png",
+ "skill/cleanse": "assets/icons/skill/cleanse.png",
+ "skill/battle_aura": "assets/icons/skill/battle_aura.png",
+ "skill/stone_guardian": "assets/icons/skill/stone_guardian.png"
 });
 export const EXPECTED_RASTER_KEYS = Object.freeze(["material/enhancement_stone", "material/skill_crystal", "gear/sporeweave_vest", "gear/sporeweave_gloves", "gear/moonleaf_slippers", "gear/wardenstalker_coat", "gear/wardenstalker_hood", "gear/wardenstalker_gloves", "gear/beetle_maul", "gear/crab_shield", "gear/beetle_buckler", "gear/crag_tower_shield", "gear/hide_gloves", "gear/shell_mitts", "gear/wolf_grips", "gear/wisp_wraps", "gear/crag_gauntlets", "gear/shell_knife", "gear/tusk_club", "gear/tusk_greatblade", "gear/tide_staff", "gear/wolfbite_sword", "gear/venom_wand", "gear/hermit_cleaver", "gear/spore_staff", "gear/fang_bow", "gear/frontier_kris", "gear/moonleaf_wand", "gear/ranger_axe", "gear/knight_greatsword", "gear/tidecaller_staff", "gear/dusk_longbow", "gear/kite_shield", "gear/ranger_coat", "gear/ranger_hood", "gear/brigand_gloves", "gear/trail_boots", "gear/fang_talisman", "gear/stormglass_blade", "gear/wisp_stiletto", "gear/lantern_wand", "gear/thunder_maul", "gear/galebreaker", "gear/highland_shield", "gear/gale_boots", "gear/oathblade", "gear/ruin_fang", "gear/relic_wand", "gear/skyrender_bow", "arrow/feather_arrow", "arrow/tusk_arrow", "arrow/hawk_arrow", "arrow/storm_arrow", "arrow/hunter_arrow", "gear/rusty_sword", "gear/old_bow", "gear/apprentice_staff", "gear/tusk_blade", "gear/hunter_bow", "gear/fang_dagger", "gear/wisp_staff", "gear/spore_wand", "gear/crag_axe", "gear/storm_bow", "gear/greyfang_sabre", "gear/horn_greatblade", "gear/ancient_staff", "gear/travel_tunic", "gear/hide_vest", "gear/shell_guard", "gear/wolfpelt_coat", "gear/storm_mantle", "gear/crag_plate", "gear/leather_cap", "gear/beetle_helm", "gear/spore_hood", "gear/feather_circlet", "gear/horned_helm", "gear/travel_boots", "gear/wolf_boots", "gear/wisp_slippers", "gear/crag_greaves", "gear/tusk_charm", "gear/wisp_pendant", "gear/spore_amulet", "gear/feather_charm", "gear/golem_amulet", "gear/ancient_ring", "gear/crabshell_helm", "gear/tide_boots", "gear/pearl_pendant", "material/boar_hide", "material/boar_tusk", "material/beetle_shell", "material/venom_gland", "material/wisp_core", "material/glow_dust", "material/ruin_shard", "material/wolf_pelt", "material/wolf_fang", "material/spore_sac", "material/crag_stone", "material/golem_heart", "material/hawk_feather", "material/storm_quill", "material/greyfang_mane", "material/warden_horn", "material/ancient_core", "material/crab_shell", "material/sea_pearl", "material/salt_gel", "material/shore_feather", "material/hermit_fragment", "skill/slash", "skill/whirl_blade", "skill/hunter_shot", "skill/firebolt", "skill/chain_spark", "skill/stone_burst", "skill/frost_nova", "skill/venom_mire", "skill/hex", "skill/ward", "skill/war_cry", "skill/healing_spring", "skill/spirit_wolf", "skill/dash", "skill/roll", "skill/blink", "skill/leap",
  "material/mantis_scythe",
@@ -210,17 +224,40 @@ export const EXPECTED_RASTER_KEYS = Object.freeze(["material/enhancement_stone",
  "consumable/hp_potion_l",
  "consumable/mp_potion_s",
  "consumable/mp_potion_m",
- "consumable/mp_potion_l"
+ "consumable/mp_potion_l",
+ "skill/arcane_bolt",
+ "skill/charged_shot",
+ "skill/riposte",
+ "skill/weakpoint",
+ "skill/armor_cleave",
+ "skill/interrupt_slam",
+ "skill/frontline_split",
+ "skill/shield_bash",
+ "skill/arrow_rain",
+ "skill/flame_stream",
+ "skill/crystal_wall",
+ "skill/cleanse",
+ "skill/battle_aura",
+ "skill/stone_guardian"
 ]);
+// Every registered skill has an owner-reviewed round touch presentation too.
+export const SKILL_ROUND_ICONS = Object.freeze(Object.fromEntries(
+ Object.keys(RASTER_ICONS).filter(key => key.startsWith('skill/'))
+  .map(key => [key, `assets/icons/skill-round/${key.slice(6)}.png`])
+));
 const allowed = new Set([...EXPECTED_RASTER_KEYS, ...Object.keys(MONSTER_PORTRAITS), ...Object.keys(REGION_PORTRAITS)]);
 export function rasterIconUrl(kind, id, registry = RASTER_ICONS, base = import.meta.env?.BASE_URL || '/') {
  const key = kind + '/' + id, path = registry[key];
  if (!allowed.has(key) || !path) return null;
- if (path !== `assets/icons/${key}.png`) throw new Error('Invalid raster icon path: ' + key);
+ if (path !== `assets/icons/${key}.png` && !(kind === 'skill' && path === `assets/icons/skill-round/${id}.png`)) throw new Error('Invalid raster icon path: ' + key);
  return base.replace(/\/?$/, '/') + path;
 }
 export function rasterIconMarkup(kind, id, className = '', registry = RASTER_ICONS) {
  const url = rasterIconUrl(kind, id, registry);
  if (!url) return null;
- return `<span class="art art-${kind} ${className}" data-art="${kind}/${id}" aria-hidden="true"><img src="${url}" width="128" height="128" alt="" decoding="async" draggable="false"></span>`;
+ const round = kind === 'skill' && registry === RASTER_ICONS ? rasterIconUrl(kind, id, SKILL_ROUND_ICONS) : null;
+ // Keep img as a direct .art child: existing HUD sizing and decode probes rely on it.
+ const tag = round ? 'picture' : 'span';
+ const source = round ? `<source media="(pointer: coarse)" srcset="${round}">` : '';
+ return `<${tag} class="art art-${kind} ${className}" data-art="${kind}/${id}" aria-hidden="true">${source}<img src="${url}" width="128" height="128" alt="" decoding="async" draggable="false"></${tag}>`;
 }

@@ -4,7 +4,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {inflateSync} from 'node:zlib';
 import {data} from './helpers.js';
-import {RASTER_ICONS,EXPECTED_RASTER_KEYS,rasterIconUrl,rasterIconMarkup} from '../../src/ui/raster-icons.js';
+import {RASTER_ICONS,EXPECTED_RASTER_KEYS,SKILL_ROUND_ICONS,rasterIconUrl,rasterIconMarkup} from '../../src/ui/raster-icons.js';
 import {art,arrowArt,ART} from '../../src/ui/art.js';
 import {potionArt} from '../../src/ui/potionart.js';
 const manifest=JSON.parse(readFileSync(new URL('../../docs/icon-assets-manifest.json',import.meta.url),'utf8'));
@@ -24,9 +24,9 @@ function alphaPixels(png){
  }
  return {extrema:[min,max],clear,partial,bounds:[minX,minY,maxX+1,maxY+1]};
 }
-test('raster contract covers the 141 supplied equipment/material/ammunition/consumable/combat/movement IDs exactly once, excluding mods',()=>{
+test('raster contract covers the 155 supplied equipment/material/ammunition/consumable/combat/movement IDs exactly once, excluding mods',()=>{
  const all=[...Object.keys(data.items.gearBases).map(id=>'gear/'+id),...Object.keys(data.items.materials).map(id=>'material/'+id),...Object.keys(data.items.arrows.types).map(id=>'arrow/'+id),...Object.keys(data.items.consumables.types).map(id=>'consumable/'+id),...Object.keys(data.skills.combat).map(id=>'skill/'+id),...Object.keys(data.skills.movement).map(id=>'skill/'+id)];
- assert.equal(new Set(EXPECTED_RASTER_KEYS).size,141);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
+ assert.equal(new Set(EXPECTED_RASTER_KEYS).size,155);assert.deepEqual(Object.keys(RASTER_ICONS).sort(),[...EXPECTED_RASTER_KEYS].sort());
  for(const key of EXPECTED_RASTER_KEYS){
   assert.ok(all.includes(key),key+' is live content');
   const [kind,id]=key.split('/');
@@ -43,12 +43,41 @@ test('only registered supplied PNGs replace existing illustrations; unknown/mod 
  assert.equal(rasterIconUrl('gear','rusty_sword',{}),null);assert.equal(rasterIconMarkup('gear','rusty_sword','',{}),null);assert.equal(rasterIconUrl('gear','missing',{}),null);assert.throws(()=>art('gear','missing'),/Missing authored artwork/);
  assert.throws(()=>rasterIconUrl('skill','slash',{'skill/slash':'https://invalid/icon.png'}),/Invalid raster icon path/);
 });
+test('all 31 skills choose round touch artwork while keeping the square img fallback and deployment base',()=>{
+ const ids=[...Object.keys(data.skills.combat),...Object.keys(data.skills.movement)];
+ assert.equal(ids.length,31);
+ assert.deepEqual(Object.keys(SKILL_ROUND_ICONS).sort(),ids.map(id=>'skill/'+id).sort());
+ for(const id of ids){
+  const markup=art('skill',id);
+  assert.match(markup,/^<picture class="art art-skill /);
+  assert.ok(markup.includes(`<source media="(pointer: coarse)" srcset="/assets/icons/skill-round/${id}.png">`));
+  assert.ok(markup.includes(`<img src="/assets/icons/skill/${id}.png"`));
+  assert.equal(rasterIconUrl('skill',id,SKILL_ROUND_ICONS,'/demo/'),`/demo/assets/icons/skill-round/${id}.png`);
+ }
+ assert.doesNotMatch(art('gear','rusty_sword'),/<picture/);
+ assert.throws(()=>rasterIconUrl('gear','rusty_sword',{'gear/rusty_sword':'assets/icons/skill-round/rusty_sword.png'}),/Invalid raster icon path/);
+});
 test('every registered image is a real PNG with its recorded native dimensions, never a missing or SVG stand-in',()=>{
- for(const[key,path]of Object.entries(RASTER_ICONS)){assert.ok(EXPECTED_RASTER_KEYS.includes(key),key);const file=new URL('../../public/'+path,import.meta.url);assert.ok(existsSync(file),path);const b=readFileSync(file),a=assets.get(key);assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.deepEqual([b.readUInt32BE(16),b.readUInt32BE(20)],a.dimensions,key);assert.deepEqual(a.dimensions,[512,512],key);if(key.startsWith('skill/')){const alpha=alphaPixels(b);assert.deepEqual(alpha.extrema,[0,255],key);assert.ok(alpha.clear>0&&alpha.partial>0,key+' transparent and soft edge pixels');const master=readFileSync(new URL('../../'+a.transparent_master.path,import.meta.url));assert.equal(createHash('sha256').update(master).digest('hex'),a.local_edit.output_sha256,key+' unchanged approved master');assert.deepEqual([master.readUInt32BE(16),master.readUInt32BE(20)],[1254,1254],key);assert.equal(a.delivery_export.source_sha256,a.transparent_master.sha256,key);}}
+ for(const[key,path]of Object.entries(RASTER_ICONS)){assert.ok(EXPECTED_RASTER_KEYS.includes(key),key);const file=new URL('../../public/'+path,import.meta.url);assert.ok(existsSync(file),path);const b=readFileSync(file),a=assets.get(key);assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.deepEqual([b.readUInt32BE(16),b.readUInt32BE(20)],a.dimensions,key);assert.deepEqual(a.dimensions,[512,512],key);if(key.startsWith('skill/')){
+   assert.deepEqual(alphaPixels(b).extrema,[255,255],key+' opaque square frame');
+   for(const delivery of [a,a.round_variant]){
+    const master=readFileSync(new URL('../../'+delivery.source_master.path,import.meta.url));
+    const output=readFileSync(new URL('../../public/'+delivery.path,import.meta.url));
+    assert.equal(createHash('sha256').update(master).digest('hex'),delivery.sha256,key+' retained approved delivery');
+    assert.deepEqual(master,output,key+' byte-preserving export');
+    assert.deepEqual([master.readUInt32BE(16),master.readUInt32BE(20)],[512,512],key);
+   }
+   assert.equal(a.delivery_export.source_sha256,a.source_master.sha256,key);
+   assert.equal(a.round_variant.path,SKILL_ROUND_ICONS[key]);
+   const round=readFileSync(new URL('../../public/'+a.round_variant.path,import.meta.url)),alpha=alphaPixels(round);
+   assert.deepEqual(alpha.extrema,a.round_variant.alpha_extrema,key+' recorded round alpha');
+   assert.equal(alpha.extrema[0],0,key+' clear round exterior');
+   assert.ok(alpha.clear>0&&alpha.partial>0,key+' round antialiased edges');
+  }}
 });
 
 test('registered supplied PNGs match the retained delivery hashes and coverage',()=>{
- assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,141);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
+ assert.equal(manifest.pending_count,0);assert.equal(new Set(manifest.verified_assets.map(a=>a.sha256)).size,155);assert.equal(Object.keys(RASTER_ICONS).length,manifest.verified_assets.length);
  for(const a of manifest.verified_assets){assert.equal(RASTER_ICONS[a.key],a.path);const bytes=readFileSync(new URL('../../public/'+a.path,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),a.sha256,a.key);}
 });
 

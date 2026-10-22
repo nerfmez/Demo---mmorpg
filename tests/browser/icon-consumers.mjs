@@ -10,7 +10,7 @@ const expected = Object.keys(RASTER_ICONS).filter(key => /^(gear|material|arrow|
 const dimensions = Object.fromEntries(JSON.parse(readFileSync(new URL('../../docs/icon-assets-manifest.json', import.meta.url)))
   .verified_assets.map(asset => [asset.key, asset.dimensions]));
 
-await withAffectedRuntime('icons', async ({ page, name, height, width, activate, shot }) => {
+await withAffectedRuntime('icons', async ({ page, name, height, width, touch, activate, shot }) => {
   const seen = new Set();
   await page.evaluate(() => {
     const { game: g } = __frontier;
@@ -25,13 +25,17 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
   const decode = async label => {
     const images = await page.locator('.art > img').evaluateAll(async es => {
       await Promise.all(es.map(el => el.decode()));
-      return es.map(el => ({ key: el.parentElement.dataset.art, width: el.naturalWidth, height: el.naturalHeight }));
+      return es.map(el => ({ key: el.parentElement.dataset.art, width: el.naturalWidth, height: el.naturalHeight, currentSrc: el.currentSrc }));
     });
     for (const image of images) {
       assert.ok(image.width > 0 && image.height > 0, `${name}/${label}/${image.key} decodes`);
       if (expected.includes(image.key)) {
         assert.ok(dimensions[image.key], `routable item ${image.key} has declared native dimensions`);
         assert.deepEqual([image.width, image.height], dimensions[image.key], `${name}/${label}/${image.key} decodes at native dimensions`);
+        if (image.key.startsWith('skill/')) {
+          const id = image.key.slice(6), directory = touch ? 'skill-round' : 'skill';
+          assert.ok(image.currentSrc.endsWith(`/assets/icons/${directory}/${id}.png`), `${name}/${label}/${image.key} selects the ${directory} artwork`);
+        }
       }
       seen.add(image.key);
     }
@@ -69,7 +73,7 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
     await page.evaluate(view => __frontier.panels.open(view), view);
     await decode(view); await shot(view);
   }
-  const hud = await page.evaluate(async ({ raster, vector }) => {
+  const hud = await page.evaluate(async ({ raster, vector, touch }) => {
     const f = __frontier, g = f.game, keys = [];
     f.panels.close();
     for (const [kind, defs] of [['combat', g.data.skills.combat], ['movement', g.data.skills.movement]]) {
@@ -80,18 +84,37 @@ await withAffectedRuntime('icons', async ({ page, name, height, width, activate,
         const key = `skill/${id}`;
         const image = button.querySelector(raster.includes(key) ? '.art > img' : '.art > svg');
         if (!image || image.parentElement.dataset.art !== key) throw Error(`HUD missing icon ${id}`);
-        if (raster.includes(key)) await image.decode();
+        if (raster.includes(key)) {
+          await image.decode();
+          const directory = touch ? 'skill-round' : 'skill';
+          if (!image.currentSrc.endsWith(`/assets/icons/${directory}/${id}.png`)) throw Error(`HUD wrong variant ${id}`);
+        }
         else if (!vector.includes(id) || image.getAttribute('viewBox') !== '0 0 128 128' || !image.querySelector('path,circle,ellipse'))
           throw Error(`HUD missing authored vector icon ${id}`);
-        const r = image.getBoundingClientRect(), b = button.getBoundingClientRect();
+        const frame = image.parentElement, r = frame.getBoundingClientRect(), b = button.getBoundingClientRect();
         if (r.width < 16 || r.left < b.left - 1 || r.right > b.right + 1 || r.top < b.top - 1 || r.bottom > b.bottom + 1)
           throw Error(`HUD clipped icon ${id}`);
+        const style = getComputedStyle(button), left = parseFloat(style.borderLeftWidth), top = parseFloat(style.borderTopWidth);
+        if (Math.abs(r.left - b.left - left) > .6 || Math.abs(r.top - b.top - top) > .6 ||
+            Math.abs(r.width - (b.width - left - parseFloat(style.borderRightWidth))) > .6 ||
+            Math.abs(r.height - (b.height - top - parseFloat(style.borderBottomWidth))) > .6)
+          throw Error(`HUD icon does not fill its slot ${id}`);
+        if (getComputedStyle(frame).overflow !== 'hidden') throw Error(`HUD icon can escape its frame ${id}`);
         keys.push(image.parentElement.dataset.art);
       }
     }
     return keys;
-  }, { raster: Object.keys(RASTER_ICONS), vector: Object.keys(ART.skill) });
-  hud.forEach(key => seen.add(key)); await shot('hud');
+  }, { raster: Object.keys(RASTER_ICONS), vector: Object.keys(ART.skill), touch });
+  assert.equal(hud.length, 31, 'all combat and movement skills use the new HUD art');
+  hud.forEach(key => seen.add(key));
+  await page.evaluate(() => {
+    const f = __frontier;
+    f.game.ch.slots = ['slash', 'firebolt', 'chain_spark', 'ward'].map(skill => ({ skill, mods: [] }));
+    f.game.ch.movement = 'dash'; f.game.refresh(); f.input.refreshButtons();
+  });
+  const radius = await page.locator('.combat .sbtn').first().evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+  assert.ok(touch ? radius > 14 : radius === 14, `${name} keeps the latest touch/desktop HUD frame`);
+  await decode('hud'); await shot('hud');
   const loot = await page.evaluate(async registered => {
     const f = __frontier, g = f.game;
     const definitions = [

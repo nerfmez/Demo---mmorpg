@@ -28,7 +28,7 @@ test('mods fit by tags only', () => {
   assert.ok(modFits(sk.stone_burst, md.echo).ok);
   assert.ok(!modFits(sk.ward, md.echo).ok, 'echo excludes Guard');
   assert.ok(modFits(sk.ward, md.spiked_ward).ok);
-  assert.ok(!modFits(sk.healing_spring, md.burning_ground).ok, 'burning ground needs Damage');
+  assert.ok(!modFits(sk.healing_spring, md.fire_shift).ok, 'fire shift needs Damage');
   assert.ok(modFits(sk.firebolt, md.cast_on_dodge).ok);
   assert.ok(!modFits(sk.slash, md.cast_on_dodge).ok);
 });
@@ -109,4 +109,49 @@ test('an element-changing mod lets elemental damage apply to the skill', () => {
   const base = plain({}), cold = plain({ elementalDamagePct: 50 });
   assert.equal(computeSkill(ch, data, derive(ch, data), i).element, 'cold');
   assert.ok(Math.abs(cold / base - 1.5) < 0.2, `${cold} vs ${base}`);
+});
+
+test('mod sockets grow with skill rank', () => {
+  const by = data.mods.slotsByRank;
+  assert.equal(by.length, data.progression.skillUpgrade.maxLevel, 'one entry per skill rank');
+  assert.ok(by.every((n, i) => n >= (by[i - 1] ?? 0)), 'never shrinks with rank');
+  assert.equal(by[0], 2, 'rank 1 keeps the two sockets older saves already use');
+  const ch = createCharacter(data);
+  Object.assign(ch.stats, { DEX: 20, INT: 20 });
+  const fb = slotOf(ch, 'firebolt');
+  for (const id of ['split', 'pierce']) assert.ok(socketMod(ch, data, fb, give(ch, id)).ok);
+  const third = give(ch, 'terminal_burst');
+  assert.equal(socketMod(ch, data, fb, third).reason, 'full');
+  ch.skills.firebolt = 3;
+  assert.ok(socketMod(ch, data, fb, third).ok, 'rank 3 opens a third socket');
+  assert.equal(computeSkill(ch, data, derive(ch, data), fb).mods.filter((m) => m.active).length, 3);
+  ch.skills.firebolt = 5;
+  assert.ok(socketMod(ch, data, fb, give(ch, 'returning_shot')).ok, 'rank 5 opens a fourth socket');
+  assert.equal(socketMod(ch, data, fb, give(ch, 'status_burst')).reason, 'full');
+});
+
+test('every mod uses only the single visible-tag fit rule', () => {
+  const RULE = ['needs', 'on', 'not', 'family', 'grants'];
+  const LEGACY = ['requiresAll', 'requiresAny', 'excludes', 'requiresKinds', 'requiresPersistent', 'requiresElement', 'conflicts'];
+  const skillTags = new Set(Object.values({ ...data.skills.combat, ...data.skills.movement }).flatMap((s) => s.tags));
+  const granted = new Set(Object.values(data.mods.mods).flatMap((m) => m.grants || []));
+  for (const [id, m] of Object.entries(data.mods.mods)) {
+    for (const f of LEGACY) assert.equal(m[f], undefined, `${id}.${f}`);
+    assert.ok(RULE.some((f) => m[f]), `${id} names at least one rule`);
+    for (const t of [...(m.needs || []), ...(m.on || []), ...(m.not || [])]) assert.ok(skillTags.has(t) || granted.has(t), `${id} reads unknown tag ${t}`);
+    // Every mod must fit at least one real skill on its own or with a granting companion.
+    const all = { ...data.skills.combat, ...data.skills.movement };
+    const fits = Object.values(all).some((s) => modFits(s, m).ok || Object.values(data.mods.mods).some((c) => c.grants && modFits(s, m, [c]).ok));
+    assert.ok(fits, `${id} fits no skill`);
+  }
+});
+
+test('granted tags only count from a companion that fits the bare skill', () => {
+  const S = data.skills.combat, M = data.mods.mods;
+  assert.ok(modFits(S.firebolt, M.status_burst).ok, 'a native Fire skill fits Status Burst on its own');
+  assert.ok(!modFits(S.hunter_shot, M.status_burst).ok);
+  assert.ok(modFits(S.hunter_shot, M.status_burst, [M.frost_shift]).ok, 'Frost Shift grants Cold');
+  assert.ok(!modFits(S.venom_mire, M.status_burst, [M.frost_shift]).ok, 'Frost Shift cannot sit on a DoT field, so it grants nothing');
+  const fit = modFits(S.slash, M.lingering);
+  assert.deepEqual([fit.reason, fit.tags], ['needs', ['Persistent']]);
 });

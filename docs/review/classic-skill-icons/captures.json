@@ -1,0 +1,28 @@
+{
+  "ui_base_commit": "d055bfe8aa638c16af605e61c53948b9be96747b",
+  "integration_parent": "c93c8e6eb2c8968676dc26096b57899cc5def13c",
+  "engine": "Chromium /usr/bin/chromium, SwiftShader",
+  "source_files": {
+    "src/ui/hud-clean.css": "a14dd5f8a6a31461e9c17200a3f6307a5ef16683070c9784fe82b0f5a3f10130",
+    "src/ui/raster-icons.js": "a06a21489412f77e2bb37f9a8543f42b3c999fbab7ce62cb4b0096a187de5bed",
+    "src/ui/fieldhud.css": "af9de7cf2155eee5fb3013e84450e225e342507ec8a78ec3edd4cc1ed0e42331"
+  },
+  "captures": [
+    {
+      "path": "desktop-skills-top.png",
+      "sha256": "3b112bc39ccd78c08a2846a99d3713022db6685ba045f31ca591409d45746696"
+    },
+    {
+      "path": "desktop-hud.png",
+      "sha256": "82ff044a24e3c1188a3470f7f521061d067a20c887c0300da20cbbb853182470"
+    },
+    {
+      "path": "ipad-skills-top.png",
+      "sha256": "ed6c620310a72cdc4eaed40c8b51f85cc631ddc666ba7072b60174578534b2b7"
+    },
+    {
+      "path": "ipad-hud.png",
+      "sha256": "3f108276e5cdb1295cb6d1893b8fee6d21acd37dabad14ce333add73ef6996a3"
+    }
+  ]
+}

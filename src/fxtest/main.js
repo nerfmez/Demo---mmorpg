@@ -155,7 +155,7 @@ const rainFx = new RainFx(scene, camera);
 const powerFx = new PowerFx(scene, camera);
 const splitFx = new SplitFx(scene, camera);
 const sunderFx = new SunderFx(scene, camera);
-const exposedBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, t: 0 })), exposed = [];
+const exposedBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, t: 0, full: 5 })), exposed = [];
 // a short camera shake for heavy hits (cosmetic; the bench camera is otherwise fixed)
 const camBase = new THREE.Vector3();
 let shakeT = 0, shakeDur = 1, shakeAmp = 0;
@@ -580,7 +580,7 @@ function tick(real, draw = true) {
   bladePoints();
   splitFx.update(dt, p, p.facing, bladeBase, bladeTip);
   exposed.length = 0;
-  game.monsters.forEach((m, i) => { const ex = m.statuses.exposure; if (ex && i < exposedBuf.length) { const o = exposedBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.t = ex.t; exposed.push(o); } });
+  game.monsters.forEach((m, i) => { const ex = m.statuses.exposure; if (ex && i < exposedBuf.length) { const o = exposedBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.t = ex.t; o.full = skillDef().exposure?.duration || 5; exposed.push(o); } });
   sunderFx.update(dt, exposed);
   flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);

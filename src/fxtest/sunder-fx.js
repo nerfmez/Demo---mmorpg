@@ -2,14 +2,36 @@
 // crescent in amber steel (slash-fx palette). On each struck target a hard burst goes off (a glow
 // that pops, rays thrown on along the cut, a ring) and angular armour shards of light break off and
 // fall; while the rules keep the target's armour exposure, a broken ring of light (six arcs with
-// gaps) circles it at chest height, slowly turning and pulsing, and fades as the exposure runs out.
+// gaps) circles it at chest height, slowly turning and pulsing, and a broken-shield icon floats
+// over its head; both fade as the exposure runs out.
 // Cosmetic only; the exposure and its time come from the rules.
 import * as THREE from 'three';
 import { Ribbon, mulberry32 } from './fx-common.js';
 
 export const SUNDER_PALETTE = { hot: [1, 0.97, 0.88], body: [1.0, 0.66, 0.3], glow: [0.95, 0.42, 0.12] };
 const EDGE = [1.0, 0.72, 0.36], GLOW = [0.95, 0.42, 0.12], HOT = [1, 0.95, 0.8];
-const BURSTS = 6, RAYS = 10, ARCS = 6, ARC_PTS = 6;
+const BURSTS = 6, RAYS = 10, ARCS = 6, ARC_PTS = 6, ICONS = 8;
+
+// a broken shield: two halves of a shield split by a zigzag crack, pushed apart, amber with a dark
+// outline, drawn once into a canvas for the head icons
+function brokenShieldTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const shield = () => { g.beginPath(); g.moveTo(64, 14); g.quadraticCurveTo(90, 26, 106, 24); g.quadraticCurveTo(108, 78, 64, 116); g.quadraticCurveTo(20, 78, 22, 24); g.quadraticCurveTo(38, 26, 64, 14); g.closePath(); };
+  const crack = [[60, 10], [70, 38], [56, 56], [72, 78], [60, 120]];
+  const half = (side) => { // clip the shield to one side of the crack
+    g.save(); g.beginPath();
+    g.moveTo(side < 0 ? 0 : 128, 0); for (const [x, y] of crack) g.lineTo(x, y); g.lineTo(side < 0 ? 0 : 128, 128); g.closePath(); g.clip();
+    g.translate(side * 7, side < 0 ? 3 : -3); g.rotate(side * 0.06);
+    shield(); g.fillStyle = '#ffb347'; g.fill();
+    g.beginPath(); g.moveTo(64, 26); g.quadraticCurveTo(86, 34, 96, 33); g.quadraticCurveTo(96, 74, 64, 104); g.quadraticCurveTo(32, 74, 32, 33); g.quadraticCurveTo(42, 34, 64, 26); g.closePath(); g.fillStyle = '#ffd88a'; g.fill();
+    shield(); g.lineWidth = 7; g.strokeStyle = '#5a2a0a'; g.stroke();
+    g.beginPath(); g.moveTo(crack[0][0], crack[0][1]); for (const [x, y] of crack) g.lineTo(x, y); g.lineWidth = 6; g.stroke();
+    g.restore();
+  };
+  half(-1); half(1);
+  return new THREE.CanvasTexture(c);
+}
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
     vec3 c = d < 0.4 ? mix(vT, vec3(1.0,0.98,0.92), 0.8) : vT; gl_FragColor=vec4(c, vA); }`;
@@ -37,6 +59,8 @@ export class SunderFx {
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); sp.visible = false; sp.renderOrder = 9; scene.add(sp);
       return { sp, t: 9, life: 0.3, size: 1, pos: new THREE.Vector3(), rays: Array.from({ length: RAYS }, () => ({ d: new THREE.Vector3(), len: 1 })) };
     });
+    const iconTex = brokenShieldTexture();
+    this.icons = Array.from({ length: ICONS }, () => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconTex, depthWrite: false, depthTest: false, transparent: true, toneMapped: false })); sp.visible = false; sp.renderOrder = 10; scene.add(sp); return sp; });
     this.burstI = 0; this.shards = []; this.rnd = mulberry32(29); this.t = 0;
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.pts = Array.from({ length: ARC_PTS }, () => new THREE.Vector3()); this.sub = [];
@@ -86,8 +110,15 @@ export class SunderFx {
       this.glow.strip(three, shardW, 0.5 * (1 - u), GLOW); this.core.strip(three, shardW, 1 - u * u, EDGE);
     }
     compact(this.shards, this.shardAlive);
-    // the exposure: a broken ring of light circling the target at chest height
+    // the exposure: a broken-shield icon over the head and a broken ring of light at chest height
+    let n = 0;
     for (const e of exposed) {
+      if (n < ICONS) {
+        const ic = this.icons[n++], since = e.full - e.t, pop = Math.min(1, since / 0.15), fadeOut = Math.min(1, e.t / 0.5);
+        ic.visible = true; ic.position.set(e.x, 2.45 + Math.sin(this.t * 3 + e.x) * 0.05, e.z);
+        ic.scale.setScalar(0.55 * (pop < 1 ? 0.6 + 0.6 * pop : 1 + 0.08 * Math.max(0, 1 - (since - 0.15) / 0.2)));
+        ic.material.opacity = fadeOut;
+      }
       const fade = Math.min(1, e.t / 0.5), pulse = 0.85 + 0.15 * Math.sin(this.t * 6);
       const rad = 0.62, y = 1.15 + Math.sin(this.t * 2 + e.x) * 0.04, spin = this.t * 0.9;
       for (let k = 0; k < ARCS; k++) {
@@ -97,7 +128,8 @@ export class SunderFx {
         this.glow.strip(sub, arcGlowW, 0.6 * fade, GLOW); this.core.strip(sub, arcW, fade * pulse, EDGE);
       }
     }
+    for (let i = n; i < ICONS; i++) this.icons[i].visible = false;
     this.core.end(); this.glow.end();
   }
-  clear() { this.shards.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
+  clear() { for (const ic of this.icons) ic.visible = false; this.shards.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
 }

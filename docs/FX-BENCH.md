@@ -166,8 +166,9 @@ crescent in amber steel (`SUNDER_PALETTE`, passed to slash-fx). On each struck t
 - angular armour shards of light breaking off and falling.
 
 While the rules keep the target's armour exposure (18 % for 5 s), a broken ring of light (six arcs
-with gaps) circles it at chest height, slowly turning and pulsing, and fades as the exposure runs
-out.
+with gaps) circles it at chest height, slowly turning and pulsing. A broken-shield icon (two
+amber halves split by a zigzag crack, drawn once into a canvas) pops in over its head and bobs
+there. Both fade as the exposure runs out.
 
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

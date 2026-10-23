@@ -823,7 +823,7 @@
     "hero_chibi_hair": {
       "file": "models/hero_chibi_hair.glb",
       "chibiHair": true,
-      "tris": 3189,
+      "tris": 3474,
       "color": "#b9b8bf",
       "fit": {
         "width": 1.2,

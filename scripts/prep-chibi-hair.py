@@ -104,6 +104,8 @@ def write(src, keepf, dst):
     print(len(keep)//3,'tris',len(used),'verts')
     
 
+SMOOTH=0.85  # cosine between neighbouring face triangles; a strand edge folds sharper
+
 def cut(src, dst, below, face, back_below=None, back_z=0.0):
     b=open(src,'rb').read();jl=struct.unpack_from('<I',b,12)[0];j=json.loads(b[20:20+jl]);off=20+jl;bin_=b[off+8:]
     def acc(i):
@@ -111,14 +113,34 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0):
         n={'SCALAR':1,'VEC3':3}[a['type']];fmt={5126:'f',5123:'H',5125:'I'}[a['componentType']]
         return [struct.unpack_from('<'+fmt*n,bin_,o+k*struct.calcsize(fmt)*n) for k in range(a['count'])]
     p=j['meshes'][0]['primitives'][0];P=acc(p['attributes']['POSITION']);I=[t[0] for t in acc(p['indices'])]
-    fy0,fy1,fx,fz=face;keep=[]
-    for k in range(0,len(I),3):
-        a,bb,c=(P[x] for x in I[k:k+3]);m=[(a[i]+bb[i]+c[i])/3 for i in range(3)]
+    # The face is one smooth sheet; the fringe strands lying over it meet it at sharp creases.
+    # Flood-fill from the middle of the face across smooth edges only (inside the face box)
+    # and drop that sheet, so the strand tips over the eyes stay.
+    fy0,fy1,fx,fz=face;nt=len(I)//3;M=[];Nz=[];Nn=[]
+    for k in range(nt):
+        a,bb,c=(P[x] for x in I[3*k:3*k+3]);M.append([(a[i]+bb[i]+c[i])/3 for i in range(3)])
         u=[a[i]-bb[i] for i in range(3)];w=[c[i]-bb[i] for i in range(3)]
         n=[w[1]*u[2]-w[2]*u[1],w[2]*u[0]-w[0]*u[2],w[0]*u[1]-w[1]*u[0]];nl=sum(q*q for q in n)**.5 or 1
-        if m[1]<(back_below if back_below is not None and m[2]<back_z else below): continue
-        if fy0<m[1]<fy1 and abs(m[0])<fx and m[2]>fz and n[2]/nl>0.2: continue
-        keep+=I[k:k+3]
+        Nn.append([q/nl for q in n])
+    box=[fy0<m[1]<fy1 and abs(m[0])<fx and m[2]>fz and n[2]>0.2 for m,n in zip(M,Nn)]
+    vid={};W=[vid.setdefault(tuple(round(q,5) for q in P[x]),len(vid)) for x in I]
+    edges={}
+    for k in range(nt):
+        for e in ((W[3*k],W[3*k+1]),(W[3*k+1],W[3*k+2]),(W[3*k+2],W[3*k])): edges.setdefault((min(e),max(e)),[]).append(k)
+    adj=[[] for _ in range(nt)]
+    for ts in edges.values():
+        if len(ts)==2: adj[ts[0]].append(ts[1]);adj[ts[1]].append(ts[0])
+    cands=[k for k in range(nt) if box[k]];top=max(M[k][2] for k in cands)
+    seed=min(cands,key=lambda k:(M[k][0])**2+(M[k][1]-fy0-0.02)**2+(M[k][2]-top)**2)
+    skin={seed};todo=[seed]
+    while todo:
+        t=todo.pop()
+        for u in adj[t]:
+            if u not in skin and box[u] and sum(x*y for x,y in zip(Nn[t],Nn[u]))>SMOOTH: skin.add(u);todo.append(u)
+    keep=[]
+    for k,m in enumerate(M):
+        if m[1]<(back_below if back_below is not None and m[2]<back_z else below) or k in skin: continue
+        keep+=I[3*k:3*k+3]
     used=sorted(set(keep));remap={o:i for i,o in enumerate(used)};sel=[P[i] for i in used]
     pos=b''.join(struct.pack('<fff',*q) for q in sel);idx=b''.join(struct.pack('<H',remap[i]) for i in keep)
     pad=lambda d:d+b'\0'*(-len(d)%4);data=pad(pos)+pad(idx)

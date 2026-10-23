@@ -11,7 +11,7 @@ An untextured model whose hair is fused to the head (one closed mesh) is cut by 
 triangles below --below (the neck and body) and front-facing triangles in the face box are dropped,
 and only positions are written (the game draws the hair in one colour).
 
-  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.19 0.14 0.05 --back -0.05 -0.03
+  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.19 0.14 0.05 --back -0.05 -0.03 --brow 0.06
     (--face: lowest y, highest y, half width, nearest z of the face;
      --back Y Z: behind z = Z the cut is at y = Y instead, so the hair at the nape stays)
 """
@@ -106,7 +106,7 @@ def write(src, keepf, dst):
 
 SMOOTH=0.85  # cosine between neighbouring face triangles; a strand edge folds sharper
 
-def cut(src, dst, below, face, back_below=None, back_z=0.0):
+def cut(src, dst, below, face, back_below=None, back_z=0.0, brow=None):
     b=open(src,'rb').read();jl=struct.unpack_from('<I',b,12)[0];j=json.loads(b[20:20+jl]);off=20+jl;bin_=b[off+8:]
     def acc(i):
         a=j['accessors'][i];v=j['bufferViews'][a['bufferView']];o=v.get('byteOffset',0)+a.get('byteOffset',0)
@@ -115,7 +115,8 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0):
     p=j['meshes'][0]['primitives'][0];P=acc(p['attributes']['POSITION']);I=[t[0] for t in acc(p['indices'])]
     # The face is one smooth sheet; the fringe strands lying over it meet it at sharp creases.
     # Flood-fill from the middle of the face across smooth edges only (inside the face box)
-    # and drop that sheet, so the strand tips over the eyes stay.
+    # and drop that sheet, so the strand tips over the eyes stay. Above --brow the forehead sheet
+    # is kept as the solid base of the fringe.
     fy0,fy1,fx,fz=face;nt=len(I)//3;M=[];Nz=[];Nn=[]
     for k in range(nt):
         a,bb,c=(P[x] for x in I[3*k:3*k+3]);M.append([(a[i]+bb[i]+c[i])/3 for i in range(3)])
@@ -139,7 +140,7 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0):
             if u not in skin and box[u] and sum(x*y for x,y in zip(Nn[t],Nn[u]))>SMOOTH: skin.add(u);todo.append(u)
     keep=[]
     for k,m in enumerate(M):
-        if m[1]<(back_below if back_below is not None and m[2]<back_z else below) or k in skin: continue
+        if m[1]<(back_below if back_below is not None and m[2]<back_z else below) or (k in skin and (brow is None or m[1]<brow)): continue
         keep+=I[3*k:3*k+3]
     used=sorted(set(keep));remap={o:i for i,o in enumerate(used)};sel=[P[i] for i in used]
     pos=b''.join(struct.pack('<fff',*q) for q in sel);idx=b''.join(struct.pack('<H',remap[i]) for i in keep)
@@ -157,7 +158,8 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0):
 if __name__ == '__main__':
     if '--cut' in sys.argv:
         g=sys.argv;bb=g.index('--back') if '--back' in g else None
-        cut(g[1],g[2],float(g[g.index('--below')+1]),[float(x) for x in g[g.index('--face')+1:g.index('--face')+5]],*( [float(g[bb+1]),float(g[bb+2])] if bb else []))
+        cut(g[1],g[2],float(g[g.index('--below')+1]),[float(x) for x in g[g.index('--face')+1:g.index('--face')+5]],*( [float(g[bb+1]),float(g[bb+2])] if bb else [None,0.0]),
+            brow=float(g[g.index('--brow')+1]) if '--brow' in g else None)
         sys.exit()
     with tempfile.NamedTemporaryFile(suffix='.json') as t:
         split(sys.argv[1], t.name)

@@ -21,7 +21,7 @@ import { resolveOutfit } from '../core/outfit-look.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
-import { attachChibiBody } from './chibi-body.js';
+import { attachChibiBody, attachChibiHair } from './chibi-body.js';
 import {attachHairSampleBody} from './hairsample.js';
 
 export const DEFAULT_LOOK = {
@@ -215,6 +215,8 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
+      const hair = characterBase('hero_chibi_hair');
+      if (hair) attachChibiHair(rig, V, hair);
     } else attachVrmBody(rig, V);
   }
   rig.look = L;

@@ -213,7 +213,9 @@ export function prepareChibiBody(gltf, cfg) {
   const hc = head.isEmpty() ? J.Head.clone().add(new THREE.Vector3(0, 0.12, 0)) : head.getCenter(new THREE.Vector3());
   const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0)).toArray(), scale: hs };
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
-  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  // the head's bind bounds in the head bone's space, for fitting a separate hair model
+  const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
+  return { scene, joints, world, headFit, neckFit, headBox, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -230,6 +232,62 @@ function outlineHull(src, width, darkness) {
       .replace('#include <skinning_vertex>', `#include <skinning_vertex>\ntransformed += normalize(objectNormal) * ${width.toFixed(4)} * outlineScale;`);
   };
   m.customProgramCacheKey = () => `chibi-hull-${width}`;
+  return m;
+}
+
+/** A separate hair model for the chibi body (data/models.json characters, chibiHair). */
+export function prepareChibiHair(gltf, cfg) {
+  let mesh = null;
+  gltf.scene.traverse((o) => {
+    if (o.isMesh && !mesh) mesh = o;
+  });
+  if (!mesh) throw new Error('chibi hair: no mesh');
+  gltf.scene.updateMatrixWorld(true);
+  const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+  smoothNormals(geometry);
+  geometry.computeBoundingBox();
+  geometry.userData.shared = true;
+  if (mesh.material.map) mesh.material.map.userData.shared = true;
+  return { geometry, material: mesh.material, box: geometry.boundingBox.clone(), fit: cfg.fit || {} };
+}
+
+/**
+ * Put the hair on the chibi head bone: scaled so its width and depth are `fit.width` and
+ * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
+ * front-to-back (moved back by `fit.back` × head depth) and its top `fit.lift` × head height above
+ * the head's. Toon material with a plain outline hull.
+ */
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
+  const headBone = rig.skin?.body.getObjectByName('Head');
+  if (!headBone || !T.headBox) return;
+  const hb = T.headBox, b = H.box, f = H.fit;
+  const hw = hb.max.x - hb.min.x, hd = hb.max.z - hb.min.z, hh = hb.max.y - hb.min.y;
+  // per axis: the chibi head is rounder than the head the hair was made on
+  const sx = (hw * (f.width ?? 1.15)) / (b.max.x - b.min.x), sz = (hd * (f.depth ?? 1.15)) / (b.max.z - b.min.z);
+  const sy = ((sx + sz) / 2) * (f.height ?? 1);
+  const g = new THREE.Group();
+  g.scale.set(sx, sy, sz);
+  g.position.set((hb.min.x + hb.max.x) / 2 - sx * (b.min.x + b.max.x) / 2,
+    hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
+    (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
+  const s = (sx + sy + sz) / 3;
+  const flash = rig.material.userData.flash;
+  const hair = new THREE.Mesh(H.geometry, toonCopy(H.material, flash, rim, false));
+  hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
+  hair.castShadow = true;
+  const hull = new THREE.Mesh(H.geometry, hairHull(H.material, outline / s, darkness));
+  g.add(hair, hull);
+  headBone.add(g);
+  rig.skin.hair = g;
+}
+
+function hairHull(src, width, darkness) {
+  const m = new THREE.MeshBasicMaterial({ map: src.map, color: new THREE.Color(darkness, darkness, darkness * 1.12), side: THREE.BackSide });
+  m.userData.rig = true;
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
+  };
+  m.customProgramCacheKey = () => `chibi-hair-hull-${width.toFixed(4)}`;
   return m;
 }
 

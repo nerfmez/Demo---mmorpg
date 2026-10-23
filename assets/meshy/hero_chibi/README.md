@@ -17,3 +17,8 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - The Meshy hands are open and have no finger bones; `curlFist` in `chibi-body.js` bends the
   finger vertices into a fist (thumb folded under) at load as one morph target per hand; a hand
   closes only while it holds something, and held weapons are seated in the fist's hole.
+- Hair (`public/models/hero_chibi_hair.glb`, 2,204 tris): nano-banana-2 image of a head wearing the
+  sheet hair (task 01a16806-9373-755e-8c17-ded87ccce53d; it came out with normal, not chibi, head
+  proportions), meshy-t2 mesh (01a16807-18d8-703d-a91a-16d7644d5082), Meshy 6 retexture
+  (01a16807-4a7e-77a1-a50d-e4dfb59921cf); head removed by `scripts/prep-chibi-hair.py`, fitted to
+  the chibi head per axis in `chibi-body.js`. An earlier try from the hair image alone came out flat.

@@ -1,33 +1,34 @@
-// Frost Nova: torn-edged ground frost racing out to the real radius, clustered hexagonal
+// Frost Nova: clean cel ground frost racing out to the real radius, clustered hexagonal
 // crystals popping behind the front, mist riding it, chips, frozen crust on hit dummies,
-// then a melt into holes. Charge starts on castStart, the burst on the core 'nova' event.
+// then the frost recedes inward. Charge starts on castStart, the burst on the core 'nova' event.
 import * as THREE from 'three';
 import { mulberry32, clamp01, NOISE, BILLBOARD_VS } from './fx-common.js';
 
 const SPREAD = 0.38, MELT0 = 1.25, MELT1 = 2.15, END = 2.4, CHIPS = 260;
 
-const frostFS = `varying vec2 vP; uniform float uR; uniform float uMelt; uniform float uEdgeGlow; uniform float uS; ${NOISE}
+// Ground frost, anime style: a flat cel decal with a clean scalloped edge, a bright rim band,
+// a few straight cracks of uneven length and three flat tones. It melts by receding inward.
+const frostFS = `varying vec2 vP; uniform float uR; uniform float uMelt; uniform float uEdgeGlow; uniform float uS;
   uniform float uElem; vec3 retint(vec3 c){ if(uElem<0.5) return c; float l=dot(c,vec3(0.3,0.59,0.11)); vec3 lo=uElem<1.5?vec3(0.72,0.16,0.04):vec3(0.2,0.42,0.08); vec3 hi=uElem<1.5?vec3(1.0,0.88,0.55):vec3(0.8,1.0,0.5); return mix(lo,hi,smoothstep(0.3,1.0,l)); }
   void main(){
     vec2 q = vP / uS;
-    float r=length(q); vec2 dir=q/max(r,1e-3);
-    float en = fbm(dir*2.6 + 3.1) * 0.7 + fbm(q*1.4) * 0.3;
-    float fing = pow(fbm(dir*5.5 + 1.7), 3.0) * 2.2;
+    float r = length(q), ang = atan(q.y, q.x);
     float R = uR / uS;
-    float edge = R*(0.64 + 0.26*en + fing*0.17) + 0.1*fbm(dir*13.0);
+    // eleven soft scallops with a short point between each pair
+    float sc = abs(sin(ang * 5.5 + 0.7));
+    float edge = R * (0.86 + 0.07 * sc + 0.05 * pow(1.0 - sc, 6.0)) * (1.0 - 0.85 * uMelt * uMelt);
     if (r > edge || R < 0.01) discard;
-    float melt = fbm(q*1.7 + 9.0);
-    if (melt < uMelt*1.25 - 0.2 + (1.0 - r/max(edge,0.01))*0.15*uMelt) discard;
-    float feather = fbm(vec2(atan(q.y,q.x)*7.0, r*0.9));
-    float feather2 = fbm(dir*18.0 + r*0.35);
-    float cr = abs(vn(q*3.2) - 0.5); float ridge = 1.0 - smoothstep(0.0, 0.05, cr);
-    float k = 0.25 + 0.45*feather*feather2*1.6 + 0.35*ridge;
-    float rim = smoothstep(edge-0.5, edge-0.05, r) * uEdgeGlow;
-    k += rim*0.6;
-    vec3 c = mix(vec3(0.62,0.82,0.95), vec3(0.78,0.92,0.99), smoothstep(0.38, 0.46, k));
-    c = mix(c, vec3(0.96,0.99,1.0), smoothstep(0.68, 0.76, k));
-    float a = mix(mix(0.38, 0.75, smoothstep(0.38, 0.46, k)), 0.95, smoothstep(0.68, 0.76, k));
-    a *= smoothstep(edge, edge - 0.3, r);
+    float e = edge - r; // distance in from the edge
+    // straight cracks: seven spokes of uneven length, thin, stopping short of the rim
+    float id = floor(ang / 6.2832 * 7.0 + 0.13 + 7.0), len = 0.45 + 0.4 * fract(sin(id * 12.9898) * 43758.5);
+    float spoke = abs(fract(ang / 6.2832 * 7.0 + 0.13) - 0.5) * 6.2832 / 7.0 * r;
+    float crack = (1.0 - step(0.03, spoke)) * step(0.5, r) * step(r, edge * len);
+    vec3 fill = vec3(0.70, 0.88, 0.98), lite = vec3(0.88, 0.97, 1.0), line = vec3(0.98, 1.0, 1.0);
+    vec3 c = fill; float a = 0.8;
+    if (e < 0.32) { c = lite; a = 0.9; }                   // rim band
+    if (e < 0.07) { c = vec3(0.42, 0.70, 0.92); a = 0.95; } // thin outline, same hue
+    if (crack > 0.5 && e > 0.32) { c = line; a = 0.85; }
+    a *= mix(1.0, 0.75, step(0.5, uMelt)) * (0.85 + 0.15 * uEdgeGlow);
     gl_FragColor = vec4(retint(c), a); }`;
 const mistFS = `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE}
   uniform float uElem; vec3 retint(vec3 c){ if(uElem<0.5) return c; float l=dot(c,vec3(0.3,0.59,0.11)); vec3 lo=uElem<1.5?vec3(0.72,0.16,0.04):vec3(0.2,0.42,0.08); vec3 hi=uElem<1.5?vec3(1.0,0.88,0.55):vec3(0.8,1.0,0.5); return mix(lo,hi,smoothstep(0.3,1.0,l)); }

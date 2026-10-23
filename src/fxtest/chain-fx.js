@@ -1,5 +1,5 @@
-// Chain Spark: thin angular bolts hopping target to target, ragged contact flashes,
-// ground-crawling arcs and a short "shocked" status. Driven by the core 'chain' event.
+// Chain Spark: thin angular bolts hopping target to target (no contact burst),
+// and a short "shocked" status on struck targets. Driven by the core 'chain' event.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, flashMaterial, tintFlash, lookOf } from './fx-common.js';
 
@@ -158,13 +158,7 @@ export class ChainFx {
       });
       cast.hits.forEach((h, k) => {
         const age = t - h.hitAt;
-        if (age >= 0 && !h.done) { h.done = true; this.spawnSparks(h.c, Math.max(6, 14 - k * 2), 7.5, k % 2 ? look.spark : look.edge, false); }
-        if (age >= 0 && age < 0.16) {
-          useFlash(h.c, (age < 0.03 ? 0.6 + 0.4 * age / 0.03 : 1) * 1.7 * Math.pow(0.9, k), age / 0.16, 5.1 + k * 3.7 + Math.floor(age * 30) * 0.9, look);
-          this.tendrils(h.c, 3000 + k * 50 + flick, 6, 0.55 + age * 3, 0.05 * Math.pow(0.9, k), 1 - age / 0.16, false, look);
-        }
-        if (age >= 0.02 && age < 0.3) { tmpB.set(h.base.x, 0.05, h.base.z); this.tendrils(tmpB, 4000 + k * 50 + flick, 4, 0.6 + (age - 0.02) * 2.2, 0.035, 1 - (age - 0.02) / 0.28, true, look); }
-        if (age >= 0 && age < 0.25) useLight(h.c, 6 * Math.pow(1 - age / 0.25, 2), look.edge);
+        // no contact burst on the target (owner review): the bolt itself and the shocked arcs carry the hit
         // shocked status: short crooked arcs hopping over the body
         if (!cast.miss && age > 0.08 && age < 0.7) {
           const r = mulberry32(5000 + k * 97 + flick), n = age < 0.35 ? 2 : r() < 0.5 ? 1 : 0, cp = [], cw = [];

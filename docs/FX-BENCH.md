@@ -110,11 +110,19 @@ pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFE
 ## Arrow Rain
 
 `src/fxtest/rain-fx.js`, in the same light-and-ribbon language. The rules send one `area` event
-per wave, each with its delay, and a `burst` as each lands. The volley's circle is a thin cel
-outline with a faint fill and an inner guide ring that pulses on every landing. Each wave's arrows
-are thin streaks of light falling in on a slight slant from behind the caster, timed to touch down
-exactly at that wave's burst. Each leaves a short fading stub in the ground and a few sparks. Echo,
-Wide Field and Concentrated show through the events; element Shifts recolour it.
+per wave, each with its delay, and a `burst` as each lands.
+- **Up-shot.** The hero plays a bench-only `bowSky` action: lean back, raise the bow, draw and
+  loose at the sky. As the volley's first `area` event arrives, a bright streak climbs from the bow
+  and bursts above the target in a ragged flash.
+- **Rain.** Each wave's 26 arrows come down from around that burst as streaks of light with a
+  bright head. They land one after another, from 0.28 s before that wave's burst to 0.14 s after
+  it, not all at once.
+- **Landing.** Each landing leaves a short stub along its line of flight and a couple of sparks.
+- **Circle.** A thin cel circle with an inner guide ring marks the volley and pulses with each
+  wave.
+
+Echo, Wide Field and Concentrated show through the events; element Shifts recolour it. Venom Arrow
+plays the plain bow action on the bench; the game's action table is unchanged.
 
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

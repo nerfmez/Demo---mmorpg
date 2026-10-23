@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { data as gameData } from '../data.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
 import { loadModels } from '../render/models.js';
+import { ACTIONS } from '../render/actions.js';
 import MODELS from '../../data/models.json';
 import STAFF_CAST from '../../data/staff-cast.json';
 import FUSION from '../../data/fusion.json';
@@ -26,6 +27,15 @@ import { RainFx } from './rain-fx.js';
 
 // the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
 const data = benchData(gameData);
+
+// Bench-only hero actions (the game's action table is untouched outside this page): Arrow Rain
+// draws and looses at the sky, leaning back; Venom Arrow is a plain bow shot.
+{
+  const [rest, raise, draw, loose] = ACTIONS.bow.keys.map((k) => k[1]);
+  const sky = (p, extra) => ({ ...p, torso: [-0.18, 0.7, 0], chest: [-0.28, 0.2, 0], head: [-0.6, -0.6, 0], ikR: [-0.05, 2.0, 0.42], ...extra });
+  ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
+}
+const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow' };
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -235,7 +245,7 @@ function drain() {
     const s = skillDef();
     switch (e.type) {
       case 'castStart':
-        heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
+        heroAnim.play(BENCH_ACTION[e.skill] || e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
         if (e.kind === 'projectile') {
           vfx.beginCast(e, s.element);

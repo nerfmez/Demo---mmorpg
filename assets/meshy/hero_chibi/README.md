@@ -40,7 +40,5 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - Anime shading: the face takes its toon shade from the light's angle round the head, not the mesh
   normal (`faceShadow`), and the hair has a jagged highlight band (`highlight`), as in anime games.
 
-- Outfits: `hero_chibi_travel_tunic.jpg` is the starter Travel Tunic (cream tunic with teal trim,
-  brown belt and strap, grey trousers, brown boots): a Meshy 6 retexture of the rigged body from a
-  text description (task 01a1697e-13e3-7324-907b-6f7d3218dd4b), painted onto the body's own UVs by
-  `scripts/chibi-outfit.py` with the face kept. The game picks it by the worn armour (`outfits`).
+- Outfits: the chibi wears the game's 3D outfit base (`src/render/chibi-garments.js`): top,
+  trousers, skirt, boots and gloves are shells cut from this body, painted from `data/outfits.json`.

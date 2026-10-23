@@ -676,9 +676,10 @@
           "k": 0.8
         }
       ],
-      "outfits": {
-        "_doc": "Painted textures for this body by armour base (same UVs, the face kept from the base texture); an armour without one shows the base suit. travel_tunic: Meshy 6 retexture from a text description of the game's Travel Tunic, transferred onto these UVs by scripts/chibi-outfit.py.",
-        "travel_tunic": "models/hero_chibi_travel_tunic.jpg"
+      "helmFit": {
+        "_doc": "Helms and hoods on the chibi go over its hair: the head fit scaled by `scale` about the head's centre and lifted `lift` head heights (chibi-body.js).",
+        "scale": 1.3,
+        "lift": 0.1
       },
       "faceShadow": {
         "_doc": "Drawn face shadow (chibi-body.js faceShadowMaterial): on the front of the head (mask from `from` to `to` of the way forward) the toon ramp follows where the light stands around the head instead of the mesh normal; `curve` bows the shadow edge round the nose.",

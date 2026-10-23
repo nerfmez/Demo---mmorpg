@@ -22,6 +22,7 @@ import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
 import { attachChibiBody, attachChibiHair } from './chibi-body.js';
+import { attachChibiGarments } from './chibi-garments.js';
 import {attachHairSampleBody} from './hairsample.js';
 
 export const DEFAULT_LOOK = {
@@ -207,14 +208,15 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     attachHairSampleBody(rig, X, gear, { outfit: wear });
   }
   if (V) {
-    fitParts(rig.bones.head, V.headFit);
+    fitParts(rig.bones.head, V.chibi && wear.helm ? V.helmFit : V.headFit); // the chibi's helm sits over its hair
     if (V.chibi) {
       // weapons, shields and the quiver on the back were made for the 1.75 m body: scale them to the small one
       for (const n of ['weapon', 'offhand']) rig.bones[n]?.scale.setScalar(V.gearScale);
       fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
-      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null, armor: gear.bases?.armor || 'travel_tunic' });
+      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
+      attachChibiGarments(rig, V, wear); // the outfit's top, trousers, skirt, boots and gloves
       for (const id of ['hero_chibi_hair', 'hero_chibi_hair_back']) {
         const hair = characterBase(id); // the fringe and the back come from two models
         if (hair) attachChibiHair(rig, V, hair);

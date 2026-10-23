@@ -54,6 +54,18 @@ Every garment is built from the body itself (`src/render/base-garments.js`):
 The HairSample trousers and shoes stay as the base legwear. Each armour item sets its trousers'
 colour and how they are cut; the shoes take the boots' colours.
 
+**Trousers come with the armour** (there is no trousers item): `trousers.pattern` on each armour
+draws a design in the armour's own trim and accent colours, so the legs match the top:
+1 a stripe down the outer side (hide vest, ranger coat, storm mantle), 2 leg wraps criss-crossing
+the shins (travel tunic, wardenstalker coat), 3 knee guards and thigh plates (shell guard, crag
+plate), 4 a deep cuff and a knee patch (sporeweave vest, wolfpelt coat).
+
+**Boots stop below the knee**: `len` is at most 0.85 of ankle to knee (mid-shin for most).
+
+**The chibi hero** (`?hero=chibi`) wears the same outfits: `src/render/chibi-garments.js` cuts the
+top, trousers, skirt, boots (with the feet) and gloves from the chibi body and paints them with
+the same shaders, reading the chibi's bind position times `SCALE` so the cuts keep their metres.
+
 **Boots, gloves and helms** are their own items, each shaped after its icon:
 - **Boots** (`boots`): shaft height `len` (ankle to knee, >1 above it), colours
   main / trim (top band) / accent / sole, a `pattern` (laces, plate bands) and parts (cuffs,

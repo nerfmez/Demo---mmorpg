@@ -10,7 +10,7 @@ const DEFAULT_BOOTS = 'travel_boots';
  * @param {object} outfits data/outfits.json
  * @param {object} [look] appearance ({tunic}) for "$tunic" palette entries
  * @returns {{style: string, base: object, skirt: object|null, palette: object, cut: object, parts: string[],
- *   boots: object, gloves: object|null, helm: object|null}}
+ *   boots: object, trousers: {pattern: number}, gloves: object|null, helm: object|null}}
  */
 export function resolveOutfit(gear = {}, outfits, look = {}) {
   const b = gear.bases || {};
@@ -39,8 +39,11 @@ export function resolveOutfit(gear = {}, outfits, look = {}) {
   palette.shoes = boots.palette.main;
   palette.sole = boots.palette.sole;
   const helmEntry = b.helm && outfits.helms[b.helm];
+  // the trousers that come with the armour (there is no trousers item): a design drawn in the
+  // armour's own trim and accent colours
+  const trousers = { pattern: 0, ...styleData.trousers, ...item.trousers };
   return {
-    style, base, skirt, palette, cut, parts, boots,
+    style, base, skirt, palette, cut, parts, boots, trousers,
     gloves: piece(outfits.gloves, b.gloves),
     helm: helmEntry ? { id: b.helm, ...helmEntry, palette: { ...helmEntry.palette } } : null,
   };

@@ -170,5 +170,19 @@ with gaps) circles it at chest height, slowly turning and pulsing. A broken-shie
 amber halves split by a zigzag crack, drawn once into a canvas) pops in over its head and bobs
 there. Both fade as the exposure runs out.
 
+## Breakbeat Slam
+
+`src/fxtest/mace-fx.js`, with a mace (overhead `slam`). The skill exists to interrupt, so on the
+bench the dummies take turns winding up an attack (sandbox: the rules' `windup` state for 1.4 s
+every 2.6 s). A slam that lands mid wind-up interrupts them through the rules (stunned 0.6 s).
+- **Wind-up warning.** A red "!" icon pops over the head, pulsing faster as the attack nears, and a
+  red ring fills at the feet.
+- **Contact** (the rules' `slash`; no horizontal crescent, it is a downward blow):
+  - a heavy ground impact in front: a popping glow and upward rays;
+  - two shock rings racing out over the 65 degree cone and a ring at the impact point;
+  - a hard burst on each struck target, and a camera shake.
+- **Interrupt.** The "!" shatters into red shards, a "ขัดจังหวะ!" banner shows, and little stars
+  circle the head for the stun.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

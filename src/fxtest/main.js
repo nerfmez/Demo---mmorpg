@@ -27,6 +27,7 @@ import { RainFx } from './rain-fx.js';
 import { PowerFx, setPowerFacing } from './power-fx.js';
 import { SplitFx } from './split-fx.js';
 import { SunderFx, SUNDER_PALETTE } from './sunder-fx.js';
+import { MaceFx } from './mace-fx.js';
 
 // the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
 const data = benchData(gameData);
@@ -41,7 +42,7 @@ const data = benchData(gameData);
   ACTIONS.bowLoose = { hit: 0.3, keys: [[0, { ...draw, ikL: [-0.12, 1.5, 0.02] }], [0.3, { ...loose, drop: [-0.05, 0, 0] }], [0.7, loose], [1, rest]] };
   ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
 }
-const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam' };
+const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam', interrupt_slam: 'slam' };
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -56,7 +57,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -155,10 +156,14 @@ const rainFx = new RainFx(scene, camera);
 const powerFx = new PowerFx(scene, camera);
 const splitFx = new SplitFx(scene, camera);
 const sunderFx = new SunderFx(scene, camera);
+const maceFx = new MaceFx(scene, camera);
+const headPt = new THREE.Vector3();
+const headOf = (id) => { const d = dummyOf(id); return d ? headPt.set(d.x, 2.1, d.z) : null; };
 const exposedBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, t: 0, full: 5 })), exposed = [];
 // a short camera shake for heavy hits (cosmetic; the bench camera is otherwise fixed)
 const camBase = new THREE.Vector3();
 let shakeT = 0, shakeDur = 1, shakeAmp = 0;
+maceFx.onShake = (amp, time) => splitFx.onShake(amp, time);
 splitFx.onShake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 let powerRatio = 0; // the charge the last Power Draw left with
 const slashFx = new SlashFx(scene, camera);
@@ -212,7 +217,7 @@ const slashOpts = (s) => ({ palette: s.id === 'armor_cleave' ? SUNDER_PALETTE : 
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); maceFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -268,7 +273,7 @@ function drain() {
     switch (e.type) {
       case 'castStart':
         heroAnim.play(BENCH_ACTION[e.skill] || e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
+        if (e.kind === 'melee_arc') { primarySwing = true; if (e.skill !== 'interrupt_slam') slashFx.swing(e.total, slashOpts(s)); } // the slam is a downward blow, not a crescent
         if (e.kind === 'projectile') {
           vfx.beginCast(e, s.element);
           if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
@@ -298,6 +303,9 @@ function drain() {
       case 'chargeStart': heroAnim.play('bowDraw', e.total * 3, e.weapon || heroWeapon, 0, null, 'projectile'); powerFx.setElement(s.element); powerFx.beginCharge(e.total); break;
       case 'chargeEnd': if (!game.player.cast) { powerFx.endCharge(); } break;
       case 'lineStrike': splitFx.strike(e); break;
+      case 'benchWindup': maceFx.windup(e.id, e.total); break;
+      case 'benchWindupEnd': maceFx.windupEnd(e.id); break;
+      case 'benchStunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('ขัดจังหวะ!'); break;
       case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
       case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
@@ -310,6 +318,7 @@ function drain() {
       case 'fusionRelease': flameSlash.release(); break;
       case 'fusionCancel': flameSlash.cancel(); heroAnim.action = null; break;
       case 'slash': {
+        if (e.skill === 'interrupt_slam') maceFx.slam(game.player.x, game.player.z, game.player.facing, s.range, s.arc);
         const primary = primarySwing; primarySwing = false;
         // Multistrike: each repeat is its own swing (alternating side) landing on the repeat's hit time
         if (primary && !e.triggered && s.repeats) {
@@ -339,6 +348,7 @@ function drain() {
         if (stats.last) { stats.last.hits++; stats.last.total += e.amount; }
         if (e.skill === 'flame_stream' && !e.dot) flameFx.lick(d.center);
         if (e.skill === 'frontline_split' && !e.dot) splitFx.cut(d.center);
+        if (e.skill === 'interrupt_slam' && !e.dot) maceFx.hit(d.center, e.fromX, e.fromZ);
         if (e.skill === 'armor_cleave' && !e.dot) { sunderFx.hit(d.center, e.fromX, e.fromZ); splitFx.onShake(0.06, 0.14); }
         break;
       }
@@ -582,6 +592,7 @@ function tick(real, draw = true) {
   exposed.length = 0;
   game.monsters.forEach((m, i) => { const ex = m.statuses.exposure; if (ex && i < exposedBuf.length) { const o = exposedBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.t = ex.t; o.full = skillDef().exposure?.duration || 5; exposed.push(o); } });
   sunderFx.update(dt, exposed);
+  maceFx.update(dt, headOf);
   flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
   const ownKind = recipeKind || (['venom_mire', 'charged_shot'].includes(state.skill) ? state.skill : null); // drawn by the bench's own effect

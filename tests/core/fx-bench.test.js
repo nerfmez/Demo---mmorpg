@@ -226,3 +226,19 @@ test('Sunder Cut on the bench: an axe cut that opens the armour of what it hits,
   assert.ok(hit.size >= 2 && exposed.length === hit.size, 'every struck dummy is exposed, the rest are not');
   assert.ok(exposed.every((m) => m.statuses.exposure.fraction === 0.18 && m.statuses.exposure.t > 3.5));
 });
+
+test('Breakbeat Slam on the bench: dummies wind up in turns, and a slam that lands mid wind-up stuns them', () => {
+  const g = createBench(data, 'interrupt_slam', []);
+  assert.equal(g.derived.weaponType, 'mace');
+  const events = [];
+  const step = (n) => { for (let i = 0; i < n; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); } };
+  step(60);
+  const winding = events.filter((e) => e.type === 'benchWindup').map((e) => e.id);
+  assert.ok(winding.length >= 1, 'some dummies wind up');
+  assert.ok(g.castSlot(0, { x: 5, z: 0 }));
+  step(40);
+  const stunned = events.filter((e) => e.type === 'benchStunned').map((e) => e.id);
+  assert.ok(stunned.length >= 1 && stunned.every((id) => winding.includes(id)), 'only a dummy caught winding up is interrupted');
+  step(60);
+  assert.ok(events.some((e) => e.type === 'benchStunEnd'), 'the stun ends after the rules\' time');
+});

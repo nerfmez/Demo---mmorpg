@@ -6,11 +6,11 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
 export const SINGLE_STRIKE = new Set(['slash']);
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace' };
 
 // Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
 // target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
@@ -52,6 +52,8 @@ export const LAYOUTS = {
   frontline_split: [[1.8, 0.2], [3.2, -0.3], [4.6, 0.25], [3.0, 1.6], [2.4, -1.7]],
   // three in the 80 degree, 2.8 m cut, two outside it
   armor_cleave: [[2.0, 0.3], [1.8, -0.9], [1.7, 1.2], [1.2, 2.6], [4.2, -0.4]],
+  // three in the 65 degree, 2.7 m slam, one beside it
+  interrupt_slam: [[2.1, 0.2], [1.9, -0.9], [1.8, 1.0], [0.6, 2.5]],
 };
 
 // Mods this skill can actually use on the bench. Triggers that need a guard skill are left out.
@@ -129,6 +131,30 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     }
     return out;
   };
+  // Breakbeat Slam: the dummies take turns winding up an attack (the rules' 'windup' state) so the
+  // slam has something to interrupt; an interrupted dummy is stunned for the rules' time.
+  if (skill === 'interrupt_slam') {
+    const WIND = 1.4, EVERY = 2.6;
+    let next = 0.8, turn = 0;
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      next -= dt;
+      for (const m of this.monsters) {
+        if (m.state === 'windup' && (m.benchWind -= dt) <= 0) { m.state = 'idle'; m.windup = null; this.emit({ type: 'benchWindupEnd', id: m.id }); }
+        if (m.state === 'stunned') { if (!m.benchStun) { m.benchStun = true; this.emit({ type: 'benchStunned', id: m.id, duration: m.stateDur }); } if ((m.stateT += dt) >= m.stateDur) { m.state = 'idle'; m.benchStun = false; this.emit({ type: 'benchStunEnd', id: m.id }); } }
+      }
+      if (next <= 0) {
+        next = EVERY;
+        const idle = this.monsters.filter((m) => m.state !== 'windup' && m.state !== 'stunned');
+        for (const m of idle.slice(turn % 2 ? 1 : 0).filter((_, i) => i % 2 === 0)) {
+          m.state = 'windup'; m.windup = { name: Object.keys(m.def.attacks || {})[0] }; m.benchWind = WIND;
+          this.emit({ type: 'benchWindup', id: m.id, total: WIND });
+        }
+        turn++;
+      }
+    };
+  }
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);
   g.aimAt(Math.PI / 2);
   return g;

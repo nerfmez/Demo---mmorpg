@@ -424,7 +424,8 @@ attachments, add the same fists as blend shapes (or finger bones) and apply the 
 and seat after the retarget.
 Its hair is two Meshy models (`characters.hero_chibi_hair` for the fringe and
 `hero_chibi_hair_back` for the back, each drawing only its `keep` part; `scripts/prep-chibi-hair.py`)
-parented to the head bone and fitted per axis to the head's bind bounds (`fit`); in Godot attach it
+parented to the head bone and fitted per axis to the head's bind bounds (`fit`, from the hair's
+fixed `box` when given); in Godot attach it
 to the head bone with the same scale and offset, in its flat `color`. It is a preview body only: the art rules keep the shipped hero at normal proportions.
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is

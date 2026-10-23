@@ -296,7 +296,8 @@ export function prepareChibiHair(gltf, cfg) {
   gltf.scene.updateMatrixWorld(true);
   let geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
   geometry.computeBoundingBox();
-  const box = geometry.boundingBox.clone();
+  // `box`: fixed bounds to fit by, so trimming a few triangles off the model does not move the hair
+  const box = cfg.box ? new THREE.Box3().setFromArray(cfg.box.flat()) : geometry.boundingBox.clone();
   // `keep: [side, at]`: only the front or back part of this hair, split across its depth at `at`
   // (0 back, 1 front), so two hair models can be joined (one's fringe with the other's back)
   if (cfg.keep) geometry = keepPart(geometry, box, cfg.keep);

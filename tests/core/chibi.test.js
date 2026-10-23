@@ -42,6 +42,11 @@ test('the chibi hair models are single meshes within the character budget', () =
     const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
     assert.equal(tris, m.tris, id);
     for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side']) assert.ok(Number.isFinite(m.fit[k]), id + ' fit.' + k);
+    if (m.box) {
+      // a fixed fit box must hold the model, so the fit cannot cut it off
+      const a = j.accessors[j.meshes[0].primitives[0].attributes.POSITION];
+      for (let c = 0; c < 3; c++) assert.ok(m.box[0][c] <= a.min[c] + 1e-4 && m.box[1][c] >= a.max[c] - 1e-4, id + ' box holds the model');
+    }
     if (m.keep) assert.ok(['front', 'back'].includes(m.keep[0]) && m.keep[1] > 0 && m.keep[1] < 1, id + ' keep');
     drawn += tris;
   }

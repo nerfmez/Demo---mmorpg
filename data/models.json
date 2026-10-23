@@ -325,7 +325,8 @@
           -0.7853981633974483
         ],
         "scale": 0.43
-      }
+      },
+      "edge": -1
     },
     "wisp_stiletto": {
       "file": "models/weapons/wisp_stiletto.glb",

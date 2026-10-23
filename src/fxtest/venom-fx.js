@@ -1,144 +1,179 @@
-// Venom Shot (bench trial of Venom Mire as a projectile): an anime glob of poison. The flying glob
-// is a lime toon droplet in a dark violet outline, stretched along its flight and wobbling, with
-// drips falling off behind it. On impact a cel splat star bursts on the target with droplets
-// thrown out, and a poisoned target gives off small rising bubbles while its poison lasts.
+// Venom Shot (bench trial of Venom Mire as a projectile), in the same language as the bench's
+// Firebolt, Chain Spark and Frost Nova: light, not solid toys. Poison wisps gather at the staff
+// head over the cast; the shot is a hot yellow-green core in an additive glow with a comet trail
+// and two thin wisps twisting around its path; on impact a ragged poison flash, a cel puff that
+// eats away and spark streaks falling out; a poisoned target gives off rising green motes.
 // Positions come from the rules' projectiles and 'impact' events. Cosmetic only.
 import * as THREE from 'three';
-import { mulberry32, BILLBOARD_VS } from './fx-common.js';
-import { toonRamp } from '../render/toon.js';
+import { Ribbon, mulberry32, flashMaterial, tintFlash, BILLBOARD_VS, NOISE } from './fx-common.js';
 
-const GLOBS = 6, SPLATS = 6, DROPS = 260, BUBBLES = 140;
-const SPLAT_LIFE = 0.3;
+const SHOTS = 6, POPS = 4, HIST = 10, POP_LIFE = 0.4;
+const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
+  void main(){ float d=abs(vUv.y); if(d>0.9) discard;
+    vec3 c = d < 0.4 ? mix(vT, vec3(0.96,1.0,0.8), 0.75) : vT; gl_FragColor=vec4(c, vA); }`;
+const GLOW_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
+  void main(){ float d=abs(vUv.y); float a=pow(1.0-d,2.5)*0.6; gl_FragColor=vec4(vT*a*vA, 1.0); }`;
+const HOT = [0.86, 1.0, 0.45], MID = [0.55, 0.92, 0.2], DEEP = [0.25, 0.62, 0.12];
 
-const splatFS = `varying vec2 vUv; uniform float uT; uniform float uSeed;
-  void main(){
-    float r = length(vUv), ang = atan(vUv.y, vUv.x);
-    // a seven-point splat with uneven arms; it pops open, then thins from the middle
-    float arms = pow(abs(sin(ang * 3.5 + uSeed)), 3.0) * (0.55 + 0.45 * fract(sin(floor(ang * 1.114 + 4.0) * 7.31 + uSeed) * 91.7));
-    float open = min(1.0, uT / 0.25) ;
-    float edge = (0.42 + 0.5 * arms) * (0.55 + 0.45 * open);
-    if (r > edge) discard;
-    float hole = smoothstep(0.35, 1.0, uT) * edge * 0.95;
-    if (r < hole) discard;
-    float e = edge - r;
-    vec3 c = vec3(0.72, 0.95, 0.30);
-    if (r < edge * 0.45) c = vec3(0.90, 1.0, 0.62);   // bright centre
-    if (e < 0.07) c = vec3(0.36, 0.16, 0.46);         // violet outline
-    gl_FragColor = vec4(c, 1.0); }`;
+function haloTexture(inner, mid, outer) {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, inner); grad.addColorStop(0.35, mid); grad.addColorStop(1, outer);
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
 
 // drop finished items in place (no new array each frame)
 const compact = (arr, alive) => { let w = 0; for (const x of arr) if (alive(x)) arr[w++] = x; arr.length = w; };
 const living = (x) => x.life < x.max;
+let stripW = 0, stripU = 0;
+const trailGlowW = (x) => stripW * 2.6 * x, trailCoreW = (x) => stripW * x * x;
+const wispW = (x) => stripW * Math.sin(Math.PI * x);
+const moteGlowW = (x) => stripW * 2.4 * x, moteCoreW = (x) => stripW * x * (1 - stripU * 0.5);
 
 export class VenomFx {
   constructor(scene, camera) {
     this.scene = scene; this.camera = camera;
-    const ramp = toonRamp(), ball = new THREE.IcosahedronGeometry(1, 2);
-    const lime = new THREE.MeshToonMaterial({ color: '#b6f04c', emissive: '#3d6e10', gradientMap: ramp });
-    const outline = new THREE.MeshBasicMaterial({ color: '#3a1a4a', side: THREE.BackSide });
-    const shine = new THREE.MeshBasicMaterial({ color: '#f4ffd8' });
-    // a few globs, reused: lime body, a dark violet back-face outline and a small shine
-    this.globs = Array.from({ length: GLOBS }, () => {
-      const g = new THREE.Group();
-      g.add(new THREE.Mesh(ball, lime));
-      const o = new THREE.Mesh(ball, outline); o.scale.setScalar(1.18); g.add(o);
-      const s = new THREE.Mesh(ball, shine); s.scale.setScalar(0.28); s.position.set(-0.35, 0.4, 0.25); g.add(s);
-      g.visible = false; scene.add(g);
-      return { g, id: null, t: 0, dripAcc: 0 };
-    });
+    this.core = new Ribbon(scene, camera, 4000, CORE_FS, THREE.NormalBlending);
+    this.glow = new Ribbon(scene, camera, 4000, GLOW_FS, THREE.AdditiveBlending);
+    this.core.mesh.renderOrder = 8; this.glow.mesh.renderOrder = 7;
+    const haloMat = new THREE.SpriteMaterial({ map: haloTexture('rgba(235,255,170,1)', 'rgba(140,235,60,0.5)', 'rgba(60,150,20,0)'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+    const coreMat = new THREE.SpriteMaterial({ map: haloTexture('rgba(255,255,235,1)', 'rgba(215,255,140,1)', 'rgba(150,230,60,0)'), depthWrite: false, transparent: true });
+    const sprite = (mat, order) => { const s = new THREE.Sprite(mat); s.visible = false; s.renderOrder = order; scene.add(s); return s; };
+    // one glow + hot core per live shot, reused
+    this.shots = Array.from({ length: SHOTS }, () => ({ halo: sprite(haloMat, 6), core: sprite(coreMat, 9), id: null, t: 0, hist: Array.from({ length: HIST }, () => new THREE.Vector3()), n: 0, live: false }));
+    this.tip = sprite(haloMat, 6); // the gathering glow at the staff head
     const quad = new THREE.PlaneGeometry(1, 1);
-    this.splats = Array.from({ length: SPLATS }, (_, k) => {
-      const m = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: k * 1.7 } }, vertexShader: BILLBOARD_VS, fragmentShader: splatFS, transparent: true, depthWrite: false }));
-      m.visible = false; m.renderOrder = 6; m.frustumCulled = false; scene.add(m);
-      return { m, t: SPLAT_LIFE };
+    this.pops = Array.from({ length: POPS }, (_, k) => {
+      const flash = new THREE.Mesh(quad, flashMaterial(4 + k * 3.3)); tintFlash(flash.material, 'poison');
+      const puff = new THREE.Mesh(quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: k * 5.9 } }, vertexShader: BILLBOARD_VS,
+        fragmentShader: `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE}
+          void main(){ float r = length(vUv);
+            float n = fbm(vUv * 2.2 + uSeed + vec2(0.0, -uT * 1.2));
+            float body = n * 1.15 - r * 0.9 - uT * 0.8;
+            if (body < 0.04) discard;
+            vec3 c = body > 0.32 ? vec3(0.9, 1.0, 0.55) : body > 0.16 ? vec3(0.56, 0.9, 0.22) : vec3(0.26, 0.6, 0.12);
+            gl_FragColor = vec4(c, 0.92); }`, transparent: true, depthWrite: false }));
+      for (const m of [flash, puff]) { m.visible = false; m.frustumCulled = false; scene.add(m); }
+      flash.renderOrder = 8; puff.renderOrder = 7;
+      return { flash, puff, t: 9, pos: new THREE.Vector3() };
     });
-    const inst = (n, color, emissive) => {
-      const m = new THREE.InstancedMesh(ball, new THREE.MeshToonMaterial({ color, emissive, gradientMap: ramp }), n);
-      m.count = 0; m.frustumCulled = false; scene.add(m); return m;
-    };
-    this.dropMesh = inst(DROPS, '#a8e646', '#356610');
-    this.bubbleMesh = inst(BUBBLES, '#c79be6', '#4a2260');
-    this.drops = []; this.bubbles = []; this.rnd = mulberry32(57); this.splatI = 0;
-    this.o = new THREE.Object3D(); this.dir = new THREE.Vector3(); this.q = new THREE.Quaternion(); this.fwd = new THREE.Vector3(0, 0, 1);
+    this.popI = 0; this.charge = null; this.sparks = []; this.motes = [];
+    this.rnd = mulberry32(57); this.t = 0;
+    this.pts = Array.from({ length: HIST }, () => new THREE.Vector3()); this.sub = []; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    this.dir = new THREE.Vector3(); this.side = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0);
   }
-  drop(x, y, z, vx, vy, vz, size, max) { if (this.drops.length < DROPS) this.drops.push({ x, y, z, vx, vy, vz, size, life: 0, max }); }
-  bubble(x, y, z, size) { if (this.bubbles.length < BUBBLES) this.bubbles.push({ x, y, z, size, life: 0, max: 0.6 + this.rnd() * 0.5, sway: this.rnd() * 6.28 }); }
-  // projectiles: the rules' live projectiles; one glob follows each Venom Shot
+  // castStart: a green glow swells at the staff head until the shot leaves
+  gather(total) { this.charge = { t: 0, total: Math.max(0.1, total) }; }
+  // projectiles: the rules' live projectiles; one glowing shot follows each Venom Shot
   syncProjectiles(projectiles, kind, dt) {
-    for (const gl of this.globs) gl.live = false;
+    for (const s of this.shots) s.live = false;
     for (const pr of projectiles) {
       if (pr.kind !== kind) continue;
-      let gl = null, free = null;
-      for (const x of this.globs) { if (x.id === pr.id) gl = x; else if (x.id === null && !free) free = x; }
-      if (!gl) { if (!free) continue; gl = free; gl.id = pr.id; gl.t = 0; gl.dripAcc = 0; }
-      gl.live = true; gl.t += dt;
-      const r = this.rnd, y = 1.15, size = 0.2;
-      gl.g.visible = true; gl.g.position.set(pr.x, y, pr.z);
-      this.dir.set(pr.vx, 0, pr.vz).normalize();
-      this.q.setFromUnitVectors(this.fwd, this.dir); gl.g.quaternion.copy(this.q);
-      const w = Math.sin(gl.t * 26) * 0.08; // a wobbling droplet stretched along its flight
-      gl.g.scale.set(size * (1 + w), size * (1 - w * 0.6), size * 1.45);
-      gl.dripAcc += dt * 32;
-      while (gl.dripAcc >= 1) {
-        gl.dripAcc -= 1;
-        this.drop(pr.x - this.dir.x * 0.25 + (r() - 0.5) * 0.15, y - 0.05 + (r() - 0.5) * 0.12, pr.z - this.dir.z * 0.25 + (r() - 0.5) * 0.15,
-          -this.dir.x * 0.6 + (r() - 0.5) * 0.4, 0.3 + r() * 0.4, -this.dir.z * 0.6 + (r() - 0.5) * 0.4, 0.045 + r() * 0.04, 0.35 + r() * 0.2);
+      let s = null, free = null;
+      for (const x of this.shots) { if (x.id === pr.id) s = x; else if (x.id === null && !free) free = x; }
+      if (!s) { if (!free) continue; s = free; s.id = pr.id; s.t = 0; s.n = 0; this.charge = null; }
+      s.live = true; s.t += dt;
+      const y = 1.15, flick = 1 + Math.sin(s.t * 40) * 0.08;
+      s.halo.visible = s.core.visible = true;
+      s.halo.position.set(pr.x, y, pr.z); s.core.position.set(pr.x, y, pr.z);
+      s.halo.scale.setScalar(1.35 * flick); s.core.scale.setScalar(0.5 * flick);
+      for (let i = HIST - 1; i > 0; i--) s.hist[i].copy(s.hist[i - 1]);
+      s.hist[0].set(pr.x, y, pr.z); s.n = Math.min(HIST, s.n + 1);
+      if (this.rnd() < dt * 30) { const r = this.rnd; this.spark(pr.x, y, pr.z, (r() - 0.5) * 1.2 - pr.vx * 0.05, 0.4 + r() * 0.8, (r() - 0.5) * 1.2 - pr.vz * 0.05, 0.25 + r() * 0.2, 0.025); }
+    }
+    for (const s of this.shots) if (!s.live && s.id !== null) { s.id = null; s.halo.visible = s.core.visible = false; }
+  }
+  spark(x, y, z, vx, vy, vz, max, w) { if (this.sparks.length < 300) this.sparks.push({ p: new THREE.Vector3(x, y, z), v: new THREE.Vector3(vx, vy, vz), life: 0, max, w }); }
+  // the core 'impact' event: a ragged poison flash, a puff that eats away and falling streaks
+  impact(e) {
+    const p = this.pops[this.popI++ % POPS], r = this.rnd;
+    p.t = 0; p.pos.set(e.x, 1.15, e.z);
+    for (let i = 0; i < 16; i++) {
+      const a = r() * 6.283, el = r() * 0.9, s = 2.5 + r() * 3;
+      this.spark(e.x, 1.15, e.z, Math.cos(a) * Math.cos(el) * s, Math.sin(el) * s + 1, Math.sin(a) * Math.cos(el) * s, 0.35 + r() * 0.3, 0.03 + r() * 0.025);
+    }
+  }
+  // a poisoned target gives off a rising mote now and then (called each frame per poisoned dummy)
+  poisoned(x, z, dt) {
+    if (this.motes.length < 160 && this.rnd() < dt * 8) {
+      const r = this.rnd, a = r() * 6.283;
+      this.motes.push({ p: new THREE.Vector3(x + Math.cos(a) * 0.32, 0.5 + r() * 0.9, z + Math.sin(a) * 0.32), sway: r() * 6.28, life: 0, max: 0.7 + r() * 0.5, w: 0.07 + r() * 0.03 });
+    }
+  }
+  update(dt, tip) {
+    this.t += dt;
+    this.core.begin(); this.glow.begin();
+    // charge glow at the staff head
+    const ch = this.charge;
+    if (ch) {
+      ch.t += dt;
+      const c = Math.min(1, ch.t / ch.total);
+      this.tip.visible = true; this.tip.position.copy(tip); this.tip.scale.setScalar(0.25 + 0.7 * c * (1 + Math.sin(this.t * 30) * 0.06));
+      if (this.rnd() < dt * 40) { // wisps drawn in toward the head
+        const r = this.rnd, a = r() * 6.283, el = (r() - 0.3) * 1.2, rad = 0.55;
+        const px = tip.x + Math.cos(a) * Math.cos(el) * rad, py = tip.y + Math.sin(el) * rad, pz = tip.z + Math.sin(a) * Math.cos(el) * rad;
+        this.spark(px, py, pz, (tip.x - px) * 5, (tip.y - py) * 5, (tip.z - pz) * 5, 0.18, 0.03);
+      }
+      if (ch.t > ch.total + 0.3) this.charge = null;
+    } else this.tip.visible = false;
+    // shots: comet trail plus two thin wisps twisting around the path
+    for (const s of this.shots) {
+      if (s.id === null || s.n < 3) continue;
+      const pts = this.pts, sub = this.sub;
+      sub.length = 0;
+      for (let i = 0; i < s.n; i++) { pts[i].copy(s.hist[i]); sub.push(pts[i]); }
+      stripW = 0.22; this.glow.strip(sub, trailGlowW, 0.8, MID); this.core.strip(sub, trailCoreW, 1, HOT);
+      this.dir.subVectors(s.hist[0], s.hist[s.n - 1]).normalize();
+      this.side.crossVectors(this.dir, this.up).normalize();
+      for (let k = 0; k < 2; k++) {
+        sub.length = 0;
+        for (let i = 0; i < s.n; i++) {
+          const ph = s.t * 18 - i * 0.9 + k * Math.PI, rad = 0.16 * (i / s.n + 0.3);
+          pts[i].copy(s.hist[i]).addScaledVector(this.side, Math.cos(ph) * rad); pts[i].y += Math.sin(ph) * rad;
+          sub.push(pts[i]);
+        }
+        stripW = 0.045; this.glow.strip(sub, wispW, 0.7, DEEP); this.core.strip(sub, wispW, 0.9, MID);
       }
     }
-    for (const gl of this.globs) if (!gl.live && gl.id !== null) { gl.id = null; gl.g.visible = false; }
-  }
-  // the splat on the target, from the core 'impact' event
-  impact(e) {
-    const sp = this.splats[this.splatI++ % SPLATS], r = this.rnd;
-    sp.t = 0; sp.m.visible = true; sp.m.position.set(e.x, 1.15, e.z); sp.m.scale.setScalar(1.5);
-    sp.m.material.uniforms.uSeed.value = r() * 6.28;
-    for (let i = 0; i < 18; i++) {
-      const a = r() * 6.283, s = 2 + r() * 2.6;
-      this.drop(e.x, 1.15, e.z, Math.cos(a) * s, 1.2 + r() * 3, Math.sin(a) * s, 0.06 + r() * 0.06, 0.5 + r() * 0.3);
+    // impact pops
+    for (const p of this.pops) {
+      p.t += dt;
+      const on = p.t < POP_LIFE;
+      p.flash.visible = on && p.t < 0.14; p.puff.visible = on;
+      if (!on) continue;
+      p.flash.position.copy(p.pos); p.flash.quaternion.copy(this.camera.quaternion); p.flash.scale.setScalar(2.1 * (0.7 + p.t * 2));
+      p.flash.material.uniforms.uT.value = p.t / 0.14;
+      p.puff.position.copy(p.pos); p.puff.quaternion.copy(this.camera.quaternion); p.puff.scale.setScalar(1.5 + p.t * 2.6);
+      p.puff.material.uniforms.uT.value = p.t / POP_LIFE;
     }
-  }
-  // a poisoned target breathes out a bubble now and then (called each frame per poisoned dummy)
-  poisoned(x, z, dt) {
-    if (this.rnd() < dt * 9) { const r = this.rnd, a = r() * 6.283; this.bubble(x + Math.cos(a) * 0.32, 0.8 + r() * 1.0, z + Math.sin(a) * 0.32, 0.08 + r() * 0.07); }
-  }
-  update(dt) {
-    for (const sp of this.splats) {
-      if (!sp.m.visible) continue;
-      sp.t += dt; sp.m.quaternion.copy(this.camera.quaternion);
-      sp.m.material.uniforms.uT.value = sp.t / SPLAT_LIFE;
-      if (sp.t >= SPLAT_LIFE) sp.m.visible = false;
-    }
-    const o = this.o;
-    let n = 0;
-    for (const d of this.drops) {
-      d.life += dt; d.vy -= 12 * dt;
-      d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt;
-      if (d.y < 0.03) { d.y = 0.03; d.vx *= 0.2; d.vz *= 0.2; d.vy = 0; }
-      const u = d.life / d.max;
+    // sparks: short streaks that fall away
+    const three = this.three;
+    for (const s of this.sparks) {
+      s.life += dt; s.v.y -= 9 * dt; s.v.multiplyScalar(1 - 2.5 * dt); s.p.addScaledVector(s.v, dt);
+      const u = s.life / s.max;
       if (u >= 1) continue;
-      const s = d.size * (1 - u * u);
-      o.position.set(d.x, d.y, d.z); o.scale.set(s, s * (d.vy < -1 ? 1.5 : d.y <= 0.03 ? 0.4 : 1), s); o.updateMatrix();
-      this.dropMesh.setMatrixAt(n++, o.matrix);
+      three[0].copy(s.p).addScaledVector(s.v, -0.035); three[1].copy(s.p).lerp(three[0], 0.5); three[2].copy(s.p);
+      stripW = s.w; stripU = u;
+      this.glow.strip(three, moteGlowW, 0.7 * (1 - u), MID); this.core.strip(three, moteCoreW, 1 - u * u, HOT);
     }
-    this.dropMesh.count = n; this.dropMesh.instanceMatrix.needsUpdate = true;
-    compact(this.drops, living);
-    n = 0;
-    for (const b of this.bubbles) {
-      b.life += dt;
-      const u = b.life / b.max;
+    compact(this.sparks, living);
+    // motes rising off poisoned targets
+    for (const m of this.motes) {
+      m.life += dt; m.p.y += 0.7 * dt; m.p.x += Math.sin(m.sway + m.life * 7) * 0.25 * dt;
+      const u = m.life / m.max;
       if (u >= 1) continue;
-      b.y += 0.6 * dt; b.x += Math.sin(b.sway + b.life * 8) * 0.2 * dt;
-      const s = b.size * (u < 0.85 ? Math.sqrt(u / 0.85) : 1 + (u - 0.85) * 3); // swell, then pop
-      o.position.set(b.x, b.y, b.z); o.scale.setScalar(s); o.updateMatrix();
-      this.bubbleMesh.setMatrixAt(n++, o.matrix);
+      three[0].copy(m.p); three[0].y -= 0.16; three[1].copy(m.p); three[1].y -= 0.08; three[2].copy(m.p);
+      stripW = m.w * Math.sin(Math.PI * u); stripU = 0;
+      this.glow.strip(three, moteGlowW, 0.8, MID); this.core.strip(three, moteCoreW, 1, HOT);
     }
-    this.bubbleMesh.count = n; this.bubbleMesh.instanceMatrix.needsUpdate = true;
-    compact(this.bubbles, living);
+    compact(this.motes, living);
+    this.core.end(); this.glow.end();
   }
   clear() {
-    for (const gl of this.globs) { gl.id = null; gl.g.visible = false; }
-    for (const sp of this.splats) sp.m.visible = false;
-    this.drops.length = 0; this.bubbles.length = 0;
+    for (const s of this.shots) { s.id = null; s.halo.visible = s.core.visible = false; }
+    for (const p of this.pops) { p.t = 9; p.flash.visible = p.puff.visible = false; }
+    this.tip.visible = false; this.charge = null; this.sparks.length = 0; this.motes.length = 0;
   }
-  get busy() { return this.drops.length > 0 || this.bubbles.length > 0 || this.globs.some((g) => g.id !== null); }
+  get busy() { return this.sparks.length > 0 || this.motes.length > 0 || this.shots.some((s) => s.id !== null); }
 }

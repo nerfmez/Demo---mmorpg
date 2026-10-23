@@ -97,10 +97,12 @@ target for 4 s through the same on-hit path as Poison Shift (`poisonFraction` 0.
 the damage is the poison). Projectile mods (Split, Pierce, Bounce, Returning Shot...) fit it;
 field mods no longer do.
 
-`src/fxtest/venom-fx.js`: a lime toon droplet in a dark violet outline, stretched along its
-flight and wobbling, with drips falling behind; on impact a cel seven-point splat with a violet
-outline bursts on the target and throws droplets; a poisoned dummy is tinted green and breathes
-out small violet bubbles while its poison lasts. The Cartoon FX gallery host was blocked for this
+`src/fxtest/venom-fx.js` uses the same language as the bench's Firebolt and Chain Spark (light,
+not solid shapes): poison wisps gather into a green glow at the staff head over the cast; the shot
+is a hot yellow-green core in an additive glow with a comet trail and two thin wisps twisting
+around its path; on impact a ragged poison flash (`ELEMENT_LOOK.poison`), a cel puff that eats
+away and spark streaks falling out; a poisoned dummy is tinted green and gives off rising motes.
+The Cartoon FX gallery host was blocked for this
 pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFERENCE.md`.
 
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a

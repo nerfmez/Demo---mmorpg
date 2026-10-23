@@ -235,7 +235,8 @@ function drain() {
       case 'castStart':
         heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
-        if (e.kind === 'projectile') {
+        if (e.kind === 'projectile' && state.skill === 'venom_mire') venomFx.gather(e.total); // its own charge, not the game's
+        else if (e.kind === 'projectile') {
           vfx.beginCast(e, s.element);
           if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
         }
@@ -522,7 +523,7 @@ function tick(real, draw = true) {
   modFx.syncAreas(game.areas);
   modFx.update(dt);
   venomFx.syncProjectiles(game.projectiles, 'venom_mire', dt);
-  venomFx.update(dt);
+  venomFx.update(dt, staffTip());
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
   const recipeKind = skillDef().recipe?.id;

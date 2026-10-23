@@ -91,6 +91,7 @@ export const ELEMENT_LOOK = {
   lightning: { flash: ['#ffffff', '#8ce0ff', '#4080ff'], edge: [0.45, 0.82, 1.0], glow: [0.3, 0.6, 1.0], spark: [1.0, 0.95, 0.65] },
   cold: { flash: ['#ffffff', '#c4ecff', '#6fb4e6'], edge: [0.72, 0.93, 1.0], glow: [0.35, 0.7, 0.95], spark: [0.9, 0.98, 1.0] },
   fire: { flash: ['#fff6d0', '#ffb040', '#d8401a'], edge: [1.0, 0.55, 0.15], glow: [1.0, 0.4, 0.1], spark: [1.0, 0.85, 0.4] },
+  poison: { flash: ['#f6ffd8', '#b4ee52', '#4f9a1e'], edge: [0.7, 0.95, 0.3], glow: [0.4, 0.85, 0.15], spark: [0.9, 1.0, 0.6] },
   physical: { flash: ['#ffffff', '#f0e2c0', '#a08860'], edge: [0.95, 0.88, 0.7], glow: [0.6, 0.5, 0.35], spark: [1, 1, 0.9] },
 };
 export const lookOf = (el) => ELEMENT_LOOK[el] || ELEMENT_LOOK.physical;

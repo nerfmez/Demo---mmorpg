@@ -413,9 +413,21 @@ export function prepareChibiBody(gltf, cfg) {
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
   // the head's bind bounds in the head bone's space, for fitting a separate hair model
   const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
+  // `outfits`: painted textures for this body by armour base (same UVs; the face is the base
+  // texture's), loaded beside the model; an armour without one shows the base suit
+  const outfits = {};
+  for (const [id, file] of Object.entries(cfg.outfits || {})) {
+    if (id.startsWith('_')) continue;
+    const tex = new THREE.TextureLoader().load(file);
+    tex.flipY = false; // glTF UVs
+    tex.colorSpace = THREE.SRGBColorSpace;
+    if (mesh.material.map) { tex.wrapS = mesh.material.map.wrapS; tex.wrapT = mesh.material.map.wrapT; }
+    tex.userData.shared = true;
+    outfits[id] = tex;
+  }
   // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
   const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
-  return { scene, joints, world, headFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  return { scene, joints, world, headFit, neckFit, headBox, faceShadow, outfits, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -517,7 +529,7 @@ function hairHull(src, width, darkness) {
  * Add the chibi body to a built driver rig and give the rig syncSkin(). `weapon`/`offhand` are the
  * held kinds (a bow's grip runs along its limbs, +Y; other weapons along +Z, the blade or shaft).
  */
-export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null } = {}) {
+export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim = 0.3, weapon = null, offhand = null, armor = null } = {}) {
   const body = SkeletonUtils.clone(T.scene);
   const flash = rig.material.userData.flash;
   const meshes = [];
@@ -527,8 +539,10 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   // a hand closes into its fist only while it holds something: the right with any weapon, the
   // left with an off-hand item or a weapon it also grips (data: fist.leftFistWith)
   const closed = [weapon ? 1 : 0, offhand || T.leftFistWith.includes(weapon) ? 1 : 0];
+  const outfit = armor && T.outfits?.[armor];
   for (const mesh of meshes) {
-    const src = mesh.material;
+    let src = mesh.material;
+    if (outfit) { src = src.clone(); src.map = outfit; } // only read by the copies below
     mesh.material = toonCopy(src, flash, rim, false);
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
     if (T.faceShadow) {

@@ -421,7 +421,8 @@ enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp fo
 head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
 bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
 as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
-(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. Worn armour picks the body's texture from `outfits` (armour base → a
+texture on the same UVs, made by `scripts/chibi-outfit.py`); the Travel Tunic is the first. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso
 flatten, head reshape and normal bend, scale the hand

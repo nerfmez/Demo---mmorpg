@@ -214,7 +214,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
       rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
-      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
+      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null, armor: gear.bases?.armor || 'travel_tunic' });
       for (const id of ['hero_chibi_hair', 'hero_chibi_hair_back']) {
         const hair = characterBase(id); // the fringe and the back come from two models
         if (hair) attachChibiHair(rig, V, hair);

@@ -48,6 +48,16 @@ test('the chibi face shadow and hair highlight settings are bounded', () => {
   assert.ok(h && h.at > 0 && h.at < 1 && h.width > 0 && h.width < 0.3 && h.strength > 0 && h.strength <= 1, 'hair highlight band');
 });
 
+test('the chibi outfit textures exist for real armour bases', () => {
+  const outfits = data.models.characters.hero_chibi.outfits;
+  assert.ok(outfits?.travel_tunic, 'the starter tunic has a chibi texture');
+  for (const [id, file] of Object.entries(outfits)) {
+    if (id.startsWith('_')) continue;
+    assert.equal(data.items.gearBases[id]?.slot, 'armor', id + ' is an armour base');
+    assert.ok(readFileSync(new URL('../../public/' + file, import.meta.url)).length > 1000, file);
+  }
+});
+
 test('the chibi hair models are single meshes within the character budget', () => {
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
   assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);

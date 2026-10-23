@@ -142,6 +142,8 @@ export class SlashFx {
     c.tilt.rotateX(-0.06);
     const u = c.uniforms;
     u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);
+    const pal = p.palette || PALETTE; // a skill may bring its own colours (Sunder Cut: amber steel)
+    u.uHot.value.set(...pal.hot); u.uBody.value.set(...pal.body); u.uGlow.value.set(...pal.glow);
     u.uRimK.value = p.fusedElement ? 1 : 0;
     if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;

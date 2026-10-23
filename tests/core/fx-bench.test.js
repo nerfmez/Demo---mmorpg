@@ -217,3 +217,12 @@ test('Frontline Split on the bench: a wind-up, then one lineStrike that hits the
   const hit = new Set(r.of('hit').map((e) => e.id));
   assert.ok(hit.size >= 3 && hit.size < r.g.monsters.length, 'the lane hits some dummies, not all');
 });
+
+test('Sunder Cut on the bench: an axe cut that opens the armour of what it hits, for the rules\' 5 s', () => {
+  const r = run('armor_cleave', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 1);
+  assert.equal(r.g.derived.weaponType, 'axe');
+  const hit = new Set(r.of('hit').filter((e) => !e.dot).map((e) => e.id));
+  const exposed = r.g.monsters.filter((m) => m.statuses.exposure);
+  assert.ok(hit.size >= 2 && exposed.length === hit.size, 'every struck dummy is exposed, the rest are not');
+  assert.ok(exposed.every((m) => m.statuses.exposure.fraction === 0.18 && m.statuses.exposure.t > 3.5));
+});

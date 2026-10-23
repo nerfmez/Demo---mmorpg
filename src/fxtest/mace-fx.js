@@ -1,9 +1,9 @@
-// Breakbeat Slam (mace), in the bench's light-and-ribbon language. The bench dummies take turns
-// winding up (sandbox), shown by a red "!" over the head and a red ring filling at the feet; that is
-// the moment to slam. The slam lands on the rules' 'slash' contact: a heavy ground impact in front
-// (a glow that pops, upward rays, two shock rings racing out over the 65 degree cone) and a hard
-// burst on each struck target. A target interrupted mid wind-up has its "!" shatter into shards and
-// is stunned for the rules' time: little stars of light circle its head. Cosmetic only.
+// Breakbeat Slam (mace; bench trial: it stuns whatever it hits), in the bench's light-and-ribbon
+// language. The slam lands on the rules' 'slash' contact: a heavy ground impact in front (a glow
+// that pops, upward rays, two shock rings racing out over the 65 degree cone) and a hard burst on
+// each struck target, which is then stunned: little stars of light circle its head for the stun.
+// (windup()/the red "!" warning remain for monsters that wind up an attack; a stunned target's
+// warning shatters.) Cosmetic only.
 import * as THREE from 'three';
 import { Ribbon, mulberry32 } from './fx-common.js';
 

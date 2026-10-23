@@ -305,7 +305,7 @@ function drain() {
       case 'lineStrike': splitFx.strike(e); break;
       case 'benchWindup': maceFx.windup(e.id, e.total); break;
       case 'benchWindupEnd': maceFx.windupEnd(e.id); break;
-      case 'benchStunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('ขัดจังหวะ!'); break;
+      case 'benchStunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('มึน!'); break;
       case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
       case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;

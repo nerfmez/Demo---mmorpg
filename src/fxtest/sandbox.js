@@ -25,11 +25,20 @@ export const VENOM_ARROW = {
   cooldown: 0.6, castTime: 0.2, cost: 0, element: 'poison', requires: { DEX: 6 }, upgradeStat: 'DEX',
   poison: { maxStacks: 5, duration: 4, stackDps: 0.6 },
 };
+// Bench-only rule trial (owner: "interrupt timing is hard to use; slam and stun instead"): Breakbeat
+// Slam stuns everything it hits for stun.duration (bosses for bossDuration) instead of only
+// interrupting a wind-up. The game keeps its interrupt until this is approved and moved into data.
+export const STUN_SLAM = {
+  desc: 'ทุบพื้นด้านหน้า ศัตรูที่โดนมึน 1.2 วิ (บอสมึน 0.4 วิ)',
+  stun: { duration: 1.2, bossDuration: 0.4 },
+};
 // The bench's copy of the game data with its rule trials applied (the game's data is untouched).
 export function benchData(data) {
   const combat = { ...data.skills.combat };
   const { radius, duration, tick, slow, ...rest } = combat.venom_mire;
   combat.venom_mire = { ...rest, ...VENOM_ARROW };
+  const { interrupt, ...slam } = combat.interrupt_slam;
+  combat.interrupt_slam = { ...slam, ...STUN_SLAM };
   return { ...data, skills: { ...data.skills, combat } };
 }
 
@@ -131,28 +140,24 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     }
     return out;
   };
-  // Breakbeat Slam: the dummies take turns winding up an attack (the rules' 'windup' state) so the
-  // slam has something to interrupt; an interrupted dummy is stunned for the rules' time.
-  if (skill === 'interrupt_slam') {
-    const WIND = 1.4, EVERY = 2.6;
-    let next = 0.8, turn = 0;
+  // Stun Slam trial: every direct hit stuns the target (the rules' stunned state), and the bench
+  // lets it recover after the time (bench dummies run no AI of their own)
+  const stunHit = g.hitMonster;
+  g.hitMonster = function (m, amount, opts = {}) {
+    const out = stunHit.call(this, m, amount, opts);
+    const st = data.skills.combat[opts.skill]?.stun;
+    if (st && !opts.dot && !m.dead) {
+      const duration = m.boss ? st.bossDuration : st.duration;
+      Object.assign(m, { state: 'stunned', stateT: 0, stateDur: duration, windup: null, benchStun: true });
+      this.emit({ type: 'benchStunned', id: m.id, duration });
+    }
+    return out;
+  };
+  if (data.skills.combat[skill]?.stun) {
     const step = g.benchStep;
     g.benchStep = function (dt) {
       step.call(this, dt);
-      next -= dt;
-      for (const m of this.monsters) {
-        if (m.state === 'windup' && (m.benchWind -= dt) <= 0) { m.state = 'idle'; m.windup = null; this.emit({ type: 'benchWindupEnd', id: m.id }); }
-        if (m.state === 'stunned') { if (!m.benchStun) { m.benchStun = true; this.emit({ type: 'benchStunned', id: m.id, duration: m.stateDur }); } if ((m.stateT += dt) >= m.stateDur) { m.state = 'idle'; m.benchStun = false; this.emit({ type: 'benchStunEnd', id: m.id }); } }
-      }
-      if (next <= 0) {
-        next = EVERY;
-        const idle = this.monsters.filter((m) => m.state !== 'windup' && m.state !== 'stunned');
-        for (const m of idle.slice(turn % 2 ? 1 : 0).filter((_, i) => i % 2 === 0)) {
-          m.state = 'windup'; m.windup = { name: Object.keys(m.def.attacks || {})[0] }; m.benchWind = WIND;
-          this.emit({ type: 'benchWindup', id: m.id, total: WIND });
-        }
-        turn++;
-      }
+      for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; m.benchStun = false; this.emit({ type: 'benchStunEnd', id: m.id }); }
     };
   }
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);

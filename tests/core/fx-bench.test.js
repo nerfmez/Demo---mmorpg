@@ -227,18 +227,18 @@ test('Sunder Cut on the bench: an axe cut that opens the armour of what it hits,
   assert.ok(exposed.every((m) => m.statuses.exposure.fraction === 0.18 && m.statuses.exposure.t > 3.5));
 });
 
-test('Breakbeat Slam on the bench: dummies wind up in turns, and a slam that lands mid wind-up stuns them', () => {
+test('Breakbeat Slam trial on the bench: every dummy it hits is stunned for 1.2 s, then recovers; the game keeps its interrupt', () => {
+  assert.ok(data.skills.combat.interrupt_slam.interrupt, 'the game data is untouched');
   const g = createBench(data, 'interrupt_slam', []);
   assert.equal(g.derived.weaponType, 'mace');
   const events = [];
   const step = (n) => { for (let i = 0; i < n; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); } };
-  step(60);
-  const winding = events.filter((e) => e.type === 'benchWindup').map((e) => e.id);
-  assert.ok(winding.length >= 1, 'some dummies wind up');
   assert.ok(g.castSlot(0, { x: 5, z: 0 }));
   step(40);
-  const stunned = events.filter((e) => e.type === 'benchStunned').map((e) => e.id);
-  assert.ok(stunned.length >= 1 && stunned.every((id) => winding.includes(id)), 'only a dummy caught winding up is interrupted');
-  step(60);
-  assert.ok(events.some((e) => e.type === 'benchStunEnd'), 'the stun ends after the rules\' time');
+  const hit = new Set(events.filter((e) => e.type === 'hit' && !e.dot).map((e) => e.id));
+  const stunned = events.filter((e) => e.type === 'benchStunned');
+  assert.ok(hit.size >= 2 && stunned.length === hit.size && stunned.every((e) => e.duration === 1.2), 'every struck dummy is stunned');
+  assert.ok(g.monsters.filter((m) => m.state === 'stunned').length === hit.size);
+  step(80);
+  assert.equal(events.filter((e) => e.type === 'benchStunEnd').length, hit.size, 'and recovers after 1.2 s');
 });

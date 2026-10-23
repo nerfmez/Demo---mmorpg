@@ -30,6 +30,16 @@ test('the chibi head reshape stays a small, bounded change', () => {
   assert.ok(h.soft >= 0 && h.soft <= 1, 'soft blends between mesh and sphere normals');
 });
 
+test('the chibi torso flatten bands are bounded', () => {
+  const bands = data.models.characters.hero_chibi.flatten;
+  assert.ok(Array.isArray(bands) && bands.length, 'hero_chibi flattens its torso');
+  for (const b of bands) {
+    assert.ok(b.y0 < b.y1 && b.y0 > 0 && b.y1 < 1.2, 'band inside the 1.2 m body');
+    assert.ok(Math.abs(b.z) < 0.2 && b.z !== 0, 'depth limit in front of (z > 0) or behind (z < 0) the body');
+    assert.ok(b.k > 0 && b.k <= 1, 'k is a strength 0..1');
+  }
+});
+
 test('the chibi hair models are single meshes within the character budget', () => {
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
   assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);

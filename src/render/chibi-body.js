@@ -174,6 +174,44 @@ function reshapeHead(mesh, shape) {
 }
 
 /**
+ * Flatten bulges of the bind torso (`flatten`: a list of bands from `y0` to `y1`, each moving the
+ * surface beyond depth `z` back toward it by up to `k`, most at the band's middle; `z` above 0 is
+ * the front, below 0 the back). The Meshy body has a bust and round hips, but the sheet's chibi is a
+ * boy with a straight torso. Arm vertices are left alone.
+ */
+function flattenBody(mesh, bands) {
+  const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
+  const arm = new Set(mesh.skeleton.bones.map((b, i) => (/Shoulder|Arm|Hand/.test(b.name) ? i : -1)).filter((i) => i >= 0));
+  // the bind skin (the armature's 0.01 scale and the bone inverses) maps mesh space to metres by one
+  // affine map: measure it from four vertices, so the bands can be given in metres
+  const at = (i) => mesh.getVertexPosition(i, new THREE.Vector3()).applyMatrix4(mesh.matrixWorld);
+  const ids = [0, 1, 2, 3].map((n) => Math.floor((n * pos.count) / 4));
+  const l0 = new THREE.Vector3().fromBufferAttribute(pos, ids[0]), w0 = at(ids[0]);
+  const dl = ids.slice(1).map((i) => new THREE.Vector3().fromBufferAttribute(pos, i).sub(l0));
+  const dw = ids.slice(1).map((i) => at(i).sub(w0));
+  const L = new THREE.Matrix3().set(dl[0].x, dl[1].x, dl[2].x, dl[0].y, dl[1].y, dl[2].y, dl[0].z, dl[1].z, dl[2].z);
+  const Wm = new THREE.Matrix3().set(dw[0].x, dw[1].x, dw[2].x, dw[0].y, dw[1].y, dw[2].y, dw[0].z, dw[1].z, dw[2].z);
+  const toMesh = L.multiply(Wm.invert()), v = new THREE.Vector3(), d = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    let w = 1;
+    for (let c = 0; c < 4; c++) if (arm.has(si.getComponent(i, c))) w -= sw.getComponent(i, c);
+    if (w <= 0) continue;
+    v.copy(at(i));
+    const z0 = v.z;
+    let moved = false;
+    for (const { y0, y1, z, k } of bands) {
+      if (v.y <= y0 || v.y >= y1 || (z > 0 ? v.z <= z : v.z >= z)) continue;
+      v.z = z + (v.z - z) * (1 - k * w * Math.sin((Math.PI * (v.y - y0)) / (y1 - y0)));
+      moved = true;
+    }
+    if (!moved) continue;
+    d.set(0, 0, v.z - z0).applyMatrix3(toMesh);
+    pos.setXYZ(i, pos.getX(i) + d.x, pos.getY(i) + d.y, pos.getZ(i) + d.z);
+  }
+  pos.needsUpdate = true;
+}
+
+/**
  * Bend the head's normals toward the head's centre (`soft` 0..1), the usual anime-face trick: the
  * toon ramp then shades the face as one round form, without bands across the nose and cheeks.
  */
@@ -203,6 +241,7 @@ export function prepareChibiBody(gltf, cfg) {
   });
   if (!mesh || !bones.Hips) throw new Error('hero_chibi: no skinned mesh or Hips bone');
   const head0 = cfg.headShape ? reshapeHead(mesh, cfg.headShape) : null;
+  if (cfg.flatten) flattenBody(mesh, cfg.flatten);
   const fists = cfg.fist ? { RightHand: curlFist(mesh, bones.RightHand, cfg.fist), LeftHand: curlFist(mesh, bones.LeftHand, cfg.fist) } : {};
   smoothNormals(mesh.geometry);
   if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);

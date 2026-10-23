@@ -34,3 +34,6 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
   were enlarged 1.3x in `hero_chibi.glb`'s texture (`scripts/chibi-eyes.py public/models/hero_chibi.glb
   --eye 747 649 --eye 789 821 --scale 1.3`, run once), and `chibi-body.js` reshapes the head at load
   (`headShape` in data: wider, shorter chin, fuller cheeks, normals bent toward the head centre).
+- Torso: the Meshy body had a bust and round hips; `chibi-body.js` flattens them at load
+  (`flatten` in data: chest front to 0.072 m between 0.64 and 0.8 m, backside to -0.045 m between
+  0.4 and 0.62 m), so the torso is straight like the sheet's boy.

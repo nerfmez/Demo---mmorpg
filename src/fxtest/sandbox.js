@@ -29,7 +29,8 @@ export const VENOM_ARROW = {
 // Slam stuns everything it hits for stun.duration (bosses for bossDuration) instead of only
 // interrupting a wind-up. The game keeps its interrupt until this is approved and moved into data.
 export const STUN_SLAM = {
-  desc: 'ทุบพื้นด้านหน้า ศัตรูที่โดนมึน 1.2 วิ (บอสมึน 0.4 วิ)',
+  desc: 'ทุบพื้นด้านหน้า ศัตรูที่โดนมึน 1.2 วิ (บอสมึน 0.4 วิ) ต้องถืออาวุธไร้คม (กระบอง/ค้อน)',
+  requiresWeapon: ['mace'], // every blunt weapon in the game is the mace type: beetle maul, tusk club, thunder maul
   stun: { duration: 1.2, bossDuration: 0.4 },
 };
 // The bench's copy of the game data with its rule trials applied (the game's data is untouched).

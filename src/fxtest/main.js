@@ -235,8 +235,7 @@ function drain() {
       case 'castStart':
         heroAnim.play(e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { primarySwing = true; slashFx.swing(e.total, slashOpts(s)); }
-        if (e.kind === 'projectile' && state.skill === 'venom_mire') venomFx.gather(e.total); // its own charge, not the game's
-        else if (e.kind === 'projectile') {
+        if (e.kind === 'projectile') {
           vfx.beginCast(e, s.element);
           if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
         }
@@ -289,6 +288,7 @@ function drain() {
         else if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
         break;
       }
+      case 'poisonStack': { const d = dummyOf(e.id); if (d) floatNumber(d.x, 2.5, d.z, 'พิษ ×' + e.stacks, ELEMENT_COLOR.poison, e.stacks >= 5); break; }
       case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;
       case 'hit': {
         const d = dummyOf(e.id); if (!d) break;
@@ -505,8 +505,8 @@ function tick(real, draw = true) {
     d.center.set(d.x, 1.1, d.z);
     d.pop = Math.max(0, d.pop - dt / 0.12); d.shake = Math.max(0, d.shake - dt);
     const chill = m.statuses.chill ? Math.min(1, m.statuses.chill.slow / 0.55) : 0;
-    const burn = m.statuses.burn ? 1 : 0, toxic = m.statuses.poison ? 1 : 0;
-    if (toxic) venomFx.poisoned(d.x, d.z, dt);
+    const burn = m.statuses.burn ? 1 : 0, stacks = m.statuses.poison?.stacks || (m.statuses.poison ? 1 : 0), toxic = Math.min(1, stacks / 3);
+    if (stacks) venomFx.poisoned(d.x, d.z, dt, stacks);
     d.mats.forEach((mat, k) => { mat.color.copy(d.orig[k]).lerp(ICY, 0.6 * chill).lerp(CHAR, 0.4 * burn).lerp(TOXIC, 0.3 * toxic); mat.emissive.copy(d.popColor).multiplyScalar(0.8 * d.pop).add(tint.setRGB(0.08 * chill + 0.03 * toxic, 0.16 * chill + 0.08 * toxic, 0.25 * chill)); });
     const sh = d.shake > 0 ? Math.sin(d.shake * 90) * 0.05 * (d.shake / 0.3) : 0;
     d.g.position.set(d.x + sh, 0, d.z);

@@ -159,16 +159,27 @@ test('Flame Wave Slash: the carrier mods ride on the wave', () => {
   assert.ok(wide.waveHits.length > run([]).waveHits.length, 'Wide Arc widens the wave');
 });
 
-test('Venom Mire trial on the bench: a poison shot whose hit poisons the target; the game keeps its zone', () => {
+test('Venom Arrow trial on the bench: a fast bow attack; each hit stacks the same target\'s poison up to five; the game keeps its zone', () => {
   assert.equal(data.skills.combat.venom_mire.kind, 'dot_zone', 'the game data is untouched');
   const mods = benchMods(data, 'venom_mire');
-  assert.ok(mods.includes('pierce') && !mods.includes('following_field'), 'projectile mods, not field mods');
-  const r = run('venom_mire', [], undefined, 5);
-  assert.equal(r.of('area').length, 0, 'no pool');
-  const direct = r.of('hit').filter((e) => !e.dot), ticks = r.of('hit').filter((e) => e.dot);
-  assert.equal(direct.length, 1);
-  assert.ok(ticks.length >= 10 && ticks.every((e) => e.element === 'poison' && e.id === direct[0].id), 'the struck dummy is poisoned');
-  const poison = ticks.reduce((t, e) => t + e.amount, 0);
-  assert.ok(poison > direct[0].amount, 'most of the damage comes from the poison');
-  assert.equal(r.of('impact')[0].kind, 'venom_mire');
+  assert.ok(mods.includes('split') && !mods.includes('following_field') && !mods.includes('fire_shift'), 'arrow mods; no field mods; no element change');
+  const g = createBench(data, 'venom_mire', []);
+  assert.equal(g.derived.weaponType, 'bow');
+  const target = g.monsters.find((m) => m.x === 5 && m.z === 0);
+  g.monsters = [target];
+  const stacks = [];
+  let poison = 0, direct = 0;
+  for (let i = 0; i < 6 * 60; i++) {
+    if (g.player.cooldowns[0] <= 0 && !g.player.cast) g.castSlot(0, { x: 5, z: 0 });
+    g.benchStep(1 / 60);
+    for (const e of g.drainEvents()) {
+      if (e.type === 'poisonStack') stacks.push(e.stacks);
+      if (e.type === 'hit') { if (e.dot) { assert.equal(e.element, 'poison'); poison += e.amount; } else direct += e.amount; }
+    }
+  }
+  assert.deepEqual(stacks, [1, 2, 3, 4, 5], 'stacks climb to five and stay there');
+  assert.equal(target.statuses.poison.stacks, 5);
+  assert.ok(poison > direct * 0.8, 'the stacked poison carries much of the damage');
+  assert.equal(r0(), 0);
+  function r0() { return run('venom_mire', [], undefined, 1).of('area').length; } // no pool
 });

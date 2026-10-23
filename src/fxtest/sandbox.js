@@ -10,24 +10,26 @@ export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', '
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
 export const SINGLE_STRIKE = new Set(['slash']);
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'staff' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow' };
 
-// Bench-only rule trial (owner: "a poison shot, not a pool"): Venom Mire is shown as a spell
-// projectile whose hit poisons the target over time. The game keeps its zone until this is
-// approved and moved into data/skills.json with a core rule and test.
-export const VENOM_SHOT = {
-  nameTh: 'ยิงพิษ', name: 'Venom Shot',
-  desc: 'ยิงก้อนพิษไปข้างหน้า โดนแล้วติดพิษที่ตัวศัตรู 4 วิ (ดาเมจส่วนใหญ่มาจากพิษ)',
-  tags: ['Spell', 'Projectile', 'Poison', 'Damage'], kind: 'projectile', power: 'spell',
-  damage: { base: 5, scale: 0.5 }, range: 12, speed: 11, projectileRadius: 0.32,
-  cooldown: 1.6, castTime: 0.3, cost: 10, element: 'poison',
-  poison: { fraction: 0.6, duration: 4 },
+// Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
+// target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
+// stack (up to maxStacks) and refreshes its duration; every stack adds dps worth stackDps x that
+// hit. The game keeps its zone until this is approved and moved into data/skills.json with a core
+// rule and test.
+export const VENOM_ARROW = {
+  nameTh: 'ธนูพิษ', name: 'Venom Arrow',
+  desc: 'ยิงลูกธนูพิษเส้นบางเร็ว ไม่ทะลุ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง',
+  tags: ['Attack', 'Projectile', 'Poison', 'Damage', 'DoT'], kind: 'projectile', power: 'attack', requiresWeapon: ['bow'],
+  damage: { base: 4, scale: 0.4 }, range: 14, speed: 26, projectileRadius: 0.2,
+  cooldown: 0.6, castTime: 0.2, cost: 0, element: 'poison', requires: { DEX: 6 }, upgradeStat: 'DEX',
+  poison: { maxStacks: 5, duration: 4, stackDps: 0.6 },
 };
 // The bench's copy of the game data with its rule trials applied (the game's data is untouched).
 export function benchData(data) {
   const combat = { ...data.skills.combat };
   const { radius, duration, tick, slow, ...rest } = combat.venom_mire;
-  combat.venom_mire = { ...rest, ...VENOM_SHOT };
+  combat.venom_mire = { ...rest, ...VENOM_ARROW };
   return { ...data, skills: { ...data.skills, combat } };
 }
 
@@ -93,7 +95,8 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     g.updateProjectiles(dt);
     g.updateAreas(dt);
     for (const m of g.monsters) g.tickStatuses(m, dt);
-    g.player.mp = g.player.maxMp; // cooldowns run for real; MP never blocks a test
+    g.player.mp = g.player.maxMp; // cooldowns run for real; MP and arrows never block a test
+    if (g.ch.arrows?.stock && Object.values(g.ch.arrows.stock).reduce((a, n) => a + n, 0) < 50) g.ch.arrows.stock.feather_arrow = 200;
     g.player.movement.charges = Math.max(g.player.movement.charges, 1);
   };
   g.aimAt = (angle) => { g.input.aimFromPointer = true; g.input.aimAngle = angle; g.input.aimPoint = { x: Math.sin(angle) * 5, z: Math.cos(angle) * 5 }; };
@@ -106,11 +109,18 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     const cast = g.castSlot;
     g.castSlot = function (...args) { this.player.lastSwingT = -1e9; return cast.apply(this, args); }; // combo step stays 0
   }
-  // the trial's built-in poison rides the same on-hit path Poison Shift uses
-  const poisonTrial = () => { for (const s of g.skills) if (s && data.skills.combat[s.id]?.poison) { const pz = data.skills.combat[s.id].poison; s.modEffects = { ...s.modEffects, poisonFraction: pz.fraction, poisonDuration: pz.duration }; } };
-  const refresh = g.refresh;
-  g.refresh = function (...args) { const r = refresh.apply(this, args); poisonTrial(); return r; };
-  poisonTrial();
+  // Venom Arrow trial: each direct hit stacks the target's poison
+  const hit = g.hitMonster;
+  g.hitMonster = function (m, amount, opts = {}) {
+    const out = hit.call(this, m, amount, opts);
+    const pz = data.skills.combat[opts.skill]?.poison;
+    if (pz && !opts.dot && !opts.byAlly && !m.dead && m.hp > 0) {
+      const before = m.statuses.poison?.stacks || 0, stacks = Math.min(pz.maxStacks, before + 1);
+      m.statuses.poison = { dps: stacks * pz.stackDps * amount, t: pz.duration, acc: m.statuses.poison?.acc || 0, owner: 'player', stacks };
+      if (stacks > before) this.emit({ type: 'poisonStack', id: m.id, stacks, x: m.x, z: m.z }); // only when it grows
+    }
+    return out;
+  };
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);
   g.aimAt(Math.PI / 2);
   return g;

@@ -88,20 +88,22 @@ ragged flash and a fire puff that swells and burns away) instead of the game's o
 contact splash, so nothing flies off in one direction. Porting them means moving them into `src/render/` with
 numbers in `data/combat-fx.json`.
 
-## Venom Shot (rule trial of Venom Mire)
+## Venom Arrow (rule trial of Venom Mire)
 
-The owner did not want a poison pool, so the bench shows Venom Mire as a poison shot
-(`VENOM_SHOT` / `benchData()` in `src/fxtest/sandbox.js`; the game data keeps its zone until this
-is approved). It is a spell projectile (12 m, 11 m/s, cooldown 1.6 s) whose hit poisons the
-target for 4 s through the same on-hit path as Poison Shift (`poisonFraction` 0.6, so most of
-the damage is the poison). Projectile mods (Split, Pierce, Bounce, Returning Shot...) fit it;
-field mods no longer do.
+The owner did not want a poison pool, and a poison shot from the staff was too close to Firebolt.
+The bench now shows Venom Mire as **Venom Arrow**, a bow attack (`VENOM_ARROW` / `benchData()` in
+`src/fxtest/sandbox.js`; the game data keeps its zone until this is approved): a fast thin arrow
+(26 m/s, 14 m, cooldown 0.6 s, uses arrows, no pierce of its own) with a small direct hit. Every
+hit adds a poison stack on that target, up to 5, and refreshes its 4 s; each stack adds dps worth
+0.6 x that hit, so one target kept under fire ramps past a plain arrow while a single hit is weak.
+Firebolt is burst on whatever it hits; Venom Arrow rewards staying on one target. Arrow mods fit
+(Split, Pierce, Bounce, Returning Shot, Laceration...); field mods and element Shifts do not.
 
 `src/fxtest/venom-fx.js` uses the same language as the bench's Firebolt and Chain Spark (light,
-not solid shapes): poison wisps gather into a green glow at the staff head over the cast; the shot
-is a hot yellow-green core in an additive glow with a comet trail and two thin wisps twisting
-around its path; on impact a ragged poison flash (`ELEMENT_LOOK.poison`), a cel puff that eats
-away and spark streaks falling out; a poisoned dummy is tinted green and gives off rising motes.
+not solid shapes): the arrow is a thin hot yellow-green needle of light with a short trail and a
+fine wisp twisting round it; on impact a small ragged poison flash (`ELEMENT_LOOK.poison`), a puff
+and a few streaks; a poisoned dummy is tinted green by its stacks and gives off rising motes, more
+with more stacks, and a "พิษ ×N" label shows each new stack.
 The Cartoon FX gallery host was blocked for this
 pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFERENCE.md`.
 

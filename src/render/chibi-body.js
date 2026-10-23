@@ -213,7 +213,7 @@ export function prepareChibiBody(gltf, cfg) {
   const hc = head.isEmpty() ? J.Head.clone().add(new THREE.Vector3(0, 0.12, 0)) : head.getCenter(new THREE.Vector3());
   const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0)).toArray(), scale: hs };
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
-  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null,
+  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -269,15 +269,18 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
   // Every frame a holding hand turns (the least it can) until its thumb runs along the weapon's grip
   // axis, so the fist's fingers cross the handle, and the weapon socket moves to the fist's hole.
   // The weapon's direction stays the driver's. A shield or quiver is only seated in the fist.
+  // A weapon in `gripMiddle` (a staff) is held at the middle of its length, not at its own grip
+  // point: `shift` moves the fist that far along the weapon's axis.
   const axis = (kind) => (kind === 'bow' ? Y : kind && kind !== 'shield' && kind !== 'quiver' ? Z : null);
-  const seats = [['RightHand', rig.bones.weapon, axis(weapon)], ['LeftHand', rig.bones.offhand, axis(offhand)]]
-    .map(([n, socket, along]) => ({ hand: body.getObjectByName(n), socket, along, centre: T.grip[n], thumb: T.thumb[n] }))
+  const seats = [['RightHand', rig.bones.weapon, weapon], ['LeftHand', rig.bones.offhand, offhand]]
+    .map(([n, socket, kind]) => ({ hand: body.getObjectByName(n), socket, along: axis(kind), centre: T.grip[n], thumb: T.thumb[n],
+      shift: socket && T.gripMiddle.includes(kind) ? middleOf(socket) : 0 }))
     .filter((e) => e.hand && e.socket);
   rig.gripCenter = T.grip.RightHand;
   const sync = rig.syncSkin;
   rig.syncSkin = () => {
     sync();
-    for (const { hand, socket, along, centre, thumb } of seats) {
+    for (const { hand, socket, along, centre, thumb, shift } of seats) {
       hand.updateWorldMatrix(true, false);
       if (along) {
         hand.getWorldQuaternion(qh);
@@ -288,10 +291,19 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
       }
       socket.parent.updateWorldMatrix(true, false);
       socket.position.copy(socket.parent.worldToLocal(hand.localToWorld(seat.copy(centre))));
+      if (shift) socket.position.sub(seat.set(0, 0, shift).multiply(socket.scale).applyQuaternion(socket.quaternion));
     }
   };
   rig.syncSkin();
   return rig;
+}
+
+/** Where along its own +Z axis the middle of a socket's attached weapon lies (socket space). */
+function middleOf(socket) {
+  socket.updateWorldMatrix(true, true);
+  const box = new THREE.Box3();
+  for (const c of socket.children) box.expandByObject(c);
+  return box.isEmpty() ? 0 : socket.worldToLocal(box.getCenter(new THREE.Vector3())).z;
 }
 
 const Y = new THREE.Vector3(0, 1, 0);

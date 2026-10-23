@@ -402,7 +402,9 @@ and weapon/off-hand bones and chest gear (the quiver) are scaled by `gearScale` 
 and the animator's character-space hand targets (action IK, carries, the staff cast) are moved
 onto it by `bodyMap` (`rig.ikMap`: heights keep their offset from the hips, offsets scaled 0.45);
 `holds` replaces shared carries for this body (sword forward and down, staff low and upright,
-heavy weapons two-handed at the belly with the head forward). The hand has no finger
+heavy weapons two-handed at the belly with the head forward); a hold's `up: [1, 0, 0]` turns the
+blade's flat (weapon +Y) to the side so the edge stands upright, and a weapon in `gripMiddle` (the
+staff) is held at the middle of its length. The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
 holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is

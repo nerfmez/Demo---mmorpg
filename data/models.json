@@ -623,7 +623,7 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
         "sword": {
           "one": {
             "hand": [
@@ -635,6 +635,11 @@
               -0.12,
               -0.55,
               0.83
+            ],
+            "up": [
+              1,
+              0,
+              0
             ]
           }
         },
@@ -649,6 +654,11 @@
               -0.1,
               0.4,
               0.9
+            ],
+            "up": [
+              1,
+              0,
+              0
             ]
           },
           "two": {
@@ -663,7 +673,12 @@
               0.8
             ],
             "grip": 0.26,
-            "stance": "guard"
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
           }
         },
         "mace": {
@@ -677,6 +692,11 @@
               -0.1,
               0.4,
               0.9
+            ],
+            "up": [
+              1,
+              0,
+              0
             ]
           },
           "two": {
@@ -691,7 +711,12 @@
               0.8
             ],
             "grip": 0.22,
-            "stance": "guard"
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
           }
         },
         "greatblade": {
@@ -707,7 +732,12 @@
               0.75
             ],
             "grip": -0.11,
-            "stance": "guard"
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
           }
         },
         "staff": {
@@ -726,6 +756,9 @@
           }
         }
       },
+      "gripMiddle": [
+        "staff"
+      ],
       "fist": {
         "knuckle": 0.55,
         "radius": 0.25,

@@ -553,7 +553,9 @@ export class HumanoidAnimator {
     if (hold) {
       W_HAND.fromArray(hold.hand);
       W_DIR.fromArray(hold.dir).normalize();
-      W_UP.set(0, 1, 0);
+      // the blade's flat faces this way (default up); [1, 0, 0] stands the edge upright
+      if (hold.up) W_UP.fromArray(hold.up);
+      else W_UP.set(0, 1, 0);
     }
     if (swingV && swingW > 0.01) {
       const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);

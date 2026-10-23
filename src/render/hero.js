@@ -527,6 +527,17 @@ export class HumanoidAnimator {
       root.updateMatrixWorld(true);
     }
     this.rig.syncSkin?.();
+    // A body whose skin hand is seated on the weapon after the driver pose (chibi-body.js): put the
+    // second hand's fist, not its wrist, on the haft where the weapon now is.
+    const support = this.rig.support;
+    if (support) support.on = gripW > 0.01 && !!b.weapon;
+    if (support?.on) {
+      this.rig.root.updateMatrixWorld(true);
+      support.axis.set(0, 0, 1).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
+      this.rig.syncSkin(); // turns the left hand along the haft and measures its fist
+      reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)).sub(support.offset), gripW);
+      this.rig.syncSkin();
+    }
     if (staffSupport && this.rig.hairsample) {
       // Current main seats the weapon in the skinned right palm during syncSkin.
       // Follow that final shaft with the support arm without changing its grip.

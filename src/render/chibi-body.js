@@ -277,9 +277,23 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
       shift: socket && T.gripMiddle.includes(kind) ? middleOf(socket) : 0 }))
     .filter((e) => e.hand && e.socket);
   rig.gripCenter = T.grip.RightHand;
+  // The second hand on a two-handed haft (hero.js sets support.on and support.axis, the haft's
+  // world direction): the left hand turns its thumb along the haft like a holding hand, and
+  // support.offset gives its fist hole's offset from the wrist, so the animator can put the
+  // fist, not the wrist, on the haft.
+  const handL = body.getObjectByName('LeftHand');
+  rig.support = handL ? { on: false, axis: new THREE.Vector3(0, 0, 1), offset: new THREE.Vector3() } : null;
   const sync = rig.syncSkin;
   rig.syncSkin = () => {
     sync();
+    if (rig.support?.on) {
+      handL.updateWorldMatrix(true, false);
+      handL.getWorldQuaternion(qh);
+      qh.premultiply(qt.setFromUnitVectors(seat.copy(T.thumb.LeftHand).applyQuaternion(qh), rig.support.axis));
+      handL.quaternion.copy(handL.parent.getWorldQuaternion(qs).invert().multiply(qh));
+      handL.updateWorldMatrix(false, false);
+      handL.localToWorld(rig.support.offset.copy(T.grip.LeftHand)).sub(handL.getWorldPosition(seat));
+    }
     for (const { hand, socket, along, centre, thumb, shift } of seats) {
       hand.updateWorldMatrix(true, false);
       if (along) {

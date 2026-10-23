@@ -405,7 +405,9 @@ onto it by `bodyMap` (`rig.ikMap`: heights keep their offset from the hips, offs
 heavy weapons two-handed at the belly with the head forward); a hold's `up: [1, 0, 0]` turns the
 blade's flat (weapon +Y) to the side so the edge stands upright with the cutting side down (a
 weapon model's `edge: -1` marks a blade or axe head that cuts on its -X side, which flips it), and a weapon in `gripMiddle` (the
-staff) is held at the middle of its length. The hand has no finger
+staff) is held at the middle of its length. On a two-handed haft the left hand also turns its thumb
+along the haft, and the animator reaches the left arm so its fist hole (not its wrist) lands on the
+haft after the right fist is seated (`rig.support`). The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
 holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is

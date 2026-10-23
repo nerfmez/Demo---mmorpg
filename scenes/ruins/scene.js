@@ -28,8 +28,20 @@ const K = 2.4;   // world scale: the concept's layout, K times bigger, seen from
 const M = v => v * K;   // concept metres to world metres
 const PL = M(1.0);   // the plaza and the ruins
 const T1 = M(3.6);   // the rock ridge between the path and the plaza, at its highest
-// the ridge is lower at its left end, as the concept draws it (about 3 m there, 4 m mid-way)
-const ridgeTop = (() => { const xl = P(0.08, 0.68, 0)[0], xc = P(0.3, 0.77, 0)[0]; return x => M(3.0) + (T1 - M(3.0)) * smooth(xl, xc, x); })();
+// Trace the owner's descending orange silhouette, from the left shoulder to
+// the low right-hand end. The same profile drives both terrain and stone.
+const ridgeTop = (() => {
+  const samples = [[.12,.70,.52],[.25,.758,.566],[.40,.76,.608],[.55,.708,.65],[.565,.70,.655]]
+    .map(([u,foot,top])=>{const[x,z]=P(u,foot);return{x,y:Math.max(PL+.12,tall(x,z,0,top))};});
+  return x=>{
+    if(x<=samples[0].x)return samples[0].y;
+    for(let i=1;i<samples.length;i++)if(x<=samples[i].x){
+      const a=samples[i-1],b=samples[i],t=(x-a.x)/(b.x-a.x);
+      return a.y+(b.y-a.y)*t;
+    }
+    return samples[samples.length-1].y;
+  };
+})();
 const T2B = M(3.3), T2 = M(5.1);   // the high tier on the ridge's left: its foot and its top
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
 // ground mesh bounds (metres)
@@ -133,12 +145,16 @@ const shadeAt = (x, z) => SHADE.reduce((m, s) => Math.max(m, 1 - smooth(s.r * 0.
 
 // the shape of the land: height and how much of it is a raised top
 function field(x, z) {
-  let y = 0, top = 0;
+  let y = 0, top = 0, rock = 0;
   for (const T of TERRACES) {
     const d = polyAt(T, x, z);
     if (d === null) continue;
     // a cliff rises over its lean; elsewhere the edge is a grassy bank `soft` metres wide
-    const w = polyAt.wall && T.ledge ? 1 - smooth(-0.35 - T.lean, 0.05, d) : 1 - smooth(-T.soft, 0.25, d);
+    const cliff = polyAt.wall && T.ledge;
+    const w = cliff ? 1 - smooth(-0.35 - T.lean, 0.05, d) : 1 - smooth(-T.soft, 0.25, d);
+    // Cover the exposed backing of the cliff with stone, including its shallow
+    // shelves. A slope-only mask left green triangular ground between panels.
+    if(cliff)rock=Math.max(rock,smooth(-T.lean-1.1,-T.lean-.35,d)*(1-smooth(.05,.45,d)));
     const b = T.base || 0;
     if (w > 0) { y = Math.max(y, b + ((T.topAt ? T.topAt(x) : T.top) - b) * w); top = Math.max(top, w); }
   }
@@ -155,7 +171,9 @@ function field(x, z) {
     y = sy + (y - sy) * k;
     if (st.inside) y = sy;
   }
-  return { y, top };
+  // Keep the open stair corridor and its banks outside the hidden backing.
+  if(st.a>-.35&&st.a<1.65&&st.s<ST.half+ST.bank-1)rock=0;
+  return { y, top, rock };
 }
 function height(x, z) {
   const f = field(x, z);
@@ -168,10 +186,14 @@ function buildGround() {
   const W = GX1 - GX0, D = GZ1 - GZ0;
   const g = new THREE.PlaneGeometry(W, D, Math.round(W * 1.35), Math.round(D * 1.35));
   g.rotateX(-Math.PI / 2); g.translate((GX0 + GX1) / 2, 0, (GZ0 + GZ1) / 2);
-  const p = g.attributes.position, n = p.count, w = new Float32Array(n * 3), td = new Float32Array(n);
+  const p = g.attributes.position, n = p.count, w = new Float32Array(n * 3), td = new Float32Array(n), rock = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const x = p.getX(i), z = p.getZ(i);
-    p.setY(i, height(x, z));
+    const f=field(x,z);
+    // The detailed stone shell owns this surface. Sink its hidden heightfield
+    // backing so coarse terrain triangles cannot poke through the rock face.
+    p.setY(i, f.y + 0.05 * noise2(x * 0.6, z * 0.6) + 0.08 * f.top * noise2(x * 0.4 + 7, z * 0.4) - f.rock * M(2.5));
+    rock[i]=f.rock;
     const st = stairsAt(x, z);
     const d = st.inside ? -3 : Math.max(-4, Math.min(4, trailEdge(x, z)));
     td[i] = d;
@@ -179,15 +201,18 @@ function buildGround() {
     w[i * 3] = 1 - trail; w[i * 3 + 1] = trail; w[i * 3 + 2] = shadeAt(x, z);
   }
   g.setAttribute('color', new THREE.BufferAttribute(w, 3)); g.setAttribute('trailD', new THREE.BufferAttribute(td, 1));
+  g.setAttribute('cliffRock',new THREE.BufferAttribute(rock,1));
   g.computeVertexNormals();
   const box = new THREE.Vector4(GX0, GZ0, W, D);
   const mat = paint({
     vertexColors: true, shade: [0.5, 0.42, 0.4], mid: [0.8, 0.7, 0.62], band: [-0.2, 0.18],
     uniforms: { uBake: GROUND_BAKE, uBakeBox: { value: box } },
-    extraFrag: 'uniform sampler2D uBake; uniform vec4 uBakeBox;',
+    extraVert: 'attribute float cliffRock; varying float vCliffRock;',
+    extraVertMain: 'vCliffRock=cliffRock;',
+    extraFrag: 'uniform sampler2D uBake; uniform vec4 uBakeBox; varying float vCliffRock;',
     albedo: /* glsl */`
   vec3 a=texture2D(uBake,(vW.xz-uBakeBox.xy)/uBakeBox.zw).rgb; diffuseColor.rgb=a*a;
-  float gw=vColor.x;
+  float gw=vColor.x*(1.-max(vCliffRock,1.-smoothstep(.45,.75,normalize(vWN).y)));
   gShade=mix(uShade,vec3(.3,.46,.46),gw); gMid=mix(uMid,vec3(.64,.78,.68),gw);`,
   });
   // bake: draw the ground once, flat, into a 2048 texture with the full painted-colour shader
@@ -196,10 +221,10 @@ function buildGround() {
   const bakeMat = new THREE.ShaderMaterial({
     depthTest: false, depthWrite: false, side: THREE.DoubleSide,
     uniforms: { uBox: { value: box } },
-    vertexShader: `attribute vec3 color; attribute float trailD; uniform vec4 uBox; varying vec3 vW, vWN, vColor; varying float vD;
-      void main(){ vW=(modelMatrix*vec4(position,1.)).xyz; vWN=normalize(mat3(modelMatrix)*normal); vColor=color; vD=trailD;
+    vertexShader: `attribute vec3 color; attribute float trailD; attribute float cliffRock; uniform vec4 uBox; varying vec3 vW, vWN, vColor; varying float vD, vCliffRock;
+      void main(){ vW=(modelMatrix*vec4(position,1.)).xyz; vWN=normalize(mat3(modelMatrix)*normal); vColor=color; vD=trailD; vCliffRock=cliffRock;
         gl_Position=vec4((vW.xz-uBox.xy)/uBox.zw*2.-1.,0.,1.); }`,
-    fragmentShader: `varying vec3 vW, vWN, vColor; varying float vD;
+    fragmentShader: `varying vec3 vW, vWN, vColor; varying float vD, vCliffRock;
       ${NOISE}
       void main(){
   vec3 wgt=vColor; vec2 q=vW.xz;
@@ -227,7 +252,7 @@ function buildGround() {
   vec3 col=mix(trail,grass,clamp(wgt.x+tuft*.6,0.,1.));
   // the steep faces behind the stones
   float steep=1.-smoothstep(.45,.75,normalize(vWN).y);
-  col=mix(col,${L('#9a958d')},steep*.85);
+  col=mix(col,${L('#9a958d')},max(steep,vCliffRock));
   // dappled leaf shade: cool green-blue on grass, warm brown on dirt
   float leaves=smoothstep(.47,.55,fbm(q*.62+vec2(3.,7.))+.14*vnoise(q*2.7));
   float dap=clamp(leaves*wgt.z*1.3,0.,1.);
@@ -247,9 +272,8 @@ function buildGround() {
 
 // ---------- the terrace cliffs: one continuous rock face, grass on its lip and in its cracks ----------
 // The face follows the outline. It is split into columns by vertical cracks; each column is a few
-// flat facets (its own lean, set and ragged top), so the cliff reads as one cracked rock wall, not
+// flat facets with shared section edges, so the cliff reads as one cracked rock wall, not
 // stones set in a row. A grassy lip rolls over the top.
-const COLLIDERS = [];
 function cliffRuns(T) {
   const p = T.pts, n = p.length;
   const onStairs = q => stairsAt(q.x, q.z).s < ST.half + ST.bank - 1 && stairsAt(q.x, q.z).a > -0.35 && stairsAt(q.x, q.z).a < 1.65;   // hillside and the continuous court landing
@@ -334,38 +358,53 @@ function buildCliffs(){
     if(!T.ledge)continue;
     for(const run of cliffRuns(T)){
       const pts=run.pts; let length=0;
+      // Every bend has one outward direction shared by both adjoining panels.
+      // Per-panel normals used to pull their endpoints apart at curved corners.
+      const edgeOut=pts.slice(0,-1).map((a,i)=>{
+        const b=pts[i+1],n=new V3(b.z-a.z,0,a.x-b.x).normalize();
+        if(polyAt(T,a.x+n.x*.7,a.z+n.z*.7)<0)n.negate();
+        return n;
+      });
+      const jointOut=pts.map((p,i)=>{
+        const before=edgeOut[Math.max(0,i-1)],after=edgeOut[Math.min(edgeOut.length-1,i)];
+        return before.clone().add(after).normalize();
+      });
       for(let i=0;i<pts.length-1;i++){
         const a=pts[i],b=pts[i+1],dx=b.x-a.x,dz=b.z-a.z,l=Math.hypot(dx,dz), out=new V3(dz/l,0,-dx/l);
         if(polyAt(T,a.x+out.x*.7,a.z+out.z*.7)<0)out.negate();
+        const normalAt=t=>jointOut[i].clone().lerp(jointOut[i+1],t).normalize();
         const row=[0,.29,.59,.83,1], n=Math.max(1,Math.ceil(l/(.62*K)));
         for(let k=0;k<n;k++){
           const s0=length+l*k/n,s1=length+l*(k+1)/n;
           const profile=(t,s,r)=>{
             const x=a.x+dx*t,z=a.z+dz*t,peak=(T.topAt?T.topAt(x):T.top);
-            const base=height(x+out.x*1.6,z+out.z*1.6)-.28;
+            const normal=normalAt(t);
+            const base=height(x+normal.x*1.6,z+normal.z*1.6)-.28;
             const f=row[r], fault=(r===0||r===4?0:.18*K*Math.sin(s*.81+r*3.1));
             const step=(r===0?.42:r===1?.34:r===2?.16:r===3?-.05:-.13)*K;
-            const fracture=.24*K*Math.sin(Math.floor(s/(1.05*K))*2.18+r*.83)+.1*K*Math.sin(s*1.8+r);
+            const fracture=.12*K*Math.sin(s/(1.05*K)*2.18+r*.83)+.06*K*Math.sin(s*1.8+r);
             const off=step+fracture-T.lean*f*.46;
-            return new V3(x+out.x*off,base+(peak-base)*f+fault+(r===4?.12*K*Math.sin(s*.72):0),z+out.z*off);
+            return new V3(x+normal.x*off,base+(peak-base)*f+fault+(r===4?.12*K*Math.sin(s*.72):0),z+normal.z*off);
           };
           for(let r=0;r<4;r++){
             const v0=profile(k/n,s0,r),v1=profile((k+1)/n,s1,r),v2=profile((k+1)/n,s1,r+1),v3=profile(k/n,s0,r+1);
             const c=stone[(Math.floor(s0/(1.3*K))+r*2)%stone.length].clone().multiplyScalar(r===0?.89:1+R(-.025,.025));
             if(r>0){
               const old0=v0.clone(),old1=v1.clone();
-              v0.addScaledVector(out,-.27*K);v1.addScaledVector(out,-.27*K);
+              // A shallow closed fold gives a stone seam without separating layers.
+              v0.addScaledVector(normalAt(k/n),-.055*K);v1.addScaledVector(normalAt((k+1)/n),-.055*K);
               face(old0,old1,v1,v0,c.clone().multiplyScalar(1.05),new V3(0,1,0));
             }
             face(v0,v1,v2,v3,c,out);
             if(r>0){
-              // Recessed seam ledges. Offset, meandering rows read as strata.
-              const a0=v0.clone().addScaledVector(out,.012),a1=v1.clone().addScaledVector(out,.012);
-              const b0=a0.clone().add(new V3(-out.x*.17,-.065*K,-out.z*.17)),b1=a1.clone().add(new V3(-out.x*.17,-.065*K,-out.z*.17));
-              face(a0,a1,b1,b0,c.clone().multiplyScalar(.61),out);
+              // Narrow grey-green seams sit on the face; they do not cut holes.
+              const n0=normalAt(k/n),n1=normalAt((k+1)/n);
+              const a0=v0.clone().addScaledVector(n0,.012),a1=v1.clone().addScaledVector(n1,.012);
+              const b0=a0.clone().add(new V3(-n0.x*.04,-.022*K,-n0.z*.04)),b1=a1.clone().add(new V3(-n1.x*.04,-.022*K,-n1.z*.04));
+              face(a0,a1,b1,b0,c.clone().multiplyScalar(.78),out);
             }
           }
-          const a0=profile(k/n,s0,4),a1=profile((k+1)/n,s1,4),a2=a1.clone().addScaledVector(out,-.85*K),a3=a0.clone().addScaledVector(out,-.85*K);
+          const a0=profile(k/n,s0,4),a1=profile((k+1)/n,s1,4),a2=a1.clone().addScaledVector(normalAt((k+1)/n),-.85*K),a3=a0.clone().addScaledVector(normalAt(k/n),-.85*K);
           a2.y=height(a2.x,a2.z)+.025;a3.y=height(a3.x,a3.z)+.025;
           face(a0,a1,a2,a3,stone[2].clone().lerp(new THREE.Color('#879650'),.25),new V3(0,1,0));
           if((Math.floor(s0/(.62*K))+i)%3===0){
@@ -411,8 +450,12 @@ function buildLedges(){
   });
 }
 function PG(u,v){
-  for(const h of [T2,T1,M(3),PL]){const q=P(u,v,h);if(Math.abs(height(q[0],q[1])-h)<.6)return[q[0],q[1],height(q[0],q[1])];}
-  const q=P(u,v);return[q[0],q[1],height(...q)];
+  // Find the visible terrain along this screen ray, including the new slope.
+  let hi=T2+M(2),lo=hi;
+  for(;lo>0;lo-=.5){const q=P(u,v,lo);if(lo<=height(...q))break;hi=lo;}
+  lo=Math.max(0,lo);
+  for(let i=0;i<14;i++){const h=(lo+hi)/2,q=P(u,v,h);if(h>height(...q))hi=h;else lo=h;}
+  const q=P(u,v,(lo+hi)/2);return[q[0],q[1],height(...q)];
 }
 function screenBox(u0,u1,vFoot,vTop,level=PL){
   const[x,z]=P((u0+u1)/2,vFoot,level);
@@ -495,6 +538,55 @@ function archway(u0,u1,vf,vt,ou0,ou1,vOpen,depth=1.05){
     for(let i=0;i<2;i++)block(x,yc+i*h/2,z,pw*.90,h/2-.02*K,d,0,.2);
   }
 }
+// Dedicated wear on the court marker: a broken crown, broad shallow facets,
+// and a branched fracture that follows the surface instead of floating above it.
+function wornMarkerGeometry(w,h,d){
+  // Reuse the masonry's original random draws so the rest of the scene stays put.
+  const source=ruinGeometry(w,h,d,.24,null,true),sp=source.attributes.position,sc=source.attributes.color;
+  const pos=[],colors=[];
+  const tri=(a,b,c,tone)=>{for(const v of[a,b,c]){pos.push(v.x,v.y,v.z);colors.push(tone.r,tone.g,tone.b);}};
+  const weather=v=>{
+    const nx=v.x/w,ny=v.y/h,nz=v.z/d,upper=smooth(.48,.98,ny);
+    v.y-=upper*h*(.17*smooth(-.12,.42,-nx)+.065*smooth(-.2,.5,nz));
+    v.x+=w*.035*Math.sin(ny*3.6+nz*2.2)*smooth(0,.35,ny);
+    v.z+=d*.035*Math.sin(nx*4.8+ny*2.1)*smooth(0,.3,ny);
+    return v;
+  };
+  // The first 192 vertices are the solid block; replace the old hairline decal.
+  for(let i=0;i<Math.min(192,sp.count);i+=3){
+    const a=weather(new V3().fromBufferAttribute(sp,i)),b=weather(new V3().fromBufferAttribute(sp,i+1)),c=weather(new V3().fromBufferAttribute(sp,i+2));
+    const tone=new THREE.Color().fromBufferAttribute(sc,i),normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a)).normalize();
+    if(Math.abs(normal.y)<.65&&Math.max(a.y,b.y,c.y)-Math.min(a.y,b.y,c.y)>h*.4){
+      const centre=a.clone().add(b).add(c).multiplyScalar(1/3).addScaledVector(normal,-Math.min(w,d)*.035);
+      tri(a,b,centre,tone.clone().multiplyScalar(.97));
+      tri(b,c,centre,tone.clone().multiplyScalar(1.035));
+      tri(c,a,centre,tone.clone().multiplyScalar(.91));
+    }else tri(a,b,c,tone);
+  }
+  const body=new THREE.BufferGeometry();body.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));body.computeVertexNormals();
+  const probeMaterial=new THREE.MeshBasicMaterial({side:THREE.DoubleSide}),probe=new THREE.Mesh(body,probeMaterial),ray=new THREE.Raycaster();probe.updateMatrixWorld();
+  const surface=(x,y)=>{
+    ray.set(new V3(x,y,d*2),new V3(0,0,-1));
+    const hit=ray.intersectObject(probe,false)[0];
+    return hit?hit.point.clone().add(new V3(0,0,.012*w)):null;
+  };
+  const fracture=(path,width,tone,shift=0)=>{
+    for(let i=0;i<path.length-1;i++)for(let j=0;j<8;j++){
+      const a=path[i],b=path[i+1],t0=j/8,t1=(j+1)/8;
+      const x0=(a[0]+(b[0]-a[0])*t0)*w+shift,y0=(a[1]+(b[1]-a[1])*t0)*h;
+      const x1=(a[0]+(b[0]-a[0])*t1)*w+shift,y1=(a[1]+(b[1]-a[1])*t1)*h;
+      const q=[surface(x0-width/2,y0),surface(x1-width/2,y1),surface(x1+width/2,y1),surface(x0+width/2,y0)];
+      if(q.every(Boolean)){tri(q[0],q[1],q[2],tone);tri(q[0],q[2],q[3],tone);}
+    }
+  };
+  const paths=[[[-.10,.85],[-.18,.68],[-.055,.51],[-.12,.27]],[[-.055,.51],[.13,.40],[.23,.41]]];
+  for(const path of paths){
+    fracture(path,w*.012,new THREE.Color('#d9cfb9'),w*.018);
+    fracture(path,w*.021,new THREE.Color('#797767'));
+  }
+  source.dispose();body.dispose();probeMaterial.dispose();
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;
+}
 function stoneRing(){
   const[cx]=P(.555,.325,PL),rx=wide(.47,.64,.325,PL)/2,zf=P(.555,.38,PL)[1],zb=P(.555,.27,PL)[1],rz=(zf-zb)/2,zc=(zf+zb)/2;
   for(const[k,n]of[[.95,25],[.73,18]])for(let i=0;i<n;i++){
@@ -504,7 +596,7 @@ function stoneRing(){
   }
   // Worn, low central marker. Its silhouette is broken rather than a perfect box.
   const[x,z]=P(.555,.341,PL),w=wide(.535,.575,.341,PL),h=tall(x,z,PL,.263);
-  block(x,PL-.05,z-w*.35,w*.9,h,w*.72,.04,.24,{natural:true});solidBox(x,z-w*.35,w*.9,w*.72);
+  collectStone(wornMarkerGeometry(w*.9,h,w*.72),x,PL-.05,z-w*.35,.04,0,0,.012*K);solidBox(x,z-w*.35,w*.9,w*.72);
   for(const[u0,u1,vf,vt]of[[.47,.49,.331,.300],[.605,.623,.307,.280],[.625,.643,.36,.332],[.493,.51,.373,.347]])box(u0,u1,vf,vt,{moss:.1});
 }
 const ROCKS=[[.82,.89,.86,.745],[.745,.82,1,.88],[.27,.335,.8,.7],[.14,.215,.99,.86],[.06,.1,1,.95],[.26,.3,.87,.82],[.31,.365,.88,.82],[.49,.53,.745,.67],[.52,.555,.735,.69],[.92,.95,.93,.90]];
@@ -689,6 +781,7 @@ MOSS.splice(0, MOSS.length, '#a7c63f', '#93b23a', '#b5c94c');
 // ---------- assemble ----------
 const crownOnly = [];   // crowns without a trunk (none here)
 function build() {
+  { const [x, z] = P(0.5, 0.905); HERO.x = x; HERO.z = z; HERO.face = Math.PI - 0.25; }
   scene.add(buildGround());
   buildLedges();
   scene.add(buildCliffs());
@@ -707,7 +800,7 @@ function build() {
   pillar(0.86, 0.925, 0.38, 0.13);
   stoneRing();
   // loose blocks: beside the stair, the row right of it, about the plaza, on the high tier's edge
-  for (const b of [[0.5, 0.57, 0.54, 0.48], [0.57, 0.61, 0.54, 0.45], [0.63, 0.67, 0.6, 0.55], [0.68, 0.71, 0.63, 0.58], [0.63, 0.67, 0.7, 0.66],
+  for (const b of [[0.5, 0.57, 0.67, 0.645], [0.57, 0.61, 0.54, 0.45], [0.63, 0.67, 0.6, 0.55], [0.68, 0.71, 0.63, 0.58], [0.63, 0.67, 0.7, 0.66],
     [0.76, 0.79, 0.49, 0.45], [0.8, 0.84, 0.54, 0.48], [0.84, 0.88, 0.54, 0.49], [0.88, 0.92, 0.6, 0.56], [0.92, 0.96, 0.66, 0.61],
     [0.75, 0.8, 0.41, 0.36], [0.79, 0.85, 0.39, 0.32], [0.355, 0.395, 0.255, 0.2], [0.495, 0.53, 0.245, 0.18],
     [0.25, 0.31, 0.445, 0.375], [0.32, 0.365, 0.47, 0.43], [0.145, 0.18, 0.38, 0.31], [0.265, 0.31, 0.31, 0.245]]) box(...b);
@@ -762,6 +855,14 @@ function build() {
   const wood = new THREE.Mesh(mergeGeometries(woodParts), paint({ vertexColors: true, shade: [0.62, 0.62, 0.7], mid: [0.62, 0.62, 0.7], band: [-5, -5] }));
   wood.castShadow = wood.receiveShadow = true; scene.add(wood);
   scene.add(new THREE.Mesh(mergeGeometries(woodInk), outlineMat(FOL.trunk.line)));
+  }
+  // Clear plants from the marked exposed face; retain the surrounding canopy
+  // and the vegetation above the stone shoulder.
+  for(const items of [shrubItems,grassItems,flowerItems]){
+    for(let i=items.length-1;i>=0;i--){
+      const p=new V3(items[i].x,items[i].y,items[i].z).project(camera),u=(p.x+1)/2,v=(1-p.y)/2;
+      if(u>.12&&u<.265&&v>.47&&v<.69)items.splice(i,1);
+    }
   }
   const placeAll = (mesh, items, scale) => {
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();

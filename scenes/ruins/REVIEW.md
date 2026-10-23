@@ -96,3 +96,13 @@ Reproduce the final still review using
 Add `SCENE_WALK=1` for the focused
 native-touch route; `SCENE_NAV_ONLY=1` skips screenshots. The standard preview
 retains its normal animation loop; only the review fixture freezes time.
+
+
+## Retained owner revision — 23 October 2026
+
+The owner requested keeping the current ruins scene and proceeding to Shell Beach.
+The retained Site source is `d8455b0cb8a22054cb690f9675366ea8392ea020`. The preview is public at https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site .
+
+This revision shares cliff section edges, lowers the rightward ridge to the owner's drawn silhouette, buries coarse terrain backing that poked through stone, removes plants on the marked face, and adds a chipped/faceted marker with branching fractures. `scene.js` now includes those delivered changes. The approved beach and forest sources remain untouched.
+
+Focused checks: JS syntax; finite cliff and marker geometry; all 22 ramp rows outside the buried backing; marker cosmetic RNG sequence preserved. Exact mesh before/after views were inspected with the scene camera through software rasterization. Cloud browser WebGL was disabled, so these later edits do not inherit the older full runtime screenshot claim above. No physical-device or final live lighting check was performed.

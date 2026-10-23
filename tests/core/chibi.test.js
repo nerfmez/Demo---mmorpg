@@ -22,6 +22,14 @@ test('the opt-in chibi hero is one textured skinned mesh the driver rig can driv
   assert.equal(tris, m.tris);
 });
 
+test('the chibi head reshape stays a small, bounded change', () => {
+  const h = data.models.characters.hero_chibi.headShape;
+  assert.ok(h, 'hero_chibi has a headShape');
+  for (const k of ['wide', 'chin', 'cheek']) assert.ok(h[k] >= 0 && h[k] <= 0.3, k + ' is a modest fraction');
+  assert.ok(h.eye > 0 && h.eye < 1, 'eye line inside the head');
+  assert.ok(h.soft >= 0 && h.soft <= 1, 'soft blends between mesh and sphere normals');
+});
+
 test('the chibi hair models are single meshes within the character budget', () => {
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
   assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);

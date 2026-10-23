@@ -139,6 +139,55 @@ function addFistMorphs(geo, fists) {
   geo.computeBoundingSphere();
 }
 
+/**
+ * Reshape the bind head toward the sheet's rounder chibi head: wider (`wide`), the face below the
+ * eyes shorter (`chin`) and fuller at the cheeks (`cheek`). Works in the model's world bind
+ * space (faces +Z), on vertices by their Head skin weight so the neck blends. Returns the head
+ * centre in mesh space for softHeadNormals.
+ */
+function reshapeHead(mesh, shape) {
+  const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
+  const hb = mesh.skeleton.bones.findIndex((b) => b.name === 'Head');
+  const toWorld = mesh.matrixWorld, toMesh = toWorld.clone().invert();
+  const w = new Float32Array(pos.count), box = new THREE.Box3(), v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hb) w[i] += sw.getComponent(i, k);
+    if (w[i] > 0.5) box.expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld));
+  }
+  const c = box.getCenter(new THREE.Vector3());
+  const eyeY = box.min.y + (box.max.y - box.min.y) * shape.eye;
+  for (let i = 0; i < pos.count; i++) {
+    if (!w[i]) continue;
+    v.fromBufferAttribute(pos, i).applyMatrix4(toWorld);
+    let sx = 1 + shape.wide * w[i];
+    if (v.y < eyeY) {
+      const t = Math.min(1, (eyeY - v.y) / (eyeY - box.min.y));
+      v.y = eyeY - (eyeY - v.y) * (1 - shape.chin * w[i]);
+      sx *= 1 + shape.cheek * w[i] * Math.sin(Math.PI * t);
+    }
+    v.x = c.x + (v.x - c.x) * sx;
+    v.applyMatrix4(toMesh);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+  return { centre: c.applyMatrix4(toMesh), w };
+}
+
+/**
+ * Bend the head's normals toward the head's centre (`soft` 0..1), the usual anime-face trick: the
+ * toon ramp then shades the face as one round form, without bands across the nose and cheeks.
+ */
+function softHeadNormals(geo, { centre, w }, soft) {
+  const pos = geo.attributes.position, nrm = geo.attributes.normal, n = new THREE.Vector3(), r = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    if (!w[i]) continue;
+    r.fromBufferAttribute(pos, i).sub(centre).normalize();
+    n.fromBufferAttribute(nrm, i).lerp(r, soft * w[i]).normalize();
+    nrm.setXYZ(i, n.x, n.y, n.z);
+  }
+  nrm.needsUpdate = true;
+}
+
 const FIST_NAMES = ['fistR', 'fistL'];
 const HAND_OUTLINE = 0.35;
 
@@ -153,9 +202,11 @@ export function prepareChibiBody(gltf, cfg) {
     if (o.isBone) bones[o.name] = o;
   });
   if (!mesh || !bones.Hips) throw new Error('hero_chibi: no skinned mesh or Hips bone');
+  const head0 = cfg.headShape ? reshapeHead(mesh, cfg.headShape) : null;
   const fists = cfg.fist ? { RightHand: curlFist(mesh, bones.RightHand, cfg.fist), LeftHand: curlFist(mesh, bones.LeftHand, cfg.fist) } : {};
   smoothNormals(mesh.geometry);
   if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);
+  if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
   mesh.geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   const at = (n) => bones[n].getWorldPosition(new THREE.Vector3());

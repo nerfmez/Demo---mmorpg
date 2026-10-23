@@ -413,9 +413,13 @@ haft after the right fist is seated (`rig.support`). The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
 holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is
-thinner on the hands. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+thinner on the hands. The head is reshaped once at load toward the sheet's rounder head
+(`headShape`: wider, shorter below the eye line, fuller cheeks) and its normals are bent toward the
+head centre (`soft`) so the toon ramp shades the face as one round form; the painted eyes were
+enlarged in the texture by `scripts/chibi-eyes.py`. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
-import the GLB with its `Skeleton3D`, recompute smooth normals on import, scale the hand
+import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same head
+reshape and normal bend, scale the hand
 attachments, add the same fists as blend shapes (or finger bones) and apply the same hand turn
 and seat after the retarget.
 Its hair is two Meshy models (`characters.hero_chibi_hair` for the fringe and

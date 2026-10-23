@@ -29,3 +29,7 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - Hair back (`public/models/hero_chibi_hair_back.glb`, 3,014 tris): the textured meshy-t2 run, whose
   spiky back the owner preferred; the game draws only its back part (`keep`) and only the front part
   of `hero_chibi_hair`, so the swept fringe and the spiky back are joined on the head.
+- Face: the sheet's head is rounder with bigger eyes than the Meshy retexture. The painted eyes
+  were enlarged 1.3x in `hero_chibi.glb`'s texture (`scripts/chibi-eyes.py public/models/hero_chibi.glb
+  --eye 747 649 --eye 789 821 --scale 1.3`, run once), and `chibi-body.js` reshapes the head at load
+  (`headShape` in data: wider, shorter chin, fuller cheeks, normals bent toward the head centre).

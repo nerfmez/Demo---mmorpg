@@ -661,6 +661,14 @@
       "tris": 4442,
       "armDrop": 1.3,
       "gearScale": 0.65,
+      "headShape": {
+        "_doc": "Head reshape toward the sheet's round chibi head (chibi-body.js reshapeHead): wide widens the head, chin shortens the face below the eye line (eye, from the head's bottom), cheek fills the cheeks, soft bends the head normals toward its centre for one round toon shade.",
+        "wide": 0.08,
+        "chin": 0.15,
+        "cheek": 0.06,
+        "eye": 0.36,
+        "soft": 0.6
+      },
       "bodyMap": {
         "hips": 1.0,
         "scale": 0.45
@@ -829,7 +837,7 @@
         "width": 1.2,
         "depth": 1.15,
         "height": 0.95,
-        "lift": 0.09,
+        "lift": 0.12,
         "back": 0.02,
         "side": 0
       },

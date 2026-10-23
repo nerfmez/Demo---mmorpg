@@ -29,7 +29,7 @@ function fenceRun(points){
 function fences(){
  // A generous front gate opens onto the mill door.
  const pts=[];for(let i=0;i<=28;i++){const a=.70+(Math.PI*2-1.40)*i/28;pts.push([MILL.x+Math.sin(a)*MILL.r*2.45,MILL.z+Math.cos(a)*MILL.r*1.65]);}fenceRun(pts);
- for(const[id,side,from,to]of[['shortcut',-1,.24,.91],['right',1,.35,.78]]){
+ for(const[id,side,from,to]of[['shortcut',-1,.25,.87],['right',1,.30,.76],['left',-1,.22,.55]]){
   const route=ROUTES.find(r=>r.id===id),pts=route.rows.filter((r,i)=>i/route.n>=from&&i/route.n<=to&&i%3===0).map(r=>[r.x+r.nx*side*(r.w/2+M(.26)),r.z+r.nz*side*(r.w/2+M(.26))]);
   if(pts.length>1)fenceRun(pts);
  }
@@ -62,32 +62,33 @@ function scatteredRocks(){
  }
 }
 function plantHill(){
- const trees=[[.02,.46,2.3,3],[.11,.35,2.4,5],[.12,.20,2.35,9],[.22,.16,2.15,3],[.33,.13,2.25,5],[.40,.24,2.25,9],[.47,.14,2.0,3],[.53,.08,2.3,5],[.66,.08,2.2,9],[.73,.16,2.2,5],[.80,.22,2.5,3],[.91,.22,2.6,9],[.98,.37,2.5,5],[.96,.59,2.3,3],[.98,.80,2.4,9],[.11,.75,2.5,3],[.015,.90,2.5,5],[.34,.58,1.9,9],[.38,.40,2.1,3],[.88,.92,2.0,5],[-.025,.60,2.0,9],[1.03,.63,2.6,3]];
+ const trees=[[.015,.43,2.15,3],[.08,.20,2.05,9],[.34,.12,2.1,5],[.45,.08,2.0,3],[.66,.08,2.1,9],[.78,.17,2.1,5],[.91,.20,2.15,9],[.98,.36,2.05,5],[.08,.70,2.0,3],[.015,.90,2.1,5],[.35,.43,1.65,9],[.91,.94,1.8,5],[-.04,.61,1.9,9],[1.06,.77,2.1,3]];
  for(const[u,v,s,seed]of trees){
   let[x,y,z]=onGround(u,v),st=stairsAt(x,z);
   if(st.s<st.half+M(.65)&&st.a>-.03&&st.a<1.03){const route=ROUTES.find(r=>r.id===st.route),r=route.rows.reduce((a,b)=>Math.hypot(x-a.x,z-a.z)<Math.hypot(x-b.x,z-b.z)?a:b),sign=(x-r.x)*r.nx+(z-r.z)*r.nz<0?-1:1;x=r.x+sign*r.nx*(r.w/2+M(1.15));z=r.z+sign*r.nz*(r.w/2+M(1.15));}
   if(Math.hypot(x-MILL.x,z-MILL.z)<MILL.r*1.8)continue;
   broadleaf(x,z,s,seed);COLLIDERS.push({x,z,r:s*.38});
  }
- for(let i=0;i<760;i++){
+ for(let i=0;i<340;i++){
   const[x,y,z]=onGround(R(-.1,1.1),R(-.05,1.06));
-  if(trailEdge(x,z)<M(.4)||field(x,z).rock>.35||Math.hypot(x-MILL.x,z-MILL.z)<MILL.r*1.7)continue;
+  if(trailEdge(x,z)<M(.65)||field(x,z).rock>.35||Math.hypot(x-MILL.x,z-MILL.z)<MILL.r*1.7)continue;
   const g=Math.max(Math.abs(height(x+.4,z)-y),Math.abs(height(x,z+.4)-y))/.4;if(g>1.6)continue;
-  addBush(x,y-.1,z,R(.85,1.75),{sy:R(.60,.95),tint:R(-.08,.12)});
+  addBush(x,y-.1,z,R(.62,1.22),{sy:R(.52,.80),tint:R(-.08,.12)});
  }
- for(let i=0;i<16000;i++){
+ for(let i=0;i<11000;i++){
   const[x,z]=[R(GX0*.78,GX1*.78),R(GZ0*.75,GZ1)],f=field(x,z),y=height(x,z);
   if(trailEdge(x,z)<.35||f.rock>.10||Math.hypot(x-MILL.x,z-MILL.z)<MILL.r*1.4)continue;
   const slope=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;if(slope>.65)continue;
   grassItems.push({x,y:y-.02,z,s:R(.6,1.05),ry:R(0,6.28),k:R(.9,1.08)});
-  if(rand()<.22)flowerItems.push({x,y:y+.02,z,s:R(.65,.95),ry:R(0,6.28),c:rand()<.65?'#f7da54':'#fff6dc'});
+  if(rand()<.16)flowerItems.push({x,y:y+.02,z,s:R(.65,.95),ry:R(0,6.28),c:rand()<.65?'#f7da54':'#fff6dc'});
  }
 }
 FOL.leaf=['#2a6e50','#5a963e','#b9ce4e'];FOL.shrub=['#2b6b4b','#5e9639','#acbf45'];STONE.splice(0,STONE.length,...ruinPalette);
 function clearMillFront(){
  for(const list of[shrubItems,grassItems,flowerItems])for(let i=list.length-1;i>=0;i--){
   const item=list[i],p=new V3(item.x,item.y+(item.sy||.1)*.55,item.z).project(camera),u=(p.x+1)/2,v=(1-p.y)/2;
-  if(u>.548&&u<.665&&v>.262&&v<.408)list.splice(i,1);
+  const st=stairsAt(item.x,item.z),radius=Math.max(item.sx||item.s||.1,item.sz||item.s||.1)*.60;
+  if((u>.548&&u<.665&&v>.262&&v<.408)||(st.s<st.half+radius+.28&&Math.abs(item.y-st.y)<M(.75)))list.splice(i,1);
  }
 }
 function build(){

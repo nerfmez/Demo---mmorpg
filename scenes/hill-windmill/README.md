@@ -26,10 +26,25 @@ That embeds the five required ES modules too. `--modules-from /absolute/path/to/
 ## Source layout
 
 - `prepare.py` builds `world.js` from the retained ruins' ground/cliff helpers and this hill's terrace outlines. The physical world retains the enlarged 3.12 scale and 40-degree camera.
-- `routes.js` authors the right loop, left forest ascent, central shortcut and east branch. Each ribbon supplies its ground height, width, stair surface and collision/plant clearance.
+- `routes.js` authors the south approach, right loop, left forest ascent, central shortcut, east exit and northeast ascent. Each ribbon supplies its ground height, width, stair surface and collision/plant clearance.
 - `paving.js` places short flights on selected rises; packed-earth landings remain connected by the same heightfield.
 - `mill.js` builds original plaster/timber geometry, an arched entrance, windows, staggered roof shingles, the axle and four framed linen sails. The sails rotate slowly and respect reduced-motion settings.
 - `scene.js` places fences with openings at route junctions, entrance props, rocks and the game's existing foliage. It assembles the scene and updates the rotor.
 - `assemble.py` reuses the approved beach renderer, paint shader, input/wipe controls, foliage and hero, plus the retained coast's foliage instancing. It then combines the hill's modules into portable HTML.
+
+## Connections for game placement
+
+The roads continue beyond the review frame; the terrain bounds include their full width. `window.__scene.hill` exposes the world-space `ports`, shared `junctions` and sampled `routes`. These are built from the same data used by the dirt, floor heights, paving, foliage clearance and the walking checks.
+
+| Port | Route | Intended connection |
+| --- | --- | --- |
+| `south` | `south` | Arrival from the lower world road |
+| `northwest` | `left` | Two-flight forest ascent to the upper trail |
+| `east` | `east` | Lower road continuing right |
+| `northeast` | `east-north` | Upper forest road |
+
+Each port includes real `x,y,z`, clear `width` and outward `dx,dz`. Coordinates use the game convention: X right, Y up and Z toward the camera. Translate the terrain, colliders, routes and ports together when placing the scene into the game; connect neighboring heightfields at the port heights. Do not infer a walkable road from the dirt texture alone. The preview's tap-to-walk and local segment lookup are separate from the main game's navigation; game integration and its tests are still a later step.
+
+The left approach now has an S bend, two distinct stone flights and earth landings. Shared road anchors and blended junction aprons remove height mismatches at forks. Rock facets are lowered under the route floor at crossings, and props/plants stay outside its usable width. Trees are reduced to 14, with smaller, more separated shrubs instead of a continuous green border.
 
 Tap the 3D ground to walk; use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the artifact and verification limits. Owner visual review and game integration remain pending; the accepted coast, beach, forest and retained ruins are preserved.

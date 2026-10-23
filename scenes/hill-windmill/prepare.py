@@ -3,6 +3,7 @@ from pathlib import Path
 here=Path(__file__).resolve().parent
 r=(here.parent/'ruins/scene.js').read_text();w=r[:r.index('function PG(')]
 w=w.replace('const K = 2.4;','const K = 3.12;').replace('const PL = M(1.0);','const PL = M(2.3);')
+w=w.replace('GZ1 = 10 * K','GZ1 = 16 * K')
 a=w.index('// Trace the owner');b=w.index('const T2B',a);w=w[:a]+w[b:]
 a=w.index('const TERRACES = [');b=w.index('].map(T => {',a)
 w=w[:a]+'''const TERRACES=[
@@ -16,8 +17,6 @@ w=w[:a]+'''const TERRACES=[
 a=w.index('const STAIR_ROWS =');b=w.index('// dirt: paths',a);w=w[:a]+(here/'routes.js').read_text()+'\n'+w[b:]
 a=w.index('const TRAILS = [');b=w.index('].map(pl =>',a)
 w=w[:a]+'''const TRAILS=[
- [[.24,.24,.025,M(2.6)],[.22,.18,.03,M(2.6)],[.18,.13,.04,M(2.6)]],
- [[.91,.43,.03,M(1.75)],[.91,.36,.03,M(1.9)],[.94,.29,.035,M(2.8)]]
 ''' +w[b:]
 a=w.index('const PLAZA =');b=w.index('// distance from the dirt',a)
 w=w[:a]+'''const PLAZA=poly([[.49,.36],[.54,.33],[.64,.33],[.70,.365],[.70,.405],[.64,.425],[.55,.405],[.49,.385]],PL);
@@ -38,5 +37,16 @@ w=w.replace("'#e0ab63'","'#d4ac70'").replace("'#efc27b'","'#e4c28a'").replace("'
 w=w.replace('ST.half + ST.bank - 1','stairsAt(q.x,q.z).half + ST.bank + M(.55)')
 w=w.replace('const wall = i => p[i].wall && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);','const wall=i=>p[i].wall;')
 w=w.replace('peak=(T.topAt?T.topAt(x):T.top);','peak=Math.min((T.topAt?T.topAt(x):T.top),height(x-normalAt(t).x*(T.lean+.4),z-normalAt(t).z*(T.lean+.4))+.08);')
+# Clamp rock facets beneath the road surface at each actual crossing. The
+# terrain ribbon owns its visible floor; its side walls remain in place.
+needle='''    const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));'''
+replacement='''    for(const v of[a,b,c,d]){const st=stairsAt(v.x,v.z);if(st.inside||st.s<st.half+.35)v.y=Math.min(v.y,st.y-.12);}
+    const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));'''
+w=w.replace(needle,replacement)
+w=w.replace('const mesh=new THREE.Mesh(g,masonryMaterial());mesh.customDepthMaterial',"const mesh=new THREE.Mesh(g,masonryMaterial());mesh.name='hill-cliffs';mesh.customDepthMaterial")
+w=w.replace('const d = st.inside ? -3 : Math.max(-4, Math.min(4, trailEdge(x, z)));','const d = Math.max(-4, Math.min(4, trailEdge(x, z)));')
+# Fewer lip shrubs; leave readable areas of stone between plant clusters.
+w=w.replace('%3===0','%7===0').replace('i%4===0','i%9===0')
+w=w.replace('const rr=.32*K;','const rr=.22*K;').replace('z,.55*K,{sy:.55','z,.36*K,{sy:.50')
 a=w.index('function buildLedges(){');w=w[:a]+(here/'paving.js').read_text()+'\n'
 (here/'world.js').write_text(w.rstrip()+'\n')

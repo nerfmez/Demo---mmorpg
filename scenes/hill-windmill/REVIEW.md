@@ -1,35 +1,37 @@
 # Hill Windmill review — 24 October 2026
 
-**Decision: new standalone owner-review draft.** Created after the owner asked to choose another concept and continue. The prior Singing Conch Coast remains preliminarily accepted; this new scene has no owner approval yet and has not been merged or integrated into the game.
+**Decision: revised standalone owner-review draft.** This revision responds to the owner's marked screenshot `1000194981.jpg`: connected roads suitable for eventual game placement, a closer left ascent, less obstructing vegetation and better edge details. The mill geometry, approved coast and retained ruins are preserved. No owner approval or game integration is implied.
 
-## Artifact and target
+## Exact artifact and target
 
-`hill-windmill/index.html`, SHA-256 `5f17c494b44fd41eb4966a239ab453adaa88057bd711f67e9efcecfd54ebe4cf`.
-Reference: `concept.png`, Hill Windmill from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`.
+`hill-windmill/index.html`, SHA-256 `4826911c2eb7e27b2acfa8cfbf85cf851c8cfede1b19066860bbbf1a93db6312`. Source parent: `3c7e65f51fea8fbe9aa9c9787635a3c7ac0dfdb5`.
+Reference: `concept.png` at concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`, plus the owner's annotated runtime screenshot of version 7.
 
-Observable targets: a complete visible timber/plaster windmill and four linen sails; a rounded shingle cap; a readable door and fenced terrace; winding paths with short flights around planted stone ledges; clear walking routes; existing game foliage/materials/hero and the enlarged physical scale.
+Criteria: visible, physically connected arrival/loop/shortcut roads; exits continuing out of frame; a winding left ascent with two separate flights and landings; clear junctions and usable road width; fewer trees/shrubs hiding the path; the existing mill, hero, 40-degree camera and game art style retained.
 
-## Visual inspection and corrections
+## Visual inspection and fixes
 
-Inspected software views of the actual assembled Three geometry at the 40-degree play camera, 1254 × 706, plus a second sampled rotor phase at 20 seconds. The reference was inspected alongside the scene. These are sampled geometry/material views, not WebGL screenshots or normal-speed playback.
+Inspected the reference, owner's actual WebGL screenshot of the previous version, and revised software geometry/material views at the 40-degree play camera, 1254 × 706, rotor time 0. The final delivered HTML was assembled from that exact geometry. These final views are software approximations, not new WebGL screenshots or normal-speed playback.
 
-- First sails extended past the top of the frame. Reduced rotor size and fitted its height; checked projected geometry at 16 phases across a full turn. The minimum top margin remained above the frame edge; the initial reference-like X pose has about 4% top margin.
-- Adjusted the final tower proportions toward the reference: taller plaster/timber body and a shorter roof cap. Re-inspected the final geometry/material view.
-- Added a solid roof core below the staggered shingles to close bright gaps. Corrected roof winding and added a connected axle behind the hub. The tower has timber bands/braces, windows, a dressed arch and entrance props.
-- Initial paving covered too much of the loop. Reduced it to selected rises and short flights, leaving connected earth landings.
-- Adapted cliff peaks to the road-cut heightfield instead of suppressing broad cliff runs. This closes exposed slopes while keeping the visible route clear.
-- Cleared plants in front of the entrance and adjusted foliage to reuse the approved game models. Opened the fence where the shortcut joins the right route.
-- The final approach originally let its inner edge enter the mill's physical footprint. Moved/narrowed its endpoint onto the front apron; walking to the doorway remains a separate clear continuation.
+- Replaced roads that ended within the composition with six connected ribbons: south approach, right loop, left ascent, shortcut, east exit and northeast ascent. Four explicit world-space ports retain heights, widths and outward direction for later game placement.
+- Roads share the exact arrival, lower fork, east bend, upper junction and forest-fork anchors. Blended junction aprons close competing route heights. Extended the actual southern terrain bounds so the new road remains walkable beyond the image.
+- Reshaped the left route into a wider lower bend, two stone flights, earth landings and an upper S bend, following the marked direction and reference more closely. Removed the old long uniform staircase.
+- Early revised views still had rock facets poking through road joins. Clamped crossing facets below the shared route floor and re-inspected; retained the side faces. Removed the forced hard dirt mask at the road edge for a softer continuous border.
+- Reduced trees from 22 to 14; reduced bush attempts from 760 to 340, made shrubs smaller and separated the cliff-lip clusters. The final assembly has 213 shrubs after clearance. Removed the large central canopy that hid the route. Grass and flowers remain in open patches, with clearance at the road edges.
+- Added low, broken stone shoulders to the two flights and small variations in slab tone/rotation. Fence openings remain clear at road crossings.
 
 ## Focused technical checks
 
-- Terrain preparation and standalone assembly passed. Generated JS syntax and Python syntax passed; diff checks passed. The offline build was assembled from a local pinned Three 0.170 package, with no Sites runtime dependency.
-- Actual Three construction and embedded hero GLB loading completed in the geometry harness. All geometry attributes were finite.
-- The actual `walkTo` / `updateHero` code reached all 75 targets across the right loop, left ascent, shortcut, east branch and doorway. No failed targets; the inspection accepted distances below 0.12 world units.
-- All 205 ribbon rows were sampled at the center and ±60% of their half-width: 615 unblocked points.
-- Rotor code advances at 0.055 radians/second (about 114 seconds per revolution); reduced motion keeps it still. Geometry was inspected at two sampled times; continuous playback was not verified.
-- No changes to core/data/saves/game renderer or the previously accepted scene sources. No unrelated broad game suites or browser installations.
+- Terrain preparation, offline standalone assembly, generated JS syntax, Python syntax and diff checks passed. The offline file embeds pinned Three 0.170 modules and has no Sites runtime dependency.
+- Actual Three geometry and the retained hero GLB loaded in the software harness; all geometry attributes were finite.
+- The actual `walkTo` / `updateHero` implementation reached **350 sequential targets**, including approaches through shared junctions, every route in both directions, all four ports and the mill doorway. No failed targets; accepted distance below 0.12 world units.
+- No height jumps greater than 0.18 world units occurred between successive 1/60-second walking updates in those traversals.
+- Sampled all 443 road rows at center and ±65% of half-width: **1,329 unblocked points**. Downward ray tests on the actual cliff mesh found no rock face more than 0.25 units above the logical floor at these samples.
+- Road segments are indexed into local cells for terrain and navigation queries, rather than scanning every road segment on each query. This is not a measured device FPS result.
+- Changed-symbol review: `routes.js` feeds terrain, dirt, paving, foliage/fences, collision clearance and the exposed `window.__scene.hill` integration data. The generated `world.js` matches its preparation source. No main-game core, data, saves, renderer or previous scene sources changed.
 
-## Remaining limits
+## Limits and status
 
-Cloud WebGL had failed in this session's browser environment; the supported fallback was software inspection. The fallback approximates toon shading, ground color and alpha cards, omits the real ground bake/shadows and shows the hero's unskinned bind pose. It does not establish final WebGL lighting, texture filtering, continuous animation, native touch behavior or physical iPad FPS. Runtime/device review and owner comparison of cliff/path composition remain pending before visual approval or game integration.
+Final WebGL ground baking, shadows, native touch, device FPS and continuous playback remain unverified because the cloud WebGL environment previously failed. The software views omit actual baked ground detail/shadows and show the hero's unskinned bind pose. Rotor/hero animation was unchanged in this revision. Prior rotor bounds checks are historical evidence, not a new playback review.
+
+This is a revised public draft for owner comparison. Main-game placement must connect neighboring terrain at the provided ports and pass the game's world/collision and device checks before merge. The accepted Singing Conch Coast retains **ผ่านเบื้องต้น**, 23 October 2026.

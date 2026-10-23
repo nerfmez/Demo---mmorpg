@@ -831,7 +831,7 @@
     "hero_chibi_hair": {
       "file": "models/hero_chibi_hair.glb",
       "chibiHair": true,
-      "tris": 3229,
+      "tris": 3300,
       "color": "#b9b8bf",
       "fit": {
         "width": 1.2,
@@ -841,7 +841,7 @@
         "back": 0.02,
         "side": 0
       },
-      "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03 --brow 0.17 --drop 0.110 0.202 0.194 --drop 0.115 0.160 0.196 --drop -0.052 0.143 0.211 --drop -0.025 0.090 0.197. Fitted by its fixed box (the bounds before the --drop trims). Drawn in one colour. Opt-in with ?hero=chibi.",
+      "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03. Fitted by its fixed box, so re-cutting the model does not move the hair. Drawn in one colour. Opt-in with ?hero=chibi.",
       "box": [
         [-0.2991, -0.0579, -0.2703],
         [0.2991, 0.4763, 0.2742]

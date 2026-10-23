@@ -11,12 +11,9 @@ An untextured model whose hair is fused to the head (one closed mesh) is cut by 
 triangles below --below (the neck and body) and front-facing triangles in the face box are dropped,
 and only positions are written (the game draws the hair in one colour).
 
-  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03 --brow 0.17 \
-      --drop 0.110 0.202 0.194 --drop 0.115 0.160 0.196 --drop -0.052 0.143 0.211 --drop -0.025 0.090 0.197
+  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03
     (--face: lowest y, highest y, half width, nearest z of the face;
-     --back Y Z: behind z = Z the cut is at y = Y instead, so the hair at the nape stays;
-     --brow Y: the face sheet above Y stays as the fringe's base;
-     --drop X Y Z: also remove the skin island around that point)
+     --back Y Z: behind z = Z the cut is at y = Y instead, so the hair at the nape stays)
 """
 import io
 import json
@@ -109,7 +106,7 @@ def write(src, keepf, dst):
 
 SMOOTH=0.85  # cosine between neighbouring face triangles; a strand edge folds sharper
 
-def cut(src, dst, below, face, back_below=None, back_z=0.0, brow=None, drop=()):
+def cut(src, dst, below, face, back_below=None, back_z=0.0):
     b=open(src,'rb').read();jl=struct.unpack_from('<I',b,12)[0];j=json.loads(b[20:20+jl]);off=20+jl;bin_=b[off+8:]
     def acc(i):
         a=j['accessors'][i];v=j['bufferViews'][a['bufferView']];o=v.get('byteOffset',0)+a.get('byteOffset',0)
@@ -118,8 +115,7 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0, brow=None, drop=()):
     p=j['meshes'][0]['primitives'][0];P=acc(p['attributes']['POSITION']);I=[t[0] for t in acc(p['indices'])]
     # The face is one smooth sheet; the fringe strands lying over it meet it at sharp creases.
     # Flood-fill from the middle of the face across smooth edges only (inside the face box)
-    # and drop that sheet, so the strand tips over the eyes stay. Above --brow the forehead sheet
-    # (up at the hairline) is kept as the base the fringe strands grow from.
+    # and drop that sheet, so the strand tips over the eyes stay.
     fy0,fy1,fx,fz=face;nt=len(I)//3;M=[];Nz=[];Nn=[]
     for k in range(nt):
         a,bb,c=(P[x] for x in I[3*k:3*k+3]);M.append([(a[i]+bb[i]+c[i])/3 for i in range(3)])
@@ -134,26 +130,19 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0, brow=None, drop=()):
     adj=[[] for _ in range(nt)]
     for ts in edges.values():
         if len(ts)==2: adj[ts[0]].append(ts[1]);adj[ts[1]].append(ts[0])
-    cands=[k for k in range(nt) if box[k]];top=max(M[k][2] for k in cands)
-    seed=min(cands,key=lambda k:(M[k][0])**2+(M[k][1]-fy0-0.02)**2+(M[k][2]-top)**2)
+    # seed on the face itself: the innermost surface near the middle of the face's bottom (strand
+    # tips can hang in front of it, so the frontmost triangle there may be hair)
+    cands=[k for k in range(nt) if box[k]]
+    near=[k for k in cands if M[k][0]**2+(M[k][1]-fy0-0.03)**2<0.015**2] or cands
+    seed=min(near,key=lambda k:M[k][2])
     skin={seed};todo=[seed]
     while todo:
         t=todo.pop()
         for u in adj[t]:
             if u not in skin and box[u] and sum(x*y for x,y in zip(Nn[t],Nn[u]))>SMOOTH: skin.add(u);todo.append(u)
-    # --drop X Y Z: small skin islands between strands that creases wall off from the face; each
-    # is flood-filled the same way from the triangle nearest that point and always removed
-    gone=set()
-    for q in drop:
-        s0=min(cands,key=lambda k:sum((M[k][i]-q[i])**2 for i in range(3)));gone.add(s0);todo=[s0]
-        while todo:
-            t=todo.pop()
-            for u in adj[t]:
-                if u not in gone and box[u] and sum(x*y for x,y in zip(Nn[t],Nn[u]))>SMOOTH: gone.add(u);todo.append(u)
     keep=[]
     for k,m in enumerate(M):
-        if k in gone: continue
-        if m[1]<(back_below if back_below is not None and m[2]<back_z else below) or (k in skin and (brow is None or m[1]<brow)): continue
+        if m[1]<(back_below if back_below is not None and m[2]<back_z else below) or k in skin: continue
         keep+=I[3*k:3*k+3]
     used=sorted(set(keep));remap={o:i for i,o in enumerate(used)};sel=[P[i] for i in used]
     pos=b''.join(struct.pack('<fff',*q) for q in sel);idx=b''.join(struct.pack('<H',remap[i]) for i in keep)
@@ -171,9 +160,7 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0, brow=None, drop=()):
 if __name__ == '__main__':
     if '--cut' in sys.argv:
         g=sys.argv;bb=g.index('--back') if '--back' in g else None
-        cut(g[1],g[2],float(g[g.index('--below')+1]),[float(x) for x in g[g.index('--face')+1:g.index('--face')+5]],*( [float(g[bb+1]),float(g[bb+2])] if bb else [None,0.0]),
-            brow=float(g[g.index('--brow')+1]) if '--brow' in g else None,
-            drop=[tuple(float(x) for x in g[i+1:i+4]) for i,a in enumerate(g) if a=='--drop'])
+        cut(g[1],g[2],float(g[g.index('--below')+1]),[float(x) for x in g[g.index('--face')+1:g.index('--face')+5]],*( [float(g[bb+1]),float(g[bb+2])] if bb else [None,0.0]))
         sys.exit()
     with tempfile.NamedTemporaryFile(suffix='.json') as t:
         split(sys.argv[1], t.name)

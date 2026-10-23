@@ -24,7 +24,7 @@ function tall(x, z, base, vt) {
 }
 // the width on the plane y between screen u0 and u1 at screen v
 const wide = (u0, u1, v, y) => { const a = P(u0, v, y), b = P(u1, v, y); return Math.hypot(b[0] - a[0], b[1] - a[1]); };
-const K = 2.4;   // world scale: the concept's layout, K times bigger, seen from K times farther (more room, same frame)
+const K = 3.12;   // world scale: the concept's layout, K times bigger, seen from K times farther (more room, same frame)
 const M = v => v * K;   // concept metres to world metres
 const PL = M(3.6);   // the plaza and the ruins
 const T1 = M(3.6);   // the rock ridge between the path and the plaza, at its highest
@@ -38,9 +38,9 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // the top off screen, 'n' points at the foot of a grassy bank (`soft` metres wide, no rock). A
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES = [
-  {top:M(3.6),base:0,ledge:true,soft:M(2),lean:M(.55),pts:[[-.3,.54,'b'],[.0,.57,'b'],[.10,.63,'b'],[.18,.62,'b'],[.25,.56,'b'],[.235,.49,'b'],[.19,.43,'b'],[.17,.37,'n'],[.22,.25,'n'],[.28,.14,'n'],[.2,-.3,'t'],[-.3,-.3,'t']]},
-  {top:M(4.4),base:0,ledge:true,soft:M(2.5),lean:M(.6),pts:[[.30,.37,'b'],[.38,.36,'b'],[.46,.31,'b'],[.55,.31,'b'],[.65,.34,'b'],[.74,.40,'b'],[.79,.35,'b'],[.82,.27,'n'],[.77,.06,'n'],[.7,-.35,'t'],[.3,-.35,'t']]},
-  {top:M(3.7),base:0,ledge:true,soft:M(2),lean:M(.65),pts:[[1.3,.88,'b'],[1.03,.82,'b'],[.95,.75,'b'],[.89,.68,'b'],[.86,.57,'b'],[.82,.49,'b'],[.83,.40,'b'],[.88,.31,'n'],[.88,.12,'n'],[1.3,-.3,'t']]},
+  {top:M(3.6),base:0,ledge:true,soft:M(2),lean:M(.55),pts:[[-.3,.54,'b'],[.0,.57,'b'],[.075,.63,'b'],[.13,.63,'b'],[.185,.57,'b'],[.18,.515,'b'],[.12,.45,'b'],[.17,.37,'n'],[.22,.25,'n'],[.28,.14,'n'],[.2,-.3,'t'],[-.3,-.3,'t']]},
+  {top:M(4.4),base:0,ledge:true,soft:M(2.5),lean:M(.6),pts:[[.29,.31,'b'],[.38,.29,'b'],[.46,.275,'b'],[.55,.275,'b'],[.65,.29,'b'],[.76,.31,'b'],[.83,.30,'b'],[.82,.27,'n'],[.77,.06,'n'],[.7,-.35,'t'],[.3,-.35,'t']]},
+  {top:M(3.7),base:0,ledge:true,soft:M(2),lean:M(.65),pts:[[1.3,.88,'b'],[1.06,.84,'b'],[.99,.76,'b'],[.95,.68,'b'],[.93,.57,'b'],[.91,.49,'b'],[.91,.40,'b'],[.88,.31,'n'],[.88,.12,'n'],[1.3,-.3,'t']]},
   {top:M(5.4),base:M(2),ledge:true,soft:M(2),lean:M(.6),pts:[[.27,.18,'b'],[.37,.21,'b'],[.44,.20,'b'],[.53,.22,'b'],[.62,.20,'b'],[.66,.12,'n'],[.58,-.3,'t'],[.26,-.3,'t']]},
 ].map(T => {
   let pts = T.pts.map(([u, v, k, h]) => { const [x, z] = P(u, v, h ?? (k === 't' ? T.top : T.base)); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
@@ -69,26 +69,42 @@ function polyAt(T, x, z) {
   return inside ? -Math.sqrt(best) : Math.sqrt(best);
 }
 // the ramp: paving rows traced from the concept, [v, u0, u1] from its foot to its top
-const STAIR_ROWS = [[.46,.115,.215],[.41,.09,.19],[.36,.105,.205],[.31,.13,.23],[.25,.14,.24],[.19,.17,.27],[.13,.21,.31]];
-const ST = (() => {
-  const n = 22, rows = [], lerp = (a, b, t) => a + (b - a) * t;
-  for (let i = 0; i < n; i++) {
-    const f = (i + 0.5) / n * (STAIR_ROWS.length - 1), k = Math.min(STAIR_ROWS.length - 2, Math.floor(f)), t = f - k, A = STAIR_ROWS[k], B = STAIR_ROWS[k + 1];
-    const v = lerp(A[0], B[0], t), u0 = lerp(A[1], B[1], t), u1 = lerp(A[2], B[2], t), y = PL * (i + 1) / n;
-    const [x, z] = P((u0 + u1) / 2, v, y); rows.push({ x, z, y, w: wide(u0, u1, v, y) });
+// One curved ribbon drives ground height, paving, vegetation and collision.
+// Width and height are interpolated along that same centerline.
+const STAIR_ROWS=[
+  [.465,.245,.295,0],[.415,.215,.265,.06],
+  [.365,.175,.225,.25],[.315,.170,.220,.28],
+  [.265,.190,.240,.52],[.215,.215,.265,.55],
+  [.160,.255,.305,.78],[.100,.290,.340,1]
+];
+const ST=(()=>{
+  const anchors=STAIR_ROWS.map(([v,u0,u1,f])=>{const y=PL*f,[x,z]=P((u0+u1)/2,v,y);return{x,z,y,w:wide(u0,u1,v,y)};});
+  const curve=new THREE.CatmullRomCurve3(anchors.map(p=>new V3(p.x,p.y,p.z)),false,'centripetal');
+  const n=48,rows=[];let length=0;
+  for(let i=0;i<n;i++){
+    const t=i/(n-1),p=curve.getPoint(t),idx=t*(anchors.length-1),j=Math.min(anchors.length-2,Math.floor(idx)),f=idx-j;
+    const d=curve.getTangent(t),len=Math.hypot(d.x,d.z),ux=d.x/len,uz=d.z/len;
+    if(i)length+=Math.hypot(p.x-rows[i-1].x,p.z-rows[i-1].z);
+    rows.push({x:p.x,z:p.z,y:p.y,w:anchors[j].w+(anchors[j+1].w-anchors[j].w)*f,ux,uz,nx:uz,nz:-ux,s:length});
   }
-  const a = rows[0], b = rows[n - 1], dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz);
-  return { rows, x0: a.x, z0: a.z, x1: b.x, z1: b.z, ux: dx / len, uz: dz / len, len, half: rows.reduce((m, r) => m + r.w, 0) / n / 2, bank: M(2), n, top: PL };
+  const a=rows[0],b=rows[n-1];return{rows,n,len:length,half:rows.reduce((s,r)=>s+r.w,0)/n/2,bank:M(1.0),top:PL,x0:a.x,z0:a.z,x1:b.x,z1:b.z,ux:a.ux,uz:a.uz};
 })();
-function stairsAt(x, z) {
-  const rx = x - ST.x0, rz = z - ST.z0, a = (rx * ST.ux + rz * ST.uz) / ST.len, s = Math.abs(-rx * ST.uz + rz * ST.ux);
-  // Continue the level landing beyond the last slab into the court. Stopping
-  // the cut at the last row left a steep heightfield lip across the exit.
-  return { a, s, inside: a > -0.02 && a < 1.42 && s < ST.half + 0.25 };
+function stairsAt(x,z){
+  let best=Infinity,result=null;
+  for(let i=0;i<ST.n-1;i++){
+    const A=ST.rows[i],B=ST.rows[i+1],dx=B.x-A.x,dz=B.z-A.z,l2=dx*dx+dz*dz;
+    let t=((x-A.x)*dx+(z-A.z)*dz)/l2;
+    t=Math.max(i===0?-.75:0,Math.min(i===ST.n-2?1.75:1,t));
+    const qx=A.x+dx*t,qz=A.z+dz*t,d=Math.hypot(x-qx,z-qz);
+    if(d<best){best=d;const f=THREE.MathUtils.clamp(t,0,1),s=A.s+(B.s-A.s)*t;result={a:s/ST.len,s:d,y:A.y+(B.y-A.y)*f,half:(A.w+(B.w-A.w)*f)/2};}
+  }
+  result.inside=result.a>-.025&&result.a<1.035&&result.s<result.half+.10;
+  return result;
 }
+
 // dirt: paths as [u, v, half width as a screen fraction, plane], and the plaza as an outline
 const TRAILS = [
- [[.18,.51,.045,0],[.23,.45,.04,0],[.29,.41,.045,0],[.4,.39,.045,0],[.49,.43,.04,0]],
+ [[.205,.545,.025,0],[.29,.50,.03,0],[.39,.46,.03,0],[.47,.43,.025,0]],
  [[.92,.20,.018,PL],[.92,.11,.018,PL],[.90,.02,.018,PL]],
  [[.21,.16,.018,PL],[.27,.09,.018,PL],[.34,.03,.018,PL]],
 ].map(pl => pl.map(([u, v, hu, h]) => { const [x, z] = P(u, v, h); return new V3(x, wide(u - hu, u + hu, v, h) / 2, z); }))
@@ -115,7 +131,7 @@ function trailAt(x, z) {
 }
 // the trail edge wanders: a slow swell and a shorter wobble on top of the authored width
 const edgeWob = (x, z) => 0.5 * noise2(x * 0.19 + 3.1, z * 0.23 - 1.7) + 0.25 * noise2(x * 0.51 - 2, z * 0.44 + 4);
-const trailEdge = (x, z) => trailAt(x, z) + edgeWob(x, z);
+const trailEdge = (x,z) => {const st=stairsAt(x,z);return Math.min(trailAt(x,z)+edgeWob(x,z),st.a>-.02&&st.a<1.035?st.s-st.half:Infinity);};
 // patches of leaf shade on the ground, under the concept's trees: [u, v, radius in concept metres, plane]
 const SHADE = [[0.07, 0.32, 3.0, PL], [0.32, 0.27, 3.0, PL], [0.72, 0.24, 2.6, PL], [0.95, 0.5, 3.0, PL], [0.9, 0.8, 2.4, 0], [0.2, 0.85, 2.4, 0], [0.45, 0.24, 1.8, PL], [0.12, 0.6, 2.2, T1]]
   .map(([u, v, r, h]) => { const [x, z] = P(u, v, h); return { x, z, r: M(r) }; });
@@ -142,16 +158,12 @@ function field(x, z) {
     const b = T.base || 0;
     if (w > 0) { y = Math.max(y, b + ((T.topAt ? T.topAt(x) : T.top) - b) * w); top = Math.max(top, w); }
   }
-  const st = stairsAt(x, z);
-  // the stair lies on a hillside: the ground either side slopes down with it, no cliff beside it
-  if (st.a > -0.35 && st.a < 1.62 && st.s < ST.half + ST.bank) {
-    const sy = ST.top * Math.max(0, Math.min(1, st.a));
-    const k = Math.max(smooth(ST.half + 0.3, ST.half + ST.bank, st.s), smooth(1.42, 1.62, st.a));
-    y = sy + (y - sy) * k;
-    if (st.inside) y = sy;
+  const st=stairsAt(x,z);
+  if(st.a>-.04&&st.a<1.06&&st.s<st.half+ST.bank){
+    const k=smooth(st.half-.05,st.half+ST.bank,st.s);
+    y=st.y+(y-st.y)*k;
+    if(st.inside)rock=0;
   }
-  // Keep the open stair corridor and its banks outside the hidden backing.
-  if(st.a>-.35&&st.a<1.65&&st.s<ST.half+ST.bank-1)rock=0;
   return { y, top, rock };
 }
 function height(x, z) {
@@ -256,7 +268,7 @@ function buildGround() {
 // stones set in a row. A grassy lip rolls over the top.
 function cliffRuns(T) {
   const p = T.pts, n = p.length;
-  const onStairs = q => stairsAt(q.x, q.z).s < ST.half + ST.bank - 1 && stairsAt(q.x, q.z).a > -0.35 && stairsAt(q.x, q.z).a < 1.65;   // hillside and the continuous court landing
+  const onStairs = q => stairsAt(q.x, q.z).s < stairsAt(q.x,q.z).half + ST.bank + M(.7) && stairsAt(q.x, q.z).a > -0.35 && stairsAt(q.x, q.z).a < 1.65;   // hillside and the continuous court landing
   const wall = i => p[i].wall && !onStairs(p[i]) && !onStairs(p[(i + 1) % n]);
   const runs = [];
   if (p.every((_, i) => wall(i))) return [{ pts: p.slice(), closed: true }];
@@ -415,17 +427,37 @@ function masonryMaterial(){
     `});
 }
 function buildLedges(){
-  // Almost flush paving follows the walk surface. Narrow exposed risers replace
-  // the old thick floating staircase; grass and gaps break up the outer edges.
+  // Fitted courses turn with the ribbon. Broad landings between flights use
+  // the same heightfield; no lateral gaps or slabs crossing the banks.
   ST.rows.forEach((r,i)=>{
-    const next=ST.rows[Math.min(ST.n-1,i+1)],prev=ST.rows[Math.max(0,i-1)];
-    const d=Math.max(.45,Math.hypot(next.x-prev.x,next.z-prev.z)/(i===0||i===ST.n-1?1:2));
-    const n=Math.max(3,Math.round(r.w/(.58*K))),w=r.w/n,offset=i%2?w*.4:0;
-    for(let j=0;j<n;j++){
-      const lx=-r.w/2+w*(j+.5)+offset;
-      if(lx>r.w/2-.1 || (j===0&&i%4===0) || (i%7===2&&j===n-1))continue;
-      const x=r.x+lx,z=r.z+R(-.07,.07)*K;
-      block(x+R(-.025,.025)*K,height(x,z)-.10,z,w*R(.85,.98),.15,d*R(.75,.94),R(-.045,.045),.12,{ink:.007*K,base:pick(['#c8bb97','#d4c6a5','#ddd0af'])});
+    const A=ST.rows[Math.max(0,i-1)],B=ST.rows[Math.min(ST.n-1,i+1)];
+    const depth=Math.hypot(B.x-A.x,B.z-A.z)/(i===0||i===ST.n-1?1:2)+.035;
+    // Landings stay paved so adjoining flights always have a visible connection.
+    const count=Math.max(4,Math.round(r.w/(.44*K))),w=r.w/count;
+    for(let j=0;j<count;j++){
+      const edge=j===0||j===count-1,offset=-r.w/2+(j+.5)*w;
+      const x=r.x+r.nx*offset,z=r.z+r.nz*offset;
+      const chip=edge?.90:.965,ry=Math.atan2(r.ux,r.uz);
+      block(x,height(x,z)-.065,z,w*chip,.12,depth*.97,ry,.06,{ink:.004*K,base:pick(['#c9b995','#ddd0b0','#e3d4b4','#d6c6a5'])});
     }
   });
+  buildPathBanks();
+}
+function buildPathBanks(){
+  const ps=[],cs=[];
+  const triangle=(a,b,c,color)=>{
+    if(new V3().subVectors(b,a).cross(new V3().subVectors(c,a)).y<0)[b,c]=[c,b];
+    for(const p of[a,b,c]){ps.push(p.x,p.y,p.z);cs.push(color.r,color.g,color.b);}
+  };
+  for(let i=0;i<ST.n-1;i++)for(const side of[-1,1]){
+    const A=ST.rows[i],B=ST.rows[i+1];
+    const at=(r,t)=>{const d=side*(r.w/2+.035+ST.bank*t),x=r.x+r.nx*d,z=r.z+r.nz*d;return new V3(x,height(x,z)+.045,z);};
+    if(Math.max(Math.abs(at(A,0).y-at(A,1).y),Math.abs(at(B,0).y-at(B,1).y))<M(.28))continue;
+    for(let j=0;j<3;j++){
+      const a=at(A,j/3),b=at(B,j/3),c=at(B,(j+1)/3),d=at(A,(j+1)/3);
+      const color=new THREE.Color(['#c7c1a8','#d4cdb6','#b9b6a1'][(i+j)%3]);
+      triangle(a,b,c,color);triangle(a,c,d,color);
+    }
+  }
+  if(ps.length){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(ps,3));g.setAttribute('color',new THREE.Float32BufferAttribute(cs,3));g.computeVertexNormals();stoneParts.push(g);}
 }

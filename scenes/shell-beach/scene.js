@@ -1,57 +1,19 @@
 // Shell Beach: the retained Azure Coast concept, with a hollow, flared conch.
 const seaRocks=[];
-const shellParts=[];
 function shellMesh(pos,colors,inside=false){
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
+  const p=g.attributes.position,n=g.attributes.normal,shared=new Map();
+  for(let i=0;i<p.count;i++){const key=[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*10000)).join(',');const sum=shared.get(key)||new V3();sum.add(new V3().fromBufferAttribute(n,i));shared.set(key,sum);}
+  for(let i=0;i<p.count;i++){const key=[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*10000)).join(',');const v=shared.get(key).clone().normalize();n.setXYZ(i,v.x,v.y,v.z);}
   const m=paint({vertexColors:true,side:THREE.DoubleSide,shade:inside?[.48,.37,.36]:[.62,.59,.56],mid:inside?[.85,.69,.62]:[.88,.83,.72],band:[-.18,.30],albedo:inside?'':`
     float weather=vnoise(vW.xz*1.3+vW.y*.7);
     float streak=vnoise(vec2(vW.x*.8+vW.z*.2,vW.y*.08));
     float stain=smoothstep(.63,.79,weather)*smoothstep(.51,.72,streak);
     diffuseColor.rgb=mix(diffuseColor.rgb,${L('#bd9964')},stain*.42);
+    float lichen=smoothstep(.65,.80,vnoise(vW.xz*.72+vW.y*.15))*smoothstep(.52,.76,vnoise(vW.xz*2.1+vW.y*.12));
+    diffuseColor.rgb=mix(diffuseColor.rgb,${L('#8e9951')},lichen*.5);
   `});
   const mesh=new THREE.Mesh(g,m);mesh.castShadow=mesh.receiveShadow=true;return mesh;
-}
-function giantConch(){
-  const root=new THREE.Group(),L=21,R0=6.8,outer=[],oc=[],inner=[],ic=[],lip=[],lc=[];
-  const emit=(out,cols,a,b,c,color)=>{for(const p of[a,b,c]){out.push(p.x,p.y,p.z);cols.push(color.r,color.g,color.b);}};
-  const quad=(out,cols,a,b,c,d,color)=>{emit(out,cols,a,b,c,color);emit(out,cols,a,c,d,color);};
-  const ring=(t,a,inner=false)=>{
-    const r=(.16+R0*Math.pow(t,1.18))*(1+.135*Math.cos(t*34+a));
-    const flare=smooth(.87,1,t),sy=Math.sin(a),cz=Math.cos(a),rr=(r-(inner?.36:0))*(1+flare*.12*Math.max(0,-sy));
-    const ridge=(inner?0:.10)*Math.cos(a*13+t*4)*Math.pow(t,.8);
-    return new V3(L*(t-.5)+flare*((1-sy)*2.1+.30*Math.sin(a*3)),2.5+4.7*Math.pow(t,1.15)+(rr+ridge)*sy*1.08,(rr+ridge)*cz*.81);
-  };
-  const n=150,k=64;
-  for(let i=0;i<n;i++)for(let j=0;j<k;j++){
-    const t=i/n,t1=(i+1)/n,a=j/k*Math.PI*2,b=(j+1)/k*Math.PI*2;
-    const rib=.5+.5*Math.cos(t*34+a),tone=new THREE.Color('#eee0bf').lerp(new THREE.Color('#c6ae83'),Math.pow(rib,8)*.30);
-    tone.multiplyScalar(1+R(-.028,.028));
-    quad(outer,oc,ring(t,a),ring(t1,a),ring(t1,b),ring(t,b),tone);
-  }
-  // The aperture is a real inner surface with a deep warm recess, not a painted disk.
-  for(let i=0;i<44;i++)for(let j=0;j<k;j++){
-    const t=.44+i/44*.56,t1=.44+(i+1)/44*.56,a=j/k*Math.PI*2,b=(j+1)/k*Math.PI*2;
-    const tone=new THREE.Color('#a95f48').lerp(new THREE.Color('#e8ad87'),smooth(.46,1,t));
-    tone.lerp(new THREE.Color('#f1c6a3'),Math.pow(.5+.5*Math.cos(a*9+t*4),8)*.16);
-    quad(inner,ic,ring(t,b,true),ring(t1,b,true),ring(t1,a,true),ring(t,a,true),tone);
-  }
-  for(let j=0;j<k;j++){
-    const a=j/k*Math.PI*2,b=(j+1)/k*Math.PI*2;
-    quad(lip,lc,ring(1,a),ring(1,b),ring(1,b,true),ring(1,a,true),new THREE.Color(j%7===0?'#ddba8e':'#f7e6c3'));
-  }
-  // Seal the small recess at the narrow end of the inner chamber.
-  for(let j=0;j<k;j++)emit(inner,ic,new V3(L*(.44-.5),2.5+4.7*Math.pow(.44,1.15),0),ring(.44,j/k*6.283,true),ring(.44,(j+1)/k*6.283,true),new THREE.Color('#a1624d'));
-  root.add(shellMesh(outer,oc),shellMesh(inner,ic,true),shellMesh(lip,lc));
-  // Unequal worn spines along the shoulder provide the conch's recognisable crown.
-  for(let i=0;i<8;i++){
-    const t=.34+i*.079,a=1.28+Math.sin(i*1.7)*.14,p=ring(t,a),rad=.18+.23*t,h=.3+.55*t;
-    const g=new THREE.ConeGeometry(rad,h,5,1);g.translate(0,h*.35,0);
-    const m=new THREE.Mesh(g,paint({color:i%3?'#e7d5b0':'#d4bd96',shade:[.60,.57,.53],mid:[.88,.82,.74]}));m.position.copy(p);m.rotation.z=-.32;m.castShadow=true;root.add(m);
-  }
-  const[x,z]=P(.60,.454,0);root.position.set(x,height(x,z)+.8,z-3.4);root.rotation.y=-.76;
-  root.updateMatrixWorld(true);
-  for(let t=.15;t<=1;t+=.085){const p=ring(t,Math.PI),q=root.localToWorld(new V3(p.x,0,0));COLLIDERS.push({x:q.x,z:q.z,r:(.16+R0*Math.pow(t,1.18))*.69+.15});}
-  root.name='Singing Conch — hollow shell';return root;
 }
 function scallop(r=.7,coral=true){
   const pos=[],colors=[],tone=new THREE.Color(coral?'#cf9273':'#d5d3bc'),pale=new THREE.Color('#f9e5bf');
@@ -81,12 +43,32 @@ function coastalBoulders(){
   }
   while(seaRocks.length<8)seaRocks.push([9999,9999,.1]);
 }
+function treeFoot(u,v){
+  let hi=M(8),lo=hi;
+  for(;lo>0;lo-=.4){const q=P(u,v,lo);if(lo<=height(...q))break;hi=lo;}
+  lo=Math.max(0,lo);
+  for(let i=0;i<18;i++){const y=(lo+hi)/2,q=P(u,v,y);if(y>height(...q))hi=y;else lo=y;}
+  let[x,z]=P(u,v,(hi+lo)/2);
+  const st=stairsAt(x,z);
+  if(st.a>-.03&&st.a<1.04&&st.s<st.half+M(.55)){
+    const r=ST.rows.reduce((a,b)=>Math.hypot(x-a.x,z-a.z)<Math.hypot(x-b.x,z-b.z)?a:b);
+    const side=(x-r.x)*r.nx+(z-r.z)*r.nz<0?-1:1;
+    x=r.x+r.nx*side*(r.w/2+M(.8));z=r.z+r.nz*side*(r.w/2+M(.8));
+  }
+  return[x,z];
+}
+function clearConchPlants(){
+  // Clear only the projected opening, leaving foliage on the shell's back wall.
+  const poly=[[.678,.177],[.676,.214],[.685,.255],[.736,.274],[.75,.35],[.76,.40],[.786,.503],[.71,.46],[.65,.40],[.64,.31],[.65,.25]];
+  const inside=(u,v)=>{let yes=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>v)!=(b[1]>v)&&u<(b[0]-a[0])*(v-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;};
+  for(const list of[shrubItems,grassItems,flowerItems])for(let i=list.length-1;i>=0;i--){const p=new V3(list[i].x,list[i].y,list[i].z).project(camera);if(inside((p.x+1)/2,(1-p.y)/2))list.splice(i,1);}
+}
 function plantCoast(){
   // The same leaf cards and trunks as the approved game scenes.
   const palms=[[.04,.34,7.8,-.15,3],[.39,.39,7.6,.3,2.6],[.87,.48,6.3,2.6,1.4],[.94,.70,8.0,3.4,3.2],[.92,.23,7.3,3.1,2],[.52,.09,7.7,-.6,2.5]];
-  for(const[u,v,h,dir,lean]of palms){const[x,z]=P(u,v,height(...P(u,v,0)));palm(x,z,{h,dir,lean,fronds:10,droop:.8});COLLIDERS.push({x,z,r:.7});}
+  for(const[u,v,h,dir,lean]of palms){const[x,z]=treeFoot(u,v);palm(x,z,{h,dir,lean,fronds:10,droop:.8});COLLIDERS.push({x,z,r:.7});}
   const trees=[[.01,.29,1.6,3],[.15,.22,1.65,5],[.29,.27,1.8,9],[.32,.14,1.65,3],[.45,.12,1.6,5],[.57,.08,1.7,9],[.68,.19,1.75,5],[.80,.18,1.6,3],[.94,.19,1.8,9],[.98,.41,1.65,3],[-.03,.57,1.55,5]];
-  for(const[u,v,sc,seed]of trees){const[x,z]=P(u,v,height(...P(u,v)));broadleaf(x,z,sc,seed);}
+  for(const[u,v,sc,seed]of trees){const[x,z]=treeFoot(u,v);broadleaf(x,z,sc,seed);COLLIDERS.push({x,z,r:sc*.38});}
   for(let i=0;i<520;i++){
     const[x,z]=P(R(-.12,1.12),R(-.15,.75)),f=field(x,z);
     if(f.top<.90||trailEdge(x,z)<1.0||stairsAt(x,z).inside)continue;
@@ -135,7 +117,7 @@ function build(){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
   const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);
-  placeCoastPlants();scene.add(giantConch());
+  clearConchPlants();placeCoastPlants();scene.add(giantConch());
   scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));scene.add(buildSea());setStatus();
 }
 function updateAmbience(){}

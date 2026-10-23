@@ -19,11 +19,15 @@ This writes `index.html` and `generated.mjs` (both ignored). The default uses th
 python3 scenes/shell-beach/assemble.py --modules-from /absolute/path/to/offline-review.html
 ```
 
-`prepare.py` derives the portable terrain and cliff builders from the retained ruins source, then supplies this bay's terraces, left stair, sand palette and shoreline. `scene.js` authors the shell, smaller scallops, sea stacks and game foliage. `assemble.py` reuses the approved opening beach's renderer, paint shader, palms, foliage, hero GLB and water directly from `scenes/beach/src.html`.
+`prepare.py` derives the portable terrain and cliff builders from the retained ruins source, then supplies this bay's terraces, left stair, sand palette and shoreline. `conch.js` authors expanding whorls, the reference-traced folded aperture and the inner chamber. `path.js` supplies one curved ribbon for terrain, collision and plant clearance; `paving.js` follows its local tangent and forms rock banks. `scene.js` authors smaller scallops, sea stacks and game foliage. `assemble.py` reuses the approved opening beach's renderer, paint shader, palms, foliage, hero GLB and water directly from `scenes/beach/src.html`.
 
 ## Water contract
 
 The owner explicitly requested the opening beach's water system. Its colors, clarity, animated caustics, sparkles, shoreline wash and foam equations are reused. Only the shoreline function, sea mesh coverage and obstacle array size change for the bay. The ground descends under the water. Do not replace this system with a separate water style.
+
+## Space and route revision
+
+The world scale is now 3.12 (previously 2.4), with camera distance 93.6. Width and depth each increase 30%; total terrain bounds increase from 144 × 129.6 to 187.2 × 168.48 world units. This is an increase in physical space; hero scale and speed remain unchanged. The left and right terrace edges also retreat from the central sand. The water equations remain those of the opening beach.
 
 ## Review state
 

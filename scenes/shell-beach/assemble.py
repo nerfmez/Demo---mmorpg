@@ -9,8 +9,8 @@ def block(start,end):
  i=b.index(start);j=b.index(end,i+len(start));return b[i:j]
 page=block('// ---------- page:','// ---------- world layout')
 renderer=block('// ---------- renderer','// ---------- shared GLSL')
-renderer=re.sub(r'const CAM = \{[^}]*\};','const CAM = {target:new V3(0,0,-7.2),pitch:40,dist:72,yaw:0};',renderer)
-renderer=renderer.replace('left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220','left: -74, right: 74, top: 77, bottom: -77, near: 10, far: 350').replace('sun.shadow.bias = -0.0005','sun.shadow.bias = -0.0015').replace('sun.shadow.normalBias = 0.04','sun.shadow.normalBias = 0.3')
+renderer=re.sub(r'const CAM = \{[^}]*\};','const CAM = {target:new V3(0,0,-7.2),pitch:40,dist:93.6,yaw:0};',renderer)
+renderer=renderer.replace('left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220','left: -96, right: 96, top: 100, bottom: -100, near: 10, far: 350').replace('sun.shadow.bias = -0.0005','sun.shadow.bias = -0.0015').replace('sun.shadow.normalBias = 0.04','sun.shadow.normalBias = 0.3')
 glsl=block('// ---------- shared GLSL','// ---------- ground:')
 glsl=re.sub(r'float zShoreG\(float x\)\{[^}]*\}',r'${SHORE_GLSL}',glsl)
 stones=block('// ---------- faceted grey stones','// ---------- foliage from the game')
@@ -28,7 +28,7 @@ sea=block('// ---------- sea:','// ---------- small things')
 sea=sea.replace('new THREE.PlaneGeometry(150, 74, 150, 74)','new THREE.PlaneGeometry(190, 180, 110, 100)').replace('g.translate(0, 0.04, 34)','g.translate(0, 0.04, 30)').replace('uRocks[2]','uRocks[8]').replace('for(int i=0;i<2;i++)','for(int i=0;i<8;i++)')
 sea=sea.replace('float rockNear=min(length(q-uRocks[0].xy)-uRocks[0].z,length(q-uRocks[1].xy)-uRocks[1].z);','float rockNear=999.;for(int i=0;i<8;i++)rockNear=min(rockNear,length(q-uRocks[i].xy)-uRocks[i].z);')
 runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','')
-js='\n'.join([page,renderer,(here/'world.js').read_text(),glsl,stones,foliage,palms,hero,sea,(here/'scene.js').read_text(),runtime])
+js='\n'.join([page,renderer,(here/'world.js').read_text(),glsl,stones,foliage,palms,hero,sea,(here/'conch.js').read_text(),(here/'scene.js').read_text(),runtime])
 # Reuse the reviewed embedded modules without introducing a new dependency version.
 module_source=Path(a.modules_from).read_text() if a.modules_from else b
 modules=re.search(r'<script type="importmap">(.*?)</script>',module_source,re.S)[1]

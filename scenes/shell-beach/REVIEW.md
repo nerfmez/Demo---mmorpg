@@ -1,28 +1,29 @@
-# Shell Beach delivery review — 23 October 2026
+# Shell Beach revision review — 23 October 2026
 
-**Decision: interim owner-review draft.** Actual WebGL lighting, shadows, animated water and touch playback remain unverified in this environment. No game integration or merge.
+**Decision: revised owner-review draft.** The owner requested closer conch-reference matching, a better path and more physical space. Runtime WebGL lighting, shadows, waves and touch playback remain unverified in this environment; this is not approval for game integration or merge.
 
-## Artifact and target
+## Artifact and reference
 
-Built `shell-beach/index.html`, SHA-256 `be18ff55e07e1703d3485ceb0c3f704627fd90ec472a1a88daab528fa61bc454`. Reference: `concept.png`, the repository's Singing Conch Coast concept at `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`.
+Built `shell-beach/index.html`, SHA-256 `72a7442f9706a2ee179695db54ccee92e3119ec0987090536c8c6ba5b817686c`. Reference: the repository's Singing Conch Coast concept at `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`, retained as `concept.png`.
 
-Observable targets: a hollow cream conch with a warm aperture on the back-right beach; stepped rock terraces and the left stair; sea stacks framing an open sandy walking area; existing game foliage/model; the opening beach's water system.
+## Revisions and visual inspection
 
-## Actually inspected
+- Replaced the circular-ended horn with `conch.js`: expanding spire whorls, a body that sweeps upwards/right into the crest, and a non-planar lip traced from the reference. The outline includes the folded upper throat, outward wing, raised left columella and a long lower apron resting on the sand. A thick rim joins the exterior to a warm, off-centre inner chamber. Reduced oversized shoulder corrugations and added sparse weathering/lichen to the exterior.
+- Actual scene geometry was inspected in successive software renders at the authored 40-degree camera, 1254 × 706. Found and corrected the exterior covering the aperture; moved its return behind the chamber. The final inspected view shows the cream body, smaller left spire and warm open cavity with its flared apron. This is a closer reference-led silhouette, not a claim of pixel-perfect or final material matching.
+- Replaced the straight stair collision/height projection with one continuous curved ribbon (`path.js`) shared by terrain, paving, collision and vegetation clearance. Paving courses turn with the local tangent; `paving.js` forms stone banks where the ground is cut. Inspected the resulting connection from the sand through the S-shaped rise and upper landing. The surface now follows the visible bend instead of a straight underlying ramp.
+- Corrected tree placement by finding the visible heightfield intersection instead of iterating a discontinuous height. The previous method put back-row trees in front of the conch/path. Moved trunks clear of the route and cleared the aperture's foliage.
+- World scale 2.4 → 3.12 and camera distance 72 → 93.6: width and depth both increase 30%, total bounds 144 × 129.6 → 187.2 × 168.48 world units. Hero scale/speed stay unchanged. Retreating the left/right cliff edges also enlarges the central sandy apron. The 69% figure applies to total terrain bounds, not a measured 69% increase in navigable sand.
+- Opening beach water equations, color/clarity, wash and foam are unchanged from the prior bay build. Reference comparison/wipe and tap-to-walk remain available. The ruins, approved beach and approved forest remain unchanged in this revision.
 
-- Concept and successive software views of the assembled Three geometry from the authored 40-degree play camera, 1254 × 706. The final software composition was inspected after moving the palm away from the aperture and enlarging the scattered scallops.
-- The first shell read as a narrow horn. Its body/whorls were enlarged, the aperture rotated toward the camera and the flared lip extended. The resulting cavity, rim and segmented outer silhouette are visible in the final geometry view.
-- Fixed the terrain's offshore surface so dry sand disks no longer protrude through the water plane. Kept vegetation off the main sand approach and shifted the right palm away from the shell mouth.
-- Software inspection approximates material shading, omits runtime shadows/ground bake, does not play waves, and displays the hero's unskinned bind pose. Palm inspection used the real pre-cut leaf texture because this canvas backend exported the destination-out texture blank; this does not replace the delivered browser texture. These images are geometry evidence, not WebGL screenshots or proof of animation quality.
+## Focused technical evidence
 
-## Focused technical validation
+- Preparation and self-contained page assembly completed; generated JS passed `node --check`; diff checks passed.
+- The actual Three scene and embedded hero GLB loaded in the geometry harness. All geometry attributes were finite; eight water-rock uniforms were populated.
+- The real `walkTo` / `updateHero` code continuously reached 27 targets from the central sand through the left approach, stair foot, alternate rows and upper landing. Every target finished within 0.10 world units. All 48 row centers and samples at ±70% of their half-width were unblocked (144 points).
+- No core, data, save or game renderer changes. No unrelated game suites or additional browser installation. PR remains a draft.
 
-- Both the new shell page and retained ruins page assembled successfully; generated JavaScript passed `node --check`.
-- Actual Three construction and embedded hero GLB loading completed in the geometry harness. No non-finite geometry attributes. Four open beach checkpoints were unblocked.
-- The real `walkTo`/`updateHero` code reached the center beach, left approach, stair foot, successive stair rows and upper landing continuously. Nine targets all finished within 0.1 world units. Eight water rock uniforms were populated.
-- The opening beach and forest were not edited. New scene imports shared beach blocks at build time; the retained ruins runtime is a sibling source dependency. No core, data, save or game-renderer changes, so unrelated game suites were not run.
-- Cloud browser WebGL creation failed. The supported fallback was a software geometry/material inspection; no additional browser installation or repeated WebGL retries. Desktop/iPad WebGL smoke and owner comparison remain pending before approval.
+## Limits and remaining acceptance
 
-## Remaining visual work
+Cloud browser WebGL creation had failed; the software fallback approximates paint/material shading, omits the real ground bake and shadows, and does not play waves or skin the hero. Palm inspection uses the actual pre-cut leaf texture because the local canvas backend exported its destination-out texture blank; browser production texture code is unchanged. These views establish geometry/composition evidence only, not WebGL screenshots, final lighting, animation quality or physical-device performance.
 
-The shell's organic lip/whorls, cliff variation and sand detail need owner comparison in the actual WebGL page. The software renderer is insufficient to accept their final lighting or the reused animated water. Do not claim a finished or approved scene from assembly/route checks alone.
+The final conch material, irregular rim/whorl appearance, path/stone-bank lighting and the enlarged area's feel still need owner comparison in the published WebGL page. A successful build or route check does not establish visual approval.

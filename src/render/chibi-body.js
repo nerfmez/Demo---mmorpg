@@ -248,7 +248,9 @@ export function prepareChibiHair(gltf, cfg) {
   geometry.computeBoundingBox();
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
-  return { geometry, material: mesh.material, box: geometry.boundingBox.clone(), fit: cfg.fit || {} };
+  // `color`: one flat colour instead of the generated texture (the hair is painted one tone)
+  const material = cfg.color ? { color: new THREE.Color(cfg.color), map: null, side: THREE.DoubleSide } : mesh.material;
+  return { geometry, material, box: geometry.boundingBox.clone(), fit: cfg.fit || {} };
 }
 
 /**
@@ -282,7 +284,8 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
 }
 
 function hairHull(src, width, darkness) {
-  const m = new THREE.MeshBasicMaterial({ map: src.map, color: new THREE.Color(darkness, darkness, darkness * 1.12), side: THREE.BackSide });
+  const color = src.map ? new THREE.Color(darkness, darkness, darkness * 1.12) : src.color.clone().multiplyScalar(darkness);
+  const m = new THREE.MeshBasicMaterial({ map: src.map, color, side: THREE.BackSide });
   m.userData.rig = true;
   m.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normalize(normal) * ${width.toFixed(4)};`);

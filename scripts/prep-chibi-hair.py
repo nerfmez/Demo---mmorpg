@@ -42,11 +42,15 @@ def split(src, keepf):
         else: key[k]=i
     tris=[I[k:k+3] for k in range(0,len(I),3)]
     for t in tris: u(t[0],t[1]);u(t[1],t[2])
-    cs=defaultdict(lambda:[0,0])
+    # per piece: triangle count, grey share, highest point; a hair piece is mostly grey and reaches
+    # the upper half (a white collar is grey too but sits at the bottom)
+    cs=defaultdict(lambda:[0,0,-1e9])
+    ymid=(min(q[1] for q in P)+max(q[1] for q in P))/2
     for t in tris:
-        r=f(t[0]);cs[r][0]+=1;cs[r][1]+=sum(hv[x] for x in t)/3
-    print('components',len(cs),sorted([(n,round(h/n,2)) for n,h in cs.values()],reverse=True)[:10])
-    keep=[t for t in tris if (cs[f(t[0])][1]/cs[f(t[0])][0])>0.5 and len(cs)>1] if len(cs)>1 else None
+        r=f(t[0]);cs[r][0]+=1;cs[r][1]+=sum(hv[x] for x in t)/3;cs[r][2]=max(cs[r][2],*(P[x][1] for x in t))
+    print('components',len(cs),sorted([(n,round(h/n,2),round(y,2)) for n,h,y in cs.values()],reverse=True)[:10])
+    hair=lambda c:c[1]/c[0]>0.8 and c[2]>ymid
+    keep=[t for t in tris if hair(cs[f(t[0])])] if len(cs)>1 else None
     if keep is None or len(keep)<len(tris)*0.2:
         keep=[t for t in tris if sum(hv[x] for x in t)>=2]
         print('by color',len(keep),'of',len(tris))

@@ -256,8 +256,8 @@ export function prepareChibiHair(gltf, cfg) {
 /**
  * Put the hair on the chibi head bone: scaled so its width and depth are `fit.width` and
  * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
- * front-to-back (moved back by `fit.back` × head depth) and its top `fit.lift` × head height above
- * the head's. Toon material with a plain outline hull.
+ * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
+ * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
  */
 export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
@@ -269,7 +269,7 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const sy = ((sx + sz) / 2) * (f.height ?? 1);
   const g = new THREE.Group();
   g.scale.set(sx, sy, sz);
-  g.position.set((hb.min.x + hb.max.x) / 2 - sx * (b.min.x + b.max.x) / 2,
+  g.position.set((hb.min.x + hb.max.x) / 2 + hw * (f.side ?? 0) - sx * (b.min.x + b.max.x) / 2,
     hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
     (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
   const s = (sx + sy + sz) / 3;

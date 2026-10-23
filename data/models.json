@@ -826,11 +826,12 @@
       "tris": 3014,
       "color": "#b9b8bf",
       "fit": {
-        "width": 1.17,
+        "width": 1.2,
         "depth": 1.25,
-        "height": 1.06,
-        "lift": 0.07,
-        "back": 0.05
+        "height": 0.95,
+        "lift": 0.09,
+        "back": 0.06,
+        "side": 0
       },
       "source": "Meshy meshy-t2 image-to-3d of the chibi head with hair cropped from the owner's sheet (task 01a1681c-6a87-7494-abca-d5d86c39028f), Meshy 6 retexture (task 01a1681c-98d1-76ba-8638-999ccb467f7f; its texture is unused: the hair is drawn in one colour); head and collar removed by scripts/prep-chibi-hair.py. Opt-in with ?hero=chibi."
     }

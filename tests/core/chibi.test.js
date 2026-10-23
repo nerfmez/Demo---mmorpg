@@ -31,5 +31,5 @@ test('the chibi hair is one textured mesh within the character budget', () => {
   assert.equal(j.images.length, 1, 'its own painted texture');
   const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
   assert.equal(tris, m.tris);
-  for (const k of ['width', 'depth', 'height', 'lift', 'back']) assert.ok(Number.isFinite(m.fit[k]), 'fit.' + k);
+  for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side']) assert.ok(Number.isFinite(m.fit[k]), 'fit.' + k);
 });

@@ -63,7 +63,20 @@
       "outline": "#4a3a30",
       "outlineWidth": 0.003,
       "revision": "blade_detail_r4",
-      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1.19
+      }
     },
     "venom_wand": {
       "file": "models/weapons/venom_wand.glb",
@@ -198,7 +211,7 @@
           0,
           0
         ],
-        "scale": 1.55
+        "scale": 1.95
       }
     },
     "tidecaller_staff": {
@@ -409,7 +422,7 @@
           0,
           0.7853981633974483
         ],
-        "scale": 0.57
+        "scale": 0.7
       }
     },
     "crag_axe": {
@@ -452,7 +465,7 @@
           0,
           -0.7853981633974483
         ],
-        "scale": 0.55
+        "scale": 0.67
       },
       "edge": -1
     },

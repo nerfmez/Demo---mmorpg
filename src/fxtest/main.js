@@ -153,6 +153,10 @@ const venomFx = new VenomFx(scene, camera);
 const rainFx = new RainFx(scene, camera);
 const powerFx = new PowerFx(scene, camera);
 const splitFx = new SplitFx(scene, camera);
+// a short camera shake for heavy hits (cosmetic; the bench camera is otherwise fixed)
+const camBase = new THREE.Vector3();
+let shakeT = 0, shakeDur = 1, shakeAmp = 0;
+splitFx.onShake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 let powerRatio = 0; // the charge the last Power Draw left with
 const slashFx = new SlashFx(scene, camera);
 const fireX = new FireExtras(scene, camera);
@@ -493,6 +497,7 @@ function layout() {
   const dist = Math.max(v.w / (2 * Math.tan(half) * camera.aspect), v.d / (2 * Math.tan(half)) * (close ? 1.1 : 1.5), 7) * (close ? 0.92 : 1);
   camera.position.set(v.cx, 0, v.cz + (close ? 0.6 : 0)).addScaledVector(CAM_DIRS[state.cam], dist);
   camera.lookAt(v.cx, 0.6, v.cz);
+  camBase.copy(camera.position);
   camera.updateProjectionMatrix();
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   flameFx.resize(size.x, size.y, w, hgt);
@@ -593,6 +598,8 @@ function tick(real, draw = true) {
 
   if (!draw) return;
   flameFx.prerender();
+  if (shakeT > 0) { shakeT = Math.max(0, shakeT - dt); const k = shakeAmp * (shakeT / shakeDur); camera.position.set(camBase.x + (Math.random() - 0.5) * 2 * k, camBase.y + (Math.random() - 0.5) * 2 * k, camBase.z + (Math.random() - 0.5) * 2 * k); }
+  else camera.position.copy(camBase);
   renderer.render(scene, camera);
 }
 

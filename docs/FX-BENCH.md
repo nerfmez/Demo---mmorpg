@@ -183,7 +183,15 @@ horizontal crescent, it is a downward blow):
 - a hard burst on each struck target, and a camera shake;
 - a "มึน!" banner, with little stars of light circling each stunned head until it recovers.
 
-## Flank Thrust
+## Flank Thrust (rule trial: the dagger's quick main stab)
+
+Owner: make it a main skill with a short cooldown and less damage, and less from the front too.
+On the bench (`QUICK_STAB` in sandbox) it is a 0.5 s, no-MP stab:
+- base damage 6 + 0.6 x power (the game has 10 + 1.1 x power on a 2.5 s cooldown);
+- a front hit lands at 0.7x;
+- the rules' 1.6x side/back bonus is unchanged, so a stab from behind is about 2.3x a front stab.
+
+The game keeps its Flank Thrust until this is approved.
 
 `src/fxtest/thrust-fx.js`, with a dagger. It is a stab, not a cut, so the slash crescent is
 skipped.

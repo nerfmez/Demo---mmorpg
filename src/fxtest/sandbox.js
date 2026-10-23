@@ -33,11 +33,19 @@ export const STUN_SLAM = {
   requiresWeapon: ['mace'], // every blunt weapon in the game is the mace type: beetle maul, tusk club, thunder maul
   stun: { duration: 1.2, bossDuration: 0.4 },
 };
+// Bench-only rule trial (owner: "a main skill: short cooldown, less damage, and less from the front"):
+// Flank Thrust becomes the dagger's spammable main attack. Weaker per stab, frontMult x from the
+// front, positionalMult x from the side or behind (the rules' bonus, unchanged).
+export const QUICK_STAB = {
+  desc: 'สกิลหลักมีดสั้น แทงเร็ว ด้านหน้าแรงแค่ 70% แทงจากด้านข้างหรือด้านหลังแรง 160%',
+  cooldown: 0.5, castTime: 0.18, cost: 0, damage: { base: 6, scale: 0.6 }, frontMult: 0.7,
+};
 // The bench's copy of the game data with its rule trials applied (the game's data is untouched).
 export function benchData(data) {
   const combat = { ...data.skills.combat };
   const { radius, duration, tick, slow, ...rest } = combat.venom_mire;
   combat.venom_mire = { ...rest, ...VENOM_ARROW };
+  combat.weakpoint = { ...combat.weakpoint, ...QUICK_STAB };
   const { interrupt, ...slam } = combat.interrupt_slam;
   combat.interrupt_slam = { ...slam, ...STUN_SLAM };
   return { ...data, skills: { ...data.skills, combat } };
@@ -146,6 +154,16 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
       if (stacks > before) this.emit({ type: 'poisonStack', id: m.id, stacks, x: m.x, z: m.z }); // only when it grows
     }
     return out;
+  };
+  // Quick Stab trial: a stab from the front lands at frontMult (the side/back bonus stays the rules')
+  const frontHit = g.hitMonster;
+  g.hitMonster = function (m, amount, opts = {}) {
+    const fm = data.skills.combat[opts.skill]?.frontMult;
+    if (fm && !opts.dot) {
+      const fx = (opts.fromX ?? this.player.x) - m.x, fz = (opts.fromZ ?? this.player.z) - m.z;
+      if (fx * Math.sin(m.facing) + fz * Math.cos(m.facing) >= 0) amount *= fm;
+    }
+    return frontHit.call(this, m, amount, opts);
   };
   // Stun Slam trial: every direct hit stuns the target (the rules' stunned state), and the bench
   // lets it recover after the time (bench dummies run no AI of their own)

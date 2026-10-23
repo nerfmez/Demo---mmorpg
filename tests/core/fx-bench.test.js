@@ -243,12 +243,15 @@ test('Breakbeat Slam trial on the bench: every dummy it hits is stunned for 1.2 
   assert.equal(events.filter((e) => e.type === 'benchStunEnd').length, hit.size, 'and recovers after 1.2 s');
 });
 
-test('Flank Thrust on the bench: one dummy faces the hero and one turns its back; the back one takes the 1.6x bonus', () => {
+test('Flank Thrust trial on the bench: a quick main stab, weaker, 0.7x from the front and the rules\' 1.6x from behind', () => {
+  assert.equal(data.skills.combat.weakpoint.cooldown, 2.5, 'the game data is untouched');
   const r = run('weakpoint', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.6);
   assert.equal(r.g.derived.weaponType, 'dagger');
+  assert.ok(r.g.skills[0].cooldown <= 0.5, 'a quick main attack (stats may shorten it further)');
   const hits = r.of('hit').filter((e) => !e.dot);
   assert.equal(hits.length, 2);
   const facing = (id) => r.g.monsters.find((m) => m.id === id).facing;
   const front = hits.find((e) => facing(e.id) < 0), back = hits.find((e) => facing(e.id) > 0);
-  assert.ok(Math.abs(back.amount / front.amount - 1.6) < 0.02, `${front.amount} -> ${back.amount}`);
+  assert.ok(Math.abs(back.amount / front.amount - 1.6 / 0.7) < 0.05, `${front.amount} -> ${back.amount}`);
+  assert.ok(back.amount < 108, 'weaker than the game\'s 2.5 s Flank Thrust from behind');
 });

@@ -141,5 +141,17 @@ rules' `chargeStart`; release calls `releaseCharge`, auto-repeat holds about 1.6
   glow that pops and fades, sharp rays of light with the longest thrown on along the shot, a thin
   ring and a few sparks.
 
+## Frontline Split
+
+`src/fxtest/split-fx.js`, in the same light-and-ribbon language, with a greatblade.
+- **Hero.** Plays the overhead `slam`, raised during the rules' 0.65 s wind-up and chopping down
+  at the strike.
+- **Wind-up.** The lane it will cut (5 m x 1.4 m, turning with the aim since the skill aims during
+  the cast) is drawn on the ground as a thin cel outline. It fills from the hero outward, and light
+  gathers along the raised blade.
+- **Strike.** On the rules' `lineStrike`, a tall standing crescent of light races down the lane and
+  a white-hot cut line opens in the ground behind it. The lane flashes, sparks are thrown up along
+  the line, and every struck target gets a clean diagonal cut mark. Then the lane and the line fade.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

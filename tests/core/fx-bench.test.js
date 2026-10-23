@@ -207,3 +207,13 @@ test('Power Draw on the bench: hold to charge, release looses one arrow whose da
   const quick = shot(0.1), full = shot(1.5);
   assert.ok(full > quick * 2, `a full draw hits far harder (${quick} -> ${full})`);
 });
+
+test('Frontline Split on the bench: a wind-up, then one lineStrike that hits the dummies in its lane only', () => {
+  const r = run('frontline_split', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 1.2);
+  const strike = r.of('lineStrike');
+  assert.equal(strike.length, 1);
+  assert.equal(strike[0].range, 5); assert.equal(strike[0].width, 1.4);
+  assert.ok(strike[0].t >= 0.6, 'nothing lands before the wind-up');
+  const hit = new Set(r.of('hit').map((e) => e.id));
+  assert.ok(hit.size >= 3 && hit.size < r.g.monsters.length, 'the lane hits some dummies, not all');
+});

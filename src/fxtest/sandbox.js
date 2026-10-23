@@ -6,11 +6,11 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
 export const SINGLE_STRIKE = new Set(['slash']);
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade' };
 
 // Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
 // target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
@@ -48,6 +48,8 @@ export const LAYOUTS = {
   arrow_rain: [[5.0, 0.3], [4.0, -1.4], [6.2, 1.4], [5.9, -1.1], [8.6, 0.4], [3.6, 3.0]],
   // a long lane: the reach and the pushed-air rings read along it
   charged_shot: [[9.0, 0.0], [13.0, 1.6], [6.0, -2.4], [15.5, -1.2]],
+  // three down the 5 m line, two just off its 1.4 m width
+  frontline_split: [[1.8, 0.2], [3.2, -0.3], [4.6, 0.25], [3.0, 1.6], [2.4, -1.7]],
 };
 
 // Mods this skill can actually use on the bench. Triggers that need a guard skill are left out.

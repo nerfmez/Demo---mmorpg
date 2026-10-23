@@ -183,5 +183,20 @@ horizontal crescent, it is a downward blow):
 - a hard burst on each struck target, and a camera shake;
 - a "มึน!" banner, with little stars of light circling each stunned head until it recovers.
 
+## Flank Thrust
+
+`src/fxtest/thrust-fx.js`, with a dagger. It is a stab, not a cut, so the slash crescent is
+skipped.
+- **Layout.** On the bench (`FACINGS` in sandbox) one dummy in the thrust faces the hero and one
+  turns its back. Each dummy's weak side is marked on the ground with a dashed gold half-ring
+  behind it.
+- **Contact** (the rules' `slash`). A narrow spear of light shoots out to the 2.5 m reach, with two
+  thin speed lines beside it.
+- **Front hit.** A small blue-white burst.
+- **Side or back hit** (the rules' 1.6x positional bonus, the same facing test as the rules):
+  - a hard gold burst with rays thrown on along the stab;
+  - a gold weak-point diamond that snaps shut on the target;
+  - a "จุดอ่อน!" label and a camera shake.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

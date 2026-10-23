@@ -6,11 +6,11 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
 export const SINGLE_STRIKE = new Set(['slash']);
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger' };
 
 // Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
 // target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
@@ -64,6 +64,12 @@ export const LAYOUTS = {
   armor_cleave: [[2.0, 0.3], [1.8, -0.9], [1.7, 1.2], [1.2, 2.6], [4.2, -0.4]],
   // three in the 65 degree, 2.7 m slam, one beside it
   interrupt_slam: [[2.1, 0.2], [1.9, -0.9], [1.8, 1.0], [0.6, 2.5]],
+  // two in the narrow thrust: one facing the hero, one with its back turned; two more off to the sides
+  weakpoint: [[1.9, -0.25], [2.15, 0.3], [3.4, 2.4], [3.4, -2.4]],
+};
+// Facings per layout (default: every dummy faces the hero). Flank Thrust needs some backs turned.
+export const FACINGS = {
+  weakpoint: [-Math.PI / 2, Math.PI / 2, 0, Math.PI],
 };
 
 // Mods this skill can actually use on the bench. Triggers that need a guard skill are left out.
@@ -96,7 +102,7 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
   const pool = g.monsters.filter((m) => !m.boss).slice(0, spots.length);
   pool.forEach((m, i) => {
     const [x, z] = spots[i];
-    Object.assign(m, { x, z, homeX: x, homeZ: z, hp: 100000, maxHp: 100000, defense: 0, aggro: false, boss: false, dead: false, statuses: {}, facing: -Math.PI / 2, benchIndex: i });
+    Object.assign(m, { x, z, homeX: x, homeZ: z, hp: 100000, maxHp: 100000, defense: 0, aggro: false, boss: false, dead: false, statuses: {}, facing: FACINGS[skill]?.[i] ?? -Math.PI / 2, benchIndex: i });
   });
   g.monsters = pool;
   g.player.targetId = null;

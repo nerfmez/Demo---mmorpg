@@ -1,4 +1,6 @@
-# Hill Windmill — standalone review draft
+# Hill Windmill — preliminarily accepted standalone scene
+
+Owner status: **ผ่านขั้นต้น — preliminary approval, 24 October 2026**, for public version 8. Retain this version as the baseline for subsequent work. Accepted source: `b182e6baf00659f3311fd3326ba85cad56e35652`.
 
 The next owner-requested concept scene after the preliminarily accepted Singing Conch Coast. A timber-and-plaster windmill stands on a fenced terrace above broad looping paths, short stone flights and planted rock faces. It stays separate from the playable game and from the approved scenes.
 
@@ -47,4 +49,4 @@ Each port includes real `x,y,z`, clear `width` and outward `dx,dz`. Coordinates 
 
 The left approach now has an S bend, two distinct stone flights and earth landings. Shared road anchors and blended junction aprons remove height mismatches at forks. Rock facets are lowered under the route floor at crossings, and props/plants stay outside its usable width. Trees are reduced to 14, with smaller, more separated shrubs instead of a continuous green border.
 
-Tap the 3D ground to walk; use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the artifact and verification limits. Owner visual review and game integration remain pending; the accepted coast, beach, forest and retained ruins are preserved.
+Tap the 3D ground to walk; use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the artifact and verification limits. Preliminary owner approval is recorded; final runtime/device verification and game integration remain pending; the accepted coast, beach, forest and retained ruins are preserved.

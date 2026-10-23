@@ -10,7 +10,7 @@ the built `index.html` in a browser. Each page has a wipe slider to compare with
 | Forest trail (`forest-trail-40deg`) | **Approved by the owner**. `forest/latest-vs-concept.png` is the last capture (concept on top) | `python3 forest/assemble.py && python3 forest/buildpage.py` writes `forest/index.html` |
 | Ruins approach (`ruins-approach-40deg`) | **Rebuilt 23 October; owner review pending.** [Rebuild and inspection record](ruins/REVIEW.md) | `python3 ruins/assemble.py && python3 ruins/buildpage.py` writes `ruins/index.html` |
 | Singing Conch Coast (`shell-beach/`) | **ผ่านเบื้องต้น — preliminary owner approval, 23 October, public version 6.** Retain as the baseline; uses the approved opening beach water. [Build and review record](shell-beach/README.md) | `python3 shell-beach/prepare.py && python3 shell-beach/assemble.py` |
-| Hill Windmill (`hill-windmill/`) | **New standalone draft; owner review pending.** Full timber/plaster windmill with framed rotating sails and looping hill routes. [Build and review](hill-windmill/README.md) | `python3 hill-windmill/prepare.py && python3 hill-windmill/assemble.py` |
+| Hill Windmill (`hill-windmill/`) | **ผ่านขั้นต้น — preliminary owner approval, 24 October 2026 (public version 8).** Retained baseline: timber/plaster windmill, connected hill routes and four world-space exits. [Build and review](hill-windmill/README.md) | `python3 hill-windmill/prepare.py && python3 hill-windmill/assemble.py` |
 | Chibi hero model (Blender, `chibi/`) | **Paused** by the owner (quality not good enough; Meshy or bought/commissioned models suggested) | needs Blender bpy: `python chibi/build.py chibi/face.png chibi.glb` |
 
 ## How the forest page is made

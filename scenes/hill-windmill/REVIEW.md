@@ -1,6 +1,10 @@
 # Hill Windmill review — 24 October 2026
 
-**Decision: revised standalone owner-review draft.** This revision responds to the owner's marked screenshot `1000194981.jpg`: connected roads suitable for eventual game placement, a closer left ascent, less obstructing vegetation and better edge details. The mill geometry, approved coast and retained ruins are preserved. No owner approval or game integration is implied.
+**Decision: ผ่านขั้นต้น — preliminary owner approval, 24 October 2026.** The owner accepted public version 8 with “โอเค เก็บ ผ่านขั้นต้น” and requested it be retained as the baseline for future work. This records owner acceptance of the scene; main-game integration and merge remain separate. The mill geometry, approved coast and retained ruins are preserved.
+
+Accepted scene source: `b182e6baf00659f3311fd3326ba85cad56e35652`. Public Site version 8, source `86769c5e5bb7a7b15e6f86d1ab7a923d45de7be1`, [accepted preview](https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site/hill-windmill/?v=8). This approval update is documentation only; the accepted scene files and published artifact remain unchanged.
+
+The accepted revision responds to the owner's marked screenshot `1000194981.jpg`: connected roads suitable for eventual game placement, a closer left ascent, less obstructing vegetation and better edge details.
 
 ## Exact artifact and target
 
@@ -34,4 +38,4 @@ Inspected the reference, owner's actual WebGL screenshot of the previous version
 
 Final WebGL ground baking, shadows, native touch, device FPS and continuous playback remain unverified because the cloud WebGL environment previously failed. The software views omit actual baked ground detail/shadows and show the hero's unskinned bind pose. Rotor/hero animation was unchanged in this revision. Prior rotor bounds checks are historical evidence, not a new playback review.
 
-This is a revised public draft for owner comparison. Main-game placement must connect neighboring terrain at the provided ports and pass the game's world/collision and device checks before merge. The accepted Singing Conch Coast retains **ผ่านเบื้องต้น**, 23 October 2026.
+Public version 8 is retained as the preliminarily accepted owner baseline. Main-game placement must connect neighboring terrain at the provided ports and pass the game's world/collision and device checks before merge. The accepted Singing Conch Coast retains **ผ่านเบื้องต้น**, 23 October 2026.

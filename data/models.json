@@ -1,5 +1,5 @@
 {
-  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose (shoulderWiden moves the shoulder joints out and clavicleLift raises the collarbones, for square shoulders), headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head. Monsters are skinned onto the procedural monster rigs (monsterSkin.js): scale/yaw align the model (feet on the ground), bones moves rig joints onto the model, segments are per-bone lines (aligned rest space, metres) that set the skin weights. rootScale enlarges the model's whole rig in the world.",
+  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose (shoulderWiden moves the shoulder joints out and clavicleLift raises the collarbones, for square shoulders), headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head. Monsters are skinned onto the procedural monster rigs (monsterSkin.js): scale/yaw align the model (feet on the ground), bones moves rig joints onto the model, segments are per-bone lines (aligned rest space, metres) that set the skin weights. rootScale enlarges the model's whole rig in the world. edge (blade weapons with one cutting side): which side of the blade cuts, +1 = +X (the default), -1 = -X; a carry with an up vector turns it to the ground.",
   "weapons": {
     "rusty_sword": {
       "file": "models/weapons/rusty_sword.glb",
@@ -177,7 +177,8 @@
           -0.7853981633974483
         ],
         "scale": 0.43
-      }
+      },
+      "edge": -1
     },
     "knight_greatsword": {
       "file": "models/weapons/knight_greatsword.glb",
@@ -429,7 +430,8 @@
           -0.7853981633974483
         ],
         "scale": 0.46
-      }
+      },
+      "edge": -1
     },
     "horn_greatblade": {
       "file": "models/weapons/horn_greatblade.glb",
@@ -450,7 +452,8 @@
           -0.7853981633974483
         ],
         "scale": 0.55
-      }
+      },
+      "edge": -1
     },
     "ancient_staff": {
       "file": "models/weapons/ancient_staff.glb",

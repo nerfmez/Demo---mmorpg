@@ -10,6 +10,7 @@ import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
 import STAFF_CAST from '../../data/staff-cast.json';
 import HOLDS from '../../data/weapon-holds.json';
+import MODELS from '../../data/models.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
 import { reachArm } from './ik.js';
 import { attachHair } from './hair.js';
@@ -227,6 +228,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
   rig.weaponKind = gear.weapon || 'sword';
+  rig.weaponEdge = MODELS.weapons[weaponModel]?.edge ?? 1; // the imported blade's cutting side (+X or -X)
   rig.offhandKind = gear.offhand || null;
   return rig;
 }
@@ -553,8 +555,9 @@ export class HumanoidAnimator {
     if (hold) {
       W_HAND.fromArray(hold.hand);
       W_DIR.fromArray(hold.dir).normalize();
-      // the blade's flat faces this way (default up); [1, 0, 0] stands the edge upright
-      if (hold.up) W_UP.fromArray(hold.up);
+      // the blade's flat faces this way (default up); [1, 0, 0] stands the blade on its +X side,
+      // flipped for a blade that cuts on its -X side, so the edge is the one toward the ground
+      if (hold.up) W_UP.fromArray(hold.up).multiplyScalar(this.rig.weaponEdge ?? 1);
       else W_UP.set(0, 1, 0);
     }
     if (swingV && swingW > 0.01) {

@@ -10,8 +10,9 @@ import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
 import STAFF_CAST from '../../data/staff-cast.json';
 import HOLDS from '../../data/weapon-holds.json';
+import MODELS from '../../data/models.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
-import { reachArm } from './ik.js';
+import { reachArm, PALM } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
 import { buildHeadwear } from './headwear.js';
@@ -20,6 +21,7 @@ import { resolveOutfit } from '../core/outfit-look.js';
 import { modelInstance, characterBase } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
+import { attachChibiBody } from './chibi-body.js';
 import {attachHairSampleBody} from './hairsample.js';
 
 export const DEFAULT_LOOK = {
@@ -60,7 +62,8 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
-  const V = o.npc || o.procedural ? null : characterBase('hero_vrm'); // only loaded with ?hero=vrm
+  // only loaded with ?hero=vrm or ?hero=chibi; both keep their own painted face and hair
+  const V = o.npc || o.procedural ? null : characterBase('hero_vrm') || characterBase('hero_chibi');
   const X = o.npc || o.procedural || V ? null : characterBase('hairsample');
   const T = o.npc || o.procedural || V || X ? null : characterBase('hero_base');
   // driver bones sit on the skinned body's joints when there is one
@@ -205,7 +208,14 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   }
   if (V) {
     fitParts(rig.bones.head, V.headFit);
-    attachVrmBody(rig, V);
+    if (V.chibi) {
+      // weapons, shields and the quiver on the back were made for the 1.75 m body: scale them to the small one
+      for (const n of ['weapon', 'offhand']) rig.bones[n]?.scale.setScalar(V.gearScale);
+      fitParts(rig.bones.chest, { pos: [0, 0, 0], scale: V.gearScale });
+      rig.ikMap = V.bodyMap; // the animator's character-space hand targets move onto this body
+      rig.holds = V.holds; // its own carries where the shared ones read wrong on it
+      attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
+    } else attachVrmBody(rig, V);
   }
   rig.look = L;
   rig.kind = o.npc ? 'npc' : 'hero';
@@ -218,6 +228,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rig.scarf = new Ribbon({ segments: 9, length: 0.95, width: 0.15, material: m });
   }
   rig.weaponKind = gear.weapon || 'sword';
+  rig.weaponEdge = MODELS.weapons[weaponModel]?.edge ?? 1; // the imported blade's cutting side (+X or -X)
   rig.offhandKind = gear.offhand || null;
   return rig;
 }
@@ -464,6 +475,7 @@ export class HumanoidAnimator {
     // ---- the weapon hand: a per-weapon carry (data/weapon-holds.json) when not acting, the swing
     // arc of a melee action, and the left hand on the haft of a two-handed weapon ----
     const hold = this.holdFor();
+    const ik = this.rig.ikMap; // hand targets in character space were authored for the 1.75 m body
     const ikw = pose.ikw;
     const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
     // carry weight: full when idle or moving, handing over to the action's own arm keys
@@ -480,9 +492,9 @@ export class HumanoidAnimator {
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
       root.updateMatrixWorld(true);
-      if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(IK_T.fromArray(ikR)), ikw[1]);
+      if (ikR && ikw[1] > 0.01) reachArm(b, 'R', root.localToWorld(ikMap(IK_T.fromArray(ikR), ik)), ikw[1]);
       if (gripW > 0.01 && b.weapon) reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)), gripW);
-      if (ikL && leftBusy > 0.01) reachArm(b, 'L', root.localToWorld(IK_T.fromArray(ikL)), leftBusy);
+      if (ikL && leftBusy > 0.01) reachArm(b, 'L', root.localToWorld(ikMap(IK_T.fromArray(ikL), ik)), leftBusy);
     }
     // a drawn bow stands upright and faces the target whatever the hand's angle
     if (b.weapon) {
@@ -499,9 +511,9 @@ export class HumanoidAnimator {
     const staffSupport = b.weapon && this.rig.weaponKind === 'staff' && !s.dead && !s.dash && this.action?.name === 'staffBolt';
     if (staffSupport) {
       const root = this.rig.root, aim = pose.staffAim?.[0] ?? 0;
-      STAFF_TIP.fromArray(STAFF_CAST.readyTip).lerp(STAFF_TARGET.fromArray(STAFF_CAST.castTip), aim);
+      ikMap(STAFF_TIP.fromArray(STAFF_CAST.readyTip).lerp(STAFF_TARGET.fromArray(STAFF_CAST.castTip), aim), ik);
       STAFF_DIR.fromArray(STAFF_CAST.shaftDirection).normalize();
-      STAFF_GRIP.copy(STAFF_TIP).addScaledVector(STAFF_DIR, -STAFF_CAST.tip);
+      STAFF_GRIP.copy(STAFF_TIP).addScaledVector(STAFF_DIR, -STAFF_CAST.tip * b.weapon.scale.z);
       root.updateMatrixWorld(true);
       reachArm(b, 'R', root.localToWorld(IK_T.copy(STAFF_GRIP)), 1);
       // Put the handle in the palm; orient the shaft in character space rather
@@ -515,6 +527,24 @@ export class HumanoidAnimator {
       root.updateMatrixWorld(true);
     }
     this.rig.syncSkin?.();
+    // A body whose skin hand is seated on the weapon after the driver pose (chibi-body.js): put the
+    // second hand's fist, not its wrist, on the haft where the weapon now is.
+    const support = this.rig.support;
+    if (support) support.on = gripW > 0.01 && !!b.weapon;
+    if (support?.on) {
+      this.rig.root.updateMatrixWorld(true);
+      support.axis.set(0, 0, 1).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
+      // reachArm puts the driver palm (PALM below the wrist) on its target, so aim it where the palm
+      // must be for the fist to land on the haft; the fist turns with the arm, so measure and reach
+      // again until it settles
+      for (let k = 0; k < SUPPORT_PASSES; k++) {
+        this.rig.syncSkin(); // turns the left hand along the haft and measures its fist from the wrist
+        b.handL.localToWorld(SUPPORT_PALM.copy(PALM)).sub(b.handL.getWorldPosition(IK_P));
+        b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)).sub(support.offset).add(SUPPORT_PALM);
+        reachArm(b, 'L', IK_T, gripW);
+      }
+      this.rig.syncSkin();
+    }
     if (staffSupport && this.rig.hairsample) {
       // Current main seats the weapon in the skinned right palm during syncSkin.
       // Follow that final shaft with the support arm without changing its grip.
@@ -526,7 +556,7 @@ export class HumanoidAnimator {
 
   /** This weapon's carry: two-handed when the type allows it and the left hand is free. */
   holdFor() {
-    const h = HOLDS.holds[this.rig.weaponKind];
+    const h = this.rig.holds?.[this.rig.weaponKind] ?? HOLDS.holds[this.rig.weaponKind];
     if (!h) return null;
     return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
   }
@@ -537,12 +567,16 @@ export class HumanoidAnimator {
    * blade points out along the arc with its edge leading, so it traces the slash crescent.
    */
   solveWeapon(hold, holdW, swingV, swingW, orientW = holdW) {
+    const ik = this.rig.ikMap;
     const b = this.b, body = b.body;
     this.rig.root.updateMatrixWorld(true);
     if (hold) {
       W_HAND.fromArray(hold.hand);
       W_DIR.fromArray(hold.dir).normalize();
-      W_UP.set(0, 1, 0);
+      // the blade's flat faces this way (default up); [1, 0, 0] stands the blade on its +X side,
+      // flipped for a blade that cuts on its -X side, so the edge is the one toward the ground
+      if (hold.up) W_UP.fromArray(hold.up).multiplyScalar(this.rig.weaponEdge ?? 1);
+      else W_UP.set(0, 1, 0);
     }
     if (swingV && swingW > 0.01) {
       const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);
@@ -560,7 +594,7 @@ export class HumanoidAnimator {
       }
     }
     const w = Math.max(holdW, swingW), wo = Math.max(orientW, swingW);
-    if (w > 0.01) reachArm(b, 'R', body.localToWorld(IK_T.copy(W_HAND)), w);
+    if (w > 0.01) reachArm(b, 'R', body.localToWorld(ikMap(IK_T.copy(W_HAND), ik)), w);
     // weapon frame: +Z along the blade, +Y the flat's normal
     if (Math.abs(W_UP.dot(W_DIR)) > 0.97) W_UP.set(0, 0, 1);
     W_X.crossVectors(W_UP, W_DIR).normalize();
@@ -590,6 +624,16 @@ export class HumanoidAnimator {
 
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
 const IK_T = new THREE.Vector3();
+const SUPPORT_PASSES = 3;
+const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();
+/**
+ * A character-space hand target authored for the 1.75 m body, moved onto a body of other
+ * proportions (`map`: rig.ikMap): heights keep their offset from the hips, and offsets from the
+ * hips and the body axis are scaled. No map leaves the target as it is.
+ */
+function ikMap(v, map) {
+  return map ? v.set(v.x * map.scale, map.to + (v.y - map.from) * map.scale, v.z * map.scale) : v;
+}
 const W_HAND = new THREE.Vector3(), W_DIR = new THREE.Vector3(), W_UP = new THREE.Vector3(), W_X = new THREE.Vector3();
 const W_A = new THREE.Vector3(), W_B = new THREE.Vector3(), W_T = new THREE.Vector3(), W_N = new THREE.Vector3();
 const W_M = new THREE.Matrix4(), W_Q = new THREE.Quaternion();

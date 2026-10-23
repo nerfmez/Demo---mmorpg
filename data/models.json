@@ -1,5 +1,5 @@
 {
-  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose (shoulderWiden moves the shoulder joints out and clavicleLift raises the collarbones, for square shoulders), headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head. Monsters are skinned onto the procedural monster rigs (monsterSkin.js): scale/yaw align the model (feet on the ground), bones moves rig joints onto the model, segments are per-bone lines (aligned rest space, metres) that set the skin weights. rootScale enlarges the model's whole rig in the world.",
+  "_note": "Imported 3D models (GLB in public/). Each replaces the procedural shape of a gear base when it has loaded; the procedural shape stays as the fallback. Models are baked to the bone convention: grip at the origin, blade along +Z, 1 unit = 1 m. Characters are skinned bodies (skinned.js): armDrop lowers the T-pose arms to the rest pose (shoulderWiden moves the shoulder joints out and clavicleLift raises the collarbones, for square shoulders), headCentre/headScale and neckScale fit the procedural hair, face and scarf to the head. Monsters are skinned onto the procedural monster rigs (monsterSkin.js): scale/yaw align the model (feet on the ground), bones moves rig joints onto the model, segments are per-bone lines (aligned rest space, metres) that set the skin weights. rootScale enlarges the model's whole rig in the world. edge (blade weapons with one cutting side): which side of the blade cuts, +1 = +X (the default), -1 = -X; a carry with an up vector turns it to the ground.",
   "weapons": {
     "rusty_sword": {
       "file": "models/weapons/rusty_sword.glb",
@@ -63,7 +63,20 @@
       "outline": "#4a3a30",
       "outlineWidth": 0.003,
       "revision": "blade_detail_r4",
-      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1.19
+      }
     },
     "venom_wand": {
       "file": "models/weapons/venom_wand.glb",
@@ -124,7 +137,20 @@
       "outline": "#4a3a30",
       "outlineWidth": 0.003,
       "revision": "batch3_r1",
-      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1.33
+      }
     },
     "shell_knife": {
       "file": "models/weapons/shell_knife.glb",
@@ -140,7 +166,20 @@
       "outline": "#4a3a30",
       "outlineWidth": 0.003,
       "revision": "R2",
-      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json"
+      "source": "User supplied original; exact SHA256 and package provenance in docs/WEAPON-MODEL-PROVENANCE.json",
+      "sourceTransform": {
+        "grip": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": 1.46
+      }
     },
     "skyrender_bow": {
       "file": "models/weapons/skyrender_bow.glb",
@@ -176,8 +215,9 @@
           0,
           -0.7853981633974483
         ],
-        "scale": 0.43
-      }
+        "scale": 0.6
+      },
+      "edge": -1
     },
     "knight_greatsword": {
       "file": "models/weapons/knight_greatsword.glb",
@@ -197,7 +237,7 @@
           0,
           0
         ],
-        "scale": 1.55
+        "scale": 1.95
       }
     },
     "tidecaller_staff": {
@@ -324,7 +364,8 @@
           -0.7853981633974483
         ],
         "scale": 0.43
-      }
+      },
+      "edge": -1
     },
     "wisp_stiletto": {
       "file": "models/weapons/wisp_stiletto.glb",
@@ -386,7 +427,7 @@
           0,
           -0.7853981633974483
         ],
-        "scale": 0.46
+        "scale": 0.635
       }
     },
     "galebreaker": {
@@ -407,7 +448,7 @@
           0,
           0.7853981633974483
         ],
-        "scale": 0.47
+        "scale": 0.7
       }
     },
     "crag_axe": {
@@ -428,8 +469,9 @@
           0,
           -0.7853981633974483
         ],
-        "scale": 0.46
-      }
+        "scale": 0.565
+      },
+      "edge": -1
     },
     "horn_greatblade": {
       "file": "models/weapons/horn_greatblade.glb",
@@ -449,8 +491,9 @@
           0,
           -0.7853981633974483
         ],
-        "scale": 0.55
-      }
+        "scale": 0.67
+      },
+      "edge": -1
     },
     "ancient_staff": {
       "file": "models/weapons/ancient_staff.glb",
@@ -611,6 +654,171 @@
       "hairsample": true,
       "tris": 24858,
       "source": "HairSample_Male-beta from approved live Character Studio V6; original SHA256 4af2194f90ba846f3b13c00b50b14262419062d2171d17de922bcce2f89979c7. Complete base skin/scalp; separate gear-controlled garments. VRoid source metadata CC0. See docs/HAIRSAMPLE-INTEGRATION.md."
+    },
+    "hero_chibi": {
+      "file": "models/hero_chibi.glb",
+      "chibi": true,
+      "tris": 4442,
+      "armDrop": 1.3,
+      "gearScale": 0.65,
+      "bodyMap": {
+        "hips": 1.0,
+        "scale": 0.45
+      },
+      "holds": {
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
+        "sword": {
+          "one": {
+            "hand": [
+              -0.22,
+              0.93,
+              0.1
+            ],
+            "dir": [
+              -0.12,
+              -0.55,
+              0.83
+            ],
+            "up": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        "axe": {
+          "one": {
+            "hand": [
+              -0.24,
+              0.95,
+              0.15
+            ],
+            "dir": [
+              -0.1,
+              0.4,
+              0.9
+            ],
+            "up": [
+              1,
+              0,
+              0
+            ]
+          },
+          "two": {
+            "hand": [
+              -0.05,
+              0.85,
+              0.35
+            ],
+            "dir": [
+              0.35,
+              0.5,
+              0.8
+            ],
+            "grip": 0.26,
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        "mace": {
+          "one": {
+            "hand": [
+              -0.24,
+              0.95,
+              0.15
+            ],
+            "dir": [
+              -0.1,
+              0.4,
+              0.9
+            ],
+            "up": [
+              1,
+              0,
+              0
+            ]
+          },
+          "two": {
+            "hand": [
+              -0.05,
+              0.85,
+              0.35
+            ],
+            "dir": [
+              0.35,
+              0.5,
+              0.8
+            ],
+            "grip": 0.22,
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        "greatblade": {
+          "two": {
+            "hand": [
+              -0.05,
+              0.85,
+              0.35
+            ],
+            "dir": [
+              0.3,
+              0.6,
+              0.75
+            ],
+            "grip": -0.11,
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        "staff": {
+          "one": {
+            "hand": [
+              -0.27,
+              0.8,
+              0.2
+            ],
+            "dir": [
+              -0.04,
+              1,
+              0.2
+            ],
+            "castHold": true
+          }
+        }
+      },
+      "gripMiddle": [
+        "staff"
+      ],
+      "fist": {
+        "knuckle": 0.55,
+        "radius": 0.25,
+        "wrap": 1.25,
+        "thumbTurn": 100,
+        "thumbFrom": 0.35,
+        "thumbTo": 0.6,
+        "thumbReach": 0.75,
+        "leftFistWith": [
+          "axe",
+          "mace",
+          "greatblade",
+          "staff",
+          "bow"
+        ]
+      },
+      "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). Opt-in with ?hero=chibi; see assets/meshy/hero_chibi"
     }
   },
   "monsters": {

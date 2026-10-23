@@ -9,10 +9,10 @@ import { chromium, webkit } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { enterFullscreenGate } from './fullscreen-entry.mjs';
-import { initialUiReady, vrmHeroReady } from './startup-ready.mjs';
+import { initialUiReady, vrmHeroReady, chibiHeroReady } from './startup-ready.mjs';
 
 const smokeCase = process.env.SMOKE_CASE ?? 'all';
-if (!['all', 'vrm'].includes(smokeCase)) throw new Error('SMOKE_CASE must be all or vrm');
+if (!['all', 'vrm', 'chibi'].includes(smokeCase)) throw new Error('SMOKE_CASE must be all, vrm or chibi');
 
 const OUT = new URL('./out/', import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
@@ -378,12 +378,57 @@ async function vrmHero() {
   await ctx.close();
 }
 
+// the opt-in chibi hero (?hero=chibi) loads with its own texture, is driven by the animator and renders
+async function chibiHero() {
+  const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => {
+    if (m.type() === 'error' && !/fonts\.g|Failed to load resource/.test(m.text())) errors.push(m.text());
+  });
+  await page.goto(`http://localhost:${PORT}/?fresh=1&seed=5&quality=medium&hero=chibi`);
+  await waitForStartupReady(page, initialUiReady, { device: 'chibi', phase: 'initialUiReady', errors });
+  await waitForStartupReady(page, chibiHeroReady, { device: 'chibi', phase: 'chibiHeroReady', errors });
+  const info = await page.evaluate(async () => {
+    const { game, view } = window.__frontier;
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    game.setMove(1, 0);
+    for (let k = 0; k < 40; k++) game.update(1 / 30);
+    await wait(500);
+    const body = view.hero.skin.body;
+    let skinned = 0, textured = 0;
+    body.traverse((o) => {
+      if (o.isSkinnedMesh) { skinned++; if (o.material.map) textured++; }
+    });
+    const head = body.getObjectByName('Head'), hips = body.getObjectByName('Hips');
+    const h = head.getWorldPosition(head.position.clone()).y - hips.getWorldPosition(hips.position.clone()).y;
+    // the sword sits in the fist's hole with the fingers across its handle (chibi-body.js)
+    const hand = body.getObjectByName('RightHand'), socket = view.hero.bones.weapon;
+    const palm = hand.localToWorld(view.hero.gripCenter.clone()), at = socket.getWorldPosition(palm.clone());
+    const fingers = palm.clone().sub(hand.getWorldPosition(palm.clone())).normalize();
+    const blade = palm.clone().set(0, 0, 1).applyQuaternion(socket.getWorldQuaternion(hand.quaternion.clone()));
+    // the sword hand closes into its fist; the empty left hand stays open
+    let fists = null;
+    body.traverse((o) => { if (o.isSkinnedMesh && o.morphTargetInfluences && !fists) fists = [...o.morphTargetInfluences]; });
+    return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)), fists };
+  });
+  check(info.skinned === 2 && info.textured === 2, `chibi hero: body and outline load with the texture (${JSON.stringify(info)})`);
+  check(info.h > 0.15, `chibi hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
+  check(info.grip < 0.001 && info.cross < 0.25, `chibi hero: sword held in the fist, fingers across the handle (${info.grip.toFixed(4)} m, ${info.cross.toFixed(2)})`);
+  check(info.fists?.join() === '1,0', `chibi hero: sword hand closed, empty left hand open (${info.fists})`);
+  check(errors.length === 0, `chibi hero: no page errors ${errors.slice(0, 3).join(' | ')}`);
+  await page.screenshot({ path: `${OUT}chibi-hero.png` });
+  await ctx.close();
+}
+
 try {
   if (smokeCase === 'all') {
     await run('desktop', { viewport: { width: 1600, height: 900 } });
     await run('ipad', { viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
   }
-  await vrmHero();
+  if (smokeCase !== 'chibi') await vrmHero();
+  if (smokeCase !== 'vrm') await chibiHero();
 } finally {
   await browser.close();
   stopServer();

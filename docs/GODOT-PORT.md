@@ -396,6 +396,29 @@ targets the game uses are kept). It reuses the same driver-bone retarget (`bindS
 and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
 through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
 the scarf and armour pieces are not used with this body yet.
+An opt-in chibi hero body (`?hero=chibi`, `public/models/hero_chibi.glb`, registered as
+`characters.hero_chibi`; `render/chibi-body.js`) is a Meshy smart-topology mesh with its own
+painted texture and the same Mixamo-like bone names as `hero_base`, so it uses the same driver
+retarget (`bindSkinSync` with `MAP`). Its split Meshy normals are welded and smoothed at load,
+and weapon/off-hand bones and chest gear (the quiver) are scaled by `gearScale` for the 1.2 m body,
+and the animator's character-space hand targets (action IK, carries, the staff cast) are moved
+onto it by `bodyMap` (`rig.ikMap`: heights keep their offset from the hips, offsets scaled 0.45);
+`holds` replaces shared carries for this body (sword forward and down, staff low and upright,
+heavy weapons two-handed at the belly with the head forward); a hold's `up: [1, 0, 0]` turns the
+blade's flat (weapon +Y) to the side so the edge stands upright with the cutting side down (a
+weapon model's `edge: -1` marks a blade or axe head that cuts on its -X side, which flips it), and a weapon in `gripMiddle` (the
+staff) is held at the middle of its length. On a two-handed haft the left hand also turns its thumb
+along the haft, and the animator reaches the left arm so its fist hole (not its wrist) lands on the
+haft after the right fist is seated (`rig.support`). The hand has no finger
+bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
+load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
+holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is
+thinner on the hands. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+for a bow) and the socket moves to the fist's hole. In Godot,
+import the GLB with its `Skeleton3D`, recompute smooth normals on import, scale the hand
+attachments, add the same fists as blend shapes (or finger bones) and apply the same hand turn
+and seat after the retarget.
+It is a preview body only: the art rules keep the shipped hero at normal proportions.
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

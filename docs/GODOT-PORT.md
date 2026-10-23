@@ -417,7 +417,11 @@ thinner on the hands. The torso's bust and round hips are flattened once at load
 bind pose). The head is reshaped once at load toward the sheet's rounder head
 (`headShape`: wider, shorter below the eye line, fuller cheeks) and its normals are bent toward the
 head centre (`soft`) so the toon ramp shades the face as one round form; the painted eyes were
-enlarged in the texture by `scripts/chibi-eyes.py`. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp follows where the light stands around the
+head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
+bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
+as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
+(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso
 flatten, head reshape and normal bend, scale the hand

@@ -37,3 +37,5 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - Torso: the Meshy body had a bust and round hips; `chibi-body.js` flattens them at load
   (`flatten` in data: chest front to 0.072 m between 0.64 and 0.8 m, backside to -0.045 m between
   0.4 and 0.62 m), so the torso is straight like the sheet's boy.
+- Anime shading: the face takes its toon shade from the light's angle round the head, not the mesh
+  normal (`faceShadow`), and the hair has a jagged highlight band (`highlight`), as in anime games.

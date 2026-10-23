@@ -174,6 +174,113 @@ function reshapeHead(mesh, shape) {
 }
 
 /**
+ * Face coordinates for the drawn face shadow (`faceShadow`): a `face` attribute per vertex with
+ * the head's across (-1 right .. 1 left of the model, its +X), up (0 chin .. 1 crown) and a mask
+ * that is 1 on the front of the head (from `from` to `to` of the way forward) and 0 elsewhere.
+ */
+function addFaceCoords(mesh, w, { from, to }) {
+  const geo = mesh.geometry, pos = geo.attributes.position, toWorld = mesh.matrixWorld;
+  const box = new THREE.Box3(), v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) if (w[i] > 0.5) box.expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld));
+  const c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+  const face = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    if (!w[i]) continue;
+    v.fromBufferAttribute(pos, i).applyMatrix4(toWorld);
+    const fwd = (v.z - c.z) / (size.z / 2);
+    face[i * 3] = (v.x - c.x) / (size.x / 2);
+    face[i * 3 + 1] = (v.y - box.min.y) / size.y;
+    face[i * 3 + 2] = w[i] * THREE.MathUtils.smoothstep(fwd, from, to);
+  }
+  geo.setAttribute('face', new THREE.BufferAttribute(face, 3));
+}
+
+/**
+ * The drawn face shadow, the anime-game trick (a face shadow map): on the face the toon ramp does not
+ * read the mesh normal (the nose and cheeks would cut bands across it) but where the light stands
+ * around the head. Light from the front lights the whole face; as it swings to one side a single
+ * soft-edged shadow sweeps in from the far cheek, bowed around the nose (`curve`). The head's axes
+ * reach the shader each frame from the head bone (in view space, like the light).
+ */
+function faceShadowMaterial(m, headBone, bindQuat, { curve }) {
+  const u = { uHeadR: { value: new THREE.Vector3(1, 0, 0) }, uHeadF: { value: new THREE.Vector3(0, 0, 1) }, uFaceCurve: { value: curve } };
+  const base = m.onBeforeCompile;
+  m.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer);
+    Object.assign(shader.uniforms, u);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec3 face; varying vec3 vFace;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFace = face;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <gradientmap_pars_fragment>', `
+uniform vec3 uHeadR; uniform vec3 uHeadF; uniform float uFaceCurve; varying vec3 vFace;
+#ifdef USE_GRADIENTMAP
+uniform sampler2D gradientMap;
+#endif
+vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
+  float dotNL = dot( normal, lightDirection );
+  if ( vFace.z > 0.001 ) {
+    float lx = dot( lightDirection, uHeadR ), lz = dot( lightDirection, uHeadF );
+    // how far round the head the light has swung (0 in front, PI behind); light from straight
+    // above or below counts as in front
+    float th = atan( abs( lx ), lz ) * smoothstep( 0.05, 0.35, length( vec2( lx, lz ) ) );
+    float across = lx >= 0.0 ? vFace.x : -vFace.x;
+    float y = vFace.y - 0.45;
+    float edge = -1.15 * cos( th ) + uFaceCurve * ( 1.0 - 4.0 * y * y ) * sin( th );
+    float d = across - edge;
+    float fw = fwidth( d ) + 0.02;
+    float faceNL = mix( -0.5, 0.75, smoothstep( -fw, fw, d ) );
+    dotNL = mix( dotNL, faceNL, vFace.z );
+  }
+  vec2 coord = vec2( dotNL * 0.5 + 0.5, 0.0 );
+  #ifdef USE_GRADIENTMAP
+    return vec3( texture2D( gradientMap, coord ).r );
+  #else
+    return vec3( coord.x > 0.7 ? 1.0 : 0.7 );
+  #endif
+}`);
+  };
+  const key = m.customProgramCacheKey;
+  m.customProgramCacheKey = () => key() + '-chibi-face';
+  const q = new THREE.Quaternion(), inv = bindQuat.clone().invert(), view = new THREE.Matrix4();
+  return (camera) => {
+    headBone.getWorldQuaternion(q).multiply(inv);
+    view.copy(camera.matrixWorldInverse);
+    u.uHeadR.value.set(1, 0, 0).applyQuaternion(q).transformDirection(view);
+    u.uHeadF.value.set(0, 0, 1).applyQuaternion(q).transformDirection(view);
+  };
+}
+
+/**
+ * The hair's highlight band (`highlight`), the anime "angel ring": a jagged lighter band at height
+ * `at` (0 bottom .. 1 top of the hair model) and `width` thick, on the side of the hair facing the
+ * camera, brightening it by `strength`.
+ */
+function hairHighlightMaterial(m, box, { at, width, strength }) {
+  const base = m.onBeforeCompile;
+  const u = { uHlBox: { value: new THREE.Vector4(box.min.y, box.max.y, (box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2) }, uHl: { value: new THREE.Vector3(at, width, strength) } };
+  m.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer);
+    Object.assign(shader.uniforms, u);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vHairPos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHairPos = position;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec4 uHlBox; uniform vec3 uHl; varying vec3 vHairPos;')
+      .replace('#include <opaque_fragment>', `{
+  float t = ( vHairPos.y - uHlBox.x ) / ( uHlBox.y - uHlBox.x );
+  float a = atan( vHairPos.x - uHlBox.z, vHairPos.z - uHlBox.w );
+  float jag = 0.03 * sin( a * 13.0 ) + 0.015 * sin( a * 29.0 + 1.3 );
+  float band = 1.0 - smoothstep( uHl.y * 0.45, uHl.y, abs( t - uHl.x - jag ) );
+  float facing = smoothstep( 0.25, 0.6, dot( normalize( normal ), normalize( vViewPosition ) ) );
+  outgoingLight = mix( outgoingLight, outgoingLight * 1.25 + 0.12, band * facing * uHl.z );
+}
+#include <opaque_fragment>`);
+  };
+  const key = m.customProgramCacheKey;
+  m.customProgramCacheKey = () => key() + '-chibi-hair-hl';
+}
+
+/**
  * Flatten bulges of the bind torso (`flatten`: a list of bands from `y0` to `y1`, each moving the
  * surface beyond depth `z` back toward it by up to `k`, most at the band's middle; `z` above 0 is
  * the front, below 0 the back). The Meshy body has a bust and round hips, but the sheet's chibi is a
@@ -246,6 +353,7 @@ export function prepareChibiBody(gltf, cfg) {
   smoothNormals(mesh.geometry);
   if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);
   if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
+  if (head0 && cfg.faceShadow) addFaceCoords(mesh, head0.w, cfg.faceShadow);
   mesh.geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   const at = (n) => bones[n].getWorldPosition(new THREE.Vector3());
@@ -305,7 +413,9 @@ export function prepareChibiBody(gltf, cfg) {
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
   // the head's bind bounds in the head bone's space, for fitting a separate hair model
   const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
-  return { scene, joints, world, headFit, neckFit, headBox, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
+  const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
+  return { scene, joints, world, headFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -345,7 +455,7 @@ export function prepareChibiHair(gltf, cfg) {
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   // `color`: one flat colour instead of the generated texture (the hair is painted one tone)
   const material = cfg.color ? { color: new THREE.Color(cfg.color), map: null, side: THREE.DoubleSide } : mesh.material;
-  return { geometry, material, box, fit: cfg.fit || {} };
+  return { geometry, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
 }
 
 function keepPart(geometry, box, [side, at]) {
@@ -384,6 +494,7 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const flash = rig.material.userData.flash;
   const hair = new THREE.Mesh(H.geometry, toonCopy(H.material, flash, rim, false));
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
+  if (H.highlight) hairHighlightMaterial(hair.material, H.box, H.highlight);
   hair.castShadow = true;
   const hull = new THREE.Mesh(H.geometry, hairHull(H.material, outline / s, darkness));
   g.add(hair, hull);
@@ -420,6 +531,10 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     const src = mesh.material;
     mesh.material = toonCopy(src, flash, rim, false);
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
+    if (T.faceShadow) {
+      const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);
+      mesh.onBeforeRender = (renderer, scene, camera) => follow(camera);
+    }
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;

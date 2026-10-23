@@ -40,6 +40,14 @@ test('the chibi torso flatten bands are bounded', () => {
   }
 });
 
+test('the chibi face shadow and hair highlight settings are bounded', () => {
+  const f = data.models.characters.hero_chibi.faceShadow;
+  assert.ok(f && f.from < f.to && f.from >= 0 && f.to <= 1, 'face mask runs forward across the head');
+  assert.ok(f.curve >= 0 && f.curve < 1, 'curve bows the shadow edge a little');
+  const h = data.models.characters.hero_chibi_hair.highlight;
+  assert.ok(h && h.at > 0 && h.at < 1 && h.width > 0 && h.width < 0.3 && h.strength > 0 && h.strength <= 1, 'hair highlight band');
+});
+
 test('the chibi hair models are single meshes within the character budget', () => {
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
   assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);

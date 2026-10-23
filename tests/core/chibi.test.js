@@ -28,7 +28,7 @@ test('the chibi hair is one textured mesh within the character budget', () => {
   const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
   const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
   assert.equal(j.meshes.length, 1);
-  assert.equal(j.images.length, 1, 'its own painted texture');
+  assert.ok(m.color || j.images?.length === 1, 'a flat colour or its own painted texture');
   const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
   assert.equal(tris, m.tris);
   for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side']) assert.ok(Number.isFinite(m.fit[k]), 'fit.' + k);

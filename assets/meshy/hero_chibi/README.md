@@ -17,9 +17,10 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - The Meshy hands are open and have no finger bones; `curlFist` in `chibi-body.js` bends the
   finger vertices into a fist (thumb folded under) at load as one morph target per hand; a hand
   closes only while it holds something, and held weapons are seated in the fist's hole.
-- Hair (`public/models/hero_chibi_hair.glb`, 3,014 tris): meshy-t2 mesh of the chibi head with hair
-  cropped straight from the sheet (task 01a1681c-6a87-7494-abca-d5d86c39028f), Meshy 6 retexture
-  (01a1681c-98d1-76ba-8638-999ccb467f7f; washed out and blotchy, so the game draws the hair in one
-  colour, `color`); head and collar removed by `scripts/prep-chibi-hair.py`, fitted per axis in
-  `chibi-body.js`. Earlier tries: the hair image alone came out flat, and an AI-drawn head came out
-  with normal proportions.
+- Hair (`public/models/hero_chibi_hair.glb`, 3,189 tris, 41 KB): the owner made the chibi character
+  untextured and detailed on the Meshy site (`hair_meshy_web.glb`, 8,429 tris, whole body, hair fused
+  to the head). `scripts/prep-chibi-hair.py --cut` keeps the hair: everything above the neck (lower
+  at the back, so the nape hair stays) minus the front face. The game draws it in one colour and
+  fits it per axis (`chibi-body.js`; fit chosen by counting scalp pixels left visible from 24 views).
+  Earlier tries (hair image alone, an AI-drawn normal-proportion head, a textured meshy-t2 run) gave a
+  flat card, a stretched fit or a front fringe that did not match the sheet.

@@ -6,6 +6,14 @@ grey (low saturation, or dark lines) are kept; the skin-coloured head is dropped
 resized to 1024 px.
 
   python3 scripts/prep-chibi-hair.py <meshy retextured.glb> public/models/hero_chibi_hair.glb
+
+An untextured model whose hair is fused to the head (one closed mesh) is cut by position instead:
+triangles below --below (the neck and body) and front-facing triangles in the face box are dropped,
+and only positions are written (the game draws the hair in one colour).
+
+  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.19 0.14 0.05 --back -0.05 -0.03
+    (--face: lowest y, highest y, half width, nearest z of the face;
+     --back Y Z: behind z = Z the cut is at y = Y instead, so the hair at the nape stays)
 """
 import io
 import json
@@ -96,7 +104,39 @@ def write(src, keepf, dst):
     print(len(keep)//3,'tris',len(used),'verts')
     
 
+def cut(src, dst, below, face, back_below=None, back_z=0.0):
+    b=open(src,'rb').read();jl=struct.unpack_from('<I',b,12)[0];j=json.loads(b[20:20+jl]);off=20+jl;bin_=b[off+8:]
+    def acc(i):
+        a=j['accessors'][i];v=j['bufferViews'][a['bufferView']];o=v.get('byteOffset',0)+a.get('byteOffset',0)
+        n={'SCALAR':1,'VEC3':3}[a['type']];fmt={5126:'f',5123:'H',5125:'I'}[a['componentType']]
+        return [struct.unpack_from('<'+fmt*n,bin_,o+k*struct.calcsize(fmt)*n) for k in range(a['count'])]
+    p=j['meshes'][0]['primitives'][0];P=acc(p['attributes']['POSITION']);I=[t[0] for t in acc(p['indices'])]
+    fy0,fy1,fx,fz=face;keep=[]
+    for k in range(0,len(I),3):
+        a,bb,c=(P[x] for x in I[k:k+3]);m=[(a[i]+bb[i]+c[i])/3 for i in range(3)]
+        u=[a[i]-bb[i] for i in range(3)];w=[c[i]-bb[i] for i in range(3)]
+        n=[w[1]*u[2]-w[2]*u[1],w[2]*u[0]-w[0]*u[2],w[0]*u[1]-w[1]*u[0]];nl=sum(q*q for q in n)**.5 or 1
+        if m[1]<(back_below if back_below is not None and m[2]<back_z else below): continue
+        if fy0<m[1]<fy1 and abs(m[0])<fx and m[2]>fz and n[2]/nl>0.2: continue
+        keep+=I[k:k+3]
+    used=sorted(set(keep));remap={o:i for i,o in enumerate(used)};sel=[P[i] for i in used]
+    pos=b''.join(struct.pack('<fff',*q) for q in sel);idx=b''.join(struct.pack('<H',remap[i]) for i in keep)
+    pad=lambda d:d+b'\0'*(-len(d)%4);data=pad(pos)+pad(idx)
+    j2={'asset':{'version':'2.0','generator':'prep hair cut'},'scene':0,'scenes':[{'nodes':[0]}],'nodes':[{'mesh':0,'name':'hair'}],
+        'meshes':[{'primitives':[{'attributes':{'POSITION':0},'indices':1}]}],
+        'accessors':[{'bufferView':0,'componentType':5126,'count':len(sel),'type':'VEC3','min':[min(q[c] for q in sel) for c in range(3)],'max':[max(q[c] for q in sel) for c in range(3)]},
+                     {'bufferView':1,'componentType':5123,'count':len(keep),'type':'SCALAR'}],
+        'bufferViews':[{'buffer':0,'byteOffset':0,'byteLength':len(pos),'target':34962},{'buffer':0,'byteOffset':len(pad(pos)),'byteLength':len(idx),'target':34963}],
+        'buffers':[{'byteLength':len(data)}]}
+    js=json.dumps(j2,separators=(',',':')).encode();js+=b' '*(-len(js)%4)
+    open(dst,'wb').write(struct.pack('<III',0x46546C67,2,12+8+len(js)+8+len(data))+struct.pack('<II',len(js),0x4E4F534A)+js+struct.pack('<II',len(data),0x004E4942)+data)
+    print(len(keep)//3,'tris',len(used),'verts')
+
 if __name__ == '__main__':
+    if '--cut' in sys.argv:
+        g=sys.argv;bb=g.index('--back') if '--back' in g else None
+        cut(g[1],g[2],float(g[g.index('--below')+1]),[float(x) for x in g[g.index('--face')+1:g.index('--face')+5]],*( [float(g[bb+1]),float(g[bb+2])] if bb else []))
+        sys.exit()
     with tempfile.NamedTemporaryFile(suffix='.json') as t:
         split(sys.argv[1], t.name)
         write(sys.argv[1], t.name, sys.argv[2])

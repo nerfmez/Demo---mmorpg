@@ -2,6 +2,7 @@
 // and standing on the terrain. Repeated props use chunked InstancedMesh (frustum culling per
 // chunk) so the demo stays light on iPad. Grass, flowers, reeds, ferns and canopies sway.
 import * as THREE from 'three';
+import { landscapeSteps } from './landscape.js';
 import art from '../../data/art.json' with {type:'json'};
 import { outlineStructure } from './architecture.js';
 import { toon, outlined, darker } from './toon.js';
@@ -143,6 +144,8 @@ export function* environmentSteps(world, {adopt,groundHeight,edgeTreeAllowed} = 
   const gy = groundHeight || ((x, z) => world.groundY(x, z));
   const sy = (x, z) => world.surfaceY(x, z);
   const zid = (x, z) => world.zoneAt(x, z).id;
+
+  yield* landscapeSteps(world,{groundHeight:gy,adopt:group=>root.add(group)});
 
   // ----- trees -----
   const trunks = [],animeTrunks=[];

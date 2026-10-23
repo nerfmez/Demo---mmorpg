@@ -1,3 +1,4 @@
+import { applySeeThrough } from './patch.js';
 // Terrain mesh (from the shared heightfield) and stylised water.
 // The terrain is split into tiles so off-screen parts are culled. Per-vertex attributes carry
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
@@ -320,6 +321,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
       const tintD = new Float32Array(vw * vh * 3);
       const coast = new Float32Array(vw * vh * 2);
       const townMask = new Float32Array(vw * vh);
+      const landscapeMask = new Float32Array(vw * vh);
       for (let j = 0; j < vh; j++)
         for (let i = 0; i < vw; i++) {
           const gi = ti + i;
@@ -340,6 +342,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
           splat[v * 4 + 2] = surf.mud[k];
           splat[v * 4 + 3] = surf.dirt[k];
           townMask[v] = surf.town[k];
+          landscapeMask[v] = Math.min(1, (world.heightfield.landscapeDelta?.[k] || 0) * 4);
           coast[v * 2] = surf.coast[k * 2];
           coast[v * 2 + 1] = surf.coast[k * 2 + 1];
           tintL[v * 3] = surf.lr[k];
@@ -368,6 +371,7 @@ export function* terrainSteps(world, {adopt,domain = terrainDomain(world)} = {})
       geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
       geo.setAttribute('aSplat', new THREE.BufferAttribute(splat, 4));
       geo.setAttribute('aCoast', new THREE.BufferAttribute(coast, 2));
+      geo.setAttribute('aLandscape', new THREE.BufferAttribute(landscapeMask, 1));
       geo.setAttribute('aTown', new THREE.BufferAttribute(townMask, 1));
       geo.setAttribute('aTintL', new THREE.BufferAttribute(tintL, 3));
       geo.setAttribute('aTintD', new THREE.BufferAttribute(tintD, 3));
@@ -401,19 +405,19 @@ function terrainMaterial(world,mat,brush) {
       .replace(
         '#include <common>',
         `#include <common>
-attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; varying vec2 vCoast; varying float vTown;
+attribute vec4 aSplat; attribute vec3 aTintL; attribute vec3 aTintD; attribute vec2 aCoast; attribute float aTown; attribute float aLandscape; varying float vLandscape; varying vec2 vCoast; varying float vTown;
 varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; uniform vec3 uRegionShift;`
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown;`
+vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz - uRegionShift; vSplat = aSplat; vCoast = aCoast; vTintL = aTintL; vTintD = aTintD; vUp = normal.y; vTown = aTown; vLandscape = aLandscape;`
       );
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown;
+varying vec3 vWorldPos; varying vec4 vSplat; varying vec3 vTintL; varying vec3 vTintD; varying float vUp; varying vec2 vCoast; varying float vTown; varying float vLandscape;
 uniform float uTime; uniform vec3 uArena; uniform float uWater;
 ${GROUND_COLOR_GLSL}`
       )
@@ -436,7 +440,9 @@ ${GROUND_COLOR_GLSL}`
 }`
       );
   };
-  mat.customProgramCacheKey = () => 'terrain-shared-paint-v12';
+  const compile = mat.onBeforeCompile;
+  mat.onBeforeCompile = (shader,renderer) => { compile(shader,renderer); applySeeThrough(shader,'vLandscape'); };
+  mat.customProgramCacheKey = () => 'terrain-shared-paint-v13';
   return mat;
 }
 

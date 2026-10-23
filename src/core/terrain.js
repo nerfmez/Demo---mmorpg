@@ -6,6 +6,7 @@
 // + mountains past the map edge -> flatten town / pads -> roads smoothed into ramps ->
 // river channel and ponds carved below the water level.
 
+import { compileLandscape, raiseLandscape } from './landscape.js';
 import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
 // ---------- noise (hash-based, deterministic, no RNG state) ----------
@@ -129,7 +130,7 @@ export function seamHeight(profile, along) {
   return profile[profile.length - 1][1];
 }
 
-export function buildHeightfield(worldData, zoneAt) {
+export function buildHeightfield(worldData, zoneAt, landscapeData = worldData) {
   const t = worldData.terrain;
   const b = worldData.bounds;
   const res = t.res || 1;
@@ -386,8 +387,18 @@ export function buildHeightfield(worldData, zoneAt) {
       }
   }
 
+  const landscape = compileLandscape(landscapeData);
+  let placementBase = landscape ? hf : null;
+  const landscapeDelta = landscape ? raiseLandscape(grid, hf, landscape) : null;
+  if (landscape) hf = Float32Array.from(hf, (v,k) => v + landscapeDelta[k]);
+  const slope = (source,x,z) => Math.hypot(
+    (sampleGrid(grid,source,x+res,z)-sampleGrid(grid,source,x-res,z))/(2*res),
+    (sampleGrid(grid,source,x,z+res)-sampleGrid(grid,source,x,z-res))/(2*res));
   return {
     ...grid,
+    landscape, landscapeDelta,
+    placementSlopeAt: (x,z) => slope(placementBase||hf,x,z),
+    releasePlacementBasis: () => { placementBase = null; },
     data: hf,
     waterLevel: water,
     heightAt: (x, z) => sampleGrid(grid, hf, x, z),

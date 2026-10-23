@@ -1,0 +1,95 @@
+{
+  "revision": "design-v1",
+  "reviewDate": "2026-10-21",
+  "sourceMain": "6f3a7c237dc5323c7b94b2bdb3d7cd647c04d281",
+  "cameraSource": "ff8d525debf8ff2f8c2bf2dbd195e1fc2aa4c951",
+  "cameraPitchAboveHorizonDegrees": 40,
+  "artifacts": [
+    {
+      "path": "concepts/arrival-beach-40deg.png",
+      "sha256": "7a2c0b3e7f8fa7d6e33d0ee3fd897fc880c601cacc097e9485729f8078b53e73",
+      "bytes": 2741004,
+      "dimensions": [
+        1672,
+        941
+      ]
+    },
+    {
+      "path": "concepts/forest-trail-40deg.png",
+      "sha256": "b86483717954adc8c3a49ab5c45279ed0a6508423c8303552ce2cf30a850b898",
+      "bytes": 3358813,
+      "dimensions": [
+        1672,
+        941
+      ]
+    },
+    {
+      "path": "concepts/ruins-approach-40deg.png",
+      "sha256": "3ed9bf9bc9a51e3c191a488e0dd8033076b71f55c20d2ea3f491561e78b7388e",
+      "bytes": 3551745,
+      "dimensions": [
+        1672,
+        941
+      ]
+    },
+    {
+      "path": "concepts/world-overview.png",
+      "sha256": "aecec108c65c8986e8079aed49a1f364f2780c3caa5156553ba73f38dd8a9178",
+      "bytes": 3429324,
+      "dimensions": [
+        1774,
+        887
+      ]
+    },
+    {
+      "path": "registered-plan.png",
+      "sha256": "e62c9abe5b10e9cdfe7f64939340e307390a95a90457aae129d1691b51b4a73b",
+      "bytes": 848484,
+      "dimensions": [
+        2880,
+        1600
+      ]
+    }
+  ],
+  "reviewMethod": "Root agent inspected every generated concept directly in image-generation tool output and the registered-plan image with view_image. Re-inspected the plan after the final data/label revision. Copies retain identical bytes.",
+  "viewsInspected": [
+    "forest local scene",
+    "arrival beach local scene",
+    "ruins local scene",
+    "entire world overview",
+    "registered source plan before/after label and scarp-position revision"
+  ],
+  "criteria": {
+    "style": "Consistent crisp anime shape language, irregular foliage, readable upright rock/wall faces.",
+    "playSpace": "Visible connected clearings, broad routes and unobscured scale figure in sampled local concepts.",
+    "geography": "Overview retains broad city, river, pond and regional relationships. Coordinate plan, not painting pixels, controls placement.",
+    "camera": "40-degree target informed composition. Generated camera geometry and lens footprint are illustrative, not measured or engine-validated."
+  },
+  "faultsFoundAndResolved": [
+    "F2/M2 codes were hidden by regional title labels; moved titles and inspected final plan.",
+    "Initial F1 scarp sat too far behind parts of the existing forest trail; brought candidate bands closer before rerendering."
+  ],
+  "implementationNotes": [
+    "Ruins art shows decorative step-like paving; use a smooth heightfield ramp for the playable path.",
+    "Scale figure clothing and root-arch motifs do not relocate or redesign runtime characters/landmarks.",
+    "Master artwork softens the coastline and contains illustrative small rocks; source data and registered plan remain authoritative.",
+    "The full-world overview is intentionally near-overhead; local art targets the owner camera."
+  ],
+  "verification": {
+    "sourceDataLoaded": true,
+    "regions": 3,
+    "features": 13,
+    "emptyProposedFeatures": 0,
+    "planSamplingMetres": 2,
+    "jsonAndLocalLinksChecked": true,
+    "gameTestsRun": false,
+    "runtimeModified": false,
+    "runtimeOrDeviceVisualReview": false
+  },
+  "remainingLimits": [
+    "Raster concept artwork only; no new 3D modules installed.",
+    "No final navigation/collision/terrain route validation.",
+    "No measured camera projection, enemy telegraph occlusion test, device FPS or memory result."
+  ],
+  "decision": "ready-for-design-review; not-runtime-ready"
+}

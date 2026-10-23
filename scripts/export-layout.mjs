@@ -26,6 +26,7 @@ const out = {
   safeRoutes: data.world.safeRoutes || [],
   waypoints: world.waypoints,
   zones: world.zones.map((z) => ({ id: z.id, name: z.name, rects: z.rects, level: z.level, safe: !!z.safe })),
+  landscape: { revision:data.world.landscape?.revision, ...world.landscape },
   colliders: { circles: world.circles, boxes: world.boxes },
   decor: world.decor,
   spawns: game.spawnPoints.map((s) => ({ monster: s.monster, zone: s.zone, level: s.level, x: s.x, z: s.z, respawn: s.respawn, boss: !!s.boss })),

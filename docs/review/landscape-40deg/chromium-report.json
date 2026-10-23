@@ -1,0 +1,418 @@
+{
+  "browser": "chromium",
+  "base": "http://127.0.0.1:4310/",
+  "captures": [
+    {
+      "name": "beach-normal",
+      "region": "azure-harbor-v1",
+      "native": [
+        -125,
+        60
+      ],
+      "zoom": 1,
+      "position": [
+        -125,
+        60
+      ],
+      "camera": [
+        -124.99041301737425,
+        14.88136939798713,
+        77.84883552467218
+      ],
+      "calls": 185,
+      "triangles": 396313,
+      "geometries": 1938,
+      "textures": 62
+    },
+    {
+      "name": "beach-wide",
+      "region": "azure-harbor-v1",
+      "native": [
+        -125,
+        60
+      ],
+      "zoom": 1.45,
+      "position": [
+        -125,
+        60
+      ],
+      "camera": [
+        -125.00000014988466,
+        21.611859798868984,
+        85.88081151077468
+      ],
+      "calls": 231,
+      "triangles": 570541,
+      "geometries": 1939,
+      "textures": 65
+    },
+    {
+      "name": "forest-normal",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -295.0017681448893,
+        14.43525031399515,
+        -139.15116447532782
+      ],
+      "calls": 167,
+      "triangles": 641446,
+      "geometries": 1940,
+      "textures": 67
+    },
+    {
+      "name": "forest-wide",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1.45,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -294.998641373003,
+        21.160260433334496,
+        -131.11918848922534
+      ],
+      "calls": 196,
+      "triangles": 758660,
+      "geometries": 1941,
+      "textures": 72
+    },
+    {
+      "name": "ruins-normal",
+      "region": "frontier-wilds-v1",
+      "native": [
+        -194,
+        -5
+      ],
+      "zoom": 1,
+      "position": [
+        -578,
+        -98
+      ],
+      "camera": [
+        -577.9945691947298,
+        18.18549827325151,
+        -80.15116447532782
+      ],
+      "calls": 240,
+      "triangles": 1745321,
+      "geometries": 1944,
+      "textures": 84
+    },
+    {
+      "name": "ruins-wide",
+      "region": "frontier-wilds-v1",
+      "native": [
+        -194,
+        -5
+      ],
+      "zoom": 1.45,
+      "position": [
+        -578,
+        -98
+      ],
+      "camera": [
+        -578.003473418254,
+        24.9091008203966,
+        -72.11918848922532
+      ],
+      "calls": 273,
+      "triangles": 2141017,
+      "geometries": 1944,
+      "textures": 85
+    },
+    {
+      "name": "highlands-normal",
+      "region": "frontier-wilds-v1",
+      "native": [
+        -145,
+        -95
+      ],
+      "zoom": 1,
+      "position": [
+        -529,
+        -188
+      ],
+      "camera": [
+        -528.9941688674552,
+        18.01473388121493,
+        -170.15116447532782
+      ],
+      "calls": 210,
+      "triangles": 1185487,
+      "geometries": 1945,
+      "textures": 94
+    },
+    {
+      "name": "wetland-normal",
+      "region": "frontier-wilds-v1",
+      "native": [
+        -92,
+        3
+      ],
+      "zoom": 1,
+      "position": [
+        -476,
+        -90
+      ],
+      "camera": [
+        -475.9970873552131,
+        14.901485885875815,
+        -72.15116447532782
+      ],
+      "calls": 182,
+      "triangles": 691883,
+      "geometries": 1946,
+      "textures": 90
+    },
+    {
+      "name": "moonroot-normal",
+      "region": "moonroot-grove-v1",
+      "native": [
+        -13,
+        -29
+      ],
+      "zoom": 1,
+      "position": [
+        12,
+        -207.5
+      ],
+      "camera": [
+        11.99848943041098,
+        14.977630735476593,
+        -189.65116447532782
+      ],
+      "calls": 194,
+      "triangles": 1437818,
+      "geometries": 1947,
+      "textures": 95
+    },
+    {
+      "name": "fern-normal",
+      "region": "moonroot-grove-v1",
+      "native": [
+        110,
+        -28
+      ],
+      "zoom": 1,
+      "position": [
+        135,
+        -206.5
+      ],
+      "camera": [
+        134.9912955931115,
+        14.737728798653317,
+        -188.65116447532782
+      ],
+      "calls": 211,
+      "triangles": 1333944,
+      "geometries": 1948,
+      "textures": 109
+    },
+    {
+      "name": "headland-normal",
+      "region": "azure-harbor-v1",
+      "native": [
+        177,
+        -65
+      ],
+      "zoom": 1,
+      "position": [
+        177,
+        -65
+      ],
+      "camera": [
+        176.99191756778185,
+        15.007069605249335,
+        -47.15116447532781
+      ],
+      "calls": 163,
+      "triangles": 615759,
+      "geometries": 1949,
+      "textures": 96
+    },
+    {
+      "name": "forest-rear-visibility",
+      "region": "frontier-wilds-v1",
+      "native": [
+        100,
+        -84
+      ],
+      "zoom": 1,
+      "position": [
+        -284,
+        -177
+      ],
+      "camera": [
+        -284.0115951508731,
+        15.114465560509437,
+        -159.15116447532782
+      ],
+      "calls": 195,
+      "triangles": 759281,
+      "geometries": 1949,
+      "textures": 102
+    },
+    {
+      "name": "forest-touch-start",
+      "region": "frontier-wilds-v1",
+      "native": [
+        80,
+        -70.4
+      ],
+      "zoom": 1,
+      "position": [
+        -304,
+        -163.4
+      ],
+      "camera": [
+        -303.9969494582033,
+        14.723329892987973,
+        -145.55116447532782
+      ],
+      "calls": 171,
+      "triangles": 597478,
+      "geometries": 1949,
+      "textures": 102
+    },
+    {
+      "name": "phone-forest",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -295.0020200303411,
+        14.420464179801893,
+        -139.15116447532782
+      ],
+      "calls": 191,
+      "triangles": 701538,
+      "geometries": 1949,
+      "textures": 103
+    },
+    {
+      "name": "portrait-forest",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -294.99899581530525,
+        14.422648240585913,
+        -139.15116447532782
+      ],
+      "calls": 214,
+      "triangles": 798392,
+      "geometries": 1950,
+      "textures": 108
+    },
+    {
+      "name": "desktop-forest",
+      "region": "frontier-wilds-v1",
+      "native": [
+        89,
+        -65
+      ],
+      "zoom": 1,
+      "position": [
+        -295,
+        -157
+      ],
+      "camera": [
+        -294.99682232664253,
+        14.428453294999791,
+        -139.15116447532782
+      ],
+      "calls": 170,
+      "triangles": 656802,
+      "geometries": 1950,
+      "textures": 108
+    }
+  ],
+  "errors": [],
+  "physicalDeviceFPS": "not measured; software GL",
+  "startup": {
+    "elapsedMs": 24665,
+    "modelsReady": true,
+    "worldPrepared": true,
+    "dependencies": {
+      "models": {
+        "state": "ready",
+        "startedMs": 1929.0999999998603,
+        "elapsedMs": 4520.5
+      },
+      "world": {
+        "state": "ready",
+        "startedMs": 1929.0999999998603,
+        "elapsedMs": 21249.5
+      },
+      "contact": {
+        "state": "ready",
+        "startedMs": 1929.0999999998603,
+        "elapsedMs": 3874.5
+      },
+      "frost": {
+        "state": "ready",
+        "startedMs": 1929.0999999998603,
+        "elapsedMs": 3874.9000000001397
+      },
+      "approvedClips": {
+        "state": "ready",
+        "startedMs": 1929.0999999998603,
+        "elapsedMs": 4008.600000000093
+      }
+    },
+    "jobs": [],
+    "regions": [
+      {
+        "id": "azure-harbor-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "error": ""
+      },
+      {
+        "id": "frontier-wilds-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "error": ""
+      },
+      {
+        "id": "moonroot-grove-v1",
+        "imported": "imported-ready",
+        "grassReady": true,
+        "error": ""
+      }
+    ]
+  },
+  "touch": {
+    "distance": 0.5145441000000801,
+    "released": true
+  },
+  "status": "passed"
+}

@@ -87,7 +87,7 @@ High-quality performance keeps the authored graphics settings. Grass uses a
 conservative whole-chunk wind envelope before the existing clump tests, retaining
 all visible instances and baked colours. Pooled particles upload only their live
 prefix (no uploads when empty), including all spawn/swap changes before a draw.
-Camera and cloth use reusable scratch vectors with unchanged animation math.
+Camera and cloth use reusable scratch vectors with unchanged animation math. The game camera is a perspective camera (FOV 36 landscape / 52 portrait) 23.3 m from the hero, tilted 40 degrees above the horizon, looking at the hero's chest; in Godot a `Camera3D` with the same offset `(0, 23.3·sin 40°, 23.3·cos 40°)`.
 Godot equivalents: conservative MultiMesh chunk rejection, live-prefix buffer
 updates and reusable simulation state; do not substitute reduced visual density.
 
@@ -1149,3 +1149,12 @@ explicit owned-resource disposal on cancel/leave/disconnect. Remote effects are
 capped at 24 with short lifetime; remote visibility is limited to 58 scene metres.
 See `MULTIPLAYER-PRESENCE.md` for protocol, commands and parent-owned free hosting.
 Authentication, shared combat and authoritative saves remain future milestones.
+
+
+### Authored landscape bands (40-degree camera)
+
+`data/world.json` and `data/maps/*.json` contain `landscape` bands in native XZ metres. `core/landscape.js` compiles their shared placement mask after the original terrain grading. Roads (including the original country roads when city terrain roads are substituted), water, city floors, services, landmarks, open courts and the complete 24 m seam band are excluded. `buildHeightfield(worldData, zoneAt, landscapeData)` accepts the original data separately for that city-road case. Broad caps, steep shoulders and tapered ends modify the real heightfield; `landscapeDelta` records the local change. Existing uphill slope collision and downhill rules still apply.
+
+The original seeded scatter samples the unmodified slope basis, released after placement, so unrelated planting does not move. A separate seeded dressing pass removes natural scatter only within the bands and authors cap trees, rock circles and broken-wall boxes before the collision grid is built. `world.landscape` contains `features`, `trees`, `roots`, `rocks`, `walls`; the standard layout export includes those records and the landscape revision, while the heightmap export already contains the resulting terrain. Do not run the height pass again on an exported heightmap. No character/save shape or layout reset is introduced; the existing free-spot recovery handles a saved position inside a new obstacle.
+
+`render/landscape.js` prepares all geometry at initial load: cliffs use the existing continuous heightfield and native slope paint; outcrop meshes fit inside their collider circles and are buried at the lowest ground around their footprint, masonry follows its boxes, and short tapered roots follow the ground. Opaque toon materials use analytical stone paint, not a new global palette. Geometry is merged by 24 m cells and owned by the region's normal disposal path. No in-play generation or texture streaming is added. The `aLandscape` unit attribute marks only raised terrain for the same hero dither as the foreground dressing; both use `applySeeThrough`. There is one ground surface, without a second cliff skin. Godot should use one matching visibility mask on the raised ground and its dressing. `data/landscape-art.json` holds kit proportions/colours.

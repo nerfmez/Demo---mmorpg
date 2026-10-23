@@ -12,7 +12,7 @@ import STAFF_CAST from '../../data/staff-cast.json';
 import HOLDS from '../../data/weapon-holds.json';
 import MODELS from '../../data/models.json';
 import { ACTIONS, pickAction, LEAP } from './actions.js';
-import { reachArm } from './ik.js';
+import { reachArm, PALM } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
 import { buildHeadwear } from './headwear.js';
@@ -534,8 +534,15 @@ export class HumanoidAnimator {
     if (support?.on) {
       this.rig.root.updateMatrixWorld(true);
       support.axis.set(0, 0, 1).applyQuaternion(b.weapon.getWorldQuaternion(AIM_Q));
-      this.rig.syncSkin(); // turns the left hand along the haft and measures its fist
-      reachArm(b, 'L', b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)).sub(support.offset), gripW);
+      // reachArm puts the driver palm (PALM below the wrist) on its target, so aim it where the palm
+      // must be for the fist to land on the haft; the fist turns with the arm, so measure and reach
+      // again until it settles
+      for (let k = 0; k < SUPPORT_PASSES; k++) {
+        this.rig.syncSkin(); // turns the left hand along the haft and measures its fist from the wrist
+        b.handL.localToWorld(SUPPORT_PALM.copy(PALM)).sub(b.handL.getWorldPosition(IK_P));
+        b.weapon.localToWorld(IK_T.set(0, 0, hold?.grip ?? -0.11)).sub(support.offset).add(SUPPORT_PALM);
+        reachArm(b, 'L', IK_T, gripW);
+      }
       this.rig.syncSkin();
     }
     if (staffSupport && this.rig.hairsample) {
@@ -617,6 +624,8 @@ export class HumanoidAnimator {
 
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex']);
 const IK_T = new THREE.Vector3();
+const SUPPORT_PASSES = 3;
+const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();
 /**
  * A character-space hand target authored for the 1.75 m body, moved onto a body of other
  * proportions (`map`: rig.ikMap): heights keep their offset from the hips, and offsets from the

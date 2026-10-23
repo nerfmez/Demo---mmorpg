@@ -11,7 +11,7 @@ const q = new THREE.Quaternion();
 const qa = new THREE.Quaternion();
 const qp = new THREE.Quaternion();
 const qFK = new THREE.Quaternion();
-const PALM = new THREE.Vector3(0, -0.07, 0);
+export const PALM = new THREE.Vector3(0, -0.07, 0);
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 
 /** Move one arm (side 'L' or 'R') so its palm reaches `target` (world space), weight w. */

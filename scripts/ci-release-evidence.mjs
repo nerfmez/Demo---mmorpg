@@ -264,8 +264,9 @@ export function verifyReleaseBuild({ directory, source, target, tree = '', evide
   return provenance;
 }
 
-export const extractBuildArchive = (archive, destination) => execFileSync('python3', ['-c',
-      'import pathlib,stat,sys,zipfile\nroot=pathlib.Path(sys.argv[2]).resolve()\nwith zipfile.ZipFile(sys.argv[1]) as z:\n entries=z.infolist()\n assert len(entries)<=5000 and sum(e.file_size for e in entries)<=500*1024*1024, "Oversized build archive"\n for e in entries:\n  p=(root/e.filename).resolve()\n  assert p.is_relative_to(root) and not stat.S_ISLNK(e.external_attr>>16), "Unsafe archive entry"\n z.extractall(root)', archive, destination]);
+// maxBytes: a build archive holds one dist (~300 MB); a retained Pages archive wraps the whole site's tar.
+export const extractBuildArchive = (archive, destination, maxBytes = 500 * 1024 * 1024) => execFileSync('python3', ['-c',
+      'import pathlib,stat,sys,zipfile\nroot=pathlib.Path(sys.argv[2]).resolve()\nwith zipfile.ZipFile(sys.argv[1]) as z:\n entries=z.infolist()\n assert len(entries)<=5000 and sum(e.file_size for e in entries)<=int(sys.argv[3]), "Oversized build archive"\n for e in entries:\n  p=(root/e.filename).resolve()\n  assert p.is_relative_to(root) and not stat.S_ISLNK(e.external_attr>>16), "Unsafe archive entry"\n z.extractall(root)', archive, destination, String(maxBytes)]);
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv[2] === '--write-context') {

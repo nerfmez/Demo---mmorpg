@@ -158,3 +158,17 @@ test('Flame Wave Slash: the carrier mods ride on the wave', () => {
   const wide = run([{ id: 'wide_arc', level: 3 }]);
   assert.ok(wide.waveHits.length > run([]).waveHits.length, 'Wide Arc widens the wave');
 });
+
+test('Venom Mire trial on the bench: a poison shot whose hit poisons the target; the game keeps its zone', () => {
+  assert.equal(data.skills.combat.venom_mire.kind, 'dot_zone', 'the game data is untouched');
+  const mods = benchMods(data, 'venom_mire');
+  assert.ok(mods.includes('pierce') && !mods.includes('following_field'), 'projectile mods, not field mods');
+  const r = run('venom_mire', [], undefined, 5);
+  assert.equal(r.of('area').length, 0, 'no pool');
+  const direct = r.of('hit').filter((e) => !e.dot), ticks = r.of('hit').filter((e) => e.dot);
+  assert.equal(direct.length, 1);
+  assert.ok(ticks.length >= 10 && ticks.every((e) => e.element === 'poison' && e.id === direct[0].id), 'the struck dummy is poisoned');
+  const poison = ticks.reduce((t, e) => t + e.amount, 0);
+  assert.ok(poison > direct[0].amount, 'most of the damage comes from the poison');
+  assert.equal(r.of('impact')[0].kind, 'venom_mire');
+});

@@ -1,7 +1,7 @@
 # Skill FX bench
 
 `fx-test.html` (published at `<site>/fx-test.html`) is a separate test page for the
-Chain Spark, Frost Nova and Flame Stream effect prototypes (`docs/review/fx-prototypes`
+Chain Spark, Frost Nova, Flame Stream and Venom Shot effect prototypes (`docs/review/fx-prototypes`
 on `claude/fx-prototypes`), a new Slash look, Firebolt (the game's own renderer) and the
 prototype skill fusion. It is not the Skill Lab and not part of the game.
 
@@ -87,3 +87,21 @@ the charge reads as one ball growing as the fire gathers. Fire hits use a round 
 ragged flash and a fire puff that swells and burns away) instead of the game's one-sided
 contact splash, so nothing flies off in one direction. Porting them means moving them into `src/render/` with
 numbers in `data/combat-fx.json`.
+
+## Venom Shot (rule trial of Venom Mire)
+
+The owner did not want a poison pool, so the bench shows Venom Mire as a poison shot
+(`VENOM_SHOT` / `benchData()` in `src/fxtest/sandbox.js`; the game data keeps its zone until this
+is approved). It is a spell projectile (12 m, 11 m/s, cooldown 1.6 s) whose hit poisons the
+target for 4 s through the same on-hit path as Poison Shift (`poisonFraction` 0.6, so most of
+the damage is the poison). Projectile mods (Split, Pierce, Bounce, Returning Shot...) fit it;
+field mods no longer do.
+
+`src/fxtest/venom-fx.js`: a lime toon droplet in a dark violet outline, stretched along its
+flight and wobbling, with drips falling behind; on impact a cel seven-point splat with a violet
+outline bursts on the target and throws droplets; a poisoned dummy is tinted green and breathes
+out small violet bubbles while its poison lasts. The Cartoon FX gallery host was blocked for this
+pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFERENCE.md`.
+
+Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
+flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

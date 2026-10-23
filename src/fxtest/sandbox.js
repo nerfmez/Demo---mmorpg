@@ -6,11 +6,30 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
 export const SINGLE_STRIKE = new Set(['slash']);
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'staff' };
+
+// Bench-only rule trial (owner: "a poison shot, not a pool"): Venom Mire is shown as a spell
+// projectile whose hit poisons the target over time. The game keeps its zone until this is
+// approved and moved into data/skills.json with a core rule and test.
+export const VENOM_SHOT = {
+  nameTh: 'ยิงพิษ', name: 'Venom Shot',
+  desc: 'ยิงก้อนพิษไปข้างหน้า โดนแล้วติดพิษที่ตัวศัตรู 4 วิ (ดาเมจส่วนใหญ่มาจากพิษ)',
+  tags: ['Spell', 'Projectile', 'Poison', 'Damage'], kind: 'projectile', power: 'spell',
+  damage: { base: 5, scale: 0.5 }, range: 12, speed: 11, projectileRadius: 0.32,
+  cooldown: 1.6, castTime: 0.3, cost: 10, element: 'poison',
+  poison: { fraction: 0.6, duration: 4 },
+};
+// The bench's copy of the game data with its rule trials applied (the game's data is untouched).
+export function benchData(data) {
+  const combat = { ...data.skills.combat };
+  const { radius, duration, tick, slow, ...rest } = combat.venom_mire;
+  combat.venom_mire = { ...rest, ...VENOM_SHOT };
+  return { ...data, skills: { ...data.skills, combat } };
+}
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
@@ -21,11 +40,13 @@ export const LAYOUTS = {
   chain_spark: [[3.6, 0.3], [6.2, -1.7], [8.6, 0.8], [6.3, 2.7], [10.6, -1.4], [11.6, 2.2]],
   frost_nova: [[2.0, 0.6], [-1.2, 2.2], [0.4, -3.2], [-3.0, -1.6], [3.7, 1.9], [5.4, -1.0]],
   flame_stream: [[2.0, 0.2], [3.3, -1.0], [4.4, 1.0], [3.0, 2.6], [6.2, 0]],
+  // a target in line, others off to the sides and behind for Split / Pierce / Bounce
+  venom_mire: [[5.0, 0.0], [8.5, -1.2], [7.2, 2.0], [11.0, 0.6], [3.8, -2.6]],
 };
 
 // Mods this skill can actually use on the bench. Triggers that need a guard skill are left out.
 export function benchMods(data, skill, selected = []) {
-  const def = data.skills.combat[skill];
+  const def = benchData(data).skills.combat[skill];
   return Object.keys(data.mods.mods).filter((key) => {
     const mod = modDef(data, key);
     if (mod.effect?.trigger && mod.effect.trigger !== 'on_movement') return false;
@@ -33,7 +54,8 @@ export function benchMods(data, skill, selected = []) {
   });
 }
 
-export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null } = {}) {
+export function createBench(baseData, skill, mods = [], { seed = 71, fusion = null, fusionRules = null } = {}) {
+  const data = benchData(baseData);
   const ch = createCharacter(data, { kit: 'bow' });
   ch.stats = { STR: 50, AGI: 50, VIT: 50, INT: 50, DEX: 50 };
   ch.skills[skill] = 1;
@@ -84,6 +106,11 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     const cast = g.castSlot;
     g.castSlot = function (...args) { this.player.lastSwingT = -1e9; return cast.apply(this, args); }; // combo step stays 0
   }
+  // the trial's built-in poison rides the same on-hit path Poison Shift uses
+  const poisonTrial = () => { for (const s of g.skills) if (s && data.skills.combat[s.id]?.poison) { const pz = data.skills.combat[s.id].poison; s.modEffects = { ...s.modEffects, poisonFraction: pz.fraction, poisonDuration: pz.duration }; } };
+  const refresh = g.refresh;
+  g.refresh = function (...args) { const r = refresh.apply(this, args); poisonTrial(); return r; };
+  poisonTrial();
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);
   g.aimAt(Math.PI / 2);
   return g;

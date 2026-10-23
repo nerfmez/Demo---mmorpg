@@ -1,9 +1,9 @@
 // Skill FX test bench (fx-test.html): Slash (new look), Firebolt (the game's renderer), Chain Spark,
-// Frost Nova and Flame Stream prototype effects driven by the real combat rules, with real skill mods
+// Frost Nova, Flame Stream and Venom Shot (a rule trial of Venom Mire) prototype effects driven by the real combat rules, with real skill mods
 // and the prototype skill fusion (data/fusion.json). Separate from the game and the Skill Lab;
 // nothing is saved. Tap the floor to aim, hold the cast button to channel Flame Stream.
 import * as THREE from 'three';
-import { data } from '../data.js';
+import { data as gameData } from '../data.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
 import { loadModels } from '../render/models.js';
 import MODELS from '../../data/models.json';
@@ -11,7 +11,7 @@ import STAFF_CAST from '../../data/staff-cast.json';
 import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
-import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
+import { createBench, benchMods, benchData, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
 import { fusionPayloads, fusionRecipe } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
 import { SlashFx } from './slash-fx.js';
@@ -21,6 +21,10 @@ import { ChainFx } from './chain-fx.js';
 import { FrostFx } from './frost-fx.js';
 import { FlameFx, OCCLUDER_LAYER } from './flame-fx.js';
 import { ModFx } from './mod-fx.js';
+import { VenomFx } from './venom-fx.js';
+
+// the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
+const data = benchData(gameData);
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -35,7 +39,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -79,7 +83,7 @@ const dummyGeo = {
   band: new THREE.CylinderGeometry(0.315, 0.335, 0.12, 14), head: new THREE.SphereGeometry(0.24, 14, 10), arm: new THREE.CylinderGeometry(0.06, 0.06, 1.1, 8),
 };
 const outlineMat = (c) => new THREE.MeshBasicMaterial({ color: c, side: THREE.BackSide });
-const ICY = new THREE.Color('#bfe6ff'), CHAR = new THREE.Color('#5a3a2a');
+const ICY = new THREE.Color('#bfe6ff'), CHAR = new THREE.Color('#5a3a2a'), TOXIC = new THREE.Color('#a5d870');
 function makeDummy() {
   const g = new THREE.Group(), mats = [];
   const part = (geo, color, line, y, s = 1.06, extra) => {
@@ -129,6 +133,7 @@ const chainFx = new ChainFx(scene, camera);
 const frostFx = new FrostFx(scene, camera);
 const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
+const venomFx = new VenomFx(scene, camera);
 const slashFx = new SlashFx(scene, camera);
 const fireX = new FireExtras(scene, camera);
 const flameSlash = new FlameSlashFx(scene, camera);
@@ -180,7 +185,7 @@ const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -279,6 +284,7 @@ function drain() {
       case 'impact': {
         // fire hits use the bench's round burst instead of the game's one-sided splash
         if (e.kind === skillDef().recipe?.id && e.element === 'cold') frostFx.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); // only sparks (ice chips) on a hit
+        else if (e.kind === 'venom_mire') venomFx.impact(e);
         else if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
         break;
       }
@@ -498,8 +504,9 @@ function tick(real, draw = true) {
     d.center.set(d.x, 1.1, d.z);
     d.pop = Math.max(0, d.pop - dt / 0.12); d.shake = Math.max(0, d.shake - dt);
     const chill = m.statuses.chill ? Math.min(1, m.statuses.chill.slow / 0.55) : 0;
-    const burn = m.statuses.burn ? 1 : 0;
-    d.mats.forEach((mat, k) => { mat.color.copy(d.orig[k]).lerp(ICY, 0.6 * chill).lerp(CHAR, 0.4 * burn); mat.emissive.copy(d.popColor).multiplyScalar(0.8 * d.pop).add(tint.setRGB(0.08 * chill, 0.16 * chill, 0.25 * chill)); });
+    const burn = m.statuses.burn ? 1 : 0, toxic = m.statuses.poison ? 1 : 0;
+    if (toxic) venomFx.poisoned(d.x, d.z, dt);
+    d.mats.forEach((mat, k) => { mat.color.copy(d.orig[k]).lerp(ICY, 0.6 * chill).lerp(CHAR, 0.4 * burn).lerp(TOXIC, 0.3 * toxic); mat.emissive.copy(d.popColor).multiplyScalar(0.8 * d.pop).add(tint.setRGB(0.08 * chill + 0.03 * toxic, 0.16 * chill + 0.08 * toxic, 0.25 * chill)); });
     const sh = d.shake > 0 ? Math.sin(d.shake * 90) * 0.05 * (d.shake / 0.3) : 0;
     d.g.position.set(d.x + sh, 0, d.z);
     d.g.rotation.z = sh * 1.2;
@@ -514,6 +521,8 @@ function tick(real, draw = true) {
   flameFx.update(dt, mouth, p.x, p.z, p.facing);
   modFx.syncAreas(game.areas);
   modFx.update(dt);
+  venomFx.syncProjectiles(game.projectiles, 'venom_mire', dt);
+  venomFx.update(dt);
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
   const recipeKind = skillDef().recipe?.id;
@@ -522,7 +531,8 @@ function tick(real, draw = true) {
   bladePoints();
   flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
-  vfx.syncProjectiles(recipeKind ? { projectiles: game.projectiles.filter((pr) => pr.kind !== recipeKind) } : game, dt, simTime);
+  const ownKind = recipeKind || (state.skill === 'venom_mire' ? 'venom_mire' : null); // drawn by the bench's own effect
+  vfx.syncProjectiles(ownKind ? { projectiles: game.projectiles.filter((pr) => pr.kind !== ownKind) } : game, dt, simTime);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;
   castBtn.classList.toggle('cooling', cd > 0.02);

@@ -24,3 +24,6 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
   fits it per axis (`chibi-body.js`; fit chosen by counting scalp pixels left visible from 24 views).
   Earlier tries (hair image alone, an AI-drawn normal-proportion head, a textured meshy-t2 run) gave a
   flat card, a stretched fit or a front fringe that did not match the sheet.
+- Hair back (`public/models/hero_chibi_hair_back.glb`, 3,014 tris): the textured meshy-t2 run, whose
+  spiky back the owner preferred; the game draws only its back part (`keep`) and only the front part
+  of `hero_chibi_hair`, so the swept fringe and the spiky back are joined on the head.

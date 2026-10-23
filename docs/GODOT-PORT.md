@@ -418,7 +418,8 @@ for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, scale the hand
 attachments, add the same fists as blend shapes (or finger bones) and apply the same hand turn
 and seat after the retarget.
-Its hair is a separate Meshy model (`characters.hero_chibi_hair`, `scripts/prep-chibi-hair.py`)
+Its hair is two Meshy models (`characters.hero_chibi_hair` for the fringe and
+`hero_chibi_hair_back` for the back, each drawing only its `keep` part; `scripts/prep-chibi-hair.py`)
 parented to the head bone and fitted per axis to the head's bind bounds (`fit`); in Godot attach it
 to the head bone with the same scale and offset, in its flat `color`. It is a preview body only: the art rules keep the shipped hero at normal proportions.
 The default player now uses the approved HairSample VRM0 master derivative

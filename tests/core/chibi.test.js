@@ -22,14 +22,21 @@ test('the opt-in chibi hero is one textured skinned mesh the driver rig can driv
   assert.equal(tris, m.tris);
 });
 
-test('the chibi hair is one textured mesh within the character budget', () => {
-  const m = data.models.characters.hero_chibi_hair;
-  assert.ok(m?.chibiHair, 'hero_chibi_hair is registered');
-  const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
-  const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
-  assert.equal(j.meshes.length, 1);
-  assert.ok(m.color || j.images?.length === 1, 'a flat colour or its own painted texture');
-  const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
-  assert.equal(tris, m.tris);
-  for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side']) assert.ok(Number.isFinite(m.fit[k]), 'fit.' + k);
+test('the chibi hair models are single meshes within the character budget', () => {
+  const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiHair);
+  assert.deepEqual(entries.map(([id]) => id).sort(), ['hero_chibi_hair', 'hero_chibi_hair_back']);
+  let drawn = 0;
+  for (const [id, m] of entries) {
+    const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
+    const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
+    assert.equal(j.meshes.length, 1, id);
+    assert.ok(m.color || j.images?.length === 1, id + ' a flat colour or its own painted texture');
+    const tris = j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0);
+    assert.equal(tris, m.tris, id);
+    for (const k of ['width', 'depth', 'height', 'lift', 'back', 'side']) assert.ok(Number.isFinite(m.fit[k]), id + ' fit.' + k);
+    if (m.keep) assert.ok(['front', 'back'].includes(m.keep[0]) && m.keep[1] > 0 && m.keep[1] < 1, id + ' keep');
+    drawn += tris;
+  }
+  // the two halves together stay well inside the 8,000-tri character budget
+  assert.ok(drawn + data.models.characters.hero_chibi.tris < 12000);
 });

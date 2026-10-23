@@ -243,14 +243,31 @@ export function prepareChibiHair(gltf, cfg) {
   });
   if (!mesh) throw new Error('chibi hair: no mesh');
   gltf.scene.updateMatrixWorld(true);
-  const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
-  smoothNormals(geometry);
+  let geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
   geometry.computeBoundingBox();
+  const box = geometry.boundingBox.clone();
+  // `keep: [side, at]`: only the front or back part of this hair, split across its depth at `at`
+  // (0 back, 1 front), so two hair models can be joined (one's fringe with the other's back)
+  if (cfg.keep) geometry = keepPart(geometry, box, cfg.keep);
+  smoothNormals(geometry);
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   // `color`: one flat colour instead of the generated texture (the hair is painted one tone)
   const material = cfg.color ? { color: new THREE.Color(cfg.color), map: null, side: THREE.DoubleSide } : mesh.material;
-  return { geometry, material, box: geometry.boundingBox.clone(), fit: cfg.fit || {} };
+  return { geometry, material, box, fit: cfg.fit || {} };
+}
+
+function keepPart(geometry, box, [side, at]) {
+  const src = geometry.index ? geometry.toNonIndexed() : geometry;
+  const p = src.attributes.position, keep = [];
+  const z0 = box.min.z, dz = box.max.z - box.min.z || 1;
+  for (let t = 0; t < p.count; t += 3) {
+    const z = ((p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3 - z0) / dz;
+    if (side === 'front' ? z >= at : z <= at) for (let k = 0; k < 3; k++) keep.push(p.getX(t + k), p.getY(t + k), p.getZ(t + k));
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
+  return g;
 }
 
 /**
@@ -280,7 +297,7 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
   const hull = new THREE.Mesh(H.geometry, hairHull(H.material, outline / s, darkness));
   g.add(hair, hull);
   headBone.add(g);
-  rig.skin.hair = g;
+  (rig.skin.hair ||= []).push(g);
 }
 
 function hairHull(src, width, darkness) {

@@ -9,7 +9,7 @@ the built `index.html` in a browser. Each page has a wipe slider to compare with
 | Beach (`arrival-beach-40deg`) | **Approved by the owner** ("the opening scene is OK"). Published: https://claude.ai/artifact/7Eth678okKYw3UenAP4CGq | `python3 tools/buildbeach.py` writes `beach/index.html` |
 | Forest trail (`forest-trail-40deg`) | **Approved by the owner**. `forest/latest-vs-concept.png` is the last capture (concept on top) | `python3 forest/assemble.py && python3 forest/buildpage.py` writes `forest/index.html` |
 | Ruins approach (`ruins-approach-40deg`) | **Rebuilt 23 October; owner review pending.** [Rebuild and inspection record](ruins/REVIEW.md) | `python3 ruins/assemble.py && python3 ruins/buildpage.py` writes `ruins/index.html` |
-| Singing Conch Coast (`shell-beach/`) | **New standalone draft, 23 October; owner review pending.** Uses the approved opening beach water. [Build and review record](shell-beach/README.md) | `python3 shell-beach/prepare.py && python3 shell-beach/assemble.py` |
+| Singing Conch Coast (`shell-beach/`) | **ผ่านเบื้องต้น — preliminary owner approval, 23 October, public version 6.** Retain as the baseline; uses the approved opening beach water. [Build and review record](shell-beach/README.md) | `python3 shell-beach/prepare.py && python3 shell-beach/assemble.py` |
 | Chibi hero model (Blender, `chibi/`) | **Paused** by the owner (quality not good enough; Meshy or bought/commissioned models suggested) | needs Blender bpy: `python chibi/build.py chibi/face.png chibi.glb` |
 
 ## How the forest page is made
@@ -81,6 +81,7 @@ Done:
    round.
 
 ## Status (owner's verdict)
+- Singing Conch Coast (`shell-beach/`): **ผ่านเบื้องต้น**, 23 October 2026, public version 6. Keep the revised conch, curved path and expanded space as the accepted baseline.
 - Beach (`beach/`): approved. Forest (`forest/`): approved ("ผ่าน").
 - Ruins (`ruins/`): rebuilt again on 23 October to the approved beach/forest standard,
   with fitted arch wedges, bonded masonry, fractured ridge shelves and flush worn

@@ -1,6 +1,6 @@
 # Shell Beach revision review — 23 October 2026
 
-**Decision: revised owner-review draft.** The owner requested closer conch-reference matching, a better path and more physical space. Runtime WebGL lighting, shadows, waves and touch playback remain unverified in this environment; this is not approval for game integration or merge.
+**Owner decision: ผ่านเบื้องต้น (preliminary approval), 23 October 2026.** The owner accepted the published version 6 after the reference-led conch, curved path and expanded space revision, saying: “โอเคเก็บไว้โน้ตไว้ว่าผ่านเบื้องต้น”. Preserve this version as the accepted baseline for subsequent scene work. This records the owner’s visual decision; the technical verification limits below remain unchanged. Game integration or merge was not requested.
 
 ## Artifact and reference
 
@@ -26,4 +26,6 @@ Built `shell-beach/index.html`, SHA-256 `72a7442f9706a2ee179695db54ccee92e3119ec
 
 Cloud browser WebGL creation had failed; the software fallback approximates paint/material shading, omits the real ground bake and shadows, and does not play waves or skin the hero. Palm inspection uses the actual pre-cut leaf texture because the local canvas backend exported its destination-out texture blank; browser production texture code is unchanged. These views establish geometry/composition evidence only, not WebGL screenshots, final lighting, animation quality or physical-device performance.
 
-The final conch material, irregular rim/whorl appearance, path/stone-bank lighting and the enlarged area's feel still need owner comparison in the published WebGL page. A successful build or route check does not establish visual approval.
+The owner has now given preliminary approval to the published WebGL page. Retain the conch, curved route, 30% wider/deeper world and opening-beach water as this accepted baseline. Further polish can build on it; do not replace it or mark it as fully approved for game integration based on this preliminary decision.
+
+Accepted artifact: [public Site version 6](https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site/shell-beach/?v=6), scene source `9a90ef9ff4a482bcbec97d32e8de4ceb367bc005`, Site source `9bcfba7ceab74e484c453185f9fa66ce8400445d`.

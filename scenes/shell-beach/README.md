@@ -1,4 +1,4 @@
-# Singing Conch Coast — standalone draft
+# Singing Conch Coast — preliminary owner approval
 
 Retains the finished ruins scene and starts the next owner-requested area: a giant hollow conch on a broad sandy bay. This scene stays outside the game. The approved beach and forest sources remain unchanged.
 
@@ -31,4 +31,4 @@ The world scale is now 3.12 (previously 2.4), with camera distance 93.6. Width a
 
 ## Review state
 
-See [REVIEW.md](REVIEW.md). This is an owner-review draft, not approved for game integration or merge. Tap the 3D sand to walk; the wipe slider compares against the concept.
+**ผ่านเบื้องต้น — accepted by the owner on 23 October 2026.** Preserve [published version 6](https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site/shell-beach/?v=6) as the baseline for further work: reference-led conch, continuous curved path, 30% wider/deeper space and the opening beach water. See [REVIEW.md](REVIEW.md) for the exact artifact and remaining verification limits. Game integration or merge was not requested. Tap the 3D sand to walk; the wipe slider compares against the concept.

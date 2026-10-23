@@ -183,3 +183,11 @@ test('Venom Arrow trial on the bench: a fast bow attack; each hit stacks the sam
   assert.equal(r0(), 0);
   function r0() { return run('venom_mire', [], undefined, 1).of('area').length; } // no pool
 });
+
+test('Arrow Rain on the bench: one area event per wave, each with its own delay, and a burst as each lands', () => {
+  const r = run('arrow_rain', [], undefined, 2);
+  const areas = r.of('area').filter((e) => e.kind === 'arrow_rain');
+  assert.deepEqual(areas.map((e) => +e.delay.toFixed(2)), [0.45, 0.85, 1.25], 'the effect times each wave from these');
+  assert.equal(r.of('burst').filter((e) => e.kind === 'arrow_rain').length, 3);
+  assert.ok(benchMods(data, 'arrow_rain').includes('echo'));
+});

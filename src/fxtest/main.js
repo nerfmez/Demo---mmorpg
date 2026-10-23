@@ -22,6 +22,7 @@ import { FrostFx } from './frost-fx.js';
 import { FlameFx, OCCLUDER_LAYER } from './flame-fx.js';
 import { ModFx } from './mod-fx.js';
 import { VenomFx } from './venom-fx.js';
+import { RainFx } from './rain-fx.js';
 
 // the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
 const data = benchData(gameData);
@@ -39,7 +40,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -134,6 +135,7 @@ const frostFx = new FrostFx(scene, camera);
 const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
 const venomFx = new VenomFx(scene, camera);
+const rainFx = new RainFx(scene, camera);
 const slashFx = new SlashFx(scene, camera);
 const fireX = new FireExtras(scene, camera);
 const flameSlash = new FlameSlashFx(scene, camera);
@@ -185,7 +187,7 @@ const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -260,7 +262,8 @@ function drain() {
         if (echo) showBanner('สะท้อนซ้ำ!');
         break;
       }
-      case 'burst': if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
+      case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
+      case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
       case 'fusionCharge':
         // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
@@ -524,6 +527,7 @@ function tick(real, draw = true) {
   modFx.update(dt);
   venomFx.syncProjectiles(game.projectiles, 'venom_mire', dt);
   venomFx.update(dt, staffTip());
+  rainFx.update(dt);
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
   const recipeKind = skillDef().recipe?.id;

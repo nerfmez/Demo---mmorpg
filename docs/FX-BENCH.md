@@ -107,5 +107,14 @@ with more stacks, and a "พิษ ×N" label shows each new stack.
 The Cartoon FX gallery host was blocked for this
 pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFERENCE.md`.
 
+## Arrow Rain
+
+`src/fxtest/rain-fx.js`, in the same light-and-ribbon language. The rules send one `area` event
+per wave, each with its delay, and a `burst` as each lands. The volley's circle is a thin cel
+outline with a faint fill and an inner guide ring that pulses on every landing. Each wave's arrows
+are thin streaks of light falling in on a slight slant from behind the caster, timed to touch down
+exactly at that wave's burst. Each leaves a short fading stub in the ground and a few sparks. Echo,
+Wide Field and Concentrated show through the events; element Shifts recolour it.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

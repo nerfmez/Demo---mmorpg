@@ -1,0 +1,48 @@
+{
+  "source_base": "a3f60a223bb2e4c1c45bb2618855b23ecef447c4",
+  "runtime": "scenes/ruins/index.html (self-contained Three 0.170 build)",
+  "site_url": "https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site",
+  "site_source_commit": "7508d5e5d7ba8fb47e2d5c0ab3543da8434a6136",
+  "files": {
+    "scenes/ruins/index.html": {
+      "bytes": 5854649,
+      "sha256": "532a41fcb5cb0629dc39567cf10f5d670fec96869074a3b618866e79a24ad7b2"
+    },
+    "scenes/ruins/scene.js": {
+      "bytes": 56432,
+      "sha256": "91cbf8fae51982349901a8ae52115b7a84d2c425c29d79ad91518a986986a739"
+    },
+    "scenes/ruins/assemble.py": {
+      "bytes": 6993,
+      "sha256": "871842f3cd49522387b04f91d26ab0465713cfd46d0ce6cc5c3e4c5502163382"
+    },
+    "scenes/ruins/buildpage.py": {
+      "bytes": 2084,
+      "sha256": "b0f933b59f3525ff11f539402b7eaea112d7328567c477a79b7ba9583061e687"
+    },
+    "scenes/ruins/latest-vs-concept.png": {
+      "bytes": 3061394,
+      "sha256": "c96ac526963af6ffd24e7932ce5883fce99f089a92af001df951023a550003c9"
+    },
+    "scenes/ruins/review/scene.png": {
+      "bytes": 1875236,
+      "sha256": "195ca459b08fea6df42ed480db10cb6016b61e3b50e31b62a84c28e298723ca3"
+    },
+    "scenes/ruins/review/ipad.png": {
+      "bytes": 1000408,
+      "sha256": "7b6aaa4f738e13ed82018fada36cd278c77449472eb5b0a2d9629cb27abac0b1"
+    },
+    "scenes/ruins/review/ipad-portrait.png": {
+      "bytes": 531519,
+      "sha256": "f273dd058e69d13846935e6e67598dfe0fbbbd6a09f6c404eee178ca0b7bf68b"
+    },
+    "scenes/ruins/review/walk.json": {
+      "bytes": 9735,
+      "sha256": "95b3fb8ed8736468d2a384f448c803aab61a52e2eceb16eded8ca423f7690ef8"
+    },
+    "scenes/ruins/review/report.json": {
+      "bytes": 1122,
+      "sha256": "ab21bee90baadd961ba91b59c656789cebaef02610b38b02d3f7e436c581caf4"
+    }
+  }
+}

@@ -7,8 +7,8 @@ the built `index.html` in a browser. Each page has a wipe slider to compare with
 | Scene | Status | Build |
 |---|---|---|
 | Beach (`arrival-beach-40deg`) | **Approved by the owner** ("the opening scene is OK"). Published: https://claude.ai/artifact/7Eth678okKYw3UenAP4CGq | `python3 tools/buildbeach.py` writes `beach/index.html` |
-| Forest trail (`forest-trail-40deg`) | **In progress**, shown to the owner after the 3-4x space change. `forest/latest-vs-concept.png` is the last capture (concept on top) | `python3 forest/assemble.py && python3 forest/buildpage.py` writes `forest/index.html` |
-| Ruins approach (`ruins-approach-40deg`) | Not started | — |
+| Forest trail (`forest-trail-40deg`) | **Approved by the owner**. `forest/latest-vs-concept.png` is the last capture (concept on top) | `python3 forest/assemble.py && python3 forest/buildpage.py` writes `forest/index.html` |
+| Ruins approach (`ruins-approach-40deg`) | **Rebuilt 23 October; owner review pending.** [Rebuild and inspection record](ruins/REVIEW.md) | `python3 ruins/assemble.py && python3 ruins/buildpage.py` writes `ruins/index.html` |
 | Chibi hero model (Blender, `chibi/`) | **Paused** by the owner (quality not good enough; Meshy or bought/commissioned models suggested) | needs Blender bpy: `python chibi/build.py chibi/face.png chibi.glb` |
 
 ## How the forest page is made
@@ -62,7 +62,7 @@ Done:
 1. Wait for the owner's feedback on the forest page (artifact HqTbjpLK4p91KHAw3yiJWd).
 2. Known gaps: canopy band at the top thinner than the concept, crowns a little lime, terrace tops
    sparser than the concept, a hard dark shadow patch by the stairs.
-3. Ruins scene: REBUILT from scratch (the owner discarded the first attempt as not matching).
+3. Earlier ruins scene (superseded by the 23 October rebuild in [ruins/REVIEW.md](ruins/REVIEW.md)):
    Method:
    - Each element is authored as its screen box in the concept: [u0, u1] across, the foot at
      vFoot, the top at vTop. Its real size comes from the camera (`wide()`, `tall()`), and
@@ -81,7 +81,10 @@ Done:
 
 ## Status (owner's verdict)
 - Beach (`beach/`): approved. Forest (`forest/`): approved ("ผ่าน").
-- Ruins (`ruins/`): rebuilt, waiting for the owner's verdict on the layout.
+- Ruins (`ruins/`): rebuilt again on 23 October to the approved beach/forest standard,
+  with fitted arch wedges, bonded masonry, fractured ridge shelves and flush worn
+  approach paving. Waiting for the owner's verdict; the review record identifies
+  the exact delivered preview and inspected captures.
 - More concepts to build the same way: 19 zone concepts at the 40-degree camera on branch
   `docs/landscape-concepts-40deg-20261022`, folder `docs/reference/landscapes-40deg-20261022/`.
 - The in-game restyle that was on this branch (palette, water, ledges, waypoint ruin, ambience)
@@ -91,5 +94,9 @@ Done:
 Owner preferences learnt so far: everything must be portable into the game (reuse the game's
 foliage and models, only recolour); judge composition and layout first, never just tone; round grey
 stones; cliffs are rock faces with grass growing on them, never stones set in a row; more room to walk; big trees; check against the concept side by side before showing.
-The in-game restyle (palette, water, ledges, waypoint ruin, ambience) is on PR #137; the owner did
-not ask for it, it is not merged and its CI is red.
+The earlier in-game restyle was removed from PR #137 at `a3f60a2`; its historical
+status does not describe this standalone-scene rebuild.
+
+For a single offline ruins HTML with its Three 0.170 modules embedded, run
+`python3 ruins/buildpage.py --three /absolute/path/to/three-0.170-package` after
+assembly. The default build keeps the original CDN import map.

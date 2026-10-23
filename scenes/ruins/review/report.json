@@ -1,0 +1,65 @@
+{
+  "scene": {
+    "camera": {
+      "target": {
+        "x": 0,
+        "y": 0,
+        "z": -7.2
+      },
+      "pitch": 40,
+      "dist": 72,
+      "yaw": 0
+    },
+    "hero": {
+      "x": 0,
+      "z": 13.176199473051774
+    },
+    "render": {
+      "frame": 5,
+      "calls": 67,
+      "triangles": 1529778,
+      "points": 160,
+      "lines": 0
+    },
+    "memory": {
+      "geometries": 77,
+      "textures": 31
+    }
+  },
+  "errors": [],
+  "views": [
+    {
+      "name": "scene",
+      "viewport": {
+        "width": 1720,
+        "height": 1060
+      },
+      "time": 12
+    },
+    {
+      "name": "wipe",
+      "viewport": {
+        "width": 1720,
+        "height": 1060
+      },
+      "time": 12
+    },
+    {
+      "name": "ipad",
+      "viewport": {
+        "width": 1180,
+        "height": 820
+      },
+      "time": 12
+    },
+    {
+      "name": "ipad-portrait",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "time": 12
+    }
+  ],
+  "method": "Frozen-time stills; native touch input; production walker advanced at fixed 60 Hz. No device FPS or continuous playback claim."
+}

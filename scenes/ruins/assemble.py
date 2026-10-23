@@ -14,10 +14,11 @@ style = style.replace("rgba(255, 238, 196, .3), rgba(255, 238, 196, .08) 45%", "
 style = style.replace("rgba(255, 246, 214, .07) 70px 120px", "rgba(255, 246, 214, .045) 70px 120px")
 assert '.12), rgba' in style
 # the ruins' mood: warm golden afternoon light over everything, a stronger glow from the top left
-style = style.replace("rgba(255, 238, 196, .12), rgba(255, 238, 196, .04) 45%", "rgba(255, 228, 170, .26), rgba(255, 228, 170, .08) 45%")
-style += "  #warm { background: linear-gradient(170deg, rgba(255, 196, 110, .16), rgba(255, 214, 140, .06) 55%, rgba(120, 90, 40, .08)); mix-blend-mode: soft-light; }\n"
+style = style.replace("rgba(255, 238, 196, .12), rgba(255, 238, 196, .04) 45%", "rgba(255, 235, 186, .13), rgba(255, 235, 186, .035) 45%")
+style += "  #warm { background: linear-gradient(170deg, rgba(255, 214, 150, .045), rgba(255, 224, 170, .02) 55%, rgba(70, 96, 74, .035)); mix-blend-mode: soft-light; }\n"
 
-head = '<title>ทางเข้าซากปรักหักพัง</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<style>' + style.split('\n', 1)[1] + '</style>\n'
+style += '\n  .seg button { min-height: 44px; } #wipe { min-height: 44px; }\n'
+head = '<!doctype html>\n<html lang="th">\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<title>ทางเข้าซากโบราณ — ฉาก 3D</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<style>' + style.split('\n', 1)[1] + '</style>\n'
 markup = '''<div id="stage">
   <canvas id="c" aria-label="ฉาก 3D ทางเข้าซากปรักหักพัง"></canvas>
   <div class="atmo" id="sunwash"></div>
@@ -55,6 +56,9 @@ renderer = renderer.replace("sun.position.copy(SUN).multiplyScalar(90);\nscene.a
 renderer = renderer.replace("Object.assign(sun.shadow.camera, { left: -46, right: 46, top: 40, bottom: -40, near: 10, far: 220 });", f"Object.assign(sun.shadow.camera, {{ left: -{f(30)}, right: {f(30)}, top: {f(32)}, bottom: -{f(32)}, near: 10, far: {f(145)} }});")
 # the shadow box grows with K, so its texels do too: push the bias with it (no acne stripes)
 renderer = renderer.replace("sun.shadow.normalBias = 0.04;", f"sun.shadow.normalBias = {0.04 * K:g};")
+renderer = renderer.replace(f"sun.shadow.normalBias = {0.04 * K:g};", f"sun.shadow.normalBias = {0.11 * K:g};")
+renderer = renderer.replace("sun.shadow.bias = -0.0005;", "sun.shadow.bias = -0.0015;")
+renderer = renderer.replace(f"sun.shadow.normalBias = {0.11 * K:g};", "sun.shadow.normalBias = 0.3;")
 assert f'dist: {f(30)}' in renderer and 'add(sun.target.position)' in renderer and f'left: -{f(30)}' in renderer
 glsl = block('// ---------- shared GLSL', '// ---------- ground:')
 under = re.search(r"\n  // under the sea:.*?\n  \}\n", glsl, re.S)
@@ -71,7 +75,11 @@ hero = hero.replace(blocked.group(0), '''function blocked(x, z) {
   // ledges: too steep to walk (the stairs are fine)
   const y = height(x, z), g = Math.max(Math.abs(height(x + 0.3, z) - y), Math.abs(height(x, z + 0.3) - y)) / 0.3;
   if (g > 1.1 && !stairsAt(x, z).inside) return true;
-  return COLLIDERS.some(c => Math.hypot(x - c.x, z - c.z) < c.r + 0.3);
+  return COLLIDERS.some(c => {
+    if (!c.box) return Math.hypot(x - c.x, z - c.z) < c.r + 0.3;
+    const dx=x-c.x,dz=z-c.z,co=Math.cos(c.ry),si=Math.sin(c.ry);
+    return Math.abs(dx*co-dz*si)<c.w/2+0.3 && Math.abs(dx*si+dz*co)<c.d/2+0.3;
+  });
 }
 ''')
 scene = open(S + 'ruins/scene.js').read()

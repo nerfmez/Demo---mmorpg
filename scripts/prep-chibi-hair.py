@@ -11,7 +11,7 @@ An untextured model whose hair is fused to the head (one closed mesh) is cut by 
 triangles below --below (the neck and body) and front-facing triangles in the face box are dropped,
 and only positions are written (the game draws the hair in one colour).
 
-  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.19 0.14 0.05 --back -0.05 -0.03 --brow 0.06
+  python3 scripts/prep-chibi-hair.py model.glb out.glb --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03 --brow 0.17
     (--face: lowest y, highest y, half width, nearest z of the face;
      --back Y Z: behind z = Z the cut is at y = Y instead, so the hair at the nape stays)
 """
@@ -116,7 +116,7 @@ def cut(src, dst, below, face, back_below=None, back_z=0.0, brow=None):
     # The face is one smooth sheet; the fringe strands lying over it meet it at sharp creases.
     # Flood-fill from the middle of the face across smooth edges only (inside the face box)
     # and drop that sheet, so the strand tips over the eyes stay. Above --brow the forehead sheet
-    # is kept as the solid base of the fringe.
+    # (up at the hairline) is kept as the base the fringe strands grow from.
     fy0,fy1,fx,fz=face;nt=len(I)//3;M=[];Nz=[];Nn=[]
     for k in range(nt):
         a,bb,c=(P[x] for x in I[3*k:3*k+3]);M.append([(a[i]+bb[i]+c[i])/3 for i in range(3)])

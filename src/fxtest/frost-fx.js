@@ -7,7 +7,7 @@ import { mulberry32, clamp01, NOISE, BILLBOARD_VS } from './fx-common.js';
 const SPREAD = 0.38, MELT0 = 1.25, MELT1 = 2.15, END = 2.4, CHIPS = 260;
 
 // Ground frost, anime style: a flat cel decal with a clean scalloped edge, a bright rim band,
-// a few straight cracks of uneven length and three flat tones. It melts by receding inward.
+// and flat tones, with no lines inside. It melts by receding inward.
 const frostFS = `varying vec2 vP; uniform float uR; uniform float uMelt; uniform float uEdgeGlow; uniform float uS;
   uniform float uElem; vec3 retint(vec3 c){ if(uElem<0.5) return c; float l=dot(c,vec3(0.3,0.59,0.11)); vec3 lo=uElem<1.5?vec3(0.72,0.16,0.04):vec3(0.2,0.42,0.08); vec3 hi=uElem<1.5?vec3(1.0,0.88,0.55):vec3(0.8,1.0,0.5); return mix(lo,hi,smoothstep(0.3,1.0,l)); }
   void main(){
@@ -19,15 +19,10 @@ const frostFS = `varying vec2 vP; uniform float uR; uniform float uMelt; uniform
     float edge = R * (0.86 + 0.07 * sc + 0.05 * pow(1.0 - sc, 6.0)) * (1.0 - 0.85 * uMelt * uMelt);
     if (r > edge || R < 0.01) discard;
     float e = edge - r; // distance in from the edge
-    // straight cracks: seven spokes of uneven length, thin, stopping short of the rim
-    float id = floor(ang / 6.2832 * 7.0 + 0.13 + 7.0), len = 0.45 + 0.4 * fract(sin(id * 12.9898) * 43758.5);
-    float spoke = abs(fract(ang / 6.2832 * 7.0 + 0.13) - 0.5) * 6.2832 / 7.0 * r;
-    float crack = (1.0 - step(0.03, spoke)) * step(0.5, r) * step(r, edge * len);
-    vec3 fill = vec3(0.70, 0.88, 0.98), lite = vec3(0.88, 0.97, 1.0), line = vec3(0.98, 1.0, 1.0);
+    vec3 fill = vec3(0.70, 0.88, 0.98), lite = vec3(0.88, 0.97, 1.0);
     vec3 c = fill; float a = 0.8;
     if (e < 0.32) { c = lite; a = 0.9; }                   // rim band
     if (e < 0.07) { c = vec3(0.42, 0.70, 0.92); a = 0.95; } // thin outline, same hue
-    if (crack > 0.5 && e > 0.32) { c = line; a = 0.85; }
     a *= mix(1.0, 0.75, step(0.5, uMelt)) * (0.85 + 0.15 * uEdgeGlow);
     gl_FragColor = vec4(retint(c), a); }`;
 const mistFS = `varying vec2 vUv; uniform float uT; uniform float uSeed; ${NOISE}

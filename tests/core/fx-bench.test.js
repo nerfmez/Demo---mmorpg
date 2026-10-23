@@ -191,3 +191,19 @@ test('Arrow Rain on the bench: one area event per wave, each with its own delay,
   assert.equal(r.of('burst').filter((e) => e.kind === 'arrow_rain').length, 3);
   assert.ok(benchMods(data, 'arrow_rain').includes('echo'));
 });
+
+test('Power Draw on the bench: hold to charge, release looses one arrow whose damage grows with the charge', () => {
+  const shot = (hold) => {
+    const g = createBench(data, 'charged_shot', []);
+    g.monsters = [g.monsters.find((m) => m.x === 9)];
+    assert.ok(g.castSlot(0, { x: 9, z: 0 }));
+    const events = [...g.drainEvents()];
+    for (let i = 0; i < Math.round(hold * 60); i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+    assert.ok(g.releaseCharge(0, { x: 9, z: 0 }));
+    for (let i = 0; i < 90; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+    assert.equal(events.filter((e) => e.type === 'chargeStart').length, 1);
+    return events.filter((e) => e.type === 'hit' && !e.dot).reduce((t, e) => t + e.amount, 0);
+  };
+  const quick = shot(0.1), full = shot(1.5);
+  assert.ok(full > quick * 2, `a full draw hits far harder (${quick} -> ${full})`);
+});

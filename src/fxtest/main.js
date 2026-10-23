@@ -24,6 +24,7 @@ import { FlameFx, OCCLUDER_LAYER } from './flame-fx.js';
 import { ModFx } from './mod-fx.js';
 import { VenomFx } from './venom-fx.js';
 import { RainFx } from './rain-fx.js';
+import { PowerFx, setPowerFacing } from './power-fx.js';
 
 // the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
 const data = benchData(gameData);
@@ -33,9 +34,12 @@ const data = benchData(gameData);
 {
   const [rest, raise, draw, loose] = ACTIONS.bow.keys.map((k) => k[1]);
   const sky = (p, extra) => ({ ...p, torso: [-0.18, 0.7, 0], chest: [-0.28, 0.2, 0], head: [-0.6, -0.6, 0], ikR: [-0.05, 2.0, 0.42], ...extra });
+  // Power Draw: raise and draw, then hold at full draw for as long as the charge is held
+  ACTIONS.bowDraw = { hit: 1, keys: [[0, rest], [0.08, raise], [0.2, { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] }], [1, { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] }]] };
+  ACTIONS.bowLoose = { hit: 0.3, keys: [[0, { ...draw, ikL: [-0.12, 1.5, 0.02] }], [0.3, { ...loose, drop: [-0.05, 0, 0] }], [0.7, loose], [1, rest]] };
   ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
 }
-const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow' };
+const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose' };
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -50,7 +54,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -146,6 +150,8 @@ const flameFx = new FlameFx(scene, camera, renderer);
 const modFx = new ModFx(scene, camera);
 const venomFx = new VenomFx(scene, camera);
 const rainFx = new RainFx(scene, camera);
+const powerFx = new PowerFx(scene, camera);
+let powerRatio = 0; // the charge the last Power Draw left with
 const slashFx = new SlashFx(scene, camera);
 const fireX = new FireExtras(scene, camera);
 const flameSlash = new FlameSlashFx(scene, camera);
@@ -197,7 +203,7 @@ const slashOpts = (s) => ({ range: s.range, arc: s.arc, dir: swingStep === 0 ? 1
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -212,10 +218,17 @@ function castDown() {
   if (!game.castSlot(0, aimPoint())) return; // still cooling down
   stats.casts++;
   stats.last = { hits: 0, total: 0 };
-  if (s.kind === 'channel_cone') state.holding = true;
+  if (s.kind === 'channel_cone' || s.charge) state.holding = true;
   drain();
 }
-function castUp() { if (state.holding) { state.holding = false; game.cancelChannel(); drain(); } }
+function castUp() {
+  if (!state.holding) return;
+  state.holding = false;
+  const c = game.player.charging;
+  if (c) { powerRatio = Math.min(1, c.t / c.skill.charge.duration); powerFx.release(powerRatio); game.releaseCharge(0, aimPoint()); } // a charged shot looses at its charge
+  else game.cancelChannel();
+  drain();
+}
 function dodge() { if (!game) return; game.aimAt(aimAngle); stats.last = { hits: 0, total: 0 }; game.useMovement(); drain(); }
 function resetBench() {
   game.cancelChannel(); state.holding = false;
@@ -272,6 +285,8 @@ function drain() {
         if (echo) showBanner('สะท้อนซ้ำ!');
         break;
       }
+      case 'chargeStart': heroAnim.play('bowDraw', e.total * 3, e.weapon || heroWeapon, 0, null, 'projectile'); powerFx.setElement(s.element); powerFx.beginCharge(e.total); break;
+      case 'chargeEnd': if (!game.player.cast) { powerFx.endCharge(); } break;
       case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
       case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
@@ -298,6 +313,7 @@ function drain() {
         // fire hits use the bench's round burst instead of the game's one-sided splash
         if (e.kind === skillDef().recipe?.id && e.element === 'cold') frostFx.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); // only sparks (ice chips) on a hit
         else if (e.kind === 'venom_mire') venomFx.impact(e);
+        else if (e.kind === 'charged_shot') powerFx.impact(e, powerRatio);
         else if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
         break;
       }
@@ -495,7 +511,7 @@ function tick(real, draw = true) {
   // auto cast: whenever the skill is ready (at most every 1.2 s); Flame Stream held 1.4 s
   if (state.auto) {
     autoT -= dt;
-    if (autoT <= 0 && !(game.player.cooldowns[0] > 0)) { castDown(); autoT = skillDef().kind === 'channel_cone' ? 2.4 : 1.2; }
+    if (autoT <= 0 && !(game.player.cooldowns[0] > 0)) { castDown(); autoT = skillDef().kind === 'channel_cone' ? 2.4 : skillDef().charge ? 2.8 : 1.2; }
     if (state.holding && autoT < 1.0 && !castBtn.matches(':active')) castUp();
   }
   game.benchStep(dt);
@@ -538,6 +554,10 @@ function tick(real, draw = true) {
   venomFx.syncProjectiles(game.projectiles, 'venom_mire', dt);
   venomFx.update(dt, staffTip());
   rainFx.update(dt);
+  setPowerFacing(p.facing);
+  const ch = p.charging;
+  powerFx.syncProjectiles(game.projectiles, 'charged_shot', dt);
+  powerFx.update(dt, staffTip(), ch ? Math.min(1, ch.t / ch.skill.charge.duration) : 0);
   for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
   timers = timers.filter((t) => !t.done || simTime - t.at < 2);
   const recipeKind = skillDef().recipe?.id;
@@ -546,7 +566,7 @@ function tick(real, draw = true) {
   bladePoints();
   flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
-  const ownKind = recipeKind || (state.skill === 'venom_mire' ? 'venom_mire' : null); // drawn by the bench's own effect
+  const ownKind = recipeKind || (['venom_mire', 'charged_shot'].includes(state.skill) ? state.skill : null); // drawn by the bench's own effect
   vfx.syncProjectiles(ownKind ? { projectiles: game.projectiles.filter((pr) => pr.kind !== ownKind) } : game, dt, simTime);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;

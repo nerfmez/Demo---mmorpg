@@ -124,5 +124,19 @@ per wave, each with its delay, and a `burst` as each lands.
 Echo, Wide Field and Concentrated show through the events; element Shifts recolour it. Venom Arrow
 plays the plain bow action on the bench; the game's action table is unchanged.
 
+## Power Draw
+
+`src/fxtest/power-fx.js`, in the same light-and-ribbon language. Hold **ร่าย** to charge (the
+rules' `chargeStart`; release calls `releaseCharge`, auto-repeat holds about 1.6 s).
+- **Hero.** Raises and draws, then holds at full draw (bench-only `bowDraw`), and snaps the loose
+  on release (`bowLoose`).
+- **Charge.** Streaks of light are drawn in to the arrow and a bar of light along the shot line
+  swells with the charge. Reaching full charge pings once (a flash and a ring) and the bar then
+  flickers, so a full draw reads at a glance.
+- **Shot.** A streak of light whose width and glow grow with the charge, with a flash at the bow.
+  Over half charge, a ring of pushed air forms at the bow; near full, more rings keep coming off
+  its path.
+- **Impact.** The flash and the number of sparks grow with the charge.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

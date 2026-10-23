@@ -130,13 +130,16 @@ plays the plain bow action on the bench; the game's action table is unchanged.
 rules' `chargeStart`; release calls `releaseCharge`, auto-repeat holds about 1.6 s).
 - **Hero.** Raises and draws, then holds at full draw (bench-only `bowDraw`), and snaps the loose
   on release (`bowLoose`).
-- **Charge.** Streaks of light are drawn in to the arrow and a bar of light along the shot line
-  swells with the charge. Reaching full charge pings once (a flash and a ring) and the bar then
-  flickers, so a full draw reads at a glance.
-- **Shot.** A streak of light whose width and glow grow with the charge, with a flash at the bow.
-  Over half charge, a ring of pushed air forms at the bow; near full, more rings keep coming off
-  its path.
-- **Impact.** The flash and the number of sparks grow with the charge.
+- **Charge.** Streaks of light are drawn in to the arrow tip, where a soft round glow with a hot
+  centre grows. Three arcs of light circle the arrow, widening and speeding up with the charge.
+  Reaching full charge pings once (a burst and a ring) and the glow then pulses, so a full draw
+  reads at a glance.
+- **Shot.** A streak of light whose width and glow grow with the charge, with a small burst at the
+  bow. Over half charge, a ring of pushed air forms at the bow; near full, more rings keep coming
+  off its path.
+- **Impact.** A clean burst, all scaled by the charge (owner: no ragged flash, no bar): a round
+  glow that pops and fades, sharp rays of light with the longest thrown on along the shot, a thin
+  ring and a few sparks.
 
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

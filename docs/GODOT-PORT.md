@@ -500,7 +500,9 @@ weapon keeps its carry angle while the arm gestures, and the two-hand left grip 
 The standing pose is a neutral base plus the carry's `stance` (`stances`: `relaxed` shifts
 the weight onto the right leg, `guard` is the staggered two-hand ready stance): bone offsets,
 a body `drop` and sideways `shift`, faded out by the walk/run blend. Port as an idle pose
-added under the locomotion blend.
+added under the locomotion blend. A stance with `_from` (e.g. `sword_ready`, the chibi's sword
+carry) was retargeted from a CC0 reference clip (`docs/POSE-RETARGET.md`); in Godot the same
+clip can drive the pose through a retargeted `Skeleton3D` instead.
 Port as a right-hand IK target with a look-at on the weapon bone, blended by these weights.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 

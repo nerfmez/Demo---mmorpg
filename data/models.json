@@ -700,24 +700,25 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword is a low guard trailing behind the right hip (retargeted from the Quaternius Sword_Idle clip, docs/POSE-RETARGET.md); the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
         "sword": {
           "one": {
             "hand": [
-              -0.22,
-              0.93,
-              0.1
+              -0.501,
+              0.642,
+              -0.542
             ],
             "dir": [
-              -0.12,
-              -0.55,
-              0.83
+              -0.855,
+              0.152,
+              0.496
             ],
             "up": [
-              1,
-              0,
-              0
-            ]
+              0.314,
+              -0.608,
+              0.729
+            ],
+            "stance": "sword_ready"
           }
         },
         "axe": {

@@ -110,3 +110,13 @@ The owner asked to continue with the gazebo scene, using the same approach as th
 
 Checks: the scene data is unchanged (colliders, heights, trails and roads identical for all six scenes). `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view, the gazebo, the middle terrace and the east stairs). Local startup was 45 s.
 
+## Owner round: Hill Windmill (24 October 2026)
+
+The owner asked to continue with the windmill scene.
+
+- **Terrace walls:** all six terraces are now dry-stone block walls (`stones`, `blocks`) instead of rock columns, as in the concept's mossy dressed-stone walls round the hill. The two high terraces stack three courses and the low ones one or two. Block walls (here and in the rose garden) also carry plants spilling over their crown.
+- **Boulders:** the scattered boulders are rounded `fieldStone`s, never taller than 0.62 of their width, each with a smaller stone at its foot.
+- **Stairs:** the same level-step courses as the rose garden, so each step shows its riser.
+
+Checks: the scene data is unchanged for all six scenes. `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view, the mill, the south, west and east approaches, and the rose garden's walls after the shared change). Local startup, timed on its own, was 41.9 and 42.0 s. A 56.8 s reading came from a run with a second capture in parallel.
+

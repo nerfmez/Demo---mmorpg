@@ -414,6 +414,8 @@ function stoneFace(T,S,length,U){
       fieldStone(q.x+q.nx*o,q.base+rise*f-(r===0?.3:.05),q.z+q.nz*o,w*R(.82,.98),h,d,{moss:r===n-1?.5:.12,ry:ry+R(-.1,.1),rz:R(-.05,.05),chamfer:T.blocks?.3:.5});
     }
     if(rand()<.4)addBush(q.x-q.nx*R(.3,.9)*U,q.top-.1,q.z-q.nz*R(.3,.9)*U,R(.35,.6)*U,{sy:.58,tint:R(-.2,.2)});
+    // block walls (the windmill's and the rose garden's) carry plants spilling over their crown, as in their concepts
+    if(T.blocks&&rand()<.45)addBush(q.x+q.nx*.1*U,q.top-.25*U,q.z+q.nz*.1*U,R(.3,.5)*U,{sy:.75,tint:R(-.1,.25)});
   }
 }
 function columnCliffs(){

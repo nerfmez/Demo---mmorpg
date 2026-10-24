@@ -46,10 +46,13 @@ function stoneStairs(){
    next=r.s+STEP;course++;
    const A=route.rows[Math.max(0,i-3)],B=route.rows[Math.min(route.n-1,i+3)],l=Math.hypot(B.x-A.x,B.z-A.z)||1;
    const ux=(B.x-A.x)/l,uz=(B.z-A.z)/l,nx=uz,nz=-ux,ry=Math.atan2(ux,uz);
-   const n=Math.max(3,Math.round(r.w/(.62*K))),w=r.w/n;
+   // Each course is a level step: its top is the ground at its uphill edge, so
+   // the course below shows a riser instead of lying as a tile on the ramp.
+   const n=Math.max(2,Math.round(r.w/(.95*K))),w=r.w/n;
    for(let j=0;j<n;j++){
     const off=-r.w/2+(j+.5)*w,x=r.x+nx*off,z=r.z+nz*off;
-    block(x,height(x,z)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
+    const a=height(x-ux*STEP/2,z-uz*STEP/2),b=height(x+ux*STEP/2,z+uz*STEP/2),lo=Math.min(a,b),hi=Math.max(a,b);
+    block(x,lo-.2,z,w*R(.96,.99),hi-lo+.26,STEP*R(1.0,1.04),ry+R(-.02,.02),.04,{ink:.006*K,base:pick(STAIR)});
    }
    // Low, broken shoulders frame the flight without narrowing its clear width.
    if(course%2===0)for(const side of[-1,1]){

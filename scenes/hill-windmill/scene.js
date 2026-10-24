@@ -51,9 +51,11 @@ function millProps(){
 }
 function scatteredRocks(){
  for(const[u,v,w,h]of[[.08,.81,.028,.04],[.15,.91,.04,.06],[.24,.69,.023,.035],[.36,.72,.023,.04],[.43,.68,.023,.035],[.59,.72,.025,.036],[.68,.74,.025,.04],[.81,.61,.023,.035],[.84,.44,.025,.04],[.97,.75,.035,.07],[.16,.35,.022,.035],[.48,.32,.020,.03]]){
-  const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
+  // never taller than wide: field boulders lie low, they do not stand as pillars
+  const[x,y,z]=onGround(u,v),width=wide(u-w/2,u+w/2,v,y),hh=Math.min(tall(x,z,y,v-h),width*.62);
   if(stairsAt(x,z).s<stairsAt(x,z).half+width*.5+.5)continue;
-  addStone(x,y-.08,z,width,hh,width*.73,{extra:13,chamfer:.22,moss:.38,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:width*.4});
+  fieldStone(x,y-.14,z,width,hh,width*.76,{moss:.4,ry:R(-.4,.4),rz:R(-.06,.06)});COLLIDERS.push({x,z,r:width*.4});
+  {const a=R(0,6.28),xx=x+Math.cos(a)*width*.55,zz=z+Math.sin(a)*width*.4,ss=width*R(.3,.45);fieldStone(xx,height(xx,zz)-.1,zz,ss,ss*R(.5,.7),ss*.8,{moss:.3,ry:R(0,3)});}
  }
  for(let i=0;i<180;i++){
   const[x,y,z]=onGround(R(.03,.98),R(.24,1.04)),f=field(x,z),st=stairsAt(x,z);
@@ -95,7 +97,7 @@ function build(){
  const[x,z]=P(.50,.878);HERO.x=x;HERO.z=z;HERO.face=-2.7;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();scene.add(millModel());
  fences();millProps();scatteredRocks();plantHill();
- const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
+ const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='mill-stone-details';stones.userData.authoredNormals=true;stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  clearMillFront();placeCoastPlants();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();
 }
 function updateAmbience(t){if(MILL)MILL.rotor.rotation.z=Math.PI/4+(reduce?0:t*.055);}

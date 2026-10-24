@@ -58,3 +58,7 @@ h2 { font-size: 14px; margin: 14px 0 6px; color: var(--muted); font-weight: 600;
 .num { position: absolute; left: 0; top: 0; font-weight: 800; font-size: 18px; text-shadow: 0 2px 0 rgba(0,0,0,.55), 0 0 6px rgba(0,0,0,.4); white-space: nowrap; }
 .num.big { font-size: 24px; }
 #banner { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 6px 16px; border-radius: 18px; background: rgba(20,28,40,.75); color: #fff; font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; }
+
+/* weapon pickers: the buttons wrap under their label on a narrow panel */
+.lv.wpick { display: flex; flex-wrap: wrap; align-items: center; row-gap: 6px; margin: 0 0 8px; }
+.lv.wpick > span { flex: 0 0 100%; font-size: 13px; opacity: 0.75; }

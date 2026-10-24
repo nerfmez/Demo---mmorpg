@@ -307,6 +307,24 @@ function renderPanel() {
   const s = skillDef(), def = data.skills.combat[state.skill];
   panel.append(h('p', 'desc', def.desc));
 
+  // weapons to try the stances and cuts with (the rules still use the skill's own weapon)
+  const wb = h('section', 'mods');
+  wb.append(h('h2', '', 'อาวุธ (ลองท่ายืน/ท่าฟัน)'));
+  const pick = (label, list, cur, set) => {
+    const row = h('div', 'lv wpick');
+    row.append(h('span', '', label));
+    for (const [id, th] of list) {
+      const b = h('button', id === cur ? 'on' : '', th);
+      b.addEventListener('click', () => { set(id); rebuild(); });
+      row.append(b);
+    }
+    wb.append(row);
+  };
+  const W = [[null, 'ของสกิล'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์'], ['axe', 'ขวาน'], ['mace', 'กระบอง'], ['greatblade', 'ดาบใหญ่'], ['staff', 'คทา'], ['bow', 'ธนู']];
+  pick('มือขวา', W, state.weapon || null, (id) => { state.weapon = id; });
+  pick('มือซ้าย', [[null, 'ว่าง'], ['shield', 'โล่'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์']], state.offhand || null, (id) => { state.offhand = id; });
+  panel.append(wb);
+
   const modBox = h('section', 'mods');
   modBox.append(h('h2', '', `ม็อด (ใส่ได้ ${MAX_MODS})`));
   const sockets = MAX_MODS - (state.fusion ? FUSION.socketsUsed : 0);

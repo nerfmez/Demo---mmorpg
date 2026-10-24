@@ -43,7 +43,7 @@ function propAxes(obj) {
 }
 
 /** Reference joint positions and bone rotations (body space: faces +Z, left = +X) at clip time t. */
-export function sample(g, clip, t, profile = PROFILES.ual, prop = null) {
+export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = null) {
   const mixer = new THREE.AnimationMixer(g.scene);
   const c = THREE.AnimationClip.findByName(g.animations, clip);
   if (!c) throw new Error('no clip ' + clip);
@@ -55,6 +55,7 @@ export function sample(g, clip, t, profile = PROFILES.ual, prop = null) {
   for (const [k, n] of Object.entries(profile)) if (k !== 'rest' && O(n)) j[k] = O(n).getWorldPosition(new THREE.Vector3());
   j.headQ = O(profile.head).getWorldQuaternion(new THREE.Quaternion());
   if (prop && O(prop)) j.weapon = propAxes(O(prop));
+  if (propL && O(propL)) j.weaponL = propAxes(O(propL)); // a second weapon in the left hand
   mixer.stopAllAction();
   mixer.uncacheRoot(g.scene);
   return j;

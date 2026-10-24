@@ -48,9 +48,14 @@ The reference skeleton's own bends at rest (its T/A-pose knees, sloped feet, spi
 subtracted. The weapon direction comes from the prop (`--prop`), else from the fist: a grip runs
 along the knuckle line, pinky to index.
 
-In use: `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is the chibi's one-hand sword carry;
-`two_hand_ready` (KayKit `2H_Melee_Idle`, legs 0.5) is the two-hand grip of the axe, mace and
-greatblade. Each stance's `_from` records its source and settings.
+In use: `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is the chibi's one-hand sword carry
+and its `dual` carry (`--prop 1H_Sword --propL 1H_Sword_Offhand --offhand sword`, used by the
+sword, dagger and wand with a second weapon in the left hand). `two_hand_ready` (KayKit
+`2H_Melee_Idle`, legs 0.5) is kept as `presets.two_hand_feminine` for a female body; the male
+chibi keeps its hand-set two-hand carries. Each stance's `_from` records its source and settings.
+
+- `--propL` names the reference's left-hand weapon (a dual carry's `hold.left`); `--offhand`
+  previews the hero with that weapon in its left hand.
 
 Angles are copied, so the chibi keeps the reference's stance width and crouch relative to its own
 short legs; review on the chibi and use `--legs`/`--arms` when the owner asks for a softer pose.

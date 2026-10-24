@@ -1,5 +1,5 @@
 {
-  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height. stance names the idle body stance in stances (default relaxed): bone offsets (Euler XYZ radians, the same channels as actions.js) added to the standing pose and faded out as the hero walks; drop lowers the body (metres), shift moves it toward the hero's left (+) or right (-).",
+  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand; dual (optional) = the carry with a second weapon there, whose left = that hand's palm, blade direction and flat (hero.js solveOffhand). presets keeps carries for other bodies. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height. stance names the idle body stance in stances (default relaxed): bone offsets (Euler XYZ radians, the same channels as actions.js) added to the standing pose and faded out as the hero walks; drop lowers the body (metres), shift moves it toward the hero's left (+) or right (-).",
   "swing": {
     "radius": 0.42
   },
@@ -66,6 +66,24 @@
         "hand": [-0.26, 0.96, 0.12],
         "dir": [0, -0.25, 1]
       }
+    }
+  },
+  "presets": {
+    "_doc": "Carries kept for other bodies. two_hand_feminine: a two-hand grip held across the body (KayKit 2H_Melee_Idle, stance two_hand_ready), chosen by the owner for a female hero; the male chibi keeps its own two-hand carries.",
+    "two_hand_feminine": {
+      "hand": [    -0.524,
+        1.09,
+        0.467
+      ],
+      "dir": [    0.824,
+        0.335,
+        0.457
+      ],
+      "up": [    0.537,
+        -0.718,
+        -0.442
+      ],
+      "stance": "two_hand_ready"
     }
   },
   "stances": {

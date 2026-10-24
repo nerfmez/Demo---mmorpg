@@ -493,6 +493,8 @@ export class HumanoidAnimator {
     const gesture = this.action && !swingV ? actionW : 0;
     const orientW = (hold?.castHold || hold?.grip !== undefined) && !busy && gesture > 0 ? 1 : holdW;
     if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW, swingV, swingW, orientW);
+    // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
+    if (hold?.left && b.offhand) this.solveOffhand(hold.left, leftBusy ? 0 : holdW);
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
     const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) : pose.grip ? pose.grip[0] : 0;
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
@@ -560,11 +562,37 @@ export class HumanoidAnimator {
     }
   }
 
-  /** This weapon's carry: two-handed when the type allows it and the left hand is free. */
+  /** This weapon's carry: two-handed when the type allows it and the left hand is free; dual with a second weapon there. */
   holdFor() {
     const h = this.rig.holds?.[this.rig.weaponKind] ?? HOLDS.holds[this.rig.weaponKind];
     if (!h) return null;
+    const off = this.rig.offhandKind;
+    if (h.dual && off && off !== 'shield' && off !== 'quiver') return h.dual;
     return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
+  }
+
+  /**
+   * The left hand's weapon in a dual carry (hold.left: palm, blade and flat in body space, like the
+   * right's), weight w over the off-hand socket's own resting turn.
+   */
+  solveOffhand(left, w) {
+    const b = this.b, o = b.offhand;
+    o.userData.carryQ ??= o.quaternion.clone(); // the socket's resting turn (hero.js build)
+    o.quaternion.copy(o.userData.carryQ);
+    if (w <= 0.01) return;
+    this.rig.root.updateMatrixWorld(true);
+    reachArm(b, 'L', b.body.localToWorld(ikMap(IK_T.fromArray(left.hand), this.rig.ikMap)), w);
+    W_DIR.fromArray(left.dir).normalize();
+    if (left.up) W_UP.fromArray(left.up); else W_UP.set(0, 1, 0);
+    if (Math.abs(W_UP.dot(W_DIR)) > 0.97) W_UP.set(0, 0, 1);
+    W_X.crossVectors(W_UP, W_DIR).normalize();
+    W_UP.crossVectors(W_DIR, W_X);
+    W_M.makeBasis(W_X, W_UP, W_DIR);
+    W_Q.setFromRotationMatrix(W_M);
+    b.body.getWorldQuaternion(AIM_R).multiply(W_Q);
+    b.handL.updateMatrixWorld(true);
+    b.handL.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
+    o.quaternion.slerp(AIM_Q, w);
   }
 
   /**

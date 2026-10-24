@@ -503,6 +503,9 @@ a body `drop` and sideways `shift`, faded out by the walk/run blend. Port as an 
 added under the locomotion blend. A stance with `_from` (`sword_ready`, `two_hand_ready`: the chibi's
 sword and two-hand carries) was retargeted from a CC0 reference clip (`docs/POSE-RETARGET.md`); in Godot the same
 clip can drive the pose through a retargeted `Skeleton3D` instead.
+A `dual` carry (a light weapon in each hand) adds `left`: the left palm target and the left
+weapon's direction and flat, solved like the right (`solveOffhand`: left-arm IK plus a look-at on
+the off-hand socket) whenever no action drives the left hand.
 Port as a right-hand IK target with a look-at on the weapon bone, blended by these weights.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 

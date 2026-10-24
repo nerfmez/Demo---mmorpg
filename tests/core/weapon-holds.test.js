@@ -37,7 +37,7 @@ test('idle stances exist, use real pose channels and stay within a standing rang
   // the shared carries and the chibi's own (data/models.json) name stances that exist
   const chibi = data.models.characters.hero_chibi.holds;
   for (const [id, h] of [...Object.entries(HOLDS.holds), ...Object.entries(chibi).filter(([id]) => id !== '_doc')])
-    for (const k of ['one', 'two', 'shield']) if (h[k]?.stance) assert.ok(HOLDS.stances[h[k].stance], `${id}.${k} stance ${h[k].stance}`);
+    for (const k of ['one', 'two', 'dual']) if (h[k]?.stance) assert.ok(HOLDS.stances[h[k].stance], `${id}.${k} stance ${h[k].stance}`);
   // a stance retargeted from a reference clip (_from names it) bends the knees further and drops lower
   for (const [name, st] of Object.entries(HOLDS.stances)) {
     const ref = typeof st._from === 'string';
@@ -47,4 +47,19 @@ test('idle stances exist, use real pose channels and stay within a standing rang
       assert.ok(bones.has(k) && vec(v) && v.every((x) => Math.abs(x) < (ref ? 1.6 : 0.8)), `${name}.${k}`);
     }
   }
+});
+
+test('the chibi keeps a one-hand carry beside a dual one, and a dual carry places the left weapon', () => {
+  const chibi = data.models.characters.hero_chibi.holds;
+  for (const [id, h] of Object.entries(chibi)) {
+    if (id === '_doc') continue;
+    assert.ok(data.items.weaponTypes[id], `chibi hold for unknown weapon ${id}`);
+    assert.ok(h.one || h.two, `${id} still needs its one- or two-hand carry`);
+    if (!h.dual) continue;
+    assert.equal(data.items.weaponTypes[id].hands, 'light', `${id}: only light weapons dual-wield`);
+    assert.ok(vec(h.dual.hand) && vec(h.dual.dir) && vec(h.dual.left?.hand) && vec(h.dual.left?.dir), `${id}.dual needs both hands`);
+    assert.ok(h.dual.left.hand[0] > 0 && h.dual.hand[0] < 0, `${id}.dual: the left weapon on the left (+x), the right on the right`);
+  }
+  for (const [name, p] of Object.entries(HOLDS.presets).filter(([k]) => k !== '_doc'))
+    assert.ok(vec(p.hand) && vec(p.dir) && HOLDS.stances[p.stance], `preset ${name}`);
 });

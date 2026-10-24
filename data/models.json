@@ -700,7 +700,7 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) and the two-hand grips of the axe, mace and greatblade come from the KayKit Adventurers chibi Idle and 2H_Melee_Idle clips (docs/POSE-RETARGET.md) with their stances sword_ready and two_hand_ready; the axe and mace held with a shield and the staff keep hand-set carries. up is the blade's flat (its normal).",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); dagger and wand use that dual carry and the shared one-hand carries otherwise. Heavy weapons are held in both hands at the belly, head forward, clear of the big head; the staff is held low and upright. up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
         "sword": {
           "one": {
             "hand": [
@@ -718,6 +718,139 @@
               0.001,
               0.16
             ],
+            "stance": "sword_ready"
+          },
+          "dual": {
+            "hand": [
+              -0.545,
+              0.762,
+              0.062
+            ],
+            "dir": [
+              -0.16,
+              -0.01,
+              0.987
+            ],
+            "up": [
+              0.987,
+              0.001,
+              0.16
+            ],
+            "left": {
+              "hand": [
+                0.502,
+                0.769,
+                -0.079
+              ],
+              "dir": [
+                0.263,
+                -0.011,
+                0.965
+              ],
+              "up": [
+                0.965,
+                0.003,
+                -0.263
+              ]
+            },
+            "stance": "sword_ready"
+          }
+        },
+        "dagger": {
+          "one": {
+            "hand": [
+              -0.22,
+              0.94,
+              0.08
+            ],
+            "dir": [
+              -0.16,
+              -0.78,
+              -0.6
+            ]
+          },
+          "dual": {
+            "hand": [
+              -0.545,
+              0.762,
+              0.062
+            ],
+            "dir": [
+              -0.16,
+              -0.01,
+              0.987
+            ],
+            "up": [
+              0.987,
+              0.001,
+              0.16
+            ],
+            "left": {
+              "hand": [
+                0.502,
+                0.769,
+                -0.079
+              ],
+              "dir": [
+                0.263,
+                -0.011,
+                0.965
+              ],
+              "up": [
+                0.965,
+                0.003,
+                -0.263
+              ]
+            },
+            "stance": "sword_ready"
+          }
+        },
+        "wand": {
+          "one": {
+            "hand": [
+              -0.22,
+              0.96,
+              0.14
+            ],
+            "dir": [
+              -0.12,
+              -0.42,
+              0.9
+            ]
+          },
+          "dual": {
+            "hand": [
+              -0.545,
+              0.762,
+              0.062
+            ],
+            "dir": [
+              -0.16,
+              -0.01,
+              0.987
+            ],
+            "up": [
+              0.987,
+              0.001,
+              0.16
+            ],
+            "left": {
+              "hand": [
+                0.502,
+                0.769,
+                -0.079
+              ],
+              "dir": [
+                0.263,
+                -0.011,
+                0.965
+              ],
+              "up": [
+                0.965,
+                0.003,
+                -0.263
+              ]
+            },
             "stance": "sword_ready"
           }
         },
@@ -741,22 +874,22 @@
           },
           "two": {
             "hand": [
-              -0.524,
-              1.09,
-              0.467
+              -0.05,
+              0.85,
+              0.35
             ],
             "dir": [
-              0.824,
-              0.335,
-              0.457
-            ],
-            "up": [
-              0.537,
-              -0.718,
-              -0.442
+              0.35,
+              0.5,
+              0.8
             ],
             "grip": 0.26,
-            "stance": "two_hand_ready"
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
           }
         },
         "mace": {
@@ -779,43 +912,43 @@
           },
           "two": {
             "hand": [
-              -0.524,
-              1.09,
-              0.467
+              -0.05,
+              0.85,
+              0.35
             ],
             "dir": [
-              0.824,
-              0.335,
-              0.457
-            ],
-            "up": [
-              0.537,
-              -0.718,
-              -0.442
+              0.35,
+              0.5,
+              0.8
             ],
             "grip": 0.22,
-            "stance": "two_hand_ready"
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
           }
         },
         "greatblade": {
           "two": {
             "hand": [
-              -0.524,
-              1.09,
-              0.467
+              -0.05,
+              0.85,
+              0.35
             ],
             "dir": [
-              0.824,
-              0.335,
-              0.457
-            ],
-            "up": [
-              0.537,
-              -0.718,
-              -0.442
+              0.3,
+              0.6,
+              0.75
             ],
             "grip": -0.11,
-            "stance": "two_hand_ready"
+            "stance": "guard",
+            "up": [
+              1,
+              0,
+              0
+            ]
           }
         },
         "staff": {

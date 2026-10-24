@@ -125,7 +125,13 @@ export function retarget(j, { restHeadQ } = {}) {
     const P = parent ? world[parent] : new THREE.Quaternion();
     const L = P.clone().invert().multiply(W);
     const e = new THREE.Euler().setFromQuaternion(L, 'XYZ');
-    if (opts.noX) e.x = 0;
+    if (opts.noX) {
+      // only yaw then roll (Euler XYZ with x = 0 is Ry * Rz): the yaw from the pelvis's forward, the
+      // roll of its side axis within that yaw. Zeroing x of a full decomposition flips a turned pelvis.
+      const f = new THREE.Vector3(0, 0, 1).applyQuaternion(L), yaw = Math.atan2(f.x, f.z);
+      const side = new THREE.Vector3(1, 0, 0).applyQuaternion(L).applyAxisAngle(new THREE.Vector3(0, 1, 0), -yaw);
+      e.set(0, yaw, Math.atan2(side.y, side.x));
+    }
     local[name] = [e.x, e.y, e.z];
     world[name] = P.clone().multiply(new THREE.Quaternion().setFromEuler(e));
   };

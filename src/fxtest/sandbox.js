@@ -8,50 +8,7 @@ import { installFusion } from './fusion.js';
 
 export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-// Bench-only rule trial: every melee arc skill is one plain strike (no 1-2-3 combo, so no third-hit
-// finisher with its extra damage and knockback). Owner: "why does the third hit knock back? remove it".
-export const SINGLE_STRIKE = new Set(['slash']);
-const singleStrike = (data, skill) => SINGLE_STRIKE.has(skill) || data.skills.combat[skill]?.kind === 'melee_arc';
 export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
-
-// Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
-// target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
-// stack (up to maxStacks) and refreshes its duration; every stack adds dps worth stackDps x that
-// hit. The game keeps its zone until this is approved and moved into data/skills.json with a core
-// rule and test.
-export const VENOM_ARROW = {
-  nameTh: 'ธนูพิษ', name: 'Venom Arrow',
-  desc: 'ยิงลูกธนูพิษเส้นบางเร็ว ไม่ทะลุ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง',
-  tags: ['Attack', 'Projectile', 'Poison', 'Damage', 'DoT'], kind: 'projectile', power: 'attack', requiresWeapon: ['bow'],
-  damage: { base: 4, scale: 0.4 }, range: 14, speed: 26, projectileRadius: 0.2,
-  cooldown: 0.6, castTime: 0.2, cost: 0, element: 'poison', requires: { DEX: 6 }, upgradeStat: 'DEX',
-  poison: { maxStacks: 5, duration: 4, stackDps: 0.6 },
-};
-// Bench-only rule trial (owner: "interrupt timing is hard to use; slam and stun instead"): Breakbeat
-// Slam stuns everything it hits for stun.duration (bosses for bossDuration) instead of only
-// interrupting a wind-up. The game keeps its interrupt until this is approved and moved into data.
-export const STUN_SLAM = {
-  desc: 'ทุบพื้นด้านหน้า ศัตรูที่โดนมึน 1.2 วิ (บอสมึน 0.4 วิ) ต้องถืออาวุธไร้คม (กระบอง/ค้อน)',
-  requiresWeapon: ['mace'], // every blunt weapon in the game is the mace type: beetle maul, tusk club, thunder maul
-  stun: { duration: 1.2, bossDuration: 0.4 },
-};
-// Bench-only rule trial (owner: "a main skill: short cooldown, less damage, and less from the front"):
-// Flank Thrust becomes the dagger's spammable main attack. Weaker per stab, frontMult x from the
-// front, positionalMult x from the side or behind (the rules' bonus, unchanged).
-export const QUICK_STAB = {
-  desc: 'สกิลหลักมีดสั้น แทงเร็ว ด้านหน้าแรงแค่ 70% แทงจากด้านข้างหรือด้านหลังแรง 160%',
-  cooldown: 0.5, castTime: 0.18, cost: 0, damage: { base: 6, scale: 0.6 }, frontMult: 0.7,
-};
-// The bench's copy of the game data with its rule trials applied (the game's data is untouched).
-export function benchData(data) {
-  const combat = { ...data.skills.combat };
-  const { radius, duration, tick, slow, ...rest } = combat.venom_mire;
-  combat.venom_mire = { ...rest, ...VENOM_ARROW };
-  combat.weakpoint = { ...combat.weakpoint, ...QUICK_STAB };
-  const { interrupt, ...slam } = combat.interrupt_slam;
-  combat.interrupt_slam = { ...slam, ...STUN_SLAM };
-  return { ...data, skills: { ...data.skills, combat } };
-}
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
@@ -88,7 +45,7 @@ export const FACINGS = {
 
 // Mods this skill can actually use on the bench. Triggers that need a guard skill are left out.
 export function benchMods(data, skill, selected = []) {
-  const def = benchData(data).skills.combat[skill];
+  const def = data.skills.combat[skill];
   return Object.keys(data.mods.mods).filter((key) => {
     const mod = modDef(data, key);
     if (mod.effect?.trigger && mod.effect.trigger !== 'on_movement') return false;
@@ -96,8 +53,7 @@ export function benchMods(data, skill, selected = []) {
   });
 }
 
-export function createBench(baseData, skill, mods = [], { seed = 71, fusion = null, fusionRules = null } = {}) {
-  const data = benchData(baseData);
+export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null } = {}) {
   const ch = createCharacter(data, { kit: 'bow' });
   ch.stats = { STR: 50, AGI: 50, VIT: 50, INT: 50, DEX: 50 };
   ch.skills[skill] = 1;
@@ -148,50 +104,13 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     g.player.cooldowns.fill(0);
     g.areas = g.areas.filter((a) => a.owner !== 'player');
   };
-  if (singleStrike(data, skill)) {
-    const cast = g.castSlot;
-    g.castSlot = function (...args) { this.player.lastSwingT = -1e9; return cast.apply(this, args); }; // combo step stays 0
-  }
-  // Venom Arrow trial: each direct hit stacks the target's poison
-  const hit = g.hitMonster;
-  g.hitMonster = function (m, amount, opts = {}) {
-    const out = hit.call(this, m, amount, opts);
-    const pz = data.skills.combat[opts.skill]?.poison;
-    if (pz && !opts.dot && !opts.byAlly && !m.dead && m.hp > 0) {
-      const before = m.statuses.poison?.stacks || 0, stacks = Math.min(pz.maxStacks, before + 1);
-      m.statuses.poison = { dps: stacks * pz.stackDps * amount, t: pz.duration, acc: m.statuses.poison?.acc || 0, owner: 'player', stacks };
-      if (stacks > before) this.emit({ type: 'poisonStack', id: m.id, stacks, x: m.x, z: m.z }); // only when it grows
-    }
-    return out;
-  };
-  // Quick Stab trial: a stab from the front lands at frontMult (the side/back bonus stays the rules')
-  const frontHit = g.hitMonster;
-  g.hitMonster = function (m, amount, opts = {}) {
-    const fm = data.skills.combat[opts.skill]?.frontMult;
-    if (fm && !opts.dot) {
-      const fx = (opts.fromX ?? this.player.x) - m.x, fz = (opts.fromZ ?? this.player.z) - m.z;
-      if (fx * Math.sin(m.facing) + fz * Math.cos(m.facing) >= 0) amount *= fm;
-    }
-    return frontHit.call(this, m, amount, opts);
-  };
-  // Stun Slam trial: every direct hit stuns the target (the rules' stunned state), and the bench
-  // lets it recover after the time (bench dummies run no AI of their own)
-  const stunHit = g.hitMonster;
-  g.hitMonster = function (m, amount, opts = {}) {
-    const out = stunHit.call(this, m, amount, opts);
-    const st = data.skills.combat[opts.skill]?.stun;
-    if (st && !opts.dot && !m.dead) {
-      const duration = m.boss ? st.bossDuration : st.duration;
-      Object.assign(m, { state: 'stunned', stateT: 0, stateDur: duration, windup: null, benchStun: true });
-      this.emit({ type: 'benchStunned', id: m.id, duration });
-    }
-    return out;
-  };
+  // Breakbeat Slam stuns through the rules (state 'stunned'); bench dummies run no AI of their own,
+  // so the bench lets them recover after the time
   if (data.skills.combat[skill]?.stun) {
     const step = g.benchStep;
     g.benchStep = function (dt) {
       step.call(this, dt);
-      for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; m.benchStun = false; this.emit({ type: 'benchStunEnd', id: m.id }); }
+      for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; this.emit({ type: 'benchStunEnd', id: m.id }); }
     };
   }
   // Measured Riposte: something to block. The first dummy winds up (1 s, the rules' windup state)

@@ -1,7 +1,7 @@
 import { createLearnedCharacter as createCharacter } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { data } from './helpers.js';
+import { data, FIELD_SKILL } from './helpers.js';
 import { derive } from '../../src/core/character.js';
 import { computeSkill, modFits, socketMod, equipSkill } from '../../src/core/skills.js';
 
@@ -102,6 +102,7 @@ test('new skill kinds compute their extra parameters', () => {
   const ch = createCharacter(data);
   ch.stats.INT = 10;
   ch.stats.STR = 10;
+  ch.stats.DEX = 10;
   for (const id of Object.keys(data.skills.combat)) ch.skills[id] = 1;
   const d = derive(ch, data);
   const at = (id) => {
@@ -110,7 +111,7 @@ test('new skill kinds compute their extra parameters', () => {
   };
   assert.equal(at('chain_spark').chain, 3);
   assert.ok(at('frost_nova').chill.slow > 0.5);
-  assert.ok(at('venom_mire').slow > 0);
+  assert.deepEqual(at('venom_mire').poison, { maxStacks: 5, duration: 4, stackDps: 0.6 });
   const hex = at('hex');
   assert.ok(hex.takenMult > 1 && hex.dealtMult < 1);
   assert.ok(at('war_cry').damageBuff > 0);
@@ -157,6 +158,7 @@ test('every mod uses only the single visible-tag fit rule', () => {
   const skillTags = new Set(Object.values({ ...data.skills.combat, ...data.skills.movement }).flatMap((s) => s.tags));
   const granted = new Set(Object.values(data.mods.mods).flatMap((m) => m.grants || []));
   for (const [id, m] of Object.entries(data.mods.mods)) {
+    if (m.retired) continue; // kept only so old saves load
     for (const f of LEGACY) assert.equal(m[f], undefined, `${id}.${f}`);
     assert.ok(RULE.some((f) => m[f]), `${id} names at least one rule`);
     for (const t of [...(m.needs || []), ...(m.on || []), ...(m.not || [])]) assert.ok(skillTags.has(t) || granted.has(t), `${id} reads unknown tag ${t}`);
@@ -172,7 +174,7 @@ test('granted tags only count from a companion that fits the bare skill', () => 
   assert.ok(modFits(S.firebolt, M.status_burst).ok, 'a native Fire skill fits Status Burst on its own');
   assert.ok(!modFits(S.hunter_shot, M.status_burst).ok);
   assert.ok(modFits(S.hunter_shot, M.status_burst, [M.frost_shift]).ok, 'Frost Shift grants Cold');
-  assert.ok(!modFits(S.venom_mire, M.status_burst, [M.frost_shift]).ok, 'Frost Shift cannot sit on a DoT field, so it grants nothing');
+  assert.ok(!modFits(FIELD_SKILL, M.status_burst, [M.frost_shift]).ok, 'Frost Shift cannot sit on a DoT field, so it grants nothing');
   const fit = modFits(S.slash, M.lingering);
   assert.deepEqual([fit.reason, fit.tags], ['needs', ['Persistent']]);
 });

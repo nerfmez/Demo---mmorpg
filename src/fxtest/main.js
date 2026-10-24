@@ -12,7 +12,7 @@ import STAFF_CAST from '../../data/staff-cast.json';
 import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
-import { createBench, benchMods, benchData, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
+import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
 import { fusionPayloads, fusionRecipe } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
 import { SlashFx } from './slash-fx.js';
@@ -32,8 +32,7 @@ import { ThrustFx } from './thrust-fx.js';
 import { BashFx } from './bash-fx.js';
 import { RiposteFx, RIPOSTE_PALETTE } from './riposte-fx.js';
 
-// the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
-const data = benchData(gameData);
+const data = gameData;
 
 // Bench-only hero actions (the game's action table is untouched outside this page): Arrow Rain
 // draws and looses at the sky, leaning back; Venom Arrow is a plain bow shot.
@@ -345,7 +344,7 @@ function drain() {
         if (state.skill === 'riposte' && m) { riposteFx.struck(game.player, m, e.blocked, s.guard.readyDuration); if (e.blocked) showBanner('ปัดป้อง!'); }
         break;
       }
-      case 'benchStunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('มึน!'); break;
+      case 'stunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('มึน!'); break;
       case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
       case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
       case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;

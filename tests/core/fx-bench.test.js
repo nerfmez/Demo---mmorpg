@@ -92,7 +92,7 @@ test('a fused slash that misses does not fire its payload', () => {
   assert.equal(events.filter((e) => e.type === 'fusion').length, 0);
 });
 
-test('bench slash is one plain strike: no combo steps, no finisher knockback', () => {
+test('bench slash is one plain strike each time: no finisher knockback', () => {
   const g = createBench(data, 'slash', []);
   const slashes = [];
   for (let c = 0; c < 4; c++) {
@@ -101,7 +101,7 @@ test('bench slash is one plain strike: no combo steps, no finisher knockback', (
     for (let i = 0; i < 20; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash')); }
   }
   assert.equal(slashes.length, 4);
-  assert.ok(slashes.every((e) => e.step === 0 && !e.finisher));
+  assert.ok(slashes.every((e) => !e.finisher));
   assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), 'nothing was knocked back');
 });
 
@@ -159,8 +159,8 @@ test('Flame Wave Slash: the carrier mods ride on the wave', () => {
   assert.ok(wide.waveHits.length > run([]).waveHits.length, 'Wide Arc widens the wave');
 });
 
-test('Venom Arrow trial on the bench: a fast bow attack; each hit stacks the same target\'s poison up to five; the game keeps its zone', () => {
-  assert.equal(data.skills.combat.venom_mire.kind, 'dot_zone', 'the game data is untouched');
+test('Venom Arrow on the bench: a fast bow attack; each hit stacks the same target\'s poison up to five', () => {
+  assert.equal(data.skills.combat.venom_mire.kind, 'projectile');
   const mods = benchMods(data, 'venom_mire');
   assert.ok(mods.includes('split') && !mods.includes('following_field') && !mods.includes('fire_shift'), 'arrow mods; no field mods; no element change');
   const g = createBench(data, 'venom_mire', []);
@@ -227,8 +227,7 @@ test('Sunder Cut on the bench: an axe cut that opens the armour of what it hits,
   assert.ok(exposed.every((m) => m.statuses.exposure.fraction === 0.18 && m.statuses.exposure.t > 3.5));
 });
 
-test('Breakbeat Slam trial on the bench: every dummy it hits is stunned for 1.2 s, then recovers; the game keeps its interrupt', () => {
-  assert.ok(data.skills.combat.interrupt_slam.interrupt, 'the game data is untouched');
+test('Breakbeat Slam on the bench: every dummy it hits is stunned for 1.2 s, then recovers', () => {
   const g = createBench(data, 'interrupt_slam', []);
   assert.equal(g.derived.weaponType, 'mace');
   const events = [];
@@ -236,15 +235,14 @@ test('Breakbeat Slam trial on the bench: every dummy it hits is stunned for 1.2 
   assert.ok(g.castSlot(0, { x: 5, z: 0 }));
   step(40);
   const hit = new Set(events.filter((e) => e.type === 'hit' && !e.dot).map((e) => e.id));
-  const stunned = events.filter((e) => e.type === 'benchStunned');
+  const stunned = events.filter((e) => e.type === 'stunned');
   assert.ok(hit.size >= 2 && stunned.length === hit.size && stunned.every((e) => e.duration === 1.2), 'every struck dummy is stunned');
   assert.ok(g.monsters.filter((m) => m.state === 'stunned').length === hit.size);
   step(80);
   assert.equal(events.filter((e) => e.type === 'benchStunEnd').length, hit.size, 'and recovers after 1.2 s');
 });
 
-test('Flank Thrust trial on the bench: a quick main stab, weaker, 0.7x from the front and the rules\' 1.6x from behind', () => {
-  assert.equal(data.skills.combat.weakpoint.cooldown, 2.5, 'the game data is untouched');
+test('Flank Thrust on the bench: a quick main stab, weaker, 0.7x from the front and 1.6x from behind', () => {
   const r = run('weakpoint', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.6);
   assert.equal(r.g.derived.weaponType, 'dagger');
   assert.ok(r.g.skills[0].cooldown <= 0.5, 'a quick main attack (stats may shorten it further)');
@@ -253,7 +251,6 @@ test('Flank Thrust trial on the bench: a quick main stab, weaker, 0.7x from the 
   const facing = (id) => r.g.monsters.find((m) => m.id === id).facing;
   const front = hits.find((e) => facing(e.id) < 0), back = hits.find((e) => facing(e.id) > 0);
   assert.ok(Math.abs(back.amount / front.amount - 1.6 / 0.7) < 0.05, `${front.amount} -> ${back.amount}`);
-  assert.ok(back.amount < 108, 'weaker than the game\'s 2.5 s Flank Thrust from behind');
 });
 
 test('no melee arc skill on the bench has a third-hit finisher: four quick casts never knock back', () => {

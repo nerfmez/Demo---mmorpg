@@ -1,7 +1,7 @@
 // Frontier skill expansion. Pure simulation helpers; all content/tuning comes from data.
 import { angleTo, angleDiff, dist, DEG } from './math.js';
 
-export const EXTRA_FIELDS = ['guard','positionalMult','exposure','interrupt','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
+export const EXTRA_FIELDS = ['guard','positionalMult','frontMult','exposure','stun','poison','width','aimDuringCast','taunt','waves','waveInterval','channel','wall','cleanse','aura'];
 export function compileFrontier(s, def, activeMods) {
   for (const key of EXTRA_FIELDS) if (def[key] !== undefined) s[key] = Array.isArray(def[key]) ? [...def[key]] : typeof def[key] === 'object' ? { ...def[key] } : def[key];
   s.modEffects = {};
@@ -131,16 +131,22 @@ export function executeFrontier(g,s,aim,mult,triggered) {
 export function adjustFrontierHit(g,m,amount,opts) {
   const s=opts.skill && g.skills.find(s=>s?.id===opts.skill),e=opts.modEffects || {};
   if(opts.dot||opts.secondary)return amount;
-  if(s?.positionalMult&&Math.abs(angleDiff(m.facing,angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z)))>Math.PI/2)amount*=s.positionalMult;
+  // Flank Thrust: harder from the side or behind (positionalMult), weaker from the front (frontMult).
+  const behind=Math.abs(angleDiff(m.facing,angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z)))>Math.PI/2;
+  if(s?.positionalMult&&behind)amount*=s.positionalMult;
+  if(s?.frontMult&&!behind)amount*=s.frontMult;
   if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0)};
-  if(opts.interrupt&&m.state==='windup'){
-    const attack=m.def.attacks?.[m.windup?.name];
-    if(!m.boss&&attack?.interruptible!==false){m.state='stunned';m.stateT=0;m.stateDur=opts.interrupt.duration;m.windup=null;m.melee=null;cancelWindup(g,m);}
-    else if(m.boss){
-      const poise=(m.statuses.poise?.value||0)+opts.interrupt.bossPoise;
-      m.statuses.poise={value:poise,t:opts.interrupt.poiseDuration};
-      if(poise>=opts.interrupt.poiseThreshold&&attack?.interruptible===true){m.state='stunned';m.stateT=0;m.stateDur=opts.interrupt.duration;m.windup=null;delete m.statuses.poise;cancelWindup(g,m);}
-    }
+  // Breakbeat Slam: every direct hit stuns (bosses only briefly); a started wind-up is cancelled.
+  if(opts.stun){
+    const duration=m.boss?opts.stun.bossDuration:opts.stun.duration;
+    if(duration>0){m.state='stunned';m.stateT=0;m.stateDur=duration;m.windup=null;m.melee=null;m.charge=null;cancelWindup(g,m);g.emit({type:'stunned',id:m.id,x:m.x,z:m.z,duration});}
+  }
+  // Venom Arrow: each direct hit adds a poison stack (up to maxStacks) and refreshes it; every stack
+  // poisons for stackDps x this hit per second.
+  if(opts.poison&&!opts.byAlly){
+    const pz=opts.poison,old=m.statuses.poison,before=old?.stacks||0,stacks=Math.min(pz.maxStacks,before+1);
+    m.statuses.poison={dps:stacks*pz.stackDps*amount,t:pz.duration,acc:old?.acc||0,owner:'player',stacks};
+    if(stacks>before)g.emit({type:'poisonStack',id:m.id,stacks,x:m.x,z:m.z});
   }
   if(opts.taunt){m.forcedTargetId=g.player.id;m.tauntT=Math.max(m.tauntT||0,opts.taunt.duration);}
   if(e.pull&&!m.boss){const a=angleTo(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z),d=Math.min(e.pull,dist(m.x,m.z,opts.fromX??g.player.x,opts.fromZ??g.player.z));g.moveEntity(m,Math.sin(a)*d,Math.cos(a)*d);}

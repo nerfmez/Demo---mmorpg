@@ -256,41 +256,43 @@
       "upgradeStat": "INT"
     },
     "venom_mire": {
-      "name": "Venom Mire",
-      "nameTh": "บึงพิษ",
-      "desc": "สร้างบึงพิษบนพื้นที่เล็ง ศัตรูในบึงโดนพิษต่อเนื่องและเดินช้าลง",
+      "name": "Venom Arrow",
+      "nameTh": "ธนูพิษ",
+      "desc": "ยิงลูกธนูพิษเส้นบางเร็ว ไม่ทะลุ โดนเป้าเดิมพิษซ้อนได้ถึง 5 ชั้น ยิ่งซ้อนยิ่งแรง",
       "tags": [
-        "Spell",
-        "Area",
+        "Attack",
+        "Projectile",
         "Poison",
-        "Persistent",
         "Damage",
-        "Debuff",
-        "DoT",
-        "Control",
-        "Zone"
+        "DoT"
       ],
-      "kind": "dot_zone",
-      "power": "spell",
+      "kind": "projectile",
+      "power": "attack",
       "damage": {
-        "base": 5,
-        "scale": 0.5
+        "base": 4,
+        "scale": 0.4
       },
-      "range": 10,
-      "radius": 3,
-      "duration": 5,
-      "tick": 0.5,
-      "slow": 0.2,
-      "cooldown": 7,
-      "castTime": 0.3,
-      "cost": 15,
+      "range": 14,
+      "speed": 26,
+      "projectileRadius": 0.2,
+      "cooldown": 0.6,
+      "castTime": 0.2,
+      "cost": 0,
       "element": "poison",
       "requires": {
-        "INT": 6
+        "DEX": 6
       },
       "upgradeMaterial": "spore_sac",
       "icon": "mire",
-      "upgradeStat": "INT"
+      "upgradeStat": "DEX",
+      "requiresWeapon": [
+        "bow"
+      ],
+      "poison": {
+        "maxStacks": 5,
+        "duration": 4,
+        "stackDps": 0.6
+      }
     },
     "hex": {
       "name": "Weakening Hex",
@@ -526,7 +528,7 @@
     "weakpoint": {
       "name": "Flank Thrust",
       "nameTh": "แทงจุดอ่อน",
-      "desc": "แทงเป้าในวงแคบจากด้านข้างหรือด้านหลังแรงขึ้น 60% ไม่วาร์ปเข้าหาเป้า",
+      "desc": "สกิลหลักมีดสั้น แทงเร็ว ด้านหน้าแรงแค่ 70% แทงจากด้านข้างหรือด้านหลังแรง 160%",
       "tags": [
         "Attack",
         "Melee",
@@ -536,9 +538,9 @@
       "kind": "melee_arc",
       "power": "attack",
       "range": 2.5,
-      "cooldown": 2.5,
-      "castTime": 0.22,
-      "cost": 8,
+      "cooldown": 0.5,
+      "castTime": 0.18,
+      "cost": 0,
       "element": "physical",
       "requires": {
         "DEX": 5
@@ -550,11 +552,12 @@
         "dagger"
       ],
       "damage": {
-        "base": 10,
-        "scale": 1.1
+        "base": 6,
+        "scale": 0.6
       },
       "arc": 45,
-      "positionalMult": 1.6
+      "positionalMult": 1.6,
+      "frontMult": 0.7
     },
     "armor_cleave": {
       "name": "Sunder Cut",
@@ -596,8 +599,8 @@
     },
     "interrupt_slam": {
       "name": "Breakbeat Slam",
-      "nameTh": "ทุบขัดจังหวะ",
-      "desc": "ทุบขัดท่าที่ขัดได้ของมอนทั่วไป บอสสะสมค่าการเสียหลักเฉพาะท่าที่กำหนด",
+      "nameTh": "ทุบมึน",
+      "desc": "ทุบพื้นด้านหน้า ศัตรูที่โดนมึน 1.2 วิ (บอสมึน 0.4 วิ) ต้องถืออาวุธไร้คม (กระบอง/ค้อน)",
       "tags": [
         "Attack",
         "Melee",
@@ -626,11 +629,9 @@
         "scale": 1.1
       },
       "arc": 65,
-      "interrupt": {
-        "duration": 0.6,
-        "bossPoise": 0.35,
-        "poiseDuration": 2,
-        "poiseThreshold": 1
+      "stun": {
+        "duration": 1.2,
+        "bossDuration": 0.4
       }
     },
     "frontline_split": {

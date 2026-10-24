@@ -336,9 +336,6 @@ export class Hud {
     const g = this.game;
     const d = g.data;
     switch (e.type) {
-      case 'slash':
-        if (e.finisher && e.hits) this.float(e.x + Math.sin(e.angle) * 1.6, 2.6, e.z + Math.cos(e.angle) * 1.6, 'ปิดท้าย!', 'finisher');
-        break;
       case 'hit':
         this.float(e.x, 1.8, e.z, e.crit ? `${e.amount}!` : e.amount, e.crit ? 'crit' : e.dot ? 'dot' : e.shell ? 'shell' : e.byAlly ? 'ally' : ['cold', 'fire', 'lightning', 'poison'].includes(e.element) ? e.element : '');
         break;

@@ -76,7 +76,7 @@ See [approved input and integration notes](APPROVED-CITY-V3.md).
 
 - `player` → `Player.tscn` (`CharacterBody3D`). `useMovement()` becomes a dash tween with an invulnerability flag. Skills run through `executeSkill()`.
 - `projectiles[]` → `Projectile.tscn` (`Area3D`, moved in `_physics_process`). It carries the `pierce`, `chain` and `ground` fields from the computed skill.
-- `areas[]` → `GroundArea.tscn` (`Area3D` with a delay, tick and duration). Used for stone burst, venom mire, healing spring, boss slam and shockwave. No mod leaves a field on the ground (Burning Ground was retired as `fire_shift`).
+- `areas[]` → `GroundArea.tscn` (`Area3D` with a delay, tick and duration). Used for stone burst, healing spring, boss slam and shockwave. No mod leaves a field on the ground (Burning Ground was retired as `fire_shift`).
 - `drops[]` → `Loot.tscn` with magnet pickup.
 - `allies[]` → `Summon.tscn` (spirit wolves): the same chase/bite loop as monsters, on the player's team. Monsters pick targets with `pickTarget()` in `ai.js`.
 - `events[]` → Godot **signals** (`hit`, `death`, `drop`, `levelup`, ...). The renderer and HUD here only react to events, so the same split works as signal listeners.
@@ -338,14 +338,16 @@ Browser review: `tests/browser/midhigh-monsters.mjs`.
 
 Port the new derived fields along with their Node tests:
 
-- `dotDamagePct` increases Venom Mire field damage, not burn/poison
+- `dotDamagePct` increases damage-field (`dot_zone`) damage, not burn/poison
   status damage. `DoT` is not the same as `Persistent`: Healing Spring has the latter only.
 - `persistentDurationPct` extends poison and healing fields; not buffs, curses,
   summons or cast time. Apply ground radius/duration scaling after collecting modifiers,
   so socket order does not change the result.
 - `controlDurationPct` extends chilling hits and Hex; not slow strength, knockback or
   War Cry. Do not treat every duration as control duration.
-- Lingering needs `Persistent`: a native lasting field (Venom Mire, Healing Spring).
+- Lingering needs `Persistent`: a native lasting field (Healing Spring; `dot_zone` stays
+  supported for data, though no live skill uses it since Venom Mire became Venom Arrow).
+  Binding Field (`retired`) needs a damage field, so it has no recipe; saved copies still load.
 - Widened mods keep one executor each: Spreading Hex passes Hex and Armor Cleave exposure on death (`spreadCurse`), Mending Chain on Healing Spring heals injured units outside the field every tick (`chainFieldHeal`), and Spiked/Breaking Ward on a riposte stance taunt on stance, reflect the blocked part and push nearby monsters on a successful guard (`applyGuard`). Its
   provider must also meet stat requirements to activate the bonus. Keep a dependent
   modifier stored but inactive when the provider is removed or inactive; never delete it.
@@ -682,7 +684,7 @@ The volumetric swell pass was rejected by the owner: preserve anime graphic cres
 
 ### Physical cut and contact presentation
 
-Core `hit` events optionally carry `skill` and `attackKind`, and `slash`/`whirl` carry `skill`; these are cosmetic profile selectors, with no damage/range/timing/save change. Use `combat-fx.meleeDefaults` or an authored `renderer: melee` profile. Prepare timing controls weapon-trail sampling, never gameplay contact time. At authored contact, render a thin tapered moving blade ribbon inside the real range/arc and a sparse directional contact fan. The second combo reverses the cut; the third increases visual width/tilt without altering gameplay reach. Whirl uses two opposite half-cuts, without an expanding blast ring. Sample actual posed weapon base/tip for the short trail, clear on cancellation, and bound/reuse contact particles. Keep brief contact shake/hit-stop in the view layer. Shared Lab controls generate from this profile and replay melee kinds without additional skill menus.
+Core `hit` events optionally carry `skill` and `attackKind`, and `slash`/`whirl` carry `skill`; these are cosmetic profile selectors, with no damage/range/timing/save change. Use `combat-fx.meleeDefaults` or an authored `renderer: melee` profile. Prepare timing controls weapon-trail sampling, never gameplay contact time. At authored contact, render a thin tapered moving blade ribbon inside the real range/arc and a sparse directional contact fan. The second swing of a pair reverses the cut. Whirl uses two opposite half-cuts, without an expanding blast ring. Sample actual posed weapon base/tip for the short trail, clear on cancellation, and bound/reuse contact particles. Keep brief contact shake/hit-stop in the view layer. Shared Lab controls generate from this profile and replay melee kinds without additional skill menus.
 
 ### Other physical skill presentation
 
@@ -909,8 +911,17 @@ Port `core/frontier-content.js` alongside `skills.js` and the Game hooks:
 - `counter_stance` accepts one frontal direct hit in a short window; the next press
   spends no extra MP and bypasses only its own cooldown once. Rear/DoT hits do not parry.
 - `melee_line` tests forward projection and half width plus target radius; live aim
-  during preparation. Positional hits, non-stacking exposure and explicitly permitted
-  interruption remain independent. Boss poise expires and never overrides immunity.
+  during preparation. Positional hits (`positionalMult` from the side or behind,
+  `frontMult` from the front: Flank Thrust is the dagger's quick main stab) and
+  non-stacking exposure remain independent.
+- `stun` (Breakbeat Slam): every direct hit puts the monster in `stunned` for
+  `stun.duration` (`bossDuration` on a boss), cancels a started wind-up and its telegraphed
+  areas, and emits `stunned` with `duration`.
+- `poison` (Venom Arrow, a bow projectile): every direct hit adds one stack up to
+  `maxStacks` and refreshes `duration`; the poison deals `stacks × stackDps × hit` per second.
+  `poisonStack` is emitted only when the count grows.
+- Melee arc swings in a row alternate `step` 0/1 within `comboWindow` (animation side only).
+  Every swing is the same strike: there is no third-hit finisher, bonus or knockback.
 - Rain pays all three arrows once and schedules three separate delayed areas. Walls
   require free placement/endpoints, have three destructible segments and finite life.
   Walkers use swept XZ rectangles; flyers pass. Chasing monsters break nearby segments

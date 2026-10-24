@@ -1,19 +1,33 @@
 # Poses from reference clips
 
 Hero stances (and later attack keys) start from a reference animation, not from hand-tuned bone
-angles. The reference is the Quaternius **Universal Animation Library** 1 and 2 (CC0, a humanoid
-mannequin with 250+ clips: `Sword_Idle`, `Idle_Shield_Loop`, `Sword_Block`, `Bow_Notch`/`Bow_Aim_*`/
-`Bow_Shoot`, `Spell_Simple_*`, `Spell_Double_*`, `Sword_Regular_A/B/C`, `Sword_Light_*`,
-`Sword_Heavy_A–D`, `Sword_GroundPound`, `Shield_Dash`, `Sword_Dash`, `Melee_*`, …). The GLBs are not
-committed; `scripts/pose-retarget/fetch-ual.sh` copies them into `tests/browser/out/ual/` (ignored).
+angles. Two CC0 libraries are used:
+
+- **KayKit Adventurers** (Kay Lousberg): chibi characters close to the hero's proportions, holding
+  real weapon props (`1H_Sword`, `2H_Sword`, shields): `Idle`, `2H_Melee_Idle`, `Blocking`,
+  `1H_Melee_Attack_*`, `2H_Melee_Attack_*`, `Dualwield_Melee_Attack_*`, `Spellcast*`,
+  `2H_Ranged_Aiming/Shoot`, `Dodge_*`, … Prefer it for the chibi hero. Profile `kaykit`.
+- Quaternius **Universal Animation Library** 1 and 2: a ~1.8 m humanoid mannequin with 250+ clips
+  (`Sword_Idle`, `Idle_Shield_Loop`, `Sword_Block`, `Bow_Notch`/`Bow_Aim_*`/`Bow_Shoot`,
+  `Spell_Simple_*`, `Spell_Double_*`, `Sword_Regular_A/B/C`, `Sword_Heavy_A–D`,
+  `Sword_GroundPound`, `Shield_Dash`, `Sword_Dash`, `Melee_*`, …), no weapon props. Profile `ual`.
+
+The GLBs are not committed: `scripts/pose-retarget/fetch-ual.sh` copies `UAL1.glb`, `UAL2.glb`,
+KayKit's `Knight.glb` and `Barbarian.glb` into `tests/browser/out/ual/` (ignored).
 
 ## Run
 
 ```sh
-scripts/pose-retarget/fetch-ual.sh                # once: UAL1.glb, UAL2.glb
+scripts/pose-retarget/fetch-ual.sh                # once: the reference GLBs
 npx vite --host 127.0.0.1 --port 4190 &            # the dev server (the tool drives the FX bench)
-node scripts/pose-retarget/run.mjs --file UAL1.glb --clip Sword_Idle --time 0.6 --skill slash --shots out/
+node scripts/pose-retarget/run.mjs --profile kaykit --file Knight.glb --clip Idle --time 0.5 --prop 1H_Sword --skill slash --legs 0.5 --arms 0.3 --shots out/
+node scripts/pose-retarget/run.mjs --profile kaykit --file Knight.glb --clip 2H_Melee_Idle --time 0.5 --prop 2H_Sword --skill frontline_split --legs 0.5
+node scripts/pose-retarget/run.mjs --file UAL1.glb --clip Sword_Idle --time 0.6 --skill slash
 ```
+
+- `--prop` names the reference's weapon: the blade axis and flat come from the prop itself.
+- `--legs k` scales the leg channels (k < 1 stands taller; the owner found the full crouch too low).
+- `--arms k` scales the arms' outward lift (KayKit's armoured knight holds them away from its body).
 
 It prints `{ stance, hold, source }`:
 
@@ -30,7 +44,13 @@ driver bone (`src/render/hero.js`: limbs hang along -Y, spine along +Y, faces +Z
 the same segment: upper arm and thigh take the bend plane of the forearm/shin, elbows and knees stay
 hinges, the feet follow the toes, the head takes the head bone's turn from the A-pose. The hips keep
 yaw and roll only (the animator owns hips x). The body drops until the lower foot touches the ground.
-The weapon direction comes from the fist: a grip runs along the knuckle line, pinky to index.
+The reference skeleton's own bends at rest (its T/A-pose knees, sloped feet, spine curve) are
+subtracted. The weapon direction comes from the prop (`--prop`), else from the fist: a grip runs
+along the knuckle line, pinky to index.
+
+In use: `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is the chibi's one-hand sword carry;
+`two_hand_ready` (KayKit `2H_Melee_Idle`, legs 0.5) is the two-hand grip of the axe, mace and
+greatblade. Each stance's `_from` records its source and settings.
 
 Angles are copied, so the chibi keeps the reference's stance width and crouch relative to its own
-short legs; review on the chibi and soften there (scale the stance) only if the owner asks.
+short legs; review on the chibi and use `--legs`/`--arms` when the owner asks for a softer pose.

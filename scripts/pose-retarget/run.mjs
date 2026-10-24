@@ -3,12 +3,15 @@
 // (scripts/pose-retarget/fetch-ual.sh). See docs/POSE-RETARGET.md.
 //
 //   node scripts/pose-retarget/run.mjs --file UAL1.glb --clip Sword_Idle --time 0.6 --skill slash [--shots dir]
+//   node scripts/pose-retarget/run.mjs --profile kaykit --file Knight.glb --clip 2H_Melee_Idle --time 0.5 --prop 2H_Sword --skill frontline_split
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const file = arg('file', 'UAL1.glb'), clip = arg('clip'), time = +arg('time', '0'), skill = arg('skill', 'slash');
-const site = arg('site', 'http://127.0.0.1:4190'), shots = arg('shots');
+const legs = +arg('legs', '1'); // < 1 straightens the legs (less crouch) toward standing
+const arms = +arg('arms', '1'); // < 1 brings the arms in (a bulky reference holds them away from its armour)
+const site = arg('site', 'http://127.0.0.1:4190'), shots = arg('shots'), profile = arg('profile', 'ual'), prop = arg('prop', null);
 if (!clip) throw new Error('--clip is required');
 
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -18,14 +21,21 @@ page.on('pageerror', (e) => errors.push(String(e)));
 await page.goto(site + '/fx-test.html', { waitUntil: 'load' });
 await page.waitForFunction(() => window.__fxtest?.hero?.holds, null, { timeout: 90000 });
 
-const result = await page.evaluate(async ([file, clip, time, skill]) => {
+const result = await page.evaluate(async ([file, clip, time, skill, profile, prop, legs, arms]) => {
   const R = await import('/scripts/pose-retarget/retarget.js');
   const F = window.__fxtest;
   F.state.auto = false; F.setSkill(skill); F.freeze(true);
   const g = await R.load('/tests/browser/out/ual/' + file);
-  const rest = R.sample(g, 'A_TPose', 0);
-  const j = R.sample(g, clip, time);
+  const P = R.PROFILES[profile];
+  const rest = R.sample(g, P.rest, 0, P);
+  const j = R.sample(g, clip, time, P, prop);
   const { local } = R.retarget(j, { restHeadQ: rest.headQ });
+  // the reference skeleton's own bends at rest (its T/A-pose knees, sloped feet, spine curve) are not pose
+  const restLocal = R.retarget(rest, { restHeadQ: rest.headQ }).local;
+  for (const n of ['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'elbowL', 'elbowR'])
+    if (local[n] && restLocal[n]) local[n] = local[n].map((x, i) => x - restLocal[n][i]);
+  for (const n of ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR']) if (local[n]) local[n] = local[n].map((x) => x * legs);
+  for (const n of ['armL', 'armR']) if (local[n]) local[n][2] *= arms;
   // the hero's driver joints (bone offsets from their parents)
   const hero = F.hero, bones = hero.bones;
   const names = ['body', 'hips', 'torso', 'chest', 'head', 'legL', 'kneeL', 'footL', 'legR', 'kneeR', 'footR', 'armL', 'elbowL', 'handL', 'armR', 'elbowR', 'handR'];
@@ -52,13 +62,17 @@ const result = await page.evaluate(async ([file, clip, time, skill]) => {
   palm.y += drop;
   const m = hero.ikMap;
   const hand = m ? [palm.x / m.scale, m.from + (palm.y - m.to) / m.scale, palm.z / m.scale] : palm.toArray();
-  const dir = j.indexR.clone().sub(j.pinkyR).normalize();
-  const fwd = j.knuckleR.clone().sub(j.handR); fwd.addScaledVector(dir, -fwd.dot(dir)).normalize();
-  const up = dir.clone().cross(fwd).normalize();
+  let dir, up;
+  if (j.weapon) ({ dir, up } = j.weapon); // the reference holds a real weapon prop
+  else {
+    dir = j.indexR.clone().sub(j.pinkyR).normalize();
+    const fwd = j.knuckleR.clone().sub(j.handR); fwd.addScaledVector(dir, -fwd.dot(dir)).normalize();
+    up = dir.clone().cross(fwd).normalize();
+  }
   return { stance, hold: { hand: hand.map(r3), dir: dir.toArray().map(r3), up: up.toArray().map(r3) } };
-}, [file, clip, time, skill]);
+}, [file, clip, time, skill, profile, prop, legs, arms]);
 
-result.source = `Quaternius Universal Animation Library (CC0) ${clip} at ${time} s, retargeted onto the driver rig (scripts/pose-retarget)`;
+result.source = `${profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${clip} at ${time} s, retargeted onto the driver rig${legs !== 1 ? `, legs x${legs}` : ''}${arms !== 1 ? `, arms in x${arms}` : ''} (scripts/pose-retarget)`;
 console.log(JSON.stringify(result, null, 2));
 
 if (shots) {
@@ -67,7 +81,8 @@ if (shots) {
     const F = window.__fxtest;
     F.stances._retarget = result.stance;
     const kind = F.hero.weaponKind;
-    F.hero.holds[kind] = { one: { ...result.hold, stance: '_retarget' } };
+    const old = F.hero.holds[kind] || {}, two = old.two && !F.hero.offhandKind;
+    F.hero.holds[kind] = two ? { ...old, two: { ...old.two, ...result.hold, stance: '_retarget' } } : { ...old, one: { ...result.hold, stance: '_retarget' } };
     F.setSkill(skill); F.hideDummies(); F.game.player.facing = 0; F.advance(1.5);
   }, [result, skill]);
   fs.mkdirSync(shots, { recursive: true });

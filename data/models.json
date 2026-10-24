@@ -700,23 +700,23 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword is a low guard trailing behind the right hip (retargeted from the Quaternius Sword_Idle clip, docs/POSE-RETARGET.md); the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) and the two-hand grips of the axe, mace and greatblade come from the KayKit Adventurers chibi Idle and 2H_Melee_Idle clips (docs/POSE-RETARGET.md) with their stances sword_ready and two_hand_ready; the axe and mace held with a shield and the staff keep hand-set carries. up is the blade's flat (its normal).",
         "sword": {
           "one": {
             "hand": [
-              -0.501,
-              0.642,
-              -0.542
+              -0.545,
+              0.762,
+              0.062
             ],
             "dir": [
-              -0.855,
-              0.152,
-              0.496
+              -0.16,
+              -0.01,
+              0.987
             ],
             "up": [
-              0.314,
-              -0.608,
-              0.729
+              0.987,
+              0.001,
+              0.16
             ],
             "stance": "sword_ready"
           }
@@ -741,22 +741,22 @@
           },
           "two": {
             "hand": [
-              -0.05,
-              0.85,
-              0.35
+              -0.524,
+              1.09,
+              0.467
             ],
             "dir": [
-              0.35,
-              0.5,
-              0.8
+              0.824,
+              0.335,
+              0.457
+            ],
+            "up": [
+              0.537,
+              -0.718,
+              -0.442
             ],
             "grip": 0.26,
-            "stance": "guard",
-            "up": [
-              1,
-              0,
-              0
-            ]
+            "stance": "two_hand_ready"
           }
         },
         "mace": {
@@ -779,43 +779,43 @@
           },
           "two": {
             "hand": [
-              -0.05,
-              0.85,
-              0.35
+              -0.524,
+              1.09,
+              0.467
             ],
             "dir": [
-              0.35,
-              0.5,
-              0.8
+              0.824,
+              0.335,
+              0.457
+            ],
+            "up": [
+              0.537,
+              -0.718,
+              -0.442
             ],
             "grip": 0.22,
-            "stance": "guard",
-            "up": [
-              1,
-              0,
-              0
-            ]
+            "stance": "two_hand_ready"
           }
         },
         "greatblade": {
           "two": {
             "hand": [
-              -0.05,
-              0.85,
-              0.35
+              -0.524,
+              1.09,
+              0.467
             ],
             "dir": [
-              0.3,
-              0.6,
-              0.75
+              0.824,
+              0.335,
+              0.457
+            ],
+            "up": [
+              0.537,
+              -0.718,
+              -0.442
             ],
             "grip": -0.11,
-            "stance": "guard",
-            "up": [
-              1,
-              0,
-              0
-            ]
+            "stance": "two_hand_ready"
           }
         },
         "staff": {

@@ -14,6 +14,8 @@ from mathutils.bvhtree import BVHTree
 
 C = json.load(open(sys.argv[-1]))
 CHIBI = C.get('chibi', 'public/models/hero_chibi.glb')
+ARM_AXIS = 0.838  # the generated chibi's arm axis height (m) that its landmarks (torsoZ, armAxis) are given for
+CHIBI_TIP = 0.513  # the chibi's fingertips out from its middle in the T-pose (m)
 FLATTEN = json.load(open('data/models.json'))['characters']['hero_chibi'].get('flatten', [])
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -53,7 +55,19 @@ body_bvh = BVHTree.FromPolygons([Vector(v) for v in BV], [tuple(t) for t in BT])
 
 # --- the generated character, in the chibi's metres
 gen = [o for o in imp(C['src']) if o.type == 'MESH'][0]
-gen.data.transform(Matrix.Translation((0, 0, C['lift'])) @ Matrix.Scale(C['scale'], 4) @ gen.matrix_world)
+gen.data.transform(gen.matrix_world)
+if 'scale' not in C:
+    # Meshy fits the whole model (helm, horns, hood) to a unit box, so size it by the body: the feet
+    # on the ground and the arm axis (the T-pose forearm's middle, out at 85% of the span, past any
+    # cape or sleeve hanging from the arm) at ARM_AXIS
+    R = np.array([tuple(v.co) for v in gen.data.vertices])
+    band = R[np.abs(np.abs(R[:, 0]) - 0.85 * np.abs(R[:, 0]).max()) < 0.02]
+    za = (band[:, 2].min() + band[:, 2].max()) / 2
+    C['scale'] = ARM_AXIS / (za - R[:, 2].min())
+    C['lift'] = -R[:, 2].min() * C['scale']
+    print('scale %.4f lift %.4f' % (C['scale'], C['lift']))
+    C.setdefault('armX', [[0.12, 0.12], [float(np.abs(R[:, 0]).max() * C['scale']), CHIBI_TIP]])
+gen.data.transform(Matrix.Translation((0, 0, C['lift'])) @ Matrix.Scale(C['scale'], 4))
 gen.matrix_world = Matrix.Identity(4)
 img = [n for n in gen.material_slots[0].material.node_tree.nodes if n.type == 'TEX_IMAGE'][0].image
 
@@ -76,7 +90,7 @@ bmesh.ops.triangulate(bm, faces=bm.faces[:])
 drop = []
 for f in bm.faces:
     c = f.calc_center_median()
-    if abs(c.x) > C['cuff'] or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C['neck'] + 0.03:
+    if abs(c.x) > C['cuff'] or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C.get('top', C['neck'] + 0.03):
         drop.append(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
@@ -136,9 +150,14 @@ T = np.stack([x * sT, (y - C['torsoY'][0]) * sT + C['torsoY'][1], zmapT(z)], 1)
 # legs
 sL = C['legScale']
 L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
-# arms
+# arms: `armX` maps distances out along the arm (from the shoulder to the fingertips), else `armLen` scales them
 a0, a1 = C['armAxis']; sA = C['armScale']
-A = np.stack([x * C.get('armLen', 1.0), y * sA, a1 + (z - a0) * sA], 1)
+if C.get('armX'):
+    ArmX = np.array(C['armX'], float)
+    armx = lambda d: np.interp(d, ArmX[:, 0], ArmX[:, 1], left=None, right=None) + np.where(d > ArmX[-1, 0], (d - ArmX[-1, 0]) * (ArmX[-1, 1] - ArmX[-2, 1]) / (ArmX[-1, 0] - ArmX[-2, 0]), 0) + np.where(d < ArmX[0, 0], d - ArmX[0, 0], 0)
+else:
+    armx = lambda d: d * C.get('armLen', 1.0)
+A = np.stack([sx * armx(ax), y * sA, a1 + (z - a0) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]
 wa = (smooth01(0.10, 0.16, ax) * (z > a0 - 0.08))[:, None]
 P = T * (1 - wl) + L * wl
@@ -193,7 +212,9 @@ for i, p in enumerate(P):
 hips = G.index('Hips')
 sk = C.get('skirt')
 if sk:
-    k = smooth01(sk['to'], sk['from'], P[:, 2]) * sk['hips'] * (piece == 1) * (P0[:, 2] > crotchG - 0.01)
+    # the skirt or coat tails: above the crotch, or hanging clear of the legs below it (not trousers)
+    clear = np.array([body_bvh.find_nearest(Vector(p))[3] > sk.get('clear', 0.025) for p in P])
+    k = smooth01(sk['to'], sk['from'], P[:, 2]) * sk['hips'] * (piece == 1) * ((P0[:, 2] > crotchG - 0.01) | clear)
     W = W * (1 - k[:, None]); W[:, hips] += k
 # four largest, normalised
 for i in range(len(W)):
@@ -203,6 +224,9 @@ W /= W.sum(1, keepdims=True)
 # --- the body faces each piece covers (hidden in game, so the skin cannot poke through)
 hidden = {}
 names = {0: 'boots', 1: 'armor'}
+# body faces well inside a piece are hidden outright (the armpits are open in the T-pose): the armour
+# from just above the boot tops to below the collar, out to just inside the sleeve ends
+HIDE = {'armor': [zmapL(C['bootTop']) + 0.02, 0.785, float(armx(np.array(C['cuff']))) - 0.02], 'boots': [-1, zmapL(C['bootTop']) - 0.02, 1]}
 for pc, name in names.items():
     fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]
     vs = sorted({v.index for f in fs for v in f.verts})
@@ -214,7 +238,7 @@ for pc, name in names.items():
         cen = (a + b + c) / 3; n = np.cross(b - a, c - a); nl = np.linalg.norm(n)
         if nl == 0: continue
         n /= nl
-        reg = C.get('hideRegion', {}).get(name)
+        reg = C.get('hideRegion', {}).get(name) or HIDE[name]
         if reg and all(reg[0] < q[2] < reg[1] and abs(q[0]) < reg[2] for q in (a, b, c)):
             hid.append(ti); continue  # well inside what the piece covers (the armpits open in the T-pose)
         hits = 0

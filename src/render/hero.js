@@ -18,7 +18,7 @@ import { buildOutfit } from './outfit.js';
 import { buildHeadwear } from './headwear.js';
 import OUTFITS from '../../data/outfits.json';
 import { resolveOutfit } from '../core/outfit-look.js';
-import { modelInstance, characterBase } from './models.js';
+import { modelInstance, characterBase, chibiOutfit } from './models.js';
 import { attachSkinnedBody, fitParts } from './skinned.js';
 import { attachVrmBody } from './vrm-body.js';
 import { attachChibiBody, attachChibiHair } from './chibi-body.js';
@@ -217,7 +217,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       rig.holds = V.holds; // its own carries where the shared ones read wrong on it
       attachChibiBody(rig, V, { weapon: gear.weapon || (gear.unarmed ? null : 'sword'), offhand: gear.offhand || null });
       // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
-      attachChibiGarments(rig, V, wear, { armor: characterBase('outfit_' + wear.armor), boots: characterBase('outfit_' + wear.boots.id) });
+      attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
       const hair = characterBase('hero_chibi_hair');
       if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && wear.helm.kind !== 'circlet' }); // a circlet leaves the hair whole
     } else attachVrmBody(rig, V);

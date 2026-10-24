@@ -895,6 +895,96 @@
       "chibiOutfit": "boots",
       "tris": 812,
       "source": "The boots of the same model as outfit_travel_tunic, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_ranger_coat": {
+      "file": "models/outfits/ranger_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2141,
+      "source": "The chibi in the ranger_coat set (the owner's reference sheet 01 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-0d22-7308-94f7-d6b344cc84e1), Meshy 6 retexture (task 01a16f6d-835c-76fd-bed2-acab3d0763c5); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/ranger.json)."
+    },
+    "outfit_hide_vest": {
+      "file": "models/outfits/hide_vest.glb",
+      "chibiOutfit": "armor",
+      "tris": 1596,
+      "source": "The chibi in the hide_vest set (the owner's reference sheet 04 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-112b-71f4-b745-65eba656da4c), Meshy 6 retexture (task 01a16f6d-e3b5-71cf-9cdc-74dc1a1ae59d); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/hide.json)."
+    },
+    "outfit_trail_boots": {
+      "file": "models/outfits/trail_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 592,
+      "source": "The boots of the same model as outfit_hide_vest, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_storm_mantle": {
+      "file": "models/outfits/storm_mantle.glb",
+      "chibiOutfit": "armor",
+      "tris": 2088,
+      "source": "The chibi in the storm_mantle set (the owner's reference sheet 05 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-14ee-75c2-bb0c-98df95347362), Meshy 6 retexture (task 01a16f6d-e992-7553-8e4d-20914d03ce41); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/storm.json)."
+    },
+    "outfit_wisp_slippers": {
+      "file": "models/outfits/wisp_slippers.glb",
+      "chibiOutfit": "boots",
+      "tris": 401,
+      "source": "The boots of the same model as outfit_storm_mantle, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_shell_guard": {
+      "file": "models/outfits/shell_guard.glb",
+      "chibiOutfit": "armor",
+      "tris": 1974,
+      "source": "The chibi in the shell_guard set (the owner's reference sheet 07 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-18c6-7520-9ac0-04afd470c2e0), Meshy 6 retexture (task 01a16f6d-ef38-76e5-8732-7ca23f451f39); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/shell.json)."
+    },
+    "outfit_tide_boots": {
+      "file": "models/outfits/tide_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 486,
+      "source": "The boots of the same model as outfit_shell_guard, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_wardenstalker_coat": {
+      "file": "models/outfits/wardenstalker_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 1919,
+      "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
+    },
+    "outfit_gale_boots": {
+      "file": "models/outfits/gale_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 821,
+      "source": "The boots of the same model as outfit_wardenstalker_coat, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_crag_plate": {
+      "file": "models/outfits/crag_plate.glb",
+      "chibiOutfit": "armor",
+      "tris": 2005,
+      "source": "The chibi in the crag_plate set (the owner's reference sheet 12 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-2156-746f-bd4a-10b83926939b), Meshy 6 retexture (task 01a16f6d-fa88-7258-ad44-de9de2e6adf9); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/crag.json)."
+    },
+    "outfit_crag_greaves": {
+      "file": "models/outfits/crag_greaves.glb",
+      "chibiOutfit": "boots",
+      "tris": 743,
+      "source": "The boots of the same model as outfit_crag_plate, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_wolfpelt_coat": {
+      "file": "models/outfits/wolfpelt_coat.glb",
+      "chibiOutfit": "armor",
+      "tris": 2146,
+      "source": "The chibi in the wolfpelt_coat set (the owner's reference sheet 14 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-24b3-77a0-bb19-94cb3b5ec658), Meshy 6 retexture (task 01a16f6d-ff8a-7663-a641-2f02902bf714); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/wolf.json)."
+    },
+    "outfit_wolf_boots": {
+      "file": "models/outfits/wolf_boots.glb",
+      "chibiOutfit": "boots",
+      "tris": 900,
+      "source": "The boots of the same model as outfit_wolfpelt_coat, cut below the boot tops by scripts/fit-chibi-outfit.py."
+    },
+    "outfit_sporeweave_vest": {
+      "file": "models/outfits/sporeweave_vest.glb",
+      "chibiOutfit": "armor",
+      "tris": 1520,
+      "source": "The chibi in the sporeweave_vest set (the owner's reference sheet 16 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-2873-7686-b2d4-e6540f6a59b2), Meshy 6 retexture (task 01a16f6d-8d67-7600-a805-fdaca7e554fc); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/spore.json)."
+    },
+    "outfit_moonleaf_slippers": {
+      "file": "models/outfits/moonleaf_slippers.glb",
+      "chibiOutfit": "boots",
+      "tris": 602,
+      "source": "The boots of the same model as outfit_sporeweave_vest, cut below the boot tops by scripts/fit-chibi-outfit.py."
     }
   },
   "monsters": {

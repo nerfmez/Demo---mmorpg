@@ -1,0 +1,43 @@
+{
+ "_doc": "scripts/fit-chibi-outfit.py settings for reference sheet 12: sized from its arm axis (no scale given), cut at the neck, sleeve ends (cuff) and boot tops; landmarks as travel.json.",
+ "id": "crag",
+ "src": "assets/meshy/outfits/crag_meshy.glb",
+ "neck": 0.925,
+ "cuff": 0.31,
+ "bootTop": 0.37,
+ "torsoZ": [
+  [
+   0.5,
+   0.45
+  ],
+  [
+   0.838,
+   0.769
+  ],
+  [
+   0.9,
+   0.83
+  ]
+ ],
+ "torsoY": [
+  -0.025,
+  -0.015
+ ],
+ "torsoScale": 1.1,
+ "legScale": 1.1,
+ "armAxis": [
+  0.838,
+  0.769
+ ],
+ "armScale": 1.25,
+ "margin": {
+  "armor": 0.006,
+  "boots": 0.006
+ },
+ "cover": 0.08,
+ "coverHits": 2,
+ "out": {
+  "armor": "public/models/outfits/crag_plate.glb",
+  "boots": "public/models/outfits/crag_greaves.glb"
+ }
+}

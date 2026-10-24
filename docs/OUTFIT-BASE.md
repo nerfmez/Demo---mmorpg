@@ -134,4 +134,6 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    without the covered triangles, so nothing pokes through and no per-pose adjustment is needed.
    Gloves and helms still use the code-built pieces.
 
-The first set is the Travel Tunic (reference sheet 03; `outfit_travel_tunic`, `outfit_travel_boots`).
+Every armour and boots item has one (`assets/meshy/outfits/README.md`); the boots made with the ranger
+coat are not used (the hide set's `trail_boots` are). The models load when first worn
+(`render/models.js` `chibiOutfit`); until then the code-built garments are drawn.

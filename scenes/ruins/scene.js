@@ -348,35 +348,118 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 
 // A fractured outcrop. Its horizontal shelves and offset cracks continue around
 // the ridge; it is one rock body with plants in its joints, not a fence of drums.
-// The arrival beach's ledge: faceted grey blocks stacked in courses along the
-// cliff face, mossy on top and outlined, with the fractured face left behind
-// them as a dark backing. The blocks use their own seed, so the approved
-// stream (and every rock, plant and collider placed after the cliffs) is kept.
-function ledgeStones(T,a,b,out,l,seg){
-  const keep=seed;seed=9173+seg*977+Math.round(Math.abs(a.x*13+a.z*7));
-  const blk={chamfer:.12,jitter:.16,extra:7},dx=(b.x-a.x)/l,dz=(b.z-a.z)/l,ry=Math.atan2(-dz,dx);
-  for(let s=R(0,.3)*K;s<l;){
-    const w=R(.38,.72)*K,x=a.x+dx*(s+w/2),z=a.z+dz*(s+w/2);s+=w*.92;
-    const st=stairsAt(x,z);if(st.inside||st.s<st.half+.35+w*.5)continue;
-    const top=Math.min(T.topAt?T.topAt(x):T.top,height(x-out.x*(T.lean+.4),z-out.z*(T.lean+.4))+.08);
-    const base=height(x+out.x*1.6,z+out.z*1.6)-.28,wall=top-base;
-    if(wall<.22*K)continue;
-    const n=Math.max(1,Math.round(wall/(.8*K))),ch=wall/n;
-    for(let c=0;c<n;c++){
-      const last=c===n-1,set=.18*K-T.lean*(c+.5)/n-c*.06*K;
-      const sx=x+out.x*set+R(-.06,.06)*K,sz=z+out.z*set+R(-.06,.06)*K;
-      addStone(sx,base+c*ch-.12,sz,w*R(.92,1.06),ch+(last?R(.05,.22)*K:.18),R(.42,.55)*K,{...blk,ry:ry+R(-.1,.1),moss:last?.6:.08});
+// The approved forest cliff, shared by every ruins-derived scene: the rock face
+// split into columns by cracks, each column two planes meeting at a ridge, a
+// rounded edge and a flat stone cap running back into the grass, moss creeping
+// down, and plants on the lip and at the foot. One light mesh; it replaces the
+// earlier fractured face. Sizes follow the forest's, scaled by K. It draws from
+// its own seed, so the approved stream, layout and colliders are unchanged.
+function columnCliffs(){
+  const U=K/2.4,pos=[],col=[],tmpA=new V3(),tmpB=new V3(),nn=new V3();
+  const quad=(a,b,c,d,out,color)=>{
+    for(const v of[a,b,c,d]){const st=stairsAt(v.x,v.z);if(st.inside||st.s<st.half+.35)v.y=Math.min(v.y,st.y-.12);}
+    tmpA.subVectors(b,a);tmpB.subVectors(c,a);nn.crossVectors(tmpA,tmpB);
+    const vs=nn.dot(out)>=0?[a,b,c,a,c,d]:[a,c,b,a,d,c];
+    for(const v of vs){pos.push(v.x,v.y,v.z);col.push(color.r,color.g,color.b);}
+  };
+  const stone=STONE.map(h=>new THREE.Color(h)),moss=MOSS.map(h=>new THREE.Color(h)),F=[0,.32,.66,1],shade=new THREE.Color();
+  for(const T of TERRACES){
+    if(!T.ledge||T.masonry)continue;
+    for(const run of cliffRuns(T)){
+      const R0=run.pts.map(q=>({x:q.x,z:q.z}));
+      if(R0.length<2)continue;
+      if(run.closed)R0.push(R0[0]);
+      const S=[];
+      for(let i=0;i<R0.length-1;i++){
+        const a=R0[i],b=R0[i+1],k=Math.max(1,Math.round(Math.hypot(b.x-a.x,b.z-a.z)/(.55*U)));
+        for(let j=0;j<k;j++)S.push({x:a.x+(b.x-a.x)*j/k,z:a.z+(b.z-a.z)*j/k});
+      }
+      S.push({...R0[R0.length-1]});
+      let acc=0;
+      S.forEach((q,i)=>{
+        const a=S[Math.max(0,i-1)],b=S[Math.min(S.length-1,i+1)],tx=b.x-a.x,tz=b.z-a.z,l=Math.hypot(tx,tz)||1;
+        q.nx=tz/l;q.nz=-tx/l;
+        if(polyAt(T,q.x+q.nx*.8,q.z+q.nz*.8)<0){q.nx=-q.nx;q.nz=-q.nz;}
+        if(i)acc+=Math.hypot(q.x-S[i-1].x,q.z-S[i-1].z);q.s=acc;
+        q.base=Math.min(height(q.x+q.nx*1.6,q.z+q.nz*1.6),height(q.x+q.nx*2.6,q.z+q.nz*2.6))-.35;
+        q.top=Math.min(T.topAt?T.topAt(q.x):T.top,height(q.x-q.nx*(T.lean+.4),q.z-q.nz*(T.lean+.4))+.08);
+      });
+      const cols=[];let i0=0;
+      while(i0<S.length-1){
+        const w=(rand()<.22?R(2.6,4.2):R(1.1,2.2))*U;let i1=i0+1;
+        while(i1<S.length-1&&S[i1].s-S[i0].s<w)i1++;
+        cols.push({i0,i1,s0:S[i0].s,s1:S[i1].s,off:R(-.1,.55)*U,slope:R(-.12,.12),ridge:R(.15,.5)*U,peak:R(.3,.7),rise:R(.05,.45)*U,cap:R(.9,1.6)*U,moss:R(0,1),rows:F.map(()=>R(-.25,.25)*U),lean:R(-.2,.35)*U,c:pick(stone).clone().multiplyScalar(R(.82,.92)),mid:(S[i0].s+S[i1].s)/2});
+        i0=i1;
+      }
+      const top=(C,q)=>q.top+C.rise;
+      // A point on block course r of a column at height fraction f. Each course
+      // has its own setback, so the courses read as stacked blocks with seams.
+      const vtx=(C,i,r,f=F[r])=>{
+        const q=S[i],u=(q.s-C.s0)/Math.max(.01,C.s1-C.s0),c=Math.min(r,F.length-2);
+        const ridge=C.ridge*(u<C.peak?u/C.peak:(1-u)/(1-C.peak));
+        const o=.15*U+C.off+C.slope*(q.s-C.mid)+ridge+C.rows[c]+(c===0?.25*U:0)-(T.lean+C.lean)*f;
+        return new V3(q.x+q.nx*o,q.base+(top(C,q)-q.base)*f+(f===1?.04*U*noise2(q.x*2.1,q.z*2.1):0),q.z+q.nz*o);
+      };
+      // A dark rock backing behind the columns, so cracks and short columns show
+      // shadowed stone rather than the grass slope behind them.
+      for(let i=0;i<S.length-1;i++){
+        const a=S[i],b=S[i+1],out=new V3((a.nx+b.nx)/2,0,(a.nz+b.nz)/2),o=-.3*U;
+        const p=(q,f)=>new V3(q.x+q.nx*(o-T.lean*f),q.base+(q.top-q.base)*f,q.z+q.nz*(o-T.lean*f));
+        if(a.top-a.base<.06*K&&b.top-b.base<.06*K)continue;
+        quad(p(a,0),p(b,0),p(b,1),p(a,1),out,shade.copy(stone[0]).multiplyScalar(.42));
+      }
+      cols.forEach((C,ci)=>{
+        for(let i=C.i0;i<C.i1;i++){
+          const out=new V3((S[i].nx+S[i+1].nx)/2,0,(S[i].nz+S[i+1].nz)/2);
+          if(top(C,S[i])-S[i].base<.06*K)continue;
+          for(let r=0;r<F.length-1;r++){
+            shade.copy(C.c).multiplyScalar(r===0?.9:1+R(-.03,.03));
+            if(r===F.length-2&&(i-C.i0)%3!==0&&rand()<.5)shade.lerp(pick(moss),R(.12,.3));
+            quad(vtx(C,i,r,F[r]),vtx(C,i+1,r,F[r]),vtx(C,i+1,r,F[r+1]),vtx(C,i,r,F[r+1]),out,shade);
+            // the seam to the next course: a narrow ledge or undercut in shadow, mossy in places
+            if(r<F.length-2){shade.copy(C.c).multiplyScalar(.6);if(rand()<.3)shade.lerp(pick(moss),.4);quad(vtx(C,i,r,F[r+1]),vtx(C,i+1,r,F[r+1]),vtx(C,i+1,r+1,F[r+1]),vtx(C,i,r+1,F[r+1]),new V3(0,1,0),shade);}
+          }
+          const t0=vtx(C,i,F.length-1),t1=vtx(C,i+1,F.length-1);
+          const edge=k=>{const q=S[k],o=vtx(C,k,F.length-1);return new V3(o.x-q.nx*.22*U,o.y+.14*U,o.z-q.nz*.22*U);};
+          const e0=edge(i),e1=edge(i+1);
+          const back=k=>{const q=S[k];return new V3(q.x-q.nx*C.cap,top(C,q)+.14*U+R(-.04,.04),q.z-q.nz*C.cap);};
+          const b0=back(i),b1=back(i+1);
+          const mossy=noise2(S[i].x*.9+4,S[i].z*.9)*.5+.5<.35+C.moss*.4;
+          shade.copy(C.c).multiplyScalar(1.04);if(mossy)shade.lerp(pick(moss),R(.5,.75));
+          quad(t0,t1,e1,e0,out,shade.clone().multiplyScalar(.97));
+          quad(e0,e1,b1,b0,new V3(0,1,0),shade);
+          quad(b0,b1,new V3(b1.x,b1.y-.45*U,b1.z),new V3(b0.x,b0.y-.45*U,b0.z),new V3(-out.x,0,-out.z),shade.copy(C.c).multiplyScalar(.8));
+        }
+        if(!run.closed)for(const k of(ci===0?[C.i0]:[]).concat(ci===cols.length-1?[C.i1]:[])){
+          const q=S[k],side=new V3(q.nz,0,-q.nx).multiplyScalar(k===C.i0?-1:1);
+          for(let r=0;r<F.length-1;r++){
+            const a0=vtx(C,k,r,F[r]),a1=vtx(C,k,r,F[r+1]);
+            quad(a0,a1,new V3(q.x-q.nx*C.cap,a1.y,q.z-q.nz*C.cap),new V3(q.x-q.nx*C.cap,a0.y,q.z-q.nz*C.cap),side,shade.copy(C.c).multiplyScalar(.75));
+          }
+        }
+        const D=cols[ci+1];
+        if(D){
+          const out=new V3(S[C.i1].nz,0,-S[C.i1].nx);
+          for(let r=0;r<F.length-1;r++)quad(vtx(C,C.i1,r,F[r]),vtx(D,C.i1,r,F[r]),vtx(D,C.i1,r,F[r+1]),vtx(C,C.i1,r,F[r+1]),out,shade.copy(C.c).multiplyScalar(.55));
+        }
+        // grass on the lip and in the cracks, bushes on top and at the foot (fewer than the forest: lighter)
+        const q=S[Math.round((C.i0+C.i1)/2)];
+        for(let g=C.i0;g<=C.i1;g+=2){const a=S[g],b=C.cap+R(.05,.9)*U;grassItems.push({x:a.x-a.nx*b+R(-.3,.3),y:a.top+.02,z:a.z-a.nz*b+R(-.3,.3),s:R(1.0,1.5),ry:R(0,6.28),k:R(.9,1.1)});}
+        if(D){const v=vtx(C,C.i1,1,F[1]);grassItems.push({x:v.x+S[C.i1].nx*.1,y:v.y-.2,z:v.z+S[C.i1].nz*.1,s:R(.8,1.2),ry:R(0,6.28),k:.9});}
+        addBush(q.x-q.nx*(C.cap*.6+R(0,.6)*U),q.top-.15,q.z-q.nz*(C.cap*.6+R(0,.6)*U),R(.5,.9)*U,{sy:.62,tint:R(-.4,.3)});
+        if(rand()<.5)addBush(q.x-q.nx*(C.cap+R(.3,1.0)*U),q.top-.25,q.z-q.nz*(C.cap+R(.3,1.0)*U),R(.45,.8)*U,{sy:.55,tint:R(-.4,.3)});
+        if(rand()<.25){const x=q.x+q.nx*R(1.4,2.2)*U,z=q.z+q.nz*R(1.4,2.2)*U;if(trailEdge(x,z)>.6*U)addBush(x,height(x,z)-.05,z,R(.5,.85)*U,{sy:.75,tint:-.6});}
+      });
     }
   }
-  seed=keep;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();
+  const mesh=new THREE.Mesh(g,masonryMaterial());mesh.customDepthMaterial=masonryDepth;mesh.castShadow=mesh.receiveShadow=true;return mesh;
 }
 function buildCliffs(){
   const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c).multiplyScalar(.72));
-  const face=(a,b,c,d,color,out)=>{
-    const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));
-    const vs=normal.dot(out)>0?[a,b,c,a,c,d]:[a,c,b,a,d,c];
-    for(const p of vs){pos.push(p.x,p.y,p.z);col.push(color.r,color.g,color.b);}
-  };
+  // The old fractured face is no longer drawn; its outline is still walked for
+  // the seeded draws and the plants it places (see the end of this function).
+  const face=()=>{};
   for(const T of TERRACES){
     if(!T.ledge)continue;
     for(const run of cliffRuns(T)){
@@ -441,23 +524,17 @@ function buildCliffs(){
             addBush(x,height(x,z)-.1,z,.55*K,{sy:.55,tint:-.2});
           }
         }
-        ledgeStones(T,a,b,out,l,i);
         length+=l;
       }
     }
   }
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();
-  const mesh=new THREE.Mesh(g,masonryMaterial());mesh.customDepthMaterial=masonryDepth;mesh.castShadow=mesh.receiveShadow=true;return mesh;
+  // The fractured face above is still traced for its seeded draws and the plants
+  // it places; the forest-style columns are drawn in its place.
+  const keep=seed;seed=6151;const mesh=columnCliffs();seed=keep;return mesh;
 }
 function masonryMaterial(){
-  // The beach and forest stone light: lavender shadow, cool half-tone.
-  return paint({vertexColors:true,shade:[.34,.33,.42],mid:[.63,.61,.66],band:[-.34,.24],
-    albedo:`
-      float n=vnoise(vW.xz*1.4+vW.y*.23);
-      float lichen=smoothstep(.64,.85,n);
-      diffuseColor.rgb*=.94+.08*n;
-      diffuseColor.rgb=mix(diffuseColor.rgb,${L('#879445')},lichen*.14);
-    `});
+  // The beach and forest stone material itself (no extra shader variant).
+  return paint({vertexColors:true,shade:[.36,.34,.44],mid:[.64,.62,.67],band:[-.34,.24]});
 }
 function buildLedges(){
   // Almost flush paving follows the walk surface. Narrow exposed risers replace

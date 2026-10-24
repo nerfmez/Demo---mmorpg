@@ -55,7 +55,7 @@ function orchard(){
   }
  }
 
- for(let i=0;i<12500;i++){
+ for(let i=0;i<6900;i++){
   const[x,z]=[R(GX0*.8,GX1*.8),R(GZ0*.70,GZ1)],y=height(x,z),f=field(x,z),st=stairsAt(x,z);
   if(inFarm(x,z)||trailEdge(x,z)<.50||f.rock>.10||Math.hypot(x-WELL.x,z-WELL.z)<WELL.r+.5)continue;
   if(Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3>.70)continue;

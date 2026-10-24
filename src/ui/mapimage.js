@@ -70,11 +70,12 @@ export function mapImage(world) {
       }
       const rd = cityFloorAt(world.data.city,x,z)?world.roadDist(x,z):outsideRoadDistance(world.data.city,world.roads,x,z);
       if (rd < 0.8) c = mix(c, ROAD, Math.min(1, (0.8 - rd) / 0.9));
-      if(!world.isWater(x,z))c=mix(c,ROAD,outsideClearingWeight(world.data.city,x,z)*(.88+n*.08));
+      const water = world.isWater(x, z);
+      if(!water)c=mix(c,ROAD,outsideClearingWeight(world.data.city,x,z)*(.88+n*.08));
       // hill shade: light from the north-west (slopes facing -x/-z are lit), high ground a bit lighter
       const shade = 0.97 + Math.max(-0.14, Math.min(0.14, (dx + dz) * 0.13)) + Math.max(-0.1, Math.min(0.12, h * 0.018));
       c = [c[0] * shade, c[1] * shade, c[2] * shade];
-      if (world.isWater(x, z)) {
+      if (water) {
         const depth = Math.max(0, world.waterLevel - h);
         c = mix(SHALLOW, DEEP, Math.min(1, depth / 1.6));
       }

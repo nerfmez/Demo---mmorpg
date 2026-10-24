@@ -30,7 +30,7 @@ function buildLedges(){
  seed=resume;
 }
 function stoneStairs(){
- // One continuous stair on every steep section: a course of grey stones every
+ // One continuous stair along each authored flight: a course of grey stones every
  // STEP along the route, square to its smoothed direction. Each course is level,
  // so its front edge stands proud of the slope as a riser.
  const STEP=.42*K,STAIR=['#bdb8b6','#c9c4c0','#b4afb0','#c4beb9'];
@@ -42,7 +42,7 @@ function stoneStairs(){
   });
   let next=-Infinity,course=0;
   route.rows.forEach((r,i)=>{
-   if(!((route.id==='left'?((r.section>=3&&r.section<=5)||(r.section>=9&&r.section<=10)):route.id==='shortcut'?r.section===1:route.id==='right'&&r.section>=2&&r.section<=6)||steep.get(r.section)>=.2)||r.s<next)return;
+   if(!(route.id==='left'?((r.section>=3&&r.section<=5)||(r.section>=9&&r.section<=10)):route.id==='shortcut'?r.section===1:route.id==='right'?((i/(route.n-1)>.60&&i/(route.n-1)<.65)||(i/(route.n-1)>.78&&i/(route.n-1)<.83)):false)||r.s<next)return;
    next=r.s+STEP;course++;
    const A=route.rows[Math.max(0,i-3)],B=route.rows[Math.min(route.n-1,i+3)],l=Math.hypot(B.x-A.x,B.z-A.z)||1;
    const ux=(B.x-A.x)/l,uz=(B.z-A.z)/l,nx=uz,nz=-ux,ry=Math.atan2(ux,uz);

@@ -74,7 +74,7 @@ function plantCoast(){
     if(f.top<.90||trailEdge(x,z)<1.0||stairsAt(x,z).inside)continue;
     addBush(x,height(x,z)-.12,z,R(.8,1.7),{sy:R(.55,.9),tint:.1});
   }
-  for(let i=0;i<10500;i++){
+  for(let i=0;i<5800;i++){
     const x=R(GX0*.8,GX1*.8),z=R(GZ0*.75,GZ1),f=field(x,z);
     if(f.top<.9||trailEdge(x,z)<.5||f.rock>.08||stairsAt(x,z).inside)continue;
     grassItems.push({x,y:height(x,z)-.03,z,s:R(.65,1.05),ry:R(0,6.28),k:R(.86,1.1)});
@@ -97,8 +97,9 @@ function placeCoastPlants(){
   const leafDepth=shrub=>new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:branchletTexture(shrub),alphaTest:.45});
   const trunks=place(new THREE.InstancedMesh(animeTrunk(),paint({vertexColors:true,shade:[.62,.62,.70],mid:[.62,.62,.70],band:[-5,-5]}),treeItems.length),treeItems,it=>new V3(it.s,it.s,it.s));trunks.castShadow=trunks.receiveShadow=true;scene.add(trunks);
   for(const[seed,v]of [[3,0],[5,1],[9,2]]){
-    const items=treeItems.filter(t=>t.v===v).map(t=>({...t,y:t.y+3.5*t.s}));if(!items.length)continue;
-    const mesh=place(new THREE.InstancedMesh(animeFoliage(seed,false),leafMat(false),items.length),items,it=>new V3(3*it.s,2*it.s,2.7*it.s));mesh.customDepthMaterial=leafDepth(false);mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
+    // Fuller crowns, as in the concepts' canopy: wider than the game's default, on the same trunks and colliders.
+    const items=treeItems.filter(t=>t.v===v).map(t=>({...t,y:t.y+3.6*t.s}));if(!items.length)continue;
+    const mesh=place(new THREE.InstancedMesh(animeFoliage(seed,false),leafMat(false),items.length),items,it=>new V3(3.6*it.s,2.4*it.s,3.25*it.s));mesh.customDepthMaterial=leafDepth(false);mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
   }
   for(const[seed,v]of[[11,0],[13,1],[19,2]]){
     const items=shrubItems.filter(t=>t.v===v);if(!items.length)continue;

@@ -45,7 +45,7 @@ function giantConch(){
     return p;
   };
   const cream=new THREE.Color('#f2e6cc'),ochre=new THREE.Color('#cba87a');
-  const n=176,k=96;
+  const n=96,k=56;   // lighter (was 176x96): the shell spans a few hundred pixels at the play camera
   for(let i=0;i<n;i++)for(let j=0;j<k;j++){
     const t=i/n,t1=(i+1)/n,a=j/k*Math.PI*2,b=(j+1)/k*Math.PI*2;
     const seam=Math.pow(.5+.5*Math.cos(t*2*Math.PI*5.8+a*.82),14);

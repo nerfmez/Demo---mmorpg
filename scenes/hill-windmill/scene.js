@@ -75,7 +75,7 @@ function plantHill(){
   const g=Math.max(Math.abs(height(x+.4,z)-y),Math.abs(height(x,z+.4)-y))/.4;if(g>1.6)continue;
   addBush(x,y-.1,z,R(.62,1.22),{sy:R(.52,.80),tint:R(-.08,.12)});
  }
- for(let i=0;i<11000;i++){
+ for(let i=0;i<6000;i++){
   const[x,z]=[R(GX0*.78,GX1*.78),R(GZ0*.75,GZ1)],f=field(x,z),y=height(x,z);
   if(trailEdge(x,z)<.35||f.rock>.10||Math.hypot(x-MILL.x,z-MILL.z)<MILL.r*1.4)continue;
   const slope=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;if(slope>.65)continue;

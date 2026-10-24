@@ -3,16 +3,16 @@
 // weapon channel), so the hand does not twist when an action takes over. Prints the corrected up of
 // the carry (and of its left weapon); write those into data/models.json. Needs the dev server.
 //
-//   node scripts/pose-retarget/match-roll.mjs <bench skill> <offhand weapon|null> <carry: one|two|dual>
+//   node scripts/pose-retarget/match-roll.mjs <bench skill> <offhand weapon|null> <carry: one|two|dual> [right-hand weapon]
 import { chromium } from 'playwright';
-const [skill, off, key] = process.argv.slice(2);
+const [skill, off, key, weapon = null] = process.argv.slice(2);
 const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader'] });
 const p = await b.newPage();
 await p.goto('http://127.0.0.1:4190/fx-test.html', { waitUntil: 'load' });
 await p.waitForFunction(() => window.__fxtest?.hero?.holds, null, { timeout: 90000 });
 await p.waitForTimeout(2000);
-const r = await p.evaluate(async ([skill, off, key]) => {
-  const F = window.__fxtest; F.state.auto = false; F.state.offhand = off === 'null' ? null : off; F.setSkill(skill); F.freeze(true); F.advance(1.5);
+const r = await p.evaluate(async ([skill, off, key, weapon]) => {
+  const F = window.__fxtest; F.state.auto = false; F.state.weapon = weapon; F.state.offhand = off === 'null' ? null : off; F.setSkill(skill); F.freeze(true); F.advance(1.5);
   const h = F.hero, bones = h.bones, hold = h.holds[h.weaponKind][key];
   const V = bones.body.position.constructor, Q = bones.body.quaternion.constructor;
   const fix = (sock, hand, up, dir) => {
@@ -33,6 +33,6 @@ const r = await p.evaluate(async ([skill, off, key]) => {
     F.advance(0.1);
   }
   return out;
-}, [skill, off || 'null', key]);
+}, [skill, off || 'null', key, weapon]);
 console.log(JSON.stringify(r));
 await b.close();

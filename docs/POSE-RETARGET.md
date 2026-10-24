@@ -73,7 +73,12 @@ sword and wand with a second weapon in the left hand). `dagger_ready` (Quaterniu
 0.6 s, full crouch, the first reference stance) is the dagger's own low trailing guard: the owner
 picked it for the dagger, alone and dual (the left dagger mirrors the right). `two_hand_ready` (KayKit
 `2H_Melee_Idle`, legs 0.5) is kept as `presets.two_hand_feminine` for a female body; the male
-chibi keeps its hand-set two-hand carries. Each stance's `_from` records its source and settings.
+chibi keeps its hand-set two-hand carries. Mage and archer (owner picks): `staff_ready` (KayKit Mage `Spellcasting` at 0.4 s with
+`2H_Staff`: staff upright at the side, the free hand out), `wand_ready` (KayKit Mage `Idle` at 0.4 s
+with `1H_Wand`, low; its `dual` carry mirrors it into the left hand), `bow_ready` (Quaternius UAL2
+`Bow_Notch` at 0.15 s, mirrored: the bow before the body, the drawing hand at the face). The staff is
+held in one hand (a two-hand weapon with no second weapon); the wand may be held in each hand.
+Each stance's `_from` records its source and settings.
 
 - `--propL` names the reference's left-hand weapon (a dual carry's `hold.left`); `--offhand`
   previews the hero with that weapon in its left hand.

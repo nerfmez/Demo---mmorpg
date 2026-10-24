@@ -44,7 +44,8 @@ test('idle stances exist, use real pose channels and stay within a standing rang
     for (const [k, v] of Object.entries(st)) {
       if (k === '_from') continue;
       if (k === 'drop' || k === 'shift') { assert.ok(Math.abs(v) < (ref ? 0.2 : 0.1), `${name}.${k}`); continue; }
-      assert.ok(bones.has(k) && vec(v) && v.every((x) => Math.abs(x) < (ref ? 1.6 : 0.8)), `${name}.${k}`);
+      const lim = ref ? (/^(elbow|knee)/.test(k) ? 2.6 : 1.6) : 0.8; // a hinge can fold further (an archer's drawing elbow)
+      assert.ok(bones.has(k) && vec(v) && v.every((x) => Math.abs(x) < lim), `${name}.${k}`);
     }
   }
 });

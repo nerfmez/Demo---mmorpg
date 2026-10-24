@@ -349,6 +349,11 @@ test('real ZIP extractor rejects traversal and symlinks; valid archive retains s
     if (kind === 'valid') { extractBuildArchive(zip, out); assert.equal(readFileSync(join(out, 'ci-source.txt'), 'utf8'), source); }
     else assert.throws(() => extractBuildArchive(zip, out));
   }
+  const big = join(dir, 'big.zip');
+  execFileSync('python3', ['-c', 'import sys,zipfile\nwith zipfile.ZipFile(sys.argv[1],"w",zipfile.ZIP_DEFLATED) as z:\n z.writestr("site.tar",b"0"*4096)', big]);
+  assert.throws(() => extractBuildArchive(big, join(dir, 'small'), 1024), 'the size limit applies');
+  extractBuildArchive(big, join(dir, 'roomy'), 8192);
+  assert.equal(readFileSync(join(dir, 'roomy', 'site.tar')).length, 4096, 'a caller can allow a larger archive');
 });
 test('actual build-verification CLI preserves separate SHA provenance and rejects unverified cross-SHA builds', t => {
   const dir = mkdtempSync(join(tmpdir(), 'release-provenance-test-'));

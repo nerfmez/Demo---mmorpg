@@ -29,6 +29,7 @@ export function createCharacter(data, opts = {}) {
     version: CHARACTER_VERSION,
     name: opts.name || 'Wanderer',
     appearance: opts.appearance ? { ...opts.appearance } : null,
+    hideHelm: false, // the worn helm is not drawn (it still counts); toggled beside the helm slot
     kit: opening ? null : kitId,
     opening: { stage: opening ? 'wake' : 'done' },
     level: 1,
@@ -168,6 +169,7 @@ export function migrateCharacter(ch, data) {
   for (const k of ['kills', 'collected', 'quests', 'bossKills', 'maps']) ch.progress[k] = ch.progress[k] || {};
   if (!ch.name) ch.name = 'Wanderer';
   if (!('appearance' in ch)) ch.appearance = null;
+  if (typeof ch.hideHelm !== 'boolean') ch.hideHelm = false; // saves before the helm show/hide toggle draw their helm
   const legacyOpening = !ch.opening;
   if (legacyOpening) ch.opening = { stage: 'done' }; // v10: includes the independent movement-mod v9 saves
   const pending = ch.opening.stage !== 'done';
@@ -689,8 +691,18 @@ export function gearLook(ch, data) {
   const a = gearItem(ch, ch.equipped.armor);
   if (a) out.armor = data.items.gearBases[a.base].look || 'tunic';
   const h = gearItem(ch, ch.equipped.helm);
-  if (h) out.helm = data.items.gearBases[h.base].look || null;
+  if (h && ch.hideHelm) {
+    // hidden by the player: the helm still counts for stats, only the look drops it
+    delete out.bases.helm;
+    out.helmHidden = true;
+  } else if (h) out.helm = data.items.gearBases[h.base].look || null;
   return out;
+}
+
+/** Show or hide the worn helm (looks only; it still counts for stats). */
+export function toggleHelm(ch) {
+  ch.hideHelm = !ch.hideHelm;
+  return { ok: true, hidden: ch.hideHelm };
 }
 
 // ---------- Derived stats ----------

@@ -1,5 +1,5 @@
-// A chibi body made with Meshy (data/models.json → characters.hero_chibi) as the hero's skinned
-// body. Opt-in with ?hero=chibi; the default hero is unchanged. Its skeleton has the same
+// A chibi body made with Meshy (data/models.json → characters.hero_chibi), the hero's skinned
+// body (?hero=classic keeps the earlier HairSample hero). Its skeleton has the same
 // Mixamo-like names as hero_base, so it reuses the driver-bone retarget of skinned.js
 // (bindSkinSync with MAP). It keeps its own painted texture (face, suit, boots); materials are
 // swapped for the game's 3-step toon ramp, rim light, hit flash and outline hull (vrm-body.js).
@@ -10,7 +10,10 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { bindSkinSync, MAP } from './skinned.js';
 import { toonCopy } from './vrm-body.js';
 
-export const useChibi = typeof location !== 'undefined' && new URLSearchParams(location.search).get('hero') === 'chibi';
+// The chibi is the game's hero (the owner's sheet). ?hero=classic keeps the earlier HairSample body
+// and ?hero=vrm the VRM one, for comparison.
+export const heroParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('hero') : null;
+export const useChibi = typeof location !== 'undefined' && heroParam !== 'classic' && heroParam !== 'vrm';
 
 /**
  * Smooth normals across vertices that share a position (UV seams split them), so a low-poly
@@ -139,6 +142,200 @@ function addFistMorphs(geo, fists) {
   geo.computeBoundingSphere();
 }
 
+/**
+ * Reshape the bind head toward the sheet's rounder chibi head: wider (`wide`), the face below the
+ * eyes shorter (`chin`) and fuller at the cheeks (`cheek`). Works in the model's world bind
+ * space (faces +Z), on vertices by their Head skin weight so the neck blends. Returns the head
+ * centre in mesh space for softHeadNormals.
+ */
+function reshapeHead(mesh, shape) {
+  const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
+  const hb = mesh.skeleton.bones.findIndex((b) => b.name === 'Head');
+  const toWorld = mesh.matrixWorld, toMesh = toWorld.clone().invert();
+  const w = new Float32Array(pos.count), box = new THREE.Box3(), v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === hb) w[i] += sw.getComponent(i, k);
+    if (w[i] > 0.5) box.expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld));
+  }
+  const c = box.getCenter(new THREE.Vector3());
+  const eyeY = box.min.y + (box.max.y - box.min.y) * shape.eye;
+  for (let i = 0; i < pos.count; i++) {
+    if (!w[i]) continue;
+    v.fromBufferAttribute(pos, i).applyMatrix4(toWorld);
+    let sx = 1 + shape.wide * w[i];
+    if (v.y < eyeY) {
+      const t = Math.min(1, (eyeY - v.y) / (eyeY - box.min.y));
+      v.y = eyeY - (eyeY - v.y) * (1 - shape.chin * w[i]);
+      sx *= 1 + shape.cheek * w[i] * Math.sin(Math.PI * t);
+    }
+    v.x = c.x + (v.x - c.x) * sx;
+    v.applyMatrix4(toMesh);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+  return { centre: c.applyMatrix4(toMesh), w };
+}
+
+/**
+ * Face coordinates for the drawn face shadow (`faceShadow`): a `face` attribute per vertex with
+ * the head's across (-1 right .. 1 left of the model, its +X), up (0 chin .. 1 crown) and a mask
+ * that is 1 on the front of the head (from `from` to `to` of the way forward) and 0 elsewhere.
+ */
+function addFaceCoords(mesh, w, { from, to }) {
+  const geo = mesh.geometry, pos = geo.attributes.position, toWorld = mesh.matrixWorld;
+  const box = new THREE.Box3(), v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) if (w[i] > 0.5) box.expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld));
+  const c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+  const face = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    if (!w[i]) continue;
+    v.fromBufferAttribute(pos, i).applyMatrix4(toWorld);
+    const fwd = (v.z - c.z) / (size.z / 2);
+    face[i * 3] = (v.x - c.x) / (size.x / 2);
+    face[i * 3 + 1] = (v.y - box.min.y) / size.y;
+    face[i * 3 + 2] = w[i] * THREE.MathUtils.smoothstep(fwd, from, to);
+  }
+  geo.setAttribute('face', new THREE.BufferAttribute(face, 3));
+}
+
+/**
+ * The drawn face shadow, the anime-game trick (a face shadow map): on the face the toon ramp does not
+ * read the mesh normal (the nose and cheeks would cut bands across it) but where the light stands
+ * around the head. Light from the front lights the whole face; as it swings to one side a single
+ * soft-edged shadow sweeps in from the far cheek, bowed around the nose (`curve`). The head's axes
+ * reach the shader each frame from the head bone (in view space, like the light).
+ */
+function faceShadowMaterial(m, headBone, bindQuat, { curve }) {
+  const u = { uHeadR: { value: new THREE.Vector3(1, 0, 0) }, uHeadF: { value: new THREE.Vector3(0, 0, 1) }, uFaceCurve: { value: curve } };
+  const base = m.onBeforeCompile;
+  m.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer);
+    Object.assign(shader.uniforms, u);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec3 face; varying vec3 vFace;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFace = face;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <gradientmap_pars_fragment>', `
+uniform vec3 uHeadR; uniform vec3 uHeadF; uniform float uFaceCurve; varying vec3 vFace;
+#ifdef USE_GRADIENTMAP
+uniform sampler2D gradientMap;
+#endif
+vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
+  float dotNL = dot( normal, lightDirection );
+  if ( vFace.z > 0.001 ) {
+    float lx = dot( lightDirection, uHeadR ), lz = dot( lightDirection, uHeadF );
+    // how far round the head the light has swung (0 in front, PI behind); light from straight
+    // above or below counts as in front
+    float th = atan( abs( lx ), lz ) * smoothstep( 0.05, 0.35, length( vec2( lx, lz ) ) );
+    float across = lx >= 0.0 ? vFace.x : -vFace.x;
+    float y = vFace.y - 0.45;
+    float edge = -1.15 * cos( th ) + uFaceCurve * ( 1.0 - 4.0 * y * y ) * sin( th );
+    float d = across - edge;
+    float fw = fwidth( d ) + 0.02;
+    float faceNL = mix( -0.5, 0.75, smoothstep( -fw, fw, d ) );
+    dotNL = mix( dotNL, faceNL, vFace.z );
+  }
+  vec2 coord = vec2( dotNL * 0.5 + 0.5, 0.0 );
+  #ifdef USE_GRADIENTMAP
+    return vec3( texture2D( gradientMap, coord ).r );
+  #else
+    return vec3( coord.x > 0.7 ? 1.0 : 0.7 );
+  #endif
+}`);
+  };
+  const key = m.customProgramCacheKey;
+  m.customProgramCacheKey = () => key() + '-chibi-face';
+  const q = new THREE.Quaternion(), inv = bindQuat.clone().invert(), view = new THREE.Matrix4();
+  return (camera) => {
+    headBone.getWorldQuaternion(q).multiply(inv);
+    view.copy(camera.matrixWorldInverse);
+    u.uHeadR.value.set(1, 0, 0).applyQuaternion(q).transformDirection(view);
+    u.uHeadF.value.set(0, 0, 1).applyQuaternion(q).transformDirection(view);
+  };
+}
+
+/**
+ * The hair's highlight band (`highlight`), the anime "angel ring": a jagged lighter band at height
+ * `at` (0 bottom .. 1 top of the hair model) and `width` thick, on the side of the hair facing the
+ * camera, brightening it by `strength`.
+ */
+function hairHighlightMaterial(m, box, { at, width, strength }) {
+  const base = m.onBeforeCompile;
+  const u = { uHlBox: { value: new THREE.Vector4(box.min.y, box.max.y, (box.min.x + box.max.x) / 2, (box.min.z + box.max.z) / 2) }, uHl: { value: new THREE.Vector3(at, width, strength) } };
+  m.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer);
+    Object.assign(shader.uniforms, u);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vHairPos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvHairPos = position;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec4 uHlBox; uniform vec3 uHl; varying vec3 vHairPos;')
+      .replace('#include <opaque_fragment>', `{
+  float t = ( vHairPos.y - uHlBox.x ) / ( uHlBox.y - uHlBox.x );
+  float a = atan( vHairPos.x - uHlBox.z, vHairPos.z - uHlBox.w );
+  float jag = 0.03 * sin( a * 13.0 ) + 0.015 * sin( a * 29.0 + 1.3 );
+  float band = 1.0 - smoothstep( uHl.y * 0.45, uHl.y, abs( t - uHl.x - jag ) );
+  float facing = smoothstep( 0.25, 0.6, dot( normalize( normal ), normalize( vViewPosition ) ) );
+  outgoingLight = mix( outgoingLight, outgoingLight * 1.25 + 0.12, band * facing * uHl.z );
+}
+#include <opaque_fragment>`);
+  };
+  const key = m.customProgramCacheKey;
+  m.customProgramCacheKey = () => key() + '-chibi-hair-hl';
+}
+
+/**
+ * Flatten bulges of the bind torso (`flatten`: a list of bands from `y0` to `y1`, each moving the
+ * surface beyond depth `z` back toward it by up to `k`, most at the band's middle; `z` above 0 is
+ * the front, below 0 the back). The Meshy body has a bust and round hips, but the sheet's chibi is a
+ * boy with a straight torso. Arm vertices are left alone.
+ */
+function flattenBody(mesh, bands) {
+  const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
+  const arm = new Set(mesh.skeleton.bones.map((b, i) => (/Shoulder|Arm|Hand/.test(b.name) ? i : -1)).filter((i) => i >= 0));
+  // the bind skin (the armature's 0.01 scale and the bone inverses) maps mesh space to metres by one
+  // affine map: measure it from four vertices, so the bands can be given in metres
+  const at = (i) => mesh.getVertexPosition(i, new THREE.Vector3()).applyMatrix4(mesh.matrixWorld);
+  const ids = [0, 1, 2, 3].map((n) => Math.floor((n * pos.count) / 4));
+  const l0 = new THREE.Vector3().fromBufferAttribute(pos, ids[0]), w0 = at(ids[0]);
+  const dl = ids.slice(1).map((i) => new THREE.Vector3().fromBufferAttribute(pos, i).sub(l0));
+  const dw = ids.slice(1).map((i) => at(i).sub(w0));
+  const L = new THREE.Matrix3().set(dl[0].x, dl[1].x, dl[2].x, dl[0].y, dl[1].y, dl[2].y, dl[0].z, dl[1].z, dl[2].z);
+  const Wm = new THREE.Matrix3().set(dw[0].x, dw[1].x, dw[2].x, dw[0].y, dw[1].y, dw[2].y, dw[0].z, dw[1].z, dw[2].z);
+  const toMesh = L.multiply(Wm.invert()), v = new THREE.Vector3(), d = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    let w = 1;
+    for (let c = 0; c < 4; c++) if (arm.has(si.getComponent(i, c))) w -= sw.getComponent(i, c);
+    if (w <= 0) continue;
+    v.copy(at(i));
+    const z0 = v.z;
+    let moved = false;
+    for (const { y0, y1, z, k } of bands) {
+      if (v.y <= y0 || v.y >= y1 || (z > 0 ? v.z <= z : v.z >= z)) continue;
+      v.z = z + (v.z - z) * (1 - k * w * Math.sin((Math.PI * (v.y - y0)) / (y1 - y0)));
+      moved = true;
+    }
+    if (!moved) continue;
+    d.set(0, 0, v.z - z0).applyMatrix3(toMesh);
+    pos.setXYZ(i, pos.getX(i) + d.x, pos.getY(i) + d.y, pos.getZ(i) + d.z);
+  }
+  pos.needsUpdate = true;
+}
+
+/**
+ * Bend the head's normals toward the head's centre (`soft` 0..1), the usual anime-face trick: the
+ * toon ramp then shades the face as one round form, without bands across the nose and cheeks.
+ */
+function softHeadNormals(geo, { centre, w }, soft) {
+  const pos = geo.attributes.position, nrm = geo.attributes.normal, n = new THREE.Vector3(), r = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    if (!w[i]) continue;
+    r.fromBufferAttribute(pos, i).sub(centre).normalize();
+    n.fromBufferAttribute(nrm, i).lerp(r, soft * w[i]).normalize();
+    nrm.setXYZ(i, n.x, n.y, n.z);
+  }
+  nrm.needsUpdate = true;
+}
+
 const FIST_NAMES = ['fistR', 'fistL'];
 const HAND_OUTLINE = 0.35;
 
@@ -153,9 +350,13 @@ export function prepareChibiBody(gltf, cfg) {
     if (o.isBone) bones[o.name] = o;
   });
   if (!mesh || !bones.Hips) throw new Error('hero_chibi: no skinned mesh or Hips bone');
+  const head0 = cfg.headShape ? reshapeHead(mesh, cfg.headShape) : null;
+  if (cfg.flatten) flattenBody(mesh, cfg.flatten);
   const fists = cfg.fist ? { RightHand: curlFist(mesh, bones.RightHand, cfg.fist), LeftHand: curlFist(mesh, bones.LeftHand, cfg.fist) } : {};
   smoothNormals(mesh.geometry);
   if (fists.RightHand && fists.LeftHand) addFistMorphs(mesh.geometry, [fists.RightHand, fists.LeftHand]);
+  if (head0) softHeadNormals(mesh.geometry, head0, cfg.headShape.soft);
+  if (head0 && cfg.faceShadow) addFaceCoords(mesh, head0.w, cfg.faceShadow);
   mesh.geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   const at = (n) => bones[n].getWorldPosition(new THREE.Vector3());
@@ -213,7 +414,15 @@ export function prepareChibiBody(gltf, cfg) {
   const hc = head.isEmpty() ? J.Head.clone().add(new THREE.Vector3(0, 0.12, 0)) : head.getCenter(new THREE.Vector3());
   const headFit = { pos: hc.sub(J.Head).sub(new THREE.Vector3(0, 0.12 * hs, 0)).toArray(), scale: hs };
   const neckFit = { pos: J.Head.clone().sub(J.Spine).sub(new THREE.Vector3(0, 0.36, 0)).toArray(), scale: 1 };
-  return { scene, joints, world, headFit, neckFit, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
+  // helms and hoods go over the hair, which stands well out from this head: the same fit, larger
+  // about the head's centre and lifted (`helmFit` in data: scale, lift in head heights)
+  const hf = cfg.helmFit || { scale: 1.3, lift: 0.1 }, hh = head.isEmpty() ? 0.3 : head.max.y - head.min.y;
+  const helmFit = { pos: headFit.pos.map((v, i) => (i === 1 ? v + 0.12 * hs * (1 - hf.scale) + hf.lift * hh : v)), scale: hs * hf.scale };
+  // the head's bind bounds in the head bone's space, for fitting a separate hair model
+  const headBox = head.isEmpty() ? null : head.clone().applyMatrix4(bones.Head.matrixWorld.clone().invert());
+  // the head bone's bind rotation, so the face shadow can follow the head's turn each frame
+  const faceShadow = head0 && cfg.faceShadow ? { ...cfg.faceShadow, bind: bones.Head.getWorldQuaternion(new THREE.Quaternion()) } : null;
+  return { scene, joints, world, headFit, helmFit, neckFit, headBox, faceShadow, chibi: true, grip, thumb, leftFistWith: cfg.fist?.leftFistWith || [], gearScale: cfg.gearScale ?? 1, holds: cfg.holds || null, gripMiddle: cfg.gripMiddle || [],
     bodyMap: cfg.bodyMap ? { from: cfg.bodyMap.hips, to: J.Hips.y, scale: cfg.bodyMap.scale } : null, hipsParentInv: bones.Hips.parent.matrixWorld.clone().invert() };
 }
 
@@ -230,6 +439,84 @@ function outlineHull(src, width, darkness) {
       .replace('#include <skinning_vertex>', `#include <skinning_vertex>\ntransformed += normalize(objectNormal) * ${width.toFixed(4)} * outlineScale;`);
   };
   m.customProgramCacheKey = () => `chibi-hull-${width}`;
+  return m;
+}
+
+/** A separate hair model for the chibi body (data/models.json characters, chibiHair). */
+export function prepareChibiHair(gltf, cfg) {
+  let mesh = null;
+  gltf.scene.traverse((o) => {
+    if (o.isMesh && !mesh) mesh = o;
+  });
+  if (!mesh) throw new Error('chibi hair: no mesh');
+  gltf.scene.updateMatrixWorld(true);
+  let geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+  geometry.computeBoundingBox();
+  // `box`: fixed bounds to fit by, so trimming a few triangles off the model does not move the hair
+  const box = cfg.box ? new THREE.Box3().setFromArray(cfg.box.flat()) : geometry.boundingBox.clone();
+  // `keep: [side, at]`: only the front or back part of this hair, split across its depth at `at`
+  // (0 back, 1 front), so two hair models can be joined (one's fringe with the other's back)
+  if (cfg.keep) geometry = keepPart(geometry, box, cfg.keep);
+  smoothNormals(geometry);
+  geometry.userData.shared = true;
+  if (mesh.material.map) mesh.material.map.userData.shared = true;
+  // `color`: one flat colour instead of the generated texture (the hair is painted one tone)
+  const material = cfg.color ? { color: new THREE.Color(cfg.color), map: null, side: THREE.DoubleSide } : mesh.material;
+  return { geometry, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
+}
+
+function keepPart(geometry, box, [side, at]) {
+  const src = geometry.index ? geometry.toNonIndexed() : geometry;
+  const p = src.attributes.position, keep = [];
+  const z0 = box.min.z, dz = box.max.z - box.min.z || 1;
+  for (let t = 0; t < p.count; t += 3) {
+    const z = ((p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3 - z0) / dz;
+    if (side === 'front' ? z >= at : z <= at) for (let k = 0; k < 3; k++) keep.push(p.getX(t + k), p.getY(t + k), p.getZ(t + k));
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
+  return g;
+}
+
+/**
+ * Put the hair on the chibi head bone: scaled so its width and depth are `fit.width` and
+ * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
+ * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
+ * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
+ */
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
+  const headBone = rig.skin?.body.getObjectByName('Head');
+  if (!headBone || !T.headBox) return;
+  const hb = T.headBox, b = H.box, f = H.fit;
+  const hw = hb.max.x - hb.min.x, hd = hb.max.z - hb.min.z, hh = hb.max.y - hb.min.y;
+  // per axis: the chibi head is rounder than the head the hair was made on
+  const sx = (hw * (f.width ?? 1.15)) / (b.max.x - b.min.x), sz = (hd * (f.depth ?? 1.15)) / (b.max.z - b.min.z);
+  const sy = ((sx + sz) / 2) * (f.height ?? 1);
+  const g = new THREE.Group();
+  g.scale.set(sx, sy, sz);
+  g.position.set((hb.min.x + hb.max.x) / 2 + hw * (f.side ?? 0) - sx * (b.min.x + b.max.x) / 2,
+    hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
+    (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
+  const s = (sx + sy + sz) / 3;
+  const flash = rig.material.userData.flash;
+  const hair = new THREE.Mesh(H.geometry, toonCopy(H.material, flash, rim, false));
+  hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
+  if (H.highlight) hairHighlightMaterial(hair.material, H.box, H.highlight);
+  hair.castShadow = true;
+  const hull = new THREE.Mesh(H.geometry, hairHull(H.material, outline / s, darkness));
+  g.add(hair, hull);
+  headBone.add(g);
+  (rig.skin.hair ||= []).push(g);
+}
+
+function hairHull(src, width, darkness) {
+  const color = src.map ? new THREE.Color(darkness, darkness, darkness * 1.12) : src.color.clone().multiplyScalar(darkness);
+  const m = new THREE.MeshBasicMaterial({ map: src.map, color, side: THREE.BackSide });
+  m.userData.rig = true;
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normalize(normal) * ${width.toFixed(4)};`);
+  };
+  m.customProgramCacheKey = () => `chibi-hair-hull-${width.toFixed(4)}`;
   return m;
 }
 
@@ -251,6 +538,10 @@ export function attachChibiBody(rig, T, { outline = 0.012, darkness = 0.32, rim 
     const src = mesh.material;
     mesh.material = toonCopy(src, flash, rim, false);
     mesh.material.side = THREE.FrontSide; // Meshy marks it double-sided; the body is closed
+    if (T.faceShadow) {
+      const follow = faceShadowMaterial(mesh.material, body.getObjectByName('Head'), T.faceShadow.bind, T.faceShadow);
+      mesh.onBeforeRender = (renderer, scene, camera) => follow(camera);
+    }
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;

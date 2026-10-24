@@ -17,3 +17,28 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
 - The Meshy hands are open and have no finger bones; `curlFist` in `chibi-body.js` bends the
   finger vertices into a fist (thumb folded under) at load as one morph target per hand; a hand
   closes only while it holds something, and held weapons are seated in the fist's hole.
+- Hair (`public/models/hero_chibi_hair.glb`, 3,300 tris, 41 KB): the owner made the chibi character
+  untextured and detailed on the Meshy site (`hair_meshy_web.glb`, 8,429 tris, whole body, hair fused
+  to the head). `scripts/prep-chibi-hair.py --cut` keeps the hair: everything above the neck (lower
+  at the back, so the nape hair stays) minus the face skin. The face is found as the smooth sheet reached by flood fill from
+  the middle of the face without crossing a sharp crease, so the fringe strands lying over it stay. The flood starts on the innermost
+  surface at the middle of the face (the frontmost one there can be a strand tip) and reaches up to
+  the hairline; the fit uses a fixed `box`, so re-cutting does not move the hair. The game draws it in one colour and
+  fits it per axis (`chibi-body.js`; fit chosen by counting scalp pixels left visible from 24 views).
+  Earlier tries (hair image alone, an AI-drawn normal-proportion head, a textured meshy-t2 run) gave a
+  flat card, a stretched fit or a front fringe that did not match the sheet.
+- Hair back (`public/models/hero_chibi_hair_back.glb`, 3,014 tris): the textured meshy-t2 run, whose
+  spiky back the owner preferred; the game draws only its back part (`keep`) and only the front part
+  of `hero_chibi_hair`, so the swept fringe and the spiky back are joined on the head.
+- Face: the sheet's head is rounder with bigger eyes than the Meshy retexture. The painted eyes
+  were enlarged 1.3x in `hero_chibi.glb`'s texture (`scripts/chibi-eyes.py public/models/hero_chibi.glb
+  --eye 747 649 --eye 789 821 --scale 1.3`, run once), and `chibi-body.js` reshapes the head at load
+  (`headShape` in data: wider, shorter chin, fuller cheeks, normals bent toward the head centre).
+- Torso: the Meshy body had a bust and round hips; `chibi-body.js` flattens them at load
+  (`flatten` in data: chest front to 0.072 m between 0.64 and 0.8 m, backside to -0.045 m between
+  0.4 and 0.62 m), so the torso is straight like the sheet's boy.
+- Anime shading: the face takes its toon shade from the light's angle round the head, not the mesh
+  normal (`faceShadow`), and the hair has a jagged highlight band (`highlight`), as in anime games.
+
+- Outfits: the chibi wears the game's 3D outfit base (`src/render/chibi-garments.js`): top,
+  trousers, skirt, boots and gloves are shells cut from this body, painted from `data/outfits.json`.

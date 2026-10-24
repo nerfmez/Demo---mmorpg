@@ -398,8 +398,10 @@ async function chibiHero() {
     await wait(500);
     const body = view.hero.skin.body;
     let skinned = 0, textured = 0;
+    const garments = [];
     body.traverse((o) => {
-      if (o.isSkinnedMesh) { skinned++; if (o.material.map) textured++; }
+      if (o.isSkinnedMesh && o.userData.garment) garments.push(o.userData.garment); // the outfit (chibi-garments.js)
+      else if (o.isSkinnedMesh) { skinned++; if (o.material.map) textured++; }
     });
     const head = body.getObjectByName('Head'), hips = body.getObjectByName('Hips');
     const h = head.getWorldPosition(head.position.clone()).y - hips.getWorldPosition(hips.position.clone()).y;
@@ -411,9 +413,10 @@ async function chibiHero() {
     // the sword hand closes into its fist; the empty left hand stays open
     let fists = null;
     body.traverse((o) => { if (o.isSkinnedMesh && o.morphTargetInfluences && !fists) fists = [...o.morphTargetInfluences]; });
-    return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)), fists };
+    return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)), fists, garments: [...new Set(garments)].sort() };
   });
   check(info.skinned === 2 && info.textured === 2, `chibi hero: body and outline load with the texture (${JSON.stringify(info)})`);
+  check(['boots', 'pants', 'top'].every((k) => info.garments.includes(k)), `chibi hero: wears the outfit's top, trousers and boots (${info.garments})`);
   check(info.h > 0.15, `chibi hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
   check(info.grip < 0.001 && info.cross < 0.25, `chibi hero: sword held in the fist, fingers across the handle (${info.grip.toFixed(4)} m, ${info.cross.toFixed(2)})`);
   check(info.fists?.join() === '1,0', `chibi hero: sword hand closed, empty left hand open (${info.fists})`);

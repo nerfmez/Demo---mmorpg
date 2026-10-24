@@ -27,7 +27,7 @@ try {
   page.setDefaultTimeout(150000);
   page.on('pageerror', (e) => report.errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error' && !m.location().url.endsWith('/favicon.ico')) report.errors.push(m.text()); });
-  await page.goto(base + '?fresh=1&kit=sword&quality=low&stream=0');
+  await page.goto(base + '?fresh=1&kit=sword&quality=low&stream=0&hero=classic'); // the HairSample outfit review
   await page.waitForFunction(() => window.__frontier?.modelsReady && window.__frontier.view.hero?.hairsample && document.getElementById('loading').classList.contains('done'));
   await page.evaluate(() => {
     const f = window.__frontier, v = f.view, g = f.game;

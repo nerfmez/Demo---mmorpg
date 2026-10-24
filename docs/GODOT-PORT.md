@@ -399,7 +399,7 @@ targets the game uses are kept). It reuses the same driver-bone retarget (`bindS
 and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
 through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
 the scarf and armour pieces are not used with this body yet.
-An opt-in chibi hero body (`?hero=chibi`, `public/models/hero_chibi.glb`, registered as
+The hero's chibi body (the default; `?hero=classic` keeps the HairSample hero; `public/models/hero_chibi.glb`, registered as
 `characters.hero_chibi`; `render/chibi-body.js`) is a Meshy smart-topology mesh with its own
 painted texture and the same Mixamo-like bone names as `hero_base`, so it uses the same driver
 retarget (`bindSkinSync` with `MAP`). Its split Meshy normals are welded and smoothed at load,
@@ -416,12 +416,30 @@ haft after the right fist is seated (`rig.support`). The hand has no finger
 bones, so `curlFist` bends the finger vertices into a fist and folds the thumb under it once at
 load (`fist` in the registry); each hand's fist is a morph target, closed only while that hand
 holds something (the left also for the weapons in `fist.leftFistWith`), and the outline is
-thinner on the hands. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
+thinner on the hands. The torso's bust and round hips are flattened once at load (`flatten` bands, in metres of the
+bind pose). The head is reshaped once at load toward the sheet's rounder head
+(`headShape`: wider, shorter below the eye line, fuller cheeks) and its normals are bent toward the
+head centre (`soft`) so the toon ramp shades the face as one round form; the painted eyes were
+enlarged in the texture by `scripts/chibi-eyes.py`. On the face the toon ramp follows where the light stands around the
+head instead of the mesh normal (`faceShadow`: a per-vertex face mask and coordinates, the head
+bone's axes passed in each frame), so one shadow edge sweeps across the face as the light turns,
+as in anime games' face shadow maps; the hair has a jagged highlight band on its camera side
+(`highlight` on `hero_chibi_hair`). In Godot do both in the toon shader with the same inputs. The chibi wears the same outfit base as the HairSample hero
+(`render/chibi-garments.js`): top, trousers, skirt, boots (with the feet) and glove shells cut from
+its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
+`garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's
+size), its bones converted from the armature's centimetres. Helms use `helmFit`, larger and higher
+than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh. Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
-import the GLB with its `Skeleton3D`, recompute smooth normals on import, scale the hand
+import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso
+flatten, head reshape and normal bend, scale the hand
 attachments, add the same fists as blend shapes (or finger bones) and apply the same hand turn
 and seat after the retarget.
-It is a preview body only: the art rules keep the shipped hero at normal proportions.
+Its hair is two Meshy models (`characters.hero_chibi_hair` for the fringe and
+`hero_chibi_hair_back` for the back, each drawing only its `keep` part; `scripts/prep-chibi-hair.py`)
+parented to the head bone and fitted per axis to the head's bind bounds (`fit`, from the hair's
+fixed `box` when given); in Godot attach it
+to the head bone with the same scale and offset, in its flat `color`. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

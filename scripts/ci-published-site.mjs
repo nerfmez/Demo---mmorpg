@@ -82,6 +82,8 @@ export function verifySite(directory) {
   assert.equal(JSON.parse(readFileSync(join(directory, 'ci-release.json'))).releaseTarget.sha, manifest.source);
   return manifest;
 }
+// The Pages limit is 1 GiB; the game plus /lab/ passed 500 MB. Leave room for tar headers.
+export const PAGES_ARCHIVE_BYTES = 1100 * 1024 * 1024;
 export function extractPagesTar(archive, destination) {
   execFileSync('python3', ['-c', `import pathlib,sys,tarfile
 root=pathlib.Path(sys.argv[2]).resolve()
@@ -162,7 +164,7 @@ export async function restoreSite({ repository, directory, runId, skipId, mode, 
     const zip = join(scratch, 'pages.zip'), unpacked = join(scratch, 'archive'), site = join(scratch, 'site');
     await download(`${prefix}/actions/artifacts/${artifact.id}/zip`, zip);
     assert.equal('sha256:' + createHash('sha256').update(readFileSync(zip)).digest('hex'), artifact.digest);
-    extractBuildArchive(zip, unpacked);
+    extractBuildArchive(zip, unpacked, PAGES_ARCHIVE_BYTES);
     let manifest, origin, originalRun;
     if (previous) {
       assert.equal(mode, 'rollback');

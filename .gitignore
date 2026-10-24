@@ -8,3 +8,4 @@ meshy_output/
 .env
 .jev-cache/
 jev-out/
+__pycache__/

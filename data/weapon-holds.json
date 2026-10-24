@@ -1,5 +1,5 @@
 {
-  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand; shield (optional) = the carry with a shield there, else one. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height. stance names the idle body stance in stances (default relaxed): bone offsets (Euler XYZ radians, the same channels as actions.js) added to the standing pose and faded out as the hero walks; drop lowers the body (metres), shift moves it toward the hero's left (+) or right (-).",
+  "_doc": "Presentation only (src/render/hero.js). How the hero carries each weapon type when not attacking, and the arc a melee swing follows. Positions are the right palm in the hero's body space (x left, y up, z forward, metres); dir is where the weapon's long axis points (blade or shaft tip). two = the left hand also holds it (used when nothing is in the left hand), with grip = where along the weapon the left palm goes (metres from the right palm, + toward the head). one = the carry with a shield or second weapon in the left hand. castHold keeps the weapon's carry angle (not the palm position) through spell actions, so a staff stays upright while the arm gestures. swing.radius is the right palm's distance from the body axis during a swing; actions.js swing keys give the angle (0 forward, + to the hero's left), blade elevation and palm height. stance names the idle body stance in stances (default relaxed): bone offsets (Euler XYZ radians, the same channels as actions.js) added to the standing pose and faded out as the hero walks; drop lowers the body (metres), shift moves it toward the hero's left (+) or right (-).",
   "swing": {
     "radius": 0.42
   },
@@ -99,90 +99,6 @@
       "head": [-0.06, 0.35, 0],
       "drop": -0.04,
       "shift": 0
-    },
-    "blade": {
-      "legL": [-0.2, 0.15, 0.08],
-      "legR": [0.18, -0.2, -0.06],
-      "kneeL": [0.3, 0, 0],
-      "kneeR": [0.28, 0, 0],
-      "footL": [-0.08, -0.05, -0.08],
-      "footR": [-0.3, 0.1, 0.06],
-      "hips": [0, -0.12, 0],
-      "torso": [0.14, -0.08, 0],
-      "chest": [0, -0.06, 0],
-      "head": [-0.08, 0.2, 0],
-      "armL": [-0.25, 0, -0.12],
-      "elbowL": [-1.5, 0, 0],
-      "handL": [0, 0.2, 0],
-      "drop": -0.035,
-      "shift": 0
-    },
-    "shield": {
-      "legL": [-0.24, 0.12, 0.08],
-      "legR": [0.2, -0.22, -0.06],
-      "kneeL": [0.34, 0, 0],
-      "kneeR": [0.3, 0, 0],
-      "footL": [-0.08, -0.05, -0.08],
-      "footR": [-0.34, 0.1, 0.06],
-      "hips": [0, 0.15, 0],
-      "torso": [0.14, 0.12, 0],
-      "chest": [0, 0.05, 0],
-      "head": [-0.1, -0.15, 0],
-      "armL": [-0.35, 0, 0.05],
-      "elbowL": [-1.3, 0, 0],
-      "drop": -0.04,
-      "shift": 0,
-      "handL": [-1.3, 0, 0]
-    },
-    "low": {
-      "legL": [-0.35, 0.2, 0.1],
-      "legR": [0.3, -0.25, -0.1],
-      "kneeL": [0.6, 0, 0],
-      "kneeR": [0.55, 0, 0],
-      "footL": [-0.2, -0.05, -0.1],
-      "footR": [-0.45, 0.1, 0.08],
-      "hips": [0, -0.1, 0],
-      "torso": [0.32, -0.1, 0],
-      "chest": [0.05, -0.05, 0],
-      "head": [-0.25, 0.15, 0],
-      "armL": [-0.2, 0, -0.1],
-      "elbowL": [-1.6, 0, 0],
-      "handL": [0, 0.2, 0],
-      "drop": -0.075,
-      "shift": 0
-    },
-    "caster": {
-      "legL": [-0.1, 0.12, 0.06],
-      "legR": [0.05, -0.1, -0.05],
-      "kneeL": [0.16, 0, 0],
-      "kneeR": [0.06, 0, 0],
-      "footL": [-0.07, 0, -0.06],
-      "footR": [-0.05, 0, 0.05],
-      "hips": [0, 0.05, -0.04],
-      "torso": [0.04, 0.08, 0.02],
-      "chest": [-0.04, -0.05, 0],
-      "head": [0.02, -0.1, 0.04],
-      "armL": [-0.1, 0, 0.12],
-      "elbowL": [-0.5, 0, 0],
-      "handL": [0, 0.3, 0],
-      "drop": -0.01,
-      "shift": -0.02
-    },
-    "archer": {
-      "legL": [-0.12, 0.14, 0.07],
-      "legR": [0.08, -0.12, -0.05],
-      "kneeL": [0.2, 0, 0],
-      "kneeR": [0.1, 0, 0],
-      "footL": [-0.07, 0, -0.06],
-      "footR": [-0.1, 0.05, 0.05],
-      "hips": [0, -0.08, -0.04],
-      "torso": [0.06, -0.06, 0.02],
-      "chest": [-0.04, -0.04, 0],
-      "head": [0, 0.15, 0.03],
-      "armL": [-0.2, 0, 0.1],
-      "elbowL": [-0.4, 0, 0],
-      "drop": -0.015,
-      "shift": -0.015
     }
   }
 }

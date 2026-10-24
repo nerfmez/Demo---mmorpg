@@ -560,11 +560,10 @@ export class HumanoidAnimator {
     }
   }
 
-  /** This weapon's carry: two-handed when the type allows it and the left hand is free; its shield carry with a shield. */
+  /** This weapon's carry: two-handed when the type allows it and the left hand is free. */
   holdFor() {
     const h = this.rig.holds?.[this.rig.weaponKind] ?? HOLDS.holds[this.rig.weaponKind];
     if (!h) return null;
-    if (h.shield && this.rig.offhandKind === 'shield') return h.shield;
     return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
   }
 

@@ -50,6 +50,7 @@ function pieces(T, outfit, skip = new Set()) {
  */
 export function prepareChibiOutfit(gltf, m) {
   gltf.scene.updateMatrixWorld(true);
+  if (m.chibiOutfit === 'helm') return prepareChibiHelm(gltf, m);
   let mesh = null;
   gltf.scene.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
   if (!mesh) throw new Error(m.file + ': no skinned mesh');
@@ -59,6 +60,20 @@ export function prepareChibiOutfit(gltf, m) {
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   return { piece: m.chibiOutfit, geometry, bind: bindSpace(mesh), bones: mesh.skeleton.bones.map((b) => b.name), map: mesh.material.map,
     hide: JSON.parse(mesh.userData.hideBody || '[]'), outline: m.outline ?? 0.008, fitted: null };
+}
+
+/**
+ * A modelled helm (`chibiOutfit` "helm"): a plain mesh of the headwear with the hair the sheet draws
+ * under it, in the frame the hero's hair model is fitted in (attachChibiHair places it the same way).
+ */
+function prepareChibiHelm(gltf, m) {
+  let mesh = null;
+  gltf.scene.traverse((o) => { if (o.isMesh && !mesh) mesh = o; });
+  if (!mesh) throw new Error(m.file + ': no mesh');
+  const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+  geometry.userData.shared = true;
+  if (mesh.material.map) mesh.material.map.userData.shared = true;
+  return { piece: 'helm', geometry, material: { map: mesh.material.map, color: new THREE.Color(1, 1, 1), side: THREE.DoubleSide } };
 }
 
 /** A skinned mesh's bind map from its geometry to world space (read through its Hips bone, which no rest pose turns). */

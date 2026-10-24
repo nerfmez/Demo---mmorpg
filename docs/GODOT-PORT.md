@@ -435,7 +435,9 @@ textured skinned mesh on the same armature, its vertices moved into the body's b
 joints remapped to the body skeleton by name (`prepareChibiOutfit`, `fitOutfit`), with the body's
 toon material and outline. Its node extras `hideBody` list the body triangles it covers; the body is
 drawn without them while it is worn (`coveredBody`), so the skin cannot poke through. The models load
-when first worn (like weapons) and the hero is redressed when one arrives. In Godot attach
+when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
+(`chibiOutfit` "helm") is a plain mesh with the hair under it, placed on the head bone exactly as the
+hair is, and drawn instead of the hair. In Godot attach
 the mesh to the body's `Skeleton3D` and draw the body with those triangles removed (or a mask). Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso

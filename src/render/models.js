@@ -85,8 +85,8 @@ function requestOutfit(id) {
   return job;
 }
 
-/** The worn armour's and boots' chibi outfit ids (core/outfit-look.js defaults). */
-const outfitIds = (bases) => [`outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`];
+/** The worn armour's, boots' and helm's chibi outfit ids (core/outfit-look.js defaults). */
+const outfitIds = (bases) => [`outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, ...(bases.helm ? [`outfit_${bases.helm}`] : [])];
 
 /** A loaded chibi outfit model, or null (requesting it, so the hero is redressed when it arrives). */
 export function chibiOutfit(id) {

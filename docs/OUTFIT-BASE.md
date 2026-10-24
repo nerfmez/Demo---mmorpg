@@ -132,7 +132,11 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    `assets/meshy/outfits/<set>.json` beside the Meshy source.
 3. In game (`render/chibi-garments.js`) the model replaces the shells it covers and the body is drawn
    without the covered triangles, so nothing pokes through and no per-pose adjustment is needed.
-   Gloves and helms still use the code-built pieces.
+   Gloves still use the code-built pieces.
+4. Helms: `scripts/fit-chibi-helm.py` cuts the same model's headwear together with the hair drawn
+   under it (the face cut away) and moves it onto the Travel model's head by the eyes, the frame the
+   hero's hair is fitted in. Worn, it is drawn in place of the hero's hair (`outfit_<helm id>`,
+   `chibiOutfit` "helm"); the crabshell helm, which has no sheet, keeps the built one.
 
 Every armour and boots item has one (`assets/meshy/outfits/README.md`); the boots made with the ranger
 coat are not used (the hide set's `trail_boots` are). The models load when first worn

@@ -503,9 +503,10 @@ function keepPart(geometry, box, [side, at]) {
  * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
  * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
  * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
- * Under a `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one.
+ * Under a `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one; a modelled helm
+ * (`model`) is drawn in its place instead, with the hair it was made with.
  */
-export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false } = {}) {
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
   const hb = T.headBox, b = H.box, f = H.fit;
@@ -520,12 +521,13 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
     (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
   const s = (sx + sy + sz) / 3;
   const flash = rig.material.userData.flash;
-  const geometry = helm && H.underHelm ? H.underHelm : H.geometry;
-  const hair = new THREE.Mesh(geometry, toonCopy(H.material, flash, rim, false));
+  // a modelled helm (chibi-garments.js prepareChibiHelm) comes with its own hair, in the hair's frame
+  const geometry = model ? model.geometry : helm && H.underHelm ? H.underHelm : H.geometry, src = model ? model.material : H.material;
+  const hair = new THREE.Mesh(geometry, toonCopy(src, flash, rim, false));
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
-  if (H.highlight) hairHighlightMaterial(hair.material, H.box, H.highlight);
+  if (H.highlight && !model) hairHighlightMaterial(hair.material, H.box, H.highlight);
   hair.castShadow = true;
-  const hull = new THREE.Mesh(geometry, hairHull(H.material, outline / s, darkness));
+  const hull = new THREE.Mesh(geometry, hairHull(src, outline / s, darkness));
   g.add(hair, hull);
   headBone.add(g);
   (rig.skin.hair ||= []).push(g);

@@ -115,11 +115,14 @@ def seg_points(P, F, ax, c):
 GF = np.array([[v.index for v in f.verts] for f in bm.faces])
 
 
-def leg_centres(P, F, zs):
+def leg_centres(P, F, zs, near=None):
+    # `near`: (x, y) of the leg at the ankle; only points within 7 cm of that vertical count, so a
+    # coat or cape hanging round the leg does not pull the slice's centre off it
     out = []
     for z in zs:
         S = seg_points(P, F, 2, z)
         S = S[S[:, 0] > 0.004] if len(S) else S
+        if near is not None and len(S): S = S[(np.abs(S[:, 0] - near[0]) < 0.07) & (np.abs(S[:, 1] - near[1]) < 0.07)]
         out.append(((S[:, 0].min() + S[:, 0].max()) / 2, (S[:, 1].min() + S[:, 1].max()) / 2) if len(S) else (np.nan, np.nan))
     return np.array(out)
 
@@ -129,12 +132,29 @@ crotchG, crotchC = tz[0]
 zmapT = lambda z: np.interp(z, tz[:, 0], tz[:, 1], left=None, right=None) + np.where(z > tz[-1, 0], z - tz[-1, 0], 0) + np.where(z < tz[0, 0], (z - tz[0, 0]) * (crotchC / crotchG - 1), 0)
 zmapL = lambda z: z * crotchC / crotchG
 zs = np.linspace(0.03, crotchG - 0.03, 24)
-cg = leg_centres(P0, GF, zs)
+ank = np.nanmedian(leg_centres(P0, GF, np.linspace(0.06, 0.16, 6)), axis=0)
+cg = leg_centres(P0, GF, zs, ank)
 cc = leg_centres(BV, BT, zmapL(zs))
 ok = ~np.isnan(cg).any(1) & ~np.isnan(cc).any(1)
-zs, dcx, dcy = zs[ok], (cc - cg)[ok, 0], (cc - cg)[ok, 1]
-gx = np.interp(P0[:, 2], zs, cg[ok, 0])
-gy = np.interp(P0[:, 2], zs, cg[ok, 1])
+zs, cg, cc = zs[ok], cg[ok], cc[ok]
+
+
+def robust_line(t, v):
+    # fit the leg as a straight line through the slices that agree, dropping the others
+    keep = np.ones(len(t), bool)
+    for _ in range(4):
+        a, b = np.polyfit(t[keep], v[keep], 1)
+        r = np.abs(a * t + b - v)
+        keep = r < max(0.006, 1.5 * np.median(r[keep]))
+    return np.polyval(np.polyfit(t[keep], v[keep], 1), t)
+
+
+cg = np.stack([robust_line(zs, cg[:, 0]), robust_line(zs, cg[:, 1])], 1)
+# and onto a straight chibi leg: following its curve (full thigh, knee forward) bows the trousers
+cc = np.stack([robust_line(zs, cc[:, 0]), robust_line(zs, cc[:, 1])], 1)
+dcx, dcy = cc[:, 0] - cg[:, 0], cc[:, 1] - cg[:, 1]
+gx = np.interp(P0[:, 2], zs, cg[:, 0])
+gy = np.interp(P0[:, 2], zs, cg[:, 1])
 
 
 def smooth01(a, b, x):
@@ -169,11 +189,15 @@ P = P * (1 - wa) + A * wa
 nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
 piece = np.array([0 if v.co.z < C['bootTop'] else 1 for v in bm.verts])  # 0 boots, 1 armour
 margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
+# the legs and boots keep the generated shape: the chibi's thighs are fuller, and pushing the
+# trousers out over them bows the legs; the body under them is hidden in game anyway (HIDE)
+pushed = (P0[:, 2] > crotchG) if not C.get('pushLegs') else np.ones(len(P0), bool)
 
 
 def push(Q):
     D = np.zeros_like(Q)
     for i, q in enumerate(Q):
+        if not pushed[i]: continue
         loc, n, idx, dist = body_bvh.find_nearest(Vector(q))
         if loc is None: continue
         d = (Vector(q) - loc).dot(n)
@@ -224,9 +248,11 @@ W /= W.sum(1, keepdims=True)
 # --- the body faces each piece covers (hidden in game, so the skin cannot poke through)
 hidden = {}
 names = {0: 'boots', 1: 'armor'}
-# body faces well inside a piece are hidden outright (the armpits are open in the T-pose): the armour
-# from just above the boot tops to below the collar, out to just inside the sleeve ends
-HIDE = {'armor': [zmapL(C['bootTop']) + 0.02, 0.785, float(armx(np.array(C['cuff']))) - 0.02], 'boots': [-1, zmapL(C['bootTop']) - 0.02, 1]}
+# body faces well inside a piece are hidden outright (the armpits are open in the T-pose, and the
+# trousers are not pushed over the fuller legs): the armour's legs from just above the boot tops,
+# its torso up to below the collar and out to just inside the sleeve ends
+HIDE = {'armor': [[zmapL(C['bootTop']) + 0.02, crotchC, 1], [crotchC, 0.785, float(armx(np.array(C['cuff']))) - 0.02]],
+        'boots': [[-1, zmapL(C['bootTop']) - 0.02, 1]]}
 for pc, name in names.items():
     fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]
     vs = sorted({v.index for f in fs for v in f.verts})
@@ -238,8 +264,8 @@ for pc, name in names.items():
         cen = (a + b + c) / 3; n = np.cross(b - a, c - a); nl = np.linalg.norm(n)
         if nl == 0: continue
         n /= nl
-        reg = C.get('hideRegion', {}).get(name) or HIDE[name]
-        if reg and all(reg[0] < q[2] < reg[1] and abs(q[0]) < reg[2] for q in (a, b, c)):
+        regs = C.get('hideRegion', {}).get(name) or HIDE[name]  # boxes [z from, z to, |x| below]
+        if any(all(r[0] < q[2] < r[1] and abs(q[0]) < r[2] for q in (a, b, c)) for r in regs):
             hid.append(ti); continue  # well inside what the piece covers (the armpits open in the T-pose)
         hits = 0
         for q in (cen, a * 0.8 + cen * 0.2, b * 0.8 + cen * 0.2, c * 0.8 + cen * 0.2):

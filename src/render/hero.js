@@ -178,7 +178,9 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
     rb.add('chest', sph(0.06, 8, 6), L.scarf, { pos: [0.06, 0.31, -0.08] });
   }
   if (o.beard) rb.add('head', new THREE.SphereGeometry(0.09, 8, 6, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), o.beard, { pos: [0, 0.07, 0.05] });
-  buildHeadwear(rb, wear.helm);
+  // the chibi wears a modelled helm when its item has one (and it has loaded), else the built one
+  const helmModel = V?.chibi && wear.helm ? chibiOutfit('outfit_' + wear.helm.id) : null;
+  if (!helmModel) buildHeadwear(rb, wear.helm);
   const outfit = T || X ? buildOutfit(rb, T || X, wear) : null;
   const weaponModel = buildWeapon(rb, gear.weapon || (o.npc || gear.unarmed ? null : 'sword'), gear.bases?.weapon); // unarmed: before the opening's weapon is chosen
   // Left hand: a second light weapon, a shield, or a quiver with a bow.
@@ -219,7 +221,7 @@ export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
       // the outfit's top, trousers, skirt, boots and gloves; a modelled armour or boots replaces its shells
       attachChibiGarments(rig, V, wear, { armor: chibiOutfit('outfit_' + wear.armor), boots: chibiOutfit('outfit_' + wear.boots.id) });
       const hair = characterBase('hero_chibi_hair');
-      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && wear.helm.kind !== 'circlet' }); // a circlet leaves the hair whole
+      if (hair) attachChibiHair(rig, V, hair, { helm: !!wear.helm && wear.helm.kind !== 'circlet', model: helmModel }); // a circlet leaves the hair whole
     } else attachVrmBody(rig, V);
   }
   rig.look = L;

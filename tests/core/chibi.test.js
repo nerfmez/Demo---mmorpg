@@ -87,11 +87,18 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
   const entries = Object.entries(data.models.characters).filter(([, m]) => m.chibiOutfit);
   assert.ok(entries.length >= 2, 'at least the travel tunic and boots');
   for (const [id, m] of entries) {
-    assert.ok(['armor', 'boots'].includes(m.chibiOutfit), id + ' piece');
+    assert.ok(['armor', 'boots', 'helm'].includes(m.chibiOutfit), id + ' piece');
     // the game finds the model by the worn item's id (hero.js: outfit_<item>)
-    assert.ok(outfits[m.chibiOutfit][id.replace(/^outfit_/, '')], id + ' names a ' + m.chibiOutfit + ' item');
+    const table = { armor: 'armor', boots: 'boots', helm: 'helms' }[m.chibiOutfit];
+    assert.ok(outfits[table][id.replace(/^outfit_/, '')], id + ' names a ' + m.chibiOutfit + ' item');
     const b = readFileSync(new URL('../../public/' + m.file, import.meta.url));
     const j = JSON.parse(b.toString('utf8', 20, 20 + b.readUInt32LE(12)));
+    if (m.chibiOutfit === 'helm') {
+      // a plain textured mesh placed on the head like the hair
+      assert.ok(!j.skins && j.meshes.length === 1 && j.images.length === 1, id + ' one textured mesh');
+      assert.equal(j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0), m.tris, id);
+      continue;
+    }
     assert.equal(j.skins.length, 1, id);
     for (const i of j.skins[0].joints) assert.ok(bones.has(j.nodes[i].name), id + ' joint ' + j.nodes[i].name + ' is a chibi bone');
     const nodes = j.nodes.filter((n) => n.mesh !== undefined);

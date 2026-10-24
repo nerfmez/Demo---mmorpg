@@ -66,8 +66,8 @@ if (params.has('streamBudget')) view.streamBudgetMs = Number(params.get('streamB
 view.startupDependencies={};
 trackStartupReadiness({models:loadModels(data.models, { onWeaponReady: (id) => {
   const bases = F.game?.gearLook().bases;
-  // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour or boots
-  const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`];
+  // a weapon, or the chibi outfit model (outfit_<item>) of the worn armour, boots or helm
+  const worn = bases && [bases.weapon, bases.offhand, `outfit_${bases.armor || 'travel_tunic'}`, `outfit_${bases.boots || 'travel_boots'}`, `outfit_${bases.helm}`];
   if (worn?.includes(id)) view.setHeroLook(F.game.ch.appearance, F.game.gearLook(), true);
   // Refresh only the currently selected creation kit, not an obsolete async selection.
   if (view.previewHero && (data.progression.start.kits[F.menu?.kit]?.weapon === id || id.startsWith('outfit_'))) F.menu.refreshPreview();

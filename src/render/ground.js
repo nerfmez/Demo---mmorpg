@@ -2,6 +2,7 @@
 // The terrain is split into tiles so off-screen parts are culled. Per-vertex attributes carry
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
+import {acceptedAt,sceneSample,sceneWeight} from '../core/accepted-scenes.js';
 import * as THREE from 'three';
 import {finishSteps} from './build-queue.js';
 import {clipRegionGeometrySteps} from './region-ownership.js';
@@ -159,6 +160,8 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         dirt[k]=Math.max(dirt[k],clearing*.97);
         road[k]=Math.max(road[k],clearing*.92);
       }
+      const accepted=acceptedAt(wd,x,z);
+      if(accepted){const w=sceneWeight(accepted,x,z),d=sceneSample(accepted,'trails',x,z);road[k]=Math.max(road[k],(1-smooth(-.25,.45,d))*w);stone[k]*=1-w;dirt[k]*=1-w;}
       road[k] *= 1 - stone[k] * .7;
     }
   }
@@ -187,12 +190,14 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const mix=animeStudy?Math.max(blend,.5):0; // zones keep half of their own tint outside the sample area
       const cl = mix?col(L).clone().lerp(col(animeConfig.palette.groundLight),mix):col(L);
       const cd = mix?col(D).clone().lerp(col(animeConfig.palette.groundDark),mix):col(D);
-      lr[k] = cl.r;
-      lg[k] = cl.g;
-      lb[k] = cl.b;
-      dr[k] = cd.r;
-      dg[k] = cd.g;
-      db[k] = cd.b;
+      const accepted=acceptedAt(wd,x,z),aw=accepted?sceneWeight(accepted,x,z):0;
+      const al=col('#b3c540'),ad=col('#5a8536');
+      lr[k] = cl.r+(al.r-cl.r)*aw;
+      lg[k] = cl.g+(al.g-cl.g)*aw;
+      lb[k] = cl.b+(al.b-cl.b)*aw;
+      dr[k] = cd.r+(ad.r-cd.r)*aw;
+      dg[k] = cd.g+(ad.g-cd.g)*aw;
+      db[k] = cd.b+(ad.b-cd.b)*aw;
     }
   }
   // Open seams: zone tints fade to the shared seam tint (atlas.seams profile), so the

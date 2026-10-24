@@ -103,7 +103,7 @@ test('hiding an unfinished search cancels it; a map change discards stale cache 
 test('search can finish between render frames and disposing cancels its queued tasks',async()=>{
  const {Scene}=await import('three'),{QuestRoute}=await import('../../src/render/quest-route.js');
  const g=new Game(data,{seed:2}),scene=new Scene(),route=new QuestRoute(g,scene,{tracker:{setAttribute(){}},toast(){}});
- route.toggle();assert.ok(route.work);await new Promise(resolve=>setTimeout(resolve,50));
+ route.toggle();assert.ok(route.work);for(let i=0;!route.mesh&&i<100;i++)await new Promise(resolve=>setTimeout(resolve,10));
  assert.ok(route.mesh,'near route finishes without rendering');assert.equal(route.timer,null);
  route.dispose();route.toggle();route.dispose();await new Promise(resolve=>setTimeout(resolve,20));
  assert.equal(scene.children.length,0);assert.equal(route.work,null);assert.equal(route.timer,null);

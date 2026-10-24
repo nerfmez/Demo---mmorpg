@@ -3,6 +3,7 @@
 // spawns; the renderer draws exactly the same layout.
 // Godot port: run `npm run export:layout` and load data/generated/*.json instead.
 
+import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders} from './accepted-scenes.js';
 import { createRng } from './rng.js';
 import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
@@ -514,13 +515,24 @@ export function createWorld(worldData) {
     const [lx, lz] = lm.at, rot = lm.rot || 0, s = Math.sin(rot), c = Math.cos(rot);
     const parts = (lm.colliders || []).map(([px, pz, r]) => ({ x: lx + px * c + pz * s, z: lz - px * s + pz * c, r }));
     landmarks.push({ ...lm, x: lx, z: lz, parts });
-    if (lm.builtin) continue;
+    if (lm.builtin || lm.acceptedScene) continue;
     const clear = lm.clear || 0, inside = (o, pad = 0) => dist(o.x, o.z, lx, lz) < clear + pad;
     for (const list of [circles, boxes]) {
       for (let i = list.length - 1; i >= 0; i--) if (CARVED.has(list[i].type) && inside(list[i], list[i].r ?? list[i].hz)) list.splice(i, 1);
     }
     for (const key of SCATTER) decor[key] = decor[key].filter((o) => !inside(o, 0.4));
     for (const p of parts) circles.push({ ...p, type: 'landmark', landmark: lm.id, scale: 1, rot });
+  }
+
+  // Replace the obsolete native scatter together with its collision, then install
+  // the approved solids. Stable waypoint IDs and town services stay game-owned.
+  if(acceptedScenes(worldData).length){
+    for(const list of[circles,boxes])for(let i=list.length-1;i>=0;i--){
+      const c=list[i];if(c.type==='waypoint')continue;
+      if(suppressNativeSceneProp(worldData,c.x,c.z)||connectorClear(worldData,c.x,c.z,(c.r??Math.hypot(c.hx,c.hz))+.6))list.splice(i,1);
+    }
+    for(const key of Object.keys(decor))decor[key]=decor[key].filter(c=>!suppressNativeSceneProp(worldData,c.x,c.z)&&!connectorClear(worldData,c.x,c.z,1));
+    for(const c of acceptedColliders(worldData))(c.hx===undefined?circles:boxes).push(c);
   }
 
   // ---------- collision grid ----------

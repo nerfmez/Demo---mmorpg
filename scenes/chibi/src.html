@@ -1,0 +1,186 @@
+<title>Chibi Hero Base</title>
+<style>
+  :root { --bg0: #bfe3ff; --bg1: #fff3dc; --panel: rgba(255, 255, 255, 0.86); --ink: #232338; --sub: #5d6079; --on: #2f6fe0; --onText: #ffffff; --chip: #eef1f8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg0: #20263f; --bg1: #3a3550; --panel: rgba(28, 30, 46, 0.88); --ink: #eef0ff; --sub: #a9adc8; --on: #5b93ff; --onText: #0d1020; --chip: #2c3048; color-scheme: dark; } }
+  :root[data-theme="dark"] { --bg0: #20263f; --bg1: #3a3550; --panel: rgba(28, 30, 46, 0.88); --ink: #eef0ff; --sub: #a9adc8; --on: #5b93ff; --onText: #0d1020; --chip: #2c3048; color-scheme: dark; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: linear-gradient(var(--bg0), var(--bg1)); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif; -webkit-user-select: none; user-select: none; }
+  #stage { position: fixed; inset: 0; touch-action: none; }
+  #ui { position: fixed; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(720px, calc(100% - 32px));
+    background: var(--panel); border-radius: 18px; padding: 10px 12px; box-shadow: 0 6px 24px rgba(30, 30, 60, 0.18); backdrop-filter: blur(8px); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0; }
+  .lab { font-size: 13px; color: var(--sub); min-width: 64px; }
+  button { font: inherit; font-size: 15px; min-height: 40px; padding: 0 14px; border-radius: 12px; border: none; background: var(--chip); color: var(--ink); cursor: pointer; }
+  button.on { background: var(--on); color: var(--onText); }
+  button:focus-visible { outline: 3px solid var(--on); outline-offset: 2px; }
+  #title { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 16px; right: 16px; font-size: 15px; color: var(--sub); }
+  #title b { color: var(--ink); font-size: 17px; }
+  #load { position: fixed; inset: 0; display: grid; place-items: center; font-size: 16px; color: var(--sub); }
+</style>
+<div id="stage"></div>
+<div id="title"><b>ฮีโร่ตัวเบส</b> · สไตล์ Sword x Staff สูง 3 หัว · ลากเพื่อหมุน จีบนิ้วเพื่อซูม</div>
+<div id="load">กำลังโหลดโมเดล…</div>
+<div id="ui">
+  <div class="row"><span class="lab">ท่าทาง</span>
+    <button id="spin" class="on">หมุนอัตโนมัติ</button><button id="walk">เดิน</button><button id="explode">แยกชิ้นส่วน</button></div>
+  <div class="row"><span class="lab">ชิ้นส่วน</span>
+    <button data-slot="Hair" class="on">ผม</button><button data-slot="Face" class="on">หน้า</button><button data-slot="Top" class="on">เสื้อ</button>
+    <button data-slot="Bottom" class="on">กางเกง+เข็มขัด</button><button data-slot="Boots" class="on">รองเท้า</button><button data-slot="Gloves" class="on">ปลอกแขน</button></div>
+  <div class="row"><span class="lab">สีหน้า</span>
+    <button data-expr="0" class="on">ปกติ</button><button data-expr="2">ยิ้ม</button><button data-expr="3">เจ็บ</button><button data-expr="1">หลับตา</button></div>
+</div>
+<script type="text/plain" id="chibi-glb">%%CHIBI%%</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
+camera.position.set(0.9, 1.05, 2.6);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.6, 0); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 1.0; controls.maxDistance = 5;
+controls.minPolarAngle = 0.2; controls.maxPolarAngle = 1.62; controls.autoRotateSpeed = 1.6;
+controls.autoRotate = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.fov = w < h ? 40 : 30; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+// the ground: a sunny disc that takes the hero's shadow
+const sun = new THREE.DirectionalLight('#ffffff', 2.2); sun.position.set(-1.2, 2.6, 1.6); sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -1, right: 1, top: 1, bottom: -1, near: 0.5, far: 6 }); sun.shadow.bias = -0.002;
+scene.add(sun, new THREE.HemisphereLight('#dff0ff', '#e8c99a', 1.4));
+const ground = new THREE.Mesh(new THREE.CircleGeometry(1.1, 64), new THREE.MeshLambertMaterial({ color: '#f1d9a6' }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const rim = new THREE.Mesh(new THREE.RingGeometry(1.1, 1.16, 64), new THREE.MeshBasicMaterial({ color: '#d9b97c' }));
+rim.rotation.x = -Math.PI / 2; rim.position.y = 0.001; scene.add(rim);
+
+// cel shading: lit, a soft middle step and a cool shadow, with a thin rim of light on the shadow side.
+// The face keeps a flatter light (the shadow only reaches the far side of the head), and hair gets a
+// glossy band round the crown.
+const LIGHT = new THREE.Vector3(-0.45, 0.8, 0.55).normalize();
+function toon(color, map, kind = '') {
+  const flat = kind === 'face';
+  return new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: color }, uLight: { value: LIGHT }, uShadow: { value: flat ? new THREE.Color(0.86, 0.8, 0.88) : new THREE.Color(0.62, 0.6, 0.84) },
+      uBand: { value: flat ? new THREE.Vector2(-0.75, -0.3) : new THREE.Vector2(-0.4, 0.0) }, uSheen: { value: kind === 'hair' ? 1 : 0 },
+      uMap: { value: map || null }, uCell: { value: new THREE.Vector2() } },
+    vertexShader: `varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+      void main() { vN = normalize(mat3(modelMatrix) * normal); vUv = uv; vec4 wp = modelMatrix * vec4(position, 1.0);
+        vV = normalize(cameraPosition - wp.xyz); gl_Position = projectionMatrix * viewMatrix * wp; }`,
+    fragmentShader: `uniform vec3 uColor, uLight, uShadow; uniform vec2 uBand; uniform float uSheen; uniform sampler2D uMap; uniform vec2 uCell; varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+      void main() {
+        vec3 n = normalize(vN); float d = dot(n, uLight);
+        float lit = smoothstep(uBand.y, uBand.y + 0.05, d), mid = smoothstep(uBand.x, uBand.x + 0.05, d);
+        vec3 c = mix(uColor * uShadow, uColor * mix(uShadow, vec3(1.0), 0.55), mid); c = mix(c, uColor, lit);
+        c += uColor * 0.22 * smoothstep(0.66, 0.74, 1.0 - max(dot(n, vV), 0.0)) * (1.0 - lit);
+        float ring = dot(n, normalize(vec3(0.0, 1.0, 0.0) + vV * 0.6));
+        c = mix(c, c * 1.4 + vec3(0.03, 0.05, 0.1), uSheen * smoothstep(0.78, 0.86, ring) * (1.0 - smoothstep(0.9, 0.98, ring)) * mid);
+        ${map ? 'vec4 t = texture2D(uMap, vUv + uCell); gl_FragColor = vec4(t.rgb * mix(0.86, 1.0, lit), t.a); if (t.a < 0.02) discard;' : 'gl_FragColor = vec4(c, 1.0);'}
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+    transparent: !!map, depthWrite: !map, polygonOffset: !!map, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+  });
+}
+// an inked outline: the part's back faces pushed out along smooth normals, in a dark tone of its own colour
+function outline(mesh, color, width) {
+  const g = mergeVertices(new THREE.BufferGeometry().setAttribute('position', mesh.geometry.attributes.position).setIndex(mesh.geometry.index), 1e-5);
+  g.computeVertexNormals();
+  const hsl = {}; color.clone().convertLinearToSRGB().getHSL(hsl);
+  const ink = new THREE.Color().setHSL(hsl.h, Math.min(1, hsl.s * 0.7 + 0.25), Math.min(0.17, hsl.l * 0.32)).convertSRGBToLinear();
+  const m = new THREE.ShaderMaterial({ uniforms: { uInk: { value: ink } }, side: THREE.BackSide,
+    vertexShader: `void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position + normal * ${width.toFixed(4)}, 1.0); }`,
+    fragmentShader: `uniform vec3 uInk; void main() { gl_FragColor = vec4(uInk, 1.0);
+      #include <colorspace_fragment>
+    }` });
+  const h = new THREE.Mesh(g, m); h.raycast = () => {}; return h;
+}
+
+const SLOT_OFFSET = { Hair: [0, 0.26, -0.02], Face: [0, 0.04, 0.3], Top: [-0.44, 0.04, 0.06], Bottom: [0.44, 0.0, 0.06], Boots: [0.44, 0.0, 0.2], Gloves: [-0.3, -0.12, 0.3] };
+const hero = { root: null, J: {}, parts: [], face: null, walk: false, walkT: 0, explode: 0, explodeTo: 0, expr: 0, blinkT: 2, slots: { Hair: 1, Face: 1, Top: 1, Bottom: 1, Boots: 1, Gloves: 1 } };
+async function load() {
+  const bytes = Uint8Array.from(atob(document.getElementById('chibi-glb').textContent.trim()), c => c.charCodeAt(0));
+  const gltf = await new GLTFLoader().parseAsync(bytes.buffer, '');
+  hero.root = gltf.scene; scene.add(hero.root);
+  hero.root.traverse(o => { if (o.name.startsWith('J_')) hero.J[o.name] = o; });
+  const meshes = []; hero.root.traverse(o => { if (o.isMesh) meshes.push(o); });
+  for (const o of meshes) {
+    const src = o.material, slot = o.userData.slot || o.parent.userData.slot, under = o.userData.under || o.parent.userData.under;
+    // the exporter may wrap a mesh in a node; read the slot from either
+    const isFace = src.name === 'Face';
+    o.material = toon(src.color.clone(), isFace ? src.map : null, isFace || (slot === 'Body' && o.parent.name === 'J_Head') ? 'face' : src.name === 'Hair' ? 'hair' : '');
+    if (isFace) { hero.face = o.material; o.renderOrder = 2; }
+    else { o.castShadow = true; o.add(outline(o, src.color, src.name === 'Hair' ? 0.0042 : 0.0036)); }
+    hero.parts.push({ mesh: o, slot, under, home: o.position.clone(), side: Math.sign(o.parent.getWorldPosition(new THREE.Vector3()).x) });
+  }
+  for (const k in hero.J) hero.J[k].userData.rest = hero.J[k].quaternion.clone();
+  hero.hipsY = hero.J.J_Hips.position.y;
+  document.getElementById('load').remove();
+  applySlots(); window.__viewer.ready = true;
+}
+function applySlots() {
+  for (const p of hero.parts) {
+    if (p.slot === 'Body') p.mesh.visible = !p.under || !hero.slots[p.under] || hero.explode > 0.01;
+    else p.mesh.visible = !!hero.slots[p.slot];
+  }
+}
+// walking in place: legs swing from the hips, knees fold on the forward swing, arms swing against
+// the legs, the body bobs; at rest the hero breathes and blinks
+function animate(t, dt) {
+  const J = hero.J; if (!J.J_Hips) return;
+  const w = hero.walkW = (hero.walkW || 0) + ((hero.walk ? 1 : 0) - (hero.walkW || 0)) * Math.min(1, dt * 6);
+  hero.walkT += dt * 7.5 * w;
+  const ph = hero.walkT, s = Math.sin(ph);
+  for (const [side, k] of [['L', 1], ['R', -1]]) {
+    const p = ph + (k > 0 ? 0 : Math.PI), sp = Math.sin(p);
+    J['J_UpperLeg_' + side].rotation.x = -0.62 * sp * w;
+    J['J_LowerLeg_' + side].rotation.x = w * (0.1 + 1.0 * Math.max(0, Math.sin(p - 1.4)));
+    J['J_Foot_' + side].rotation.x = -w * 0.25 * Math.max(0, -sp);
+    J['J_UpperArm_' + side].rotation.x = 0.55 * sp * w;
+    J['J_UpperArm_' + side].rotation.z = k * (0.06 + 0.02 * Math.sin(t * 1.7));
+    J['J_LowerArm_' + side].rotation.x = -0.18 - 0.35 * w * Math.max(0, sp);
+  }
+  J.J_Hips.position.y = hero.hipsY - 0.018 * w * Math.abs(Math.cos(ph)) + 0.004 * Math.sin(t * 1.7) * (1 - w);
+  J.J_Chest.rotation.y = 0.12 * s * w; J.J_Chest.rotation.x = 0.03 * w + 0.012 * Math.sin(t * 1.7);
+  J.J_Head.rotation.y = -0.08 * s * w; J.J_Head.rotation.z = 0.02 * Math.sin(t * 0.9);
+  // expressions live in a 2x2 atlas: open, blink / happy, hurt
+  hero.blinkT -= dt; if (hero.blinkT < -0.12) hero.blinkT = 2 + Math.random() * 3;
+  const cell = hero.expr === 0 && hero.blinkT < 0 ? 1 : hero.expr;
+  if (hero.face) hero.face.uniforms.uCell.value.set((cell % 2) * 0.5, Math.floor(cell / 2) * 0.5);
+  // pulled apart: each clothing slot slides out from the body
+  hero.explode += (hero.explodeTo - hero.explode) * Math.min(1, dt * 5);
+  for (const p of hero.parts) {
+    const o = SLOT_OFFSET[p.slot]; if (!o) continue;
+    const e = hero.explode, sx = (p.slot === 'Gloves' || p.slot === 'Boots') && p.side ? p.side * 0.12 * e : 0;
+    p.mesh.position.set(p.home.x + o[0] * e + sx, p.home.y + o[1] * e, p.home.z + o[2] * e);
+  }
+}
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(0.05, clock.getDelta()), t = clock.elapsedTime;
+  animate(t, dt); controls.update(); renderer.render(scene, camera);
+});
+
+// the buttons
+const $ = id => document.getElementById(id);
+const toggle = (el, on) => el.classList.toggle('on', on);
+$('spin').onclick = () => { controls.autoRotate = !controls.autoRotate; toggle($('spin'), controls.autoRotate); };
+$('walk').onclick = () => { hero.walk = !hero.walk; toggle($('walk'), hero.walk); };
+$('explode').onclick = () => { hero.explodeTo = hero.explodeTo ? 0 : 1; toggle($('explode'), !!hero.explodeTo); applySlots(); setTimeout(applySlots, 450); };
+for (const b of document.querySelectorAll('[data-slot]')) b.onclick = () => { const k = b.dataset.slot; hero.slots[k] = hero.slots[k] ? 0 : 1; toggle(b, !!hero.slots[k]); applySlots(); };
+for (const b of document.querySelectorAll('[data-expr]')) b.onclick = () => { hero.expr = +b.dataset.expr; for (const x of document.querySelectorAll('[data-expr]')) toggle(x, x === b); };
+window.__viewer = { ready: false, hero, camera, controls, renderer, scene, applySlots };
+toggle($('spin'), controls.autoRotate);
+load();
+</script>

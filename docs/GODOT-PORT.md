@@ -508,6 +508,9 @@ clip can drive the pose through a retargeted `Skeleton3D` instead.
 A `dual` carry (a light weapon in each hand) adds `left`: the left palm target and the left
 weapon's direction and flat, solved like the right (`solveOffhand`: left-arm IK plus a look-at on
 the off-hand socket) whenever no action drives the left hand.
+A carry's `run` (the chibi's sword trailing low behind, heavy weapons dragged in the right hand
+with the left grip released, the dagger's crouched run lean) is blended in by the move weight:
+in Godot, a second carry pose and lean added under the run blend space.
 Port as a right-hand IK target with a look-at on the weapon bone, blended by these weights.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 

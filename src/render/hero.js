@@ -348,9 +348,13 @@ export class HumanoidAnimator {
     pose.armR[0] *= 1 - 0.3 * m;
     pose.elbowR[0] = Math.min(pose.elbowR[0], -0.22 - 0.25 * m);
     pose.head[1] += this.lookYaw;
+    // the carry's run lean (hold.run.lean, e.g. the dagger's crouched run), faded in as the hero moves
+    const lean = this.holdFor()?.run?.lean;
+    if (lean) for (const n in lean) if (n !== 'drop' && pose[n]) for (let j = 0; j < 3; j++) pose[n][j] += lean[n][j] * m;
     pose.weapon = this.buf.weapon;
     pose.weapon[0] = 1.2 - 0.3 * m;
     let bodyY = gait.by * m + (1 - m) * ((stance.drop ?? 0) - 0.004 * (1 - breath));
+    if (lean?.drop) bodyY += lean.drop * m;
     let bodyX = gait.bx * m + (1 - m) * (stance.shift ?? 0);
     let bodyRotZ = clampAbs(-this.turn * 0.045 * m, 0.18);
     let hipsSpinX = 0;
@@ -480,7 +484,7 @@ export class HumanoidAnimator {
     if (this.rig.setFace) this.rig.setFace(this.expression(dt, s));
     // ---- the weapon hand: a per-weapon carry (data/weapon-holds.json) when not acting, the swing
     // arc of a melee action, and the left hand on the haft of a two-handed weapon ----
-    const hold = this.holdFor();
+    const hold = this.runCarry(this.holdFor(), this.moveW); // the carry, eased into its run carry while moving
     const ik = this.rig.ikMap; // hand targets in character space were authored for the 1.75 m body
     const ikw = pose.ikw;
     const leftBusy = ikL && ikw?.[0] > 0.01 ? ikw[0] : 0;
@@ -496,7 +500,8 @@ export class HumanoidAnimator {
     // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
     if (hold?.left && b.offhand) this.solveOffhand(hold.left, leftBusy ? 0 : holdW);
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
-    const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) : pose.grip ? pose.grip[0] : 0;
+    // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
+    const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
       root.updateMatrixWorld(true);
@@ -569,6 +574,24 @@ export class HumanoidAnimator {
     const off = this.rig.offhandKind;
     if (h.dual && off && off !== 'shield' && off !== 'quiver') return h.dual;
     return (h.two && !this.rig.offhandKind) || !h.one ? h.two : h.one;
+  }
+
+  /**
+   * A carry blended toward its run carry (data: hold.run: hand, dir, up, left, release, lean) by the
+   * move weight m: the sword trailing low behind, a heavy weapon dragged, written into a reused buffer.
+   */
+  runCarry(h, m) {
+    const r = h?.run;
+    if (!r || m < 0.01) return h;
+    const c = (this.buf.carry ??= { hand: [0, 0, 0], dir: [0, 0, 0], up: [0, 0, 0], left: undefined, leftBuf: { hand: [0, 0, 0], dir: [0, 0, 0], up: [0, 0, 0] } });
+    c.castHold = h.castHold; c.grip = h.grip; c.stance = h.stance; c.run = r;
+    mix3(c.hand, h.hand, r.hand, m); mix3(c.dir, h.dir, r.dir, m); mix3(c.up, h.up ?? UP3, r.up ?? h.up ?? UP3, m);
+    c.left = undefined;
+    if (h.left) {
+      const L = r.left ?? h.left, o = (c.left = c.leftBuf);
+      mix3(o.hand, h.left.hand, L.hand, m); mix3(o.dir, h.left.dir, L.dir, m); mix3(o.up, h.left.up ?? UP3, L.up ?? h.left.up ?? UP3, m);
+    }
+    return c;
   }
 
   /**
@@ -677,6 +700,13 @@ const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, 
 
 const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
 const ZERO3 = [0, 0, 0];
+const UP3 = [0, 1, 0];
+/** o = a + (b - a) k for 3-vectors (b missing: a). */
+function mix3(o, a, b, k) {
+  const t = b ?? a;
+  for (let j = 0; j < 3; j++) o[j] = a[j] + (t[j] - a[j]) * k;
+  return o;
+}
 // the neutral standing pose; stances add to it
 const IDLE_BASE = Object.fromEntries(IDLE_BONES.map((n) => [n, [0, 0, 0]]));
 IDLE_BASE.kneeL[0] = IDLE_BASE.kneeR[0] = 0.04;

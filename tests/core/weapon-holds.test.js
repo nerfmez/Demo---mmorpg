@@ -64,3 +64,22 @@ test('the chibi keeps a one-hand carry beside a dual one, and a dual carry place
   for (const [name, p] of Object.entries(HOLDS.presets).filter(([k]) => k !== '_doc'))
     assert.ok(vec(p.hand) && vec(p.dir) && HOLDS.stances[p.stance], `preset ${name}`);
 });
+
+test('run carries move the hand and lean the body with real channels', () => {
+  const chibi = data.models.characters.hero_chibi.holds;
+  const bones = new Set(['legL', 'legR', 'kneeL', 'kneeR', 'torso', 'chest', 'head']);
+  for (const [id, h] of Object.entries(chibi)) {
+    if (id === '_doc') continue;
+    for (const [k, c] of Object.entries(h)) {
+      const r = c?.run;
+      if (!r) continue;
+      for (const f of ['hand', 'dir', 'up']) if (r[f]) assert.ok(vec(r[f]), `${id}.${k}.run.${f}`);
+      if (r.left) assert.ok(c.left && vec(r.left.hand) && vec(r.left.dir), `${id}.${k}.run.left needs a dual carry`);
+      if (r.release) assert.ok(c.grip !== undefined, `${id}.${k}.run.release only lets go of a two-hand grip`);
+      for (const [n, v] of Object.entries(r.lean || {})) {
+        if (n === 'drop') { assert.ok(v <= 0 && v > -0.2, `${id}.${k}.run.lean.drop`); continue; }
+        assert.ok(bones.has(n) && vec(v) && v.every((x) => Math.abs(x) < 1.2), `${id}.${k}.run.lean.${n}`);
+      }
+    }
+  }
+});

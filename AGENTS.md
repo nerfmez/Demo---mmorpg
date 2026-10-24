@@ -51,6 +51,7 @@ work runs no tests. Do not make a reviewable draft wait for unrelated full suite
 - Contact attacks must not damage before the authored hit time or hit twice; test
   range/arc misses and state cleanup. Save changes need migration/preservation tests.
   These safety checks are automated; owner review covers poses, readability and feel.
+- Character actions (attacks, casts, guards, hit reactions in `src/render/actions.js`): follow [the anime action standard](.claude/skills/anime-action/SKILL.md) - anticipation, hold, a very short strike on the `hit` key, overshoot, a held pose - and review a frame sheet from the game camera before sending it.
 - Skill effects: build and check them in the Skill Lab (`lab.html`, `docs/SKILL-LAB.md`; `node tests/browser/lab.mjs <skill>` takes ~10 s) and give the owner its link (`<site>/lab/lab.html`, published from `claude/vfx-*` branches). Do not record full-game videos for effect review.
 - Use the existing focused capture that exercises changed content. Full-map capture,
   Dreamloop and long stress/leak runs apply to map-wide/resource changes or concrete

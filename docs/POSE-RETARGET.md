@@ -50,7 +50,9 @@ along the knuckle line, pinky to index.
 
 In use: `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is the chibi's one-hand sword carry
 and its `dual` carry (`--prop 1H_Sword --propL 1H_Sword_Offhand --offhand sword`, used by the
-sword, dagger and wand with a second weapon in the left hand). `two_hand_ready` (KayKit
+sword, dagger and wand with a second weapon in the left hand). `dagger_ready` (Quaternius `Sword_Idle` at
+0.6 s, full crouch, the first reference stance) is the dagger's own low trailing guard: the owner
+picked it for the dagger. `two_hand_ready` (KayKit
 `2H_Melee_Idle`, legs 0.5) is kept as `presets.two_hand_feminine` for a female body; the male
 chibi keeps its hand-set two-hand carries. Each stance's `_from` records its source and settings.
 

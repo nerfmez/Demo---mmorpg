@@ -155,6 +155,25 @@
       "elbowR": [-0.767, 0, 0],
       "drop": -0.022,
       "shift": 0
+    },
+    "dagger_ready": {
+      "_from": "Quaternius Universal Animation Library (CC0) Sword_Idle at 0.6 s, retargeted onto the driver rig (scripts/pose-retarget)",
+      "hips": [0, -0.423, -0.008],
+      "torso": [0.038, -0.254, 0.04],
+      "chest": [0.441, -0.173, -0.084],
+      "head": [-0.054, 0.589, -0.041],
+      "legL": [-0.769, 0.063, 0.362],
+      "legR": [-0.688, -0.498, -0.68],
+      "kneeL": [1.082, 0, 0],
+      "kneeR": [1.124, 0, 0],
+      "footL": [0.196, -0.085, -0.192],
+      "footR": [-0.069, 0.515, 0.005],
+      "armL": [-0.3, 0.239, 0.717],
+      "armR": [-0.094, -0.267, -0.299],
+      "elbowL": [-0.619, 0, 0],
+      "elbowR": [-0.385, 0, 0],
+      "drop": -0.134,
+      "shift": 0
     }
   }
 }

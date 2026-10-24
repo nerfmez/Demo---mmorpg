@@ -700,7 +700,7 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); dagger and wand use that dual carry and the shared one-hand carries otherwise. Heavy weapons are held in both hands at the belly, head forward, clear of the big head; the staff is held low and upright. up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head; the staff is held low and upright. up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
         "sword": {
           "one": {
             "hand": [
@@ -759,15 +759,21 @@
         "dagger": {
           "one": {
             "hand": [
-              -0.22,
-              0.94,
-              0.08
+              -0.501,
+              0.642,
+              -0.542
             ],
             "dir": [
-              -0.16,
-              -0.78,
-              -0.6
-            ]
+              -0.855,
+              0.152,
+              0.496
+            ],
+            "up": [
+              0.314,
+              -0.608,
+              0.729
+            ],
+            "stance": "dagger_ready"
           },
           "dual": {
             "hand": [

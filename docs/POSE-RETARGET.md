@@ -77,7 +77,8 @@ chibi keeps its hand-set two-hand carries. Mage and archer (owner picks): `staff
 `2H_Staff`: staff upright at the side, the free hand out), `wand_ready` (KayKit Mage `Idle` at 0.4 s
 with `1H_Wand`, low; its `dual` carry mirrors it into the left hand), `bow_ready` (Quaternius UAL2
 `Bow_Notch` at 0.15 s, mirrored: the bow before the body, the drawing hand at the face). The staff is
-held in one hand (a two-hand weapon with no second weapon); the wand may be held in each hand.
+held in one hand (a two-hand weapon with no second weapon); the wand may be held in each hand. The mace held in one hand (a shield in the
+left) takes the wand's carry and `wand_ready` (owner: "the small mace like the wand").
 Each stance's `_from` records its source and settings.
 
 - `--propL` names the reference's left-hand weapon (a dual carry's `hold.left`); `--offhand`

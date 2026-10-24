@@ -700,7 +700,7 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head. The staff (staff_ready), the wand alone and dual (wand_ready) and the bow (bow_ready) come from the owner's picks of KayKit Mage and Quaternius bow clips. up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head. The staff (staff_ready), the wand alone and dual (wand_ready) and the bow (bow_ready) come from the owner's picks (the mace held in one hand, beside a shield, takes the wand's carry) of KayKit Mage and Quaternius bow clips. up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
         "sword": {
           "one": {
             "hand": [
@@ -907,20 +907,21 @@
         "mace": {
           "one": {
             "hand": [
-              -0.24,
-              0.95,
-              0.15
+              -0.584,
+              0.778,
+              0.069
             ],
             "dir": [
-              -0.1,
-              0.4,
-              0.9
+              -0.158,
+              -0.007,
+              0.987
             ],
             "up": [
-              1,
-              0,
-              0
-            ]
+              0.467,
+              0.88,
+              0.082
+            ],
+            "stance": "wand_ready"
           },
           "two": {
             "hand": [

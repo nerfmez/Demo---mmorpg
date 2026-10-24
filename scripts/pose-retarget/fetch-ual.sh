@@ -19,4 +19,11 @@ cd "$kk"
 git checkout -q HEAD -- LICENSE.txt addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb addons/kaykit_character_pack_adventures/Characters/gltf/Rogue.glb
 for c in Knight Barbarian Mage Rogue; do cp "addons/kaykit_character_pack_adventures/Characters/gltf/$c.glb" "$out/"; done
 cp LICENSE.txt "$out/KayKit-LICENSE.txt"
-echo "UAL1.glb, UAL2.glb and the KayKit Knight, Barbarian, Mage and Rogue in $out"
+# KayKit Character Animations 1.1 (CC0, Kay Lousberg): the 133-clip animation library for the same rig
+# (Rig_Medium_*.glb, no props: play them on an Adventurer with clip-keys.mjs --anim). itch.io is blocked
+# here; this reads a copy of the pack's GLBs on GitHub.
+ka="${TMPDIR:-/tmp}/kaykit-animations"
+[ -d "$ka/.git" ] || git clone -q --filter=blob:none --no-checkout --depth 1 https://github.com/mulki-hub/eldenringkw "$ka"
+cd "$ka"
+for f in CombatMelee CombatRanged General MovementBasic MovementAdvanced Special; do git checkout -q HEAD -- "Rig_Medium_$f.glb" && cp "Rig_Medium_$f.glb" "$out/"; done
+echo "UAL1.glb, UAL2.glb, the KayKit Knight, Barbarian, Mage and Rogue and the KayKit Rig_Medium animation library in $out"

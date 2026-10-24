@@ -9,6 +9,16 @@ export async function load(url) {
   if (!cache.has(url)) cache.set(url, await new GLTFLoader().loadAsync(url));
   return cache.get(url);
 }
+/**
+ * A model with the clips of another file played on it: KayKit's animation library (Rig_Medium_*.glb,
+ * no props) on an Adventurer that holds the weapon props, the same rig and bone names.
+ */
+export async function loadWith(url, animUrl) {
+  const g = await load(url);
+  if (!animUrl) return g;
+  const a = await load(animUrl);
+  return { scene: g.scene, animations: [...a.animations, ...g.animations] };
+}
 
 // Reference rigs: which bone stands for each driver joint. hand = the wrist; knuckle, index and pinky
 // give the fist when there are fingers (else the weapon prop gives the blade).

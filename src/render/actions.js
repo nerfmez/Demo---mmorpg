@@ -219,10 +219,16 @@ const BY_KIND = {
 // The sword and the dagger cut with clips retargeted from reference animations (data/action-clips.json,
 // owner picks): one cut for every step, the slash effect following its sweep.
 const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], sword: ['swordCut', 'swordCut', 'swordCut'], dagger: ['daggerCut', 'daggerCut', 'daggerCut'] };
-for (const [name, c] of Object.entries(CLIPS)) {
-  if (name === '_doc') continue;
-  ACTIONS[name] = { hit: c.hit, sweep: c.sweep, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
+/**
+ * Register an action from clip data ({hit, sweep?, keys: [[t, pose]]}, absolute channels over REST).
+ * A clip moves the weapon itself (own, unless it says own: false): its weapon channel is not held at
+ * the carry angle, and a two-handed weapon's second hand holds the haft as the clip's grip channel says.
+ * own: false keeps a staff upright through a spell gesture (the carry's castHold).
+ */
+export function registerClip(name, c) {
+  ACTIONS[name] = { hit: c.hit, sweep: c.sweep, own: c.own ?? true, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
 }
+for (const [name, c] of Object.entries(CLIPS)) if (name !== '_doc') registerClip(name, c);
 
 /**
  * The action for a cast.

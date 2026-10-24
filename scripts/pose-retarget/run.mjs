@@ -16,6 +16,7 @@ const weapon = arg('weapon', null); // preview with this weapon in the right han
 const offhand = arg('offhand', null); // preview with this weapon in the hero's left hand (a dual carry)
 const legs = +arg('legs', '1'); // < 1 straightens the legs (less crouch) toward standing
 const arms = +arg('arms', '1'); // < 1 brings the arms in (a bulky reference holds them away from its armour)
+const anim = arg('anim', null); // play another file's clips on --file's model (KayKit's animation library)
 const site = arg('site', 'http://127.0.0.1:4190'), shots = arg('shots'), profile = arg('profile', 'ual'), prop = arg('prop', null), propL = arg('propL', null);
 if (!clip) throw new Error('--clip is required');
 
@@ -26,11 +27,11 @@ page.on('pageerror', (e) => errors.push(String(e)));
 await page.goto(site + '/fx-test.html', { waitUntil: 'load' });
 await page.waitForFunction(() => window.__fxtest?.hero?.holds, null, { timeout: 90000 });
 
-const result = await page.evaluate(async ([file, clip, time, skill, profile, prop, legs, arms, propL, offhand, face, mirror, weapon]) => {
+const result = await page.evaluate(async ([file, clip, time, skill, profile, prop, legs, arms, propL, offhand, face, mirror, weapon, anim]) => {
   const R = await import('/scripts/pose-retarget/retarget.js');
   const F = window.__fxtest;
   F.state.auto = false; F.state.weapon = weapon; F.state.offhand = offhand; F.setSkill(skill); F.freeze(true);
-  const g = await R.load('/tests/browser/out/ual/' + file);
+  const g = await R.loadWith('/tests/browser/out/ual/' + file, anim && '/tests/browser/out/ual/' + anim);
   const P = R.PROFILES[profile];
   const rest = R.sample(g, P.rest, 0, P);
   const j = R.sample(g, clip, time, P, prop, propL, face, mirror);
@@ -96,9 +97,9 @@ const result = await page.evaluate(async ([file, clip, time, skill, profile, pro
     hold.left = { hand: (m ? [pl.x / m.scale, m.from + (pl.y - m.to) / m.scale, pl.z / m.scale] : pl.toArray()).map(r3), dir: j.weaponL.dir.toArray().map(r3), up: j.weaponL.up.toArray().map(r3) };
   }
   return { stance, hold, action };
-}, [file, clip, time, skill, profile, prop, legs, arms, propL, offhand, face, mirror, weapon]);
+}, [file, clip, time, skill, profile, prop, legs, arms, propL, offhand, face, mirror, weapon, anim]);
 
-result.source = `${profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${clip} at ${time} s, retargeted onto the driver rig${legs !== 1 ? `, legs x${legs}` : ''}${arms !== 1 ? `, arms in x${arms}` : ''}${face ? ', faced forward' : ''}${mirror ? ', mirrored' : ''} (scripts/pose-retarget)`;
+result.source = `${anim ? 'KayKit Character Animations' : profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${clip} at ${time} s, retargeted onto the driver rig${legs !== 1 ? `, legs x${legs}` : ''}${arms !== 1 ? `, arms in x${arms}` : ''}${face ? ', faced forward' : ''}${mirror ? ', mirrored' : ''} (scripts/pose-retarget)`;
 console.log(JSON.stringify(result, null, 2));
 
 if (shots) {

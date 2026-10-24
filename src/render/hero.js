@@ -503,7 +503,8 @@ export class HumanoidAnimator {
     if (b.weapon) b.weapon.position.copy(b.weapon.userData.rest.pos);
     // through a spell or shout the weapon keeps its carry angle (a staff stays upright, a heavy
     // weapon stays raised): only the hand moves. A two-handed weapon's left hand lets go meanwhile.
-    const gesture = this.action && !swingV ? actionW : 0;
+    const own = this.action && ACTIONS[this.action.name]?.own; // a clip that moves the weapon itself (actions.js registerClip)
+    const gesture = this.action && !swingV && !own ? actionW : 0;
     const orientW = (hold?.castHold || hold?.grip !== undefined) && !busy && gesture > 0 ? 1 : holdW;
     // a run carry with its own arms (hold.run.arms) hands the arm and the weapon over to those channels
     const armW = hold?.run?.arms ? 1 - this.moveW : 1;
@@ -519,7 +520,8 @@ export class HumanoidAnimator {
     if (hold?.left && b.offhand) this.solveOffhand(hold.left, (leftBusy ? 0 : holdW) * armW, hold.run?.socket, 1 - armW);
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
     // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
-    const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
+    let gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
+    if (own && hold?.grip !== undefined) gripW += ((pose.grip ? pose.grip[0] : 0) - gripW) * actionW;
     if ((ikw && (ikw[0] > 0.01 || ikw[1] > 0.01)) || gripW > 0.01) {
       const root = this.rig.root;
       root.updateMatrixWorld(true);

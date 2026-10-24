@@ -61,6 +61,27 @@ node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Sword_Light_A --
 In use: `swordCut` (Sword_Light_A, the owner's pick A) is every step of the sword's basic cut;
 `daggerCut` (Sword_Light_B, pick B) the dagger's.
 
+## Choosing a clip and previewing an action
+
+```sh
+# frames of reference clips (rows: views, columns: frames); clip@a-b limits the range
+node scripts/pose-retarget/ref-strip.mjs --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --props 2H_Axe \
+  --clips Melee_2H_Attack_Chop,Melee_2H_Attack_Slice --frames 8 --views q,side --out tests/browser/out/refs
+# a whole clip as an action; --anim plays KayKit's animation library on an Adventurer with props
+node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb \
+  --clip Melee_2H_Attack_Chop --prop 2H_Axe --skill frontline_split --keys 8 --legs 0.6 --face > cand.json
+# the candidate on the chibi with the game's timing (keys before hit over the cast time, the rest over 0.28 s)
+node scripts/pose-retarget/preview-action.mjs --action cand.json --weapon greatblade --cast 0.65 --out tests/browser/out/preview
+```
+
+`ref-strip.mjs` lists a file's clips when run without `--clips`. `preview-action.mjs` registers the
+candidate in the bench page only (nothing in `data/` changes), renders the game camera's angle and
+close views at even times plus the hit frame, and reports where the weapon tip moves fastest (a
+strike's contact belongs on the hit). `--bench --skill id` casts the bench skill for real with its
+effects instead. A clip action moves the weapon itself (`own`): a two-handed weapon's left hand holds
+the haft only where its keys set `grip: [1, 0, 0]`; `own: false` keeps a staff at its carry angle
+through a spell gesture.
+
 ## Roll in the hand
 
 A reference only fixes the blade's direction; its roll about the blade must match how the hero's

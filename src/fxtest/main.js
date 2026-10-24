@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { data as gameData } from '../data.js';
 import { buildHumanoid, HumanoidAnimator, DEFAULT_LOOK } from '../render/hero.js';
 import { loadModels } from '../render/models.js';
-import { ACTIONS } from '../render/actions.js';
+import { ACTIONS, registerClip, pickAction } from '../render/actions.js';
 import MODELS from '../../data/models.json';
 import STAFF_CAST from '../../data/staff-cast.json';
 import HOLDS from '../../data/weapon-holds.json';
@@ -127,7 +127,7 @@ aimMark.rotation.x = -Math.PI / 2; aimMark.position.y = 0.025; scene.add(aimMark
 
 // ---------- effects ----------
 // a short camera shake for heavy hits (cosmetic; the bench camera is otherwise fixed)
-const camBase = new THREE.Vector3();
+const camBase = new THREE.Vector3(), camQ = new THREE.Quaternion(); // the bench view (restored after a close-up)
 let shakeT = 0, shakeDur = 1, shakeAmp = 0;
 const shake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 const flameSlash = new FlameSlashFx(scene, camera);
@@ -448,6 +448,7 @@ function layout() {
   camera.position.set(v.cx, 0, v.cz + (close ? 0.6 : 0)).addScaledVector(CAM_DIRS[state.cam], dist);
   camera.lookAt(v.cx, 0.6, v.cz);
   camBase.copy(camera.position);
+  camQ.copy(camera.quaternion);
   camera.updateProjectionMatrix();
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
   fx.resize(size.x, size.y, w, hgt);
@@ -533,14 +534,15 @@ function tick(real, draw = true) {
   camera.position.x += camFollow.x; camera.position.z += camFollow.z; // the camera walks with the hero
   // review hook: a fixed close-up (pose reviews), {pos: [x, y, z], look: [x, y, z]} around the hero
   if (state.camOverride) { const o = state.camOverride; camera.position.set(p.x + o.pos[0], o.pos[1], p.z + o.pos[2]); camera.lookAt(p.x + o.look[0], o.look[1], p.z + o.look[2]); }
+  else camera.quaternion.copy(camQ);
   renderer.render(scene, camera);
 }
 
 rebuild();
 requestAnimationFrame(frame);
-window.__fxtest = { state, get game() { return game; }, get hero() { return hero; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, fx,
+window.__fxtest = { state, ACTIONS, registerClip, pickAction, get game() { return game; }, get hero() { return hero; }, get anim() { return heroAnim; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, fx,
   // review hooks: freeze the clock and advance fixed 60 Hz steps, rendering only the last one
-  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, vfx, staffTip,
+  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, redraw: () => tick(0, true) /* render again without stepping time (another camera) */, vfx, staffTip,
   hideDummies: () => dummies.forEach((d) => { d.g.visible = false; }),
   stances: HOLDS.stances, // the animator's stance table (pose tools add trial stances to it)
   setOffhand: (kind) => { state.offhand = kind; rebuild(); }, // a second weapon (dual carry) or null

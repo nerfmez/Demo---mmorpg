@@ -4,13 +4,16 @@
 // Needs the dev server and the reference GLBs (docs/POSE-RETARGET.md).
 //
 //   node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Sword_Light_A --skill slash [--keys 8] [--legs 0.8] [--face]
+//   node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Chop --prop 2H_Axe --skill armor_cleave
+// --anim plays another file's clips on --file's model (KayKit's animation library on an Adventurer
+// holding the props); --hit u sets the contact (0..1 of the range) for a clip without a blade (spells).
 import { chromium } from 'playwright';
 
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 const flag = (k) => process.argv.includes('--' + k);
 const opts = {
   file: arg('file', 'UAL1.glb'), clip: arg('clip'), skill: arg('skill', 'slash'), profile: arg('profile', 'ual'), prop: arg('prop', null),
-  weapon: arg('weapon', null), keys: +arg('keys', '8'), legs: +arg('legs', '1'), from: +arg('from', '0'), to: +arg('to', '1'),
+  weapon: arg('weapon', null), anim: arg('anim', null), hit: arg('hit', null), keys: +arg('keys', '8'), legs: +arg('legs', '1'), from: +arg('from', '0'), to: +arg('to', '1'),
   face: flag('face'), mirror: flag('mirror'),
 };
 if (!opts.clip) throw new Error('--clip is required');
@@ -25,7 +28,7 @@ const result = await page.evaluate(async (o) => {
   const R = await import('/scripts/pose-retarget/retarget.js');
   const F = window.__fxtest;
   F.state.auto = false; F.state.weapon = o.weapon; F.state.offhand = null; F.setSkill(o.skill); F.freeze(true);
-  const g = await R.load('/tests/browser/out/ual/' + o.file);
+  const g = await R.loadWith('/tests/browser/out/ual/' + o.file, o.anim && '/tests/browser/out/ual/' + o.anim);
   const P = R.PROFILES[o.profile];
   const dur = g.animations.find((a) => a.name === o.clip).duration;
   const rest = R.sample(g, P.rest, 0, P);
@@ -62,7 +65,7 @@ const result = await page.evaluate(async (o) => {
   const M = 40, fr = Array.from({ length: M + 1 }, (_, i) => frame(t0 + ((t1 - t0) * i) / M));
   let best = 1, speed = 0;
   for (let i = 1; i <= M; i++) { const v = fr[i].tip.distanceTo(fr[i - 1].tip); if (v > speed) { speed = v; best = i; } }
-  const hitU = (best - 0.5) / M;
+  const hitU = o.hit !== null ? +o.hit : (best - 0.5) / M;
   let dy = fr[Math.min(M, best + 1)].yaw - fr[Math.max(0, best - 2)].yaw;
   dy = Math.atan2(Math.sin(dy), Math.cos(dy));
   const us = [...new Set([...Array.from({ length: o.keys }, (_, k) => k / (o.keys - 1)), hitU].map((u) => r3(u)))].sort((a, b) => a - b);
@@ -70,6 +73,6 @@ const result = await page.evaluate(async (o) => {
   return { hit: r3(hitU), sweep: dy >= 0 ? 1 : -1, seconds: r3(t1 - t0), keys, speeds: fr.slice(1).map((f, i) => r3(f.tip.distanceTo(fr[i].tip))) };
 }, opts);
 
-result.source = `${opts.profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${opts.clip}${opts.from || opts.to !== 1 ? ` ${opts.from}-${opts.to}` : ''}${opts.legs !== 1 ? `, legs x${opts.legs}` : ''}${opts.face ? ', faced forward' : ''}${opts.mirror ? ', mirrored' : ''} (scripts/pose-retarget/clip-keys.mjs)`;
+result.source = `${opts.anim ? 'KayKit Character Animations' : opts.profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${opts.clip}${opts.from || opts.to !== 1 ? ` ${opts.from}-${opts.to}` : ''}${opts.legs !== 1 ? `, legs x${opts.legs}` : ''}${opts.face ? ', faced forward' : ''}${opts.mirror ? ', mirrored' : ''} (scripts/pose-retarget/clip-keys.mjs)`;
 console.log(JSON.stringify(result));
 await browser.close();

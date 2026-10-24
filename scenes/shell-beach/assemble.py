@@ -28,7 +28,15 @@ sea=block('// ---------- sea:','// ---------- small things')
 sea=sea.replace('new THREE.PlaneGeometry(150, 74, 150, 74)','new THREE.PlaneGeometry(190, 180, 110, 100)').replace('g.translate(0, 0.04, 34)','g.translate(0, 0.04, 30)').replace('uRocks[2]','uRocks[8]').replace('for(int i=0;i<2;i++)','for(int i=0;i<8;i++)')
 sea=sea.replace('float rockNear=min(length(q-uRocks[0].xy)-uRocks[0].z,length(q-uRocks[1].xy)-uRocks[1].z);','float rockNear=999.;for(int i=0;i<8;i++)rockNear=min(rockNear,length(q-uRocks[i].xy)-uRocks[i].z);')
 runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','')
-js='\n'.join([page,renderer,(here/'world.js').read_text(),glsl,stones,foliage,palms,hero,sea,(here/'conch.js').read_text(),(here/'scene.js').read_text(),runtime])
+conch_loader='''
+// the Singing Conch model ships inside the page, like the hero; the scene is built after it loads
+const CONCH_ASSET=await (async()=>{
+  const bytes=Uint8Array.from(atob(document.getElementById('conch-glb').textContent.trim()),c=>c.charCodeAt(0));
+  const gltf=await new GLTFLoader().parseAsync(bytes.buffer,'');let mesh=null;gltf.scene.traverse(o=>{if(o.isMesh)mesh=o;});
+  mesh.geometry.computeBoundingBox();return {geometry:mesh.geometry,map:mesh.material.map};
+})();
+'''
+js='\n'.join([page,conch_loader,renderer,(here/'world.js').read_text(),glsl,stones,foliage,palms,hero,sea,(here/'conch.js').read_text(),(here/'scene.js').read_text(),runtime])
 # Reuse the reviewed embedded modules without introducing a new dependency version.
 module_source=Path(a.modules_from).read_text() if a.modules_from else b
 modules=re.search(r'<script type="importmap">(.*?)</script>',module_source,re.S)[1]
@@ -37,7 +45,8 @@ style+='\n<style>.seg button,#wipe{min-height:44px}.bar{max-width:1250px}</style
 refio=io.BytesIO();Image.open(here/'concept.png').convert('RGB').save(refio,'JPEG',quality=89)
 ref='data:image/jpeg;base64,'+base64.b64encode(refio.getvalue()).decode()
 hero64=base64.b64encode((here.parent/'beach/hero.glb').read_bytes()).decode()
-markup='''<div id="stage"><canvas id="c" aria-label="หาดเปลือกหอยยักษ์ 3D"></canvas><div class="atmo" id="sunwash"></div><div class="atmo" id="rays"></div><div class="atmo" id="vignette"></div><img id="ref" alt="ภาพต้นแบบหาดเปลือกหอย" src="REF"><div id="divider"></div><span class="tag" id="tag3d">3D</span><span class="tag" id="tagref">ภาพอ้างอิง</span></div><div class="bar"><label for="wipe">เลื่อนเพื่อเทียบ</label><input id="wipe" type="range" min="0" max="100" value="100" step=".5"><div class="seg"><button id="only3d">3D อย่างเดียว</button><button id="half">ครึ่งครึ่ง</button><button id="onlyref">ภาพอ้างอิง</button></div><span id="status">กำลังสร้างฉาก…</span></div><script type="text/plain" id="hero-glb">HERO</script>'''.replace('REF',ref).replace('HERO',hero64)
+conch64=base64.b64encode((here.parent.parent/'public/models/accepted-scenes/singing-conch.glb').read_bytes()).decode()
+markup='''<div id="stage"><canvas id="c" aria-label="หาดเปลือกหอยยักษ์ 3D"></canvas><div class="atmo" id="sunwash"></div><div class="atmo" id="rays"></div><div class="atmo" id="vignette"></div><img id="ref" alt="ภาพต้นแบบหาดเปลือกหอย" src="REF"><div id="divider"></div><span class="tag" id="tag3d">3D</span><span class="tag" id="tagref">ภาพอ้างอิง</span></div><div class="bar"><label for="wipe">เลื่อนเพื่อเทียบ</label><input id="wipe" type="range" min="0" max="100" value="100" step=".5"><div class="seg"><button id="only3d">3D อย่างเดียว</button><button id="half">ครึ่งครึ่ง</button><button id="onlyref">ภาพอ้างอิง</button></div><span id="status">กำลังสร้างฉาก…</span></div><script type="text/plain" id="hero-glb">HERO</script><script type="text/plain" id="conch-glb">CONCH</script>'''.replace('REF',ref).replace('HERO',hero64).replace('CONCH',conch64)
 head='<!doctype html><html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>หาดเปลือกหอยยักษ์ — ฉาก 3D</title>'
 imports="import * as THREE from 'three';\nimport {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';\nimport {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';\nimport {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';\n"
 out=head+style+markup+'<script type="importmap">'+modules+'</script><script type="module">'+imports+js+'\n</script></html>'

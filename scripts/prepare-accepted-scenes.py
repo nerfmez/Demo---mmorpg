@@ -26,7 +26,8 @@ for name in ['beach','forest','shell-beach','hill-windmill','azure-meadow','rose
  src=src.replace('HERO.x','heroStub.x').replace('HERO.z','heroStub.z').replace('HERO.face','heroStub.face')
  camera="const camera=new THREE.PerspectiveCamera(32,1672/941,1,400);\n"
  camera+="const CAM={target:new V3(.96,0,-4.02),pitch:38,dist:51.9,yaw:-7.3};\n" if name=='beach' else f"const CAM={{target:new V3(0,0,-7.2),pitch:40,dist:{72 if name=='forest' else 93.6},yaw:0}};\n"
- pre="export function createAcceptedScene({renderer,time={value:0},clipBounds=null}={}){\nconst scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941;\n"+helpers+camera+cam+"const SUN=new V3(-.6,.77,-.2).normalize();\n"
+ pre="export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={}}={}){\nconst scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941;\n"+helpers+camera+cam+"const SUN=new V3(-.6,.77,-.2).normalize();\n"
+ if name=='shell-beach':pre+="const CONCH_ASSET=assets.conch||null;   // preloaded by render/accepted-assets.js\n"
  if name=='beach':
   src=src.replace('const pos = new V3(), q = new THREE.Quaternion(), spinQ = new THREE.Quaternion();','const pos = wpPosition, q = wpRotation, spinQ = wpSpinRotation;').replace('new V3(0, 1, 0), t * 0.9 * G','wpAxis, t * 0.9 * G').replace('new V3(0, 1, 0), WP.spin','wpAxis, WP.spin')
   pre+='const wpPosition=new V3(),wpRotation=new THREE.Quaternion(),wpSpinRotation=new THREE.Quaternion(),wpAxis=new V3(0,1,0);\n'

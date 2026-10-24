@@ -77,3 +77,14 @@ The owner marked the upright block stones on the beach and in the shallows as un
 - **Shells:** five more scallops on the sand.
 
 Checks: `data/accepted-scenes/shell-beach.json` was re-exported (24 colliders; heights, trails and roads unchanged; other scenes byte-identical). `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view and next to the shell).
+
+## Owner round: the owner's Meshy conch (24 October 2026)
+
+The owner made the conch in Meshy (`Meshy_AI_Mossy_Conch_Shell_1024193542_texture.glb`, 15,786 triangles, four 2048 maps, 10 MB) and asked for its triangles to be reduced.
+
+- **Model:** `scenes/shell-beach/reduce-conch.py` (Blender's Python module) welds the split vertices, collapse-decimates to 40% and keeps only the base colour at 1024 JPEG: 6,313 triangles, 431 KB in `public/models/accepted-scenes/singing-conch.glb`. The script reproduces the shipped file byte for byte. 25% (3,945 triangles) was also tried; next to the shell its long faces showed as facets. The procedural conch it replaces was about 20k triangles.
+- **Loading:** the standalone page embeds the model like the hero and parses it before building. The game fetches it once (`render/accepted-assets.js`), starting before the terrain build, and hands the CPU copy to the Conch Coast factory, which builds it with the scene's own paint shader. Each build takes a texture clone, released with the region's other accepted-scene textures. The model keeps its own smooth normals (recomputed normals faceted it). If the fetch fails the scene is built without it and the game stays playable.
+- **Placement:** traced over the concept outline (spire left, mouth opening to the right and towards the camera), rolled a little so the opening tilts up, and bedded about 1 m in the sand so the body and the lip both rest on it. A warm tint keeps the near-white map from burning out in the game's sun.
+- **Colliders:** the six circles now follow the placed model's footprint at hero height (measured from its vertices), not the old traced line. The raised spire stays open.
+
+Checks: `data/accepted-scenes/shell-beach.json` was re-exported (only the six conch colliders changed; other scenes unchanged). `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view and next to the shell). Local Chromium/SwiftShader startup stayed at 42–43 s. Not run: the long leak session (the texture uses the existing accepted-scene disposal path) and a WebKit pass.

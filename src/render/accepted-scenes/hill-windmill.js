@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
-export function createAcceptedScene({renderer,time={value:0},clipBounds=null}={}){
+export function createAcceptedScene({renderer,time={value:0},clipBounds=null,assets={}}={}){
 const scene=new THREE.Group(),heroStub={},timeU=time,ASPECT=1672/941;
 // ---------- helpers ----------
 let seed = 20261021;

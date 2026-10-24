@@ -9,6 +9,7 @@ import {importJob} from './import-job.js';
 import {cancelledBuild} from './build-queue.js';
 import { terrainSteps, waterSteps, releaseGroundCaches } from './ground.js';
 import {acceptedScenerySteps} from './accepted-scenes.js';
+import {prefetchAcceptedAssets} from './accepted-assets.js';
 import { environmentSteps } from './environment.js';
 import { batchStaticSteps } from './static-batch.js';
 import { bakeGrassSteps } from './grass.js';
@@ -76,6 +77,7 @@ export function* regionSteps(view, world, region, {asyncGPU = true,onTerrainRead
 
 function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   const {root,shift}=region;
+  if(world.data.acceptedScenes?.enabled)prefetchAcceptedAssets(); // fetched while the terrain builds
   const domain = terrainDomain(world, id => view.ruleWorlds?.[id] || view.coreWorld?.(id));
   region.terrain = yield* timedRegionSteps(region,'terrain',inRegion(shift, terrainSteps(world,{domain,adopt:group=>root.add(group)})));
   root.add(region.terrain.group);

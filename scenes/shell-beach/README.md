@@ -19,7 +19,7 @@ This writes `index.html` and `generated.mjs` (both ignored). The default uses th
 python3 scenes/shell-beach/assemble.py --modules-from /absolute/path/to/offline-review.html
 ```
 
-`prepare.py` derives the portable terrain and cliff builders from the retained ruins source, then supplies this bay's terraces, left stair, sand palette and shoreline. `conch.js` authors expanding whorls, the reference-traced folded aperture and the inner chamber. `path.js` supplies one curved ribbon for terrain, collision and plant clearance; `paving.js` follows its local tangent and forms rock banks. `scene.js` authors smaller scallops, sea stacks and game foliage. `assemble.py` reuses the approved opening beach's renderer, paint shader, palms, foliage, hero GLB and water directly from `scenes/beach/src.html`.
+`prepare.py` derives the portable terrain and cliff builders from the retained ruins source, then supplies this bay's terraces, left stair, sand palette and shoreline. `conch.js` places the owner's Meshy conch (reduced by `reduce-conch.py` to `public/models/accepted-scenes/singing-conch.glb`, embedded in the page) over the concept's shell and sets its footprint colliders. `path.js` supplies one curved ribbon for terrain, collision and plant clearance; `paving.js` follows its local tangent and forms rock banks. `scene.js` authors smaller scallops, sea stacks and game foliage. `assemble.py` reuses the approved opening beach's renderer, paint shader, palms, foliage, hero GLB and water directly from `scenes/beach/src.html`.
 
 ## Water contract
 

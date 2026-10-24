@@ -44,3 +44,18 @@ test('new stone uses the saved landing waypoint ID and real teleport logic',()=>
  assert.ok(Math.hypot(g.player.x+139,g.player.z-74)<4);assert.equal(g.ch.gold,777);
  assert.ok(g.ch.progress.waypoints.includes('town'));assert.ok(g.ch.progress.waypoints.includes('landing'));
 });
+test('the owner\'s conch ships light: one reduced mesh and one 1024 colour map',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const bytes=readFileSync(new URL('../../public/models/accepted-scenes/singing-conch.glb',import.meta.url));
+ const json=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString());
+ const prim=json.meshes.flatMap(m=>m.primitives);assert.equal(prim.length,1);
+ assert.ok(json.accessors[prim[0].indices].count/3<=7000,'triangles');
+ assert.ok(prim[0].attributes.NORMAL!==undefined,'keeps its smooth normals');
+ const mat=json.materials[prim[0].material];
+ assert.equal(json.images.length,1);assert.ok(mat.pbrMetallicRoughness.baseColorTexture);
+ assert.ok(!mat.normalTexture&&!mat.emissiveTexture&&!mat.pbrMetallicRoughness.metallicRoughnessTexture);
+ const bv=json.bufferViews[json.images[0].bufferView],bin=28+bytes.readUInt32LE(12),jpg=bytes.subarray(bin+(bv.byteOffset||0),bin+(bv.byteOffset||0)+bv.byteLength);
+ let at=2;while(at<jpg.length&&!(jpg[at+1]>=0xc0&&jpg[at+1]<=0xc2))at+=2+jpg.readUInt16BE(at+2);
+ assert.deepEqual([jpg.readUInt16BE(at+7),jpg.readUInt16BE(at+5)],[1024,1024],'colour map size');
+ assert.ok(bytes.length<600*1024,'file size');
+});

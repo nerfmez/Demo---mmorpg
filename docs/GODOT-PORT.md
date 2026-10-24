@@ -396,7 +396,7 @@ targets the game uses are kept). It reuses the same driver-bone retarget (`bindS
 and switches expressions through the VRM `blink`/`angry`/`surprised` presets. Godot imports VRM
 through its VRM addon, which gives the humanoid map and spring bones directly. Hair spring bones,
 the scarf and armour pieces are not used with this body yet.
-An opt-in chibi hero body (`?hero=chibi`, `public/models/hero_chibi.glb`, registered as
+The hero's chibi body (the default; `?hero=classic` keeps the HairSample hero; `public/models/hero_chibi.glb`, registered as
 `characters.hero_chibi`; `render/chibi-body.js`) is a Meshy smart-topology mesh with its own
 painted texture and the same Mixamo-like bone names as `hero_base`, so it uses the same driver
 retarget (`bindSkinSync` with `MAP`). Its split Meshy normals are welded and smoothed at load,
@@ -436,7 +436,7 @@ Its hair is two Meshy models (`characters.hero_chibi_hair` for the fringe and
 `hero_chibi_hair_back` for the back, each drawing only its `keep` part; `scripts/prep-chibi-hair.py`)
 parented to the head bone and fitted per axis to the head's bind bounds (`fit`, from the hair's
 fixed `box` when given); in Godot attach it
-to the head bone with the same scale and offset, in its flat `color`. It is a preview body only: the art rules keep the shipped hero at normal proportions.
+to the head bone with the same scale and offset, in its flat `color`. It is the shipped hero, by the owner's choice; NPCs keep normal proportions. The worn helm can be hidden (`ch.hideHelm`, toggled beside the helm slot; looks only, `gearLook` drops it).
 The default player now uses the approved HairSample VRM0 master derivative
 (`public/models/hairsample-male.glb`, `render/hairsample.js`). Its default scene is
 the complete base body; optional garment geometry lives in a separate wardrobe

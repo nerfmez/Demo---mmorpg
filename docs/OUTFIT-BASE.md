@@ -62,7 +62,7 @@ plate), 4 a deep cuff and a knee patch (sporeweave vest, wolfpelt coat).
 
 **Boots stop below the knee**: `len` is at most 0.85 of ankle to knee (mid-shin for most).
 
-**The chibi hero** (`?hero=chibi`) wears the same outfits: `src/render/chibi-garments.js` cuts the
+**The chibi hero** (the default; `?hero=classic` is the HairSample one) wears the same outfits: `src/render/chibi-garments.js` cuts the
 top, trousers, skirt, boots (with the feet) and gloves from the chibi body and paints them with
 the same shaders, reading the chibi's bind position times `SCALE` so the cuts keep their metres.
 
@@ -115,3 +115,6 @@ trousers, shoes, boots, gloves); colours and cuts are per-rig uniforms.
 
 A new kind of piece is a new function in `PARTS`, built in rest world space (metres, the driver
 bones' rest positions `W`) and added to the bone it should follow.
+
+**Hiding the helm**: a toggle beside the helm slot (`ch.hideHelm`, `toggleHelm`) hides the worn
+helm's look; it still counts for stats. `gearLook` then leaves it out (`helmHidden: true`).

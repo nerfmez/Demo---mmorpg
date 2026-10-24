@@ -63,7 +63,7 @@ const sph = (r, w = 12, h = 10) => new THREE.SphereGeometry(r, w, h);
 export function buildHumanoid(look = DEFAULT_LOOK, gear = {}, o = {}) {
   const L = { ...DEFAULT_LOOK, ...look };
   const rb = new RigBuilder({ outline: 0.016, darkness: 0.32, rim: 0.3 });
-  // only loaded with ?hero=vrm or ?hero=chibi; both keep their own painted face and hair
+  // the chibi (default) or ?hero=vrm; both keep their own painted face and hair
   const V = o.npc || o.procedural ? null : characterBase('hero_vrm') || characterBase('hero_chibi');
   const X = o.npc || o.procedural || V ? null : characterBase('hairsample');
   const T = o.npc || o.procedural || V || X ? null : characterBase('hero_base');

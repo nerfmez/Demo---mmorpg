@@ -1,5 +1,5 @@
-// A chibi body made with Meshy (data/models.json → characters.hero_chibi) as the hero's skinned
-// body. Opt-in with ?hero=chibi; the default hero is unchanged. Its skeleton has the same
+// A chibi body made with Meshy (data/models.json → characters.hero_chibi), the hero's skinned
+// body (?hero=classic keeps the earlier HairSample hero). Its skeleton has the same
 // Mixamo-like names as hero_base, so it reuses the driver-bone retarget of skinned.js
 // (bindSkinSync with MAP). It keeps its own painted texture (face, suit, boots); materials are
 // swapped for the game's 3-step toon ramp, rim light, hit flash and outline hull (vrm-body.js).
@@ -10,7 +10,10 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { bindSkinSync, MAP } from './skinned.js';
 import { toonCopy } from './vrm-body.js';
 
-export const useChibi = typeof location !== 'undefined' && new URLSearchParams(location.search).get('hero') === 'chibi';
+// The chibi is the game's hero (the owner's sheet). ?hero=classic keeps the earlier HairSample body
+// and ?hero=vrm the VRM one, for comparison.
+export const heroParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('hero') : null;
+export const useChibi = typeof location !== 'undefined' && heroParam !== 'classic' && heroParam !== 'vrm';
 
 /**
  * Smooth normals across vertices that share a position (UV seams split them), so a low-poly

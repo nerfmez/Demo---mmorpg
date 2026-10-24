@@ -852,7 +852,7 @@
           "bow"
         ]
       },
-      "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). Opt-in with ?hero=chibi; see assets/meshy/hero_chibi"
+      "source": "Meshy meshy-t2 smart-topology image-to-3d, T-pose, untextured (task 01a162c5-0125-7289-8cd7-59e93e89c4c4); Meshy 6 retexture from the concept image only (task 01a162e0-e0b9-7089-aa90-af14b6525dc7); auto-rig at 1.2 m (task 01a162e3-50ba-704c-8317-01e2a3b889f2). The game's hero (?hero=classic keeps the HairSample one); see assets/meshy/hero_chibi"
     },
     "hero_chibi_hair": {
       "file": "models/hero_chibi_hair.glb",
@@ -867,7 +867,7 @@
         "back": 0.02,
         "side": 0
       },
-      "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03. Fitted by its fixed box, so re-cutting the model does not move the hair. Drawn in one colour. Opt-in with ?hero=chibi.",
+      "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03. Fitted by its fixed box, so re-cutting the model does not move the hair. Drawn in one colour.",
       "box": [
         [-0.2991, -0.0579, -0.2703],
         [0.2991, 0.4763, 0.2742]
@@ -900,7 +900,7 @@
         "back": 0.06,
         "side": 0
       },
-      "source": "The back of the hair: the earlier meshy-t2 model of the sheet's chibi head (task 01a1681c-6a87-7494-abca-d5d86c39028f), head removed by scripts/prep-chibi-hair.py; only its back part is drawn (keep), joined to hero_chibi_hair's fringe. Opt-in with ?hero=chibi."
+      "source": "The back of the hair: the earlier meshy-t2 model of the sheet's chibi head (task 01a1681c-6a87-7494-abca-d5d86c39028f), head removed by scripts/prep-chibi-hair.py; only its back part is drawn (keep), joined to hero_chibi_hair's fringe."
     }
   },
   "monsters": {

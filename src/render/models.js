@@ -26,7 +26,8 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
     for (const [id, m] of Object.entries(entries)) {
       if (group === 'weapons') { weapons.set(id, m); continue; }
       if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
-      if ((m.chibi || m.chibiHair) && !useChibi) continue; // likewise the chibi hero and its hair (?hero=chibi)
+      if ((m.chibi || m.chibiHair) && !useChibi) continue; // the chibi hero and its hair (all but ?hero=classic / vrm)
+      if (m.hairsample && useChibi) continue; // the HairSample hero only with ?hero=classic
       const key = `${group}/${id}`;
       if (loaded.has(key)) continue;
       if (loading.has(key)) { jobs.push(loading.get(key)); continue; }

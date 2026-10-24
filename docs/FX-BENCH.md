@@ -70,8 +70,9 @@ outer line.
 Multistrike (game data): one extra strike at levels 1-2, two at level 3. Each repeat is a
 separate strike on its own time, and the bench plays a swing for each.
 
-Rule trial (bench only, `SINGLE_STRIKE` in `src/fxtest/sandbox.js`): Slash is one plain
-strike, with no 1-2-3 combo and therefore no finisher knockback. The game is unchanged
+Rule trial (bench only, `SINGLE_STRIKE` in `src/fxtest/sandbox.js`): Slash, and since the owner
+asked, every melee arc skill on the bench, is one plain strike. There is no 1-2-3 combo, so no
+third-hit finisher with its extra damage and knockback. The game is unchanged
 until this is approved and moved into `data/skills.json` with a core rule and test.
 
 ## Firebolt additions

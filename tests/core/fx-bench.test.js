@@ -255,3 +255,17 @@ test('Flank Thrust trial on the bench: a quick main stab, weaker, 0.7x from the 
   assert.ok(Math.abs(back.amount / front.amount - 1.6 / 0.7) < 0.05, `${front.amount} -> ${back.amount}`);
   assert.ok(back.amount < 108, 'weaker than the game\'s 2.5 s Flank Thrust from behind');
 });
+
+test('no melee arc skill on the bench has a third-hit finisher: four quick casts never knock back', () => {
+  for (const skill of ['weakpoint', 'armor_cleave', 'interrupt_slam']) {
+    const g = createBench(data, skill, []);
+    const slashes = [];
+    for (let c = 0; c < 4; c++) {
+      g.player.cooldowns.fill(0);
+      g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 });
+      for (let i = 0; i < 40; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash')); }
+    }
+    assert.ok(slashes.length >= 4 && slashes.every((e) => !e.finisher), skill);
+    assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), `${skill}: nothing was knocked back`);
+  }
+});

@@ -8,8 +8,10 @@ import { installFusion } from './fusion.js';
 
 export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-// Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
+// Bench-only rule trial: every melee arc skill is one plain strike (no 1-2-3 combo, so no third-hit
+// finisher with its extra damage and knockback). Owner: "why does the third hit knock back? remove it".
 export const SINGLE_STRIKE = new Set(['slash']);
+const singleStrike = (data, skill) => SINGLE_STRIKE.has(skill) || data.skills.combat[skill]?.kind === 'melee_arc';
 export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger' };
 
 // Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
@@ -139,7 +141,7 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     g.player.cooldowns.fill(0);
     g.areas = g.areas.filter((a) => a.owner !== 'player');
   };
-  if (SINGLE_STRIKE.has(skill)) {
+  if (singleStrike(data, skill)) {
     const cast = g.castSlot;
     g.castSlot = function (...args) { this.player.lastSwingT = -1e9; return cast.apply(this, args); }; // combo step stays 0
   }

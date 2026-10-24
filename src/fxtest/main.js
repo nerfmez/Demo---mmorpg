@@ -109,7 +109,9 @@ function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
   scene.add(hero.root);
 }
 buildHero();
-loadModels({ characters: { hero_base: MODELS.characters.hero_base }, weapons: MODELS.weapons }, { onWeaponReady: () => buildHero() }).then(() => buildHero()).catch(() => {});
+// the game's hero: the chibi body and its hair (hero_base stays as the fallback rig)
+const { hero_base, hero_chibi, hero_chibi_hair, hero_chibi_hair_back } = MODELS.characters;
+loadModels({ characters: { hero_base, hero_chibi, hero_chibi_hair, hero_chibi_hair_back }, weapons: MODELS.weapons }, { onWeaponReady: () => buildHero() }).then(() => buildHero()).catch(() => {});
 const tip = new THREE.Vector3();
 function staffTip() {
   const w = hero.bones?.weapon;

@@ -42,8 +42,21 @@ function propAxes(obj) {
   return { dir: axis(order[0], Math.sign(c[order[0]]) || 1), up: axis(order[2]) };
 }
 
+/**
+ * Turn a sampled pose about the vertical through its hips so the pelvis faces +Z (a clip frame taken
+ * mid-combo may face anywhere); the body's twist above and below the pelvis is kept.
+ */
+function faceForward(j) {
+  const lat = new THREE.Vector3().subVectors(j.legL, j.legR).setY(0);
+  const yaw = Math.atan2(-lat.z, lat.x); // left = +X when facing +Z
+  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -yaw), c = j.hips.clone();
+  for (const k of Object.keys(j)) if (j[k]?.isVector3) j[k].sub(c).applyQuaternion(q).add(c);
+  j.headQ.premultiply(q);
+  for (const w of [j.weapon, j.weaponL]) if (w) { w.dir.applyQuaternion(q); w.up.applyQuaternion(q); }
+}
+
 /** Reference joint positions and bone rotations (body space: faces +Z, left = +X) at clip time t. */
-export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = null) {
+export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = null, face = false) {
   const mixer = new THREE.AnimationMixer(g.scene);
   const c = THREE.AnimationClip.findByName(g.animations, clip);
   if (!c) throw new Error('no clip ' + clip);
@@ -56,6 +69,7 @@ export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = 
   j.headQ = O(profile.head).getWorldQuaternion(new THREE.Quaternion());
   if (prop && O(prop)) j.weapon = propAxes(O(prop));
   if (propL && O(propL)) j.weaponL = propAxes(O(propL)); // a second weapon in the left hand
+  if (face) faceForward(j);
   mixer.stopAllAction();
   mixer.uncacheRoot(g.scene);
   return j;

@@ -352,7 +352,10 @@ export class HumanoidAnimator {
     const lean = this.holdFor()?.run?.lean;
     if (lean) for (const n in lean) if (n !== 'drop' && pose[n]) for (let j = 0; j < 3; j++) pose[n][j] += lean[n][j] * m;
     pose.weapon = this.buf.weapon;
-    pose.weapon[0] = 1.2 - 0.3 * m;
+    // a natural run carry lets the weapon run on along the arm (the fist's grip straight, no wrist turn)
+    const natRun = this.holdFor()?.run?.natural;
+    pose.weapon[0] = natRun ? 1.2 + (STRAIGHT_GRIP - 1.2) * m : 1.2 - 0.3 * m;
+    if (natRun) for (const n of ['handR', 'handL']) for (let j = 0; j < 3; j++) pose[n][j] *= 1 - m; // the gait's wrist swing would swing the weapon
     let bodyY = gait.by * m + (1 - m) * ((stance.drop ?? 0) - 0.004 * (1 - breath));
     if (lean?.drop) bodyY += lean.drop * m;
     let bodyX = gait.bx * m + (1 - m) * (stance.shift ?? 0);
@@ -496,9 +499,11 @@ export class HumanoidAnimator {
     // weapon stays raised): only the hand moves. A two-handed weapon's left hand lets go meanwhile.
     const gesture = this.action && !swingV ? actionW : 0;
     const orientW = (hold?.castHold || hold?.grip !== undefined) && !busy && gesture > 0 ? 1 : holdW;
-    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW, swingV, swingW, orientW);
+    // a natural run carry (hold.run.natural) only places the hand: the weapon stays as the fist holds it
+    const natW = hold?.run?.natural ? this.moveW : 0;
+    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW, swingV, swingW, orientW * (1 - natW));
     // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
-    if (hold?.left && b.offhand) this.solveOffhand(hold.left, leftBusy ? 0 : holdW);
+    if (hold?.left && b.offhand) this.solveOffhand(hold.left, leftBusy ? 0 : holdW, (leftBusy ? 0 : holdW) * (1 - natW), natW);
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
     // a heavy weapon dragged one-handed on the run (hold.run.release) lets the left hand go
     const gripW = hold?.grip !== undefined && !s.dead ? Math.max(0, 1 - leftBusy - gesture) * (s.dash && s.dash.kind !== 'leap' ? 0 : 1) * (hold.run?.release ? 1 - this.moveW : 1) : pose.grip ? pose.grip[0] : 0;
@@ -577,7 +582,7 @@ export class HumanoidAnimator {
   }
 
   /**
-   * A carry blended toward its run carry (data: hold.run: hand, dir, up, left, release, lean) by the
+   * A carry blended toward its run carry (data: hold.run: hand, dir, up, left, release, lean, natural) by the
    * move weight m: the sword trailing low behind, a heavy weapon dragged, written into a reused buffer.
    */
   runCarry(h, m) {
@@ -598,13 +603,15 @@ export class HumanoidAnimator {
    * The left hand's weapon in a dual carry (hold.left: palm, blade and flat in body space, like the
    * right's), weight w over the off-hand socket's own resting turn.
    */
-  solveOffhand(left, w) {
+  solveOffhand(left, w, ow = w, straight = 0) {
     const b = this.b, o = b.offhand;
     o.userData.carryQ ??= o.quaternion.clone(); // the socket's resting turn (hero.js build)
     o.quaternion.copy(o.userData.carryQ);
+    if (straight > 0.01) o.quaternion.slerp(STRAIGHT_Q, straight); // a natural run carry: the weapon on along the arm
     if (w <= 0.01) return;
     this.rig.root.updateMatrixWorld(true);
     reachArm(b, 'L', b.body.localToWorld(ikMap(IK_T.fromArray(left.hand), this.rig.ikMap)), w);
+    if (ow <= 0.01) return; // the weapon stays as the fist holds it
     W_DIR.fromArray(left.dir).normalize();
     if (left.up) W_UP.fromArray(left.up); else W_UP.set(0, 1, 0);
     if (Math.abs(W_UP.dot(W_DIR)) > 0.97) W_UP.set(0, 0, 1);
@@ -615,7 +622,7 @@ export class HumanoidAnimator {
     b.body.getWorldQuaternion(AIM_R).multiply(W_Q);
     b.handL.updateMatrixWorld(true);
     b.handL.getWorldQuaternion(AIM_Q).invert().multiply(AIM_R);
-    o.quaternion.slerp(AIM_Q, w);
+    o.quaternion.slerp(AIM_Q, ow);
   }
 
   /**
@@ -701,6 +708,8 @@ const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, 
 const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
 const ZERO3 = [0, 0, 0];
 const UP3 = [0, 1, 0];
+// the weapon socket's turn in the fist that runs the weapon straight on along the forearm
+const STRAIGHT_GRIP = Math.PI / 2, STRAIGHT_Q = new THREE.Quaternion().setFromEuler(new THREE.Euler(STRAIGHT_GRIP, 0, 0));
 /** o = a + (b - a) k for 3-vectors (b missing: a). */
 function mix3(o, a, b, k) {
   const t = b ?? a;

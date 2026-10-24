@@ -67,3 +67,13 @@ The owner keeps the arrival beach and the forest with the sakura island as appro
 - **Lighter:** the loose-grass scatter loops run about 55% of their former iterations. The giant conch is tessellated 96×56 instead of 176×96, which looks the same at the play camera. Factory output before clipping: Conch 410k→254k vertices, Windmill 194k→78k, Meadow 212k→186k, Rose 155k→133k. Build time per scene is down 15-40%.
 
 Checks: re-exported heights, trails, roads and colliders are identical for all six scenes. `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. CI on 4a32b24 (before this round) already showed Chromium startup at 34-37 s (main: 48-51 s). WebKit passed the desktop and iPad startups but the third (VRM) load took 76 s, mostly region warm-up (8.9 s GPU upload in Azure) and scheduling; this round's geometry cuts target that.
+
+## Owner round: Conch Coast details (24 October 2026)
+
+The owner marked the upright block stones on the beach and in the shallows as unnatural, and asked for a new conch closer to the concept.
+
+- **Rocks:** the upright pillars and the cube-shaped stones (with plants on top) in the middle of the beach are gone, together with their colliders. The waterline outcrops are low, rounded mounds of a few leaning boulders with light moss and rubble at their feet. Their positions and sea-foam rings are unchanged.
+- **Conch:** a new coiled shell (`scenes/shell-beach/conch.js`). Six whorls grow on a logarithmic spiral with knobbed shoulders, a short canal, a horn-like mouth with a wavy flared lip and a pink interior that darkens inside. It lies on its side as in the concept: spire to the left, the lip rising over the mouth, which opens to the right towards the camera. It is three indexed meshes (about 9k vertices) instead of the earlier 176×96 loft. The footprint colliders are unchanged.
+- **Shells:** five more scallops on the sand.
+
+Checks: `data/accepted-scenes/shell-beach.json` was re-exported (24 colliders; heights, trails and roads unchanged; other scenes byte-identical). `npm test` passes 605/605 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view and next to the shell).

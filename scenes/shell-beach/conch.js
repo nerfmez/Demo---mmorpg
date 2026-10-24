@@ -1,85 +1,68 @@
-// The conch is a loft of expanding whorls into a hand-traced, non-planar lip.
-// Screen anchors fit the approved reference; their authored heights give the
-// shell real depth, a thick rim and an enclosed inner chamber.
+// The Singing Conch: a real coiled shell. Whorls grow along a logarithmic
+// spiral round the coiling axis, with a knobbed shoulder on every whorl, a
+// long siphonal canal, a thin flared lip and a pink aperture. It is modelled
+// in its own frame, then laid on the sand so its spire points to the
+// concept's spire tip and its body lies along the concept's footprint.
 function giantConch(){
-  const outer=[],oc=[],inner=[],ic=[],lip=[],lc=[];
-  const tri=(ps,cs,a,b,c,tone)=>{for(const p of[a,b,c]){ps.push(p.x,p.y,p.z);cs.push(tone.r,tone.g,tone.b);}};
-  const quad=(ps,cs,a,b,c,d,tone)=>{tri(ps,cs,a,b,c,tone);tri(ps,cs,a,c,d,tone);};
   const screen=(u,v,h)=>{const[x,z]=P(u,v,M(h));return new V3(x,M(h),z);};
-  // Clockwise from the swept-back crest: a folded throat, round outer wing,
-  // long apron on the sand, and the raised columella on the left.
-  const rimControls=[
-    [.680,.174,4.65],[.676,.212,3.95],[.684,.254,3.25],
-    [.708,.267,3.50],[.735,.273,3.40],[.747,.301,2.95],
-    [.751,.347,2.30],[.760,.402,1.35],[.775,.463,.35],
-    [.786,.501,.045],[.748,.482,.07],[.711,.456,.17],
-    [.678,.426,.48],[.653,.401,.92],[.640,.356,1.85],
-    [.641,.307,2.65],[.649,.256,3.45],[.662,.207,4.15]
-  ];
-  const rimCurve=new THREE.CatmullRomCurve3(rimControls.map(p=>screen(...p)),true,'centripetal');
-  const rim=a=>rimCurve.getPoint(((Math.PI/2-a)/(Math.PI*2)%1+1)%1);
-  const profiles=[
-    [0,.447,.291,.002,.004,1.58],
-    [.09,.464,.292,.006,.012,1.58],
-    [.20,.484,.299,.010,.022,1.60],
-    [.32,.507,.311,.015,.035,1.63],
-    [.44,.532,.324,.022,.052,1.78],
-    [.57,.558,.335,.030,.075,1.98],
-    [.70,.587,.328,.039,.108,2.44],
-    [.82,.616,.319,.048,.129,2.62]
-  ];
-  const body=(t,a)=>{
-    let i=1;while(i<profiles.length-1&&t>profiles[i][0])i++;
-    const A=profiles[i-1],B=profiles[i],f=THREE.MathUtils.clamp((t-A[0])/(B[0]-A[0]),0,1),q=A.map((v,j)=>v+(B[j]-v)*f);
-    const seam=.5+.5*Math.cos(t*2*Math.PI*5.8+a*.82);
-    const scallop=1+(t>.55?.022:.080)*Math.pow(seam,3),s=Math.sin(a),c=Math.cos(a);
-    return screen(q[1]+q[3]*c*scallop+.052*Math.pow(t/.82,2)*Math.max(0,s),q[2]-q[4]*s*scallop,q[5]+q[4]*17*s+.40*Math.pow(t/.82,.7)*c);
+  // Shell parameters (unit body whorl). b: growth per radian; D: whorl offset
+  // from the axis; a, c: radial and axial half widths; H: axial descent.
+  const TURNS=6,b=Math.log(60)/(TURNS*2*Math.PI),D=.72,A=.74,C=.88,H=3.1,KNOBS=9,CANAL=.55;
+  const shape=(th,s,inner)=>{
+    const r=Math.exp(b*th),last=smooth(-2*Math.PI,0,th),lip=smooth(-.55*Math.PI,0,th);
+    const cs=Math.cos(s),sn=Math.sin(s);
+    // knobs on the shoulder (the side of the whorl towards the apex), softer on the body whorl
+    const knob=1+(.34-.16*last)*Math.pow(Math.max(0,sn*.8+cs*.6),4)*Math.pow(.5+.5*Math.cos(KNOBS*th),3);
+    let a=A*knob,c=C*(1+CANAL*last*Math.pow(Math.max(0,-sn),3));   // the canal draws the body whorl down
+    let rho=D*r+a*r*cs,z=-H*r+c*r*sn;
+    // the mouth opens like a horn: the last part of the whorl widens all round,
+    // with a thin lip turned out at the rim
+    const bell=(1+.3*lip*lip+.3*Math.pow(lip,6))*(1+.07*Math.pow(lip,10)*Math.sin(s*7+1.3));   // a wavy, flared lip
+    rho=D*r+(rho-D*r)*bell;z=-H*r+(z+H*r)*bell;
+    if(inner){rho-=r*.07*cs;z-=r*.07*sn;}
+    return new V3(rho*Math.cos(th),rho*Math.sin(th),z);
   };
-  const surface=(t,a)=>{
-    if(t<=.82)return body(t,a);
-    const f=smooth(.82,1,t),p=body(.82,a).lerp(rim(a),f);
-    const view=p.clone().project(camera);
-    const depth=M(1.85)*Math.sin(f*Math.PI);
-    const y=p.y-depth+M(.04)*Math.sin(f*Math.PI)*Math.cos(a*11+t*13);
-    const[x,z]=P((view.x+1)/2,(1-view.y)/2,y);p.set(x,y,z);
-    return p;
+  // Lay the shell on its side as in the concept: the spire points left (and a
+  // little up and towards the camera), the mouth opens to the right and
+  // towards the camera, and the shell sits on the sand over its footprint.
+  const SPIRE=[.1,-.4],MOUTH=[.7,.9,.15],SIZE=M(1.9);
+  const focus=screen(.60,.38,0),right=new V3(1,0,0).applyQuaternion(camera.quaternion);right.y=0;right.normalize();
+  const toCam=new V3().subVectors(camera.position,focus);toCam.y=0;toCam.normalize();const up=new V3(0,1,0);
+  const Zw=right.clone().negate().addScaledVector(up,SPIRE[0]).addScaledVector(toCam,SPIRE[1]).normalize();
+  const Yw=right.clone().multiplyScalar(MOUTH[0]).addScaledVector(toCam,MOUTH[1]).addScaledVector(up,MOUTH[2]);Yw.addScaledVector(Zw,-Yw.dot(Zw)).normalize();
+  // A left-handed (sinistral) shell, so its flared outer lip rises over the mouth as in the concept.
+  const Xw=new V3().crossVectors(Zw,Yw).normalize();
+  const frame=new THREE.Matrix4().makeBasis(Xw.multiplyScalar(SIZE),Yw.multiplyScalar(SIZE),Zw.multiplyScalar(SIZE));
+  {const box=new THREE.Box3();for(let th=-TURNS*2*Math.PI;th<=0;th+=.3)for(let s=0;s<6.3;s+=.4)box.expandByPoint(shape(th,s,false).applyMatrix4(frame));
+   const c=box.getCenter(new V3());frame.setPosition(focus.x-c.x,height(focus.x,focus.z)-box.min.y-SIZE*.04,focus.z-c.z);}
+  // One indexed grid per surface; smooth normals at little cost.
+  const NT=Math.round(TURNS*36),NS=40,th0=-TURNS*2*Math.PI;
+  const grid=(t0,t1,nt,inner,tone)=>{
+    const pos=[],col=[],idx=[],c=new THREE.Color();
+    for(let i=0;i<=nt;i++)for(let j=0;j<=NS;j++){
+      const th=t0+(t1-t0)*i/nt,s=j/NS*2*Math.PI,p=shape(th,s,inner).applyMatrix4(frame);
+      pos.push(p.x,p.y,p.z);tone(th,s,c);col.push(c.r,c.g,c.b);
+    }
+    for(let i=0;i<nt;i++)for(let j=0;j<NS;j++){const q=i*(NS+1)+j;idx.push(q,q+NS+1,q+1,q+1,q+NS+1,q+NS+2);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+    return g;
   };
-  const cream=new THREE.Color('#f2e6cc'),ochre=new THREE.Color('#cba87a');
-  const n=96,k=56;   // lighter (was 176x96): the shell spans a few hundred pixels at the play camera
-  for(let i=0;i<n;i++)for(let j=0;j<k;j++){
-    const t=i/n,t1=(i+1)/n,a=j/k*Math.PI*2,b=(j+1)/k*Math.PI*2;
-    const seam=Math.pow(.5+.5*Math.cos(t*2*Math.PI*5.8+a*.82),14);
-    const weather=Math.pow(Math.max(0,Math.sin(t*31+a*3.1)*Math.sin(a*5.7-t*15)),8);
-    const tone=cream.clone().lerp(ochre,seam*(t>.55?.14:.36)+weather*.30);
-    quad(outer,oc,surface(t,a),surface(t1,a),surface(t1,b),surface(t,b),tone);
-  }
-  // A deep off-centre bowl follows the irregular aperture. It cannot read as
-  // the straight circular bore of the previous horn-shaped mesh.
-  const center=screen(.698,.353,1.64);
-  const inset=(a)=>{const p=rim(a),d=p.clone().sub(center).normalize();return p.addScaledVector(d,-M(.085));};
-  const chamber=(s,a)=>{
-    const p=center.clone().lerp(inset(a),s);
-    p.y-=M(.56)*Math.sin(Math.PI*s);
-    return p;
-  };
-  for(let i=0;i<36;i++)for(let j=0;j<k;j++){
-    const s=i/36,s1=(i+1)/36,a=j/k*2*Math.PI,b=(j+1)/k*2*Math.PI;
-    const tone=new THREE.Color('#ab654c').lerp(new THREE.Color('#efb48e'),Math.pow(s,.67));
-    tone.lerp(new THREE.Color('#f5c5a0'),.12*(.5+.5*Math.sin(a*13+s*8)));
-    quad(inner,ic,chamber(s,b),chamber(s1,b),chamber(s1,a),chamber(s,a),tone);
-  }
-  for(let j=0;j<k;j++){
-    const a=j/k*2*Math.PI,b=(j+1)/k*2*Math.PI;
-    quad(lip,lc,rim(a),rim(b),inset(b),inset(a),new THREE.Color(j%13===0?'#dcb990':'#f9ebcf'));
-  }
-  const root=new THREE.Group();root.name='Singing Conch — traced folded aperture';
-  root.add(shellMesh(outer,oc),shellMesh(inner,ic,true),shellMesh(lip,lc));
-  // The stepped shoulders become broader towards the body, with short worn
-  // knobs following the whorl rather than a row of identical straight spikes.
-  for(const[t,a,h]of[[.17,1.7,.10],[.28,1.65,.13],[.39,1.58,.16],[.49,1.6,.23],[.60,1.55,.26],[.69,1.63,.34]]){
-    const p=surface(t,a),g=new THREE.ConeGeometry(M(h*.75),M(h),5);g.translate(0,M(h*.3),0);
-    const m=new THREE.Mesh(g,paint({color:'#e9d8b8',shade:[.65,.57,.48],mid:[.92,.83,.70]}));m.position.copy(p);m.rotation.z=-.7;m.castShadow=true;root.add(m);
-  }
+  const cream=new THREE.Color('#f3e7cd'),ochre=new THREE.Color('#c9a273'),sand=new THREE.Color('#dcc39b'),blush=new THREE.Color('#e9c2a2');
+  const outer=grid(th0,0,NT,false,(th,s,c)=>{
+    // growth lines across the whorl, ochre spiral bands, a blush on the lip
+    const growth=Math.pow(.5+.5*Math.cos(th*KNOBS),10),band=Math.pow(.5+.5*Math.sin(s*3+th*.4),12);
+    c.copy(cream).lerp(ochre,growth*.22+band*.18).lerp(sand,.25*smooth(-2,-8,th/Math.PI)).lerp(blush,.55*smooth(-.35*Math.PI,0,th)*Math.max(0,Math.cos(s)));
+  });
+  const pink=new THREE.Color('#f6c8a6'),deep=new THREE.Color('#8f4436');
+  // deeper inside the whorl and towards the columella the pink darkens, so the mouth reads as a hollow
+  const inside=grid(-1.5*Math.PI,0,Math.round(1.5*22),true,(th,s,c)=>c.copy(deep).lerp(pink,Math.pow(smooth(-.5*Math.PI,0,th),1.2)*(.45+.55*smooth(-.6,.9,Math.cos(s)))));
+  // the lip's thickness: a pale rim joining the outer and inner edges
+  const rimPos=[],rimCol=[],rimIdx=[],rimTone=new THREE.Color('#fbf0dc');
+  for(let j=0;j<=NS;j++){const s=j/NS*2*Math.PI;for(const p of[shape(0,s,false),shape(0,s,true)]){p.applyMatrix4(frame);rimPos.push(p.x,p.y,p.z);rimCol.push(rimTone.r,rimTone.g,rimTone.b);}}
+  for(let j=0;j<NS;j++){const q=j*2;rimIdx.push(q,q+1,q+2,q+2,q+1,q+3);}
+  const rim=new THREE.BufferGeometry();rim.setAttribute('position',new THREE.Float32BufferAttribute(rimPos,3));rim.setAttribute('color',new THREE.Float32BufferAttribute(rimCol,3));rim.setIndex(rimIdx);rim.computeVertexNormals();
+  const root=new THREE.Group();root.name='Singing Conch — coiled shell';
+  for(const[g,inner]of[[outer,false],[inside,true],[rim,false]]){const m=new THREE.Mesh(g,shellMaterial(inner));m.castShadow=m.receiveShadow=true;root.add(m);}
   // Low irregular footholds anchor the body; the main beach remains open.
   for(const[u,v,r]of[[.535,.352,.65],[.565,.389,1],[.591,.421,1.3],[.625,.443,1.4],[.663,.450,1.1],[.721,.478,.6]]){
     const[x,z]=P(u,v);COLLIDERS.push({x,z,r:M(r)});

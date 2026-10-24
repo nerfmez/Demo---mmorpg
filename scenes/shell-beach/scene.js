@@ -1,11 +1,8 @@
 // Shell Beach: the retained Azure Coast concept, with a hollow, flared conch.
 const seaRocks=[];
-function shellMesh(pos,colors,inside=false){
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
-  const p=g.attributes.position,n=g.attributes.normal,shared=new Map();
-  for(let i=0;i<p.count;i++){const key=[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*10000)).join(',');const sum=shared.get(key)||new V3();sum.add(new V3().fromBufferAttribute(n,i));shared.set(key,sum);}
-  for(let i=0;i<p.count;i++){const key=[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*10000)).join(',');const v=shared.get(key).clone().normalize();n.setXYZ(i,v.x,v.y,v.z);}
-  const m=paint({vertexColors:true,side:THREE.DoubleSide,shade:inside?[.48,.37,.36]:[.62,.59,.56],mid:inside?[.85,.69,.62]:[.88,.83,.72],band:[-.18,.30],albedo:inside?'':`
+// The shells' painted material: weathered cream outside, a plain pink inside.
+function shellMaterial(inside=false){
+  return paint({vertexColors:true,side:THREE.DoubleSide,shade:inside?[.48,.37,.36]:[.62,.59,.56],mid:inside?[.85,.69,.62]:[.88,.83,.72],band:[-.18,.30],albedo:inside?'':`
     float weather=vnoise(vW.xz*1.3+vW.y*.7);
     float streak=vnoise(vec2(vW.x*.8+vW.z*.2,vW.y*.08));
     float stain=smoothstep(.63,.79,weather)*smoothstep(.51,.72,streak);
@@ -13,7 +10,10 @@ function shellMesh(pos,colors,inside=false){
     float lichen=smoothstep(.65,.80,vnoise(vW.xz*.72+vW.y*.15))*smoothstep(.52,.76,vnoise(vW.xz*2.1+vW.y*.12));
     diffuseColor.rgb=mix(diffuseColor.rgb,${L('#8e9951')},lichen*.5);
   `});
-  const mesh=new THREE.Mesh(g,m);mesh.castShadow=mesh.receiveShadow=true;return mesh;
+}
+function shellMesh(pos,colors,inside=false){
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
+  const mesh=new THREE.Mesh(g,shellMaterial(inside));mesh.castShadow=mesh.receiveShadow=true;return mesh;
 }
 function scallop(r=.7,coral=true){
   const pos=[],colors=[],tone=new THREE.Color(coral?'#cf9273':'#d5d3bc'),pale=new THREE.Color('#f9e5bf');
@@ -25,23 +25,32 @@ function scallop(r=.7,coral=true){
   const mesh=shellMesh(pos,colors);mesh.rotation.x=-.40;return mesh;
 }
 function coastalBoulders(){
-  // Tall, irregular sea stacks frame the view while the middle remains a beach.
-  const specs=[[.025,.79,.055,.72],[.09,.79,.065,.68],[.135,.84,.052,.67],[.215,.82,.034,.75],[.66,.82,.05,.72],[.735,.89,.055,.78],[.80,.92,.04,.83],[.90,.91,.025,.86],
-    [.15,.68,.028,.62],[.35,.57,.03,.53],[.61,.45,.03,.40],[.82,.52,.032,.46],[.39,.42,.023,.38],[.88,.76,.025,.71],[.535,.505,.025,.455],[.58,.52,.025,.48],[.74,.54,.03,.49],[.79,.52,.022,.48]];
-  for(const[u,v,hu,vt]of specs){
-    const[x,z0]=P(u,v),w=wide(u-hu/2,u+hu/2,v,0),g=height(x,z0),h=Math.max(.8,tall(x,z0,g,vt)),d=w*.72,z=z0-d*.22;
-    addStone(x,g-.18,z,w,h,d,{chamfer:.18,extra:18,jitter:.11,moss:.18,base:pick(['#c7c1bc','#d2ccc6','#b6b1b2'])});
+  // Natural rock: low, rounded outcrops at the waterline (the concept's sea
+  // stacks), built from a few leaning boulders with moss on top, and loose
+  // rubble round their feet. No upright pillars and no blocks on the open sand.
+  const keep=seed;seed=31337;
+  const round={chamfer:.42,extra:22,jitter:.12};
+  const specs=[[.025,.79,.055],[.09,.79,.065],[.135,.84,.052],[.215,.82,.034],[.66,.82,.05],[.735,.89,.055],[.80,.92,.04],[.90,.91,.025],[.15,.68,.028],[.88,.76,.025]];
+  for(const[u,v,hu]of specs){
+    const[x,z0]=P(u,v),w=wide(u-hu/2,u+hu/2,v,0),g=height(x,z0),d=w*.8,z=z0-d*.22;
+    // one broad mound and two or three smaller stones leaning on it
+    const h=w*R(.55,.8);
+    addStone(x,g-.35,z,w*1.05,h,d,{...round,moss:.15,ry:R(0,3)});
+    for(let i=0,n=2+(rand()<.5?1:0);i<n;i++){
+      const a=i/n*6.28+R(-.5,.5),xx=x+Math.cos(a)*w*R(.42,.6),zz=z+Math.sin(a)*d*R(.42,.6),ss=w*R(.35,.55);
+      addStone(xx,height(xx,zz)-.25,zz,ss,ss*R(.55,.85),ss*.9,{...round,moss:.12,ry:R(0,3),rz:R(-.25,.25)});
+    }
+    for(let i=0;i<4;i++){const xx=x+R(-1,1)*w*.9,zz=z+R(-.7,.7)*d,ss=R(.10,.22)*w;addStone(xx,height(xx,zz)-.06,zz,ss,ss*R(.5,.8),ss*.9,{...round,noLine:true});}
     if(z>zShore(x)-1){if(seaRocks.length<8)seaRocks.push([x,z,w*.42]);}
     else COLLIDERS.push({x,z,r:w*.4});
-    if(h>2&&rand()<.7)addBush(x,g+h-.16,z,w*.25,{sy:.32,tint:.2});
-    for(let i=0;i<3;i++){const xx=x+R(-.75,.75)*w,zz=z+R(-.5,.5)*d,ss=R(.17,.34)*w;addStone(xx,height(xx,zz)-.08,zz,ss,ss*R(.5,.9),ss*.9,{chamfer:.25,extra:7,noLine:true});}
   }
   for(let i=0;i<110;i++){
     const[u,v]=[R(.08,.94),R(.38,.83)],[x,z]=P(u,v),f=field(x,z);
     if(f.top>.15||z>zShore(x)-.8||(u>.44&&u<.81&&v<.51))continue;
-    const r=R(.09,.30);addStone(x,height(x,z)-.04,z,r*1.5,r,r*1.2,{extra:4,chamfer:.3,noLine:true,moss:0});
+    const r=R(.09,.30);addStone(x,height(x,z)-.04,z,r*1.5,r,r*1.2,{extra:6,chamfer:.36,noLine:true,moss:0});
   }
   while(seaRocks.length<8)seaRocks.push([9999,9999,.1]);
+  seed=keep;
 }
 function treeFoot(u,v){
   let hi=M(8),lo=hi;
@@ -114,7 +123,7 @@ function build(){
   const[x,z]=P(.5,.752);HERO.x=x;HERO.z=z;HERO.face=-2.7;
   scene.add(buildGround());scene.add(buildCliffs());buildLedges();
   coastalBoulders();plantCoast();
-  for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false]]){
+  for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false],[.25,.62,.6,false],[.47,.70,.55,true],[.56,.55,.5,false],[.76,.66,.6,true],[.31,.74,.5,false]]){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
   const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));

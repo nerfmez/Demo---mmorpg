@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const engine=process.env.BROWSER==='webkit'?webkit:chromium;
 const out=`tests/browser/out/weapon-loading-${engine.name()}`;mkdirSync(out,{recursive:true});
 const server=spawn('node',['node_modules/vite/bin/vite.js','preview','--port','4238','--strictPort'],{stdio:'ignore',detached:true});
-const url='http://localhost:4238/?fresh=1&quality=low&seed=5&stream=0';
+const url='http://localhost:4238/?fresh=1&quality=low&seed=5&stream=0&hero=classic'; // grips of the HairSample hands
 for(let i=0;;i++){try{if((await fetch(url)).ok)break;}catch{}if(i>60)throw Error('server');await new Promise(r=>setTimeout(r,250));}
 let browser;
 try{

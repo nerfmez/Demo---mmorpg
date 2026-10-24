@@ -37,7 +37,8 @@ test('a resolved look has every colour, cut and part it needs, inside the base',
     assert.ok([0, 1, 2, 3].includes(c.pattern), 'pattern');
     assert.ok(!o.skirt || (o.skirt.length > 0.1 && o.skirt.length < 0.9), `${armor}: skirt within the leg`);
     for (const p of [...o.parts, ...o.boots.parts]) assert.ok(PARTS[p], `${armor}/${boots}: part ${p}`);
-    assert.ok(o.boots.len > 0 && o.boots.len < 1.3, 'boot height');
+    assert.ok(o.boots.len > 0 && o.boots.len <= 0.85, 'boots stop below the knee (mid-shin or lower)');
+    assert.ok([0, 1, 2, 3, 4].includes(o.trousers.pattern), `${armor}: trousers design`);
   }
   for (const gloves of ids('gloves')) {
     const g = look({ gloves }).gloves;
@@ -80,4 +81,8 @@ test('layers merge in order; "$tunic" follows the chosen colour; shoes follow th
   assert.ok(o.parts.includes('chestPlate') && o.parts.includes('belt'));
   assert.equal(o.palette.shoes, OUT.boots.gale_boots.palette.main);
   assert.equal(look({ armor: 'wardenstalker_coat' }).skirt.length, OUT.armor.wardenstalker_coat.skirt.length, 'the item overrides its base skirt');
+});
+
+test('every armour comes with its own trousers design (there is no trousers item)', () => {
+  for (const armor of ids('armor')) assert.ok(look({ armor }).trousers.pattern > 0, `${armor} has designed trousers`);
 });

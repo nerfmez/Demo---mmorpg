@@ -271,6 +271,25 @@ canvas.addEventListener('pointermove', (ev) => { if (aiming === ev.pointerId) ai
 const endAim = (ev) => { if (aiming === ev.pointerId) aiming = null; };
 canvas.addEventListener('pointerup', endAim); canvas.addEventListener('pointercancel', endAim);
 
+// ---------- walk joystick: drag to walk (the rules' movement); the aim follows the walk ----------
+const joy = document.getElementById('joy'), knob = document.getElementById('knob');
+const lastPos = { x: 0, z: 0 }, camFollow = { x: 0, z: 0 };
+let joyId = null;
+function joyMove(ev) {
+  const r = joy.getBoundingClientRect(), R = r.width / 2;
+  let dx = ev.clientX - (r.left + R), dy = ev.clientY - (r.top + R);
+  const l = Math.hypot(dx, dy); if (l > R) { dx *= R / l; dy *= R / l; }
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  // the bench camera looks toward -z: screen right is +x, screen down is +z
+  const mx = dx / R, mz = dy / R;
+  game.setMove(mx, mz);
+  if (Math.hypot(mx, mz) > 0.25) { aimAngle = Math.atan2(mx, mz); game.aimAt(aimAngle); }
+}
+function joyEnd(ev) { if (ev.pointerId !== joyId) return; joyId = null; knob.style.transform = ''; game.setMove(0, 0); }
+joy.addEventListener('pointerdown', (ev) => { ev.preventDefault(); joyId = ev.pointerId; try { joy.setPointerCapture(ev.pointerId); } catch {} joyMove(ev); });
+joy.addEventListener('pointermove', (ev) => { if (ev.pointerId === joyId) joyMove(ev); });
+joy.addEventListener('pointerup', joyEnd); joy.addEventListener('pointercancel', joyEnd); joy.addEventListener('lostpointercapture', joyEnd);
+
 // ---------- panel ----------
 const panel = document.getElementById('panel');
 const h = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; return el; };
@@ -444,8 +463,10 @@ function tick(real, draw = true) {
 
   hero.root.position.set(p.x, 0, p.z);
   hero.root.rotation.y = p.facing;
-  heroAnim.update(dt, { speed: p.dash ? 8 : 0, facing: p.facing, moving: false, dash: p.dash ? { kind: p.dash.kind, t: p.dash.t, dur: p.dash.dur } : null, channeling: p.channeling, dead: false, time: simTime });
+  const walked = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-4); lastPos.x = p.x; lastPos.z = p.z;
+  heroAnim.update(dt, { speed: p.dash ? 8 : Math.min(walked, 12), facing: p.facing, moving: !!p.moving, dash: p.dash ? { kind: p.dash.kind, t: p.dash.t, dur: p.dash.dur } : null, channeling: p.channeling, dead: false, time: simTime });
   aimMark.position.set(p.x + Math.sin(aimAngle) * 2.2, 0.025, p.z + Math.cos(aimAngle) * 2.2);
+  camFollow.x = p.x; camFollow.z = p.z;
 
   // dummies follow the rules (knockback / pull), react to hits, show chill / burn
   game.monsters.forEach((m, i) => {
@@ -489,6 +510,7 @@ function tick(real, draw = true) {
   fx.prerender();
   if (shakeT > 0) { shakeT = Math.max(0, shakeT - dt); const k = shakeAmp * (shakeT / shakeDur); camera.position.set(camBase.x + (Math.random() - 0.5) * 2 * k, camBase.y + (Math.random() - 0.5) * 2 * k, camBase.z + (Math.random() - 0.5) * 2 * k); }
   else camera.position.copy(camBase);
+  camera.position.x += camFollow.x; camera.position.z += camFollow.z; // the camera walks with the hero
   renderer.render(scene, camera);
 }
 

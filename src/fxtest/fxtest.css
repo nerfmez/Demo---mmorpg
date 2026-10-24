@@ -39,6 +39,10 @@ h2 { font-size: 14px; margin: 14px 0 6px; color: var(--muted); font-weight: 600;
 .seg button, .toggle { flex: 1; min-height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--chip); }
 .seg button.on, .toggle.on { background: var(--chip-on); }
 .stats { margin-top: 12px; font-size: 13px; color: var(--muted); min-height: 2.8em; }
+/* walk joystick (touch or mouse): drag the knob to walk the hero */
+#joy { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom)); width: 120px; height: 120px; border-radius: 50%; background: rgba(20,30,40,.28); border: 2px solid rgba(255,255,255,.55); touch-action: none; user-select: none; -webkit-user-select: none; }
+#joy::after { content: 'เดิน'; position: absolute; left: 0; right: 0; top: -22px; text-align: center; font-size: 13px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); pointer-events: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, #d9e6f2 60%, #9fb4c8); box-shadow: 0 3px 10px rgba(0,0,0,.35); pointer-events: none; }
 .actions { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 14px; }
 #cast, #dodge { border: 0; border-radius: 50%; font-weight: 700; color: #241a05; box-shadow: 0 4px 14px rgba(0,0,0,.35); user-select: none; -webkit-user-select: none; }
 #cast { width: 96px; height: 96px; background: radial-gradient(circle at 35% 30%, #fff1b8, #ffc94a 60%, #e09a22); font-size: 20px; }

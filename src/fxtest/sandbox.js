@@ -98,7 +98,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     if (g.ch.arrows?.stock && Object.values(g.ch.arrows.stock).reduce((a, n) => a + n, 0) < 50) g.ch.arrows.stock.feather_arrow = 200;
     g.player.movement.charges = Math.max(g.player.movement.charges, 1);
   };
-  g.aimAt = (angle) => { g.input.aimFromPointer = true; g.input.aimAngle = angle; g.input.aimPoint = { x: Math.sin(angle) * 5, z: Math.cos(angle) * 5 }; };
+  g.aimAt = (angle) => { const p = g.player; g.input.aimFromPointer = true; g.input.aimAngle = angle; g.input.aimPoint = { x: p.x + Math.sin(angle) * 5, z: p.z + Math.cos(angle) * 5 }; };
   g.resetDummies = () => {
     for (const m of g.monsters) Object.assign(m, { x: m.homeX, z: m.homeZ, hp: m.maxHp, statuses: {}, dead: false });
     g.player.cooldowns.fill(0);

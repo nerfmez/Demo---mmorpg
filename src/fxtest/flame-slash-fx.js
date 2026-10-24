@@ -8,7 +8,7 @@
 // (white-hot front rim, yellow, orange, red), short tongues flicking off its back edge, a soft
 // glow around it; it widens as it goes and burns away from the back at the end of its range.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, NOISE } from './fx-common.js';
+import { Ribbon, mulberry32, NOISE } from '../render/skillfx/fx-common.js';
 
 const HOT = [1.0, 0.85, 0.42], MID = [1.0, 0.52, 0.14], RED = [0.85, 0.22, 0.08];
 const mixc = (a, b, k, o) => { o[0] = a[0] + (b[0] - a[0]) * k; o[1] = a[1] + (b[1] - a[1]) * k; o[2] = a[2] + (b[2] - a[2]) * k; return o; };

@@ -6,11 +6,9 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-// Bench-only rule trial: these skills are one plain strike (no 1-2-3 combo, so no finisher knockback).
-export const SINGLE_STRIKE = new Set(['slash']);
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
@@ -21,6 +19,28 @@ export const LAYOUTS = {
   chain_spark: [[3.6, 0.3], [6.2, -1.7], [8.6, 0.8], [6.3, 2.7], [10.6, -1.4], [11.6, 2.2]],
   frost_nova: [[2.0, 0.6], [-1.2, 2.2], [0.4, -3.2], [-3.0, -1.6], [3.7, 1.9], [5.4, -1.0]],
   flame_stream: [[2.0, 0.2], [3.3, -1.0], [4.4, 1.0], [3.0, 2.6], [6.2, 0]],
+  // a target in line, others off to the sides and behind for Split / Pierce / Bounce
+  venom_mire: [[5.0, 0.0], [8.5, -1.2], [7.2, 2.0], [11.0, 0.6], [3.8, -2.6]],
+  // four in the 3 m circle at the 5 m aim point, two just outside it
+  arrow_rain: [[5.0, 0.3], [4.0, -1.4], [6.2, 1.4], [5.9, -1.1], [8.6, 0.4], [3.6, 3.0]],
+  // a long lane: the reach and the pushed-air rings read along it
+  charged_shot: [[9.0, 0.0], [13.0, 1.6], [6.0, -2.4], [15.5, -1.2]],
+  // three down the 5 m line, two just off its 1.4 m width
+  frontline_split: [[1.8, 0.2], [3.2, -0.3], [4.6, 0.25], [3.0, 1.6], [2.4, -1.7]],
+  // three in the 80 degree, 2.8 m cut, two outside it
+  armor_cleave: [[2.0, 0.3], [1.8, -0.9], [1.7, 1.2], [1.2, 2.6], [4.2, -0.4]],
+  // three in the 65 degree, 2.7 m slam, one beside it
+  interrupt_slam: [[2.1, 0.2], [1.9, -0.9], [1.8, 1.0], [0.6, 2.5]],
+  // two in the narrow thrust: one facing the hero, one with its back turned; two more off to the sides
+  weakpoint: [[1.9, -0.25], [2.15, 0.3], [3.4, 2.4], [3.4, -2.4]],
+  // three in the 90 degree, 2.2 m bash (knocked back), one behind them
+  shield_bash: [[1.7, 0.2], [1.5, -0.9], [1.4, 1.0], [4.2, 0.2]],
+  // the first one attacks the hero in turns (to be blocked); the counter's 100 degree arc takes the rest
+  riposte: [[1.6, 0.1], [1.8, -0.8], [1.7, 0.9], [3.6, 1.6]],
+};
+// Facings per layout (default: every dummy faces the hero). Flank Thrust needs some backs turned.
+export const FACINGS = {
+  weakpoint: [-Math.PI / 2, Math.PI / 2, 0, Math.PI],
 };
 
 // Mods this skill can actually use on the bench. Triggers that need a guard skill are left out.
@@ -45,6 +65,9 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   const weaponType = BENCH_WEAPON[skill] || 'staff';
   const base = Object.entries(data.items.gearBases).find(([, d]) => d.weaponType === weaponType);
   if (base) { const it = { uid: ch.nextUid++, base: base[0], grade: 'C', itemLevel: 1, upgrade: 0, options: [] }; ch.gear.push(it); equip(ch, data, it.uid); }
+  const off = data.skills.combat[skill]?.requiresOffhand; // e.g. Shield Bash needs a shield
+  const offBase = off && Object.entries(data.items.gearBases).find(([, d]) => d.offhandType === off);
+  if (offBase) { const it = { uid: ch.nextUid++, base: offBase[0], grade: 'C', itemLevel: 1, upgrade: 0, options: [] }; ch.gear.push(it); equip(ch, data, it.uid); }
 
   const g = new Game(data, { character: ch, seed });
   Object.assign(g.player, { x: 0, z: 0, facing: Math.PI / 2, hp: g.player.maxHp * 0.6 });
@@ -52,7 +75,7 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
   const pool = g.monsters.filter((m) => !m.boss).slice(0, spots.length);
   pool.forEach((m, i) => {
     const [x, z] = spots[i];
-    Object.assign(m, { x, z, homeX: x, homeZ: z, hp: 100000, maxHp: 100000, defense: 0, aggro: false, boss: false, dead: false, statuses: {}, facing: -Math.PI / 2, benchIndex: i });
+    Object.assign(m, { x, z, homeX: x, homeZ: z, hp: 100000, maxHp: 100000, defense: 0, aggro: false, boss: false, dead: false, statuses: {}, facing: FACINGS[skill]?.[i] ?? -Math.PI / 2, benchIndex: i });
   });
   g.monsters = pool;
   g.player.targetId = null;
@@ -71,7 +94,8 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.updateProjectiles(dt);
     g.updateAreas(dt);
     for (const m of g.monsters) g.tickStatuses(m, dt);
-    g.player.mp = g.player.maxMp; // cooldowns run for real; MP never blocks a test
+    g.player.mp = g.player.maxMp; // cooldowns run for real; MP and arrows never block a test
+    if (g.ch.arrows?.stock && Object.values(g.ch.arrows.stock).reduce((a, n) => a + n, 0) < 50) g.ch.arrows.stock.feather_arrow = 200;
     g.player.movement.charges = Math.max(g.player.movement.charges, 1);
   };
   g.aimAt = (angle) => { g.input.aimFromPointer = true; g.input.aimAngle = angle; g.input.aimPoint = { x: Math.sin(angle) * 5, z: Math.cos(angle) * 5 }; };
@@ -80,9 +104,37 @@ export function createBench(data, skill, mods = [], { seed = 71, fusion = null, 
     g.player.cooldowns.fill(0);
     g.areas = g.areas.filter((a) => a.owner !== 'player');
   };
-  if (SINGLE_STRIKE.has(skill)) {
-    const cast = g.castSlot;
-    g.castSlot = function (...args) { this.player.lastSwingT = -1e9; return cast.apply(this, args); }; // combo step stays 0
+  // Breakbeat Slam stuns through the rules (state 'stunned'); bench dummies run no AI of their own,
+  // so the bench lets them recover after the time
+  if (data.skills.combat[skill]?.stun) {
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; this.emit({ type: 'benchStunEnd', id: m.id }); }
+    };
+  }
+  // Measured Riposte: something to block. The first dummy winds up (1 s, the rules' windup state)
+  // and then strikes the hero through the rules' damagePlayer, so a guard can catch it.
+  if (data.skills.combat[skill]?.kind === 'counter_stance') {
+    const WIND = 1.0, EVERY = 3.2, HIT = 30;
+    let next = 1.2;
+    const attacker = g.monsters[0];
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      const m = attacker;
+      if (m.state === 'windup' && (m.benchWind -= dt) <= 0) {
+        m.state = 'idle'; m.windup = null;
+        this.emit({ type: 'benchWindupEnd', id: m.id });
+        this.emit({ type: 'benchAttack', id: m.id, x: m.x, z: m.z });
+        this.damagePlayer(HIT, m);
+        this.player.hp = Math.max(this.player.hp, this.player.maxHp * 0.3); // the bench hero never falls
+      }
+      if ((next -= dt) <= 0 && m.state !== 'windup' && m.state !== 'stunned') {
+        next = EVERY; m.state = 'windup'; m.windup = { name: Object.keys(m.def.attacks || {})[0] }; m.benchWind = WIND;
+        this.emit({ type: 'benchWindup', id: m.id, total: WIND });
+      }
+    };
   }
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);
   g.aimAt(Math.PI / 2);

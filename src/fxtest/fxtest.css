@@ -45,6 +45,9 @@ h2 { font-size: 14px; margin: 14px 0 6px; color: var(--muted); font-weight: 600;
 #cast:active { transform: scale(0.94); }
 #cast { position: relative; }
 #cast.cooling::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(rgba(20,28,40,.55) calc(var(--cd, 0) * 360deg), transparent 0); pointer-events: none; }
+/* Measured Riposte: the counter window is open (press again to counter) */
+#cast.ready { box-shadow: 0 0 0 4px #fff2b0, 0 0 22px 6px #ffb52e; }
+#cast.ready::after { display: none; }
 #dodge { width: 64px; height: 64px; background: radial-gradient(circle at 35% 30%, #e7f6ff, #9fd0ef 60%, #5d9bc4); font-size: 15px; }
 #dodge.hint { outline: 3px solid var(--accent); outline-offset: 3px; }
 #numbers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }

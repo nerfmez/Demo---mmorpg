@@ -2192,16 +2192,6 @@
       },
       "grade": "C"
     },
-    "mod_binding_field": {
-      "type": "mod",
-      "result": "binding_field",
-      "cost": {
-        "rootdigger_claw": 2,
-        "spore_sac": 2,
-        "gold": 25
-      },
-      "grade": "C"
-    },
     "mod_healing_chain": {
       "type": "mod",
       "result": "healing_chain",

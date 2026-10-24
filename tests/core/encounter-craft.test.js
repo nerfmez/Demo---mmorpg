@@ -110,7 +110,7 @@ test('mechanical skill stages include early support and expose real timing/weapo
   assert.equal(skillCraftGuide(data, data.recipes.recipes.learn_hex).stage, 1);
   assert.equal(skillCraftGuide(data, data.recipes.recipes.learn_spirit_wolf).stage, 1, 'autonomous summon is not falsely ranked as micromanagement');
   assert.equal(skillCraftGuide(data, data.recipes.recipes.learn_stone_burst).stage, 2);
-  assert.equal(skillCraftGuide(data, data.recipes.recipes.learn_venom_mire).stage, 2);
+  assert.equal(skillCraftGuide(data, data.recipes.recipes.learn_venom_mire).stage, 0, 'Venom Arrow is a plain bow shot');
   assert.match(skillCraftGuide(data, data.recipes.recipes.learn_whirl_blade).playstyle, /ดาบ/);
   assert.match(skillCraftGuide(data, data.recipes.recipes.learn_stone_burst).condition, /0\.55/);
   assert.match(craftDescription(data, data.recipes.recipes.learn_war_cry), /18%/);

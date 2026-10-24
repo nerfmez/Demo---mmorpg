@@ -1,11 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {data} from './helpers.js';
+import {data as liveData,withField} from './helpers.js';
+const data=withField(liveData);
 import {CHARACTER_VERSION,createCharacter,derive,allocateJobNode,jobNodeState,migrateCharacter} from '../../src/core/character.js';
 import {modFits,socketMod,computeSkill,unsocketMod} from '../../src/core/skills.js';
 import {TAGS,modRules,modStatus,skillMeta} from '../../src/ui/buildmeta.js';
 import {clusterNodes} from '../../src/ui/jobview.js';
-function fixture(id='venom_mire',mods=[]) {
+function fixture(id='test_mire',mods=[]) {
  const ch=createCharacter(data); for(const k in ch.stats)ch.stats[k]=20;
  ch.skills[id]=1;ch.slots[0]={skill:id,mods:[]};ch.mods=mods.map((id,i)=>({id,uid:100+i,level:1}));
  ch.slots[0].mods=ch.mods.map(m=>m.uid);
@@ -18,6 +19,7 @@ test('every skill, movement and mod has a known visible type and complete rule v
  }
  for(const def of Object.values(data.skills.combat))assert.ok(!skillMeta(def).includes('<details'),def.name+' types must not be collapsed');
  assert.ok(data.skills.combat.venom_mire.tags.includes('DoT'));
+ assert.ok(data.skills.combat.test_mire.tags.includes('DoT'));
  assert.ok(!data.skills.combat.healing_spring.tags.includes('DoT'));
  assert.ok(!data.skills.combat.hex.tags.includes('Persistent'));
 });
@@ -55,9 +57,10 @@ test('mod compatibility uses needs/on/not/family and explanations expose each ru
 test('Lingering needs an actual lasting field, not just any damage or a curse',()=>{
  const S=data.skills.combat,M=data.mods.mods;
  for(const id of ['slash','firebolt','hex','ward','war_cry'])assert.ok(!modFits(S[id],M.lingering).ok,id);
- for(const id of ['venom_mire','healing_spring'])assert.ok(modFits(S[id],M.lingering).ok,id);
+ for(const id of ['test_mire','healing_spring'])assert.ok(modFits(S[id],M.lingering).ok,id);
+ assert.ok(!modFits(S.venom_mire,M.lingering).ok,'the Venom Arrow leaves no field');
  assert.ok(!modFits(S.slash,M.lingering,[M.fire_shift]).ok,'no mod leaves a field on the ground any more');
- const {skill}=fixture('venom_mire',['lingering']);assert.equal(skill().duration,S.venom_mire.duration*M.lingering.effect.durationMult[0]);
+ const {skill}=fixture('test_mire',['lingering']);assert.equal(skill().duration,S.test_mire.duration*M.lingering.effect.durationMult[0]);
 });
 test('AoE, field DoT and control passives change supported effects without changing unrelated skills',()=>{
  const {ch,skill}=fixture(),before=skill();ch.jobNodes.push('dot_power','lasting_time','aoe_radius');const after=skill();
@@ -69,7 +72,7 @@ test('AoE, field DoT and control passives change supported effects without chang
 test('radius compilation is independent of socket order and DoT passives skip direct hits',()=>{
  const {ch,skill}=fixture('stone_burst',['frost_shift','concentrated']);const a=skill();ch.slots[0].mods.reverse();const b=skill();assert.equal(a.radius,b.radius);assert.equal(a.damage,b.damage);
  const f=fixture('firebolt',['fire_shift']);const base=f.skill();f.ch.jobNodes.push('dot_power');assert.equal(f.skill().damage,base.damage,'DoT passives do not touch a direct hit');
- for(const id of ['fire_shift','knockback','life_leech','frost_shift'])assert.ok(!modFits(data.skills.combat.venom_mire,data.mods.mods[id]).ok,id+' is on-hit only');
+ for(const id of ['fire_shift','knockback','life_leech','frost_shift'])assert.ok(!modFits(data.skills.combat.test_mire,data.mods.mods[id]).ok,id+' is on-hit only');
 });
 test('mod UI distinguishes incompatible type, full sockets and stat-inactive storage',()=>{
  const {ch}=fixture('firebolt',['split']);ch.stats.DEX=1;ch.slots[0].mods=[];

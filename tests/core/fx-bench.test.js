@@ -92,7 +92,7 @@ test('a fused slash that misses does not fire its payload', () => {
   assert.equal(events.filter((e) => e.type === 'fusion').length, 0);
 });
 
-test('bench slash is one plain strike: no combo steps, no finisher knockback', () => {
+test('bench slash is one plain strike each time: no finisher knockback', () => {
   const g = createBench(data, 'slash', []);
   const slashes = [];
   for (let c = 0; c < 4; c++) {
@@ -101,7 +101,7 @@ test('bench slash is one plain strike: no combo steps, no finisher knockback', (
     for (let i = 0; i < 20; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash')); }
   }
   assert.equal(slashes.length, 4);
-  assert.ok(slashes.every((e) => e.step === 0 && !e.finisher));
+  assert.ok(slashes.every((e) => !e.finisher));
   assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), 'nothing was knocked back');
 });
 
@@ -157,4 +157,143 @@ test('Flame Wave Slash: the carrier mods ride on the wave', () => {
   assert.ok(poison.waveHits.length && poison.waveHits.every((e) => e.element === 'poison'), 'Poison Shift makes the wave poison');
   const wide = run([{ id: 'wide_arc', level: 3 }]);
   assert.ok(wide.waveHits.length > run([]).waveHits.length, 'Wide Arc widens the wave');
+});
+
+test('Venom Arrow on the bench: a fast bow attack; each hit stacks the same target\'s poison up to five', () => {
+  assert.equal(data.skills.combat.venom_mire.kind, 'projectile');
+  const mods = benchMods(data, 'venom_mire');
+  assert.ok(mods.includes('split') && !mods.includes('following_field') && !mods.includes('fire_shift'), 'arrow mods; no field mods; no element change');
+  const g = createBench(data, 'venom_mire', []);
+  assert.equal(g.derived.weaponType, 'bow');
+  const target = g.monsters.find((m) => m.x === 5 && m.z === 0);
+  g.monsters = [target];
+  const stacks = [];
+  let poison = 0, direct = 0;
+  for (let i = 0; i < 6 * 60; i++) {
+    if (g.player.cooldowns[0] <= 0 && !g.player.cast) g.castSlot(0, { x: 5, z: 0 });
+    g.benchStep(1 / 60);
+    for (const e of g.drainEvents()) {
+      if (e.type === 'poisonStack') stacks.push(e.stacks);
+      if (e.type === 'hit') { if (e.dot) { assert.equal(e.element, 'poison'); poison += e.amount; } else direct += e.amount; }
+    }
+  }
+  assert.deepEqual(stacks, [1, 2, 3, 4, 5], 'stacks climb to five and stay there');
+  assert.equal(target.statuses.poison.stacks, 5);
+  assert.ok(poison > direct * 0.8, 'the stacked poison carries much of the damage');
+  assert.equal(r0(), 0);
+  function r0() { return run('venom_mire', [], undefined, 1).of('area').length; } // no pool
+});
+
+test('Arrow Rain on the bench: one area event per wave, each with its own delay, and a burst as each lands', () => {
+  const r = run('arrow_rain', [], undefined, 2);
+  const areas = r.of('area').filter((e) => e.kind === 'arrow_rain');
+  assert.deepEqual(areas.map((e) => +e.delay.toFixed(2)), [0.45, 0.85, 1.25], 'the effect times each wave from these');
+  assert.equal(r.of('burst').filter((e) => e.kind === 'arrow_rain').length, 3);
+  assert.ok(benchMods(data, 'arrow_rain').includes('echo'));
+});
+
+test('Power Draw on the bench: hold to charge, release looses one arrow whose damage grows with the charge', () => {
+  const shot = (hold) => {
+    const g = createBench(data, 'charged_shot', []);
+    g.monsters = [g.monsters.find((m) => m.x === 9)];
+    assert.ok(g.castSlot(0, { x: 9, z: 0 }));
+    const events = [...g.drainEvents()];
+    for (let i = 0; i < Math.round(hold * 60); i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+    assert.ok(g.releaseCharge(0, { x: 9, z: 0 }));
+    for (let i = 0; i < 90; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+    assert.equal(events.filter((e) => e.type === 'chargeStart').length, 1);
+    return events.filter((e) => e.type === 'hit' && !e.dot).reduce((t, e) => t + e.amount, 0);
+  };
+  const quick = shot(0.1), full = shot(1.5);
+  assert.ok(full > quick * 2, `a full draw hits far harder (${quick} -> ${full})`);
+});
+
+test('Frontline Split on the bench: a wind-up, then one lineStrike that hits the dummies in its lane only', () => {
+  const r = run('frontline_split', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 1.2);
+  const strike = r.of('lineStrike');
+  assert.equal(strike.length, 1);
+  assert.equal(strike[0].range, 5); assert.equal(strike[0].width, 1.4);
+  assert.ok(strike[0].t >= 0.6, 'nothing lands before the wind-up');
+  const hit = new Set(r.of('hit').map((e) => e.id));
+  assert.ok(hit.size >= 3 && hit.size < r.g.monsters.length, 'the lane hits some dummies, not all');
+});
+
+test('Sunder Cut on the bench: an axe cut that opens the armour of what it hits, for the rules\' 5 s', () => {
+  const r = run('armor_cleave', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 1);
+  assert.equal(r.g.derived.weaponType, 'axe');
+  const hit = new Set(r.of('hit').filter((e) => !e.dot).map((e) => e.id));
+  const exposed = r.g.monsters.filter((m) => m.statuses.exposure);
+  assert.ok(hit.size >= 2 && exposed.length === hit.size, 'every struck dummy is exposed, the rest are not');
+  assert.ok(exposed.every((m) => m.statuses.exposure.fraction === 0.18 && m.statuses.exposure.t > 3.5));
+});
+
+test('Breakbeat Slam on the bench: every dummy it hits is stunned for 1.2 s, then recovers', () => {
+  const g = createBench(data, 'interrupt_slam', []);
+  assert.equal(g.derived.weaponType, 'mace');
+  const events = [];
+  const step = (n) => { for (let i = 0; i < n; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); } };
+  assert.ok(g.castSlot(0, { x: 5, z: 0 }));
+  step(40);
+  const hit = new Set(events.filter((e) => e.type === 'hit' && !e.dot).map((e) => e.id));
+  const stunned = events.filter((e) => e.type === 'stunned');
+  assert.ok(hit.size >= 2 && stunned.length === hit.size && stunned.every((e) => e.duration === 1.2), 'every struck dummy is stunned');
+  assert.ok(g.monsters.filter((m) => m.state === 'stunned').length === hit.size);
+  step(80);
+  assert.equal(events.filter((e) => e.type === 'benchStunEnd').length, hit.size, 'and recovers after 1.2 s');
+});
+
+test('Flank Thrust on the bench: a quick main stab, weaker, 0.7x from the front and 1.6x from behind', () => {
+  const r = run('weakpoint', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.6);
+  assert.equal(r.g.derived.weaponType, 'dagger');
+  assert.ok(r.g.skills[0].cooldown <= 0.5, 'a quick main attack (stats may shorten it further)');
+  const hits = r.of('hit').filter((e) => !e.dot);
+  assert.equal(hits.length, 2);
+  const facing = (id) => r.g.monsters.find((m) => m.id === id).facing;
+  const front = hits.find((e) => facing(e.id) < 0), back = hits.find((e) => facing(e.id) > 0);
+  assert.ok(Math.abs(back.amount / front.amount - 1.6 / 0.7) < 0.05, `${front.amount} -> ${back.amount}`);
+});
+
+test('no melee arc skill on the bench has a third-hit finisher: four quick casts never knock back', () => {
+  for (const skill of ['weakpoint', 'armor_cleave', 'interrupt_slam']) {
+    const g = createBench(data, skill, []);
+    const slashes = [];
+    for (let c = 0; c < 4; c++) {
+      g.player.cooldowns.fill(0);
+      g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 });
+      for (let i = 0; i < 40; i++) { g.benchStep(1 / 60); slashes.push(...g.drainEvents().filter((e) => e.type === 'slash')); }
+    }
+    assert.ok(slashes.length >= 4 && slashes.every((e) => !e.finisher), skill);
+    assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), `${skill}: nothing was knocked back`);
+  }
+});
+
+test('Shield Bash on the bench: the hero carries a shield; struck dummies are knocked back and taunted for 3 s', () => {
+  const r = run('shield_bash', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.5);
+  assert.equal(r.g.derived.offhand, 'shield');
+  const hit = new Set(r.of('hit').filter((e) => !e.dot).map((e) => e.id));
+  assert.ok(hit.size >= 2);
+  for (const m of r.g.monsters.filter((q) => hit.has(q.id))) {
+    assert.ok(Math.hypot(m.x - m.homeX, m.z - m.homeZ) > 0.5, 'knocked back');
+    assert.equal(m.tauntT, 3);
+  }
+});
+
+test('Measured Riposte on the bench: a dummy strikes on a telegraph; a timed guard blocks it and the second press counters', () => {
+  const g = createBench(data, 'riposte', []);
+  const events = [];
+  let countered = false;
+  for (let i = 0; i < 240; i++) {
+    if (i === 114) g.castSlot(0, { x: 5, z: 0 }); // raise the guard during the 1 s wind-up
+    g.benchStep(1 / 60);
+    const batch = [...g.drainEvents()];
+    events.push(...batch);
+    if (!countered && batch.some((e) => e.type === 'playerHit' && e.blocked)) { countered = true; assert.ok(g.player.riposte.readyUntil > g.time); g.castSlot(0, { x: 5, z: 0 }); }
+  }
+  const of = (t) => events.filter((e) => e.type === t);
+  assert.equal(of('benchWindup')[0].total, 1);
+  assert.ok(of('benchAttack').length >= 1);
+  assert.ok(of('guardStance').length === 1, 'the second press is the counter, not another guard');
+  assert.ok(of('playerHit')[0].blocked && of('playerHit')[0].amount < 30, 'the guard takes the edge off the blow');
+  assert.ok(of('hit').filter((e) => e.skill === 'riposte').length >= 2, 'the counter cuts what is in front');
+  assert.ok(g.player.hp >= g.player.maxHp * 0.3, 'the bench hero never falls');
 });

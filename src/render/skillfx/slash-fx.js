@@ -8,8 +8,10 @@
 // Strikes in quick succession (spamming, Multistrike repeats) cycle through different tilts and
 // sides so consecutive slashes read as different cuts.
 import * as THREE from 'three';
-import { Ribbon } from './fx-common.js';
+import { Ribbon, place, fxGround, addLight } from './fx-common.js';
 
+let sparkW = 0;
+const sparkWidth = (x) => sparkW * x;
 const SWEEP = 0.075, HOLD = 0.03, FADE = 0.17, CUTS = 6, CHAIN = 1.2;
 const PALETTE = { hot: [1, 1, 1], body: [0.5, 0.78, 1.0], glow: [0.25, 0.5, 1.0], spark: [0.85, 0.95, 1.0] };
 const FUSE = { fire: [1.0, 0.5, 0.15], arcane: [0.75, 0.5, 1.0], lightning: [0.5, 0.85, 1.0], cold: [0.6, 0.9, 1.0] };
@@ -114,9 +116,10 @@ export class SlashFx {
       void main(){ float d=abs(vUv.y); if(d>0.9) discard; gl_FragColor=vec4(d<0.45 ? vec3(1.0) : vT, vA); }`, THREE.NormalBlending);
     this.sparks.mesh.renderOrder = 7;
     this.sparkList = [];
-    this.light = new THREE.PointLight('#cfe8ff', 0, 3, 2); scene.add(this.light);
+    this.light = addLight(scene, new THREE.PointLight('#cfe8ff', 0, 3, 2));
     this.pending = []; this.t = 0; this.lastAt = -9; this.index = 0; this.seed = 1;
     this._p = new THREE.Vector3(); this._q = new THREE.Vector3(); this._a = new THREE.Vector3();
+    this._seg = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   }
   geometry(arcDeg, range) {
     const key = `${arcDeg}|${range.toFixed(2)}`;
@@ -135,13 +138,15 @@ export class SlashFx {
     const c = this.cuts.find((q) => !q.live) || this.cuts.reduce((a, b) => (a.t > b.t ? a : b));
     c.reach = p.range * pat.reach; c.arc = (p.arc * Math.PI) / 180; c.dir = dir; c.lastHead = 0;
     c.core.geometry = c.glow.geometry = this.geometry(p.arc, c.reach);
-    c.g.position.set(at.x, 1.0 + pat.y, at.z);
+    place(c.g, at.x, 1.0 + pat.y, at.z);
     c.g.rotation.set(0, at.angle, 0);
     c.tilt.rotation.set(0, 0, 0);
     c.tilt.rotateZ(pat.tilt * dir); // the cut's plane rolls around the facing direction
     c.tilt.rotateX(-0.06);
     const u = c.uniforms;
     u.uDir.value = dir; u.uHead.value = 0; u.uFade.value = 0; u.uSeed.value = (this.seed = (this.seed * 7.31) % 97);
+    const pal = p.palette || PALETTE; // a skill may bring its own colours (Sunder Cut: amber steel)
+    u.uHot.value.set(...pal.hot); u.uBody.value.set(...pal.body); u.uGlow.value.set(...pal.glow);
     u.uRimK.value = p.fusedElement ? 1 : 0;
     if (p.fusedElement) u.uRim.value.set(...(FUSE[p.fusedElement] || FUSE.fire));
     c.live = true; c.t = 0; c.core.visible = c.glow.visible = true;
@@ -171,6 +176,7 @@ export class SlashFx {
           this.edgePoint(c, s, this._p); this.edgePoint(c, Math.min(1, s + 0.03), this._q);
           const v = this._q.sub(this._p).normalize().multiplyScalar(6 + Math.random() * 6);
           v.x += (Math.random() - 0.5) * 2; v.y += Math.random() * 2; v.z += (Math.random() - 0.5) * 2;
+          this._p.y -= fxGround.y(this._p.x, this._p.z); // sparks are kept above the ground, like every ribbon point
           this.sparkList.push({ p: this._p.clone(), v: v.clone(), age: 0, life: 0.12 + Math.random() * 0.14, w: 0.02 + Math.random() * 0.018 });
         }
         if (r < 1) { this.edgePoint(c, head, this.light.position); light = Math.max(light, 1.5); }
@@ -180,12 +186,17 @@ export class SlashFx {
     }
     this.light.intensity = Math.max(light, this.light.intensity - dt * 40);
     for (const s of this.sparkList) { s.age += dt; s.v.multiplyScalar(1 - 6 * dt); s.v.y -= 4 * dt; s.p.addScaledVector(s.v, dt); }
-    this.sparkList = this.sparkList.filter((s) => s.age < s.life);
+    let live = 0;
+    for (const s of this.sparkList) if (s.age < s.life) this.sparkList[live++] = s;
+    this.sparkList.length = live;
     this.sparks.begin();
+    const seg = this._seg;
     for (const s of this.sparkList) {
       const u = s.age / s.life;
       this._a.copy(s.p).addScaledVector(s.v, -0.03);
-      this.sparks.strip([this._a.clone(), s.p.clone().lerp(this._a, 0.5), s.p.clone()], (x) => s.w * x * (1 - u * 0.5), 1 - u * u, PALETTE.spark);
+      seg[0].copy(this._a); seg[1].copy(s.p).lerp(this._a, 0.5); seg[2].copy(s.p);
+      sparkW = s.w * (1 - u * 0.5);
+      this.sparks.strip(seg, sparkWidth, 1 - u * u, PALETTE.spark);
     }
     this.sparks.end();
   }

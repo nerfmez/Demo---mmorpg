@@ -237,11 +237,13 @@ rules' `damagePlayer` (bench-only; the hero is never brought below 30% life).
   `guardBlock` action (the sword brought up across the front) and a curved wall of light (four
   stacked arcs over the guard's 110 degree arc) stands in front of it, following its facing.
 - **The blow:** a red lunge streak from the attacker. If the guard catches it (the rules'
-  `playerHit` with `blocked`):
-  - a white-gold flash where blade meets blow, with sharp rays and an upright ring facing the
-    attacker;
-  - the wall breaks into shards;
-  - a short camera shake and the banner "ปัดป้อง!".
+  `playerHit` with `blocked`), an anime clash (owner: the first parry was too weak):
+  - a big four-point star of light where blade meets blow, a second one turned 45 degrees behind
+    it, popping in and spinning out;
+  - a long thin glint across the contact and focus lines bursting out around it;
+  - a spray of hot metal sparks thrown back at the attacker and out to the sides;
+  - two upright shock rings facing the attacker and a ring on the ground;
+  - the guard wall breaks into shards; a hard camera shake and the banner "ปัดป้อง!".
   A blow the guard misses flashes red on the hero.
 - **Counter window** (the rules' 1.5 s ready window): a gold ring pulses at the hero's feet, the
   blade glows gold and the cast button gets a gold halo (its cooldown shade is hidden, since the

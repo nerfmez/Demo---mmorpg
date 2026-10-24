@@ -1,8 +1,10 @@
 // Measured Riposte, in the bench's light-and-ribbon language. The guard (the rules' 'guardStance',
 // 0.8 s) raises a curved wall of light in front of the hero over the guard's arc, following its
 // facing. An incoming strike shows as a red lunge streak; a strike the guard catches (the rules'
-// 'playerHit' with blocked) sets off a parry: a white-gold flash where blade meets blow, sharp rays,
-// an upright ring facing the attacker and the wall breaking into shards. Then, for the rules' ready
+// 'playerHit' with blocked) sets off an anime clash: a big four-point star of light where blade meets
+// blow (a second one turned 45 degrees behind it), a long thin glint across the contact, focus lines
+// bursting out around it, a spray of hot metal sparks thrown back at the attacker, two upright shock
+// rings and a ring on the ground, the guard wall breaking into shards and a hard camera shake. Then, for the rules' ready
 // window, a gold ring pulses at the hero's feet and the blade glows gold: press again to counter. A
 // strike that gets through flashes red on the hero. The counter itself is a gold crescent (slash-fx
 // palette) with hard bursts on what it hits. Cosmetic only.
@@ -11,7 +13,8 @@ import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 export const RIPOSTE_PALETTE = { hot: [1, 0.98, 0.9], body: [1.0, 0.82, 0.38], glow: [1.0, 0.6, 0.15] };
 const EDGE = [0.8, 0.92, 1.0], GLOW = [0.35, 0.6, 1.0], GOLD = [1.0, 0.86, 0.4], GOLD_GLOW = [1.0, 0.58, 0.12], RED = [1.0, 0.3, 0.2], RED_GLOW = [0.9, 0.1, 0.05];
-const BURSTS = 6, RAYS = 10, ARC_PTS = 15, RING_PTS = 25, WALL_ROWS = 4;
+const BURSTS = 6, RAYS = 10, ARC_PTS = 15, RING_PTS = 25, WALL_ROWS = 4, SPARKS = 48, FOCUS = 14;
+const WHITE = [1, 1, 0.96];
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
     vec3 c = d < 0.4 ? mix(vT, vec3(1.0,1.0,0.97), 0.8) : vT; gl_FragColor=vec4(c, vA); }`;
@@ -23,6 +26,7 @@ let stripW = 0;
 const lineW = () => stripW, lineGlowW = () => stripW * 2.4;
 const arcW = (x) => stripW * Math.min(1, Math.sin(Math.PI * x) * 4), arcGlowW = (x) => arcW(x) * 2.4;
 const taperW = (x) => stripW * Math.sin(Math.PI * Math.min(1, x * 1.15)) * (1 - x * 0.5), taperGlowW = (x) => taperW(x) * 2.6;
+const glintW = (x) => stripW * Math.pow(Math.sin(Math.PI * x), 3), sparkW = (x) => stripW * x;
 const shardW = (x) => stripW * (x < 0.35 ? x / 0.35 : (1 - x) / 0.65);
 
 export class RiposteFx {
@@ -39,6 +43,19 @@ export class RiposteFx {
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); sp.visible = false; sp.renderOrder = 9; scene.add(sp);
       return { sp, t: 9, life: 0.3, size: 1, pos: new THREE.Vector3(), edge: EDGE, glow: GLOW, rays: Array.from({ length: RAYS }, () => ({ d: new THREE.Vector3(), len: 1 })) };
     });
+    // the clash star: a sharp four-point star with long thin spikes, white core, gold rim
+    const sc = document.createElement('canvas'); sc.width = sc.height = 256;
+    const sg = sc.getContext('2d');
+    const star = (len, wide, col) => { sg.beginPath(); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, r = k % 2 ? wide : len; sg.lineTo(128 + Math.cos(a) * r, 128 + Math.sin(a) * r); } sg.closePath(); sg.fillStyle = col; sg.fill(); };
+    sg.shadowColor = 'rgba(255,170,40,0.9)'; sg.shadowBlur = 18;
+    star(124, 20, 'rgba(255,196,70,1)'); sg.shadowBlur = 0; star(104, 13, 'rgba(255,240,190,1)'); star(70, 8, '#ffffff');
+    const glow = sg.createRadialGradient(128, 128, 0, 128, 128, 40); glow.addColorStop(0, 'rgba(255,255,255,1)'); glow.addColorStop(1, 'rgba(255,255,255,0)');
+    sg.fillStyle = glow; sg.fillRect(0, 0, 256, 256);
+    const starTex = new THREE.CanvasTexture(sc);
+    this.stars = [0, 1].map(() => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, depthWrite: false, depthTest: false, transparent: true, toneMapped: false })); sp.visible = false; sp.renderOrder = 11; scene.add(sp); return sp; });
+    this.clashT = 9; this.clash = new THREE.Vector3(); this.clashDir = new THREE.Vector3(); this.side = new THREE.Vector3();
+    this.sparkPool = Array.from({ length: SPARKS }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 9, max: 1, w: 0 }));
+    this.focus = Array.from({ length: FOCUS }, () => ({ d: new THREE.Vector3(), len: 1, w: 0 }));
     this.burstI = 0; this.guardT = 0; this.guardDur = 0; this.guardArc = 1.9; this.readyT = 0; this.readyDur = 0;
     this.lunges = []; this.rings = []; this.shards = []; this.rnd = mulberry32(37); this.t = 0;
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]; this.two = [new THREE.Vector3(), new THREE.Vector3()];
@@ -66,14 +83,27 @@ export class RiposteFx {
     this.dir.set(from.x - hero.x, 0, from.z - hero.z).normalize();
     const at = this.three[0].set(hero.x + this.dir.x * 0.75, 1.25, hero.z + this.dir.z * 0.75);
     if (blocked) {
-      this.burst(at, this.dir, 1.3, 0.3, GOLD, GOLD_GLOW);
-      this.ring(at, this.dir, 0.15, 1.0, 0.25, 0.06, GOLD, GOLD_GLOW);
+      const r = this.rnd;
+      this.clashT = 0; this.clash.copy(at); this.clashDir.copy(this.dir); this.side.set(this.dir.z, 0, -this.dir.x);
+      this.burst(at, this.dir, 1.6, 0.34, GOLD, GOLD_GLOW);
+      this.ring(at, this.dir, 0.1, 1.3, 0.22, 0.08, WHITE, GOLD_GLOW);
+      this.ring(at, this.dir, 0.1, 2.1, 0.4, 0.04, GOLD, GOLD_GLOW);
+      this.ring(this.three[1].set(hero.x, 0.05, hero.z), this.up, 0.3, 2.4, 0.4, 0.07, GOLD, GOLD_GLOW);
+      // hot metal sparks, thrown back at the attacker and out to the sides
+      for (const sp of this.sparkPool) {
+        const back = r() < 0.7, a = (r() - 0.5) * (back ? 1.6 : 3.4), speed = 5 + r() * 7;
+        const dx = this.dir.x * Math.cos(a) + this.side.x * Math.sin(a), dz = this.dir.z * Math.cos(a) + this.side.z * Math.sin(a);
+        sp.p.copy(at); sp.v.set(dx * speed * (back ? 1 : 0.6), (r() - 0.2) * 5, dz * speed * (back ? 1 : 0.6));
+        sp.life = 0; sp.max = 0.25 + r() * 0.3; sp.w = 0.025 + r() * 0.03;
+      }
+      // anime focus lines bursting out around the contact
+      for (const f of this.focus) { const a = r() * 6.283; f.d.set(0, Math.cos(a), 0).addScaledVector(this.side, Math.sin(a)); f.len = 0.6 + r() * 0.9; f.w = 0.03 + r() * 0.04; }
       for (let i = 0; i < 14; i++) { // the guard wall breaks into shards
         const r = this.rnd, a = Math.atan2(this.dir.x, this.dir.z) + (r() - 0.5) * this.guardArc, h = 0.3 + r() * 1.5;
         this.shards.push({ p: new THREE.Vector3(hero.x + Math.sin(a) * 0.85, h, hero.z + Math.cos(a) * 0.85), v: new THREE.Vector3(Math.sin(a) * (1 + r() * 2), 1 + r() * 2, Math.cos(a) * (1 + r() * 2)), spin: r() * 6.28, rate: (r() - 0.5) * 18, len: 0.08 + r() * 0.08, life: 0, max: 0.4 + r() * 0.2 });
       }
       this.guardT = this.guardDur; this.readyT = 0; this.readyDur = readyDuration;
-      this.onShake?.(0.05, 0.12);
+      this.onShake?.(0.1, 0.22);
     } else this.burst(this.three[1].set(hero.x, 1.1, hero.z), this.dir, 0.9, 0.22, RED, RED_GLOW);
   }
   counter(hit) { this.readyT = this.readyDur; if (hit) this.onShake?.(0.06, 0.14); }
@@ -133,7 +163,8 @@ export class RiposteFx {
       const u = g.life / g.max;
       if (u >= 1) continue;
       const rad = g.r0 + (g.r1 - g.r0) * (1 - (1 - u) * (1 - u)), sub = this.sub; sub.length = 0;
-      this.u.crossVectors(g.n, this.up).normalize(); this.v.crossVectors(g.n, this.u).normalize();
+      if (g.n.y > 0.9) { this.u.set(1, 0, 0); this.v.set(0, 0, 1); } // flat on the ground
+      else { this.u.crossVectors(g.n, this.up).normalize(); this.v.crossVectors(g.n, this.u).normalize(); }
       for (let i = 0; i < RING_PTS; i++) { const a = (i / (RING_PTS - 1)) * 6.283; this.pts[i].copy(g.c).addScaledVector(this.u, Math.cos(a) * rad).addScaledVector(this.v, Math.sin(a) * rad); sub.push(this.pts[i]); }
       stripW = g.w * (1 - u * 0.5);
       this.glow.strip(sub, lineGlowW, 0.8 * (1 - u), g.glowCol); this.core.strip(sub, lineW, 1 - u, g.col);
@@ -149,12 +180,47 @@ export class RiposteFx {
       this.glow.strip(three, shardW, 0.5 * (1 - u), GLOW); this.core.strip(three, shardW, 1 - u * u, EDGE);
     }
     compact(this.shards, this.shardAlive);
+    // the clash: star, glint, focus lines, sparks
+    if (this.clashT < 0.6) {
+      this.clashT += dt;
+      const t = this.clashT, c = this.clash;
+      const pop = t < 0.04 ? t / 0.04 : Math.max(0, 1 - (t - 0.04) / 0.26);
+      this.stars.forEach((st, k) => {
+        st.visible = pop > 0.01;
+        if (!st.visible) return;
+        placeV(st, c); st.scale.setScalar((k ? 1.3 : 2.4) * (0.4 + 0.6 * pop) * (t < 0.04 ? 1.4 - 0.4 * pop : 1));
+        st.material.rotation = (k ? Math.PI / 4 : 0) + t * (k ? -2 : 1.5); st.material.opacity = Math.min(1, pop * 1.4);
+      });
+      if (t < 0.2) { // a long thin glint across the contact
+        const u = t / 0.2, half = 1.8 * (0.5 + u);
+        three[0].copy(c).addScaledVector(this.side, -half); three[2].copy(c).addScaledVector(this.side, half); three[1].copy(c);
+        stripW = 0.09 * (1 - u); this.glow.strip(three, taperGlowW, 1 - u, GOLD_GLOW); this.core.strip(three, glintW, 1 - u * u, WHITE);
+        three[0].copy(c); three[0].y -= half * 0.45; three[2].copy(c); three[2].y += half * 0.45; three[1].copy(c);
+        stripW = 0.05 * (1 - u); this.core.strip(three, glintW, 1 - u, WHITE);
+      }
+      if (t < 0.16) { // focus lines
+        const u = t / 0.16;
+        for (const f of this.focus) {
+          three[0].copy(c).addScaledVector(f.d, 0.5 + u * 0.9); three[2].copy(c).addScaledVector(f.d, 0.5 + u * 0.9 + f.len * (1 - u * 0.5)); three[1].copy(three[0]).lerp(three[2], 0.3);
+          stripW = f.w * (1 - u); this.core.strip(three, shardW, 1 - u, WHITE);
+        }
+      }
+    } else for (const st of this.stars) st.visible = false;
+    for (const sp of this.sparkPool) {
+      if (sp.life >= sp.max) continue;
+      sp.life += dt; sp.v.y -= 14 * dt; sp.v.multiplyScalar(1 - 2.5 * dt); sp.p.addScaledVector(sp.v, dt);
+      const u = sp.life / sp.max;
+      three[2].copy(sp.p); three[0].copy(sp.p).addScaledVector(sp.v, -0.035); three[1].copy(three[0]).lerp(three[2], 0.5);
+      stripW = sp.w * (1 - u * 0.5);
+      this.glow.strip(three, lineGlowW, 0.8 * (1 - u), GOLD_GLOW); this.core.strip(three, sparkW, 1 - u * u, u < 0.3 ? WHITE : GOLD);
+    }
     this.core.end(); this.glow.end();
   }
   get ready() { return this.readyT < this.readyDur; }
   clear() {
     this.guardT = this.guardDur = 0; this.readyT = this.readyDur = 0;
     for (const b of this.bursts) { b.t = 9; b.sp.visible = false; }
+    this.clashT = 9; for (const st of this.stars) st.visible = false; for (const sp of this.sparkPool) sp.life = sp.max;
     this.lunges.length = 0; this.rings.length = 0; this.shards.length = 0;
   }
 }

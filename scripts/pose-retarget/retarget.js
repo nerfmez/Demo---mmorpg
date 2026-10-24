@@ -60,9 +60,16 @@ function mirrorPose(j) {
  * mid-combo may face anywhere); the body's twist above and below the pelvis is kept.
  */
 function faceForward(j) {
+  turn(j, -facingYaw(j));
+}
+/** The pelvis's facing angle (0 = +Z, + toward +X) of a sampled pose. */
+export function facingYaw(j) {
   const lat = new THREE.Vector3().subVectors(j.legL, j.legR).setY(0);
-  const yaw = Math.atan2(-lat.z, lat.x); // left = +X when facing +Z
-  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -yaw), c = j.hips.clone();
+  return Math.atan2(-lat.z, lat.x); // left = +X when facing +Z
+}
+/** Turn a sampled pose by `yaw` about the vertical through its hips (a whole clip: the same turn for every frame). */
+export function turn(j, yaw) {
+  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw), c = j.hips.clone();
   for (const k of Object.keys(j)) if (j[k]?.isVector3) j[k].sub(c).applyQuaternion(q).add(c);
   j.headQ.premultiply(q);
   for (const w of [j.weapon, j.weaponL]) if (w) { w.dir.applyQuaternion(q); w.up.applyQuaternion(q); }

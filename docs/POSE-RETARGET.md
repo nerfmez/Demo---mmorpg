@@ -45,6 +45,22 @@ It prints `{ stance, hold, action, source }`:
 - `--shots` renders the chibi in that pose from front, side, three-quarter and the game camera,
   facing +Z like the reference, for a side-by-side check.
 
+## Attack clips
+
+`scripts/pose-retarget/clip-keys.mjs` turns a whole clip into an action: `--keys` evenly spaced keys
+plus the contact (the blade tip's fastest frame, `hit`), each with absolute channels, `drop` and the
+`weapon` channel, and the blade's `sweep` (+1 toward the hero's left). `--face` turns the clip by its
+first frame's facing (one turn for every key, so the swing's own twist stays). The result goes into
+`data/action-clips.json`; `actions.js` registers each entry as an action and `COMBOS` picks them per
+weapon. The slash effect sweeps the way the action's `sweep` says.
+
+```sh
+node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Sword_Light_A --skill slash --keys 8 --legs 0.8 --face
+```
+
+In use: `swordCut` (Sword_Light_A, the owner's pick A) is every step of the sword's basic cut;
+`daggerCut` (Sword_Light_B, pick B) the dagger's.
+
 ## Roll in the hand
 
 A reference only fixes the blade's direction; its roll about the blade must match how the hero's

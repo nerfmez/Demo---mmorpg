@@ -21,6 +21,8 @@
 // to upper right, and the crescent is drawn whole at the hit: the blade reaches the far end of
 // its arc on the hit key, then follows through.
 
+import CLIPS from '../../data/action-clips.json';
+
 export const READY = { armR: [-0.28, 0, -0.18], elbowR: [-0.55, 0, 0], armL: [-0.12, 0, 0.16], elbowL: [-0.35, 0, 0] };
 // neutral start/end: every channel an action may touch goes back to rest
 const REST = { ...READY, weapon: [1.2, 0, 0], torso: [0.05, 0, 0], chest: [0, 0, 0], hips: [0, 0, 0], head: [0, 0, 0], drop: [0, 0, 0], ikw: [0, 0, 0], grip: [0, 0, 0] };
@@ -214,7 +216,13 @@ const BY_KIND = {
 };
 // Heavy weapons (axe, mace) swing one-handed like a sword when a shield is in the left hand; with the
 // left hand free they are held in both and play the greatblade combo (hero.js play).
-const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], dagger: ['stabA', 'stabB', 'stabC'] };
+// The sword and the dagger cut with clips retargeted from reference animations (data/action-clips.json,
+// owner picks): one cut for every step, the slash effect following its sweep.
+const COMBOS = { greatblade: ['heavyA', 'heavyB', 'heavyC'], sword: ['swordCut', 'swordCut', 'swordCut'], dagger: ['daggerCut', 'daggerCut', 'daggerCut'] };
+for (const [name, c] of Object.entries(CLIPS)) {
+  if (name === '_doc') continue;
+  ACTIONS[name] = { hit: c.hit, sweep: c.sweep, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
+}
 
 /**
  * The action for a cast.

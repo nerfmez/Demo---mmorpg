@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import STAFF_CAST from '../../data/staff-cast.json';
 import { fxGround } from './skillfx/fx-common.js';
 import { SlashFx } from './skillfx/slash-fx.js';
+import { ACTIONS, pickAction } from './actions.js';
 import { FireExtras } from './skillfx/fire-extras.js';
 import { ChainFx } from './skillfx/chain-fx.js';
 import { FrostFx } from './skillfx/frost-fx.js';
@@ -96,7 +97,9 @@ export class SkillFx {
   nextSwingStep() { this.swingStep = this.time - this.lastSwingAt < 1.2 ? (this.swingStep + 1) % 2 : 0; this.lastSwingAt = this.time; return this.swingStep; }
   slashOpts(s, palette = null) {
     const p = this.game.player;
-    return { palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : null), range: s.range, arc: s.arc, dir: this.swingStep === 0 ? 1 : -1, where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
+    // a cut retargeted from a clip sweeps one way every step (its sweep); the others alternate
+    const sweep = ACTIONS[pickAction(s.id, 'melee_arc', this.host.weapon(), this.swingStep)]?.sweep;
+    return { palette: palette || (s.id === 'armor_cleave' ? SUNDER_PALETTE : null), range: s.range, arc: s.arc, dir: sweep ?? (this.swingStep === 0 ? 1 : -1), where: () => ({ x: p.x, z: p.z, angle: p.facing }) };
   }
   play(action, dur, step, hit, kind) { this.host.anim().play(action, dur, this.host.weapon(), step, hit, kind); }
   // the bench's look for the Firebolt charge: only the smooth filled core of the game's charge

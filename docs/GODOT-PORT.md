@@ -486,7 +486,9 @@ port the angel-ring band as a shader on the hair material. `data/gait.json`
 holds the walk and run cycles as driver-bone Euler angles (XYZ) per frame; the cadence is
 `speed / cycle` cycles per second.
 Skill actions (`render/actions.js`) are keyframed poses with a `hit` time; port each as an
-`Animation` with a method track (or signal) at the hit, and use `SkeletonIK3D` (or a
+`Animation` with a method track (or signal) at the hit (`data/action-clips.json` holds actions
+retargeted from CC0 clips as plain key lists, with the blade's `sweep` for the slash effect;
+in Godot the source clip itself can be retargeted onto the hero's `Skeleton3D`), and use `SkeletonIK3D` (or a
 two-bone IK modifier) for the ikL/ikR/grip channels.
 How the hero carries each weapon type is data (`data/weapon-holds.json`, read by
 `render/hero.js`): a right-palm target and a weapon direction in body space, a `one` carry

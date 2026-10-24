@@ -1,10 +1,10 @@
-# Azure Meadow Well — overall revision for owner review
+# Azure Meadow Well — preliminarily accepted standalone scene
 
 A new owner-requested scene study following the preliminarily accepted Hill Windmill. The reference is `azure-meadow-well.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`, retained as `concept.png` without recompression.
 
-**Owner status: ยังไม่ผ่านโดยรวม.** The owner rejected public version 9 overall. This revision remains unapproved and replaces that draft for comparison.
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 24 October 2026, public version 10.** Retain the overall revision at source `50cee66641f98c5ab9b6fa1ba0ee322516fef828` as the baseline for future work. Version 9 was rejected and is superseded.
 
-The scene contains a shallower oval bonded-stone well, windlass/rope/bucket, orchard blossoms and fruit, larger cabbage rows, broken low field walls, four short worn stair flights and a smaller village gate behind trees. It reuses the game's foliage, hero and toon paint pipeline. This is a new review draft, separate from the main game; the accepted scenes remain unchanged.
+The scene contains a shallower oval bonded-stone well, windlass/rope/bucket, orchard blossoms and fruit, larger cabbage rows, broken low field walls, four short worn stair flights and a smaller village gate behind trees. It reuses the game's foliage, hero and toon paint pipeline. This preliminarily accepted scene stays separate from the main game; the accepted scenes remain unchanged.
 
 ## Build and use without Sites
 
@@ -46,4 +46,4 @@ Alternatively use `--modules-from /absolute/path/to/existing-offline.html`. Keep
 
 Translate the terrain, models, colliders, routes and ports together for game placement. Neighboring heightfields must meet the provided port heights. The standalone tap walker is separate from the main game's navigation; game integration and its required checks remain pending. The well has a matching ellipse collider and a clear west-side approach. Its dark water is a small static surface inside the shaft; there is no ocean simulation in this inland scene.
 
-Tap the ground to walk and use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the exact draft and verification limits. The owner has not approved this revision. Preliminary approval is retained only for the earlier coast and windmill scenes.
+Tap the ground to walk and use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the exact draft and verification limits. Version 10 has preliminary owner approval. Final runtime/device verification and main-game integration remain pending.

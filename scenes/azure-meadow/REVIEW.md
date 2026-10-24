@@ -1,6 +1,8 @@
 # Azure Meadow Well — overall revision, 24 October 2026
 
-**Owner decision: ยังไม่ผ่านโดยรวม.** The owner rejected public version 9 overall, then asked to continue. This is a new comparison draft addressing composition and forms, not an acceptance record. The accepted Windmill version 8 and Conch Coast version 6 stay unchanged. No game integration or merge.
+**Owner decision: ผ่านเบื้องต้น — preliminary approval, 24 October 2026, public version 10.** The owner accepted the overall revision and requested the next scene. Retain version 10 as the baseline for future work. This records owner approval separately from runtime verification, game integration and merge.
+
+Accepted scene commit `50cee66641f98c5ab9b6fa1ba0ee322516fef828`; Site source `0bb4d2706982e81953530678982c47f3aeeee535`; [accepted version 10](https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site/azure-meadow/?v=10). This acceptance note changes documentation only. The earlier rejection of version 9 is retained below as history. Windmill version 8 and Conch Coast version 6 remain accepted baselines.
 
 ## Exact artifacts and reference
 
@@ -36,4 +38,4 @@ Inspected the reference beside the rejected and revised software geometry/materi
 
 ## Remaining limits and decision
 
-**Revised draft; still no owner approval.** The broad composition and forms were changed, but this does not certify parity with the reference or final visual quality. New WebGL lighting, baked ground/shadows, texture filtering, native touch, device FPS and continuous motion remain unverified because the cloud WebGL environment previously failed. The fallback approximates materials, omits real baked shadows and shows the hero in bind pose. Game integration and its checks remain a separate task.
+**Version 10 retained as the preliminarily approved owner baseline.** The broad composition and forms were changed, with preliminary owner approval recorded above; this does not certify final device/runtime verification. New WebGL lighting, baked ground/shadows, texture filtering, native touch, device FPS and continuous motion remain unverified because the cloud WebGL environment previously failed. The fallback approximates materials, omits real baked shadows and shows the hero in bind pose. Game integration and its checks remain a separate task.

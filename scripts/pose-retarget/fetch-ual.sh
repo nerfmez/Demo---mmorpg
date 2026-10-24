@@ -16,7 +16,7 @@ cp quaternius/universal-animation-library/License.txt "$out/License.txt"
 kk="${TMPDIR:-/tmp}/kaykit-adventurers"
 [ -d "$kk/.git" ] || git clone -q --filter=blob:none --no-checkout --depth 1 https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 "$kk"
 cd "$kk"
-git checkout -q HEAD -- LICENSE.txt addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb
-cp addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb "$out/"
+git checkout -q HEAD -- LICENSE.txt addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb addons/kaykit_character_pack_adventures/Characters/gltf/Mage.glb addons/kaykit_character_pack_adventures/Characters/gltf/Rogue.glb
+for c in Knight Barbarian Mage Rogue; do cp "addons/kaykit_character_pack_adventures/Characters/gltf/$c.glb" "$out/"; done
 cp LICENSE.txt "$out/KayKit-LICENSE.txt"
-echo "UAL1.glb, UAL2.glb, Knight.glb and Barbarian.glb in $out"
+echo "UAL1.glb, UAL2.glb and the KayKit Knight, Barbarian, Mage and Rogue in $out"

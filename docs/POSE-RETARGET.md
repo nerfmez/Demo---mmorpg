@@ -28,6 +28,10 @@ node scripts/pose-retarget/run.mjs --file UAL1.glb --clip Sword_Idle --time 0.6 
 - `--prop` names the reference's weapon: the blade axis and flat come from the prop itself.
 - `--legs k` scales the leg channels (k < 1 stands taller; the owner found the full crouch too low).
 - `--arms k` scales the arms' outward lift (KayKit's armoured knight holds them away from its body).
+- `--mirror` swaps left and right: the reference archer holds the bow in its left hand, the hero in its
+  right. For a bow the fist line is the limbs (`up`) and the arrow leaves past the knuckles (`dir`).
+- `--weapon kind` previews another right-hand weapon than the bench skill's (the bench has no wand
+  skill: `--skill firebolt --weapon wand`).
 - `--face` turns the frame about the hips so the pelvis faces +Z: frames taken from a combo
   (`*_Rec`, mid-attack) may face anywhere, which otherwise flips the pelvis.
 

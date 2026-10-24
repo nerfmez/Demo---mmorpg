@@ -43,6 +43,19 @@ function propAxes(obj) {
 }
 
 /**
+ * Mirror a sampled pose left to right (x -> -x, left and right joints and weapons swapped): a clip
+ * whose weapon is in the other hand (the reference archer draws with the right, the hero holds the bow
+ * in its right hand).
+ */
+function mirrorPose(j) {
+  for (const k of Object.keys(j)) if (j[k]?.isVector3) j[k].x = -j[k].x;
+  for (const k of Object.keys(j)) if (k.endsWith('L') && j[k.slice(0, -1) + 'R'] !== undefined) [j[k], j[k.slice(0, -1) + 'R']] = [j[k.slice(0, -1) + 'R'], j[k]];
+  j.headQ.set(j.headQ.x, -j.headQ.y, -j.headQ.z, j.headQ.w);
+  for (const w of [j.weapon, j.weaponL]) if (w) { w.dir.x = -w.dir.x; w.up.x = -w.up.x; }
+  [j.weapon, j.weaponL] = [j.weaponL, j.weapon];
+}
+
+/**
  * Turn a sampled pose about the vertical through its hips so the pelvis faces +Z (a clip frame taken
  * mid-combo may face anywhere); the body's twist above and below the pelvis is kept.
  */
@@ -56,7 +69,7 @@ function faceForward(j) {
 }
 
 /** Reference joint positions and bone rotations (body space: faces +Z, left = +X) at clip time t. */
-export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = null, face = false) {
+export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = null, face = false, mirror = false) {
   const mixer = new THREE.AnimationMixer(g.scene);
   const c = THREE.AnimationClip.findByName(g.animations, clip);
   if (!c) throw new Error('no clip ' + clip);
@@ -69,6 +82,7 @@ export function sample(g, clip, t, profile = PROFILES.ual, prop = null, propL = 
   j.headQ = O(profile.head).getWorldQuaternion(new THREE.Quaternion());
   if (prop && O(prop)) j.weapon = propAxes(O(prop));
   if (propL && O(propL)) j.weaponL = propAxes(O(propL)); // a second weapon in the left hand
+  if (mirror) mirrorPose(j);
   if (face) faceForward(j);
   mixer.stopAllAction();
   mixer.uncacheRoot(g.scene);

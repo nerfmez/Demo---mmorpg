@@ -154,7 +154,8 @@ function rebuild() {
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION });
   game.aimAt(aimAngle);
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
-  if (BENCH_WEAPON[state.skill] !== heroWeapon || off !== heroOffhand) buildHero(BENCH_WEAPON[state.skill], off);
+  const weapon = state.weapon || BENCH_WEAPON[state.skill]; // setWeapon: another weapon in the right hand
+  if (weapon !== heroWeapon || off !== heroOffhand) buildHero(weapon, off);
   clearFx();
   heroAnim.action = null;
   state.holding = false;
@@ -524,4 +525,5 @@ window.__fxtest = { state, get game() { return game; }, get hero() { return hero
   freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, vfx, staffTip,
   hideDummies: () => dummies.forEach((d) => { d.g.visible = false; }),
   stances: HOLDS.stances, // the animator's stance table (pose tools add trial stances to it)
-  setOffhand: (kind) => { state.offhand = kind; rebuild(); } }; // a second weapon (dual carry) or null
+  setOffhand: (kind) => { state.offhand = kind; rebuild(); }, // a second weapon (dual carry) or null
+  setWeapon: (kind) => { state.weapon = kind; rebuild(); } }; // the right hand's weapon, or null for the skill's own

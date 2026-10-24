@@ -142,3 +142,18 @@ export function fk(offsets, parents, local) {
   }
   return { W, P };
 }
+
+/**
+ * The weapon bone's turn in its hand (Euler XYZ, the actions' `weapon` channel) that points the blade
+ * along `dir` (world) from a hand turned `handQ`. Its roll is the actions' own: the resting socket
+ * (x = 1.2) turned about the hand's x only, as match-roll.mjs keeps the carries.
+ */
+export function weaponChannel(handQ, dir) {
+  const z = dir.clone().applyQuaternion(handQ.clone().invert()).normalize();
+  const zr = new THREE.Vector3(0, -Math.sin(1.2), Math.cos(1.2));
+  const y = new THREE.Vector3(0, Math.cos(1.2), Math.sin(1.2)).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(zr, z));
+  y.addScaledVector(z, -y.dot(z)).normalize();
+  const x = new THREE.Vector3().crossVectors(y, z);
+  const e = new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z), 'XYZ');
+  return [e.x, e.y, e.z];
+}

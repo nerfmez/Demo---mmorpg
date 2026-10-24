@@ -31,11 +31,13 @@ node scripts/pose-retarget/run.mjs --file UAL1.glb --clip Sword_Idle --time 0.6 
 - `--face` turns the frame about the hips so the pelvis faces +Z: frames taken from a combo
   (`*_Rec`, mid-attack) may face anywhere, which otherwise flips the pelvis.
 
-It prints `{ stance, hold, source }`:
+It prints `{ stance, hold, action, source }`:
 
 - `stance` — driver channels for `data/weapon-holds.json` `stances` (add `_from` with `source`).
 - `hold` — the right palm (`hand`, in the animator's 1.75 m carry space), the blade axis (`dir`)
   and its flat (`up`) for the weapon's carry (`data/models.json` `characters.hero_chibi.holds`).
+- `action` — the same frame as an action key for `src/render/actions.js`: absolute channels, the body
+  `drop` and the `weapon` channel (the blade's turn in the hand, with the actions' own roll).
 - `--shots` renders the chibi in that pose from front, side, three-quarter and the game camera,
   facing +Z like the reference, for a side-by-side check.
 
@@ -58,9 +60,12 @@ The reference skeleton's own bends at rest (its T/A-pose knees, sloped feet, spi
 subtracted. The weapon direction comes from the prop (`--prop`), else from the fist: a grip runs
 along the knuckle line, pinky to index.
 
-In use: `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is the chibi's one-hand sword carry
-and its `dual` carry (`--prop 1H_Sword --propL 1H_Sword_Offhand --offhand sword`, used by the
-sword, dagger and wand with a second weapon in the left hand). `dagger_ready` (Quaternius `Sword_Idle` at
+In use: `sword_guard` (Quaternius UAL2 `Sword_Block` at 0.2 s, legs 0.6; the owner's pick A of five)
+is the chibi's one-hand sword carry, blade raised across the body. Measured Riposte's guard key
+(`guardUp` in `actions.js`) is pick B, the high guard of `Sword_Regular_A_Rec` at 0.05 s (`--face`,
+legs 0.6), its head turned back to face the foe. `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is
+the `dual` carry (`--prop 1H_Sword --propL 1H_Sword_Offhand --offhand sword`, used by the
+sword and wand with a second weapon in the left hand). `dagger_ready` (Quaternius `Sword_Idle` at
 0.6 s, full crouch, the first reference stance) is the dagger's own low trailing guard: the owner
 picked it for the dagger, alone and dual (the left dagger mirrors the right). `two_hand_ready` (KayKit
 `2H_Melee_Idle`, legs 0.5) is kept as `presets.two_hand_feminine` for a female body; the male

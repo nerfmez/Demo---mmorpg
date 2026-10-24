@@ -193,8 +193,9 @@ export const ACTIONS = {
   const bashWind = { ...rest, armL: [-0.7, 0, 0.7], elbowL: [-1.7, 0, 0], torso: [0.05, 0.5, 0], chest: [0, 0.25, 0], legL: [-0.15, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.06, 0, 0] };
   const bashHit = { ...rest, armL: [-1.5, 0, 0.15], elbowL: [-0.15, 0, 0], torso: [0.3, -0.45, 0], chest: [0.08, -0.2, 0], legL: [-0.75, 0, 0], kneeL: [0.9, 0, 0], legR: [0.4, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
   ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.24, bashWind], [0.35, coil(bashWind, 1.25)], [0.42, bashHit], [0.49, coil(bashHit, 1.2)], [0.66, bashHit], [0.8, bashHit], [1, rest]] };
-  // Measured Riposte's guard: the sword brought up across the front, held for the guard
-  const guardUp = { ...rest, armR: [-1.25, 0.35, -0.15], elbowR: [-1.3, 0, 0], weapon: [0.6, 0, 1.25], armL: [-1.0, 0, 0.35], elbowL: [-1.2, 0, 0], torso: [0.05, -0.3, 0], chest: [0, -0.1, 0], legL: [-0.3, 0, 0], kneeL: [0.45, 0, 0], kneeR: [0.4, 0, 0], drop: [-0.08, 0, 0] };
+  // Measured Riposte's guard: a high guard, the blade upright before the chest in both hands, the
+  // legs set wide (Quaternius Sword_Regular_A_Rec at 0.05 s, the action keys of scripts/pose-retarget)
+  const guardUp = { ...rest, armR: [-1.804, 0.477, 0.077], elbowR: [-0.488, 0, 0], weapon: [0.411, -0.457, -0.193], armL: [0.281, -0.907, 1.363], elbowL: [-1.674, 0, 0], hips: [0, -0.014, 0.19], torso: [-0.164, 0.423, -0.006], chest: [0.156, 0.18, -0.01], head: [0.1, -0.589, 0], legL: [-0.596, -0.129, 0.166], kneeL: [0.435, 0, 0], legR: [-0.572, -0.36, -0.802], kneeR: [0.955, 0, 0], drop: [-0.109, 0, 0] };
   ACTIONS.guardBlock = { hit: 0.2, keys: [[0, rest], [0.15, guardUp], [0.85, guardUp], [1, rest]] };
 }
 

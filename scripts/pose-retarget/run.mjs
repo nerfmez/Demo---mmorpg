@@ -73,6 +73,12 @@ const result = await page.evaluate(async ([file, clip, time, skill, profile, pro
     up = dir.clone().cross(fwd).normalize();
   }
   const hold = { hand: hand.map(r3), dir: dir.toArray().map(r3), up: up.toArray().map(r3) };
+  // the same frame as an action key (src/render/actions.js): absolute channels, the body drop and the
+  // weapon's turn in the hand
+  const action = {};
+  for (const n of ['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'armL', 'armR', 'elbowL', 'elbowR']) action[n] = (local[n] || [0, 0, 0]).map(r3);
+  action.weapon = R.weaponChannel(poseFk.W.handR, dir).map(r3);
+  action.drop = [r3(drop), 0, 0];
   if (propL === 'fist' && j.indexL) {
     // no left prop (a bare mannequin): the left blade along the left fist, like the right's
     const d = j.indexL.clone().sub(j.pinkyL).normalize(), f = j.knuckleL.clone().sub(j.handL);
@@ -85,7 +91,7 @@ const result = await page.evaluate(async ([file, clip, time, skill, profile, pro
     pl.y += drop;
     hold.left = { hand: (m ? [pl.x / m.scale, m.from + (pl.y - m.to) / m.scale, pl.z / m.scale] : pl.toArray()).map(r3), dir: j.weaponL.dir.toArray().map(r3), up: j.weaponL.up.toArray().map(r3) };
   }
-  return { stance, hold };
+  return { stance, hold, action };
 }, [file, clip, time, skill, profile, prop, legs, arms, propL, offhand, face]);
 
 result.source = `${profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${clip} at ${time} s, retargeted onto the driver rig${legs !== 1 ? `, legs x${legs}` : ''}${arms !== 1 ? `, arms in x${arms}` : ''}${face ? ', faced forward' : ''} (scripts/pose-retarget)`;

@@ -1149,3 +1149,9 @@ explicit owned-resource disposal on cancel/leave/disconnect. Remote effects are
 capped at 24 with short lifetime; remote visibility is limited to 58 scene metres.
 See `MULTIPLAYER-PRESENCE.md` for protocol, commands and parent-owned free hosting.
 Authentication, shared combat and authoritative saves remain future milestones.
+
+## Accepted concept scenes (integration trial, 24 October 2026)
+
+`data/accepted-scenes.json` contains six source-scene transforms, bounds, sampled heights and path distances, plain circle/OBB solids and source road guides. `data/world.json.acceptedScenes` enables them and declares graded connector height profiles. `core/accepted-scenes.js` applies them to the same heightfield consumed by collision, spawning and native terrain. `export:layout` now includes the accepted-scene settings and the final roads; its heightmap already includes the replacement terrain and aprons.
+
+The native procedural mesh factories under `render/accepted-scenes/` are generated from the unchanged approved `scenes/` sources by `scripts/prepare-accepted-scenes.py`. A Godot renderer can port their geometry or bake/import it; plain layout data never instantiates a web page. The arrival pillar keeps `landing` as its saved waypoint ID and its fallen/assembled poses are cosmetic. No character save migration is introduced. The windmill rotor and rebuilding pillar remain separate dynamic subtrees; fixed meshes can use the existing resident-cell batching/culling equivalent.

@@ -21,6 +21,8 @@ const out = {
   harbor: data.world.harbor || null,
   bounds: world.bounds,
   waterLevel: world.waterLevel,
+  acceptedScenes: data.world.acceptedScenes || null,
+  roads: world.roads,
   bridges: world.bridges,
   docks: world.docks,
   safeRoutes: data.world.safeRoutes || [],

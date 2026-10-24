@@ -6,6 +6,7 @@
 // + mountains past the map edge -> flatten town / pads -> roads smoothed into ramps ->
 // river channel and ponds carved below the water level.
 
+import {applyAcceptedHeights,smoothAcceptedAprons} from './accepted-scenes.js';
 import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
 // ---------- noise (hash-based, deterministic, no RNG state) ----------
@@ -366,6 +367,8 @@ export function buildHeightfield(worldData, zoneAt) {
       hf[j*w+i]=Math.min(hf[j*w+i],deck-dock.terrainRecess*Math.min(1,t*10));
     }
   }
+
+  applyAcceptedHeights(worldData,grid,hf);smoothAcceptedAprons(worldData,grid,hf);
 
   // 8. seams: an edge shared with a neighbouring map (atlas.seams) blends to one
   // common height profile, so both maps meet on the same ground. Past the edge the

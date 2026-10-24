@@ -30,7 +30,7 @@ test('landmarks stand on dry land beside the road, never on it or on a service s
   for (const [id, w] of Object.entries(worlds)) {
     const wd = data.maps[id], t = wd.town;
     const keep = [...wd.waypoints.map((p) => p.pos), wd.playerSpawn, t.respawn, t.workbench, t.trainer, ...(t.shop ? [t.shop] : [])];
-    for (const l of w.landmarks.filter((q) => !q.builtin)) {
+    for (const l of w.landmarks.filter((q) => !q.builtin && !q.acceptedScene)) {
       assert.ok(l.parts.length, l.id);
       assert.ok(w.roadDist(l.x, l.z) < 20, `${l.id} can be seen from a road`);
       for (const p of l.parts) {

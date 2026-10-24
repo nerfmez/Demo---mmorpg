@@ -270,7 +270,7 @@ export class View {
     const cfg = region.world.data.wreck;
     if (!cfg || region.wreck) return;
     const at = (o, [x,z], rot) => { o.position.set(x, region.world.groundY(x,z), z); o.rotation.y=rot; region.root.add(o); return o; };
-    region.wreck=at(buildWreck(),cfg.at,cfg.rot);
+    region.wreck=at(cfg.acceptedScene?new THREE.Group():buildWreck(),cfg.at,cfg.rot);
     region.weaponProps={};
     for(const [kit,o] of Object.entries(weaponProps())) { region.weaponProps[kit]=at(o,cfg.weapons[kit],.2); o.visible=false; }
   }
@@ -948,12 +948,14 @@ export class View {
         if (!stone.visible) continue;
         const id = stone.userData.waypointId ?? key;
         const on = g.isWaypointUnlocked?.(id, stone.userData.worldId);
+        if(stone.userData.updateAccepted){stone.userData.updateAccepted(dt,time,on,g.player.x,g.player.z);continue;}
         const c = stone.userData.crystal;
         c.material.emissive.set(on ? '#3fb8e8' : '#223344');
         c.material.emissiveIntensity = on ? 0.9 + Math.sin(time * 3) * 0.25 : 1;
         c.position.y = 2.95 + (on ? Math.sin(time * 2) * 0.12 : 0);
         c.rotation.y = on ? time : 0;
       }
+      for(const region of this.regions.values())for(const a of region.acceptedAnimations||[])a.update(dt,time,false);
       // target ring
       const t = g.target;
       this.targetRing.visible = !!t && !t.dead;

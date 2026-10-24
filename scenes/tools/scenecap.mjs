@@ -1,0 +1,23 @@
+// node scenecap.mjs <dir with index.html> <out prefix> [wipe]: the stage at 1672x941, plus a 50/50 wipe
+import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { join } from 'node:path';
+const [dir, out] = process.argv.slice(2);
+const V = '/tmp/claude-0/-home-user-Demo---mmorpg/bb51cd67-611b-5612-bae1-8a46bb84f0d0/scratchpad/vendor/three170/package/';
+const srv = createServer((q, r) => { try { r.end(readFileSync(join(dir, q.url.split('?')[0].replace(/^\/$/, '/index.html')))); } catch { r.statusCode = 404; r.end(); } }).listen(0);
+const port = srv.address().port;
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const p = await b.newPage({ viewport: { width: 1720, height: 1060 } });
+const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+await p.route('https://cdn.jsdelivr.net/npm/three@0.170.0/**', r => { const u = new URL(r.request().url()); r.fulfill({ body: readFileSync(V + u.pathname.replace('/npm/three@0.170.0/', '')), contentType: 'application/javascript', headers: { 'access-control-allow-origin': '*' } }); });
+await p.goto(`http://127.0.0.1:${port}/index.html?wipe=100`);
+await p.waitForFunction(() => window.__scene?.ready, null, { timeout: 180000 }).catch(e => errs.push('not ready: ' + e.message));
+await p.evaluate(() => { window.__scene?.lockPR(1); });
+await p.waitForFunction(() => window.__scene?.HERO?.rig, null, { timeout: 120000 }).catch(() => errs.push('no hero rig'));
+await p.waitForTimeout(3000);
+const bb = await p.locator('#stage').boundingBox();
+console.log('stage', JSON.stringify(bb));
+await p.screenshot({ path: `${out}-3d.png`, clip: bb, animations: 'disabled', timeout: 180000 });
+console.log('errors', JSON.stringify(errs.slice(0, 6)));
+await b.close(); srv.close();

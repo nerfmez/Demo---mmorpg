@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import {importJob} from './import-job.js';
 import {cancelledBuild} from './build-queue.js';
 import { terrainSteps, waterSteps, releaseGroundCaches } from './ground.js';
+import {acceptedScenerySteps} from './accepted-scenes.js';
 import { environmentSteps } from './environment.js';
 import { batchStaticSteps } from './static-batch.js';
 import { bakeGrassSteps } from './grass.js';
@@ -101,6 +102,10 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
     });
   }
   if (!world.data.city?.enabled) root.add(yield* timedRegionSteps(region,'water',inRegion(shift,waterSteps(world,env.root,{domain,adopt:group=>root.add(group)}))));
+  const accepted=yield* acceptedScenerySteps(world,view.renderer,{adopt:g=>env.root.add(g)});
+  for(const [id,stone]of accepted.waypoints){const old=env.waypoints.get(id);if(old)disposeObject(old);env.waypoints.set(id,stone);}
+  region.acceptedAnimations=accepted.animations;
+  region.importDisposers.push(accepted.root.userData.disposeAcceptedTextures);
   env.root.traverse(attachWindShadow); // one-time setup; no per-frame allocation
   yield;
   useRegion(shift); // another build may have run in between
@@ -116,7 +121,7 @@ function* assembleRegion(view,world,region,{asyncGPU,onTerrainReady}){
   yield;
   useRegion(shift); // another build may have run in between
   // after the water-contact bake: merge fixed scenery that shares a material, per map cell
-  region.staticBatch = yield* timedRegionSteps(region,'staticBatch',inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || [])] })));
+  region.staticBatch = yield* timedRegionSteps(region,'staticBatch',inRegion(shift,batchStaticSteps(env.root, { exclude: [...(env.waypoints?.values?.() || []),...accepted.animations.map(a=>a.landmark.rotor)] })));
   root.add(env.root);
   env.root.traverse((o) => o.userData.grassCulling && region.grass.push(o));
   region.waypointStones = env.waypoints;

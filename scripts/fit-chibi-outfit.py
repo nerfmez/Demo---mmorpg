@@ -150,10 +150,10 @@ def robust_line(t, v):
 
 
 cg = np.stack([robust_line(zs, cg[:, 0]), robust_line(zs, cg[:, 1])], 1)
-# and onto a straight chibi leg: following its curve (full thigh, knee forward) bows the trousers
-cc = np.stack([robust_line(zs, cc[:, 0]), robust_line(zs, cc[:, 1])], 1)
-dcx = cc[:, 0] - cg[:, 0]
+# the generated leg (a straight line) goes onto the chibi's own leg line, as it curves
+dcx, dcy = cc[:, 0] - cg[:, 0], cc[:, 1] - cg[:, 1]
 gx = np.interp(P0[:, 2], zs, cg[:, 0])
+gy = np.interp(P0[:, 2], zs, cg[:, 1])
 
 
 def smooth01(a, b, x):
@@ -168,8 +168,7 @@ sT = C['torsoScale']
 T = np.stack([x * sT, (y - C['torsoY'][0]) * sT + C['torsoY'][1], zmapT(z)], 1)
 # legs
 sL = C['legScale']
-# (front to back, the legs move as the torso does, so a hem keeps covering the trousers' top)
-L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), (y - C['torsoY'][0]) * sT + C['torsoY'][1], zmapL(z)], 1)
+L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
 # arms: `armX` maps distances out along the arm (from the shoulder to the fingertips), else `armLen` scales them
 a0, a1 = C['armAxis']; sA = C['armScale']
 if C.get('armX'):
@@ -189,11 +188,9 @@ P = P * (1 - wa) + A * wa
 nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
 piece = np.array([0 if v.co.z < C['bootTop'] else 1 for v in bm.verts])  # 0 boots, 1 armour
 margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
-# only the chest, shoulders and sleeves are pushed out of the body: everything lower keeps the
-# generated shape (pushing the trousers over the chibi's fuller thighs bowed the legs, and pushing
-# the hips lifted a tunic's hem off the trousers' top that it hid); the body under it is hidden in
-# game anyway (HIDE)
-pushed = P[:, 2] > C.get('pushAbove', 0.69)
+# the cloth is pushed out of the body everywhere (`pushAbove` limits it to above a height), so the
+# trousers follow the chibi's legs as they bend
+pushed = P[:, 2] > C.get('pushAbove', -1)
 
 
 def push(Q):

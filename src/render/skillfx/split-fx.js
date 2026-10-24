@@ -114,7 +114,7 @@ export class SplitFx {
     this.pts = Array.from({ length: RING_PTS }, () => new THREE.Vector3()); this.sub = [];
     this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.dir = new THREE.Vector3(); this.side = new THREE.Vector3();
-    this.cutAlive = (c) => !c.done; this.sparkAlive = (s) => s.life < s.max;
+    this.cutAlive = (c) => !c.done; this.free = []; this.sparkAlive = (s) => s.life < s.max || (this.free.push(s), false); // sparks are recycled
     // the crack (dark fissure, drawn with normal blending) and its hot glow
     this.crackDark = new Ribbon(scene, camera, 1600, CRACK_FS, THREE.NormalBlending); this.crackDark.mesh.renderOrder = 2;
     this.crackGlow = new Ribbon(scene, camera, 1600, GLOW_FS, THREE.AdditiveBlending); this.crackGlow.mesh.renderOrder = 3;
@@ -241,7 +241,7 @@ export class SplitFx {
     });
   }
   ring(pos, normal, r0, r1, max, w) { if (this.rings.length < 16) this.rings.push({ p: pos.clone(), n: normal.clone(), r0, r1, life: 0, max, w }); }
-  spark(x, z, vx, vy, vz, delay) { if (this.sparks.length < 200) this.sparks.push({ p: new THREE.Vector3(x, 0.08, z), v: new THREE.Vector3(vx, vy, vz), life: -delay, max: 0.3, w: 0.03 }); }
+  spark(x, z, vx, vy, vz, delay, y = 0.08, max = 0.3, w = 0.03) { if (this.sparks.length >= 200) return; const q = (this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() }); q.p.set(x, y, z); q.v.set(vx, vy, vz); q.life = -delay; q.max = max; q.w = w; this.sparks.push(q); }
   update(dt, hero, facing, bladeBase, bladeTip) {
     this.core.begin(); this.glow.begin();
     const look = this.look, two = this.two, three = this.three, r = this.rnd;
@@ -259,7 +259,7 @@ export class SplitFx {
         const k = r(), a = r() * 6.283;
         three[0].copy(bladeBase).lerp(bladeTip, k);
         const sx = three[0].x + Math.cos(a) * 0.45, sy = three[0].y + (r() - 0.5) * 0.6, sz = three[0].z + Math.sin(a) * 0.45;
-        if (this.sparks.length < 200) this.sparks.push({ p: new THREE.Vector3(sx, sy, sz), v: new THREE.Vector3((three[0].x - sx) * 7, (three[0].y - sy) * 7, (three[0].z - sz) * 7), life: 0, max: 0.14, w: 0.02 });
+        this.spark(sx, sz, (three[0].x - sx) * 7, (three[0].y - sy) * 7, (three[0].z - sz) * 7, 0, sy, 0.14, 0.02);
       }
     }
     const S = this.strikeAt;
@@ -334,6 +334,6 @@ export class SplitFx {
     this.drawCrack(dt);
   }
   clear() { this.crack.t = 9; for (const q of this.rubble) q.life = q.max; this.crackDark.begin(); this.crackDark.end(); this.crackGlow.begin(); this.crackGlow.end();
-    this.wind = null; this.strikeAt = null; this.lane.visible = false; this.wave.visible = false; this.cuts.length = 0; this.sparks.length = 0; this.rings.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
+    this.wind = null; this.strikeAt = null; this.lane.visible = false; this.wave.visible = false; this.cuts.length = 0; for (const q of this.sparks) this.free.push(q); this.sparks.length = 0; this.rings.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
   get busy() { return !!this.wind || !!this.strikeAt || this.crack.t < CRACK_HOLD + CRACK_FADE || this.cuts.length > 0 || this.sparks.length > 0; }
 }

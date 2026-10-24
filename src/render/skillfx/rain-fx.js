@@ -57,7 +57,7 @@ export class RainFx {
     this.arrows = []; this.sparks = []; this.rnd = mulberry32(83);
     this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.head = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
-    this.alive = (a) => !a.done; this.sparkAlive = (s) => s.life < s.max;
+    this.alive = (a) => !a.done; this.free = []; this.sparkAlive = (s) => s.life < s.max || (this.free.push(s), false); // sparks are recycled
   }
   // core 'area' event of one wave. bow: where the up-shot leaves (the first wave of a volley fires it)
   wave(e, element, bow) {
@@ -92,7 +92,8 @@ export class RainFx {
     const r = this.rnd;
     for (let i = 0; i < n && this.sparks.length < 400; i++) {
       const a = r() * 6.283, s = 1.4 + r() * 1.8;
-      this.sparks.push({ p: new THREE.Vector3(x, 0.05, z), v: new THREE.Vector3(Math.cos(a) * s, 1.0 + r() * 1.8, Math.sin(a) * s), life: 0, max: 0.18 + r() * 0.14, w: 0.022, look });
+      const q = (this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() }); q.p.set(x, 0.05, z); q.v.set(Math.cos(a) * s, 1.0 + r() * 1.8, Math.sin(a) * s);
+      q.life = 0; q.max = 0.18 + r() * 0.14; q.w = 0.022; q.look = look; this.sparks.push(q);
     }
   }
   update(dt) {
@@ -158,7 +159,7 @@ export class RainFx {
   clear() {
     for (const g of this.rings) { g.live = false; g.m.visible = false; }
     for (const f of this.flashes) { f.t = 9; f.m.visible = false; }
-    this.arrows.length = 0; this.sparks.length = 0;
+    this.arrows.length = 0; for (const q of this.sparks) this.free.push(q); this.sparks.length = 0;
   }
   get busy() { return this.arrows.length > 0 || this.sparks.length > 0 || this.rings.some((g) => g.live); }
 }

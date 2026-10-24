@@ -80,7 +80,7 @@ export class RiposteFx {
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]; this.two = [new THREE.Vector3(), new THREE.Vector3()];
     this.pts = Array.from({ length: RING_PTS }, () => new THREE.Vector3()); this.sub = [];
     this.u = new THREE.Vector3(); this.v = new THREE.Vector3(); this.dir = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0);
-    this.lungeAlive = (l) => l.t < 0.2; this.ringAlive = (r) => r.life < r.max; this.shardAlive = (s) => s.life < s.max;
+    this.lungeAlive = (l) => l.t < 0.2; this.ringAlive = (r) => r.life < r.max; this.free = []; this.shardAlive = (s) => s.life < s.max || (this.free.push(s), false);
     this.onShake = null;
   }
   burst(pos, dir, size, life, edge, glow) {
@@ -126,7 +126,8 @@ export class RiposteFx {
       for (const f of this.focus) { const a = r() * 6.283; f.d.set(0, Math.cos(a), 0).addScaledVector(this.side, Math.sin(a)); f.len = 0.6 + r() * 0.9; f.w = 0.03 + r() * 0.04; }
       for (let i = 0; i < 14; i++) { // the guard wall breaks into shards
         const r = this.rnd, a = Math.atan2(this.dir.x, this.dir.z) + (r() - 0.5) * this.guardArc, h = 0.3 + r() * 1.5;
-        this.shards.push({ p: new THREE.Vector3(hero.x + Math.sin(a) * PANE_R, h, hero.z + Math.cos(a) * PANE_R), v: new THREE.Vector3(Math.sin(a) * (1 + r() * 2), 1 + r() * 2, Math.cos(a) * (1 + r() * 2)), spin: r() * 6.28, rate: (r() - 0.5) * 18, len: 0.08 + r() * 0.08, life: 0, max: 0.4 + r() * 0.2 });
+        const q = (this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() }); q.p.set(hero.x + Math.sin(a) * PANE_R, h, hero.z + Math.cos(a) * PANE_R); q.v.set(Math.sin(a) * (1 + r() * 2), 1 + r() * 2, Math.cos(a) * (1 + r() * 2));
+        q.spin = r() * 6.28; q.rate = (r() - 0.5) * 18; q.len = 0.08 + r() * 0.08; q.life = 0; q.max = 0.4 + r() * 0.2; this.shards.push(q);
       }
       this.guardT = Math.max(this.guardT, this.guardDur - 0.12); this.paneFlash = 1; this.readyT = 0; this.readyDur = readyDuration; // the pane flashes white and breaks
       this.onShake?.(0.1, 0.22);
@@ -249,6 +250,6 @@ export class RiposteFx {
     this.guardT = this.guardDur = 0; this.readyT = this.readyDur = 0; this.pane.visible = false;
     for (const b of this.bursts) { b.t = 9; b.sp.visible = false; }
     this.clashT = 9; for (const st of this.stars) st.visible = false; for (const sp of this.sparkPool) sp.life = sp.max;
-    this.lunges.length = 0; this.rings.length = 0; this.shards.length = 0;
+    this.lunges.length = 0; this.rings.length = 0; for (const q of this.shards) this.free.push(q); this.shards.length = 0;
   }
 }

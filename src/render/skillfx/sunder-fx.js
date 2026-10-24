@@ -64,7 +64,7 @@ export class SunderFx {
     this.burstI = 0; this.shards = []; this.rnd = mulberry32(29); this.t = 0;
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.pts = Array.from({ length: ARC_PTS }, () => new THREE.Vector3()); this.sub = [];
-    this.shardAlive = (s) => s.life < s.max;
+    this.free = []; this.shardAlive = (s) => s.life < s.max || (this.free.push(s), false); // shards are recycled
   }
   // a struck target: from = where the cut came from
   hit(center, fromX, fromZ) {
@@ -78,7 +78,8 @@ export class SunderFx {
     // armour shards breaking off, thrown away from the cut and falling
     for (let i = 0; i < 9 && this.shards.length < 120; i++) {
       const a = Math.atan2(dz, dx) + (r() - 0.5) * 2.2, s = 2 + r() * 2.5;
-      this.shards.push({ p: new THREE.Vector3(center.x, center.y + (r() - 0.3) * 0.6, center.z), v: new THREE.Vector3(Math.cos(a) * s, 1.5 + r() * 2.5, Math.sin(a) * s), spin: r() * 6.28, rate: (r() - 0.5) * 20, len: 0.14 + r() * 0.14, life: 0, max: 0.45 + r() * 0.25 });
+      const q = (this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() }); q.p.set(center.x, center.y + (r() - 0.3) * 0.6, center.z); q.v.set(Math.cos(a) * s, 1.5 + r() * 2.5, Math.sin(a) * s);
+      q.spin = r() * 6.28; q.rate = (r() - 0.5) * 20; q.len = 0.14 + r() * 0.14; q.life = 0; q.max = 0.45 + r() * 0.25; this.shards.push(q);
     }
   }
   // exposed: [{x, z, t}] targets whose armour the rules keep open, t = seconds left
@@ -131,5 +132,5 @@ export class SunderFx {
     for (let i = n; i < ICONS; i++) this.icons[i].visible = false;
     this.core.end(); this.glow.end();
   }
-  clear() { for (const ic of this.icons) ic.visible = false; this.shards.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
+  clear() { for (const ic of this.icons) ic.visible = false; for (const q of this.shards) this.free.push(q); this.shards.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
 }

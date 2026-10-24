@@ -188,7 +188,7 @@ function castUp() {
   if (!state.holding) return;
   state.holding = false;
   const c = game.player.charging;
-  if (c) { fx.release(Math.min(1, c.t / c.skill.charge.duration)); game.releaseCharge(0, aimPoint()); } // a charged shot looses at its charge
+  if (c) game.releaseCharge(0, aimPoint()); // a charged shot looses at its charge (castStart carries it)
   else game.cancelChannel();
   drain();
 }

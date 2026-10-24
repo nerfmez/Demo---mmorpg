@@ -120,6 +120,7 @@ export class SkillFx {
           } else this.play('guardBlock', e.total + s.guard.duration, 0, e.total, e.kind);
           return true;
         }
+        if (e.charge !== undefined) this.release(e.charge); // a charged shot looses: its arrow and impact grow with the charge
         this.play(e.skill, e.total + 0.28, e.kind === 'melee_arc' ? this.nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { this.primarySwing = true; if (!OWN_STRIKE.has(e.skill)) this.slash.swing(e.total, this.slashOpts(s)); }
         if (e.kind === 'projectile' && !OWN_PROJECTILES.has(e.skill)) {
@@ -145,7 +146,7 @@ export class SkillFx {
         this.play('bowDraw', e.total * 3, 0, null, 'projectile'); this.power.setElement(s?.element); this.power.beginCharge(e.total);
         return true;
       }
-      case 'chargeEnd': if (!this.power.charge) return false; if (!g.player.cast) this.power.endCharge(); return true;
+      case 'chargeEnd': if (!this.power.charge) return false; this.power.endCharge(); return true; // released or cancelled
       case 'chain': {
         const last = e.points[e.points.length - 1];
         const miss = e.points.length === 2 && !g.monsters.some((m) => !m.dead && Math.hypot(m.x - last[0], m.z - last[1]) < 0.05);

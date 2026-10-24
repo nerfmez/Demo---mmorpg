@@ -459,15 +459,15 @@ export class Game {
       this.emit({ type: 'arrows', left: arrowTotal(this.ch), use: after });
       if (after !== before) this.refresh(); // the next type (or none) changes a bow's stats
     }
-    // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
-    // so the announced animation and the swing always agree
+    // step: which arm the swing comes from; decided now and kept until it lands, so the announced
+    // animation and the swing always agree
     let castTime = s.castTime;
     if (p.momentum) { if (this.time <= p.momentum.until) castTime /= 1 + p.momentum.speed; p.momentum = null; }
     const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + castTime) : 0;
     const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
     p.cast = { slot: i, t: 0, total: castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
-    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step });
+    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step, ...(s.charge ? { charge: Math.max(0, Math.min(1, chargeRatio || 0)) } : {}) });
     return true;
   }
 
@@ -855,7 +855,8 @@ export class Game {
       if (opts.chill&&!opts.consumedChill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
       if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0, owner:'player' };
       const pc = this.derived.poisonChancePct / 100;
-      if (pc > 0 && !opts.byAlly && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
+      // a passive poison proc never replaces Venom Arrow's stacked poison
+      if (pc > 0 && !opts.byAlly && !m.statuses.poison?.stacks && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
       if (opts.knock && m.hp > 0) {
         const a = angleTo(opts.fromX ?? this.player.x, opts.fromZ ?? this.player.z, m.x, m.z);
         const d = dirFromAngle(a);

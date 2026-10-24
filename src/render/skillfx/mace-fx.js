@@ -56,7 +56,7 @@ export class MaceFx {
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.pts = Array.from({ length: RING_PTS }, () => new THREE.Vector3()); this.sub = [];
     this.dir = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0);
-    this.ringAlive = (r) => r.life < r.max; this.shardAlive = (s) => s.life < s.max; this.stunAlive = (s) => s.t < s.duration;
+    this.ringAlive = (r) => r.life < r.max; this.free = []; this.shardAlive = (s) => s.life < s.max || (this.free.push(s), false); this.stunAlive = (s) => s.t < s.duration;
     this.onShake = null;
   }
   burst(pos, dir, size, life, upward) {
@@ -72,7 +72,9 @@ export class MaceFx {
   ring(c, angle, arc, r0, r1, max, w, col, glowCol) { if (this.rings.length < 16) this.rings.push({ c: c.clone(), angle, arc, r0, r1, life: 0, max, w, col, glowCol }); }
   shard(p, col) {
     const r = this.rnd, a = r() * 6.283, s = 1.5 + r() * 2;
-    if (this.shards.length < 120) this.shards.push({ p: p.clone(), v: new THREE.Vector3(Math.cos(a) * s, 1.5 + r() * 2.5, Math.sin(a) * s), spin: r() * 6.28, rate: (r() - 0.5) * 20, len: 0.08 + r() * 0.08, life: 0, max: 0.4 + r() * 0.2, col });
+    if (this.shards.length >= 120) return;
+    const q = (this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() }); q.p.copy(p); q.v.set(Math.cos(a) * s, 1.5 + r() * 2.5, Math.sin(a) * s);
+    q.spin = r() * 6.28; q.rate = (r() - 0.5) * 20; q.len = 0.08 + r() * 0.08; q.life = 0; q.max = 0.4 + r() * 0.2; q.col = col; this.shards.push(q);
   }
   // a dummy starts winding up (sandbox benchWindup)
   windup(id, total) { const ic = this.icons.find((x) => x.id === null || x.id === id); if (ic) { ic.id = id; ic.t = 0; ic.total = total; } }
@@ -171,6 +173,6 @@ export class MaceFx {
     for (const b of this.bursts) { b.t = 9; b.sp.visible = false; }
     for (const ic of this.icons) { ic.id = null; ic.sp.visible = false; }
     for (const sp of this.stars) sp.visible = false;
-    this.stunned.length = 0; this.rings.length = 0; this.shards.length = 0;
+    this.stunned.length = 0; this.rings.length = 0; for (const q of this.shards) this.free.push(q); this.shards.length = 0;
   }
 }

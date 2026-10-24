@@ -136,10 +136,11 @@ export function adjustFrontierHit(g,m,amount,opts) {
   if(s?.positionalMult&&behind)amount*=s.positionalMult;
   if(s?.frontMult&&!behind)amount*=s.frontMult;
   if(opts.exposure)m.statuses.exposure={fraction:Math.max(m.statuses.exposure?.fraction||0,opts.exposure.fraction),t:Math.max(m.statuses.exposure?.t||0,opts.exposure.duration),spread:Math.max(m.statuses.exposure?.spread||0,e.curseSpread||0)};
-  // Breakbeat Slam: every direct hit stuns (bosses only briefly); a started wind-up is cancelled.
+  // Breakbeat Slam: every direct hit stuns (bosses only briefly); a started wind-up is cancelled and
+  // a shelled monster is knocked out of its shell.
   if(opts.stun){
     const duration=m.boss?opts.stun.bossDuration:opts.stun.duration;
-    if(duration>0){m.state='stunned';m.stateT=0;m.stateDur=duration;m.windup=null;m.melee=null;m.charge=null;cancelWindup(g,m);g.emit({type:'stunned',id:m.id,x:m.x,z:m.z,duration});}
+    if(duration>0){m.state='stunned';m.stateT=0;m.stateDur=duration;m.windup=null;m.melee=null;m.charge=null;m.shell=false;cancelWindup(g,m);g.emit({type:'stunned',id:m.id,x:m.x,z:m.z,duration});}
   }
   // Venom Arrow: each direct hit adds a poison stack (up to maxStacks) and refreshes it; every stack
   // poisons for stackDps x this hit per second.

@@ -48,7 +48,7 @@ export class PowerFx {
     this.pts = Array.from({ length: Math.max(HIST, RING_PTS) }, () => new THREE.Vector3()); this.sub = [];
     this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]; this.head = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.dir = new THREE.Vector3(); this.u = new THREE.Vector3(); this.v = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0);
-    this.ringAlive = (r) => r.life < r.max; this.sparkAlive = (s) => s.life < s.max;
+    this.ringAlive = (r) => r.life < r.max; this.free = []; this.sparkAlive = (s) => s.life < s.max || (this.free.push(s), false); // sparks are recycled
   }
   setElement(element) {
     this.look = lookOf(element);
@@ -71,7 +71,7 @@ export class PowerFx {
   release(ratio) { this.nextRatio = ratio; this.charge = null; }
   // a ring of pushed air, perpendicular to dir, growing and fading
   ring(pos, dir, r0, r1, max) { if (this.rings.length < 24) this.rings.push({ p: pos.clone(), d: dir.clone(), r0, r1, life: 0, max }); }
-  spark(p, v, max, w) { if (this.sparks.length < 300) this.sparks.push({ p: p.clone(), v, life: 0, max, w }); }
+  spark(p, vx, vy, vz, max, w) { if (this.sparks.length >= 300) return; const q = (this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() }); q.p.copy(p); q.v.set(vx, vy, vz); q.life = 0; q.max = max; q.w = w; this.sparks.push(q); }
   syncProjectiles(projectiles, kind, dt) {
     for (const s of this.shots) s.live = false;
     for (const pr of projectiles) {
@@ -105,7 +105,7 @@ export class PowerFx {
     const n = 3 + Math.round(6 * ratio);
     for (let i = 0; i < n; i++) {
       const a = r() * 6.283, el = (r() - 0.2) * 1.2, sp = (2.5 + r() * 3) * (0.7 + ratio * 0.6);
-      this.spark(at, new THREE.Vector3(Math.cos(a) * Math.cos(el) * sp, Math.sin(el) * sp + 1, Math.sin(a) * Math.cos(el) * sp), 0.2 + r() * 0.2, 0.025);
+      this.spark(at, Math.cos(a) * Math.cos(el) * sp, Math.sin(el) * sp + 1, Math.sin(a) * Math.cos(el) * sp, 0.2 + r() * 0.2, 0.025);
     }
   }
   update(dt, tip, ratio) {
@@ -119,7 +119,7 @@ export class PowerFx {
       if (r() < dt * (25 + 45 * ratio)) {
         const a = r() * 6.283, el = (r() - 0.3) * 1.3, rad = 0.55 + 0.25 * ratio;
         const p = three[1].set(tip.x + Math.cos(a) * Math.cos(el) * rad, tip.y + Math.sin(el) * rad, tip.z + Math.sin(a) * Math.cos(el) * rad);
-        this.spark(p, new THREE.Vector3((tip.x - p.x) * 6, (tip.y - p.y) * 6, (tip.z - p.z) * 6), 0.16, 0.03);
+        this.spark(p, (tip.x - p.x) * 6, (tip.y - p.y) * 6, (tip.z - p.z) * 6, 0.16, 0.03);
       }
       const pulse = ratio >= 1 ? 1 + Math.sin(this.t * 40) * 0.12 : 1;
       // a soft round glow at the arrow tip with a hot centre, swelling with the charge
@@ -190,7 +190,7 @@ export class PowerFx {
     compact(this.sparks, this.sparkAlive);
     this.core.end(); this.glow.end();
   }
-  clear() { this.charge = null; this.rings.length = 0; this.sparks.length = 0; for (const s of this.shots) s.id = null; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } this.halo.visible = this.hot.visible = false; }
+  clear() { this.charge = null; this.rings.length = 0; for (const q of this.sparks) this.free.push(q); this.sparks.length = 0; for (const s of this.shots) s.id = null; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } this.halo.visible = this.hot.visible = false; }
   get busy() { return !!this.charge || this.rings.length > 0 || this.sparks.length > 0 || this.shots.some((s) => s.id !== null); }
 }
 

@@ -158,3 +158,13 @@ test('phase 2c mods: poison shift, wide field, building power and momentum chang
   assert.ok(g.castSlot(0));assert.ok(Math.abs(g.player.cast.total-normal/1.2)<1e-9);g.player.cast=null;g.player.cooldowns[0]=0;
   assert.ok(g.castSlot(0));assert.equal(g.player.cast.total,normal,'only the next cast');}
 });
+test('the slam stun knocks a shelled monster out of its shell; passive poison never wipes Venom Arrow stacks',()=>{
+ const {g,m,s}=fixture('interrupt_slam');m.state='shell';m.shell=true;g.executeSkill(s,aim);assert.equal(m.state,'stunned');assert.equal(m.shell,false,'no shell damage reduction after the stun');
+ const v=fixture('venom_mire');v.g.derived.poisonChancePct=100;
+ for(let i=0;i<5;i++)v.g.hitMonster(v.m,20,v.g.hitOpts(v.s));
+ assert.equal(v.m.statuses.poison.stacks,5,'a guaranteed passive proc keeps the five stacks');
+});
+test('a released charged shot announces its charge on castStart',()=>{
+ const {g}=fixture();assert(g.castSlot(0));advance(g,.6);g.drainEvents();assert(g.releaseCharge(0));
+ const start=g.drainEvents().find(e=>e.type==='castStart');assert(Math.abs(start.charge-.5)<.02,String(start.charge));
+});

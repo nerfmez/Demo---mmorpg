@@ -31,7 +31,7 @@ const GROUNDS = {
 };
 const ELEMENTS = ['fire', 'cold', 'lightning', 'poison', 'arcane', 'physical'];
 // skills the lab can replay; the rest appear disabled until their beats are wired here
-const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon', 'nova','chain','buff','heal_zone','dash','blink','leap','counter_stance','melee_line','channel_cone','wall','heal_target','aura']);
+const PLAYABLE = new Set(['projectile', 'melee_arc', 'melee_nova', 'ground_area', 'summon', 'nova','chain','buff','heal_zone','dot_zone','curse_zone','self_barrier','dash','blink','leap','counter_stance','melee_line','channel_cone','wall','heal_target','aura']);
 const LAB_SKILLS={...SKILLS,combat:{...SKILLS.combat,...SKILLS.movement}};
 
 const flat = { surfaceY: () => 0, groundY: () => 0 };
@@ -99,7 +99,7 @@ const isPrototype=()=>!!LAB_SKILLS.combat[state.skill]?.prototype;
 // Keep one real summon rig across replays; changing sliders does not rebuild it.
 let wolf = buildMonster('spirit_wolf'); scene.add(wolf.root); wolf.root.visible = false;
 let wolfReveal=installSpiritReveal(wolf);
-let wolfReplay = null, movementReplay=null;
+let wolfReplay = null, movementReplay=null, wardT=0;
 const wolfPose = { moving: false, speedFactor: 1.2, state: 'idle', lastAttack: 'bite', windup: null, windupT: 0, windupTotal: .25, hurt: 0, lookYaw: 0, turn: 0 };
 
 // training dummy: a post with a straw body; it bounces when hit
@@ -119,11 +119,13 @@ let hero = null;
 let heroAnim = null;
 function buildHero() {
   const action=heroAnim?.action||null;
+  vfx.wardMesh?.removeFromParent(); // the ward bubble follows the rebuilt hero, as in view.js
   if (hero) { vfx.clearMovementEchoes(); disposeObject(hero.root); }
   hero = buildHumanoid(DEFAULT_LOOK, { weapon: state.weapon === 'none' ? null : state.weapon, armor: 'tunic', helm: null, offhand:state.skill==='shield_bash'?'shield':null, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action=action; // Late model arrivals must not cancel a held preview pose.
   scene.add(hero.root);
+  if (vfx.wardMesh) hero.root.add(vfx.wardMesh);
   hero.root.rotation.y = -Math.PI / 2; // facing the dummy to the west
 }
 buildHero();
@@ -177,9 +179,13 @@ function cast() {
     if(s.kind==='blink'){vfx.blink(0,0,-s.distance,0,0xb4a2ff,hero);movementReplay.x=-s.distance;}
     return;
   }
-  if(['chain','buff','heal_zone'].includes(s.kind)){
+  if(['chain','buff','heal_zone','dot_zone','curse_zone','self_barrier'].includes(s.kind)){
     heroAnim.play(state.skill,s.castTime+.28,state.weapon,0,s.castTime,s.kind);
     later(s.castTime,()=>{
+      // Presentation only, like the game's events: the mire ticks and the hex land on the dummy; the ward wraps the hero.
+      if(s.kind==='dot_zone'){fakeGame.areas.push({id:nextId++,owner:'player',kind:state.skill,element,x:dummy.position.x,z:0,radius:s.radius,t:0,delay:0,duration:s.duration});for(let t=s.tick;t<=s.duration;t+=s.tick)later(t,()=>{dummyHit=Math.max(dummyHit,.5);});}
+      if(s.kind==='curse_zone'){vfx.curse({x:dummy.position.x,z:0,radius:s.radius});dummyHit=1;}
+      if(s.kind==='self_barrier'){vfx.ward({x:0,z:0,reflect:false,radius:s.radius},hero.root);wardT=s.duration;}
       if(s.kind==='chain')vfx.chain({element,points:[[0,0],[dummy.position.x,0]]});
       if(s.kind==='buff')vfx.warcry({x:0,z:0,radius:s.radius});
       if(s.kind==='heal_zone')fakeGame.areas.push({id:nextId++,owner:'player',kind:state.skill,x:0,z:0,radius:s.radius,t:0,delay:0,duration:s.duration});
@@ -301,6 +307,7 @@ function clearReplay() {
   vfx.endCast();
   vfx.endSwing(true); vfx.contacts.clear(); vfx.shake = 0;
   wolfReplay = null; wolf.root.visible = false; vfx.chips.clear();
+  wardT=0;vfx.updateWard(0,time);
   fakeGame.areas.length = 0;
   for (const area of vfx.areas.values()) disposeObject(area.obj, vfx.sharedGeo);
   vfx.areas.clear();
@@ -430,6 +437,8 @@ function step(dt) {
     if (area.t >= area.delay + area.duration) fakeGame.areas.splice(i, 1);
   }
   stepWolf(dt);}
+  if(wardT>0)wardT=Math.max(0,wardT-dt);
+  vfx.updateWard(wardT>0?1:0,time);
 
   if(movementReplay){const p=movementReplay,d=p.dash;
     if(d){d.t=Math.min(d.dur,d.t+dt);const k=d.t/d.dur;p.x=-p.distance*(d.kind==='blink'?1:k);hero.root.position.set(p.x,d.kind==='leap'?Math.sin(Math.PI*k)*2:0,0);hero.root.visible=d.kind!=='blink'||k>=1;
@@ -486,8 +495,8 @@ function frame(now) {
     }
     step(dt);
   }
-  const areaPad = skillDef()?.kind === 'ground_area' ? skillDef().radius : 0;
-  const target = camTarget.set(['nova','buff','heal_zone'].includes(skillDef()?.kind) ? 0 : -(state.distance + areaPad) / 2, 0, 0);
+  const areaPad = ['ground_area','dot_zone','curse_zone'].includes(skillDef()?.kind) ? skillDef().radius : 0;
+  const target = camTarget.set(['nova','buff','heal_zone','self_barrier'].includes(skillDef()?.kind) ? 0 : -(state.distance + areaPad) / 2, 0, 0);
   camera.position.copy(target).addScaledVector(CAM_OFFSET, state.zoom * viewFit * (1 + areaPad / Math.max(2, state.distance)));
   if (shake > 0) {
     camera.position.x += (Math.random() - 0.5) * shake * 0.35;

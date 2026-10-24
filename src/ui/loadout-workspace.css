@@ -185,8 +185,8 @@ body.loadout-open .fullscreen-control{z-index:39}
  #atelier .loadout-window.movement-mode .movement-socket-panel{flex:none;padding:8px 12px}
 }
 /* the helm slot with its show/hide toggle beside it */
-#atelier .wear-helm-group{position:absolute;left:var(--wear-gap,18px);top:2%;display:flex;align-items:flex-start;gap:6px;z-index:4}
-#atelier .wear-helm-group>.wear-slot{position:relative;left:auto;top:auto;right:auto;bottom:auto}
+#atelier .wear-helm-group{position:absolute;left:var(--wear-gap,18px);top:2%;height:23%;display:flex;align-items:flex-start;gap:6px;z-index:4}
+#atelier .wear-helm-group>.wear-slot{position:relative;left:auto;top:auto;right:auto;bottom:auto;max-height:100%} /* the slot's 23% cap, now from the group */
 #atelier .helm-toggle{min-width:44px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 6px;border-radius:22px;border:1px solid #718f8a;background:#f2ecd8;color:#2f4a44;box-shadow:0 3px 6px #35554a40;touch-action:manipulation;cursor:pointer}
 #atelier .helm-toggle span{font-size:18px;line-height:1}
 #atelier .helm-toggle small{font:600 9px/1 system-ui}

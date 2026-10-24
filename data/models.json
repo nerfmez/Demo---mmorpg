@@ -700,24 +700,63 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap): the sword points forward and down, ahead of the feet; the staff is held low and upright; heavy weapons are held in both hands at the belly, head forward, clear of the big head. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap), each with its ready stance (weapon-holds.json stances): the sword low and forward with the free hand up in front; with a shield (shield carry) the shield raised before the chest; the dagger level in a low crouch; heavy weapons upright in both hands in front of the body, clear of the big head; the staff tilted out from the body; the bow hanging upright at the side. up [1, 0, 0] turns the blade's flat to the side so its edge stands upright; the bow's up is its limbs.",
         "sword": {
           "one": {
             "hand": [
               -0.22,
-              0.93,
-              0.1
+              0.95,
+              0.22
             ],
             "dir": [
-              -0.12,
-              -0.55,
+              -0.3,
+              -0.3,
+              0.9
+            ],
+            "up": [
+              1,
+              0,
+              0
+            ],
+            "stance": "blade"
+          },
+          "shield": {
+            "hand": [
+              -0.24,
+              0.93,
+              0.08
+            ],
+            "dir": [
+              -0.25,
+              -0.5,
               0.83
             ],
             "up": [
               1,
               0,
               0
-            ]
+            ],
+            "stance": "shield"
+          }
+        },
+        "dagger": {
+          "one": {
+            "hand": [
+              -0.22,
+              1.0,
+              0.24
+            ],
+            "dir": [
+              -0.2,
+              0.05,
+              0.98
+            ],
+            "up": [
+              1,
+              0,
+              0
+            ],
+            "stance": "low"
           }
         },
         "axe": {
@@ -741,13 +780,13 @@
           "two": {
             "hand": [
               -0.05,
-              0.85,
-              0.35
+              0.86,
+              0.3
             ],
             "dir": [
-              0.35,
-              0.5,
-              0.8
+              0.2,
+              0.85,
+              0.45
             ],
             "grip": 0.26,
             "stance": "guard",
@@ -779,13 +818,13 @@
           "two": {
             "hand": [
               -0.05,
-              0.85,
-              0.35
+              0.86,
+              0.3
             ],
             "dir": [
-              0.35,
-              0.5,
-              0.8
+              0.2,
+              0.85,
+              0.45
             ],
             "grip": 0.22,
             "stance": "guard",
@@ -800,13 +839,13 @@
           "two": {
             "hand": [
               -0.05,
-              0.85,
-              0.35
+              0.86,
+              0.3
             ],
             "dir": [
-              0.3,
-              0.6,
-              0.75
+              0.2,
+              0.85,
+              0.45
             ],
             "grip": -0.11,
             "stance": "guard",
@@ -820,16 +859,37 @@
         "staff": {
           "one": {
             "hand": [
-              -0.27,
-              0.8,
-              0.2
+              -0.38,
+              0.82,
+              0.18
             ],
             "dir": [
-              -0.04,
+              -0.38,
               1,
-              0.2
+              0.3
             ],
-            "castHold": true
+            "castHold": true,
+            "stance": "caster"
+          }
+        },
+        "bow": {
+          "one": {
+            "hand": [
+              -0.27,
+              0.9,
+              0.1
+            ],
+            "dir": [
+              -0.15,
+              -0.1,
+              1
+            ],
+            "stance": "archer",
+            "up": [
+              -0.4,
+              1,
+              0.6
+            ]
           }
         }
       },

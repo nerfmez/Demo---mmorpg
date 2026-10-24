@@ -511,6 +511,8 @@ function tick(real, draw = true) {
   if (shakeT > 0) { shakeT = Math.max(0, shakeT - dt); const k = shakeAmp * (shakeT / shakeDur); camera.position.set(camBase.x + (Math.random() - 0.5) * 2 * k, camBase.y + (Math.random() - 0.5) * 2 * k, camBase.z + (Math.random() - 0.5) * 2 * k); }
   else camera.position.copy(camBase);
   camera.position.x += camFollow.x; camera.position.z += camFollow.z; // the camera walks with the hero
+  // review hook: a fixed close-up (pose reviews), {pos: [x, y, z], look: [x, y, z]} around the hero
+  if (state.camOverride) { const o = state.camOverride; camera.position.set(p.x + o.pos[0], o.pos[1], p.z + o.pos[2]); camera.lookAt(p.x + o.look[0], o.look[1], p.z + o.look[2]); }
   renderer.render(scene, camera);
 }
 
@@ -518,4 +520,5 @@ rebuild();
 requestAnimationFrame(frame);
 window.__fxtest = { state, get game() { return game; }, get hero() { return hero; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, fx,
   // review hooks: freeze the clock and advance fixed 60 Hz steps, rendering only the last one
-  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, vfx, staffTip };
+  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, vfx, staffTip,
+  hideDummies: () => dummies.forEach((d) => { d.g.visible = false; }) };

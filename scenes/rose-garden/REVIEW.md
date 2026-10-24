@@ -1,6 +1,8 @@
 # Rose Garden Glade review — 24 October 2026
 
-**Decision: new standalone owner-review draft.** Created after the owner accepted Azure Meadow version 10 and requested the next scene. Meadow, Windmill and Conch Coast remain preliminarily accepted. This rose scene has no owner approval and is not integrated or merged into the game.
+**Decision: ผ่านเบื้องต้น — preliminary owner approval, 24 October 2026, public version 11.** The owner accepted the rose scene and requested it be retained. Keep this version as the baseline for future work. This approval is separate from final runtime/device verification, game integration and merge.
+
+Accepted scene source `82e84b3824153f09617055b8e3004478cd242b22`; Site source `6ffeb5ec61ac2bec0ce7cc56a5ece2e46051e463`; [accepted version 11](https://frontier-ruins-review-oct23.ballboy-lnw.chatgpt.site/rose-garden/?v=11). This acceptance update changes documentation only; the published HTML and scene implementation remain unchanged. Meadow, Windmill and Conch Coast remain preliminarily accepted.
 
 ## Artifact and target
 
@@ -30,4 +32,4 @@ Inspected the original reference and assembled geometry/material software views 
 
 ## Limits and next review
 
-New WebGL lighting, ground baking/shadows, filtering, native touch, device FPS and continuous animation remain unverified after the prior cloud WebGL failure. The software fallback approximates materials, omits real baked shadows and shows the hero in bind pose. Existing foliage/hero motion was retained; no playback claim is made. The current draft needs owner comparison, and game integration requires its own world/collision/resource/device checks. Passing navigation checks is not visual approval.
+New WebGL lighting, ground baking/shadows, filtering, native touch, device FPS and continuous animation remain unverified after the prior cloud WebGL failure. The software fallback approximates materials, omits real baked shadows and shows the hero in bind pose. Existing foliage/hero motion was retained; no playback claim is made. Version 11 is retained as the preliminarily accepted owner baseline; game integration still requires its own world/collision/resource/device checks. Passing navigation checks is not visual approval.

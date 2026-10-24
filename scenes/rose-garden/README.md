@@ -1,8 +1,10 @@
-# Rose Garden Glade — standalone owner-review draft
+# Rose Garden Glade — preliminarily accepted standalone scene
+
+**Owner status: ผ่านเบื้องต้น — preliminary approval, 24 October 2026, public version 11.** Retain source `82e84b3824153f09617055b8e3004478cd242b22` as the baseline for future work.
 
 The next owner-requested concept after preliminary approval of Azure Meadow version 10. This scene uses `rose-garden-glade.png` from concept commit `8ce972eb90d58dedb25c8fcf3c019dc89025ff96`, retained without recompression as `concept.png`.
 
-An open timber gazebo stands on the left terrace, with plank flooring, side benches, roof shingles and climbing roses. The garden has connected paths, two stair approaches, a planted stone island and wooded edges. Trees, shrubs, grass, wildflowers, hero and toon paint reuse the game's assets/pipeline. New roses have cupped petal geometry; stems and leaves remain separate visible forms. This is a new unapproved draft, separate from the main game.
+An open timber gazebo stands on the left terrace, with plank flooring, side benches, roof shingles and climbing roses. The garden has connected paths, two stair approaches, a planted stone island and wooded edges. Trees, shrubs, grass, wildflowers, hero and toon paint reuse the game's assets/pipeline. New roses have cupped petal geometry; stems and leaves remain separate visible forms. This preliminarily accepted scene stays separate from the main game.
 
 ## Build and reuse without Sites
 
@@ -44,4 +46,4 @@ python3 scenes/rose-garden/assemble.py --three /absolute/path/to/three-0.170-pac
 
 Each port has `x,y,z`, usable `width` and outward `dx,dz`. Translate terrain, models, colliders, paths and ports together for game placement, matching neighboring ground to the port heights. The pavilion floor geometry and walking height share the same footprint; the terrain beneath is lowered so it cannot cover the boards. The standalone tap walker is separate from the main game's navigation. Game placement, resource ownership and device checks remain later integration work.
 
-Tap the ground to walk; use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the exact artifact and verification limits. The rose scene has no owner approval yet; accepted Meadow, Windmill and Coast baselines are preserved.
+Tap the ground to walk; use the wipe controls to compare with the concept. [Review record](REVIEW.md) identifies the exact artifact and verification limits. Version 11 has preliminary owner approval. Final runtime/device verification and game integration remain pending; the accepted Meadow, Windmill and Coast baselines are preserved.

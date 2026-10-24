@@ -70,6 +70,10 @@ down). After writing a carry, run
 `null`, carry key) and write the printed `up` values back. For a run carry (`hold.run`) add
 `null run` (the right-hand weapon, then `run`): the hero runs and the run carry's `up` is matched.
 The owner saw a twisted hand on the run until this was done.
+Aim a run carry's blade square to the forearm first (`forearm.mjs <skill> <offhand>` gives the
+forearm's direction while running): a fist holds its grip across the forearm, so a blade along the
+forearm folds the wrist. Square it, tilt it at most 15 degrees (swords, daggers) or 30 (a dragged
+heavy weapon) toward the wanted direction, then match the roll.
 
 ## How it maps
 

@@ -6,13 +6,13 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: every melee arc skill is one plain strike (no 1-2-3 combo, so no third-hit
 // finisher with its extra damage and knockback). Owner: "why does the third hit knock back? remove it".
 export const SINGLE_STRIKE = new Set(['slash']);
 const singleStrike = (data, skill) => SINGLE_STRIKE.has(skill) || data.skills.combat[skill]?.kind === 'melee_arc';
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword' };
 
 // Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
 // target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
@@ -76,6 +76,8 @@ export const LAYOUTS = {
   interrupt_slam: [[2.1, 0.2], [1.9, -0.9], [1.8, 1.0], [0.6, 2.5]],
   // two in the narrow thrust: one facing the hero, one with its back turned; two more off to the sides
   weakpoint: [[1.9, -0.25], [2.15, 0.3], [3.4, 2.4], [3.4, -2.4]],
+  // three in the 90 degree, 2.2 m bash (knocked back), one behind them
+  shield_bash: [[1.7, 0.2], [1.5, -0.9], [1.4, 1.0], [4.2, 0.2]],
 };
 // Facings per layout (default: every dummy faces the hero). Flank Thrust needs some backs turned.
 export const FACINGS = {
@@ -105,6 +107,9 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
   const weaponType = BENCH_WEAPON[skill] || 'staff';
   const base = Object.entries(data.items.gearBases).find(([, d]) => d.weaponType === weaponType);
   if (base) { const it = { uid: ch.nextUid++, base: base[0], grade: 'C', itemLevel: 1, upgrade: 0, options: [] }; ch.gear.push(it); equip(ch, data, it.uid); }
+  const off = data.skills.combat[skill]?.requiresOffhand; // e.g. Shield Bash needs a shield
+  const offBase = off && Object.entries(data.items.gearBases).find(([, d]) => d.offhandType === off);
+  if (offBase) { const it = { uid: ch.nextUid++, base: offBase[0], grade: 'C', itemLevel: 1, upgrade: 0, options: [] }; ch.gear.push(it); equip(ch, data, it.uid); }
 
   const g = new Game(data, { character: ch, seed });
   Object.assign(g.player, { x: 0, z: 0, facing: Math.PI / 2, hp: g.player.maxHp * 0.6 });

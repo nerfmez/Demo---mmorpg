@@ -210,5 +210,21 @@ Slash crescent is only for skills that cut.
   - a gold weak-point diamond that snaps shut on the target;
   - a "จุดอ่อน!" label and a camera shake.
 
+## Shield Bash
+
+`src/fxtest/bash-fx.js`, with a sword and a shield (sandbox equips the skill's `requiresOffhand`).
+The hero plays a bench-only `shieldBash` action: the shield arm loads back across the body, then
+drives the shield straight out. It is not a crescent.
+- **Contact** (the rules' `slash`):
+  - a burst at the shield;
+  - two upright rings of light racing forward, facing the bash;
+  - a cone shock ring over the 90 degree arc on the ground;
+  - a short camera shake.
+- **Each struck target:**
+  - a hard burst;
+  - a fading skid streak on the ground as the rules' knock slides it back;
+  - for the rules' 3 s taunt, a red anime anger mark over its head and a red ring at its feet,
+    pulsing until it ends.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

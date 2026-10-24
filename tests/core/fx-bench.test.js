@@ -269,3 +269,14 @@ test('no melee arc skill on the bench has a third-hit finisher: four quick casts
     assert.ok(g.monsters.every((m) => Math.hypot(m.x - m.homeX, m.z - m.homeZ) < 1e-6), `${skill}: nothing was knocked back`);
   }
 });
+
+test('Shield Bash on the bench: the hero carries a shield; struck dummies are knocked back and taunted for 3 s', () => {
+  const r = run('shield_bash', [], (g) => { g.aimAt(Math.PI / 2); g.castSlot(0, { x: 5, z: 0 }); }, 0.5);
+  assert.equal(r.g.derived.offhand, 'shield');
+  const hit = new Set(r.of('hit').filter((e) => !e.dot).map((e) => e.id));
+  assert.ok(hit.size >= 2);
+  for (const m of r.g.monsters.filter((q) => hit.has(q.id))) {
+    assert.ok(Math.hypot(m.x - m.homeX, m.z - m.homeZ) > 0.5, 'knocked back');
+    assert.equal(m.tauntT, 3);
+  }
+});

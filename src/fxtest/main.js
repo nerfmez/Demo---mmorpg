@@ -29,6 +29,7 @@ import { SplitFx } from './split-fx.js';
 import { SunderFx, SUNDER_PALETTE } from './sunder-fx.js';
 import { MaceFx } from './mace-fx.js';
 import { ThrustFx } from './thrust-fx.js';
+import { BashFx } from './bash-fx.js';
 
 // the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
 const data = benchData(gameData);
@@ -44,12 +45,16 @@ const data = benchData(gameData);
   // Flank Thrust: a straight stab (pull the dagger back at the hip, lunge and drive it out), not a cut
   const thWind = { ...rest, armR: [-0.5, 0, -0.25], elbowR: [-2.0, 0, 0], weapon: [1.57, 0, 0], armL: [-0.8, 0, 0.4], elbowL: [-1.1, 0, 0], torso: [0, -0.35, 0], chest: [0, -0.15, 0], legL: [-0.2, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.04, 0, 0] };
   const thHit = { ...rest, armR: [-1.55, -0.1, 0.05], elbowR: [0, 0, 0], weapon: [1.57, 0, 0], armL: [0.3, 0, 0.5], elbowL: [-0.3, 0, 0], torso: [0.3, 0.35, 0], chest: [0.08, 0.15, 0], legL: [-0.8, 0, 0], kneeL: [1.0, 0, 0], legR: [0.45, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
+  // Shield Bash: load the shield arm back across the body, then drive the shield straight out
+  const bashWind = { ...rest, armL: [-0.7, 0, 0.7], elbowL: [-1.7, 0, 0], torso: [0.05, 0.5, 0], chest: [0, 0.25, 0], legL: [-0.15, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.06, 0, 0] };
+  const bashHit = { ...rest, armL: [-1.5, 0, 0.15], elbowL: [-0.15, 0, 0], torso: [0.3, -0.45, 0], chest: [0.08, -0.2, 0], legL: [-0.75, 0, 0], kneeL: [0.9, 0, 0], legR: [0.4, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
+  ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.28, bashWind], [0.42, bashHit], [0.7, bashHit], [1, rest]] };
   ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.3, thWind], [0.45, thHit], [0.7, thHit], [1, rest]] };
   ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
 }
-const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam', interrupt_slam: 'slam', weakpoint: 'thrust' };
+const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash' };
 // skills whose melee contact is not the Slash crescent (they draw their own effect on each 'slash')
-const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam']);
+const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash']);
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -64,7 +69,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -129,12 +134,12 @@ function makeDummy() {
 const dummies = Array.from({ length: 6 }, makeDummy);
 
 // ---------- hero ----------
-let hero = null, heroAnim = null, heroWeapon = 'staff';
-function buildHero(weapon = heroWeapon) {
-  heroWeapon = weapon;
+let hero = null, heroAnim = null, heroWeapon = 'staff', heroOffhand = null;
+function buildHero(weapon = heroWeapon, offhand = heroOffhand) {
+  heroWeapon = weapon; heroOffhand = offhand;
   const action = heroAnim?.action || null;
   if (hero) disposeObject(hero.root); // frees the old rig's geometry, materials and skeleton
-  hero = buildHumanoid(DEFAULT_LOOK, { weapon, armor: 'tunic', helm: null, offhand: null, bases: {} });
+  hero = buildHumanoid(DEFAULT_LOOK, { weapon, armor: 'tunic', helm: null, offhand, bases: {} });
   heroAnim = new HumanoidAnimator(hero);
   heroAnim.action = action;
   scene.add(hero.root);
@@ -165,6 +170,8 @@ const splitFx = new SplitFx(scene, camera);
 const sunderFx = new SunderFx(scene, camera);
 const maceFx = new MaceFx(scene, camera);
 const thrustFx = new ThrustFx(scene, camera);
+const bashFx = new BashFx(scene, camera);
+const dummyPos = (id) => dummyOf(id);
 const markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })), marks = [];
 const headPt = new THREE.Vector3();
 const headOf = (id) => { const d = dummyOf(id); return d ? headPt.set(d.x, 2.1, d.z) : null; };
@@ -174,6 +181,7 @@ const camBase = new THREE.Vector3();
 let shakeT = 0, shakeDur = 1, shakeAmp = 0;
 maceFx.onShake = (amp, time) => splitFx.onShake(amp, time);
 thrustFx.onShake = (amp, time) => splitFx.onShake(amp, time);
+bashFx.onShake = (amp, time) => splitFx.onShake(amp, time);
 splitFx.onShake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 let powerRatio = 0; // the charge the last Power Draw left with
 const slashFx = new SlashFx(scene, camera);
@@ -200,7 +208,8 @@ function rebuild() {
   if (state.fusion && !fusionPayloads(data, FUSION, state.skill).includes(state.fusion)) state.fusion = null;
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION });
   game.aimAt(aimAngle);
-  if (BENCH_WEAPON[state.skill] !== heroWeapon) buildHero(BENCH_WEAPON[state.skill]);
+  const off = data.skills.combat[state.skill]?.requiresOffhand || null; // Shield Bash holds a shield
+  if (BENCH_WEAPON[state.skill] !== heroWeapon || off !== heroOffhand) buildHero(BENCH_WEAPON[state.skill], off);
   clearFx();
   heroAnim.action = null;
   state.holding = false;
@@ -227,7 +236,7 @@ const slashOpts = (s) => ({ palette: s.id === 'armor_cleave' ? SUNDER_PALETTE : 
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); maceFx.clear(); thrustFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); maceFx.clear(); thrustFx.clear(); bashFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -328,6 +337,7 @@ function drain() {
       case 'fusionRelease': flameSlash.release(); break;
       case 'fusionCancel': flameSlash.cancel(); heroAnim.action = null; break;
       case 'slash': {
+        if (e.skill === 'shield_bash') bashFx.bash(game.player.x, game.player.z, e.angle, e.range, e.arc);
         if (e.skill === 'weakpoint') thrustFx.thrust(game.player.x, 1.15, game.player.z, e.angle, e.range);
         if (e.skill === 'interrupt_slam') maceFx.slam(game.player.x, game.player.z, game.player.facing, s.range, s.arc);
         const primary = primarySwing; primarySwing = false;
@@ -361,6 +371,7 @@ function drain() {
         if (e.skill === 'flame_stream' && !e.dot) flameFx.lick(d.center);
         if (e.skill === 'frontline_split' && !e.dot) splitFx.cut(d.center);
         if (e.skill === 'interrupt_slam' && !e.dot) maceFx.hit(d.center, e.fromX, e.fromZ);
+        if (e.skill === 'shield_bash' && !e.dot) bashFx.hit(e.id, headPt.set(e.x, 1.1, e.z), e.fromX, e.fromZ, s.taunt?.duration || 3);
         if (e.skill === 'weakpoint' && !e.dot) {
           // the rules' positional bonus: struck from the side or behind the way it faces
           const m = game.monsters.find((q) => q.id === e.id), weak = !!m && (e.fromX - m.x) * Math.sin(m.facing) + (e.fromZ - m.z) * Math.cos(m.facing) < 0;
@@ -614,6 +625,7 @@ function tick(real, draw = true) {
   marks.length = 0;
   if (state.skill === 'weakpoint') game.monsters.forEach((m, i) => { if (i < markBuf.length) { const o = markBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.facing = m.facing; marks.push(o); } });
   thrustFx.update(dt, marks);
+  bashFx.update(dt, dummyPos);
   flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
   const ownKind = recipeKind || (['venom_mire', 'charged_shot'].includes(state.skill) ? state.skill : null); // drawn by the bench's own effect

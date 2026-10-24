@@ -194,7 +194,10 @@ On the bench (`QUICK_STAB` in sandbox) it is a 0.5 s, no-MP stab:
 The game keeps its Flank Thrust until this is approved.
 
 `src/fxtest/thrust-fx.js`, with a dagger. It is a stab, not a cut, so the slash crescent is
-skipped.
+skipped. The hero plays a bench-only `thrust` action (pull the dagger back at the hip, lunge and
+drive it straight out). Multistrike repeats replay the skill's own motion and effect (`OWN_STRIKE`
+in main.js: Flank Thrust and Breakbeat Slam draw their own strike on each repeat's `slash`). The
+Slash crescent is only for skills that cut.
 - **Layout.** On the bench (`FACINGS` in sandbox) one dummy in the thrust faces the hero and one
   turns its back. Each dummy's weak side is marked on the ground with a dashed gold half-ring
   behind it.

@@ -41,9 +41,15 @@ const data = benchData(gameData);
   // Power Draw: raise and draw, then hold at full draw for as long as the charge is held
   ACTIONS.bowDraw = { hit: 1, keys: [[0, rest], [0.08, raise], [0.2, { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] }], [1, { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] }]] };
   ACTIONS.bowLoose = { hit: 0.3, keys: [[0, { ...draw, ikL: [-0.12, 1.5, 0.02] }], [0.3, { ...loose, drop: [-0.05, 0, 0] }], [0.7, loose], [1, rest]] };
+  // Flank Thrust: a straight stab (pull the dagger back at the hip, lunge and drive it out), not a cut
+  const thWind = { ...rest, armR: [-0.5, 0, -0.25], elbowR: [-2.0, 0, 0], weapon: [1.57, 0, 0], armL: [-0.8, 0, 0.4], elbowL: [-1.1, 0, 0], torso: [0, -0.35, 0], chest: [0, -0.15, 0], legL: [-0.2, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.04, 0, 0] };
+  const thHit = { ...rest, armR: [-1.55, -0.1, 0.05], elbowR: [0, 0, 0], weapon: [1.57, 0, 0], armL: [0.3, 0, 0.5], elbowL: [-0.3, 0, 0], torso: [0.3, 0.35, 0], chest: [0.08, 0.15, 0], legL: [-0.8, 0, 0], kneeL: [1.0, 0, 0], legR: [0.45, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
+  ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.3, thWind], [0.45, thHit], [0.7, thHit], [1, rest]] };
   ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
 }
-const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam', interrupt_slam: 'slam' };
+const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam', interrupt_slam: 'slam', weakpoint: 'thrust' };
+// skills whose melee contact is not the Slash crescent (they draw their own effect on each 'slash')
+const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam']);
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -277,7 +283,7 @@ function drain() {
     switch (e.type) {
       case 'castStart':
         heroAnim.play(BENCH_ACTION[e.skill] || e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc') { primarySwing = true; if (e.skill !== 'interrupt_slam' && e.skill !== 'weakpoint') slashFx.swing(e.total, slashOpts(s)); } // a slam and a stab are not crescents
+        if (e.kind === 'melee_arc') { primarySwing = true; if (!OWN_STRIKE.has(e.skill)) slashFx.swing(e.total, slashOpts(s)); } // a slam and a stab are not crescents
         if (e.kind === 'projectile') {
           vfx.beginCast(e, s.element);
           if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
@@ -329,7 +335,8 @@ function drain() {
         if (primary && !e.triggered && s.repeats) {
           for (let k = 1; k <= s.repeats; k++) {
             const at = simTime + k * s.repeatDelay - SWING_LEAD;
-            timers.push({ at, fn: () => { heroAnim.play(e.skill, 0.3, heroWeapon, nextSwingStep(), SWING_LEAD, 'melee_arc'); if (!s.recipe) slashFx.swing(SWING_LEAD, slashOpts(s)); } });
+            // each repeat replays this skill's own motion; its effect comes on the repeat's own 'slash'
+            timers.push({ at, fn: () => { heroAnim.play(BENCH_ACTION[e.skill] || e.skill, 0.3, heroWeapon, nextSwingStep(), SWING_LEAD, 'melee_arc'); if (!s.recipe && !OWN_STRIKE.has(e.skill)) slashFx.swing(SWING_LEAD, slashOpts(s)); } });
           }
         }
         break;

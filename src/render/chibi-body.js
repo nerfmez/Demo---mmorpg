@@ -144,7 +144,8 @@ function addFistMorphs(geo, fists) {
 
 /**
  * Reshape the bind head toward the sheet's rounder chibi head: wider (`wide`), the face below the
- * eyes shorter (`chin`) and fuller at the cheeks (`cheek`). Works in the model's world bind
+ * eyes shorter (`chin`) and fuller at the cheeks (`cheek`), and the whole head scaled about its
+ * base on the neck (`scale`). Works in the model's world bind
  * space (faces +Z), on vertices by their Head skin weight so the neck blends. Returns the head
  * centre in mesh space for softHeadNormals.
  */
@@ -158,6 +159,7 @@ function reshapeHead(mesh, shape) {
     if (w[i] > 0.5) box.expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(toWorld));
   }
   const c = box.getCenter(new THREE.Vector3());
+  const k = shape.scale ?? 1, joint = new THREE.Vector3(c.x, box.min.y, c.z); // the head's base, on the neck
   const eyeY = box.min.y + (box.max.y - box.min.y) * shape.eye;
   for (let i = 0; i < pos.count; i++) {
     if (!w[i]) continue;
@@ -169,10 +171,13 @@ function reshapeHead(mesh, shape) {
       sx *= 1 + shape.cheek * w[i] * Math.sin(Math.PI * t);
     }
     v.x = c.x + (v.x - c.x) * sx;
+    // `scale`: the whole head smaller (or larger) about its base, so it stays on the neck
+    if (k !== 1) v.sub(joint).multiplyScalar(1 + (k - 1) * w[i]).add(joint);
     v.applyMatrix4(toMesh);
     pos.setXYZ(i, v.x, v.y, v.z);
   }
   pos.needsUpdate = true;
+  if (k !== 1) c.sub(joint).multiplyScalar(k).add(joint);
   return { centre: c.applyMatrix4(toMesh), w };
 }
 
@@ -462,7 +467,22 @@ export function prepareChibiHair(gltf, cfg) {
   if (mesh.material.map) mesh.material.map.userData.shared = true;
   // `color`: one flat colour instead of the generated texture (the hair is painted one tone)
   const material = cfg.color ? { color: new THREE.Color(cfg.color), map: null, side: THREE.DoubleSide } : mesh.material;
-  return { geometry, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
+  // `underHelm`: under a helm the hair above `above` of its height and behind `front` of its depth
+  // is not drawn, so it cannot poke through the helm; the fringe in a hood's opening stays
+  const u = cfg.underHelm;
+  const underHelm = u ? cutAbove(geometry, box.min.y + u.above * (box.max.y - box.min.y), box.min.z + u.front * (box.max.z - box.min.z)) : null;
+  return { geometry, underHelm, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
+}
+
+/** The triangles of a geometry less those whose centre lies above height y and behind depth z (a shared copy). */
+function cutAbove(geometry, y, z) {
+  const g = geometry.clone(), P = g.attributes.position, keep = [];
+  const ix = g.index ? g.index.array : Array.from({ length: P.count }, (_, i) => i);
+  const sum = (get, t) => get.call(P, ix[t]) + get.call(P, ix[t + 1]) + get.call(P, ix[t + 2]);
+  for (let t = 0; t < ix.length; t += 3) if (sum(P.getY, t) < 3 * y || sum(P.getZ, t) > 3 * z) keep.push(ix[t], ix[t + 1], ix[t + 2]);
+  g.setIndex(keep);
+  g.userData.shared = true;
+  return g;
 }
 
 function keepPart(geometry, box, [side, at]) {
@@ -483,8 +503,9 @@ function keepPart(geometry, box, [side, at]) {
  * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
  * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
  * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
+ * Under a `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one.
  */
-export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3 } = {}) {
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
   const hb = T.headBox, b = H.box, f = H.fit;
@@ -499,11 +520,12 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
     (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
   const s = (sx + sy + sz) / 3;
   const flash = rig.material.userData.flash;
-  const hair = new THREE.Mesh(H.geometry, toonCopy(H.material, flash, rim, false));
+  const geometry = helm && H.underHelm ? H.underHelm : H.geometry;
+  const hair = new THREE.Mesh(geometry, toonCopy(H.material, flash, rim, false));
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
   if (H.highlight) hairHighlightMaterial(hair.material, H.box, H.highlight);
   hair.castShadow = true;
-  const hull = new THREE.Mesh(H.geometry, hairHull(H.material, outline / s, darkness));
+  const hull = new THREE.Mesh(geometry, hairHull(H.material, outline / s, darkness));
   g.add(hair, hull);
   headBone.add(g);
   (rig.skin.hair ||= []).push(g);
@@ -518,6 +540,11 @@ function hairHull(src, width, darkness) {
   };
   m.customProgramCacheKey = () => `chibi-hair-hull-${width.toFixed(4)}`;
   return m;
+}
+
+/** The body's outline for another skinned piece on the chibi (its texture darkened). */
+export function chibiOutline(map, width, darkness) {
+  return outlineHull({ map }, width, darkness);
 }
 
 /**

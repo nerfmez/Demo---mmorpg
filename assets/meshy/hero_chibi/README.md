@@ -27,9 +27,13 @@ The default hero is unchanged; the art rules keep the shipped hero at normal pro
   fits it per axis (`chibi-body.js`; fit chosen by counting scalp pixels left visible from 24 views).
   Earlier tries (hair image alone, an AI-drawn normal-proportion head, a textured meshy-t2 run) gave a
   flat card, a stretched fit or a front fringe that did not match the sheet.
-- Hair back (`public/models/hero_chibi_hair_back.glb`, 3,014 tris): the textured meshy-t2 run, whose
-  spiky back the owner preferred; the game draws only its back part (`keep`) and only the front part
-  of `hero_chibi_hair`, so the swept fringe and the spiky back are joined on the head.
+- Hair now (replacing the two models above): the hair of the dressed chibi made for the Travel
+  Tunic (`assets/meshy/outfits/travel_meshy.glb`), cut by `scripts/fit-chibi-hair.py` (653 tris,
+  its own painted texture); under a helm the part above and behind `underHelm` is not drawn.
+- Head size: `headShape.scale` (0.82) shrinks the whole head about its base at load, to the
+  reference sheets' proportions.
+- Bare arms: `scripts/paint-chibi-body.py` painted the dark under-suit bands on the forearms, hands
+  and neck in the skin colour (run once on `hero_chibi.glb`), since the modelled outfits leave them bare.
 - Face: the sheet's head is rounder with bigger eyes than the Meshy retexture. The painted eyes
   were enlarged 1.3x in `hero_chibi.glb`'s texture (`scripts/chibi-eyes.py public/models/hero_chibi.glb
   --eye 747 649 --eye 789 821 --scale 1.3`, run once), and `chibi-body.js` reshapes the head at load

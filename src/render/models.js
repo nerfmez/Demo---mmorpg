@@ -8,6 +8,7 @@ import { toonRamp, outlineMaterial } from './toon.js';
 import { prepareHeroBase } from './skinned.js';
 import { prepareVrmBody, useVrm } from './vrm-body.js';
 import { prepareChibiBody, prepareChibiHair, useChibi } from './chibi-body.js';
+import { prepareChibiOutfit } from './chibi-garments.js';
 import { prepareMonsterModel } from './monsterSkin.js';
 
 const loaded = new Map(); // "weapons/rusty_sword" -> {parts, outline}
@@ -26,7 +27,7 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
     for (const [id, m] of Object.entries(entries)) {
       if (group === 'weapons') { weapons.set(id, m); continue; }
       if (m.vrm && !useVrm) continue; // the VRM hero is opt-in (?hero=vrm), so it is not downloaded otherwise
-      if ((m.chibi || m.chibiHair) && !useChibi) continue; // the chibi hero and its hair (all but ?hero=classic / vrm)
+      if ((m.chibi || m.chibiHair || m.chibiOutfit) && !useChibi) continue; // the chibi hero, its hair and outfits (all but ?hero=classic / vrm)
       if (m.hairsample && useChibi) continue; // the HairSample hero only with ?hero=classic
       const key = `${group}/${id}`;
       if (loaded.has(key)) continue;
@@ -35,7 +36,7 @@ export function loadModels(registry = {}, { onWeaponReady } = {}) {
           .loadAsync(m.file)
           .then((gltf) => {
             if (group === 'characters' || group === 'monsters') {
-              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
+              loaded.set(`${group}/${id}`, (m.hairsample || m.vrm ? prepareVrmBody : m.chibi ? prepareChibiBody : m.chibiHair ? prepareChibiHair : m.chibiOutfit ? prepareChibiOutfit : group === 'characters' ? prepareHeroBase : prepareMonsterModel)(gltf, m));
               return;
             }
             loaded.set(`${group}/${id}`, prepareWeaponModel(gltf.scene, m));

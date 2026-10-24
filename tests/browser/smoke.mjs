@@ -416,7 +416,8 @@ async function chibiHero() {
     return { skinned, textured, h, grip: palm.distanceTo(at), cross: Math.abs(fingers.dot(blade)), fists, garments: [...new Set(garments)].sort() };
   });
   check(info.skinned === 2 && info.textured === 2, `chibi hero: body and outline load with the texture (${JSON.stringify(info)})`);
-  check(['boots', 'pants', 'top'].every((k) => info.garments.includes(k)), `chibi hero: wears the outfit's top, trousers and boots (${info.garments})`);
+  // the starting Travel Tunic and boots are modelled outfits ('armor', 'boots'); other armour uses the top and trousers shells
+  check(info.garments.includes('boots') && (info.garments.includes('armor') || ['pants', 'top'].every((k) => info.garments.includes(k))), `chibi hero: wears the outfit's top, trousers and boots (${info.garments})`);
   check(info.h > 0.15, `chibi hero: head stays above the hips while running (${info.h.toFixed(2)} m)`);
   check(info.grip < 0.001 && info.cross < 0.25, `chibi hero: sword held in the fist, fingers across the handle (${info.grip.toFixed(4)} m, ${info.cross.toFixed(2)})`);
   check(info.fists?.join() === '1,0', `chibi hero: sword hand closed, empty left hand open (${info.fists})`);

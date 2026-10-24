@@ -118,3 +118,20 @@ bones' rest positions `W`) and added to the bone it should follow.
 
 **Hiding the helm**: a toggle beside the helm slot (`ch.hideHelm`, `toggleHelm`) hides the worn
 helm's look; it still counts for stats. `gearLook` then leaves it out (`helmHidden: true`).
+
+## Modelled outfits (chibi hero)
+
+The code-built shells above are the fallback. An armour or boots item can instead have a modelled
+outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `chibiOutfit`):
+
+1. Draw the chibi wearing the set (the owner's reference sheets) and generate it with Meshy
+   (meshy-t2 image-to-3d in T-pose, then a Meshy 6 retexture from the same image).
+2. `scripts/fit-chibi-outfit.py` (Blender as a Python module) cuts the neck, sleeves and boot tops,
+   warps the generated body onto `hero_chibi`, pushes the cloth outside the body, copies the body's
+   skin weights and records the body triangles each piece covers. Its settings per set live in
+   `assets/meshy/outfits/<set>.json` beside the Meshy source.
+3. In game (`render/chibi-garments.js`) the model replaces the shells it covers and the body is drawn
+   without the covered triangles, so nothing pokes through and no per-pose adjustment is needed.
+   Gloves and helms still use the code-built pieces.
+
+The first set is the Travel Tunic (reference sheet 03; `outfit_travel_tunic`, `outfit_travel_boots`).

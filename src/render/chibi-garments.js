@@ -125,6 +125,7 @@ export function attachChibiGarments(rig, T, outfit, models = {}) {
       const part = make(toonCopy({ map: O.map, side: THREE.DoubleSide }, rig.material.userData.flash, 0.3, false));
       part.name = 'Outfit-' + O.piece;
       part.castShadow = true;
+      part.receiveShadow = true; // like the body it covers
       const hull = make(chibiOutline(O.map, O.outline, 0.32));
       hull.name = part.name + '-outline';
       mesh.parent.add(part, hull);

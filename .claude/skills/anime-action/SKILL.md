@@ -1,6 +1,6 @@
 ---
 name: anime-action
-description: Anime combat animation for Frontier's keyframed hero and monster actions (src/render/actions.js, rig.js, hero.js) - timing, poses, impact and review. Use before making or changing any attack, cast, guard, dodge or hit-reaction animation, or when the owner says an animation looks weak, floaty, stiff or wrong.
+description: Anime combat animation for Frontier's keyframed hero and monster actions (src/render/actions.js, rig.js, hero.js) and weapon stances (data/weapon-holds.json, hero_chibi holds) - reference poses first, then timing, impact and review. Use before making or changing any attack, cast, guard, dodge or hit-reaction animation, or when the owner says an animation looks weak, floaty, stiff or wrong.
 ---
 
 # Anime action animation
@@ -10,6 +10,23 @@ The hero and monsters move by keyframed poses in code (`src/render/actions.js`),
 high three-quarter camera, with a chibi hero (big head, short limbs). This skill is the standard for
 how those actions should read. It works with the effects (`docs/VFX-REFERENCE.md`) and the visual
 workflow (`docs/VISUAL_QUALITY_WORKFLOW.md`); it does not change combat rules.
+
+## Start from a reference, never from guessed angles
+
+Hand-tuned bone angles read wrong to the owner ("ไปเอาตัวอย่างมาจากไหน"). Every new pose - an idle
+stance, a weapon carry or an attack key - starts from a real animation clip:
+
+1. Find candidate clips in the CC0 libraries (): KayKit Adventurers (chibi,
+   real weapon props; prefer it for the hero) and the Quaternius Universal Animation Library. If
+   neither has the move, search for another CC0 source before inventing one.
+2. Show the owner the candidates (reference and the retargeted chibi side by side, from the front,
+   three-quarter and game camera) and let them pick. Offer more than one when the request is about
+   style ("ธรรมดาไป").
+3. Retarget the chosen frame with  (/ only to tone it
+   for the chibi,  for frames from a combo) and fix the weapon's roll in the hand with
+   , so the hand does not twist when an action takes over.
+4. Keep what the owner already approved: change only the weapon or pose they asked about, and keep a
+   rejected-for-now variant as data () when they say it suits another character.
 
 ## How the engine plays a key list (know this before posing)
 
@@ -110,6 +127,9 @@ ACTIONS.example = { hit: 0.42, keys: [
 
 | The owner says / you see | Cause | Fix |
 |---|---|---|
+| "เอาตัวอย่างมาจากไหน", the pose looks made up | angles guessed by hand | start again from a reference clip (above) and show it beside the result |
+| a weapon upside down, the hand twists when an attack starts | the carry's blade roll differs from the actions' | , write the printed  |
+| crouch too deep, arms too wide on the chibi | a reference built for longer limbs or bulky armour | ,  when retargeting |
 | "ห่วย", floaty, no power | all segments similar length | shorten the strike segment, add a hold before it and a pose hold after |
 | stiff, robotic | only the arm moves | add torso/chest/hips twist and `drop`; lead with the weapon, follow with the body |
 | can't tell what happened | weak silhouette from above | widen the twist and the arm/weapon line; check from the game camera |

@@ -152,9 +152,8 @@ def robust_line(t, v):
 cg = np.stack([robust_line(zs, cg[:, 0]), robust_line(zs, cg[:, 1])], 1)
 # and onto a straight chibi leg: following its curve (full thigh, knee forward) bows the trousers
 cc = np.stack([robust_line(zs, cc[:, 0]), robust_line(zs, cc[:, 1])], 1)
-dcx, dcy = cc[:, 0] - cg[:, 0], cc[:, 1] - cg[:, 1]
+dcx = cc[:, 0] - cg[:, 0]
 gx = np.interp(P0[:, 2], zs, cg[:, 0])
-gy = np.interp(P0[:, 2], zs, cg[:, 1])
 
 
 def smooth01(a, b, x):
@@ -169,7 +168,8 @@ sT = C['torsoScale']
 T = np.stack([x * sT, (y - C['torsoY'][0]) * sT + C['torsoY'][1], zmapT(z)], 1)
 # legs
 sL = C['legScale']
-L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
+# (front to back, the legs move as the torso does, so a hem keeps covering the trousers' top)
+L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), (y - C['torsoY'][0]) * sT + C['torsoY'][1], zmapL(z)], 1)
 # arms: `armX` maps distances out along the arm (from the shoulder to the fingertips), else `armLen` scales them
 a0, a1 = C['armAxis']; sA = C['armScale']
 if C.get('armX'):
@@ -189,9 +189,11 @@ P = P * (1 - wa) + A * wa
 nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
 piece = np.array([0 if v.co.z < C['bootTop'] else 1 for v in bm.verts])  # 0 boots, 1 armour
 margin = np.where(piece == 0, C['margin']['boots'], C['margin']['armor'])
-# the legs and boots keep the generated shape: the chibi's thighs are fuller, and pushing the
-# trousers out over them bows the legs; the body under them is hidden in game anyway (HIDE)
-pushed = (P0[:, 2] > crotchG) if not C.get('pushLegs') else np.ones(len(P0), bool)
+# only the chest, shoulders and sleeves are pushed out of the body: everything lower keeps the
+# generated shape (pushing the trousers over the chibi's fuller thighs bowed the legs, and pushing
+# the hips lifted a tunic's hem off the trousers' top that it hid); the body under it is hidden in
+# game anyway (HIDE)
+pushed = P[:, 2] > C.get('pushAbove', 0.69)
 
 
 def push(Q):
@@ -227,9 +229,21 @@ def bary(p, a, b, c):
     return np.clip([1 - v - w, v, w], 0, 1)
 
 
+# the trousers and boots take the weights of their own leg at their own height: a ray from that
+# leg's centre line out through the vertex meets the leg's skin (the nearest body point can be the
+# other leg or the crotch when the cloth is slimmer than the chibi's legs, which twists the legs)
+zl = zmapL(zs)
+legc = lambda zc, side: np.array([side * np.interp(zc, zl, cc[:, 0]), np.interp(zc, zl, cc[:, 1]), zc])
 W = np.zeros((len(P), len(G)))
 for i, p in enumerate(P):
-    loc, n, idx, dist = body_bvh.find_nearest(Vector(p))
+    loc = idx = None
+    if P0[i, 2] < crotchG - 0.03:
+        c = legc(p[2], 1 if p[0] >= 0 else -1)
+        d = Vector((p[0] - c[0], p[1] - c[1], 0))
+        if d.length < 1e-4: d = Vector((1 if p[0] >= 0 else -1, 0, 0))
+        loc, n, idx, dist = body_bvh.ray_cast(Vector(c), d.normalized(), 0.3)
+    if idx is None:
+        loc, n, idx, dist = body_bvh.find_nearest(Vector(p))
     t = BT[idx]
     b = bary(np.array(loc), *BV[t]); b /= b.sum()
     W[i] = b @ BW[t]
@@ -249,10 +263,11 @@ W /= W.sum(1, keepdims=True)
 hidden = {}
 names = {0: 'boots', 1: 'armor'}
 # body faces well inside a piece are hidden outright (the armpits are open in the T-pose, and the
-# trousers are not pushed over the fuller legs): the armour's legs from just above the boot tops,
-# its torso up to below the collar and out to just inside the sleeve ends
-HIDE = {'armor': [[zmapL(C['bootTop']) + 0.02, crotchC, 1], [crotchC, 0.785, float(armx(np.array(C['cuff']))) - 0.02]],
-        'boots': [[-1, zmapL(C['bootTop']) - 0.02, 1]]}
+# trousers are not pushed over the fuller legs): the armour's legs from inside the boot tops, its
+# torso below the arms, and up to below the collar out to just inside the sleeve ends (boxes of
+# [z from, z to, |x| below] that overlap, so no band of skin is left between them)
+HIDE = {'armor': [[zmapL(C['bootTop']) - 0.04, crotchC, 1], [crotchC - 0.01, 0.70, 0.22], [0.69, 0.785, float(armx(np.array(C['cuff']))) - 0.02]],
+        'boots': [[-1, zmapL(C['bootTop']) + 0.01, 1]]}
 for pc, name in names.items():
     fs = [f for f in bm.faces if piece[f.verts[0].index] == pc]
     vs = sorted({v.index for f in fs for v in f.verts})
@@ -265,7 +280,7 @@ for pc, name in names.items():
         if nl == 0: continue
         n /= nl
         regs = C.get('hideRegion', {}).get(name) or HIDE[name]  # boxes [z from, z to, |x| below]
-        if any(all(r[0] < q[2] < r[1] and abs(q[0]) < r[2] for q in (a, b, c)) for r in regs):
+        if all(any(r[0] < q[2] < r[1] and abs(q[0]) < r[2] for r in regs) for q in (a, b, c)):  # each corner in some box
             hid.append(ti); continue  # well inside what the piece covers (the armpits open in the T-pose)
         hits = 0
         for q in (cen, a * 0.8 + cen * 0.2, b * 0.8 + cen * 0.2, c * 0.8 + cen * 0.2):
@@ -275,8 +290,53 @@ for pc, name in names.items():
     hidden[name] = hid
     print(name, 'faces', len(fs), 'hides body tris', len(hid))
 
-# --- build one object per piece, skinned to the chibi armature, and export
+# --- the trousers' top hidden under a hem in the generated model is painted dark there; when the
+#     legs move it shows, so paint it the trousers' own colour: a leg face whose outward ray meets
+#     the garment again within a few cm, or that faces down (the underside under the hem), was
+#     covered, and takes the median colour of the open trouser faces a little lower
 img.scale(C.get('tex', 1024), C.get('tex', 1024))
+tw, th = img.size
+tex = np.array(img.pixels[:]).reshape(th, tw, 4)
+uvl = bm.loops.layers.uv.active
+garm = BVHTree.FromBMesh(bm)
+
+
+def face_uv(f):
+    return np.array([(l[uvl].uv.x % 1 * tw, l[uvl].uv.y % 1 * th) for l in f.loops])
+
+
+def face_rgb(f):
+    u, v = face_uv(f).mean(0)
+    return tex[int(np.clip(v, 0, th - 1)), int(np.clip(u, 0, tw - 1)), :3]
+
+
+legs = [f for f in bm.faces if piece[f.verts[0].index] == 1 and P0[f.verts[0].index, 2] < crotchG + 0.08]
+band = [f for f in legs if crotchG - 0.12 < P0[f.verts[0].index, 2]]
+covered = []
+for f in band:
+    c, n = f.calc_center_median(), f.normal
+    hit = garm.ray_cast(c + n * 0.002, n, 0.05)
+    # covered by the hem, or the underside joining the hem to the trousers (it faces the ground)
+    if hit[0] is not None or n.z < -0.4: covered.append(f)
+open_ = [f for f in legs if crotchG - 0.2 < P0[f.verts[0].index, 2] < crotchG - 0.08 and f not in covered]
+if covered and open_:
+    ref = np.median([face_rgb(f) for f in open_], axis=0)
+    yy, xx = np.mgrid[0:th, 0:tw]
+    for f in covered:
+        if face_rgb(f).mean() > 0.75 * ref.mean(): continue  # not darkened: leave its pattern
+        (x0, y0), (x1, y1), (x2, y2) = face_uv(f)
+        bx0, bx1 = int(max(0, min(x0, x1, x2) - 2)), int(min(tw, max(x0, x1, x2) + 3))
+        by0, by1 = int(max(0, min(y0, y1, y2) - 2)), int(min(th, max(y0, y1, y2) + 3))
+        X, Y = xx[by0:by1, bx0:bx1] + 0.5, yy[by0:by1, bx0:bx1] + 0.5
+        d = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
+        if abs(d) < 1e-9: continue
+        a = ((y1 - y2) * (X - x2) + (x2 - x1) * (Y - y2)) / d
+        b = ((y2 - y0) * (X - x2) + (x0 - x2) * (Y - y2)) / d
+        inside = (a > -0.08) & (b > -0.08) & (1 - a - b > -0.08)  # a little past the edge, for filtering
+        tex[by0:by1, bx0:bx1, :3][inside] = ref
+    img.pixels = tex.ravel().tolist()
+    print('repainted covered trouser faces', len(covered))
+
 mat = bpy.data.materials.new('garment')
 mat.use_nodes = True
 tex = mat.node_tree.nodes.new('ShaderNodeTexImage'); tex.image = img

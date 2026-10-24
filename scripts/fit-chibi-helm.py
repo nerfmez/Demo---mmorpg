@@ -113,7 +113,7 @@ _, reyes, _ = head(ref, REF['neck'])
 g = load(C['src'], C.get('scale'), C.get('lift'))
 bm, eyes, img = head(g, C['neck'])
 # onto the Travel model's head: the same distance between the eyes, the same middle between them
-k = float(np.clip(np.linalg.norm(reyes[0] - reyes[1]) / np.linalg.norm(eyes[0] - eyes[1]), 0.9, 1.1))
+k = float(np.clip(np.linalg.norm(reyes[0] - reyes[1]) / np.linalg.norm(eyes[0] - eyes[1]), 0.75, 1.1))
 off = Vector((reyes[0] + reyes[1]) / 2 - k * (eyes[0] + eyes[1]) / 2)
 bmesh.ops.transform(bm, matrix=Matrix.Translation(off) @ Matrix.Scale(k, 4), verts=bm.verts[:])
 print(HELM, 'tris', len(bm.faces), 'scale %.3f' % k, 'move', np.round(off, 3), 'eyes', np.round(eyes[0], 3), np.round(eyes[1], 3))

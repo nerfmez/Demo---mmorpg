@@ -520,6 +520,12 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
     hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
     (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
   const s = (sx + sy + sz) / 3;
+  if (model) {
+    // a helm is not squashed to the head like the hair: one scale, about the hair box's middle
+    const c = b.getCenter(new THREE.Vector3());
+    g.position.add(new THREE.Vector3(sx * c.x, sy * c.y, sz * c.z)).sub(c.multiplyScalar(s));
+    g.scale.setScalar(s);
+  }
   const flash = rig.material.userData.flash;
   // a modelled helm (chibi-garments.js prepareChibiHelm) comes with its own hair, in the hair's frame
   const geometry = model ? model.geometry : helm && H.underHelm ? H.underHelm : H.geometry, src = model ? model.material : H.material;

@@ -37,6 +37,14 @@ It prints `{ stance, hold, source }`:
 - `--shots` renders the chibi in that pose from front, side, three-quarter and the game camera,
   facing +Z like the reference, for a side-by-side check.
 
+## Roll in the hand
+
+A reference only fixes the blade's direction; its roll about the blade must match how the hero's
+actions hold the weapon, or the hand twists when an attack starts (the owner saw the dagger upside
+down). After writing a carry, run
+`node scripts/pose-retarget/match-roll.mjs weakpoint dagger dual` (bench skill, left weapon or
+`null`, carry key) and write the printed `up` values back.
+
 ## How it maps
 
 `scripts/pose-retarget/retarget.js` samples the mannequin's joints at the clip time and points each
@@ -52,7 +60,7 @@ In use: `sword_ready` (KayKit `Idle`, legs 0.5, arms 0.3) is the chibi's one-han
 and its `dual` carry (`--prop 1H_Sword --propL 1H_Sword_Offhand --offhand sword`, used by the
 sword, dagger and wand with a second weapon in the left hand). `dagger_ready` (Quaternius `Sword_Idle` at
 0.6 s, full crouch, the first reference stance) is the dagger's own low trailing guard: the owner
-picked it for the dagger. `two_hand_ready` (KayKit
+picked it for the dagger, alone and dual (the left dagger mirrors the right). `two_hand_ready` (KayKit
 `2H_Melee_Idle`, legs 0.5) is kept as `presets.two_hand_feminine` for a female body; the male
 chibi keeps its hand-set two-hand carries. Each stance's `_from` records its source and settings.
 

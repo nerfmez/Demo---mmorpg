@@ -72,6 +72,12 @@ const result = await page.evaluate(async ([file, clip, time, skill, profile, pro
     up = dir.clone().cross(fwd).normalize();
   }
   const hold = { hand: hand.map(r3), dir: dir.toArray().map(r3), up: up.toArray().map(r3) };
+  if (propL === 'fist' && j.indexL) {
+    // no left prop (a bare mannequin): the left blade along the left fist, like the right's
+    const d = j.indexL.clone().sub(j.pinkyL).normalize(), f = j.knuckleL.clone().sub(j.handL);
+    f.addScaledVector(d, -f.dot(d)).normalize();
+    j.weaponL = { dir: d, up: d.clone().cross(f).normalize() };
+  }
   if (j.weaponL) {
     // the left palm and the left weapon's own axes (a dual carry's hold.left)
     const pl = poseFk.P.handL.clone().add(poseFk.P.handL.clone().set(0, -0.07, 0).applyQuaternion(poseFk.W.handL));

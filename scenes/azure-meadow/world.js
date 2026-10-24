@@ -367,8 +367,30 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 
 // A fractured outcrop. Its horizontal shelves and offset cracks continue around
 // the ridge; it is one rock body with plants in its joints, not a fence of drums.
+// The arrival beach's ledge: faceted grey blocks stacked in courses along the
+// cliff face, mossy on top and outlined, with the fractured face left behind
+// them as a dark backing. The blocks use their own seed, so the approved
+// stream (and every rock, plant and collider placed after the cliffs) is kept.
+function ledgeStones(T,a,b,out,l,seg){
+  const keep=seed;seed=9173+seg*977+Math.round(Math.abs(a.x*13+a.z*7));
+  const blk={chamfer:.12,jitter:.16,extra:7},dx=(b.x-a.x)/l,dz=(b.z-a.z)/l,ry=Math.atan2(-dz,dx);
+  for(let s=R(0,.3)*K;s<l;){
+    const w=R(.38,.72)*K,x=a.x+dx*(s+w/2),z=a.z+dz*(s+w/2);s+=w*.92;
+    const st=stairsAt(x,z);if(st.inside||st.s<st.half+.35+w*.5)continue;
+    const top=Math.min(T.topAt?T.topAt(x):T.top,height(x-out.x*(T.lean+.4),z-out.z*(T.lean+.4))+.08);
+    const base=height(x+out.x*1.6,z+out.z*1.6)-.28,wall=top-base;
+    if(wall<.22*K)continue;
+    const n=Math.max(1,Math.round(wall/(.8*K))),ch=wall/n;
+    for(let c=0;c<n;c++){
+      const last=c===n-1,set=.18*K-T.lean*(c+.5)/n-c*.06*K;
+      const sx=x+out.x*set+R(-.06,.06)*K,sz=z+out.z*set+R(-.06,.06)*K;
+      addStone(sx,base+c*ch-.12,sz,w*R(.92,1.06),ch+(last?R(.05,.22)*K:.18),R(.42,.55)*K,{...blk,ry:ry+R(-.1,.1),moss:last?.6:.08});
+    }
+  }
+  seed=keep;
+}
 function buildCliffs(){
-  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c).multiplyScalar(.92));
+  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c).multiplyScalar(.72));
   const face=(a,b,c,d,color,out)=>{
     for(const v of[a,b,c,d]){const st=stairsAt(v.x,v.z);if(st.inside||st.s<st.half+.35)v.y=Math.min(v.y,st.y-.12);}
     const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));
@@ -439,6 +461,7 @@ function buildCliffs(){
             addBush(x,height(x,z)-.1,z,.36*K,{sy:.50,tint:-.2});
           }
         }
+        ledgeStones(T,a,b,out,l,i);
         length+=l;
       }
     }

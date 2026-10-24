@@ -95,9 +95,27 @@ const RISE_L = [arc(-2.0, -0.45, 0.92), arc(-1.0, -0.15, 1.0), arc(0.95, 0.25, 1
 const RISE_R = [arc(1.7, -0.4, 0.95), arc(0.85, -0.12, 1.02), arc(-0.95, 0.25, 1.14), arc(-1.6, 0.35, 1.2)];
 const RISE_BIG = [arc(-2.25, -0.6, 0.86), arc(-1.1, -0.2, 0.98), arc(1.0, 0.42, 1.24), arc(1.65, 0.55, 1.3)];
 const body = (p) => Object.fromEntries(Object.entries(p).filter(([n]) => !['armR', 'elbowR', 'weapon', 'grip'].includes(n)));
+// coil(p, k): the same pose wound k times further (twist, lean and crouch) - the anime hold and
+// overshoot keys (.claude/skills/anime-action)
+const coil = (p, k) => {
+  const o = { ...p };
+  for (const n of ['torso', 'chest', 'hips']) if (p[n]) o[n] = [p[n][0] * (n === 'torso' ? 1 + (k - 1) * 0.5 : 1), p[n][1] * k, p[n][2]];
+  if (p.drop) o.drop = [p.drop[0] * k, 0, 0];
+  return o;
+};
+// A cut in the anime beat: anticipation (load into the wind-up), a hold coiled a little further,
+// one very short strike that reaches the contact on the hit key, an overshoot past it, the
+// finishing pose held, then recovery.
 const cut = (hit, pre, poses, arcs, end = 0.66) => act(hit, [
-  [0, REST], [pre, { ...body(poses[0]), ...arcs[0] }], [hit - 0.06, { ...body(poses[0]), ...arcs[1] }],
-  [hit, { ...body(poses[1]), ...arcs[2] }], [end, { ...body(poses[2]), ...arcs[3] }], [1, REST],
+  [0, REST],
+  [pre, { ...body(poses[0]), ...arcs[0] }],                         // anticipation
+  [hit - 0.08, { ...body(coil(poses[0], 1.3)), ...arcs[0] }],       // hold: the freeze before the blow
+  [hit - 0.03, { ...body(poses[0]), ...arcs[1] }],                  // strike: the blade leads, the body follows
+  [hit, { ...body(poses[1]), ...arcs[2] }],                         // contact
+  [hit + 0.06, { ...body(coil(poses[2], 1.2)), ...arcs[3] }],       // overshoot
+  [end, { ...body(poses[2]), ...arcs[3] }],                         // finishing pose
+  [Math.min(0.9, end + 0.12), { ...body(poses[2]), ...arcs[3] }],   // held
+  [1, REST],
 ]);
 const act = (hit, keys) => ({ hit, keys: keys.map(([t, p]) => [t, Object.keys(p).length ? { ...ZERO, ...p } : p]) });
 export const ACTIONS = {
@@ -124,7 +142,8 @@ export const ACTIONS = {
   // spells, one per line
   bolt: act(0.5, [[0, REST], [0.3, BOLT_GATHER], [0.5, BOLT_OUT], [0.72, BOLT_OUT], [1, REST]]),
   zap: act(0.45, [[0, REST], [0.3, ZAP_COIL], [0.45, ZAP_FLICK], [0.55, hold(ZAP_FLICK, { ikL: [0.42, 1.5, 0.5] })], [0.72, ZAP_FLICK], [1, REST]]),
-  slam: act(0.55, [[0, REST], [0.32, SLAM_UP], [0.55, SLAM_DOWN], [0.78, SLAM_DOWN], [1, REST]]),
+  // slam: lift, hang at the top (leaning back), smash down on the hit, sink a little further, hold
+  slam: act(0.55, [[0, REST], [0.28, SLAM_UP], [0.44, hold(SLAM_UP, { torso: [-0.3, 0, 0], chest: [-0.22, 0, 0], head: [-0.32, 0, 0], drop: [0.04, 0, 0] })], [0.55, SLAM_DOWN], [0.61, hold(SLAM_DOWN, { torso: [0.72, 0, 0], drop: [-0.36, 0, 0] })], [0.76, SLAM_DOWN], [0.86, SLAM_DOWN], [1, REST]]),
   nova: act(0.5, [[0, REST], [0.32, NOVA_CURL], [0.5, NOVA_BURST], [0.74, NOVA_BURST], [1, REST]]),
   sow: act(0.5, [[0, REST], [0.3, SOW_BACK], [0.5, SOW_THROW], [0.72, SOW_THROW], [1, REST]]),
   hex: act(0.5, [[0, REST], [0.3, HEX_DRAW], [0.5, HEX_POINT], [0.78, HEX_POINT], [1, REST]]),
@@ -168,11 +187,12 @@ export const ACTIONS = {
   // Flank Thrust: a straight stab (pull the dagger back at the hip, lunge and drive it out), not a cut
   const thWind = { ...rest, armR: [-0.5, 0, -0.25], elbowR: [-2.0, 0, 0], weapon: [1.57, 0, 0], armL: [-0.8, 0, 0.4], elbowL: [-1.1, 0, 0], torso: [0, -0.35, 0], chest: [0, -0.15, 0], legL: [-0.2, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.04, 0, 0] };
   const thHit = { ...rest, armR: [-1.55, -0.1, 0.05], elbowR: [0, 0, 0], weapon: [1.57, 0, 0], armL: [0.3, 0, 0.5], elbowL: [-0.3, 0, 0], torso: [0.3, 0.35, 0], chest: [0.08, 0.15, 0], legL: [-0.8, 0, 0], kneeL: [1.0, 0, 0], legR: [0.45, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
-  ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.3, thWind], [0.45, thHit], [0.7, thHit], [1, rest]] };
+  // anticipation, hold (drawn further back), a snap to the stab, an overshoot lunge, the pose held
+  ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.26, thWind], [0.38, coil(thWind, 1.25)], [0.45, thHit], [0.52, { ...coil(thHit, 1.2), armR: [-1.6, -0.1, 0.05] }], [0.68, thHit], [0.8, thHit], [1, rest]] };
   // Shield Bash: load the shield arm back across the body, then drive the shield straight out
   const bashWind = { ...rest, armL: [-0.7, 0, 0.7], elbowL: [-1.7, 0, 0], torso: [0.05, 0.5, 0], chest: [0, 0.25, 0], legL: [-0.15, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.06, 0, 0] };
   const bashHit = { ...rest, armL: [-1.5, 0, 0.15], elbowL: [-0.15, 0, 0], torso: [0.3, -0.45, 0], chest: [0.08, -0.2, 0], legL: [-0.75, 0, 0], kneeL: [0.9, 0, 0], legR: [0.4, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
-  ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.28, bashWind], [0.42, bashHit], [0.7, bashHit], [1, rest]] };
+  ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.24, bashWind], [0.35, coil(bashWind, 1.25)], [0.42, bashHit], [0.49, coil(bashHit, 1.2)], [0.66, bashHit], [0.8, bashHit], [1, rest]] };
   // Measured Riposte's guard: the sword brought up across the front, held for the guard
   const guardUp = { ...rest, armR: [-1.25, 0.35, -0.15], elbowR: [-1.3, 0, 0], weapon: [0.6, 0, 1.25], armL: [-1.0, 0, 0.35], elbowL: [-1.2, 0, 0], torso: [0.05, -0.3, 0], chest: [0, -0.1, 0], legL: [-0.3, 0, 0], kneeL: [0.45, 0, 0], kneeR: [0.4, 0, 0], drop: [-0.08, 0, 0] };
   ACTIONS.guardBlock = { hit: 0.2, keys: [[0, rest], [0.15, guardUp], [0.85, guardUp], [1, rest]] };

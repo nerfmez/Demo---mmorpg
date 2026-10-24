@@ -7,8 +7,14 @@ function farms(){
   const points=plot.pts.map(([u,v])=>onGround(u,v)),center=new V3();points.forEach(p=>center.add(new V3(...p)));center.divideScalar(points.length);
   FARM_AREAS.push(points);
   const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)],uvPoint=(a,b)=>{const A=corners[0],B=corners[1],C=corners[2],D=corners[3];return[(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,(A[1]*(1-a)+B[1]*a)*(1-b)+(D[1]*(1-a)+C[1]*a)*b];};
-  for(let i=0;i<16;i++)for(let j=0;j<12;j++)for(const[a,b]of[[i/16,j/12],[(i+1)/16,j/12],[(i+1)/16,(j+1)/12],[i/16,j/12],[(i+1)/16,(j+1)/12],[i/16,(j+1)/12]]){const[u,v]=uvPoint(a,b),[x,y,z]=onGround(u,v);positions.push(x,y+.09,z);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const mesh=new THREE.Mesh(g,paint({color:'#a47b45',side:THREE.DoubleSide,shade:[.57,.48,.37],mid:[.83,.69,.50]}));mesh.receiveShadow=true;mesh.name='vegetable-soil';scene.add(mesh);
+  const GU=48,GV=36;for(let i=0;i<GU;i++)for(let j=0;j<GV;j++)for(const[a,b]of[[i/GU,j/GV],[(i+1)/GU,j/GV],[(i+1)/GU,(j+1)/GV],[i/GU,j/GV],[(i+1)/GU,(j+1)/GV],[i/GU,(j+1)/GV]]){const[u,v]=uvPoint(a,b),[x,y,z]=onGround(u,v);positions.push(x,y+.09,z);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const row=new V3(points[1][0]-points[0][0],0,points[1][2]-points[0][2]).normalize();
+  // Tilled ridges run along the bed; they are painted, so they cost no geometry.
+  const mesh=new THREE.Mesh(g,paint({color:'#a47b45',side:THREE.DoubleSide,shade:[.57,.48,.37],mid:[.83,.69,.50],albedo:`
+      float along=dot(vW.xz,vec2(${(-row.z).toFixed(4)},${row.x.toFixed(4)}));
+      float ridge=abs(fract(along*.95)*2.-1.);
+      diffuseColor.rgb*=.80+.26*smoothstep(.25,.75,ridge);
+    `}));mesh.receiveShadow=true;mesh.name='vegetable-soil';scene.add(mesh);
   const uv=plot.pts;
   for(let row=0;row<plot.rows;row++)for(let col=0;col<plot.cols;col++){
    const a=(col+.65)/(plot.cols+.3),b=(row+.55)/(plot.rows+.2),u=(uv[0][0]*(1-a)+uv[1][0]*a)*(1-b)+(uv.at(-1)[0]*(1-a)+uv[2][0]*a)*b,v=(uv[0][1]*(1-a)+uv[1][1]*a)*(1-b)+(uv.at(-1)[1]*(1-a)+uv[2][1]*a)*b;
@@ -65,7 +71,7 @@ function orchardBlossoms(){
 function meadowDetails(){
  for(const[u,v,w,h]of[[.205,.64,.044,.05],[.25,.68,.038,.055],[.285,.72,.032,.040],[.05,.83,.04,.06],[.15,.88,.04,.05],[.82,.79,.035,.06],[.91,.83,.045,.07],[.42,.36,.024,.03],[.72,.45,.025,.04],[.80,.28,.026,.04],[.37,.25,.028,.04]]){
   const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h),st=stairsAt(x,z);if(st.s<st.half+ww*.5+.4)continue;
-  addStone(x,y-.12,z,ww,hh,ww*.7,{extra:13,chamfer:.18,moss:.18,noLine:true,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
+  addStone(x,y-.12,z,ww,hh,ww*.7,{extra:13,chamfer:.18,moss:.18,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
  }
  for(const points of[[[.01,.39],[.13,.385],[.23,.41]],[[.30,.14],[.37,.13],[.42,.12]],[[.69,.21],[.76,.22],[.79,.24]],[[.90,.415],[.93,.37],[.97,.345]]])fenceRun(points.map(([u,v])=>{const[x,y,z]=onGround(u,v);return[x,z];}));
  for(let i=0;i<120;i++){
@@ -102,7 +108,7 @@ function embeddedRoadStones(){
 function build(){
  const[x,z]=P(.50,.81);HERO.x=x;HERO.z=z;HERO.face=-2.7;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();embeddedRoadStones();wellModel();gardenWalls();gateAndVillage();farms();meadowDetails();orchard();
- const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='meadow-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);
+ const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='meadow-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  if(cropParts.length){const crops=new THREE.Mesh(mergeGeometries(cropParts),paint({vertexColors:true,shade:[.52,.66,.55],mid:[.80,.89,.70]}));crops.castShadow=crops.receiveShadow=true;scene.add(crops);}
  clearLandmarkPlants();placeCoastPlants();orchardBlossoms();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();
 }

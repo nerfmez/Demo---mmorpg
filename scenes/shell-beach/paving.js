@@ -10,7 +10,7 @@ function buildLedges(){
       const edge=j===0||j===count-1,offset=-r.w/2+(j+.5)*w;
       const x=r.x+r.nx*offset,z=r.z+r.nz*offset;
       const chip=edge?.90:.965,ry=Math.atan2(r.ux,r.uz);
-      block(x,height(x,z)-.065,z,w*chip,.12,depth*.97,ry,.06,{ink:.004*K,base:pick(['#c9b995','#ddd0b0','#e3d4b4','#d6c6a5'])});
+      block(x,height(x,z)-.065,z,w*chip,.12,depth*.97,ry,.06,{ink:.004*K,base:pick(['#bdb8b6','#c9c4c0','#b4afb0','#c4beb9'])});
     }
   });
   buildPathBanks();
@@ -27,7 +27,7 @@ function buildPathBanks(){
     if(Math.max(Math.abs(at(A,0).y-at(A,1).y),Math.abs(at(B,0).y-at(B,1).y))<M(.28))continue;
     for(let j=0;j<3;j++){
       const a=at(A,j/3),b=at(B,j/3),c=at(B,(j+1)/3),d=at(A,(j+1)/3);
-      const color=new THREE.Color(['#c7c1a8','#d4cdb6','#b9b6a1'][(i+j)%3]);
+      const color=new THREE.Color(['#c2bdb9','#cbc6c2','#b5b0b0'][(i+j)%3]);
       triangle(a,b,c,color);triangle(a,c,d,color);
     }
   }

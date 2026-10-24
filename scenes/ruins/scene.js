@@ -292,7 +292,8 @@ function cliffRuns(T) {
 // All masonry shares the approved paint shader and the scene's stone palette.
 // Chamfered eight-corner rings retain broad readable faces with chipped edges.
 // The bevel is a world-space width, so low slabs never acquire swollen outlines.
-const ruinPalette = ['#c7c1ac', '#d4ccb8', '#c0bda9', '#cec8b7', '#d8d0bb'];
+// Same grey family as the approved arrival beach stones (five entries keep the seeded picks).
+const ruinPalette = ['#cbc6c2', '#bfbab8', '#d2ccc6', '#b6b1b2', '#c7c1bc'];
 // Offset the stone's shadow-depth pass by its own surface slope. A global light
 // bias alone cannot remove the striped self-shadow on nearly edge-on facets.
 const masonryDepth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:4});
@@ -310,7 +311,7 @@ function ruinGeometry(w, h, d, moss = 0.15, color = null, natural = false) {
   }
   const top=tone.clone().multiplyScalar(1.03);
   // Broad stone tops, with partial moss, rather than giant green triangular caps.
-  if(rand()<moss) top.lerp(new THREE.Color(pick(MOSS)),.30);
+  if(rand()<moss) top.lerp(new THREE.Color(pick(MOSS)),.62);
   for(let k=0;k<8;k++){
     tri(new V3(0,h,0),rings[3][(k+1)%8],rings[3][k],top);
     tri(new V3(0,0,0),rings[0][k],rings[0][(k+1)%8],tone);
@@ -348,7 +349,7 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 // A fractured outcrop. Its horizontal shelves and offset cracks continue around
 // the ridge; it is one rock body with plants in its joints, not a fence of drums.
 function buildCliffs(){
-  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c));
+  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c).multiplyScalar(.92));
   const face=(a,b,c,d,color,out)=>{
     const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));
     const vs=normal.dot(out)>0?[a,b,c,a,c,d]:[a,c,b,a,d,c];
@@ -426,7 +427,8 @@ function buildCliffs(){
   const mesh=new THREE.Mesh(g,masonryMaterial());mesh.customDepthMaterial=masonryDepth;mesh.castShadow=mesh.receiveShadow=true;return mesh;
 }
 function masonryMaterial(){
-  return paint({vertexColors:true,shade:[.47,.48,.49],mid:[.76,.75,.70],band:[-.28,.30],
+  // The beach and forest stone light: lavender shadow, cool half-tone.
+  return paint({vertexColors:true,shade:[.34,.33,.42],mid:[.63,.61,.66],band:[-.34,.24],
     albedo:`
       float n=vnoise(vW.xz*1.4+vW.y*.23);
       float lichen=smoothstep(.64,.85,n);
@@ -445,7 +447,7 @@ function buildLedges(){
       const lx=-r.w/2+w*(j+.5)+offset;
       if(lx>r.w/2-.1 || (j===0&&i%4===0) || (i%7===2&&j===n-1))continue;
       const x=r.x+lx,z=r.z+R(-.07,.07)*K;
-      block(x+R(-.025,.025)*K,height(x,z)-.10,z,w*R(.85,.98),.15,d*R(.75,.94),R(-.045,.045),.12,{ink:.007*K,base:pick(['#c8bb97','#d4c6a5','#ddd0af'])});
+      block(x+R(-.025,.025)*K,height(x,z)-.10,z,w*R(.85,.98),.15,d*R(.75,.94),R(-.045,.045),.12,{ink:.007*K,base:pick(['#c2bdb9','#cbc6c2','#b9b4b1'])});
     }
   });
 }

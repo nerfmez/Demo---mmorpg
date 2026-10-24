@@ -33,13 +33,13 @@ function gardenRocks(){
  // in the path loop, not another high terrace or a formal circular border.
  for(const[u,v,w,h]of[[.492,.585,.034,.047],[.530,.605,.024,.035],[.466,.608,.022,.035]]){
   const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
-  addStone(x,y-.08,z,ww,hh,ww*.72,{chamfer:.16,extra:15,noLine:true,moss:.18,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.38});
+  addStone(x,y-.08,z,ww,hh,ww*.72,{chamfer:.16,extra:15,moss:.18,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.38});
  }
  const specs=[[.17,.44,.035,.05],[.12,.49,.04,.055],[.23,.49,.025,.035],[.205,.37,.035,.05],[.335,.32,.028,.045],[.39,.20,.035,.05],[.46,.18,.035,.05],[.58,.405,.035,.055],[.66,.405,.04,.06],[.735,.38,.03,.045],[.88,.29,.04,.06],[.795,.19,.03,.05],[.085,.77,.05,.07],[.18,.82,.05,.07],[.27,.86,.03,.04],[.85,.73,.042,.065],[.79,.86,.04,.06],[.925,.64,.035,.06],[.47,.60,.040,.05],[.52,.625,.027,.032],[.56,.61,.027,.035]];
  for(const[u,v,w,h]of specs){
   const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h),st=stairsAt(x,z);
   if(st.s<st.half+ww*.45+.4||Math.hypot((x-GAZEBO.x)/GAZEBO.r,(z-GAZEBO.z)/GAZEBO.rz)<1.08)continue;
-  addStone(x,y-.10,z,ww,hh,ww*.70,{chamfer:.16,extra:14,noLine:true,moss:.22,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
+  addStone(x,y-.10,z,ww,hh,ww*.70,{chamfer:.16,extra:14,moss:.22,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
   if(rand()<.65)addBush(x+ww*.35,y-.05,z+ww*.25,ww*.28,{sy:.60,tint:.06});
  }
  for(let i=0;i<140;i++){
@@ -80,7 +80,7 @@ FOL.leaf=['#2b7152','#57973d','#b5c94d'];FOL.shrub=['#2e6a4a','#5c943e','#a9bd49
 function build(){
  const[x,z]=P(.50,.84);HERO.x=x;HERO.z=z;HERO.face=-2.7;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();embeddedRoadStones();gazeboModel();gardenRocks();grove();
- const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='rose-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);
+ const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='rose-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  clearGardenPaths();placeCoastPlants();placeRoses();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();
 }
 function updateAmbience(){}

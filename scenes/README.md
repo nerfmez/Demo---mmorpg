@@ -15,6 +15,13 @@ the built `index.html` in a browser. Each page has a wipe slider to compare with
 | Rose Garden Glade (`rose-garden/`) | **ผ่านเบื้องต้น — preliminary owner approval, 24 October 2026 (public version 11).** Retained baseline: timber gazebo, climbing roses, planted stone court and connected stair paths. [Build and review](rose-garden/README.md) | `python3 rose-garden/prepare.py && python3 rose-garden/assemble.py` |
 | Chibi hero model (Blender, `chibi/`) | **Paused** by the owner (quality not good enough; Meshy or bought/commissioned models suggested) | needs Blender bpy: `python chibi/build.py chibi/face.png chibi.glb` |
 
+## Shared stone style
+All scenes use the arrival beach's stones: neutral grey palette, mossy tops, lavender-shadow
+three-step light and the `#4c4852` ink outline. The ruins-derived scenes take it from
+`ruins/scene.js` (`ruinPalette`, `masonryMaterial`). Their stairs (`*/paving.js`) are continuous
+grey courses on every steep section; the earlier short flights are only replayed for their
+seeded draws, so layouts and colliders stay as approved.
+
 ## How the forest page is made
 `forest/assemble.py` takes the reusable blocks of `beach/src.html` (page + wipe, renderer, the
 painted 3-step `paint()` shader, faceted stones, the game's foliage, the hero) and appends

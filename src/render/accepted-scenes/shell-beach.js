@@ -309,7 +309,8 @@ function cliffRuns(T) {
 // All masonry shares the approved paint shader and the scene's stone palette.
 // Chamfered eight-corner rings retain broad readable faces with chipped edges.
 // The bevel is a world-space width, so low slabs never acquire swollen outlines.
-const ruinPalette = ['#c7c1ac', '#d4ccb8', '#c0bda9', '#cec8b7', '#d8d0bb'];
+// Same grey family as the approved arrival beach stones (five entries keep the seeded picks).
+const ruinPalette = ['#cbc6c2', '#bfbab8', '#d2ccc6', '#b6b1b2', '#c7c1bc'];
 // Offset the stone's shadow-depth pass by its own surface slope. A global light
 // bias alone cannot remove the striped self-shadow on nearly edge-on facets.
 const masonryDepth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:4});
@@ -327,7 +328,7 @@ function ruinGeometry(w, h, d, moss = 0.15, color = null, natural = false) {
   }
   const top=tone.clone().multiplyScalar(1.03);
   // Broad stone tops, with partial moss, rather than giant green triangular caps.
-  if(rand()<moss) top.lerp(new THREE.Color(pick(MOSS)),.30);
+  if(rand()<moss) top.lerp(new THREE.Color(pick(MOSS)),.62);
   for(let k=0;k<8;k++){
     tri(new V3(0,h,0),rings[3][(k+1)%8],rings[3][k],top);
     tri(new V3(0,0,0),rings[0][k],rings[0][(k+1)%8],tone);
@@ -365,7 +366,7 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 // A fractured outcrop. Its horizontal shelves and offset cracks continue around
 // the ridge; it is one rock body with plants in its joints, not a fence of drums.
 function buildCliffs(){
-  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c));
+  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c).multiplyScalar(.92));
   const face=(a,b,c,d,color,out)=>{
     const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));
     const vs=normal.dot(out)>0?[a,b,c,a,c,d]:[a,c,b,a,d,c];
@@ -443,7 +444,8 @@ function buildCliffs(){
   const mesh=new THREE.Mesh(g,masonryMaterial());mesh.customDepthMaterial=masonryDepth;mesh.castShadow=mesh.receiveShadow=true;return mesh;
 }
 function masonryMaterial(){
-  return paint({vertexColors:true,shade:[.47,.48,.49],mid:[.76,.75,.70],band:[-.28,.30],
+  // The beach and forest stone light: lavender shadow, cool half-tone.
+  return paint({vertexColors:true,shade:[.34,.33,.42],mid:[.63,.61,.66],band:[-.34,.24],
     albedo:`
       float n=vnoise(vW.xz*1.4+vW.y*.23);
       float lichen=smoothstep(.64,.85,n);
@@ -463,7 +465,7 @@ function buildLedges(){
       const edge=j===0||j===count-1,offset=-r.w/2+(j+.5)*w;
       const x=r.x+r.nx*offset,z=r.z+r.nz*offset;
       const chip=edge?.90:.965,ry=Math.atan2(r.ux,r.uz);
-      block(x,height(x,z)-.065,z,w*chip,.12,depth*.97,ry,.06,{ink:.004*K,base:pick(['#c9b995','#ddd0b0','#e3d4b4','#d6c6a5'])});
+      block(x,height(x,z)-.065,z,w*chip,.12,depth*.97,ry,.06,{ink:.004*K,base:pick(['#bdb8b6','#c9c4c0','#b4afb0','#c4beb9'])});
     }
   });
   buildPathBanks();
@@ -480,7 +482,7 @@ function buildPathBanks(){
     if(Math.max(Math.abs(at(A,0).y-at(A,1).y),Math.abs(at(B,0).y-at(B,1).y))<M(.28))continue;
     for(let j=0;j<3;j++){
       const a=at(A,j/3),b=at(B,j/3),c=at(B,(j+1)/3),d=at(A,(j+1)/3);
-      const color=new THREE.Color(['#c7c1a8','#d4cdb6','#b9b6a1'][(i+j)%3]);
+      const color=new THREE.Color(['#c2bdb9','#cbc6c2','#b5b0b0'][(i+j)%3]);
       triangle(a,b,c,color);triangle(a,c,d,color);
     }
   }
@@ -1144,7 +1146,7 @@ function coastalBoulders(){
     [.15,.68,.028,.62],[.35,.57,.03,.53],[.61,.45,.03,.40],[.82,.52,.032,.46],[.39,.42,.023,.38],[.88,.76,.025,.71],[.535,.505,.025,.455],[.58,.52,.025,.48],[.74,.54,.03,.49],[.79,.52,.022,.48]];
   for(const[u,v,hu,vt]of specs){
     const[x,z0]=P(u,v),w=wide(u-hu/2,u+hu/2,v,0),g=height(x,z0),h=Math.max(.8,tall(x,z0,g,vt)),d=w*.72,z=z0-d*.22;
-    addStone(x,g-.18,z,w,h,d,{chamfer:.18,extra:18,jitter:.11,moss:.18,noLine:true,base:pick(['#cac6b0','#ded7bc','#bab9a4'])});
+    addStone(x,g-.18,z,w,h,d,{chamfer:.18,extra:18,jitter:.11,moss:.18,base:pick(['#c7c1bc','#d2ccc6','#b6b1b2'])});
     if(z>zShore(x)-1){if(seaRocks.length<8)seaRocks.push([x,z,w*.42]);}
     else COLLIDERS.push({x,z,r:w*.4});
     if(h>2&&rand()<.7)addBush(x,g+h-.16,z,w*.25,{sy:.32,tint:.2});
@@ -1230,7 +1232,7 @@ function build(){
   for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false]]){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
-  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);
+  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
   clearConchPlants();placeCoastPlants();scene.add(giantConch());
   
 }

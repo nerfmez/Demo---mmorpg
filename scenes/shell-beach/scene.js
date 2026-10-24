@@ -30,7 +30,7 @@ function coastalBoulders(){
     [.15,.68,.028,.62],[.35,.57,.03,.53],[.61,.45,.03,.40],[.82,.52,.032,.46],[.39,.42,.023,.38],[.88,.76,.025,.71],[.535,.505,.025,.455],[.58,.52,.025,.48],[.74,.54,.03,.49],[.79,.52,.022,.48]];
   for(const[u,v,hu,vt]of specs){
     const[x,z0]=P(u,v),w=wide(u-hu/2,u+hu/2,v,0),g=height(x,z0),h=Math.max(.8,tall(x,z0,g,vt)),d=w*.72,z=z0-d*.22;
-    addStone(x,g-.18,z,w,h,d,{chamfer:.18,extra:18,jitter:.11,moss:.18,noLine:true,base:pick(['#cac6b0','#ded7bc','#bab9a4'])});
+    addStone(x,g-.18,z,w,h,d,{chamfer:.18,extra:18,jitter:.11,moss:.18,base:pick(['#c7c1bc','#d2ccc6','#b6b1b2'])});
     if(z>zShore(x)-1){if(seaRocks.length<8)seaRocks.push([x,z,w*.42]);}
     else COLLIDERS.push({x,z,r:w*.4});
     if(h>2&&rand()<.7)addBush(x,g+h-.16,z,w*.25,{sy:.32,tint:.2});
@@ -116,7 +116,7 @@ function build(){
   for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false]]){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
-  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);
+  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
   clearConchPlants();placeCoastPlants();scene.add(giantConch());
   scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));scene.add(buildSea());setStatus();
 }

@@ -306,7 +306,8 @@ function cliffRuns(T) {
 // All masonry shares the approved paint shader and the scene's stone palette.
 // Chamfered eight-corner rings retain broad readable faces with chipped edges.
 // The bevel is a world-space width, so low slabs never acquire swollen outlines.
-const ruinPalette = ['#c7c1ac', '#d4ccb8', '#c0bda9', '#cec8b7', '#d8d0bb'];
+// Same grey family as the approved arrival beach stones (five entries keep the seeded picks).
+const ruinPalette = ['#cbc6c2', '#bfbab8', '#d2ccc6', '#b6b1b2', '#c7c1bc'];
 // Offset the stone's shadow-depth pass by its own surface slope. A global light
 // bias alone cannot remove the striped self-shadow on nearly edge-on facets.
 const masonryDepth = new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:4});
@@ -324,7 +325,7 @@ function ruinGeometry(w, h, d, moss = 0.15, color = null, natural = false) {
   }
   const top=tone.clone().multiplyScalar(1.03);
   // Broad stone tops, with partial moss, rather than giant green triangular caps.
-  if(rand()<moss) top.lerp(new THREE.Color(pick(MOSS)),.30);
+  if(rand()<moss) top.lerp(new THREE.Color(pick(MOSS)),.62);
   for(let k=0;k<8;k++){
     tri(new V3(0,h,0),rings[3][(k+1)%8],rings[3][k],top);
     tri(new V3(0,0,0),rings[0][k],rings[0][(k+1)%8],tone);
@@ -362,7 +363,7 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 // A fractured outcrop. Its horizontal shelves and offset cracks continue around
 // the ridge; it is one rock body with plants in its joints, not a fence of drums.
 function buildCliffs(){
-  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c));
+  const pos=[],col=[], stone=ruinPalette.map(c=>new THREE.Color(c).multiplyScalar(.92));
   const face=(a,b,c,d,color,out)=>{
     for(const v of[a,b,c,d]){const st=stairsAt(v.x,v.z);if(st.inside||st.s<st.half+.35)v.y=Math.min(v.y,st.y-.12);}
     const normal=new V3().subVectors(b,a).cross(new V3().subVectors(c,a));
@@ -441,7 +442,8 @@ function buildCliffs(){
   const mesh=new THREE.Mesh(g,masonryMaterial());mesh.name='hill-cliffs';mesh.customDepthMaterial=masonryDepth;mesh.castShadow=mesh.receiveShadow=true;return mesh;
 }
 function masonryMaterial(){
-  return paint({vertexColors:true,shade:[.47,.48,.49],mid:[.76,.75,.70],band:[-.28,.30],
+  // The beach and forest stone light: lavender shadow, cool half-tone.
+  return paint({vertexColors:true,shade:[.34,.33,.42],mid:[.63,.61,.66],band:[-.34,.24],
     albedo:`
       float n=vnoise(vW.xz*1.4+vW.y*.23);
       float lichen=smoothstep(.64,.85,n);
@@ -449,7 +451,8 @@ function masonryMaterial(){
       diffuseColor.rgb=mix(diffuseColor.rgb,${L('#879445')},lichen*.14);
     `});
 }
-function buildLedges(){
+function legacyLedges(){
+ // The approved short flights. Only replayed for their seeded draws.
  // Short flights mark steeper portions; the shared ribbon continues underneath
  // the packed-earth landings and across every join.
  for(const route of ROUTES)route.rows.forEach((r,i)=>{
@@ -469,4 +472,43 @@ function buildLedges(){
    block(x,height(x,z)-.14,z,.40,.27,depth*1.30,Math.atan2(r.ux,r.uz),.12,{ink:0,base:'#c3bda7'});
   }
  });
+}
+function buildLedges(){
+ // Replay the approved flights' seeded draws so every later rock, tree and
+ // collider keeps its place; their pieces are discarded and rebuilt below.
+ const parts=stoneParts.length,lines=stoneLines.length;
+ legacyLedges();stoneParts.length=parts;stoneLines.length=lines;
+ const resume=seed;seed=7919;
+ stoneStairs();
+ seed=resume;
+}
+function stoneStairs(){
+ // One continuous stair on every steep section: a course of grey stones every
+ // STEP along the route, square to its smoothed direction. Each course is level,
+ // so its front edge stands proud of the slope as a riser.
+ const STEP=.42*K,STAIR=['#bdb8b6','#c9c4c0','#b4afb0','#c4beb9'];
+ for(const route of ROUTES){
+  const steep=new Map();
+  route.rows.forEach((r,i)=>{
+   const A=route.rows[Math.max(0,i-1)],B=route.rows[Math.min(route.n-1,i+1)];
+   steep.set(r.section,Math.max(steep.get(r.section)||0,Math.abs(B.y-A.y)/Math.max(.1,Math.hypot(B.x-A.x,B.z-A.z))));
+  });
+  let next=-Infinity,course=0;
+  route.rows.forEach((r,i)=>{
+   if(!((route.id==='left'?((r.section>=3&&r.section<=5)||(r.section>=9&&r.section<=10)):route.id==='shortcut'?r.section===1:route.id==='right'&&r.section>=2&&r.section<=6)||steep.get(r.section)>=.2)||r.s<next)return;
+   next=r.s+STEP;course++;
+   const A=route.rows[Math.max(0,i-3)],B=route.rows[Math.min(route.n-1,i+3)],l=Math.hypot(B.x-A.x,B.z-A.z)||1;
+   const ux=(B.x-A.x)/l,uz=(B.z-A.z)/l,nx=uz,nz=-ux,ry=Math.atan2(ux,uz);
+   const n=Math.max(3,Math.round(r.w/(.62*K))),w=r.w/n;
+   for(let j=0;j<n;j++){
+    const off=-r.w/2+(j+.5)*w,x=r.x+nx*off,z=r.z+nz*off;
+    block(x,height(x,z)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
+   }
+   // Low, broken shoulders frame the flight without narrowing its clear width.
+   if(course%2===0)for(const side of[-1,1]){
+    const off=side*(r.w/2+.24),x=r.x+nx*off,z=r.z+nz*off;
+    block(x,height(x,z)-.16,z,.46,.42+.10*Math.sin(i),STEP*1.25,ry,.14,{ink:.004*K,base:'#b9b4b1'});
+   }
+  });
+ }
 }

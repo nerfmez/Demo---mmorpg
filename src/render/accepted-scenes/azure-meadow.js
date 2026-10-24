@@ -1152,7 +1152,9 @@ function farms(){
   const points=plot.pts.map(([u,v])=>onGround(u,v)),center=new V3();points.forEach(p=>center.add(new V3(...p)));center.divideScalar(points.length);
   FARM_AREAS.push(points);
   const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)],uvPoint=(a,b)=>{const A=corners[0],B=corners[1],C=corners[2],D=corners[3];return[(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,(A[1]*(1-a)+B[1]*a)*(1-b)+(D[1]*(1-a)+C[1]*a)*b];};
-  const GU=48,GV=36;for(let i=0;i<GU;i++)for(let j=0;j<GV;j++)for(const[a,b]of[[i/GU,j/GV],[(i+1)/GU,j/GV],[(i+1)/GU,(j+1)/GV],[i/GU,j/GV],[(i+1)/GU,(j+1)/GV],[i/GU,(j+1)/GV]]){const[u,v]=uvPoint(a,b),[x,y,z]=onGround(u,v);positions.push(x,y+.09,z);}
+  // A fine grid keeps the bed on the curved ground; ground is sampled once per grid point.
+  const GU=48,GV=36,grid=[];for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){const[u,v]=uvPoint(i/GU,j/GV),[x,y,z]=onGround(u,v);grid.push([x,y+.09,z]);}
+  for(let i=0;i<GU;i++)for(let j=0;j<GV;j++)for(const[a,b]of[[i,j],[i+1,j],[i+1,j+1],[i,j],[i+1,j+1],[i,j+1]])positions.push(...grid[b*(GU+1)+a]);
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const row=new V3(points[1][0]-points[0][0],0,points[1][2]-points[0][2]).normalize();
   // Tilled ridges run along the bed; they are painted, so they cost no geometry.
   const mesh=new THREE.Mesh(g,paint({color:'#a47b45',side:THREE.DoubleSide,shade:[.57,.48,.37],mid:[.83,.69,.50],albedo:`

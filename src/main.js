@@ -128,6 +128,7 @@ function startGame(character, slot) {
   view.mode = 'game';
   view.snapCamera();
   const hud = new Hud(hudRoot, game, view);
+  view.floatText = (x, y, z, text, color, big) => hud.float(x, y, z, text, big ? 'crit' : '', color); // skill effect labels
   const save = () => {
     return slot ? writeSlot(slot, game.snapshot()) : true;
   };

@@ -409,7 +409,6 @@ body.ingame #hud { bottom: var(--xp-h); }
 .hurtveil.low.hit { animation: hurtveil .45s ease-out, lowhp 1.1s ease-in-out .45s infinite; }
 @keyframes hurtveil { 0% { opacity: var(--hit, .8); } 100% { opacity: 0; } }
 @keyframes lowhp { 50% { opacity: .25; } }
-.fnum.finisher { font-size: 20px; color: #ffd98a; letter-spacing: 1px; }
 @media (prefers-reduced-motion: reduce) { .hurtveil.low { animation: none; } }
 
 /* Shop + quick item slots panel */

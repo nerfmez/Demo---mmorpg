@@ -1,5 +1,5 @@
 import { LearnedGame as Game } from './helpers.js';
-// Combat feel rules: 1-2-3 melee combo with a finisher, and short flinches that never cancel a wind-up.
+// Combat feel rules: melee swings alternate the arm (no finisher), and short flinches that never cancel a wind-up.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { legacyData as data } from './helpers.js';
@@ -53,18 +53,17 @@ test('melee hit and motion events carry presentation source without changing dam
   assert.equal(hit.skill,'slash');assert.equal(hit.attackKind,'melee_arc');assert.equal(cut.skill,'slash');
 });
 
-test('the third swing in a row is a finisher that hits harder and knocks back', () => {
+test('swings in a row alternate the arm but are all the same strike: no third-hit finisher or knockback', () => {
   const { g, m } = setup(21);
   m.def = { ...m.def, defense: 0 };
-  const a = swing(g, m);
-  const b = swing(g, m);
   const x0 = m.x;
-  const c = swing(g, m);
-  assert.ok(c > a * 1.3 && c > b * 1.3, `finisher ${c} vs ${a}, ${b}`);
-  assert.ok(m.x > x0, 'knocked away from the player');
+  const hits = [swing(g, m), swing(g, m), swing(g, m)];
+  assert.ok(Math.max(...hits) < Math.min(...hits) * 1.3, `no finisher bonus: ${hits}`);
+  assert.ok(Math.abs(m.x - x0) < 0.3, 'never knocked back');
   const ev = g.drainEvents().filter((e) => e.type === 'slash');
-  assert.deepEqual(ev.map((e) => e.finisher), [false, false, true]);
-  g.time += 2; // combo resets after a pause
+  assert.deepEqual(ev.map((e) => e.step), [0, 1, 0]);
+  assert.ok(ev.every((e) => e.finisher === undefined));
+  g.time += 2; // the alternation resets after a pause
   swing(g, m);
   assert.equal(g.player.comboStep, 0);
 });
@@ -80,10 +79,11 @@ test('castStart announces the combo step the swing will land as', () => {
     for (let k = 0; k < 12; k++) g.update(0.05);
     assert.equal(g.player.comboStep, steps[i], 'predicted step ' + i);
   }
-  assert.deepEqual(steps, [0, 1, 2, 0]);
+  assert.deepEqual(steps, [0, 1, 0, 1]);
   // a swing announced just inside the combo window keeps its step even if it lands a frame late
   const window = data.progression.combat?.comboWindow ?? 1.1;
   g.player.cooldowns[0] = 0;
+  g.player.comboStep = 0;
   g.player.lastSwingT = g.time - window + g.skills[0].castTime + 0.01;
   assert.ok(g.castSlot(0, { x: m.x, z: m.z }));
   const late = g.drainEvents().find((e) => e.type === 'castStart').step;

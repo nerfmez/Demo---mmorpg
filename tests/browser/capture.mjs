@@ -147,7 +147,7 @@ await run(() => {
 });
 await shot('5-warden', 1500);
 
-// 6. new skills: chain spark, frost nova, venom mire, spirit wolves
+// 6. new skills: chain spark, frost nova, stone burst, spirit wolves
 const skSpot = await freeAt(-86, 0);
 await run((s) => {
   const f = window.__frontier;
@@ -158,7 +158,7 @@ await run((s) => {
   g.ch.stats.INT = 12;
   g.ch.slots[0] = { skill: 'chain_spark', mods: [] };
   g.ch.slots[1] = { skill: 'frost_nova', mods: [] };
-  g.ch.slots[2] = { skill: 'venom_mire', mods: [] };
+  g.ch.slots[2] = { skill: 'stone_burst', mods: [] }; // Venom Mire became a bow shot (Venom Arrow)
   g.ch.slots[3] = { skill: 'spirit_wolf', mods: [] };
   g.refresh();
   for (let i = 0; i < 4; i++) f.place('tusk_boar', s.x + 3 + (i % 2) * 2, s.z - 2 + i * 1.5, 0);

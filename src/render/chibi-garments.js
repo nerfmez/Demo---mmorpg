@@ -61,7 +61,7 @@ export function attachChibiGarments(rig, T, outfit) {
     };
     const part = make(garmentMaterial(kind, FS, uniforms, flash));
     part.name = 'Garment-' + kind;
-    part.castShadow = true;
+    part.castShadow = part.receiveShadow = true; // like the body: the outfit takes the world's shadows
     const hull = make(garmentHull(kind, FS, uniforms, kind === 'gloves' ? 0.003 : HULL));
     hull.name = part.name + '-outline';
     mesh.parent.add(part, hull);

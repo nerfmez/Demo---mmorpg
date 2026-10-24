@@ -239,10 +239,8 @@
   },
   "slotCount": 4,
   "combat": {
-    "_doc": "Combat feel. Consecutive melee swings within comboWindow seconds count 1-2-3; the third is a finisher (more damage, knocks back). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
+    "_doc": "Combat feel. Consecutive melee swings within comboWindow seconds alternate the arm side (animation only; every swing is the same strike, no finisher). Non-boss monsters flinch (stop moving) for stagger seconds when hit, but a started wind-up is never cancelled.",
     "comboWindow": 1.1,
-    "finisherMult": 1.3,
-    "finisherKnock": 2.2,
     "stagger": 0.14,
     "block": {
       "_doc": "A shield block lets through only `taken` of a hit from within arcDeg in front of the hero. Ground hazards and hits from behind are never blocked.",

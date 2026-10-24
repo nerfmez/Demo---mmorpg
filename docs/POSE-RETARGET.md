@@ -67,7 +67,9 @@ A reference only fixes the blade's direction; its roll about the blade must matc
 actions hold the weapon, or the hand twists when an attack starts (the owner saw the dagger upside
 down). After writing a carry, run
 `node scripts/pose-retarget/match-roll.mjs weakpoint dagger dual` (bench skill, left weapon or
-`null`, carry key) and write the printed `up` values back.
+`null`, carry key) and write the printed `up` values back. For a run carry (`hold.run`) add
+`null run` (the right-hand weapon, then `run`): the hero runs and the run carry's `up` is matched.
+The owner saw a twisted hand on the run until this was done.
 
 ## How it maps
 

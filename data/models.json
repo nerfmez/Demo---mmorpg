@@ -700,7 +700,7 @@
         "scale": 0.45
       },
       "holds": {
-        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head. The staff (staff_ready), the wand alone and dual (wand_ready) and the bow (bow_ready) come from the owner's picks (the mace held in one hand, beside a shield, takes the wand's carry) of KayKit Mage and Quaternius bow clips. On the run (run carries, owner's request): the sword trails low behind (the arm from Quaternius Sprint_Shield_Loop), heavy weapons are dragged in the right hand alone, the dagger runs crouched (lean from Crouch_Fwd_Loop, deepened for the chibi). up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
+        "_doc": "Carries for this body that replace data/weapon-holds.json ones (same space, moved by bodyMap). The sword (one hand) comes from the KayKit Adventurers chibi Idle clip (stance sword_ready) and its dual carry (a second light weapon in the left hand: dual, with left = that hand's palm, blade and flat) from the same clip holding two swords (docs/POSE-RETARGET.md); the dagger alone takes the low trailing guard of the Quaternius Sword_Idle clip (stance dagger_ready); dagger and wand use the dual carry with a second weapon. Heavy weapons are held in both hands at the belly, head forward, clear of the big head. The staff (staff_ready), the wand alone and dual (wand_ready) and the bow (bow_ready) come from the owner's picks (the mace held in one hand, beside a shield, takes the wand's carry) of KayKit Mage and Quaternius bow clips. On the run (run carries, owner's request): the sword trails low behind (the arm from Quaternius Sprint_Shield_Loop), heavy weapons are dragged in the right hand alone, the dagger runs like the sword with the body leaning forward; the run carries' blade rolls are matched to the actions while running (match-roll.mjs run). up is the blade's flat (its normal); up [1, 0, 0] stands the edge upright.",
         "sword": {
           "one": {
             "hand": [
@@ -731,9 +731,9 @@
                 -0.89
               ],
               "up": [
-                0.89,
-                0,
-                -0.35
+                -0.327,
+                -0.849,
+                0.415
               ]
             }
           },
@@ -783,9 +783,9 @@
                 -0.89
               ],
               "up": [
-                0.89,
-                0,
-                -0.35
+                -0.53,
+                -0.718,
+                0.451
               ],
               "left": {
                 "hand": [
@@ -799,9 +799,9 @@
                   -0.89
                 ],
                 "up": [
-                  -0.89,
-                  0,
-                  -0.35
+                  -0.1,
+                  -0.954,
+                  0.282
                 ]
               }
             }
@@ -826,43 +826,37 @@
             ],
             "stance": "dagger_ready",
             "run": {
+              "hand": [
+                -0.47,
+                0.9,
+                -0.5
+              ],
+              "dir": [
+                -0.35,
+                -0.3,
+                -0.89
+              ],
+              "up": [
+                -0.304,
+                -0.86,
+                0.41
+              ],
               "lean": {
                 "torso": [
-                  0.5,
-                  0,
-                  0
-                ],
-                "chest": [
                   0.35,
                   0,
                   0
                 ],
+                "chest": [
+                  0.2,
+                  0,
+                  0
+                ],
                 "head": [
-                  -0.6,
+                  -0.4,
                   0,
                   0
-                ],
-                "legL": [
-                  -0.35,
-                  0,
-                  0
-                ],
-                "legR": [
-                  -0.35,
-                  0,
-                  0
-                ],
-                "kneeL": [
-                  0.6,
-                  0,
-                  0
-                ],
-                "kneeR": [
-                  0.6,
-                  0,
-                  0
-                ],
-                "drop": -0.08
+                ]
               }
             }
           },
@@ -901,43 +895,54 @@
             },
             "stance": "dagger_ready",
             "run": {
+              "hand": [
+                -0.47,
+                0.9,
+                -0.5
+              ],
+              "dir": [
+                -0.35,
+                -0.3,
+                -0.89
+              ],
+              "up": [
+                -0.304,
+                -0.86,
+                0.41
+              ],
+              "left": {
+                "hand": [
+                  0.47,
+                  0.9,
+                  -0.5
+                ],
+                "dir": [
+                  0.35,
+                  -0.3,
+                  -0.89
+                ],
+                "up": [
+                  -0.1,
+                  -0.954,
+                  0.282
+                ]
+              },
               "lean": {
                 "torso": [
-                  0.5,
-                  0,
-                  0
-                ],
-                "chest": [
                   0.35,
                   0,
                   0
                 ],
+                "chest": [
+                  0.2,
+                  0,
+                  0
+                ],
                 "head": [
-                  -0.6,
+                  -0.4,
                   0,
                   0
-                ],
-                "legL": [
-                  -0.35,
-                  0,
-                  0
-                ],
-                "legR": [
-                  -0.35,
-                  0,
-                  0
-                ],
-                "kneeL": [
-                  0.6,
-                  0,
-                  0
-                ],
-                "kneeR": [
-                  0.6,
-                  0,
-                  0
-                ],
-                "drop": -0.08
+                ]
               }
             }
           }
@@ -1026,9 +1031,9 @@
                 -0.77
               ],
               "up": [
-                0.77,
-                0,
-                -0.15
+                -0.46,
+                -0.646,
+                0.61
               ]
             }
           },
@@ -1062,9 +1067,9 @@
                 -0.77
               ],
               "up": [
-                0.77,
-                0,
-                -0.15
+                -0.46,
+                -0.646,
+                0.61
               ],
               "release": true
             }
@@ -1100,9 +1105,9 @@
                 -0.77
               ],
               "up": [
-                0.77,
-                0,
-                -0.15
+                -0.46,
+                -0.646,
+                0.61
               ]
             }
           },
@@ -1136,9 +1141,9 @@
                 -0.77
               ],
               "up": [
-                0.77,
-                0,
-                -0.15
+                -0.46,
+                -0.646,
+                0.61
               ],
               "release": true
             }
@@ -1175,9 +1180,9 @@
                 -0.77
               ],
               "up": [
-                0.77,
-                0,
-                -0.15
+                -0.46,
+                -0.646,
+                0.61
               ],
               "release": true
             }

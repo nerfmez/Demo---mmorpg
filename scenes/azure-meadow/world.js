@@ -26,7 +26,7 @@ function tall(x, z, base, vt) {
 const wide = (u0, u1, v, y) => { const a = P(u0, v, y), b = P(u1, v, y); return Math.hypot(b[0] - a[0], b[1] - a[1]); };
 const K = 3.12;   // world scale: the concept's layout, K times bigger, seen from K times farther (more room, same frame)
 const M = v => v * K;   // concept metres to world metres
-const PL = M(.65);   // the plaza and the ruins
+const PL = M(.25);   // the plaza and the ruins
 const T1 = M(3.6);   // the rock ridge between the path and the plaza, at its highest
 const T2B = M(3.3), T2 = M(5.1);   // the high tier on the ridge's left: its foot and its top
 const inFrame = (u, v) => u > -0.08 && u < 1.08 && v > -0.06 && v < 1.06;
@@ -38,8 +38,8 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // the top off screen, 'n' points at the foot of a grassy bank (`soft` metres wide, no rock). A
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
- {top:PL,base:0,ledge:true,masonry:true,soft:M(.7),lean:M(.16),pts:[[.405,.425,'b'],[.46,.46,'b'],[.55,.475,'b'],[.64,.465,'b'],[.72,.43,'b'],[.755,.39,'n'],[.735,.32,'n'],[.66,.295,'n'],[.54,.28,'n'],[.44,.305,'n'],[.39,.36,'b']]},
- {top:M(.62),base:0,ledge:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
+ {top:PL,base:0,ledge:false,masonry:true,soft:M(.9),lean:M(.16),pts:[[.405,.425,'b'],[.46,.46,'b'],[.55,.475,'b'],[.64,.465,'b'],[.72,.43,'b'],[.755,.39,'n'],[.735,.32,'n'],[.66,.295,'n'],[.54,.28,'n'],[.44,.305,'n'],[.39,.36,'b']]},
+ {top:M(.38),base:0,ledge:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
  {top:M(1.30),base:M(.30),ledge:true,soft:M(.9),lean:M(.20),pts:[[-.3,.44,'t'],[.05,.43,'b'],[.13,.39,'b'],[.18,.34,'b'],[.18,.26,'n'],[.13,.18,'n'],[-.3,.14,'t']]},
  {top:M(2.4),base:M(1.0),ledge:true,soft:M(1.1),lean:M(.25),pts:[[-.3,.18,'t'],[.13,.18,'b'],[.23,.21,'b'],[.32,.225,'b'],[.38,.20,'n'],[.42,.11,'n'],[.42,-.3,'t'],[-.3,-.3,'t']]},
  {top:PL,base:M(.15),ledge:true,soft:M(.75),lean:M(.18),pts:[[.42,.16,'b'],[.52,.19,'b'],[.67,.19,'b'],[.77,.18,'n'],[.84,.12,'n'],[1.2,-.3,'t'],[.40,-.3,'t']]},
@@ -75,22 +75,21 @@ function polyAt(T, x, z) {
 // Authoring coordinates follow the reference; all consumers use the same real
 // XZ routes, heights and widths. Shared anchors are actual walking junctions.
 const ROAD_NODES={
- arrival:[.50,.81,0,.116],
- leftFork:[.32,.52,.05,.080],
- orchard:[.31,.46,.10,.074],
- wellEntry:[.49,.525,.05,.050],
- eastFork:[.83,.42,.25,.088],
- villageBend:[.86,.34,.38,.085]
+ arrival:[.50,.81,0,.100],
+ fork:[.52,.675,0,.125],
+ orchard:[.275,.415,.10,.055],
+ gardenEntry:[.43,.355,.25,.036],
+ eastFork:[.84,.42,.10,.063],
+ villageBend:[.865,.31,.20,.055]
 };
 const ROUTE_SPECS=[
- {id:'south',pts:[[.64,1.18,0,.115],[.60,1.02,0,.116],[.55,.90,0,.115],ROAD_NODES.arrival]},
- {id:'left',pts:[ROAD_NODES.arrival,[.41,.69,0,.104],[.35,.60,0,.089],ROAD_NODES.leftFork,ROAD_NODES.orchard,[.27,.395,.12,.073],[.245,.35,.48,.068],[.22,.29,.90,.063],[.20,.25,1.20,.060],[.18,.20,1.50,.058],[.155,.16,1.72,.055],[.15,.12,2.02,.056],[.17,.075,2.28,.057],[.20,.025,2.40,.060],[.18,-.13,2.40,.062]]},
- {id:'village',pts:[ROAD_NODES.arrival,[.63,.69,0,.108],[.72,.58,.04,.098],[.78,.50,.12,.092],ROAD_NODES.eastFork,ROAD_NODES.villageBend,[.85,.28,.52,.079],[.87,.215,.65,.076],[.87,.145,.65,.067],[.86,.03,.65,.068],[.86,-.13,.65,.072]]},
- {id:'garden-front',pts:[ROAD_NODES.leftFork,[.40,.56,.025,.050],ROAD_NODES.wellEntry,[.61,.545,.08,.050],[.72,.505,.16,.055],ROAD_NODES.eastFork]},
- {id:'well',pts:[ROAD_NODES.wellEntry,[.52,.48,.40,.043],[.558,.459,.65,.032]]},
- {id:'orchard-loop',pts:[ROAD_NODES.orchard,[.39,.375,.65,.044],[.43,.315,.65,.043],[.52,.255,.65,.043],[.64,.24,.65,.043],[.76,.29,.65,.045],ROAD_NODES.villageBend]},
- {id:'west',pts:[ROAD_NODES.arrival,[.35,.815,0,.065],[.18,.80,0,.061],[.04,.82,0,.060],[-.14,.83,0,.062]]},
- {id:'east',pts:[ROAD_NODES.eastFork,[.94,.43,.20,.074],[1.12,.42,.20,.078]]}
+ {id:'south',pts:[[.64,1.18,0,.104],[.60,1.02,0,.105],[.55,.90,0,.103],ROAD_NODES.arrival,ROAD_NODES.fork]},
+ {id:'left',pts:[ROAD_NODES.fork,[.43,.61,0,.086],[.36,.55,0,.074],[.31,.49,0,.062],[.29,.45,0,.055],ROAD_NODES.orchard,[.245,.365,.35,.053],[.225,.32,.65,.050],[.21,.275,.95,.049],[.185,.23,1.25,.048],[.175,.19,1.55,.048],[.17,.155,1.85,.047],[.155,.12,2.05,.046],[.165,.08,2.25,.050],[.20,.04,2.4,.054],[.185,-.13,2.40,.056]]},
+ {id:'village',pts:[ROAD_NODES.fork,[.64,.63,0,.095],[.73,.55,0,.085],[.79,.49,.02,.073],ROAD_NODES.eastFork,ROAD_NODES.villageBend,[.87,.25,.25,.047],[.87,.205,.25,.043],[.87,.12,.25,.043],[.86,.025,.25,.046],[.86,-.13,.25,.050]]},
+ {id:'well',pts:[ROAD_NODES.orchard,[.35,.375,.25,.040],ROAD_NODES.gardenEntry,[.465,.368,.25,.034],[.49,.385,.25,.031]]},
+ {id:'orchard-loop',pts:[ROAD_NODES.gardenEntry,[.46,.295,.25,.028],[.54,.25,.25,.028],[.65,.23,.25,.030],[.77,.245,.25,.032],ROAD_NODES.villageBend]},
+ {id:'west',pts:[ROAD_NODES.arrival,[.35,.815,0,.058],[.18,.80,0,.052],[.04,.82,0,.052],[-.14,.83,0,.054]]},
+ {id:'east',pts:[ROAD_NODES.eastFork,[.94,.405,.10,.048],[1.12,.40,.10,.052]]}
 ];
 const ROAD_CELL=M(3);
 const ROAD_GRID=new Map();
@@ -146,7 +145,7 @@ const poly = (pts, h) => {
   return { pts: q, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
 };
 // the plaza: a ring of dirt round the stone circle, traced from the concept; grass in the middle
-const PLAZA=poly([[.495,.395],[.54,.365],[.61,.37],[.64,.40],[.61,.428],[.54,.44],[.50,.43]],PL);
+const PLAZA=poly([[.46,.36],[.52,.33],[.61,.34],[.635,.38],[.61,.415],[.53,.43],[.47,.405]],PL);
 const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
 // distance from the dirt's edge: negative on the dirt
 function trailAt(x, z) {
@@ -461,18 +460,18 @@ function buildLedges(){
  for(const route of ROUTES)route.rows.forEach((r,i)=>{
   const A=route.rows[Math.max(0,i-1)],B=route.rows[Math.min(route.n-1,i+1)],dist=Math.hypot(B.x-A.x,B.z-A.z),grade=Math.abs(B.y-A.y)/Math.max(.1,dist);
   const f=i/(route.n-1);
-  const flight=route.id==='left'&&((r.section>=5&&r.section<=7)||(r.section>=9&&r.section<=11));
-  if(!flight)return;
-  const depth=dist/(i===0||i===route.n-1?1:2)+.03,n=Math.max(4,Math.round(r.w/(.48*K))),w=r.w/n;
+  const flight=route.id==='left'&&[5,7,9,11].includes(r.section);
+  if(!flight||i%7===3)return;
+  const depth=dist/(i===0||i===route.n-1?1:2)+.03,n=Math.max(3,Math.round(r.w/(.64*K))),w=r.w/n;
   for(let j=0;j<n;j++){
    const offset=-r.w/2+(j+.5)*w,x=r.x+r.nx*offset,z=r.z+r.nz*offset;
    const jitter=(Math.sin(i*7.3+j*5.7))*.025*K;
-   block(x,height(x,z)-.08+jitter*.25,z,w*(.92+.025*Math.sin(i+j)),.16,depth*.94,Math.atan2(r.ux,r.uz)+jitter*.10,.09,{ink:.003*K,base:pick(['#bdb69f','#d1c8b0','#c5bda5','#d9cfb6'])});
+   block(x,height(x,z)-.08+jitter*.25,z,w*(.92+.025*Math.sin(i+j)),.16,depth*(.92+.05*Math.sin(i+j*1.9)),Math.atan2(r.ux,r.uz)+jitter*.10,.09,{ink:.003*K,base:pick(['#bdb69f','#d1c8b0','#c5bda5','#d9cfb6'])});
   }
   // Low, broken shoulders finish each flight, without narrowing its clear width.
   if(i%2===0)for(const side of[-1,1]){
    const off=side*(r.w/2+.21),x=r.x+r.nx*off,z=r.z+r.nz*off;
-   block(x,height(x,z)-.14,z,.40,.27,depth*1.30,Math.atan2(r.ux,r.uz),.12,{ink:0,base:'#c3bda7'});
+   block(x,height(x,z)-.14,z,.48,.38+.12*Math.sin(i),depth*1.30,Math.atan2(r.ux,r.uz),.12,{ink:0,base:'#c3bda7'});
   }
  });
 }

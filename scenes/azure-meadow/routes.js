@@ -1,22 +1,21 @@
 // Authoring coordinates follow the reference; all consumers use the same real
 // XZ routes, heights and widths. Shared anchors are actual walking junctions.
 const ROAD_NODES={
- arrival:[.50,.81,0,.116],
- leftFork:[.32,.52,.05,.080],
- orchard:[.31,.46,.10,.074],
- wellEntry:[.49,.525,.05,.050],
- eastFork:[.83,.42,.25,.088],
- villageBend:[.86,.34,.38,.085]
+ arrival:[.50,.81,0,.100],
+ fork:[.52,.675,0,.125],
+ orchard:[.275,.415,.10,.055],
+ gardenEntry:[.43,.355,.25,.036],
+ eastFork:[.84,.42,.10,.063],
+ villageBend:[.865,.31,.20,.055]
 };
 const ROUTE_SPECS=[
- {id:'south',pts:[[.64,1.18,0,.115],[.60,1.02,0,.116],[.55,.90,0,.115],ROAD_NODES.arrival]},
- {id:'left',pts:[ROAD_NODES.arrival,[.41,.69,0,.104],[.35,.60,0,.089],ROAD_NODES.leftFork,ROAD_NODES.orchard,[.27,.395,.12,.073],[.245,.35,.48,.068],[.22,.29,.90,.063],[.20,.25,1.20,.060],[.18,.20,1.50,.058],[.155,.16,1.72,.055],[.15,.12,2.02,.056],[.17,.075,2.28,.057],[.20,.025,2.40,.060],[.18,-.13,2.40,.062]]},
- {id:'village',pts:[ROAD_NODES.arrival,[.63,.69,0,.108],[.72,.58,.04,.098],[.78,.50,.12,.092],ROAD_NODES.eastFork,ROAD_NODES.villageBend,[.85,.28,.52,.079],[.87,.215,.65,.076],[.87,.145,.65,.067],[.86,.03,.65,.068],[.86,-.13,.65,.072]]},
- {id:'garden-front',pts:[ROAD_NODES.leftFork,[.40,.56,.025,.050],ROAD_NODES.wellEntry,[.61,.545,.08,.050],[.72,.505,.16,.055],ROAD_NODES.eastFork]},
- {id:'well',pts:[ROAD_NODES.wellEntry,[.52,.48,.40,.043],[.558,.459,.65,.032]]},
- {id:'orchard-loop',pts:[ROAD_NODES.orchard,[.39,.375,.65,.044],[.43,.315,.65,.043],[.52,.255,.65,.043],[.64,.24,.65,.043],[.76,.29,.65,.045],ROAD_NODES.villageBend]},
- {id:'west',pts:[ROAD_NODES.arrival,[.35,.815,0,.065],[.18,.80,0,.061],[.04,.82,0,.060],[-.14,.83,0,.062]]},
- {id:'east',pts:[ROAD_NODES.eastFork,[.94,.43,.20,.074],[1.12,.42,.20,.078]]}
+ {id:'south',pts:[[.64,1.18,0,.104],[.60,1.02,0,.105],[.55,.90,0,.103],ROAD_NODES.arrival,ROAD_NODES.fork]},
+ {id:'left',pts:[ROAD_NODES.fork,[.43,.61,0,.086],[.36,.55,0,.074],[.31,.49,0,.062],[.29,.45,0,.055],ROAD_NODES.orchard,[.245,.365,.35,.053],[.225,.32,.65,.050],[.21,.275,.95,.049],[.185,.23,1.25,.048],[.175,.19,1.55,.048],[.17,.155,1.85,.047],[.155,.12,2.05,.046],[.165,.08,2.25,.050],[.20,.04,2.4,.054],[.185,-.13,2.40,.056]]},
+ {id:'village',pts:[ROAD_NODES.fork,[.64,.63,0,.095],[.73,.55,0,.085],[.79,.49,.02,.073],ROAD_NODES.eastFork,ROAD_NODES.villageBend,[.87,.25,.25,.047],[.87,.205,.25,.043],[.87,.12,.25,.043],[.86,.025,.25,.046],[.86,-.13,.25,.050]]},
+ {id:'well',pts:[ROAD_NODES.orchard,[.35,.375,.25,.040],ROAD_NODES.gardenEntry,[.465,.368,.25,.034],[.49,.385,.25,.031]]},
+ {id:'orchard-loop',pts:[ROAD_NODES.gardenEntry,[.46,.295,.25,.028],[.54,.25,.25,.028],[.65,.23,.25,.030],[.77,.245,.25,.032],ROAD_NODES.villageBend]},
+ {id:'west',pts:[ROAD_NODES.arrival,[.35,.815,0,.058],[.18,.80,0,.052],[.04,.82,0,.052],[-.14,.83,0,.054]]},
+ {id:'east',pts:[ROAD_NODES.eastFork,[.94,.405,.10,.048],[1.12,.40,.10,.052]]}
 ];
 const ROAD_CELL=M(3);
 const ROAD_GRID=new Map();

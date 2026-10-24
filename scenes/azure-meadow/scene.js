@@ -2,7 +2,7 @@
 const cropParts=[],blossomItems=[],FARM_AREAS=[];
 function inFarm(x,z){return FARM_AREAS.some(p=>{let inside=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[2]>z)!=(b[2]>z)&&x<(b[0]-a[0])*(z-a[2])/(b[2]-a[2])+a[0])inside=!inside;}return inside;});}
 function farms(){
- const plots=[{pts:[[.005,.47],[.105,.43],[.23,.48],[.20,.56],[.015,.58]],rows:4,cols:6},{pts:[[.94,.40],[1.07,.39],[1.08,.53],[.95,.50]],rows:3,cols:4}];
+ const plots=[{pts:[[.005,.47],[.105,.43],[.23,.48],[.20,.56],[.015,.58]],rows:3,cols:5},{pts:[[.94,.40],[1.07,.39],[1.08,.53],[.95,.50]],rows:3,cols:4}];
  for(const plot of plots){
   const points=plot.pts.map(([u,v])=>onGround(u,v)),center=new V3();points.forEach(p=>center.add(new V3(...p)));center.divideScalar(points.length);
   FARM_AREAS.push(points);
@@ -12,7 +12,7 @@ function farms(){
   const uv=plot.pts;
   for(let row=0;row<plot.rows;row++)for(let col=0;col<plot.cols;col++){
    const a=(col+.65)/(plot.cols+.3),b=(row+.55)/(plot.rows+.2),u=(uv[0][0]*(1-a)+uv[1][0]*a)*(1-b)+(uv.at(-1)[0]*(1-a)+uv[2][0]*a)*b,v=(uv[0][1]*(1-a)+uv[1][1]*a)*(1-b)+(uv.at(-1)[1]*(1-a)+uv[2][1]*a)*b;
-   const[x,y,z]=onGround(u,v),s=R(.65,.87);
+   const[x,y,z]=onGround(u,v),s=R(1.0,1.30);
    const core=new THREE.SphereGeometry(s*.35,7,5);core.scale(1,.85,1);core.translate(x,y+s*.35,z);cropParts.push(coloredPart(core,'#a5b85a'));
    for(let k=0;k<7;k++){const angle=k/7*Math.PI*2,leaf=new THREE.SphereGeometry(s*.42,6,4);leaf.scale(.64,.19,1.30);leaf.rotateX(.35);leaf.rotateY(angle);leaf.translate(x+Math.sin(angle)*s*.36,y+s*.17,z+Math.cos(angle)*s*.36);cropParts.push(coloredPart(leaf,k%2?'#5a974c':'#85b65a'));}
   }
@@ -21,20 +21,29 @@ function farms(){
  const[x,y,z]=onGround(.12,.586);barrel(x,z,.68,1.35);const g=new THREE.SphereGeometry(.47,9,6);g.scale(.8,1.35,.8);g.translate(x+1.10,y+.60,z);detailMesh(g,'#bda36d');
 }
 function orchard(){
- const trees=[[.06,.12,2.0,3],[.04,.37,1.95,5],[.08,.70,1.9,9],[.015,.92,1.8,3],[.21,.08,1.85,9],[.35,.18,1.65,5],[.45,.25,1.65,9],[.52,.13,1.8,3],[.40,.085,1.8,5],[.58,.07,1.85,9],[.68,.34,2.0,5],[.73,.16,1.65,9],[.60,.18,2.0,3],[.78,.20,1.95,5],[.83,.08,1.7,3],[.96,.27,1.9,5],[.96,.77,2.05,9],[1.04,.92,2.2,3],[-.03,.60,2.0,5]];
+ const trees=[[.045,.12,2.45,3],[.045,.35,2.50,5],[.055,.69,2.30,9],[.015,.91,2.25,3],[.24,.055,2.20,9],[.355,.225,2.40,5],[.47,.24,2.35,9],[.44,.08,2.40,3],[.57,.12,2.50,5],[.67,.355,2.30,5],[.735,.18,2.20,9],[.69,.06,2.25,3],[.79,.13,2.20,5],[.94,.20,2.35,9],[1.015,.36,2.45,5],[.955,.73,2.70,9],[1.04,.92,2.65,3],[-.035,.57,2.35,5],[.15,.94,2.15,9],[.86,.055,2.25,3],[.52,-.025,2.55,5],[.33,-.025,2.45,9]];
  for(const[u,v,s,seed]of trees){
-  const[x,y,z]=onGround(u,v),st=stairsAt(x,z);if(st.s<st.half+M(.9)||Math.hypot(x-WELL.x,z-WELL.z)<WELL.r+M(.55))continue;
+  let[x,y,z]=onGround(u,v);const st=stairsAt(x,z);
+  if(st.s<st.half+s*.45+.6){const route=ROUTES.find(r=>r.id===st.route),row=route.rows.reduce((a,b)=>Math.hypot(x-a.x,z-a.z)<Math.hypot(x-b.x,z-b.z)?a:b),sign=(x-row.x)*row.nx+(z-row.z)*row.nz<0?-1:1;x=row.x+sign*row.nx*(row.w/2+s*.45+.8);z=row.z+sign*row.nz*(row.w/2+s*.45+.8);y=height(x,z);}
+  if(Math.hypot((x-WELL.x)/WELL.r,(z-WELL.z)/WELL.rz)<1.25)continue;
   broadleaf(x,z,s,seed);COLLIDERS.push({x,z,r:s*.42});
-  if(u>.25&&u<.76)for(const[cx,cy,cz,rx,ry,rz]of ANIME.treeSprays)for(let i=0;i<6;i++){
+  if(u>.25&&u<.76)for(const[cx,cy,cz,rx,ry,rz]of ANIME.treeSprays)for(let i=0;i<12;i++){
    const px=(cx+R(-.6,.6)*rx)*3*s,py=(cy+R(-.3,.6)*ry)*2*s,pz=(cz+R(-.6,.6)*rz)*2.7*s,t=treeItems.at(-1),co=Math.cos(t.ry),si=Math.sin(t.ry);
-   blossomItems.push({x:x+px*co+pz*si,y:y+3.5*s+py,z:z-px*si+pz*co,fruit:i===0,s:R(.14,.23)});
+   blossomItems.push({x:x+px*co+pz*si,y:y+3.5*s+py,z:z-px*si+pz*co,fruit:i===0,s:R(.23,.35)});
   }
  }
- for(let i=0;i<320;i++){
+ for(let i=0;i<460;i++){
   const[x,y,z]=onGround(R(-.12,1.12),R(-.05,1.05)),f=field(x,z);if(inFarm(x,z)||trailEdge(x,z)<M(.58)||f.rock>.22||Math.hypot(x-WELL.x,z-WELL.z)<WELL.r+1.6)continue;
   const slope=Math.max(Math.abs(height(x+.4,z)-y),Math.abs(height(x,z+.4)-y))/.4;if(slope>1.2)continue;
-  addBush(x,y-.1,z,R(.65,1.20),{sy:R(.5,.8),tint:R(-.06,.08)});
+  addBush(x,y-.1,z,R(.75,1.45),{sy:R(.5,.78),tint:R(-.06,.08)});
  }
+ for(const[u,v,rr]of[[.23,.65,.07],[.30,.68,.045],[.38,.46,.035],[.48,.47,.025],[.61,.48,.035],[.70,.42,.035],[.12,.40,.045],[.26,.28,.03],[.79,.31,.028],[.86,.62,.035]]){
+  for(let i=0;i<12;i++){const a=R(0,6.28),r=Math.sqrt(rand())*rr,[x,y,z]=onGround(u+Math.cos(a)*r,v+Math.sin(a)*r*.65),st=stairsAt(x,z);if(inFarm(x,z)||st.s<st.half+1.0)continue;
+   if(i<3)addBush(x,y-.08,z,R(.72,1.16),{sy:.60,tint:.04});
+   for(let k=0;k<7;k++)flowerItems.push({x:x+R(-.5,.5),y:y+.03,z:z+R(-.45,.45),s:R(.95,1.40),ry:R(0,6.28),c:rand()<.78?'#fff3d1':'#edce52'});
+  }
+ }
+
  for(let i=0;i<12500;i++){
   const[x,z]=[R(GX0*.8,GX1*.8),R(GZ0*.70,GZ1)],y=height(x,z),f=field(x,z),st=stairsAt(x,z);
   if(inFarm(x,z)||trailEdge(x,z)<.50||f.rock>.10||Math.hypot(x-WELL.x,z-WELL.z)<WELL.r+.5)continue;
@@ -54,7 +63,7 @@ function orchardBlossoms(){
  }
 }
 function meadowDetails(){
- for(const[u,v,w,h]of[[.22,.64,.035,.05],[.25,.76,.055,.08],[.32,.67,.032,.05],[.05,.83,.04,.06],[.15,.88,.04,.05],[.82,.79,.035,.06],[.91,.83,.045,.07],[.42,.36,.024,.03],[.72,.45,.025,.04],[.80,.28,.026,.04],[.37,.25,.028,.04]]){
+ for(const[u,v,w,h]of[[.205,.64,.044,.05],[.25,.68,.038,.055],[.285,.72,.032,.040],[.05,.83,.04,.06],[.15,.88,.04,.05],[.82,.79,.035,.06],[.91,.83,.045,.07],[.42,.36,.024,.03],[.72,.45,.025,.04],[.80,.28,.026,.04],[.37,.25,.028,.04]]){
   const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h),st=stairsAt(x,z);if(st.s<st.half+ww*.5+.4)continue;
   addStone(x,y-.12,z,ww,hh,ww*.7,{extra:13,chamfer:.18,moss:.18,noLine:true,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
  }
@@ -72,25 +81,27 @@ function clearLandmarkPlants(){
  }
 }
 FOL.leaf=['#2b7152','#57973d','#b5c94d'];FOL.shrub=['#2e6a4a','#5c943e','#a9bd49'];STONE.splice(0,STONE.length,...ruinPalette);
-function wellApproachFloor(){
- // Give the narrow earthen access its own continuous surface; the common
- // heightfield still owns walking height and the surrounding banks.
- const route=ROUTES.find(r=>r.id==='well'),pos=[];
- const point=(r,f)=>{const x=r.x+r.nx*r.w*.49*f,z=r.z+r.nz*r.w*.49*f;return[x,height(x,z)+.045,z];};
- for(let i=0;i<route.n-1;i++)for(let k=0;k<10;k++){
-  const A=point(route.rows[i],-1+k/5),B=point(route.rows[i],-1+(k+1)/5),C=point(route.rows[i+1],-1+(k+1)/5),D=point(route.rows[i+1],-1+k/5);
-  for(const p of[A,C,B,A,D,C])pos.push(...p);
+function embeddedRoadStones(){
+ // Worn stones sit in the same physical road floor. One small static mesh;
+ // their irregular spacing keeps the village roads from reading as clean strips.
+ const pos=[],colors=[],palette=['#c9b58e','#d5bd96','#bfa982','#dbc49e'].map(c=>new THREE.Color(c));
+ for(const route of ROUTES)for(let i=1;i<route.n-1;i++){
+  const row=route.rows[i],count=route.id==='south'?9:route.id==='left'||route.id==='village'?7:3;
+  for(let j=0;j<count;j++){
+   if(rand()<.18)continue;
+   const side=R(-.46,.46)*row.w,along=R(-.32,.32),x=row.x+row.nx*side+row.ux*along,z=row.z+row.nz*side+row.uz*along,y=height(x,z)+.025;
+   const r=R(.09,.24),angle=R(0,6.28),n=5,points=[];
+   for(let k=0;k<n;k++){const a=angle+k/n*6.283,rr=r*R(.80,1.15),xx=x+Math.cos(a)*rr,zz=z+Math.sin(a)*rr*.76;points.push(new V3(xx,height(xx,zz)+.028,zz));}
+   const tone=palette[Math.floor(rand()*palette.length)];
+   for(let k=0;k<n;k++)for(const v of[new V3(x,y,z),points[(k+1)%n],points[k]]){pos.push(v.x,v.y,v.z);colors.push(tone.r,tone.g,tone.b);}
+  }
  }
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();
- const mat=paint({color:'#e4c28a',shade:[.50,.42,.40],mid:[.80,.70,.62],band:[-.2,.18],albedo:`
-   vec2 q=vW.xz;float n=fbm(q*.32);diffuseColor.rgb=mix(${L('#d4ac70')},${L('#e4c28a')},smoothstep(.3,.7,n));
-   diffuseColor.rgb=mix(diffuseColor.rgb,${L('#b99765')},smoothstep(.60,.80,fbm(q*.8+5.))*.4);
- `});
- const mesh=new THREE.Mesh(g,mat);mesh.name='well-approach-ground';mesh.receiveShadow=true;scene.add(mesh);
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
+ const mat=paint({vertexColors:true,side:THREE.DoubleSide,shade:[.60,.51,.41],mid:[.87,.76,.60]}),mesh=new THREE.Mesh(g,mat);mesh.name='embedded-road-stones';mesh.receiveShadow=true;scene.add(mesh);
 }
 function build(){
  const[x,z]=P(.50,.81);HERO.x=x;HERO.z=z;HERO.face=-2.7;
- scene.add(buildGround());scene.add(buildCliffs());buildLedges();wellApproachFloor();wellModel();gardenWalls();gateAndVillage();farms();meadowDetails();orchard();
+ scene.add(buildGround());scene.add(buildCliffs());buildLedges();embeddedRoadStones();wellModel();gardenWalls();gateAndVillage();farms();meadowDetails();orchard();
  const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='meadow-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);
  if(cropParts.length){const crops=new THREE.Mesh(mergeGeometries(cropParts),paint({vertexColors:true,shade:[.52,.66,.55],mid:[.80,.89,.70]}));crops.castShadow=crops.receiveShadow=true;scene.add(crops);}
  clearLandmarkPlants();placeCoastPlants();orchardBlossoms();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();

@@ -2,13 +2,13 @@
 from pathlib import Path
 here=Path(__file__).resolve().parent
 r=(here.parent/'ruins/scene.js').read_text();w=r[:r.index('function PG(')]
-w=w.replace('const K = 2.4;','const K = 3.12;').replace('const PL = M(1.0);','const PL = M(.65);')
+w=w.replace('const K = 2.4;','const K = 3.12;').replace('const PL = M(1.0);','const PL = M(.25);')
 w=w.replace('GZ1 = 10 * K','GZ1 = 16 * K')
 a=w.index('// Trace the owner');b=w.index('const T2B',a);w=w[:a]+w[b:]
 a=w.index('const TERRACES = [');b=w.index('].map(T => {',a)
 w=w[:a]+'''const TERRACES=[
- {top:PL,base:0,ledge:true,masonry:true,soft:M(.7),lean:M(.16),pts:[[.405,.425,'b'],[.46,.46,'b'],[.55,.475,'b'],[.64,.465,'b'],[.72,.43,'b'],[.755,.39,'n'],[.735,.32,'n'],[.66,.295,'n'],[.54,.28,'n'],[.44,.305,'n'],[.39,.36,'b']]},
- {top:M(.62),base:0,ledge:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
+ {top:PL,base:0,ledge:false,masonry:true,soft:M(.9),lean:M(.16),pts:[[.405,.425,'b'],[.46,.46,'b'],[.55,.475,'b'],[.64,.465,'b'],[.72,.43,'b'],[.755,.39,'n'],[.735,.32,'n'],[.66,.295,'n'],[.54,.28,'n'],[.44,.305,'n'],[.39,.36,'b']]},
+ {top:M(.38),base:0,ledge:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
  {top:M(1.30),base:M(.30),ledge:true,soft:M(.9),lean:M(.20),pts:[[-.3,.44,'t'],[.05,.43,'b'],[.13,.39,'b'],[.18,.34,'b'],[.18,.26,'n'],[.13,.18,'n'],[-.3,.14,'t']]},
  {top:M(2.4),base:M(1.0),ledge:true,soft:M(1.1),lean:M(.25),pts:[[-.3,.18,'t'],[.13,.18,'b'],[.23,.21,'b'],[.32,.225,'b'],[.38,.20,'n'],[.42,.11,'n'],[.42,-.3,'t'],[-.3,-.3,'t']]},
  {top:PL,base:M(.15),ledge:true,soft:M(.75),lean:M(.18),pts:[[.42,.16,'b'],[.52,.19,'b'],[.67,.19,'b'],[.77,.18,'n'],[.84,.12,'n'],[1.2,-.3,'t'],[.40,-.3,'t']]},
@@ -20,7 +20,7 @@ a=w.index('const TRAILS = [');b=w.index('].map(pl =>',a)
 w=w[:a]+'''const TRAILS=[
 ''' +w[b:]
 a=w.index('const PLAZA =');b=w.index('// distance from the dirt',a)
-w=w[:a]+'''const PLAZA=poly([[.495,.395],[.54,.365],[.61,.37],[.64,.40],[.61,.428],[.54,.44],[.50,.43]],PL);
+w=w[:a]+'''const PLAZA=poly([[.46,.36],[.52,.33],[.61,.34],[.635,.38],[.61,.415],[.53,.43],[.47,.405]],PL);
 const PLAZA_HOLE=poly([[2,2],[2.1,2],[2.1,2.1]],0);
 ''' +w[b:]
 a=w.index('  // The authored court');b=w.index('  return { y, top, rock };',a)

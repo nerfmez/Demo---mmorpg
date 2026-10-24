@@ -25,7 +25,7 @@ hero=re.sub(r'function blocked\(x, z\) \{.*?\n\}', '''function blocked(x,z){
  if(x<GX0+3||x>GX1-3||z<GZ0+3||z>GZ1-2)return true;
  const y=height(x,z),s=Math.max(Math.abs(height(x+.3,z)-y),Math.abs(height(x,z+.3)-y))/.3;
  if(s>1.25&&!stairsAt(x,z).inside)return true;
- return COLLIDERS.some(c=>{if(c.seg){const dx=c.x1-c.x,dz=c.z1-c.z,t=Math.max(0,Math.min(1,((x-c.x)*dx+(z-c.z)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-c.x-dx*t,z-c.z-dz*t)<c.r+.3;}if(!c.box)return Math.hypot(x-c.x,z-c.z)<c.r+.3;const dx=x-c.x,dz=z-c.z,co=Math.cos(c.ry),si=Math.sin(c.ry);return Math.abs(dx*co-dz*si)<c.w/2+.3&&Math.abs(dx*si+dz*co)<c.d/2+.3;});
+ return COLLIDERS.some(c=>{if(c.ellipse)return ((x-c.x)/(c.rx+.3))**2+((z-c.z)/(c.rz+.3))**2<1;if(c.seg){const dx=c.x1-c.x,dz=c.z1-c.z,t=Math.max(0,Math.min(1,((x-c.x)*dx+(z-c.z)*dz)/(dx*dx+dz*dz)));return Math.hypot(x-c.x-dx*t,z-c.z-dz*t)<c.r+.3;}if(!c.box)return Math.hypot(x-c.x,z-c.z)<c.r+.3;const dx=x-c.x,dz=z-c.z,co=Math.cos(c.ry),si=Math.sin(c.ry);return Math.abs(dx*co-dz*si)<c.w/2+.3&&Math.abs(dx*si+dz*co)<c.d/2+.3;});
 }''',hero,flags=re.S)
 runtime=r[r.index('function resize()'):].replace('  updatePetals(timeU.value);','').replace('ready: true','meadow: {ports:MEADOW_PORTS,junctions:ROAD_JUNCTIONS,routes:ROUTES}, ready: true')
 plantSource=(here.parent/'shell-beach/scene.js').read_text()

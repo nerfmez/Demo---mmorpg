@@ -10,7 +10,7 @@ let WELL=null;
 function detailMesh(g,color){g.deleteAttribute('uv');stoneParts.push(coloredPart(g,color));}
 function ringStone(x,y,z,inner,outer,a,b,h,color){
  const shape=new THREE.Shape();shape.moveTo(Math.cos(a)*outer,Math.sin(a)*outer);shape.absarc(0,0,outer,a,b,false);shape.lineTo(Math.cos(b)*inner,Math.sin(b)*inner);shape.absarc(0,0,inner,b,a,true);shape.closePath();
- const g=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:true,bevelThickness:.045,bevelSize:.055,bevelSegments:1,curveSegments:2,steps:1});g.rotateX(-Math.PI/2);g.translate(x,y,z);detailMesh(g,color);
+ const g=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:true,bevelThickness:.045,bevelSize:.055,bevelSegments:1,curveSegments:2,steps:1});g.rotateX(-Math.PI/2);g.scale(1,1,.56);g.translate(x,y,z);detailMesh(g,color);
 }
 function cylinderWood(x,y,z,rt,rb,h,color='#97734b',open=false){const g=new THREE.CylinderGeometry(rt,rb,h,12,1,open);g.translate(x,y,z);woodParts.push(coloredPart(g,color));}
 function barrel(x,z,r=.65,h=1.4,bucket=false,base=height(x,z)){
@@ -22,44 +22,50 @@ function barrel(x,z,r=.65,h=1.4,bucket=false,base=height(x,z)){
  else COLLIDERS.push({x,z,r:r+.05});
 }
 function wellModel(){
- const base=PL,[x,z]=P(.558,.375,base),r=wide(.503,.615,.38,base)/2,h=tall(x,z,base,.335),inner=r*.73;
+ const base=PL,[x,z]=P(.558,.385,base),r=wide(.503,.615,.38,base)/2,h=tall(x,z,base,.343),inner=r*.78;
  for(let row=0;row<3;row++)for(let i=0;i<18;i++){
   const a=(i+(row%2)*.5)/18*Math.PI*2+.008,b=a+Math.PI*2/18-.016;
   ringStone(x,base+row*h/3,z,inner,r,a,b,h/3-.045,pick(ruinPalette));
  }
  for(let i=0;i<16;i++){const a=i/16*Math.PI*2+.006;ringStone(x,base+h-.04,z,inner-.06,r+.15,a,a+Math.PI*2/16-.012,.30,pick(['#d4ccb4','#e0d6bd','#c7c0ab']));}
- const water=new THREE.Mesh(new THREE.CircleGeometry(inner*.99,36),paint({color:'#274e50',side:THREE.DoubleSide,shade:[.62,.72,.75],mid:[.80,.91,.89]}));water.rotation.x=-Math.PI/2;water.position.set(x,base+h*.31,z);water.name='well-water';scene.add(water);
- const glint=new THREE.TorusGeometry(inner*.70,.035,3,28,Math.PI*.76);glint.rotateX(-Math.PI/2);glint.translate(x,base+h*.31+.02,z);detailMesh(glint,'#77aaa3');
- const top=tall(x,z,base,.255),post=r*.82,depth=.52;
+ const water=new THREE.Mesh(new THREE.CircleGeometry(inner*.99,36).rotateX(-Math.PI/2).scale(1,1,.56),paint({color:'#274e50',side:THREE.DoubleSide,shade:[.62,.72,.75],mid:[.80,.91,.89]}));water.position.set(x,base+h*.31,z);water.name='well-water';scene.add(water);
+ const glint=new THREE.TorusGeometry(inner*.70,.035,3,28,Math.PI*.76);glint.rotateX(-Math.PI/2);glint.scale(1,1,.56);glint.translate(x,base+h*.31+.02,z);detailMesh(glint,'#77aaa3');
+ const top=tall(x,z,base,.255),post=r*.78,depth=.68;
  for(const side of[-1,1]){
-  woodBox(x+side*post,base+top/2,z,.43,top,depth,'#a58a5d');
-  woodBox(x+side*post,base+top+.12,z,.65,.28,.70,'#b59b6d');
+  woodBox(x+side*post,base+top/2,z,.57,top,depth,'#a58a5d');
+  woodBox(x+side*post,base+top+.12,z,.72,.30,.82,'#b59b6d');
+  for(const yy of[.47,.84])woodBox(x+side*post,base+top*yy,z,.61,.14,.73,'#6e6b58');
+  for(const dx of[-.13,.08])woodBox(x+side*post+dx,base+top*.53,z+.35,.027,top*.73,.015,'#856d46');
   woodBeam(new V3(x+side*post,base+h+.30,z),new V3(x+side*post*.78,base+top-.42,z),.17,'#795e3e');
   for(const yy of[h+.40,top-.35]){const g=new THREE.SphereGeometry(.095,6,4);g.scale(1,1,.36);g.translate(x+side*post,base+yy,z+.29);detailMesh(g,'#6d6956');}
  }
- const axleY=base+top-.52,g=new THREE.CylinderGeometry(.26,.26,post*2+1.05,12);g.rotateZ(Math.PI/2);g.translate(x,axleY,z);woodParts.push(coloredPart(g,'#715b3d'));
+ const axleY=base+top-.52,g=new THREE.CylinderGeometry(.32,.32,post*2+1.20,12);g.rotateZ(Math.PI/2);g.translate(x,axleY,z);woodParts.push(coloredPart(g,'#715b3d'));
  for(let i=0;i<12;i++){const g=new THREE.TorusGeometry(.31,.045,5,14);g.rotateY(Math.PI/2);g.translate(x-.42+i*.077,axleY,z);woodParts.push(coloredPart(g,'#c4af7d'));}
  const bucketBase=base+h*.57,bucketZ=z+.12;
  woodBeam(new V3(x,axleY-.30,z+.10),new V3(x,bucketBase+1.30,bucketZ),.07,'#b8a16f');
  barrel(x,bucketZ,.48,.78,true,bucketBase);
  woodBeam(new V3(x+post+.54,axleY,z),new V3(x+post+.54,axleY-.90,z),.15,'#705b3d');
  cylinderWood(x+post+.54,axleY-.90,z+.20,.15,.15,.38,'#9b7d51');
- WELL={x,z,r,h,base,approach:{x,z:z+r+.9}};COLLIDERS.push({x,z,r:r+.22});
- barrel(x-r-1.05,z+r*.25,.77,1.8);barrel(x+r+1.15,z+r*.34,.58,1.32,true);COLLIDERS.push({x:x+r+1.15,z:z+r*.34,r:.65});
+ WELL={x,z,r,rz:r*.56,h,base,approach:{x:x-r-1.0,z}};COLLIDERS.push({x,z,ellipse:true,rx:r+.22,rz:r*.56+.22});
+ barrel(x-r-.90,z+r*.56*.9,.83,1.85);barrel(x+r+1.15,z+r*.34,.58,1.32,true);COLLIDERS.push({x:x+r+1.15,z:z+r*.34,r:.65});
 }
 function gardenWalls(){
- for(const T of TERRACES.filter(t=>t.masonry))for(const run of cliffRuns(T))for(let i=0;i<run.pts.length-1;i++){
-  const A=run.pts[i],B=run.pts[i+1],dx=B.x-A.x,dz=B.z-A.z,len=Math.hypot(dx,dz),n=Math.max(1,Math.ceil(len/M(.72))),yaw=Math.atan2(-dz,dx);
-  for(let k=0;k<n;k++){
-   const t=(k+.5)/n,x=A.x+dx*t,z=A.z+dz*t,st=stairsAt(x,z);if(st.s<st.half+.60)continue;
-   const y=height(x,z)-.15,wallH=Math.max(M(.35),T.top+M(.20)-y)+.10*Math.sin(i*.91),course=wallH/2;
-   for(let j=0;j<2;j++)block(x+(j?.16:0),y+j*course,z,len/n*.94,course-.04,M(.35),yaw,.14,{ink:.002*K,base:pick(ruinPalette)});
-   COLLIDERS.push({x,z,r:M(.31)});
+ // Broken, low field boundaries, rather than a formal wall around a raised stage.
+ const runs=[[[.42,.405],[.43,.435],[.47,.46],[.51,.475]],[[.55,.48],[.60,.485],[.65,.46],[.685,.425]],[[.72,.41],[.735,.37]]];
+ for(const pts of runs){
+  const points=pts.map(([u,v])=>{const[x,y,z]=onGround(u,v);return new V3(x,0,z);}),curve=new THREE.CatmullRomCurve3(points,false,'centripetal'),n=Math.ceil(curve.getLength()/M(.60));
+  for(let i=0;i<n;i++){
+   const t=(i+.5)/n,p=curve.getPoint(t),d=curve.getTangent(t),st=stairsAt(p.x,p.z);if(st.s<st.half+.68)continue;
+   const w=curve.getLength()/n*.93,h=M(.27)*(1+.20*Math.sin(i*1.7)),y=height(p.x,p.z)-.07,yaw=Math.atan2(-d.z,d.x);
+   block(p.x,y,p.z,w,h,M(.32),yaw,.20,{ink:.003*K,base:pick(ruinPalette)});
+   if(i%4!==2)block(p.x+.10,y+h-.04,p.z,w*.94,h*.72,M(.30),yaw,.30,{ink:.002*K,base:pick(ruinPalette)});
+   COLLIDERS.push({x:p.x,z:p.z,r:M(.25)});
+   if(i%3===0)addBush(p.x+M(.1),y+h*.7,p.z-M(.18),M(.23),{sy:.46,tint:.05});
   }
  }
 }
 function gateAndVillage(){
- const y=M(.65),[x,z]=P(.87,.215,y),opening=wide(.843,.898,.20,y)/2+1.15,h=tall(x,z,y,.105),archY=h-opening*1.28,thick=M(.36),depth=M(.70);
+ const y=PL,[x,z]=P(.87,.205,y),opening=wide(.846,.894,.20,y)/2+.35,h=tall(x,z,y,.115),archY=h-opening*1.15,thick=M(.29),depth=M(.48);
  for(const side of[-1,1]){
   for(let row=0;row<6;row++)block(x+side*(opening+thick*.54),y+row*archY/6,z,thick,archY/6-.035,depth,0,.08,{ink:.004*K,base:pick(ruinPalette)});
   solidBox(x+side*(opening+thick*.54),z,thick,depth);
@@ -77,7 +83,7 @@ function gateAndVillage(){
   const xx=x+side*(opening+thick*.58),bottom=y+archY;
   block(xx,bottom,z,thick*.92,Math.max(.15,capY-bottom),depth,0,.05,{ink:.002*K,base:'#c8bea7'});
  }
- for(const[u,v,w,hh,roof]of[[.62,.10,.060,.12,'#b97849'],[.69,.105,.057,.13,'#c18855'],[.745,.11,.045,.11,'#ad7248'],[.93,.08,.054,.12,'#bb8052'],[.98,.13,.05,.11,'#b57b4e'],[.78,.035,.052,.12,'#c48856']]){
+ for(const[u,v,w,hh,roof]of[[.62,.08,.045,.10,'#b97849'],[.69,.075,.045,.11,'#c18855'],[.745,.085,.040,.10,'#ad7248'],[.93,.06,.046,.10,'#bb8052'],[.98,.105,.045,.10,'#b57b4e'],[.78,.035,.052,.12,'#c48856']]){
   const[x,z]=P(u,v,y),width=wide(u-w/2,u+w/2,v,y),height1=tall(x,z,y,v-hh*.65),d=width*.80;
   woodBox(x,y+height1/2,z,width,height1,d,'#dfd2af');
   const yy=y+height1,rise=height1*.42,rr=width*.58,dd=d*.60,pos=[];

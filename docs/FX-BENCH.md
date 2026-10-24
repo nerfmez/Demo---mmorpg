@@ -226,5 +226,26 @@ drives the shield straight out. It is not a crescent.
   - for the rules' 3 s taunt, a red anime anger mark over its head and a red ring at its feet,
     pulsing until it ends.
 
+## Measured Riposte
+
+`src/fxtest/riposte-fx.js`, with a sword. Something has to strike the hero, so on the bench the
+nearest dummy winds up (a red "!" over it, 1 s) every 3.2 s and then strikes the hero through the
+rules' `damagePlayer` (bench-only; the hero is never brought below 30% life).
+- **Guard** (first press, the rules' `guardStance`, 0.8 s): the hero plays a bench-only
+  `guardBlock` action (the sword brought up across the front) and a curved wall of light (four
+  stacked arcs over the guard's 110 degree arc) stands in front of it, following its facing.
+- **The blow:** a red lunge streak from the attacker. If the guard catches it (the rules'
+  `playerHit` with `blocked`):
+  - a white-gold flash where blade meets blow, with sharp rays and an upright ring facing the
+    attacker;
+  - the wall breaks into shards;
+  - a short camera shake and the banner "ปัดป้อง!".
+  A blow the guard misses flashes red on the hero.
+- **Counter window** (the rules' 1.5 s ready window): a gold ring pulses at the hero's feet, the
+  blade glows gold and the cast button gets a gold halo (its cooldown shade is hidden, since the
+  counter ignores the cooldown).
+- **Counter** (second press inside the window): a big cut with a gold crescent (the slash-fx
+  palette `RIPOSTE_PALETTE`) and a hard gold burst on each target, with a shake.
+
 Owner review: Chain Spark has no contact burst on its targets, and the Frost Nova ground is a
 flat cel decal (scalloped edge, rim band, no inner lines) that recedes inward to melt.

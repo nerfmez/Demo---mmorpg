@@ -280,3 +280,23 @@ test('Shield Bash on the bench: the hero carries a shield; struck dummies are kn
     assert.equal(m.tauntT, 3);
   }
 });
+
+test('Measured Riposte on the bench: a dummy strikes on a telegraph; a timed guard blocks it and the second press counters', () => {
+  const g = createBench(data, 'riposte', []);
+  const events = [];
+  let countered = false;
+  for (let i = 0; i < 240; i++) {
+    if (i === 114) g.castSlot(0, { x: 5, z: 0 }); // raise the guard during the 1 s wind-up
+    g.benchStep(1 / 60);
+    const batch = [...g.drainEvents()];
+    events.push(...batch);
+    if (!countered && batch.some((e) => e.type === 'playerHit' && e.blocked)) { countered = true; assert.ok(g.player.riposte.readyUntil > g.time); g.castSlot(0, { x: 5, z: 0 }); }
+  }
+  const of = (t) => events.filter((e) => e.type === t);
+  assert.equal(of('benchWindup')[0].total, 1);
+  assert.ok(of('benchAttack').length >= 1);
+  assert.ok(of('guardStance').length === 1, 'the second press is the counter, not another guard');
+  assert.ok(of('playerHit')[0].blocked && of('playerHit')[0].amount < 30, 'the guard takes the edge off the blow');
+  assert.ok(of('hit').filter((e) => e.skill === 'riposte').length >= 2, 'the counter cuts what is in front');
+  assert.ok(g.player.hp >= g.player.maxHp * 0.3, 'the bench hero never falls');
+});

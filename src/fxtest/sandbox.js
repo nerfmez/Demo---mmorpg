@@ -6,13 +6,13 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash'];
+export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
 // Bench-only rule trial: every melee arc skill is one plain strike (no 1-2-3 combo, so no third-hit
 // finisher with its extra damage and knockback). Owner: "why does the third hit knock back? remove it".
 export const SINGLE_STRIKE = new Set(['slash']);
 const singleStrike = (data, skill) => SINGLE_STRIKE.has(skill) || data.skills.combat[skill]?.kind === 'melee_arc';
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword' };
+export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
 
 // Bench-only rule trial (owner: "not a pool"; then "fast and thin, no pierce, stacks on the same
 // target, on the bow"): Venom Mire is shown as a bow attack, Venom Arrow. Each hit adds a poison
@@ -78,6 +78,8 @@ export const LAYOUTS = {
   weakpoint: [[1.9, -0.25], [2.15, 0.3], [3.4, 2.4], [3.4, -2.4]],
   // three in the 90 degree, 2.2 m bash (knocked back), one behind them
   shield_bash: [[1.7, 0.2], [1.5, -0.9], [1.4, 1.0], [4.2, 0.2]],
+  // the first one attacks the hero in turns (to be blocked); the counter's 100 degree arc takes the rest
+  riposte: [[1.6, 0.1], [1.8, -0.8], [1.7, 0.9], [3.6, 1.6]],
 };
 // Facings per layout (default: every dummy faces the hero). Flank Thrust needs some backs turned.
 export const FACINGS = {
@@ -190,6 +192,29 @@ export function createBench(baseData, skill, mods = [], { seed = 71, fusion = nu
     g.benchStep = function (dt) {
       step.call(this, dt);
       for (const m of this.monsters) if (m.state === 'stunned' && (m.stateT += dt) >= m.stateDur) { m.state = 'idle'; m.benchStun = false; this.emit({ type: 'benchStunEnd', id: m.id }); }
+    };
+  }
+  // Measured Riposte: something to block. The first dummy winds up (1 s, the rules' windup state)
+  // and then strikes the hero through the rules' damagePlayer, so a guard can catch it.
+  if (data.skills.combat[skill]?.kind === 'counter_stance') {
+    const WIND = 1.0, EVERY = 3.2, HIT = 30;
+    let next = 1.2;
+    const attacker = g.monsters[0];
+    const step = g.benchStep;
+    g.benchStep = function (dt) {
+      step.call(this, dt);
+      const m = attacker;
+      if (m.state === 'windup' && (m.benchWind -= dt) <= 0) {
+        m.state = 'idle'; m.windup = null;
+        this.emit({ type: 'benchWindupEnd', id: m.id });
+        this.emit({ type: 'benchAttack', id: m.id, x: m.x, z: m.z });
+        this.damagePlayer(HIT, m);
+        this.player.hp = Math.max(this.player.hp, this.player.maxHp * 0.3); // the bench hero never falls
+      }
+      if ((next -= dt) <= 0 && m.state !== 'windup' && m.state !== 'stunned') {
+        next = EVERY; m.state = 'windup'; m.windup = { name: Object.keys(m.def.attacks || {})[0] }; m.benchWind = WIND;
+        this.emit({ type: 'benchWindup', id: m.id, total: WIND });
+      }
     };
   }
   if (fusion) g.fusion = installFusion(g, fusionRules, 0, 1);

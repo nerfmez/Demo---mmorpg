@@ -30,6 +30,7 @@ import { SunderFx, SUNDER_PALETTE } from './sunder-fx.js';
 import { MaceFx } from './mace-fx.js';
 import { ThrustFx } from './thrust-fx.js';
 import { BashFx } from './bash-fx.js';
+import { RiposteFx, RIPOSTE_PALETTE } from './riposte-fx.js';
 
 // the bench's rule trials (e.g. Venom Mire as a poison shot) on a copy of the game data
 const data = benchData(gameData);
@@ -49,6 +50,9 @@ const data = benchData(gameData);
   const bashWind = { ...rest, armL: [-0.7, 0, 0.7], elbowL: [-1.7, 0, 0], torso: [0.05, 0.5, 0], chest: [0, 0.25, 0], legL: [-0.15, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.06, 0, 0] };
   const bashHit = { ...rest, armL: [-1.5, 0, 0.15], elbowL: [-0.15, 0, 0], torso: [0.3, -0.45, 0], chest: [0.08, -0.2, 0], legL: [-0.75, 0, 0], kneeL: [0.9, 0, 0], legR: [0.4, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
   ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.28, bashWind], [0.42, bashHit], [0.7, bashHit], [1, rest]] };
+  // Measured Riposte's guard: the sword brought up across the front, held there for the guard
+  const guardUp = { ...rest, armR: [-1.25, 0.35, -0.15], elbowR: [-1.3, 0, 0], weapon: [0.6, 0, 1.25], armL: [-1.0, 0, 0.35], elbowL: [-1.2, 0, 0], torso: [0.05, -0.3, 0], chest: [0, -0.1, 0], legL: [-0.3, 0, 0], kneeL: [0.45, 0, 0], kneeR: [0.4, 0, 0], drop: [-0.08, 0, 0] };
+  ACTIONS.guardBlock = { hit: 0.2, keys: [[0, rest], [0.15, guardUp], [0.85, guardUp], [1, rest]] };
   ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.3, thWind], [0.45, thHit], [0.7, thHit], [1, rest]] };
   ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
 }
@@ -69,7 +73,7 @@ const state = {
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
 const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
-const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 } };
+const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 } };
 
 // ---------- renderer / scene ----------
 const stage = document.getElementById('stage');
@@ -171,6 +175,8 @@ const sunderFx = new SunderFx(scene, camera);
 const maceFx = new MaceFx(scene, camera);
 const thrustFx = new ThrustFx(scene, camera);
 const bashFx = new BashFx(scene, camera);
+const riposteFx = new RiposteFx(scene, camera);
+const lungeFrom = new THREE.Vector3(), lungeTo = new THREE.Vector3();
 const dummyPos = (id) => dummyOf(id);
 const markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })), marks = [];
 const headPt = new THREE.Vector3();
@@ -182,6 +188,7 @@ let shakeT = 0, shakeDur = 1, shakeAmp = 0;
 maceFx.onShake = (amp, time) => splitFx.onShake(amp, time);
 thrustFx.onShake = (amp, time) => splitFx.onShake(amp, time);
 bashFx.onShake = (amp, time) => splitFx.onShake(amp, time);
+riposteFx.onShake = (amp, time) => splitFx.onShake(amp, time);
 splitFx.onShake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 let powerRatio = 0; // the charge the last Power Draw left with
 const slashFx = new SlashFx(scene, camera);
@@ -236,7 +243,7 @@ const slashOpts = (s) => ({ palette: s.id === 'armor_cleave' ? SUNDER_PALETTE : 
 let swingStep = 0, lastSwingAt = -9;
 function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); maceFx.clear(); thrustFx.clear(); bashFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); maceFx.clear(); thrustFx.clear(); bashFx.clear(); riposteFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -291,6 +298,13 @@ function drain() {
     const s = skillDef();
     switch (e.type) {
       case 'castStart':
+        if (e.kind === 'counter_stance') { // Measured Riposte: a guard, or (inside the ready window) the counter cut
+          if (game.player.riposte?.readyUntil > game.time) {
+            heroAnim.play('slash', e.total + 0.3, heroWeapon, nextSwingStep(), e.total, 'melee_arc');
+            slashFx.swing(e.total, { ...slashOpts(s), palette: RIPOSTE_PALETTE }); riposteFx.counter(true); showBanner('สวนกลับ!');
+          } else heroAnim.play('guardBlock', e.total + s.guard.duration, heroWeapon, 0, e.total, e.kind);
+          break;
+        }
         heroAnim.play(BENCH_ACTION[e.skill] || e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
         if (e.kind === 'melee_arc') { primarySwing = true; if (!OWN_STRIKE.has(e.skill)) slashFx.swing(e.total, slashOpts(s)); } // a slam and a stab are not crescents
         if (e.kind === 'projectile') {
@@ -324,6 +338,13 @@ function drain() {
       case 'lineStrike': splitFx.strike(e); break;
       case 'benchWindup': maceFx.windup(e.id, e.total); break;
       case 'benchWindupEnd': maceFx.windupEnd(e.id); break;
+      case 'guardStance': riposteFx.guard(e.duration, s.guard.arc); break;
+      case 'benchAttack': { const p = game.player; riposteFx.lunge(lungeFrom.set(e.x, 1.2, e.z), lungeTo.set(p.x, 1.2, p.z)); break; }
+      case 'playerHit': {
+        const m = game.monsters.find((q) => q.state !== 'stunned' && Math.hypot(q.x - e.x, q.z - e.z) < 3) || game.monsters[0];
+        if (state.skill === 'riposte' && m) { riposteFx.struck(game.player, m, e.blocked, s.guard.readyDuration); if (e.blocked) showBanner('ปัดป้อง!'); }
+        break;
+      }
       case 'benchStunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('มึน!'); break;
       case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
       case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
@@ -371,6 +392,7 @@ function drain() {
         if (e.skill === 'flame_stream' && !e.dot) flameFx.lick(d.center);
         if (e.skill === 'frontline_split' && !e.dot) splitFx.cut(d.center);
         if (e.skill === 'interrupt_slam' && !e.dot) maceFx.hit(d.center, e.fromX, e.fromZ);
+        if (e.skill === 'riposte' && !e.dot) riposteFx.hit(d.center, e.fromX, e.fromZ);
         if (e.skill === 'shield_bash' && !e.dot) bashFx.hit(e.id, headPt.set(e.x, 1.1, e.z), e.fromX, e.fromZ, s.taunt?.duration || 3);
         if (e.skill === 'weakpoint' && !e.dot) {
           // the rules' positional bonus: struck from the side or behind the way it faces
@@ -626,6 +648,8 @@ function tick(real, draw = true) {
   if (state.skill === 'weakpoint') game.monsters.forEach((m, i) => { if (i < markBuf.length) { const o = markBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.facing = m.facing; marks.push(o); } });
   thrustFx.update(dt, marks);
   bashFx.update(dt, dummyPos);
+  riposteFx.update(dt, p, bladeBase, bladeTip);
+  castBtn.classList.toggle('ready', riposteFx.ready);
   flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
   const ownKind = recipeKind || (['venom_mire', 'charged_shot'].includes(state.skill) ? state.skill : null); // drawn by the bench's own effect

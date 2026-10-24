@@ -5,7 +5,7 @@
 // slides it back; the taunt (the rules' 3 s) shows as a red anger mark over its head and a red ring
 // at its feet, pulsing until it ends. Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32 } from './fx-common.js';
+import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 const EDGE = [0.85, 0.93, 1.0], GLOW = [0.4, 0.62, 1.0], RED = [1.0, 0.3, 0.22], RED_GLOW = [0.9, 0.1, 0.05];
 const BURSTS = 6, RAYS = 10, RING_PTS = 25, MARKS = 6;
@@ -86,7 +86,7 @@ export class BashFx {
       const k = b.t / b.life;
       b.sp.visible = k < 1;
       if (!b.sp.visible) continue;
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);
@@ -127,7 +127,7 @@ export class BashFx {
       s.t += dt;
       const p = posOf(s.id); if (!p) continue;
       const fade = Math.min(1, (s.duration - s.t) / 0.3), pop = Math.min(1, s.t / 0.12), beat = 1 + 0.12 * Math.max(0, Math.sin(this.t * 9));
-      if (n < MARKS) { const sp = this.marks[n++]; sp.visible = true; sp.position.set(p.x + 0.28, 2.3, p.z); sp.scale.setScalar(0.42 * (0.5 + 0.5 * pop) * beat); sp.material.opacity = fade; }
+      if (n < MARKS) { const sp = this.marks[n++]; sp.visible = true; place(sp, p.x + 0.28, 2.3, p.z); sp.scale.setScalar(0.42 * (0.5 + 0.5 * pop) * beat); sp.material.opacity = fade; }
       const sub = this.sub; sub.length = 0;
       for (let i = 0; i < RING_PTS; i++) { const a = (i / (RING_PTS - 1)) * 6.283; this.pts[i].set(p.x + Math.sin(a) * 0.55, 0.05, p.z + Math.cos(a) * 0.55); sub.push(this.pts[i]); }
       stripW = 0.045; this.glow.strip(sub, lineGlowW, 0.5 * fade, RED_GLOW); this.core.strip(sub, lineW, 0.8 * fade, RED);

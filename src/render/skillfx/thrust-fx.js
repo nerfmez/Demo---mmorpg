@@ -5,7 +5,7 @@
 // snaps shut on it and a camera shake. On the bench each dummy's weak side is marked on the ground
 // with a dashed half-ring behind it, so you can see where to stand. Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32 } from './fx-common.js';
+import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 const EDGE = [0.9, 0.96, 1.0], GLOW = [0.45, 0.65, 1.0], GOLD = [1.0, 0.85, 0.35], GOLD_GLOW = [1.0, 0.55, 0.12], MARK = [1.0, 0.7, 0.3];
 const BURSTS = 6, RAYS = 10, MARK_PTS = 5, DASHES = 7, LIFE = 0.16;
@@ -90,10 +90,10 @@ export class ThrustFx {
       b.sp.visible = k < 1; b.mk.visible = b.weak && b.t < 0.5;
       if (b.mk.visible) { // the diamond snaps shut on the target, then fades
         const m = Math.min(1, b.t / 0.08);
-        b.mk.position.copy(b.pos); b.mk.scale.setScalar(0.9 * (1.8 - 0.8 * m)); b.mk.material.opacity = Math.min(1, (0.5 - b.t) / 0.15); b.mk.material.rotation = (1 - m) * 0.8;
+        placeV(b.mk, b.pos); b.mk.scale.setScalar(0.9 * (1.8 - 0.8 * m)); b.mk.material.opacity = Math.min(1, (0.5 - b.t) / 0.15); b.mk.material.rotation = (1 - m) * 0.8;
       }
       if (!b.sp.visible) continue;
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);

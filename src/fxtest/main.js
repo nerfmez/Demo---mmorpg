@@ -15,49 +15,11 @@ import { disposeObject } from '../render/dispose.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
 import { fusionPayloads, fusionRecipe } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
-import { SlashFx } from './slash-fx.js';
-import { FireExtras } from './fire-extras.js';
-import { mulberry32 } from './fx-common.js';
-import { ChainFx } from './chain-fx.js';
-import { FrostFx } from './frost-fx.js';
-import { FlameFx, OCCLUDER_LAYER } from './flame-fx.js';
-import { ModFx } from './mod-fx.js';
-import { VenomFx } from './venom-fx.js';
-import { RainFx } from './rain-fx.js';
-import { PowerFx, setPowerFacing } from './power-fx.js';
-import { SplitFx } from './split-fx.js';
-import { SunderFx, SUNDER_PALETTE } from './sunder-fx.js';
-import { MaceFx } from './mace-fx.js';
-import { ThrustFx } from './thrust-fx.js';
-import { BashFx } from './bash-fx.js';
-import { RiposteFx, RIPOSTE_PALETTE } from './riposte-fx.js';
+import { mulberry32 } from '../render/skillfx/fx-common.js';
+import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
+import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
 
 const data = gameData;
-
-// Bench-only hero actions (the game's action table is untouched outside this page): Arrow Rain
-// draws and looses at the sky, leaning back; Venom Arrow is a plain bow shot.
-{
-  const [rest, raise, draw, loose] = ACTIONS.bow.keys.map((k) => k[1]);
-  const sky = (p, extra) => ({ ...p, torso: [-0.18, 0.7, 0], chest: [-0.28, 0.2, 0], head: [-0.6, -0.6, 0], ikR: [-0.05, 2.0, 0.42], ...extra });
-  // Power Draw: raise and draw, then hold at full draw for as long as the charge is held
-  ACTIONS.bowDraw = { hit: 1, keys: [[0, rest], [0.08, raise], [0.2, { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] }], [1, { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] }]] };
-  ACTIONS.bowLoose = { hit: 0.3, keys: [[0, { ...draw, ikL: [-0.12, 1.5, 0.02] }], [0.3, { ...loose, drop: [-0.05, 0, 0] }], [0.7, loose], [1, rest]] };
-  // Flank Thrust: a straight stab (pull the dagger back at the hip, lunge and drive it out), not a cut
-  const thWind = { ...rest, armR: [-0.5, 0, -0.25], elbowR: [-2.0, 0, 0], weapon: [1.57, 0, 0], armL: [-0.8, 0, 0.4], elbowL: [-1.1, 0, 0], torso: [0, -0.35, 0], chest: [0, -0.15, 0], legL: [-0.2, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.04, 0, 0] };
-  const thHit = { ...rest, armR: [-1.55, -0.1, 0.05], elbowR: [0, 0, 0], weapon: [1.57, 0, 0], armL: [0.3, 0, 0.5], elbowL: [-0.3, 0, 0], torso: [0.3, 0.35, 0], chest: [0.08, 0.15, 0], legL: [-0.8, 0, 0], kneeL: [1.0, 0, 0], legR: [0.45, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
-  // Shield Bash: load the shield arm back across the body, then drive the shield straight out
-  const bashWind = { ...rest, armL: [-0.7, 0, 0.7], elbowL: [-1.7, 0, 0], torso: [0.05, 0.5, 0], chest: [0, 0.25, 0], legL: [-0.15, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.06, 0, 0] };
-  const bashHit = { ...rest, armL: [-1.5, 0, 0.15], elbowL: [-0.15, 0, 0], torso: [0.3, -0.45, 0], chest: [0.08, -0.2, 0], legL: [-0.75, 0, 0], kneeL: [0.9, 0, 0], legR: [0.4, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
-  ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.28, bashWind], [0.42, bashHit], [0.7, bashHit], [1, rest]] };
-  // Measured Riposte's guard: the sword brought up across the front, held there for the guard
-  const guardUp = { ...rest, armR: [-1.25, 0.35, -0.15], elbowR: [-1.3, 0, 0], weapon: [0.6, 0, 1.25], armL: [-1.0, 0, 0.35], elbowL: [-1.2, 0, 0], torso: [0.05, -0.3, 0], chest: [0, -0.1, 0], legL: [-0.3, 0, 0], kneeL: [0.45, 0, 0], kneeR: [0.4, 0, 0], drop: [-0.08, 0, 0] };
-  ACTIONS.guardBlock = { hit: 0.2, keys: [[0, rest], [0.15, guardUp], [0.85, guardUp], [1, rest]] };
-  ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.3, thWind], [0.45, thHit], [0.7, thHit], [1, rest]] };
-  ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
-}
-const BENCH_ACTION = { arrow_rain: 'bowSky', venom_mire: 'bow', charged_shot: 'bowLoose', frontline_split: 'slam', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash' };
-// skills whose melee contact is not the Slash crescent (they draw their own effect on each 'slash')
-const OWN_STRIKE = new Set(['weakpoint', 'interrupt_slam', 'shield_bash']);
 
 const params = new URLSearchParams(location.search);
 const state = {
@@ -71,7 +33,6 @@ const state = {
 };
 const MAX_MODS = data.mods.maxModsPerSkill || 2;
 const ELEMENT_TH = { fire: 'ไฟ', cold: 'น้ำแข็ง', lightning: 'สายฟ้า', physical: 'กายภาพ', poison: 'พิษ', arcane: 'เวท' };
-const ELEMENT_COLOR = { fire: '#ff9a4a', cold: '#9fe0ff', lightning: '#ffe56a', physical: '#ffffff', poison: '#9be36a', arcane: '#d6a6ff' };
 const VIEW = { slash: { cx: 4.4, cz: 0.6, w: 13.5, d: 6 }, firebolt: { cx: 5.6, cz: 0, w: 14, d: 6 }, chain_spark: { cx: 5.6, cz: 0.4, w: 16, d: 7 }, frost_nova: { cx: 0.8, cz: 0, w: 12.5, d: 9 }, flame_stream: { cx: 2.8, cz: 0.6, w: 8, d: 5.5 }, venom_mire: { cx: 5.4, cz: 0, w: 14, d: 6.5 }, arrow_rain: { cx: 4.2, cz: 0.6, w: 13, d: 8 }, charged_shot: { cx: 7.5, cz: 0, w: 18, d: 7 }, frontline_split: { cx: 2.4, cz: 0, w: 9, d: 6 }, armor_cleave: { cx: 1.6, cz: 0.4, w: 7.5, d: 5.5 }, interrupt_slam: { cx: 1.4, cz: 0.6, w: 7, d: 5.5 }, weakpoint: { cx: 1.8, cz: 0, w: 7, d: 6.5 }, shield_bash: { cx: 2.0, cz: 0.3, w: 7.5, d: 6 }, riposte: { cx: 1.4, cz: 0.4, w: 7, d: 6 } };
 
 // ---------- renderer / scene ----------
@@ -162,53 +123,28 @@ const aimMark = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.45, 32), new THREE
 aimMark.rotation.x = -Math.PI / 2; aimMark.position.y = 0.025; scene.add(aimMark);
 
 // ---------- effects ----------
-const chainFx = new ChainFx(scene, camera);
-const frostFx = new FrostFx(scene, camera);
-const flameFx = new FlameFx(scene, camera, renderer);
-const modFx = new ModFx(scene, camera);
-const venomFx = new VenomFx(scene, camera);
-const rainFx = new RainFx(scene, camera);
-const powerFx = new PowerFx(scene, camera);
-const splitFx = new SplitFx(scene, camera);
-const sunderFx = new SunderFx(scene, camera);
-const maceFx = new MaceFx(scene, camera);
-const thrustFx = new ThrustFx(scene, camera);
-const bashFx = new BashFx(scene, camera);
-const riposteFx = new RiposteFx(scene, camera);
-const lungeFrom = new THREE.Vector3(), lungeTo = new THREE.Vector3();
-const dummyPos = (id) => dummyOf(id);
-const markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })), marks = [];
-const headPt = new THREE.Vector3();
-const headOf = (id) => { const d = dummyOf(id); return d ? headPt.set(d.x, 2.1, d.z) : null; };
-const exposedBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, t: 0, full: 5 })), exposed = [];
 // a short camera shake for heavy hits (cosmetic; the bench camera is otherwise fixed)
 const camBase = new THREE.Vector3();
 let shakeT = 0, shakeDur = 1, shakeAmp = 0;
-maceFx.onShake = (amp, time) => splitFx.onShake(amp, time);
-thrustFx.onShake = (amp, time) => splitFx.onShake(amp, time);
-bashFx.onShake = (amp, time) => splitFx.onShake(amp, time);
-riposteFx.onShake = (amp, time) => splitFx.onShake(amp, time);
-splitFx.onShake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
-let powerRatio = 0; // the charge the last Power Draw left with
-const slashFx = new SlashFx(scene, camera);
-const fireX = new FireExtras(scene, camera);
+const shake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 const flameSlash = new FlameSlashFx(scene, camera);
-const bladeBase = new THREE.Vector3(), bladeTip = new THREE.Vector3(), bladeDir = new THREE.Vector3();
-// the sword's hilt-side and tip points this frame
-function bladePoints() {
-  const w = hero.bones?.weapon, p = game.player;
-  if (!w) { bladeBase.set(p.x, 1.1, p.z); bladeTip.set(p.x + Math.sin(p.facing), 1.1, p.z + Math.cos(p.facing)); return; }
-  w.updateWorldMatrix(true, false); w.getWorldPosition(bladeBase); w.getWorldDirection(bladeDir);
-  bladeTip.copy(bladeBase).addScaledVector(bladeDir, 1.0);
-  bladeBase.addScaledVector(bladeDir, 0.25);
-}
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
-let timers = [], primarySwing = false; // visual-only follow-ups (Multistrike swings)
-const SWING_LEAD = 0.12;
+// the skill effects, driven by the same director as the game (src/render/skill-fx.js)
+const fx = new SkillFx({
+  scene, camera, renderer, vfx,
+  game: () => game, anim: () => heroAnim, rig: () => hero, weapon: () => heroWeapon,
+  body: (id) => { const d = dummyOf(id); return d ? { x: d.x, z: d.z, h: 2.0 } : null; },
+  float: (x, y, z, text, color, big) => floatNumber(x, y, z, text, color, big),
+  banner: (text) => showBanner(text), shake,
+  showMarks: () => (state.skill === 'weakpoint' ? game.monsters : []),
+});
 
 // ---------- the bench (real rules) ----------
-let game = null, aimAngle = Math.PI / 2, lastNovaAt = -9, simTime = 0;
+let game = null, aimAngle = Math.PI / 2, simTime = 0;
+// projectile kinds the old renderer skips (drawn by the effects); a fused skill's wave too
+const skipSets = new Map();
+const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
   if (state.fusion && !fusionPayloads(data, FUSION, state.skill).includes(state.fusion)) state.fusion = null;
@@ -229,20 +165,8 @@ function rebuild() {
   renderPanel();
 }
 const skillDef = () => game.skills[0];
-// bench look for the Firebolt charge: keep only the smooth filled core (the same core the flying
-// ball shows) and hide the charge's noisy flame layers and the game's small gather wisps
-function smoothCharge(mesh) {
-  if (!mesh?.userData.v5) return;
-  mesh.material.visible = false;
-  for (const ch of mesh.children) if (ch.material?.uniforms?.uFilled?.value !== 1) ch.visible = false;
-}
-const fusedElement = () => (game.fusion ? game.fusion.payload.element : null);
-const slashOpts = (s) => ({ palette: s.id === 'armor_cleave' ? SUNDER_PALETTE : null, range: s.range, arc: s.arc, dir: swingStep === 0 ? 1 : -1, fusedElement: fusedElement(), where: () => ({ x: game.player.x, z: game.player.z, angle: game.player.facing }) });
-// visual only: quick consecutive swings alternate the arm's side (the rules stay one plain strike)
-let swingStep = 0, lastSwingAt = -9;
-function nextSwingStep() { swingStep = simTime - lastSwingAt < 1.2 ? (swingStep + 1) % 2 : 0; lastSwingAt = simTime; return swingStep; }
 function clearFx() {
-  chainFx.clear(); frostFx.clear(); flameFx.clear(); modFx.clear(); venomFx.clear(); rainFx.clear(); powerFx.clear(); splitFx.clear(); sunderFx.clear(); maceFx.clear(); thrustFx.clear(); bashFx.clear(); riposteFx.clear(); slashFx.clear(); fireX.clear(); flameSlash.clear(); timers = [];
+  fx.clear(); flameSlash.clear();
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -264,7 +188,7 @@ function castUp() {
   if (!state.holding) return;
   state.holding = false;
   const c = game.player.charging;
-  if (c) { powerRatio = Math.min(1, c.t / c.skill.charge.duration); powerFx.release(powerRatio); game.releaseCharge(0, aimPoint()); } // a charged shot looses at its charge
+  if (c) { fx.release(Math.min(1, c.t / c.skill.charge.duration)); game.releaseCharge(0, aimPoint()); } // a charged shot looses at its charge
   else game.cancelChannel();
   drain();
 }
@@ -294,115 +218,36 @@ function showBanner(text) { banner = text; bannerT = 1.2; const b = document.get
 // ---------- core events -> effects ----------
 function drain() {
   for (const e of game.drainEvents()) {
-    const s = skillDef();
-    switch (e.type) {
-      case 'castStart':
-        if (e.kind === 'counter_stance') { // Measured Riposte: a guard, or (inside the ready window) the counter cut
-          if (game.player.riposte?.readyUntil > game.time) {
-            heroAnim.play('slash', e.total + 0.3, heroWeapon, nextSwingStep(), e.total, 'melee_arc');
-            slashFx.swing(e.total, { ...slashOpts(s), palette: RIPOSTE_PALETTE }); riposteFx.counter(true); showBanner('สวนกลับ!');
-          } else heroAnim.play('guardBlock', e.total + s.guard.duration, heroWeapon, 0, e.total, e.kind);
-          break;
-        }
-        heroAnim.play(BENCH_ACTION[e.skill] || e.skill, e.total + 0.28, e.weapon || heroWeapon, e.kind === 'melee_arc' ? nextSwingStep() : e.step, e.total, e.kind);
-        if (e.kind === 'melee_arc') { primarySwing = true; if (!OWN_STRIKE.has(e.skill)) slashFx.swing(e.total, slashOpts(s)); } // a slam and a stab are not crescents
-        if (e.kind === 'projectile') {
-          vfx.beginCast(e, s.element);
-          if (s.element === 'fire') { fireX.gather(e.total); smoothCharge(vfx.castFlame?.mesh); }
-        }
-        if (e.kind === 'chain') chainFx.beginCharge(e.total, s.element);
-        if (e.kind === 'melee_line') splitFx.windup(e.total, s.range, s.width, s.element);
-        if (e.kind === 'nova') { frostFx.setElement(s.element); frostFx.beginCharge(game.player.x, game.player.z, e.total, s.radius); }
-        break;
-      case 'channelStart': heroAnim.play(e.skill, e.total + 0.28, 'staff', 0, e.total, 'channel_cone'); flameFx.begin(s, s.element); break;
-      case 'channelPulse': flameFx.pulse(e); break;
-      case 'channelEnd': flameFx.end(); heroAnim.action = null; break;
-      case 'chain': {
-        const last = e.points[e.points.length - 1];
-        const miss = e.points.length === 2 && !game.monsters.some((m) => Math.hypot(m.x - last[0], m.z - last[1]) < 0.05);
-        chainFx.play(e.points, e.element, staffTip(), miss);
-        break;
-      }
-      case 'nova': {
-        const targets = game.monsters.filter((m) => Math.hypot(m.x - e.x, m.z - e.z) - m.r <= e.radius).map((m) => ({ x: m.x, z: m.z }));
-        const echo = simTime - lastNovaAt < 1.2 && !frostFx.pendingCharge;
-        lastNovaAt = simTime;
-        frostFx.setElement(e.element);
-        frostFx.burst(e.x, e.z, e.radius, targets, echo ? 0.7 : 1);
-        if (echo) showBanner('สะท้อนซ้ำ!');
-        break;
-      }
-      case 'chargeStart': heroAnim.play('bowDraw', e.total * 3, e.weapon || heroWeapon, 0, null, 'projectile'); powerFx.setElement(s.element); powerFx.beginCharge(e.total); break;
-      case 'chargeEnd': if (!game.player.cast) { powerFx.endCharge(); } break;
-      case 'lineStrike': splitFx.strike(e); break;
-      case 'benchWindup': maceFx.windup(e.id, e.total); break;
-      case 'benchWindupEnd': maceFx.windupEnd(e.id); break;
-      case 'guardStance': riposteFx.guard(e.duration, s.guard.arc); break;
-      case 'benchAttack': { const p = game.player; riposteFx.lunge(lungeFrom.set(e.x, 1.2, e.z), lungeTo.set(p.x, 1.2, p.z)); break; }
-      case 'playerHit': {
-        const m = game.monsters.find((q) => q.state !== 'stunned' && Math.hypot(q.x - e.x, q.z - e.z) < 3) || game.monsters[0];
-        if (state.skill === 'riposte' && m) { riposteFx.struck(game.player, m, e.blocked, s.guard.readyDuration); if (e.blocked) showBanner('ปัดป้อง!'); }
-        break;
-      }
-      case 'stunned': maceFx.interrupted(e.id, headOf(e.id)?.clone(), e.duration); showBanner('มึน!'); break;
-      case 'area': if (e.kind === 'arrow_rain') rainFx.wave(e, s.element, game.player); break;
-      case 'burst': if (e.kind === 'arrow_rain') rainFx.burst(e); else if (e.kind === 'mod_burst') { modFx.burst(e); showBanner(e.element === 'cold' ? 'ผลึกแตก!' : 'ระเบิดเสริม!'); } break;
-      case 'trigger': showBanner('ร่ายเมื่อหลบ!'); break;
-      case 'fusionCharge':
-        // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
-        heroAnim.play(e.skill, e.total + 0.3, heroWeapon, nextSwingStep(), e.total, 'melee_arc');
-        flameSlash.beginCharge(e.total, game.fusion?.waveElement); // its own look: no Slash crescent, no Firebolt charge
-        primarySwing = true;
-        break;
-      case 'fusionRelease': flameSlash.release(); break;
-      case 'fusionCancel': flameSlash.cancel(); heroAnim.action = null; break;
-      case 'slash': {
-        if (e.skill === 'shield_bash') bashFx.bash(game.player.x, game.player.z, e.angle, e.range, e.arc);
-        if (e.skill === 'weakpoint') thrustFx.thrust(game.player.x, 1.15, game.player.z, e.angle, e.range);
-        if (e.skill === 'interrupt_slam') maceFx.slam(game.player.x, game.player.z, game.player.facing, s.range, s.arc);
-        const primary = primarySwing; primarySwing = false;
-        // Multistrike: each repeat is its own swing (alternating side) landing on the repeat's hit time
-        if (primary && !e.triggered && s.repeats) {
-          for (let k = 1; k <= s.repeats; k++) {
-            const at = simTime + k * s.repeatDelay - SWING_LEAD;
-            // each repeat replays this skill's own motion; its effect comes on the repeat's own 'slash'
-            timers.push({ at, fn: () => { heroAnim.play(BENCH_ACTION[e.skill] || e.skill, 0.3, heroWeapon, nextSwingStep(), SWING_LEAD, 'melee_arc'); if (!s.recipe && !OWN_STRIKE.has(e.skill)) slashFx.swing(SWING_LEAD, slashOpts(s)); } });
-          }
-        }
-        break;
-      }
-      case 'impact': {
-        // fire hits use the bench's round burst instead of the game's one-sided splash
-        if (e.kind === skillDef().recipe?.id && e.element === 'cold') frostFx.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); // only sparks (ice chips) on a hit
-        else if (e.kind === 'venom_mire') venomFx.impact(e);
-        else if (e.kind === 'charged_shot') powerFx.impact(e, powerRatio);
-        else if (e.element === 'fire') fireX.impact(e.x, 1.0, e.z, e.kind === skillDef().recipe?.id); else vfx.impact(e);
-        break;
-      }
-      case 'poisonStack': { const d = dummyOf(e.id); if (d) floatNumber(d.x, 2.5, d.z, 'พิษ ×' + e.stacks, ELEMENT_COLOR.poison, e.stacks >= 5); break; }
-      case 'fusion': modFx.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element }); break;
-      case 'hit': {
-        const d = dummyOf(e.id); if (!d) break;
-        const el = e.element || 'physical';
-        d.pop = 1; d.popColor.set(ELEMENT_COLOR[el] || '#ffffff'); d.shake = 0.3;
-        floatNumber(d.x, 2.1, d.z, Math.round(e.amount) + (e.crit ? '!' : ''), ELEMENT_COLOR[el] || '#fff', e.crit);
-        stats.hits++; stats.total += e.amount; stats.byElement[el] = (stats.byElement[el] || 0) + e.amount;
-        if (stats.last) { stats.last.hits++; stats.last.total += e.amount; }
-        if (e.skill === 'flame_stream' && !e.dot) flameFx.lick(d.center);
-        if (e.skill === 'frontline_split' && !e.dot) splitFx.cut(d.center);
-        if (e.skill === 'interrupt_slam' && !e.dot) maceFx.hit(d.center, e.fromX, e.fromZ);
-        if (e.skill === 'riposte' && !e.dot) riposteFx.hit(d.center, e.fromX, e.fromZ);
-        if (e.skill === 'shield_bash' && !e.dot) bashFx.hit(e.id, headPt.set(e.x, 1.1, e.z), e.fromX, e.fromZ, s.taunt?.duration || 3);
-        if (e.skill === 'weakpoint' && !e.dot) {
-          // the rules' positional bonus: struck from the side or behind the way it faces
-          const m = game.monsters.find((q) => q.id === e.id), weak = !!m && (e.fromX - m.x) * Math.sin(m.facing) + (e.fromZ - m.z) * Math.cos(m.facing) < 0;
-          thrustFx.hit(d.center, Math.atan2(d.x - e.fromX, d.z - e.fromZ), weak);
-          if (weak) floatNumber(d.x, 2.6, d.z, 'จุดอ่อน!', '#ffd45a', true);
-        }
-        if (e.skill === 'armor_cleave' && !e.dot) { sunderFx.hit(d.center, e.fromX, e.fromZ); splitFx.onShake(0.06, 0.14); }
-        break;
-      }
+    // bench-only: the Riposte attacker's wind-up (the game's monsters telegraph their own)
+    if (e.type === 'benchWindup') { fx.mace.windup(e.id, e.total); continue; }
+    if (e.type === 'benchWindupEnd') { fx.mace.windupEnd(e.id); continue; }
+    if (e.type === 'fusionCharge') {
+      // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
+      heroAnim.play(e.skill, e.total + 0.3, heroWeapon, fx.nextSwingStep(), e.total, 'melee_arc');
+      flameSlash.beginCharge(e.total, game.fusion?.waveElement); // its own look: no Slash crescent, no Firebolt charge
+      fx.primarySwing = true;
+      continue;
     }
+    if (e.type === 'fusionRelease') { flameSlash.release(); continue; }
+    if (e.type === 'fusionCancel') { flameSlash.cancel(); heroAnim.action = null; continue; }
+    if (e.type === 'trigger') showBanner('ร่ายเมื่อหลบ!');
+    if (e.type === 'fusion') fx.mod.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element });
+    // a fused skill (bench prototype) keeps the old look on its own events
+    if (skillDef().recipe && e.type === 'impact' && e.kind === skillDef().recipe.id) {
+      if (e.element === 'cold') fx.frost.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); else if (e.element === 'fire') fx.fire.impact(e.x, 1.0, e.z, true); else vfx.impact(e);
+      continue;
+    }
+    const drawn = fx.event(e);
+    if (e.type === 'impact' && !drawn) vfx.impact(e);
+    if (e.type === 'hit') {
+      const d = dummyOf(e.id); if (!d) continue;
+      const el = e.element || 'physical';
+      d.pop = 1; d.popColor.set(ELEMENT_COLOR[el] || '#ffffff'); d.shake = 0.3;
+      floatNumber(d.x, 2.1, d.z, Math.round(e.amount) + (e.crit ? '!' : ''), ELEMENT_COLOR[el] || '#fff', e.crit);
+      stats.hits++; stats.total += e.amount; stats.byElement[el] = (stats.byElement[el] || 0) + e.amount;
+      if (stats.last) { stats.last.hits++; stats.last.total += e.amount; }
+    }
+    if (e.type === 'stunned') showBanner('มึน!');
   }
 }
 
@@ -564,7 +409,7 @@ function layout() {
   camBase.copy(camera.position);
   camera.updateProjectionMatrix();
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-  flameFx.resize(size.x, size.y, w, hgt);
+  fx.resize(size.x, size.y, w, hgt);
   vfx.setPointScale(hgt * renderer.getPixelRatio());
 }
 window.addEventListener('resize', layout);
@@ -609,50 +454,18 @@ function tick(real, draw = true) {
     d.pop = Math.max(0, d.pop - dt / 0.12); d.shake = Math.max(0, d.shake - dt);
     const chill = m.statuses.chill ? Math.min(1, m.statuses.chill.slow / 0.55) : 0;
     const burn = m.statuses.burn ? 1 : 0, stacks = m.statuses.poison?.stacks || (m.statuses.poison ? 1 : 0), toxic = Math.min(1, stacks / 3);
-    if (stacks) venomFx.poisoned(d.x, d.z, dt, stacks);
     d.mats.forEach((mat, k) => { mat.color.copy(d.orig[k]).lerp(ICY, 0.6 * chill).lerp(CHAR, 0.4 * burn).lerp(TOXIC, 0.3 * toxic); mat.emissive.copy(d.popColor).multiplyScalar(0.8 * d.pop).add(tint.setRGB(0.08 * chill + 0.03 * toxic, 0.16 * chill + 0.08 * toxic, 0.25 * chill)); });
     const sh = d.shake > 0 ? Math.sin(d.shake * 90) * 0.05 * (d.shake / 0.3) : 0;
     d.g.position.set(d.x + sh, 0, d.z);
     d.g.rotation.z = sh * 1.2;
   });
 
-  const t = staffTip();
-  chainFx.update(dt, t);
-  frostFx.update(dt);
-  const ahead = (t.x - p.x) * Math.sin(p.facing) + (t.z - p.z) * Math.cos(p.facing);
-  mouth.copy(t).setY(Math.max(1.5, Math.min(1.9, t.y)));
-  if (ahead < 0.75) mouth.x += Math.sin(p.facing) * (0.75 - ahead), mouth.z += Math.cos(p.facing) * (0.75 - ahead);
-  flameFx.update(dt, mouth, p.x, p.z, p.facing);
-  modFx.syncAreas(game.areas);
-  modFx.update(dt);
-  venomFx.syncProjectiles(game.projectiles, 'venom_mire', dt);
-  venomFx.update(dt, staffTip());
-  rainFx.update(dt);
-  setPowerFacing(p.facing);
-  const ch = p.charging;
-  powerFx.syncProjectiles(game.projectiles, 'charged_shot', dt);
-  powerFx.update(dt, staffTip(), ch ? Math.min(1, ch.t / ch.skill.charge.duration) : 0);
-  for (const t of timers) if (simTime >= t.at && !t.done) { t.done = true; t.fn(); }
-  timers = timers.filter((t) => !t.done || simTime - t.at < 2);
+  fx.update(dt);
+  castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;
-  slashFx.update(dt);
-  fireX.update(dt, staffTip());
-  bladePoints();
-  splitFx.update(dt, p, p.facing, bladeBase, bladeTip);
-  exposed.length = 0;
-  game.monsters.forEach((m, i) => { const ex = m.statuses.exposure; if (ex && i < exposedBuf.length) { const o = exposedBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.t = ex.t; o.full = skillDef().exposure?.duration || 5; exposed.push(o); } });
-  sunderFx.update(dt, exposed);
-  maceFx.update(dt, headOf);
-  marks.length = 0;
-  if (state.skill === 'weakpoint') game.monsters.forEach((m, i) => { if (i < markBuf.length) { const o = markBuf[i]; o.x = dummies[i].x; o.z = dummies[i].z; o.facing = m.facing; marks.push(o); } });
-  thrustFx.update(dt, marks);
-  bashFx.update(dt, dummyPos);
-  riposteFx.update(dt, p, bladeBase, bladeTip);
-  castBtn.classList.toggle('ready', riposteFx.ready);
-  flameSlash.update(dt, hero.bones?.weapon, bladeBase, bladeTip, game.projectiles, recipeKind);
+  flameSlash.update(dt, hero.bones?.weapon, fx.bladeBase, fx.bladeTip, game.projectiles, recipeKind);
   vfx.updateCast(dt, hero, !p.cast, p);
-  const ownKind = recipeKind || (['venom_mire', 'charged_shot'].includes(state.skill) ? state.skill : null); // drawn by the bench's own effect
-  vfx.syncProjectiles(ownKind ? { projectiles: game.projectiles.filter((pr) => pr.kind !== ownKind) } : game, dt, simTime);
+  vfx.syncProjectiles(game, dt, simTime, recipeKind ? benchSkip(recipeKind) : OWN_PROJECTILES);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;
   castBtn.classList.toggle('cooling', cd > 0.02);
@@ -671,7 +484,7 @@ function tick(real, draw = true) {
   statT -= real; if (statT <= 0) { statT = 0.25; renderStats(); }
 
   if (!draw) return;
-  flameFx.prerender();
+  fx.prerender();
   if (shakeT > 0) { shakeT = Math.max(0, shakeT - dt); const k = shakeAmp * (shakeT / shakeDur); camera.position.set(camBase.x + (Math.random() - 0.5) * 2 * k, camBase.y + (Math.random() - 0.5) * 2 * k, camBase.z + (Math.random() - 0.5) * 2 * k); }
   else camera.position.copy(camBase);
   renderer.render(scene, camera);
@@ -679,6 +492,6 @@ function tick(real, draw = true) {
 
 rebuild();
 requestAnimationFrame(frame);
-window.__fxtest = { state, get game() { return game; }, get hero() { return hero; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, chainFx,
+window.__fxtest = { state, get game() { return game; }, get hero() { return hero; }, castDown, castUp, dodge, resetBench, setSkill: (id) => { state.skill = id; state.mods = []; state.fusion = null; rebuild(); }, setFusion: (id) => { state.fusion = id; rebuild(); }, setMods: (mods) => { state.mods = mods; rebuild(); }, setAim: (a) => { aimAngle = a; game.aimAt(a); }, renderer, fx,
   // review hooks: freeze the clock and advance fixed 60 Hz steps, rendering only the last one
-  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, frostFx, flameFx, modFx, slashFx, fireX, vfx, staffTip };
+  freeze: (on = true) => { state.frozen = on; }, advance: (sec) => { const n = Math.max(1, Math.round(sec * 60)); for (let i = 0; i < n; i++) tick(1 / 60, i === n - 1); }, vfx, staffTip };

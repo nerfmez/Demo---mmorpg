@@ -5,7 +5,7 @@
 // poisoned target is tinted and gives off rising motes, more of them the more stacks it carries.
 // Positions come from the rules' projectiles and 'impact' events. Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, flashMaterial, tintFlash, BILLBOARD_VS, NOISE } from './fx-common.js';
+import { Ribbon, mulberry32, flashMaterial, tintFlash, BILLBOARD_VS, NOISE, place, placeV } from './fx-common.js';
 
 const SHOTS = 8, POPS = 6, HIST = 5, POP_LIFE = 0.3;
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
@@ -60,6 +60,8 @@ export class VenomFx {
     });
     this.popI = 0; this.charge = null; this.sparks = []; this.motes = [];
     this.rnd = mulberry32(57); this.t = 0;
+    // sparks and motes are recycled through free lists (no allocation per particle)
+    this.free = []; this.alive = (q) => q.life < q.max || (this.free.push(q), false);
     this.pts = Array.from({ length: HIST }, () => new THREE.Vector3()); this.sub = []; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.dir = new THREE.Vector3(); this.side = new THREE.Vector3(); this.up = new THREE.Vector3(0, 1, 0);
   }
@@ -76,7 +78,7 @@ export class VenomFx {
       s.live = true; s.t += dt;
       const y = 1.15, flick = 1 + Math.sin(s.t * 40) * 0.08;
       s.halo.visible = s.core.visible = true;
-      s.halo.position.set(pr.x, y, pr.z); s.core.position.set(pr.x, y, pr.z);
+      place(s.halo, pr.x, y, pr.z); place(s.core, pr.x, y, pr.z);
       s.halo.scale.setScalar(0.55 * flick); s.core.scale.setScalar(0.2 * flick);
       for (let i = HIST - 1; i > 0; i--) s.hist[i].copy(s.hist[i - 1]);
       s.hist[0].set(pr.x, y, pr.z); s.n = Math.min(HIST, s.n + 1);
@@ -84,7 +86,12 @@ export class VenomFx {
     }
     for (const s of this.shots) if (!s.live && s.id !== null) { s.id = null; s.halo.visible = s.core.visible = false; }
   }
-  spark(x, y, z, vx, vy, vz, max, w) { if (this.sparks.length < 300) this.sparks.push({ p: new THREE.Vector3(x, y, z), v: new THREE.Vector3(vx, vy, vz), life: 0, max, w }); }
+  take() { return this.free.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3(), life: 0, max: 1, w: 0, sway: 0 }; }
+  spark(x, y, z, vx, vy, vz, max, w) {
+    if (this.sparks.length >= 300) return;
+    const q = this.take(); q.p.set(x, y, z); q.v.set(vx, vy, vz); q.life = 0; q.max = max; q.w = w;
+    this.sparks.push(q);
+  }
   // the core 'impact' event: a ragged poison flash, a puff that eats away and falling streaks
   impact(e) {
     const p = this.pops[this.popI++ % POPS], r = this.rnd;
@@ -98,7 +105,8 @@ export class VenomFx {
   poisoned(x, z, dt, stacks = 1) {
     if (this.motes.length < 160 && this.rnd() < dt * 3 * stacks) {
       const r = this.rnd, a = r() * 6.283;
-      this.motes.push({ p: new THREE.Vector3(x + Math.cos(a) * 0.32, 0.5 + r() * 0.9, z + Math.sin(a) * 0.32), sway: r() * 6.28, life: 0, max: 0.7 + r() * 0.5, w: 0.07 + r() * 0.03 });
+      const q = this.take(); q.p.set(x + Math.cos(a) * 0.32, 0.5 + r() * 0.9, z + Math.sin(a) * 0.32); q.sway = r() * 6.28; q.life = 0; q.max = 0.7 + r() * 0.5; q.w = 0.07 + r() * 0.03;
+      this.motes.push(q);
     }
   }
   update(dt, tip) {
@@ -109,7 +117,7 @@ export class VenomFx {
     if (ch) {
       ch.t += dt;
       const c = Math.min(1, ch.t / ch.total);
-      this.tip.visible = true; this.tip.position.copy(tip); this.tip.scale.setScalar(0.12 + 0.35 * c * (1 + Math.sin(this.t * 30) * 0.06));
+      this.tip.visible = true; placeV(this.tip, tip); this.tip.scale.setScalar(0.12 + 0.35 * c * (1 + Math.sin(this.t * 30) * 0.06));
       if (this.rnd() < dt * 20) { // wisps drawn in toward the nock
         const r = this.rnd, a = r() * 6.283, el = (r() - 0.3) * 1.2, rad = 0.35;
         const px = tip.x + Math.cos(a) * Math.cos(el) * rad, py = tip.y + Math.sin(el) * rad, pz = tip.z + Math.sin(a) * Math.cos(el) * rad;
@@ -142,9 +150,9 @@ export class VenomFx {
       const on = p.t < POP_LIFE;
       p.flash.visible = on && p.t < 0.14; p.puff.visible = on;
       if (!on) continue;
-      p.flash.position.copy(p.pos); p.flash.quaternion.copy(this.camera.quaternion); p.flash.scale.setScalar(1.1 * (0.7 + p.t * 2));
+      placeV(p.flash, p.pos); p.flash.quaternion.copy(this.camera.quaternion); p.flash.scale.setScalar(1.1 * (0.7 + p.t * 2));
       p.flash.material.uniforms.uT.value = p.t / 0.14;
-      p.puff.position.copy(p.pos); p.puff.quaternion.copy(this.camera.quaternion); p.puff.scale.setScalar(0.7 + p.t * 1.8);
+      placeV(p.puff, p.pos); p.puff.quaternion.copy(this.camera.quaternion); p.puff.scale.setScalar(0.7 + p.t * 1.8);
       p.puff.material.uniforms.uT.value = p.t / POP_LIFE;
     }
     // sparks: short streaks that fall away
@@ -157,7 +165,7 @@ export class VenomFx {
       stripW = s.w; stripU = u;
       this.glow.strip(three, moteGlowW, 0.7 * (1 - u), MID); this.core.strip(three, moteCoreW, 1 - u * u, HOT);
     }
-    compact(this.sparks, living);
+    compact(this.sparks, this.alive);
     // motes rising off poisoned targets
     for (const m of this.motes) {
       m.life += dt; m.p.y += 0.7 * dt; m.p.x += Math.sin(m.sway + m.life * 7) * 0.25 * dt;
@@ -167,13 +175,15 @@ export class VenomFx {
       stripW = m.w * Math.sin(Math.PI * u); stripU = 0;
       this.glow.strip(three, moteGlowW, 0.8, MID); this.core.strip(three, moteCoreW, 1, HOT);
     }
-    compact(this.motes, living);
+    compact(this.motes, this.alive);
     this.core.end(); this.glow.end();
   }
   clear() {
     for (const s of this.shots) { s.id = null; s.halo.visible = s.core.visible = false; }
     for (const p of this.pops) { p.t = 9; p.flash.visible = p.puff.visible = false; }
-    this.tip.visible = false; this.charge = null; this.sparks.length = 0; this.motes.length = 0;
+    this.tip.visible = false; this.charge = null;
+    for (const q of this.sparks) this.free.push(q); for (const q of this.motes) this.free.push(q);
+    this.sparks.length = 0; this.motes.length = 0;
   }
   get busy() { return this.sparks.length > 0 || this.motes.length > 0 || this.shots.some((s) => s.id !== null); }
 }

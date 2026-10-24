@@ -29,6 +29,8 @@ import { prepareResidentWorld, updateResidentVisibility, restoreResidentVisibili
 import { prepareSpatialRegion } from './spatial-region.js';
 import { cachedHeroLook } from './hero-look-cache.js';
 import { cameraVisibility, sleepOffscreenMatrices } from './camera-visibility.js';
+import { SkillFx, OWN_PROJECTILES } from './skill-fx.js';
+import { fxGround, fxConfig, cachedGround } from './skillfx/fx-common.js';
 
 const CAM_OFFSET = new THREE.Vector3(0, 19, 13.5);
 // Open world: start building the neighbouring map this far (m) inside a seam, drop it
@@ -46,6 +48,8 @@ const ZONE_FOG = {
   ruins: '#d6d0e8',
   coast: '#c6e8f2',
 };
+
+const NO_MARKS = [];
 
 export class View {
   constructor(canvas, world, { quality = 'high', worlds = null } = {}) {
@@ -95,6 +99,19 @@ export class View {
 
     this.vfx = new Vfx(this.scene, world);
     this.frontierFx=new FrontierFx(this.scene,world);
+    // the skill effects (skill-fx.js): on the real ground, without point lights or the flame's occluder pass
+    fxConfig.lights = false; fxConfig.occluders = false;
+    fxGround.y = cachedGround((x, z) => world.groundY(x, z)); fxGround.flat = false;
+    this.skillFx = new SkillFx({
+      scene: this.scene, camera: this.camera, renderer: this.renderer, vfx: this.vfx,
+      game: () => this.game, anim: () => this.heroAnim, rig: () => this.hero, weapon: () => this.game.derived.weaponType,
+      body: (id) => this.monsterBody(id),
+      float: (x, y, z, text, color, big) => this.floatText?.(x, y, z, text, color, big),
+      banner: (text) => { const p = this.game.player; this.floatText?.(p.x, 2.6, p.z, text, '#fff2b0', true); },
+      shake: (amp) => this.addShake(amp * 3),
+      // Flank Thrust: the weak side of the locked target while the stab is slotted
+      showMarks: () => (this.game.skills.some((s) => s?.id === 'weakpoint') && this.game.target && !this.game.target.dead ? this.marksOne(this.game.target) : NO_MARKS),
+    });
 
     // The map's static scene; a neighbouring map streams in beside it (region.js).
     this.buildQueue = new FrameBuildQueue({budgetMs:STREAM_BUDGET_MS});
@@ -289,6 +306,8 @@ export class View {
     this.game = game;
     this.vfx.world = game.world;
     this.frontierFx.ground = game.world;
+    fxGround.y = cachedGround((x, z) => game.world.groundY(x, z));
+    this.skillFx.clear();
     for (const d of [this.targetRing, this.reticle, this.aimArrow]) d.userData.decal.world = game.world;
     for (const v of this.monsterViews.values()) this.releaseRig(v.rig);
     this.monsterViews.clear();
@@ -427,6 +446,8 @@ export class View {
     this.camera.fov = w / h < 1 ? 52 : 36;
     this.camera.updateProjectionMatrix();
     this.vfx.setPointScale(h * dpr);
+    const buf = this.renderer.getDrawingBufferSize(this._fxSize ||= new THREE.Vector2());
+    this.skillFx?.resize(buf.x, buf.y, w, h);
     this.syncPost();
   }
 
@@ -445,6 +466,7 @@ export class View {
 
   /** Draw the scene to the canvas, through the screen grade when it is on. */
   draw() {
+    this.skillFx.prerender();
     if (!this.post) return this.renderer.render(this.scene, this.camera);
     this.post.setHaze(this.fogColor);
     this.post.render(this.scene, this.camera, this.time);
@@ -498,44 +520,54 @@ export class View {
     return this.world.surfaceY(x, z);
   }
 
+  // a monster's position and height for the skill effects
+  monsterBody(id) {
+    const m = this.game?.monsterById?.(id) || this.game?.monsters.find((q) => q.id === id);
+    if (!m) return null;
+    const rig = this.monsterViews.get(id)?.rig, b = this._body || (this._body = { x: 0, z: 0, h: 1.6 });
+    b.x = m.x; b.z = m.z; b.h = Math.max(1.2, (rig?.height || 1.2) * (rig?.root.scale.y || 1) * 1.3);
+    return b;
+  }
+  marksOne(m) { const a = this._marks || (this._marks = [{ x: 0, z: 0, facing: 0 }]); a[0].x = m.x; a[0].z = m.z; a[0].facing = m.facing; return a; }
+
   handleEvent(e) {
     const g = this.game;
     const v = this.vfx;
-    this.frontierFx.event(e);
+    // the skill effects draw their skills' events; the old renderer keeps the rest
+    const drawn = g ? this.skillFx.event(e) : false;
+    if (!drawn) this.frontierFx.event(e);
     switch (e.type) {
       case 'channelStart':
-        this.heroAnim.play(e.skill, e.total + .28, e.weapon, 0, e.total, 'channel_cone');
+        if (!drawn) this.heroAnim.play(e.skill, e.total + .28, e.weapon, 0, e.total, 'channel_cone');
         break;
       case 'channelEnd':
         this.heroAnim.action = null;
         break;
       case 'chargeStart':
-        this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, 0, e.total, 'projectile');
+        if (!drawn) this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, 0, e.total, 'projectile');
         break;
       case 'chargeEnd':
-        this.heroAnim.action = null;
+        if (!drawn) this.heroAnim.action = null;
         break;
       case 'castStart':
+        if (drawn) break;
         this.heroAnim.play(e.skill, e.total + 0.28, e.weapon, e.step, e.total, e.kind);
         v.beginCast(e, g.skills.find((s) => s && s.id === e.skill)?.element);
         if (e.kind === 'melee_arc' || e.kind === 'melee_nova') v.beginSwing(e, g.skills.find((s) => s && s.id === e.skill)?.element);
         break;
       case 'slash':
-        v.slash(e, g.derived.weaponType);
-        if (e.finisher) {
-          this.addShake(e.hits ? 0.22 : 0.08);
-          if (e.hits) this.hitStop = Math.max(this.hitStop || 0, 0.09);
-        } else if (e.triggered) this.addShake(0.05);
+        if (!drawn) v.slash(e, g.derived.weaponType);
+        if (e.triggered) this.addShake(0.05);
         break;
       case 'whirl':
         v.whirl(e);
         break;
       case 'nova':
-        v.nova({ ...e, approvedFrost: true });
+        if (!drawn) v.nova({ ...e, approvedFrost: true });
         this.addShake(0.1);
         break;
       case 'chain':
-        v.chain(e);
+        if (!drawn) v.chain(e);
         break;
       case 'allyStrike':
         v.bite(e);
@@ -560,10 +592,10 @@ export class View {
         this.addShake(0.08);
         break;
       case 'impact':
-        v.impact(e);
+        if (!drawn) v.impact(e);
         break;
       case 'hit': {
-        v.hitSpark(e);
+        if (!drawn) v.hitSpark(e);
         const mv = this.monsterViews.get(e.id);
         if (mv && !e.dot) {
           mv.flash = 0.12;
@@ -591,7 +623,7 @@ export class View {
         break;
       }
       case 'burst':
-        v.burst(e);
+        if (!drawn) v.burst(e);
         if (e.kind === 'slam') this.addShake(0.45);
         else if (e.kind === 'stone_burst') this.addShake(0.12);
         break;
@@ -644,7 +676,7 @@ export class View {
         break;
       }
       case 'stunned':
-        v.fx.burst(e.x, this.groundAt(e.x, e.z) + 1.4, e.z, 10, { color: 0xfff2a0, size: 0.25, speed: 2, life: 0.6, up: 0.4 });
+        if (!drawn) v.fx.burst(e.x, this.groundAt(e.x, e.z) + 1.4, e.z, 10, { color: 0xfff2a0, size: 0.25, speed: 2, life: 0.6, up: 0.4 });
         this.addShake(0.15);
         break;
       case 'enrage':
@@ -938,7 +970,8 @@ export class View {
       this.syncMonsters(dt, time);
       this.syncAllies(dt, time);
       this.syncDrops(dt, time);
-      this.vfx.syncProjectiles(g, dt, time);
+      this.vfx.syncProjectiles(g, dt, time, OWN_PROJECTILES);
+      this.skillFx.update(dt);
       this.vfx.syncAreas(g, dt, time);
       this.frontierFx.sync(g,dt,time);
       this.vfx.syncTelegraphs(g);

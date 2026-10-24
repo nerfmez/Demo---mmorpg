@@ -8,7 +8,7 @@
 // all scaled by the charge. Positions come from the rules' projectiles and 'impact' events.
 // Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, lookOf } from './fx-common.js';
+import { Ribbon, mulberry32, lookOf, place, placeV } from './fx-common.js';
 
 const SHOTS = 4, BURSTS = 6, RAYS = 12, RING_PTS = 17, ARC_PTS = 7, HIST = 7;
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
@@ -124,7 +124,7 @@ export class PowerFx {
       const pulse = ratio >= 1 ? 1 + Math.sin(this.t * 40) * 0.12 : 1;
       // a soft round glow at the arrow tip with a hot centre, swelling with the charge
       this.halo.visible = this.hot.visible = true;
-      this.halo.position.copy(tip); this.hot.position.copy(tip);
+      placeV(this.halo, tip); placeV(this.hot, tip);
       this.halo.scale.setScalar((0.25 + 0.85 * ratio) * pulse); this.hot.scale.setScalar((0.08 + 0.22 * ratio) * pulse);
       this.halo.material.opacity = 0.5 + 0.5 * ratio;
       // three arcs of light circling the arrow, widening and speeding up with the charge
@@ -171,7 +171,7 @@ export class PowerFx {
       b.sp.visible = k < 1;
       if (!b.sp.visible) continue;
       // the glow pops and fades; the rays shoot out, then thin from the centre outward
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.8 + 1.2 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.8 + 1.2 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);

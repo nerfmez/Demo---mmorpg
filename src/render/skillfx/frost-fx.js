@@ -2,7 +2,7 @@
 // crystals popping behind the front, mist riding it, chips, frozen crust on hit dummies,
 // then the frost recedes inward. Charge starts on castStart, the burst on the core 'nova' event.
 import * as THREE from 'three';
-import { mulberry32, clamp01, NOISE, BILLBOARD_VS } from './fx-common.js';
+import { mulberry32, clamp01, NOISE, BILLBOARD_VS, addLight, fxGround, place, conformPlane } from './fx-common.js';
 
 const SPREAD = 0.38, MELT0 = 1.25, MELT1 = 2.15, END = 2.4, CHIPS = 260;
 
@@ -63,6 +63,8 @@ function crystalGeo(seed) {
   return g;
 }
 
+const compact = (arr, alive) => { let w = 0; for (const x of arr) if (alive(x)) arr[w++] = x; arr.length = w; };
+
 export class FrostFx {
   constructor(scene, camera) {
     this.scene = scene; this.camera = camera;
@@ -102,8 +104,13 @@ export class FrostFx {
     this.quad = new THREE.PlaneGeometry(1, 1);
     this.chipMesh = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(0.06), new THREE.MeshToonMaterial({ color: '#d8f3ff', emissive: '#25506f' }), CHIPS);
     this.chipMesh.frustumCulled = false; this.chipMesh.count = 0; scene.add(this.chipMesh);
-    this.light = new THREE.PointLight('#bfe9ff', 0, 7, 1.6); scene.add(this.light);
+    this.light = addLight(scene, new THREE.PointLight('#bfe9ff', 0, 7, 1.6));
     this.novas = []; this.chips = []; this.rnd = mulberry32(5); this.time = 0; this.o = new THREE.Object3D();
+    // ice chips come from a fixed pool (no allocation while they fly)
+    this.chipPool = Array.from({ length: CHIPS }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), rot: new THREE.Euler(), spin: 0, life: 0, max: 1, s: 1, inward: false }));
+    this.chipFree = [...this.chipPool];
+    this.chipAlive = (c) => c.life < c.max || (this.chipFree.push(c), false);
+    this.novaAlive = (n) => !n.dead;
   }
   setElement(element) {
     const k = element === 'fire' ? 1 : element === 'poison' ? 2 : 0;
@@ -114,13 +121,14 @@ export class FrostFx {
   }
   makeNova(x, z, radius, strength) {
     const r = this.rnd;
-    const root = new THREE.Group(); root.position.set(x, 0, z); this.scene.add(root);
+    const root = place(new THREE.Group(), x, 0, z); this.scene.add(root);
     const S = radius / 4.2;
     const mat = new THREE.ShaderMaterial({ uniforms: { uR: { value: 0 }, uMelt: { value: 0 }, uEdgeGlow: { value: 1 }, uS: { value: S }, uElem: this.elem },
       vertexShader: `varying vec2 vP; uniform float uS; void main(){ vP=(uv*2.0-1.0)*6.0*uS; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
       fragmentShader: frostFS, transparent: true, depthWrite: false });
-    const frost = new THREE.Mesh(new THREE.PlaneGeometry(12 * S, 12 * S), mat);
-    frost.rotation.x = -Math.PI / 2; frost.position.y = 0.012 + this.novas.length * 0.002; frost.renderOrder = 1; root.add(frost);
+    const frost = new THREE.Mesh(new THREE.PlaneGeometry(12 * S, 12 * S, 24, 24), mat);
+    frost.rotation.x = -Math.PI / 2; frost.renderOrder = 1; root.add(frost);
+    conformPlane(frost, 0.012 + this.novas.length * 0.002); // over the real ground (slopes)
     const mists = [];
     for (let i = 0; i < 18; i++) {
       const m = new THREE.Mesh(this.quad, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uSeed: { value: r() * 50 }, uElem: this.elem }, vertexShader: BILLBOARD_VS, fragmentShader: mistFS, transparent: true, depthWrite: false }));
@@ -133,7 +141,7 @@ export class FrostFx {
   }
   addShard(n, lx, lz, tArr, size, height, tilt, breakAt, seed) {
     const r = mulberry32(seed);
-    const piv = new THREE.Group(); piv.position.set(lx, 0, lz);
+    const piv = new THREE.Group(), o = n.root.position; piv.position.set(lx, fxGround.y(o.x + lx, o.z + lz) - o.y, lz); // on the ground under it
     const m = new THREE.Group();
     piv.rotation.set(0, Math.atan2(lx, lz) + (r() - 0.5) * 0.6, 0);
     const count = height > 0.5 ? 1 + Math.floor(r() * 3) : 1 + Math.floor(r() * 2);
@@ -193,7 +201,10 @@ export class FrostFx {
     const r = this.rnd;
     for (let i = 0; i < count && this.chips.length < CHIPS; i++) {
       const a = r() * 6.283;
-      this.chips.push({ p: new THREE.Vector3(x, y, z), v: new THREE.Vector3(Math.sin(a) * speed * (0.4 + r()), up * (0.5 + r()), Math.cos(a) * speed * (0.4 + r())), rot: new THREE.Euler(r() * 6, r() * 6, r() * 6), spin: 6 + r() * 14, life: 0, max: 0.45 + r() * 0.4, s: s * (0.5 + r()) });
+      const c = this.chipFree.pop(); if (!c) break;
+      c.p.set(x, y, z); c.v.set(Math.sin(a) * speed * (0.4 + r()), up * (0.5 + r()), Math.cos(a) * speed * (0.4 + r())); c.rot.set(r() * 6, r() * 6, r() * 6);
+      c.spin = 6 + r() * 14; c.life = 0; c.max = 0.45 + r() * 0.4; c.s = s * (0.5 + r()); c.inward = false;
+      this.chips.push(c);
     }
   }
   update(dt) {
@@ -208,7 +219,12 @@ export class FrostFx {
         n.mat.uniforms.uR.value = (0.25 + 0.55 * c) * n.S;
         if (Math.floor(n.t / 0.025) !== Math.floor((n.t - dt) / 0.025) && this.chips.length < CHIPS) {
           const r = this.rnd, a = r() * 6.283, rr = 1.6 + r() * 0.8;
-          this.chips.push({ p: new THREE.Vector3(ox + Math.sin(a) * rr, 0.3 + r() * 1.2, oz + Math.cos(a) * rr), v: new THREE.Vector3(-Math.sin(a + 0.6) * rr * 4.5, -0.6, -Math.cos(a + 0.6) * rr * 4.5), rot: new THREE.Euler(), spin: 10, life: 0, max: 0.22, s: 0.6, inward: true });
+          const q = this.chipFree.pop();
+          if (q) {
+            q.p.set(ox + Math.sin(a) * rr, 0.3 + r() * 1.2, oz + Math.cos(a) * rr); q.v.set(-Math.sin(a + 0.6) * rr * 4.5, -0.6, -Math.cos(a + 0.6) * rr * 4.5); q.rot.set(0, 0, 0);
+            q.spin = 10; q.life = 0; q.max = 0.22; q.s = 0.6; q.inward = true;
+            this.chips.push(q);
+          }
         }
         for (const s of n.shards) this.shardPose(s, n.t - n.chargeTotal, 1e9);
         if (lightK < 2 * c) { lightK = 2 * c; lightPos = n.root.position; }
@@ -243,9 +259,9 @@ export class FrostFx {
       if (t > END) n.dead = true;
     }
     for (const n of this.novas) if (n.dead) this.disposeNova(n);
-    this.novas = this.novas.filter((n) => !n.dead);
+    compact(this.novas, this.novaAlive);
     this.light.intensity = lightK;
-    if (lightPos) this.light.position.set(lightPos.x, 1.2, lightPos.z);
+    if (lightPos) place(this.light, lightPos.x, 1.2, lightPos.z);
 
     for (const c of this.chips) {
       c.life += dt;
@@ -254,11 +270,11 @@ export class FrostFx {
       if (c.p.y < 0.03) { c.p.y = 0.03; c.v.multiplyScalar(0.3); c.v.y = Math.abs(c.v.y) * 0.4; }
       c.rot.x += c.spin * dt; c.rot.y += c.spin * 0.7 * dt;
     }
-    this.chips = this.chips.filter((c) => c.life < c.max);
+    compact(this.chips, this.chipAlive);
     let i = 0;
     for (const c of this.chips) {
       const u = c.life / c.max;
-      this.o.position.copy(c.p); this.o.rotation.copy(c.rot); this.o.scale.setScalar(c.s * (u > 0.7 ? (1 - u) / 0.3 : 1));
+      place(this.o, c.p.x, c.p.y, c.p.z); this.o.rotation.copy(c.rot); this.o.scale.setScalar(c.s * (u > 0.7 ? (1 - u) / 0.3 : 1));
       this.o.updateMatrix(); this.chipMesh.setMatrixAt(i++, this.o.matrix);
     }
     this.chipMesh.count = i; this.chipMesh.instanceMatrix.needsUpdate = true;
@@ -279,6 +295,6 @@ export class FrostFx {
     n.frost.geometry.dispose(); n.mat.dispose();
     for (const p of n.mists) p.m.material.dispose();
   }
-  clear() { for (const n of this.novas) this.disposeNova(n); this.novas = []; this.chips = []; this.pendingCharge = null; }
+  clear() { for (const n of this.novas) this.disposeNova(n); this.novas = []; for (const c of this.chips) this.chipFree.push(c); this.chips.length = 0; this.pendingCharge = null; }
   get busy() { return this.novas.length > 0 || this.chips.length > 0; }
 }

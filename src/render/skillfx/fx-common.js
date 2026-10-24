@@ -1,5 +1,51 @@
-// Shared pieces for the FX test bench effects (cosmetic only).
+// Shared pieces for the skill effects (cosmetic only), used by the game and the FX test bench.
+// The effects are written on a flat floor: every height they handle (a point, a sprite, a ribbon)
+// is metres above the ground under it, and fxGround.y lifts it onto the real ground when drawn.
+// The bench keeps the flat floor; the game points fxGround.y at the world's ground height.
 import * as THREE from 'three';
+
+export const fxGround = { y: (x, z) => 0, flat: true };
+// Point lights make every lit material in a scene heavier: the bench uses them for the glow on the
+// floor, the game (many lit materials, iPad) turns them off before creating the effects.
+// occluders: Flame Stream renders the scene's OCCLUDER_LAYER objects to hide its fire behind them
+// (the bench's dummies); the game skips that extra scene pass.
+export const fxConfig = { lights: true, occluders: true };
+export function addLight(scene, light) { if (fxConfig.lights) scene.add(light); return light; }
+// Puts an object at a ground-relative point (x, height above ground, z).
+export function place(obj, x, y, z) { obj.position.set(x, y + fxGround.y(x, z), z); return obj; }
+export function placeV(obj, v) { return place(obj, v.x, v.y, v.z); }
+// Bends a flat plane mesh lying on the ground (its own geometry, segmented, local Z pointing up or
+// down in the world) so every vertex sits offset metres above the real ground under it. Call after
+// placing it; a no-op on the bench's flat floor.
+const _o = new THREE.Vector3(), _u = new THREE.Vector3(), _w = new THREE.Vector3();
+export function conformPlane(mesh, offset = 0.03) {
+  if (fxGround.flat) return;
+  mesh.updateMatrixWorld(true);
+  const m = mesh.matrixWorld, pos = mesh.geometry.attributes.position;
+  _o.set(0, 0, 0).applyMatrix4(m); _u.set(0, 0, 1).applyMatrix4(m).sub(_o); // world step of one local z unit
+  if (Math.abs(_u.y) < 1e-6) return;
+  for (let i = 0; i < pos.count; i++) {
+    _w.set(pos.getX(i), pos.getY(i), 0).applyMatrix4(m);
+    pos.setZ(i, (fxGround.y(_w.x, _w.z) + offset - _w.y) / _u.y);
+  }
+  pos.needsUpdate = true;
+  mesh.geometry.computeBoundingSphere();
+}
+// Ground height lookups for fxGround.y: bilinear over a 0.5 m lattice whose corners are cached in a
+// fixed table (no allocation), so per-point ribbon lifts stay cheap on slopes.
+export function cachedGround(groundY, size = 1024) {
+  const CELL = 0.5, kx = new Int32Array(size).fill(0x7fffffff), kz = new Int32Array(size), val = new Float32Array(size);
+  const corner = (ix, iz) => {
+    const h = (((ix * 73856093) ^ (iz * 19349663)) >>> 0) % size;
+    if (kx[h] !== ix || kz[h] !== iz) { kx[h] = ix; kz[h] = iz; val[h] = groundY(ix * CELL, iz * CELL); }
+    return val[h];
+  };
+  return (x, z) => {
+    const fx = x / CELL, fz = z / CELL, ix = Math.floor(fx), iz = Math.floor(fz), u = fx - ix, w = fz - iz;
+    const a = corner(ix, iz), b = corner(ix + 1, iz), c = corner(ix, iz + 1), d = corner(ix + 1, iz + 1);
+    return (a * (1 - u) + b * u) * (1 - w) + (c * (1 - u) + d * u) * w;
+  };
+}
 
 export function mulberry32(a) {
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -42,12 +88,13 @@ export class Ribbon {
     for (let k = 0; k < n; k++) {
       const p = pts[k];
       _tan.subVectors(pts[Math.min(k + 1, n - 1)], pts[Math.max(k - 1, 0)]).normalize();
-      _view.subVectors(cam, p).normalize();
+      const lift = fxGround.y(p.x, p.z);
+      _view.set(cam.x - p.x, cam.y - p.y - lift, cam.z - p.z).normalize();
       _side.crossVectors(_tan, _view).normalize();
       const t = k / (n - 1), w = widthFn(t, k) * 0.5;
       for (let s = 0; s < 2; s++) {
         const sg = s ? 1 : -1, vi = this.v++;
-        this.pos[vi * 3] = p.x + _side.x * w * sg; this.pos[vi * 3 + 1] = p.y + _side.y * w * sg; this.pos[vi * 3 + 2] = p.z + _side.z * w * sg;
+        this.pos[vi * 3] = p.x + _side.x * w * sg; this.pos[vi * 3 + 1] = p.y + lift + _side.y * w * sg; this.pos[vi * 3 + 2] = p.z + _side.z * w * sg;
         this.uv[vi * 2] = t; this.uv[vi * 2 + 1] = sg;
         this.a[vi] = alpha; this.col[vi * 3] = tint[0]; this.col[vi * 3 + 1] = tint[1]; this.col[vi * 3 + 2] = tint[2];
       }

@@ -6,7 +6,7 @@
 // over its head; both fade as the exposure runs out.
 // Cosmetic only; the exposure and its time come from the rules.
 import * as THREE from 'three';
-import { Ribbon, mulberry32 } from './fx-common.js';
+import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 export const SUNDER_PALETTE = { hot: [1, 0.97, 0.88], body: [1.0, 0.66, 0.3], glow: [0.95, 0.42, 0.12] };
 const EDGE = [1.0, 0.72, 0.36], GLOW = [0.95, 0.42, 0.12], HOT = [1, 0.95, 0.8];
@@ -91,7 +91,7 @@ export class SunderFx {
       const k = b.t / b.life;
       b.sp.visible = k < 1;
       if (!b.sp.visible) continue;
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);
@@ -115,7 +115,7 @@ export class SunderFx {
     for (const e of exposed) {
       if (n < ICONS) {
         const ic = this.icons[n++], since = e.full - e.t, pop = Math.min(1, since / 0.15), fadeOut = Math.min(1, e.t / 0.5);
-        ic.visible = true; ic.position.set(e.x, 2.45 + Math.sin(this.t * 3 + e.x) * 0.05, e.z);
+        ic.visible = true; place(ic, e.x, 2.45 + Math.sin(this.t * 3 + e.x) * 0.05, e.z);
         ic.scale.setScalar(0.55 * (pop < 1 ? 0.6 + 0.6 * pop : 1 + 0.08 * Math.max(0, 1 - (since - 0.15) / 0.2)));
         ic.material.opacity = fadeOut;
       }

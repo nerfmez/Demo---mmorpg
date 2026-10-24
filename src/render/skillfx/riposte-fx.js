@@ -7,7 +7,7 @@
 // strike that gets through flashes red on the hero. The counter itself is a gold crescent (slash-fx
 // palette) with hard bursts on what it hits. Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32 } from './fx-common.js';
+import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 export const RIPOSTE_PALETTE = { hot: [1, 0.98, 0.9], body: [1.0, 0.82, 0.38], glow: [1.0, 0.6, 0.15] };
 const EDGE = [0.8, 0.92, 1.0], GLOW = [0.35, 0.6, 1.0], GOLD = [1.0, 0.86, 0.4], GOLD_GLOW = [1.0, 0.58, 0.12], RED = [1.0, 0.3, 0.2], RED_GLOW = [0.9, 0.1, 0.05];
@@ -120,7 +120,7 @@ export class RiposteFx {
       const k = b.t / b.life;
       b.sp.visible = k < 1;
       if (!b.sp.visible) continue;
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);

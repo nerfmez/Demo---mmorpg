@@ -5,7 +5,7 @@
 // (windup()/the red "!" warning remain for monsters that wind up an attack; a stunned target's
 // warning shatters.) Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32 } from './fx-common.js';
+import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 const EDGE = [1.0, 0.93, 0.7], GLOW = [0.95, 0.65, 0.25], WARN = [1.0, 0.25, 0.15], WARN_GLOW = [0.9, 0.12, 0.05];
 const BURSTS = 6, RAYS = 10, RING_PTS = 25, ICONS = 6, STARS = 4;
@@ -112,7 +112,7 @@ export class MaceFx {
       const k = b.t / b.life;
       b.sp.visible = k < 1;
       if (!b.sp.visible) continue;
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);
@@ -146,7 +146,7 @@ export class MaceFx {
       const head = headOf(ic.id); if (!head) continue;
       ic.t += dt;
       const u = Math.min(1, ic.t / ic.total), pop = Math.min(1, ic.t / 0.12);
-      ic.sp.visible = true; ic.sp.position.set(head.x, head.y + 0.35, head.z);
+      ic.sp.visible = true; place(ic.sp, head.x, head.y + 0.35, head.z);
       ic.sp.scale.setScalar(0.5 * (0.6 + 0.4 * pop) * (1 + 0.08 * Math.sin(ic.t * (8 + 16 * u))));
       const sub = this.sub; sub.length = 0;
       for (let i = 0; i < RING_PTS; i++) { const a = (i / (RING_PTS - 1)) * 6.283 * u; this.pts[i].set(head.x + Math.sin(a) * 0.55, 0.05, head.z + Math.cos(a) * 0.55); sub.push(this.pts[i]); }
@@ -159,7 +159,7 @@ export class MaceFx {
       const head = headOf(s.id) || s.head, fade = Math.min(1, (s.duration - s.t) / 0.15);
       for (let k = 0; k < STARS && n < this.stars.length; k++) {
         const sp = this.stars[n++], a = s.t * 7 + k * (6.283 / STARS);
-        sp.visible = true; sp.position.set(head.x + Math.cos(a) * 0.38, head.y + 0.22 + Math.sin(a * 2) * 0.04, head.z + Math.sin(a) * 0.38);
+        sp.visible = true; place(sp, head.x + Math.cos(a) * 0.38, head.y + 0.22 + Math.sin(a * 2) * 0.04, head.z + Math.sin(a) * 0.38);
         sp.scale.setScalar(0.3 * Math.min(1, s.t / 0.1) * (0.85 + 0.15 * Math.sin(this.t * 20 + k))); sp.material.opacity = Math.max(0, fade);
       }
     }

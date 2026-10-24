@@ -1205,10 +1205,12 @@ export class Vfx {
 
   // ---------- persistent visuals synced to the game ----------
 
-  syncProjectiles(game, dt, time) {
+  // skip: projectile kinds another renderer draws (the skill effects in skillfx/)
+  syncProjectiles(game, dt, time, skip = null) {
     const seen = this.seenProjectiles;
     seen.clear();
     for (const pr of game.projectiles) {
+      if (skip?.has(pr.kind)) continue;
       seen.add(pr.id);
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');

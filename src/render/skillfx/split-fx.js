@@ -7,7 +7,7 @@
 // that pops, rays thrown on along the cut, a ring) goes off on it. Then the lane and line fade.
 // Cosmetic only; sizes and timing come from the rules.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, lookOf } from './fx-common.js';
+import { Ribbon, mulberry32, lookOf, place, placeV, conformPlane } from './fx-common.js';
 
 const WAVE_T = 0.22, FADE = 0.5, CUTS = 8, RING_PTS = 21, BURSTS = 8, RAYS = 10;
 
@@ -78,7 +78,7 @@ export class SplitFx {
       fragmentShader: LANE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide });
     // the lane plane stands in a group turned to the aim: its uv.y runs from the hero to the far end
     this.lane = new THREE.Group(); this.lane.visible = false; scene.add(this.lane);
-    this.laneMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.laneMat);
+    this.laneMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 4, 20), this.laneMat);
     this.laneMesh.rotation.x = Math.PI / 2; this.laneMesh.renderOrder = 1; this.lane.add(this.laneMesh);
     // the flying crescent: a core (normal blend) and a soft additive glow behind it
     const geo = crescentGeometry(1.25, 2.6);
@@ -118,8 +118,9 @@ export class SplitFx {
   }
   placeLane(x, z, angle) {
     const w = this.wind || this.strikeAt; if (!w) return;
-    this.lane.position.set(x + Math.sin(angle) * w.range / 2, 0.03, z + Math.cos(angle) * w.range / 2);
+    place(this.lane, x + Math.sin(angle) * w.range / 2, 0.03, z + Math.cos(angle) * w.range / 2);
     this.lane.rotation.y = angle;
+    conformPlane(this.laneMesh, 0.03);
   }
   // the rules' 'lineStrike'
   strike(e) {
@@ -194,7 +195,7 @@ export class SplitFx {
         // the vertical crescent flying down the lane, fading out past its end
         const fly = Math.min(1, S.t / WAVE_T), wf = S.t < WAVE_T ? 0 : Math.min(1, (S.t - WAVE_T) / 0.12);
         this.wave.visible = wf < 1;
-        this.wave.position.set(S.x + this.dir.x * (0.2 + (S.range - 0.6) * fly - 0.9), 0.95, S.z + this.dir.z * (0.2 + (S.range - 0.6) * fly - 0.9));
+        place(this.wave, S.x + this.dir.x * (0.2 + (S.range - 0.6) * fly - 0.9), 0.95, S.z + this.dir.z * (0.2 + (S.range - 0.6) * fly - 0.9));
         const sc = 0.85 + 0.25 * fly; this.wave.scale.set(sc, sc, sc);
         this.waveCore.material.uniforms.uFade.value = wf; this.waveGlow.material.uniforms.uFade.value = wf;
         // each struck target bursts as the crescent's front reaches it
@@ -211,7 +212,7 @@ export class SplitFx {
       const k = b.t / b.life;
       b.sp.visible = k < 1;
       if (!b.sp.visible) continue;
-      b.sp.position.copy(b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
+      placeV(b.sp, b.pos); b.sp.scale.setScalar(b.size * (0.9 + 1.4 * Math.sqrt(k))); b.sp.material.opacity = 1 - k * k;
       const out = Math.min(1, k * 3.5), inner = Math.max(0, k * 1.4 - 0.3);
       for (const ray of b.rays) {
         three[0].copy(b.pos).addScaledVector(ray.d, ray.len * inner * 0.9); three[2].copy(b.pos).addScaledVector(ray.d, ray.len * out); three[1].copy(three[0]).lerp(three[2], 0.5);

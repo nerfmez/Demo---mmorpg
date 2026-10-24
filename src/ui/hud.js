@@ -294,9 +294,10 @@ export class Hud {
     setTimeout(() => b.remove(), cls === 'long' ? 4200 : 2800);
   }
 
-  float(x, y, z, text, cls) {
+  float(x, y, z, text, cls, color = null) {
     const el = h(`<div class="fnum ${cls || ''}"></div>`);
     el.textContent = text;
+    if (color) el.style.color = color;
     this.el.floats.appendChild(el);
     this.floats.push({ el, x, y: this.game.world.groundY(x, z) + y, z, t: 0, vx: (Math.random() - 0.5) * 30 });
     if (this.floats.length > 60) {

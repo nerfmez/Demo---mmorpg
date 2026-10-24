@@ -3,7 +3,7 @@
 // real cone and dissolves at its tail. Dummies (layer 1) are depth-tested so they stand inside
 // the fire with a readable rim. Driven by channelStart / channelPulse / channelEnd.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, clamp01, NOISE } from './fx-common.js';
+import { Ribbon, mulberry32, clamp01, NOISE, addLight, place, placeV, fxConfig, conformPlane } from './fx-common.js';
 
 export const OCCLUDER_LAYER = 1;
 const POOL = 260;
@@ -12,6 +12,9 @@ const PALETTES = {
   cold: { line: [0.08, 0.2, 0.45], red: [0.22, 0.46, 0.82], org: [0.42, 0.72, 0.97], yel: [0.72, 0.92, 1.0], wht: [0.97, 1.0, 1.0], smoke: [0.72, 0.82, 0.9], smokeLine: [0.4, 0.52, 0.64], glow: [0.5, 0.8, 1.0], rim: [0.9, 0.98, 1.0], ember: [0.75, 0.92, 1.0], heat: [0.55, 0.82, 1.0], heat2: [0.85, 0.96, 1.0], burnt: [0.78, 0.9, 0.97], light: '#bfe6ff' },
 };
 const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+const compact = (arr, alive) => { let w = 0; for (const x of arr) if (alive(x)) arr[w++] = x; arr.length = w; };
+let emberW = 0;
+const emberWidth = (x) => emberW * x;
 
 export class FlameFx {
   constructor(scene, camera, renderer) {
@@ -139,7 +142,7 @@ export class FlameFx {
           gl_FragColor = glow > 0.02 ? vec4(c, glow*0.7) : vec4(uBurnt, burnt*0.4); }`,
       transparent: true, depthWrite: false,
     });
-    this.heat = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), this.heatMat);
+    this.heat = new THREE.Mesh(new THREE.PlaneGeometry(16, 16, 24, 24), this.heatMat);
     this.heat.rotation.x = -Math.PI / 2; this.heat.renderOrder = 0; this.heat.visible = false; scene.add(this.heat);
 
     const emberFrag = `varying vec2 vUv; varying float vA; varying vec3 vT;
@@ -147,13 +150,19 @@ export class FlameFx {
     this.embers = new Ribbon(scene, camera, 3000, emberFrag, THREE.NormalBlending);
     this.embers.mesh.renderOrder = 11;
     this.occWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    this.fireLight = new THREE.PointLight('#ffae5a', 0, 8, 1.6); scene.add(this.fireLight);
-    this.tipLight = new THREE.PointLight('#ffb766', 0, 3, 2); scene.add(this.tipLight);
+    this.fireLight = addLight(scene, new THREE.PointLight('#ffae5a', 0, 8, 1.6));
+    this.tipLight = addLight(scene, new THREE.PointLight('#ffb766', 0, 3, 2));
     this.parts = []; this.sparks = []; this.rnd = mulberry32(9); this.t = 0;
+    // flame blobs and embers come from fixed pools (no allocation per particle)
+    this.partFree = Array.from({ length: POOL + 40 }, () => ({ p: new THREE.Vector3(), from: new THREE.Vector3(), v: new THREE.Vector3(), age: 0, life: 1, s0: 0, s1: 0, seed: 0, heat: 1, amt: 0, kind: 0, drive: 0 }));
+    this.sparkFree = Array.from({ length: 320 }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), age: 0, life: 1, w: 0 }));
+    this.partAlive = (q) => q.age < q.life || (this.partFree.push(q), false);
+    this.sparkAlive = (q) => q.age < q.life || (this.sparkFree.push(q), false);
+    this.seg = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.state = null; // {phase: 'wind'|'on'|'off', t, total, range, arc, element}
     this.tip = new THREE.Vector3(); this.origin = new THREE.Vector3(); this.fwd = new THREE.Vector3(1, 0, 0); this.side = new THREE.Vector3(0, 0, 1);
     this.size = new THREE.Vector2();
-    this._a = new THREE.Vector3(); this._b = new THREE.Vector3();
+    this._a = new THREE.Vector3(); this._b = new THREE.Vector3(); this._o = new THREE.Object3D(); this._prevColor = new THREE.Color();
     this.setPalette('fire');
   }
   setPalette(element) {
@@ -187,13 +196,20 @@ export class FlameFx {
   end() { if (this.state && this.state.phase !== 'off') { this.state.phase = 'off'; this.state.offT = 0; } }
   lick(center) {
     const r = this.rnd;
-    for (let i = 0; i < 2; i++) this.parts.push({ p: center.clone().add(this._a.set((r() - 0.5) * 0.4, 0.3, (r() - 0.5) * 0.4)), v: new THREE.Vector3(0, 1.8, 0), age: 0, life: 0.4, s0: 0.4, s1: 0.9, seed: r() * 50, heat: 0.8, amt: 0.6, kind: 1 });
+    for (let i = 0; i < 2; i++) {
+      const q = this.part(); if (!q) break;
+      q.p.copy(center).add(this._a.set((r() - 0.5) * 0.4, 0.3, (r() - 0.5) * 0.4)); q.v.set(0, 1.8, 0);
+      Object.assign(q, { age: 0, life: 0.4, s0: 0.4, s1: 0.9, seed: r() * 50, heat: 0.8, amt: 0.6, kind: 1 });
+    }
     this.ember(center, 1);
   }
   ember(p, spread) {
     const r = this.rnd;
-    if (this.sparks.length > 300) return;
-    this.sparks.push({ p: p.clone(), v: new THREE.Vector3((r() - 0.3) * 2.5 * spread, 1.5 + r() * 2.5, (r() - 0.5) * 2.5 * spread), age: 0, life: 0.5 + r() * 0.6, w: 0.025 + r() * 0.02 });
+    const sp = this.sparkFree.pop(); if (!sp) return;
+    sp.p.copy(p); sp.v.set((r() - 0.3) * 2.5 * spread, 1.5 + r() * 2.5, (r() - 0.5) * 2.5 * spread); sp.age = 0; sp.life = 0.5 + r() * 0.6; sp.w = 0.025 + r() * 0.02;
+    this.sparks.push(sp);
+  }
+  part() { const q = this.partFree.pop(); if (q) this.parts.push(q); return q;
   }
   inCone(x, z) {
     const s = this.state; if (!s) return false;
@@ -224,8 +240,11 @@ export class FlameFx {
     if (on) {
       const surge = 0.92 + 0.18 * Math.max(0, Math.sin(this.t * Math.PI * 2 * 7));
       if (this.nextEmit === 0 || this.nextEmit < this.t - 0.1) this.nextEmit = this.t;
-      while (this.t >= this.nextEmit) { const q = this.emitBlob((0.75 + 0.25 * power) * (0.9 + 0.2 * surge), surge, s), late = this.t - this.nextEmit; q.p.addScaledVector(q.v, late); q.age = late; this.nextEmit += (0.005 + r() * 0.005) / surge; }
-      if (r() < dt * 60) { const sd = r() < 0.5 ? -1 : 1, f = 3 + r() * 3, sdv = sd * (3 + r() * 3); this.parts.push({ p: tip.clone(), v: new THREE.Vector3(this.fwd.x * f + this.side.x * sdv, (r() - 0.3) * 3, this.fwd.z * f + this.side.z * sdv), age: 0, life: 0.07 + r() * 0.04, s0: 0.35, s1: 0.75, seed: r() * 50, heat: 1, amt: 0.5, kind: 3 }); }
+      while (this.t >= this.nextEmit) { const q = this.emitBlob((0.75 + 0.25 * power) * (0.9 + 0.2 * surge), surge, s), late = this.t - this.nextEmit; if (q) { q.p.addScaledVector(q.v, late); q.age = late; } this.nextEmit += (0.005 + r() * 0.005) / surge; }
+      if (r() < dt * 60) {
+        const sd = r() < 0.5 ? -1 : 1, f = 3 + r() * 3, sdv = sd * (3 + r() * 3), q = this.part();
+        if (q) { q.p.copy(tip); q.v.set(this.fwd.x * f + this.side.x * sdv, (r() - 0.3) * 3, this.fwd.z * f + this.side.z * sdv); Object.assign(q, { age: 0, life: 0.07 + r() * 0.04, s0: 0.35, s1: 0.75, seed: r() * 50, heat: 1, amt: 0.5, kind: 3 }); }
+      }
       if (this.t - this.lastEmber > 0.02) { this.lastEmber = this.t; const d = s.range * (0.6 + r() * 0.44), a = (r() - 0.5) * s.arc * 0.8; this._a.set(ox + (this.fwd.x * Math.cos(a) + this.side.x * Math.sin(a)) * d, 0.3 + r() * 0.6, oz + (this.fwd.z * Math.cos(a) + this.side.z * Math.sin(a)) * d); this.ember(this._a, 1.3); }
     } else this.nextEmit = 0;
 
@@ -244,9 +263,9 @@ export class FlameFx {
       }
       q.p.addScaledVector(q.v, dt);
     }
-    this.parts = this.parts.filter((q) => q.age < q.life);
+    compact(this.parts, this.partAlive);
     for (const sp of this.sparks) { sp.age += dt; sp.v.y -= 2.0 * dt; sp.v.multiplyScalar(1 - 1.2 * dt); sp.p.addScaledVector(sp.v, dt); }
-    this.sparks = this.sparks.filter((sp) => sp.age < sp.life);
+    compact(this.sparks, this.sparkAlive);
 
     // blobs -> pool
     const boil = this.t * 2.2, range = s?.range || 5;
@@ -256,7 +275,7 @@ export class FlameFx {
       const P = this.pool[i++], u = q.age / q.life;
       const dist = q.kind === 0 ? q.p.distanceTo(q.from) : 0;
       const sc = q.kind === 0 ? (q.s0 + dist * 0.62) * (1 - (0.25 * Math.max(0, u - 0.6)) / 0.4) : q.s0 + (q.s1 - q.s0) * (1 - Math.pow(1 - u, 2.0));
-      P.m.visible = true; P.m.position.copy(q.p); P.m.quaternion.copy(this.camera.quaternion); P.m.scale.setScalar(sc);
+      P.m.visible = true; placeV(P.m, q.p); P.m.quaternion.copy(this.camera.quaternion); P.m.scale.setScalar(sc);
       const far = q.kind === 0 ? THREE.MathUtils.smoothstep(dist, range * 0.66, range * 1.12) : 0;
       P.u.uAge.value = Math.max(u, far * 0.75); P.u.uSeed.value = q.seed; P.u.uBoil.value = boil; P.u.uHeat.value = q.heat * (1 - far * 0.8);
       const driven = q.kind === 0 && q.age < q.drive + 0.03;
@@ -271,7 +290,9 @@ export class FlameFx {
     for (const sp of this.sparks) {
       const u = sp.age / sp.life;
       this._a.copy(sp.p).addScaledVector(sp.v, -0.04);
-      this.embers.strip([this._a.clone(), sp.p.clone().lerp(this._a, 0.5), sp.p.clone()], (x) => sp.w * x * (1 - u * 0.5), 1 - u * u, this.emberTint);
+      this.seg[0].copy(this._a); this.seg[1].copy(sp.p).lerp(this._a, 0.5); this.seg[2].copy(sp.p);
+      emberW = sp.w * (1 - u * 0.5);
+      this.embers.strip(this.seg, emberWidth, 1 - u * u, this.emberTint);
     }
     this.embers.end();
 
@@ -281,11 +302,12 @@ export class FlameFx {
     h.uLen.value = reach; h.uT.value = this.t; h.uScorch.value = s ? s.scorch : 0;
     h.uI.value = s ? (s.phase === 'on' ? clamp01(s.onT / 0.2) : s.phase === 'off' ? Math.max(0, 1 - s.offT / 0.4) : 0) : 0;
     h.uO.value.set(ox, oz); h.uF.value.set(this.fwd.x, this.fwd.z); h.uHalf.value = half * 1.0;
-    this.heat.position.set(ox, 0.02, oz); this.heat.visible = !!s;
+    place(this.heat, ox, 0.02, oz); this.heat.visible = !!s;
+    if (s) conformPlane(this.heat, 0.03);
     const fl = 0.8 + 0.2 * Math.sin(this.t * 37) * Math.sin(this.t * 23 + 1);
-    this.fireLight.position.set(ox + this.fwd.x * 3, 1.0, oz + this.fwd.z * 3);
+    place(this.fireLight, ox + this.fwd.x * 3, 1.0, oz + this.fwd.z * 3);
     this.fireLight.intensity = s ? (s.phase === 'on' ? 7 * fl * clamp01(s.onT / 0.1) : s.phase === 'off' ? Math.max(0, 7 * (1 - s.offT / 0.4)) : 0) : 0;
-    this.tipLight.position.copy(tip);
+    placeV(this.tipLight, tip);
     this.tipLight.intensity = s ? (s.phase === 'wind' ? 3 * clamp01(s.t / s.total) : s.phase === 'on' ? 5 * fl : 0) : 0;
     return on;
   }
@@ -294,31 +316,33 @@ export class FlameFx {
     const a = (r() < 0.5 ? -1 : 1) * Math.pow(r(), 0.85) * s.arc * 0.5;
     const sp = (17 + r() * 8) * (s.range / 5);
     const ca = Math.cos(a), sa = Math.sin(a), dy = -0.3 + (r() - 0.5) * 0.08;
-    const v = new THREE.Vector3(this.fwd.x * ca + this.side.x * sa, dy, this.fwd.z * ca + this.side.z * sa).multiplyScalar(sp);
-    const q = { p: this.tip.clone(), from: this.tip.clone(), v, age: 0, life: 0.5 + r() * 0.18, s0: 0.3 + r() * 0.06, s1: (2.2 + r() * 1.1) * power, seed: r() * 50, heat: 1.0, amt: (0.2 + r() * 0.14) * surge, kind: 0, drive: 0.06 + r() * 0.04 };
-    this.parts.push(q);
+    const q = this.part(); if (!q) return null;
+    q.v.set(this.fwd.x * ca + this.side.x * sa, dy, this.fwd.z * ca + this.side.z * sa).multiplyScalar(sp);
+    q.p.copy(this.tip); q.from.copy(this.tip);
+    Object.assign(q, { age: 0, life: 0.5 + r() * 0.18, s0: 0.3 + r() * 0.06, s1: (2.2 + r() * 1.1) * power, seed: r() * 50, heat: 1.0, amt: (0.2 + r() * 0.14) * surge, kind: 0, drive: 0.06 + r() * 0.04 });
     return q;
   }
   // offscreen passes; call right before the main render
   prerender() {
     if (!this.comp.visible) return;
     const renderer = this.renderer, camera = this.camera, scene = this.scene;
-    // screen-space flow direction and mouth for the composite
-    this._a.copy(this.tip).project(camera);
-    this._b.copy(this.tip).addScaledVector(this.fwd, 1).project(camera);
+    // screen-space flow direction and mouth for the composite (the tip is kept above the ground)
+    placeV(this._o, this.tip); this._a.copy(this._o.position).project(camera);
+    this._b.copy(this._o.position).addScaledVector(this.fwd, 1).project(camera);
     this.compMat.uniforms.uFlow.value.set((this._b.x - this._a.x) * this.size.x, (this._b.y - this._a.y) * this.size.y).normalize();
     this.compMat.uniforms.uMouth.value.set(this._a.x * 0.5 + 0.5, this._a.y * 0.5 + 0.5);
     const prevTarget = renderer.getRenderTarget(), prevMask = camera.layers.mask, bg = scene.background;
-    const prevColor = renderer.getClearColor(new THREE.Color()), prevAlpha = renderer.getClearAlpha();
+    const prevColor = renderer.getClearColor(this._prevColor), prevAlpha = renderer.getClearAlpha();
     camera.layers.set(OCCLUDER_LAYER);
     scene.background = null; scene.overrideMaterial = this.occWhite;
     renderer.setRenderTarget(this.occRT); renderer.setClearColor(0x000000, 0); renderer.clear();
-    renderer.render(scene, camera);
+    if (fxConfig.occluders) renderer.render(scene, camera); // the game skips the pass: nothing occludes the flame there
     scene.overrideMaterial = null; scene.background = bg; camera.layers.mask = prevMask;
     renderer.setRenderTarget(this.rt); renderer.setClearColor(0x000000, 0); renderer.clear();
     renderer.render(this.fxScene, camera);
     renderer.setRenderTarget(prevTarget); renderer.setClearColor(prevColor, prevAlpha);
   }
-  clear() { this.parts = []; this.sparks = []; this.state = null; }
+  clear() { for (const q of this.parts) this.partFree.push(q); for (const q of this.sparks) this.sparkFree.push(q); this.parts.length = 0; this.sparks.length = 0; this.state = null;
+    this.comp.visible = false; this.heat.visible = false; this.fireLight.intensity = this.tipLight.intensity = 0; for (const P of this.pool) P.m.visible = false; this.embers.begin(); this.embers.end(); }
   get busy() { return !!this.state || this.parts.length > 0; }
 }

@@ -5,7 +5,7 @@
 // 'burst' instead of all at once. Each landing leaves a short stub and a few sparks, and a thin
 // cel circle marks the volley and pulses with each wave. Element Shifts recolour it. Cosmetic only.
 import * as THREE from 'three';
-import { Ribbon, mulberry32, lookOf, flashMaterial, tintFlash } from './fx-common.js';
+import { Ribbon, mulberry32, lookOf, flashMaterial, tintFlash, place, placeV, conformPlane } from './fx-common.js';
 
 const RINGS = 4, FLASHES = 4;
 const PER_WAVE = 26, FALL = 0.3, LEN = 1.1, STUCK = 0.4;
@@ -46,7 +46,7 @@ export class RainFx {
       const mat = new THREE.ShaderMaterial({ uniforms: { uOpen: { value: 0 }, uPulse: { value: 0 }, uFade: { value: 1 }, uCol: { value: new THREE.Color() } },
         vertexShader: `varying vec2 vP; void main(){ vP=uv*2.0-1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
         fragmentShader: RING_FS, transparent: true, depthWrite: false });
-      const m = new THREE.Mesh(quad, mat); m.rotation.x = -Math.PI / 2; m.renderOrder = 1; m.visible = false; scene.add(m);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 12, 12), mat); m.rotation.x = -Math.PI / 2; m.renderOrder = 1; m.visible = false; scene.add(m);
       return { m, mat, live: false, x: 0, z: 0, t: 0, end: 0, pulse: 0, apex: new THREE.Vector3(), from: new THREE.Vector3(), look: null };
     });
     this.flashes = Array.from({ length: FLASHES }, (_, k) => {
@@ -66,14 +66,14 @@ export class RainFx {
     if (!ring) {
       ring = this.rings.find((g) => !g.live) || this.rings[0];
       Object.assign(ring, { live: true, x: e.x, z: e.z, t: 0, end: 0, pulse: 0, look });
-      ring.m.visible = true; ring.m.position.set(e.x, 0.03, e.z); ring.m.scale.setScalar(e.radius * 2);
+      ring.m.visible = true; place(ring.m, e.x, 0.03, e.z); ring.m.scale.setScalar(e.radius * 2); conformPlane(ring.m);
       ring.mat.uniforms.uCol.value.setRGB(look.edge[0], look.edge[1], look.edge[2]);
       // the burst sits above and a little short of the circle, so the arrows come down slanted
       const ax = e.x - bow.x, az = e.z - bow.z, len = Math.hypot(ax, az) || 1;
       ring.from.set(bow.x + ax / len * 0.4, 1.5, bow.z + az / len * 0.4);
       ring.apex.set(e.x - ax / len * 2.2, APEX, e.z - az / len * 2.2);
       const f = this.flashes[this.flashI++ % FLASHES];
-      f.t = 0; f.at = RISE; f.m.position.copy(ring.apex); tintFlash(f.m.material, element);
+      f.t = 0; f.at = RISE; placeV(f.m, ring.apex); tintFlash(f.m.material, element);
     }
     ring.end = Math.max(ring.end, ring.t + e.delay + LATE + STUCK);
     for (let i = 0; i < PER_WAVE; i++) {

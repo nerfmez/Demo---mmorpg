@@ -1,6 +1,7 @@
 // Measured Riposte, in the bench's light-and-ribbon language. The guard (the rules' 'guardStance',
-// 0.8 s) raises a curved wall of light in front of the hero over the guard's arc, following its
-// facing. An incoming strike shows as a red lunge streak; a strike the guard catches (the rules'
+// 0.8 s) raises a curved pane of light in front of the hero over the guard's arc, following its
+// facing: crisp cel rims, a glassy fill strongest at its foot, diagonal shine streaks sliding over it, popping up with
+// a little overshoot and flickering out; a matching arc glows on the ground at its foot. An incoming strike shows as a red lunge streak; a strike the guard catches (the rules'
 // 'playerHit' with blocked) sets off an anime clash: a big four-point star of light where blade meets
 // blow (a second one turned 45 degrees behind it), a long thin glint across the contact, focus lines
 // bursting out around it, a spray of hot metal sparks thrown back at the attacker, two upright shock
@@ -13,8 +14,22 @@ import { Ribbon, mulberry32, place, placeV } from './fx-common.js';
 
 export const RIPOSTE_PALETTE = { hot: [1, 0.98, 0.9], body: [1.0, 0.82, 0.38], glow: [1.0, 0.6, 0.15] };
 const EDGE = [0.8, 0.92, 1.0], GLOW = [0.35, 0.6, 1.0], GOLD = [1.0, 0.86, 0.4], GOLD_GLOW = [1.0, 0.58, 0.12], RED = [1.0, 0.3, 0.2], RED_GLOW = [0.9, 0.1, 0.05];
-const BURSTS = 6, RAYS = 10, ARC_PTS = 15, RING_PTS = 25, WALL_ROWS = 4, SPARKS = 48, FOCUS = 14;
+const BURSTS = 6, RAYS = 10, ARC_PTS = 15, RING_PTS = 25, SPARKS = 48, FOCUS = 14;
 const WHITE = [1, 1, 0.96];
+const PANE_R = 0.95, PANE_H = 1.75;
+const PANE_FS = `varying vec2 vUv; uniform float uT; uniform float uA; uniform float uFlash;
+  void main(){
+    float sx = min(vUv.x, 1.0 - vUv.x), sy = min(vUv.y, 1.0 - vUv.y);
+    float rim = 1.0 - smoothstep(0.0, 0.03, min(sx * 1.4, sy));            // crisp cel rim
+    float lip = (1.0 - smoothstep(0.03, 0.12, min(sx * 1.4, sy))) * 0.35;  // soft inner edge
+    float fill = mix(0.32, 0.06, vUv.y);                                     // glassy, stronger at the foot
+    // two diagonal shine streaks sliding across the pane (anime glass)
+    float d = vUv.x * 1.6 + vUv.y * 0.9 - mod(uT * 2.2, 3.2) + 0.6;
+    float shine = smoothstep(0.09, 0.0, abs(d)) * 0.75 + smoothstep(0.035, 0.0, abs(d - 0.22)) * 0.55;
+    float a = clamp(max(rim, fill + lip + shine), 0.0, 1.0) * uA;
+    vec3 c = mix(vec3(0.5, 0.76, 1.0), vec3(1.0), clamp(rim * 0.9 + shine + uFlash, 0.0, 1.0));
+    if (a < 0.01) discard;
+    gl_FragColor = vec4(c, min(1.0, a + uFlash * 0.5)); }`;
 const CORE_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
   void main(){ float d=abs(vUv.y); if(d>0.9) discard;
     vec3 c = d < 0.4 ? mix(vT, vec3(1.0,1.0,0.97), 0.8) : vT; gl_FragColor=vec4(c, vA); }`;
@@ -53,6 +68,10 @@ export class RiposteFx {
     sg.fillStyle = glow; sg.fillRect(0, 0, 256, 256);
     const starTex = new THREE.CanvasTexture(sc);
     this.stars = [0, 1].map(() => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, depthWrite: false, depthTest: false, transparent: true, toneMapped: false })); sp.visible = false; sp.renderOrder = 11; scene.add(sp); return sp; });
+    // the guard pane: a curved strip over the guard's arc (rebuilt when the arc changes)
+    this.paneMat = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uA: { value: 0 }, uFlash: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }', fragmentShader: PANE_FS });
+    this.pane = new THREE.Mesh(new THREE.BufferGeometry(), this.paneMat); this.pane.renderOrder = 6; this.pane.visible = false; this.paneArc = 0; this.paneFlash = 0; scene.add(this.pane);
     this.clashT = 9; this.clash = new THREE.Vector3(); this.clashDir = new THREE.Vector3(); this.side = new THREE.Vector3();
     this.sparkPool = Array.from({ length: SPARKS }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 9, max: 1, w: 0 }));
     this.focus = Array.from({ length: FOCUS }, () => ({ d: new THREE.Vector3(), len: 1, w: 0 }));
@@ -75,7 +94,14 @@ export class RiposteFx {
   }
   ring(c, normal, r0, r1, max, w, col, glowCol) { if (this.rings.length < 12) this.rings.push({ c: c.clone(), n: normal.clone(), r0, r1, life: 0, max, w, col, glowCol }); }
   // the rules' guardStance: duration, and the guard's arc in degrees
-  guard(duration, arcDeg) { this.guardT = 0; this.guardDur = duration; this.guardArc = (arcDeg * Math.PI) / 180; this.readyT = this.readyDur = 0; }
+  guard(duration, arcDeg) {
+    this.guardT = 0; this.guardDur = duration; this.guardArc = (arcDeg * Math.PI) / 180; this.readyT = this.readyDur = 0; this.paneFlash = 0;
+    if (this.paneArc !== this.guardArc) { // CylinderGeometry: theta 0 points along +z (the hero's facing at rotation.y)
+      this.pane.geometry.dispose();
+      this.pane.geometry = new THREE.CylinderGeometry(PANE_R, PANE_R, PANE_H, 28, 1, true, -this.guardArc / 2, this.guardArc);
+      this.paneArc = this.guardArc;
+    }
+  }
   // a strike coming in (bench): a red lunge streak from the attacker to the hero
   lunge(from, to) { this.lunges.push({ from: from.clone(), to: to.clone(), t: 0 }); }
   // the rules' playerHit: blocked opens the counter window (readyDuration)
@@ -100,9 +126,9 @@ export class RiposteFx {
       for (const f of this.focus) { const a = r() * 6.283; f.d.set(0, Math.cos(a), 0).addScaledVector(this.side, Math.sin(a)); f.len = 0.6 + r() * 0.9; f.w = 0.03 + r() * 0.04; }
       for (let i = 0; i < 14; i++) { // the guard wall breaks into shards
         const r = this.rnd, a = Math.atan2(this.dir.x, this.dir.z) + (r() - 0.5) * this.guardArc, h = 0.3 + r() * 1.5;
-        this.shards.push({ p: new THREE.Vector3(hero.x + Math.sin(a) * 0.85, h, hero.z + Math.cos(a) * 0.85), v: new THREE.Vector3(Math.sin(a) * (1 + r() * 2), 1 + r() * 2, Math.cos(a) * (1 + r() * 2)), spin: r() * 6.28, rate: (r() - 0.5) * 18, len: 0.08 + r() * 0.08, life: 0, max: 0.4 + r() * 0.2 });
+        this.shards.push({ p: new THREE.Vector3(hero.x + Math.sin(a) * PANE_R, h, hero.z + Math.cos(a) * PANE_R), v: new THREE.Vector3(Math.sin(a) * (1 + r() * 2), 1 + r() * 2, Math.cos(a) * (1 + r() * 2)), spin: r() * 6.28, rate: (r() - 0.5) * 18, len: 0.08 + r() * 0.08, life: 0, max: 0.4 + r() * 0.2 });
       }
-      this.guardT = this.guardDur; this.readyT = 0; this.readyDur = readyDuration;
+      this.guardT = Math.max(this.guardT, this.guardDur - 0.12); this.paneFlash = 1; this.readyT = 0; this.readyDur = readyDuration; // the pane flashes white and breaks
       this.onShake?.(0.1, 0.22);
     } else this.burst(this.three[1].set(hero.x, 1.1, hero.z), this.dir, 0.9, 0.22, RED, RED_GLOW);
   }
@@ -117,17 +143,19 @@ export class RiposteFx {
     this.t += dt;
     this.core.begin(); this.glow.begin();
     const three = this.three, two = this.two;
-    // guard: a curved wall of light in front, a few stacked arcs, shimmering
+    // guard: the pane of light in front (pops up with an overshoot, flickers out) and its arc on the ground
     if (this.guardT < this.guardDur) {
       this.guardT += dt;
-      const u = this.guardT / this.guardDur, rise = Math.min(1, this.guardT / 0.08), fade = 1 - Math.max(0, (u - 0.75) / 0.25);
-      for (let row = 0; row < WALL_ROWS; row++) {
-        const h = 0.25 + (row / (WALL_ROWS - 1)) * 1.5 * rise, sub = this.sub; sub.length = 0;
-        for (let i = 0; i < ARC_PTS; i++) { const a = hero.facing - this.guardArc / 2 + (i / (ARC_PTS - 1)) * this.guardArc; this.pts[i].set(hero.x + Math.sin(a) * 0.85, h, hero.z + Math.cos(a) * 0.85); sub.push(this.pts[i]); }
-        stripW = (row === WALL_ROWS - 1 || row === 0 ? 0.08 : 0.045) * (0.9 + 0.1 * Math.sin(this.t * 30 + row));
-        this.glow.strip(sub, arcGlowW, 0.9 * fade, GLOW); this.core.strip(sub, arcW, 0.95 * fade, EDGE);
-      }
-    }
+      const t = this.guardT, end = this.guardDur - t, pop = Math.min(1, t / 0.1), over = pop < 1 ? pop * (1.15 - 0.15 * pop) : 1 + 0.06 * Math.exp(-(t - 0.1) * 18) * Math.cos((t - 0.1) * 40);
+      const flick = end < 0.15 ? (Math.sin(t * 90) > -0.3 ? end / 0.15 : 0.2) : 1;
+      this.pane.visible = true;
+      place(this.pane, hero.x, PANE_H / 2 * over + 0.05, hero.z); this.pane.rotation.y = hero.facing; this.pane.scale.set(1, over, 1);
+      this.paneMat.uniforms.uT.value = t; this.paneMat.uniforms.uA.value = flick * Math.min(1, t / 0.05); this.paneMat.uniforms.uFlash.value = this.paneFlash;
+      this.paneFlash = Math.max(0, this.paneFlash - dt * 8);
+      const sub = this.sub; sub.length = 0;
+      for (let i = 0; i < ARC_PTS; i++) { const a = hero.facing - this.guardArc / 2 + (i / (ARC_PTS - 1)) * this.guardArc; this.pts[i].set(hero.x + Math.sin(a) * PANE_R, 0.05, hero.z + Math.cos(a) * PANE_R); sub.push(this.pts[i]); }
+      stripW = 0.07; this.glow.strip(sub, arcGlowW, 0.9 * flick, GLOW); this.core.strip(sub, arcW, flick, EDGE);
+    } else this.pane.visible = false;
     // counter window: a gold ring pulsing at the feet and a gold blade
     if (this.readyT < this.readyDur) {
       this.readyT += dt;
@@ -218,7 +246,7 @@ export class RiposteFx {
   }
   get ready() { return this.readyT < this.readyDur; }
   clear() {
-    this.guardT = this.guardDur = 0; this.readyT = this.readyDur = 0;
+    this.guardT = this.guardDur = 0; this.readyT = this.readyDur = 0; this.pane.visible = false;
     for (const b of this.bursts) { b.t = 9; b.sp.visible = false; }
     this.clashT = 9; for (const st of this.stars) st.visible = false; for (const sp of this.sparkPool) sp.life = sp.max;
     this.lunges.length = 0; this.rings.length = 0; this.shards.length = 0;

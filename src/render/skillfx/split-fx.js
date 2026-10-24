@@ -3,13 +3,22 @@
 // that fills from the hero outward, and light gathers along the raised blade. On 'lineStrike' the
 // blade hits the ground with a shockwave ring, rays and sparks; a tall vertical crescent of light
 // (tips up and down, bulging forward, white-hot front edge) flies down the lane; a cut line opens
-// in the ground behind it; and as the crescent reaches each struck target a hard burst (a glow
-// that pops, rays thrown on along the cut, a ring) goes off on it. Then the lane and line fade.
+// in the ground behind it, and the ground cracks open along the lane: a zigzag fissure with forked
+// branches tearing open just behind the crescent, glowing hot at first and then left as a dark crack
+// with rubble thrown up, which lingers and fades. As the crescent reaches each struck target a hard
+// burst (a glow that pops, rays thrown on along the cut, a ring) goes off on it.
 // Cosmetic only; sizes and timing come from the rules.
 import * as THREE from 'three';
 import { Ribbon, mulberry32, lookOf, place, placeV, conformPlane } from './fx-common.js';
 
 const WAVE_T = 0.22, FADE = 0.5, CUTS = 8, RING_PTS = 21, BURSTS = 8, RAYS = 10;
+// the ground crack: a main fissure and forked branches (fixed pools of points), held then faded
+const MAIN_PTS = 22, BRANCHES = 9, BRANCH_PTS = 5, RUBBLE = 30, CRACK_HOLD = 1.8, CRACK_FADE = 0.7, CRACK_Y = 0.045;
+const CRACK_FS = `varying vec2 vUv; varying float vA; varying vec3 vT;
+  void main(){ float d=abs(vUv.y); if(d>0.95) discard; vec3 c = d > 0.55 ? vT*2.2 : vT; gl_FragColor=vec4(c, vA); }`;
+const EARTH = [0.16, 0.11, 0.08], RUBBLE_COL = [0.42, 0.33, 0.24];
+let crackW = 0;
+const crackTaper = (x) => crackW * Math.min(1, x * 5, (1 - x) * 3 + 0.25), branchTaper = (x) => crackW * (1 - x * 0.85);
 
 // the flying crescent: an arc of a ring in the local y-z plane (z = forward), s along it, v across
 function crescentGeometry(R, arc, segs = 48, rings = 6) {
@@ -106,6 +115,13 @@ export class SplitFx {
     this.two = [new THREE.Vector3(), new THREE.Vector3()]; this.three = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
     this.dir = new THREE.Vector3(); this.side = new THREE.Vector3();
     this.cutAlive = (c) => !c.done; this.sparkAlive = (s) => s.life < s.max;
+    // the crack (dark fissure, drawn with normal blending) and its hot glow
+    this.crackDark = new Ribbon(scene, camera, 1600, CRACK_FS, THREE.NormalBlending); this.crackDark.mesh.renderOrder = 2;
+    this.crackGlow = new Ribbon(scene, camera, 1600, GLOW_FS, THREE.AdditiveBlending); this.crackGlow.mesh.renderOrder = 3;
+    this.crack = { t: 9, x: 0, z: 0, range: 1, main: Array.from({ length: MAIN_PTS }, () => ({ p: new THREE.Vector3(), along: 0 })),
+      branches: Array.from({ length: BRANCHES }, () => ({ at: 0, w: 0, pts: Array.from({ length: BRANCH_PTS }, () => new THREE.Vector3()) })) };
+    this.rubble = Array.from({ length: RUBBLE }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 9, max: 1, delay: 0, len: 0.1, spin: 0, rate: 0 }));
+    this.view = []; this.tip = new THREE.Vector3();
   }
   // castStart of the line cut: the wind-up lasts total; range and width from the skill
   windup(total, range, width, element) {
@@ -137,10 +153,79 @@ export class SplitFx {
     this.wave.visible = true; this.wave.rotation.y = e.angle;
     this.waveCore.material.uniforms.uBody.value.setRGB(...this.look.edge); this.waveGlow.material.uniforms.uBody.value.setRGB(...this.look.glow);
     this.onShake?.(0.08, 0.22);
+    this.openCrack(e);
     for (let i = 0; i < 14; i++) { // sparks thrown up off the cut line
       const d = 0.6 + r() * (e.range - 0.6), a = r() * 6.283;
       this.spark(e.x + Math.sin(e.angle) * d, e.z + Math.cos(e.angle) * d, Math.cos(a) * 1.5, 2 + r() * 2.5, Math.sin(a) * 1.5, (d / e.range) * WAVE_T);
     }
+  }
+  // lays out the crack along the lane: a zigzag main fissure and forks off it, plus rubble
+  openCrack(e) {
+    const C = this.crack, r = this.rnd, dx = Math.sin(e.angle), dz = Math.cos(e.angle), sx = dz, sz = -dx;
+    const start = 0.45, len = e.range * 1.05 - start;
+    C.t = 0; C.x = e.x; C.z = e.z; C.range = e.range; C.dx = dx; C.dz = dz;
+    let off = 0;
+    C.main.forEach((m, i) => {
+      const along = start + (i / (MAIN_PTS - 1)) * len;
+      off = i === 0 ? 0 : Math.max(-0.3, Math.min(0.3, off * 0.4 + (i % 2 ? 1 : -1) * (0.06 + r() * 0.14)));
+      m.along = along; m.p.set(e.x + dx * along + sx * off, CRACK_Y, e.z + dz * along + sz * off);
+    });
+    C.branches.forEach((b, k) => {
+      const base = C.main[2 + Math.floor(r() * (MAIN_PTS - 4))], side = k % 2 ? 1 : -1, a = (0.45 + r() * 0.6) * side, L = 0.35 + r() * 0.8;
+      const bx = dx * Math.cos(a) + sx * Math.sin(a), bz = dz * Math.cos(a) + sz * Math.sin(a);
+      b.at = base.along; b.w = 0.035 + r() * 0.03;
+      b.pts.forEach((q, j) => {
+        const f = (j / (BRANCH_PTS - 1)) * L, wob = j && j < BRANCH_PTS - 1 ? (r() - 0.5) * 0.12 : 0;
+        q.set(base.p.x + bx * f + sx * wob, CRACK_Y, base.p.z + bz * f + sz * wob);
+      });
+    });
+    for (const q of this.rubble) { // chunks of ground thrown up as the crack passes
+      const m = C.main[1 + Math.floor(r() * (MAIN_PTS - 2))], a = r() * 6.283, sp = 0.6 + r() * 1.6;
+      q.p.copy(m.p); q.p.y = 0.06; q.v.set(Math.cos(a) * sp, 2.2 + r() * 2.6, Math.sin(a) * sp);
+      q.delay = (m.along / C.range) * WAVE_T; q.life = -q.delay; q.max = 0.45 + r() * 0.35; q.len = 0.05 + r() * 0.07; q.spin = r() * 6.28; q.rate = (r() - 0.5) * 20;
+    }
+  }
+  drawCrack(dt) {
+    const C = this.crack, three = this.three;
+    this.crackDark.begin(); this.crackGlow.begin();
+    if (C.t < CRACK_HOLD + CRACK_FADE) {
+      C.t += dt;
+      const front = 0.5 + (C.range - 0.5) * Math.min(1, C.t / WAVE_T) + 0.4; // tears open just behind the crescent
+      const fade = 1 - THREE.MathUtils.smoothstep(C.t, CRACK_HOLD, CRACK_HOLD + CRACK_FADE), hot = Math.max(0, 1 - C.t / 0.55);
+      // main fissure, cut at the front with the last point slid along
+      const v = this.view; v.length = 0;
+      for (let i = 0; i < MAIN_PTS; i++) {
+        const m = C.main[i];
+        if (m.along <= front) { v.push(m.p); continue; }
+        if (i > 0) { const a = C.main[i - 1], k = (front - a.along) / (m.along - a.along); v.push(this.tip.copy(a.p).lerp(m.p, k)); }
+        break;
+      }
+      if (v.length > 1) {
+        crackW = 0.11; this.crackDark.strip(v, crackTaper, 0.92 * fade, EARTH);
+        if (hot > 0) { crackW = 0.2; this.crackGlow.strip(v, crackTaper, hot, this.look.glow); crackW = 0.07; this.crackGlow.strip(v, crackTaper, hot, this.look.edge); }
+      }
+      // forks grow out once the front has passed their base
+      for (const b of C.branches) {
+        const g = Math.min(1, (front - b.at) / 0.6); if (g <= 0) continue;
+        v.length = 0;
+        const n = 1 + g * (BRANCH_PTS - 1), whole = Math.floor(n);
+        for (let j = 0; j < Math.min(BRANCH_PTS, whole); j++) v.push(b.pts[j]);
+        if (whole < BRANCH_PTS) v.push(this.tip.copy(b.pts[whole - 1]).lerp(b.pts[whole], n - whole));
+        if (v.length < 2) continue;
+        crackW = b.w * 1.6; this.crackDark.strip(v, branchTaper, 0.9 * fade, EARTH);
+        if (hot > 0) { crackW = b.w * 3; this.crackGlow.strip(v, branchTaper, hot * 0.9, this.look.glow); }
+      }
+    }
+    for (const q of this.rubble) {
+      if (q.life >= q.max) continue;
+      q.life += dt; if (q.life < 0) continue;
+      q.v.y -= 14 * dt; q.p.addScaledVector(q.v, dt); q.spin += q.rate * dt;
+      if (q.p.y < 0.05) { q.p.y = 0.05; q.v.set(q.v.x * 0.3, Math.abs(q.v.y) * 0.25, q.v.z * 0.3); }
+      const u = q.life / q.max, cx = Math.cos(q.spin) * q.len, cy = Math.sin(q.spin) * q.len;
+      three[0].set(q.p.x - cx, q.p.y - cy, q.p.z); three[2].set(q.p.x + cx, q.p.y + cy, q.p.z); three[1].copy(three[0]).lerp(three[2], 0.5);
+      crackW = 0.09 * (1 - u * 0.4); this.crackDark.strip(three, branchTaper, 1 - u * u, RUBBLE_COL);
+    }
+    this.crackDark.end(); this.crackGlow.end();
   }
   // a struck target: its burst goes off when the flying crescent reaches it
   cut(center) { if (this.cuts.length < CUTS) this.cuts.push({ c: center.clone(), done: false }); }
@@ -246,7 +331,9 @@ export class SplitFx {
     }
     compact(this.sparks, this.sparkAlive);
     this.core.end(); this.glow.end();
+    this.drawCrack(dt);
   }
-  clear() { this.wind = null; this.strikeAt = null; this.lane.visible = false; this.wave.visible = false; this.cuts.length = 0; this.sparks.length = 0; this.rings.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
-  get busy() { return !!this.wind || !!this.strikeAt || this.cuts.length > 0 || this.sparks.length > 0; }
+  clear() { this.crack.t = 9; for (const q of this.rubble) q.life = q.max; this.crackDark.begin(); this.crackDark.end(); this.crackGlow.begin(); this.crackGlow.end();
+    this.wind = null; this.strikeAt = null; this.lane.visible = false; this.wave.visible = false; this.cuts.length = 0; this.sparks.length = 0; this.rings.length = 0; for (const b of this.bursts) { b.t = 9; b.sp.visible = false; } }
+  get busy() { return !!this.wind || !!this.strikeAt || this.crack.t < CRACK_HOLD + CRACK_FADE || this.cuts.length > 0 || this.sparks.length > 0; }
 }

@@ -173,6 +173,10 @@ with gaps) circles it at chest height, slowly turning and pulsing. A broken-shie
 amber halves split by a zigzag crack, drawn once into a canvas) pops in over its head and bobs
 there. Both fade as the exposure runs out.
 
+Frontline Split also cracks the ground open along the lane: a zigzag fissure with forked
+branches tears open just behind the crescent, glowing hot at first, then left as a dark crack with
+rubble thrown up; it lingers 1.8 s and fades.
+
 ## Breakbeat Slam (slam and stun)
 
 The owner found the interrupt timing hard to use, so Breakbeat Slam stuns everything it hits (now a
@@ -234,8 +238,10 @@ drives the shield straight out. It is not a crescent.
 nearest dummy winds up (a red "!" over it, 1 s) every 3.2 s and then strikes the hero through the
 rules' `damagePlayer` (bench-only; the hero is never brought below 30% life).
 - **Guard** (first press, the rules' `guardStance`, 0.8 s): the hero plays a bench-only
-  `guardBlock` action (the sword brought up across the front) and a curved wall of light (four
-  stacked arcs over the guard's 110 degree arc) stands in front of it, following its facing.
+  `guardBlock` action (the sword brought up across the front) and a curved pane of light over
+  the guard's 110 degree arc stands in front of it, following its facing: crisp cel rims, a glassy
+  fill strongest at its foot, diagonal shine streaks sliding over it; it pops up with a little
+  overshoot and flickers out, with a matching arc on the ground.
 - **The blow:** a red lunge streak from the attacker. If the guard catches it (the rules'
   `playerHit` with `blocked`), an anime clash (owner: the first parry was too weak):
   - a big four-point star of light where blade meets blow, a second one turned 45 degrees behind

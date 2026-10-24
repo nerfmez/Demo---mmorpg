@@ -76,13 +76,27 @@ const TRAILS = [
   // a smooth curve through the authored points (width rides along in y), sampled every 1.2 m
   .map(pl => { const c = new THREE.CatmullRomCurve3(pl, false, 'centripetal'); return c.getSpacedPoints(Math.ceil(c.getLength() / 1.2)).map(p => ({ x: p.x, z: p.z, w: p.y })); });
 // distance from the trail edge: negative on the trail
+// Runs of 12 trail segments with a box and their widest point: a run whose box,
+// less that width, is no nearer than the best edge so far cannot change the answer.
+const TRAIL_RUNS = TRAILS.flatMap(pl => {
+  const runs = [];
+  for (let s = 0; s < pl.length - 1; s += 12) {
+    const e = Math.min(pl.length - 1, s + 12), q = pl.slice(s, e + 1);
+    runs.push({ pl, s, e, x0: Math.min(...q.map(p => p.x)), x1: Math.max(...q.map(p => p.x)), z0: Math.min(...q.map(p => p.z)), z1: Math.max(...q.map(p => p.z)), w: Math.max(...q.map(p => p.w)) });
+  }
+  return runs;
+});
 function trailAt(x, z) {
   let best = Infinity;
-  for (const pl of TRAILS) for (let i = 0; i < pl.length - 1; i++) {
+  for (const r of TRAIL_RUNS) {
+    if (Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), Math.max(r.z0 - z, 0, z - r.z1)) - r.w - 1e-6 >= best) continue;
+    const pl = r.pl;
+    for (let i = r.s; i < r.e; i++) {
     const a = pl[i], b = pl[i + 1], dx = b.x - a.x, dz = b.z - a.z;
     const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz)));
     const d = Math.hypot(a.x + dx * t - x, a.z + dz * t - z) - (a.w + (b.w - a.w) * t);
     if (d < best) best = d;
+    }
   }
   return best;
 }

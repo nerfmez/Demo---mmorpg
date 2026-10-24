@@ -5,7 +5,7 @@
 
 import {acceptedScenes,suppressNativeSceneProp,connectorClear,acceptedColliders} from './accepted-scenes.js';
 import { createRng } from './rng.js';
-import { clamp, dist, distToPolyline, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
+import { clamp, dist, distToPolyline, distToPolylineBounds, distToSegment, pointInBox, toBoxLocal, fromBoxLocal, polylineZAtX, coastSample, seaContains } from './math.js';
 import { buildHeightfield, valueNoise, seamOpen } from './terrain.js';
 import { cityFloorAt, cityRoadDistance, cityFloorHeight, cityPlantingFloorAt } from './city.js';
 
@@ -58,6 +58,7 @@ export function createWorld(worldData) {
     if(cityFloorAt(worldData.city,x,z))return cityRoadDistance(worldData.city,x,z);
     let best = Infinity;
     for (const r of roads) {
+      if (distToPolylineBounds(x, z, r.points) - r.width / 2 >= best) continue;
       const d = distToPolyline(x, z, r.points) - r.width / 2;
       if (d < best) best = d;
     }

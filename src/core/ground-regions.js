@@ -1,6 +1,6 @@
 // Cosmetic ground regions shared by terrain painting and the map. They do not
 // alter height, water, safety zones, encounter spawns or gameplay destinations.
-import {pointInPolygon,distToPolyline} from './math.js';
+import {pointInPolygon,distToPolyline,distToPolylineBounds} from './math.js';
 import {valueNoise} from './terrain.js';
 
 const holeBounds=new WeakMap();
@@ -43,7 +43,7 @@ export function outsideRoadVisible(city,id){
 }
 export function outsideRoadDistance(city,roads,x,z){
   let distance=Infinity;
-  for(const road of roads)if(outsideRoadVisible(city,road.id))
+  for(const road of roads)if(outsideRoadVisible(city,road.id)&&distToPolylineBounds(x,z,road.points)-road.width/2<distance)
     distance=Math.min(distance,distToPolyline(x,z,road.points)-road.width/2);
   return distance;
 }

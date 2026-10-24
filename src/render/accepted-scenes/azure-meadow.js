@@ -118,6 +118,8 @@ const ROUTE_SPECS=[
 ];
 const ROAD_CELL=M(3);
 const ROAD_GRID=new Map();
+// Numeric cell keys: a string key per lookup made stairsAt one of the costliest startup calls.
+const roadKey=(ix,iz)=>ix*65536+iz;
 const ROUTES=ROUTE_SPECS.map(spec=>{
  const anchors=spec.pts.map(([u,v,h,w])=>{const y=M(h),[x,z]=P(u,v,y);return{x,z,y,w:wide(u-w/2,u+w/2,v,y)};});
  const curve=new THREE.CatmullRomCurve3(anchors.map(p=>new V3(p.x,p.y,p.z)),false,'centripetal');
@@ -133,21 +135,24 @@ const ROUTES=ROUTE_SPECS.map(spec=>{
  for(let i=0;i<n-1;i++){
   const A=rows[i],B=rows[i+1],pad=Math.max(A.w,B.w)/2+M(1.7),segment={A,B,route};
   for(let ix=Math.floor((Math.min(A.x,B.x)-pad)/ROAD_CELL);ix<=Math.floor((Math.max(A.x,B.x)+pad)/ROAD_CELL);ix++)for(let iz=Math.floor((Math.min(A.z,B.z)-pad)/ROAD_CELL);iz<=Math.floor((Math.max(A.z,B.z)+pad)/ROAD_CELL);iz++){
-   const key=ix+','+iz;if(!ROAD_GRID.has(key))ROAD_GRID.set(key,[]);ROAD_GRID.get(key).push(segment);
+   const key=roadKey(ix,iz);if(!ROAD_GRID.has(key))ROAD_GRID.set(key,[]);ROAD_GRID.get(key).push(segment);
   }
  }
  return route;
 });
 const ROAD_JUNCTIONS=Object.entries(ROAD_NODES).map(([id,[u,v,h,w]])=>{const y=M(h),[x,z]=P(u,v,y);return{id,x,y,z,r:wide(u-w/2,u+w/2,v,y)*.48};});
 const ST={...ROUTES.find(r=>r.id==='left'),top:M(2.4),bank:M(.70)};
+const NO_SEGMENTS=[];
 function stairsAt(x,z){
- let result={a:-10,s:1e9,y:0,half:0,inside:false},best=1e9;
- const segments=ROAD_GRID.get(Math.floor(x/ROAD_CELL)+','+Math.floor(z/ROAD_CELL))||[];
+ let result={a:-10,s:1e9,y:0,half:0,inside:false},best=1e9,bA=null,bB=null,bRoute=null,bT=0,bDistance=0,bHalf=0;
+ const segments=ROAD_GRID.get(roadKey(Math.floor(x/ROAD_CELL),Math.floor(z/ROAD_CELL)))||NO_SEGMENTS;
  for(const{A,B,route}of segments){
   const dx=B.x-A.x,dz=B.z-A.z,l2=dx*dx+dz*dz,t=THREE.MathUtils.clamp(((x-A.x)*dx+(z-A.z)*dz)/l2,0,1);
   const distance=Math.hypot(x-A.x-dx*t,z-A.z-dz*t),half=(A.w+(B.w-A.w)*t)/2,edge=distance-half;
-  if(edge<best){best=edge;result={a:(A.s+(B.s-A.s)*t)/route.len,s:distance,y:A.y+(B.y-A.y)*t,half,route:route.id,inside:distance<half+.12};}
+  if(edge<best){best=edge;bA=A;bB=B;bRoute=route;bT=t;bDistance=distance;bHalf=half;}
  }
+ // The winning segment's record is built once, with the same arithmetic as before.
+ if(bA)result={a:(bA.s+(bB.s-bA.s)*bT)/bRoute.len,s:bDistance,y:bA.y+(bB.y-bA.y)*bT,half:bHalf,route:bRoute.id,inside:bDistance<bHalf+.12};
  for(const j of ROAD_JUNCTIONS){
   const d=Math.hypot(x-j.x,z-j.z),blend=1-smooth(j.r*.42,j.r+M(.22),d);
   if(blend>0)result.y=THREE.MathUtils.lerp(result.y,j.y,blend);
@@ -1174,9 +1179,12 @@ function farms(){
  for(const plot of plots){
   const points=plot.pts.map(([u,v])=>onGround(u,v)),center=new V3();points.forEach(p=>center.add(new V3(...p)));center.divideScalar(points.length);
   FARM_AREAS.push(points);
-  const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)],uvPoint=(a,b)=>{const A=corners[0],B=corners[1],C=corners[2],D=corners[3];return[(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,(A[1]*(1-a)+B[1]*a)*(1-b)+(D[1]*(1-a)+C[1]*a)*b];};
+  const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)];
   // A fine grid keeps the bed on the curved ground; ground is sampled once per grid point.
-  const GU=48,GV=36,grid=[];for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){const[u,v]=uvPoint(i/GU,j/GV),[x,y,z]=onGround(u,v);grid.push([x,y+.09,z]);}
+  // Only the corners are projected (onGround searches the ground); the grid is
+  // spread between them on the ground plane and sampled once per point.
+  const[A,B,C,D]=corners.map(([u,v])=>onGround(u,v)),GU=32,GV=24,grid=[];
+  for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){const a=i/GU,b=j/GV,x=(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,z=(A[2]*(1-a)+B[2]*a)*(1-b)+(D[2]*(1-a)+C[2]*a)*b;grid.push([x,height(x,z)+.09,z]);}
   for(let i=0;i<GU;i++)for(let j=0;j<GV;j++)for(const[a,b]of[[i,j],[i+1,j],[i+1,j+1],[i,j],[i+1,j+1],[i,j+1]])positions.push(...grid[b*(GU+1)+a]);
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const row=new V3(points[1][0]-points[0][0],0,points[1][2]-points[0][2]).normalize();
   // Tilled ridges run along the bed; they are painted, so they cost no geometry.

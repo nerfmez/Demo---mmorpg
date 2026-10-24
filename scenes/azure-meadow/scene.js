@@ -6,9 +6,12 @@ function farms(){
  for(const plot of plots){
   const points=plot.pts.map(([u,v])=>onGround(u,v)),center=new V3();points.forEach(p=>center.add(new V3(...p)));center.divideScalar(points.length);
   FARM_AREAS.push(points);
-  const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)],uvPoint=(a,b)=>{const A=corners[0],B=corners[1],C=corners[2],D=corners[3];return[(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,(A[1]*(1-a)+B[1]*a)*(1-b)+(D[1]*(1-a)+C[1]*a)*b];};
+  const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)];
   // A fine grid keeps the bed on the curved ground; ground is sampled once per grid point.
-  const GU=48,GV=36,grid=[];for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){const[u,v]=uvPoint(i/GU,j/GV),[x,y,z]=onGround(u,v);grid.push([x,y+.09,z]);}
+  // Only the corners are projected (onGround searches the ground); the grid is
+  // spread between them on the ground plane and sampled once per point.
+  const[A,B,C,D]=corners.map(([u,v])=>onGround(u,v)),GU=32,GV=24,grid=[];
+  for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){const a=i/GU,b=j/GV,x=(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,z=(A[2]*(1-a)+B[2]*a)*(1-b)+(D[2]*(1-a)+C[2]*a)*b;grid.push([x,height(x,z)+.09,z]);}
   for(let i=0;i<GU;i++)for(let j=0;j<GV;j++)for(const[a,b]of[[i,j],[i+1,j],[i+1,j+1],[i,j],[i+1,j+1],[i,j+1]])positions.push(...grid[b*(GU+1)+a]);
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const row=new V3(points[1][0]-points[0][0],0,points[1][2]-points[0][2]).normalize();
   // Tilled ridges run along the bed; they are painted, so they cost no geometry.

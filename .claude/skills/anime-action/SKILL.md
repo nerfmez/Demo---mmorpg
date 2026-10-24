@@ -25,6 +25,9 @@ stance, a weapon carry or an attack key - starts from a real animation clip:
 3. Retarget the chosen frame with `scripts/pose-retarget/run.mjs` (`--legs`/`--arms` only to tone it
    for the chibi, `--face` for frames from a combo) and fix the weapon's roll in the hand with
    `match-roll.mjs`, so the hand does not twist when an action takes over.
+   When the owner sends an image instead (a drawing, a game frame), read the pose from it: where the
+   arm hangs, which side of the fist the blade leaves, which way its flat faces, where its tip is.
+   Copy those, no more.
 4. Keep what the owner already approved: change only the weapon or pose they asked about, and keep a
    rejected-for-now variant as data (`presets`) when they say it suits another character.
 
@@ -129,6 +132,7 @@ ACTIONS.example = { hit: 0.42, keys: [
 |---|---|---|
 | "เอาตัวอย่างมาจากไหน", the pose looks made up | angles guessed by hand | start again from a reference clip (above) and show it beside the result |
 | a weapon upside down, the hand twists when an attack starts | the carry's blade roll differs from the actions' | `scripts/pose-retarget/match-roll.mjs`, write the printed `up` |
+| "มือบิด" with a blade held back (a drag, a trailing sword) | the wrist or the fist's seating aims the weapon: the chibi fist turns its thumb toward the blade | hold the arm with channels (`hold.run.arms`), turn the weapon in the fist (`socket`, `roll`), set `reverse` (`docs/POSE-RETARGET.md`, Dragged run carries) |
 | crouch too deep, arms too wide on the chibi | a reference built for longer limbs or bulky armour | `--legs`, `--arms` when retargeting |
 | "ห่วย", floaty, no power | all segments similar length | shorten the strike segment, add a hold before it and a pose hold after |
 | stiff, robotic | only the arm moves | add torso/chest/hips twist and `drop`; lead with the weapon, follow with the body |

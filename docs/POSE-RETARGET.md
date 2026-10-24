@@ -70,10 +70,23 @@ down). After writing a carry, run
 `null`, carry key) and write the printed `up` values back. For a run carry (`hold.run`) add
 `null run` (the right-hand weapon, then `run`): the hero runs and the run carry's `up` is matched.
 The owner saw a twisted hand on the run until this was done.
-Aim a run carry's blade square to the forearm first (`forearm.mjs <skill> <offhand>` gives the
-forearm's direction while running): a fist holds its grip across the forearm, so a blade along the
-forearm folds the wrist. Square it, tilt it at most 15 degrees (swords, daggers) or 30 (a dragged
-heavy weapon) toward the wanted direction, then match the roll.
+
+## Dragged run carries
+
+A run carry that only moves the palm (`hand`, `dir`, `up`) leaves the wrist to aim the weapon, and
+the owner saw it twist however the roll was matched. The sword and the heavy weapons instead hold
+their own arm channels on the run (`hold.run.arms`: the arm hangs, the wrist stays straight) and
+turn the weapon in the fist (`socket`, the weapon channel's x: past pi/2 the blade leaves the fist's
+little-finger side, `roll` turns it about its length). With `reverse` the chibi's fist keeps its
+thumb toward the pommel (`chibi-body.js`); without it the fist turns its thumb toward the blade, a
+half turn of the hand. The owner's reference is a greatsword dragged one-handed (arm hanging a
+little behind and out, elbow almost straight, the blade's flat to the side, its tip on the ground):
+heavy weapons hang low and drag, the sword holds the same grip with the arm out in an A-pose. After
+changing a heavy carry, find the socket that puts the tip on the ground at the run's low point:
+
+```sh
+node scripts/pose-retarget/drag-tip.mjs '[["frontline_split","two",null],["armor_cleave","two",null],["interrupt_slam","two",null]]'
+```
 
 ## How it maps
 

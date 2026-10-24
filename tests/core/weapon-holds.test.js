@@ -65,7 +65,7 @@ test('the chibi keeps a one-hand carry beside a dual one, and a dual carry place
     assert.ok(vec(p.hand) && vec(p.dir) && HOLDS.stances[p.stance], `preset ${name}`);
 });
 
-test('run carries move the hand and lean the body with real channels', () => {
+test('run carries move the hand or arms and lean the body with real channels', () => {
   const chibi = data.models.characters.hero_chibi.holds;
   const bones = new Set(['legL', 'legR', 'kneeL', 'kneeR', 'torso', 'chest', 'head']);
   for (const [id, h] of Object.entries(chibi)) {
@@ -74,7 +74,13 @@ test('run carries move the hand and lean the body with real channels', () => {
       const r = c?.run;
       if (!r) continue;
       for (const f of ['hand', 'dir', 'up']) if (r[f]) assert.ok(vec(r[f]), `${id}.${k}.run.${f}`);
-      if (r.left) assert.ok(c.left && vec(r.left.hand) && (r.natural || vec(r.left.dir)), `${id}.${k}.run.left needs a dual carry`);
+      if (r.left) assert.ok(c.left && vec(r.left.hand) && vec(r.left.dir), `${id}.${k}.run.left needs a dual carry`);
+      // a run carry's own arms: whole arm channels, the left arm only with a second weapon to hold
+      const arms = new Set(['armR', 'elbowR', ...(c.left ? ['armL', 'elbowL'] : [])]);
+      for (const [n, v] of Object.entries(r.arms || {})) assert.ok(arms.has(n) && vec(v) && v.every((x) => Math.abs(x) < 1.6), `${id}.${k}.run.arms.${n}`);
+      if (c.left && r.arms) assert.ok(r.arms.armL, `${id}.${k}.run.arms: a dual carry holds both arms`);
+      if (r.socket !== undefined) assert.ok(r.arms && Number.isFinite(r.socket) && Math.abs(r.socket) <= Math.PI, `${id}.${k}.run.socket turns the weapon in a fist the run arms hold`);
+      if (r.reverse) assert.ok(r.socket > Math.PI / 2, `${id}.${k}.run.reverse: the blade leaves the little-finger side`);
       if (r.release) assert.ok(c.grip !== undefined, `${id}.${k}.run.release only lets go of a two-hand grip`);
       for (const [n, v] of Object.entries(r.lean || {})) {
         if (n === 'drop') { assert.ok(v <= 0 && v > -0.2, `${id}.${k}.run.lean.drop`); continue; }

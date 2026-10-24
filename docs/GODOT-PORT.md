@@ -510,7 +510,10 @@ weapon's direction and flat, solved like the right (`solveOffhand`: left-arm IK 
 the off-hand socket) whenever no action drives the left hand.
 A carry's `run` (the chibi's sword trailing low behind, heavy weapons dragged in the right hand
 with the left grip released, the dagger's crouched run lean) is blended in by the move weight:
-in Godot, a second carry pose and lean added under the run blend space.
+in Godot, a second carry pose and lean added under the run blend space. A run carry with `arms`
+sets the carrying arm's channels itself (no hand IK, the wrist straight), `socket`/`roll` turn the
+weapon attachment in the fist (Euler x/z), and `reverse` turns the skinned fist's thumb toward the
+pommel (the seating in `chibi-body.js` turns the thumb's target half a turn about the hand's x).
 Port as a right-hand IK target with a look-at on the weapon bone, blended by these weights.
 `render/dropart.js` caches one billboard texture per material, matching its inventory art.
 

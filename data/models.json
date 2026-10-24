@@ -720,12 +720,21 @@
             ],
             "stance": "sword_guard",
             "run": {
-              "hand": [
-                -0.685,
-                0.842,
-                -0.196
-              ],
-              "natural": true
+              "arms": {
+                "armR": [
+                  0.2,
+                  0,
+                  -0.65
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.79,
+              "reverse": true,
+              "roll": 1.571
             }
           },
           "dual": {
@@ -763,19 +772,31 @@
             },
             "stance": "sword_ready",
             "run": {
-              "hand": [
-                -0.685,
-                0.842,
-                -0.196
-              ],
-              "natural": true,
-              "left": {
-                "hand": [
-                  0.685,
-                  0.842,
-                  -0.196
+              "arms": {
+                "armR": [
+                  0.2,
+                  0,
+                  -0.65
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ],
+                "armL": [
+                  0.2,
+                  0,
+                  0.65
+                ],
+                "elbowL": [
+                  -0.15,
+                  0,
+                  0
                 ]
-              }
+              },
+              "socket": 2.79,
+              "reverse": true,
+              "roll": 1.571
             }
           }
         },
@@ -992,12 +1013,28 @@
               0
             ],
             "run": {
-              "hand": [
-                -0.444,
-                0.829,
-                -0.436
-              ],
-              "natural": true
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.34,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "reverse": true,
+              "roll": 1.571
             }
           },
           "two": {
@@ -1019,13 +1056,29 @@
               0
             ],
             "run": {
-              "hand": [
-                -0.444,
-                0.829,
-                -0.436
-              ],
-              "natural": true,
-              "release": true
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.34,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
             }
           }
         },
@@ -1048,12 +1101,28 @@
             ],
             "stance": "wand_ready",
             "run": {
-              "hand": [
-                -0.444,
-                0.829,
-                -0.436
-              ],
-              "natural": true
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.33,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "reverse": true,
+              "roll": 1.571
             }
           },
           "two": {
@@ -1075,13 +1144,29 @@
               0
             ],
             "run": {
-              "hand": [
-                -0.444,
-                0.829,
-                -0.436
-              ],
-              "natural": true,
-              "release": true
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.33,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
             }
           }
         },
@@ -1105,13 +1190,29 @@
               0
             ],
             "run": {
-              "hand": [
-                -0.444,
-                0.829,
-                -0.436
-              ],
-              "natural": true,
-              "release": true
+              "arms": {
+                "armR": [
+                  0.26,
+                  0,
+                  -0.2
+                ],
+                "elbowR": [
+                  -0.15,
+                  0,
+                  0
+                ]
+              },
+              "socket": 2.52,
+              "lean": {
+                "torso": [
+                  0.1,
+                  0,
+                  0
+                ]
+              },
+              "release": true,
+              "reverse": true,
+              "roll": 1.571
             }
           }
         },
@@ -1193,8 +1294,16 @@
       },
       "source": "Meshy web image-to-3d of the chibi character from the owner's sheet, untextured and detailed, made by the owner on the Meshy site (assets/meshy/hero_chibi/hair_meshy_web.glb, 8,429 tris, whole body); hair cut out by position with scripts/prep-chibi-hair.py --cut --below 0.01 --face 0 0.25 0.17 0.05 --back -0.05 -0.03. Fitted by its fixed box, so re-cutting the model does not move the hair. Drawn in one colour.",
       "box": [
-        [-0.2991, -0.0579, -0.2703],
-        [0.2991, 0.4763, 0.2742]
+        [
+          -0.2991,
+          -0.0579,
+          -0.2703
+        ],
+        [
+          0.2991,
+          0.4763,
+          0.2742
+        ]
       ],
       "highlight": {
         "_doc": "Anime highlight band on the hair (chibi-body.js hairHighlightMaterial): a jagged lighter band at height `at` of the hair model, `width` thick, on the side facing the camera, `strength` 0..1.",

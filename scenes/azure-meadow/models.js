@@ -50,17 +50,20 @@ function wellModel(){
  barrel(x-r-.90,z+r*.56*.9,.83,1.85);barrel(x+r+1.15,z+r*.34,.58,1.32,true);COLLIDERS.push({x:x+r+1.15,z:z+r*.34,r:.65});
 }
 function gardenWalls(){
- // Broken, low field boundaries, rather than a formal wall around a raised stage.
+ // Low dry-stone field walls, as in the concept: rounded grey stones of mixed
+ // sizes laid along each run, a smaller course on top in places, moss on their
+ // crowns and plants at their feet. A stone is missing here and there.
  const runs=[[[.42,.405],[.43,.435],[.47,.46],[.51,.475]],[[.55,.48],[.60,.485],[.65,.46],[.685,.425]],[[.72,.41],[.735,.37]]];
  for(const pts of runs){
-  const points=pts.map(([u,v])=>{const[x,y,z]=onGround(u,v);return new V3(x,0,z);}),curve=new THREE.CatmullRomCurve3(points,false,'centripetal'),n=Math.ceil(curve.getLength()/M(.60));
-  for(let i=0;i<n;i++){
-   const t=(i+.5)/n,p=curve.getPoint(t),d=curve.getTangent(t),st=stairsAt(p.x,p.z);if(st.s<st.half+.68)continue;
-   const w=curve.getLength()/n*.93,h=M(.27)*(1+.20*Math.sin(i*1.7)),y=height(p.x,p.z)-.07,yaw=Math.atan2(-d.z,d.x);
-   block(p.x,y,p.z,w,h,M(.32),yaw,.20,{ink:.003*K,base:pick(ruinPalette)});
-   if(i%4!==2)block(p.x+.10,y+h-.04,p.z,w*.94,h*.72,M(.30),yaw,.30,{ink:.002*K,base:pick(ruinPalette)});
-   COLLIDERS.push({x:p.x,z:p.z,r:M(.25)});
-   if(i%3===0)addBush(p.x+M(.1),y+h*.7,p.z-M(.18),M(.23),{sy:.46,tint:.05});
+  const curve=new THREE.CatmullRomCurve3(pts.map(([u,v])=>{const[x,,z]=onGround(u,v);return new V3(x,0,z);}),false,'centripetal'),L=curve.getLength();
+  for(let s=M(.12);s<L-M(.12);){
+   const w=M(R(.5,.78)),t=Math.min(1,(s+w/2)/L),p=curve.getPointAt(t),d=curve.getTangentAt(t),st=stairsAt(p.x,p.z);s+=w*R(.94,1.04);
+   if(st.s<st.half+.68||rand()<.07)continue;
+   const h=M(R(.32,.44)),dep=M(R(.40,.50)),y=height(p.x,p.z)-.12,yaw=Math.atan2(-d.z,d.x)+R(-.12,.12);
+   fieldStone(p.x,y,p.z,w,h,dep,{moss:.35,ry:yaw,rz:R(-.06,.06)});
+   if(rand()<.7){const w2=w*R(.5,.75),off=R(-.25,.25)*w;fieldStone(p.x+d.x*off,y+h*.8,p.z+d.z*off,w2,h*R(.55,.75),dep*.82,{moss:.55,ry:yaw+R(-.2,.2)});}
+   COLLIDERS.push({x:p.x,z:p.z,r:M(.3)});
+   if(rand()<.6){const side=rand()<.5?-1:1;addBush(p.x-d.z*side*M(.26),y+.1,p.z+d.x*side*M(.26),M(R(.16,.24)),{sy:.5,tint:R(0,.06)});}
   }
  }
 }

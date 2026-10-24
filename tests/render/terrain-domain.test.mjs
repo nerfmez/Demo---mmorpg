@@ -154,4 +154,19 @@ test('decorative road continuation retains every native meadow clump and flower 
  assert.deepEqual(actual,expected,'painting across the map boundary must not remove or shift any grass/flowers');
 });
 
+test('accepted scenes paint only their own paths, not the town earth clearing',async()=>{
+ const {acceptedScenes,sceneWeight,sceneSample}=await import('../../src/core/accepted-scenes.js');
+ const {outsideClearingWeight,outsideRoadVisible}=await import('../../src/core/ground-regions.js');
+ const {distToPolyline}=await import('../../src/core/math.js');
+ const world=worlds[A],field=surfaceData(world),hf=world.heightfield;let checked=0;
+ // the connector roads that join each scene to the world keep their paint
+ const nearRoad=(x,z)=>world.roads.some(r=>outsideRoadVisible(world.data.city,r.id)&&distToPolyline(x,z,r.points)<r.width/2+2);
+ for(const scene of acceptedScenes(world.data))for(let j=0;j<hf.h;j+=2)for(let i=0;i<hf.w;i+=2){
+  const x=hf.ox+i*hf.res,z=hf.oz+j*hf.res;
+  if(sceneWeight(scene,x,z)<.999||outsideClearingWeight(world.data.city,x,z)<.5||sceneSample(scene,'trails',x,z)<1.5||world.isWater(x,z)||nearRoad(x,z))continue;
+  checked++;assert.ok(field.road[j*hf.w+i]<.05,`${scene.id} grass at ${x},${z} painted as earth`);
+ }
+ assert.ok(checked>100,'the meadow and windmill overlap the clearing: '+checked);
+});
+
 test.after(()=>{for(const[id,g]of Object.entries(terrains)){disposeObject(g);releaseGroundCaches(worlds[id]);}});

@@ -155,13 +155,14 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         dirt[k]=Math.max(dirt[k],patch*.92);
         road[k]=Math.max(road[k],patch*.55);
       }
+      const accepted=acceptedAt(wd,x,z),aw=accepted?sceneWeight(accepted,x,z):0;
       if(!cityFloorAt(wd.city,x,z)&&!world.isWater(x,z)){
-        const clearing=outsideClearingWeight(wd.city,x,z);
+        // An accepted scene paints its own paths: the town's earth clearing stops at its edge.
+        const clearing=outsideClearingWeight(wd.city,x,z)*(1-aw);
         dirt[k]=Math.max(dirt[k],clearing*.97);
         road[k]=Math.max(road[k],clearing*.92);
       }
-      const accepted=acceptedAt(wd,x,z);
-      if(accepted){const w=sceneWeight(accepted,x,z),d=sceneSample(accepted,'trails',x,z);road[k]=Math.max(road[k],(1-smooth(-.25,.45,d))*w);stone[k]*=1-w;dirt[k]*=1-w;}
+      if(accepted){const d=sceneSample(accepted,'trails',x,z);road[k]=Math.max(road[k],(1-smooth(-.25,.45,d))*aw);stone[k]*=1-aw;dirt[k]*=1-aw;}
       road[k] *= 1 - stone[k] * .7;
     }
   }
@@ -235,7 +236,8 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       const nx=x+r.noiseShift[0],nz=z+r.noiseShift[1];
       const worn=((valueNoise(nx*.22,nz*.22,71)-.5)*.7+(valueNoise(nx*.85,nz*.85,72)-.5)*.22)*(1-planned[k]*.65);
       const mask=(1-smooth(half-.6+worn,half+1.05+worn,d))*domain.roadWeight(r,x,z);
-      road[k]=Math.max(road[k],mask);
+      const scene=acceptedAt(wd,x,z); // an accepted scene keeps only its own paths
+      road[k]=Math.max(road[k],mask*(scene?1-sceneWeight(scene,x,z):1));
     });
   }
   yield;

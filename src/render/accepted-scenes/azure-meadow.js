@@ -64,12 +64,12 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
  {top:PL,base:0,ledge:false,masonry:true,soft:M(.9),lean:M(.16),pts:[[.405,.425,'b'],[.46,.46,'b'],[.55,.475,'b'],[.64,.465,'b'],[.72,.43,'b'],[.755,.39,'n'],[.735,.32,'n'],[.66,.295,'n'],[.54,.28,'n'],[.44,.305,'n'],[.39,.36,'b']]},
- {top:M(.38),base:0,ledge:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
+ {top:M(.38),base:0,ledge:true,stones:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
  {top:M(1.30),base:M(.30),ledge:true,soft:M(.9),lean:M(.20),pts:[[-.3,.44,'t'],[.05,.43,'b'],[.13,.39,'b'],[.18,.34,'b'],[.18,.26,'n'],[.13,.18,'n'],[-.3,.14,'t']]},
  {top:M(2.4),base:M(1.0),ledge:true,soft:M(1.1),lean:M(.25),pts:[[-.3,.18,'t'],[.13,.18,'b'],[.23,.21,'b'],[.32,.225,'b'],[.38,.20,'n'],[.42,.11,'n'],[.42,-.3,'t'],[-.3,-.3,'t']]},
- {top:PL,base:M(.15),ledge:true,soft:M(.75),lean:M(.18),pts:[[.42,.16,'b'],[.52,.19,'b'],[.67,.19,'b'],[.77,.18,'n'],[.84,.12,'n'],[1.2,-.3,'t'],[.40,-.3,'t']]},
- {top:M(.85),base:0,ledge:true,soft:M(.8),lean:M(.22),pts:[[.77,.88,'b'],[.87,.86,'b'],[.94,.79,'b'],[.98,.65,'b'],[1.2,.57,'t'],[1.2,1.2,'t'],[.8,1.2,'t']]},
- {top:M(.46),base:0,ledge:true,soft:M(.8),lean:M(.14),pts:[[.91,.39,'b'],[.94,.35,'n'],[1.2,.3,'t'],[1.2,.63,'t'],[.97,.55,'b'],[.93,.48,'b']]}
+ {top:PL,base:M(.15),ledge:true,stones:true,soft:M(.75),lean:M(.18),pts:[[.42,.16,'b'],[.52,.19,'b'],[.67,.19,'b'],[.77,.18,'n'],[.84,.12,'n'],[1.2,-.3,'t'],[.40,-.3,'t']]},
+ {top:M(.85),base:0,ledge:true,stones:true,soft:M(.8),lean:M(.22),pts:[[.77,.88,'b'],[.87,.86,'b'],[.94,.79,'b'],[.98,.65,'b'],[1.2,.57,'t'],[1.2,1.2,'t'],[.8,1.2,'t']]},
+ {top:M(.46),base:0,ledge:true,stones:true,soft:M(.8),lean:M(.14),pts:[[.91,.39,'b'],[.94,.35,'n'],[1.2,.3,'t'],[1.2,.63,'t'],[.97,.55,'b'],[.93,.48,'b']]}
 ].map(T => {
   let pts = T.pts.map(([u, v, k, h]) => { const [x, z] = P(u, v, h ?? (k === 't' ? T.top : T.base)); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
   // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
@@ -403,6 +403,35 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 // down, and plants on the lip and at the foot. One light mesh; it replaces the
 // earlier fractured face. Sizes follow the forest's, scaled by K. It draws from
 // its own seed, so the approved stream, layout and colliders are unchanged.
+// A rounded field stone: the shared stone hull with its corners welded and
+// smooth-shaded, so it reads as weathered rock rather than cut crystal, with
+// moss on its upward faces and the usual same-hue outline.
+function fieldStone(x,y,z,w,h,d,{ry=0,rz=0,moss=.3,base=pick(ruinPalette)}={}){
+  let g=stoneGeometry(w,h,d,{chamfer:.5,extra:30,jitter:.1,base});
+  g.deleteAttribute('color');g.deleteAttribute('normal');g=mergeVertices(g,1e-4);g.computeVertexNormals();
+  const c=new THREE.Color(),b=new THREE.Color(base),m=new THREE.Color(pick(MOSS)),pos=g.attributes.position,nor=g.attributes.normal,col=new Float32Array(pos.count*3);
+  for(let i=0;i<pos.count;i++){const ny=nor.getY(i);c.copy(b).multiplyScalar(.9+.1*ny).lerp(m,moss*smooth(.5,.9,ny));col.set([c.r,c.g,c.b],i*3);}
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));g=g.toNonIndexed();
+  g.applyMatrix4(new THREE.Matrix4().compose(new V3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,ry,rz)),new V3(1,1,1)));
+  stoneParts.push(g);
+  const o=g.clone();o.deleteAttribute('color');const ctr=new V3(x,y+h/2,z),s=1+.06/Math.min(w,h,d)*1.6;
+  o.translate(-ctr.x,-ctr.y,-ctr.z);o.scale(s,s,s);o.translate(ctr.x,ctr.y,ctr.z);stoneLines.push(o);
+}
+// Low terrace faces marked `stones` (the meadow's field walls) are dry-stone:
+// rounded stones laid along the face in one to three courses, each course set
+// back up the slope, moss on the top course and plants along the crown.
+function stoneFace(T,S,length,U){
+  for(let s=R(0,.3)*U;s<length;){
+    const w=R(1.1,1.8)*U,q=S[Math.max(0,S.findIndex(p=>p.s>=s+w/2))]||S[S.length-1];s+=w*R(.92,1.02);
+    const rise=q.top-q.base;if(rise<.2*U)continue;
+    const n=Math.max(1,Math.min(3,Math.round(rise/(.95*U)))),ry=Math.atan2(-q.nx,-q.nz);
+    for(let r=0;r<n;r++){
+      const f=r/n,d=R(.9,1.2)*U,o=.15*U-T.lean*f-d/2+R(-.06,.06)*U,h=rise/n*R(1.02,1.15)+(r===0?.3:0);
+      fieldStone(q.x+q.nx*o,q.base+rise*f-(r===0?.3:.05),q.z+q.nz*o,w*R(.82,.98),h,d,{moss:r===n-1?.5:.12,ry:ry+R(-.1,.1),rz:R(-.05,.05)});
+    }
+    if(rand()<.4)addBush(q.x-q.nx*R(.3,.9)*U,q.top-.1,q.z-q.nz*R(.3,.9)*U,R(.35,.6)*U,{sy:.58,tint:R(-.2,.2)});
+  }
+}
 function columnCliffs(){
   const U=K/2.4,pos=[],col=[],tmpA=new V3(),tmpB=new V3(),nn=new V3();
   const quad=(a,b,c,d,out,color)=>{
@@ -433,6 +462,7 @@ function columnCliffs(){
         q.base=Math.min(height(q.x+q.nx*1.6,q.z+q.nz*1.6),height(q.x+q.nx*2.6,q.z+q.nz*2.6))-.35;
         q.top=Math.min(T.topAt?T.topAt(q.x):T.top,height(q.x-q.nx*(T.lean+.4),q.z-q.nz*(T.lean+.4))+.08);
       });
+      if(T.stones){stoneFace(T,S,acc,U);continue;}
       const cols=[];let i0=0;
       while(i0<S.length-1){
         const w=(rand()<.22?R(2.6,4.2):R(1.1,2.2))*U;let i1=i0+1;
@@ -1161,17 +1191,20 @@ function wellModel(){
  barrel(x-r-.90,z+r*.56*.9,.83,1.85);barrel(x+r+1.15,z+r*.34,.58,1.32,true);COLLIDERS.push({x:x+r+1.15,z:z+r*.34,r:.65});
 }
 function gardenWalls(){
- // Broken, low field boundaries, rather than a formal wall around a raised stage.
+ // Low dry-stone field walls, as in the concept: rounded grey stones of mixed
+ // sizes laid along each run, a smaller course on top in places, moss on their
+ // crowns and plants at their feet. A stone is missing here and there.
  const runs=[[[.42,.405],[.43,.435],[.47,.46],[.51,.475]],[[.55,.48],[.60,.485],[.65,.46],[.685,.425]],[[.72,.41],[.735,.37]]];
  for(const pts of runs){
-  const points=pts.map(([u,v])=>{const[x,y,z]=onGround(u,v);return new V3(x,0,z);}),curve=new THREE.CatmullRomCurve3(points,false,'centripetal'),n=Math.ceil(curve.getLength()/M(.60));
-  for(let i=0;i<n;i++){
-   const t=(i+.5)/n,p=curve.getPoint(t),d=curve.getTangent(t),st=stairsAt(p.x,p.z);if(st.s<st.half+.68)continue;
-   const w=curve.getLength()/n*.93,h=M(.27)*(1+.20*Math.sin(i*1.7)),y=height(p.x,p.z)-.07,yaw=Math.atan2(-d.z,d.x);
-   block(p.x,y,p.z,w,h,M(.32),yaw,.20,{ink:.003*K,base:pick(ruinPalette)});
-   if(i%4!==2)block(p.x+.10,y+h-.04,p.z,w*.94,h*.72,M(.30),yaw,.30,{ink:.002*K,base:pick(ruinPalette)});
-   COLLIDERS.push({x:p.x,z:p.z,r:M(.25)});
-   if(i%3===0)addBush(p.x+M(.1),y+h*.7,p.z-M(.18),M(.23),{sy:.46,tint:.05});
+  const curve=new THREE.CatmullRomCurve3(pts.map(([u,v])=>{const[x,,z]=onGround(u,v);return new V3(x,0,z);}),false,'centripetal'),L=curve.getLength();
+  for(let s=M(.12);s<L-M(.12);){
+   const w=M(R(.5,.78)),t=Math.min(1,(s+w/2)/L),p=curve.getPointAt(t),d=curve.getTangentAt(t),st=stairsAt(p.x,p.z);s+=w*R(.94,1.04);
+   if(st.s<st.half+.68||rand()<.07)continue;
+   const h=M(R(.32,.44)),dep=M(R(.40,.50)),y=height(p.x,p.z)-.12,yaw=Math.atan2(-d.z,d.x)+R(-.12,.12);
+   fieldStone(p.x,y,p.z,w,h,dep,{moss:.35,ry:yaw,rz:R(-.06,.06)});
+   if(rand()<.7){const w2=w*R(.5,.75),off=R(-.25,.25)*w;fieldStone(p.x+d.x*off,y+h*.8,p.z+d.z*off,w2,h*R(.55,.75),dep*.82,{moss:.55,ry:yaw+R(-.2,.2)});}
+   COLLIDERS.push({x:p.x,z:p.z,r:M(.3)});
+   if(rand()<.6){const side=rand()<.5?-1:1;addBush(p.x-d.z*side*M(.26),y+.1,p.z+d.x*side*M(.26),M(R(.16,.24)),{sy:.5,tint:R(0,.06)});}
   }
  }
 }
@@ -1249,52 +1282,80 @@ function fenceRun(points){
 }
 
 // Azure Meadow: orchard well, vegetable beds and connected village approaches.
-const cropParts=[],blossomItems=[],FARM_AREAS=[];
-function inFarm(x,z){return FARM_AREAS.some(p=>{let inside=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[2]>z)!=(b[2]>z)&&x<(b[0]-a[0])*(z-a[2])/(b[2]-a[2])+a[0])inside=!inside;}return inside;});}
+const cropParts=[],cabbageItems=[],blossomItems=[],FARM_AREAS=[];
+function inFarm(x,z){return nearFarm(x,z,0);}
+// Within m of a bed (inside counts as 0). Used to keep plants that would hide a bed away from it.
+function nearFarm(x,z,m){return FARM_AREAS.some(p=>{let inside=false,d=Infinity;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[2]>z)!=(b[2]>z)&&x<(b[0]-a[0])*(z-a[2])/(b[2]-a[2])+a[0])inside=!inside;const ex=b[0]-a[0],ez=b[2]-a[2],t=Math.max(0,Math.min(1,((x-a[0])*ex+(z-a[2])*ez)/(ex*ex+ez*ez||1)));d=Math.min(d,Math.hypot(x-a[0]-ex*t,z-a[2]-ez*t));}return inside||d<m;});}
 function farms(){
- const plots=[{pts:[[.005,.47],[.105,.43],[.23,.48],[.20,.56],[.015,.58]],rows:3,cols:5},{pts:[[.94,.40],[1.07,.39],[1.08,.53],[.95,.50]],rows:3,cols:4}];
- for(const plot of plots){
-  const points=plot.pts.map(([u,v])=>onGround(u,v)),center=new V3();points.forEach(p=>center.add(new V3(...p)));center.divideScalar(points.length);
-  FARM_AREAS.push(points);
-  const positions=[],corners=[plot.pts[0],plot.pts[1],plot.pts[2],plot.pts.at(-1)];
-  // A fine grid keeps the bed on the curved ground; ground is sampled once per grid point.
-  // Only the corners are projected (onGround searches the ground); the grid is
-  // spread between them on the ground plane and sampled once per point.
-  const[A,B,C,D]=corners.map(([u,v])=>onGround(u,v)),GU=32,GV=24,grid=[];
-  for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){const a=i/GU,b=j/GV,x=(A[0]*(1-a)+B[0]*a)*(1-b)+(D[0]*(1-a)+C[0]*a)*b,z=(A[2]*(1-a)+B[2]*a)*(1-b)+(D[2]*(1-a)+C[2]*a)*b;grid.push([x,height(x,z)+.09,z]);}
-  for(let i=0;i<GU;i++)for(let j=0;j<GV;j++)for(const[a,b]of[[i,j],[i+1,j],[i+1,j+1],[i,j],[i+1,j+1],[i,j+1]])positions.push(...grid[b*(GU+1)+a]);
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const row=new V3(points[1][0]-points[0][0],0,points[1][2]-points[0][2]).normalize();
-  // Tilled ridges run along the bed; they are painted, so they cost no geometry.
-  const mesh=new THREE.Mesh(g,paint({color:'#a47b45',side:THREE.DoubleSide,shade:[.57,.48,.37],mid:[.83,.69,.50],albedo:`
-      float along=dot(vW.xz,vec2(${(-row.z).toFixed(4)},${row.x.toFixed(4)}));
-      float ridge=abs(fract(along*.95)*2.-1.);
-      diffuseColor.rgb*=.80+.26*smoothstep(.25,.75,ridge);
-    `}));mesh.receiveShadow=true;mesh.name='vegetable-soil';scene.add(mesh);
-  const uv=plot.pts;
-  for(let row=0;row<plot.rows;row++)for(let col=0;col<plot.cols;col++){
-   const a=(col+.65)/(plot.cols+.3),b=(row+.55)/(plot.rows+.2),u=(uv[0][0]*(1-a)+uv[1][0]*a)*(1-b)+(uv.at(-1)[0]*(1-a)+uv[2][0]*a)*b,v=(uv[0][1]*(1-a)+uv[1][1]*a)*(1-b)+(uv.at(-1)[1]*(1-a)+uv[2][1]*a)*b;
-   const[x,y,z]=onGround(u,v),s=R(1.0,1.30);
-   const core=new THREE.SphereGeometry(s*.35,7,5);core.scale(1,.85,1);core.translate(x,y+s*.35,z);cropParts.push(coloredPart(core,'#a5b85a'));
-   for(let k=0;k<7;k++){const angle=k/7*Math.PI*2,leaf=new THREE.SphereGeometry(s*.42,6,4);leaf.scale(.64,.19,1.30);leaf.rotateX(.35);leaf.rotateY(angle);leaf.translate(x+Math.sin(angle)*s*.36,y+s*.17,z+Math.cos(angle)*s*.36);cropParts.push(coloredPart(leaf,k%2?'#5a974c':'#85b65a'));}
+ // Two kitchen beds as in the concept, on level ground clear of the paths and
+ // terrace edges: a raised bed of dark tilled soil whose rim slopes down into
+ // the grass, ridges along its length with a row of cabbages on each, tomato
+ // canes on the left bed, and a rail fence along its front and outer end.
+ const keep=seed;seed=4243;
+ const beds=[{c:[.105,.52],w:M(4.9),d:M(2.9),yaw:.3,rows:4,cols:7,tomatoes:true,props:true},{c:[1.042,.493],w:M(2.2),d:M(1.75),yaw:-.25,rows:3,cols:4}];
+ const furrow=new THREE.Color('#5a3a22'),crest=new THREE.Color('#946538'),tone=new THREE.Color();
+ for(const bed of beds){
+  const[cx,,cz]=onGround(...bed.c),ca=Math.cos(bed.yaw),sa=Math.sin(bed.yaw);
+  // local (a along the bed, b across it, +b towards the camera) to world
+  const at=(a,b)=>[cx+a*ca+b*sa,cz-a*sa+b*ca];
+  const corners=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([i,j])=>{const[x,z]=at(i*bed.w/2,j*bed.d/2);return[x,height(x,z),z];});
+  FARM_AREAS.push(corners);
+  let top=-Infinity;for(let i=0;i<=8;i++)for(let j=0;j<=8;j++){const[x,z]=at((i/8-.5)*bed.w,(j/8-.5)*bed.d);top=Math.max(top,height(x,z));}
+  top+=.12;
+  // One grid covers the bed and a rim beyond it; the rim drops below the grass.
+  const RIM=M(.16),NR=bed.rows,RH=M(.1),GU=28,GV=NR*6+4,pos=[],col=[],idx=[];
+  for(let j=0;j<=GV;j++)for(let i=0;i<=GU;i++){
+   const a=(i/GU-.5)*(bed.w+2*RIM),b=(j/GV-.5)*(bed.d+2*RIM),[x,z]=at(a,b);
+   const out=Math.max(Math.abs(a)-bed.w/2,Math.abs(b)-bed.d/2,0)/RIM,bb=(b+bed.d/2)/bed.d;
+   const k=out>0?0:(.5+.5*Math.cos(2*Math.PI*(bb*NR-.5)))*smooth(0,.08,Math.min(1-Math.abs(a)/(bed.w/2),1));
+   const y=top+RH*k,ground=height(x,z)-.1,rim=smooth(0,1,out);
+   pos.push(x,y+(ground-y)*rim,z);
+   tone.copy(furrow).lerp(crest,k).multiplyScalar(1-.18*rim);col.push(tone.r,tone.g,tone.b);
   }
-  fenceRun([points.at(-1),points.at(-2),points[2]].map(p=>[p[0],p[2]]));
+  for(let j=0;j<GV;j++)for(let i=0;i<GU;i++){const q=j*(GU+1)+i;idx.push(q,q+GU+1,q+1,q+1,q+GU+1,q+GU+2);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+  const mesh=new THREE.Mesh(g,paint({vertexColors:true,side:THREE.DoubleSide,shade:[.57,.48,.37],mid:[.83,.69,.50]}));mesh.receiveShadow=true;mesh.name='vegetable-soil';scene.add(mesh);
+  for(let r=0;r<NR;r++)for(let k=0;k<bed.cols;k++){
+   const a=((k+.5)/bed.cols-.5)*bed.w*.9+R(-.12,.12),b=((r+.5)/NR-.5)*bed.d,[x,z]=at(a,b);
+   cabbageItems.push({x,y:top+RH-.1,z,s:R(1.35,1.6),ry:R(0,6.28)});
+  }
+  if(bed.tomatoes)for(let k=0;k<5;k++){
+   // tomato canes on stakes along the bed's back edge
+   const[x,z]=at(((k+.5)/5-.5)*bed.w*.9,-bed.d/2+M(.1));
+   woodBeam(new V3(x,top-.1,z),new V3(x+R(-.05,.05),top+M(.55),z),M(.028),'#8a6d43');
+   addBush(x,top+M(.06),z,M(R(.15,.19)),{sy:1.1,tint:-.06});
+   for(let f=0;f<5;f++){const t=new THREE.SphereGeometry(M(.035),6,4);t.translate(x+R(-.45,.45),top+M(R(.15,.42)),z+R(-.3,.3));cropParts.push(coloredPart(t,f%2?'#d8432b':'#e8692f'));}
+  }
+  // the rail fence: along the front and round the outer end (towards the road), just off the bed
+  const F=M(.35),side=bed.yaw>0?1:-1,fence=[[-side*(bed.w/2+F),bed.d/2+F],[side*(bed.w/2+F),bed.d/2+F],[side*(bed.w/2+F),-bed.d/2]].map(([a,b])=>at(a,b));
+  fenceRun(fence);
+  if(bed.props){const[x,z]=at(-side*(bed.w/2-M(.3)),bed.d/2+M(.75));barrel(x,z,.68,1.35);const y=height(x,z),g=new THREE.SphereGeometry(.47,9,6);g.scale(.8,1.35,.8);g.translate(x+1.10,y+.60,z);detailMesh(g,'#bda36d');}
  }
- const[x,y,z]=onGround(.12,.586);barrel(x,z,.68,1.35);const g=new THREE.SphereGeometry(.47,9,6);g.scale(.8,1.35,.8);g.translate(x+1.10,y+.60,z);detailMesh(g,'#bda36d');
+ seed=keep;
+}
+// One cabbage (a pale head in a ring of darker outer leaves), drawn once per bed spot.
+function cabbages(){
+ if(!cabbageItems.length)return;
+ const parts=[],head=new THREE.SphereGeometry(.34,8,6);head.scale(1,.82,1);head.translate(0,.30,0);parts.push(coloredPart(head,'#bdd37b'));
+ for(let k=0;k<7;k++){const a=k/7*Math.PI*2,leaf=new THREE.SphereGeometry(.42,6,4);leaf.scale(.66,.2,1.3);leaf.rotateX(.38);leaf.rotateY(a);leaf.translate(Math.sin(a)*.34,.16,Math.cos(a)*.34);parts.push(coloredPart(leaf,k%2?'#5b984a':'#82b759'));}
+ const mesh=new THREE.InstancedMesh(mergeGeometries(parts),paint({vertexColors:true,shade:[.52,.66,.55],mid:[.80,.89,.70]}),cabbageItems.length),m=new THREE.Matrix4(),q=new THREE.Quaternion(),up=new V3(0,1,0);
+ cabbageItems.forEach((p,i)=>{q.setFromAxisAngle(up,p.ry);m.compose(new V3(p.x,p.y,p.z),q,new V3(p.s,p.s,p.s));mesh.setMatrixAt(i,m);});
+ mesh.name='cabbages';mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
 }
 function orchard(){
- const trees=[[.045,.12,2.45,3],[.045,.35,2.50,5],[.055,.69,2.30,9],[.015,.91,2.25,3],[.24,.055,2.20,9],[.355,.225,2.40,5],[.47,.24,2.35,9],[.44,.08,2.40,3],[.57,.12,2.50,5],[.67,.355,2.30,5],[.735,.18,2.20,9],[.69,.06,2.25,3],[.79,.13,2.20,5],[.94,.20,2.35,9],[1.015,.36,2.45,5],[.955,.73,2.70,9],[1.04,.92,2.65,3],[-.035,.57,2.35,5],[.15,.94,2.15,9],[.86,.055,2.25,3],[.52,-.025,2.55,5],[.33,-.025,2.45,9]];
+ const trees=[[.045,.12,2.45,3],[.045,.35,2.50,5],[-.07,.84,2.30,9],[.015,.91,2.25,3],[.24,.055,2.20,9],[.355,.225,2.40,5],[.47,.24,2.35,9],[.44,.08,2.40,3],[.57,.12,2.50,5],[.67,.355,2.30,5],[.735,.18,2.20,9],[.69,.06,2.25,3],[.79,.13,2.20,5],[.94,.20,2.35,9],[1.015,.36,2.45,5],[.955,.73,2.70,9],[1.04,.92,2.65,3],[-.10,.47,2.35,5],[.15,.94,2.15,9],[.86,.055,2.25,3],[.52,-.025,2.55,5],[.33,-.025,2.45,9]];
  for(const[u,v,s,seed]of trees){
   let[x,y,z]=onGround(u,v);const st=stairsAt(x,z);
   if(st.s<st.half+s*.45+.6){const route=ROUTES.find(r=>r.id===st.route),row=route.rows.reduce((a,b)=>Math.hypot(x-a.x,z-a.z)<Math.hypot(x-b.x,z-b.z)?a:b),sign=(x-row.x)*row.nx+(z-row.z)*row.nz<0?-1:1;x=row.x+sign*row.nx*(row.w/2+s*.45+.8);z=row.z+sign*row.nz*(row.w/2+s*.45+.8);y=height(x,z);}
   if(Math.hypot((x-WELL.x)/WELL.r,(z-WELL.z)/WELL.rz)<1.25)continue;
   broadleaf(x,z,s,seed);COLLIDERS.push({x,z,r:s*.42});
-  if(u>.25&&u<.76)for(const[cx,cy,cz,rx,ry,rz]of ANIME.treeSprays)for(let i=0;i<12;i++){
+  for(const[cx,cy,cz,rx,ry,rz]of ANIME.treeSprays)for(let i=0;i<12;i++){
    const px=(cx+R(-.6,.6)*rx)*3*s,py=(cy+R(-.3,.6)*ry)*2*s,pz=(cz+R(-.6,.6)*rz)*2.7*s,t=treeItems.at(-1),co=Math.cos(t.ry),si=Math.sin(t.ry);
    blossomItems.push({x:x+px*co+pz*si,y:y+3.5*s+py,z:z-px*si+pz*co,fruit:i===0,s:R(.23,.35)});
   }
  }
  for(let i=0;i<460;i++){
-  const[x,y,z]=onGround(R(-.12,1.12),R(-.05,1.05)),f=field(x,z);if(inFarm(x,z)||trailEdge(x,z)<M(.58)||f.rock>.22||Math.hypot(x-WELL.x,z-WELL.z)<WELL.r+1.6)continue;
+  const[x,y,z]=onGround(R(-.12,1.12),R(-.05,1.05)),f=field(x,z);if(nearFarm(x,z,M(1))||trailEdge(x,z)<M(.58)||f.rock>.22||Math.hypot(x-WELL.x,z-WELL.z)<WELL.r+1.6)continue;
   const slope=Math.max(Math.abs(height(x+.4,z)-y),Math.abs(height(x,z+.4)-y))/.4;if(slope>1.2)continue;
   addBush(x,y-.1,z,R(.75,1.45),{sy:R(.5,.78),tint:R(-.06,.08)});
  }
@@ -1325,8 +1386,13 @@ function orchardBlossoms(){
 }
 function meadowDetails(){
  for(const[u,v,w,h]of[[.205,.64,.044,.05],[.25,.68,.038,.055],[.285,.72,.032,.040],[.05,.83,.04,.06],[.15,.88,.04,.05],[.82,.79,.035,.06],[.91,.83,.045,.07],[.42,.36,.024,.03],[.72,.45,.025,.04],[.80,.28,.026,.04],[.37,.25,.028,.04]]){
-  const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h),st=stairsAt(x,z);if(st.s<st.half+ww*.5+.4)continue;
-  addStone(x,y-.12,z,ww,hh,ww*.7,{extra:13,chamfer:.18,moss:.18,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
+  // never taller than wide: field boulders lie low, they do not stand as pillars
+  const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=Math.min(tall(x,z,y,v-h),ww*.62),st=stairsAt(x,z);if(st.s<st.half+ww*.5+.4)continue;
+  // a rounded, mossy boulder with a smaller stone at its foot, bedded in plants
+  fieldStone(x,y-.18,z,ww,hh,ww*.78,{moss:.4,ry:R(-.4,.4),rz:R(-.07,.07)});COLLIDERS.push({x,z,r:ww*.39});
+  const a=R(0,6.28),xx=x+Math.cos(a)*ww*.55,zz=z+Math.sin(a)*ww*.4,ss=ww*R(.3,.45);
+  fieldStone(xx,height(xx,zz)-.1,zz,ss,ss*R(.5,.7),ss*.8,{moss:.3,ry:R(0,3)});
+  for(let k=0;k<2;k++){const b=R(0,6.28);addBush(x+Math.cos(b)*ww*.6,y-.05,z+Math.sin(b)*ww*.45,ww*R(.22,.3),{sy:.62,tint:R(0,.06)});}
  }
  for(const points of[[[.01,.39],[.13,.385],[.23,.41]],[[.30,.14],[.37,.13],[.42,.12]],[[.69,.21],[.76,.22],[.79,.24]],[[.90,.415],[.93,.37],[.97,.345]]])fenceRun(points.map(([u,v])=>{const[x,y,z]=onGround(u,v);return[x,z];}));
  for(let i=0;i<120;i++){
@@ -1363,7 +1429,8 @@ function embeddedRoadStones(){
 function build(){
  const[x,z]=P(.50,.81);heroStub.x=x;heroStub.z=z;heroStub.face=-2.7;
  {const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}buildLedges();embeddedRoadStones();wellModel();gardenWalls();gateAndVillage();farms();meadowDetails();orchard();
- const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='meadow-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
+ const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='meadow-stone-details';stones.userData.authoredNormals=true;stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
+ cabbages();
  if(cropParts.length){const crops=new THREE.Mesh(mergeGeometries(cropParts),paint({vertexColors:true,shade:[.52,.66,.55],mid:[.80,.89,.70]}));crops.castShadow=crops.receiveShadow=true;scene.add(crops);}
  clearLandmarkPlants();placeCoastPlants();orchardBlossoms();
 }

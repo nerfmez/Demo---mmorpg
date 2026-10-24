@@ -39,12 +39,12 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
  {top:PL,base:0,ledge:false,masonry:true,soft:M(.9),lean:M(.16),pts:[[.405,.425,'b'],[.46,.46,'b'],[.55,.475,'b'],[.64,.465,'b'],[.72,.43,'b'],[.755,.39,'n'],[.735,.32,'n'],[.66,.295,'n'],[.54,.28,'n'],[.44,.305,'n'],[.39,.36,'b']]},
- {top:M(.38),base:0,ledge:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
+ {top:M(.38),base:0,ledge:true,stones:true,soft:M(.7),lean:M(.18),pts:[[-.3,.73,'t'],[.09,.70,'b'],[.18,.68,'b'],[.25,.60,'b'],[.245,.51,'n'],[.20,.43,'n'],[.08,.40,'n'],[-.3,.40,'t']]},
  {top:M(1.30),base:M(.30),ledge:true,soft:M(.9),lean:M(.20),pts:[[-.3,.44,'t'],[.05,.43,'b'],[.13,.39,'b'],[.18,.34,'b'],[.18,.26,'n'],[.13,.18,'n'],[-.3,.14,'t']]},
  {top:M(2.4),base:M(1.0),ledge:true,soft:M(1.1),lean:M(.25),pts:[[-.3,.18,'t'],[.13,.18,'b'],[.23,.21,'b'],[.32,.225,'b'],[.38,.20,'n'],[.42,.11,'n'],[.42,-.3,'t'],[-.3,-.3,'t']]},
- {top:PL,base:M(.15),ledge:true,soft:M(.75),lean:M(.18),pts:[[.42,.16,'b'],[.52,.19,'b'],[.67,.19,'b'],[.77,.18,'n'],[.84,.12,'n'],[1.2,-.3,'t'],[.40,-.3,'t']]},
- {top:M(.85),base:0,ledge:true,soft:M(.8),lean:M(.22),pts:[[.77,.88,'b'],[.87,.86,'b'],[.94,.79,'b'],[.98,.65,'b'],[1.2,.57,'t'],[1.2,1.2,'t'],[.8,1.2,'t']]},
- {top:M(.46),base:0,ledge:true,soft:M(.8),lean:M(.14),pts:[[.91,.39,'b'],[.94,.35,'n'],[1.2,.3,'t'],[1.2,.63,'t'],[.97,.55,'b'],[.93,.48,'b']]}
+ {top:PL,base:M(.15),ledge:true,stones:true,soft:M(.75),lean:M(.18),pts:[[.42,.16,'b'],[.52,.19,'b'],[.67,.19,'b'],[.77,.18,'n'],[.84,.12,'n'],[1.2,-.3,'t'],[.40,-.3,'t']]},
+ {top:M(.85),base:0,ledge:true,stones:true,soft:M(.8),lean:M(.22),pts:[[.77,.88,'b'],[.87,.86,'b'],[.94,.79,'b'],[.98,.65,'b'],[1.2,.57,'t'],[1.2,1.2,'t'],[.8,1.2,'t']]},
+ {top:M(.46),base:0,ledge:true,stones:true,soft:M(.8),lean:M(.14),pts:[[.91,.39,'b'],[.94,.35,'n'],[1.2,.3,'t'],[1.2,.63,'t'],[.97,.55,'b'],[.93,.48,'b']]}
 ].map(T => {
   let pts = T.pts.map(([u, v, k, h]) => { const [x, z] = P(u, v, h ?? (k === 't' ? T.top : T.base)); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
   // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
@@ -378,6 +378,35 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 // down, and plants on the lip and at the foot. One light mesh; it replaces the
 // earlier fractured face. Sizes follow the forest's, scaled by K. It draws from
 // its own seed, so the approved stream, layout and colliders are unchanged.
+// A rounded field stone: the shared stone hull with its corners welded and
+// smooth-shaded, so it reads as weathered rock rather than cut crystal, with
+// moss on its upward faces and the usual same-hue outline.
+function fieldStone(x,y,z,w,h,d,{ry=0,rz=0,moss=.3,base=pick(ruinPalette)}={}){
+  let g=stoneGeometry(w,h,d,{chamfer:.5,extra:30,jitter:.1,base});
+  g.deleteAttribute('color');g.deleteAttribute('normal');g=mergeVertices(g,1e-4);g.computeVertexNormals();
+  const c=new THREE.Color(),b=new THREE.Color(base),m=new THREE.Color(pick(MOSS)),pos=g.attributes.position,nor=g.attributes.normal,col=new Float32Array(pos.count*3);
+  for(let i=0;i<pos.count;i++){const ny=nor.getY(i);c.copy(b).multiplyScalar(.9+.1*ny).lerp(m,moss*smooth(.5,.9,ny));col.set([c.r,c.g,c.b],i*3);}
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));g=g.toNonIndexed();
+  g.applyMatrix4(new THREE.Matrix4().compose(new V3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,ry,rz)),new V3(1,1,1)));
+  stoneParts.push(g);
+  const o=g.clone();o.deleteAttribute('color');const ctr=new V3(x,y+h/2,z),s=1+.06/Math.min(w,h,d)*1.6;
+  o.translate(-ctr.x,-ctr.y,-ctr.z);o.scale(s,s,s);o.translate(ctr.x,ctr.y,ctr.z);stoneLines.push(o);
+}
+// Low terrace faces marked `stones` (the meadow's field walls) are dry-stone:
+// rounded stones laid along the face in one to three courses, each course set
+// back up the slope, moss on the top course and plants along the crown.
+function stoneFace(T,S,length,U){
+  for(let s=R(0,.3)*U;s<length;){
+    const w=R(1.1,1.8)*U,q=S[Math.max(0,S.findIndex(p=>p.s>=s+w/2))]||S[S.length-1];s+=w*R(.92,1.02);
+    const rise=q.top-q.base;if(rise<.2*U)continue;
+    const n=Math.max(1,Math.min(3,Math.round(rise/(.95*U)))),ry=Math.atan2(-q.nx,-q.nz);
+    for(let r=0;r<n;r++){
+      const f=r/n,d=R(.9,1.2)*U,o=.15*U-T.lean*f-d/2+R(-.06,.06)*U,h=rise/n*R(1.02,1.15)+(r===0?.3:0);
+      fieldStone(q.x+q.nx*o,q.base+rise*f-(r===0?.3:.05),q.z+q.nz*o,w*R(.82,.98),h,d,{moss:r===n-1?.5:.12,ry:ry+R(-.1,.1),rz:R(-.05,.05)});
+    }
+    if(rand()<.4)addBush(q.x-q.nx*R(.3,.9)*U,q.top-.1,q.z-q.nz*R(.3,.9)*U,R(.35,.6)*U,{sy:.58,tint:R(-.2,.2)});
+  }
+}
 function columnCliffs(){
   const U=K/2.4,pos=[],col=[],tmpA=new V3(),tmpB=new V3(),nn=new V3();
   const quad=(a,b,c,d,out,color)=>{
@@ -408,6 +437,7 @@ function columnCliffs(){
         q.base=Math.min(height(q.x+q.nx*1.6,q.z+q.nz*1.6),height(q.x+q.nx*2.6,q.z+q.nz*2.6))-.35;
         q.top=Math.min(T.topAt?T.topAt(q.x):T.top,height(q.x-q.nx*(T.lean+.4),q.z-q.nz*(T.lean+.4))+.08);
       });
+      if(T.stones){stoneFace(T,S,acc,U);continue;}
       const cols=[];let i0=0;
       while(i0<S.length-1){
         const w=(rand()<.22?R(2.6,4.2):R(1.1,2.2))*U;let i1=i0+1;

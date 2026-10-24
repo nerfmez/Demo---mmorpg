@@ -21,6 +21,9 @@ three-step light and the `#4c4852` ink outline. The ruins-derived scenes take it
 `ruins/scene.js` (`ruinPalette`, `masonryMaterial`). Their stairs (`*/paving.js`) are continuous
 grey courses on every steep section; the earlier short flights are only replayed for their
 seeded draws, so layouts and colliders stay as approved.
+Loose field stones and dry-stone walls use `fieldStone` (`ruins/scene.js`): the same palette and
+outline, smooth-shaded and rounded, never taller than wide. A terrace marked `stones` gets a
+dry-stone face instead of rock columns (Azure Meadow).
 
 ## How the forest page is made
 `forest/assemble.py` takes the reusable blocks of `beach/src.html` (page + wipe, renderer, the

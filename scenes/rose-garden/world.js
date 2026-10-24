@@ -39,12 +39,12 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES=[
  {top:PL,base:0,ledge:true,soft:M(.9),lean:M(.22),pts:[[.125,.345,'b'],[.20,.365,'b'],[.28,.375,'b'],[.34,.35,'b'],[.35,.30,'n'],[.32,.25,'n'],[.27,.215,'n'],[.19,.22,'n'],[.12,.26,'n']]},
- {top:M(.45),base:0,ledge:true,soft:M(.9),lean:M(.22),pts:[[.48,.44,'b'],[.55,.46,'b'],[.65,.46,'b'],[.735,.43,'b'],[.755,.37,'n'],[.71,.31,'n'],[.64,.28,'n'],[.55,.295,'n'],[.49,.34,'n']]},
+ {top:M(.45),base:0,ledge:true,stones:true,blocks:true,soft:M(.9),lean:M(.22),pts:[[.48,.44,'b'],[.55,.46,'b'],[.65,.46,'b'],[.735,.43,'b'],[.755,.37,'n'],[.71,.31,'n'],[.64,.28,'n'],[.55,.295,'n'],[.49,.34,'n']]},
  {top:M(1.15),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[.755,.36,'b'],[.82,.33,'b'],[.90,.32,'b'],[1.2,.31,'t'],[1.2,-.3,'t'],[.78,-.3,'t'],[.75,.22,'n']]},
  {top:M(1.05),base:M(.35),ledge:true,soft:M(1.2),lean:M(.24),pts:[[-.3,.27,'t'],[.08,.27,'b'],[.15,.22,'b'],[.20,.19,'b'],[.34,.20,'b'],[.43,.19,'b'],[.50,.16,'n'],[.54,-.3,'t'],[-.3,-.3,'t']]},
- {top:M(.60),base:0,ledge:true,soft:M(.9),lean:M(.22),pts:[[-.3,.59,'t'],[.05,.58,'b'],[.12,.55,'b'],[.16,.48,'b'],[.12,.405,'b'],[.06,.37,'n'],[-.3,.35,'t']]},
- {top:M(.50),base:0,ledge:true,soft:M(1.0),lean:M(.26),pts:[[-.3,1.2,'t'],[.28,1.2,'t'],[.33,.87,'b'],[.26,.80,'b'],[.17,.76,'b'],[.06,.73,'b'],[-.3,.78,'t']]},
- {top:M(.65),base:0,ledge:true,soft:M(1.0),lean:M(.24),pts:[[.73,1.2,'t'],[1.2,1.2,'t'],[1.2,.61,'t'],[.94,.62,'b'],[.88,.69,'b'],[.80,.77,'b'],[.75,.89,'b']]}
+ {top:M(.60),base:0,ledge:true,stones:true,blocks:true,soft:M(.9),lean:M(.22),pts:[[-.3,.59,'t'],[.05,.58,'b'],[.12,.55,'b'],[.16,.48,'b'],[.12,.405,'b'],[.06,.37,'n'],[-.3,.35,'t']]},
+ {top:M(.50),base:0,ledge:true,stones:true,blocks:true,soft:M(1.0),lean:M(.26),pts:[[-.3,1.2,'t'],[.28,1.2,'t'],[.33,.87,'b'],[.26,.80,'b'],[.17,.76,'b'],[.06,.73,'b'],[-.3,.78,'t']]},
+ {top:M(.65),base:0,ledge:true,stones:true,blocks:true,soft:M(1.0),lean:M(.24),pts:[[.73,1.2,'t'],[1.2,1.2,'t'],[1.2,.61,'t'],[.94,.62,'b'],[.88,.69,'b'],[.80,.77,'b'],[.75,.89,'b']]}
 ].map(T => {
   let pts = T.pts.map(([u, v, k, h]) => { const [x, z] = P(u, v, h ?? (k === 't' ? T.top : T.base)); return { x, z, wall: k === 'b' && inFrame(u, v), u, v }; });
   // a smooth closed outline through the authored points, sampled about every 1.3 m; a sample's
@@ -390,8 +390,8 @@ function solidBox(x,z,w,d,ry=0){ COLLIDERS.push({x,z,w,d,ry,box:true}); }
 // A rounded field stone: the shared stone hull with its corners welded and
 // smooth-shaded, so it reads as weathered rock rather than cut crystal, with
 // moss on its upward faces and the usual same-hue outline.
-function fieldStone(x,y,z,w,h,d,{ry=0,rz=0,moss=.3,base=pick(ruinPalette)}={}){
-  let g=stoneGeometry(w,h,d,{chamfer:.5,extra:30,jitter:.1,base});
+function fieldStone(x,y,z,w,h,d,{ry=0,rz=0,moss=.3,base=pick(ruinPalette),chamfer=.5}={}){
+  let g=stoneGeometry(w,h,d,{chamfer,extra:30,jitter:.1,base});
   g.deleteAttribute('color');g.deleteAttribute('normal');g=mergeVertices(g,1e-4);g.computeVertexNormals();
   const c=new THREE.Color(),b=new THREE.Color(base),m=new THREE.Color(pick(MOSS)),pos=g.attributes.position,nor=g.attributes.normal,col=new Float32Array(pos.count*3);
   for(let i=0;i<pos.count;i++){const ny=nor.getY(i);c.copy(b).multiplyScalar(.9+.1*ny).lerp(m,moss*smooth(.5,.9,ny));col.set([c.r,c.g,c.b],i*3);}
@@ -406,12 +406,12 @@ function fieldStone(x,y,z,w,h,d,{ry=0,rz=0,moss=.3,base=pick(ruinPalette)}={}){
 // back up the slope, moss on the top course and plants along the crown.
 function stoneFace(T,S,length,U){
   for(let s=R(0,.3)*U;s<length;){
-    const w=R(1.1,1.8)*U,q=S[Math.max(0,S.findIndex(p=>p.s>=s+w/2))]||S[S.length-1];s+=w*R(.92,1.02);
+    const w=(T.blocks?R(1.6,2.4):R(1.1,1.8))*U,q=S[Math.max(0,S.findIndex(p=>p.s>=s+w/2))]||S[S.length-1];s+=w*R(.92,1.02);
     const rise=q.top-q.base;if(rise<.2*U)continue;
     const n=Math.max(1,Math.min(3,Math.round(rise/(.95*U)))),ry=Math.atan2(-q.nx,-q.nz);
     for(let r=0;r<n;r++){
       const f=r/n,d=R(.9,1.2)*U,o=.15*U-T.lean*f-d/2+R(-.06,.06)*U,h=rise/n*R(1.02,1.15)+(r===0?.3:0);
-      fieldStone(q.x+q.nx*o,q.base+rise*f-(r===0?.3:.05),q.z+q.nz*o,w*R(.82,.98),h,d,{moss:r===n-1?.5:.12,ry:ry+R(-.1,.1),rz:R(-.05,.05)});
+      fieldStone(q.x+q.nx*o,q.base+rise*f-(r===0?.3:.05),q.z+q.nz*o,w*R(.82,.98),h,d,{moss:r===n-1?.5:.12,ry:ry+R(-.1,.1),rz:R(-.05,.05),chamfer:T.blocks?.3:.5});
     }
     if(rand()<.4)addBush(q.x-q.nx*R(.3,.9)*U,q.top-.1,q.z-q.nz*R(.3,.9)*U,R(.35,.6)*U,{sy:.58,tint:R(-.2,.2)});
   }
@@ -647,10 +647,13 @@ function stoneStairs(){
    next=r.s+STEP;course++;
    const A=route.rows[Math.max(0,i-3)],B=route.rows[Math.min(route.n-1,i+3)],l=Math.hypot(B.x-A.x,B.z-A.z)||1;
    const ux=(B.x-A.x)/l,uz=(B.z-A.z)/l,nx=uz,nz=-ux,ry=Math.atan2(ux,uz);
-   const n=Math.max(3,Math.round(r.w/(.62*K))),w=r.w/n;
+   // Each course is a level step: its top is the ground at its uphill edge, so
+   // the course below shows a riser instead of lying as a tile on the ramp.
+   const n=Math.max(2,Math.round(r.w/(.95*K))),w=r.w/n;
    for(let j=0;j<n;j++){
     const off=-r.w/2+(j+.5)*w,x=r.x+nx*off,z=r.z+nz*off;
-    block(x,height(x,z)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
+    const a=height(x-ux*STEP/2,z-uz*STEP/2),b=height(x+ux*STEP/2,z+uz*STEP/2),lo=Math.min(a,b),hi=Math.max(a,b);
+    block(x,lo-.2,z,w*R(.96,.99),hi-lo+.26,STEP*R(1.0,1.04),ry+R(-.02,.02),.04,{ink:.006*K,base:pick(STAIR)});
    }
    // Low, broken shoulders frame the flight without narrowing its clear width.
    if(course%2===0)for(const side of[-1,1]){

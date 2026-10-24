@@ -32,14 +32,17 @@ function gardenRocks(){
  // Large broken outcrops frame the route; the small middle group is an island
  // in the path loop, not another high terrace or a formal circular border.
  for(const[u,v,w,h]of[[.492,.585,.034,.047],[.530,.605,.024,.035],[.466,.608,.022,.035]]){
-  const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h);
-  addStone(x,y-.08,z,ww,hh,ww*.72,{chamfer:.16,extra:15,moss:.18,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.38});
+  const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=Math.min(tall(x,z,y,v-h),ww*.7);
+  fieldStone(x,y-.12,z,ww,hh,ww*.78,{moss:.35,ry:R(-.4,.4),rz:R(-.06,.06)});COLLIDERS.push({x,z,r:ww*.38});
+  addBush(x+ww*.45,y-.05,z+ww*.3,ww*.3,{sy:.6,tint:.05});
  }
  const specs=[[.17,.44,.035,.05],[.12,.49,.04,.055],[.23,.49,.025,.035],[.205,.37,.035,.05],[.335,.32,.028,.045],[.39,.20,.035,.05],[.46,.18,.035,.05],[.58,.405,.035,.055],[.66,.405,.04,.06],[.735,.38,.03,.045],[.88,.29,.04,.06],[.795,.19,.03,.05],[.085,.77,.05,.07],[.18,.82,.05,.07],[.27,.86,.03,.04],[.85,.73,.042,.065],[.79,.86,.04,.06],[.925,.64,.035,.06],[.47,.60,.040,.05],[.52,.625,.027,.032],[.56,.61,.027,.035]];
  for(const[u,v,w,h]of specs){
-  const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=tall(x,z,y,v-h),st=stairsAt(x,z);
+  // never taller than wide: field boulders lie low, they do not stand as pillars
+  const[x,y,z]=onGround(u,v),ww=wide(u-w/2,u+w/2,v,y),hh=Math.min(tall(x,z,y,v-h),ww*.62),st=stairsAt(x,z);
   if(st.s<st.half+ww*.45+.4||Math.hypot((x-GAZEBO.x)/GAZEBO.r,(z-GAZEBO.z)/GAZEBO.rz)<1.08)continue;
-  addStone(x,y-.10,z,ww,hh,ww*.70,{chamfer:.16,extra:14,moss:.22,base:pick(ruinPalette)});COLLIDERS.push({x,z,r:ww*.39});
+  fieldStone(x,y-.14,z,ww,hh,ww*.76,{moss:.4,ry:R(-.4,.4),rz:R(-.06,.06)});COLLIDERS.push({x,z,r:ww*.39});
+  {const a=R(0,6.28),xx=x+Math.cos(a)*ww*.55,zz=z+Math.sin(a)*ww*.4,ss=ww*R(.3,.45);fieldStone(xx,height(xx,zz)-.1,zz,ss,ss*R(.5,.7),ss*.8,{moss:.3,ry:R(0,3)});}
   if(rand()<.65)addBush(x+ww*.35,y-.05,z+ww*.25,ww*.28,{sy:.60,tint:.06});
  }
  for(let i=0;i<140;i++){
@@ -61,7 +64,8 @@ function grove(){
   if(Math.max(Math.abs(height(x+.4,z)-y),Math.abs(height(x,z+.4)-y))/.4>1.1)continue;
   addBush(x,y-.10,z,R(.75,1.40),{sy:R(.50,.78),tint:R(-.04,.08)});
  }
- for(const[u,v,r,n]of[[.18,.32,.045,5],[.195,.31,.022,4],[.33,.285,.025,5],[.32,.29,.030,3],[.33,.37,.035,3],[.13,.405,.033,3],[.20,.455,.040,4],[.49,.39,.035,4],[.61,.335,.040,5],[.735,.35,.032,4],[.87,.37,.035,4],[.93,.51,.037,4],[.16,.80,.045,5],[.295,.83,.034,4],[.83,.77,.045,5],[.80,.91,.04,4],[.49,.60,.045,5]])roseBed(u,v,r,n);
+ for(const[u,v,r,n]of[[.18,.32,.045,5],[.195,.31,.022,4],[.33,.285,.025,5],[.32,.29,.030,3],[.33,.37,.035,3],[.13,.405,.033,3],[.20,.455,.040,4],[.49,.39,.035,4],[.61,.335,.040,5],[.735,.35,.032,4],[.87,.37,.035,4],[.93,.51,.037,4],[.16,.80,.045,5],[.295,.83,.034,4],[.83,.77,.045,5],[.80,.91,.04,4],[.49,.60,.045,5],
+   [.53,.425,.03,3],[.62,.44,.03,3],[.70,.415,.03,3],[.09,.53,.03,3],[.04,.66,.035,4],[.23,.76,.03,3],[.90,.64,.035,4],[.87,.31,.03,3],[.41,.31,.025,3],[.25,.21,.03,3]])roseBed(u,v,r,n);
  for(let i=0;i<6500;i++){
   const[x,z]=[R(GX0*.8,GX1*.8),R(GZ0*.7,GZ1)],y=height(x,z),f=field(x,z);
   if(trailEdge(x,z)<.50||f.rock>.12||(polyAt(PLAZA,x,z)??1)<.5)continue;
@@ -80,7 +84,7 @@ FOL.leaf=['#2b7152','#57973d','#b5c94d'];FOL.shrub=['#2e6a4a','#5c943e','#a9bd49
 function build(){
  const[x,z]=P(.50,.84);HERO.x=x;HERO.z=z;HERO.face=-2.7;
  scene.add(buildGround());scene.add(buildCliffs());buildLedges();embeddedRoadStones();gazeboModel();gardenRocks();grove();
- const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='rose-stone-details';stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
+ const stones=new THREE.Mesh(mergeGeometries(stoneParts),masonryMaterial());stones.name='rose-stone-details';stones.userData.authoredNormals=true;stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(mergeGeometries(stoneLines),outlineMat('#4c4852')));
  clearGardenPaths();placeCoastPlants();placeRoses();scene.add(buildHero());loadHeroModel().catch(e=>console.error('hero model',e));setStatus();
 }
 function updateAmbience(){}

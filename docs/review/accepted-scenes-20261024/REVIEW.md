@@ -100,3 +100,13 @@ The owner circled the upright bar-like stones and the vegetable bed, and asked f
 
 Checks: only `data/accepted-scenes/azure-meadow.json` changed (colliders 151 to 155; heights, trails and roads unchanged; other scenes identical). `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. In the render tests, the new test passes. `closed skirt edges and finite grid end meet at the same rendered height` fails identically on the unmodified PR head (af0a356), so it is not from this change. Inspected the standalone page against the concept and the game at 1180×820 around the well, both beds, the north edge, the wide view and the windmill. Local Chromium/SwiftShader startup was 40 to 42 s.
 
+## Owner round: Rose Garden (the gazebo scene) (24 October 2026)
+
+The owner asked to continue with the gazebo scene, using the same approach as the meadow.
+
+- **Stones:** the boulders round the paths and the middle island are rounded `fieldStone`s, never taller than 0.62 of their width (0.7 on the island). Each has a smaller stone at its foot, so the upright cube stones on the middle terrace are gone. The four low terraces are dry-stone faces made of larger, blockier field stones (`blocks`), like the concept's mossy garden walls. The gazebo terrace and the two high terraces keep their rock columns.
+- **Stairs:** each stair course is now a level step whose top meets the ground at its uphill edge, so every course shows a riser. Two wide stones per course instead of narrow tiles. Before, the gazebo and east flights read as loose tiles laid on a ramp.
+- **Roses:** ten more flowering rose shrubs along the terrace walls and round the gazebo path, as in the concept.
+
+Checks: the scene data is unchanged (colliders, heights, trails and roads identical for all six scenes). `npm test` passes 606/606 and `check-accepted-routes` reports 0 failures. Inspected the standalone page against the concept and the game at 1180×820 (wide view, the gazebo, the middle terrace and the east stairs). Local startup was 45 s.
+

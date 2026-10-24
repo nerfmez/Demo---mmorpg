@@ -55,5 +55,10 @@
       "pitch": 40,
       "time": 0
     }
+  },
+  "status": "Historical first-integration software captures; precede final coast/arrival changes",
+  "finalLayout": {
+    "layout-final.png": "d82a03a135c6e437ba76e43f6abe7538a1ffb05cbac7b1591f9180a0353f6918",
+    "layout-final.svg": "e3710f4bbd72929391698a93cee4d4d5b910c9639d96a19dac70ac8863dbdede"
   }
 }

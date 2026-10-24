@@ -7,7 +7,7 @@ const specs=[
  {id:'beach',x:-128.68,z:77.12,s:.8,y:-.44,box:[-38,38,-40,25]},
  {id:'forest',x:-112,z:-64,s:.62,y:.4,box:[-58,58,-70,20]},
  {id:'rose-garden',x:-100,z:20,s:.68,y:.4,box:[-60,60,-60,28]},
- {id:'shell-beach',x:-53,z:62,s:.60,y:-.44,box:[-70,70,-65,50]},
+ {id:'shell-beach',x:-53,z:83,s:.60,y:-.44,box:[-70,70,-65,50]},
  {id:'azure-meadow',x:38,z:-85,s:.50,y:.4,box:[-65,65,-65,30]},
  {id:'hill-windmill',x:126,z:-85,s:.48,y:.4,box:[-65,65,-65,30]}
 ];
@@ -34,7 +34,7 @@ for(const spec of specs){
  const roads=[];
  const transform=rows=>rows.map(p=>[round(spec.x+p.x*spec.s),round(spec.z+p.z*spec.s)]);
  for(const r of a.routes)roads.push({id:spec.id+'/'+r.id,width:round(r.rows.reduce((v,p)=>v+p.w,0)/r.rows.length*spec.s),points:transform(r.rows)});
- for(const [i,t]of a.trails.entries())roads.push({id:spec.id+'/trail-'+i,width:round(t.reduce((v,p)=>v+p.y,0)/t.length*2*spec.s),points:transform(t)});
+ for(const [i,t]of a.trails.entries())roads.push({id:spec.id+'/trail-'+i,width:round(t.reduce((v,p)=>v+(p.w??p.y),0)/t.length*2*spec.s),points:transform(t)});
  if(spec.id==='beach')roads.push({id:'beach/track',width:4.5,points:[[2.6,-38],[2.6,-27],[2.6,-15],[3,-7],[0,4]].map(([x,z])=>[round(spec.x+x*spec.s),round(spec.z+z*spec.s)])});
  const scene={landmark:a.landmark?{x:round(spec.x+a.landmark.x*spec.s),z:round(spec.z+a.landmark.z*spec.s)}:null,...spec,bounds,feather:5,grid:{ox:bounds[0],oz:bounds[2],res,w,h},heights,trails,colliders,roads};
  if(a.shore)scene.shore=Array.from({length:Math.ceil((bounds[1]-bounds[0])/2)+1},(_,i)=>{const x=bounds[0]+i*2;return[round(x),round(spec.z+a.shore((x-spec.x)/spec.s)*spec.s)];});

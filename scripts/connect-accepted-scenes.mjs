@@ -30,7 +30,7 @@ for(const road of newRoads)for(const index of[0,road.points.length-1]){
 const outside=[];
 for(const r of native.roads)for(let i=0;i<r.points.length-1;i++){
  const a=r.points[i],b=r.points[i+1],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/2);
- for(let k=0;k<=n;k++){const t=k/n,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(!scenes.some(s=>inside(p,s,0))&&!native.isWater(...p,.8)&&native.isFree(...p,.65))outside.push(p);}
+ for(let k=0;k<=n;k++){const t=k/n,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(!scenes.some(s=>inside(p,s,-3))&&!native.isWater(...p,.8)&&native.isFree(...p,.65))outside.push(p);}
 }
 const connectors=[];
 for(const {p,scene,road}of endpoints){
@@ -60,7 +60,7 @@ for(const road of raw.roads){
  const finish=()=>{if(run.length>1){retained.push({...road,id:road.id+(part?'/retained-'+part:''),points:simplify(run)});part++;}run=[];};
  for(let i=0;i<road.points.length-1;i++){
   const a=road.points[i],b=road.points[i+1],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.75);
-  for(let k=0;k<=n;k++){const t=k/n,p=[round(a[0]+(b[0]-a[0])*t),round(a[1]+(b[1]-a[1])*t)];if(scenes.some(s=>inside(p,s,2)))finish();else run.push(p);}
+  for(let k=0;k<=n;k++){const t=k/n,p=[round(a[0]+(b[0]-a[0])*t),round(a[1]+(b[1]-a[1])*t)];if(scenes.some(s=>inside(p,s,-3)))finish();else run.push(p);}
  }finish();
 }
 raw.roads=retained;raw.roads.push(...newRoads,...connectors.map(r=>({...r,acceptedScene:'connector'})));
@@ -69,11 +69,17 @@ for(const lm of raw.landmarks)if(['giant_conch','rose_gazebo','hill_windmill','m
 // model is replaced; the game still owns opening stages and weapon markers.
 raw.wreck.acceptedScene=true;raw.wreck.weapons={sword:[-130,78],bow:[-127.5,79],staff:[-125,79.5]};
 raw.zones.find(z=>z.id==='headland').rects[0][0]=160;
-raw.zones.find(z=>z.id==='forest').rects[0][3]=-45;raw.zones.find(z=>z.id==='glade').rects[0][2]=-45;raw.waypoints.find(w=>w.id==='forest').pos=[-100,-49];
+raw.zones.find(z=>z.id==='forest').rects[0][3]=-45;raw.zones.find(z=>z.id==='glade').rects[0][2]=-45;
 // Both approved coastal scenes use one continuous game shoreline.
 let shore=raw.sea.shore.filter(p=>p[0]<-160||p[0]>-11);
 for(const s of scenes.filter(s=>s.shore))shore.push(...s.shore.filter(p=>p[0]>=-160&&p[0]<=-11));
-shore.sort((a,b)=>a[0]-b[0]);raw.sea.shore=shore;
+shore.push([-160,raw.sea.shore.find(p=>p[0]===-160)[1]]);shore.sort((a,b)=>a[0]-b[0]);
+const blend=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
+const nativeWestern=raw.sea.coastline.slice(1,raw.sea.coastline.findIndex((p,i)=>i>1&&p[0]>-10));
+const linear=(p,x)=>{for(let i=1;i<p.length;i++)if(x<=p[i][0]){const a=p[i-1],b=p[i],t=Math.max(0,(x-a[0])/(b[0]-a[0]||1));return a[1]+(b[1]-a[1])*t;}return p.at(-1)[1];};
+const left=scenes.find(s=>s.id==='beach').shore,right=scenes.find(s=>s.id==='shell-beach').shore,jx=(left.at(-1)[0]+right[0][0])/2,jy=(left.at(-1)[1]+right[0][1])/2;
+shore=shore.map(([x,z])=>{if(x> -11)return[x,z];const join=1-blend(Math.abs(x-jx)/12);z+=(jy-z)*join;const west=1-blend((x+160)/12),east=blend((x+28)/17);z+=(linear(nativeWestern,x)-z)*Math.max(west,east);return[x,round(z)];});
+raw.sea.shore=shore;
 // Replace only the western beach section of the concave city contour.
 const coast=raw.sea.coastline;const first=coast.findIndex(p=>p[0]>=-160),end=coast.findIndex((p,i)=>i>first&&p[0]>=-11);
 const inserted=shore.filter(p=>p[0]>=-160&&p[0]<-11);raw.sea.coastKinds.splice(first,end-first,...inserted.map(()=>'beach'));coast.splice(first,end-first,...inserted);

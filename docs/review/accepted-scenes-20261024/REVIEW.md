@@ -22,8 +22,8 @@ Native terrain, road paint, physics, spawning and layout export share the same d
 
 ## Checks and limits
 
-- Final focused checks: **35 passed, zero failures** (world, opening, maps, landmarks and integration/warp). Build succeeds. Focused world/opening tests and map/landmark checks run separately from visual inspection.
-- Route diagnostic samples every new path/connector in both directions: **7,411 probes, zero solid/water/slope failures**. The focused test additionally executes the native movement function in both directions.
+- Final focused checks: **77 passed, zero failures**, followed by **27 passed, zero failures** after the final connector extension (world, opening, maps, landmarks and integration/warp). Build succeeds. Focused world/opening tests and map/landmark checks run separately from visual inspection.
+- Route diagnostic samples every new path/connector in both directions: **8,264 probes of all new roads and the safe arrival route; zero solid/water/slope failures**. The focused test additionally executes the native movement function in both directions.
 - Real `OpenWorldGame.teleportTo` checks the new stone with saved landing/town discovery, rejects a locked forest destination and preserves gold/progress. All opening weapon spots and waypoint arrivals are free.
 - Encounter audit: every original spawn fits; no population-count reduction. Town service surface heights equal the retained city baseline.
 - Cloud browser attempt: `/game/?fresh=1&seed=9&quality=high` reaches the app, but this browser reports `GL_VENDOR = Disabled` / `Error creating WebGL context`. No repeated retries or browser installation. **A running WebGL frame, continuous pillar animation, touch controls, iPad/WebKit FPS and final integrated aesthetics remain unverified.**
@@ -33,4 +33,12 @@ No merge. Owner preliminary approval of each standalone scene does not approve t
 
 ## Visual inspection record
 
-Inspected all six geometry contact views at 1254×706, 40° play pitch, time 0. The first Meadow view exposed cottages cut by the replacement border; the native extraction now omits entire distant cottages that cannot fit, and the regenerated Meadow view was re-inspected. Accepted standalone cottage sources are unchanged. Fixed an upper coast apron grade and kept the physical stairs clear; 7,411 diagnostic samples then passed. Roads and landmarks are readable in the fallback views; actual water, shadow/shader output, native surrounding scenery and device interaction still require the linked game trial. Artifact hashes are in ARTIFACTS.json.
+Inspected all six geometry contact views at 1254×706, 40° play pitch, time 0. The first Meadow view exposed cottages cut by the replacement border; the native extraction now omits entire distant cottages that cannot fit, and the regenerated Meadow view was re-inspected. Accepted standalone cottage sources are unchanged. Fixed an upper coast apron grade and kept the physical stairs clear; the diagnostic samples then passed. Roads and landmarks are readable in the fallback views; actual water, shadow/shader output, native surrounding scenery and device interaction still require the linked game trial. Artifact hashes are in ARTIFACTS.json.
+
+## CI follow-up and final layout corrections
+
+The first integration commit exposed obsolete preservation assertions and three integration issues in CI: the old arrival diagonal crossed the new beach cliff, source trail width came from `w` rather than `y`, and the garden/coast footprints overlapped. The coast now sits 21 m farther south with no footprint overlap; its shoreline feathers into the retained opening beach, west-map seam and city contour. Core heights correct the source seabed against that shared shoreline. All source road widths are finite. Connectors reach beyond the cropped native-road ends.
+
+`scripts/route-accepted-arrival.mjs` reuses the real game's bounded path search offline to author a bidirectionally walkable safe route from the unchanged spawn to town, with a larger authoring footprint to leave clearance around stalls. Its vegetation clearance stops outside the retained city. The original forest waypoint position is retained. Three coastal habitat extents and the meadow slime habitat follow the new dry land while all original monster counts, levels and drops stay unchanged. The lifetime harness now supplies the new scenery dependency, and the asynchronous route test waits for its bounded scheduled result instead of assuming a fixed 50 ms CPU window.
+
+Final inspected artifact: `layout-final.svg` / `layout-final.png`, a plot of actual final road coordinates, shore and non-overlapping footprints. **This is a layout inspection, not a WebGL game screenshot.** Earlier six-view software captures and their hashes in `ARTIFACTS.json` identify the first integration prototype; they precede these final position/road fixes and are not final graphics evidence. The linked live game remains an owner/device trial.

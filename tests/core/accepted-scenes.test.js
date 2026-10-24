@@ -9,6 +9,8 @@ import {encounterLayout} from '../../src/core/encounters.js';
 const data=loadData(),world=createWorld(data.world);
 test('all approved areas share real roads, collision and continuous edge heights',()=>{
  assert.equal(acceptedSceneLayout.scenes.length,6);
+ for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const a=acceptedSceneLayout.scenes[i].bounds,b=acceptedSceneLayout.scenes[j].bounds;assert.ok(Math.min(a[1],b[1])<=Math.max(a[0],b[0])||Math.min(a[3],b[3])<=Math.max(a[2],b[2]),'scene footprints must not overlap');}
+ for(const road of world.roads)assert.ok(Number.isFinite(road.width)&&road.width>0,'finite road width '+road.id);
  let samples=0;
  for(const road of world.roads.filter(r=>r.acceptedScene))for(let i=0;i<road.points.length-1;i++){
   const a=road.points[i],b=road.points[i+1],length=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(length/.2));
@@ -19,7 +21,7 @@ test('all approved areas share real roads, collision and continuous edge heights
    samples++;
   }
  }
- assert.ok(samples>0);assert.equal(new Set(world.roads.filter(r=>r.acceptedScene&&r.acceptedScene!=='connector').map(r=>r.acceptedScene)).size,6);
+ assert.ok(samples>0);assert.equal(new Set(world.roads.filter(r=>r.acceptedScene&&!['connector','arrival'].includes(r.acceptedScene)).map(r=>r.acceptedScene)).size,6);
  for(const s of acceptedSceneLayout.scenes){
   const b=s.bounds;
   for(let i=0;i<=20;i++)for(const p of[[b[0],b[2]+(b[3]-b[2])*i/20],[b[1],b[2]+(b[3]-b[2])*i/20],[b[0]+(b[1]-b[0])*i/20,b[2]],[b[0]+(b[1]-b[0])*i/20,b[3]]]){

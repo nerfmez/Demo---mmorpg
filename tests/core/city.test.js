@@ -35,7 +35,7 @@ test('all 63 entrances, functional anchors, piers and lighthouse connect to the 
 });
 test('native foliage, coastline data, spawn and source layout remain preserved; NPCs and boats have clear sites',()=>{
  const moves=city.propertyBoundary?.treeRelocations||[];
- assert.deepEqual(data.world.town.trees,before.town.trees.map(t=>{const m=moves.find(m=>m.id===t.id);return m?{...t,x:m.next[0],z:m.next[1]}:t;}));assert.deepEqual(data.world.sea,before.sea);assert.deepEqual(data.world.playerSpawn,before.playerSpawn);assert.deepEqual(data.world.ponds,before.ponds);
+ assert.deepEqual(data.world.town.trees,before.town.trees.map(t=>{const m=moves.find(m=>m.id===t.id);return m?{...t,x:m.next[0],z:m.next[1]}:t;}));if(data.world.acceptedScenes?.enabled){const port=s=>s.coastline.filter(p=>p[0]>=-11);assert.deepEqual(port(data.world.sea),port(before.sea));}else assert.deepEqual(data.world.sea,before.sea);assert.deepEqual(data.world.playerSpawn,before.playerSpawn);assert.deepEqual(data.world.ponds,before.ponds);
  const npcWorld=createWorld({...data.world,town:{...data.world.town,residents:[]}});
  for(const r of data.world.town.residents)assert.ok(npcWorld.isFree(r.x,r.z,r.r),r.id+' clear');
  assert.equal(data.world.harbor.boats.length,before.harbor.boats.length);for(const[x,z]of data.world.harbor.boats)assert.ok(world.inSea(x,z),'boat afloat');

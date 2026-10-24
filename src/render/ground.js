@@ -161,7 +161,7 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         road[k]=Math.max(road[k],clearing*.92);
       }
       const accepted=acceptedAt(wd,x,z);
-      if(accepted){const w=sceneWeight(accepted,x,z),d=sceneSample(accepted,'trails',x,z);road[k]=road[k]*(1-w)+(1-smooth(-.25,.45,d))*w;stone[k]*=1-w;dirt[k]*=1-w;}
+      if(accepted){const w=sceneWeight(accepted,x,z),d=sceneSample(accepted,'trails',x,z);road[k]=Math.max(road[k],(1-smooth(-.25,.45,d))*w);stone[k]*=1-w;dirt[k]*=1-w;}
       road[k] *= 1 - stone[k] * .7;
     }
   }

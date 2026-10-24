@@ -1,7 +1,7 @@
 // Pure sampled layout exported from the accepted scene factories. Rendering,
 // collision, path painting and the Godot export all consume the same coordinates.
 import layout from '../../data/accepted-scenes.js';
-import {distToPolyline} from './math.js';
+import {distToPolyline,polylineZAtX} from './math.js';
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
 export function acceptedScenes(data){return data.acceptedScenes?.enabled?layout.scenes:[];}
 export function sceneWeight(scene,x,z){
@@ -23,7 +23,9 @@ export function applyAcceptedHeights(data,grid,heights){
   for(let j=Math.max(0,Math.floor((b[2]-grid.oz)/grid.res));j<=Math.min(grid.h-1,Math.ceil((b[3]-grid.oz)/grid.res));j++)
    for(let i=Math.max(0,Math.floor((b[0]-grid.ox)/grid.res));i<=Math.min(grid.w-1,Math.ceil((b[1]-grid.ox)/grid.res));i++){
     const x=grid.ox+i*grid.res,z=grid.oz+j*grid.res,w=sceneWeight(scene,x,z),k=j*grid.w+i;
-    heights[k]+=(sceneSample(scene,'heights',x,z)-heights[k])*w;
+    let target=sceneSample(scene,'heights',x,z);
+    if(scene.shore){const old=polylineZAtX(scene.shore,x),next=polylineZAtX(data.sea.shore,x),cross=d=>d>0?-Math.min(2.7*scene.s,d*.36):Math.min(.18*scene.s,-d*.03);target+=cross(z-next)-cross(z-old);}
+    heights[k]+=(target-heights[k])*w;
    }
  }
  // Authored connector profiles recover the native road at their far ends.
@@ -51,7 +53,7 @@ export function suppressNativeSceneProp(data,x,z,pad=0){
  return acceptedScenes(data).some(s=>sceneWeight(s,x,z)>.02&&Math.min(x-s.bounds[0],s.bounds[1]-x,z-s.bounds[2],s.bounds[3]-z)>pad);
 }
 export function connectorClear(data,x,z,pad=0){
- return (data.acceptedScenes?.connectors||[]).some(r=>distToPolyline(x,z,r.points)<r.width/2+pad);
+ return [...(data.acceptedScenes?.connectors||[]),...(data.acceptedScenes?.clearanceRoads||[])].some(r=>distToPolyline(x,z,r.points)<r.width/2+pad);
 }
 export function acceptedColliders(data){return acceptedScenes(data).flatMap(s=>s.colliders).filter(c=>!connectorClear(data,c.x,c.z,c.r??Math.hypot(c.hx,c.hz)));}
 export {layout as acceptedSceneLayout};

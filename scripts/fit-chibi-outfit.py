@@ -87,7 +87,7 @@ cut((C['cuff'], 0, 0), (1, 0, 0))
 cut((-C['cuff'], 0, 0), (1, 0, 0))
 cut((0, 0, C['bootTop']), (0, 0, 1))
 bmesh.ops.triangulate(bm, faces=bm.faces[:])
-collar = set()
+collar, skin = set(), set()
 if 'collar' in C:
     # a fur collar round the neck (`collar`: its pale, unsaturated faces between `from` and `top`,
     # within `half` across and in front of `back`): kept whole above the neck cut and placed as one
@@ -99,9 +99,10 @@ if 'collar' in C:
         u = sum(l[uvl].uv.x for l in f.loops) / len(f.loops); v = sum(l[uvl].uv.y for l in f.loops) / len(f.loops)
         col = cpx[int(np.clip((v % 1) * ch, 0, ch - 1)), int(np.clip((u % 1) * cw, 0, cw - 1))]
         if col.min() > K.get('light', 120) and col.max() - col.min() < K.get('grey', 50): collar.add(f)
-    # its shaded faces between (two of three neighbours in it), and no loose bits
+        elif col[0] > 190 and col[0] - col[2] > 25: skin.add(f)
+    # its shaded faces between (two of three neighbours in it; not the neck's skin), and no loose bits
     for _ in range(3):
-        collar |= {f for f in bm.faces if f not in collar and K['from'] < f.calc_center_median().z < K['top']
+        collar |= {f for f in bm.faces if f not in collar and f not in skin and K['from'] < f.calc_center_median().z < K['top']
                    and sum(any(o in collar for o in e.link_faces if o is not f) for e in f.edges) >= 2}
     seen = set()
     for f in list(collar):
@@ -129,6 +130,7 @@ src = bm.verts.layers.int.new('src')  # each vertex's index here, kept through t
 for v in bm.verts: v[src] = v.index
 P0 = np.array([tuple(v.co) for v in bm.verts])
 incollar = np.array([any(f in collar for f in v.link_faces) for v in bm.verts])
+bm.normal_update(); N0 = np.array([tuple(v.normal) for v in bm.verts])
 
 
 # --- warp: landmark heights, leg centre lines and arm axis of the generated body onto the chibi's
@@ -310,6 +312,8 @@ for it in range(C.get('pushIters', 8)):
         D = 0.5 * D + 0.5 * np.array([D[n].mean(0) if n else D[i] for i, n in enumerate(nbr)])
 P = P + D
 P = P + push(P)
+# the collar's fur fluffed out along its surface (`inflate`), as thick as the sheet's
+P[incollar] += N0[incollar] * C.get('collar', {}).get('inflate', 0)
 for v, p in zip(bm.verts, P): v.co = Vector(p)
 bm.normal_update()
 print('pushed: mean %.4f max %.4f' % (np.linalg.norm(D, axis=1).mean(), np.linalg.norm(D, axis=1).max()))

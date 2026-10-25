@@ -48,6 +48,7 @@
   "from": 0.82,
   "top": 0.96,
   "half": 0.24,
-  "squash": 0.8
+  "squash": 1.0,
+  "inflate": 0.02
  }
 }

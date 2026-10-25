@@ -33,6 +33,8 @@ export class Game {
     this.data = data;
     this.world = world || createWorld(data.world);
     this.rng = createRng(seed);
+    // LUK's lucky dodge rolls on its own stream, so adding it changes no other seeded roll
+    this.luckRng = createRng((seed ^ 0x9e3779b9) >>> 0);
     this.time = 0;
     this.events = [];
     this.nextId = 1;
@@ -959,6 +961,11 @@ export class Game {
     if (p.dead) return 0;
     if (p.dash && p.dash.inv) {
       this.emit({ type: 'dodge', x: p.x, z: p.z });
+      return 0;
+    }
+    // LUK: a lucky dodge, a monster hit that misses entirely (never damage over time)
+    if (!opts.dot && this.derived.dodgeChancePct > 0 && this.luckRng.chance(this.derived.dodgeChancePct / 100)) {
+      this.emit({ type: 'dodge', x: p.x, z: p.z, lucky: true });
       return 0;
     }
     const guard=applyGuard(this,amount,source,opts);

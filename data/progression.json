@@ -53,15 +53,20 @@
         "attack": 2
       },
       "LUK": {
-        "critChancePct": 0.15
+        "critChancePct": 0.15,
+        "dodgeChancePct": 0.05,
+        "gearFindPct": 0.03,
+        "materialFindPct": 0.03
       }
     },
     "critMult": 1.5,
     "critOverflowToMultPct": 0.5,
+    "_lukDoc": "LUK (owner, 2026-10-25): crit chance, a lucky dodge (dodgeChancePct: a monster hit misses entirely, capped at caps.dodgeChancePct; damage over time is never dodged; rolled on its own RNG stream, core/game-simulation.js damagePlayer) and a small drop find.",
     "_critOverflowDoc": "Crit chance past 100% (no cap, owner 2026-10-25) turns into crit damage: each point over adds critOverflowToMultPct to critMultPct, outside the critMultPct soft cap and cap (core/character.js derive).",
     "baseCritChancePct": 5,
     "caps": {
       "cooldownPct": 25,
+      "dodgeChancePct": 15,
       "moveSpeedPct": 30,
       "damageTakenPct": -25,
       "hpRegen": 50,

@@ -773,6 +773,7 @@ export function derive(ch, data) {
     penetrationPct: 0,
     movementRechargePct: 0,
     manaCostReductionPct: 0,
+    dodgeChancePct: 0,
   };
   const add = (k, v) => {
     d[k] = (d[k] || 0) + v;

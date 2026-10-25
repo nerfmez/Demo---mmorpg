@@ -146,6 +146,19 @@ for f in bm.faces:
     if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.09) and abs(c.y - neckY) < C.get('neckDepth', 0.09)) or c.z > C.get('top', C['neck'] + C.get('shoulderRise', 0.9) * max(abs(c.x) - 0.08, 0) + 0.02):
         drop.append(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')
+# what is left floating above the neck cut on its own (a helm's cheek guard, hood fur tips) goes too
+_seen = set(); _float = []
+for f in bm.faces:
+    if f in _seen: continue
+    comp, todo = [f], [f]; _seen.add(f)
+    while todo:
+        t = todo.pop()
+        for e in t.edges:
+            for o in e.link_faces:
+                if o not in _seen: _seen.add(o); comp.append(o); todo.append(o)
+    if len(comp) < C.get('minFloat', 60) and min(g.calc_center_median().z for g in comp) > C['neck'] - 0.02:
+        _float += comp
+bmesh.ops.delete(bm, geom=_float, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
 bm.verts.index_update()
 src = bm.verts.layers.int.new('src')  # each vertex's index here, kept through the per-piece copies
@@ -306,13 +319,19 @@ ac = armx(ax)
 # the generated arm's own centre line too: Meshy's T-pose arms slope up to the shoulder, so heights
 # measured from the forearm's axis (a0) stood the upper sleeve and shoulder up by that slope (up to
 # 10 cm above the chibi's arm); each slice of the sleeve is placed from its own centre instead
-_gx = np.linspace(0.24, np.abs(P0[:, 0]).max() * 0.8, 12); _gc = []
+_gx = np.linspace(0.2, min(C['cuff'], np.abs(P0[:, 0]).max()) - 0.02, 12); _gc = []
 for _x in _gx:
     _s = P0[(np.abs(np.abs(P0[:, 0]) - _x) < 0.01)]
     _s = _s[np.abs(_s[:, 2] - a0) < 0.12]
     _gc.append(((_s[:, 2].min() + _s[:, 2].max()) / 2, (_s[:, 1].min() + _s[:, 1].max()) / 2) if len(_s) > 3 else (np.nan, np.nan))
 _gc = np.array(_gc); _ok = ~np.isnan(_gc[:, 0])
-gz = np.polyfit(_gx[_ok], _gc[_ok, 0], 1) if _ok.sum() > 3 else np.array([0, a0])
+# (the sleeve is cut at the cuff, so a short sleeve gives only a few cm of arm: there the slope is
+# noise and the arm's mean height is used; a slope is never steeper than the arm can be)
+if _ok.sum() > 3 and np.ptp(_gx[_ok]) > 0.12:
+    gz = np.polyfit(_gx[_ok], _gc[_ok, 0], 1); gz[0] = np.clip(gz[0], -0.3, 0.3)
+    gz[1] = np.mean(_gc[_ok, 0]) - gz[0] * np.mean(_gx[_ok])
+else:
+    gz = np.array([0.0, np.mean(_gc[_ok, 0]) if _ok.any() else a0])
 gzc = np.polyval(gz, np.maximum(ax, 0.12))
 A = np.stack([sx * ac, np.polyval(ky, ac) + (y - ty0) * sA, np.polyval(kz, ac) + (z - gzc) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]

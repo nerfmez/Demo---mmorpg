@@ -134,6 +134,7 @@ ACTIONS.example = { hit: 0.42, keys: [
 |---|---|---|
 | "เอาตัวอย่างมาจากไหน", the pose looks made up | angles guessed by hand | start again from a reference clip (above) and show it beside the result |
 | a weapon upside down, the hand twists when an attack starts | the carry's blade roll differs from the actions' | `scripts/pose-retarget/match-roll.mjs`, write the printed `up` |
+| "เหมือนเอาด้านกว้างฟาด", a cut hits with the flat | the retarget kept the blade's direction, not its roll | `scripts/pose-retarget/edge-roll.mjs`: the edge (+X) leads the strike; never hand-roll a single key |
 | "มือบิด" with a blade held back (a drag, a trailing sword) | the wrist or the fist's seating aims the weapon: the chibi fist turns its thumb toward the blade | hold the arm with channels (`hold.run.arms`), turn the weapon in the fist (`socket`, `roll`), set `reverse` (`docs/POSE-RETARGET.md`, Dragged run carries) |
 | crouch too deep, arms too wide on the chibi | a reference built for longer limbs or bulky armour | `--legs`, `--arms` when retargeting |
 | "ห่วย", floaty, no power | all segments similar length | shorten the strike segment, add a hold before it and a pose hold after |

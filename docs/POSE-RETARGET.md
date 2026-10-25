@@ -65,9 +65,9 @@ planted) is Frontline Split; `bowShot`, `bowSkyShot`, `bowDrawHold` and `bowLoos
 Bow_Notch/Bow_Shoot/Bow_Aim_Neutral/Bow_RapidShoot_Loop and KayKit Ranged_Bow_Release/Draw_Up/Release_Up,
 mirrored: the hero draws with its left hand) are the bow skills; `boltCast` (Quaternius Spell_Simple_Enter
 and Spell_Simple_Shoot mirrored: the wand arm pushes straight out at the target on the release) is Arcane
-Bolt and Firebolt with any weapon but the staff and the bow. Each entry's `_from` records its clips, commands and edits. `heavyCutA`/`heavyCutB` (KayKit Melee_2H_Attack_Slice
-and its mirror, both hands on the haft) alternate as the basic attack of the greatblade and of the axe and
-mace held in both hands; `sunderChop`/`sunderChop1H` (KayKit Melee_1H_Attack_Slice_Diagonal, the
+Bolt and Firebolt with any weapon but the staff and the bow. Each entry's `_from` records its clips, commands and edits. The greatblade's basic attack (and the axe's
+and mace's held in both hands) stays the hand-made `heavyA`/`heavyB`: the owner preferred it to the KayKit
+two-handed slice. `sunderChop`/`sunderChop1H` (KayKit Melee_1H_Attack_Slice_Diagonal, the
 left hand on the haft or kept on the shield) are Sunder Cut. `staffCast` (KayKit Mage Spellcast_Shoot with the 2H_Staff, the release arm from
 Spell_Simple_Enter/Shoot, the weapon channel recomputed so the staff keeps the Mage's direction, the staff
 held near its foot with `gripSlide`) is Firebolt and Arcane Bolt with the staff.
@@ -102,6 +102,16 @@ down). After writing a carry, run
 `null`, carry key) and write the printed `up` values back. For a run carry (`hold.run`) add
 `null run` (the right-hand weapon, then `run`): the hero runs and the run carry's `up` is matched.
 The owner saw a twisted hand on the run until this was done.
+
+A clip cut has the same gap: the blade's direction comes from the reference but its roll does not, so
+the strike can hit with the flat (the owner saw the blade "slap with its wide side"). After writing a
+cut, run `node scripts/pose-retarget/edge-roll.mjs --action cand.json --weapon sword > edged.json`
+(`--offhand shield` for a one-handed weapon with a shield, `--tip 0.35` for a dagger's short blade).
+It plays the action on the bench hero and rolls each key's weapon about the blade so the `+X` side
+(the cutting edge) leads the tip through the strike, the segment into the hit key; the wind-up keeps
+the strike's roll, a fast follow-through keeps leading, and the first and last keys keep the carry's
+roll. A model whose edge is its `-X` side (`models.json` `edge: -1`) is turned half a turn about the
+blade by `hero.js` while a clip plays, so one key list serves both kinds.
 
 ## Dragged run carries
 

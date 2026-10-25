@@ -371,7 +371,7 @@ export class HumanoidAnimator {
     let hipsSpinX = 0;
     let spin = 0;
     let ikL = null, ikR = null; // raw hand targets of the current action
-    let swingW = 0, swingV = null, actionW = 0; // melee swing arc of the current action (actions.js swing/sw)
+    let swingW = 0, swingV = null, swingLead = 1, actionW = 0; // melee swing arc of the current action (actions.js swing/sw)
 
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
@@ -434,13 +434,17 @@ export class HumanoidAnimator {
       ikL = ap.ikL;
       ikR = ap.ikR;
       actionW = wA;
-      if (ap.sw && ap.swing) { swingW = ap.sw[0] * wA; swingV = ap.swing; }
+      if (ap.sw && ap.swing) { swingW = ap.sw[0] * wA; swingV = ap.swing; swingLead = ap.sw[1] < 0 ? -1 : 1; }
+      // a clip cuts with the blade's +X side leading (scripts/pose-retarget/edge-roll.mjs): a model whose
+      // cutting edge is its -X side (models.json edge -1) turns the blade half a turn about its length
+      const flip = act.own && ap.weapon && this.rig.weaponEdge === -1 ? (this.buf.flipW ??= [0, 0, 0]) : null;
+      if (flip) { flip[0] = ap.weapon[0]; flip[1] = ap.weapon[1]; flip[2] = ap.weapon[2] + Math.PI; }
       for (const n in ap) {
         if (n === 'spin') continue;
         const lower = n.startsWith('leg') || n.startsWith('knee');
         const k = lower ? wA * (1 - w * 0.7) : wA;
-        const cur = pose[n] || [0, 0, 0];
-        pose[n] = [cur[0] + (ap[n][0] - cur[0]) * k, cur[1] + (ap[n][1] - cur[1]) * k, cur[2] + (ap[n][2] - cur[2]) * k];
+        const cur = pose[n] || [0, 0, 0], v = flip && n === 'weapon' ? flip : ap[n];
+        pose[n] = [cur[0] + (v[0] - cur[0]) * k, cur[1] + (v[1] - cur[1]) * k, cur[2] + (v[2] - cur[2]) * k];
       }
       // keep the planted feet flat while the action bends the legs
       for (const sd of ['L', 'R']) {
@@ -519,7 +523,7 @@ export class HumanoidAnimator {
       this.rig.gripTurn[0] = turn;
       this.rig.gripTurn[1] = hold?.run?.arms?.armL ? turn : 0;
     }
-    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW);
+    if (b.weapon && (orientW > 0.01 || swingW > 0.01)) this.solveWeapon(hold, holdW * armW, swingV, swingW, orientW * armW, swingLead);
     // a second weapon in the left hand (dual carry): its own palm and blade, handed back to the action
     if (hold?.left && b.offhand) this.solveOffhand(hold.left, (leftBusy ? 0 : holdW) * armW, hold.run?.socket, 1 - armW);
     // the second hand: a two-handed weapon's haft, else the action's own reach (bow string, spells)
@@ -647,9 +651,11 @@ export class HumanoidAnimator {
   /**
    * Put the right palm and the weapon's long axis where the carry (weight holdW) or the swing
    * arc (weight swingW) wants them, in body space so they follow the body's bob and spin. The
-   * blade points out along the arc with its edge leading, so it traces the slash crescent.
+   * blade points out along the arc with its edge leading, so it traces the slash crescent: `lead` is
+   * the way the cut runs (1 to rising arc angles, -1 to falling) and the model's cutting side picks
+   * which face of the blade goes first.
    */
-  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW) {
+  solveWeapon(hold, holdW, swingV, swingW, orientW = holdW, lead = 1) {
     const ik = this.rig.ikMap;
     const b = this.b, body = b.body;
     this.rig.root.updateMatrixWorld(true);
@@ -665,7 +671,8 @@ export class HumanoidAnimator {
       const [a, e, y] = swingV, r = HOLDS.swing.radius, ce = Math.cos(e);
       W_A.set(Math.sin(a) * r, y, Math.cos(a) * r);
       W_B.set(Math.sin(a) * ce, Math.sin(e), Math.cos(a) * ce); // radial blade
-      W_T.set(Math.cos(a), 0, -Math.sin(a)); // the way the hand travels as the angle grows
+      // the way the hand travels as the angle grows, turned to the way the cut runs and onto the edge's side
+      W_T.set(Math.cos(a), 0, -Math.sin(a)).multiplyScalar(lead * (this.rig.weaponEdge ?? 1));
       W_N.crossVectors(W_B, W_T).normalize(); // swing plane normal: the blade's flat
       const k = hold ? swingW : 1;
       if (hold) {
@@ -705,7 +712,7 @@ export class HumanoidAnimator {
   }
 }
 
-const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'heavyCutA', 'heavyCutB', 'sunderChop', 'sunderChop1H', 'staffCast']);
+const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast']);
 const IK_T = new THREE.Vector3();
 const SUPPORT_PASSES = 3;
 const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();

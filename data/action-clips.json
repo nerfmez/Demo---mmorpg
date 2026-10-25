@@ -1,7 +1,7 @@
 {
- "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1. gripSlide [s,0,0]: the weapon slides s of its units through the fist toward its head (a staff held near its foot).",
+ "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1. A cut leads with the weapon's +X side (its cutting edge), rolled about the blade per key by scripts/pose-retarget/edge-roll.mjs; hero.js turns a model whose edge is its -X side (models.json edge -1) half a turn. gripSlide [s,0,0]: the weapon slides s of its units through the fist toward its head (a staff held near its foot).",
  "swordCut": {
-  "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_A, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs)",
+  "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_A, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs). Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon sword --tip 0.7; turns [0,-0.019,-0.019,-0.019,0.11,0.21,-0.233,-0.247,0]).",
   "hit": 0.488,
   "sweep": 1,
   "keys": [
@@ -146,7 +146,7 @@
      "weapon": [
       0.108,
       -0.272,
-      -0.166
+      -0.185
      ],
      "drop": [
       -0.034,
@@ -221,7 +221,7 @@
      "weapon": [
       0.328,
       -1.173,
-      -0.6
+      -0.619
      ],
      "drop": [
       -0.039,
@@ -296,7 +296,7 @@
      "weapon": [
       3.041,
       -1.246,
-      1.514
+      1.495
      ],
      "drop": [
       -0.068,
@@ -371,7 +371,7 @@
      "weapon": [
       2.827,
       -1.221,
-      1.274
+      1.384
      ],
      "drop": [
       -0.083,
@@ -446,7 +446,7 @@
      "weapon": [
       2.361,
       -1.184,
-      0.831
+      1.041
      ],
      "drop": [
       -0.096,
@@ -521,7 +521,7 @@
      "weapon": [
       1.245,
       -0.824,
-      0.019
+      -0.214
      ],
      "drop": [
       -0.097,
@@ -596,7 +596,7 @@
      "weapon": [
       0.87,
       -0.548,
-      -0.093
+      -0.34
      ],
      "drop": [
       -0.1,
@@ -683,7 +683,7 @@
   ]
  },
  "daggerCut": {
-  "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_B, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs)",
+  "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_B, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs). Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon dagger --tip 0.35; turns [0,-1.244,-1.244,-1.244,-1.244,-1.224,-1.224,-1.224,0]).",
   "hit": 0.588,
   "sweep": -1,
   "keys": [
@@ -828,7 +828,7 @@
      "weapon": [
       0.534,
       -0.432,
-      -0.152
+      -1.396
      ],
      "drop": [
       -0.125,
@@ -903,7 +903,7 @@
      "weapon": [
       0.224,
       -0.092,
-      -0.049
+      -1.293
      ],
      "drop": [
       -0.12,
@@ -978,7 +978,7 @@
      "weapon": [
       0.253,
       0.017,
-      0.009
+      -1.235
      ],
      "drop": [
       -0.11,
@@ -1053,7 +1053,7 @@
      "weapon": [
       0.728,
       -0.016,
-      -0.004
+      -1.248
      ],
      "drop": [
       -0.102,
@@ -1128,7 +1128,7 @@
      "weapon": [
       0.767,
       -0.013,
-      -0.003
+      -1.227
      ],
      "drop": [
       -0.102,
@@ -1203,7 +1203,7 @@
      "weapon": [
       0.835,
       -0.035,
-      -0.006
+      -1.23
      ],
      "drop": [
       -0.088,
@@ -1278,7 +1278,7 @@
      "weapon": [
       0.828,
       -0.034,
-      -0.006
+      -1.23
      ],
      "drop": [
       -0.077,
@@ -1365,7 +1365,7 @@
   ]
  },
  "splitChop": {
-  "_from": "KayKit Character Animations (CC0) Melee_2H_Attack_Chop, faced forward (scripts/pose-retarget/clip-keys.mjs). Command: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Knight.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Chop --prop 2H_Sword --skill frontline_split --keys 81 --legs 1 --face (dense frames, every 1/80 of the 1.632 s clip). Retimed to the game beat (keys before hit over the 0.65 s cast, after it over 0.28 s), each key one frame of the clip: t 0 (0.00 s) = clip u 0 (0.000 s): two-hand ready (clip start); t 0.237 (0.22 s) = clip u 0.275 (0.449 s): anticipation: blade raised over the left shoulder, leaning back; t 0.473 (0.44 s) = clip u 0.363 (0.592 s): hold: the reference's own load peak (leans back furthest), a slow creep; t 0.613 (0.57 s) = clip u 0.425 (0.694 s): step in: the front knee lifted, the blade still loaded; t 0.699 (0.65 s) = clip u 0.538 (0.878 s): contact: the blade at the bottom of the chop, the body following it (the reference's tip stops at u 0.525); t 0.742 (+0.04 s after hit) = clip u 0.538 (0.878 s): overshoot: the same frame sunk further; t 0.871 (+0.16 s after hit) = clip u 0.6 (0.979 s): money pose held (the reference barely moves here); t 0.936 (+0.22 s after hit) = clip u 0.8 (1.306 s): recovery: the blade rising; t 1 (+0.28 s after hit) = clip u 1 (1.632 s): back to the two-hand ready (clip end). Edits: grip [1,0,0] on every key (both hands on the haft, as in the reference); overshoot key: the contact frame with the torso lean x1.1 (0.597 to 0.657) and a deeper drop (below), the sink past the contact; legs re-solved on the chibi rig (work-dir tool legik.mjs, not in the repo: damped least squares on leg x/z and knee x, the reference's leg y twist kept) because the reference moves its pelvis 0.29 units forward over a planted right foot and the game's root cannot travel: the copied leg angles slid the chibi's right foot 0.32 m forward on the raise and 0.34 m back on the strike. The reference's ground contacts are kept instead: the right foot stays planted where the greatblade carry puts it; the left foot steps forward once, lifted on the step-in key (the reference lifts it 25% of its leg there; 0.09 m on the chibi), landing on the hit 0.34 m ahead of the right foot (the reference's contact stance: 0.159 units = 0.68 of its leg, on the chibi's 0.5 m leg); it steps back lifted on the recovery. drop: 0 at the ends (the carry's height), -0.05 / -0.07 on the anticipation and the hold (the reference's own crouch at legs 1 and 1.35), -0.06 on the step-in (reference at legs 1.35), then -0.11 on the hit, -0.14 on the overshoot, -0.11 held (the reference's contact dip, -0.079 at legs 1.35, deepened about 1.4x: heavy weapons drop lower), -0.04 on the recovery; the pelvis turned 0.4 rad further to the left (added to the reference hips yaw) from the anticipation through the held pose (0.12 on the recovery key), a turn of the whole reference pose about the vertical, so the reference diagonal chop (its tip lands 42 deg right of its facing) lands nearer the skill line; the legs are solved after the turn, so the feet stay planted. sweep -1 as clip-keys measured it (the blade comes down from over the left shoulder to the right-front; the split effect does not read it). Measured on the chibi (fx bench, 60 Hz): right foot moves under 0.01 m in the whole action, left foot lifts 0.09 m and lands on the hit; blade never below the ground (lowest 0.12 m on the hit, 0.06 m on the overshoot); blade tip lands 19 deg right of the skill line; fastest tip 0.617 s for a hit at 0.65 s.",
+  "_from": "KayKit Character Animations (CC0) Melee_2H_Attack_Chop, faced forward (scripts/pose-retarget/clip-keys.mjs). Command: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Knight.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Chop --prop 2H_Sword --skill frontline_split --keys 81 --legs 1 --face (dense frames, every 1/80 of the 1.632 s clip). Retimed to the game beat (keys before hit over the 0.65 s cast, after it over 0.28 s), each key one frame of the clip: t 0 (0.00 s) = clip u 0 (0.000 s): two-hand ready (clip start); t 0.237 (0.22 s) = clip u 0.275 (0.449 s): anticipation: blade raised over the left shoulder, leaning back; t 0.473 (0.44 s) = clip u 0.363 (0.592 s): hold: the reference's own load peak (leans back furthest), a slow creep; t 0.613 (0.57 s) = clip u 0.425 (0.694 s): step in: the front knee lifted, the blade still loaded; t 0.699 (0.65 s) = clip u 0.538 (0.878 s): contact: the blade at the bottom of the chop, the body following it (the reference's tip stops at u 0.525); t 0.742 (+0.04 s after hit) = clip u 0.538 (0.878 s): overshoot: the same frame sunk further; t 0.871 (+0.16 s after hit) = clip u 0.6 (0.979 s): money pose held (the reference barely moves here); t 0.936 (+0.22 s after hit) = clip u 0.8 (1.306 s): recovery: the blade rising; t 1 (+0.28 s after hit) = clip u 1 (1.632 s): back to the two-hand ready (clip end). Edits: grip [1,0,0] on every key (both hands on the haft, as in the reference); overshoot key: the contact frame with the torso lean x1.1 (0.597 to 0.657) and a deeper drop (below), the sink past the contact; legs re-solved on the chibi rig (work-dir tool legik.mjs, not in the repo: damped least squares on leg x/z and knee x, the reference's leg y twist kept) because the reference moves its pelvis 0.29 units forward over a planted right foot and the game's root cannot travel: the copied leg angles slid the chibi's right foot 0.32 m forward on the raise and 0.34 m back on the strike. The reference's ground contacts are kept instead: the right foot stays planted where the greatblade carry puts it; the left foot steps forward once, lifted on the step-in key (the reference lifts it 25% of its leg there; 0.09 m on the chibi), landing on the hit 0.34 m ahead of the right foot (the reference's contact stance: 0.159 units = 0.68 of its leg, on the chibi's 0.5 m leg); it steps back lifted on the recovery. drop: 0 at the ends (the carry's height), -0.05 / -0.07 on the anticipation and the hold (the reference's own crouch at legs 1 and 1.35), -0.06 on the step-in (reference at legs 1.35), then -0.11 on the hit, -0.14 on the overshoot, -0.11 held (the reference's contact dip, -0.079 at legs 1.35, deepened about 1.4x: heavy weapons drop lower), -0.04 on the recovery; the pelvis turned 0.4 rad further to the left (added to the reference hips yaw) from the anticipation through the held pose (0.12 on the recovery key), a turn of the whole reference pose about the vertical, so the reference diagonal chop (its tip lands 42 deg right of its facing) lands nearer the skill line; the legs are solved after the turn, so the feet stay planted. sweep -1 as clip-keys measured it (the blade comes down from over the left shoulder to the right-front; the split effect does not read it). Measured on the chibi (fx bench, 60 Hz): right foot moves under 0.01 m in the whole action, left foot lifts 0.09 m and lands on the hit; blade never below the ground (lowest 0.12 m on the hit, 0.06 m on the overshoot); blade tip lands 19 deg right of the skill line; fastest tip 0.617 s for a hit at 0.65 s. Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon greatblade --tip 0.7; turns [0,-1.904,-1.904,-1.904,-1.723,-1.723,-1.723,-1.723,0]).",
   "hit": 0.699,
   "sweep": -1,
   "own": true,
@@ -1516,7 +1516,7 @@
      "weapon": [
       0.45,
       -0.24,
-      -0.095
+      -1.999
      ],
      "drop": [
       -0.05,
@@ -1596,7 +1596,7 @@
      "weapon": [
       0.354,
       -0.315,
-      -0.143
+      -2.047
      ],
      "drop": [
       -0.07,
@@ -1676,7 +1676,7 @@
      "weapon": [
       0.317,
       -0.1,
-      -0.047
+      -1.951
      ],
      "drop": [
       -0.06,
@@ -1756,7 +1756,7 @@
      "weapon": [
       1.008,
       -0.62,
-      -0.062
+      -1.785
      ],
      "drop": [
       -0.11,
@@ -1836,7 +1836,7 @@
      "weapon": [
       1.008,
       -0.62,
-      -0.062
+      -1.785
      ],
      "drop": [
       -0.14,
@@ -1916,7 +1916,7 @@
      "weapon": [
       0.954,
       -0.523,
-      -0.066
+      -1.789
      ],
      "drop": [
       -0.11,
@@ -1996,7 +1996,7 @@
      "weapon": [
       0.956,
       -0.448,
-      -0.056
+      -1.779
      ],
      "drop": [
       -0.04,
@@ -5018,1302 +5018,8 @@
    ]
   ]
  },
- "heavyCutA": {
-  "_from": "KayKit Character Animations (CC0) Melee_2H_Attack_Slice played on KayKit Adventurers Knight.glb holding its 2H_Sword prop: a two-handed horizontal slice from the hero's left to its right, both hands on the haft (picked over Melee_2H_Attack_Chop, an overhead chop, and Quaternius Sword_Heavy_A-D, one-handed combo pieces that turn the body away; the KayKit clip is chibi, two-handed and a single plain strike). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Knight.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Slice --prop 2H_Sword --skill slash --keys 41 --legs 1.3 --face (a frame every 0.025 of the 1.1 s clip; contact = the blade tip's fastest frame, u 0.363; sweep -1). Edits after retargeting: (1) seven of those frames kept as they are and retimed to the anime beat (keys before hit play over the 0.18 s cast, the rest over 0.28 s): rest u0 at 0; anticipation, the sword raised over the left shoulder, u0.25 at 0.267 (0.12 s); hold u0.3 at 0.322 (the reference's own pause at the top); contact u0.363 on hit 0.4 (strike 0.035 s); overshoot u0.675, the reference's furthest follow-through, at 0.593; the follow-through pose u0.75 at 0.7, held to 0.807 (two equal keys); rest u1 at 1. (2) --legs 1.3: the reference's leg bends scaled up 30% so the heavy cut sinks lower (drop to -0.11 m, like the sword's cut) - the KayKit knight stands more upright. (3) the reference's locked rear knee (-0.27 after retargeting) clamped to 0. (4) grip [1,0,0] on every key: the left hand on the haft, as in the reference. (5) the weapon rolled +0.79 rad about its own length (weapon z) on the load, hold, contact, overshoot and held keys (0 at rest): clip-keys keeps only the blade's direction, and without the roll the blade's flat led the cut (|flat normal . tip velocity| 0.66-0.91); the reference's sword cuts edge first (0.24-0.37), and with this roll the cut leads with the weapon's -X side, the cutting side of the default heavy models (horn_greatblade, crag_axe: edge -1). A -2.36 roll (+X leading) made the weapon flip 157 deg in one frame during the fade-out, +3.93 spun it 225 deg in the wind-up; both rejected. Keys (t <- clip fraction u): 0<-0, 0.267<-0.25 (roll 0.79), 0.322<-0.3 (roll 0.79), 0.4<-0.363 (roll 0.79), 0.593<-0.675 (roll 0.79), 0.7<-0.75 (roll 0.79), 0.807<-0.75 (roll 0.79), 1<-1.",
-  "hit": 0.4,
-  "sweep": -1,
-  "keys": [
-   [
-    0,
-    {
-     "hips": [
-      0,
-      0,
-      0
-     ],
-     "torso": [
-      -0.122,
-      -0.135,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      0.246,
-      -0.011
-     ],
-     "legL": [
-      -0.142,
-      -0.116,
-      0.183
-     ],
-     "legR": [
-      -0.282,
-      0.043,
-      -0.097
-     ],
-     "kneeL": [
-      0.654,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.762,
-      0,
-      0
-     ],
-     "armL": [
-      0.087,
-      -0.221,
-      0.742
-     ],
-     "armR": [
-      0.541,
-      0.697,
-      -1.308
-     ],
-     "elbowL": [
-      -1.055,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.11,
-      0,
-      0
-     ],
-     "weapon": [
-      0.319,
-      -0.317,
-      -0.15
-     ],
-     "drop": [
-      -0.059,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.267,
-    {
-     "hips": [
-      0,
-      0.754,
-      0
-     ],
-     "torso": [
-      -0.122,
-      -0.135,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      -0.152,
-      0.015
-     ],
-     "legL": [
-      0.075,
-      -1.012,
-      0.389
-     ],
-     "legR": [
-      0.711,
-      -0.997,
-      0.188
-     ],
-     "kneeL": [
-      0.302,
-      0,
-      0
-     ],
-     "kneeR": [
-      0,
-      0,
-      0
-     ],
-     "armL": [
-      0.411,
-      -0.234,
-      1.062
-     ],
-     "armR": [
-      0.325,
-      0.687,
-      -0.804
-     ],
-     "elbowL": [
-      -1.088,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.405,
-      0,
-      0
-     ],
-     "weapon": [
-      0.482,
-      0.218,
-      0.872
-     ],
-     "drop": [
-      -0.079,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.322,
-    {
-     "hips": [
-      0,
-      0.821,
-      0
-     ],
-     "torso": [
-      -0.122,
-      -0.135,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      -0.188,
-      0.012
-     ],
-     "legL": [
-      0.158,
-      -1.072,
-      0.48
-     ],
-     "legR": [
-      0.792,
-      -1.078,
-      0.25
-     ],
-     "kneeL": [
-      0.188,
-      0,
-      0
-     ],
-     "kneeR": [
-      0,
-      0,
-      0
-     ],
-     "armL": [
-      0.382,
-      -0.278,
-      1.086
-     ],
-     "armR": [
-      0.248,
-      0.693,
-      -0.734
-     ],
-     "elbowL": [
-      -0.971,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.354,
-      0,
-      0
-     ],
-     "weapon": [
-      0.457,
-      0.27,
-      0.896
-     ],
-     "drop": [
-      -0.081,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.4,
-    {
-     "hips": [
-      0,
-      0.098,
-      0.031
-     ],
-     "torso": [
-      0.08,
-      -0.257,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.201,
-      0
-     ],
-     "head": [
-      0.185,
-      0.538,
-      -0.099
-     ],
-     "legL": [
-      -0.247,
-      -0.274,
-      -0.098
-     ],
-     "legR": [
-      0.522,
-      -0.292,
-      -0.17
-     ],
-     "kneeL": [
-      0.752,
-      0,
-      0
-     ],
-     "kneeR": [
-      0,
-      0,
-      0
-     ],
-     "armL": [
-      0.344,
-      0.052,
-      0.367
-     ],
-     "armR": [
-      0.889,
-      0.41,
-      -1.367
-     ],
-     "elbowL": [
-      -1.696,
-      0,
-      0
-     ],
-     "elbowR": [
-      -2.019,
-      0,
-      0
-     ],
-     "weapon": [
-      0.919,
-      -0.473,
-      0.722
-     ],
-     "drop": [
-      -0.078,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.593,
-    {
-     "hips": [
-      0,
-      -0.929,
-      -0.003
-     ],
-     "torso": [
-      0.157,
-      -0.293,
-      -0.033
-     ],
-     "chest": [
-      0,
-      -0.235,
-      0
-     ],
-     "head": [
-      0.219,
-      0.808,
-      -0.158
-     ],
-     "legL": [
-      -0.083,
-      1.022,
-      0.154
-     ],
-     "legR": [
-      -0.31,
-      1.092,
-      -0.268
-     ],
-     "kneeL": [
-      0.751,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.237,
-      0,
-      0
-     ],
-     "armL": [
-      0.166,
-      0.566,
-      -0.275
-     ],
-     "armR": [
-      1.094,
-      0.403,
-      -2.388
-     ],
-     "elbowL": [
-      -1.698,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.87,
-      0,
-      0
-     ],
-     "weapon": [
-      2.184,
-      -1.264,
-      1.538
-     ],
-     "drop": [
-      -0.114,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.7,
-    {
-     "hips": [
-      0,
-      -0.853,
-      0.014
-     ],
-     "torso": [
-      0.123,
-      -0.284,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.225,
-      0
-     ],
-     "head": [
-      0.21,
-      0.762,
-      -0.142
-     ],
-     "legL": [
-      -0.132,
-      0.926,
-      0.164
-     ],
-     "legR": [
-      -0.448,
-      1.034,
-      -0.154
-     ],
-     "kneeL": [
-      0.742,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.42,
-      0,
-      0
-     ],
-     "armL": [
-      0.284,
-      0.438,
-      -0.316
-     ],
-     "armR": [
-      1.08,
-      0.529,
-      -2.318
-     ],
-     "elbowL": [
-      -1.718,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.844,
-      0,
-      0
-     ],
-     "weapon": [
-      1.954,
-      -1.17,
-      1.303
-     ],
-     "drop": [
-      -0.107,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.807,
-    {
-     "hips": [
-      0,
-      -0.853,
-      0.014
-     ],
-     "torso": [
-      0.123,
-      -0.284,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.225,
-      0
-     ],
-     "head": [
-      0.21,
-      0.762,
-      -0.142
-     ],
-     "legL": [
-      -0.132,
-      0.926,
-      0.164
-     ],
-     "legR": [
-      -0.448,
-      1.034,
-      -0.154
-     ],
-     "kneeL": [
-      0.742,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.42,
-      0,
-      0
-     ],
-     "armL": [
-      0.284,
-      0.438,
-      -0.316
-     ],
-     "armR": [
-      1.08,
-      0.529,
-      -2.318
-     ],
-     "elbowL": [
-      -1.718,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.844,
-      0,
-      0
-     ],
-     "weapon": [
-      1.954,
-      -1.17,
-      1.303
-     ],
-     "drop": [
-      -0.107,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    1,
-    {
-     "hips": [
-      0,
-      -0.001,
-      0
-     ],
-     "torso": [
-      -0.122,
-      -0.136,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      0.247,
-      -0.011
-     ],
-     "legL": [
-      -0.142,
-      -0.115,
-      0.183
-     ],
-     "legR": [
-      -0.282,
-      0.044,
-      -0.098
-     ],
-     "kneeL": [
-      0.654,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.763,
-      0,
-      0
-     ],
-     "armL": [
-      0.088,
-      -0.219,
-      0.741
-     ],
-     "armR": [
-      0.542,
-      0.697,
-      -1.309
-     ],
-     "elbowL": [
-      -1.057,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.111,
-      0,
-      0
-     ],
-     "weapon": [
-      0.32,
-      -0.317,
-      -0.15
-     ],
-     "drop": [
-      -0.059,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ]
-  ]
- },
- "heavyCutB": {
-  "_from": "heavyCutA's reference mirrored left to right: the same strike from the other side, right to left (sweep +1), for the alternate swing (no two-handed right-to-left cut exists in KayKit or the Quaternius library: the KayKit 2H Slice, Chop and Spin all hold the weapon on the left; the Quaternius forehand cuts are one-handed combo pieces that turn the body away). KayKit Character Animations (CC0) Melee_2H_Attack_Slice on Knight.glb with 2H_Sword, retargeted with a copy of scripts/pose-retarget/clip-keys.mjs whose only change takes the blade direction from the mirrored prop (mirrorPose moves it to the left slot): node clip-keys-mirror.mjs --profile kaykit --file Knight.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Slice --prop 2H_Sword --skill slash --keys 41 --legs 1.3 --face --mirror --hit 0.363 (heavyCutA's contact frame: the tool's own fastest-tip guess, u 0.338, measures from the reference's lower hand and put the blade still at the hero's right side). Edits after retargeting: (1) frames kept as they are and retimed: the first and last keys are the UNmirrored clip's idle frame (heavyCutA's u0 and u1): the hero carries the weapon on its left, and starting from the mirrored idle flipped the blade across through the ground during the fade-in; anticipation u0.25 at 0.289 (0.13 s: the blade dragged low across the front to the right, as the reference's own recovery carries it back); hold u0.3 at 0.333; contact u0.363 on hit 0.4 (strike 0.03 s); overshoot u0.675 at 0.593; the follow-through pose u0.75 at 0.7, held to 0.807; rest at 1. (2) --legs 1.3 as heavyCutA. (3) the locked knee (-0.27) clamped to 0. (4) grip [1,0,0] on every key. (5) the weapon rolled +3.14 rad about its length on the anticipation-to-held keys (0 at rest) so this cut also leads with -X, the default heavy models' edge (mirroring makes the right fist the reference's lower hand, and the fixed roll then led with +X); -3.14 made the weapon flip 142 deg in one frame and was rejected. Keys (t <- mirrored clip fraction u unless marked): 0<-unmirrored u0, 0.289<-0.25 (roll 3.14), 0.333<-0.3 (roll 3.14), 0.4<-0.363 (roll 3.14), 0.593<-0.675 (roll 3.14), 0.7<-0.75 (roll 3.14), 0.807<-0.75 (roll 3.14), 1<-unmirrored u1.",
-  "hit": 0.4,
-  "sweep": 1,
-  "keys": [
-   [
-    0,
-    {
-     "hips": [
-      0,
-      0,
-      0
-     ],
-     "torso": [
-      -0.122,
-      -0.135,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      0.246,
-      -0.011
-     ],
-     "legL": [
-      -0.142,
-      -0.116,
-      0.183
-     ],
-     "legR": [
-      -0.282,
-      0.043,
-      -0.097
-     ],
-     "kneeL": [
-      0.654,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.762,
-      0,
-      0
-     ],
-     "armL": [
-      0.087,
-      -0.221,
-      0.742
-     ],
-     "armR": [
-      0.541,
-      0.697,
-      -1.308
-     ],
-     "elbowL": [
-      -1.055,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.11,
-      0,
-      0
-     ],
-     "weapon": [
-      0.319,
-      -0.317,
-      -0.15
-     ],
-     "drop": [
-      -0.059,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.289,
-    {
-     "hips": [
-      0,
-      -0.754,
-      0
-     ],
-     "torso": [
-      -0.122,
-      0.135,
-      0.032
-     ],
-     "chest": [
-      0,
-      0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      0.152,
-      -0.015
-     ],
-     "legL": [
-      0.711,
-      0.997,
-      -0.188
-     ],
-     "legR": [
-      0.075,
-      1.012,
-      -0.389
-     ],
-     "kneeL": [
-      0,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.302,
-      0,
-      0
-     ],
-     "armL": [
-      0.325,
-      -0.687,
-      0.804
-     ],
-     "armR": [
-      0.411,
-      0.234,
-      -1.062
-     ],
-     "elbowL": [
-      -1.405,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.088,
-      0,
-      0
-     ],
-     "weapon": [
-      3.046,
-      -0.878,
-      4.25
-     ],
-     "drop": [
-      -0.064,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.333,
-    {
-     "hips": [
-      0,
-      -0.821,
-      0
-     ],
-     "torso": [
-      -0.122,
-      0.135,
-      0.032
-     ],
-     "chest": [
-      0,
-      0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      0.188,
-      -0.012
-     ],
-     "legL": [
-      0.792,
-      1.078,
-      -0.25
-     ],
-     "legR": [
-      0.158,
-      1.072,
-      -0.48
-     ],
-     "kneeL": [
-      0,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.188,
-      0,
-      0
-     ],
-     "armL": [
-      0.248,
-      -0.693,
-      0.734
-     ],
-     "armR": [
-      0.382,
-      0.278,
-      -1.086
-     ],
-     "elbowL": [
-      -1.354,
-      0,
-      0
-     ],
-     "elbowR": [
-      -0.971,
-      0,
-      0
-     ],
-     "weapon": [
-      2.989,
-      -0.841,
-      4.157
-     ],
-     "drop": [
-      -0.061,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.4,
-    {
-     "hips": [
-      0,
-      -0.098,
-      -0.031
-     ],
-     "torso": [
-      0.08,
-      0.257,
-      0.032
-     ],
-     "chest": [
-      0,
-      0.201,
-      0
-     ],
-     "head": [
-      0.185,
-      -0.538,
-      0.099
-     ],
-     "legL": [
-      0.522,
-      0.292,
-      0.17
-     ],
-     "legR": [
-      -0.247,
-      0.274,
-      0.098
-     ],
-     "kneeL": [
-      0,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.752,
-      0,
-      0
-     ],
-     "armL": [
-      0.889,
-      -0.41,
-      1.367
-     ],
-     "armR": [
-      0.344,
-      -0.052,
-      -0.367
-     ],
-     "elbowL": [
-      -2.019,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.696,
-      0,
-      0
-     ],
-     "weapon": [
-      1.342,
-      -1.084,
-      3.226
-     ],
-     "drop": [
-      -0.051,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.593,
-    {
-     "hips": [
-      0,
-      0.929,
-      0.003
-     ],
-     "torso": [
-      0.157,
-      0.293,
-      0.033
-     ],
-     "chest": [
-      0,
-      0.235,
-      0
-     ],
-     "head": [
-      0.219,
-      -0.808,
-      0.158
-     ],
-     "legL": [
-      -0.31,
-      -1.092,
-      0.268
-     ],
-     "legR": [
-      -0.083,
-      -1.022,
-      -0.154
-     ],
-     "kneeL": [
-      0.237,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.751,
-      0,
-      0
-     ],
-     "armL": [
-      1.094,
-      -0.403,
-      2.388
-     ],
-     "armR": [
-      0.166,
-      -0.566,
-      0.275
-     ],
-     "elbowL": [
-      -1.87,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.698,
-      0,
-      0
-     ],
-     "weapon": [
-      1.196,
-      -0.148,
-      3.14
-     ],
-     "drop": [
-      -0.069,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.7,
-    {
-     "hips": [
-      0,
-      0.853,
-      -0.014
-     ],
-     "torso": [
-      0.123,
-      0.284,
-      0.032
-     ],
-     "chest": [
-      0,
-      0.225,
-      0
-     ],
-     "head": [
-      0.21,
-      -0.762,
-      0.142
-     ],
-     "legL": [
-      -0.448,
-      -1.034,
-      0.154
-     ],
-     "legR": [
-      -0.132,
-      -0.926,
-      -0.164
-     ],
-     "kneeL": [
-      0.42,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.742,
-      0,
-      0
-     ],
-     "armL": [
-      1.08,
-      -0.529,
-      2.318
-     ],
-     "armR": [
-      0.284,
-      -0.438,
-      0.316
-     ],
-     "elbowL": [
-      -1.844,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.718,
-      0,
-      0
-     ],
-     "weapon": [
-      1.082,
-      -0.255,
-      3.125
-     ],
-     "drop": [
-      -0.063,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.807,
-    {
-     "hips": [
-      0,
-      0.853,
-      -0.014
-     ],
-     "torso": [
-      0.123,
-      0.284,
-      0.032
-     ],
-     "chest": [
-      0,
-      0.225,
-      0
-     ],
-     "head": [
-      0.21,
-      -0.762,
-      0.142
-     ],
-     "legL": [
-      -0.448,
-      -1.034,
-      0.154
-     ],
-     "legR": [
-      -0.132,
-      -0.926,
-      -0.164
-     ],
-     "kneeL": [
-      0.42,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.742,
-      0,
-      0
-     ],
-     "armL": [
-      1.08,
-      -0.529,
-      2.318
-     ],
-     "armR": [
-      0.284,
-      -0.438,
-      0.316
-     ],
-     "elbowL": [
-      -1.844,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.718,
-      0,
-      0
-     ],
-     "weapon": [
-      1.082,
-      -0.255,
-      3.125
-     ],
-     "drop": [
-      -0.063,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    1,
-    {
-     "hips": [
-      0,
-      -0.001,
-      0
-     ],
-     "torso": [
-      -0.122,
-      -0.136,
-      -0.032
-     ],
-     "chest": [
-      0,
-      -0.109,
-      0
-     ],
-     "head": [
-      0.174,
-      0.247,
-      -0.011
-     ],
-     "legL": [
-      -0.142,
-      -0.115,
-      0.183
-     ],
-     "legR": [
-      -0.282,
-      0.044,
-      -0.098
-     ],
-     "kneeL": [
-      0.654,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.763,
-      0,
-      0
-     ],
-     "armL": [
-      0.088,
-      -0.219,
-      0.741
-     ],
-     "armR": [
-      0.542,
-      0.697,
-      -1.309
-     ],
-     "elbowL": [
-      -1.057,
-      0,
-      0
-     ],
-     "elbowR": [
-      -1.111,
-      0,
-      0
-     ],
-     "weapon": [
-      0.32,
-      -0.317,
-      -0.15
-     ],
-     "drop": [
-      -0.059,
-      0,
-      0
-     ],
-     "grip": [
-      1,
-      0,
-      0
-     ]
-    }
-   ]
-  ]
- },
  "sunderChop": {
-  "_from": "KayKit Character Animations (CC0) Melee_1H_Attack_Slice_Diagonal on Barbarian.glb with the 1H_Axe prop: the axe raised over the right shoulder and cleaved diagonally down across the front (a sundering cut, unlike the basic attack's horizontal two-handed slice). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_1H_Attack_Slice_Diagonal --prop 1H_Axe --skill armor_cleave --keys 21 --face. Edits: frames kept as they are and retimed to the 0.5 s cast (keys before the hit) and 0.28 s after: u 0.1 at 0, the load u 0.3 at 0.4, held to 0.54 with the upper body coiled 0.15 rad further (torso y, chest y half), the contact u 0.45 on the hit 0.62 (a 0.065 s strike), the overshoot u 0.5 at 0.68, the follow-through u 0.55 at 0.8, rest u 1 at 1; knees clamped at 0 (no locked-back knee). Two-handed: grip [1,0,0] on every key puts the left hand on the haft.",
+  "_from": "KayKit Character Animations (CC0) Melee_1H_Attack_Slice_Diagonal on Barbarian.glb with the 1H_Axe prop: the axe raised over the right shoulder and cleaved diagonally down across the front (a sundering cut, unlike the basic attack's horizontal two-handed slice). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_1H_Attack_Slice_Diagonal --prop 1H_Axe --skill armor_cleave --keys 21 --face. Edits: frames kept as they are and retimed to the 0.5 s cast (keys before the hit) and 0.28 s after: u 0.1 at 0, the load u 0.3 at 0.4, held to 0.54 with the upper body coiled 0.15 rad further (torso y, chest y half), the contact u 0.45 on the hit 0.62 (a 0.065 s strike), the overshoot u 0.5 at 0.68, the follow-through u 0.55 at 0.8, rest u 1 at 1; knees clamped at 0 (no locked-back knee). Two-handed: grip [1,0,0] on every key puts the left hand on the haft. Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon greatblade --tip 0.7; turns [0,-1.803,-1.803,-1.607,-1.607,-1.607,0]).",
   "hit": 0.62,
   "sweep": -1,
   "keys": [
@@ -6463,7 +5169,7 @@
      "weapon": [
       -0.558,
       -0.03,
-      -0.037
+      -1.84
      ],
      "drop": [
       -0.035,
@@ -6543,7 +5249,7 @@
      "weapon": [
       -0.558,
       -0.03,
-      -0.037
+      -1.84
      ],
      "drop": [
       -0.035,
@@ -6623,7 +5329,7 @@
      "weapon": [
       1.361,
       -0.225,
-      0.018
+      -1.589
      ],
      "drop": [
       -0.018,
@@ -6703,7 +5409,7 @@
      "weapon": [
       0.971,
       -0.266,
-      -0.031
+      -1.638
      ],
      "drop": [
       -0.021,
@@ -6783,7 +5489,7 @@
      "weapon": [
       0.927,
       -0.336,
-      -0.047
+      -1.654
      ],
      "drop": [
       -0.019,
@@ -6880,7 +5586,7 @@
   ]
  },
  "sunderChop1H": {
-  "_from": "KayKit Character Animations (CC0) Melee_1H_Attack_Slice_Diagonal on Barbarian.glb with the 1H_Axe prop: the axe raised over the right shoulder and cleaved diagonally down across the front (a sundering cut, unlike the basic attack's horizontal two-handed slice). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_1H_Attack_Slice_Diagonal --prop 1H_Axe --skill armor_cleave --keys 21 --face. Edits: frames kept as they are and retimed to the 0.5 s cast (keys before the hit) and 0.28 s after: u 0.1 at 0, the load u 0.3 at 0.4, held to 0.54 with the upper body coiled 0.15 rad further (torso y, chest y half), the contact u 0.45 on the hit 0.62 (a 0.065 s strike), the overshoot u 0.5 at 0.68, the follow-through u 0.55 at 0.8, rest u 1 at 1; knees clamped at 0 (no locked-back knee). One-handed with a shield: the left arm keeps the reference's guard.",
+  "_from": "KayKit Character Animations (CC0) Melee_1H_Attack_Slice_Diagonal on Barbarian.glb with the 1H_Axe prop: the axe raised over the right shoulder and cleaved diagonally down across the front (a sundering cut, unlike the basic attack's horizontal two-handed slice). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_1H_Attack_Slice_Diagonal --prop 1H_Axe --skill armor_cleave --keys 21 --face. Edits: frames kept as they are and retimed to the 0.5 s cast (keys before the hit) and 0.28 s after: u 0.1 at 0, the load u 0.3 at 0.4, held to 0.54 with the upper body coiled 0.15 rad further (torso y, chest y half), the contact u 0.45 on the hit 0.62 (a 0.065 s strike), the overshoot u 0.5 at 0.68, the follow-through u 0.55 at 0.8, rest u 1 at 1; knees clamped at 0 (no locked-back knee). One-handed with a shield: the left arm keeps the reference's guard. Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon axe --offhand shield --tip 0.7; turns [0,-1.803,-1.803,-1.607,-1.607,-1.607,0]).",
   "hit": 0.62,
   "sweep": -1,
   "keys": [
@@ -7025,7 +5731,7 @@
      "weapon": [
       -0.558,
       -0.03,
-      -0.037
+      -1.84
      ],
      "drop": [
       -0.035,
@@ -7100,7 +5806,7 @@
      "weapon": [
       -0.558,
       -0.03,
-      -0.037
+      -1.84
      ],
      "drop": [
       -0.035,
@@ -7175,7 +5881,7 @@
      "weapon": [
       1.361,
       -0.225,
-      0.018
+      -1.589
      ],
      "drop": [
       -0.018,
@@ -7250,7 +5956,7 @@
      "weapon": [
       0.971,
       -0.266,
-      -0.031
+      -1.638
      ],
      "drop": [
       -0.021,
@@ -7325,7 +6031,7 @@
      "weapon": [
       0.927,
       -0.336,
-      -0.047
+      -1.654
      ],
      "drop": [
       -0.019,

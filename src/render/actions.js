@@ -90,8 +90,9 @@ const WHIRL_ARMS = { armR: [-1.3, 0, -1.3], elbowR: [-0.2, 0, 0], weapon: [1.57,
 // channels that must read as zero where a key leaves them out (samplePose would otherwise
 // borrow the neighbouring key's value, e.g. keep an IK weight on during a wind-up)
 const ZERO = { ikw: [0, 0, 0], grip: [0, 0, 0], drop: [0, 0, 0], aim: [0, 0, 0], sw: [0, 0, 0] };
-// a swing key: palm on the arc at angle a, blade elevation e, palm height y
-const arc = (a, e, y) => ({ sw: [1, 0, 0], swing: [a, e, y] });
+// a swing key: palm on the arc at angle a, blade elevation e, palm height y; sw [weight, lead]: lead -1
+// when the cut runs to falling angles, so the solver keeps the cutting edge in front (hero.js)
+const arc = (a, e, y, lead = 1) => ({ sw: [1, lead, 0], swing: [a, e, y] });
 // the three cuts' arcs (wind-up, just before the hit, hit at the far end, follow-through)
 const RISE_L = [arc(-2.0, -0.45, 0.92), arc(-1.0, -0.15, 1.0), arc(0.95, 0.25, 1.12), arc(1.55, 0.35, 1.18)];
 const RISE_R = [arc(1.7, -0.4, 0.95), arc(0.85, -0.12, 1.02), arc(-0.95, 0.25, 1.14), arc(-1.6, 0.35, 1.2)];
@@ -108,17 +109,22 @@ const coil = (p, k) => {
 // A cut in the anime beat: anticipation (load into the wind-up), a hold coiled a little further,
 // one very short strike that reaches the contact on the hit key, an overshoot past it, the
 // finishing pose held, then recovery.
-const cut = (hit, pre, poses, arcs, end = 0.66) => act(hit, [
-  [0, REST],
-  [pre, { ...body(poses[0]), ...arcs[0] }],                         // anticipation
-  [hit - 0.08, { ...body(coil(poses[0], 1.3)), ...arcs[0] }],       // hold: the freeze before the blow
-  [hit - 0.03, { ...body(poses[0]), ...arcs[1] }],                  // strike: the blade leads, the body follows
-  [hit, { ...body(poses[1]), ...arcs[2] }],                         // contact
-  [hit + 0.06, { ...body(coil(poses[2], 1.2)), ...arcs[3] }],       // overshoot
-  [end, { ...body(poses[2]), ...arcs[3] }],                         // finishing pose
-  [Math.min(0.9, end + 0.12), { ...body(poses[2]), ...arcs[3] }],   // held
-  [1, REST],
-]);
+const cut = (hit, pre, poses, [...arcs], end = 0.66) => {
+  // the edge leads the way the strike runs (to rising or falling angles), through the whole cut
+  const lead = Math.sign(arcs[2].swing[0] - arcs[1].swing[0]) || 1;
+  arcs = arcs.map((k) => arc(...k.swing, lead));
+  return act(hit, [
+    [0, REST],
+    [pre, { ...body(poses[0]), ...arcs[0] }],                         // anticipation
+    [hit - 0.08, { ...body(coil(poses[0], 1.3)), ...arcs[0] }],       // hold: the freeze before the blow
+    [hit - 0.03, { ...body(poses[0]), ...arcs[1] }],                  // strike: the blade leads, the body follows
+    [hit, { ...body(poses[1]), ...arcs[2] }],                         // contact
+    [hit + 0.06, { ...body(coil(poses[2], 1.2)), ...arcs[3] }],       // overshoot
+    [end, { ...body(poses[2]), ...arcs[3] }],                         // finishing pose
+    [Math.min(0.9, end + 0.12), { ...body(poses[2]), ...arcs[3] }],   // held
+    [1, REST],
+  ]);
+};
 const act = (hit, keys) => ({ hit, keys: keys.map(([t, p]) => [t, Object.keys(p).length ? { ...ZERO, ...p } : p]) });
 export const ACTIONS = {
   staffBolt: { hit: .42, keys: [[0,{...STAFF_GATHER,staffAim:[0,0,0]}],[.16,STAFF_GATHER],[.42,STAFF_OUT],[.58,STAFF_OUT],[1,{...STAFF_GATHER,staffAim:[0,0,0]}]] },
@@ -211,8 +217,9 @@ const BY_KIND = {
 // Heavy weapons (axe, mace) swing one-handed like a sword when a shield is in the left hand; with the
 // left hand free they are held in both and play the greatblade combo (hero.js play).
 // The sword and the dagger cut with clips retargeted from reference animations (data/action-clips.json,
-// owner picks): one cut for every step, the slash effect following its sweep.
-const COMBOS = { greatblade: ['heavyCutA', 'heavyCutB'], sword: ['swordCut'], dagger: ['daggerCut'] };
+// owner picks): one cut for every step, the slash effect following its sweep. The greatblade keeps its
+// hand-made alternating cuts (the owner preferred them to the KayKit two-handed slice).
+const COMBOS = { greatblade: ['heavyA', 'heavyB'], sword: ['swordCut'], dagger: ['daggerCut'] };
 /**
  * Register an action from clip data ({hit, sweep?, keys: [[t, pose]]}, absolute channels over REST).
  * A clip moves the weapon itself (own, unless it says own: false): its weapon channel is not held at

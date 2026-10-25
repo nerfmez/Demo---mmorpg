@@ -13,10 +13,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 .bench { display: grid; grid-template-columns: 1fr minmax(300px, 34vw); height: 100%; }
 #stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; touch-action: none; }
 #view { display: block; width: 100%; height: 100%; touch-action: none; }
-#panel { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding-block: 12px calc(16px + env(safe-area-inset-bottom)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); -webkit-overflow-scrolling: touch; }
+#panel { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding-block: max(64px, calc(12px + env(safe-area-inset-top, 0px))) calc(16px + env(safe-area-inset-bottom)); /* the top strip stays clear: the iPad app's artifact viewer draws over it (the owner could not tap the top-centre tab) */ padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); -webkit-overflow-scrolling: touch; }
 @media (max-aspect-ratio: 1/1) {
   .bench { grid-template-columns: 1fr; grid-template-rows: 56% 1fr; }
-  #panel { border-left: 0; border-top: 1px solid var(--line); }
+  #panel { border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; } /* below the scene: no viewer strip over it */
 }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .tab { flex: 1 1 28%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--chip); }

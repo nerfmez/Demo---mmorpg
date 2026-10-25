@@ -1,5 +1,6 @@
 // Pure sampled layout exported from the accepted scene factories. Rendering,
 // collision, path painting and the Godot export all consume the same coordinates.
+import {edgeCliffCover} from './edge-cliffs.js';
 import layout from '../../data/accepted-scenes.js';
 import {distToPolyline,polylineZAtX} from './math.js';
 const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
@@ -157,5 +158,5 @@ export function suppressNativeSceneProp(data,x,z,pad=0){
 export function connectorClear(data,x,z,pad=0){
  return [...(data.acceptedScenes?.connectors||[]),...(data.acceptedScenes?.clearanceRoads||[])].some(r=>distToPolyline(x,z,r.points)<r.width/2+pad);
 }
-export function acceptedColliders(data){return acceptedScenes(data).flatMap(s=>s.colliders).filter(c=>!connectorClear(data,c.x,c.z,c.r??Math.hypot(c.hx,c.hz)));}
+export function acceptedColliders(data){return acceptedScenes(data).flatMap(s=>s.colliders).filter(c=>!connectorClear(data,c.x,c.z,c.r??Math.hypot(c.hx,c.hz))&&!edgeCliffCover(data,c.x,c.z,c.r??Math.hypot(c.hx,c.hz)));}
 export {layout as acceptedSceneLayout};

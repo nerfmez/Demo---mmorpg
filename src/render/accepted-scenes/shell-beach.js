@@ -72,7 +72,7 @@ function noise2(x, z) { return Math.sin(x * 0.7 + Math.sin(z * 0.53)) * 0.5 + Ma
 // the top off screen, 'n' points at the foot of a grassy bank (`soft` metres wide, no rock). A
 // cliff's top edge sits `lean` metres back from its foot, as the concept's faces step back.
 const TERRACES = [
-  {top:M(3.6),base:0,ledge:true,soft:M(2),lean:M(.55),pts:[[-.3,.54,'b'],[.0,.57,'b'],[.075,.63,'b'],[.13,.63,'b'],[.185,.57,'b'],[.18,.515,'b'],[.12,.45,'b'],[.17,.37,'n'],[.22,.25,'n'],[.28,.14,'n'],[.2,-.3,'t'],[-.3,-.3,'t']]},
+  {top:M(3.6),base:0,ledge:true,soft:M(2),lean:M(.55),ghost:true,pts:[[-.3,.54,'b'],[.0,.57,'b'],[.075,.63,'b'],[.13,.63,'b'],[.185,.57,'b'],[.18,.515,'b'],[.12,.45,'b'],[.17,.37,'n'],[.22,.25,'n'],[.28,.14,'n'],[.2,-.3,'t'],[-.3,-.3,'t']]},
   {top:M(4.4),base:0,ledge:true,soft:M(2.5),lean:M(.6),pts:[[.29,.31,'b'],[.38,.29,'b'],[.46,.275,'b'],[.55,.275,'b'],[.65,.29,'b'],[.76,.31,'b'],[.83,.30,'b'],[.82,.27,'n'],[.77,.06,'n'],[.7,-.35,'t'],[.3,-.35,'t']]},
   {top:M(3.7),base:0,ledge:true,soft:M(2),lean:M(.65),pts:[[1.3,.88,'b'],[1.06,.84,'b'],[.99,.76,'b'],[.95,.68,'b'],[.93,.57,'b'],[.91,.49,'b'],[.91,.40,'b'],[.88,.31,'n'],[.88,.12,'n'],[1.3,-.3,'t']]},
   {top:M(5.4),base:M(2),ledge:true,soft:M(2),lean:M(.6),pts:[[.27,.18,'b'],[.37,.21,'b'],[.44,.20,'b'],[.53,.22,'b'],[.62,.20,'b'],[.66,.12,'n'],[.58,-.3,'t'],[.26,-.3,'t']]},
@@ -89,6 +89,9 @@ const TERRACES = [
   const xs = pts.map(p => p.x), zs = pts.map(p => p.z);
   return { ...T, pts, minX: Math.min(...xs), maxX: Math.max(...xs), minZ: Math.min(...zs), maxZ: Math.max(...zs) };
 });
+let GHOST_ON=false;
+// within reach of a flattened terrace (its outline, cliff faces and banks)
+const inGhost=(x,z)=>TERRACES.some(T=>{if(!T.ghost)return false;const d=polyAt(T,x,z);return d!==null&&d<M(2.6);});
 // signed distance to an outline: negative inside; polyAt.wall says whether the nearest edge is cliff
 function polyAt(T, x, z) {
   if (x < T.minX - 3 || x > T.maxX + 3 || z < T.minZ - 3 || z > T.maxZ + 3) return null;
@@ -181,6 +184,7 @@ const SHORE_GLSL='float zShoreG(float x){'+SHORE_POINTS.slice(1).map((b,i)=>{con
 function field(x, z) {
   let y = 0, top = 0, rock = 0;
   for (const T of TERRACES) {
+    if (T.ghost && GHOST_ON) continue;
     const d = polyAt(T, x, z);
     if (d === null) continue;
     // a cliff rises over its lean; elsewhere the edge is a grassy bank `soft` metres wide
@@ -588,7 +592,12 @@ function buildCliffs(){
   }
   // The fractured face above is still traced for its seeded draws and the plants
   // it places; the forest-style columns are drawn in its place.
-  const keep=seed;seed=6151;const mesh=columnCliffs();seed=keep;return mesh;
+  const keep=seed;seed=6151;const mesh=columnCliffs();seed=keep;
+  // the flattened headland's faces are not kept
+  const cp=mesh.geometry.getAttribute('position').array,cc=mesh.geometry.getAttribute('color').array,kp=[],kc=[];
+  for(let i=0;i<cp.length;i+=9){if(inGhost((cp[i]+cp[i+3]+cp[i+6])/3,(cp[i+2]+cp[i+5]+cp[i+8])/3))continue;for(let k=0;k<9;k++){kp.push(cp[i+k]);kc.push(cc[i+k]);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(kp,3));g.setAttribute('color',new THREE.Float32BufferAttribute(kc,3));g.computeVertexNormals();mesh.geometry.dispose();mesh.geometry=g;
+  return mesh;
 }
 function masonryMaterial(){
   // The beach and forest stone material itself (no extra shader variant).
@@ -1318,6 +1327,18 @@ function placeCoastPlants(){
   }
 }
 FOL.leaf=['#2c6d55','#518f40','#a9bf48'];FOL.shrub=['#2e6750','#528c3c','#a4b942'];STONE.splice(0,STONE.length,...ruinPalette);
+// Clear what the seeded passes placed on the flattened headland (prepare.py, `ghost`), then
+// let the ground take its flattened shape. Large merged parts (path banks) are kept.
+function ghostClear(){
+  const drop=list=>{for(let i=list.length-1;i>=0;i--)if(inGhost(list[i].x,list[i].z))list.splice(i,1);};
+  for(const list of[shrubItems,treeItems,grassItems,flowerItems,frondItems,COLLIDERS])drop(list);
+  const box=new THREE.Box3();
+  for(const list of[stoneParts,stoneLines,woodParts,coconutParts])for(let i=list.length-1;i>=0;i--){
+    box.setFromBufferAttribute(list[i].getAttribute('position'));
+    if(box.max.x-box.min.x<6&&box.max.z-box.min.z<6&&inGhost((box.min.x+box.max.x)/2,(box.min.z+box.max.z)/2))list.splice(i,1);
+  }
+  GHOST_ON=true;
+}
 function build(){
   const[x,z]=P(.5,.752);heroStub.x=x;heroStub.z=z;heroStub.face=-2.7;
   {const cliffs=buildCliffs();cliffs.name='accepted-cliffs';scene.add(cliffs);}buildLedges();
@@ -1325,6 +1346,7 @@ function build(){
   for(const[u,v,r,c]of[[.40,.465,.8,true],[.51,.445,.9,false],[.665,.49,1,true],[.70,.50,.9,true],[.35,.60,.8,true],[.60,.78,.85,true],[.88,.79,.6,false],[.25,.62,.6,false],[.47,.70,.55,true],[.56,.55,.5,false],[.76,.66,.6,true],[.31,.74,.5,false]]){
     const[x,z]=P(u,v),s=scallop(r*1.6,c);s.position.set(x,height(x,z)+.04,z);s.rotation.y=R(-.6,.6);scene.add(s);
   }
+  ghostClear();
   const stones=new THREE.Mesh(rigidParts(mergeGeometries(stoneParts,true)),masonryMaterial());stones.customDepthMaterial=masonryDepth;stones.castShadow=stones.receiveShadow=true;scene.add(stones);if(stoneLines.length)scene.add(new THREE.Mesh(rigidParts(mergeGeometries(stoneLines,true)),outlineMat('#4c4852')));
   clearConchPlants();placeCoastPlants();scene.add(giantConch());
   

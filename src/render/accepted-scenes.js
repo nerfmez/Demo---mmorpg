@@ -13,13 +13,15 @@ import {timeUniform} from './patch.js';
 import {clipRegionGeometrySteps} from './region-ownership.js';
 import {acceptedAssetSteps} from './accepted-assets.js';
 import {acceptedGroundEdit,acceptedEditReach} from '../core/accepted-shift.js';
+import {edgeCliffCover} from '../core/edge-cliffs.js';
+import {edgeCliffGeometry} from './edge-cliffs.js';
 import {animeConfig,animeFoliageMaterial,animeTrunkMaterial} from './anime-study.js';
 import {hullMaterial} from './patch.js';
 import {grassMaterial,attachGrassSurfaceSteps} from './grass.js';
 const factories={beach,forest,'shell-beach':shell,'hill-windmill':mill,'azure-meadow':meadow,'rose-garden':rose};
 export function* acceptedScenerySteps(world,renderer,{adopt}={}){
  const root=new THREE.Group();root.name='accepted-concept-scenes';adopt?.(root);
- const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();
+ const animations=[],waypoints=new Map(),textures=new Set(),depthMaterials=new Set();let cliffLook=null;
  // The scenes' trees, shrubs and grass are the map's own (factories tag them, data:
  // acceptedScenes.foliage): one set of the game's materials for all six scenes.
  const foliage=world.data.acceptedScenes?.foliage||null,gameMaterials={};
@@ -64,7 +66,7 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      // Every instance stands on the ground the player walks on (feather, seams,
      // connectors and shore all move it); only those at the very edge are left out,
      // and ground cover where the game's sea runs over the scene's old shore.
-     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2))continue;
+     if(sceneWeight(spec,p.x,p.z)<.1||connectorClear(world.data,p.x,p.z,1.2)||edgeCliffCover(world.data,p.x,p.z,.6))continue;
      if(cover&&spec.shore&&p.y-sceneSample(spec,'heights',p.x,p.z)<1&&world.inSea(p.x,p.z))continue;
      m.elements[13]+=world.groundY(p.x,p.z)-sceneSample(spec,'heights',p.x,p.z);
      mesh.setMatrixAt(count,m);if(mesh.instanceColor){mesh.getColorAt(i,color);mesh.setColorAt(count,color);}count++;
@@ -89,6 +91,9 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
      if(w>=.999&&!repair){if(!reach(x,z)){if(lift)positions.setY(i,positions.getY(i)+lift);continue;}const shift=acceptedGroundEdit(world.data,spec,x,z,world.heightfield.acceptedConnectors).shift;if(Math.abs(shift)>.002)positions.setY(i,positions.getY(i)+shift);continue;}
      const base=sceneSample(spec,'heights',x,z);positions.setY(i,world.groundY(x,z)+(positions.getY(i)-base)*w);
     }
+    if(mesh.name==='accepted-cliffs'&&spec.id==='shell-beach')cliffLook={material:mesh.material,depth:mesh.customDepthMaterial};
+    // nothing of the scene stands inside an edge cliff's plateau (core/edge-cliffs.js)
+    if(world.data.acceptedScenes?.edgeCliffs?.length)mesh.geometry=dropInsideEdgeCliffs(world.data,mesh.geometry);
     if(mesh.name==='accepted-cliffs')for(const road of world.data.acceptedScenes.connectors.filter(r=>r.repair))for(let i=0;i<positions.count;i++){const x=positions.getX(i),z=positions.getZ(i);if(distToPolyline(x,z,road.points)<road.width/2+1)positions.setY(i,Math.min(positions.getY(i),world.groundY(x,z)-.08));}
     mesh.geometry=yield* clipRegionGeometrySteps(mesh.geometry,clipWorld);
     if(!mesh.userData.authoredNormals)mesh.geometry.computeVertexNormals(); // imported models keep their smooth normals
@@ -102,6 +107,13 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
   // CPU closures also own non-rendered construction geometry and private depth
   // materials. Release it when the whole resident region is disposed.
   result.root=source;
+ }
+ // The edge cliffs' rock faces, in the Conch Coast cliff's own material.
+ const cliffGeometry=cliffLook&&edgeCliffGeometry(world);
+ if(cliffGeometry){
+  const mesh=new THREE.Mesh(cliffGeometry,cliffLook.material);mesh.name='accepted-edge-cliffs';
+  mesh.customDepthMaterial=cliffLook.depth;mesh.castShadow=mesh.receiveShadow=true;
+  mesh.geometry.computeBoundingSphere();mesh.geometry.computeBoundingBox();root.add(mesh);
  }
  root.userData.acceptedAnimations=animations;
  root.userData.disposeAcceptedTextures=()=>{for(const t of textures)t.dispose();textures.clear();for(const m of depthMaterials)m.dispose();depthMaterials.clear();};
@@ -150,6 +162,22 @@ function splitInstances(mesh,size){
  mesh.dispose();
  return parts;
 }
+// Triangles whose centre lies inside an edge cliff's plateau are left out.
+function dropInsideEdgeCliffs(data,geometry){
+ geometry.computeBoundingBox();const bb=geometry.boundingBox;
+ const near=(data.acceptedScenes.edgeCliffs).some(c=>{const xs=c.points.map(p=>p[0]),zs=c.points.map(p=>p[1]);return bb.max.x>=Math.min(...xs)&&bb.min.x<=Math.max(...xs)&&bb.max.z>=Math.min(...zs)&&bb.min.z<=Math.max(...zs);});
+ if(!near)return geometry;
+ const g=geometry.index?geometry.toNonIndexed():geometry,pos=g.attributes.position,keep=[];
+ for(let i=0;i<pos.count;i+=3){const x=(pos.getX(i)+pos.getX(i+1)+pos.getX(i+2))/3,z=(pos.getZ(i)+pos.getZ(i+1)+pos.getZ(i+2))/3;if(!edgeCliffCover(data,x,z))keep.push(i);}
+ if(keep.length*3===pos.count){if(g!==geometry)g.dispose();return geometry;}
+ const out=new THREE.BufferGeometry();
+ for(const[name,a]of Object.entries(g.attributes)){
+  const d=new a.array.constructor(keep.length*3*a.itemSize);keep.forEach((i,k)=>d.set(a.array.subarray(i*a.itemSize,(i+3)*a.itemSize),k*3*a.itemSize));
+  out.setAttribute(name,new THREE.BufferAttribute(d,a.itemSize,a.normalized));
+ }
+ out.userData={...geometry.userData};
+ if(g!==geometry)g.dispose();geometry.dispose();return out;
+}
 function seatWhole(world,spec,o){
  const p=new THREE.Vector3().setFromMatrixPosition(o.matrixWorld),edit=acceptedGroundEdit(world.data,spec,p.x,p.z,world.heightfield.acceptedConnectors);
  if(Math.abs(edit.shift)<.002)return;
@@ -163,6 +191,7 @@ function* seatRigidParts(world,spec,mesh){
  for(const group of g.groups){
   let cx=0,cz=0;for(let i=group.start;i<group.start+group.count;i++){cx+=pos.getX(i);cz+=pos.getZ(i);}
   cx/=group.count;cz/=group.count;
+  if(edgeCliffCover(world.data,cx,cz,.5))continue;
   const w=sceneWeight(spec,cx,cz),edit=w>=.999?(reach(cx,cz)?acceptedGroundEdit(world.data,spec,cx,cz,world.heightfield.acceptedConnectors):{shift:sceneLift(world.data,spec),keep:1}):null,share=edit?edit.keep:w;
   if(share<.5)continue;
   const shift=edit?edit.shift:world.groundY(cx,cz)-sceneSample(spec,'heights',cx,cz);

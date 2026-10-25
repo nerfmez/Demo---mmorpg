@@ -4,6 +4,7 @@ import {loadData} from '../../src/core/data-node.js';
 import {createWorld} from '../../src/core/world.js';
 import {acceptedSceneLayout,sceneWeight,sceneSample} from '../../src/core/accepted-scenes.js';
 import {acceptedGroundEdit} from '../../src/core/accepted-shift.js';
+import {distToPolyline} from '../../src/core/math.js';
 import {createCharacter,migrateCharacter} from '../../src/core/character.js';
 import {OpenWorldGame} from '../../src/core/open-world-game.js';
 import {encounterLayout} from '../../src/core/encounters.js';
@@ -133,6 +134,21 @@ test('a final connector keeps the heights it was given, and its ground meets the
   const now=applied.find(c=>c.id===road.id);
   assert.deepEqual(now.heights,road.heights,road.id+' is not lifted again');
   road.points.forEach((p,i)=>{if(world.isFree(...p,.45))assert.ok(Math.abs(world.groundY(...p)-road.heights[i])<.15,road.id+' ground at '+p);});
-  assert.ok(world.roads.some(r=>r.id===road.id),road.id+' is painted as a road');
+  assert.ok(world.roads.some(r=>r.id===road.id||road.points.every(p=>distToPolyline(...p,r.points)<r.width/2)),road.id+' is painted as a road');
  }
+});
+test('the arrival beach ends on the left in a cliff, open to the right toward the first monsters',async()=>{
+ const {edgeCliffAt}=await import('../../src/core/edge-cliffs.js');
+ const cliff=data.world.acceptedScenes.edgeCliffs.find(c=>c.id==='arrival-west');
+ // a raised plateau behind the cliff line, the beach in front at sea level
+ assert.ok(world.groundY(-153,70)>cliff.top-.6,'plateau behind the face');
+ assert.ok(world.groundY(-149,70)<.6,'beach in front of the face');
+ // the seam with Frontier Wilds keeps its height
+ for(let z=52;z<=94;z+=2)assert.equal(edgeCliffAt(cliff,-160,z),-Infinity);
+ // no scene collider inside the plateau, spawn and waypoint untouched
+ assert.ok(!world.circles.some(c=>c.type==='accepted-scene'&&edgeCliffAt(cliff,c.x,c.z)>-Infinity));
+ assert.ok(world.isFree(...data.world.playerSpawn,.45));
+ // the shore to the right is beach level: walk from the spawn to the Conch Coast cove
+ let x=-140,z=70;
+ for(;x<-70;x+=.2){const m=world.move(x,z,.45,.2,0);assert.ok(m.x>x+.18,'blocked walking east at '+x.toFixed(1));}
 });

@@ -11939,6 +11939,8 @@
     ],
     "shellDensity": 0.2,
     "surf": {
+      "filmTop": 1.5,
+      "filmTopDoc": "The beach swash film (render/ground.js) drapes over ground up to this many metres above the water; higher ground beside the shoreline (a headland, a terrace) keeps it underneath.",
       "period": 7.5,
       "runup": 2.6,
       "retreat": 1.6,
@@ -16590,7 +16592,11 @@
       "scene": {"hill-windmill": {"continue": 28, "wobble": 0.15, "inland": true}},
       "sceneDoc": "Per-scene overrides of k, min and max. continue: metres over which each side's edge profile (cliffs, terraces, banks meeting it) runs on outward unsmoothed and dies away, so the scene's forms carry on into the map instead of ending at the bound. wobble: the ring width varies by up to this share along each side (smooth noise). inland: no sea nearby, so low dry ground takes the apron too (only ponds stop it)."
     },
-    "grassBanks": ["hill-windmill"],
+    "grassBanks": ["hill-windmill", "shell-beach"],
+    "edgeCliffs": [
+      {"id": "arrival-west", "top": 5.5, "lean": 1.2, "ramp": 7, "points": [[-159.5, 52, "ramp"], [-151, 52], [-151, 78], [-152.5, 86], [-155, 92.5], [-159.5, 94, "ramp"]], "note": "The arrival beach ends on the left in a rock cliff (owner, 25 October 2026); the open shore to the right leads to the first monsters. The back and north ramp down to the seam and the upland."}
+    ],
+    "edgeCliffsDoc": "core/edge-cliffs.js: a plateau `top` m high inside a closed outline; points mark cliff edges (default, a face `lean` m deep, rock columns in render/edge-cliffs.js) or ramp edges (a slope `ramp` m wide). Applied after the scenes and seams as a floor under the ground; scene props and colliders inside are left out.",
     "grassBanksDoc": "Scenes whose rock faces are their own meshes: the ground's slope paint keeps grass on their steep banks instead of painting grey strata (render/ground.js aBank).",
     "lift": {
       "_doc": "Metres a whole scene is raised (or lowered, negative) above its authored surface (core/accepted-scenes.js acceptedTarget). Its meshes, plants and connector ends move with it; the apron and the seam rises bring the ground round it to meet it.",
@@ -16627,6 +16633,7 @@
     },
     "source": "00bed638a57b6217f675e1a279fcc8fcf769dda7",
     "connectors": [
+      {"id": "accepted/arrival-ramp", "final": true, "width": 4.5, "points": [[-90,46],[-88,46],[-86,46],[-84,46],[-82,46],[-80,46],[-78,46],[-76,46],[-74,46],[-72,46],[-70,46],[-68,46]], "heights": [-0.17,-0.087,0.142,0.484,0.906,1.377,1.863,2.334,2.756,3.098,3.327,3.41], "note": "The arrival road climbs from the flattened shore (shell-beach west headland) onto the Conch Coast rise; it lies on the painted arrival road."},
       {"id": "accepted/join-ring-trail", "final": true, "width": 3, "points": [[154.62,-119.9],[155.0,-116.5],[156.6,-113.6],[158.6,-111.0],[160.2,-109.3],[161.5,-108]], "heights": [5.58,5.577,5.546,5.411,5.761,5.774], "note": "Moonroot ring_trail crosses the seam into Azure Coast here; this joins it to the windmill east paths (join-13, join-14)"},
       {
         "id": "accepted/join-0",

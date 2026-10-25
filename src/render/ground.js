@@ -2,6 +2,7 @@
 // The terrain is split into tiles so off-screen parts are culled. Per-vertex attributes carry
 // what the surface is (road, paving, mud, bare dirt) and the zone colours; the fragment shader
 // paints soft cel patches, blade speckles, rocky cliff faces, drifting cloud shadows.
+import { edgeCliffsAt } from '../core/edge-cliffs.js';
 import {acceptedAt,sceneSample,sceneWeight} from '../core/accepted-scenes.js';
 import * as THREE from 'three';
 import {finishSteps} from './build-queue.js';
@@ -109,6 +110,8 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
         const beach = c.beach;
         // 1 on open sand, easing through a sandy-soil back-beach band to 0 at the meadow
         coast[k * 2] = c.kind === 'beach' ? 1 - smooth(beach - 1, beach + (art.ground.backBeach ?? 3.5), d) : 0;
+        // ground raised well above the sea (a headland or terrace top) is not beach
+        if (art.ground.beachTop) coast[k * 2] *= 1 - smooth(art.ground.beachTop[0], art.ground.beachTop[1], hf.data[k]);
         // Remove only the obsolete coarse cobble paint beside the source cape;
         // its heightfield, cliffs, shoreline and existing dirt paths remain.
         const cape=wd.city?.capeTransition?.bounds;
@@ -172,6 +175,8 @@ export function* surfaceSteps(world, {domain = terrainDomain(world)} = {}) {
       if(accepted){const d=sceneSample(accepted,'trails',x,z),t=(1-aw)*1.8;road[k]=Math.max(road[k],(1-smooth(-.25-t,.45-t,d))*smooth(0,.25,aw));stone[k]*=1-aw;dirt[k]*=1-aw;
         // scenes whose rock faces are their own meshes keep grass on their banks
         if(grassBanks.has(accepted.id))bank[k]=aw;}
+      // an edge cliff's plateau is grass on its slopes too; its face is a rock mesh
+      if(edgeCliffsAt(wd,x,z)>-Infinity)bank[k]=1;
       road[k] *= 1 - stone[k] * .7;
     }
   }
@@ -844,7 +849,10 @@ export function* waterSteps(world, scenery = null, {adopt,owner,domain = terrain
         // Source city slabs are raised solid land, not beach film. A raised
         // swash vertex here made a bright strip along the imported shore edge.
         const beachFilm=c.kind==='beach'&&!cityFloorAt(world.data.city,x,z);
-        pos.push(x, beachFilm ? Math.max(wl + .015, hY(x,z) + .025) : wl+.015, z);
+        // The film stops at filmTop above the water: on a headland or terrace that
+        // stands beside the shoreline it sinks under the ground instead of climbing it.
+        const ground=hY(x,z),filmTop=sea.surf?.filmTop??Infinity;
+        pos.push(x, beachFilm ? (ground > wl + filmTop ? ground - .4 : Math.max(wl + .015, ground + .025)) : wl+.015, z);
         depth.push(wl - hY(x, z));
         along.push(x * 0.2);
         shore.push(shoreD); washMask.push(beachFilm ? 1 : 0); coastJoin.push(c.blend);

@@ -5,6 +5,7 @@
 import {acceptedTarget,connectorPull,sceneSample} from './accepted-scenes.js';
 import {seamPull,seamHeight,seamRise} from './terrain.js';
 import {polylineZAtX} from './math.js';
+import {edgeCliffsAt} from './edge-cliffs.js';
 
 const boxes=new WeakMap();
 function connectorBoxes(connectors){
@@ -32,6 +33,7 @@ export function acceptedGroundEdit(data,scene,x,z,connectors=data.acceptedScenes
     const along=seam.edge==='minZ'||seam.edge==='maxZ'?x:z;
     h=h*(1-m)+(seamHeight(seam.profile,along)+seamRise(seam,along))*m;keep*=1-m;
   }
+  const cliff=edgeCliffsAt(data,x,z);if(cliff>h){h=cliff;keep=0;}
   return {height:h,shift:h-sceneSample(scene,'heights',x,z),keep};
 }
 // A cheap pre-test for acceptedGroundEdit: false where no connector, seam or
@@ -53,6 +55,7 @@ export function acceptedEditReach(data,scene,connectors=data.acceptedScenes?.con
   test=(x,z)=>{
     for(const {box} of near)if(x>=box[0]&&x<=box[1]&&z>=box[2]&&z<=box[3])return true;
     for(const seam of seams)if(seamPull(data,seam,x,z))return true;
+    if(edgeCliffsAt(data,x,z)>-Infinity)return true;
     if(shore){const i=Math.max(0,Math.min(shore.n-1,Math.round((x-shore.x0)/.25)));if(z>shore.lo[i]-9.5&&z<shore.hi[i]+9.5)return true;}
     return false;
   };

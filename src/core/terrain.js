@@ -4,8 +4,10 @@
 //
 // Build order: rolling noise (amplitude per zone) + hills -> soften -> plateaus (cliff edges)
 // + mountains past the map edge -> flatten town / pads -> roads smoothed into ramps ->
-// river channel and ponds carved below the water level.
+// river channel and ponds carved below the water level -> accepted scenes, seams ->
+// edge cliffs (acceptedScenes.edgeCliffs).
 
+import { edgeCliffAt } from './edge-cliffs.js';
 import {applyAcceptedHeights,smoothAcceptedAprons,acceptedApronOffsets,apronConnectors} from './accepted-scenes.js';
 import { clamp, distToSegment, coastSample, toBoxLocal, fromBoxLocal } from './math.js';
 
@@ -414,6 +416,22 @@ export function buildHeightfield(worldData, zoneAt) {
         hf[k] = hf[k] * (1 - m) + to * m;
         if (native) native[k] = native[k] * (1 - m) + to * m;
       }
+  }
+
+  // 9. edge cliffs: a plateau behind an authored cliff line is a floor under the ground.
+  for (const cliff of worldData.acceptedScenes?.edgeCliffs || []) {
+    const xs = cliff.points.map(p => p[0]), zs = cliff.points.map(p => p[1]);
+    for (let j = 0; j < h; j++) {
+      const z = Z(j);
+      if (z < Math.min(...zs) || z > Math.max(...zs)) continue;
+      for (let i = 0; i < w; i++) {
+        const x = X(i);
+        if (x < Math.min(...xs) || x > Math.max(...xs)) continue;
+        const e = edgeCliffAt(cliff, x, z), k = j * w + i;
+        if (e > hf[k]) hf[k] = e;
+        if (native && e > native[k]) native[k] = e;
+      }
+    }
   }
 
   const slope = (data) => (x, z) => {

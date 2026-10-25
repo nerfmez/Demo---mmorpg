@@ -9,7 +9,7 @@ w=w.replace('const PL = M(1.0);','const PL = M(3.6);')
 a=w.index('// Trace the owner');b=w.index('const T2B',a);w=w[:a]+w[b:]
 a=w.index('const TERRACES = [');b=w.index('].map(T => {',a)
 w=w[:a]+'''const TERRACES = [
-  {top:M(3.6),base:0,ledge:true,soft:M(2),lean:M(.55),pts:[[-.3,.54,'b'],[.0,.57,'b'],[.075,.63,'b'],[.13,.63,'b'],[.185,.57,'b'],[.18,.515,'b'],[.12,.45,'b'],[.17,.37,'n'],[.22,.25,'n'],[.28,.14,'n'],[.2,-.3,'t'],[-.3,-.3,'t']]},
+  {top:M(3.6),base:0,ledge:true,soft:M(2),lean:M(.55),ghost:true,pts:[[-.3,.54,'b'],[.0,.57,'b'],[.075,.63,'b'],[.13,.63,'b'],[.185,.57,'b'],[.18,.515,'b'],[.12,.45,'b'],[.17,.37,'n'],[.22,.25,'n'],[.28,.14,'n'],[.2,-.3,'t'],[-.3,-.3,'t']]},
   {top:M(4.4),base:0,ledge:true,soft:M(2.5),lean:M(.6),pts:[[.29,.31,'b'],[.38,.29,'b'],[.46,.275,'b'],[.55,.275,'b'],[.65,.29,'b'],[.76,.31,'b'],[.83,.30,'b'],[.82,.27,'n'],[.77,.06,'n'],[.7,-.35,'t'],[.3,-.35,'t']]},
   {top:M(3.7),base:0,ledge:true,soft:M(2),lean:M(.65),pts:[[1.3,.88,'b'],[1.06,.84,'b'],[.99,.76,'b'],[.95,.68,'b'],[.93,.57,'b'],[.91,.49,'b'],[.91,.40,'b'],[.88,.31,'n'],[.88,.12,'n'],[1.3,-.3,'t']]},
   {top:M(5.4),base:M(2),ledge:true,soft:M(2),lean:M(.6),pts:[[.27,.18,'b'],[.37,.21,'b'],[.44,.20,'b'],[.53,.22,'b'],[.62,.20,'b'],[.66,.12,'n'],[.58,-.3,'t'],[.26,-.3,'t']]},
@@ -44,6 +44,25 @@ function zShore(x){
 }
 const SHORE_GLSL='float zShoreG(float x){'+SHORE_POINTS.slice(1).map((b,i)=>{const a=SHORE_POINTS[i];return `if(x<${b[0].toFixed(5)})return mix(${a[1].toFixed(5)},${b[1].toFixed(5)},clamp((x-(${a[0].toFixed(5)}))/${(b[0]-a[0]).toFixed(5)},0.,1.))+.16*sin(x*.7);`;}).join('')+`return ${SHORE_POINTS.at(-1)[1].toFixed(5)}+.16*sin(x*.7);}`;
 ''' +w[a:]
+# The west headland (terrace 0, `ghost`) stood between the arrival beach and the first
+# monsters' shore. In the game it is beach-level ground: every seeded pass still walks it
+# exactly as before (so no other draw moves), then build() clears what it placed there and
+# switches the ground to the flattened shape (GHOST_ON) before the heights are read.
+def sub(a,b):
+  global w
+  assert a in w,a
+  w=w.replace(a,b,1)
+sub("// signed distance to an outline: negative inside;","""let GHOST_ON=false;
+// within reach of a flattened terrace (its outline, cliff faces and banks)
+const inGhost=(x,z)=>TERRACES.some(T=>{if(!T.ghost)return false;const d=polyAt(T,x,z);return d!==null&&d<M(2.6);});
+// signed distance to an outline: negative inside;""")
+sub("  for (const T of TERRACES) {\n    const d = polyAt(T, x, z);\n    if (d === null) continue;\n    // a cliff rises over its lean","  for (const T of TERRACES) {\n    if (T.ghost && GHOST_ON) continue;\n    const d = polyAt(T, x, z);\n    if (d === null) continue;\n    // a cliff rises over its lean")
+sub("const keep=seed;seed=6151;const mesh=columnCliffs();seed=keep;return mesh;","""const keep=seed;seed=6151;const mesh=columnCliffs();seed=keep;
+  // the flattened headland's faces are not kept
+  const cp=mesh.geometry.getAttribute('position').array,cc=mesh.geometry.getAttribute('color').array,kp=[],kc=[];
+  for(let i=0;i<cp.length;i+=9){if(inGhost((cp[i]+cp[i+3]+cp[i+6])/3,(cp[i+2]+cp[i+5]+cp[i+8])/3))continue;for(let k=0;k<9;k++){kp.push(cp[i+k]);kc.push(cc[i+k]);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(kp,3));g.setAttribute('color',new THREE.Float32BufferAttribute(kc,3));g.computeVertexNormals();mesh.geometry.dispose();mesh.geometry=g;
+  return mesh;""")
 w=w.replace('concept (ruins-approach-40deg)', 'Singing Conch Coast concept')
 # Sand, not forest dirt, in the new bay's painted ground.
 w=w.replace("'#e0ab63'","'#e7bb75'").replace("'#efc27b'","'#f3d394'").replace("'#cc8f4c'","'#d9b475'").replace("'#f2c886'","'#f7dda2'")

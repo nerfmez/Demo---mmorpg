@@ -279,3 +279,14 @@ The owner saw stones and stairs still floating.
 - **Remaining gully:** a narrow channel east of the mill (around 140, −90) lay between the east-north route's causeway and the terraces. The fill now counts route causeways as banks and bridges a channel across its width in four directions, so open-ended gullies fill too.
 
 Measured per stone after the fix: one windmill part (a 0.27 m pebble) sits 0.25 m above the ground; no other is above 0.15 m. Colliders: four small scattered parts moved with the filled ground (105 → 104).
+
+## Starting beach: open to the first monsters, a cliff on the left (25 October 2026)
+
+Owner direction: the starting beach at its normal level and blended with the shore; no "face" rising from the sand; then, after a first try put a rock cliff between the beach and the Conch Coast: "the early monsters are to the right", so the cliff goes to the left and the right is flattened and joined to the level-1 shore.
+
+- **The face on the sand:** the Conch Coast's west headland (6.3 m) ran past its box and was cut there; the feather made it a smooth 6 m sand wall beside the beach, with the shore foam drawn up it. Even at the old head the headland could not be climbed from the beach.
+- **Right side flattened:** the headland (terrace 0) is now beach-level ground in the game. Its terrace stays in the scene's list as `ghost`, so every seeded pass walks it as before and nothing else moves; `build()` clears what was placed on it (4 colliders, its rock faces, plants, palms) and only then gives the ground its flattened shape. The arrival road, which ran along the headland's north feather, climbs onto the remaining rise on a ramp (`accepted/arrival-ramp`, a final connector). From the spawn every level 1–2 spawn point on this shore and the Conch Coast cove is reachable on foot.
+- **Left side:** `acceptedScenes.edgeCliffs` `arrival-west`: a 5.5 m rock cliff at the beach's west end, into the sea, in the Conch Coast cliff's column style; the plateau ramps down to the Frontier Wilds seam behind it and to the upland at its north end. The shore crossing into Frontier Wilds along the beach is now closed; the land route north of the cliff stays open.
+- **Sand and foam:** sand no longer paints raised ground (`art.ground.beachTop`), the swash film stays under ground more than 1.5 m above the water (`sea.surf.filmTop`), and the Conch Coast's steep banks are grass (`grassBanks`).
+
+Checks: core accepted-scenes, world and data tests pass (new: the left cliff, the seam height, cleared colliders, walking east from the spawn); render tests 49/50 (the skirt failure also on main). Inspected wide and low views of both ends, the flattened shore, the road ramp and the play camera at the spawn and both ends.

@@ -53,6 +53,7 @@ BT = np.array([tuple(t.vertices) for t in body.data.loop_triangles])
 # the game flattens the chibi's bust and hips at load (chibi-body.js flattenBody); do the same so
 # the garments sit on the body the game draws (three y = Z, three z = -Y)
 armg = [i for i, n in enumerate(G) if any(k in n for k in ('Shoulder', 'Arm', 'Hand'))]
+headg = [i for i, n in enumerate(G) if n in ('neck', 'Head', 'head_end', 'headfront')]
 for f in FLATTEN:
     y0, y1, z, k = f['y0'], f['y1'], f['z'], f['k']
     w = 1 - BW[:, armg].sum(1)
@@ -426,9 +427,15 @@ for pc, name in names.items():
         cen = (a + b + c) / 3; n = np.cross(b - a, c - a); nl = np.linalg.norm(n)
         if nl == 0: continue
         n /= nl
+        if BW[t][:, headg].sum(1).mean() > 0.3:
+            continue
         regs = C.get('hideRegion', {}).get(name) or HIDE[name]  # boxes [z from, z to, |x| below(, |x| above)]
         if all(any(r[0] < q[2] < r[1] and (r[3] if len(r) > 3 else -1) < abs(q[0]) < r[2] for r in regs) for q in (a, b, c)):  # each corner in some box
             hid.append(ti); continue  # well inside what the piece covers (the armpits open in the T-pose)
+        # the neck is never hidden: a collar's rays meet it in the bind pose, but the neck turns with the
+        # head and the holes showed as a torn edge round the collar
+        if BW[t][:, headg].sum(1).mean() > 0.3:
+            continue
         # an arm past the sleeve's end is never hidden: in the T-pose its underside faces the torso, so
         # its rays meet the coat, but with the arms down those holes showed as torn streaks
         if name == 'armor' and BW[t][:, armg].sum(1).mean() > 0.5 and max(abs(a[0]), abs(b[0]), abs(c[0])) > sleeveEnd:

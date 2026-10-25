@@ -76,7 +76,7 @@ export class ThunderArrowFx {
     // the flight: strands wrapping the shaft and trailing behind the head
     let h = 0;
     for (const pr of projectiles) {
-      if (pr.fusion !== kind) continue;
+      if (!kind || pr.fusion !== kind) continue; // no recipe: plain arrows stay plain
       const sp = Math.hypot(pr.vx, pr.vz) || 1, dx = pr.vx / sp, dz = pr.vz / sp, y = pr.y ?? 1;
       const head = this.p.set(pr.x + dx * 0.35, y, pr.z + dz * 0.35);
       const back = this.q.set(pr.x - dx * 1.5, y, pr.z - dz * 1.5);

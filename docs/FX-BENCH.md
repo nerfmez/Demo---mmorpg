@@ -31,8 +31,10 @@ that they change the events the effects draw. Review hooks: `__fxtest.freeze()` 
 
 ## Skill fusion (prototype)
 
-The panel's **สกิลผสาน** row lists the recipes: one tap picks the main skill with its linked
-spell (the owner found the fusion chips, shown only once the main skill is picked, hard to find).
+Only a skill with an authored recipe offers a fusion (the owner's rule). Pick the main skill first;
+its **สกิลผสานของ…** row then lists its recipes (tap one to fuse, tap it again or the main skill's
+tab to drop it). Other skills show no fusion row, and the generic link below is not offered in the
+panel (`fusion.js` keeps it for the rules tests).
 
 Rules live in `data/fusion.json`; `src/fxtest/fusion.js` applies them on top of the real
 rules without changing `src/core`. A physical attack with a short cooldown (the carrier,

@@ -14,7 +14,7 @@ import FUSION from '../../data/fusion.json';
 import { Vfx } from '../render/vfx.js';
 import { disposeObject } from '../render/dispose.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS, VIEW } from './sandbox.js';
-import { fusionPayloads, fusionRecipe } from './fusion.js';
+import { fusionRecipe } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
 import { ThunderArrowFx } from './thunder-arrow-fx.js';
 import { mulberry32 } from '../render/skillfx/fx-common.js';
@@ -165,7 +165,7 @@ const skipSets = new Map();
 const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
-  if (state.fusion && !fusionPayloads(data, FUSION, state.skill).includes(state.fusion)) state.fusion = null;
+  if (state.fusion && !fusionRecipe(FUSION, state.skill, state.fusion)) state.fusion = null; // only authored recipes fuse
   game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement });
   game.aimAt(aimAngle);
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
@@ -260,6 +260,8 @@ function drain() {
     }
     const drawn = fx.event(e);
     if (e.type === 'impact' && !drawn) vfx.impact(e);
+    // a skill the effects director leaves alone (Hunter's Shot) still gets its pose, as in the game (view.js)
+    if (e.type === 'castStart' && !drawn) { heroAnim.play(e.skill, e.total + 0.28, heroWeapon, e.step, e.total, e.kind); vfx.beginCast(e, skillDef().element); }
     if (e.type === 'hit') {
       const d = dummyOf(e.id); if (!d) continue;
       const el = e.element || 'physical';
@@ -316,21 +318,21 @@ function renderPanel() {
   panel.textContent = '';
   const tabs = h('div', 'tabs');
   for (const id of BENCH_SKILLS) {
-    const b = h('button', 'tab' + (id === state.skill && !state.fusion ? ' on' : ''), data.skills.combat[id].nameTh);
+    const b = h('button', 'tab' + (id === state.skill ? ' on' : ''), data.skills.combat[id].nameTh);
     // a plain skill tab drops any linked fusion (tapping Hunter's Shot while Thunder Arrow is on gives plain Hunter's Shot)
     b.addEventListener('click', () => { if (id === state.skill && !state.fusion) return; state.skill = id; state.mods = []; state.fusion = null; aimAngle = Math.PI / 2; rebuild(); });
     tabs.append(b);
   }
   panel.append(tabs);
-  // the fusion recipes as their own tabs: one tap picks the main skill with its linked spell
-  if (FUSION.recipes?.length) {
-    panel.append(h('h2', '', 'สกิลผสาน'));
+  // fusion: only a skill with an authored recipe (data/fusion.json) offers one, and only once it is picked
+  const recipes = (FUSION.recipes || []).filter((r) => r.carrier === state.skill);
+  if (recipes.length) {
+    panel.append(h('h2', '', `สกิลผสานของ${data.skills.combat[state.skill].nameTh}`));
     const ft = h('div', 'tabs');
-    for (const r of FUSION.recipes) {
-      if (!BENCH_SKILLS.includes(r.carrier)) continue;
-      const on = state.skill === r.carrier && state.fusion === r.payload;
+    for (const r of recipes) {
+      const on = state.fusion === r.payload;
       const b = h('button', 'tab' + (on ? ' on' : ''), r.nameTh);
-      b.addEventListener('click', () => { if (on) return; state.skill = r.carrier; state.mods = []; state.fusion = r.payload; aimAngle = Math.PI / 2; rebuild(); });
+      b.addEventListener('click', () => { state.fusion = on ? null : r.payload; state.mods = []; aimAngle = Math.PI / 2; rebuild(); });
       ft.append(b);
     }
     panel.append(ft);
@@ -384,23 +386,6 @@ function renderPanel() {
     modBox.append(row);
   }
   panel.append(modBox);
-
-  // prototype fusion: link one fast spell into a socket of a physical skill
-  const payloads = fusionPayloads(data, FUSION, state.skill);
-  if (payloads.length) {
-    const fb = h('section', 'mods');
-    fb.append(h('h2', '', 'ลิงก์สกิล (ฟิวชั่น · ใช้ช่องม็อด 1 ช่อง)'));
-    for (const id of payloads) {
-      const def2 = data.skills.combat[id], on = state.fusion === id, recipe = fusionRecipe(FUSION, state.skill, id);
-      const row = h('div', 'mod' + (on ? ' on' : ''));
-      const chip = h('button', 'chip', (on ? '✓ ' : '') + def2.nameTh + (recipe ? ` → ${recipe.nameTh}` : ''));
-      chip.disabled = !on && state.mods.length >= MAX_MODS;
-      chip.addEventListener('click', () => { state.fusion = on ? null : id; rebuild(); });
-      row.append(chip, h('div', 'mdesc', recipe ? recipe.desc : `ฟันโดนแล้ว${def2.nameTh}ออกจากเป้าที่โดน พุ่งต่อไปข้างหน้า ความสามารถเต็ม ดาเมจ ${Math.round(FUSION.payloadDamageMult * 100)}% · คูลดาวน์ใช้ตัวที่นานกว่า · MP รวมกัน`));
-      fb.append(row);
-    }
-    panel.append(fb);
-  }
 
   // what the rules actually resolved for this slot (after mods)
   const facts = h('section', 'facts');
@@ -556,7 +541,7 @@ function tick(real, draw = true) {
   // Thunder Arrow's arrows stay Hunter's Shot arrows (vfx.js) under their own lightning; a wave recipe draws its own projectile
   vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowRecipe() ? benchSkip(recipeKind) : OWN_PROJECTILES);
   if (hero.bones?.weapon) { hero.bones.weapon.getWorldPosition(nockAt); nockAt.y += 0.05; }
-  thunderArrow.update(dt, game.projectiles, recipeKind, nockAt);
+  thunderArrow.update(dt, game.projectiles, arrowRecipe() ? recipeKind : null, nockAt);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;
   castBtn.classList.toggle('cooling', cd > 0.02);

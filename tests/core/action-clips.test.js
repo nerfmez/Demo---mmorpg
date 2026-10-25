@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const CLIPS = JSON.parse(readFileSync(new URL('../../data/action-clips.json', import.meta.url)));
-const CHANNELS = new Set(['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'weapon', 'drop', 'grip', 'aim', 'spin', 'ikL', 'ikR', 'ikw', 'staffAim', 'gripSlide']);
+const CHANNELS = new Set(['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'weapon', 'drop', 'grip', 'aim', 'spin', 'ikL', 'ikR', 'ikw', 'staffAim', 'gripSlide', 'air']);
 const vec = (v) => Array.isArray(v) && v.length === 3 && v.every(Number.isFinite);
 
 test('clip actions run from 0 to 1 with the contact inside, a sweep and real channels', () => {
@@ -25,6 +25,7 @@ test('clip actions run from 0 to 1 with the contact inside, a sweep and real cha
       for (const [ch, v] of Object.entries(pose)) {
         assert.ok(CHANNELS.has(ch) && vec(v), `${name}.${ch}`);
         if (ch === 'drop') assert.ok(Math.abs(v[0]) < 0.3, `${name} drop`);
+        if (ch === 'air') assert.ok(v[0] >= 0 && v[0] <= 1.5, `${name} air`); // a jump's height off the ground
       }
   }
 });

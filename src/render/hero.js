@@ -384,7 +384,7 @@ export class HumanoidAnimator {
       // take no pitch) and keeps its own dip
       const t = clamp01(dash.t / dash.dur), mv = ACTIONS[MOVE_CLIPS[dash.kind] ?? MOVE_CLIPS.dash];
       const roll = dash.kind === 'roll';
-      const k = roll ? 1 : smoother(Math.min(1, t / 0.12, (1 - t) / 0.18));
+      const k = smoother(Math.min(1, t / (roll ? 0.08 : 0.12), (1 - t) / (roll ? 0.12 : 0.18)));
       const mp = samplePose(mv.keys, t);
       for (const n in mp) {
         if (n === 'spin' || n === 'drop' || n === 'offhand' || (roll && !ROLL_LIMBS.has(n))) continue;
@@ -441,6 +441,7 @@ export class HumanoidAnimator {
         if (leg && knee && (ap['leg' + sd] || ap['knee' + sd])) pose['foot' + sd][0] += (-(leg[0] + knee[0]) - pose['foot' + sd][0]) * wA;
       }
       if (pose.drop) bodyY += pose.drop[0];
+      if (pose.air) bodyY += pose.air[0]; // a jumping action leaves the ground (metres)
       if (a.t >= a.dur) this.action = null;
     }
     // hit flinch (additive, decays)
@@ -458,6 +459,7 @@ export class HumanoidAnimator {
     b.body.rotation.y = spin;
     b.body.position.y = bodyY;
     b.body.position.x = bodyX;
+    if (s.dash?.kind === 'roll') this.rollOnGround();
     b.body.rotation.z = damp(b.body.rotation.z, bodyRotZ, 8, dt);
     // death: fall backwards with a small bounce
     if (s.dead) {
@@ -648,6 +650,19 @@ export class HumanoidAnimator {
     o.quaternion.slerp(AIM_Q, w);
   }
 
+  /**
+   * Through a roll the curled body rests on the ground: its lowest point (the big head, knees, feet, hands)
+   * is set on the floor each frame, so the head never sinks through it and the body never floats.
+   */
+  rollOnGround() {
+    const b = this.b, root = this.rig.root;
+    root.updateMatrixWorld(true);
+    // the chibi head: a ball about 0.26 m across its radius, centred a quarter metre above the neck
+    let low = b.head.localToWorld(ROLL_P.set(0, 0.25, 0)).y - 0.26;
+    for (const n of ROLL_CONTACT) low = Math.min(low, b[n].getWorldPosition(ROLL_P).y - 0.05);
+    b.body.position.y += root.position.y - low;
+  }
+
   /** The left palm and weapon on a mirrored swing arc (solveWeapon's arc for the left hand, weight w). */
   solveOffSwing(swingV, w, lead) {
     const b = this.b, body = b.body, o = b.offhand;
@@ -736,6 +751,7 @@ export class HumanoidAnimator {
 const MOVE_CLIPS = { dash: 'moveDash', roll: 'moveRoll', blink: 'moveBlink', leap: 'moveLeap' };
 // the roll takes only the limbs' tuck from its clip: the reference's trunk pitches over with the dive, and the
 // game turns the whole body itself (hipsSpinX)
+const ROLL_CONTACT = ['footL', 'footR', 'kneeL', 'kneeR', 'handL', 'handR', 'hips'], ROLL_P = new THREE.Vector3();
 const ROLL_LIMBS = new Set(['armL', 'armR', 'elbowL', 'elbowR', 'legL', 'legR', 'kneeL', 'kneeR', 'weapon']);
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast', 'staffCastHeld', 'flankStab', 'shieldShove', 'breakbeatSlam', 'whirlSpin', 'warCryRoar', 'riposteGuard']);
 const IK_T = new THREE.Vector3();

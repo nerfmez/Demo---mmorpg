@@ -16,7 +16,7 @@ prototype skill fusion. It is not the Skill Lab and not part of the game.
   Concentrated shrinks it, Knockback/Gathering Cut move the dummies, Shatter
   bursts on chilled dummies, Life Leech shows green heal numbers, Cast on Dodge fires
   the skill from the dodge button. Guard triggers are hidden (no guard skill on the bench).
-- Controls: tap the floor to aim, **ร่าย** casts (hold for Flame Stream), **หลบ** uses the move picked in the panel's หลบ row (dash, roll, blink or leap),
+- Controls: tap the floor to aim, **ร่าย** casts (hold for Flame Stream), **หลบ** uses the move picked in the panel's หลบ row (dash, roll, blink or leap; the leap arcs through the air as in the game),
   slow motion ×0.5/×0.25, close/game camera, auto-repeat, reset dummies.
 - The effects are the game's: `src/render/skillfx/*-fx.js`, driven by the same director
   (`src/render/skill-fx.js`) in the bench and in the game View. A change made here is a change

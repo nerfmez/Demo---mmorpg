@@ -493,7 +493,8 @@ function tick(real, draw = true) {
   lastHp = p.hp;
   if (lastHp > p.maxHp * 0.9) { p.hp = p.maxHp * 0.6; lastHp = p.hp; } // keep room for Life Leech to show
 
-  hero.root.position.set(p.x, 0, p.z);
+  // a leap arcs through the air as in the game (view.js)
+  hero.root.position.set(p.x, p.dash?.kind === 'leap' ? Math.sin(Math.min(1, p.dash.t / p.dash.dur) * Math.PI) * 1.5 : 0, p.z);
   hero.root.rotation.y = p.facing;
   const walked = Math.hypot(p.x - lastPos.x, p.z - lastPos.z) / Math.max(dt, 1e-4); lastPos.x = p.x; lastPos.z = p.z;
   heroAnim.update(dt, { speed: p.dash ? 8 : Math.min(walked, 12), facing: p.facing, moving: !!p.moving, dash: p.dash ? { kind: p.dash.kind, t: p.dash.t, dur: p.dash.dur } : null, channeling: p.channeling, dead: false, time: simTime });

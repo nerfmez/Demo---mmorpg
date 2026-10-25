@@ -79,8 +79,8 @@ at the guard) Shield Bash, `breakbeatSlam` (Melee_1H_Attack_Jump_Chop, the head 
 ground on the hit) Breakbeat Slam, `whirlSpin` (Melee_2H_Attack_Spinning with `--spin`: each frame faced
 forward and its turn kept as the `spin` channel, so a full turn does not wrap back) Whirl Blade,
 `warCryRoar` (Skeletons_Taunt) War Cry and `riposteGuard` (Melee_Blocking) Measured Riposte's guard.
-The movement skills play `moveDash` (Sword_Dash), `moveRoll` (Roll: only its limbs' tuck, the game turns
-the body over itself), `moveBlink` (NinjaJump_Start's tuck) and `moveLeap` (Sword_GroundPound: the blade
+The movement skills play `moveDash` (KayKit Dodge_Forward), `moveRoll` (Roll: only its limbs' tuck, the game
+turns the body over itself and keeps it on the ground), `moveBlink` (Dodge_Forward's first lean) and `moveLeap` (Sword_GroundPound: the blade
 overhead in the air, slammed down on landing) over the whole move (hero.js `MOVE_CLIPS`).
 
 ## Choosing a clip and previewing an action

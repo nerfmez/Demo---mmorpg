@@ -201,7 +201,7 @@ for k in (0, 1):
     cg[:, k] = np.polyval(np.polyfit(zs[up], cg[up, k], 1), zs)
     cc[:, k] = np.polyval(np.polyfit(zs[up], cc[up, k], 1), zs)
 # the generated leg line goes onto the chibi's own leg line
-dcx, dcy = cc[:, 0] - cg[:, 0], cc[:, 1] - cg[:, 1]
+dcy = cc[:, 1] - cg[:, 1]
 gx = np.interp(P0[:, 2], zs, cg[:, 0])
 gy = np.interp(P0[:, 2], zs, cg[:, 1])
 
@@ -222,7 +222,10 @@ ty0, ty1 = cg[-1, 1], cc[-1, 1]
 T = np.stack([x * sT, (y - ty0) * sT + ty1, zmapT(z)], 1)
 # legs
 sL = C['legScale']
-L = np.stack([sx * (gx + np.interp(z, zs, dcx) + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
+# across, the legs keep the generated stance, spaced as the torso is (x * sT): moving them onto the
+# chibi's legs pulled the thighs in below the hips (a kink there) and the calves together; the
+# chibi's legs are hidden under them, so where exactly they stand across does not show
+L = np.stack([sx * (gx * sT + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
 # arms: `armX` maps distances out along the arm (from the shoulder to the fingertips), else `armLen` scales them
 a0, a1 = C['armAxis']; sA = C['armScale']
 if C.get('armX'):

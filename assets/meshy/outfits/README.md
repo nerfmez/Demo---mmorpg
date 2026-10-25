@@ -20,8 +20,11 @@ fit settings for `scripts/fit-chibi-outfit.py` (see `docs/OUTFIT-BASE.md`, "Mode
   cuts were read off each model's colours along the neck, arm and leg.
 - Helms: `scripts/fit-chibi-helm.py assets/meshy/outfits/<set>.json <helm id>` makes
   `public/models/outfits/<helm id>.glb` from the same models: leather_cap (hide), beetle_helm (shell),
-  spore_hood (spore), feather_circlet (storm), horned_helm (crag), ranger_hood (ranger),
-  wardenstalker_hood (warden).
+  spore_hood (spore), horned_helm (crag), ranger_hood (ranger), wardenstalker_hood (warden).
+- The storm set's band was too coarse to cut out: `feather_circlet_meshy.glb` was generated (Meshy 6
+  multi-image, 30 credits) from the owner's three-view sheet `feather_circlet_reference.png`, and
+  `scripts/fit-feather-circlet.py` bends it round the hero's hair (`public/models/outfits/feather_circlet.glb`,
+  drawn over the hero's own hair: `withHair`).
 - Legs: the fit keeps the generated legs straight (the leg line is fitted through the slices near the
   ankle, so a coat or cape round the legs does not bend it) and does not push the trousers over the
   chibi's fuller thighs; the body under the armour is hidden in game.

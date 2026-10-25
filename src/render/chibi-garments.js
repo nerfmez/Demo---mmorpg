@@ -64,7 +64,8 @@ export function prepareChibiOutfit(gltf, m) {
 
 /**
  * A modelled helm (`chibiOutfit` "helm"): a plain mesh of the headwear with the hair the sheet draws
- * under it, in the frame the hero's hair model is fitted in (attachChibiHair places it the same way).
+ * under it, in the frame the hero's hair model is fitted in (attachChibiHair places it the same way);
+ * `withHair`: only a band worn over the hair, drawn on top of the hero's own hair.
  */
 function prepareChibiHelm(gltf, m) {
   let mesh = null;
@@ -73,7 +74,7 @@ function prepareChibiHelm(gltf, m) {
   const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
   geometry.userData.shared = true;
   if (mesh.material.map) mesh.material.map.userData.shared = true;
-  return { piece: 'helm', geometry, material: { map: mesh.material.map, color: new THREE.Color(1, 1, 1), side: THREE.DoubleSide } };
+  return { piece: 'helm', geometry, withHair: !!m.withHair, material: { map: mesh.material.map, color: new THREE.Color(1, 1, 1), side: THREE.DoubleSide } };
 }
 
 /** A skinned mesh's bind map from its geometry to world space (read through its Hips bone, which no rest pose turns). */

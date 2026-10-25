@@ -504,11 +504,14 @@ function keepPart(geometry, box, [side, at]) {
  * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
  * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
  * Under a `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one; a modelled helm
- * (`model`) is drawn in its place instead, with the hair it was made with.
+ * (`model`) is drawn in its place instead, with the hair it was made with, or over the whole hair
+ * when it is a band worn on top of it (`withHair`).
  */
 export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
+  // a band worn over the hair (a circlet's `withHair` model) goes on top of the hero's whole hair
+  if (model?.withHair) attachChibiHair(rig, T, H, { outline, darkness, rim });
   const hb = T.headBox, b = H.box, f = H.fit;
   const hw = hb.max.x - hb.min.x, hd = hb.max.z - hb.min.z, hh = hb.max.y - hb.min.y;
   // per axis: the chibi head is rounder than the head the hair was made on
@@ -520,8 +523,9 @@ export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, r
     hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
     (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
   const s = (sx + sy + sz) / 3;
-  if (model) {
+  if (model && !model.withHair) {
     // a helm is not squashed to the head like the hair: one scale, about the hair box's middle
+    // (a band worn on the hair is fitted to that hair, so it takes the hair's own scale)
     const c = b.getCenter(new THREE.Vector3());
     g.position.add(new THREE.Vector3(sx * c.x, sy * c.y, sz * c.z)).sub(c.multiplyScalar(s));
     g.scale.setScalar(s);

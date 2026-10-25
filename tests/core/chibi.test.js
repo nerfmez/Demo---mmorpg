@@ -97,6 +97,7 @@ test('modelled chibi outfits are one skinned mesh on the chibi armature for a re
       // a plain textured mesh placed on the head like the hair
       assert.ok(!j.skins && j.meshes.length === 1 && j.images.length === 1, id + ' one textured mesh');
       assert.equal(j.meshes[0].primitives.reduce((n, p) => n + j.accessors[p.indices].count / 3, 0), m.tris, id);
+      assert.ok(m.withHair === undefined || typeof m.withHair === 'boolean', id + ' withHair');
       continue;
     }
     assert.equal(j.skins.length, 1, id);

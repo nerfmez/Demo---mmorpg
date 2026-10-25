@@ -437,7 +437,8 @@ toon material and outline. Its node extras `hideBody` list the body triangles it
 drawn without them while it is worn (`coveredBody`), so the skin cannot poke through. The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh with the hair under it, placed on the head bone exactly as the
-hair is, and drawn instead of the hair. In Godot attach
+hair is, and drawn instead of the hair; one marked `withHair` (the feather circlet) is a band drawn
+over the whole hair, taking the hair's own per-axis scale. In Godot attach
 the mesh to the body's `Skeleton3D` and draw the body with those triangles removed (or a mask). Each frame the skin hand turns until its thumb runs along the weapon's grip axis (+Z, or +Y
 for a bow) and the socket moves to the fist's hole. In Godot,
 import the GLB with its `Skeleton3D`, recompute smooth normals on import, apply the same torso

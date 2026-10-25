@@ -74,6 +74,11 @@ held near its foot with `gripSlide`) is Firebolt and Arcane Bolt with the staff.
 `ends: 'carry'` (eased in from the carry and back to it, no snap at the fades), a still hold before the
 push, and the push ends at full reach on the hit, where the bolt leaves; `boltCast` points the weapon
 up and forward through the gather (the charge in front of the hand) and at the target from the release.
+`flankStab` (Melee_1H_Attack_Stab) is Flank Thrust, `shieldShove` (Melee_Block_Attack, the sword arm kept
+at the guard) Shield Bash, `breakbeatSlam` (Melee_1H_Attack_Jump_Chop, the head pointed down onto the
+ground on the hit) Breakbeat Slam, `whirlSpin` (Melee_2H_Attack_Spinning with `--spin`: each frame faced
+forward and its turn kept as the `spin` channel, so a full turn does not wrap back) Whirl Blade,
+`warCryRoar` (Skeletons_Taunt) War Cry and `riposteGuard` (Melee_Blocking) Measured Riposte's guard.
 
 ## Choosing a clip and previewing an action
 

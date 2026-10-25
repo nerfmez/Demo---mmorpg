@@ -755,7 +755,7 @@ export class HumanoidAnimator {
   }
 }
 
-const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast', 'staffCastHeld']);
+const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast', 'staffCastHeld', 'flankStab', 'shieldShove', 'breakbeatSlam', 'whirlSpin', 'warCryRoar', 'riposteGuard']);
 const IK_T = new THREE.Vector3();
 const SUPPORT_PASSES = 3;
 const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();

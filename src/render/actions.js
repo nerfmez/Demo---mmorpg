@@ -203,10 +203,10 @@ export const ACTIONS = {
 
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
+  slash: 'combo', whirl_blade: 'whirlSpin', hunter_shot: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
   stone_burst: 'boltCast', frost_nova: 'nova', venom_mire: 'shoot', hex: 'boltCast', ward: 'nova',
-  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash', riposte: 'guardBlock',
-  war_cry: 'warcry', healing_spring: 'nova', spirit_wolf: 'zap',
+  arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'breakbeatSlam', weakpoint: 'flankStab', shield_bash: 'shieldShove', riposte: 'riposteGuard',
+  war_cry: 'warCryRoar', healing_spring: 'nova', spirit_wolf: 'zap',
   // the owner's approved spells are the base of the alike ones: Firebolt's push (boltCast, staffCast with
   // a staff) for spells aimed at a spot, Chain Spark's flick (zap) for calling a summon, Frost Nova's
   // burst (nova) for spells around the hero
@@ -215,8 +215,8 @@ const BY_SKILL = {
 // skill kind -> action, for skills without their own entry
 const BY_KIND = {
   counter_stance:'ward',melee_line:'heavyC',channel_cone:'staffCastHeld',wall:'boltCast',heal_target:'nova',aura:'nova',
-  melee_arc: 'combo', melee_nova: 'whirl', chain: 'zap', ground_area: 'slam', nova: 'nova', dot_zone: 'sow',
-  curse_zone: 'boltCast', self_barrier: 'nova', buff: 'warcry', heal_zone: 'nova', summon: 'zap',
+  melee_arc: 'combo', melee_nova: 'whirlSpin', chain: 'zap', ground_area: 'slam', nova: 'nova', dot_zone: 'sow',
+  curse_zone: 'boltCast', self_barrier: 'nova', buff: 'warCryRoar', heal_zone: 'nova', summon: 'zap',
 };
 // Heavy weapons (axe, mace) swing one-handed like a sword when a shield is in the left hand; with the
 // left hand free they are held in both and play the greatblade combo (hero.js play).
@@ -283,7 +283,7 @@ export function leftHanded(name) {
  * @param {boolean} dual a second weapon in the left hand: the basic cut alternates its hands
  */
 export function pickAction(skill, kind, weapon, step = 0, dual = false) {
-  if (ACTIONS[skill] && !BY_SKILL[skill]) return skill; // an action named directly (the skill Hex shares its id with the hex action)
+  if (ACTIONS[skill] && skill !== 'hex' && skill !== 'ward') return skill; // an action named directly (or registered for the skill); Hex and Ward share their ids with generic actions
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
   // the staff points its head at the target with the arm pushed out (owner: the release arm goes forward)
   if (a === 'boltCast' && weapon === 'staff') a = 'staffCast';

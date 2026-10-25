@@ -128,7 +128,7 @@ export class SkillFx {
           if (g.player.riposte?.readyUntil > g.time) {
             this.play('slash', e.total + 0.3, this.nextSwingStep(), e.total, 'melee_arc');
             this.slash.swing(e.total, this.slashOpts(s, RIPOSTE_PALETTE)); this.riposte.counter(true); host.banner('สวนกลับ!');
-          } else this.play('guardBlock', e.total + s.guard.duration, 0, e.total, e.kind);
+          } else this.play('riposteGuard', e.total + s.guard.duration, 0, e.total, e.kind);
           return true;
         }
         if (e.charge !== undefined) this.release(e.charge); // a charged shot looses: its arrow and impact grow with the charge

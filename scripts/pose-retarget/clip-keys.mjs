@@ -5,6 +5,7 @@
 //
 //   node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Sword_Light_A --skill slash [--keys 8] [--legs 0.8] [--face]
 //   node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Chop --prop 2H_Axe --skill armor_cleave
+// --spin faces every frame forward and keeps its turn as the spin channel (a whirl).
 // --anim plays another file's clips on --file's model (KayKit's animation library on an Adventurer
 // holding the props); --hit u sets the contact (0..1 of the range) for a clip without a blade (spells).
 import { chromium } from 'playwright';
@@ -14,7 +15,7 @@ const flag = (k) => process.argv.includes('--' + k);
 const opts = {
   file: arg('file', 'UAL1.glb'), clip: arg('clip'), skill: arg('skill', 'slash'), profile: arg('profile', 'ual'), prop: arg('prop', null),
   weapon: arg('weapon', null), anim: arg('anim', null), hit: arg('hit', null), keys: +arg('keys', '8'), legs: +arg('legs', '1'), from: +arg('from', '0'), to: +arg('to', '1'),
-  face: flag('face'), mirror: flag('mirror'),
+  face: flag('face'), mirror: flag('mirror'), spin: flag('spin'),
 };
 if (!opts.clip) throw new Error('--clip is required');
 const site = arg('site', 'http://127.0.0.1:4190');
@@ -43,9 +44,21 @@ const result = await page.evaluate(async (o) => {
   // one turn for the whole clip (its first frame faces +Z), so the swing's own twist is kept
   const t0 = dur * o.from, t1 = Math.min(dur * o.to, dur - 1e-3); // at its full length a clip wraps to its first frame
   const yaw = o.face ? -R.facingYaw(R.sample(g, o.clip, t0, P, o.prop, null, false, o.mirror)) : 0;
+  // --spin: every frame faced forward on its own and its turn kept as the body's spin channel (a whirl's
+  // full turns, unwrapped; hips yaw alone would wrap and spin back)
+  const yaw0 = o.spin ? R.facingYaw(R.sample(g, o.clip, t0, P, o.prop, null, false, o.mirror)) : 0;
+  let spinPrev = 0;
   const frame = (t) => {
     const j = R.sample(g, o.clip, t, P, o.prop, null, false, o.mirror);
-    if (yaw) R.turn(j, yaw);
+    let spin = 0;
+    if (o.spin) {
+      const fy = R.facingYaw(j);
+      R.turn(j, -fy);
+      if (t === t0) spinPrev = 0;
+      const d = fy - yaw0 - spinPrev;
+      spin = spinPrev + Math.atan2(Math.sin(d), Math.cos(d));
+      spinPrev = spin;
+    } else if (yaw) R.turn(j, yaw);
     const { local } = R.retarget(j, { restHeadQ: rest.headQ });
     for (const n of ['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'elbowL', 'elbowR'])
       if (local[n] && restLocal[n]) local[n] = local[n].map((x, i) => x - restLocal[n][i]);
@@ -58,6 +71,7 @@ const result = await page.evaluate(async (o) => {
     for (const n of ['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'armL', 'armR', 'elbowL', 'elbowR']) pose[n] = (local[n] || [0, 0, 0]).map(r3);
     pose.weapon = R.weaponChannel(fk.W.handR, dir).map(r3);
     pose.drop = [r3(foot(restFk) - foot(fk)), 0, 0];
+    if (o.spin) pose.spin = [r3(spin), 0, 0];
     const tip = j.handR.clone().addScaledVector(dir, 0.9), hip = j.hips;
     return { pose, tip, yaw: Math.atan2(tip.x - hip.x, tip.z - hip.z) };
   };
@@ -73,6 +87,6 @@ const result = await page.evaluate(async (o) => {
   return { hit: r3(hitU), sweep: dy >= 0 ? 1 : -1, seconds: r3(t1 - t0), keys, speeds: fr.slice(1).map((f, i) => r3(f.tip.distanceTo(fr[i].tip))) };
 }, opts);
 
-result.source = `${opts.anim ? 'KayKit Character Animations' : opts.profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${opts.clip}${opts.from || opts.to !== 1 ? ` ${opts.from}-${opts.to}` : ''}${opts.legs !== 1 ? `, legs x${opts.legs}` : ''}${opts.face ? ', faced forward' : ''}${opts.mirror ? ', mirrored' : ''} (scripts/pose-retarget/clip-keys.mjs)`;
+result.source = `${opts.anim ? 'KayKit Character Animations' : opts.profile === 'kaykit' ? 'KayKit Adventurers' : 'Quaternius Universal Animation Library'} (CC0) ${opts.clip}${opts.from || opts.to !== 1 ? ` ${opts.from}-${opts.to}` : ''}${opts.legs !== 1 ? `, legs x${opts.legs}` : ''}${opts.face ? ', faced forward' : ''}${opts.spin ? ', its turn as spin' : ''}${opts.mirror ? ', mirrored' : ''} (scripts/pose-retarget/clip-keys.mjs)`;
 console.log(JSON.stringify(result));
 await browser.close();

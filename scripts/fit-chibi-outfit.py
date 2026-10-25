@@ -193,6 +193,13 @@ ok = ~np.isnan(cg).any(1) & ~np.isnan(cc).any(1)
 zs, cg, cc = zs[ok], cg[ok], cc[ok]
 
 
+# both legs stand straight (Meshy's T-pose, the chibi's bind pose); armour plates and boot heels
+# move a slice's centre about, and following those wiggles bends the legs: map the straight line
+# through the generated leg's centres onto the straight line through the chibi's
+up = zs >= 0.1
+for k in (0, 1):
+    cg[:, k] = np.polyval(np.polyfit(zs[up], cg[up, k], 1), zs)
+    cc[:, k] = np.polyval(np.polyfit(zs[up], cc[up, k], 1), zs)
 # the generated leg line goes onto the chibi's own leg line
 dcx, dcy = cc[:, 0] - cg[:, 0], cc[:, 1] - cg[:, 1]
 gx = np.interp(P0[:, 2], zs, cg[:, 0])

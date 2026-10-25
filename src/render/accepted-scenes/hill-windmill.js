@@ -203,11 +203,13 @@ const SHADE = [[0.07, 0.32, 3.0, PL], [0.32, 0.27, 3.0, PL], [0.72, 0.24, 2.6, P
 const shadeAt = (x, z) => SHADE.reduce((m, s) => Math.max(m, 1 - smooth(s.r * 0.45, s.r, Math.hypot(x - s.x, z - s.z))), 0);
 
 // No ravines (owner, 25 October 2026): the narrow channels left between terraces are
-// filled. The terrace-only ground is closed (a max then a min over FILL_R), so any dip
-// narrower than about twice FILL_R would rise to its lower bank; the fill stops FILL_DROP
-// below that bank, so each terrace still ends in a rock face over a shallow floor instead
-// of a free-standing wall. The broad lowland stays where it is. Routes ride the fill.
-const FILL_R=M(3.4),FILL_DROP=M(.9),FILL_STEP=1;
+// filled. Across each channel (along x, z and both diagonals) the lower of the two
+// highest banks within FILL_R on either side bridges it, so any dip narrower than
+// about twice FILL_R rises toward its lower bank, open-ended gullies included. The
+// fill stops FILL_DROP below that bank, so each terrace still ends in a rock face over
+// a shallow floor instead of a free-standing wall. The broad lowland stays where it is.
+// Routes count as banks, and ride the fill.
+const FILL_R=M(2.6),FILL_DROP=M(.9),FILL_STEP=1;
 let FILL=null;
 function terraceY(x,z){
   let y=0;
@@ -218,13 +220,29 @@ function terraceY(x,z){
   }
   return y;
 }
+// Routes run on their own causeways: they bank a channel as a terrace does.
+function bankY(x,z){
+  const st=stairsAt(x,z),y=terraceY(x,z);
+  return st.a>-.03&&st.a<1.04&&st.s<st.half+ST.bank?Math.max(y,st.y):y;
+}
 function fillAt(x,z){
   if(!FILL){
     const nx=Math.ceil((GX1-GX0)/FILL_STEP)+1,nz=Math.ceil((GZ1-GZ0)/FILL_STEP)+1,a=new Float32Array(nx*nz),t=new Float32Array(nx*nz),r=Math.round(FILL_R/FILL_STEP);
-    for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)a[j*nx+i]=terraceY(GX0+i*FILL_STEP,GZ0+j*FILL_STEP);
+    for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)a[j*nx+i]=bankY(GX0+i*FILL_STEP,GZ0+j*FILL_STEP);
     const pass=(src,dst,op,alongX)=>{for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){let m=src[j*nx+i];for(let k=-r;k<=r;k++){const ii=alongX?i+k:i,jj=alongX?j:j+k;if(ii<0||jj<0||ii>=nx||jj>=nz)continue;const v=src[jj*nx+ii];m=op(m,v);}dst[j*nx+i]=m;}};
     const b=new Float32Array(nx*nz);
-    pass(a,t,Math.max,true);pass(t,b,Math.max,false);pass(b,t,Math.min,true);pass(t,b,Math.min,false);
+    for(const[dx,dz]of[[1,0],[0,1],[1,1],[1,-1]]){
+      const reach=dx&&dz?Math.max(1,Math.round(r/Math.SQRT2)):r;
+      for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){
+        let lo=-Infinity,hi=-Infinity;
+        for(let k=1;k<=reach;k++){
+          const i0=i-dx*k,j0=j-dz*k,i1=i+dx*k,j1=j+dz*k;
+          if(i0>=0&&j0>=0&&i0<nx&&j0<nz)lo=Math.max(lo,a[j0*nx+i0]);
+          if(i1>=0&&j1>=0&&i1<nx&&j1<nz)hi=Math.max(hi,a[j1*nx+i1]);
+        }
+        const k=j*nx+i;b[k]=Math.max(b[k],Math.min(lo,hi));
+      }
+    }
     for(let k=0;k<b.length;k++)b[k]=Math.max(a[k],b[k]-FILL_DROP);
     // soften the filled rims a little so they meet the banks as slopes
     for(let s=0;s<2;s++){pass(b,t,(m,v)=>m,true);for(let j=1;j<nz-1;j++)for(let i=1;i<nx-1;i++){const k=j*nx+i;t[k]=(b[k]*4+b[k-1]+b[k+1]+b[k-nx]+b[k+nx])/8;}for(let k=0;k<b.length;k++)b[k]=Math.max(a[k],t[k]);}
@@ -686,6 +704,13 @@ function buildLedges(){
  stoneStairs();
  seed=resume;
 }
+// A level stone rests on the lowest ground under its footprint, so on a slope or a
+// hump it sinks in at the high end instead of hanging over the low end.
+function footing(x,z,hw,hd,ux,uz){
+ let y=height(x,z);
+ for(const a of[-1,1])for(const b of[-1,1])y=Math.min(y,height(x+ux*hd*a+uz*hw*b,z+uz*hd*a-ux*hw*b));
+ return y;
+}
 function stoneStairs(){
  // One continuous stair along each authored flight: a course of grey stones every
  // STEP along the route, square to its smoothed direction. Each course is level,
@@ -706,12 +731,12 @@ function stoneStairs(){
    const n=Math.max(3,Math.round(r.w/(.62*K))),w=r.w/n;
    for(let j=0;j<n;j++){
     const off=-r.w/2+(j+.5)*w,x=r.x+nx*off,z=r.z+nz*off;
-    block(x,height(x,z)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
+    block(x,footing(x,z,w/2,STEP/2,ux,uz)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
    }
    // Low, broken shoulders frame the flight without narrowing its clear width.
    if(course%2===0)for(const side of[-1,1]){
     const off=side*(r.w/2+.24),x=r.x+nx*off,z=r.z+nz*off;
-    block(x,height(x,z)-.16,z,.46,.42+.10*Math.sin(i),STEP*1.25,ry,.14,{ink:.004*K,base:'#b9b4b1'});
+    block(x,footing(x,z,.23,STEP*.625,ux,uz)-.16,z,.46,.42+.10*Math.sin(i),STEP*1.25,ry,.14,{ink:.004*K,base:'#b9b4b1'});
    }
   });
  }

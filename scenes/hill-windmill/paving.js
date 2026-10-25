@@ -29,6 +29,13 @@ function buildLedges(){
  stoneStairs();
  seed=resume;
 }
+// A level stone rests on the lowest ground under its footprint, so on a slope or a
+// hump it sinks in at the high end instead of hanging over the low end.
+function footing(x,z,hw,hd,ux,uz){
+ let y=height(x,z);
+ for(const a of[-1,1])for(const b of[-1,1])y=Math.min(y,height(x+ux*hd*a+uz*hw*b,z+uz*hd*a-ux*hw*b));
+ return y;
+}
 function stoneStairs(){
  // One continuous stair along each authored flight: a course of grey stones every
  // STEP along the route, square to its smoothed direction. Each course is level,
@@ -49,12 +56,12 @@ function stoneStairs(){
    const n=Math.max(3,Math.round(r.w/(.62*K))),w=r.w/n;
    for(let j=0;j<n;j++){
     const off=-r.w/2+(j+.5)*w,x=r.x+nx*off,z=r.z+nz*off;
-    block(x,height(x,z)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
+    block(x,footing(x,z,w/2,STEP/2,ux,uz)-.12,z,w*R(.90,.97),.26,STEP*R(1.0,1.06),ry+R(-.03,.03),.04,{ink:.006*K,base:pick(STAIR)});
    }
    // Low, broken shoulders frame the flight without narrowing its clear width.
    if(course%2===0)for(const side of[-1,1]){
     const off=side*(r.w/2+.24),x=r.x+nx*off,z=r.z+nz*off;
-    block(x,height(x,z)-.16,z,.46,.42+.10*Math.sin(i),STEP*1.25,ry,.14,{ink:.004*K,base:'#b9b4b1'});
+    block(x,footing(x,z,.23,STEP*.625,ux,uz)-.16,z,.46,.42+.10*Math.sin(i),STEP*1.25,ry,.14,{ink:.004*K,base:'#b9b4b1'});
    }
   });
  }

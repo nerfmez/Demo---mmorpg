@@ -269,3 +269,13 @@ Owner review at the play camera: the stairs floated, and the ravines looked forc
 - **Ring-trail path:** Moonroot's ring trail met the seam north-east of the mill and stopped. A connector (`accepted/join-ring-trail`, `final`: its heights come from the finished ground, so the apron does not lift it again) and its painted road join it to the windmill's east paths.
 
 Visual inspection: the game camera, 1180×820, at the same 20 positions as the owner's sheet (W1–W4, E1–E4, S1–S5, N1–N3, C1–C4) plus the low south view.
+
+### Follow-up: floating stones and stairs
+
+The owner saw stones and stairs still floating.
+
+- **Cause in the game:** since the lift, stones and steps were raised twice. `seatRigidParts` replaced the geometry without its `rigidParts` flag, so the per-vertex pass ran again and added the lift (2.5 m) a second time; elsewhere it re-applied feather and connector edits. The render now remembers the flag before seating. `tests/render/accepted-seating.test.mjs` checks that each scene's stones stand on the ground (with the old code the windmill's were 2.35 m up).
+- **Cause in the scene:** a level step was set at the ground height of its centre, so on a steep slope or a hump its low end hung free. Each step and shoulder now rests on the lowest ground under its footprint (`footing` in `paving.js`), so it sinks into the slope instead.
+- **Remaining gully:** a narrow channel east of the mill (around 140, −90) lay between the east-north route's causeway and the terraces. The fill now counts route causeways as banks and bridges a channel across its width in four directions, so open-ended gullies fill too.
+
+Measured per stone after the fix: one windmill part (a 0.27 m pebble) sits 0.25 m above the ground; no other is above 0.15 m. Colliders: four small scattered parts moved with the filled ground (105 → 104).

@@ -77,9 +77,11 @@ export function* acceptedScenerySteps(world,renderer,{adopt}={}){
    }else{
     // Copy before baking: hulls may share a geometry with their visible surface.
     const original=mesh.geometry;mesh.geometry=original.clone().applyMatrix4(matrix);
-    if(mesh.geometry.userData.rigidParts)yield* seatRigidParts(world,spec,mesh);
+    // Seated parts are moved once, whole; the seated geometry no longer carries the flag.
+    const rigid=!!mesh.geometry.userData.rigidParts;
+    if(rigid){yield* seatRigidParts(world,spec,mesh);mesh.userData.seatedParts=true;}
     const positions=mesh.geometry.attributes.position,reach=acceptedEditReach(world.data,spec,world.heightfield.acceptedConnectors),lift=sceneLift(world.data,spec);
-    if(!mesh.geometry.userData.rigidParts)for(let i=0;i<positions.count;i++){
+    if(!rigid)for(let i=0;i<positions.count;i++){
      if(i%16384===16383)yield;
      const x=positions.getX(i),z=positions.getZ(i),w=sceneWeight(spec,x,z);const repair=nearRepair(x,z);
      // Inside, follow the world's later edits (connectors, seams, shore); they leave cliffs scaled with the ground.

@@ -163,7 +163,9 @@ export class SkillFx {
       case 'chain': {
         const last = e.points[e.points.length - 1];
         const miss = e.points.length === 2 && !g.monsters.some((m) => !m.dead && Math.hypot(m.x - last[0], m.z - last[1]) < 0.05);
-        this.chain.play(e.points, e.element, this.staffTip(), miss);
+        // a chain bursting from a struck target (a fused arrow, e.from) starts there, not at the hand
+        if (e.from) this.chain.play([e.points[0], ...e.points], e.element, this.tipV.set(e.points[0][0], 1.1, e.points[0][1]), false);
+        else this.chain.play(e.points, e.element, this.staffTip(), miss);
         return true;
       }
       case 'nova': {

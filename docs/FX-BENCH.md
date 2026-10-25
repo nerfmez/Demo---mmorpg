@@ -33,8 +33,8 @@ that they change the events the effects draw. Review hooks: `__fxtest.freeze()` 
 
 Rules live in `data/fusion.json`; `src/fxtest/fusion.js` applies them on top of the real
 rules without changing `src/core`. A physical attack with a short cooldown (the carrier,
-e.g. Slash) can link one fast damage spell (the payload, currently projectile spells:
-Firebolt, Arcane Bolt, Arcane Dart) into one of its mod sockets. When the carrier connects,
+e.g. Slash, Hunter's Shot) can link one fast damage spell (the payload: projectile spells such as
+Firebolt and Arcane Bolt, and Chain Spark) into one of its mod sockets. When the carrier connects,
 the payload fires once from the first struck target, flying on away from the caster and
 skipping that target, with its full behaviour and only its main damage scaled by
 `payloadDamageMult`. The fused skill uses the longer cooldown and the summed MP cost. A miss
@@ -57,6 +57,19 @@ the wave is a clean half-moon of fire (smooth front and inner arcs meeting in sh
 flowing cel bands, short tongues off the back edge, a soft glow) that widens and burns away
 from the back at the end of its range. With a cold element the blade frosts and the wave is
 an ice crescent, with ice chips on hits.
+
+### Recipe: Thunder Arrow / ศรอัสนี (Hunter's Shot + Chain Spark)
+
+`type: arrow_chain`. Casting starts a 0.6 s draw (the bow drawn and held, `bowDrawHold`; aim
+follows the pointer); at its end one arrow is loosed (`bowLooseShot`; a real projectile: 30 m/s,
+16 m, radius 0.35, Hunter's Shot's damage). On its first hit Chain Spark's lightning bursts from
+the struck target: it and up to Chain Spark's chain count of the nearest others within its
+chain range each take `chainDamageMult` (0.6) of Chain Spark's damage with its falloff, once
+each; the `chain` event carries `from` so the chain starts at the target, not the hand.
+Cooldown 1.0 s, MP = both skills. Visuals in `src/fxtest/thunder-arrow-fx.js`: short jagged
+arcs crackling round the drawn arrow, more and brighter as the draw fills, and a cold nock glow;
+the arrow (drawn as an arrow by vfx.js) wrapped in three re-struck lightning strands trailing
+behind its head with a head glow and shed sparks; the hit is Chain Spark's own lightning.
 
 ## Slash (bench look and rule trial)
 

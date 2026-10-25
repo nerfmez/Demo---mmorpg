@@ -16,6 +16,7 @@ import { disposeObject } from '../render/dispose.js';
 import { createBench, benchMods, BENCH_SKILLS, BENCH_WEAPON, LAYOUTS } from './sandbox.js';
 import { fusionPayloads, fusionRecipe } from './fusion.js';
 import { FlameSlashFx } from './flame-slash-fx.js';
+import { ThunderArrowFx } from './thunder-arrow-fx.js';
 import { mulberry32 } from '../render/skillfx/fx-common.js';
 import { OCCLUDER_LAYER } from '../render/skillfx/flame-fx.js';
 import { SkillFx, OWN_PROJECTILES, ELEMENT_COLOR } from '../render/skill-fx.js';
@@ -134,6 +135,8 @@ const camBase = new THREE.Vector3(), camQ = new THREE.Quaternion(); // the bench
 let shakeT = 0, shakeDur = 1, shakeAmp = 0;
 const shake = (amp, time) => { if (amp >= shakeAmp * (shakeT / shakeDur)) { shakeAmp = amp; shakeT = shakeDur = time; } };
 const flameSlash = new FlameSlashFx(scene, camera);
+const thunderArrow = new ThunderArrowFx(scene, camera, () => vfx);
+const arrowRecipe = () => game.fusion?.recipe?.type === 'arrow_chain';
 // the game's own renderer for Firebolt / Arcane Bolt casts, projectiles and impacts
 const vfx = new Vfx(scene, { surfaceY: () => 0, groundY: () => 0 });
 // the skill effects, driven by the same director as the game (src/render/skill-fx.js)
@@ -149,6 +152,7 @@ const fx = new SkillFx({
 // ---------- the bench (real rules) ----------
 let game = null, aimAngle = Math.PI / 2, simTime = 0;
 // projectile kinds the old renderer skips (drawn by the effects); a fused skill's wave too
+const nockAt = new THREE.Vector3();
 const skipSets = new Map();
 const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_PROJECTILES])).get(k);
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
@@ -173,7 +177,7 @@ function rebuild() {
 }
 const skillDef = () => game.skills[0];
 function clearFx() {
-  fx.clear(); flameSlash.clear();
+  fx.clear(); flameSlash.clear(); thunderArrow.clear();
   vfx.endCast(); vfx.clearFireballs?.();
   for (const v of vfx.projectiles.values()) disposeObject(v, vfx.sharedGeo);
   vfx.projectiles.clear();
@@ -228,6 +232,14 @@ function drain() {
     // bench-only: the Riposte attacker's wind-up (the game's monsters telegraph their own)
     if (e.type === 'benchWindup') { fx.mace.windup(e.id, e.total); continue; }
     if (e.type === 'benchWindupEnd') { fx.mace.windupEnd(e.id); continue; }
+    if (e.type === 'fusionCharge' && arrowRecipe()) {
+      // Thunder Arrow: the bow drawn and held through the charge, lightning gathering on the arrow
+      heroAnim.play('bowDrawHold', e.total, heroWeapon, 0, e.total);
+      thunderArrow.beginCharge(e.total);
+      continue;
+    }
+    if (e.type === 'fusionRelease' && arrowRecipe()) { thunderArrow.release(); heroAnim.play('bowLooseShot', 0.3, heroWeapon, 0, 0.02); continue; }
+    if (e.type === 'fusionCancel' && arrowRecipe()) { thunderArrow.cancel(); heroAnim.action = null; continue; }
     if (e.type === 'fusionCharge') {
       // the charge stance: the swing's wind-up stretched over the charge, the cut landing at its end
       heroAnim.play(e.skill, e.total + 0.3, heroWeapon, fx.nextSwingStep(), e.total, 'melee_arc');
@@ -238,7 +250,7 @@ function drain() {
     if (e.type === 'fusionRelease') { flameSlash.release(); continue; }
     if (e.type === 'fusionCancel') { flameSlash.cancel(); heroAnim.action = null; continue; }
     if (e.type === 'trigger') showBanner('ร่ายเมื่อหลบ!');
-    if (e.type === 'fusion') fx.mod.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element });
+    if (e.type === 'fusion' && !e.recipe) fx.mod.burst({ x: e.x, z: e.z, radius: 0.7, element: e.element });
     // a fused skill (bench prototype) keeps the old look on its own events
     if (skillDef().recipe && e.type === 'impact' && e.kind === skillDef().recipe.id) {
       if (e.element === 'cold') fx.frost.chipBurst(e.x, 1.0, e.z, 8, 2.5, 3, 0.8); else if (e.element === 'fire') fx.fire.impact(e.x, 1.0, e.z, true); else vfx.impact(e);
@@ -381,7 +393,7 @@ function renderPanel() {
   line('ธาตุ', ELEMENT_TH[s.element] || s.element);
   line('คูลดาวน์', `${s.cooldown.toFixed(2)} วิ`);
   line('MP', `${s.cost}`);
-  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); line('ชาร์จ', `${s.recipe.chargeTime} วิ`); line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); }
+  if (s.recipe) { line('สกิลฟิวชั่น', s.recipe.nameTh); line('ชาร์จ', `${s.recipe.chargeTime} วิ`); if (s.recipe.wave) line('คลื่นไฟ', `${(game.fusion.payload.damage * s.recipe.wave.damageMult).toFixed(1)} · ${s.recipe.wave.range} ม. · ทะลุทุกตัว`); if (s.recipe.arrow) { line('ลูกธนู', `${(s.damage * s.recipe.arrowDamageMult).toFixed(1)} · ${s.recipe.arrow.range} ม.`); line('สายฟ้าเด้ง', `${(game.fusion.payload.damage * s.recipe.chainDamageMult).toFixed(1)} · ${game.fusion.payload.chain + 1} ตัว`); } }
   else if (game.fusion) line('ลิงก์', `${game.fusion.payload.nameTh} ${(game.fusion.payload.damage * FUSION.payloadDamageMult).toFixed(1)} (${Math.round(FUSION.payloadDamageMult * 100)}%)`);
   if (s.kind === 'melee_arc') line('ระยะ / มุม', `${s.range} ม. × ${s.arc}°`);
   if (s.kind === 'projectile') line('ระยะ / ความเร็ว', `${s.range} ม. · ${s.speed} ม./วิ`);
@@ -519,13 +531,16 @@ function tick(real, draw = true) {
   fx.update(dt);
   castBtn.classList.toggle('ready', fx.counterReady);
   const recipeKind = skillDef().recipe?.id;
-  flameSlash.update(dt, hero.bones?.weapon, fx.bladeBase, fx.bladeTip, game.projectiles, recipeKind);
+  flameSlash.update(dt, hero.bones?.weapon, fx.bladeBase, fx.bladeTip, game.projectiles, arrowRecipe() ? null : recipeKind);
   // dodge effects as in the game (view.js): the dash streak and afterimages, roll dust (the blink and
   // the leap: skillfx/move-fx.js through fx); the body is gone between the blink's jump and its end
   vfx.syncMovement(p, hero.root.position.y, dt, hero);
   hero.root.visible = !(p.dash?.kind === 'blink' && p.dash.moved);
   vfx.updateCast(dt, hero, !p.cast, p);
-  vfx.syncProjectiles(game, dt, simTime, recipeKind ? benchSkip(recipeKind) : OWN_PROJECTILES);
+  // Thunder Arrow's arrow is drawn as an arrow (vfx.js) under its own lightning; a wave recipe draws its own projectile
+  vfx.syncProjectiles(game, dt, simTime, recipeKind && !arrowRecipe() ? benchSkip(recipeKind) : OWN_PROJECTILES);
+  if (hero.bones?.weapon) { hero.bones.weapon.getWorldPosition(nockAt); nockAt.y += 0.05; }
+  thunderArrow.update(dt, game.projectiles, recipeKind, game.player.fusionCharge ? nockAt : null);
   vfx.update(dt);
   const cd = p.cooldowns[0] || 0;
   castBtn.classList.toggle('cooling', cd > 0.02);

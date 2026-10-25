@@ -6,9 +6,9 @@ import { tickFrontier } from '../core/frontier-content.js';
 import { modFits, modDef } from '../core/skills.js';
 import { installFusion } from './fusion.js';
 
-export const BENCH_SKILLS = ['slash', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
+export const BENCH_SKILLS = ['slash', 'hunter_shot', 'firebolt', 'chain_spark', 'frost_nova', 'flame_stream', 'venom_mire', 'arrow_rain', 'charged_shot', 'frontline_split', 'armor_cleave', 'interrupt_slam', 'weakpoint', 'shield_bash', 'riposte'];
 // The weapon each bench skill is shown with (its own requirement, else the natural one).
-export const BENCH_WEAPON = { slash: 'sword', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
+export const BENCH_WEAPON = { slash: 'sword', hunter_shot: 'bow', firebolt: 'staff', chain_spark: 'staff', frost_nova: 'staff', flame_stream: 'staff', venom_mire: 'bow', arrow_rain: 'bow', charged_shot: 'bow', frontline_split: 'greatblade', armor_cleave: 'axe', interrupt_slam: 'mace', weakpoint: 'dagger', shield_bash: 'sword', riposte: 'sword' };
 
 // Dummy layouts per skill (caster at the origin facing +X). Each shows what mods change:
 // extra chain hops, the nova edge (Concentrated shrinks it), the cone edge and range.
@@ -25,6 +25,8 @@ export const LAYOUTS = {
   arrow_rain: [[5.0, 0.3], [4.0, -1.4], [6.2, 1.4], [5.9, -1.1], [8.6, 0.4], [3.6, 3.0]],
   // a long lane: the reach and the pushed-air rings read along it
   charged_shot: [[9.0, 0.0], [13.0, 1.6], [6.0, -2.4], [15.5, -1.2]],
+  // one in the line of fire and a loose group round it, so a linked chain has somewhere to leap
+  hunter_shot: [[7.0, 0.0], [9.2, 2.0], [9.6, -1.8], [11.8, 0.4], [6.5, 3.6]],
   // three down the 5 m line, two just off its 1.4 m width
   frontline_split: [[1.8, 0.2], [3.2, -0.3], [4.6, 0.25], [3.0, 1.6], [2.4, -1.7]],
   // three in the 80 degree, 2.8 m cut, two outside it

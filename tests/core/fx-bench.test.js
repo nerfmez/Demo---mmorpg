@@ -54,7 +54,8 @@ import { fusionPayloads } from '../../src/fxtest/fusion.js';
 const FUSION = JSON.parse(readFileSync(new URL('../../data/fusion.json', import.meta.url)));
 
 test('fusion pairs: physical fast carriers with fast damage spells only', () => {
-  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'firebolt']);
+  assert.deepEqual(fusionPayloads(data, FUSION, 'slash').sort(), ['arcane_bolt', 'chain_spark', 'firebolt']);
+  assert.deepEqual(fusionPayloads(data, FUSION, 'hunter_shot').sort(), ['arcane_bolt', 'chain_spark', 'firebolt'], 'the bow carries the same fast spells');
   assert.deepEqual(fusionPayloads(data, FUSION, 'chain_spark'), [], 'a spell is not a carrier');
   assert.ok(!fusionPayloads(data, FUSION, 'slash').includes('frost_nova'), 'long cooldown spells are not payloads');
   assert.deepEqual(fusionPayloads(data, FUSION, 'armor_cleave'), [], 'long cooldown attacks are not carriers');
@@ -135,6 +136,29 @@ test('Flame Wave Slash recipe: 1 s charge, then the slash and a piercing fire wa
   const far = g.monsters.filter((m) => m.homeX > 4 && m.homeX < 0.6 + recipe.wave.range).map((m) => m.id);
   assert.ok(far.length >= 2 && far.every((id) => ids.includes(id)), 'the wave pierces on to the targets behind');
   assert.ok(g.player.cooldowns[0] > 0);
+});
+
+test('Thunder Arrow recipe: a drawn arrow, then chain lightning bursts from the first target it strikes', () => {
+  const g = createBench(data, 'hunter_shot', [], { fusion: 'chain_spark', fusionRules: FUSION });
+  const recipe = FUSION.recipes.find((r) => r.id === 'thunder_arrow'), chain = g.skills[1];
+  assert.equal(g.skills[0].recipe.id, recipe.id);
+  assert.equal(g.skills[0].cooldown, recipe.cooldown);
+  g.aimAt(Math.PI / 2);
+  assert.ok(g.castSlot(0, null));
+  const events = [];
+  for (let i = 0; i < Math.round(recipe.chargeTime * 60) - 3; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+  assert.equal(g.projectiles.filter((q) => q.kind === recipe.id).length, 0, 'nothing flies during the draw');
+  for (let i = 0; i < 60; i++) { g.benchStep(1 / 60); events.push(...g.drainEvents()); }
+  assert.equal(events.filter((e) => e.type === 'fusionRelease').length, 1);
+  const chains = events.filter((e) => e.type === 'chain' && e.from === recipe.id);
+  assert.equal(chains.length, 1, 'one chain per arrow');
+  const bolts = events.filter((e) => e.type === 'hit' && e.element === 'lightning');
+  const ids = bolts.map((e) => e.id);
+  assert.equal(new Set(ids).size, ids.length, 'each target takes the lightning once');
+  assert.ok(ids.length >= 2 && ids.length <= chain.chain + 1, 'the struck target and the ones it leaps to');
+  const first = g.monsters.find((m) => m.id === ids[0]);
+  assert.ok(Math.hypot(first.x - chains[0].points[0][0], first.z - chains[0].points[0][1]) < 1e-6, 'it bursts from the struck target');
+  assert.ok(events.some((e) => e.type === 'hit' && e.id === ids[0] && e.element !== 'lightning'), 'the arrow itself struck it first');
 });
 
 test('Flame Wave Slash: the carrier mods ride on the wave', () => {

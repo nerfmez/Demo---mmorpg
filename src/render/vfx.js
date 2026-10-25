@@ -1236,7 +1236,7 @@ export class Vfx {
       let v = this.projectiles.get(pr.id);
       const element = pr.owner === 'player' ? pr.element : pr.element || (pr.kind === 'spit' ? 'poison' : 'arcane');
       const c = el(element);
-      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot');
+      const arrow = (pr.kind === 'hunter_shot' || pr.kind === 'charged_shot' || pr.arrow); // pr.arrow: a fused arrow (bench)
       const fire = pr.kind === 'firebolt' && element === 'fire';
       const look = this.genericLook(pr.kind).projectile;
       if (!v) {

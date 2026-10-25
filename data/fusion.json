@@ -1,5 +1,5 @@
 {
-  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery).",
+  "_doc": "PROTOTYPE skill fusion, used only by the FX bench (fx-test.html) until approved. A physical carrier skill can link one fast spell (payload) into one of its mod sockets. The carrier keeps its own shape; when it connects, the payload fires from the first struck target with its full behaviour and only its main damage reduced. The fused skill uses the longer cooldown of the two and the sum of their MP costs. maxCooldown stands in for the planned Core skill type. recipes: authored fusions for a specific pair; they replace the generic rule for that pair (charge, then the carrier's strike plus the recipe's own payload delivery). type wave (default): the carrier's strike and a piercing wave (Flame Wave Slash). type arrow_chain: a charged arrow that, on its first hit, bursts the payload's chain lightning from the struck target (the target and up to the payload's chain count more, chainDamageMult of the payload's damage with its falloff).",
   "carrier": {
     "requiresAll": [
       "Attack"
@@ -27,7 +27,8 @@
     ],
     "maxCooldown": 2.5,
     "kinds": [
-      "projectile"
+      "projectile",
+      "chain"
     ]
   },
   "payloadDamageMult": 0.5,
@@ -49,6 +50,24 @@
         "radius": 1.2,
         "damageMult": 1.0
       }
+    },
+    {
+      "carrier": "hunter_shot",
+      "payload": "chain_spark",
+      "type": "arrow_chain",
+      "id": "thunder_arrow",
+      "name": "Thunder Arrow",
+      "nameTh": "ศรอัสนี",
+      "desc": "ง้างธนูรวมสายฟ้า 0.6 วิ แล้วยิงลูกธนูห่อสายฟ้า ปักเป้าแรกแล้วฟ้าแลบระเบิดจากตัวเป้า เด้งต่อไปหาศัตรูใกล้ ๆ อีก 3 ตัว",
+      "chargeTime": 0.6,
+      "cooldown": 1.0,
+      "arrowDamageMult": 1.0,
+      "arrow": {
+        "speed": 30,
+        "range": 16,
+        "radius": 0.35
+      },
+      "chainDamageMult": 0.6
     }
   ]
 }

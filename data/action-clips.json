@@ -1,5 +1,5 @@
 {
- "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1. A cut leads with the weapon's +X side (its cutting edge), rolled about the blade per key by scripts/pose-retarget/edge-roll.mjs; hero.js turns a model whose edge is its -X side (models.json edge -1) half a turn. gripSlide [s,0,0]: the weapon slides s of its units through the fist toward its head (a staff held near its foot).",
+ "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1. ends 'carry': the first and last keys stand for the hero's carry; the action eases in from it over the first segment and out over the last. A cut leads with the weapon's +X side (its cutting edge), rolled about the blade per key by scripts/pose-retarget/edge-roll.mjs; hero.js turns a model whose edge is its -X side (models.json edge -1) half a turn. gripSlide [s,0,0]: the weapon slides s of its units through the fist toward its head (a staff held near its foot).",
  "swordCut": {
   "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_A, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs). Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon sword --tip 0.7; turns [0,-0.019,-0.019,-0.019,0.11,0.21,-0.233,-0.247,0]).",
   "hit": 0.488,
@@ -4521,7 +4521,7 @@
   ]
  },
  "boltCast": {
-  "_from": "Quaternius UAL1 (CC0) Spell_Simple_Enter (the casting arm comes up from the hip and pushes straight out at the target, palm forward) and Spell_Simple_Shoot (its push recoil), both mirrored to the right (wand) hand, faced forward, legs x0.6: node scripts/pose-retarget/clip-keys.mjs --file UAL1.glb --clip Spell_Simple_Enter --mirror --face --legs 0.6 --keys 21 --hit 1 --skill firebolt --weapon wand; the same with --clip Spell_Simple_Shoot --keys 11 --hit 0.5. Keys: Enter u 0 (rest), u 0.35 (arm rising), u 0.45 (held), u 1 on the hit (arm fully out), Shoot u 0 as the overshoot (pushed further), Enter u 1 held, Enter u 0 back. The weapon channel is left at the resting turn so the wand runs on from the open hand toward the target (the open palm has no fist line to take it from). Owner: the release arm must go forward, not back.",
+  "_from": "Quaternius UAL1 (CC0) Spell_Simple_Enter (the casting arm comes up from the hip and pushes straight out at the target, palm forward) and Spell_Simple_Shoot (its push recoil), both mirrored to the right (wand) hand, faced forward, legs x0.6: node scripts/pose-retarget/clip-keys.mjs --file UAL1.glb --clip Spell_Simple_Enter --mirror --face --legs 0.6 --keys 21 --hit 1 --skill firebolt --weapon wand; the same with --clip Spell_Simple_Shoot --keys 11 --hit 0.5. Keys: Enter u 0 (rest), u 0.35 (arm rising), u 0.45 (held), u 1 on the hit (arm fully out), Shoot u 0 as the overshoot (pushed further), Enter u 1 held, Enter u 0 back. The weapon channel is left at the resting turn so the wand runs on from the open hand toward the target (the open palm has no fist line to take it from). Owner: the release arm must go forward, not back. Smoothed (the owner saw the staff and wand casts jerk; measured at 60 Hz the arm stopped at the hit, pushed on to the overshoot, stopped, crept back, stopped and snapped home through the 0.1 s fade): the push now ends at full reach on the hit (the old overshoot key at 0.58 moved to 0.5, so the bolt leaves as the arm stops at full reach), the extended pose settles a fifth of the way back to the old contact pose by 0.75 (was a pullback to it at 0.78), and ends 'carry': the first and last keys stand for the hero's carry, eased in over the first segment and out over the last (hero.js), so the cast neither snaps from the carry nor stops short at the end. Then the gather's last pose (the old 0.42 key) is reached at 0.32 and held still to 0.42 (the wand's gather stopped and started again before), and a weapon channel added (scripts/pose-retarget/retarget.js weaponChannel from the bench hand at each key): the weapon points 30 deg up and forward through the gather, so Firebolt's charge sits in front of the hand instead of by the knee, and at the target (5% up) from the release; the first and last keys keep the carry (ends 'carry').",
   "hit": 0.5,
   "sweep": 1,
   "own": true,
@@ -4597,72 +4597,77 @@
     }
    ],
    [
-    0.3,
+    0.32,
     {
      "hips": [
       0,
-      0.191,
-      0.005
+      0.279,
+      0.007
      ],
      "torso": [
-      -0.005,
-      0.214,
-      0.008
+      -0.004,
+      0.225,
+      0.009
      ],
      "chest": [
-      0.244,
-      0.098,
-      0.04
+      0.245,
+      0.099,
+      0.042
      ],
      "head": [
-      0.035,
-      -0.676,
-      0.037
+      0.077,
+      -0.766,
+      0.078
      ],
      "legL": [
-      -0.123,
-      0.431,
-      0.229
+      -0.153,
+      0.424,
+      0.243
      ],
      "legR": [
-      -0.243,
-      -0.225,
-      -0.188
+      -0.252,
+      -0.274,
+      -0.214
      ],
      "kneeL": [
-      0.142,
+      0.155,
       0,
       0
      ],
      "kneeR": [
-      0.194,
+      0.198,
       0,
       0
      ],
      "armL": [
-      0.168,
-      -0.091,
-      0.372
+      0.139,
+      -0.066,
+      0.388
      ],
      "armR": [
-      -0.155,
-      -0.077,
-      -0.723
+      -0.286,
+      -0.027,
+      -0.934
      ],
      "elbowL": [
-      -0.808,
+      -0.788,
       0,
       0
      ],
      "elbowR": [
-      -0.433,
+      -0.417,
       0,
       0
      ],
      "drop": [
-      -0.026,
+      -0.028,
       0,
       0
+     ],
+     "weapon": [
+      0.47,
+      -0.712,
+      -0.282
      ]
     }
    ],
@@ -4733,81 +4738,16 @@
       -0.028,
       0,
       0
+     ],
+     "weapon": [
+      0.47,
+      -0.712,
+      -0.282
      ]
     }
    ],
    [
     0.5,
-    {
-     "hips": [
-      0,
-      0.482,
-      0.012
-     ],
-     "torso": [
-      -0.001,
-      0.232,
-      0.01
-     ],
-     "chest": [
-      0.246,
-      0.093,
-      0.044
-     ],
-     "head": [
-      0.206,
-      -0.936,
-      0.217
-     ],
-     "legL": [
-      -0.215,
-      0.412,
-      0.262
-     ],
-     "legR": [
-      -0.283,
-      -0.386,
-      -0.283
-     ],
-     "kneeL": [
-      0.175,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.204,
-      0,
-      0
-     ],
-     "armL": [
-      0.07,
-      -0.019,
-      0.426
-     ],
-     "armR": [
-      -0.795,
-      0.318,
-      -1.426
-     ],
-     "elbowL": [
-      -0.461,
-      0,
-      0
-     ],
-     "elbowR": [
-      -0.308,
-      0,
-      0
-     ],
-     "drop": [
-      -0.032,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.58,
     {
      "hips": [
       0,
@@ -4873,69 +4813,34 @@
       -0.032,
       0,
       0
+     ],
+     "weapon": [
+      1.071,
+      0.595,
+      0.04
      ]
     }
    ],
    [
-    0.78,
+    0.75,
     {
-     "hips": [
+     "kneeR": [
+      0.204,
       0,
-      0.482,
-      0.012
+      0
      ],
-     "torso": [
-      -0.001,
-      0.232,
-      0.01
-     ],
-     "chest": [
-      0.246,
-      0.093,
-      0.044
-     ],
-     "head": [
-      0.206,
-      -0.936,
-      0.217
-     ],
-     "legL": [
-      -0.215,
-      0.412,
-      0.262
-     ],
-     "legR": [
-      -0.283,
-      -0.386,
-      -0.283
+     "elbowR": [
+      -0.071,
+      0,
+      0
      ],
      "kneeL": [
       0.175,
       0,
       0
      ],
-     "kneeR": [
-      0.204,
-      0,
-      0
-     ],
-     "armL": [
-      0.07,
-      -0.019,
-      0.426
-     ],
-     "armR": [
-      -0.795,
-      0.318,
-      -1.426
-     ],
      "elbowL": [
-      -0.461,
-      0,
-      0
-     ],
-     "elbowR": [
-      -0.308,
+      -0.445,
       0,
       0
      ],
@@ -4943,6 +4848,51 @@
       -0.032,
       0,
       0
+     ],
+     "head": [
+      0.134,
+      -0.95,
+      0.127
+     ],
+     "armL": [
+      0.063,
+      -0.004,
+      0.426
+     ],
+     "chest": [
+      0.22,
+      0.093,
+      0.046
+     ],
+     "legL": [
+      -0.215,
+      0.412,
+      0.262
+     ],
+     "armR": [
+      -1.146,
+      0.352,
+      -1.252
+     ],
+     "hips": [
+      0,
+      0.098,
+      0.012
+     ],
+     "legR": [
+      -0.283,
+      -0.386,
+      -0.283
+     ],
+     "torso": [
+      -0.011,
+      0.23,
+      0.012
+     ],
+     "weapon": [
+      1.126,
+      0.496,
+      0.019
      ]
     }
    ],
@@ -5016,7 +4966,8 @@
      ]
     }
    ]
-  ]
+  ],
+  "ends": "carry"
  },
  "sunderChop": {
   "_from": "KayKit Character Animations (CC0) Melee_1H_Attack_Slice_Diagonal on Barbarian.glb with the 1H_Axe prop: the axe raised over the right shoulder and cleaved diagonally down across the front (a sundering cut, unlike the basic attack's horizontal two-handed slice). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Barbarian.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_1H_Attack_Slice_Diagonal --prop 1H_Axe --skill armor_cleave --keys 21 --face. Edits: frames kept as they are and retimed to the 0.5 s cast (keys before the hit) and 0.28 s after: u 0.1 at 0, the load u 0.3 at 0.4, held to 0.54 with the upper body coiled 0.15 rad further (torso y, chest y half), the contact u 0.45 on the hit 0.62 (a 0.065 s strike), the overshoot u 0.5 at 0.68, the follow-through u 0.55 at 0.8, rest u 1 at 1; knees clamped at 0 (no locked-back knee). Two-handed: grip [1,0,0] on every key puts the left hand on the haft. Edge: the weapon turned about its length per key so its +X edge leads the tip's travel (scripts/pose-retarget/edge-roll.mjs --weapon greatblade --tip 0.7; turns [0,-1.803,-1.803,-1.607,-1.607,-1.607,0]).",
@@ -6118,7 +6069,7 @@
   ]
  },
  "staffCast": {
-  "_from": "KayKit Adventurers (CC0) Mage Spellcast_Shoot with the 2H_Staff prop (the staff raised, then pointed at the target, held near its foot): node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Mage.glb --clip Spellcast_Shoot --prop 2H_Staff --skill firebolt --keys 31 --legs 0.6 --face --hit 0.3. Keys (t <- u): 0 <- 0, 0.3 <- 0.167 (the staff raised), 0.42 <- 0.2 (held), hit 0.5 <- 0.367 (pointed at the target), 0.58 <- 0.4, 0.8 <- 0.5, 1 <- 0.9. On the hit, overshoot and held keys the right arm (armR, elbowR) the body's twist into it (hips, torso, chest) and the free left arm hanging at the side (armL, elbowL; the Mage holds it behind the hip, which read as an arm going back) are the casting push (the left upper arm swung 0.5 rad forward against the twist, so the free hand stays at the side instead of going back) of Quaternius UAL1 Spell_Simple_Enter at u 1 and Spell_Simple_Shoot at u 0 (mirrored to the right hand, as boltCast) so the arm goes out toward the target (owner: the release arm goes forward, not back); the weapon channel is then recomputed so the staff keeps Spellcast_Shoot's direction. gripSlide 0.4: the staff slides 0.4 of its units through the fist toward its head, held near its foot like the reference.",
+  "_from": "KayKit Adventurers (CC0) Mage Spellcast_Shoot with the 2H_Staff prop (the staff raised, then pointed at the target, held near its foot): node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Mage.glb --clip Spellcast_Shoot --prop 2H_Staff --skill firebolt --keys 31 --legs 0.6 --face --hit 0.3. Keys (t <- u): 0 <- 0, 0.3 <- 0.167 (the staff raised), 0.42 <- 0.2 (held), hit 0.5 <- 0.367 (pointed at the target), 0.58 <- 0.4, 0.8 <- 0.5, 1 <- 0.9. On the hit, overshoot and held keys the right arm (armR, elbowR) the body's twist into it (hips, torso, chest) and the free left arm hanging at the side (armL, elbowL; the Mage holds it behind the hip, which read as an arm going back) are the casting push (the left upper arm swung 0.5 rad forward against the twist, so the free hand stays at the side instead of going back) of Quaternius UAL1 Spell_Simple_Enter at u 1 and Spell_Simple_Shoot at u 0 (mirrored to the right hand, as boltCast) so the arm goes out toward the target (owner: the release arm goes forward, not back); the weapon channel is then recomputed so the staff keeps Spellcast_Shoot's direction. gripSlide 0.4: the staff slides 0.4 of its units through the fist toward its head, held near its foot like the reference. Smoothed (the owner saw the staff and wand casts jerk; measured at 60 Hz the arm stopped at the hit, pushed on to the overshoot, stopped, crept back, stopped and snapped home through the 0.1 s fade): the push now ends at full reach on the hit (the old overshoot key at 0.58 moved to 0.5, so the bolt leaves as the arm stops at full reach), the extended pose settles a fifth of the way back to the old contact pose by 0.75 (was a pullback to it at 0.8), and ends 'carry': the first and last keys stand for the hero's carry, eased in over the first segment and out over the last (hero.js), so the cast neither snaps from the carry nor stops short at the end. Then the gather's last pose (the old 0.42 key) is reached at 0.32 and held still to 0.42: a true freeze before the push (it crept on before).",
   "hit": 0.5,
   "sweep": 1,
   "own": true,
@@ -6204,75 +6155,75 @@
     }
    ],
    [
-    0.3,
+    0.32,
     {
      "hips": [
       0,
-      0.253,
+      0.262,
       0
      ],
      "torso": [
       0,
-      -0.14,
+      -0.141,
       0
      ],
      "chest": [
       0,
-      -0.113,
+      -0.114,
       0
      ],
      "head": [
-      -0.086,
-      -0.13,
-      -0.074
+      -0.07,
+      -0.134,
+      -0.069
      ],
      "legL": [
-      0.083,
-      -0.215,
-      0.116
+      0.113,
+      -0.214,
+      0.127
      ],
      "legR": [
-      -0.166,
-      -0.171,
-      -0.106
+      -0.163,
+      -0.177,
+      -0.108
      ],
      "kneeL": [
-      0.041,
+      0.024,
       0,
       0
      ],
      "kneeR": [
-      0.203,
+      0.238,
       0,
       0
      ],
      "armL": [
-      0.711,
-      0.19,
-      0.833
+      0.736,
+      0.204,
+      0.825
      ],
      "armR": [
-      -0.141,
-      0.102,
-      -0.945
+      -0.273,
+      0.263,
+      -0.916
      ],
      "elbowL": [
-      -0.928,
+      -0.934,
       0,
       0
      ],
      "elbowR": [
-      -1.164,
+      -0.899,
       0,
       0
      ],
      "weapon": [
-      0.568,
+      0.55,
       -0.445,
-      -0.148
+      -0.152
      ],
      "drop": [
-      -0.016,
+      -0.017,
       0,
       0
      ],
@@ -6368,86 +6319,6 @@
     {
      "hips": [
       0,
-      0.482,
-      0.012
-     ],
-     "torso": [
-      -0.001,
-      0.232,
-      0.01
-     ],
-     "chest": [
-      0.246,
-      0.093,
-      0.044
-     ],
-     "head": [
-      0.111,
-      -0.131,
-      0.017
-     ],
-     "legL": [
-      0.333,
-      -0.068,
-      0.196
-     ],
-     "legR": [
-      0.008,
-      -0.2,
-      -0.056
-     ],
-     "kneeL": [
-      -0.125,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.348,
-      0,
-      0
-     ],
-     "armL": [
-      -0.43,
-      -0.019,
-      0.426
-     ],
-     "armR": [
-      -0.795,
-      0.318,
-      -1.426
-     ],
-     "elbowL": [
-      -0.461,
-      0,
-      0
-     ],
-     "elbowR": [
-      -0.308,
-      0,
-      0
-     ],
-     "weapon": [
-      1.436,
-      0.072,
-      -0.009
-     ],
-     "drop": [
-      -0.023,
-      0,
-      0
-     ],
-     "gripSlide": [
-      0.4,
-      0,
-      0
-     ]
-    }
-   ],
-   [
-    0.58,
-    {
-     "hips": [
-      0,
       0.002,
       0.012
      ],
@@ -6524,82 +6395,82 @@
     }
    ],
    [
-    0.8,
+    0.75,
     {
-     "hips": [
-      0,
-      0.482,
-      0.012
+     "kneeR": [
+      0.359,
+      0.0,
+      0.0
      ],
-     "torso": [
-      -0.001,
-      0.232,
-      0.01
-     ],
-     "chest": [
-      0.246,
-      0.093,
-      0.044
-     ],
-     "head": [
-      0.038,
-      -0.086,
-      0.004
-     ],
-     "legL": [
-      0.279,
-      -0.089,
-      0.183
-     ],
-     "legR": [
-      -0.089,
-      -0.189,
-      -0.088
+     "elbowR": [
+      -0.071,
+      0.0,
+      0.0
      ],
      "kneeL": [
       -0.125,
-      0,
-      0
-     ],
-     "kneeR": [
-      0.406,
-      0,
-      0
-     ],
-     "armL": [
-      -0.43,
-      -0.019,
-      0.426
-     ],
-     "armR": [
-      -0.795,
-      0.318,
-      -1.426
+      0.0,
+      0.0
      ],
      "elbowL": [
-      -0.461,
-      0,
-      0
-     ],
-     "elbowR": [
-      -0.308,
-      0,
-      0
-     ],
-     "weapon": [
-      1.401,
-      0.209,
-      -0.021
+      -0.445,
+      0.0,
+      0.0
      ],
      "drop": [
-      -0.025,
-      0,
-      0
+      -0.023,
+      0.0,
+      0.0
+     ],
+     "head": [
+      0.101,
+      -0.124,
+      0.015
+     ],
+     "armL": [
+      -0.437,
+      -0.004,
+      0.426
+     ],
+     "chest": [
+      0.22,
+      0.093,
+      0.046
+     ],
+     "legL": [
+      0.326,
+      -0.07,
+      0.194
+     ],
+     "armR": [
+      -1.146,
+      0.352,
+      -1.252
+     ],
+     "weapon": [
+      1.106,
+      0.484,
+      0.041
+     ],
+     "hips": [
+      0.0,
+      0.098,
+      0.012
      ],
      "gripSlide": [
       0.4,
-      0,
-      0
+      0.0,
+      0.0
+     ],
+     "legR": [
+      -0.006,
+      -0.198,
+      -0.061
+     ],
+     "torso": [
+      -0.011,
+      0.23,
+      0.012
      ]
     }
    ],
@@ -6683,6 +6554,7 @@
      ]
     }
    ]
-  ]
+  ],
+  "ends": "carry"
  }
 }

@@ -70,7 +70,10 @@ and mace's held in both hands) stays the hand-made `heavyA`/`heavyB`: the owner 
 two-handed slice. `sunderChop`/`sunderChop1H` (KayKit Melee_1H_Attack_Slice_Diagonal, the
 left hand on the haft or kept on the shield) are Sunder Cut. `staffCast` (KayKit Mage Spellcast_Shoot with the 2H_Staff, the release arm from
 Spell_Simple_Enter/Shoot, the weapon channel recomputed so the staff keeps the Mage's direction, the staff
-held near its foot with `gripSlide`) is Firebolt and Arcane Bolt with the staff.
+held near its foot with `gripSlide`) is Firebolt and Arcane Bolt with the staff. Both casts have
+`ends: 'carry'` (eased in from the carry and back to it, no snap at the fades), a still hold before the
+push, and the push ends at full reach on the hit, where the bolt leaves; `boltCast` points the weapon
+up and forward through the gather (the charge in front of the hand) and at the target from the release.
 
 ## Choosing a clip and previewing an action
 

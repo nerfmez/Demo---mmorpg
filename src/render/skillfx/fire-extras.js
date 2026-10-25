@@ -110,7 +110,7 @@ export class FireExtras {
       this.halo.visible = true; placeV(this.halo, tip);
       this.halo.scale.setScalar(0.2 + 0.6 * grow);
       this.halo.material.opacity = 0.3 + 0.35 * grow + 0.06 * Math.sin(ch.t * 40);
-      if (ch.t > ch.total + 0.05) this.release();
+      if (ch.t >= ch.total - 1e-4) this.release(); // gone on the release frame: the bolt carries the fire on
     }
     // gather wisps: spiral in, ease into the staff head
     for (const w of this.wisps) {

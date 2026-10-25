@@ -67,7 +67,7 @@ export class SkillFx {
     for (const fx of [this.split, this.mace, this.thrust, this.bash, this.riposte]) fx.onShake = shake;
     this.timers = []; this.time = 0; this.primarySwing = false; this.swingStep = 0; this.lastSwingAt = -9; this.lastNovaAt = -9; this.powerRatio = 0;
     // scratch (no allocation per frame)
-    this.tipV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
+    this.tipV = new THREE.Vector3(); this.castV = new THREE.Vector3(); this.bladeBase = new THREE.Vector3(); this.bladeTip = new THREE.Vector3(); this.bladeDir = new THREE.Vector3();
     this.center = new THREE.Vector3(); this.head = new THREE.Vector3(); this.from = new THREE.Vector3(); this.to = new THREE.Vector3(); this.mouth = new THREE.Vector3();
     this.markBuf = Array.from({ length: 8 }, () => ({ x: 0, z: 0, facing: 0 })); this.marks = [];
     this.exposedBuf = Array.from({ length: 12 }, () => ({ x: 0, z: 0, t: 0, full: 5 })); this.exposed = [];
@@ -83,6 +83,12 @@ export class SkillFx {
     const w = this.host.rig()?.bones?.weapon, p = this.game.player;
     if (w) { w.updateWorldMatrix(true, false); return this.rel(w.localToWorld(this.tipV.set(0, 0, STAFF_CAST.tip))); }
     return this.tipV.set(p.x + Math.sin(p.facing) * 0.5, 1.6, p.z + Math.cos(p.facing) * 0.5);
+  }
+  // the Firebolt charge's point (vfx.castSocket: the game's charge ball sits on it; a wand's tip, not
+  // the staff head's distance along it), ground-relative
+  castTip() {
+    const rig = this.host.rig();
+    return rig ? this.rel(this.host.vfx.castSocket(rig, this.host.weapon(), this.castV)) : this.staffTip();
   }
   // the weapon's hilt-side and tip points this frame (ground-relative)
   bladePoints() {
@@ -271,7 +277,7 @@ export class SkillFx {
     for (const t of this.timers) if (this.time >= t.at && !t.done) { t.done = true; t.fn(); }
     let w = 0; for (const t of this.timers) if (this.timerDone(t)) this.timers[w++] = t; this.timers.length = w;
     this.slash.update(dt);
-    this.fire.update(dt, tip);
+    this.fire.update(dt, this.castTip());
     this.bladePoints();
     this.split.update(dt, p, p.facing, this.bladeBase, this.bladeTip);
     // Sunder Cut's open armour on what it struck

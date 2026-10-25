@@ -224,10 +224,11 @@ const COMBOS = { greatblade: ['heavyA', 'heavyB'], sword: ['swordCut'], dagger: 
  * Register an action from clip data ({hit, sweep?, keys: [[t, pose]]}, absolute channels over REST).
  * A clip moves the weapon itself (own, unless it says own: false): its weapon channel is not held at
  * the carry angle, and a two-handed weapon's second hand holds the haft as the clip's grip channel says.
- * own: false keeps a staff upright through a spell gesture (the carry's castHold).
+ * own: false keeps a staff upright through a spell gesture (the carry's castHold). ends: 'carry' eases
+ * the action in from the hero's carry over the first segment and back over the last (hero.js).
  */
 export function registerClip(name, c) {
-  ACTIONS[name] = { hit: c.hit, sweep: c.sweep, own: c.own ?? true, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
+  ACTIONS[name] = { hit: c.hit, sweep: c.sweep, own: c.own ?? true, ends: c.ends, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
 }
 for (const [name, c] of Object.entries(CLIPS)) if (name !== '_doc') registerClip(name, c);
 

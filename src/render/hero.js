@@ -5,7 +5,7 @@
 // follow-through, hit reactions, and secondary motion (scarf, ponytail).
 import * as THREE from 'three';
 import { buildWeapon, buildOffhand, buildGloves } from './equipment.js';
-import { RigBuilder, damp, clamp01, samplePose, applyPose, Spring, setFlash } from './rig.js';
+import { RigBuilder, damp, clamp01, samplePose, smoother, applyPose, Spring, setFlash } from './rig.js';
 import { Ribbon } from './ribbon.js';
 import GAIT from '../../data/gait.json';
 import STAFF_CAST from '../../data/staff-cast.json';
@@ -426,10 +426,15 @@ export class HumanoidAnimator {
       // stretch the keys so the hit key lands at hitAt
       const u = clamp01(a.t / a.dur), h = act.hit, ha = a.hitAt;
       const t = h <= 0 || ha <= 0 || ha >= 1 ? u : u < ha ? (u / ha) * h : h + ((u - ha) / (1 - ha)) * (1 - h);
-      const ap = samplePose(act.keys, t);
-      const fadeIn = a.cont ? 1 : clamp01(a.t / 0.06);
-      const fadeOut = clamp01((a.dur - a.t) / 0.1);
-      const wA = Math.min(fadeIn, fadeOut);
+      // ends 'carry': the first and last keys stand for the carry the hero holds, so the action eases in
+      // from it over the first segment and back over the last (no snap, no sudden stop on the way)
+      const ks = act.keys, n = ks.length;
+      const easeIn = act.ends && t < ks[1][0] ? smoother(t / ks[1][0]) : 1;
+      const easeOut = act.ends && t > ks[n - 2][0] ? smoother((1 - t) / (1 - ks[n - 2][0])) : 1;
+      const ap = easeIn < 1 ? ks[1][1] : easeOut < 1 ? ks[n - 2][1] : samplePose(ks, t);
+      const fadeIn = a.cont || act.ends ? 1 : clamp01(a.t / 0.06);
+      const fadeOut = act.ends ? 1 : clamp01((a.dur - a.t) / 0.1);
+      const wA = Math.min(fadeIn, fadeOut, easeIn, easeOut);
       spin = ap.spin ? ap.spin[0] : 0;
       ikL = ap.ikL;
       ikR = ap.ikR;

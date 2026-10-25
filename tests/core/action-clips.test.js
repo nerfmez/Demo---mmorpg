@@ -14,6 +14,8 @@ test('clip actions run from 0 to 1 with the contact inside, a sweep and real cha
     assert.ok(typeof c._from === 'string', `${name} records its source`);
     assert.ok(c.hit > 0 && c.hit <= 1, `${name}.hit`); // 1: a pose held until released (a charge)
     assert.ok(c.sweep === 1 || c.sweep === -1, `${name}.sweep`);
+    assert.ok(c.ends === undefined || c.ends === 'carry', `${name}.ends`); // 'carry': eased in from and out to the carry
+    if (c.ends) assert.ok(c.keys.length >= 4 && c.keys[1][0] < c.hit && c.keys.at(-2)[0] >= c.hit, `${name} has keys inside its eased ends`);
     const t = c.keys.map((k) => k[0]);
     assert.equal(t[0], 0, `${name} starts at 0`);
     assert.equal(t.at(-1), 1, `${name} ends at 1`);

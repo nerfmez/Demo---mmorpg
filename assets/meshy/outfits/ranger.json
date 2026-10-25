@@ -54,5 +54,6 @@
  },
  "drape": 0.1,
  "drapeY": -0.04,
- "weightSmooth": 6
+ "weightSmooth": 6,
+ "shoulderRise": 0.45
 }

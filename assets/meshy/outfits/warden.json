@@ -46,5 +46,6 @@
  "drape": 0.2,
  "drapeY": -0.02,
  "drapeFur": true,
- "drapeStretch": 1.8
+ "drapeStretch": 1.8,
+ "shoulderRise": 0.15
 }

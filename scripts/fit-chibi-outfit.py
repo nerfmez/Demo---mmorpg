@@ -126,6 +126,9 @@ if 'collar' in C:
                     if o in collar and o not in comp: comp.add(o); todo.append(o)
         seen |= comp
         if len(comp) < K.get('minPiece', 12): collar -= comp
+# the neck's middle front to back, from the generated model's thinnest slice just above the cut
+_nk = np.array([tuple(v.co) for v in bm.verts if C['neck'] < v.co.z < C['neck'] + 0.04 and abs(v.co.x) < 0.06])
+neckY = float((_nk[:, 1].min() + _nk[:, 1].max()) / 2) if len(_nk) else 0.0
 drop = []
 for f in bm.faces:
     c = f.calc_center_median()
@@ -136,7 +139,11 @@ for f in bm.faces:
     # slice the hood's fur open there)
     if 'backCut' in C and c.z > C['backCut'][0] and c.y > C['backCut'][1]:
         drop.append(f); continue
-    if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C.get('top', C['neck'] + 0.03):
+    # above the neck cut the neck's own column goes (`neckHalf` across, `neckDepth` front to back) and
+    # whatever rises above the shoulder line (the head's hood, hair or helm): that line climbs out
+    # from the neck (`shoulderRise`), since Meshy's shoulders and pads rise above the neck cut, and a
+    # flat cut there took their tops off, leaving holes on every shoulder
+    if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.09) and abs(c.y - neckY) < C.get('neckDepth', 0.09)) or c.z > C.get('top', C['neck'] + C.get('shoulderRise', 0.9) * max(abs(c.x) - 0.08, 0) + 0.02):
         drop.append(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')

@@ -937,7 +937,7 @@
     "outfit_wardenstalker_coat": {
       "file": "models/outfits/wardenstalker_coat.glb",
       "chibiOutfit": "armor",
-      "tris": 2077,
+      "tris": 2002,
       "source": "The chibi in the wardenstalker_coat set (the owner's reference sheet 08 of chibi-outfits-20261025-v2): meshy-t2 image-to-3d in T-pose (task 01a16f6d-1d1d-7353-83b5-c18abb750df5), Meshy 6 retexture (task 01a16f6d-f4f3-73a5-a285-555646842a15); armour and trousers cut out, fitted to hero_chibi and skinned to its armature by scripts/fit-chibi-outfit.py (assets/meshy/outfits/warden.json)."
     },
     "outfit_gale_boots": {

@@ -40,5 +40,7 @@
  "out": {
   "armor": "public/models/outfits/storm_mantle.glb",
   "boots": "public/models/outfits/wisp_slippers.glb"
- }
+ },
+ "smoothOut": 0.3,
+ "weightSmooth": 30
 }

@@ -129,12 +129,19 @@ if 'collar' in C:
 # the neck's middle front to back, from the generated model's thinnest slice just above the cut
 _nk = np.array([tuple(v.co) for v in bm.verts if C['neck'] < v.co.z < C['neck'] + 0.04 and abs(v.co.x) < 0.06])
 neckY = float((_nk[:, 1].min() + _nk[:, 1].max()) / 2) if len(_nk) else 0.0
+_cw, _ch = img.size; _px = np.array(img.pixels[:]).reshape(_ch, _cw, 4)[:, :, :3] * 255
 drop = []
 for f in bm.faces:
     c = f.calc_center_median()
     # the sleeve cut is for the arms only (from the armpits up): lower down it would cut the outer
     # half off wide hips, trousers and boots
     if f in collar: continue
+    # `dropPale`: the hood's pale fur trim the coat model carries round the neck (the hood draws its own)
+    if 'dropPale' in C and c.z > C['neck'] - C['dropPale'] and abs(c.x) < 0.2:
+        _u = sum(l[uvl].uv.x for l in f.loops) / len(f.loops); _v = sum(l[uvl].uv.y for l in f.loops) / len(f.loops)
+        _c = _px[int(np.clip((_v % 1) * _ch, 0, _ch - 1)), int(np.clip((_u % 1) * _cw, 0, _cw - 1))]
+        if _c.min() > 140 and _c.max() - _c.min() < 50:
+            drop.append(f); continue
     # `backCut` [z, y]: behind y the coat ends lower, at z, under a hood's drape (the neck cut would
     # slice the hood's fur open there)
     if 'backCut' in C and c.z > C['backCut'][0] and c.y > C['backCut'][1]:

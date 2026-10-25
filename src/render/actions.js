@@ -204,15 +204,19 @@ export const ACTIONS = {
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
   slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', charged_shot: 'bowLooseShot', arcane_bolt: 'boltCast', firebolt: 'boltCast', chain_spark: 'zap',
-  stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'shoot', hex: 'hex', ward: 'ward',
+  stone_burst: 'boltCast', frost_nova: 'nova', venom_mire: 'shoot', hex: 'boltCast', ward: 'nova',
   arrow_rain: 'bowSkyShot', frontline_split: 'splitChop', armor_cleave: 'sunderChop', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash', riposte: 'guardBlock',
-  war_cry: 'warcry', healing_spring: 'heal', spirit_wolf: 'summon',
+  war_cry: 'warcry', healing_spring: 'nova', spirit_wolf: 'zap',
+  // the owner's approved spells are the base of the alike ones: Firebolt's push (boltCast, staffCast with
+  // a staff) for spells aimed at a spot, Chain Spark's flick (zap) for calling a summon, Frost Nova's
+  // burst (nova) for spells around the hero
+  crystal_wall: 'boltCast', stone_guardian: 'zap', cleanse: 'nova', battle_aura: 'nova', flame_stream: 'staffCastHeld',
 };
 // skill kind -> action, for skills without their own entry
 const BY_KIND = {
-  counter_stance:'ward',melee_line:'heavyC',channel_cone:'staffBolt',wall:'sow',heal_target:'heal',aura:'warcry',
+  counter_stance:'ward',melee_line:'heavyC',channel_cone:'staffCastHeld',wall:'boltCast',heal_target:'nova',aura:'nova',
   melee_arc: 'combo', melee_nova: 'whirl', chain: 'zap', ground_area: 'slam', nova: 'nova', dot_zone: 'sow',
-  curse_zone: 'hex', self_barrier: 'ward', buff: 'warcry', heal_zone: 'heal', summon: 'summon',
+  curse_zone: 'boltCast', self_barrier: 'nova', buff: 'warcry', heal_zone: 'nova', summon: 'zap',
 };
 // Heavy weapons (axe, mace) swing one-handed like a sword when a shield is in the left hand; with the
 // left hand free they are held in both and play the greatblade combo (hero.js play).
@@ -231,6 +235,12 @@ export function registerClip(name, c) {
   ACTIONS[name] = { hit: c.hit, sweep: c.sweep, own: c.own ?? true, ends: c.ends, keys: c.keys.map(([t, pose]) => [t, { ...REST, ...pose }]) };
 }
 for (const [name, c] of Object.entries(CLIPS)) if (name !== '_doc') registerClip(name, c);
+// Flame Stream: the staff's Firebolt push held while channelling. A channel freezes the action at 0.92 of
+// its hit (hero.js), so the full reach comes a little earlier and is held to the hit.
+{
+  const c = ACTIONS.staffCast, i = c.keys.findIndex(([t]) => t === c.hit);
+  ACTIONS.staffCastHeld = { ...c, keys: [...c.keys.slice(0, i), [c.hit * 0.9, c.keys[i][1]], ...c.keys.slice(i)] };
+}
 
 // The same action struck with the left hand (a dual carry alternates its hands): the body mirrored left
 // to right, the weapon channel moved to the left hand's weapon (offhand) and the right hand's weapon
@@ -273,10 +283,11 @@ export function leftHanded(name) {
  * @param {boolean} dual a second weapon in the left hand: the basic cut alternates its hands
  */
 export function pickAction(skill, kind, weapon, step = 0, dual = false) {
-  if (ACTIONS[skill]) return skill;
+  if (ACTIONS[skill] && !BY_SKILL[skill]) return skill; // an action named directly (the skill Hex shares its id with the hex action)
   let a = BY_SKILL[skill] || BY_KIND[kind] || (kind === 'projectile' ? (skill === 'hunter_shot' ? 'shoot' : 'bolt') : 'cast');
   // the staff points its head at the target with the arm pushed out (owner: the release arm goes forward)
-  if ((skill === 'firebolt' || skill === 'arcane_bolt') && weapon === 'staff') a = 'staffCast';
+  if (a === 'boltCast' && weapon === 'staff') a = 'staffCast';
+  if (a === 'staffCastHeld' && weapon !== 'staff') a = 'boltCast'; // a held push needs the staff's own clip
   if (a === 'combo') {
     const c = COMBOS[weapon] || ['slashA', 'slashB'];
     // two weapons: the first cut, struck by the right and the left hand in turn; else one plain strike, alternating

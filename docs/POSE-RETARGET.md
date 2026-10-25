@@ -60,6 +60,12 @@ node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Sword_Light_A --
 
 In use: `swordCut` (Sword_Light_A, the owner's pick A) is every step of the sword's basic cut;
 `daggerCut` (Sword_Light_B, pick B) the dagger's.
+`splitChop` (KayKit Melee_2H_Attack_Chop on the Knight's 2H_Sword, the legs re-solved so the feet stay
+planted) is Frontline Split; `bowShot`, `bowSkyShot`, `bowDrawHold` and `bowLooseShot` (Quaternius
+Bow_Notch/Bow_Shoot/Bow_Aim_Neutral/Bow_RapidShoot_Loop and KayKit Ranged_Bow_Release/Draw_Up/Release_Up,
+mirrored: the hero draws with its left hand) are the bow skills; `boltCast` (KayKit Mage's
+Spellcast_Long release with the 1H_Wand, `own: false`) is Arcane Bolt and Firebolt with any weapon but
+the staff and the bow. Each entry's `_from` records its clips, commands and edits.
 
 ## Choosing a clip and previewing an action
 

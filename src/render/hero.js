@@ -285,7 +285,9 @@ export class HumanoidAnimator {
     this.combo = step + 1;
     dur = Math.max(0.25, dur);
     const hit = ACTIONS[name].hit;
-    this.action = { name, t: 0, dur, hitAt: hitTime && hit > 0 ? clamp01(hitTime / dur) : hit };
+    // the loose goes on from the held draw (its first key is the draw's last): no fade back to the carry
+    const cont = name === 'bowLooseShot' && this.action?.name === 'bowDrawHold';
+    this.action = { name, t: 0, dur, hitAt: hitTime && hit > 0 ? clamp01(hitTime / dur) : hit, cont };
   }
 
   hit() {
@@ -425,7 +427,7 @@ export class HumanoidAnimator {
       const u = clamp01(a.t / a.dur), h = act.hit, ha = a.hitAt;
       const t = h <= 0 || ha <= 0 || ha >= 1 ? u : u < ha ? (u / ha) * h : h + ((u - ha) / (1 - ha)) * (1 - h);
       const ap = samplePose(act.keys, t);
-      const fadeIn = clamp01(a.t / 0.06);
+      const fadeIn = a.cont ? 1 : clamp01(a.t / 0.06);
       const fadeOut = clamp01((a.dur - a.t) / 0.1);
       const wA = Math.min(fadeIn, fadeOut);
       spin = ap.spin ? ap.spin[0] : 0;
@@ -701,7 +703,7 @@ export class HumanoidAnimator {
   }
 }
 
-const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'bowSky', 'bowDraw', 'bowLoose', 'thrust', 'shieldBash', 'guardBlock']);
+const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast']);
 const IK_T = new THREE.Vector3();
 const SUPPORT_PASSES = 3;
 const SUPPORT_PALM = new THREE.Vector3(), IK_P = new THREE.Vector3();

@@ -114,7 +114,7 @@ pass, so no gallery clip was studied; it follows the cel rules in `docs/VFX-REFE
 
 `src/render/skillfx/rain-fx.js`, in the same light-and-ribbon language. The rules send one `area` event
 per wave, each with its delay, and a `burst` as each lands.
-- **Up-shot.** The hero plays a bench-only `bowSky` action: lean back, raise the bow, draw and
+- **Up-shot.** The hero plays the `bowSkyShot` clip action: lean back, raise the bow, draw and
   loose at the sky. As the volley's first `area` event arrives, a bright streak climbs from the bow
   and bursts above the target in a ragged flash.
 - **Rain.** Each wave's 26 arrows come down from around that burst as streaks of light with a
@@ -131,8 +131,8 @@ plays the plain bow action on the bench; the game's action table is unchanged.
 
 `src/render/skillfx/power-fx.js`, in the same light-and-ribbon language. Hold **ร่าย** to charge (the
 rules' `chargeStart`; release calls `releaseCharge`, auto-repeat holds about 1.6 s).
-- **Hero.** Raises and draws, then holds at full draw (bench-only `bowDraw`), and snaps the loose
-  on release (`bowLoose`).
+- **Hero.** Raises and draws, then holds at full draw (the `bowDrawHold` clip action), and snaps the loose
+  on release (`bowLooseShot`).
 - **Charge.** Streaks of light are drawn in to the arrow tip, where a soft round glow with a hot
   centre grows. Three arcs of light circle the arrow, widening and speeding up with the charge.
   Reaching full charge pings once (a burst and a ring) and the glow then pulses, so a full draw

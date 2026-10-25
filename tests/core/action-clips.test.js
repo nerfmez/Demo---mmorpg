@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const CLIPS = JSON.parse(readFileSync(new URL('../../data/action-clips.json', import.meta.url)));
-const CHANNELS = new Set(['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'weapon', 'drop']);
+const CHANNELS = new Set(['hips', 'torso', 'chest', 'head', 'legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'weapon', 'drop', 'grip', 'aim', 'spin', 'ikL', 'ikR', 'ikw', 'staffAim']);
 const vec = (v) => Array.isArray(v) && v.length === 3 && v.every(Number.isFinite);
 
 test('clip actions run from 0 to 1 with the contact inside, a sweep and real channels', () => {
@@ -12,7 +12,7 @@ test('clip actions run from 0 to 1 with the contact inside, a sweep and real cha
   assert.ok(clips.length > 0);
   for (const [name, c] of clips) {
     assert.ok(typeof c._from === 'string', `${name} records its source`);
-    assert.ok(c.hit > 0 && c.hit < 1, `${name}.hit`);
+    assert.ok(c.hit > 0 && c.hit <= 1, `${name}.hit`); // 1: a pose held until released (a charge)
     assert.ok(c.sweep === 1 || c.sweep === -1, `${name}.sweep`);
     const t = c.keys.map((k) => k[0]);
     assert.equal(t[0], 0, `${name} starts at 0`);

@@ -146,7 +146,7 @@ export class SkillFx {
       case 'chargeStart': {
         if (!SKILL_FX.has(e.skill)) return false;
         const s = this.skillOf(e.skill);
-        this.play('bowDraw', e.total * 3, 0, null, 'projectile'); this.power.setElement(s?.element); this.power.beginCharge(e.total);
+        this.play('bowDrawHold', e.total * 3, 0, null, 'projectile'); this.power.setElement(s?.element); this.power.beginCharge(e.total);
         return true;
       }
       case 'chargeEnd': if (!this.power.charge) return false; this.power.endCharge(); return true; // released or cancelled

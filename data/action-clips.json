@@ -1,5 +1,5 @@
 {
- "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS in actions.js picks them per weapon.",
+ "_doc": "Actions retargeted from reference clips (scripts/pose-retarget/clip-keys.mjs, docs/POSE-RETARGET.md), registered by src/render/actions.js. keys: [time 0..1, pose]: absolute driver channels (Euler XYZ radians, the actions' channels), drop [m] and the weapon's turn in the hand; channels a key leaves out rest. hit: the key time of the contact (the blade's fastest frame), moved onto the skill's cast time by play(). sweep: +1 when the blade sweeps toward the hero's left, -1 back; the slash effect follows it. COMBOS and BY_SKILL in actions.js pick them per weapon and skill. own (default true): the clip's weapon channel moves the weapon; false keeps a castHold weapon at its carry angle. grip [1,0,0]: a two-handed weapon's left hand on the haft. aim [1,0,0]: a drawn bow stands upright facing the target. A held charge has hit 1.",
  "swordCut": {
   "_from": "Quaternius Universal Animation Library (CC0) Sword_Light_A, legs x0.8, faced forward (scripts/pose-retarget/clip-keys.mjs)",
   "hit": 0.488,
@@ -1357,6 +1357,3770 @@
      ],
      "drop": [
       -0.079,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "splitChop": {
+  "_from": "KayKit Character Animations (CC0) Melee_2H_Attack_Chop, faced forward (scripts/pose-retarget/clip-keys.mjs). Command: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Knight.glb --anim Rig_Medium_CombatMelee.glb --clip Melee_2H_Attack_Chop --prop 2H_Sword --skill frontline_split --keys 81 --legs 1 --face (dense frames, every 1/80 of the 1.632 s clip). Retimed to the game beat (keys before hit over the 0.65 s cast, after it over 0.28 s), each key one frame of the clip: t 0 (0.00 s) = clip u 0 (0.000 s): two-hand ready (clip start); t 0.237 (0.22 s) = clip u 0.275 (0.449 s): anticipation: blade raised over the left shoulder, leaning back; t 0.473 (0.44 s) = clip u 0.363 (0.592 s): hold: the reference's own load peak (leans back furthest), a slow creep; t 0.613 (0.57 s) = clip u 0.425 (0.694 s): step in: the front knee lifted, the blade still loaded; t 0.699 (0.65 s) = clip u 0.538 (0.878 s): contact: the blade at the bottom of the chop, the body following it (the reference's tip stops at u 0.525); t 0.742 (+0.04 s after hit) = clip u 0.538 (0.878 s): overshoot: the same frame sunk further; t 0.871 (+0.16 s after hit) = clip u 0.6 (0.979 s): money pose held (the reference barely moves here); t 0.936 (+0.22 s after hit) = clip u 0.8 (1.306 s): recovery: the blade rising; t 1 (+0.28 s after hit) = clip u 1 (1.632 s): back to the two-hand ready (clip end). Edits: grip [1,0,0] on every key (both hands on the haft, as in the reference); overshoot key: the contact frame with the torso lean x1.1 (0.597 to 0.657) and a deeper drop (below), the sink past the contact; legs re-solved on the chibi rig (work-dir tool legik.mjs, not in the repo: damped least squares on leg x/z and knee x, the reference's leg y twist kept) because the reference moves its pelvis 0.29 units forward over a planted right foot and the game's root cannot travel: the copied leg angles slid the chibi's right foot 0.32 m forward on the raise and 0.34 m back on the strike. The reference's ground contacts are kept instead: the right foot stays planted where the greatblade carry puts it; the left foot steps forward once, lifted on the step-in key (the reference lifts it 25% of its leg there; 0.09 m on the chibi), landing on the hit 0.34 m ahead of the right foot (the reference's contact stance: 0.159 units = 0.68 of its leg, on the chibi's 0.5 m leg); it steps back lifted on the recovery. drop: 0 at the ends (the carry's height), -0.05 / -0.07 on the anticipation and the hold (the reference's own crouch at legs 1 and 1.35), -0.06 on the step-in (reference at legs 1.35), then -0.11 on the hit, -0.14 on the overshoot, -0.11 held (the reference's contact dip, -0.079 at legs 1.35, deepened about 1.4x: heavy weapons drop lower), -0.04 on the recovery; the pelvis turned 0.4 rad further to the left (added to the reference hips yaw) from the anticipation through the held pose (0.12 on the recovery key), a turn of the whole reference pose about the vertical, so the reference diagonal chop (its tip lands 42 deg right of its facing) lands nearer the skill line; the legs are solved after the turn, so the feet stay planted. sweep -1 as clip-keys measured it (the blade comes down from over the left shoulder to the right-front; the split effect does not read it). Measured on the chibi (fx bench, 60 Hz): right foot moves under 0.01 m in the whole action, left foot lifts 0.09 m and lands on the hit; blade never below the ground (lowest 0.12 m on the hit, 0.06 m on the overshoot); blade tip lands 19 deg right of the skill line; fastest tip 0.617 s for a hit at 0.65 s.",
+  "hit": 0.699,
+  "sweep": -1,
+  "own": true,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0,
+      0
+     ],
+     "torso": [
+      -0.122,
+      -0.135,
+      -0.032
+     ],
+     "chest": [
+      0,
+      -0.109,
+      0
+     ],
+     "head": [
+      0.174,
+      0.246,
+      -0.011
+     ],
+     "legL": [
+      -0.273,
+      0.118,
+      0.049
+     ],
+     "legR": [
+      0.333,
+      0.033,
+      0.039
+     ],
+     "kneeL": [
+      0.333,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.232,
+      0,
+      0
+     ],
+     "armL": [
+      0.087,
+      -0.221,
+      0.742
+     ],
+     "armR": [
+      0.541,
+      0.697,
+      -1.308
+     ],
+     "elbowL": [
+      -1.055,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.11,
+      0,
+      0
+     ],
+     "weapon": [
+      0.319,
+      -0.317,
+      -0.15
+     ],
+     "drop": [
+      0,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.237,
+    {
+     "hips": [
+      0,
+      0.639,
+      -0.025
+     ],
+     "torso": [
+      -0.226,
+      0.207,
+      0.022
+     ],
+     "chest": [
+      0.093,
+      0.191,
+      0.053
+     ],
+     "head": [
+      0.158,
+      -0.534,
+      0.077
+     ],
+     "legL": [
+      -0.642,
+      -0.143,
+      -0.085
+     ],
+     "legR": [
+      0.323,
+      -0.136,
+      0.342
+     ],
+     "kneeL": [
+      0.735,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.577,
+      0,
+      0
+     ],
+     "armL": [
+      -0.362,
+      0.041,
+      0.645
+     ],
+     "armR": [
+      0.074,
+      0.51,
+      -1.123
+     ],
+     "elbowL": [
+      -1.335,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.802,
+      0,
+      0
+     ],
+     "weapon": [
+      0.45,
+      -0.24,
+      -0.095
+     ],
+     "drop": [
+      -0.05,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.473,
+    {
+     "hips": [
+      0,
+      0.647,
+      -0.044
+     ],
+     "torso": [
+      -0.301,
+      0.211,
+      0.022
+     ],
+     "chest": [
+      0.096,
+      0.199,
+      0.054
+     ],
+     "head": [
+      0.159,
+      -0.555,
+      0.079
+     ],
+     "legL": [
+      -0.716,
+      -0.165,
+      -0.089
+     ],
+     "legR": [
+      0.279,
+      -0.153,
+      0.37
+     ],
+     "kneeL": [
+      0.877,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.741,
+      0,
+      0
+     ],
+     "armL": [
+      -0.421,
+      -0.055,
+      0.634
+     ],
+     "armR": [
+      0.101,
+      0.54,
+      -1.227
+     ],
+     "elbowL": [
+      -1.244,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.712,
+      0,
+      0
+     ],
+     "weapon": [
+      0.354,
+      -0.315,
+      -0.143
+     ],
+     "drop": [
+      -0.07,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.613,
+    {
+     "hips": [
+      0,
+      0.533,
+      -0.016
+     ],
+     "torso": [
+      -0.184,
+      0.181,
+      0.014
+     ],
+     "chest": [
+      0.076,
+      0.159,
+      0.049
+     ],
+     "head": [
+      0.158,
+      -0.257,
+      0.053
+     ],
+     "legL": [
+      -1.091,
+      -0.118,
+      -0.218
+     ],
+     "legR": [
+      0.258,
+      -0.072,
+      0.301
+     ],
+     "kneeL": [
+      1.246,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.715,
+      0,
+      0
+     ],
+     "armL": [
+      -0.877,
+      -0.779,
+      0.392
+     ],
+     "armR": [
+      0.224,
+      0.289,
+      -1.134
+     ],
+     "elbowL": [
+      -0.226,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.728,
+      0,
+      0
+     ],
+     "weapon": [
+      0.317,
+      -0.1,
+      -0.047
+     ],
+     "drop": [
+      -0.06,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.699,
+    {
+     "hips": [
+      0,
+      0.4,
+      0
+     ],
+     "torso": [
+      0.597,
+      -0.347,
+      0.059
+     ],
+     "chest": [
+      -0.066,
+      -0.282,
+      -0.057
+     ],
+     "head": [
+      0.122,
+      0.554,
+      -0.05
+     ],
+     "legL": [
+      -1.057,
+      0.155,
+      -0.077
+     ],
+     "legR": [
+      0.139,
+      -0.039,
+      0.264
+     ],
+     "kneeL": [
+      0.835,
+      0,
+      0
+     ],
+     "kneeR": [
+      1.116,
+      0,
+      0
+     ],
+     "armL": [
+      0.565,
+      -0.727,
+      1.46
+     ],
+     "armR": [
+      0.804,
+      0.061,
+      -1.147
+     ],
+     "elbowL": [
+      -1.922,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.715,
+      0,
+      0
+     ],
+     "weapon": [
+      1.008,
+      -0.62,
+      -0.062
+     ],
+     "drop": [
+      -0.11,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.742,
+    {
+     "hips": [
+      0,
+      0.4,
+      0
+     ],
+     "torso": [
+      0.657,
+      -0.347,
+      0.059
+     ],
+     "chest": [
+      -0.066,
+      -0.282,
+      -0.057
+     ],
+     "head": [
+      0.122,
+      0.554,
+      -0.05
+     ],
+     "legL": [
+      -1.175,
+      0.155,
+      -0.081
+     ],
+     "legR": [
+      0.117,
+      -0.039,
+      0.291
+     ],
+     "kneeL": [
+      1.001,
+      0,
+      0
+     ],
+     "kneeR": [
+      1.284,
+      0,
+      0
+     ],
+     "armL": [
+      0.565,
+      -0.727,
+      1.46
+     ],
+     "armR": [
+      0.804,
+      0.061,
+      -1.147
+     ],
+     "elbowL": [
+      -1.922,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.715,
+      0,
+      0
+     ],
+     "weapon": [
+      1.008,
+      -0.62,
+      -0.062
+     ],
+     "drop": [
+      -0.14,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.871,
+    {
+     "hips": [
+      0,
+      0.4,
+      0
+     ],
+     "torso": [
+      0.547,
+      -0.344,
+      0.059
+     ],
+     "chest": [
+      -0.065,
+      -0.279,
+      -0.056
+     ],
+     "head": [
+      0.057,
+      0.552,
+      -0.017
+     ],
+     "legL": [
+      -1.056,
+      0.154,
+      -0.078
+     ],
+     "legR": [
+      0.139,
+      -0.039,
+      0.264
+     ],
+     "kneeL": [
+      0.835,
+      0,
+      0
+     ],
+     "kneeR": [
+      1.116,
+      0,
+      0
+     ],
+     "armL": [
+      0.634,
+      -0.753,
+      1.385
+     ],
+     "armR": [
+      0.843,
+      0.084,
+      -1.173
+     ],
+     "elbowL": [
+      -1.873,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.687,
+      0,
+      0
+     ],
+     "weapon": [
+      0.954,
+      -0.523,
+      -0.066
+     ],
+     "drop": [
+      -0.11,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.936,
+    {
+     "hips": [
+      0,
+      0.12,
+      0
+     ],
+     "torso": [
+      0.124,
+      -0.252,
+      0.009
+     ],
+     "chest": [
+      -0.035,
+      -0.207,
+      -0.031
+     ],
+     "head": [
+      0.047,
+      0.418,
+      0.008
+     ],
+     "legL": [
+      -0.847,
+      0.136,
+      0.096
+     ],
+     "legR": [
+      0.192,
+      0.006,
+      0.097
+     ],
+     "kneeL": [
+      0.956,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.686,
+      0,
+      0
+     ],
+     "armL": [
+      0.542,
+      -0.509,
+      1.01
+     ],
+     "armR": [
+      0.681,
+      0.395,
+      -1.285
+     ],
+     "elbowL": [
+      -1.49,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.542,
+      0,
+      0
+     ],
+     "weapon": [
+      0.956,
+      -0.448,
+      -0.056
+     ],
+     "drop": [
+      -0.04,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0,
+      0
+     ],
+     "torso": [
+      -0.122,
+      -0.136,
+      -0.032
+     ],
+     "chest": [
+      0,
+      -0.109,
+      0
+     ],
+     "head": [
+      0.174,
+      0.246,
+      -0.011
+     ],
+     "legL": [
+      -0.273,
+      0.118,
+      0.049
+     ],
+     "legR": [
+      0.333,
+      0.033,
+      0.039
+     ],
+     "kneeL": [
+      0.333,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.232,
+      0,
+      0
+     ],
+     "armL": [
+      0.087,
+      -0.221,
+      0.742
+     ],
+     "armR": [
+      0.541,
+      0.697,
+      -1.308
+     ],
+     "elbowL": [
+      -1.055,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.11,
+      0,
+      0
+     ],
+     "weapon": [
+      0.319,
+      -0.317,
+      -0.15
+     ],
+     "drop": [
+      0,
+      0,
+      0
+     ],
+     "grip": [
+      1,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "bowShot": {
+  "_from": "Quick shot: raise, nock, draw, a held full draw, the release snapped on the hit, the follow-through held, back to the stance. Sources (CC0, mirrored: the reference archers hold the bow in the left hand): Quaternius UAL2 Bow_Notch (nock at 0.5 s = key 0.16, anchor at 1.125 s = key 0.29; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0 --to 0.5 --keys 11 --mirror --hit 0.8 --legs 0.6 --weapon bow --skill charged_shot`, its keys 0.4 and 0.9; the reference's reach to the quiver, 0.2-0.4 s, is skipped), Bow_Shoot 0 s = the full draw held (key 0.37; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Shoot --from 0 --to 1 --keys 11 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, key 0), Bow_RapidShoot_Loop 0.108 s and 0.162 s for the release body (keys 0.42, 0.48-0.62; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_RapidShoot_Loop --from 0 --to 1 --keys 9 --mirror --hit 0.25 --legs 0.6 --weapon bow --skill charged_shot`, keys 0.25 and 0.375), KayKit Character Animations Ranged_Bow_Release 0.19 s and 0.285 s for the drawing arm's release (armL/elbowL at keys 0.42 and 0.48-0.62; `node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Rogue.glb --anim Rig_Medium_CombatRanged.glb --clip Ranged_Bow_Release --prop Knife --legs 0.6 --keys 15 --hit 0.1 --weapon bow --skill charged_shot`, keys 0.143 and 0.214, mirrored by hand: L/R channels swapped, y and z negated, checked equal to clip-keys --mirror within 0.003 on Bow_Aim_Neutral). Edits: release body = the full draw plus Bow_RapidShoot_Loop's torso/chest/hips change scaled x1.3 (hit) and x1.5 (overshoot) for the chibi; the release keys keep the full draw's head (the reference turns it 10.7 deg on another Euler branch); timing retimed to the anime beat (wind-up 0.2 s: raise 0.076 s, draw 0.062 s, hold 0.038 s, release 0.024 s; overshoot 0.029 s, held 0.068 s, recovery 0.184 s); stance keys (first/last) = Quaternius UAL2 Bow_Notch at 0.15 s (the bow_ready stance's own source; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0.06 --to 0.1 --keys 2 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, key 0) with armR/elbowR replaced by the bow carry's IK arm [-0.42,0.557,-0.589]/[-0.47,0,0] and weapon by the carry's turn in the hand [1.74,0.205,0.438] (both measured on the bench hero at idle), aim 0: the action starts and ends on the idle carry; aim [1,0,0] on the drawn keys (hero.js stands the bow upright facing the target, and their weapon channel is the carry turn, used only while aim blends 0<->1 so the bow turns from the carry as it is raised); Euler triples re-expressed per channel as the equivalent rotation nearest the previous key (same rotations, no pose change) so the animator's per-channel lerp does not swing through another branch; values rounded to 3 decimals",
+  "hit": 0.42,
+  "sweep": 1,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0.247,
+      0.002
+     ],
+     "torso": [
+      0.003,
+      0.091,
+      -0.002
+     ],
+     "chest": [
+      0.246,
+      0.045,
+      0.007
+     ],
+     "head": [
+      0.008,
+      -0.327,
+      0.014
+     ],
+     "legL": [
+      -0.058,
+      0.442,
+      0.194
+     ],
+     "legR": [
+      -0.235,
+      -0.117,
+      -0.136
+     ],
+     "kneeL": [
+      0.107,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.188,
+      0,
+      0
+     ],
+     "armL": [
+      -0.677,
+      0.039,
+      0.896
+     ],
+     "armR": [
+      -0.42,
+      0.557,
+      -0.589
+     ],
+     "elbowL": [
+      -2.026,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.47,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.16,
+    {
+     "hips": [
+      0,
+      0.353,
+      0.015
+     ],
+     "torso": [
+      0.015,
+      0.338,
+      -0.02
+     ],
+     "chest": [
+      0.274,
+      0.156,
+      -0.023
+     ],
+     "head": [
+      0.02,
+      -0.678,
+      0.129
+     ],
+     "legL": [
+      -0.097,
+      0.436,
+      0.217
+     ],
+     "legR": [
+      -0.245,
+      -0.115,
+      -0.139
+     ],
+     "kneeL": [
+      0.096,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.221,
+      0,
+      0
+     ],
+     "armL": [
+      -1.534,
+      -1.053,
+      -0.433
+     ],
+     "armR": [
+      -0.841,
+      0.437,
+      -0.462
+     ],
+     "elbowL": [
+      -0.957,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.182,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.022,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.29,
+    {
+     "hips": [
+      0,
+      0.607,
+      0.036
+     ],
+     "torso": [
+      0.024,
+      0.722,
+      -0.052
+     ],
+     "chest": [
+      0.271,
+      0.308,
+      -0.063
+     ],
+     "head": [
+      0.519,
+      -1.247,
+      0.706
+     ],
+     "legL": [
+      -0.164,
+      0.428,
+      0.232
+     ],
+     "legR": [
+      -0.245,
+      -0.112,
+      -0.151
+     ],
+     "kneeL": [
+      0.055,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.258,
+      0,
+      0
+     ],
+     "armL": [
+      -0.543,
+      -1.08,
+      1.475
+     ],
+     "armR": [
+      -1.195,
+      0.095,
+      -1.465
+     ],
+     "elbowL": [
+      -2.017,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.03,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.37,
+    {
+     "hips": [
+      0,
+      0.626,
+      0.036
+     ],
+     "torso": [
+      0.023,
+      0.708,
+      -0.051
+     ],
+     "chest": [
+      0.27,
+      0.303,
+      -0.062
+     ],
+     "head": [
+      0.516,
+      -1.247,
+      0.704
+     ],
+     "legL": [
+      -0.171,
+      0.427,
+      0.234
+     ],
+     "legR": [
+      -0.243,
+      -0.111,
+      -0.152
+     ],
+     "kneeL": [
+      0.059,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.258,
+      0,
+      0
+     ],
+     "armL": [
+      -0.466,
+      -1.09,
+      1.584
+     ],
+     "armR": [
+      -1.225,
+      0.087,
+      -1.46
+     ],
+     "elbowL": [
+      -1.965,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.033,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.42,
+    {
+     "hips": [
+      0,
+      0.747,
+      0.036
+     ],
+     "torso": [
+      0.033,
+      0.844,
+      -0.065
+     ],
+     "chest": [
+      0.275,
+      0.351,
+      -0.068
+     ],
+     "head": [
+      0.516,
+      -1.247,
+      0.704
+     ],
+     "legL": [
+      -0.201,
+      0.421,
+      0.239
+     ],
+     "legR": [
+      -0.23,
+      -0.111,
+      -0.159
+     ],
+     "kneeL": [
+      0.076,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.259,
+      0,
+      0
+     ],
+     "armL": [
+      -0.124,
+      -0.01,
+      1.466
+     ],
+     "armR": [
+      -1.219,
+      -0.022,
+      -1.742
+     ],
+     "elbowL": [
+      -1.635,
+      0,
+      0
+     ],
+     "elbowR": [
+      0.009,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.48,
+    {
+     "hips": [
+      0,
+      0.782,
+      0.036
+     ],
+     "torso": [
+      0.031,
+      0.818,
+      -0.063
+     ],
+     "chest": [
+      0.275,
+      0.342,
+      -0.068
+     ],
+     "head": [
+      0.516,
+      -1.247,
+      0.704
+     ],
+     "legL": [
+      -0.204,
+      0.421,
+      0.239
+     ],
+     "legR": [
+      -0.228,
+      -0.111,
+      -0.16
+     ],
+     "kneeL": [
+      0.077,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.259,
+      0,
+      0
+     ],
+     "armL": [
+      -0.059,
+      0.489,
+      1.389
+     ],
+     "armR": [
+      -1.22,
+      -0.033,
+      -1.689
+     ],
+     "elbowL": [
+      -1.691,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.016,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.62,
+    {
+     "hips": [
+      0,
+      0.782,
+      0.036
+     ],
+     "torso": [
+      0.031,
+      0.818,
+      -0.063
+     ],
+     "chest": [
+      0.275,
+      0.342,
+      -0.068
+     ],
+     "head": [
+      0.516,
+      -1.247,
+      0.704
+     ],
+     "legL": [
+      -0.204,
+      0.421,
+      0.239
+     ],
+     "legR": [
+      -0.228,
+      -0.111,
+      -0.16
+     ],
+     "kneeL": [
+      0.077,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.259,
+      0,
+      0
+     ],
+     "armL": [
+      -0.059,
+      0.489,
+      1.389
+     ],
+     "armR": [
+      -1.22,
+      -0.033,
+      -1.689
+     ],
+     "elbowL": [
+      -1.691,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.016,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0.247,
+      0.002
+     ],
+     "torso": [
+      0.003,
+      0.091,
+      -0.002
+     ],
+     "chest": [
+      0.246,
+      0.045,
+      0.007
+     ],
+     "head": [
+      0.008,
+      -0.327,
+      0.014
+     ],
+     "legL": [
+      -0.058,
+      0.442,
+      0.194
+     ],
+     "legR": [
+      -0.235,
+      -0.117,
+      -0.136
+     ],
+     "kneeL": [
+      0.107,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.188,
+      0,
+      0
+     ],
+     "armL": [
+      -0.677,
+      0.039,
+      0.896
+     ],
+     "armR": [
+      -0.42,
+      0.557,
+      -0.589
+     ],
+     "elbowL": [
+      -2.026,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.47,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "bowSkyShot": {
+  "_from": "Arrow Rain: raise and nock, lean back drawing at the sky, hold, release on the hit with the head following the arrow up and the drawing arm flung back, hold, back to the stance. Sources (CC0, mirrored): Quaternius UAL2 Bow_Notch 0.5 s for the nock (key 0.14; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0 --to 0.5 --keys 11 --mirror --hit 0.8 --legs 0.6 --weapon bow --skill charged_shot`, key 0.4), KayKit Character Animations Ranged_Bow_Draw_Up 0.833 s and 1.332 s (keys 0.3 and 0.42-0.48; `node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Rogue.glb --anim Rig_Medium_CombatRanged.glb --clip Ranged_Bow_Draw_Up --prop Knife --legs 0.6 --keys 9 --hit 0.9 --weapon bow --skill charged_shot`, keys 0.625 and 1.0), Ranged_Bow_Release_Up 0.137 s (hit) and 0.292 s (overshoot, held) (`node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Rogue.glb --anim Rig_Medium_CombatRanged.glb --clip Ranged_Bow_Release_Up --prop Knife --legs 0.6 --keys 15 --hit 0.1 --weapon bow --skill charged_shot`, keys 0.1 and 0.214); KayKit keys mirrored by hand (L/R swapped, y and z negated; checked against clip-keys --mirror). Edits: the bow arm (armR/elbowR) of the release keys kept at Draw_Up's 1.332 s (Release_Up folds the bow arm in toward the head); the release keys' head turned halfway (quaternion slerp 0.5) from Draw_Up's to Release_Up's (the reference's 30 deg look-up read as a whiplash on the chibi's big head); the bow pitched back so it faces the sky: aim 0 on every drawn key and the weapon channel computed (pitch.mjs: the hand's turn on the bench hero at each key's pose, the bow facing forward pitched up) for pitch 0 at the nock, 30 deg at the mid-draw and 33 deg from the full draw on (the reference's arrow line, drawing hand to bow hand, measured 47 deg; 33 keeps the upper limb clear of the big head); timing: wind-up 0.3 s (nock 0.081 s, drawn 0.092 s, settle 0.069 s, hold 0.035 s, release 0.023 s), overshoot 0.035 s, held 0.058 s, recovery 0.187 s; stance keys (first/last) = Quaternius UAL2 Bow_Notch at 0.15 s (the bow_ready stance's own source; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0.06 --to 0.1 --keys 2 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, key 0) with armR/elbowR replaced by the bow carry's IK arm [-0.42,0.557,-0.589]/[-0.47,0,0] and weapon by the carry's turn in the hand [1.74,0.205,0.438] (both measured on the bench hero at idle), aim 0: the action starts and ends on the idle carry; Euler triples re-expressed per channel as the equivalent rotation nearest the previous key (same rotations, no pose change) so the animator's per-channel lerp does not swing through another branch; values rounded to 3 decimals",
+  "hit": 0.52,
+  "sweep": 1,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0.247,
+      0.002
+     ],
+     "torso": [
+      0.003,
+      0.091,
+      -0.002
+     ],
+     "chest": [
+      0.246,
+      0.045,
+      0.007
+     ],
+     "head": [
+      0.008,
+      -0.327,
+      0.014
+     ],
+     "legL": [
+      -0.058,
+      0.442,
+      0.194
+     ],
+     "legR": [
+      -0.235,
+      -0.117,
+      -0.136
+     ],
+     "kneeL": [
+      0.107,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.188,
+      0,
+      0
+     ],
+     "armL": [
+      -0.677,
+      0.039,
+      0.896
+     ],
+     "armR": [
+      -0.42,
+      0.557,
+      -0.589
+     ],
+     "elbowL": [
+      -2.026,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.47,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.14,
+    {
+     "hips": [
+      0,
+      0.353,
+      0.015
+     ],
+     "torso": [
+      0.015,
+      0.338,
+      -0.02
+     ],
+     "chest": [
+      0.274,
+      0.156,
+      -0.023
+     ],
+     "head": [
+      0.02,
+      -0.678,
+      0.129
+     ],
+     "legL": [
+      -0.097,
+      0.436,
+      0.217
+     ],
+     "legR": [
+      -0.245,
+      -0.115,
+      -0.139
+     ],
+     "kneeL": [
+      0.096,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.221,
+      0,
+      0
+     ],
+     "armL": [
+      -1.534,
+      -1.053,
+      -0.433
+     ],
+     "armR": [
+      -0.841,
+      0.437,
+      -0.462
+     ],
+     "elbowL": [
+      -0.957,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.182,
+      0,
+      0
+     ],
+     "weapon": [
+      1.482,
+      -0.737,
+      0.862
+     ],
+     "drop": [
+      -0.022,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.3,
+    {
+     "hips": [
+      0,
+      0.704,
+      -0.09
+     ],
+     "torso": [
+      -0.308,
+      0.34,
+      -0.254
+     ],
+     "chest": [
+      -0.071,
+      0.226,
+      -0.224
+     ],
+     "head": [
+      0.695,
+      -1.191,
+      0.453
+     ],
+     "legR": [
+      -0.434,
+      -0.481,
+      -0.371
+     ],
+     "legL": [
+      0.322,
+      -0.337,
+      0.216
+     ],
+     "kneeR": [
+      0.207,
+      0,
+      0
+     ],
+     "kneeL": [
+      0.29,
+      0,
+      0
+     ],
+     "armR": [
+      -0.05,
+      0.142,
+      -1.588
+     ],
+     "armL": [
+      -0.23,
+      -1.358,
+      1.296
+     ],
+     "elbowR": [
+      -0.611,
+      0,
+      0
+     ],
+     "elbowL": [
+      -1.618,
+      0,
+      0
+     ],
+     "drop": [
+      -0.037,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ],
+     "weapon": [
+      2.005,
+      0.27,
+      1.536
+     ]
+    }
+   ],
+   [
+    0.42,
+    {
+     "hips": [
+      0,
+      0.704,
+      -0.09
+     ],
+     "torso": [
+      -0.313,
+      0.34,
+      -0.261
+     ],
+     "chest": [
+      -0.075,
+      0.228,
+      -0.233
+     ],
+     "head": [
+      0.807,
+      -1.153,
+      0.554
+     ],
+     "legR": [
+      -0.434,
+      -0.482,
+      -0.373
+     ],
+     "legL": [
+      0.322,
+      -0.337,
+      0.216
+     ],
+     "kneeR": [
+      0.205,
+      0,
+      0
+     ],
+     "kneeL": [
+      0.29,
+      0,
+      0
+     ],
+     "armR": [
+      -0.055,
+      0.168,
+      -1.572
+     ],
+     "armL": [
+      -0.194,
+      -1.365,
+      1.361
+     ],
+     "elbowR": [
+      -0.576,
+      0,
+      0
+     ],
+     "elbowL": [
+      -1.613,
+      0,
+      0
+     ],
+     "drop": [
+      -0.037,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ],
+     "weapon": [
+      1.997,
+      0.224,
+      1.529
+     ]
+    }
+   ],
+   [
+    0.48,
+    {
+     "hips": [
+      0,
+      0.704,
+      -0.09
+     ],
+     "torso": [
+      -0.313,
+      0.34,
+      -0.261
+     ],
+     "chest": [
+      -0.075,
+      0.228,
+      -0.233
+     ],
+     "head": [
+      0.807,
+      -1.153,
+      0.554
+     ],
+     "legR": [
+      -0.434,
+      -0.482,
+      -0.373
+     ],
+     "legL": [
+      0.322,
+      -0.337,
+      0.216
+     ],
+     "kneeR": [
+      0.205,
+      0,
+      0
+     ],
+     "kneeL": [
+      0.29,
+      0,
+      0
+     ],
+     "armR": [
+      -0.055,
+      0.168,
+      -1.572
+     ],
+     "armL": [
+      -0.194,
+      -1.365,
+      1.361
+     ],
+     "elbowR": [
+      -0.576,
+      0,
+      0
+     ],
+     "elbowL": [
+      -1.613,
+      0,
+      0
+     ],
+     "drop": [
+      -0.037,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ],
+     "weapon": [
+      1.997,
+      0.224,
+      1.529
+     ]
+    }
+   ],
+   [
+    0.52,
+    {
+     "hips": [
+      0,
+      0.7,
+      -0.135
+     ],
+     "torso": [
+      -0.36,
+      0.328,
+      -0.259
+     ],
+     "chest": [
+      -0.071,
+      0.226,
+      -0.224
+     ],
+     "head": [
+      0.132,
+      -1.265,
+      -0.07
+     ],
+     "legR": [
+      -0.59,
+      -0.404,
+      -0.445
+     ],
+     "legL": [
+      0.151,
+      -0.375,
+      0.13
+     ],
+     "kneeR": [
+      0.375,
+      0,
+      0
+     ],
+     "kneeL": [
+      0.737,
+      0,
+      0
+     ],
+     "armR": [
+      -0.055,
+      0.168,
+      -1.572
+     ],
+     "armL": [
+      -0.5,
+      -0.967,
+      1.109
+     ],
+     "elbowR": [
+      -0.576,
+      0,
+      0
+     ],
+     "elbowL": [
+      -1.161,
+      0,
+      0
+     ],
+     "drop": [
+      -0.066,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ],
+     "weapon": [
+      1.989,
+      0.275,
+      1.536
+     ]
+    }
+   ],
+   [
+    0.58,
+    {
+     "hips": [
+      0,
+      0.679,
+      -0.113
+     ],
+     "torso": [
+      -0.29,
+      0.334,
+      -0.199
+     ],
+     "chest": [
+      -0.042,
+      0.211,
+      -0.146
+     ],
+     "head": [
+      0.106,
+      -1.267,
+      -0.087
+     ],
+     "legR": [
+      -0.602,
+      -0.362,
+      -0.437
+     ],
+     "legL": [
+      0.185,
+      -0.359,
+      0.134
+     ],
+     "kneeR": [
+      0.509,
+      0,
+      0
+     ],
+     "kneeL": [
+      0.699,
+      0,
+      0
+     ],
+     "armR": [
+      -0.055,
+      0.168,
+      -1.572
+     ],
+     "armL": [
+      0.176,
+      -1.793,
+      1.791
+     ],
+     "elbowR": [
+      -0.576,
+      0,
+      0
+     ],
+     "elbowL": [
+      -0.184,
+      0,
+      0
+     ],
+     "drop": [
+      -0.069,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ],
+     "weapon": [
+      1.965,
+      0.068,
+      1.544
+     ]
+    }
+   ],
+   [
+    0.68,
+    {
+     "hips": [
+      0,
+      0.679,
+      -0.113
+     ],
+     "torso": [
+      -0.29,
+      0.334,
+      -0.199
+     ],
+     "chest": [
+      -0.042,
+      0.211,
+      -0.146
+     ],
+     "head": [
+      0.106,
+      -1.267,
+      -0.087
+     ],
+     "legR": [
+      -0.602,
+      -0.362,
+      -0.437
+     ],
+     "legL": [
+      0.185,
+      -0.359,
+      0.134
+     ],
+     "kneeR": [
+      0.509,
+      0,
+      0
+     ],
+     "kneeL": [
+      0.699,
+      0,
+      0
+     ],
+     "armR": [
+      -0.055,
+      0.168,
+      -1.572
+     ],
+     "armL": [
+      0.176,
+      -1.793,
+      1.791
+     ],
+     "elbowR": [
+      -0.576,
+      0,
+      0
+     ],
+     "elbowL": [
+      -0.184,
+      0,
+      0
+     ],
+     "drop": [
+      -0.069,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ],
+     "weapon": [
+      1.965,
+      0.068,
+      1.544
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0.247,
+      0.002
+     ],
+     "torso": [
+      0.003,
+      0.091,
+      -0.002
+     ],
+     "chest": [
+      0.246,
+      0.045,
+      0.007
+     ],
+     "head": [
+      0.008,
+      -0.327,
+      0.014
+     ],
+     "legL": [
+      -0.058,
+      0.442,
+      0.194
+     ],
+     "legR": [
+      -0.235,
+      -0.117,
+      -0.136
+     ],
+     "kneeL": [
+      0.107,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.188,
+      0,
+      0
+     ],
+     "armL": [
+      -0.677,
+      0.039,
+      0.896
+     ],
+     "armR": [
+      -0.42,
+      0.557,
+      -0.589
+     ],
+     "elbowL": [
+      -2.026,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.47,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "bowDrawHold": {
+  "_from": "Power Draw charge: raise, nock, draw to the anchor, settle, then the draw creeps to its deepest at the full charge and is held. Played as the game does (skill-fx chargeStart: 3 x 1.2 s, hit 1, no hit time): keys at 0.13 s nock, 0.22 s drawing, 0.31 s anchored, 0.47 s settled full draw, 1.2 s deepest (full charge), held to the end. Sources (CC0, mirrored): Quaternius UAL2 Bow_Notch 0.5 s / 0.75 s / 1.0 s (`node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0 --to 0.5 --keys 11 --mirror --hit 0.8 --legs 0.6 --weapon bow --skill charged_shot`, keys 0.4, 0.6, 0.8; the quiver reach skipped), Bow_Aim_Neutral 0 s and 0.625 s (its own aiming breath at its deepest; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Aim_Neutral --from 0 --to 1 --keys 5 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, keys 0 and 0.25). No pose edits besides: stance keys (first/last) = Quaternius UAL2 Bow_Notch at 0.15 s (the bow_ready stance's own source; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0.06 --to 0.1 --keys 2 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, key 0) with armR/elbowR replaced by the bow carry's IK arm [-0.42,0.557,-0.589]/[-0.47,0,0] and weapon by the carry's turn in the hand [1.74,0.205,0.438] (both measured on the bench hero at idle), aim 0: the action starts and ends on the idle carry; aim [1,0,0] on the drawn keys (hero.js stands the bow upright facing the target, and their weapon channel is the carry turn, used only while aim blends 0<->1 so the bow turns from the carry as it is raised); Euler triples re-expressed per channel as the equivalent rotation nearest the previous key (same rotations, no pose change) so the animator's per-channel lerp does not swing through another branch; values rounded to 3 decimals",
+  "hit": 1,
+  "sweep": 1,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0.247,
+      0.002
+     ],
+     "torso": [
+      0.003,
+      0.091,
+      -0.002
+     ],
+     "chest": [
+      0.246,
+      0.045,
+      0.007
+     ],
+     "head": [
+      0.008,
+      -0.327,
+      0.014
+     ],
+     "legL": [
+      -0.058,
+      0.442,
+      0.194
+     ],
+     "legR": [
+      -0.235,
+      -0.117,
+      -0.136
+     ],
+     "kneeL": [
+      0.107,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.188,
+      0,
+      0
+     ],
+     "armL": [
+      -0.677,
+      0.039,
+      0.896
+     ],
+     "armR": [
+      -0.42,
+      0.557,
+      -0.589
+     ],
+     "elbowL": [
+      -2.026,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.47,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.035,
+    {
+     "hips": [
+      0,
+      0.353,
+      0.015
+     ],
+     "torso": [
+      0.015,
+      0.338,
+      -0.02
+     ],
+     "chest": [
+      0.274,
+      0.156,
+      -0.023
+     ],
+     "head": [
+      0.02,
+      -0.678,
+      0.129
+     ],
+     "legL": [
+      -0.097,
+      0.436,
+      0.217
+     ],
+     "legR": [
+      -0.245,
+      -0.115,
+      -0.139
+     ],
+     "kneeL": [
+      0.096,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.221,
+      0,
+      0
+     ],
+     "armL": [
+      -1.534,
+      -1.053,
+      -0.433
+     ],
+     "armR": [
+      -0.841,
+      0.437,
+      -0.462
+     ],
+     "elbowL": [
+      -0.957,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.182,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.022,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.06,
+    {
+     "hips": [
+      0,
+      0.465,
+      0.027
+     ],
+     "torso": [
+      0.021,
+      0.587,
+      -0.04
+     ],
+     "chest": [
+      0.276,
+      0.259,
+      -0.052
+     ],
+     "head": [
+      0.183,
+      -1.029,
+      0.346
+     ],
+     "legL": [
+      -0.129,
+      0.432,
+      0.228
+     ],
+     "legR": [
+      -0.249,
+      -0.114,
+      -0.143
+     ],
+     "kneeL": [
+      0.075,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.243,
+      0,
+      0
+     ],
+     "armL": [
+      -0.867,
+      -1.834,
+      0.966
+     ],
+     "armR": [
+      -0.971,
+      0.309,
+      -1.109
+     ],
+     "elbowL": [
+      -1.397,
+      0,
+      0
+     ],
+     "elbowR": [
+      0.022,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.021,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.085,
+    {
+     "hips": [
+      0,
+      0.576,
+      0.035
+     ],
+     "torso": [
+      0.025,
+      0.728,
+      -0.052
+     ],
+     "chest": [
+      0.272,
+      0.311,
+      -0.064
+     ],
+     "head": [
+      0.492,
+      -1.236,
+      0.678
+     ],
+     "legL": [
+      -0.155,
+      0.43,
+      0.23
+     ],
+     "legR": [
+      -0.248,
+      -0.112,
+      -0.149
+     ],
+     "kneeL": [
+      0.054,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.256,
+      0,
+      0
+     ],
+     "armL": [
+      -0.591,
+      -1.274,
+      1.317
+     ],
+     "armR": [
+      -1.124,
+      0.119,
+      -1.455
+     ],
+     "elbowL": [
+      -1.933,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.025,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.13,
+    {
+     "hips": [
+      0,
+      0.626,
+      0.036
+     ],
+     "torso": [
+      0.023,
+      0.708,
+      -0.051
+     ],
+     "chest": [
+      0.27,
+      0.303,
+      -0.062
+     ],
+     "head": [
+      0.516,
+      -1.247,
+      0.704
+     ],
+     "legL": [
+      -0.171,
+      0.427,
+      0.234
+     ],
+     "legR": [
+      -0.243,
+      -0.111,
+      -0.152
+     ],
+     "kneeL": [
+      0.059,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.258,
+      0,
+      0
+     ],
+     "armL": [
+      -0.466,
+      -1.09,
+      1.584
+     ],
+     "armR": [
+      -1.225,
+      0.087,
+      -1.46
+     ],
+     "elbowL": [
+      -1.965,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.033,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.333,
+    {
+     "hips": [
+      0,
+      0.626,
+      0.036
+     ],
+     "torso": [
+      0.011,
+      0.699,
+      -0.043
+     ],
+     "chest": [
+      0.246,
+      0.3,
+      -0.054
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.198,
+      0.417,
+      0.253
+     ],
+     "legR": [
+      -0.249,
+      -0.108,
+      -0.157
+     ],
+     "kneeL": [
+      0.112,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.279,
+      0,
+      0
+     ],
+     "armL": [
+      -0.381,
+      -1.098,
+      1.683
+     ],
+     "armR": [
+      -1.213,
+      0.069,
+      -1.433
+     ],
+     "elbowL": [
+      -1.965,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.055,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.021,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0.626,
+      0.036
+     ],
+     "torso": [
+      0.011,
+      0.699,
+      -0.043
+     ],
+     "chest": [
+      0.246,
+      0.3,
+      -0.054
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.198,
+      0.417,
+      0.253
+     ],
+     "legR": [
+      -0.249,
+      -0.108,
+      -0.157
+     ],
+     "kneeL": [
+      0.112,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.279,
+      0,
+      0
+     ],
+     "armL": [
+      -0.381,
+      -1.098,
+      1.683
+     ],
+     "armR": [
+      -1.213,
+      0.069,
+      -1.433
+     ],
+     "elbowL": [
+      -1.965,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.055,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.021,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "bowLooseShot": {
+  "_from": "Power Draw release: starts on bowDrawHold's held pose, holds it through the cast (the squeeze before the loose, 0.167 s), snaps the release on the hit (0.033 s), flings the drawing arm further back, holds, back to the stance. Sources (CC0, mirrored): key 0-0.25 = Quaternius UAL2 Bow_Aim_Neutral 0.625 s (= bowDrawHold's last key; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Aim_Neutral --from 0 --to 1 --keys 5 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, key 0.25); release body Bow_Shoot 0.067 s (hit) and 0.133 s (overshoot, held) (`node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Shoot --from 0 --to 1 --keys 11 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, keys 0.1 and 0.2: the single full shot's bigger twist, where bowShot uses the rapid-fire clip) with the held draw's head kept (Bow_Shoot's head turn sits on another Euler branch); drawing arm armL/elbowL from KayKit Character Animations Ranged_Bow_Release 0.285 s (hit) and 0.381 s (overshoot, held) (`node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Rogue.glb --anim Rig_Medium_CombatRanged.glb --clip Ranged_Bow_Release --prop Knife --legs 0.6 --keys 15 --hit 0.1 --weapon bow --skill charged_shot`, keys 0.214 and 0.286, mirrored by hand as in bowShot), one beat further than bowShot's release. stance keys (first/last) = Quaternius UAL2 Bow_Notch at 0.15 s (the bow_ready stance's own source; `node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip Bow_Notch --from 0.06 --to 0.1 --keys 2 --mirror --hit 0.5 --legs 0.6 --weapon bow --skill charged_shot`, key 0) with armR/elbowR replaced by the bow carry's IK arm [-0.42,0.557,-0.589]/[-0.47,0,0] and weapon by the carry's turn in the hand [1.74,0.205,0.438] (both measured on the bench hero at idle), aim 0: the action starts and ends on the idle carry; aim [1,0,0] on the drawn keys (hero.js stands the bow upright facing the target, and their weapon channel is the carry turn, used only while aim blends 0<->1 so the bow turns from the carry as it is raised); Euler triples re-expressed per channel as the equivalent rotation nearest the previous key (same rotations, no pose change) so the animator's per-channel lerp does not swing through another branch; values rounded to 3 decimals",
+  "hit": 0.3,
+  "sweep": 1,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0.626,
+      0.036
+     ],
+     "torso": [
+      0.011,
+      0.699,
+      -0.043
+     ],
+     "chest": [
+      0.246,
+      0.3,
+      -0.054
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.198,
+      0.417,
+      0.253
+     ],
+     "legR": [
+      -0.249,
+      -0.108,
+      -0.157
+     ],
+     "kneeL": [
+      0.112,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.279,
+      0,
+      0
+     ],
+     "armL": [
+      -0.381,
+      -1.098,
+      1.683
+     ],
+     "armR": [
+      -1.213,
+      0.069,
+      -1.433
+     ],
+     "elbowL": [
+      -1.965,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.055,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.021,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.25,
+    {
+     "hips": [
+      0,
+      0.626,
+      0.036
+     ],
+     "torso": [
+      0.011,
+      0.699,
+      -0.043
+     ],
+     "chest": [
+      0.246,
+      0.3,
+      -0.054
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.198,
+      0.417,
+      0.253
+     ],
+     "legR": [
+      -0.249,
+      -0.108,
+      -0.157
+     ],
+     "kneeL": [
+      0.112,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.279,
+      0,
+      0
+     ],
+     "armL": [
+      -0.381,
+      -1.098,
+      1.683
+     ],
+     "armR": [
+      -1.213,
+      0.069,
+      -1.433
+     ],
+     "elbowL": [
+      -1.965,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.055,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.021,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.3,
+    {
+     "hips": [
+      0,
+      0.699,
+      0.036
+     ],
+     "torso": [
+      0.033,
+      0.835,
+      -0.064
+     ],
+     "chest": [
+      0.275,
+      0.347,
+      -0.069
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.195,
+      0.422,
+      0.238
+     ],
+     "legR": [
+      -0.232,
+      -0.111,
+      -0.158
+     ],
+     "kneeL": [
+      0.073,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.259,
+      0,
+      0
+     ],
+     "armL": [
+      -0.059,
+      0.489,
+      1.389
+     ],
+     "armR": [
+      -1.186,
+      -0.1,
+      -1.748
+     ],
+     "elbowL": [
+      -1.691,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.058,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.36,
+    {
+     "hips": [
+      0,
+      0.721,
+      0.035
+     ],
+     "torso": [
+      0.028,
+      0.779,
+      -0.058
+     ],
+     "chest": [
+      0.272,
+      0.328,
+      -0.065
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.205,
+      0.42,
+      0.242
+     ],
+     "legR": [
+      -0.227,
+      -0.111,
+      -0.16
+     ],
+     "kneeL": [
+      0.084,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.258,
+      0,
+      0
+     ],
+     "armL": [
+      0.442,
+      0.715,
+      0.954
+     ],
+     "armR": [
+      -1.065,
+      -0.032,
+      -1.695
+     ],
+     "elbowL": [
+      -1.929,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.012,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.6,
+    {
+     "hips": [
+      0,
+      0.721,
+      0.035
+     ],
+     "torso": [
+      0.028,
+      0.779,
+      -0.058
+     ],
+     "chest": [
+      0.272,
+      0.328,
+      -0.065
+     ],
+     "head": [
+      0.49,
+      -1.248,
+      0.641
+     ],
+     "legL": [
+      -0.205,
+      0.42,
+      0.242
+     ],
+     "legR": [
+      -0.227,
+      -0.111,
+      -0.16
+     ],
+     "kneeL": [
+      0.084,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.258,
+      0,
+      0
+     ],
+     "armL": [
+      0.442,
+      0.715,
+      0.954
+     ],
+     "armR": [
+      -1.065,
+      -0.032,
+      -1.695
+     ],
+     "elbowL": [
+      -1.929,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.012,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.02,
+      0,
+      0
+     ],
+     "aim": [
+      1,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0.247,
+      0.002
+     ],
+     "torso": [
+      0.003,
+      0.091,
+      -0.002
+     ],
+     "chest": [
+      0.246,
+      0.045,
+      0.007
+     ],
+     "head": [
+      0.008,
+      -0.327,
+      0.014
+     ],
+     "legL": [
+      -0.058,
+      0.442,
+      0.194
+     ],
+     "legR": [
+      -0.235,
+      -0.117,
+      -0.136
+     ],
+     "kneeL": [
+      0.107,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.188,
+      0,
+      0
+     ],
+     "armL": [
+      -0.677,
+      0.039,
+      0.896
+     ],
+     "armR": [
+      -0.42,
+      0.557,
+      -0.589
+     ],
+     "elbowL": [
+      -2.026,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.47,
+      0,
+      0
+     ],
+     "weapon": [
+      1.74,
+      0.205,
+      0.438
+     ],
+     "drop": [
+      -0.023,
+      0,
+      0
+     ],
+     "aim": [
+      0,
+      0,
+      0
+     ]
+    }
+   ]
+  ]
+ },
+ "boltCast": {
+  "_from": "KayKit Adventurers (CC0, Kay Lousberg) Mage.glb, clip Spellcast_Long with its 1H_Wand prop (the KayKit clip pick over Spellcast_Shoot/Ranged_Magic_Shoot: same wand, but a body that leans back to load and throws forward on the release). Retarget: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Mage.glb --prop 1H_Wand --clip Spellcast_Long --keys 52 --legs 0.6 --hit 0.62 --skill firebolt --weapon wand (a key every 0.05 s of the 2.53 s clip; legs x0.6 like wand_ready; no --face: the clip starts on Mage Idle facing +Z, the same frame as the wand_ready carry). Edits after retargeting (scratchpad anim/bolt/tools/build.mjs, spec-final.json): exact clip frames placed on the game beat (cast 0.2 s before hit, 0.28 s after; key t solved for hit 0.42): clip u0 (0.00 s, Idle) at 0 s; u0.51 (1.29 s, wand raised upright, leaning back: anticipation) at 0.13 s; u0.529 (1.34 s, the clip's own still loaded pose: hold) at 0.165 s; u0.62 (1.57 s, end of the release: wand thrust at the target, body leaning forward, tip stops: HIT) at 0.2 s; overshoot = the u0.62 pose coiled x1.25 (hips/torso/chest twist and drop x1.25, torso lean x1.125, as actions.js coil()) at +0.035 s; u0.627 (1.59 s, release held) at +0.12 s; u0.882 (2.23 s, the clip's own return) at +0.2 s; u1 (2.53 s, Idle again) at +0.28 s. Cut out: the charge loop 0.35-1.29 s (one anticipation segment instead) and the arm drawing back 1.6-2.2 s (one recovery segment). kneeL clamped at 0 from the release on (the clip's leg is locked straight; the -0.125 was the KayKit rest-knee subtraction, a 7 degree hyperextension). armL z (outward lift of the free hand) x0.6 on every key, as run.mjs --arms did for wand_ready; the wand arm and weapon channel are untouched. own false: a two-handed weapon keeps its carry angle and lets go with the left hand (hero.js gesture); wand, sword and dagger follow the clip's weapon channel.",
+  "hit": 0.42,
+  "sweep": 1,
+  "own": false,
+  "keys": [
+   [
+    0,
+    {
+     "hips": [
+      0,
+      0.086,
+      0
+     ],
+     "torso": [
+      0,
+      0,
+      0
+     ],
+     "chest": [
+      0,
+      0,
+      0
+     ],
+     "head": [
+      0,
+      -0.063,
+      0
+     ],
+     "legL": [
+      0.015,
+      -0.089,
+      0.1
+     ],
+     "legR": [
+      -0.051,
+      -0.036,
+      -0.038
+     ],
+     "kneeL": [
+      0.109,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.205,
+      0,
+      0
+     ],
+     "armL": [
+      0.652,
+      0.164,
+      0.505
+     ],
+     "armR": [
+      0.279,
+      -0.495,
+      -0.648
+     ],
+     "elbowL": [
+      -0.924,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.978,
+      0,
+      0
+     ],
+     "weapon": [
+      0.613,
+      0.028,
+      0.008
+     ],
+     "drop": [
+      -0.009,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.273,
+    {
+     "hips": [
+      0,
+      0.352,
+      -0.054
+     ],
+     "torso": [
+      -0.15,
+      -0.009,
+      -0.001
+     ],
+     "chest": [
+      0.072,
+      0.001,
+      0.026
+     ],
+     "head": [
+      -0.096,
+      -0.393,
+      -0.102
+     ],
+     "legL": [
+      0.118,
+      -0.212,
+      0.161
+     ],
+     "legR": [
+      -0.085,
+      -0.196,
+      -0.053
+     ],
+     "kneeL": [
+      0.126,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.146,
+      0,
+      0
+     ],
+     "armL": [
+      0.089,
+      0.234,
+      0.688
+     ],
+     "armR": [
+      -0.025,
+      0.018,
+      -1.262
+     ],
+     "elbowL": [
+      -1.191,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.828,
+      0,
+      0
+     ],
+     "weapon": [
+      0.451,
+      -1.031,
+      -0.438
+     ],
+     "drop": [
+      -0.017,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.347,
+    {
+     "hips": [
+      0,
+      0.353,
+      -0.06
+     ],
+     "torso": [
+      -0.165,
+      -0.011,
+      -0.002
+     ],
+     "chest": [
+      0.079,
+      0.002,
+      0.029
+     ],
+     "head": [
+      -0.096,
+      -0.393,
+      -0.102
+     ],
+     "legL": [
+      0.168,
+      -0.199,
+      0.181
+     ],
+     "legR": [
+      -0.058,
+      -0.199,
+      -0.041
+     ],
+     "kneeL": [
+      0.073,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.153,
+      0,
+      0
+     ],
+     "armL": [
+      0.105,
+      0.258,
+      0.699
+     ],
+     "armR": [
+      -0.008,
+      -0.012,
+      -1.265
+     ],
+     "elbowL": [
+      -1.207,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.874,
+      0,
+      0
+     ],
+     "weapon": [
+      0.484,
+      -1.076,
+      -0.439
+     ],
+     "drop": [
+      -0.017,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.42,
+    {
+     "hips": [
+      0,
+      0.35,
+      0.034
+     ],
+     "torso": [
+      0.095,
+      -0.004,
+      0
+     ],
+     "chest": [
+      0.082,
+      0.002,
+      0.03
+     ],
+     "head": [
+      -0.097,
+      -0.393,
+      -0.103
+     ],
+     "legL": [
+      0.403,
+      -0.117,
+      0.195
+     ],
+     "legR": [
+      0.078,
+      -0.209,
+      -0.054
+     ],
+     "kneeL": [
+      0,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.361,
+      0,
+      0
+     ],
+     "armL": [
+      0.075,
+      0.602,
+      0.659
+     ],
+     "armR": [
+      0.119,
+      -0.601,
+      -1.102
+     ],
+     "elbowL": [
+      -0.991,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.478,
+      0,
+      0
+     ],
+     "weapon": [
+      0.961,
+      -0.461,
+      -0.056
+     ],
+     "drop": [
+      -0.026,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.492,
+    {
+     "hips": [
+      0,
+      0.438,
+      0.034
+     ],
+     "torso": [
+      0.107,
+      -0.005,
+      0
+     ],
+     "chest": [
+      0.082,
+      0.003,
+      0.03
+     ],
+     "head": [
+      -0.097,
+      -0.393,
+      -0.103
+     ],
+     "legL": [
+      0.403,
+      -0.117,
+      0.195
+     ],
+     "legR": [
+      0.078,
+      -0.209,
+      -0.054
+     ],
+     "kneeL": [
+      0,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.361,
+      0,
+      0
+     ],
+     "armL": [
+      0.075,
+      0.602,
+      0.659
+     ],
+     "armR": [
+      0.119,
+      -0.601,
+      -1.102
+     ],
+     "elbowL": [
+      -0.991,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.478,
+      0,
+      0
+     ],
+     "weapon": [
+      0.961,
+      -0.461,
+      -0.056
+     ],
+     "drop": [
+      -0.032,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.669,
+    {
+     "hips": [
+      0,
+      0.35,
+      0.034
+     ],
+     "torso": [
+      0.095,
+      -0.004,
+      0
+     ],
+     "chest": [
+      0.086,
+      0.002,
+      0.031
+     ],
+     "head": [
+      -0.107,
+      -0.393,
+      -0.106
+     ],
+     "legL": [
+      0.402,
+      -0.117,
+      0.194
+     ],
+     "legR": [
+      0.077,
+      -0.208,
+      -0.054
+     ],
+     "kneeL": [
+      0,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.36,
+      0,
+      0
+     ],
+     "armL": [
+      0.074,
+      0.593,
+      0.655
+     ],
+     "armR": [
+      0.12,
+      -0.618,
+      -1.102
+     ],
+     "elbowL": [
+      -1.007,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.493,
+      0,
+      0
+     ],
+     "weapon": [
+      0.957,
+      -0.466,
+      -0.058
+     ],
+     "drop": [
+      -0.026,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.834,
+    {
+     "hips": [
+      0,
+      0.113,
+      0.002
+     ],
+     "torso": [
+      0.01,
+      0,
+      0
+     ],
+     "chest": [
+      0.003,
+      0,
+      0.002
+     ],
+     "head": [
+      -0.001,
+      -0.097,
+      -0.006
+     ],
+     "legL": [
+      0.04,
+      -0.1,
+      0.101
+     ],
+     "legR": [
+      -0.054,
+      -0.051,
+      -0.042
+     ],
+     "kneeL": [
+      0.08,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.211,
+      0,
+      0
+     ],
+     "armL": [
+      0.372,
+      0.395,
+      0.54
+     ],
+     "armR": [
+      0.32,
+      -0.522,
+      -0.666
+     ],
+     "elbowL": [
+      -1.066,
+      0,
+      0
+     ],
+     "elbowR": [
+      -1.097,
+      0,
+      0
+     ],
+     "weapon": [
+      0.618,
+      -0.065,
+      -0.02
+     ],
+     "drop": [
+      -0.009,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    1,
+    {
+     "hips": [
+      0,
+      0.086,
+      0
+     ],
+     "torso": [
+      0,
+      0,
+      0
+     ],
+     "chest": [
+      0,
+      0,
+      0
+     ],
+     "head": [
+      0,
+      -0.063,
+      0
+     ],
+     "legL": [
+      0.015,
+      -0.089,
+      0.1
+     ],
+     "legR": [
+      -0.051,
+      -0.036,
+      -0.038
+     ],
+     "kneeL": [
+      0.109,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.205,
+      0,
+      0
+     ],
+     "armL": [
+      0.652,
+      0.164,
+      0.505
+     ],
+     "armR": [
+      0.279,
+      -0.495,
+      -0.648
+     ],
+     "elbowL": [
+      -0.925,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.978,
+      0,
+      0
+     ],
+     "weapon": [
+      0.613,
+      0.028,
+      0.008
+     ],
+     "drop": [
+      -0.009,
       0,
       0
      ]

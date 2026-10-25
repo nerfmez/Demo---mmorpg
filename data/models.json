@@ -667,7 +667,8 @@
         "armAxis": 0.764,
         "neck": 0.852,
         "tip": 0.523,
-        "torso": 0.85
+        "torso": 0.85,
+        "armScale": 0.95
       },
       "armDrop": 1.3,
       "gearScale": 0.65,

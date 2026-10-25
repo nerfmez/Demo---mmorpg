@@ -280,6 +280,10 @@ tx = ccx + (gx * sT - ccx) * t
 L = np.stack([sx * (tx + (ax - gx) * sL), gy + np.interp(z, zs, dcy) + (y - gy) * sL, zmapL(z)], 1)
 # arms: `armX` maps distances out along the arm (from the shoulder to the fingertips), else `armLen` scales them
 a0, a1 = C['armAxis']; sA = C['armScale']
+# the sets' armScale (1.25) was set for the first body; this body's arm is as thick, but its arm line
+# sits under the shoulders' torso map, and the sleeves stood up to 10 cm above the arm: the sleeve's
+# cross-section is scaled as the torso is (`fit.armScale` overrides it)
+sA = FIT.get('armScale', sA)
 if C.get('armX'):
     ArmX = np.array(C['armX'], float)
     armx = lambda d: np.interp(d, ArmX[:, 0], ArmX[:, 1], left=None, right=None) + np.where(d > ArmX[-1, 0], (d - ArmX[-1, 0]) * (ArmX[-1, 1] - ArmX[-2, 1]) / (ArmX[-1, 0] - ArmX[-2, 0]), 0) + np.where(d < ArmX[0, 0], d - ArmX[0, 0], 0)
@@ -292,7 +296,18 @@ kz = np.polyfit(np.abs(armV[:, 0]), armV[:, 2], 1); ky = np.polyfit(np.abs(armV[
 ac = armx(ax)
 # front to back the sleeve is measured from the generated body's middle (its hips, as the torso is):
 # Meshy centres the whole model in its box, so a hood or cape behind it moves the arms forward
-A = np.stack([sx * ac, np.polyval(ky, ac) + (y - ty0) * sA, np.polyval(kz, ac) + (z - a0) * sA], 1)
+# the generated arm's own centre line too: Meshy's T-pose arms slope up to the shoulder, so heights
+# measured from the forearm's axis (a0) stood the upper sleeve and shoulder up by that slope (up to
+# 10 cm above the chibi's arm); each slice of the sleeve is placed from its own centre instead
+_gx = np.linspace(0.24, np.abs(P0[:, 0]).max() * 0.8, 12); _gc = []
+for _x in _gx:
+    _s = P0[(np.abs(np.abs(P0[:, 0]) - _x) < 0.01)]
+    _s = _s[np.abs(_s[:, 2] - a0) < 0.12]
+    _gc.append(((_s[:, 2].min() + _s[:, 2].max()) / 2, (_s[:, 1].min() + _s[:, 1].max()) / 2) if len(_s) > 3 else (np.nan, np.nan))
+_gc = np.array(_gc); _ok = ~np.isnan(_gc[:, 0])
+gz = np.polyfit(_gx[_ok], _gc[_ok, 0], 1) if _ok.sum() > 3 else np.array([0, a0])
+gzc = np.polyval(gz, np.maximum(ax, 0.12))
+A = np.stack([sx * ac, np.polyval(ky, ac) + (y - ty0) * sA, np.polyval(kz, ac) + (z - gzc) * sA], 1)
 wl = smooth01(crotchG + 0.02, crotchG - 0.03, z)[:, None]
 wa = (smooth01(0.10, 0.16, ax) * (z > a0 - 0.08))[:, None]
 P = T * (1 - wl) + L * wl

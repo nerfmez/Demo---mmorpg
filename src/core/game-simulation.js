@@ -459,15 +459,15 @@ export class Game {
       this.emit({ type: 'arrows', left: arrowTotal(this.ch), use: after });
       if (after !== before) this.refresh(); // the next type (or none) changes a bow's stats
     }
-    // step: which swing of the 1-2-3 combo this will be; decided now and kept until it lands,
-    // so the announced animation and the swing always agree
+    // step: which arm the swing comes from; decided now and kept until it lands, so the announced
+    // animation and the swing always agree
     let castTime = s.castTime;
     if (p.momentum) { if (this.time <= p.momentum.until) castTime /= 1 + p.momentum.speed; p.momentum = null; }
     const step = s.kind === 'melee_arc' ? this.comboStepAt(this.time + castTime) : 0;
     const castSkill = counter ? { ...s, counterStrike:true } : s.charge ? { ...s, damage: s.damage * (1 + (s.charge.maxDamageMult - 1) * Math.max(0, Math.min(1, chargeRatio || 0))) } : s;
     p.cast = { slot: i, t: 0, total: castTime, aim, skill: castSkill, step };
     p.facing = aim.angle;
-    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step });
+    this.emit({ type: 'castStart', slot: i, skill: s.id, kind: s.kind, angle: aim.angle, x: aim.x, z: aim.z, total: castTime, weapon: this.derived.weaponType, step, ...(s.charge ? { charge: Math.max(0, Math.min(1, chargeRatio || 0)) } : {}) });
     return true;
   }
 
@@ -855,7 +855,8 @@ export class Game {
       if (opts.chill&&!opts.consumedChill) m.statuses.chill = { slow: opts.chill.slow, t: opts.chill.duration };
       if (opts.burnChance && this.rng.chance(opts.burnChance)) m.statuses.burn = { dps: amount * 0.15, t: 3, acc: 0, owner:'player' };
       const pc = this.derived.poisonChancePct / 100;
-      if (pc > 0 && !opts.byAlly && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
+      // a passive poison proc never replaces Venom Arrow's stacked poison
+      if (pc > 0 && !opts.byAlly && !m.statuses.poison?.stacks && this.rng.chance(pc)) m.statuses.poison = { dps: amount * 0.12, t: 4, acc: 0 };
       if (opts.knock && m.hp > 0) {
         const a = angleTo(opts.fromX ?? this.player.x, opts.fromZ ?? this.player.z, m.x, m.z);
         const d = dirFromAngle(a);
@@ -1014,14 +1015,14 @@ export class Game {
   }
 
   hitOpts(s, extra = {}) {
-    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, exposure:s.exposure, interrupt:s.interrupt, taunt:s.taunt, modEffects:s.modEffects, ...extra };
+    return { skill: s.id, attackKind: s.kind, element: s.element, chill: s.chill, burnChance: s.burnChance, knock: s.knock, leech: s.leech, exposure:s.exposure, stun:s.stun, poison:s.poison, taunt:s.taunt, modEffects:s.modEffects, ...extra };
   }
 
-  /** The combo step (0, 1, 2 = finisher) a melee swing landing at time t would be. */
+  /** The combo step (0, 1: which arm side) a melee swing landing at time t would be. */
   comboStepAt(t) {
     const p = this.player;
     const window = this.data.progression.combat?.comboWindow ?? 1.1;
-    return t - (p.lastSwingT ?? -9) < window ? ((p.comboStep || 0) + 1) % 3 : 0;
+    return t - (p.lastSwingT ?? -9) < window ? ((p.comboStep || 0) + 1) % 2 : 0;
   }
 
   /** Execute a computed skill. mult scales damage (triggers, echoes, repeats). */
@@ -1036,14 +1037,11 @@ export class Game {
       case 'melee_arc': {
         const arc = s.arc * DEG;
         let hits = 0;
-        // 1-2-3 combo: the third swing in a row is a finisher
-        const cb = this.data.progression.combat || {};
-        let finisher = false;
+        // swings in a row alternate the arm (combo step, for the animation); every swing is the same
+        // plain strike: no third-hit finisher bonus or knockback
         if (!triggered && repeat === 0) {
           p.comboStep = step ?? this.comboStepAt(this.time);
           p.lastSwingT = this.time;
-          finisher = p.comboStep === 2;
-          if (finisher) mult *= cb.finisherMult ?? 1.5;
         }
         for (const m of this.monsters) {
           if (m.dead) continue;
@@ -1051,14 +1049,14 @@ export class Game {
           if (d > s.range) continue;
           const off = Math.abs(angleDiff(aim.angle, angleTo(p.x, p.z, m.x, m.z)));
           if (off > arc / 2 && d > 0.3) continue;
-          this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit(), ...(finisher ? { knock: Math.max(s.knock || 0, cb.finisherKnock ?? 2.2), stagger: 0.35 } : {}) }));
+          this.hitMonster(m, s.damage * mult, this.hitOpts(s, { crit: crit() }));
           hits++;
         }
         if (hits && this.derived.meleeHitBarrier) {
           p.barrier = Math.min(p.maxHp * 0.5, p.barrier + this.derived.meleeHitBarrier * hits);
           p.barrierT = Math.max(p.barrierT, 3);
         }
-        this.emit({ type: 'slash', skill: s.id, x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++, step: p.comboStep || 0, finisher, hits });
+        this.emit({ type: 'slash', skill: s.id, x: p.x, z: p.z, angle: aim.angle, arc: s.arc, range: s.range, element: s.element, triggered, combo: this.combo++, step: p.comboStep || 0, hits });
         if (repeat < s.repeats) this.later(s.repeatDelay, () => !p.dead && this.executeSkill(s, { ...aim, angle: p.facing }, { mult: s.repeatMult, repeat: repeat + 1 }));
         return;
       }

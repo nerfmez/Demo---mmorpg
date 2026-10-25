@@ -1,6 +1,11 @@
 import { loadData } from '../../src/core/data-node.js';
 import { readFileSync } from 'node:fs';
 export const data = loadData();
+// No live skill is a damage field any more (Venom Mire became the Venom Arrow), but the field rules
+// (dot_zone, Following Field, Lingering, field passives) stay in core: tests cover them on this
+// test-only copy of the former Venom Mire.
+export const FIELD_SKILL = { name: 'Test Mire', nameTh: 'บึงทดสอบ', desc: 'test-only damage field', tags: ['Spell', 'Area', 'Poison', 'Persistent', 'Damage', 'Debuff', 'DoT', 'Control', 'Zone'], kind: 'dot_zone', power: 'spell', damage: { base: 5, scale: 0.5 }, range: 10, radius: 3, duration: 5, tick: 0.5, slow: 0.2, cooldown: 7, castTime: 0.3, cost: 15, element: 'poison', requires: { INT: 6 }, upgradeMaterial: 'spore_sac', icon: 'mire', upgradeStat: 'INT' };
+export const withField = (d) => ({ ...d, skills: { ...d.skills, combat: { ...d.skills.combat, test_mire: FIELD_SKILL } } });
 // Historical scenarios remain regression coverage; harbor.test exercises the
 // active map separately, including the new onboarding and migration.
 export const legacyData = { ...data, ...Object.fromEntries(['world', 'quests', 'monsters'].map(name => [name, JSON.parse(readFileSync(new URL(`../fixtures/frontier/${name}.json`, import.meta.url), 'utf8'))])) };

@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {legacyData as data} from './helpers.js';
+import {legacyData,withField} from './helpers.js';
+const data=withField(legacyData);
 import {Game} from '../../src/core/game.js';
 import {createCharacter,migrateCharacter,derive,CHARACTER_VERSION,arrowsPerCast,arrowTotal} from '../../src/core/character.js';
 import {computeSkill,movementSkill,socketMod,socketMovementMod,unsocketMod,modSlotOf,modFits} from '../../src/core/skills.js';
@@ -47,10 +48,10 @@ test('parry only accepts frontal direct hits in its window, opens one counter an
  const {g,m,s}=fixture('riposte');g.executeSkill(s,aim);const mp=g.player.mp;g.damagePlayer(30,m);assert(g.player.riposte.readyUntil>g.time);assert(g.castSlot(0));assert.equal(g.player.mp,mp);advance(g,.2);assert.equal(g.player.riposte,null);assert.equal(g.castSlot(0),false);
  for(const mode of ['rear','expired','dot']){const {g,m,s}=fixture('riposte');g.executeSkill(s,aim);if(mode==='rear')m.x=-2;if(mode==='expired')g.time+=1;g.damagePlayer(30,m,{dot:mode==='dot'});assert.equal(g.player.riposte.readyUntil,0,mode);}
 });
-test('flanking, exposure and explicit interruption change outcomes without permanently locking bosses',()=>{
- const a=fixture('weakpoint'),b=fixture('weakpoint');a.m.facing=-Math.PI/2;b.m.facing=Math.PI/2;a.g.executeSkill(a.s,aim);b.g.executeSkill(b.s,aim);assert(b.m.maxHp-b.m.hp>a.m.maxHp-a.m.hp);
+test('flanking, the front penalty, exposure and the slam stun change outcomes without permanently locking bosses',()=>{
+ const a=fixture('weakpoint'),b=fixture('weakpoint');a.m.facing=-Math.PI/2;b.m.facing=Math.PI/2;a.g.executeSkill(a.s,aim);b.g.executeSkill(b.s,aim);const front=a.m.maxHp-a.m.hp,back=b.m.maxHp-b.m.hp;assert(Math.abs(back/front-1.6/0.7)<0.1,`behind ${back} vs front ${front}`);
  const {g,m,s}=fixture('armor_cleave');g.executeSkill(s,aim);assert.equal(m.statuses.exposure.fraction,.18);g.executeSkill(s,aim);assert.equal(m.statuses.exposure.fraction,.18);tickFrontier(g,6);assert.equal(m.statuses.exposure,undefined);
- for(const boss of [false,true]){const {g,m,s}=fixture('interrupt_slam');m.state='windup';m.windup={name:Object.keys(m.def.attacks)[0]};m.boss=boss;g.executeSkill(s,aim);assert.equal(m.state,boss?'windup':'stunned');}
+ for(const boss of [false,true])for(const state of ['chase','windup']){const {g,m,s}=fixture('interrupt_slam');m.state=state;m.windup=state==='windup'?{name:Object.keys(m.def.attacks)[0]}:null;m.boss=boss;g.executeSkill(s,aim);assert.equal(m.state,'stunned');assert.equal(m.windup,null);assert.equal(m.stateDur,boss?.4:1.2);assert.equal(g.drainEvents().find(e=>e.type==='stunned').duration,m.stateDur);}
 });
 test('line strike respects width/range and rain pays all three authored waves',()=>{
  for(const pos of [[3,0,true],[3,3,false],[8,0,false]]){const {g,m,s}=fixture('frontline_split');m.x=pos[0];m.z=pos[1];g.executeSkill(s,aim);assert.equal(m.hp<m.maxHp,pos[2]);}
@@ -81,7 +82,7 @@ test('chain return revisits only the first live target, and bleed does not crit 
 test('status-consuming bursts consume once, and following fields remain one per slot with bounded slow',()=>{
  const a=fixture('firebolt',['status_burst']);a.m.statuses.burn={dps:5,t:3,owner:'player'};a.g.hitMonster(a.m,20,a.g.hitOpts(a.s));assert.equal(a.m.statuses.burn,undefined);assert.equal(a.g.drainEvents().filter(e=>e.type==='burst').length,1);
  const b=fixture('frost_nova',['status_burst']);b.m.statuses.chill={slow:.55,t:3};b.g.hitMonster(b.m,20,b.g.hitOpts(b.s));assert.equal(b.g.drainEvents().filter(e=>e.type==='burst').length,1);
- const {g,s,m}=fixture('venom_mire',['following_field','binding_field']);g.executeSkill(s,aim);g.executeSkill(s,aim);assert.equal(g.areas.length,1);g.player.x=2;g.updateAreas(.5);assert.equal(g.areas[0].x,2);const slow=m.statuses.chill.slow;g.updateAreas(.5);assert(m.statuses.chill.slow>slow&&m.statuses.chill.slow<=.35);
+ const {g,s,m}=fixture('test_mire',['following_field','binding_field']);g.executeSkill(s,aim);g.executeSkill(s,aim);assert.equal(g.areas.length,1);g.player.x=2;g.updateAreas(.5);assert.equal(g.areas[0].x,2);const slow=m.statuses.chill.slow;g.updateAreas(.5);assert(m.statuses.chill.slow>slow&&m.statuses.chill.slow<=.35);
 });
 test('curse spreads remaining time to one new target only; barrier break fires once',()=>{
  const {g,m,s}=fixture('hex',['spreading_hex']);g.executeSkill(s,aim);m.statuses.hex.t=2;const other={...m,id:999,x:3,statuses:{},hp:100};g.monsters.push(other);m.minion=true;g.killMonster(m);assert.equal(other.statuses.hex.t,2);g.killMonster(m);assert.equal(other.statuses.hex.t,2);
@@ -156,4 +157,14 @@ test('phase 2c mods: poison shift, wide field, building power and momentum chang
   assert.ok(g.move.momentum);const normal=g.skills[0].castTime;assert.ok(g.useMovement());g.player.dash=null;
   assert.ok(g.castSlot(0));assert.ok(Math.abs(g.player.cast.total-normal/1.2)<1e-9);g.player.cast=null;g.player.cooldowns[0]=0;
   assert.ok(g.castSlot(0));assert.equal(g.player.cast.total,normal,'only the next cast');}
+});
+test('the slam stun knocks a shelled monster out of its shell; passive poison never wipes Venom Arrow stacks',()=>{
+ const {g,m,s}=fixture('interrupt_slam');m.state='shell';m.shell=true;g.executeSkill(s,aim);assert.equal(m.state,'stunned');assert.equal(m.shell,false,'no shell damage reduction after the stun');
+ const v=fixture('venom_mire');v.g.derived.poisonChancePct=100;
+ for(let i=0;i<5;i++)v.g.hitMonster(v.m,20,v.g.hitOpts(v.s));
+ assert.equal(v.m.statuses.poison.stacks,5,'a guaranteed passive proc keeps the five stacks');
+});
+test('a released charged shot announces its charge on castStart',()=>{
+ const {g}=fixture();assert(g.castSlot(0));advance(g,.6);g.drainEvents();assert(g.releaseCharge(0));
+ const start=g.drainEvents().find(e=>e.type==='castStart');assert(Math.abs(start.charge-.5)<.02,String(start.charge));
 });

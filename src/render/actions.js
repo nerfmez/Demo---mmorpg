@@ -102,8 +102,8 @@ const cut = (hit, pre, poses, arcs, end = 0.66) => act(hit, [
 const act = (hit, keys) => ({ hit, keys: keys.map(([t, p]) => [t, Object.keys(p).length ? { ...ZERO, ...p } : p]) });
 export const ACTIONS = {
   staffBolt: { hit: .42, keys: [[0,{...STAFF_GATHER,staffAim:[0,0,0]}],[.16,STAFF_GATHER],[.42,STAFF_OUT],[.58,STAFF_OUT],[1,{...STAFF_GATHER,staffAim:[0,0,0]}]] },
-  // 1-2-3 combo along the slash crescent: rising cut to the left, rising backhand to the right,
-  // a bigger rising finisher. The body twists with the blade (wind-up away, hit through).
+  // combo cuts along the slash crescent: rising cut to the left, rising backhand to the right
+  // (swings in a row alternate these two); slashC, a bigger rising cut, is kept for the leap. The body twists with the blade (wind-up away, hit through).
   slashA: cut(0.46, 0.3, [A_WIND, A_HIT, A_END], RISE_L),
   slashB: cut(0.46, 0.28, [B_WIND, B_HIT, B_END], RISE_R),
   slashC: cut(0.48, 0.32, [HA_WIND, HA_HIT, hold(HA_HIT, { torso: [0.4, 0.55, 0], drop: [-0.14, 0, 0] })], RISE_BIG, 0.7),
@@ -155,10 +155,34 @@ export const ACTIONS = {
   ]),
 };
 
+// Skill-specific actions built from the bow keys (first made on the FX test bench).
+{
+  const [rest, raise, draw, loose] = ACTIONS.bow.keys.map((k) => k[1]);
+  const sky = (p, extra) => ({ ...p, torso: [-0.18, 0.7, 0], chest: [-0.28, 0.2, 0], head: [-0.6, -0.6, 0], ikR: [-0.05, 2.0, 0.42], ...extra });
+  // Arrow Rain: draw and loose at the sky, leaning back
+  ACTIONS.bowSky = { hit: 0.55, keys: [[0, rest], [0.24, sky(raise)], [0.47, sky(draw, { ikL: [-0.1, 1.72, 0.0] })], [0.55, sky(loose, { ikL: [-0.08, 1.66, -0.16], drop: [-0.04, 0, 0] })], [0.8, sky(loose, { ikL: [-0.08, 1.66, -0.16] })], [1, rest]] };
+  // Power Draw: raise and draw, then hold at full draw for as long as the charge is held; loose on release
+  const held = { ...draw, ikL: [-0.12, 1.5, 0.02], chest: [-0.05, 0.3, 0] };
+  ACTIONS.bowDraw = { hit: 1, keys: [[0, rest], [0.08, raise], [0.2, held], [1, held]] };
+  ACTIONS.bowLoose = { hit: 0.3, keys: [[0, { ...draw, ikL: [-0.12, 1.5, 0.02] }], [0.3, { ...loose, drop: [-0.05, 0, 0] }], [0.7, loose], [1, rest]] };
+  // Flank Thrust: a straight stab (pull the dagger back at the hip, lunge and drive it out), not a cut
+  const thWind = { ...rest, armR: [-0.5, 0, -0.25], elbowR: [-2.0, 0, 0], weapon: [1.57, 0, 0], armL: [-0.8, 0, 0.4], elbowL: [-1.1, 0, 0], torso: [0, -0.35, 0], chest: [0, -0.15, 0], legL: [-0.2, 0, 0], kneeL: [0.35, 0, 0], kneeR: [0.3, 0, 0], drop: [-0.04, 0, 0] };
+  const thHit = { ...rest, armR: [-1.55, -0.1, 0.05], elbowR: [0, 0, 0], weapon: [1.57, 0, 0], armL: [0.3, 0, 0.5], elbowL: [-0.3, 0, 0], torso: [0.3, 0.35, 0], chest: [0.08, 0.15, 0], legL: [-0.8, 0, 0], kneeL: [1.0, 0, 0], legR: [0.45, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
+  ACTIONS.thrust = { hit: 0.45, keys: [[0, rest], [0.3, thWind], [0.45, thHit], [0.7, thHit], [1, rest]] };
+  // Shield Bash: load the shield arm back across the body, then drive the shield straight out
+  const bashWind = { ...rest, armL: [-0.7, 0, 0.7], elbowL: [-1.7, 0, 0], torso: [0.05, 0.5, 0], chest: [0, 0.25, 0], legL: [-0.15, 0, 0], kneeL: [0.4, 0, 0], kneeR: [0.35, 0, 0], drop: [-0.06, 0, 0] };
+  const bashHit = { ...rest, armL: [-1.5, 0, 0.15], elbowL: [-0.15, 0, 0], torso: [0.3, -0.45, 0], chest: [0.08, -0.2, 0], legL: [-0.75, 0, 0], kneeL: [0.9, 0, 0], legR: [0.4, 0, 0], kneeR: [0.2, 0, 0], drop: [-0.12, 0, 0] };
+  ACTIONS.shieldBash = { hit: 0.42, keys: [[0, rest], [0.28, bashWind], [0.42, bashHit], [0.7, bashHit], [1, rest]] };
+  // Measured Riposte's guard: the sword brought up across the front, held for the guard
+  const guardUp = { ...rest, armR: [-1.25, 0.35, -0.15], elbowR: [-1.3, 0, 0], weapon: [0.6, 0, 1.25], armL: [-1.0, 0, 0.35], elbowL: [-1.2, 0, 0], torso: [0.05, -0.3, 0], chest: [0, -0.1, 0], legL: [-0.3, 0, 0], kneeL: [0.45, 0, 0], kneeR: [0.4, 0, 0], drop: [-0.08, 0, 0] };
+  ACTIONS.guardBlock = { hit: 0.2, keys: [[0, rest], [0.15, guardUp], [0.85, guardUp], [1, rest]] };
+}
+
 // skill id -> action (or a family resolved by weapon / combo step)
 const BY_SKILL = {
-  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', charged_shot: 'shoot', arcane_bolt: 'bolt', firebolt: 'bolt', chain_spark: 'zap',
-  stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'sow', hex: 'hex', ward: 'ward',
+  slash: 'combo', whirl_blade: 'whirl', hunter_shot: 'shoot', charged_shot: 'bowLoose', arcane_bolt: 'bolt', firebolt: 'bolt', chain_spark: 'zap',
+  stone_burst: 'slam', frost_nova: 'nova', venom_mire: 'shoot', hex: 'hex', ward: 'ward',
+  arrow_rain: 'bowSky', frontline_split: 'slam', interrupt_slam: 'slam', weakpoint: 'thrust', shield_bash: 'shieldBash', riposte: 'guardBlock',
   war_cry: 'warcry', healing_spring: 'heal', spirit_wolf: 'summon',
 };
 // skill kind -> action, for skills without their own entry

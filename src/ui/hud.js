@@ -294,9 +294,10 @@ export class Hud {
     setTimeout(() => b.remove(), cls === 'long' ? 4200 : 2800);
   }
 
-  float(x, y, z, text, cls) {
+  float(x, y, z, text, cls, color = null) {
     const el = h(`<div class="fnum ${cls || ''}"></div>`);
     el.textContent = text;
+    if (color) el.style.color = color;
     this.el.floats.appendChild(el);
     this.floats.push({ el, x, y: this.game.world.groundY(x, z) + y, z, t: 0, vx: (Math.random() - 0.5) * 30 });
     if (this.floats.length > 60) {
@@ -336,9 +337,6 @@ export class Hud {
     const g = this.game;
     const d = g.data;
     switch (e.type) {
-      case 'slash':
-        if (e.finisher && e.hits) this.float(e.x + Math.sin(e.angle) * 1.6, 2.6, e.z + Math.cos(e.angle) * 1.6, 'ปิดท้าย!', 'finisher');
-        break;
       case 'hit':
         this.float(e.x, 1.8, e.z, e.crit ? `${e.amount}!` : e.amount, e.crit ? 'crit' : e.dot ? 'dot' : e.shell ? 'shell' : e.byAlly ? 'ally' : ['cold', 'fire', 'lightning', 'poison'].includes(e.element) ? e.element : '');
         break;

@@ -10489,8 +10489,8 @@
   "_from": "Quaternius Universal Animation Library (CC0) Roll, retargeted: node scripts/pose-retarget/clip-keys.mjs --file UAL1.glb --clip Roll --weapon sword --skill slash --keys 41 --legs 0.8 --face --hit 0.5. Keys (t <- clip u): 0<-0.05, the dive 0.25<-0.33, tucked 0.5<-0.49 and 0.7<-0.65, sitting up 0.85<-0.81, 1<-0.95, timed so the game's own turn over (hipsSpinX, a quarter per 0.25: the hips channel takes no pitch) matches the reference's; no drop (hero.js keeps the roll's dip). hit is unused. hero.js sets the curled body's lowest point (the head as a 0.26 m ball, knees, feet, hands) on the ground every frame of the roll (the owner saw it unnatural: the head sank through the floor)."
  },
  "moveBlink": {
-  "hit": 0.5,
-  "sweep": 1,
+  "hit": 0.55,
+  "sweep": -1,
   "keys": [
    [
     0.0,
@@ -10501,142 +10501,237 @@
       0
      ],
      "torso": [
-      0,
-      0,
+      0.67,
+      -0.097,
       0
      ],
      "chest": [
-      0,
-      0,
-      0
+      0.738,
+      -0.044,
+      -0.06
      ],
      "head": [
-      0,
-      -0.063,
-      0
+      -0.786,
+      0.242,
+      0.04
      ],
      "legL": [
-      0.025,
-      -0.148,
-      0.167
+      -1.774,
+      -0.165,
+      0.254
      ],
      "legR": [
-      -0.085,
-      -0.059,
-      -0.063
+      -1.218,
+      -0.136,
+      -0.623
      ],
      "kneeL": [
-      0.181,
+      2.277,
       0,
       0
      ],
      "kneeR": [
-      0.342,
+      2.453,
       0,
       0
      ],
      "armL": [
-      0.652,
-      0.164,
-      0.841
+      -0.782,
+      0.019,
+      0.558
      ],
      "armR": [
-      0.529,
-      -0.225,
-      -0.789
+      -0.631,
+      0.245,
+      -0.552
      ],
      "elbowL": [
-      -0.924,
+      -0.531,
       0,
       0
      ],
      "elbowR": [
-      -0.978,
+      -0.729,
       0,
       0
      ],
      "weapon": [
-      0.63,
-      -0.387,
-      -0.115
+      -0.125,
+      0.001,
+      0.001
      ],
      "drop": [
-      -0.019,
+      -0.2,
+      0,
+      0
+     ],
+     "footL": [
+      -0.503,
+      0,
+      0
+     ],
+     "footR": [
+      -1.235,
       0,
       0
      ]
     }
    ],
    [
-    0.5,
+    0.55,
     {
      "hips": [
       0,
-      0.379,
-      0.127
-     ],
-     "torso": [
-      0.274,
-      -0.225,
-      0.013
-     ],
-     "chest": [
-      -0.068,
-      -0.169,
-      -0.017
-     ],
-     "head": [
-      -0.003,
-      -0.063,
+      0,
       0
      ],
+     "torso": [
+      0.67,
+      -0.097,
+      0
+     ],
+     "chest": [
+      0.738,
+      -0.044,
+      -0.06
+     ],
+     "head": [
+      -0.786,
+      0.242,
+      0.04
+     ],
      "legL": [
-      0.028,
-      -0.5,
-      -0.011
+      -1.774,
+      -0.165,
+      0.254
      ],
      "legR": [
-      -0.715,
-      -0.372,
-      -0.483
+      -1.218,
+      -0.136,
+      -0.623
      ],
      "kneeL": [
-      1.152,
+      2.277,
       0,
       0
      ],
      "kneeR": [
-      2.127,
+      2.453,
       0,
       0
      ],
      "armL": [
-      0.878,
-      0.732,
-      0.651
+      -0.782,
+      0.019,
+      0.558
      ],
      "armR": [
-      -0.003,
-      -0.314,
-      -1.14
+      -0.631,
+      0.245,
+      -0.552
      ],
      "elbowL": [
-      -0.934,
+      -0.531,
       0,
       0
      ],
      "elbowR": [
-      -1.341,
+      -0.729,
       0,
       0
      ],
      "weapon": [
-      0.165,
-      -0.867,
-      -0.515
+      -0.125,
+      0.001,
+      0.001
      ],
      "drop": [
-      -0.243,
+      -0.2,
+      0,
+      0
+     ],
+     "footL": [
+      -0.503,
+      0,
+      0
+     ],
+     "footR": [
+      -1.235,
+      0,
+      0
+     ]
+    }
+   ],
+   [
+    0.76,
+    {
+     "hips": [
+      0,
+      -0.033,
+      -0.024
+     ],
+     "torso": [
+      -0.06,
+      -0.021,
+      -0.022
+     ],
+     "chest": [
+      0.748,
+      -0.094,
+      -0.103
+     ],
+     "head": [
+      -0.782,
+      0.214,
+      0.145
+     ],
+     "legL": [
+      -0.761,
+      -0.02,
+      0.416
+     ],
+     "legR": [
+      -0.508,
+      -0.375,
+      -0.374
+     ],
+     "kneeL": [
+      1.42,
+      0,
+      0
+     ],
+     "kneeR": [
+      0.991,
+      0,
+      0
+     ],
+     "armL": [
+      0.015,
+      0.114,
+      0.537
+     ],
+     "armR": [
+      0.057,
+      0.367,
+      -0.486
+     ],
+     "elbowL": [
+      -0.792,
+      0,
+      0
+     ],
+     "elbowR": [
+      -0.033,
+      0,
+      0
+     ],
+     "weapon": [
+      -0.129,
+      -0.031,
+      -0.024
+     ],
+     "drop": [
+      -0.097,
       0,
       0
      ]
@@ -10647,78 +10742,78 @@
     {
      "hips": [
       0,
-      0.379,
-      0.127
+      -0.054,
+      -0.035
      ],
      "torso": [
-      0.301,
-      -0.225,
-      0.026
+      -0.123,
+      0.013,
+      -0.018
      ],
      "chest": [
-      -0.055,
-      -0.169,
-      -0.014
+      0.771,
+      -0.079,
+      -0.094
      ],
      "head": [
-      -0.016,
-      -0.063,
-      -0.001
+      -0.598,
+      0.216,
+      0.092
      ],
      "legL": [
-      0.079,
-      -0.501,
-      0.006
+      -0.853,
+      -0.114,
+      0.513
      ],
      "legR": [
-      -0.895,
-      -0.292,
-      -0.523
+      -0.679,
+      -0.28,
+      -0.366
      ],
      "kneeL": [
-      0.984,
+      1.685,
       0,
       0
      ],
      "kneeR": [
-      2.147,
+      1.293,
       0,
       0
      ],
      "armL": [
-      0.822,
-      0.756,
-      0.65
+      0.18,
+      0.24,
+      0.601
      ],
      "armR": [
-      -0.043,
-      -0.268,
-      -1.117
+      0.263,
+      0.388,
+      -0.656
      ],
      "elbowL": [
-      -0.896,
+      -0.88,
       0,
       0
      ],
      "elbowR": [
-      -1.286,
+      -0.008,
       0,
       0
      ],
      "weapon": [
-      0.099,
-      -0.899,
-      -0.576
+      -0.129,
+      -0.071,
+      -0.056
      ],
      "drop": [
-      -0.213,
+      -0.139,
       0,
       0
      ]
     }
    ]
   ],
-  "_from": "KayKit Character Animations (CC0) Dodge_Forward on Knight.glb, retargeted: node scripts/pose-retarget/clip-keys.mjs --profile kaykit --file Knight.glb --anim Rig_Medium_MovementAdvanced.glb --clip Dodge_Forward --prop 1H_Sword --weapon sword --skill slash --keys 21 --face --hit 0.5. The first lean in: 0<-0, 0.5<-0.3, 1<-0.4, eased in and out over the 0.08 s blink (a quick dip forward as the body vanishes). Replaces NinjaJump_Start's tuck (the owner: unnatural). hit is unused."
+  "_from": "Quaternius Universal Animation Library (CC0) NinjaJump_Start, retargeted: node scripts/pose-retarget/clip-keys.mjs --file UAL2.glb --clip NinjaJump_Start --weapon sword --skill slash --keys 41 --legs 0.8 --face --hit 0.5. Over the blink (its 0.25 s gather and 0.08 s jump): the crouch (clip u 0) reached at 0.55 and the spring up (u 0.1) at 0.76, the moment the body vanishes, held to 1; drop clamped at -0.25. The owner: the blink needs a visible wind-up before it vanishes (not a cooldown). hit is unused. The crouch deepened for the chibi (legs and knees x1.6, torso lean +0.3, drop -0.2, feet kept flat): the reference's crouch barely read on the short legs."
  },
  "moveLeap": {
   "hit": 0.82,

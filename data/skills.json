@@ -961,7 +961,7 @@
       ],
       "kind": "blink",
       "distance": 8,
-      "duration": 0.08, "delay": 0.14,
+      "duration": 0.08, "delay": 0.25,
       "charges": 1,
       "recharge": 4.5,
       "invulnerable": true,

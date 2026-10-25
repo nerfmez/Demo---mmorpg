@@ -53,14 +53,15 @@ export function benchMods(data, skill, selected = []) {
   });
 }
 
-export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null } = {}) {
+export function createBench(data, skill, mods = [], { seed = 71, fusion = null, fusionRules = null, movement = 'dash' } = {}) {
   const ch = createCharacter(data, { kit: 'bow' });
   ch.stats = { STR: 50, AGI: 50, VIT: 50, INT: 50, DEX: 50 };
   ch.skills[skill] = 1;
   ch.mods = mods.map((m) => ({ id: m.id, uid: ch.nextUid++, level: m.level || 1, grade: 'C' }));
   if (fusion) ch.skills[fusion] = 1;
   ch.slots = ch.slots.map((_, i) => ({ skill: i === 0 ? skill : i === 1 && fusion ? fusion : null, mods: i === 0 ? ch.mods.map((m) => m.uid) : [] }));
-  if (data.skills.movement.dash) { ch.movementSkills = ['dash']; ch.movement = 'dash'; }
+  const mv = data.skills.movement[movement] ? movement : 'dash'; // the dodge button's move (the bench's หลบ picker)
+  if (data.skills.movement[mv]) { ch.movementSkills = [mv]; ch.movement = mv; }
   ch.equipped.weapon = ch.equipped.offhand = null;
   const weaponType = BENCH_WEAPON[skill] || 'staff';
   const base = Object.entries(data.items.gearBases).find(([, d]) => d.weaponType === weaponType);

@@ -154,7 +154,7 @@ const benchSkip = (k) => skipSets.get(k) || skipSets.set(k, new Set([k, ...OWN_P
 const stats = { casts: 0, hits: 0, total: 0, byElement: {}, last: null };
 function rebuild() {
   if (state.fusion && !fusionPayloads(data, FUSION, state.skill).includes(state.fusion)) state.fusion = null;
-  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION });
+  game = createBench(data, state.skill, state.mods, { fusion: state.fusion, fusionRules: FUSION, movement: state.movement });
   game.aimAt(aimAngle);
   const off = data.skills.combat[state.skill]?.requiresOffhand || state.offhand || null; // Shield Bash holds a shield; setOffhand a second weapon
   const weapon = state.weapon || BENCH_WEAPON[state.skill]; // setWeapon: another weapon in the right hand
@@ -326,6 +326,7 @@ function renderPanel() {
   const W = [[null, 'ของสกิล'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์'], ['axe', 'ขวาน'], ['mace', 'กระบอง'], ['greatblade', 'ดาบใหญ่'], ['staff', 'คทา'], ['bow', 'ธนู']];
   pick('มือขวา', W, state.weapon || null, (id) => { state.weapon = id; });
   pick('มือซ้าย', [[null, 'ว่าง'], ['shield', 'โล่'], ['sword', 'ดาบ'], ['dagger', 'มีดสั้น'], ['wand', 'ไม้กายสิทธิ์']], state.offhand || null, (id) => { state.offhand = id; });
+  pick('หลบ', [['dash', 'พุ่ง'], ['roll', 'กลิ้ง'], ['blink', 'วาร์ป'], ['leap', 'กระโดด']], state.movement || 'dash', (id) => { state.movement = id; });
   panel.append(wb);
 
   const modBox = h('section', 'mods');

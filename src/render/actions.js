@@ -299,5 +299,3 @@ export function pickAction(skill, kind, weapon, step = 0, dual = false) {
   return a;
 }
 
-/** The slashC wind-up and hit poses, reused by the leap slam. */
-export const LEAP = { air: C_WIND, land: C_HIT };

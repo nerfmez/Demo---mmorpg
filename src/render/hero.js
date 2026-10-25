@@ -11,7 +11,7 @@ import GAIT from '../../data/gait.json';
 import STAFF_CAST from '../../data/staff-cast.json';
 import HOLDS from '../../data/weapon-holds.json';
 import MODELS from '../../data/models.json';
-import { ACTIONS, pickAction, LEAP } from './actions.js';
+import { ACTIONS, pickAction } from './actions.js';
 import { reachArm, PALM } from './ik.js';
 import { attachHair } from './hair.js';
 import { buildOutfit } from './outfit.js';
@@ -379,46 +379,23 @@ export class HumanoidAnimator {
     // ---- dashes, rolls, leaps override the whole body ----
     const dash = s.dash;
     if (dash) {
-      const t = clamp01(dash.t / dash.dur);
-      if (dash.kind === 'roll') {
-        hipsSpinX = t * Math.PI * 2;
-        Object.assign(pose, { legL: [-1.5, 0, 0], legR: [-1.3, 0, 0], kneeL: [2.1, 0, 0], kneeR: [2.2, 0, 0], armL: [-0.9, 0, 0.3], armR: [-0.9, 0, -0.3], elbowL: [-1.4, 0, 0], elbowR: [-1.4, 0, 0], torso: [0.9, 0, 0], head: [0.4, 0, 0] });
-        bodyY = -0.42 * Math.sin(Math.min(1, t * 1.15) * Math.PI);
-      } else if (dash.kind === 'leap') {
-        const crouch = t < 0.18 ? t / 0.18 : t > 0.82 ? (1 - t) / 0.18 : 0;
-        const air = t >= 0.18 && t <= 0.82 ? Math.sin(((t - 0.18) / 0.64) * Math.PI) : 0;
-        Object.assign(pose, {
-          legL: [-0.6 * air - 0.5 * crouch, 0, 0],
-          legR: [0.2 * air - 0.4 * crouch, 0, 0],
-          kneeL: [1.2 * air + 1.1 * crouch, 0, 0],
-          kneeR: [0.6 * air + 1.1 * crouch, 0, 0],
-          armL: [-2.2 * air - 0.3, 0, 0.3],
-          armR: [-2.4 * air - 0.3, 0, -0.3],
-          elbowL: [-0.4, 0, 0],
-          elbowR: [-0.4, 0, 0],
-          torso: [0.35 * crouch - 0.15 * air, 0, 0],
-        });
-        bodyY = -0.3 * crouch;
-        // leap slam: sword raised overhead in the air, chopped down on landing
-        const land = t > 0.82 ? crouch : 0;
-        for (const n of ['armR', 'elbowR', 'armL', 'elbowL', 'weapon', 'chest', 'head']) {
-          if (LEAP.air[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.air[n], Math.min(1, air * 1.6));
-          if (LEAP.land[n]) pose[n] = lerp3(pose[n] || [0, 0, 0], LEAP.land[n], land);
-        }
-        pose.torso[0] += 0.4 * land;
-      } else if (dash.kind === 'blink') {
-        // a quick crouch and tuck as the body vanishes
-        const k = Math.sin(t * Math.PI);
-        pose.torso[0] += 0.35 * k;
-        pose.kneeL[0] += 0.6 * k;
-        pose.kneeR[0] += 0.6 * k;
-        pose.elbowL[0] -= 1.0 * k;
-        pose.elbowR[0] -= 1.0 * k;
-        bodyY -= 0.1 * k;
-      } else {
-        Object.assign(pose, { legL: [-0.7, 0, 0], legR: [0.75, 0, 0], kneeL: [0.8, 0, 0], kneeR: [0.4, 0, 0], armL: [0.9, 0, 0.35], armR: [0.9, 0, -0.35], elbowL: [-0.3, 0, 0], elbowR: [-0.3, 0, 0], torso: [0.6, 0, 0], head: [-0.35, 0, 0] });
-        bodyY = -0.08;
+      // a reference clip over the move (data/action-clips.json move*), eased in from the pose it
+      // interrupts and back out to it; the roll also turns the body over (hipsSpinX: the game's hips
+      // take no pitch) and keeps its own dip
+      const t = clamp01(dash.t / dash.dur), mv = ACTIONS[MOVE_CLIPS[dash.kind] ?? MOVE_CLIPS.dash];
+      const roll = dash.kind === 'roll';
+      const k = roll ? 1 : smoother(Math.min(1, t / 0.12, (1 - t) / 0.18));
+      const mp = samplePose(mv.keys, t);
+      for (const n in mp) {
+        if (n === 'spin' || n === 'drop' || n === 'offhand' || (roll && !ROLL_LIMBS.has(n))) continue;
+        const cur = pose[n] || [0, 0, 0], v = mp[n];
+        pose[n] = [cur[0] + (v[0] - cur[0]) * k, cur[1] + (v[1] - cur[1]) * k, cur[2] + (v[2] - cur[2]) * k];
       }
+      if (roll) {
+        pose.torso = [0.9, 0, 0]; pose.head = [0.4, 0, 0]; // curled over the turn (the reference's trunk carries its own pitch)
+        hipsSpinX = t * Math.PI * 2;
+        bodyY = -0.42 * Math.sin(Math.min(1, t * 1.15) * Math.PI);
+      } else bodyY += ((mp.drop ? mp.drop[0] : 0) - bodyY) * k;
     }
 
     // ---- keyframed action over the upper body (legs partially) ----
@@ -755,6 +732,11 @@ export class HumanoidAnimator {
   }
 }
 
+// the movement skills' clips (data/action-clips.json), by dash kind
+const MOVE_CLIPS = { dash: 'moveDash', roll: 'moveRoll', blink: 'moveBlink', leap: 'moveLeap' };
+// the roll takes only the limbs' tuck from its clip: the reference's trunk pitches over with the dive, and the
+// game turns the whole body itself (hipsSpinX)
+const ROLL_LIMBS = new Set(['armL', 'armR', 'elbowL', 'elbowR', 'legL', 'legR', 'kneeL', 'kneeR', 'weapon']);
 const FIERCE = new Set(['staffBolt', 'slashA', 'slashB', 'slashC', 'heavyA', 'heavyB', 'heavyC', 'stabA', 'stabB', 'stabC', 'whirl', 'warcry', 'bow', 'throw', 'bolt', 'zap', 'slam', 'nova', 'sow', 'hex', 'thrust', 'shieldBash', 'guardBlock', 'splitChop', 'bowShot', 'bowSkyShot', 'bowDrawHold', 'bowLooseShot', 'boltCast', 'sunderChop', 'sunderChop1H', 'staffCast', 'staffCastHeld', 'flankStab', 'shieldShove', 'breakbeatSlam', 'whirlSpin', 'warCryRoar', 'riposteGuard']);
 const IK_T = new THREE.Vector3();
 const SUPPORT_PASSES = 3;
@@ -772,7 +754,6 @@ const W_A = new THREE.Vector3(), W_B = new THREE.Vector3(), W_T = new THREE.Vect
 const W_M = new THREE.Matrix4(), W_Q = new THREE.Quaternion();
 const AIM_Q = new THREE.Quaternion();
 const AIM_R = new THREE.Quaternion();
-const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 
 const IDLE_BONES = ['legL', 'legR', 'kneeL', 'kneeR', 'footL', 'footR', 'armL', 'armR', 'elbowL', 'elbowR', 'handL', 'handR', 'torso', 'chest', 'head', 'hips'];
 const ZERO3 = [0, 0, 0];

@@ -471,7 +471,7 @@ export function prepareChibiHair(gltf, cfg) {
   // is not drawn, so it cannot poke through the helm; the fringe in a hood's opening stays
   const u = cfg.underHelm;
   const underHelm = u ? cutAbove(geometry, box.min.y + u.above * (box.max.y - box.min.y), box.min.z + u.front * (box.max.z - box.min.z)) : null;
-  return { geometry, underHelm, underShrink: u?.shrink ?? 1, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
+  return { geometry, underHelm, material, box, fit: cfg.fit || {}, highlight: cfg.highlight || null };
 }
 
 /** The triangles of a geometry less those whose centre lies above height y and behind depth z (a shared copy). */
@@ -498,45 +498,82 @@ function keepPart(geometry, box, [side, at]) {
   return g;
 }
 
+/** The hair's (or, `uniform`, a modelled helm's) place on the head bone: position and per-axis scale. */
+function hairFrame(T, H, uniform) {
+  const hb = T.headBox, b = H.box, f = H.fit;
+  const hw = hb.max.x - hb.min.x, hd = hb.max.z - hb.min.z, hh = hb.max.y - hb.min.y;
+  // per axis: the chibi head is rounder than the head the hair was made on
+  const sx = (hw * (f.width ?? 1.15)) / (b.max.x - b.min.x), sz = (hd * (f.depth ?? 1.15)) / (b.max.z - b.min.z);
+  const sy = ((sx + sz) / 2) * (f.height ?? 1);
+  const position = new THREE.Vector3((hb.min.x + hb.max.x) / 2 + hw * (f.side ?? 0) - sx * (b.min.x + b.max.x) / 2,
+    hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
+    (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
+  const scale = new THREE.Vector3(sx, sy, sz);
+  if (uniform) {
+    // a helm is not squashed to the head like the hair: one scale, about the hair box's middle
+    const s = (sx + sy + sz) / 3, c = b.getCenter(new THREE.Vector3());
+    position.add(new THREE.Vector3(sx * c.x, sy * c.y, sz * c.z)).sub(c.multiplyScalar(s));
+    scale.setScalar(s);
+  }
+  return { position, scale };
+}
+
+/**
+ * The hair kept inside a modelled helm: each hair point the helm's surface lies in front of, seen
+ * from the head's middle, is pulled back to just inside it, so no hair pokes through and none is
+ * cut away. Computed once per helm and hair (cached on the helm model).
+ */
+function hairInsideHelm(T, H, model) {
+  const cache = (model.inside ||= new WeakMap());
+  if (cache.has(H)) return cache.get(H);
+  const hf = hairFrame(T, H, false), mf = hairFrame(T, H, true), hb = T.headBox;
+  const helm = new THREE.Mesh(model.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  helm.position.copy(mf.position); helm.scale.copy(mf.scale); helm.updateMatrixWorld(true);
+  const centre = hb.getCenter(new THREE.Vector3());
+  const margin = 0.04 * (hb.max.x - hb.min.x);
+  const geometry = H.geometry.clone(), pos = geometry.attributes.position;
+  const ray = new THREE.Raycaster(), v = new THREE.Vector3(), dir = new THREE.Vector3(), hits = [];
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).multiply(hf.scale).add(hf.position);
+    const dist = dir.subVectors(v, centre).length();
+    if (dist < 1e-6) continue;
+    dir.divideScalar(dist);
+    ray.set(centre, dir); ray.far = dist + margin;
+    hits.length = 0;
+    helm.raycast(ray, hits);
+    if (!hits.length) continue; // through the helm's opening (the fringe over the face)
+    const near = Math.min(...hits.map((h) => h.distance));
+    if (dist <= near - margin) continue;
+    v.copy(centre).addScaledVector(dir, Math.max(near - margin, 0)).sub(hf.position).divide(hf.scale);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+  geometry.computeVertexNormals();
+  geometry.userData.shared = true; // kept with the helm model
+  helm.material.dispose();
+  cache.set(H, geometry);
+  return geometry;
+}
+
 /**
  * Put the hair on the chibi head bone: scaled so its width and depth are `fit.width` and
  * `fit.depth` × the head's (height: their mean × `fit.height`), centred on the head across and
  * front-to-back (moved back by `fit.back` × head depth, and toward +X by `fit.side` × head width)
  * and its top `fit.lift` × head height above the head's. Toon material with a plain outline hull.
- * Under a `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one; a modelled helm
- * (`model`, headwear only) is drawn over that cut, or over the whole hair when it is a band worn on
- * top of it (`withHair`).
+ * Under a code-built `helm`, the hair drawn is its under-helm cut (`underHelm`), if it has one. A
+ * modelled helm (`model`, headwear only) is drawn over the whole hair, kept inside it
+ * (hairInsideHelm), or over the hair as it is when it is a band worn on top of it (`withHair`).
  */
-export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null } = {}) {
+export function attachChibiHair(rig, T, H, { outline = 0.012, darkness = 0.32, rim = 0.3, helm = false, model = null, geometry: own = null } = {}) {
   const headBone = rig.skin?.body.getObjectByName('Head');
   if (!headBone || !T.headBox) return;
-  // a modelled helm is headwear only: the hero's own hair goes under it (its under-helm cut), or
-  // whole under a band worn over the hair (a circlet's `withHair` model)
-  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, helm: !model.withHair });
-  const hb = T.headBox, b = H.box, f = H.fit;
-  const hw = hb.max.x - hb.min.x, hd = hb.max.z - hb.min.z, hh = hb.max.y - hb.min.y;
-  // per axis: the chibi head is rounder than the head the hair was made on
-  let sx = (hw * (f.width ?? 1.15)) / (b.max.x - b.min.x), sz = (hd * (f.depth ?? 1.15)) / (b.max.z - b.min.z);
-  const sy = ((sx + sz) / 2) * (f.height ?? 1);
-  // under a helm the hair is drawn a little slimmer across and front to back (`underHelm.shrink`), so
-  // its side tips stay inside the helm
-  if (helm && !model) { const k = H.underShrink ?? 1; sx *= k; sz *= k; }
+  if (model) attachChibiHair(rig, T, H, { outline, darkness, rim, geometry: model.withHair ? null : hairInsideHelm(T, H, model) });
+  const { position, scale } = hairFrame(T, H, model && !model.withHair);
   const g = new THREE.Group();
-  g.scale.set(sx, sy, sz);
-  g.position.set((hb.min.x + hb.max.x) / 2 + hw * (f.side ?? 0) - sx * (b.min.x + b.max.x) / 2,
-    hb.max.y + hh * (f.lift ?? 0) - sy * b.max.y,
-    (hb.min.z + hb.max.z) / 2 - hd * (f.back ?? 0) - sz * (b.min.z + b.max.z) / 2);
-  const s = (sx + sy + sz) / 3;
-  if (model && !model.withHair) {
-    // a helm is not squashed to the head like the hair: one scale, about the hair box's middle
-    // (a band worn on the hair is fitted to that hair, so it takes the hair's own scale)
-    const c = b.getCenter(new THREE.Vector3());
-    g.position.add(new THREE.Vector3(sx * c.x, sy * c.y, sz * c.z)).sub(c.multiplyScalar(s));
-    g.scale.setScalar(s);
-  }
+  g.position.copy(position); g.scale.copy(scale);
+  const s = (scale.x + scale.y + scale.z) / 3;
   const flash = rig.material.userData.flash;
-  // a modelled helm (chibi-garments.js prepareChibiHelm) comes with its own hair, in the hair's frame
-  const geometry = model ? model.geometry : helm && H.underHelm ? H.underHelm : H.geometry, src = model ? model.material : H.material;
+  const geometry = model ? model.geometry : own || (helm && H.underHelm ? H.underHelm : H.geometry), src = model ? model.material : H.material;
   const hair = new THREE.Mesh(geometry, paintedLight(toonCopy(src, flash, rim, false), T.paintedLight));
   hair.material.side = THREE.DoubleSide; // a shell: its inside shows under the fringe
   if (H.highlight && !model) hairHighlightMaterial(hair.material, H.box, H.highlight);

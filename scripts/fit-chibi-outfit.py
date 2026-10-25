@@ -100,12 +100,12 @@ bmesh.ops.triangulate(bm, faces=bm.faces[:])
 collar, skin = set(), set()
 if 'collar' in C:
     # a fur collar round the neck (`collar`: its pale, unsaturated faces between `from` and `top`,
-    # within `half` across and in front of `back`): kept whole above the neck cut and placed as one
+    # within `half` across and in front of `back`, or a hood's fur drape behind `behind`): kept whole above the neck cut and placed as one
     # piece (below), since the chibi's big head leaves no room for the torso warp to bend it
     K = C['collar']; cw, ch = img.size; cpx = np.array(img.pixels[:]).reshape(ch, cw, 4)[:, :, :3] * 255
     for f in bm.faces:
         c = f.calc_center_median()
-        if not (K['from'] < c.z < K['top'] and abs(c.x) < K['half'] and c.y < K.get('back', 0.03)): continue
+        if not (K['from'] < c.z < K['top'] and abs(c.x) < K['half'] and (c.y > K['behind'] if 'behind' in K else c.y < K.get('back', 0.03))): continue
         u = sum(l[uvl].uv.x for l in f.loops) / len(f.loops); v = sum(l[uvl].uv.y for l in f.loops) / len(f.loops)
         col = cpx[int(np.clip((v % 1) * ch, 0, ch - 1)), int(np.clip((u % 1) * cw, 0, cw - 1))]
         if col.min() > K.get('light', 120) and col.max() - col.min() < K.get('grey', 50): collar.add(f)
@@ -131,6 +131,10 @@ for f in bm.faces:
     # the sleeve cut is for the arms only (from the armpits up): lower down it would cut the outer
     # half off wide hips, trousers and boots
     if f in collar: continue
+    # `backCut` [z, y]: behind y the coat ends lower, at z, under a hood's drape (the neck cut would
+    # slice the hood's fur open there)
+    if 'backCut' in C and c.z > C['backCut'][0] and c.y > C['backCut'][1]:
+        drop.append(f); continue
     if (abs(c.x) > C['cuff'] and c.z > C.get('armpit', 0.66)) or (c.z > C['neck'] and abs(c.x) < C.get('neckHalf', 0.16)) or c.z > C.get('top', C['neck'] + 0.03):
         drop.append(f)
 bmesh.ops.delete(bm, geom=drop, context='FACES')

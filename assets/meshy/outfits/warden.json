@@ -43,6 +43,10 @@
  },
  "chinCut": 0.07,
  "chinBack": 0.3,
- "drape": 0.09,
- "drapeY": -0.02
+ "drape": 0.17,
+ "drapeY": -0.02,
+ "backCut": [
+  0.84,
+  0.0
+ ]
 }

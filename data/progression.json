@@ -51,8 +51,7 @@
         "attack": 0.2
       },
       "LUK": {
-        "critChancePct": 0.15,
-        "gearFindPct": 0.1
+        "critChancePct": 0.15
       }
     },
     "critMult": 1.5,

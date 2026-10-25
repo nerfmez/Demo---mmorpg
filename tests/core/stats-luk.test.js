@@ -17,14 +17,14 @@ test('LUK is a stat: it starts like the others, takes points and is refunded by 
   assert.ok(ch.statPoints >= 2);
 });
 
-test('LUK raises crit chance (and gear find); DEX raises crit damage, not crit chance', () => {
+test('LUK raises crit chance only (drop find stays in the tree and gear); DEX raises crit damage, not crit chance', () => {
   const base = createCharacter(data), d0 = derive(base, data);
   const luk = createCharacter(data); luk.stats.LUK += 20;
   const dex = createCharacter(data); dex.stats.DEX += 20;
   const dl = derive(luk, data), dd = derive(dex, data);
   assert.ok(dl.critChance > d0.critChance, 'LUK: crit chance');
   assert.equal(dl.critMult, d0.critMult, 'LUK: no crit damage');
-  assert.ok(dl.gearFindPct > d0.gearFindPct, 'LUK: gear find');
+  for (const k of ['gearFindPct', 'materialFindPct', 'goldFindPct']) assert.equal(dl[k], d0[k], `LUK: no ${k} (owner)`);
   assert.ok(dd.critMult > d0.critMult, 'DEX: crit damage');
   assert.equal(dd.critChance, d0.critChance, 'DEX: no crit chance');
   assert.ok(dd.projectileDamagePct > d0.projectileDamagePct, 'DEX keeps its ranged damage');

@@ -134,11 +134,13 @@ outfit for the chibi hero (`data/models.json` characters `outfit_<item id>`, `ch
    not removed: the covered vertices are tucked inside the cloth, shaded as its inside and pushed back
    in depth (`characters.hero_chibi.underCloth`), so nothing pokes through, no gap ever shows the
    background, and no per-pose adjustment is needed; garment insides are shaded too.
-   Gloves still use the code-built pieces.
-4. Helms: `scripts/fit-chibi-helm.py` cuts the same model's headwear together with the hair drawn
-   under it (the face cut away) and moves it onto the Travel model's head by the eyes, the frame the
-   hero's hair is fitted in. Worn, it is drawn in place of the hero's hair (`outfit_<helm id>`,
-   `chibiOutfit` "helm"); the crabshell helm, which has no sheet, keeps the built one. The feather
+   Gloves (and boots without a model) still use the code-built shells; the body inside them is
+   tucked the same way, and each shell is cut clean at its length in the shader.
+4. Helms: `scripts/fit-chibi-helm.py` cuts the same model's headwear only (its generated hair and
+   the face cut away) and moves it onto the Travel model's head by the eyes, the frame the hero's
+   hair is fitted in. Worn, it is drawn over the hero's own hair (`outfit_<helm id>`, `chibiOutfit`
+   "helm"), the hair pulled just inside it, so none pokes through and none is cut away; the
+   crabshell helm, which has no sheet, keeps the built one. The feather
    circlet is its own Meshy model (`scripts/fit-feather-circlet.py`) drawn over the hero's hair
    (`withHair`).
 

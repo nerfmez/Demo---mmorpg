@@ -579,6 +579,7 @@ body.hide_set(True)
 for o in bpy.data.objects: o.select_set(False)
 arm.select_set(True)
 for path, ob in ((C['out']['armor'], outs[1]), (C['out']['boots'], outs[0])):
+    if not path: continue  # a piece the game does not use (another set's is worn)
     for o in outs: o.select_set(o is ob)
     bpy.ops.export_scene.gltf(filepath=path, use_selection=True, export_format='GLB', export_skins=True, export_animations=False,
                               export_image_format='JPEG', export_jpeg_quality=88, export_extras=True, export_morph=False, export_yup=True)

@@ -10,8 +10,8 @@ with a neck, so the outfit sheets' Meshy models fit it with little warping.
 Next: rig it with the chibi armature, refit the outfit sets onto it, then the owner's face and hair.
 
 In game (2026-10-25): rigged by Meshy at 1.2 m (task 01a172f9-b5d4-73b6-a4bc-2a36657a6107, 5 credits;
-`chibi_base_rigged.glb`, the same 24 bones as before), decimated to 5,200 triangles
-(`scripts/decimate-chibi.py`) and prepared by `scripts/prep-chibi.py --size 2048 --quality 86` into
+`chibi_base_rigged.glb`, the same 24 bones as before), welded and decimated to 5,199 triangles
+(`scripts/decimate-chibi.py`; the first cut, unwelded, opened cracks along every UV seam) and prepared by `scripts/prep-chibi.py --size 2048 --quality 86` into
 `public/models/hero_chibi.glb`, replacing the first chibi body. It needs no head reshape or torso
 flatten; its landmarks (`characters.hero_chibi.fit`) move the outfit sets' fits onto it, and all nine
 armour sets were refitted. The first body's face and neck paint scripts do not apply to it.

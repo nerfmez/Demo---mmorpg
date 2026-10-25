@@ -32,11 +32,12 @@ function bodySkin(T) {
 }
 
 /**
- * The body's triangles whose three corners pass `keep(x, y, z)` (bind space), pushed out `off`
- * along the normals, keeping the skin weights and any morph targets (the chibi's fists), so the
- * shell moves and closes exactly with the body.
+ * The body's triangles whose three corners pass `keep(x, y, z)` (bind space; `any`: at least one
+ * corner, for a shell its shader cuts clean at the region's line), pushed out `off` along the
+ * normals, keeping the skin weights and any morph targets (the chibi's fists), so the shell moves and
+ * closes exactly with the body.
  */
-export function regionShell(T, key, keep, off) {
+export function regionShell(T, key, keep, off, any = false) {
   return cached(T, key, () => {
     const src = bodySkin(T).geometry, P = src.attributes.position, N = src.attributes.normal;
     const SI = src.attributes.skinIndex, SW = src.attributes.skinWeight, ix = src.index.array;
@@ -56,7 +57,7 @@ export function regionShell(T, key, keep, off) {
     };
     for (let t = 0; t < ix.length; t += 3) {
       const a = ix[t], b = ix[t + 1], c = ix[t + 2];
-      if (inside(a) && inside(b) && inside(c)) tri.push(at(a), at(b), at(c));
+      if (any ? inside(a) || inside(b) || inside(c) : inside(a) && inside(b) && inside(c)) tri.push(at(a), at(b), at(c));
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

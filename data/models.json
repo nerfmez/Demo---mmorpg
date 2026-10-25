@@ -667,7 +667,7 @@
       },
       "file": "models/hero_chibi.glb",
       "chibi": true,
-      "tris": 5200,
+      "tris": 5199,
       "fit": {
         "_doc": "The body's own landmarks (m) the modelled outfits are fitted to (scripts/fit-chibi-outfit.py): the crotch, the T-pose arm axis, the neck cut, the fingertips out from the middle, and the torso's width against the first chibi body's.",
         "crotch": 0.49,

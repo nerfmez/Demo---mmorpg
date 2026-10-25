@@ -430,7 +430,9 @@ as in anime games' face shadow maps; the hair has a jagged highlight band on its
 its own body (`regionShell`, morph targets kept so gloves close with the fists), painted by
 `garments.js` reading its bind position and landmarks times `SCALE` (1.7, the HairSample body's
 size), its bones converted from the armature's centimetres. Helms use `helmFit`, larger and higher
-than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh.
+than `headFit`, to sit over the hair. In Godot build the same shells from the chibi mesh. The body
+mesh is closed: `scripts/decimate-chibi.py` welds the glTF's split UV seams before decimating, or every
+seam opens into a crack that shows the background and that the shells copy.
 An armour or boots item with a modelled outfit (`characters.outfit_<item id>`, `chibiOutfit`
 "armor" or "boots"; `scripts/fit-chibi-outfit.py` fits a Meshy-generated dressed chibi onto this body)
 wears that model instead of the shells it replaces (armour: top, trousers, skirt; boots: boots): one
@@ -442,7 +444,12 @@ a vertex is tucked only when every triangle round it is covered) and drawn at `u
 light (a `tucked` vertex attribute) and pushed `underCloth.depth` further from the camera along its view
 ray in the vertex shader (body and outline hull), so the cloth always wins the depth test, the skin
 cannot poke through and a gap shows shade, never the background. In Godot do the same in the body's
-spatial shader (VERTEX in view space, scaled along itself). Garments and modelled helms draw their back faces at `underCloth.inside`
+spatial shader (VERTEX in view space, scaled along itself). The glove shells (and boot shells
+where no model replaces them) tuck the body the same way: the body triangles wholly inside a shell's
+region are covered and every body vertex inside it is pushed back in full (the shell's edge falls
+inside the body's edge triangles), and the shell keeps every triangle reaching into the region (`regionShell` `any`)
+while its shader discards past the region's line (`uCutD.w`, margin `uCutD.y`), so its edge is
+straight, not the body's triangles. Garments and modelled helms draw their back faces at `underCloth.inside`
 of their light, so a hollow pad or open collar reads as shaded cloth. The models load
 when first worn (like weapons) and the hero is redressed when one arrives. A modelled helm
 (`chibiOutfit` "helm") is a plain mesh of the headwear only, placed on the head bone exactly as the
